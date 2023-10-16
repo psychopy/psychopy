@@ -105,11 +105,17 @@ _localizedDialogs = {
     'set every frame': _translate('set every frame'),
     # strings for allowedVals in settings:
     'add': _translate('add'),
-    'avg': _translate('average'),  # blend mode
+    'avg': _translate('average'),
+    'average (no FBO)': _translate('average (no FBO)'),  # blend mode
     'use prefs': _translate('use preferences'),
     'on Sync': _translate('on Sync'), # export HTML
     'on Save': _translate('on Save'),
     'manually': _translate('manually'),
+    # Data file delimiter
+    'auto': _translate('auto'),
+    'comma': _translate('comma'),
+    'semicolon': _translate('semicolon'),
+    'tab': _translate('tab'),
     # logging level:
     'debug': _translate('debug'),
     'info': _translate('info'),
@@ -120,10 +126,14 @@ _localizedDialogs = {
     # Experiment info dialog:
     'Field': _translate('Field'),
     'Default': _translate('Default'),
+    # Keyboard:
+    'press': _translate('press'),
+    'release': _translate('release'),
     # Mouse:
     'any click': _translate('any click'),
     'valid click': _translate('valid click'),
     'on valid click': _translate('on valid click'),
+    'correct click': _translate('correct click'),
     'mouse onset':_translate('mouse onset'),
     'Routine': _translate('Routine'),
     # Joystick:
@@ -139,6 +149,7 @@ _localizedDialogs = {
     'rectangle': _translate('rectangle'),
     'cross': _translate('cross'),
     'star': _translate('star'),
+    'arrow': _translate('arrow'),
     'regular polygon...': _translate('regular polygon...'),
     'custom polygon...': _translate('custom polygon...'),
     # Form
@@ -169,10 +180,27 @@ _localizedDialogs = {
     'Start and Stop': _translate('Start and Stop'),
     'Start Only': _translate('Start Only'),
     'Stop Only': _translate('Stop Only'),
+    'None': _translate('None'),
     # ResourceManager
     'Start and Check': _translate('Start and Check'),
     # 'Start Only': _translate('Start Only'),  # defined in Eyetracker - Recording
-    'Check Only': _translate('Check Only')
+    'Check Only': _translate('Check Only'),
+    # Panorama
+    'Mouse': _translate('Mouse'),
+    'Drag': _translate('Drag'),
+    'Keyboard (Arrow Keys)': _translate('Keyboard (Arrow Keys)'),
+    'Keyboard (WASD)': _translate('Keyboard (WASD)'),
+    'Keyboard (Custom keys)': _translate('Keyboard (Custom keys)'),
+    'Mouse Wheel': _translate('Mouse Wheel'),
+    'Mouse Wheel (Inverted)': _translate('Mouse Wheel (Inverted)'),
+    'Keyboard (+-)': _translate('Keyboard (+-)'),
+    'Custom': _translate('Custom'),
+    # TextBox
+    'visible': _translate('visible'),
+    'scroll': _translate('scroll'),
+    'hidden': _translate('hidden'),
+    # Form
+    'custom...': _translate('custom...')
 }
 
 

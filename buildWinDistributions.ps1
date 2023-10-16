@@ -38,7 +38,6 @@ for ($i=0; $i -lt $pyPaths.Length; $i++) {
     # "C:\Program Files\Caphyon\Advanced Installer 13.1\bin\x86\AdvancedInstaller.com" /rebuild PsychoPy_AdvancedInstallerProj.aip
 
     if ($install_pp -eq 1) {
-        Invoke-Expression ("& '{0}python.exe' setup.py clean --all" -f $pyPaths[$i])  # clean up our build dir
         # try to uninstall psychopy from site-packages
         Invoke-Expression ("& '{0}python.exe' -m pip uninstall -y psychopy" -f $pyPaths[$i])
         # re-install the current version as editable/developer

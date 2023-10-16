@@ -3,14 +3,12 @@ from wx.lib import scrolledpanel
 import webbrowser
 from PIL import Image as pil
 
-from .utils import uninstallPackage, installPackage
 from psychopy.tools import pkgtools
 from psychopy.app.themes import theme, handlers, colors, icons
+from psychopy.tools.versionchooser import VersionRange
 from psychopy.app import utils
 from psychopy.localization import _translate
-from psychopy import plugins
-from psychopy.preferences import prefs
-from psychopy.experiment import getAllElements
+from psychopy import plugins, __version__
 import requests
 
 
@@ -33,7 +31,8 @@ class AuthorInfo:
                  name="",
                  email="",
                  github="",
-                 avatar=None):
+                 avatar=None,
+                 **kwargs):
         self.name = name
         self.email = email
         self.github = github
@@ -86,8 +85,8 @@ class PluginInfo:
     def __init__(self,
                  pipname, name="",
                  author=None, homepage="", docs="", repo="",
-                 keywords=None,
-                 icon=None, description=""):
+                 keywords=None, version=(None, None),
+                 icon=None, description="", **kwargs):
         self.pipname = pipname
         self.name = name
         self.author = author
@@ -97,6 +96,12 @@ class PluginInfo:
         self.icon = icon
         self.description = description
         self.keywords = keywords or []
+        self.version = VersionRange(*version)
+
+        self.parent = None   # set after
+
+        # icon graphic
+        self._icon = None
 
     def __repr__(self):
         return (f"<psychopy.plugins.PluginInfo: {self.name} "
@@ -108,15 +113,32 @@ class PluginInfo:
         else:
             return self.pipname == str(other)
 
+    def setParent(self, parent):
+        """Set the parent window or panel.
+
+        Need a parent to invoke methods on the top-level window. Might not
+        be set.
+
+        Parameters
+        ----------
+        parent : wx.Window or wx.Panel
+            Parent window or panel.
+
+        """
+        self.parent = parent
+
     @property
     def icon(self):
+        # memoize on first access
+        if self._requestedIcon is not None:
+            self._icon = utils.ImageData(self._requestedIcon)
+
         if hasattr(self, "_icon"):
             return self._icon
 
     @icon.setter
     def icon(self, value):
         self._requestedIcon = value
-        self._icon = utils.ImageData(value)
 
     @property
     def active(self):
@@ -138,46 +160,18 @@ class PluginInfo:
         plugins.startUpPlugins(current, add=False, verify=False)
 
     def install(self):
-        dlg = installPackage(self.pipname)
-        # Refresh and enable
-        plugins.scanPlugins()
-        try:
-            self.activate()
-            plugins.loadPlugin(self.pipname)
-        except RuntimeError:
-            prefs.general['startUpPlugins'].append(self.pipname)
-            dlg.writeStdErr(_translate(
-                "[Warning] Could not activate plugin. PsychoPy may need to restart for plugin to take effect."
-            ))
-        # Show list of components/routines now available
-        emts = []
-        for name, emt in getAllElements().items():
-            if hasattr(emt, "plugin") and emt.plugin == self.pipname:
-                cats = ", ".join(emt.categories)
-                emts.append(f"{name} ({cats})")
-        if len(emts):
-            msg = _translate(
-                "The following components/routines should now be visible in the Components panel:\n"
-            )
-            for emt in emts:
-                msg += (
-                    f"    - {emt}\n"
-                )
-            dlg.write(msg)
-        # Show info link
-        if self.docs:
-            msg = _translate(
-                "\n"
-                "\n"
-                "For more information about the %s plugin, read the documentation at:\n"
-            ) % self.name
-            dlg.write(msg)
-            dlg.writeLink(self.docs, link=self.docs)
+        if self.parent is None:
+            return
+
+        wx.CallAfter(
+            self.parent.GetTopLevelParent().installPlugin, self)
 
     def uninstall(self):
-        uninstallPackage(self.pipname)
-        pkgtools.refreshPackages()
-        plugins.scanPlugins()
+        if self.parent is None:
+            return
+
+        wx.CallAfter(
+            self.parent.GetTopLevelParent().uninstallPackage, self.pipname)
 
     @property
     def installed(self):
@@ -202,8 +196,9 @@ class PluginInfo:
 
 
 class PluginManagerPanel(wx.Panel, handlers.ThemeMixin):
-    def __init__(self, parent):
+    def __init__(self, parent, dlg):
         wx.Panel.__init__(self, parent, style=wx.NO_BORDER)
+        self.dlg = dlg
         # Setup sizer
         self.border = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.border)
@@ -213,9 +208,9 @@ class PluginManagerPanel(wx.Panel, handlers.ThemeMixin):
         self.splitter = wx.SplitterWindow(self, style=wx.NO_BORDER)
         self.sizer.Add(self.splitter, proportion=1, border=0, flag=wx.EXPAND | wx.ALL)
         # Make list
-        self.pluginList = PluginBrowserList(self.splitter)
+        self.pluginList = PluginBrowserList(self.splitter, stream=dlg.output)
         # Make viewer
-        self.pluginViewer = PluginDetailsPanel(self.splitter)
+        self.pluginViewer = PluginDetailsPanel(self.splitter, stream=self.dlg.output)
         # Cross-reference viewer & list
         self.pluginViewer.list = self.pluginList
         self.pluginList.viewer = self.pluginViewer
@@ -284,6 +279,9 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             self.pipNameLbl.Bind(wx.EVT_LEFT_DOWN, self.onSelect)
             # Bind navigation
             self.Bind(wx.EVT_NAVIGATION_KEY, self.onNavigation)
+
+            # Handle version mismatch
+            self.installBtn.Enable(__version__ in self.info.version)
 
             self._applyAppTheme()
 
@@ -413,10 +411,11 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             self.markActive(self.info.active)
 
 
-    def __init__(self, parent, viewer=None):
+    def __init__(self, parent, stream, viewer=None):
         scrolledpanel.ScrolledPanel.__init__(self, parent=parent, style=wx.VSCROLL)
         self.parent = parent
         self.viewer = viewer
+        self.stream = stream
         # Setup sizer
         self.border = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.border)
@@ -429,6 +428,10 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         # Setup items sizers & labels
         self.itemSizer = wx.BoxSizer(wx.VERTICAL)
         self.sizer.Add(self.itemSizer, proportion=1, border=3, flag=wx.ALL | wx.EXPAND)
+        self.badItemLbl = wx.StaticText(self, label=_translate("Not for PsychoPy {}:").format(__version__))
+        self.sizer.Add(self.badItemLbl, border=9, flag=wx.ALL | wx.EXPAND)
+        self.badItemSizer = wx.BoxSizer(wx.VERTICAL)
+        self.sizer.Add(self.badItemSizer, border=3, flag=wx.ALL | wx.EXPAND)
 
         # Bind deselect
         self.Bind(wx.EVT_LEFT_DOWN, self.onDeselect)
@@ -442,14 +445,16 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             self.initState[item.info.pipname] = {"installed": item.info.installed, "active": item.info.active}
 
     def populate(self):
-        for item in self.items:
-            self.removeItem(item)
         # Get all plugin details
         items = getAllPluginDetails()
+        # Start off assuming no headings
+        self.badItemLbl.Hide()
         # Put installed packages at top of list
         items.sort(key=lambda obj: obj.installed, reverse=True)
         for item in items:
+            item.setParent(self)
             self.appendItem(item)
+
         # Layout
         self.Layout()
         self.SetupScrolling()
@@ -549,11 +554,18 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
     def _applyAppTheme(self):
         # Set colors
         self.SetBackgroundColour("white")
+        # Style heading(s)
+        from psychopy.app.themes import fonts
+        self.badItemLbl.SetFont(fonts.appTheme['h6'].obj)
 
     def appendItem(self, info):
         item = self.PluginListItem(self, info)
         self.items.append(item)
-        self.itemSizer.Add(item, border=6, flag=wx.ALL | wx.EXPAND)
+        if __version__ in item.info.version:
+            self.itemSizer.Add(item, border=6, flag=wx.ALL | wx.EXPAND)
+        else:
+            self.badItemSizer.Add(item, border=6, flag=wx.ALL | wx.EXPAND)
+            self.badItemLbl.Show()
 
     def getItem(self, info):
         """
@@ -567,10 +579,12 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
 class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
     iconSize = (128, 128)
 
-    def __init__(self, parent, info=None, list=None):
+    def __init__(self, parent, stream, info=None, list=None):
         wx.Panel.__init__(self, parent)
+        self.SetMinSize((480, 620))
         self.parent = parent
         self.list = list
+        self.stream = stream
         # Setup sizers
         self.border = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.border)
@@ -589,9 +603,13 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         # Pip name
         self.pipName = wx.StaticText(self, label="psychopy-...")
         self.titleSizer.Add(self.pipName, flag=wx.EXPAND)
+        # Space
+        self.titleSizer.AddStretchSpacer()
+        # Versions
+        self.versionCtrl = wx.StaticText(self, label=_translate("Version:"))
+        self.titleSizer.Add(self.versionCtrl, border=6, flag=wx.TOP | wx.LEFT | wx.RIGHT | wx.EXPAND)
         # Buttons
         self.buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.titleSizer.AddStretchSpacer()
         self.titleSizer.Add(self.buttonSizer, flag=wx.EXPAND)
         # Install btn
         self.installBtn = wx.Button(self)
@@ -652,6 +670,7 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         # Set background
         self.SetBackgroundColour("white")
         self.keywordsCtrl.SetBackgroundColour("white")
+        self.versionCtrl.SetForegroundColour("grey")
         # Set fonts
         from psychopy.app.themes import fonts
         self.title.SetFont(fonts.appTheme['h1'].obj)
@@ -719,7 +738,8 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         Parameters
         ----------
         state : bool
-            Active state to set, True for active or False for inactive. Default is `True`.
+            Active state to set, True for active or False for inactive. Default
+            is `True`.
 
         """
         # Mark as pending
@@ -780,6 +800,7 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
                 "psychopy-...",
                 name="..."
             )
+
         self._info = value
         # Set icon
         icon = value.icon
@@ -788,11 +809,8 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         if isinstance(icon, pil.Image):
             # Resize to fit ctrl
             icon = icon.resize(size=self.iconSize)
-            # Supply an alpha channel if there is one
-            if "A" in icon.getbands():
-                alpha = icon.tobytes("raw", "A")
-            else:
-                alpha = None
+            # Supply an alpha channel
+            alpha = icon.tobytes("raw", "A")
             icon = wx.Bitmap.FromBufferAndAlpha(
                 width=icon.size[0],
                 height=icon.size[1],
@@ -813,11 +831,21 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         # self.markActive(value.active)
         # Set description
         self.description.setValue(value.description)
+        # Set version text
+        self.versionCtrl.SetLabelText(_translate(
+            "Works with versions {}."
+        ).format(value.version))
+        self.versionCtrl.Show(
+            value.version.first is not None or value.version.last is not None
+        )
         # Set keywords
         self.keywordsCtrl.items = value.keywords
 
         # Set author info
         self.author.info = value.author
+
+        # Handle version mismatch
+        self.installBtn.Enable(__version__ in self.info.version)
 
         self.Layout()
 
@@ -899,10 +927,6 @@ class AuthorDetailsPanel(wx.Panel, handlers.ThemeMixin):
             # Resize to fit ctrl
             icon = icon.resize(size=self.avatarSize)
             # Supply an alpha channel
-            if "A" not in icon.getbands():
-                # Make sure there's an alpha channel to supply
-                alpha = pil.new("L", icon.size, 255)
-                icon.putalpha(alpha)
             alpha = icon.tobytes("raw", "A")
 
             icon = wx.Bitmap.FromBufferAndAlpha(
@@ -987,7 +1011,7 @@ def markInstalled(pluginItem, pluginPanel, installed=True):
         if installed is None:
             # If pending, show elipsis and refresh icon
             pluginPanel.installBtn.Show()
-            pluginPanel.installBtn.Enable()
+            pluginPanel.installBtn.Enable(__version__ in pluginItem.info.version)
             pluginPanel.installBtn.SetLabel("...")
             _setAllBitmaps(pluginPanel.installBtn, icons.ButtonIcon("view-refresh", 16).bitmap)
             # Hide active button while pending
@@ -1003,7 +1027,7 @@ def markInstalled(pluginItem, pluginPanel, installed=True):
         else:
             # If not installed, show "Install" and download icon
             pluginPanel.installBtn.Show()
-            pluginPanel.installBtn.Enable()
+            pluginPanel.installBtn.Enable(__version__ in pluginItem.info.version)
             pluginPanel.installBtn.SetLabel(_translate("Install"))
             _setAllBitmaps(pluginPanel.installBtn, icons.ButtonIcon("download", 16).bitmap)
             # Hide active button when not installed

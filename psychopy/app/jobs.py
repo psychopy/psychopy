@@ -174,6 +174,9 @@ class Job:
         Callback function called when `poll` is invoked and the error pipe has
         data. Data is passed to the first argument of the callable object. You
         may set `inputCallback` and `errorCallback` using the same function.
+    extra : dict or None
+        Dict of extra variables to be accessed by callback functions, use None
+        for a blank dict.
 
     Examples
     --------
@@ -188,7 +191,7 @@ class Job:
 
     """
     def __init__(self, parent, command='', terminateCallback=None,
-                 inputCallback=None, errorCallback=None):
+                 inputCallback=None, errorCallback=None, extra=None):
 
         # command to be called, cannot be changed after spawning the process
         self.parent = parent
@@ -206,6 +209,10 @@ class Job:
         self.inputCallback = inputCallback
         self.errorCallback = errorCallback
         self.terminateCallback = terminateCallback
+        # user defined additional info
+        if extra is None:
+            extra = {}
+        self.extra = extra
 
         # non-blocking pipe reading threads and FIFOs
         self._stdoutReader = None

@@ -1122,8 +1122,9 @@ class GammaLumValsDlg(wx.Dialog):
         btnOK.SetDefault()
         btnCANC = wx.Button(panel, wx.ID_CANCEL, _translate(" Cancel "))
 
-        butBox.Add(btnOK, 1, wx.BOTTOM | wx.ALIGN_RIGHT, pad)
-        butBox.Add(btnCANC, 1, wx.BOTTOM | wx.RIGHT | wx.ALIGN_RIGHT, pad)
+        butBox.AddStretchSpacer(1)
+        butBox.Add(btnOK, 1, wx.BOTTOM, pad)
+        butBox.Add(btnCANC, 1, wx.BOTTOM | wx.RIGHT, pad)
         mainSizer.Add(butBox, flag=wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM,
                       border=10)
 

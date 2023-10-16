@@ -1,17 +1,16 @@
 from psychopy import visual, monitors
 import numpy
 
-from psychopy.tests import skip_under_vm, _vmTesting
-import pytest
+from psychopy.tests import skip_under_vm
 
 
 @skip_under_vm(reason="Cannot test gamma in a virtual machine")
 def test_low_gamma():
     """setting gamma low (dark screen)"""
-    win = visual.Window([600,600], gamma=0.5, autoLog=False)#should make the entire screen bright
+    win = visual.Window([600,600], gamma=0.5, autoLog=False)  # should make the entire screen bright
     for n in range(5):
         win.flip()
-    assert win.useNativeGamma==False
+    assert win.useNativeGamma == False
     win.close()
 
 

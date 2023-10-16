@@ -13,6 +13,9 @@ import datetime
 from ..errors import print2err, printExceptionDetailsToStdErr
 import re
 import collections.abc
+import pathlib
+import psychopy.logging as logging
+import psychopy.plugins as plugins
 
 ########################
 #
@@ -29,6 +32,8 @@ try:
     from collections.abc import Iterable
 except ImportError:
     from collections import Iterable
+
+from psychopy.preferences import prefs
 
 
 def saveConfig(config, dst_path):
@@ -133,36 +138,185 @@ def module_directory(local_function):
     return moduleDirectory
 
 
+def getSupportedConfigSettings(moduleName, deviceClassName=None):
+    """Get the supported configuration settings for a device.
+
+    These are usually stored as YAML files within the module directory that 
+    defines the device class.
+
+    Parameters
+    ----------
+    moduleName : str
+        The name of the module to get the path for. Must be a package that defines
+        `__init__.py`.
+    deviceClassName : str, optional
+        The name of the specific device class to get the path for. If not provided, 
+        the default configuration file will be searched for in the module 
+        directory.
+    
+    Returns
+    -------
+    str
+        The path to the supported configuration settings file in YAML format.
+
+    """
+    yamlRoot = pathlib.Path(moduleName.__file__).parent
+    if deviceClassName is not None:
+        # file name for yaml file name convention for multiple files
+        fileName = 'supported_config_settings_{0}.yaml'.format(
+            deviceClassName.lower())
+        yamlFile = yamlRoot / pathlib.Path(moduleName.__file__).parent / fileName
+        if not yamlFile.exists():
+            raise FileNotFoundError(
+                "No config file found in module dir {0}".format(moduleName))
+        logging.debug(
+            "Found ioHub device configuration file: {0}".format(yamlFile))
+
+        return str(yamlFile)
+        
+    # file name for yaml file name convention for single file
+    yamlFile = yamlRoot / pathlib.Path('supported_config_settings.yaml')
+    if not yamlFile.exists():  # nothing is found
+        raise FileNotFoundError(
+            "No config file found in module dir {0}".format(moduleName))
+    
+    logging.debug(
+        "Found ioHub device configuration file: {0}".format(yamlFile))
+
+    return str(yamlFile)
+
+
 def isIterable(o):
     return isinstance(o, Iterable)
 
 
 # Get available device module paths
 def getDevicePaths(device_name=""):
-    """
+    """Get the paths to the iohub device modules that are available.
+
+    Parameters
+    ----------
+    device_name : str, optional
+        The name of the device to get the paths for. If not provided, all
+        available device paths are returned.
+
+    Returns
+    -------
+    list
+        A list of tuples containing the path to the device module and the
+        name of the device module.
+
     """
     from psychopy.iohub.devices import import_device
+
+    # mdc - Changes here were made to support loading device modules from
+    #       extensions. This allows support for devices that are not included in
+    #       the iohub package.
+
+    def _getDevicePaths(iohub_device_path):
+        """Look for device configuration files in the specified path.
+
+        Parameters
+        ----------
+        iohub_device_path : str
+            The path to the iohub device module.
+
+        Returns
+        -------
+        list
+            A list of tuples containing the path to the device module and the
+            name of the device module. If empty, no device configuration files
+            were found.
+
+        """
+        yaml_paths = []
+        # try to walk both the internal iohub_device_path and user-level packages folder
+        for route in (os.walk(iohub_device_path), os.walk(prefs.paths['packages'])):
+            for root, _, files in route:
+                # check each file in the route to see if it's a config yaml
+                device_folder = None
+                for file in files:
+                    if file == 'supported_config_settings.yaml':
+                        device_folder = root
+                        break
+                if device_folder:
+                    for dfile in files:
+                        if dfile.startswith("default_") and dfile.endswith('.yaml'):
+                            # if file is a new config yaml, append it
+                            item = (device_folder, dfile)
+                            if item not in yaml_paths:
+                                yaml_paths.append(item)
+
+        return yaml_paths
+
+    scs_yaml_paths = []  # stores the paths to the device config files
+    plugins.refreshBundlePaths()  # make sure eyetracker external plugins are reachable
+
+    # get device paths for extant extensions
+    try:  # tobii eyetrackers
+        logging.debug("Looking for Tobii device configuration file...")
+        import psychopy_eyetracker_tobii.tobii as tobii
+        deviceConfig = _getDevicePaths(os.path.dirname(tobii.__file__))
+        if deviceConfig:
+            logging.debug("Found Tobii device configuration file.")
+            scs_yaml_paths.extend(deviceConfig)
+    except ImportError:
+        logging.debug("No Tobii device configuration file found.")
+
+    try:  # for SR Research EyeLink
+        logging.debug("Looking for SR Research EyeLink device configuration file...")
+        import psychopy_eyetracker_sr_research.sr_research.eyelink as eyelink
+        deviceConfig = _getDevicePaths(os.path.dirname(eyelink.__file__))
+        if deviceConfig:
+            logging.debug("Found SR Research EyeLink device configuration file.")
+            scs_yaml_paths.extend(deviceConfig)
+    except ImportError:
+        logging.debug("No SR Research EyeLink device configuration file found.")
+
+    try:  # for Gazepoint eye trackers
+        logging.debug("Looking for Gazepoint device configuration file...")
+        import psychopy_eyetracker_gazepoint.gazepoint.gp3 as gp3
+        deviceConfig = _getDevicePaths(os.path.dirname(gp3.__file__))
+        if deviceConfig:
+            logging.debug("Found Gazepoint device configuration file.")
+            scs_yaml_paths.extend(deviceConfig)
+    except ImportError:
+        logging.debug("No Gazepoint device configuration file found.")
+
+    try:  # for PupilLabs eye trackers
+        logging.debug("Looking for PupilLabs device configuration file...")
+        import psychopy_eyetracker_pupil_labs.pupil_labs.pupil_core as pupil_core
+        deviceConfig = _getDevicePaths(os.path.dirname(pupil_core.__file__))
+        if deviceConfig:
+            logging.debug("Found PupilLabs device configuration file.")
+            scs_yaml_paths.extend(deviceConfig)
+
+        import psychopy_eyetracker_pupil_labs.pupil_labs.neon as neon
+        deviceConfig = _getDevicePaths(os.path.dirname(neon.__file__))
+        if deviceConfig:
+            logging.debug("Found PupilLabs Neon device configuration file.")
+            scs_yaml_paths.extend(deviceConfig)
+
+    except ImportError:
+        logging.debug("No PupilLabs device configuration file found.")
+
+    # use this method for built-in devices
     iohub_device_path = module_directory(import_device)
     if device_name:
-        iohub_device_path = os.path.join(iohub_device_path, device_name.replace('.', os.path.sep))
-    scs_yaml_paths = []
-    for root, dirs, files in os.walk(iohub_device_path):
-        device_folder = None
-        for file in files:
-            if file == 'supported_config_settings.yaml':
-                device_folder = root
-                break
-        if device_folder:
-            for dfile in files:
-                if dfile.startswith("default_") and dfile.endswith('.yaml'):
-                    scs_yaml_paths.append((device_folder, dfile))
+        iohub_device_path = os.path.join(
+            iohub_device_path, device_name.replace('.', os.path.sep))
+
+    deviceConfigs = _getDevicePaths(iohub_device_path)
+    if deviceConfigs:
+        scs_yaml_paths.extend(deviceConfigs)
+
     return scs_yaml_paths
 
 
 def getDeviceDefaultConfig(device_name, builder_hides=True):
     """
     Return the default iohub config dictionary for the given device(s). The dictionary contains the
-    (possibly nested) settings that should be displayed for the device (the dict item key) and the default value
+    (possibly nested) settings that should be displayed for the device (the dct item key) and the default value
     (the dict item value).
 
     Example:
@@ -186,6 +340,7 @@ def getDeviceDefaultConfig(device_name, builder_hides=True):
     if device_name.endswith(".EyeTracker"):
         device_name = device_name[:-11]
     device_paths = getDevicePaths(device_name)
+
     device_configs = []
     for dpath, dconf in device_paths:
         dname, dconf_dict = list(readConfig(os.path.join(dpath, dconf)).items())[0]
@@ -208,9 +363,10 @@ def getDeviceDefaultConfig(device_name, builder_hides=True):
                 else:
                     del dconf_dict[param]
         device_configs.append({dname: dconf_dict})
-    if len(device_configs) == 1:
-        # simplify return value when only one device was requested
-        return list(device_configs[0].values())[0]
+    # if len(device_configs) == 1:
+    #     # simplify return value when only one device was requested
+    #     return list(device_configs[0].values())[0]
+
     return device_configs
 
 

@@ -31,7 +31,8 @@ import time
 import textwrap
 import codecs
 
-from .. import stdOutRich, dialogs
+from .. import dialogs
+from ..stdout import stdOutRich
 from .. import pavlovia_ui
 from psychopy import logging, prefs
 from psychopy.alerts._alerts import alert
@@ -41,14 +42,13 @@ from ..ui import BaseAuiFrame
 from psychopy.projects import pavlovia
 import psychopy.app.pavlovia_ui.menu
 import psychopy.app.plugin_manager.dialog
-from psychopy.app.console import StdStreamDispatcher
 from psychopy.app.errorDlg import exceptionCallback
 from psychopy.app.coder.codeEditorBase import BaseCodeEditor
 from psychopy.app.coder.fileBrowser import FileBrowserPanel
 from psychopy.app.coder.sourceTree import SourceTreePanel
 from psychopy.app.themes import handlers, colors
 from psychopy.app.coder.folding import CodeEditorFoldingMixin
-from psychopy.app.coder.scriptOutput import ScriptOutputPanel
+from psychopy.app.stdout.stdOutRich import ScriptOutputPanel
 from psychopy.app.coder.repl import PythonREPLCtrl
 # from ..plugin_manager import PluginManagerFrame
 
@@ -106,65 +106,6 @@ def fromPickle(filename):
         contents = pickle.load(f)
 
     return contents
-
-
-class PsychopyPyShell(wx.py.shell.Shell, handlers.ThemeMixin):
-    """Simple class wrapper for Pyshell which uses the Psychopy ThemeMixin."""
-    def __init__(self, coder):
-        msg = _translate('PyShell in PsychoPy - type some commands!')
-        wx.py.shell.Shell.__init__(
-            self, coder.shelf, -1, introText=msg + '\n\n', style=wx.BORDER_NONE)
-        self.prefs = coder.prefs
-        self.paths = coder.paths
-        self.app = coder.app
-
-        self.Bind(wx.EVT_SET_FOCUS, self.OnSetFocus)
-        self.Bind(wx.EVT_KILL_FOCUS, self.OnKillFocus)
-
-        # Set theme to match code editor
-        self._applyAppTheme()
-
-    def OnSetFocus(self, evt=None):
-        """Called when the shell gets focus."""
-        # Switch to the default callback when in console, prevents the PsychoPy
-        # error dialog from opening.
-        sys.excepthook = sys.__excepthook__
-
-        if evt:
-            evt.Skip()
-
-    def OnKillFocus(self, evt=None):
-        """Called when the shell loses focus."""
-        # Set the callback to use the dialog when errors occur outside the
-        # shell.
-        if not self.app.testMode:
-            sys.excepthook = exceptionCallback
-
-        if evt:
-            evt.Skip()
-
-    def GetContextMenu(self):
-        """Override original method (wx.py.shell.Shell.GetContextMenu)
-        to localize context menu.  Simply added _translate() to
-        original code.
-        """
-        menu = wx.Menu()
-        menu.Append(self.ID_UNDO, _translate("Undo"))
-        menu.Append(self.ID_REDO, _translate("Redo"))
-
-        menu.AppendSeparator()
-
-        menu.Append(self.ID_CUT, _translate("Cut"))
-        menu.Append(self.ID_COPY, _translate("Copy"))
-        menu.Append(wx.py.frame.ID_COPY_PLUS, _translate("Copy With Prompts"))
-        menu.Append(self.ID_PASTE, _translate("Paste"))
-        menu.Append(wx.py.frame.ID_PASTE_PLUS, _translate("Paste And Run"))
-        menu.Append(self.ID_CLEAR, _translate("Clear"))
-
-        menu.AppendSeparator()
-
-        menu.Append(self.ID_SELECTALL, _translate("Select All"))
-        return menu
 
 
 class Printer(HtmlEasyPrinting):
@@ -1685,9 +1626,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
                            _translate("&Themes"))
 
         # Frame switcher
-        framesMenu = wx.Menu()
-        FrameSwitcher.makeViewSwitcherButtons(framesMenu, frame=self, app=self.app)
-        menu.AppendSubMenu(framesMenu, _translate("&Frames"))
+        FrameSwitcher.makeViewSwitcherButtons(menu, frame=self, app=self.app)
 
         # ---_view---#000000#FFFFFF-------------------------------------------
         # self.shellMenu = wx.Menu()
@@ -2287,6 +2226,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         docID = self.findDocID(filename)
         readOnlyPref = 'readonly' in self.app.prefs.coder
         readonly = readOnlyPref and self.app.prefs.coder['readonly']
+        path, shortName = os.path.split(filename)
         if docID >= 0:
             self.currentDoc = self.notebook.GetPage(docID)
             self.notebook.SetSelection(docID)
@@ -2347,7 +2287,6 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
             self.currentDoc.EmptyUndoBuffer()
 
-            path, shortName = os.path.split(filename)
             self.notebook.AddPage(p, shortName)
             nbIndex = len(self.getOpenFilenames()) - 1
             if isinstance(self.notebook, wx.Notebook):
@@ -2377,6 +2316,8 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.setTitle(title=self.winTitle, document=fname)
         #if len(self.getOpenFilenames()) > 0:
         self.currentDoc.analyseScript()
+        if os.path.isdir(path):
+            self.fileBrowserWindow.gotoDir(path)
 
         if not keepHidden:
             self.Show()  # if the user had closed the frame it might be hidden

@@ -5,7 +5,8 @@ Created on Mon Dec 15 15:22:48 2014
 @author: lpzjwp
 """
 from psychopy import visual
-from psychopy.tests import skip_under_vm, _vmTesting
+from psychopy.tools import systemtools
+from psychopy.tests import skip_under_vm
 import numpy as np
 
 try:
@@ -94,7 +95,7 @@ def test_bitsShaders():
             #fr = np.array(win._getFrame(buffer='back').transpose(Image.ROTATE_270))
             win.flip()
             fr = np.array(win._getFrame(buffer='front').transpose(Image.ROTATE_270))
-            if not _vmTesting:
+            if not systemtools.isVM_CI():
                 assert np.alltrue(thisExpected['lowR'] == fr[0:10, -1, 0])
                 assert np.alltrue(thisExpected['lowG'] == fr[0:10, -1, 1])
                 assert np.alltrue(thisExpected['highR'] == fr[250:256, -1, 0])

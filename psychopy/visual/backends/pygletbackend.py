@@ -15,14 +15,15 @@ and initialize an instance using the attributes of the Window.
 
 import sys
 import os
+import platform
 import numpy as np
 
 import psychopy
-from psychopy import core
+from psychopy import core, prefs
 from psychopy.hardware import mouse
 from psychopy import logging, event, platform_specific
 from psychopy.tools.attributetools import attributeSetter
-from psychopy.tests import _vmTesting
+from psychopy.tools import systemtools
 from .gamma import setGamma, setGammaRamp, getGammaRamp, getGammaRampSize
 from .. import globalVars
 from ._base import BaseBackend
@@ -178,10 +179,14 @@ class PygletBackend(BaseBackend):
                     'integer greater than two. Disabling.')
                 win.multiSample = False
 
-        if pyglet.version < '1.4':
-            allScrs = _default_display_.get_screens()
+        if platform.system() == 'Linux':
+            display = pyglet.canvas.Display(x_screen=win.screen)
+            allScrs = display.get_screens()
         else:
-            allScrs = _default_display_.get_screens()
+            if pyglet.version < '1.4':
+                allScrs = _default_display_.get_screens()
+            else:
+                allScrs = _default_display_.get_screens()
 
         # Screen (from Exp Settings) is 1-indexed,
         # so the second screen is Screen 1
@@ -194,17 +199,18 @@ class PygletBackend(BaseBackend):
             if win.autoLog:
                 logging.info('configured pyglet screen %i' % win.screen)
 
-        # options that the user might want
-        config = GL.Config(depth_size=win.depthBits,
-                           double_buffer=True,
-                           sample_buffers=sample_buffers,
-                           samples=aa_samples,
-                           stencil_size=win.stencilBits,
-                           stereo=win.stereo,
-                           vsync=vsync,
-                           red_size=win.bpc[0],
-                           green_size=win.bpc[1],
-                           blue_size=win.bpc[2])
+        # configure the window context
+        config = GL.Config(
+            depth_size=win.depthBits,
+            double_buffer=True,
+            sample_buffers=sample_buffers,
+            samples=aa_samples,
+            stencil_size=win.stencilBits,
+            stereo=win.stereo,
+            vsync=vsync,
+            red_size=win.bpc[0],
+            green_size=win.bpc[1],
+            blue_size=win.bpc[2])
 
         # check if we can have this configuration
         validConfigs = thisScreen.get_matching_configs(config)
@@ -225,29 +231,39 @@ class PygletBackend(BaseBackend):
             style = None
         else:
             style = 'borderless'
+
+        # create the window
         try:
             self.winHandle = pyglet.window.Window(
-                    width=w, height=h,
-                    caption="PsychoPy",
-                    fullscreen=win._isFullScr,
-                    config=config,
-                    screen=thisScreen,
-                    style=style)
+                width=w, height=h,
+                caption="PsychoPy",
+                fullscreen=win._isFullScr,
+                config=config,
+                screen=thisScreen,
+                style=style)
         except pyglet.gl.ContextException:
             # turn off the shadow window an try again
             pyglet.options['shadow_window'] = False
             self.winHandle = pyglet.window.Window(
-                    width=w, height=h,
-                    caption="PsychoPy",
-                    fullscreen=self._isFullScr,
-                    config=config,
-                    screen=thisScreen,
-                    style=style)
+                width=w, height=h,
+                caption="PsychoPy",
+                fullscreen=self._isFullScr,
+                config=config,
+                screen=thisScreen,
+                style=style)
             logging.warning(
                 "Pyglet shadow_window has been turned off. This is "
                 "only an issue for you if you need multiple "
                 "stimulus windows, in which case update your "
                 "graphics card and/or graphics drivers.")
+        try:
+            icns = [
+                pyglet.image.load(prefs.paths['resources'] + os.sep + "Psychopy Window Favicon@16w.png"),
+                pyglet.image.load(prefs.paths['resources'] + os.sep + "Psychopy Window Favicon@32w.png"),
+            ]
+            self.winHandle.set_icon(*icns)
+        except BaseException:
+            pass
 
         if sys.platform == 'win32':
             # pyHook window hwnd maps to:
@@ -454,7 +470,7 @@ class PygletBackend(BaseBackend):
     @attributeSetter
     def gamma(self, gamma):
         self.__dict__['gamma'] = gamma
-        if _vmTesting:
+        if systemtools.isVM_CI():
             return
         if self._origGammaRamp is None:  # get the original if we haven't yet
             self._getOrigGammaRamp()
@@ -473,7 +489,7 @@ class PygletBackend(BaseBackend):
         """Gets the gamma ramp or sets it to a new value (an Nx3 or Nx1 array)
         """
         self.__dict__['gammaRamp'] = gammaRamp
-        if _vmTesting:
+        if systemtools.isVM_CI():
             return
         if self._origGammaRamp is None:  # get the original if we haven't yet
             self._getOrigGammaRamp()

@@ -17,7 +17,8 @@ To add a new stimulus test use _base so that it gets tested in all contexts
 
 """
 
-from psychopy.tests import _travisTesting, skip_under_vm, _vmTesting
+from psychopy.tests import skip_under_vm
+from psychopy.tools import systemtools
 
 
 class Test_Window():
@@ -501,7 +502,7 @@ class _baseVisualTest():
         text.draw()
         grat1.draw()
         grat2.draw()
-        if _vmTesting:
+        if systemtools.isVM_CI():
             pytest.skip("Blendmode='add' doesn't work under a virtual machine for some reason")
         if self.win.winType != 'pygame':
             utils.compareScreenshot('blend_add_%s.png' %self.contextName,
@@ -795,7 +796,7 @@ class TestPygletHexColor(_baseVisualTest):
         self.contextName='normHexbackground'
         self.scaleFactor=1#applied to size/pos values
 
-if not _travisTesting:
+if not systemtools.isVM_CI():
     class TestPygletBlendAdd(_baseVisualTest):
         @classmethod
         def setup_class(self):

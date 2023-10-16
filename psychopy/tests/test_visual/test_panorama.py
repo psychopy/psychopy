@@ -17,23 +17,23 @@ class TestPanorama:
             for al in range(intervals - 1):
                 cases.append({
                     'azimuth': (az * 2) / intervals - 1,
-                    'altitude': ((al + 1) * 2) / intervals - 1,
+                    'elevation': ((al + 1) * 2) / intervals - 1,
                 })
-        # Add tests for extreme altitude
+        # Add tests for extreme elevation
         cases += [
-            {'azimuth': 0, 'altitude': -1},  # Min altitude, should be dark colours
-            {'azimuth': 0, 'altitude': 1},  # Max altitude, should be light colours
+            {'azimuth': 0, 'elevation': -1},  # Min elevation, should be dark colours
+            {'azimuth': 0, 'elevation': 1},  # Max elevation, should be light colours
         ]
 
         self.win.flip()
         for case in cases:
             # Set azimuth and elevation
             self.obj.azimuth = case['azimuth']
-            self.obj.altitude = case['altitude']
+            self.obj.elevation = case['elevation']
             # Draw
             self.obj.draw()
             # Construct file path to check against
-            exemplar = self.path / "testPanorama_mvmt_{azimuth:.1f}_{altitude:.1f}.png".format(**case)
+            exemplar = self.path / "testPanorama_mvmt_{azimuth:.1f}_{elevation:.1f}.png".format(**case)
             # Compare
             #self.win.getMovieFrame(buffer='back').save(exemplar)
             utils.compareScreenshot(str(exemplar), self.win, crit=7)

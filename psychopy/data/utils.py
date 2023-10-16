@@ -396,7 +396,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
 
         # get parameter names from the first row header
         fieldNames = []
-        rangeCols = list(range(nCols))
+        rangeCols = []
         for colN in range(nCols):
             if parse_version(openpyxl.__version__) < parse_version('2.0'):
                 fieldName = ws.cell(_getExcelCellName(col=colN, row=0)).value
@@ -406,16 +406,14 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
             if fieldName:
                 # If column is named, add its name to fieldNames
                 fieldNames.append(fieldName)
-            else:
-                # Otherwise, ignore the column
-                rangeCols.remove(colN)
+                rangeCols.append(colN)
         _assertValidVarNames(fieldNames, fileName)
 
         # loop trialTypes
         trialList = []
         for rowN in range(1, nRows):  # skip header first row
             thisTrial = {}
-            for colN in rangeCols:
+            for rangeColsIndex, colN in enumerate(rangeCols):
                 if parse_version(openpyxl.__version__) < parse_version('2.0'):
                     val = ws.cell(_getExcelCellName(col=colN, row=0)).value
                 else:
@@ -436,7 +434,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
                         val = float(tryVal)
                     except ValueError:
                         pass
-                fieldName = fieldNames[colN]
+                fieldName = fieldNames[rangeColsIndex]
                 thisTrial[fieldName] = val
             trialList.append(thisTrial)
 

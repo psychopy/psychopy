@@ -148,9 +148,9 @@ class User(dict):
             ).json()['designer']
             # Make sure self.info has necessary keys
             assert 'gitlabId' in self.info, _translate(
-                f"Could not retrieve user info for user {id}, server returned:\n"
-                f"{self.info}"
-            )
+                "Could not retrieve user info for user {}, server returned:\n"
+                "{}"
+            ).format(id,self.info)
         elif isinstance(id, dict) and 'gitlabId' in id:
             # If given a dict from Pavlovia rather than an ID, store it rather than requesting again
             self.info = id
@@ -317,12 +317,15 @@ class PavloviaSession:
         pavProject = PavloviaProject(gitlabProj.get_id(), localRoot=localRoot)
         return pavProject
 
-    def getProject(self, id):
+    def getProject(self, id, localRoot=""):
         """Gets a Pavlovia project from an ID number or namespace/name
 
         Parameters
         ----------
-        id a numerical
+        id : float
+            Numeric ID of the project
+        localRoot : str or Path
+            Path of the project root
 
         Returns
         -------
@@ -330,7 +333,7 @@ class PavloviaSession:
 
         """
         if id:
-            return PavloviaProject(id)
+            return PavloviaProject(id, localRoot=localRoot)
         else:
             return None
 
@@ -439,9 +442,10 @@ class PavloviaSession:
     @property
     def user(self):
         if not hasattr(self, "_user") or self._user is None:
-            if not hasattr(self.gitlab, "user") or self.gitlab.user.username is None:
+            try:
+                self._user = User(self.gitlab.user.username)
+            except AttributeError:
                 return None
-            self._user = User(self.gitlab.user.username)
         return self._user
 
     @user.setter
@@ -569,6 +573,9 @@ class PavloviaProject(dict):
     .localRoot is the path to the local root
     """
 
+    # list of keys which we expect to be datetimes
+    _datetimeKeys = ("created_at", "last_activity_at")
+
     def __init__(self, id, localRoot=None):
         # Cache whatever form of ID is given, to avoid uneccesary calls to Pavlovia/GitLab later
         if isinstance(id, int):
@@ -600,9 +607,8 @@ class PavloviaProject(dict):
             else:
                 value = None
         # Transform datetimes
-        dtRegex = re.compile("\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(.\d\d\d)?\w?")
-        if dtRegex.match(str(value)):
-            value = pandas.to_datetime(value, format="%Y-%m-%d %H:%M:%S.%f")
+        if key in self._datetimeKeys:
+            value = pandas.to_datetime(value, format=None, errors='coerce')
 
         return value
 
@@ -658,10 +664,9 @@ class PavloviaProject(dict):
             # Reinitialise dict
             dict.__init__(self, self.project.attributes)
             # Convert datetime
-            dtRegex = re.compile("\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d(.\d\d\d)?")
             for key in self._info:
-                if dtRegex.match(str(self.info[key])):
-                    self._info[key] = pandas.to_datetime(self._info[key], format="%Y-%m-%d %H:%M:%S.%f")
+                if key in self._datetimeKeys:
+                    self._info[key] = pandas.to_datetime(self._info[key], format=None, errors='coerce')
             # Update base dict
             self.update(self.project.attributes)
 
@@ -1351,7 +1356,7 @@ def getProject(filename):
             return None
         # If project is still there, get it
         try:
-            return PavloviaProject(thisId)
+            return PavloviaProject(thisId, localRoot=gitRoot)
         except LookupError as err:
             # If project not found, print warning and return None
             logging.warn(str(err))
@@ -1401,7 +1406,7 @@ def getProject(filename):
 
                     if pavSession.user:
                         # Get PavloviaProject via id
-                        proj = pavSession.getProject(namespaceName)
+                        proj = pavSession.getProject(namespaceName, localRoot=gitRoot)
                         proj.repo = localRepo
                     else:
                         # If we are still logged out, prompt user

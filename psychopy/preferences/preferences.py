@@ -40,7 +40,7 @@ class Preferences:
     or, within a script, preferences can be controlled like this::
 
         import psychopy
-        psychopy.prefs.hardware['audioLib'] = ['PTB', 'pyo','pygame']
+        psychopy.prefs.hardware['audioLib'] = ['ptb', 'pyo','pygame']
         print(prefs)
         # prints the location of the user prefs file and all the current vals
 
@@ -124,7 +124,10 @@ class Preferences:
             self.paths['libs'] = exePath.replace("MacOS/python", "Frameworks")
         else:
             self.paths['libs'] = ''  # we don't know where else to look!
-
+        if not Path(self.paths['appDir']).is_dir():
+            # if there isn't an app folder at all then this is a lib-only psychopy
+            # so don't try to load app prefs etc
+            NO_APP = True
         if sys.platform == 'win32':
             self.paths['prefsSpecFile'] = join(prefSpecDir, 'Windows.spec')
             self.paths['userPrefsDir'] = join(os.environ['APPDATA'],
@@ -135,12 +138,16 @@ class Preferences:
             self.paths['userPrefsDir'] = join(os.environ['HOME'],
                                               '.psychopy3')
 
+        # directory for files created by the app at runtime needed for operation
+        self.paths['userCacheDir'] = join(self.paths['userPrefsDir'], 'cache')
+
         # paths in user directory to create/check write access
         userPrefsPaths = (
             'userPrefsDir',  # root dir
             'themes',  # define theme path
             'fonts',  # find / copy fonts
-            'packages'  # packages and plugins
+            'packages',  # packages and plugins
+            'cache',  # cache for downloaded and other temporary files
         )
 
         # build directory structure inside user directory
@@ -245,6 +252,11 @@ class Preferences:
         self.userPrefsCfg.write()
 
     def loadAppData(self):
+        """Fetch app data config (unless this is a lib-only installation)
+        """
+        appDir = Path(self.paths['appDir'])
+        if not appDir.is_dir():  # if no app dir this may be just lib install
+            return {}
         # fetch appData too against a config spec
         appDataSpec = ConfigObj(join(self.paths['appDir'], 'appData.spec'),
                                 encoding='UTF8', list_values=False)

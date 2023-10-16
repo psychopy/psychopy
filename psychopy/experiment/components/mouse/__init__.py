@@ -60,9 +60,9 @@ class MouseComponent(BaseComponent):
             save, valType='str', inputType="choice", categ='Data',
             allowedVals=['final', 'on click', 'on valid click', 'every frame', 'never'],
             hint=msg, direct=False,
-            label=_localized['saveMouseState'])
+            label=_translate("Save mouse state"))
 
-        msg = _translate("Should a button press force the end of the routine"
+        msg = _translate("Should a button press force the end of the Routine"
                          " (e.g end the trial)?")
         if forceEndRoutineOnPress is True:
             forceEndRoutineOnPress = 'any click'
@@ -73,7 +73,7 @@ class MouseComponent(BaseComponent):
             allowedVals=['never', 'any click', 'valid click', 'correct click'],
             updates='constant', direct=False,
             hint=msg,
-            label=_localized['forceEndRoutineOnPress'])
+            label=_translate("End Routine on press"))
 
         msg = _translate("What should the values of mouse.time should be "
                          "relative to?")
@@ -82,7 +82,7 @@ class MouseComponent(BaseComponent):
             allowedVals=['mouse onset', 'experiment', 'routine'],
             updates='constant',
             hint=msg, direct=False,
-            label=_localized['timeRelativeTo'])
+            label=_translate("Time relative to"))
 
         msg = _translate('If the mouse button is already down when we start '
                          'checking then wait for it to be released before '
@@ -92,7 +92,7 @@ class MouseComponent(BaseComponent):
             True, valType='bool', inputType="bool", categ='Basic',
             updates='constant',
             hint=msg,
-            label=_localized['New clicks only'])
+            label=_translate("New clicks only"))
 
         msg = _translate('A comma-separated list of your stimulus names that '
                          'can be "clicked" by the participant. '
@@ -102,7 +102,7 @@ class MouseComponent(BaseComponent):
             '', valType='list', inputType="single", categ='Basic',
             updates='constant',
             hint=msg,
-            label=_localized['Clickable stimuli'])
+            label=_translate("Clickable stimuli"))
 
         msg = _translate('The params (e.g. name, text), for which you want '
                          'to store the current value, for the stimulus that was'
@@ -113,7 +113,7 @@ class MouseComponent(BaseComponent):
             'name,', valType='list', inputType="single", categ='Data',
             updates='constant', allowedUpdates=[], direct=False,
             hint=msg,
-            label=_localized['Store params for clicked'])
+            label=_translate("Store params for clicked"))
 
         msg = _translate("Do you want to save the response as "
                          "correct/incorrect?")
@@ -121,7 +121,7 @@ class MouseComponent(BaseComponent):
             storeCorrect, valType='bool', inputType="bool", allowedTypes=[], categ='Data',
             updates='constant',
             hint=msg,
-            label=_translate('storeCorrect'))
+            label=_translate("Store correct"))
 
         self.depends += [  # allows params to turn each other off/on
             {"dependsOn": "storeCorrect",  # must be param name
@@ -133,13 +133,13 @@ class MouseComponent(BaseComponent):
         ]
 
         msg = _translate(
-            "What is the 'correct' object? To specify an area, remember that you can create a Shape component with 0 "
+            "What is the 'correct' object? To specify an area, remember that you can create a shape Component with 0 "
             "opacity.")
         self.params['correctAns'] = Param(
             correctAns, valType='list', inputType="single", allowedTypes=[], categ='Data',
             updates='constant',
             hint=msg, direct=False,
-            label=_translate('correctAns'))
+            label=_translate("Correct answer"))
 
     @property
     def _clickableParamsList(self):
@@ -153,7 +153,7 @@ class MouseComponent(BaseComponent):
         code = (
             "# check if the mouse was inside our 'clickable' objects\n"
             "gotValidClick = False\n"
-            "clickableList = core.getFromNames(%(clickable)s, namespace=locals())\n"
+            "clickableList = environmenttools.getFromNames(%(clickable)s, namespace=locals())\n"
             "for obj in clickableList:\n"
             "    # is this object clicked on?\n"
             "    if obj.contains(%(name)s):\n"
@@ -173,7 +173,7 @@ class MouseComponent(BaseComponent):
             "# check whether click was in correct object\n"
             "if gotValidClick:\n"
             "    corr = 0\n"
-            "    corrAns = core.getFromNames(%(correctAns)s, namespace=locals())\n"
+            "    corrAns = environmenttools.getFromNames(%(correctAns)s, namespace=locals())\n"
             "    for obj in corrAns:\n"
             "        # is this object clicked on?\n"
             "        if obj.contains(%(name)s):\n"

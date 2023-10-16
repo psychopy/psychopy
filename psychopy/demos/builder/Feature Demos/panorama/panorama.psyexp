@@ -68,7 +68,7 @@
   <Routines>
     <Routine name="trial">
       <PanoramaComponent name="pan">
-        <Param val="" valType="code" updates="set every frame" name="altitude"/>
+        <Param val="" valType="code" updates="set every frame" name="elevation"/>
         <Param val="" valType="code" updates="set every frame" name="azimuth"/>
         <Param val="False" valType="bool" updates="None" name="disabled"/>
         <Param val="d" valType="str" updates="constant" name="downKey"/>

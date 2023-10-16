@@ -77,7 +77,7 @@ class PolygonComponent(BaseVisualComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['nVertices'])
+            label=_translate("Num. vertices"))
 
         msg = _translate("What are the vertices of your polygon? Should be an nx2 array or a list of [x, y] lists")
         self.params['vertices'] = Param(
@@ -123,7 +123,7 @@ class PolygonComponent(BaseVisualComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['lineWidth'])
+            label=_translate("Line width"))
 
         msg = _translate(
             "How should the image be interpolated if/when rescaled")
@@ -131,7 +131,7 @@ class PolygonComponent(BaseVisualComponent):
             interpolate, valType='str', inputType="choice", allowedVals=['linear', 'nearest'], categ='Texture',
             updates='constant', allowedUpdates=[], direct=False,
             hint=msg,
-            label=_localized['interpolate'])
+            label=_translate("Interpolate"))
 
 
         self.params['size'].hint = _translate(
@@ -150,17 +150,18 @@ class PolygonComponent(BaseVisualComponent):
         else:
             unitsStr = "units=%(units)s, " % self.params
 
+        # handle dependent params
+        params = self.params.copy()
+        if params['shape'] == 'regular polygon...':
+            params['shape'] = params['nVertices']
+        elif params['shape'] == 'custom polygon...':
+            params['shape'] = params['vertices']
+
         # replace variable params with defaults
-        inits = getInitVals(self.params)
+        inits = getInitVals(params)
         if inits['size'].val in ['1.0', '1']:
             inits['size'].val = '[1.0, 1.0]'
-
-        if self.params['shape'] == 'regular polygon...':
-            vertices = inits['nVertices']
-        elif self.params['shape'] == 'custom polygon...':
-            vertices = inits['vertices']
-        else:
-            vertices = inits['shape']
+        vertices = inits['shape']
         if vertices in ['line', '2']:
             code = ("%s = visual.Line(\n" % inits['name'] +
                     "    win=win, name='%s',%s\n" % (inits['name'], unitsStr) +
@@ -270,10 +271,14 @@ class PolygonComponent(BaseVisualComponent):
             code = ("{name} = new visual.ShapeStim ({{\n"
                     "  win: psychoJS.window, name: '{name}', {unitsStr}\n"
                     "  vertices: 'arrow', size:{size},\n")
-        else:
+        elif self.params['shape'] == 'regular polygon...':
             code = ("{name} = new visual.Polygon ({{\n"
                     "  win: psychoJS.window, name: '{name}', {unitsStr}\n"
                     "  edges: {nVertices}, size:{size},\n")
+        else:
+            code = ("{name} = new visual.ShapeStim({{\n" +
+                    "  win: psychoJS.window, name: '{name}', {unitsStr}\n"
+                    "  vertices: {vertices}, size: {size},\n")
 
         depth = -self.getPosInRoutine()
 
@@ -303,5 +308,6 @@ class PolygonComponent(BaseVisualComponent):
                                             opacity=inits['opacity'],
                                             depth=depth,
                                             interpolate=interpolate,
-                                            nVertices=inits['nVertices']
+                                            nVertices=inits['nVertices'],
+                                            vertices=inits['vertices']
                                             ))

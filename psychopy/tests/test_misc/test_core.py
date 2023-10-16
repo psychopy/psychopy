@@ -29,7 +29,7 @@ from psychopy.visual import Window
 from psychopy.core import (getTime, MonotonicClock, Clock, CountdownTimer, wait,
                            StaticPeriod, shellCall)
 from psychopy.clock import monotonicClock
-from psychopy.tests import _vmTesting
+from psychopy.tools import systemtools
 
 
 def test_EmptyFunction():
@@ -375,7 +375,7 @@ def test_StaticPeriod():
     timer.reset(period_duration )
     static.complete()
 
-    if _vmTesting:
+    if systemtools.isVM_CI():
         tolerance = 0.01  # without a proper screen timing might not eb sub-ms
     else:
         tolerance = 0.001

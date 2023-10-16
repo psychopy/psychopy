@@ -15,10 +15,273 @@ to run on the same PsychoPy version even where a different version is installed 
 That setting often even allows PsychoPy to run experiments from versions that have not yet
 been installed! If the dependencies haven't changed it will run.
 
+
+PsychoPy 2023.2
+---------------
+
+**Highlights:**
+
+* Routine settings: Routines now have parameters of their own, giving control over their max duration, skipping the Routine altogether, or changing the way the window looks just for that Routine.
+* Sort by priority: Columns in the data file can now be given a "priority" value, with the option to sort by priority instead of chronologically.
+* Whisper transcription PLUGIN for Microphone: Using the OpenAI backend, Microphone transcriptions can be done quicker and more accurately, and include timing info for each word.
+* Progress bar component: A visual component to show progress along an axis.
+* Builder search dialog: Search for values across your whole experiment, then jump to the specific Routine/Component where it's present. Makes debugging much easier.
+* Most stimuli now support a `draggable` attribute. If set to `draggable=True` then that stimulus should check/update position on each frame using `stim.doDragging()`
+
+**Behaviour changes:**
+
+* Eyetrackers (Tobii, SRR Eyelink, Gazepoint, PupilLabs) are now plugins rather than built-in, in keeping with the drive to cut down the dependencies of core PsychoPy
+
+**Enhancements:**
+
+* PsychoJS: Mobile-friendly viewport settings. by @lightest in #5380
+* Allow experiment to run with different clocks (e.g. wall clock time instead of starting at t=0) by @TEParsons in #5621
+* PsychoJS ShapeStim from Builder now supports custom vertices by @TEParsons in #5522
+* Numerous improvements to plugins system and dialog
+* Added `abortCurrentTrial` (Python only for now) method to `TrialHandler2` and `MultiStairHandler` by @mdcutone in #5423
+* Better performance and fixes to FFPyPlayer movie engine
+* Added `letterSpacing` attribute to Textbox by @TEParsons in #5487
+* New `Session` class to run multiple experiments - create your stimulus window once and run multiple experiments in it, with the ability to pause/resume/stop the experiment. (Python only for now) Session can be controlled over `websockets` using the Liaison server
+* Full support for Python 3.10, wxPython 4.2, and PyQt6
+* Preserve tab order for Routines when saving/loading an experiment by @TEParsons in #5517
+* Added audio settings to Camera component by @mdcutone in #5681
+* Improved streaming of camera to disk by @mdcutone in #5551
+* Window now explains it is performing timing test by @mdcutone in #5511
+* Keyboard Components from Builder will store duration if available (if release has already occurred) by @TEParsons in #5569
+* Show status text for objects in Flow panel by @TEParsons in #5443
+* Make psychopy.Window title (and icon in pyglet) settable by @TEParsons in #5540
+* UI enhancements to Coder and Runner by @TEParsons in #5539
+* Multihead support for X11/Linux by @mdcutone in #5520
+* Plugins Dialog now checks for version compatibility with PsychoPy by @TEParsons in #5649
+* Install plugins to subdirectories by @mdcutone in #5398
+* Make Save & Edit/View buttons on README window more explicit by @TEParsons in #5523
+* New option to abbreviate long component names in Preferences, fixes #5574 by @TEParsons in #5586
+* Highlight selected Routine in Flow panel by @TEParsons in #5588
+* Better Builder visualisation very large experiments by @TEParsons in #5618
+* Lock Flow panel buttons to the left when scrolling by @TEParsons in #5620
+* ExperimentHandler.addData() now has optional `row` argument to specify previous entry by @TEParsons in #5652
+* Fixed useVersion warning untracked working tree files would be overwritten by @peircej in #5670
+* Add param to control whether movies/sounds end when the Routine does, by @TEParsons in #5415
+* Add "transparent" as named color by @TEParsons in #5689
+* Radio button styling was not work in Slider component in 2023.1, fixes #5661 (dev) by @TEParsons in #5691
+* Allow expInfo fields to be marked as required (*) by @ainazay in #5543
+* Fix VlcMovieStim by @marcpabst in #5702
+* Added data file separator to expInfo by @EitanHemed in #5607
+* Minor Textbox bugfixes by @ollie-d in #5723
+* Extended autotranslate functions supported by py2js by @roelofsaj in #5713
+* Submitting GitHub issues now supports templates by @shun2wang in #5732
+* Numerous Documentation improvements by @fboers @kimDundas @patrickabolger @EitanHemed @larsoner @pmolfese
+
+PsychoPy 2023.2.0
+~~~~~~~~~~~~~~~~~
+
+**Key fixes (from 2023.1.x series):**
+
+* Fixed missing comma in Brush component code by @TEParsons in #5564
+* Mouse position incorrect when desktop scaling not 100% on Windows by @mdcutone in #5758
+* Fixed `AttributeError: 'SoundPTB' object has no attribute 'isFinished'` by @mdcutone in #5541
+* Better handling of missing audio libraries - allow the app to load always and fallback to PsychToolBox if possible
+* Better handling of Mouse.getPos() when no windows open  by @peircej in #5763
+* Param updates code for Sound in JS was using Python syntax by @TEParsons in #5762
+* More informative error when useVersion fails to write script by @TEParsons in #5761
+* saveAsWideText was using deprecated DataFrame.append function by @TEParsons in #5507
+* Polygon/ROI vertices caused error if trying to set each frame by @TEParsons in #5686
+* Don't crash if user attempts to initialise ioHub more than once by @TEParsons in #5533
+* Added log file entry for Keyboard.clearEvents() by @peircej in #5558
+* Fixed missing movie file in MoviePause.py demo by @EitanHemed in #5583
+* Coder source tree thought any variable name beginning with `def` was a function def by @TEParsons in #5581
+* README filename wasn't being updated for new frames by @TEParsons in #5593
+* Fix Markdown parsing on README files by @TEParsons in #5572
+* Ignore Escape in Keyboard component if needed to end experiment by @TEParsons in #5598
+* Joystick component - SyntaxError in generated code by @EitanHemed in #5601
+* Error `got an unexpected keyword argument "reset"` when trying to pause using PTB sounds by @peircej in #5619
+* PsychoPJS: Fix issue with first frame of image being shown as default.png in JS by @TEParsons in #5716
+* Add `self` to list of disallowed Component names by @TEParsons in #5742
+* Split compound Survey answers into individual columns by @TEParsons in #5734
+* Fixed audio file not resetting during (Python) experiment by @mdcutone in #5712
+* If trying to load previously open file that is corrupted, do at least open the app (with an empty window) by @TEParsons in #5696
+* Better catching of name errors in conditions file by @TEParsons in #5654
+
+**New contributors:**
+
+* @ranibaron made their first contribution in #5394
+* @patrickabolger made their first contribution in #5414
+* @fboers made their first contribution in #5482
+* @gtosh4 made their first contribution in #5609
+* @ainazay made their first contribution in #5543
+* @marcpabst made their first contribution in #5702
+
+PsychoPy 2023.2.1
+~~~~~~~~~~~~~~~~~
+
+**Key fixes:**
+
+* Eyetracker plugins were not being detected by Builder by @peircej in #5808
+* Fix device selection for Microphone component by @mdcutone in #5811
+* ioHub reporting negative response times by @TEParsons in #5807
+* Add attributeSetter / set functions for borderWidth by @TEParsons in #5779
+* Option for hiding splash screen available in Preferences by @TEParsons in #5776
+* `endExpNow` was only defined if Escape was enabled by @TEParsons in #5780
+* Polygon JS from Builder failing to initialise code by @TEParsons in #5783
+* Copied Routines were getting two Routine Settings components by @TEParsons in #5792
+* Fix unresponsive scrolling in Routine canvas by @TEParsons in #5795
+* update Japanese translation by @hsogo in #5789
+* If rewinding Sound (seek to before end) then mark as not finished by @TEParsons in #5781
+* Fixed <expname>_legacy-legacy-browser.js is not a file by @TEParsons in #5799
+* Coder was making an error when opening a new file by @TEParsons in #5801
+* Conditions file was being cleared when loop type is "interleaved staircase" by @TEParsons in #5803
+* Add JS code to set window background image on init by @TEParsons in #5806
+* MacOS iohub "TypeError: startswith first arg must be bytes..." by @peircej in #5812
+* New projects sometimes wouldn't have a local root by @TEParsons in #5814
+* Handle when Static Component tries to set param of deleted/disabled Component by @TEParsons in #5815
+* Python 3.10 version bump had broken GIF avatars by @TEParsons in #5791
+
+**Full Changelog**: https://github.com/psychopy/psychopy/compare/2023.2.0...2023.2.1
+
+PsychoPy 2023.2.2
+~~~~~~~~~~~~~~~~~
+
+**Key fixes:**
+
+* Fixed ioHub keyboard timing (was using incorrect timestamp offset) by @TEParsons in #5807
+* Fixed locating config files for ioHub extensions which prevented them from loading by @mdcutone in #5821
+* Fixed bug whereby iohub couldn't find plugin backends on Mac by @TEParsons in #5824
+* Better handing of experiments with Components that are now only in plugins by @TEParsons in #5834 #5831 #5833
+* Fixed "logFile does not exist" error when "Save log file" is False by @TEParsons in #5836
+* Fixed matrix question breaking apart code in Survey Routine by @TEParsons in #5840
+* Allow expInfo to use values from Code components without overriding them by @TEParsons in #5837
+* Fixed error in Form when using a radio ctrl by @TEParsons in #5843
+* Polygon broken in JavaScript code from Builder by @TEParsons in #5844
+* Ignore spaces when getting variables from name by @TEParsons in #5841
+* "tThisFlip not defined" error when using Routine stop time online by @TEParsons in #5849
+* "eyetracker is not defined" error on experiment quit by @TEParsons in #5850
+* Fixed incorrect formatting in `AudioDeviceInfo` `__repr__` by @mdcutone in #5851
+* Fixed message order in Plugins dialog output by @TEParsons in #5865
+* Update path of README dialog on "save as" by @TEParsons in #5863
+* Fixed sounds restarting at the end of a Routine where they had perviously stopped by @peircej in #5874
+
+**Various documentation updates:**
+
+* Progress bar API and documentation by @suelynnmah in #5822
+* Bart Builder demo fix by @suelynnmah in #5823
+* psychophysicsStaircase demo fix by @suelynnmah in #5829
+* Fix colors demo by @TEParsons in #5838
+* Sternberg Builder demo - checked save log file to remove logFile error by @suelynnmah in #5845
+
+PsychoPy 2023.2.3
+~~~~~~~~~~~~~~~~~
+
+## Key fixes (from 2023.2.2)
+
+* Silenced warning about numpy version number in Windows Standalone
+* Fixed issue with "cannot import Never from typing_extensions" in Windows standalone
+* Fixed error detecting eyetracker config files by @TEParsons in #5883 #5886
+* Fixed eyetracker calibration routine freezing by @mdcutone in #5901
+* Fixed support for updated Pupil Labs plugin w/ support for Neon by @domstoppable in #5887
+* Fixed useVersion for JS - needed to create a _legacy.js file by @TEParsons in #5918
+* Fixed SerialOut parity should be N not None by @TEParsons in #5907
+* Fixed bug whereby Textbox's scrolling Aperture was applied to all stim by @TEParsons in #5934
+
+## Translation works
+
+* Continued translation into Simplified Chinese (and now Traditional Chinese) and beginnings of translations into Spanish, Hebrew: #5891 #5892 #5893 #5894 #5895 #5897 #5904 #5912 #5915 #5917 #5923 #5903 #5932 #5925
+
+## New Contributors
+
+* @meltemkaraca made their first contribution in #5891
+* @SarvCh made their first contribution in #5893
+* @ymhuang1005 made their first contribution in #5894
+* @ice-yu made their first contribution in #5895
+* @domstoppable made their first contribution in #5887
+* @jingrun213 made their first contribution in #5897
+* @psych575 made their first contribution in #5912
+
+**Full Changelog**: https://github.com/psychopy/psychopy/compare/2023.2.2...2023.2.3
+
+PsychoPy 2023.1
+---------------
+
+**Release series 2023.1. Highlights**
+
+- **Pavlovia Surveys:** can now be integrated into PsychoPy online studies. You still create your
+  survey in the Pavlovia Survey Creator (on you Pavlovia Dashboard) but you can then incorporate
+  them as either a link or an embedded json file into your PsychoJS study. This only works for
+  online studies at present
+- **Panorama Stimuli:** now supported in PsychoPy (lab-based) studies. You can add a photo-sphere 
+  as a stimulus (e.g. create them in Street View app on Android phones) and then insert them into 
+  Builder and explore
+- **Plugins and Packages:** You can now add packages to your PsychoPy installation with a GUI that
+  installs new packages to your user folder (without needing admin rights). Some of PsychoPy's
+  existing functionality has also moved out to "Plugins"
+
+    - For users, plugins mean more control over what functionality you want PsychoPy to support
+    - For developers, plugins mean keeping more independence over your code and ownership
+
+- **Speech Point:** on TextBox allows a tail to be added giving the impression of a cartoon speech
+  bubble (lab-based only, currently)
+- **MovieStim:** further improvements to performance and fixes
+
+On top of the [new features added in 2023.1 series](https://github.com/psychopy/psychopy/releases/tag/2023.1.0)
+
+**Fixes:**
+
+* Fix crash following gamma semi-auto correction (when laying out dialog box) dialog box by @TEParsons in #5452
+* Crashing due to outdated `core.getFromNames` in Mouse by @TEParsons in #5474
+* Setting Image as a numpy array caused a TypeError by @TEParsons in #5453
+* Handle invalid paths when stringifying params by @TEParsons in #5465
+* Swap all references to Panorama.altitude with Panorama.elevation by @TEParsons in #5471
+* Fix typo in Survey routine - `stauts` rather than `status` by @TEParsons in #5468
+* If user requests showing README and there isn't one then show a blank file @TEParsons in #5470
+* Fix typos in high contrast theme by @TEParsons in #5504
+* Sound files online were playing forever if duration set to <0.5s by @TEParsons in #5466
+* Let Builder treat Sound.isPlaying and Sound.status==STARTED as synonymous by @TEParsons in #5428
+* Correctly ignore blank columns by @wader in #5406
+* Viewport was left as None when checkTiming was unticked by @TEParsons in #5451
+* Better handling when a Pavlovia project / plugin avatars in the app @TEParsons in #5458 #5460 #5469
+
+**Documentation fixes by**
+
+* @roelofsaj in #5477 #5483 #5484
+* @ChenBri in #5478 #5480
+* @ChristopheBossens in #5481
+* @suelynnmah in #5444
+
+**New Contributors**
+
+* @roelofsaj made their first contribution in #5477
+* @ChenBri made their first contribution in #5478
+* @ChristopheBossens made their first contribution in #5481
+* @wader made their first contribution in #5406
+
+**Full Changelog**: https://github.com/psychopy/psychopy/compare/2023.1.1...2023.1.2
+
+PsychoPy 2023.1.1
+~~~~~~~~~~~~~~~~~
+
+**Fixed:**
+
+- Better plugin handling:
+
+  - Better handling of plugin dependencies (moved to sub-folders) #5398
+  - More responsive plugins dialog (not waiting for all plugin info to populate) #5410
+  - Live info updates as the plugin installs #5399
+  - Sort package versions newest first #a4987c95f
+
+- Panorama stimulus no longer needs FBO=False on Window
+- MovieStim locally opacity was not being honored #094731084
+- MovieStim online crashed if using setEveryRepeat #ed484ba17
+- Close eyetracker connection if experiment ends early #f9b6f98e4
+- README dialog was created twice #5383
+- Online Experiments with image sitmuli crashing with unknown resource "default.png"
+- Nested loops were crashing
+- Fixed various failures to translate #804bfcde2 #b1b611ec1
+- Console gave encoding errors when opening MacOS csv files on Windows machines #5396
+- Failure to log in to Pavlovia #5382 #5450
+
 PsychoPy 2022.3
 ---------------
 
-*Highilghts:*
+**Highlights:**
 - Online: Interface in Pavlovia for building and running online questionnaires! As this is built on top of the
   open-source [SurveyJS](https://surveyjs.io/) package it offers a rich feature list right off the bat. The new
   Pavlovia Survey component you can insert a survey into your experiment just like you would a Form component.

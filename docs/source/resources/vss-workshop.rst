@@ -4,7 +4,7 @@
 VSS 2012 Satellite Event, May 2012
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-PsychoPy is a modern, powerful easy-to-use software package for conducting psychophysics and imaging studies. It's become the package of choice in thousands of labs worldwide (see https://www.psychopy.org/usage.php).
+PsychoPy is a modern, powerful easy-to-use software package for conducting psychophysics and imaging studies. It's become the package of choice in thousands of labs worldwide (see https://usage.psychopy.org ).
 
 Using the Python programming language (a more powerful and free alternative to Matlab) PsychoPy can generate your stimuli in real-time and collect responses with high temporal precision.
 

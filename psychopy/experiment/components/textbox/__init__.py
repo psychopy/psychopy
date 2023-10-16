@@ -37,6 +37,7 @@ class TextboxComponent(BaseVisualComponent):
     """
     categories = ['Stimuli', 'Responses']
     targets = ['PsychoPy', 'PsychoJS']
+    version = "2020.2.0"
     iconFile = Path(__file__).parent / 'textbox.png'
     tooltip = _translate('Textbox: present text stimuli but cooler')
     beta = True
@@ -82,14 +83,14 @@ class TextboxComponent(BaseVisualComponent):
         self.order.insert(self.order.index("units"), "padding") # Add "padding" just before spatial units
         # params
         _allow3 = ['constant', 'set every repeat', 'set every frame']  # list
-        self.params['color'].label = _translate("Text Color")
+        self.params['color'].label = _translate("Text color")
 
         self.params['text'] = Param(
             text, valType='str', inputType="multi", allowedTypes=[], categ='Basic',
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("The text to be displayed"),
             canBePath=False,
-            label=_localized['text'])
+            label=_translate("Text"))
         self.depends.append(
             {
                 "dependsOn": "editable",  # if...
@@ -103,55 +104,55 @@ class TextboxComponent(BaseVisualComponent):
             placeholder, valType='str', inputType="single", categ='Basic',
             updates='constant', allowedUpdates=_allow3[:],
             hint=_translate("Placeholder text to show when there is no text contents."),
-            label=_translate("Placeholder Text"))
+            label=_translate("Placeholder text"))
         self.params['font'] = Param(
             font, valType='str', inputType="single", allowedTypes=[], categ='Formatting',
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("The font name (e.g. Comic Sans)"),
-            label=_localized['font'])
+            label=_translate("Font"))
         self.params['letterHeight'] = Param(
             letterHeight, valType='num', inputType="single", allowedTypes=[], categ='Formatting',
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("Specifies the height of the letter (the width"
                             " is then determined by the font)"),
-            label=_localized['letterHeight'])
+            label=_translate("Letter height"))
         self.params['flipHoriz'] = Param(
             flipHoriz, valType='bool', inputType="bool", allowedTypes=[], categ='Layout',
             updates='constant',
             hint=_translate("horiz = left-right reversed; vert = up-down"
                             " reversed; $var = variable"),
-            label=_localized['flipHorizontal'])
+            label=_translate("Flip horizontal"))
         self.params['flipVert'] = Param(
             flipVert, valType='bool', inputType="bool", allowedTypes=[], categ='Layout',
             updates='constant',
             hint=_translate("horiz = left-right reversed; vert = up-down"
                             " reversed; $var = variable"),
-            label=_localized['flipVertical'])
+            label=_translate("Flip vertical"))
         self.params['languageStyle'] = Param(
             languageStyle, valType='str', inputType="choice", categ='Formatting',
             allowedVals=['LTR', 'RTL', 'Arabic'],
             hint=_translate("Handle right-to-left (RTL) languages and Arabic reshaping"),
-            label=_localized['languageStyle'])
+            label=_translate("Language style"))
         self.params['italic'] = Param(
             italic, valType='bool', inputType="bool", allowedTypes=[], categ='Formatting',
             updates='constant',
             hint=_translate("Should text be italic?"),
-            label=_localized['italic'])
+            label=_translate("Italic"))
         self.params['bold'] = Param(
             bold, valType='bool', inputType="bool", allowedTypes=[], categ='Formatting',
             updates='constant',
             hint=_translate("Should text be bold?"),
-            label=_localized['bold'])
+            label=_translate("Bold"))
         self.params['lineSpacing'] = Param(
             lineSpacing, valType='num', inputType="single", allowedTypes=[], categ='Formatting',
             updates='constant',
             hint=_translate("Defines the space between lines"),
-            label=_localized['lineSpacing'])
+            label=_translate("Line spacing"))
         self.params['padding'] = Param(
             padding, valType='num', inputType="single", allowedTypes=[], categ='Layout',
             updates='constant', allowedUpdates=_allow3[:],
             hint=_translate("Defines the space between text and the textbox border"),
-            label=_localized['padding'])
+            label=_translate("Padding"))
         self.params['anchor'] = Param(
             anchor, valType='str', inputType="choice", categ='Layout',
             allowedVals=['center',
@@ -166,7 +167,7 @@ class TextboxComponent(BaseVisualComponent):
                          ],
             updates='constant',
             hint=_translate("Which point on the stimulus should be anchored to its exact position?"),
-            label=_translate('Anchor'))
+            label=_translate("Anchor"))
         self.params['alignment'] = Param(
             alignment, valType='str', inputType="choice", categ='Formatting',
             allowedVals=['center',
@@ -190,7 +191,7 @@ class TextboxComponent(BaseVisualComponent):
                          ],
             updates='constant',
             hint=_translate("If the text is bigger than the textbox, how should it behave?"),
-            label=_translate('Overflow'))
+            label=_translate("Overflow"))
         self.params['speechPoint'] = Param(
             speechPoint, valType='list', inputType="single", categ='Appearance',
             updates='constant', allowedUpdates=_allow3[:], direct=False,
@@ -201,18 +202,18 @@ class TextboxComponent(BaseVisualComponent):
             borderWidth, valType='num', inputType="single", allowedTypes=[], categ='Appearance',
             updates='constant', allowedUpdates=_allow3[:],
             hint=_translate("Textbox border width"),
-            label=_localized['borderWidth'])
+            label=_translate("Border width"))
         self.params['editable'] = Param(
             editable, valType='bool', inputType="bool", allowedTypes=[], categ='Basic',
             updates='constant',
             hint=_translate("Should textbox be editable?"),
-            label=_localized['editable'])
+            label=_translate("Editable?"))
         self.params['autoLog'] = Param(
             autoLog, valType='bool', inputType="bool", allowedTypes=[], categ='Data',
             updates='constant',
             hint=_translate(
                     'Automatically record all changes to this in the log file'),
-            label=_localized['autoLog'])
+            label=_translate("Auto log"))
 
     def writeInitCode(self, buff):
         # do we need units code?
@@ -268,7 +269,9 @@ class TextboxComponent(BaseVisualComponent):
                 "  text: %(text)s,\n"
                 "  placeholder: %(placeholder)s,\n"
                 "  font: %(font)s,\n" 
-                "  pos: %(pos)s, letterHeight: %(letterHeight)s,\n"
+                "  pos: %(pos)s, \n"
+                "  letterHeight: %(letterHeight)s,\n"
+                "  lineSpacing: %(lineSpacing)s,\n"
                 "  size: %(size)s," + unitsStr +
                 "  color: %(color)s, colorSpace: %(colorSpace)s,\n"
                 "  fillColor: %(fillColor)s, borderColor: %(borderColor)s,\n"

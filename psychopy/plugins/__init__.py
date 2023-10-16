@@ -9,6 +9,7 @@
 __all__ = [
     'loadPlugin',
     'listPlugins',
+    'installPlugin',
     'computeChecksum',
     'startUpPlugins',
     'pluginMetadata',
@@ -18,9 +19,12 @@ __all__ = [
     'isPluginLoaded',
     'isStartUpPlugin',
     'activatePlugins',
-    'discoverModuleClasses'
+    'discoverModuleClasses',
+    'getBundleInstallTarget',
+    'refreshBundlePaths'
 ]
 
+import os
 import sys
 import inspect
 import collections
@@ -28,6 +32,7 @@ import hashlib
 import importlib
 import psychopy.tools.pkgtools as pkgtools
 import pkg_resources
+import psychopy.tools.pkgtools as pkgtools
 from psychopy import logging
 from psychopy.preferences import prefs
 
@@ -230,6 +235,107 @@ def computeChecksum(fpath, method='sha256', writeOut=None):
     return checksumStr
 
 
+def getBundleInstallTarget(projectName):
+    """Get the path to a bundle given a package name.
+
+    This returns the installation path for a bundle with the specified project
+    name. This is used to either generate installation target directories.
+
+    Parameters
+    ----------
+    projectName : str
+        Project name for the main package within the bundle.
+
+    Returns
+    -------
+    str
+        Path to the bundle with a given project name. Project name is converted
+        to a 'safe name'.
+
+    """
+    return os.path.join(
+        prefs.paths['packages'], pkg_resources.safe_name(projectName))
+
+
+def refreshBundlePaths():
+    """Find package bundles within the PsychoPy user plugin directory.
+
+    This finds subdirectories inside the PsychoPy user package directory
+    containing distributions, then add them to the search path for packages.
+
+    These are referred to as 'bundles' since each subdirectory contains the
+    plugin package code and all extra dependencies related to it. This allows
+    plugins to be uninstalled cleanly along with all their supporting libraries.
+    A directory is considered a bundle if it contains a package at the top-level
+    whose project name matches the name of the directory. If not, the directory
+    will not be appended to `sys.path`.
+
+    This is called implicitly when :func:`scanPlugins()` is called.
+
+    Returns
+    -------
+    list
+        List of bundle names found in the plugin directory which have been
+        added to `sys.path`.
+
+    """
+    pluginBaseDir = prefs.paths['packages']  # directory packages are in
+
+    foundBundles = []
+    pluginTopLevelDirs = os.listdir(pluginBaseDir)
+    for pluginDir in pluginTopLevelDirs:
+        fullPath = os.path.join(pluginBaseDir, pluginDir)
+        allDists = pkg_resources.find_distributions(fullPath, only=False)
+        if not allDists:  # no packages found, move on
+            continue
+
+        # does the sud-directory contain an appropriately named distribution?
+        validDist = any([dist.project_name == pluginDir for dist in allDists])
+        if not validDist:
+            continue
+
+        # add to path if the subdir has a valid distribution in it
+        if fullPath not in sys.path:
+            sys.path.append(fullPath)  # add to path
+
+        foundBundles.append(pluginDir)
+
+    # refresh package index since the working set is now stale
+    pkgtools.refreshPackages()
+
+    return foundBundles
+
+
+def installPlugin(package, local=True, upgrade=False, forceReinstall=False,
+                  noDeps=False):
+    """Install a plugin package.
+
+    Parameters
+    ----------
+    package : str
+        Name or path to distribution of the plugin package to install.
+    local : bool
+        If `True`, install the package locally to the PsychoPy user plugin 
+        directory.
+    upgrade : bool
+        Upgrade the specified package to the newest available version.
+    forceReinstall : bool
+        If `True`, the package and all it's dependencies will be reinstalled if
+        they are present in the current distribution.
+    noDeps : bool
+        Don't install dependencies if `True`.
+
+    """
+    # determine where to install the package
+    installWhere = getBundleInstallTarget(package) if local else None
+    pkgtools.installPackage(
+        package, 
+        target=installWhere,
+        upgrade=upgrade,
+        forceReinstall=forceReinstall,
+        noDeps=noDeps)
+
+
 def scanPlugins():
     """Scan the system for installed plugins.
 
@@ -249,6 +355,8 @@ def scanPlugins():
     """
     global _installed_plugins_
     _installed_plugins_ = {}  # clear installed plugins
+
+    refreshBundlePaths()  # refresh plugin bundles directory
 
     # make sure we have the plugin directory in the working set
     pluginDir = prefs.paths['packages']
