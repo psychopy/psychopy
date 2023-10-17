@@ -717,10 +717,18 @@ class ioHubConnection():
         """
         Synchronise ioHub's internal clock with a given instance of MonotonicClock.
         """
+        params = {
+            '_timeAtLastReset': clock._timeAtLastReset,
+            '_epochTimeAtLastReset': clock._epochTimeAtLastReset,
+            'format': clock.format,
+        }
+        if isinstance(params['format'], type):
+            params['format'] = params['format'].__name__
         # sync clock in this process
-        Computer.global_clock._timeAtLastReset = clock._timeAtLastReset
+        for key, value in params.items():
+            setattr(Computer.global_clock, key, value)
         # sync clock in server process
-        return self._sendToHubServer(('RPC', 'syncClock', (clock._timeAtLastReset,)))
+        return self._sendToHubServer(('RPC', 'syncClock', (params,)))
 
     def setPriority(self, level='normal', disable_gc=False):
         """See Computer.setPriority documentation, where current process will
@@ -1327,6 +1335,10 @@ class ioHubConnection():
         Check if an iohub server reply contains an error that should be raised
         by the local process.
         """
+        # is it an ioHub error object?
+        if isinstance(data, ioHubError):
+            return True
+
         if isIterable(data) and len(data) > 0:
             d0 = data[0]
             if isIterable(d0):

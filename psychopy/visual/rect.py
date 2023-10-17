@@ -17,7 +17,9 @@ from psychopy.tools.attributetools import attributeSetter, setAttribute
 
 class Rect(BaseShapeStim):
     """Creates a rectangle of given width and height as a special case of a
-    :class:`~psychopy.visual.ShapeStim`.
+    :class:`~psychopy.visual.ShapeStim`. This is a lazy-imported class,
+    therefore import using full path `from psychopy.visual.rect import Rect`
+    when inheriting from it.
 
     Parameters
     ----------

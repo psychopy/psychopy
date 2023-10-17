@@ -149,7 +149,7 @@ class RoutineSettingsComponent(BaseComponent):
         # Store Routine start time (UTC)
         if self.params['saveStartStop']:
             code = (
-                "thisExp.addData('%(name)s.started', globalClock.getTime())\n"
+                "thisExp.addData('%(name)s.started', globalClock.getTime(format='float'))\n"
             )
             buff.writeIndentedLines(code % params)
         # Skip Routine if condition is met
@@ -290,7 +290,7 @@ class RoutineSettingsComponent(BaseComponent):
         # Store Routine start time (UTC)
         if self.params['saveStartStop']:
             code = (
-                "thisExp.addData('%(name)s.stopped', globalClock.getTime())\n"
+                "thisExp.addData('%(name)s.stopped', globalClock.getTime(format='float'))\n"
             )
             buff.writeIndentedLines(code % params)
         # Restore window appearance after this Routine (if changed)

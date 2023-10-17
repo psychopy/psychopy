@@ -7,7 +7,9 @@ class DropDownCtrl(ButtonStim):
     """
     Class to create a "Drop Down" control, similar to a HTML <select> tag. Consists of a psychopy.visual.ButtonStim
     which, when clicked on, shows a psychopy.visual.Slider with style "choice", which closes again when a value is
-    selected.
+    selected. This is a lazy-imported class, therefore import using full path
+    `from psychopy.visual.dropdown import DropDownCtrl` when inheriting from it.
+
 
     win : psychopy.visual.Window
         Window to draw the control to

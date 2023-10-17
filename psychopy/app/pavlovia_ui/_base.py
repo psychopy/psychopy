@@ -138,7 +138,7 @@ class PavloviaMiniBrowser(wx.Dialog):
     def checkForLogoutURL(self, event):
         url = event.GetURL()
         if url == 'https://gitlab.pavlovia.org/users/sign_in':
-            if self.logoutOnly:
+            if self.logoutOnly and self.IsModal():
                 self.EndModal(wx.ID_OK)
 
     def getParamFromURL(self, paramName, url=None):

@@ -5,7 +5,6 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 import ast
-import functools
 import os
 import subprocess
 import sys
@@ -343,14 +342,14 @@ class ChoiceCtrl(wx.Choice, _ValidatorMixin, _HideMixin):
         self.SetStringSelection(val)
 
     def populate(self):
-        if isinstance(self._choices, functools.partial):
+        if callable(self._choices):
             # if choices are given as a partial, execute it now to get values
             choices = self._choices()
         else:
             # otherwise, treat it as a list
             choices = list(self._choices)
 
-        if isinstance(self._labels, functools.partial):
+        if callable(self._labels):
             # if labels are given as a partial, execute it now to get values
             labels = self._labels()
         elif self._labels:
