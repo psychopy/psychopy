@@ -6213,7 +6213,7 @@ msgstr "声音"
 
 #: ../experiment/components/sound/__init__.py:22
 msgid "Volume"
-msgstr "容量"
+msgstr "音量"
 
 #: ../experiment/components/sound/__init__.py:23
 msgid "Sync Start With Screen"
