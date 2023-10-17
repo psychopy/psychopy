@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PsychoPy 2023.2.2\n"
 "Report-Msgid-Bugs-To: shuonwang@gmail.com\n"
 "POT-Creation-Date: 2021-12-18 00:00+0100\n"
-"PO-Revision-Date: 2023-10-13 11:55+0800\n"
+"PO-Revision-Date: 2023-10-17 15:52+0800\n"
 "Last-Translator: Huang Xinru <hxrmiaomiaomiao@pku.edu.cn>\n"
 "Language-Team: Shun Wang <shuonwang@gmail.com>\n"
 "Language: zh_CN\n"
@@ -6213,7 +6213,7 @@ msgstr "声音"
 
 #: ../experiment/components/sound/__init__.py:22
 msgid "Volume"
-msgstr "容量"
+msgstr "音量"
 
 #: ../experiment/components/sound/__init__.py:23
 msgid "Sync Start With Screen"
@@ -6235,58 +6235,62 @@ msgstr "声音可以是音符名称（如 A 或 Bf）、指定 Hz 的数字（�
 
 #: ../experiment/components/sound/__init__.py:69
 msgid "The volume (in range 0 to 1)"
-msgstr ""
+msgstr "音量（范围从0到1）"
 
 #: ../experiment/components/sound/__init__.py:71
 msgid ""
 "A reaction time to a sound stimulus should be based on when the screen "
 "flipped"
-msgstr ""
+msgstr "对声音刺激的反应时应基于屏幕何时翻转"
 
+# onset不知道翻译为什么比较好
 #: ../experiment/components/sound/__init__.py:81
+#, fuzzy
 msgid ""
 "For tones we can apply a Hamming window to prevent 'clicks' that are caused "
 "by a sudden onset. This delays onset by roughly 1ms."
 msgstr ""
+"对于音调，我们可以应用 Hamming 窗口来防止因突然 onset 而引起的“滴答声”。这会"
+"将 onset 延迟大约1毫秒。"
 
 #: ../experiment/components/sound/__init__.py:84
 msgid "Hamming window"
-msgstr ""
+msgstr "Hamming 窗口"
 
 #: ../experiment/components/static/__init__.py:22
 msgid "Custom code"
-msgstr ""
+msgstr "自定义代码"
 
 #: ../experiment/components/static/__init__.py:35
 msgid ""
 "Static: Static screen period (e.g. an ISI). Useful for pre-loading stimuli."
-msgstr ""
+msgstr "静态：屏幕呈静态的时段（如 ISI）。适用于预加载刺激。"
 
 #: ../experiment/components/static/__init__.py:46
 msgid "Custom code to be run during the static period (after updates)"
-msgstr ""
+msgstr "在静态时段中运行的自定义代码（更新后）"
 
 #: ../experiment/components/text/__init__.py:19
 #: ../experiment/components/textbox/__init__.py:20
 msgid "Text"
-msgstr ""
+msgstr "文本"
 
 #: ../experiment/components/text/__init__.py:22
 msgid "Wrap width"
-msgstr ""
+msgstr "换行宽度"
 
 #: ../experiment/components/text/__init__.py:23
 msgid "Flip (mirror)"
-msgstr ""
+msgstr "翻转（镜像）"
 
 #: ../experiment/components/text/__init__.py:24
 #: ../experiment/components/textbox/__init__.py:25
 msgid "Language style"
-msgstr ""
+msgstr "语言风格"
 
 #: ../experiment/components/text/__init__.py:34
 msgid "Text: present text stimuli"
-msgstr ""
+msgstr "文本：呈现文本刺激"
 
 #: ../experiment/components/text/__init__.py:38
 #: ../experiment/components/textbox/__init__.py:50
@@ -6295,63 +6299,69 @@ msgid ""
 "\n"
 "including line breaks"
 msgstr ""
+"任意文本\n"
+"\n"
+"包括换行符"
 
 #: ../experiment/components/text/__init__.py:85
 msgid "How wide should the text get when it wraps? (in the specified units)"
-msgstr ""
+msgstr "文本换行时的宽度是多少？(以指定单位表示）"
 
 #: ../experiment/components/text/__init__.py:91
 #: ../experiment/components/textbox/__init__.py:108
 #: ../experiment/components/textbox/__init__.py:114
 msgid "horiz = left-right reversed; vert = up-down reversed; $var = variable"
-msgstr ""
+msgstr "horiz = 左右反转；vert = 上下反转；$var = 变量"
 
 #: ../experiment/components/text/__init__.py:97
 #: ../experiment/components/textbox/__init__.py:120
+#, fuzzy
 msgid "Handle right-to-left (RTL) languages and Arabic reshaping"
-msgstr ""
+msgstr "处理从右向左 (RTL) 语言和阿拉伯语重塑问题"
 
 #: ../experiment/components/textbox/__init__.py:23
 msgid "Flip horizontal"
-msgstr ""
+msgstr "横向翻转"
 
 #: ../experiment/components/textbox/__init__.py:24
 msgid "Flip vertical"
-msgstr ""
+msgstr "纵向翻转"
 
 #: ../experiment/components/textbox/__init__.py:28
 msgid "Line Spacing"
-msgstr ""
+msgstr "行距"
 
 #: ../experiment/components/textbox/__init__.py:34
 msgid "Editable?"
-msgstr ""
+msgstr "可编辑？"
 
 #: ../experiment/components/textbox/__init__.py:35
 msgid "Auto Log"
-msgstr ""
+msgstr "自动日志"
 
+# 唔 cooler真的是更酷吗
 #: ../experiment/components/textbox/__init__.py:45
+#, fuzzy
 msgid "Textbox: present text stimuli but cooler"
-msgstr ""
+msgstr "文本框：呈现文本刺激，但更酷"
 
 #: ../experiment/components/textbox/__init__.py:135
 msgid "Defines the space between lines"
-msgstr ""
+msgstr "定义行间距"
 
 #: ../experiment/components/textbox/__init__.py:165
 msgid "Should textbox be editable?"
-msgstr ""
+msgstr "文本框是否可编辑？"
 
 #: ../experiment/components/textbox/__init__.py:170
 msgid "Automatically record all changes to this in the log file"
-msgstr ""
+msgstr "在日志文件中自动记录该处的所有的改变"
 
 #: ../experiment/components/unknown/__init__.py:12
 #: ../experiment/components/variable/__init__.py:21
 #: ../localization/__init__.py:158 ../localization/__init__.py:181
 msgid "Name"
-msgstr ""
+msgstr "名称"
 
 #: ../experiment/components/unknown/__init__.py:27
 msgid ""
@@ -6359,87 +6369,89 @@ msgid ""
 "PsychoPy\n"
 "(most likely from the future)"
 msgstr ""
+"未知：当前安装版本的 Psychopy 所不知道的组块\n"
+"（最有可能来自较新的版本）"
 
 #: ../experiment/components/variable/__init__.py:22
 msgid "Experiment start value"
-msgstr ""
+msgstr "实验起始值"
 
 #: ../experiment/components/variable/__init__.py:23
 msgid "Routine start value"
-msgstr ""
+msgstr "例程起始值"
 
 #: ../experiment/components/variable/__init__.py:24
 msgid "Frame start value"
-msgstr ""
+msgstr "帧起始值"
 
 #: ../experiment/components/variable/__init__.py:25
 msgid "Save exp start value"
-msgstr ""
+msgstr "保存实验起始值"
 
 #: ../experiment/components/variable/__init__.py:26
 msgid "Save routine start value"
-msgstr ""
+msgstr "保存例程起始值"
 
 #: ../experiment/components/variable/__init__.py:27
 msgid "Save frame value"
-msgstr ""
+msgstr "保存帧起始值"
 
 #: ../experiment/components/variable/__init__.py:28
 msgid "Save routine end value"
-msgstr ""
+msgstr "保存例程结束值"
 
 #: ../experiment/components/variable/__init__.py:29
 msgid "Save exp end value"
-msgstr ""
+msgstr "保存实验结束值"
 
 #: ../experiment/components/variable/__init__.py:38
 msgid "Variable: create a new variable"
-msgstr ""
+msgstr "变量：新建一个变量"
 
 #: ../experiment/components/variable/__init__.py:55
 msgid "The start value. A variable can be set to any value."
-msgstr ""
+msgstr "起始值。一个可以被设置为任意值的变量"
 
 #: ../experiment/components/variable/__init__.py:60
 msgid "Set the value for the beginning of each routine."
-msgstr ""
+msgstr "设置每一个例程开始时的值。"
 
 #: ../experiment/components/variable/__init__.py:65
 msgid "Set the value for the beginning of every screen refresh."
-msgstr ""
+msgstr "设置每次屏幕刷新开始时的值。"
 
 #: ../experiment/components/variable/__init__.py:71
 msgid "Save the experiment start value in data file."
-msgstr ""
+msgstr "将实验起始值保存在数据文件中。"
 
 #: ../experiment/components/variable/__init__.py:77
 msgid "Save the experiment end value in data file."
-msgstr ""
+msgstr "将实验结束值保存在数据文件中。"
 
 #: ../experiment/components/variable/__init__.py:83
 msgid "Save the routine start value in data file."
-msgstr ""
+msgstr "将例程起始值保存在数据文件中。"
 
 #: ../experiment/components/variable/__init__.py:89
 msgid "Save the routine end value in data file."
-msgstr ""
+msgstr "将例程结束值保存在数据文件中。"
 
 #: ../experiment/components/variable/__init__.py:95
 msgid "Save choice of frame value in data file."
-msgstr ""
+msgstr "将选择的帧值保存在数据文件中。"
 
 #: ../experiment/loops.py:62 ../experiment/loops.py:358
 #: ../experiment/loops.py:504
 msgid "Name of this loop"
-msgstr ""
+msgstr "这一循环的名称"
 
 #: ../experiment/loops.py:66
 msgid "Number of repeats (for each condition)"
-msgstr ""
+msgstr "重复次数（每个条件）"
 
 #: ../experiment/loops.py:71
 msgid "A list of dictionaries describing the parameters in each condition"
-msgstr ""
+msgstr "描述每个条件参数的字典列表"
 
 #: ../experiment/loops.py:76
 msgid ""
@@ -6447,16 +6459,18 @@ msgid ""
 "or .pkl). Browse to select a file. Right-click to preview file contents, or "
 "create a new file."
 msgstr ""
+"指定每个条件参数的文件名称（.csv、.xlsx 或 .pkl）。浏览选择文件。右键单击预览"
+"文件内容，或创建新文件。"
 
 #: ../experiment/loops.py:83
 msgid "The start and end of the loop (see flow timeline)"
-msgstr ""
+msgstr "循环的开始和结束（参见流程时间轴）"
 
 #: ../experiment/loops.py:89
 msgid ""
 "Select just a subset of rows from your condition file (the first is 0 not "
 "1!). Examples: 0, 0:5, 5:-1"
-msgstr ""
+msgstr "只选择条件文件中的一个子行集（从 0 开始而不是 1！）。例如 0, 0:5, 5:-1"
 
 #: ../experiment/loops.py:98
 msgid "How should the next condition value(s) be chosen?"
