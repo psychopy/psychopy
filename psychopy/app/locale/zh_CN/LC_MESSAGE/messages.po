@@ -6235,7 +6235,7 @@ msgstr "声音可以是音符名称（如 A 或 Bf）、指定 Hz 的数字（�
 
 #: ../experiment/components/sound/__init__.py:69
 msgid "The volume (in range 0 to 1)"
-msgstr "容量（范围从0到1）"
+msgstr "音量（范围从0到1）"
 
 #: ../experiment/components/sound/__init__.py:71
 msgid ""
