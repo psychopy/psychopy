@@ -1626,9 +1626,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
                            _translate("&Themes"))
 
         # Frame switcher
-        framesMenu = wx.Menu()
-        FrameSwitcher.makeViewSwitcherButtons(framesMenu, frame=self, app=self.app)
-        menu.AppendSubMenu(framesMenu, _translate("&Frames"))
+        FrameSwitcher.makeViewSwitcherButtons(menu, frame=self, app=self.app)
 
         # ---_view---#000000#FFFFFF-------------------------------------------
         # self.shellMenu = wx.Menu()
