@@ -82,8 +82,10 @@ class DeviceManager(list):
 
     def registerDevice(self, device):
         for obj in self:
-            if obj.isSameDevice(params=device.__dict__):
-                return
+            if hasattr(obj, "isSameDevice"):
+                if obj.isSameDevice(params=device.__dict__):
+                    return
+                    
         self.append(device)
 
     def addDevicesFromSpec(self, spec):
@@ -195,6 +197,7 @@ class DeviceManager(list):
         return spec
 
 
+# handle to the device manager, which is a singleton
 mgr = DeviceManager()
 
 
