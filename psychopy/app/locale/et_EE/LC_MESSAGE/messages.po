@@ -23,18 +23,18 @@ msgstr ""
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:12
 #, python-brace-format
 msgid "Your stimulus size exceeds the {dimension} dimension of your window."
-msgstr ""
+msgstr "Teie stiimuli suurus ületab ekraani {dimension} mõõtmed."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:16
 #, python-brace-format
 msgid "Your stimulus size is smaller than 1 pixel ({dimension} dimension)."
-msgstr ""
+msgstr "Teie stiimuli suurus on väiksem kui 1 piksel ({dimension} mõõde)."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:20
 #, python-brace-format
 msgid ""
 "Your stimulus position exceeds the {dimension} dimension of your window."
-msgstr ""
+msgstr "Teie stiimuli suurus ületab ekraani {dimension} dimensiooni mõõtmed."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:24
 #, python-brace-format
@@ -42,6 +42,8 @@ msgid ""
 "Your stimulus {type} time of {time} is less than a screen refresh for a {Hz}"
 "Hz monitor."
 msgstr ""
+"Teie stiimuli {type} aeg {time} on lühem kui ühe ekraanivärskenduse aeg {Hz}"
+"Hz monitoril."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:28
 #, python-brace-format
@@ -49,6 +51,8 @@ msgid ""
 "Your stimulus {type} time of {time} seconds cannot be accurately presented "
 "for {time} on a {Hz}Hz monitor."
 msgstr ""
+"Teie stiimuli {type} aeg {time} sekundit ei saa täpselt kuvada {time} "
+"sekundiks {Hz}Hz ekraanil."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:32
 #, python-brace-format
@@ -57,6 +61,9 @@ msgid ""
 "recommend either updating PsychoPy or changing the \"Use Version\" setting "
 "in Experiment Settings to this version."
 msgstr ""
+"Katse loodi PsychoPy tulevases versioonis ({version}). Soovitame PsychoPy "
+"uuendada või muuta \"Kasuta versiooni\" sätted Katse Seadetes sellele "
+"versioonile vastavaks."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:36
 #, python-brace-format
@@ -77,6 +84,7 @@ msgstr ""
 msgid ""
 "Your stimulus {type} type {frameType} must be expressed as a whole number."
 msgstr ""
+"Teie stiimuli {type} tüüp {frameType} peaks olema väljendatud täisarvuna."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:48
 #, python-brace-format
@@ -84,6 +92,8 @@ msgid ""
 "Component {component} has stop time set as a duration, but doesn't have a "
 "start time"
 msgstr ""
+"Komponendi {component} ajastus on defineeritud kestusena, kuid algusaega on "
+"määramata jäänud."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:52
 #, python-brace-format
@@ -91,6 +101,8 @@ msgid ""
 "Python Syntax Error in '{codeTab}' tab. See '{code}' on line number "
 "{lineNumber} of the '{codeTab}' tab."
 msgstr ""
+"Pythoni süntaksi viga vahekaardil '{codeTab}'. Vaata '{code}' rida number "
+"{lineNumber} vahekaardil '{codeTab}'."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:56
 #, python-brace-format
@@ -98,6 +110,8 @@ msgid ""
 "JavaScript Syntax Error in '{codeTab}' tab. See '{lineNumber}' in the "
 "'{codeTab}' tab."
 msgstr ""
+"JavaScripti süntaksi viga vahekaardil '{codeTab}'. Vaata rida number "
+"'{lineNumber}' vahekaardil '{codeTab}'."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:60
 #, python-brace-format
@@ -105,10 +119,11 @@ msgid ""
 "The component {name} is currently disabled and will not be written to your "
 "experiment script."
 msgstr ""
+"Komponent {name} on praegu keelatud ja seda ei kirjutata teie katsekoodi."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:63
 msgid "Cannot calculate parameter."
-msgstr ""
+msgstr "Parameetri arvutamine ebaõnnestus."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:67
 #, python-brace-format
