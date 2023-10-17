@@ -74,7 +74,7 @@ es_PR ESU
 es_VE ESV
 es_UY ESY
 es_PY ESZ
-et_EE ETI
+et_EE ETI eesti (Estonian)
 eu_ES EUQ
 fa_IR FAR فارسی (Persian)
 fi_FI FIN suomi  (Finnish)

@@ -4,15 +4,16 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: PsychoPy v1.81.00\n"
-"POT-Creation-Date: 2023-10-16 12:06+0200\n"
+"Project-Id-Version: PsychoPy v2023.2.3\n"
+"POT-Creation-Date: 2023-10-16 13:06+0300\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jeremy R. Gray <jrgray@gmail.com>\n"
 "Language-Team: psychopy-dev@google-groups.com\n"
-"Language: de\n"
+"Language: et_EE\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 3.4\n"
 "X-Poedit-Basepath: ../../../../..\n"
 "X-Poedit-SourceCharset: UTF-8\n"
@@ -22,21 +23,18 @@ msgstr ""
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:12
 #, python-brace-format
 msgid "Your stimulus size exceeds the {dimension} dimension of your window."
-msgstr ""
-"Die Größe Ihres Stimulus übersteigt die Dimension {dimension} Ihres Fensters."
+msgstr "Teie stiimuli suurus ületab ekraani {dimension} mõõtmed."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:16
 #, python-brace-format
 msgid "Your stimulus size is smaller than 1 pixel ({dimension} dimension)."
-msgstr "Die Stimulusgröße ist kleiner als 1 Pixel ({dimension}-Dimension)."
+msgstr "Teie stiimuli suurus on väiksem kui 1 piksel ({dimension} mõõde)."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:20
 #, python-brace-format
 msgid ""
 "Your stimulus position exceeds the {dimension} dimension of your window."
-msgstr ""
-"Die Position Ihres Stimulus überschreitet die Dimension {dimension} Ihres "
-"Fensters."
+msgstr "Teie stiimuli suurus ületab ekraani {dimension} dimensiooni mõõtmed."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:24
 #, python-brace-format
@@ -44,8 +42,8 @@ msgid ""
 "Your stimulus {type} time of {time} is less than a screen refresh for a {Hz}"
 "Hz monitor."
 msgstr ""
-"Ihre Stimulus-{type}-Zeit von {time} ist kürzer als eine "
-"Bildschirmaktualisierung für einen {Hz}Hz-Monitor."
+"Teie stiimuli {type} aeg {time} on lühem kui ühe ekraanivärskenduse aeg {Hz}"
+"Hz monitoril."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:28
 #, python-brace-format
@@ -53,8 +51,8 @@ msgid ""
 "Your stimulus {type} time of {time} seconds cannot be accurately presented "
 "for {time} on a {Hz}Hz monitor."
 msgstr ""
-"Ihre Stimulus-{type}-Zeit von {time} Sekunden kann auf einem {Hz}Hz-Monitor "
-"nicht exakt für {time} dargestellt werden."
+"Teie stiimuli {type} aeg {time} sekundit ei saa täpselt kuvada {time} "
+"sekundiks {Hz}Hz ekraanil."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:32
 #, python-brace-format
@@ -63,10 +61,9 @@ msgid ""
 "recommend either updating PsychoPy or changing the \"Use Version\" setting "
 "in Experiment Settings to this version."
 msgstr ""
-"Das Experiment wurde in einer zukünftigen Version von PsychoPy ({version}) "
-"erstellt. Wir empfehlen entweder PsychoPy zu aktualisieren oder die "
-"Einstellung \"Version verwenden\" in den Experimenteinstellungen auf diese "
-"Version zu ändern."
+"Katse loodi PsychoPy tulevases versioonis ({version}). Soovitame PsychoPy "
+"uuendada või muuta \"Kasuta versiooni\" sätted Katse Seadetes sellele "
+"versioonile vastavaks."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:36
 #, python-brace-format
@@ -74,9 +71,6 @@ msgid ""
 "Experiment was built in a past version of PsychoPy ({version}), saving it in "
 "this version may add parameters which cannot be parsed."
 msgstr ""
-"Das Experiment wurde in einer früheren Version von PsychoPy ({version}) "
-"erstellt. Das Speichern in dieser Version kann Parameter hinzufügen, die "
-"nicht geparst werden können."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:40
 #, python-brace-format
@@ -84,15 +78,13 @@ msgid ""
 "Your stimulus start {type} exceeds the stop {type}. Consider using a {type} "
 "duration."
 msgstr ""
-"Der Stimulusstart {type} liegt vor dem Stimulsstopp {type}. Erwägen Sie die "
-"Verwendung einer {type}-Dauer."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:44
 #, python-brace-format
 msgid ""
 "Your stimulus {type} type {frameType} must be expressed as a whole number."
 msgstr ""
-"Der Stimulus {type} vom Typ {frameType} muss als ganze Zahl angegeben werden."
+"Teie stiimuli {type} tüüp {frameType} peaks olema väljendatud täisarvuna."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:48
 #, python-brace-format
@@ -100,8 +92,8 @@ msgid ""
 "Component {component} has stop time set as a duration, but doesn't have a "
 "start time"
 msgstr ""
-"Die Komponente {component} hat eine Stoppzeit als Dauer festgelegt, aber "
-"keine Startzeit"
+"Komponendi {component} ajastus on defineeritud kestusena, kuid algusaega on "
+"määramata jäänud."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:52
 #, python-brace-format
@@ -109,6 +101,8 @@ msgid ""
 "Python Syntax Error in '{codeTab}' tab. See '{code}' on line number "
 "{lineNumber} of the '{codeTab}' tab."
 msgstr ""
+"Pythoni süntaksi viga vahekaardil '{codeTab}'. Vaata '{code}' rida number "
+"{lineNumber} vahekaardil '{codeTab}'."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:56
 #, python-brace-format
@@ -116,6 +110,8 @@ msgid ""
 "JavaScript Syntax Error in '{codeTab}' tab. See '{lineNumber}' in the "
 "'{codeTab}' tab."
 msgstr ""
+"JavaScripti süntaksi viga vahekaardil '{codeTab}'. Vaata rida number "
+"'{lineNumber}' vahekaardil '{codeTab}'."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:60
 #, python-brace-format
@@ -123,10 +119,11 @@ msgid ""
 "The component {name} is currently disabled and will not be written to your "
 "experiment script."
 msgstr ""
+"Komponent {name} on praegu keelatud ja seda ei kirjutata teie katsekoodi."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:63
 msgid "Cannot calculate parameter."
-msgstr ""
+msgstr "Parameetri arvutamine ebaõnnestus."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:67
 #, python-brace-format
@@ -375,7 +372,7 @@ msgstr ""
 
 #: psychopy/app/builder/builder.py:77
 msgid "Favorites"
-msgstr ""
+msgstr "Lemmikud"
 
 #: psychopy/app/builder/builder.py:78
 msgid "Stimuli"
@@ -809,10 +806,8 @@ msgid "&About..."
 msgstr ""
 
 #: psychopy/app/builder/builder.py:590 psychopy/app/coder/coder.py:1769
-#, fuzzy
-#| msgid "Welcome to PsychoPy2!"
 msgid "About PsychoPy"
-msgstr "Willkommen auf PsychoPy2!"
+msgstr ""
 
 #: psychopy/app/builder/builder.py:593 psychopy/app/coder/coder.py:1773
 msgid "&News..."
@@ -2151,10 +2146,8 @@ msgid "Go to the Coder view"
 msgstr ""
 
 #: psychopy/app/coder/coder.py:344
-#, fuzzy
-#| msgid "Welcome to PsychoPy2!"
 msgid "Terminate PsychoPy"
-msgstr "Willkommen auf PsychoPy2!"
+msgstr ""
 
 #: psychopy/app/coder/coder.py:347
 msgid "&Preferences"
@@ -2222,10 +2215,8 @@ msgid "Shelf"
 msgstr ""
 
 #: psychopy/app/coder/coder.py:1291 psychopy/tools/wizard.py:509
-#, fuzzy
-#| msgid "Welcome to PsychoPy2!"
 msgid "Welcome to PsychoPy3!"
-msgstr "Willkommen auf PsychoPy2!"
+msgstr ""
 
 #: psychopy/app/coder/coder.py:1399
 msgid "Save current file"
