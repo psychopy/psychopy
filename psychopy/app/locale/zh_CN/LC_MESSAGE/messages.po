@@ -116,7 +116,7 @@ msgid ""
 "{component.type} component \"{component.params[name].val}\" as a dollar sign "
 "has been used incorrectly."
 msgstr ""
-"Builder无法解释{component.type}组件的“{param.val}”值\n"
+"Builder无法解析{component.type}组件中标签为“{param.label}”的“{param.val}”值"
 "“{component.params[name].val}”被误用为美元符号（$）。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:67
@@ -187,11 +187,11 @@ msgstr ""
 
 #: ../alerts/alertsCatalogue/alertmsg.py:108
 msgid "Audio transcription service \"{transcriber}\" is not supported online."
-msgstr "音屏转录服务“{transcrbiver}”不支持在线。"
+msgstr "音频转录服务“{transcriber}”不支持在线。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:112
 msgid "Audio transcription service \"{transcriber}\" is not supported offline."
-msgstr "音屏转录服务“{transcrbiver}”不支持离线。"
+msgstr "音频转录服务“{transcriber}”不支持离线。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:116
 msgid ""
@@ -2326,7 +2326,7 @@ msgstr ""
 msgid ""
 "You are running the latest version of PsychoPy (%s)\n"
 " "
-msgstr "正在运行最新版本的PsychoPy（%s）"
+msgstr "正在运行最新版本的PsychoPy（%s）\n"
 
 #: ../app/connections/updates.py:357
 msgid ""
@@ -3533,7 +3533,7 @@ msgstr "另存为..."
 
 #: ../app/builder/builder.py:299 ../app/utils.py:184 ../app/utils.py:250
 msgid "Save current experiment file as..."
-msgstr "将当前实验文件另存为"
+msgstr "将当前实验文件另存为..."
 
 #: ../app/coder/codeEditorBase.py:115 ../app/coder/coder.py:151
 #: ../app/utils.py:188 ../app/utils.py:253
