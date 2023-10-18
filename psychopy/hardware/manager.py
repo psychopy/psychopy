@@ -9,36 +9,35 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 __all__ = [
-    'mgr', 
+    'deviceManager', 
     'getDeviceManager', 
     'DeviceManager',
     'closeAllDevices'
 ]
 
-from . import keyboard, mouse, serialdevice as sd, camera
-from psychopy.sound import microphone
 from psychopy.tools import systemtools as st
 from serial.tools import list_ports
+from psychopy import logging
 import atexit
 
 
 class DeviceManager:
     """Class for managing hardware devices.
 
-    An instance of this class is used to manage hardware peripherals relevant 
-    to PsychoPy. It can be used to initialize and access devices such as
-    audio devices, serial devices, and cameras. It can also be used to get
-    information about available devices installed on the system.
+    An instance of this class is used to manage various hardware peripherals 
+    used by PsychoPy. It can be used to access devices such as microphones, 
+    button boxes, and cameras though a common interface. It can also be used to 
+    get information about available devices installed on the system, such as 
+    their settings and capabilities prior to initializing them.
     
     It is recommended that devices are initialized through the device manager
-    rather than directly. This allows the device manager to keep track of
-    devices and prevent conflicts. For example, if a microphone is initialized
-    with the same device number as another microphone, the device manager will
-    raise an error.
+    rather than directly. The device manager is responsible for keeping track
+    of devices and ensuring that they are properly closed when the program
+    exits. 
 
     This class is implemented as a singleton, so there is only one
     instance of it per ssession after its initialized. The instance can be 
-    accessed through the global variable `mgr` or by calling 
+    accessed through the global variable `deviceManager` or by calling 
     `getDeviceManager()`.
 
     """
@@ -61,7 +60,8 @@ class DeviceManager:
             'serial', 
             'parallel', 
             'tpad', 
-            'trigger'
+            'trigger',
+            'unassigned'  # used for devices that don't have a category
             # 'buttonbox'
         ]
 
@@ -84,35 +84,98 @@ class DeviceManager:
         Keyboard
             Keyboard object.
 
-        """
-        if name in self._devices['keyboard'].keys():
-            raise ValueError(f"Keyboard {name} already exists")
+        Examples
+        --------
+        Add a keyboard::
 
-        dev = keyboard.Keyboard(backend=backend, device=device)
-        toReturn = self._devices['keyboard'][name] = dev
+            import psychopy.hardware.manager as hm
+            mgr = hm.getDeviceManager()
+            mgr.addKeyboard('response_keyboard', backend='iohub', device=-1)
+        
+        Get the keyboard and use it to get a response::
+
+            kb = mgr.getKeyboard('response_keyboard')
+            kb.getKeys()
+
+        """
+        self._assertDeviceNameUnique(name)
+
+        # check if the device id is alread in use
+        for kb in self._devices['keyboard']:
+            if kb.device == device:
+                raise ValueError(
+                    f"Keyboard device {device} is already in use by {kb.name}")
+
+                # nb - device=-1 is a bit tricky to handle, since it's not
+                # a valid device index.
+
+        toReturn = self._devices['keyboard'][name] = keyboard.Keyboard(
+            backend=backend, device=device)
 
         return toReturn
 
-    def addMouse(self, name):
+    def addMouse(self, name, backend='iohub'):
         """Add a mouse.
 
         Parameters
         ----------
         name : str
             Name of the mouse.
+        backend : str, optional
+            Backend to use for mouse input. Defaults to "iohub".
 
         Returns
         -------
         Mouse
             Mouse object.
 
-        """
-        if name in self._devices['mouse'].keys():
-            raise ValueError(f"Mouse {name} already exists")
+        Examples
+        --------
+        Add a pointing device to be managed by the device manager::
 
+            import psychopy.hardware.manager as hm
+            mgr = hm.getDeviceManager()
+
+            mgr.addMouse('response_mouse')
+
+        Get the mouse and use it to get a response::
+
+            mouse = mgr.getMouse('response_mouse')
+            pos = mouse.getPos()
+
+        """
+        # todo - handle the `backend` parameter
+        self._assertDeviceNameUnique(name)
+
+        from psychopy.hardware.mouse import mouse
         toReturn = self._devices['mouse'][name] = mouse.Mouse()
 
         return toReturn
+
+    def addSpeaker(self, name, device=0, sampleRate=44100, channels=2):
+        """Add a speaker.
+
+        Parameters
+        ----------
+        name : str
+            User-defined name of the speaker.
+        device : int or str, optional
+            Device index or name. Defaults to 0.
+        sampleRate : int, optional
+            Sample rate in Hz. Defaults to 44100.
+        channels : int, optional
+            Number of channels. Defaults to 2 for stereo. Use 1 for mono.
+
+        Returns
+        -------
+        Speaker
+            Speaker object.
+
+        """
+        # We need to initialize the audio playback system here, right now that
+        # all handled by the `sound` module in a fairly rigid way that can't be 
+        # easily done like microphones.
+        raise NotImplementedError("Speaker support is a work in progress")
 
     def addMicrophone(self, name, device=0, sampleRate=44100, channels=1):
         """Add a microphone.
@@ -133,9 +196,42 @@ class DeviceManager:
         Microphone
             Microphone object.
 
+        Examples
+        --------
+        Get available microphones and add one to the device manager::
+
+            import psychopy.hardware.manager as hm
+            mgr = hm.getDeviceManager()
+
+            allMics = mgr.getAvailableMicrophones()
+            print(allMics.keys())  # show all available microphone names
+            devSpec = allMics['Microphone (C922 Pro Stream Webcam)']
+            mgr.addMicrophone('response_mic', device=devSpec['device_index'])
+
+        Same as above but using settings obtained in advance::
+
+            dm = hm.getDeviceManager()
+            specs = dm.getAvailableMicrophones()
+            spec = specs[0]  # get first microphone
+
+            kwargs = {
+                'device': spec['device_index'],
+                'sampleRate': spec['sampling_rate'][0],  # use first supported
+                'channels': spec['channels']
+            }
+
+            mic = dm.addMicrophone('default', **kwargs)
+
+        Use the microphone to record audio::
+
+            mic = mgr.getMicrophone('response_mic')
+            mic.setSound(...)
+
         """
-        if name in self._devices['microphone'].keys():
-            raise ValueError(f"Microphone {name} already exists")
+        self._assertDeviceNameUnique(name)
+        
+        # import microphone here to avoid circular import
+        import psychopy.sound.microphone as microphone
 
         # check if we already have a microphone with the same device
         for mic in self._devices['microphone']:
@@ -149,6 +245,20 @@ class DeviceManager:
         toReturn = self._devices['microphone'][name] = dev
 
         return dev
+
+    def removeMicrophone(self, name):
+        """Remove a microphone.
+
+        Parameters
+        ----------
+        name : str
+            Name of the microphone.
+
+        """
+        self._assertDeviceNameUnique(name)
+
+        self._devices['microphone'][name].close()
+        del self._devices['microphone'][name]
 
     def addCamera(self, name, device=0, backend=u'ffpyplayer'):
         """Add a camera.
@@ -168,23 +278,120 @@ class DeviceManager:
             Camera object.
 
         """
+        self._assertDeviceNameUnique(name)
+
         # check if the device is already in use
         for cam in self._devices['camera']:
             if cam.device == device:
                 raise ValueError(
                     f"Camera device {device} is already in use by {cam.name}")
 
+        import psychopy.hardware.camera as camera
         dev = camera.Camera(device=device, cameraLib=backend)
         toReturn = self._devices['camera'][name] = dev
 
         return dev
 
+    def findDevice(self, name):
+        """Find a device by name.
+
+        This can be used to find a device by its user specified name, returning 
+        its interface object.
+
+        Parameters
+        ----------
+        name : str
+            Name of the device.
+
+        Returns
+        -------
+        object or `None`
+            Device object associated with the given name. Returns `None` if no
+            device with the given name exists.
+
+        """
+        for devClass in self._devices:
+            if name in self._devices[devClass]:
+                return self._devices[devClass][name]
+
+        return None
+
+    def checkDeviceNameAvailable(self, name):
+        """Check if a device name is available.
+
+        Parameters
+        ----------
+        name : str
+            Name of the device.
+
+        Returns
+        -------
+        bool
+            `True` if the device name is available, `False` otherwise. If `False`
+            is returned, the device name cannot be used when adding another
+            device.
+        
+        """
+        for devClass in self._devices:
+            if name in self._devices[devClass]:
+                return False
+
+        return True
+
+    def _assertDeviceNameUnique(self, name):
+        """Assert that the specified device name is unique.
+
+        This checks if the device name specified is unique and not used by any
+        of the other devices in the manager.
+
+        Parameters
+        ----------
+        name : str
+            Name of the device to check.
+
+        Raises
+        ------
+        ValueError
+            If the device name is not unique.
+
+        """
+        # check if there are any keys in the dictionaries inside of 
+        # `self._devices` that match the name
+        if not self.checkDeviceNameAvailable(name):
+            raise ValueError(
+                f"Device name '{name}' is already in use by another "
+                "device!")
+
+    def _getSerialPortsInUse(self):
+        """Get serial ports that are being used and the names of the devices
+        that are using them. 
+        
+        This will only work if the devices have a `portString` attribute, which
+        requires they inherit from `SerialDevice`.
+
+        Returns
+        -------
+        dict
+            Mapping of serial port names to the names of the devices that are
+            using them as a list.
+
+        """
+        ports = {}
+        for devClass in self._devices:
+            for devName, devObj in self._devices[devClass].items():
+                if hasattr(devObj, 'portString'):
+                    ports.setdefault(devObj.portString, []).append(devName)
+
+        return ports
+
     def addSerialDevice(self, name, port, baudrate=9600, byteSize=8, stopBits=1, 
             parity="N"):
-        """Add a serial device interface.
+        """Add a generic serial device interface.
 
         This creates a serial device interface object that can be used to
-        communicate with a serial device.
+        communicate with a serial device. This is a generic interface that can
+        be used to communicate with any serial device, such as a button box or
+        a TPad.
 
         Parameters
         ----------
@@ -210,6 +417,8 @@ class DeviceManager:
         if name in self._devices['serial'].keys():
             raise ValueError(f"Serial device {name} already exists")
 
+        import psychopy.hardware.serialdevice as serialdevice
+
         # check if we have a serial device with the same port
         for dev in self._devices['serial']:
             if dev.port == port:
@@ -217,7 +426,7 @@ class DeviceManager:
                     f"Serial port {port} is already in use by {dev.name}")
 
         # open up a port and add it to the device manager
-        toReturn = self._devices['serial'][name] = sd.SerialDevice(
+        toReturn = self._devices['serial'][name] = serialdevice.SerialDevice(
             port=port, baudrate=baudrate,
             byteSize=byteSize, stopBits=stopBits,
             parity=parity
@@ -267,44 +476,34 @@ class DeviceManager:
     def addTPad(self, name, port):
         raise NotImplementedError("BBTK TPad integration is a work in progress")
 
-    def registerDevice(self, device):
-        """Register a device.
+    def closeAll(self):
+        """Close all devices.
 
-        Parameters
-        ----------
-        device : Device
-            Device to register.
+        Close all devices that have been initialized. This is usually called on
+        exit to free resources cleanly. It is not necessary to call this method
+        manually as it is registered as an `atexit` handler.
+
+        The device manager will be reset after this method is called.
 
         """
-        if device.name in self.devices:
-            raise ValueError(f"Device {device.name} already exists")
-
-        self.devices[device.name] = device
-
-    def addDevicesFromSpec(self, spec):
-        for item in spec:
-            # pop type key from spec
-            ioType = item.pop("type")
-            # figure out name
-            if "name" in item:
-                # if name is given, use it
-                name = item.pop("name")
-            else:
-                # if not given, use input type as name
-                name = ioType
-                # add numbers for unique names
-                i = 0
-                while name in self.devices:
-                    i += 1
-                    name = f"{ioType}{i}"
-            # call method associated with input type (according to decorators)
-            _deviceAddMethods[ioType](name, **item)
+        devClasses = list(self._devices.keys())
+        for devClass in devClasses:
+            for devName, devObj in self._devices[devClass].items():
+                if hasattr(devObj, 'close'):
+                    try:
+                        devObj.close()
+                    except Exception:
+                        logging.error(f"Failed to close {devName}")
+                    logging.debug(f"Closed {devClass} device: {devName}")
+                else:
+                    logging.error(
+                        f"Device {devName} does not have a `close()` method!")
+                
+            self._devices[devClass].clear()
 
     # --- manage devices ---
-    @staticmethod
     def getKeyboards(self):
         """Get a mapping of keyboards that have been initialized.
-
 
         Returns
         -------
@@ -329,7 +528,7 @@ class DeviceManager:
         """
         return self._devices['speaker']
 
-    def getAudioPlaybackDevice(self, name):
+    def getSpeaker(self, name):
         """Get a playback device by name.
 
         Parameters
@@ -358,7 +557,7 @@ class DeviceManager:
         """
         return self._devices['microphone']
 
-    def getAudioCaptureDevice(self, name):
+    def getMicrophone(self, name):
         """Get an audio capture device by name.
 
         Parameters
@@ -440,6 +639,19 @@ class DeviceManager:
     # --- get available devices ---
 
     @staticmethod
+    def getAvailableKeyboards():
+        """Get information about all available keyboards connected to the system.
+
+        Returns
+        -------
+        dict
+            Dictionary of information about available keyboards connected to 
+            the system.
+
+        """
+        return st.getInstalledDevices('keyboard')
+
+    @staticmethod
     def getAvailableSpeakers():
         """Get information about all available audio playback devices connected to 
         the system.
@@ -487,36 +699,15 @@ class DeviceManager:
             spec[info.name] = info
         return spec
 
-    def closeAll(self):
-        """Close all devices.
-
-        Close all devices that have been initialized. This is usually called on
-        exit to free resources cleanly. It is not necessary to call this method
-        manually as it's registed as an `atexit` handler.
-
-        After this is called, all devices will be closed and the device manager
-        will be empty.
-
-        """
-        devClasses = list(self._devices.keys())
-        for devClass in devClasses:
-            for dev in self._devices[devClass]:
-                if hasattr(dev, 'close'):
-                    dev.close()
-                    logging.debug(f"Closed `{devClass}` device ({dev.name})")
-                else:
-                    logging.debug(
-                        f"Device `{devClass}` ({dev.name}) has no close method")
-                
-            self._devices[devClass].clear()
-
             
 # handle to the device manager, which is a singleton
-mgr = DeviceManager()
+deviceManager = DeviceManager()
 
 
 def getDeviceManager():
     """Get the device manager.
+
+    Returns an instance of the device manager.
 
     Returns
     -------
@@ -524,7 +715,11 @@ def getDeviceManager():
         The device manager.
 
     """
-    return mgr
+    global deviceManager
+    if deviceManager is None:
+        deviceManager = DeviceManager()  # initialize
+
+    return deviceManager
 
 
 def closeAllDevices():
