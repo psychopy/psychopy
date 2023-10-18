@@ -1120,20 +1120,22 @@ def getInstalledDevices(deviceType='all', refresh=False):
 
         # get all microphones by name
         foundDevices = []
-        for devIdx, devInfo in allAudioDevices.items():
+        for _, devInfo in allAudioDevices.items():
             if devInfo["name"] not in foundDevices:  # unique names only
                 if devInfo["inputChannels"] > 0:
-                    foundDevices.append((devInfo["name"], 'microphone'))
+                    foundDevices.append(
+                        (devInfo["name"], devInfo["index"], 'microphone'))
                 if devInfo["outputChannels"] > 0:
-                    foundDevices.append((devInfo["name"], 'speaker'))
+                    foundDevices.append(
+                        (devInfo["name"], devInfo["index"], 'speaker'))
 
-        # now get settings for each microphone
+        # now get settings for each audi odevice
         devSettings = {'microphone': [], 'speaker': []}
-        for devName, devClass in foundDevices:
+        for devName, devIndex, devClass in foundDevices:
             supportedSampleRates = []
             supportedChannels = []
-
-            for devIdx, devInfo in allAudioDevices.items():
+            
+            for _, devInfo in allAudioDevices.items():
                 # check if we have a dictionary for this device
                 if devInfo["name"] != devName:
                     continue
@@ -1147,8 +1149,9 @@ def getInstalledDevices(deviceType='all', refresh=False):
             devSettings[devClass].append(
                 {
                     "device_name": devName,
+                    "device_index": devIndex,
                     "sampling_rate": supportedSampleRates,
-                    "channels": supportedChannels,
+                    "channels": supportedChannels
                 }
             )
 
@@ -1178,7 +1181,7 @@ def getInstalledDevices(deviceType='all', refresh=False):
         # colect settings for each camera we found
         devSettings = []
         for devName in foundDevices:
-            supportedFrameSizes = []
+            supportedFrameSizes = [] 
             supportedFrameRates = []
             supportedCodecs = []
             supportedPixelFormats = []
