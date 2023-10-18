@@ -739,17 +739,15 @@ def systemProfilerWindowsOS(
         drivers=False,
         interfaces=False,
         properties=False,
-        resources=False
-):
-    """
-    Get information about devices via Windows'
+        resources=False):
+    """Get information about devices via Windows'
     [pnputil](https://learn.microsoft.com/en-us/windows-hardware/drivers/devtest/pnputil-command-syntax#enum-devices).
 
     Parameters
     ----------
     parseStr : bool
-        Whether to parse the string output from pnputil into a dict (True) or keep it as a string for each device
-        (False)
+        Whether to parse the string output from pnputil into a dict (True) or 
+        keep it as a string for each device (False)
     connected : bool or None
         Filter by connection state of devices, leave as None for no filter.
     problem : bool or None
@@ -757,8 +755,8 @@ def systemProfilerWindowsOS(
     instanceid : str or None
         Filter by device instance ID, leave as None for no filter.
     deviceid : str or None
-        Filter by device hardware and compatible ID, leave as None for no filter. Only works on Windows 11 (version
-        22H2 and up).
+        Filter by device hardware and compatible ID, leave as None for no 
+        filter. Only works on Windows 11 (version 22H2 and up).
     classname : str or None
         Filter by device class name, leave as None for no filter.
     classid : str or None
@@ -766,19 +764,24 @@ def systemProfilerWindowsOS(
     problemcode : str or None
         Filter by specific problem code, leave as None for no filter.
     busname : str or None
-        Filter by bus enumerator name, leave as None for no filter. Only works on Windows 11 (version 21H2 and up).
+        Filter by bus enumerator name, leave as None for no filter. Only works 
+        on Windows 11 (version 21H2 and up).
     busid : str or None
-        Filter by bus type GUID, leave as None for no filter. Only works on Windows 11 (version 21H2 and up).
+        Filter by bus type GUID, leave as None for no filter. Only works on 
+        Windows 11 (version 21H2 and up).
     bus : bool
-        Display bus enumerator name and bus type GUID. Only works on Windows 11 (version 21H2 and up).
+        Display bus enumerator name and bus type GUID. Only works on Windows 11 
+        (version 21H2 and up).
     deviceids : bool
-        Display hardware and compatible IDs. Only works on Windows 11 (version 21H2 and up).
+        Display hardware and compatible IDs. Only works on Windows 11 
+        (version 21H2 and up).
     relations : bool
         Display parent and child device relations.
     services : bool
         Display device services. Only works on Windows 11 (version 21H2 and up).
     stack : bool
-        Display effective device stack information. Only works on Windows 11 (version 21H2 and up).
+        Display effective device stack information. Only works on Windows 11 
+        (version 21H2 and up).
     drivers : bool
         Display matching and installed drivers.
     interfaces : bool
@@ -1123,17 +1126,18 @@ def getInstalledDevices(deviceType='all', refresh=False):
         for _, devInfo in allAudioDevices.items():
             if devInfo["name"] not in foundDevices:  # unique names only
                 if devInfo["inputChannels"] > 0:
-                    foundDevices.append(
-                        (devInfo["name"], devInfo["index"], 'microphone'))
+                    foundDevices.append((
+                        devInfo["name"], devInfo["index"], 
+                        devInfo["inputChannels"], 'microphone'))
                 if devInfo["outputChannels"] > 0:
-                    foundDevices.append(
-                        (devInfo["name"], devInfo["index"], 'speaker'))
+                    foundDevices.append((
+                        devInfo["name"], devInfo["index"], 
+                        devInfo["outputChannels"],'speaker'))
 
         # now get settings for each audi odevice
         devSettings = {'microphone': [], 'speaker': []}
-        for devName, devIndex, devClass in foundDevices:
+        for devName, devIndex, devChannels, devClass in foundDevices:
             supportedSampleRates = []
-            supportedChannels = []
             
             for _, devInfo in allAudioDevices.items():
                 # check if we have a dictionary for this device
@@ -1144,14 +1148,13 @@ def getInstalledDevices(deviceType='all', refresh=False):
                     int(devInfo["defaultSampleRate"]))
                 channels = devInfo[
                     "outputChannels" if devClass == 'speakers' else "inputChannels"]
-                supportedChannels.append(int(channels))
 
             devSettings[devClass].append(
                 {
                     "device_name": devName,
                     "device_index": devIndex,
                     "sampling_rate": supportedSampleRates,
-                    "channels": supportedChannels
+                    "channels": devChannels
                 }
             )
 
