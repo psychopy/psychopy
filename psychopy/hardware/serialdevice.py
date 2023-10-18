@@ -161,7 +161,7 @@ class SerialDevice(AttributeGetSetMixin, BaseDevice):
         """
         # send a command to the device and check the response matches what
         # you expect; then return True or False
-        raise NotImplementedError
+        return True
 
     def pause(self):
         """Pause for a default period for this device
