@@ -68,6 +68,8 @@ import psychopy.clock
 from psychopy import logging
 from psychopy.constants import NOT_STARTED
 import time
+
+from psychopy.hardware.base import BaseDevice
 from psychopy.tools.attributetools import AttributeGetSetMixin
 
 try:
@@ -121,7 +123,41 @@ def getKeyboards():
     return []
 
 
-class Keyboard(AttributeGetSetMixin):
+class KeyboardComponent:
+    def __init__(self, device=-1, bufferSize=10000, waitForStart=False, clock=None, backend=None):
+        self.device = Keyboard(
+            device=device, bufferSize=bufferSize, waitForStart=waitForStart, clock=clock, backend=backend
+        )
+
+    def getBackend(self):
+        return self.device.getBackend()
+
+    def setBackend(self, backend):
+        return self.device.setBackend(backend=backend)
+
+    def start(self):
+        return self.device.start()
+
+    def stop(self):
+        return self.device.stop()
+
+    def getKeys(self, keyList=None, ignoreKeys=None, waitRelease=True, clear=True):
+        return self.device.getKeys(
+            keyList=keyList, ignoreKeys=ignoreKeys, waitRelease=waitRelease, clear=clear
+        )
+
+    def waitKeys(self, maxWait=float('inf'), keyList=None, waitRelease=True,
+                 clear=True):
+        return self.device.waitKeys(
+            maxWait=maxWait, keyList=keyList, waitRelease=waitRelease,
+            clear=clear
+        )
+
+    def clearEvents(self, eventType=None):
+        return self.device.clearEvents(eventType=eventType)
+
+
+class Keyboard(AttributeGetSetMixin, BaseDevice):
     """The Keyboard class provides access to the Psychtoolbox KbQueue-based
     calls on **Python3 64-bit** with fall-back to `event.getKeys` on legacy
     systems.
@@ -225,6 +261,10 @@ class Keyboard(AttributeGetSetMixin):
 
         logging.info('keyboard.Keyboard is using %s backend.' % Keyboard._backend)
 
+    def isSameDevice(self, params):
+        # if device IDs match params, params point to same device
+        return True
+
     @classmethod
     def getBackend(self):
         """Return backend being used."""
@@ -266,6 +306,9 @@ class Keyboard(AttributeGetSetMixin):
                             "other keyboards rely on the same.")
             for buffer in self._buffers.values():
                 buffer.stop()
+
+    def close(self):
+        self.stop()
 
     def getKeys(self, keyList=None, ignoreKeys=None, waitRelease=True, clear=True):
         """

@@ -16,6 +16,7 @@ from psychopy import logging
 import serial
 from psychopy.tools import systemtools as st
 from psychopy.tools.attributetools import AttributeGetSetMixin
+from .base import BaseDevice
 
 def _findPossiblePorts():
     if sys.platform == 'win32':
@@ -53,7 +54,7 @@ def _findPossiblePorts():
 # map out all ports on this device, to be filled as serial devices are initialised
 ports = {port: None for port in _findPossiblePorts()}
 
-class SerialDevice(AttributeGetSetMixin):
+class SerialDevice(AttributeGetSetMixin, BaseDevice):
     """A base class for serial devices, to be sub-classed by specific devices
 
     If port=None then the SerialDevice.__init__() will search for the device
@@ -160,7 +161,7 @@ class SerialDevice(AttributeGetSetMixin):
         """
         # send a command to the device and check the response matches what
         # you expect; then return True or False
-        raise NotImplementedError
+        return True
 
     def pause(self):
         """Pause for a default period for this device
@@ -209,6 +210,13 @@ class SerialDevice(AttributeGetSetMixin):
         if type(retVal) is bytes:
             retVal = retVal.decode('utf-8')
         return retVal
+
+    def isSameDevice(self, params):
+        port = self.portString[3:]
+        return params['port'] in (self.portString, port, int(port))
+
+    def close(self):
+        self.com.close()
 
     def __del__(self):
         if self.com is not None:
