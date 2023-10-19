@@ -173,7 +173,27 @@ class Param():
             self.inputType = "String"
 
     def __str__(self):
-        val, valType = dollarSyntax(self.val, self.valType)
+        # localise variables
+        val = self.val
+        valType = self.valType
+        # parse dollar syntax to work out val type / val types
+        val, valType = dollarSyntax(val, valType)
+
+        if isinstance(valType, (list, tuple)):
+            parsed = []
+            for subval, subType in zip(val, valType):
+                parsed.append(
+                    self.asString(subval, subType)
+                )
+            return "[" + ", ".join(parsed) + "]"
+        else:
+            return self.asString(val, valType)
+
+    def asString(self, val=None, valType=None):
+        if val is None:
+            val = self.val
+        if valType is None:
+            valType = self.valType
 
         if valType == 'num':
             if val in [None, ""]:
@@ -241,29 +261,9 @@ class Param():
             else:
                 # Otherwise, treat as string
                 return repr(val)
-        elif self.valType == 'list':
+        elif valType == 'list':
             val = toList(val)
             return "{}".format(val)
-        elif valType == 'fixedList':
-            return "{}".format(val)
-        elif valType in ('fileList', ):
-            # convert to list if needed
-            if not len(val):
-                val = []
-            if isinstance(val, str):
-                if val[0] in ("[", "(") and val[-1] in ("]", ")"):
-                    val = val[1:-1].split(",")
-            # add each value according to dollar syntax
-            code = "["
-            for subval in val:
-                subval, subtype = dollarSyntax(subval, valType)
-                if subtype == "code":
-                    code += str(subval)
-                else:
-                    code += repr(str(subval))
-                code += ", "
-            code += "]"
-            return code
         elif valType == 'bool':
             if utils.scriptTarget == "PsychoJS":
                 return ("%s" % val).lower()  # make True -> "true"
