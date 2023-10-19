@@ -36,8 +36,6 @@ class DeviceMethod:
     action : str
         What kind of action the decorated method does (e.g. add, remove, get)
     """
-    _functions = []  # functions decorated by this
-
     def __init__(self, deviceType, action):
         self.deviceType = deviceType
         self.action = action
@@ -50,22 +48,8 @@ class DeviceMethod:
             _deviceMethods[self.deviceType] = {}
         # map function to key
         _deviceMethods[self.deviceType][self.action] = fcn
-        # store function as decorated by DeviceMethod
-        self._functions.append(fcn)
         # return function unchanged
         return fcn
-
-    @classmethod
-    def decorates(cls, fcn):
-        """
-        Does this class decorate a given function?
-
-        Returns
-        -------
-        bool
-            True if function is decorated by DeviceMethod, False otherwise.
-        """
-        return fcn in cls._functions
 
 
 class DeviceManager:
