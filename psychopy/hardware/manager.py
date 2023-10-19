@@ -237,23 +237,21 @@ class DeviceManager:
 
         return _deviceMethods[deviceType]["add"](self, *args, name=name, **kwargs)
 
-    def removeDevice(self, deviceType, name):
+    def removeDevice(self, name):
         """
         Remove the device matching a specified device type and name.
 
         Parameters
         ----------
-        deviceType : str
-            Type of device (e.g. keyboard, microphone, etc.), use * for any type
         name : str
             Arbitrary name device is stored under.
         """
-        # if device type is wildcard, search all types
-        if deviceType == "*":
-            for devClass in self._devices:
-                if name in self._devices[devClass]:
-                    deviceType = devClass
-                    break
+        # search all types
+        deviceType = None
+        for devClass in self._devices:
+            if name in self._devices[devClass]:
+                deviceType = devClass
+                break
 
         if deviceType in _deviceMethods and "remove" in _deviceMethods[deviceType]:
             # if device type has special remove method, use it
@@ -262,14 +260,12 @@ class DeviceManager:
             # otherwise just delete the handle
             del self._devices[deviceType][name]
 
-    def getDevice(self, deviceType, name):
+    def getDevice(self, name):
         """
         Get the device matching a specified device type and name.
 
         Parameters
         ----------
-        deviceType : str
-            Type of device (e.g. keyboard, microphone, etc.), use * for any type
         name : str
             Arbitrary name device is stored under.
 
@@ -278,12 +274,12 @@ class DeviceManager:
         BaseDevice
             Matching device handle
         """
-        # if device type is wildcard, search all types
-        if deviceType == "*":
-            for devClass in self._devices:
-                if name in self._devices[devClass]:
-                    deviceType = devClass
-                    break
+        # search all types
+        deviceType = None
+        for devClass in self._devices:
+            if name in self._devices[devClass]:
+                deviceType = devClass
+                break
 
         if deviceType in _deviceMethods and "get" in _deviceMethods[deviceType]:
             # if device has special getter, use it
@@ -371,7 +367,7 @@ class KeyboardMixin(DeviceManager):
 
                 # nb - device=-1 is a bit tricky to handle, since it's not
                 # a valid device index.
-
+        from psychopy.hardware import keyboard
         toReturn = self._devices['keyboard'][name] = keyboard.Keyboard(
             backend=backend, device=device)
 
