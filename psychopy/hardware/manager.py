@@ -25,9 +25,9 @@ import atexit
 _deviceMethods = {}
 
 
-def deviceMethod(deviceType, action):
+class DeviceMethod:
     """
-    Decorator which adds the decorated method to _deviceAddMethods against the given key.
+    Decorator which adds the decorated method to _deviceMethods against the given key.
 
     Parameters
     ----------
@@ -36,17 +36,59 @@ def deviceMethod(deviceType, action):
     action : str
         What kind of action the decorated method does (e.g. add, remove, get)
     """
-    # make decorator function
-    def _decorator(fcn):
+    _functions = []  # functions decorated by this
+
+    def __init__(self, deviceType, action):
+        self.deviceType = deviceType
+        self.action = action
+
+    def __call__(self, fcn):
+        # add method to DeviceManager
+        setattr(DeviceManager, fcn.__name__, fcn)
         # if device has no mapped methods yet, make dict
-        if deviceType not in _deviceMethods:
-            _deviceMethods[deviceType] = {}
+        if self.deviceType not in _deviceMethods:
+            _deviceMethods[self.deviceType] = {}
         # map function to key
-        _deviceMethods[deviceType][action] = fcn
+        _deviceMethods[self.deviceType][self.action] = fcn
+        # store function as decorated by DeviceMethod
+        self._functions.append(fcn)
         # return function unchanged
         return fcn
-    # return decorator function
-    return _decorator
+
+    @classmethod
+    def decorates(cls, fcn):
+        """
+        Does this class decorate a given function?
+
+        Returns
+        -------
+        bool
+            True if function is decorated by DeviceMethod, False otherwise.
+        """
+        return fcn in cls._functions
+
+
+def DeviceManagerMixin(cls):
+    """
+    Decorator which adds all DeviceMethod methods of a class to DeviceManager.
+    Use this decorator when adding methods for a new kind of device.
+
+    Example
+    -------
+    ```
+    from psychopy.hardware.manager import DeviceMethod, DeviceMixin
+    @DeviceManagerMixin
+    class KeyboardMixin:
+        @DeviceMethod
+        def addKeyboard(
+
+    """
+    # add all DeviceMethod methods of decorated class to DeviceManager
+    for name, method in cls.__dict__.items():
+        if DeviceMethod.decorates(method):
+            setattr(DeviceManager, name, method)
+    # return class unchanged
+    return cls
 
 
 class DeviceManager:
@@ -215,7 +257,7 @@ class DeviceManager:
         BaseDevice
             Device created by the linked add method
         """
-        return _deviceMethods[deviceType]["add"](*args, name=name, **kwargs)
+        return _deviceMethods[deviceType]["add"](self, *args, name=name, **kwargs)
 
     def removeDevice(self, deviceType, name):
         """
@@ -237,7 +279,7 @@ class DeviceManager:
 
         if deviceType in _deviceMethods and "remove" in _deviceMethods[deviceType]:
             # if device type has special remove method, use it
-            _deviceMethods[deviceType]["remove"](name=name)
+            _deviceMethods[deviceType]["remove"](self, name=name)
         else:
             # otherwise just delete the handle
             del self._devices[deviceType][name]
@@ -267,7 +309,7 @@ class DeviceManager:
 
         if deviceType in _deviceMethods and "get" in _deviceMethods[deviceType]:
             # if device has special getter, use it
-            return _deviceMethods[deviceType]["get"](name=name)
+            return _deviceMethods[deviceType]["get"](self, name=name)
         else:
             # otherwise just return from dict
             return self._devices[deviceType].get(name, None)
@@ -299,9 +341,9 @@ class DeviceManager:
             return st.getInstalledDevices()
         return _deviceMethods[deviceType]["available"]()
 
-    # --- keyboards ---
 
-    @deviceMethod("keyboard", "add")
+class KeyboardMixin:
+    @DeviceMethod("keyboard", "add")
     def addKeyboard(self, name, backend="iohub", device=-1):
         """
         Add a keyboard.
@@ -348,7 +390,7 @@ class DeviceManager:
 
         return toReturn
 
-    @deviceMethod("keyboard", "remove")
+    @DeviceMethod("keyboard", "remove")
     def removeKeyboard(self, name):
         """
         Remove a keyboard.
@@ -360,7 +402,7 @@ class DeviceManager:
         """
         del self._devices['keyboard'][name]
 
-    @deviceMethod("keyboard", "get")
+    @DeviceMethod("keyboard", "get")
     def getKeyboard(self, name):
         """
         Get a keyboard by name.
@@ -377,7 +419,7 @@ class DeviceManager:
         """
         return self._devices['keyboard'].get(name, None)
 
-    @deviceMethod("keyboard", "getall")
+    @DeviceMethod("keyboard", "getall")
     def getKeyboards(self):
         """
         Get a mapping of keyboards that have been initialized.
@@ -393,7 +435,7 @@ class DeviceManager:
         return self._devices['keyboard']
 
     @staticmethod
-    @deviceMethod("keyboard", "available")
+    @DeviceMethod("keyboard", "available")
     def getAvailableKeyboards():
         """
         Get information about all available keyboards connected to the system.
@@ -407,9 +449,9 @@ class DeviceManager:
         """
         return st.getInstalledDevices('keyboard')
 
-    # --- mice ---
 
-    @deviceMethod("mouse", "add")
+class MouseMixin:
+    @DeviceMethod("mouse", "add")
     def addMouse(self, name, backend='iohub'):
         """
         Add a mouse.
@@ -449,7 +491,7 @@ class DeviceManager:
 
         return toReturn
 
-    @deviceMethod("mouse", "remove")
+    @DeviceMethod("mouse", "remove")
     def removeMouse(self, name):
         """
         Remove a mouse.
@@ -461,7 +503,7 @@ class DeviceManager:
         """
         del self._devices['mouse'][name]
 
-    @deviceMethod("mouse", "get")
+    @DeviceMethod("mouse", "get")
     def getMouse(self, name):
         """
         Get a mouse by name.
@@ -478,7 +520,7 @@ class DeviceManager:
         """
         return self._devices['mouse'].get(name, None)
 
-    @deviceMethod("mouse", "getall")
+    @DeviceMethod("mouse", "getall")
     def getMice(self):
         """
         Get a mapping of mice that have been initialized.
@@ -494,7 +536,7 @@ class DeviceManager:
         return self._devices['mouse']
 
     @staticmethod
-    @deviceMethod("mouse", "available")
+    @DeviceMethod("mouse", "available")
     def getAvailableMice():
         """
         Get information about all available mice connected to the system.
@@ -508,9 +550,9 @@ class DeviceManager:
         """
         return st.getInstalledDevices('mouse')
 
-    # --- speakers ---
 
-    @deviceMethod("speaker", "add")
+class SpeakerMixin:
+    @DeviceMethod("speaker", "add")
     def addSpeaker(self, name, device=0, sampleRate=44100, channels=2):
         """
         Add a speaker.
@@ -537,7 +579,7 @@ class DeviceManager:
         # easily done like microphones.
         raise NotImplementedError("Speaker support is a work in progress")
 
-    @deviceMethod("speaker", "remove")
+    @DeviceMethod("speaker", "remove")
     def removeSpeaker(self, name):
         """
         Remove a speaker.
@@ -549,7 +591,7 @@ class DeviceManager:
         """
         del self._devices['speaker'][name]
 
-    @deviceMethod("speaker", "get")
+    @DeviceMethod("speaker", "get")
     def getSpeaker(self, name):
         """
         Get a speaker by name.
@@ -566,7 +608,7 @@ class DeviceManager:
         """
         return self._devices['speaker'].get(name, None)
 
-    @deviceMethod("speaker", "getall")
+    @DeviceMethod("speaker", "getall")
     def getSpeakers(self):
         """
         Get a mapping of audio playback devices that have been initialized.
@@ -582,7 +624,7 @@ class DeviceManager:
         return self._devices['speaker']
 
     @staticmethod
-    @deviceMethod("speaker", "available")
+    @DeviceMethod("speaker", "available")
     def getAvailableSpeakers():
         """
         Get information about all available speakers connected to the system.
@@ -596,9 +638,9 @@ class DeviceManager:
         """
         return st.getInstalledDevices('speaker')
 
-    # --- microphones ---
 
-    @deviceMethod("microphone", "add")
+class MicrophoneMixin:
+    @DeviceMethod("microphone", "add")
     def addMicrophone(self, name, device=0, sampleRate=44100, channels=1):
         """
         Add a microphone.
@@ -669,7 +711,7 @@ class DeviceManager:
 
         return dev
 
-    @deviceMethod("microphone", "remove")
+    @DeviceMethod("microphone", "remove")
     def removeMicrophone(self, name):
         """
         Remove a microphone.
@@ -685,7 +727,7 @@ class DeviceManager:
         self._devices['microphone'][name].close()
         del self._devices['microphone'][name]
 
-    @deviceMethod("microphone", "get")
+    @DeviceMethod("microphone", "get")
     def getMicrophone(self, name):
         """Get an audio capture device by name.
 
@@ -701,7 +743,7 @@ class DeviceManager:
         """
         return self._devices['microphone'].get(name, None)
 
-    @deviceMethod("microphone", "getall")
+    @DeviceMethod("microphone", "getall")
     def getMicrophones(self):
         """
         Get a mapping of audio capture devices that have been initialized.
@@ -717,7 +759,7 @@ class DeviceManager:
         return self._devices['microphone']
 
     @staticmethod
-    @deviceMethod("microphone", "available")
+    @DeviceMethod("microphone", "available")
     def getAvailableMicrophones():
         """
         Get information about all available audio capture devices connected to
@@ -732,9 +774,9 @@ class DeviceManager:
         """
         return st.getInstalledDevices('microphone')
 
-    # --- cameras ---
 
-    @deviceMethod("camera", "add")
+class CameraMixin:
+    @DeviceMethod("camera", "add")
     def addCamera(self, name, device=0, backend=u'ffpyplayer'):
         """
         Add a camera.
@@ -768,7 +810,7 @@ class DeviceManager:
 
         return dev
 
-    @deviceMethod("camera", "remove")
+    @DeviceMethod("camera", "remove")
     def removeCamera(self, name):
         """
         Remove a camera.
@@ -780,7 +822,7 @@ class DeviceManager:
         """
         del self._devices['camera'][name]
 
-    @deviceMethod("camera", "get")
+    @DeviceMethod("camera", "get")
     def getCamera(self, name):
         """
         Get a camera by name.
@@ -797,7 +839,7 @@ class DeviceManager:
         """
         return self._devices['camera'].get(name, None)
 
-    @deviceMethod("camera", "getall")
+    @DeviceMethod("camera", "getall")
     def getCameras(self):
         """
         Get a mapping of cameras that have been initialized.
@@ -812,7 +854,7 @@ class DeviceManager:
         return self._devices['camera']
 
     @staticmethod
-    @deviceMethod("camera", "available")
+    @DeviceMethod("camera", "available")
     def getAvailableCameras():
         """
         Get information about all available cameras connected to the system.
@@ -826,9 +868,9 @@ class DeviceManager:
         """
         return st.getInstalledDevices('camera')
 
-    # --- serial ---
 
-    @deviceMethod("serial", "add")
+class SerialMixin:
+    @DeviceMethod("serial", "add")
     def addSerialDevice(self, name, port, baudrate=9600, byteSize=8, stopBits=1,
             parity="N"):
         """
@@ -880,7 +922,7 @@ class DeviceManager:
 
         return toReturn
 
-    @deviceMethod("serial", "remove")
+    @DeviceMethod("serial", "remove")
     def removeSerialDevice(self, name):
         """Remove a serial device interface.
 
@@ -905,7 +947,7 @@ class DeviceManager:
         self._devices['serial'][name].close()
         del self._devices['serial'][name]
 
-    @deviceMethod("serial", "get")
+    @DeviceMethod("serial", "get")
     def getSerialDevice(self, name):
         """Get a serial device by name or port.
 
@@ -930,7 +972,7 @@ class DeviceManager:
 
             return None
 
-    @deviceMethod("serial", "getall")
+    @DeviceMethod("serial", "getall")
     def getSerialDevices(self):
         """
         Get a mapping of serial devices that have been initialized.
@@ -946,7 +988,7 @@ class DeviceManager:
         return self._devices['serialDevice']
 
     @staticmethod
-    @deviceMethod("serial", "available")
+    @DeviceMethod("serial", "available")
     def getAvailableSerialDevices():
         """
         Get information about all available serial devices connected to the system.
