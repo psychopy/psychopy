@@ -526,11 +526,11 @@ class Experiment:
             val = val.replace("&#10;", "\n")
 
         # custom settings (to be used when
-        if valType == 'fixedList':  # convert the string to a list
+        if valType in ('list', 'fileList', 'fixedList'):  # convert the string to a list
             try:
-                params[name].val = eval('list({})'.format(val))
-            except NameError:  # if val is a single string it will look like variable
-                params[name].val = [val]
+                params[name].val = eval('{}'.format(val))
+            except:  # if val is a single string it will look like variable
+                pass
         elif name == 'storeResponseTime':
             return  # deprecated in v1.70.00 because it was redundant
         elif name == 'nVertices':  # up to 1.85 there was no shape param
