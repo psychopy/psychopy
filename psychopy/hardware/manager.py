@@ -107,6 +107,15 @@ class DeviceManager:
         self._devices = {devClass: {} for devClass in devClasses}
 
     # --- utility ---
+    def makeUniqueName(self, deviceType):
+        i = 0
+        name = deviceType + str(i)
+        while not self.checkDeviceNameAvailable(name):
+            i += 1
+            deviceType + str(i)
+
+        return name
+
     def checkDeviceNameAvailable(self, name):
         """Check if a device name is available.
 
@@ -222,6 +231,10 @@ class DeviceManager:
         BaseDevice
             Device created by the linked add method
         """
+        # if no name given, generate unique name
+        if name is None:
+            name = self.makeUniqueName(deviceType=deviceType)
+
         return _deviceMethods[deviceType]["add"](self, *args, name=name, **kwargs)
 
     def removeDevice(self, deviceType, name):
@@ -307,18 +320,20 @@ class DeviceManager:
         return _deviceMethods[deviceType]["available"]()
 
 
-class KeyboardMixin:
+class KeyboardMixin(DeviceManager):
     """
     Mixin class for DeviceManager, adding device methods for Keyboard devices via the DeviceMethod decorator.
     """
 
     @DeviceMethod("keyboard", "add")
-    def addKeyboard(self, name, backend="iohub", device=-1):
+    def addKeyboard(self, name=None, backend="iohub", device=-1):
         """
         Add a keyboard.
 
         Parameters
         ----------
+        name : str or None
+            Arbitrary name to refer to this keyboard by. Use None to generate a unique name.
         backend : str, optional
             Backend to use for keyboard input. Defaults to "iohub".
         device : int, optional
@@ -343,6 +358,9 @@ class KeyboardMixin:
             kb.getKeys()
 
         """
+        # if no name given, generate unique name
+        if name is None:
+            name = self.makeUniqueName(deviceType="keyboard")
         self._assertDeviceNameUnique(name)
 
         # check if the device id is alread in use
@@ -419,13 +437,13 @@ class KeyboardMixin:
         return st.getInstalledDevices('keyboard')
 
 
-class MouseMixin:
+class MouseMixin(DeviceManager):
     """
     Mixin class for DeviceManager, adding device methods for Mouse devices via the DeviceMethod decorator.
     """
 
     @DeviceMethod("mouse", "add")
-    def addMouse(self, name, backend='iohub'):
+    def addMouse(self, name=None, backend='iohub'):
         """
         Add a mouse.
 
@@ -456,6 +474,10 @@ class MouseMixin:
             pos = mouse.getPos()
 
         """
+        # if no name given, generate unique name
+        if name is None:
+            name = self.makeUniqueName(deviceType="mouse")
+
         # todo - handle the `backend` parameter
         self._assertDeviceNameUnique(name)
 
@@ -524,13 +546,13 @@ class MouseMixin:
         return st.getInstalledDevices('mouse')
 
 
-class SpeakerMixin:
+class SpeakerMixin(DeviceManager):
     """
     Mixin class for DeviceManager, adding device methods for audio playback devices via the DeviceMethod decorator.
     """
 
     @DeviceMethod("speaker", "add")
-    def addSpeaker(self, name, device=0, sampleRate=44100, channels=2):
+    def addSpeaker(self, name=None, device=0, sampleRate=44100, channels=2):
         """
         Add a speaker.
 
@@ -551,6 +573,11 @@ class SpeakerMixin:
             Speaker object.
 
         """
+        # if no name given, generate unique name
+        if name is None:
+            name = self.makeUniqueName(deviceType="speaker")
+        self._assertDeviceNameUnique(name)
+
         # We need to initialize the audio playback system here, right now that
         # all handled by the `sound` module in a fairly rigid way that can't be 
         # easily done like microphones.
@@ -616,13 +643,13 @@ class SpeakerMixin:
         return st.getInstalledDevices('speaker')
 
 
-class MicrophoneMixin:
+class MicrophoneMixin(DeviceManager):
     """
     Mixin class for DeviceManager, adding device methods for audio recording devices via the DeviceMethod decorator.
     """
 
     @DeviceMethod("microphone", "add")
-    def addMicrophone(self, name, device=0, sampleRate=44100, channels=1):
+    def addMicrophone(self, name=None, device=0, sampleRate=44100, channels=1):
         """
         Add a microphone.
 
@@ -674,6 +701,9 @@ class MicrophoneMixin:
             mic.setSound(...)
 
         """
+        # if no name given, generate unique name
+        if name is None:
+            name = self.makeUniqueName(deviceType="microphone")
         self._assertDeviceNameUnique(name)
         
         # import microphone here to avoid circular import
@@ -756,13 +786,13 @@ class MicrophoneMixin:
         return st.getInstalledDevices('microphone')
 
 
-class CameraMixin:
+class CameraMixin(DeviceManager):
     """
     Mixin class for DeviceManager, adding device methods for video recording devices via the DeviceMethod decorator.
     """
 
     @DeviceMethod("camera", "add")
-    def addCamera(self, name, device=0, backend=u'ffpyplayer'):
+    def addCamera(self, name=None, device=0, backend=u'ffpyplayer'):
         """
         Add a camera.
 
@@ -781,6 +811,9 @@ class CameraMixin:
             Camera object.
 
         """
+        # if no name given, generate unique name
+        if name is None:
+            name = self.makeUniqueName(deviceType="camera")
         self._assertDeviceNameUnique(name)
 
         # check if the device is already in use
@@ -854,13 +887,13 @@ class CameraMixin:
         return st.getInstalledDevices('camera')
 
 
-class SerialMixin:
+class SerialMixin(DeviceManager):
     """
     Mixin class for DeviceManager, adding device methods for serial port devices via the DeviceMethod decorator.
     """
 
     @DeviceMethod("serial", "add")
-    def addSerialDevice(self, name, port, baudrate=9600, byteSize=8, stopBits=1,
+    def addSerialDevice(self, name=None, port=None, baudrate=9600, byteSize=8, stopBits=1,
             parity="N"):
         """
         Add a generic serial device interface.
@@ -891,6 +924,11 @@ class SerialMixin:
             Serial device interface object.
 
         """
+        # if no name given, generate unique name
+        if name is None:
+            name = self.makeUniqueName(deviceType="serial")
+        self._assertDeviceNameUnique(name)
+
         if name in self._devices['serial'].keys():
             raise ValueError(f"Serial device {name} already exists")
 
