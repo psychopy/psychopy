@@ -1182,35 +1182,27 @@ def getInstalledDevices(deviceType='all', refresh=False):
                     foundDevices.append(camInfo["name"])
 
         # colect settings for each camera we found
-        devSettings = []
-        for devName in foundDevices:
-            supportedFrameSizes = [] 
-            supportedFrameRates = []
-            supportedCodecs = []
-            supportedPixelFormats = []
+        deviceSettings = {}
+        for devIdx, devName in enumerate(foundDevices):
+            devInfo = allCameras[devName]
 
-            for devName, devInfo in allCameras.items():
-                # check if we have a dictionary for this device
-                if devName != devName:
-                    continue
+            allModes = []
+            for thisInfo in devInfo:
+                # create mode string
+                modeStr = "{}x{}@{}Hz".format(
+                    thisInfo["frameSize"][0], thisInfo["frameSize"][1],
+                    thisInfo["frameRate"])
+                allModes.append(modeStr)
 
-                for camInfo in devInfo:
-                    supportedFrameSizes.append(camInfo["frameSize"])
-                    supportedFrameRates.append(camInfo["frameRate"])
-                    supportedCodecs.append(camInfo["codecFormat"])
-                    supportedPixelFormats.append(camInfo["pixelFormat"])
+            deviceSettings[devName] = {
+                "device_name": devName,
+                "device_index": devIdx,
+                # "pixel_format": devInfo["pixelFormat"],
+                # "codec": devInfo["codecFormat"],
+                "mode": allModes
+            }
 
-            devSettings.append(
-                {
-                    "device_name": devName,
-                    "frame_size": supportedFrameSizes,
-                    "frame_rate": supportedFrameRates,
-                    "codec": supportedCodecs,
-                    "pixel_format": supportedCodecs
-                }
-            )
-        
-        return {'camera': devSettings}
+        return {'camera': deviceSettings}
 
     # check if we support getting the requested device type
     if deviceType not in ('all', 'speaker', 'microphone', 'camera', 
@@ -1225,8 +1217,10 @@ def getInstalledDevices(deviceType='all', refresh=False):
     else:
         # refresh device cache if requested or if it's empty
         toReturn = {}
-        toReturn.update(_getInstalledAudioDevices())
-        if not platform.system().startswith('Linux'):
+        toReturn.update(_getInstalledAudioDevices())  # audio devices
+        toReturn.update({'keyboard': getKeyboards()})  # keyboards 
+        toReturn.update({'serial': getSerialPorts()})  # serial ports
+        if not platform.system().startswith('Linux'):  # cameras
             toReturn.update(_getInstalledCameras())
         else:
             logging.error(
