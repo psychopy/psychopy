@@ -71,6 +71,10 @@ class DeviceManager:
     accessed through the global variable `deviceManager` or by calling 
     `getDeviceManager()`.
 
+    DeviceManager can be extended by use of the `@DeviceMethod` decorator. Any
+    class method with this decorator is added to DeviceManager on import, allowing
+    DeviceManager to gain device management methods from plugins.
+
     """
     _instance = None  # singleton instance
     _deviceMethods = _deviceMethods  # reference methods by device and action
@@ -304,6 +308,10 @@ class DeviceManager:
 
 
 class KeyboardMixin:
+    """
+    Mixin class for DeviceManager, adding device methods for Keyboard devices via the DeviceMethod decorator.
+    """
+
     @DeviceMethod("keyboard", "add")
     def addKeyboard(self, name, backend="iohub", device=-1):
         """
@@ -412,6 +420,10 @@ class KeyboardMixin:
 
 
 class MouseMixin:
+    """
+    Mixin class for DeviceManager, adding device methods for Mouse devices via the DeviceMethod decorator.
+    """
+
     @DeviceMethod("mouse", "add")
     def addMouse(self, name, backend='iohub'):
         """
@@ -513,6 +525,10 @@ class MouseMixin:
 
 
 class SpeakerMixin:
+    """
+    Mixin class for DeviceManager, adding device methods for audio playback devices via the DeviceMethod decorator.
+    """
+
     @DeviceMethod("speaker", "add")
     def addSpeaker(self, name, device=0, sampleRate=44100, channels=2):
         """
@@ -601,6 +617,10 @@ class SpeakerMixin:
 
 
 class MicrophoneMixin:
+    """
+    Mixin class for DeviceManager, adding device methods for audio recording devices via the DeviceMethod decorator.
+    """
+
     @DeviceMethod("microphone", "add")
     def addMicrophone(self, name, device=0, sampleRate=44100, channels=1):
         """
@@ -737,6 +757,10 @@ class MicrophoneMixin:
 
 
 class CameraMixin:
+    """
+    Mixin class for DeviceManager, adding device methods for video recording devices via the DeviceMethod decorator.
+    """
+
     @DeviceMethod("camera", "add")
     def addCamera(self, name, device=0, backend=u'ffpyplayer'):
         """
@@ -831,6 +855,10 @@ class CameraMixin:
 
 
 class SerialMixin:
+    """
+    Mixin class for DeviceManager, adding device methods for serial port devices via the DeviceMethod decorator.
+    """
+
     @DeviceMethod("serial", "add")
     def addSerialDevice(self, name, port, baudrate=9600, byteSize=8, stopBits=1,
             parity="N"):
