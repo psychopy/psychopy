@@ -21,6 +21,34 @@ from psychopy import logging
 import atexit
 
 
+# reference methods by device (e.g. keyboard) and method (e.g. add)
+_deviceMethods = {}
+
+
+def deviceMethod(deviceType, action):
+    """
+    Decorator which adds the decorated method to _deviceAddMethods against the given key.
+
+    Parameters
+    ----------
+    deviceType : str
+        What kind of device the decorated method pertains to (e.g. keyboard, microphone, etc.)
+    action : str
+        What kind of action the decorated method does (e.g. add, remove, get)
+    """
+    # make decorator function
+    def _decorator(fcn):
+        # if device has no mapped methods yet, make dict
+        if deviceType not in _deviceMethods:
+            _deviceMethods[deviceType] = {}
+        # map function to key
+        _deviceMethods[deviceType][action] = fcn
+        # return function unchanged
+        return fcn
+    # return decorator function
+    return _decorator
+
+
 class DeviceManager:
     """Class for managing hardware devices.
 
@@ -42,8 +70,11 @@ class DeviceManager:
 
     """
     _instance = None  # singleton instance
+    _deviceMethods = _deviceMethods  # reference methods by device and action
 
     def __new__(cls):
+        # when making a new DeviceManager, if an instance already exists, just return it
+        # this means that all DeviceManager handles are the same object
         if cls._instance is None:
             cls._instance = super(DeviceManager, cls).__new__(cls)
 
@@ -68,9 +99,212 @@ class DeviceManager:
         # initialize a dictionary to store dictionaries of devices for each device class
         self._devices = {devClass: {} for devClass in devClasses}
 
-    # --- managing devices ---
+    # --- utility ---
+    def checkDeviceNameAvailable(self, name):
+        """Check if a device name is available.
+
+        Parameters
+        ----------
+        name : str
+            Name of the device.
+
+        Returns
+        -------
+        bool
+            `True` if the device name is available, `False` otherwise. If `False`
+            is returned, the device name cannot be used when adding another
+            device.
+
+        """
+        for devClass in self._devices:
+            if name in self._devices[devClass]:
+                return False
+
+        return True
+
+    def _assertDeviceNameUnique(self, name):
+        """Assert that the specified device name is unique.
+
+        This checks if the device name specified is unique and not used by any
+        of the other devices in the manager.
+
+        Parameters
+        ----------
+        name : str
+            Name of the device to check.
+
+        Raises
+        ------
+        ValueError
+            If the device name is not unique.
+
+        """
+        # check if there are any keys in the dictionaries inside of
+        # `self._devices` that match the name
+        if not self.checkDeviceNameAvailable(name):
+            raise ValueError(
+                f"Device name '{name}' is already in use by another "
+                "device!")
+
+    def _getSerialPortsInUse(self):
+        """Get serial ports that are being used and the names of the devices
+        that are using them.
+
+        This will only work if the devices have a `portString` attribute, which
+        requires they inherit from `SerialDevice`.
+
+        Returns
+        -------
+        dict
+            Mapping of serial port names to the names of the devices that are
+            using them as a list.
+
+        """
+        ports = {}
+        for devClass in self._devices:
+            for devName, devObj in self._devices[devClass].items():
+                if hasattr(devObj, 'portString'):
+                    ports.setdefault(devObj.portString, []).append(devName)
+
+        return ports
+
+    def closeAll(self):
+        """Close all devices.
+
+        Close all devices that have been initialized. This is usually called on
+        exit to free resources cleanly. It is not necessary to call this method
+        manually as it is registered as an `atexit` handler.
+
+        The device manager will be reset after this method is called.
+
+        """
+        devClasses = list(self._devices.keys())
+        for devClass in devClasses:
+            for devName, devObj in self._devices[devClass].items():
+                if hasattr(devObj, 'close'):
+                    try:
+                        devObj.close()
+                    except Exception:
+                        logging.error(f"Failed to close {devName}")
+                    logging.debug(f"Closed {devClass} device: {devName}")
+                else:
+                    logging.error(
+                        f"Device {devName} does not have a `close()` method!")
+
+            self._devices[devClass].clear()
+
+    # --- generic device management ---
+
+    def addDevice(self, deviceType, *args, name=None, **kwargs):
+        """
+        Calls the add method for the specified device type
+
+        Parameters
+        ----------
+        deviceType : str
+            Type of device (e.g. keyboard, microphone, etc.)
+        args : list
+            Whatever arguments would be passed to the linked add method (e.g. backend, name, etc.)
+        name : str or None
+            Arbitrary name to store device under. If None, will create a new ID for the device.
+        kwargs : dict
+            Whatever keyword arguments would be passed to the linked add method (e.g. backend, name, etc.)
+
+        Returns
+        -------
+        BaseDevice
+            Device created by the linked add method
+        """
+        return _deviceMethods[deviceType]["add"](*args, name=name, **kwargs)
+
+    def removeDevice(self, deviceType, name):
+        """
+        Remove the device matching a specified device type and name.
+
+        Parameters
+        ----------
+        deviceType : str
+            Type of device (e.g. keyboard, microphone, etc.), use * for any type
+        name : str
+            Arbitrary name device is stored under.
+        """
+        # if device type is wildcard, search all types
+        if deviceType == "*":
+            for devClass in self._devices:
+                if name in self._devices[devClass]:
+                    deviceType = devClass
+                    break
+
+        if deviceType in _deviceMethods and "remove" in _deviceMethods[deviceType]:
+            # if device type has special remove method, use it
+            _deviceMethods[deviceType]["remove"](name=name)
+        else:
+            # otherwise just delete the handle
+            del self._devices[deviceType][name]
+
+    def getDevice(self, deviceType, name):
+        """
+        Get the device matching a specified device type and name.
+
+        Parameters
+        ----------
+        deviceType : str
+            Type of device (e.g. keyboard, microphone, etc.), use * for any type
+        name : str
+            Arbitrary name device is stored under.
+
+        Returns
+        -------
+        BaseDevice
+            Matching device handle
+        """
+        # if device type is wildcard, search all types
+        if deviceType == "*":
+            for devClass in self._devices:
+                if name in self._devices[devClass]:
+                    deviceType = devClass
+                    break
+
+        if deviceType in _deviceMethods and "get" in _deviceMethods[deviceType]:
+            # if device has special getter, use it
+            return _deviceMethods[deviceType]["get"](name=name)
+        else:
+            # otherwise just return from dict
+            return self._devices[deviceType].get(name, None)
+
+    def getDevices(self, deviceType="*"):
+        """
+        Get all devices of a given type which have been `add`ed to this DeviceManager
+
+        Parameters
+        ----------
+        deviceType : str
+            Type of device (e.g. keyboard, microphone, etc.), use * for any device type
+        """
+        if deviceType == "*":
+            return self._devices
+        return _deviceMethods[deviceType]["getall"](self)
+
+    @staticmethod
+    def getAvailableDevices(deviceType="*"):
+        """
+        Get all devices of a given type which are known by the operating system.
+
+        Parameters
+        ----------
+        deviceType : str
+            Type of device (e.g. keyboard, microphone, etc.), use * for any device type
+        """
+        if deviceType == "*":
+            return st.getInstalledDevices()
+        return _deviceMethods[deviceType]["available"]()
+
+    # --- keyboards ---
+
+    @deviceMethod("keyboard", "add")
     def addKeyboard(self, name, backend="iohub", device=-1):
-        """Add a keyboard.
+        """
+        Add a keyboard.
 
         Parameters
         ----------
@@ -114,8 +348,71 @@ class DeviceManager:
 
         return toReturn
 
+    @deviceMethod("keyboard", "remove")
+    def removeKeyboard(self, name):
+        """
+        Remove a keyboard.
+
+        Parameters
+        ----------
+        name : str
+            Name of the keyboard.
+        """
+        del self._devices['keyboard'][name]
+
+    @deviceMethod("keyboard", "get")
+    def getKeyboard(self, name):
+        """
+        Get a keyboard by name.
+
+        Parameters
+        ----------
+        name : str
+            Arbitrary name given to the keyboard when it was `add`ed.
+
+        Returns
+        -------
+        BaseDevice
+            The requested keyboard
+        """
+        return self._devices['keyboard'].get(name, None)
+
+    @deviceMethod("keyboard", "getall")
+    def getKeyboards(self):
+        """
+        Get a mapping of keyboards that have been initialized.
+
+        Returns
+        -------
+        dict
+            Dictionary of keyboards that have been initialized. Where the keys
+            are the names of the keyboards and the values are the keyboard
+            objects.
+
+        """
+        return self._devices['keyboard']
+
+    @staticmethod
+    @deviceMethod("keyboard", "available")
+    def getAvailableKeyboards():
+        """
+        Get information about all available keyboards connected to the system.
+
+        Returns
+        -------
+        dict
+            Dictionary of information about available keyboards connected to
+            the system.
+
+        """
+        return st.getInstalledDevices('keyboard')
+
+    # --- mice ---
+
+    @deviceMethod("mouse", "add")
     def addMouse(self, name, backend='iohub'):
-        """Add a mouse.
+        """
+        Add a mouse.
 
         Parameters
         ----------
@@ -147,13 +444,76 @@ class DeviceManager:
         # todo - handle the `backend` parameter
         self._assertDeviceNameUnique(name)
 
-        from psychopy.hardware.mouse import mouse
+        from psychopy.hardware import mouse
         toReturn = self._devices['mouse'][name] = mouse.Mouse()
 
         return toReturn
 
+    @deviceMethod("mouse", "remove")
+    def removeMouse(self, name):
+        """
+        Remove a mouse.
+
+        Parameters
+        ----------
+        name : str
+            Name of the mouse.
+        """
+        del self._devices['mouse'][name]
+
+    @deviceMethod("mouse", "get")
+    def getMouse(self, name):
+        """
+        Get a mouse by name.
+
+        Parameters
+        ----------
+        name : str
+            Arbitrary name given to the mouse when it was `add`ed.
+
+        Returns
+        -------
+        BaseDevice
+            The requested mouse
+        """
+        return self._devices['mouse'].get(name, None)
+
+    @deviceMethod("mouse", "getall")
+    def getMice(self):
+        """
+        Get a mapping of mice that have been initialized.
+
+        Returns
+        -------
+        dict
+            Dictionary of mice that have been initialized. Where the keys
+            are the names of the mice and the values are the mouse
+            objects.
+
+        """
+        return self._devices['mouse']
+
+    @staticmethod
+    @deviceMethod("mouse", "available")
+    def getAvailableMice():
+        """
+        Get information about all available mice connected to the system.
+
+        Returns
+        -------
+        dict
+            Dictionary of information about available mice connected to
+            the system.
+
+        """
+        return st.getInstalledDevices('mouse')
+
+    # --- speakers ---
+
+    @deviceMethod("speaker", "add")
     def addSpeaker(self, name, device=0, sampleRate=44100, channels=2):
-        """Add a speaker.
+        """
+        Add a speaker.
 
         Parameters
         ----------
@@ -177,8 +537,71 @@ class DeviceManager:
         # easily done like microphones.
         raise NotImplementedError("Speaker support is a work in progress")
 
+    @deviceMethod("speaker", "remove")
+    def removeSpeaker(self, name):
+        """
+        Remove a speaker.
+
+        Parameters
+        ----------
+        name : str
+            Name of the speaker.
+        """
+        del self._devices['speaker'][name]
+
+    @deviceMethod("speaker", "get")
+    def getSpeaker(self, name):
+        """
+        Get a speaker by name.
+
+        Parameters
+        ----------
+        name : str
+            Arbitrary name given to the speaker when it was `add`ed.
+
+        Returns
+        -------
+        BaseDevice
+            The requested speaker
+        """
+        return self._devices['speaker'].get(name, None)
+
+    @deviceMethod("speaker", "getall")
+    def getSpeakers(self):
+        """
+        Get a mapping of audio playback devices that have been initialized.
+
+        Returns
+        -------
+        dict
+            Dictionary of audio playback devices that have been initialized.
+            Where the keys are the names of the devices and the values are the
+            device objects.
+
+        """
+        return self._devices['speaker']
+
+    @staticmethod
+    @deviceMethod("speaker", "available")
+    def getAvailableSpeakers():
+        """
+        Get information about all available speakers connected to the system.
+
+        Returns
+        -------
+        dict
+            Dictionary of information about available speakers connected to
+            the system.
+
+        """
+        return st.getInstalledDevices('speaker')
+
+    # --- microphones ---
+
+    @deviceMethod("microphone", "add")
     def addMicrophone(self, name, device=0, sampleRate=44100, channels=1):
-        """Add a microphone.
+        """
+        Add a microphone.
 
         Parameters
         ----------
@@ -246,8 +669,10 @@ class DeviceManager:
 
         return dev
 
+    @deviceMethod("microphone", "remove")
     def removeMicrophone(self, name):
-        """Remove a microphone.
+        """
+        Remove a microphone.
 
         Parameters
         ----------
@@ -260,8 +685,59 @@ class DeviceManager:
         self._devices['microphone'][name].close()
         del self._devices['microphone'][name]
 
+    @deviceMethod("microphone", "get")
+    def getMicrophone(self, name):
+        """Get an audio capture device by name.
+
+        Parameters
+        ----------
+        name : str
+            Name of the capture device.
+
+        Returns
+        -------
+        Microphone or `None`
+            Microphone object or `None` if no device with the given name exists.
+        """
+        return self._devices['microphone'].get(name, None)
+
+    @deviceMethod("microphone", "getall")
+    def getMicrophones(self):
+        """
+        Get a mapping of audio capture devices that have been initialized.
+
+        Returns
+        -------
+        dict
+            Dictionary of audio capture devices that have been initialized.
+            Where the keys are the names of the devices and the values are the
+            device objects.
+
+        """
+        return self._devices['microphone']
+
+    @staticmethod
+    @deviceMethod("microphone", "available")
+    def getAvailableMicrophones():
+        """
+        Get information about all available audio capture devices connected to
+        the system.
+
+        Returns
+        -------
+        dict
+            Dictionary of information about available audio capture devices
+            connected to the system.
+
+        """
+        return st.getInstalledDevices('microphone')
+
+    # --- cameras ---
+
+    @deviceMethod("camera", "add")
     def addCamera(self, name, device=0, backend=u'ffpyplayer'):
-        """Add a camera.
+        """
+        Add a camera.
 
         Parameters
         ----------
@@ -292,101 +768,71 @@ class DeviceManager:
 
         return dev
 
-    def findDevice(self, name):
-        """Find a device by name.
-
-        This can be used to find a device by its user specified name, returning 
-        its interface object.
+    @deviceMethod("camera", "remove")
+    def removeCamera(self, name):
+        """
+        Remove a camera.
 
         Parameters
         ----------
         name : str
-            Name of the device.
+            Name of the camera.
+        """
+        del self._devices['camera'][name]
+
+    @deviceMethod("camera", "get")
+    def getCamera(self, name):
+        """
+        Get a camera by name.
+
+        Parameters
+        ----------
+        name : str
+            Arbitrary name given to the camera when it was `add`ed.
 
         Returns
         -------
-        object or `None`
-            Device object associated with the given name. Returns `None` if no
-            device with the given name exists.
-
+        BaseDevice
+            The requested camera
         """
-        for devClass in self._devices:
-            if name in self._devices[devClass]:
-                return self._devices[devClass][name]
+        return self._devices['camera'].get(name, None)
 
-        return None
-
-    def checkDeviceNameAvailable(self, name):
-        """Check if a device name is available.
-
-        Parameters
-        ----------
-        name : str
-            Name of the device.
-
-        Returns
-        -------
-        bool
-            `True` if the device name is available, `False` otherwise. If `False`
-            is returned, the device name cannot be used when adding another
-            device.
-        
+    @deviceMethod("camera", "getall")
+    def getCameras(self):
         """
-        for devClass in self._devices:
-            if name in self._devices[devClass]:
-                return False
-
-        return True
-
-    def _assertDeviceNameUnique(self, name):
-        """Assert that the specified device name is unique.
-
-        This checks if the device name specified is unique and not used by any
-        of the other devices in the manager.
-
-        Parameters
-        ----------
-        name : str
-            Name of the device to check.
-
-        Raises
-        ------
-        ValueError
-            If the device name is not unique.
-
-        """
-        # check if there are any keys in the dictionaries inside of 
-        # `self._devices` that match the name
-        if not self.checkDeviceNameAvailable(name):
-            raise ValueError(
-                f"Device name '{name}' is already in use by another "
-                "device!")
-
-    def _getSerialPortsInUse(self):
-        """Get serial ports that are being used and the names of the devices
-        that are using them. 
-        
-        This will only work if the devices have a `portString` attribute, which
-        requires they inherit from `SerialDevice`.
+        Get a mapping of cameras that have been initialized.
 
         Returns
         -------
         dict
-            Mapping of serial port names to the names of the devices that are
-            using them as a list.
+            Dictionary of cameras that have been initialized. Where the keys are
+            the names of the cameras and the values are the camera objects.
 
         """
-        ports = {}
-        for devClass in self._devices:
-            for devName, devObj in self._devices[devClass].items():
-                if hasattr(devObj, 'portString'):
-                    ports.setdefault(devObj.portString, []).append(devName)
+        return self._devices['camera']
 
-        return ports
+    @staticmethod
+    @deviceMethod("camera", "available")
+    def getAvailableCameras():
+        """
+        Get information about all available cameras connected to the system.
 
-    def addSerialDevice(self, name, port, baudrate=9600, byteSize=8, stopBits=1, 
+        Returns
+        -------
+        dict
+            Dictionary of information about available cameras connected to the
+            system.
+
+        """
+        return st.getInstalledDevices('camera')
+
+    # --- serial ---
+
+    @deviceMethod("serial", "add")
+    def addSerialDevice(self, name, port, baudrate=9600, byteSize=8, stopBits=1,
             parity="N"):
-        """Add a generic serial device interface.
+        """
+        Add a generic serial device interface.
 
         This creates a serial device interface object that can be used to
         communicate with a serial device. This is a generic interface that can
@@ -434,6 +880,7 @@ class DeviceManager:
 
         return toReturn
 
+    @deviceMethod("serial", "remove")
     def removeSerialDevice(self, name):
         """Remove a serial device interface.
 
@@ -442,262 +889,76 @@ class DeviceManager:
         Parameters
         ----------
         name : str
-            Name of the serial device.
+            Name or port of the serial device.
 
         """
+        # if name isn't present, try to match port
+        if name not in self._devices['serial']:
+            for dev in self._devices['serial']:
+                if dev.port == name:
+                    name = dev.name
+                    break
+        # error if there's still no name
         if name not in self._devices['serial'].keys():
             raise ValueError(f"Serial device {name} does not exist")
-
+        # close and delete device
         self._devices['serial'][name].close()
         del self._devices['serial'][name]
 
-    def removeSerialDeviceByPort(self, port):
-        """Remove a serial device interface by port.
-
-        This frees the port by closing prior to removing the device interface.
-
-        Parameters
-        ----------
-        port : str
-            Port of the serial device.
-
-        Examples
-        --------
-        Remove a serial device by port::
-
-            mgr.removeSerialDeviceByPort('COM1')
-
-        """
-        for dev in self._devices['serial']:
-            if dev.port == port:
-                self.removeSerialDevice(dev.name)
-                break
-
-    def addTPad(self, name, port):
-        raise NotImplementedError("BBTK TPad integration is a work in progress")
-
-    def closeAll(self):
-        """Close all devices.
-
-        Close all devices that have been initialized. This is usually called on
-        exit to free resources cleanly. It is not necessary to call this method
-        manually as it is registered as an `atexit` handler.
-
-        The device manager will be reset after this method is called.
-
-        """
-        devClasses = list(self._devices.keys())
-        for devClass in devClasses:
-            for devName, devObj in self._devices[devClass].items():
-                if hasattr(devObj, 'close'):
-                    try:
-                        devObj.close()
-                    except Exception:
-                        logging.error(f"Failed to close {devName}")
-                    logging.debug(f"Closed {devClass} device: {devName}")
-                else:
-                    logging.error(
-                        f"Device {devName} does not have a `close()` method!")
-                
-            self._devices[devClass].clear()
-
-    # --- manage devices ---
-    def getKeyboards(self):
-        """Get a mapping of keyboards that have been initialized.
-
-        Returns
-        -------
-        dict
-            Dictionary of keyboards that have been initialized. Where the keys
-            are the names of the keyboards and the values are the keyboard
-            objects.
-
-        """
-        return self._devices['keyboard']
-
-    def getSpeakers(self):
-        """Get a mapping of audio playback devices that have been initialized.
-
-        Returns
-        -------
-        dict
-            Dictionary of audio playback devices that have been initialized.
-            Where the keys are the names of the devices and the values are the
-            device objects.
-
-        """
-        return self._devices['speaker']
-
-    def getSpeaker(self, name):
-        """Get a playback device by name.
-
-        Parameters
-        ----------
-        name : str
-            Name of the playback device.
-
-        Returns
-        -------
-        Speaker or `None`
-            Speaker object or `None` if no device with the given name exists.
-        
-        """
-        return self._devices['speaker'].get(name, None)
-
-    def getMicrophones(self):
-        """Get a mapping of audio capture devices that have been initialized.
-
-        Returns
-        -------
-        dict
-            Dictionary of audio capture devices that have been initialized.
-            Where the keys are the names of the devices and the values are the
-            device objects.
-
-        """
-        return self._devices['microphone']
-
-    def getMicrophone(self, name):
-        """Get an audio capture device by name.
-
-        Parameters
-        ----------
-        name : str
-            Name of the capture device.
-
-        Returns
-        -------
-        Microphone or `None`
-            Microphone object or `None` if no device with the given name exists.
-
-        """
-        return self._devices['microphone'].get(name, None)
-
-    def getCameras(self):
-        """Get a mapping of cameras that have been initialized.
-
-        Returns
-        -------
-        dict
-            Dictionary of cameras that have been initialized. Where the keys are
-            the names of the cameras and the values are the camera objects.
-
-        """
-        return self._devices['camera']
-
-    def getSerialDevices(self):
-        """Get a mapping of serial devices that have been initialized.
-
-        Returns
-        -------
-        dict
-            Dictionary of serial devices that have been initialized. Where the
-            keys are the names of the devices and the values are the device
-            objects.
-
-        """
-        return self._devices['serial']
-
+    @deviceMethod("serial", "get")
     def getSerialDevice(self, name):
-        """Get a serial device by name.
+        """Get a serial device by name or port.
 
         Parameters
         ----------
         name : str
-            Name of the serial device.
+            Name or port of the serial device.
 
         Returns
         -------
         SerialDevice or `None`
             Serial device interface object or `None` if no device with the given
-            name exists.
-        
+            name or port exists.
+
         """
-        return self._devices['serial'].get(name, None)
+        if name in self._devices['serial']:
+            return self._devices['serial'][name]
+        else:
+            for dev in self._devices['serial']:
+                if dev.port == name:
+                    return dev
 
-    def getSerialDeviceByPort(self, port):
-        """Get a serial device by port.
+            return None
 
-        Parameters
-        ----------
-        port : str
-            Port of the serial device.
+    @deviceMethod("serial", "getall")
+    def getSerialDevices(self):
+        """
+        Get a mapping of serial devices that have been initialized.
 
         Returns
         -------
-        SerialDevice or `None`
-            Serial device interface object or `None` if no device with the given
-            port exists.
+        dict
+            Dictionary of serial devices that have been initialized. Where the keys
+            are the names of the serial devices and the values are the serialDevice
+            objects.
 
         """
-        for dev in self._devices['serial']:
-            if dev.port == port:
-                return dev
-
-        return None
-
-    # --- get available devices ---
+        return self._devices['serialDevice']
 
     @staticmethod
-    def getAvailableKeyboards():
-        """Get information about all available keyboards connected to the system.
+    @deviceMethod("serial", "available")
+    def getAvailableSerialDevices():
+        """
+        Get information about all available serial devices connected to the system.
 
         Returns
         -------
         dict
-            Dictionary of information about available keyboards connected to 
+            Dictionary of information about available serial devices connected to
             the system.
 
         """
-        return st.getInstalledDevices('keyboard')
-
-    @staticmethod
-    def getAvailableSpeakers():
-        """Get information about all available audio playback devices connected to 
-        the system.
-        
-        Returns
-        -------
-        dict
-            Dictionary of information about available audio playback devices 
-            connected to the system.
-        
-        """
-        return st.getInstalledDevices('speaker')
-
-    @staticmethod
-    def getAvailableMicrophones():
-        """Get information about all available audio capture devices connected to
-        the system.
-
-        Returns
-        -------
-        dict
-            Dictionary of information about available audio capture devices 
-            connected to the system.
-
-        """
-        return st.getInstalledDevices('microphone')
-
-    @staticmethod
-    def getAvailableCameras():
-        """Get information about all available cameras connected to the system.
-
-        Returns
-        -------
-        dict
-            Dictionary of information about available cameras connected to the 
-            system.
-
-        """
-        return st.getInstalledDevices('camera')
-
-    @staticmethod
-    def getSerialDevices():
-        spec = {}
-        for info in list_ports.comports():
-            spec[info.name] = info
-        return spec
+        return st.getInstalledDevices('serial')
 
             
 # handle to the device manager, which is a singleton
