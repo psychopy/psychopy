@@ -68,29 +68,6 @@ class DeviceMethod:
         return fcn in cls._functions
 
 
-def DeviceManagerMixin(cls):
-    """
-    Decorator which adds all DeviceMethod methods of a class to DeviceManager.
-    Use this decorator when adding methods for a new kind of device.
-
-    Example
-    -------
-    ```
-    from psychopy.hardware.manager import DeviceMethod, DeviceMixin
-    @DeviceManagerMixin
-    class KeyboardMixin:
-        @DeviceMethod
-        def addKeyboard(
-
-    """
-    # add all DeviceMethod methods of decorated class to DeviceManager
-    for name, method in cls.__dict__.items():
-        if DeviceMethod.decorates(method):
-            setattr(DeviceManager, name, method)
-    # return class unchanged
-    return cls
-
-
 class DeviceManager:
     """Class for managing hardware devices.
 
