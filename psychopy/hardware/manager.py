@@ -417,8 +417,8 @@ class KeyboardMixin(DeviceManager):
         """
         return self._devices['keyboard']
 
-    @staticmethod
     @DeviceMethod("keyboard", "available")
+    @staticmethod
     def getAvailableKeyboards():
         """
         Get information about all available keyboards connected to the system.
@@ -526,8 +526,8 @@ class MouseMixin(DeviceManager):
         """
         return self._devices['mouse']
 
-    @staticmethod
     @DeviceMethod("mouse", "available")
+    @staticmethod
     def getAvailableMice():
         """
         Get information about all available mice connected to the system.
@@ -623,8 +623,8 @@ class SpeakerMixin(DeviceManager):
         """
         return self._devices['speaker']
 
-    @staticmethod
     @DeviceMethod("speaker", "available")
+    @staticmethod
     def getAvailableSpeakers():
         """
         Get information about all available speakers connected to the system.
@@ -765,8 +765,8 @@ class MicrophoneMixin(DeviceManager):
         """
         return self._devices['microphone']
 
-    @staticmethod
     @DeviceMethod("microphone", "available")
+    @staticmethod
     def getAvailableMicrophones():
         """
         Get information about all available audio capture devices connected to
@@ -867,8 +867,8 @@ class CameraMixin(DeviceManager):
         """
         return self._devices['camera']
 
-    @staticmethod
     @DeviceMethod("camera", "available")
+    @staticmethod
     def getAvailableCameras():
         """
         Get information about all available cameras connected to the system.
@@ -1010,8 +1010,8 @@ class SerialMixin(DeviceManager):
         """
         return self._devices['serialDevice']
 
-    @staticmethod
     @DeviceMethod("serial", "available")
+    @staticmethod
     def getAvailableSerialDevices():
         """
         Get information about all available serial devices connected to the system.
