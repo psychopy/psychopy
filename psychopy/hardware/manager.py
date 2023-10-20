@@ -33,10 +33,16 @@ class DeviceMethod:
     ----------
     deviceType : str
         What kind of device the decorated method pertains to (e.g. keyboard, microphone, etc.)
-    action : str
-        What kind of action the decorated method does (e.g. add, remove, get)
+    action : str or None
+        What kind of action the decorated method does. Values are:
+        - "add": Use this method for the given deviceType in `DeviceManager.addDevice`
+        - "remove": Use this method for the given deviceType in `DeviceManager.removeDevice`
+        - "get": Use this method for the given deviceType in `DeviceManager.getDevice`
+        - "getall": Use this method for the given deviceType in `DeviceManager.getDevices`
+        - "available": Use this method for the given deviceType in `DeviceManager.getAvailableDevices`
+        - None: This method does not correspond to the given deviceType in any DeviceManager method
     """
-    def __init__(self, deviceType, action):
+    def __init__(self, deviceType, action=None):
         self.deviceType = deviceType
         self.action = action
 
@@ -46,8 +52,9 @@ class DeviceMethod:
         # if device has no mapped methods yet, make dict
         if self.deviceType not in _deviceMethods:
             _deviceMethods[self.deviceType] = {}
-        # map function to key
-        _deviceMethods[self.deviceType][self.action] = fcn
+        # map function to key (if action is specified)
+        if self.action is not None:
+            _deviceMethods[self.deviceType][self.action] = fcn
         # return function unchanged
         return fcn
 
@@ -301,8 +308,7 @@ class DeviceManager:
             return self._devices
         return _deviceMethods[deviceType]["getall"](self)
 
-    @staticmethod
-    def getAvailableDevices(deviceType="*"):
+    def getAvailableDevices(self, deviceType="*"):
         """
         Get all devices of a given type which are known by the operating system.
 
@@ -316,9 +322,9 @@ class DeviceManager:
         return _deviceMethods[deviceType]["available"]()
 
 
-class KeyboardMixin(DeviceManager):
+class KeyboardPlugin(DeviceManager):
     """
-    Mixin class for DeviceManager, adding device methods for Keyboard devices via the DeviceMethod decorator.
+    Plugin class for DeviceManager, adding device methods for Keyboard devices via the DeviceMethod decorator.
     """
 
     @DeviceMethod("keyboard", "add")
@@ -427,8 +433,7 @@ class KeyboardMixin(DeviceManager):
         return self._devices['keyboard']
 
     @DeviceMethod("keyboard", "available")
-    @staticmethod
-    def getAvailableKeyboards():
+    def getAvailableKeyboards(self):
         """
         Get information about all available keyboards connected to the system.
 
@@ -442,9 +447,9 @@ class KeyboardMixin(DeviceManager):
         return st.getInstalledDevices('keyboard')
 
 
-class MouseMixin(DeviceManager):
+class MousePlugin(DeviceManager):
     """
-    Mixin class for DeviceManager, adding device methods for Mouse devices via the DeviceMethod decorator.
+    Plugin class for DeviceManager, adding device methods for Mouse devices via the DeviceMethod decorator.
     """
 
     @DeviceMethod("mouse", "add")
@@ -536,8 +541,7 @@ class MouseMixin(DeviceManager):
         return self._devices['mouse']
 
     @DeviceMethod("mouse", "available")
-    @staticmethod
-    def getAvailableMice():
+    def getAvailableMice(self):
         """
         Get information about all available mice connected to the system.
 
@@ -551,9 +555,9 @@ class MouseMixin(DeviceManager):
         return st.getInstalledDevices('mouse')
 
 
-class SpeakerMixin(DeviceManager):
+class SpeakerPlugin(DeviceManager):
     """
-    Mixin class for DeviceManager, adding device methods for audio playback devices via the DeviceMethod decorator.
+    Plugin class for DeviceManager, adding device methods for audio playback devices via the DeviceMethod decorator.
     """
 
     @DeviceMethod("speaker", "add")
@@ -633,8 +637,7 @@ class SpeakerMixin(DeviceManager):
         return self._devices['speaker']
 
     @DeviceMethod("speaker", "available")
-    @staticmethod
-    def getAvailableSpeakers():
+    def getAvailableSpeakers(self):
         """
         Get information about all available speakers connected to the system.
 
@@ -648,9 +651,9 @@ class SpeakerMixin(DeviceManager):
         return st.getInstalledDevices('speaker')
 
 
-class MicrophoneMixin(DeviceManager):
+class MicrophonePlugin(DeviceManager):
     """
-    Mixin class for DeviceManager, adding device methods for audio recording devices via the DeviceMethod decorator.
+    Plugin class for DeviceManager, adding device methods for audio recording devices via the DeviceMethod decorator.
     """
 
     @DeviceMethod("microphone", "add")
@@ -775,8 +778,7 @@ class MicrophoneMixin(DeviceManager):
         return self._devices['microphone']
 
     @DeviceMethod("microphone", "available")
-    @staticmethod
-    def getAvailableMicrophones():
+    def getAvailableMicrophones(self):
         """
         Get information about all available audio capture devices connected to
         the system.
@@ -791,9 +793,9 @@ class MicrophoneMixin(DeviceManager):
         return st.getInstalledDevices('microphone')
 
 
-class CameraMixin(DeviceManager):
+class CameraPlugin(DeviceManager):
     """
-    Mixin class for DeviceManager, adding device methods for video recording devices via the DeviceMethod decorator.
+    Plugin class for DeviceManager, adding device methods for video recording devices via the DeviceMethod decorator.
     """
 
     @DeviceMethod("camera", "add")
@@ -877,8 +879,7 @@ class CameraMixin(DeviceManager):
         return self._devices['camera']
 
     @DeviceMethod("camera", "available")
-    @staticmethod
-    def getAvailableCameras():
+    def getAvailableCameras(self):
         """
         Get information about all available cameras connected to the system.
 
@@ -892,9 +893,9 @@ class CameraMixin(DeviceManager):
         return st.getInstalledDevices('camera')
 
 
-class SerialMixin(DeviceManager):
+class SerialPlugin(DeviceManager):
     """
-    Mixin class for DeviceManager, adding device methods for serial port devices via the DeviceMethod decorator.
+    Plugin class for DeviceManager, adding device methods for serial port devices via the DeviceMethod decorator.
     """
 
     @DeviceMethod("serial", "add")
@@ -1020,8 +1021,7 @@ class SerialMixin(DeviceManager):
         return self._devices['serialDevice']
 
     @DeviceMethod("serial", "available")
-    @staticmethod
-    def getAvailableSerialDevices():
+    def getAvailableSerialDevices(self):
         """
         Get information about all available serial devices connected to the system.
 
