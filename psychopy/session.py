@@ -11,6 +11,7 @@ from functools import partial
 from pathlib import Path
 
 from psychopy import experiment, logging, constants, data, core, __version__
+from psychopy.hardware.manager import DeviceManager
 from psychopy.tools.arraytools import AliasDict
 
 from psychopy.localization import _translate
@@ -1311,6 +1312,8 @@ if __name__ == "__main__":
         from psychopy import liaison
         # Create liaison server
         liaisonServer = liaison.WebSocketServer()
+        # Add DeviceManager to liaison server
+        liaisonServer.registerClass(DeviceManager, "DeviceManager")
         # Add session to liaison server
         liaisonServer.registerClass(Session, "session")
         # Register queue with liaison
