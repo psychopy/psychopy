@@ -724,7 +724,7 @@ class MicrophonePlugin(DeviceManager):
                 raise ValueError(
                     f"Microphone device {device} is already in use by {mic.name}")
 
-        dev = microphone.Microphone(
+        dev = microphone.MicrophoneDevice(
             device=device, sampleRateHz=sampleRate, channels=channels
         )
         toReturn = self._devices['microphone'][name] = dev

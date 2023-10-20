@@ -13,6 +13,7 @@ __all__ = ['Microphone']
 import sys
 import psychopy.logging as logging
 from psychopy.constants import NOT_STARTED
+from psychopy.hardware import deviceManager
 from psychopy.hardware.base import BaseDevice
 from psychopy.preferences import prefs
 from .audioclip import *
@@ -308,7 +309,116 @@ class RecordingBuffer:
             sampleRateHz=self._sampleRateHz)
 
 
-class Microphone(BaseDevice):
+class Microphone:
+    def __init__(
+            self,
+            name=None,
+            device=None,
+            sampleRateHz=None,
+            channels=None,
+            streamBufferSecs=2.0,
+            maxRecordingSize=24000,
+            policyWhenFull='warn',
+            audioLatencyMode=None,
+            audioRunMode=0):
+
+        if deviceManager.checkDeviceNameAvailable(name):
+            # if no matching device is in DeviceManager, make a new one
+            self.device = deviceManager.addMicrophone(
+                name=name, device=device, sampleRate=sampleRateHz, channels=channels
+            )
+        else:
+            # otherwise, use the existing device
+            self.device = deviceManager.getMicrophone(name)
+
+    @property
+    def recording(self):
+        return self.device.recording
+
+    @property
+    def recBufferSecs(self):
+        return self.device.recBufferSecs
+
+    @property
+    def maxRecordingSize(self):
+        return self.device.maxRecordingSize
+
+    @maxRecordingSize.setter
+    def maxRecordingSize(self, value):
+        self.device.maxRecordingSize = value
+
+    @property
+    def latencyBias(self):
+        return self.device.latencyBias
+
+    @latencyBias.setter
+    def latencyBias(self, value):
+        self.device.latency_bias = value
+
+    @property
+    def audioLatencyMode(self):
+        return self.device.audioLatencyMode
+
+    @property
+    def streamBufferSecs(self):
+        return self.device.streamBufferSecs
+
+    @property
+    def streamStatus(self):
+        return self.device.streamStatus
+
+    @property
+    def isRecBufferFull(self):
+        return self.device.isRecBufferFull
+
+    @property
+    def isStarted(self):
+        return self.device.isStarted
+
+    @property
+    def isRecording(self):
+        return self.device.isRecording
+
+    def start(self, when=None, waitForStart=0, stopTime=None):
+        return self.device.start(
+            when=when, waitForStart=waitForStart, stopTime=stopTime
+        )
+
+    def record(self, when=None, waitForStart=0, stopTime=None):
+        return self.start(
+            when=when, waitForStart=waitForStart, stopTime=stopTime
+        )
+
+    def stop(self, blockUntilStopped=True, stopTime=None):
+        return self.device.stop(
+            blockUntilStopped=blockUntilStopped, stopTime=stopTime
+        )
+
+    def pause(self, blockUntilStopped=True, stopTime=None):
+        return self.stop(
+            blockUntilStopped=blockUntilStopped, stopTime=stopTime
+        )
+
+    def close(self):
+        return self.device.close()
+
+    def poll(self):
+        return self.device.poll()
+
+    def bank(self, tag=None, transcribe=False, **kwargs):
+        return self.device.bank(tag=tag, transcribe=transcribe, **kwargs)
+
+    def clear(self):
+        return self.device.clear()
+
+    def flush(self):
+        return self.device.flush()
+
+    def getRecording(self):
+        return self.device.getRecording()
+
+
+class MicrophoneDevice(BaseDevice):
     """Class for recording audio from a microphone or input stream.
 
     Creating an instance of this class will open a stream using the specified
