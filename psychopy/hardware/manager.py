@@ -33,8 +33,14 @@ class DeviceMethod:
     ----------
     deviceType : str
         What kind of device the decorated method pertains to (e.g. keyboard, microphone, etc.)
-    action : str
-        What kind of action the decorated method does (e.g. add, remove, get)
+    action : str or None
+        What kind of action the decorated method does. Values are:
+        - "add": Use this method for the given deviceType in `DeviceManager.addDevice`
+        - "remove": Use this method for the given deviceType in `DeviceManager.removeDevice`
+        - "get": Use this method for the given deviceType in `DeviceManager.getDevice`
+        - "getall": Use this method for the given deviceType in `DeviceManager.getDevices`
+        - "available": Use this method for the given deviceType in `DeviceManager.getAvailableDevices`
+        - None: This method does not correspond to the given deviceType in any DeviceManager method
     """
     def __init__(self, deviceType, action):
         self.deviceType = deviceType
