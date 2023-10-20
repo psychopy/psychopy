@@ -42,7 +42,7 @@ class DeviceMethod:
         - "available": Use this method for the given deviceType in `DeviceManager.getAvailableDevices`
         - None: This method does not correspond to the given deviceType in any DeviceManager method
     """
-    def __init__(self, deviceType, action):
+    def __init__(self, deviceType, action=None):
         self.deviceType = deviceType
         self.action = action
 
@@ -52,8 +52,9 @@ class DeviceMethod:
         # if device has no mapped methods yet, make dict
         if self.deviceType not in _deviceMethods:
             _deviceMethods[self.deviceType] = {}
-        # map function to key
-        _deviceMethods[self.deviceType][self.action] = fcn
+        # map function to key (if action is specified)
+        if self.action is not None:
+            _deviceMethods[self.deviceType][self.action] = fcn
         # return function unchanged
         return fcn
 
