@@ -719,7 +719,6 @@ def parsePipeSyntax(key, stripKey=True):
     |cfg = Configuration parameter, hidden behind "read more" tag
     |fix = Fixed parameter, meaning its value can't be changed
     |hid = Hidden parameter, meaning it's not down by DlgFromDict
-    |0, |1, |2, etc. = Parameter with specific place in key order
 
     An unescaped * in the key is considered shorthand for |req.
 
