@@ -358,12 +358,12 @@ class Dlg(QtWidgets.QDialog):
 
         return inputBox
 
-    def addFixedField(self, label='', initial='', color='', choices=None,
+    def addFixedField(self, key, label='', initial='', color='', choices=None,
                       tip=''):
         """Adds a field to the dialog box (like addField) but the field cannot
         be edited. e.g. Display experiment version.
         """
-        return self.addField(label, initial, color, choices, tip,
+        return self.addField(key, label, initial, color, choices, tip,
                              enabled=False)
 
     def addReadmoreCtrl(self):

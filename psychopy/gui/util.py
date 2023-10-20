@@ -11,6 +11,8 @@ def makeDisplayParams(expInfo, sortKeys=True, labels=None, tooltips=None, fixed=
         tooltips = {}
     # convert fixed list to pipe syntax
     if fixed is not None:
+        if isinstance(fixed, str):
+            fixed = [fixed]
         for key in fixed:
             if key in expInfo:
                 expInfo[f"{key}|fix"] = expInfo.pop(key)
