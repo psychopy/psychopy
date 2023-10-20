@@ -322,7 +322,7 @@ class KeyboardMixin(DeviceManager):
     """
 
     @DeviceMethod("keyboard", "add")
-    def addKeyboard(self, name=None, backend="iohub", device=-1):
+    def addKeyboard(self, name=None, device=-1, bufferSize=10000, waitForStart=False, clock=None, backend=None):
         """
         Add a keyboard.
 
@@ -334,11 +334,19 @@ class KeyboardMixin(DeviceManager):
             Backend to use for keyboard input. Defaults to "iohub".
         device : int, optional
             Device number to use. Defaults to -1.
+        bufferSize: int
+            How many keys to store in the buffer (before dropping older ones)
+        waitForStart: bool (default False)
+            Normally we'll start polling the Keyboard at all times but you
+            could choose not to do that and start/stop manually instead by
+            setting this to True
+        clock : psychopy.core.Clock
+            Clock from which to add timestamps to KeyPress objects.
 
         Returns
         -------
-        Keyboard
-            Keyboard object.
+        psychopy.hardware.keyboard.KeyboardDevice
+            KeyboardDevice object.
 
         Examples
         --------
@@ -368,8 +376,9 @@ class KeyboardMixin(DeviceManager):
                 # nb - device=-1 is a bit tricky to handle, since it's not
                 # a valid device index.
         from psychopy.hardware import keyboard
-        toReturn = self._devices['keyboard'][name] = keyboard.Keyboard(
-            backend=backend, device=device)
+        toReturn = self._devices['keyboard'][name] = keyboard.KeyboardDevice(
+            device=device, bufferSize=bufferSize, waitForStart=waitForStart, clock=clock, backend=backend
+        )
 
         return toReturn
 

@@ -70,6 +70,7 @@ from psychopy.constants import NOT_STARTED
 import time
 
 from psychopy.hardware.base import BaseDevice
+from psychopy.hardware import deviceManager
 from psychopy.tools.attributetools import AttributeGetSetMixin
 
 try:
@@ -123,11 +124,16 @@ def getKeyboards():
     return []
 
 
-class KeyboardComponent:
-    def __init__(self, device=-1, bufferSize=10000, waitForStart=False, clock=None, backend=None):
-        self.device = Keyboard(
-            device=device, bufferSize=bufferSize, waitForStart=waitForStart, clock=clock, backend=backend
-        )
+class Keyboard(AttributeGetSetMixin):
+    def __init__(self, name=None, device=-1, bufferSize=10000, waitForStart=False, clock=None, backend=None):
+        if deviceManager.checkDeviceNameAvailable(name):
+            # if no matching device is in DeviceManager, make a new one
+            self.device = deviceManager.addKeyboard(
+                name=name, device=device, bufferSize=bufferSize, waitForStart=waitForStart, clock=clock, backend=backend
+            )
+        else:
+            # otherwise, use the existing device
+            self.device = deviceManager.getKeyboard(name)
 
     def getBackend(self):
         return self.device.getBackend()
@@ -157,11 +163,9 @@ class KeyboardComponent:
         return self.device.clearEvents(eventType=eventType)
 
 
-class Keyboard(AttributeGetSetMixin, BaseDevice):
-    """The Keyboard class provides access to the Psychtoolbox KbQueue-based
-    calls on **Python3 64-bit** with fall-back to `event.getKeys` on legacy
-    systems.
-
+class KeyboardDevice(BaseDevice):
+    """
+    Object representing
     """
     _backend = None
     _iohubKeyboard = None

@@ -133,7 +133,7 @@ class KeyboardComponent(BaseComponent):
             label=_translate("Sync timing with screen"))
 
     def writeInitCode(self, buff):
-        code = "%(name)s = keyboard.Keyboard()\n"
+        code = "%(name)s = keyboard.Keyboard(name=%(name)s)\n"
         buff.writeIndentedLines(code % self.params)
 
     def writeInitCodeJS(self, buff):
