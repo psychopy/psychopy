@@ -308,8 +308,7 @@ class DeviceManager:
             return self._devices
         return _deviceMethods[deviceType]["getall"](self)
 
-    @staticmethod
-    def getAvailableDevices(deviceType="*"):
+    def getAvailableDevices(self, deviceType="*"):
         """
         Get all devices of a given type which are known by the operating system.
 
@@ -425,8 +424,7 @@ class KeyboardPlugin(DeviceManager):
         return self._devices['keyboard']
 
     @DeviceMethod("keyboard", "available")
-    @staticmethod
-    def getAvailableKeyboards():
+    def getAvailableKeyboards(self):
         """
         Get information about all available keyboards connected to the system.
 
@@ -534,8 +532,7 @@ class MousePlugin(DeviceManager):
         return self._devices['mouse']
 
     @DeviceMethod("mouse", "available")
-    @staticmethod
-    def getAvailableMice():
+    def getAvailableMice(self):
         """
         Get information about all available mice connected to the system.
 
@@ -631,8 +628,7 @@ class SpeakerPlugin(DeviceManager):
         return self._devices['speaker']
 
     @DeviceMethod("speaker", "available")
-    @staticmethod
-    def getAvailableSpeakers():
+    def getAvailableSpeakers(self):
         """
         Get information about all available speakers connected to the system.
 
@@ -773,8 +769,7 @@ class MicrophonePlugin(DeviceManager):
         return self._devices['microphone']
 
     @DeviceMethod("microphone", "available")
-    @staticmethod
-    def getAvailableMicrophones():
+    def getAvailableMicrophones(self):
         """
         Get information about all available audio capture devices connected to
         the system.
@@ -875,8 +870,7 @@ class CameraPlugin(DeviceManager):
         return self._devices['camera']
 
     @DeviceMethod("camera", "available")
-    @staticmethod
-    def getAvailableCameras():
+    def getAvailableCameras(self):
         """
         Get information about all available cameras connected to the system.
 
@@ -1018,8 +1012,7 @@ class SerialPlugin(DeviceManager):
         return self._devices['serialDevice']
 
     @DeviceMethod("serial", "available")
-    @staticmethod
-    def getAvailableSerialDevices():
+    def getAvailableSerialDevices(self):
         """
         Get information about all available serial devices connected to the system.
 
