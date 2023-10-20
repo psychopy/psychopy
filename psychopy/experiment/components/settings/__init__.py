@@ -829,9 +829,11 @@ class SettingsComponent:
 
         code = (
             "# --- Setup global variables (available in all functions) ---\n"
-            "# Ensure that relative paths start from the same directory as this script\n"
+            "# create a device manager to handle hardware (keyboards, mice, mirophones, speakers, etc.)\n"
+            "deviceManager = hardware.DeviceManager()\n"
+            "# ensure that relative paths start from the same directory as this script\n"
             "_thisDir = os.path.dirname(os.path.abspath(__file__))\n"
-            "# Store info about the experiment session\n"
+            "# store info about the experiment session\n"
             "psychopyVersion = '%(version)s'\n"
             "expName = %(expName)s  # from the Builder filename that created this script\n"
         )
@@ -1218,7 +1220,7 @@ class SettingsComponent:
             'def setupDevices(expInfo, thisExp, win):\n'
             '    """\n'
             '    Setup whatever devices are available (mouse, keyboard, speaker, eyetracker, etc.) and add them to \n'
-            '    the device manager (hardware.deviceManager)\n'
+            '    the device manager (deviceManager)\n'
             '    \n'
             '    Parameters\n'
             '    ==========\n'
@@ -1520,20 +1522,20 @@ class SettingsComponent:
         # store ioServer
         code = (
             "# store ioServer object in the device manager\n"
-            "hardware.deviceManager.ioServer = ioServer\n"
+            "deviceManager.ioServer = ioServer\n"
         )
         buff.writeIndentedLines(code % inits)
         # add eyetracker to DeviceManager
         if self.params['eyetracker'] != "None":
             code = (
-                "hardware.deviceManager.addEyetracker(name='eyetracker')\n"
+                "deviceManager.addEyetracker(name='eyetracker')\n"
             )
             buff.writeIndentedLines(code % inits)
         # make default keyboard
         code = (
             "\n"
             "# create a default keyboard (e.g. to check for escape)\n"
-            "hardware.deviceManager.addKeyboard(\n"
+            "deviceManager.addKeyboard(\n"
             "    name='defaultKeyboard', backend=%(keyboardBackend)s\n"
             ")\n"
         )
@@ -1770,9 +1772,9 @@ class SettingsComponent:
             "# prevent components from auto-drawing\n"
             "win.stashAutoDraw()\n"
             "# make sure we have a keyboard\n"
-            "defaultKeyboard = hardware.deviceManager.getKeyboard('defaultKeyboard')"
+            "defaultKeyboard = deviceManager.getKeyboard('defaultKeyboard')"
             "if defaultKeyboard is None:\n"
-            "    defaultKeyboard = hardware.deviceManager.addKeyboard(\n"
+            "    defaultKeyboard = deviceManager.addKeyboard(\n"
             "        name='defaultKeyboard',\n"
             "        backend=%(keyboardBackend)s,\n"
             "    )\n"
@@ -1840,8 +1842,8 @@ class SettingsComponent:
             "# mark experiment handler as finished\n"
             "thisExp.status = FINISHED\n"
             "# shut down eyetracker, if there is one\n"
-            "if hardware.deviceManager.getEyetracker('eyetracker') is not None:\n"
-            "    hardware.deviceManager.removeEyetracker('eyetracker')\n"
+            "if deviceManager.getEyetracker('eyetracker') is not None:\n"
+            "    deviceManager.removeEyetracker('eyetracker')\n"
         )
         if self.params['Save log file'].val:
             code += (
@@ -1879,8 +1881,8 @@ class SettingsComponent:
             "    win.flip()\n"
             "    win.close()\n"
             "# shut down eyetracker, if there is one\n"
-            "if hardware.deviceManager.getEyetracker('eyetracker') is not None:\n"
-            "    hardware.deviceManager.removeEyetracker('eyetracker')\n"
+            "if deviceManager.getEyetracker('eyetracker') is not None:\n"
+            "    deviceManager.removeEyetracker('eyetracker')\n"
         )
         if self.params['Save log file'].val:
             code += (
