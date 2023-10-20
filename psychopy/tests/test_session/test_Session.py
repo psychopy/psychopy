@@ -103,7 +103,7 @@ class TestSession:
 
             return all(same)
         # setup experiment inputs
-        self.sess.setupInputsFromExperiment("exp1")
+        self.sess.setupDevicesFromExperiment("exp1")
         # knock ioHub timer out of sync
         time.sleep(1)
         # run experiment
