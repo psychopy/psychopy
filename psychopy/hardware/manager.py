@@ -323,9 +323,9 @@ class DeviceManager:
         return _deviceMethods[deviceType]["available"]()
 
 
-class KeyboardMixin(DeviceManager):
+class KeyboardPlugin(DeviceManager):
     """
-    Mixin class for DeviceManager, adding device methods for Keyboard devices via the DeviceMethod decorator.
+    Plugin class for DeviceManager, adding device methods for Keyboard devices via the DeviceMethod decorator.
     """
 
     @DeviceMethod("keyboard", "add")
@@ -440,9 +440,9 @@ class KeyboardMixin(DeviceManager):
         return st.getInstalledDevices('keyboard')
 
 
-class MouseMixin(DeviceManager):
+class MousePlugin(DeviceManager):
     """
-    Mixin class for DeviceManager, adding device methods for Mouse devices via the DeviceMethod decorator.
+    Plugin class for DeviceManager, adding device methods for Mouse devices via the DeviceMethod decorator.
     """
 
     @DeviceMethod("mouse", "add")
@@ -549,9 +549,9 @@ class MouseMixin(DeviceManager):
         return st.getInstalledDevices('mouse')
 
 
-class SpeakerMixin(DeviceManager):
+class SpeakerPlugin(DeviceManager):
     """
-    Mixin class for DeviceManager, adding device methods for audio playback devices via the DeviceMethod decorator.
+    Plugin class for DeviceManager, adding device methods for audio playback devices via the DeviceMethod decorator.
     """
 
     @DeviceMethod("speaker", "add")
@@ -646,9 +646,9 @@ class SpeakerMixin(DeviceManager):
         return st.getInstalledDevices('speaker')
 
 
-class MicrophoneMixin(DeviceManager):
+class MicrophonePlugin(DeviceManager):
     """
-    Mixin class for DeviceManager, adding device methods for audio recording devices via the DeviceMethod decorator.
+    Plugin class for DeviceManager, adding device methods for audio recording devices via the DeviceMethod decorator.
     """
 
     @DeviceMethod("microphone", "add")
@@ -789,9 +789,9 @@ class MicrophoneMixin(DeviceManager):
         return st.getInstalledDevices('microphone')
 
 
-class CameraMixin(DeviceManager):
+class CameraPlugin(DeviceManager):
     """
-    Mixin class for DeviceManager, adding device methods for video recording devices via the DeviceMethod decorator.
+    Plugin class for DeviceManager, adding device methods for video recording devices via the DeviceMethod decorator.
     """
 
     @DeviceMethod("camera", "add")
@@ -890,9 +890,9 @@ class CameraMixin(DeviceManager):
         return st.getInstalledDevices('camera')
 
 
-class SerialMixin(DeviceManager):
+class SerialPlugin(DeviceManager):
     """
-    Mixin class for DeviceManager, adding device methods for serial port devices via the DeviceMethod decorator.
+    Plugin class for DeviceManager, adding device methods for serial port devices via the DeviceMethod decorator.
     """
 
     @DeviceMethod("serial", "add")
