@@ -2,10 +2,37 @@ from psychopy import logging
 
 
 class CounterbalancerFinishedError(BaseException):
+    """
+    Exception raised when a Counterbalancer is finished and its onFinished method is set to "raise"
+    """
     pass
 
 
 class Counterbalancer:
+    """
+    Tool for getting a group assignment from the Shelf, and keeping track of which previous participants were assigned
+    to which groups.
+
+    Parameters
+    ----------
+    shelf : psychopy.data.shelf.Shelf
+        Which shelf to draw data from?
+    entry : str
+        Name of the Shelf entry to use.
+    conditions : list[dict]
+        List of dicts indicating, for each group:
+        - Its name
+        - Max number of participants
+        - [optional] Additional arbitrary parameters
+    onFinished : str or function
+        What to do when the participants remaining for all groups is 0. If given a function, will call that function,
+        but can also be given one of the following as strings:
+        - "raise" - Raise a CounterbalancerFinishedError when finished
+        - "reset" - Reset participant counters for each group back to their starting values
+        - "ignore" - Do nothing, simply continue with values at 0 and self.finished as True
+    autoLog : bool
+        Whether to print to the log whenever an attribute of this object changes.
+    """
     def __init__(
             self,
             shelf,
@@ -29,6 +56,13 @@ class Counterbalancer:
 
     @property
     def data(self):
+        """
+        Returns
+        -------
+        dict
+            Full Shelf data associated with this Counterbalancer. Returns as a dict, not a handle, so changing the
+            value of Counterbalancer.data won't change the value on the Shelf.
+        """
         # make sure entry exists
         if self.entry not in self.shelf.data:
             self.shelf.data[self.entry] = {}
@@ -37,14 +71,34 @@ class Counterbalancer:
 
     @property
     def finished(self):
+        """
+        Returns
+        -------
+        bool
+            True if all participant counters are at or below 0, False otherwise.
+        """
         return all(val <= 0 for val in self.data.values())
 
     @property
     def remaining(self):
+        """
+        Returns
+        -------
+        int
+            How many participants are left for the currently chosen group?
+        """
         if self.group is not None:
             return self.data[self.group]
 
     def allocateGroup(self):
+        """
+        Retrieve a group allocation from the Shelf and decrement the participant counter for that group.
+
+        Returns
+        -------
+        str
+            Name of the chosen group.
+        """
         # handle behaviour on finished
         if self.finished:
             # log warning regardless
