@@ -243,6 +243,7 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
             "%(name)s = data.Counterbalancer({\n"
             "    'entry': '%(name)s',\n"
             "    'conditions': %(name)sConditions,\n"
+            "    'onFinished': %(onFinished)s\n"
             "});\n"
             "// get group from online\n"
             "%(name)s.allocateGroup();"
