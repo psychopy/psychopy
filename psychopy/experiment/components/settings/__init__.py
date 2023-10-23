@@ -1535,9 +1535,10 @@ class SettingsComponent:
         code = (
             "\n"
             "# create a default keyboard (e.g. to check for escape)\n"
-            "deviceManager.addKeyboard(\n"
-            "    name='defaultKeyboard', backend=%(keyboardBackend)s\n"
-            ")\n"
+            "if deviceManager.getKeyboard('defaultKeyboard') is None:\n"
+            "    deviceManager.addKeyboard(\n"
+            "        name='defaultKeyboard', backend=%(keyboardBackend)s\n"
+            "    )\n"
         )
         buff.writeIndentedLines(code % inits)
 
