@@ -1,5 +1,6 @@
 from psychopy import logging
 
+
 class CounterbalancerFinishedError(BaseException):
     pass
 
@@ -58,8 +59,10 @@ class Counterbalancer:
                 raise CounterbalancerFinishedError(msg)
             elif self.onFinished == "reset":
                 # if onFinished is restart, reset caps for all groups
+                data = self.data.copy()
                 for row in self.conditions:
-                    self.data[row['group']] = row['cap']
+                    data[row['group']] = row['cap']
+                self.shelf.data[self.entry] = data
             else:
                 # if onFinished is ignore, set group to None and params to blank
                 self.group = None
