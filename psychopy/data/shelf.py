@@ -6,6 +6,25 @@ from psychopy.preferences import prefs
 
 
 class Shelf:
+    """
+
+    Parameters
+    ----------
+    scope : str
+        Scope of the Shelf file, one of:
+        - "designer" / "d" / "des" / "user": Shelf file is accessible to any experiment running on this computer. File
+          will be stored in your user folder (%AppData%/psychopy3 on Windows) as `shelf.json`.
+        - "experiment" / "e" / "exp" / "project": Shelf file is accessible only to the given experiment. File will be
+          stored in the experiment folder as `shelf.json`.
+        - "participant" / "p" / "par" / "subject": Shelf file is accessible only to the given participant. File will be
+          stored in the "shelf" folder within your user folder as the participant ID followed by `.json`
+    expPath : str or Path
+        Path to the experiment folder, if scope is "experiment". Can also accept a path to the experiment file.
+    participant : str
+        Participant ID, if scope is "participant".
+    """
+
+    # other names which scopes can be referred to as
     scopeAliases = {
         'designer': ["designer", "d", "des", "user"],
         'experiment': ["experiment", "e", "exp", "project"],
@@ -50,6 +69,19 @@ class Shelf:
 
     @staticmethod
     def scopeFromAlias(alias):
+        """
+        Get the scope name from one of its aliases, e.g. get "experiment" from "exp".
+
+        Parameters
+        ----------
+        alias : str
+            Alias of the scope.
+
+        Returns
+        -------
+        str
+            Proper name of the scope.
+        """
         # if alias is present in aliases dict, return corresponding scope
         for scope in Shelf.scopeAliases:
             if alias in Shelf.scopeAliases[scope]:
@@ -58,6 +90,26 @@ class Shelf:
         return alias
 
     def counterBalanceSelect(self, key, groups, groupSizes):
+        """
+        Select a group from a counterbalancing entry and decrement the associated counter.
+
+        Parameters
+        ----------
+        key : str
+            Key of the entry to draw from
+        groups : list[str]
+            List of group names. Names not present in the entry will be created with the matching groupSize value.
+        groupSizes : list[int]
+            List of group max sizes, must be the same length as `groups`. The probability of each group being chosen is
+            determined by its number of remaining participants.
+
+        Returns
+        -------
+        str
+            Chosen group name
+        bool
+            True if the given group is now at 0, False otherwise
+        """
         # get entry
         try:
             entry = self.data[key]
@@ -99,6 +151,16 @@ class Shelf:
 
 
 class ShelfData:
+    """
+    Dict-like object representing the data on a Shelf. ShelfData is linked to a particular JSON file - when its data
+    changes, the file is written to, keeping it in sync.
+
+
+    Parameters
+    ----------
+    path : str or Path
+        Path to the JSON file which this ShelfData corresponds to.
+    """
     def __init__(self, path):
         # make sure path exists
         if not path.parent.is_dir():
@@ -133,6 +195,14 @@ class ShelfData:
         return item in data
 
     def read(self):
+        """
+        Get data from linked JSON file.
+
+        Returns
+        -------
+        dict
+            Data read from file.
+        """
         # get data from file
         with self._path.open("r", encoding="utf-8") as f:
             data = json.load(f)
@@ -146,6 +216,14 @@ class ShelfData:
         return data[key]
 
     def write(self, data):
+        """
+        Write data to linked JSON file
+
+        Parameters
+        ----------
+        data : dict
+            Data to write to file.
+        """
         # write data to file
         with self._path.open("w", encoding="utf-8") as f:
             json.dump(data, f, indent=True)
