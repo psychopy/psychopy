@@ -96,23 +96,8 @@ class DeviceManager:
         return cls._instance
 
     def __init__(self):
-        # keep track of different classes of devices
-        devClasses = [
-            'microphone', 
-            'speaker', 
-            'camera', 
-            'keyboard', 
-            'mouse',
-            'serial', 
-            'parallel', 
-            'tpad', 
-            'trigger',
-            'unassigned'  # used for devices that don't have a category
-            # 'buttonbox'
-        ]
-
         # initialize a dictionary to store dictionaries of devices for each device class
-        self._devices = {devClass: {} for devClass in devClasses}
+        self._devices = {devClass: {} for devClass in _deviceMethods}
 
     # --- utility ---
     def makeUniqueName(self, deviceType):
