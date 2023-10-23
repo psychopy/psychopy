@@ -152,6 +152,11 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
                 "# load in conditions for %(name)s\n"
                 "%(name)sConditions = data.utils.importConditions(%(conditionsFile)s);\n"
             )
+        elif self.params['specMode'] == "variable":
+            code = (
+                "# get conditions for %(name)s\n"
+                "%(name)sConditions = %(conditionsVariable)s\n"
+            )
         else:
             # otherwise, create conditions
             code = (
