@@ -7,7 +7,7 @@
 
 from pathlib import Path
 
-from psychopy.experiment.components import BaseComponent, Param, _translate
+from psychopy.experiment.components import BaseComponent, Param, _translate, getInitVals
 from psychopy.experiment import CodeGenerationException, valid_var_re
 from pkgutil import find_loader
 
@@ -23,7 +23,7 @@ class KeyboardComponent(BaseComponent):
     iconFile = Path(__file__).parent / 'keyboard.png'
     tooltip = _translate('Keyboard: check and record keypresses')
 
-    def __init__(self, exp, parentName, name='key_resp',
+    def __init__(self, exp, parentName, name='key_resp', device="",
                  allowedKeys="'y','n','left','right','space'", registerOn="press",
                  store='last key', forceEndRoutine=True, storeCorrect=False,
                  correctAns="", discardPrev=True,
@@ -48,16 +48,12 @@ class KeyboardComponent(BaseComponent):
                        'store', 'storeCorrect', 'correctAns'  # Data tab
                        ]
 
-        msg = _translate(
-            "A comma-separated list of keys (with quotes), such as "
-            "'q','right','space','left'")
-        self.params['allowedKeys'] = Param(
-            allowedKeys, valType='list', inputType="single", allowedTypes=[],
-            categ='Basic',
-            updates='constant',
-            allowedUpdates=['constant', 'set every repeat'],
-            hint=(msg),
-            label=_translate("Allowed keys"))
+        # --- Basic ---
+        self.order += [
+            "registerOn",
+            "allowedKeys",
+            "forceEndRoutine"
+        ]
 
         msg = _translate(
             "When should the keypress be registered? As soon as pressed, or when released?")
@@ -67,6 +63,36 @@ class KeyboardComponent(BaseComponent):
             allowedVals=["press", "release"],
             hint=msg,
             label=_translate("Register keypress on...")
+        )
+
+        msg = _translate(
+            "A comma-separated list of keys (with quotes), such as "
+            "'q','right','space','left'")
+        self.params['allowedKeys'] = Param(
+            allowedKeys, valType='list', inputType="single", categ='Basic',
+            updates='constant', allowedUpdates=['constant', 'set every repeat'],
+            hint=(msg),
+            label=_translate("Allowed keys"))
+
+        msg = _translate("Should a response force the end of the Routine "
+                         "(e.g end the trial)?")
+        self.params['forceEndRoutine'] = Param(
+            forceEndRoutine, valType='bool', inputType="bool", allowedTypes=[], categ='Basic',
+            updates='constant',
+            hint=msg,
+            label=_translate("Force end of Routine"))
+
+        # -- Hardware --
+        self.order += [
+            "device"
+        ]
+
+        self.params['device'] = Param(
+            device, valType="str", inputType="single", categ="Hardware",
+            updates="constant",
+            label=_translate("Device name"),
+            hint=_translate("The name assigned to the keyboard device in the DeviceManager, if any. Leave blank to "
+                            "use the default keyboard.")
         )
 
         # hints say 'responses' not 'key presses' because the same hint is
@@ -87,14 +113,6 @@ class KeyboardComponent(BaseComponent):
             updates='constant', direct=False,
             hint=msg,
             label=_translate("Store"))
-
-        msg = _translate("Should a response force the end of the Routine "
-                         "(e.g end the trial)?")
-        self.params['forceEndRoutine'] = Param(
-            forceEndRoutine, valType='bool', inputType="bool", allowedTypes=[], categ='Basic',
-            updates='constant',
-            hint=msg,
-            label=_translate("Force end of Routine"))
 
         msg = _translate("Do you want to save the response as "
                          "correct/incorrect?")
@@ -133,8 +151,16 @@ class KeyboardComponent(BaseComponent):
             label=_translate("Sync timing with screen"))
 
     def writeInitCode(self, buff):
-        code = "%(name)s = keyboard.Keyboard(name=%(name)s)\n"
-        buff.writeIndentedLines(code % self.params)
+        # get inits
+        inits = getInitVals(self.params)
+        # if device name is blank, use "defaultKeyboard"
+        if inits['device'].val in ("", "None", None):
+            inits['device'].val = "defaultKeyboard"
+        # make Keyboard object
+        code = (
+            "%(name)s = keyboard.Keyboard(name=%(device)s)\n"
+        )
+        buff.writeIndentedLines(code % inits)
 
     def writeInitCodeJS(self, buff):
         code = "%(name)s = new core.Keyboard({psychoJS: psychoJS, clock: new util.Clock(), waitForStart: true});\n\n"
