@@ -87,7 +87,7 @@ class TestSession:
         def _sameTimes():
             times = [
                 # ioHub process time
-                deviceManager['ioServer'].getTime(),
+                deviceManager.ioServer.getTime(),
                 # ioHub time in current process
                 iohub.Computer.global_clock.getTime(),
                 # experiment time
@@ -105,7 +105,7 @@ class TestSession:
         self.sess.runExperiment("exp1")
         # confirm that ioHub timer was brought back into sync
         assert _sameTimes(), (
-            self.sess.inputs['ioServer'].getTime(),
+            deviceManager.ioServer.getTime(),
             iohub.Computer.global_clock.getTime(),
             self.sess.sessionClock.getTime(),
         )
