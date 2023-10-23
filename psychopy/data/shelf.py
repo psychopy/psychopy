@@ -123,6 +123,11 @@ class ShelfData:
 
         return repr(data)
 
+    def __contains__(self, item):
+        data = self.read()
+
+        return item in data
+
     def read(self):
         # get data from file
         with self._path.open("r", encoding="utf-8") as f:

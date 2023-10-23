@@ -18,6 +18,7 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
             specMode="file",
             conditionsFile="", conditionsVariable="",
             nGroups=2, pCap=10,
+            onFinished="ignore"
     ):
         BaseStandaloneRoutine.__init__(self, exp, name=name)
 
@@ -32,7 +33,8 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
             'specMode',
             'conditionsFile',
             'nGroups',
-            'pCap'
+            'pCap',
+            'onFinished'
         ]
 
         self.params['specMode'] = Param(
@@ -104,6 +106,18 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
             )
         )
 
+        self.params['onFinished'] = Param(
+            onFinished, valType="str", inputType="choice", categ="Basic",
+            allowedVals=["raise", "reset", "ignore"],
+            allowedLabels=[_translate("Raise error"), _translate("Reset participant caps"),
+                           _translate("Just set .finished")],
+            label=_translate("If finished..."),
+            hint=_translate(
+                "What to do when all groups are finished? Raise an error, reset the count or just continue with "
+                ".finished as True?"
+            )
+        )
+
     def writeInitCode(self, buff):
         code = (
             "expShelf = data.shelf.Shelf(scope='experiment', expPath=_thisDir)"
@@ -135,12 +149,13 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
             "\n"
             "# create counterbalance object for %(name)s \n"
             "%(name)s = data.Counterbalancer(\n"
-            "    shelf=expShelf,"
+            "    shelf=expShelf,\n"
             "    entry='%(name)s',\n"
             "    conditions=%(name)sConditions,\n"
+            "    onFinished=%(onFinished)s\n"
             ")\n"
             "# get group from shelf\n"
-            "%(name)s.allocateGroup();"
+            "%(name)s.allocateGroup()"
             "\n"
         )
         buff.writeIndentedLines(code % self.params)
