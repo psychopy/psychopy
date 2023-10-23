@@ -360,19 +360,21 @@ class KeyboardPlugin(DeviceManager):
         self._assertDeviceNameUnique(name)
 
         # check if the device id is alread in use
-        for kb in self._devices['keyboard']:
-            if kb.device == device:
-                raise ValueError(
-                    f"Keyboard device {device} is already in use by {kb.name}")
+        for kb in self._devices['keyboard'].values():
+            if kb.isSameDevice(device):
+                device = kb
 
-                # nb - device=-1 is a bit tricky to handle, since it's not
-                # a valid device index.
         from psychopy.hardware import keyboard
-        toReturn = self._devices['keyboard'][name] = keyboard.KeyboardDevice(
-            device=device, bufferSize=bufferSize, waitForStart=waitForStart, clock=clock, backend=backend
-        )
+        if isinstance(device, keyboard.KeyboardDevice):
+            # if device is already initialised as a KeyboardDevice, store handle
+            self._devices['keyboard'][name] = device
+        else:
+            # if device isn't initialised, initialise it
+            self._devices['keyboard'][name] = keyboard.KeyboardDevice(
+                device=device, bufferSize=bufferSize, waitForStart=waitForStart, clock=clock, backend=backend
+            )
 
-        return toReturn
+        return self._devices['keyboard'][name]
 
     @DeviceMethod("keyboard", "remove")
     def removeKeyboard(self, name):
