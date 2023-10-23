@@ -251,6 +251,22 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
         )
         buff.writeIndentedLines(code % self.params)
 
+        # save data
+        if self.params['saveData']:
+            code = (
+            "thisExp.addData('%(name)s.group', %(name)s.group);\n"
+            "for (let _key in %(name)s.params) {\n"
+            "    thisExp.addData(f'%(name)s.{_key}', %(name)s.params[_key]);\n"
+            "};\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+        # save remaining cap
+        if self.params['saveRemaining']:
+            code = (
+            "thisExp.addData('%(name)s.remaining', %(name)s.remaining);"
+            )
+            buff.writeIndentedLines(code % self.params)
+
         buff.setIndentLevel(-2, relative=True)
         code = (
             "  }\n"
