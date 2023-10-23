@@ -82,7 +82,11 @@ class Shelf:
         # make sure weights sum to 1
         weights = weights / np.sum(weights)
         # choose a group at random
-        chosen = np.random.choice(options, p=weights)
+        try:
+            chosen = np.random.choice(options, p=weights)
+        except ValueError:
+            # if no groups, force to be None
+            return None, True
         # iterate chosen group
         entry[chosen] -= 1
         # get finished
