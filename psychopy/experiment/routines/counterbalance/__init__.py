@@ -16,7 +16,7 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
     def __init__(
             self, exp, name='counterbalance',
             specMode="file",
-            conditionsFile="",
+            conditionsFile="", conditionsVariable="",
             nGroups=2, pCap=10,
     ):
         BaseStandaloneRoutine.__init__(self, exp, name=name)
@@ -37,12 +37,12 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
 
         self.params['specMode'] = Param(
             specMode, valType="str", inputType="choice", categ="Basic",
-            allowedVals=["file", "spec"],
-            allowedLabels=[_translate("Conditions file"), _translate("Num. groups")],
+            allowedVals=["file", "variable", "uniform"],
+            allowedLabels=[_translate("Conditions file"), _translate("Variable"), _translate("Num. groups")],
             label=_translate("Groups from..."),
             hint=_translate(
-                "Specify groups using an Excel file (for fine tuned control) or specify a number of groups to create "
-                "equally likely groups with a uniform cap."
+                "Specify groups using an Excel file (for fine tuned control), specify as a variable name, or specify a "
+                "number of groups to create equally likely groups with a uniform cap."
             )
         )
 
@@ -52,15 +52,21 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
             "param": 'conditionsFile',  # param property to alter
             "true": "show",  # what to do with param if condition is True
             "false": "hide",  # permitted: hide, show, enable, disable
+        },  {
+            "dependsOn": "specMode",  # must be param name
+            "condition": "=='variable'",  # val to check for
+            "param": 'conditionsVariable',  # param property to alter
+            "true": "show",  # what to do with param if condition is True
+            "false": "hide",  # permitted: hide, show, enable, disable
         }, {
             "dependsOn": "specMode",  # must be param name
-            "condition": "=='spec'",  # val to check for
+            "condition": "=='uniform'",  # val to check for
             "param": 'nGroups',  # param property to alter
             "true": "show",  # what to do with param if condition is True
             "false": "hide",  # permitted: hide, show, enable, disable
         }, {
             "dependsOn": "specMode",  # must be param name
-            "condition": "=='spec'",  # val to check for
+            "condition": "=='uniform'",  # val to check for
             "param": 'pCap',  # param property to alter
             "true": "show",  # what to do with param if condition is True
             "false": "hide",  # permitted: hide, show, enable, disable
@@ -72,6 +78,14 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
             hint=_translate(
                 "Name of a file specifying the parameters for each group (.csv, .xlsx, or .pkl). Browse to select "
                 "a file. Right-click to preview file contents, or create a new file."
+            ))
+
+        self.params['conditionsVariable'] = Param(
+            conditionsVariable, valType='code', inputType="single", categ="Basic",
+            label=_translate('Conditions'),
+            hint=_translate(
+                "Name of a variable specifying the parameters for each group. Should be a list of dicts, like the "
+                "output of psychopy.data.conditionsFromFile"
             ))
 
         self.params['nGroups'] = Param(
