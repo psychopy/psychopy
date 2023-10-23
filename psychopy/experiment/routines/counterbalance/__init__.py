@@ -88,7 +88,7 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
             label=_translate('Conditions'),
             hint=_translate(
                 "Name of a variable specifying the parameters for each group. Should be a list of dicts, like the "
-                "output of psychopy.data.conditionsFromFile"
+                "output of data.conditionsFromFile"
             ))
 
         self.params['nGroups'] = Param(
