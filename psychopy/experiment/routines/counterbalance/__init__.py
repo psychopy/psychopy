@@ -124,7 +124,6 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
         )
         buff.writeOnceIndentedLines(code % self.params)
 
-    def writeMainCode(self, buff):
         if self.params['specMode'] == "file":
             # if we're going from a file, read in file to get conditions
             code = (
@@ -144,7 +143,7 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
                 "    })\n"
             )
         buff.writeIndentedLines(code % self.params)
-
+        # make Counterbalancer object
         code = (
             "\n"
             "# create counterbalance object for %(name)s \n"
@@ -154,6 +153,11 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
             "    conditions=%(name)sConditions,\n"
             "    onFinished=%(onFinished)s\n"
             ")\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+    def writeMainCode(self, buff):
+        code = (
             "# get group from shelf\n"
             "%(name)s.allocateGroup()"
             "\n"
