@@ -1772,7 +1772,7 @@ class SettingsComponent:
             "# prevent components from auto-drawing\n"
             "win.stashAutoDraw()\n"
             "# make sure we have a keyboard\n"
-            "defaultKeyboard = deviceManager.getKeyboard('defaultKeyboard')"
+            "defaultKeyboard = deviceManager.getKeyboard('defaultKeyboard')\n"
             "if defaultKeyboard is None:\n"
             "    defaultKeyboard = deviceManager.addKeyboard(\n"
             "        name='defaultKeyboard',\n"
