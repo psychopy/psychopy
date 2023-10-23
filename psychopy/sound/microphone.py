@@ -8,7 +8,7 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-__all__ = ['Microphone']
+__all__ = ['Microphone', 'MicrophoneDevice']
 
 import sys
 import psychopy.logging as logging
@@ -37,10 +37,10 @@ class RecordingBuffer:
     """Class for a storing a recording from a stream.
 
     Think of instances of this class behaving like an audio tape whereas the
-    `Microphone` class is the tape recorder. Samples taken from the stream are
+    `MicrophoneDevice` class is the tape recorder. Samples taken from the stream are
     written to the tape which stores the data.
 
-    Used internally by the `Microphone` class, users usually do not create
+    Used internally by the `MicrophoneDevice` class, users usually do not create
     instances of this class themselves.
 
     Parameters
@@ -425,7 +425,7 @@ class MicrophoneDevice(BaseDevice):
     device. Streams should remain open for the duration of your session. When a
     stream is opened, a buffer is allocated to store samples coming off it.
     Samples from the input stream will writen to the buffer once
-    :meth:`~Microphone.start()` is called.
+    :meth:`~MicrophoneDevice.start()` is called.
 
     Parameters
     ----------
@@ -533,7 +533,7 @@ class MicrophoneDevice(BaseDevice):
             # value from builder
             deviceIndex = int(deviceIndex)
             # get all audio devices
-            devices_ = Microphone.getDevices()
+            devices_ = MicrophoneDevice.getDevices()
 
             # get information about the selected device
             devicesByIndex = {d.deviceIndex: d for d in devices_}
@@ -553,7 +553,7 @@ class MicrophoneDevice(BaseDevice):
             self._device = _getDeviceByIndex(device)
         else:
             # get default device, first enumerated usually
-            devices = Microphone.getDevices()
+            devices = MicrophoneDevice.getDevices()
             if not devices:
                 raise AudioInvalidCaptureDeviceError(
                     'No suitable audio recording devices found on this system. '
@@ -679,12 +679,12 @@ class MicrophoneDevice(BaseDevice):
 
         """
         try:
-            Microphone.enforceWASAPI = bool(prefs.hardware["audioForceWASAPI"])
+            MicrophoneDevice.enforceWASAPI = bool(prefs.hardware["audioForceWASAPI"])
         except KeyError:
             pass  # use default if option not present in settings
 
         # query PTB for devices
-        if Microphone.enforceWASAPI and sys.platform == 'win32':
+        if MicrophoneDevice.enforceWASAPI and sys.platform == 'win32':
             allDevs = audio.get_devices(device_type=13)
         else:
             allDevs = audio.get_devices()
@@ -783,7 +783,7 @@ class MicrophoneDevice(BaseDevice):
         instead.
 
         For detailed stream status information, use the
-        :attr:`~psychopy.sound.microphone.Microphone.streamStatus` property.
+        :attr:`~psychopy.sound.microphone.MicrophoneDevice.streamStatus` property.
 
         """
         if hasattr(self, "_statusFlag"):
