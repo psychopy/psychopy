@@ -78,6 +78,9 @@ class Shelf:
             if entry[group] > 0:
                 options.append(group)
                 weights.append(weight)
+
+        # make sure weights sum to 1
+        weights = weights / np.sum(weights)
         # choose a group at random
         chosen = np.random.choice(options, p=weights)
         # iterate chosen group
