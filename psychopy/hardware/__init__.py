@@ -6,7 +6,7 @@ import glob
 from itertools import chain
 from psychopy import logging
 from . import eyetracker
-from .manager import deviceManager
+from .manager import DeviceManager, deviceManager
 
 try:
     from collections.abc import Iterable

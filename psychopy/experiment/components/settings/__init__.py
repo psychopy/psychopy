@@ -115,7 +115,7 @@ class SettingsComponent:
                  filename=None, exportHTML='on Sync', endMessage=''):
         self.type = 'Settings'
         self.exp = exp  # so we can access the experiment if necess
-        self.exp.requirePsychopyLibs(['visual', 'gui'])
+        self.exp.requirePsychopyLibs(['visual', 'gui', 'hardware'])
         self.parentName = parentName
         self.url = "https://www.psychopy.org/builder/settings.html"
         self._monitor = None
