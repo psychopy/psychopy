@@ -15,6 +15,10 @@ class Counterbalancer:
     def data(self):
         return self.shelf.data[self.entry]
 
+    @property
+    def finished(self):
+        return all(val <= 0 for val in self.data.values())
+
     def allocateGroup(self):
         # get group assignment from shelf
         self.group = self.shelf.counterBalanceSelect(
