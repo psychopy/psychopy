@@ -18,7 +18,8 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
             specMode="file",
             conditionsFile="", conditionsVariable="",
             nGroups=2, pCap=10,
-            onFinished="ignore"
+            onFinished="ignore",
+            saveData=True, saveRemaining=False
     ):
         BaseStandaloneRoutine.__init__(self, exp, name=name)
 
@@ -118,6 +119,27 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
             )
         )
 
+        # --- Data ---
+        self.order += [
+            'saveData',
+            'saveRemaining',
+        ]
+        self.params['saveData'] = Param(
+            saveData, valType="bool", inputType="bool", categ="Data",
+            label=_translate("Save data"),
+            hint=_translate(
+                "Save chosen group and associated params this repeat to the data file?"
+            )
+        )
+
+        self.params['saveRemaining'] = Param(
+            saveRemaining, valType="bool", inputType="bool", categ="Data",
+            label=_translate("Save remaning cap"),
+            hint=_translate(
+                "Save the remaining cap for the chosen group this repeat to the data file?"
+            )
+        )
+
     def writeInitCode(self, buff):
         code = (
             "expShelf = data.shelf.Shelf(scope='experiment', expPath=_thisDir)"
@@ -157,12 +179,27 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
         buff.writeIndentedLines(code % self.params)
 
     def writeMainCode(self, buff):
+        # get group
         code = (
             "# get group from shelf\n"
             "%(name)s.allocateGroup()"
             "\n"
         )
         buff.writeIndentedLines(code % self.params)
+        # save data
+        if self.params['saveData']:
+            code = (
+            "thisExp.addData('%(name)s.group', %(name)s.group)\n"
+            "for _key, _val in %(name)s.params.items():\n"
+            "    thisExp.addData(f'%(name)s.{_key}', _val)\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+        # save remaining cap
+        if self.params['saveRemaining']:
+            code = (
+            "thisExp.addData('%(name)s.remaining', %(name)s.remaining)"
+            )
+            buff.writeIndentedLines(code % self.params)
 
     def writeRoutineBeginCodeJS(self, buff, modular=True):
         code = (

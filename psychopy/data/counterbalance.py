@@ -19,7 +19,8 @@ class Counterbalancer:
         # store conditions array
         self.conditions = conditions
         # placeholder values before querying shelf
-        self.group = self.params = None
+        self.group = None
+        self.params = {}
         # set behaviour on finished
         self.onFinished = onFinished
         # store autolog
@@ -36,6 +37,11 @@ class Counterbalancer:
     @property
     def finished(self):
         return all(val <= 0 for val in self.data.values())
+
+    @property
+    def remaining(self):
+        if self.group is not None:
+            return self.data[self.group]
 
     def allocateGroup(self):
         # handle behaviour on finished
@@ -72,6 +78,10 @@ class Counterbalancer:
         # get params from matching row of conditions array
         for row in self.conditions:
             if row['group'] == self.group:
-                self.params = row
+                self.params = row.copy()
+        # pop group and cap from params
+        for key in ("group", "cap"):
+            if key in self.params:
+                del self.params[key]
 
         return self.group
