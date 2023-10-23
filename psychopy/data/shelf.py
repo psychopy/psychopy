@@ -57,7 +57,7 @@ class Shelf:
         # if it isn't aliased, return as is
         return alias
 
-    def counterBalanceSelect(self, key, groups, groupSizes, groupWeights=None):
+    def counterBalanceSelect(self, key, groups, groupSizes):
         # get entry
         try:
             entry = self.data[key]
@@ -67,18 +67,17 @@ class Shelf:
         # for each group...
         options = []
         weights = []
-        for group, size, weight in zip(groups, groupSizes, groupWeights):
+        for group, size in zip(groups, groupSizes):
             group = str(group)
             # make sure it exists in entry
             if group not in entry:
                 entry[group] = size
+            # figure out weight from cap
+            weight = size / sum(groupSizes)
             # add to options if not full
             if entry[group] > 0:
                 options.append(group)
                 weights.append(weight)
-
-        # make sure weights sum to 1
-        weights = weights / np.sum(weights)
         # choose a group at random
         chosen = np.random.choice(options, p=weights)
         # iterate chosen group

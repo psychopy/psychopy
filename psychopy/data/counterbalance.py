@@ -25,7 +25,6 @@ class Counterbalancer:
             key=self.entry,
             groups=[row['group'] for row in self.conditions],
             groupSizes=[row['cap'] for row in self.conditions],
-            groupWeights=[row['probability'] for row in self.conditions]
         )[0]
         # get params from matching row of conditions array
         for row in self.conditions:
