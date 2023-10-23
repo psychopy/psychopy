@@ -84,7 +84,7 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
 
         self.params['pCap'] = Param(
             pCap, valType="code", inputType="single", categ="Basic",
-            label=_translate("Participant cap"),
+            label=_translate("Cap per group"),
             hint=_translate(
                 "Max number of participants in each group."
             )
