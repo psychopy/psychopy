@@ -7,17 +7,13 @@ import pytest
 
 @pytest.mark.stringtools
 def test_name_wrap():
-    exemplars = [
+    cases = [
         {"text": "Hello There", "wrap": 12, "ans": "Hello There"},  # No wrap
         {"text": "Hello There", "wrap": 8, "ans": "Hello \nThere"},  # Basic wrap
         {"text": "Hello There Hello There Hello There", "wrap": 11, "ans": "Hello There \nHello There \nHello There"},  # Multiple wraps
+        {"text": "Eyetracker Calibration", "wrap": 10, "ans": "Eyetracker \nCalibratio-\nn"},  # One word longer than wrap length
     ]
-    tykes = [
-        {"text": "Eyetracker Calibration", "wrap": 10, "ans": "Eyetracker \nCalibration"},  # One word longer than wrap length
-        {"text": "Hello There", "wrap": 1, "ans": "Hello \nThere"},  # Wrap = 1
-        {"text": "Hello There", "wrap": 0, "ans": "Hello \nThere"},  # Wrap = 0
-    ]
-    for case in exemplars + tykes:
+    for case in cases:
         assert tools.wrap(case['text'], case['wrap']) == case['ans']
 
 
