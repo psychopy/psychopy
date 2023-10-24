@@ -3,7 +3,7 @@ import json
 import numpy as np
 
 from psychopy import session, visual, logging, clock
-from psychopy.hardware import keyboard
+from psychopy.hardware import keyboard, deviceManager
 from psychopy.tests import utils
 from psychopy.constants import STARTED, PAUSED, STOPPED
 from pathlib import Path
@@ -16,15 +16,10 @@ import time
 class TestSession:
     def setup_class(cls):
         root = Path(utils.TESTS_DATA_PATH) / "test_session" / "root"
-        inputs = {
-            'defaultKeyboard': keyboard.Keyboard(),
-            'eyetracker': None
-        }
-        win = visual.Window([128,128], pos=[50,50], allowGUI=False, autoLog=False)
+        win = visual.Window([128, 128], pos=[50, 50], allowGUI=False, autoLog=False)
         cls.sess = session.Session(
             root,
             loggingLevel="info",
-            inputs=inputs,
             win=win,
             experiments={
                 'exp1': "exp1/exp1.psyexp",
@@ -34,6 +29,8 @@ class TestSession:
                 'annotation': "annotation/annotation.psyexp"
             }
         )
+        # setup devices
+        cls.sess.setupDevicesFromExperiment("exp1")
 
     def test_outside_root(self):
         # Add an experiment from outside of the Session root
@@ -90,7 +87,7 @@ class TestSession:
         def _sameTimes():
             times = [
                 # ioHub process time
-                self.sess.inputs['ioServer'].getTime(),
+                deviceManager.ioServer.getTime(),
                 # ioHub time in current process
                 iohub.Computer.global_clock.getTime(),
                 # experiment time
@@ -102,15 +99,13 @@ class TestSession:
             same = [d < 0.001 for d in deltas]
 
             return all(same)
-        # setup experiment inputs
-        self.sess.setupInputsFromExperiment("exp1")
         # knock ioHub timer out of sync
         time.sleep(1)
         # run experiment
         self.sess.runExperiment("exp1")
         # confirm that ioHub timer was brought back into sync
         assert _sameTimes(), (
-            self.sess.inputs['ioServer'].getTime(),
+            deviceManager.ioServer.getTime(),
             iohub.Computer.global_clock.getTime(),
             self.sess.sessionClock.getTime(),
         )

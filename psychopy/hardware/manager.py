@@ -85,6 +85,7 @@ class DeviceManager:
     """
     _instance = None  # singleton instance
     _deviceMethods = _deviceMethods  # reference methods by device and action
+    ioServer = None  # reference to currently running ioHub ioServer object
 
     def __new__(cls):
         # when making a new DeviceManager, if an instance already exists, just return it
@@ -95,23 +96,8 @@ class DeviceManager:
         return cls._instance
 
     def __init__(self):
-        # keep track of different classes of devices
-        devClasses = [
-            'microphone', 
-            'speaker', 
-            'camera', 
-            'keyboard', 
-            'mouse',
-            'serial', 
-            'parallel', 
-            'tpad', 
-            'trigger',
-            'unassigned'  # used for devices that don't have a category
-            # 'buttonbox'
-        ]
-
         # initialize a dictionary to store dictionaries of devices for each device class
-        self._devices = {devClass: {} for devClass in devClasses}
+        self._devices = {devClass: {} for devClass in _deviceMethods}
 
     # --- utility ---
     def makeUniqueName(self, deviceType):
@@ -328,7 +314,7 @@ class KeyboardPlugin(DeviceManager):
     """
 
     @DeviceMethod("keyboard", "add")
-    def addKeyboard(self, name=None, backend="iohub", device=-1):
+    def addKeyboard(self, name=None, device=-1, bufferSize=10000, waitForStart=False, clock=None, backend=None):
         """
         Add a keyboard.
 
@@ -340,11 +326,19 @@ class KeyboardPlugin(DeviceManager):
             Backend to use for keyboard input. Defaults to "iohub".
         device : int, optional
             Device number to use. Defaults to -1.
+        bufferSize: int
+            How many keys to store in the buffer (before dropping older ones)
+        waitForStart: bool (default False)
+            Normally we'll start polling the Keyboard at all times but you
+            could choose not to do that and start/stop manually instead by
+            setting this to True
+        clock : psychopy.core.Clock
+            Clock from which to add timestamps to KeyPress objects.
 
         Returns
         -------
-        Keyboard
-            Keyboard object.
+        psychopy.hardware.keyboard.KeyboardDevice
+            KeyboardDevice object.
 
         Examples
         --------
@@ -366,18 +360,21 @@ class KeyboardPlugin(DeviceManager):
         self._assertDeviceNameUnique(name)
 
         # check if the device id is alread in use
-        for kb in self._devices['keyboard']:
-            if kb.device == device:
-                raise ValueError(
-                    f"Keyboard device {device} is already in use by {kb.name}")
+        for kb in self._devices['keyboard'].values():
+            if kb.isSameDevice(device):
+                device = kb
 
-                # nb - device=-1 is a bit tricky to handle, since it's not
-                # a valid device index.
         from psychopy.hardware import keyboard
-        toReturn = self._devices['keyboard'][name] = keyboard.Keyboard(
-            backend=backend, device=device)
+        if isinstance(device, keyboard.KeyboardDevice):
+            # if device is already initialised as a KeyboardDevice, store handle
+            self._devices['keyboard'][name] = device
+        else:
+            # if device isn't initialised, initialise it
+            self._devices['keyboard'][name] = keyboard.KeyboardDevice(
+                device=device, bufferSize=bufferSize, waitForStart=waitForStart, clock=clock, backend=backend
+            )
 
-        return toReturn
+        return self._devices['keyboard'][name]
 
     @DeviceMethod("keyboard", "remove")
     def removeKeyboard(self, name):
@@ -714,7 +711,7 @@ class MicrophonePlugin(DeviceManager):
                 raise ValueError(
                     f"Microphone device {device} is already in use by {mic.name}")
 
-        dev = microphone.Microphone(
+        dev = microphone.MicrophoneDevice(
             device=device, sampleRateHz=sampleRate, channels=channels
         )
         toReturn = self._devices['microphone'][name] = dev
@@ -1024,6 +1021,118 @@ class SerialPlugin(DeviceManager):
 
         """
         return st.getInstalledDevices('serial')
+
+
+class EyetrackerPlugin(DeviceManager):
+    """
+    Plugin class for eyetracker objects, adding device methods for eyetracker devices via the DeviceMethod
+    decorator.
+    """
+
+    @DeviceMethod("eyetracker", "add")
+    def addEyetracker(self, name=None, ):
+        """
+        Add a eyetracker.
+
+        Parameters
+        ----------
+        name : str or None
+            Arbitrary name to refer to this eyetracker by. Use None to generate a unique name.
+
+        Returns
+        -------
+        iohub.Eyetracker object
+            Added eyetracker.
+
+        Examples
+        --------
+        Add a keyboard::
+
+            import psychopy.hardware.manager as hm
+            mgr = hm.getDeviceManager()
+            mgr.addKeyboard('response_keyboard', backend='iohub', device=-1)
+
+        Get the keyboard and use it to get a response::
+
+            kb = mgr.getKeyboard('response_keyboard')
+            kb.getKeys()
+
+        """
+        # if no name given, generate unique name
+        if name is None:
+            name = self.makeUniqueName(deviceType="eyetracker")
+        self._assertDeviceNameUnique(name)
+        # raise an error if there's no ioServer yet
+        if self.ioServer is None:
+            raise ConnectionError(
+                "DeviceHandler could not find any ioServer associated with current process. Please start an ioServer "
+                "before adding an eyetracker."
+            )
+        # only one eyetracker can be active and it will already have been set up by ioHub, so just get it
+        self._devices['eyetracker'][name] = self.ioServer.getDevice('tracker')
+        # activate eyetracker
+        self._devices['eyetracker'][name].setConnectionState(True)
+
+        return self._devices['eyetracker'][name]
+
+    @DeviceMethod("eyetracker", "remove")
+    def removeEyetracker(self, name):
+        """
+        Remove a eyetracker.
+
+        Parameters
+        ----------
+        name : str
+            Name of the eyetracker.
+        """
+        self._devices['eyetracker'][name].setConnectionState(False)
+        del self._devices['eyetracker'][name]
+
+    @DeviceMethod("eyetracker", "get")
+    def getEyetracker(self, name):
+        """
+        Get a eyetracker by name.
+
+        Parameters
+        ----------
+        name : str
+            Arbitrary name given to the eyetracker when it was `add`ed.
+
+        Returns
+        -------
+        BaseDevice
+            The requested eyetracker
+        """
+        return self._devices['eyetracker'].get(name, None)
+
+    @DeviceMethod("eyetracker", "getall")
+    def getEyetrackers(self):
+        """
+        Get a mapping of eyetrackers that have been initialized.
+
+        Returns
+        -------
+        dict
+            Dictionary of eyetrackers that have been initialized. Where the keys
+            are the names of the eyetrackers and the values are the eyetracker
+            objects.
+
+        """
+        return self._devices['eyetracker']
+
+    @DeviceMethod("eyetracker", "available")
+    def getAvailableEyetrackers(self):
+        """
+        Get information about all available eyetrackers connected to the system.
+
+        Returns
+        -------
+        dict
+            Dictionary of information about available eyetrackers connected to
+            the system.
+
+        """
+        return st.getInstalledDevices('eyetracker')
 
             
 # handle to the device manager, which is a singleton

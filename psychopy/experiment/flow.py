@@ -219,7 +219,7 @@ class Flow(list):
         # Open function def
         code = (
             '\n'
-            'def run(expInfo, thisExp, win, inputs, globalClock=None, thisSession=None):\n'
+            'def run(expInfo, thisExp, win, globalClock=None, thisSession=None):\n'
             '    """\n'
             '    Run the experiment flow.\n'
             '    \n'
@@ -232,8 +232,6 @@ class Flow(list):
             '        where to save it to.\n'
             '    psychopy.visual.Window\n'
             '        Window in which to run this experiment.\n'
-            '    inputs : dict\n'
-            '        Dictionary of input devices by name.\n'
             '    globalClock : psychopy.core.clock.Clock or None\n'
             '        Clock to get global time from - supply None to make a new one.\n'
             '    thisSession : psychopy.session.Session or None\n'
@@ -243,22 +241,18 @@ class Flow(list):
         script.writeIndentedLines(code)
         script.setIndentLevel(+1, relative=True)
 
-        # unpack inputs
+        # initialisation
         code = (
             "# mark experiment as started\n"
             "thisExp.status = STARTED\n"
             "# make sure variables created by exec are available globally\n"
             "exec = environmenttools.setExecEnvironment(globals())\n"
             "# get device handles from dict of input devices\n"
-            "ioServer = inputs['ioServer']\n"
-            "defaultKeyboard = inputs['defaultKeyboard']\n"
-            "eyetracker = inputs['eyetracker']\n"
+            "ioServer = deviceManager.ioServer\n"
+            "defaultKeyboard = deviceManager.getKeyboard('defaultKeyboard')\n"
+            "eyetracker = deviceManager.getEyetracker('eyetracker')\n"
             "# make sure we're running in the directory for this experiment\n"
             "os.chdir(_thisDir)\n"
-        )
-        script.writeIndentedLines(code)
-        # unpack filename
-        code = (
             "# get filename from ExperimentHandler for convenience\n"
             "filename = thisExp.dataFileName\n"
             "frameTolerance = 0.001  # how close to onset before 'same' frame\n"
@@ -313,7 +307,7 @@ class Flow(list):
         code = (
             "\n"
             "# mark experiment as finished\n"
-            "endExperiment(thisExp, win=win, inputs=inputs)\n"
+            "endExperiment(thisExp, win=win)\n"
         )
         script.writeIndentedLines(code)
 
