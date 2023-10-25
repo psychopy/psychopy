@@ -4841,7 +4841,7 @@ msgstr "键盘：检查并记录按键"
 msgid ""
 "A comma-separated list of keys (with quotes), such as "
 "'q','right','space','left'"
-msgstr "逗号隔开的按键（需输入引号），例：’q’,’right’,’space’,’left’"
+msgstr "逗号隔开的按键（需输入引号），例：'q','right','space','left'"
 
 #: ../experiment/components/keyboard/__init__.py:84
 msgid ""
