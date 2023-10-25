@@ -308,7 +308,7 @@ class DeviceManager:
         return _deviceMethods[deviceType]["available"]()
 
 
-class KeyboardPlugin(DeviceManager):
+class KeyboardPlugin:
     """
     Plugin class for DeviceManager, adding device methods for Keyboard devices via the DeviceMethod decorator.
     """
@@ -435,7 +435,7 @@ class KeyboardPlugin(DeviceManager):
         return st.getInstalledDevices('keyboard')
 
 
-class MousePlugin(DeviceManager):
+class MousePlugin:
     """
     Plugin class for DeviceManager, adding device methods for Mouse devices via the DeviceMethod decorator.
     """
@@ -543,7 +543,7 @@ class MousePlugin(DeviceManager):
         return st.getInstalledDevices('mouse')
 
 
-class SpeakerPlugin(DeviceManager):
+class SpeakerPlugin:
     """
     Plugin class for DeviceManager, adding device methods for audio playback devices via the DeviceMethod decorator.
     """
@@ -639,7 +639,7 @@ class SpeakerPlugin(DeviceManager):
         return st.getInstalledDevices('speaker')
 
 
-class MicrophonePlugin(DeviceManager):
+class MicrophonePlugin:
     """
     Plugin class for DeviceManager, adding device methods for audio recording devices via the DeviceMethod decorator.
     """
@@ -781,7 +781,7 @@ class MicrophonePlugin(DeviceManager):
         return st.getInstalledDevices('microphone')
 
 
-class CameraPlugin(DeviceManager):
+class CameraPlugin:
     """
     Plugin class for DeviceManager, adding device methods for video recording devices via the DeviceMethod decorator.
     """
@@ -881,7 +881,7 @@ class CameraPlugin(DeviceManager):
         return st.getInstalledDevices('camera')
 
 
-class SerialPlugin(DeviceManager):
+class SerialPlugin:
     """
     Plugin class for DeviceManager, adding device methods for serial port devices via the DeviceMethod decorator.
     """
@@ -1023,7 +1023,7 @@ class SerialPlugin(DeviceManager):
         return st.getInstalledDevices('serial')
 
 
-class EyetrackerPlugin(DeviceManager):
+class EyetrackerPlugin:
     """
     Plugin class for eyetracker objects, adding device methods for eyetracker devices via the DeviceMethod
     decorator.
