@@ -177,6 +177,78 @@ class BasePhotodiode:
             layout.Size(rect.size * 2, units="norm", win=win)
         )
 
+    def findThreshold(self, win):
+        # stash autodraw
+        win.stashAutoDraw()
+        # import visual here - if they're using this function, it's already in the stack
+        from psychopy import visual
+        # box to cover screen
+        bg = visual.Rect(
+            win,
+            size=(2, 2), pos=(0, 0), units="norm",
+            autoDraw=True
+        )
+        # make sure threshold 255 catches black
+        bg.fillColor = "black"
+        win.flip()
+        if self.getState():
+            raise PhotodiodeValidationError(
+                "Photodiode did not recognise a black screen even when its threshold was at maximum. This means either "
+                "the screen is too bright or the photodiode is too sensitive."
+            )
+        # make sure threshold 0 catches white
+        bg.fillColor = "white"
+        win.flip()
+        if self.getState():
+            raise PhotodiodeValidationError(
+                "Photodiode did not recognise a white screen even when its threshold was at minimum. This means either "
+                "the screen is too dark or the photodiode is not sensitive enough."
+            )
+
+        def _bisectThreshold(current):
+            """
+            Recursively narrow thresholds to approach an acceptable threshold
+            """
+            # log
+            logging.debug(
+                f"Trying threshold: {current}"
+            )
+            # make sure we don't recur past integer level
+            lastThreshold = self.getThreshold() or 0
+            if int(current * 2) == int(lastThreshold * 2):
+                raise RecursionError(
+                    "Could not find acceptable photodiode threshold, reached accuity limit before finding one."
+                )
+            # set threshold and clear responses
+            self.setThreshold(int(current))
+            self.getResponses(clear=True)
+            # try black
+            bg.fillColor = "black"
+            win.flip()
+            self.device.dispatchMessages()
+            # if state is still True, move threshold up and try again
+            if self.getState():
+                current = (255 - current) / 2
+                print(f"Threshold {current} was too low")
+                _bisectThreshold(current)
+            # try white
+            bg.fillColor = "white"
+            win.flip()
+            self.device.dispatchMessages()
+            # if state is still False, move threshold down and try again
+            if not self.getState():
+                current = current / 2
+                print(f"Threshold {current} was too high")
+                _bisectThreshold(current)
+
+            # once we get to here (account for recursion), we have a good threshold!
+            return int(current)
+
+        # bisect thresholds, starting at 127 (exact middle)
+        threshold = _bisectThreshold(127)
+        self.setThreshold(threshold)
+        return threshold
+
     def setThreshold(self, threshold):
         raise NotImplementedError()
 
