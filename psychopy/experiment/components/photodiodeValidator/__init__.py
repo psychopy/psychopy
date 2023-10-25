@@ -32,12 +32,13 @@ class PhotodiodeValidatorComponent(BaseComponent):
             # data
             saveValid=True,
     ):
-        self.type = 'PhotodiodeValidator'
+
         self.exp = exp  # so we can access the experiment if necess
         self.params = {}
         self.depends = []
         super(PhotodiodeValidatorComponent, self).__init__(exp, parentName, name=name)
         self.order += []
+        self.type = 'PhotodiodeValidator'
 
         exp.requireImport(
             importName="photodiode",
