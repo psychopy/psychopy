@@ -14,9 +14,9 @@ class PhotodiodeResponse:
 
 
 class BasePhotodiode:
-    def __init__(self, device):
-        # get serial device from port (if photodiode manages its own device, this needs to be handled by the subclass)
-        self.device = device
+    def __init__(self, parent):
+        # get serial parent from port (if photodiode manages its own parent, this needs to be handled by the subclass)
+        self.parent = parent
         # attribute in which to store current state
         self.state = False
         # list in which to store messages in chronological order
@@ -25,7 +25,7 @@ class BasePhotodiode:
         self.listeners = []
 
     def clearResponses(self):
-        self.device.dispatchMessages()
+        self.parent.dispatchMessages()
         self.responses = []
 
     def addListener(self, listener):
@@ -55,8 +55,8 @@ class BasePhotodiode:
         list[PhotodiodeResponse]
             List of matching responses.
         """
-        # make sure device dispatches messages
-        self.device.dispatchMessages()
+        # make sure parent dispatches messages
+        self.parent.dispatchMessages()
         # array to store matching responses
         matches = []
         # check messages in chronological order
@@ -154,8 +154,8 @@ class BasePhotodiode:
                 label.draw()
                 rect.draw()
                 win.flip()
-                # dispatch device messages
-                self.device.dispatchMessages()
+                # dispatch parent messages
+                self.parent.dispatchMessages()
                 # poll photodiode
                 if self.state:
                     # if it detected this rectangle, recur
@@ -225,7 +225,7 @@ class BasePhotodiode:
             # try black
             bg.fillColor = "black"
             win.flip()
-            self.device.dispatchMessages()
+            self.parent.dispatchMessages()
             # if state is still True, move threshold up and try again
             if self.getState():
                 current = (255 - current) / 2
@@ -234,7 +234,7 @@ class BasePhotodiode:
             # try white
             bg.fillColor = "white"
             win.flip()
-            self.device.dispatchMessages()
+            self.parent.dispatchMessages()
             # if state is still False, move threshold down and try again
             if not self.getState():
                 current = current / 2
@@ -253,15 +253,15 @@ class BasePhotodiode:
         raise NotImplementedError()
 
     def resetTimer(self, clock=logging.defaultClock):
-        return self.device.resetTimer(clock=clock)
+        return self.parent.resetTimer(clock=clock)
 
     def getThreshold(self):
         if hasattr(self, "_threshold"):
             return self._threshold
 
     def getState(self):
-        # dispatch messages from device
-        self.device.dispatchMessages()
+        # dispatch messages from parent
+        self.parent.dispatchMessages()
         # return state after update
         return self.state
 

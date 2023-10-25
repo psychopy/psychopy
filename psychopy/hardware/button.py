@@ -8,9 +8,9 @@ class ButtonResponse:
 
 
 class BaseButton:
-    def __init__(self, device):
+    def __init__(self, parent):
         # store reference to parent device (usually a button box)
-        self.device = device
+        self.parent = parent
         # attribute in which to store current state
         self.state = False
         # list in which to store messages in chronological order
@@ -19,7 +19,7 @@ class BaseButton:
         self.listeners = []
 
     def clearResponses(self):
-        self.device.dispatchMessages()
+        self.parent.dispatchMessages()
         self.responses = []
 
     def addListener(self, listener):
@@ -50,7 +50,7 @@ class BaseButton:
             List of matching responses.
         """
         # make sure device dispatches messages
-        self.device.dispatchMessages()
+        self.parent.dispatchMessages()
         # array to store matching responses
         matches = []
         # check messages in chronological order
@@ -81,7 +81,7 @@ class BaseButton:
 
     def getState(self):
         # dispatch messages from device
-        self.device.dispatchMessages()
+        self.parent.dispatchMessages()
         # return state after update
         return self.state
 
