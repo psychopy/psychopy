@@ -14,9 +14,9 @@ class PhotodiodeResponse:
 
 
 class BasePhotodiode:
-    def __init__(self, port):
+    def __init__(self, device):
         # get serial device from port (if photodiode manages its own device, this needs to be handled by the subclass)
-        self.device = sd.ports[port]
+        self.device = device
         # attribute in which to store current state
         self.state = False
         # list in which to store messages in chronological order
