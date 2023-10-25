@@ -305,12 +305,12 @@ class MicrophoneComponent(BaseComponent):
                 "setupTranscriber(\n"
                 "    '%(transcribeBackend)s'")
         
-        # handle advanced config options
-        if inits['transcribeBackend'].val == 'Whisper':
-            code += (
-                ",\n    config={'device': '%(transcribeWhisperDevice)s'})\n")
-        else:
-            code += (")\n")
+            # handle advanced config options
+            if inits['transcribeBackend'].val == 'Whisper':
+                code += (
+                    ",\n    config={'device': '%(transcribeWhisperDevice)s'})\n")
+            else:
+                code += (")\n")
 
         buff.writeOnceIndentedLines(code % inits)
 

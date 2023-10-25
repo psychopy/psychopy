@@ -115,7 +115,7 @@ class SettingsComponent:
                  filename=None, exportHTML='on Sync', endMessage=''):
         self.type = 'Settings'
         self.exp = exp  # so we can access the experiment if necess
-        self.exp.requirePsychopyLibs(['visual', 'gui'])
+        self.exp.requirePsychopyLibs(['visual', 'gui', 'hardware'])
         self.parentName = parentName
         self.url = "https://www.psychopy.org/builder/settings.html"
         self._monitor = None
@@ -829,9 +829,11 @@ class SettingsComponent:
 
         code = (
             "# --- Setup global variables (available in all functions) ---\n"
-            "# Ensure that relative paths start from the same directory as this script\n"
+            "# create a device manager to handle hardware (keyboards, mice, mirophones, speakers, etc.)\n"
+            "deviceManager = hardware.DeviceManager()\n"
+            "# ensure that relative paths start from the same directory as this script\n"
             "_thisDir = os.path.dirname(os.path.abspath(__file__))\n"
-            "# Store info about the experiment session\n"
+            "# store info about the experiment session\n"
             "psychopyVersion = '%(version)s'\n"
             "expName = %(expName)s  # from the Builder filename that created this script\n"
         )
@@ -1211,13 +1213,14 @@ class SettingsComponent:
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("\n")
 
-    def writeIohubCode(self, buff):
+    def writeDevicesCode(self, buff):
         # Open function def
         code = (
             '\n'
-            'def setupInputs(expInfo, thisExp, win):\n'
+            'def setupDevices(expInfo, thisExp, win):\n'
             '    """\n'
-            '    Setup whatever inputs are available (mouse, keyboard, eyetracker, etc.)\n'
+            '    Setup whatever devices are available (mouse, keyboard, speaker, eyetracker, etc.) and add them to \n'
+            '    the device manager (deviceManager)\n'
             '    \n'
             '    Parameters\n'
             '    ==========\n'
@@ -1230,8 +1233,8 @@ class SettingsComponent:
             '        Window in which to run this experiment.\n'
             '    Returns\n'
             '    ==========\n'
-            '    dict\n'
-            '        Dictionary of input devices by name.\n'
+            '    bool\n'
+            '        True if completed successfully.\n'
             '    """\n'
         )
         buff.writeIndentedLines(code)
@@ -1247,7 +1250,6 @@ class SettingsComponent:
         # Make ioConfig dict
         code = (
             "# --- Setup input devices ---\n"
-            "inputs = {}\n"
             "ioConfig = {}\n"
         )
         buff.writeIndentedLines(code % inits)
@@ -1511,38 +1513,38 @@ class SettingsComponent:
                     f"ioServer = io.launchHubServer(window=win, **ioConfig)\n"
                 )
             buff.writeIndentedLines(code % inits)
-            # Get eyetracker name
-            if self.params['eyetracker'] != "None":
-                code = (
-                    "eyetracker = ioServer.getDevice('tracker')\n"
-                )
-                buff.writeIndentedLines(code % inits)
-            else:
-                code = (
-                    "eyetracker = None\n"
-                )
-                buff.writeIndentedLines(code % inits)
         else:
             code = (
                 "ioSession = ioServer = eyetracker = None"
             )
             buff.writeIndentedLines(code % inits)
 
-        # Make default keyboard
+        # store ioServer
+        code = (
+            "# store ioServer object in the device manager\n"
+            "deviceManager.ioServer = ioServer\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        # add eyetracker to DeviceManager
+        if self.params['eyetracker'] != "None":
+            code = (
+                "deviceManager.addEyetracker(name='eyetracker')\n"
+            )
+            buff.writeIndentedLines(code % inits)
+        # make default keyboard
         code = (
             "\n"
             "# create a default keyboard (e.g. to check for escape)\n"
-            "defaultKeyboard = keyboard.Keyboard(backend=%(keyboardBackend)s)\n"
+            "if deviceManager.getKeyboard('defaultKeyboard') is None:\n"
+            "    deviceManager.addKeyboard(\n"
+            "        name='defaultKeyboard', backend=%(keyboardBackend)s\n"
+            "    )\n"
         )
         buff.writeIndentedLines(code % inits)
 
         code = (
-            "# return inputs dict\n"
-            "return {\n"
-            "    'ioServer': ioServer,\n"
-            "    'defaultKeyboard': defaultKeyboard,\n"
-            "    'eyetracker': eyetracker,\n"
-            "}\n"
+            "# return True if completed successfully\n"
+            "return True\n"
         )
         buff.writeIndentedLines(code)
         # Exit function def
@@ -1739,7 +1741,7 @@ class SettingsComponent:
     def writePauseCode(self, buff):
         # Open function def
         code = (
-            'def pauseExperiment(thisExp, inputs=None, win=None, timers=[], playbackComponents=[]):\n'
+            'def pauseExperiment(thisExp, win=None, timers=[], playbackComponents=[]):\n'
             '    """\n'
             '    Pause this experiment, preventing the flow from advancing to the next routine until resumed.\n'
             '    \n'
@@ -1748,8 +1750,6 @@ class SettingsComponent:
             '    thisExp : psychopy.data.ExperimentHandler\n'
             '        Handler object for this experiment, contains the data to save and information about \n'
             '        where to save it to.\n'
-            '    inputs : dict\n'
-            '        Dictionary of input devices by name.\n'
             '    win : psychopy.visual.Window\n'
             '        Window for this experiment.\n'
             '    timers : list, tuple\n'
@@ -1772,26 +1772,28 @@ class SettingsComponent:
             "    comp.pause()\n"
             "# prevent components from auto-drawing\n"
             "win.stashAutoDraw()\n"
+            "# make sure we have a keyboard\n"
+            "defaultKeyboard = deviceManager.getKeyboard('defaultKeyboard')\n"
+            "if defaultKeyboard is None:\n"
+            "    defaultKeyboard = deviceManager.addKeyboard(\n"
+            "        name='defaultKeyboard',\n"
+            "        backend=%(keyboardBackend)s,\n"
+            "    )\n"
             "# run a while loop while we wait to unpause\n"
             "while thisExp.status == PAUSED:\n"
         )
         if self.params['Enable Escape'].val:
             code += (
-            "    # make sure we have a keyboard\n"
-            "    if inputs is None:\n"
-            "        inputs = {\n"
-            "            'defaultKeyboard': keyboard.Keyboard(backend=%(keyboardBackend)s)\n"
-            "        }\n"
             "    # check for quit (typically the Esc key)\n"
-            "    if inputs['defaultKeyboard'].getKeys(keyList=['escape']):\n"
-            "        endExperiment(thisExp, win=win, inputs=inputs)\n"
+            "    if defaultKeyboard.getKeys(keyList=['escape']):\n"
+            "        endExperiment(thisExp, win=win)\n"
             )
         code += (
             "    # flip the screen\n"
             "    win.flip()\n"
             "# if stop was requested while paused, quit\n"
             "if thisExp.status == FINISHED:\n"
-            "    endExperiment(thisExp, inputs=inputs, win=win)\n"
+            "    endExperiment(thisExp, win=win)\n"
             "# resume any playback components\n"
             "for comp in playbackComponents:\n"
             "    comp.play()\n"
@@ -1813,7 +1815,7 @@ class SettingsComponent:
         # Open function def
         code = (
             '\n'
-            'def endExperiment(thisExp, inputs=None, win=None):\n'
+            'def endExperiment(thisExp, win=None):\n'
             '    """\n'
             '    End this experiment, performing final shut down operations.\n'
             '    \n'
@@ -1824,8 +1826,6 @@ class SettingsComponent:
             '    thisExp : psychopy.data.ExperimentHandler\n'
             '        Handler object for this experiment, contains the data to save and information about \n'
             '        where to save it to.\n'
-            '    inputs : dict\n'
-            '        Dictionary of input devices by name.\n'
             '    win : psychopy.visual.Window\n'
             '        Window for this experiment.\n'
             '    """\n'
@@ -1843,9 +1843,8 @@ class SettingsComponent:
             "# mark experiment handler as finished\n"
             "thisExp.status = FINISHED\n"
             "# shut down eyetracker, if there is one\n"
-            "if inputs is not None:\n"
-            "    if 'eyetracker' in inputs and inputs['eyetracker'] is not None:\n"
-            "        inputs['eyetracker'].setConnectionState(False)\n"
+            "if deviceManager.getEyetracker('eyetracker') is not None:\n"
+            "    deviceManager.removeEyetracker('eyetracker')\n"
         )
         if self.params['Save log file'].val:
             code += (
@@ -1859,7 +1858,7 @@ class SettingsComponent:
         # Open function def
         code = (
             '\n'
-            'def quit(thisExp, win=None, inputs=None, thisSession=None):\n'
+            'def quit(thisExp, win=None, thisSession=None):\n'
             '    """\n'
             '    Fully quit, closing the window and ending the Python process.\n'
             '    \n'
@@ -1867,8 +1866,6 @@ class SettingsComponent:
             '    ==========\n'
             '    win : psychopy.visual.Window\n'
             '        Window to close.\n'
-            '    inputs : dict\n'
-            '        Dictionary of input devices by name.\n'
             '    thisSession : psychopy.session.Session or None\n'
             '        Handle of the Session object this experiment is being run from, if any.\n'
             '    """\n'
@@ -1884,9 +1881,9 @@ class SettingsComponent:
             "    # and win.timeOnFlip() tasks get executed before quitting\n"
             "    win.flip()\n"
             "    win.close()\n"
-            "if inputs is not None:\n"
-            "    if 'eyetracker' in inputs and inputs['eyetracker'] is not None:\n"
-            "        inputs['eyetracker'].setConnectionState(False)\n"
+            "# shut down eyetracker, if there is one\n"
+            "if deviceManager.getEyetracker('eyetracker') is not None:\n"
+            "    deviceManager.removeEyetracker('eyetracker')\n"
         )
         if self.params['Save log file'].val:
             code += (
