@@ -1,3 +1,5 @@
+import json
+
 from psychopy import layout, logging
 from psychopy.tools.attributetools import attributeSetter
 
@@ -10,6 +12,19 @@ class PhotodiodeResponse:
 
     def __repr__(self):
         return f"<PhotodiodeResponse: t={self.t}, value={self.value}, threshold={self.threshold}>"
+
+    def getJSON(self):
+        message = {
+            'type': "hardware_response",
+            'class': "PhotodiodeResponse",
+            'data': {
+                't': self.t,
+                'value': self.value,
+                'threshold': self.threshold
+            }
+        }
+
+        return json.dumps(message)
 
 
 class BasePhotodiode:

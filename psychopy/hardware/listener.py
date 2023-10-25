@@ -76,3 +76,39 @@ class LoggingListener(BaseListener):
         # append
         self.responses.append(message)
         self.file.logger.log(message, level=self.level)
+
+
+class LiaisonListener(BaseListener):
+    """
+    Listener which sends any messages to a Liaison server.
+
+    Parameters
+    ----------
+    liaison : psychopy.liaison.WebSocketServer
+        Liaison server to send messages to
+    level : int
+        Logging level to log messages as, can be one of the constants from psychopy.logging. Default is logging.DEBUG.
+    """
+    def __init__(self, liaison):
+        # init base class
+        BaseListener.__init__(self)
+        # store reference to liaison
+        self.liaison = liaison
+
+    def receiveMessage(self, message):
+        """
+        On receiving message, send it to Liaison.
+        """
+        # append
+        self.responses.append(message)
+        # stringify message
+        if hasattr(message, "getJSON"):
+            message = message.getJSON()
+        else:
+            message = {
+                'type': "hardware_response",
+                'class': "Unknown",
+                'data': str(message)
+            }
+        # send
+        self.liaison.broadcast(message)

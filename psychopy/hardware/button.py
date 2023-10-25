@@ -1,3 +1,6 @@
+import json
+
+
 class ButtonResponse:
     def __init__(self, t, value):
         self.t = t
@@ -5,6 +8,18 @@ class ButtonResponse:
 
     def __repr__(self):
         return f"<ButtonResponse: t={self.t}, value={self.value}>"
+
+    def getJSON(self):
+        message = {
+            'type': "hardware_response",
+            'class': "PhotodiodeResponse",
+            'data': {
+                't': self.t,
+                'value': self.value,
+            }
+        }
+
+        return json.dumps(message)
 
 
 class BaseButton:
