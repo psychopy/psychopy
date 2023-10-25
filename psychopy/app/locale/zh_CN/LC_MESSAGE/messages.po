@@ -3321,7 +3321,7 @@ msgstr "PsychoPy 首选项"
 
 #: ../app/preferencesDlg.py:657
 msgid "system locale"
-msgstr "系统定位"
+msgstr "系统区域"
 
 #: ../app/preferencesDlg.py:835
 #, python-format
