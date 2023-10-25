@@ -28,6 +28,8 @@ from psychopy import logging
 import atexit
 
 
+# reference devices
+_devices = {}
 # reference methods by device (e.g. keyboard) and method (e.g. add)
 _deviceMethods = {}
 
@@ -59,6 +61,9 @@ class DeviceMethod:
         # if device has no mapped methods yet, make dict
         if self.deviceType not in _deviceMethods:
             _deviceMethods[self.deviceType] = {}
+        # make sure device has key in _devices dict
+        if self.deviceType not in _devices:
+            _devices[self.deviceType] = {}
         # map function to key (if action is specified)
         if self.action is not None:
             _deviceMethods[self.deviceType][self.action] = fcn
@@ -66,27 +71,48 @@ class DeviceMethod:
         return fcn
 
 
-class DeviceMixin:
-    """Class for adding device management methods to a class.
+class DeviceManager:
+    """Class for managing hardware devices.
+
+    An instance of this class is used to manage various hardware peripherals 
+    used by PsychoPy. It can be used to access devices such as microphones, 
+    button boxes, and cameras though a common interface. It can also be used to 
+    get information about available devices installed on the system, such as 
+    their settings and capabilities prior to initializing them.
+    
+    It is recommended that devices are initialized through the device manager
+    rather than directly. The device manager is responsible for keeping track
+    of devices and ensuring that they are properly closed when the program
+    exits. 
+
+    This class is implemented as a singleton, so there is only one
+    instance of it per ssession after its initialized. The instance can be 
+    accessed through the global variable `deviceManager` or by calling 
+    `getDeviceManager()`.
+
+    DeviceManager can be extended by use of the `@DeviceMethod` decorator. Any
+    class method with this decorator is added to DeviceManager on import, allowing
+    DeviceManager to gain device management methods from plugins.
+
     """
+    _instance = None  # singleton instance
+    _deviceMethods = _deviceMethods  # reference methods by device and action
+    ioServer = None  # reference to currently running ioHub ioServer object
+    _devices = _devices
+
+    def __new__(cls, liaison=None):
+        # when making a new DeviceManager, if an instance already exists, just return it
+        # this means that all DeviceManager handles are the same object
+        if cls._instance is None:
+            cls._instance = super(DeviceManager, cls).__new__(cls)
+        # store/update ref to liaison
+        if liaison is not None or not hasattr(cls._instance, "liaison"):
+            cls._instance.liaison = liaison
+
+        return cls._instance
+
+    # --- utility ---
     def makeUniqueName(self, deviceType):
-        """Generate a unique name for a device.
-
-        This is used to generate a unique name for a device when one is not
-        specified. It is used by the `addDevice` method to generate a unique
-        name for the device.
-
-        Parameters
-        ----------
-        deviceType : str
-            Type of device (e.g. keyboard, microphone, etc.).
-
-        Returns
-        -------
-        str
-            Unique name for the device.
-
-        """
         i = 0
         name = deviceType + str(i)
         while not self.checkDeviceNameAvailable(name):
@@ -111,9 +137,8 @@ class DeviceMixin:
             device.
 
         """
-        mgr = getDeviceManager()
-        for devClass in mgr._devices:
-            if name in mgr._devices[devClass]:
+        for devClass in DeviceManager._devices:
+            if name in DeviceManager._devices[devClass]:
                 return False
 
         return True
@@ -136,7 +161,7 @@ class DeviceMixin:
 
         """
         # check if there are any keys in the dictionaries inside of
-        # `self._devices` that match the name
+        # `DeviceManager._devices` that match the name
         if not self.checkDeviceNameAvailable(name):
             raise ValueError(
                 f"Device name '{name}' is already in use by another "
@@ -199,12 +224,40 @@ class DeviceManager(DeviceMixin):
 
         """
         ports = {}
-        for devClass in self._devices:
-            for devName, devObj in self._devices[devClass].items():
+        for devClass in DeviceManager._devices:
+            for devName, devObj in DeviceManager._devices[devClass].items():
                 if hasattr(devObj, 'portString'):
                     ports.setdefault(devObj.portString, []).append(devName)
 
         return ports
+
+    def addListener(self, deviceName, listener):
+        """
+        Add a listener to a managed device.
+
+        Parameters
+        ----------
+        deviceName : str
+            Name of the device to add a listener to
+        listener : str or psychopy.hardware.listener.BaseListener
+            Either a Listener object, or use one of the following strings to create one:
+            - "liaison": Create a LiaisonListener with self.liaison as the server
+            - "print": Create a PrintListener with default settings
+            - "log": Create a LoggingListener with default settings
+        """
+        from psychopy.hardware import listener as lsnr
+        # get device
+        device = self.getDevice(deviceName)
+        # make listener if needed
+        if not isinstance(listener, lsnr.BaseListener):
+            if listener == "liaison":
+                listener = lsnr.LiaisonListener(self.liaison)
+            if listener == "print":
+                listener = lsnr.PrintListener()
+            if listener == "log":
+                listener = lsnr.LoggingListener()
+        # add listener to device
+        device.addListener(listener)
 
     def closeAll(self):
         """Close all devices.
@@ -216,9 +269,9 @@ class DeviceManager(DeviceMixin):
         The device manager will be reset after this method is called.
 
         """
-        devClasses = list(self._devices.keys())
+        devClasses = list(DeviceManager._devices.keys())
         for devClass in devClasses:
-            for devName, devObj in self._devices[devClass].items():
+            for devName, devObj in DeviceManager._devices[devClass].items():
                 if hasattr(devObj, 'close'):
                     try:
                         devObj.close()
@@ -229,7 +282,7 @@ class DeviceManager(DeviceMixin):
                     logging.error(
                         f"Device {devName} does not have a `close()` method!")
 
-            self._devices[devClass].clear()
+            DeviceManager._devices[devClass].clear()
 
     # --- generic device management ---
 
@@ -274,8 +327,8 @@ class DeviceManager(DeviceMixin):
         """
         # search all types
         deviceType = None
-        for devClass in self._devices:
-            if name in self._devices[devClass]:
+        for devClass in DeviceManager._devices:
+            if name in DeviceManager._devices[devClass]:
                 deviceType = devClass
                 break
 
@@ -284,7 +337,7 @@ class DeviceManager(DeviceMixin):
             _deviceMethods[deviceType]["remove"](self, name=name)
         else:
             # otherwise just delete the handle
-            del self._devices[deviceType][name]
+            del DeviceManager._devices[deviceType][name]
 
     def getDevice(self, name):
         """
@@ -302,8 +355,8 @@ class DeviceManager(DeviceMixin):
         """
         # search all types
         deviceType = None
-        for devClass in self._devices:
-            if name in self._devices[devClass]:
+        for devClass in DeviceManager._devices:
+            if name in DeviceManager._devices[devClass]:
                 deviceType = devClass
                 break
 
@@ -312,7 +365,7 @@ class DeviceManager(DeviceMixin):
             return _deviceMethods[deviceType]["get"](self, name=name)
         else:
             # otherwise just return from dict
-            return self._devices[deviceType].get(name, None)
+            return DeviceManager._devices[deviceType].get(name, None)
 
     def getDevices(self, deviceType="*"):
         """
@@ -326,7 +379,7 @@ class DeviceManager(DeviceMixin):
             device type
         """
         if deviceType == "*":
-            return self._devices
+            return DeviceManager._devices
         return _deviceMethods[deviceType]["getall"](self)
 
     def getAvailableDevices(self, deviceType="*"):
@@ -344,7 +397,7 @@ class DeviceManager(DeviceMixin):
         return _deviceMethods[deviceType]["available"]()
 
 
-class KeyboardPlugin(DeviceManager):
+class KeyboardManagerPlugin:
     """
     Plugin class for DeviceManager, adding device methods for Keyboard devices 
     via the DeviceMethod decorator.
@@ -399,25 +452,21 @@ class KeyboardPlugin(DeviceManager):
         self._assertDeviceNameUnique(name)
 
         # check if the device id is alread in use
-        for kb in self._devices['keyboard'].values():
+        for kb in DeviceManager._devices['keyboard'].values():
             if kb.isSameDevice(device):
                 device = kb
 
         from psychopy.hardware import keyboard
         if isinstance(device, keyboard.KeyboardDevice):
             # if device is already initialised as a KeyboardDevice, store handle
-            self._devices['keyboard'][name] = device
+            DeviceManager._devices['keyboard'][name] = device
         else:
             # if device isn't initialised, initialise it
-            self._devices['keyboard'][name] = keyboard.KeyboardDevice(
-                device=device, 
-                bufferSize=bufferSize, 
-                waitForStart=waitForStart, 
-                clock=clock, 
-                backend=backend
+            DeviceManager._devices['keyboard'][name] = keyboard.KeyboardDevice(
+                device=device, bufferSize=bufferSize, waitForStart=waitForStart, clock=clock, backend=backend
             )
 
-        return self._devices['keyboard'][name]
+        return DeviceManager._devices['keyboard'][name]
 
     @DeviceMethod("keyboard", "remove")
     def removeKeyboard(self, name):
@@ -429,7 +478,7 @@ class KeyboardPlugin(DeviceManager):
         name : str
             Name of the keyboard.
         """
-        del self._devices['keyboard'][name]
+        del DeviceManager._devices['keyboard'][name]
 
     @DeviceMethod("keyboard", "get")
     def getKeyboard(self, name):
@@ -446,7 +495,7 @@ class KeyboardPlugin(DeviceManager):
         BaseDevice
             The requested keyboard
         """
-        return self._devices['keyboard'].get(name, None)
+        return DeviceManager._devices['keyboard'].get(name, None)
 
     @DeviceMethod("keyboard", "getall")
     def getKeyboards(self):
@@ -461,7 +510,7 @@ class KeyboardPlugin(DeviceManager):
             objects.
 
         """
-        return self._devices['keyboard']
+        return DeviceManager._devices['keyboard']
 
     @DeviceMethod("keyboard", "available")
     def getAvailableKeyboards(self):
@@ -478,7 +527,7 @@ class KeyboardPlugin(DeviceManager):
         return st.getInstalledDevices('keyboard')
 
 
-class MousePlugin(DeviceManager):
+class MouseManagerPlugin:
     """
     Plugin class for DeviceManager, adding device methods for Mouse devices via 
     the DeviceMethod decorator.
@@ -524,7 +573,7 @@ class MousePlugin(DeviceManager):
         self._assertDeviceNameUnique(name)
 
         from psychopy.hardware import mouse
-        toReturn = self._devices['mouse'][name] = mouse.Mouse()
+        toReturn = DeviceManager._devices['mouse'][name] = mouse.Mouse()
 
         return toReturn
 
@@ -538,7 +587,7 @@ class MousePlugin(DeviceManager):
         name : str
             Name of the mouse.
         """
-        del self._devices['mouse'][name]
+        del DeviceManager._devices['mouse'][name]
 
     @DeviceMethod("mouse", "get")
     def getMouse(self, name):
@@ -555,7 +604,7 @@ class MousePlugin(DeviceManager):
         BaseDevice
             The requested mouse
         """
-        return self._devices['mouse'].get(name, None)
+        return DeviceManager._devices['mouse'].get(name, None)
 
     @DeviceMethod("mouse", "getall")
     def getMice(self):
@@ -570,7 +619,7 @@ class MousePlugin(DeviceManager):
             objects.
 
         """
-        return self._devices['mouse']
+        return DeviceManager._devices['mouse']
 
     @DeviceMethod("mouse", "available")
     def getAvailableMice(self):
@@ -587,7 +636,7 @@ class MousePlugin(DeviceManager):
         return st.getInstalledDevices('mouse')
 
 
-class SpeakerPlugin(DeviceManager):
+class SpeakerManagerPlugin:
     """
     Plugin class for DeviceManager, adding device methods for audio playback 
     devices via the DeviceMethod decorator.
@@ -640,7 +689,7 @@ class SpeakerPlugin(DeviceManager):
         name : str
             Name of the speaker.
         """
-        del self._devices['speaker'][name]
+        del DeviceManager._devices['speaker'][name]
 
     @DeviceMethod("speaker", "get")
     def getSpeaker(self, name):
@@ -657,7 +706,7 @@ class SpeakerPlugin(DeviceManager):
         BaseDevice
             The requested speaker
         """
-        return self._devices['speaker'].get(name, None)
+        return DeviceManager._devices['speaker'].get(name, None)
 
     @DeviceMethod("speaker", "getall")
     def getSpeakers(self):
@@ -672,7 +721,7 @@ class SpeakerPlugin(DeviceManager):
             device objects.
 
         """
-        return self._devices['speaker']
+        return DeviceManager._devices['speaker']
 
     @DeviceMethod("speaker", "available")
     def getAvailableSpeakers(self):
@@ -689,7 +738,7 @@ class SpeakerPlugin(DeviceManager):
         return st.getInstalledDevices('speaker')
 
 
-class MicrophonePlugin(DeviceManager):
+class MicrophoneManagerPlugin:
     """
     Plugin class for DeviceManager, adding device methods for audio recording 
     devices via the DeviceMethod decorator.
@@ -757,7 +806,7 @@ class MicrophonePlugin(DeviceManager):
         import psychopy.sound.microphone as microphone
 
         # check if we already have a microphone with the same device
-        for mic in self._devices['microphone']:
+        for mic in DeviceManager._devices['microphone']:
             if mic.device == device:
                 raise ValueError(
                     f"Microphone device {device} is already in use by {mic.name}")
@@ -765,7 +814,7 @@ class MicrophonePlugin(DeviceManager):
         dev = microphone.MicrophoneDevice(
             device=device, sampleRateHz=sampleRate, channels=channels
         )
-        toReturn = self._devices['microphone'][name] = dev
+        toReturn = DeviceManager._devices['microphone'][name] = dev
 
         return dev
 
@@ -782,8 +831,8 @@ class MicrophonePlugin(DeviceManager):
         """
         self._assertDeviceNameUnique(name)
 
-        self._devices['microphone'][name].close()
-        del self._devices['microphone'][name]
+        DeviceManager._devices['microphone'][name].close()
+        del DeviceManager._devices['microphone'][name]
 
     @DeviceMethod("microphone", "get")
     def getMicrophone(self, name):
@@ -799,7 +848,7 @@ class MicrophonePlugin(DeviceManager):
         Microphone or `None`
             Microphone object or `None` if no device with the given name exists.
         """
-        return self._devices['microphone'].get(name, None)
+        return DeviceManager._devices['microphone'].get(name, None)
 
     @DeviceMethod("microphone", "getall")
     def getMicrophones(self):
@@ -814,7 +863,7 @@ class MicrophonePlugin(DeviceManager):
             device objects.
 
         """
-        return self._devices['microphone']
+        return DeviceManager._devices['microphone']
 
     @DeviceMethod("microphone", "available")
     def getAvailableMicrophones(self):
@@ -832,7 +881,7 @@ class MicrophonePlugin(DeviceManager):
         return st.getInstalledDevices('microphone')
 
 
-class CameraPlugin(DeviceManager):
+class CameraManagerPlugin:
     """
     Plugin class for DeviceManager, adding device methods for video recording 
     devices via the DeviceMethod decorator.
@@ -864,14 +913,14 @@ class CameraPlugin(DeviceManager):
         self._assertDeviceNameUnique(name)
 
         # check if the device is already in use
-        for cam in self._devices['camera']:
+        for cam in DeviceManager._devices['camera']:
             if cam.device == device:
                 raise ValueError(
                     f"Camera device {device} is already in use by {cam.name}")
 
         import psychopy.hardware.camera as camera
         dev = camera.Camera(device=device, cameraLib=backend)
-        toReturn = self._devices['camera'][name] = dev
+        toReturn = DeviceManager._devices['camera'][name] = dev
 
         return dev
 
@@ -885,7 +934,7 @@ class CameraPlugin(DeviceManager):
         name : str
             Name of the camera.
         """
-        del self._devices['camera'][name]
+        del DeviceManager._devices['camera'][name]
 
     @DeviceMethod("camera", "get")
     def getCamera(self, name):
@@ -902,7 +951,7 @@ class CameraPlugin(DeviceManager):
         BaseDevice
             The requested camera
         """
-        return self._devices['camera'].get(name, None)
+        return DeviceManager._devices['camera'].get(name, None)
 
     @DeviceMethod("camera", "getall")
     def getCameras(self):
@@ -916,7 +965,7 @@ class CameraPlugin(DeviceManager):
             the names of the cameras and the values are the camera objects.
 
         """
-        return self._devices['camera']
+        return DeviceManager._devices['camera']
 
     @DeviceMethod("camera", "available")
     def getAvailableCameras(self):
@@ -933,7 +982,7 @@ class CameraPlugin(DeviceManager):
         return st.getInstalledDevices('camera')
 
 
-class SerialPlugin(DeviceManager):
+class SerialManagerPlugin:
     """
     Plugin class for DeviceManager, adding device methods for serial port 
     devices via the DeviceMethod decorator.
@@ -976,19 +1025,19 @@ class SerialPlugin(DeviceManager):
             name = self.makeUniqueName(deviceType="serial")
         self._assertDeviceNameUnique(name)
 
-        if name in self._devices['serial'].keys():
+        if name in DeviceManager._devices['serial'].keys():
             raise ValueError(f"Serial device {name} already exists")
 
         import psychopy.hardware.serialdevice as serialdevice
 
         # check if we have a serial device with the same port
-        for dev in self._devices['serial']:
+        for dev in DeviceManager._devices['serial']:
             if dev.port == port:
                 raise ValueError(
                     f"Serial port {port} is already in use by {dev.name}")
 
         # open up a port and add it to the device manager
-        toReturn = self._devices['serial'][name] = serialdevice.SerialDevice(
+        toReturn = DeviceManager._devices['serial'][name] = serialdevice.SerialDevice(
             port=port, baudrate=baudrate,
             byteSize=byteSize, stopBits=stopBits,
             parity=parity
@@ -1009,17 +1058,17 @@ class SerialPlugin(DeviceManager):
 
         """
         # if name isn't present, try to match port
-        if name not in self._devices['serial']:
-            for dev in self._devices['serial']:
+        if name not in DeviceManager._devices['serial']:
+            for dev in DeviceManager._devices['serial']:
                 if dev.port == name:
                     name = dev.name
                     break
         # error if there's still no name
-        if name not in self._devices['serial'].keys():
+        if name not in DeviceManager._devices['serial'].keys():
             raise ValueError(f"Serial device {name} does not exist")
         # close and delete device
-        self._devices['serial'][name].close()
-        del self._devices['serial'][name]
+        DeviceManager._devices['serial'][name].close()
+        del DeviceManager._devices['serial'][name]
 
     @DeviceMethod("serial", "get")
     def getSerialDevice(self, name):
@@ -1037,10 +1086,10 @@ class SerialPlugin(DeviceManager):
             name or port exists.
 
         """
-        if name in self._devices['serial']:
-            return self._devices['serial'][name]
+        if name in DeviceManager._devices['serial']:
+            return DeviceManager._devices['serial'][name]
         else:
-            for dev in self._devices['serial']:
+            for dev in DeviceManager._devices['serial']:
                 if dev.port == name:
                     return dev
 
@@ -1059,7 +1108,7 @@ class SerialPlugin(DeviceManager):
             serialDevice objects.
 
         """
-        return self._devices['serialDevice']
+        return DeviceManager._devices['serialDevice']
 
     @DeviceMethod("serial", "available")
     def getAvailableSerialDevices(self):
@@ -1076,7 +1125,7 @@ class SerialPlugin(DeviceManager):
         return st.getInstalledDevices('serial')
 
 
-class EyetrackerPlugin(DeviceManager):
+class EyetrackerManagerPlugin:
     """
     Plugin class for eyetracker objects, adding device methods for eyetracker 
     devices via the DeviceMethod decorator.
@@ -1110,13 +1159,12 @@ class EyetrackerPlugin(DeviceManager):
                 "current process. Please start an ioServer before adding an "
                 "eyetracker."
             )
-        # only one eyetracker can be active and it will already have been set up
-        # by ioHub, so just get it
-        self._devices['eyetracker'][name] = self.ioServer.getDevice('tracker')
+        # only one eyetracker can be active and it will already have been set up by ioHub, so just get it
+        DeviceManager._devices['eyetracker'][name] = self.ioServer.getDevice('tracker')
         # activate eyetracker
-        self._devices['eyetracker'][name].setConnectionState(True)
+        DeviceManager._devices['eyetracker'][name].setConnectionState(True)
 
-        return self._devices['eyetracker'][name]
+        return DeviceManager._devices['eyetracker'][name]
 
     @DeviceMethod("eyetracker", "remove")
     def removeEyetracker(self, name):
@@ -1128,8 +1176,8 @@ class EyetrackerPlugin(DeviceManager):
         name : str
             Name of the eyetracker.
         """
-        self._devices['eyetracker'][name].setConnectionState(False)
-        del self._devices['eyetracker'][name]
+        DeviceManager._devices['eyetracker'][name].setConnectionState(False)
+        del DeviceManager._devices['eyetracker'][name]
 
     @DeviceMethod("eyetracker", "get")
     def getEyetracker(self, name):
@@ -1146,7 +1194,7 @@ class EyetrackerPlugin(DeviceManager):
         BaseDevice
             The requested eyetracker
         """
-        return self._devices['eyetracker'].get(name, None)
+        return DeviceManager._devices['eyetracker'].get(name, None)
 
     @DeviceMethod("eyetracker", "getall")
     def getEyetrackers(self):
@@ -1161,7 +1209,7 @@ class EyetrackerPlugin(DeviceManager):
             objects.
 
         """
-        return self._devices['eyetracker']
+        return DeviceManager._devices['eyetracker']
 
     @DeviceMethod("eyetracker", "available")
     def getAvailableEyetrackers(self):
