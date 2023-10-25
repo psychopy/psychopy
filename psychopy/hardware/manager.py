@@ -93,11 +93,14 @@ class DeviceManager:
     ioServer = None  # reference to currently running ioHub ioServer object
     _devices = _devices
 
-    def __new__(cls):
+    def __new__(cls, liaison=None):
         # when making a new DeviceManager, if an instance already exists, just return it
         # this means that all DeviceManager handles are the same object
         if cls._instance is None:
             cls._instance = super(DeviceManager, cls).__new__(cls)
+        # store/update ref to liaison
+        if liaison is not None or not hasattr(cls._instance, "liaison"):
+            cls._instance.liaison = liaison
 
         return cls._instance
 
@@ -178,6 +181,34 @@ class DeviceManager:
                     ports.setdefault(devObj.portString, []).append(devName)
 
         return ports
+
+    def addListener(self, deviceName, listener):
+        """
+        Add a listener to a managed device.
+
+        Parameters
+        ----------
+        deviceName : str
+            Name of the device to add a listener to
+        listener : str or psychopy.hardware.listener.BaseListener
+            Either a Listener object, or use one of the following strings to create one:
+            - "liaison": Create a LiaisonListener with self.liaison as the server
+            - "print": Create a PrintListener with default settings
+            - "log": Create a LoggingListener with default settings
+        """
+        from psychopy.hardware import listener as lsnr
+        # get device
+        device = self.getDevice(deviceName)
+        # make listener if needed
+        if not isinstance(listener, lsnr.BaseListener):
+            if listener == "liaison":
+                listener = lsnr.LiaisonListener(self.liaison)
+            if listener == "print":
+                listener = lsnr.PrintListener()
+            if listener == "log":
+                listener = lsnr.LoggingListener()
+        # add listener to device
+        device.addListener(listener)
 
     def closeAll(self):
         """Close all devices.
