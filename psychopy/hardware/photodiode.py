@@ -1,5 +1,4 @@
 from psychopy import layout, logging
-from psychopy.hardware import serialdevice as sd
 from psychopy.tools.attributetools import attributeSetter
 
 
@@ -100,8 +99,6 @@ class BasePhotodiode:
         """
         # stash autodraw
         win.stashAutoDraw()
-        # calibrate photodiode to midgrey
-        self.setThreshold(127)
         # import visual here - if they're using this function, it's already in the stack
         from psychopy import visual
         # black box to cover screen
@@ -199,7 +196,7 @@ class BasePhotodiode:
         # make sure threshold 0 catches white
         bg.fillColor = "white"
         win.flip()
-        if self.getState():
+        if not self.getState():
             raise PhotodiodeValidationError(
                 "Photodiode did not recognise a white screen even when its threshold was at minimum. This means either "
                 "the screen is too dark or the photodiode is not sensitive enough."
@@ -221,24 +218,19 @@ class BasePhotodiode:
                 )
             # set threshold and clear responses
             self.setThreshold(int(current))
-            self.getResponses(clear=True)
             # try black
             bg.fillColor = "black"
             win.flip()
-            self.parent.dispatchMessages()
             # if state is still True, move threshold up and try again
             if self.getState():
-                current = (255 - current) / 2
-                print(f"Threshold {current} was too low")
+                current = (current + 0) / 2
                 _bisectThreshold(current)
             # try white
             bg.fillColor = "white"
             win.flip()
-            self.parent.dispatchMessages()
             # if state is still False, move threshold down and try again
             if not self.getState():
-                current = current / 2
-                print(f"Threshold {current} was too high")
+                current = (current + 255) / 2
                 _bisectThreshold(current)
 
             # once we get to here (account for recursion), we have a good threshold!
