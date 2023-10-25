@@ -588,6 +588,9 @@ class Window():
         self._toDrawDepths = []
         self._eventDispatchers = []
 
+        # dict of stimulus:validator pairs
+        self.validators = {}
+
         self.lastFrameT = core.getTime()
         self.waitBlanking = waitBlanking
 
@@ -1160,9 +1163,12 @@ class Window():
 
         if self._toDraw:
             for thisStim in self._toDraw:
-                # Draw
+                # draw
                 thisStim.draw()
-                # Handle dragging
+                # draw validation rect if needed
+                if thisStim in self.validators:
+                    self.validators[thisStim].draw()
+                # handle dragging
                 if getattr(thisStim, "draggable", False):
                     thisStim.doDragging()
         else:

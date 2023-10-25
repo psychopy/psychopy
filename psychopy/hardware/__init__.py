@@ -5,7 +5,7 @@ import sys
 import glob
 from itertools import chain
 from psychopy import logging
-from . import eyetracker
+from . import eyetracker, listener
 from .manager import DeviceManager, deviceManager
 
 try:
@@ -23,6 +23,7 @@ __all__ = [
     'iolab',
     'eyetracker',
     'deviceManager',
+    'listener'
 ]
 
 
