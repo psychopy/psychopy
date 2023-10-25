@@ -173,7 +173,8 @@ class PhotodiodeValidatorComponent(BaseComponent):
         if self.params['backend'] == "bbtk-tpad":
             code = (
                 "# diode object for %(name)s\n"
-                "%(name)sDiode = tpad.TPadPhotodiode(port=%(port)s, number=%(number)s)\n"
+                "%(name)sTPad = tpad.TPad(port=%(port)s)\n"
+                "%(name)sDiode = %(name)sTPad.photodiodes[%(number)s]\n"
             )
             buff.writeIndentedLines(code % self.params)
         else:
