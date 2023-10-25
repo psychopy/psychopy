@@ -12,7 +12,14 @@ __all__ = [
     'deviceManager', 
     'getDeviceManager', 
     'DeviceManager',
-    'closeAllDevices'
+    'closeAllDevices',
+    'KeyboardPlugin',
+    'MousePlugin',
+    'SpeakerPlugin',
+    'MicrophonePlugin',
+    'CameraPlugin',
+    'SerialPlugin',
+    'DeviceMethod'
 ]
 
 from psychopy.tools import systemtools as st
@@ -59,7 +66,84 @@ class DeviceMethod:
         return fcn
 
 
-class DeviceManager:
+class DeviceMixin:
+    """Class for adding device management methods to a class.
+    """
+    def makeUniqueName(self, deviceType):
+        """Generate a unique name for a device.
+
+        This is used to generate a unique name for a device when one is not
+        specified. It is used by the `addDevice` method to generate a unique
+        name for the device.
+
+        Parameters
+        ----------
+        deviceType : str
+            Type of device (e.g. keyboard, microphone, etc.).
+
+        Returns
+        -------
+        str
+            Unique name for the device.
+
+        """
+        i = 0
+        name = deviceType + str(i)
+        while not self.checkDeviceNameAvailable(name):
+            i += 1
+            deviceType + str(i)
+
+        return name
+
+    def checkDeviceNameAvailable(self, name):
+        """Check if a device name is available.
+
+        Parameters
+        ----------
+        name : str
+            Name of the device.
+
+        Returns
+        -------
+        bool
+            `True` if the device name is available, `False` otherwise. If `False`
+            is returned, the device name cannot be used when adding another
+            device.
+
+        """
+        mgr = getDeviceManager()
+        for devClass in mgr._devices:
+            if name in mgr._devices[devClass]:
+                return False
+
+        return True
+
+    def _assertDeviceNameUnique(self, name):
+        """Assert that the specified device name is unique.
+
+        This checks if the device name specified is unique and not used by any
+        of the other devices in the manager.
+
+        Parameters
+        ----------
+        name : str
+            Name of the device to check.
+
+        Raises
+        ------
+        ValueError
+            If the device name is not unique.
+
+        """
+        # check if there are any keys in the dictionaries inside of
+        # `self._devices` that match the name
+        if not self.checkDeviceNameAvailable(name):
+            raise ValueError(
+                f"Device name '{name}' is already in use by another "
+                "device!")
+
+
+class DeviceManager(DeviceMixin):
     """Class for managing hardware devices.
 
     An instance of this class is used to manage various hardware peripherals 
@@ -100,61 +184,6 @@ class DeviceManager:
         self._devices = {devClass: {} for devClass in _deviceMethods}
 
     # --- utility ---
-    def makeUniqueName(self, deviceType):
-        i = 0
-        name = deviceType + str(i)
-        while not self.checkDeviceNameAvailable(name):
-            i += 1
-            deviceType + str(i)
-
-        return name
-
-    def checkDeviceNameAvailable(self, name):
-        """Check if a device name is available.
-
-        Parameters
-        ----------
-        name : str
-            Name of the device.
-
-        Returns
-        -------
-        bool
-            `True` if the device name is available, `False` otherwise. If `False`
-            is returned, the device name cannot be used when adding another
-            device.
-
-        """
-        for devClass in self._devices:
-            if name in self._devices[devClass]:
-                return False
-
-        return True
-
-    def _assertDeviceNameUnique(self, name):
-        """Assert that the specified device name is unique.
-
-        This checks if the device name specified is unique and not used by any
-        of the other devices in the manager.
-
-        Parameters
-        ----------
-        name : str
-            Name of the device to check.
-
-        Raises
-        ------
-        ValueError
-            If the device name is not unique.
-
-        """
-        # check if there are any keys in the dictionaries inside of
-        # `self._devices` that match the name
-        if not self.checkDeviceNameAvailable(name):
-            raise ValueError(
-                f"Device name '{name}' is already in use by another "
-                "device!")
-
     def _getSerialPortsInUse(self):
         """Get serial ports that are being used and the names of the devices
         that are using them.
@@ -213,16 +242,20 @@ class DeviceManager:
         deviceType : str
             Type of device (e.g. keyboard, microphone, etc.)
         args : list
-            Whatever arguments would be passed to the linked add method (e.g. backend, name, etc.)
+            Whatever arguments would be passed to the linked add method (e.g. 
+            backend, name, etc.)
         name : str or None
-            Arbitrary name to store device under. If None, will create a new ID for the device.
+            Arbitrary name to store device under. If None, will create a new ID 
+            for the device.
         kwargs : dict
-            Whatever keyword arguments would be passed to the linked add method (e.g. backend, name, etc.)
+            Whatever keyword arguments would be passed to the linked add method 
+            (e.g. backend, name, etc.)
 
         Returns
         -------
         BaseDevice
             Device created by the linked add method
+
         """
         # if no name given, generate unique name
         if name is None:
@@ -283,12 +316,14 @@ class DeviceManager:
 
     def getDevices(self, deviceType="*"):
         """
-        Get all devices of a given type which have been `add`ed to this DeviceManager
+        Get all devices of a given type which have been `add`ed to this 
+        DeviceManager
 
         Parameters
         ----------
         deviceType : str
-            Type of device (e.g. keyboard, microphone, etc.), use * for any device type
+            Type of device (e.g. keyboard, microphone, etc.), use * for any 
+            device type
         """
         if deviceType == "*":
             return self._devices
@@ -301,7 +336,8 @@ class DeviceManager:
         Parameters
         ----------
         deviceType : str
-            Type of device (e.g. keyboard, microphone, etc.), use * for any device type
+            Type of device (e.g. keyboard, microphone, etc.), use * for any 
+            device type
         """
         if deviceType == "*":
             return st.getInstalledDevices()
@@ -310,18 +346,21 @@ class DeviceManager:
 
 class KeyboardPlugin(DeviceManager):
     """
-    Plugin class for DeviceManager, adding device methods for Keyboard devices via the DeviceMethod decorator.
-    """
+    Plugin class for DeviceManager, adding device methods for Keyboard devices 
+    via the DeviceMethod decorator.
 
+    """
     @DeviceMethod("keyboard", "add")
-    def addKeyboard(self, name=None, device=-1, bufferSize=10000, waitForStart=False, clock=None, backend=None):
+    def addKeyboard(self, name=None, device=-1, bufferSize=10000, 
+            waitForStart=False, clock=None, backend=None):
         """
         Add a keyboard.
 
         Parameters
         ----------
         name : str or None
-            Arbitrary name to refer to this keyboard by. Use None to generate a unique name.
+            Arbitrary name to refer to this keyboard by. Use None to generate a 
+            unique name.
         backend : str, optional
             Backend to use for keyboard input. Defaults to "iohub".
         device : int, optional
@@ -371,7 +410,11 @@ class KeyboardPlugin(DeviceManager):
         else:
             # if device isn't initialised, initialise it
             self._devices['keyboard'][name] = keyboard.KeyboardDevice(
-                device=device, bufferSize=bufferSize, waitForStart=waitForStart, clock=clock, backend=backend
+                device=device, 
+                bufferSize=bufferSize, 
+                waitForStart=waitForStart, 
+                clock=clock, 
+                backend=backend
             )
 
         return self._devices['keyboard'][name]
@@ -437,7 +480,8 @@ class KeyboardPlugin(DeviceManager):
 
 class MousePlugin(DeviceManager):
     """
-    Plugin class for DeviceManager, adding device methods for Mouse devices via the DeviceMethod decorator.
+    Plugin class for DeviceManager, adding device methods for Mouse devices via 
+    the DeviceMethod decorator.
     """
 
     @DeviceMethod("mouse", "add")
@@ -545,11 +589,12 @@ class MousePlugin(DeviceManager):
 
 class SpeakerPlugin(DeviceManager):
     """
-    Plugin class for DeviceManager, adding device methods for audio playback devices via the DeviceMethod decorator.
+    Plugin class for DeviceManager, adding device methods for audio playback 
+    devices via the DeviceMethod decorator.
     """
 
     @DeviceMethod("speaker", "add")
-    def addSpeaker(self, name=None, device=0, sampleRate=44100, channels=2):
+    def addSpeaker(self, name=None, device=0, sampleRate=44100, channels=2, backend=None):
         """
         Add a speaker.
 
@@ -578,7 +623,12 @@ class SpeakerPlugin(DeviceManager):
         # We need to initialize the audio playback system here, right now that
         # all handled by the `sound` module in a fairly rigid way that can't be 
         # easily done like microphones.
-        raise NotImplementedError("Speaker support is a work in progress")
+        from psychopy.sound import setSoundBackend, setDevice
+        if backend is None:
+            backend = st.getSoundBackend()
+
+        setSoundBackend('sounddevice')
+        setDevice(device)
 
     @DeviceMethod("speaker", "remove")
     def removeSpeaker(self, name):
@@ -641,7 +691,8 @@ class SpeakerPlugin(DeviceManager):
 
 class MicrophonePlugin(DeviceManager):
     """
-    Plugin class for DeviceManager, adding device methods for audio recording devices via the DeviceMethod decorator.
+    Plugin class for DeviceManager, adding device methods for audio recording 
+    devices via the DeviceMethod decorator.
     """
 
     @DeviceMethod("microphone", "add")
@@ -783,7 +834,8 @@ class MicrophonePlugin(DeviceManager):
 
 class CameraPlugin(DeviceManager):
     """
-    Plugin class for DeviceManager, adding device methods for video recording devices via the DeviceMethod decorator.
+    Plugin class for DeviceManager, adding device methods for video recording 
+    devices via the DeviceMethod decorator.
     """
 
     @DeviceMethod("camera", "add")
@@ -883,12 +935,13 @@ class CameraPlugin(DeviceManager):
 
 class SerialPlugin(DeviceManager):
     """
-    Plugin class for DeviceManager, adding device methods for serial port devices via the DeviceMethod decorator.
+    Plugin class for DeviceManager, adding device methods for serial port 
+    devices via the DeviceMethod decorator.
     """
 
     @DeviceMethod("serial", "add")
-    def addSerialDevice(self, name=None, port=None, baudrate=9600, byteSize=8, stopBits=1,
-            parity="N"):
+    def addSerialDevice(self, name=None, port=None, baudrate=9600, byteSize=8, 
+            stopBits=1, parity="N"):
         """
         Add a generic serial device interface.
 
@@ -1001,9 +1054,9 @@ class SerialPlugin(DeviceManager):
         Returns
         -------
         dict
-            Dictionary of serial devices that have been initialized. Where the keys
-            are the names of the serial devices and the values are the serialDevice
-            objects.
+            Dictionary of serial devices that have been initialized. Where the 
+            keys are the names of the serial devices and the values are the 
+            serialDevice objects.
 
         """
         return self._devices['serialDevice']
@@ -1025,8 +1078,8 @@ class SerialPlugin(DeviceManager):
 
 class EyetrackerPlugin(DeviceManager):
     """
-    Plugin class for eyetracker objects, adding device methods for eyetracker devices via the DeviceMethod
-    decorator.
+    Plugin class for eyetracker objects, adding device methods for eyetracker 
+    devices via the DeviceMethod decorator.
     """
 
     @DeviceMethod("eyetracker", "add")
@@ -1037,25 +1090,13 @@ class EyetrackerPlugin(DeviceManager):
         Parameters
         ----------
         name : str or None
-            Arbitrary name to refer to this eyetracker by. Use None to generate a unique name.
+            Arbitrary name to refer to this eyetracker by. Use None to generate 
+            a unique name.
 
         Returns
         -------
         iohub.Eyetracker object
             Added eyetracker.
-
-        Examples
-        --------
-        Add a keyboard::
-
-            import psychopy.hardware.manager as hm
-            mgr = hm.getDeviceManager()
-            mgr.addKeyboard('response_keyboard', backend='iohub', device=-1)
-
-        Get the keyboard and use it to get a response::
-
-            kb = mgr.getKeyboard('response_keyboard')
-            kb.getKeys()
 
         """
         # if no name given, generate unique name
@@ -1065,10 +1106,12 @@ class EyetrackerPlugin(DeviceManager):
         # raise an error if there's no ioServer yet
         if self.ioServer is None:
             raise ConnectionError(
-                "DeviceHandler could not find any ioServer associated with current process. Please start an ioServer "
-                "before adding an eyetracker."
+                "DeviceHandler could not find any ioServer associated with "
+                "current process. Please start an ioServer before adding an "
+                "eyetracker."
             )
-        # only one eyetracker can be active and it will already have been set up by ioHub, so just get it
+        # only one eyetracker can be active and it will already have been set up
+        # by ioHub, so just get it
         self._devices['eyetracker'][name] = self.ioServer.getDevice('tracker')
         # activate eyetracker
         self._devices['eyetracker'][name].setConnectionState(True)
@@ -1142,7 +1185,8 @@ deviceManager = DeviceManager()
 def getDeviceManager():
     """Get the device manager.
 
-    Returns an instance of the device manager.
+    Returns an instance of the device manager, will create one if none is 
+    present.
 
     Returns
     -------
@@ -1165,9 +1209,8 @@ def closeAllDevices():
     manually as it's registed as an `atexit` handler.
 
     """
-    devMgr = getDeviceManager()
-    if devMgr is not None:
-        devMgr.closeAll()
+    if deviceManager is not None:
+        deviceManager.closeAll()
 
 
 # register closeAllDevices as an atexit handler
