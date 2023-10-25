@@ -124,7 +124,7 @@ class PhotodiodeValidatorComponent(BaseComponent):
             findDiode, valType="code", inputType="bool", categ="Layout",
             label=_translate("Find diode?"),
             hint=_translate(
-                "Run a brief routine to find the size and position of the photodiode each time this Routine runs?"
+                "Run a brief Routine to find the size and position of the photodiode each time this Routine runs?"
             )
         )
         self.params['diodePos'] = Param(
