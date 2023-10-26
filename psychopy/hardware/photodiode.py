@@ -456,33 +456,6 @@ class PhotodiodeValidator:
     def getDiodeState(self):
         return self.diode.getState()
 
-    @attributeSetter
-    def diodeUnits(self, value):
-        self.onRect.units = value
-        self.offRect.units = value
-
-        self.__dict__['diodeUnits'] = value
-
-    @attributeSetter
-    def diodePos(self, value):
-        if value is None:
-            return
-
-        self.onRect.pos = value
-        self.offRect.pos = value
-
-        self.__dict__['diodePos'] = value
-
-    @attributeSetter
-    def diodeSize(self, value):
-        if value is None:
-            return
-
-        self.onRect.size = value
-        self.offRect.size = value
-
-        self.__dict__['diodeSize'] = value
-
     @staticmethod
     def onValid(isWhite):
         pass
