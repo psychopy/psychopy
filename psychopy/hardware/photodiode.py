@@ -1,6 +1,7 @@
 import json
 
 from psychopy import layout, logging
+from psychopy.hardware import keyboard
 from psychopy.tools.attributetools import attributeSetter
 
 
@@ -112,6 +113,8 @@ class BasePhotodiode:
             Size of the area of certainty. Essentially, the size of the last (smallest) rectangle which the photodiode
             was able to detect.
         """
+        # keyboard to check for escape
+        kb = keyboard.Keyboard(name="photodiodeValidatorKeyboard")
         # stash autodraw
         win.stashAutoDraw()
         # import visual here - if they're using this function, it's already in the stack
@@ -168,6 +171,9 @@ class BasePhotodiode:
                 win.flip()
                 # dispatch parent messages
                 self.parent.dispatchMessages()
+                # check for escape before entering recursion
+                if kb.getKeys(['escape']):
+                    return
                 # poll photodiode
                 if self.state:
                     # if it detected this rectangle, recur
@@ -190,6 +196,8 @@ class BasePhotodiode:
         )
 
     def findThreshold(self, win):
+        # keyboard to check for escape
+        kb = keyboard.Keyboard(name="photodiodeValidatorKeyboard")
         # stash autodraw
         win.stashAutoDraw()
         # import visual here - if they're using this function, it's already in the stack
@@ -254,6 +262,9 @@ class BasePhotodiode:
             label.color = (-0.8, -0.8, -0.8)
             label.draw()
             win.flip()
+            # check for escape before entering recursion
+            if kb.getKeys(['escape']):
+                return int(current)
             # if state is still True, move threshold up and try again
             if self.getState():
                 current = (current + 0) / 2
