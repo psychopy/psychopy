@@ -200,20 +200,65 @@ class PhotodiodeValidatorComponent(BaseComponent):
 
     def writeInitCode(self, buff):
         inits = getInitVals(self.params)
-        # construct tpad name
-        inits['padName'] = "TPad" + inits['port'].val
-        # add TPad (only once per pad)
-        code = (
-            "# add TPad to device manager\n"
-            "%(padName)s = tpad.TPad(name='%(padName)s', port=%(port)s)\n"
-        )
-        buff.writeOnceIndentedLines(code % inits)
         # initialise diode
         if self.params['backend'] == "bbtk-tpad":
+            # construct tpad and diode names
+            inits['padName'] = "tpad" + inits['port'].val
+            inits['diodeName'] = "diode" + inits['number'].val + inits['port'].val
+            # add TPad (only once per pad)
+            code = (
+                "# initialise TPad on %(port)s\n"
+                "%(padName)s = tpad.TPad(name='%(padName)s', port=%(port)s)\n"
+            )
+            buff.writeOnceIndentedLines(code % inits)
+            # get diode (only once per diode)
+            code = (
+                "# initialise photodiode %(number)s on port %(port)s\n"
+                "%(diodeName)s = %(padName)s.photodiodes[%(number)s]\n"
+            )
+            buff.writeOnceIndentedLines(code % inits)
+            # find/set threshold
+            if self.params['findThreshold']:
+                code = (
+                    "if %(diodeName)s.getThreshold() is None:\n"
+                    "    %(diodeName)s.findThreshold(win)\n"
+                )
+                buff.writeOnceIndentedLines(code % inits)
+            elif self.params['threshold']:
+                code = (
+                    "%(diodeName)s.setThreshold(%(threshold)s)\n"
+                )
+                buff.writeIndentedLines(code % inits)
+            # find/set diode position
+            if self.params['findDiode']:
+                code = (
+                    "if %(diodeName)s.pos is None and %(diodeName)s.size is None and %(diodeName)s.units is None:\n"
+                    "    %(diodeName)s.findPhotodiode(win)\n"
+                )
+                buff.writeOnceIndentedLines(code % inits)
+            else:
+                code = ""
+                # set units (unless None)
+                if self.params['units']:
+                    code += (
+                        "%(diodeName)s.units = %(units)s\n"
+                    )
+                # set pos (unless None)
+                if self.params['pos']:
+                    code += (
+                        "%(diodeName)s.pos = %(pos)s\n"
+                    )
+                # set size (unless None)
+                if self.params['size']:
+                    code += (
+                        "%(diodeName)s.size = %(size)s\n"
+                    )
+                buff.writeIndentedLines(code % inits)
+
+            # store diode by this component's name
             code = (
                 "# diode object for %(name)s\n"
-                "%(name)sTPad = %(padName)s\n"
-                "%(name)sDiode = %(name)sTPad.photodiodes[%(number)s]\n"
+                "%(name)sDiode = %(diodeName)s\n"
             )
             buff.writeIndentedLines(code % inits)
         else:
@@ -223,17 +268,6 @@ class PhotodiodeValidatorComponent(BaseComponent):
             "# validator object for %(name)s\n"
             "%(name)s = phd.PhotodiodeValidator(\n"
             "    win, %(name)sDiode,\n"
-        )
-        if not self.params['findDiode']:
-            # specify pos, size and units if told not to find diode
-            code += (
-            "    diodePos=%(diodePos)s, diodeSize=%(diodeSize)s, diodeUnits=%(diodeUnits)s,\n"
-            )
-        if not self.params['findThreshold']:
-            code += (
-            "    diodeThreshold=%(threshold)s,"
-            )
-        code += (
             "    variability=%(variability)s,\n"
             "    report=%(report)s,\n"
             ")\n"
