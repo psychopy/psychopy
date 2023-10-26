@@ -181,9 +181,15 @@ class BasePhotodiode:
             # if none of these have returned, rect is too small to cover the whole photodiode, so return
             return
 
+        # reset state
+        self.state = None
+        self.parent.dispatchMessages()
+        self.clearResponses()
         # recursively shrink rect around the photodiode
         scanQuadrants()
         # clear all the events created by this process
+        self.state = None
+        self.parent.dispatchMessages()
         self.clearResponses()
         # reinstate autodraw
         win.retrieveAutoDraw()
@@ -283,12 +289,18 @@ class BasePhotodiode:
             # once we get to here (account for recursion), we have a good threshold!
             return int(current)
 
+        # reset state
+        self.state = None
+        self.parent.dispatchMessages()
+        self.clearResponses()
         # bisect thresholds, starting at 127 (exact middle)
         threshold = _bisectThreshold(127)
         self.setThreshold(threshold)
         # clear bg rect
         bg.setAutoDraw(False)
         # clear all the events created by this process
+        self.state = None
+        self.parent.dispatchMessages()
         self.clearResponses()
         # reinstate autodraw
         win.retrieveAutoDraw()
