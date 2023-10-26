@@ -1,8 +1,7 @@
 import json
-
 from psychopy import layout, logging
+from psychopy.localization import _translate
 from psychopy.hardware import keyboard
-from psychopy.tools.attributetools import attributeSetter
 
 
 class PhotodiodeResponse:
@@ -203,13 +202,18 @@ class BasePhotodiode:
         # flip
         win.flip()
 
+        # set size/pos/units
+        self.units = "norm"
+        self.size = rect.size * 2
+        self.pos = rect.pos + rect.size / (-2, 2)
+
         return (
-            layout.Size(rect.pos + rect.size / (-2, 2), units="norm", win=win),
-            layout.Size(rect.size * 2, units="norm", win=win)
+            layout.Position(self.pos, units="norm", win=win),
+            layout.Position(self.size, units="norm", win=win),
         )
 
     def findThreshold(self, win):
-        # keyboard to check for escape
+        # keyboard to check for escape/continue
         kb = keyboard.Keyboard(name="photodiodeValidatorKeyboard")
         # stash autodraw
         win.stashAutoDraw()
