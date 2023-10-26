@@ -1,6 +1,7 @@
 import json
 
 from psychopy import layout, logging
+from psychopy.hardware import keyboard
 from psychopy.tools.attributetools import attributeSetter
 
 
@@ -112,6 +113,8 @@ class BasePhotodiode:
             Size of the area of certainty. Essentially, the size of the last (smallest) rectangle which the photodiode
             was able to detect.
         """
+        # keyboard to check for escape
+        kb = keyboard.Keyboard(name="photodiodeValidatorKeyboard")
         # stash autodraw
         win.stashAutoDraw()
         # import visual here - if they're using this function, it's already in the stack
@@ -168,6 +171,9 @@ class BasePhotodiode:
                 win.flip()
                 # dispatch parent messages
                 self.parent.dispatchMessages()
+                # check for escape before entering recursion
+                if kb.getKeys(['escape']):
+                    return
                 # poll photodiode
                 if self.state:
                     # if it detected this rectangle, recur
@@ -175,9 +181,15 @@ class BasePhotodiode:
             # if none of these have returned, rect is too small to cover the whole photodiode, so return
             return
 
+        # reset state
+        self.state = None
+        self.parent.dispatchMessages()
+        self.clearResponses()
         # recursively shrink rect around the photodiode
         scanQuadrants()
         # clear all the events created by this process
+        self.state = None
+        self.parent.dispatchMessages()
         self.clearResponses()
         # reinstate autodraw
         win.retrieveAutoDraw()
@@ -190,6 +202,8 @@ class BasePhotodiode:
         )
 
     def findThreshold(self, win):
+        # keyboard to check for escape
+        kb = keyboard.Keyboard(name="photodiodeValidatorKeyboard")
         # stash autodraw
         win.stashAutoDraw()
         # import visual here - if they're using this function, it's already in the stack
@@ -198,18 +212,35 @@ class BasePhotodiode:
         bg = visual.Rect(
             win,
             size=(2, 2), pos=(0, 0), units="norm",
-            autoDraw=True
+            autoDraw=False
         )
-        # make sure threshold 255 catches black
+        # add low opacity label
+        label = visual.TextBox2(
+            win,
+            text="Finding best threshold for photodiode...",
+            fillColor=None, color=(0, 0, 0), colorSpace="rgb",
+            pos=(0, 0), size=(2, 2), units="norm",
+            alignment="center",
+            autoDraw=False
+        )
+        # make sure threshold 0 catches black
+        self.setThreshold(0)
         bg.fillColor = "black"
+        bg.draw()
+        label.color = (-0.8, -0.8, -0.8)
+        label.draw()
         win.flip()
         if self.getState():
             raise PhotodiodeValidationError(
                 "Photodiode did not recognise a black screen even when its threshold was at maximum. This means either "
                 "the screen is too bright or the photodiode is too sensitive."
             )
-        # make sure threshold 0 catches white
+        # make sure threshold 255 catches white
+        self.setThreshold(255)
         bg.fillColor = "white"
+        bg.draw()
+        label.color = (0.8, 0.8, 0.8)
+        label.draw()
         win.flip()
         if not self.getState():
             raise PhotodiodeValidationError(
@@ -235,13 +266,22 @@ class BasePhotodiode:
             self.setThreshold(int(current))
             # try black
             bg.fillColor = "black"
+            bg.draw()
+            label.color = (-0.8, -0.8, -0.8)
+            label.draw()
             win.flip()
+            # check for escape before entering recursion
+            if kb.getKeys(['escape']):
+                return int(current)
             # if state is still True, move threshold up and try again
             if self.getState():
                 current = (current + 0) / 2
                 _bisectThreshold(current)
             # try white
             bg.fillColor = "white"
+            bg.draw()
+            label.color = (0.8, 0.8, 0.8)
+            label.draw()
             win.flip()
             # if state is still False, move threshold down and try again
             if not self.getState():
@@ -251,9 +291,24 @@ class BasePhotodiode:
             # once we get to here (account for recursion), we have a good threshold!
             return int(current)
 
+        # reset state
+        self.state = None
+        self.parent.dispatchMessages()
+        self.clearResponses()
         # bisect thresholds, starting at 127 (exact middle)
         threshold = _bisectThreshold(127)
         self.setThreshold(threshold)
+        # clear bg rect
+        bg.setAutoDraw(False)
+        # clear all the events created by this process
+        self.state = None
+        self.parent.dispatchMessages()
+        self.clearResponses()
+        # reinstate autodraw
+        win.retrieveAutoDraw()
+        # flip
+        win.flip()
+
         return threshold
 
     def setThreshold(self, threshold):
@@ -285,6 +340,7 @@ class PhotodiodeValidator:
     def __init__(
             self, win, diode,
             diodePos=None, diodeSize=None, diodeUnits="norm",
+            diodeThreshold=None,
             variability=1/60,
             report="log",
             autoLog=False):
@@ -314,7 +370,11 @@ class PhotodiodeValidator:
             depth=0, autoDraw=False,
             autoLog=False
         )
-
+        # if no threshold is given for diode, figure it out
+        if diodeThreshold is None:
+            diodeThreshold = diode.findThreshold(self.win)
+        # set diode threshold
+        diode.setThreshold(diodeThreshold)
         # if no pos or size are given for diode, figure it out
         if diodePos is None or diodeSize is None:
             _guessPos, _guessSize = diode.findPhotodiode(self.win)
