@@ -198,10 +198,22 @@ class BasePhotodiode:
         bg = visual.Rect(
             win,
             size=(2, 2), pos=(0, 0), units="norm",
-            autoDraw=True
+            autoDraw=False
+        )
+        # add low opacity label
+        label = visual.TextBox2(
+            win,
+            text="Finding best threshold for photodiode...",
+            fillColor=None, color=(0, 0, 0), colorSpace="rgb",
+            pos=(0, 0), size=(2, 2), units="norm",
+            alignment="center",
+            autoDraw=False
         )
         # make sure threshold 255 catches black
         bg.fillColor = "black"
+        bg.draw()
+        label.color = (-0.8, -0.8, -0.8)
+        label.draw()
         win.flip()
         if self.getState():
             raise PhotodiodeValidationError(
@@ -210,6 +222,9 @@ class BasePhotodiode:
             )
         # make sure threshold 0 catches white
         bg.fillColor = "white"
+        bg.draw()
+        label.color = (0.8, 0.8, 0.8)
+        label.draw()
         win.flip()
         if not self.getState():
             raise PhotodiodeValidationError(
@@ -235,6 +250,9 @@ class BasePhotodiode:
             self.setThreshold(int(current))
             # try black
             bg.fillColor = "black"
+            bg.draw()
+            label.color = (-0.8, -0.8, -0.8)
+            label.draw()
             win.flip()
             # if state is still True, move threshold up and try again
             if self.getState():
@@ -242,6 +260,9 @@ class BasePhotodiode:
                 _bisectThreshold(current)
             # try white
             bg.fillColor = "white"
+            bg.draw()
+            label.color = (0.8, 0.8, 0.8)
+            label.draw()
             win.flip()
             # if state is still False, move threshold down and try again
             if not self.getState():
@@ -254,6 +275,8 @@ class BasePhotodiode:
         # bisect thresholds, starting at 127 (exact middle)
         threshold = _bisectThreshold(127)
         self.setThreshold(threshold)
+        # clear bg rect
+        bg.setAutoDraw(False)
         # clear all the events created by this process
         self.clearResponses()
         # reinstate autodraw
