@@ -14,6 +14,7 @@ from psychopy.monitors import Monitor
 from psychopy.iohub import util as ioUtil
 from psychopy.alerts import alert
 from psychopy.tools.filetools import genDelimiter
+from psychopy.data.utils import parsePipeSyntax
 
 # for creating html output folders:
 import shutil
@@ -659,10 +660,21 @@ class SettingsComponent:
             element.append(paramNode)
         return element
 
-    def getInfo(self):
-        """Rather than converting the value of params['Experiment Info']
+    def getInfo(self, removePipeSyntax=False):
+        """
+        Rather than converting the value of params['Experiment Info']
         into a dict from a string (which can lead to errors) use this function
-        :return: expInfo as a dict
+        :return:
+
+        Parameters
+        ----------
+        removePipeSyntax : bool
+            If True, then keys in expInfo dict are returned with pipe syntax (e.g. |req, |cfg, etc.) removed.
+
+        Returns
+        -------
+        dict
+            expInfo as a dict
         """
 
         infoStr = str(self.params['Experiment info'].val).strip()
@@ -670,27 +682,32 @@ class SettingsComponent:
             return {}
         try:
             infoDict = ast.literal_eval(infoStr)
+            newDict = {}
             # check for strings of lists: "['male','female']"
             for key in infoDict:
                 val = infoDict[key]
+                # sanitize key if requested
+                if removePipeSyntax:
+                    key, _ = parsePipeSyntax(key)
+
                 if exputils.list_like_re.search(str(val)):
                     # Try to call it with ast, if it produces a list/tuple, treat val type as list
                     try:
                         isList = ast.literal_eval(str(val))
                     except ValueError:
                         # If ast errors, treat as code
-                        infoDict[key] = Param(val=val, valType='code')
+                        newDict[key] = Param(val=val, valType='code')
                     else:
                         if isinstance(isList, (list, tuple)):
                             # If ast produces a list, treat as list
-                            infoDict[key] = Param(val=val, valType='list')
+                            newDict[key] = Param(val=val, valType='list')
                         else:
                             # If ast produces anything else, treat as code
-                            infoDict[key] = Param(val=val, valType='code')
+                            newDict[key] = Param(val=val, valType='code')
                 elif val in ['True', 'False']:
-                    infoDict[key] = Param(val=val, valType='bool')
+                    newDict[key] = Param(val=val, valType='bool')
                 elif isinstance(val, str):
-                    infoDict[key] = Param(val=val, valType='str')
+                    newDict[key] = Param(val=val, valType='str')
 
         except (ValueError, SyntaxError):
             """under Python3 {'participant':'', 'session':02} raises an error because
@@ -710,13 +727,13 @@ class SettingsComponent:
             # 0 or more spaces, 1-5 zeros, 0 or more digits:
             pattern = re.compile(r": *0{1,5}\d*")
             try:
-                infoDict = eval(re.sub(pattern, entryToString, infoStr))
+                newDict = eval(re.sub(pattern, entryToString, infoStr))
             except SyntaxError:  # still a syntax error, possibly caused by user
                 msg = ('Builder Expt: syntax error in '
                               '"Experiment info" settings (expected a dict)')
                 logging.error(msg)
                 raise AttributeError(msg)
-        return infoDict
+        return newDict
 
     def getType(self):
         return self.__class__.__name__
@@ -838,18 +855,22 @@ class SettingsComponent:
             "expName = %(expName)s  # from the Builder filename that created this script\n"
         )
         buff.writeIndentedLines(code % params)
-        # Construct exp info dict
+        # get info for this experiment
+        expInfo = self.getInfo(removePipeSyntax=False)
+        # add internal expInfo keys
+        expInfo['date|hid'] = "data.getDateStr()"
+        expInfo['expName|hid'] = "expName"
+        expInfo['psychopyVersion|hid'] = "psychopyVersion"
+        # construct exp info dict
         code = (
+            "# information about this experiment\n"
             "expInfo = {\n"
         )
-        for key, value in self.getInfo().items():
+        for key, value in expInfo.items():
             code += (
             f"    '{key}': {value},\n"
             )
         code += (
-            "    'date': data.getDateStr(),  # add a simple timestamp\n"
-            "    'expName': expName,\n"
-            "    'psychopyVersion': psychopyVersion,\n"
             "}\n"
             "\n"
         )
@@ -1055,11 +1076,20 @@ class SettingsComponent:
         buff.writeIndentedLines(code)
         buff.setIndentLevel(+1, relative=True)
 
+        # remove pipe syntax from expInfo
+        code = (
+            "# remove dialog-specific syntax from expInfo\n"
+            "for key, val in expInfo.copy().items():\n"
+            "    newKey, _ = data.utils.parsePipeSyntax(key)\n"
+            "    expInfo[newKey] = expInfo.pop(key)\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
         # figure out participant id field (if any)
         participantVal = ''
-        for field in ('participant', 'Participant', 'Subject', 'Observer'):
-            if field in self.getInfo():
-                participantVal = " + expInfo['%s']" % field
+        for target in ('participant', 'Participant', 'Subject', 'Observer'):
+            if target in self.getInfo(removePipeSyntax=True):
+                participantVal = " + expInfo['%s']" % target
                 break
         # make sure we have a filename
         if not params['Data filename'].val:  # i.e., the user deleted it
@@ -1178,7 +1208,7 @@ class SettingsComponent:
             '    Parameters\n'
             '    ==========\n'
             '    expInfo : dict\n'
-            '        Information about this experiment, created by the `setupExpInfo` function.\n'
+            '        Information about this experiment.\n'
             '    \n'
             '    Returns\n'
             '    ==========\n'
@@ -1191,19 +1221,10 @@ class SettingsComponent:
 
         sorting = "False"  # in Py3 dicts are chrono-sorted so default no sort
         code = (
-            f"# temporarily remove keys which the dialog doesn't need to show\n"
-            f"poppedKeys = {{\n"
-            f"    'date': expInfo.pop('date', data.getDateStr()),\n"
-            f"    'expName': expInfo.pop('expName', expName),\n"
-            f"    'psychopyVersion': expInfo.pop('psychopyVersion', psychopyVersion),\n"
-            f"}}\n"
             f"# show participant info dialog\n"
-            f"dlg = gui.DlgFromDict(dictionary=expInfo, "
-            f"sortKeys={sorting}, title=expName)\n"
+            f"dlg = gui.DlgFromDict(dictionary=expInfo, sortKeys={sorting}, title=expName)\n"
             f"if dlg.OK == False:\n"
             f"    core.quit()  # user pressed cancel\n"
-            f"# restore hidden keys\n"
-            f"expInfo.update(poppedKeys)\n"
             f"# return expInfo\n"
             f"return expInfo\n"
         )
