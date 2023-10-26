@@ -208,13 +208,13 @@ class PhotodiodeValidatorComponent(BaseComponent):
             # add TPad (only once per pad)
             code = (
                 "# initialise TPad on %(port)s\n"
-                "%(padName)s = tpad.TPad(name='%(padName)s', port=%(port)s)\n"
+                "deviceManager.addTPad(name='%(padName)s', port=%(port)s)\n"
             )
             buff.writeOnceIndentedLines(code % inits)
             # get diode (only once per diode)
             code = (
                 "# initialise photodiode %(number)s on port %(port)s\n"
-                "%(diodeName)s = %(padName)s.photodiodes[%(number)s]\n"
+                "%(diodeName)s = deviceManager.getTPadPhotodiode(name='%(padName)s', number=%(number)s)\n"
             )
             buff.writeOnceIndentedLines(code % inits)
             # find/set threshold
