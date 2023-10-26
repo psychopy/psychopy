@@ -203,8 +203,8 @@ class PhotodiodeValidatorComponent(BaseComponent):
         # initialise diode
         if self.params['backend'] == "bbtk-tpad":
             # construct tpad and diode names
-            inits['padName'] = "TPad" + inits['port'].val
-            inits['diodeName'] = "Diode" + inits['number'].val + inits['port'].val
+            inits['padName'] = "tpad" + inits['port'].val
+            inits['diodeName'] = "diode" + inits['number'].val + inits['port'].val
             # add TPad (only once per pad)
             code = (
                 "# initialise TPad on %(port)s\n"
@@ -220,7 +220,8 @@ class PhotodiodeValidatorComponent(BaseComponent):
             # find/set threshold
             if self.params['findThreshold']:
                 code = (
-                    "%(diodeName)s.findThreshold(win)\n"
+                    "if %(diodeName)s.getThreshold() is None:\n"
+                    "    %(diodeName)s.findThreshold(win)\n"
                 )
                 buff.writeOnceIndentedLines(code % inits)
             elif self.params['threshold']:
@@ -231,7 +232,8 @@ class PhotodiodeValidatorComponent(BaseComponent):
             # find/set diode position
             if self.params['findDiode']:
                 code = (
-                    "%(diodeName)s.findPhotodiode(win)\n"
+                    "if %(diodeName)s.pos is None and %(diodeName)s.size is None and %(diodeName)s.units is None:\n"
+                    "    %(diodeName)s.findPhotodiode(win)\n"
                 )
                 buff.writeOnceIndentedLines(code % inits)
             else:
