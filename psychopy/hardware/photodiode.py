@@ -254,6 +254,13 @@ class BasePhotodiode:
         # bisect thresholds, starting at 127 (exact middle)
         threshold = _bisectThreshold(127)
         self.setThreshold(threshold)
+        # clear all the events created by this process
+        self.clearResponses()
+        # reinstate autodraw
+        win.retrieveAutoDraw()
+        # flip
+        win.flip()
+
         return threshold
 
     def setThreshold(self, threshold):
@@ -285,6 +292,7 @@ class PhotodiodeValidator:
     def __init__(
             self, win, diode,
             diodePos=None, diodeSize=None, diodeUnits="norm",
+            diodeThreshold=None,
             variability=1/60,
             report="log",
             autoLog=False):
@@ -314,7 +322,11 @@ class PhotodiodeValidator:
             depth=0, autoDraw=False,
             autoLog=False
         )
-
+        # if no threshold is given for diode, figure it out
+        if diodeThreshold is None:
+            diodeThreshold = diode.findThreshold(self.win)
+        # set diode threshold
+        diode.setThreshold(diodeThreshold)
         # if no pos or size are given for diode, figure it out
         if diodePos is None or diodeSize is None:
             _guessPos, _guessSize = diode.findPhotodiode(self.win)
