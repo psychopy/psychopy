@@ -215,6 +215,32 @@ class BasePhotodiode:
         win.stashAutoDraw()
         # import visual here - if they're using this function, it's already in the stack
         from psychopy import visual
+
+        # epilepsy check
+        warningLbl = visual.TextBox2(
+            win,
+            text=_translate(
+                "WARNING: In order to detect the threshold of a photodiode, the screen needs to flash white and black, "
+                "which may trigger photosensitive epilepsy.\n"
+                "\n"
+                "If you are happy to continue, press SPACE. Otherwise, press ESCAPE to skip this check."
+            ),
+            size=(2, 2), pos=(0, 0), units="norm", alignment="center",
+            fillColor="black", color="white",
+            autoDraw=False, autoLog=False
+        )
+        resp = []
+        while not resp:
+            # get keys
+            resp = kb.getKeys(['escape', 'space'])
+            # draw warning
+            warningLbl.draw()
+            # flip
+            win.flip()
+        # continue/skip according to resp
+        if "space" not in resp:
+            return
+
         # box to cover screen
         bg = visual.Rect(
             win,
