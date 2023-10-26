@@ -29,7 +29,7 @@ class PhotodiodeResponse:
 
 
 class BasePhotodiode:
-    def __init__(self, parent):
+    def __init__(self, parent, threshold=None, pos=None, size=None, units=None):
         # get serial parent from port (if photodiode manages its own parent, this needs to be handled by the subclass)
         self.parent = parent
         # attribute in which to store current state
@@ -38,6 +38,13 @@ class BasePhotodiode:
         self.responses = []
         # list of listener objects
         self.listeners = []
+        # set initial threshold
+        if threshold is not None:
+            self.setThreshold(threshold)
+        # store position params
+        self.pos = pos
+        self.size = size
+        self.units = units
 
     def clearResponses(self):
         self.parent.dispatchMessages()
@@ -339,8 +346,6 @@ class PhotodiodeValidator:
 
     def __init__(
             self, win, diode,
-            diodePos=None, diodeSize=None, diodeUnits="norm",
-            diodeThreshold=None,
             variability=1/60,
             report="log",
             autoLog=False):
@@ -370,22 +375,8 @@ class PhotodiodeValidator:
             depth=0, autoDraw=False,
             autoLog=False
         )
-        # if no threshold is given for diode, figure it out
-        if diodeThreshold is None:
-            diodeThreshold = diode.findThreshold(self.win)
-        # set diode threshold
-        diode.setThreshold(diodeThreshold)
-        # if no pos or size are given for diode, figure it out
-        if diodePos is None or diodeSize is None:
-            _guessPos, _guessSize = diode.findPhotodiode(self.win)
-            if diodePos is None:
-                diodePos = _guessPos
-            if diodeSize is None:
-                diodeSize = _guessSize
-        # position rects to match diode
-        self.diodeUnits = diodeUnits
-        self.diodeSize = diodeSize
-        self.diodePos = diodePos
+        # update rects to match diode
+        self.updateRects()
 
     def connectStimulus(self, stim):
         # store mapping of stimulus to self in window
@@ -394,6 +385,16 @@ class PhotodiodeValidator:
 
     def draw(self):
         self.onRect.draw()
+
+    def updateRects(self):
+        """
+        Update the size and position of this validator's rectangles to match the size and position of the associated
+        diode.
+        """
+        for rect in (self.onRect, self.offRect):
+            rect.units = self.diode.units
+            rect.pos = self.diode.pos
+            rect.size = self.diode.size
 
     def validate(self, state, t=None):
         """
@@ -464,6 +465,9 @@ class PhotodiodeValidator:
 
     @attributeSetter
     def diodePos(self, value):
+        if value is None:
+            return
+
         self.onRect.pos = value
         self.offRect.pos = value
 
@@ -471,6 +475,9 @@ class PhotodiodeValidator:
 
     @attributeSetter
     def diodeSize(self, value):
+        if value is None:
+            return
+
         self.onRect.size = value
         self.offRect.size = value
 
