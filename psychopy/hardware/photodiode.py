@@ -223,7 +223,8 @@ class BasePhotodiode:
             alignment="center",
             autoDraw=False
         )
-        # make sure threshold 255 catches black
+        # make sure threshold 0 catches black
+        self.setThreshold(0)
         bg.fillColor = "black"
         bg.draw()
         label.color = (-0.8, -0.8, -0.8)
@@ -234,7 +235,8 @@ class BasePhotodiode:
                 "Photodiode did not recognise a black screen even when its threshold was at maximum. This means either "
                 "the screen is too bright or the photodiode is too sensitive."
             )
-        # make sure threshold 0 catches white
+        # make sure threshold 255 catches white
+        self.setThreshold(255)
         bg.fillColor = "white"
         bg.draw()
         label.color = (0.8, 0.8, 0.8)
