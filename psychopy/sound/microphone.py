@@ -13,7 +13,7 @@ __all__ = ['Microphone', 'MicrophoneDevice']
 import sys
 import psychopy.logging as logging
 from psychopy.constants import NOT_STARTED
-from psychopy.hardware import deviceManager
+from psychopy.hardware import DeviceManager
 from psychopy.hardware.base import BaseDevice
 from psychopy.preferences import prefs
 from .audioclip import *
@@ -312,7 +312,7 @@ class RecordingBuffer:
 class Microphone:
     def __init__(
             self,
-            name=None,
+            deviceName=None,
             device=None,
             sampleRateHz=None,
             channels=None,
@@ -322,14 +322,21 @@ class Microphone:
             audioLatencyMode=None,
             audioRunMode=0):
 
-        if deviceManager.checkDeviceNameAvailable(name):
+        if deviceName not in DeviceManager.devices:
             # if no matching device is in DeviceManager, make a new one
-            self.device = deviceManager.addMicrophone(
-                name=name, device=device, sampleRate=sampleRateHz, channels=channels
+            self.device = DeviceManager.addDevice(
+                deviceClass="psychopy.hardware.sound.Microphone", deviceName=deviceName,
+                sampleRateHz=sampleRateHz,
+                channels=channels,
+                streamBufferSecs=streamBufferSecs,
+                maxRecordingSize=maxRecordingSize,
+                policyWhenFull=policyWhenFull,
+                audioLatencyMode=audioLatencyMode,
+                audioRunMode=audioRunMode
             )
         else:
             # otherwise, use the existing device
-            self.device = deviceManager.getMicrophone(name)
+            self.device = DeviceManager.getDevice(deviceName)
 
     @property
     def recording(self):

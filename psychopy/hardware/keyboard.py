@@ -70,7 +70,7 @@ from psychopy.constants import NOT_STARTED
 import time
 
 from psychopy.hardware.base import BaseDevice
-from psychopy.hardware import deviceManager
+from psychopy.hardware import DeviceManager
 from psychopy.tools.attributetools import AttributeGetSetMixin
 
 try:
@@ -125,15 +125,17 @@ def getKeyboards():
 
 
 class Keyboard(AttributeGetSetMixin):
-    def __init__(self, name=None, device=-1, bufferSize=10000, waitForStart=False, clock=None, backend=None):
-        if deviceManager.checkDeviceNameAvailable(name):
+    def __init__(self, deviceName=None, device=-1, bufferSize=10000, waitForStart=False, clock=None, backend=None):
+        if deviceName not in DeviceManager.devices:
             # if no matching device is in DeviceManager, make a new one
-            self.device = deviceManager.addKeyboard(
-                name=name, device=device, bufferSize=bufferSize, waitForStart=waitForStart, clock=clock, backend=backend
+            self.device = DeviceManager.addDevice(
+                deviceClass="psychopy.hardware.keyboard.Keyboard", deviceName=deviceName,
+                backend=backend, device=device, bufferSize=bufferSize, waitForStart=waitForStart,
+                clock=clock
             )
         else:
             # otherwise, use the existing device
-            self.device = deviceManager.getKeyboard(name)
+            self.device = DeviceManager.getDevice(deviceName)
 
         # starting value for status (Builder)
         self.status = NOT_STARTED

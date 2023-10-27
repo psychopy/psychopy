@@ -1,5 +1,6 @@
 import json
 from psychopy import layout, logging
+from psychopy.hardware import base
 from psychopy.localization import _translate
 from psychopy.hardware import keyboard
 
@@ -27,7 +28,7 @@ class PhotodiodeResponse:
         return json.dumps(message)
 
 
-class BasePhotodiode:
+class BasePhotodiode(base.BaseDevice):
     def __init__(self, parent, threshold=None, pos=None, size=None, units=None):
         # get serial parent from port (if photodiode manages its own parent, this needs to be handled by the subclass)
         self.parent = parent
