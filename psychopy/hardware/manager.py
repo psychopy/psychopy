@@ -50,6 +50,7 @@ class DeviceManager:
     _instance = None  # singleton instance
     ioServer = None  # reference to currently running ioHub ioServer object
     devices = {}  # devices stored
+    aliases = {}  # aliases to get device classes by
 
     def __new__(cls, liaison=None):
         # when making a new DeviceManager, if an instance already exists, just return it
@@ -86,52 +87,40 @@ class DeviceManager:
 
         return ports
 
-    def addListener(self, deviceName, listener):
+    @staticmethod
+    def registerAlias(alias, deviceClass):
         """
-        Add a listener to a managed device.
+        Register an alias to rever to a particular class, for convenience.
 
         Parameters
         ----------
-        deviceName : str
-            Name of the device to add a listener to
-        listener : str or psychopy.hardware.listener.BaseListener
-            Either a Listener object, or use one of the following strings to create one:
-            - "liaison": Create a LiaisonListener with self.liaison as the server
-            - "print": Create a PrintListener with default settings
-            - "log": Create a LoggingListener with default settings
+        alias : str
+            Short, convenient string to refer to the class by. For example, "keyboard".
+        deviceClass : str
+            Full import path for the class, in PsychoPy, of the device. For example `psychopy.hardware.keyboard.Keyboard`
         """
-        from psychopy.hardware import listener as lsnr
-        # get device
-        device = self.getDevice(deviceName)
-        # make listener if needed
-        if not isinstance(listener, lsnr.BaseListener):
-            if listener == "liaison":
-                listener = lsnr.LiaisonListener(self.liaison)
-            if listener == "print":
-                listener = lsnr.PrintListener()
-            if listener == "log":
-                listener = lsnr.LoggingListener()
-        # add listener to device
-        device.addListener(listener)
+        # if device class is an already registered alias, get the actual class str
+        deviceClass = DeviceManager._resolveAlias(deviceClass)
+        # register alias
+        DeviceManager.aliases[alias] = deviceClass
 
     @staticmethod
-    def closeAll():
-        """Close all devices.
-
-        Close all devices that have been initialized. This is usually called on
-        exit to free resources cleanly. It is not necessary to call this method
-        manually as it is registered as an `atexit` handler.
-
-        The device manager will be reset after this method is called.
-
+    def _resolveAlias(alias):
         """
-        # iterate through devices
-        for name, device in DeviceManager.devices.items():
-            # if it has a close method, call it
-            if hasattr(device, "close"):
-                device.close()
-        # delete devices
-        DeviceManager.devices = {}
+        Get a device class string from a previously registered alias. Returns the alias unchanged if
+        not found.
+
+        Parameters
+        ----------
+        alias : str
+            Short, convenient string to refer to the class by. For example, "keyboard".
+
+        Returns
+        -------
+        str
+            Either the device class corresponding to the given alias, or the alias if there is none.
+        """
+        return DeviceManager.aliases.get(alias, alias)
 
     # --- device management ---
     @staticmethod
@@ -155,6 +144,8 @@ class DeviceManager:
         BaseDevice
             Device created by the linked class init
         """
+        # if device class is an already registered alias, get the actual class str
+        deviceClass = DeviceManager._resolveAlias(deviceClass)
         # get package and class names from deviceClass string
         parts = deviceClass.split(".")
         pkgName = ".".join(parts[:-1])
@@ -209,6 +200,9 @@ class DeviceManager:
         deviceClass : str
             Full import path for the class, in PsychoPy, of the device. For example `psychopy.hardware.keyboard.Keyboard`
         """
+        # if device class is an already registered alias, get the actual class str
+        deviceClass = DeviceManager._resolveAlias(deviceClass)
+
         foundDevices = {}
         # iterate through devices and names
         for name, device in DeviceManager.devices.items():
@@ -230,7 +224,29 @@ class DeviceManager:
         deviceClass : str
             Full import path for the class, in PsychoPy, of the device. For example `psychopy.hardware.keyboard.Keyboard`
         """
+        # if device class is an already registered alias, get the actual class str
+        deviceClass = DeviceManager._resolveAlias(deviceClass)
+
         return st.systemProfilerWindowsOS(deviceids=True)
+
+    @staticmethod
+    def closeAll():
+        """Close all devices.
+
+        Close all devices that have been initialized. This is usually called on
+        exit to free resources cleanly. It is not necessary to call this method
+        manually as it is registered as an `atexit` handler.
+
+        The device manager will be reset after this method is called.
+
+        """
+        # iterate through devices
+        for name, device in DeviceManager.devices.items():
+            # if it has a close method, call it
+            if hasattr(device, "close"):
+                device.close()
+        # delete devices
+        DeviceManager.devices = {}
 
     # --- device interation ---
 
@@ -254,6 +270,44 @@ class DeviceManager:
         device = DeviceManager.getDevice(deviceName)
         # call method
         return getattr(device, method)(*args, **kwargs)
+
+    def addListener(self, deviceName, listener):
+        """
+        Add a listener to a managed device.
+
+        Parameters
+        ----------
+        deviceName : str
+            Name of the device to add a listener to
+        listener : str or psychopy.hardware.listener.BaseListener
+            Either a Listener object, or use one of the following strings to create one:
+            - "liaison": Create a LiaisonListener with self.liaison as the server
+            - "print": Create a PrintListener with default settings
+            - "log": Create a LoggingListener with default settings
+        """
+        from psychopy.hardware import listener as lsnr
+        # get device
+        device = self.getDevice(deviceName)
+        # make listener if needed
+        if not isinstance(listener, lsnr.BaseListener):
+            if listener == "liaison":
+                if self.liaison is None:
+                    raise AttributeError(
+                        "Cannot create a `liaison` listener as no liaison server is connected to DeviceManager."
+                    )
+                listener = lsnr.LiaisonListener(self.liaison)
+            if listener == "print":
+                listener = lsnr.PrintListener()
+            if listener == "log":
+                listener = lsnr.LoggingListener()
+        # add listener to device
+        if hasattr(device, "addListener"):
+            device.addListener(listener)
+        else:
+            raise AttributeError(
+                f"Could not add a listener to device {deviceName} ({type(device).__name__}) as it does not "
+                f"have an `addListener` method."
+            )
             
 # handle to the device manager, which is a singleton
 deviceManager = DeviceManager()
