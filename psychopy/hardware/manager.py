@@ -130,6 +130,33 @@ class DeviceManager:
         """
         return DeviceManager.aliases.get(alias, alias)
 
+    @staticmethod
+    def _resolveClassString(deviceClass):
+        """
+        Get a `class` object from an import path string.
+
+        Parameters
+        ----------
+        deviceClass : str
+            Full import path for the class, in PsychoPy, of the device. For example `psychopy.hardware.keyboard.Keyboard`
+
+        Returns
+        -------
+        type
+            Class pointed to by deviceClass
+        """
+        # get package and class names from deviceClass string
+        parts = deviceClass.split(".")
+        pkgName = ".".join(parts[:-1])
+        clsName = parts[-1]
+        # import package
+        pkg = importlib.import_module(pkgName)
+        # get class
+        cls = getattr(pkg, clsName)
+
+        return cls
+
+
     # --- device management ---
     @staticmethod
     def addDevice(deviceClass, deviceName, *args, **kwargs):
@@ -154,14 +181,8 @@ class DeviceManager:
         """
         # if device class is an already registered alias, get the actual class str
         deviceClass = DeviceManager._resolveAlias(deviceClass)
-        # get package and class names from deviceClass string
-        parts = deviceClass.split(".")
-        pkgName = ".".join(parts[:-1])
-        clsName = parts[-1]
-        # import package
-        pkg = importlib.import_module(pkgName)
-        # get class
-        cls = getattr(pkg, clsName)
+        # get device class
+        cls = DeviceManager._resolveClassString(deviceClass)
         # initialise device
         device = cls(*args, **kwargs)
         # store device by name
@@ -230,44 +251,28 @@ class DeviceManager:
         Parameters
         ----------
         deviceClass : str
-            Full import path for the class, in PsychoPy, of the device. For example `psychopy.hardware.keyboard.Keyboard`
+            Full import path for the class, in PsychoPy, of the device. For example
+            `psychopy.hardware.keyboard.Keyboard`
+
+        Returns
+        -------
+        list
+            List of dicts specifying parameters needed to initialise each device.
         """
+        # if deviceClass is *, just return full output from systemProfilerWindowsOS
         if deviceClass == "*":
             return st.systemProfilerWindowsOS(deviceids=True)
         # if device class is an already registered alias, get the actual class str
         deviceClass = DeviceManager._resolveAlias(deviceClass)
-        # get from known devices
-        try:
-            spec = DeviceManager.knownDevices[deviceClass]
-        except KeyError:
-            raise KeyError(
-                f"Cannot find search spec for device class `{deviceClass}`"
-            )
-        # extract any keys which are marked "contains"
-        contSpec = {}
-        searchSpec = {}
-        for key, value in spec.items():
-            if key.endswith(".contains"):
-                # remove contains
-                key = key.replace(".contains", "")
-                # add to contains spec dict
-                contSpec[key] = value
-            else:
-                # if not contains, add to regular spec
-                searchSpec[key] = value
-        # perform initial search
-        searchDevices = st.systemProfilerWindowsOS(deviceids=True, **searchSpec)
-        # extract only devices which meet the necessary contains condition
-        contDevices = []
-        for device in searchDevices:
-            toAdd = True
-            for key, value in contSpec.items():
-                if value not in device[key]:
-                    toAdd = False
-            if toAdd:
-                contDevices.append(device)
-
-        return contDevices
+        # get device class
+        cls = DeviceManager._resolveClassString(deviceClass)
+        # make sure cass has a getAvailableDevices method
+        assert hasattr(cls, "getAvailableDevices"), (
+            "Could not get available devices of type `{deviceClass}` as device class does not have a "
+            "`getAvailableDevices` method."
+        )
+        # use class method
+        return cls.getAvailableDevices()
 
 
     @staticmethod
