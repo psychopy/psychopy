@@ -129,7 +129,7 @@ class Keyboard(AttributeGetSetMixin):
         if deviceName not in DeviceManager.devices:
             # if no matching device is in DeviceManager, make a new one
             self.device = DeviceManager.addDevice(
-                deviceClass="psychopy.hardware.keyboard.Keyboard", deviceName=deviceName,
+                deviceClass="psychopy.hardware.keyboard.KeyboardDevice", deviceName=deviceName,
                 backend=backend, device=device, bufferSize=bufferSize, waitForStart=waitForStart,
                 clock=clock
             )
