@@ -894,6 +894,7 @@ class RunnerOutputNotebook(aui.AuiNotebook, handlers.ThemeMixin):
             parent=parent,
             style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE
         )
+        self.alertsPnl.ctrl.Bind(wx.EVT_TEXT, self.onWrite)
         self.AddPage(
             self.alertsPnl, caption=_translate("Alerts")
         )
@@ -903,11 +904,24 @@ class RunnerOutputNotebook(aui.AuiNotebook, handlers.ThemeMixin):
             parent=parent,
             style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE
         )
+        self.stdoutPnl.ctrl.Bind(wx.EVT_TEXT, self.onWrite)
         self.AddPage(
             self.stdoutPnl, caption=_translate("Stdout")
         )
 
         self.SetMinSize((720, 720))
+
+    def onWrite(self, evt):
+        # get ctrl
+        ctrl = evt.GetEventObject()
+        # iterate through pages
+        for i in range(self.GetPageCount()):
+            # get page window
+            page = self.GetPage(i)
+            # is the ctrl a child of that window?
+            if page.IsDescendant(ctrl):
+                # if so, focus that page
+                self.SetSelection(i)
 
 
 class RunnerRibbon(ribbon.FrameRibbon):
