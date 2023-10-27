@@ -1,0 +1,16 @@
+{
+    "psychopy.hardware.keyboard.KeyboardDevice": {
+        "classid": "{745a17a0-74d3-11d0-b6fe-00a0c90f57da}"
+    },
+    "psychopy.hardware.mouse.Mouse": {
+        "classid": "{4d36e96f-e325-11ce-bfc1-08002be10318}"
+    },
+    "psychopy_bbtk.tpad.TPadDevice": {
+        "classid": "{4d36e978-e325-11ce-bfc1-08002be10318}",
+        "Instance ID.contains": "BBTKTPAD"
+    },
+    "psychopy_bbtk.tpad.TPadPhotodiodeDevice": {
+        "classid": "{4d36e978-e325-11ce-bfc1-08002be10318}",
+        "Instance ID.contains": "BBTKTPAD"
+    }
+}

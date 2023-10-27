@@ -21,6 +21,10 @@ from serial.tools import list_ports
 from psychopy import logging
 import atexit
 import importlib
+import json
+from pathlib import Path
+
+__folder__ = Path(__file__).parent
 
 
 class DeviceManager:
@@ -48,9 +52,13 @@ class DeviceManager:
 
     """
     _instance = None  # singleton instance
+    liaison = None
     ioServer = None  # reference to currently running ioHub ioServer object
     devices = {}  # devices stored
     aliases = {}  # aliases to get device classes by
+
+    with (__folder__ / "knownDevices.json").open("rb") as f:
+        knownDevices = json.load(f)  # dict of known device classes
 
     def __new__(cls, liaison=None):
         # when making a new DeviceManager, if an instance already exists, just return it
@@ -224,10 +232,43 @@ class DeviceManager:
         deviceClass : str
             Full import path for the class, in PsychoPy, of the device. For example `psychopy.hardware.keyboard.Keyboard`
         """
+        if deviceClass == "*":
+            return st.systemProfilerWindowsOS(deviceids=True)
         # if device class is an already registered alias, get the actual class str
         deviceClass = DeviceManager._resolveAlias(deviceClass)
+        # get from known devices
+        try:
+            spec = DeviceManager.knownDevices[deviceClass]
+        except KeyError:
+            raise KeyError(
+                f"Cannot find search spec for device class `{deviceClass}`"
+            )
+        # extract any keys which are marked "contains"
+        contSpec = {}
+        searchSpec = {}
+        for key, value in spec.items():
+            if key.endswith(".contains"):
+                # remove contains
+                key = key.replace(".contains", "")
+                # add to contains spec dict
+                contSpec[key] = value
+            else:
+                # if not contains, add to regular spec
+                searchSpec[key] = value
+        # perform initial search
+        searchDevices = st.systemProfilerWindowsOS(deviceids=True, **searchSpec)
+        # extract only devices which meet the necessary contains condition
+        contDevices = []
+        for device in searchDevices:
+            toAdd = True
+            for key, value in contSpec.items():
+                if value not in device[key]:
+                    toAdd = False
+            if toAdd:
+                contDevices.append(device)
 
-        return st.systemProfilerWindowsOS(deviceids=True)
+        return contDevices
+
 
     @staticmethod
     def closeAll():
