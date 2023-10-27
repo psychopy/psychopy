@@ -230,7 +230,7 @@ class CaseSwitcher:
         return value
 
 
-def wrap(value, chars, delim=r"\s"):
+def wrap(value, chars, delim=r"\s|\-"):
     """
     Wrap a string at a number of characters.
 
@@ -241,7 +241,7 @@ def wrap(value, chars, delim=r"\s"):
     chars : int
         Number of characters to split at
     delim : str
-        Regex string delimeter to split words at, default is a space (r"\s")
+        Regex string delimeter to split words at, default is a space or a hyphen (r"\s|\-")
 
     Returns
     -------
@@ -254,11 +254,13 @@ def wrap(value, chars, delim=r"\s"):
     for n, word in enumerate(re.split(pattern=r"(" + delim + r")", string=value)):
         # count its letters
         letter += len(word)
+        # split word if it's very long
+        if len(word) > chars:
+            word = word[:chars] + "-\n" + word[chars:]
         # if this brings the current letters this line to more than the wrap limit, insert a line break
         if letter > chars and n > 0 and not re.match(pattern=delim, string=word):
             newValue += "\n"
             letter = len(word)
-
         # insert word
         newValue += word
 
