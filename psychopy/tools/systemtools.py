@@ -1224,6 +1224,17 @@ def getInstalledDevices(deviceType='all', refresh=False):
 
         _installedDeviceCache = toReturn  # update the cache
 
+    # append supported actions from device manager
+    from psychopy.hardware.manager import _deviceMethods
+    for deviceType in toReturn:
+        # get supported actions for this device type
+        actions = _deviceMethods.get(deviceType, {})
+        # we only want the names here
+        actions = list(actions)
+        # append to each dict
+        for i in range(len(toReturn[deviceType])):
+            toReturn[deviceType][i]['actions'] = actions
+
     if deviceType != 'all':  # return only the requested device type
         return toReturn[deviceType]
     
