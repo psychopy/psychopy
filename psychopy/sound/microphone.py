@@ -1152,5 +1152,10 @@ class MicrophoneDevice(BaseDevice):
         return self._recording.getSegment()  # full recording
 
 
+# register some aliases for the MicrophoneDevice class with DeviceManager
+DeviceManager.registerAlias("microphone", deviceClass="psychopy.sound.microphone.MicrophoneDevice")
+DeviceManager.registerAlias("psychopy.sound.microphone.Microphone", deviceClass="psychopy.sound.microphone.MicrophoneDevice")
+
+
 if __name__ == "__main__":
     pass
