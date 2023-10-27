@@ -200,7 +200,7 @@ class DeviceManager:
         return DeviceManager.devices[deviceName]
 
     @staticmethod
-    def getDevices(deviceClass="*"):
+    def getInitialisedDevices(deviceClass="*"):
         """
         Get all devices of a given type which have been `add`ed to this DeviceManager
 
@@ -212,9 +212,13 @@ class DeviceManager:
         foundDevices = {}
         # iterate through devices and names
         for name, device in DeviceManager.devices.items():
+            # get class name for this device
+            thisDeviceClass = ".".join((type(device).__module__, type(device).__qualname__))
             # add device to array if device class matches requested
-            if deviceClass in (device['deviceClass'], "*"):
+            if deviceClass in (thisDeviceClass, "*"):
                 foundDevices[name] = device
+
+        return foundDevices
 
     @staticmethod
     def getAvailableDevices(deviceClass="*"):
