@@ -173,9 +173,29 @@ PsychoPy 2023.2.3
 
 **Key fixes (from 2023.2.2):**
 
+* Silenced warning about numpy version number in Windows Standalone
+* Fixed issue with "cannot import Never from typing_extensions" in Windows standalone
+* Fixed error detecting eyetracker config files by @TEParsons in #5883 #5886
+* Fixed eyetracker calibration routine freezing by @mdcutone in #5901
+* Fixed support for updated Pupil Labs plugin w/ support for Neon by @domstoppable in #5887
+* Fixed useVersion for JS - needed to create a _legacy.js file by @TEParsons in #5918
+* Fixed SerialOut parity should be N not None by @TEParsons in #5907
+* Fixed bug whereby Textbox's scrolling Aperture was applied to all stim by @TEParsons in #5934
 
-- Silenced warning about numpy version number
-- Fixed issue with "cannot import Never from typing_extensions" (outdated version in windows standalone)
+# Translation works
+
+* Continued translation into Simplified Chinese (and now Traditional Chinese) and beginnings of translations into Spanish, Hebrew: #5891 #5892 #5893 #5894 #5895 #5897 #5904 #5912 #5915 #5917 #5923 #5903 #5932 #5925
+
+## New Contributors
+* @meltemkaraca made their first contribution in #5891
+* @SarvCh made their first contribution in #5893
+* @ymhuang1005 made their first contribution in #5894
+* @ice-yu made their first contribution in #5895
+* @domstoppable made their first contribution in #5887
+* @jingrun213 made their first contribution in #5897
+* @psych575 made their first contribution in #5912
+
+**Full Changelog**: https://github.com/psychopy/psychopy/compare/2023.2.2...2023.2.3
 
 PsychoPy 2023.1
 ---------------
