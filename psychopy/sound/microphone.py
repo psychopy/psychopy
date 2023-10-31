@@ -16,6 +16,7 @@ from psychopy.constants import NOT_STARTED
 from psychopy.hardware import DeviceManager
 from psychopy.hardware.base import BaseDevice
 from psychopy.preferences import prefs
+from psychopy.tools import systemtools as st
 from .audioclip import *
 from .audiodevice import *
 from .exceptions import *
@@ -705,6 +706,19 @@ class MicrophoneDevice(BaseDevice):
                      if desc.isCapture]
 
         return inputDevices
+
+    @staticmethod
+    def getAvailableDevices():
+        devices = []
+        for key, val in st.getAudioCaptureDevices().items():
+            device = {
+                'device': val.get('index', None),
+                'sampleRateHz': val.get('defaultSampleRate', None),
+                'channels': val.get('inputChannels', None),
+            }
+            devices.append(device)
+
+        return devices
 
     # def warmUp(self):
     #     """Warm-/wake-up the audio stream.

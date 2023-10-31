@@ -72,6 +72,7 @@ import time
 from psychopy.hardware.base import BaseDevice
 from psychopy.hardware import DeviceManager
 from psychopy.tools.attributetools import AttributeGetSetMixin
+from psychopy.tools import systemtools as st
 
 try:
     import psychtoolbox as ptb
@@ -324,6 +325,20 @@ class KeyboardDevice(BaseDevice):
 
     def close(self):
         self.stop()
+
+    @staticmethod
+    def getAvailableDevices():
+        kbs = st.getKeyboards()
+        toReturn = []
+        for key, val in kbs.items():
+            device = {
+                'device': val.get('index', -1),
+                'bufferSize': val.get('bufferDize', 10000),
+            }
+            val['deviceName'] = key
+            toReturn.append(device)
+
+        return toReturn
 
     def getKeys(self, keyList=None, ignoreKeys=None, waitRelease=True, clear=True):
         """

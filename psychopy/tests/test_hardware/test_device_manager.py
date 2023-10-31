@@ -9,11 +9,9 @@ class TestDeviceManager:
     @skip_under_vm
     def test_all_devices(self):
         devices = (
-            "keyboard",
-            "mouse",
-            "speaker",
-            "microphone",
-            "serial"
+            "psychopy.hardware.keyboard.KeyboardDevice",
+            "psychopy.sound.microphone.MicrophoneDevice",
+            "psychopy.hardware.serialdevice.SerialDevice"
         )
         for device in devices:
             self._test_device(device)
@@ -25,8 +23,8 @@ class TestDeviceManager:
         if not len(available):
             return
         # create device
-        name = "test" + deviceType.capitalize()
-        _device = self.mgr.addDevice(deviceType, name=name, **available[0])
+        name = "test" + deviceType.split(".")[-1].capitalize()
+        _device = self.mgr.addDevice(deviceType, deviceName=name, **available[0])
         # get device
         device = self.mgr.getDevice(name)
         assert device == _device

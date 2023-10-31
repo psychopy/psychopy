@@ -215,6 +215,21 @@ class SerialDevice(AttributeGetSetMixin, BaseDevice):
         port = self.portString[3:]
         return params['port'] in (self.portString, port, int(port))
 
+    @staticmethod
+    def getAvailableDevices():
+        ports = st.getSerialPorts()
+        devices = []
+        for key, val in ports.items():
+            device = {
+                'port': val.get('port', None),
+                'baudrate': val.get('baudrate', 9600),
+                'byteSize': val.get('bytesize', 8),
+                'stopBits': val.get('stopbits', 1),
+                'parity': val.get('parity', "N"),
+            }
+            devices.append(device)
+        return devices
+
     def close(self):
         self.com.close()
 
