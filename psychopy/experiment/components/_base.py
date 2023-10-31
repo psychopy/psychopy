@@ -19,7 +19,7 @@ from psychopy.experiment.params import getCodeFromParamStr
 from psychopy.alerts import alerttools
 from psychopy.colors import nonAlphaSpaces
 
-from psychopy.localization import _translate, _localized
+from psychopy.localization import _translate
 
 
 class BaseComponent:
@@ -382,6 +382,15 @@ class BaseComponent:
                 # use the time ignoring any flips
                 code += f"thisExp.addData('{params['name']}.started', t)\n"
         buff.writeIndentedLines(code)
+        # validate presentation time
+        validator = self.getValidator()
+        if validator:
+            # queue validation
+            code = (
+                "# tell attached validator (%(name)s) to start looking for a start flag\n"
+                "%(name)s.status = STARTED\n"
+            )
+            buff.writeIndentedLines(code % validator.params)
         # Set status
         code = (
             "# update status\n"
@@ -506,6 +515,16 @@ class BaseComponent:
                 # use the time ignoring any flips
                 code += f"thisExp.addData('{params['name']}.stopped', t)\n"
         buff.writeIndentedLines(code)
+
+        # validate presentation time
+        validator = self.getValidator()
+        if validator:
+            # queue validation
+            code = (
+                "# tell attached validator (%(name)s) to start looking for a start flag\n"
+                "%(name)s.status = STARTED\n"
+            )
+            buff.writeIndentedLines(code % validator.params)
 
         # Set status
         code = (
@@ -903,6 +922,26 @@ class BaseComponent:
         """Replaces word component with empty string"""
         return self.getType().replace('Component', '')
 
+    def getValidator(self):
+        """
+        Get the validator associated with this Component.
+
+        Returns
+        -------
+        BaseStandaloneRoutine or None
+            Validator Routine object
+        """
+        # return None if we have no such param
+        if "validator" not in self.params:
+            return None
+        # strip spaces from param
+        name = self.params['validator'].val.strip()
+        # look for Components matching validator name
+        for rt in self.exp.routines.values():
+            for comp in rt:
+                if comp.name == name:
+                    return comp
+
     @property
     def name(self):
         return self.params['name'].val
@@ -948,7 +987,7 @@ class BaseVisualComponent(BaseComponent):
                  stopType='duration (s)', stopVal='',
                  startEstim='', durationEstim='',
                  saveStartStop=True, syncScreenRefresh=True,
-                 disabled=False):
+                 validator="", disabled=False):
 
         super(BaseVisualComponent, self).__init__(
             exp, parentName, name,
@@ -1061,6 +1100,15 @@ class BaseVisualComponent(BaseComponent):
 
         self.params['syncScreenRefresh'].readOnly = True
 
+        # --- Testing ---
+        self.params['validator'] = Param(
+            validator, valType="code", inputType="single", categ="Testing",
+            label=_translate("Validate with..."),
+            hint=_translate(
+                "Names of Validator components (separated by commas) to use to check the timing of this stimulus."
+            )
+        )
+
     def integrityCheck(self):
         """
         Run component integrity checks.
@@ -1133,20 +1181,29 @@ class BaseVisualComponent(BaseComponent):
 
         buff.writeIndentedLines(f"\n// *{params['name']}* updates\n")
         # writes an if statement to determine whether to draw etc
-        self.writeStartTestCodeJS(buff)
-        buff.writeIndented(f"{params['name']}.setAutoDraw(true);\n")
-        # to get out of the if statement
-        buff.setIndentLevel(-1, relative=True)
-        buff.writeIndented("}\n\n")
-
-        # test for stop (only if there was some setting for duration or stop)
-        if self.params['stopVal'].val not in ('', None, -1, 'None'):
-            # writes an if statement to determine whether to draw etc
-            self.writeStopTestCodeJS(buff)
-            buff.writeIndented(f"{params['name']}.setAutoDraw(false);\n")
+        indented = self.writeStartTestCodeJS(buff)
+        if indented:
+            buff.writeIndentedLines(f"{params['name']}.setAutoDraw(true);\n")
             # to get out of the if statement
-            buff.setIndentLevel(-1, relative=True)
-            buff.writeIndented("}\n")
+            while indented > 0:
+                buff.setIndentLevel(-1, relative=True)
+                buff.writeIndentedLines(
+                    "}\n"
+                    "\n"
+                )
+                indented -= 1
+        # writes an if statement to determine whether to draw etc
+        indented = self.writeStopTestCodeJS(buff)
+        if indented:
+            buff.writeIndentedLines(f"{params['name']}.setAutoDraw(false);\n")
+            # to get out of the if statement
+            while indented > 0:
+                buff.setIndentLevel(-1, relative=True)
+                buff.writeIndentedLines(
+                    "}\n"
+                    "\n"
+                )
+                indented -= 1
 
 
 def canBeNumeric(inStr):

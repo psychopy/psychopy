@@ -14,7 +14,7 @@ import copy
 import numpy as np
 
 from psychopy import core, logging, event, layout
-from psychopy.tools import arraytools
+from psychopy.tools import arraytools, stimulustools as stt
 from .basevisual import MinimalStim, WindowMixin, ColorMixin, BaseVisualStim
 from .rect import Rect
 from .grating import GratingStim
@@ -955,9 +955,9 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         if hasattr(self, "tickLines"):
             self.tickLines.colors = self._borderColor.copy()
 
-    knownStyles = ['slider', 'rating', 'radio', 'scrollbar', 'choice']
+    knownStyles = stt.sliderStyles
     legacyStyles = []
-    knownStyleTweaks = ['labels45', 'triangleMarker']
+    knownStyleTweaks = stt.sliderStyleTweaks
     legacyStyleTweaks = ['whiteOnBlack']
 
     @property

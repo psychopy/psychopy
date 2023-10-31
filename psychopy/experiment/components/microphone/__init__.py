@@ -13,7 +13,6 @@ from psychopy.alerts import alert
 from psychopy.tools import stringtools as st, systemtools as syst, audiotools as at
 from psychopy.experiment.components import BaseComponent, Param, getInitVals, _translate
 from psychopy.tools.audiotools import sampleRateQualityLevels
-from psychopy.localization import _localized as __localized
 
 _hasPTB = True
 try:
@@ -25,10 +24,6 @@ except (ImportError, ModuleNotFoundError):
         "recording will be unavailable this session. Note that opening a "
         "microphone stream will raise an error.")
     _hasPTB = False
-
-_localized = __localized.copy()
-_localized.update({'stereo': _translate('Stereo'),
-                   'channel': _translate('Channel')})
 
 # Get list of devices
 if _hasPTB and not syst.isVM_CI():
@@ -74,6 +69,7 @@ class MicrophoneComponent(BaseComponent):
                  transcribe=False, transcribeBackend="Whisper",
                  transcribeLang="en-US", transcribeWords="",
                  transcribeWhisperModel="base",
+                 transcribeWhisperDevice="auto",
                  #legacy
                  stereo=None, channel=None):
         super(MicrophoneComponent, self).__init__(
@@ -169,7 +165,16 @@ class MicrophoneComponent(BaseComponent):
             label=_translate("Transcribe audio")
         )
 
-        for depParam in ['transcribeBackend', 'transcribeLang', 'transcribeWords', 'transcribeWhisperModel']:
+        # whisper specific params
+        whisperParams = [
+            'transcribeBackend', 
+            'transcribeLang', 
+            'transcribeWords', 
+            'transcribeWhisperModel',
+            'transcribeWhisperDevice'
+        ]
+
+        for depParam in whisperParams:
             self.depends.append({
                 "dependsOn": "transcribe",
                 "condition": "==True",
@@ -228,6 +233,24 @@ class MicrophoneComponent(BaseComponent):
             "false": "hide",  # permitted: hide, show, enable, disable
         })
 
+        # settings for whisper we might want, we'll need to get these from the
+        # plugin itself at some point
+        self.params['transcribeWhisperDevice'] = Param(
+            transcribeWhisperDevice, valType='code', inputType='choice', 
+            categ='Transcription',
+            allowedVals=["auto", "gpu", "cpu"],
+            hint=_translate(
+                "Which device to use for transcription?"),
+            label=_translate("Whisper device")
+        )
+        self.depends.append({
+            "dependsOn": "transcribeBackend",
+            "condition": "=='Whisper'",
+            "param": "transcribeWhisperDevice",
+            "true": "show",  # what to do with param if condition is True
+            "false": "hide",  # permitted: hide, show, enable, disable
+        })
+
     def writeStartCode(self, buff):
         inits = getInitVals(self.params)
         # Use filename with a suffix to store recordings
@@ -273,6 +296,22 @@ class MicrophoneComponent(BaseComponent):
             "    sampleRateHz=%(sampleRate)s, maxRecordingSize=%(maxSize)s\n"
             ")\n"
         )
+
+        # check if the user wants to do transcription
+        if inits['transcribe'].val:
+            code += (
+                "# Setup speech-to-text transcriber for audio recordings\n"
+                "from psychopy.sound.transcribe import setupTranscriber\n"
+                "setupTranscriber(\n"
+                "    '%(transcribeBackend)s'")
+        
+            # handle advanced config options
+            if inits['transcribeBackend'].val == 'Whisper':
+                code += (
+                    ",\n    config={'device': '%(transcribeWhisperDevice)s'})\n")
+            else:
+                code += (")\n")
+
         buff.writeOnceIndentedLines(code % inits)
 
     def writeInitCode(self, buff):

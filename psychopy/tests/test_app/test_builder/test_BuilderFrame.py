@@ -127,6 +127,8 @@ class Test_BuilderFrame():
             {'fieldName': "correctAns", 'param': Param(val="'space'", valType="code"), 'msg': ""}, # Single-element lists should not cause warning
         ]
         for case in tykes:
+            # Give each param a label
+            case['param'].label = case['fieldName']
             # Add each param to the component
             comp.params[case['fieldName']] = case['param']
 
@@ -139,6 +141,11 @@ class Test_BuilderFrame():
         # Does the message delivered by the validator match what is expected?
         for case in tykes:
             if case['msg']:
-                assert case['msg'].format(**case) in dlg.warnings.messages
+                assert case['msg'].format(**case) in dlg.warnings.messages, (
+                    "Error for param {fieldName} with value `{val}` should include:\n"
+                    "'{msg}'\n"
+                    "but instead was:\n"
+                    "{actual}\n"
+                ).format(**case, val=case['param'].val.format(**case), actual=dlg.warnings.messages)
         # Cleanup
         dlg.Destroy()

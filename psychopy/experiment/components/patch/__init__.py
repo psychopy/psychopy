@@ -7,16 +7,6 @@
 
 from pathlib import Path
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
-from psychopy.localization import _localized as __localized
-_localized = __localized.copy()
-
-# only use _localized values for label values, nothing functional:
-_localized.update({'image': _translate('Image/tex'),
-                   'mask': _translate('Mask'),
-                   'sf': _translate('Spatial frequency'),
-                   'phase': _translate('Phase (in cycles)'),
-                   'texture resolution': _translate('Texture resolution'),
-                   'interpolate': _translate('Interpolate')})
 
 
 class PatchComponent(BaseVisualComponent):

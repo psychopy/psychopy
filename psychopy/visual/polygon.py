@@ -16,7 +16,9 @@ import numpy as np
 
 
 class Polygon(BaseShapeStim):
-    """Creates a regular polygon (triangles, pentagons, ...).
+    """Creates a regular polygon (triangles, pentagons, ...). This is
+    a lazy-imported class, therefore import using full path 
+    `from psychopy.visual.polygon import Polygon` when inheriting from it.
 
     This class is a special case of a :class:`~psychopy.visual.ShapeStim` that
     accepts the same parameters except `closeShape` and `vertices`.

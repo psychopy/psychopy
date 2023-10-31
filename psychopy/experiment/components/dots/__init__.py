@@ -8,22 +8,6 @@
 from os import path
 from pathlib import Path
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
-from psychopy.localization import _localized as __localized
-_localized = __localized.copy()
-
-# only use _localized values for label values, nothing functional:
-_localized.update({'nDots': _translate('Number of dots'),
-                   'dir': _translate('Direction'),
-                   'speed': _translate('Speed'),
-                   'coherence': _translate('Coherence'),
-                   'dotSize': _translate('Dot size'),
-                   'dotLife': _translate('Dot life-time'),
-                   'signalDots': _translate('Signal dots'),
-                   'noiseDots': _translate('Noise dots'),
-                   'fieldShape': _translate('Field shape'),
-                   'fieldSize': _translate('Field size'),
-                   'fieldPos': _translate('Field position'),
-                   'refreshDots': _translate('Dot refresh rule')})
 
 
 class DotsComponent(BaseVisualComponent):

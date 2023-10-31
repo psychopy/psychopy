@@ -111,7 +111,9 @@ def login(tokenOrUsername, rememberMe=True):
     if currentSession.user is not None:
         user = currentSession.user
         prefs.appData['projects']['pavloviaUser'] = user['username']
-
+    # update Pavlovia button(s)
+    for btn in app._psychopyApp.pavloviaButtons['user'] + app._psychopyApp.pavloviaButtons['project']:
+        btn.updateInfo()
 
 def logout():
     """Log the current user out of pavlovia.
@@ -132,6 +134,9 @@ def logout():
         frame = frameWeakref()
         if hasattr(frame, 'setUser'):
             frame.setUser(None)
+    # update Pavlovia button(s)
+    for btn in app._psychopyApp.pavloviaButtons['user'] + app._psychopyApp.pavloviaButtons['project']:
+        btn.updateInfo()
 
 
 class User(dict):
