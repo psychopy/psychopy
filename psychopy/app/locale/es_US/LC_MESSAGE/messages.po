@@ -1,13 +1,13 @@
 # Part of the PsychoPy library.
 # Copyright (C) 2015 Jonathan Peirce
-# CLAUDIO ALFREDO DE LA ROSA MUNAR <cdelarosa@delarosaresearch.com>, 2023.
+# CLAUDIO DE LA ROSA MUNAR <cdelarosa@delarosaresearch.com>, 2023.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: PsychoPy 2023.2.1\n"
+"Project-Id-Version: PsychoPy 2023.2.3\n"
 "POT-Creation-Date: 2023-08-31 10:34-0500\n"
 "PO-Revision-Date: \n"
-"Last-Translator: Claudio Alfredo de la Rosa Munar <cdelarosa@delarosaresearch.com>\n"
+"Last-Translator: Claudio de la Rosa Munar <cdelarosa@delarosaresearch.com>\n"
 "Language-Team: psychopy_spanish@opensciencetools.org\n"
 "Language: es_US\n"
 "MIME-Version: 1.0\n"
@@ -218,7 +218,7 @@ msgstr "El atributo RGB `.{rgbAttrib}` ya no está en uso, ya que ahora los colo
 
 #: psychopy/app/Resources/psychopy.desktop:5 psychopy/app/Resources/psychopy.desktop:6
 msgid "PsychoPy"
-msgstr "PsicoPía"
+msgstr "PsychoPy"
 
 #: psychopy/app/Resources/psychopy.desktop:7
 msgid "Psychology software in Python"
@@ -301,6 +301,7 @@ msgid "Compatibility information"
 msgstr "Información de compatibilidad"
 
 #: psychopy/app/_psychopyApp.py:654
+#, fuzzy
 msgid "tips.txt"
 msgstr "consejos.txt"
 
@@ -1980,7 +1981,7 @@ msgstr "Error de sintaxis de Python en el campo `{}`: {}"
 #: psychopy/app/builder/validators.py:528
 #, python-brace-format
 msgid "Looks like your variable '{code}' in '{displayName}' should be set to update."
-msgstr ""
+msgstr "Parece que su variable {code}’ en ‘{displayName}’ debe ser fijada en actualizar."
 
 #: psychopy/app/builder/validators.py:548
 msgid "Python var `{}` in `{}` is same as Name"
@@ -2604,7 +2605,7 @@ msgstr "Cerrar el shell actual."
 
 #: psychopy/app/coder/repl.py:66
 msgid "Close the current shell and start a new one, this will clear any variables."
-msgstr ""
+msgstr "Cierre la ventana Shell / Cmd e inicie una nueva, esto borrará cualquier variables."
 
 #: psychopy/app/coder/repl.py:86 psychopy/app/stdout/stdOutRich.py:223
 msgid "Clear all previous output."
@@ -2669,7 +2670,7 @@ msgstr "Esta versión es una actualización demasiado grande para manejarla auto
 
 #: psychopy/app/connections/updates.py:144
 msgid "Please fetch the latest version from www.psychopy.org and install manually."
-msgstr ""
+msgstr "Por favor obtenga la versión mas actualizada desde www.psychopy.org e instálela manualmente."
 
 #: psychopy/app/connections/updates.py:149
 msgid "Go to downloads"
@@ -3239,7 +3240,7 @@ msgstr ""
 #: psychopy/app/pavlovia_ui/project.py:676
 #, python-brace-format
 msgid "Could not find folder {directory}, please select a different local root."
-msgstr ""
+msgstr "No se encuentra la carpeta {directory}, por favor seleccione una nueva raiz."
 
 #: psychopy/app/pavlovia_ui/project.py:714
 msgid "Project info has changed, update online before closing?"
@@ -4338,7 +4339,7 @@ msgstr "Archivo de condiciones no encontrado: %s"
 
 #: psychopy/data/utils.py:377
 msgid "openpyxl or xlrd is required for loading excel files, but neither was found."
-msgstr ""
+msgstr "openpyxl o xlrd se requiere para cargar archivos de excel, pero ninguno se encontró."
 
 #: psychopy/data/utils.py:452
 #, python-format
@@ -4431,7 +4432,7 @@ msgstr "Duración esperada(s)"
 
 #: psychopy/experiment/components/_base.py:106
 msgid "Store the onset/offset times in the data file (as well as in the log file)."
-msgstr ""
+msgstr "Almacene los tiempos de inicio/compensación en el archivo de datos (así como en el archivo de registro)."
 
 #: psychopy/experiment/components/_base.py:111
 msgid "Save onset/offset times"
@@ -5079,7 +5080,7 @@ msgstr "Velocidad de los puntos (desplazamiento por cuadro en las unidades espec
 
 #: psychopy/experiment/components/dots/__init__.py:92
 msgid "Coherence of the dots (fraction moving in the signal direction on any one frame)"
-msgstr ""
+msgstr "Coherencia de los puntos (fracción que se mueve en la dirección de la señal en cualquier cuadro)"
 
 #: psychopy/experiment/components/dots/__init__.py:101
 msgid "Size of the dots IN PIXELS regardless of the set units"
@@ -5292,7 +5293,7 @@ msgstr "Una imagen para definir la máscara alfa (es decir, forma): gauss, círc
 
 #: psychopy/experiment/components/grating/__init__.py:73
 msgid "Spatial frequency of image repeats across the grating in 1 or 2 dimensions, e.g. 4 or [2,3]"
-msgstr ""
+msgstr "La frecuencia espacial de la imagen se repite a lo largo de la rejilla en 1 o 2 dimensiones, p. 4 o [2,3]"
 
 #: psychopy/experiment/components/grating/__init__.py:95 psychopy/experiment/components/image/__init__.py:116
 #: psychopy/experiment/components/movie/__init__.py:127 psychopy/experiment/components/polygon/__init__.py:103
@@ -5343,6 +5344,8 @@ msgstr "La imagen que se mostrará: un nombre de archivo, incluida la ruta"
 #: psychopy/experiment/components/image/__init__.py:63
 msgid "An image to define the alpha mask through which the image is seen - gauss, circle, None or a filename (including path)"
 msgstr ""
+"Una imagen para definir la máscara alfa a través de la cual se ve la imagen: gauss, círculo, Ninguno o un nombre de archivo "
+"(incluida la ruta)"
 
 #: psychopy/experiment/components/image/__init__.py:72
 msgid "Resolution of the mask if one is used."
@@ -5959,7 +5962,7 @@ msgstr "Color de la línea alrededor de la barra de progreso."
 
 #: psychopy/experiment/components/progress/__init__.py:65
 msgid "Value between 0 (not started) and 1 (complete) to set the progress bar to."
-msgstr ""
+msgstr "Valor entre 0 (no iniciado) y 1 (completo) para configurar la barra de progreso."
 
 #: psychopy/experiment/components/progress/__init__.py:67
 msgid "Progress"
@@ -6278,7 +6281,7 @@ msgstr "Ajuste de fondo"
 
 #: psychopy/experiment/components/routineSettings/__init__.py:147
 msgid "Save the start and stop times of this Routine (according to the global clock) to the data file."
-msgstr ""
+msgstr "Guarde los tiempos de inicio y finalización de esta rutina (según el reloj global) en el archivo de datos."
 
 #: psychopy/experiment/components/serialOut/__init__.py:29
 msgid "Serial out: send signals from a serial port"
@@ -6623,7 +6626,7 @@ msgstr "Guardar archivo hdf5"
 
 #: psychopy/experiment/components/settings/__init__.py:389
 msgid "How much output do you want in the log files? ('error' is fewest messages, 'debug' is most)"
-msgstr ""
+msgstr "¿Cuánta salida desea en los archivos de registro? (‘error’ es la menor cantidad de mensajes, ‘debug’ es la mayor parte)"
 
 #: psychopy/experiment/components/settings/__init__.py:400
 msgid "Place the HTML files will be saved locally "
@@ -7015,7 +7018,7 @@ msgstr "Código personalizado"
 
 #: psychopy/experiment/components/static/__init__.py:32
 msgid "Static: Static screen period (e.g. an ISI). Useful for pre-loading stimuli."
-msgstr ""
+msgstr "Estático: Período de pantalla estático (por ejemplo, un ISI). Útil para precarga de estímulos."
 
 #: psychopy/experiment/components/static/__init__.py:49
 msgid "Custom code to be run during the static period (after updates)"
@@ -7271,6 +7274,8 @@ msgid ""
 "To have a fixed random sequence provide an integer of your choosing here. Leave blank to have a new random sequence on each run "
 "of the experiment."
 msgstr ""
+"Para tener una secuencia aleatoria fija, proporcione aquí un número entero de su elección. Déjelo en blanco para tener una nueva "
+"secuencia aleatoria en cada ejecución del experimento."
 
 #: psychopy/experiment/loops.py:145 psychopy/experiment/loops.py:490 psychopy/experiment/loops.py:627
 msgid ""
@@ -8066,7 +8071,7 @@ msgstr ""
 
 #: psychopy/preferences/hints.py:67
 msgid "Show an error dialog when PsychoPy encounters an unhandled internal error."
-msgstr ""
+msgstr "Muestra un cuadro de diálogo de error cuando PsychoPy encuentra un error interno no controlado."
 
 #: psychopy/preferences/hints.py:70
 msgid "Theme"
@@ -8426,7 +8431,7 @@ msgstr "PavloviaSession.createProject recibió un nombre de espacio ({namespace}
 #: psychopy/projects/pavlovia.py:310
 #, python-brace-format
 msgid "Project `{namespace}/{name}` already exists, please choose another name."
-msgstr ""
+msgstr "El proyecto `{namespace}/{name}` ya existe, elija otro nombre."
 
 #: psychopy/projects/pavlovia.py:462
 msgid "Most stars"
@@ -8486,6 +8491,9 @@ msgid ""
 "\n"
 "Sync failed - could not find project with id {}"
 msgstr ""
+"\n"
+"\n"
+"Error de sincronización: no se pudo encontrar el proyecto con id {}"
 
 #: psychopy/projects/pavlovia.py:1186
 msgid "Avatar is too big, should be at most 200 KB."
@@ -9015,7 +9023,7 @@ msgstr "luego vuelve a cambiar. No necesitas hacer nada."
 
 #: psychopy/tools/wizard.py:567
 msgid "Optional: For best results, please quit all email programs, web-browsers, "
-msgstr ""
+msgstr "Opcional: para obtener mejores resultados, cierre todos los programas de correo electrónico, navegadores web, "
 
 #: psychopy/tools/wizard.py:570
 msgid "Dropbox, backup or sync services, and others."
