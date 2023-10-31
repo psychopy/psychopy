@@ -7,7 +7,6 @@ import pickle
 import atexit
 import pandas as pd
 
-import psychopy.visual.window
 from psychopy import constants
 from psychopy import logging
 from psychopy.tools.filetools import (openOutputFile, genDelimiter,

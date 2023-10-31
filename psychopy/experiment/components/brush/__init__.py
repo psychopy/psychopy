@@ -5,18 +5,9 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from os import path
 from pathlib import Path
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
-from psychopy import logging
-from psychopy.localization import _localized as __localized
-_localized = __localized.copy()
 
-# only use _localized values for label values, nothing functional:
-_localized.update({'lineWidth': _translate('Brush Size'),
-                   'lineColor': _translate('Brush Color'),
-                   'lineColorSpace': _translate('Brush Color Space'),
-                   'buttonRequired':_translate('Press Button')})
 
 class BrushComponent(BaseVisualComponent):
     """A class for drawing freehand responses"""

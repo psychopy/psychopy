@@ -248,8 +248,13 @@ class Routine(list):
     def copy(self):
         # Create a new routine with the same experiment and name as this one
         dupe = type(self)(self.name, self.exp, components=())
+        # Replace duplicate Routine's setting component
+        dupe.settings.params = copy.deepcopy(self.settings.params)
         # Iterate through components
         for comp in self:
+            # Skip settings component
+            if isinstance(comp, RoutineSettingsComponent):
+                continue
             # Create a deep copy of each component...
             newComp = copy.deepcopy(comp)
             # ...but retain original exp reference

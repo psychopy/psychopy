@@ -74,7 +74,7 @@ class TestComponentDialogs:
             pg = dlg.codeNotebook.GetCurrentPage()
             i = dlg.codeNotebook.FindPage(pg)
             tabLabel = dlg.codeNotebook.GetPageText(i)
-            assert case['first'] in tabLabel, (
+            assert case['first'].lower() in tabLabel.lower(), (
                 f"Tab {case['first']} should be opened first when the following fields are populated:\n"
                 f"{_nl.join(case['params'])}\n"
                 f"Instead, first tab open was {tabLabel}"
@@ -82,7 +82,7 @@ class TestComponentDialogs:
             # Check that correct tabs are starred
             for i in range(dlg.codeNotebook.GetPageCount()):
                 tabLabel = dlg.codeNotebook.GetPageText(i)
-                populated = any(name in tabLabel for name in case['starred'])
+                populated = any(name.lower() in tabLabel.lower() for name in case['starred'])
 
                 if populated:
                     assert "*" in tabLabel, (

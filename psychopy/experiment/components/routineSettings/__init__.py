@@ -4,10 +4,6 @@
 from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy.experiment.utils import CodeGenerationException
-from psychopy import prefs
-
-# only use _localized values for label values, nothing functional:
-_localized = {'name': _translate("Name")}
 
 
 class RoutineSettingsComponent(BaseComponent):
@@ -265,7 +261,7 @@ class RoutineSettingsComponent(BaseComponent):
                 # Stop after given number of seconds
                 code = (
                     f"// is it time to end the Routine? (based on local clock)\n"
-                    f"if (tThisFlip > %(stopVal)s-frameTolerance) {{\n"
+                    f"if (t > %(stopVal)s) {{\n"
                 )
             elif self.params['stopType'].val == 'frame N':
                 # Stop at given frame num

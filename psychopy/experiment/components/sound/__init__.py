@@ -10,13 +10,6 @@ Distributed under the terms of the GNU General Public License (GPL).
 from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, getInitVals, _translate
 from psychopy.tools.audiotools import knownNoteNames
-from psychopy.localization import _localized as __localized
-_localized = __localized.copy()
-
-# only use _localized values for label values, nothing functional:
-_localized.update({'sound': _translate('Sound'),
-                   'volume': _translate('Volume'),
-                   'syncScreenRefresh': _translate('Sync Start With Screen')})
 
 
 class SoundComponent(BaseComponent):
@@ -110,6 +103,10 @@ class SoundComponent(BaseComponent):
         else:
             buff.writeIndentedLines("%(name)s.setSound(%(sound)s, secs=%(stopVal)s, hamming=%(hamming)s)\n"
                                     "%(name)s.setVolume(%(volume)s, log=False)\n" % self.params)
+        code = (
+            "%(name)s.seek(0)\n"
+        )
+        buff.writeIndentedLines(code % self.params)
 
     def writeInitCodeJS(self, buff):
         # replaces variable params with sensible defaults
@@ -228,7 +225,7 @@ class SoundComponent(BaseComponent):
         if self.params['stopWithRoutine']:
             # stop at the end of the Routine, if requested
             code = (
-                "%(name)s.stop()  # ensure sound has stopped at end of Routine\n"
+                "%(name)s.pause()  # ensure sound has stopped at end of Routine\n"
             )
             buff.writeIndentedLines(code % self.params)
         # get parent to write code too (e.g. store onset/offset times)
