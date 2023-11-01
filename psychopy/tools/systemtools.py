@@ -219,10 +219,11 @@ def getAudioCaptureDevices():
 
     # filter for capture devices
     for name, devInfo in allDevices.items():
+        devInfo['device_name'] = name
         if devInfo['inputChannels'] < 1:
             continue
 
-        inputDevices[name] = devInfo  # is capture device
+        inputDevices.append(devInfo)  # is capture device
 
     return inputDevices
 
@@ -434,7 +435,7 @@ def _getCameraInfoWindows():
     videoDevs, _, names = list_dshow_devices()
 
     # get all the supported modes for the camera
-    videoDevices = {}
+    videoDevices = []
 
     # iterate over names
     devIndex = 0
@@ -445,8 +446,8 @@ def _getCameraInfoWindows():
             pixelFormat, codecFormat, frameSize, frameRateRng = _format
             _, frameRateMax = frameRateRng
             thisCamInfo = {
+                'device_name': cameraName,
                 'index': devIndex,
-                'name': cameraName,
                 'pixelFormat': pixelFormat,
                 'codecFormat': codecFormat,
                 'frameSize': frameSize,
@@ -456,7 +457,7 @@ def _getCameraInfoWindows():
             supportedFormats.append(thisCamInfo)
             devIndex += 1
 
-        videoDevices[names[devURI]] = supportedFormats
+        videoDevices.append(supportedFormats)
 
     return videoDevices
 
@@ -573,7 +574,7 @@ def getKeyboards():
     # use PTB to query for keyboards
     indices, names, keyboards = hid.get_keyboard_indices()
 
-    toReturn = {}
+    toReturn = []
     if not indices:
         return toReturn  # just return if no keyboards found
 
@@ -589,13 +590,14 @@ def getKeyboards():
             missingNameIdx += 1
 
         keyboard = keyboards[i]
+        keyboard['device_name'] = name
 
         # reformat values since PTB returns everything as a float
         for key, val in keyboard.items():
             if isinstance(val, float) and key not in ('version',):
                 keyboard[key] = int(val)
 
-        toReturn[name] = keyboard
+        toReturn.append(keyboard)
 
     return toReturn
 
@@ -688,11 +690,12 @@ def getSerialPorts():
 
     # enumerate over ports now that we have the names
     portEnumIdx = 0
-    toReturn = {}
+    toReturn = []
     for name in portNames:
         try:
             with serial.Serial(name) as ser:
                 portConf = {   # port information dict
+                    'device_name': name,
                     'index': portEnumIdx,
                     'port': ser.port,
                     'baudrate': ser.baudrate,
@@ -707,7 +710,7 @@ def getSerialPorts():
                     'dsrdtr': ser.dsrdtr,
                     # 'rs485_mode': ser.rs485_mode
                 }
-                toReturn[name] = portConf
+                toReturn.append(portConf)
                 portEnumIdx += 1
         except (OSError, serial.SerialException):
             # no port found with `name` or cannot be opened
@@ -1174,17 +1177,10 @@ def getInstalledDevices(deviceType='all', refresh=False):
         """
         allCameras = getCameras()
 
-        # get all cameras by name
-        foundDevices = []
-        for devName, devInfo in allCameras.items():
-            for camInfo in devInfo:
-                if camInfo["name"] not in foundDevices:
-                    foundDevices.append(camInfo["name"])
-
         # colect settings for each camera we found
-        deviceSettings = {}
-        for devIdx, devName in enumerate(foundDevices):
-            devInfo = allCameras[devName]
+        deviceSettings = []
+        for devIdx, devInfo in enumerate(allCameras):
+            devName = devInfo[0]['device_name']
 
             allModes = []
             for thisInfo in devInfo:
@@ -1194,13 +1190,13 @@ def getInstalledDevices(deviceType='all', refresh=False):
                     thisInfo["frameRate"])
                 allModes.append(modeStr)
 
-            deviceSettings[devName] = {
+            deviceSettings.append({
                 "device_name": devName,
                 "device_index": devIdx,
                 # "pixel_format": devInfo["pixelFormat"],
                 # "codec": devInfo["codecFormat"],
                 "mode": allModes
-            }
+            })
 
         return {'camera': deviceSettings}
 
@@ -1227,6 +1223,17 @@ def getInstalledDevices(deviceType='all', refresh=False):
                 "Cannot get camera settings on Linux, not supported.")
 
         _installedDeviceCache = toReturn  # update the cache
+
+    # append supported actions from device manager
+    from psychopy.hardware.manager import _deviceMethods
+    for deviceType in toReturn:
+        # get supported actions for this device type
+        actions = _deviceMethods.get(deviceType, {})
+        # we only want the names here
+        actions = list(actions)
+        # append to each dict
+        for i in range(len(toReturn[deviceType])):
+            toReturn[deviceType][i]['actions'] = actions
 
     if deviceType != 'all':  # return only the requested device type
         return toReturn[deviceType]
