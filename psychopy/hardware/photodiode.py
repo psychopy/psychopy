@@ -125,7 +125,7 @@ class BasePhotodiodeGroup(base.BaseDevice):
             was able to detect.
         """
         # keyboard to check for escape
-        kb = keyboard.Keyboard(name="photodiodeValidatorKeyboard")
+        kb = keyboard.Keyboard(deviceName="photodiodeValidatorKeyboard")
         # stash autodraw
         win.stashAutoDraw()
         # import visual here - if they're using this function, it's already in the stack
@@ -219,7 +219,7 @@ class BasePhotodiodeGroup(base.BaseDevice):
 
     def findThreshold(self, win):
         # keyboard to check for escape/continue
-        kb = keyboard.Keyboard(name="photodiodeValidatorKeyboard")
+        kb = keyboard.Keyboard(deviceName="photodiodeValidatorKeyboard")
         # stash autodraw
         win.stashAutoDraw()
         # import visual here - if they're using this function, it's already in the stack
