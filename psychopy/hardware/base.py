@@ -15,7 +15,19 @@ __all__ = [
 
 class BaseDevice:
     """Base class for device interfaces."""
-    pass
+    @staticmethod
+    def getAvailableDevices():
+        """
+        Get all available devices of this type.
+
+        Returns
+        -------
+        list[dict]
+            List of dictionaries containing the parameters needed to initialise each device.
+        """
+        raise NotImplementedError(
+            "All subclasses of BaseDevice must implement the method `getAvailableDevices`"
+        )
 
 
 if __name__ == "__main__":

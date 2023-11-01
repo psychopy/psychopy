@@ -13,9 +13,10 @@ __all__ = ['Microphone', 'MicrophoneDevice']
 import sys
 import psychopy.logging as logging
 from psychopy.constants import NOT_STARTED
-from psychopy.hardware import deviceManager
+from psychopy.hardware import DeviceManager
 from psychopy.hardware.base import BaseDevice
 from psychopy.preferences import prefs
+from psychopy.tools import systemtools as st
 from .audioclip import *
 from .audiodevice import *
 from .exceptions import *
@@ -312,7 +313,7 @@ class RecordingBuffer:
 class Microphone:
     def __init__(
             self,
-            name=None,
+            deviceName=None,
             device=None,
             sampleRateHz=None,
             channels=None,
@@ -322,14 +323,21 @@ class Microphone:
             audioLatencyMode=None,
             audioRunMode=0):
 
-        if deviceManager.checkDeviceNameAvailable(name):
+        if deviceName not in DeviceManager.devices:
             # if no matching device is in DeviceManager, make a new one
-            self.device = deviceManager.addMicrophone(
-                name=name, device=device, sampleRate=sampleRateHz, channels=channels
+            self.device = DeviceManager.addDevice(
+                deviceClass="psychopy.sound.MicrophoneDevice", deviceName=deviceName,
+                sampleRateHz=sampleRateHz,
+                channels=channels,
+                streamBufferSecs=streamBufferSecs,
+                maxRecordingSize=maxRecordingSize,
+                policyWhenFull=policyWhenFull,
+                audioLatencyMode=audioLatencyMode,
+                audioRunMode=audioRunMode
             )
         else:
             # otherwise, use the existing device
-            self.device = deviceManager.getMicrophone(name)
+            self.device = DeviceManager.getDevice(deviceName)
 
     @property
     def recording(self):
@@ -698,6 +706,19 @@ class MicrophoneDevice(BaseDevice):
                      if desc.isCapture]
 
         return inputDevices
+
+    @staticmethod
+    def getAvailableDevices():
+        devices = []
+        for key, val in st.getAudioCaptureDevices().items():
+            device = {
+                'device': val.get('index', None),
+                'sampleRateHz': val.get('defaultSampleRate', None),
+                'channels': val.get('inputChannels', None),
+            }
+            devices.append(device)
+
+        return devices
 
     # def warmUp(self):
     #     """Warm-/wake-up the audio stream.
@@ -1143,6 +1164,11 @@ class MicrophoneDevice(BaseDevice):
                 "call `Microphone.stop` first.")
 
         return self._recording.getSegment()  # full recording
+
+
+# register some aliases for the MicrophoneDevice class with DeviceManager
+DeviceManager.registerAlias("microphone", deviceClass="psychopy.sound.microphone.MicrophoneDevice")
+DeviceManager.registerAlias("psychopy.sound.microphone.Microphone", deviceClass="psychopy.sound.microphone.MicrophoneDevice")
 
 
 if __name__ == "__main__":
