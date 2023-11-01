@@ -65,6 +65,7 @@ from psychopy.constants import NOT_STARTED
 from psychopy.hardware import DeviceManager
 from psychopy.visual.movies.frame import MovieFrame, NULL_MOVIE_FRAME_INFO
 from psychopy.sound.microphone import Microphone, MicrophoneDevice
+from psychopy.tools import systemtools as st
 import psychopy.tools.movietools as movietools
 import psychopy.logging as logging
 from psychopy.localization import _translate
@@ -1891,6 +1892,19 @@ class Camera:
             raise ValueError("Invalid value for parameter `cameraLib`")
 
     @staticmethod
+    def getAvailableDevices():
+        devices = []
+        for dev in st.getCameras():
+            for spec in dev:
+                devices.append({
+                    'device': spec['index'],
+                    'frameRate': spec['frameRate'],
+                    'frameSize': spec['frameSize'],
+                })
+
+        return devices
+
+    @staticmethod
     def getCameraDescriptions(collapse=False):
         """Get a mapping or list of camera descriptions.
 
@@ -2418,6 +2432,9 @@ class Camera:
                     self._mic.close()
                 except AttributeError:
                     pass
+
+
+DeviceManager.registerAlias("camera", "psychopy.hardware.camera.Camera")
 
 
 # ------------------------------------------------------------------------------
