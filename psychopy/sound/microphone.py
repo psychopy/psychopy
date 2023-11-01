@@ -711,9 +711,9 @@ class MicrophoneDevice(BaseDevice):
     @staticmethod
     def getAvailableDevices():
         devices = []
-        for key, val in st.getAudioCaptureDevices().items():
+        for val in st.getAudioCaptureDevices():
             device = {
-                'device': val.get('index', None),
+                'index': val.get('index', None),
                 'sampleRateHz': val.get('defaultSampleRate', None),
                 'channels': val.get('inputChannels', None),
             }
