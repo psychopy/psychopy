@@ -212,7 +212,7 @@ def getAudioCaptureDevices():
     """
     allDevices = getAudioDevices()  # gat all devices
 
-    inputDevices = {}  # dict for input devices
+    inputDevices = []  # dict for input devices
 
     if not allDevices:
         return inputDevices  # empty

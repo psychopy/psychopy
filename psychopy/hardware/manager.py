@@ -217,7 +217,7 @@ class DeviceManager:
         BaseDevice
             Matching device handle
         """
-        return DeviceManager.devices[deviceName]
+        return DeviceManager.devices.get(deviceName, None)
 
     @staticmethod
     def getInitialisedDevices(deviceClass="*"):

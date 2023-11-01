@@ -23,8 +23,8 @@ except (ImportError, ModuleNotFoundError):
 # get information about microphones that can accompany the video recording
 if _hasPTB and not syst.isVM_CI():
     micDevices = syst.getAudioCaptureDevices()
-    micDeviceIndices = [d['index'] for d in micDevices.values()]
-    micDeviceNames = [d['name'] for d in micDevices.values()]
+    micDeviceIndices = [d['index'] for d in micDevices]
+    micDeviceNames = [d['name'] for d in micDevices]
 else:
     micDevices = []
     micDeviceIndices = []

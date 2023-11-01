@@ -1556,9 +1556,9 @@ class SettingsComponent:
         code = (
             "\n"
             "# create a default keyboard (e.g. to check for escape)\n"
-            "if deviceManager.getKeyboard('defaultKeyboard') is None:\n"
-            "    deviceManager.addKeyboard(\n"
-            "        name='defaultKeyboard', backend=%(keyboardBackend)s\n"
+            "if deviceManager.getDevice('defaultKeyboard') is None:\n"
+            "    deviceManager.addDevice(\n"
+            "        deviceClass='keyboard', deviceName='defaultKeyboard', backend=%(keyboardBackend)s\n"
             "    )\n"
         )
         buff.writeIndentedLines(code % inits)
@@ -1794,10 +1794,11 @@ class SettingsComponent:
             "# prevent components from auto-drawing\n"
             "win.stashAutoDraw()\n"
             "# make sure we have a keyboard\n"
-            "defaultKeyboard = deviceManager.getKeyboard('defaultKeyboard')\n"
+            "defaultKeyboard = deviceManager.getDevice('defaultKeyboard')\n"
             "if defaultKeyboard is None:\n"
             "    defaultKeyboard = deviceManager.addKeyboard(\n"
-            "        name='defaultKeyboard',\n"
+            "        deviceClass='keyboard',\n"
+            "        deviceName='defaultKeyboard',\n"
             "        backend=%(keyboardBackend)s,\n"
             "    )\n"
             "# run a while loop while we wait to unpause\n"
