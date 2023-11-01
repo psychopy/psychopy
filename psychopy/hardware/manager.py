@@ -296,8 +296,8 @@ class DeviceManager:
         cls = DeviceManager._resolveClassString(deviceClass)
         # make sure cass has a getAvailableDevices method
         assert hasattr(cls, "getAvailableDevices"), (
-            "Could not get available devices of type `{deviceClass}` as device class does not have a "
-            "`getAvailableDevices` method."
+            f"Could not get available devices of type `{deviceClass}` as device class does not have a "
+            f"`getAvailableDevices` method."
         )
         # use class method
         return cls.getAvailableDevices()
