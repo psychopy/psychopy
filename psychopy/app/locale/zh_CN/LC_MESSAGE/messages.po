@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PsychoPy 2023.2.2\n"
 "Report-Msgid-Bugs-To: shuonwang@gmail.com\n"
 "POT-Creation-Date: 2021-12-18 00:00+0100\n"
-"PO-Revision-Date: 2023-10-24 14:12-0400\n"
+"PO-Revision-Date: 2023-11-01 18:16-0400\n"
 "Last-Translator: Bingzi Yu <ybzice@gmail.com>\n"
 "Language-Team: Shun Wang <shuonwang@gmail.com>\n"
 "Language: zh_CN\n"
@@ -5214,15 +5214,16 @@ msgstr ""
 msgid ""
 "Base spatial frequency in cycles per unit length If units = pix this value "
 "should be < 0.5."
-msgstr ""
+msgstr "以每单位长度周期为单位的基础空间频率，如果单位 = 像素，该值应 < 0.5。"
 
 #: ../experiment/components/noise/__init__.py:204
+#, fuzzy
 msgid "Spatial frequency bandwidth in octaves - Full width half height"
-msgstr ""
+msgstr "空间频率带宽（in ocatves） - 全宽半高"
 
 #: ../experiment/components/noise/__init__.py:212
 msgid "Orientation bandwidth in degrees (Gabor only) - Full width half height"
-msgstr ""
+msgstr "以度为单位的方向带宽（仅限 Gabor） - 全宽半高"
 
 #: ../experiment/components/noise/__init__.py:220
 msgid ""
@@ -5234,6 +5235,10 @@ msgid ""
 "orientation it is strongly recommended to set the interpolation method to "
 "'linear' on the Advanced tab to avoid pixelization."
 msgstr ""
+"Gabor 滤波器的方向（单位：度）。用于设置 Gabor 滤波器的方向，以便应用于具有不"
+"同总体方向的另一个噪声样本。设置 Gabor 噪声样本方向的最佳方法是将其设置为0"
+"度，然后使用\"高级”选项上的“总体方向”来改变噪声的主要方向。如果使用此方向设"
+"置，建议将“高级”选项上的插值方法设置为“线性”，以避免像素化。"
 
 #: ../experiment/components/noise/__init__.py:235
 msgid ""
@@ -5245,10 +5250,15 @@ msgid ""
 "frequency space with values set by the exponent. It does not force the "
 "spectrum to a specific slope. "
 msgstr ""
+"滤波器振幅频谱斜率的指数（A=f^Exponent）。0 = 平坦，-1 = 1/f 的斜率。单独使用"
+"时，“滤波”噪声类型将滤波器应用于白噪声，因此产生的噪声样本具有滤波器的频谱特"
+"性。  当过滤其他类型的噪声样本时，该指数将原始频谱乘以频率空间中的坡度，坡度"
+"值由指数决定。它不会强制频谱达到特定的斜率。"
 
 #: ../experiment/components/noise/__init__.py:248
+#, fuzzy
 msgid "Order of filter - higher = steeper fall off, zero = no filter"
-msgstr ""
+msgstr "滤波器的阶数：越高 = 下降越陡，zero = 无滤波器"
 
 #: ../experiment/components/noise/__init__.py:256
 msgid ""
