@@ -338,7 +338,7 @@ class DeviceManager:
         """
         if deviceType == "*":
             return st.getInstalledDevices()
-        return _deviceMethods[deviceType]["available"]()
+        return _deviceMethods[deviceType]["available"](self)
 
 
 class KeyboardManagerPlugin:
