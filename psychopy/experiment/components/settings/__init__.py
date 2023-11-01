@@ -8,6 +8,7 @@ from xml.etree.ElementTree import Element
 import re
 from psychopy import logging, plugins
 from psychopy.experiment.components import Param, _translate
+from psychopy.experiment.routines import Routine
 from psychopy.experiment.routines.eyetracker_calibrate import EyetrackerCalibrationRoutine
 from psychopy.experiment import utils as exputils
 from psychopy.monitors import Monitor
@@ -1562,6 +1563,12 @@ class SettingsComponent:
             "    )\n"
         )
         buff.writeIndentedLines(code % inits)
+        # write any device setup code required by a component
+        for rt in self.exp.flow:
+            if isinstance(rt, Routine):
+                for comp in rt:
+                    if hasattr(comp, "writeDeviceCode"):
+                        comp.writeDeviceCode(buff)
 
         code = (
             "# return True if completed successfully\n"
