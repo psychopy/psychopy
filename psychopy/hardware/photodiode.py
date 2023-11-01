@@ -6,13 +6,14 @@ from psychopy.hardware import keyboard
 
 
 class PhotodiodeResponse:
-    def __init__(self, t, value, threshold=None):
+    def __init__(self, t, value, channel=0, threshold=None):
         self.t = t
         self.value = value
+        self.channel = channel
         self.threshold = threshold
 
     def __repr__(self):
-        return f"<PhotodiodeResponse: t={self.t}, value={self.value}, threshold={self.threshold}>"
+        return f"<PhotodiodeResponse: t={self.t}, value={self.value}, channel={self.channel}, threshold={self.threshold}>"
 
     def getJSON(self):
         message = {
@@ -21,6 +22,7 @@ class PhotodiodeResponse:
             'data': {
                 't': self.t,
                 'value': self.value,
+                'channel': self.channel,
                 'threshold': self.threshold
             }
         }
@@ -28,10 +30,12 @@ class PhotodiodeResponse:
         return json.dumps(message)
 
 
-class BasePhotodiode(base.BaseDevice):
-    def __init__(self, parent, threshold=None, pos=None, size=None, units=None):
-        # get serial parent from port (if photodiode manages its own parent, this needs to be handled by the subclass)
+class BasePhotodiodeGroup(base.BaseDevice):
+    def __init__(self, parent, channels=1, threshold=None, pos=None, size=None, units=None):
+        # store ref to parent device which drives the diode group
         self.parent = parent
+        # store number of channels
+        self.channels = channels
         # attribute in which to store current state
         self.state = False
         # list in which to store messages in chronological order
