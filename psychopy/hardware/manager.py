@@ -331,11 +331,14 @@ class DeviceManager:
             f"`getAvailableDevices` method."
         )
         # use class method
-        profile = cls.getAvailableDevices()
-        # add device class
-        profile['deviceClass'] = deviceClass
+        devices = []
+        for profile in cls.getAvailableDevices():
+            # add device class
+            profile['deviceClass'] = deviceClass
+            # append
+            devices.append(profile)
 
-        return profile
+        return devices
 
     @staticmethod
     def closeAll():
