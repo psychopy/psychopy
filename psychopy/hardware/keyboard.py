@@ -178,7 +178,7 @@ class Keyboard(AttributeGetSetMixin):
         return self.device.clearEvents(eventType=eventType)
 
 
-class KeyboardDevice(BaseDevice):
+class KeyboardDevice(BaseDevice, aliases=["keyboard"]):
     """
     Object representing
     """
@@ -490,10 +490,6 @@ class KeyboardDevice(BaseDevice):
             event.clearEvents(eventType)
         logging.info("Keyboard events cleared", obj=self)
 
-
-# register some aliases for the KeyboardDevice class with DeviceManager
-DeviceManager.registerAlias("keyboard", deviceClass="psychopy.hardware.keyboard.KeyboardDevice")
-DeviceManager.registerAlias("psychopy.hardware.keyboard.Keyboard", deviceClass="psychopy.hardware.keyboard.KeyboardDevice")
 
 class KeyPress(object):
     """Class to store key presses, as returned by `Keyboard.getKeys()`

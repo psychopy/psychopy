@@ -427,7 +427,7 @@ class Microphone:
         return self.device.getRecording()
 
 
-class MicrophoneDevice(BaseDevice):
+class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
     """Class for recording audio from a microphone or input stream.
 
     Creating an instance of this class will open a stream using the specified
@@ -1169,11 +1169,6 @@ class MicrophoneDevice(BaseDevice):
                 "call `Microphone.stop` first.")
 
         return self._recording.getSegment()  # full recording
-
-
-# register some aliases for the MicrophoneDevice class with DeviceManager
-DeviceManager.registerAlias("microphone", deviceClass="psychopy.sound.microphone.MicrophoneDevice")
-DeviceManager.registerAlias("psychopy.sound.microphone.Microphone", deviceClass="psychopy.sound.microphone.MicrophoneDevice")
 
 
 if __name__ == "__main__":
