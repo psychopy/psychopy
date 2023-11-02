@@ -646,6 +646,18 @@ class Session:
         # get expInfo from ExperimentHandler object
         return self.currentExperiment.extraInfo
 
+    @property
+    def win(self):
+        """
+        Window associated with this Session. Defined as a property so as to be accessible from Liaison
+        if needed.
+        """
+        return self._win
+
+    @win.setter
+    def win(self, value):
+        self._win = value
+
     def setupWindowFromExperiment(self, key, expInfo=None, blocking=True):
         """
         Setup the window for this Session via the 'setupWindow` method from one of this

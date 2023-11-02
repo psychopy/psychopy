@@ -85,7 +85,19 @@ class WebSocketServer:
 		referenceName : string
 			the name used to refer to the given target object when calling its method
 		"""
-		targetMethods = [fnct for fnct in dir(targetObject) if callable(getattr(targetObject, fnct)) and not fnct.startswith("__")]
+		targetCls = type(targetObject)
+		# choose methods
+		targetMethods = []
+		for name in dir(targetObject):
+			# if function is callable and not private, register it
+			fnct = getattr(targetObject, name)
+			if callable(fnct) and not name.startswith("__"):
+				targetMethods.append(targetMethods)
+			# if function is a property and not private, register its fget method
+			clsfnct = getattr(targetCls, name, None)
+			if isinstance(clsfnct, property) and not name.startswith("__"):
+				targetMethods.append(getattr(clsfnct, name).fget)
+
 		self._methods[referenceName] = (targetObject, targetMethods)
 		# create, log and return success message
 		msg = (
@@ -276,9 +288,18 @@ class WebSocketServer:
 				for arg in rawArgs:
 					# try to parse json string
 					try:
-						args.append(json.loads(arg))
+						arg = json.loads(arg)
 					except json.decoder.JSONDecodeError:
-						args.append(arg)
+						pass
+					# if arg is a known property, get its value
+					if isinstance(arg, str) and "." in arg:
+						_name, _attr = arg.split(".", 1)
+						if _name in self._methods:
+							_obj, _methods = self._methods[_name]
+							if _attr in _methods:
+								arg = getattr(_obj, _attr)
+					# append to list of args
+					args.append(arg)
 
 				if 'method' in decodedMessage:
 					# if method is init, initialise object from class and register it under reference name
