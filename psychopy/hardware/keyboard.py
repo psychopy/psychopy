@@ -328,17 +328,13 @@ class KeyboardDevice(BaseDevice):
 
     @staticmethod
     def getAvailableDevices():
-        kbs = st.getKeyboards()
-        toReturn = []
-        for key, val in kbs.items():
-            device = {
-                'device': val.get('index', -1),
-                'bufferSize': val.get('bufferDize', 10000),
-            }
-            val['deviceName'] = key
-            toReturn.append(device)
-
-        return toReturn
+        devices = []
+        for profile in st.getKeyboards():
+            devices.append({
+                'device': profile.get('index', -1),
+                'bufferSize': profile.get('bufferSize', 10000),
+            })
+        return devices
 
     def getKeys(self, keyList=None, ignoreKeys=None, waitRelease=True, clear=True):
         """
