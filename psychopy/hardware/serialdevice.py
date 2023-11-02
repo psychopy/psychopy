@@ -54,7 +54,8 @@ def _findPossiblePorts():
 # map out all ports on this device, to be filled as serial devices are initialised
 ports = {port: None for port in _findPossiblePorts()}
 
-class SerialDevice(AttributeGetSetMixin, BaseDevice):
+
+class SerialDevice(BaseDevice, AttributeGetSetMixin):
     """A base class for serial devices, to be sub-classed by specific devices
 
     If port=None then the SerialDevice.__init__() will search for the device
@@ -218,7 +219,6 @@ class SerialDevice(AttributeGetSetMixin, BaseDevice):
     @staticmethod
     def getAvailableDevices():
         ports = st.getSerialPorts()
-        print(ports)
         devices = []
         for profile in ports:
             device = {

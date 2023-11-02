@@ -15,6 +15,22 @@ __all__ = [
 
 class BaseDevice:
     """Base class for device interfaces."""
+    def __init_subclass__(cls, aliases=None):
+        from psychopy.hardware.manager import DeviceManager
+        import inspect
+        # handle no aliases
+        if aliases is None:
+            aliases = []
+        # if given a class, get its class string
+        mro = inspect.getmodule(cls).__name__ + "." + cls.__name__
+        # register aliases
+        for alias in aliases:
+            DeviceManager.registerAlias(alias, mro)
+        # store class string
+        DeviceManager.deviceClasses.append(mro)
+
+        return cls
+
     @staticmethod
     def getAvailableDevices():
         """
