@@ -222,6 +222,7 @@ class SerialDevice(BaseDevice, AttributeGetSetMixin):
         devices = []
         for profile in ports:
             device = {
+                'deviceName': profile.get('device_name', "Unknown Serial Device"),
                 'port': profile.get('port', None),
                 'baudrate': profile.get('baudrate', 9600),
                 'byteSize': profile.get('bytesize', 8),

@@ -331,6 +331,7 @@ class KeyboardDevice(BaseDevice, aliases=["keyboard"]):
         devices = []
         for profile in st.getKeyboards():
             devices.append({
+                'deviceName': profile.get('device_name', "Unknown Keyboard"),
                 'device': profile.get('index', -1),
                 'bufferSize': profile.get('bufferSize', 10000),
             })

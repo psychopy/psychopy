@@ -192,6 +192,25 @@ class DeviceManager:
         return device
 
     @staticmethod
+    def addDeviceFromParams(params):
+        """
+        Similar to addDevice, but rather than accepting arguments and keyword arguments, simply accepts a dict of
+        params. This is useful when receiving parameters from Liaison, communicating with a keyword-less language like
+        JavaScript. This is relatively niche and in most cases addDevice will work fine.
+
+        Parameters
+        ----------
+        params : dict
+            Keyword arguments to be passed to DeviceManager.addDevice
+
+        Returns
+        -------
+        BaseDevice
+            Device created by the linked class init
+        """
+        return DeviceManager.addDevice(**params)
+
+    @staticmethod
     def removeDevice(deviceName):
         """
         Remove the device matching a specified device type and name.
@@ -312,8 +331,11 @@ class DeviceManager:
             f"`getAvailableDevices` method."
         )
         # use class method
-        return cls.getAvailableDevices()
+        profile = cls.getAvailableDevices()
+        # add device class
+        profile['deviceClass'] = deviceClass
 
+        return profile
 
     @staticmethod
     def closeAll():
