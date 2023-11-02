@@ -92,11 +92,11 @@ class WebSocketServer:
 			# if function is callable and not private, register it
 			fnct = getattr(targetObject, name)
 			if callable(fnct) and not name.startswith("__"):
-				targetMethods.append(targetMethods)
+				targetMethods.append(name)
 			# if function is a property and not private, register its fget method
 			clsfnct = getattr(targetCls, name, None)
 			if isinstance(clsfnct, property) and not name.startswith("__"):
-				targetMethods.append(getattr(clsfnct, name).fget)
+				targetMethods.append(name)
 
 		self._methods[referenceName] = (targetObject, targetMethods)
 		# create, log and return success message
