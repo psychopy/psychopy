@@ -1911,8 +1911,8 @@ class SettingsComponent:
             "    win.flip()\n"
             "    win.close()\n"
             "# shut down eyetracker, if there is one\n"
-            "if deviceManager.getEyetracker('eyetracker') is not None:\n"
-            "    deviceManager.removeEyetracker('eyetracker')\n"
+            "if deviceManager.getDevice('eyetracker') is not None:\n"
+            "    deviceManager.removeDevice('eyetracker')\n"
         )
         if self.params['Save log file'].val:
             code += (
