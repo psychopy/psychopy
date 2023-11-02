@@ -220,6 +220,34 @@ class DeviceManager:
         return DeviceManager.devices.get(deviceName, None)
 
     @staticmethod
+    def getDeviceBy(attr, value, deviceClass="*"):
+        """
+        Get a device by the value of a particular attribute. e.g. get a Microphone device by its index.
+
+        Parameters
+        ----------
+        attr : str
+            Name of the attribute to query each device for
+        value : *
+            Value which the attribute should return for the device to be a match
+        deviceClass : str
+            Filter search only to devices of a particular class (optional)
+
+        Returns
+        -------
+        BaseDevice
+            Device matching given parameters, or None if none found
+        """
+        # get devices by class
+        devices = DeviceManager.getInitialisedDevices(deviceClass=deviceClass)
+        # try each matching device
+        for dev in devices:
+            if hasattr(dev, attr):
+                # if device matches attribute, return it
+                if getattr(dev, attr) == value:
+                    return dev
+
+    @staticmethod
     def getInitialisedDevices(deviceClass="*"):
         """
         Get all devices of a given type which have been `add`ed to this DeviceManager
@@ -268,8 +296,8 @@ class DeviceManager:
         cls = DeviceManager._resolveClassString(deviceClass)
         # make sure cass has a getAvailableDevices method
         assert hasattr(cls, "getAvailableDevices"), (
-            "Could not get available devices of type `{deviceClass}` as device class does not have a "
-            "`getAvailableDevices` method."
+            f"Could not get available devices of type `{deviceClass}` as device class does not have a "
+            f"`getAvailableDevices` method."
         )
         # use class method
         return cls.getAvailableDevices()

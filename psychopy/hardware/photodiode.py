@@ -6,13 +6,14 @@ from psychopy.hardware import keyboard
 
 
 class PhotodiodeResponse:
-    def __init__(self, t, value, threshold=None):
+    def __init__(self, t, value, channel=0, threshold=None):
         self.t = t
         self.value = value
+        self.channel = channel
         self.threshold = threshold
 
     def __repr__(self):
-        return f"<PhotodiodeResponse: t={self.t}, value={self.value}, threshold={self.threshold}>"
+        return f"<PhotodiodeResponse: t={self.t}, value={self.value}, channel={self.channel}, threshold={self.threshold}>"
 
     def getJSON(self):
         message = {
@@ -21,6 +22,7 @@ class PhotodiodeResponse:
             'data': {
                 't': self.t,
                 'value': self.value,
+                'channel': self.channel,
                 'threshold': self.threshold
             }
         }
@@ -28,12 +30,14 @@ class PhotodiodeResponse:
         return json.dumps(message)
 
 
-class BasePhotodiode(base.BaseDevice):
-    def __init__(self, parent, threshold=None, pos=None, size=None, units=None):
-        # get serial parent from port (if photodiode manages its own parent, this needs to be handled by the subclass)
+class BasePhotodiodeGroup(base.BaseDevice):
+    def __init__(self, parent, channels=1, threshold=None, pos=None, size=None, units=None):
+        # store ref to parent device which drives the diode group
         self.parent = parent
+        # store number of channels
+        self.channels = channels
         # attribute in which to store current state
-        self.state = False
+        self.state = [False] * channels
         # list in which to store messages in chronological order
         self.responses = []
         # list of listener objects
@@ -61,7 +65,7 @@ class BasePhotodiode(base.BaseDevice):
         """
         self.listeners.append(listener)
 
-    def getResponses(self, state=None, clear=True):
+    def getResponses(self, state=None, channel=None, clear=True):
         """
         Get responses which match a given on/off state.
 
@@ -84,7 +88,7 @@ class BasePhotodiode(base.BaseDevice):
         # check messages in chronological order
         for resp in self.responses.copy():
             # does this message meet the criterion?
-            if state is None or resp.value == state:
+            if (state is None or resp.value == state) and (channel is None or resp.channel == channel):
                 # if clear, remove the response
                 if clear:
                     i = self.responses.index(resp)
@@ -100,14 +104,14 @@ class BasePhotodiode(base.BaseDevice):
             "{msgType}. Try parsing the message first using {ownType}.parseMessage()"
         ).format(ownType=type(self).__name__, msgType=type(message).__name__)
         # update current state
-        self.state = message.value
+        self.state[message.channel] = message.value
         # add message to responses
         self.responses.append(message)
         # relay message to listener
         for listener in self.listeners:
             listener.receiveMessage(message)
 
-    def findPhotodiode(self, win):
+    def findPhotodiode(self, win, channel):
         """
         Draws rectangles on the screen and records photodiode responses to recursively find the location of the diode.
 
@@ -121,7 +125,7 @@ class BasePhotodiode(base.BaseDevice):
             was able to detect.
         """
         # keyboard to check for escape
-        kb = keyboard.Keyboard(name="photodiodeValidatorKeyboard")
+        kb = keyboard.Keyboard(deviceName="photodiodeValidatorKeyboard")
         # stash autodraw
         win.stashAutoDraw()
         # import visual here - if they're using this function, it's already in the stack
@@ -182,20 +186,20 @@ class BasePhotodiode(base.BaseDevice):
                 if kb.getKeys(['escape']):
                     return
                 # poll photodiode
-                if self.state:
+                if self.getState(channel):
                     # if it detected this rectangle, recur
                     return scanQuadrants()
             # if none of these have returned, rect is too small to cover the whole photodiode, so return
             return
 
         # reset state
-        self.state = None
+        self.state = [None] * self.channels
         self.parent.dispatchMessages()
         self.clearResponses()
         # recursively shrink rect around the photodiode
         scanQuadrants()
         # clear all the events created by this process
-        self.state = None
+        self.state = [None] * self.channels
         self.parent.dispatchMessages()
         self.clearResponses()
         # reinstate autodraw
@@ -213,9 +217,9 @@ class BasePhotodiode(base.BaseDevice):
             layout.Position(self.size, units="norm", win=win),
         )
 
-    def findThreshold(self, win):
+    def findThreshold(self, win, channel):
         # keyboard to check for escape/continue
-        kb = keyboard.Keyboard(name="photodiodeValidatorKeyboard")
+        kb = keyboard.Keyboard(deviceName="photodiodeValidatorKeyboard")
         # stash autodraw
         win.stashAutoDraw()
         # import visual here - if they're using this function, it's already in the stack
@@ -268,7 +272,8 @@ class BasePhotodiode(base.BaseDevice):
         label.color = (-0.8, -0.8, -0.8)
         label.draw()
         win.flip()
-        if self.getState():
+        state = self.getState(channel)
+        if state:
             raise PhotodiodeValidationError(
                 "Photodiode did not recognise a black screen even when its threshold was at maximum. This means either "
                 "the screen is too bright or the photodiode is too sensitive."
@@ -280,7 +285,8 @@ class BasePhotodiode(base.BaseDevice):
         label.color = (0.8, 0.8, 0.8)
         label.draw()
         win.flip()
-        if not self.getState():
+        state = self.getState(channel)
+        if not state:
             raise PhotodiodeValidationError(
                 "Photodiode did not recognise a white screen even when its threshold was at minimum. This means either "
                 "the screen is too dark or the photodiode is not sensitive enough."
@@ -312,7 +318,7 @@ class BasePhotodiode(base.BaseDevice):
             if kb.getKeys(['escape']):
                 return int(current)
             # if state is still True, move threshold up and try again
-            if self.getState():
+            if self.getState(channel):
                 current = (current + 0) / 2
                 _bisectThreshold(current)
             # try white
@@ -322,7 +328,7 @@ class BasePhotodiode(base.BaseDevice):
             label.draw()
             win.flip()
             # if state is still False, move threshold down and try again
-            if not self.getState():
+            if not self.getState(channel):
                 current = (current + 255) / 2
                 _bisectThreshold(current)
 
@@ -330,7 +336,7 @@ class BasePhotodiode(base.BaseDevice):
             return int(current)
 
         # reset state
-        self.state = None
+        self.state = [None] * self.channels
         self.parent.dispatchMessages()
         self.clearResponses()
         # bisect thresholds, starting at 127 (exact middle)
@@ -339,7 +345,7 @@ class BasePhotodiode(base.BaseDevice):
         # clear bg rect
         bg.setAutoDraw(False)
         # clear all the events created by this process
-        self.state = None
+        self.state = [None] * self.channels
         self.parent.dispatchMessages()
         self.clearResponses()
         # reinstate autodraw
@@ -359,11 +365,11 @@ class BasePhotodiode(base.BaseDevice):
         if hasattr(self, "_threshold"):
             return self._threshold
 
-    def getState(self):
+    def getState(self, channel):
         # dispatch messages from parent
         self.parent.dispatchMessages()
         # return state after update
-        return self.state
+        return self.state[channel]
 
     def parseMessage(self, message):
         raise NotImplementedError()
@@ -376,7 +382,7 @@ class PhotodiodeValidationError(BaseException):
 class PhotodiodeValidator:
 
     def __init__(
-            self, win, diode,
+            self, win, diode, channel,
             variability=1/60,
             report="log",
             autoLog=False):
@@ -386,6 +392,7 @@ class PhotodiodeValidator:
         self.win = win
         # store diode handle
         self.diode = diode
+        self.channel = channel
         # store method of reporting
         self.report = report
         # set acceptable variability
@@ -444,7 +451,7 @@ class PhotodiodeValidator:
             True if photodiode state matched requested state, False otherwise.
         """
         # get and clear responses
-        messages = self.diode.getResponses(state=state, clear=True)
+        messages = self.diode.getResponses(state=state, channel=self.channel, clear=True)
         # if there have been no responses yet, return empty handed
         if not messages:
             return None, None

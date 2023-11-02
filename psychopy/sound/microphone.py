@@ -313,7 +313,6 @@ class RecordingBuffer:
 class Microphone:
     def __init__(
             self,
-            deviceName=None,
             device=None,
             sampleRateHz=None,
             channels=None,
@@ -322,11 +321,16 @@ class Microphone:
             policyWhenFull='warn',
             audioLatencyMode=None,
             audioRunMode=0):
-
-        if deviceName not in DeviceManager.devices:
-            # if no matching device is in DeviceManager, make a new one
+        # look for device if initialised
+        self.device = DeviceManager.getDevice(device)
+        # if no matching name, try matching index
+        if self.device is None:
+            self.device = DeviceManager.getDeviceBy("index", device)
+        # if still no match, make a new device
+        if self.device is None:
             self.device = DeviceManager.addDevice(
-                deviceClass="psychopy.sound.MicrophoneDevice", deviceName=deviceName,
+                deviceClass="psychopy.sound.MicrophoneDevice", deviceName=device,
+                index=device,
                 sampleRateHz=sampleRateHz,
                 channels=channels,
                 streamBufferSecs=streamBufferSecs,
@@ -335,9 +339,6 @@ class Microphone:
                 audioLatencyMode=audioLatencyMode,
                 audioRunMode=audioRunMode
             )
-        else:
-            # otherwise, use the existing device
-            self.device = DeviceManager.getDevice(deviceName)
 
     @property
     def recording(self):
@@ -437,7 +438,7 @@ class MicrophoneDevice(BaseDevice):
 
     Parameters
     ----------
-    device : int or `~psychopy.sound.AudioDevice`
+    index : int or `~psychopy.sound.AudioDevice`
         Audio capture device to use. You may specify the device either by index
         (`int`) or descriptor (`AudioDevice`).
     sampleRateHz : int
@@ -508,7 +509,7 @@ class MicrophoneDevice(BaseDevice):
     enforceWASAPI = True
 
     def __init__(self,
-                 device=None,
+                 index=None,
                  sampleRateHz=None,
                  channels=None,
                  streamBufferSecs=2.0,
@@ -555,10 +556,10 @@ class MicrophoneDevice(BaseDevice):
             return useDevice
 
         # get information about the selected device
-        if isinstance(device, AudioDeviceInfo):
-            self._device = device
-        elif isinstance(device, (int, float, str)):
-            self._device = _getDeviceByIndex(device)
+        if isinstance(index, AudioDeviceInfo):
+            self._device = index
+        elif isinstance(index, (int, float, str)):
+            self._device = _getDeviceByIndex(index)
         else:
             # get default device, first enumerated usually
             devices = MicrophoneDevice.getDevices()
@@ -710,9 +711,9 @@ class MicrophoneDevice(BaseDevice):
     @staticmethod
     def getAvailableDevices():
         devices = []
-        for key, val in st.getAudioCaptureDevices().items():
+        for val in st.getAudioCaptureDevices():
             device = {
-                'device': val.get('index', None),
+                'index': val.get('index', None),
                 'sampleRateHz': val.get('defaultSampleRate', None),
                 'channels': val.get('inputChannels', None),
             }
@@ -863,6 +864,10 @@ class MicrophoneDevice(BaseDevice):
         """``True`` if stream recording has been started (`bool`). Alias of
         `isStarted`."""
         return self.isStarted
+
+    @property
+    def index(self):
+        return self._device.deviceIndex
 
     def start(self, when=None, waitForStart=0, stopTime=None):
         """Start an audio recording.

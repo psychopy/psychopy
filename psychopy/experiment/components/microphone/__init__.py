@@ -251,6 +251,45 @@ class MicrophoneComponent(BaseComponent):
             "false": "hide",  # permitted: hide, show, enable, disable
         })
 
+
+    def writeDeviceCode(self, buff):
+        """
+        Code to setup the CameraDevice for this component.
+
+        Parameters
+        ----------
+        buff : io.StringIO
+            Text buffer to write code to.
+        """
+        inits = getInitVals(self.params)
+
+        # --- setup mic ---
+
+        # Substitute default if device not found
+        if inits['device'].val not in deviceIndices:
+            alert(4330, strFields={'device': self.params['device'].val})
+            inits['device'].val = None
+        # Substitute sample rate value for numeric equivalent
+        inits['sampleRate'] = sampleRates[inits['sampleRate'].val]
+        # Substitute channel value for numeric equivalent
+        inits['channels'] = {'mono': 1, 'stereo': 2, 'auto': None}[self.params['channels'].val]
+        # Get device names
+        inits['deviceName'] = getDeviceName(inits['device'].val)
+        # initialise mic device
+        code = (
+            "# initialise microphone\n"
+            "if deviceManager.getDevice('%(deviceName)s') is None:\n"
+            "    deviceManager.addDevice(\n"
+            "        deviceClass='microphone',\n"
+            "        deviceName='%(deviceName)s',\n"
+            "        index=%(device)s,\n"
+            "        channels=%(channels)s, \n"
+            "        sampleRateHz=%(sampleRate)s, \n"
+            "        maxRecordingSize=%(maxSize)s\n"
+            "    )\n"
+        )
+        buff.writeOnceIndentedLines(code % inits)
+
     def writeStartCode(self, buff):
         inits = getInitVals(self.params)
         # Use filename with a suffix to store recordings
@@ -277,29 +316,9 @@ class MicrophoneComponent(BaseComponent):
 
     def writeRunOnceInitCode(self, buff):
         inits = getInitVals(self.params)
-        # Substitute default if device not found
-        if inits['device'].val not in deviceIndices:
-            alert(4330, strFields={'device': self.params['device'].val})
-            inits['device'].val = None
-        # Substitute sample rate value for numeric equivalent
-        inits['sampleRate'] = sampleRates[inits['sampleRate'].val]
-        # Substitute channel value for numeric equivalent
-        inits['channels'] = {'mono': 1, 'stereo': 2, 'auto': None}[self.params['channels'].val]
-        # Get device names
-        inits['deviceName'] = getDeviceName(inits['device'].val)
-        inits['deviceVarName'] = getDeviceVarName(inits['device'].val)
-        # Create Microphone object
-        code = (
-            "# create a microphone object for device: %(deviceName)s\n"
-            "%(deviceVarName)s = sound.microphone.Microphone(\n"
-            "    device=%(device)s, channels=%(channels)s, \n"
-            "    sampleRateHz=%(sampleRate)s, maxRecordingSize=%(maxSize)s\n"
-            ")\n"
-        )
-
         # check if the user wants to do transcription
         if inits['transcribe'].val:
-            code += (
+            code = (
                 "# Setup speech-to-text transcriber for audio recordings\n"
                 "from psychopy.sound.transcribe import setupTranscriber\n"
                 "setupTranscriber(\n"
@@ -312,7 +331,7 @@ class MicrophoneComponent(BaseComponent):
             else:
                 code += (")\n")
 
-        buff.writeOnceIndentedLines(code % inits)
+            buff.writeOnceIndentedLines(code % inits)
 
     def writeInitCode(self, buff):
         inits = getInitVals(self.params)
@@ -626,12 +645,10 @@ def getDeviceName(index):
     index : int or None
         Index of the device to use
     """
-    # Alias None
-    if index not in deviceIndices:
-        index = None
-    # Get device name
-    i = deviceIndices.index(index)
-    name = deviceNames[i]
+    name = "defaultMicrophone"
+    for dev in syst.getAudioCaptureDevices():
+        if dev['index'] == index:
+            name = dev['name']
 
     return name
 
