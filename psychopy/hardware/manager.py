@@ -279,9 +279,9 @@ class DeviceManager:
 
         Parameters
         ----------
-        deviceClass : str
+        deviceClass : str or list
             Full import path for the class, in PsychoPy, of the device. For example
-            `psychopy.hardware.keyboard.Keyboard`
+            `psychopy.hardware.keyboard.Keyboard`. If given a list, will run iteratively for all items in the list.
 
         Returns
         -------
@@ -290,9 +290,11 @@ class DeviceManager:
         """
         # if deviceClass is *, call for all types
         if deviceClass == "*":
+            deviceClass = DeviceManager.deviceClasses
+        # if given multiple types, call for each
+        if isinstance(deviceClass, (list, tuple)):
             devices = {}
-            for thisClass in DeviceManager.deviceClasses:
-                thisClass = DeviceManager._resolveAlias(thisClass)
+            for thisClass in deviceClass:
                 try:
                     devices[thisClass] = DeviceManager.getAvailableDevices(deviceClass=thisClass)
                 except NotImplementedError:
