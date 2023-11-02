@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PsychoPy 2023.2.2\n"
 "Report-Msgid-Bugs-To: shuonwang@gmail.com\n"
 "POT-Creation-Date: 2021-12-18 00:00+0100\n"
-"PO-Revision-Date: 2023-11-01 18:16-0400\n"
+"PO-Revision-Date: 2023-11-01 20:34-0400\n"
 "Last-Translator: Bingzi Yu <ybzice@gmail.com>\n"
 "Language-Team: Shun Wang <shuonwang@gmail.com>\n"
 "Language: zh_CN\n"
@@ -5287,12 +5287,15 @@ msgid ""
 "How to update noise if not otherwise required by other changes (none, "
 "repeat, N-frames, Seconds)"
 msgstr ""
+"若没有其他变化请求噪声（none, repeat, N-frames, Seconds），如何刷新噪声"
 
 #: ../experiment/components/noise/__init__.py:293
 msgid ""
 "How often to update noise (in frames or seconds) - can be a variable, "
 "ignored if any noise characteristic is updating on every frame"
 msgstr ""
+"刷新噪声的频率（单位为帧或秒）——可为一个变量，如任何噪声特征每帧均刷新，则忽"
+"略此项"
 
 #: ../experiment/components/noise/__init__.py:301
 msgid ""
@@ -5306,16 +5309,16 @@ msgstr ""
 
 #: ../experiment/components/parallelOut/__init__.py:20
 msgid "Start data"
-msgstr ""
+msgstr "开始数据"
 
 #: ../experiment/components/parallelOut/__init__.py:21
 msgid "Stop data"
-msgstr ""
+msgstr "终止数据"
 
 #: ../experiment/components/parallelOut/__init__.py:22
 #: ../experiment/components/pump/__init__.py:24
 msgid "Sync to screen"
-msgstr ""
+msgstr "与屏幕同步"
 
 #: ../experiment/components/parallelOut/__init__.py:31
 msgid "Parallel out: send signals from the parallel port"
@@ -5329,11 +5332,11 @@ msgstr ""
 
 #: ../experiment/components/parallelOut/__init__.py:69
 msgid "Data to be sent at 'start'"
-msgstr ""
+msgstr "在“start”传输的数据"
 
 #: ../experiment/components/parallelOut/__init__.py:74
 msgid "Data to be sent at 'end'"
-msgstr ""
+msgstr "在“end”传输的数据"
 
 #: ../experiment/components/parallelOut/__init__.py:77
 msgid ""
@@ -5352,7 +5355,7 @@ msgstr ""
 #: ../experiment/components/patch/__init__.py:53
 msgid ""
 "The image to be displayed - 'sin','sqr'... or a filename (including path)"
-msgstr ""
+msgstr "需显示的图像——“sin”，“sqr”…或一个文件名（包含文件路径）"
 
 #: ../experiment/components/patch/__init__.py:71
 msgid "Spatial frequency of image repeats across the patch, e.g. 4 or [2,3]"
@@ -5474,107 +5477,107 @@ msgstr ""
 
 #: ../experiment/components/ratingScale/__init__.py:23
 msgid "Visual analog scale"
-msgstr ""
+msgstr "可视模拟标尺"
 
 #: ../experiment/components/ratingScale/__init__.py:24
 #: ../experiment/components/slider/__init__.py:26
 msgid "Category choices"
-msgstr ""
+msgstr "分类选择"
 
 #: ../experiment/components/ratingScale/__init__.py:25
 msgid "Scale description"
-msgstr ""
+msgstr "标尺描述"
 
 #: ../experiment/components/ratingScale/__init__.py:26
 msgid "Lowest value"
-msgstr ""
+msgstr "最小值"
 
 #: ../experiment/components/ratingScale/__init__.py:27
 msgid "Highest value"
-msgstr ""
+msgstr "最大值"
 
 #: ../experiment/components/ratingScale/__init__.py:28
 #: ../experiment/components/slider/__init__.py:27
 msgid "Labels"
-msgstr ""
+msgstr "标签"
 
 #: ../experiment/components/ratingScale/__init__.py:29
 msgid "Marker type"
-msgstr ""
+msgstr "标记类型"
 
 #: ../experiment/components/ratingScale/__init__.py:30
 msgid "Marker start"
-msgstr ""
+msgstr "标记起始"
 
 #: ../experiment/components/ratingScale/__init__.py:32
 #: ../localization/__init__.py:176
 msgid "Position [x,y]"
-msgstr ""
+msgstr "位置[x,y]"
 
 #: ../experiment/components/ratingScale/__init__.py:33
 msgid "Tick height"
-msgstr ""
+msgstr "标记高度"
 
 #: ../experiment/components/ratingScale/__init__.py:34
 msgid "Disappear"
-msgstr ""
+msgstr "消失"
 
 #: ../experiment/components/ratingScale/__init__.py:36
 msgid "Show accept"
-msgstr ""
+msgstr "显示可接受"
 
 #: ../experiment/components/ratingScale/__init__.py:37
 msgid "Single click"
-msgstr ""
+msgstr "单击"
 
 #: ../experiment/components/ratingScale/__init__.py:38
 #: ../experiment/components/slider/__init__.py:30
 msgid "Store history"
-msgstr ""
+msgstr "保存历史记录"
 
 #: ../experiment/components/ratingScale/__init__.py:39
 #: ../experiment/components/slider/__init__.py:31
 msgid "Store rating"
-msgstr ""
+msgstr "保存评分"
 
 #: ../experiment/components/ratingScale/__init__.py:40
 #: ../experiment/components/slider/__init__.py:32
 msgid "Store rating time"
-msgstr ""
+msgstr "保存评分时间"
 
 #: ../experiment/components/ratingScale/__init__.py:41
 msgid "Customize everything :"
-msgstr ""
+msgstr "自定义一切："
 
 #: ../experiment/components/ratingScale/__init__.py:50
 msgid "Rating scale: obtain numerical or categorical responses"
-msgstr ""
+msgstr "评分标尺：获取数字或分类应答"
 
 #: ../experiment/components/ratingScale/__init__.py:93
 msgid ""
 "Show a continuous visual analog scale; returns 0.00 to 1.00; takes "
 "precedence over numeric scale or categorical choices"
-msgstr ""
+msgstr "显示连续可视模拟标尺；返回 0.00 至 1.00；优先于数字标尺或分类选择"
 
 #: ../experiment/components/ratingScale/__init__.py:100
 msgid ""
 "A list of categories (non-numeric alternatives) to present, space or comma-"
 "separated; these take precedence over a numeric scale"
-msgstr ""
+msgstr "分类列表（非数字选项），以空格或逗号分隔；这些类别优先于数字标尺"
 
 #: ../experiment/components/ratingScale/__init__.py:107
 msgid ""
 "Brief instructions, such as a description of the scale numbers as seen by "
 "the subject."
-msgstr ""
+msgstr "简要说明，如描述被试看到的分数所表示的含义。"
 
 #: ../experiment/components/ratingScale/__init__.py:113
 msgid "Lowest rating (low end of the scale); not used for categories."
-msgstr ""
+msgstr "最低分（标尺的底端）；不用于分类。"
 
 #: ../experiment/components/ratingScale/__init__.py:119
 msgid "Highest rating (top end of the scale); not used for categories."
-msgstr ""
+msgstr "最高分（标尺的顶端）；不用于分类。"
 
 #: ../experiment/components/ratingScale/__init__.py:125
 msgid "Labels for the ends of the scale, separated by commas"
@@ -5758,7 +5761,7 @@ msgstr "保存 psydat 文件"
 
 #: ../experiment/components/settings/__init__.py:67
 msgid "Logging level"
-msgstr ""
+msgstr "日志级别"
 
 #: ../experiment/components/settings/__init__.py:68
 msgid "Use PsychoPy version"
@@ -5786,7 +5789,7 @@ msgstr "JS 库"
 
 #: ../experiment/components/settings/__init__.py:74
 msgid "Force stereo"
-msgstr ""
+msgstr "强制使用立体声"
 
 #: ../experiment/components/settings/__init__.py:75
 msgid "Export HTML"
