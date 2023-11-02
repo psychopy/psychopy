@@ -191,6 +191,29 @@ class DeviceManager:
         return device
 
     @staticmethod
+    def addDeviceFromParams(deviceClass, deviceName, params):
+        """
+        Similar to addDevice, but rather than accepting arguments and keyword arguments, simply accepts a dict of
+        params. This is useful when receiving parameters from Liaison, communicating with a keyword-less language like
+        JavaScript. This is relatively niche and in most cases addDevice will work fine.
+
+        Parameters
+        ----------
+        deviceClass : str
+            Full import path for the class, in PsychoPy, of the device. For example `psychopy.hardware.keyboard.Keyboard`
+        deviceName : str
+            Arbitrary name to store device under.
+        params : dict
+            Whatever keyword arguments would be passed to the device class's init function
+
+        Returns
+        -------
+        BaseDevice
+            Device created by the linked class init
+        """
+        return DeviceManager.addDevice(deviceClass, deviceName, **params)
+
+    @staticmethod
     def removeDevice(deviceName):
         """
         Remove the device matching a specified device type and name.
