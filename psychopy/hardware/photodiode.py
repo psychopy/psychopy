@@ -6,7 +6,7 @@ from psychopy.hardware import keyboard
 
 
 class PhotodiodeResponse:
-    def __init__(self, t, value, channel=0, threshold=None):
+    def __init__(self, t, channel, value, threshold=None):
         self.t = t
         self.value = value
         self.channel = channel
@@ -73,6 +73,8 @@ class BasePhotodiodeGroup(base.BaseDevice):
         ----------
         state : bool or None
             True to get photodiode "on" responses, False to get photodiode "off" responses, None to get all responses.
+        channel : int
+            Which photodiode to get responses from?
         clear : bool
             Whether or not to remove responses matching `state` after retrieval.
 
