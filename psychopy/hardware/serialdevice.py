@@ -218,14 +218,15 @@ class SerialDevice(AttributeGetSetMixin, BaseDevice):
     @staticmethod
     def getAvailableDevices():
         ports = st.getSerialPorts()
+        print(ports)
         devices = []
-        for key, val in ports.items():
+        for profile in ports:
             device = {
-                'port': val.get('port', None),
-                'baudrate': val.get('baudrate', 9600),
-                'byteSize': val.get('bytesize', 8),
-                'stopBits': val.get('stopbits', 1),
-                'parity': val.get('parity', "N"),
+                'port': profile.get('port', None),
+                'baudrate': profile.get('baudrate', 9600),
+                'byteSize': profile.get('bytesize', 8),
+                'stopBits': profile.get('stopbits', 1),
+                'parity': profile.get('parity', "N"),
             }
             devices.append(device)
         return devices
