@@ -200,12 +200,8 @@ class DeviceManager:
 
         Parameters
         ----------
-        deviceClass : str
-            Full import path for the class, in PsychoPy, of the device. For example `psychopy.hardware.keyboard.Keyboard`
-        deviceName : str
-            Arbitrary name to store device under.
         params : dict
-            Whatever keyword arguments would be passed to the device class's init function
+            Keyword arguments to be passed to DeviceManager.addDevice
 
         Returns
         -------
@@ -335,8 +331,11 @@ class DeviceManager:
             f"`getAvailableDevices` method."
         )
         # use class method
-        return cls.getAvailableDevices()
+        profile = cls.getAvailableDevices()
+        # add device class
+        profile['deviceClass'] = deviceClass
 
+        return profile
 
     @staticmethod
     def closeAll():

@@ -711,11 +711,12 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
     @staticmethod
     def getAvailableDevices():
         devices = []
-        for val in st.getAudioCaptureDevices():
+        for profile in st.getAudioCaptureDevices():
             device = {
-                'index': val.get('index', None),
-                'sampleRateHz': val.get('defaultSampleRate', None),
-                'channels': val.get('inputChannels', None),
+                'deviceName': profile.get('device_name', "Unknown Microphone"),
+                'index': profile.get('index', None),
+                'sampleRateHz': profile.get('defaultSampleRate', None),
+                'channels': profile.get('inputChannels', None),
             }
             devices.append(device)
 
