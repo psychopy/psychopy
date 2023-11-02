@@ -30,7 +30,7 @@ class PhotodiodeValidatorComponent(BaseComponent):
             # layout
             findDiode=True, diodePos="(1, 1)", diodeSize="(0.1, 0.1)", diodeUnits="norm",
             # device
-            backend="bbtk-tpad", port="", number="1",
+            backend="bbtk-tpad", port="", channel="1",
             # data
             saveValid=True,
     ):
@@ -180,11 +180,11 @@ class PhotodiodeValidatorComponent(BaseComponent):
                 "Serial port which the photodiode is connected to."
             )
         )
-        self.params['number'] = Param(
-            number, valType="code", inputType="single", categ="Device",
-            label=_translate("Device number"),
+        self.params['channel'] = Param(
+            channel, valType="code", inputType="single", categ="Device",
+            label=_translate("Photodiode channel"),
             hint=_translate(
-                "If relevant, a device number attached to the photodiode, to distinguish it from other photodiodes on "
+                "If relevant, a channel number attached to the photodiode, to distinguish it from other photodiodes on "
                 "the same port."
             )
         )
@@ -242,7 +242,7 @@ class PhotodiodeValidatorComponent(BaseComponent):
             code = (
                 "# find threshold for photodiode\n"
                 "if %(deviceName)s.getThreshold() is None:\n"
-                "    %(deviceName)s.findThreshold(win)\n"
+                "    %(deviceName)s.findThreshold(win, channel=%(channel)s)\n"
             )
             buff.writeOnceIndentedLines(code % inits)
         # find pos if indicated
@@ -250,7 +250,7 @@ class PhotodiodeValidatorComponent(BaseComponent):
             code = (
                 "# find position and size of photodiode\n"
                 "if %(deviceName)s.pos is None and %(deviceName)s.size is None and %(deviceName)s.units is None:\n"
-                "    %(deviceName)s.findPhotodiode(win)\n"
+                "    %(deviceName)s.findPhotodiode(win, channel=%(channel)s)\n"
             )
             buff.writeOnceIndentedLines(code % inits)
 
@@ -268,7 +268,7 @@ class PhotodiodeValidatorComponent(BaseComponent):
 
         if self.params['threshold'] and not self.params['findThreshold']:
             code = (
-                "%(diodeName)s.setThreshold(%(threshold)s)\n"
+                "%(diodeName)s.setThreshold(%(threshold)s, channels=[%(channel)s])\n"
             )
             buff.writeIndentedLines(code % inits)
         # find/set diode position
@@ -294,7 +294,7 @@ class PhotodiodeValidatorComponent(BaseComponent):
         code = (
             "# validator object for %(name)s\n"
             "%(name)s = phd.PhotodiodeValidator(\n"
-            "    win, %(name)sDiode,\n"
+            "    win, %(name)sDiode, %(channel)s,\n"
             "    variability=%(variability)s,\n"
             "    report=%(report)s,\n"
             ")\n"
