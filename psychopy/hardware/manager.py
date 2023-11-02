@@ -52,6 +52,7 @@ class DeviceManager:
 
     """
     _instance = None  # singleton instance
+    deviceClasses = []  # subclasses of BaseDevice which we know about
     liaison = None
     ioServer = None  # reference to currently running ioHub ioServer object
     devices = {}  # devices stored
@@ -287,9 +288,18 @@ class DeviceManager:
         list
             List of dicts specifying parameters needed to initialise each device.
         """
-        # if deviceClass is *, just return full output from systemProfilerWindowsOS
+        # if deviceClass is *, call for all types
         if deviceClass == "*":
-            return st.systemProfilerWindowsOS(deviceids=True)
+            devices = {}
+            for thisClass in DeviceManager.deviceClasses:
+                thisClass = DeviceManager._resolveAlias(thisClass)
+                try:
+                    devices[thisClass] = DeviceManager.getAvailableDevices(deviceClass=thisClass)
+                except NotImplementedError:
+                    # ignore any NotImplementedErrors
+                    pass
+            return devices
+
         # if device class is an already registered alias, get the actual class str
         deviceClass = DeviceManager._resolveAlias(deviceClass)
         # get device class
