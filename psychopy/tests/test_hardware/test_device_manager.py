@@ -11,7 +11,9 @@ class TestDeviceManager:
         devices = (
             "psychopy.hardware.keyboard.KeyboardDevice",
             "psychopy.sound.microphone.MicrophoneDevice",
-            "psychopy.hardware.serialdevice.SerialDevice"
+            "psychopy.hardware.serialdevice.SerialDevice",
+            # "psychopy_bbtk.tpad.TPadPhotodiodeGroup",  # uncomment when running locally with a BBTK
+
         )
         for device in devices:
             self._test_device(device)
