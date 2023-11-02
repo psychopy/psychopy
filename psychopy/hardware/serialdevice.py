@@ -218,7 +218,6 @@ class SerialDevice(AttributeGetSetMixin, BaseDevice):
     @staticmethod
     def getAvailableDevices():
         ports = st.getSerialPorts()
-        print(ports)
         devices = []
         for profile in ports:
             device = {
