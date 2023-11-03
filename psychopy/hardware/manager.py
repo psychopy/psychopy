@@ -220,6 +220,9 @@ class DeviceManager:
         deviceName : str
             Arbitrary name device is stored under.
         """
+        device = DeviceManager.devices[deviceName]
+        if hasattr(device, "close"):
+            device.close()
         del DeviceManager.devices[deviceName]
 
     @staticmethod
