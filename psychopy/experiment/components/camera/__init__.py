@@ -474,7 +474,7 @@ class CameraComponent(BaseComponent):
             "    deviceManager.addDevice(\n"
             "        deviceClass='microphone',\n"
             "        deviceName='%(micDeviceName)s',\n"
-            "        index=%(mic)s,\n"
+            "        index='%(mic)s',\n"
             "        channels=%(micChannels)s, \n"
             "        sampleRateHz=%(micSampleRate)s, \n"
             "        maxRecordingSize=%(micMaxRecSize)s\n"
