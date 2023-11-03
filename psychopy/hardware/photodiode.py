@@ -65,7 +65,7 @@ class BasePhotodiodeGroup(base.BaseDevice):
         """
         self.listeners.append(listener)
 
-    def removeListeners(self):
+    def clearListeners(self):
         """
         Remove any listeners from this device.
 

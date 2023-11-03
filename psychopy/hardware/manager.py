@@ -452,7 +452,7 @@ class DeviceManager:
 
         return listener
 
-    def removeListeners(self, deviceName):
+    def clearListeners(self, deviceName):
         """
         Remove any listeners attached to a particular device.
 
@@ -469,8 +469,8 @@ class DeviceManager:
         # get device
         device = self.getDevice(deviceName)
         # add listener to device
-        if hasattr(device, "removeListeners"):
-            device.removeListeners()
+        if hasattr(device, "clearListeners"):
+            device.clearListeners()
 
         return True
             
