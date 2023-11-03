@@ -68,7 +68,11 @@ import psychopy.clock
 from psychopy import logging
 from psychopy.constants import NOT_STARTED
 import time
+
+from psychopy.hardware.base import BaseDevice
+from psychopy.hardware import DeviceManager
 from psychopy.tools.attributetools import AttributeGetSetMixin
+from psychopy.tools import systemtools as st
 
 try:
     import psychtoolbox as ptb
@@ -122,10 +126,61 @@ def getKeyboards():
 
 
 class Keyboard(AttributeGetSetMixin):
-    """The Keyboard class provides access to the Psychtoolbox KbQueue-based
-    calls on **Python3 64-bit** with fall-back to `event.getKeys` on legacy
-    systems.
+    def __init__(self, deviceName=None, device=-1, bufferSize=10000, waitForStart=False, clock=None, backend=None):
+        if deviceName not in DeviceManager.devices:
+            # if no matching device is in DeviceManager, make a new one
+            self.device = DeviceManager.addDevice(
+                deviceClass="psychopy.hardware.keyboard.KeyboardDevice", deviceName=deviceName,
+                backend=backend, device=device, bufferSize=bufferSize, waitForStart=waitForStart,
+                clock=clock
+            )
+        else:
+            # otherwise, use the existing device
+            self.device = DeviceManager.getDevice(deviceName)
 
+        # starting value for status (Builder)
+        self.status = NOT_STARTED
+
+        # initiate containers for storing responses
+        self.keys = []  # the key(s) pressed
+        self.corr = 0  # was the resp correct this trial? (0=no, 1=yes)
+        self.rt = []  # response time(s)
+        self.time = []  # Epoch
+
+        # get clock from device
+        self.clock = self.device.clock
+
+    def getBackend(self):
+        return self.device.getBackend()
+
+    def setBackend(self, backend):
+        return self.device.setBackend(backend=backend)
+
+    def start(self):
+        return self.device.start()
+
+    def stop(self):
+        return self.device.stop()
+
+    def getKeys(self, keyList=None, ignoreKeys=None, waitRelease=True, clear=True):
+        return self.device.getKeys(
+            keyList=keyList, ignoreKeys=ignoreKeys, waitRelease=waitRelease, clear=clear
+        )
+
+    def waitKeys(self, maxWait=float('inf'), keyList=None, waitRelease=True,
+                 clear=True):
+        return self.device.waitKeys(
+            maxWait=maxWait, keyList=keyList, waitRelease=waitRelease,
+            clear=clear
+        )
+
+    def clearEvents(self, eventType=None):
+        return self.device.clearEvents(eventType=eventType)
+
+
+class KeyboardDevice(BaseDevice, aliases=["keyboard"]):
+    """
+    Object representing
     """
     _backend = None
     _iohubKeyboard = None
@@ -155,44 +210,41 @@ class Keyboard(AttributeGetSetMixin):
         """
         global havePTB
 
+        # substitute None device for default device
+        if device is None:
+            device = -1
+
         if self._backend is None and backend in ['iohub', 'ptb', 'event', '']:
-            Keyboard._backend = backend
+            KeyboardDevice._backend = backend
 
         if self._backend is None:
-            Keyboard._backend = ''
+            KeyboardDevice._backend = ''
 
         if backend and self._backend != backend:
             logging.warning("keyboard.Keyboard already using '%s' backend. Can not switch to '%s'" % (self._backend,
                                                                                                       backend))
-
-        self.status = NOT_STARTED
-        # Initiate containers for storing responses
-        self.keys = []  # the key(s) pressed
-        self.corr = 0  # was the resp correct this trial? (0=no, 1=yes)
-        self.rt = []  # response time(s)
-        self.time = []  # Epoch
 
         if clock:
             self.clock = clock
         else:
             self.clock = psychopy.clock.Clock()
 
-        if Keyboard._backend in ['', 'iohub']:
+        if KeyboardDevice._backend in ['', 'iohub']:
             from psychopy.iohub.client import ioHubConnection
             from psychopy.iohub.devices import Computer
-            if not ioHubConnection.getActiveConnection() and Keyboard._backend == 'iohub':
+            if not ioHubConnection.getActiveConnection() and KeyboardDevice._backend == 'iohub':
                 # iohub backend was explicitly requested, but iohub is not running, so start it up
                 # setting keyboard to use standard psychopy key mappings
                 from psychopy.iohub import launchHubServer
                 launchHubServer(Keyboard=dict(use_keymap='psychopy'))
 
-            if ioHubConnection.getActiveConnection() and Keyboard._iohubKeyboard is None:
-                Keyboard._iohubKeyboard = ioHubConnection.getActiveConnection().getDevice('keyboard')
-                Keyboard._backend = 'iohub'
+            if ioHubConnection.getActiveConnection() and KeyboardDevice._iohubKeyboard is None:
+                KeyboardDevice._iohubKeyboard = ioHubConnection.getActiveConnection().getDevice('keyboard')
+                KeyboardDevice._backend = 'iohub'
 
-        if Keyboard._backend in ['', 'ptb'] and havePTB:
-            Keyboard._backend = 'ptb'
-            Keyboard._ptbOffset = self.clock.getLastResetTime()
+        if KeyboardDevice._backend in ['', 'ptb'] and havePTB:
+            KeyboardDevice._backend = 'ptb'
+            KeyboardDevice._ptbOffset = self.clock.getLastResetTime()
             # get the necessary keyboard buffer(s)
             if sys.platform == 'win32':
                 self._ids = [-1]  # no indexing possible so get the combo keyboard
@@ -218,12 +270,16 @@ class Keyboard(AttributeGetSetMixin):
             if not waitForStart:
                 self.start()
 
-        if Keyboard._backend in ['', 'event']:
+        if KeyboardDevice._backend in ['', 'event']:
             global event
             from psychopy import event
-            Keyboard._backend = 'event'
+            KeyboardDevice._backend = 'event'
 
-        logging.info('keyboard.Keyboard is using %s backend.' % Keyboard._backend)
+        logging.info('keyboard.Keyboard is using %s backend.' % KeyboardDevice._backend)
+
+    def isSameDevice(self, other):
+        # all Keyboards seem to be the same device
+        return True
 
     @classmethod
     def getBackend(self):
@@ -240,32 +296,46 @@ class Keyboard(AttributeGetSetMixin):
         """
         if self._backend is None:
             if backend in ['iohub', 'ptb', 'event', '']:
-                Keyboard._backend = backend
+                KeyboardDevice._backend = backend
             else:
-                logging.warning("keyboard.Keyboard.setBackend failed. backend must be one of %s"
+                logging.warning("keyboard.KeyboardDevice.setBackend failed. backend must be one of %s"
                                 % str(['iohub', 'ptb', 'event', '']))
             if backend == 'event':
                 global event
                 from psychopy import event
         else:
-            logging.warning("keyboard.Keyboard.setBackend already using '%s' backend. "
+            logging.warning("keyboard.KeyboardDevice.setBackend already using '%s' backend. "
                             "Can not switch to '%s'" % (self._backend, backend))
 
         return self._backend
 
     def start(self):
         """Start recording from this keyboard """
-        if Keyboard._backend == 'ptb':
+        if KeyboardDevice._backend == 'ptb':
             for buffer in self._buffers.values():
                 buffer.start()
 
     def stop(self):
         """Start recording from this keyboard"""
-        if Keyboard._backend == 'ptb':
+        if KeyboardDevice._backend == 'ptb':
             logging.warning("Stopping key buffers but this could be dangerous if"
                             "other keyboards rely on the same.")
             for buffer in self._buffers.values():
                 buffer.stop()
+
+    def close(self):
+        self.stop()
+
+    @staticmethod
+    def getAvailableDevices():
+        devices = []
+        for profile in st.getKeyboards():
+            devices.append({
+                'deviceName': profile.get('device_name', "Unknown Keyboard"),
+                'device': profile.get('index', -1),
+                'bufferSize': profile.get('bufferSize', 10000),
+            })
+        return devices
 
     def getKeys(self, keyList=None, ignoreKeys=None, waitRelease=True, clear=True):
         """
@@ -295,7 +365,7 @@ class Keyboard(AttributeGetSetMixin):
 
         """
         keys = []
-        if Keyboard._backend == 'ptb':
+        if KeyboardDevice._backend == 'ptb':
             for buffer in self._buffers.values():
                 for origKey in buffer.getKeys(
                         keyList=keyList,
@@ -307,10 +377,10 @@ class Keyboard(AttributeGetSetMixin):
                     thisKey.rt = thisKey.tDown - self.clock.getLastResetTime()
                     thisKey.tDown = thisKey.tDown - self._ptbOffset 
                     keys.append(thisKey)
-        elif Keyboard._backend == 'iohub':
+        elif KeyboardDevice._backend == 'iohub':
             watchForKeys = keyList
             if waitRelease:
-                key_events = Keyboard._iohubKeyboard.getReleases(
+                key_events = KeyboardDevice._iohubKeyboard.getReleases(
                     keys=watchForKeys,
                     ignoreKeys=ignoreKeys,
                     clear=clear
@@ -318,7 +388,7 @@ class Keyboard(AttributeGetSetMixin):
             else:
                 key_events = []
                 released_press_evt_ids = []
-                all_key_events = Keyboard._iohubKeyboard.getKeys(
+                all_key_events = KeyboardDevice._iohubKeyboard.getKeys(
                     keys=watchForKeys,
                     ignoreKeys=ignoreKeys,
                     clear=clear
@@ -349,13 +419,13 @@ class Keyboard(AttributeGetSetMixin):
                     tDown = k.time
 
                 kpress = KeyPress(code=k.char, tDown=tDown, name=kname)
-                kpress.rt = kpress.tDown - (self.clock.getLastResetTime() - Keyboard._iohubKeyboard.clock.getLastResetTime())
+                kpress.rt = kpress.tDown - (self.clock.getLastResetTime() - KeyboardDevice._iohubKeyboard.clock.getLastResetTime())
                 if hasattr(k, 'duration'):
                     kpress.duration = k.duration
 
 
                 keys.append(kpress)
-        else:  # Keyboard.backend == 'event'
+        else:  # KeyboardDevice.backend == 'event'
             global event
             name = event.getKeys(keyList, modifiers=False, timeStamped=False)
             rt = self.clock.getTime()
@@ -408,14 +478,14 @@ class Keyboard(AttributeGetSetMixin):
 
     def clearEvents(self, eventType=None):
         """Clear the events from the Keyboard such as previous key presses"""
-        if Keyboard._backend == 'ptb':
+        if KeyboardDevice._backend == 'ptb':
             for buffer in self._buffers.values():
                 buffer.flush()  # flush the device events to the soft buffer
                 buffer._evts.clear()
                 buffer._keys.clear()
                 buffer._keysStillDown.clear()
-        elif Keyboard._backend == 'iohub':
-            Keyboard._iohubKeyboard.clearEvents()
+        elif KeyboardDevice._backend == 'iohub':
+            KeyboardDevice._iohubKeyboard.clearEvents()
         else:
             global event
             event.clearEvents(eventType)
@@ -452,10 +522,10 @@ class KeyPress(object):
         self.tDown = tDown
         self.duration = None
         self.rt = None
-        if Keyboard._backend == 'event':  # we have event.getKeys()
+        if KeyboardDevice._backend == 'event':  # we have event.getKeys()
             self.name = name
             self.rt = tDown
-        elif Keyboard._backend == 'ptb':
+        elif KeyboardDevice._backend == 'ptb':
             if code not in keyNames and code in keyNames.values():
                 i = list(keyNames.values()).index(code)
                 code = list(keyNames.keys())[i]
@@ -464,7 +534,7 @@ class KeyPress(object):
                 self.name = 'unknown'
             else:
                 self.name = keyNames[code]
-        elif Keyboard._backend == 'iohub':
+        elif KeyboardDevice._backend == 'iohub':
             self.name = name
 
     def __eq__(self, other):

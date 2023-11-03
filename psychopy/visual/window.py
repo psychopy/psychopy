@@ -588,6 +588,9 @@ class Window():
         self._toDrawDepths = []
         self._eventDispatchers = []
 
+        # dict of stimulus:validator pairs
+        self.validators = {}
+
         self.lastFrameT = core.getTime()
         self.waitBlanking = waitBlanking
 
@@ -898,7 +901,7 @@ class Window():
                              'args': args,
                              'kwargs': kwargs})
 
-    def timeOnFlip(self, obj, attrib):
+    def timeOnFlip(self, obj, attrib, format=float):
         """Retrieves the time on the next flip and assigns it to the `attrib`
         for this `obj`.
 
@@ -908,6 +911,8 @@ class Window():
             A mutable object (usually a dict of class instance).
         attrib : str
             Key or attribute of `obj` to assign the flip time to.
+        format : str, class or None
+            Format in which to return time, see clock.Timestamp.resolve() for more info. Defaults to `float`.
 
         Examples
         --------
@@ -916,7 +921,7 @@ class Window():
             win.getTimeOnFlip(myTimingDict, 'tStartRefresh')
 
         """
-        self.callOnFlip(self._assignFlipTime, obj, attrib)
+        self.callOnFlip(self._assignFlipTime, obj, attrib, format)
 
     def getFutureFlipTime(self, targetTime=0, clock=None):
         """The expected time of the next screen refresh. This is currently
@@ -957,7 +962,7 @@ class Window():
 
         return output
 
-    def _assignFlipTime(self, obj, attrib):
+    def _assignFlipTime(self, obj, attrib, format=float):
         """Helper function to assign the time of last flip to the obj.attrib
 
         Parameters
@@ -966,12 +971,15 @@ class Window():
             A mutable object (usually a dict of class instance).
         attrib : str
             Key or attribute of ``obj`` to assign the flip time to.
+        format : str, class or None
+            Format in which to return time, see clock.Timestamp.resolve() for more info. Defaults to `float`.
 
         """
+        frameTime = self._frameTime.resolve(format=format)
         if hasattr(obj, attrib):
-            setattr(obj, attrib, self._frameTime)
+            setattr(obj, attrib, frameTime)
         elif isinstance(obj, dict):
-            obj[attrib] = self._frameTime
+            obj[attrib] = frameTime
         else:
             raise TypeError("Window.getTimeOnFlip() should be called with an "
                             "object and its attribute or a dict and its key. "
@@ -1155,9 +1163,12 @@ class Window():
 
         if self._toDraw:
             for thisStim in self._toDraw:
-                # Draw
+                # draw
                 thisStim.draw()
-                # Handle dragging
+                # draw validation rect if needed
+                if thisStim in self.validators:
+                    self.validators[thisStim].draw()
+                # handle dragging
                 if getattr(thisStim, "draggable", False):
                     thisStim.doDragging()
         else:

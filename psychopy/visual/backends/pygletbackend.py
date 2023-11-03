@@ -180,7 +180,7 @@ class PygletBackend(BaseBackend):
                 win.multiSample = False
 
         if platform.system() == 'Linux':
-            display = pyglet.canvas.Display(x_screen=win.screen)
+            display = pyglet.canvas.Display()
             allScrs = display.get_screens()
         else:
             if pyglet.version < '1.4':
@@ -334,7 +334,7 @@ class PygletBackend(BaseBackend):
             # (but need to alter x,y handling then)
             self.winHandle.set_mouse_visible(False)
         if not win.pos:
-            # work out where the centre should be 
+            # work out where the centre should be
             if win.useRetina:
                 win.pos = [(thisScreen.width - win.clientSize[0]/2) / 2,
                            (thisScreen.height - win.clientSize[1]/2) / 2]

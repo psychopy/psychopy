@@ -11,6 +11,7 @@ from functools import partial
 from pathlib import Path
 
 from psychopy import experiment, logging, constants, data, core, __version__
+from psychopy.hardware.manager import DeviceManager, deviceManager
 from psychopy.tools.arraytools import AliasDict
 
 from psychopy.localization import _translate
@@ -244,7 +245,6 @@ class Session:
                  experiments=None,
                  loggingLevel="info",
                  priorityThreshold=constants.priority.EXCLUDE+1,
-                 inputs=None,
                  params=None,
                  liaison=None):
         # Store root and add to Python path
@@ -280,16 +280,6 @@ class Session:
             # If win is the name of an experiment, setup from that experiment's method
             self.win = None
             self.setupWindowFromExperiment(win)
-        # Store/create inputs dict
-        self.inputs = {
-            'defaultKeyboard': None,
-            'eyetracker': None
-        }
-        if isinstance(inputs, dict):
-            self.inputs = inputs
-        elif inputs in self.experiments:
-            # If inputs is the name of an experiment, setup from that experiment's method
-            self.setupInputsFromExperiment(inputs)
         # Setup Session clock
         if clock in (None, "float"):
             clock = core.Clock()
@@ -656,6 +646,18 @@ class Session:
         # get expInfo from ExperimentHandler object
         return self.currentExperiment.extraInfo
 
+    @property
+    def win(self):
+        """
+        Window associated with this Session. Defined as a property so as to be accessible from Liaison
+        if needed.
+        """
+        return self._win
+
+    @win.setter
+    def win(self, value):
+        self._win = value
+
     def setupWindowFromExperiment(self, key, expInfo=None, blocking=True):
         """
         Setup the window for this Session via the 'setupWindow` method from one of this
@@ -703,7 +705,7 @@ class Session:
 
         return True
 
-    def setupWindowFromParams(self, params, blocking=True):
+    def setupWindowFromParams(self, params, measureFrameRate=False, blocking=True):
         """
         Create/setup a window from a dict of parameters
 
@@ -712,6 +714,8 @@ class Session:
         params : dict
             Dict of parameters to create the window from, keys should be from the
             __init__ signature of psychopy.visual.Window
+        measureFrameRate : bool
+            If True, will measure frame rate upon window creation.
         blocking : bool
             Should calling this method block the current thread?
 
@@ -755,10 +759,20 @@ class Session:
             self.win.units = params.get('units', self.win.units)
         # Set window title to signify that we're in a Session
         self.win.title = "PsychoPy Session"
+        # Measure frame rate
+        if measureFrameRate:
+            expInfo = self.getCurrentExpInfo()
+            expInfo['frameRate'] = self.win.getActualFrameRate()
 
         return True
 
     def setupInputsFromExperiment(self, key, expInfo=None, thisExp=None, blocking=True):
+        """
+        Deprecated: legacy alias of setupDevicesFromExperiment
+        """
+        self.setupDevicesFromExperiment(self, key, expInfo=expInfo, thisExp=thisExp, blocking=blocking)
+
+    def setupDevicesFromExperiment(self, key, expInfo=None, thisExp=None, blocking=True):
         """
         Setup inputs for this Session via the 'setupInputs` method from one of this Session's experiments.
 
@@ -792,15 +806,15 @@ class Session:
         if threading.current_thread() != threading.main_thread() and not blocking:
             # The queue is emptied each iteration of the while loop in `Session.start`
             _queue.queueTask(
-                self.setupInputsFromExperiment,
+                self.setupDevicesFromExperiment,
                 key, expInfo=expInfo
             )
             return True
 
         if expInfo is None:
             expInfo = self.getExpInfoFromExperiment(key)
-        # Run the setupInputs method
-        self.inputs = self.experiments[key].setupInputs(expInfo=expInfo, thisExp=thisExp, win=self.win)
+        # Run the setupDevices method
+        self.experiments[key].setupDevices(expInfo=expInfo, thisExp=thisExp, win=self.win)
 
         return True
 
@@ -814,7 +828,7 @@ class Session:
             Name of this input, what to store it under in the inputs dict.
         params : dict
             Dict of parameters to create the keyboard from, keys should be from the
-            __init__ signature of psychopy.hardware.keyboard.Keyboard
+            `addKeyboard` function in hardware.DeviceManager
         blocking : bool
             Should calling this method block the current thread?
 
@@ -843,8 +857,7 @@ class Session:
             return True
 
         # Create keyboard
-        from psychopy.hardware.keyboard import Keyboard
-        self.inputs[name] = Keyboard(**params)
+        deviceManager.addKeyboard(*params)
 
         return True
 
@@ -903,8 +916,8 @@ class Session:
         self.win.stashAutoDraw()
         # Setup logging
         self.experiments[key].run.__globals__['logFile'] = self.logFile
-        # Setup inputs
-        self.setupInputsFromExperiment(key, expInfo=expInfo, thisExp=thisExp)
+        # Setup devices
+        self.setupDevicesFromExperiment(key, expInfo=expInfo, thisExp=thisExp)
         # Log start
         logging.info(_translate(
             "Running experiment via Session: name={key}, expInfo={expInfo}"
@@ -915,7 +928,6 @@ class Session:
                 expInfo=expInfo,
                 thisExp=thisExp,
                 win=self.win,
-                inputs=self.inputs,
                 globalClock=self.sessionClock,
                 thisSession=self
             )
@@ -1311,6 +1323,8 @@ if __name__ == "__main__":
         from psychopy import liaison
         # Create liaison server
         liaisonServer = liaison.WebSocketServer()
+        # Add DeviceManager to liaison server
+        liaisonServer.registerClass(DeviceManager, "DeviceManager")
         # Add session to liaison server
         liaisonServer.registerClass(Session, "session")
         # Register queue with liaison

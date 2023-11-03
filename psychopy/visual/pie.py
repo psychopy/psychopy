@@ -13,7 +13,9 @@ import numpy as np
 
 
 class Pie(BaseShapeStim):
-    """Creates a pie shape which is a circle with a wedge cut-out.
+    """Creates a pie shape which is a circle with a wedge cut-out. This is a 
+    lazy-imported class, therefore import using full path 
+    `from psychopy.visual.pie import Pie` when inheriting from it.
 
     This shape is sometimes referred to as a Pac-Man shape which is often
     used for creating Kanizsa figures. However, the shape can be adapted for

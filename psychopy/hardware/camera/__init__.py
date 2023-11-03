@@ -62,8 +62,10 @@ import time
 import numpy as np
 
 from psychopy.constants import NOT_STARTED
+from psychopy.hardware import DeviceManager
 from psychopy.visual.movies.frame import MovieFrame, NULL_MOVIE_FRAME_INFO
-from psychopy.sound.microphone import Microphone
+from psychopy.sound.microphone import Microphone, MicrophoneDevice
+from psychopy.tools import systemtools as st
 import psychopy.tools.movietools as movietools
 import psychopy.logging as logging
 from psychopy.localization import _translate
@@ -1707,9 +1709,16 @@ class Camera:
         #         "`'cv'` or `'photo'`.")
         # self._mode = mode
 
-        if not isinstance(mic, Microphone):
-            TypeError(
-                "Expected type for parameter `mic`, expected `Microphone`.")
+        _requestedMic = mic
+        # if not given a Microphone or MicrophoneDevice, get it from DeviceManager
+        if not isinstance(mic, (Microphone, MicrophoneDevice)):
+            mic = DeviceManager.getDevice(mic)
+        # if not known by name, try index
+        if mic is None:
+            mic = DeviceManager.getDeviceBy("index", mic, deviceClass="microphone")
+        # if not known by name or index, raise error
+        if mic is None:
+            raise SystemError(f"Could not find microphone {_requestedMic}")
 
         # current camera frame since the start of recording
         self._player = None  # media player instance
@@ -1881,6 +1890,19 @@ class Camera:
             return Camera._getCamerasCache['ffpyplayer']
         else:
             raise ValueError("Invalid value for parameter `cameraLib`")
+
+    @staticmethod
+    def getAvailableDevices():
+        devices = []
+        for dev in st.getCameras():
+            for spec in dev:
+                devices.append({
+                    'device': spec['index'],
+                    'frameRate': spec['frameRate'],
+                    'frameSize': spec['frameSize'],
+                })
+
+        return devices
 
     @staticmethod
     def getCameraDescriptions(collapse=False):
@@ -2410,6 +2432,9 @@ class Camera:
                     self._mic.close()
                 except AttributeError:
                     pass
+
+
+DeviceManager.registerAlias("camera", "psychopy.hardware.camera.Camera")
 
 
 # ------------------------------------------------------------------------------

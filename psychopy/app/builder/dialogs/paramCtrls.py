@@ -5,7 +5,6 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 import ast
-import functools
 import os
 import subprocess
 import sys
@@ -343,14 +342,14 @@ class ChoiceCtrl(wx.Choice, _ValidatorMixin, _HideMixin):
         self.SetStringSelection(val)
 
     def populate(self):
-        if isinstance(self._choices, functools.partial):
+        if callable(self._choices):
             # if choices are given as a partial, execute it now to get values
             choices = self._choices()
         else:
             # otherwise, treat it as a list
             choices = list(self._choices)
 
-        if isinstance(self._labels, functools.partial):
+        if callable(self._labels):
             # if labels are given as a partial, execute it now to get values
             labels = self._labels()
         elif self._labels:
@@ -926,6 +925,7 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
         expRoot = Path(cmpRoot).parent
         self.templates = {
             'Form': Path(cmpRoot) / "form" / "formItems.xltx",
+            'CounterBalance': Path(expRoot) / "routines" / "counterbalance" / "counterbalanceItems.xltx",
             'TrialHandler': Path(expRoot) / "loopTemplate.xltx",
             'StairHandler': Path(expRoot) / "loopTemplate.xltx",
             'MultiStairHandler:simple': Path(expRoot) / "staircaseTemplate.xltx",
@@ -954,13 +954,22 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
         if "$" in self.GetValue():
             self.xlBtn.Disable()
             return
-        # Enable Excel button if valid
+        # enable Excel button if valid
         self.xlBtn.Enable(self.valid)
-        # Is component type available?
-        if self.GetValue() in [None, ""] + self.validExt and hasattr(self.GetTopLevelParent(), 'type'):
-            # Does this component have a default template?
-            if self.GetTopLevelParent().type in self.templates:
-                self.xlBtn.Enable(True)
+        # get frame
+        frame = self.GetParent()
+        while hasattr(frame, "GetParent") and not (hasattr(frame, "routine") or hasattr(frame, "component")):
+            frame = frame.GetParent()
+        # get comp type from frame
+        if hasattr(frame, "component"):
+            thisType = frame.component.type
+        elif hasattr(frame, "routine"):
+            thisType = frame.routine.type
+        else:
+            thisType = None
+        # does this component have a default template?
+        if thisType in self.templates:
+            self.xlBtn.Enable(True)
 
     def openExcel(self, event):
         """Either open the specified excel sheet, or make a new one from a template"""
@@ -971,11 +980,22 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
                 "please remember to add it to {name}").format(name=_translate(self.Name)),
                              caption=_translate("Reminder"))
             dlg.ShowModal()
-            if hasattr(self.GetTopLevelParent(), 'type'):
-                if self.GetTopLevelParent().type in self.templates:
-                    file = self.templates[self.GetTopLevelParent().type] # Open type specific template
-                else:
-                    file = self.templates['None'] # Open blank template
+            # get frame
+            frame = self.GetParent()
+            while hasattr(frame, "GetParent") and not (hasattr(frame, "routine") or hasattr(frame, "component")):
+                frame = frame.GetParent()
+            # get comp type from frame
+            if hasattr(frame, "component"):
+                thisType = frame.component.type
+            elif hasattr(frame, "routine"):
+                thisType = frame.routine.type
+            else:
+                thisType = "None"
+            # open type specific template, or blank
+            if thisType in self.templates:
+                file = self.templates[thisType]
+            else:
+                file = self.templates['None']
         # Open whatever file is used
         try:
             os.startfile(file)
@@ -1086,7 +1106,9 @@ def validate(obj, valType):
     if valType == "file":
         val = Path(str(val))
         if not val.is_absolute():
-            frame = obj.GetTopLevelParent().frame
+            frame = obj.GetTopLevelParent()
+            if hasattr(frame, "frame"):
+                frame = frame.frame
             # If not an absolute path, append to current directory
             val = Path(frame.filename).parent / val
         if not val.is_file():

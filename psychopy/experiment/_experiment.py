@@ -293,8 +293,8 @@ class Experiment:
             self_copy.settings.writeLoggingCode(script)
             # setup window
             self_copy.settings.writeWindowCode(script)  # create our visual.Window()
-            # setup inputs
-            self_copy.settings.writeIohubCode(script)
+            # setup devices
+            self_copy.settings.writeDevicesCode(script)
             # pause experiment
             self_copy.settings.writePauseCode(script)
             # write the bulk of the experiment code
@@ -320,15 +320,14 @@ class Experiment:
                 "    thisExp = setupData(expInfo=expInfo)\n"
                 "    logFile = setupLogging(filename=thisExp.dataFileName)\n"
                 "    win = setupWindow(expInfo=expInfo)\n"
-                "    inputs = setupInputs(expInfo=expInfo, thisExp=thisExp, win=win)\n"
+                "    setupDevices(expInfo=expInfo, thisExp=thisExp, win=win)\n"
                 "    run(\n"
                 "        expInfo=expInfo, \n"
                 "        thisExp=thisExp, \n"
-                "        win=win, \n"
-                "        inputs=inputs\n"
+                "        win=win\n"
                 "    )\n"
                 "    saveData(thisExp=thisExp)\n"
-                "    quit(thisExp=thisExp, win=win, inputs=inputs)\n"
+                "    quit(thisExp=thisExp, win=win)\n"
             )
             script.writeIndentedLines(code)
 
