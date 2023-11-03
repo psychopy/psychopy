@@ -11,6 +11,8 @@
 __all__ = ['Microphone', 'MicrophoneDevice']
 
 import sys
+import time
+
 import psychopy.logging as logging
 from psychopy.constants import NOT_STARTED
 from psychopy.hardware import DeviceManager
@@ -869,6 +871,53 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
     @property
     def index(self):
         return self._device.deviceIndex
+
+    def testDevice(self, duration=1, testSound=None):
+        """
+        Make a recording to test the microphone.
+
+        Parameters
+        ----------
+        duration : float, int
+            How long to record for? In seconds.
+        testSound : str, AudioClip, None
+            Sound to play to test mic. Use "sine", "square" or "sawtooth" to generate a sound of correct
+            duration using AudioClip. Use None to not play a test sound.
+
+        Returns
+        -------
+        bool
+            True if test passed, False otherwise. On fail, will log the error at level "debug".
+        """
+        # if given a string for testSound, generate
+        if testSound in ("sine", "square", "sawtooth"):
+            testSound = getattr(AudioClip, testSound)(duration=duration)
+
+        try:
+            # get clips to this point
+            ogClips = self.flush()
+            # record
+            self.start(stopTime=duration)
+            # play testSound
+            if testSound is not None:
+                from psychopy.sound import Sound
+                snd = Sound(value=testSound)
+                snd.play()
+            # sleep for duration
+            time.sleep(duration)
+            # get new clips
+            clips = self.flush()
+            # reinstate original clips
+            self.clips = ogClips
+            # check that clip matches test sound
+            if testSound is not None:
+                # todo: check the recording against testSound
+                pass
+            return True
+        except Exception as err:
+            raise err
+            logging.debug(f"Microphone test failed. Error: {err}")
+            return False
 
     def start(self, when=None, waitForStart=0, stopTime=None):
         """Start an audio recording.
