@@ -12,7 +12,7 @@
 import os
 import sys
 
-__version__ = '2023.2.0rc4'
+__version__ = '2024.1.0dev1'
 __license__ = 'GPL v3'
 __author__ = 'Open Science Tools Ltd'
 __author_email__ = 'support@opensciencetools.org'
@@ -42,8 +42,13 @@ if __git_sha__ == 'n/a':
 # update preferences and the user paths
 if 'installing' not in locals():
     from psychopy.preferences import prefs
-    for pathName in prefs.general['paths']:
-        sys.path.append(pathName)
+    for _pathName in prefs.general['paths']:
+        sys.path.append(_pathName)
+    # add paths from plugins/packages (installed by plugins manager)
+    import pathlib as _pathlib
+    for _pathName in _pathlib.Path(prefs.paths['packages']).glob("*"):
+        if _pathName.is_dir():
+            sys.path.append(str(_pathName))
 
     from psychopy.tools.versionchooser import useVersion, ensureMinimal
 

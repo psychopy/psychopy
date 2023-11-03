@@ -8,15 +8,6 @@ from copy import copy
 from pathlib import Path
 from psychopy.tools import stringtools as st
 from psychopy.experiment.components import BaseComponent, Param, _translate, getInitVals
-from psychopy.localization import _localized as __localized
-_localized = __localized.copy()
-
-# only use _localized values for label values, nothing functional:
-_localized.update({'address': _translate('Port address'),
-                   'register': _translate('U3 Register'),
-                   'startData': _translate("Start data"),
-                   'stopData': _translate("Stop data"),
-                   'syncScreenRefresh': _translate('Sync to screen')})
 
 
 class SerialOutComponent(BaseComponent):
@@ -24,6 +15,7 @@ class SerialOutComponent(BaseComponent):
 
     categories = ['I/O', 'EEG']
     targets = ['PsychoPy']
+    version = "2022.2.0"
     iconFile = Path(__file__).parent / 'serial.png'
     tooltip = _translate('Serial out: send signals from a serial port')
     beta = True
@@ -53,17 +45,17 @@ class SerialOutComponent(BaseComponent):
             label=_translate("Port")
         )
         self.params['baudrate'] = Param(
-            baudrate, valType='int', inputType="int", categ='Hardware',
+            baudrate, valType='int', inputType="single", categ='Hardware',
             hint=_translate("The baud rate, or speed, of the connection."),
             label=_translate("Baud rate")
         )
         self.params['bytesize'] = Param(
-            bytesize, valType='int', inputType="int", categ='Hardware',
+            bytesize, valType='int', inputType="single", categ='Hardware',
             hint=_translate("Size of bits to be sent."),
             label=_translate("Data bits")
         )
         self.params['stopbits'] = Param(
-            stopbits, valType='int', inputType="int", categ='Hardware',
+            stopbits, valType='int', inputType="single", categ='Hardware',
             hint=_translate("Size of bits to be sent on stop."),
             label=_translate("Stop bits")
         )

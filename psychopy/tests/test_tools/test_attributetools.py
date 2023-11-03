@@ -6,6 +6,7 @@ import scipy.stats as sp
 from psychopy.tests import skip_under_vm
 from psychopy import colors
 from psychopy.tools.attributetools import attributeSetter, logAttrib
+from psychopy.tools.stringtools import CaseSwitcher
 
 
 pd.options.display.float_format = "{:,.0f}".format
@@ -225,3 +226,32 @@ class TestAttributeSetterSpeed:
                     f"{faster} WAS NOT significantly faster than {slower} when {key}"
                 )
             print(out)
+
+
+def testGetSetAliases():
+    from psychopy.visual.circle import Circle
+    from psychopy.visual.textbox2.textbox2 import TextBox2
+    from psychopy.visual.button import ButtonStim
+    from psychopy.visual.movie import MovieStim
+    from psychopy.sound import Sound
+    from psychopy.hardware.mouse import Mouse
+
+    for cls in (Circle, TextBox2, ButtonStim, MovieStim, Sound, Mouse):
+        # iterate through methods
+        for name in dir(cls):
+            # get function
+            func = getattr(cls, name)
+            # ignore any which aren't attributeSetters
+            if not isinstance(func, (attributeSetter, property)):
+                continue
+            # work out getter method name
+            getterName = "get" + CaseSwitcher.camel2pascal(name)
+            # ensure that the corresponding get function exists
+            assert hasattr(cls, getterName), f"Class '{cls.__name__}' has not attribute '{getterName}'"
+            # any non-settable properties are now done
+            if isinstance(func, property) and func.fset is None:
+                continue
+            # work out setter method name
+            setterName = "set" + CaseSwitcher.camel2pascal(name)
+            # ensure that the corresponding set function exists
+            assert hasattr(cls, setterName), f"Class '{cls.__name__}' has not attribute '{setterName}'"

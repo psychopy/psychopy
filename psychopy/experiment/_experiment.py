@@ -52,7 +52,8 @@ RequiredImport = namedtuple('RequiredImport',
                                          'importAs'))
 
 
-# Some params have previously had types which cause errors compiling in new versions, so we need to keep track of them and force them to the new type if needed
+# some params have previously had types which cause errors compiling in new versions, so we need to keep track of
+# them and force them to the new type if needed
 forceType = {
     'pos': 'list',
     'size': 'list',
@@ -78,6 +79,18 @@ forceType = {
     ('SliderComponent', 'ticks'): 'list',
     ('SliderComponent', 'labels'): 'list',
     ('SliderComponent', 'styleTweaks'): 'list'
+}
+
+# some components in plugins used to be in the main lib, keep track of which plugins they're in
+pluginComponents = {
+    'QmixPumpComponent': "psychopy-qmix",
+    'PeristalticPumpComponent': "psychopy-labeotech",
+    'ioLabsButtonBoxComponent': "psychopy-iolabs",
+    'cedrusButtonBoxComponent': "psychopy-cedrus",
+    'EmotivRecordingComponent': "psychopy-emotiv",
+    'EmotivMarkingComponent': "psychopy-emotiv",
+    'EnvGratingComponent': "psychopy-visionscience",
+    'NoiseStimComponent': "psychopy-visionscience",
 }
 
 # # Code to generate force list
@@ -166,6 +179,13 @@ class Experiment:
     def eyetracking(self):
         """What kind of eyetracker this experiment is set up for"""
         return self.settings.params['eyetracker']
+
+    @property
+    def legacyFilename(self):
+        """
+        Variant of this experiment's filename with "_legacy" on the end
+        """
+        return ft.constructLegacyFilename(self.filename)
 
     def requireImport(self, importName, importFrom='', importAs=''):
         """Add a top-level import to the experiment.
@@ -256,18 +276,15 @@ class Experiment:
 
         if target == "PsychoPy":
             # Imports
-            self_copy.settings.writeInitCode(script, self_copy.psychopyVersion,
-                                             localDateTime)
-            # Global variables
-            self_copy.settings.writeGlobals(script, version=self_copy.psychopyVersion)
-
+            self_copy.settings.writeInitCode(script, self_copy.psychopyVersion, localDateTime)
             # Write "run once" code sections
             for entry in self_copy.flow:
                 # NB each entry is a routine or LoopInitiator/Terminator
                 self_copy._currentRoutine = entry
                 if hasattr(entry, 'writePreCode'):
                     entry.writePreCode(script)
-
+            # global variables
+            self_copy.settings.writeGlobals(script, version=self_copy.psychopyVersion)
             # present info
             self_copy.settings.writeExpInfoDlgCode(script)
             # setup data and saving
@@ -303,7 +320,7 @@ class Experiment:
                 "    thisExp = setupData(expInfo=expInfo)\n"
                 "    logFile = setupLogging(filename=thisExp.dataFileName)\n"
                 "    win = setupWindow(expInfo=expInfo)\n"
-                "    inputs = setupInputs(expInfo=expInfo, win=win)\n"
+                "    inputs = setupInputs(expInfo=expInfo, thisExp=thisExp, win=win)\n"
                 "    run(\n"
                 "        expInfo=expInfo, \n"
                 "        thisExp=thisExp, \n"
@@ -409,24 +426,88 @@ class Experiment:
 
         return experimentNode
 
-    def saveToXML(self, filename):
-        self.psychopyVersion = psychopy.__version__  # make sure is current
+    def sanitizeForVersion(self, targetVersion):
+        """
+        Create a copy of this experiment with components/routines added after the given version removed.
+
+        Parameters
+        ----------
+        version : packaging.Version, str
+            Version of PsychoPy to sanitize for.
+
+        Returns
+        -------
+        Experiment
+            Sanitized copy of this experiment
+        """
+        # copy self
+        exp = deepcopy(self)
+        # parse version
+        targetVersion = parse_version(targetVersion)
+        # change experiment version
+        exp.psychopyVersion = targetVersion
+        # iterate through Routines
+        for rtName, rt in copy(exp.routines).items():
+            # if Routine was added after the target version, remove it
+            if hasattr(type(rt), "version") and parse_version(rt.version) > targetVersion:
+                exp.routines.pop(rtName)
+            # if Routine is a standalone, we're done
+            if isinstance(rt, BaseStandaloneRoutine):
+                continue
+            # iterate through Components
+            for comp in copy(rt):
+                # if Component was added after target version, remove it
+                if hasattr(type(comp), "version") and parse_version(comp.version) > targetVersion:
+                    i = rt.index(comp)
+                    rt.pop(i)
+
+        return exp
+
+    def saveToXML(self, filename, makeLegacy=True):
+        """
+        Save this experiment to a `.psyexp` file (under the hood, this is XML)
+        Parameters
+        ----------
+        filename : str, Path
+            Filename to save to.
+        makeLegacy : bool
+            If True, and useVersion is lower than the current version, a legacy-safe version of this experiment is also
+            saved.
+
+        Returns
+        -------
+        filename : str
+            The filename which was eventually saved to
+        """
+        # get current version
+        self.psychopyVersion = psychopy.__version__
+        # make path object
+        filename = Path(filename)
         # create the dom object
         self.xmlRoot = self._xml
-        # convert to a pretty string
         # update our document to use the new root
         self._doc._setroot(self.xmlRoot)
         simpleString = xml.tostring(self.xmlRoot, 'utf-8')
+        # convert to a pretty string
         pretty = minidom.parseString(simpleString).toprettyxml(indent="  ")
-        # then write to file
-        if not filename.endswith(".psyexp"):
-            filename += ".psyexp"
-
-        with codecs.open(filename, 'wb', encoding='utf-8-sig') as f:
+        # make sure we have the correct extension
+        if filename.suffix != ".psyexp":
+            filename = filename.parent / (filename.stem + ".psyexp")
+        # write to file
+        with codecs.open(str(filename), 'wb', encoding='utf-8-sig') as f:
             f.write(pretty)
+        # if useVersion is less than current version, create a sanitized legacy variant
+        if self.settings.params['Use version'].val and makeLegacy:
+            # create sanitized legacy experiment object
+            legacy = self.sanitizeForVersion(self.settings.params['Use version'].val)
+            # construct a legacy variant of the filename
+            legacyFilename = ft.constructLegacyFilename(filename)
+            # call save method from that experiment
+            legacy.saveToXML(filename=str(legacyFilename), makeLegacy=False)
+        # update internal reference to filename
+        self.filename = str(filename)
 
-        self.filename = filename
-        return filename  # this may have been updated to include an extension
+        return str(filename)  # this may have been updated to include an extension
 
     def _getShortName(self, longName):
         return longName.replace('(', '').replace(')', '').replace(' ', '')
@@ -602,9 +683,14 @@ class Experiment:
                     params[name].allowedTypes = paramNode.get('allowedTypes')
                     if params[name].allowedTypes is None:
                         params[name].allowedTypes = []
-                    if name not in legacyParams + ['JS libs', 'OSF Project ID']:
+                    if name in legacyParams + ['JS libs', 'OSF Project ID']:
                         # don't warn people if we know it's OK (e.g. for params
                         # that have been removed
+                        pass
+                    elif componentNode is not None and componentNode.get("plugin") not in ("None", None):
+                        # don't warn people if param is from a plugin
+                        pass
+                    else:
                         msg = _translate(
                             "Parameter %r is not known to this version of "
                             "PsychoPy but has come from your experiment file "
@@ -689,7 +775,10 @@ class Experiment:
                 for componentNode in routineNode:
 
                     componentType = componentNode.tag
+                    # get plugin, if any
                     plugin = componentNode.get('plugin')
+                    if plugin in ("None", None) and componentNode.tag in pluginComponents:
+                        plugin = pluginComponents[componentNode.tag]
 
                     if componentType == "RoutineSettingsComponent":
                         # if settings, use existing component
@@ -702,13 +791,13 @@ class Experiment:
                     elif plugin:
                         # create UnknownPluginComponent instead
                         component = allCompons['UnknownPluginComponent'](
-                            name=componentNode.get('name'),
+                            name=componentNode.get('name'), compType=componentType,
                             parentName=routineNode.get('name'), exp=self)
                         alert(7105, strFields={'name': componentNode.get('name'), 'plugin': plugin})
                     else:
                         # create UnknownComponent instead
                         component = allCompons['UnknownComponent'](
-                            name=componentNode.get('name'),
+                            name=componentNode.get('name'), compType=componentType,
                             parentName=routineNode.get('name'), exp=self)
                     component.plugin = plugin
                     # check for components that were absent in older versions of
@@ -1063,12 +1152,16 @@ class Experiment:
                     'rel': url, 'abs': url,
                 })
         if handled:
-            # If resources are handled, clear all component resources
+            # if resources are handled, clear all component resources
             handledResources = compResources
             compResources = []
-            # Still add default stim
+            # exceptions to the rule...
             for thisFile in handledResources:
+                # still add default stim
                 if thisFile.get('name', False) in list(ft.defaultStim):
+                    compResources.append(thisFile)
+                # still add survey ID
+                if 'surveyId' in thisFile:
                     compResources.append(thisFile)
 
         # Get resources for loops

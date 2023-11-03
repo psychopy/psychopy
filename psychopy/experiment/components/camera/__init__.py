@@ -41,6 +41,7 @@ class CameraComponent(BaseComponent):
     """
     categories = ['Responses']
     targets = ["PsychoPy", "PsychoJS"]
+    version = "2022.2.0"
     iconFile = Path(__file__).parent / 'webcam.png'
     tooltip = _translate('Webcam: Record video from a webcam.')
     beta = True
@@ -92,33 +93,26 @@ class CameraComponent(BaseComponent):
         self.exp.requireImport(importName="microphone", importFrom="psychopy.sound")
 
         # Define some functions for live populating listCtrls
-        def fallbackPopulator(*args, **kwargs):
+        def getCameraNames(cameraLib):
             """
-            Fallback in case Camera functions can't be imported. Will return a list with
-            a blank string in.
+            Similar to getCameraDescriptions, only returns camera names
+            as a list of strings.
+
+            Parameters
+            ----------
+            cameraLib : Param
+                Param object containing name of backend library
+
+            Returns
+            -------
+            list
+                Array of camera device names, preceeded by "default"
             """
-            return [""]
-
-        try:
-            from psychopy.hardware.camera import getCameras
-
-            def getCameraNames(cameraLib):
-                """
-                Similar to getCameraDescriptions, only returns camera names
-                as a list of strings.
-
-                Parameters
-                ----------
-                cameraLib : Param
-                    Param object containing name of backend library
-
-                Returns
-                -------
-                list
-                    Array of camera device names, preceeded by "default"
-                """
-                if cameraLib == "opencv":
-                    return ["default"]
+            if cameraLib == "opencv":
+                return ["default"]
+            # enter a try statement in case ffpyplayer isn't installed
+            try:
+                # import
                 from psychopy.hardware.camera import Camera
                 # get all devices
                 if isinstance(cameraLib, Param):
@@ -126,25 +120,28 @@ class CameraComponent(BaseComponent):
                 connectedCameras = Camera.getCameras(cameraLib=cameraLib)
 
                 return ["default"] + list(connectedCameras)
+            except:
+                return ["default"]
 
-            def getResolutionsForDevice(cameraLib, deviceName):
+        def getResolutionsForDevice(cameraLib, deviceName):
+            """
+                Get a list of resolutions available for the given device.
+
+                Parameters
+                ----------
+                cameraLib : Param
+                    Param object containing name of backend library
+                deviceName : Param
+                    Param object containing device name/index
+
+                Returns
+                -------
+                list
+                    List of resolutions, specified as strings in the format `(width, height)`
                 """
-                    Get a list of resolutions available for the given device.
-
-                    Parameters
-                    ----------
-                    cameraLib : Param
-                        Param object containing name of backend library
-                    deviceName : Param
-                        Param object containing device name/index
-
-                    Returns
-                    -------
-                    list
-                        List of resolutions, specified as strings in the format `(width, height)`
-                    """
-                if cameraLib == "opencv":
-                    return [""]
+            if cameraLib == "opencv":
+                return [""]
+            try:
                 from psychopy.hardware.camera import Camera
                 # get all devices
                 if isinstance(cameraLib, Param):
@@ -165,25 +162,28 @@ class CameraComponent(BaseComponent):
                 formats.sort(key=lambda res: res[0], reverse=True)
 
                 return [""] + formats
+            except:
+                return [""]
 
-            def getFrameRatesForDevice(cameraLib, deviceName, resolution=None):
+        def getFrameRatesForDevice(cameraLib, deviceName, resolution=None):
+            """
+                Get a list of frame rates available for the given device.
+
+                Parameters
+                ----------
+                cameraLib : Param
+                    Param object containing name of backend library
+                deviceName : Param
+                    Param object containing device name/index
+
+                Returns
+                -------
+                list
+                    List of frame rates
                 """
-                    Get a list of frame rates available for the given device.
-
-                    Parameters
-                    ----------
-                    cameraLib : Param
-                        Param object containing name of backend library
-                    deviceName : Param
-                        Param object containing device name/index
-
-                    Returns
-                    -------
-                    list
-                        List of frame rates
-                    """
-                if cameraLib == "opencv":
-                    return [""]
+            if cameraLib == "opencv":
+                return [""]
+            try:
                 from psychopy.hardware.camera import Camera
                 # get all devices
                 if isinstance(cameraLib, Param):
@@ -210,11 +210,8 @@ class CameraComponent(BaseComponent):
                 formats.sort(reverse=True)
 
                 return [""] + formats
-
-        except:
-            getCameraNames = fallbackPopulator
-            getResolutionsForDevice = fallbackPopulator
-            getFrameRatesForDevice = fallbackPopulator
+            except:
+                return [""]
 
         # Basic
         self.order += [

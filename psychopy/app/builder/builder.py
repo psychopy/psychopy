@@ -33,7 +33,6 @@ from ..pavlovia_ui.search import SearchFrame
 from ..pavlovia_ui.user import UserFrame
 from ...experiment import getAllElements, getAllCategories
 from ...experiment.routines import Routine, BaseStandaloneRoutine
-from ...tools.stringtools import prettyname
 
 try:
     import markdown_it as md
@@ -66,33 +65,8 @@ from ..utils import (BasePsychopyToolbar, HoverButton, WindowFrozen,
 from psychopy.experiment import getAllStandaloneRoutines
 from psychopy.app import pavlovia_ui
 from psychopy.projects import pavlovia
-
+from psychopy.tools import stringtools as st
 from psychopy.scripts.psyexpCompile import generateScript
-
-# _localized separates internal (functional) from displayed strings
-# long form here allows poedit string discovery
-_localized = {
-    'Field': _translate('Field'),
-    'Default': _translate('Default'),
-    'Favorites': _translate('Favorites'),
-    'Stimuli': _translate('Stimuli'),
-    'Responses': _translate('Responses'),
-    'Custom': _translate('Custom'),
-    'I/O': _translate('I/O'),
-    'Add to favorites': _translate('Add to favorites'),
-    'Remove from favorites': _translate('Remove from favorites'),
-    # contextMenuLabels
-    'edit': _translate('edit'),
-    'remove': _translate('remove'),
-    'copy': _translate('copy'),
-    'paste above': _translate('paste above'),
-    'paste below': _translate('paste below'),
-    'move to top': _translate('move to top'),
-    'move up': _translate('move up'),
-    'move down': _translate('move down'),
-    'move to bottom': _translate('move to bottom')
-}
-
 
 # Components which are always hidden
 alwaysHidden = [
@@ -265,6 +239,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         # self.SetAutoLayout(True)
         self.Bind(wx.EVT_CLOSE, self.closeFrame)
         self.Bind(wx.EVT_SIZE, self.onResize)
+        self.Bind(wx.EVT_SHOW, self.onShow)
 
         self.app.trackFrame(self)
         self.SetDropTarget(FileDropTarget(targetFrame=self))
@@ -639,6 +614,12 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.flowPanel.canvas.Refresh()
         event.Skip()
 
+    def onShow(self, event):
+        """Called when the frame is shown"""
+        event.Skip()
+        # if README was updated when frame wasn't shown, it won't be show either - so update again
+        self.updateReadme()
+
     @property
     def filename(self):
         """Name of the currently open file"""
@@ -818,6 +799,13 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         dlg.Destroy()
 
         self.updateWindowTitle()
+        # update README in case the file path has changed
+        if self.prefs['alwaysShowReadme']:
+            # if prefs are to always show README, show if populated
+            self.updateReadme()
+        else:
+            # otherwise update so we have the object, but don't show until asked
+            self.updateReadme(show=False)
         return returnVal
 
     def fileExport(self, event=None, htmlPath=None):
@@ -904,6 +892,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         # Show/hide frame as appropriate
         if show is None:
             show = len(self.readmeFrame.ctrl.getValue()) > 0
+        show = show and self.IsShown()
         self.readmeFrame.show(show)
 
     def showReadme(self, evt=None, value=True):
@@ -1718,7 +1707,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         self.fontBaseSize = (1100, 1200, 1300)[self.drawSize]  # depends on OS?
         #self.scroller = PsychopyScrollbar(self, wx.VERTICAL)
         self.SetVirtualSize((self.maxWidth, self.maxHeight))
-        self.SetScrollRate(self.dpi // 4, self.dpi // 4)
+        self.SetScrollRate(self.dpi // 16, self.dpi // 16)
 
         self.routine = routine
         self.yPositions = None
@@ -1740,12 +1729,20 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         self.lastpos = (0, 0)
         # use the ID of the drawn icon to retrieve component name:
         self.componentFromID = {}
-        self.contextMenuItems = [
-            'copy', 'paste above', 'paste below', 'edit', 'remove',
-            'move to top', 'move up', 'move down', 'move to bottom']
-        # labels are only for display, and allow localization
-        self.contextMenuLabels = {k: _localized[k]
-                                  for k in self.contextMenuItems}
+        # define context menu items and labels
+        self.contextMenuLabels = {
+            'copy': _translate("Copy"),
+            'paste above': _translate("Paste above"),
+            'paste below': _translate("Paste below"),
+            'edit': _translate("Edit"),
+            'remove': _translate("Remove"),
+            'move to top': _translate("Move to top"),
+            'move up': _translate("Move up"),
+            'move down': _translate("Move down"),
+            'move to bottom': _translate("Move to bottom"),
+        }
+        self.contextMenuItems = list(self.contextMenuLabels)
+
         self.contextItemFromID = {}
         self.contextIDFromItem = {}
         for item in self.contextMenuItems:
@@ -1826,8 +1823,8 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
 
     def OnScroll(self, event):
         xy = self.GetViewStart()
-        multiplier = self.dpi / 1600
-        self.Scroll(xy[0], int(xy[1] - event.WheelRotation * multiplier))
+        delta = int(event.WheelRotation * self.dpi / 1600)
+        self.Scroll(xy[0], xy[1]-delta)
 
     def showContextMenu(self, component, xy):
         """Show a context menu in the routine view.
@@ -1994,12 +1991,19 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         )
 
         # --- Time grid ---
+        # filter Components for just those included in the time grid
+        trueComponents = []
+        for comp in self.routine:
+            if type(comp).__name__ in ("StaticComponent", "RoutineSettingsComponent"):
+                continue
+            else:
+                trueComponents.append(comp)
         # note: will be modified as things are added around it
         grid = self.rects['grid'] = wx.Rect(
             x=canvas.Left,
             y=canvas.Top,
             width=canvas.Width,
-            height=self.componentStep * (len(self.routine) - 1)
+            height=self.componentStep * len(trueComponents)
         )
 
         # --- Top bar ---
@@ -2164,6 +2168,8 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         dc.SetTextForeground(colors.app['text'])
 
     def drawForceEndLine(self, dc, yPosBottom):
+        id = wx.NewIdRef()
+        dc.SetId(id)
         # get max time & check if we have a hard stop
         tMax, hardStop = self.getMaxTime()
         if hardStop:
@@ -2246,7 +2252,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         # draw the rectangle, draw text on top:
         dc.DrawRectangle(
             int(xSt), int(yPosTop - nameH * 4), int(w), int(h + nameH * 5))
-        dc.DrawText(name, x - nameW // 2, y)
+        dc.DrawText(name, int(x - nameW // 2), y)
         # update bounds to include time bar
         fullRect.Union(wx.Rect(int(xSt), int(yPosTop), int(w), int(h)))
         dc.SetIdBounds(id, fullRect)
@@ -2654,11 +2660,16 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             self.parent = parent
             self.component = comp
             self.category = cat
-            # Get a shorter, title case version of component name
+            # construct label
             label = name
+            # remove "Component" from the end
             for redundant in ['component', 'Component', "ButtonBox"]:
                 label = label.replace(redundant, "")
-            label = prettyname(label, wrap=10)
+            # convert to title case
+            label = st.CaseSwitcher.pascal2title(label)
+            # wrap
+            label = st.wrap(label, 10)
+
             # Make button
             wx.Button.__init__(self, parent, wx.ID_ANY,
                                label=label, name=name,
@@ -2739,13 +2750,13 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             menu = wx.Menu()
             if faveLevels[self.component.__name__] > ComponentsPanel.faveThreshold:
                 # If is in favs
-                msg = "Remove from favorites"
+                msg = _translate("Remove from favorites")
                 fun = self.removeFromFavorites
             else:
                 # If is not in favs
-                msg = "Add to favorites"
+                msg = _translate("Add to favorites")
                 fun = self.addToFavorites
-            btn = menu.Append(wx.ID_ANY, _localized[msg])
+            btn = menu.Append(wx.ID_ANY, msg)
             menu.Bind(wx.EVT_MENU, fun, btn)
             # Show as popup
             self.PopupMenu(menu, evt.GetPosition())
@@ -2782,11 +2793,15 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             self.parent = parent
             self.routine = rt
             self.category = cat
-            # Get a shorter, title case version of routine name
+            # construct label
             label = name
+            # remove "Routine" from the end
             for redundant in ['routine', 'Routine', "ButtonBox"]:
                 label = label.replace(redundant, "")
-            label = prettyname(label, wrap=10)
+            # convert to title case
+            label = st.CaseSwitcher.pascal2title(label)
+            # wrap
+            label = st.wrap(label, 10)
             # Make button
             wx.Button.__init__(self, parent, wx.ID_ANY,
                                label=label, name=name,
@@ -3347,7 +3362,7 @@ class FlowCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         self.appData = self.app.prefs.appData
 
         # self.SetAutoLayout(True)
-        self.SetScrollRate(self.dpi // 4, self.dpi // 4)
+        self.SetScrollRate(self.dpi // 16, self.dpi // 16)
 
         # create a PseudoDC to record our drawing
         self.pdc = PseudoDC()
@@ -4025,6 +4040,8 @@ class FlowCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
 
     def drawLineStart(self, dc, pos):
         # draw bar at start of timeline; circle looked bad, offset vertically
+        tmpId = wx.NewId()
+        dc.SetId(tmpId)
         ptSize = (9, 9, 12)[self.appData['flowSize']]
         thic = (1, 1, 2)[self.appData['flowSize']]
         dc.SetBrush(wx.Brush(colors.app['fl_flowline_bg']))
@@ -4037,8 +4054,8 @@ class FlowCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
 
     def drawLineEnd(self, dc, pos):
         # draws arrow at end of timeline
-        # tmpId = wx.NewIdRef()
-        # dc.SetId(tmpId)
+        tmpId = wx.NewId()
+        dc.SetId(tmpId)
         dc.SetBrush(wx.Brush(colors.app['fl_flowline_bg']))
         dc.SetPen(wx.Pen(colors.app['fl_flowline_bg']))
 
@@ -4234,6 +4251,7 @@ class FlowCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
 
         dc.SetId(id)
         font = self.GetFont()
+        font.SetWeight(wx.FONTWEIGHT_NORMAL)
         if sys.platform == 'darwin':
             basePtSize = (650, 750, 900)[flowsize]
         elif sys.platform.startswith('linux'):

@@ -8,6 +8,7 @@ from psychopy.alerts import alert
 class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
     categories = ['Eyetracking']
     targets = ["PsychoPy"]
+    version = "2021.2.0"
     iconFile = Path(__file__).parent / "eyetracker_calib.png"
     tooltip = _translate("Calibration routine for eyetrackers")
     beta = True

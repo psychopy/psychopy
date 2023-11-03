@@ -9,14 +9,7 @@ Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, getInitVals, _translate
-from psychopy.sound._base import knownNoteNames
-from psychopy.localization import _localized as __localized
-_localized = __localized.copy()
-
-# only use _localized values for label values, nothing functional:
-_localized.update({'sound': _translate('Sound'),
-                   'volume': _translate('Volume'),
-                   'syncScreenRefresh': _translate('Sync Start With Screen')})
+from psychopy.tools.audiotools import knownNoteNames
 
 
 class SoundComponent(BaseComponent):
@@ -110,6 +103,10 @@ class SoundComponent(BaseComponent):
         else:
             buff.writeIndentedLines("%(name)s.setSound(%(sound)s, secs=%(stopVal)s, hamming=%(hamming)s)\n"
                                     "%(name)s.setVolume(%(volume)s, log=False)\n" % self.params)
+        code = (
+            "%(name)s.seek(0)\n"
+        )
+        buff.writeIndentedLines(code % self.params)
 
     def writeInitCodeJS(self, buff):
         # replaces variable params with sensible defaults
@@ -180,7 +177,7 @@ class SoundComponent(BaseComponent):
         # the sound object is unusual, because it is
         buff.writeIndented("// start/stop %(name)s\n" % (self.params))
         # do this EVERY frame, even before/after playing?
-        self.writeParamUpdates(buff, 'set every frame')
+        self.writeParamUpdates(buff, 'set every frame', target="PsychoJS")
         self.writeStartTestCodeJS(buff)
         if self.params['syncScreenRefresh'].val:
             code = ("psychoJS.window.callOnFlip(function(){ %(name)s.play(); });  // screen flip\n")
@@ -228,7 +225,7 @@ class SoundComponent(BaseComponent):
         if self.params['stopWithRoutine']:
             # stop at the end of the Routine, if requested
             code = (
-                "%(name)s.stop()  # ensure sound has stopped at end of Routine\n"
+                "%(name)s.pause()  # ensure sound has stopped at end of Routine\n"
             )
             buff.writeIndentedLines(code % self.params)
         # get parent to write code too (e.g. store onset/offset times)

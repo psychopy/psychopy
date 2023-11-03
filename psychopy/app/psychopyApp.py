@@ -18,8 +18,9 @@ import psychopy.locale_setup  # noqa
 
 def start_app():
     from psychopy.app import startApp, quitApp
+    from psychopy.preferences import prefs
 
-    showSplash = True
+    showSplash = prefs.app['showSplash']
     if '--no-splash' in sys.argv:
         showSplash = False
         del sys.argv[sys.argv.index('--no-splash')]

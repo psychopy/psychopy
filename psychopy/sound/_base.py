@@ -12,6 +12,8 @@ from psychopy import logging
 from psychopy.constants import (STARTED, PLAYING, PAUSED, FINISHED, STOPPED,
                                 NOT_STARTED, FOREVER)
 from psychopy.tools.filetools import pathToString, defaultStim, defaultStimRoot
+from psychopy.tools.audiotools import knownNoteNames, stepsFromA
+from psychopy.tools.attributetools import AttributeGetSetMixin
 from sys import platform
 from .audioclip import AudioClip
 
@@ -23,26 +25,7 @@ elif platform == 'darwin':
 elif platform.startswith("linux"):
     mediaLocation = "/usr/share/sounds"
 
-stepsFromA = {
-    'C': -9,
-    'Csh': -8, 'C#': -8,
-    'Dfl': -8, 'D♭': -8,
-    'D': -7,
-    'Dsh': -6, 'D#': -6,
-    'Efl': -6, 'E♭': -6,
-    'E': -5,
-    'F': -4,
-    'Fsh': -3, 'F#': -3,
-    'Gfl': -3, 'G♭': -3,
-    'G': -2,
-    'Gsh': -1, 'G#': -1,
-    'Afl': -1, 'A♭': -1,
-    'A': +0,
-    'Ash': +1, 'A#': +1,
-    'Bfl': +1, 'B♭': +1,
-    'B': +2,
-    'Bsh': +2, 'B#': +2}
-knownNoteNames = sorted(stepsFromA.keys())
+
 
 
 def apodize(soundArray, sampleRate):
@@ -118,7 +101,7 @@ class HammingWindow():
         return block
 
 
-class _SoundBase():
+class _SoundBase(AttributeGetSetMixin):
     """Base class for sound object, from one of many ways.
     """
     # Must be provided by class SoundPygame or SoundPyo:

@@ -14,6 +14,7 @@ from psychopy.experiment import utils as exputils
 from psychopy.monitors import Monitor
 from psychopy.iohub import util as ioUtil
 from psychopy.alerts import alert
+from psychopy.tools.filetools import genDelimiter
 
 # for creating html output folders:
 import shutil
@@ -42,38 +43,6 @@ _numpyRandomImports = ['random', 'randint', 'normal', 'shuffle', 'choice as rand
 
 # this is not a standard component - it will appear on toolbar not in
 # components panel
-
-# only use _localized values for label values, nothing functional:
-_localized = {'expName': _translate("Experiment name"),
-              'Show info dlg':  _translate("Show info dialog"),
-              'Enable Escape':  _translate("Enable Escape key"),
-              'Experiment info':  _translate("Experiment info"),
-              'Data filename':  _translate("Data filename"),
-              'Data file delimiter':  _translate("Data file delimiter"),
-              'Full-screen window':  _translate("Full-screen window"),
-              'Window size (pixels)':  _translate("Window size (pixels)"),
-              'Screen': _translate('Screen'),
-              'Monitor':  _translate("Monitor"),
-              'color': _translate("Color"),
-              'colorSpace':  _translate("Color space"),
-              'Units':  _translate("Units"),
-              'blendMode':   _translate("Blend mode"),
-              'Show mouse':  _translate("Show mouse"),
-              'Save log file':  _translate("Save log file"),
-              'Save wide csv file':
-                  _translate("Save csv file (trial-by-trial)"),
-              'Save csv file': _translate("Save csv file (summaries)"),
-              'Save excel file':  _translate("Save excel file"),
-              'Save psydat file':  _translate("Save psydat file"),
-              'logging level': _translate("Logging level"),
-              'Use version': _translate("Use PsychoPy version"),
-              'Completed URL': _translate("Completed URL"),
-              'Incomplete URL': _translate("Incomplete URL"),
-              'Output path': _translate("Output path"),
-              'Additional Resources': _translate("Additional Resources"),
-              'JS libs': _translate("JS libs"),
-              'Force stereo': _translate("Force stereo"),
-              'Export HTML': _translate("Export HTML")}
 ioDeviceMap = dict(ioUtil.getDeviceNames())
 ioDeviceMap['None'] = ""
 
@@ -925,7 +894,7 @@ class SettingsComponent:
         # create resources folder
         if self.exp.htmlFolder:
             self.prepareResourcesJS()
-        jsFilename = os.path.basename(os.path.splitext(self.exp.filename)[0])
+        jsFilename = self.params['expName'].val
 
         # configure the PsychoJS version number from current/requested versions
         useVer = self.params['Use version'].val
@@ -985,9 +954,22 @@ class SettingsComponent:
 
     def writeExpSetupCodeJS(self, buff, version):
 
+        
         # write the code to set up experiment
         buff.setIndentLevel(0, relative=False)
         template = readTextFile("JS_setupExp.tmpl")
+
+        # Get file delimiter character
+        delim_options = {
+            'comma': ",",
+            'semicolon': ";",
+            'tab': r"\t"
+            }
+        delim = delim_options.get(
+            self.params['Data file delimiter'].val,
+            genDelimiter(self.params['Data filename'].val)
+        )
+
         setRedirectURL = ''
         if len(self.params['Completed URL'].val) or len(self.params['Incomplete URL'].val):
             setRedirectURL = ("psychoJS.setRedirectUrls({completedURL}, {incompleteURL});\n"
@@ -1000,13 +982,15 @@ class SettingsComponent:
         # else:
         #     saveType = "EXPERIMENT_SERVER"
         #     projID = 'undefined'
+
         code = template.format(
             params=self.params,
             filename=str(self.params['Data filename']),
             name=self.params['expName'].val,
             loggingLevel=self.params['logging level'].val.upper(),
             setRedirectURL=setRedirectURL,
-            version=version,
+            version=version, 
+            field_separator=repr(delim)
         )
         buff.writeIndentedLines(code)
 
@@ -1133,22 +1117,22 @@ class SettingsComponent:
         buff.writeIndentedLines(code)
         buff.setIndentLevel(+1, relative=True)
 
+        # set logging level
         level = self.params['logging level'].val.upper()
+        code = (
+            "# this outputs to the screen, not a file\n"
+            "logging.console.setLevel(logging.%s)\n"
+        )
+        buff.writeIndentedLines(code % level)
 
         if self.params['Save log file'].val:
             code = (
                 "# save a log file for detail verbose info\n"
                 "logFile = logging.LogFile(filename+'.log', level=logging.%s)\n"
+                "\n"
+                "return logFile\n"
             )
             buff.writeIndentedLines(code % level)
-        buff.writeIndented("logging.console.setLevel(logging.WARNING)  "
-                           "# this outputs to the screen, not a file\n")
-
-        code = (
-            "# return log file\n"
-            "return logFile\n"
-        )
-        buff.writeIndentedLines(code)
         # Exit function def
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("\n")
@@ -1202,7 +1186,7 @@ class SettingsComponent:
         # Open function def
         code = (
             '\n'
-            'def setupInputs(expInfo, win):\n'
+            'def setupInputs(expInfo, thisExp, win):\n'
             '    """\n'
             '    Setup whatever inputs are available (mouse, keyboard, eyetracker, etc.)\n'
             '    \n'
@@ -1210,7 +1194,9 @@ class SettingsComponent:
             '    ==========\n'
             '    expInfo : dict\n'
             '        Information about this experiment, created by the `setupExpInfo` function.\n'
-            '    \n'
+            '    thisExp : psychopy.data.ExperimentHandler\n'
+            '        Handler object for this experiment, contains the data to save and information about \n'
+            '        where to save it to.\n'
             '    win : psychopy.visual.Window\n'
             '        Window in which to run this experiment.\n'
             '    Returns\n'
@@ -1464,7 +1450,8 @@ class SettingsComponent:
             # Start server
             if self.params['Save hdf5 file'].val:
                 code = (
-                    f"ioServer = io.launchHubServer(window=win, experiment_code=%(expName)s, session_code=ioSession, datastore_name=filename, **ioConfig)\n"
+                    f"ioServer = io.launchHubServer(window=win, experiment_code=%(expName)s, session_code=ioSession, "
+                    f"datastore_name=thisExp.dataFileName, **ioConfig)\n"
                 )
             else:
                 code = (
@@ -1686,10 +1673,14 @@ class SettingsComponent:
                 "  fullscr: {fullScr},\n"
                 "  color: new util.Color({params[color]}),\n"
                 "  units: '{units}',\n"
-                "  waitBlanking: true\n"
-                "}});\n").format(fullScr=str(self.params['Full-screen window']).lower(),
-                                 params=self.params,
-                                 units=units)
+                "  waitBlanking: true,\n"
+                "  backgroundImage: {params[backgroundImg]},\n"
+                "  backgroundFit: {params[backgroundFit]},\n"
+                "}});\n").format(
+            fullScr=str(self.params['Full-screen window']).lower(),
+            params=self.params,
+            units=units
+        )
         buff.writeIndentedLines(code)
 
     def writePauseCode(self, buff):
@@ -1842,7 +1833,7 @@ class SettingsComponent:
             "    win.close()\n"
             "if inputs is not None:\n"
             "    if 'eyetracker' in inputs and inputs['eyetracker'] is not None:\n"
-            "        eyetracker.setConnectionState(False)\n"
+            "        inputs['eyetracker'].setConnectionState(False)\n"
         )
         if self.params['Save log file'].val:
             code += (

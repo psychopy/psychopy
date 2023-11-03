@@ -113,6 +113,56 @@ class TestSession:
             self.sess.sessionClock.getTime(),
         )
 
+    def test_clock_format(self):
+        cases = [
+            # usual from-zero time should return a float
+            {'val': "float", 'ans': float},
+            # iso should return iso formatted string
+            {'val': "iso", 'ans': str},
+            # custom str format should return as custom formatted string
+            {'val': "%m/%d/%Y, %H:%M:%S", 'ans': "%m/%d/%Y, %H:%M:%S"}
+        ]
+
+        for case in cases:
+            sess = session.Session(
+                root=Path(utils.TESTS_DATA_PATH) / "test_session" / "root",
+                clock=case['val'],
+                win=self.sess.win,
+                experiments={
+                    'clockFormat': "testClockFormat/testClockFormat.psyexp"
+                }
+            )
+
+            sess.runExperiment('clockFormat', expInfo={'targetFormat': case['ans']})
+
+    def test_disable_useversion(self):
+        """
+        Experiment compiled via a Session shouldn't respect the useVersion setting.
+        """
+        # add an experiment which has useVersion set to 2023.1.3
+        self.sess.addExperiment("invUseVersion/invUseVersion.psyexp", "invUseVersion")
+        # make sure compiled Python file has correct version
+        from psychopy import __version__
+        assert self.sess.experiments['invUseVersion'].psychopyVersion == __version__
+
+    def test_update_expInfo(self):
+        """
+        Test that expInfo can be update during an experiment running.
+        """
+        # add test experiment to Session
+        self.sess.addExperiment("testEditExpInfo/testEditExpInfo.psyexp", "testEditExpInfo")
+        # make expInfo dict
+        expInfo = self.sess.getExpInfoFromExperiment("testEditExpInfo")
+        # run test experiment
+        self.sess.runExperiment(
+            "testEditExpInfo",
+            expInfo=expInfo,
+            blocking=True
+        )
+        # check that our reference to expInfo is updated too
+        assert 'insertedKey' in expInfo
+        assert expInfo['insertedKey'] == "insertedValue"
+
     # def test_error(self, capsys):
     #     """
     #     Check that an error in an experiment doesn't interrupt the session.

@@ -11,15 +11,14 @@ from builtins import super  # provides Py3-style super() using python-future
 from os import path
 from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, _translate
-from psychopy.localization import _localized as __localized
 from psychopy.alerts import alert
-_localized = __localized.copy()
 
 
 class EyetrackerRecordComponent(BaseComponent):
     """A class for using one of several eyetrackers to follow gaze"""
     categories = ['Eyetracking']
     targets = ['PsychoPy']
+    version = "2021.2.0"
     iconFile = Path(__file__).parent / 'eyetracker_record.png'
     tooltip = _translate('Start and / or Stop recording data from the eye tracker')
     beta = True

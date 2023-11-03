@@ -14,7 +14,7 @@ import copy
 import numpy as np
 
 from psychopy import core, logging, event, layout
-from psychopy.tools import arraytools
+from psychopy.tools import arraytools, stimulustools as stt
 from .basevisual import MinimalStim, WindowMixin, ColorMixin, BaseVisualStim
 from .rect import Rect
 from .grating import GratingStim
@@ -535,7 +535,10 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         if self.ticks is not None:
             ticks = self.ticks
         else:
-            ticks = [0, 1]
+            ticks = [0, len(self.labels)]
+        # If rating is a label, convert to an index
+        if isinstance(rating, str) and rating in self.labels:
+            rating = self.labels.index(rating)
         # Reshape rating to handle multiple values
         rating = np.array(rating)
         rating = rating.reshape((-1, 1))
@@ -747,6 +750,24 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         self.rating = val
 
     @attributeSetter
+    def ticks(self, value):
+        if isinstance(value, (list, tuple, np.ndarray)):
+            # make sure all values are numeric
+            for i, subval in enumerate(value):
+                if isinstance(subval, str):
+                    if subval in self.labels:
+                        # if it's a label name, get its index
+                        value[i] = self.labels.index(subval)
+                    elif subval.isnumeric():
+                        # if it's a stringified number, make it a float
+                        value[i] = float(subval)
+                    else:
+                        # otherwise, use its index within the array
+                        value[i] = i
+
+        self.__dict__['ticks'] = value
+
+    @attributeSetter
     def markerPos(self, rating):
         """The position on the scale where the marker should be. Note that
         this does not alter the value of the reported rating, only its visible
@@ -934,9 +955,9 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         if hasattr(self, "tickLines"):
             self.tickLines.colors = self._borderColor.copy()
 
-    knownStyles = ['slider', 'rating', 'radio', 'scrollbar', 'choice']
+    knownStyles = stt.sliderStyles
     legacyStyles = []
-    knownStyleTweaks = ['labels45', 'triangleMarker']
+    knownStyleTweaks = stt.sliderStyleTweaks
     legacyStyleTweaks = ['whiteOnBlack']
 
     @property

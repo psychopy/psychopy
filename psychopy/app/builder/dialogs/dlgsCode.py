@@ -132,7 +132,7 @@ class DlgCodeComponentProperties(wx.Dialog):
                 self.codeBoxes[paramName].AddText(param.val)
                 self.codeBoxes[paramName].Bind(wx.EVT_KEY_UP, self.onKeyUp)  # For real time translation
 
-                if len(param.val.strip()) and hasattr(_panel, "tabN"):
+                if len(param.val.strip()) and hasattr(_panel, "tabN") and not isinstance(openToPage, str):
                     if openToPage is None or openToPage > _panel.tabN:
                         # index of first non-blank page
                         openToPage = _panel.tabN
@@ -400,7 +400,7 @@ class DlgCodeComponentProperties(wx.Dialog):
             sizer.Add(pyBox, 1, wx.EXPAND, 2)
             sizer.Add(jsBox, 1, wx.EXPAND, 2)
             panel.SetSizer(sizer)
-            tabLabel = _translate(tabName)
+            tabLabel = self.params.get(pyName).label
             # Add a visual indicator when tab contains code
             emptyCodeComp = CodeComponent('', '') # Spawn empty code component
             # If code tab is not empty and not the same as in empty code component, add an asterisk to tab name

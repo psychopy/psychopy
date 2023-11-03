@@ -3,10 +3,6 @@
 
 from pathlib import Path
 from psychopy.experiment.components import Param, _translate, getInitVals, BaseVisualComponent
-from psychopy import prefs
-
-# only use _localized values for label values, nothing functional:
-_localized = {'name': _translate("Name")}
 
 
 class PanoramaComponent(BaseVisualComponent):
@@ -18,6 +14,7 @@ class PanoramaComponent(BaseVisualComponent):
     """
     categories = ['Stimuli']
     targets = ['PsychoPy']
+    version = "2023.1.0"
     iconFile = Path(__file__).parent / 'panorama.png'
     tooltip = _translate('Panorama: Present a panoramic image (such as from a phone camera in Panorama mode) on '
                          'screen.')

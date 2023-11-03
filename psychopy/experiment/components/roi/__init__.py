@@ -7,18 +7,15 @@
 
 from pathlib import Path
 
-from psychopy.alerts import alert
 from psychopy.experiment.components import Param, getInitVals, _translate, BaseVisualComponent
-from psychopy.experiment.components.eyetracker_record import EyetrackerRecordComponent
 from psychopy.experiment.components.polygon import PolygonComponent
-from psychopy.localization import _localized as __localized
-_localized = __localized.copy()
 
 
 class RegionOfInterestComponent(PolygonComponent):
     """A class for using one of several eyetrackers to follow gaze"""
     categories = ['Eyetracking']
     targets = ['PsychoPy']
+    version = "2021.2.0"
     iconFile = Path(__file__).parent / 'eyetracker_roi.png'
     tooltip = _translate('Region Of Interest: Define a region of interest for use with eyetrackers')
     beta = True

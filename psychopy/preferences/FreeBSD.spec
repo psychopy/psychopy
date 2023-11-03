@@ -69,6 +69,8 @@
     errorDialog = boolean(default='True')
     # Theme
     theme = string(default='PsychopyLight')
+    # Show / hide splash screen
+    showSplash = boolean(default='True')
 
 # Settings for the Coder window
 [coder]
@@ -129,7 +131,7 @@
 # Settings for hardware
 [hardware]
     # LEGACY: choice of audio library
-    audioLib = list(default=list('sounddevice','PTB', 'pyo', 'pygame'))
+    audioLib = list(default=list('PTB', 'sounddevice', 'pyo', 'pygame'))
     # LEGACY: latency mode for PsychToolbox audio (3 is good for most applications. See
     audioLatencyMode = option(0, 1, 2, 3, 4, default=3)
     # audio driver to use
