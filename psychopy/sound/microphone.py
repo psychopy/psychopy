@@ -11,6 +11,8 @@
 __all__ = ['Microphone', 'MicrophoneDevice']
 
 import sys
+import time
+
 import psychopy.logging as logging
 from psychopy.constants import NOT_STARTED
 from psychopy.hardware import DeviceManager
@@ -901,6 +903,8 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
                 from psychopy.sound import Sound
                 snd = Sound(value=testSound)
                 snd.play()
+            # sleep for duration
+            time.sleep(duration)
             # get new clips
             clips = self.flush()
             # reinstate original clips
