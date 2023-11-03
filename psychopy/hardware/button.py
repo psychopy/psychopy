@@ -14,7 +14,7 @@ class ButtonResponse:
     def getJSON(self):
         message = {
             'type': "hardware_response",
-            'class': "PhotodiodeResponse",
+            'class': "ButtonResponse",
             'data': {
                 't': self.t,
                 'channel': self.channel,

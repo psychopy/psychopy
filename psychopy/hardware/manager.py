@@ -46,9 +46,9 @@ class DeviceManager:
     accessed through the global variable `deviceManager` or by calling 
     `getDeviceManager()`.
 
-    DeviceManager can be extended by use of the `@DeviceMethod` decorator. Any
-    class method with this decorator is added to DeviceManager on import, allowing
-    DeviceManager to gain device management methods from plugins.
+    Any subclass of BaseDevice is added to DeviceManager's `.deviceClasses`
+    list upon import, so devices matching that class become available through
+    `DeviceManager.getAvailableDevices("*")`.
 
     """
     _instance = None  # singleton instance
@@ -219,8 +219,18 @@ class DeviceManager:
         ----------
         deviceName : str
             Arbitrary name device is stored under.
+
+        Returns
+        -------
+        bool
+            True if completed successfully
         """
+        device = DeviceManager.devices[deviceName]
+        if hasattr(device, "close"):
+            device.close()
         del DeviceManager.devices[deviceName]
+
+        return True
 
     @staticmethod
     def getDevice(deviceName):
@@ -276,6 +286,11 @@ class DeviceManager:
         ----------
         deviceClass : str
             Full import path for the class, in PsychoPy, of the device. For example `psychopy.hardware.keyboard.Keyboard`
+
+        Returns
+        -------
+        list[BaseDevice]
+            List of devices matching requested class
         """
         # if device class is an already registered alias, get the actual class str
         deviceClass = DeviceManager._resolveAlias(deviceClass)
@@ -304,7 +319,7 @@ class DeviceManager:
 
         Returns
         -------
-        list
+        list[dict]
             List of dicts specifying parameters needed to initialise each device.
         """
         # if deviceClass is *, call for all types
@@ -350,6 +365,11 @@ class DeviceManager:
 
         The device manager will be reset after this method is called.
 
+        Returns
+        -------
+        bool
+            True if completed successfully
+
         """
         # iterate through devices
         for name, device in DeviceManager.devices.items():
@@ -359,7 +379,7 @@ class DeviceManager:
         # delete devices
         DeviceManager.devices = {}
 
-    # --- device interation ---
+        return True
 
     @staticmethod
     def callDeviceMethod(deviceName, method, *args, **kwargs):
@@ -376,6 +396,11 @@ class DeviceManager:
             Whatever arguments would be passed to the method
         kwargs : dict
             Whatever keyword arguments would be passed to the method
+
+        Returns
+        -------
+        *
+            The output of the requested function
         """
         # get device
         device = DeviceManager.getDevice(deviceName)
@@ -395,6 +420,11 @@ class DeviceManager:
             - "liaison": Create a LiaisonListener with self.liaison as the server
             - "print": Create a PrintListener with default settings
             - "log": Create a LoggingListener with default settings
+
+        Returns
+        -------
+        BaseListener
+            Listener created/added
         """
         from psychopy.hardware import listener as lsnr
         # get device
@@ -419,6 +449,8 @@ class DeviceManager:
                 f"Could not add a listener to device {deviceName} ({type(device).__name__}) as it does not "
                 f"have an `addListener` method."
             )
+
+        return listener
             
 # handle to the device manager, which is a singleton
 deviceManager = DeviceManager()
