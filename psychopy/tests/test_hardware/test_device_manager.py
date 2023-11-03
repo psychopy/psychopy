@@ -25,9 +25,9 @@ class TestDeviceManager:
         if not len(available):
             return
         # create device
-        name = "test" + deviceType.split(".")[-1].capitalize()
-        _device = self.mgr.addDevice(deviceType, deviceName=name, **available[0])
+        _device = self.mgr.addDevice(**available[0])
         # get device
+        name = available[0]['deviceName']
         device = self.mgr.getDevice(name)
         assert device == _device
         # check it's in list of registered devices

@@ -250,6 +250,40 @@ class DeviceManager:
         return DeviceManager.devices.get(deviceName, None)
 
     @staticmethod
+    def hasDevice(deviceName, deviceClass="*"):
+        """
+        Query whether the named device exists and, if relevant, whether it is
+        an instance of the expected class.
+
+        Parameters
+        ----------
+        deviceName : str
+            Arbitrary name device is stored under.
+        deviceClass : str
+            Full import path for the class, in PsychoPy, of the device. For
+            example `psychopy.hardware.keyboard.Keyboard`
+
+        Returns
+        -------
+        bool
+            True if device exists and matches deviceClass, False otherwise
+        """
+        # try to get device
+        device = DeviceManager.getDevice(deviceName)
+        # if device is None, we don't have it
+        if device is None:
+            return False
+        # if class isn't set, then any device is fine
+        if deviceClass in (None, "*"):
+            return True
+        # if device class is an already registered alias, get the actual class str
+        deviceClass = DeviceManager._resolveAlias(deviceClass)
+        # get device class
+        cls = DeviceManager._resolveClassString(deviceClass)
+        # assess whether device matches class
+        return isinstance(device, cls)
+
+    @staticmethod
     def getDeviceBy(attr, value, deviceClass="*"):
         """
         Get a device by the value of a particular attribute. e.g. get a Microphone device by its index.
@@ -289,8 +323,8 @@ class DeviceManager:
 
         Returns
         -------
-        list[BaseDevice]
-            List of devices matching requested class
+        dict[str:BaseDevice]
+            Dict of devices matching requested class against their names
         """
         # if device class is an already registered alias, get the actual class str
         deviceClass = DeviceManager._resolveAlias(deviceClass)
@@ -305,6 +339,24 @@ class DeviceManager:
                 foundDevices[name] = device
 
         return foundDevices
+
+    @staticmethod
+    def getInitialisedDeviceNames(deviceClass="*"):
+        """
+        Get names of all devices of a given type which have been `add`ed to this DeviceManager
+
+        Parameters
+        ----------
+        deviceClass : str
+            Full import path for the class, in PsychoPy, of the device. For
+            example `psychopy.hardware.keyboard.Keyboard`
+
+        Returns
+        -------
+        list[str]
+            List of device names
+        """
+        return list(DeviceManager.getInitialisedDevices(deviceClass))
 
     @staticmethod
     def getAvailableDevices(deviceClass="*"):
