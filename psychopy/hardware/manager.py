@@ -379,7 +379,7 @@ class DeviceManager:
         # delete devices
         DeviceManager.devices = {}
 
-    # --- device interation ---
+        return True
 
     @staticmethod
     def callDeviceMethod(deviceName, method, *args, **kwargs):
@@ -449,6 +449,8 @@ class DeviceManager:
                 f"Could not add a listener to device {deviceName} ({type(device).__name__}) as it does not "
                 f"have an `addListener` method."
             )
+
+        return listener
             
 # handle to the device manager, which is a singleton
 deviceManager = DeviceManager()
