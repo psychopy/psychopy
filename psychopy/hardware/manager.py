@@ -451,6 +451,28 @@ class DeviceManager:
             )
 
         return listener
+
+    def removeListeners(self, deviceName):
+        """
+        Remove any listeners attached to a particular device.
+
+        Parameters
+        ----------
+        deviceName : str
+            Name of the device to remove listeners from
+
+        Returns
+        -------
+        bool
+            True if completed successfully
+        """
+        # get device
+        device = self.getDevice(deviceName)
+        # add listener to device
+        if hasattr(device, "removeListeners"):
+            device.removeListeners()
+
+        return True
             
 # handle to the device manager, which is a singleton
 deviceManager = DeviceManager()

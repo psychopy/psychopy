@@ -65,6 +65,19 @@ class BasePhotodiodeGroup(base.BaseDevice):
         """
         self.listeners.append(listener)
 
+    def removeListeners(self):
+        """
+        Remove any listeners from this device.
+
+        Returns
+        -------
+        bool
+            True if completed successfully
+        """
+        self.listeners = []
+
+        return True
+
     def getResponses(self, state=None, channel=None, clear=True):
         """
         Get responses which match a given on/off state.
