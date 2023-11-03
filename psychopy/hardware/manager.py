@@ -219,11 +219,18 @@ class DeviceManager:
         ----------
         deviceName : str
             Arbitrary name device is stored under.
+
+        Returns
+        -------
+        bool
+            True is completed successfully
         """
         device = DeviceManager.devices[deviceName]
         if hasattr(device, "close"):
             device.close()
         del DeviceManager.devices[deviceName]
+
+        return True
 
     @staticmethod
     def getDevice(deviceName):
