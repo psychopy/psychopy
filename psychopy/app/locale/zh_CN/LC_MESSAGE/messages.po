@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PsychoPy 2023.2.2\n"
 "Report-Msgid-Bugs-To: shuonwang@gmail.com\n"
 "POT-Creation-Date: 2021-12-18 00:00+0100\n"
-"PO-Revision-Date: 2023-10-17 15:52+0800\n"
+"PO-Revision-Date: 2023-11-06 10:56+0800\n"
 "Last-Translator: Huang Xinru <hxrmiaomiaomiao@pku.edu.cn>\n"
 "Language-Team: Shun Wang <shuonwang@gmail.com>\n"
 "Language: zh_CN\n"
@@ -6474,13 +6474,15 @@ msgstr "只选择条件文件中的一个子行集（从 0 开始而不是 1！�
 
 #: ../experiment/loops.py:98
 msgid "How should the next condition value(s) be chosen?"
-msgstr ""
+msgstr "下一个条件的值应该如何选择？"
 
 #: ../experiment/loops.py:103
 msgid ""
 "To have a fixed random sequence provide an integer of your choosing here. "
 "Leave blank to have a new random sequence on each run of the experiment."
 msgstr ""
+"要获得固定的随机序列，请在此处提供一个整数。如果保留为空，则在每次运行实验时"
+"都会产生一个新的随机序列。"
 
 #: ../experiment/loops.py:110 ../experiment/loops.py:419
 #: ../experiment/loops.py:546
@@ -6488,6 +6490,8 @@ msgid ""
 "Indicates that this loop generates TRIALS, rather than BLOCKS of trials or "
 "stimuli within a trial. It alters how data files are output"
 msgstr ""
+"表示该循环生成的是试验，而不是试验的组块或试验中的刺激。它改变了数据文件的输"
+"出方式"
 
 #: ../experiment/loops.py:363
 msgid "(Minimum) number of trials in the staircase"
@@ -6495,46 +6499,46 @@ msgstr "阶梯中的（最小）试验次数"
 
 #: ../experiment/loops.py:367
 msgid "The initial value of the parameter"
-msgstr ""
+msgstr "参数的初始值"
 
 #: ../experiment/loops.py:371
 msgid "The maximum value the parameter can take"
-msgstr ""
+msgstr "参数可取的最大值"
 
 #: ../experiment/loops.py:375
 msgid "The minimum value the parameter can take"
-msgstr ""
+msgstr "参数可取的最小值"
 
 #: ../experiment/loops.py:379
 msgid "The size of the jump at each step (can change on each 'reversal')"
-msgstr ""
+msgstr "每一步的跳跃幅度（可在每次”逆转“时改变）"
 
 #: ../experiment/loops.py:384
 msgid ""
 "The units of the step size (e.g. 'linear' will add/subtract that value each "
 "step, whereas 'log' will ad that many log units)"
-msgstr ""
+msgstr "步长的单位（例如，”线性“将每步加减该值，而“对数”将增加对数单位）。"
 
 #: ../experiment/loops.py:390
 msgid "The number of 'incorrect' answers before the value goes up"
-msgstr ""
+msgstr "数值上升前“错误”答案的数量"
 
 #: ../experiment/loops.py:395
 msgid "The number of 'correct' answers before the value goes down"
-msgstr ""
+msgstr "数值下降前“正确”答案的数量"
 
 #: ../experiment/loops.py:400
 msgid ""
 "Minimum number of times the staircase must change direction before ending"
-msgstr ""
+msgstr "阶梯结束前必须改变方向的最小次数"
 
 #: ../experiment/loops.py:409 ../experiment/loops.py:526
 msgid "How should the next trial value(s) be chosen?"
-msgstr ""
+msgstr "下一个试验的值应该如何选择？"
 
 #: ../experiment/loops.py:414 ../experiment/loops.py:530
 msgid "Where to loop from and to (see values currently shown in the flow view)"
-msgstr ""
+msgstr "循环的起点和终点（查看流程视图中当前显示的值）"
 
 #: ../experiment/loops.py:508
 msgid "(Minimum) number of trials in *each* staircase"
@@ -6542,20 +6546,20 @@ msgstr "*每个*阶梯中的（最小）试验次数"
 
 #: ../experiment/loops.py:513 ../experiment/loops.py:518
 msgid "How to select the next staircase to run"
-msgstr ""
+msgstr "如何选择下一个运行的阶梯"
 
 #: ../experiment/loops.py:536
 msgid ""
 "A list of dictionaries describing the differences between each staircase"
-msgstr ""
+msgstr "描述每个阶梯之间差异的字典列表"
 
 #: ../experiment/loops.py:541
 msgid "An xlsx or csv file specifying the parameters for each condition"
-msgstr ""
+msgstr "指定每个条件参数的 xlsx 或 csv 文件"
 
 #: ../experiment/routines/_base.py:38
 msgid "Name of this routine (alphanumeric or _, no spaces)"
-msgstr ""
+msgstr "例程名称（字母数字或 _，无空格）"
 
 #: ../experiment/routines/_base.py:43
 msgid "name"
@@ -6563,7 +6567,7 @@ msgstr "名称"
 
 #: ../experiment/routines/_base.py:48
 msgid "When does the routine end? (blank is endless)"
-msgstr ""
+msgstr "例程何时结束？（空白表示不结束）"
 
 #: ../experiment/routines/_base.py:49 ../localization/__init__.py:162
 msgid "Stop"
@@ -6573,69 +6577,71 @@ msgstr "终止"
 msgid "Stop Type..."
 msgstr "终止类型..."
 
+# 这里的routine不知道和例程是不是同一个意思
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:12
+#, fuzzy
 msgid "Calibration routine for eyetrackers"
-msgstr ""
+msgstr "眼动仪的校准例程"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:41
 #: ../experiment/routines/eyetracker_validate/__init__.py:60
 msgid "Pre-defined target layouts"
-msgstr ""
+msgstr "预设的目标布局"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:42
 #: ../experiment/routines/eyetracker_validate/__init__.py:61
 msgid "Target Layout"
-msgstr ""
+msgstr "目标布局"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:46
 #: ../experiment/routines/eyetracker_validate/__init__.py:80
 msgid "Should the order of target positions be randomised?"
-msgstr ""
+msgstr "目标位置的顺序应该随机化吗？"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:47
 #: ../experiment/routines/eyetracker_validate/__init__.py:81
 msgid "Randomise Target Positions"
-msgstr ""
+msgstr "随机化目标位置"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:65
 #: ../experiment/routines/eyetracker_validate/__init__.py:104
 msgid "Fill color of the inner part of the target"
-msgstr ""
+msgstr "目标内部的填充颜色"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:66
 #: ../experiment/routines/eyetracker_validate/__init__.py:105
 msgid "Inner Fill Color"
-msgstr ""
+msgstr "内部填充颜色"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:70
 #: ../experiment/routines/eyetracker_validate/__init__.py:109
 msgid "Border color of the inner part of the target"
-msgstr ""
+msgstr "目标内部的边框颜色"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:71
 #: ../experiment/routines/eyetracker_validate/__init__.py:110
 msgid "Inner Border Color"
-msgstr ""
+msgstr "内部边框颜色"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:75
 #: ../experiment/routines/eyetracker_validate/__init__.py:114
 msgid "Fill color of the outer part of the target"
-msgstr ""
+msgstr "目标外部的填充颜色"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:76
 #: ../experiment/routines/eyetracker_validate/__init__.py:115
 msgid "Outer Fill Color"
-msgstr ""
+msgstr "外部填充颜色"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:80
 #: ../experiment/routines/eyetracker_validate/__init__.py:119
 msgid "Border color of the outer part of the target"
-msgstr ""
+msgstr "目标外部的边框颜色"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:81
 #: ../experiment/routines/eyetracker_validate/__init__.py:120
 msgid "Outer Border Color"
-msgstr ""
+msgstr "外部边框颜色"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:88
 #: ../experiment/routines/eyetracker_validate/__init__.py:127
@@ -6646,70 +6652,70 @@ msgstr "颜色空间"
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:92
 #: ../experiment/routines/eyetracker_validate/__init__.py:131
 msgid "Width of the line around the outer part of the target"
-msgstr ""
+msgstr "目标外部的线条宽度"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:93
 #: ../experiment/routines/eyetracker_validate/__init__.py:132
 msgid "Outer Border Width"
-msgstr ""
+msgstr "外部边框宽度"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:97
 #: ../experiment/routines/eyetracker_validate/__init__.py:136
 msgid "Width of the line around the inner part of the target"
-msgstr ""
+msgstr "目标内部的线条宽度"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:98
 #: ../experiment/routines/eyetracker_validate/__init__.py:138
 msgid "Inner Border Width"
-msgstr ""
+msgstr "内部边框宽度"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:102
 #: ../experiment/routines/eyetracker_validate/__init__.py:142
 msgid "Size (radius) of the outer part of the target"
-msgstr ""
+msgstr "目标外部的尺寸（半径）"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:103
 #: ../experiment/routines/eyetracker_validate/__init__.py:143
 msgid "Outer Radius"
-msgstr ""
+msgstr "外部半径"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:107
 #: ../experiment/routines/eyetracker_validate/__init__.py:147
 msgid "Size (radius) of the inner part of the target"
-msgstr ""
+msgstr "目标内部的尺寸（半径）"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:108
 #: ../experiment/routines/eyetracker_validate/__init__.py:148
 msgid "Inner Radius"
-msgstr ""
+msgstr "内部半径"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:114
 #: ../experiment/routines/eyetracker_validate/__init__.py:154
 #: ../localization/__init__.py:167
 msgid "Spatial Units"
-msgstr ""
+msgstr "空间单位"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:130
 #: ../experiment/routines/eyetracker_validate/__init__.py:170
 msgid ""
 "Should the target move to the next position after a keypress or after an "
 "amount of time?"
-msgstr ""
+msgstr "目标是在按键后移动到下一个位置，还是在一定时间后移动到下一个位置？"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:132
 #: ../experiment/routines/eyetracker_validate/__init__.py:172
 msgid "Progress Mode"
-msgstr ""
+msgstr "进度模式"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:145
 #: ../experiment/routines/eyetracker_validate/__init__.py:185
 msgid "Time limit (s) after which progress to next position"
-msgstr ""
+msgstr "时间限制（秒），之后进入下一位置"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:147
 #: ../experiment/routines/eyetracker_validate/__init__.py:187
 msgid "Target Duration"
-msgstr ""
+msgstr "目标持续时间"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:160
 #: ../experiment/routines/eyetracker_validate/__init__.py:200
