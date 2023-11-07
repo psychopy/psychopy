@@ -6511,13 +6511,13 @@ msgstr "参数可取的最小值"
 
 #: ../experiment/loops.py:379
 msgid "The size of the jump at each step (can change on each 'reversal')"
-msgstr "每一步的跳跃幅度（可在每次”逆转“时改变）"
+msgstr "每一步的跳跃幅度（可在每次“逆转”时改变）"
 
 #: ../experiment/loops.py:384
 msgid ""
 "The units of the step size (e.g. 'linear' will add/subtract that value each "
 "step, whereas 'log' will ad that many log units)"
-msgstr "步长的单位（例如，”线性“将每步加减该值，而“对数”将增加对数单位）。"
+msgstr "步长的单位（例如，“线性”将每步加减该值，而“对数”将增加对数单位）。"
 
 #: ../experiment/loops.py:390
 msgid "The number of 'incorrect' answers before the value goes up"
