@@ -6511,7 +6511,7 @@ msgstr "参数可取的最小值"
 
 #: ../experiment/loops.py:379
 msgid "The size of the jump at each step (can change on each 'reversal')"
-msgstr "每一步的跳跃幅度（可在每次”逆转“时改变）"
+msgstr "每一步的跳跃幅度（可在每次“逆转”时改变）"
 
 #: ../experiment/loops.py:384
 msgid ""
