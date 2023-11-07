@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PsychoPy 2023.2.2\n"
 "Report-Msgid-Bugs-To: shuonwang@gmail.com\n"
 "POT-Creation-Date: 2021-12-18 00:00+0100\n"
-"PO-Revision-Date: 2023-11-06 10:56+0800\n"
+"PO-Revision-Date: 2023-11-07 10:59+0800\n"
 "Last-Translator: Huang Xinru <hxrmiaomiaomiao@pku.edu.cn>\n"
 "Language-Team: Shun Wang <shuonwang@gmail.com>\n"
 "Language: zh_CN\n"
@@ -6410,7 +6410,7 @@ msgstr "变量：新建一个变量"
 
 #: ../experiment/components/variable/__init__.py:55
 msgid "The start value. A variable can be set to any value."
-msgstr "起始值。一个可以被设置为任意值的变量"
+msgstr "起始值。一个可以被设置为任意值的变量。"
 
 #: ../experiment/components/variable/__init__.py:60
 msgid "Set the value for the beginning of each routine."
@@ -6720,88 +6720,88 @@ msgstr "目标持续时间"
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:160
 #: ../experiment/routines/eyetracker_validate/__init__.py:200
 msgid "Duration of the target expand/contract animation"
-msgstr ""
+msgstr "目标扩展/收缩动画的持续时间"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:162
 #: ../experiment/routines/eyetracker_validate/__init__.py:202
 msgid "Expand / Contract Duration"
-msgstr ""
+msgstr "扩展/收缩持续时间"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:166
 #: ../experiment/routines/eyetracker_validate/__init__.py:206
 msgid "How many times bigger than its size the target grows"
-msgstr ""
+msgstr "目标比它的尺寸大多少倍"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:167
 #: ../experiment/routines/eyetracker_validate/__init__.py:207
 msgid "Expand Scale"
-msgstr ""
+msgstr "扩展尺度"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:171
 #: ../experiment/routines/eyetracker_validate/__init__.py:211
 msgid "Enable / disable animations as target stim changes position"
-msgstr ""
+msgstr "当目标刺激改变位置时启用/禁用动画"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:173
 #: ../experiment/routines/eyetracker_validate/__init__.py:212
 msgid "Animate Position Changes"
-msgstr ""
+msgstr "显示位置更改的动画"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:186
 #: ../experiment/routines/eyetracker_validate/__init__.py:225
 msgid "Duration of the animation during position changes."
-msgstr ""
+msgstr "位置变化期间的动画持续时间。"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:188
 #: ../experiment/routines/eyetracker_validate/__init__.py:227
 msgid "Movement Duration"
-msgstr ""
+msgstr "移动持续时间"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:201
 #: ../experiment/routines/eyetracker_validate/__init__.py:240
 msgid "Duration of the delay between positions."
-msgstr ""
+msgstr "位置之间延迟的持续时间。"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:203
 #: ../experiment/routines/eyetracker_validate/__init__.py:242
 msgid "Target Delay"
-msgstr ""
+msgstr "目标延迟"
 
 #: ../experiment/routines/eyetracker_validate/__init__.py:15
 msgid "Validation routine for eyetrackers"
-msgstr ""
+msgstr "眼动仪的校准例程"
 
 #: ../experiment/routines/eyetracker_validate/__init__.py:74
 msgid "List of positions (x, y) at which the target can appear"
-msgstr ""
+msgstr "目标可能出现的位置 (x, y) 列表"
 
 #: ../experiment/routines/eyetracker_validate/__init__.py:76
 msgid "Target Positions"
-msgstr ""
+msgstr "目标位置"
 
 #: ../experiment/routines/eyetracker_validate/__init__.py:85
 msgid "Fill color of the gaze cursor"
-msgstr ""
+msgstr "注视光标的填充颜色"
 
 #: ../experiment/routines/eyetracker_validate/__init__.py:86
 msgid "Gaze Cursor Color"
-msgstr ""
+msgstr "注视光标颜色"
 
 #: ../experiment/routines/eyetracker_validate/__init__.py:252
 msgid "Save results as an image"
-msgstr ""
+msgstr "将结果保存为图像"
 
 #: ../experiment/routines/eyetracker_validate/__init__.py:254
 msgid "Save As Image"
-msgstr ""
+msgstr "保存为图像"
 
 #: ../experiment/routines/eyetracker_validate/__init__.py:258
 msgid "Show a screen with results after completion?"
-msgstr ""
+msgstr "完成后是否显示带有结果的屏幕？"
 
 #: ../experiment/routines/eyetracker_validate/__init__.py:260
 msgid "Show Results Screen"
-msgstr ""
+msgstr "显示结果屏幕"
 
 #: ../gui/qtgui.py:93
 msgid "PsychoPy Dialog"
@@ -6822,23 +6822,23 @@ msgstr "信息"
 #: ../gui/qtgui.py:606 ../gui/qtgui.py:612 ../gui/qtgui.py:618
 #: ../gui/qtgui.py:624
 msgid "No details provided. ('prompt' value not set)."
-msgstr ""
+msgstr "没有详细内容。(未设置“提示”值）。"
 
 #: ../gui/qtgui.py:616
 msgid "Critical"
-msgstr ""
+msgstr "关键"
 
 #: ../gui/qtgui.py:622
 msgid "About Experiment"
-msgstr ""
+msgstr "关于实验"
 
 #: ../gui/wxgui.py:70
 msgid "PsychoPy dialogue"
-msgstr ""
+msgstr "Psychopy 对话"
 
 #: ../gui/wxgui.py:387
 msgid "Select file(s) to open"
-msgstr ""
+msgstr "选择要打开的文件"
 
 #: ../localization/__init__.py:159
 msgid "start type"
@@ -6854,91 +6854,93 @@ msgstr "起始"
 
 #: ../localization/__init__.py:163
 msgid "Expected start (s)"
-msgstr ""
+msgstr "预期开始（秒）"
 
 #: ../localization/__init__.py:164
 msgid "Expected duration (s)"
-msgstr ""
+msgstr "预期持续时间（秒）"
 
 #: ../localization/__init__.py:168
 msgid "Foreground Color"
-msgstr ""
+msgstr "前景颜色"
 
 #: ../localization/__init__.py:170
 msgid "Fill Color"
-msgstr ""
+msgstr "填充颜色"
 
 #: ../localization/__init__.py:171
 msgid "Fill Color Space"
-msgstr ""
+msgstr "填充颜色空间"
 
 #: ../localization/__init__.py:172
 msgid "Border Color"
-msgstr ""
+msgstr "边框颜色"
 
 #: ../localization/__init__.py:173
 msgid "Border Color Space"
-msgstr ""
+msgstr "边框颜色空间"
 
 #: ../localization/__init__.py:175
 msgid "Opacity"
-msgstr ""
+msgstr "不透明度"
 
 #: ../localization/__init__.py:177
 msgid "Orientation"
-msgstr ""
+msgstr "朝向"
 
 #: ../localization/__init__.py:182
 msgid "nReps"
-msgstr ""
+msgstr "重复次数"
 
 #: ../localization/__init__.py:183
 msgid "Conditions"
-msgstr ""
+msgstr "条件"
 
 #: ../localization/__init__.py:184
 msgid "conditionsFile"
-msgstr ""
+msgstr "条件文件"
 
 #: ../localization/__init__.py:185
 msgid "endPoints"
-msgstr ""
+msgstr "结束点"
 
 #: ../localization/__init__.py:186
 msgid "Selected rows"
-msgstr ""
+msgstr "选择行"
 
 #: ../localization/__init__.py:187
 msgid "loopType"
-msgstr ""
+msgstr "循环类型"
 
 #: ../localization/__init__.py:188
 msgid "random seed"
-msgstr ""
+msgstr "随机种子"
 
 #: ../localization/__init__.py:189
+#, fuzzy
 msgid "Is trials"
-msgstr ""
+msgstr "是试验"
 
 #: ../localization/__init__.py:190
 msgid "min value"
-msgstr ""
+msgstr "最小值"
 
 #: ../localization/__init__.py:191
 msgid "N reversals"
-msgstr ""
+msgstr "N次逆转"
 
 #: ../localization/__init__.py:192
 msgid "start value"
-msgstr ""
+msgstr "起始值"
 
+# 我不太清楚这个内容诶，麻烦大家帮忙看一下
 #: ../localization/__init__.py:193
 msgid "N up"
 msgstr ""
 
 #: ../localization/__init__.py:194
 msgid "max value"
-msgstr ""
+msgstr "最大值"
 
 #: ../localization/__init__.py:195
 msgid "N down"
@@ -6946,71 +6948,73 @@ msgstr ""
 
 #: ../localization/__init__.py:196
 msgid "step type"
-msgstr ""
+msgstr "步类型"
 
 #: ../localization/__init__.py:197
 msgid "step sizes"
-msgstr ""
+msgstr "步尺寸"
 
 #: ../localization/__init__.py:198
 msgid "stairType"
-msgstr ""
+msgstr "阶梯类型"
 
 #: ../localization/__init__.py:199
 msgid "switchMethod"
-msgstr ""
+msgstr "切换方法"
 
 #: ../monitors/MonitorCenter.py:174 ../monitors/MonitorCenter.py:312
 msgid "Monitor Info"
-msgstr ""
+msgstr "显示器信息"
 
 #: ../monitors/MonitorCenter.py:183 ../monitors/MonitorCenter.py:378
 msgid "Calibration"
-msgstr ""
+msgstr "校准"
 
 #: ../monitors/MonitorCenter.py:226
 msgid "Save\tCtrl+S"
-msgstr ""
+msgstr "保存\tCtrl+S"
 
 #: ../monitors/MonitorCenter.py:227
 msgid "Save the current monitor"
-msgstr ""
+msgstr "保存当前显示器"
 
+# 不确定这里是“显示器中心”还是“监控中心”
 #: ../monitors/MonitorCenter.py:229
+#, fuzzy
 msgid "Close Monitor Center (but not other PsychoPy windows)"
-msgstr ""
+msgstr "关闭显示器中心（但不是其他的 Psychopy 窗口）"
 
 #: ../monitors/MonitorCenter.py:232
 msgid "Close Monitor Center\tCtrl+W"
-msgstr ""
+msgstr "关闭显示器中心\tCtrl+W"
 
 #: ../monitors/MonitorCenter.py:240
 msgid "Copy the current monitor's name to clipboard"
-msgstr ""
+msgstr "复制当前显示器的名字到剪贴板"
 
 #: ../monitors/MonitorCenter.py:241
 msgid "Copy\tCtrl+C"
-msgstr ""
+msgstr "复制\tCtrl+C"
 
 #: ../monitors/MonitorCenter.py:249
 msgid "Choose Monitor"
-msgstr ""
+msgstr "关闭显示器"
 
 #: ../monitors/MonitorCenter.py:261
 msgid "New..."
-msgstr ""
+msgstr "新的..."
 
 #: ../monitors/MonitorCenter.py:265
 msgid "Create a new monitor"
-msgstr ""
+msgstr "创建一个新的显示器"
 
 #: ../monitors/MonitorCenter.py:270
 msgid "Save all calibrations for this monitor"
-msgstr ""
+msgstr "保存此显示器的所有校准"
 
 #: ../monitors/MonitorCenter.py:277
 msgid "Delete this monitor entirely"
-msgstr ""
+msgstr "彻底删除此显示器"
 
 #: ../monitors/MonitorCenter.py:288
 msgid "Copy..."
@@ -7018,39 +7022,39 @@ msgstr "复制..."
 
 #: ../monitors/MonitorCenter.py:291
 msgid "Creates a new calibration entry for this monitor"
-msgstr ""
+msgstr "为该显示器创建一个新的校准入口"
 
 #: ../monitors/MonitorCenter.py:298
 msgid "Remove this calibration entry (finalized when monitor is saved)"
-msgstr ""
+msgstr "移除这个校准入口（显示器保存时最终确定）"
 
 #: ../monitors/MonitorCenter.py:318
 msgid "Screen Distance (cm):"
-msgstr ""
+msgstr "屏幕距离（厘米）："
 
 #: ../monitors/MonitorCenter.py:325
 msgid "Screen Width (cm):"
-msgstr ""
+msgstr "屏幕宽度（厘米）："
 
 #: ../monitors/MonitorCenter.py:331
 msgid "Size (pixels; Horiz,Vert):"
-msgstr ""
+msgstr "尺寸（像素；水平，垂直）："
 
 #: ../monitors/MonitorCenter.py:343
 msgid "Calibration Date:"
-msgstr ""
+msgstr "校准日期："
 
 #: ../monitors/MonitorCenter.py:350
 msgid "Notes:"
-msgstr ""
+msgstr "注释："
 
 #: ../monitors/MonitorCenter.py:358 ../monitors/MonitorCenter.py:1197
 msgid "Use Bits++"
-msgstr ""
+msgstr "使用 Bits++"
 
 #: ../monitors/MonitorCenter.py:392
 msgid "Scan all ports"
-msgstr ""
+msgstr "扫描所有端口"
 
 #: ../monitors/MonitorCenter.py:401
 msgid "Get Photometer"
@@ -7058,66 +7062,66 @@ msgstr ""
 
 #: ../monitors/MonitorCenter.py:407
 msgid "Gamma Calibration..."
-msgstr ""
+msgstr "伽马校准..."
 
 #: ../monitors/MonitorCenter.py:411
 msgid "Gamma Test..."
-msgstr ""
+msgstr "伽马测试..."
 
 #: ../monitors/MonitorCenter.py:418
 msgid "Chromatic Calibration..."
-msgstr ""
+msgstr "色度校准..."
 
 #: ../monitors/MonitorCenter.py:423
 msgid "Plot gamma"
-msgstr ""
+msgstr "绘制伽马"
 
 #: ../monitors/MonitorCenter.py:427
 msgid "Plot spectra"
-msgstr ""
+msgstr "绘制频谱"
 
 #: ../monitors/MonitorCenter.py:439
 msgid "Linearization"
-msgstr ""
+msgstr "线性化"
 
 #: ../monitors/MonitorCenter.py:540
 msgid "Save changes to monitor settings before quitting?"
-msgstr ""
+msgstr "是否在退出前保存显示器设置的更改？"
 
 #: ../monitors/MonitorCenter.py:562
 msgid "Save changes to monitor?"
-msgstr ""
+msgstr "是否将更改保存到显示器？"
 
 #: ../monitors/MonitorCenter.py:655
 #, python-format
 msgid "Name of this calibration (for monitor \"%(name)s\") will be:)"
-msgstr ""
+msgstr "该校准的名称（对于监视器“%(name)s”)将为：）"
 
 #: ../monitors/MonitorCenter.py:660 ../monitors/MonitorCenter.py:675
 msgid "Input text"
-msgstr ""
+msgstr "输入文本"
 
 #: ../monitors/MonitorCenter.py:674
 msgid "New monitor name:"
-msgstr ""
+msgstr "新的显示器名称："
 
 #: ../monitors/MonitorCenter.py:689
 #, python-format
 msgid "Are you sure you want to delete all details for %s? (cannot be undone)"
-msgstr ""
+msgstr "是否确认要删除%s的所有详细信息？（无法撤销）"
 
 #: ../monitors/MonitorCenter.py:713
 msgid "Are you sure you want to delete this calibration? (cannot be undone)"
-msgstr ""
+msgstr "是否确认要删除这一校准？（无法撤销）"
 
 #: ../monitors/MonitorCenter.py:969
 msgid "Scanning ports..."
-msgstr ""
+msgstr "扫描端口中..."
 
 #: ../monitors/MonitorCenter.py:978
 #, python-format
 msgid "%(photomType)s found on %(photomPort)s"
-msgstr ""
+msgstr "在%(photomPort)s上找到的%(photomType)s"
 
 #: ../monitors/MonitorCenter.py:983
 msgid "No photometers found"
@@ -7125,13 +7129,13 @@ msgstr ""
 
 #: ../monitors/MonitorCenter.py:991 ../monitors/MonitorCenter.py:997
 msgid "Dark calibration of ColorCAL"
-msgstr ""
+msgstr "ColorCAL的暗色校准"
 
 #: ../monitors/MonitorCenter.py:993
 msgid ""
 "Your ColorCAL needs to be calibrated first. Please block all light from "
 "getting into the lens and press OK."
-msgstr ""
+msgstr "你的ColorCAL需要先校准。请阻止所有光线进入镜头，然后按确定。"
 
 #: ../monitors/MonitorCenter.py:1010
 msgid "Try again. Cover the lens fully and press OK"
@@ -8111,7 +8115,7 @@ msgstr ""
 
 #: ../tools/wizard.py:565
 msgid "We'll go through a series of configuration checks in about 10 seconds. "
-msgstr "我们将在 10 秒钟内进行一系列配置检查。"
+msgstr "我们将在 10 秒钟内进行一系列配置检查。 "
 
 #: ../tools/wizard.py:569
 msgid "Note: The display will switch to full-screen mode and will "
