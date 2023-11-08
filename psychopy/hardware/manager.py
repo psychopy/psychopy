@@ -461,7 +461,7 @@ class DeviceManager:
         return getattr(device, method)(*args, **kwargs)
 
     @staticmethod
-    def addListener(deviceName, listener):
+    def addListener(deviceName, listener, startLoop=False):
         """
         Add a listener to a managed device.
 
@@ -474,6 +474,8 @@ class DeviceManager:
             - "liaison": Create a LiaisonListener with self.liaison as the server
             - "print": Create a PrintListener with default settings
             - "log": Create a LoggingListener with default settings
+        startLoop : bool
+            If True, then upon adding the listener, start up an asynchronous loop to dispatch messages.
 
         Returns
         -------
@@ -497,7 +499,7 @@ class DeviceManager:
                 listener = lsnr.LoggingListener()
         # add listener to device
         if hasattr(device, "addListener"):
-            device.addListener(listener)
+            device.addListener(listener, startLoop=startLoop)
         else:
             raise AttributeError(
                 f"Could not add a listener to device {deviceName} ({type(device).__name__}) as it does not "

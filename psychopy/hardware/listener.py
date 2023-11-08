@@ -1,5 +1,87 @@
 import sys
+import threading
+import time
 from psychopy import logging
+
+
+class ListenerLoop(threading.Thread):
+    """
+    Asynchonous execution loop to continuously poll a device for new messages. Not recommended if using listeners
+    within an experiment.
+
+    Attributes
+    ----------
+    device : BaseDevice
+        Device whose messages to dispatch on each iteration of the loop.
+    refreshRate : float
+        How long to sleep inbetween iterations of the loop
+    maxTime : float
+        Maximum time (s) which this loop is allowed to run for, after this time limit is reached the loop will end.
+    """
+    def __init__(self):
+        # placeholder values for function params
+        self.device = self.refreshRate = self.maxTime = None
+        # set initial alive state
+        self._alive = False
+        # initialise base Thread
+        threading.Thread.__init__(self, target=self.dispatchLoop)
+
+    def start(self):
+        """
+        Start the loop polling for new messages.
+
+        Returns
+        -------
+        bool
+            True if the loop was started successfully
+        """
+        # if already started, do nothing
+        if self._alive:
+            return
+        # set alive state
+        self._alive = True
+        # start the thread
+        threading.Thread.start(self)
+        # sleep so it has time to spin up
+        time.sleep(self.refreshRate)
+        # return confirmation of thread's alive status
+        return threading.Thread.is_alive(self)
+
+    def stop(self):
+        """
+        Stop the loop polling for new messages.
+
+        Returns
+        -------
+        bool
+            True if the loop was stopped successfully
+        """
+        # if already stopped, do nothing
+        if not self._alive:
+            return
+        # set alive status
+        self._alive = False
+        # sleep for 2 iterations so it has time to spin down
+        time.sleep(self.refreshRate * 2)
+        # return confirmation of thread's dead status
+        return not threading.Thread.is_alive(self)
+
+    def dispatchLoop(self):
+        """
+        Function to make continuous calls to the device for responses.
+        """
+        cont = self._alive
+        startTime = time.time()
+        # until something says otherwise, continue
+        while cont:
+            # work out whether to continue
+            cont = self._alive
+            if self.maxTime is not None:
+                cont &= time.time() - startTime < self.maxTime
+            # dispatch messages from this device
+            self.device.dispatchMessages()
+            # sleep for 10ms
+            time.sleep(self.refreshRate)
 
 
 class BaseListener:
@@ -12,6 +94,47 @@ class BaseListener:
     def __init__(self):
         # list in which to store responses (if implemented)
         self.responses = []
+        # create threaded loop, but don't start unless asked to
+        self.loop = ListenerLoop()
+
+    def startLoop(self, device, refreshRate=0.01, maxTime=None):
+        """
+        Start a threaded loop listening for responses
+
+        Parameters
+        ----------
+        device : BaseDevice
+            Device whose messages to dispatch on each iteration of the loop.
+        refreshRate : float
+            How long to sleep inbetween iterations of the loop
+        maxTime : float
+            Maximum time (s) which this loop is allowed to run for, after this time limit is reached the loop will end.
+
+        Returns
+        -------
+        bool
+            True if loop started successfully
+        """
+        # if there's an existing loop, stop it
+        self.stopLoop()
+        # set attributes of loop
+        self.loop.device = device
+        self.loop.refreshRate = refreshRate
+        self.loop.maxTime = maxTime
+        # start loop
+        return self.loop.start()
+
+    def stopLoop(self):
+        """
+        Stop the current dispatch loop
+
+        Returns
+        -------
+        bool
+            True if loop started successfully
+        """
+        return self.loop.stop()
+
 
     def receiveMessage(self, message):
         """
