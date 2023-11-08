@@ -942,6 +942,44 @@ class BaseComponent:
                 if comp.name == name:
                     return comp
 
+    def writeRoutineStartValidationCode(self, buff):
+        """
+        WWrite Routine start code to validate this stimulus against the specified validator.
+
+        Parameters
+        ----------
+        buff : StringIO
+            String buffer to write code to.
+        """
+        # get validator
+        validator = self.getValidator()
+        # if there is no validator, don't write any code
+        if validator is None:
+            return
+        # if there is a validator, write its code
+        indent = validator.writeRoutineStartValidationCode(buff, stim=self)
+        # if validation code indented the buffer, dedent
+        buff.setIndentLevel(-indent, relative=True)
+
+    def writeEachFrameValidationCode(self, buff):
+        """
+        Write each frame code to validate this stimulus against the specified validator.
+
+        Parameters
+        ----------
+        buff : StringIO
+            String buffer to write code to.
+        """
+        # get validator
+        validator = self.getValidator()
+        # if there is no validator, don't write any code
+        if validator is None:
+            return
+        # if there is a validator, write its code
+        indent = validator.writeEachFrameValidationCode(buff, stim=self)
+        # if validation code indented the buffer, dedent
+        buff.setIndentLevel(-indent, relative=True)
+
     @property
     def name(self):
         return self.params['name'].val

@@ -116,6 +116,9 @@ class BaseStandaloneRoutine:
 
         return dupe
 
+    def writeDeviceCode(self, buff):
+        return
+
     def writePreCode(self, buff):
         return
 
@@ -428,6 +431,7 @@ class Routine(list):
         # This is the beginning of the routine, before the loop starts
         for event in self:
             event.writeRoutineStartCode(buff)
+            event.writeRoutineStartValidationCode(buff)
 
         code = '# keep track of which components have finished\n'
         buff.writeIndentedLines(code)
@@ -481,6 +485,7 @@ class Routine(list):
             if event.type == 'Static':
                 continue  # we'll do those later
             event.writeFrameCode(buff)
+            event.writeEachFrameValidationCode(buff)
         # update static component code last
         for event in self.getStatics():
             event.writeFrameCode(buff)
