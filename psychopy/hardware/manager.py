@@ -66,11 +66,12 @@ class DeviceManager:
         # this means that all DeviceManager handles are the same object
         if cls._instance is None:
             cls._instance = super(DeviceManager, cls).__new__(cls)
-        # store/update ref to liaison
-        if liaison is not None or not hasattr(cls._instance, "liaison"):
-            cls._instance.liaison = liaison
 
         return cls._instance
+
+    def __init__(self, liaison=None):
+        # set liaison
+        self.liaison = liaison
 
     # --- utility ---
 
