@@ -60,6 +60,7 @@ Example usage
 
 from __future__ import absolute_import, division, print_function
 
+import json
 from collections import deque
 import sys
 import copy
@@ -337,6 +338,22 @@ class KeyboardDevice(BaseDevice, aliases=["keyboard"]):
             })
         return devices
 
+    def dispatchMessages(self):
+        """
+        Method to allow Listeners to access KeyPress responses.
+
+        Returns
+        -------
+        bool
+            True if messages dispatched successfully
+        """
+        # call getKeys and clear buffer
+        for resp in self.getKeys():
+            for listener in self.listeners:
+                listener.receiveMessage(resp)
+
+        return True
+
     def getKeys(self, keyList=None, ignoreKeys=None, waitRelease=True, clear=True):
         """
 
@@ -542,6 +559,29 @@ class KeyPress(object):
 
     def __ne__(self, other):
         return self.name != other
+
+    def __repr__(self):
+        return (
+            f"<KeyPress: "
+            f"name={self.name}, "
+            f"tDown={self.tDown}, "
+            f"duration={self.duration}, "
+            f"rt={self.rt}"
+            f">"
+        )
+
+    def getJSON(self):
+        message = {
+            'type': "hardware_response",
+            'class': "KeyPress",
+            'data': {
+                't': self.tDown,
+                'value': self.name,
+                'duration': self.duration,
+            }
+        }
+
+        return json.dumps(message)
 
 
 class _KeyBuffers(dict):

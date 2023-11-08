@@ -157,12 +157,19 @@ class PrintListener(BaseListener):
     stream
         A file-like object to `print` responses to. Default value is sys.stdout (aka same place normal `print()`
         statements are sent to).
+    style : str
+        What string format to print the output as? One of:
+        - "repr": Do nothing before printing - will be stringified by the object's __repr__ method (as normal)
+        - "str": Call str() on the output before printing
+        - "json": Attempt to convert output to a JSON string (first looking for a getJSON method, then using json.dumps)
     """
-    def __init__(self, stream=sys.stdout):
+    def __init__(self, stream=sys.stdout, style="repr"):
         # init base class
         BaseListener.__init__(self)
         # store handle of stream
         self.stream = stream
+        # store output style
+        self.style = style
 
     def receiveMessage(self, message):
         """
@@ -170,6 +177,21 @@ class PrintListener(BaseListener):
         """
         # store message
         self.responses.append(message)
+        # process output to desired print style
+        if self.style == "str":
+            # stringify
+            message = str(message)
+        if self.style == "json":
+            # convert to json
+            if hasattr(message, "getJSON"):
+                message = message.getJSON()
+            else:
+                message = {
+                    'type': "hardware_response",
+                    'class': "Unknown",
+                    'data': str(message)
+                }
+
         # print message
         print(message, file=self.stream)
 

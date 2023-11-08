@@ -482,21 +482,8 @@ class DeviceManager:
         BaseListener
             Listener created/added
         """
-        from psychopy.hardware import listener as lsnr
         # get device
         device = DeviceManager.getDevice(deviceName)
-        # make listener if needed
-        if not isinstance(listener, lsnr.BaseListener):
-            if listener == "liaison":
-                if DeviceManager.liaison is None:
-                    raise AttributeError(
-                        "Cannot create a `liaison` listener as no liaison server is connected to DeviceManager."
-                    )
-                listener = lsnr.LiaisonListener(DeviceManager.liaison)
-            if listener == "print":
-                listener = lsnr.PrintListener()
-            if listener == "log":
-                listener = lsnr.LoggingListener()
         # add listener to device
         if hasattr(device, "addListener"):
             device.addListener(listener, startLoop=startLoop)
