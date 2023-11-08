@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PsychoPy 2023.2.2\n"
 "Report-Msgid-Bugs-To: shuonwang@gmail.com\n"
 "POT-Creation-Date: 2021-12-18 00:00+0100\n"
-"PO-Revision-Date: 2023-11-01 20:34-0400\n"
+"PO-Revision-Date: 2023-11-08 17:27-0500\n"
 "Last-Translator: Bingzi Yu <ybzice@gmail.com>\n"
 "Language-Team: Shun Wang <shuonwang@gmail.com>\n"
 "Language: zh_CN\n"
@@ -6513,13 +6513,15 @@ msgstr "只选择条件文件中的一个子行集（从 0 开始而不是 1！�
 
 #: ../experiment/loops.py:98
 msgid "How should the next condition value(s) be chosen?"
-msgstr ""
+msgstr "如何选择下一个条件的值？"
 
 #: ../experiment/loops.py:103
 msgid ""
 "To have a fixed random sequence provide an integer of your choosing here. "
 "Leave blank to have a new random sequence on each run of the experiment."
 msgstr ""
+"如要使用固定的随机序列，请在此处提供一个整数。如果每次实验都使用新的随机序"
+"列，则请留空。"
 
 #: ../experiment/loops.py:110 ../experiment/loops.py:419
 #: ../experiment/loops.py:546
@@ -6527,6 +6529,8 @@ msgid ""
 "Indicates that this loop generates TRIALS, rather than BLOCKS of trials or "
 "stimuli within a trial. It alters how data files are output"
 msgstr ""
+"表示该循环生成的是 TRIALS，而不是多个试验中的 BLOCKS 或一个试验中的刺激。这会"
+"改变数据文件的输出"
 
 #: ../experiment/loops.py:363
 msgid "(Minimum) number of trials in the staircase"
@@ -6534,46 +6538,46 @@ msgstr "阶梯中的（最小）试验次数"
 
 #: ../experiment/loops.py:367
 msgid "The initial value of the parameter"
-msgstr ""
+msgstr "参数的初始值"
 
 #: ../experiment/loops.py:371
 msgid "The maximum value the parameter can take"
-msgstr ""
+msgstr "参数的最大值"
 
 #: ../experiment/loops.py:375
 msgid "The minimum value the parameter can take"
-msgstr ""
+msgstr "参数的最小值"
 
 #: ../experiment/loops.py:379
 msgid "The size of the jump at each step (can change on each 'reversal')"
-msgstr ""
+msgstr "每一步的跳跃幅度（可在每次“逆转”时改变）"
 
 #: ../experiment/loops.py:384
 msgid ""
 "The units of the step size (e.g. 'linear' will add/subtract that value each "
 "step, whereas 'log' will ad that many log units)"
-msgstr ""
+msgstr "步长的单位（例如，“线性”将在每步加减该值，而“对数”则将增加对数单位）。"
 
 #: ../experiment/loops.py:390
 msgid "The number of 'incorrect' answers before the value goes up"
-msgstr ""
+msgstr "数值上升前“错误”答案的数量"
 
 #: ../experiment/loops.py:395
 msgid "The number of 'correct' answers before the value goes down"
-msgstr ""
+msgstr "数值下降前“正确”答案的数量"
 
 #: ../experiment/loops.py:400
 msgid ""
 "Minimum number of times the staircase must change direction before ending"
-msgstr ""
+msgstr "在结束前，阶梯改变方向的最少次数"
 
 #: ../experiment/loops.py:409 ../experiment/loops.py:526
 msgid "How should the next trial value(s) be chosen?"
-msgstr ""
+msgstr "如何选择下一个试验的值？"
 
 #: ../experiment/loops.py:414 ../experiment/loops.py:530
 msgid "Where to loop from and to (see values currently shown in the flow view)"
-msgstr ""
+msgstr "何时开始并结束循环（见工作流程界面当前显示的值）"
 
 #: ../experiment/loops.py:508
 msgid "(Minimum) number of trials in *each* staircase"
@@ -6581,20 +6585,20 @@ msgstr "*每个*阶梯中的（最小）试验次数"
 
 #: ../experiment/loops.py:513 ../experiment/loops.py:518
 msgid "How to select the next staircase to run"
-msgstr ""
+msgstr "如何选择下次运行的阶梯"
 
 #: ../experiment/loops.py:536
 msgid ""
 "A list of dictionaries describing the differences between each staircase"
-msgstr ""
+msgstr "用于解释各阶梯间不同的词典列表"
 
 #: ../experiment/loops.py:541
 msgid "An xlsx or csv file specifying the parameters for each condition"
-msgstr ""
+msgstr "请提供一个 xlsx 或 csv 文件用于指明各条件中的变量"
 
 #: ../experiment/routines/_base.py:38
 msgid "Name of this routine (alphanumeric or _, no spaces)"
-msgstr ""
+msgstr "例程名称（由字母、数字或下划线组成，无空格）"
 
 #: ../experiment/routines/_base.py:43
 msgid "name"
@@ -6602,7 +6606,7 @@ msgstr "名称"
 
 #: ../experiment/routines/_base.py:48
 msgid "When does the routine end? (blank is endless)"
-msgstr ""
+msgstr "例程终止时间？（空白意为时长无限）"
 
 #: ../experiment/routines/_base.py:49 ../localization/__init__.py:162
 msgid "Stop"
