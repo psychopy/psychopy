@@ -42,7 +42,7 @@ class BaseButtonGroup(base.BaseDevice):
         self.parent.dispatchMessages()
         self.responses = []
 
-    def addListener(self, listener):
+    def addListener(self, listener, startLoop=False):
         """
         Add a listener, which will receive all the same messages as this Button.
 
@@ -50,8 +50,14 @@ class BaseButtonGroup(base.BaseDevice):
         ----------
         listener : hardware.listener.BaseListener
             Object to duplicate messages to when received by this Button.
+        startLoop : bool
+            If True, then upon adding the listener, start up an asynchronous loop to dispatch messages.
         """
+        # add listener handle
         self.listeners.append(listener)
+        # start loop if requested
+        if startLoop:
+            listener.startLoop(self)
 
     def clearListeners(self):
         """
@@ -62,6 +68,10 @@ class BaseButtonGroup(base.BaseDevice):
         bool
             True if completed successfully
         """
+        # stop any dispatch loops
+        for listener in self.listeners:
+            listener.stopLoop()
+        # remove all listeners
         self.listeners = []
 
         return True
@@ -101,6 +111,22 @@ class BaseButtonGroup(base.BaseDevice):
                     matches.append(resp)
 
         return matches
+
+    def dispatchMessages(self):
+        """
+        Request this ButtonGroup's parent (such as the serialport object or BBTK TPad) to dispatch messages to it.
+
+        Returns
+        -------
+        bool
+            True if request sent successfully, False if parent doesn't have a dispatch method
+        """
+        # return False if parent has no such method
+        if not hasattr(self.parent, "dispatchMessages"):
+            return False
+        # otherwise dispatch and return
+        self.parent.dispatchMessages()
+        return True
 
     def receiveMessage(self, message):
         assert isinstance(message, ButtonResponse), (

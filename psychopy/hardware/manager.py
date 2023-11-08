@@ -66,11 +66,12 @@ class DeviceManager:
         # this means that all DeviceManager handles are the same object
         if cls._instance is None:
             cls._instance = super(DeviceManager, cls).__new__(cls)
-        # store/update ref to liaison
-        if liaison is not None or not hasattr(cls._instance, "liaison"):
-            cls._instance.liaison = liaison
 
         return cls._instance
+
+    def __init__(self, liaison=None):
+        # set liaison
+        self.liaison = liaison
 
     # --- utility ---
 
@@ -459,7 +460,8 @@ class DeviceManager:
         # call method
         return getattr(device, method)(*args, **kwargs)
 
-    def addListener(self, deviceName, listener):
+    @staticmethod
+    def addListener(deviceName, listener, startLoop=False):
         """
         Add a listener to a managed device.
 
@@ -472,6 +474,8 @@ class DeviceManager:
             - "liaison": Create a LiaisonListener with self.liaison as the server
             - "print": Create a PrintListener with default settings
             - "log": Create a LoggingListener with default settings
+        startLoop : bool
+            If True, then upon adding the listener, start up an asynchronous loop to dispatch messages.
 
         Returns
         -------
@@ -480,22 +484,22 @@ class DeviceManager:
         """
         from psychopy.hardware import listener as lsnr
         # get device
-        device = self.getDevice(deviceName)
+        device = DeviceManager.getDevice(deviceName)
         # make listener if needed
         if not isinstance(listener, lsnr.BaseListener):
             if listener == "liaison":
-                if self.liaison is None:
+                if DeviceManager.liaison is None:
                     raise AttributeError(
                         "Cannot create a `liaison` listener as no liaison server is connected to DeviceManager."
                     )
-                listener = lsnr.LiaisonListener(self.liaison)
+                listener = lsnr.LiaisonListener(DeviceManager.liaison)
             if listener == "print":
                 listener = lsnr.PrintListener()
             if listener == "log":
                 listener = lsnr.LoggingListener()
         # add listener to device
         if hasattr(device, "addListener"):
-            device.addListener(listener)
+            device.addListener(listener, startLoop=startLoop)
         else:
             raise AttributeError(
                 f"Could not add a listener to device {deviceName} ({type(device).__name__}) as it does not "
@@ -504,7 +508,8 @@ class DeviceManager:
 
         return listener
 
-    def clearListeners(self, deviceName):
+    @staticmethod
+    def clearListeners(deviceName):
         """
         Remove any listeners attached to a particular device.
 
@@ -519,7 +524,7 @@ class DeviceManager:
             True if completed successfully
         """
         # get device
-        device = self.getDevice(deviceName)
+        device = DeviceManager.getDevice(deviceName)
         # add listener to device
         if hasattr(device, "clearListeners"):
             device.clearListeners()
