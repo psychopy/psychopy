@@ -35,6 +35,12 @@ class BaseDevice:
 
         return cls
 
+    def dispatchMessages(self):
+        """
+        Method to dispatch messages from the device to any nodes or listeners attached.
+        """
+        pass
+
     def addListener(self, listener, startLoop=False):
         """
         Add a listener, which will receive all the same messages as this device.
