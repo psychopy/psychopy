@@ -459,7 +459,8 @@ class DeviceManager:
         # call method
         return getattr(device, method)(*args, **kwargs)
 
-    def addListener(self, deviceName, listener):
+    @staticmethod
+    def addListener(deviceName, listener):
         """
         Add a listener to a managed device.
 
@@ -480,15 +481,15 @@ class DeviceManager:
         """
         from psychopy.hardware import listener as lsnr
         # get device
-        device = self.getDevice(deviceName)
+        device = DeviceManager.getDevice(deviceName)
         # make listener if needed
         if not isinstance(listener, lsnr.BaseListener):
             if listener == "liaison":
-                if self.liaison is None:
+                if DeviceManager.liaison is None:
                     raise AttributeError(
                         "Cannot create a `liaison` listener as no liaison server is connected to DeviceManager."
                     )
-                listener = lsnr.LiaisonListener(self.liaison)
+                listener = lsnr.LiaisonListener(DeviceManager.liaison)
             if listener == "print":
                 listener = lsnr.PrintListener()
             if listener == "log":
@@ -504,7 +505,8 @@ class DeviceManager:
 
         return listener
 
-    def clearListeners(self, deviceName):
+    @staticmethod
+    def clearListeners(deviceName):
         """
         Remove any listeners attached to a particular device.
 
@@ -519,7 +521,7 @@ class DeviceManager:
             True if completed successfully
         """
         # get device
-        device = self.getDevice(deviceName)
+        device = DeviceManager.getDevice(deviceName)
         # add listener to device
         if hasattr(device, "clearListeners"):
             device.clearListeners()
