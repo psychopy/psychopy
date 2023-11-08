@@ -338,6 +338,22 @@ class KeyboardDevice(BaseDevice, aliases=["keyboard"]):
             })
         return devices
 
+    def dispatchMessages(self):
+        """
+        Method to allow Listeners to access KeyPress responses.
+
+        Returns
+        -------
+        bool
+            True if messages dispatched successfully
+        """
+        # call getKeys and clear buffer
+        for resp in self.getKeys():
+            for listener in self.listeners:
+                listener.receiveMessage(resp)
+
+        return True
+
     def getKeys(self, keyList=None, ignoreKeys=None, waitRelease=True, clear=True):
         """
 
