@@ -14,7 +14,11 @@ __all__ = [
 
 
 class BaseDevice:
-    """Base class for device interfaces."""
+    """
+    Base class for device interfaces, includes support for DeviceManager and adding listeners.
+    """
+    listeners = []
+
     def __init_subclass__(cls, aliases=None):
         from psychopy.hardware.manager import DeviceManager
         import inspect
@@ -30,6 +34,40 @@ class BaseDevice:
         DeviceManager.deviceClasses.append(mro)
 
         return cls
+
+    def addListener(self, listener, startLoop=False):
+        """
+        Add a listener, which will receive all the same messages as this Photodiode.
+
+        Parameters
+        ----------
+        listener : hardware.listener.BaseListener
+            Object to duplicate messages to when received by this Photodiode.
+        startLoop : bool
+            If True, then upon adding the listener, start up an asynchronous loop to dispatch messages.
+        """
+        # add listener handle
+        self.listeners.append(listener)
+        # start loop if requested
+        if startLoop:
+            listener.startLoop(self)
+
+    def clearListeners(self):
+        """
+        Remove any listeners from this device.
+
+        Returns
+        -------
+        bool
+            True if completed successfully
+        """
+        # stop any dispatch loops
+        for listener in self.listeners:
+            listener.stopLoop()
+        # remove all listeners
+        self.listeners = []
+
+        return True
 
     @staticmethod
     def getAvailableDevices():
