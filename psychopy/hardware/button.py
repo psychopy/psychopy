@@ -78,6 +78,22 @@ class BaseButtonGroup(base.BaseDevice):
 
         return matches
 
+    def dispatchMessages(self):
+        """
+        Request this ButtonGroup's parent (such as the serialport object or BBTK TPad) to dispatch messages to it.
+
+        Returns
+        -------
+        bool
+            True if request sent successfully, False if parent doesn't have a dispatch method
+        """
+        # return False if parent has no such method
+        if not hasattr(self.parent, "dispatchMessages"):
+            return False
+        # otherwise dispatch and return
+        self.parent.dispatchMessages()
+        return True
+
     def receiveMessage(self, message):
         assert isinstance(message, ButtonResponse), (
             "{ownType}.receiveMessage() can only receive messages of type PhotodiodeResponse, instead received "
