@@ -4,11 +4,11 @@
 from pathlib import Path
 from psychopy.experiment import Param
 from psychopy.experiment.components import getInitVals
-from psychopy.experiment.routines import Routine, BaseStandaloneRoutine
+from psychopy.experiment.routines import Routine, BaseValidatorRoutine
 from psychopy.localization import _translate
 
 
-class PhotodiodeValidatorRoutine(BaseStandaloneRoutine):
+class PhotodiodeValidatorRoutine(BaseValidatorRoutine):
     """
     Use a photodiode to confirm that stimuli are presented when they should be.
     """

@@ -922,6 +922,27 @@ class BaseComponent:
         """Replaces word component with empty string"""
         return self.getType().replace('Component', '')
 
+    def getAllValidatorRoutines(self):
+        """
+        Return a list of names for all validator Routines in the current experiment. Used to populate
+        allowedVals in the `validator` param.
+
+        Returns
+        -------
+        list[str]
+            List of Routine names
+        """
+        from psychopy.experiment.routines import BaseValidatorRoutine
+
+        # iterate through all Routines in this Experiment
+        names = []
+        for rtName, rt in self.exp.routines.items():
+            # if Routine is a validator, add its name
+            if isinstance(rt, BaseValidatorRoutine):
+                names.append(rtName)
+
+        return names
+
     def getValidator(self):
         """
         Get the validator associated with this Component.
@@ -1140,7 +1161,8 @@ class BaseVisualComponent(BaseComponent):
 
         # --- Testing ---
         self.params['validator'] = Param(
-            validator, valType="code", inputType="single", categ="Testing",
+            validator, valType="code", inputType="choice", categ="Testing",
+            allowedVals=self.getAllValidatorRoutines,
             label=_translate("Validate with..."),
             hint=_translate(
                 "Names of Validator components (separated by commas) to use to check the timing of this stimulus."

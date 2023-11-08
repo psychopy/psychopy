@@ -220,6 +220,51 @@ class BaseStandaloneRoutine:
         self.params['disabled'].val = value
 
 
+class BaseValidatorRoutine(BaseStandaloneRoutine):
+    """
+    Subcategory of Standalone Routine, which sets up a "validator" - an object which is linked to in the Testing tab
+    of another Component and validates that the component behaved as expected. Any validator Routines should subclass
+    this rather than BaseStandaloneRoutine.
+    """
+    def writeRoutineStartValidationCode(self, buff, stim):
+        """
+        Write the routine start code to validate a given stimulus using this validator.
+
+        Parameters
+        ----------
+        buff : StringIO
+            String buffer to write code to.
+        stim : BaseComponent
+            Stimulus to validate
+
+        Returns
+        -------
+        int
+            Change in indentation level after writing
+        """
+        # this method should be overloaded when subclassing!
+        return 0
+
+    def writeEachFrameValidationCode(self, buff, stim):
+        """
+        Write the each frame code to validate a given stimulus using this validator.
+
+        Parameters
+        ----------
+        buff : StringIO
+            String buffer to write code to.
+        stim : BaseComponent
+            Stimulus to validate
+
+        Returns
+        -------
+        int
+            Change in indentation level after writing
+        """
+        # this method should be overloaded when subclassing!
+        return 0
+
+
 class Routine(list):
     """
     A Routine determines a single sequence of events, such
