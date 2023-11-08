@@ -37,15 +37,33 @@ class BaseDevice:
 
     def addListener(self, listener, startLoop=False):
         """
-        Add a listener, which will receive all the same messages as this Photodiode.
+        Add a listener, which will receive all the same messages as this device.
 
         Parameters
         ----------
-        listener : hardware.listener.BaseListener
-            Object to duplicate messages to when received by this Photodiode.
+        listener : str or psychopy.hardware.listener.BaseListener
+            Either a Listener object, or use one of the following strings to create one:
+            - "liaison": Create a LiaisonListener with DeviceManager.liaison as the server
+            - "print": Create a PrintListener with default settings
+            - "log": Create a LoggingListener with default settings
         startLoop : bool
             If True, then upon adding the listener, start up an asynchronous loop to dispatch messages.
         """
+        from . import listener as lsnr
+        # make listener if needed
+        if not isinstance(listener, lsnr.BaseListener):
+            # if given a string rather than an object handle, make an object of correct type
+            if listener == "liaison":
+                from psychopy.hardware import DeviceManager
+                if DeviceManager.liaison is None:
+                    raise AttributeError(
+                        "Cannot create a `liaison` listener as no liaison server is connected to DeviceManager."
+                    )
+                listener = lsnr.LiaisonListener(DeviceManager.liaison)
+            if listener == "print":
+                listener = lsnr.PrintListener()
+            if listener == "log":
+                listener = lsnr.LoggingListener()
         # add listener handle
         self.listeners.append(listener)
         # start loop if requested
