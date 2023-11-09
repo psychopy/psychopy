@@ -15,8 +15,10 @@ trigger boxes from within PsychoPy.
 
 __all__ = ['BaseTriggerBox']
 
+from psychopy.hardware.base import BaseDevice
 
-class BaseTriggerBox:
+
+class BaseTriggerBox(BaseDevice):
     """Base class for trigger box interfaces.
 
     This class defines the minimal interface for trigger box implementations. 

@@ -23,8 +23,8 @@ except (ImportError, ModuleNotFoundError):
 # get information about microphones that can accompany the video recording
 if _hasPTB and not syst.isVM_CI():
     micDevices = syst.getAudioCaptureDevices()
-    micDeviceIndices = [d['index'] for d in micDevices.values()]
-    micDeviceNames = [d['name'] for d in micDevices.values()]
+    micDeviceIndices = [d['index'] for d in micDevices]
+    micDeviceNames = [d['name'] for d in micDevices]
 else:
     micDevices = []
     micDeviceIndices = []
@@ -274,7 +274,7 @@ class CameraComponent(BaseComponent):
         self.params['mic'] = Param(
             mic, valType='str', inputType="choice", categ="Basic",
             allowedVals=list(range(len(micDevices))),
-            allowedLabels=[d.title() for d in list(micDevices)],
+            allowedLabels=[d['device_name'].title() for d in micDevices],
             hint=msg,
             label=_translate("Audio device")
         )
@@ -444,6 +444,65 @@ class CameraComponent(BaseComponent):
         #     "false": "hide",  # permitted: hide, show, enable, disable
         # })
 
+    def writeDeviceCode(self, buff):
+        """
+        Code to setup the CameraDevice for this component.
+
+        Parameters
+        ----------
+        buff : io.StringIO
+            Text buffer to write code to.
+        """
+        inits = getInitVals(self.params)
+
+        # --- setup mic ---
+
+        # substitute default if device not found
+        if inits['mic'].val not in micDeviceIndices:
+            inits['mic'].val = None
+        # substitute sample rate value for numeric equivalent
+        inits['micSampleRate'] = micSampleRates[inits['micSampleRate'].val]
+        # substitute channel value for numeric equivalent
+        inits['micChannels'] = {'mono': 1, 'stereo': 2, 'auto': None}[
+            self.params['micChannels'].val]
+        # get device name
+        inits['micDeviceName'] = getDeviceName("mic", inits['mic'].val)
+        # initialise mic device
+        code = (
+            "# initialise microphone\n"
+            "if deviceManager.getDevice('%(micDeviceName)s') is None:\n"
+            "    deviceManager.addDevice(\n"
+            "        deviceClass='microphone',\n"
+            "        deviceName='%(micDeviceName)s',\n"
+            "        index='%(mic)s',\n"
+            "        channels=%(micChannels)s, \n"
+            "        sampleRateHz=%(micSampleRate)s, \n"
+            "        maxRecordingSize=%(micMaxRecSize)s\n"
+            "    )\n"
+        )
+        buff.writeOnceIndentedLines(code % inits)
+
+        # --- setup camera ---
+        # get camera name
+        inits['cameraDeviceName'] = getDeviceName("cam", inits['device'].val)
+        # initialise camera device
+        code = (
+            "# initialise camera\n"
+            "if deviceManager.getDevice('%(cameraDeviceName)s') is None:\n"
+            "    cam = deviceManager.addDevice(\n"
+            "        deviceClass='camera',\n"
+            "        deviceName='%(cameraDeviceName)s',\n"
+            "        cameraLib=%(cameraLib)s, \n"
+            "        device=%(device)s, \n"
+            "        mic=%(micDeviceName)s, \n"
+            "        frameRate=%(frameRate)s, \n"
+            "        frameSize=%(resolution)s\n"
+            "    )\n"
+            "    cam.open()\n"
+            "\n"
+        )
+        buff.writeOnceIndentedLines(code % inits)
+
     def writeRoutineStartCode(self, buff):
         pass
 
@@ -476,32 +535,17 @@ class CameraComponent(BaseComponent):
         inits['micChannels'] = {'mono': 1, 'stereo': 2, 'auto': None}[
             self.params['micChannels'].val]
         # Get device names
-        inits['micDeviceName'] = getDeviceName(inits['mic'].val)
-        inits['micDeviceVarName'] = getDeviceVarName(inits['mic'].val)
+        inits['micDeviceName'] = getDeviceName("mic", inits['mic'].val)
+        inits['cameraDeviceName'] = getDeviceName("cam", inits['device'].val)
+
         # Create Microphone object
-        micInitCode = (
-            "# create a microphone object for device: %(micDeviceName)s\n"
-            "%(micDeviceVarName)s = sound.microphone.Microphone(\n"
-            "    device=%(mic)s, \n"
-            "    channels=%(micChannels)s, \n"
-            "    sampleRateHz=%(micSampleRate)s, \n"
-            "    maxRecordingSize=%(micMaxRecSize)s\n"
-            ")\n"
-        )
-        cameraInitCode = (
+        code = (
+            "# create a camera object\n"
             "%(name)s = camera.Camera(\n"
-            "    name='%(name)s', \n"
-            "    cameraLib=%(cameraLib)s, \n"
-            "    device=%(device)s, \n"
-            "    mic=%(micDeviceVarName)s, \n"
-            "    frameRate=%(frameRate)s, \n"
-            "    frameSize=%(resolution)s\n"
+            "    device='%(cameraDeviceName)s', \n"
+            "    mic='%(micDeviceName)s', \n"
             ")\n"
-            "# Switch on %(name)s\n"
-            "%(name)s.open()\n"
-            "\n"
         )
-        code = micInitCode + cameraInitCode
         buff.writeIndentedLines(code % inits)
 
     def writeInitCodeJS(self, buff):
@@ -627,21 +671,27 @@ class CameraComponent(BaseComponent):
         buff.writeIndentedLines(code % self.params)
 
 
-def getDeviceName(index):
+def getDeviceName(deviceClass, index):
     """
     Get device name from a given index
 
     Parameters
     ----------
+    deviceClass : str
+        Microphone ("mic") or camera ("cam")
     index : int or None
         Index of the device to use
     """
-    # Alias None
-    if index not in micDeviceIndices:
-        index = None
-    # Get device name
-    i = micDeviceIndices.index(index)
-    name = micDeviceNames[i]
+    if deviceClass == "mic":
+        name = "defaultMicrophone"
+        for dev in syst.getAudioCaptureDevices():
+            if dev['index'] == index:
+                name = dev['name']
+    else:
+        name = "defaultCamera"
+        for i, dev in enumerate(syst.getCameras()):
+            if i == index:
+                name = dev[0]['device_name']
 
     return name
 

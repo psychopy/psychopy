@@ -26,8 +26,8 @@ __all__ = [
     'getAudioPlaybackDevices',
     'getKeyboards',
     'getSerialPorts',
-    # 'getParallelPorts',
-    'systemProfilerMacOS'
+    'systemProfilerMacOS',
+    'getInstalledDevices'
 ]
 
 # Keep imports to a minimum here! We don't want to import the whole stack to
@@ -212,17 +212,18 @@ def getAudioCaptureDevices():
     """
     allDevices = getAudioDevices()  # gat all devices
 
-    inputDevices = {}  # dict for input devices
+    inputDevices = []  # dict for input devices
 
     if not allDevices:
         return inputDevices  # empty
 
     # filter for capture devices
     for name, devInfo in allDevices.items():
+        devInfo['device_name'] = name
         if devInfo['inputChannels'] < 1:
             continue
 
-        inputDevices[name] = devInfo  # is capture device
+        inputDevices.append(devInfo)  # is capture device
 
     return inputDevices
 
@@ -434,7 +435,7 @@ def _getCameraInfoWindows():
     videoDevs, _, names = list_dshow_devices()
 
     # get all the supported modes for the camera
-    videoDevices = {}
+    videoDevices = []
 
     # iterate over names
     devIndex = 0
@@ -445,8 +446,8 @@ def _getCameraInfoWindows():
             pixelFormat, codecFormat, frameSize, frameRateRng = _format
             _, frameRateMax = frameRateRng
             thisCamInfo = {
+                'device_name': cameraName,
                 'index': devIndex,
-                'name': cameraName,
                 'pixelFormat': pixelFormat,
                 'codecFormat': codecFormat,
                 'frameSize': frameSize,
@@ -456,7 +457,7 @@ def _getCameraInfoWindows():
             supportedFormats.append(thisCamInfo)
             devIndex += 1
 
-        videoDevices[names[devURI]] = supportedFormats
+        videoDevices.append(supportedFormats)
 
     return videoDevices
 
@@ -573,7 +574,7 @@ def getKeyboards():
     # use PTB to query for keyboards
     indices, names, keyboards = hid.get_keyboard_indices()
 
-    toReturn = {}
+    toReturn = []
     if not indices:
         return toReturn  # just return if no keyboards found
 
@@ -589,13 +590,14 @@ def getKeyboards():
             missingNameIdx += 1
 
         keyboard = keyboards[i]
+        keyboard['device_name'] = name
 
         # reformat values since PTB returns everything as a float
         for key, val in keyboard.items():
             if isinstance(val, float) and key not in ('version',):
                 keyboard[key] = int(val)
 
-        toReturn[name] = keyboard
+        toReturn.append(keyboard)
 
     return toReturn
 
@@ -688,11 +690,12 @@ def getSerialPorts():
 
     # enumerate over ports now that we have the names
     portEnumIdx = 0
-    toReturn = {}
+    toReturn = []
     for name in portNames:
         try:
             with serial.Serial(name) as ser:
                 portConf = {   # port information dict
+                    'device_name': name,
                     'index': portEnumIdx,
                     'port': ser.port,
                     'baudrate': ser.baudrate,
@@ -707,7 +710,7 @@ def getSerialPorts():
                     'dsrdtr': ser.dsrdtr,
                     # 'rs485_mode': ser.rs485_mode
                 }
-                toReturn[name] = portConf
+                toReturn.append(portConf)
                 portEnumIdx += 1
         except (OSError, serial.SerialException):
             # no port found with `name` or cannot be opened
@@ -739,17 +742,15 @@ def systemProfilerWindowsOS(
         drivers=False,
         interfaces=False,
         properties=False,
-        resources=False
-):
-    """
-    Get information about devices via Windows'
+        resources=False):
+    """Get information about devices via Windows'
     [pnputil](https://learn.microsoft.com/en-us/windows-hardware/drivers/devtest/pnputil-command-syntax#enum-devices).
 
     Parameters
     ----------
     parseStr : bool
-        Whether to parse the string output from pnputil into a dict (True) or keep it as a string for each device
-        (False)
+        Whether to parse the string output from pnputil into a dict (True) or 
+        keep it as a string for each device (False)
     connected : bool or None
         Filter by connection state of devices, leave as None for no filter.
     problem : bool or None
@@ -757,8 +758,8 @@ def systemProfilerWindowsOS(
     instanceid : str or None
         Filter by device instance ID, leave as None for no filter.
     deviceid : str or None
-        Filter by device hardware and compatible ID, leave as None for no filter. Only works on Windows 11 (version
-        22H2 and up).
+        Filter by device hardware and compatible ID, leave as None for no 
+        filter. Only works on Windows 11 (version 22H2 and up).
     classname : str or None
         Filter by device class name, leave as None for no filter.
     classid : str or None
@@ -766,19 +767,24 @@ def systemProfilerWindowsOS(
     problemcode : str or None
         Filter by specific problem code, leave as None for no filter.
     busname : str or None
-        Filter by bus enumerator name, leave as None for no filter. Only works on Windows 11 (version 21H2 and up).
+        Filter by bus enumerator name, leave as None for no filter. Only works 
+        on Windows 11 (version 21H2 and up).
     busid : str or None
-        Filter by bus type GUID, leave as None for no filter. Only works on Windows 11 (version 21H2 and up).
+        Filter by bus type GUID, leave as None for no filter. Only works on 
+        Windows 11 (version 21H2 and up).
     bus : bool
-        Display bus enumerator name and bus type GUID. Only works on Windows 11 (version 21H2 and up).
+        Display bus enumerator name and bus type GUID. Only works on Windows 11 
+        (version 21H2 and up).
     deviceids : bool
-        Display hardware and compatible IDs. Only works on Windows 11 (version 21H2 and up).
+        Display hardware and compatible IDs. Only works on Windows 11 
+        (version 21H2 and up).
     relations : bool
         Display parent and child device relations.
     services : bool
         Display device services. Only works on Windows 11 (version 21H2 and up).
     stack : bool
-        Display effective device stack information. Only works on Windows 11 (version 21H2 and up).
+        Display effective device stack information. Only works on Windows 11 
+        (version 21H2 and up).
     drivers : bool
         Display matching and installed drivers.
     interfaces : bool
@@ -1046,6 +1052,193 @@ def systemProfilerMacOS(dataTypes=None, detailLevel='basic', timeout=180):
     # now we're leaving that up to the user.
 
     return json.loads(systemProfilerRet.decode("utf-8"))  # convert to string
+
+
+# Cache data from the last call of `getInstalledDevices()` to avoid having to
+# query the system again. This is useful for when we want to access the same
+# data multiple times in a script.
+
+_installedDeviceCache = None  # cache for installed devices
+
+
+def getInstalledDevices(deviceType='all', refresh=False):
+    """Get information about installed devices.
+
+    This command gets information about all devices relevant to PsychoPy that 
+    are installed on the system and their supported settings.
+
+    Parameters
+    ----------
+    deviceType : str
+        Type of device to query. Possible values are `'all'`, `'speaker'`,
+        `'microphone'`, `'keyboard'`, or `'serial'`. Default is `'all'`.
+    refresh : bool
+        Whether to refresh the cache of installed devices. Default is `False`.
+
+    Returns
+    -------
+    dict
+        Mapping of hardware devices and their supported settings. See *Examples*
+
+    Examples
+    --------
+    Get all installed devices::
+
+        allDevices = getInstalledDevices('all')
+
+    Get all installed audio devices and access supported settings::
+
+        audioDevices = getInstalledDevices('audio')
+        speakers = audioDevices['speakers'] 
+        microphones = audioDevices['microphones']
+
+        # get supported sampling rates for the first microphone
+        micSampleRates = microphones[0]['sampling_rate']  # list of ints
+
+    Convert the result to JSON::
+
+        import json
+        allDevices = getInstalledDevices('all')
+        allDevicesJSON = json.dumps(allDevices, indent=4)
+
+        print(allDevicesJSON)  # print the result
+
+    """
+    # These functions are used to get information about installed devices using
+    # valrious methods. Were possible, we should avoid importing any libraries 
+    # that aren't part of the standard library to avoid dependencies and
+    # overhead.
+
+    def _getInstalledAudioDevices():
+        """Get information about installed audio playback and capture devices 
+        and their supported settings.
+
+        This uses PTB to query the system for audio devices and their supported
+        settings. The result is returned as a dictionary.
+        
+        Returns
+        -------
+        dict
+            Supported microphone settings for connected audio capture devices.
+        
+        """
+        allAudioDevices = getAudioDevices()
+
+        # get all microphones by name
+        foundDevices = []
+        for _, devInfo in allAudioDevices.items():
+            if devInfo["name"] not in foundDevices:  # unique names only
+                if devInfo["inputChannels"] > 0:
+                    foundDevices.append((
+                        devInfo["name"], devInfo["index"], 
+                        devInfo["inputChannels"], 'microphone'))
+                if devInfo["outputChannels"] > 0:
+                    foundDevices.append((
+                        devInfo["name"], devInfo["index"], 
+                        devInfo["outputChannels"],'speaker'))
+
+        # now get settings for each audi odevice
+        devSettings = {'microphone': [], 'speaker': []}
+        for devName, devIndex, devChannels, devClass in foundDevices:
+            supportedSampleRates = []
+            
+            for _, devInfo in allAudioDevices.items():
+                # check if we have a dictionary for this device
+                if devInfo["name"] != devName:
+                    continue
+
+                supportedSampleRates.append(
+                    int(devInfo["defaultSampleRate"]))
+                channels = devInfo[
+                    "outputChannels" if devClass == 'speakers' else "inputChannels"]
+
+            devSettings[devClass].append(
+                {
+                    "device_name": devName,
+                    "device_index": devIndex,
+                    "sampling_rate": supportedSampleRates,
+                    "channels": devChannels
+                }
+            )
+
+        return devSettings
+
+    def _getInstalledCameras():
+        """Get information about installed cameras and their supported settings.
+
+        This uses various libraries to query the system for cameras and their
+        supported settings. The result is returned as a dictionary.
+
+        Returns
+        -------
+        dict
+            Supported camera settings for connected cameras.
+
+        """
+        allCameras = getCameras()
+
+        # colect settings for each camera we found
+        deviceSettings = []
+        for devIdx, devInfo in enumerate(allCameras):
+            devName = devInfo[0]['device_name']
+
+            allModes = []
+            for thisInfo in devInfo:
+                # create mode string
+                modeStr = "{}x{}@{}Hz".format(
+                    thisInfo["frameSize"][0], thisInfo["frameSize"][1],
+                    thisInfo["frameRate"])
+                allModes.append(modeStr)
+
+            deviceSettings.append({
+                "device_name": devName,
+                "device_index": devIdx,
+                # "pixel_format": devInfo["pixelFormat"],
+                # "codec": devInfo["codecFormat"],
+                "mode": allModes
+            })
+
+        return {'camera': deviceSettings}
+
+    # check if we support getting the requested device type
+    if deviceType not in ('all', 'speaker', 'microphone', 'camera', 
+            'keyboard', 'serial'):
+        raise ValueError(
+            "Requested device type '{}' is not supported.".format(deviceType)
+        )
+    
+    global _installedDeviceCache  # use the global cache
+    if not refresh and _installedDeviceCache is not None:
+        toReturn = _installedDeviceCache
+    else:
+        # refresh device cache if requested or if it's empty
+        toReturn = {}
+        toReturn.update(_getInstalledAudioDevices())  # audio devices
+        toReturn.update({'keyboard': getKeyboards()})  # keyboards 
+        toReturn.update({'serial': getSerialPorts()})  # serial ports
+        if not platform.system().startswith('Linux'):  # cameras
+            toReturn.update(_getInstalledCameras())
+        else:
+            logging.error(
+                "Cannot get camera settings on Linux, not supported.")
+
+        _installedDeviceCache = toReturn  # update the cache
+
+    # append supported actions from device manager
+    from psychopy.hardware.manager import _deviceMethods
+    for deviceType in toReturn:
+        # get supported actions for this device type
+        actions = _deviceMethods.get(deviceType, {})
+        # we only want the names here
+        actions = list(actions)
+        # append to each dict
+        for i in range(len(toReturn[deviceType])):
+            toReturn[deviceType][i]['actions'] = actions
+
+    if deviceType != 'all':  # return only the requested device type
+        return toReturn[deviceType]
+    
+    return toReturn
 
 
 if __name__ == "__main__":

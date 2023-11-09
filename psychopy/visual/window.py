@@ -189,7 +189,8 @@ class Window():
                  bpc=(8, 8, 8),
                  depthBits=8,
                  stencilBits=8,
-                 backendConf=None):
+                 backendConf=None,
+                 infoMsg=None):
         """
         These attributes can only be set at initialization. See further down
         for a list of attributes which can be changed after initialization
@@ -242,7 +243,9 @@ class Window():
             instead.
         checkTiming : bool
             Whether to calculate frame duration on initialization. Estimated
-            duration is saved in :py:attr:`~Window.monitorFramePeriod`.
+            duration is saved in :py:attr:`~Window.monitorFramePeriod`. The
+            message displayed on the screen can be set with the `infoMsg`
+            argument.
         allowStencil : bool
             When set to `True`, this allows operations that use the OpenGL
             stencil buffer (notably, allowing the
@@ -298,6 +301,11 @@ class Window():
             available across all of them. This allows you to pass special
             configuration options to a specific backend to configure the
             feature.
+        infoMsg : str or None
+            Message to display during frame rate measurement (i.e., when
+            ``checkTiming=True``). Default is None, which means that a default
+            message is displayed. If you want to hide the message, pass an
+            empty string.
 
         Notes
         -----
@@ -588,6 +596,9 @@ class Window():
         self._toDrawDepths = []
         self._eventDispatchers = []
 
+        # dict of stimulus:validator pairs
+        self.validators = {}
+
         self.lastFrameT = core.getTime()
         self.waitBlanking = waitBlanking
 
@@ -613,7 +624,7 @@ class Window():
         # for testing when to stop drawing a stim:
         self.monitorFramePeriod = 0.0
         if checkTiming:
-            self._monitorFrameRate = self.getActualFrameRate()
+            self._monitorFrameRate = self.getActualFrameRate(infoMsg=infoMsg)
 
         if self._monitorFrameRate is not None:
             self.monitorFramePeriod = 1.0 / self._monitorFrameRate
@@ -1160,9 +1171,12 @@ class Window():
 
         if self._toDraw:
             for thisStim in self._toDraw:
-                # Draw
+                # draw
                 thisStim.draw()
-                # Handle dragging
+                # draw validation rect if needed
+                if thisStim in self.validators:
+                    self.validators[thisStim].draw()
+                # handle dragging
                 if getattr(thisStim, "draggable", False):
                     thisStim.doDragging()
         else:
@@ -3306,7 +3320,7 @@ class Window():
         self._showSplash = False
 
     def getActualFrameRate(self, nIdentical=10, nMaxFrames=100,
-                           nWarmUpFrames=10, threshold=1):
+                           nWarmUpFrames=10, threshold=1, infoMsg=None):
         """Measures the actual frames-per-second (FPS) for the screen.
 
         This is done by waiting (for a max of `nMaxFrames`) until
@@ -3344,8 +3358,10 @@ class Window():
         screen = self.screen
         name = self.name
 
-        self.showMessage(
-            "Attempting to measure frame rate of screen, please wait ...")
+        if infoMsg is None:
+            infoMsg = "Attempting to measure frame rate of screen, please wait ..."
+
+        self.showMessage(infoMsg)
 
         # log that we're measuring the frame rate now
         if self.autoLog:
