@@ -446,6 +446,9 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
             if ignoreKeys:
                 if resp.value in ignoreKeys:
                     wanted = False
+            # if key is already in keys, don't add it again
+            if resp in keys:
+                wanted = False
             # if we got this far and the key is still wanted, add it to output
             if wanted:
                 keys.append(resp)
@@ -453,8 +456,8 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
             if wanted and clear:
                 toClear.append(i)
         # pop any responses marked as to clear
-        for i in toClear:
-            self.responses.pop(i)
+        for i in sorted(toClear, reverse=True):
+            del self.responses[i]
 
         return keys
 
