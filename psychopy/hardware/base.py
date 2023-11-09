@@ -52,14 +52,6 @@ class BaseDevice:
     """
     Base class for device interfaces, includes support for DeviceManager and adding listeners.
     """
-    responseClass = BaseResponse
-
-    def __init__(self):
-        # list to store listeners in
-        self.listeners = []
-        # list to store responses in
-        self.responses = []
-
     def __init_subclass__(cls, aliases=None):
         from psychopy.hardware.manager import DeviceManager
         import inspect
@@ -75,6 +67,31 @@ class BaseDevice:
         DeviceManager.deviceClasses.append(mro)
 
         return cls
+
+    @staticmethod
+    def getAvailableDevices():
+        """
+        Get all available devices of this type.
+
+        Returns
+        -------
+        list[dict]
+            List of dictionaries containing the parameters needed to initialise each device.
+        """
+        raise NotImplementedError(
+            "All subclasses of BaseDevice must implement the method `getAvailableDevices`"
+        )
+
+
+class BaseResponseDevice(BaseDevice):
+
+    responseClass = BaseResponse
+
+    def __init__(self):
+        # list to store listeners in
+        self.listeners = []
+        # list to store responses in
+        self.responses = []
 
     def dispatchMessages(self):
         """
@@ -167,6 +184,8 @@ class BaseDevice:
         if startLoop:
             listener.startLoop(self)
 
+        return listener
+
     def clearListeners(self):
         """
         Remove any listeners from this device.
@@ -183,21 +202,6 @@ class BaseDevice:
         self.listeners = []
 
         return True
-
-    @staticmethod
-    def getAvailableDevices():
-        """
-        Get all available devices of this type.
-
-        Returns
-        -------
-        list[dict]
-            List of dictionaries containing the parameters needed to initialise each device.
-        """
-        raise NotImplementedError(
-            "All subclasses of BaseDevice must implement the method `getAvailableDevices`"
-        )
-
 
 if __name__ == "__main__":
     pass

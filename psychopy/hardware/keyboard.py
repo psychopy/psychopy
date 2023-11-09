@@ -70,7 +70,7 @@ from psychopy import logging
 from psychopy.constants import NOT_STARTED
 import time
 
-from psychopy.hardware.base import BaseDevice, BaseResponse
+from psychopy.hardware.base import BaseResponseDevice, BaseResponse
 from psychopy.hardware import DeviceManager
 from psychopy.tools.attributetools import AttributeGetSetMixin
 from psychopy.tools import systemtools as st
@@ -234,7 +234,7 @@ class Keyboard(AttributeGetSetMixin):
         return self.device.clearEvents(eventType=eventType)
 
 
-class KeyboardDevice(BaseDevice, aliases=["keyboard"]):
+class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
     """
     Object representing
     """
@@ -266,7 +266,7 @@ class KeyboardDevice(BaseDevice, aliases=["keyboard"]):
             setting this to True
 
         """
-        BaseDevice.__init__(self)
+        BaseResponseDevice.__init__(self)
         global havePTB
 
         # substitute None device for default device

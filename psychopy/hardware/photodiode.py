@@ -17,10 +17,10 @@ class PhotodiodeResponse(base.BaseResponse):
         self.threshold = threshold
 
 
-class BasePhotodiodeGroup(base.BaseDevice):
+class BasePhotodiodeGroup(base.BaseResponseDevice):
     responseClass = PhotodiodeResponse
     def __init__(self, parent, channels=1, threshold=None, pos=None, size=None, units=None):
-        base.BaseDevice.__init__(self)
+        base.BaseResponseDevice.__init__(self)
         # store ref to parent device which drives the diode group
         self.parent = parent
         # store number of channels
@@ -56,7 +56,7 @@ class BasePhotodiodeGroup(base.BaseDevice):
 
     def receiveMessage(self, message):
         # do base receiving
-        base.BaseDevice.receiveMessage(self, message)
+        base.BaseResponseDevice.receiveMessage(self, message)
         # update state
         self.state[message.channel] = message.value
 

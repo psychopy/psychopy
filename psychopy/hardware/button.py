@@ -13,10 +13,10 @@ class ButtonResponse(base.BaseResponse):
         self.channel = channel
 
 
-class BaseButtonGroup(base.BaseDevice):
+class BaseButtonGroup(base.BaseResponseDevice):
     responseClass = ButtonResponse
     def __init__(self, parent, channels=1):
-        base.BaseDevice.__init__(self)
+        base.BaseResponseDevice.__init__(self)
         # store reference to parent device (usually a button box)
         self.parent = parent
         # store number of channels
@@ -45,7 +45,7 @@ class BaseButtonGroup(base.BaseDevice):
 
     def receiveMessage(self, message):
         # do base receiving
-        base.BaseDevice.receiveMessage(self, message)
+        base.BaseResponseDevice.receiveMessage(self, message)
         # update state
         self.state[message.channel] = message.value
 
