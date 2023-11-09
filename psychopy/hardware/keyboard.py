@@ -472,28 +472,10 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
                     self.receiveMessage(response)
 
         elif KeyboardDevice._backend == 'iohub':
-            key_events = []
-            released_press_evt_ids = []
-            all_key_events = KeyboardDevice._iohubKeyboard.getKeys(
-                clear=True
-            )
-            if all_key_events:
-                all_key_events_ids = [k.id for k in all_key_events]
-                all_key_events.reverse()
-                for k in all_key_events:
-                    if hasattr(k, 'pressEventID'):
-                        if k.pressEventID in all_key_events_ids:
-                            # Only if press event also occurs,
-                            # use release key event so duration can be calculated.
-                            released_press_evt_ids.append(k.pressEventID)
-                            key_events.append(k)
-                    elif k.id not in released_press_evt_ids:
-                        # Add press key event as long as release key event has not already been
-                        # handled.
-                        key_events.append(k)
-
-                key_events.reverse()
-
+            # get events from backend (need to reverse order)
+            key_events = KeyboardDevice._iohubKeyboard.getKeys(clear=True)
+            key_events.reverse()
+            # parse and receive each event
             for k in key_events:
                 kpress = self.parseMessage(k)
                 self.receiveMessage(kpress)
@@ -518,6 +500,8 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
         KeyPress
             Parsed message into a KeyPress object
         """
+        response = None
+
         if KeyboardDevice._backend == 'ptb':
             if message['down']:
                 # if message is from a key down event, make a new response
@@ -536,19 +520,25 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
                         break
 
         elif KeyboardDevice._backend == 'iohub':
-            # parse ioHub response into a KeyPress
-            kname = message.key
-
-            if hasattr(message, 'duration'):
-                tDown = message.time - message.duration
+            if message.type == "KEYBOARD_PRESS":
+                # if message is from a key down event, make a new response
+                response = KeyPress(code=message.char, tDown=message.time, name=message.key)
+                self._keysStillDown.append(response)
             else:
-                tDown = message.time
+                # if message is from a key up event, alter existing response
+                for key in self._keysStillDown:
+                    if key.code == message.char:
+                        response = key
+                        # calculate duration
+                        key.duration = message.time - key.tDown
+                        # remove key from stillDown
+                        self._keysStillDown.remove(key)
+                        # stop processing keys as we're done
+                        break
+                # if no matching press, make a new KeyPress object
+                if response is None:
+                    response = KeyPress(code=message.char, tDown=message.time, name=message.key)
 
-            response = KeyPress(code=message.char, tDown=tDown, name=kname)
-            response.rt = response.tDown - (
-                        self.clock.getLastResetTime() - KeyboardDevice._iohubKeyboard.clock.getLastResetTime())
-            if hasattr(message, 'duration'):
-                response.duration = message.duration
         else:
             # if backend is event, just add as str with current time
             rt = self.clock.getTime()
