@@ -24,7 +24,7 @@ class ListenerLoop(threading.Thread):
         # set initial alive state
         self._alive = False
         # initialise base Thread
-        threading.Thread.__init__(self, target=self.dispatchLoop)
+        threading.Thread.__init__(self, target=self.dispatchLoop, daemon=True)
 
     def start(self):
         """
