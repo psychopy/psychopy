@@ -18,6 +18,7 @@ class PhotodiodeResponse(base.BaseResponse):
 
 
 class BasePhotodiodeGroup(base.BaseDevice):
+    responseClass = PhotodiodeResponse
     def __init__(self, parent, channels=1, threshold=None, pos=None, size=None, units=None):
         base.BaseDevice.__init__(self)
         # store ref to parent device which drives the diode group

@@ -70,7 +70,7 @@ from psychopy import logging
 from psychopy.constants import NOT_STARTED
 import time
 
-from psychopy.hardware.base import BaseDevice
+from psychopy.hardware.base import BaseDevice, BaseResponse
 from psychopy.hardware import DeviceManager
 from psychopy.tools.attributetools import AttributeGetSetMixin
 from psychopy.tools import systemtools as st
@@ -104,6 +104,61 @@ if havePTB and sys.platform == 'win32':
 
     # On win32, flush_type must be 0 or events can get flushed before being processed
     _ptb_flush_type = 0
+
+
+class KeyPress(BaseResponse):
+    """Class to store key presses, as returned by `Keyboard.getKeys()`
+
+    Unlike keypresses from the old event.getKeys() which returned a list of
+    strings (the names of the keys) we now return several attributes for each
+    key:
+
+        .name: the name as a string (matching the previous pyglet name)
+        .rt: the reaction time (relative to last clock reset)
+        .tDown: the time the key went down in absolute time
+        .duration: the duration of the keypress (or None if not released)
+
+    Although the keypresses are a class they will test `==`, `!=` and `in`
+    based on their name. So you can still do::
+
+        kb = KeyBoard()
+        # wait for keypresses here
+        keys = kb.getKeys()
+        for thisKey in keys:
+            if thisKey=='q':  # it is equivalent to the string 'q'
+                core.quit()
+            else:
+                print(thisKey.name, thisKey.tDown, thisKey.rt)
+    """
+
+    fields = ["t", "value", "duration"]
+
+    def __init__(self, code, tDown, name=None):
+        self.code = code
+        self.tDown = tDown
+        self.duration = None
+        self.rt = None
+        if KeyboardDevice._backend == 'event':  # we have event.getKeys()
+            self.name = name
+            self.rt = tDown
+        elif KeyboardDevice._backend == 'ptb':
+            if code not in keyNames and code in keyNames.values():
+                i = list(keyNames.values()).index(code)
+                code = list(keyNames.keys())[i]
+            if code not in keyNames:
+                logging.warning('Keypress was given unknown key code ({})'.format(code))
+                self.name = 'unknown'
+            else:
+                self.name = keyNames[code]
+        elif KeyboardDevice._backend == 'iohub':
+            self.name = name
+        BaseResponse.__init__(self, t=tDown, value=name)
+
+    def __eq__(self, other):
+        return self.name == other
+
+    def __ne__(self, other):
+        return self.name != other
 
 
 def getKeyboards():
@@ -183,6 +238,8 @@ class KeyboardDevice(BaseDevice, aliases=["keyboard"]):
     """
     Object representing
     """
+    responseClass = KeyPress
+
     _backend = None
     _iohubKeyboard = None
     _ptbOffset = 0.0
@@ -209,6 +266,7 @@ class KeyboardDevice(BaseDevice, aliases=["keyboard"]):
             setting this to True
 
         """
+        BaseDevice.__init__(self)
         global havePTB
 
         # substitute None device for default device
@@ -338,22 +396,6 @@ class KeyboardDevice(BaseDevice, aliases=["keyboard"]):
             })
         return devices
 
-    def dispatchMessages(self):
-        """
-        Method to allow Listeners to access KeyPress responses.
-
-        Returns
-        -------
-        bool
-            True if messages dispatched successfully
-        """
-        # call getKeys and clear buffer
-        for resp in self.getKeys():
-            for listener in self.listeners:
-                listener.receiveMessage(resp)
-
-        return True
-
     def getKeys(self, keyList=None, ignoreKeys=None, waitRelease=True, clear=True):
         """
 
@@ -381,62 +423,80 @@ class KeyboardDevice(BaseDevice, aliases=["keyboard"]):
         A list of :class:`Keypress` objects
 
         """
+        # dispatch messages
+        self.dispatchMessages()
+        # filter
         keys = []
+        toClear = []
+        for i, resp in enumerate(self.responses):
+            # start off assuming we want the key
+            wanted = True
+            # if we're waiting on release, only store if it has a duration
+            if waitRelease:
+                if not getattr(resp, "duration") or resp.duration is None:
+                    wanted = False
+            # if we're looking for a key list, only store if it's in the list
+            if keyList:
+                if resp.value not in keyList:
+                    wanted = False
+            # if we're ignoring some keys, never store if ignored
+            if ignoreKeys:
+                if resp.value in ignoreKeys:
+                    wanted = False
+            # if we got this far and the key is still wanted, add it to output
+            if wanted:
+                keys.append(resp)
+            # if clear=True, mark wanted responses as toClear
+            if wanted and clear:
+                toClear.append(i)
+        # pop any responses marked as to clear
+        for i in toClear:
+            self.responses.pop(i)
+
+        return keys
+
+    def dispatchMessages(self):
         if KeyboardDevice._backend == 'ptb':
             for buffer in self._buffers.values():
-                for origKey in buffer.getKeys(
-                        keyList=keyList,
-                        ignoreKeys=ignoreKeys,
-                        waitRelease=waitRelease,
-                        clear=clear):
+                for origKey in buffer.getKeys(waitRelease=False, clear=True):
                     # calculate rt from time and self.timer
                     thisKey = copy.copy(origKey)  # don't alter the original
                     thisKey.rt = thisKey.tDown - self.clock.getLastResetTime()
-                    thisKey.tDown = thisKey.tDown - self._ptbOffset 
-                    keys.append(thisKey)
+                    thisKey.tDown = thisKey.tDown - self._ptbOffset
+                    thisKey = self.parseMessage(thisKey)
+                    self.receiveMessage(thisKey)
         elif KeyboardDevice._backend == 'iohub':
-            watchForKeys = keyList
-            if waitRelease:
-                key_events = KeyboardDevice._iohubKeyboard.getReleases(
-                    keys=watchForKeys,
-                    ignoreKeys=ignoreKeys,
-                    clear=clear
-                )
-            else:
-                key_events = []
-                released_press_evt_ids = []
-                all_key_events = KeyboardDevice._iohubKeyboard.getKeys(
-                    keys=watchForKeys,
-                    ignoreKeys=ignoreKeys,
-                    clear=clear
-                )
-                if all_key_events:
-                    all_key_events_ids = [k.id for k in all_key_events]
-                    all_key_events.reverse()
-                    for k in all_key_events:
-                        if hasattr(k, 'pressEventID'):
-                            if k.pressEventID in all_key_events_ids:
-                                # Only if press event also occurs,
-                                # use release key event so duration can be calculated.
-                                released_press_evt_ids.append(k.pressEventID)
-                                key_events.append(k)
-                        elif k.id not in released_press_evt_ids:
-                            # Add press key event as long as release key event has not already been
-                            # handled.
+            key_events = []
+            released_press_evt_ids = []
+            all_key_events = KeyboardDevice._iohubKeyboard.getKeys(
+                clear=True
+            )
+            if all_key_events:
+                all_key_events_ids = [k.id for k in all_key_events]
+                all_key_events.reverse()
+                for k in all_key_events:
+                    if hasattr(k, 'pressEventID'):
+                        if k.pressEventID in all_key_events_ids:
+                            # Only if press event also occurs,
+                            # use release key event so duration can be calculated.
+                            released_press_evt_ids.append(k.pressEventID)
                             key_events.append(k)
+                    elif k.id not in released_press_evt_ids:
+                        # Add press key event as long as release key event has not already been
+                        # handled.
+                        key_events.append(k)
 
-                    key_events.reverse()
+                key_events.reverse()
 
             for k in key_events:
                 kpress = self.parseMessage(k)
-                keys.append(kpress)
-        else:  # KeyboardDevice.backend == 'event'
+                self.receiveMessage(kpress)
+        else:
             global event
-            name = event.getKeys(keyList, modifiers=False, timeStamped=False)
+            name = event.getKeys(modifiers=False, timeStamped=False, clear=True)
             if len(name):
                 thisKey = self.parseMessage(name[0])
-                keys.append(thisKey)
-        return keys
+                self.receiveMessage(thisKey)
 
     def parseMessage(self, message):
         """
@@ -532,81 +592,6 @@ class KeyboardDevice(BaseDevice, aliases=["keyboard"]):
             global event
             event.clearEvents(eventType)
         logging.info("Keyboard events cleared", obj=self)
-
-
-class KeyPress(object):
-    """Class to store key presses, as returned by `Keyboard.getKeys()`
-
-    Unlike keypresses from the old event.getKeys() which returned a list of
-    strings (the names of the keys) we now return several attributes for each
-    key:
-
-        .name: the name as a string (matching the previous pyglet name)
-        .rt: the reaction time (relative to last clock reset)
-        .tDown: the time the key went down in absolute time
-        .duration: the duration of the keypress (or None if not released)
-
-    Although the keypresses are a class they will test `==`, `!=` and `in`
-    based on their name. So you can still do::
-
-        kb = KeyBoard()
-        # wait for keypresses here
-        keys = kb.getKeys()
-        for thisKey in keys:
-            if thisKey=='q':  # it is equivalent to the string 'q'
-                core.quit()
-            else:
-                print(thisKey.name, thisKey.tDown, thisKey.rt)
-    """
-
-    def __init__(self, code, tDown, name=None):
-        self.code = code
-        self.tDown = tDown
-        self.duration = None
-        self.rt = None
-        if KeyboardDevice._backend == 'event':  # we have event.getKeys()
-            self.name = name
-            self.rt = tDown
-        elif KeyboardDevice._backend == 'ptb':
-            if code not in keyNames and code in keyNames.values():
-                i = list(keyNames.values()).index(code)
-                code = list(keyNames.keys())[i]
-            if code not in keyNames:
-                logging.warning('Keypress was given unknown key code ({})'.format(code))
-                self.name = 'unknown'
-            else:
-                self.name = keyNames[code]
-        elif KeyboardDevice._backend == 'iohub':
-            self.name = name
-
-    def __eq__(self, other):
-        return self.name == other
-
-    def __ne__(self, other):
-        return self.name != other
-
-    def __repr__(self):
-        return (
-            f"<KeyPress: "
-            f"name={self.name}, "
-            f"tDown={self.tDown}, "
-            f"duration={self.duration}, "
-            f"rt={self.rt}"
-            f">"
-        )
-
-    def getJSON(self):
-        message = {
-            'type': "hardware_response",
-            'class': "KeyPress",
-            'data': {
-                't': self.tDown,
-                'value': self.name,
-                'duration': self.duration,
-            }
-        }
-
-        return json.dumps(message)
 
 
 class _KeyBuffers(dict):

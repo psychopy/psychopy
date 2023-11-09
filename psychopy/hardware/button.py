@@ -14,6 +14,7 @@ class ButtonResponse(base.BaseResponse):
 
 
 class BaseButtonGroup(base.BaseDevice):
+    responseClass = ButtonResponse
     def __init__(self, parent, channels=1):
         base.BaseDevice.__init__(self)
         # store reference to parent device (usually a button box)

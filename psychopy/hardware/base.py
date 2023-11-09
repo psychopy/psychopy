@@ -53,7 +53,6 @@ class BaseDevice:
     Base class for device interfaces, includes support for DeviceManager and adding listeners.
     """
     responseClass = BaseResponse
-    listeners = []
 
     def __init__(self):
         # list to store listeners in
