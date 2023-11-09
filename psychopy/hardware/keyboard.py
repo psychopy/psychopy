@@ -152,7 +152,11 @@ class KeyPress(BaseResponse):
                 self.name = keyNames[code]
         elif KeyboardDevice._backend == 'iohub':
             self.name = name
-        BaseResponse.__init__(self, t=tDown, value=self.name)
+        # get value
+        value = self.name
+        if value is None:
+            value = self.code
+        BaseResponse.__init__(self, t=tDown, value=value)
 
     def __eq__(self, other):
         return self.name == other
