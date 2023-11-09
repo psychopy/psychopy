@@ -459,11 +459,9 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
         if KeyboardDevice._backend == 'ptb':
             for buffer in self._buffers.values():
                 for origKey in buffer.getKeys(waitRelease=False, clear=True):
-                    # calculate rt from time and self.timer
-                    thisKey = copy.copy(origKey)  # don't alter the original
-                    thisKey.rt = thisKey.tDown - self.clock.getLastResetTime()
-                    thisKey.tDown = thisKey.tDown - self._ptbOffset
-                    thisKey = self.parseMessage(thisKey)
+                    # parse message to a KeyPress
+                    thisKey = self.parseMessage(origKey)
+                    # receive message
                     self.receiveMessage(thisKey)
         elif KeyboardDevice._backend == 'iohub':
             key_events = []
@@ -513,8 +511,15 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
             Parsed message into a KeyPress object
         """
         if KeyboardDevice._backend == 'ptb':
-            # ptb already outputs KeyPress objects, so return unchanged
-            response = message
+            # convert from dict to KeyPress
+            response = KeyPress(
+                name=message.name,
+                tDown=message.tDown - self._ptbOffset,
+                code=message.code
+            )
+            # calculate rt from time and self.timer
+            response.rt = message.tDown - self.clock.getLastResetTime()
+            response.duration = message.duration
         elif KeyboardDevice._backend == 'iohub':
             # parse ioHub response into a KeyPress
             kname = message.key
