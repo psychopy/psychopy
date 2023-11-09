@@ -428,28 +428,53 @@ class KeyboardDevice(BaseDevice, aliases=["keyboard"]):
                     key_events.reverse()
 
             for k in key_events:
-                kname = k.key
-
-                if hasattr(k, 'duration'):
-                    tDown = k.time-k.duration
-                else:
-                    tDown = k.time
-
-                kpress = KeyPress(code=k.char, tDown=tDown, name=kname)
-                kpress.rt = kpress.tDown - (self.clock.getLastResetTime() - KeyboardDevice._iohubKeyboard.clock.getLastResetTime())
-                if hasattr(k, 'duration'):
-                    kpress.duration = k.duration
-
-
+                kpress = self.parseMessage(k)
                 keys.append(kpress)
         else:  # KeyboardDevice.backend == 'event'
             global event
             name = event.getKeys(keyList, modifiers=False, timeStamped=False)
-            rt = self.clock.getTime()
             if len(name):
-                thisKey = KeyPress(code=None, tDown=rt, name=name[0])
+                thisKey = self.parseMessage(name[0])
                 keys.append(thisKey)
         return keys
+
+    def parseMessage(self, message):
+        """
+        Parse a message received from a Keyboard backend to return a KeyPress object.
+
+        Parameters
+        ----------
+        message
+            Original raw message from the keyboard backend
+
+        Returns
+        -------
+        KeyPress
+            Parsed message into a KeyPress object
+        """
+        if KeyboardDevice._backend == 'ptb':
+            # ptb already outputs KeyPress objects, so return unchanged
+            response = message
+        elif KeyboardDevice._backend == 'iohub':
+            # parse ioHub response into a KeyPress
+            kname = message.key
+
+            if hasattr(message, 'duration'):
+                tDown = message.time - message.duration
+            else:
+                tDown = message.time
+
+            response = KeyPress(code=message.char, tDown=tDown, name=kname)
+            response.rt = response.tDown - (
+                        self.clock.getLastResetTime() - KeyboardDevice._iohubKeyboard.clock.getLastResetTime())
+            if hasattr(message, 'duration'):
+                response.duration = message.duration
+        else:
+            # if backend is event, just add as str with current time
+            rt = self.clock.getTime()
+            response = KeyPress(code=None, tDown=rt, name=message)
+
+        return response
 
     def waitKeys(self, maxWait=float('inf'), keyList=None, waitRelease=True,
                  clear=True):
