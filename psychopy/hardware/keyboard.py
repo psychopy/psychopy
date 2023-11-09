@@ -481,7 +481,7 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
                 self.receiveMessage(kpress)
         else:
             global event
-            name = event.getKeys(modifiers=False, timeStamped=False, clear=True)
+            name = event.getKeys(modifiers=False, timeStamped=True)
             if len(name):
                 thisKey = self.parseMessage(name[0])
                 self.receiveMessage(thisKey)
