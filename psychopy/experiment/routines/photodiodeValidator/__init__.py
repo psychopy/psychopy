@@ -3,28 +3,25 @@
 
 from pathlib import Path
 from psychopy.experiment import Param
-from psychopy.experiment.components import BaseComponent, getInitVals
-from psychopy.experiment.routines import Routine
+from psychopy.experiment.components import getInitVals
+from psychopy.experiment.routines import Routine, BaseValidatorRoutine
 from psychopy.localization import _translate
 
 
-class PhotodiodeValidatorComponent(BaseComponent):
+class PhotodiodeValidatorRoutine(BaseValidatorRoutine):
     """
     Use a photodiode to confirm that stimuli are presented when they should be.
     """
     targets = ['PsychoPy']
 
     categories = ['Validation']
-    targets = ['PsychoPy']
     iconFile = Path(__file__).parent / 'photodiode_validator.png'
-    tooltip = _translate('Unknown: A component that is not known by the current '
-                         'installed version of PsychoPy\n(most likely from the '
-                         'future)')
+    tooltip = _translate('')
 
     def __init__(
             self,
             # basic
-            exp, parentName, name='photodiode',
+            exp, name='photodiode',
             variability="1/60", report="log",
             findThreshold=True, threshold=127,
             # layout
@@ -38,7 +35,7 @@ class PhotodiodeValidatorComponent(BaseComponent):
         self.exp = exp  # so we can access the experiment if necess
         self.params = {}
         self.depends = []
-        super(PhotodiodeValidatorComponent, self).__init__(exp, parentName, name=name)
+        super(PhotodiodeValidatorRoutine, self).__init__(exp, name=name)
         self.order += []
         self.type = 'PhotodiodeValidator'
 
@@ -144,10 +141,6 @@ class PhotodiodeValidatorComponent(BaseComponent):
 
         del self.params['stopType']
         del self.params['stopVal']
-        del self.params['durationEstim']
-        del self.params['startVal']
-        del self.params['startType']
-        del self.params['startEstim']
 
         # --- Device ---
         self.order += [
@@ -254,8 +247,7 @@ class PhotodiodeValidatorComponent(BaseComponent):
             )
             buff.writeOnceIndentedLines(code % inits)
 
-
-    def writeInitCode(self, buff):
+    def writeMainCode(self, buff):
         inits = getInitVals(self.params)
         # make device name
         inits['deviceName'] = self._makeDeviceName()
@@ -308,63 +300,101 @@ class PhotodiodeValidatorComponent(BaseComponent):
             ).format(stim=stim.params['name'])
             buff.writeIndentedLines(code % self.params)
 
-    def writeRoutineStartCode(self, buff):
+    def writeRoutineStartValidationCode(self, buff, stim):
+        """
+        Write the routine start code to validate a given stimulus using this validator.
+
+        Parameters
+        ----------
+        buff : StringIO
+            String buffer to write code to.
+        stim : BaseComponent
+            Stimulus to validate
+
+        Returns
+        -------
+        int
+            Change in indentation level after writing
+        """
+        # get starting indent level
+        startIndent = buff.indentLevel
+
+        # choose a clock to sync to according to component's params
+        if "syncScreenRefresh" in stim.params and stim.params['syncScreenRefresh']:
+            clockStr = ""
+        else:
+            clockStr = "clock=routineTimer"
         # sync component start/stop timers with validator clocks
-        for comp in self.findConnectedStimuli():
-            # choose a clock to sync to according to component's params
-            if "syncScreenRefresh" in comp.params and comp.params['syncScreenRefresh']:
-                clockStr = ""
-            else:
-                clockStr = "clock=routineTimer"
-            # otherwise sync its clock
-            code = (
-                f"# synchronise device clock for %(name)s with Routine timer\n"
-                f"%(name)s.resetTimer({clockStr})\n"
-            )
-            buff.writeIndentedLines(code % self.params)
+        code = (
+            f"# synchronise device clock for %(name)s with Routine timer\n"
+            f"%(name)s.resetTimer({clockStr})\n"
+        )
+        buff.writeIndentedLines(code % self.params)
 
-    def writeFrameCode(self, buff):
-        # write validation code for each stim
-        for stim in self.findConnectedStimuli():
-            # validate start time
-            code = (
-                "# validate {name} start time\n"
-                "if {name}.status == STARTED and %(name)s.status == STARTED:\n"
-                "    %(name)s.tStart, %(name)s.tStartValid = %(name)s.validate(state=True, t={name}.tStart)\n"
-                "    if %(name)s.tStart is not None:\n"
-                "        %(name)s.status = FINISHED\n"
-            )
-            if stim.params['saveStartStop']:
-                # save validated start time if stim requested
-                code += (
-                "        thisExp.addData('{name}.%(name)s.started', %(name)s.tStart)\n"
-                )
-            if self.params['saveValid']:
-                # save validation result if params requested
-                code += (
-                "        thisExp.addData('{name}.started.valid', %(name)s.tStartValid)\n"
-                )
-            buff.writeIndentedLines(code.format(**stim.params) % self.params)
+        # return change in indent level
+        return buff.indentLevel - startIndent
 
-            # validate stop time
-            code = (
-                "# validate {name} stop time\n"
-                "if {name}.status == FINISHED and %(name)s.status == STARTED:\n"
-                "    %(name)s.tStop, %(name)s.tStopValid = %(name)s.validate(state=False, t={name}.tStop)\n"
-                "    if %(name)s.tStop is not None:\n"
-                "        %(name)s.status = FINISHED\n"
+    def writeEachFrameValidationCode(self, buff, stim):
+        """
+        Write the each frame code to validate a given stimulus using this validator.
+
+        Parameters
+        ----------
+        buff : StringIO
+            String buffer to write code to.
+        stim : BaseComponent
+            Stimulus to validate
+
+        Returns
+        -------
+        int
+            Change in indentation level after writing
+        """
+        # get starting indent level
+        startIndent = buff.indentLevel
+
+        # validate start time
+        code = (
+            "# validate {name} start time\n"
+            "if {name}.status == STARTED and %(name)s.status == STARTED:\n"
+            "    %(name)s.tStart, %(name)s.tStartValid = %(name)s.validate(state=True, t={name}.tStart)\n"
+            "    if %(name)s.tStart is not None:\n"
+            "        %(name)s.status = FINISHED\n"
+        )
+        if stim.params['saveStartStop']:
+            # save validated start time if stim requested
+            code += (
+            "        thisExp.addData('{name}.%(name)s.started', %(name)s.tStart)\n"
             )
-            if stim.params['saveStartStop']:
-                # save validated start time if stim requested
-                code += (
-                "        thisExp.addData('{name}.%(name)s.stopped', %(name)s.tStop)\n"
-                )
-            if self.params['saveValid']:
-                # save validation result if params requested
-                code += (
-                "        thisExp.addData('{name}.stopped.valid', %(name)s.tStopValid)\n"
-                )
-            buff.writeIndentedLines(code.format(**stim.params) % self.params)
+        if self.params['saveValid']:
+            # save validation result if params requested
+            code += (
+            "        thisExp.addData('{name}.started.valid', %(name)s.tStartValid)\n"
+            )
+        buff.writeIndentedLines(code.format(**stim.params) % self.params)
+
+        # validate stop time
+        code = (
+            "# validate {name} stop time\n"
+            "if {name}.status == FINISHED and %(name)s.status == STARTED:\n"
+            "    %(name)s.tStop, %(name)s.tStopValid = %(name)s.validate(state=False, t={name}.tStop)\n"
+            "    if %(name)s.tStop is not None:\n"
+            "        %(name)s.status = FINISHED\n"
+        )
+        if stim.params['saveStartStop']:
+            # save validated start time if stim requested
+            code += (
+            "        thisExp.addData('{name}.%(name)s.stopped', %(name)s.tStop)\n"
+            )
+        if self.params['saveValid']:
+            # save validation result if params requested
+            code += (
+            "        thisExp.addData('{name}.stopped.valid', %(name)s.tStopValid)\n"
+            )
+        buff.writeIndentedLines(code.format(**stim.params) % self.params)
+
+        # return change in indent level
+        return buff.indentLevel - startIndent
 
     def findConnectedStimuli(self):
         # list of linked components
