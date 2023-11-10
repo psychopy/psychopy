@@ -581,6 +581,3 @@ class JoystickComponent(BaseComponent):
 
         # get parent to write code too (e.g. store onset/offset times)
         super().writeRoutineEndCode(buff)
-
-        if currLoop.params['name'].val == self.exp._expHandler.name:
-            buff.writeIndented("%s.nextEntry()\n" % self.exp._expHandler.name)
