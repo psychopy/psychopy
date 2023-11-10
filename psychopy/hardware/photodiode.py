@@ -19,10 +19,9 @@ class PhotodiodeResponse(base.BaseResponse):
 
 class BasePhotodiodeGroup(base.BaseResponseDevice):
     responseClass = PhotodiodeResponse
-    def __init__(self, parent, channels=1, threshold=None, pos=None, size=None, units=None):
+
+    def __init__(self, channels=1, threshold=None, pos=None, size=None, units=None):
         base.BaseResponseDevice.__init__(self)
-        # store ref to parent device which drives the diode group
-        self.parent = parent
         # store number of channels
         self.channels = channels
         # attribute in which to store current state
@@ -37,19 +36,14 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
 
     def dispatchMessages(self):
         """
-        Request this ButtonGroup's parent (such as the serialport object or BBTK TPad) to dispatch messages to it.
+        Dispatch messages - this could mean pulling them from a backend, or from a parent device
 
         Returns
         -------
         bool
-            True if request sent successfully, False if parent doesn't have a dispatch method
+            True if request sent successfully
         """
-        # return False if parent has no such method
-        if not hasattr(self.parent, "dispatchMessages"):
-            return False
-        # otherwise dispatch and return
-        self.parent.dispatchMessages()
-        return True
+        raise NotImplementedError()
 
     def parseMessage(self, message):
         raise NotImplementedError()
@@ -82,7 +76,7 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
             List of matching responses.
         """
         # make sure parent dispatches messages
-        self.parent.dispatchMessages()
+        self.dispatchMessages()
         # array to store matching responses
         matches = []
         # check messages in chronological order
@@ -168,7 +162,7 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
                 rect.draw()
                 win.flip()
                 # dispatch parent messages
-                self.parent.dispatchMessages()
+                self.dispatchMessages()
                 # check for escape before entering recursion
                 if kb.getKeys(['escape']):
                     return
@@ -181,13 +175,13 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
 
         # reset state
         self.state = [None] * self.channels
-        self.parent.dispatchMessages()
+        self.dispatchMessages()
         self.clearResponses()
         # recursively shrink rect around the photodiode
         scanQuadrants()
         # clear all the events created by this process
         self.state = [None] * self.channels
-        self.parent.dispatchMessages()
+        self.dispatchMessages()
         self.clearResponses()
         # reinstate autodraw
         win.retrieveAutoDraw()
@@ -324,7 +318,7 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
 
         # reset state
         self.state = [None] * self.channels
-        self.parent.dispatchMessages()
+        self.dispatchMessages()
         self.clearResponses()
         # bisect thresholds, starting at 127 (exact middle)
         threshold = _bisectThreshold(127)
@@ -333,7 +327,7 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
         bg.setAutoDraw(False)
         # clear all the events created by this process
         self.state = [None] * self.channels
-        self.parent.dispatchMessages()
+        self.dispatchMessages()
         self.clearResponses()
         # reinstate autodraw
         win.retrieveAutoDraw()
@@ -346,7 +340,7 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
         raise NotImplementedError()
 
     def resetTimer(self, clock=logging.defaultClock):
-        return self.parent.resetTimer(clock=clock)
+        raise NotImplementedError()
 
     def getThreshold(self):
         if hasattr(self, "_threshold"):
@@ -354,7 +348,7 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
 
     def getState(self, channel):
         # dispatch messages from parent
-        self.parent.dispatchMessages()
+        self.dispatchMessages()
         # return state after update
         return self.state[channel]
 
