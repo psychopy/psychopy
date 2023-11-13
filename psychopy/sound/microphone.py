@@ -11,11 +11,14 @@
 __all__ = ['Microphone', 'MicrophoneDevice']
 
 import sys
+import time
+
 import psychopy.logging as logging
 from psychopy.constants import NOT_STARTED
-from psychopy.hardware import deviceManager
+from psychopy.hardware import DeviceManager
 from psychopy.hardware.base import BaseDevice
 from psychopy.preferences import prefs
+from psychopy.tools import systemtools as st
 from .audioclip import *
 from .audiodevice import *
 from .exceptions import *
@@ -312,7 +315,6 @@ class RecordingBuffer:
 class Microphone:
     def __init__(
             self,
-            name=None,
             device=None,
             sampleRateHz=None,
             channels=None,
@@ -321,15 +323,24 @@ class Microphone:
             policyWhenFull='warn',
             audioLatencyMode=None,
             audioRunMode=0):
-
-        if deviceManager.checkDeviceNameAvailable(name):
-            # if no matching device is in DeviceManager, make a new one
-            self.device = deviceManager.addMicrophone(
-                name=name, device=device, sampleRate=sampleRateHz, channels=channels
+        # look for device if initialised
+        self.device = DeviceManager.getDevice(device)
+        # if no matching name, try matching index
+        if self.device is None:
+            self.device = DeviceManager.getDeviceBy("index", device)
+        # if still no match, make a new device
+        if self.device is None:
+            self.device = DeviceManager.addDevice(
+                deviceClass="psychopy.sound.MicrophoneDevice", deviceName=device,
+                index=device,
+                sampleRateHz=sampleRateHz,
+                channels=channels,
+                streamBufferSecs=streamBufferSecs,
+                maxRecordingSize=maxRecordingSize,
+                policyWhenFull=policyWhenFull,
+                audioLatencyMode=audioLatencyMode,
+                audioRunMode=audioRunMode
             )
-        else:
-            # otherwise, use the existing device
-            self.device = deviceManager.getMicrophone(name)
 
     @property
     def recording(self):
@@ -418,7 +429,7 @@ class Microphone:
         return self.device.getRecording()
 
 
-class MicrophoneDevice(BaseDevice):
+class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
     """Class for recording audio from a microphone or input stream.
 
     Creating an instance of this class will open a stream using the specified
@@ -429,7 +440,7 @@ class MicrophoneDevice(BaseDevice):
 
     Parameters
     ----------
-    device : int or `~psychopy.sound.AudioDevice`
+    index : int or `~psychopy.sound.AudioDevice`
         Audio capture device to use. You may specify the device either by index
         (`int`) or descriptor (`AudioDevice`).
     sampleRateHz : int
@@ -500,7 +511,7 @@ class MicrophoneDevice(BaseDevice):
     enforceWASAPI = True
 
     def __init__(self,
-                 device=None,
+                 index=None,
                  sampleRateHz=None,
                  channels=None,
                  streamBufferSecs=2.0,
@@ -547,10 +558,10 @@ class MicrophoneDevice(BaseDevice):
             return useDevice
 
         # get information about the selected device
-        if isinstance(device, AudioDeviceInfo):
-            self._device = device
-        elif isinstance(device, (int, float, str)):
-            self._device = _getDeviceByIndex(device)
+        if isinstance(index, AudioDeviceInfo):
+            self._device = index
+        elif isinstance(index, (int, float, str)):
+            self._device = _getDeviceByIndex(index)
         else:
             # get default device, first enumerated usually
             devices = MicrophoneDevice.getDevices()
@@ -699,6 +710,20 @@ class MicrophoneDevice(BaseDevice):
 
         return inputDevices
 
+    @staticmethod
+    def getAvailableDevices():
+        devices = []
+        for profile in st.getAudioCaptureDevices():
+            device = {
+                'deviceName': profile.get('device_name', "Unknown Microphone"),
+                'index': profile.get('index', None),
+                'sampleRateHz': profile.get('defaultSampleRate', None),
+                'channels': profile.get('inputChannels', None),
+            }
+            devices.append(device)
+
+        return devices
+
     # def warmUp(self):
     #     """Warm-/wake-up the audio stream.
     #
@@ -842,6 +867,57 @@ class MicrophoneDevice(BaseDevice):
         """``True`` if stream recording has been started (`bool`). Alias of
         `isStarted`."""
         return self.isStarted
+
+    @property
+    def index(self):
+        return self._device.deviceIndex
+
+    def testDevice(self, duration=1, testSound=None):
+        """
+        Make a recording to test the microphone.
+
+        Parameters
+        ----------
+        duration : float, int
+            How long to record for? In seconds.
+        testSound : str, AudioClip, None
+            Sound to play to test mic. Use "sine", "square" or "sawtooth" to generate a sound of correct
+            duration using AudioClip. Use None to not play a test sound.
+
+        Returns
+        -------
+        bool
+            True if test passed, False otherwise. On fail, will log the error at level "debug".
+        """
+        # if given a string for testSound, generate
+        if testSound in ("sine", "square", "sawtooth"):
+            testSound = getattr(AudioClip, testSound)(duration=duration)
+
+        try:
+            # get clips to this point
+            ogClips = self.flush()
+            # record
+            self.start(stopTime=duration)
+            # play testSound
+            if testSound is not None:
+                from psychopy.sound import Sound
+                snd = Sound(value=testSound)
+                snd.play()
+            # sleep for duration
+            time.sleep(duration)
+            # get new clips
+            clips = self.flush()
+            # reinstate original clips
+            self.clips = ogClips
+            # check that clip matches test sound
+            if testSound is not None:
+                # todo: check the recording against testSound
+                pass
+            return True
+        except Exception as err:
+            raise err
+            logging.debug(f"Microphone test failed. Error: {err}")
+            return False
 
     def start(self, when=None, waitForStart=0, stopTime=None):
         """Start an audio recording.

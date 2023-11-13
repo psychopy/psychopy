@@ -54,7 +54,8 @@ def _findPossiblePorts():
 # map out all ports on this device, to be filled as serial devices are initialised
 ports = {port: None for port in _findPossiblePorts()}
 
-class SerialDevice(AttributeGetSetMixin, BaseDevice):
+
+class SerialDevice(BaseDevice, AttributeGetSetMixin):
     """A base class for serial devices, to be sub-classed by specific devices
 
     If port=None then the SerialDevice.__init__() will search for the device
@@ -214,6 +215,22 @@ class SerialDevice(AttributeGetSetMixin, BaseDevice):
     def isSameDevice(self, params):
         port = self.portString[3:]
         return params['port'] in (self.portString, port, int(port))
+
+    @staticmethod
+    def getAvailableDevices():
+        ports = st.getSerialPorts()
+        devices = []
+        for profile in ports:
+            device = {
+                'deviceName': profile.get('device_name', "Unknown Serial Device"),
+                'port': profile.get('port', None),
+                'baudrate': profile.get('baudrate', 9600),
+                'byteSize': profile.get('bytesize', 8),
+                'stopBits': profile.get('stopbits', 1),
+                'parity': profile.get('parity', "N"),
+            }
+            devices.append(device)
+        return devices
 
     def close(self):
         self.com.close()

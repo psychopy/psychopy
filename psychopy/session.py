@@ -646,6 +646,18 @@ class Session:
         # get expInfo from ExperimentHandler object
         return self.currentExperiment.extraInfo
 
+    @property
+    def win(self):
+        """
+        Window associated with this Session. Defined as a property so as to be accessible from Liaison
+        if needed.
+        """
+        return self._win
+
+    @win.setter
+    def win(self, value):
+        self._win = value
+
     def setupWindowFromExperiment(self, key, expInfo=None, blocking=True):
         """
         Setup the window for this Session via the 'setupWindow` method from one of this
@@ -693,7 +705,7 @@ class Session:
 
         return True
 
-    def setupWindowFromParams(self, params, blocking=True):
+    def setupWindowFromParams(self, params, measureFrameRate=False, blocking=True):
         """
         Create/setup a window from a dict of parameters
 
@@ -702,6 +714,8 @@ class Session:
         params : dict
             Dict of parameters to create the window from, keys should be from the
             __init__ signature of psychopy.visual.Window
+        measureFrameRate : bool
+            If True, will measure frame rate upon window creation.
         blocking : bool
             Should calling this method block the current thread?
 
@@ -745,6 +759,10 @@ class Session:
             self.win.units = params.get('units', self.win.units)
         # Set window title to signify that we're in a Session
         self.win.title = "PsychoPy Session"
+        # Measure frame rate
+        if measureFrameRate:
+            expInfo = self.getCurrentExpInfo()
+            expInfo['frameRate'] = self.win.getActualFrameRate()
 
         return True
 

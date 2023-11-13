@@ -8,6 +8,7 @@ from xml.etree.ElementTree import Element
 import re
 from psychopy import logging, plugins
 from psychopy.experiment.components import Param, _translate
+from psychopy.experiment.routines import Routine, BaseStandaloneRoutine
 from psychopy.experiment.routines.eyetracker_calibrate import EyetrackerCalibrationRoutine
 from psychopy.experiment import utils as exputils
 from psychopy.monitors import Monitor
@@ -1556,12 +1557,20 @@ class SettingsComponent:
         code = (
             "\n"
             "# create a default keyboard (e.g. to check for escape)\n"
-            "if deviceManager.getKeyboard('defaultKeyboard') is None:\n"
-            "    deviceManager.addKeyboard(\n"
-            "        name='defaultKeyboard', backend=%(keyboardBackend)s\n"
+            "if deviceManager.getDevice('defaultKeyboard') is None:\n"
+            "    deviceManager.addDevice(\n"
+            "        deviceClass='keyboard', deviceName='defaultKeyboard', backend=%(keyboardBackend)s\n"
             "    )\n"
         )
         buff.writeIndentedLines(code % inits)
+        # write any device setup code required by a component
+        for rt in self.exp.flow:
+            if isinstance(rt, Routine):
+                for comp in rt:
+                    if hasattr(comp, "writeDeviceCode"):
+                        comp.writeDeviceCode(buff)
+            elif isinstance(rt, BaseStandaloneRoutine):
+                rt.writeDeviceCode(buff)
 
         code = (
             "# return True if completed successfully\n"
@@ -1794,10 +1803,11 @@ class SettingsComponent:
             "# prevent components from auto-drawing\n"
             "win.stashAutoDraw()\n"
             "# make sure we have a keyboard\n"
-            "defaultKeyboard = deviceManager.getKeyboard('defaultKeyboard')\n"
+            "defaultKeyboard = deviceManager.getDevice('defaultKeyboard')\n"
             "if defaultKeyboard is None:\n"
             "    defaultKeyboard = deviceManager.addKeyboard(\n"
-            "        name='defaultKeyboard',\n"
+            "        deviceClass='keyboard',\n"
+            "        deviceName='defaultKeyboard',\n"
             "        backend=%(keyboardBackend)s,\n"
             "    )\n"
             "# run a while loop while we wait to unpause\n"
@@ -1864,8 +1874,8 @@ class SettingsComponent:
             "# mark experiment handler as finished\n"
             "thisExp.status = FINISHED\n"
             "# shut down eyetracker, if there is one\n"
-            "if deviceManager.getEyetracker('eyetracker') is not None:\n"
-            "    deviceManager.removeEyetracker('eyetracker')\n"
+            "if deviceManager.getDevice('eyetracker') is not None:\n"
+            "    deviceManager.removeDevice('eyetracker')\n"
         )
         if self.params['Save log file'].val:
             code += (
@@ -1903,8 +1913,8 @@ class SettingsComponent:
             "    win.flip()\n"
             "    win.close()\n"
             "# shut down eyetracker, if there is one\n"
-            "if deviceManager.getEyetracker('eyetracker') is not None:\n"
-            "    deviceManager.removeEyetracker('eyetracker')\n"
+            "if deviceManager.getDevice('eyetracker') is not None:\n"
+            "    deviceManager.removeDevice('eyetracker')\n"
         )
         if self.params['Save log file'].val:
             code += (

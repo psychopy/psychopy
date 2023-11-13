@@ -60,6 +60,7 @@ Example usage
 
 from __future__ import absolute_import, division, print_function
 
+import json
 from collections import deque
 import sys
 import copy
@@ -70,8 +71,9 @@ from psychopy.constants import NOT_STARTED
 import time
 
 from psychopy.hardware.base import BaseDevice
-from psychopy.hardware import deviceManager
+from psychopy.hardware import DeviceManager
 from psychopy.tools.attributetools import AttributeGetSetMixin
+from psychopy.tools import systemtools as st
 
 try:
     import psychtoolbox as ptb
@@ -125,15 +127,17 @@ def getKeyboards():
 
 
 class Keyboard(AttributeGetSetMixin):
-    def __init__(self, name=None, device=-1, bufferSize=10000, waitForStart=False, clock=None, backend=None):
-        if deviceManager.checkDeviceNameAvailable(name):
+    def __init__(self, deviceName=None, device=-1, bufferSize=10000, waitForStart=False, clock=None, backend=None):
+        if deviceName not in DeviceManager.devices:
             # if no matching device is in DeviceManager, make a new one
-            self.device = deviceManager.addKeyboard(
-                name=name, device=device, bufferSize=bufferSize, waitForStart=waitForStart, clock=clock, backend=backend
+            self.device = DeviceManager.addDevice(
+                deviceClass="psychopy.hardware.keyboard.KeyboardDevice", deviceName=deviceName,
+                backend=backend, device=device, bufferSize=bufferSize, waitForStart=waitForStart,
+                clock=clock
             )
         else:
             # otherwise, use the existing device
-            self.device = deviceManager.getKeyboard(name)
+            self.device = DeviceManager.getDevice(deviceName)
 
         # starting value for status (Builder)
         self.status = NOT_STARTED
@@ -175,7 +179,7 @@ class Keyboard(AttributeGetSetMixin):
         return self.device.clearEvents(eventType=eventType)
 
 
-class KeyboardDevice(BaseDevice):
+class KeyboardDevice(BaseDevice, aliases=["keyboard"]):
     """
     Object representing
     """
@@ -322,6 +326,33 @@ class KeyboardDevice(BaseDevice):
 
     def close(self):
         self.stop()
+
+    @staticmethod
+    def getAvailableDevices():
+        devices = []
+        for profile in st.getKeyboards():
+            devices.append({
+                'deviceName': profile.get('device_name', "Unknown Keyboard"),
+                'device': profile.get('index', -1),
+                'bufferSize': profile.get('bufferSize', 10000),
+            })
+        return devices
+
+    def dispatchMessages(self):
+        """
+        Method to allow Listeners to access KeyPress responses.
+
+        Returns
+        -------
+        bool
+            True if messages dispatched successfully
+        """
+        # call getKeys and clear buffer
+        for resp in self.getKeys():
+            for listener in self.listeners:
+                listener.receiveMessage(resp)
+
+        return True
 
     def getKeys(self, keyList=None, ignoreKeys=None, waitRelease=True, clear=True):
         """
@@ -528,6 +559,29 @@ class KeyPress(object):
 
     def __ne__(self, other):
         return self.name != other
+
+    def __repr__(self):
+        return (
+            f"<KeyPress: "
+            f"name={self.name}, "
+            f"tDown={self.tDown}, "
+            f"duration={self.duration}, "
+            f"rt={self.rt}"
+            f">"
+        )
+
+    def getJSON(self):
+        message = {
+            'type': "hardware_response",
+            'class': "KeyPress",
+            'data': {
+                't': self.tDown,
+                'value': self.name,
+                'duration': self.duration,
+            }
+        }
+
+        return json.dumps(message)
 
 
 class _KeyBuffers(dict):
