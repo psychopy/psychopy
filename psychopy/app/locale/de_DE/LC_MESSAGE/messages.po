@@ -13,7 +13,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 3.4\n"
+"X-Generator: Poedit 3.4.1\n"
 "X-Poedit-Basepath: ../../../../..\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-KeywordsList: _translate\n"
@@ -109,6 +109,8 @@ msgid ""
 "Python Syntax Error in '{codeTab}' tab. See '{code}' on line number "
 "{lineNumber} of the '{codeTab}' tab."
 msgstr ""
+"Python Syntaxfehler '{codeTab}' Tab. Siehe '{code}' in Zeile {lineNumber} im "
+"'{codeTab}' Tab."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:56
 #, python-brace-format
@@ -116,6 +118,8 @@ msgid ""
 "JavaScript Syntax Error in '{codeTab}' tab. See '{lineNumber}' in the "
 "'{codeTab}' tab."
 msgstr ""
+"JavaScript Syntaxfehler in '{codeTab}' Tab. Siehe '{lineNumber}' im "
+"'{codeTab}' Tab."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:60
 #, python-brace-format
@@ -123,10 +127,12 @@ msgid ""
 "The component {name} is currently disabled and will not be written to your "
 "experiment script."
 msgstr ""
+"Die Komponente {name} ist derzeit deaktiviert und wird nicht in Ihr "
+"Experimentierskript geschrieben."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:63
 msgid "Cannot calculate parameter."
-msgstr ""
+msgstr "Der Parameter kann nicht berechnet werden."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:67
 #, python-brace-format
@@ -135,12 +141,17 @@ msgid ""
 "{component.type} component \"{component.params[name].val}\" as a dollar sign "
 "has been used incorrectly."
 msgstr ""
+"Builder kann den Wert \"{param.val}\" von {param.label} für die {component."
+"type}-Komponente \"{component.params[name].val}\" nicht interpretieren, da "
+"ein Dollarzeichen falsch verwendet wurde."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:71
 #, python-brace-format
 msgid ""
 "Font `{param.val}` not found locally, will check Google Fonts on next run."
 msgstr ""
+"Schriftart `{param.val}` nicht lokal gefunden, wird beim nächsten Lauf von "
+"Google Fonts überprüft."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:75
 #, python-brace-format
@@ -148,11 +159,15 @@ msgid ""
 "Font `{font} {style}` not available in weight `{weight}`, component `{name}` "
 "will default to Open Sans Regular."
 msgstr ""
+"Schriftart `{font} {style}` nicht verfügbar in Gewicht `{weight}`, "
+"Komponente `{name}` wird standardmäßig Open Sans Regular."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:79
 #, python-brace-format
 msgid "Recording device '{device}' not found, using default device instead."
 msgstr ""
+"Aufnahmegerät '{device}' nicht gefunden, stattdessen wird das Standardgerät "
+"verwendet."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:83
 #, python-brace-format
@@ -160,6 +175,8 @@ msgid ""
 "The component or routine '{comp}' is only implemented online, so will do "
 "nothing when running locally."
 msgstr ""
+"Die Komponente oder Routine '{comp}' ist nur online implementiert und wird "
+"daher bei lokaler Ausführung nichts tun."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:87
 #, python-brace-format
@@ -167,6 +184,8 @@ msgid ""
 "The component or routine '{comp}' is only implemented locally, so will do "
 "nothing when running online."
 msgstr ""
+"Die Komponente oder Routine '{comp}' ist nur lokal implementiert und wird "
+"daher nichts tun, wenn sie online ausgeführt wird."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:91
 #, python-brace-format
@@ -174,12 +193,17 @@ msgid ""
 "Editable textbox component {textbox} and keyboard component {keyboard} in "
 "the same routine may compete for keypresses"
 msgstr ""
+"Die Komponente {textbox} des bearbeitbaren Textfeldes und die "
+"Tastaturkomponente {keyboard} in derselben Routine konkurrieren "
+"möglicherweise um Tastendrücke"
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:94
 msgid ""
 "Experiment includes components or routines which use eyetracking, but no eye "
 "tracker is configured."
 msgstr ""
+"Das Experiment enthält Komponenten oder Routinen, die Eyetracking verwenden, "
+"aber es ist kein Eyetracker konfiguriert."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:98
 #, python-brace-format
@@ -187,6 +211,8 @@ msgid ""
 "A {eyetracker} eye tracker has been configured, but no calibration routine "
 "is present."
 msgstr ""
+"Es wurde ein {eyetracker} Eye-Tracker konfiguriert, aber es ist keine "
+"Kalibrierungsroutine vorhanden."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:101
 #, python-brace-format
@@ -194,39 +220,52 @@ msgid ""
 "As {brand} eyetrackers do not support animations in their calibration "
 "routine, animation values have not been used in your calibration routine."
 msgstr ""
+"Da die Eyetracker von {brand} in ihrer Kalibrierungsroutine keine "
+"Animationen unterstützen, wurden in Ihrer Kalibrierungsroutine keine "
+"Animationswerte verwendet."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:104
 #, python-brace-format
 msgid "Eyetrackers by {brand} do not support manual pacing"
-msgstr ""
+msgstr "Eyetracker von {brand} unterstützen keine manuelle Schrittsteuerung"
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:108
 msgid ""
 "Window mode is set to be windowed, but eyetracking requires the window to be "
 "full screen."
 msgstr ""
+"Der Fenstermodus ist auf \"Fenster\" eingestellt, aber für Eyetracking muss "
+"das Fenster bildschirmfüllend eingestellt sein."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:112
 msgid ""
 "A monitor config is required for accurate eyetracking measurements, but none "
 "was found."
 msgstr ""
+"Genaue Eyetracking-Messungen erfordern eine Monitorkonfiguration, aber es "
+"wurde keine gefunden."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:116
 msgid ""
 "Eye tracker experiments should use 'ioHub' as the Input -> Keyboard Backend "
 "setting"
 msgstr ""
+"Eye-Tracker-Experimente sollten \"ioHub\" als Input -> Keyboard Backend "
+"Einstellung verwenden"
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:120
 #, python-brace-format
 msgid "Audio transcription service \"{transcriber}\" is not supported online."
 msgstr ""
+"Der Audiotranskriptionsdienst \"{transcriber}\" wird online nicht "
+"unterstützt."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:124
 #, python-brace-format
 msgid "Audio transcription service \"{transcriber}\" is not supported offline."
 msgstr ""
+"Der Audiotranskriptionsdienst \"{transcriber}\" wird offline nicht "
+"unterstützt."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:128
 #, python-brace-format
@@ -234,12 +273,16 @@ msgid ""
 "Chosen transcriber '{engine}' requires an API key, please supply one in "
 "Preferences."
 msgstr ""
+"Der gewählte Transcriber '{engine}' benötigt einen API-Schlüssel, bitte "
+"geben Sie ihn in den Einstellungen an."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:132
 #, python-brace-format
 msgid ""
 "Device parameter of microphone component \"{name}\" will not be used online."
 msgstr ""
+"Der Geräteparameter der Mikrofonkomponente \"{name}\" wird online nicht "
+"verwendet."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:136
 #, python-brace-format
@@ -247,6 +290,8 @@ msgid ""
 "The file you are attempting to run does not seem to exist, the full path "
 "supplied to Runner was {path}"
 msgstr ""
+"Die Datei, die Sie auszuführen versuchen, scheint nicht zu existieren. Der "
+"vollständige Pfad, der an den Runner übergeben wurde, war {path}"
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:140
 #, python-brace-format
@@ -254,6 +299,8 @@ msgid ""
 "Color space attribute `.{colorSpaceAttrib}` is no longer in use, as colors "
 "are no longer tied to one space."
 msgstr ""
+"Das Farbraum-Attribut `.{colorSpaceAttrib}` wird nicht mehr verwendet, da "
+"Farben nicht mehr an einen Farbraum gebunden sind."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:144
 #, python-brace-format
@@ -261,54 +308,56 @@ msgid ""
 "RGB attribute `.{rgbAttrib}` is no longer in use, as non-RGB colors now "
 "handle their own conversion."
 msgstr ""
+"Das RGB-Attribut `.{rgbAttrib}` wird nicht mehr verwendet, da Nicht-RGB-"
+"Farben jetzt ihre eigene Konvertierung übernehmen."
 
 #: psychopy/app/Resources/psychopy.desktop:5
 #: psychopy/app/Resources/psychopy.desktop:6
 msgid "PsychoPy"
-msgstr ""
+msgstr "PsychoPy"
 
 #: psychopy/app/Resources/psychopy.desktop:7
 msgid "Psychology software in Python"
-msgstr ""
+msgstr "Psychologiesoftware in Python"
 
 #: psychopy/app/_psychopyApp.py:98 psychopy/app/builder/builder.py:381
 #: psychopy/app/coder/coder.py:1565 psychopy/app/runner/runner.py:207
 msgid "&View"
-msgstr ""
+msgstr "&Ansicht"
 
 #: psychopy/app/_psychopyApp.py:99
 #, python-format
 msgid "&Open Builder view\t%s"
-msgstr ""
+msgstr "&Öffne Builder Ansicht\t%s"
 
 #: psychopy/app/_psychopyApp.py:102
 msgid "Open a new Builder view"
-msgstr ""
+msgstr "Öffne eine neue Builder Ansicht"
 
 #: psychopy/app/_psychopyApp.py:105
 #, python-format
 msgid "&Open Coder view\t%s"
-msgstr ""
+msgstr "&Öffne Coder Ansicht\t%s"
 
 #: psychopy/app/_psychopyApp.py:108
 msgid "Open a new Coder view"
-msgstr ""
+msgstr "Öffne eine neue Coder Ansicht"
 
 #: psychopy/app/_psychopyApp.py:111 psychopy/app/builder/builder.py:358
 #: psychopy/app/coder/coder.py:343 psychopy/app/coder/coder.py:1438
 #: psychopy/app/pavlovia_ui/_base.py:39 psychopy/app/runner/runner.py:149
 #, python-format
 msgid "&Quit\t%s"
-msgstr ""
+msgstr "&Abbruch%s"
 
 #: psychopy/app/_psychopyApp.py:113 psychopy/app/builder/builder.py:359
 #: psychopy/app/coder/coder.py:1439 psychopy/app/pavlovia_ui/_base.py:40
 msgid "Terminate the program"
-msgstr ""
+msgstr "Das Programm beenden"
 
 #: psychopy/app/_psychopyApp.py:444
 msgid "Copyright (C) 2022 OpenScienceTools.org"
-msgstr ""
+msgstr "Copyright (C) 2022 OpenScienceTools.org"
 
 #: psychopy/app/_psychopyApp.py:545
 msgid "  Creating frames..."
@@ -320,6 +369,10 @@ msgid ""
 "Requested: {}\n"
 "Err: {}"
 msgstr ""
+"Runner konnte nicht mit der angeforderten Dateiliste geöffnet werden, Öffnen "
+"ohne Dateiliste.\n"
+"Angefordert: {}\n"
+"Err: {}"
 
 #: psychopy/app/_psychopyApp.py:602
 msgid ""
@@ -327,6 +380,10 @@ msgid ""
 "Requested: {}\n"
 "Err: {}"
 msgstr ""
+"Coder konnte nicht mit den angeforderten Skripten geöffnet werden, es wurden "
+"keine Skripte geöffnet.\n"
+"Angefordert: {}\n"
+"Err: {}"
 
 #: psychopy/app/_psychopyApp.py:619
 msgid ""
@@ -335,22 +392,26 @@ msgid ""
 "Requested: {}\n"
 "Err: {}"
 msgstr ""
+"Der Builder konnte nicht mit den angeforderten Experimenten geöffnet werden, "
+"es wurden keine Experimente geöffnet.\n"
+"Angefordert: {}\n"
+"Err: {}"
 
 #: psychopy/app/_psychopyApp.py:647
 msgid "Compatibility information"
-msgstr ""
+msgstr "Kompatibilitätsinformation"
 
 #: psychopy/app/_psychopyApp.py:654
 msgid "tips.txt"
-msgstr ""
+msgstr "tips.txt"
 
 #: psychopy/app/_psychopyApp.py:692
 msgid "  Loading plugins..."
-msgstr ""
+msgstr " Plugins werden geladen..."
 
 #: psychopy/app/_psychopyApp.py:775
 msgid "Select .psydat file(s) to extract"
-msgstr ""
+msgstr "Zu extrahierende .psydat-Datei(en) auswählen"
 
 #: psychopy/app/_psychopyApp.py:1083
 msgid ""
@@ -358,28 +419,31 @@ msgid ""
 "PsychoPy depends on your feedback. If something doesn't work\n"
 "then let us know at psychopy-users@googlegroups.com"
 msgstr ""
+"Für die Erzeugung von Stimuli und die Steuerung von Experimenten in Python.\n"
+"PsychoPy ist auf Ihr Feedback angewiesen. Wenn etwas nicht funktioniert\n"
+"dann lassen Sie es uns wissen unter psychopy-users@googlegroups.com"
 
 #: psychopy/app/builder/builder.py:75
 #: psychopy/app/builder/dialogs/paramCtrls.py:1121
 #: psychopy/app/builder/localizedStrings.py:127
 #: psychopy/experiment/components/settings/__init__.py:202
 msgid "Field"
-msgstr ""
+msgstr "Feld"
 
 #: psychopy/app/builder/builder.py:76
 #: psychopy/app/builder/dialogs/paramCtrls.py:1121
 #: psychopy/app/builder/localizedStrings.py:128
 #: psychopy/experiment/components/settings/__init__.py:202
 msgid "Default"
-msgstr ""
+msgstr "Standard"
 
 #: psychopy/app/builder/builder.py:77
 msgid "Favorites"
-msgstr ""
+msgstr "Favoriten"
 
 #: psychopy/app/builder/builder.py:78
 msgid "Stimuli"
-msgstr ""
+msgstr "Stimuli"
 
 #: psychopy/app/builder/builder.py:79
 msgid "Responses"
@@ -393,109 +457,113 @@ msgstr ""
 
 #: psychopy/app/builder/builder.py:81
 msgid "I/O"
-msgstr ""
+msgstr "I/O"
 
 #: psychopy/app/builder/builder.py:82
 msgid "Add to favorites"
-msgstr ""
+msgstr "Zu Favoriten hinzufügen"
 
 #: psychopy/app/builder/builder.py:83
 msgid "Remove from favorites"
-msgstr ""
+msgstr "Von Favoriten entfernen"
 
 #: psychopy/app/builder/builder.py:85
 msgid "edit"
-msgstr ""
+msgstr "bearbeiten"
 
 #: psychopy/app/builder/builder.py:86 psychopy/app/builder/builder.py:3394
 msgid "remove"
-msgstr ""
+msgstr "entfernen"
 
 #: psychopy/app/builder/builder.py:87 psychopy/app/preferencesDlg.py:99
 msgid "copy"
-msgstr ""
+msgstr "kopieren"
 
 #: psychopy/app/builder/builder.py:88
 msgid "paste above"
-msgstr ""
+msgstr "oben einfügen"
 
 #: psychopy/app/builder/builder.py:89
 msgid "paste below"
-msgstr ""
+msgstr "unten einfügen"
 
 #: psychopy/app/builder/builder.py:90
 msgid "move to top"
-msgstr ""
+msgstr "nach oben verschieben"
 
 #: psychopy/app/builder/builder.py:91
 msgid "move up"
-msgstr ""
+msgstr "nach oben"
 
 #: psychopy/app/builder/builder.py:92
 msgid "move down"
-msgstr ""
+msgstr "nach unten"
 
 #: psychopy/app/builder/builder.py:93
 msgid "move to bottom"
-msgstr ""
+msgstr "nach unten verschieben"
 
 #: psychopy/app/builder/builder.py:295 psychopy/app/builder/builder.py:3224
 #: psychopy/app/coder/coder.py:1380 psychopy/app/pavlovia_ui/_base.py:24
 #: psychopy/app/runner/runner.py:206 psychopy/monitors/MonitorCenter.py:227
 msgid "&File"
-msgstr ""
+msgstr "&Datei"
 
 #: psychopy/app/builder/builder.py:311 psychopy/app/coder/coder.py:1394
 #, python-format
 msgid "&New\t%s"
-msgstr ""
+msgstr "&Neu\t%s"
 
 #: psychopy/app/builder/builder.py:314 psychopy/app/coder/coder.py:1395
 #, python-format
 msgid "&Open...\t%s"
-msgstr ""
+msgstr "&Öffnen...\t%s"
 
 #: psychopy/app/builder/builder.py:317 psychopy/app/coder/coder.py:1396
 msgid "Open &Recent"
-msgstr ""
+msgstr "Öffnen &Aktuell"
 
 #: psychopy/app/builder/builder.py:320 psychopy/app/coder/coder.py:1398
 #, python-format
 msgid "&Save\t%s"
-msgstr ""
+msgstr "&Speichern\t%s"
 
 #: psychopy/app/builder/builder.py:321 psychopy/app/builder/builder.py:4321
 #: psychopy/app/coder/coder.py:2890
 msgid "Save current experiment file"
-msgstr ""
+msgstr "Speichern der aktuellen Experimentdatei"
 
 #: psychopy/app/builder/builder.py:324 psychopy/app/coder/coder.py:1401
 #, python-format
 msgid "Save &as...\t%s"
-msgstr ""
+msgstr "Speichern &unter…\t%s"
 
 #: psychopy/app/builder/builder.py:325 psychopy/app/builder/builder.py:4329
 #: psychopy/app/coder/coder.py:2898
 msgid "Save current experiment file as..."
-msgstr ""
+msgstr "Speichern der aktuellen Experimentdatei unter."
 
 #: psychopy/app/builder/builder.py:328
 #, python-format
 msgid "Export HTML...\t%s"
-msgstr ""
+msgstr "Exportiere HTML...\t%s"
 
 #: psychopy/app/builder/builder.py:329
 msgid "Export experiment to html/javascript file"
 msgstr ""
+"Exportiere das \n"
+"Experiment in eine html/javascript-Datei"
 
 #: psychopy/app/builder/builder.py:332 psychopy/app/coder/coder.py:1404
 #, python-format
 msgid "&Close file\t%s"
-msgstr ""
+msgstr "&Schließ Datei\t%s"
 
 #: psychopy/app/builder/builder.py:333
 msgid "Close current experiment"
 msgstr ""
+"Schließ das aktuelle\n"
+" Experiment"
 
 #: psychopy/app/builder/builder.py:344 psychopy/app/coder/coder.py:1420
 #, python-format
