@@ -42,6 +42,16 @@ class BaseButtonGroup(base.BaseDevice):
         self.parent.dispatchMessages()
         self.responses = []
 
+    def receiveMessage(self, message):
+        # do base receiving
+        base.BaseResponseDevice.receiveMessage(self, message)
+        # update state
+        self.state[message.channel] = message.value
+
+    @staticmethod
+    def getAvailableDevices():
+        raise NotImplementedError()
+
     def getResponses(self, state=None, channel=None, clear=True):
         """
         Get responses which match a given on/off state.
@@ -94,19 +104,6 @@ class BaseButtonGroup(base.BaseDevice):
         self.parent.dispatchMessages()
         return True
 
-    def receiveMessage(self, message):
-        assert isinstance(message, ButtonResponse), (
-            "{ownType}.receiveMessage() can only receive messages of type PhotodiodeResponse, instead received "
-            "{msgType}. Try parsing the message first using {ownType}.parseMessage()"
-        ).format(ownType=type(self).__name__, msgType=type(message).__name__)
-        # update current state
-        self.state[message.channel] = message.value
-        # add message to responses
-        self.responses.append(message)
-        # relay message to listener
-        for listener in self.listeners:
-            listener.receiveMessage(message)
-
     def getState(self, channel):
         # dispatch messages from device
         self.parent.dispatchMessages()
@@ -115,3 +112,65 @@ class BaseButtonGroup(base.BaseDevice):
 
     def parseMessage(self, message):
         raise NotImplementedError()
+
+
+class SerialButtonBox(BaseButtonGroup):
+    def __init__(self, buttons=1, messageParser=None,
+                 port=None, baudrate=9600,
+                 byteSize=8, stopBits=1,
+                 parity="N"):
+        # initialise base class
+        BaseButtonGroup.__init__(
+            self, channels=buttons
+        )
+        # overload message parser method
+        if messageParser is not None:
+            self.parseMessage = messageParser
+        # create serial device
+        from psychopy.hardware.serialdevice import SerialDevice
+        self.device = SerialDevice(
+            port=port, baudrate=baudrate,
+            byteSize=byteSize, stopBits=stopBits,
+            parity=parity,
+        )
+        # create clock
+        from psychopy.clock import Clock
+        self.clock = Clock()
+
+    def dispatchMessages(self):
+        # get responses from serial
+        for message in self.device.getResponse(length=2):
+            # parse message if possible
+            response = None
+            if self.parseMessage is not None:
+                response = self.parseMessage(message)
+            # receive message if possible
+            if isinstance(response, ButtonResponse):
+                self.receiveMessage(response)
+
+    def parseMessage(self, message):
+        # placeholder message parser - without knowing the syntax we can only guess
+        for n in range(self.channels):
+            if str(n) in message:
+                return ButtonResponse(self.clock.getTime(), value=True, channel=n)
+        # if no message, assume it's the release of a pressed button
+        for n, state in enumerate(self.state):
+            if state:
+                return ButtonResponse(self.clock.getTime(), value=False, channel=n)
+        # if still nothing, send invalid respons
+        return ButtonResponse(self.clock.getTime(), value=None, channel=0)
+
+    def resetTimer(self, clock=logging.defaultClock):
+        self.clock.reset(clock.getTime())
+
+    @staticmethod
+    def getAvailableDevices():
+        from psychopy.hardware.serialdevice import _findPossiblePorts
+        devices = []
+        for port in _findPossiblePorts():
+            devices.append({
+                'deviceName': port,
+                'port': port,
+            })
+
+
