@@ -166,6 +166,43 @@ class ButtonBoxComponent(BaseComponent):
             if backend.key == self.params['deviceBackend']:
                 backend.writeInitCode(self, buff)
 
+    def writeFrameCode(self, buff):
+        params = self.params
+        code = (
+            "\n"
+            "# *%(name)s* updates\n"
+        )
+        buff.writeIndentedLines(code % params)
+        # writes an if statement to determine whether to draw etc
+        indented = self.writeStartTestCode(buff)
+        if indented:
+            # dispatch and clear messages
+            code = (
+                "# clear any messages from before starting\n"
+                "%(name)s.clearResponses()\n"
+            )
+            buff.writeIndentedLines(code % params)
+            # to get out of the if statement
+            buff.setIndentLevel(-indented, relative=True)
+
+        # test for started (will update parameters each frame as needed)
+        indented = self.writeActiveTestCode(buff)
+        if indented:
+            # write code to dispatch messages
+            code = (
+                "# ask for messages from %(name)s device this frame\n"
+                "%(name)s.dispatchMessages()\n"
+            )
+            buff.writeIndentedLines(code % params)
+            # to get out of the if statement
+            buff.setIndentLevel(-indented, relative=True)
+
+        # test for stop (only if there was some setting for duration or stop)
+        indented = self.writeStopTestCode(buff)
+        if indented:
+            # to get out of the if statement
+            buff.setIndentLevel(-indented, relative=True)
+
 
 class SerialButtonBoxBackend(ButtonBoxBackend, key="serial", label=_translate("Generic serial")):
     """
