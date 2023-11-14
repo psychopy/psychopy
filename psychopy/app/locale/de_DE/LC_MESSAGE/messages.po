@@ -767,40 +767,42 @@ msgstr "Ändere den Routinennamen"
 #: psychopy/app/builder/builder.py:496
 #, python-format
 msgid "Paste Component\t%s"
-msgstr ""
+msgstr "Komponente einfügen %s"
 
 #: psychopy/app/builder/builder.py:499
 msgid "Paste the Component at bottom of the current Routine"
-msgstr ""
+msgstr "Einfügen der Komponente am Ende der aktuellen Routine"
 
 #: psychopy/app/builder/builder.py:506
 msgid "Insert Routine in Flow"
-msgstr ""
+msgstr "Routine in Ablauf einfügen"
 
 #: psychopy/app/builder/builder.py:508
 msgid "Select one of your routines to be inserted into the experiment flow"
 msgstr ""
+"Wählen Sie eine Ihrer Routinen aus, die in den Experimentablauf eingefügt "
+"werden soll"
 
 #: psychopy/app/builder/builder.py:512
 msgid "Insert Loop in Flow"
-msgstr ""
+msgstr "Schleife in Fluss einfügen"
 
 #: psychopy/app/builder/builder.py:513
 msgid "Create a new loop in your flow window"
-msgstr ""
+msgstr "Erstellen Sie eine neue Schleife in Ihrem Ablauffenster"
 
 #: psychopy/app/builder/builder.py:518
 #, python-format
 msgid "&Find in experiment...\t%s"
-msgstr ""
+msgstr "&Finden in Experiment... %s"
 
 #: psychopy/app/builder/builder.py:519
 msgid "Search the whole experiment for a specific term"
-msgstr ""
+msgstr "Suche im gesamten Experiment nach einem bestimmten Begriff"
 
 #: psychopy/app/builder/builder.py:523
 msgid "README..."
-msgstr ""
+msgstr "README..."
 
 #: psychopy/app/builder/builder.py:524
 msgid "Add or edit the text shown when your experiment is opened"
