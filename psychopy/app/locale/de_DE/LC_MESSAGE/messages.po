@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: PsychoPy v1.81.00\n"
 "POT-Creation-Date: 2023-10-16 12:06+0200\n"
 "PO-Revision-Date: \n"
-"Last-Translator: Jeremy R. Gray <jrgray@gmail.com>\n"
+"Last-Translator: Jens Bölte <boelte@uni-muenster.de>\n"
 "Language-Team: psychopy-dev@google-groups.com\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
@@ -568,101 +568,101 @@ msgstr ""
 #: psychopy/app/builder/builder.py:344 psychopy/app/coder/coder.py:1420
 #, python-format
 msgid "&Preferences\t%s"
-msgstr ""
+msgstr "&Einstellungen\\7%s"
 
 #: psychopy/app/builder/builder.py:347 psychopy/app/coder/coder.py:1425
 msgid "Reset preferences..."
-msgstr ""
+msgstr "Einstellungen zurücksetzen..."
 
 #: psychopy/app/builder/builder.py:353
 msgid "Close PsychoPy Builder"
-msgstr ""
+msgstr "PsychoBuilder schließen"
 
 #: psychopy/app/builder/builder.py:364 psychopy/app/coder/coder.py:1445
 #: psychopy/monitors/MonitorCenter.py:235
 msgid "&Edit"
-msgstr ""
+msgstr "&Bearbeiten"
 
 #: psychopy/app/builder/builder.py:367 psychopy/app/builder/builder.py:1185
 #: psychopy/app/coder/coder.py:1511
 #, python-format
 msgid "Undo\t%s"
-msgstr ""
+msgstr "Rückgängig machen\t%s"
 
 #: psychopy/app/builder/builder.py:368 psychopy/app/builder/builder.py:4336
 #: psychopy/app/coder/coder.py:1512 psychopy/app/coder/coder.py:2905
 msgid "Undo last action"
-msgstr ""
+msgstr "Letzte Aktion rückgängig machen"
 
 #: psychopy/app/builder/builder.py:372 psychopy/app/builder/builder.py:1200
 #: psychopy/app/coder/coder.py:1516
 #, python-format
 msgid "Redo\t%s"
-msgstr ""
+msgstr "Wiederholen\t%s"
 
 #: psychopy/app/builder/builder.py:373 psychopy/app/builder/builder.py:4344
 #: psychopy/app/coder/coder.py:1517 psychopy/app/coder/coder.py:2913
 msgid "Redo last action"
-msgstr ""
+msgstr "Letzte Aktion wiederholen"
 
 #: psychopy/app/builder/builder.py:376 psychopy/app/coder/coder.py:1450
 #, python-format
 msgid "&Paste\t%s"
-msgstr ""
+msgstr "&Einfügen\t%s"
 
 #: psychopy/app/builder/builder.py:396 psychopy/app/builder/builder.py:3233
 #, python-format
 msgid "&Toggle readme\t%s"
-msgstr ""
+msgstr "&Umschalten Readme\t%s"
 
 #: psychopy/app/builder/builder.py:398 psychopy/app/builder/builder.py:3235
 msgid "Toggle Readme"
-msgstr ""
+msgstr "Umschalten Readme"
 
 #: psychopy/app/builder/builder.py:401
 #, python-format
 msgid "&Flow Larger\t%s"
-msgstr ""
+msgstr "&Ablauf größer\t%s"
 
 #: psychopy/app/builder/builder.py:403
 msgid "Larger flow items"
-msgstr ""
+msgstr "Items Ablauf größer"
 
 #: psychopy/app/builder/builder.py:406
 #, python-format
 msgid "&Flow Smaller\t%s"
-msgstr ""
+msgstr "&Ablauf kleiner\t%s"
 
 #: psychopy/app/builder/builder.py:408
 msgid "Smaller flow items"
-msgstr ""
+msgstr "Items Ablauf kleiner"
 
 #: psychopy/app/builder/builder.py:411
 #, python-format
 msgid "&Routine Larger\t%s"
-msgstr ""
+msgstr "&Routine größer\t%s"
 
 #: psychopy/app/builder/builder.py:413
 msgid "Larger routine items"
-msgstr ""
+msgstr "Items Routine größer"
 
 #: psychopy/app/builder/builder.py:416
 #, python-format
 msgid "&Routine Smaller\t%s"
-msgstr ""
+msgstr "&Routine kleiner\t%s"
 
 #: psychopy/app/builder/builder.py:418
 msgid "Smaller routine items"
-msgstr ""
+msgstr "Items Routine kleiner"
 
 #: psychopy/app/builder/builder.py:427 psychopy/app/coder/coder.py:1626
 #: psychopy/app/runner/runner.py:200
 msgid "&Themes"
-msgstr ""
+msgstr "&Themen"
 
 #: psychopy/app/builder/builder.py:431 psychopy/app/coder/coder.py:1656
 msgid "&Tools"
-msgstr ""
+msgstr "&Werkzeuge"
 
 #: psychopy/app/builder/builder.py:434 psychopy/app/builder/builder.py:4353
 #: psychopy/app/coder/coder.py:1658 psychopy/app/coder/coder.py:2922
@@ -671,98 +671,98 @@ msgstr ""
 
 #: psychopy/app/builder/builder.py:435 psychopy/app/coder/coder.py:1659
 msgid "To set information about your monitor"
-msgstr ""
+msgstr "Stellen Sie Informationen über Ihren Monitor ein"
 
 #: psychopy/app/builder/builder.py:439
 #, python-format
 msgid "Compile\t%s"
-msgstr ""
+msgstr "Kompilieren\t%s"
 
 #: psychopy/app/builder/builder.py:440
 msgid "Compile the exp to a script"
-msgstr ""
+msgstr "Experiment zu Skript kompilieren"
 
 #: psychopy/app/builder/builder.py:443 psychopy/app/coder/coder.py:1673
 #, python-format
 msgid "Run\t%s"
-msgstr ""
+msgstr "Ausführen\t%s"
 
 #: psychopy/app/builder/builder.py:444 psychopy/app/coder/coder.py:1674
 msgid "Run the current script"
-msgstr ""
+msgstr "Aktuelles Skript ausführen"
 
 #: psychopy/app/builder/builder.py:447 psychopy/app/coder/coder.py:1677
 #, python-format
 msgid "Send to runner\t%s"
-msgstr ""
+msgstr "An Runner schicken\t%s"
 
 #: psychopy/app/builder/builder.py:448 psychopy/app/coder/coder.py:1678
 msgid "Send current script to runner"
-msgstr ""
+msgstr "Aktuelles Skript an Runner schicken"
 
 #: psychopy/app/builder/builder.py:452 psychopy/app/coder/coder.py:1683
 msgid "PsychoPy updates..."
-msgstr ""
+msgstr "PsychoPy updates..."
 
 #: psychopy/app/builder/builder.py:453 psychopy/app/coder/coder.py:1684
 msgid "Update PsychoPy to the latest, or a specific, version"
-msgstr ""
+msgstr "PsychoPy auf die aktuelle oder eine spezifische Version updaten"
 
 #: psychopy/app/builder/builder.py:457 psychopy/app/coder/coder.py:1687
 msgid "Plugin/packages manager..."
-msgstr ""
+msgstr "Plugin/Paket-Manager..."
 
 #: psychopy/app/builder/builder.py:458 psychopy/app/coder/coder.py:1688
 msgid "Manage Python packages and optional plugins for PsychoPy"
-msgstr ""
+msgstr "Manage Python-Pakete oder optionale Plugins für PsychoPy"
 
 #: psychopy/app/builder/builder.py:462 psychopy/app/coder/coder.py:1691
 msgid "Benchmark wizard"
-msgstr ""
+msgstr "Benchmark-Assistent"
 
 #: psychopy/app/builder/builder.py:463 psychopy/app/coder/coder.py:1692
 msgid "Check software & hardware, generate report"
-msgstr ""
+msgstr "Soft- und Hardwarecheck, geniere Bericht"
 
 #: psychopy/app/builder/builder.py:469
 msgid "E&xperiment"
-msgstr ""
+msgstr "E&xperiment"
 
 #: psychopy/app/builder/builder.py:472
 #, python-format
 msgid "&New Routine\t%s"
-msgstr ""
+msgstr "&Neue Routine\t%s"
 
 #: psychopy/app/builder/builder.py:473
 msgid "Create a new routine (e.g. the trial definition)"
-msgstr ""
+msgstr "Kreiere eine neue Routine (z. B.: die Trialdefinition)"
 
 #: psychopy/app/builder/builder.py:477
 #, python-format
 msgid "&Copy Routine\t%s"
-msgstr ""
+msgstr "&Kopier Routine\t%s"
 
 #: psychopy/app/builder/builder.py:479
 msgid "Copy the current routine so it can be used in another exp"
-msgstr ""
+msgstr "Kopiere die Routine zur Verwendung in anderen Experimenten"
 
 #: psychopy/app/builder/builder.py:484
 #, python-format
 msgid "&Paste Routine\t%s"
-msgstr ""
+msgstr "&Einfügen Routine\t%s"
 
 #: psychopy/app/builder/builder.py:486
 msgid "Paste the Routine into the current experiment"
-msgstr ""
+msgstr "Einfügen Routine in aktuelles Experiment"
 
 #: psychopy/app/builder/builder.py:491
 #, python-format
 msgid "&Rename Routine\t%s"
-msgstr ""
+msgstr "&Umbenennen Routine\t%s"
 
 #: psychopy/app/builder/builder.py:493
 msgid "Change the name of this routine"
-msgstr ""
+msgstr "Ändere den Routinennamen"
 
 #: psychopy/app/builder/builder.py:496
 #, python-format
