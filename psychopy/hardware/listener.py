@@ -244,6 +244,7 @@ class LiaisonListener(BaseListener):
         """
         On receiving message, send it to Liaison.
         """
+        import asyncio
         # append
         self.responses.append(message)
         # stringify message
@@ -256,4 +257,4 @@ class LiaisonListener(BaseListener):
                 'data': str(message)
             }
         # send
-        self.liaison.broadcast(message)
+        asyncio.run(self.liaison.broadcast(message))

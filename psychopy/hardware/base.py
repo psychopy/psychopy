@@ -76,6 +76,8 @@ class BaseDevice:
         if startLoop:
             listener.startLoop(self)
 
+        return listener
+
     def clearListeners(self):
         """
         Remove any listeners from this device.
