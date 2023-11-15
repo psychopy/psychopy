@@ -71,7 +71,7 @@ class DeviceManager:
 
     def __init__(self, liaison=None):
         # set liaison
-        self.liaison = liaison
+        DeviceManager.liaison = liaison
 
     # --- utility ---
 
