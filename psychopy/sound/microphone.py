@@ -341,6 +341,16 @@ class Microphone:
                 audioLatencyMode=audioLatencyMode,
                 audioRunMode=audioRunMode
             )
+        # set initial status
+        self.status = NOT_STARTED
+
+    @property
+    def clips(self):
+        return self.device.clips
+
+    @clips.setter
+    def clips(self, value):
+        self.device.clips = value
 
     @property
     def recording(self):
