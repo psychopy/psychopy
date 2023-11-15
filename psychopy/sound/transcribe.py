@@ -172,6 +172,9 @@ class TranscriptionResult:
     def __str__(self):
         return " ".join(self._words)
 
+    def __json__(self):
+        return str(self)
+
     @property
     def wordCount(self):
         """Number of words found (`int`)."""
