@@ -158,7 +158,7 @@ class KeyboardComponent(BaseComponent):
             inits['device'].val = "defaultKeyboard"
         # make Keyboard object
         code = (
-            "%(name)s = keyboard.Keyboard(deviceName=%(device)s)\n"
+            "%(name)s = keyboard.Keyboard(deviceName='%(device)s')\n"
         )
         buff.writeIndentedLines(code % inits)
 
