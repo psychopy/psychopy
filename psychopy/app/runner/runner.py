@@ -109,6 +109,22 @@ class RunnerFrame(wx.Frame, handlers.ThemeMixin):
     def removeTask(self, evt=None):
         self.panel.removeTask(evt)
 
+    def getOutputPanel(self, name):
+        """
+        Get output panel which matches the given name.
+
+        Parameters
+        ----------
+        name : str
+            Key by which the output panel was stored on creation
+
+        Returns
+        -------
+        ScriptOutputPanel
+            Handle of the output panel
+        """
+        return self.panel.outputNotebook.panels[name]
+
     @property
     def stdOut(self):
         return self.panel.stdoutPnl.ctrl
@@ -530,6 +546,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         bmps = {
             self.alertsPnl: icons.ButtonIcon("alerts", size=16).bitmap,
             self.stdoutPnl: icons.ButtonIcon("stdout", size=16).bitmap,
+            self.outputNotebook.gitPnl: icons.ButtonIcon("pavlovia", size=16).bitmap,
         }
         for i in range(self.outputNotebook.GetPageCount()):
             pg = self.outputNotebook.GetPage(i)
@@ -889,6 +906,10 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
 class RunnerOutputNotebook(aui.AuiNotebook, handlers.ThemeMixin):
     def __init__(self, parent):
         aui.AuiNotebook.__init__(self, parent, style=wx.BORDER_NONE)
+
+        # store pages by non-translated names for easy access (see RunnerFrame.getOutputPanel)
+        self.panels = {}
+
         # Alerts
         self.alertsPnl = ScriptOutputPanel(
             parent=parent,
@@ -898,6 +919,7 @@ class RunnerOutputNotebook(aui.AuiNotebook, handlers.ThemeMixin):
         self.AddPage(
             self.alertsPnl, caption=_translate("Alerts")
         )
+        self.panels['alerts'] = self.alertsPnl
 
         # StdOut
         self.stdoutPnl = ScriptOutputPanel(
@@ -908,6 +930,18 @@ class RunnerOutputNotebook(aui.AuiNotebook, handlers.ThemeMixin):
         self.AddPage(
             self.stdoutPnl, caption=_translate("Stdout")
         )
+        self.panels['stdout'] = self.stdoutPnl
+
+        # Git (Pavlovia) output
+        self.gitPnl = ScriptOutputPanel(
+            parent=parent,
+            style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE
+        )
+        self.gitPnl.ctrl.Bind(wx.EVT_TEXT, self.onWrite)
+        self.AddPage(
+            self.gitPnl, caption=_translate("Pavlovia")
+        )
+        self.panels['git'] = self.gitPnl
 
         self.SetMinSize((720, 720))
 

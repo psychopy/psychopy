@@ -15,39 +15,6 @@ from psychopy.localization import _translate
 from ...tools.stringtools import valid_proj_name
 
 
-class SyncDialog(wx.Dialog):
-    def __init__(self, parent, project):
-        wx.Dialog.__init__(self, parent, title=_translate("Syncing project..."))
-        self.project = project
-        # Setup sizer
-        self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.SetSizer(self.sizer)
-        # Create status panel
-        self.status = InfoStream(self, id=wx.ID_ANY, size=(-1, -1),
-                                 value=_translate("Synchronising..."),
-                                 style=wx.TE_READONLY | wx.TE_MULTILINE)
-        self.sizer.Add(self.status, border=6, proportion=1, flag=wx.ALL | wx.EXPAND)
-        # Setup button sizer
-        self.btnSizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.sizer.Add(self.btnSizer, border=6, flag=wx.ALL | wx.EXPAND)
-        self.btnSizer.AddStretchSpacer(1)
-        # Add buttons
-        self.OKbtn = wx.Button(self, label=_translate("OK"), id=wx.ID_OK)
-        self.OKbtn.Disable()
-        self.btnSizer.Add(self.OKbtn, border=3, flag=wx.LEFT | wx.ALIGN_CENTER_VERTICAL)
-        # Layout
-        self.Layout()
-        self.Show()
-
-    def sync(self):
-        # If there's no user yet, login
-        if self.project.session.user is None:
-            functions.logInPavlovia(self)
-        # Do sync
-        self.project.sync(self.status)
-        self.OKbtn.Enable()
-
-
 class InfoStream(wx.TextCtrl):
     def __init__(self, parent, id, size,
                  value="Synchronising...",
