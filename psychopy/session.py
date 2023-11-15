@@ -1246,7 +1246,7 @@ class Session:
         if not isinstance(value, str):
             value = json.dumps(value)
         # Send
-        asyncio.run(self.liaison.broadcast(message=value))
+        self.liaison.broadcastSync(message=value)
 
     def close(self, blocking=True):
         """

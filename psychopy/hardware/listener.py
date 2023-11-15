@@ -257,4 +257,4 @@ class LiaisonListener(BaseListener):
                 'data': str(message)
             }
         # send
-        asyncio.run(self.liaison.broadcast(message))
+        self.liaison.broadcastSync(message)
