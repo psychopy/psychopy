@@ -228,6 +228,7 @@ class DeviceManager:
             True if completed successfully
         """
         device = DeviceManager.devices[deviceName]
+        DeviceManager.clearListeners(deviceName)
         if hasattr(device, "close"):
             device.close()
         del DeviceManager.devices[deviceName]
