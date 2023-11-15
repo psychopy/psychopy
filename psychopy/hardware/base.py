@@ -13,12 +13,45 @@ __all__ = [
 ]
 
 
+class BaseResponse:
+    """
+    Base class for device responses.
+    """
+    # list of fields known to be a part of this response type
+    fields = ["t", "value"]
+
+    def __init__(self, t, value):
+        self.t = t
+        self.value = value
+
+    def __repr__(self):
+        # make key=val strings
+        attrs = []
+        for key in self.fields:
+            attrs.append(f"{key}={getattr(self, key)}")
+        attrs = ", ".join(attrs)
+        # construct
+        return f"<{type(self).__name__}: {attrs}>"
+
+    def getJSON(self):
+        import json
+        # construct message as dict
+        message = {
+            'type': "hardware_response",
+            'class': type(self).__name__,
+            'data': {}
+        }
+        # add all fields to "data"
+        for key in self.fields:
+            message['data'][key] = getattr(self, key)
+
+        return json.dumps(message)
+
+
 class BaseDevice:
     """
     Base class for device interfaces, includes support for DeviceManager and adding listeners.
     """
-    listeners = []
-
     def __init_subclass__(cls, aliases=None):
         from psychopy.hardware.manager import DeviceManager
         import inspect
@@ -35,11 +68,86 @@ class BaseDevice:
 
         return cls
 
+    @staticmethod
+    def getAvailableDevices():
+        """
+        Get all available devices of this type.
+
+        Returns
+        -------
+        list[dict]
+            List of dictionaries containing the parameters needed to initialise each device.
+        """
+        raise NotImplementedError(
+            "All subclasses of BaseDevice must implement the method `getAvailableDevices`"
+        )
+
+
+class BaseResponseDevice(BaseDevice):
+
+    responseClass = BaseResponse
+
+    def __init__(self):
+        # list to store listeners in
+        self.listeners = []
+        # list to store responses in
+        self.responses = []
+
     def dispatchMessages(self):
         """
         Method to dispatch messages from the device to any nodes or listeners attached.
         """
         pass
+
+    def parseMessage(self, message):
+        raise NotImplementedError(
+            "All subclasses of BaseDevice must implement the method `parseMessage`"
+        )
+
+    def receiveMessage(self, message):
+        """
+        Method called when a parsed message is received. Includes code to send to any listeners and store the response.
+
+        Parameters
+        ----------
+        message
+            Parsed message, should be an instance of this Device's `responseClass`
+
+        Returns
+        -------
+        bool
+            True if completed successfully
+        """
+        assert isinstance(message, self.responseClass), (
+            "{ownType}.receiveMessage() can only receive messages of type {targetType}, instead received "
+            "{msgType}. Try parsing the message first using {ownType}.parseMessage()"
+        ).format(ownType=type(self).__name__, targetType=self.responseClass.__name__, msgType=type(message).__name__)
+        # add message to responses
+        self.responses.append(message)
+        # relay message to listener
+        for listener in self.listeners:
+            listener.receiveMessage(message)
+
+        return True
+
+    def clearResponses(self):
+        """
+        Clear any responses stored on this Device.
+
+        Returns
+        -------
+        bool
+            True if completed successfully
+        """
+        # try to dispatch messages
+        try:
+            self.dispatchMessages()
+        except:
+            pass
+        # clear resp list
+        self.responses = []
+
+        return True
 
     def addListener(self, listener, startLoop=False):
         """
@@ -76,6 +184,8 @@ class BaseDevice:
         if startLoop:
             listener.startLoop(self)
 
+        return listener
+
     def clearListeners(self):
         """
         Remove any listeners from this device.
@@ -92,21 +202,6 @@ class BaseDevice:
         self.listeners = []
 
         return True
-
-    @staticmethod
-    def getAvailableDevices():
-        """
-        Get all available devices of this type.
-
-        Returns
-        -------
-        list[dict]
-            List of dictionaries containing the parameters needed to initialise each device.
-        """
-        raise NotImplementedError(
-            "All subclasses of BaseDevice must implement the method `getAvailableDevices`"
-        )
-
 
 if __name__ == "__main__":
     pass
