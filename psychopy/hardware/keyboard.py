@@ -473,7 +473,8 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
                 for evt in evts:
                     response = self.parseMessage(evt)
                     # if not a key up event, receive it
-                    self.receiveMessage(response)
+                    if response is not None:
+                        self.receiveMessage(response)
 
         elif KeyboardDevice._backend == 'iohub':
             # get events from backend (need to reverse order)
@@ -482,13 +483,15 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
             # parse and receive each event
             for k in key_events:
                 kpress = self.parseMessage(k)
-                self.receiveMessage(kpress)
+                if kpress is not None:
+                    self.receiveMessage(kpress)
         else:
             global event
             name = event.getKeys(modifiers=False, timeStamped=True)
             if len(name):
                 thisKey = self.parseMessage(name[0])
-                self.receiveMessage(thisKey)
+                if thisKey is not None:
+                    self.receiveMessage(thisKey)
 
     def parseMessage(self, message):
         """
