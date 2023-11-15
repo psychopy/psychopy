@@ -149,6 +149,9 @@ class BaseResponseDevice(BaseDevice):
 
         return True
 
+    def getListenerNames(self):
+        return [type(lsnr).__name__ for lsnr in self.listeners]
+
     def addListener(self, listener, startLoop=False):
         """
         Add a listener, which will receive all the same messages as this device.
