@@ -1,7 +1,7 @@
 from psychopy.hardware import keyboard
 
 
-class TestKeyboard:
+class _TestKeyboard:
     def testReceiveMessage(self):
         # list of events to fake, time to fake them and state of getKeys outputs afterwards
         cases = [
@@ -17,16 +17,16 @@ class TestKeyboard:
             assert keys[-1].value == case['val']
 
 
-class TestIohubKeyboard(TestKeyboard):
+class TestIohubKeyboard(_TestKeyboard):
     def setup_method(self):
         self.kb = keyboard.KeyboardDevice(backend="iohub")
 
 
-class TestPtbKeyboard(TestKeyboard):
+class TestPtbKeyboard(_TestKeyboard):
     def setup_method(self):
         self.kb = keyboard.KeyboardDevice(backend="ptb")
 
 
-class TestEventKeyboard(TestKeyboard):
+class TestEventKeyboard(_TestKeyboard):
     def setup_method(self):
         self.kb = keyboard.KeyboardDevice(backend="event")
