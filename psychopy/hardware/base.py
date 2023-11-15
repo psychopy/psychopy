@@ -195,10 +195,10 @@ class BaseResponseDevice(BaseDevice):
         bool
             True if completed successfully
         """
-        # stop any dispatch loops
+        # remove listeners from loop
         for listener in self.listeners:
-            listener.stopLoop()
-        # remove all listeners
+            listener.loop.removeDevice(listener)
+        # clear list
         self.listeners = []
 
         return True

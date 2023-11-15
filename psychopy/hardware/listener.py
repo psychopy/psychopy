@@ -39,6 +39,19 @@ class ListenerLoop(threading.Thread):
         if device not in self.devices:
             self.devices.append(device)
 
+    def removeDevice(self, device):
+        """
+        Remove a device from this loop
+
+        Parameters
+        ----------
+        device : BaseDevice
+            Device to remove
+        """
+        if device in self.devices:
+            i = self.devices.index(device)
+            self.devices.pop(i)
+
     def start(self):
         """
         Start the loop polling for new messages.
@@ -162,6 +175,12 @@ class BaseListener:
             Message received.
         """
         raise NotImplementedError()
+
+    def __del__(self):
+        """
+        On deletion, remove self from loop.
+        """
+        loop.removeDevice(self)
 
 
 class PrintListener(BaseListener):
