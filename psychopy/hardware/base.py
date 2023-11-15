@@ -149,6 +149,9 @@ class BaseResponseDevice(BaseDevice):
 
         return True
 
+    def getListenerNames(self):
+        return [type(lsnr).__name__ for lsnr in self.listeners]
+
     def addListener(self, listener, startLoop=False):
         """
         Add a listener, which will receive all the same messages as this device.
@@ -195,10 +198,10 @@ class BaseResponseDevice(BaseDevice):
         bool
             True if completed successfully
         """
-        # stop any dispatch loops
+        # remove listeners from loop
         for listener in self.listeners:
-            listener.stopLoop()
-        # remove all listeners
+            listener.loop.removeDevice(listener)
+        # clear list
         self.listeners = []
 
         return True
