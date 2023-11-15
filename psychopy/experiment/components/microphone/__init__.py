@@ -340,7 +340,7 @@ class MicrophoneComponent(BaseComponent):
         # Assign name to device var name
         code = (
             "# link %(name)s to device object\n"
-            "%(name)s = %(deviceVarName)s\n"
+            "%(name)s = sound.microphone.Microphone(device='%(deviceVarName)s')\n"
         )
         buff.writeIndentedLines(code % inits)
 
