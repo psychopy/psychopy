@@ -134,8 +134,6 @@ class BaseListener:
         bool
             True if loop started successfully
         """
-        # if there's an existing loop, stop it
-        self.stopLoop()
         # set attributes of loop
         self.loop.addDevice(device)
         self.loop.refreshRate = refreshRate
@@ -145,7 +143,7 @@ class BaseListener:
 
     def stopLoop(self):
         """
-        Stop the current dispatch loop
+        Stop the dispatch loop. WARNING: Cannot be restarted.
 
         Returns
         -------
@@ -153,7 +151,6 @@ class BaseListener:
             True if loop started successfully
         """
         return self.loop.stop()
-
 
     def receiveMessage(self, message):
         """
