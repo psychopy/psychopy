@@ -439,9 +439,11 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
             # start off assuming we want the key
             wanted = True
             # if we're waiting on release, only store if it has a duration
+            wasRelease = hasattr(resp, "duration") and resp.duration is not None
             if waitRelease:
-                if not getattr(resp, "duration") or resp.duration is None:
-                    wanted = False
+                wanted = wanted and wasRelease
+            else:
+                wanted = wanted and not wasRelease
             # if we're looking for a key list, only store if it's in the list
             if keyList:
                 if resp.value not in keyList:
