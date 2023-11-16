@@ -142,12 +142,15 @@ class BaseResponseDevice(BaseDevice):
 
         Returns
         -------
-        bool
-            True if response made successfully.
+        BaseResponse
+            The response object created
         """
-        self.receiveMessage(
-            self.responseClass(*args, **kwargs)
-        )
+        # create response
+        resp = self.responseClass(*args, **kwargs)
+        # receive response
+        self.receiveMessage(resp)
+
+        return resp
 
     def clearResponses(self):
         """
