@@ -130,6 +130,25 @@ class BaseResponseDevice(BaseDevice):
 
         return True
 
+    def makeResponse(self, *args, **kwargs):
+        """
+        Programatically make a response on this device. The device won't necessarily physically register the response,
+        but it will be stored in this object same as an actual response.
+
+        Parameters
+        ----------
+        Function takes the same inputs as the response class for this device. For example, in KeyboardDevice, inputs
+        are code, tDown and name.
+
+        Returns
+        -------
+        bool
+            True if response made successfully.
+        """
+        self.receiveMessage(
+            self.responseClass(*args, **kwargs)
+        )
+
     def clearResponses(self):
         """
         Clear any responses stored on this Device.
