@@ -784,10 +784,23 @@ class AudioClip:
 
         """
         # avoid circular import
-        from psychopy.sound.transcribe import transcribe
-        return transcribe(
+        from psychopy.sound.transcribe import (
+            getActiveTranscriber,
+            setupTranscriber)
+
+        # get the active transcriber
+        transcriber = getActiveTranscriber()
+        if transcriber is None:
+            logging.warning(
+                'No active transcriber, creating one now! If this happens in '
+                'a time sensitive part of your experiment, consider creating '
+                'the transcriber before the experiment begins by calling '
+                '`psychopy.sound.transcribe.setupTranscriber()` function.'
+            )
+            setupTranscriber(engine=engine, config=config)
+
+        return transcriber.transcribe(
             self,
-            engine=engine,
             language=language,
             expectedWords=expectedWords,
             config=config)
