@@ -328,7 +328,7 @@ msgstr ""
 
 #: psychopy/app/_psychopyApp.py:654
 msgid "tips.txt"
-msgstr ""
+msgstr "tips_ar_001.txt"
 
 #: psychopy/app/_psychopyApp.py:692
 msgid "  Loading plugins..."
