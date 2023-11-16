@@ -519,6 +519,51 @@ class DeviceManager:
             device.clearListeners()
 
         return True
+
+    @staticmethod
+    def getResponseParams(deviceClass="*"):
+        """
+        Get the necessary params for initialising a response for the given device.
+
+        Parameters
+        ----------
+        deviceClass : str
+            Full import path for the class, in PsychoPy, of the device. For example
+            `psychopy.hardware.keyboard.Keyboard`. Use "*" to get for all currently imported classes.
+
+        Returns
+        -------
+        list[str]
+            List of param names for the given device's response object
+        OR
+        dict[str:list[str]]
+            Lists of param names for all devices' response objects, in a dict against device class strings
+        """
+        from psychopy.hardware.base import BaseResponseDevice, BaseDevice
+
+        if deviceClass == "*":
+            # if deviceClass is *, call for all types
+            params = {}
+            for deviceClass in DeviceManager.deviceClasses:
+                # skip base classes
+                if deviceClass in (BaseResponseDevice, BaseDevice):
+                    continue
+                params[deviceClass] = DeviceManager.getResponseParams(deviceClass)
+            return params
+
+        # resolve class string
+        deviceClass = DeviceManager._resolveAlias(deviceClass)
+        deviceClass = DeviceManager._resolveClassString(deviceClass)
+        # if device isn't a ResponseDevice, return None
+        if not issubclass(deviceClass, BaseResponseDevice):
+            return
+        # use inspect to get input params of response class
+        args = list(deviceClass.responseClass.__init__.__code__.co_varnames)
+        # remove "self" arg
+        if "self" in args:
+            args.remove("self")
+
+        return args
             
 # handle to the device manager, which is a singleton
 deviceManager = DeviceManager()
