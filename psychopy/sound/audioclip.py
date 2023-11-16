@@ -70,7 +70,7 @@ class AudioClip:
     the :class:`~psychopy.sound.Sound` class::
 
         import psychopy.core as core
-        import psyhcopy.sound as sound
+        import psychopy.sound as sound
 
         myTone = AudioClip.sine(duration=5.0)  # generate a tone
 
@@ -598,8 +598,8 @@ class AudioClip:
 
         Notes
         -----
-        * Resampling audio clip may result in distortion which is exaserbated by 
-          successive resamplings.
+        * Resampling audio clip may result in distortion which is exacerbated by
+          successive resampling.
 
         """
         import librosa
@@ -696,7 +696,7 @@ class AudioClip:
         copy : bool
             If `True` an :class:`~psychopy.sound.AudioClip` containing a copy
             of the samples will be returned. If `False`, channels will be
-            mixed inplace resulting a the same object being returned. User data
+            mixed inplace resulting in the same object being returned. User data
             is not copied.
 
         Returns
