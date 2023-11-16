@@ -807,39 +807,43 @@ msgstr "README..."
 #: psychopy/app/builder/builder.py:524
 msgid "Add or edit the text shown when your experiment is opened"
 msgstr ""
+"Hinzufügen oder Bearbeiten des Textes, der beim Öffnen Ihres Experiments "
+"angezeigt wird"
 
 #: psychopy/app/builder/builder.py:535
 msgid "&Unpack Demos..."
-msgstr ""
+msgstr "&Unpack Demos..."
 
 #: psychopy/app/builder/builder.py:537
 msgid "Unpack demos to a writable location (so that they can be run)"
 msgstr ""
+"Entpacken der Demos an einem beschreibbaren Ort (damit sie ausgeführt werden "
+"können)"
 
 #: psychopy/app/builder/builder.py:541
 msgid "Browse on Pavlovia"
-msgstr ""
+msgstr "Stöbern auf Pavlovia"
 
 #: psychopy/app/builder/builder.py:542
 msgid "Get more demos from the online demos repository on Pavlovia"
-msgstr ""
+msgstr "Weitere Demos aus dem Online-Demos-Repository auf Pavlovia"
 
 #: psychopy/app/builder/builder.py:547
 msgid "Open demos folder"
-msgstr ""
+msgstr "Ordner \"Demos\" öffnen"
 
 #: psychopy/app/builder/builder.py:548
 msgid "Open the local folder where demos are stored"
-msgstr ""
+msgstr "Öffnen Sie den lokalen Ordner, in dem die Demos gespeichert sind"
 
 #: psychopy/app/builder/builder.py:554 psychopy/app/coder/coder.py:1707
 #: psychopy/app/runner/runner.py:209
 msgid "&Demos"
-msgstr ""
+msgstr "&Demos"
 
 #: psychopy/app/builder/builder.py:558 psychopy/app/coder/coder.py:1735
 msgid "&Pavlovia.org"
-msgstr ""
+msgstr "&Pavlovia.org"
 
 #: psychopy/app/builder/builder.py:562 psychopy/app/coder/coder.py:1740
 #: psychopy/app/runner/runner.py:213
@@ -848,229 +852,238 @@ msgstr ""
 
 #: psychopy/app/builder/builder.py:566 psychopy/app/coder/coder.py:1744
 msgid "&Help"
-msgstr ""
+msgstr "&Hilfe"
 
 #: psychopy/app/builder/builder.py:570 psychopy/app/coder/coder.py:1746
 msgid "&PsychoPy Homepage"
-msgstr ""
+msgstr "&PsychoPy Homepage"
 
 #: psychopy/app/builder/builder.py:571 psychopy/app/coder/coder.py:1747
 msgid "Go to the PsychoPy homepage"
-msgstr ""
+msgstr "Zur PsychoPy Homepage"
 
 #: psychopy/app/builder/builder.py:575
 msgid "&PsychoPy Builder Help"
-msgstr ""
+msgstr "&PsychoPy Builder Hilfe"
 
 #: psychopy/app/builder/builder.py:577
 msgid "Go to the online documentation for PsychoPy Builder"
-msgstr ""
+msgstr "Zur Online-Dokumentation PsychoPy Builder"
 
 #: psychopy/app/builder/builder.py:584 psychopy/app/coder/coder.py:1762
 msgid "&System Info..."
-msgstr ""
+msgstr "&System-Information..."
 
 #: psychopy/app/builder/builder.py:585 psychopy/app/coder/coder.py:1763
 msgid "Get system information."
-msgstr ""
+msgstr "System-Information abfragen."
 
 #: psychopy/app/builder/builder.py:590 psychopy/app/coder/coder.py:1768
 msgid "&About..."
-msgstr ""
+msgstr "&Über..."
 
 #: psychopy/app/builder/builder.py:590 psychopy/app/coder/coder.py:1769
-#, fuzzy
-#| msgid "Welcome to PsychoPy2!"
 msgid "About PsychoPy"
-msgstr "Willkommen auf PsychoPy2!"
+msgstr "Über PsychoPy"
 
 #: psychopy/app/builder/builder.py:593 psychopy/app/coder/coder.py:1773
 msgid "&News..."
-msgstr ""
+msgstr "&Neuigkeiten..."
 
 #: psychopy/app/builder/builder.py:594 psychopy/app/coder/coder.py:1774
 msgid "News"
-msgstr ""
+msgstr "Neuigkeiten"
 
 #: psychopy/app/builder/builder.py:707 psychopy/app/builder/builder.py:801
 msgid "PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*.*"
-msgstr ""
+msgstr "PsychoPy Experiments (*.psyexp)|*.psyexp|beliebige Datei (*.*)|*.*"
 
 #: psychopy/app/builder/builder.py:709 psychopy/app/builder/builder.py:803
 msgid "PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*"
-msgstr ""
+msgstr "PsychoPy Experiments (*.psyexp)|*.psyexp|beliebige Datei (*.*)|*"
 
 #: psychopy/app/builder/builder.py:716
 #: psychopy/app/builder/dialogs/__init__.py:1701
 #: psychopy/app/coder/coder.py:2350
 msgid "Open file ..."
-msgstr ""
+msgstr "Datei öffnen ..."
 
 #: psychopy/app/builder/builder.py:806 psychopy/app/coder/coder.py:2489
 msgid "Save file as ..."
-msgstr ""
+msgstr "Speichern als ..."
 
 #: psychopy/app/builder/builder.py:859
 msgid "Please save experiment before editing the README file"
-msgstr ""
+msgstr "Bitte Experiment vor Bearbeitung der README-Datei speichern"
 
 #: psychopy/app/builder/builder.py:860
 msgid "No readme file"
-msgstr ""
+msgstr "Keine Readme-Datei"
 
 #: psychopy/app/builder/builder.py:952
 #, python-format
 msgid "Experiment %s has changed. Save before quitting?"
-msgstr ""
+msgstr "Experiment %s hat sich geändert. Vor dem Beenden speichern?"
 
 #: psychopy/app/builder/builder.py:1055 psychopy/app/coder/coder.py:2837
 msgid "Are you sure you want to reset your preferences? This cannot be undone."
 msgstr ""
+"Sind Sie sicher, dass Sie Ihre Einstellungen zurücksetzen wollen? Dies kann "
+"nicht rückgängig gemacht werden."
 
 #: psychopy/app/builder/builder.py:1060 psychopy/app/coder/coder.py:2841
 msgid "I'm sure"
-msgstr ""
+msgstr "Ich bin sicher"
 
 #: psychopy/app/builder/builder.py:1061 psychopy/app/coder/coder.py:2842
 msgid "Wait, go back!"
-msgstr ""
+msgstr "Warte, zurück!"
 
 #: psychopy/app/builder/builder.py:1070 psychopy/app/coder/coder.py:2851
 msgid ""
 "Done! Your preferences have been reset. Changes will be applied when you "
 "next open PsychoPy."
 msgstr ""
+"Erledigt! Ihre Einstellungen wurden zurückgesetzt. Die Änderungen werden "
+"übernommen, wenn Sie PsychoPy das nächste Mal öffnen."
 
 #: psychopy/app/builder/builder.py:1189
 #, python-format
 msgid "Undo %(action)s\t%(key)s"
-msgstr ""
+msgstr "Rückgängig %(action)s\t%(key)s"
 
 #: psychopy/app/builder/builder.py:1204
 #, python-format
 msgid "Redo %(action)s\t%(key)s"
-msgstr ""
+msgstr "Wiederholen  %(action)s\t%(key)s"
 
 #: psychopy/app/builder/builder.py:1217
 msgid "Location to unpack demos"
-msgstr ""
+msgstr "Ort zum Auspacken der Demos"
 
 #: psychopy/app/builder/builder.py:1295 psychopy/app/builder/builder.py:2465
 #, python-format
 msgid "New name for copy of \"%(copied)s\"?  [%(default)s]"
-msgstr ""
+msgstr "Neue Name für Kopie von \"%(copied)s\"?  [%(default)s]"
 
 #: psychopy/app/builder/builder.py:1299
 msgid "Paste Routine"
-msgstr ""
+msgstr "Einfügen Routine"
 
 #: psychopy/app/builder/builder.py:1371
 msgid "What is the new name for the Routine?"
-msgstr ""
+msgstr "Wie lautet der neue Name für die Routine?"
 
 #: psychopy/app/builder/builder.py:1373 psychopy/app/coder/fileBrowser.py:97
 msgid "Rename"
-msgstr ""
+msgstr "Umbenennen"
 
 #: psychopy/app/builder/builder.py:1600
 #: psychopy/app/builder/dialogs/__init__.py:1988
 msgid "What is the name for the new Routine? (e.g. instr, trial, feedback)"
 msgstr ""
+"Wie lautet der Name für die neue Routine? (z. B., instr, trial, feedback)"
 
 #: psychopy/app/builder/builder.py:1630
 msgid "Do you want to remove routine '{}' from the experiment?"
-msgstr ""
+msgstr "Do you want to remove routine '{}' from the experiment?"
 
 #: psychopy/app/builder/builder.py:1636
 msgid "Remove routine?"
-msgstr ""
+msgstr "Routine entfernen?"
 
 #: psychopy/app/builder/builder.py:1876 psychopy/app/preferencesDlg.py:100
 msgid "paste"
-msgstr ""
+msgstr "einfügen"
 
 #: psychopy/app/builder/builder.py:2415
 msgid "Routine settings"
-msgstr ""
+msgstr "Einstellungen Routine"
 
 #: psychopy/app/builder/builder.py:2469
 msgid "Paste Component"
-msgstr ""
+msgstr "Einfügen Komponente"
 
 #: psychopy/app/builder/builder.py:2580
 msgid "Help"
-msgstr ""
+msgstr "Hilfe"
 
 #: psychopy/app/builder/builder.py:2713
 msgid "Cannot add component, experiment has no routines."
-msgstr ""
+msgstr "Kann keine Komponente hinzufügen, das Experiment hat keine Routinen."
 
 #: psychopy/app/builder/builder.py:2714 psychopy/app/preferencesDlg.py:844
 msgid "Error"
-msgstr ""
+msgstr "Fehler"
 
 #: psychopy/app/builder/builder.py:2898 psychopy/app/pavlovia_ui/project.py:914
 #: psychopy/app/pavlovia_ui/search.py:413 psychopy/app/pavlovia_ui/sync.py:35
 #: psychopy/app/pavlovia_ui/sync.py:130
 msgid "OK"
-msgstr ""
+msgstr "OK"
 
 #: psychopy/app/builder/builder.py:2941
 msgid "Get more..."
-msgstr ""
+msgstr "Mehr erfahren..."
 
 #: psychopy/app/builder/builder.py:2942
 msgid "Add new components and features via plugins."
-msgstr ""
+msgstr "Fügen Sie neue Komponenten und Funktionen über Plugins hinzu."
 
 #: psychopy/app/builder/builder.py:2948
 msgid "Filter components by whether they work with PsychoJS, PsychoPy or both."
 msgstr ""
+"Filtern Sie Komponenten danach, ob sie mit PsychoJS, PsychoPy oder beidem "
+"arbeiten."
 
 #: psychopy/app/builder/builder.py:3227 psychopy/app/utils.py:495
 msgid "Edit"
-msgstr ""
+msgstr "Editieren"
 
 #: psychopy/app/builder/builder.py:3230
 #, python-format
 msgid "&Close readme\t%s"
-msgstr ""
+msgstr "&Schließe readme\t%s"
 
 #: psychopy/app/builder/builder.py:3324 psychopy/app/builder/builder.py:3447
 msgid "Insert Routine"
-msgstr ""
+msgstr "Einfügen Routine"
 
 #: psychopy/app/builder/builder.py:3331 psychopy/app/builder/builder.py:3449
 msgid "Insert Loop"
-msgstr ""
+msgstr "Einfügen Schleife"
 
 #: psychopy/app/builder/builder.py:3395
 msgid "rename"
-msgstr ""
+msgstr "Umbenennen"
 
 #: psychopy/app/builder/builder.py:3478
 msgid "Select a Routine to insert (Esc to exit)"
-msgstr ""
+msgstr "Routine zum einfügen auswählen (Esc zum Verlassen)"
 
 #: psychopy/app/builder/builder.py:3518
 msgid "CANCEL Insert"
-msgstr ""
+msgstr "Abbruch Einfügen"
 
 #: psychopy/app/builder/builder.py:3520
 msgid "Click where you want to insert the Routine, or CANCEL insert."
 msgstr ""
+"Klicken Sie auf die Stelle, an der Sie die Routine einfügen möchten, oder "
+"brechen Sie das Einfügen ab."
 
 #: psychopy/app/builder/builder.py:3551
 msgid "CANCEL insert"
-msgstr ""
+msgstr "Abbruch Einfügen"
 
 #: psychopy/app/builder/builder.py:3554
 msgid "Click where you want the loop to start/end, or CANCEL insert."
 msgstr ""
+"Klicken Sie auf die Stelle, an der die Schleife beginnen/enden soll, oder "
+"brechen Sie das Einfügen ab."
 
 #: psychopy/app/builder/builder.py:3563
 msgid "Click the other end for the loop"
-msgstr ""
+msgstr "Klicken Sie auf das andere Ende für die Schleife"
 
 #: psychopy/app/builder/builder.py:3815
 #, python-format
