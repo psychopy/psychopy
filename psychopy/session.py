@@ -929,7 +929,7 @@ class Session:
         # Hide Window message
         self.win.hideMessage()
         # Setup window for this experiment
-        self.setupWindowFromExperiment(key=key)
+        self.setupWindowFromExperiment(expInfo=expInfo, key=key)
         self.win.flip()
         self.win.flip()
         # Hold all autodraw stimuli

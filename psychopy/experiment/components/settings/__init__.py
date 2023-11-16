@@ -1674,6 +1674,12 @@ class SettingsComponent:
             "    win.backgroundImage = %(backgroundImg)s\n"
             "    win.backgroundFit = %(backgroundFit)s\n"
             "    win.units = %(Units)s\n"
+            "    if expInfo is not None and 'frameRate' not in expInfo:\n"
+            "        if win._monitorFrameRate is None:\n"
+            "            # if no frame rate measured, measure it now\n"
+            "                win.getActualFrameRate()"
+            "        # store frame rate of monitor\n"
+            "        expInfo['frameRate'] = win._monitorFrameRate\n"
         )
         buff.writeIndentedLines(code % params)
 
