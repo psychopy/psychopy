@@ -194,6 +194,18 @@ class TestSession:
         assert 'insertedKey' in expInfo
         assert expInfo['insertedKey'] == "insertedValue"
 
+    def test_get_frame_rate(self):
+        """
+        Test getting the frame rate of the monitor.
+        """
+        # get frame rate forcing retest
+        fr1 = self.sess.getFrameRate(retest=True)
+        print(fr1)
+        assert isinstance(fr1, (float, int))
+        # get frame rate again without a retest and confirm it's the same
+        fr2 = self.sess.getFrameRate(retest=False)
+        assert fr1 == fr2
+
     # def test_error(self, capsys):
     #     """
     #     Check that an error in an experiment doesn't interrupt the session.
