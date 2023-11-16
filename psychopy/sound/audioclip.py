@@ -28,6 +28,7 @@ from pathlib import Path
 import numpy as np
 import soundfile as sf
 from psychopy import prefs
+from psychopy import logging
 from psychopy.tools.audiotools import *
 from psychopy.tools import filetools as ft
 from .exceptions import *
@@ -798,6 +799,7 @@ class AudioClip:
                 '`psychopy.sound.transcribe.setupTranscriber()` function.'
             )
             setupTranscriber(engine=engine, config=config)
+            transcriber = getActiveTranscriber()  # get again
 
         return transcriber.transcribe(
             self,
