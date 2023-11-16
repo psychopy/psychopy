@@ -107,9 +107,11 @@ msgid ""
 "experiment script."
 msgstr ""
 
+# "parameter" needs to be checked
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:63
+#, fuzzy
 msgid "Cannot calculate parameter."
-msgstr ""
+msgstr "لا يمكن حساب المتغير "
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:67
 #, python-brace-format
