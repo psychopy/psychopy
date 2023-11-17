@@ -336,11 +336,11 @@ class MicrophoneComponent(BaseComponent):
     def writeInitCode(self, buff):
         inits = getInitVals(self.params)
         # Get device names
-        inits['deviceVarName'] = getDeviceVarName(inits['device'].val)
+        inits['deviceName'] = getDeviceName(inits['device'].val)
         # Assign name to device var name
         code = (
             "# link %(name)s to device object\n"
-            "%(name)s = sound.microphone.Microphone(device='%(deviceVarName)s')\n"
+            "%(name)s = sound.microphone.Microphone(device='%(deviceName)s')\n"
         )
         buff.writeIndentedLines(code % inits)
 
@@ -646,6 +646,8 @@ def getDeviceName(index):
         Index of the device to use
     """
     name = "defaultMicrophone"
+    if isinstance(index, str) and index.isnumeric():
+        index = int(index)
     for dev in syst.getAudioCaptureDevices():
         if dev['index'] == index:
             name = dev['name']

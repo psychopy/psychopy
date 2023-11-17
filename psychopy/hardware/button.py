@@ -1,4 +1,6 @@
 import json
+
+from psychopy import logging
 from psychopy.hardware import base
 
 
@@ -15,10 +17,9 @@ class ButtonResponse(base.BaseResponse):
 
 class BaseButtonGroup(base.BaseResponseDevice):
     responseClass = ButtonResponse
-    def __init__(self, parent, channels=1):
+
+    def __init__(self, channels=1):
         base.BaseResponseDevice.__init__(self)
-        # store reference to parent device (usually a button box)
-        self.parent = parent
         # store number of channels
         self.channels = channels
         # attribute in which to store current state
@@ -26,19 +27,14 @@ class BaseButtonGroup(base.BaseResponseDevice):
 
     def dispatchMessages(self):
         """
-        Request this ButtonGroup's parent (such as the serialport object or BBTK TPad) to dispatch messages to it.
+        Dispatch messages - this could mean pulling them from a backend, or from a parent device
 
         Returns
         -------
         bool
-            True if request sent successfully, False if parent doesn't have a dispatch method
+            True if request sent successfully
         """
-        # return False if parent has no such method
-        if not hasattr(self.parent, "dispatchMessages"):
-            return False
-        # otherwise dispatch and return
-        self.parent.dispatchMessages()
-        return True
+        raise NotImplementedError()
 
     def parseMessage(self, message):
         raise NotImplementedError()
@@ -87,6 +83,9 @@ class BaseButtonGroup(base.BaseResponseDevice):
                     matches.append(resp)
 
         return matches
+
+    def resetTimer(self, clock=logging.defaultClock):
+        raise NotImplementedError()
 
     def getState(self, channel):
         # dispatch messages from device
