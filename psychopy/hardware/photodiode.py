@@ -30,9 +30,9 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
         if threshold is not None:
             self.setThreshold(threshold)
         # store position params
+        self.units = units
         self.pos = pos
         self.size = size
-        self.units = units
 
     def dispatchMessages(self):
         """
@@ -54,7 +54,8 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
         # update state
         self.state[message.channel] = message.value
 
-    def getAvailableDevices(self):
+    @staticmethod
+    def getAvailableDevices():
         raise NotImplementedError()
 
     def getResponses(self, state=None, channel=None, clear=True):
@@ -355,6 +356,95 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
 
 class PhotodiodeValidationError(BaseException):
     pass
+
+
+class ScreenBufferSampler(BasePhotodiodeGroup):
+    def __init__(self, win, threshold=None, pos=None, size=None, units=None):
+        # store win
+        self.win = win
+        # default rect
+        self.rect = None
+        # initialise base class
+        BasePhotodiodeGroup.__init__(
+            self, channels=1, threshold=threshold, pos=pos, size=size, units=units
+        )
+        # make clock
+        from psychopy.core import Clock
+        self.clock = Clock()
+
+    def setThreshold(self, threshold):
+        self._threshold = threshold
+
+    def dispatchMessages(self):
+        """
+        Check the screen for changes and dispatch events as appropriate
+        """
+        # get rect
+        left, bottom = self._pos.pix + self.win.size / 2
+        w, h = (10, 10)
+        left = int(left - w / 2)
+        bottom = int(bottom - h / 2)
+        # get GL context
+        gl = self.win.backend.GL
+        # todo: read front buffer for specified area
+        # todo: work out whether it's brighter than threshold
+        brightness = sum(pixels) / (h*w*3)
+        state = brightness > (255 - self._threshold)
+        # if state has changed, make an event
+        if state != self.state[0]:
+            resp = PhotodiodeResponse(
+                t=self.clock.getTime() + self.win.monitorFramePeriod,
+                value=state,
+                channel=0,
+                threshold=self._threshold
+            )
+            self.receiveMessage(resp)
+
+    def parseMessage(self, message):
+        """
+        Events are created as PhotodiodeResponses, so parseMessage is not needed for
+        ScreenBufferValidator. Will return message unchanged.
+        """
+        return message
+
+    @staticmethod
+    def getAvailableDevices():
+        raise None
+
+    def resetTimer(self, clock=logging.defaultClock):
+        self.clock.reset(clock.getTime())
+
+    @property
+    def pos(self):
+        return getattr(self._pos, self.units)
+
+    @pos.setter
+    def pos(self, value):
+        self._pos = layout.Position(
+            value, self.units, win=self.win
+        )
+
+    @property
+    def size(self):
+        return getattr(self._size, self.units)
+
+    @size.setter
+    def size(self, value):
+        self._size = layout.Size(
+            value, self.units, win=self.win
+        )
+
+    @property
+    def units(self):
+        units = None
+        if hasattr(self, "_units"):
+            units = self._units
+        if units is None:
+            return self.win.units
+
+    @units.setter
+    def units(self, value):
+        self._units = value
 
 
 class PhotodiodeValidator:

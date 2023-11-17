@@ -150,8 +150,8 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine):
         ]
         self.params['backend'] = Param(
             backend, valType="code", inputType="choice", categ="Device",
-            allowedVals=["bbtk-tpad"],
-            allowedLabels=["Black Box Toolkit (BBTK) TPad"],
+            allowedVals=["bbtk-tpad", "debug"],
+            allowedLabels=["Black Box Toolkit (BBTK) TPad", "Screen Buffer (Debug Mode)"],
             label=_translate("Photodiode type"),
             hint=_translate(
                 "Type of photodiode to use."
@@ -215,6 +215,8 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine):
         # make deviceClass string
         if self.params['backend'] == "bbtk-tpad":
             inits['deviceClass'] = "psychopy_bbtk.tpad.TPadPhotodiodeGroup"
+        elif self.params['backend'] == "debug":
+            inits['deviceClass'] = "psychopy.hardware.photodiode.ScreenBufferSampler"
         else:
             raise NotImplementedError(f"Backend %(backend)s is not supported." % self.params)
         # initialise diode device
@@ -225,8 +227,17 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine):
             "    %(deviceName)s = deviceManager.addDevice(\n"
             "        deviceClass='%(deviceClass)s',\n"
             "        deviceName='%(deviceName)s',\n"
+        )
+        if self.params['backend'] == "bbtk-tpad":
+            code += (
             "        pad=%(port)s,\n"
             "        channels=2\n"
+            )
+        elif self.params['backend'] == "debug":
+            code += (
+            "        win=win\n"
+            )
+        code += (
             "    )\n"
         )
         buff.writeOnceIndentedLines(code % inits)
