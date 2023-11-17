@@ -2041,11 +2041,12 @@ msgstr ""
 
 #: psychopy/app/builder/localizedStrings.py:165
 msgid "one of your Components, Routines, or condition parameters"
-msgstr ""
+msgstr "eine Ihrer Komponenten, Routinen oder Bedingungsparameter"
 
 #: psychopy/app/builder/localizedStrings.py:167
 msgid " Avoid `this`, `these`, `continue`, `Clock`, or `component` in name"
 msgstr ""
+" Vermeiden Sie `this`, `these`, `continue`, `Clock` oder `component` im Namen"
 
 #: psychopy/app/builder/localizedStrings.py:168
 msgid "Builder variable"
@@ -2163,12 +2164,16 @@ msgstr ""
 #, python-brace-format
 msgid "That name is in use (by {used}). Try another name."
 msgstr ""
+"Dieser Name wird bereits verwendet (von {used}). Versuchen Sie einen anderen "
+"Namen."
 
 #: psychopy/app/builder/validators.py:393
 msgid ""
 "Name can only contain letters, numbers and underscores (_), no spaces or "
 "other symbols"
 msgstr ""
+"Der Name darf nur Buchstaben, Zahlen und Unterstriche (_) enthalten, keine "
+"Leerzeichen oder andere Symbole"
 
 #: psychopy/app/builder/validators.py:494
 #, python-brace-format
@@ -2176,25 +2181,31 @@ msgid ""
 "Font `{val}` not found locally, will attempt to retrieve from Google Fonts "
 "when this experiment next runs"
 msgstr ""
+"Schriftart `{val}` nicht lokal gefunden, versucht bei der nächsten "
+"Ausführung dieses Experiments, sie von Google Fonts abzurufen"
 
 #: psychopy/app/builder/validators.py:513
 msgid "Python syntax error in field `{}`:  {}"
-msgstr ""
+msgstr "Python-Syntaxfehler im Feld `{}`:  {}"
 
 #: psychopy/app/builder/validators.py:528
 #, python-brace-format
 msgid ""
 "Looks like your variable '{code}' in '{displayName}' should be set to update."
 msgstr ""
+"Es sieht so aus, als ob Ihre Variable '{code}' in '{displayName}' auf Update "
+"gesetzt werden sollte."
 
 #: psychopy/app/builder/validators.py:548
 msgid "Python var `{}` in `{}` is same as Name"
-msgstr ""
+msgstr "Python var `{}` in `{}` ist identisch mit Name"
 
 #: psychopy/app/builder/validators.py:571
 #, python-brace-format
 msgid "Variable name ${newName} is in use (by {used}). Try another name."
 msgstr ""
+"Der Variablenname ${newName} wird bereits verwendet (von {used}). Versuchen "
+"Sie einen anderen Namen."
 
 #: psychopy/app/coder/codeEditorBase.py:112
 msgid "Cut"
