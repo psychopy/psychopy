@@ -7221,7 +7221,7 @@ msgstr "PsychoPy 监控中心"
 
 #: ../preferences/hints.py:13
 msgid "which system to use as a backend for drawing"
-msgstr "使用哪个系统作为绘图后台"
+msgstr "使用哪个系统作为绘图后端"
 
 #: ../preferences/hints.py:16
 msgid "the default units for windows and visual stimuli"
