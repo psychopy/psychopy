@@ -104,34 +104,13 @@ class ButtonBoxComponent(BaseComponent):
         self.order += [
             "deviceBackend",
         ]
-
-        def getBackendKeys():
-            backends = []
-            # iterate through backend classes
-            for cls in ButtonBoxComponent.backends:
-                if hasattr(cls, "key"):
-                    # use its key if possible
-                    backends.append(cls.key)
-                else:
-                    # use its name otherwise
-                    backends.append(cls.__name__)
-            return backends
-
-        def getBackendLabels():
-            labels = []
-            # iterate through backend classes
-            for cls in ButtonBoxComponent.backends:
-                if hasattr(cls, "label"):
-                    # use its key if possible
-                    labels.append(cls.label)
-                else:
-                    # use its name otherwise
-                    labels.append(cls.__name__)
-            return labels
-
+        # activate plugins so backends are available
+        from psychopy.plugins import activatePlugins
+        activatePlugins()
         self.params['deviceBackend'] = Param(
             deviceBackend, valType="str", inputType="choice", categ="Device",
-            allowedVals=getBackendKeys, allowedLabels=getBackendLabels,
+            allowedVals=[getattr(cls, 'key', cls.__name__) for cls in self.backends],
+            allowedLabels=[getattr(cls, 'label', cls.__name__) for cls in self.backends],
             label=_translate("Device backend"),
             hint=_translate(
                 "What kind of button box is it? What package/plugin should be used to talk to it?"
