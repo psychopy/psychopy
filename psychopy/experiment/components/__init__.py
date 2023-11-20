@@ -66,8 +66,10 @@ def addComponent(compClass):
     if not issubclass(compClass, (BaseComponent, BaseVisualComponent)):
         logging.warning(
             "Component `{}` does not appear to be a subclass of "
-            "`psychopy.experiment.components._base.BaseComponent`. This may not"
-            " work correcty.".format(compName))
+            "`psychopy.experiment.components._base.BaseComponent`. This will be skipped."
+            .format(compName)
+        )
+        return
     elif not hasattr(compClass, 'categories'):
         logging.warning(
             "Component `{}` does not define a `.categories` attribute.".format(
@@ -242,8 +244,7 @@ def getComponents(folder=None, fetchIcons=True):
         for attrib in dir(module):
             name = None
             # fetch the attribs that end with 'Component'
-            if (attrib.endswith('omponent') and
-                    attrib not in excludeComponents):
+            if attrib.endswith('omponent') and attrib not in excludeComponents:
                 name = attrib
                 components[attrib] = getattr(module, attrib)
 
