@@ -201,6 +201,7 @@ class Keyboard(ioHubDeviceView):
 
     def __init__(self, ioclient, dev_cls_name, dev_config):
         super(Keyboard, self).__init__(ioclient, 'client.Keyboard', dev_cls_name, dev_config)
+        self.clock = Computer.global_clock
         self._events = dict()
         self._reporting = self.isReportingEvents()
         self._pressed_keys = {}

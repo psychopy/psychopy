@@ -9,18 +9,7 @@ from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy.experiment import valid_var_re
 from psychopy.experiment import CodeGenerationException, valid_var_re
-from psychopy.localization import _localized as __localized
-_localized = __localized.copy()
 import re
-
-# only use _localized values for label values, nothing functional:
-_localized.update({'saveJoystickState': _translate('Save joystick state'),
-                   'forceEndRoutineOnPress': _translate('End Routine on press'),
-                   'timeRelativeTo': _translate('Time relative to'),
-                   'Clickable stimuli': _translate('Clickable stimuli'),
-                   'Store params for clicked': _translate('Store params for clicked'),
-                   'deviceNumber': _translate('Device number'),
-                   'allowedButtons': _translate('Allowed Buttons')})
 
 
 class JoystickComponent(BaseComponent):

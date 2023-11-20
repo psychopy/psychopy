@@ -13,12 +13,15 @@ __all__ = [
     'transcribe',
     'TRANSCR_LANG_DEFAULT',
     'BaseTranscriber',
-    # 'WhisperTranscriber',
     'recognizerEngineValues',
     'recognizeSphinx',
     'recognizeGoogle',
-    'recognizeWhisper',
-    'getAllTranscribers'
+    'getAllTranscriberInterfaces',
+    'getTranscriberInterface',
+    'setupTranscriber',
+    'getActiveTranscriber',
+    'getActiveTranscriberEngine',
+    'submit'
 ]
 
 import json
@@ -80,6 +83,25 @@ recognizerEngineValues = {
     1: ('google', "Google Cloud Speech API", "Online, Key Required"),
     2: ('whisper', "OpenAI Whisper", "Offline, Built-in")
 }
+
+# the active transcriber interface
+_activeTranscriber = None
+
+
+# ------------------------------------------------------------------------------
+# Exceptions for the speech recognition interface
+#
+
+class TranscriberError(Exception):
+    """Base class for transcriber exceptions.
+    """
+    pass
+
+
+class TranscriberNotSetupError(TranscriberError):
+    """Exception raised when a transcriber interface has not been setup.
+    """
+    pass
 
 
 # ------------------------------------------------------------------------------
@@ -149,6 +171,9 @@ class TranscriptionResult:
 
     def __str__(self):
         return " ".join(self._words)
+
+    def __json__(self):
+        return str(self)
 
     @property
     def wordCount(self):
@@ -354,7 +379,21 @@ class BaseTranscriber:
             Transcription result object.
 
         """
-        return NULL_TRANSCRIPTION_RESULT
+        self._lastResult = NULL_TRANSCRIPTION_RESULT  # dummy value
+
+        return self._lastResult
+
+    def unload(self):
+        """Unload the transcriber interface.
+
+        This method is called when the transcriber interface is no longer
+        needed. This is useful for freeing up resources used by the transcriber
+        interface.
+
+        This might not be available on all transcriber interfaces.
+
+        """
+        pass
 
 
 class PocketSphinxTranscriber(BaseTranscriber):
@@ -629,11 +668,15 @@ class GoogleCloudTranscriber(BaseTranscriber):
 # Functions
 #
 
-def getAllTranscribers(engineKeys=False):
+def getAllTranscriberInterfaces(engineKeys=False):
     """Get all available transcriber interfaces.
 
     Transcriber interface can be implemented in plugins. When loaded, this 
     function will return them. 
+
+    It is not recommended to work with transcriber interfaces directly. Instead,
+    setup a transcriber interface using `setupTranscriber()` and use
+    `submit()` to perform transcriptions.
 
     Parameters
     ----------
@@ -677,6 +720,153 @@ def getAllTranscribers(engineKeys=False):
             toReturn[interface._engine] = interface
 
     return toReturn
+
+
+def getTranscriberInterface(engine):
+    """Get a transcriber interface by name.
+
+    It is not recommended to work with transcriber interfaces directly. Instead,
+    setup a transcriber interface using `setupTranscriber()` and use
+    `submit()` to perform transcriptions.
+
+    Parameters
+    ----------
+    engine : str
+        Name of the transcriber interface to get.
+
+    Returns
+    -------
+    Subclass of `BaseTranscriber`
+        Transcriber interface.
+
+    Examples
+    --------
+    Get a transcriber interface and initalize it::
+
+        whisperInterface = getTranscriberInterface('whisper')
+        # initialize it
+        transcriber = whisperInterface({'device': 'cuda'})
+    
+    """
+    transcribers = getAllTranscriberInterfaces(engineKeys=True)
+
+    try:
+        transcriber = transcribers[engine]
+    except KeyError:
+        raise ValueError(
+            f"Transcriber with engine name `{engine}` not found.")
+
+    return transcriber
+
+
+def setupTranscriber(engine, config=None):
+    """Setup a transcriber interface.
+
+    Calling this function will instantiate a transcriber interface and perform
+    any necessary setup steps. This function is useful for performing the
+    initialization step without blocking the main thread during a time-sensitive
+    part of the experiment.
+
+    You can only instantiate a single transcriber interface at a time. Calling
+    this function will replace the existing transcriber interface if one is
+    already setup.
+
+    Parameters
+    ----------
+    engine : str
+        Name of the transcriber interface to setup.
+    config : dict or None
+        Options to configure the speech-to-text engine during initialization.
+    
+    """
+    engine = engine.lower()  # make lower case
+
+    global _activeTranscriber
+    if _activeTranscriber is not None:
+        oldInterface = _activeTranscriber.engine
+        logging.warning(
+            "Transcriber interface already setup, replacing existing "
+            "interface `{}` with `{}`".format(oldInterface, engine))
+
+        # unload the model if the interface supports it
+        if hasattr(_activeTranscriber, 'unload'):
+            _activeTranscriber.unload()
+
+        _activeTranscriber = None
+
+    logging.debug(f"Setting up transcriber `{engine}` with options `{config}`.")
+    transcriber = getTranscriberInterface(engine)
+    _activeTranscriber = transcriber(config)  # init the transcriber
+
+
+def getActiveTranscriber():
+    """Get the currently active transcriber interface instance.
+
+    Should return a subclass of `BaseTranscriber` upon a successful call to
+    `setupTranscriber()`, otherwise `None` is returned.
+
+    Returns
+    -------
+    Subclass of `BaseTranscriber` or None
+        Active transcriber interface instance, or `None` if none is active.
+
+    """
+    global _activeTranscriber
+    return _activeTranscriber
+
+
+def getActiveTranscriberEngine():
+    """Get the name currently active transcriber interface.
+
+    Should return a string upon a successful call to `setupTranscriber()`, 
+    otherwise `None` is returned.
+
+    Returns
+    -------
+    str or None
+        Name of the active transcriber interface, or `None` if none is active.
+
+    """
+    activeTranscriber = getActiveTranscriber()
+    if activeTranscriber is None:
+        return None
+
+    return activeTranscriber.engine
+
+
+def submit(audioClip, config=None):
+    """Submit an audio clip for transcription.
+
+    This will begin the transcription process using the currently loaded 
+    transcriber and return when completed. Unlike `transcribe`, not calling 
+    `setupTranscriber` before calling this function will raise an exception.
+
+    Parameters
+    ----------
+    audioClip : :class:`~psychopy.sound.AudioClip` or tuple
+        Audio clip containing speech to transcribe (e.g., recorded from a
+        microphone). Can be either an :class:`~psychopy.sound.AudioClip` object
+        or tuple where the first value is as a Nx1 or Nx2 array of audio
+        samples (`ndarray`) and the second the sample rate (`int`) in Hertz
+        (e.g., `(samples, 48000)`).
+    config : dict or None
+        Additional configuration options for the specified engine. These
+        are specified using a dictionary (ex. `config={'pfilter': 1}` will
+        enable the profanity filter when using the `'google'` engine).
+
+    Returns
+    -------
+    TranscriptionResult
+        Result of the transcription.
+
+    """
+    global _activeTranscriber
+    if getActiveTranscriberEngine() is None:
+        raise TranscriberNotSetupError(
+            "No transcriber interface has been setup, call `setupTranscriber` "
+            "before calling `submit`.")
+
+    return _activeTranscriber.transcribe(audioClip, config=config)
 
 
 def transcribe(audioClip, engine='whisper', language='en-US', expectedWords=None,
@@ -804,6 +994,20 @@ def transcribe(audioClip, engine='whisper', language='en-US', expectedWords=None
     # check if the engine parameter is valid
     engine = engine.lower()  # make lower case
 
+    if config is None:
+        config = {}
+
+    global _activeTranscriber
+    if _activeTranscriber is None:
+        logging.warning(
+            "Called `transcribe` before calling `setupTranscriber`. The "
+            "transcriber interface will be initialized now. If this is a "
+            "time sensitive part of your experiment, consider calling "
+            "`setupTranscriber` before any experiment routine begins.")
+        setupTranscriber(engine, config=config)
+
+        return NULL_TRANSCRIPTION_RESULT
+
     # check if we have necessary keys
     if engine in ('google',):
         alert(4615, strFields={'engine': engine})
@@ -813,44 +1017,24 @@ def transcribe(audioClip, engine='whisper', language='en-US', expectedWords=None
         samples, sampleRateHz = audioClip
         audioClip = AudioClip(samples, sampleRateHz)
 
-    # pass data over to the appropriate engine for transcription
-    if engine in ('sphinx', 'built-in'):
-        return recognizeSphinx(
-            audioClip,
-            language=language,
-            expectedWords=expectedWords,
-            config=config)
-    elif engine == 'google':
-        return recognizeGoogle(
-            audioClip,
-            language=language,
-            expectedWords=expectedWords,
-            config=config)
-    elif engine == 'whisper':
-        try:
-            from psychopy_whisper import recognizeWhisper
-        except ImportError:
-            raise ImportError(
-                'The Whisper speech-to-text engine is not installed. '
-                'Please install the `psychopy-whisper` package to use this '
-                'feature.')
-        
+    # bit of a hack for the wisper transcriber
+    if engine == 'whisper':
         # trim the language specifier, this should be close enough for now
         langSplit = language.split('-')
         if len(langSplit) > 1:
             language = langSplit[0]
         else:
             language = language
-
-        return recognizeWhisper(
-            audioClip,
-            language=language,
-            expectedWords=expectedWords,
-            config=config)
     else:
-        raise ValueError(
-            f'Parameter `engine` for `transcribe()` should be one of '
-            f'"sphinx", "built-in", "whisper" or "google" not "{engine}"')
+        config['expectedWords'] = expectedWords
+        config['language'] = language
+
+    # do the actual transcription
+    return _activeTranscriber.transcribe(
+        audioClip,
+        language=language,
+        expectedWords=expectedWords,
+        config=config)
 
 
 def _parseExpectedWords(wordList, defaultSensitivity=80):

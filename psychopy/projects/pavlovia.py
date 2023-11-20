@@ -111,7 +111,9 @@ def login(tokenOrUsername, rememberMe=True):
     if currentSession.user is not None:
         user = currentSession.user
         prefs.appData['projects']['pavloviaUser'] = user['username']
-
+    # update Pavlovia button(s)
+    for btn in app._psychopyApp.pavloviaButtons['user'] + app._psychopyApp.pavloviaButtons['project']:
+        btn.updateInfo()
 
 def logout():
     """Log the current user out of pavlovia.
@@ -132,6 +134,9 @@ def logout():
         frame = frameWeakref()
         if hasattr(frame, 'setUser'):
             frame.setUser(None)
+    # update Pavlovia button(s)
+    for btn in app._psychopyApp.pavloviaButtons['user'] + app._psychopyApp.pavloviaButtons['project']:
+        btn.updateInfo()
 
 
 class User(dict):
@@ -148,9 +153,9 @@ class User(dict):
             ).json()['designer']
             # Make sure self.info has necessary keys
             assert 'gitlabId' in self.info, _translate(
-                f"Could not retrieve user info for user {id}, server returned:\n"
-                f"{self.info}"
-            )
+                "Could not retrieve user info for user {}, server returned:\n"
+                "{}"
+            ).format(id,self.info)
         elif isinstance(id, dict) and 'gitlabId' in id:
             # If given a dict from Pavlovia rather than an ID, store it rather than requesting again
             self.info = id
@@ -317,12 +322,15 @@ class PavloviaSession:
         pavProject = PavloviaProject(gitlabProj.get_id(), localRoot=localRoot)
         return pavProject
 
-    def getProject(self, id):
+    def getProject(self, id, localRoot=""):
         """Gets a Pavlovia project from an ID number or namespace/name
 
         Parameters
         ----------
-        id a numerical
+        id : float
+            Numeric ID of the project
+        localRoot : str or Path
+            Path of the project root
 
         Returns
         -------
@@ -330,7 +338,7 @@ class PavloviaSession:
 
         """
         if id:
-            return PavloviaProject(id)
+            return PavloviaProject(id, localRoot=localRoot)
         else:
             return None
 
@@ -1353,7 +1361,7 @@ def getProject(filename):
             return None
         # If project is still there, get it
         try:
-            return PavloviaProject(thisId)
+            return PavloviaProject(thisId, localRoot=gitRoot)
         except LookupError as err:
             # If project not found, print warning and return None
             logging.warn(str(err))
@@ -1403,7 +1411,7 @@ def getProject(filename):
 
                     if pavSession.user:
                         # Get PavloviaProject via id
-                        proj = pavSession.getProject(namespaceName)
+                        proj = pavSession.getProject(namespaceName, localRoot=gitRoot)
                         proj.repo = localRepo
                     else:
                         # If we are still logged out, prompt user

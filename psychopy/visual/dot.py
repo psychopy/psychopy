@@ -49,7 +49,9 @@ _2pi = 2 * np.pi
 
 class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
     """This stimulus class defines a field of dots with an update rule that
-    determines how they change on every call to the .draw() method.
+    determines how they change on every call to the .draw() method. This is
+    a lazy-imported class, therefore import using full path 
+    `from psychopy.visual.dot import DotStim` when inheriting from it.
 
     This single class can be used to generate a wide variety of dot motion
     types. For a review of possible types and their pros and cons see Scase,

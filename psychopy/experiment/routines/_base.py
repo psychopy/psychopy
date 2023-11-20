@@ -116,6 +116,9 @@ class BaseStandaloneRoutine:
 
         return dupe
 
+    def writeDeviceCode(self, buff):
+        return
+
     def writePreCode(self, buff):
         return
 
@@ -215,6 +218,51 @@ class BaseStandaloneRoutine:
     @disabled.setter
     def disabled(self, value):
         self.params['disabled'].val = value
+
+
+class BaseValidatorRoutine(BaseStandaloneRoutine):
+    """
+    Subcategory of Standalone Routine, which sets up a "validator" - an object which is linked to in the Testing tab
+    of another Component and validates that the component behaved as expected. Any validator Routines should subclass
+    this rather than BaseStandaloneRoutine.
+    """
+    def writeRoutineStartValidationCode(self, buff, stim):
+        """
+        Write the routine start code to validate a given stimulus using this validator.
+
+        Parameters
+        ----------
+        buff : StringIO
+            String buffer to write code to.
+        stim : BaseComponent
+            Stimulus to validate
+
+        Returns
+        -------
+        int
+            Change in indentation level after writing
+        """
+        # this method should be overloaded when subclassing!
+        return 0
+
+    def writeEachFrameValidationCode(self, buff, stim):
+        """
+        Write the each frame code to validate a given stimulus using this validator.
+
+        Parameters
+        ----------
+        buff : StringIO
+            String buffer to write code to.
+        stim : BaseComponent
+            Stimulus to validate
+
+        Returns
+        -------
+        int
+            Change in indentation level after writing
+        """
+        # this method should be overloaded when subclassing!
+        return 0
 
 
 class Routine(list):
@@ -428,6 +476,7 @@ class Routine(list):
         # This is the beginning of the routine, before the loop starts
         for event in self:
             event.writeRoutineStartCode(buff)
+            event.writeRoutineStartValidationCode(buff)
 
         code = '# keep track of which components have finished\n'
         buff.writeIndentedLines(code)
@@ -481,6 +530,7 @@ class Routine(list):
             if event.type == 'Static':
                 continue  # we'll do those later
             event.writeFrameCode(buff)
+            event.writeEachFrameValidationCode(buff)
         # update static component code last
         for event in self.getStatics():
             event.writeFrameCode(buff)
@@ -496,7 +546,7 @@ class Routine(list):
             buff.writeIndentedLines(code)
         code = (
             "if thisExp.status == FINISHED or endExpNow:\n"
-            "    endExperiment(thisExp, inputs=inputs, win=win)\n"
+            "    endExperiment(thisExp, win=win)\n"
             "    return\n"
         )
         buff.writeIndentedLines(code)

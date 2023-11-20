@@ -11,6 +11,7 @@ from functools import partial
 from pathlib import Path
 
 from psychopy import experiment, logging, constants, data, core, __version__
+from psychopy.hardware.manager import DeviceManager, deviceManager
 from psychopy.tools.arraytools import AliasDict
 
 from psychopy.localization import _translate
@@ -244,7 +245,6 @@ class Session:
                  experiments=None,
                  loggingLevel="info",
                  priorityThreshold=constants.priority.EXCLUDE+1,
-                 inputs=None,
                  params=None,
                  liaison=None):
         # Store root and add to Python path
@@ -280,16 +280,6 @@ class Session:
             # If win is the name of an experiment, setup from that experiment's method
             self.win = None
             self.setupWindowFromExperiment(win)
-        # Store/create inputs dict
-        self.inputs = {
-            'defaultKeyboard': None,
-            'eyetracker': None
-        }
-        if isinstance(inputs, dict):
-            self.inputs = inputs
-        elif inputs in self.experiments:
-            # If inputs is the name of an experiment, setup from that experiment's method
-            self.setupInputsFromExperiment(inputs)
         # Setup Session clock
         if clock in (None, "float"):
             clock = core.Clock()
@@ -389,10 +379,10 @@ class Session:
         if not str(folder).startswith(str(self.root)):
             # Warn user that some files are going to be copied
             logging.warning(_translate(
-                f"Experiment '{file.stem}' is located outside of the root folder for this Session. All files from its "
-                f"experiment folder ('{folder.stem}') will be copied to the root folder and the experiment will run "
-                f"from there."
-            ))
+                "Experiment '{}' is located outside of the root folder for this Session. All files from its "
+                "experiment folder ('{}') will be copied to the root folder and the experiment will run "
+                "from there."
+            ).format(file.stem, folder.stem))
             # Create new folder
             newFolder = self.root / folder.stem
             # Copy files to it
@@ -406,8 +396,8 @@ class Session:
             folder = newFolder
             # Notify user than files are copied
             logging.info(_translate(
-                f"Experiment '{file.stem}' and its experiment folder ('{folder.stem}') have been copied to {newFolder}"
-            ))
+                "Experiment '{}' and its experiment folder ('{}') have been copied to {}"
+            ).format(file.stem,folder.stem,newFolder))
         # Initialise as module
         moduleInitFile = (folder / "__init__.py")
         if not moduleInitFile.is_file():
@@ -425,8 +415,12 @@ class Session:
         # Write experiment as Python script
         pyFile = file.parent / (file.stem + ".py")
         if "psyexp" in file.suffix:
+            # Load experiment
             exp = experiment.Experiment()
             exp.loadFromXML(file)
+            # Make sure useVersion is off
+            exp.settings.params['Use version'].val = ""
+            # Write script
             script = exp.writeScript(target="PsychoPy")
             pyFile.write_text(script, encoding="utf8")
         # Handle if key is None
@@ -546,6 +540,124 @@ class Session:
 
         return expInfo
 
+    def setCurrentExpInfoItem(self, key, value):
+        """
+        Set the value of a key (or set of keys) from the current expInfo dict.
+
+        Parameters
+        ----------
+        key : str or Iterable[str]
+            Key or list of keys whose value or values to set.
+
+        value : object or Iterable[str]
+            Value or values to set the key to. If one value is given along with multiple keys, all
+            keys will be set to that value. Otherwise, the number of values should match the number
+            of keys.
+
+        Returns
+        -------
+        bool
+            True if operation completed successfully
+        """
+        # get expInfo dict
+        expInfo = self.getCurrentExpInfo()
+        # return False if there is none
+        if expInfo is False:
+            return expInfo
+        # wrap key in list
+        if not isinstance(key, (list, tuple)):
+            key = [key]
+        # wrap value in a list and extend it to match length of key
+        if not isinstance(value, (list, tuple)):
+            value = [value] * len(key)
+        # set values
+        for subkey, subval in zip(key, value):
+            expInfo[subkey] = subval
+
+    def getCurrentExpInfoItem(self, key):
+        """
+        Get the value of a key (or set of keys) from the current expInfo dict.
+
+        Parameters
+        ----------
+        key : str or Iterable[str]
+            Key or keys to get vaues of fro expInfo dict
+
+        Returns
+        -------
+        object, dict{str:object} or False
+            If key was a string, the value of this key in expInfo. If key was a list of strings, a dict of key:value
+            pairs for each key in the list. If no experiment is running or the process can't complete, False.
+        """
+        # get expInfo dict
+        expInfo = self.getCurrentExpInfo()
+        # return False if there is none
+        if expInfo is False:
+            return expInfo
+        # if given a single key, get it
+        if key in expInfo:
+            return expInfo[key]
+        # if given a list of keys, get subset
+        if isinstance(key, (list, tuple)):
+            subset = {}
+            for subkey in key:
+                subset[subkey] = expInfo[subkey]
+            return subset
+        # if we've not returned yet, something is up, so return False
+        return False
+
+    def updateCurrentExpInfo(self, other):
+        """
+        Update key:value pairs in the current expInfo dict from another dict.
+
+        Parameters
+        ----------
+        other : dict
+            key:value pairs to update dict from.
+
+        Returns
+        -------
+        bool
+            True if operation completed successfully
+        """
+        # get expInfo dict
+        expInfo = self.getCurrentExpInfo()
+        # return False if there is none
+        if expInfo is False:
+            return expInfo
+        # set each key
+        for key, value in other.items():
+            expInfo[key] = value
+
+        return True
+
+    def getCurrentExpInfo(self):
+        """
+        Get the `expInfo` dict for the currently running experiment.
+
+        Returns
+        -------
+        dict or False
+            The `expInfo` for the currently running experiment, or False if no experiment is running.
+        """
+        # if no experiment is currently running, return False
+        if self.currentExperiment is None:
+            return False
+        # get expInfo from ExperimentHandler object
+        return self.currentExperiment.extraInfo
+
+    @property
+    def win(self):
+        """
+        Window associated with this Session. Defined as a property so as to be accessible from Liaison
+        if needed.
+        """
+        return self._win
+
+    @win.setter
+    def win(self, value):
+        self._win = value
+
     def setupWindowFromExperiment(self, key, expInfo=None, blocking=True):
         """
         Setup the window for this Session via the 'setupWindow` method from one of this
@@ -593,7 +705,7 @@ class Session:
 
         return True
 
-    def setupWindowFromParams(self, params, blocking=True):
+    def setupWindowFromParams(self, params, measureFrameRate=False, blocking=True):
         """
         Create/setup a window from a dict of parameters
 
@@ -602,6 +714,8 @@ class Session:
         params : dict
             Dict of parameters to create the window from, keys should be from the
             __init__ signature of psychopy.visual.Window
+        measureFrameRate : bool
+            If True, will measure frame rate upon window creation.
         blocking : bool
             Should calling this method block the current thread?
 
@@ -645,10 +759,40 @@ class Session:
             self.win.units = params.get('units', self.win.units)
         # Set window title to signify that we're in a Session
         self.win.title = "PsychoPy Session"
+        # Measure frame rate
+        if measureFrameRate:
+            expInfo = self.getCurrentExpInfo()
+            expInfo['frameRate'] = self.win.getActualFrameRate()
 
         return True
 
+    def getFrameRate(self, retest=False):
+        """
+        Get the frame rate from the window.
+
+        Parameters
+        ----------
+        retest : bool
+            If True, then will always run the frame rate test again, even if measured frame rate is already available.
+
+        Returns
+        -------
+        float
+            Frame rate retrieved from Session window.
+        """
+        # if asked to, or if not yet measured, measure framerate
+        if retest or self.win._monitorFrameRate is None:
+            self.win._monitorFrameRate = self.win.getActualFrameRate()
+        # return from Window object
+        return self.win._monitorFrameRate
+
     def setupInputsFromExperiment(self, key, expInfo=None, thisExp=None, blocking=True):
+        """
+        Deprecated: legacy alias of setupDevicesFromExperiment
+        """
+        self.setupDevicesFromExperiment(key, expInfo=expInfo, thisExp=thisExp, blocking=blocking)
+
+    def setupDevicesFromExperiment(self, key, expInfo=None, thisExp=None, blocking=True):
         """
         Setup inputs for this Session via the 'setupInputs` method from one of this Session's experiments.
 
@@ -682,15 +826,15 @@ class Session:
         if threading.current_thread() != threading.main_thread() and not blocking:
             # The queue is emptied each iteration of the while loop in `Session.start`
             _queue.queueTask(
-                self.setupInputsFromExperiment,
+                self.setupDevicesFromExperiment,
                 key, expInfo=expInfo
             )
             return True
 
         if expInfo is None:
             expInfo = self.getExpInfoFromExperiment(key)
-        # Run the setupInputs method
-        self.inputs = self.experiments[key].setupInputs(expInfo=expInfo, thisExp=thisExp, win=self.win)
+        # Run the setupDevices method
+        self.experiments[key].setupDevices(expInfo=expInfo, thisExp=thisExp, win=self.win)
 
         return True
 
@@ -704,7 +848,7 @@ class Session:
             Name of this input, what to store it under in the inputs dict.
         params : dict
             Dict of parameters to create the keyboard from, keys should be from the
-            __init__ signature of psychopy.hardware.keyboard.Keyboard
+            `addKeyboard` function in hardware.DeviceManager
         blocking : bool
             Should calling this method block the current thread?
 
@@ -733,8 +877,7 @@ class Session:
             return True
 
         # Create keyboard
-        from psychopy.hardware.keyboard import Keyboard
-        self.inputs[name] = Keyboard(**params)
+        deviceManager.addKeyboard(*params)
 
         return True
 
@@ -786,15 +929,15 @@ class Session:
         # Hide Window message
         self.win.hideMessage()
         # Setup window for this experiment
-        self.setupWindowFromExperiment(key=key)
+        self.setupWindowFromExperiment(expInfo=expInfo, key=key)
         self.win.flip()
         self.win.flip()
         # Hold all autodraw stimuli
         self.win.stashAutoDraw()
         # Setup logging
         self.experiments[key].run.__globals__['logFile'] = self.logFile
-        # Setup inputs
-        self.setupInputsFromExperiment(key, expInfo=expInfo, thisExp=thisExp)
+        # Setup devices
+        self.setupDevicesFromExperiment(key, expInfo=expInfo, thisExp=thisExp)
         # Log start
         logging.info(_translate(
             "Running experiment via Session: name={key}, expInfo={expInfo}"
@@ -805,7 +948,6 @@ class Session:
                 expInfo=expInfo,
                 thisExp=thisExp,
                 win=self.win,
-                inputs=self.inputs,
                 globalClock=self.sessionClock,
                 thisSession=self
             )
@@ -1124,11 +1266,11 @@ class Session:
         if not isinstance(value, str):
             value = json.dumps(value)
         # Send
-        asyncio.run(self.liaison.broadcast(message=value))
+        self.liaison.broadcastSync(message=value)
 
     def close(self, blocking=True):
         """
-        Safely close the current session. This will end the Python instance.
+        Safely close and delete the current session.
 
         Parameters
         ----------
@@ -1162,6 +1304,9 @@ class Session:
         if self.win is not None:
             self.win.close()
             self.win = None
+        # flush any remaining logs and kill reference to log file
+        self.logFile.logger.flush()
+        self.logFile.logger.removeTarget(self.logFile)
         # delete self
         del self
 
@@ -1198,6 +1343,8 @@ if __name__ == "__main__":
         from psychopy import liaison
         # Create liaison server
         liaisonServer = liaison.WebSocketServer()
+        # Add DeviceManager to liaison server
+        liaisonServer.registerClass(DeviceManager, "DeviceManager")
         # Add session to liaison server
         liaisonServer.registerClass(Session, "session")
         # Register queue with liaison

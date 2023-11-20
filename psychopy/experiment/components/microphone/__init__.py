@@ -13,7 +13,6 @@ from psychopy.alerts import alert
 from psychopy.tools import stringtools as st, systemtools as syst, audiotools as at
 from psychopy.experiment.components import BaseComponent, Param, getInitVals, _translate
 from psychopy.tools.audiotools import sampleRateQualityLevels
-from psychopy.localization import _localized as __localized
 
 _hasPTB = True
 try:
@@ -26,15 +25,11 @@ except (ImportError, ModuleNotFoundError):
         "microphone stream will raise an error.")
     _hasPTB = False
 
-_localized = __localized.copy()
-_localized.update({'stereo': _translate('Stereo'),
-                   'channel': _translate('Channel')})
-
 # Get list of devices
 if _hasPTB and not syst.isVM_CI():
     devices = syst.getAudioCaptureDevices()
-    deviceIndices = [d['index'] for d in devices.values()]
-    deviceNames = [d['name'] for d in devices.values()]
+    deviceIndices = [str(d['index']) for d in devices]
+    deviceNames = [d['name'] for d in devices]
 else:
     devices = []
     deviceIndices = []
@@ -74,6 +69,7 @@ class MicrophoneComponent(BaseComponent):
                  transcribe=False, transcribeBackend="Whisper",
                  transcribeLang="en-US", transcribeWords="",
                  transcribeWhisperModel="base",
+                 transcribeWhisperDevice="auto",
                  #legacy
                  stereo=None, channel=None):
         super(MicrophoneComponent, self).__init__(
@@ -169,7 +165,16 @@ class MicrophoneComponent(BaseComponent):
             label=_translate("Transcribe audio")
         )
 
-        for depParam in ['transcribeBackend', 'transcribeLang', 'transcribeWords', 'transcribeWhisperModel']:
+        # whisper specific params
+        whisperParams = [
+            'transcribeBackend', 
+            'transcribeLang', 
+            'transcribeWords', 
+            'transcribeWhisperModel',
+            'transcribeWhisperDevice'
+        ]
+
+        for depParam in whisperParams:
             self.depends.append({
                 "dependsOn": "transcribe",
                 "condition": "==True",
@@ -228,6 +233,63 @@ class MicrophoneComponent(BaseComponent):
             "false": "hide",  # permitted: hide, show, enable, disable
         })
 
+        # settings for whisper we might want, we'll need to get these from the
+        # plugin itself at some point
+        self.params['transcribeWhisperDevice'] = Param(
+            transcribeWhisperDevice, valType='code', inputType='choice', 
+            categ='Transcription',
+            allowedVals=["auto", "gpu", "cpu"],
+            hint=_translate(
+                "Which device to use for transcription?"),
+            label=_translate("Whisper device")
+        )
+        self.depends.append({
+            "dependsOn": "transcribeBackend",
+            "condition": "=='Whisper'",
+            "param": "transcribeWhisperDevice",
+            "true": "show",  # what to do with param if condition is True
+            "false": "hide",  # permitted: hide, show, enable, disable
+        })
+
+
+    def writeDeviceCode(self, buff):
+        """
+        Code to setup the CameraDevice for this component.
+
+        Parameters
+        ----------
+        buff : io.StringIO
+            Text buffer to write code to.
+        """
+        inits = getInitVals(self.params)
+
+        # --- setup mic ---
+
+        # Substitute default if device not found
+        if inits['device'].val not in deviceIndices:
+            alert(4330, strFields={'device': self.params['device'].val})
+            inits['device'].val = None
+        # Substitute sample rate value for numeric equivalent
+        inits['sampleRate'] = sampleRates[inits['sampleRate'].val]
+        # Substitute channel value for numeric equivalent
+        inits['channels'] = {'mono': 1, 'stereo': 2, 'auto': None}[self.params['channels'].val]
+        # Get device names
+        inits['deviceName'] = getDeviceName(inits['device'].val)
+        # initialise mic device
+        code = (
+            "# initialise microphone\n"
+            "if deviceManager.getDevice('%(deviceName)s') is None:\n"
+            "    deviceManager.addDevice(\n"
+            "        deviceClass='microphone',\n"
+            "        deviceName='%(deviceName)s',\n"
+            "        index=%(device)s,\n"
+            "        channels=%(channels)s, \n"
+            "        sampleRateHz=%(sampleRate)s, \n"
+            "        maxRecordingSize=%(maxSize)s\n"
+            "    )\n"
+        )
+        buff.writeOnceIndentedLines(code % inits)
+
     def writeStartCode(self, buff):
         inits = getInitVals(self.params)
         # Use filename with a suffix to store recordings
@@ -254,35 +316,31 @@ class MicrophoneComponent(BaseComponent):
 
     def writeRunOnceInitCode(self, buff):
         inits = getInitVals(self.params)
-        # Substitute default if device not found
-        if inits['device'].val not in deviceIndices:
-            alert(4330, strFields={'device': self.params['device'].val})
-            inits['device'].val = None
-        # Substitute sample rate value for numeric equivalent
-        inits['sampleRate'] = sampleRates[inits['sampleRate'].val]
-        # Substitute channel value for numeric equivalent
-        inits['channels'] = {'mono': 1, 'stereo': 2, 'auto': None}[self.params['channels'].val]
-        # Get device names
-        inits['deviceName'] = getDeviceName(inits['device'].val)
-        inits['deviceVarName'] = getDeviceVarName(inits['device'].val)
-        # Create Microphone object
-        code = (
-            "# create a microphone object for device: %(deviceName)s\n"
-            "%(deviceVarName)s = sound.microphone.Microphone(\n"
-            "    device=%(device)s, channels=%(channels)s, \n"
-            "    sampleRateHz=%(sampleRate)s, maxRecordingSize=%(maxSize)s\n"
-            ")\n"
-        )
-        buff.writeOnceIndentedLines(code % inits)
+        # check if the user wants to do transcription
+        if inits['transcribe'].val:
+            code = (
+                "# Setup speech-to-text transcriber for audio recordings\n"
+                "from psychopy.sound.transcribe import setupTranscriber\n"
+                "setupTranscriber(\n"
+                "    '%(transcribeBackend)s'")
+        
+            # handle advanced config options
+            if inits['transcribeBackend'].val == 'Whisper':
+                code += (
+                    ",\n    config={'device': '%(transcribeWhisperDevice)s'})\n")
+            else:
+                code += (")\n")
+
+            buff.writeOnceIndentedLines(code % inits)
 
     def writeInitCode(self, buff):
         inits = getInitVals(self.params)
         # Get device names
-        inits['deviceVarName'] = getDeviceVarName(inits['device'].val)
+        inits['deviceName'] = getDeviceName(inits['device'].val)
         # Assign name to device var name
         code = (
             "# link %(name)s to device object\n"
-            "%(name)s = %(deviceVarName)s\n"
+            "%(name)s = sound.microphone.Microphone(device='%(deviceName)s')\n"
         )
         buff.writeIndentedLines(code % inits)
 
@@ -587,12 +645,12 @@ def getDeviceName(index):
     index : int or None
         Index of the device to use
     """
-    # Alias None
-    if index not in deviceIndices:
-        index = None
-    # Get device name
-    i = deviceIndices.index(index)
-    name = deviceNames[i]
+    name = "defaultMicrophone"
+    if isinstance(index, str) and index.isnumeric():
+        index = int(index)
+    for dev in syst.getAudioCaptureDevices():
+        if dev['index'] == index:
+            name = dev['name']
 
     return name
 

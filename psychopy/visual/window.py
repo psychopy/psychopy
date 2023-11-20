@@ -189,7 +189,8 @@ class Window():
                  bpc=(8, 8, 8),
                  depthBits=8,
                  stencilBits=8,
-                 backendConf=None):
+                 backendConf=None,
+                 infoMsg=None):
         """
         These attributes can only be set at initialization. See further down
         for a list of attributes which can be changed after initialization
@@ -242,7 +243,9 @@ class Window():
             instead.
         checkTiming : bool
             Whether to calculate frame duration on initialization. Estimated
-            duration is saved in :py:attr:`~Window.monitorFramePeriod`.
+            duration is saved in :py:attr:`~Window.monitorFramePeriod`. The
+            message displayed on the screen can be set with the `infoMsg`
+            argument.
         allowStencil : bool
             When set to `True`, this allows operations that use the OpenGL
             stencil buffer (notably, allowing the
@@ -298,6 +301,11 @@ class Window():
             available across all of them. This allows you to pass special
             configuration options to a specific backend to configure the
             feature.
+        infoMsg : str or None
+            Message to display during frame rate measurement (i.e., when
+            ``checkTiming=True``). Default is None, which means that a default
+            message is displayed. If you want to hide the message, pass an
+            empty string.
 
         Notes
         -----
@@ -588,6 +596,9 @@ class Window():
         self._toDrawDepths = []
         self._eventDispatchers = []
 
+        # dict of stimulus:validator pairs
+        self.validators = {}
+
         self.lastFrameT = core.getTime()
         self.waitBlanking = waitBlanking
 
@@ -613,7 +624,7 @@ class Window():
         # for testing when to stop drawing a stim:
         self.monitorFramePeriod = 0.0
         if checkTiming:
-            self._monitorFrameRate = self.getActualFrameRate()
+            self._monitorFrameRate = self.getActualFrameRate(infoMsg=infoMsg)
 
         if self._monitorFrameRate is not None:
             self.monitorFramePeriod = 1.0 / self._monitorFrameRate
@@ -898,7 +909,7 @@ class Window():
                              'args': args,
                              'kwargs': kwargs})
 
-    def timeOnFlip(self, obj, attrib):
+    def timeOnFlip(self, obj, attrib, format=float):
         """Retrieves the time on the next flip and assigns it to the `attrib`
         for this `obj`.
 
@@ -908,6 +919,8 @@ class Window():
             A mutable object (usually a dict of class instance).
         attrib : str
             Key or attribute of `obj` to assign the flip time to.
+        format : str, class or None
+            Format in which to return time, see clock.Timestamp.resolve() for more info. Defaults to `float`.
 
         Examples
         --------
@@ -916,7 +929,7 @@ class Window():
             win.getTimeOnFlip(myTimingDict, 'tStartRefresh')
 
         """
-        self.callOnFlip(self._assignFlipTime, obj, attrib)
+        self.callOnFlip(self._assignFlipTime, obj, attrib, format)
 
     def getFutureFlipTime(self, targetTime=0, clock=None):
         """The expected time of the next screen refresh. This is currently
@@ -957,7 +970,7 @@ class Window():
 
         return output
 
-    def _assignFlipTime(self, obj, attrib):
+    def _assignFlipTime(self, obj, attrib, format=float):
         """Helper function to assign the time of last flip to the obj.attrib
 
         Parameters
@@ -966,12 +979,15 @@ class Window():
             A mutable object (usually a dict of class instance).
         attrib : str
             Key or attribute of ``obj`` to assign the flip time to.
+        format : str, class or None
+            Format in which to return time, see clock.Timestamp.resolve() for more info. Defaults to `float`.
 
         """
+        frameTime = self._frameTime.resolve(format=format)
         if hasattr(obj, attrib):
-            setattr(obj, attrib, self._frameTime)
+            setattr(obj, attrib, frameTime)
         elif isinstance(obj, dict):
-            obj[attrib] = self._frameTime
+            obj[attrib] = frameTime
         else:
             raise TypeError("Window.getTimeOnFlip() should be called with an "
                             "object and its attribute or a dict and its key. "
@@ -1155,9 +1171,12 @@ class Window():
 
         if self._toDraw:
             for thisStim in self._toDraw:
-                # Draw
+                # draw
                 thisStim.draw()
-                # Handle dragging
+                # draw validation rect if needed
+                if thisStim in self.validators:
+                    self.validators[thisStim].draw()
+                # handle dragging
                 if getattr(thisStim, "draggable", False):
                     thisStim.doDragging()
         else:
@@ -3301,7 +3320,7 @@ class Window():
         self._showSplash = False
 
     def getActualFrameRate(self, nIdentical=10, nMaxFrames=100,
-                           nWarmUpFrames=10, threshold=1):
+                           nWarmUpFrames=10, threshold=1, infoMsg=None):
         """Measures the actual frames-per-second (FPS) for the screen.
 
         This is done by waiting (for a max of `nMaxFrames`) until
@@ -3339,8 +3358,10 @@ class Window():
         screen = self.screen
         name = self.name
 
-        self.showMessage(
-            "Attempting to measure frame rate of screen, please wait ...")
+        if infoMsg is None:
+            infoMsg = "Attempting to measure frame rate of screen, please wait ..."
+
+        self.showMessage(infoMsg)
 
         # log that we're measuring the frame rate now
         if self.autoLog:

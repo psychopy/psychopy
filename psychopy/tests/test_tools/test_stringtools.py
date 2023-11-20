@@ -7,19 +7,14 @@ import pytest
 
 @pytest.mark.stringtools
 def test_name_wrap():
-    exemplars = [
-        {"text": "Hello There", "wrap": 10, "ans": "Hello There"},  # No wrap
-        {"text": "Hello There", "wrap": 6, "ans": "Hello\nThere"},  # Basic wrap
-        {"text": "Hello There Hello There Hello There", "wrap": 11, "ans": "Hello There\nHello There\nHello There"},  # Multiple wraps
+    cases = [
+        {"text": "Hello There", "wrap": 12, "ans": "Hello There"},  # No wrap
+        {"text": "Hello There", "wrap": 8, "ans": "Hello \nThere"},  # Basic wrap
+        {"text": "Hello There Hello There Hello There", "wrap": 11, "ans": "Hello There \nHello There \nHello There"},  # Multiple wraps
+        {"text": "Eyetracker Calibration", "wrap": 10, "ans": "Eyetracker \nCalibratio-\nn"},  # One word longer than wrap length
     ]
-    tykes = [
-        {"text": "Eyetracker Calibration", "wrap": 10, "ans": "Eyetracker\nCalibration"},  # One word longer than wrap length
-        {"text": "EyetrackerCalibration", "wrap": 10, "ans": "Eyetracker\nCalibration"},  # TitleCase
-        {"text": "Hello There", "wrap": 1, "ans": "Hello\nThere"},  # Wrap = 1
-        {"text": "Hello There", "wrap": 0, "ans": "Hello There"},  # Wrap = 0
-    ]
-    for case in exemplars + tykes:
-        assert tools.prettyname(case['text'], case['wrap']) == case['ans']
+    for case in cases:
+        assert tools.wrap(case['text'], case['wrap']) == case['ans']
 
 
 @pytest.mark.stringtools
@@ -104,3 +99,45 @@ def test_make_valid_name():
 
     for case in cases:
         assert tools.makeValidVarName(name=case['in'], case=case['case']) == case['out']
+
+
+def test_CaseSwitcher():
+
+    cases = [
+        # to camel
+        {'fcn': "pascal2camel", 'in': "alreadyValidCamel", 'out': "alreadyValidCamel"},
+        {'fcn': "title2camel", 'in': "alreadyValidCamel", 'out': "alreadyValidCamel"},
+        {'fcn': "snake2camel", 'in': "alreadyValidCamel", 'out': "alreadyValidCamel"},
+        {'fcn': "pascal2camel", 'in': "MakeCamel", 'out': "makeCamel"},
+        {'fcn': "title2camel", 'in': "Make Camel", 'out': "makeCamel"},
+        {'fcn': "snake2camel", 'in': "make_camel", 'out': "makeCamel"},
+        # to pascal
+        {'fcn': "camel2pascal", 'in': "AlreadyValidPascal", 'out': "AlreadyValidPascal"},
+        {'fcn': "title2pascal", 'in': "AlreadyValidPascal", 'out': "AlreadyValidPascal"},
+        {'fcn': "snake2pascal", 'in': "AlreadyValidPascal", 'out': "AlreadyValidPascal"},
+        {'fcn': "camel2pascal", 'in': "makePascal", 'out': "MakePascal"},
+        {'fcn': "title2pascal", 'in': "Make Pascal", 'out': "MakePascal"},
+        {'fcn': "snake2pascal", 'in': "make_pascal", 'out': "MakePascal"},
+        # to title
+        {'fcn': "camel2title", 'in': "Already Valid Title", 'out': "Already Valid Title"},
+        {'fcn': "pascal2title", 'in': "Already Valid Title", 'out': "Already Valid Title"},
+        {'fcn': "snake2title", 'in': "Already Valid Title", 'out': "Already Valid Title"},
+        {'fcn': "camel2title", 'in': "makeTitle", 'out': "Make Title"},
+        {'fcn': "pascal2title", 'in': "MakeTitle", 'out': "Make Title"},
+        {'fcn': "snake2title", 'in': "make_title", 'out': "Make Title"},
+        # to snake
+        {'fcn': "camel2snake", 'in': "already_valid_snake", 'out': "already_valid_snake"},
+        {'fcn': "pascal2snake", 'in': "already_valid_snake", 'out': "already_valid_snake"},
+        {'fcn': "title2snake", 'in': "already_valid_snake", 'out': "already_valid_snake"},
+        {'fcn': "camel2snake", 'in': "makeSnake", 'out': "make_snake"},
+        {'fcn': "pascal2snake", 'in': "MakeSnake", 'out': "make_snake"},
+        {'fcn': "title2snake", 'in': "Make Snake", 'out': "make_snake"},
+    ]
+
+    for case in cases:
+        # get function
+        fcn = getattr(tools.CaseSwitcher, case['fcn'])
+        # call function
+        case['result'] = fcn(case['in'])
+        # check result
+        assert case['result'] == case['out'], "CaseSwitcher.{fcn}({in}) should be {out}, was {result}.".format(**case)

@@ -13,11 +13,13 @@ by calling the :func:`getAllButtonBoxes()` function.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 __all__ = [
+    'BaseButtonBox',
     'getAllButtonBoxes'
 ]
 
 import sys
 import psychopy.logging as logging
+from psychopy.hardware.base import BaseDevice
 
 # Interfaces for button boxes will be registered here until we get a proper
 # base class to identify them by type within this module's scope.
@@ -43,6 +45,47 @@ try:
     from ..forp import ButtonBox as curdesButtonBox
 except Exception:
     curdesButtonBox = None
+
+
+class BaseButtonBox(BaseDevice):
+    """Base class for button box interfaces.
+
+    This class defines the minimal interface for button box implementations.
+    All button box implementations should inherit from this class and override
+    its methods.
+
+    """
+    _deviceName = u""  # name of the button box, shows up in menus
+    _deviceVendor = u""  # name of the manufacturer
+
+    def __init__(self, *args, **kwargs):
+        """Initialize the button box interface.
+        """
+        pass
+
+    @property
+    def deviceName(self):
+        """Get the name of the button box.
+
+        Returns
+        -------
+        str
+            Name of the button box.
+
+        """
+        return self._deviceName
+
+    @property
+    def deviceVendor(self):
+        """Get the name of the manufacturer.
+
+        Returns
+        -------
+        str
+            Name of the manufacturer.
+
+        """
+        return self._deviceVendor
 
 
 def getAllButtonBoxes():

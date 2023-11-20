@@ -39,8 +39,11 @@ import numpy
 
 class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
     """This stimulus class defines a field of elements whose behaviour can
-    be independently controlled. Suitable for creating 'global form' stimuli
-    or more detailed random dot stimuli.
+    be independently controlled. Suitable for creating 'global form'
+    stimuli or more detailed random dot stimuli. This is a lazy-imported
+    class, therefore import using full path 
+    `from psychopy.visual.elementarray import ElementArrayStim` when
+    inheriting from it.
 
     This stimulus can draw thousands of elements without dropping a frame,
     but in order to achieve this performance, uses several OpenGL extensions

@@ -11,7 +11,11 @@ from ..tools.attributetools import attributeSetter, setAttribute
 
 class PanoramicImageStim(ImageStim):
     """Map an image to the inside of a sphere and allow view to be changed via
-    latitude and longitude coordinates (between -1 and 1).
+    latitude and longitude coordinates (between -1 and 1). This is a 
+    lazy-imported class, therefore import using full path 
+    `from psychopy.visual.panorama import PanoramicImageStim` when inheriting
+    from it.
+
 
     Parameters
     ----------
