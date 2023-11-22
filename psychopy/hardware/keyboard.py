@@ -460,7 +460,7 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
                 toClear.append(i)
         # pop any responses marked as to clear
         for i in sorted(toClear, reverse=True):
-            del self.responses[i]
+            self.responses.pop(i)
 
         return keys
 
