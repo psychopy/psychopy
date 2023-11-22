@@ -171,9 +171,6 @@ class ButtonBoxComponent(BaseComponent):
             "deviceBackend",
             "nButtons",
         ]
-        # activate plugins so backends are available
-        from psychopy.plugins import activatePlugins
-        activatePlugins()
         self.params['deviceName'] = Param(
             deviceName, valType="str", inputType="single", categ="Device",
             label=_translate("Device name"),
@@ -182,10 +179,14 @@ class ButtonBoxComponent(BaseComponent):
                 "same device for multiple components, be sure to use the same name here."
             )
         )
+        def getBackendVals():
+            return [getattr(cls, 'key', cls.__name__) for cls in self.backends]
+        def getBackendLabels():
+            return [getattr(cls, 'label', cls.__name__) for cls in self.backends]
         self.params['deviceBackend'] = Param(
             deviceBackend, valType="str", inputType="choice", categ="Device",
-            allowedVals=[getattr(cls, 'key', cls.__name__) for cls in self.backends],
-            allowedLabels=[getattr(cls, 'label', cls.__name__) for cls in self.backends],
+            allowedVals=getBackendVals,
+            allowedLabels=getBackendLabels,
             label=_translate("Device backend"),
             hint=_translate(
                 "What kind of button box is it? What package/plugin should be used to talk to it?"
@@ -200,6 +201,9 @@ class ButtonBoxComponent(BaseComponent):
             )
         )
 
+    def loadBackends(self):
+        from psychopy.plugins import activatePlugins
+        activatePlugins()
         # add params from backends
         for backend in self.backends:
             # get params using backend's method
