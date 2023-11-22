@@ -49,15 +49,6 @@ class BaseButtonGroup(base.BaseResponseDevice):
         # update state
         self.state[message.channel] = message.value
 
-    def getAvailableDevices(self):
-        raise NotImplementedError()
-
-    def receiveMessage(self, message):
-        # do base receiving
-        base.BaseResponseDevice.receiveMessage(self, message)
-        # update state
-        self.state[message.channel-1] = message.value
-
     @staticmethod
     def getAvailableDevices():
         raise NotImplementedError()
