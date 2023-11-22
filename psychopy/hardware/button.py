@@ -1,8 +1,8 @@
 import json
 from types import SimpleNamespace
 from psychopy import logging, constants
-from psychopy.hardware import base
-
+from psychopy.hardware import base, DeviceManager
+from psychopy.localization import _translate
 
 
 class ButtonResponse(base.BaseResponse):
@@ -28,11 +28,6 @@ class BaseButtonGroup(base.BaseResponseDevice):
 
         # start off with a status
         self.status = constants.NOT_STARTED
-        # array in which to store data, mostly from Builder
-        self.data = SimpleNamespace()
-        self.data.responses = []
-        self.data.buttons = []
-        self.data.times = []
 
     def dispatchMessages(self):
         """
@@ -117,3 +112,44 @@ class BaseButtonGroup(base.BaseResponseDevice):
             return self.state[channel]
         else:
             return self.state
+
+
+class ButtonBox:
+    """
+    Builder-friendly wrapper around BaseButtonGroup.
+    """
+    def __init__(self, device):
+        if isinstance(device, BaseButtonGroup):
+            # if given a button group, use it
+            self.device = device
+        # if given a string, get via DeviceManager
+        if isinstance(device, str):
+            if device in DeviceManager.devices:
+                self.device = DeviceManager.getDevice(device)
+            else:
+                raise ValueError(_translate(
+                    f"Could not find device named '{device}', make sure it has been set up "
+                    f"in DeviceManager."
+                ))
+
+        # starting value for status (Builder)
+        self.status = constants.NOT_STARTED
+        # arrays to store info (Builder)
+        self.responses = []
+        self.buttons = []
+        self.times = []
+
+    def getAvailableDevices(self):
+        return self.device.getAvailableDevices()
+
+    def getResponses(self, state=None, channel=None, clear=True):
+        return self.device.getResponses(state=state, channel=channel, clear=clear)
+
+    def resetTimer(self, clock=logging.defaultClock):
+        return self.device.resetTimer(clock=clock)
+
+    def getState(self, channel):
+        return self.device.getState(channel=channel)
+
+    def clearResponses(self):
+        return self.device.clearResponses()

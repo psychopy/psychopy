@@ -70,6 +70,7 @@ class ButtonBoxComponent(BaseComponent):
             startEstim='', durationEstim='',
             forceEndRoutine=True,
             # device
+            deviceName="",
             deviceBackend="serial",
             # data
             registerOn=True,
@@ -91,6 +92,12 @@ class ButtonBoxComponent(BaseComponent):
             startEstim=startEstim, durationEstim=durationEstim,
             disabled=disabled
         )
+
+        self.exp.requireImport(
+            importName="ButtonBox",
+            importFrom="psychopy.hardware.button"
+        )
+
         # --- Basic params ---
         self.order += [
             "nButtons"
@@ -133,11 +140,20 @@ class ButtonBoxComponent(BaseComponent):
 
         # --- Device params ---
         self.order += [
+            "deviceName",
             "deviceBackend",
         ]
         # activate plugins so backends are available
         from psychopy.plugins import activatePlugins
         activatePlugins()
+        self.params['deviceName'] = Param(
+            deviceName, valType="str", inputType="single", categ="Device",
+            label=_translate("Device name"),
+            hint=_translate(
+                "A name to refer to this Component's associated hardware device by. If using the "
+                "same device for multiple components, be sure to use the same name here."
+            )
+        )
         self.params['deviceBackend'] = Param(
             deviceBackend, valType="str", inputType="choice", categ="Device",
             allowedVals=[getattr(cls, 'key', cls.__name__) for cls in self.backends],
@@ -170,11 +186,21 @@ class ButtonBoxComponent(BaseComponent):
             # add requirements
             backend.addRequirements(self)
 
-    def writeInitCode(self, buff):
+    def writeDeviceCode(self, buff):
         # write init code from backend
         for backend in self.backends:
             if backend.key == self.params['deviceBackend']:
-                backend.writeInitCode(self, buff)
+                backend.writeDeviceCode(self, buff)
+
+    def writeInitCode(self, buff):
+        inits = getInitVals(self.params)
+        # code to create object
+        code = (
+            "%(name)s = ButtonBox(\n"
+            "    device=%(deviceName)s\n"
+            ")\n"
+        )
+        buff.writeIndentedLines(code % inits)
 
     def writeFrameCode(self, buff):
         params = self.params
@@ -189,7 +215,7 @@ class ButtonBoxComponent(BaseComponent):
             # dispatch and clear messages
             code = (
                 "# clear any messages from before starting\n"
-                "%(name)s.data.responses = []\n"
+                "%(name)s.responses = []\n"
                 "%(name)s.clearResponses()\n"
             )
             buff.writeIndentedLines(code % params)
@@ -199,27 +225,21 @@ class ButtonBoxComponent(BaseComponent):
         # test for started (will update parameters each frame as needed)
         indented = self.writeActiveTestCode(buff)
         if indented:
-            # write code to dispatch messages
-            code = (
-                "# ask for messages from %(name)s device this frame\n"
-                "%(name)s.dispatchMessages()\n"
-            )
-            buff.writeIndentedLines(code % params)
-
             # write code to get messages
             code = (
+                "# ask for messages from %(name)s device this frame\n"
                 "for resp in %(name)s.getResponses(\n"
                 "    state=%(registerOn)s, channel=%(allowedButtons)s, clear=True\n"
                 "):\n"
-                "    %(name)s.data.buttons.append(resp.channel)\n"
-                "    %(name)s.data.times.append(resp.t)\n"
+                "    %(name)s.buttons.append(resp.channel)\n"
+                "    %(name)s.times.append(resp.t)\n"
             )
             buff.writeIndentedLines(code % params)
             # code to end Routine
             if self.params['forceEndRoutine']:
                 code = (
                     "# end Routine if %(name)s got valid response\n"
-                    "if len(%(name)s.data.buttons):\n"
+                    "if len(%(name)s.buttons):\n"
                     "    continueRoutine = False\n"
                 )
                 buff.writeIndentedLines(code % params)
@@ -240,8 +260,8 @@ class ButtonBoxComponent(BaseComponent):
         # write code to save responses
         code = (
             "# store data from %(name)s\n"
-            "thisExp.addData('%(name)s.buttons', %(name)s.data.buttons)\n"
-            "thisExp.addData('%(name)s.times', %(name)s.data.times)\n"
+            "thisExp.addData('%(name)s.buttons', %(name)s.buttons)\n"
+            "thisExp.addData('%(name)s.times', %(name)s.times)\n"
         )
         buff.writeIndentedLines(code % params)
 
