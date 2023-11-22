@@ -674,6 +674,7 @@ class Experiment:
                     # we found an unknown parameter (probably from the future)
                     params[name] = Param(
                         val, valType=paramNode.get('valType'), inputType="inv",
+                        categ="Unknown",
                         allowedTypes=[], label=_translate(name),
                         hint=_translate(
                             "This parameter is not known by this version "
