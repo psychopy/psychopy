@@ -570,7 +570,86 @@ class DeviceManager:
             args.remove("self")
 
         return args
-            
+
+    @staticmethod
+    def getScreenCount():
+        """
+        Get the number of currently connected screens
+
+        Returns
+        -------
+        int
+            Number of screens
+        """
+        import pyglet
+        # get screens
+        display = pyglet.canvas.Display()
+        allScrs = display.get_screens()
+
+        return len(allScrs)
+
+    @staticmethod
+    def showScreenNumbers(dur=5):
+        """
+        Spawn some PsychoPy windows to display each monitor's number.
+
+        Parameters
+        ----------
+        dur : float, int
+            How many seconds to show each window for
+        """
+        from psychopy import visual
+        import time
+
+        # make a window on each screen showing the screen number
+        wins = []
+        lbls = []
+        bars = []
+        for n in range(DeviceManager.getScreenCount()):
+            # create a window on the appropriate screen
+            win = visual.Window(
+                pos=(0, 0),
+                size=(128, 128),
+                units="norm",
+                screen=n,
+                color="black",
+                checkTiming=False
+            )
+            wins.append(win)
+            # create textbox with screen num
+            lbl = visual.TextBox2(
+                win, text=str(n + 1),
+                size=1, pos=0,
+                alignment="center", anchor="center",
+                letterHeight=0.5, bold=True,
+                fillColor=None, color="white"
+            )
+            lbls.append(lbl)
+            # progress bar to countdown dur
+            bar = visual.Rect(
+                win, anchor="bottom left",
+                pos=(-1, -1), size=(0, 0.1),
+                fillColor='white'
+            )
+            bars.append(bar)
+
+            # start a frame loop
+            start = time.time()
+            t = 0
+            while t < dur:
+                t = time.time() - start
+                # update progress bar
+                bar.size = (t / 5 * 2, 0.1)
+                # draw
+                bar.draw()
+                lbl.draw()
+                # flip
+                win.flip()
+
+            # close window
+            win.close()
+
+
 # handle to the device manager, which is a singleton
 deviceManager = DeviceManager()
 
