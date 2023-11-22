@@ -1,7 +1,8 @@
 import json
-
+from types import SimpleNamespace
 from psychopy import logging, constants
 from psychopy.hardware import base
+
 
 
 class ButtonResponse(base.BaseResponse):
@@ -27,6 +28,11 @@ class BaseButtonGroup(base.BaseResponseDevice):
 
         # start off with a status
         self.status = constants.NOT_STARTED
+        # array in which to store data, mostly from Builder
+        self.data = SimpleNamespace()
+        self.data.responses = []
+        self.data.buttons = []
+        self.data.times = []
 
     def dispatchMessages(self):
         """
@@ -79,6 +85,9 @@ class BaseButtonGroup(base.BaseResponseDevice):
         list[ButtonResponse]
             List of matching responses.
         """
+        # substitute empty channel param for None
+        if isinstance(channel, (list, tuple)) and not len(channel):
+            channel = None
         # make sure device dispatches messages
         self.dispatchMessages()
         # array to store matching responses
@@ -100,8 +109,11 @@ class BaseButtonGroup(base.BaseResponseDevice):
     def resetTimer(self, clock=logging.defaultClock):
         raise NotImplementedError()
 
-    def getState(self, channel):
+    def getState(self, channel=None):
         # dispatch messages from device
         self.dispatchMessages()
         # return state after update
-        return self.state[channel]
+        if channel is not None:
+            return self.state[channel]
+        else:
+            return self.state

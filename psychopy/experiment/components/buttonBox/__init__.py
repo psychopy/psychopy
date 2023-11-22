@@ -68,15 +68,18 @@ class ButtonBoxComponent(BaseComponent):
             startType='time (s)', startVal=0.0,
             stopType='duration (s)', stopVal=1.0,
             startEstim='', durationEstim='',
+            forceEndRoutine=True,
             # device
             deviceBackend="serial",
+            # data
+            registerOn=True,
+            allowedButtons="",
             # testing
             disabled=False,
             store='first key',
-            useTimer=True, deviceNumber=0, allowedKeys="",
-            getReleaseTime=False,  # not yet supported
-            forceEndRoutine=True, storeCorrect=False, correctAns="",
-            discardPrev=True,
+            useTimer=True,
+            getReleaseTime=False,
+            storeCorrect=False, correctAns="",
 
     ):
         # initialise base class
@@ -99,6 +102,34 @@ class ButtonBoxComponent(BaseComponent):
                 "How many butons this button box has."
             )
         )
+        self.params['forceEndRoutine'] = Param(
+            forceEndRoutine, valType='bool', inputType="bool", categ='Basic',
+            hint=_translate(
+                "Should a response force the end of the Routine (e.g end the trial)?"
+            ),
+            label=_translate("Force end of Routine"))
+
+        # --- Data params ---
+        self.order += [
+            "registerOn",
+            "allowedButtons",
+        ]
+        self.params['registerOn'] = Param(
+            registerOn, valType='code', inputType='choice', categ='Data',
+            allowedVals=[True, False],
+            allowedLabels=[_translate("Press"), _translate("Release")],
+            hint=_translate(
+                "When should the button press be registered? As soon as pressed, or when released?"
+            ),
+            label=_translate("Register button press on...")
+        )
+        self.params['allowedButtons'] = Param(
+            allowedButtons, valType='list', inputType="single", categ='Data',
+            hint=_translate(
+                "A comma-separated list of button indices (should be whole numbers), leave blank "
+                "to listen for all buttons."
+            ),
+            label=_translate("Allowed buttons"))
 
         # --- Device params ---
         self.order += [
@@ -158,6 +189,7 @@ class ButtonBoxComponent(BaseComponent):
             # dispatch and clear messages
             code = (
                 "# clear any messages from before starting\n"
+                "%(name)s.data.responses = []\n"
                 "%(name)s.clearResponses()\n"
             )
             buff.writeIndentedLines(code % params)
@@ -173,6 +205,25 @@ class ButtonBoxComponent(BaseComponent):
                 "%(name)s.dispatchMessages()\n"
             )
             buff.writeIndentedLines(code % params)
+
+            # write code to get messages
+            code = (
+                "for resp in %(name)s.getResponses(\n"
+                "    state=%(registerOn)s, channel=%(allowedButtons)s, clear=True\n"
+                "):\n"
+                "    %(name)s.data.buttons.append(resp.channel)\n"
+                "    %(name)s.data.times.append(resp.t)\n"
+            )
+            buff.writeIndentedLines(code % params)
+            # code to end Routine
+            if self.params['forceEndRoutine']:
+                code = (
+                    "# end Routine if %(name)s got valid response\n"
+                    "if len(%(name)s.data.buttons):\n"
+                    "    continueRoutine = False\n"
+                )
+                buff.writeIndentedLines(code % params)
+
             # to get out of the if statement
             buff.setIndentLevel(-indented, relative=True)
 
@@ -181,6 +232,18 @@ class ButtonBoxComponent(BaseComponent):
         if indented:
             # to get out of the if statement
             buff.setIndentLevel(-indented, relative=True)
+
+    def writeRoutineEndCode(self, buff):
+        BaseComponent.writeRoutineEndCode(self, buff)
+        params = self.params
+
+        # write code to save responses
+        code = (
+            "# store data from %(name)s\n"
+            "thisExp.addData('%(name)s.buttons', %(name)s.data.buttons)\n"
+            "thisExp.addData('%(name)s.times', %(name)s.data.times)\n"
+        )
+        buff.writeIndentedLines(code % params)
 
 
 class SerialButtonBoxBackend(ButtonBoxBackend, key="serial", label=_translate("Generic serial")):
