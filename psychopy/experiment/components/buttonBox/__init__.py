@@ -98,15 +98,8 @@ class ButtonBoxComponent(BaseComponent):
 
         # --- Basic params ---
         self.order += [
-            "nButtons"
+            "forceEndRoutine"
         ]
-        self.params['nButtons'] = Param(
-            nButtons, valType="code", inputType="single", categ="Basic",
-            label=_translate("Num. buttons"),
-            hint=_translate(
-                "How many butons this button box has."
-            )
-        )
         self.params['forceEndRoutine'] = Param(
             forceEndRoutine, valType='bool', inputType="bool", categ='Basic',
             hint=_translate(
@@ -176,6 +169,7 @@ class ButtonBoxComponent(BaseComponent):
         self.order += [
             "deviceName",
             "deviceBackend",
+            "nButtons",
         ]
         # activate plugins so backends are available
         from psychopy.plugins import activatePlugins
@@ -197,6 +191,13 @@ class ButtonBoxComponent(BaseComponent):
                 "What kind of button box is it? What package/plugin should be used to talk to it?"
             ),
             direct=False
+        )
+        self.params['nButtons'] = Param(
+            nButtons, valType="code", inputType="single", categ="Device",
+            label=_translate("Num. buttons"),
+            hint=_translate(
+                "How many butons this button box has."
+            )
         )
 
         # add params from backends
