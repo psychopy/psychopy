@@ -439,9 +439,11 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
             # start off assuming we want the key
             wanted = True
             # if we're waiting on release, only store if it has a duration
+            wasRelease = hasattr(resp, "duration") and resp.duration is not None
             if waitRelease:
-                if not getattr(resp, "duration") or resp.duration is None:
-                    wanted = False
+                wanted = wanted and wasRelease
+            else:
+                wanted = wanted and not wasRelease
             # if we're looking for a key list, only store if it's in the list
             if keyList:
                 if resp.value not in keyList:
@@ -473,7 +475,8 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
                 for evt in evts:
                     response = self.parseMessage(evt)
                     # if not a key up event, receive it
-                    self.receiveMessage(response)
+                    if response is not None:
+                        self.receiveMessage(response)
 
         elif KeyboardDevice._backend == 'iohub':
             # get events from backend (need to reverse order)
@@ -482,13 +485,15 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
             # parse and receive each event
             for k in key_events:
                 kpress = self.parseMessage(k)
-                self.receiveMessage(kpress)
+                if kpress is not None:
+                    self.receiveMessage(kpress)
         else:
             global event
             name = event.getKeys(modifiers=False, timeStamped=True)
             if len(name):
                 thisKey = self.parseMessage(name[0])
-                self.receiveMessage(thisKey)
+                if thisKey is not None:
+                    self.receiveMessage(thisKey)
 
     def parseMessage(self, message):
         """
@@ -510,6 +515,7 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
             if message['down']:
                 # if message is from a key down event, make a new response
                 response = KeyPress(code=message['keycode'], tDown=message['time'])
+                response.rt = response.tDown - self.clock.getLastResetTime()
                 self._keysStillDown.append(response)
             else:
                 # if message is from a key up event, alter existing response
@@ -527,6 +533,7 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
             if message.type == "KEYBOARD_PRESS":
                 # if message is from a key down event, make a new response
                 response = KeyPress(code=message.char, tDown=message.time, name=message.key)
+                response.rt = response.tDown
                 self._keysStillDown.append(response)
             else:
                 # if message is from a key up event, alter existing response
@@ -547,6 +554,7 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
             # if backend is event, just add as str with current time
             rt = self.clock.getTime()
             response = KeyPress(code=None, tDown=rt, name=message)
+            response.rt = rt
 
         return response
 

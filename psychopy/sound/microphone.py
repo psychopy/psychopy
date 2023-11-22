@@ -999,8 +999,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         """
         # check if the stream has been
         if self.isStarted:
-            raise AudioStreamError(
-                "Cannot start a stream, already started.")
+            return None
 
         if self._stream is None:
             raise AudioStreamError("Stream not ready.")
