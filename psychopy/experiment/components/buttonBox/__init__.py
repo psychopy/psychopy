@@ -33,10 +33,12 @@ class ButtonBoxBackend:
         Returns
         -------
         dict[str:Param]
-            Dict of Param objects, which will be added to any Button Box Component's params, along with a dependency
-            to only show them when this backend is selected
+            Dict of Param objects, which will be added to any Button Box Component's params, along
+            with a dependency to only show them when this backend is selected
         list[str]
             List of param names, defining the order in which params should appear
+        list[dict[str:str]]
+            List of dependency dicts, defining any additional dependencies required by this backend
         """
         raise NotImplementedError()
 
@@ -46,7 +48,7 @@ class ButtonBoxBackend:
         """
         raise NotImplementedError()
 
-    def writeInitCode(self, buff):
+    def writeDeviceCode(self, buff):
         raise NotImplementedError()
 
 
@@ -207,11 +209,22 @@ class ButtonBoxComponent(BaseComponent):
         # add params from backends
         for backend in self.backends:
             # get params using backend's method
-            params, order = backend.getParams(self)
-            # add params and order
-            self.params.update(params)
+            params, order, depends = backend.getParams(self)
+            # add order
             self.order.extend(order)
+            # add any params
+            for key, param in params.items():
+                if key in self.params:
+                    # if this param already exists (i.e. from saved data), get the saved val
+                    param.val = self.params[key].val
+                    param.updates = self.params[key].updates
+                # add param
+                self.params[key] = param
+
             # add dependencies
+            for dep in depends:
+                self.depends.append(dep)
+            # add dependencies so that backend params are only shown for this backend
             for name in params:
                 self.depends.append(
                     {
@@ -345,7 +358,7 @@ class ButtonBoxComponent(BaseComponent):
         buff.writeIndentedLines(code % params)
 
 
-class SerialButtonBoxBackend(ButtonBoxBackend, key="serial", label=_translate("Generic serial")):
+class KeyboardButtonBoxBackend(ButtonBoxBackend, key="keyboard", label=_translate("Keyboard")):
     """
     Adds a basic serial connection backend for ButtonBoxComponent, as well as acting as an example for implementing
     other ButtonBoxBackends.
@@ -353,65 +366,45 @@ class SerialButtonBoxBackend(ButtonBoxBackend, key="serial", label=_translate("G
     def getParams(self: ButtonBoxComponent):
         # define order
         order = [
-            "serialPort",
-            "serialBaudRate",
-            "serialByteSize",
-            "serialParity"
+            "kbButtonAliases",
         ]
         # define params
         params = {}
-        from psychopy.hardware.serialdevice import _findPossiblePorts
-        params['serialPort'] = Param(
-            "", valType="str", inputType="choice", categ="Device",
-            allowedVals=_findPossiblePorts,
-            label=_translate("COM port"),
+        params['kbButtonAliases'] = Param(
+            "'q', 'w', 'e'", valType="list", inputType="single", categ="Device",
+            label=_translate("Buttons"),
             hint=_translate(
-                "Serial port to connect to"
+                "Keys to treat as buttons (in order of what button index you want them to be). "
+                "Must be the same length as the number of buttons."
             )
         )
-        params['serialBaudRate'] = Param(
-            9600, valType='int', inputType="single", categ='Device',
-            label=_translate("Baud rate"),
-            hint=_translate(
-                "The baud rate, or speed, of the connection."
-            )
-        )
-        params['serialByteSize'] = Param(
-            8, valType='int', inputType="single", categ='Device',
-            label=_translate("Byte size"),
-            hint=_translate(
-                "How many bits are in each byte sent by the button box?"
-            )
-        )
-        params['serialParity'] = Param(
-            "N", valType='str', inputType="choice", categ='Device',
-            allowedVals=('N', 'E', 'O', 'M', 'S'),
-            allowedLabels=("None", "Even", "Off", "Mark", "Space"),
-            label=_translate("Parity"),
-            hint=_translate(
-                "Parity mode for the button box device."
-            )
+        # define depends
+        depends = []
+        depends.append(
+            {
+                "dependsOn": "deviceBackend",  # if...
+                "condition": f"== '{KeyboardButtonBoxBackend.key}'",  # meets...
+                "param": "nButtons",  # then...
+                "true": "hide",  # should...
+                "false": "show",  # otherwise...
+            }
         )
 
-        return params, order
+        return params, order, depends
 
-    def addRequirements(self: ButtonBoxComponent):
-        self.exp.requireImport(
-            importName="button", importFrom="psychopy.hardware"
-        )
+    def addRequirements(self):
+        # no requirements needed - so just return
+        return
 
-    def writeInitCode(self: ButtonBoxComponent, buff):
+    def writeDeviceCode(self: ButtonBoxComponent, buff):
         # get inits
         inits = getInitVals(self.params)
-        # make Keyboard object
+        # make ButtonGroup object
         code = (
-            "%(name)s = button.SerialButtonBox(\n"
-            "    name=%(name)s,\n"
-            "    buttons=%(nButtons)s,\n"
-            "    port=%(serialPort)s,\n"
-            "    baudrate=%(serialBaudRate)s,\n"
-            "    byteSize=%(serialByteSize)s,\n"
-            "    parity=%(serialParity)s,\n"
+            "deviceManager.addDevice(\n"
+            "    deviceClass='psychopy.hardware.button.KeyboardButtonBox',\n"
+            "    deviceName=%(deviceName)s,\n"
+            "    buttons=%(kbButtonAliases)s,\n"
             ")\n"
         )
-        buff.writeIndentedLines(code % inits)
+        buff.writeOnceIndentedLines(code % inits)

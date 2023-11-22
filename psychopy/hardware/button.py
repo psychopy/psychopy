@@ -1,7 +1,5 @@
-import json
-from types import SimpleNamespace
-from psychopy import logging, constants
-from psychopy.hardware import base, DeviceManager
+from psychopy import logging, constants, core
+from psychopy.hardware import base, DeviceManager, keyboard
 from psychopy.localization import _translate
 
 
@@ -29,15 +27,14 @@ class BaseButtonGroup(base.BaseResponseDevice):
         # start off with a status
         self.status = constants.NOT_STARTED
 
-    def dispatchMessages(self):
-        """
-        Dispatch messages - this could mean pulling them from a backend, or from a parent device
+    def resetTimer(self, clock=logging.defaultClock):
+        raise NotImplementedError()
 
-        Returns
-        -------
-        bool
-            True if request sent successfully
-        """
+    @staticmethod
+    def getAvailableDevices():
+        raise NotImplementedError()
+
+    def dispatchMessages(self):
         raise NotImplementedError()
 
     def parseMessage(self, message):
@@ -48,10 +45,6 @@ class BaseButtonGroup(base.BaseResponseDevice):
         base.BaseResponseDevice.receiveMessage(self, message)
         # update state
         self.state[message.channel] = message.value
-
-    @staticmethod
-    def getAvailableDevices():
-        raise NotImplementedError()
 
     def getResponses(self, state=None, channel=None, clear=True):
         """
@@ -92,9 +85,6 @@ class BaseButtonGroup(base.BaseResponseDevice):
 
         return matches
 
-    def resetTimer(self, clock=logging.defaultClock):
-        raise NotImplementedError()
-
     def getState(self, channel=None):
         # dispatch messages from device
         self.dispatchMessages()
@@ -103,6 +93,56 @@ class BaseButtonGroup(base.BaseResponseDevice):
             return self.state[channel]
         else:
             return self.state
+
+
+class KeyboardButtonBox(BaseButtonGroup):
+    """
+    Use a standard keyboard to immitate the functions of a button box, mostly useful for testing.
+    """
+    def __init__(self, buttons=("1", "2", "3")):
+        # initialise base class
+        BaseButtonGroup.__init__(self, channels=len(buttons))
+        # store buttons
+        self.buttons = buttons
+        # make own clock
+        self.clock = core.Clock()
+        # initialise keyboard
+        self.kb = keyboard.KeyboardDevice(clock=self.clock)
+
+    def resetTimer(self, clock=logging.defaultClock):
+        self.clock.reset(clock.getTime())
+
+    @staticmethod
+    def getAvailableDevices():
+        return keyboard.KeyboardDevice.getAvailableDevices()
+
+    def dispatchMessages(self):
+        messages = self.kb.getKeys(keyList=self.buttons, waitRelease=True, clear=True)
+        for msg in messages:
+            resp = self.parseMessage(msg)
+            self.receiveMessage(resp)
+
+    def parseMessage(self, message):
+        # work out time and state state of KeyPress
+        state = message.duration is None
+        t = message.tDown
+        # if state is a release, add duration to timestamp
+        if state:
+            t += message.duration
+        # get channel
+        channel = None
+        if message.name in self.buttons:
+            channel = self.buttons.index(message.name)
+        elif message.code in self.buttons:
+            channel = self.buttons.index(message.code)
+        # create response
+        resp = ButtonResponse(
+            t=message.tDown,
+            value=state,
+            channel=channel
+        )
+
+        return resp
 
 
 class ButtonBox:
