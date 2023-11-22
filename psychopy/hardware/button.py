@@ -1,6 +1,6 @@
 import json
 
-from psychopy import logging
+from psychopy import logging, constants
 from psychopy.hardware import base
 
 
@@ -24,6 +24,9 @@ class BaseButtonGroup(base.BaseResponseDevice):
         self.channels = channels
         # attribute in which to store current state
         self.state = [None] * channels
+
+        # start off with a status
+        self.status = constants.NOT_STARTED
 
     def dispatchMessages(self):
         """
