@@ -77,9 +77,8 @@ class ButtonBoxComponent(BaseComponent):
             allowedButtons="",
             # testing
             disabled=False,
-            store='first key',
-            useTimer=True,
-            getReleaseTime=False,
+            store='first',
+
             storeCorrect=False, correctAns="",
 
     ):
@@ -119,6 +118,7 @@ class ButtonBoxComponent(BaseComponent):
         # --- Data params ---
         self.order += [
             "registerOn",
+            "store",
             "allowedButtons",
         ]
         self.params['registerOn'] = Param(
@@ -130,6 +130,16 @@ class ButtonBoxComponent(BaseComponent):
             ),
             label=_translate("Register button press on...")
         )
+        self.params['store'] = Param(
+            store, valType='str', inputType="choice", categ='Data',
+            allowedVals=['last', 'first', 'all', 'nothing'],
+            allowedLabels=[_translate("Last button"), _translate("First button"), _translate(
+                "All buttons"), _translate("Nothing")],
+            updates='constant', direct=False,
+            hint=_translate(
+                "Choose which (if any) responses to store at the end of a trial"
+            ),
+            label=_translate("Store"))
         self.params['allowedButtons'] = Param(
             allowedButtons, valType='list', inputType="single", categ='Data',
             hint=_translate(
@@ -202,6 +212,19 @@ class ButtonBoxComponent(BaseComponent):
         )
         buff.writeIndentedLines(code % inits)
 
+    def writeRoutineStartCode(self, buff):
+        # choose a clock to sync to according to component's params
+        if "syncScreenRefresh" in self.params and self.params['syncScreenRefresh']:
+            clockStr = ""
+        else:
+            clockStr = "clock=routineTimer"
+        # sync component start/stop timers with validator clocks
+        code = (
+            f"# synchronise device clock for %(name)s with Routine timer\n"
+            f"%(name)s.resetTimer({clockStr})\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
     def writeFrameCode(self, buff):
         params = self.params
         code = (
@@ -260,11 +283,27 @@ class ButtonBoxComponent(BaseComponent):
         # write code to save responses
         code = (
             "# store data from %(name)s\n"
-            "thisExp.addData('%(name)s.buttons', %(name)s.buttons)\n"
-            "thisExp.addData('%(name)s.times', %(name)s.times)\n"
         )
+        if self.params['store'] == "all":
+            code += (
+                "thisExp.addData('%(name)s.buttons', %(name)s.buttons)\n"
+                "thisExp.addData('%(name)s.times', %(name)s.times)\n"
+            )
+        elif self.params['store'] == "last":
+            code += (
+                "if len(%(name)s.buttons):\n"
+                "    thisExp.addData('%(name)s.buttons', %(name)s.buttons[-1])\n"
+                "if len(%(name)s.times):\n"
+                "    thisExp.addData('%(name)s.times', %(name)s.times[-1])\n"
+            )
+        elif self.params['store'] == "first":
+            code += (
+                "if len(%(name)s.buttons):\n"
+                "    thisExp.addData('%(name)s.buttons', %(name)s.buttons[0])\n"
+                "if len(%(name)s.times):\n"
+                "    thisExp.addData('%(name)s.times', %(name)s.times[0])\n"
+            )
         buff.writeIndentedLines(code % params)
-
 
 class SerialButtonBoxBackend(ButtonBoxBackend, key="serial", label=_translate("Generic serial")):
     """
