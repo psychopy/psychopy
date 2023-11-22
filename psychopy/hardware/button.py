@@ -135,9 +135,9 @@ class ButtonBox:
         # starting value for status (Builder)
         self.status = constants.NOT_STARTED
         # arrays to store info (Builder)
-        self.responses = []
         self.buttons = []
         self.times = []
+        self.corr = []
 
     def getAvailableDevices(self):
         return self.device.getAvailableDevices()

@@ -74,13 +74,12 @@ class ButtonBoxComponent(BaseComponent):
             deviceBackend="serial",
             # data
             registerOn=True,
+            store='first',
             allowedButtons="",
+            storeCorrect=False,
+            correctAns="",
             # testing
             disabled=False,
-            store='first',
-
-            storeCorrect=False, correctAns="",
-
     ):
         # initialise base class
         BaseComponent.__init__(
@@ -120,6 +119,8 @@ class ButtonBoxComponent(BaseComponent):
             "registerOn",
             "store",
             "allowedButtons",
+            "storeCorrect",
+            "correctAns",
         ]
         self.params['registerOn'] = Param(
             registerOn, valType='code', inputType='choice', categ='Data',
@@ -147,6 +148,29 @@ class ButtonBoxComponent(BaseComponent):
                 "to listen for all buttons."
             ),
             label=_translate("Allowed buttons"))
+        self.params['storeCorrect'] = Param(
+            storeCorrect, valType='bool', inputType="bool", categ='Data',
+            updates='constant',
+            hint=_translate(
+                "Do you want to save the response as correct/incorrect?"
+            ),
+            label=_translate("Store correct"))
+        self.depends.append(
+            {
+                "dependsOn": "storeCorrect",  # if...
+                "condition": f"== True",  # meets...
+                "param": "correctAns",  # then...
+                "true": "show",  # should...
+                "false": "hide",  # otherwise...
+            }
+        )
+        self.params['correctAns'] = Param(
+            correctAns, valType='list', inputType="single", categ='Data',
+            hint=_translate(
+                "What is the 'correct' key? Might be helpful to add a correctAns column and use "
+                "$correctAns to compare to the key press. "
+            ),
+            label=_translate("Correct answer"), direct=False)
 
         # --- Device params ---
         self.order += [
@@ -257,6 +281,11 @@ class ButtonBoxComponent(BaseComponent):
                 "    %(name)s.buttons.append(resp.channel)\n"
                 "    %(name)s.times.append(resp.t)\n"
             )
+            # include code to get correct
+            if self.params['storeCorrect']:
+                code += (
+                    "    %(name)s.corr.append(resp.channel in %(correctAns)s)\n"
+                )
             buff.writeIndentedLines(code % params)
             # code to end Routine
             if self.params['forceEndRoutine']:
@@ -288,6 +317,7 @@ class ButtonBoxComponent(BaseComponent):
             code += (
                 "thisExp.addData('%(name)s.buttons', %(name)s.buttons)\n"
                 "thisExp.addData('%(name)s.times', %(name)s.times)\n"
+                "thisExp.addData('%(name)s.corr', %(name)s.corr)\n"
             )
         elif self.params['store'] == "last":
             code += (
@@ -295,6 +325,8 @@ class ButtonBoxComponent(BaseComponent):
                 "    thisExp.addData('%(name)s.buttons', %(name)s.buttons[-1])\n"
                 "if len(%(name)s.times):\n"
                 "    thisExp.addData('%(name)s.times', %(name)s.times[-1])\n"
+                "if len(%(name)s.corr):\n"
+                "    thisExp.addData('%(name)s.corr', %(name)s.corr[-1])\n"
             )
         elif self.params['store'] == "first":
             code += (
@@ -302,8 +334,11 @@ class ButtonBoxComponent(BaseComponent):
                 "    thisExp.addData('%(name)s.buttons', %(name)s.buttons[0])\n"
                 "if len(%(name)s.times):\n"
                 "    thisExp.addData('%(name)s.times', %(name)s.times[0])\n"
+                "if len(%(name)s.corr):\n"
+                "    thisExp.addData('%(name)s.corr', %(name)s.corr[0])\n"
             )
         buff.writeIndentedLines(code % params)
+
 
 class SerialButtonBoxBackend(ButtonBoxBackend, key="serial", label=_translate("Generic serial")):
     """
