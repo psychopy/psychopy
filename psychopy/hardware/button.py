@@ -56,7 +56,7 @@ class BaseButtonGroup(base.BaseResponseDevice):
         # do base receiving
         base.BaseResponseDevice.receiveMessage(self, message)
         # update state
-        self.state[message.channel] = message.value
+        self.state[message.channel-1] = message.value
 
     @staticmethod
     def getAvailableDevices():
