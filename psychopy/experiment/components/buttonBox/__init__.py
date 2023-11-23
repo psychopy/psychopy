@@ -199,7 +199,7 @@ class ButtonBoxComponent(BaseComponent):
             nButtons, valType="code", inputType="single", categ="Device",
             label=_translate("Num. buttons"),
             hint=_translate(
-                "How many butons this button box has."
+                "How many buttons this button box has."
             )
         )
 
