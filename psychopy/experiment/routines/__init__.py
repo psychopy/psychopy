@@ -9,6 +9,7 @@
 
 from importlib import import_module
 from ._base import BaseStandaloneRoutine, BaseValidatorRoutine, Routine
+from .utils import loadPluginRoutines
 from .unknown import UnknownRoutine
 from pathlib import Path
 from psychopy import logging
@@ -71,6 +72,8 @@ def getAllStandaloneRoutines(fetchIcons=True):
         those added by plugins.
 
     """
+    # load plugins
+    loadPluginRoutines()
     # Safe import all modules within this folder (apart from protected ones with a _)
     for loc in Path(__file__).parent.glob("*"):
         if loc.is_dir() and not loc.name.startswith("_"):
