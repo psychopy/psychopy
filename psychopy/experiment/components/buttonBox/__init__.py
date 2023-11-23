@@ -171,7 +171,6 @@ class ButtonBoxComponent(BaseComponent):
         self.order += [
             "deviceName",
             "deviceBackend",
-            "nButtons",
         ]
         self.params['deviceName'] = Param(
             deviceName, valType="str", inputType="single", categ="Device",
@@ -195,13 +194,6 @@ class ButtonBoxComponent(BaseComponent):
             ),
             direct=False
         )
-        self.params['nButtons'] = Param(
-            nButtons, valType="code", inputType="single", categ="Device",
-            label=_translate("Num. buttons"),
-            hint=_translate(
-                "How many buttons this button box has."
-            )
-        )
 
     def loadBackends(self):
         from psychopy.plugins import activatePlugins
@@ -209,7 +201,7 @@ class ButtonBoxComponent(BaseComponent):
         # add params from backends
         for backend in self.backends:
             # get params using backend's method
-            params, order, depends = backend.getParams(self)
+            params, order = backend.getParams(self)
             # add order
             self.order.extend(order)
             # add any params
@@ -221,9 +213,6 @@ class ButtonBoxComponent(BaseComponent):
                 # add param
                 self.params[key] = param
 
-            # add dependencies
-            for dep in depends:
-                self.depends.append(dep)
             # add dependencies so that backend params are only shown for this backend
             for name in params:
                 self.depends.append(
@@ -378,19 +367,8 @@ class KeyboardButtonBoxBackend(ButtonBoxBackend, key="keyboard", label=_translat
                 "Must be the same length as the number of buttons."
             )
         )
-        # define depends
-        depends = []
-        depends.append(
-            {
-                "dependsOn": "deviceBackend",  # if...
-                "condition": f"== '{KeyboardButtonBoxBackend.key}'",  # meets...
-                "param": "nButtons",  # then...
-                "true": "hide",  # should...
-                "false": "show",  # otherwise...
-            }
-        )
 
-        return params, order, depends
+        return params, order
 
     def addRequirements(self):
         # no requirements needed - so just return
