@@ -169,14 +169,17 @@ def alert(code=None, obj=object, strFields=None, trace=None):
     #                                         msg=msg.msg,
     #                                         trace=msg.trace))
 
-    # if a psychopy warning instead of a file-like stderr then pass a raw str
-    if hasattr(sys.stderr, 'receiveAlert'):
-        sys.stderr.receiveAlert(msg)
-    else:
-        # For tests detecting output - change when error handler set up
-        sys.stderr.write(msgAsStr)
-        for handler in _activeAlertHandlers:
-            handler.receiveAlert(msg)
+    # write to any linked handlers
+    written = False
+    for handler in _activeAlertHandlers:
+        written = True
+        handler.receiveAlert(msg)
+    # if no handlers were written to, send to stdout as a fallback
+    if not written:
+        if hasattr(sys.stderr, 'receiveAlert'):
+            sys.stderr.receiveAlert(msg)
+        else:
+            sys.stderr.write(msgAsStr)
 
 
 # Create catalog
