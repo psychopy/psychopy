@@ -2,14 +2,14 @@
 Translations
 ==============================
 
-|PsychoPy| is used worldwide. Starting with v1.81, many parts of |PsychoPy| itself (the app) can be translated into any language that has a unicode character set.
+|PsychoPy| is used worldwide. Starting with v1.81, many parts of |PsychoPy| itself (the app) can be translated into any language that has a unicode character set
 
-A translation changes the language that the **experimenter** sees in the |PsychoPy| app while creating and running experiments
+A translation changes the language that the **experiment designer** sees in the |PsychoPy| app while creating and running experiments
 
-As a translator, you will likely introduce many new people to |PsychoPy|, and your translations will greatly influence their experience. 
+As a translator, you will likely introduce many new people to |PsychoPy|, and your translations will greatly influence their experience
 
 .. note:: 
-  Translations here do **not** refer to what the participant in a study sees, nor what is seen in documentation (help files, etc.). 
+  Translations here do **not** refer to what the participant in a study sees, nor what is seen in documentation (help files, etc.) 
 
 |
 
@@ -77,10 +77,29 @@ Again, see :ref:`the instructions on how to contribute to PsychoPy<usingRepos>` 
 
 |
 
-Finding the file you need for your translation
---------------------------------------------------
+The big picture
+------------------
 
-|PsychoPy| uses |gettextWebpage| and |wxPythonWebpage| to allow for translations into other languages. But the only thing you as translator need to understand here is that in order to add any particular translation to |PsychoPy|, you need to work on a particular ``messages.po`` file.
+|PsychoPy| uses |gettextWebpage| and |wxPythonWebpage| to allow for translations into other languages. 
+
+When |PsychoPy| starts, it consults a ``.mo`` file, which was generated automatically from the respective ``.po`` file during the latest release of |PsychoPy|.
+
+There is one default ``.mo`` file (US English), along with any languages for which ``.po`` files exist.
+
+Translators modify the ``.po`` file, not the ``.mo`` file, which is binary and unreadable.
+
+.. image:: /images/translation_poMoPsychoPy.png
+  :width: 80%
+  :align: center
+  :alt: Image of how .mo files interact with PsychoPy, and how .mo files are generated from translations provided in a .po file
+  
+|
+
+
+Finding the ``.po`` file you need for your translation
+--------------------------------------------------------
+
+What you, as a translator, need to understand here is that in order to add any particular translation to |PsychoPy|, you need to work on a particular ``messages.po`` file.
 
 The ``messages.po`` file for any given language is stored within a unique subdirectory within the following directory in the repository:
 
@@ -88,12 +107,12 @@ The ``messages.po`` file for any given language is stored within a unique subdir
 
 The list of subdirectory names you see at that location are |localeNames| from the ``ll_CC`` system in |gettextWebpage|. The naming convention works as follows:
 
-* For any given language, the first pair of letters, ``ll``, is replaced by an |iso639pairs| of lowercase letters that identify that language
-* For any given country, the second pair of letters, ``CC``, is replaced by an |iso3166pairs| of uppercase letters that identify a country.
+* For any given language, the first pair of letters, ``ll_``, is replaced by an |iso639pairs| of lowercase letters that identify that language
+* For any given country, the second pair of letters, ``_CC``, is replaced by an |iso3166pairs| of uppercase letters that identify a country.
   
-For example, for German, ``ll_CC`` becomes ``de_DE``, and refers to the German language (``de``, for *deutsch*) as it is used in the country of Germany (``DE``, *Deutschland*). Together, they index the dialect known as *High German* (the standard dialect used in Germany).
+For example, for German, ``ll_CC`` becomes ``de_DE``, and refers to the German language (``de``, for *deutsch*) as it is used in the country of Germany (``DE``, *Deutschland*). Together, they index the dialect known as *High German* or *Standard German* (the upland dialect used as the official language in Germany).
 
-Once you understand the naming conventions for language folders, your first order of business one of the following:
+Once you understand the naming conventions for language folders, your first order of business is one of the following:
 
 * finding the directory that corresponds to your language (in cases where it is already there), or 
 * creating a new one (in cases where it is not). 
@@ -129,12 +148,15 @@ If the appropriate language subdirectory is already listed, then proceed to the 
 The translation process in *Poedit*
 --------------------------------------
 
-Open the relevant ``ll_CC`` directory. You will see a subdirectory titled ``LC_MESSAGE``. Inside that subdirectory are two files. The one you work on as a translator is the ``.po`` file: ``messages.po``. The other file is ``messages.mo``, an un-editable binary file that actually turns out to be the file that |PsychoPy| will use during operation. This file is compiled during major and minor releases of |PsychoPy|, however. So you should not do it yourself within *Poedit*.
+Open the relevant ``ll_CC`` directory. You will see a subdirectory titled ``LC_MESSAGE``. Inside that subdirectory are two files. The one you work on as a translator is the ``.po`` file: ``messages.po``. The other file is ``messages.mo``, an un-editable binary file that actually turns out to be the file that |PsychoPy| will use during operation. 
+
+.. note:: 
+   The ``.mo`` file is compiled during major and minor releases of |PsychoPy|. It is also listed in the ``.gitignore`` file. So you should not waste your time compiling it yourself within *Poedit*.
 
 There are a number of tools you can use to edit the ``messages.po`` file, but the rest of this tutorial assumes that you are using the free app |poeditWebpage|. It is cross-platform, and very user-friendly. If you haven't done so already, |poeditDownloadPage| and install it in order to continue.
 
 .. note:: 
-  How to translate the *start-up tips* in |PsychoPy| is covered below under the section titled *Step 3b: Translating Start-up Tips*. It involves a somewhat different process. First however, please read through the section directly below.
+  How to translate the *start-up tips* in |PsychoPy| is covered below under the section titled *Step 3b: Translating Start-up Tips*. It involves a related, but somewhat different process. First however, please read through the section directly below.
 
 .. |poeditDownloadPage| raw:: html
 
@@ -145,18 +167,41 @@ There are a number of tools you can use to edit the ``messages.po`` file, but th
 Step 1: Initial setup
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Start *Poedit*
+If you are starting *Poedit* for the first time:
 
-* Open the ``.po`` file for the language you're working on. 
-* Go to ``File`` > ``Preferences`` (on a PC), or ``Poedit`` > ``Settings`` on a Mac.
+* Go to ``File > Preferences`` (on a PC), or ``Poedit > Settings`` on a Mac.
+* Go to the ``General`` tab
+* For convenience, make sure that the box with the following label is **UN**-checked:
 
-  * Add your name and e-mail address, where indicated   
+``Automatically compile MO file when saving``
 
-* Go to ``Translation`` > ``Properties``.
+.. note:: 
+   As noted above, this is not strictly necessary as we have placed all ``messages.mo`` files in the ``.gitignore`` file, but compiling this file upon saving the ``.po`` file would place an unnecessary burden on your computer.
+
+.. warning::
+   Don't add your name and e-mail address. Doing so would just unnecessarily make your name and email public on *GitHub*. 
+
+* Go to the ``Advanced`` tab
+
+  * Double-check to make sure that the following are set correctly
+
+    * ``Line endings:``
+
+      * set to ``Unix (recommended)``
+    * ``Preserve formatting of existing files``
+       
+      * make sure this box remains checked
+
+If you are the first person to begin translations on a particular ``.po`` file (i.e., you have just :ref:`created a new language subdirectory<newLangSubdirect>`)
+
+* Open the ``.po`` file for the language in the subdirectory you just created. 
+* Go to ``Translation > Properties``
   
-  * Under the tab labled ``Translation properties``
+  * Under the tab labeled ``Translation properties``
     
-    * ``Project name and version``: Type in *PsychoPy* followed by the |PsychoPy| version you are working on (usually the most recently released version of |PsychoPy|)
+    * ``Project name and version``: Type in *PsychoPy* followed by the |PsychoPy| version you are working on (preferably the most recently released version of |PsychoPy|)
+    
+      * (Note that this is not strictly necessary; having the wrong version here will not affect anything else) 
     * ``Language``: Scroll to and select the appropriate language or language variety (language + country; see above)
     * ``Charset``: Set this to *UTF-8*.
   * Under the tab labeled ``Sources Paths``
@@ -165,22 +210,22 @@ Start *Poedit*
   * Under the tab labeled ``Sources Keywords``
 
     * ``Additional keywords``: Make sure that the keyword ``_translate`` is listed in that box. If not, type it in.   
-* Save your work (``File`` > ``Save``)   
+* Save your work (``File > Save``)   
 
 Start your preferred text editor (e.g., *TextEdit*, *Visual Studio Code*, *PyCharm*)
 
-* Go to ``psychopy/app/localization/mappings.txt`` in the repository
+* Open ``psychopy/app/localization/mappings.txt`` in the repository
 
   * Find or type in the appropriate ``ll_CC`` code at the appropriate line (entries are listed alphabetically)
   * Add the 3-letter Microsoft code that refers to the language. These can be found in the rightmost column (`Language code`) on |msListOfLangIDsAndLocales|.
-  * At the far right, be sure that there is a label for the language (and possibly country) that should be familiar to people who read that language, followed by the same in English, but in parentheses. The purpose is to highlight the name of the language as written in the non-English language itself. For example:
+  * At the far right, make sure that there is a label for the language (and possibly country) that should be familiar to people who read that language, followed by the same in English, but in parentheses. The purpose is to highlight the name of the language (and possibly country) as written in the non-English language itself. For example:
   
     *  " ``español, España (Spanish, Spain)``" (not just "``Spanish``")   
     *  " ``עִברִית (Hebrew)``" (not just "``Hebrew``")   
 * Save the altered ``mappings.txt`` file in your editor
 
 .. note:: 
-  In some language varieties, like the example of Spanish above, you might find it appropriate to include the country of the locale as well. This is important for Spanish since there are varieties that differ significantly (e.g., Argentinean Spanish, Mexican Spanish). But notice that writing *Hebrew, Israel* would probably not be necessary since there is practially only one variety of the language that anyone would ever expect to see in a software program.
+  In some language varieties, like the example of Spanish above, you might find it appropriate to include the country of the locale as well. This is conceivably important for Spanish since there are varieties that differ significantly (e.g., Argentinean Spanish, Mexican Spanish). But notice that writing *Hebrew, Israel* would probably not be necessary since there is only one variety of the language that anyone would ever expect to see in a software program.
 
 .. |msListOfLangIDsAndLocales| raw:: html
 
@@ -191,6 +236,8 @@ Start your preferred text editor (e.g., *TextEdit*, *Visual Studio Code*, *PyCha
 Step 2: Generate a list of strings to translate
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
  
+.. PB05Oct23 - In the future, Jon plans to automate the generation of the list of strings whenever a .po file is updated on GitHub. When he completes that, the instruction directly below can be modified to apply only to the first time a list of strings is generated for a particular locale.
+
 * In *Poedit*, go to the ``Translation`` menu and select ``Update from Source Code``. As long as you added ``_translate`` to the keywords (see above), you should subsequently see a list of strings that need translating in your language. An example is shown below (from Swedish, which does not yet have any translations).
 
 .. image:: /images/poeditUntranslatedStringsSwedish.png
@@ -215,7 +262,7 @@ Step 3a: Translate the strings
 |
 
 * If you think your translation might have room for improvement, toggle the ``Needs Work`` button to the right of the ``Translation`` header
-* You can also add notes by clicking the ``Add Comment`` button to the lower-right of the app window if you have the sidebar visible.
+* You can also add notes (to yourself and others, if any) by clicking the ``Add Comment`` button to the lower-right of the app window if you have the sidebar visible.
 * Save your work (``File > Save``).
 
 |
@@ -224,7 +271,8 @@ Some important notes
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 * Technical terms should not be translated: ``Builder``, ``Coder``, |PsychoPy|, ``Flow``, ``Routine``, and so on. (See the Japanese translation for guidance.)
-* If there are formatting arguments in the original string (``%s``, ``%(first)i``), the same number of arguments must also appear in the translation, though their position in the translation would be dictated by the word-order rules of the language being translated into). If they are named (e.g., ``%(first)i``), that part should not be translated -- here ``first`` is a python name.
+* If there are formatting arguments in the original string (``%s``, ``%(first)i``), the same number of arguments must also appear in the translation (though their position in the translation would be dictated by the word-order rules of the language being translated into). 
+* If they are named (e.g., ``%(first)i``), that part should not be translated -- here ``first`` is a python name.
 * Sometimes, you will not understand what a particular function does in |PsychoPy|, and you may be unable to translate it. There are a few possible things you can do in this situation. 
   
   * Ask
@@ -252,7 +300,7 @@ Some important notes
 Step 3b: Translating the *Start-up Tips*
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Instead of being translated as a set of strings in a ``.po`` file, all of the *start-up tips* in US-English are stored in a separate, single ``.txt`` file called ``tips.txt``. This file is then generated as a  string under ``Source text - English`` in the ``.po`` file. If there are translations of these tips for another language, they are stored in separate ``.txt`` file in the same directory, but with a different name (e.g., ``tips_es_ES.txt``). This new file is then listed as the translation for ``tips.txt`` in *Poedit*. This is explained next.
+Instead of being translated as a set of strings in a ``.po`` file, all of the *start-up tips* in US-English are stored in a separate, single ``.txt`` file called ``tips.txt``. This file is then generated as a  string under ``Source text - English`` in the ``.po`` file. If there are translations of these tips for another language, they are stored in a separate ``.txt`` file in the same directory, but with a different name (e.g., ``tips_es_ES.txt``). This new file is then listed as the translation for ``tips.txt`` in *Poedit*. This is explained next.
 
 The default *Start-up Tips* file (in US-English) is named ``tips.txt`` and is located in the following directory ``psychopy/app/Resources/``.
 
@@ -260,12 +308,12 @@ The default *Start-up Tips* file (in US-English) is named ``tips.txt`` and is lo
 
 * Go to ``psychopy/app/Resources/``
 * Copy ``tips.txt`` to a new file
-* Rename it according to the ``ll_CC`` convention (or possibly just ``ll``) consistent with the language you're working on, whichever is appropriate (e.g., ``tips_zh_CN.txt`` for simplified Chinese, or ``tips_ar_001.txt`` for Modern Standard Arabic)
+* Rename the new file according to the ``ll_CC`` convention (or possibly just ``ll``) consistent with the language you're working on, whichever is appropriate (e.g., ``tips_zh_CN.txt`` for simplified Chinese, or ``tips_ar_001.txt`` for Modern Standard Arabic)
 * Open the new, renamed file using your preferred text editor
 * Translate the English-language tips by replacing them entirely with those of the language you are working on
 
 .. note:: 
-  This may be a little bit obvious, but it would be a good idea *not* to delete any English entry in the new ``.txt`` file before you have completely translated it, or decided it is not appropriate. If you are going to translate one of the tips, it would be wise to insert the relevant translation below the English entry, and then delete the English entry only when the translation on the new line is complete.
+  Apologies for stating the obvious, but it would be a good idea *not* to delete any English entry in the new ``.txt`` file before you have completely translated it, or decided it is not appropriate. Rather, type in the relevant translation below the English entry first, and then delete the English entry only when the translation on the new line is complete.
 
 |
 
@@ -291,7 +339,12 @@ Step 4: The git commit and the pull request
 * Commit the files that you have changed
   
   * Usually, this is at least the ``.po`` file 
-  * But it could comprise or include other relevant files (e.g., ``tips_[ll_CC].txt``, ``localization/mappings.txt``)
+  
+    * But it could also comprise or include other relevant files (e.g., ``tips_[ll_CC].txt``, ``localization/mappings.txt``) 
+  * The commit-message prefix for translations is always ``DOCS:``
+  
+    * For example: ``DOCS: Swahili translations``
+  
   * Use the prefix ``DOCS:`` in your commit message 
 * Push the commit to your repository on *GitHub* (aka *origin*)
 * From *origin* on GitHub, make your pull request to the *release* branch of the |PsychoPy| repository as outlined in :ref:`how to contribute to PsychoPy<usingRepos>`
@@ -331,15 +384,11 @@ If in doubt, please feel free to discuss this with the |PsychoPy| team directly,
 
 * Chinese
 
-  * Chinese is a good example of when locale matters a great deal. Simplified Chinese characters are used in mainland China (``zh_CN``), whereas traditional Chinese characters are used in Taiwan (``zh_TW``).
-
-* German
-
-  * In the case of German however, most German speakers around the world expect to read in High German, which is ``de_DE``. They would not normally expect to see Swiss German (``de_CH``), at least not without *also* seeing High German. 
+  * Chinese is a good example of when locale matters a great deal. The simplest distinction is that Simplified Chinese characters are used in mainland China (``zh_CN``), whereas traditional Chinese characters are used in Taiwan (``zh_TW``).
 
 * Arabic
 
-  * Similarly, most readers of Arabic are going to expect to see Modern Standard Arabic, which has the slightly odd ``ll_CC`` code of ``ar_001`` as it is not the native dialect of any particular country. Spoken regional varieties of Arabic *in the written form* are only ever seen in specialized contexts.
+  * Most readers of Arabic are going to expect to see Modern Standard Arabic, which has the slightly odd ``ll_CC`` code of ``ar_001`` as it is not the native dialect of any particular country. Spoken regional varieties of Arabic *in the written form* are only ever seen in specialized contexts.
 
 * English
 
