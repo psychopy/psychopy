@@ -1,7 +1,7 @@
-Resources
+Documentation
 =====================================
 
-This page is full of helpful resources, if you know about any more please let us know so we can add them!
+This page is full of helpful documentation if you know about any more please let us know so we can add them!
 
 What do you want to do?
 ------------------------
