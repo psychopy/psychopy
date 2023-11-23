@@ -766,11 +766,31 @@ class Session:
 
         return True
 
+    def getFrameRate(self, retest=False):
+        """
+        Get the frame rate from the window.
+
+        Parameters
+        ----------
+        retest : bool
+            If True, then will always run the frame rate test again, even if measured frame rate is already available.
+
+        Returns
+        -------
+        float
+            Frame rate retrieved from Session window.
+        """
+        # if asked to, or if not yet measured, measure framerate
+        if retest or self.win._monitorFrameRate is None:
+            self.win._monitorFrameRate = self.win.getActualFrameRate()
+        # return from Window object
+        return self.win._monitorFrameRate
+
     def setupInputsFromExperiment(self, key, expInfo=None, thisExp=None, blocking=True):
         """
         Deprecated: legacy alias of setupDevicesFromExperiment
         """
-        self.setupDevicesFromExperiment(self, key, expInfo=expInfo, thisExp=thisExp, blocking=blocking)
+        self.setupDevicesFromExperiment(key, expInfo=expInfo, thisExp=thisExp, blocking=blocking)
 
     def setupDevicesFromExperiment(self, key, expInfo=None, thisExp=None, blocking=True):
         """
@@ -909,7 +929,7 @@ class Session:
         # Hide Window message
         self.win.hideMessage()
         # Setup window for this experiment
-        self.setupWindowFromExperiment(key=key)
+        self.setupWindowFromExperiment(expInfo=expInfo, key=key)
         self.win.flip()
         self.win.flip()
         # Hold all autodraw stimuli
@@ -1246,7 +1266,7 @@ class Session:
         if not isinstance(value, str):
             value = json.dumps(value)
         # Send
-        asyncio.run(self.liaison.broadcast(message=value))
+        self.liaison.broadcastSync(message=value)
 
     def close(self, blocking=True):
         """

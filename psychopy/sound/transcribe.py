@@ -172,6 +172,9 @@ class TranscriptionResult:
     def __str__(self):
         return " ".join(self._words)
 
+    def __json__(self):
+        return str(self)
+
     @property
     def wordCount(self):
         """Number of words found (`int`)."""
@@ -740,7 +743,7 @@ def getTranscriberInterface(engine):
     --------
     Get a transcriber interface and initalize it::
 
-        whisperInterface = getTranscriber('WhisperTranscriber')
+        whisperInterface = getTranscriberInterface('whisper')
         # initialize it
         transcriber = whisperInterface({'device': 'cuda'})
     
@@ -776,6 +779,8 @@ def setupTranscriber(engine, config=None):
         Options to configure the speech-to-text engine during initialization.
     
     """
+    engine = engine.lower()  # make lower case
+
     global _activeTranscriber
     if _activeTranscriber is not None:
         oldInterface = _activeTranscriber.engine

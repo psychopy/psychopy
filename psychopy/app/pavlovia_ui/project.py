@@ -838,20 +838,20 @@ def syncProject(parent, project, file="", closeFrameWhenDone=False):
     parent.project = project
     # If there is (now) a project, do sync
     if project is not None:
-        # Show sync dlg
-        dlg = sync.SyncDialog(parent, project)
         # Commit changes
-        committed = functions.showCommitDialog(parent, project, initMsg="", infoStream=dlg.status)
+        committed = functions.showCommitDialog(parent, project, initMsg="")
         # Cancel sync if commit cancelled
         if committed == -1:
-            dlg.status.write(_translate(
+            pavlovia.getInfoStream().Write(_translate(
                 "\n"
                 "Sync cancelled by user."
             ))
-            dlg.OKbtn.Enable(True)
             return
+        # If there's no user yet, login
+        if project.session.user is None:
+            functions.logInPavlovia(parent)
         # Do sync
-        dlg.sync()
+        project.sync()
 
 
 class ForkDlg(wx.Dialog):

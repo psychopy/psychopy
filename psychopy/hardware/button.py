@@ -1,70 +1,52 @@
 import json
+
+from psychopy import logging
 from psychopy.hardware import base
 
 
-class ButtonResponse:
-    def __init__(self, t, channel, value):
-        self.t = t
+class ButtonResponse(base.BaseResponse):
+    # list of fields known to be a part of this response type
+    fields = ["t", "value", "channel"]
+
+    def __init__(self, t, value, channel):
+        # initialise base response class
+        base.BaseResponse.__init__(self, t=t, value=value)
+        # store channel
         self.channel = channel
-        self.value = value
-
-    def __repr__(self):
-        return f"<ButtonResponse: t={self.t}, channel={self.channel}, value={self.value}>"
-
-    def getJSON(self):
-        message = {
-            'type': "hardware_response",
-            'class': "ButtonResponse",
-            'data': {
-                't': self.t,
-                'channel': self.channel,
-                'value': self.value,
-            }
-        }
-
-        return json.dumps(message)
 
 
-class BaseButtonGroup(base.BaseDevice):
-    def __init__(self, parent, channels=1):
-        # store reference to parent device (usually a button box)
-        self.parent = parent
+class BaseButtonGroup(base.BaseResponseDevice):
+    responseClass = ButtonResponse
+
+    def __init__(self, channels=1):
+        base.BaseResponseDevice.__init__(self)
         # store number of channels
         self.channels = channels
         # attribute in which to store current state
         self.state = [None] * channels
-        # list in which to store messages in chronological order
-        self.responses = []
-        # list of listener objects
-        self.listeners = []
 
-    def clearResponses(self):
-        self.parent.dispatchMessages()
-        self.responses = []
-
-    def addListener(self, listener):
+    def dispatchMessages(self):
         """
-        Add a listener, which will receive all the same messages as this Button.
-
-        Parameters
-        ----------
-        listener : hardware.listener.BaseListener
-            Object to duplicate messages to when received by this Button.
-        """
-        self.listeners.append(listener)
-
-    def clearListeners(self):
-        """
-        Remove any listeners from this device.
+        Dispatch messages - this could mean pulling them from a backend, or from a parent device
 
         Returns
         -------
         bool
-            True if completed successfully
+            True if request sent successfully
         """
-        self.listeners = []
+        raise NotImplementedError()
 
-        return True
+    def parseMessage(self, message):
+        raise NotImplementedError()
+
+    def receiveMessage(self, message):
+        # do base receiving
+        base.BaseResponseDevice.receiveMessage(self, message)
+        # update state
+        self.state[message.channel] = message.value
+
+    def getAvailableDevices(self):
+        raise NotImplementedError()
 
     def getResponses(self, state=None, channel=None, clear=True):
         """
@@ -85,7 +67,7 @@ class BaseButtonGroup(base.BaseDevice):
             List of matching responses.
         """
         # make sure device dispatches messages
-        self.parent.dispatchMessages()
+        self.dispatchMessages()
         # array to store matching responses
         matches = []
         # check messages in chronological order
@@ -102,24 +84,11 @@ class BaseButtonGroup(base.BaseDevice):
 
         return matches
 
-    def receiveMessage(self, message):
-        assert isinstance(message, ButtonResponse), (
-            "{ownType}.receiveMessage() can only receive messages of type PhotodiodeResponse, instead received "
-            "{msgType}. Try parsing the message first using {ownType}.parseMessage()"
-        ).format(ownType=type(self).__name__, msgType=type(message).__name__)
-        # update current state
-        self.state[message.channel] = message.value
-        # add message to responses
-        self.responses.append(message)
-        # relay message to listener
-        for listener in self.listeners:
-            listener.receiveMessage(message)
+    def resetTimer(self, clock=logging.defaultClock):
+        raise NotImplementedError()
 
     def getState(self, channel):
         # dispatch messages from device
-        self.parent.dispatchMessages()
+        self.dispatchMessages()
         # return state after update
         return self.state[channel]
-
-    def parseMessage(self, message):
-        raise NotImplementedError()

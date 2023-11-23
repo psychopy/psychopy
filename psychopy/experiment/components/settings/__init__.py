@@ -8,7 +8,7 @@ from xml.etree.ElementTree import Element
 import re
 from psychopy import logging, plugins
 from psychopy.experiment.components import Param, _translate
-from psychopy.experiment.routines import Routine
+from psychopy.experiment.routines import Routine, BaseStandaloneRoutine
 from psychopy.experiment.routines.eyetracker_calibrate import EyetrackerCalibrationRoutine
 from psychopy.experiment import utils as exputils
 from psychopy.monitors import Monitor
@@ -1569,6 +1569,8 @@ class SettingsComponent:
                 for comp in rt:
                     if hasattr(comp, "writeDeviceCode"):
                         comp.writeDeviceCode(buff)
+            elif isinstance(rt, BaseStandaloneRoutine):
+                rt.writeDeviceCode(buff)
 
         code = (
             "# return True if completed successfully\n"
@@ -1672,6 +1674,12 @@ class SettingsComponent:
             "    win.backgroundImage = %(backgroundImg)s\n"
             "    win.backgroundFit = %(backgroundFit)s\n"
             "    win.units = %(Units)s\n"
+            "    if expInfo is not None and 'frameRate' not in expInfo:\n"
+            "        if win._monitorFrameRate is None:\n"
+            "            # if no frame rate measured, measure it now\n"
+            "                win.getActualFrameRate()"
+            "        # store frame rate of monitor\n"
+            "        expInfo['frameRate'] = win._monitorFrameRate\n"
         )
         buff.writeIndentedLines(code % params)
 

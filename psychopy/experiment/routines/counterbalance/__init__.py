@@ -19,7 +19,7 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
             conditionsFile="", conditionsVariable="",
             nGroups=2, pCap=10,
             onFinished="ignore",
-            saveData=True, saveRemaining=False
+            saveData=True, saveRemaining=True
     ):
         BaseStandaloneRoutine.__init__(self, exp, name=name)
 
@@ -111,7 +111,7 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
             onFinished, valType="str", inputType="choice", categ="Basic",
             allowedVals=["raise", "reset", "ignore"],
             allowedLabels=[_translate("Raise error"), _translate("Reset participant caps"),
-                           _translate("Just set .finished")],
+                           _translate("Just set as finished")],
             label=_translate("If finished..."),
             hint=_translate(
                 "What to do when all groups are finished? Raise an error, reset the count or just continue with "
@@ -134,7 +134,7 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
 
         self.params['saveRemaining'] = Param(
             saveRemaining, valType="bool", inputType="bool", categ="Data",
-            label=_translate("Save remaning cap"),
+            label=_translate("Save remaining cap"),
             hint=_translate(
                 "Save the remaining cap for the chosen group this repeat to the data file?"
             )
