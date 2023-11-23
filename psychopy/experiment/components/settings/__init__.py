@@ -84,7 +84,7 @@ class SettingsComponent:
                  winSize=(1024, 768), screen=1, monitor='testMonitor', winBackend='pyglet',
                  showMouse=False, saveLogFile=True, showExpInfo=True,
                  expInfo="{'participant':'f\"{randint(0, 999999):06.0f}\"', 'session':'001'}",
-                 units='height', logging='exp',
+                 units='height', logging='warning',
                  color='$[0,0,0]', colorSpace='rgb', enableEscape=True,
                  backgroundImg="", backgroundFit="none",
                  blendMode='avg',
@@ -112,7 +112,6 @@ class SettingsComponent:
                  plCompanionAddress="neon.local",
                  plCompanionPort=8080,
                  plCompanionRecordingEnabled=True,
-                 plCompanionCameraCalibration='scene_camera.json',
                  keyboardBackend="ioHub",
                  filename=None, exportHTML='on Sync', endMessage=''):
         self.type = 'Settings'
@@ -415,8 +414,7 @@ class SettingsComponent:
             "Pupil Labs": ["plPupillometryOnly", "plSurfaceName", "plConfidenceThreshold",
                            "plPupilRemoteAddress", "plPupilRemotePort", "plPupilRemoteTimeoutMs",
                            "plPupilCaptureRecordingEnabled", "plPupilCaptureRecordingLocation"],
-            "Pupil Labs (Neon)": ["plCompanionAddress", "plCompanionPort", "plCompanionRecordingEnabled",
-                                  "plCompanionCameraCalibration"],
+            "Pupil Labs (Neon)": ["plCompanionAddress", "plCompanionPort", "plCompanionRecordingEnabled"],
         }
         for tracker in trackerParams:
             for depParam in trackerParams[tracker]:
@@ -631,11 +629,6 @@ class SettingsComponent:
             plCompanionRecordingEnabled, valType='bool', inputType="bool",
             hint=_translate("Recording enabled"),
             label=_translate("Recording enabled"), categ="Eyetracking"
-        )
-        self.params['plCompanionCameraCalibration'] = Param(
-            plCompanionCameraCalibration, valType='file', inputType="file",
-            hint=_translate("Camera calibration path"),
-            label=_translate("Camera calibration path"), categ="Eyetracking"
         )
 
         # Input
@@ -1480,7 +1473,6 @@ class SettingsComponent:
                     "'companion_address': %(plCompanionAddress)s,\n"
                     "'companion_port': %(plCompanionPort)s,\n"
                     "'recording_enabled': %(plCompanionRecordingEnabled)s,\n"
-                    "'camera_calibration': %(plCompanionCameraCalibration)s,\n"
                 )
                 buff.writeIndentedLines(code % inits)
 
