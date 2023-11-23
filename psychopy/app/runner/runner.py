@@ -547,6 +547,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
             self.alertsPnl: icons.ButtonIcon("alerts", size=16).bitmap,
             self.stdoutPnl: icons.ButtonIcon("stdout", size=16).bitmap,
             self.outputNotebook.gitPnl: icons.ButtonIcon("pavlovia", size=16).bitmap,
+            self.outputNotebook.logPnl: icons.ButtonIcon("fileunknown", size=16).bitmap,
         }
         for i in range(self.outputNotebook.GetPageCount()):
             pg = self.outputNotebook.GetPage(i)
@@ -943,9 +944,25 @@ class RunnerOutputNotebook(aui.AuiNotebook, handlers.ThemeMixin):
         )
         self.panels['git'] = self.gitPnl
 
+        # Log
+        self.logPnl = ScriptOutputPanel(
+            parent=parent,
+            style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE
+        )
+        self.logPnl.ctrl.Bind(wx.EVT_TEXT, self.onWrite)
+        self.AddPage(
+            self.logPnl, caption=_translate("Log")
+        )
+        self.panels['log'] = self.logPnl
+        # redirect console log
+        from psychopy.logging import console
+        console.setStream(self.logPnl.ctrl)
+
         self.SetMinSize((720, 720))
 
     def onWrite(self, evt):
+        # define ctrls which are "silent" (i.e. don't grab focus)
+        silentCtrls = (self.logPnl,)
         # get ctrl
         ctrl = evt.GetEventObject()
         # iterate through pages
@@ -953,7 +970,7 @@ class RunnerOutputNotebook(aui.AuiNotebook, handlers.ThemeMixin):
             # get page window
             page = self.GetPage(i)
             # is the ctrl a child of that window?
-            if page.IsDescendant(ctrl):
+            if page.IsDescendant(ctrl) and page not in silentCtrls:
                 # if so, focus that page
                 self.SetSelection(i)
 

@@ -155,15 +155,7 @@ class LogFile():
 
         """
         super(LogFile, self).__init__()
-        # work out if this is a filename or a stream to write to
-        if isinstance(f, Path):
-            f = str(f)
-        if f is None:
-            self.stream = 'stdout'
-        elif hasattr(f, 'write'):
-            self.stream = f
-        elif isinstance(f, str):
-            self.stream = codecs.open(f, filemode, encoding)
+        self.setStream(f, filemode=filemode, encoding=encoding)
         self.level = level
         if logger is None:
             logger = root
@@ -180,6 +172,18 @@ class LogFile():
         self.logger = logger
 
         self.logger.addTarget(self)
+
+    def setStream(self, f, filemode='a', encoding='utf-8'):
+        # work out if this is a filename or a stream to write to
+        if isinstance(f, Path):
+            f = str(f)
+
+        if f is None:
+            self.stream = 'stdout'
+        elif hasattr(f, 'write'):
+            self.stream = f
+        elif isinstance(f, str):
+            self.stream = codecs.open(f, filemode, encoding)
 
     def setLevel(self, level):
         """Set a new minimal level for the log file/stream
