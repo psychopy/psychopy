@@ -248,6 +248,15 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
     _iohubKeyboard = None
     _ptbOffset = 0.0
 
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        # KeyboardDevice needs to function as a "singleton" as there is only one HID input and
+        # multiple devices would compete for presses
+        if cls._instance is None:
+            cls._instance = super(KeyboardDevice, cls).__new__(cls)
+        return cls._instance
+
     def __init__(self, device=-1, bufferSize=10000, waitForStart=False, clock=None, backend=None):
         """Create the device (default keyboard or select one)
 
