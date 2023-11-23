@@ -99,11 +99,11 @@ class KeyboardButtonBox(BaseButtonGroup):
     """
     Use a standard keyboard to immitate the functions of a button box, mostly useful for testing.
     """
-    def __init__(self, buttons=("1", "2", "3")):
+    def __init__(self, buttons=(1, 2, 3, 4)):
         # initialise base class
         BaseButtonGroup.__init__(self, channels=len(buttons))
         # store buttons
-        self.buttons = buttons
+        self.buttons = [str(btn) for btn in buttons]
         # make own clock
         self.clock = core.Clock()
         # initialise keyboard
@@ -117,7 +117,8 @@ class KeyboardButtonBox(BaseButtonGroup):
         return keyboard.KeyboardDevice.getAvailableDevices()
 
     def dispatchMessages(self):
-        messages = self.kb.getKeys(keyList=self.buttons, waitRelease=True, clear=True)
+        messages = self.kb.getKeys(keyList=self.buttons, waitRelease=False, clear=True)
+        messages += self.kb.getKeys(keyList=self.buttons, waitRelease=True, clear=True)
         for msg in messages:
             resp = self.parseMessage(msg)
             self.receiveMessage(resp)
@@ -126,8 +127,8 @@ class KeyboardButtonBox(BaseButtonGroup):
         # work out time and state state of KeyPress
         state = message.duration is None
         t = message.tDown
-        # if state is a release, add duration to timestamp
-        if state:
+        # if state is a release, add duration to timestam1111111p
+        if message.duration:
             t += message.duration
         # get channel
         channel = None
@@ -137,7 +138,7 @@ class KeyboardButtonBox(BaseButtonGroup):
             channel = self.buttons.index(message.code)
         # create response
         resp = ButtonResponse(
-            t=message.tDown,
+            t=t,
             value=state,
             channel=channel
         )
