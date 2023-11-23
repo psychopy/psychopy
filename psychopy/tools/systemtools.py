@@ -27,7 +27,8 @@ __all__ = [
     'getKeyboards',
     'getSerialPorts',
     'systemProfilerMacOS',
-    'getInstalledDevices'
+    'getInstalledDevices',
+    'isPsychopyInFocus'
 ]
 
 # Keep imports to a minimum here! We don't want to import the whole stack to
@@ -460,6 +461,37 @@ def _getCameraInfoWindows():
         videoDevices.append(supportedFormats)
 
     return videoDevices
+
+
+def isPsychopyInFocus():
+    """
+    Query whether the currently focused window is a PsychoPy Window or not.
+
+    Returns
+    -------
+    bool
+        True if a PsychoPy window is in focus, False otherwise.
+    """
+    isInFocus = True
+
+    if sys.platform == "win32":
+        import win32gui
+        # get ID of top window
+        winID = win32gui.GetForegroundWindow()
+        # get window object
+        winName = win32gui.GetWindowText(winID)
+        # does the window name contain PsychoPy?
+        isInFocus = "PsychoPy" in winName
+
+    if sys.platform == "darwin":
+        # todo: Check active window name on Mac
+        pass
+
+    if sys.platform == "linux":
+        # todo: Check active window name on Linux
+        pass
+
+    return isInFocus
 
 
 # Mapping for platform specific camera getter functions used by `getCameras`.

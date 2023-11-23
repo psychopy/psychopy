@@ -558,6 +558,14 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
 
         return response
 
+    def receiveMessage(self, message):
+        # disregard any messages sent while the PsychoPy window wasn't in focus (for security)
+        from psychopy.tools.systemtools import isPsychopyInFocus
+        if not isPsychopyInFocus():
+            return
+        # otherwise, receive as normal
+        return BaseResponseDevice.receiveMessage(self, message=message)
+
     def waitKeys(self, maxWait=float('inf'), keyList=None, waitRelease=True,
                  clear=True):
         """Same as `~psychopy.hardware.keyboard.Keyboard.getKeys`, 
