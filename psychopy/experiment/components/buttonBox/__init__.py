@@ -92,6 +92,7 @@ class ButtonBoxComponent(BaseComponent):
             startEstim=startEstim, durationEstim=durationEstim,
             disabled=disabled
         )
+        self.type = "ButtonBox"
 
         self.exp.requireImport(
             importName="ButtonBox",
