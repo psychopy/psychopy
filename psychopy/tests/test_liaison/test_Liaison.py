@@ -79,7 +79,7 @@ class TestLiaison:
     def test_basic_experiment(self):
         runInLiaison(
             self.server, self.protocol, "session", "addExperiment",
-            "exp1/exp1", "exp1"
+            "exp1/exp1.psyexp", "exp1"
         )
         time.sleep(1)
         runInLiaison(
