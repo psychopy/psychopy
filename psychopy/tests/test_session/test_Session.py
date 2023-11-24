@@ -1,18 +1,14 @@
 import json
-
-import numpy as np
-
-from psychopy import session, visual, logging, clock
-from psychopy.hardware import keyboard, deviceManager
-from psychopy.tests import utils
-from psychopy.constants import STARTED, PAUSED, STOPPED
+from psychopy import session, visual, clock
+from psychopy.hardware import deviceManager
+from psychopy.tests import utils, skip_under_vm
 from pathlib import Path
 import shutil
-import inspect
 import threading
 import time
 
 
+@skip_under_vm
 class TestSession:
     def setup_class(cls):
         root = Path(utils.TESTS_DATA_PATH) / "test_session" / "root"
