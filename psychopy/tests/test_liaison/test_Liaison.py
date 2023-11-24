@@ -1,5 +1,5 @@
 from psychopy import liaison, session, hardware
-from psychopy.tests import utils
+from psychopy.tests import utils, skip_under_vm
 from pathlib import Path
 import json
 import asyncio
@@ -33,7 +33,7 @@ def runInLiaison(server, protocol, obj, method, *args):
         server._processMessage(protocol, json.dumps(cmd))
     )
 
-
+@skip_under_vm
 class TestLiaison:
     def setup_class(self):
         # create liaison server
