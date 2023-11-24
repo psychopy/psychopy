@@ -482,8 +482,11 @@ def isPsychopyInFocus():
             winName = win32gui.GetWindowText(winID)
 
         if sys.platform == "darwin":
-            # todo: Check active window name on Mac
-            pass
+            from AppKit import NSWorkspace
+            # get active application info
+            win = NSWorkspace.sharedWorkspace().activeApplication()
+            # get window name
+            winName = win['NSApplicationName']
 
         if sys.platform == "linux":
             # get window ID
