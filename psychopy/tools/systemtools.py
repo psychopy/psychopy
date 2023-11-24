@@ -27,13 +27,15 @@ __all__ = [
     'getKeyboards',
     'getSerialPorts',
     'systemProfilerMacOS',
-    'getInstalledDevices'
+    'getInstalledDevices',
+    'isPsychopyInFocus'
 ]
 
 # Keep imports to a minimum here! We don't want to import the whole stack to
 # simply populate a drop-down list. Try to keep platform-specific imports inside
 # the functions, not on the top-level scope for this module.
 import platform
+import subprocess
 # if platform.system() == 'Windows':
 #     # this has to be imported here before anything else
 #     import winrt.windows.devices.enumeration as windows_devices
@@ -460,6 +462,52 @@ def _getCameraInfoWindows():
         videoDevices.append(supportedFormats)
 
     return videoDevices
+
+
+def isPsychopyInFocus():
+    """
+    Query whether the currently focused window is a PsychoPy Window or not.
+
+    Returns
+    -------
+    bool
+        True if a PsychoPy window is in focus, False otherwise.
+    """
+    try:
+        if sys.platform == "win32":
+            import win32gui
+            # get ID of top window
+            winID = win32gui.GetForegroundWindow()
+            # get window name
+            winName = win32gui.GetWindowText(winID)
+
+        if sys.platform == "darwin":
+            from AppKit import NSWorkspace
+            # get active application info
+            win = NSWorkspace.sharedWorkspace().activeApplication()
+            # get window name
+            winName = win['NSApplicationName']
+
+        if sys.platform == "linux":
+            # get window ID
+            proc = subprocess.Popen(
+                ['xprop', '-root', '_NET_ACTIVE_WINDOW'],
+                stdout=subprocess.PIPE
+            )
+            stdout, _ = proc.communicate()
+            winID = str(stdout).split("#")[-1].strip()
+            # get window name
+            proc = subprocess.Popen(
+                ['xprop', '-id', winID, 'WM_NAME'],
+                stdout=subprocess.PIPE
+            )
+            stdout, _ = proc.communicate()
+            winName = str(stdout)
+
+        # does the window name contain PsychoPy?
+        return "PsychoPy" in winName
+    except:
+        return True
 
 
 # Mapping for platform specific camera getter functions used by `getCameras`.

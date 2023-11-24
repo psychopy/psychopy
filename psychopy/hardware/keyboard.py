@@ -257,7 +257,8 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
             cls._instance = super(KeyboardDevice, cls).__new__(cls)
         return cls._instance
 
-    def __init__(self, device=-1, bufferSize=10000, waitForStart=False, clock=None, backend=None):
+    def __init__(self, device=-1, bufferSize=10000, waitForStart=False, clock=None, backend=None,
+                 muteOutsidePsychopy=True):
         """Create the device (default keyboard or select one)
 
         Parameters
@@ -277,6 +278,10 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
             Normally we'll start polling the Keyboard at all times but you
             could choose not to do that and start/stop manually instead by
             setting this to True
+
+        muteOutsidePsychopy : bool
+            If True, then this KeyboardDevice won't listen for keypresses unless the currently
+            active window is a PsychoPy window.
 
         """
         BaseResponseDevice.__init__(self)
@@ -351,6 +356,8 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
 
         # array in which to store ongoing presses
         self._keysStillDown = deque()
+        # set whether or not to mute any keypresses which happen outside of PsychoPy
+        self.muteOutsidePsychopy = muteOutsidePsychopy
 
     def isSameDevice(self, other):
         # all Keyboards seem to be the same device
@@ -566,6 +573,14 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
             response.rt = rt
 
         return response
+
+    def receiveMessage(self, message):
+        # disregard any messages sent while the PsychoPy window wasn't in focus (for security)
+        from psychopy.tools.systemtools import isPsychopyInFocus
+        if self.muteOutsidePsychopy and not isPsychopyInFocus():
+            return
+        # otherwise, receive as normal
+        return BaseResponseDevice.receiveMessage(self, message=message)
 
     def waitKeys(self, maxWait=float('inf'), keyList=None, waitRelease=True,
                  clear=True):

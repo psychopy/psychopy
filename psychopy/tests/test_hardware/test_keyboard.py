@@ -18,14 +18,14 @@ class _TestKeyboard:
 
 class TestIohubKeyboard(_TestKeyboard):
     def setup_method(self):
-        self.kb = keyboard.KeyboardDevice(backend="iohub")
+        self.kb = keyboard.KeyboardDevice(backend="iohub", muteOutsidePsychopy=False)
 
 
 class TestPtbKeyboard(_TestKeyboard):
     def setup_method(self):
-        self.kb = keyboard.KeyboardDevice(backend="ptb")
+        self.kb = keyboard.KeyboardDevice(backend="ptb", muteOutsidePsychopy=False)
 
 
 class TestEventKeyboard(_TestKeyboard):
     def setup_method(self):
-        self.kb = keyboard.KeyboardDevice(backend="event")
+        self.kb = keyboard.KeyboardDevice(backend="event", muteOutsidePsychopy=False)
