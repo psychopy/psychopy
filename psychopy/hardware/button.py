@@ -1,7 +1,6 @@
-import json
-
-from psychopy import logging
-from psychopy.hardware import base
+from psychopy import logging, constants, core
+from psychopy.hardware import base, DeviceManager, keyboard
+from psychopy.localization import _translate
 
 
 class ButtonResponse(base.BaseResponse):
@@ -25,15 +24,17 @@ class BaseButtonGroup(base.BaseResponseDevice):
         # attribute in which to store current state
         self.state = [None] * channels
 
-    def dispatchMessages(self):
-        """
-        Dispatch messages - this could mean pulling them from a backend, or from a parent device
+        # start off with a status
+        self.status = constants.NOT_STARTED
 
-        Returns
-        -------
-        bool
-            True if request sent successfully
-        """
+    def resetTimer(self, clock=logging.defaultClock):
+        raise NotImplementedError()
+
+    @staticmethod
+    def getAvailableDevices():
+        raise NotImplementedError()
+
+    def dispatchMessages(self):
         raise NotImplementedError()
 
     def parseMessage(self, message):
@@ -44,9 +45,6 @@ class BaseButtonGroup(base.BaseResponseDevice):
         base.BaseResponseDevice.receiveMessage(self, message)
         # update state
         self.state[message.channel] = message.value
-
-    def getAvailableDevices(self):
-        raise NotImplementedError()
 
     def getResponses(self, state=None, channel=None, clear=True):
         """
@@ -66,6 +64,9 @@ class BaseButtonGroup(base.BaseResponseDevice):
         list[ButtonResponse]
             List of matching responses.
         """
+        # substitute empty channel param for None
+        if isinstance(channel, (list, tuple)) and not len(channel):
+            channel = None
         # make sure device dispatches messages
         self.dispatchMessages()
         # array to store matching responses
@@ -84,11 +85,103 @@ class BaseButtonGroup(base.BaseResponseDevice):
 
         return matches
 
-    def resetTimer(self, clock=logging.defaultClock):
-        raise NotImplementedError()
-
-    def getState(self, channel):
+    def getState(self, channel=None):
         # dispatch messages from device
         self.dispatchMessages()
         # return state after update
-        return self.state[channel]
+        if channel is not None:
+            return self.state[channel]
+        else:
+            return self.state
+
+
+class KeyboardButtonBox(BaseButtonGroup):
+    """
+    Use a standard keyboard to immitate the functions of a button box, mostly useful for testing.
+    """
+    def __init__(self, buttons=(1, 2, 3, 4)):
+        # initialise base class
+        BaseButtonGroup.__init__(self, channels=len(buttons))
+        # store buttons
+        self.buttons = [str(btn) for btn in buttons]
+        # make own clock
+        self.clock = core.Clock()
+        # initialise keyboard
+        self.kb = keyboard.KeyboardDevice(clock=self.clock)
+
+    def resetTimer(self, clock=logging.defaultClock):
+        self.clock.reset(clock.getTime())
+
+    @staticmethod
+    def getAvailableDevices():
+        return keyboard.KeyboardDevice.getAvailableDevices()
+
+    def dispatchMessages(self):
+        messages = self.kb.getKeys(keyList=self.buttons, waitRelease=False, clear=True)
+        messages += self.kb.getKeys(keyList=self.buttons, waitRelease=True, clear=True)
+        for msg in messages:
+            resp = self.parseMessage(msg)
+            self.receiveMessage(resp)
+
+    def parseMessage(self, message):
+        # work out time and state state of KeyPress
+        state = message.duration is None
+        t = message.tDown
+        # if state is a release, add duration to timestam1111111p
+        if message.duration:
+            t += message.duration
+        # get channel
+        channel = None
+        if message.name in self.buttons:
+            channel = self.buttons.index(message.name)
+        elif message.code in self.buttons:
+            channel = self.buttons.index(message.code)
+        # create response
+        resp = ButtonResponse(
+            t=t,
+            value=state,
+            channel=channel
+        )
+
+        return resp
+
+
+class ButtonBox:
+    """
+    Builder-friendly wrapper around BaseButtonGroup.
+    """
+    def __init__(self, device):
+        if isinstance(device, BaseButtonGroup):
+            # if given a button group, use it
+            self.device = device
+        # if given a string, get via DeviceManager
+        if isinstance(device, str):
+            if device in DeviceManager.devices:
+                self.device = DeviceManager.getDevice(device)
+            else:
+                raise ValueError(_translate(
+                    f"Could not find device named '{device}', make sure it has been set up "
+                    f"in DeviceManager."
+                ))
+
+        # starting value for status (Builder)
+        self.status = constants.NOT_STARTED
+        # arrays to store info (Builder)
+        self.buttons = []
+        self.times = []
+        self.corr = []
+
+    def getAvailableDevices(self):
+        return self.device.getAvailableDevices()
+
+    def getResponses(self, state=None, channel=None, clear=True):
+        return self.device.getResponses(state=state, channel=channel, clear=clear)
+
+    def resetTimer(self, clock=logging.defaultClock):
+        return self.device.resetTimer(clock=clock)
+
+    def getState(self, channel):
+        return self.device.getState(channel=channel)
+
+    def clearResponses(self):
+        return self.device.clearResponses()
