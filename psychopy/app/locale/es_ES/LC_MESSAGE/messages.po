@@ -300,9 +300,11 @@ msgstr ""
 msgid "Compatibility information"
 msgstr "Información de compatibilidad"
 
+# I deleted this translation (consejos.txt) and replaced it with tips.txt again. This is because this is a pseudo-translation, and has to be an actual file labeled tips_es_CO.txt, which must be located in the directory: psychop/apps/Resources. It’s not there yet, so this has to stay as tips.txt. Putting consejos.txt here will cause the localization to crash immediately upon startup.
 #: psychopy/app/_psychopyApp.py:654
+#, fuzzy
 msgid "tips.txt"
-msgstr "consejos.txt"
+msgstr "tips.txt"
 
 #: psychopy/app/_psychopyApp.py:692
 msgid "  Loading plugins..."
@@ -916,7 +918,7 @@ msgstr "Insertar rutina"
 
 #: psychopy/app/builder/builder.py:3326 psychopy/app/builder/builder.py:3444
 msgid "Insert Loop"
-msgstr "Insertar bucle"
+msgstr "Insert Loop"
 
 #: psychopy/app/builder/builder.py:3390
 msgid "rename"
