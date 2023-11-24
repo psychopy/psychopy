@@ -27,6 +27,13 @@ class TestingProtocol:
         self.messages = []
 
 
+def runInLiaison(server, protocol, obj, method, *args):
+    cmd = {'object': obj, 'method': method, 'args': args}
+    asyncio.run(
+        server._processMessage(protocol, json.dumps(cmd))
+    )
+
+
 class TestLiaison:
     def setup_class(self):
         # create liaison server
@@ -35,35 +42,30 @@ class TestLiaison:
         self.server._connections = [self.protocol]
         # add session to liaison server
         self.server.registerClass(session.Session, "session")
-        self.runInLiaison(
-            "session", "init", str(Path(utils.TESTS_DATA_PATH) / "test_session" / "root")
+        runInLiaison(
+            self.server, self.protocol, "session", "init",
+            str(Path(utils.TESTS_DATA_PATH) / "test_session" / "root")
         )
-        self.runInLiaison(
-            "session", "registerMethods"
+        runInLiaison(
+            self.server, self.protocol, "session", "registerMethods"
         )
         # add device manager to liaison server
         self.server.registerClass(hardware.DeviceManager, "DeviceManager")
-        self.runInLiaison(
-            "DeviceManager", "init"
+        runInLiaison(
+            self.server, self.protocol, "DeviceManager", "init"
         )
-        self.runInLiaison(
-            "DeviceManager", "registerMethods"
+        runInLiaison(
+            self.server, self.protocol, "DeviceManager", "registerMethods"
         )
         # start Liaison
         self.server.run("localhost", 8100)
         # start session
-        self.runInLiaison(
-            "session", "start"
+        runInLiaison(
+            self.server, self.protocol, "session", "start"
         )
         # setup window
-        self.runInLiaison(
-            "session", "setupWindowFromParams", "{}", "false"
-        )
-
-    def runInLiaison(self, obj, method, *args):
-        cmd = {'object': obj, 'method': method, 'args': args}
-        asyncio.run(
-            self.server._processMessage(self.protocol, json.dumps(cmd))
+        runInLiaison(
+            self.server, self.protocol, "session", "setupWindowFromParams", "{}", "false"
         )
 
     def test_session_init(self):
@@ -75,19 +77,21 @@ class TestLiaison:
         assert isinstance(self.server._methods['DeviceManager'][0], hardware.DeviceManager)
 
     def test_basic_experiment(self):
-        self.runInLiaison(
-            "session", "addExperiment", "exp1/exp1", "exp1"
+        runInLiaison(
+            self.server, self.protocol, "session", "addExperiment",
+            "exp1/exp1", "exp1"
         )
         time.sleep(1)
-        self.runInLiaison(
-            "session", "runExperiment", "exp1"
+        runInLiaison(
+            self.server, self.protocol, "session", "runExperiment",
+            "exp1"
         )
 
     def test_add_device_with_listener(self):
         # add keyboard
-        self.runInLiaison(
-            "DeviceManager", "addDevice", "psychopy.hardware.keyboard.KeyboardDevice",
-            "defaultKeyboard "
+        runInLiaison(
+            self.server, self.protocol, "DeviceManager", "addDevice",
+            "psychopy.hardware.keyboard.KeyboardDevice", "defaultKeyboard"
         )
         # get keyboard from device manager
         kb = hardware.DeviceManager.getDevice("defaultKeyboard")
@@ -95,8 +99,9 @@ class TestLiaison:
         from psychopy.hardware.keyboard import KeyboardDevice, KeyPress
         assert isinstance(kb, KeyboardDevice)
         # add listener
-        self.runInLiaison(
-            "DeviceManager", "addListener", "defaultKeyboard", "liaison", "True"
+        runInLiaison(
+            self.server, self.protocol, "DeviceManager", "addListener",
+            "defaultKeyboard", "liaison", "True"
         )
         time.sleep(1)
         # send dummy message
