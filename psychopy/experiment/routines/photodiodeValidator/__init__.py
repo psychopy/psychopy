@@ -260,7 +260,7 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine):
 
         if self.params['threshold'] and not self.params['findThreshold']:
             code = (
-                "%(diodeName)s.setThreshold(%(threshold)s, channels=[%(channel)s])\n"
+                "%(name)sDiode.setThreshold(%(threshold)s, channels=[%(channel)s])\n"
             )
             buff.writeIndentedLines(code % inits)
         # find/set diode position
@@ -269,17 +269,17 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine):
             # set units (unless None)
             if self.params['units']:
                 code += (
-                    "%(diodeName)s.units = %(units)s\n"
+                    "%(name)sDiode.units = %(units)s\n"
                 )
             # set pos (unless None)
             if self.params['pos']:
                 code += (
-                    "%(diodeName)s.pos = %(pos)s\n"
+                    "%(name)sDiode.pos = %(pos)s\n"
                 )
             # set size (unless None)
             if self.params['size']:
                 code += (
-                    "%(diodeName)s.size = %(size)s\n"
+                    "%(name)sDiode.size = %(size)s\n"
                 )
             buff.writeIndentedLines(code % inits)
         # create validator object

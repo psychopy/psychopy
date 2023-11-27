@@ -300,12 +300,15 @@ class Param():
         """Return a bool, so we can do `if thisParam`
         rather than `if thisParam.val`"""
         if self.val in ['True', 'true', 'TRUE', True, 1, 1.0]:
-            # Return True for aliases of True
+            # return True for aliases of True
             return True
         if self.val in ['False', 'false', 'FALSE', False, 0, 0.0]:
-            # Return False for aliases of False
+            # return False for aliases of False
             return False
-        # If not a clear alias, use bool method of value
+        if self.val in ['None', 'none', None, ""]:
+            # return False for aliases of None
+            return False
+        # if not a clear alias, use bool method of value
         return bool(self.val)
 
     @property

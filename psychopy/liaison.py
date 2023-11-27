@@ -202,6 +202,23 @@ class WebSocketServer:
 		for websocket in self._connections:
 			await websocket.send(message)
 
+	def broadcastSync(self, message):
+		"""
+		Call Liaison.broadcast from a synchronous context.
+
+		Parameters
+		----------
+		message : string
+			the message to be sent to all clients
+		"""
+		try:
+			# try to run in new loop
+			asyncio.run(self.broadcast(message))
+		except RuntimeError:
+			# use existing if there's already a loop
+			loop = asyncio.get_event_loop()
+			loop.create_task(self.broadcast(message))
+
 	async def _connectionHandler(self, websocket):
 		"""
 		Handler managing all communications received from a client connected to the server.

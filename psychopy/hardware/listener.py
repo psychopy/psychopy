@@ -11,20 +11,46 @@ class ListenerLoop(threading.Thread):
 
     Attributes
     ----------
-    device : BaseDevice
-        Device whose messages to dispatch on each iteration of the loop.
+    devices : list[BaseDevice]
+        Devices whose messages to dispatch on each iteration of the loop.
     refreshRate : float
         How long to sleep inbetween iterations of the loop
     maxTime : float
         Maximum time (s) which this loop is allowed to run for, after this time limit is reached the loop will end.
     """
     def __init__(self):
+        self.devices = []
         # placeholder values for function params
-        self.device = self.refreshRate = self.maxTime = None
+        self.refreshRate = self.maxTime = None
         # set initial alive state
         self._alive = False
         # initialise base Thread
-        threading.Thread.__init__(self, target=self.dispatchLoop)
+        threading.Thread.__init__(self, target=self.dispatchLoop, daemon=True)
+
+    def addDevice(self, device):
+        """
+        Add a device to this loop.
+
+        Parameters
+        ----------
+        device : BaseDevice
+            Device to add
+        """
+        if device not in self.devices:
+            self.devices.append(device)
+
+    def removeDevice(self, device):
+        """
+        Remove a device from this loop
+
+        Parameters
+        ----------
+        device : BaseDevice
+            Device to remove
+        """
+        if device in self.devices:
+            i = self.devices.index(device)
+            self.devices.pop(i)
 
     def start(self):
         """
@@ -78,10 +104,15 @@ class ListenerLoop(threading.Thread):
             cont = self._alive
             if self.maxTime is not None:
                 cont &= time.time() - startTime < self.maxTime
-            # dispatch messages from this device
-            self.device.dispatchMessages()
+            # dispatch messages from devices
+            for device in self.devices:
+                device.dispatchMessages()
             # sleep for 10ms
             time.sleep(self.refreshRate)
+
+
+# make a global instance of ListenerLoop so all listeners can share the same loop
+loop = ListenerLoop()
 
 
 class BaseListener:
@@ -95,7 +126,8 @@ class BaseListener:
         # list in which to store responses (if implemented)
         self.responses = []
         # create threaded loop, but don't start unless asked to
-        self.loop = ListenerLoop()
+        global loop
+        self.loop = loop
 
     def startLoop(self, device, refreshRate=0.01, maxTime=None):
         """
@@ -115,10 +147,8 @@ class BaseListener:
         bool
             True if loop started successfully
         """
-        # if there's an existing loop, stop it
-        self.stopLoop()
         # set attributes of loop
-        self.loop.device = device
+        self.loop.addDevice(device)
         self.loop.refreshRate = refreshRate
         self.loop.maxTime = maxTime
         # start loop
@@ -126,7 +156,7 @@ class BaseListener:
 
     def stopLoop(self):
         """
-        Stop the current dispatch loop
+        Stop the dispatch loop. WARNING: Cannot be restarted.
 
         Returns
         -------
@@ -134,7 +164,6 @@ class BaseListener:
             True if loop started successfully
         """
         return self.loop.stop()
-
 
     def receiveMessage(self, message):
         """
@@ -146,6 +175,12 @@ class BaseListener:
             Message received.
         """
         raise NotImplementedError()
+
+    def __del__(self):
+        """
+        On deletion, remove self from loop.
+        """
+        loop.removeDevice(self)
 
 
 class PrintListener(BaseListener):
@@ -244,6 +279,7 @@ class LiaisonListener(BaseListener):
         """
         On receiving message, send it to Liaison.
         """
+        import asyncio
         # append
         self.responses.append(message)
         # stringify message
@@ -256,4 +292,4 @@ class LiaisonListener(BaseListener):
                 'data': str(message)
             }
         # send
-        self.liaison.broadcast(message)
+        self.liaison.broadcastSync(message)

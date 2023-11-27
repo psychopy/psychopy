@@ -249,7 +249,12 @@ class Flow(list):
             "exec = environmenttools.setExecEnvironment(globals())\n"
             "# get device handles from dict of input devices\n"
             "ioServer = deviceManager.ioServer\n"
+            "# get/create a default keyboard (e.g. to check for escape)\n"
             "defaultKeyboard = deviceManager.getDevice('defaultKeyboard')\n"
+            "if defaultKeyboard is None:\n"
+            "    deviceManager.addDevice(\n"
+            "        deviceClass='keyboard', deviceName='defaultKeyboard', backend=%(keyboardBackend)s\n"
+            "    )\n"
             "eyetracker = deviceManager.getDevice('eyetracker')\n"
             "# make sure we're running in the directory for this experiment\n"
             "os.chdir(_thisDir)\n"
@@ -258,7 +263,7 @@ class Flow(list):
             "frameTolerance = 0.001  # how close to onset before 'same' frame\n"
             "endExpNow = False  # flag for 'escape' or other condition => quit the exp\n"
         )
-        script.writeIndentedLines(code)
+        script.writeIndentedLines(code % self.exp.settings.params)
         # get frame dur from frame rate
         code = (
             "# get frame duration from frame rate in expInfo\n"

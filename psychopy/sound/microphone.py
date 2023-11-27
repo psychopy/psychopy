@@ -341,6 +341,13 @@ class Microphone:
                 audioLatencyMode=audioLatencyMode,
                 audioRunMode=audioRunMode
             )
+        # setup clips and transcripts dicts
+        self.clips = {}
+        self.lastClip = None
+        self.scripts = {}
+        self.lastScript = None
+        # set initial status
+        self.status = NOT_STARTED
 
     @property
     def recording(self):
@@ -417,13 +424,84 @@ class Microphone:
         return self.device.poll()
 
     def bank(self, tag=None, transcribe=False, **kwargs):
-        return self.device.bank(tag=tag, transcribe=transcribe, **kwargs)
+        """Store current buffer as a clip within the microphone object.
+
+        This method is used internally by the Microphone component in Builder,
+        don't use it for other applications. Either `stop()` or `pause()` must
+        be called before calling this method.
+
+        Parameters
+        ----------
+        tag : str or None
+            Label for the clip.
+        transcribe : bool or str
+            Set to the name of a transcription engine (e.g. "GOOGLE") to
+            transcribe using that engine, or set as `False` to not transcribe.
+        kwargs : dict
+            Additional keyword arguments to pass to
+            :class:`~psychopy.sound.AudioClip.transcribe()`.
+
+        """
+        # make sure the tag exists in both clips and transcripts dicts
+        if tag not in self.clips:
+            self.clips[tag] = []
+
+        if tag not in self.scripts:
+            self.scripts[tag] = []
+
+        # append current recording to clip list according to tag
+        self.lastClip = self.getRecording()
+        self.clips[tag].append(self.lastClip)
+
+        # synonymise null values
+        nullVals = (
+            'undefined', 'NONE', 'None', 'none', 'False', 'false', 'FALSE')
+        if transcribe in nullVals:
+            transcribe = False
+
+        # append current clip's transcription according to tag
+        if transcribe:
+            if transcribe in ('Built-in', True, 'BUILT_IN', 'BUILT-IN',
+                              'Built-In', 'built-in'):
+                engine = "sphinx"
+            elif type(transcribe) == str:
+                engine = transcribe
+            else:
+                raise ValueError(
+                    "Invalid transcription engine {} specified.".format(
+                        transcribe))
+
+            self.lastScript = self.lastClip.transcribe(
+                engine=engine, **kwargs)
+        else:
+            self.lastScript = "Transcription disabled."
+
+        self.scripts[tag].append(self.lastScript)
+
+        # clear recording buffer
+        self.device._recording.clear()
+
+        # return banked items
+        if transcribe:
+            return self.lastClip, self.lastScript
+        else:
+            return self.lastClip
 
     def clear(self):
-        return self.device.clear()
+        """Wipe all clips. Deletes previously banked audio clips.
+        """
+        # clear clips
+        self.clips = {}
+        # clear recording
+        self._recording.clear()
 
     def flush(self):
-        return self.device.flush()
+        """Get a copy of all banked clips, then clear the clips from storage."""
+        # get copy of clips dict
+        clips = self.clips.copy()
+        self.clear()
+
+        return clips
 
     def getRecording(self):
         return self.device.getRecording()
@@ -664,11 +742,6 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             policyWhenFull=policyWhenFull
         )
 
-        # setup clips and transcripts dicts
-        self.clips = {}
-        self.lastClip = None
-        self.scripts = {}
-        self.lastScript = None
         self._isStarted = False  # internal state
 
         logging.debug('Audio capture device #{} ready'.format(
@@ -799,26 +872,6 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         return self._streamBufferSecs
 
     @property
-    def status(self):
-        """Status flag for the microphone. Value can be one of
-        ``psychopy.constants.STARTED`` or ``psychopy.constants.NOT_STARTED``.
-
-        This is attribute is used by Builder and does not correspond to the
-        actual state of the microphone. Use `streamStatus` and `isStarted`
-        instead.
-
-        For detailed stream status information, use the
-        :attr:`~psychopy.sound.microphone.MicrophoneDevice.streamStatus` property.
-
-        """
-        if hasattr(self, "_statusFlag"):
-            return self._statusFlag
-
-    @status.setter
-    def status(self, value):
-        self._statusFlag = value
-
-    @property
     def streamStatus(self):
         """Status of the audio stream (`AudioDeviceStatus` or `None`).
 
@@ -887,15 +940,13 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         Returns
         -------
         bool
-            True if test passed, False otherwise. On fail, will log the error at level "debug".
+            True if test passed. On fail, will log the error at level "debug".
         """
         # if given a string for testSound, generate
         if testSound in ("sine", "square", "sawtooth"):
             testSound = getattr(AudioClip, testSound)(duration=duration)
 
         try:
-            # get clips to this point
-            ogClips = self.flush()
             # record
             self.start(stopTime=duration)
             # play testSound
@@ -905,19 +956,21 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
                 snd.play()
             # sleep for duration
             time.sleep(duration)
-            # get new clips
-            clips = self.flush()
-            # reinstate original clips
-            self.clips = ogClips
+            # poll to refresh recording
+            self.poll()
+            # get new clip
+            clip = self.getRecording()
             # check that clip matches test sound
             if testSound is not None:
                 # todo: check the recording against testSound
                 pass
+
             return True
+
         except Exception as err:
-            raise err
             logging.debug(f"Microphone test failed. Error: {err}")
-            return False
+
+            raise err
 
     def start(self, when=None, waitForStart=0, stopTime=None):
         """Start an audio recording.
@@ -946,8 +999,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         """
         # check if the stream has been
         if self.isStarted:
-            raise AudioStreamError(
-                "Cannot start a stream, already started.")
+            return None
 
         if self._stream is None:
             raise AudioStreamError("Stream not ready.")
@@ -1119,86 +1171,6 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         overruns = self._recording.write(audioData)
 
         return overruns
-
-    def bank(self, tag=None, transcribe=False, **kwargs):
-        """Store current buffer as a clip within the microphone object.
-
-        This method is used internally by the Microphone component in Builder,
-        don't use it for other applications. Either `stop()` or `pause()` must
-        be called before calling this method.
-
-        Parameters
-        ----------
-        tag : str or None
-            Label for the clip.
-        transcribe : bool or str
-            Set to the name of a transcription engine (e.g. "GOOGLE") to
-            transcribe using that engine, or set as `False` to not transcribe.
-        kwargs : dict
-            Additional keyword arguments to pass to
-            :class:`~psychopy.sound.AudioClip.transcribe()`.
-
-        """
-        # make sure the tag exists in both clips and transcripts dicts
-        if tag not in self.clips:
-            self.clips[tag] = []
-
-        if tag not in self.scripts:
-            self.scripts[tag] = []
-
-        # append current recording to clip list according to tag
-        self.lastClip = self.getRecording()
-        self.clips[tag].append(self.lastClip)
-
-        # synonymise null values
-        nullVals = (
-            'undefined', 'NONE', 'None', 'none', 'False', 'false', 'FALSE')
-        if transcribe in nullVals:
-            transcribe = False
-
-        # append current clip's transcription according to tag
-        if transcribe:
-            if transcribe in ('Built-in', True, 'BUILT_IN', 'BUILT-IN',
-                              'Built-In', 'built-in'):
-                engine = "sphinx"
-            elif type(transcribe) == str:
-                engine = transcribe
-            else:
-                raise ValueError(
-                    "Invalid transcription engine {} specified.".format(
-                        transcribe))
-
-            self.lastScript = self.lastClip.transcribe(
-                engine=engine, **kwargs)
-        else:
-            self.lastScript = "Transcription disabled."
-
-        self.scripts[tag].append(self.lastScript)
-
-        # clear recording buffer
-        self._recording.clear()
-
-        # return banked items
-        if transcribe:
-            return self.lastClip, self.lastScript
-        else:
-            return self.lastClip
-
-    def clear(self):
-        """Wipe all clips. Deletes previously banked audio clips.
-        """
-        # clear clips
-        self.clips = {}
-        # clear recording
-        self._recording.clear()
-
-    def flush(self):
-        """Get a copy of all banked clips, then clear the clips from storage."""
-        # get copy of clips dict
-        clips = self.clips.copy()
-        self.clear()
-
-        return clips
 
     def getRecording(self):
         """Get audio data from the last microphone recording.

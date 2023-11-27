@@ -31,3 +31,26 @@ class CodeGenerationException(Exception):
 
     def __str__(self):
         return "{}: ".format(self.source, self.message)
+
+
+def loadPluginElements():
+    """
+    Load relevant defs for any plugins with entry points in psychopy.experiment.components or
+    psychopy.experiment.routines, so that they are available to Builder.
+
+    Returns
+    -------
+    list[str]
+        List of names for all plugins loaded
+    """
+    from .components.utils import loadPluginComponents
+    from .routines.utils import loadPluginRoutines
+
+    imported = []
+    # load components
+    imported += loadPluginComponents()
+    # load routines
+    imported += loadPluginRoutines()
+
+    return imported
+
