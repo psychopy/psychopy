@@ -324,12 +324,13 @@ class Experiment:
                 "    run(\n"
                 "        expInfo=expInfo, \n"
                 "        thisExp=thisExp, \n"
-                "        win=win\n"
+                "        win=win,\n"
+                "        globalClock=%(clockFormat)s\n"
                 "    )\n"
                 "    saveData(thisExp=thisExp)\n"
                 "    quit(thisExp=thisExp, win=win)\n"
             )
-            script.writeIndentedLines(code)
+            script.writeIndentedLines(code % self.settings.params)
 
             script = script.getvalue()
 

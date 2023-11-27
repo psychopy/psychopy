@@ -92,6 +92,7 @@ class SettingsComponent:
                  saveXLSXFile=False, saveCSVFile=False, saveHDF5File=False,
                  saveWideCSVFile=True, savePsydatFile=True,
                  savedDataFolder='', savedDataDelim='auto',
+                 clockFormat="float",
                  useVersion='',
                  eyetracker="None",
                  mgMove='CONTINUOUS', mgBlink='MIDDLE_BUTTON', mgSaccade=0.5,
@@ -296,7 +297,8 @@ class SettingsComponent:
             "Save wide csv file",
             "Save psydat file",
             "Save hdf5 file",
-            "logging level"
+            "logging level",
+            "clockFormat",
         ]
         self.params['Data filename'] = Param(
             filename, valType='code', inputType="single", allowedTypes=[],
@@ -364,6 +366,16 @@ class SettingsComponent:
             hint=_translate("How much output do you want in the log files? "
                             "('error' is fewest messages, 'debug' is most)"),
             label=_translate("Logging level"), categ='Data')
+        self.params['clockFormat'] = Param(
+            clockFormat, valType="str", inputType="choice", categ="Data",
+            allowedVals=["iso", "float"],
+            allowedLabels=["Wall clock", "Experiment start"],
+            label=_translate("Clock format"),
+            hint=_translate(
+                "Format to use for Routine start timestamps; either wall clock time (in ISO 8601 "
+                "format) or seconds since experiment start (as a float)."
+            )
+        )
 
         # HTML output params
         # self.params['OSF Project ID'] = ProjIDParam(
