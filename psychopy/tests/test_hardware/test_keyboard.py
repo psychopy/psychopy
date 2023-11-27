@@ -1,4 +1,5 @@
 from psychopy.hardware import keyboard
+import time
 
 
 class _TestKeyboard:
@@ -14,6 +15,42 @@ class _TestKeyboard:
             assert len(keys) == case['len']
             assert keys[-1] is evt
             assert keys[-1].value == case['val']
+
+    def testMuteOutsidePsychopyNotSlower(self):
+        """
+        Test that responses aren't worryingly slower when using muteOutsidePsychopy
+        """
+        # delete test kb
+        backend = self.kb._backend
+        del self.kb
+
+        # array to store times
+        times = {}
+        # number of responses to make
+        nResps = 10000
+
+        for mop in (True, False):
+            # make new keyboard with muteOutsidePsychopy set as desired
+            kb = keyboard.KeyboardDevice(muteOutsidePsychopy=mop)
+            # start timer
+            start = time.time()
+            # make 10000 responses
+            for n in range(nResps):
+                kb.makeResponse(
+                    code="a", tDown=0
+                )
+            # get time
+            times[mop] = time.time() - start
+            # delete keyboard
+            del kb
+
+        # work out average difference per-response
+        avg = (times[True] - times[False]) / nResps
+        # make sure average difference will still be less than a frame on high performance monitors
+        assert avg < 1/240
+
+        # recreate test kb
+        self.kb = keyboard.KeyboardDevice
 
 
 class TestIohubKeyboard(_TestKeyboard):

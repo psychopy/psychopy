@@ -257,6 +257,11 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
             cls._instance = super(KeyboardDevice, cls).__new__(cls)
         return cls._instance
 
+    def __del__(self):
+        # if one instance is deleted, reset the singleton instance so that the next
+        # initialisation recreates it
+        KeyboardDevice._instance = None
+
     def __init__(self, device=-1, bufferSize=10000, waitForStart=False, clock=None, backend=None,
                  muteOutsidePsychopy=True):
         """Create the device (default keyboard or select one)
