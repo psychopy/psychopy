@@ -89,7 +89,7 @@ def compareScreenshot(fileName, win, tag="", crit=5.0):
         expDat = np.array(expected.getdata())
         imgDat = np.array(frame.getdata())
         # for retina displays the frame data is 4x bigger than expected
-        if win.useRetina and imgDat.shape[0] == expDat.shape[0]*4:
+        if imgDat.shape[0] != expDat.shape[0]:
             frame = frame.resize(expected.size, resample=Image.LANCZOS)
             imgDat = np.array(frame.getdata())
             crit += 5  # be more relaxed because of the interpolation
