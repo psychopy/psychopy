@@ -381,11 +381,14 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
         """
         # get rect
         left, bottom = self._pos.pix + self.win.size / 2
-        w, h = (10, 10)
+        w, h = self._size.pix
         left = int(left - w / 2)
         bottom = int(bottom - h / 2)
+        w = int(w)
+        h = int(h)
         # read front buffer luminances for specified area
         pixels = self.win._getPixels(
+            buffer="back",
             rect=(left, bottom, w, h),
             makeLum=True
         )
