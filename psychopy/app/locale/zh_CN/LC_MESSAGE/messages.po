@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: PsychoPy 2023.2.2\n"
 "Report-Msgid-Bugs-To: shuonwang@gmail.com\n"
 "POT-Creation-Date: 2021-12-18 00:00+0100\n"
-"PO-Revision-Date: 2023-11-07 10:59+0800\n"
-"Last-Translator: Huang Xinru <hxrmiaomiaomiao@pku.edu.cn>\n"
+"PO-Revision-Date: 2023-11-29 14:49-0500\n"
+"Last-Translator: Bingzi Yu <ybzice@gmail.com>\n"
 "Language-Team: Shun Wang <shuonwang@gmail.com>\n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
@@ -2627,7 +2627,7 @@ msgstr "向 Pavlovia 提交更改"
 
 #: ../app/pavlovia_ui/project.py:201
 msgid "Local root: "
-msgstr ""
+msgstr "本地根："
 
 #: ../app/pavlovia_ui/project.py:212
 msgid "Select a project for details"
@@ -2655,12 +2655,12 @@ msgstr ""
 
 #: ../app/pavlovia_ui/project.py:296
 msgid "<not yet synced>"
-msgstr ""
+msgstr "<not yet synced>"
 
 #: ../app/pavlovia_ui/project.py:297 ../app/pavlovia_ui/project.py:364
 #: ../app/pavlovia_ui/project.py:377
 msgid "Local root: {}"
-msgstr ""
+msgstr "本地根：{}"
 
 #: ../app/pavlovia_ui/project.py:304
 msgid "Log in to sync..."
@@ -2692,11 +2692,11 @@ msgstr "创建项目"
 
 #: ../app/pavlovia_ui/project.py:613
 msgid "points to a remote that doesn't exist (deleted?)."
-msgstr ""
+msgstr "指向一个不存在的远端（已删除？）"
 
 #: ../app/pavlovia_ui/project.py:614
 msgid "What shall we do?"
-msgstr ""
+msgstr "您期望我们执行？"
 
 #: ../app/pavlovia_ui/project.py:616
 msgid "(Re)create a project"
@@ -2704,7 +2704,7 @@ msgstr "(重新)创建项目"
 
 #: ../app/pavlovia_ui/project.py:617
 msgid "Point to an different location"
-msgstr ""
+msgstr "指向不同的位置"
 
 #: ../app/pavlovia_ui/project.py:618
 msgid "not yet supported"
@@ -2712,7 +2712,7 @@ msgstr "目前不支持"
 
 #: ../app/pavlovia_ui/project.py:619
 msgid "Forget the local git repository (deletes history keeps files)"
-msgstr ""
+msgstr "清除本地 git repository 记忆（删除历史记录，保留文件）"
 
 #: ../app/pavlovia_ui/search.py:36
 msgid "Search for projects online"
@@ -7164,7 +7164,7 @@ msgstr "在%(photomPort)s上找到的%(photomType)s"
 
 #: ../monitors/MonitorCenter.py:983
 msgid "No photometers found"
-msgstr ""
+msgstr "未找到光度计"
 
 #: ../monitors/MonitorCenter.py:991 ../monitors/MonitorCenter.py:997
 msgid "Dark calibration of ColorCAL"
@@ -7178,61 +7178,61 @@ msgstr "你的ColorCAL需要先校准。请阻止所有光线进入镜头，然�
 
 #: ../monitors/MonitorCenter.py:1010
 msgid "Try again. Cover the lens fully and press OK"
-msgstr ""
+msgstr "再试一次。请完全覆盖镜头并按确定"
 
 #: ../monitors/MonitorCenter.py:1014
 #, python-format
 msgid "%(monName)s %(calibName)s Gamma Functions"
-msgstr ""
+msgstr "%(monName)s %(calibName)s 伽马方程"
 
 #: ../monitors/MonitorCenter.py:1083
 #, python-format
 msgid "%(monName)s %(calibName)s Spectra"
-msgstr ""
+msgstr "%(monName)s %(calibName)s 光谱"
 
 #: ../monitors/MonitorCenter.py:1108
 msgid "Recorded luminance values"
-msgstr ""
+msgstr "被记录的亮度值"
 
 #: ../monitors/MonitorCenter.py:1134
 msgid "Luminance Values"
-msgstr ""
+msgstr "亮度值"
 
 #: ../monitors/MonitorCenter.py:1187
 msgid "Gamma Calibration"
-msgstr ""
+msgstr "伽马刻度"
 
 #: ../monitors/MonitorCenter.py:1200
 msgid "Number of calibration points:"
-msgstr ""
+msgstr "伽马刻度的数量"
 
 #: ../monitors/MonitorCenter.py:1204
 msgid "Screen number (primary is 1)"
-msgstr ""
+msgstr "屏幕编号（初始值为1）"
 
 #: ../monitors/MonitorCenter.py:1208
 msgid "Patch size (fraction of screen):"
-msgstr ""
+msgstr "补丁大小（所占屏幕的比值）"
 
 #: ../monitors/MonitorCenter.py:1242
 msgid "PsychoPy Monitor Center"
-msgstr ""
+msgstr "PsychoPy Monitor Center"
 
 #: ../preferences/hints.py:13
 msgid "which system to use as a backend for drawing"
-msgstr ""
+msgstr "使用哪个系统作为后端以绘制图像"
 
 #: ../preferences/hints.py:16
 msgid "the default units for windows and visual stimuli"
-msgstr ""
+msgstr "窗口和视觉刺激的默认单位"
 
 #: ../preferences/hints.py:19
 msgid "full screen is best for accurate timing"
-msgstr ""
+msgstr "全屏最适于精确计时"
 
 #: ../preferences/hints.py:22
 msgid "enable subjects to use the mouse and GUIs during experiments"
-msgstr ""
+msgstr "允许被试在实验过程中使用鼠标和 GUIs"
 
 #: ../preferences/hints.py:25
 msgid "'version' is for internal usage, not for the user"
@@ -7240,7 +7240,7 @@ msgstr "'version' 供程序内部使用，用户不可以使用此参数"
 
 #: ../preferences/hints.py:28
 msgid "Add paths here to your custom Python modules"
-msgstr ""
+msgstr "在此处插入 Python 模块的路径"
 
 #: ../preferences/hints.py:31
 msgid "path to flac (lossless audio compression) on this operating system"
