@@ -590,6 +590,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         self.ribbon.buttons['pystop'].Disable()
         if self.currentSelection:
             self.ribbon.buttons['pyrun'].Enable()
+            self.ribbon.buttons['pydebug'].Enable()
 
     def runLocal(self, evt=None, focusOnExit='runner'):
         """Run experiment from new process using inherited ScriptProcess class methods."""
@@ -607,7 +608,16 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         # Enable/Disable btns
         if procStarted:
             self.ribbon.buttons['pyrun'].Disable()
+            self.ribbon.buttons['pydebug'].Disable()
             self.ribbon.buttons['pystop'].Enable()
+
+    def debugLocal(self, evt=None):
+        # todo: Debug mode
+        pass
+
+    def debugLocalConfig(self, evt=None):
+        # todo: Debug config dlg
+        pass
 
     def runOnline(self, evt=None):
         """Run PsychoJS task from https://pavlovia.org."""
@@ -773,6 +783,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         self.ribbon.buttons['remove'].Enable()
         if not self.running:  # if we aren't already running we can enable run button
             self.ribbon.buttons['pyrun'].Enable()
+            self.ribbon.buttons['pydebug'].Enable()
         if self.currentFile.suffix == '.psyexp':
             self.ribbon.buttons['jsrun'].Enable()
         else:
@@ -788,6 +799,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         self.currentExperiment = None
         self.currentProject = None
         self.ribbon.buttons['pyrun'].Disable()
+        self.ribbon.buttons['pydebug'].Disable()
         self.ribbon.buttons['jsrun'].Disable()
         self.ribbon.buttons['remove'].Disable()
         self.app.updateWindowMenu()
@@ -998,6 +1010,12 @@ class RunnerRibbon(ribbon.FrameRibbon):
         self.addSection(
             "py", label=_translate("Desktop"), icon="desktop"
         )
+        # switch run/debug
+        runDebugSwitch = self.addSwitchCtrl(
+            section="py", name="pyswitch",
+            modes=("run", "debug"), labels=(_translate("Run"), _translate("Debug")),
+            startMode="run"
+        )
         # run Py
         btn = self.addButton(
             section="py", name="pyrun", label=_translate("Run in Python"), icon='pyRun',
@@ -1005,6 +1023,25 @@ class RunnerRibbon(ribbon.FrameRibbon):
             callback=parent.runLocal
         )
         btn.Disable()
+        # debug Py
+        btn = self.addButton(
+            section="py", name="pydebug", label=_translate("Run in Python"), icon='pyDebug',
+            tooltip=_translate("Run the current script in Python with debug features on"),
+            callback=parent.debugLocal
+        )
+        btn.Disable()
+        # debug config
+        btn = self.addButton(
+            section="py", name="pydebugconfig", label=_translate("Debug settings"),
+            icon='pyDebugConfig',
+            tooltip=_translate("Configure settings for debug mode"),
+            callback=parent.debugLocalConfig
+        )
+        # link buttons to switch
+        runDebugSwitch.addDependant(self.buttons['pydebugconfig'], mode="debug", action="show")
+        runDebugSwitch.addDependant(self.buttons['pydebug'], mode="debug", action="show")
+        runDebugSwitch.addDependant(self.buttons['pyrun'], mode="run", action="show")
+        runDebugSwitch.setMode("run")
         # stop
         self.addButton(
             section="py", name="pystop", label=_translate("Stop"), icon='stop',
