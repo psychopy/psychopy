@@ -833,8 +833,13 @@ class Session:
 
         if expInfo is None:
             expInfo = self.getExpInfoFromExperiment(key)
-        # Run the setupDevices method
+        # store current devices dict
+        ogDevices = DeviceManager.devices.copy()
+        # run the setupDevices method
         self.experiments[key].setupDevices(expInfo=expInfo, thisExp=thisExp, win=self.win)
+        # reinstate any original devices which were overwritten
+        for key, obj in ogDevices.items():
+            DeviceManager.devices[key] = obj
 
         return True
 
