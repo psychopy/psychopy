@@ -420,35 +420,69 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
 
     @property
     def pos(self):
-        return getattr(self._pos, self.units)
+        if self.units and hasattr(self._pos, self.units):
+            return getattr(self._pos, self.units)
 
     @pos.setter
     def pos(self, value):
-        self._pos = layout.Position(
-            value, self.units, win=self.win
-        )
+        # retain None so value is identifiable as not set
+        if value is None:
+            self._pos = None
+            return
+        # make sure we have a Position object
+        if not isinstance(value, layout.Position):
+            value = layout.Position(
+                value, self.units, win=self.win
+            )
+        # set
+        self._pos = value
 
     @property
     def size(self):
-        return getattr(self._size, self.units)
+        if self.units and hasattr(self._size, self.units):
+            return getattr(self._size, self.units)
 
     @size.setter
     def size(self, value):
-        self._size = layout.Size(
-            value, self.units, win=self.win
-        )
+        # retain None so value is identifiable as not set
+        if value is None:
+            self._size = None
+            return
+        # make sure we have a Size object
+        if not isinstance(value, layout.Size):
+            value = layout.Size(
+                value, self.units, win=self.win
+            )
+        # set
+        self._size = value
 
     @property
     def units(self):
         units = None
         if hasattr(self, "_units"):
             units = self._units
-        if units is None:
-            return self.win.units
+
+        return units
 
     @units.setter
     def units(self, value):
         self._units = value
+
+    def findPhotodiode(self, win=None, channel=0):
+        if win is None:
+            win = self.win
+        # there's no physical photodiode, so just pick a reasonable place for it
+        self._pos = layout.Position((0.95, -0.95), units="norm", win=win)
+        self._size = layout.Size((0.05, 0.05), units="norm", win=win)
+        self.units = "norm"
+
+        return self._pos, self._size
+
+    def findThreshold(self, win=None, channel=0):
+        # there's no physical photodiode, so just pick a reasonable threshold
+        self.setThreshold(127)
+
+        return self.getThreshold()
 
 
 class PhotodiodeValidator:
