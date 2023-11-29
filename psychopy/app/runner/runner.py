@@ -592,7 +592,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
             self.ribbon.buttons['pyrun'].Enable()
             self.ribbon.buttons['pydebug'].Enable()
 
-    def runLocal(self, evt=None, focusOnExit='runner'):
+    def runLocal(self, evt=None, focusOnExit='runner', args=None):
         """Run experiment from new process using inherited ScriptProcess class methods."""
         if self.currentSelection is None:
             return
@@ -603,7 +603,9 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
                            exp=self.loadExperiment())
         procStarted = self.runFile(
             fileName=currentFile,
-            focusOnExit=focusOnExit)
+            focusOnExit=focusOnExit,
+            args=args
+        )
 
         # Enable/Disable btns
         if procStarted:
@@ -612,8 +614,8 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
             self.ribbon.buttons['pystop'].Enable()
 
     def debugLocal(self, evt=None):
-        # todo: Debug mode
-        pass
+        # run in debug mode
+        self.runLocal(evt, args=["--debug"])
 
     def debugLocalConfig(self, evt=None):
         # todo: Debug config dlg
