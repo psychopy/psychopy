@@ -388,12 +388,12 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
         h = int(h)
         # read front buffer luminances for specified area
         pixels = self.win._getPixels(
-            buffer="back",
+            buffer="front",
             rect=(left, bottom, w, h),
             makeLum=True
         )
         # work out whether it's brighter than threshold
-        state = pixels.mean() > (255 - self._threshold)
+        state = pixels.mean() > (255 - self.getThreshold())
         # if state has changed, make an event
         if state != self.state[0]:
             resp = PhotodiodeResponse(
