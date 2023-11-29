@@ -122,16 +122,14 @@ class FrameRibbon(wx.Panel, handlers.ThemeMixin):
 
         return btn
 
-    def addMultiModeButton(
-            self, section, name, modes, startMode=0, modeLabels="", modeIcons=None,
-            modeTooltips="", modeCallbacks=None
+    def addSwitchCtrl(
+            self, section, name, modes, labels, startMode=0
     ):
         # if section doesn't exist, make it
         if section not in self.sections:
             self.addSection(section, label=section)
-        btn = self.sections[section].addMultiModeButton(
-            name, modes, startMode=startMode, modeLabels=modeLabels, modeIcons=modeIcons,
-            modeTooltips=modeTooltips, modeCallbacks=modeCallbacks
+        btn = self.sections[section].addSwitchCtrl(
+            name, modes, labels, startMode=startMode
         )
 
         return btn
@@ -310,14 +308,10 @@ class FrameRibbonSection(wx.Panel, handlers.ThemeMixin):
 
         return btn
 
-    def addMultiModeButton(
-            self, name, modes, startMode=0, modeLabels="", modeIcons=None, modeTooltips="",
-            modeCallbacks=None
-    ):
+    def addSwitchCtrl(self, name, modes, labels, startMode=0):
         # create button
-        btn = FrameRibbonMultiModeButton(
-            self, modes, startMode=startMode, modeLabels=modeLabels, modeIcons=modeIcons,
-            modeTooltips=modeTooltips, modeCallbacks=modeCallbacks
+        btn = FrameRibbonSwitchCtrl(
+            self, modes, labels, startMode=startMode
         )
         # store references
         self.buttons[name] = self.ribbon.buttons[name] = btn
@@ -470,69 +464,35 @@ class FrameRibbonDropdownButton(wx.Panel, handlers.ThemeMixin):
             evt.EventObject.SetBackgroundColour(colors.app['frame_bg'])
 
 
-class FrameRibbonMultiModeButton(wx.Panel, handlers.ThemeMixin):
+class FrameRibbonSwitchCtrl(wx.Panel, handlers.ThemeMixin):
     """
-    A button which can have multiple modes and switch between them.
+    A switch with multiple modes. Use `addDependency` to make presentation of other buttons
+    conditional on this control's state.
     """
     def __init__(
-            self, parent, modes, startMode=0,
-            modeLabels="", modeIcons=None, modeTooltips="", modeCallbacks=None,
-            style=wx.BU_LEFT
+            self, parent, modes, labels, startMode=0,
+            style=wx.BU_RIGHT
     ):
         wx.Panel.__init__(self, parent)
+        self.parent = parent
         # setup sizer
-        self.sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.sizer)
-
-        # store modes and info
-        self.info = {}
-        for mode, label, icon, tooltip in zip(modes, modeLabels, modeIcons, modeTooltips):
-            self.info[mode] = {
-                'label': label,
-                'icon': icons.ButtonIcon(icon, size=32),
-                'tooltip': tooltip,
-            }
-        # store callbacks
-        self.callbacks = {}
-        for mode, callback in zip(modes, modeCallbacks):
-            self.callbacks[mode] = callback
-
-        # make button
-        self.button = wx.Button(
-            self, label="", size=(40, 44),
-            style=wx.BU_NOTEXT | wx.BORDER_NONE | wx.BU_EXACTFIT | style
-        )
-        self.button.Bind(wx.EVT_BUTTON, self.onPress)
-        self.button.Bind(wx.EVT_ENTER_WINDOW, self.onHover)
-        self.button.Bind(wx.EVT_LEAVE_WINDOW, self.onHover)
-        # add button now if left-aligned
-        if style | wx.BU_LEFT == style:
-            self.sizer.Add(self.button, border=0, flag=wx.EXPAND | wx.ALL)
-        else:
-            # otherwise add space before labels
-            self.sizer.AddSpacer(6)
-        # make sizer for switch buttons
-        self.switchBtnsSizer = wx.BoxSizer(wx.VERTICAL)
-        self.sizer.Add(self.switchBtnsSizer, proportion=1, border=0, flag=wx.EXPAND | wx.ALL)
+        # setup depends dict
+        self.depends = []
         # make switcher buttons
-        self.switchBtns = {}
-        for mode, info in self.info.items():
+        self.btns = {}
+        for mode, label in zip(modes, labels):
             # make button with label
-            self.switchBtns[mode] = wx.Button(
-                self, label=info['label'], style=wx.BORDER_NONE | wx.BU_EXACTFIT | style
+            self.btns[mode] = wx.Button(
+                self, label=label, style=wx.BORDER_NONE | wx.BU_EXACTFIT | style
             )
-            self.switchBtns[mode].Bind(wx.EVT_BUTTON, self.onModeSwitch)
-            self.switchBtns[mode].Bind(wx.EVT_ENTER_WINDOW, self.onHover)
-            self.switchBtns[mode].Bind(wx.EVT_LEAVE_WINDOW, self.onHover)
-            self.switchBtnsSizer.Add(
-                self.switchBtns[mode], flag=wx.EXPAND | wx.LEFT | wx.RIGHT
+            self.btns[mode].Bind(wx.EVT_BUTTON, self.onModeSwitch)
+            self.btns[mode].Bind(wx.EVT_ENTER_WINDOW, self.onHover)
+            self.btns[mode].Bind(wx.EVT_LEAVE_WINDOW, self.onHover)
+            self.sizer.Add(
+                self.btns[mode], border=6, flag=wx.EXPAND | wx.LEFT | wx.RIGHT
             )
-        # add button now if right-aligned
-        if style | wx.BU_RIGHT == style:
-            self.sizer.Add(self.button, border=0, flag=wx.EXPAND | wx.ALL)
-        else:
-            # otherwise add spacer after labels
-            self.sizer.AddSpacer(6)
 
         # set start mode
         if isinstance(startMode, int) and startMode not in modes:
@@ -542,8 +502,7 @@ class FrameRibbonMultiModeButton(wx.Panel, handlers.ThemeMixin):
 
     def _applyAppTheme(self):
         self.SetBackgroundColour(colors.app['frame_bg'])
-        self.button.SetBackgroundColour(colors.app['frame_bg'])
-        for mode, btn in self.switchBtns.items():
+        for mode, btn in self.btns.items():
             btn.SetBackgroundColour(colors.app['frame_bg'])
             if mode == self.mode:
                 btn.SetForegroundColour(colors.app['text'])
@@ -553,7 +512,7 @@ class FrameRibbonMultiModeButton(wx.Panel, handlers.ThemeMixin):
     def onModeSwitch(self, evt):
         evtBtn = evt.GetEventObject()
         # iterate through switch buttons
-        for mode, btn in self.switchBtns.items():
+        for mode, btn in self.btns.items():
             # if button matches this event...
             if btn is evtBtn:
                 # change mode
@@ -566,17 +525,19 @@ class FrameRibbonMultiModeButton(wx.Panel, handlers.ThemeMixin):
     def setMode(self, mode):
         # set mode
         self.mode = mode
-        # update button
-        info = self.info[mode]
-        self.button.SetLabel(info['label'])
-        self.button.SetBitmap(info['icon'].bitmap)
-        self.button.SetToolTip(info['tooltip'])
-
+        # handle depends
+        for depend in self.depends:
+            # get linked ctrl
+            ctrl = depend['ctrl']
+            # show/enable according to mode
+            if depend['action'] == "show":
+                ctrl.Show(mode == depend['mode'])
+            if depend['action'] == "enable":
+                ctrl.Enable(mode == depend['mode'])
+        # refresh
         self.Refresh()
         self.Update()
-
-    def onPress(self, evt=None):
-        self.callbacks[self.mode](self, evt)
+        self.GetTopLevelParent().Layout()
 
     def onHover(self, evt):
         if evt.EventType == wx.EVT_ENTER_WINDOW.typeId:
@@ -585,11 +546,35 @@ class FrameRibbonMultiModeButton(wx.Panel, handlers.ThemeMixin):
             evt.EventObject.SetBackgroundColour(colors.app['panel_bg'])
         else:
             # otherwise, keep same colour as parent
-            if evt.EventObject is self.switchBtns[self.mode]:
+            if evt.EventObject is self.btns[self.mode]:
                 evt.EventObject.SetForegroundColour(colors.app['text'])
             else:
                 evt.EventObject.SetForegroundColour(colors.app['rt_timegrid'])
             evt.EventObject.SetBackgroundColour(colors.app['frame_bg'])
+
+    def addDependant(self, ctrl, mode, action="show"):
+        """
+        Connect another button to one mode of this ctrl such that it is shown/enabled only when
+        this ctrl is in that mode.
+
+        Parameters
+        ----------
+        ctrl : wx.Window
+            Control to act upon
+        mode : str
+            The mode in which to show/enable the linked ctrl
+        action : str
+            One of:
+            - "show" Show the control
+            - "enable" Enable the control
+        """
+        self.depends.append(
+            {
+                'mode': mode,  # when in mode...
+                'action': action,  # then...
+                'ctrl': ctrl,  # to...
+            }
+        )
 
 
 class PavloviaUserCtrl(FrameRibbonDropdownButton):
