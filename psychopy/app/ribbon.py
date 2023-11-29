@@ -122,6 +122,20 @@ class FrameRibbon(wx.Panel, handlers.ThemeMixin):
 
         return btn
 
+    def addMultiModeButton(
+            self, section, name, modes, startMode=0, modeLabels="", modeIcons=None,
+            modeTooltips="", modeCallbacks=None
+    ):
+        # if section doesn't exist, make it
+        if section not in self.sections:
+            self.addSection(section, label=section)
+        btn = self.sections[section].addMultiModeButton(
+            name, modes, startMode=startMode, modeLabels=modeLabels, modeIcons=modeIcons,
+            modeTooltips=modeTooltips, modeCallbacks=modeCallbacks
+        )
+
+        return btn
+
     def addPavloviaUserCtrl(self, section="pavlovia", name="pavuser", frame=None):
         # if section doesn't exist, make it
         if section not in self.sections:
@@ -296,6 +310,22 @@ class FrameRibbonSection(wx.Panel, handlers.ThemeMixin):
 
         return btn
 
+    def addMultiModeButton(
+            self, name, modes, startMode=0, modeLabels="", modeIcons=None, modeTooltips="",
+            modeCallbacks=None
+    ):
+        # create button
+        btn = FrameRibbonMultiModeButton(
+            self, modes, startMode=startMode, modeLabels=modeLabels, modeIcons=modeIcons,
+            modeTooltips=modeTooltips, modeCallbacks=modeCallbacks
+        )
+        # store references
+        self.buttons[name] = self.ribbon.buttons[name] = btn
+        # add button to sizer
+        self.sizer.Add(btn, border=0, flag=wx.EXPAND | wx.ALL)
+
+        return btn
+
     def addPavloviaUserCtrl(self, name="pavuser", ribbon=None, frame=None):
         # substitute ribbon if not given
         if ribbon is None:
@@ -437,6 +467,128 @@ class FrameRibbonDropdownButton(wx.Panel, handlers.ThemeMixin):
             evt.EventObject.SetBackgroundColour(colors.app['panel_bg'])
         else:
             # otherwise, keep same colour as parent
+            evt.EventObject.SetBackgroundColour(colors.app['frame_bg'])
+
+
+class FrameRibbonMultiModeButton(wx.Panel, handlers.ThemeMixin):
+    """
+    A button which can have multiple modes and switch between them.
+    """
+    def __init__(
+            self, parent, modes, startMode=0,
+            modeLabels="", modeIcons=None, modeTooltips="", modeCallbacks=None,
+            style=wx.BU_LEFT
+    ):
+        wx.Panel.__init__(self, parent)
+        # setup sizer
+        self.sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.SetSizer(self.sizer)
+
+        # store modes and info
+        self.info = {}
+        for mode, label, icon, tooltip in zip(modes, modeLabels, modeIcons, modeTooltips):
+            self.info[mode] = {
+                'label': label,
+                'icon': icons.ButtonIcon(icon, size=32),
+                'tooltip': tooltip,
+            }
+        # store callbacks
+        self.callbacks = {}
+        for mode, callback in zip(modes, modeCallbacks):
+            self.callbacks[mode] = callback
+
+        # make button
+        self.button = wx.Button(
+            self, label="", size=(40, 44),
+            style=wx.BU_NOTEXT | wx.BORDER_NONE | wx.BU_EXACTFIT | style
+        )
+        self.button.Bind(wx.EVT_BUTTON, self.onPress)
+        self.button.Bind(wx.EVT_ENTER_WINDOW, self.onHover)
+        self.button.Bind(wx.EVT_LEAVE_WINDOW, self.onHover)
+        # add button now if left-aligned
+        if style | wx.BU_LEFT == style:
+            self.sizer.Add(self.button, border=0, flag=wx.EXPAND | wx.ALL)
+        else:
+            # otherwise add space before labels
+            self.sizer.AddSpacer(6)
+        # make sizer for switch buttons
+        self.switchBtnsSizer = wx.BoxSizer(wx.VERTICAL)
+        self.sizer.Add(self.switchBtnsSizer, proportion=1, border=0, flag=wx.EXPAND | wx.ALL)
+        # make switcher buttons
+        self.switchBtns = {}
+        for mode, info in self.info.items():
+            # make button with label
+            self.switchBtns[mode] = wx.Button(
+                self, label=info['label'], style=wx.BORDER_NONE | wx.BU_EXACTFIT | style
+            )
+            self.switchBtns[mode].Bind(wx.EVT_BUTTON, self.onModeSwitch)
+            self.switchBtns[mode].Bind(wx.EVT_ENTER_WINDOW, self.onHover)
+            self.switchBtns[mode].Bind(wx.EVT_LEAVE_WINDOW, self.onHover)
+            self.switchBtnsSizer.Add(
+                self.switchBtns[mode], flag=wx.EXPAND | wx.LEFT | wx.RIGHT
+            )
+        # add button now if right-aligned
+        if style | wx.BU_RIGHT == style:
+            self.sizer.Add(self.button, border=0, flag=wx.EXPAND | wx.ALL)
+        else:
+            # otherwise add spacer after labels
+            self.sizer.AddSpacer(6)
+
+        # set start mode
+        if isinstance(startMode, int) and startMode not in modes:
+            # if given an index, get mode name
+            startMode = modes[startMode]
+        self.setMode(startMode)
+
+    def _applyAppTheme(self):
+        self.SetBackgroundColour(colors.app['frame_bg'])
+        self.button.SetBackgroundColour(colors.app['frame_bg'])
+        for mode, btn in self.switchBtns.items():
+            btn.SetBackgroundColour(colors.app['frame_bg'])
+            if mode == self.mode:
+                btn.SetForegroundColour(colors.app['text'])
+            else:
+                btn.SetForegroundColour(colors.app['rt_timegrid'])
+
+    def onModeSwitch(self, evt):
+        evtBtn = evt.GetEventObject()
+        # iterate through switch buttons
+        for mode, btn in self.switchBtns.items():
+            # if button matches this event...
+            if btn is evtBtn:
+                # change mode
+                self.setMode(mode)
+                # style button
+                btn.SetForegroundColour(colors.app['text'])
+            else:
+                btn.SetForegroundColour(colors.app['rt_timegrid'])
+
+    def setMode(self, mode):
+        # set mode
+        self.mode = mode
+        # update button
+        info = self.info[mode]
+        self.button.SetLabel(info['label'])
+        self.button.SetBitmap(info['icon'].bitmap)
+        self.button.SetToolTip(info['tooltip'])
+
+        self.Refresh()
+        self.Update()
+
+    def onPress(self, evt=None):
+        self.callbacks[self.mode](self, evt)
+
+    def onHover(self, evt):
+        if evt.EventType == wx.EVT_ENTER_WINDOW.typeId:
+            # on hover, lighten background
+            evt.EventObject.SetForegroundColour(colors.app['text'])
+            evt.EventObject.SetBackgroundColour(colors.app['panel_bg'])
+        else:
+            # otherwise, keep same colour as parent
+            if evt.EventObject is self.switchBtns[self.mode]:
+                evt.EventObject.SetForegroundColour(colors.app['text'])
+            else:
+                evt.EventObject.SetForegroundColour(colors.app['rt_timegrid'])
             evt.EventObject.SetBackgroundColour(colors.app['frame_bg'])
 
 
