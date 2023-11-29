@@ -283,11 +283,11 @@ class ButtonBoxComponent(BaseComponent):
             # write code to get messages
             code = (
                 "# ask for messages from %(name)s device this frame\n"
-                "for resp in %(name)s.getResponses(\n"
+                "for _thisResp in %(name)s.getResponses(\n"
                 "    state=%(registerOn)s, channel=%(allowedButtons)s, clear=True\n"
                 "):\n"
-                "    %(name)s.buttons.append(resp.channel)\n"
-                "    %(name)s.times.append(resp.t)\n"
+                "    %(name)s.buttons.append(_thisResp.channel)\n"
+                "    %(name)s.times.append(_thisResp.t)\n"
             )
             # include code to get correct
             if self.params['storeCorrect']:
