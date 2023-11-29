@@ -384,12 +384,13 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
         w, h = (10, 10)
         left = int(left - w / 2)
         bottom = int(bottom - h / 2)
-        # get GL context
-        gl = self.win.backend.GL
-        # todo: read front buffer for specified area
-        # todo: work out whether it's brighter than threshold
-        brightness = sum(pixels) / (h*w*3)
-        state = brightness > (255 - self._threshold)
+        # read front buffer luminances for specified area
+        pixels = self.win._getPixels(
+            rect=(left, bottom, w, h),
+            makeLum=True
+        )
+        # work out whether it's brighter than threshold
+        state = pixels.mean() > (255 - self._threshold)
         # if state has changed, make an event
         if state != self.state[0]:
             resp = PhotodiodeResponse(
