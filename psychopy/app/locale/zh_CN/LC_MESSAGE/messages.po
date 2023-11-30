@@ -5042,7 +5042,7 @@ msgstr "输入影片的文件名（包含文件路径）"
 
 #: ../experiment/components/movie/__init__.py:70
 msgid "What underlying lib to use for loading movies"
-msgstr "用于加载影片的底层 lib 为"
+msgstr "用于加载影片的底层库为"
 
 #: ../experiment/components/movie/__init__.py:77
 msgid ""
