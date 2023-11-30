@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: PsychoPy 2023.2.2\n"
 "Report-Msgid-Bugs-To: shuonwang@gmail.com\n"
 "POT-Creation-Date: 2021-12-18 00:00+0100\n"
-"PO-Revision-Date: 2023-11-29 14:49-0500\n"
-"Last-Translator: Bingzi Yu <ybzice@gmail.com>\n"
+"PO-Revision-Date: 2023-11-19 10:46+0800\n"
+"Last-Translator: Huang Xinru <hxrmiaomiaomiao@pku.edu.cn>\n"
 "Language-Team: Shun Wang <shuonwang@gmail.com>\n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
@@ -7177,13 +7177,14 @@ msgid ""
 msgstr "你的ColorCAL需要先校准。请阻止所有光线进入镜头，然后按确定。"
 
 #: ../monitors/MonitorCenter.py:1010
+#, fuzzy
 msgid "Try again. Cover the lens fully and press OK"
 msgstr "再试一次。请完全覆盖镜头并按确定"
 
 #: ../monitors/MonitorCenter.py:1014
 #, python-format
 msgid "%(monName)s %(calibName)s Gamma Functions"
-msgstr "%(monName)s %(calibName)s 伽马方程"
+msgstr "%(monName)s %(calibName)s 伽马函数"
 
 #: ../monitors/MonitorCenter.py:1083
 #, python-format
@@ -7192,7 +7193,7 @@ msgstr "%(monName)s %(calibName)s 光谱"
 
 #: ../monitors/MonitorCenter.py:1108
 msgid "Recorded luminance values"
-msgstr "被记录的亮度值"
+msgstr "记录到的亮度值"
 
 #: ../monitors/MonitorCenter.py:1134
 msgid "Luminance Values"
@@ -7200,27 +7201,27 @@ msgstr "亮度值"
 
 #: ../monitors/MonitorCenter.py:1187
 msgid "Gamma Calibration"
-msgstr "伽马刻度"
+msgstr "伽马校准"
 
 #: ../monitors/MonitorCenter.py:1200
 msgid "Number of calibration points:"
-msgstr "伽马刻度的数量"
+msgstr "校准点的个数："
 
 #: ../monitors/MonitorCenter.py:1204
 msgid "Screen number (primary is 1)"
-msgstr "屏幕编号（初始值为1）"
+msgstr "屏幕编号（主屏幕为1）"
 
 #: ../monitors/MonitorCenter.py:1208
 msgid "Patch size (fraction of screen):"
-msgstr "补丁大小（所占屏幕的比值）"
+msgstr "补丁大小（占屏幕的比例）："
 
 #: ../monitors/MonitorCenter.py:1242
 msgid "PsychoPy Monitor Center"
-msgstr "PsychoPy Monitor Center"
+msgstr "PsychoPy 监控中心"
 
 #: ../preferences/hints.py:13
 msgid "which system to use as a backend for drawing"
-msgstr "使用哪个系统作为后端以绘制图像"
+msgstr "使用哪个系统作为绘图后端"
 
 #: ../preferences/hints.py:16
 msgid "the default units for windows and visual stimuli"
@@ -7240,27 +7241,27 @@ msgstr "'version' 供程序内部使用，用户不可以使用此参数"
 
 #: ../preferences/hints.py:28
 msgid "Add paths here to your custom Python modules"
-msgstr "在此处插入 Python 模块的路径"
+msgstr "在此处添加 Python 自定义模块的路径"
 
 #: ../preferences/hints.py:31
 msgid "path to flac (lossless audio compression) on this operating system"
-msgstr ""
+msgstr "该操作系统上的 flac（无损音频压缩）路径"
 
 #: ../preferences/hints.py:34
 msgid "Shutdown keys, following the pyglet naming scheme."
-msgstr ""
+msgstr "关闭键，遵循 pyglet 命名规则。"
 
 #: ../preferences/hints.py:37
 msgid "Modifier keys for shutdown keys"
-msgstr ""
+msgstr "用于关闭键的修改键"
 
 #: ../preferences/hints.py:40
 msgid "What to do if gamma-correction not possible"
-msgstr ""
+msgstr "无法进行伽马矫正时该怎么做"
 
 #: ../preferences/hints.py:43
 msgid "Add plugin names here to load when a PsychoPy session starts."
-msgstr ""
+msgstr "在此添加插件名称，以便在启动 PsychoPy 项目时加载。"
 
 #: ../preferences/hints.py:46
 msgid ""
@@ -7268,123 +7269,127 @@ msgid ""
 "Speech Recognition. Specified as a path to a JSON file containing the key "
 "data."
 msgstr ""
+"Google 云平台密钥，使用 Google 语音识别进行音频转录时需要。指定为包含密钥数据"
+"的 JSON 文件的路径。"
 
 #: ../preferences/hints.py:49
 msgid "display tips when starting PsychoPy"
-msgstr ""
+msgstr "启动 PsychoPy 时展示小技巧"
 
 #: ../preferences/hints.py:52
 msgid "what windows to display when PsychoPy starts"
-msgstr ""
+msgstr "启动 PsychoPy 时显示哪些窗口"
 
 #: ../preferences/hints.py:55
 msgid "reset preferences to defaults on next restart of PsychoPy"
-msgstr ""
+msgstr "下一次启动 PsychoPy 时将偏好设置为默认"
 
 #: ../preferences/hints.py:58
 msgid "save any unsaved preferences before closing the window"
-msgstr ""
+msgstr "关闭窗口前保存所有未保存的偏好设置"
 
 #: ../preferences/hints.py:61
 msgid "enable features for debugging PsychoPy itself, including unit-tests"
-msgstr ""
+msgstr "启用调试 PsychoPy 本身的功能，包括单元测试"
 
 #: ../preferences/hints.py:64
 msgid ""
 "language to use in menus etc; not all translations are available. Select a "
 "value, then restart the app."
 msgstr ""
+"在菜单等地方使用的语言；并非所有翻译都可用。选择一个语言，然后重新启动应用程"
+"序。"
 
 #: ../preferences/hints.py:67
 msgid ""
 "Show an error dialog when PsychoPy encounters an unhandled internal error."
-msgstr ""
+msgstr "当 PsychoPy 遇到未处理的内部错误时，显示错误对话框。"
 
 #: ../preferences/hints.py:71
 msgid "Theme"
-msgstr ""
+msgstr "主题"
 
 #: ../preferences/hints.py:74
 msgid ""
 "open Coder files as read-only (allows running without accidental changes)"
-msgstr ""
+msgstr "将 Coder 文件打开为只读（允许运行时不发生意外更改）"
 
 #: ../preferences/hints.py:78
 msgid "a list of font names; the first one found on the system will be used"
-msgstr ""
+msgstr "字体名称的列表；将使用系统中找到的第一个"
 
 #: ../preferences/hints.py:81
 msgid "Font size (in pts) takes an integer between 6 and 24"
-msgstr ""
+msgstr "字体大小（单位为 pts ）在6到24的整数间取值"
 
 #: ../preferences/hints.py:84
 msgid "Spacing between lines"
-msgstr ""
+msgstr "行间距"
 
 #: ../preferences/hints.py:87
 msgid "Long line edge guide, specify zero to disable"
-msgstr ""
+msgstr "长线边缘引导，指定为 0 时禁用"
 
 #: ../preferences/hints.py:90
 msgid "Set the source assistant panel to be visible by default"
-msgstr ""
+msgstr "将源助手面板设置为默认可见"
 
 #: ../preferences/hints.py:93
 msgid "Set the output/shell to be visible by default"
-msgstr ""
+msgstr "将输出/shell 设置为为默认可见"
 
 #: ../preferences/hints.py:96
 msgid "Show code completion suggestion and calltips automatically when typing."
-msgstr ""
+msgstr "输入时自动显示代码完成建议和调用提示。"
 
 #: ../preferences/hints.py:100
 msgid "reload previously opened files after start"
-msgstr ""
+msgstr "启动后重新加载之前打开的文件"
 
 #: ../preferences/hints.py:103
 msgid "for coder shell window, which shell to use"
-msgstr ""
+msgstr "对于 coder shell 窗口，使用哪个 shell"
 
 #: ../preferences/hints.py:106
 msgid "whether to automatically reload a previously open experiment"
-msgstr ""
+msgstr "是否自动重新加载之前打开的实验"
 
 #: ../preferences/hints.py:109
 msgid "Default to when writing code components"
-msgstr ""
+msgstr "编写代码组件时的默认值"
 
 #: ../preferences/hints.py:112
 msgid ""
 "if False will create scripts with an 'easier' but more cluttered namespace"
-msgstr ""
+msgstr "如果为 False，创建的脚本将更“简单”，但命名空间会更杂乱"
 
 #: ../preferences/hints.py:116
 msgid "folder names for custom components; expects a comma-separated list"
-msgstr ""
+msgstr "自定义组件的文件夹名称；需要一个以逗号分隔的列表"
 
 #: ../preferences/hints.py:119
 msgid "Only show components which work in..."
-msgstr ""
+msgstr "只显示在...工作的组件..."
 
 #: ../preferences/hints.py:122
 msgid "a list of components to hide (eg, because you never use them)"
-msgstr ""
+msgstr "隐藏的组件（例如，你从未使用这些组件）"
 
 #: ../preferences/hints.py:125
 msgid "where the Builder demos are located on this computer (after unpacking)"
-msgstr ""
+msgstr "Builder 演示程序在这台计算机上的位置（解压缩后）"
 
 #: ../preferences/hints.py:128
 msgid ""
 "name of the folder where subject data should be saved (relative to the "
 "script)"
-msgstr ""
+msgstr "保存被试数据的文件夹名称（相对于脚本而言）"
 
 #: ../preferences/hints.py:132
 msgid ""
 "Panels arrangement: Should Flow be on the top or bottom, and should "
 "Components be on the left or right?"
-msgstr ""
+msgstr "面板排列： 流程应该在顶部还是底部，组件应该在左侧还是右侧？"
 
 #: ../preferences/hints.py:135
 msgid "Display text in a floating window that describes the experiment"
