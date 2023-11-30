@@ -825,6 +825,9 @@ class Experiment:
                         # if not componentNode.get('choiceLabelsAboveLine'):
                         #    # this rating scale was created using older version
                         #    component.params['choiceLabelsAboveLine'].val=True
+                    # if component depends on backends, load them
+                    if hasattr(component, "loadBackends"):
+                        component.loadBackends()
                     # populate the component with its various params
                     for paramNode in componentNode:
                         recognised = self._getXMLparam(
@@ -853,6 +856,9 @@ class Experiment:
                 else:
                     # Otherwise treat as unknown
                     routine = allRoutines['UnknownRoutine'](exp=self, name=routineNode.get('name'))
+                # if routine depends on backends, load them
+                if hasattr(routine, "loadBackends"):
+                    routine.loadBackends()
                 # Apply all params
                 for paramNode in routineNode:
                     if paramNode.tag == "Param":
