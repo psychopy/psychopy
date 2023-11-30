@@ -7232,7 +7232,7 @@ msgstr "全屏最适于精确计时"
 
 #: ../preferences/hints.py:22
 msgid "enable subjects to use the mouse and GUIs during experiments"
-msgstr "允许被试在实验过程中使用鼠标和 GUIs"
+msgstr "允许被试在实验过程中使用鼠标和图形界面"
 
 #: ../preferences/hints.py:25
 msgid "'version' is for internal usage, not for the user"
