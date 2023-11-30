@@ -131,14 +131,10 @@ class ButtonBoxComponent(BaseComponent, PluginDevicesMixin):
                 "same device for multiple components, be sure to use the same name here."
             )
         )
-        def getBackendVals():
-            return [getattr(cls, 'key', cls.__name__) for cls in self.backends]
-        def getBackendLabels():
-            return [getattr(cls, 'label', cls.__name__) for cls in self.backends]
         self.params['deviceBackend'] = Param(
             deviceBackend, valType="str", inputType="choice", categ="Device",
-            allowedVals=getBackendVals,
-            allowedLabels=getBackendLabels,
+            allowedVals=self.getBackendKeys,
+            allowedLabels=self.getBackendLabels,
             label=_translate("Device backend"),
             hint=_translate(
                 "What kind of button box is it? What package/plugin should be used to talk to it?"
