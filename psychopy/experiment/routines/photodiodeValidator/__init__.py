@@ -3,7 +3,7 @@
 
 from pathlib import Path
 from psychopy.experiment import Param
-from psychopy.experiment.plugins import PluginDevicesMixin
+from psychopy.experiment.plugins import PluginDevicesMixin, DeviceBackend
 from psychopy.experiment.components import getInitVals
 from psychopy.experiment.routines import Routine, BaseValidatorRoutine
 from psychopy.localization import _translate
@@ -413,3 +413,39 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
 
         return stims
 
+
+class ScreenBufferPhotodiodeValidatorBackend(DeviceBackend):
+    """
+    Adds a basic screen buffer emulation backend for PhotodiodeValidator, as well as acting as an
+    example for implementing other photodiode device backends.
+    """
+
+    key = "screenbuffer"
+    label = _translate("Screen Buffer (Debug)")
+    component = PhotodiodeValidatorRoutine
+
+    def getParams(self: PhotodiodeValidatorRoutine):
+        # define order
+        order = [
+        ]
+        # define params
+        params = {}
+
+        return params, order
+
+    def addRequirements(self):
+        # no requirements needed - so just return
+        return
+
+    def writeDeviceCode(self: PhotodiodeValidatorRoutine, buff):
+        # get inits
+        inits = getInitVals(self.params)
+        # make ButtonGroup object
+        code = (
+            "deviceManager.addDevice(\n"
+            "    deviceClass='psychopy.hardware.photodiode.ScreenBufferSampler',\n"
+            "    deviceName=%(deviceName)s,\n"
+            "    win=win,\n"
+            ")\n"
+        )
+        buff.writeOnceIndentedLines(code % inits)
