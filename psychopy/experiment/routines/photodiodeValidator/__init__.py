@@ -3,12 +3,13 @@
 
 from pathlib import Path
 from psychopy.experiment import Param
+from psychopy.experiment.plugins import PluginDevicesMixin
 from psychopy.experiment.components import getInitVals
 from psychopy.experiment.routines import Routine, BaseValidatorRoutine
 from psychopy.localization import _translate
 
 
-class PhotodiodeValidatorRoutine(BaseValidatorRoutine):
+class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
     """
     Use a photodiode to confirm that stimuli are presented when they should be.
     """
@@ -157,22 +158,6 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine):
                 "Type of photodiode to use."
             )
         )
-        def getPorts():
-            """
-            Get list of available serial ports via hardware.serialdevice.
-            """
-            from psychopy.hardware.serialdevice import ports
-            return list(ports)
-
-        self.params['port'] = Param(
-            port, valType="str", inputType="choice", categ="Device",
-            allowedVals=getPorts,
-            allowedLabels=getPorts,
-            label=_translate("Serial port"),
-            hint=_translate(
-                "Serial port which the photodiode is connected to."
-            )
-        )
         self.params['channel'] = Param(
             channel, valType="code", inputType="single", categ="Device",
             label=_translate("Photodiode channel"),
@@ -190,6 +175,38 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine):
                 "Save validation results after validating on/offset times for stimuli"
             )
         )
+
+    def loadBackends(self):
+        from psychopy.plugins import activatePlugins
+        activatePlugins()
+        # add params from backends
+        for backend in self.backends:
+            # get params using backend's method
+            params, order = backend.getParams(self)
+            # add order
+            self.order.extend(order)
+            # add any params
+            for key, param in params.items():
+                if key in self.params:
+                    # if this param already exists (i.e. from saved data), get the saved val
+                    param.val = self.params[key].val
+                    param.updates = self.params[key].updates
+                # add param
+                self.params[key] = param
+
+            # add dependencies so that backend params are only shown for this backend
+            for name in params:
+                self.depends.append(
+                    {
+                        "dependsOn": "deviceBackend",  # if...
+                        "condition": f"== '{backend.key}'",  # meets...
+                        "param": name,  # then...
+                        "true": "show",  # should...
+                        "false": "hide",  # otherwise...
+                    }
+                )
+            # add requirements
+            backend.addRequirements(self)
 
     def _makeDeviceName(self):
         # get port
