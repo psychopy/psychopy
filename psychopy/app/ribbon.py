@@ -469,6 +469,68 @@ class FrameRibbonSwitchCtrl(wx.Panel, handlers.ThemeMixin):
     A switch with multiple modes. Use `addDependency` to make presentation of other buttons
     conditional on this control's state.
     """
+    class FrameRibbonSwitchButton(wx.Window, handlers.ThemeMixin):
+        def __init__(self, parent, label):
+            wx.Window.__init__(self, parent, style=wx.BORDER_NONE)
+            # setup sizer
+            self.sizer = wx.BoxSizer(wx.HORIZONTAL)
+            self.SetSizer(self.sizer)
+            # make label
+            self.label = wx.StaticText(
+                self, label=label, style=wx.BORDER_NONE
+            )
+            self.sizer.Add(self.label, proportion=1, border=6, flag=wx.ALIGN_CENTER_VERTICAL | wx.LEFT | wx.RIGHT)
+            # make icon
+            self.icon = wx.StaticBitmap(self)
+            self.sizer.Add(self.icon, border=6, flag=wx.EXPAND | wx.LEFT | wx.RIGHT)
+            # bind to relevant functions
+            for child in (self, self.icon, self.label):
+                child.Bind(wx.EVT_LEFT_DOWN, self.onClick)
+                child.Bind(wx.EVT_ENTER_WINDOW, self.onHover)
+                child.Bind(wx.EVT_LEAVE_WINDOW, self.onHover)
+
+            # start off deselected
+            self.setSelected(False)
+
+        def onClick(self, evt):
+            # emit a button event when clicked
+            evt = wx.CommandEvent(wx.EVT_BUTTON.typeId)
+            evt.SetEventObject(self)
+            wx.PostEvent(self, evt)
+
+        def setSelected(self, selected):
+            # store state
+            self.selected = selected
+            # update appearance
+            if selected:
+                self.label.SetForegroundColour(colors.app['text'])
+                self.icon.SetBitmap(
+                    icons.ButtonIcon("greendot", size=16).bitmap
+                )
+            else:
+                self.label.SetForegroundColour(colors.app['rt_timegrid'])
+                self.icon.SetBitmap(
+                    icons.ButtonIcon("greydot", size=16).bitmap
+                )
+
+        def onHover(self, evt):
+            if evt.EventType == wx.EVT_ENTER_WINDOW.typeId:
+                # on hover, lighten background
+                self.SetBackgroundColour(colors.app['panel_bg'])
+                self.label.SetBackgroundColour(colors.app['panel_bg'])
+                self.icon.SetBackgroundColour(colors.app['panel_bg'])
+            else:
+                # otherwise, keep same colour as parent
+                self.SetBackgroundColour(colors.app['frame_bg'])
+                self.label.SetBackgroundColour(colors.app['frame_bg'])
+                self.icon.SetBackgroundColour(colors.app['frame_bg'])
+            self.Update()
+            self.Refresh()
+
+        def _applyAppTheme(self):
+            self.SetBackgroundColour(colors.app['frame_bg'])
+            self.setSelected(self.selected)
+
     def __init__(
             self, parent, modes, labels, startMode=0,
             style=wx.BU_RIGHT
@@ -480,19 +542,16 @@ class FrameRibbonSwitchCtrl(wx.Panel, handlers.ThemeMixin):
         self.SetSizer(self.sizer)
         # setup depends dict
         self.depends = []
-        # make switcher buttons
+        # make switcher buttons and indicators
         self.btns = {}
         for mode, label in zip(modes, labels):
+            # make sizer
+            btnSizer = wx.BoxSizer(wx.HORIZONTAL)
+            self.sizer.Add(btnSizer, flag=wx.EXPAND)
             # make button with label
-            self.btns[mode] = wx.Button(
-                self, label=label, style=wx.BORDER_NONE | wx.BU_EXACTFIT | style
-            )
+            self.btns[mode] = self.FrameRibbonSwitchButton(self, label=label)
+            self.sizer.Add(self.btns[mode], proportion=1, flag=wx.EXPAND)
             self.btns[mode].Bind(wx.EVT_BUTTON, self.onModeSwitch)
-            self.btns[mode].Bind(wx.EVT_ENTER_WINDOW, self.onHover)
-            self.btns[mode].Bind(wx.EVT_LEAVE_WINDOW, self.onHover)
-            self.sizer.Add(
-                self.btns[mode], border=6, flag=wx.EXPAND | wx.LEFT | wx.RIGHT
-            )
 
         # set start mode
         if isinstance(startMode, int) and startMode not in modes:
@@ -517,14 +576,19 @@ class FrameRibbonSwitchCtrl(wx.Panel, handlers.ThemeMixin):
             if btn is evtBtn:
                 # change mode
                 self.setMode(mode)
-                # style button
-                btn.SetForegroundColour(colors.app['text'])
-            else:
-                btn.SetForegroundColour(colors.app['rt_timegrid'])
 
     def setMode(self, mode):
         # set mode
         self.mode = mode
+        # iterate through switch buttons
+        for btnMode, btn in self.btns.items():
+            # if it's the correct button...
+            if btnMode == mode:
+                # style accordingly
+                btn.setSelected(True)
+            else:
+                btn.setSelected(False)
+
         # handle depends
         for depend in self.depends:
             # get linked ctrl
