@@ -4,8 +4,9 @@ class PluginDevicesMixin:
     plugins and use them to create different devices for different plugin backends.
     """
 
-    # list of backends for this component - each should be a subclass of DeviceBackend
-    backends = []
+    def __init_subclass__(cls):
+        # list of backends for this component - each should be a subclass of DeviceBackend
+        cls.backends = []
 
     def loadBackends(self):
         from psychopy.plugins import activatePlugins
