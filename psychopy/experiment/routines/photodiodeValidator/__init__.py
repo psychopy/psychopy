@@ -28,7 +28,7 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             # layout
             findDiode=True, diodePos="(1, 1)", diodeSize="(0.1, 0.1)", diodeUnits="norm",
             # device
-            backend="screenbuffer", port="", channel="1",
+            deviceName="", deviceBackend="screenbuffer", port="", channel="1",
             # data
             saveValid=True,
     ):
@@ -141,11 +141,20 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
 
         # --- Device ---
         self.order += [
+            "deviceName",
             "deviceBackend",
             "channel",
         ]
+        self.params['deviceName'] = Param(
+            deviceName, valType="str", inputType="single", categ="Device",
+            label=_translate("Device name"),
+            hint=_translate(
+                "A name to refer to this Component's associated hardware device by. If using the "
+                "same device for multiple components, be sure to use the same name here."
+            )
+        )
         self.params['deviceBackend'] = Param(
-            backend, valType="code", inputType="choice", categ="Device",
+            deviceBackend, valType="code", inputType="choice", categ="Device",
             allowedVals=self.getBackendKeys,
             allowedLabels=self.getBackendLabels,
             label=_translate("Photodiode type"),
@@ -203,14 +212,6 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             # add requirements
             backend.addRequirements(self)
 
-    def _makeDeviceName(self):
-        # get port
-        port = self.params['port'].val
-        # construct string
-        name = f"photodiode{port}"
-
-        return name
-
     def writeDeviceCode(self, buff):
         """
         Code to setup the CameraDevice for this component.
@@ -222,31 +223,36 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
         """
         # do usual backend-specific device code writing
         PluginDevicesMixin.writeDeviceCode(self, buff)
+        # get inits
+        inits = getInitVals(self.params)
+        # get device handle
+        code = (
+            "%(deviceNameCode)s = deviceManager.getDevice(%(deviceName)s)"
+        )
+        buff.writeOnceIndentedLines(code % inits)
         # find threshold if indicated
         if self.params['findThreshold']:
             code = (
                 "# find threshold for photodiode\n"
-                "if %(deviceName)s.getThreshold() is None:\n"
-                "    %(deviceName)s.findThreshold(win, channel=%(channel)s)\n"
+                "if %(deviceNameCode)s.getThreshold() is None:\n"
+                "    %(deviceNameCode)s.findThreshold(win, channel=%(channel)s)\n"
             )
-            buff.writeOnceIndentedLines(code % self.params)
+            buff.writeOnceIndentedLines(code % inits)
         # find pos if indicated
         if self.params['findDiode']:
             code = (
                 "# find position and size of photodiode\n"
-                "if %(deviceName)s.pos is None and %(deviceName)s.size is None and %(deviceName)s.units is None:\n"
-                "    %(deviceName)s.findPhotodiode(win, channel=%(channel)s)\n"
+                "if %(deviceNameCode)s.pos is None and %(deviceNameCode)s.size is None and %(deviceNameCode)s.units is None:\n"
+                "    %(deviceNameCode)s.findPhotodiode(win, channel=%(channel)s)\n"
             )
-            buff.writeOnceIndentedLines(code % self.params)
+            buff.writeOnceIndentedLines(code % inits)
 
     def writeMainCode(self, buff):
         inits = getInitVals(self.params)
-        # make device name
-        inits['deviceName'] = self._makeDeviceName()
         # get diode
         code = (
             "# diode object for %(name)s\n"
-            "%(name)sDiode = deviceManager.getDevice('%(deviceName)s')\n"
+            "%(name)sDiode = deviceManager.getDevice(%(deviceName)s)\n"
         )
         buff.writeIndentedLines(code % inits)
 
