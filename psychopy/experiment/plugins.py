@@ -45,10 +45,14 @@ class PluginDevicesMixin:
         for backend in self.backends:
             keys.append(backend.key)
 
+        return keys
+
     def getBackendLabels(self):
         labels = []
         for backend in self.backends:
             labels.append(backend.label)
+
+        return labels
 
     def writeDeviceCode(self, buff):
         # write init code from backend
