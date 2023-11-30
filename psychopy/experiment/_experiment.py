@@ -863,7 +863,9 @@ class Experiment:
                 for paramNode in routineNode:
                     if paramNode.tag == "Param":
                         for key, val in paramNode.items():
-                            setattr(routine.params[paramNode.get("name")], key, val)
+                            name = paramNode.get("name")
+                            if name in routine.params:
+                                setattr(routine.params[name], key, val)
                 # Add routine to experiment
                 self.addStandaloneRoutine(routine.name, routine)
         # for each component that uses a Static for updates, we need to set
