@@ -151,7 +151,12 @@ class DeviceManager:
         pkgName = ".".join(parts[:-1])
         clsName = parts[-1]
         # import package
-        pkg = importlib.import_module(pkgName)
+        try:
+            pkg = importlib.import_module(pkgName)
+        except:
+            raise ModuleNotFoundError(
+                f"Could not find module: {pkgName}"
+            )
         # get class
         cls = getattr(pkg, clsName)
 

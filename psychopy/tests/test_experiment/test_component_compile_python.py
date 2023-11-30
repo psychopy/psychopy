@@ -130,6 +130,9 @@ class TestComponentCompilerPython():
     def add_components(self, compName):
         """Add components to routine"""
         thisComp = self.allComp[compName](parentName='trial', exp=self.exp)
+        if hasattr(thisComp, "loadBackends"):
+            # load backend params if needed
+            thisComp.loadBackends()
         if compName == 'StaticComponent':
             # Create another component to trigger param updates for static
             textStim = self.allComp['TextComponent'](parentName='trial', exp=self.exp)
