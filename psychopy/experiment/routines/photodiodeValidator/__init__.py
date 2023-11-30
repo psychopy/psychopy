@@ -28,7 +28,7 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             # layout
             findDiode=True, diodePos="(1, 1)", diodeSize="(0.1, 0.1)", diodeUnits="norm",
             # device
-            backend="bbtk-tpad", port="", channel="1",
+            backend="screenbuffer", port="", channel="1",
             # data
             saveValid=True,
     ):
@@ -44,10 +44,6 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             importName="photodiode",
             importFrom="psychopy.hardware",
             importAs="phd"
-        )
-        exp.requireImport(
-            importName="tpad",
-            importFrom="psychopy_bbtk"
         )
 
         # --- Basic ---
@@ -145,14 +141,13 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
 
         # --- Device ---
         self.order += [
-            "backend",
-            "port",
-            "number",
+            "deviceBackend",
+            "channel",
         ]
-        self.params['backend'] = Param(
+        self.params['deviceBackend'] = Param(
             backend, valType="code", inputType="choice", categ="Device",
-            allowedVals=["bbtk-tpad", "debug"],
-            allowedLabels=["Black Box Toolkit (BBTK) TPad", "Screen Buffer (Debug Mode)"],
+            allowedVals=self.getBackendKeys,
+            allowedLabels=self.getBackendLabels,
             label=_translate("Photodiode type"),
             hint=_translate(
                 "Type of photodiode to use."
@@ -225,39 +220,8 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
         buff : io.StringIO
             Text buffer to write code to.
         """
-        inits = getInitVals(self.params)
-
-        # make device name
-        inits['deviceName'] = self._makeDeviceName()
-        # make deviceClass string
-        if self.params['backend'] == "bbtk-tpad":
-            inits['deviceClass'] = "psychopy_bbtk.tpad.TPadPhotodiodeGroup"
-        elif self.params['backend'] == "debug":
-            inits['deviceClass'] = "psychopy.hardware.photodiode.ScreenBufferSampler"
-        else:
-            raise NotImplementedError(f"Backend %(backend)s is not supported." % self.params)
-        # initialise diode device
-        code = (
-            "# initialise photodiode\n"
-            "%(deviceName)s = deviceManager.getDevice('%(deviceName)s')\n"
-            "if %(deviceName)s is None:\n"
-            "    %(deviceName)s = deviceManager.addDevice(\n"
-            "        deviceClass='%(deviceClass)s',\n"
-            "        deviceName='%(deviceName)s',\n"
-        )
-        if self.params['backend'] == "bbtk-tpad":
-            code += (
-            "        pad=%(port)s,\n"
-            "        channels=2\n"
-            )
-        elif self.params['backend'] == "debug":
-            code += (
-            "        win=win\n"
-            )
-        code += (
-            "    )\n"
-        )
-        buff.writeOnceIndentedLines(code % inits)
+        # do usual backend-specific device code writing
+        PluginDevicesMixin.writeDeviceCode(self, buff)
         # find threshold if indicated
         if self.params['findThreshold']:
             code = (
@@ -265,7 +229,7 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
                 "if %(deviceName)s.getThreshold() is None:\n"
                 "    %(deviceName)s.findThreshold(win, channel=%(channel)s)\n"
             )
-            buff.writeOnceIndentedLines(code % inits)
+            buff.writeOnceIndentedLines(code % self.params)
         # find pos if indicated
         if self.params['findDiode']:
             code = (
@@ -273,7 +237,7 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
                 "if %(deviceName)s.pos is None and %(deviceName)s.size is None and %(deviceName)s.units is None:\n"
                 "    %(deviceName)s.findPhotodiode(win, channel=%(channel)s)\n"
             )
-            buff.writeOnceIndentedLines(code % inits)
+            buff.writeOnceIndentedLines(code % self.params)
 
     def writeMainCode(self, buff):
         inits = getInitVals(self.params)
