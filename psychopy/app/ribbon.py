@@ -514,7 +514,7 @@ class FrameRibbonSwitchCtrl(wx.Panel, handlers.ThemeMixin):
                 )
 
         def onHover(self, evt):
-            if evt.EventType == wx.EVT_ENTER_WINDOW.typeId:
+            if self.HitTest(evt.Position) == wx.HT_WINDOW_INSIDE:
                 # on hover, lighten background
                 self.SetBackgroundColour(colors.app['panel_bg'])
                 self.label.SetBackgroundColour(colors.app['panel_bg'])
