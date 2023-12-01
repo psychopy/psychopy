@@ -618,8 +618,9 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         self.runLocal(evt, args=["--debug"])
 
     def debugLocalConfig(self, evt=None):
-        # todo: Debug config dlg
-        pass
+        from ..dialogs import DebugConfigDlg
+        dlg = DebugConfigDlg(self)
+        dlg.Show()
 
     def runOnline(self, evt=None):
         """Run PsychoJS task from https://pavlovia.org."""
