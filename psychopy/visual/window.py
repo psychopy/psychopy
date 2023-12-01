@@ -2391,9 +2391,9 @@ class Window():
 
         Parameters
         ----------
-        rect : tuple, optional
-            The region of the window to capture in normalized coordinates
-            (left, top, width, height). If `None`, the whole window is captured.
+        rect : tuple[int], optional
+            The region of the window to capture in pixel coordinates (left,
+            bottom, width, height). If `None`, the whole window is captured.
         buffer : str, optional
             Buffer to capture.
         includeAlpha : bool, optional
@@ -2436,12 +2436,8 @@ class Window():
                              "'front' or 'back'".format(buffer))
 
         if rect:
-            x, y = self.size
             # box corners in pix
-            left = int((rect[0] / 2. + 0.5) * x)
-            bottom = int((rect[3] / 2. + 0.5) * y)
-            w = int((rect[2] / 2. + 0.5) * x) - left
-            h = int((rect[1] / 2. + 0.5) * y) - bottom
+            left, bottom, w, h = rect
         else:
             left = bottom = 0
             w, h = self.size

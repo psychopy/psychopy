@@ -1,58 +1,10 @@
 from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, getInitVals
+from psychopy.experiment.plugins import PluginDevicesMixin, DeviceBackend
 from psychopy.localization import _translate
 
 
-class ButtonBoxBackend:
-    def __init_subclass__(cls, key, label=None):
-        """
-        Initialise a new backend for ButtonBoxComponent.
-
-        Parameters
-        ----------
-        key : str
-            Name of this backend - will be used in allowedVals for the deviceBackend parameter of ButtonBoxComponent.
-            This will be used for indexing, so shouldn't be localized (translated)!
-        label : str
-            Label for this backend - will be used in allowedLabels for the deviceBackend parameter of
-            ButtonBoxComponent.
-        """
-        # if not given a label, use key
-        if label is None:
-            label = key
-        # store key and label in class
-        cls.key = key
-        cls.label = label
-        # add class to list of backends for ButtonBoxComponent
-        ButtonBoxComponent.backends.append(cls)
-
-    def getParams(self):
-        """
-        Get parameters from this backend to add to each new instance of ButtonBoxComponent
-
-        Returns
-        -------
-        dict[str:Param]
-            Dict of Param objects, which will be added to any Button Box Component's params, along
-            with a dependency to only show them when this backend is selected
-        list[str]
-            List of param names, defining the order in which params should appear
-        list[dict[str:str]]
-            List of dependency dicts, defining any additional dependencies required by this backend
-        """
-        raise NotImplementedError()
-
-    def addRequirements(self):
-        """
-        Add any required module/package imports for this backend
-        """
-        raise NotImplementedError()
-
-    def writeDeviceCode(self, buff):
-        raise NotImplementedError()
-
-
-class ButtonBoxComponent(BaseComponent):
+class ButtonBoxComponent(BaseComponent, PluginDevicesMixin):
     """
 
     """
@@ -60,20 +12,18 @@ class ButtonBoxComponent(BaseComponent):
     targets = ['PsychoPy']
     iconFile = Path(__file__).parent / 'buttonBox.png'
     tooltip = _translate('Button Box: Get input from a button box')
-    # list of backends - starts with generic serial, plugins (lke psychopy-bbtk or psychopy-cedrus) will add to this
-    backends = []
 
     def __init__(
             self, exp, parentName,
             # basic
-            name='buttonBox', nButtons=1,
+            name='buttonBox',
             startType='time (s)', startVal=0.0,
             stopType='duration (s)', stopVal=1.0,
             startEstim='', durationEstim='',
             forceEndRoutine=True,
             # device
             deviceName="",
-            deviceBackend="serial",
+            deviceBackend="keyboard",
             # data
             registerOn=True,
             store='first',
@@ -181,58 +131,16 @@ class ButtonBoxComponent(BaseComponent):
                 "same device for multiple components, be sure to use the same name here."
             )
         )
-        def getBackendVals():
-            return [getattr(cls, 'key', cls.__name__) for cls in self.backends]
-        def getBackendLabels():
-            return [getattr(cls, 'label', cls.__name__) for cls in self.backends]
         self.params['deviceBackend'] = Param(
             deviceBackend, valType="str", inputType="choice", categ="Device",
-            allowedVals=getBackendVals,
-            allowedLabels=getBackendLabels,
+            allowedVals=self.getBackendKeys,
+            allowedLabels=self.getBackendLabels,
             label=_translate("Device backend"),
             hint=_translate(
                 "What kind of button box is it? What package/plugin should be used to talk to it?"
             ),
             direct=False
         )
-
-    def loadBackends(self):
-        from psychopy.plugins import activatePlugins
-        activatePlugins()
-        # add params from backends
-        for backend in self.backends:
-            # get params using backend's method
-            params, order = backend.getParams(self)
-            # add order
-            self.order.extend(order)
-            # add any params
-            for key, param in params.items():
-                if key in self.params:
-                    # if this param already exists (i.e. from saved data), get the saved val
-                    param.val = self.params[key].val
-                    param.updates = self.params[key].updates
-                # add param
-                self.params[key] = param
-
-            # add dependencies so that backend params are only shown for this backend
-            for name in params:
-                self.depends.append(
-                    {
-                        "dependsOn": "deviceBackend",  # if...
-                        "condition": f"== '{backend.key}'",  # meets...
-                        "param": name,  # then...
-                        "true": "show",  # should...
-                        "false": "hide",  # otherwise...
-                    }
-                )
-            # add requirements
-            backend.addRequirements(self)
-
-    def writeDeviceCode(self, buff):
-        # write init code from backend
-        for backend in self.backends:
-            if backend.key == self.params['deviceBackend']:
-                backend.writeDeviceCode(self, buff)
 
     def writeInitCode(self, buff):
         inits = getInitVals(self.params)
@@ -283,11 +191,11 @@ class ButtonBoxComponent(BaseComponent):
             # write code to get messages
             code = (
                 "# ask for messages from %(name)s device this frame\n"
-                "for resp in %(name)s.getResponses(\n"
+                "for _thisResp in %(name)s.getResponses(\n"
                 "    state=%(registerOn)s, channel=%(allowedButtons)s, clear=True\n"
                 "):\n"
-                "    %(name)s.buttons.append(resp.channel)\n"
-                "    %(name)s.times.append(resp.t)\n"
+                "    %(name)s.buttons.append(_thisResp.channel)\n"
+                "    %(name)s.times.append(_thisResp.t)\n"
             )
             # include code to get correct
             if self.params['storeCorrect']:
@@ -348,11 +256,16 @@ class ButtonBoxComponent(BaseComponent):
         buff.writeIndentedLines(code % params)
 
 
-class KeyboardButtonBoxBackend(ButtonBoxBackend, key="keyboard", label=_translate("Keyboard")):
+class KeyboardButtonBoxBackend(DeviceBackend):
     """
-    Adds a basic serial connection backend for ButtonBoxComponent, as well as acting as an example for implementing
-    other ButtonBoxBackends.
+    Adds a basic keyboard emulation backend for ButtonBoxComponent, as well as acting as an example
+    for implementing other ButtonBoxBackends.
     """
+
+    key = "keyboard"
+    label = _translate("Keyboard")
+    component = ButtonBoxComponent
+
     def getParams(self: ButtonBoxComponent):
         # define order
         order = [
