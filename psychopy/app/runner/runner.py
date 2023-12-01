@@ -1040,7 +1040,6 @@ class RunnerRibbon(ribbon.FrameRibbon):
             callback=parent.debugLocalConfig
         )
         # link buttons to switch
-        runDebugSwitch.addDependant(self.buttons['pydebugconfig'], mode=1, action="show")
         runDebugSwitch.addDependant(self.buttons['pydebug'], mode=1, action="show")
         runDebugSwitch.addDependant(self.buttons['pyrun'], mode=0, action="show")
         runDebugSwitch.setMode(0)
