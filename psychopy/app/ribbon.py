@@ -471,7 +471,7 @@ class FrameRibbonSwitchCtrl(wx.Panel, handlers.ThemeMixin):
     """
     def __init__(
             self, parent, labels, startMode=0,
-            style=wx.BU_LEFT
+            style=wx.BU_RIGHT
     ):
         wx.Panel.__init__(self, parent)
         self.parent = parent
@@ -482,8 +482,8 @@ class FrameRibbonSwitchCtrl(wx.Panel, handlers.ThemeMixin):
         # setup depends dict
         self.depends = []
         # add icon
-        self.icon = wx.StaticBitmap(self)
-
+        self.icon = wx.Button(self, style=wx.BORDER_NONE | wx.BU_NOTEXT | wx.BU_EXACTFIT)
+        self.icon.Bind(wx.EVT_BUTTON, self.onModeToggle)
         # make switcher buttons
         self.btns = []
         for i in range(2):
@@ -513,7 +513,7 @@ class FrameRibbonSwitchCtrl(wx.Panel, handlers.ThemeMixin):
 
     def _applyAppTheme(self):
         self.SetBackgroundColour(colors.app['frame_bg'])
-
+        self.icon.SetBackgroundColour(colors.app['frame_bg'])
         for mode, btn in enumerate(self.btns):
             btn.SetBackgroundColour(colors.app['frame_bg'])
             if mode == self.mode:
@@ -529,6 +529,12 @@ class FrameRibbonSwitchCtrl(wx.Panel, handlers.ThemeMixin):
             if btn is evtBtn:
                 # change mode
                 self.setMode(mode)
+
+    def onModeToggle(self, evt=None):
+        if self.mode == 0:
+            self.setMode(1)
+        else:
+            self.setMode(0)
 
     def setMode(self, mode):
         # set mode
