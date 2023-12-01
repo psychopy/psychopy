@@ -15,7 +15,7 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
 
     def __init__(
             self, exp, name='counterbalance',
-            specMode="file",
+            specMode="uniform",
             conditionsFile="", conditionsVariable="",
             nGroups=2, pCap=10,
             onFinished="ignore",
@@ -40,8 +40,8 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
 
         self.params['specMode'] = Param(
             specMode, valType="str", inputType="choice", categ="Basic",
-            allowedVals=["file", "variable", "uniform"],
-            allowedLabels=[_translate("Conditions file"), _translate("Variable"), _translate("Num. groups")],
+            allowedVals=["uniform", "variable", "file"],
+            allowedLabels=[_translate("Num. groups"), _translate("Variable"), _translate("Conditions file")],
             label=_translate("Groups from..."),
             hint=_translate(
                 "Specify groups using an Excel file (for fine tuned control), specify as a variable name, or specify a "
