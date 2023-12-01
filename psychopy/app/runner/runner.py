@@ -1015,8 +1015,7 @@ class RunnerRibbon(ribbon.FrameRibbon):
         # switch run/debug
         runDebugSwitch = self.addSwitchCtrl(
             section="py", name="pyswitch",
-            modes=("run", "debug"), labels=(_translate("Run"), _translate("Debug")),
-            startMode="run"
+            labels=(_translate("Run"), _translate("Debug"))
         )
         # run Py
         btn = self.addButton(
@@ -1040,10 +1039,10 @@ class RunnerRibbon(ribbon.FrameRibbon):
             callback=parent.debugLocalConfig
         )
         # link buttons to switch
-        runDebugSwitch.addDependant(self.buttons['pydebugconfig'], mode="debug", action="show")
-        runDebugSwitch.addDependant(self.buttons['pydebug'], mode="debug", action="show")
-        runDebugSwitch.addDependant(self.buttons['pyrun'], mode="run", action="show")
-        runDebugSwitch.setMode("run")
+        runDebugSwitch.addDependant(self.buttons['pydebugconfig'], mode=1, action="show")
+        runDebugSwitch.addDependant(self.buttons['pydebug'], mode=1, action="show")
+        runDebugSwitch.addDependant(self.buttons['pyrun'], mode=0, action="show")
+        runDebugSwitch.setMode(0)
         # stop
         self.addButton(
             section="py", name="pystop", label=_translate("Stop"), icon='stop',
