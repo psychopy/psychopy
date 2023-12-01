@@ -1262,6 +1262,18 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         if self.sendToRunner(event):
             self.app.runner.panel.runLocal(event)
 
+    def debugFile(self, event=None):
+        """
+        Send the current file to the Runner and run it in debug mode.
+        """
+        if self.sendToRunner(event):
+            self.app.runner.panel.debugLocal(event)
+
+    def debugConfig(self, evt=None):
+        from ..dialogs import DebugConfigDlg
+        dlg = DebugConfigDlg(self)
+        dlg.Show()
+
     def onCopyRoutine(self, event=None):
         """copy the current routine from self.routinePanel
         to self.app.copiedRoutine.
@@ -4380,12 +4392,34 @@ class BuilderRibbon(ribbon.FrameRibbon):
             tooltip=_translate("Write experiment as a Python script"),
             callback=parent.compileScript
         )
+        # switch run/debug
+        runDebugSwitch = self.addSwitchCtrl(
+            section="py", name="pyswitch",
+            labels=(_translate("Run"), _translate("Debug"))
+        )
         # run Py
         self.addButton(
             section="py", name="pyrun", label=_translate("Run in Python"), icon='pyRun',
-            tooltip=_translate("Run experiment locally in Python"),
+            tooltip=_translate("Run the current script in Python"),
             callback=parent.runFile
         )
+        # debug Py
+        self.addButton(
+            section="py", name="pydebug", label=_translate("Run in Python"), icon='pyDebug',
+            tooltip=_translate("Run the current script in Python with debug features on"),
+            callback=parent.debugFile
+        )
+        # debug config
+        self.addButton(
+            section="py", name="pydebugconfig", label=_translate("Debug settings"),
+            icon='pyDebugConfig',
+            tooltip=_translate("Configure settings for debug mode"),
+            callback=parent.debugConfig
+        )
+        # link buttons to switch
+        runDebugSwitch.addDependant(self.buttons['pydebug'], mode=1, action="show")
+        runDebugSwitch.addDependant(self.buttons['pyrun'], mode=0, action="show")
+        runDebugSwitch.setMode(0)
 
         self.addSeparator()
 

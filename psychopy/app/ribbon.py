@@ -123,13 +123,13 @@ class FrameRibbon(wx.Panel, handlers.ThemeMixin):
         return btn
 
     def addSwitchCtrl(
-            self, section, name, labels, startMode=0
+            self, section, name, labels, startMode=0, style=wx.HORIZONTAL
     ):
         # if section doesn't exist, make it
         if section not in self.sections:
             self.addSection(section, label=section)
         btn = self.sections[section].addSwitchCtrl(
-            name, labels, startMode=startMode
+            name, labels, startMode=startMode, style=style
         )
 
         return btn
@@ -308,10 +308,10 @@ class FrameRibbonSection(wx.Panel, handlers.ThemeMixin):
 
         return btn
 
-    def addSwitchCtrl(self, name, labels, startMode=0):
+    def addSwitchCtrl(self, name, labels, startMode=0, style=wx.HORIZONTAL):
         # create button
         btn = FrameRibbonSwitchCtrl(
-            self, labels, startMode=startMode
+            self, labels, startMode=startMode, style=style
         )
         # store references
         self.buttons[name] = self.ribbon.buttons[name] = btn
