@@ -8,7 +8,7 @@ from xml.etree.ElementTree import Element
 import re
 from psychopy import logging, plugins
 from psychopy.experiment.components import Param, _translate
-from psychopy.experiment.routines import Routine
+from psychopy.experiment.routines import Routine, BaseStandaloneRoutine
 from psychopy.experiment.routines.eyetracker_calibrate import EyetrackerCalibrationRoutine
 from psychopy.experiment import utils as exputils
 from psychopy.monitors import Monitor
@@ -80,41 +80,46 @@ class SettingsComponent:
     iconFile = Path(__file__).parent / 'settings.png'
     tooltip = _translate("Edit settings for this experiment")
 
-    def __init__(self, parentName, exp, expName='', fullScr=True,
-                 winSize=(1024, 768), screen=1, monitor='testMonitor', winBackend='pyglet',
-                 showMouse=False, saveLogFile=True, showExpInfo=True,
-                 expInfo="{'participant':'f\"{randint(0, 999999):06.0f}\"', 'session':'001'}",
-                 units='height', logging='exp',
-                 color='$[0,0,0]', colorSpace='rgb', enableEscape=True,
-                 backgroundImg="", backgroundFit="none",
-                 blendMode='avg',
-                 sortColumns="time", colPriority={'thisRow.t': "priority.CRITICAL", 'expName': "priority.LOW"},
-                 saveXLSXFile=False, saveCSVFile=False, saveHDF5File=False,
-                 saveWideCSVFile=True, savePsydatFile=True,
-                 savedDataFolder='', savedDataDelim='auto',
-                 useVersion='',
-                 eyetracker="None",
-                 mgMove='CONTINUOUS', mgBlink='MIDDLE_BUTTON', mgSaccade=0.5,
-                 gpAddress='127.0.0.1', gpPort=4242,
-                 elModel='EYELINK 1000 DESKTOP', elSimMode=False, elSampleRate=1000, elTrackEyes="RIGHT_EYE",
-                 elLiveFiltering="FILTER_LEVEL_OFF", elDataFiltering="FILTER_LEVEL_2",
-                 elTrackingMode='PUPIL_CR_TRACKING', elPupilMeasure='PUPIL_AREA', elPupilAlgorithm='ELLIPSE_FIT',
-                 elAddress='100.1.1.1',
-                 tbModel="", tbLicenseFile="", tbSerialNo="", tbSampleRate=60,
-                 plPupillometryOnly=False,
-                 plSurfaceName="psychopy_iohub_surface",
-                 plConfidenceThreshold=0.6,
-                 plPupilRemoteAddress="127.0.0.1",
-                 plPupilRemotePort=50020,
-                 plPupilRemoteTimeoutMs=1000,
-                 plPupilCaptureRecordingEnabled=True,
-                 plPupilCaptureRecordingLocation="",
-                 plCompanionAddress="neon.local",
-                 plCompanionPort=8080,
-                 plCompanionRecordingEnabled=True,
-                 plCompanionCameraCalibration='scene_camera.json',
-                 keyboardBackend="ioHub",
-                 filename=None, exportHTML='on Sync', endMessage=''):
+    def __init__(
+            self, parentName, exp, expName='', fullScr=True,
+            winSize=(1024, 768), screen=1, monitor='testMonitor', winBackend='pyglet',
+            showMouse=False, saveLogFile=True, showExpInfo=True,
+            expInfo="{'participant':'f\"{randint(0, 999999):06.0f}\"', 'session':'001'}",
+            units='height', logging='warning',
+            color='$[0,0,0]', colorSpace='rgb', enableEscape=True,
+            measureFrameRate=True, frameRate="", frameRateMsg=_translate(
+                "Attempting to measure frame rate of screen, please wait..."
+            ),
+            backgroundImg="", backgroundFit="none",
+            blendMode='avg',
+            sortColumns="time", colPriority={'thisRow.t': "priority.CRITICAL", 'expName': "priority.LOW"},
+            saveXLSXFile=False, saveCSVFile=False, saveHDF5File=False,
+            saveWideCSVFile=True, savePsydatFile=True,
+            savedDataFolder='', savedDataDelim='auto',
+            clockFormat="float",
+            useVersion='',
+            eyetracker="None",
+            mgMove='CONTINUOUS', mgBlink='MIDDLE_BUTTON', mgSaccade=0.5,
+            gpAddress='127.0.0.1', gpPort=4242,
+            elModel='EYELINK 1000 DESKTOP', elSimMode=False, elSampleRate=1000, elTrackEyes="RIGHT_EYE",
+            elLiveFiltering="FILTER_LEVEL_OFF", elDataFiltering="FILTER_LEVEL_2",
+            elTrackingMode='PUPIL_CR_TRACKING', elPupilMeasure='PUPIL_AREA', elPupilAlgorithm='ELLIPSE_FIT',
+            elAddress='100.1.1.1',
+            tbModel="", tbLicenseFile="", tbSerialNo="", tbSampleRate=60,
+            plPupillometryOnly=False,
+            plSurfaceName="psychopy_iohub_surface",
+            plConfidenceThreshold=0.6,
+            plPupilRemoteAddress="127.0.0.1",
+            plPupilRemotePort=50020,
+            plPupilRemoteTimeoutMs=1000,
+            plPupilCaptureRecordingEnabled=True,
+            plPupilCaptureRecordingLocation="",
+            plCompanionAddress="neon.local",
+            plCompanionPort=8080,
+            plCompanionRecordingEnabled=True,
+            keyboardBackend="ioHub",
+            filename=None, exportHTML='on Sync', endMessage=''
+    ):
         self.type = 'Settings'
         self.exp = exp  # so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['visual', 'gui', 'hardware'])
@@ -137,8 +142,6 @@ class SettingsComponent:
         self.order = ['expName', 'Use version', 'Enable Escape',  'Show info dlg', 'Experiment info',  # Basic tab
                       'Audio lib', 'Audio latency priority', "Force stereo",  # Audio tab
                       'HTML path', 'exportHTML', 'Completed URL', 'Incomplete URL', 'End Message', 'Resources',  # Online tab
-                      'Monitor', 'Screen', 'Full-screen window', 'Window size (pixels)', 'Show mouse', 'Units', 'color',
-                      'colorSpace',  # Screen tab
                       ]
         self.depends = []
         # basic params
@@ -186,6 +189,23 @@ class SettingsComponent:
             label=_translate("Use PsychoPy version"), categ='Basic')
 
         # screen params
+        self.order += [
+            "Monitor",
+            "winBackend",
+            "Screen",
+            "Full-screen window",
+            "Show mouse",
+            "Window size (pixels)",
+            "Units",
+            "color",
+            "blendMode",
+            "colorSpace",
+            "backgroundImg",
+            "backgroundFit",
+            "measureFrameRate",
+            "frameRate",
+            "frameRateMsg",
+        ]
         self.params['Full-screen window'] = Param(
             fullScr, valType='bool', inputType="bool", allowedTypes=[],
             hint=_translate("Run the experiment full-screen (recommended)"),
@@ -215,7 +235,7 @@ class SettingsComponent:
             hint=_translate("Color of the screen (e.g. black, $[1.0,1.0,1.0],"
                             " $variable. Right-click to bring up a "
                             "color-picker.)"),
-            label=_translate("Color"), categ='Screen')
+            label=_translate("Background color"), categ='Screen')
         self.params['colorSpace'] = Param(
             colorSpace, valType='str', inputType="choice",
             hint=_translate("Needed if color is defined numerically (see "
@@ -251,6 +271,44 @@ class SettingsComponent:
             showMouse, valType='bool', inputType="bool", allowedTypes=[],
             hint=_translate("Should the mouse be visible on screen? Only applicable for fullscreen experiments."),
             label=_translate("Show mouse"), categ='Screen')
+        self.params['measureFrameRate'] = Param(
+            measureFrameRate, valType="bool", inputType="bool", categ="Screen",
+            label=_translate("Measure frame rate?"),
+            hint=_translate(
+                "Should we measure your frame rate at the start of the experiment? This is "
+                "highly recommended for precise timing."
+            )
+        )
+        self.params['frameRate'] = Param(
+            frameRate, valType="code", inputType="single", categ="Screen",
+            label=_translate("Frame rate"),
+            hint=_translate(
+                "Frame rate to store instead of measuring at the start of the experiment. Leave "
+                "blank to store no frame rate, but be wary: This will lead to errors if frame rate "
+                "isn't supplied by other means."
+            )
+        )
+        self.depends.append({
+                "dependsOn": "measureFrameRate",  # if...
+                "condition": "",  # meets...
+                "param": "frameRate",  # then...
+                "true": "hide",  # should...
+                "false": "show",  # otherwise...
+        })
+        self.params['frameRateMsg'] = Param(
+            frameRateMsg, valType="str", inputType="single", categ="Screen",
+            label=_translate("Frame rate message"),
+            hint=_translate(
+                "Message to display while frame rate is measured. Leave blank for no message."
+            )
+        )
+        self.depends.append({
+                "dependsOn": "measureFrameRate",  # if...
+                "condition": "",  # meets...
+                "param": "frameRateMsg",  # then...
+                "true": "show",  # should...
+                "false": "hide",  # otherwise...
+        })
         # self.depends.append(
         #     {"dependsOn": 'Full-screen window',  # must be param name
         #      "condition": "==True",  # val to check for
@@ -297,7 +355,8 @@ class SettingsComponent:
             "Save wide csv file",
             "Save psydat file",
             "Save hdf5 file",
-            "logging level"
+            "logging level",
+            "clockFormat",
         ]
         self.params['Data filename'] = Param(
             filename, valType='code', inputType="single", allowedTypes=[],
@@ -365,6 +424,16 @@ class SettingsComponent:
             hint=_translate("How much output do you want in the log files? "
                             "('error' is fewest messages, 'debug' is most)"),
             label=_translate("Logging level"), categ='Data')
+        self.params['clockFormat'] = Param(
+            clockFormat, valType="str", inputType="choice", categ="Data",
+            allowedVals=["iso", "float"],
+            allowedLabels=["Wall clock", "Experiment start"],
+            label=_translate("Clock format"),
+            hint=_translate(
+                "Format to use for Routine start timestamps; either wall clock time (in ISO 8601 "
+                "format) or seconds since experiment start (as a float)."
+            )
+        )
 
         # HTML output params
         # self.params['OSF Project ID'] = ProjIDParam(
@@ -415,8 +484,7 @@ class SettingsComponent:
             "Pupil Labs": ["plPupillometryOnly", "plSurfaceName", "plConfidenceThreshold",
                            "plPupilRemoteAddress", "plPupilRemotePort", "plPupilRemoteTimeoutMs",
                            "plPupilCaptureRecordingEnabled", "plPupilCaptureRecordingLocation"],
-            "Pupil Labs (Neon)": ["plCompanionAddress", "plCompanionPort", "plCompanionRecordingEnabled",
-                                  "plCompanionCameraCalibration"],
+            "Pupil Labs (Neon)": ["plCompanionAddress", "plCompanionPort", "plCompanionRecordingEnabled"],
         }
         for tracker in trackerParams:
             for depParam in trackerParams[tracker]:
@@ -631,11 +699,6 @@ class SettingsComponent:
             plCompanionRecordingEnabled, valType='bool', inputType="bool",
             hint=_translate("Recording enabled"),
             label=_translate("Recording enabled"), categ="Eyetracking"
-        )
-        self.params['plCompanionCameraCalibration'] = Param(
-            plCompanionCameraCalibration, valType='file', inputType="file",
-            hint=_translate("Camera calibration path"),
-            label=_translate("Camera calibration path"), categ="Eyetracking"
         )
 
         # Input
@@ -1480,7 +1543,6 @@ class SettingsComponent:
                     "'companion_address': %(plCompanionAddress)s,\n"
                     "'companion_port': %(plCompanionPort)s,\n"
                     "'recording_enabled': %(plCompanionRecordingEnabled)s,\n"
-                    "'camera_calibration': %(plCompanionCameraCalibration)s,\n"
                 )
                 buff.writeIndentedLines(code % inits)
 
@@ -1569,6 +1631,8 @@ class SettingsComponent:
                 for comp in rt:
                     if hasattr(comp, "writeDeviceCode"):
                         comp.writeDeviceCode(buff)
+            elif isinstance(rt, BaseStandaloneRoutine):
+                rt.writeDeviceCode(buff)
 
         code = (
             "# return True if completed successfully\n"
@@ -1660,11 +1724,9 @@ class SettingsComponent:
             "        monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s,\n"
             "        backgroundImage=%(backgroundImg)s, backgroundFit=%(backgroundFit)s,\n"
             "        blendMode=%(blendMode)s, useFBO=%(useFBO)s,\n"
-            "        units=%(Units)s\n"
+            "        units=%(Units)s, \n"
+            "        checkTiming=False  # we're going to do this ourselves in a moment\n"
             "    )\n"
-            "    if expInfo is not None:\n"
-            "        # store frame rate of monitor if we can measure it\n"
-            "        expInfo['frameRate'] = win.getActualFrameRate()\n"
             "else:\n"
             "    # if we have a window, just set the attributes which are safe to set\n"
             "    win.color = %(color)s\n"
@@ -1674,6 +1736,22 @@ class SettingsComponent:
             "    win.units = %(Units)s\n"
         )
         buff.writeIndentedLines(code % params)
+        # do/skip frame rate measurement according to params
+        if self.params['measureFrameRate']:
+            code = (
+            "if expInfo is not None:\n"
+            "    # get/measure frame rate if not already in expInfo\n"
+            "    if win._monitorFrameRate is None:\n"
+            "        win.getActualFrameRate(infoMsg=%(frameRateMsg)s)\n"
+            "    expInfo['frameRate'] = win._monitorFrameRate\n"
+            )
+            buff.writeIndentedLines(code % params)
+        elif self.params['frameRate']:
+            code = (
+            "if expInfo is not None:\n"
+            "    expInfo['frameRate'] = %(frameRate)s\n"
+            )
+            buff.writeIndentedLines(code % params)
 
         # Show/hide mouse according to param
         code = (

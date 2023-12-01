@@ -1,0 +1,57 @@
+eyetracker.hw.pupil_labs.neon.EyeTracker:
+    # Indicates if the device should actually be loaded at experiment runtime.
+    enable: True
+
+    # The variable name of the device that will be used to access the ioHub Device class
+    # during experiment run-time, via the devices.[name] attribute of the ioHub
+    # connection or experiment runtime class.
+    name: tracker
+
+    device_number: 0
+
+    #####
+
+    model_name: Neon
+
+    model_number: "1"
+
+    serial_number: N/A
+
+    manufacturer_name: Pupil Labs (Neon)
+
+    software_version: N/A
+
+    hardware_version: N/A
+
+    firmware_version: N/A
+
+    #####
+
+    monitor_event_types: [BinocularEyeSampleEvent]
+
+    # Should eye tracker events be saved to the ioHub DataStore file when the device
+    # is recording data ?
+    save_events: True
+
+    # Should eye tracker events be sent to the Experiment process when the device
+    # is recording data ?
+    stream_events: True
+
+    # How many eye events (including samples) should be saved in the ioHub event buffer before
+    # old eye events start being replaced by new events. When the event buffer reaches
+    # the maximum event length of the buffer defined here, older events will start to be dropped.
+    event_buffer_length: 1024
+
+    # Do not change this value.
+    auto_report_events: False
+
+    device_timer:
+        interval: 0.005
+
+    #####
+
+    runtime_settings:
+        companion_address: neon.local
+        companion_port: 8080
+        recording_enabled: True
+        camera_calibration: scene_camera.json

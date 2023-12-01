@@ -3,34 +3,32 @@
 
 from pathlib import Path
 from psychopy.experiment import Param
-from psychopy.experiment.components import BaseComponent, getInitVals
-from psychopy.experiment.routines import Routine
+from psychopy.experiment.plugins import PluginDevicesMixin, DeviceBackend
+from psychopy.experiment.components import getInitVals
+from psychopy.experiment.routines import Routine, BaseValidatorRoutine
 from psychopy.localization import _translate
 
 
-class PhotodiodeValidatorComponent(BaseComponent):
+class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
     """
     Use a photodiode to confirm that stimuli are presented when they should be.
     """
     targets = ['PsychoPy']
 
     categories = ['Validation']
-    targets = ['PsychoPy']
     iconFile = Path(__file__).parent / 'photodiode_validator.png'
-    tooltip = _translate('Unknown: A component that is not known by the current '
-                         'installed version of PsychoPy\n(most likely from the '
-                         'future)')
+    tooltip = _translate('')
 
     def __init__(
             self,
             # basic
-            exp, parentName, name='photodiode',
+            exp, name='photodiode',
             variability="1/60", report="log",
             findThreshold=True, threshold=127,
             # layout
             findDiode=True, diodePos="(1, 1)", diodeSize="(0.1, 0.1)", diodeUnits="norm",
             # device
-            backend="bbtk-tpad", port="", channel="1",
+            deviceName="", deviceBackend="screenbuffer", port="", channel="1",
             # data
             saveValid=True,
     ):
@@ -38,7 +36,7 @@ class PhotodiodeValidatorComponent(BaseComponent):
         self.exp = exp  # so we can access the experiment if necess
         self.params = {}
         self.depends = []
-        super(PhotodiodeValidatorComponent, self).__init__(exp, parentName, name=name)
+        super(PhotodiodeValidatorRoutine, self).__init__(exp, name=name)
         self.order += []
         self.type = 'PhotodiodeValidator'
 
@@ -46,10 +44,6 @@ class PhotodiodeValidatorComponent(BaseComponent):
             importName="photodiode",
             importFrom="psychopy.hardware",
             importAs="phd"
-        )
-        exp.requireImport(
-            importName="tpad",
-            importFrom="psychopy_bbtk"
         )
 
         # --- Basic ---
@@ -144,40 +138,28 @@ class PhotodiodeValidatorComponent(BaseComponent):
 
         del self.params['stopType']
         del self.params['stopVal']
-        del self.params['durationEstim']
-        del self.params['startVal']
-        del self.params['startType']
-        del self.params['startEstim']
 
         # --- Device ---
         self.order += [
-            "backend",
-            "port",
-            "number",
+            "deviceName",
+            "deviceBackend",
+            "channel",
         ]
-        self.params['backend'] = Param(
-            backend, valType="code", inputType="choice", categ="Device",
-            allowedVals=["bbtk-tpad"],
-            allowedLabels=["Black Box Toolkit (BBTK) TPad"],
+        self.params['deviceName'] = Param(
+            deviceName, valType="str", inputType="single", categ="Device",
+            label=_translate("Device name"),
+            hint=_translate(
+                "A name to refer to this Component's associated hardware device by. If using the "
+                "same device for multiple components, be sure to use the same name here."
+            )
+        )
+        self.params['deviceBackend'] = Param(
+            deviceBackend, valType="code", inputType="choice", categ="Device",
+            allowedVals=self.getBackendKeys,
+            allowedLabels=self.getBackendLabels,
             label=_translate("Photodiode type"),
             hint=_translate(
                 "Type of photodiode to use."
-            )
-        )
-        def getPorts():
-            """
-            Get list of available serial ports via hardware.serialdevice.
-            """
-            from psychopy.hardware.serialdevice import ports
-            return list(ports)
-
-        self.params['port'] = Param(
-            port, valType="str", inputType="choice", categ="Device",
-            allowedVals=getPorts,
-            allowedLabels=getPorts,
-            label=_translate("Serial port"),
-            hint=_translate(
-                "Serial port which the photodiode is connected to."
             )
         )
         self.params['channel'] = Param(
@@ -198,13 +180,37 @@ class PhotodiodeValidatorComponent(BaseComponent):
             )
         )
 
-    def _makeDeviceName(self):
-        # get port
-        port = self.params['port'].val
-        # construct string
-        name = f"photodiode{port}"
+    def loadBackends(self):
+        from psychopy.plugins import activatePlugins
+        activatePlugins()
+        # add params from backends
+        for backend in self.backends:
+            # get params using backend's method
+            params, order = backend.getParams(self)
+            # add order
+            self.order.extend(order)
+            # add any params
+            for key, param in params.items():
+                if key in self.params:
+                    # if this param already exists (i.e. from saved data), get the saved val
+                    param.val = self.params[key].val
+                    param.updates = self.params[key].updates
+                # add param
+                self.params[key] = param
 
-        return name
+            # add dependencies so that backend params are only shown for this backend
+            for name in params:
+                self.depends.append(
+                    {
+                        "dependsOn": "deviceBackend",  # if...
+                        "condition": f"== '{backend.key}'",  # meets...
+                        "param": name,  # then...
+                        "true": "show",  # should...
+                        "false": "hide",  # otherwise...
+                    }
+                )
+            # add requirements
+            backend.addRequirements(self)
 
     def writeDeviceCode(self, buff):
         """
@@ -215,60 +221,44 @@ class PhotodiodeValidatorComponent(BaseComponent):
         buff : io.StringIO
             Text buffer to write code to.
         """
+        # do usual backend-specific device code writing
+        PluginDevicesMixin.writeDeviceCode(self, buff)
+        # get inits
         inits = getInitVals(self.params)
-
-        # make device name
-        inits['deviceName'] = self._makeDeviceName()
-        # make deviceClass string
-        if self.params['backend'] == "bbtk-tpad":
-            inits['deviceClass'] = "psychopy_bbtk.tpad.TPadPhotodiodeGroup"
-        else:
-            raise NotImplementedError(f"Backend %(backend)s is not supported." % self.params)
-        # initialise diode device
+        # get device handle
         code = (
-            "# initialise photodiode\n"
-            "%(deviceName)s = deviceManager.getDevice('%(deviceName)s')\n"
-            "if %(deviceName)s is None:\n"
-            "    %(deviceName)s = deviceManager.addDevice(\n"
-            "        deviceClass='%(deviceClass)s',\n"
-            "        deviceName='%(deviceName)s',\n"
-            "        pad=%(port)s,\n"
-            "        channels=2\n"
-            "    )\n"
+            "%(deviceNameCode)s = deviceManager.getDevice(%(deviceName)s)"
         )
         buff.writeOnceIndentedLines(code % inits)
         # find threshold if indicated
         if self.params['findThreshold']:
             code = (
                 "# find threshold for photodiode\n"
-                "if %(deviceName)s.getThreshold() is None:\n"
-                "    %(deviceName)s.findThreshold(win, channel=%(channel)s)\n"
+                "if %(deviceNameCode)s.getThreshold() is None:\n"
+                "    %(deviceNameCode)s.findThreshold(win, channel=%(channel)s)\n"
             )
             buff.writeOnceIndentedLines(code % inits)
         # find pos if indicated
         if self.params['findDiode']:
             code = (
                 "# find position and size of photodiode\n"
-                "if %(deviceName)s.pos is None and %(deviceName)s.size is None and %(deviceName)s.units is None:\n"
-                "    %(deviceName)s.findPhotodiode(win, channel=%(channel)s)\n"
+                "if %(deviceNameCode)s.pos is None and %(deviceNameCode)s.size is None and %(deviceNameCode)s.units is None:\n"
+                "    %(deviceNameCode)s.findPhotodiode(win, channel=%(channel)s)\n"
             )
             buff.writeOnceIndentedLines(code % inits)
 
-
-    def writeInitCode(self, buff):
+    def writeMainCode(self, buff):
         inits = getInitVals(self.params)
-        # make device name
-        inits['deviceName'] = self._makeDeviceName()
         # get diode
         code = (
             "# diode object for %(name)s\n"
-            "%(name)sDiode = deviceManager.getDevice('%(deviceName)s')\n"
+            "%(name)sDiode = deviceManager.getDevice(%(deviceName)s)\n"
         )
         buff.writeIndentedLines(code % inits)
 
         if self.params['threshold'] and not self.params['findThreshold']:
             code = (
-                "%(diodeName)s.setThreshold(%(threshold)s, channels=[%(channel)s])\n"
+                "%(name)sDiode.setThreshold(%(threshold)s, channels=[%(channel)s])\n"
             )
             buff.writeIndentedLines(code % inits)
         # find/set diode position
@@ -277,17 +267,17 @@ class PhotodiodeValidatorComponent(BaseComponent):
             # set units (unless None)
             if self.params['units']:
                 code += (
-                    "%(diodeName)s.units = %(units)s\n"
+                    "%(name)sDiode.units = %(units)s\n"
                 )
             # set pos (unless None)
             if self.params['pos']:
                 code += (
-                    "%(diodeName)s.pos = %(pos)s\n"
+                    "%(name)sDiode.pos = %(pos)s\n"
                 )
             # set size (unless None)
             if self.params['size']:
                 code += (
-                    "%(diodeName)s.size = %(size)s\n"
+                    "%(name)sDiode.size = %(size)s\n"
                 )
             buff.writeIndentedLines(code % inits)
         # create validator object
@@ -308,63 +298,101 @@ class PhotodiodeValidatorComponent(BaseComponent):
             ).format(stim=stim.params['name'])
             buff.writeIndentedLines(code % self.params)
 
-    def writeRoutineStartCode(self, buff):
+    def writeRoutineStartValidationCode(self, buff, stim):
+        """
+        Write the routine start code to validate a given stimulus using this validator.
+
+        Parameters
+        ----------
+        buff : StringIO
+            String buffer to write code to.
+        stim : BaseComponent
+            Stimulus to validate
+
+        Returns
+        -------
+        int
+            Change in indentation level after writing
+        """
+        # get starting indent level
+        startIndent = buff.indentLevel
+
+        # choose a clock to sync to according to component's params
+        if "syncScreenRefresh" in stim.params and stim.params['syncScreenRefresh']:
+            clockStr = ""
+        else:
+            clockStr = "clock=routineTimer"
         # sync component start/stop timers with validator clocks
-        for comp in self.findConnectedStimuli():
-            # choose a clock to sync to according to component's params
-            if "syncScreenRefresh" in comp.params and comp.params['syncScreenRefresh']:
-                clockStr = ""
-            else:
-                clockStr = "clock=routineTimer"
-            # otherwise sync its clock
-            code = (
-                f"# synchronise device clock for %(name)s with Routine timer\n"
-                f"%(name)s.resetTimer({clockStr})\n"
-            )
-            buff.writeIndentedLines(code % self.params)
+        code = (
+            f"# synchronise device clock for %(name)s with Routine timer\n"
+            f"%(name)s.resetTimer({clockStr})\n"
+        )
+        buff.writeIndentedLines(code % self.params)
 
-    def writeFrameCode(self, buff):
-        # write validation code for each stim
-        for stim in self.findConnectedStimuli():
-            # validate start time
-            code = (
-                "# validate {name} start time\n"
-                "if {name}.status == STARTED and %(name)s.status == STARTED:\n"
-                "    %(name)s.tStart, %(name)s.tStartValid = %(name)s.validate(state=True, t={name}.tStart)\n"
-                "    if %(name)s.tStart is not None:\n"
-                "        %(name)s.status = FINISHED\n"
-            )
-            if stim.params['saveStartStop']:
-                # save validated start time if stim requested
-                code += (
-                "        thisExp.addData('{name}.%(name)s.started', %(name)s.tStart)\n"
-                )
-            if self.params['saveValid']:
-                # save validation result if params requested
-                code += (
-                "        thisExp.addData('{name}.started.valid', %(name)s.tStartValid)\n"
-                )
-            buff.writeIndentedLines(code.format(**stim.params) % self.params)
+        # return change in indent level
+        return buff.indentLevel - startIndent
 
-            # validate stop time
-            code = (
-                "# validate {name} stop time\n"
-                "if {name}.status == FINISHED and %(name)s.status == STARTED:\n"
-                "    %(name)s.tStop, %(name)s.tStopValid = %(name)s.validate(state=False, t={name}.tStop)\n"
-                "    if %(name)s.tStop is not None:\n"
-                "        %(name)s.status = FINISHED\n"
+    def writeEachFrameValidationCode(self, buff, stim):
+        """
+        Write the each frame code to validate a given stimulus using this validator.
+
+        Parameters
+        ----------
+        buff : StringIO
+            String buffer to write code to.
+        stim : BaseComponent
+            Stimulus to validate
+
+        Returns
+        -------
+        int
+            Change in indentation level after writing
+        """
+        # get starting indent level
+        startIndent = buff.indentLevel
+
+        # validate start time
+        code = (
+            "# validate {name} start time\n"
+            "if {name}.status == STARTED and %(name)s.status == STARTED:\n"
+            "    %(name)s.tStart, %(name)s.tStartValid = %(name)s.validate(state=True, t={name}.tStart)\n"
+            "    if %(name)s.tStart is not None:\n"
+            "        %(name)s.status = FINISHED\n"
+        )
+        if stim.params['saveStartStop']:
+            # save validated start time if stim requested
+            code += (
+            "        thisExp.addData('{name}.%(name)s.started', %(name)s.tStart)\n"
             )
-            if stim.params['saveStartStop']:
-                # save validated start time if stim requested
-                code += (
-                "        thisExp.addData('{name}.%(name)s.stopped', %(name)s.tStop)\n"
-                )
-            if self.params['saveValid']:
-                # save validation result if params requested
-                code += (
-                "        thisExp.addData('{name}.stopped.valid', %(name)s.tStopValid)\n"
-                )
-            buff.writeIndentedLines(code.format(**stim.params) % self.params)
+        if self.params['saveValid']:
+            # save validation result if params requested
+            code += (
+            "        thisExp.addData('{name}.started.valid', %(name)s.tStartValid)\n"
+            )
+        buff.writeIndentedLines(code.format(**stim.params) % self.params)
+
+        # validate stop time
+        code = (
+            "# validate {name} stop time\n"
+            "if {name}.status == FINISHED and %(name)s.status == STARTED:\n"
+            "    %(name)s.tStop, %(name)s.tStopValid = %(name)s.validate(state=False, t={name}.tStop)\n"
+            "    if %(name)s.tStop is not None:\n"
+            "        %(name)s.status = FINISHED\n"
+        )
+        if stim.params['saveStartStop']:
+            # save validated start time if stim requested
+            code += (
+            "        thisExp.addData('{name}.%(name)s.stopped', %(name)s.tStop)\n"
+            )
+        if self.params['saveValid']:
+            # save validation result if params requested
+            code += (
+            "        thisExp.addData('{name}.stopped.valid', %(name)s.tStopValid)\n"
+            )
+        buff.writeIndentedLines(code.format(**stim.params) % self.params)
+
+        # return change in indent level
+        return buff.indentLevel - startIndent
 
     def findConnectedStimuli(self):
         # list of linked components
@@ -385,3 +413,39 @@ class PhotodiodeValidatorComponent(BaseComponent):
 
         return stims
 
+
+class ScreenBufferPhotodiodeValidatorBackend(DeviceBackend):
+    """
+    Adds a basic screen buffer emulation backend for PhotodiodeValidator, as well as acting as an
+    example for implementing other photodiode device backends.
+    """
+
+    key = "screenbuffer"
+    label = _translate("Screen Buffer (Debug)")
+    component = PhotodiodeValidatorRoutine
+
+    def getParams(self: PhotodiodeValidatorRoutine):
+        # define order
+        order = [
+        ]
+        # define params
+        params = {}
+
+        return params, order
+
+    def addRequirements(self):
+        # no requirements needed - so just return
+        return
+
+    def writeDeviceCode(self: PhotodiodeValidatorRoutine, buff):
+        # get inits
+        inits = getInitVals(self.params)
+        # make ButtonGroup object
+        code = (
+            "deviceManager.addDevice(\n"
+            "    deviceClass='psychopy.hardware.photodiode.ScreenBufferSampler',\n"
+            "    deviceName=%(deviceName)s,\n"
+            "    win=win,\n"
+            ")\n"
+        )
+        buff.writeOnceIndentedLines(code % inits)

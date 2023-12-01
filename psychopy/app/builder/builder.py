@@ -2668,7 +2668,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             # construct label
             label = name
             # remove "Component" from the end
-            for redundant in ['component', 'Component', "ButtonBox"]:
+            for redundant in ['component', 'Component']:
                 label = label.replace(redundant, "")
             # convert to title case
             label = st.CaseSwitcher.pascal2title(label)

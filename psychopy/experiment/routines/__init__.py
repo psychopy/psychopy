@@ -8,9 +8,11 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from importlib import import_module
-from ._base import BaseStandaloneRoutine, Routine
+from ._base import BaseStandaloneRoutine, BaseValidatorRoutine, Routine
+from .utils import loadPluginRoutines
 from .unknown import UnknownRoutine
 from pathlib import Path
+from psychopy import logging
 
 # Standalone components loaded from plugins are stored in this dictionary. These
 # are added by calling `addStandaloneRoutine`. Plugins will always override
@@ -70,13 +72,26 @@ def getAllStandaloneRoutines(fetchIcons=True):
         those added by plugins.
 
     """
+    # load plugins
+    loadPluginRoutines()
     # Safe import all modules within this folder (apart from protected ones with a _)
     for loc in Path(__file__).parent.glob("*"):
         if loc.is_dir() and not loc.name.startswith("_"):
             import_module("." + loc.name, package="psychopy.experiment.routines")
 
     # Get list of subclasses of BaseStandalone
-    classList = BaseStandaloneRoutine.__subclasses__()
+    def getSubclasses(cls, classList=None):
+        # create list if needed
+        if classList is None:
+            classList = []
+        # add to class list
+        classList.append(cls)
+        # recur for subclasses
+        for subcls in cls.__subclasses__():
+            getSubclasses(subcls, classList)
+
+        return classList
+    classList = getSubclasses(BaseStandaloneRoutine)
     # Remove unknown
     #if UnknownRoutine in classList:
     #    classList.remove(UnknownRoutine)
