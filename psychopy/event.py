@@ -66,6 +66,11 @@ from psychopy.tools.monitorunittools import cm2pix, deg2pix, pix2cm, pix2deg
 from psychopy import logging
 from psychopy.constants import NOT_STARTED
 
+
+# global variable to keep track of mouse buttons
+mouseButtons = [0, 0, 0]
+
+
 if havePyglet or haveGLFW:
     # importing from mouse takes ~250ms, so do it now
     if havePyglet:
@@ -83,7 +88,6 @@ if havePyglet or haveGLFW:
         )
 
     _keyBuffer = []
-    mouseButtons = [0, 0, 0]
     mouseWheelRel = numpy.array([0.0, 0.0])
     # list of 3 clocks that are reset on mouse button presses
     mouseClick = [psychopy.core.Clock(), psychopy.core.Clock(),
@@ -605,9 +609,6 @@ class Mouse():
         global usePygame
         if havePygame and not pygame.display.get_init():
             usePygame = False
-        if not usePygame:
-            global mouseButtons
-            mouseButtons = [0, 0, 0]
         self.setVisible(visible)
         if newPos is not None:
             self.setPos(newPos)
