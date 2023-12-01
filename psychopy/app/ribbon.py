@@ -471,40 +471,61 @@ class FrameRibbonSwitchCtrl(wx.Panel, handlers.ThemeMixin):
     """
     def __init__(
             self, parent, labels, startMode=0,
-            style=wx.BU_RIGHT
+            # style=wx.VERTICAL | wx.BU_RIGHT
+            style=wx.HORIZONTAL
     ):
         wx.Panel.__init__(self, parent)
         self.parent = parent
+        # use style tag to get text alignment and control orientation
+        alignh = style & (wx.BU_LEFT | wx.BU_RIGHT)
+        alignv = style & (wx.BU_TOP | wx.BU_BOTTOM)
+        alignEach = [alignh | alignv, alignh | alignv]
+        orientation = style & (wx.HORIZONTAL | wx.VERTICAL)
+        # if orientation is horizontal and no h alignment set, wrap text around button
+        if orientation == wx.HORIZONTAL and not alignh:
+            alignEach = [wx.BU_RIGHT | alignv, wx.BU_LEFT | alignv]
         # setup sizers
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.SetSizer(self.sizer)
-        self.btnSizer = wx.BoxSizer(wx.VERTICAL)
+        self.btnSizer = wx.BoxSizer(orientation)
         # setup depends dict
         self.depends = []
-        # add icon
+        # make icon
         self.icon = wx.Button(self, style=wx.BORDER_NONE | wx.BU_NOTEXT | wx.BU_EXACTFIT)
         self.icon.Bind(wx.EVT_BUTTON, self.onModeToggle)
         # make switcher buttons
         self.btns = []
         for i in range(2):
             btn = wx.Button(
-                self, label=labels[i], size=(-1, 16), style=wx.BORDER_NONE | wx.BU_EXACTFIT | style
+                self, label=labels[i], size=(-1, 16),
+                style=wx.BORDER_NONE | wx.BU_EXACTFIT | alignEach[i]
             )
-            self.btnSizer.Add(btn, proportion=1, flag=wx.EXPAND)
+            self.btnSizer.Add(btn, proportion=orientation == wx.VERTICAL, flag=wx.EXPAND)
             btn.Bind(wx.EVT_BUTTON, self.onModeSwitch)
             btn.Bind(wx.EVT_ENTER_WINDOW, self.onHover)
             btn.Bind(wx.EVT_LEAVE_WINDOW, self.onHover)
             self.btns.append(btn)
         # arrange icon/buttons according to style
         self.sizer.Add(self.btnSizer, proportion=1, border=3, flag=wx.EXPAND | wx.ALL)
-        i = 0
-        if style | wx.BU_RIGHT == style:
-            i = 1
-        self.sizer.Insert(i, self.icon, border=6, flag=wx.EXPAND | wx.ALL)
+        params = {'border': 6, 'flag': wx.EXPAND | wx.ALL}
+        if orientation == wx.HORIZONTAL:
+            # if horizontal, always put icon in the middle
+            self.btnSizer.Insert(1, self.icon, **params)
+        elif alignh == wx.BU_LEFT:
+            # if left, put icon on left
+            self.sizer.Insert(0, self.icon, **params)
+        else:
+            # if right, put icon on right
+            self.sizer.Insert(1, self.icon, **params)
         # make icons
+        if orientation == wx.HORIZONTAL:
+            stems = ["switchCtrlLeft", "switchCtrlRight"]
+            size = (32, 16)
+        else:
+            stems = ["switchCtrlTop", "switchCtrlBot"]
+            size = (16, 32)
         self.icons = [
-            icons.ButtonIcon("switchCtrlTop", size=(16, 32)),
-            icons.ButtonIcon("switchCtrlBot", size=(16, 32))
+            icons.ButtonIcon(stem, size=size) for stem in stems
         ]
         # set starting mode
         self.setMode(startMode)
