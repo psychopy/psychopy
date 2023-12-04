@@ -1,10 +1,10 @@
 from pathlib import Path
-from psychopy.experiment.components import BaseComponent, Param, getInitVals
+from psychopy.experiment.components import BaseDeviceComponent, Param, getInitVals
 from psychopy.experiment.plugins import PluginDevicesMixin, DeviceBackend
 from psychopy.localization import _translate
 
 
-class ButtonBoxComponent(BaseComponent, PluginDevicesMixin):
+class ButtonBoxComponent(BaseDeviceComponent, PluginDevicesMixin):
     """
 
     """
@@ -22,7 +22,7 @@ class ButtonBoxComponent(BaseComponent, PluginDevicesMixin):
             startEstim='', durationEstim='',
             forceEndRoutine=True,
             # device
-            deviceName="",
+            deviceLabel="",
             deviceBackend="keyboard",
             # data
             registerOn=True,
@@ -34,12 +34,13 @@ class ButtonBoxComponent(BaseComponent, PluginDevicesMixin):
             disabled=False,
     ):
         # initialise base class
-        BaseComponent.__init__(
+        BaseDeviceComponent.__init__(
             self, exp, parentName,
             name=name,
             startType=startType, startVal=startVal,
             stopType=stopType, stopVal=stopVal,
             startEstim=startEstim, durationEstim=durationEstim,
+            deviceLabel=deviceLabel,
             disabled=disabled
         )
         self.type = "ButtonBox"
@@ -120,17 +121,9 @@ class ButtonBoxComponent(BaseComponent, PluginDevicesMixin):
 
         # --- Device params ---
         self.order += [
-            "deviceName",
             "deviceBackend",
         ]
-        self.params['deviceName'] = Param(
-            deviceName, valType="str", inputType="single", categ="Device",
-            label=_translate("Device name"),
-            hint=_translate(
-                "A name to refer to this Component's associated hardware device by. If using the "
-                "same device for multiple components, be sure to use the same name here."
-            )
-        )
+
         self.params['deviceBackend'] = Param(
             deviceBackend, valType="str", inputType="choice", categ="Device",
             allowedVals=self.getBackendKeys,
@@ -147,7 +140,7 @@ class ButtonBoxComponent(BaseComponent, PluginDevicesMixin):
         # code to create object
         code = (
             "%(name)s = ButtonBox(\n"
-            "    device=%(deviceName)s\n"
+            "    device=%(deviceLabel)s\n"
             ")\n"
         )
         buff.writeIndentedLines(code % inits)
@@ -295,7 +288,7 @@ class KeyboardButtonBoxBackend(DeviceBackend):
         code = (
             "deviceManager.addDevice(\n"
             "    deviceClass='psychopy.hardware.button.KeyboardButtonBox',\n"
-            "    deviceName=%(deviceName)s,\n"
+            "    deviceName=%(deviceLabel)s,\n"
             "    buttons=%(kbButtonAliases)s,\n"
             ")\n"
         )

@@ -1030,6 +1030,69 @@ class BaseComponent:
             return "thisExp"
 
 
+class BaseDeviceComponent(BaseComponent):
+    """
+    Base class for most components which interface with a hardware device.
+    """
+
+    def __init__(
+            self, exp, parentName,
+            # basic
+            name='',
+            startType='time (s)', startVal='',
+            stopType='duration (s)', stopVal='',
+            startEstim='', durationEstim='',
+            # device
+            deviceLabel="",
+            # data
+            saveStartStop=True, syncScreenRefresh=False,
+            # testing
+            disabled=False
+    ):
+        # initialise base component
+        BaseComponent.__init__(
+            self, exp, parentName,
+            name=name,
+            startType=startType, startVal=startVal,
+            stopType=stopType, stopVal=stopVal,
+            startEstim=startEstim, durationEstim=durationEstim,
+            saveStartStop=saveStartStop, syncScreenRefresh=syncScreenRefresh,
+            disabled=disabled
+        )
+        # require hardware
+        self.exp.requirePsychopyLibs(
+            ['hardware']
+        )
+        # --- Device params ---
+        self.order += [
+            "deviceLabel"
+        ]
+        # label to refer to device by
+        self.params['deviceLabel'] = Param(
+            deviceLabel, valType="str", inputType="single", categ="Device",
+            label=_translate("Device label"),
+            hint=_translate(
+                "A label to refer to this Component's associated hardware device by. If using the "
+                "same device for multiple components, be sure to use the same label here."
+            )
+        )
+
+    def writeDeviceCode(self, buff):
+        """
+        Code to configure and create a device object in DeviceManager, to be referenced by name
+        in the experiment.
+
+        Parameters
+        ----------
+        buff : io.StringIO
+            Text buffer to write code to.
+        """
+        raise NotImplementedError(
+            "Could not find method 'writeDeviceCode' for {type(self).__name__}. Subclasses of "
+            "BaseDeviceComponent must implement writeDeviceCode."
+        )
+
+
 class BaseVisualComponent(BaseComponent):
     """Base class for most visual stimuli
     """
