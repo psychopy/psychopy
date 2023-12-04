@@ -1,5 +1,5 @@
 from pathlib import Path
-from psychopy.experiment.components import BaseDeviceComponent, Param, getInitVals
+from psychopy.experiment.components import BaseComponent, BaseDeviceComponent, Param, getInitVals
 from psychopy.experiment.plugins import PluginDevicesMixin, DeviceBackend
 from psychopy.localization import _translate
 
