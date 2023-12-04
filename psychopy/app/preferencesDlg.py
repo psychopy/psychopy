@@ -327,19 +327,40 @@ class PreferencesDlg(wx.Dialog):
 
         # add property pages to the manager
         self.proPrefs.addPage(
-            _translate('General'), 'general', ['general'],
-            'preferences-general')
+            label=_translate('General'),
+            name='general',
+            sections=['general'],
+            bitmap='preferences-general')
         self.proPrefs.addPage(
-            _translate('Application'), 'app', ['app', 'builder', 'coder'],
-            'preferences-app')
+            label=_translate('Application'),
+            name='app',
+            sections=['app', 'builder', 'coder'],
+            bitmap='preferences-app'
+        )
         self.proPrefs.addPage(
-            _translate('Key Bindings'), 'keyBindings', ['keyBindings'],
-            'preferences-keyboard')
+            label=_translate('Debug mode'),
+            name='debug',
+            sections=['debug'],
+            bitmap='preferences-debug'
+        )
         self.proPrefs.addPage(
-            _translate('Hardware'), 'hardware', ['hardware'], 'preferences-hardware')
+            label=_translate('Key Bindings'),
+            name='keyBindings',
+            sections=['keyBindings'],
+            bitmap='preferences-keyboard'
+        )
         self.proPrefs.addPage(
-            _translate('Connections'), 'connections', ['connections'],
-            'preferences-conn')
+            label=_translate('Hardware'),
+            name='hardware',
+            sections=['hardware'],
+            bitmap='preferences-hardware'
+        )
+        self.proPrefs.addPage(
+            label=_translate('Connections'),
+            name='connections',
+            sections=['connections'],
+            bitmap='preferences-conn'
+        )
         self.proPrefs.populateGrid()
 
         sbPrefs.Add(self.proPrefs, 1, wx.EXPAND)

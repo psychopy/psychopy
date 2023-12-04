@@ -139,6 +139,13 @@
     # The name of the Qmix pump configuration to use
     qmixConfiguration = string(default='qmix_config')
 
+# Settings for debug mode
+[debug]
+    # prevent the experiment from being fullscreen when in debug mode
+    debugForceWindowed = boolean(default=True)
+    # how much output to include in the log files ('error' is fewest messages, 'debug' is most)
+    debugLoggingLevel = option('error', 'warning', 'data', 'exp', 'info', 'debug', default='debug')
+
 # Settings for connections
 [connections]
     # the http proxy for usage stats and auto-updating; format is host: port

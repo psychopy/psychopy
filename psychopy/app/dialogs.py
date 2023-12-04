@@ -619,49 +619,6 @@ class ListWidget(GlobSizer):
                 child.Window.Validate()
 
 
-class DebugConfigDlg(wx.Dialog):
-    def __init__(self, parent):
-        wx.Dialog.__init__(self, parent)
-        self.SetTitle(_translate(
-            "Configure debug mode"
-        ))
-        # setup sizers
-        self.border = wx.BoxSizer(wx.VERTICAL)
-        self.SetSizer(self.border)
-        self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.border.Add(self.sizer, border=12, proportion=1, flag=wx.EXPAND | wx.ALL)
-
-        # make controls
-        self.ctrls = {}
-        # override window fullscreen
-        self.ctrls['forceWindowed'] = ctrl = wx.CheckBox(
-            self, label=_translate("Force windowed mode?")
-        )
-        ctrl.SetValue(True)
-        ctrl.SetToolTip(_translate(
-            "Fullscreen windows can be frustrating when they crash - if you're debugging your "
-            "experiment, you may prefer to do so in windowed mode, even if you want to run in "
-            "full screen when testing."
-        ))
-        self.sizer.Add(ctrl, border=6, flag=wx.EXPAND | wx.ALL)
-        # override logging level
-        lbl = wx.StaticText(self, label=_translate("Set logging level to..."))
-        self.sizer.Add(lbl, border=6, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP)
-        self.ctrls['loggingLevel'] = ctrl = wx.Choice(
-            self, choices=['error', 'warning', 'data', 'exp', 'info', 'debug']
-        )
-        ctrl.SetStringSelection("debug")
-        ctrl.SetToolTip(_translate(
-            "How much output do you want in the log files? ('error' is fewest messages, 'debug' is "
-            "most)"
-        ))
-        self.sizer.Add(ctrl, border=6, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM)
-
-        # make dialog buttons
-        btns = self.CreateStdDialogButtonSizer(flags=wx.OK | wx.CANCEL)
-        self.border.Add(btns, border=12, flag=wx.EXPAND | wx.ALL)
-
-
 if __name__ == '__main__':
     if parse_version(wx.__version__) < parse_version('2.9'):
         app = wx.PySimpleApp()

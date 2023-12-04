@@ -1032,13 +1032,6 @@ class RunnerRibbon(ribbon.FrameRibbon):
             callback=parent.debugLocal
         )
         btn.Disable()
-        # debug config
-        btn = self.addButton(
-            section="py", name="pydebugconfig", label=_translate("Debug settings"),
-            icon='pyDebugConfig',
-            tooltip=_translate("Configure settings for debug mode"),
-            callback=parent.debugLocalConfig
-        )
         # link buttons to switch
         runDebugSwitch.addDependant(self.buttons['pydebug'], mode=1, action="show")
         runDebugSwitch.addDependant(self.buttons['pyrun'], mode=0, action="show")

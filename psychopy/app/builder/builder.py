@@ -4409,13 +4409,6 @@ class BuilderRibbon(ribbon.FrameRibbon):
             tooltip=_translate("Run the current script in Python with debug features on"),
             callback=parent.debugFile
         )
-        # debug config
-        self.addButton(
-            section="py", name="pydebugconfig", label=_translate("Debug settings"),
-            icon='pyDebugConfig',
-            tooltip=_translate("Configure settings for debug mode"),
-            callback=parent.debugConfig
-        )
         # link buttons to switch
         runDebugSwitch.addDependant(self.buttons['pydebug'], mode=1, action="show")
         runDebugSwitch.addDependant(self.buttons['pyrun'], mode=0, action="show")
