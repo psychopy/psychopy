@@ -309,8 +309,6 @@ class Experiment:
                 "\n"
                 "# if running this experiment as a script...\n"
                 "if __name__ == '__main__':\n"
-                "    # work out from system args whether we are running in debug mode\n"
-                "    core.setDebugModeFromArgs()\n"
                 "    # call all functions in order\n"
             )
             if self_copy.settings.params['Show info dlg'].val:

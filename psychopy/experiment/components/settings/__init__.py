@@ -940,6 +940,31 @@ class SettingsComponent:
         )
         buff.writeIndented(code)
 
+        # write code for debug mode
+        code = (
+            "# --- Define some variables which will change depending on debug mode ---\n"
+            "'''\n"
+            "To run in debug mode, either use the run/debug toggle in Builder, Coder and Runner, \n"
+            "or run the experiment with `--debug` as an argument. To change what debug \n#"
+            "mode does, check out the 'Debug mode' tab in preferences.\n"
+            "'''\n"
+            "# work out from system args whether we are running in debug mode\n"
+            "DEBUGGING = core.setDebugModeFromArgs()\n"
+            "# start off with values from experiment settings\n"
+            "_fullScr = %(Full-screen window)s\n"
+            "_loggingLevel = logging.getLevel('%(logging level)s')\n"
+            "# if in debug mode, apply overrides according to preferences\n"
+            "if DEBUGGING:\n"
+            "    # force windowed mode\n"
+            "    if prefs.debugging['debugForceWindowed']:\n"
+            "        _fullScr = False\n"
+            "    # override logging level\n"
+            "    _loggingLevel = logging.getLevel(\n"
+            "        prefs.debugging['debugLoggingLevel']\n"
+            "    )\n"
+        )
+        buff.writeIndented(code % self.params)
+
     def prepareResourcesJS(self):
         """Sets up the resources folder and writes the info.php file for PsychoJS
         """
@@ -1244,21 +1269,15 @@ class SettingsComponent:
 
         # set logging level
         code = (
-            "loggingLevel = logging.getLevel('%(logging level)s')\n"
-            "# if running in debug mode, override logging level according to user preferences\n"
-            "if core.getDebugMode():\n"
-            "    loggingLevel = logging.getLevel(\n"
-            "        prefs.debugging['debugLoggingLevel']\n"
-            "    )\n"
             "# this outputs to the screen, not a file\n"
-            "logging.console.setLevel(loggingLevel)\n"
+            "logging.console.setLevel(_loggingLevel)\n"
         )
         buff.writeIndentedLines(code % self.params)
 
         if self.params['Save log file'].val:
             code = (
                 "# save a log file for detail verbose info\n"
-                "logFile = logging.LogFile(filename+'.log', level=loggingLevel)\n"
+                "logFile = logging.LogFile(filename+'.log', level=_loggingLevel)\n"
                 "\n"
                 "return logFile\n"
             )
@@ -1720,26 +1739,21 @@ class SettingsComponent:
         params['winType'] = self.params['winBackend']
 
         # force windowed according to prefs/debug mode
-        code = (
-            "fullScreen = %(fullScr)s\n"
-        )
         if params['fullScr']:
             msg = _translate("Fullscreen settings ignored as running in debug mode.")
-            code += (
-                f"# if running in debug mode and preferences allow, force windowed mode\n"
-                f"if core.getDebugMode() and prefs.debugging['debugForceWindowed']:\n"
-                f"    fullScreen=False\n"
+            code = (
+                f"if DEBUGGING:\n"
                 f"    logging.debug('{msg}')\n"
                 f"\n"
             )
-        buff.writeIndentedLines(code % params)
+            buff.writeIndentedLines(code % params)
 
         # Do we need to make a new window?
         code = (
             "if win is None:\n"
             "    # if not given a window to setup, make one\n"
             "    win = visual.Window(\n"
-            "        size=%(size)s, fullscr=fullScreen, screen=%(screenNumber)s,\n"
+            "        size=%(size)s, fullscr=_fullScr, screen=%(screenNumber)s,\n"
             "        winType=%(winType)s, allowStencil=%(allowStencil)s,\n"
             "        monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s,\n"
             "        backgroundImage=%(backgroundImg)s, backgroundFit=%(backgroundFit)s,\n"
