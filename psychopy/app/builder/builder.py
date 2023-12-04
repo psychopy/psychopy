@@ -1264,17 +1264,12 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         if self.sendToRunner(event):
             self.app.runner.panel.runLocal(event)
 
-    def debugFile(self, event=None):
+    def pilotFile(self, event=None):
         """
-        Send the current file to the Runner and run it in debug mode.
+        Send the current file to the Runner and run it in pilot mode.
         """
         if self.sendToRunner(event):
-            self.app.runner.panel.debugLocal(event)
-
-    def debugConfig(self, evt=None):
-        from ..dialogs import DebugConfigDlg
-        dlg = DebugConfigDlg(self)
-        dlg.Show()
+            self.app.runner.panel.pilotLocal(event)
 
     def onCopyRoutine(self, event=None):
         """copy the current routine from self.routinePanel
@@ -4394,27 +4389,29 @@ class BuilderRibbon(ribbon.FrameRibbon):
             tooltip=_translate("Write experiment as a Python script"),
             callback=parent.compileScript
         )
-        # switch run/debug
-        runDebugSwitch = self.addSwitchCtrl(
-            section="py", name="pyswitch",
-            labels=(_translate("Run"), _translate("Debug"))
-        )
+
         # run Py
         self.addButton(
             section="py", name="pyrun", label=_translate("Run in Python"), icon='pyRun',
             tooltip=_translate("Run the current script in Python"),
             callback=parent.runFile
         )
-        # debug Py
+        # pilot Py
         self.addButton(
-            section="py", name="pydebug", label=_translate("Run in Python"), icon='pyDebug',
-            tooltip=_translate("Run the current script in Python with debug features on"),
-            callback=parent.debugFile
+            section="py", name="pypilot", label=_translate("Pilot in Python"), icon='pyPilot',
+            tooltip=_translate("Run the current script in Python with piloting features on"),
+            callback=parent.pilotFile
+        )
+        # switch run/pilot
+        runPilotSwitch = self.addSwitchCtrl(
+            section="py", name="pyswitch",
+            labels=(_translate("Running"), _translate("Piloting")),
+            style=wx.VERTICAL | wx.BU_LEFT
         )
         # link buttons to switch
-        runDebugSwitch.addDependant(self.buttons['pydebug'], mode=1, action="show")
-        runDebugSwitch.addDependant(self.buttons['pyrun'], mode=0, action="show")
-        runDebugSwitch.setMode(0)
+        runPilotSwitch.addDependant(self.buttons['pypilot'], mode=1, action="show")
+        runPilotSwitch.addDependant(self.buttons['pyrun'], mode=0, action="show")
+        runPilotSwitch.setMode(1)
 
         self.addSeparator()
 

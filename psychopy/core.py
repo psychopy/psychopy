@@ -23,7 +23,7 @@ from psychopy.clock import (MonotonicClock, Clock, CountdownTimer,
 from psychopy.platform_specific import rush  # pylint: disable=W0611
 from psychopy import logging
 from psychopy.constants import STARTED, NOT_STARTED, FINISHED
-from psychopy.debugging import getDebugMode, setDebugMode, setDebugModeFromArgs
+from psychopy.piloting import PILOTING, getPilotMode, setPilotMode, setPilotModeFromArgs
 
 try:
     import pyglet

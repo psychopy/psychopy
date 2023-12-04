@@ -2311,7 +2311,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         isExp = filename.endswith(".py") or filename.endswith(".psyexp")
 
         # if the toolbar is done then adjust buttons
-        for key in ("runner", "pyrun", "pydebug"):
+        for key in ("runner", "pyrun", "pypilot"):
             if key in self.ribbon.buttons:
                 self.ribbon.buttons[key].Enable(isExp)
         # update menu items
@@ -2594,9 +2594,9 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
             self.app.runner.panel.runLocal(event, focusOnExit='coder')
             self.Raise()
 
-    def debugFile(self, event=None):
+    def pilotFile(self, event=None):
         if self.sendToRunner(event):
-            self.app.runner.panel.debugLocal(event, focusOnExit='coder')
+            self.app.runner.panel.pilotLocal(event, focusOnExit='coder')
             self.Raise()
 
     def duplicateLine(self, event):
@@ -2936,10 +2936,6 @@ class CoderRibbon(ribbon.FrameRibbon):
             callback=parent.app.openMonitorCenter
         )
         # switch run/debug
-        runDebugSwitch = self.addSwitchCtrl(
-            section="py", name="pyswitch",
-            labels=(_translate("Run"), _translate("Debug"))
-        )
         # run Py
         btn = self.addButton(
             section="py", name="pyrun", label=_translate("Run in Python"), icon='pyRun',
@@ -2947,17 +2943,23 @@ class CoderRibbon(ribbon.FrameRibbon):
             callback=parent.runFile
         )
         btn.Disable()
-        # debug Py
+        # pilot Py
         btn = self.addButton(
-            section="py", name="pydebug", label=_translate("Run in Python"), icon='pyDebug',
-            tooltip=_translate("Run the current script in Python with debug features on"),
-            callback=parent.debugFile
+            section="py", name="pypilot", label=_translate("Pilot in Python"), icon='pyPilot',
+            tooltip=_translate("Run the current script in Python with piloting features on"),
+            callback=parent.pilotFile
         )
         btn.Disable()
+        # switch run/pilot
+        runPilotSwitch = self.addSwitchCtrl(
+            section="py", name="pyswitch",
+            labels=(_translate("Running"), _translate("Piloting")),
+            style=wx.VERTICAL | wx.BU_LEFT
+        )
         # link buttons to switch
-        runDebugSwitch.addDependant(self.buttons['pydebug'], mode=1, action="show")
-        runDebugSwitch.addDependant(self.buttons['pyrun'], mode=0, action="show")
-        runDebugSwitch.setMode(0)
+        runPilotSwitch.addDependant(self.buttons['pypilot'], mode=1, action="show")
+        runPilotSwitch.addDependant(self.buttons['pyrun'], mode=0, action="show")
+        runPilotSwitch.setMode(1)
 
         self.addSeparator()
 

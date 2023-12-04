@@ -143,12 +143,12 @@
     # The name of the Qmix pump configuration to use
     qmixConfiguration = string(default='qmix_config')
 
-# Settings for debug mode
-[debugging]
-    # prevent the experiment from being fullscreen when in debug mode
-    debugForceWindowed = boolean(default=True)
-    # how much output to include in the log files ('error' is fewest messages, 'debug' is most)
-    debugLoggingLevel = option('error', 'warning', 'data', 'exp', 'info', 'debug', default='debug')
+# Settings for piloting mode
+[piloting]
+    # Prevent the experiment from being fullscreen when piloting
+    forceWindowed = boolean(default=True)
+    # How much output to include in the log files when piloting ('error' is fewest messages, 'debug' is most)
+    pilotLoggingLevel = option('error', 'warning', 'data', 'exp', 'info', 'debug', default='debug')
 
 # Settings for connections
 [connections]

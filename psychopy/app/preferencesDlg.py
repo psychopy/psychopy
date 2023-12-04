@@ -338,10 +338,10 @@ class PreferencesDlg(wx.Dialog):
             bitmap='preferences-app'
         )
         self.proPrefs.addPage(
-            label=_translate('Debug mode'),
-            name='debugging',
-            sections=['debugging'],
-            bitmap='preferences-debug'
+            label=_translate('Pilot mode'),
+            name='piloting',
+            sections=['piloting'],
+            bitmap='preferences-pilot'
         )
         self.proPrefs.addPage(
             label=_translate('Key Bindings'),

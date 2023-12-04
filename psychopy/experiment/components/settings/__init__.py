@@ -940,27 +940,27 @@ class SettingsComponent:
         )
         buff.writeIndented(code)
 
-        # write code for debug mode
+        # write code for pilot mode
         code = (
-            "# --- Define some variables which will change depending on debug mode ---\n"
+            "# --- Define some variables which will change depending on pilot mode ---\n"
             "'''\n"
-            "To run in debug mode, either use the run/debug toggle in Builder, Coder and Runner, \n"
-            "or run the experiment with `--debug` as an argument. To change what debug \n#"
-            "mode does, check out the 'Debug mode' tab in preferences.\n"
+            "To run in pilot mode, either use the run/pilot toggle in Builder, Coder and Runner, \n"
+            "or run the experiment with `--pilot` as an argument. To change what pilot \n#"
+            "mode does, check out the 'Pilot mode' tab in preferences.\n"
             "'''\n"
-            "# work out from system args whether we are running in debug mode\n"
-            "DEBUGGING = core.setDebugModeFromArgs()\n"
+            "# work out from system args whether we are running in pilot mode\n"
+            "PILOTING = core.setPilotModeFromArgs()\n"
             "# start off with values from experiment settings\n"
             "_fullScr = %(Full-screen window)s\n"
             "_loggingLevel = logging.getLevel('%(logging level)s')\n"
-            "# if in debug mode, apply overrides according to preferences\n"
-            "if DEBUGGING:\n"
+            "# if in pilot mode, apply overrides according to preferences\n"
+            "if PILOTING:\n"
             "    # force windowed mode\n"
-            "    if prefs.debugging['debugForceWindowed']:\n"
+            "    if prefs.piloting['forceWindowed']:\n"
             "        _fullScr = False\n"
             "    # override logging level\n"
             "    _loggingLevel = logging.getLevel(\n"
-            "        prefs.debugging['debugLoggingLevel']\n"
+            "        prefs.piloting['pilotLoggingLevel']\n"
             "    )\n"
         )
         buff.writeIndented(code % self.params)
@@ -1738,11 +1738,11 @@ class SettingsComponent:
         params['size'] = self.params['Window size (pixels)']
         params['winType'] = self.params['winBackend']
 
-        # force windowed according to prefs/debug mode
+        # force windowed according to prefs/pilot mode
         if params['fullScr']:
-            msg = _translate("Fullscreen settings ignored as running in debug mode.")
+            msg = _translate("Fullscreen settings ignored as running in pilot mode.")
             code = (
-                f"if DEBUGGING:\n"
+                f"if PILOTING:\n"
                 f"    logging.debug('{msg}')\n"
                 f"\n"
             )
