@@ -63,6 +63,7 @@ class Preferences:
         self.appDataCfg = None
 
         self.general = None
+        self.debugging = None
         self.coder = None
         self.builder = None
         self.connections = None
@@ -212,6 +213,7 @@ class Preferences:
         self.coder = self.userPrefsCfg['coder']
         self.builder = self.userPrefsCfg['builder']
         self.hardware = self.userPrefsCfg['hardware']
+        self.debugging = self.userPrefsCfg['debugging']
         self.connections = self.userPrefsCfg['connections']
         self.appData = self.appDataCfg
 
