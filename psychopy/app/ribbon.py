@@ -502,8 +502,6 @@ class FrameRibbonSwitchCtrl(wx.Panel, handlers.ThemeMixin):
             )
             self.btnSizer.Add(btn, proportion=orientation == wx.VERTICAL, flag=wx.EXPAND)
             btn.Bind(wx.EVT_BUTTON, self.onModeSwitch)
-            btn.Bind(wx.EVT_ENTER_WINDOW, self.onHover)
-            btn.Bind(wx.EVT_LEAVE_WINDOW, self.onHover)
             self.btns.append(btn)
         # arrange icon/buttons according to style
         self.sizer.Add(self.btnSizer, proportion=1, border=3, flag=wx.EXPAND | wx.ALL)
