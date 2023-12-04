@@ -247,6 +247,14 @@ class ButtonBoxComponent(BaseDeviceComponent, PluginDevicesMixin):
                 "    thisExp.addData('%(name)s.corr', %(name)s.corr[0])\n"
             )
         buff.writeIndentedLines(code % params)
+        # clear keys
+        code = (
+            "# clear %(name)s button presses\n"
+            "%(name)s.buttons = []\n"
+            "%(name)s.times = []\n"
+            "%(name)s.corr = []\n"
+        )
+        buff.writeIndentedLines(code % params)
 
 
 class KeyboardButtonBoxBackend(DeviceBackend):
