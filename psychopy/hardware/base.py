@@ -62,7 +62,7 @@ class BaseDevice:
         mro = inspect.getmodule(cls).__name__ + "." + cls.__name__
         # register aliases
         for alias in aliases:
-            DeviceManager.registerAlias(alias, mro)
+            DeviceManager.registerClassAlias(alias, mro)
         # store class string
         DeviceManager.deviceClasses.append(mro)
 
