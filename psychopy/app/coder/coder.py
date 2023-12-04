@@ -2311,8 +2311,9 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         isExp = filename.endswith(".py") or filename.endswith(".psyexp")
 
         # if the toolbar is done then adjust buttons
-        if 'runner' in self.ribbon.buttons:
-            self.ribbon.buttons['runner'].Enable(isExp)
+        for key in ("runner", "pyrun", "pydebug"):
+            if key in self.ribbon.buttons:
+                self.ribbon.buttons[key].Enable(isExp)
         # update menu items
         self.pavloviaMenu.syncBtn.Enable(bool(self.filename))
         self.pavloviaMenu.newBtn.Enable(bool(self.filename))
@@ -2591,6 +2592,11 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         """
         if self.sendToRunner(event):
             self.app.runner.panel.runLocal(event, focusOnExit='coder')
+            self.Raise()
+
+    def debugFile(self, event=None):
+        if self.sendToRunner(event):
+            self.app.runner.panel.debugLocal(event, focusOnExit='coder')
             self.Raise()
 
     def duplicateLine(self, event):
@@ -2929,12 +2935,29 @@ class CoderRibbon(ribbon.FrameRibbon):
             tooltip=_translate("Monitor settings and calibration"),
             callback=parent.app.openMonitorCenter
         )
+        # switch run/debug
+        runDebugSwitch = self.addSwitchCtrl(
+            section="py", name="pyswitch",
+            labels=(_translate("Run"), _translate("Debug"))
+        )
         # run Py
-        self.addButton(
+        btn = self.addButton(
             section="py", name="pyrun", label=_translate("Run in Python"), icon='pyRun',
             tooltip=_translate("Run experiment locally in Python"),
             callback=parent.runFile
         )
+        btn.Disable()
+        # debug Py
+        btn = self.addButton(
+            section="py", name="pydebug", label=_translate("Run in Python"), icon='pyDebug',
+            tooltip=_translate("Run the current script in Python with debug features on"),
+            callback=parent.debugFile
+        )
+        btn.Disable()
+        # link buttons to switch
+        runDebugSwitch.addDependant(self.buttons['pydebug'], mode=1, action="show")
+        runDebugSwitch.addDependant(self.buttons['pyrun'], mode=0, action="show")
+        runDebugSwitch.setMode(0)
 
         self.addSeparator()
 

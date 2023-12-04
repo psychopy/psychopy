@@ -613,9 +613,9 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
             self.ribbon.buttons['pydebug'].Disable()
             self.ribbon.buttons['pystop'].Enable()
 
-    def debugLocal(self, evt=None):
+    def debugLocal(self, evt=None, focusOnExit='runner', args=None):
         # run in debug mode
-        self.runLocal(evt, args=["--debug"])
+        self.runLocal(evt, args=["--debug"], focusOnExit=focusOnExit)
 
     def debugLocalConfig(self, evt=None):
         from ..dialogs import DebugConfigDlg
