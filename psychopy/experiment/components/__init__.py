@@ -296,13 +296,13 @@ def getInitVals(params, target="PsychoPy"):
                                        .format(inits[name]))
                     inits[name].valType = 'code'
 
-        if name == "deviceName":
+        if name == "deviceLabel":
             if not params[name]:
                 # if deviceName exists but is blank, use component name
                 inits[name].val = inits['name'].val
             # make a code version of device name
-            inits['deviceNameCode'] = copy.copy(inits[name])
-            inits['deviceNameCode'].valType = "code"
+            inits['deviceLabelCode'] = copy.copy(inits[name])
+            inits['deviceLabelCode'].valType = "code"
 
         if not hasattr(inits[name], 'updates'):  # might be settings parameter instead
             continue

@@ -33,7 +33,7 @@ class KeyboardComponent(BaseDeviceComponent):
                  syncScreenRefresh=True,
                  disabled=False):
         BaseDeviceComponent.__init__(
-            exp, parentName, name,
+            self, exp, parentName, name,
             startType=startType, startVal=startVal,
             stopType=stopType, stopVal=stopVal,
             startEstim=startEstim, durationEstim=durationEstim,
@@ -141,15 +141,26 @@ class KeyboardComponent(BaseDeviceComponent):
             hint=msg,
             label=_translate("Sync timing with screen"))
 
+    def writeDeviceCode(self, buff):
+        # get inits
+        inits = getInitVals(self.params)
+        # write device creation code
+        code = (
+            "if deviceManager.getDevice(%(deviceLabel)s) is None:\n"
+            "    # initialise %(deviceLabelCode)s\n"
+            "    %(deviceLabelCode)s = deviceManager.addDevice(\n"
+            "        deviceClass='keyboard',\n"
+            "        deviceName=%(deviceLabel)s,\n"
+            "    )\n"
+        )
+        buff.writeOnceIndentedLines(code % inits)
+
     def writeInitCode(self, buff):
         # get inits
         inits = getInitVals(self.params)
-        # if device name is blank, use "defaultKeyboard"
-        if inits['device'].val in ("", "None", None):
-            inits['device'].val = "defaultKeyboard"
         # make Keyboard object
         code = (
-            "%(name)s = keyboard.Keyboard(deviceName='%(deviceLabel)s')\n"
+            "%(name)s = keyboard.Keyboard(deviceName=%(deviceLabel)s)\n"
         )
         buff.writeIndentedLines(code % inits)
 
