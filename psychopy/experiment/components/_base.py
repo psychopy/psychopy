@@ -1077,21 +1077,6 @@ class BaseDeviceComponent(BaseComponent):
             )
         )
 
-    def writeDeviceCode(self, buff):
-        """
-        Code to configure and create a device object in DeviceManager, to be referenced by name
-        in the experiment.
-
-        Parameters
-        ----------
-        buff : io.StringIO
-            Text buffer to write code to.
-        """
-        raise NotImplementedError(
-            "Could not find method 'writeDeviceCode' for {type(self).__name__}. Subclasses of "
-            "BaseDeviceComponent must implement writeDeviceCode."
-        )
-
 
 class BaseVisualComponent(BaseComponent):
     """Base class for most visual stimuli
