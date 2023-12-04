@@ -144,7 +144,7 @@
     qmixConfiguration = string(default='qmix_config')
 
 # Settings for debug mode
-[debug]
+[debugging]
     # prevent the experiment from being fullscreen when in debug mode
     debugForceWindowed = boolean(default=True)
     # how much output to include in the log files ('error' is fewest messages, 'debug' is most)
