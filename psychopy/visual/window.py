@@ -383,12 +383,6 @@ class Window():
         # if fullscreen not specified, get from prefs
         if fullscr is None:
             fullscr = prefs.general['fullscr']
-        # if running in debug mode, force windowed
-        if core.getDebugMode():
-            fullscr = False
-            logging.debug(_translate(
-                "Fullscreen settings ignored as running in debug mode."
-            ))
         self._isFullScr = fullscr
 
         self.units = units

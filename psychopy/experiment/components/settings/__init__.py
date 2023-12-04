@@ -1714,12 +1714,27 @@ class SettingsComponent:
         params['size'] = self.params['Window size (pixels)']
         params['winType'] = self.params['winBackend']
 
+        # force windowed according to prefs/debug mode
+        code = (
+            "fullScreen = %(fullScr)s\n"
+        )
+        if params['fullScr']:
+            msg = _translate("Fullscreen settings ignored as running in debug mode.")
+            code += (
+                f"# if running in debug mode and preferences allow, force windowed mode\n"
+                f"if core.getDebugMode() and prefs.debugging['debugForceWindowed']:\n"
+                f"    fullScreen=False\n"
+                f"    logging.debug('{msg}')\n"
+                f"\n"
+            )
+        buff.writeIndentedLines(code % params)
+
         # Do we need to make a new window?
         code = (
             "if win is None:\n"
             "    # if not given a window to setup, make one\n"
             "    win = visual.Window(\n"
-            "        size=%(size)s, fullscr=%(fullScr)s, screen=%(screenNumber)s,\n"
+            "        size=%(size)s, fullscr=fullScreen, screen=%(screenNumber)s,\n"
             "        winType=%(winType)s, allowStencil=%(allowStencil)s,\n"
             "        monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s,\n"
             "        backgroundImage=%(backgroundImg)s, backgroundFit=%(backgroundFit)s,\n"
