@@ -597,6 +597,13 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         if self.currentSelection is None:
             return
 
+        # substitute args
+        if args is None:
+            args = []
+
+        # set switch mode
+        self.ribbon.buttons['pyswitch'].setMode("--debug" in args)
+
         currentFile = str(self.currentFile)
         if self.currentFile.suffix == '.psyexp':
             generateScript(experimentPath=currentFile.replace('.psyexp', '_lastrun.py'),
@@ -616,11 +623,6 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
     def debugLocal(self, evt=None, focusOnExit='runner', args=None):
         # run in debug mode
         self.runLocal(evt, args=["--debug"], focusOnExit=focusOnExit)
-
-    def debugLocalConfig(self, evt=None):
-        from ..dialogs import DebugConfigDlg
-        dlg = DebugConfigDlg(self)
-        dlg.Show()
 
     def runOnline(self, evt=None):
         """Run PsychoJS task from https://pavlovia.org."""
