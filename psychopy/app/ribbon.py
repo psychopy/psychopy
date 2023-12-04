@@ -493,6 +493,8 @@ class FrameRibbonSwitchCtrl(wx.Panel, handlers.ThemeMixin):
         # make icon
         self.icon = wx.Button(self, style=wx.BORDER_NONE | wx.BU_NOTEXT | wx.BU_EXACTFIT)
         self.icon.Bind(wx.EVT_BUTTON, self.onModeToggle)
+        self.icon.Bind(wx.EVT_ENTER_WINDOW, self.onHover)
+        self.icon.Bind(wx.EVT_LEAVE_WINDOW, self.onHover)
         # make switcher buttons
         self.btns = []
         for i in range(2):
@@ -502,6 +504,8 @@ class FrameRibbonSwitchCtrl(wx.Panel, handlers.ThemeMixin):
             )
             self.btnSizer.Add(btn, proportion=orientation == wx.VERTICAL, flag=wx.EXPAND)
             btn.Bind(wx.EVT_BUTTON, self.onModeSwitch)
+            btn.Bind(wx.EVT_ENTER_WINDOW, self.onHover)
+            btn.Bind(wx.EVT_LEAVE_WINDOW, self.onHover)
             self.btns.append(btn)
         # arrange icon/buttons according to style
         self.sizer.Add(self.btnSizer, proportion=1, border=3, flag=wx.EXPAND | wx.ALL)
@@ -587,14 +591,12 @@ class FrameRibbonSwitchCtrl(wx.Panel, handlers.ThemeMixin):
         if evt.EventType == wx.EVT_ENTER_WINDOW.typeId:
             # on hover, lighten background
             evt.EventObject.SetForegroundColour(colors.app['text'])
-            evt.EventObject.SetBackgroundColour(colors.app['panel_bg'])
         else:
             # otherwise, keep same colour as parent
             if evt.EventObject is self.btns[self.mode]:
                 evt.EventObject.SetForegroundColour(colors.app['text'])
             else:
                 evt.EventObject.SetForegroundColour(colors.app['rt_timegrid'])
-            evt.EventObject.SetBackgroundColour(colors.app['frame_bg'])
 
     def addDependant(self, ctrl, mode, action="show"):
         """
