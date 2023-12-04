@@ -28,7 +28,7 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             # layout
             findDiode=True, diodePos="(1, 1)", diodeSize="(0.1, 0.1)", diodeUnits="norm",
             # device
-            deviceName="", deviceBackend="screenbuffer", port="", channel="1",
+            deviceLabel="", deviceBackend="screenbuffer", port="", channel="1",
             # data
             saveValid=True,
     ):
@@ -141,12 +141,12 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
 
         # --- Device ---
         self.order += [
-            "deviceName",
+            "deviceLabel",
             "deviceBackend",
             "channel",
         ]
-        self.params['deviceName'] = Param(
-            deviceName, valType="str", inputType="single", categ="Device",
+        self.params['deviceLabel'] = Param(
+            deviceLabel, valType="str", inputType="single", categ="Device",
             label=_translate("Device name"),
             hint=_translate(
                 "A name to refer to this Component's associated hardware device by. If using the "
@@ -227,23 +227,23 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
         inits = getInitVals(self.params)
         # get device handle
         code = (
-            "%(deviceNameCode)s = deviceManager.getDevice(%(deviceName)s)"
+            "%(deviceLabelCode)s = deviceManager.getDevice(%(deviceLabel)s)"
         )
         buff.writeOnceIndentedLines(code % inits)
         # find threshold if indicated
         if self.params['findThreshold']:
             code = (
                 "# find threshold for photodiode\n"
-                "if %(deviceNameCode)s.getThreshold() is None:\n"
-                "    %(deviceNameCode)s.findThreshold(win, channel=%(channel)s)\n"
+                "if %(deviceLabelCode)s.getThreshold() is None:\n"
+                "    %(deviceLabelCode)s.findThreshold(win, channel=%(channel)s)\n"
             )
             buff.writeOnceIndentedLines(code % inits)
         # find pos if indicated
         if self.params['findDiode']:
             code = (
                 "# find position and size of photodiode\n"
-                "if %(deviceNameCode)s.pos is None and %(deviceNameCode)s.size is None and %(deviceNameCode)s.units is None:\n"
-                "    %(deviceNameCode)s.findPhotodiode(win, channel=%(channel)s)\n"
+                "if %(deviceLabelCode)s.pos is None and %(deviceLabelCode)s.size is None and %(deviceLabelCode)s.units is None:\n"
+                "    %(deviceLabelCode)s.findPhotodiode(win, channel=%(channel)s)\n"
             )
             buff.writeOnceIndentedLines(code % inits)
 
@@ -252,7 +252,7 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
         # get diode
         code = (
             "# diode object for %(name)s\n"
-            "%(name)sDiode = deviceManager.getDevice(%(deviceName)s)\n"
+            "%(name)sDiode = deviceManager.getDevice(%(deviceLabel)s)\n"
         )
         buff.writeIndentedLines(code % inits)
 
@@ -444,7 +444,7 @@ class ScreenBufferPhotodiodeValidatorBackend(DeviceBackend):
         code = (
             "deviceManager.addDevice(\n"
             "    deviceClass='psychopy.hardware.photodiode.ScreenBufferSampler',\n"
-            "    deviceName=%(deviceName)s,\n"
+            "    deviceName=%(deviceLabel)s,\n"
             "    win=win,\n"
             ")\n"
         )

@@ -217,6 +217,22 @@ class TestSession:
             blocking=True
         )
 
+    def test_get_device_names(self):
+        """
+        Test that device names can be got from an experiment as expected.
+
+        Returns
+        -------
+
+        """
+        # add test experiment to Session
+        self.sess.addExperiment(
+            "testNamedButtonBox/testNamedButtonBox.psyexp", "testNamedButtonBox"
+        )
+        # check its reported device names
+        names = self.sess.getRequiredDeviceNamesFromExperiment("testNamedButtonBox")
+        assert names == ["testNamedButtonBox"]
+
     # def test_error(self, capsys):
     #     """
     #     Check that an error in an experiment doesn't interrupt the session.

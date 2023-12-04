@@ -53,9 +53,10 @@ class BaseButtonGroup(base.BaseResponseDevice):
         Parameters
         ----------
         state : bool or None
-            True to get button "on" responses, False to get button "off" responses, None to get all responses.
-        channel : int
-            Which button to get responses from?
+            True to get button "on" responses, False to get button "off" responses, None to get all
+            responses.
+        channel : int, list
+            Which button or buttons to get responses from? Leave as None to get all buttons.
         clear : bool
             Whether or not to remove responses matching `state` after retrieval.
 
@@ -67,6 +68,9 @@ class BaseButtonGroup(base.BaseResponseDevice):
         # substitute empty channel param for None
         if isinstance(channel, (list, tuple)) and not len(channel):
             channel = None
+        # force channel to list
+        if channel is not None and not isinstance(channel, (list, tuple)):
+            channel = [channel]
         # make sure device dispatches messages
         self.dispatchMessages()
         # array to store matching responses
@@ -75,7 +79,7 @@ class BaseButtonGroup(base.BaseResponseDevice):
         for resp in self.responses.copy():
             # does this message meet the criterion?
             if state is None or resp.value == state:
-                if channel is None or resp.channel == channel:
+                if channel is None or resp.channel in channel:
                     # if clear, remove the response
                     if clear:
                         i = self.responses.index(resp)
