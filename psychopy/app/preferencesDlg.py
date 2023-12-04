@@ -339,8 +339,8 @@ class PreferencesDlg(wx.Dialog):
         )
         self.proPrefs.addPage(
             label=_translate('Debug mode'),
-            name='debug',
-            sections=['debug'],
+            name='debugging',
+            sections=['debugging'],
             bitmap='preferences-debug'
         )
         self.proPrefs.addPage(
