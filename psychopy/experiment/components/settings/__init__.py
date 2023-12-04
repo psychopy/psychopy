@@ -1243,21 +1243,26 @@ class SettingsComponent:
         buff.setIndentLevel(+1, relative=True)
 
         # set logging level
-        level = self.params['logging level'].val.upper()
         code = (
+            "loggingLevel = logging.getLevel('%(logging level)s')\n"
+            "# if running in debug mode, override logging level according to user preferences\n"
+            "if core.getDebugMode():\n"
+            "    loggingLevel = logging.getLevel(\n"
+            "        prefs.debugging['debugLoggingLevel']\n"
+            "    )\n"
             "# this outputs to the screen, not a file\n"
-            "logging.console.setLevel(logging.%s)\n"
+            "logging.console.setLevel(loggingLevel)\n"
         )
-        buff.writeIndentedLines(code % level)
+        buff.writeIndentedLines(code % self.params)
 
         if self.params['Save log file'].val:
             code = (
                 "# save a log file for detail verbose info\n"
-                "logFile = logging.LogFile(filename+'.log', level=logging.%s)\n"
+                "logFile = logging.LogFile(filename+'.log', level=loggingLevel)\n"
                 "\n"
                 "return logFile\n"
             )
-            buff.writeIndentedLines(code % level)
+            buff.writeIndentedLines(code % self.params)
         # Exit function def
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("\n")
