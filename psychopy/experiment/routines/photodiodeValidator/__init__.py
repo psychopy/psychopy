@@ -236,6 +236,8 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
                 "# find threshold for photodiode\n"
                 "if %(deviceLabelCode)s.getThreshold(channel=%(channel)s) is None:\n"
                 "    %(deviceLabelCode)s.findThreshold(win, channel=%(channel)s)\n"
+                "else:"
+                "    %(deviceLabelCode)s.setThreshold(%(threshold)s)"
             )
             buff.writeOnceIndentedLines(code % inits)
         # find pos if indicated
