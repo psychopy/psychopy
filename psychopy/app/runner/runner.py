@@ -1015,30 +1015,28 @@ class RunnerRibbon(ribbon.FrameRibbon):
         self.addSection(
             "py", label=_translate("Desktop"), icon="desktop"
         )
-        # run Py
-        btn = self.addButton(
-            section="py", name="pyrun", label=_translate("Run in Python"), icon='pyRun',
-            tooltip=_translate("Run the current script in Python"),
-            callback=parent.runLocal
-        )
-        btn.Disable()
         # pilot Py
-        btn = self.addButton(
-            section="py", name="pypilot", label=_translate("Run in Python"), icon='pyPilot',
-            tooltip=_translate("Run the current script in Python with pilot features on"),
-            callback=parent.pilotLocal
+        self.addButton(
+            section="py", name="pypilot", label=_translate("Pilot"), icon='pyPilot',
+            tooltip=_translate("Run the current script in Python with piloting features on"),
+            callback=parent.pilotLocal, style=wx.BU_BOTTOM | wx.BU_EXACTFIT
         )
-        btn.Disable()
         # switch run/pilot
         runPilotSwitch = self.addSwitchCtrl(
             section="py", name="pyswitch",
-            labels=(_translate("Running"), _translate("Piloting")),
-            style=wx.VERTICAL | wx.BU_LEFT
+            labels=(_translate(""), _translate("")),
+            style=wx.HORIZONTAL
+        )
+        # run Py
+        self.addButton(
+            section="py", name="pyrun", label=_translate("Run"), icon='pyRun',
+            tooltip=_translate("Run the current script in Python"),
+            callback=parent.runLocal, style=wx.BU_BOTTOM | wx.BU_EXACTFIT
         )
         # link buttons to switch
-        runPilotSwitch.addDependant(self.buttons['pypilot'], mode=1, action="show")
-        runPilotSwitch.addDependant(self.buttons['pyrun'], mode=0, action="show")
-        runPilotSwitch.setMode(1)
+        runPilotSwitch.addDependant(self.buttons['pyrun'], mode=1, action="enable")
+        runPilotSwitch.addDependant(self.buttons['pypilot'], mode=0, action="enable")
+        runPilotSwitch.setMode(0)
         # stop
         self.addButton(
             section="py", name="pystop", label=_translate("Stop"), icon='stop',
