@@ -54,7 +54,8 @@ class FrameRibbon(wx.Panel, handlers.ThemeMixin):
 
         return sct
 
-    def addButton(self, section, name, label="", icon=None, tooltip="", callback=None):
+    def addButton(self, section, name, label="", icon=None, tooltip="", callback=None,
+                  style=wx.BU_NOTEXT):
         """
         Add a button to a given section.
 
@@ -72,6 +73,8 @@ class FrameRibbon(wx.Panel, handlers.ThemeMixin):
             Tooltip to display on hover
         callback : function
             Function to call when this button is clicked
+        style : wx.StyleFlag
+            Style flags from wx to control button appearance
 
         Returns
         -------
@@ -83,7 +86,7 @@ class FrameRibbon(wx.Panel, handlers.ThemeMixin):
             self.addSection(section, label=section)
         # call addButton method from given section
         btn = self.sections[section].addButton(
-            name, label=label, icon=icon, tooltip=tooltip, callback=callback
+            name, label=label, icon=icon, tooltip=tooltip, callback=callback, style=style
         )
 
         return btn
@@ -123,7 +126,7 @@ class FrameRibbon(wx.Panel, handlers.ThemeMixin):
         return btn
 
     def addSwitchCtrl(
-            self, section, name, labels, startMode=0, style=wx.HORIZONTAL
+            self, section, name, labels=("", ""), startMode=0, style=wx.HORIZONTAL
     ):
         # if section doesn't exist, make it
         if section not in self.sections:
@@ -242,7 +245,7 @@ class FrameRibbonSection(wx.Panel, handlers.ThemeMixin):
         # dict in which to store buttons
         self.buttons = {}
 
-    def addButton(self, name, label="", icon=None, tooltip="", callback=None):
+    def addButton(self, name, label="", icon=None, tooltip="", callback=None, style=wx.BU_NOTEXT):
         """
         Add a button to this section.
 
@@ -258,6 +261,8 @@ class FrameRibbonSection(wx.Panel, handlers.ThemeMixin):
             Tooltip to display on hover
         callback : function
             Function to call when this button is clicked
+        style : wx.StyleFlag
+            Style flags from wx to control button appearance
 
         Returns
         -------
@@ -266,7 +271,7 @@ class FrameRibbonSection(wx.Panel, handlers.ThemeMixin):
         """
         # create button
         btn = FrameRibbonButton(
-            self, label=label, icon=icon, tooltip=tooltip, callback=callback
+            self, label=label, icon=icon, tooltip=tooltip, callback=callback, style=style
         )
         # store references
         self.buttons[name] = self.ribbon.buttons[name] = btn
@@ -308,7 +313,7 @@ class FrameRibbonSection(wx.Panel, handlers.ThemeMixin):
 
         return btn
 
-    def addSwitchCtrl(self, name, labels, startMode=0, style=wx.HORIZONTAL):
+    def addSwitchCtrl(self, name, labels=("", ""), startMode=0, style=wx.HORIZONTAL):
         # create button
         btn = FrameRibbonSwitchCtrl(
             self, labels, startMode=startMode, style=style
@@ -386,8 +391,10 @@ class FrameRibbonButton(wx.Button, handlers.ThemeMixin):
             tooltip = f"{label}: {tooltip}"
         self.SetToolTipString(tooltip)
         # set icon
+        bmpStyle = style & (wx.TOP | wx.BOTTOM | wx.LEFT | wx.RIGHT)
         self.SetBitmap(
-            icons.ButtonIcon(icon, size=32).bitmap
+            icons.ButtonIcon(icon, size=32).bitmap,
+            dir=bmpStyle or wx.TOP
         )
         # if given, bind callback
         if callback is not None:
@@ -470,8 +477,7 @@ class FrameRibbonSwitchCtrl(wx.Panel, handlers.ThemeMixin):
     conditional on this control's state.
     """
     def __init__(
-            self, parent, labels, startMode=0,
-            # style=wx.VERTICAL | wx.BU_RIGHT
+            self, parent, labels=("", ""), startMode=0,
             style=wx.HORIZONTAL
     ):
         wx.Panel.__init__(self, parent)
