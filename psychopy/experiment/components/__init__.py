@@ -297,7 +297,7 @@ def getInitVals(params, target="PsychoPy"):
                     inits[name].valType = 'code'
 
         if name == "deviceLabel":
-            if not params[name]:
+            if "name" in inits and not params[name]:
                 # if deviceName exists but is blank, use component name
                 inits[name].val = inits['name'].val
             # make a code version of device name
