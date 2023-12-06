@@ -206,7 +206,6 @@ class TrialHandler(_BaseLoopHandler):
             "if thisExp.status == PAUSED:\n"
             "    pauseExperiment(\n"
             "        thisExp=thisExp, \n"
-            "        inputs=inputs, \n"
             "        win=win, \n"
             "        timers=[routineTimer], \n"
             "        playbackComponents=[]\n"
