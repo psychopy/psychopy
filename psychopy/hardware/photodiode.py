@@ -27,8 +27,8 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
         # attribute in which to store current state
         self.state = [False] * channels
         # set initial threshold
-        if threshold is not None:
-            self.setThreshold(threshold)
+        self.threshold = [None] * channels
+        self.setThreshold(threshold, channel=list(range(channels)))
         # store position params
         self.units = units
         self.pos = pos
@@ -248,7 +248,7 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
             autoDraw=False
         )
         # make sure threshold 0 catches black
-        self.setThreshold(0)
+        self.setThreshold(0, channel=channel)
         bg.fillColor = "black"
         bg.draw()
         label.color = (-0.8, -0.8, -0.8)
@@ -261,7 +261,7 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
                 "the screen is too bright or the photodiode is too sensitive."
             )
         # make sure threshold 255 catches white
-        self.setThreshold(255)
+        self.setThreshold(255, channel=channel)
         bg.fillColor = "white"
         bg.draw()
         label.color = (0.8, 0.8, 0.8)
@@ -283,13 +283,13 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
                 f"Trying threshold: {current}"
             )
             # make sure we don't recur past integer level
-            lastThreshold = self.getThreshold() or 0
+            lastThreshold = self.getThreshold(channel=channel) or 0
             if int(current * 2) == int(lastThreshold * 2):
                 raise RecursionError(
                     "Could not find acceptable photodiode threshold, reached accuity limit before finding one."
                 )
             # set threshold and clear responses
-            self.setThreshold(int(current))
+            self.setThreshold(int(current), channel=channel)
             # try black
             bg.fillColor = "black"
             bg.draw()
@@ -323,7 +323,7 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
         self.clearResponses()
         # bisect thresholds, starting at 127 (exact middle)
         threshold = _bisectThreshold(127)
-        self.setThreshold(threshold)
+        self.setThreshold(threshold, channel=list(range(self.channels)))
         # clear bg rect
         bg.setAutoDraw(False)
         # clear all the events created by this process
@@ -337,15 +337,30 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
 
         return threshold
 
-    def setThreshold(self, threshold):
+    def setThreshold(self, threshold, channel):
+
+        if isinstance(channel, (list, tuple)):
+            # if given a list of channels, iterate
+            if not isinstance(threshold, (list, tuple)):
+                threshold = [threshold] * len(channel)
+            # set for each value in threshold and channel
+            for thisThreshold, thisChannel in zip(threshold, channel):
+                self.threshold[thisChannel] = thisThreshold
+                self._setThreshold(thisThreshold, channel=thisChannel)
+        else:
+            # otherwise, just do once
+            self.threshold[channel] = threshold
+            self._setThreshold(threshold, channel)
+
+    def _setThreshold(self, threshold, channel):
         raise NotImplementedError()
 
     def resetTimer(self, clock=logging.defaultClock):
         raise NotImplementedError()
 
-    def getThreshold(self):
+    def getThreshold(self, channel):
         if hasattr(self, "_threshold"):
-            return self._threshold
+            return self._threshold[channel]
 
     def getState(self, channel):
         # dispatch messages from parent

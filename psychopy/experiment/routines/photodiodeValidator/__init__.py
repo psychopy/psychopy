@@ -234,7 +234,7 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
         if self.params['findThreshold']:
             code = (
                 "# find threshold for photodiode\n"
-                "if %(deviceLabelCode)s.getThreshold() is None:\n"
+                "if %(deviceLabelCode)s.getThreshold(channel=%(channel)s) is None:\n"
                 "    %(deviceLabelCode)s.findThreshold(win, channel=%(channel)s)\n"
             )
             buff.writeOnceIndentedLines(code % inits)
@@ -258,7 +258,7 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
 
         if self.params['threshold'] and not self.params['findThreshold']:
             code = (
-                "%(name)sDiode.setThreshold(%(threshold)s, channels=[%(channel)s])\n"
+                "%(name)sDiode.setThreshold(%(threshold)s, channel=%(channel)s)\n"
             )
             buff.writeIndentedLines(code % inits)
         # find/set diode position
