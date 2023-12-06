@@ -359,8 +359,7 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
         raise NotImplementedError()
 
     def getThreshold(self, channel):
-        if hasattr(self, "_threshold"):
-            return self._threshold[channel]
+        return self.threshold[channel]
 
     def getState(self, channel):
         # dispatch messages from parent
