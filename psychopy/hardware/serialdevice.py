@@ -212,6 +212,48 @@ class SerialDevice(BaseDevice, AttributeGetSetMixin):
             retVal = retVal.decode('utf-8')
         return retVal
 
+    def awaitResponse(self, timeout=None):
+        """
+        Repeatedly request responses until one arrives, or until a timeout is hit.
+
+        Parameters
+        ----------
+        timeout
+            Time after which to give up waiting (by default is 10x pause length)
+
+        Returns
+        -------
+        str
+            The message eventually received
+        """
+        # default timeout
+        if timeout is None:
+            timeout = 1
+        # get start time
+        start = time.time()
+        t = time.time() - start
+        # get responses until we have one
+        resp = None
+        while not resp and t < timeout:
+            t = time.time() - start
+            resp = self.com.readline()
+        # if we timed out, return None
+        if t > timeout:
+            return
+        # keep getting responses until they stop sending
+        sending = True
+        while sending and t < timeout:
+            t = time.time() - start
+            sending = self.com.readline()
+            # if still sending, append to resp
+            if sending:
+                resp += sending
+        # if we timed out, return None
+        if t > timeout:
+            return
+
+        return resp
+
     def isSameDevice(self, params):
         port = self.portString[3:]
         return params['port'] in (self.portString, port, int(port))
