@@ -252,7 +252,7 @@ class SerialDevice(BaseDevice, AttributeGetSetMixin):
         if t > timeout:
             return
 
-        return resp
+        return resp.decode('utf-8')
 
     def isSameDevice(self, params):
         port = self.portString[3:]
