@@ -2434,7 +2434,7 @@ class Camera:
                     pass
 
 
-DeviceManager.registerAlias("camera", "psychopy.hardware.camera.Camera")
+DeviceManager.registerClassAlias("camera", "psychopy.hardware.camera.Camera")
 
 
 # ------------------------------------------------------------------------------

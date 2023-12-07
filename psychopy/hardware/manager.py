@@ -95,7 +95,7 @@ class DeviceManager:
         return ports
 
     @staticmethod
-    def registerAlias(alias, deviceClass):
+    def registerClassAlias(alias, deviceClass):
         """
         Register an alias to rever to a particular class, for convenience.
 
@@ -216,6 +216,53 @@ class DeviceManager:
             Device created by the linked class init
         """
         return DeviceManager.addDevice(**params)
+
+    @staticmethod
+    def addDeviceAlias(deviceName, alias):
+        """
+        Store an already added device by an additional name
+
+        Parameters
+        ----------
+        deviceName : str
+            Key by which the device to alias is currently stored.
+        alias
+            Alias to create
+        Returns
+        -------
+        bool
+            True if completed successfully
+        """
+        # if given a list, call iteratively
+        if isinstance(alias, (list, tuple)):
+            for thisAlias in alias:
+                DeviceManager.addDeviceAlias(deviceName, thisAlias)
+        # store same device by new handle
+        DeviceManager.devices[alias] = DeviceManager.getDevice(deviceName)
+
+        return True
+
+    def updateDeviceName(oldName, newName):
+        """
+        Store an already added device by an additional name
+
+        Parameters
+        ----------
+        oldName : str
+            Key by which the device to alias is currently stored.
+        newName
+            Key to change to.
+        Returns
+        -------
+        bool
+            True if completed successfully
+        """
+        # store same device by new handle
+        DeviceManager.addDeviceAlias(oldName, alias=newName)
+        # remove old name
+        DeviceManager.devices.pop(oldName)
+
+        return True
 
     @staticmethod
     def removeDevice(deviceName):
