@@ -180,37 +180,7 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             )
         )
 
-    def loadBackends(self):
-        from psychopy.plugins import activatePlugins
-        activatePlugins()
-        # add params from backends
-        for backend in self.backends:
-            # get params using backend's method
-            params, order = backend.getParams(self)
-            # add order
-            self.order.extend(order)
-            # add any params
-            for key, param in params.items():
-                if key in self.params:
-                    # if this param already exists (i.e. from saved data), get the saved val
-                    param.val = self.params[key].val
-                    param.updates = self.params[key].updates
-                # add param
-                self.params[key] = param
-
-            # add dependencies so that backend params are only shown for this backend
-            for name in params:
-                self.depends.append(
-                    {
-                        "dependsOn": "deviceBackend",  # if...
-                        "condition": f"== '{backend.key}'",  # meets...
-                        "param": name,  # then...
-                        "true": "show",  # should...
-                        "false": "hide",  # otherwise...
-                    }
-                )
-            # add requirements
-            backend.addRequirements(self)
+        self.loadBackends()
 
     def writeDeviceCode(self, buff):
         """
