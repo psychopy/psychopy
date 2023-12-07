@@ -239,19 +239,19 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
         if not self.params['findDiode']:
             code = ""
             # set units (unless None)
-            if self.params['units']:
+            if self.params['diodeUnits']:
                 code += (
-                    "%(name)sDiode.units = %(units)s\n"
+                    "%(name)sDiode.units = %(diodeUnits)s\n"
                 )
             # set pos (unless None)
-            if self.params['pos']:
+            if self.params['diodePos']:
                 code += (
-                    "%(name)sDiode.pos = %(pos)s\n"
+                    "%(name)sDiode.pos = %(diodePos)s\n"
                 )
             # set size (unless None)
-            if self.params['size']:
+            if self.params['diodeSize']:
                 code += (
-                    "%(name)sDiode.size = %(size)s\n"
+                    "%(name)sDiode.size = %(diodeSize)s\n"
                 )
             buff.writeIndentedLines(code % inits)
         # create validator object
