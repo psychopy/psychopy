@@ -212,12 +212,14 @@ class SerialDevice(BaseDevice, AttributeGetSetMixin):
             retVal = retVal.decode('utf-8')
         return retVal
 
-    def awaitResponse(self, timeout=None):
+    def awaitResponse(self, multiline=False, timeout=None):
         """
         Repeatedly request responses until one arrives, or until a timeout is hit.
 
         Parameters
         ----------
+        multiline : bool
+            Look for additional lines after the first? WARNING: May be slow if there are none.
         timeout
             Time after which to give up waiting (by default is 10x pause length)
 
@@ -240,14 +242,15 @@ class SerialDevice(BaseDevice, AttributeGetSetMixin):
         # if we timed out, return None
         if t > timeout:
             return
-        # keep getting responses until they stop sending
-        sending = True
-        while sending and t < timeout:
-            t = time.time() - start
-            sending = self.com.readline()
-            # if still sending, append to resp
-            if sending:
-                resp += sending
+        if multiline:
+            # keep getting responses until they stop sending
+            sending = True
+            while sending and t < timeout:
+                t = time.time() - start
+                sending = self.com.readline()
+                # if still sending, append to resp
+                if sending:
+                    resp += sending
         # if we timed out, return None
         if t > timeout:
             return
