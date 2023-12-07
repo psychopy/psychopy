@@ -922,26 +922,53 @@ class BaseComponent:
         """Replaces word component with empty string"""
         return self.getType().replace('Component', '')
 
-    def getAllValidatorRoutines(self):
+    def getAllValidatorRoutines(self, attr="vals"):
         """
         Return a list of names for all validator Routines in the current experiment. Used to populate
         allowedVals in the `validator` param.
 
+        Parameters
+        ----------
+        attr : str
+            Attribute to get - either values (for allowedVals) or labels (for allowedLabels)
+
         Returns
         -------
         list[str]
-            List of Routine names
+            List of Routine names/labels
         """
         from psychopy.experiment.routines import BaseValidatorRoutine
 
         # iterate through all Routines in this Experiment
-        names = []
+        names = [""]
+        labels = [_translate("Do not validate")]
         for rtName, rt in self.exp.routines.items():
-            # if Routine is a validator, add its name
+            # if Routine is a validator, include it
             if isinstance(rt, BaseValidatorRoutine):
+                # add name
                 names.append(rtName)
+                # construct label
+                rtType = type(rt).__name__
+                labels.append(
+                    f"{rtName} ({rtType})"
+                )
 
-        return names
+        if attr == "labels":
+            return labels
+        else:
+            return names
+
+    def getAllValidatorRoutineVals(self):
+        """
+        Shorthand for calling getAllValidatorRoutines with `attr` as "vals"
+        """
+        return self.getAllValidatorRoutines(attr="vals")
+
+    def getAllValidatorRoutineLabels(self):
+        """
+        Shorthand for calling getAllValidatorRoutines with `attr` as "labels"
+        """
+        return self.getAllValidatorRoutines(attr="labels")
 
     def getValidator(self):
         """
@@ -954,6 +981,9 @@ class BaseComponent:
         """
         # return None if we have no such param
         if "validator" not in self.params:
+            return None
+        # return None if no validator is selected
+        if self.params['validator'].val in ("", None, "None", "none"):
             return None
         # strip spaces from param
         name = self.params['validator'].val.strip()
@@ -1210,10 +1240,11 @@ class BaseVisualComponent(BaseComponent):
         # --- Testing ---
         self.params['validator'] = Param(
             validator, valType="code", inputType="choice", categ="Testing",
-            allowedVals=self.getAllValidatorRoutines,
+            allowedVals=self.getAllValidatorRoutineVals,
+            allowedLabels=self.getAllValidatorRoutineLabels,
             label=_translate("Validate with..."),
             hint=_translate(
-                "Names of Validator components (separated by commas) to use to check the timing of this stimulus."
+                "Name of validator Component/Routine to use to check the timing of this stimulus."
             )
         )
 
