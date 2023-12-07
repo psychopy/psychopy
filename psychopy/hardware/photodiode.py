@@ -236,7 +236,6 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
             )
             # set threshold and get value
             value = self._setThreshold(int(current), channel=channel)
-            print("GOT", value)
 
             if value:
                 # if expecting light and got light, we have an upper bound
