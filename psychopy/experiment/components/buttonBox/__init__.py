@@ -135,6 +135,9 @@ class ButtonBoxComponent(BaseDeviceComponent, PluginDevicesMixin):
             direct=False
         )
 
+        # add params for any backends
+        self.loadBackends()
+
     def writeInitCode(self, buff):
         inits = getInitVals(self.params)
         # code to create object
