@@ -338,19 +338,23 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
         return threshold
 
     def setThreshold(self, threshold, channel):
-
         if isinstance(channel, (list, tuple)):
             # if given a list of channels, iterate
             if not isinstance(threshold, (list, tuple)):
                 threshold = [threshold] * len(channel)
             # set for each value in threshold and channel
+            detected = []
             for thisThreshold, thisChannel in zip(threshold, channel):
                 self.threshold[thisChannel] = thisThreshold
-                self._setThreshold(thisThreshold, channel=thisChannel)
+                detected.append(
+                    self._setThreshold(thisThreshold, channel=thisChannel)
+                )
+
+            return detected
         else:
             # otherwise, just do once
             self.threshold[channel] = threshold
-            self._setThreshold(threshold, channel)
+            return self._setThreshold(threshold, channel)
 
     def _setThreshold(self, threshold, channel):
         raise NotImplementedError()
