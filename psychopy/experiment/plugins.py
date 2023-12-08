@@ -9,8 +9,6 @@ class PluginDevicesMixin:
         cls.backends = []
 
     def loadBackends(self):
-        from psychopy.plugins import activatePlugins
-        activatePlugins()
         # add params from backends
         for backend in self.backends:
             # get params using backend's method

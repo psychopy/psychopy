@@ -28,7 +28,7 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             # layout
             findDiode=True, diodePos="(1, 1)", diodeSize="(0.1, 0.1)", diodeUnits="norm",
             # device
-            deviceLabel="", deviceBackend="screenbuffer", port="", channel="1",
+            deviceLabel="", deviceBackend="screenbuffer", port="", channel="0",
             # data
             saveValid=True,
     ):
@@ -180,37 +180,7 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             )
         )
 
-    def loadBackends(self):
-        from psychopy.plugins import activatePlugins
-        activatePlugins()
-        # add params from backends
-        for backend in self.backends:
-            # get params using backend's method
-            params, order = backend.getParams(self)
-            # add order
-            self.order.extend(order)
-            # add any params
-            for key, param in params.items():
-                if key in self.params:
-                    # if this param already exists (i.e. from saved data), get the saved val
-                    param.val = self.params[key].val
-                    param.updates = self.params[key].updates
-                # add param
-                self.params[key] = param
-
-            # add dependencies so that backend params are only shown for this backend
-            for name in params:
-                self.depends.append(
-                    {
-                        "dependsOn": "deviceBackend",  # if...
-                        "condition": f"== '{backend.key}'",  # meets...
-                        "param": name,  # then...
-                        "true": "show",  # should...
-                        "false": "hide",  # otherwise...
-                    }
-                )
-            # add requirements
-            backend.addRequirements(self)
+        self.loadBackends()
 
     def writeDeviceCode(self, buff):
         """
@@ -234,10 +204,14 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
         if self.params['findThreshold']:
             code = (
                 "# find threshold for photodiode\n"
-                "if %(deviceLabelCode)s.getThreshold() is None:\n"
+                "if %(deviceLabelCode)s.getThreshold(channel=%(channel)s) is None:\n"
                 "    %(deviceLabelCode)s.findThreshold(win, channel=%(channel)s)\n"
             )
-            buff.writeOnceIndentedLines(code % inits)
+        else:
+            code = (
+                "%(deviceLabelCode)s.setThreshold(%(threshold)s, channel=%(channel)s)"
+            )
+        buff.writeOnceIndentedLines(code % inits)
         # find pos if indicated
         if self.params['findDiode']:
             code = (
@@ -258,26 +232,26 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
 
         if self.params['threshold'] and not self.params['findThreshold']:
             code = (
-                "%(name)sDiode.setThreshold(%(threshold)s, channels=[%(channel)s])\n"
+                "%(name)sDiode.setThreshold(%(threshold)s, channel=%(channel)s)\n"
             )
             buff.writeIndentedLines(code % inits)
         # find/set diode position
         if not self.params['findDiode']:
             code = ""
             # set units (unless None)
-            if self.params['units']:
+            if self.params['diodeUnits']:
                 code += (
-                    "%(name)sDiode.units = %(units)s\n"
+                    "%(name)sDiode.units = %(diodeUnits)s\n"
                 )
             # set pos (unless None)
-            if self.params['pos']:
+            if self.params['diodePos']:
                 code += (
-                    "%(name)sDiode.pos = %(pos)s\n"
+                    "%(name)sDiode.pos = %(diodePos)s\n"
                 )
             # set size (unless None)
-            if self.params['size']:
+            if self.params['diodeSize']:
                 code += (
-                    "%(name)sDiode.size = %(size)s\n"
+                    "%(name)sDiode.size = %(diodeSize)s\n"
                 )
             buff.writeIndentedLines(code % inits)
         # create validator object
