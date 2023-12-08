@@ -1052,7 +1052,8 @@ class Session:
             self.sendToLiaison({
                     'type': "experiment_status",
                     'name': thisExp.name,
-                    'status': thisExp.status
+                    'status': thisExp.status,
+                    'expInfo': expInfo
                 })
 
         return True
