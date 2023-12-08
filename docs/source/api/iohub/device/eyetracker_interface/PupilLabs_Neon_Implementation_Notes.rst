@@ -64,8 +64,9 @@ Setting Up |PsychoPy|
       the Companion Device. These values can be found in the Neon Companion app by clicking the
       ``Stream`` button in the top-left corner of the app.
 
-.. raw:: html
-<video src="https://raw.githubusercontent.com/wiki/pupil-labs/psychopy-eyetracker-pupil-labs/images/companion-stream-info.mp4" width="240" height="536"/>
+    .. raw:: html
+
+        <video src="https://raw.githubusercontent.com/wiki/pupil-labs/psychopy-eyetracker-pupil-labs/images/companion-stream-info.mp4" width="240" height="536"/>
 
    -  ``Recording enabled`` - Enable this option to create a recording on the Companion device.
 
