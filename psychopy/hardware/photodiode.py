@@ -386,8 +386,11 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
         from psychopy.core import Clock
         self.clock = Clock()
 
-    def setThreshold(self, threshold):
+    def _setThreshold(self, threshold, channel=None):
         self._threshold = threshold
+
+    def getThreshold(self, channel=None):
+        return self._threshold
 
     def dispatchMessages(self):
         """
@@ -494,9 +497,9 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
 
     def findThreshold(self, win=None, channel=0):
         # there's no physical photodiode, so just pick a reasonable threshold
-        self.setThreshold(127)
+        self.setThreshold(127, channel=channel)
 
-        return self.getThreshold()
+        return self.getThreshold(channel=channel)
 
 
 class PhotodiodeValidator:
