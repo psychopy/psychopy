@@ -190,14 +190,44 @@ class ButtonBoxComponent(BaseDeviceComponent, PluginDevicesMixin):
                 "for _thisResp in %(name)s.getResponses(\n"
                 "    state=%(registerOn)s, channel=%(allowedButtons)s, clear=True\n"
                 "):\n"
+            )
+            if self.params['store'] == "all":
+                # if storing all, append
+                code += (
                 "    %(name)s.buttons.append(_thisResp.channel)\n"
                 "    %(name)s.times.append(_thisResp.t)\n"
-            )
-            # include code to get correct
-            if self.params['storeCorrect']:
-                code += (
-                    "    %(name)s.corr.append(_thisResp.channel in %(correctAns)s)\n"
                 )
+                # include code to get correct
+                if self.params['storeCorrect']:
+                    code += (
+                "    %(name)s.corr.append(_thisResp.channel in %(correctAns)s)\n"
+                    )
+            elif self.params['store'] == "last":
+                # if storing last, replace
+                code += (
+                "    %(name)s.buttons = _thisResp.channel\n"
+                "    %(name)s.times = _thisResp.t\n"
+                )
+                # include code to get correct
+                if self.params['storeCorrect']:
+                    code += (
+                "    %(name)s.corr = _thisResp.channel in %(correctAns)s\n"
+                    )
+            elif self.params['store'] == "first":
+                # if storing first, replace but only if empty
+                code += (
+                "    if not %(name)s.buttons:\n"
+                "        %(name)s.buttons = _thisResp.channel\n"
+                "        %(name)s.times = _thisResp.t\n"
+                )
+                # include code to get correct
+                if self.params['storeCorrect']:
+                    code += (
+                "        %(name)s.corr = _thisResp.channel in %(correctAns)s\n"
+                    )
+            else:
+                code = "pass\n"
+
             buff.writeIndentedLines(code % params)
             # code to end Routine
             if self.params['forceEndRoutine']:
@@ -224,31 +254,10 @@ class ButtonBoxComponent(BaseDeviceComponent, PluginDevicesMixin):
         # write code to save responses
         code = (
             "# store data from %(name)s\n"
+            "thisExp.addData('%(name)s.buttons', %(name)s.buttons)\n"
+            "thisExp.addData('%(name)s.times', %(name)s.times)\n"
+            "thisExp.addData('%(name)s.corr', %(name)s.corr)\n"
         )
-        if self.params['store'] == "all":
-            code += (
-                "thisExp.addData('%(name)s.buttons', %(name)s.buttons)\n"
-                "thisExp.addData('%(name)s.times', %(name)s.times)\n"
-                "thisExp.addData('%(name)s.corr', %(name)s.corr)\n"
-            )
-        elif self.params['store'] == "last":
-            code += (
-                "if len(%(name)s.buttons):\n"
-                "    thisExp.addData('%(name)s.buttons', %(name)s.buttons[-1])\n"
-                "if len(%(name)s.times):\n"
-                "    thisExp.addData('%(name)s.times', %(name)s.times[-1])\n"
-                "if len(%(name)s.corr):\n"
-                "    thisExp.addData('%(name)s.corr', %(name)s.corr[-1])\n"
-            )
-        elif self.params['store'] == "first":
-            code += (
-                "if len(%(name)s.buttons):\n"
-                "    thisExp.addData('%(name)s.buttons', %(name)s.buttons[0])\n"
-                "if len(%(name)s.times):\n"
-                "    thisExp.addData('%(name)s.times', %(name)s.times[0])\n"
-                "if len(%(name)s.corr):\n"
-                "    thisExp.addData('%(name)s.corr', %(name)s.corr[0])\n"
-            )
         buff.writeIndentedLines(code % params)
         # clear keys
         code = (
