@@ -206,32 +206,6 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
         win.stashAutoDraw()
         # import visual here - if they're using this function, it's already in the stack
         from psychopy import visual
-
-        # epilepsy check
-        warningLbl = visual.TextBox2(
-            win,
-            text=_translate(
-                "WARNING: In order to detect the threshold of a photodiode, the screen needs to flash white and black, "
-                "which may trigger photosensitive epilepsy.\n"
-                "\n"
-                "If you are happy to continue, press SPACE. Otherwise, press ESCAPE to skip this check."
-            ),
-            size=(2, 2), pos=(0, 0), units="norm", alignment="center",
-            fillColor="black", color="white",
-            autoDraw=False, autoLog=False
-        )
-        resp = []
-        while not resp:
-            # get keys
-            resp = kb.getKeys(['escape', 'space'])
-            # draw warning
-            warningLbl.draw()
-            # flip
-            win.flip()
-        # continue/skip according to resp
-        if "space" not in resp:
-            return
-
         # box to cover screen
         bg = visual.Rect(
             win,
@@ -247,83 +221,61 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
             alignment="center",
             autoDraw=False
         )
-        # make sure threshold 0 catches black
-        self.setThreshold(0, channel=channel)
-        bg.fillColor = "black"
-        bg.draw()
-        label.color = (-0.8, -0.8, -0.8)
-        label.draw()
-        win.flip()
-        state = self.getState(channel)
-        if state:
-            raise PhotodiodeValidationError(
-                "Photodiode did not recognise a black screen even when its threshold was at maximum. This means either "
-                "the screen is too bright or the photodiode is too sensitive."
-            )
-        # make sure threshold 255 catches white
-        self.setThreshold(255, channel=channel)
-        bg.fillColor = "white"
-        bg.draw()
-        label.color = (0.8, 0.8, 0.8)
-        label.draw()
-        win.flip()
-        state = self.getState(channel)
-        if not state:
-            raise PhotodiodeValidationError(
-                "Photodiode did not recognise a white screen even when its threshold was at minimum. This means either "
-                "the screen is too dark or the photodiode is not sensitive enough."
-            )
 
-        def _bisectThreshold(current):
+        def _bisectThreshold(threshRange, recursionLimit=16):
             """
             Recursively narrow thresholds to approach an acceptable threshold
             """
             # log
             logging.debug(
-                f"Trying threshold: {current}"
+                f"Trying threshold range: {threshRange}"
             )
-            # make sure we don't recur past integer level
-            lastThreshold = self.getThreshold(channel=channel) or 0
-            if int(current * 2) == int(lastThreshold * 2):
-                raise RecursionError(
-                    "Could not find acceptable photodiode threshold, reached accuity limit before finding one."
-                )
-            # set threshold and clear responses
-            self.setThreshold(int(current), channel=channel)
-            # try black
-            bg.fillColor = "black"
-            bg.draw()
-            label.color = (-0.8, -0.8, -0.8)
-            label.draw()
-            win.flip()
+            # work out current
+            current = int(
+                sum(threshRange) / 2
+            )
+            # set threshold and get value
+            value = self._setThreshold(int(current), channel=channel)
+
+            if value:
+                # if expecting light and got light, we have an upper bound
+                threshRange[1] = current
+            else:
+                # if expecting light and got none, we have a lower bound
+                threshRange[0] = current
             # check for escape before entering recursion
             if kb.getKeys(['escape']):
-                return int(current)
-            # if state is still True, move threshold up and try again
-            if self.getState(channel):
-                current = (current + 0) / 2
-                _bisectThreshold(current)
-            # try white
-            bg.fillColor = "white"
-            bg.draw()
-            label.color = (0.8, 0.8, 0.8)
-            label.draw()
-            win.flip()
-            # if state is still False, move threshold down and try again
-            if not self.getState(channel):
-                current = (current + 255) / 2
-                _bisectThreshold(current)
-
-            # once we get to here (account for recursion), we have a good threshold!
-            return int(current)
+                return current
+            # check for recursion limit before reentering recursion
+            if recursionLimit <= 0:
+                return current
+            # return if threshold is small enough
+            if abs(threshRange[1] - threshRange[0]) < 4:
+                return current
+            # recur with new range
+            return _bisectThreshold(threshRange, recursionLimit=recursionLimit-1)
 
         # reset state
-        self.state = [None] * self.channels
         self.dispatchMessages()
         self.clearResponses()
-        # bisect thresholds, starting at 127 (exact middle)
-        threshold = _bisectThreshold(127)
-        self.setThreshold(threshold, channel=list(range(self.channels)))
+        # get black and white thresholds
+        thresholds = {}
+        for col in ("black", "white"):
+            # set bg color
+            bg.fillColor = col
+            bg.draw()
+            # make text visible, but not enough to throw off the diode
+            txtCol = 0.8
+            if col == "white":
+                txtCol *= -1
+            label.color = (txtCol, txtCol, txtCol)
+            # draw
+            label.draw()
+            win.flip()
+            # get threshold
+            thresholds[col] = _bisectThreshold([0, 255], recursionLimit=16)
+        # pick a threshold between white and black (i.e. one that's safe)
+        threshold = (thresholds['white'] + thresholds['black']) / 2
         # clear bg rect
         bg.setAutoDraw(False)
         # clear all the events created by this process
@@ -338,19 +290,23 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
         return threshold
 
     def setThreshold(self, threshold, channel):
-
         if isinstance(channel, (list, tuple)):
             # if given a list of channels, iterate
             if not isinstance(threshold, (list, tuple)):
                 threshold = [threshold] * len(channel)
             # set for each value in threshold and channel
+            detected = []
             for thisThreshold, thisChannel in zip(threshold, channel):
                 self.threshold[thisChannel] = thisThreshold
-                self._setThreshold(thisThreshold, channel=thisChannel)
+                detected.append(
+                    self._setThreshold(thisThreshold, channel=thisChannel)
+                )
+
+            return detected
         else:
             # otherwise, just do once
             self.threshold[channel] = threshold
-            self._setThreshold(threshold, channel)
+            return self._setThreshold(threshold, channel)
 
     def _setThreshold(self, threshold, channel):
         raise NotImplementedError()
