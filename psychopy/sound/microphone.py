@@ -325,7 +325,7 @@ class Microphone:
         # if still no match, make a new device
         if self.device is None:
             self.device = DeviceManager.addDevice(
-                deviceClass="psychopy.sound.MicrophoneDevice", deviceName=device,
+                deviceClass="psychopy.hardware.microphone.MicrophoneDevice", deviceName=device,
                 index=device,
                 sampleRateHz=sampleRateHz,
                 channels=channels,
