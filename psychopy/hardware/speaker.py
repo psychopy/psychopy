@@ -13,7 +13,7 @@ class SpeakerDevice(BaseDevice):
     def getAvailableDevices():
         devices = []
 
-        for profile in getDevices().values():
+        for profile in getDevices(kind="output").values():
             device = {
                 'deviceName': profile.get('DeviceName', "Unknown Microphone"),
                 'index': profile.get('DeviceIndex', None),
