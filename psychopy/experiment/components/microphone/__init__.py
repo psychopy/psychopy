@@ -291,7 +291,7 @@ class MicrophoneComponent(BaseDeviceComponent):
             "# initialise microphone\n"
             "if deviceManager.getDevice(%(deviceLabel)s) is None:\n"
             "    deviceManager.addDevice(\n"
-            "        deviceClass='microphone',\n"
+            "        deviceClass='psychopy.hardware.microphone.MicrophoneDevice',\n"
             "        deviceName=%(deviceLabel)s,\n"
             "        index=%(device)s,\n"
             "        channels=%(channels)s, \n"
