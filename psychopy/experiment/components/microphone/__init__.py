@@ -11,7 +11,9 @@ from pathlib import Path
 from psychopy import logging
 from psychopy.alerts import alert
 from psychopy.tools import stringtools as st, systemtools as syst, audiotools as at
-from psychopy.experiment.components import BaseComponent, Param, getInitVals, _translate
+from psychopy.experiment.components import (
+    BaseComponent, BaseDeviceComponent, Param, getInitVals, _translate
+)
 from psychopy.tools.audiotools import sampleRateQualityLevels
 
 _hasPTB = True
@@ -50,7 +52,7 @@ localTranscribers = {
 allTranscribers = {**localTranscribers, **onlineTranscribers}
 
 
-class MicrophoneComponent(BaseComponent):
+class MicrophoneComponent(BaseDeviceComponent):
     """An event class for capturing short sound stimuli"""
     categories = ['Responses']
     targets = ['PsychoPy', 'PsychoJS']
@@ -89,44 +91,55 @@ class MicrophoneComponent(BaseComponent):
             'The duration of the recording in seconds; blank = 0 sec')
         self.params['stopType'].hint = msg
 
-        # params
-        msg = _translate("What microphone device would you like the use to record? This will only affect local "
-                         "experiments - online experiments ask the participant which mic to use.")
+        # --- Device params ---
+        self.order += [
+            "device",
+            "channels",
+            "sampleRate",
+            "maxSize",
+        ]
         self.params['device'] = Param(
-            device, valType='str', inputType="choice", categ="Basic",
+            device, valType='code', inputType="choice", categ="Device",
             allowedVals=deviceIndices,
             allowedLabels=deviceNames,
-            hint=msg,
-            label=_translate("Device")
+            label=_translate("Device"),
+            hint=_translate(
+                "What microphone device would you like the use to record? This will only affect "
+                "local experiments - online experiments ask the participant which mic to use."
+            )
         )
-
-        msg = _translate(
-            "Record two channels (stereo) or one (mono, smaller file). Select 'auto' to use as many channels "
-            "as the selected device allows.")
         if stereo is not None:
             # If using a legacy mic component, work out channels from old bool value of stereo
             channels = ['mono', 'stereo'][stereo]
         self.params['channels'] = Param(
-            channels, valType='str', inputType="choice", categ='Hardware',
+            channels, valType='str', inputType="choice", categ='Device',
             allowedVals=['auto', 'mono', 'stereo'],
-            hint=msg,
-            label=_translate("Channels"))
-
-        msg = _translate(
-            "How many samples per second (Hz) to record at")
+            allowedLabels=[_translate("Auto"), _translate("Mono"), _translate("Stereo")],
+            label=_translate("Channels"),
+            hint=_translate(
+                "Record two channels (stereo) or one (mono, smaller file). Select 'auto' to use as "
+                "many channels as the selected device allows."
+            )
+        )
         self.params['sampleRate'] = Param(
-            sampleRate, valType='num', inputType="choice", categ='Hardware',
+            sampleRate, valType='num', inputType="choice", categ='Device',
             allowedVals=list(sampleRates),
-            hint=msg, direct=False,
-            label=_translate("Sample rate (hz)"))
-
-        msg = _translate(
-            "To avoid excessively large output files, what is the biggest file size you are likely to expect?")
+            label=_translate("Sample rate (hz)"),
+            hint=_translate(
+                "How many samples per second (Hz) to record at"
+            ),
+            direct=False
+        )
         self.params['maxSize'] = Param(
-            maxSize, valType='num', inputType="single", categ='Hardware',
-            hint=msg,
-            label=_translate("Max recording size (kb)"))
+            maxSize, valType='num', inputType="single", categ='Device',
+            label=_translate("Max recording size (kb)"),
+            hint=_translate(
+                "To avoid excessively large output files, what is the biggest file size you are "
+                "likely to expect?"
+            )
+        )
 
+        # --- Data params ---
         msg = _translate(
             "What file type should output audio files be saved as?")
         self.params['outputType'] = Param(
@@ -273,15 +286,13 @@ class MicrophoneComponent(BaseComponent):
         inits['sampleRate'] = sampleRates[inits['sampleRate'].val]
         # Substitute channel value for numeric equivalent
         inits['channels'] = {'mono': 1, 'stereo': 2, 'auto': None}[self.params['channels'].val]
-        # Get device names
-        inits['deviceName'] = getDeviceName(inits['device'].val)
         # initialise mic device
         code = (
             "# initialise microphone\n"
-            "if deviceManager.getDevice('%(deviceName)s') is None:\n"
+            "if deviceManager.getDevice(%(deviceLabel)s) is None:\n"
             "    deviceManager.addDevice(\n"
-            "        deviceClass='microphone',\n"
-            "        deviceName='%(deviceName)s',\n"
+            "        deviceClass='psychopy.hardware.microphone.MicrophoneDevice',\n"
+            "        deviceName=%(deviceLabel)s,\n"
             "        index=%(device)s,\n"
             "        channels=%(channels)s, \n"
             "        sampleRateHz=%(sampleRate)s, \n"
@@ -335,12 +346,10 @@ class MicrophoneComponent(BaseComponent):
 
     def writeInitCode(self, buff):
         inits = getInitVals(self.params)
-        # Get device names
-        inits['deviceName'] = getDeviceName(inits['device'].val)
         # Assign name to device var name
         code = (
             "# link %(name)s to device object\n"
-            "%(name)s = sound.microphone.Microphone(device='%(deviceName)s')\n"
+            "%(name)s = sound.microphone.Microphone(device=%(deviceLabel)s)\n"
         )
         buff.writeIndentedLines(code % inits)
 

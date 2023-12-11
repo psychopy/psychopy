@@ -27,12 +27,12 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
         # attribute in which to store current state
         self.state = [False] * channels
         # set initial threshold
-        if threshold is not None:
-            self.setThreshold(threshold)
+        self.threshold = [None] * channels
+        self.setThreshold(threshold, channel=list(range(channels)))
         # store position params
+        self.units = units
         self.pos = pos
         self.size = size
-        self.units = units
 
     def dispatchMessages(self):
         """
@@ -54,7 +54,8 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
         # update state
         self.state[message.channel] = message.value
 
-    def getAvailableDevices(self):
+    @staticmethod
+    def getAvailableDevices():
         raise NotImplementedError()
 
     def getResponses(self, state=None, channel=None, clear=True):
@@ -205,32 +206,6 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
         win.stashAutoDraw()
         # import visual here - if they're using this function, it's already in the stack
         from psychopy import visual
-
-        # epilepsy check
-        warningLbl = visual.TextBox2(
-            win,
-            text=_translate(
-                "WARNING: In order to detect the threshold of a photodiode, the screen needs to flash white and black, "
-                "which may trigger photosensitive epilepsy.\n"
-                "\n"
-                "If you are happy to continue, press SPACE. Otherwise, press ESCAPE to skip this check."
-            ),
-            size=(2, 2), pos=(0, 0), units="norm", alignment="center",
-            fillColor="black", color="white",
-            autoDraw=False, autoLog=False
-        )
-        resp = []
-        while not resp:
-            # get keys
-            resp = kb.getKeys(['escape', 'space'])
-            # draw warning
-            warningLbl.draw()
-            # flip
-            win.flip()
-        # continue/skip according to resp
-        if "space" not in resp:
-            return
-
         # box to cover screen
         bg = visual.Rect(
             win,
@@ -246,83 +221,61 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
             alignment="center",
             autoDraw=False
         )
-        # make sure threshold 0 catches black
-        self.setThreshold(0)
-        bg.fillColor = "black"
-        bg.draw()
-        label.color = (-0.8, -0.8, -0.8)
-        label.draw()
-        win.flip()
-        state = self.getState(channel)
-        if state:
-            raise PhotodiodeValidationError(
-                "Photodiode did not recognise a black screen even when its threshold was at maximum. This means either "
-                "the screen is too bright or the photodiode is too sensitive."
-            )
-        # make sure threshold 255 catches white
-        self.setThreshold(255)
-        bg.fillColor = "white"
-        bg.draw()
-        label.color = (0.8, 0.8, 0.8)
-        label.draw()
-        win.flip()
-        state = self.getState(channel)
-        if not state:
-            raise PhotodiodeValidationError(
-                "Photodiode did not recognise a white screen even when its threshold was at minimum. This means either "
-                "the screen is too dark or the photodiode is not sensitive enough."
-            )
 
-        def _bisectThreshold(current):
+        def _bisectThreshold(threshRange, recursionLimit=16):
             """
             Recursively narrow thresholds to approach an acceptable threshold
             """
             # log
             logging.debug(
-                f"Trying threshold: {current}"
+                f"Trying threshold range: {threshRange}"
             )
-            # make sure we don't recur past integer level
-            lastThreshold = self.getThreshold() or 0
-            if int(current * 2) == int(lastThreshold * 2):
-                raise RecursionError(
-                    "Could not find acceptable photodiode threshold, reached accuity limit before finding one."
-                )
-            # set threshold and clear responses
-            self.setThreshold(int(current))
-            # try black
-            bg.fillColor = "black"
-            bg.draw()
-            label.color = (-0.8, -0.8, -0.8)
-            label.draw()
-            win.flip()
+            # work out current
+            current = int(
+                sum(threshRange) / 2
+            )
+            # set threshold and get value
+            value = self._setThreshold(int(current), channel=channel)
+
+            if value:
+                # if expecting light and got light, we have an upper bound
+                threshRange[1] = current
+            else:
+                # if expecting light and got none, we have a lower bound
+                threshRange[0] = current
             # check for escape before entering recursion
             if kb.getKeys(['escape']):
-                return int(current)
-            # if state is still True, move threshold up and try again
-            if self.getState(channel):
-                current = (current + 0) / 2
-                _bisectThreshold(current)
-            # try white
-            bg.fillColor = "white"
-            bg.draw()
-            label.color = (0.8, 0.8, 0.8)
-            label.draw()
-            win.flip()
-            # if state is still False, move threshold down and try again
-            if not self.getState(channel):
-                current = (current + 255) / 2
-                _bisectThreshold(current)
-
-            # once we get to here (account for recursion), we have a good threshold!
-            return int(current)
+                return current
+            # check for recursion limit before reentering recursion
+            if recursionLimit <= 0:
+                return current
+            # return if threshold is small enough
+            if abs(threshRange[1] - threshRange[0]) < 4:
+                return current
+            # recur with new range
+            return _bisectThreshold(threshRange, recursionLimit=recursionLimit-1)
 
         # reset state
-        self.state = [None] * self.channels
         self.dispatchMessages()
         self.clearResponses()
-        # bisect thresholds, starting at 127 (exact middle)
-        threshold = _bisectThreshold(127)
-        self.setThreshold(threshold)
+        # get black and white thresholds
+        thresholds = {}
+        for col in ("black", "white"):
+            # set bg color
+            bg.fillColor = col
+            bg.draw()
+            # make text visible, but not enough to throw off the diode
+            txtCol = 0.8
+            if col == "white":
+                txtCol *= -1
+            label.color = (txtCol, txtCol, txtCol)
+            # draw
+            label.draw()
+            win.flip()
+            # get threshold
+            thresholds[col] = _bisectThreshold([0, 255], recursionLimit=16)
+        # pick a threshold between white and black (i.e. one that's safe)
+        threshold = (thresholds['white'] + thresholds['black']) / 2
         # clear bg rect
         bg.setAutoDraw(False)
         # clear all the events created by this process
@@ -336,15 +289,33 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
 
         return threshold
 
-    def setThreshold(self, threshold):
+    def setThreshold(self, threshold, channel):
+        if isinstance(channel, (list, tuple)):
+            # if given a list of channels, iterate
+            if not isinstance(threshold, (list, tuple)):
+                threshold = [threshold] * len(channel)
+            # set for each value in threshold and channel
+            detected = []
+            for thisThreshold, thisChannel in zip(threshold, channel):
+                self.threshold[thisChannel] = thisThreshold
+                detected.append(
+                    self._setThreshold(thisThreshold, channel=thisChannel)
+                )
+
+            return detected
+        else:
+            # otherwise, just do once
+            self.threshold[channel] = threshold
+            return self._setThreshold(threshold, channel)
+
+    def _setThreshold(self, threshold, channel):
         raise NotImplementedError()
 
     def resetTimer(self, clock=logging.defaultClock):
         raise NotImplementedError()
 
-    def getThreshold(self):
-        if hasattr(self, "_threshold"):
-            return self._threshold
+    def getThreshold(self, channel):
+        return self.threshold[channel]
 
     def getState(self, channel):
         # dispatch messages from parent
@@ -355,6 +326,136 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
 
 class PhotodiodeValidationError(BaseException):
     pass
+
+
+class ScreenBufferSampler(BasePhotodiodeGroup):
+    def __init__(self, win, threshold=None, pos=None, size=None, units=None):
+        # store win
+        self.win = win
+        # default rect
+        self.rect = None
+        # initialise base class
+        BasePhotodiodeGroup.__init__(
+            self, channels=1, threshold=threshold, pos=pos, size=size, units=units
+        )
+        # make clock
+        from psychopy.core import Clock
+        self.clock = Clock()
+
+    def _setThreshold(self, threshold, channel=None):
+        self._threshold = threshold
+
+    def getThreshold(self, channel=None):
+        return self._threshold
+
+    def dispatchMessages(self):
+        """
+        Check the screen for changes and dispatch events as appropriate
+        """
+        # get rect
+        left, bottom = self._pos.pix + self.win.size / 2
+        w, h = self._size.pix
+        left = int(left - w / 2)
+        bottom = int(bottom - h / 2)
+        w = int(w)
+        h = int(h)
+        # read front buffer luminances for specified area
+        pixels = self.win._getPixels(
+            buffer="back",
+            rect=(left, bottom, w, h),
+            makeLum=True
+        )
+        # work out whether it's brighter than threshold
+        state = pixels.mean() > (255 - self.getThreshold())
+        # if state has changed, make an event
+        if state != self.state[0]:
+            resp = PhotodiodeResponse(
+                t=self.clock.getTime() + self.win.monitorFramePeriod,
+                value=state,
+                channel=0,
+                threshold=self._threshold
+            )
+            self.receiveMessage(resp)
+
+    def parseMessage(self, message):
+        """
+        Events are created as PhotodiodeResponses, so parseMessage is not needed for
+        ScreenBufferValidator. Will return message unchanged.
+        """
+        return message
+
+    @staticmethod
+    def getAvailableDevices():
+        raise None
+
+    def resetTimer(self, clock=logging.defaultClock):
+        self.clock.reset(clock.getTime())
+
+    @property
+    def pos(self):
+        if self.units and hasattr(self._pos, self.units):
+            return getattr(self._pos, self.units)
+
+    @pos.setter
+    def pos(self, value):
+        # retain None so value is identifiable as not set
+        if value is None:
+            self._pos = None
+            return
+        # make sure we have a Position object
+        if not isinstance(value, layout.Position):
+            value = layout.Position(
+                value, self.units, win=self.win
+            )
+        # set
+        self._pos = value
+
+    @property
+    def size(self):
+        if self.units and hasattr(self._size, self.units):
+            return getattr(self._size, self.units)
+
+    @size.setter
+    def size(self, value):
+        # retain None so value is identifiable as not set
+        if value is None:
+            self._size = None
+            return
+        # make sure we have a Size object
+        if not isinstance(value, layout.Size):
+            value = layout.Size(
+                value, self.units, win=self.win
+            )
+        # set
+        self._size = value
+
+    @property
+    def units(self):
+        units = None
+        if hasattr(self, "_units"):
+            units = self._units
+
+        return units
+
+    @units.setter
+    def units(self, value):
+        self._units = value
+
+    def findPhotodiode(self, win=None, channel=0):
+        if win is None:
+            win = self.win
+        # there's no physical photodiode, so just pick a reasonable place for it
+        self._pos = layout.Position((0.95, -0.95), units="norm", win=win)
+        self._size = layout.Size((0.05, 0.05), units="norm", win=win)
+        self.units = "norm"
+
+        return self._pos, self._size
+
+    def findThreshold(self, win=None, channel=0):
+        # there's no physical photodiode, so just pick a reasonable threshold
+        self.setThreshold(127, channel=channel)
+
+        return self.getThreshold(channel=channel)
 
 
 class PhotodiodeValidator:

@@ -115,3 +115,35 @@ class TestLiaison:
         assert lastMsg['class'] == "KeyPress"
         assert lastMsg['data']['t'] == 1234
         assert lastMsg['data']['value'] == "a"
+
+    def test_device_by_name(self):
+        """
+        Test that adding a device by name to the device manager prior to running means Components
+        using that named device use the one set up in device manager, rather than setting it up
+        again according to the Component params.
+        """
+        # add experiment which creates a button box with different buttons
+        runInLiaison(
+            self.server, self.protocol, "session", "addExperiment",
+            "testNamedButtonBox/testNamedButtonBox.psyexp", "testNamedButtonBox"
+        )
+        # setup generic devices (use exp1 as a template)
+        runInLiaison(
+            self.server, self.protocol, "session", "addExperiment",
+            "exp1/exp1.psyexp", "exp1"
+        )
+        runInLiaison(
+            self.server, self.protocol, "session", "setupDevicesFromExperiment",
+            "exp1"
+        )
+        # add keyboard button box with abc as its buttons
+        runInLiaison(
+            self.server, self.protocol, "DeviceManager", "addDevice",
+            "psychopy.hardware.button.KeyboardButtonBox", "testNamedButtonBox",
+            '["a", "b", "c"]'
+        )
+        # run experiment
+        runInLiaison(
+            self.server, self.protocol, "session", "runExperiment",
+            "testNamedButtonBox"
+        )

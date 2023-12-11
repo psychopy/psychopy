@@ -268,6 +268,7 @@ class Session:
         self.priorityThreshold = priorityThreshold
         # Add experiments
         self.experiments = {}
+        self.experimentObjects = {}
         if experiments is not None:
             for nm, exp in experiments.items():
                 self.addExperiment(exp, key=nm)
@@ -423,6 +424,11 @@ class Session:
             # Write script
             script = exp.writeScript(target="PsychoPy")
             pyFile.write_text(script, encoding="utf8")
+            # Store experiment object
+            self.experimentObjects[key] = exp
+        else:
+            # if no experiment object, store None
+            self.experimentObjects[key] = None
         # Handle if key is None
         if key is None:
             key = str(file.relative_to(self.root))
@@ -833,8 +839,13 @@ class Session:
 
         if expInfo is None:
             expInfo = self.getExpInfoFromExperiment(key)
-        # Run the setupDevices method
+        # store current devices dict
+        ogDevices = DeviceManager.devices.copy()
+        # run the setupDevices method
         self.experiments[key].setupDevices(expInfo=expInfo, thisExp=thisExp, win=self.win)
+        # reinstate any original devices which were overwritten
+        for key, obj in ogDevices.items():
+            DeviceManager.devices[key] = obj
 
         return True
 
@@ -880,6 +891,66 @@ class Session:
         deviceManager.addKeyboard(*params)
 
         return True
+
+    def getRequiredDeviceNamesFromExperiment(self, key):
+        """
+        Get a list of device names referenced in a given experiment.
+
+        Parameters
+        ----------
+        key : str
+            Key by which the experiment is stored (see `.addExperiment`).
+
+        Returns
+        -------
+        list[str]
+            List of device names
+        """
+        # get an experiment object
+        exp = self.experimentObjects[key]
+        if exp is None:
+            raise ValueError(
+                f"Device names are not available for experiments added to Session directly as a "
+                f".py file."
+            )
+        # get ready to store usages
+        usages = {}
+
+        def _process(name, emt):
+            """
+            Process an element (Component or Routine) for device names and append them to the
+            usages dict.
+
+            Parameters
+            ----------
+            name : str
+                Name of this element in Builder
+            emt : Component or Routine
+                Element to process
+            """
+            # if we have a device name for this element...
+            if "deviceName" in emt.params:
+                # get init value so it lines up with boilerplate code
+                inits = experiment.getInitVals(emt.params)
+                # get value
+                deviceName = inits['deviceName'].val
+                # if deviceName exists from other elements, add usage to it
+                if deviceName in usages:
+                    usages[deviceName].append(name)
+                else:
+                    usages[deviceName] = [name]
+
+        # iterate through routines
+        for rtName, rt in exp.routines.items():
+            if isinstance(rt, experiment.routines.BaseStandaloneRoutine):
+                # for standalone routines, get device names from params
+                _process(rtName, rt)
+            else:
+                # for regular routines, get device names from each component
+                for comp in rt:
+                    _process(comp.name, comp)
+
+        return list(usages)
 
     def runExperiment(self, key, expInfo=None, blocking=True):
         """
@@ -981,7 +1052,8 @@ class Session:
             self.sendToLiaison({
                     'type': "experiment_status",
                     'name': thisExp.name,
-                    'status': thisExp.status
+                    'status': thisExp.status,
+                    'expInfo': expInfo
                 })
 
         return True

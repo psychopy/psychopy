@@ -7,7 +7,7 @@
 
 from pathlib import Path
 
-from psychopy.experiment.components import BaseComponent, Param, _translate, getInitVals
+from psychopy.experiment.components import BaseDeviceComponent, Param, _translate, getInitVals
 from psychopy.experiment import CodeGenerationException, valid_var_re
 from pkgutil import find_loader
 
@@ -15,7 +15,7 @@ from pkgutil import find_loader
 havePTB = find_loader('psychtoolbox') is not None
 
 
-class KeyboardComponent(BaseComponent):
+class KeyboardComponent(BaseDeviceComponent):
     """An event class for checking the keyboard at given timepoints"""
     # an attribute of the class, determines the section in components panel
     categories = ['Responses']
@@ -23,19 +23,23 @@ class KeyboardComponent(BaseComponent):
     iconFile = Path(__file__).parent / 'keyboard.png'
     tooltip = _translate('Keyboard: check and record keypresses')
 
-    def __init__(self, exp, parentName, name='key_resp', device="",
+    def __init__(self, exp, parentName, name='key_resp', deviceLabel="",
                  allowedKeys="'y','n','left','right','space'", registerOn="press",
                  store='last key', forceEndRoutine=True, storeCorrect=False,
                  correctAns="", discardPrev=True,
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal='',
                  startEstim='', durationEstim='',
-                 syncScreenRefresh=True):
-        super(KeyboardComponent, self).__init__(
-            exp, parentName, name,
+                 syncScreenRefresh=True,
+                 disabled=False):
+        BaseDeviceComponent.__init__(
+            self, exp, parentName, name,
             startType=startType, startVal=startVal,
             stopType=stopType, stopVal=stopVal,
-            startEstim=startEstim, durationEstim=durationEstim)
+            startEstim=startEstim, durationEstim=durationEstim,
+            deviceLabel=deviceLabel,
+            disabled=disabled
+        )
 
         self.type = 'Keyboard'
         self.url = "https://www.psychopy.org/builder/components/keyboard.html"
@@ -81,19 +85,6 @@ class KeyboardComponent(BaseComponent):
             updates='constant',
             hint=msg,
             label=_translate("Force end of Routine"))
-
-        # -- Hardware --
-        self.order += [
-            "device"
-        ]
-
-        self.params['device'] = Param(
-            device, valType="str", inputType="single", categ="Hardware",
-            updates="constant",
-            label=_translate("Device name"),
-            hint=_translate("The name assigned to the keyboard device in the DeviceManager, if any. Leave blank to "
-                            "use the default keyboard.")
-        )
 
         # hints say 'responses' not 'key presses' because the same hint is
         # also used with button boxes
@@ -150,15 +141,26 @@ class KeyboardComponent(BaseComponent):
             hint=msg,
             label=_translate("Sync timing with screen"))
 
+    def writeDeviceCode(self, buff):
+        # get inits
+        inits = getInitVals(self.params)
+        # write device creation code
+        code = (
+            "if deviceManager.getDevice(%(deviceLabel)s) is None:\n"
+            "    # initialise %(deviceLabelCode)s\n"
+            "    %(deviceLabelCode)s = deviceManager.addDevice(\n"
+            "        deviceClass='keyboard',\n"
+            "        deviceName=%(deviceLabel)s,\n"
+            "    )\n"
+        )
+        buff.writeOnceIndentedLines(code % inits)
+
     def writeInitCode(self, buff):
         # get inits
         inits = getInitVals(self.params)
-        # if device name is blank, use "defaultKeyboard"
-        if inits['device'].val in ("", "None", None):
-            inits['device'].val = "defaultKeyboard"
         # make Keyboard object
         code = (
-            "%(name)s = keyboard.Keyboard(deviceName='%(device)s')\n"
+            "%(name)s = keyboard.Keyboard(deviceName=%(deviceLabel)s)\n"
         )
         buff.writeIndentedLines(code % inits)
 
@@ -516,9 +518,6 @@ class KeyboardComponent(BaseComponent):
 
         # get parent to write code too (e.g. store onset/offset times)
         super().writeRoutineEndCode(buff)
-
-        if currLoop.params['name'].val == self.exp._expHandler.name:
-            buff.writeIndented("%s.nextEntry()\n" % self.exp._expHandler.name)
 
     def writeRoutineEndCodeJS(self, buff):
         # some shortcuts
