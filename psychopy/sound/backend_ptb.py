@@ -18,6 +18,7 @@ from psychopy.tools import systemtools
 from psychopy.tools import filetools as ft
 from .exceptions import SoundFormatError, DependencyError
 from ._base import _SoundBase, HammingWindow
+from ..hardware import DeviceManager
 
 try:
     from psychtoolbox import audio
@@ -275,7 +276,7 @@ class SoundPTB(_SoundBase):
                  hamming=True,
                  startTime=0, stopTime=-1,
                  name='', autoLog=True,
-                 syncToWin=None):
+                 syncToWin=None, speaker=None):
         """
         :param value: note name ("C","Bfl"), filename or frequency (Hz)
         :param secs: duration (for synthesised tones)
@@ -303,6 +304,7 @@ class SoundPTB(_SoundBase):
         :param autoLog: whether to automatically log every change
         :param syncToWin: if you want start/stop to sync with win flips add this
         """
+        self.speaker = self._parseSpeaker(speaker)
         self.sound = value
         self.name = name
         self.secs = secs  # for any synthesised sounds (notesand freqs)

@@ -227,6 +227,9 @@ def setDevice(dev, kind=None):
     :param dev: the device to be used (name, index or sounddevice.device)
     :param kind: one of [None, 'output', 'input']
     """
+    if dev is None:
+        # if given None, do nothing
+        return
     if not hasattr(backend, 'defaultOutput'):
         raise IOError("Attempting to SetDevice (audio) but not supported by "
                       "the current audio library ({!r})".format(audioLib))

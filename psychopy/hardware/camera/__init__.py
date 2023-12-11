@@ -64,7 +64,8 @@ import numpy as np
 from psychopy.constants import NOT_STARTED
 from psychopy.hardware import DeviceManager
 from psychopy.visual.movies.frame import MovieFrame, NULL_MOVIE_FRAME_INFO
-from psychopy.sound.microphone import Microphone, MicrophoneDevice
+from psychopy.sound.microphone import Microphone
+from psychopy.hardware.microphone import MicrophoneDevice
 from psychopy.tools import systemtools as st
 import psychopy.tools.movietools as movietools
 import psychopy.logging as logging
