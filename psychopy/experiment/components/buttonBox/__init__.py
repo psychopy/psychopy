@@ -233,7 +233,7 @@ class ButtonBoxComponent(BaseDeviceComponent, PluginDevicesMixin):
             if self.params['forceEndRoutine']:
                 code = (
                     "# end Routine if %(name)s got valid response\n"
-                    "if len(%(name)s.buttons):\n"
+                    "if %(name)s.buttons or %(name)s.buttons == 0:\n"
                     "    continueRoutine = False\n"
                 )
                 buff.writeIndentedLines(code % params)
