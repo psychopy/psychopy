@@ -91,6 +91,7 @@ knownShapes = {
     ],
 }
 knownShapes['square'] = knownShapes['rectangle']
+knownShapes['star'] = knownShapes['star7']
 
 
 class BaseShapeStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
