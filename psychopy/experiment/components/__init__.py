@@ -17,7 +17,6 @@ from os.path import join, dirname, abspath, split
 from importlib import import_module  # helps python 2.7 -> 3.x migration
 from ._base import BaseVisualComponent, BaseComponent, BaseDeviceComponent
 from ..params import Param
-from .utils import loadPluginComponents
 from psychopy.localization import _translate
 from psychopy.experiment import py2js
 import psychopy.logging as logging
@@ -167,8 +166,6 @@ def getComponents(folder=None, fetchIcons=True):
     importing from psychopy:
        `from psychopy.experiment.components import BaseComponent, Param`
     """
-    # load plugins
-    loadPluginComponents()
 
     if folder is None:
         pth = folder = dirname(__file__)
