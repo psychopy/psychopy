@@ -1,6 +1,6 @@
 import json
 from psychopy import layout, logging
-from psychopy.hardware import base
+from psychopy.hardware import base, DeviceManager
 from psychopy.localization import _translate
 from psychopy.hardware import keyboard
 
@@ -56,7 +56,15 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
 
     @staticmethod
     def getAvailableDevices():
-        raise NotImplementedError()
+        devices = []
+        for cls in DeviceManager.deviceClasses:
+            # get class from class str
+            cls = DeviceManager._resolveClassString(cls)
+            # if class is a photodiode, add its available devices
+            if issubclass(cls, BasePhotodiodeGroup) and cls is not BasePhotodiodeGroup:
+                devices += cls.getAvailableDevices()
+
+        return devices
 
     def getResponses(self, state=None, channel=None, clear=True):
         """
@@ -386,7 +394,7 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
 
     @staticmethod
     def getAvailableDevices():
-        raise None
+        return []
 
     def resetTimer(self, clock=logging.defaultClock):
         self.clock.reset(clock.getTime())
