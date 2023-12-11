@@ -146,6 +146,9 @@ class DeviceManager:
         type
             Class pointed to by deviceClass
         """
+        if deviceClass in (None, "*"):
+            # resolve "any" flags to BaseDevice
+            deviceClass = "psychopy.hardware.base.BaseDevice"
         # get package and class names from deviceClass string
         parts = deviceClass.split(".")
         pkgName = ".".join(parts[:-1])
@@ -161,7 +164,6 @@ class DeviceManager:
         cls = getattr(pkg, clsName)
 
         return cls
-
 
     # --- device management ---
     @staticmethod
@@ -328,9 +330,6 @@ class DeviceManager:
         # if device is None, we don't have it
         if device is None:
             return False
-        # if class isn't set, then any device is fine
-        if deviceClass in (None, "*"):
-            return True
         # if device class is an already registered alias, get the actual class str
         deviceClass = DeviceManager._resolveAlias(deviceClass)
         # get device class
@@ -385,14 +384,14 @@ class DeviceManager:
         """
         # if device class is an already registered alias, get the actual class str
         deviceClass = DeviceManager._resolveAlias(deviceClass)
+        # get actual device class from class str
+        cls = DeviceManager._resolveClassString(deviceClass)
 
         foundDevices = {}
         # iterate through devices and names
         for name, device in DeviceManager.devices.items():
-            # get class name for this device
-            thisDeviceClass = ".".join((type(device).__module__, type(device).__qualname__))
             # add device to array if device class matches requested
-            if deviceClass in (thisDeviceClass, "*"):
+            if isinstance(device, cls) or deviceClass == "*":
                 foundDevices[name] = device
 
         return foundDevices
