@@ -126,7 +126,7 @@ class SoundComponent(BaseDeviceComponent):
         inits = getInitVals(self.params)
         # initialise speaker
         code = (
-            "# create speaker %(deviceLabel)s"
+            "# create speaker %(deviceLabel)s\n"
             "deviceManager.addDevice(\n"
             "    deviceName=%(deviceLabel)s,\n"
             "    deviceClass='psychopy.hardware.speaker.SpeakerDevice',\n"
