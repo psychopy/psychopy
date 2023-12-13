@@ -105,7 +105,8 @@ class SerialDevice(BaseDevice, AttributeGetSetMixin):
                     baudrate=baudrate, bytesize=byteSize,    # number of data bits
                     parity=parity,    # enable parity checking
                     stopbits=stopBits,  # number of stop bits
-                    timeout=3,             # set a timeout value, None for waiting forever
+                    timeout=self.pauseDuration * 3,             # set a timeout value, None for
+                    # waiting forever
                     xonxoff=0,             # enable software flow control
                     rtscts=0,)              # enable RTS/CTS flow control
 
@@ -235,27 +236,27 @@ class SerialDevice(BaseDevice, AttributeGetSetMixin):
         start = time.time()
         t = time.time() - start
         # get responses until we have one
-        resp = None
+        resp = b""
         while not resp and t < timeout:
             t = time.time() - start
-            resp = self.com.readline()
+            resp = self.com.read()
+        # keep getting responses until they stop sending
+        sending = resp
+        while sending and t < timeout:
+            t = time.time() - start
+            sending = self.com.read()
+            # if still sending, append to resp
+            resp += sending
         # if we timed out, return None
         if t > timeout:
             return
+        # decode to str
+        resp = resp.decode('utf-8')
+        # if multiline, split by eol
         if multiline:
-            # keep getting responses until they stop sending
-            sending = True
-            while sending and t < timeout:
-                t = time.time() - start
-                sending = self.com.readline()
-                # if still sending, append to resp
-                if sending:
-                    resp += sending
-        # if we timed out, return None
-        if t > timeout:
-            return
+            resp = resp.split(str(self.eol))
 
-        return resp.decode('utf-8')
+        return resp
 
     def isSameDevice(self, params):
         port = self.portString[3:]
