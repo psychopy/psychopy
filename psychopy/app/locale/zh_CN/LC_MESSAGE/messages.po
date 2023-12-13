@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: PsychoPy 2023.2.2\n"
 "Report-Msgid-Bugs-To: shuonwang@gmail.com\n"
 "POT-Creation-Date: 2021-12-18 00:00+0100\n"
-"PO-Revision-Date: 2023-12-01 17:56-0500\n"
-"Last-Translator: Bingzi Yu <ybzice@gmail.com>\n"
+"PO-Revision-Date: 2023-12-13 14:40-0500\n"
+"Last-Translator: Shun Wang <shuonwang@gmail.com>\n"
 "Language-Team: Shun Wang <shuonwang@gmail.com>\n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
@@ -2252,7 +2252,7 @@ msgstr "查看完整更新日志"
 
 #: ../app/connections/updates.py:219
 msgid "You can update PsychoPy with your package manager"
-msgstr ""
+msgstr "您可以使用包管理器升级 PsychoPy"
 
 #: ../app/connections/updates.py:223
 msgid "Should PsychoPy update itself?"
@@ -2603,7 +2603,7 @@ msgstr "描述："
 
 #: ../app/pavlovia_ui/project.py:76
 msgid "Local folder:"
-msgstr "Local folder:"
+msgstr "本地目录："
 
 #: ../app/pavlovia_ui/project.py:79 ../app/pavlovia_ui/project.py:203
 msgid "Browse..."
@@ -2651,11 +2651,11 @@ msgstr "用户未登录！"
 
 #: ../app/pavlovia_ui/project.py:291
 msgid "Visibility: {}"
-msgstr ""
+msgstr "可见性：{}"
 
 #: ../app/pavlovia_ui/project.py:296
 msgid "<not yet synced>"
-msgstr "<not yet synced>"
+msgstr "<尚未同步>"
 
 #: ../app/pavlovia_ui/project.py:297 ../app/pavlovia_ui/project.py:364
 #: ../app/pavlovia_ui/project.py:377
@@ -5265,12 +5265,16 @@ msgid ""
 "Upper cutoff frequency in cycles per unit length. Set very high to avoid an "
 "upper cutoff and make a high pass filter."
 msgstr ""
+"上限截断频率（以每单位长度的周期为单位）。 "
+"设置非常高以避免上限截断并制作高通滤波器。"
 
 #: ../experiment/components/noise/__init__.py:265
 msgid ""
 "Lower cutoff frequency in cycles per unit length. Set to zero to avoid a "
 "lower cuttoff and make a low pass filter."
 msgstr ""
+"下限截断频率（以每单位长度的周期为单位）。 "
+"设置非常低以避免下限截断并制作低通滤波器。"
 
 #: ../experiment/components/noise/__init__.py:274
 msgid ""
@@ -5281,6 +5285,10 @@ msgid ""
 "If a filter is used clipping and rescaling are applied after the filter, "
 "regardless of the noise type."
 msgstr ""
+"截断超出平均值的规定标准偏差的高值和低值，并重新调整灰度范围。"
+"这根本不用于“二元”或“均匀”噪声和音阶，而不是剪辑“正常”噪声）。"
+"该值越高，最终 RMS 对比度越低。 如果噪声非常低，则可能会出现二值化。"
+"注意：如果使用滤波器，则无论噪声类型如何，都会在滤波器之后应用剪切和重新缩放。"
 
 #: ../experiment/components/noise/__init__.py:285
 msgid ""
@@ -5437,51 +5445,51 @@ msgstr ""
 
 #: ../experiment/components/pump/__init__.py:18
 msgid "Pump index"
-msgstr ""
+msgstr "泵编号"
 
 #: ../experiment/components/pump/__init__.py:19
 msgid "Syringe type"
-msgstr ""
+msgstr "注射器类型"
 
 #: ../experiment/components/pump/__init__.py:20
 msgid "Pump action"
-msgstr ""
+msgstr "泵动作"
 
 #: ../experiment/components/pump/__init__.py:21
 msgid "Flow rate"
-msgstr ""
+msgstr "流速"
 
 #: ../experiment/components/pump/__init__.py:22
 msgid "Flow rate unit"
-msgstr ""
+msgstr "流速单位"
 
 #: ../experiment/components/pump/__init__.py:23
 msgid "Switch valve after dosing"
-msgstr ""
+msgstr "加药后开关阀门"
 
 #: ../experiment/components/pump/__init__.py:32
 msgid "Pump: deliver liquid stimuli via a Cetoni neMESYS syringe pump"
-msgstr ""
+msgstr "注射泵：通过 Cetoni neMESYS 注射泵输送液体刺激"
 
 #: ../experiment/components/pump/__init__.py:67
 msgid "The index of the pump(s) (first pump is 0)."
-msgstr ""
+msgstr "注射泵的编号（从0开始编号）"
 
 #: ../experiment/components/pump/__init__.py:74
 msgid "Syringe type and dimensions"
-msgstr ""
+msgstr "注射器类型和尺寸"
 
 #: ../experiment/components/pump/__init__.py:81
 msgid "Whether the syringe should be filled (aspirate) or emptied (dispense"
-msgstr ""
+msgstr "注射器是否应充满（抽吸）或清空（分配）"
 
 #: ../experiment/components/pump/__init__.py:101
 msgid "Switch the valve after pump operation"
-msgstr ""
+msgstr "泵运行后切换阀门"
 
 #: ../experiment/components/pump/__init__.py:107
 msgid "Sync pump onset to the screen refresh"
-msgstr ""
+msgstr "将泵启动同步到屏幕刷新"
 
 #: ../experiment/components/ratingScale/__init__.py:23
 msgid "Visual analog scale"
@@ -7105,7 +7113,7 @@ msgstr "扫描所有端口"
 
 #: ../monitors/MonitorCenter.py:401
 msgid "Get Photometer"
-msgstr ""
+msgstr 获取光度计""
 
 #: ../monitors/MonitorCenter.py:407
 msgid "Gamma Calibration..."
