@@ -54,8 +54,7 @@ Setting Up |PsychoPy|
 =====================
 
 1. Install the ``Pupil Labs`` plugin using the Plugin Manager and restart Builder.
-2. Open ``experiment settings`` in the Builder Window (cog icon in top
-   panel)
+2. Open ``experiment settings`` in the Builder Window (cog icon in top panel)
 3. Open the ``Eyetracking`` tab
 4. Modify the properties as follows:
 
@@ -66,13 +65,12 @@ Setting Up |PsychoPy|
 
     .. raw:: html
 
-        <video src="https://raw.githubusercontent.com/wiki/pupil-labs/psychopy-eyetracker-pupil-labs/images/companion-stream-info.mp4" width="240" height="536"/>
+        <video controls src="https://raw.githubusercontent.com/wiki/pupil-labs/psychopy-eyetracker-pupil-labs/images/companion-stream-info.mp4" width="240" height="536"/>
 
    -  ``Recording enabled`` - Enable this option to create a recording on the Companion device.
 
 5. Add AprilTag components to the routines that require eyetracking.
-   -  Three tags is generally considered a bare minimum, but more tags will yield more robust detection
-      more accurate mapping.
+   -  Three tags is generally considered a bare minimum, but more tags will yield more robust detection and more accurate mapping.
    -  All the tags which are visible together must each have a unique ID.
    -  Tags can be placed anywhere on the screen as long as they are fully visible and do not overlap.
 
@@ -94,9 +92,9 @@ EyeTracker Class
 Supported Event Types
 =====================
 
-The Neon–|PsychoPy| integration provides real-time access to :py:class:`BinocularEyeSampleEvents
-<psychopy.iohub.devices.eyetracker.BinocularEyeSampleEvent>`_ events. The supported fields are
-described below.
+The Neon–|PsychoPy| integration provides real-time access to
+:py:class:`BinocularEyeSampleEvents <psychopy.iohub.devices.eyetracker.BinocularEyeSampleEvent>`
+events. The supported fields are described below.
 
 .. autoclass:: psychopy.iohub.devices.eyetracker.BinocularEyeSampleEvent
 
