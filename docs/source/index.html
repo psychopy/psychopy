@@ -6,8 +6,10 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Home &#8212; PsychoPy®</title>
     <link rel="stylesheet" href="_static/psychopy.css" type="text/css"/>
+    <link rel="stylesheet" href="_static/testimonial.css" type="text/css"/>
+    <link rel="stylesheet" href="_static/swiper-bundle.css" type="text/css"/>
     <link rel="stylesheet" href="_static/pygments.css" type="text/css"/>
-	<link rel="stylesheet" href="_static/breaking-news-ticker.css" type="text/css" >
+    <link rel="stylesheet" href="_static/breaking-news-ticker.css" type="text/css" >
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/breaking-news-ticker.min.js"></script>
     <script type="text/javascript" src="_static/documentation_options.js"></script>
@@ -17,6 +19,7 @@
     <script type="text/javascript" src="_static/js/jquery-fix.js"></script>
     <script type="text/javascript" src="_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="_static/bootstrap-sphinx.js"></script>
+    <script type="text/javascript" src="_static/swiper-bundle.js"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
     <link rel="index" title="Index" href="genindex.html"/>
     <link rel="search" title="Search" href="search.html"/>
@@ -58,20 +61,7 @@
 
 </head>
 <body>
-
-<!-- The social media icon bar -->
-<div class="social-bar">
-    <a href="https://twitter.com/psychopy" class="twitter">
-        <i class="fab fa-twitter"></i></a>
-    <a href="https://www.youtube.com/watch?v=VV6qhuQgsiI&list=PLFB5A1BE51964D587" class="youtube">
-        <i class="fab fa-youtube"></i></a>
-    <a href="https://www.facebook.com/PsychoPy/" class="facebook">
-        <i class="fab fa-facebook"></i></a>
-    <a href="https://github.com/psychopy/psychopy" class="github">
-        <i class="fab fa-github"></i></a>
-</div>
-
-<div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div id="navbar" class="navbar navbar-default navbar-fixed-top">
     <div class="container">
         <div class="navbar-header">
             <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
@@ -123,103 +113,267 @@
         </div>
     </div>
 </div>
+<div class="stats-container">
+<a href="https://usage.psychopy.org/">>30k users</a> <a href="https://scholar.google.co.uk/scholar?cites=18194791051729814045&as_sdt=2005&sciodt=0,5&hl=en">>4k citations</a> <a href="https://github.com/psychopy/psychopy/graphs/contributors">>190 github contributors</a> <a href="https://pavlovia.org/licensees">>150 pavlovia licences</a> 
+</div>
 
-<section id="land">
-  <div class="container full-height-with-ticker" height=100% width=90%>
+ <div class="hero-image">
+  <div class="hero-text">
+    <img src="_static/Psychopy Logotext.png" alt="PsychoPy Logo">
+    <p class = "title-tagline">Free software for creating <span id="changingWord">colorful</span> experiments.</p>
     <div class="row" align="center">
-      <div class="delay0" align="center" >
-        <img src="_static/psychopyLogoOnlineStrap_h480.png" alt="PsychoPy Logo">
-      </div>
-    </div>
-
-    <div class="breaking-news-ticker" id="newsTicker">
-        <div class="bn-label">News</div>
-        <div class="bn-news">
-            <ul>
-                <li>
-                    <a href="https://www.psychopy.org/download.html">
-                    Latest version, PsychoPy 2022.2, with Camera Component, Gratings/Gabors online, and "The Shelf"! DOWNLOAD now
-                    </a>
-                </li>
-                <li>
-                    <a href="https://uk.sagepub.com/en-gb/eur/building-experiments-in-psychopy/book273700">
-                    NEW EDITION of the official book, with new chapter on running online: Building Experiments in PsychoPy Ed2
-                    </a>
-                </li>
-                <li>
-                    <a href="https://peerj.com/articles/9414/">
-                    Is your software timing as good as PsychoPy®? See detailed comparisons with other software in our timing mega-study
-                    </a>
-                </li>
-                <li>
-                    <a href="https://link.springer.com/article/10.3758%2Fs13428-018-01193-y">
-                    Please try to cite the most up-to-date paper: Peirce, Gray, Simpson et al (2019)
-                    </a>
-                </li>
-                <li>
-                    <a href="https://www.youtube.com/playlist?list=PLFB5A1BE51964D587">
-                    Lots of helpful tutorials on youtube! Click here to see
-                    </a>
-                </li>
-            </ul> 
-        </div>
-        <div class="bn-controls">
-            <button><span class="bn-arrow bn-prev"></span></button>
-            <button><span class="bn-action"></span></button>
-            <button><span class="bn-arrow bn-next"></span></button>
-        </div>
-    </div>
-    <script type="text/javascript">
-        jQuery(document).ready(function($){
-            $('#newsTicker').breakingNews({
-                align: 'center',
-                effect: 'typography',
-                position : 'fixed-bottom',
-                borderWidth: 3,
-                height: 50,
-                themeColor: '#ce2525'
-            });
-        });
-    </script>
-    <div class="row bg-info" style="padding:20px; max-width: 100;
-            display: flex; justify-content: center; flex-wrap: wrap">
-            <a href="#easy" class="btn btn-secondary delay1 smooth-scroll">
-                <span style="font-size:2em; font-weight: bold">Easy</span>
+    <a href="#easy" class="btn btn-secondary delay1 smooth-scroll">
+                <span class= "tagline-buttons">Easy</span>
                 <br>enough for teaching
             </a>
-            <a href="#precise" class="btn btn-secondary delay2">
-                <span style="font-size:2em; font-weight: bold">Precise</span>
+    <a href="#precise" class="btn btn-secondary delay2">
+                <span class= "tagline-buttons">Precise</span>
                 <br>enough for psychophysics
             </a>
             <a href="#flexible" class="btn btn-secondary delay3">
-                <span style="font-size:2em; font-weight: bold">Flexible</span>
+                <span class= "tagline-buttons">Flexible</span>
                 <br>enough for everything else
             </a>
             <a href="#online" class="btn btn-secondary delay4">
-                <span style="font-size:2em; font-weight: bold">Online</span>
+                <span class= "tagline-buttons">Online</span>
                 <br>or lab-based, your choice
             </a>
-            <a href="#open" class="btn btn-secondary delay5 smooth-scroll">
-                <span style="font-size:2em; font-weight: bold">Open Science</span>
-                <br>because it's what we do
-            </a>
-    <!-- buttons flex -->
-    </div> <!-- row -->
-
-</div> <!-- container -->
-</section>
-
-<section class="bg-light" id="about">
-    <div class="container" style="padding:20px">
-        <div class="row">
-            <p>PsychoPy<sup>®</sup> is a free cross-platform package allowing you to run a wide range of experiments in the behavioral sciences (neuroscience, psychology, psychophysics, linguistics...) </p>
-            <p>This is a community project. Users have all the source code. Users are the developers. Users support each other. 
-            <p>Alongside open-source, we're strong supporters of Open Science, and we'll try to encourage and facilitate that wherever we can!
         </div>
+    <a href="https://www.psychopy.org/download.html" class = "red_button">Get started</a>
+    <div>
+        <br>
+    <p><a href="#free">How is PsychoPy<sup>®</sup>  Free?</a></p>
+</div>
+  </div>
+</div>
+
+
+<script>
+  // Array of colors to cycle through
+  const colors = ['red', 'blue', 'green', 'orange', 'purple'];
+
+  // Array of words to cycle through
+  const words = ['psychology', 'economics', 'neuroscience', 'psycholinguistics', 'behavioural'];
+
+  // Get the changingWord span
+  const changingWord = document.getElementById('changingWord');
+
+  // Counter variable to keep track of the current word index
+  let currentWordIndex = 0;
+
+  // Function to change the color and word sequentially
+  function changeColorAndWord() {
+    // Get the current color and word
+    const currentColor = colors[currentWordIndex % colors.length];
+    const currentWord = words[currentWordIndex % words.length];
+
+    // Change the color of the changingWord span
+    changingWord.style.color = currentColor;
+    // Change the text content of the changingWord span
+    changingWord.textContent = currentWord;
+
+    // Increment the counter for the next iteration
+    currentWordIndex++;
+  }
+
+  // Initial color and word change
+  changeColorAndWord();
+
+  // Set interval to change the color and word every 2 seconds
+  setInterval(changeColorAndWord, 3000);
+</script>
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+        <symbol viewBox="0 0 43.763 23.214">
+            <g id="arrow-left" transform="translate(2.886 2.823)">
+                <line id="Line_183" data-name="Line 183" x1="38.495" transform="translate(0.382 8.862)" fill="none"
+                    stroke-linecap="round" stroke-miterlimit="10" stroke-width="4" />
+                <line id="Line_184" data-name="Line 184" y1="8.205" x2="9.256" transform="translate(0.382 0)"
+                    fill="none" stroke-linecap="round" stroke-miterlimit="10" stroke-width="4" />
+                <line id="Line_185" data-name="Line 185" x2="10" y2="9" transform="translate(-0.062 8.566)" fill="none"
+                    stroke-linecap="round" stroke-miterlimit="10" stroke-width="4" />
+            </g>
+        </symbol>
+        <symbol id="arrow" viewBox="0 0 400.004 400.004" style="enable-background:new 0 0 400.004 400.004;"
+            xml:space="preserve">
+            <g>
+                <path d="M382.688,182.686H59.116l77.209-77.214c6.764-6.76,6.764-17.726,0-24.485c-6.764-6.764-17.73-6.764-24.484,0L5.073,187.757
+            c-6.764,6.76-6.764,17.727,0,24.485l106.768,106.775c3.381,3.383,7.812,5.072,12.242,5.072c4.43,0,8.861-1.689,12.242-5.072
+            c6.764-6.76,6.764-17.726,0-24.484l-77.209-77.218h323.572c9.562,0,17.316-7.753,17.316-17.315
+            C400.004,190.438,392.251,182.686,382.688,182.686z" />
+            </g>
+        </symbol>
+    </svg>
+
+
+<section class="bg-primary" id="testimonials">
+        <div class="container spacer por">
+            <div class="text-whtie text-center ml-3">
+                <h1 class="bold">What users say</h1>
+                <p class="lead">
+                    <a href="https://psychopy.org/about/testimonials.html">See all testimonials.</a>
+                </p>
+            </div>
+            <div class="arrowbox">
+
+                <div class="swiper-button-prev">
+                    <svg fill="red" height="34" class="arrow left">
+                        <use xlink:href="#arrow" />
+                    </svg>
+                </div>
+                <div class="swiper-button-next">
+                    <div class="arrow-right">
+                        <svg fill="red" height="60" width="60" class="arrow">
+                            <use xlink:href="#arrow" />
+                        </svg>
+                    </div>
+
+                </div>
+            </div>
+            <div class="swiper-container swiper-testimonial">
+                <div class="swiper-wrapper">
+                    <div class="swiper-slide">
+                        <div class="review-box">
+                            <div class="media">
+                                    <p>Davide Massida</p>
+                                    <p class="user-post"> via twitter</p>
+                            </div>
+                            <p class="read">
+                                "PsychoPy is one of those things that improve the life of an experimental psychologist. Really. #python #neuroscience"
+                            </p>
+                            <img class="quote" src="img/icons/quote.svg" alt="">
+
+                        </div>
+                    </div>
+                    <div class="swiper-slide">
+                        <div class="review-box">
+                            <div class="media">
+                                <div class="media-body">
+                                    <p>Harriet Allen</p>
+                                    <p class="user-post">Professor, University of Nottingham </p>
+                                </div>
+                            </div>
+                            <p class="read">
+                                "What made me switch was the combination of Builder and Coder options. Students are not scared of the Builder, but I can still write code when needed (and even hide it in student experiments).""
+                            </p>
+                            <img class="quote" src="img/icons/quote.svg" alt="">
+                        </div>
+                    </div>
+                    <div class="swiper-slide">
+                        <div class="review-box">
+                            <div class="media">
+                                
+                                <div class="media-body">
+                                    <p>Nate Vack</p>
+                                    <p class="user-post">Research Programmer, UW-Madison</p>
+                                </div>
+                            </div>
+                            <p class="read">
+                                "It's wonderful to have a product that makes stimulus presentation easy (and is free!)..."" 
+                            </p>
+                            <img class="quote" src="img/icons/quote.svg" alt="">
+
+                        </div>
+                    </div>
+                    <div class="swiper-slide">
+                        <div class="review-box">
+                            <div class="media">
+                                
+                                <div class="media-body">
+                                    <p>Fenja Ziegler</p>
+                                    <p class="user-post">Senior Lecturer, University of Lincoln </p>
+                                </div>
+                            </div>
+                            <p class="read">
+                                "...easy to customise with a bit of scripting, a helpful user community, can be explained to a student in an hour or so..."
+                            </p>
+                            <img class="quote" src="img/icons/quote.svg" alt="">
+
+                        </div>
+                    </div>
+                    <div class="swiper-slide">
+                        <div class="review-box">
+                            <div class="media">
+                                <div class="media-body">
+                                    <p>Micah Allen</p>
+                                    <p class="user-post">Post-doc, UCL</p>
+                                </div>
+                            </div>
+                            <p class="read">
+                                "I love psychopy! I used it for one previous fMRI experiment and found the language extremely easy to use..."
+                            </p>
+                            <img class="quote" src="img/icons/quote.svg" alt="">
+
+                        </div>
+                    </div>
+                </div>
+                <!-- Add Pagination -->
+                <div class="swiper-pagination"></div>
+
+            </div>
+        </div>
+    </section>
+<script>
+  // Initialize Swiper
+  var swiper = new Swiper('.swiper-container', {
+    slidesPerView: 1, // Set the number of visible slides
+    spaceBetween: 10, // Optional: Add space between slides
+    navigation: {
+      nextEl: '.swiper-button-next',
+      prevEl: '.swiper-button-prev',
+    },
+    pagination: {
+      el: '.swiper-pagination',
+      clickable: true,
+    },
+    autoplay: {
+      delay: 4000, // Adjust the delay in milliseconds (3 seconds in this example)
+      disableOnInteraction: false, // Autoplay continues even when the user interacts with the slider
+    },
+    breakpoints: {
+      // When window width is <= 768px, set slidesPerView to 1
+      768: {
+        slidesPerView: 1,
+      },
+      // When window width is <= 992px, set slidesPerView to 2
+      992: {
+        slidesPerView: 2,
+      },
+      1400: {
+        slidesPerView: 3,
+      },
+    },
+
+  });
+</script>
+
+
+<section class="bg-info" id="free">
+    <div class="container" style="padding:20px">
+        <h2>How is PsychoPy Free?</h2>
+
+        <p>The PsychoPy desktop application is <a href = "https://www.psychopy.org/download.html"> free to download </a>and run for in lab studies. PsychoPy<sup>®</sup> was written <a href = "https://github.com/psychopy/psychopy/graphs/contributors">by scientists</a> for scientists, the code underlying the software is open source on <a href="https://github.com/psychopy">github</a>, so even if you want to change the software you can!</p>
+
+        <div class="col-md-6 col-lg-8">
+            <p>As PsychoPy grew in popularity, it became clear that developing it "as a side project" in researchers spare time was not going to be sustainable. We now have a company, <a href = "https://opensciencetools.org/">Open Science Tools</a>, to sustain professional development. We have three main sources of revenue:</p>
+
+        <ul>
+                    <li><a href = "https://pavlovia.org/">Pavlovia.org</a> licenses: A platform for hosting your study online if you want to collect data via a URL link.</li>
+                    <li><a href="https://psychopy.org/consultancy.html">Consultancy</a>: Yes, you can pay us to make your task for you!</li>
+                    <li><a href = "https://workshops.psychopy.org/">Workshops</a>: We can run custom training workshops for your department/team.</li>
+                </ul>
+
+        <p>So, if you enjoy PsychoPy and would like to support its maintenance, please consider supporting us through one of these revenue streams. We try to keep our rates low-cost and affordable, whilst generating enough revenue to have a team of staff professionally develop PsychoPy and support users.</p>
+
+    </div>
+    <div class="col-md-6 col-lg-4">
+        <img src="_static/OST Logotext 512x512.png" width=100% style="max-width: 1200px;">
+    </div>
+
     </div>
 </section>
 
-<section class="bg-primary" id="easy">
+<section class="bg-light" id="easy">
     <div class="container" style="padding:20px">
         <h2>Easy enough for teaching</h2>
         <p>Universities all over the world are using PsychoPy<sup>®</sup> for teaching students about experiments</p>
@@ -244,7 +398,7 @@
     </div>
 </section>
 
-<section class="bg-light" id="precise">
+<section class="bg-primary" id="precise">
     <div class="container" style="padding:20px;">
         <h2>Precise enough for psychophysics</h2>
         <p>Hardware accelerated graphics, best-in class timing, and calibration tools built in</p>
@@ -274,16 +428,13 @@
     </div>
 </section>
 
-<section class="bg-primary" id="flexible">
+<section class="bg-light" id="flexible">
     <div class="container" style="padding:20px">
         <h2>Flexible enough for everything else</h2>   
         <div class="row">
             <div class="col-md-6 col-lg-8">
-                <video width=100% style="max-width: 1200px;" loop autoplay>
-                    <source src="_static/selectiveInspectDemo.mp4" type="video/mp4">
-                    <source src="_static/selectiveInspectDemo.gif" type="image/gif">
-                Your browser does not support the video tag.
-                </video> 
+                <img id="img1" src="_static/7.png" class="fade fade-in">
+                   <!-- Add more images as needed -->
             </div>
             <div class="col-md-6 col-lg-4">
                 PsychoPy<sup>®</sup> is great for:
@@ -298,21 +449,22 @@
             </div>
         </div>
     </div>
+
 </section>
 
-<section class="bg-light" id="online">
+<section class="bg-primary" id="online">
     <div class="container" style="padding:20px">
         <h2>Online</h2>
-        <p>Want to run your study on the web, so users can access it anywhere?</p>
+        <p>Want to run your study on the web, so participants can access it anywhere?</p> <p>Did you know PsychoPy<sup>®</sup> has a JavaScript sister library? <a href = "https://github.com/psychopy/psychojs">PsychoJS</a>, this means you can create a version of your experiment to run in a browser, after that you can use <a href = "https://pavlovia.org/">Pavlovia.org</a> to host it!</p> 
         <div class="row">
             <div class="col-md-6 col-lg-4">
-            <p>PsychoPy<sup>®</sup> added the facility to run studies online using a high-performance, hardware-accelerated, port of the PsychoPy Python library.</p>
+            <p> Pavlovia is:</p>
             <ul>
-                <li>Export your experiment from Builder to a web page
+                <li>A secure server to host your experiment online.
                 </li>
-                <li>PsychoPy<sup>®</sup> is the <a href="https://peerj.com/articles/9414/">only package with reaction time precision under 4 ms online</a>!
+                <li>An Open Access <a href = "https://pavlovia.org/explore/demos?sort=DEFAULT"> library of experiment demos</a>.
                 </li>
-                <li>Update your stimulus on every frame, just like in the desktop!
+                <li>A place to create feature rich surveys using <a href = "https://www.youtube.com/watch?v=1fs8CVKBPGk">Pavlovia Surveys </a>
                 </li>
                 <li>Upload that to <a href="https://pavlovia.org">Pavlovia.org</a> (with easy tools built into the PsychoPy app)
                 </li>
@@ -323,38 +475,79 @@
             </ul>
             </div>
             <div class="col-md-6 col-lg-8">
-                <img src="_static/online_bruce-mars-S8ffHr_dxHo-unsplash.jpg" width=100% style="max-width: 1200px;">
-                <a style="background-color:black;color:white;text-decoration:none;padding:4px 6px;font-family:-apple-system, BlinkMacSystemFont, &quot;San Francisco&quot;, &quot;Helvetica Neue&quot;, Helvetica, Ubuntu, Roboto, Noto, &quot;Segoe UI&quot;, Arial, sans-serif;font-size:12px;font-weight:bold;line-height:1.2;display:inline-block;border-radius:3px" href="https://unsplash.com/@brucemars?utm_medium=referral&amp;utm_campaign=photographer-credit&amp;utm_content=creditBadge" target="_blank" rel="noopener noreferrer" title="Download free do whatever you want high-resolution photos from bruce mars"><span style="display:inline-block;padding:2px 3px"><svg xmlns="http://www.w3.org/2000/svg" style="height:12px;width:auto;position:relative;vertical-align:middle;top:-2px;fill:white" viewBox="0 0 32 32"><title>unsplash-logo</title><path d="M10 9V0h12v9H10zm12 5h10v18H0V14h10v9h12v-9z"></path></svg></span><span style="display:inline-block;padding:2px 3px">bruce mars</span></a>
+                <img id="img2" src="_static/pavlovia_infographic.png">
             </div>
         </div>
     </div>
 </section>
 
-<section class="bg-info" id="open">
-    <div class="container" style="padding:20px">
-        <h2>Open science</h2>
-        <p>Did you notice that everyone's sharing these days?</p>
-        <div class="row">
 
-            <div class="col-md-6 col-lg-8">
-                <img src="_static/open_richard-balog-H9GZgI6jU7Y-unsplash.jpg" width=100% style="max-width: 1200px;">
-                <a style="background-color:black;color:white;text-decoration:none;padding:4px 6px;font-family:-apple-system, BlinkMacSystemFont, &quot;San Francisco&quot;, &quot;Helvetica Neue&quot;, Helvetica, Ubuntu, Roboto, Noto, &quot;Segoe UI&quot;, Arial, sans-serif;font-size:12px;font-weight:bold;line-height:1.2;display:inline-block;border-radius:3px" href="https://unsplash.com/@ricsard?utm_medium=referral&amp;utm_campaign=photographer-credit&amp;utm_content=creditBadge" target="_blank" rel="noopener noreferrer" title="Download free do whatever you want high-resolution photos from Richard Balog"><span style="display:inline-block;padding:2px 3px"><svg xmlns="http://www.w3.org/2000/svg" style="height:12px;width:auto;position:relative;vertical-align:middle;top:-2px;fill:white" viewBox="0 0 32 32"><title>unsplash-logo</title><path d="M10 9V0h12v9H10zm12 5h10v18H0V14h10v9h12v-9z"></path></svg></span><span style="display:inline-block;padding:2px 3px">Richard Balog</span></a>
-            </div>
-            <div class="col-md-6 col-lg-4">
-                <ul>
-                    <li>PsychoPy<sup>®</sup> was written by scientists for scientists
-                    </li>
-                    <li>You have all the source code. If you want something added or changed you can go ahead and make that change!
-                    </li>
-                    <li><a href="https://github.com/psychopy/psychopy/graphs/contributors">Over 100 contributors</a> have made changes (small or large) and fed them back to the project for others to benefit!
-                    </li>
-                    <li>You can <a href="https://pavlovia.org">share your study</a> on <a href="https://pavlovia.org">Pavlovia.org</a> and that means more people might be tempted to base their work on yours (which means more people talking about your work).
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </div>
-</section>
+<script>
+    var img_tracker = "icon1";
+    //var img_tracker2 = "icon1";
+    var pic = document.getElementById("img1");
+    //var pic2 = document.getElementById("img2");
+
+    function changeImg() {
+        if (img_tracker === "icon1") {
+            pic.src = "_static/8.png";
+            img_tracker = "icon2";
+        } else if (img_tracker === "icon2") {
+            pic.src = "_static/9.png";
+            img_tracker = "icon3";
+        } else if (img_tracker === "icon3") {
+            pic.src = "_static/10.png";
+            img_tracker = "icon4";
+        } else if (img_tracker === "icon4") {
+            pic.src = "_static/11.png";
+            img_tracker = "icon5";
+        } else {
+            pic.src = "_static/7.png";
+            img_tracker = "icon1";
+        }
+    }
+
+    //function changeImg2() {
+    //    if (img_tracker2 === "icon1") {
+     //       pic2.src = "_static/13.png";
+       //     img_tracker2 = "icon2";
+        //} else if (img_tracker2 === "icon2") {
+          //  pic2.src = "_static/14.png";
+            //img_tracker2 = "icon3";
+        //} else {
+          //  pic2.src = "_static/12.png";
+           // img_tracker2 = "icon1";
+        //}
+    //}
+
+    function fadeIn() {
+        pic.classList.remove("fade-out");
+        pic.classList.add("fade-in");
+        //pic2.classList.remove("fade-out");
+        //pic2.classList.add("fade-in");
+    }
+
+    function fadeOut() {
+        pic.classList.remove("fade-in");
+        pic.classList.add("fade-out");
+
+        //pic2.classList.remove("fade-in");
+        //pic2.classList.add("fade-out");
+
+        // Add a delay before calling changeImg and fadeIn again
+        setTimeout(function () {
+            changeImg();
+            //changeImg2();
+            fadeIn();
+        }, 1000); // Adjust the delay time as needed
+    }
+
+    // Call fadeIn initially to display the first image
+    fadeIn();
+
+    // Set an interval for fadeOut
+    setInterval(fadeOut, 4000); // Adjust the interval time as needed
+</script>
 
 <footer class="footer">
     <div class="container" style="padding:20px">
@@ -369,8 +562,8 @@
             </div>
             <div class="col-md-6 col-lg-6">
                 <p class="pull-right">
-                    &copy; Copyright 2002-2018, Jonathan Peirce<br>
-                    &copy; Copyright 2002-2018, <a href="https://opensciencetools.org">Open Science Tools Ltd.</a><br><br>
+                    &copy; Copyright 2002-2024, Jonathan Peirce<br>
+                    &copy; Copyright 2002-2024, <a href="https://opensciencetools.org">Open Science Tools Ltd.</a><br><br>
                     PsychoPy<sup>®</sup> and Pavlovia<sup>®</sup> are registered trademarks of <a href="https://opensciencetools.org">Open Science Tools Ltd.</a>
 
                     <br/><br/>
@@ -382,5 +575,6 @@
         </div>
     </div>
 </footer>
+
 </body>
 </html>
