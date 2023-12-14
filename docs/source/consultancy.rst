@@ -2,21 +2,45 @@
 Consultancy services
 ======================
 
-We will continue offering as much technical support as possible for free via the `forum <https://discourse.psychopy.org>`_ as well as offering `free training events <https://workshops.psychopy.org/3hrs/index.html>`_. However, if you're **short on time but have spare funds**, or you are **seeking some specific training** you can also hire bespoke support direct from the |PsychoPy| team. For enquiries please contact consultancy@opensciencetools.org.
+.. raw:: html
+
+   <div class="image-carousel" style="display: flex; justify-content: center;">
+       <img src="path/to/your/image1.jpg" style="width: 700px; display: block;">
+       <img src="path/to/your/image2.jpg" style="width: 700px; display: none;">
+       <img src="path/to/your/image3.jpg" style="width: 700px; display: none;">
+       <img src="path/to/your/image4.jpg" style="width: 700px; display: none;">
+   </div>
+
+   <script>
+   var currentIndex = 0;
+   var images = document.querySelectorAll('.image-carousel img');
+
+   function cycleImages() {
+       var totalImages = images.length;
+       images[currentIndex].style.display = 'none';
+       currentIndex = (currentIndex + 1) % totalImages;
+       images[currentIndex].style.display = 'block';
+   }
+
+   setInterval(cycleImages, 3000); // Change image every 3 seconds
+   </script>
 
 
-What can we offer?
+How much does it cost?
 --------------------------------
 
-We can be quite flexible in what we offer, but to give you an idea of what is possible:
+These are our costs per hour of support:
 
-*	**Task creation** -  Short on time but have spare funds? Need a task creating? Our team of experts can help create a task to fit your brief.
-*	**Debugging assistance**  - Have you developed a task that needs a few tweaks you are stuck on? In general we try to offer as much support for this for free via the `forum <https://discourse.psychopy.org>`_    but if you want to enhance your learning via one-to-one or small group chats get in touch!
-*	**Small group training**  - If you would like a departmental workshop tailored to a broad audience (assuming beginner knowledge of |PsychoPy|) we offer 3Hr sessions at a small fee of £100 per session. Alternatively, if you and your lab group would like to learn about specific aspects of |PsychoPy| (for example learn how to create a specific type of task), we can tailor something for you.
+.. image:: images/pricing_table.png
+   :width: 700px
+   :align: center
 
-.. only:: html
 
-    .. image:: /images/consultancy.gif
-       :align: center
-       :width: 600
+How can I get support?
+--------------------------------
 
+Just use the button below to get in touch!
+
+.. raw:: html
+
+    <a href="https://forms.clickup.com/4570406/f/4bf96-7552/ZN8URSTDTWDENY6RP9" style="background-color: lightblue; color: white; padding: 10px 20px; text-align: center; text-decoration: none; display: inline-block; border-radius: 5px;">Get in touch!</a>
