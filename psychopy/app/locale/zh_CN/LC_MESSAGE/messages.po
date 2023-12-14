@@ -7113,7 +7113,7 @@ msgstr "扫描所有端口"
 
 #: ../monitors/MonitorCenter.py:401
 msgid "Get Photometer"
-msgstr 获取光度计""
+msgstr "获取光度计"
 
 #: ../monitors/MonitorCenter.py:407
 msgid "Gamma Calibration..."
