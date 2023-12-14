@@ -92,6 +92,8 @@ if systemtools.isVM_CI():
 if isinstance(prefs.hardware['audioLib'], str):
     prefs.hardware['audioLib'] = [prefs.hardware['audioLib']]
 
+thisLibName = None  # name of the library we are trying to load
+
 # selection and fallback mechanism for audio libraries
 for thisLibName in prefs.hardware['audioLib']:
     # Tell the user we are trying to load the specifeid audio library
@@ -210,22 +212,28 @@ else:
         "No audioLib could be loaded. Tried: {}\n Check whether the necessary "
         "audioLibs are installed".format(prefs.hardware['audioLib']))
 
-# warn the user 
-if audioLib.lower() != 'ptb':
-    # Could be running PTB, just aren't?
-    logging.warning("We strongly recommend you activate the PTB sound "
-                    "engine in PsychoPy prefs as the preferred audio "
-                    "engine. Its timing is vastly superior. Your prefs "
-                    "are currently set to use {} (in that order)."
-                    .format(prefs.hardware['audioLib']))
+# warn the user
+if audioLib is not None:
+    if audioLib.lower() != 'ptb':
+        # Could be running PTB, just aren't?
+        logging.warning("We strongly recommend you activate the PTB sound "
+                        "engine in PsychoPy prefs as the preferred audio "
+                        "engine. Its timing is vastly superior. Your prefs "
+                        "are currently set to use {} (in that order)."
+                        .format(prefs.hardware['audioLib']))
 
 
 # function to set the device (if current lib allows it)
 def setDevice(dev, kind=None):
     """Sets the device to be used for new streams being created.
 
-    :param dev: the device to be used (name, index or sounddevice.device)
-    :param kind: one of [None, 'output', 'input']
+    Parameters
+    ----------
+    dev: str or dict
+        Name of the device to be used (name, index or sounddevice.device)
+    kind: str
+        One of [None, 'output', 'input']
+
     """
     if dev is None:
         # if given None, do nothing
@@ -233,7 +241,7 @@ def setDevice(dev, kind=None):
     if not hasattr(backend, 'defaultOutput'):
         raise IOError("Attempting to SetDevice (audio) but not supported by "
                       "the current audio library ({!r})".format(audioLib))
-    if hasattr(dev,'name'):
+    if hasattr(dev, 'name'):
         dev = dev['name']
     if kind is None:
         backend.defaultInput = backend.defaultOutput = dev
@@ -247,6 +255,7 @@ def setDevice(dev, kind=None):
         else:
             raise TypeError("`kind` should be one of [None, 'output', 'input']"
                             "not {!r}".format(kind))
+
 
 # Set the device according to user prefs (if current lib allows it)
 deviceNames = []
