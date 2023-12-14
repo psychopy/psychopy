@@ -1,0 +1,43 @@
+name: Generate Psychopy translations
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - dev
+      - release
+    paths:
+      - "**.po"
+
+jobs:
+  update_translations:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Compiling .mo files
+        run: |
+          for x in ${{ github.workspace }}/psychopy/app/locale/*/*/*.po ;\
+             do python .github/workflows/msgfmt.py --output-file "`dirname "$x"`/`basename "$x" .po`.mo" "$x" ; \
+          done
+
+      - name: Stage all changes
+        id: staging
+        run: |
+          ls -d ${{ github.workspace }}/psychopy/app/locale/*/*/*.mo | grep -v "en-GB" | xargs git add -f
+          echo "NUM_OF_STAGED=$(git diff --staged --name-only | wc -l)" >> $GITHUB_OUTPUT
+
+      - name: Push translation changes
+        if: steps.staging.outputs.NUM_OF_STAGED > 0
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          ls -d ${{ github.workspace }}/psychopy/app/locale/*/*/*.mo | grep -v "en-GB" | xargs git add
+          git commit -m "[bot] Docs: Update translations"
+          git push
