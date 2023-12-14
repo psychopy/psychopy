@@ -1,14 +1,15 @@
 
 Consultancy services
 ======================
+You can hire our team to create or debug a task, or help in any other way!
 
 .. raw:: html
 
    <div class="image-carousel" style="display: flex; justify-content: center;">
-       <img src="path/to/your/image1.jpg" style="width: 700px; display: block;">
-       <img src="path/to/your/image2.jpg" style="width: 700px; display: none;">
-       <img src="path/to/your/image3.jpg" style="width: 700px; display: none;">
-       <img src="path/to/your/image4.jpg" style="width: 700px; display: none;">
+       <img src="images/cons_carousel2.png" style="width: 700px; display: block;">
+       <img src="images/cons_carousel3.png" style="width: 700px; display: none;">
+       <img src="images/cons_carousel4.png" style="width: 700px; display: none;">
+       <img src="images/cons_carousel5.png" style="width: 700px; display: none;">
    </div>
 
    <script>
@@ -27,20 +28,16 @@ Consultancy services
 
 
 How much does it cost?
---------------------------------
-
-These are our costs per hour of support:
+----------------------
+The costs for our services are the same, whether we're creating a task for you or debugging a task you've created yourself.
 
 .. image:: images/pricing_table.png
-   :width: 700px
+   :width: 800px
    :align: center
 
 
-How can I get support?
---------------------------------
-
-Just use the button below to get in touch!
-
 .. raw:: html
 
-    <a href="https://forms.clickup.com/4570406/f/4bf96-7552/ZN8URSTDTWDENY6RP9" style="background-color: lightblue; color: white; padding: 10px 20px; text-align: center; text-decoration: none; display: inline-block; border-radius: 5px;">Get in touch!</a>
+    <div style="text-align: center;">
+        <a href="https://forms.clickup.com/4570406/f/4bf96-7552/ZN8URSTDTWDENY6RP9" style="background-color: #F2545B; color: white; padding: 10px 20px; text-decoration: none; display: inline-block; border-radius: 5px;">Click here to get started!</a>
+    </div>
