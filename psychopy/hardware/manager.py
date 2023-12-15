@@ -388,7 +388,7 @@ class DeviceManager:
         # get devices by class
         devices = DeviceManager.getInitialisedDevices(deviceClass=deviceClass)
         # try each matching device
-        for dev in devices:
+        for dev in devices.values():
             if hasattr(dev, attr):
                 # if device matches attribute, return it
                 if getattr(dev, attr) == value:
