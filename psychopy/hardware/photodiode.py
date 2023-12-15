@@ -377,8 +377,12 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
         state = pixels.mean() > (255 - self.getThreshold())
         # if state has changed, make an event
         if state != self.state[0]:
+            if self.win._frameTimes:
+                frameT = logging.defaultClock.getTime() - self.win._frameTimes[-1]
+            else:
+                frameT = 0
             resp = PhotodiodeResponse(
-                t=self.clock.getTime(),
+                t=self.clock.getTime() - frameT,
                 value=state,
                 channel=0,
                 threshold=self._threshold
