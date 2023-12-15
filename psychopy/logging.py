@@ -38,6 +38,8 @@ import atexit
 import sys
 import codecs
 import locale
+from pathlib import Path
+
 from psychopy import clock
 
 _packagePath = path.split(__file__)[0]
@@ -120,10 +122,11 @@ class _LogEntry():
 
     def __init__(self, level, message, t=None, obj=None):
         super(_LogEntry, self).__init__()
-        try:
-            "%0.4f" % (t)
-        except (ValueError, TypeError):
-            raise ValueError("Value \"%s\" of log message \"%s\" could not be coerced to string from numeric" % (t, message))
+        if not isinstance(t, str):
+            try:
+                "%0.4f" % (t)
+            except (ValueError, TypeError):
+                raise ValueError("Value \"%s\" of log message \"%s\" could not be coerced to string from numeric" % (t, message))
         self.t = t
         self.t_ms = t * 1000
         self.level = level
@@ -158,6 +161,8 @@ class LogFile():
         """
         super(LogFile, self).__init__()
         # work out if this is a filename or a stream to write to
+        if isinstance(f, Path):
+            f = str(f)
         if f is None:
             self.stream = 'stdout'
         elif hasattr(f, 'write'):

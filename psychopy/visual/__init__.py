@@ -62,6 +62,7 @@ from psychopy.visual.custommouse import CustomMouse
 from psychopy.visual.elementarray import ElementArrayStim
 from psychopy.visual.ratingscale import RatingScale
 from psychopy.visual.slider import Slider
+from psychopy.visual.progress import Progress
 from psychopy.visual.simpleimage import SimpleImageStim
 
 # stimuli derived from BaseVisualStim

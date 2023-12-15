@@ -222,15 +222,6 @@ Consultancy services
    var currentIndex = 0;
    var images = document.querySelectorAll('.image-carousel img');
 
-   function cycleImages() {
-       var totalImages = images.length;
-       images[currentIndex].style.display = 'none';
-       currentIndex = (currentIndex + 1) % totalImages;
-       images[currentIndex].style.display = 'block';
-   }
-
-   setInterval(cycleImages, 3000); // Change image every 3 seconds
-   </script>
 
 We've helped many researchers to create and debug experiments, as well as delivered bespoke tutorials. 
 If there's something you'd like us to do for you, just get in touch!

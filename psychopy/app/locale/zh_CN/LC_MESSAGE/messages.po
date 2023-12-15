@@ -5,10 +5,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: PsychoPy 2021.2.3\n"
+"Project-Id-Version: PsychoPy 2023.2.2\n"
 "Report-Msgid-Bugs-To: shuonwang@gmail.com\n"
 "POT-Creation-Date: 2021-12-18 00:00+0100\n"
-"PO-Revision-Date: 2022-08-25 21:47+0800\n"
+"PO-Revision-Date: 2023-12-13 14:40-0500\n"
 "Last-Translator: Shun Wang <shuonwang@gmail.com>\n"
 "Language-Team: Shun Wang <shuonwang@gmail.com>\n"
 "Language: zh_CN\n"
@@ -17,7 +17,10 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 "Generated-By: Babel 2.6.0\n"
-"X-Generator: Poedit 3.1\n"
+"X-Generator: Poedit 3.3.2\n"
+"X-Poedit-KeywordsList: _translate\n"
+"X-Poedit-Basepath: ../../../..\n"
+"X-Poedit-SearchPath-0: .\n"
 
 #: __init__.py:48
 msgid "Welcome to PsychoPy2!"
@@ -29,28 +32,29 @@ msgstr ""
 
 #: ../alerts/alertsCatalogue/alertmsg.py:12
 msgid "Your stimulus size exceeds the {dimension} dimension of your window."
-msgstr ""
+msgstr "刺激大小超过了窗口尺寸{dimension}。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:16
 msgid "Your stimulus size is smaller than 1 pixel ({dimension} dimension)."
-msgstr ""
+msgstr "刺激尺寸小于一像素（{dimension} 尺寸）。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:20
 msgid ""
 "Your stimulus position exceeds the {dimension} dimension of your window."
-msgstr ""
+msgstr "刺激位置超出了窗口尺寸{dimension}。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:24
 msgid ""
 "Your stimulus {type} time of {time} is less than a screen refresh for a {Hz}"
 "Hz monitor."
-msgstr ""
+msgstr "刺激{type}持续时间{time}小于显示器屏幕刷新率{Hz}赫兹。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:28
 msgid ""
 "Your stimulus {type} time of {time} seconds cannot be accurately presented "
 "for {time} on a {Hz}Hz monitor."
 msgstr ""
+"刷新率为{Hz}赫兹的显示器屏幕不能精确地显示持续时间为{time}秒的刺激{type}。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:32
 msgid ""
@@ -58,45 +62,53 @@ msgid ""
 "recommend either updating PsychoPy or changing the \"Use Version\" setting "
 "in Experiment Settings to this version."
 msgstr ""
+"此实验由更高版本的 PsychoPy（{version}）搭建，我们建议升级 PsychoPy，或在实验"
+"设置中将使用版本（Use Version）修改为现版本。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:36
 msgid ""
 "Experiment was built in a past version of PsychoPy ({version}), saving it in "
 "this version may add parameters which cannot be parsed."
 msgstr ""
+"此实验由较低版本的 PsychoPy（{version}）搭建，将实验保存为现版本可能出现不可"
+"读的参数。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:40
 msgid ""
 "Your stimulus start {type} exceeds the stop {type}. Consider using a {type} "
 "duration."
-msgstr ""
+msgstr "刺激的起始时间{type}超过终止时间{type}。请考虑定义时长{type}。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:44
 msgid ""
 "Your stimulus {type} type {frameType} must be expressed as a whole number."
-msgstr ""
+msgstr "刺激{type}类型{frameType}必须表现为整数。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:48
 msgid ""
 "Python Syntax Error in '{codeTab}' tab. See '{code}' on line number "
 "{lineNumber} of the '{codeTab}' tab."
 msgstr ""
+"“{codeTab}”标签页出现Python语法错误。见“{codeTab}”标签页第{lineNumber}"
+"的“{code}”。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:52
 msgid ""
 "JavaScript Syntax Error in '{codeTab}' tab. See '{lineNumber}' in the "
 "'{codeTab}' tab."
 msgstr ""
+"“{codeTab}”标签页出现JavaScript语法错误。见“{codeTab}”标签页第{lineNumber}"
+"行。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:56
 msgid ""
 "The component {name} is currently disabled and will not be written to your "
 "experiment script."
-msgstr ""
+msgstr "组件{name}已被禁用且不会被写入实验脚本。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:60
 msgid "Cannot calculate parameter."
-msgstr ""
+msgstr "无法计算参数。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:63
 msgid ""
@@ -104,61 +116,67 @@ msgid ""
 "{component.type} component \"{component.params[name].val}\" as a dollar sign "
 "has been used incorrectly."
 msgstr ""
+"Builder无法解析{component.type}组件中标签为“{param.label}”的“{param."
+"val}”值“{component.params[name].val}”被误用为美元符号（$）。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:67
 msgid ""
 "Font `{param.val}` not found locally, will check Google Fonts on next run."
-msgstr ""
+msgstr "未在本地找到“{param.val}”字体，下次运行将在 Google Fonts 中查找。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:71
 msgid ""
 "Font `{font} {style}` not available in weight `{weight}`, component `{name}` "
 "will default to Open Sans Regular."
 msgstr ""
+"磅值“{weight}”不可用于“{font}{style}”字体，组件“{name}”将默认显示为 Open "
+"Sans Regular。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:75
 msgid "Recording device '{device}' not found, using default device instead."
-msgstr ""
+msgstr "未找到录音设备“{device}”，将使用默认设备。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:79
 msgid ""
 "Editable textbox component {textbox} and keyboard component {keyboard} in "
 "the same routine may compete for keypresses"
 msgstr ""
+"同一例程中的可编辑文本框组件{textbox}和键盘组件{keyboard}可能在按键时互相干扰"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:83
 msgid ""
 "Experiment includes components or routines which use eyetracking, but no eye "
 "tracker is configured."
-msgstr ""
+msgstr "实验包含使用眼动追踪的组件或者例程，但未配置眼动追踪器。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:86
 msgid ""
 "A {eyetracker} eye tracker has been configured, but no calibration routine "
 "is present."
-msgstr ""
+msgstr "已配置眼动追踪器{eyetracker}，但未设置校准例程。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:90
 msgid ""
 "As {brand} eyetrackers do not support animations in their calibration "
 "routine, animation values have not been used in your calibration routine."
 msgstr ""
+"因为眼动追踪器{brand}不支持校准例程中的动画，动画值未被用于您的校准例程。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:93
 msgid "Eyetrackers by {brand} do not support manual pacing"
-msgstr ""
+msgstr "眼动追踪器{brand}不支持手动记步"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:96
 msgid ""
 "Window mode is set to be windowed, but eyetracking requires the window to be "
 "full screen."
-msgstr ""
+msgstr "窗口模式被设置在窗口内，但眼动追踪器要求全屏。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:100
 msgid ""
 "A monitor config is required for accurate eyetracking measurements, but none "
 "was found."
-msgstr ""
+msgstr "要进行精确的眼动追踪，需要配置监视器，但没有找到可用监视器。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:104
 msgid ""
@@ -166,43 +184,45 @@ msgid ""
 "Record component. Without an Eyetracker Record component, eye position will "
 "not be available."
 msgstr ""
+"未对Region Of Interest组件{name}配置Eyetracker Record组件。没有Eyetracker "
+"Record组件则无法提供眼球位置信息。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:108
 msgid "Audio transcription service \"{transcriber}\" is not supported online."
-msgstr ""
+msgstr "音频转录服务“{transcriber}”不支持在线。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:112
 msgid "Audio transcription service \"{transcriber}\" is not supported offline."
-msgstr ""
+msgstr "音频转录服务“{transcriber}”不支持离线。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:116
 msgid ""
 "Chosen transcriber '{engine}' requires an API key, please supply one in "
 "Preferences."
-msgstr ""
+msgstr "所选择的转录器“{engine}”要求 API 密钥，请在首选项中提供。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:120
 msgid ""
 "Device parameter of microphone component \"{name}\" will not be used online."
-msgstr ""
+msgstr "麦克风组件“{name}”的设备参数无法在线使用。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:124
 msgid ""
 "The file you are attempting to run does not seem to exist, the full path "
 "supplied to Runner was {path}"
-msgstr ""
+msgstr "您将要运行的文件似乎不存在，该文件在 Runner 中的完整路径为{path}"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:128
 msgid ""
 "Color space attribute `.{colorSpaceAttrib}` is no longer in use, as colors "
 "are no longer tied to one space."
-msgstr ""
+msgstr "因为颜色不与单一空间绑定，不再使用色彩空间属性“.{colorSpaceAttrib}”。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:132
 msgid ""
 "RGB attribute `.{rgbAttrib}` is no longer in use, as non-RGB colors now "
 "handle their own conversion."
-msgstr ""
+msgstr "因为非 RGB 颜色已自行处理换算，不再使用RGB属性“.{rgbAttrib}”。"
 
 #: ../app/_psychopyApp.py:102 ../app/builder/builder.py:355
 #: ../app/coder/coder.py:1629
@@ -287,7 +307,7 @@ msgstr "刺激"
 
 #: ../app/builder/builder.py:80
 msgid "Responses"
-msgstr "反应"
+msgstr "应答"
 
 #: ../app/builder/builder.py:81 ../app/builder/localizedStrings.py:30
 msgid "Custom"
@@ -832,7 +852,7 @@ msgstr "期间设置: "
 #: ../app/builder/dialogs/__init__.py:1017
 #: ../app/builder/dialogs/dlgsCode.py:48 ../app/builder/dialogs/dlgsCode.py:50
 msgid " Properties"
-msgstr ""
+msgstr "属性"
 
 #: ../app/builder/dialogs/__init__.py:793
 #: ../app/builder/dialogs/dlgsCode.py:146
@@ -2200,7 +2220,7 @@ msgstr "稍后"
 #: ../app/connections/updates.py:171
 #, python-format
 msgid "You are running the latest version of PsychoPy (%s). "
-msgstr ""
+msgstr "正在运行最新版本的PsychoPy（%s）。"
 
 #: ../app/connections/updates.py:198
 #, python-format
@@ -2209,18 +2229,22 @@ msgid ""
 "\n"
 "(To disable this check, see Preferences > connections > checkForUpdates)"
 msgstr ""
+"PsychoPy 版本v%(latest)s可用（您运行的版本为%(running)s）。\n"
+"（如需禁用此检查，见 首选项>链接>检查更新（checkForUpdates））"
 
 #: ../app/connections/updates.py:205
 msgid ""
 "This version MAY require you to modify your\n"
 "scripts/exps slightly. Read the changelog carefully."
 msgstr ""
+"此版本可能要求对\n"
+"由较早版本生成的脚本/实验进行修改。请仔细阅读日志。"
 
 #: ../app/connections/updates.py:211
 msgid ""
 "There are no known compatibility\n"
 "issues with your current version."
-msgstr ""
+msgstr "当前版本不存在已知的兼容性问题。"
 
 #: ../app/connections/updates.py:215
 msgid "View complete Changelog"
@@ -2228,7 +2252,7 @@ msgstr "查看完整更新日志"
 
 #: ../app/connections/updates.py:219
 msgid "You can update PsychoPy with your package manager"
-msgstr ""
+msgstr "您可以使用包管理器升级 PsychoPy"
 
 #: ../app/connections/updates.py:223
 msgid "Should PsychoPy update itself?"
@@ -2276,7 +2300,7 @@ msgid ""
 "You are running PsychoPy v%s.\n"
 " "
 msgstr ""
-"您正在运行 PsychoPy 版本 v%s.\n"
+"正在运行 PsychoPy 版本 v%s.\n"
 " "
 
 #: ../app/connections/updates.py:343
@@ -2284,10 +2308,12 @@ msgid ""
 "PsychoPy could not connect to the \n"
 " internet to check for more recent versions.\n"
 msgstr ""
+"PsychoPy 无法连接到\n"
+"网络以检查更新的版本。\n"
 
 #: ../app/connections/updates.py:345
 msgid "Check proxy settings in preferences."
-msgstr ""
+msgstr "请在首选项中检查代理设置。"
 
 #: ../app/connections/updates.py:350
 #, python-format
@@ -2295,19 +2321,20 @@ msgid ""
 "You are running PsychoPy (%(running)s), which is ahead of the latest "
 "official version (%(latest)s)"
 msgstr ""
+"正在运行 PsychoPy （%(running)s），此版本领先官方最新版本（%(latest)s）。"
 
 #: ../app/connections/updates.py:355
 #, python-format
 msgid ""
 "You are running the latest version of PsychoPy (%s)\n"
 " "
-msgstr ""
+msgstr "正在运行最新版本的 PsychoPy (%s)\n"
 
 #: ../app/connections/updates.py:357
 msgid ""
 "You can revert to a previous version by selecting a specific .zip source "
 "installation file"
-msgstr ""
+msgstr "您可通过选择一个特定的.zip源安装文件以恢复至较早版本。"
 
 #: ../app/connections/updates.py:360
 #, python-format
@@ -2315,6 +2342,8 @@ msgid ""
 "PsychoPy v%(latest)s is available\n"
 "You are running v%(running)s"
 msgstr ""
+"PsychoPy v%(latest)s可用\n"
+"正在运行v%(running)s"
 
 #: ../app/connections/updates.py:366
 msgid ""
@@ -2337,27 +2366,30 @@ msgstr ""
 #: ../app/connections/updates.py:419
 #, python-format
 msgid "Attempting to fetch PsychoPy %s..."
-msgstr ""
+msgstr "尝试获取 PsychoPy %s…"
 
 #: ../app/connections/updates.py:439
 #, python-format
 msgid "Fetched %(done)i of %(total)i kb of PsychoPy-%(version)s.zip"
-msgstr ""
+msgstr "已获取 PsychoPy-%(version)s.zip的%(done)i/%(total)i kb"
 
 #: ../app/connections/updates.py:445
 #, python-format
 msgid "Successfully downloaded PsychoPy-%s.zip"
-msgstr ""
+msgstr "成功下载 PsychoPy-%s.zip"
 
+# Translate “admin” as 管理者
 #: ../app/connections/updates.py:495
 msgid ""
 "To upgrade you need to restart the app as admin (Right-click the app and "
 "'Run as admin')"
 msgstr ""
+"如需更新，您需要以管理者重启软件（右键软件图标并选择“以管理者运行（Run as "
+"admin）”）"
 
 #: ../app/connections/updates.py:499
 msgid "Could not move existing PsychoPy installation (permissions error?)"
-msgstr ""
+msgstr "无法移动已有的 PsychoPy 安装（权限错误？）"
 
 #: ../app/connections/updates.py:527
 #, python-format
@@ -2365,6 +2397,8 @@ msgid ""
 "Right-click the app and 'Run as admin'):\n"
 "%s"
 msgstr ""
+"右键软件图标并选择“以管理者运行（Run as admin）”：\n"
+"%s"
 
 #: ../app/connections/updates.py:530
 #, python-format
@@ -2372,27 +2406,33 @@ msgid ""
 "Failed to create directory for new version (permissions error?):\n"
 "%s"
 msgstr ""
+"为新版本创建目录失败（权限错误？）：\n"
+"%s"
 
 #: ../app/connections/updates.py:555
 msgid ""
 "Success. \n"
 "Changes to PsychoPy will be completed when the application is next run"
 msgstr ""
+"成功。\n"
+"下次运行软件时将完成 PsychoPy 的更新"
 
 #: ../app/connections/updates.py:564
 #, python-format
 msgid "Downloading PsychoPy v%s"
-msgstr ""
+msgstr "正在下载 PsychoPy v%s"
 
 #: ../app/connections/updates.py:569
 msgid ""
 "Failed to fetch PsychoPy release.\n"
 "Check proxy setting in preferences"
 msgstr ""
+"无法获取 PsychoPy 的发布。\n"
+"请于首选项中检查代理设置"
 
 #: ../app/dialogs.py:38 ../gui/qtgui.py:610
 msgid "Warning"
-msgstr ""
+msgstr "警告"
 
 #: ../app/dialogs.py:39
 msgid "Info"
@@ -2457,7 +2497,7 @@ msgstr "保存(&S)"
 msgid ""
 "Are you sure you want to exit PsychoPy? Unsaved work may be lost (but we'll "
 "try to save opened files)."
-msgstr ""
+msgstr "确定退出PsychoPy？未储存的内容将会丢失（我们会尝试保存已打开的文件）。"
 
 #: ../app/errorDlg.py:127
 msgid "Exit PsychoPy?"
@@ -2470,7 +2510,7 @@ msgstr "保存错误跟踪"
 #: ../app/errorDlg.py:180
 #, python-format
 msgid "Cannot save to file '%s'."
-msgstr "无法保存到文件 '%s'"
+msgstr "无法保存到文件 ‘%s’"
 
 #: ../app/errorDlg.py:181
 msgid "File save error"
@@ -2503,19 +2543,19 @@ msgstr ""
 
 #: ../app/pavlovia_ui/_base.py:178
 msgid "Title summarizing the changes you're making in these files"
-msgstr ""
+msgstr "请在标题中总结您在这些文件中做的修改"
 
 #: ../app/pavlovia_ui/_base.py:181
 msgid "Optional details about the changes you're making in these files"
-msgstr ""
+msgstr "请描述您在这些文件中所做的修改细节（可选）"
 
 #: ../app/pavlovia_ui/functions.py:44
 msgid "Choose/create the root location for the synced project"
-msgstr ""
+msgstr "请为要同步的项目选择/创建源地址"
 
 #: ../app/pavlovia_ui/functions.py:101
 msgid "Changes to commit:\n"
-msgstr ""
+msgstr "需提交的修改：\n"
 
 #: ../app/pavlovia_ui/functions.py:107
 msgid "\t{}: {} files\n"
@@ -2523,7 +2563,7 @@ msgstr "\t{}: {} 文件\n"
 
 #: ../app/pavlovia_ui/functions.py:130
 msgid "You need to install git to use Pavlovia projects"
-msgstr ""
+msgstr "您需要安装 git 以运行 Pavlovia 项目"
 
 #: ../app/pavlovia_ui/menu.py:53
 msgid "Log in to Pavlovia...\t{}"
@@ -2563,7 +2603,7 @@ msgstr "描述："
 
 #: ../app/pavlovia_ui/project.py:76
 msgid "Local folder:"
-msgstr "Local folder:"
+msgstr "本地目录："
 
 #: ../app/pavlovia_ui/project.py:79 ../app/pavlovia_ui/project.py:203
 msgid "Browse..."
@@ -2587,7 +2627,7 @@ msgstr "向 Pavlovia 提交更改"
 
 #: ../app/pavlovia_ui/project.py:201
 msgid "Local root: "
-msgstr ""
+msgstr "本地根："
 
 #: ../app/pavlovia_ui/project.py:212
 msgid "Select a project for details"
@@ -2603,28 +2643,28 @@ msgstr "同步已就绪"
 
 #: ../app/pavlovia_ui/project.py:257
 msgid "This file doesn't belong to a project yet"
-msgstr ""
+msgstr "此文件不属于任何项目。"
 
 #: ../app/pavlovia_ui/project.py:286
 msgid "User not logged in!"
-msgstr ""
+msgstr "用户未登录！"
 
 #: ../app/pavlovia_ui/project.py:291
 msgid "Visibility: {}"
-msgstr ""
+msgstr "可见性：{}"
 
 #: ../app/pavlovia_ui/project.py:296
 msgid "<not yet synced>"
-msgstr ""
+msgstr "<尚未同步>"
 
 #: ../app/pavlovia_ui/project.py:297 ../app/pavlovia_ui/project.py:364
 #: ../app/pavlovia_ui/project.py:377
 msgid "Local root: {}"
-msgstr ""
+msgstr "本地根：{}"
 
 #: ../app/pavlovia_ui/project.py:304
 msgid "Log in to sync..."
-msgstr ""
+msgstr "登录以同步…"
 
 #: ../app/pavlovia_ui/project.py:306
 msgid "Fork + sync..."
@@ -2632,11 +2672,11 @@ msgstr "Fork + sync..."
 
 #: ../app/pavlovia_ui/project.py:313
 msgid "Tags:"
-msgstr ""
+msgstr "标签："
 
 #: ../app/pavlovia_ui/project.py:369
 msgid "Synchronizing..."
-msgstr ""
+msgstr "同步中…"
 
 #: ../app/pavlovia_ui/project.py:393
 msgid "Project info"
@@ -2652,11 +2692,11 @@ msgstr "创建项目"
 
 #: ../app/pavlovia_ui/project.py:613
 msgid "points to a remote that doesn't exist (deleted?)."
-msgstr ""
+msgstr "指向一个不存在的远端（已删除？）"
 
 #: ../app/pavlovia_ui/project.py:614
 msgid "What shall we do?"
-msgstr ""
+msgstr "您期望我们执行？"
 
 #: ../app/pavlovia_ui/project.py:616
 msgid "(Re)create a project"
@@ -2664,7 +2704,7 @@ msgstr "(重新)创建项目"
 
 #: ../app/pavlovia_ui/project.py:617
 msgid "Point to an different location"
-msgstr ""
+msgstr "指向不同的位置"
 
 #: ../app/pavlovia_ui/project.py:618
 msgid "not yet supported"
@@ -2672,7 +2712,7 @@ msgstr "目前不支持"
 
 #: ../app/pavlovia_ui/project.py:619
 msgid "Forget the local git repository (deletes history keeps files)"
-msgstr ""
+msgstr "清除本地 git repository 记忆（删除历史记录，保留文件）"
 
 #: ../app/pavlovia_ui/search.py:36
 msgid "Search for projects online"
@@ -2692,7 +2732,7 @@ msgstr "在线运行"
 
 #: ../app/pavlovia_ui/toolbar.py:28
 msgid "Run the study online (with pavlovia.org)"
-msgstr "在线运行研究项目(通过pavlovia.org)"
+msgstr "在线运行研究项目(通过 pavlovia.org)"
 
 #: ../app/pavlovia_ui/toolbar.py:32
 msgid "Sync online"
@@ -2700,7 +2740,7 @@ msgstr "在线同步"
 
 #: ../app/pavlovia_ui/toolbar.py:33
 msgid "Sync with web project (at pavlovia.org)"
-msgstr "同步web项目(到pavlovia.org)"
+msgstr "同步web项目(到 pavlovia.org)"
 
 #: ../app/pavlovia_ui/toolbar.py:37
 msgid "Search Pavlovia.org"
@@ -3281,12 +3321,12 @@ msgstr "PsychoPy 首选项"
 
 #: ../app/preferencesDlg.py:657
 msgid "system locale"
-msgstr ""
+msgstr "系统区域"
 
 #: ../app/preferencesDlg.py:835
 #, python-format
 msgid "Invalid value in \"%(pref)s\" (\"%(section)s\" Tab)"
-msgstr ""
+msgstr "“%(pref)s”出现无效值（“%(section)s”标签页）"
 
 #: ../app/preferencesDlg.py:838
 msgid "Error"
@@ -3495,7 +3535,7 @@ msgstr "另存为..."
 
 #: ../app/builder/builder.py:299 ../app/utils.py:184 ../app/utils.py:250
 msgid "Save current experiment file as..."
-msgstr "将当前实验文件另存为"
+msgstr "将当前实验文件另存为..."
 
 #: ../app/coder/codeEditorBase.py:115 ../app/coder/coder.py:151
 #: ../app/utils.py:188 ../app/utils.py:253
@@ -3616,57 +3656,57 @@ msgstr "你想如何定义你的终点？"
 
 #: ../experiment/components/_base.py:84
 msgid "When does the component start?"
-msgstr ""
+msgstr "组件起始时间？"
 
 #: ../experiment/components/_base.py:90
 msgid "When does the component end? (blank is endless)"
-msgstr ""
+msgstr "组件终止时间？（空白意为时长无限）"
 
 #: ../experiment/components/_base.py:93
 msgid "(Optional) expected start (s), purely for representing in the timeline"
-msgstr ""
+msgstr "（可选）预期起始时间，仅用于在起始时间不确定时显示在时间线中"
 
 #: ../experiment/components/_base.py:100
 msgid ""
 "(Optional) expected duration (s), purely for representing in the timeline"
-msgstr ""
+msgstr "（可选）预期终止时间，仅用于在终止时间不确定时显示在时间线中"
 
 #: ../experiment/components/_base.py:107
 msgid ""
 "Store the onset/offset times in the data file (as well as in the log file)."
-msgstr ""
+msgstr "将起始/终止时间储存于数据文件中（以及日志文件）。"
 
 #: ../experiment/components/_base.py:112
 msgid "Save onset/offset times"
-msgstr ""
+msgstr "储存起始/终止时间"
 
 #: ../experiment/components/_base.py:114
 msgid ""
 "Synchronize times with screen refresh (good for visual stimuli and responses "
 "based on them)"
-msgstr ""
+msgstr "将时间与屏幕刷新同步（适用于视觉刺激及对视觉刺激的应答）"
 
 #: ../experiment/components/_base.py:119
 msgid "Sync timing with screen refresh"
-msgstr ""
+msgstr "计时与屏幕刷新同步"
 
 #: ../experiment/components/_base.py:121 ../experiment/routines/_base.py:59
 msgid "Disable this component"
-msgstr ""
+msgstr "禁用此组件"
 
 #: ../experiment/components/_base.py:125 ../experiment/routines/_base.py:63
 msgid "Disable component"
-msgstr ""
+msgstr "组件禁用"
 
 #: ../experiment/components/_base.py:639
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:113
 #: ../experiment/routines/eyetracker_validate/__init__.py:153
 msgid "Units of dimensions for this stimulus"
-msgstr ""
+msgstr "此刺激的大小单位"
 
 #: ../experiment/components/_base.py:647
 msgid "Foreground color of this stimulus (e.g. $[1,1,0], red )"
-msgstr ""
+msgstr "此刺激的前景色（例：$[1,1,0]，红色）"
 
 #: ../experiment/components/_base.py:656
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:86
@@ -3674,15 +3714,15 @@ msgstr ""
 msgid ""
 "In what format (color space) have you specified the colors? (rgb, dkl, lms, "
 "hsv)"
-msgstr ""
+msgstr "请问定义颜色的格式（色彩空间）为？（rgb, dkl, lms, hsv）"
 
 #: ../experiment/components/_base.py:665
 msgid "Fill color of this stimulus (e.g. $[1,1,0], red )"
-msgstr ""
+msgstr "此刺激的填充色（例：$[1,1,0]，红色）"
 
 #: ../experiment/components/_base.py:673
 msgid "Color of this stimulus (e.g. $[1,1,0], red )"
-msgstr ""
+msgstr "此刺激的颜色（例：$[1,1,0]，红色）"
 
 #: ../experiment/components/_base.py:681
 msgid ""
@@ -3690,44 +3730,50 @@ msgid ""
 "Leave blank for each color to have its own opacity (recommended if any color "
 "is None)."
 msgstr ""
+"此刺激的透明度（1=不透明，=-完全透明，0.5=半透明）。如每种颜色有单独的透明"
+"度，请留空（若任一颜色为None，建议留空）。"
 
 #: ../experiment/components/_base.py:690
+#, fuzzy
 msgid ""
 "Contrast of the stimulus (1.0=unchanged contrast, 0.5=decrease contrast, "
 "0.0=uniform/no contrast, -0.5=slightly inverted, -1.0=totally inverted)"
 msgstr ""
+"此刺激的对比度（1.0=原对比度，0.5=降低对比度，0.0=无对比度，-0.5=轻度反"
+"色，-1.0=完全反色）"
 
 #: ../experiment/components/_base.py:700
 #: ../experiment/components/ratingScale/__init__.py:210
 msgid "Position of this stimulus (e.g. [1,2] )"
-msgstr ""
+msgstr "此刺激的位置（例：[1,2]）"
 
 #: ../experiment/components/_base.py:708
 #: ../experiment/components/ratingScale/__init__.py:202
 msgid ""
 "Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] "
-msgstr ""
+msgstr "此刺激的大小（单一值或[x,y]数对，例：2.5，[1,2]） "
 
 #: ../experiment/components/_base.py:721
 msgid "Orientation of this stimulus (in deg)"
-msgstr ""
+msgstr "此刺激的旋转方向（单位为“度”）"
 
+# Aperture：视窗？缝隙？孔径？光圈？
 #: ../experiment/components/aperture/__init__.py:29
 msgid "Aperture: restrict the drawing of stimuli to a given region"
-msgstr ""
+msgstr "孔径：将刺激的描画边界限制在给定的区域中"
 
 #: ../experiment/components/aperture/__init__.py:49
 msgid "How big is the aperture? (a single number for diameter)"
-msgstr ""
+msgstr "孔径的大小为？（请用个位数定义直径）"
 
 #: ../experiment/components/aperture/__init__.py:53
 #: ../experiment/components/ratingScale/__init__.py:31
 msgid "Size"
-msgstr ""
+msgstr "大小"
 
 #: ../experiment/components/aperture/__init__.py:54
 msgid "Where is the aperture centred?"
-msgstr ""
+msgstr "孔径的中心位置在？"
 
 #: ../experiment/components/brush/__init__.py:19
 msgid "Brush Size"
@@ -3756,19 +3802,19 @@ msgstr "此画笔的填充颜色"
 #: ../experiment/components/brush/__init__.py:62
 msgid ""
 "Width of the brush's line (always in pixels and limited to 10px max width)"
-msgstr ""
+msgstr "画笔线条粗细（以像素为单位且不超过10像素）"
 
 #: ../experiment/components/brush/__init__.py:73
 msgid "The line opacity"
-msgstr ""
+msgstr "线条透明度"
 
 #: ../experiment/components/brush/__init__.py:76
 msgid "Whether a button needs to be pressed to draw (True/False)"
-msgstr ""
+msgstr "按钮是否需要被按下以显现（True/False）"
 
 #: ../experiment/components/button/__init__.py:18
 msgid "Callback Function"
-msgstr ""
+msgstr "回调函数"
 
 #: ../experiment/components/button/__init__.py:19
 #: ../experiment/components/joyButtons/__init__.py:25
@@ -3777,7 +3823,7 @@ msgstr ""
 #: ../experiment/components/ratingScale/__init__.py:35
 #: ../experiment/components/slider/__init__.py:29
 msgid "Force end of Routine"
-msgstr ""
+msgstr "结束例程"
 
 #: ../experiment/components/button/__init__.py:20
 msgid "Button text"
@@ -3864,88 +3910,91 @@ msgstr "文本颜色"
 #: ../experiment/components/joyButtons/__init__.py:83
 #: ../experiment/components/keyboard/__init__.py:101
 msgid "Should a response force the end of the Routine (e.g end the trial)?"
-msgstr ""
+msgstr "是否允许应答结束此例程（例：结束试验）？"
 
 #: ../experiment/components/button/__init__.py:100
 msgid ""
 "Should the callback run once per click (True), or each frame until click is "
 "released (False)"
 msgstr ""
+"鼠标每点击一次运行一次回调函数（True），或每帧运行一次回调函数直至鼠标按键被"
+"释放（False）。"
 
 #: ../experiment/components/button/__init__.py:106
 msgid "Code to run when button is clicked"
-msgstr ""
+msgstr "按钮被点击时运行的代码"
 
 #: ../experiment/components/button/__init__.py:111
 #: ../experiment/components/text/__init__.py:66
 #: ../experiment/components/textbox/__init__.py:91
 msgid "The text to be displayed"
-msgstr ""
+msgstr "待显示的文字"
 
 #: ../experiment/components/button/__init__.py:116
 #: ../experiment/components/form/__init__.py:101
 #: ../experiment/components/text/__init__.py:72
 #: ../experiment/components/textbox/__init__.py:97
 msgid "The font name (e.g. Comic Sans)"
-msgstr ""
+msgstr "字体名称（例：Comic Sans）"
 
 #: ../experiment/components/button/__init__.py:121
 #: ../experiment/components/text/__init__.py:78
 #: ../experiment/components/textbox/__init__.py:102
 msgid ""
 "Specifies the height of the letter (the width is then determined by the font)"
-msgstr ""
+msgstr "指定字母高度（宽度由字体决定）"
 
 #: ../experiment/components/button/__init__.py:127
 #: ../experiment/components/textbox/__init__.py:125
 msgid "Should text be italic?"
-msgstr ""
+msgstr "文字显示为斜体？"
 
 #: ../experiment/components/button/__init__.py:132
 #: ../experiment/components/textbox/__init__.py:130
 msgid "Should text be bold?"
-msgstr ""
+msgstr "文字显示为加粗？"
 
 #: ../experiment/components/button/__init__.py:137
 #: ../experiment/components/textbox/__init__.py:140
 msgid "Defines the space between text and the textbox border"
-msgstr ""
+msgstr "定义文字与文本框边框的间距"
 
 #: ../experiment/components/button/__init__.py:152
 #: ../experiment/components/textbox/__init__.py:155
 msgid "Should text anchor to the top, center or bottom of the box?"
-msgstr ""
+msgstr "文字锚点为文本框的上部，中部或下部？"
 
 #: ../experiment/components/button/__init__.py:157
 #: ../experiment/components/textbox/__init__.py:160
 msgid "Textbox border width"
-msgstr ""
+msgstr "文本框边框宽度"
 
 #: ../experiment/components/button/__init__.py:162
 msgid "What clicks on this button should be saved to the data output?"
-msgstr ""
+msgstr "此按钮的哪次点击应被存入数据输出？"
 
 #: ../experiment/components/button/__init__.py:169
 #: ../experiment/components/mouse/__init__.py:81
 #: ../experiment/components/roi/__init__.py:103
 msgid "What should the values of mouse.time should be relative to?"
 msgstr ""
+"mouse.time的值应相对什么时间进行计算（例：以实验开始或此例程开始为基准）？"
 
 #: ../experiment/components/cedrusBox/__init__.py:24
 #: ../experiment/components/joyButtons/__init__.py:28
 #: ../experiment/components/joystick/__init__.py:26
 msgid "Device number"
-msgstr ""
+msgstr "设备编号"
 
 #: ../experiment/components/cedrusBox/__init__.py:25
 msgid "Use box timer"
-msgstr ""
+msgstr "使用按键箱的计时器"
 
 #: ../experiment/components/cedrusBox/__init__.py:42
 msgid ""
 "Cedrus Button Box: Cedrus response boxes, using the pyxid library provided "
 "by Cedrus"
-msgstr ""
+msgstr "Cedrus 按钮箱：Cedrus 响应箱，使用由 Cedrus 提供的pyxid 库"
 
 #: ../experiment/components/cedrusBox/__init__.py:70
 msgid ""
@@ -3954,10 +4003,13 @@ msgid ""
 "Might be helpful to add a correctAns column and use $correctAns to compare "
 "to the key press."
 msgstr ""
+"什么是“正确”的响应？注意，在包含7个按钮的面板上，按钮编号为0到6。如果不作答即"
+"为正确答案，输入“None”（不加引号）。建议添加一个 correctAns 栏并比较按键输入"
+"与 $correctAnd。"
 
 #: ../experiment/components/cedrusBox/__init__.py:78
 msgid "Keys to be read (blank for any) or key numbers separated by commas"
-msgstr ""
+msgstr "请输入要读取的按键或按键号码并以逗号隔开"
 
 #: ../experiment/components/cedrusBox/__init__.py:82
 #: ../experiment/components/joyButtons/__init__.py:118
@@ -3965,12 +4017,12 @@ msgstr ""
 msgid ""
 "Device number, if you have multiple devices which one do you want (0, 1, "
 "2...)"
-msgstr ""
+msgstr "设备编号；若有多个设备，请指明其中一个（0，1，2…）"
 
 #: ../experiment/components/cedrusBox/__init__.py:97
 msgid ""
 "According to Cedrus the response box timer has a drift - use with caution!"
-msgstr ""
+msgstr "根据 Cedrus，响应箱计时器可能存在时间漂移——请谨慎使用！"
 
 #: ../experiment/components/code/__init__.py:18
 msgid "Code Type"
@@ -4036,51 +4088,51 @@ msgstr "显示 Python 或 JS 代码"
 msgid ""
 "Code to run before the experiment starts (initialization); right-click "
 "checks syntax"
-msgstr ""
+msgstr "在实验开始前运行的代码（初始化）；右键可检查语法"
 
 #: ../experiment/components/code/__init__.py:79
 msgid "Code at the start of the experiment ; right-click checks syntax"
-msgstr ""
+msgstr "实验开始时的代码；右键可检查语法"
 
 #: ../experiment/components/code/__init__.py:87
 #: ../experiment/components/code/__init__.py:138
 msgid ""
 "Code to be run at the start of each repeat of the Routine (e.g. each trial); "
 "right-click checks syntax"
-msgstr ""
+msgstr "例程每次循环开始时运行的代码（例：每个 trial ）；右键可检查语法"
 
 #: ../experiment/components/code/__init__.py:96
 #: ../experiment/components/code/__init__.py:147
 msgid ""
 "Code to be run on every video frame during for the duration of this Routine; "
 "right-click checks syntax"
-msgstr ""
+msgstr "在此例程中的每一视频祯所运行的代码；右键可检查语法"
 
 #: ../experiment/components/code/__init__.py:105
 #: ../experiment/components/code/__init__.py:156
 msgid ""
 "Code at the end of this repeat of the Routine (e.g. getting/storing "
 "responses); right-click checks syntax"
-msgstr ""
+msgstr "例程此次循环结束时的代码（例：获取/储存应答）；右键可检查语法"
 
 #: ../experiment/components/code/__init__.py:114
 #: ../experiment/components/code/__init__.py:165
 msgid ""
 "Code at the end of the entire experiment (e.g. saving files, resetting "
 "computer); right-click checks syntax"
-msgstr ""
+msgstr "整个实验结束时的代码（例：储存文件，重置电脑）；右键可检查语法"
 
 #: ../experiment/components/code/__init__.py:123
 msgid ""
 "Code before the start of the experiment (initialization); right-click checks "
 "syntax"
-msgstr ""
+msgstr "在实验开始前的代码（初始化）；右键可检查语法"
 
 #: ../experiment/components/code/__init__.py:130
 msgid ""
 "Code at the start of the experiment (initialization); right-click checks "
 "syntax"
-msgstr ""
+msgstr "在实验开始时的代码（初始化）；右键可检查语法"
 
 #: ../experiment/components/dots/__init__.py:17
 msgid "Number of dots"
@@ -4138,57 +4190,59 @@ msgstr "点：随机点运动图"
 msgid ""
 "Number of dots in the field (for circular fields this will be average number "
 "of dots)"
-msgstr ""
+msgstr "区域内的点数（环形区域则取平均点数）"
 
 #: ../experiment/components/dots/__init__.py:77
 msgid "Direction of motion for the signal dots (degrees)"
-msgstr ""
+msgstr "信号点的运动方向（单位为度）"
 
 #: ../experiment/components/dots/__init__.py:85
 msgid "Speed of the dots (displacement per frame in the specified units)"
-msgstr ""
+msgstr "点的运动速度（每帧在指定单位内的位移）"
 
 #: ../experiment/components/dots/__init__.py:94
+#, fuzzy
 msgid ""
 "Coherence of the dots (fraction moving in the signal direction on any one "
 "frame)"
-msgstr ""
+msgstr "点的运动连贯性（在任意帧内朝信号方向移动的点的占比）"
 
 #: ../experiment/components/dots/__init__.py:103
 msgid "Size of the dots IN PIXELS regardless of the set units"
-msgstr ""
+msgstr "请忽略设定的单位，以像素为单位指明点的大小"
 
 #: ../experiment/components/dots/__init__.py:112
 msgid ""
 "Number of frames before each dot is killed and randomly assigned a new "
 "position"
-msgstr ""
+msgstr "在点被抹去并被随机赋予新位置前的帧数"
 
+# 参考jp将changing翻译为“变为同一方向”。
 #: ../experiment/components/dots/__init__.py:119
 msgid ""
 "On each frame are the signals dots remaining the same or changing? See Scase "
 "et al."
-msgstr ""
+msgstr "每帧内信号点保持不变或变为同一方向？见 Scase et al."
 
 #: ../experiment/components/dots/__init__.py:126
 msgid "When should the whole sample of dots be refreshed"
-msgstr ""
+msgstr "请指定所有点的更新时间"
 
 #: ../experiment/components/dots/__init__.py:134
 msgid "What governs the behaviour of the noise dots? See Scase et al."
-msgstr ""
+msgstr "什么规定了噪声点的运动？见 Sacse et al."
 
 #: ../experiment/components/dots/__init__.py:146
 msgid "What is the shape of the field?"
-msgstr ""
+msgstr "请定义区域形状"
 
 #: ../experiment/components/dots/__init__.py:149
 msgid "What is the size of the field (in the specified units)?"
-msgstr ""
+msgstr "请以指定单位定义区域大小"
 
 #: ../experiment/components/dots/__init__.py:158
 msgid "Where is the field centred (in the specified units)?"
-msgstr ""
+msgstr "请以指定单位定义区域中心位置"
 
 #: ../experiment/components/dots/__init__.py:168
 msgid "Dot Color"
@@ -4232,11 +4286,11 @@ msgstr "初始化 EMOTIV 硬件连接"
 
 #: ../experiment/components/envelopegrating/__init__.py:18
 msgid "Carrier texture"
-msgstr ""
+msgstr "载波纹理"
 
 #: ../experiment/components/envelopegrating/__init__.py:19
 msgid "Carrier Orientation"
-msgstr ""
+msgstr "载波旋转方向"
 
 #: ../experiment/components/envelopegrating/__init__.py:20
 #: ../experiment/components/grating/__init__.py:19
@@ -4244,19 +4298,19 @@ msgstr ""
 #: ../experiment/components/noise/__init__.py:19
 #: ../experiment/components/patch/__init__.py:18
 msgid "Mask"
-msgstr ""
+msgstr "遮罩"
 
 #: ../experiment/components/envelopegrating/__init__.py:21
 msgid "Carrier spatial frequency"
-msgstr ""
+msgstr "载波空间频率"
 
 #: ../experiment/components/envelopegrating/__init__.py:22
 msgid "Carrier phase (in cycles)"
-msgstr ""
+msgstr "载波相位（相对循环）"
 
 #: ../experiment/components/envelopegrating/__init__.py:23
 msgid "Carrier contrast"
-msgstr ""
+msgstr "载波对比度"
 
 #: ../experiment/components/envelopegrating/__init__.py:24
 #: ../experiment/components/grating/__init__.py:22
@@ -4273,35 +4327,35 @@ msgstr "纹理分辨率"
 #: ../experiment/components/patch/__init__.py:22
 #: ../experiment/components/polygon/__init__.py:26
 msgid "Interpolate"
-msgstr ""
+msgstr "插值"
 
 #: ../experiment/components/envelopegrating/__init__.py:26
 msgid "Envelope texture"
-msgstr ""
+msgstr "包络纹理"
 
 #: ../experiment/components/envelopegrating/__init__.py:27
 msgid "Envelope spatial frequency"
-msgstr ""
+msgstr "包络空间频率"
 
 #: ../experiment/components/envelopegrating/__init__.py:28
 msgid "Envelope orientation"
-msgstr ""
+msgstr "包络旋转方向"
 
 #: ../experiment/components/envelopegrating/__init__.py:29
 msgid "Envelope phase"
-msgstr ""
+msgstr "包络相位"
 
 #: ../experiment/components/envelopegrating/__init__.py:30
 msgid "Envelope modulation depth"
-msgstr ""
+msgstr "包络调制深度"
 
 #: ../experiment/components/envelopegrating/__init__.py:31
 msgid "Power to which envelope is raised"
-msgstr ""
+msgstr "包络提升的功率"
 
 #: ../experiment/components/envelopegrating/__init__.py:32
 msgid "Is modulation a beat"
-msgstr ""
+msgstr "调制是否为一个节拍"
 
 #: ../experiment/components/envelopegrating/__init__.py:33
 #: ../experiment/components/grating/__init__.py:23
@@ -4313,13 +4367,13 @@ msgstr "OpenGL 混合模式"
 msgid ""
 "Envelope Grating: present cyclic textures including 2nd order envelope "
 "stimuli, prebuilt or from a file"
-msgstr ""
+msgstr "包络光栅：呈现循环纹理 （例如二阶包络），可预设或从文件中获取"
 
 #: ../experiment/components/envelopegrating/__init__.py:71
 msgid ""
 "The (2D) texture of the background - can be sin, sqr, sinXsin... or a "
 "filename (including path)"
-msgstr ""
+msgstr "背景纹理（2D）——可设置为 sin，sqr，sinXsin……或文件名（包括文件路径）"
 
 #: ../experiment/components/envelopegrating/__init__.py:80
 #: ../experiment/components/grating/__init__.py:67
@@ -4329,20 +4383,22 @@ msgid ""
 "An image to define the alpha mask (ie shape)- gauss, circle... or a filename "
 "(including path)"
 msgstr ""
+"设置定义 alpha 遮罩（即形状）的图像—— 可设置为gauss，circle……或文件名（包含文"
+"件路径）"
 
 #: ../experiment/components/envelopegrating/__init__.py:89
 msgid "Contrast of background carrier"
-msgstr ""
+msgstr "背景载波的对比度"
 
 #: ../experiment/components/envelopegrating/__init__.py:97
 msgid ""
 "Spatial frequency of background carrier repeats across the grating in 1 or 2 "
 "dimensions, e.g. 4 or [2,3]"
-msgstr ""
+msgstr "背景载波的空间频率如何在光栅上以一维或二维重复，例：4或[2,3]"
 
 #: ../experiment/components/envelopegrating/__init__.py:106
 msgid "Spatial positioning of the background carrier (wraps in range 0-1.0)"
-msgstr ""
+msgstr "背景载波的空间定位（范围为0-1.0）"
 
 #: ../experiment/components/envelopegrating/__init__.py:115
 #: ../experiment/components/grating/__init__.py:94
@@ -4351,7 +4407,7 @@ msgstr ""
 msgid ""
 "Resolution of the texture for standard ones such as sin, sqr etc. For most "
 "cases a value of 256 pixels will suffice"
-msgstr ""
+msgstr "标准纹理（如 sin，sqr 等）的分辨率。256像素可满足大多数情况"
 
 #: ../experiment/components/envelopegrating/__init__.py:125
 #: ../experiment/components/grating/__init__.py:104
@@ -4360,33 +4416,34 @@ msgstr ""
 #: ../experiment/components/patch/__init__.py:99
 #: ../experiment/components/polygon/__init__.py:118
 msgid "How should the image be interpolated if/when rescaled"
-msgstr ""
+msgstr "如果重新缩放图像，应如何对图像进行插值处理"
 
 #: ../experiment/components/envelopegrating/__init__.py:133
 msgid ""
 "The (2D) texture of the envelope - can be sin, sqr, sinXsin... or a filename "
 "(including path)"
-msgstr ""
+msgstr "包络纹理（2D）——可设置为 sin，sqr，sinXsin……或文件名（包含文件路径）"
 
 #: ../experiment/components/envelopegrating/__init__.py:142
 msgid ""
 "Spatial frequency of the modulation envelope repeats across the grating in 1 "
 "or 2 dimensions, e.g. 4 or [2,3]"
-msgstr ""
+msgstr "调制包络的空间频率如何在光栅上以一维或二维重复，例：4或[2,3]"
 
 #: ../experiment/components/envelopegrating/__init__.py:151
 msgid "Spatial positioning of the modulation envelope(wraps in range 0-1.0)"
-msgstr ""
+msgstr "调制包络的空间定位（范围为0-1.0）"
 
 #: ../experiment/components/envelopegrating/__init__.py:160
 msgid "Orientation of the modulation envelope(wraps in range 0-360)"
-msgstr ""
+msgstr "调制包络的旋转方向（范围为0-360）"
 
 #: ../experiment/components/envelopegrating/__init__.py:169
 msgid "Modulation depth of modulation envelope"
-msgstr ""
+msgstr "调制包络的调制深度"
 
 #: ../experiment/components/envelopegrating/__init__.py:177
+#, fuzzy
 msgid ""
 "Power of modulation envelope. The modulator will be raised to this power "
 "according to the equation S=cC*(1+mM)^power, where C is the carrier and M is "
@@ -4400,22 +4457,34 @@ msgid ""
 "Landy and Oruc, Vis Res 2002. Note overall contrast (apparent carrier "
 "contrast) will be altered."
 msgstr ""
+"调制包络的功率。根据公式 S=cC*(1+mM)^power，调制器的功率将提升至此值，其中 C "
+"为载波，M 为调制器，c 和 m 分别为对比度和调制深度。此等式仅适用于 AM 包络线"
+"（因此等式中为 +1）。如果要求节拍，功率将被忽略。这用于获取调制器的平方根（功"
+"率 = 0.5）；如果将两个具有不同载波和 180 度相移的包络光栅组合在一起，此平方根"
+"将非常适用，因为由此产生的组合信号不会降低图像中任何一点的局部对比度。这与"
+"（Landy & OrucVis & Res，2002）使用的方法相似，但不完全相同。请注意，整体对比"
+"度（表观载波对比度）会有所改变。"
 
 #: ../experiment/components/envelopegrating/__init__.py:199
+#, fuzzy
 msgid ""
 "Do you want a 'beat'? [beat = carrier*envelope, no beat = "
 "carrier*(1+envelope), True/False, Y/N]"
 msgstr ""
+"是否需要一个“节拍”？[节拍 = 载波*包络，无节拍 = 载波*（1+包络），True/False，"
+"Y/N]"
 
 #: ../experiment/components/envelopegrating/__init__.py:208
 msgid ""
 "OpenGL Blendmode. Avg is most common mode in PsychoPy, add is useful if "
 "combining a beat with the carrier image or numpy array at point of display"
 msgstr ""
+"OpenGL 混合模式。Avg 是 PsychoPy 中最常用的模式，如果在显示时将节拍与载波图像"
+"或 numpy 数组结合在一起，添加该模式非常有用"
 
 #: ../experiment/components/eyetracker_record/__init__.py:24
 msgid "Eyetracker: use one of several eyetrackers to follow gaze"
-msgstr ""
+msgstr "眼动追踪器：使用其中一个眼动追踪器以追踪视线"
 
 #: ../experiment/components/form/__init__.py:20
 msgid "Items"
@@ -4490,7 +4559,7 @@ msgstr "项目颜色"
 msgid ""
 "Base text color for responses, also sets color of lines in sliders and "
 "borders of textboxes"
-msgstr "响应的基本文本颜色，还设置滑块中的线条颜色和文本框的边框"
+msgstr "应答的基本文本颜色，还设置滑块中的线条颜色和文本框的边框"
 
 #: ../experiment/components/form/__init__.py:164
 msgid "Response Color"
@@ -4507,100 +4576,103 @@ msgstr "标记颜色"
 
 #: ../experiment/components/grating/__init__.py:18
 msgid "Texture"
-msgstr ""
+msgstr "纹理"
 
 #: ../experiment/components/grating/__init__.py:20
 #: ../experiment/components/patch/__init__.py:19
 msgid "Spatial frequency"
-msgstr ""
+msgstr "空间频率"
 
 #: ../experiment/components/grating/__init__.py:21
 #: ../experiment/components/noise/__init__.py:21
 #: ../experiment/components/patch/__init__.py:20
 msgid "Phase (in cycles)"
-msgstr ""
+msgstr "相位（以周期为单位）"
 
 #: ../experiment/components/grating/__init__.py:33
 msgid "Grating: present cyclic textures, prebuilt or from a file"
-msgstr ""
+msgstr "光栅：呈现周期性纹理，来自预设或文件"
 
 #: ../experiment/components/grating/__init__.py:58
 msgid ""
 "The (2D) texture of the grating - can be sin, sqr, sinXsin... or a filename "
 "(including path)"
-msgstr ""
+msgstr "光栅纹理（2D）——可设置为 sin，sqr，sinXsin……或文件名（包含文件路径）"
 
 #: ../experiment/components/grating/__init__.py:76
 msgid ""
 "Spatial frequency of image repeats across the grating in 1 or 2 dimensions, "
 "e.g. 4 or [2,3]"
-msgstr ""
+msgstr "图像的空间频率如何在光栅上以一维或二维重复，例：4或[2,3]"
 
 #: ../experiment/components/grating/__init__.py:85
 msgid "Spatial positioning of the image on the grating (wraps in range 0-1.0)"
-msgstr ""
+msgstr "图像在光栅上的空间定位（范围为0-1.0）"
 
 #: ../experiment/components/grating/__init__.py:112
+#, fuzzy
 msgid ""
 "OpenGL Blendmode: avg gives traditional transparency, add is important to "
 "combine gratings)]"
-msgstr ""
+msgstr "OpenGL 混合模式：avg提供传统透明度，add 适用于结合光栅)]"
 
 #: ../experiment/components/image/__init__.py:17
 msgid "Image"
-msgstr ""
+msgstr "图像"
 
 #: ../experiment/components/image/__init__.py:20
 msgid "Flip vertically"
-msgstr ""
+msgstr "垂直翻转"
 
 #: ../experiment/components/image/__init__.py:21
 msgid "Flip horizontally"
-msgstr ""
+msgstr "水平翻转"
 
 #: ../experiment/components/image/__init__.py:31
 msgid "Image: present images (bmp, jpg, tif...)"
-msgstr ""
+msgstr "图像：呈现图像（格式为bmp, jpg, tif…）"
 
 #: ../experiment/components/image/__init__.py:56
 msgid "The image to be displayed - a filename, including path"
-msgstr ""
+msgstr "需要呈现的图像——输入文件名（包含文件路径）"
 
 #: ../experiment/components/image/__init__.py:65
 msgid ""
 "An image to define the alpha mask through which the image is seen - gauss, "
 "circle, None or a filename (including path)"
 msgstr ""
+"图像，用于定义通过其观察图像的 alpha 遮罩 - 可设置为gauss，circle……或文件名"
+"（包含文件路径）"
 
 #: ../experiment/components/image/__init__.py:75
 msgid "Resolution of the mask if one is used."
-msgstr ""
+msgstr "如需使用遮罩，请定义分辨率。"
 
 #: ../experiment/components/image/__init__.py:91
 msgid "Should the image be flipped vertically (top to bottom)?"
-msgstr ""
+msgstr "是否需要垂直翻转图片（顶部翻转至底部）？"
 
 #: ../experiment/components/image/__init__.py:99
 msgid "Should the image be flipped horizontally (left to right)?"
-msgstr ""
+msgstr "是否需要水平翻转图片（左翻转至右）？"
 
 #: ../experiment/components/ioLabs/__init__.py:22
 msgid "Active buttons"
-msgstr ""
+msgstr "活跃按钮"
 
 #: ../experiment/components/ioLabs/__init__.py:23
 msgid "Lights"
-msgstr ""
+msgstr "灯光"
 
 #: ../experiment/components/ioLabs/__init__.py:24
 msgid "Lights off"
-msgstr ""
+msgstr "关灯"
 
 #: ../experiment/components/ioLabs/__init__.py:40
 msgid ""
 "ioLabs ButtonBox: check and record response buttons on ioLab Systems "
 "ButtonBox"
-msgstr ""
+msgstr "ioLabs ButtonBox：在 ioLab Systems ButtonBox 中检查并记录响应按钮"
 
 #: ../experiment/components/ioLabs/__init__.py:71
 msgid ""
@@ -4609,63 +4681,66 @@ msgid ""
 "Might be helpful to add a correctAns column and use $correctAns to compare "
 "to the key press."
 msgstr ""
+"什么是“正确”的响应？注意，在包含7个按钮的面板上，按钮编号为0到6。如果不作答即"
+"为正确答案，输入“None”（不加引号）。建议添加一个 correctAns 栏并比较按键输入"
+"与 $correctAnd。"
 
 #: ../experiment/components/ioLabs/__init__.py:81
 msgid "Choose which (if any) responses to store at end of a trial"
-msgstr ""
+msgstr "选择在试验结束时需要保存的响应（如有）"
 
 #: ../experiment/components/ioLabs/__init__.py:85
 msgid "Active buttons, such as '1,6', '(1,2,5,6)' or '0' (without quotes)"
-msgstr ""
+msgstr "活跃按钮，例如“1,6”，“(1,2,5,6)”或“0”（无需输入引号）"
 
 #: ../experiment/components/ioLabs/__init__.py:97
 msgid "Turn ON the lights for the active buttons?"
-msgstr ""
+msgstr "是否为活跃按钮开灯？"
 
 #: ../experiment/components/ioLabs/__init__.py:103
 msgid "Turn OFF all lights at the end of each routine?"
-msgstr ""
+msgstr "是否在每一例程结束时关掉亮灯按钮？"
 
 #: ../experiment/components/joyButtons/__init__.py:23
 msgid "Allowed buttons"
-msgstr ""
+msgstr "允许的按钮"
 
 #: ../experiment/components/joyButtons/__init__.py:24
 #: ../experiment/components/keyboard/__init__.py:31
 msgid "Store"
-msgstr ""
+msgstr "保存"
 
 #: ../experiment/components/joyButtons/__init__.py:26
 #: ../experiment/components/keyboard/__init__.py:33
 msgid "Store correct"
-msgstr ""
+msgstr "保存正确答案"
 
 #: ../experiment/components/joyButtons/__init__.py:27
 #: ../experiment/components/keyboard/__init__.py:34
 msgid "Correct answer"
-msgstr ""
+msgstr "正确答案"
 
 #: ../experiment/components/joyButtons/__init__.py:29
 msgid "sync RT with screen"
-msgstr ""
+msgstr "RT 与屏幕刷新同步"
 
 #: ../experiment/components/joyButtons/__init__.py:38
 msgid "JoyButtons: check and record joystick/gamepad button presses"
-msgstr ""
+msgstr "JoyButtons：检查并记录 joystick/gamepad 按键"
 
 #: ../experiment/components/joyButtons/__init__.py:64
 msgid "A comma-separated list of button numbers, such as 0,1,2,3,4"
-msgstr ""
+msgstr "输入一串逗号隔开的按钮号码，例如：0,1,2,3,4"
 
 #: ../experiment/components/joyButtons/__init__.py:74
 #: ../experiment/components/keyboard/__init__.py:92
 msgid "Choose which (if any) responses to store at the end of a trial"
-msgstr ""
+msgstr "选择在试验结束时需要保存的响应（如有）"
 
 #: ../experiment/components/joyButtons/__init__.py:91
 #: ../experiment/components/keyboard/__init__.py:109
 msgid "Do you want to save the response as correct/incorrect?"
-msgstr ""
+msgstr "是否将响应保存为正确/错误？"
 
 #: ../experiment/components/joyButtons/__init__.py:99
 #: ../experiment/components/keyboard/__init__.py:126
@@ -4673,62 +4748,65 @@ msgid ""
 "What is the 'correct' key? Might be helpful to add a correctAns column and "
 "use $correctAns to compare to the key press."
 msgstr ""
+"什么是“correct（正确）”按键？建议添加 correctAns列并比较按键与 $correctAns 。"
 
 #: ../experiment/components/joyButtons/__init__.py:109
 #: ../experiment/components/keyboard/__init__.py:136
 msgid ""
 "A reaction time to a visual stimulus should be based on when the screen "
 "flipped"
-msgstr ""
+msgstr "视觉刺激的反应时间须以屏幕翻转时间为基准"
 
 #: ../experiment/components/joystick/__init__.py:21
 msgid "Save joystick state"
-msgstr ""
+msgstr "保存 joystick 状态"
 
 #: ../experiment/components/joystick/__init__.py:22
 #: ../experiment/components/mouse/__init__.py:20
 msgid "End Routine on press"
-msgstr ""
+msgstr "按键结束例程"
 
 #: ../experiment/components/joystick/__init__.py:24
 #: ../experiment/components/mouse/__init__.py:22
 msgid "Clickable stimuli"
-msgstr ""
+msgstr "可点击刺激"
 
 #: ../experiment/components/joystick/__init__.py:25
 #: ../experiment/components/mouse/__init__.py:23
 msgid "Store params for clicked"
-msgstr ""
+msgstr "在点击时保存变量"
 
 #: ../experiment/components/joystick/__init__.py:27
 msgid "Allowed Buttons"
-msgstr ""
+msgstr "允许的按钮"
 
 #: ../experiment/components/joystick/__init__.py:37
 msgid "Joystick: query joystick position and buttons"
-msgstr ""
+msgstr "Joystick：询问 joystick 位置与按钮"
 
 #: ../experiment/components/joystick/__init__.py:61
 msgid ""
 "How often should the joystick state (x,y,buttons) be stored? On every video "
 "frame, every click or just at the end of the Routine?"
 msgstr ""
+"保存 joystick 状态（如x，y，按钮）的频率为？每一视频祯，每一点击或在例程结束"
+"时保存？"
 
 #: ../experiment/components/joystick/__init__.py:71
 #: ../experiment/components/mouse/__init__.py:68
 msgid "Should a button press force the end of the routine (e.g end the trial)?"
-msgstr ""
+msgstr "是否允许点击按钮结束此例程（例：结束试验）？"
 
 #: ../experiment/components/joystick/__init__.py:84
 msgid "What should the values of joystick.time should be relative to?"
-msgstr ""
+msgstr "joystick.time 的值相对于什么定义？"
 
 #: ../experiment/components/joystick/__init__.py:93
 #: ../experiment/components/mouse/__init__.py:100
 msgid ""
 "A comma-separated list of your stimulus names that can be \"clicked\" by the "
 "participant. e.g. target, foil"
-msgstr ""
+msgstr "逗号隔开的可被被试“点击”的刺激名称，例：目标, 干扰项"
 
 #: ../experiment/components/joystick/__init__.py:103
 msgid ""
@@ -4736,38 +4814,40 @@ msgid ""
 "for the stimulus that was\"clicked\" by the joystick. Make sure that all the "
 "clickable objects have all these params."
 msgstr ""
+"当刺激被 joystick 点击时，如果需要保存变量的值，输入该变量（例：名称，文"
+"本）。确保所有的可点击对象具有这些变量。"
 
 #: ../experiment/components/joystick/__init__.py:123
 msgid "Buttons to be read (blank for any) numbers separated by commas"
-msgstr ""
+msgstr "请输入要读取的按钮并以逗号隔开（留空表示任意按钮）"
 
 #: ../experiment/components/keyboard/__init__.py:29
 msgid "Allowed keys"
-msgstr ""
+msgstr "允许的按键"
 
 #: ../experiment/components/keyboard/__init__.py:30
 msgid "Discard previous"
-msgstr ""
+msgstr "清除以前的记录"
 
 #: ../experiment/components/keyboard/__init__.py:35
 msgid "Sync timing with screen"
-msgstr ""
+msgstr "同步计时与屏幕"
 
 #: ../experiment/components/keyboard/__init__.py:44
 msgid "Keyboard: check and record keypresses"
-msgstr ""
+msgstr "键盘：检查并记录按键"
 
 #: ../experiment/components/keyboard/__init__.py:71
 msgid ""
 "A comma-separated list of keys (with quotes), such as "
 "'q','right','space','left'"
-msgstr ""
+msgstr "逗号隔开的按键（需输入引号），例：'q','right','space','left'"
 
 #: ../experiment/components/keyboard/__init__.py:84
 msgid ""
 "Do you want to discard all responses occurring before the onset of this "
 "component?"
-msgstr ""
+msgstr "是否需要清楚出现在此组件开始之前的所有响应？"
 
 #: ../experiment/components/microphone/__init__.py:24
 msgid "Stereo"
@@ -4941,11 +5021,11 @@ msgstr "影片文件"
 
 #: ../experiment/components/movie/__init__.py:21
 msgid "backend"
-msgstr ""
+msgstr "后台"
 
 #: ../experiment/components/movie/__init__.py:22
 msgid "No audio"
-msgstr ""
+msgstr "无音频"
 
 #: ../experiment/components/movie/__init__.py:33
 msgid "Movie: play movie files"
@@ -4954,121 +5034,121 @@ msgstr "影片：播放影片文件"
 #: ../experiment/components/movie/__init__.py:59
 #: ../experiment/components/sound/__init__.py:54
 msgid "When does the component end? (blank to use the duration of the media)"
-msgstr ""
+msgstr "组件终止时间为？（留空以使用媒体的时长）"
 
 #: ../experiment/components/movie/__init__.py:63
 msgid "A filename for the movie (including path)"
-msgstr ""
+msgstr "输入影片的文件名（包含文件路径）"
 
 #: ../experiment/components/movie/__init__.py:70
 msgid "What underlying lib to use for loading movies"
-msgstr ""
+msgstr "用于加载影片的底层库为"
 
 #: ../experiment/components/movie/__init__.py:77
 msgid ""
 "Prevent the audio stream from being loaded/processed (moviepy and opencv "
 "only)"
-msgstr ""
+msgstr "防止加载/处理音频流（仅 moviepy 和 opencv）"
 
 #: ../experiment/components/movie/__init__.py:84
 msgid "Should the end of the movie cause the end of the routine (e.g. trial)?"
-msgstr ""
+msgstr "是否在影片结束时终止例程（例：试验）？"
 
 #: ../experiment/components/movie/__init__.py:92
 msgid "Whether the movie should loop back to the beginning on completion."
-msgstr ""
+msgstr "是否首尾循环影片。"
 
 #: ../experiment/components/movie/__init__.py:97
 msgid "Loop playback"
-msgstr ""
+msgstr "循环回放"
 
 #: ../experiment/components/noise/__init__.py:18
 msgid "Image from which to derive noise spectrum"
-msgstr ""
+msgstr "用于获取噪点频谱的图像"
 
 #: ../experiment/components/noise/__init__.py:20
 msgid "Final spatial frequency"
-msgstr ""
+msgstr "最终空间频率"
 
 #: ../experiment/components/noise/__init__.py:22
 #: ../localization/__init__.py:174
 msgid "Contrast"
-msgstr ""
+msgstr "对比度"
 
 #: ../experiment/components/noise/__init__.py:25
 msgid "Type of noise"
-msgstr ""
+msgstr "噪点类型"
 
 #: ../experiment/components/noise/__init__.py:26
 msgid "Noise element size"
-msgstr ""
+msgstr "噪点元素大小"
 
 #: ../experiment/components/noise/__init__.py:27
 msgid "Skew in frequency spectrum"
-msgstr ""
+msgstr "频率频谱的倾斜度"
 
 #: ../experiment/components/noise/__init__.py:28
 msgid "Base spatial frequency"
-msgstr ""
+msgstr "基础空间频率"
 
 #: ../experiment/components/noise/__init__.py:29
 msgid "Spatial frequency bandwidth"
-msgstr ""
+msgstr "空间频率带宽"
 
 #: ../experiment/components/noise/__init__.py:30
 msgid "Orientation bandwidth for Gabor noise"
-msgstr ""
+msgstr "Gabor 噪声的定向带宽"
 
 #: ../experiment/components/noise/__init__.py:31
 msgid "Orientation for Gabor filter"
-msgstr ""
+msgstr "Gabor滤波器的定向"
 
 #: ../experiment/components/noise/__init__.py:32
 msgid "Order of filter"
-msgstr ""
+msgstr "滤波器的顺序"
 
 #: ../experiment/components/noise/__init__.py:33
 msgid "Upper cut off frequency"
-msgstr ""
+msgstr "频率上限"
 
 #: ../experiment/components/noise/__init__.py:34
 msgid "Lower cut off frequency"
-msgstr ""
+msgstr "频率下限"
 
 #: ../experiment/components/noise/__init__.py:35
 msgid "Number of standard deviations at which to clip noise"
-msgstr ""
+msgstr "用于修剪噪声的标准差数量"
 
 #: ../experiment/components/noise/__init__.py:36
 msgid "Apply filter to noise sample"
-msgstr ""
+msgstr "将滤波器用于噪声样本"
 
 #: ../experiment/components/noise/__init__.py:37
 msgid "Radomize image component"
-msgstr ""
+msgstr "随机化图像组件"
 
 #: ../experiment/components/noise/__init__.py:38
 msgid "How to update noise sample"
-msgstr ""
+msgstr "如何更新噪声样本"
 
 #: ../experiment/components/noise/__init__.py:39
 msgid "When to update noise sample"
-msgstr ""
+msgstr "何时更新噪声样本"
 
 #: ../experiment/components/noise/__init__.py:49
 msgid ""
 "Noise stimuli: generates a range of different types of random visual patterns"
-msgstr ""
+msgstr "噪声刺激：生成一系列不同种类的随机视觉形态"
 
 #: ../experiment/components/noise/__init__.py:87
 msgid ""
 "An image from which to derive the frequency spectrum for the noise. Give "
 "filename (including path)"
-msgstr ""
+msgstr "用于为噪声获取频率频谱的图像。输入文件名（包含文件路径）"
 
 #: ../experiment/components/noise/__init__.py:104
 msgid "Michaelson contrast of the image"
-msgstr ""
+msgstr "图像的 Michaelson 对比度"
 
 #: ../experiment/components/noise/__init__.py:112
 msgid ""
@@ -5078,17 +5158,23 @@ msgid ""
 "number (or variable) equal to the size of the stimulus to get one copy of "
 "noise per image regardless of the units."
 msgstr ""
+"一维或二维图像的最终空间频率，例：4 或 [2,3]。如需设置为每单位长度图像一份噪"
+"点副本，或当 units=pix 时每幅图像一份噪点副本，使用 None。设置为 1/size（或 "
+"[1/size,1/size]）等于刺激的大小，其中 size 是一个数字（或变量），这样无论单位"
+"如何，每幅图像都能得到一份噪点副本。"
 
 #: ../experiment/components/noise/__init__.py:125
 msgid ""
 "Spatial positioning of the noise within the stimulus (wraps in range 0-1.0)"
-msgstr ""
+msgstr "刺激内的噪声空间定位（范围为0-1.0）"
 
 #: ../experiment/components/noise/__init__.py:152
 msgid ""
 "Type of noise (Binary, Normal, Gabor, Isotropic, White, Coloured, Filtered, "
 "Image)"
 msgstr ""
+"噪声类型（Binary, Normal, Gabor, Isotropic, White, Coloured, Filtered, "
+"Image）"
 
 #: ../experiment/components/noise/__init__.py:161
 msgid ""
@@ -5098,6 +5184,10 @@ msgid ""
 "same type as the filter is requested the filter is applied, once only, to a "
 "white noise sample.]"
 msgstr ""
+"是否将滤波器用于噪声样本？[Butterworth, Gabor, Isoptopic]。具备从 Filtered "
+"(Butterworth) 或 Gabor/Isotropic 标签页获取的变量的滤波器将被用于其他噪声类"
+"型。[注意：如果要求使用与滤波器类型相同的噪声，则滤波器只能对白噪声样本使用一"
+"次。]"
 
 #: ../experiment/components/noise/__init__.py:174
 msgid ""
@@ -5108,6 +5198,10 @@ msgid ""
 "but set the phase spectrum to random values [-pi...pi] in radians. This "
 "makes a noise sample with no obvious structure. "
 msgstr ""
+"需随机化哪个图像组件？[振幅，相位]。随机化振幅将保持图像的相位频谱并将振幅频"
+"谱随机设置为[0…1]的值。这实际保留了空间结构。随机化相位频谱将保持图像的振幅频"
+"谱并将相位频谱随机设置为[0…1]的值（以弧度表示）。这使得噪声样本缺少显性结"
+"构。 "
 
 #: ../experiment/components/noise/__init__.py:187
 msgid ""
@@ -5120,15 +5214,16 @@ msgstr ""
 msgid ""
 "Base spatial frequency in cycles per unit length If units = pix this value "
 "should be < 0.5."
-msgstr ""
+msgstr "以每单位长度周期为单位的基础空间频率，如果单位 = 像素，该值应 < 0.5。"
 
 #: ../experiment/components/noise/__init__.py:204
+#, fuzzy
 msgid "Spatial frequency bandwidth in octaves - Full width half height"
-msgstr ""
+msgstr "空间频率带宽（in ocatves） - 全宽半高"
 
 #: ../experiment/components/noise/__init__.py:212
 msgid "Orientation bandwidth in degrees (Gabor only) - Full width half height"
-msgstr ""
+msgstr "以度为单位的方向带宽（仅限 Gabor） - 全宽半高"
 
 #: ../experiment/components/noise/__init__.py:220
 msgid ""
@@ -5140,6 +5235,10 @@ msgid ""
 "orientation it is strongly recommended to set the interpolation method to "
 "'linear' on the Advanced tab to avoid pixelization."
 msgstr ""
+"Gabor 滤波器的方向（单位：度）。用于设置 Gabor 滤波器的方向，以便应用于具有不"
+"同总体方向的另一个噪声样本。设置 Gabor 噪声样本方向的最佳方法是将其设置为0"
+"度，然后使用\"高级”选项上的“总体方向”来改变噪声的主要方向。如果使用此方向设"
+"置，建议将“高级”选项上的插值方法设置为“线性”，以避免像素化。"
 
 #: ../experiment/components/noise/__init__.py:235
 msgid ""
@@ -5151,22 +5250,31 @@ msgid ""
 "frequency space with values set by the exponent. It does not force the "
 "spectrum to a specific slope. "
 msgstr ""
+"滤波器振幅频谱斜率的指数（A=f^Exponent）。0 = 平坦，-1 = 1/f 的斜率。单独使用"
+"时，“滤波”噪声类型将滤波器应用于白噪声，因此产生的噪声样本具有滤波器的频谱特"
+"性。  当过滤其他类型的噪声样本时，该指数将原始频谱乘以频率空间中的坡度，坡度"
+"值由指数决定。它不会强制频谱达到特定的斜率。"
 
 #: ../experiment/components/noise/__init__.py:248
+#, fuzzy
 msgid "Order of filter - higher = steeper fall off, zero = no filter"
-msgstr ""
+msgstr "滤波器的阶数：越高 = 下降越陡，zero = 无滤波器"
 
 #: ../experiment/components/noise/__init__.py:256
 msgid ""
 "Upper cutoff frequency in cycles per unit length. Set very high to avoid an "
 "upper cutoff and make a high pass filter."
 msgstr ""
+"上限截断频率（以每单位长度的周期为单位）。 "
+"设置非常高以避免上限截断并制作高通滤波器。"
 
 #: ../experiment/components/noise/__init__.py:265
 msgid ""
 "Lower cutoff frequency in cycles per unit length. Set to zero to avoid a "
 "lower cuttoff and make a low pass filter."
 msgstr ""
+"下限截断频率（以每单位长度的周期为单位）。 "
+"设置非常低以避免下限截断并制作低通滤波器。"
 
 #: ../experiment/components/noise/__init__.py:274
 msgid ""
@@ -5177,140 +5285,152 @@ msgid ""
 "If a filter is used clipping and rescaling are applied after the filter, "
 "regardless of the noise type."
 msgstr ""
+"截断超出平均值的规定标准偏差的高值和低值，并重新调整灰度范围。"
+"这根本不用于“二元”或“均匀”噪声和音阶，而不是剪辑“正常”噪声）。"
+"该值越高，最终 RMS 对比度越低。 如果噪声非常低，则可能会出现二值化。"
+"注意：如果使用滤波器，则无论噪声类型如何，都会在滤波器之后应用剪切和重新缩放。"
 
 #: ../experiment/components/noise/__init__.py:285
 msgid ""
 "How to update noise if not otherwise required by other changes (none, "
 "repeat, N-frames, Seconds)"
 msgstr ""
+"若没有其他变化请求噪声（none, repeat, N-frames, Seconds），如何刷新噪声"
 
 #: ../experiment/components/noise/__init__.py:293
 msgid ""
 "How often to update noise (in frames or seconds) - can be a variable, "
 "ignored if any noise characteristic is updating on every frame"
 msgstr ""
+"刷新噪声的频率（单位为帧或秒）——可为一个变量，如任何噪声特征每帧均刷新，则忽"
+"略此项"
 
 #: ../experiment/components/noise/__init__.py:301
 msgid ""
 "OpenGL Blendmode [avg, add (avg is most common mode in PsychoPy, add is used "
 "if you want to generate the sum of two components)]"
 msgstr ""
+"OpenGL 混合模式 [avg, add (avg 是 PsychoPy中最常用的模式，如果您希望生成两个"
+"组件的和，请使用 add 模式)]"
 
 #: ../experiment/components/parallelOut/__init__.py:19
 msgid "Port address"
-msgstr ""
+msgstr "端口地址"
 
 #: ../experiment/components/parallelOut/__init__.py:20
 msgid "Start data"
-msgstr ""
+msgstr "开始数据"
 
 #: ../experiment/components/parallelOut/__init__.py:21
 msgid "Stop data"
-msgstr ""
+msgstr "终止数据"
 
 #: ../experiment/components/parallelOut/__init__.py:22
 #: ../experiment/components/pump/__init__.py:24
 msgid "Sync to screen"
-msgstr ""
+msgstr "与屏幕同步"
 
 #: ../experiment/components/parallelOut/__init__.py:31
 msgid "Parallel out: send signals from the parallel port"
-msgstr ""
+msgstr "并行输出：从并行端口发送信号"
 
 #: ../experiment/components/parallelOut/__init__.py:60
 msgid ""
 "Parallel port to be used (you can change these options in "
 "preferences>general)"
-msgstr ""
+msgstr "将使用的并行端口（可在首选项 > 常规中更改这些选项）"
 
 #: ../experiment/components/parallelOut/__init__.py:69
 msgid "Data to be sent at 'start'"
-msgstr ""
+msgstr "在“start”传输的数据"
 
 #: ../experiment/components/parallelOut/__init__.py:74
 msgid "Data to be sent at 'end'"
-msgstr ""
+msgstr "在“end”传输的数据"
 
 #: ../experiment/components/parallelOut/__init__.py:77
 msgid ""
 "If the parallel port data relates to visual stimuli then sync its pulse to "
 "the screen refresh"
-msgstr ""
+msgstr "如果并行端口数据与视觉刺激有关，则使其脉冲与屏幕刷新同步"
 
 #: ../experiment/components/patch/__init__.py:17
+#, fuzzy
 msgid "Image/tex"
-msgstr ""
+msgstr "图像/tex"
 
 #: ../experiment/components/patch/__init__.py:31
 msgid "Patch: present images (bmp, jpg, tif...) or textures like gratings"
-msgstr ""
+msgstr "补丁：呈现图像（bmp, jpg, tif…）或材质，类比光栅"
 
 #: ../experiment/components/patch/__init__.py:53
 msgid ""
 "The image to be displayed - 'sin','sqr'... or a filename (including path)"
-msgstr ""
+msgstr "需显示的图像——“sin”，“sqr”…或一个文件名（包含文件路径）"
 
 #: ../experiment/components/patch/__init__.py:71
 msgid "Spatial frequency of image repeats across the patch, e.g. 4 or [2,3]"
-msgstr ""
+msgstr "在整个补丁上图像重复的空间频率，例：4 或 [2,3]"
 
 #: ../experiment/components/patch/__init__.py:80
 msgid "Spatial positioning of the image on the patch (in range 0-1.0)"
-msgstr ""
+msgstr "图像在补丁上的空间定位（范围为 0-1.0）"
 
 #: ../experiment/components/polygon/__init__.py:22
 msgid "Num. vertices"
-msgstr ""
+msgstr "顶点数量"
 
 #: ../experiment/components/polygon/__init__.py:23
 msgid "Fill color"
-msgstr ""
+msgstr "填充色"
 
 #: ../experiment/components/polygon/__init__.py:24
 msgid "Line color"
-msgstr ""
+msgstr "线条色"
 
 #: ../experiment/components/polygon/__init__.py:25
 msgid "Line width"
-msgstr ""
+msgstr "线条宽度"
 
 #: ../experiment/components/polygon/__init__.py:27
 #: ../localization/__init__.py:178
 msgid "Size [w,h]"
-msgstr ""
+msgstr "大小 [宽，高]"
 
 #: ../experiment/components/polygon/__init__.py:28
 msgid "Shape"
-msgstr ""
+msgstr "形状"
 
 #: ../experiment/components/polygon/__init__.py:37
 msgid "Polygon: any regular polygon (line, triangle, square...circle)"
-msgstr ""
+msgstr "多边形：任意常规多边形（线条，三角形，正方形…圆形）"
 
 #: ../experiment/components/polygon/__init__.py:79
 msgid "How many vertices in your regular polygon?"
-msgstr ""
+msgstr "常规多边形的顶点数量为？"
 
 #: ../experiment/components/polygon/__init__.py:87
 msgid ""
 "What are the vertices of your polygon? Should be an nx2 array or a list of "
 "[x, y] lists"
-msgstr ""
+msgstr "多边形的顶点为？请输入一个二维数组或一个[x, y]数列"
 
 #: ../experiment/components/polygon/__init__.py:93
 msgid "Vertices"
-msgstr ""
+msgstr "顶点"
 
 #: ../experiment/components/polygon/__init__.py:96
 msgid ""
 "What shape is this? With 'regular polygon...' you can set number of vertices "
 "and with 'custom polygon...' you can set vertices"
 msgstr ""
+"此形状为？若选择‘常规多边形…’，您可设置顶点数量；若选择‘个性化多边形…’，您可"
+"设置顶点"
 
 #: ../experiment/components/polygon/__init__.py:109
 msgid ""
 "Width of the shape's line (always in pixels - this does NOT use 'units')"
-msgstr ""
+msgstr "此形状线条的宽度为？（请始终使用像素作为单位-次变量不使用‘units’）"
 
 #: ../experiment/components/polygon/__init__.py:127
 msgid ""
@@ -5319,207 +5439,211 @@ msgid ""
 " but for higher-order polygons it represents the [w,h] of the ellipse that "
 "the polygon sits on!! "
 msgstr ""
+"请输入刺激的大小[宽，高]。请注意，线条只需‘宽’的值，对于三角形和矩形，则需输"
+"入[宽，高]\n"
+"而对于高阶多边形，[宽，高]表示该多边形外接椭圆的宽、高！"
 
 #: ../experiment/components/pump/__init__.py:18
 msgid "Pump index"
-msgstr ""
+msgstr "泵编号"
 
 #: ../experiment/components/pump/__init__.py:19
 msgid "Syringe type"
-msgstr ""
+msgstr "注射器类型"
 
 #: ../experiment/components/pump/__init__.py:20
 msgid "Pump action"
-msgstr ""
+msgstr "泵动作"
 
 #: ../experiment/components/pump/__init__.py:21
 msgid "Flow rate"
-msgstr ""
+msgstr "流速"
 
 #: ../experiment/components/pump/__init__.py:22
 msgid "Flow rate unit"
-msgstr ""
+msgstr "流速单位"
 
 #: ../experiment/components/pump/__init__.py:23
 msgid "Switch valve after dosing"
-msgstr ""
+msgstr "加药后开关阀门"
 
 #: ../experiment/components/pump/__init__.py:32
 msgid "Pump: deliver liquid stimuli via a Cetoni neMESYS syringe pump"
-msgstr ""
+msgstr "注射泵：通过 Cetoni neMESYS 注射泵输送液体刺激"
 
 #: ../experiment/components/pump/__init__.py:67
 msgid "The index of the pump(s) (first pump is 0)."
-msgstr ""
+msgstr "注射泵的编号（从0开始编号）"
 
 #: ../experiment/components/pump/__init__.py:74
 msgid "Syringe type and dimensions"
-msgstr ""
+msgstr "注射器类型和尺寸"
 
 #: ../experiment/components/pump/__init__.py:81
 msgid "Whether the syringe should be filled (aspirate) or emptied (dispense"
-msgstr ""
+msgstr "注射器是否应充满（抽吸）或清空（分配）"
 
 #: ../experiment/components/pump/__init__.py:101
 msgid "Switch the valve after pump operation"
-msgstr ""
+msgstr "泵运行后切换阀门"
 
 #: ../experiment/components/pump/__init__.py:107
 msgid "Sync pump onset to the screen refresh"
-msgstr ""
+msgstr "将泵启动同步到屏幕刷新"
 
 #: ../experiment/components/ratingScale/__init__.py:23
 msgid "Visual analog scale"
-msgstr ""
+msgstr "可视模拟标尺"
 
 #: ../experiment/components/ratingScale/__init__.py:24
 #: ../experiment/components/slider/__init__.py:26
 msgid "Category choices"
-msgstr ""
+msgstr "分类选择"
 
 #: ../experiment/components/ratingScale/__init__.py:25
 msgid "Scale description"
-msgstr ""
+msgstr "标尺描述"
 
 #: ../experiment/components/ratingScale/__init__.py:26
 msgid "Lowest value"
-msgstr ""
+msgstr "最小值"
 
 #: ../experiment/components/ratingScale/__init__.py:27
 msgid "Highest value"
-msgstr ""
+msgstr "最大值"
 
 #: ../experiment/components/ratingScale/__init__.py:28
 #: ../experiment/components/slider/__init__.py:27
 msgid "Labels"
-msgstr ""
+msgstr "标签"
 
 #: ../experiment/components/ratingScale/__init__.py:29
 msgid "Marker type"
-msgstr ""
+msgstr "标记类型"
 
 #: ../experiment/components/ratingScale/__init__.py:30
 msgid "Marker start"
-msgstr ""
+msgstr "标记起始"
 
 #: ../experiment/components/ratingScale/__init__.py:32
 #: ../localization/__init__.py:176
 msgid "Position [x,y]"
-msgstr ""
+msgstr "位置[x,y]"
 
 #: ../experiment/components/ratingScale/__init__.py:33
 msgid "Tick height"
-msgstr ""
+msgstr "标记高度"
 
 #: ../experiment/components/ratingScale/__init__.py:34
 msgid "Disappear"
-msgstr ""
+msgstr "消失"
 
 #: ../experiment/components/ratingScale/__init__.py:36
 msgid "Show accept"
-msgstr ""
+msgstr "显示可接受"
 
 #: ../experiment/components/ratingScale/__init__.py:37
 msgid "Single click"
-msgstr ""
+msgstr "单击"
 
 #: ../experiment/components/ratingScale/__init__.py:38
 #: ../experiment/components/slider/__init__.py:30
 msgid "Store history"
-msgstr ""
+msgstr "保存历史记录"
 
 #: ../experiment/components/ratingScale/__init__.py:39
 #: ../experiment/components/slider/__init__.py:31
 msgid "Store rating"
-msgstr ""
+msgstr "保存评分"
 
 #: ../experiment/components/ratingScale/__init__.py:40
 #: ../experiment/components/slider/__init__.py:32
 msgid "Store rating time"
-msgstr ""
+msgstr "保存评分时间"
 
 #: ../experiment/components/ratingScale/__init__.py:41
 msgid "Customize everything :"
-msgstr ""
+msgstr "自定义一切："
 
 #: ../experiment/components/ratingScale/__init__.py:50
 msgid "Rating scale: obtain numerical or categorical responses"
-msgstr ""
+msgstr "评分标尺：获取数字或分类应答"
 
 #: ../experiment/components/ratingScale/__init__.py:93
 msgid ""
 "Show a continuous visual analog scale; returns 0.00 to 1.00; takes "
 "precedence over numeric scale or categorical choices"
-msgstr ""
+msgstr "显示连续可视模拟标尺；返回 0.00 至 1.00；优先于数字标尺或分类选择"
 
 #: ../experiment/components/ratingScale/__init__.py:100
 msgid ""
 "A list of categories (non-numeric alternatives) to present, space or comma-"
 "separated; these take precedence over a numeric scale"
-msgstr ""
+msgstr "分类列表（非数字选项），以空格或逗号分隔；这些类别优先于数字标尺"
 
 #: ../experiment/components/ratingScale/__init__.py:107
 msgid ""
 "Brief instructions, such as a description of the scale numbers as seen by "
 "the subject."
-msgstr ""
+msgstr "简要说明，如描述被试看到的分数所表示的含义。"
 
 #: ../experiment/components/ratingScale/__init__.py:113
 msgid "Lowest rating (low end of the scale); not used for categories."
-msgstr ""
+msgstr "最低分（标尺的底端）；不用于分类。"
 
 #: ../experiment/components/ratingScale/__init__.py:119
 msgid "Highest rating (top end of the scale); not used for categories."
-msgstr ""
+msgstr "最高分（标尺的顶端）；不用于分类。"
 
 #: ../experiment/components/ratingScale/__init__.py:125
 msgid "Labels for the ends of the scale, separated by commas"
-msgstr ""
+msgstr "量表结束的标签，以逗号分隔"
 
 #: ../experiment/components/ratingScale/__init__.py:132
 msgid "Style for the marker: triangle, circle, glow, slider, hover"
-msgstr ""
+msgstr "标志的样式：三角形，圆形，光晕，滑块，悬浮"
 
 #: ../experiment/components/ratingScale/__init__.py:138
 msgid "initial position for the marker"
-msgstr ""
+msgstr "标志的初始位置"
 
 #: ../experiment/components/ratingScale/__init__.py:145
+#, fuzzy
 msgid ""
 "Should clicking the line accept that rating (without needing to confirm via "
 "'accept')?"
-msgstr ""
+msgstr "是否点击该行来接受该评级（无需通过'接受'来确认）？"
 
 #: ../experiment/components/ratingScale/__init__.py:151
 msgid ""
 "Hide the scale when a rating has been accepted; False to remain on-screen"
-msgstr ""
+msgstr "接受评级时隐藏量表；反之，则将量表保留在屏幕上"
 
 #: ../experiment/components/ratingScale/__init__.py:157
 msgid "Should the accept button by visible?"
-msgstr ""
+msgstr "接受按钮是否可见？"
 
 #: ../experiment/components/ratingScale/__init__.py:162
 #: ../experiment/components/slider/__init__.py:197
 msgid "store the rating"
-msgstr ""
+msgstr "保存评级"
 
 #: ../experiment/components/ratingScale/__init__.py:167
 msgid "store the time taken to make the choice (in seconds)"
-msgstr ""
+msgstr "保存作出反应所用的时间（以秒计数）"
 
 #: ../experiment/components/ratingScale/__init__.py:173
 #: ../experiment/components/slider/__init__.py:208
 msgid "store the history of (selection, time)"
-msgstr ""
+msgstr "保存（反应，时间）的历史"
 
 #: ../experiment/components/ratingScale/__init__.py:178
 msgid "Should accepting a rating cause the end of the routine (e.g. trial)?"
-msgstr ""
+msgstr "接受评级是否会导致例程（如试验）的结束？"
 
 #: ../experiment/components/ratingScale/__init__.py:184
 msgid "height of tick marks (1 is upward, 0 is hidden, -1 is downward)"
-msgstr ""
+msgstr "刻度线的高度（1 表示向上，0 表示隐藏，-1 表示向下）"
 
 #: ../experiment/components/ratingScale/__init__.py:192
 msgid ""
@@ -5527,42 +5651,48 @@ msgid ""
 "overrides all dialog settings except time parameters, forceEndRoutine, "
 "storeRatingTime, storeRating"
 msgstr ""
+"使用此文本可以像在代码组件中一样创建评级量表；覆盖除时间参数、强制终止例程、"
+"保存评级时间、保存评级以外的所有对话框设置"
 
 #: ../experiment/components/roi/__init__.py:27
+#, fuzzy
 msgid ""
 "Region Of Interest: Define a region of interest for use with eyetrackers"
-msgstr ""
+msgstr "感兴趣区域(ROI)：定义感兴趣区域，与眼动仪配合使用"
 
 #: ../experiment/components/roi/__init__.py:66
 msgid "Under what condition should this ROI end the routine?"
-msgstr ""
+msgstr "在何种情况下该 ROI 将结束例程？"
 
 #: ../experiment/components/roi/__init__.py:67
+#, fuzzy
 msgid "End Routine On..."
-msgstr ""
+msgstr "结束例程..."
 
 #: ../experiment/components/roi/__init__.py:81
 msgid ""
 "How long (s) does the participant need to look at the ROI to count as a look?"
-msgstr ""
+msgstr "参与者需要注视 ROI 多长时间（秒）才算一次注视？"
 
 #: ../experiment/components/roi/__init__.py:82
 msgid "Min. Look Time"
-msgstr ""
+msgstr "最小注视时间"
 
 #: ../experiment/components/roi/__init__.py:87
 msgid ""
 "In debug mode, the ROI is drawn in red. Use this to see what area of the "
 "screen is in the ROI."
 msgstr ""
+"在调试模式中，感兴趣区域以红色显示。使用此功能可查看屏幕上哪些区域属于感兴趣"
+"区域范围。"
 
 #: ../experiment/components/roi/__init__.py:89
 msgid "Debug Mode"
-msgstr ""
+msgstr "调试模式"
 
 #: ../experiment/components/roi/__init__.py:95
 msgid "What looks on this ROI should be saved to the data output?"
-msgstr ""
+msgstr "将此感兴趣区域的哪些内容保存到数据输出中？"
 
 #: ../experiment/components/roi/__init__.py:97
 msgid "Save..."
@@ -5570,19 +5700,19 @@ msgstr "保存..."
 
 #: ../experiment/components/roi/__init__.py:106
 msgid "Time Relative To..."
-msgstr ""
+msgstr "时间相对于..."
 
 #: ../experiment/components/settings/__init__.py:46
 msgid "Experiment name"
-msgstr ""
+msgstr "实验名称"
 
 #: ../experiment/components/settings/__init__.py:47
 msgid "Show info dialog"
-msgstr ""
+msgstr "展示信息对话框"
 
 #: ../experiment/components/settings/__init__.py:48
 msgid "Enable Escape key"
-msgstr ""
+msgstr "启用 Escape 键"
 
 #: ../experiment/components/settings/__init__.py:49
 msgid "Experiment info"
@@ -5647,120 +5777,122 @@ msgstr "保存 psydat 文件"
 
 #: ../experiment/components/settings/__init__.py:67
 msgid "Logging level"
-msgstr ""
+msgstr "日志级别"
 
 #: ../experiment/components/settings/__init__.py:68
 msgid "Use PsychoPy version"
-msgstr ""
+msgstr "使用 Psychopy 版本"
 
 #: ../experiment/components/settings/__init__.py:69
 msgid "Completed URL"
-msgstr ""
+msgstr "完整的 URL"
 
 #: ../experiment/components/settings/__init__.py:70
 msgid "Incomplete URL"
-msgstr ""
+msgstr "不完整的 URL"
 
 #: ../experiment/components/settings/__init__.py:71
 msgid "Output path"
-msgstr ""
+msgstr "输出路径"
 
 #: ../experiment/components/settings/__init__.py:72
 msgid "Additional Resources"
-msgstr ""
+msgstr "其他资源"
 
 #: ../experiment/components/settings/__init__.py:73
 msgid "JS libs"
-msgstr ""
+msgstr "JS 库"
 
 #: ../experiment/components/settings/__init__.py:74
 msgid "Force stereo"
-msgstr ""
+msgstr "强制使用立体声"
 
 #: ../experiment/components/settings/__init__.py:75
 msgid "Export HTML"
-msgstr ""
+msgstr "导出 HTML"
 
 #: ../experiment/components/settings/__init__.py:105
 msgid "Edit settings for this experiment"
-msgstr ""
+msgstr "编辑该实验的设置"
 
 #: ../experiment/components/settings/__init__.py:158
 msgid ""
 "Name of the entire experiment (taken by default from the filename on save)"
-msgstr ""
+msgstr "整个实验的名称（默认取自保存时的文件名）"
 
 #: ../experiment/components/settings/__init__.py:171
 msgid ""
 "Start the experiment with a dialog to set info (e.g.participant or condition)"
-msgstr ""
+msgstr "通过对话框设置信息（如参与者或条件）开始实验"
 
 #: ../experiment/components/settings/__init__.py:176
 msgid ""
 "Enable the <esc> key, to allow subjects to quit / break out of the experiment"
-msgstr ""
+msgstr "启用 <esc> 键，允许被试退出/中止实验"
 
 #: ../experiment/components/settings/__init__.py:181
 msgid ""
 "The info to present in a dialog box. Right-click to check syntax and preview "
 "the dialog box."
-msgstr ""
+msgstr "对话框中显示的信息。右键单击可检查语法并预览对话框。"
 
 #: ../experiment/components/settings/__init__.py:190
 msgid "The version of PsychoPy to use when running the experiment."
-msgstr ""
+msgstr "运行实验时使用的 Psychopy 版本。"
 
 #: ../experiment/components/settings/__init__.py:197
 msgid "Run the experiment full-screen (recommended)"
-msgstr ""
+msgstr "全屏运行实验（推荐）"
 
 #: ../experiment/components/settings/__init__.py:201
 msgid "Size of window (if not fullscreen)"
-msgstr ""
+msgstr "窗口大小（如果不是全屏）"
 
 #: ../experiment/components/settings/__init__.py:205
 msgid "Which physical screen to run on (1 or 2)"
-msgstr ""
+msgstr "在哪个物理屏幕上运行（1 或 2）"
 
 #: ../experiment/components/settings/__init__.py:209
 msgid ""
 "Name of the monitor (from Monitor Center). Right-click to go there, then "
 "copy & paste a monitor name here."
 msgstr ""
+"显示器名称（来自显示器中心）。右键单击进入，然后在此复制或粘贴显示器名称。"
 
 #: ../experiment/components/settings/__init__.py:215
 msgid ""
 "Color of the screen (e.g. black, $[1.0,1.0,1.0], $variable. Right-click to "
 "bring up a color-picker.)"
 msgstr ""
+"屏幕颜色（例如：黑色，$[1.0,1.0,1.0]，$变量。右键单击可显示颜色选择器。）"
 
 #: ../experiment/components/settings/__init__.py:221
 msgid ""
 "Needed if color is defined numerically (see PsychoPy documentation on color "
 "spaces)"
-msgstr ""
+msgstr "如果颜色是数值定义的，则需要（参见有关颜色空间的 PsychoPy 文档）"
 
 #: ../experiment/components/settings/__init__.py:229
 msgid "Units to use for window/stimulus coordinates (e.g. cm, pix, deg)"
-msgstr ""
+msgstr "窗口/刺激的坐标使用的单位（如厘米、像素、度数）"
 
 #: ../experiment/components/settings/__init__.py:235
 msgid ""
 "Should new stimuli be added or averaged with the stimuli that have been "
 "drawn already"
-msgstr ""
+msgstr "将新的刺激与已绘制的刺激相加或是求平均值"
 
 #: ../experiment/components/settings/__init__.py:240
 msgid "Should the mouse be visible on screen?"
-msgstr ""
+msgstr "鼠标是否在屏幕上可见？"
 
 #: ../experiment/components/settings/__init__.py:246
 msgid "Force audio to stereo (2-channel) output"
-msgstr ""
+msgstr "将音频强制为立体声（双声道）输出"
 
 #: ../experiment/components/settings/__init__.py:251
 msgid "Which Python sound engine do you want to play your sounds?"
-msgstr ""
+msgstr "您希望使用哪个 Python 声音引擎来播放您的声音？"
 
 #: ../experiment/components/settings/__init__.py:252
 msgid "Audio library"
@@ -5768,434 +5900,452 @@ msgstr "音频库"
 
 #: ../experiment/components/settings/__init__.py:255
 msgid "use prefs"
-msgstr ""
+msgstr "使用首选项"
 
 #: ../experiment/components/settings/__init__.py:266
 msgid ""
 "How important is audio latency for you? If essential then you may need to "
 "get all your sounds in correct formats."
 msgstr ""
+"音频延迟对您有多重要？如果很重要，那么您需要保证您所有的声音格式都正确。"
 
 #: ../experiment/components/settings/__init__.py:267
 msgid "Audio latency priority"
-msgstr ""
+msgstr "音频延迟优先级"
 
+# 不太确定 file name base应该怎么翻译
 #: ../experiment/components/settings/__init__.py:272
+#, fuzzy
 msgid ""
 "Code to create your custom file name base. Don't give a file extension - "
 "this will be added."
-msgstr ""
+msgstr "用于创建自定义文件名库的代码。不要指定文件扩展名——扩展名将被自动添加。"
 
+# 这里的“Auto”不知道是不是程序里的一个选项或者按键，不知道应不应该翻译。
 #: ../experiment/components/settings/__init__.py:278
+#, fuzzy
 msgid ""
 "What symbol should the data file use to separate columns? Auto will select a "
 "delimiter automatically from the filename."
-msgstr ""
+msgstr "数据文件应使用什么符号来分隔列？Auto 将自动从文件名中选择分隔符。"
 
 #: ../experiment/components/settings/__init__.py:283
 msgid ""
 "Save a detailed log (more detailed than the excel/csv files) of the entire "
 "experiment"
-msgstr ""
+msgstr "保存整个实验的详细日志（比 excel/csv 文件更详细）"
 
 #: ../experiment/components/settings/__init__.py:288
 #: ../experiment/components/settings/__init__.py:293
+#, fuzzy
 msgid ""
 "Save data from loops in comma-separated-value (.csv) format for maximum "
 "portability"
-msgstr ""
+msgstr "以逗号分隔值（.csv）格式保存循环数据，实现最大程度的可移植性"
 
 #: ../experiment/components/settings/__init__.py:298
 msgid "Save data from loops in Excel (.xlsx) format"
-msgstr ""
+msgstr "以 Excel （.xlsx）格式保存循环数据"
 
 #: ../experiment/components/settings/__init__.py:302
 msgid ""
 "Save data from loops in psydat format. This is useful for python programmers "
 "to generate analysis scripts."
-msgstr ""
+msgstr "以 psydat 格式保存循环数据。这有助于 python 编程者生成分析脚本。"
 
 #: ../experiment/components/settings/__init__.py:308
 msgid ""
 "Save data from eyetrackers in hdf5 format. This is useful for viewing and "
 "analyzing complex data in structures."
-msgstr ""
+msgstr "以 hdf5 格式保存眼动仪数据。这有助于查看和分析结构复杂的数据。"
 
 #: ../experiment/components/settings/__init__.py:310
 msgid "Save hdf5 file"
-msgstr ""
+msgstr "保存 hdf5 文件"
 
 #: ../experiment/components/settings/__init__.py:314
 msgid ""
 "How much output do you want in the log files? ('error' is fewest messages, "
 "'debug' is most)"
 msgstr ""
+"你希望在日志文件中输出多少信息？（‘error’指最少的信息，’debug‘指最多的信息）"
 
 #: ../experiment/components/settings/__init__.py:325
 msgid "Place the HTML files will be saved locally "
-msgstr ""
+msgstr "将 HTML 文件保存到本地 "
 
 #: ../experiment/components/settings/__init__.py:329
 msgid "Any additional resources needed"
-msgstr ""
+msgstr "所需的额外资源"
 
 #: ../experiment/components/settings/__init__.py:333
 msgid ""
 "Where should participants be redirected after the experiment on completion\n"
 " INSERT COMPLETION URL E.G.?"
 msgstr ""
+"实验完成后应将被试导向哪里\n"
+"例如：插入完成的网址？"
 
 #: ../experiment/components/settings/__init__.py:338
 msgid ""
 "Where participants are redirected if they do not complete the task\n"
 " INSERT INCOMPLETION URL E.G.?"
 msgstr ""
+"如果被试没有完成任务，他们将被导向哪里\n"
+"例如：插入未完成的网址？"
 
 #: ../experiment/components/settings/__init__.py:344
 msgid "When to export experiment to the HTML folder."
-msgstr ""
+msgstr "何时将实验导出到 HTML 文件夹。"
 
 #: ../experiment/components/settings/__init__.py:383
 msgid ""
 "What kind of eye tracker should PsychoPy use? Select 'MouseGaze' to use the "
 "mouse to simulate eye movement (for debugging without a tracker connected)"
 msgstr ""
+"PsychoPy 应使用什么类型的眼动仪？选择“MouseGaze”来使用鼠标模拟眼动（用于未连"
+"接眼动仪时的调试）"
 
 #: ../experiment/components/settings/__init__.py:385
 msgid "Eyetracker Device"
-msgstr ""
+msgstr "眼动设备"
 
 #: ../experiment/components/settings/__init__.py:392
 msgid "Mouse button to press for eye movement."
-msgstr ""
+msgstr "鼠标点击此键眼动。"
 
 #: ../experiment/components/settings/__init__.py:393
 msgid "Move Button"
-msgstr ""
+msgstr "移动按钮"
 
 #: ../experiment/components/settings/__init__.py:399
 msgid "Mouse button to press for a blink."
-msgstr ""
+msgstr "鼠标点击此键眨眼。"
 
 #: ../experiment/components/settings/__init__.py:400
 msgid "Blink Button"
-msgstr ""
+msgstr "眨眼按钮"
 
 #: ../experiment/components/settings/__init__.py:405
 msgid "Visual degree threshold for Saccade event creation."
-msgstr ""
+msgstr "创建扫视事件的视觉度数阈值。"
 
 #: ../experiment/components/settings/__init__.py:406
 msgid "Saccade Threshold"
-msgstr ""
+msgstr "扫视阈限"
 
+# GazePoint Control需要翻译吗
 #: ../experiment/components/settings/__init__.py:412
 msgid "IP Address of the computer running GazePoint Control."
-msgstr ""
+msgstr "运行 GazePoint Control 的电脑的 IP 地址。"
 
 #: ../experiment/components/settings/__init__.py:413
 msgid "GazePoint IP Address"
-msgstr ""
+msgstr "GazePoint 的 IP 地址"
 
 #: ../experiment/components/settings/__init__.py:418
 msgid "Port of the GazePoint Control server. Usually 4242."
-msgstr ""
+msgstr "GazePoint Control 服务器的端口。通常为 4242。"
 
 #: ../experiment/components/settings/__init__.py:419
 msgid "GazePoint Port"
-msgstr ""
+msgstr "GazePoint 端口"
 
 #: ../experiment/components/settings/__init__.py:426
 #: ../experiment/components/settings/__init__.py:496
 msgid "Eye tracker model."
-msgstr ""
+msgstr "眼动仪模型。"
 
 #: ../experiment/components/settings/__init__.py:427
 #: ../experiment/components/settings/__init__.py:497
 msgid "Model Name"
-msgstr ""
+msgstr "模型名称"
 
 #: ../experiment/components/settings/__init__.py:432
 msgid "Set the EyeLink to run in mouse simulation mode."
-msgstr ""
+msgstr "将 EyeLink 设置为鼠标模拟模式。"
 
 #: ../experiment/components/settings/__init__.py:433
 msgid "Mouse Simulation Mode"
-msgstr ""
+msgstr "鼠标模拟模式"
 
 #: ../experiment/components/settings/__init__.py:439
 #: ../experiment/components/settings/__init__.py:514
 msgid "Eye tracker sampling rate."
-msgstr ""
+msgstr "眼动仪采样率。"
 
 #: ../experiment/components/settings/__init__.py:440
 #: ../experiment/components/settings/__init__.py:515
 msgid "Sampling Rate"
-msgstr ""
+msgstr "采样率"
 
 #: ../experiment/components/settings/__init__.py:446
 msgid "Select with eye(s) to track."
-msgstr ""
+msgstr "选择要追踪的眼睛。"
 
 #: ../experiment/components/settings/__init__.py:447
 msgid "Track Eyes"
-msgstr ""
+msgstr "追踪眼"
 
 #: ../experiment/components/settings/__init__.py:453
 msgid ""
 "Filter eye sample data live, as it is streamed to the driving device. This "
 "may reduce the sampling speed."
-msgstr ""
+msgstr "在数据流传输到驱动设备时，实时过滤眼动采样数据。这可能会降低采样速度。"
 
 #: ../experiment/components/settings/__init__.py:455
 msgid "Live Sample Filtering"
-msgstr ""
+msgstr "实时采样过滤"
 
 #: ../experiment/components/settings/__init__.py:461
 msgid ""
 "Filter eye sample data when it is saved to the output file. This will not "
 "affect the sampling speed."
-msgstr ""
+msgstr "在眼动采样数据保存到输出文件时对其进行过滤。这不会影响采样速度。"
 
 #: ../experiment/components/settings/__init__.py:463
 msgid "Saved Sample Filtering"
-msgstr ""
+msgstr "保存的采样过滤"
 
 #: ../experiment/components/settings/__init__.py:469
 msgid "Track Pupil-CR or Pupil only."
-msgstr ""
+msgstr "只追踪瞳孔-CR 或瞳孔。"
 
 #: ../experiment/components/settings/__init__.py:470
 msgid "Pupil Tracking Mode"
-msgstr ""
+msgstr "瞳孔追踪模式"
 
 #: ../experiment/components/settings/__init__.py:476
 msgid "Algorithm used to detect the pupil center."
-msgstr ""
+msgstr "用于检测瞳孔中心的算法。"
 
 #: ../experiment/components/settings/__init__.py:477
 msgid "Pupil Center Algorithm"
-msgstr ""
+msgstr "瞳孔中心算法"
 
 #: ../experiment/components/settings/__init__.py:483
 msgid "Type of pupil data to record."
-msgstr ""
+msgstr "要记录的瞳孔数据类型。"
 
 #: ../experiment/components/settings/__init__.py:484
 msgid "Pupil Data Type"
-msgstr ""
+msgstr "瞳孔数据类型"
 
 #: ../experiment/components/settings/__init__.py:489
 msgid "IP Address of the EyeLink *Host* computer."
-msgstr ""
+msgstr "EyeLink *Host* 电脑的 IP 地址。"
 
 #: ../experiment/components/settings/__init__.py:490
 msgid "EyeLink IP Address"
-msgstr ""
+msgstr "EyeLink IP 地址"
 
 #: ../experiment/components/settings/__init__.py:502
 msgid "Eye tracker license file (optional)."
-msgstr ""
+msgstr "眼动仪的许可证文件（可选）。"
 
 #: ../experiment/components/settings/__init__.py:503
 msgid "License File"
-msgstr ""
+msgstr "许可证文件"
 
 #: ../experiment/components/settings/__init__.py:508
 msgid "Eye tracker serial number (optional)."
-msgstr ""
+msgstr "眼动仪的序列号（可选）。"
 
 #: ../experiment/components/settings/__init__.py:509
 msgid "Serial Number"
-msgstr ""
+msgstr "序列号"
 
 #: ../experiment/components/slider/__init__.py:28
 msgid "Ticks"
-msgstr ""
+msgstr "刻度"
 
 #: ../experiment/components/slider/__init__.py:33
 msgid "readOnly"
-msgstr ""
+msgstr "只读"
 
 #: ../experiment/components/slider/__init__.py:61
 msgid "Slider: A simple, flexible object for getting ratings"
-msgstr ""
+msgstr "滑块：简单、灵活地获取评级"
 
 #: ../experiment/components/slider/__init__.py:109
 msgid "Tick positions (numerical) on the scale, separated by commas"
-msgstr ""
+msgstr "量表上的刻度位置（数值），以逗号分隔"
 
 #: ../experiment/components/slider/__init__.py:115
 msgid "Labels for the tick marks on the scale, separated by commas"
-msgstr ""
+msgstr "量表上刻度标记的标签，以逗号分隔"
 
 #: ../experiment/components/slider/__init__.py:120
 msgid ""
 "Value of the slider befre any response, leave blank to hide the marker until "
 "clicked on"
-msgstr ""
+msgstr "做出任何反应之前的滑块值，留空表示在点击之前隐藏标记"
 
 #: ../experiment/components/slider/__init__.py:121
 msgid "Starting Value"
-msgstr ""
+msgstr "起始值"
 
 #: ../experiment/components/slider/__init__.py:126
 msgid ""
 "Specifies the minimum step size (0 for a continuous scale, 1 for integer "
 "rating scale)"
-msgstr ""
+msgstr "指定最小步长（0表示连续刻度，1表示整数等级刻度）"
 
 #: ../experiment/components/slider/__init__.py:129
 msgid "Granularity"
-msgstr ""
+msgstr "颗粒度"
 
 #: ../experiment/components/slider/__init__.py:133
 msgid ""
 "Should setting a rating (releasing the mouse) cause the end of the routine "
 "(e.g. trial)?"
-msgstr ""
+msgstr "设置评级（释放鼠标）是否会导致例程（如试验）的结束？"
 
 #: ../experiment/components/slider/__init__.py:139
 msgid "Should participant be able to change the rating on the Slider?"
-msgstr ""
+msgstr "被试是否能够改变滑块上的评级？"
 
 #: ../experiment/components/slider/__init__.py:146
 msgid ""
 "By default the labels will be on the bottom or left of the scale, but this "
 "can be flipped to the other side."
-msgstr ""
+msgstr "标签默认位于量表的下侧或左侧，但也可以翻转到另一侧。"
 
 #: ../experiment/components/slider/__init__.py:150
 msgid "Flip"
-msgstr ""
+msgstr "翻转"
 
 #: ../experiment/components/slider/__init__.py:153
 msgid "Label Color"
-msgstr ""
+msgstr "标签颜色"
 
 #: ../experiment/components/slider/__init__.py:154
 msgid ""
 "Color of all labels on this slider (might be overridden by the style setting)"
-msgstr ""
+msgstr "这一滑块上所有标签的颜色（可能被样式设置所覆盖）"
 
 #: ../experiment/components/slider/__init__.py:156
 msgid ""
 "Color of the marker on this slider (might be overridden by the style setting)"
-msgstr ""
+msgstr "这一滑块上标记的颜色（可能被样式设置所覆盖）"
 
 #: ../experiment/components/slider/__init__.py:157
 msgid "Line Color"
-msgstr ""
+msgstr "线条颜色"
 
 #: ../experiment/components/slider/__init__.py:158
 msgid ""
 "Color of all lines on this slider (might be overridden by the style setting)"
-msgstr ""
+msgstr "这一滑块上所有线条的颜色（可能被样式设置所覆盖）"
 
 #: ../experiment/components/slider/__init__.py:167
 msgid "Font for the labels"
-msgstr ""
+msgstr "标签的字体"
 
 #: ../experiment/components/slider/__init__.py:175
 msgid "Letter height for text in labels"
-msgstr ""
+msgstr "标签中本文的字体大小"
 
 #: ../experiment/components/slider/__init__.py:182
 msgid "Discrete styles to control the overall appearance of the slider."
-msgstr ""
+msgstr "用于控制滑块整体外观的独立样式。"
 
 #: ../experiment/components/slider/__init__.py:189
 msgid "Tweaks to change the appearance of the slider beyond its style."
-msgstr ""
+msgstr "除样式外，对滑块外观进行调整。"
 
 #: ../experiment/components/slider/__init__.py:191
 msgid "Style Tweaks"
-msgstr ""
+msgstr "样式调整"
 
 #: ../experiment/components/slider/__init__.py:202
 msgid "Store the time taken to make the choice (in seconds)"
-msgstr ""
+msgstr "保存做出反应所用的时间（秒）"
 
 #: ../experiment/components/sound/__init__.py:21
 msgid "Sound"
-msgstr ""
+msgstr "声音"
 
 #: ../experiment/components/sound/__init__.py:22
 msgid "Volume"
-msgstr ""
+msgstr "音量"
 
 #: ../experiment/components/sound/__init__.py:23
 msgid "Sync Start With Screen"
-msgstr ""
+msgstr "与屏幕同步启动"
 
 #: ../experiment/components/sound/__init__.py:31
 msgid "Sound: play recorded files or generated sounds"
-msgstr ""
+msgstr "声音：播放录制的文件或生成的声音"
 
 #: ../experiment/components/sound/__init__.py:52
 msgid "The maximum duration of a sound in seconds"
-msgstr ""
+msgstr "一段声音的最长持续时间（秒）"
 
 #: ../experiment/components/sound/__init__.py:58
 msgid ""
 "A sound can be a note name (e.g. A or Bf), a number to specify Hz (e.g. 440) "
 "or a filename"
-msgstr ""
+msgstr "声音可以是音符名称（如 A 或 Bf）、指定 Hz 的数字（如 440）或文件名"
 
 #: ../experiment/components/sound/__init__.py:69
 msgid "The volume (in range 0 to 1)"
-msgstr ""
+msgstr "音量（范围从0到1）"
 
 #: ../experiment/components/sound/__init__.py:71
 msgid ""
 "A reaction time to a sound stimulus should be based on when the screen "
 "flipped"
-msgstr ""
+msgstr "对声音刺激的反应时应基于屏幕何时翻转"
 
+# onset不知道翻译为什么比较好
 #: ../experiment/components/sound/__init__.py:81
+#, fuzzy
 msgid ""
 "For tones we can apply a Hamming window to prevent 'clicks' that are caused "
 "by a sudden onset. This delays onset by roughly 1ms."
 msgstr ""
+"对于音调，我们可以应用 Hamming 窗口来防止因突然 onset 而引起的“滴答声”。这会"
+"将 onset 延迟大约1毫秒。"
 
 #: ../experiment/components/sound/__init__.py:84
 msgid "Hamming window"
-msgstr ""
+msgstr "Hamming 窗口"
 
 #: ../experiment/components/static/__init__.py:22
 msgid "Custom code"
-msgstr ""
+msgstr "自定义代码"
 
 #: ../experiment/components/static/__init__.py:35
 msgid ""
 "Static: Static screen period (e.g. an ISI). Useful for pre-loading stimuli."
-msgstr ""
+msgstr "静态：屏幕呈静态的时段（如 ISI）。适用于预加载刺激。"
 
 #: ../experiment/components/static/__init__.py:46
 msgid "Custom code to be run during the static period (after updates)"
-msgstr ""
+msgstr "在静态时段中运行的自定义代码（更新后）"
 
 #: ../experiment/components/text/__init__.py:19
 #: ../experiment/components/textbox/__init__.py:20
 msgid "Text"
-msgstr ""
+msgstr "文本"
 
 #: ../experiment/components/text/__init__.py:22
 msgid "Wrap width"
-msgstr ""
+msgstr "换行宽度"
 
 #: ../experiment/components/text/__init__.py:23
 msgid "Flip (mirror)"
-msgstr ""
+msgstr "翻转（镜像）"
 
 #: ../experiment/components/text/__init__.py:24
 #: ../experiment/components/textbox/__init__.py:25
 msgid "Language style"
-msgstr ""
+msgstr "语言风格"
 
 #: ../experiment/components/text/__init__.py:34
 msgid "Text: present text stimuli"
-msgstr ""
+msgstr "文本：呈现文本刺激"
 
 #: ../experiment/components/text/__init__.py:38
 #: ../experiment/components/textbox/__init__.py:50
@@ -6204,63 +6354,69 @@ msgid ""
 "\n"
 "including line breaks"
 msgstr ""
+"任意文本\n"
+"\n"
+"包括换行符"
 
 #: ../experiment/components/text/__init__.py:85
 msgid "How wide should the text get when it wraps? (in the specified units)"
-msgstr ""
+msgstr "文本换行时的宽度是多少？(以指定单位表示）"
 
 #: ../experiment/components/text/__init__.py:91
 #: ../experiment/components/textbox/__init__.py:108
 #: ../experiment/components/textbox/__init__.py:114
 msgid "horiz = left-right reversed; vert = up-down reversed; $var = variable"
-msgstr ""
+msgstr "horiz = 左右反转；vert = 上下反转；$var = 变量"
 
 #: ../experiment/components/text/__init__.py:97
 #: ../experiment/components/textbox/__init__.py:120
+#, fuzzy
 msgid "Handle right-to-left (RTL) languages and Arabic reshaping"
-msgstr ""
+msgstr "处理从右向左 (RTL) 语言和阿拉伯语重塑问题"
 
 #: ../experiment/components/textbox/__init__.py:23
 msgid "Flip horizontal"
-msgstr ""
+msgstr "横向翻转"
 
 #: ../experiment/components/textbox/__init__.py:24
 msgid "Flip vertical"
-msgstr ""
+msgstr "纵向翻转"
 
 #: ../experiment/components/textbox/__init__.py:28
 msgid "Line Spacing"
-msgstr ""
+msgstr "行距"
 
 #: ../experiment/components/textbox/__init__.py:34
 msgid "Editable?"
-msgstr ""
+msgstr "可编辑？"
 
 #: ../experiment/components/textbox/__init__.py:35
 msgid "Auto Log"
-msgstr ""
+msgstr "自动日志"
 
+# 唔 cooler真的是更酷吗
 #: ../experiment/components/textbox/__init__.py:45
+#, fuzzy
 msgid "Textbox: present text stimuli but cooler"
-msgstr ""
+msgstr "文本框：呈现文本刺激，但更酷"
 
 #: ../experiment/components/textbox/__init__.py:135
 msgid "Defines the space between lines"
-msgstr ""
+msgstr "定义行间距"
 
 #: ../experiment/components/textbox/__init__.py:165
 msgid "Should textbox be editable?"
-msgstr ""
+msgstr "文本框是否可编辑？"
 
 #: ../experiment/components/textbox/__init__.py:170
 msgid "Automatically record all changes to this in the log file"
-msgstr ""
+msgstr "在日志文件中自动记录该处的所有的改变"
 
 #: ../experiment/components/unknown/__init__.py:12
 #: ../experiment/components/variable/__init__.py:21
 #: ../localization/__init__.py:158 ../localization/__init__.py:181
 msgid "Name"
-msgstr ""
+msgstr "名称"
 
 #: ../experiment/components/unknown/__init__.py:27
 msgid ""
@@ -6268,87 +6424,89 @@ msgid ""
 "PsychoPy\n"
 "(most likely from the future)"
 msgstr ""
+"未知：当前安装版本的 Psychopy 所不知道的组块\n"
+"（最有可能来自较新的版本）"
 
 #: ../experiment/components/variable/__init__.py:22
 msgid "Experiment start value"
-msgstr ""
+msgstr "实验起始值"
 
 #: ../experiment/components/variable/__init__.py:23
 msgid "Routine start value"
-msgstr ""
+msgstr "例程起始值"
 
 #: ../experiment/components/variable/__init__.py:24
 msgid "Frame start value"
-msgstr ""
+msgstr "帧起始值"
 
 #: ../experiment/components/variable/__init__.py:25
 msgid "Save exp start value"
-msgstr ""
+msgstr "保存实验起始值"
 
 #: ../experiment/components/variable/__init__.py:26
 msgid "Save routine start value"
-msgstr ""
+msgstr "保存例程起始值"
 
 #: ../experiment/components/variable/__init__.py:27
 msgid "Save frame value"
-msgstr ""
+msgstr "保存帧起始值"
 
 #: ../experiment/components/variable/__init__.py:28
 msgid "Save routine end value"
-msgstr ""
+msgstr "保存例程结束值"
 
 #: ../experiment/components/variable/__init__.py:29
 msgid "Save exp end value"
-msgstr ""
+msgstr "保存实验结束值"
 
 #: ../experiment/components/variable/__init__.py:38
 msgid "Variable: create a new variable"
-msgstr ""
+msgstr "变量：新建一个变量"
 
 #: ../experiment/components/variable/__init__.py:55
 msgid "The start value. A variable can be set to any value."
-msgstr ""
+msgstr "起始值。一个可以被设置为任意值的变量。"
 
 #: ../experiment/components/variable/__init__.py:60
 msgid "Set the value for the beginning of each routine."
-msgstr ""
+msgstr "设置每一个例程开始时的值。"
 
 #: ../experiment/components/variable/__init__.py:65
 msgid "Set the value for the beginning of every screen refresh."
-msgstr ""
+msgstr "设置每次屏幕刷新开始时的值。"
 
 #: ../experiment/components/variable/__init__.py:71
 msgid "Save the experiment start value in data file."
-msgstr ""
+msgstr "将实验起始值保存在数据文件中。"
 
 #: ../experiment/components/variable/__init__.py:77
 msgid "Save the experiment end value in data file."
-msgstr ""
+msgstr "将实验结束值保存在数据文件中。"
 
 #: ../experiment/components/variable/__init__.py:83
 msgid "Save the routine start value in data file."
-msgstr ""
+msgstr "将例程起始值保存在数据文件中。"
 
 #: ../experiment/components/variable/__init__.py:89
 msgid "Save the routine end value in data file."
-msgstr ""
+msgstr "将例程结束值保存在数据文件中。"
 
 #: ../experiment/components/variable/__init__.py:95
 msgid "Save choice of frame value in data file."
-msgstr ""
+msgstr "将选择的帧值保存在数据文件中。"
 
 #: ../experiment/loops.py:62 ../experiment/loops.py:358
 #: ../experiment/loops.py:504
 msgid "Name of this loop"
-msgstr ""
+msgstr "这一循环的名称"
 
 #: ../experiment/loops.py:66
 msgid "Number of repeats (for each condition)"
-msgstr ""
+msgstr "重复次数（每个条件）"
 
 #: ../experiment/loops.py:71
 msgid "A list of dictionaries describing the parameters in each condition"
-msgstr ""
+msgstr "描述每个条件参数的字典列表"
 
 #: ../experiment/loops.py:76
 msgid ""
@@ -6356,26 +6514,30 @@ msgid ""
 "or .pkl). Browse to select a file. Right-click to preview file contents, or "
 "create a new file."
 msgstr ""
+"指定每个条件参数的文件名称（.csv、.xlsx 或 .pkl）。浏览选择文件。右键单击预览"
+"文件内容，或创建新文件。"
 
 #: ../experiment/loops.py:83
 msgid "The start and end of the loop (see flow timeline)"
-msgstr ""
+msgstr "循环的开始和结束（参见流程时间轴）"
 
 #: ../experiment/loops.py:89
 msgid ""
 "Select just a subset of rows from your condition file (the first is 0 not "
 "1!). Examples: 0, 0:5, 5:-1"
-msgstr ""
+msgstr "只选择条件文件中的一个子行集（从 0 开始而不是 1！）。例如 0, 0:5, 5:-1"
 
 #: ../experiment/loops.py:98
 msgid "How should the next condition value(s) be chosen?"
-msgstr ""
+msgstr "下一个条件的值应该如何选择？"
 
 #: ../experiment/loops.py:103
 msgid ""
 "To have a fixed random sequence provide an integer of your choosing here. "
 "Leave blank to have a new random sequence on each run of the experiment."
 msgstr ""
+"要获得固定的随机序列，请在此处提供一个整数。如果保留为空，则在每次运行实验时"
+"都会产生一个新的随机序列。"
 
 #: ../experiment/loops.py:110 ../experiment/loops.py:419
 #: ../experiment/loops.py:546
@@ -6383,6 +6545,8 @@ msgid ""
 "Indicates that this loop generates TRIALS, rather than BLOCKS of trials or "
 "stimuli within a trial. It alters how data files are output"
 msgstr ""
+"表示该循环生成的是试验，而不是试验的组块或试验中的刺激。它改变了数据文件的输"
+"出方式"
 
 #: ../experiment/loops.py:363
 msgid "(Minimum) number of trials in the staircase"
@@ -6390,46 +6554,46 @@ msgstr "阶梯中的（最小）试验次数"
 
 #: ../experiment/loops.py:367
 msgid "The initial value of the parameter"
-msgstr ""
+msgstr "参数的初始值"
 
 #: ../experiment/loops.py:371
 msgid "The maximum value the parameter can take"
-msgstr ""
+msgstr "参数可取的最大值"
 
 #: ../experiment/loops.py:375
 msgid "The minimum value the parameter can take"
-msgstr ""
+msgstr "参数可取的最小值"
 
 #: ../experiment/loops.py:379
 msgid "The size of the jump at each step (can change on each 'reversal')"
-msgstr ""
+msgstr "每一步的跳跃幅度（可在每次“逆转”时改变）"
 
 #: ../experiment/loops.py:384
 msgid ""
 "The units of the step size (e.g. 'linear' will add/subtract that value each "
 "step, whereas 'log' will ad that many log units)"
-msgstr ""
+msgstr "步长的单位（例如，“线性”将每步加减该值，而“对数”将增加对数单位）。"
 
 #: ../experiment/loops.py:390
 msgid "The number of 'incorrect' answers before the value goes up"
-msgstr ""
+msgstr "数值上升前“错误”答案的数量"
 
 #: ../experiment/loops.py:395
 msgid "The number of 'correct' answers before the value goes down"
-msgstr ""
+msgstr "数值下降前“正确”答案的数量"
 
 #: ../experiment/loops.py:400
 msgid ""
 "Minimum number of times the staircase must change direction before ending"
-msgstr ""
+msgstr "阶梯结束前必须改变方向的最小次数"
 
 #: ../experiment/loops.py:409 ../experiment/loops.py:526
 msgid "How should the next trial value(s) be chosen?"
-msgstr ""
+msgstr "下一个试验的值应该如何选择？"
 
 #: ../experiment/loops.py:414 ../experiment/loops.py:530
 msgid "Where to loop from and to (see values currently shown in the flow view)"
-msgstr ""
+msgstr "循环的起点和终点（查看流程视图中当前显示的值）"
 
 #: ../experiment/loops.py:508
 msgid "(Minimum) number of trials in *each* staircase"
@@ -6437,20 +6601,20 @@ msgstr "*每个*阶梯中的（最小）试验次数"
 
 #: ../experiment/loops.py:513 ../experiment/loops.py:518
 msgid "How to select the next staircase to run"
-msgstr ""
+msgstr "如何选择下一个运行的阶梯"
 
 #: ../experiment/loops.py:536
 msgid ""
 "A list of dictionaries describing the differences between each staircase"
-msgstr ""
+msgstr "描述每个阶梯之间差异的字典列表"
 
 #: ../experiment/loops.py:541
 msgid "An xlsx or csv file specifying the parameters for each condition"
-msgstr ""
+msgstr "指定每个条件参数的 xlsx 或 csv 文件"
 
 #: ../experiment/routines/_base.py:38
 msgid "Name of this routine (alphanumeric or _, no spaces)"
-msgstr ""
+msgstr "例程名称（字母数字或 _，无空格）"
 
 #: ../experiment/routines/_base.py:43
 msgid "name"
@@ -6458,7 +6622,7 @@ msgstr "名称"
 
 #: ../experiment/routines/_base.py:48
 msgid "When does the routine end? (blank is endless)"
-msgstr ""
+msgstr "例程何时结束？（空白表示不结束）"
 
 #: ../experiment/routines/_base.py:49 ../localization/__init__.py:162
 msgid "Stop"
@@ -6468,69 +6632,71 @@ msgstr "终止"
 msgid "Stop Type..."
 msgstr "终止类型..."
 
+# 这里的routine不知道和例程是不是同一个意思
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:12
+#, fuzzy
 msgid "Calibration routine for eyetrackers"
-msgstr ""
+msgstr "眼动仪的校准例程"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:41
 #: ../experiment/routines/eyetracker_validate/__init__.py:60
 msgid "Pre-defined target layouts"
-msgstr ""
+msgstr "预设的目标布局"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:42
 #: ../experiment/routines/eyetracker_validate/__init__.py:61
 msgid "Target Layout"
-msgstr ""
+msgstr "目标布局"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:46
 #: ../experiment/routines/eyetracker_validate/__init__.py:80
 msgid "Should the order of target positions be randomised?"
-msgstr ""
+msgstr "目标位置的顺序应该随机化吗？"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:47
 #: ../experiment/routines/eyetracker_validate/__init__.py:81
 msgid "Randomise Target Positions"
-msgstr ""
+msgstr "随机化目标位置"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:65
 #: ../experiment/routines/eyetracker_validate/__init__.py:104
 msgid "Fill color of the inner part of the target"
-msgstr ""
+msgstr "目标内部的填充颜色"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:66
 #: ../experiment/routines/eyetracker_validate/__init__.py:105
 msgid "Inner Fill Color"
-msgstr ""
+msgstr "内部填充颜色"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:70
 #: ../experiment/routines/eyetracker_validate/__init__.py:109
 msgid "Border color of the inner part of the target"
-msgstr ""
+msgstr "目标内部的边框颜色"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:71
 #: ../experiment/routines/eyetracker_validate/__init__.py:110
 msgid "Inner Border Color"
-msgstr ""
+msgstr "内部边框颜色"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:75
 #: ../experiment/routines/eyetracker_validate/__init__.py:114
 msgid "Fill color of the outer part of the target"
-msgstr ""
+msgstr "目标外部的填充颜色"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:76
 #: ../experiment/routines/eyetracker_validate/__init__.py:115
 msgid "Outer Fill Color"
-msgstr ""
+msgstr "外部填充颜色"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:80
 #: ../experiment/routines/eyetracker_validate/__init__.py:119
 msgid "Border color of the outer part of the target"
-msgstr ""
+msgstr "目标外部的边框颜色"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:81
 #: ../experiment/routines/eyetracker_validate/__init__.py:120
 msgid "Outer Border Color"
-msgstr ""
+msgstr "外部边框颜色"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:88
 #: ../experiment/routines/eyetracker_validate/__init__.py:127
@@ -6541,156 +6707,156 @@ msgstr "颜色空间"
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:92
 #: ../experiment/routines/eyetracker_validate/__init__.py:131
 msgid "Width of the line around the outer part of the target"
-msgstr ""
+msgstr "目标外部的线条宽度"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:93
 #: ../experiment/routines/eyetracker_validate/__init__.py:132
 msgid "Outer Border Width"
-msgstr ""
+msgstr "外部边框宽度"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:97
 #: ../experiment/routines/eyetracker_validate/__init__.py:136
 msgid "Width of the line around the inner part of the target"
-msgstr ""
+msgstr "目标内部的线条宽度"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:98
 #: ../experiment/routines/eyetracker_validate/__init__.py:138
 msgid "Inner Border Width"
-msgstr ""
+msgstr "内部边框宽度"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:102
 #: ../experiment/routines/eyetracker_validate/__init__.py:142
 msgid "Size (radius) of the outer part of the target"
-msgstr ""
+msgstr "目标外部的尺寸（半径）"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:103
 #: ../experiment/routines/eyetracker_validate/__init__.py:143
 msgid "Outer Radius"
-msgstr ""
+msgstr "外部半径"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:107
 #: ../experiment/routines/eyetracker_validate/__init__.py:147
 msgid "Size (radius) of the inner part of the target"
-msgstr ""
+msgstr "目标内部的尺寸（半径）"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:108
 #: ../experiment/routines/eyetracker_validate/__init__.py:148
 msgid "Inner Radius"
-msgstr ""
+msgstr "内部半径"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:114
 #: ../experiment/routines/eyetracker_validate/__init__.py:154
 #: ../localization/__init__.py:167
 msgid "Spatial Units"
-msgstr ""
+msgstr "空间单位"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:130
 #: ../experiment/routines/eyetracker_validate/__init__.py:170
 msgid ""
 "Should the target move to the next position after a keypress or after an "
 "amount of time?"
-msgstr ""
+msgstr "目标是在按键后移动到下一个位置，还是在一定时间后移动到下一个位置？"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:132
 #: ../experiment/routines/eyetracker_validate/__init__.py:172
 msgid "Progress Mode"
-msgstr ""
+msgstr "进度模式"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:145
 #: ../experiment/routines/eyetracker_validate/__init__.py:185
 msgid "Time limit (s) after which progress to next position"
-msgstr ""
+msgstr "时间限制（秒），之后进入下一位置"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:147
 #: ../experiment/routines/eyetracker_validate/__init__.py:187
 msgid "Target Duration"
-msgstr ""
+msgstr "目标持续时间"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:160
 #: ../experiment/routines/eyetracker_validate/__init__.py:200
 msgid "Duration of the target expand/contract animation"
-msgstr ""
+msgstr "目标扩展/收缩动画的持续时间"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:162
 #: ../experiment/routines/eyetracker_validate/__init__.py:202
 msgid "Expand / Contract Duration"
-msgstr ""
+msgstr "扩展/收缩持续时间"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:166
 #: ../experiment/routines/eyetracker_validate/__init__.py:206
 msgid "How many times bigger than its size the target grows"
-msgstr ""
+msgstr "目标比它的尺寸大多少倍"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:167
 #: ../experiment/routines/eyetracker_validate/__init__.py:207
 msgid "Expand Scale"
-msgstr ""
+msgstr "扩展尺度"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:171
 #: ../experiment/routines/eyetracker_validate/__init__.py:211
 msgid "Enable / disable animations as target stim changes position"
-msgstr ""
+msgstr "当目标刺激改变位置时启用/禁用动画"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:173
 #: ../experiment/routines/eyetracker_validate/__init__.py:212
 msgid "Animate Position Changes"
-msgstr ""
+msgstr "显示位置更改的动画"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:186
 #: ../experiment/routines/eyetracker_validate/__init__.py:225
 msgid "Duration of the animation during position changes."
-msgstr ""
+msgstr "位置变化期间的动画持续时间。"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:188
 #: ../experiment/routines/eyetracker_validate/__init__.py:227
 msgid "Movement Duration"
-msgstr ""
+msgstr "移动持续时间"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:201
 #: ../experiment/routines/eyetracker_validate/__init__.py:240
 msgid "Duration of the delay between positions."
-msgstr ""
+msgstr "位置之间延迟的持续时间。"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:203
 #: ../experiment/routines/eyetracker_validate/__init__.py:242
 msgid "Target Delay"
-msgstr ""
+msgstr "目标延迟"
 
 #: ../experiment/routines/eyetracker_validate/__init__.py:15
 msgid "Validation routine for eyetrackers"
-msgstr ""
+msgstr "眼动仪的校准例程"
 
 #: ../experiment/routines/eyetracker_validate/__init__.py:74
 msgid "List of positions (x, y) at which the target can appear"
-msgstr ""
+msgstr "目标可能出现的位置 (x, y) 列表"
 
 #: ../experiment/routines/eyetracker_validate/__init__.py:76
 msgid "Target Positions"
-msgstr ""
+msgstr "目标位置"
 
 #: ../experiment/routines/eyetracker_validate/__init__.py:85
 msgid "Fill color of the gaze cursor"
-msgstr ""
+msgstr "注视光标的填充颜色"
 
 #: ../experiment/routines/eyetracker_validate/__init__.py:86
 msgid "Gaze Cursor Color"
-msgstr ""
+msgstr "注视光标颜色"
 
 #: ../experiment/routines/eyetracker_validate/__init__.py:252
 msgid "Save results as an image"
-msgstr ""
+msgstr "将结果保存为图像"
 
 #: ../experiment/routines/eyetracker_validate/__init__.py:254
 msgid "Save As Image"
-msgstr ""
+msgstr "保存为图像"
 
 #: ../experiment/routines/eyetracker_validate/__init__.py:258
 msgid "Show a screen with results after completion?"
-msgstr ""
+msgstr "完成后是否显示带有结果的屏幕？"
 
 #: ../experiment/routines/eyetracker_validate/__init__.py:260
 msgid "Show Results Screen"
-msgstr ""
+msgstr "显示结果屏幕"
 
 #: ../gui/qtgui.py:93
 msgid "PsychoPy Dialog"
@@ -6711,23 +6877,23 @@ msgstr "信息"
 #: ../gui/qtgui.py:606 ../gui/qtgui.py:612 ../gui/qtgui.py:618
 #: ../gui/qtgui.py:624
 msgid "No details provided. ('prompt' value not set)."
-msgstr ""
+msgstr "没有详细内容。(未设置“提示”值）。"
 
 #: ../gui/qtgui.py:616
 msgid "Critical"
-msgstr ""
+msgstr "关键"
 
 #: ../gui/qtgui.py:622
 msgid "About Experiment"
-msgstr ""
+msgstr "关于实验"
 
 #: ../gui/wxgui.py:70
 msgid "PsychoPy dialogue"
-msgstr ""
+msgstr "Psychopy 对话"
 
 #: ../gui/wxgui.py:387
 msgid "Select file(s) to open"
-msgstr ""
+msgstr "选择要打开的文件"
 
 #: ../localization/__init__.py:159
 msgid "start type"
@@ -6743,91 +6909,93 @@ msgstr "起始"
 
 #: ../localization/__init__.py:163
 msgid "Expected start (s)"
-msgstr ""
+msgstr "预期开始（秒）"
 
 #: ../localization/__init__.py:164
 msgid "Expected duration (s)"
-msgstr ""
+msgstr "预期持续时间（秒）"
 
 #: ../localization/__init__.py:168
 msgid "Foreground Color"
-msgstr ""
+msgstr "前景颜色"
 
 #: ../localization/__init__.py:170
 msgid "Fill Color"
-msgstr ""
+msgstr "填充颜色"
 
 #: ../localization/__init__.py:171
 msgid "Fill Color Space"
-msgstr ""
+msgstr "填充颜色空间"
 
 #: ../localization/__init__.py:172
 msgid "Border Color"
-msgstr ""
+msgstr "边框颜色"
 
 #: ../localization/__init__.py:173
 msgid "Border Color Space"
-msgstr ""
+msgstr "边框颜色空间"
 
 #: ../localization/__init__.py:175
 msgid "Opacity"
-msgstr ""
+msgstr "不透明度"
 
 #: ../localization/__init__.py:177
 msgid "Orientation"
-msgstr ""
+msgstr "朝向"
 
 #: ../localization/__init__.py:182
 msgid "nReps"
-msgstr ""
+msgstr "重复次数"
 
 #: ../localization/__init__.py:183
 msgid "Conditions"
-msgstr ""
+msgstr "条件"
 
 #: ../localization/__init__.py:184
 msgid "conditionsFile"
-msgstr ""
+msgstr "条件文件"
 
 #: ../localization/__init__.py:185
 msgid "endPoints"
-msgstr ""
+msgstr "结束点"
 
 #: ../localization/__init__.py:186
 msgid "Selected rows"
-msgstr ""
+msgstr "选择行"
 
 #: ../localization/__init__.py:187
 msgid "loopType"
-msgstr ""
+msgstr "循环类型"
 
 #: ../localization/__init__.py:188
 msgid "random seed"
-msgstr ""
+msgstr "随机种子"
 
 #: ../localization/__init__.py:189
+#, fuzzy
 msgid "Is trials"
-msgstr ""
+msgstr "是试验"
 
 #: ../localization/__init__.py:190
 msgid "min value"
-msgstr ""
+msgstr "最小值"
 
 #: ../localization/__init__.py:191
 msgid "N reversals"
-msgstr ""
+msgstr "N次逆转"
 
 #: ../localization/__init__.py:192
 msgid "start value"
-msgstr ""
+msgstr "起始值"
 
+# 我不太清楚这个内容诶，麻烦大家帮忙看一下
 #: ../localization/__init__.py:193
 msgid "N up"
 msgstr ""
 
 #: ../localization/__init__.py:194
 msgid "max value"
-msgstr ""
+msgstr "最大值"
 
 #: ../localization/__init__.py:195
 msgid "N down"
@@ -6835,71 +7003,73 @@ msgstr ""
 
 #: ../localization/__init__.py:196
 msgid "step type"
-msgstr ""
+msgstr "步类型"
 
 #: ../localization/__init__.py:197
 msgid "step sizes"
-msgstr ""
+msgstr "步尺寸"
 
 #: ../localization/__init__.py:198
 msgid "stairType"
-msgstr ""
+msgstr "阶梯类型"
 
 #: ../localization/__init__.py:199
 msgid "switchMethod"
-msgstr ""
+msgstr "切换方法"
 
 #: ../monitors/MonitorCenter.py:174 ../monitors/MonitorCenter.py:312
 msgid "Monitor Info"
-msgstr ""
+msgstr "显示器信息"
 
 #: ../monitors/MonitorCenter.py:183 ../monitors/MonitorCenter.py:378
 msgid "Calibration"
-msgstr ""
+msgstr "校准"
 
 #: ../monitors/MonitorCenter.py:226
 msgid "Save\tCtrl+S"
-msgstr ""
+msgstr "保存\tCtrl+S"
 
 #: ../monitors/MonitorCenter.py:227
 msgid "Save the current monitor"
-msgstr ""
+msgstr "保存当前显示器"
 
+# 不确定这里是“显示器中心”还是“监控中心”
 #: ../monitors/MonitorCenter.py:229
+#, fuzzy
 msgid "Close Monitor Center (but not other PsychoPy windows)"
-msgstr ""
+msgstr "关闭显示器中心（但不是其他的 Psychopy 窗口）"
 
 #: ../monitors/MonitorCenter.py:232
 msgid "Close Monitor Center\tCtrl+W"
-msgstr ""
+msgstr "关闭显示器中心\tCtrl+W"
 
 #: ../monitors/MonitorCenter.py:240
 msgid "Copy the current monitor's name to clipboard"
-msgstr ""
+msgstr "复制当前显示器的名字到剪贴板"
 
 #: ../monitors/MonitorCenter.py:241
 msgid "Copy\tCtrl+C"
-msgstr ""
+msgstr "复制\tCtrl+C"
 
 #: ../monitors/MonitorCenter.py:249
 msgid "Choose Monitor"
-msgstr ""
+msgstr "关闭显示器"
 
 #: ../monitors/MonitorCenter.py:261
 msgid "New..."
-msgstr ""
+msgstr "新的..."
 
 #: ../monitors/MonitorCenter.py:265
 msgid "Create a new monitor"
-msgstr ""
+msgstr "创建一个新的显示器"
 
 #: ../monitors/MonitorCenter.py:270
 msgid "Save all calibrations for this monitor"
-msgstr ""
+msgstr "保存此显示器的所有校准"
 
 #: ../monitors/MonitorCenter.py:277
 msgid "Delete this monitor entirely"
-msgstr ""
+msgstr "彻底删除此显示器"
 
 #: ../monitors/MonitorCenter.py:288
 msgid "Copy..."
@@ -6907,178 +7077,179 @@ msgstr "复制..."
 
 #: ../monitors/MonitorCenter.py:291
 msgid "Creates a new calibration entry for this monitor"
-msgstr ""
+msgstr "为该显示器创建一个新的校准入口"
 
 #: ../monitors/MonitorCenter.py:298
 msgid "Remove this calibration entry (finalized when monitor is saved)"
-msgstr ""
+msgstr "移除这个校准入口（显示器保存时最终确定）"
 
 #: ../monitors/MonitorCenter.py:318
 msgid "Screen Distance (cm):"
-msgstr ""
+msgstr "屏幕距离（厘米）："
 
 #: ../monitors/MonitorCenter.py:325
 msgid "Screen Width (cm):"
-msgstr ""
+msgstr "屏幕宽度（厘米）："
 
 #: ../monitors/MonitorCenter.py:331
 msgid "Size (pixels; Horiz,Vert):"
-msgstr ""
+msgstr "尺寸（像素；水平，垂直）："
 
 #: ../monitors/MonitorCenter.py:343
 msgid "Calibration Date:"
-msgstr ""
+msgstr "校准日期："
 
 #: ../monitors/MonitorCenter.py:350
 msgid "Notes:"
-msgstr ""
+msgstr "注释："
 
 #: ../monitors/MonitorCenter.py:358 ../monitors/MonitorCenter.py:1197
 msgid "Use Bits++"
-msgstr ""
+msgstr "使用 Bits++"
 
 #: ../monitors/MonitorCenter.py:392
 msgid "Scan all ports"
-msgstr ""
+msgstr "扫描所有端口"
 
 #: ../monitors/MonitorCenter.py:401
 msgid "Get Photometer"
-msgstr ""
+msgstr 获取光度计""
 
 #: ../monitors/MonitorCenter.py:407
 msgid "Gamma Calibration..."
-msgstr ""
+msgstr "伽马校准..."
 
 #: ../monitors/MonitorCenter.py:411
 msgid "Gamma Test..."
-msgstr ""
+msgstr "伽马测试..."
 
 #: ../monitors/MonitorCenter.py:418
 msgid "Chromatic Calibration..."
-msgstr ""
+msgstr "色度校准..."
 
 #: ../monitors/MonitorCenter.py:423
 msgid "Plot gamma"
-msgstr ""
+msgstr "绘制伽马"
 
 #: ../monitors/MonitorCenter.py:427
 msgid "Plot spectra"
-msgstr ""
+msgstr "绘制频谱"
 
 #: ../monitors/MonitorCenter.py:439
 msgid "Linearization"
-msgstr ""
+msgstr "线性化"
 
 #: ../monitors/MonitorCenter.py:540
 msgid "Save changes to monitor settings before quitting?"
-msgstr ""
+msgstr "是否在退出前保存显示器设置的更改？"
 
 #: ../monitors/MonitorCenter.py:562
 msgid "Save changes to monitor?"
-msgstr ""
+msgstr "是否将更改保存到显示器？"
 
 #: ../monitors/MonitorCenter.py:655
 #, python-format
 msgid "Name of this calibration (for monitor \"%(name)s\") will be:)"
-msgstr ""
+msgstr "该校准的名称（对于监视器“%(name)s”)将为：）"
 
 #: ../monitors/MonitorCenter.py:660 ../monitors/MonitorCenter.py:675
 msgid "Input text"
-msgstr ""
+msgstr "输入文本"
 
 #: ../monitors/MonitorCenter.py:674
 msgid "New monitor name:"
-msgstr ""
+msgstr "新的显示器名称："
 
 #: ../monitors/MonitorCenter.py:689
 #, python-format
 msgid "Are you sure you want to delete all details for %s? (cannot be undone)"
-msgstr ""
+msgstr "是否确认要删除%s的所有详细信息？（无法撤销）"
 
 #: ../monitors/MonitorCenter.py:713
 msgid "Are you sure you want to delete this calibration? (cannot be undone)"
-msgstr ""
+msgstr "是否确认要删除这一校准？（无法撤销）"
 
 #: ../monitors/MonitorCenter.py:969
 msgid "Scanning ports..."
-msgstr ""
+msgstr "扫描端口中..."
 
 #: ../monitors/MonitorCenter.py:978
 #, python-format
 msgid "%(photomType)s found on %(photomPort)s"
-msgstr ""
+msgstr "在%(photomPort)s上找到的%(photomType)s"
 
 #: ../monitors/MonitorCenter.py:983
 msgid "No photometers found"
-msgstr ""
+msgstr "未找到光度计"
 
 #: ../monitors/MonitorCenter.py:991 ../monitors/MonitorCenter.py:997
 msgid "Dark calibration of ColorCAL"
-msgstr ""
+msgstr "ColorCAL的暗色校准"
 
 #: ../monitors/MonitorCenter.py:993
 msgid ""
 "Your ColorCAL needs to be calibrated first. Please block all light from "
 "getting into the lens and press OK."
-msgstr ""
+msgstr "你的ColorCAL需要先校准。请阻止所有光线进入镜头，然后按确定。"
 
 #: ../monitors/MonitorCenter.py:1010
+#, fuzzy
 msgid "Try again. Cover the lens fully and press OK"
-msgstr ""
+msgstr "再试一次。请完全覆盖镜头并按确定"
 
 #: ../monitors/MonitorCenter.py:1014
 #, python-format
 msgid "%(monName)s %(calibName)s Gamma Functions"
-msgstr ""
+msgstr "%(monName)s %(calibName)s 伽马函数"
 
 #: ../monitors/MonitorCenter.py:1083
 #, python-format
 msgid "%(monName)s %(calibName)s Spectra"
-msgstr ""
+msgstr "%(monName)s %(calibName)s 光谱"
 
 #: ../monitors/MonitorCenter.py:1108
 msgid "Recorded luminance values"
-msgstr ""
+msgstr "记录到的亮度值"
 
 #: ../monitors/MonitorCenter.py:1134
 msgid "Luminance Values"
-msgstr ""
+msgstr "亮度值"
 
 #: ../monitors/MonitorCenter.py:1187
 msgid "Gamma Calibration"
-msgstr ""
+msgstr "伽马校准"
 
 #: ../monitors/MonitorCenter.py:1200
 msgid "Number of calibration points:"
-msgstr ""
+msgstr "校准点的个数："
 
 #: ../monitors/MonitorCenter.py:1204
 msgid "Screen number (primary is 1)"
-msgstr ""
+msgstr "屏幕编号（主屏幕为1）"
 
 #: ../monitors/MonitorCenter.py:1208
 msgid "Patch size (fraction of screen):"
-msgstr ""
+msgstr "补丁大小（占屏幕的比例）："
 
 #: ../monitors/MonitorCenter.py:1242
 msgid "PsychoPy Monitor Center"
-msgstr ""
+msgstr "PsychoPy 监控中心"
 
 #: ../preferences/hints.py:13
 msgid "which system to use as a backend for drawing"
-msgstr ""
+msgstr "使用哪个系统作为绘图后端"
 
 #: ../preferences/hints.py:16
 msgid "the default units for windows and visual stimuli"
-msgstr ""
+msgstr "窗口和视觉刺激的默认单位"
 
 #: ../preferences/hints.py:19
 msgid "full screen is best for accurate timing"
-msgstr ""
+msgstr "全屏最适于精确计时"
 
 #: ../preferences/hints.py:22
 msgid "enable subjects to use the mouse and GUIs during experiments"
-msgstr ""
+msgstr "允许被试在实验过程中使用鼠标和图形界面"
 
 #: ../preferences/hints.py:25
 msgid "'version' is for internal usage, not for the user"
@@ -7086,27 +7257,27 @@ msgstr "'version' 供程序内部使用，用户不可以使用此参数"
 
 #: ../preferences/hints.py:28
 msgid "Add paths here to your custom Python modules"
-msgstr ""
+msgstr "在此处添加 Python 自定义模块的路径"
 
 #: ../preferences/hints.py:31
 msgid "path to flac (lossless audio compression) on this operating system"
-msgstr ""
+msgstr "该操作系统上的 flac（无损音频压缩）路径"
 
 #: ../preferences/hints.py:34
 msgid "Shutdown keys, following the pyglet naming scheme."
-msgstr ""
+msgstr "关闭键，遵循 pyglet 命名规则。"
 
 #: ../preferences/hints.py:37
 msgid "Modifier keys for shutdown keys"
-msgstr ""
+msgstr "用于关闭键的修改键"
 
 #: ../preferences/hints.py:40
 msgid "What to do if gamma-correction not possible"
-msgstr ""
+msgstr "无法进行伽马矫正时该怎么做"
 
 #: ../preferences/hints.py:43
 msgid "Add plugin names here to load when a PsychoPy session starts."
-msgstr ""
+msgstr "在此添加插件名称，以便在启动 PsychoPy 项目时加载。"
 
 #: ../preferences/hints.py:46
 msgid ""
@@ -7114,418 +7285,428 @@ msgid ""
 "Speech Recognition. Specified as a path to a JSON file containing the key "
 "data."
 msgstr ""
+"Google 云平台密钥，使用 Google 语音识别进行音频转录时需要。指定为包含密钥数据"
+"的 JSON 文件的路径。"
 
 #: ../preferences/hints.py:49
 msgid "display tips when starting PsychoPy"
-msgstr ""
+msgstr "启动 PsychoPy 时展示小技巧"
 
 #: ../preferences/hints.py:52
 msgid "what windows to display when PsychoPy starts"
-msgstr ""
+msgstr "启动 PsychoPy 时显示哪些窗口"
 
 #: ../preferences/hints.py:55
 msgid "reset preferences to defaults on next restart of PsychoPy"
-msgstr ""
+msgstr "下一次启动 PsychoPy 时将偏好设置为默认"
 
 #: ../preferences/hints.py:58
 msgid "save any unsaved preferences before closing the window"
-msgstr ""
+msgstr "关闭窗口前保存所有未保存的偏好设置"
 
 #: ../preferences/hints.py:61
 msgid "enable features for debugging PsychoPy itself, including unit-tests"
-msgstr ""
+msgstr "启用调试 PsychoPy 本身的功能，包括单元测试"
 
 #: ../preferences/hints.py:64
 msgid ""
 "language to use in menus etc; not all translations are available. Select a "
 "value, then restart the app."
 msgstr ""
+"在菜单等地方使用的语言；并非所有翻译都可用。选择一个语言，然后重新启动应用程"
+"序。"
 
 #: ../preferences/hints.py:67
 msgid ""
 "Show an error dialog when PsychoPy encounters an unhandled internal error."
-msgstr ""
+msgstr "当 PsychoPy 遇到未处理的内部错误时，显示错误对话框。"
 
 #: ../preferences/hints.py:71
 msgid "Theme"
-msgstr ""
+msgstr "主题"
 
 #: ../preferences/hints.py:74
 msgid ""
 "open Coder files as read-only (allows running without accidental changes)"
-msgstr ""
+msgstr "将 Coder 文件打开为只读（允许运行时不发生意外更改）"
 
 #: ../preferences/hints.py:78
 msgid "a list of font names; the first one found on the system will be used"
-msgstr ""
+msgstr "字体名称的列表；将使用系统中找到的第一个"
 
 #: ../preferences/hints.py:81
 msgid "Font size (in pts) takes an integer between 6 and 24"
-msgstr ""
+msgstr "字体大小（单位为 pts ）在6到24的整数间取值"
 
 #: ../preferences/hints.py:84
 msgid "Spacing between lines"
-msgstr ""
+msgstr "行间距"
 
 #: ../preferences/hints.py:87
 msgid "Long line edge guide, specify zero to disable"
-msgstr ""
+msgstr "长线边缘引导，指定为 0 时禁用"
 
 #: ../preferences/hints.py:90
 msgid "Set the source assistant panel to be visible by default"
-msgstr ""
+msgstr "将源助手面板设置为默认可见"
 
 #: ../preferences/hints.py:93
 msgid "Set the output/shell to be visible by default"
-msgstr ""
+msgstr "将输出/shell 设置为为默认可见"
 
 #: ../preferences/hints.py:96
 msgid "Show code completion suggestion and calltips automatically when typing."
-msgstr ""
+msgstr "输入时自动显示代码完成建议和调用提示。"
 
 #: ../preferences/hints.py:100
 msgid "reload previously opened files after start"
-msgstr ""
+msgstr "启动后重新加载之前打开的文件"
 
 #: ../preferences/hints.py:103
 msgid "for coder shell window, which shell to use"
-msgstr ""
+msgstr "对于 coder shell 窗口，使用哪个 shell"
 
 #: ../preferences/hints.py:106
 msgid "whether to automatically reload a previously open experiment"
-msgstr ""
+msgstr "是否自动重新加载之前打开的实验"
 
 #: ../preferences/hints.py:109
 msgid "Default to when writing code components"
-msgstr ""
+msgstr "编写代码组件时的默认值"
 
 #: ../preferences/hints.py:112
 msgid ""
 "if False will create scripts with an 'easier' but more cluttered namespace"
-msgstr ""
+msgstr "如果为 False，创建的脚本将更“简单”，但命名空间会更杂乱"
 
 #: ../preferences/hints.py:116
 msgid "folder names for custom components; expects a comma-separated list"
-msgstr ""
+msgstr "自定义组件的文件夹名称；需要一个以逗号分隔的列表"
 
 #: ../preferences/hints.py:119
 msgid "Only show components which work in..."
-msgstr ""
+msgstr "只显示在...工作的组件..."
 
 #: ../preferences/hints.py:122
 msgid "a list of components to hide (eg, because you never use them)"
-msgstr ""
+msgstr "隐藏的组件（例如，你从未使用这些组件）"
 
 #: ../preferences/hints.py:125
 msgid "where the Builder demos are located on this computer (after unpacking)"
-msgstr ""
+msgstr "Builder 演示程序在这台计算机上的位置（解压缩后）"
 
 #: ../preferences/hints.py:128
 msgid ""
 "name of the folder where subject data should be saved (relative to the "
 "script)"
-msgstr ""
+msgstr "保存被试数据的文件夹名称（相对于脚本而言）"
 
 #: ../preferences/hints.py:132
 msgid ""
 "Panels arrangement: Should Flow be on the top or bottom, and should "
 "Components be on the left or right?"
-msgstr ""
+msgstr "面板排列： 流程应该在顶部还是底部，组件应该在左侧还是右侧？"
 
 #: ../preferences/hints.py:135
 msgid "Display text in a floating window that describes the experiment"
-msgstr ""
+msgstr "在浮动窗口中显示描述实验的文本"
 
 #: ../preferences/hints.py:138
 msgid "choice of audio library"
-msgstr ""
+msgstr "选择音频库"
 
 #: ../preferences/hints.py:141
 msgid ""
 "latency mode for PsychToolbox audio (3 is good for most applications. See"
-msgstr ""
+msgstr "PsychToolbox音频的延迟模式（3 适合大多数应用）。请参见"
 
 #: ../preferences/hints.py:145
 msgid "audio driver to use"
-msgstr ""
+msgstr "使用的音频驱动程序"
 
 #: ../preferences/hints.py:148
 msgid "audio device to use (if audioLib allows control)"
-msgstr ""
+msgstr "要使用的音频设备（如果 audioLib 允许控制）"
 
 #: ../preferences/hints.py:151
 msgid "a list of parallel ports"
-msgstr ""
+msgstr "并行端口列表"
 
 #: ../preferences/hints.py:154
 msgid "The name of the Qmix pump configuration to use"
-msgstr ""
+msgstr "要使用的 Qmix 抽取配置名称"
 
 #: ../preferences/hints.py:157
 msgid "the http proxy for usage stats and auto-updating; format is host: port"
-msgstr ""
+msgstr "用于统计使用情况和自动更新的 http 代理；格式为 host: port"
 
 #: ../preferences/hints.py:160
 msgid ""
 "override the above proxy settings with values found in the environment (if "
 "possible)"
-msgstr ""
+msgstr "用环境中的值覆盖上述代理设置（如适用）"
 
 #: ../preferences/hints.py:164
 msgid ""
 "allow PsychoPy to send anonymous usage stats; please allow if possible, it "
 "helps PsychoPy's development"
 msgstr ""
+"允许 PsychoPy 发送匿名使用统计数据；如果适用，请允许，这有助于 PsychoPy 的开"
+"发"
 
 #: ../preferences/hints.py:167
 msgid "allow PsychoPy to check for new features and bug fixes"
-msgstr ""
+msgstr "允许 PsychoPy 检查新功能和错误修正"
 
 #: ../preferences/hints.py:170
 msgid "max time to wait for a connection response"
-msgstr ""
+msgstr "等待连接响应的最长时间"
 
 #: ../preferences/hints.py:173
 msgid "open an existing file"
-msgstr ""
+msgstr "打开现有文件"
 
 #: ../preferences/hints.py:176
 msgid "start a new experiment or script"
-msgstr ""
+msgstr "开始新的实验或脚本"
 
 #: ../preferences/hints.py:179
 msgid "save a Builder or Coder file"
-msgstr ""
+msgstr "保存Builder或Coder文件"
 
 #: ../preferences/hints.py:182
 msgid "save a Builder or Coder file under a new name"
-msgstr ""
+msgstr "以新名称保存Builder或Coder文件"
 
 #: ../preferences/hints.py:185
 msgid "Coder: print the file"
-msgstr ""
+msgstr "Coder: 打印该文件"
 
 #: ../preferences/hints.py:188
 msgid "close the Builder or Coder window"
-msgstr ""
+msgstr "关闭Builder或Coder窗口"
 
 #: ../preferences/hints.py:191
 msgid "end the application (PsychoPy)"
-msgstr ""
+msgstr "关闭软件(PsychoPy)"
 
 #: ../preferences/hints.py:194
 msgid "open the preferences dialog"
-msgstr ""
+msgstr "打开首选项对话框"
 
 #: ../preferences/hints.py:197
 msgid "export Builder experiment to HTML"
-msgstr ""
+msgstr "将Builder实验导出为 HTML"
 
 #: ../preferences/hints.py:200
 msgid "Coder: cut"
-msgstr ""
+msgstr "Coder: 剪切"
 
 #: ../preferences/hints.py:203
 msgid "Coder: copy"
-msgstr ""
+msgstr "Coder: 复制"
 
 #: ../preferences/hints.py:206
 msgid "Coder: paste"
-msgstr ""
+msgstr "Coder: 粘贴"
 
 #: ../preferences/hints.py:209
 msgid "Coder: duplicate"
-msgstr ""
+msgstr "Coder: 副本"
 
 #: ../preferences/hints.py:212
 msgid "Coder: indent code by one level (4 spaces)"
-msgstr ""
+msgstr "Coder: 缩进一级代码（4 个空格）"
 
 #: ../preferences/hints.py:215
 msgid "Coder: reduce indentation by one level (4 spaces)"
-msgstr ""
+msgstr "Coder: 缩进一级（4 个空格）"
 
 #: ../preferences/hints.py:218
 msgid "Coder: indent to fit python syntax"
-msgstr ""
+msgstr "Coder: 缩进以适应 Python 语法"
 
 #: ../preferences/hints.py:221
 msgid "Coder: find"
-msgstr ""
+msgstr "Coder: 查找"
 
 #: ../preferences/hints.py:224
 msgid "Coder: find again"
-msgstr ""
+msgstr "Coder: 再次查找"
 
 #: ../preferences/hints.py:227
 msgid "Coder: undo"
-msgstr ""
+msgstr "Coder: 撤销"
 
 #: ../preferences/hints.py:230
 msgid "Coder: redo"
-msgstr ""
+msgstr "Coder: 重做"
 
 #: ../preferences/hints.py:233
 msgid "Coder: add a # to the start of the line(s)"
-msgstr ""
+msgstr "Coder: 在行首加上 # 号"
 
 #: ../preferences/hints.py:236
 msgid "Coder: remove # from start of line(s)"
-msgstr ""
+msgstr "Coder: 删除行首的 # 号"
 
 #: ../preferences/hints.py:239
 msgid "Coder: add or remove # from start of line(s)"
-msgstr ""
+msgstr "Coder: 在行首添加或删除 # 号"
 
 #: ../preferences/hints.py:242
 msgid "Coder: fold this block of code"
-msgstr ""
+msgstr "Coder: 折叠此块码"
 
 #: ../preferences/hints.py:245
 msgid "Coder: increase font size this block of code"
-msgstr ""
+msgstr "Coder: 增大此块码的字号"
 
 #: ../preferences/hints.py:248
 msgid "Coder: decrease font size this block of code"
-msgstr ""
+msgstr "Coder: 减小此块码的字号"
 
 #: ../preferences/hints.py:251
 msgid "Coder: check for basic syntax errors"
-msgstr ""
+msgstr "Coder: 检查基本语法错误"
 
 #: ../preferences/hints.py:254
 msgid ""
 "convert a Builder .psyexp script into a python script and open it in the "
 "Coder"
-msgstr ""
+msgstr "将 Builder .psyexp 脚本转换为 python 脚本，并在 Coder 中打开它"
 
 #: ../preferences/hints.py:258
 msgid "launch a script, Builder or Coder, or run unit-tests"
-msgstr ""
+msgstr "启动脚本、Builder或Coder，或运行单元测试"
 
 #: ../preferences/hints.py:261
 msgid "attempt to interrupt and halt a running script"
-msgstr ""
+msgstr "尝试中断和停止正在运行的脚本"
 
 #: ../preferences/hints.py:264
 msgid "Coder: show / hide white-space dots"
-msgstr ""
+msgstr "Coder: 显示/隐藏空白点"
 
 #: ../preferences/hints.py:267
 msgid "Coder: show / hide end of line characters"
-msgstr ""
+msgstr "Coder: 显示/隐藏行尾字符"
 
 #: ../preferences/hints.py:270
 msgid "Coder: show / hide indentation level lines"
-msgstr ""
+msgstr "Coder: 显示/隐藏缩进水平线"
 
 #: ../preferences/hints.py:273
 msgid "Builder: create a new routine"
-msgstr ""
+msgstr "Builder: 创建新例程"
 
 #: ../preferences/hints.py:276
 msgid "Builder: copy an existing routine"
-msgstr ""
+msgstr "Builder: 复制现有例程"
 
 #: ../preferences/hints.py:279
 msgid "Builder: paste the copied routine"
-msgstr ""
+msgstr "Builder: 粘贴已复制的例程"
 
 #: ../preferences/hints.py:282
 msgid "Builder: paste the copied component"
-msgstr ""
+msgstr "Builder: 粘贴已复制的组件"
 
 #: ../preferences/hints.py:285
 msgid "Coder: show / hide the output panel"
-msgstr ""
+msgstr "Coder: 显示/隐藏输出面板"
 
 #: ../preferences/hints.py:288
 msgid "Builder: rename an existing routine"
-msgstr ""
+msgstr "Builder: 重命名现有例程"
 
 #: ../preferences/hints.py:291
 msgid "switch between windows"
-msgstr ""
+msgstr "切换窗口"
 
 #: ../preferences/hints.py:294
 msgid "increase display size in Flow"
-msgstr ""
+msgstr "增加 Flow 中的显示尺寸"
 
 #: ../preferences/hints.py:297
 msgid "decrease display size in Flow"
-msgstr ""
+msgstr "缩小 Flow 中的显示尺寸"
 
 #: ../preferences/hints.py:300
 msgid "increase display size of Routines"
-msgstr ""
+msgstr "增大例程的显示尺寸"
 
 #: ../preferences/hints.py:303
 msgid "decrease display size of Routines"
-msgstr ""
+msgstr "缩小例程的显示尺寸"
 
 #: ../preferences/hints.py:306
 msgid "show or hide the readme (info) for this experiment if possible"
-msgstr ""
+msgstr "如可能，显示或隐藏该实验的自述文件（信息）"
 
 #: ../preferences/hints.py:309
 msgid "Projects: Log in to pavlovia"
-msgstr ""
+msgstr "项目: 登录 pavlovia"
 
 #: ../preferences/hints.py:312
 msgid "Projects: Log in to OSF"
-msgstr ""
+msgstr "项目: 登录 OSF"
 
 #: ../preferences/hints.py:315
 msgid "Projects: Sync project"
-msgstr ""
+msgstr "项目: 同步项目"
 
 #: ../preferences/hints.py:318
 msgid "Projects: Find projects"
-msgstr ""
+msgstr "项目: 查找项目"
 
 #: ../preferences/hints.py:321
 msgid "Projects: Open project"
-msgstr ""
+msgstr "项目: 打开项目"
 
 #: ../preferences/hints.py:324
 msgid "Projects: Create new project"
-msgstr ""
+msgstr "项目: 创建新项目"
 
 #: ../projects/pavlovia.py:1121
 msgid ""
 "We found a repository pointing to {} but no project was found there "
 "(deleted?)"
-msgstr ""
+msgstr "我们发现了一个指向 {} 的版本库，但没有在那里找到任何项目（已删除？）"
 
 #: ../projects/pavlovia.py:1125
 msgid ""
 "We found a repository pointing to {} but no user is logged in for us to "
 "check it"
-msgstr ""
+msgstr "我们找到一个指向 {} 的版本库，但没有用户登录，无法查看"
 
 #: ../tools/versionchooser.py:74
+#, fuzzy
 msgid ""
 "Please request a version before importing any PsychoPy modules. (Found: {})"
-msgstr ""
+msgstr "请在导入任何 PsychoPy 模块之前申请一个版本。(发现：{}）。"
 
 #: ../tools/versionchooser.py:83
 msgid "Unknown version `{}`"
-msgstr ""
+msgstr "未知版本 “{}”"
 
 #: ../tools/versionchooser.py:95
+#, fuzzy
 msgid ""
 "Please request a version of PsychoPy that is compatible with Python 3. You "
 "can choose from the following versions: {}. Alternatively, run a Python 2 "
 "installation of PsychoPy < v1.9.0.\n"
 msgstr ""
+"请申请与 Python 3 兼容的 PsychoPy 版本。您可以选择以下版本： {}. 或者，运行 "
+"Python 2 安装 PsychoPy < v1.9.0。\n"
 
 #: ../tools/versionchooser.py:104
 msgid "Please install git; needed by useVersion()"
-msgstr ""
+msgstr "请安装 git；useVersion() 需要"
 
 #: ../tools/versionchooser.py:129
 msgid "Required minimal version `{}` not met ({})."
-msgstr ""
+msgstr "未满足最小版本 “{}” 的要求 ({})。"
 
 #: ../tools/versionchooser.py:165
 msgid "'{}' is not a valid PsychoPy version."
@@ -7533,7 +7714,7 @@ msgstr "“{}”不是有效的 PsychoPy 版本。"
 
 #: ../tools/versionchooser.py:331
 msgid "Couldn't find version {} locally. Trying github..."
-msgstr ""
+msgstr "本地找不到版本 {}。正在尝试 github…"
 
 #: ../tools/versionchooser.py:338
 msgid "{} is not currently available."
@@ -7541,155 +7722,162 @@ msgstr "{} 当前不可用。"
 
 #: ../tools/versionchooser.py:357
 msgid "Downloading the PsychoPy Library from Github (may take a while)"
-msgstr ""
+msgstr "从 Github 下载 PsychoPy 库（可能需要一些时间）"
 
 #: ../tools/wizard.py:35
 msgid "Benchmark"
-msgstr ""
+msgstr "基准"
 
 #: ../tools/wizard.py:36
 msgid "benchmark version"
-msgstr ""
+msgstr "基准版本"
 
 #: ../tools/wizard.py:38
+#, fuzzy
 msgid "dots_circle"
-msgstr ""
+msgstr "dots_circle"
 
 #: ../tools/wizard.py:39
+#, fuzzy
 msgid "dots_square"
-msgstr ""
+msgstr "dots_square"
 
 #: ../tools/wizard.py:40
 msgid "available memory"
-msgstr ""
+msgstr "可用内存"
 
 #: ../tools/wizard.py:41
 msgid "python version"
-msgstr ""
+msgstr "python 版本"
 
 #: ../tools/wizard.py:43
 msgid "Visual"
-msgstr ""
+msgstr "视觉"
 
 #: ../tools/wizard.py:44
 msgid "openGL version"
-msgstr ""
+msgstr "openGL 版本"
 
 #: ../tools/wizard.py:45
 msgid "openGL vendor"
-msgstr ""
+msgstr "openGL 供应商"
 
 #: ../tools/wizard.py:46
 msgid "screen size"
-msgstr ""
+msgstr "屏幕大小"
 
 #: ../tools/wizard.py:47
+#, fuzzy
 msgid "have shaders"
-msgstr ""
+msgstr "带有着色器"
 
 #: ../tools/wizard.py:48
 msgid "refresh stability (SD)"
-msgstr ""
+msgstr "刷新稳定性（标清）"
 
 #: ../tools/wizard.py:49
 msgid "no dropped frames"
-msgstr ""
+msgstr "无丢帧"
 
 #: ../tools/wizard.py:50
 msgid "pyglet avbin"
-msgstr ""
+msgstr "pyglet avbin"
 
 #: ../tools/wizard.py:52
 msgid "microphone latency"
-msgstr ""
+msgstr "麦克风延时"
 
 #: ../tools/wizard.py:53
 msgid "microphone"
-msgstr ""
+msgstr "麦克风"
 
 #: ../tools/wizard.py:54
 msgid "speakers latency"
-msgstr ""
+msgstr "扬声器延时"
 
 #: ../tools/wizard.py:55
 msgid "speakers"
-msgstr ""
+msgstr "扬声器"
 
 #: ../tools/wizard.py:56
 msgid "Numeric"
-msgstr ""
+msgstr "数值"
 
 #: ../tools/wizard.py:57
 msgid "System"
-msgstr ""
+msgstr "系统"
 
 #: ../tools/wizard.py:58
 msgid "platform"
-msgstr ""
+msgstr "平台"
 
 #: ../tools/wizard.py:59
 msgid "internet access"
-msgstr ""
+msgstr "网络连接"
 
 #: ../tools/wizard.py:60
 msgid "auto proxy"
-msgstr ""
+msgstr "自动代理"
 
 #: ../tools/wizard.py:61
 msgid "proxy setting"
-msgstr ""
+msgstr "代理设置"
 
 #: ../tools/wizard.py:62
 msgid "background processes"
-msgstr ""
+msgstr "后台进程"
 
 #: ../tools/wizard.py:63
 msgid "CPU speed test"
-msgstr ""
+msgstr "CPU 速度测试"
 
 #: ../tools/wizard.py:64
 msgid "visual sync (refresh)"
-msgstr ""
+msgstr "视觉同步（刷新）"
 
 #: ../tools/wizard.py:97
 #, python-format
 msgid "could not assess available physical RAM; total %s"
-msgstr ""
+msgstr "无法评估可用物理 RAM；总数 %s"
 
 #: ../tools/wizard.py:102
 #, python-format
 msgid "physical RAM available for configuration test (of %.1fG total)"
-msgstr ""
+msgstr "可用于配置测试的物理 RAM（占总 RAM 的 %.1fG）"
 
 #: ../tools/wizard.py:107
 #, python-format
 msgid ""
 "Warning: low available physical RAM for configuration test (of %.1fG total)"
-msgstr ""
+msgstr "警告：配置测试可用物理内存不足（占总 RAM 的 %.1fG）"
 
 #: ../tools/wizard.py:119
 msgid "avoid upgrading during an experiment"
-msgstr ""
+msgstr "避免在实验过程中升级"
 
 #: ../tools/wizard.py:121
 msgid ""
 "can be set in <a href=\"https://www.psychopy.org/general/prefs."
 "html#application-settings-app\">Preferences -> App</a>"
 msgstr ""
+"可在 <a href=“https://www.psychopy.org/general/prefs.html#application-"
+"settings-app”>首选项-> 应用程序</a>中设置"
 
 #: ../tools/wizard.py:130
 msgid ""
 "Warning: python 2.7 or 3.6 are recommended; 2.6 and 3.5 might work. Others "
 "probably won't."
 msgstr ""
+"警告：建议使用 python 2.7 或 3.6；2.6 和 3.5 可能也能运行。其他版本可能不可"
+"用。"
 
 #: ../tools/wizard.py:148
 msgid "Warning: wx 2.8.10 or higher required"
-msgstr ""
+msgstr "警告：需要 wx 2.8.10 或更高版本"
 
 #: ../tools/wizard.py:154
 msgid "for high-priority threads"
-msgstr ""
+msgstr "用于高优先级线程"
 
 #: ../tools/wizard.py:162
 msgid ""
@@ -7697,6 +7885,8 @@ msgid ""
 "reducingFrameDrops.html?highlight=OpenGL+2.0\">OpenGL 2.0 or higher is "
 "ideal</a>."
 msgstr ""
+"警告: <a href=“https://www.psychopy.org/general/timing/reducingFrameDrops."
+"html?highlight=OpenGL+2.0”> OpenGL 2.0 或更高版本更理想 </a>."
 
 #: ../tools/wizard.py:177
 msgid ""
@@ -7704,43 +7894,55 @@ msgid ""
 "reducingFrameDrops.html?highlight=shader\">Rendering of complex stimuli will "
 "be slow</a>."
 msgstr ""
+"警告: <a href=“https://www.psychopy.org/general/timing/reducingFrameDrops."
+"html?highlight=shader”> 复杂刺激物的渲染将变得缓慢</a>。"
 
 #: ../tools/wizard.py:186
+#, fuzzy
 msgid ""
 "during the drifting <a href=\"https://www.psychopy.org/api/visual/"
 "gratingstim.html\">GratingStim</a>"
 msgstr ""
+"漂移过程中 <a href=“https://www.psychopy.org/api/visual/gratingstim."
+"html”>GratingStim</a>"
 
 #: ../tools/wizard.py:190
 msgid ""
 "Warning: too fast? visual sync'ing with the monitor seems unlikely at 300+ Hz"
 msgstr ""
+"警告：速度太快？在 300 多赫兹的频率下，与监视器进行视觉同步似乎不太可能"
 
 #: ../tools/wizard.py:196
 msgid "SD &lt; 0.5 ms is ideal (want low variability)"
-msgstr ""
+msgstr "SD &lt; 0.5 毫秒最理想（希望变化小）"
 
 #: ../tools/wizard.py:199
 msgid ""
 "Warning: the refresh rate has high frame-to-frame variability (SD &gt; 0.5 "
 "ms)"
-msgstr ""
+msgstr "警告：刷新率的帧间变化很大（SD &gt; 0.5 毫秒）"
 
 #: ../tools/wizard.py:218
+#, fuzzy
 msgid ""
 "during <a href=\"https://www.psychopy.org/api/visual/dotstim.html\">DotStim</"
 "a> with 100 random dots"
 msgstr ""
+"在<a href=“https://www.psychopy.org/api/visual/dotstim.html”>DotStim</a>过程"
+"中，有 100 个随机点"
 
 #: ../tools/wizard.py:226
+#, fuzzy
 msgid ""
 "Warning: could not keep up during <a href=\"http://www.psychopy.org/api/"
 "visual/dotstim.html\">DotStim</a> with 100 random dots."
 msgstr ""
+"警告：在 <a href=“http://www.psychopy.org/api/visual/dotstim.html”>DotStim</"
+"a> 100 个随机点的过程中跟不上。"
 
 #: ../tools/wizard.py:254
 msgid "Warning: pyo is needed for sound and microphone."
-msgstr ""
+msgstr "警告：声音和麦克风需要 pyo。"
 
 #: ../tools/wizard.py:257
 msgid "(missing)"
@@ -7748,23 +7950,23 @@ msgstr "(缺失)"
 
 #: ../tools/wizard.py:267
 msgid "vector-based (fast) calculations"
-msgstr ""
+msgstr "基于向量的（快速）计算"
 
 #: ../tools/wizard.py:269
 msgid "scientific / numerical"
-msgstr ""
+msgstr "科学/数值"
 
 #: ../tools/wizard.py:271
 msgid "plotting; fast contains(), overlaps()"
-msgstr ""
+msgstr "绘图；快速包含()、重叠()"
 
 #: ../tools/wizard.py:277
 msgid "for online help, usage statistics, software updates, and google-speech"
-msgstr ""
+msgstr "在线帮助、使用统计、软件更新和谷歌语音"
 
 #: ../tools/wizard.py:282
 msgid "Warning: could not connect (no proxy attempted)"
-msgstr ""
+msgstr "警告：无法连接（未尝试代理）"
 
 #: ../tools/wizard.py:290
 msgid ""
@@ -7772,72 +7974,78 @@ msgid ""
 "general/prefs.html#connection-settings-connections\">Preferences -> "
 "Connections</a>"
 msgstr ""
+"如果需要，尝试自动检测代理；请参阅 <a href=“https://www.psychopy.org/general/"
+"prefs.html#connection-settings-connections”>首选项-> 连接</a>"
 
 #: ../tools/wizard.py:300
 msgid ""
 "current manual proxy setting from <a href=\"https://www.psychopy.org/general/"
 "prefs.html#connection-settings-connections\">Preferences -> Connections</a>"
 msgstr ""
+"当前手动代理设置来自 <a href=“https://www.psychopy.org/general/prefs."
+"html#connection-settings-connections”>首选项-> 连接</a>"
 
 #: ../tools/wizard.py:307
 msgid "numpy.std() of 1,000,000 data points"
-msgstr ""
+msgstr "1,000,000个数据点的numpy.std()"
 
 #: ../tools/wizard.py:315
 msgid "Python packages"
-msgstr ""
+msgstr "Python 软件包"
 
 #: ../tools/wizard.py:349
 #, python-format
 msgid "could not import package %s"
-msgstr ""
+msgstr "无法导入软件包 %s"
 
 #: ../tools/wizard.py:367
 msgid "video card drivers"
-msgstr ""
+msgstr "显卡驱动程序"
 
 #: ../tools/wizard.py:398
 #, python-format
 msgid "This page was auto-generated by the PsychoPy configuration wizard on %s"
-msgstr ""
+msgstr "此页面由 PsychoPy 配置向导在 %s 上自动生成"
 
 #: ../tools/wizard.py:408
 msgid "Configuration problem"
-msgstr ""
+msgstr "配置问题"
 
 #: ../tools/wizard.py:411
 msgid "Critical issue"
-msgstr ""
+msgstr "关键问题"
 
 #: ../tools/wizard.py:416
 msgid "Configuration report"
-msgstr ""
+msgstr "配置报告"
 
 #: ../tools/wizard.py:419
 msgid ""
 "<p>All values seem reasonable (no warnings, but there might still be room "
 "for improvement).</p>\n"
 msgstr ""
+"<p>所有值似乎都很合理（没有警告，但可能仍有改进的余地）。</p>\n"
+"\n"
 
 #: ../tools/wizard.py:423
 #, python-format
 msgid "1 suboptimal value was detected</font>, see details below (%s).</p>\n"
-msgstr ""
+msgstr "检测到 1 个次优值</font>，请参阅下面的详细信息（%s）。</p>\n"
 
 #: ../tools/wizard.py:428
 #, python-format
 msgid ""
 "%(num)i suboptimal values were detected</font>, see details below (%(warn)s)."
 "</p>\n"
-msgstr ""
+msgstr "检测到 %(num)i 次优值</font>，请参阅下面的详细信息（%(warn)s）。</p>\n"
 
 #: ../tools/wizard.py:450
 msgid "Only show suboptimal values"
-msgstr ""
+msgstr "只显示次优值"
 
 #: ../tools/wizard.py:453
 msgid "Show all information"
-msgstr ""
+msgstr "显示所有信息"
 
 #: ../tools/wizard.py:454
 msgid ""
@@ -7850,18 +8058,26 @@ msgid ""
 "group archives</a>\n"
 "                </p>"
 msgstr ""
+"<p>资源：\n"
+"                | <a href=“https://www.psychopy.org/documentation.html”>在线"
+"文件</a>\n"
+"                | Download <a href=“https://www.psychopy.org/PsychoPyManual."
+"pdf”>PDF 说明书</a>\n"
+"                | <a href=“https://discourse.psychopy.org”>搜索用户-组档案</"
+"a>\n"
+"                </p>"
 
 #: ../tools/wizard.py:461
 msgid "Configuration test</strong> or setting"
-msgstr ""
+msgstr "配置测试</strong>或设置"
 
 #: ../tools/wizard.py:462
 msgid "Version or value"
-msgstr ""
+msgstr "版本或值"
 
 #: ../tools/wizard.py:464
 msgid "Notes"
-msgstr ""
+msgstr "备注"
 
 #: ../tools/wizard.py:504
 msgid " Configuration Wizard"
@@ -7869,26 +8085,26 @@ msgstr " 配置向导"
 
 #: ../tools/wizard.py:517
 msgid "It looks like you are running PsychoPy for the first time."
-msgstr ""
+msgstr "看来您是第一次运行 PsychoPy。"
 
 #: ../tools/wizard.py:519
 msgid "This wizard will help you get started quickly and smoothly."
-msgstr ""
+msgstr "该向导将帮助您快速顺利地开始工作。"
 
 #: ../tools/wizard.py:522
 msgid "Welcome to the configuration wizard."
-msgstr ""
+msgstr "欢迎使用配置向导。"
 
 #: ../tools/wizard.py:529
 msgid "The first configuration check is your video card's drivers. The current"
-msgstr ""
+msgstr "首先要检查的是显卡驱动程序。当前的"
 
 #: ../tools/wizard.py:532
 msgid "drivers cannot support PsychoPy, so you'll need to update the drivers."
-msgstr ""
+msgstr "驱动程序无法支持 PsychoPy，因此需要更新驱动程序。"
 
 #: ../tools/wizard.py:535
-#, python-format
+#, fuzzy, python-format
 msgid ""
 "<p>Critical issue:\n"
 "</p><p>Your video card (%(card)s) has drivers\n"
@@ -7922,100 +8138,131 @@ msgid ""
 "                for more information</a> [psychopy.org].</p>\n"
 "            "
 msgstr ""
+"<p>关键问题：\n"
+"</p><p>您的显卡（%(card)s）的驱动程序\n"
+"                无法支持 PsychoPy 所依赖的高性能功能。\n"
+"                幸运的是，通常可以直接从制造商处免费获取新驱动程序。\n"
+"                直接从制造商处获取新驱动程序。\n"
+"                <p><strong>要更新驱动程序：</strong>\n"
+"                <li> 您需要管理员权限。\n"
+"                <li> 在 Windows 系统中，不要使用 Windows 选项检查更新\n"
+"                  - 它会报告没有可用的更新。\n"
+"                <li> 如果您的显卡是英伟达制造的，请访问\n"
+"                  <a href=“http://www.nvidia.com/Drivers”>英伟达官网</a>\n"
+"                  并使用 “自动检测 “选项。试试\n"
+"                  <a href=“http://support.amd.com/“>ATI / Radeon 驱动程序</"
+"a>。或尝试\n"
+"                  <a href=“http://www.google.com/search?q=download+drivers+"
+"%(card2)s”>\n"
+"                  谷歌搜索</a> [google.com]。\n"
+"                <li> 下载并安装驱动程序。\n"
+"                <li> 重新启动计算机。\n"
+"                <li> 重新启动 PsychoPy。</p>\n"
+"                <p>如果您更新了驱动程序，但仍收到此信息，那么您将\n"
+"                  需要更换显卡才能使用 PsychoPy。点击\n"
+"                <a href=“https://www.psychopy.org/installation."
+"html#recommended-hardware”>这里\n"
+"                获取更多信息</a> [psychopy.org]。</p>\n"
+"            "
 
 #: ../tools/wizard.py:560
 msgid ""
 "<p>Critical issue:\n"
 "</p>"
 msgstr ""
+"<p>关键问题：\n"
+"</p>"
 
 #: ../tools/wizard.py:565
 msgid "We'll go through a series of configuration checks in about 10 seconds. "
-msgstr ""
+msgstr "我们将在 10 秒钟内进行一系列配置检查。 "
 
 #: ../tools/wizard.py:569
 msgid "Note: The display will switch to full-screen mode and will "
-msgstr ""
+msgstr "备注：显示屏将切换到全屏模式，并将 "
 
 #: ../tools/wizard.py:571
 msgid "then switch back. You don't need to do anything."
-msgstr ""
+msgstr "切换回来。您无需做任何操作。"
 
 #: ../tools/wizard.py:573
 msgid ""
 "Optional: For best results, please quit all email programs, web-browsers, "
-msgstr ""
+msgstr "可选： 为获得最佳效果，请退出所有电子邮件程序和网页浏览器、 "
 
 #: ../tools/wizard.py:575
 msgid "Dropbox, backup or sync services, and others."
-msgstr ""
+msgstr "Dropbox、备份或同步服务等。"
 
 #: ../tools/wizard.py:578
 msgid "Click OK to start, or Cancel to skip."
-msgstr ""
+msgstr "单击“确认”开始，或单击“取消”跳过。"
 
 #: ../tools/wizard.py:580
 msgid "Full details"
-msgstr ""
+msgstr "详细信息"
 
 #: ../tools/wizard.py:584
 msgid "Click OK for more information, or Cancel to skip."
-msgstr ""
+msgstr "单击“确认”获取更多信息，或单击“取消”跳过。"
 
 #: ../tools/wizard.py:614
 msgid "Configuration testing complete!"
-msgstr ""
+msgstr "配置测试完成！"
 
 #: ../tools/wizard.py:618
 msgid "All values seem reasonable (no warnings)."
-msgstr ""
+msgstr "所有值看起来都很合理（没有警告）。"
 
 #: ../tools/wizard.py:620
 #, python-format
 msgid "1 suboptimal value was detected (%s)"
-msgstr ""
+msgstr "检测到 1 个次优值 (%s)"
 
 #: ../tools/wizard.py:623
 #, python-format
 msgid "%(num)i suboptimal values were detected (%(warn)s, ...)"
-msgstr ""
+msgstr "检测到 %(num)i个次优化值（%(warn)s，…）"
 
 #: ../tools/wizard.py:631
 msgid "Click OK for full details (will open in a web-browser),"
-msgstr ""
+msgstr "单击“确认”查看全部详情（将在浏览器中打开）、"
 
 #: ../tools/wizard.py:633
 msgid "or Cancel to stay in PsychoPy."
-msgstr ""
+msgstr "或单击“取消”停留在 PsychoPy 中。"
 
 #: ../tools/wizard.py:652
 msgid " Benchmark Wizard"
 msgstr " 基准向导"
 
 #: ../tools/wizard.py:656
+#, fuzzy
 msgid "Benchmarking takes ~20-30 seconds to gather"
-msgstr ""
+msgstr "基准测试需要约 20-30 秒"
 
 #: ../tools/wizard.py:657
+#, fuzzy
 msgid "configuration and performance data. Begin?"
-msgstr ""
+msgstr "来收集配置和性能数据。开始？"
 
 #: ../tools/wizard.py:678
+#, fuzzy
 msgid "dots &amp; configuration"
-msgstr ""
+msgstr "点 &amp; 配置"
 
 #: ../tools/wizard.py:681
 msgid "visual window for drawing"
-msgstr ""
+msgstr "绘图视窗"
 
 #: ../tools/wizard.py:707
 msgid "Benchmark complete! (See the Coder output window.)"
-msgstr ""
+msgstr "基准测试完成！(请参阅Coder 输出窗口）。"
 
 #: ../tools/wizard.py:716
 msgid "Click OK to view full configuration and benchmark data."
-msgstr ""
+msgstr "单击“确认”查看完整配置和基准数据。"
 
 #: ../tools/wizard.py:718
 msgid "Click Cancel to stay in PsychoPy."
-msgstr ""
+msgstr "单击“取消”停留在 PsychoPy 中。"

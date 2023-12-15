@@ -224,64 +224,59 @@ class TextBox:
     _gl_info = None
 
     def __init__(self,
-                 window=None,               # PsychoPy Window instance
-                 text='Default Test Text.',  # Initial text to be displayed.
-                 font_name=None,            # Family name of Font
-                 bold=False,                # Bold and italics are used to
-                 italic=False,  # determine style of font
-                 font_size=32,              # Pt size to use for font.
-                 font_color=(0, 0, 0, 1),      # Color to draw the text with.
-                 dpi=72,                    # DPI used to create font bitmaps
-                 line_spacing=0,            # Amount of extra spacing to add between
-                 line_spacing_units='pix',  # lines of text.
-                 background_color=None,     # Color to use to fill the entire area
-                 # on the screen TextBox is using.
-                 border_color=None,         # TextBox border color to use.
-                 # Stroke width of TextBox boarder (in pix)
-                 border_stroke_width=1,
-                 # (width,height) desired for the TextBox
-                 size=None,
-                 # stim to use. Specify using the unit
-                 # type the textBox is using.
-                 # (cols,rows) of characters to use when
-                 textgrid_shape=None,
-                 # creating the textgrid layout.
-                 # rows*cols = maximum number of chars
-                 # that can be displayed. If textgrid_shape
-                 # is not None, then the TextBox size
-                 # must be at least large enough to hold
-                 # the number of specified cols and rows.
-                 # If the size specified is less than
-                 # what is needed, the size will be increased
-                 # automatically.
-                 # (x,y) screen position for the TextBox
-                 pos=(0.0, 0.0),
-                 # stim. Specify using the unit
-                 # type the textBox is using.
-                 align_horz='center',       # Determines how TextBox x pos is
-                 # should be interpreted to.
-                 # 'left', 'center', 'right' are valid options.
-                 align_vert='center',       # Determines how TextBox y pos is
-                 # should be interpreted to.
-                 # 'left', 'center', 'right' are valid options.
-                 units='norm',                # Coordinate unit type to use for position
-                 # and size related attributes. Valid
-                 # options are 'pix', 'cm', 'deg', 'norm'
-                 # Only pix is currently working though.
-                 grid_color=None,           # Color to draw the TextBox text grid
-                 # lines with.
-                 # Line thickness (in pix) to use when
-                 grid_stroke_width=1,
-                 # displaying text grid lines.
-                 color_space='rgb',          # PsychoPy color space to use for any
-                 # color attributes of TextBox.
-                 opacity=1.0,               # Opacity (transparency) to use for
-                 # TextBox graphics, assuming alpha
-                 # channel was not specified in the color
-                 # attribute.
-                 grid_horz_justification='left',  # 'left', 'center', 'right'
+                 window=None,                    # PsychoPy Window instance
+                 text='Default Test Text.',      # Initial text to be displayed.
+                 font_name=None,                 # Family name of Font
+                 bold=False,                     # Bold and italics are used to
+                 italic=False,                   # determine style of font
+                 font_size=32,                   # Pt size to use for font.
+                 font_color=(0, 0, 0, 1),        # Color to draw the text with.
+                 dpi=72,                         # DPI used to create font bitmaps
+                 line_spacing=0,                 # Amount of extra spacing to add between
+                 line_spacing_units='pix',       # lines of text.
+                 background_color=None,          # Color to use to fill the entire area
+                                                 # on the screen TextBox is using.
+                 border_color=None,              # TextBox border color to use.
+                 border_stroke_width=1,          # Stroke width of TextBox boarder (in pix)
+                 size=None,                      # (width,height) desired for the TextBox
+                                                 # stim to use. Specify using the unit
+                                                 # type the textBox is using.
+                 textgrid_shape=None,            # (cols,rows) of characters to use when
+                                                 # creating the textgrid layout.
+                                                 # rows*cols = maximum number of chars
+                                                 # that can be displayed. If textgrid_shape
+                                                 # is not None, then the TextBox size
+                                                 # must be at least large enough to hold
+                                                 # the number of specified cols and rows.
+                                                 # If the size specified is less than
+                                                 # what is needed, the size will be increased
+                                                 # automatically.      
+                 pos=(0.0, 0.0),                 # (x,y) screen position for the TextBox
+                                                 # stim. Specify using the unit
+                                                 # type the textBox is using.
+                 align_horz='center',            # Determines how TextBox x pos is
+                                                 # should be interpreted to.
+                                                 # 'left', 'center', 'right' are valid options.
+                 align_vert='center',            # Determines how TextBox y pos is
+                                                 # should be interpreted to.
+                                                 # 'left', 'center', 'right' are valid options.
+                 units='norm',                   # Coordinate unit type to use for position
+                                                 # and size related attributes. Valid
+                                                 # options are 'pix', 'cm', 'deg', 'norm'
+                                                 # Only pix is currently working though.
+                 grid_color=None,                # Color to draw the TextBox text grid
+                                                 # lines with.        
+                 grid_stroke_width=1,            # Line thickness (in pix) to use when
+                                                 # displaying text grid lines.
+                 color_space='rgb',              # PsychoPy color space to use for any
+                                                 # color attributes of TextBox.
+                 opacity=1.0,                    # Opacity (transparency) to use for
+                                                 # TextBox graphics, assuming alpha
+                                                 # channel was not specified in the color
+                                                 # attribute.
+                 grid_horz_justification='left', # 'left', 'center', 'right'
                  grid_vert_justification='top',  # 'top', 'bottom', 'center'
-                 autoLog=True,              # Log each time stim is updated.
+                 autoLog=True,                   # Log each time stim is updated.
                  interpolate=False,
                  name=None
                  ):
@@ -376,6 +371,10 @@ class TextBox:
         gl_font = fm.getGLFont(
             self._font_name, self._font_size, self._bold, self._italic, self._dpi)
         self._current_glfont = gl_font
+
+        if size is None and textgrid_shape is None:
+            print('WARNING (TextBox) - No `size` or `textgrid_shape` given. Defaulting to displaying all text in a single row.')
+            textgrid_shape = (len(text), 1)
 
         self._text_grid = TextGrid(self, line_color=grid_color,
                                    line_width=grid_stroke_width, font_color=list(

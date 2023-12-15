@@ -9,6 +9,7 @@
 *.kdev4
 .project
 .pydevproject
+.pdm-python
 /.ropeproject/config.py
 /.ropeproject/history
 /.ropeproject/objectdb
@@ -31,6 +32,7 @@
 *.so
 *.egg
 .eggs
+psychopy/app/locale/**/LC_MESSAGE/messages.mo
 
 # Python files #
 ################
@@ -66,9 +68,8 @@ nonSVN
 
 # Things specific to this project #
 ###################################
-PsyScope*
-psychopy1
-psychojs.zip
+# pdm.lock will include platform-specific libs so not portable
+pdm.lock
 
 psychopy/demos/coder/misc/frame*
 psychopy/demos/**/data/*.psydat
@@ -80,6 +81,7 @@ psychopy/demos/*/*/html
 
 psychopy/tests/*Out.*
 psychopy/tests/data/*_local.png
+psychopy/tests/fails/*/*
 psychopy/tests/*htmlcov*
 
 # compile from psychopy/changelog.txt

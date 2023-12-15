@@ -541,10 +541,10 @@ def getPypiInfo(packageName, silence=False):
     except (requests.ConnectionError, requests.JSONDecodeError) as err:
         import wx
         dlg = wx.MessageDialog(None, message=_translate(
-            f"Could not get info for package {packageName}. Reason:\n"
-            f"\n"
-            f"{err}"
-        ), style=wx.ICON_ERROR)
+            "Could not get info for package {}. Reason:\n"
+            "\n"
+            "{}"
+        ).format(packageName,err), style=wx.ICON_ERROR)
         if not silence:
             dlg.ShowModal()
         return

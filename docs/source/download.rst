@@ -15,7 +15,7 @@ For the easiest installation download and install the Standalone package.
 
     let filename;
     let url;
-    let version='2023.1.3';
+    let version='2023.2.3';
 
     let clientInfo = UAParser(navigator.userAgent);
     var osLabel;
@@ -122,6 +122,14 @@ and having downloaded the right wheel you can then install it with something lik
 
 wxPython>4.0 and doesn't have universal wheels yet which is why you have to
 find and install the correct wheel for your particular flavor of linux.
+
+For some reasons wxPython (wx.html2) is using an older version of libwebkitgtk
+e.g. psychopy will not show up
+to fix this (of our own risk):
+sudo add-apt-repository 'deb http://archive.ubuntu.com/ubuntu bionic main universe'
+sudo apt install -t bionic libwebkitgtk-1.0-0
+
+
 
 **Building Python PsychToolbox bindings:**
 

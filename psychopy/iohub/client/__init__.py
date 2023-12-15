@@ -713,6 +713,15 @@ class ioHubConnection():
         """
         return self._sendToHubServer(('RPC', 'getTime'))[2]
 
+    def syncClock(self, clock):
+        """
+        Synchronise ioHub's internal clock with a given instance of MonotonicClock.
+        """
+        # sync clock in this process
+        Computer.global_clock._timeAtLastReset = clock._timeAtLastReset
+        # sync clock in server process
+        return self._sendToHubServer(('RPC', 'syncClock', (clock._timeAtLastReset,)))
+
     def setPriority(self, level='normal', disable_gc=False):
         """See Computer.setPriority documentation, where current process will
         be the iohub process."""
@@ -1318,6 +1327,10 @@ class ioHubConnection():
         Check if an iohub server reply contains an error that should be raised
         by the local process.
         """
+        # is it an ioHub error object?
+        if isinstance(data, ioHubError):
+            return True
+
         if isIterable(data) and len(data) > 0:
             d0 = data[0]
             if isIterable(d0):
@@ -1333,7 +1346,8 @@ class ioHubConnection():
     def _osxKillAndFreePort(self):
         server_udp_port = self._iohub_server_config.get('udp_port', 9000)
         p = subprocess.Popen(['lsof', '-i:%d'%server_udp_port, '-P'],
-                             stdout=subprocess.PIPE)
+                             stdout=subprocess.PIPE,
+                             encoding='utf-8')
         lines = p.communicate()[0]
         for line in lines.splitlines():
             if line.startswith('Python'):

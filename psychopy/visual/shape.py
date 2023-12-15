@@ -26,8 +26,9 @@ from psychopy.colors import Color
 from psychopy.tools.attributetools import (attributeSetter,  # logAttrib,
                                            setAttribute)
 from psychopy.tools.arraytools import val2array
-from psychopy.visual.basevisual import (BaseVisualStim, ColorMixin,
-                                        ContainerMixin, WindowMixin)
+from psychopy.visual.basevisual import (
+    BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin, WindowMixin
+)
 # from psychopy.visual.helpers import setColor
 import psychopy.visual
 from psychopy.contrib import tesselate
@@ -90,9 +91,10 @@ knownShapes = {
     ],
 }
 knownShapes['square'] = knownShapes['rectangle']
+knownShapes['star'] = knownShapes['star7']
 
 
-class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
+class BaseShapeStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
     """Create geometric (vector) shapes by defining vertex locations.
 
     Shapes can be outlines or filled, set lineColor and fillColor to
@@ -128,6 +130,7 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
                  contrast=1.0,
                  depth=0,
                  interpolate=True,
+                 draggable=False,
                  name=None,
                  autoLog=None,
                  autoDraw=False,
@@ -146,8 +149,9 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         # Initialize inheritance and remove unwanted methods; autoLog is set
         # later
-        super(BaseShapeStim, self).__init__(win, units=units,
-                                            name=name, autoLog=False)
+        super(BaseShapeStim, self).__init__(win, units=units, name=name,
+                                            autoLog=False)
+        self.draggable = draggable
 
         self.pos = pos
         self.closeShape = closeShape
@@ -190,8 +194,7 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.depth = depth
         self.ori = numpy.array(ori, float)
         self.size = size  # make sure that it's 2D
-        if vertices != ():  # flag for when super-init'ing a ShapeStim
-            self.vertices = vertices  # call attributeSetter
+        self.vertices = vertices  # call attributeSetter
         self.anchor = anchor
         self.autoDraw = autoDraw  # call attributeSetter
 
@@ -259,6 +262,8 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
     @vertices.setter
     def vertices(self, value):
+        if value is None:
+            value = "rectangle"
         # check if this is a name of one of our known shapes
         if isinstance(value, str) and value in knownShapes:
             value = knownShapes[value]
@@ -463,6 +468,8 @@ class ShapeStim(BaseShapeStim):
     interpolate : bool
         Enable smoothing (anti-aliasing) when drawing shape outlines. This
         produces a smoother (less-pixelated) outline of the shape.
+    draggable : bool
+        Can this stimulus be dragged by a mouse click?
     name : str
         Optional name of the stimuli for logging.
     autoLog : bool
@@ -505,6 +512,7 @@ class ShapeStim(BaseShapeStim):
                  contrast=1.0,
                  depth=0,
                  interpolate=True,
+                 draggable=False,
                  name=None,
                  autoLog=None,
                  autoDraw=False,
@@ -528,7 +536,7 @@ class ShapeStim(BaseShapeStim):
                                         lineColorSpace=lineColorSpace,
                                         fillColor=fillColor,
                                         fillColorSpace=fillColorSpace,
-                                        vertices=(),  # dummy verts
+                                        vertices=None,  # dummy verts
                                         closeShape=self.closeShape,
                                         pos=pos,
                                         size=size,
@@ -538,6 +546,7 @@ class ShapeStim(BaseShapeStim):
                                         contrast=contrast,
                                         depth=depth,
                                         interpolate=interpolate,
+                                        draggable=draggable,
                                         name=name,
                                         autoLog=False,
                                         autoDraw=autoDraw)
@@ -569,7 +578,7 @@ class ShapeStim(BaseShapeStim):
             # convert original vertices to triangles (= tesselation) if
             # possible. (not possible if closeShape is False, don't even try)
             GL.glPushMatrix()  # seemed to help at one point, superfluous?
-            if self.windingRule:
+            if getattr(self, "windingRule", False):
                 GL.gluTessProperty(tesselate.tess, GL.GLU_TESS_WINDING_RULE,
                                    self.windingRule)
             if hasattr(newVertices[0][0], '__iter__'):
@@ -578,7 +587,7 @@ class ShapeStim(BaseShapeStim):
                 loops = [newVertices]
             tessVertices = tesselate.tesselate(loops)
             GL.glPopMatrix()
-            if self.windingRule:
+            if getattr(self, "windingRule", False):
                 GL.gluTessProperty(tesselate.tess, GL.GLU_TESS_WINDING_RULE,
                                    tesselate.default_winding_rule)
 

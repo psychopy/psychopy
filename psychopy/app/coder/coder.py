@@ -31,7 +31,8 @@ import time
 import textwrap
 import codecs
 
-from .. import stdOutRich, dialogs
+from .. import dialogs
+from ..stdout import stdOutRich
 from .. import pavlovia_ui
 from psychopy import logging, prefs
 from psychopy.alerts._alerts import alert
@@ -41,14 +42,13 @@ from ..ui import BaseAuiFrame
 from psychopy.projects import pavlovia
 import psychopy.app.pavlovia_ui.menu
 import psychopy.app.plugin_manager.dialog
-from psychopy.app.console import StdStreamDispatcher
 from psychopy.app.errorDlg import exceptionCallback
 from psychopy.app.coder.codeEditorBase import BaseCodeEditor
 from psychopy.app.coder.fileBrowser import FileBrowserPanel
 from psychopy.app.coder.sourceTree import SourceTreePanel
 from psychopy.app.themes import handlers, colors
 from psychopy.app.coder.folding import CodeEditorFoldingMixin
-from psychopy.app.coder.scriptOutput import ScriptOutputPanel
+from psychopy.app.stdout.stdOutRich import ScriptOutputPanel
 from psychopy.app.coder.repl import PythonREPLCtrl
 # from ..plugin_manager import PluginManagerFrame
 
@@ -1626,9 +1626,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
                            _translate("&Themes"))
 
         # Frame switcher
-        framesMenu = wx.Menu()
-        FrameSwitcher.makeViewSwitcherButtons(framesMenu, frame=self, app=self.app)
-        menu.AppendSubMenu(framesMenu, _translate("&Frames"))
+        FrameSwitcher.makeViewSwitcherButtons(menu, frame=self, app=self.app)
 
         # ---_view---#000000#FFFFFF-------------------------------------------
         # self.shellMenu = wx.Menu()
@@ -2228,6 +2226,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         docID = self.findDocID(filename)
         readOnlyPref = 'readonly' in self.app.prefs.coder
         readonly = readOnlyPref and self.app.prefs.coder['readonly']
+        path, shortName = os.path.split(filename)
         if docID >= 0:
             self.currentDoc = self.notebook.GetPage(docID)
             self.notebook.SetSelection(docID)
@@ -2288,7 +2287,6 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
             self.currentDoc.EmptyUndoBuffer()
 
-            path, shortName = os.path.split(filename)
             self.notebook.AddPage(p, shortName)
             nbIndex = len(self.getOpenFilenames()) - 1
             if isinstance(self.notebook, wx.Notebook):
@@ -2318,6 +2316,8 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.setTitle(title=self.winTitle, document=fname)
         #if len(self.getOpenFilenames()) > 0:
         self.currentDoc.analyseScript()
+        if os.path.isdir(path):
+            self.fileBrowserWindow.gotoDir(path)
 
         if not keepHidden:
             self.Show()  # if the user had closed the frame it might be hidden

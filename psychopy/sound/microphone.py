@@ -402,21 +402,47 @@ class Microphone:
             raise ModuleNotFoundError(
                 "Microphone audio capture requires package `psychtoolbox` to "
                 "be installed.")
+        
+        def _getDeviceByIndex(deviceIndex):
+            """Subroutine to get a device by index. Used to handle the case 
+            where the user specifies a device by index.
 
-        # get information about the selected device
-        devices = Microphone.getDevices()
-        if isinstance(device, AudioDeviceInfo):
-            self._device = device
-        elif isinstance(device, (int, float)):
-            devicesByIndex = {d.deviceIndex: d for d in devices}
-            if device in devicesByIndex:
-                self._device = devicesByIndex[device]
+            Parameters
+            ----------
+            deviceIndex : int, float or str
+                Index of the device to get.
+            
+            Returns
+            -------
+            AudioDeviceInfo
+                Audio device information object.
+            
+            """
+            # convert to `int` first, sometimes strings can specify the enum
+            # value from builder
+            deviceIndex = int(deviceIndex)
+            # get all audio devices
+            devices_ = Microphone.getDevices()
+
+            # get information about the selected device
+            devicesByIndex = {d.deviceIndex: d for d in devices_}
+            if deviceIndex in devicesByIndex:
+                useDevice = devicesByIndex[deviceIndex]
             else:
                 raise AudioInvalidCaptureDeviceError(
                     'No suitable audio recording devices found matching index '
-                    '{}.'.format(device))
+                    '{}.'.format(deviceIndex))
+            
+            return useDevice
+
+        # get information about the selected device
+        if isinstance(device, AudioDeviceInfo):
+            self._device = device
+        elif isinstance(device, (int, float, str)):
+            self._device = _getDeviceByIndex(device)
         else:
             # get default device, first enumerated usually
+            devices = Microphone.getDevices()
             if not devices:
                 raise AudioInvalidCaptureDeviceError(
                     'No suitable audio recording devices found on this system. '

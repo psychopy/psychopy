@@ -20,6 +20,7 @@ class EyetrackerRecordComponent(BaseComponent):
     """A class for using one of several eyetrackers to follow gaze"""
     categories = ['Eyetracking']
     targets = ['PsychoPy']
+    version = "2021.2.0"
     iconFile = Path(__file__).parent / 'eyetracker_record.png'
     tooltip = _translate('Start and / or Stop recording data from the eye tracker')
     beta = True
@@ -42,8 +43,8 @@ class EyetrackerRecordComponent(BaseComponent):
         self.params['actionType'] = Param(actionType,
             valType='str', inputType='choice', categ='Basic',
             allowedVals=["Start and Stop", "Start Only", "Stop Only"],
-            hint=_translate("Should this component start and / or stop eye tracker recording?"),
-            label=_translate("Record Actions")
+            hint=_translate("Should this Component start and / or stop eye tracker recording?"),
+            label=_translate("Record actions")
         )
 
         self.depends.append(

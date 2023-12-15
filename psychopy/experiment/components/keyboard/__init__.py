@@ -68,7 +68,7 @@ class KeyboardComponent(BaseComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat'],
             hint=(msg),
-            label=_localized['allowedKeys'])
+            label=_translate("Allowed keys"))
 
         msg = _translate(
             "When should the keypress be registered? As soon as pressed, or when released?")
@@ -83,12 +83,12 @@ class KeyboardComponent(BaseComponent):
         # hints say 'responses' not 'key presses' because the same hint is
         # also used with button boxes
         msg = _translate("Do you want to discard all responses occurring "
-                         "before the onset of this component?")
+                         "before the onset of this Component?")
         self.params['discard previous'] = Param(
             discardPrev, valType='bool', inputType="bool", allowedTypes=[], categ='Data',
             updates='constant',
             hint=msg,
-            label=_localized['discard previous'])
+            label=_translate("Discard previous"))
 
         msg = _translate("Choose which (if any) responses to store at the "
                          "end of a trial")
@@ -97,7 +97,7 @@ class KeyboardComponent(BaseComponent):
             allowedVals=['last key', 'first key', 'all keys', 'nothing'],
             updates='constant', direct=False,
             hint=msg,
-            label=_localized['store'])
+            label=_translate("Store"))
 
         msg = _translate("Should a response force the end of the Routine "
                          "(e.g end the trial)?")
@@ -105,7 +105,7 @@ class KeyboardComponent(BaseComponent):
             forceEndRoutine, valType='bool', inputType="bool", allowedTypes=[], categ='Basic',
             updates='constant',
             hint=msg,
-            label=_localized['forceEndRoutine'])
+            label=_translate("Force end of Routine"))
 
         msg = _translate("Do you want to save the response as "
                          "correct/incorrect?")
@@ -113,7 +113,7 @@ class KeyboardComponent(BaseComponent):
             storeCorrect, valType='bool', inputType="bool", allowedTypes=[], categ='Data',
             updates='constant',
             hint=msg,
-            label=_localized['storeCorrect'])
+            label=_translate("Store correct"))
 
         self.depends += [  # allows params to turn each other off/on
             {"dependsOn": "storeCorrect",  # must be param name
@@ -132,7 +132,7 @@ class KeyboardComponent(BaseComponent):
             correctAns, valType='str', inputType="single", allowedTypes=[], categ='Data',
             updates='constant',
             hint=msg, direct=False,
-            label=_localized['correctAns'])
+            label=_translate("Correct answer"))
 
         msg = _translate(
             "A reaction time to a visual stimulus should be based on when "
@@ -141,7 +141,7 @@ class KeyboardComponent(BaseComponent):
             syncScreenRefresh, valType='bool', inputType="bool", categ='Data',
             updates='constant',
             hint=msg,
-            label=_localized['syncScreenRefresh'])
+            label=_translate("Sync timing with screen"))
 
     def writeInitCode(self, buff):
         code = "%(name)s = keyboard.Keyboard()\n"

@@ -1,5 +1,7 @@
 # Syringe Pump Operation: "Bubble Cycle"
 
+**Note: From version 2023s, you would need to first install the plugin Qmix Syringe Pump Support.**
+
 These routines will guide the user through the process of filling a set of Cetoni neMESYS syringe pumps and the removal of air bubbles.
 
 For instructions how to set up the syringe pump system, please refer to the procedure works as follows:
