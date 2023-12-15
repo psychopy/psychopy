@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: PsychoPy 2023.2.2\n"
 "Report-Msgid-Bugs-To: shuonwang@gmail.com\n"
 "POT-Creation-Date: 2021-12-18 00:00+0100\n"
-"PO-Revision-Date: 2023-11-19 10:46+0800\n"
-"Last-Translator: Huang Xinru <hxrmiaomiaomiao@pku.edu.cn>\n"
+"PO-Revision-Date: 2023-12-13 14:40-0500\n"
+"Last-Translator: Shun Wang <shuonwang@gmail.com>\n"
 "Language-Team: Shun Wang <shuonwang@gmail.com>\n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
@@ -2252,7 +2252,7 @@ msgstr "查看完整更新日志"
 
 #: ../app/connections/updates.py:219
 msgid "You can update PsychoPy with your package manager"
-msgstr ""
+msgstr "您可以使用包管理器升级 PsychoPy"
 
 #: ../app/connections/updates.py:223
 msgid "Should PsychoPy update itself?"
@@ -2603,7 +2603,7 @@ msgstr "描述："
 
 #: ../app/pavlovia_ui/project.py:76
 msgid "Local folder:"
-msgstr "Local folder:"
+msgstr "本地目录："
 
 #: ../app/pavlovia_ui/project.py:79 ../app/pavlovia_ui/project.py:203
 msgid "Browse..."
@@ -2651,11 +2651,11 @@ msgstr "用户未登录！"
 
 #: ../app/pavlovia_ui/project.py:291
 msgid "Visibility: {}"
-msgstr ""
+msgstr "可见性：{}"
 
 #: ../app/pavlovia_ui/project.py:296
 msgid "<not yet synced>"
-msgstr "<not yet synced>"
+msgstr "<尚未同步>"
 
 #: ../app/pavlovia_ui/project.py:297 ../app/pavlovia_ui/project.py:364
 #: ../app/pavlovia_ui/project.py:377
@@ -5265,12 +5265,16 @@ msgid ""
 "Upper cutoff frequency in cycles per unit length. Set very high to avoid an "
 "upper cutoff and make a high pass filter."
 msgstr ""
+"上限截断频率（以每单位长度的周期为单位）。 "
+"设置非常高以避免上限截断并制作高通滤波器。"
 
 #: ../experiment/components/noise/__init__.py:265
 msgid ""
 "Lower cutoff frequency in cycles per unit length. Set to zero to avoid a "
 "lower cuttoff and make a low pass filter."
 msgstr ""
+"下限截断频率（以每单位长度的周期为单位）。 "
+"设置非常低以避免下限截断并制作低通滤波器。"
 
 #: ../experiment/components/noise/__init__.py:274
 msgid ""
@@ -5281,6 +5285,10 @@ msgid ""
 "If a filter is used clipping and rescaling are applied after the filter, "
 "regardless of the noise type."
 msgstr ""
+"截断超出平均值的规定标准偏差的高值和低值，并重新调整灰度范围。"
+"这根本不用于“二元”或“均匀”噪声和音阶，而不是剪辑“正常”噪声）。"
+"该值越高，最终 RMS 对比度越低。 如果噪声非常低，则可能会出现二值化。"
+"注意：如果使用滤波器，则无论噪声类型如何，都会在滤波器之后应用剪切和重新缩放。"
 
 #: ../experiment/components/noise/__init__.py:285
 msgid ""
@@ -5302,10 +5310,12 @@ msgid ""
 "OpenGL Blendmode [avg, add (avg is most common mode in PsychoPy, add is used "
 "if you want to generate the sum of two components)]"
 msgstr ""
+"OpenGL 混合模式 [avg, add (avg 是 PsychoPy中最常用的模式，如果您希望生成两个"
+"组件的和，请使用 add 模式)]"
 
 #: ../experiment/components/parallelOut/__init__.py:19
 msgid "Port address"
-msgstr ""
+msgstr "端口地址"
 
 #: ../experiment/components/parallelOut/__init__.py:20
 msgid "Start data"
@@ -5322,13 +5332,13 @@ msgstr "与屏幕同步"
 
 #: ../experiment/components/parallelOut/__init__.py:31
 msgid "Parallel out: send signals from the parallel port"
-msgstr ""
+msgstr "并行输出：从并行端口发送信号"
 
 #: ../experiment/components/parallelOut/__init__.py:60
 msgid ""
 "Parallel port to be used (you can change these options in "
 "preferences>general)"
-msgstr ""
+msgstr "将使用的并行端口（可在首选项 > 常规中更改这些选项）"
 
 #: ../experiment/components/parallelOut/__init__.py:69
 msgid "Data to be sent at 'start'"
@@ -5342,15 +5352,16 @@ msgstr "在“end”传输的数据"
 msgid ""
 "If the parallel port data relates to visual stimuli then sync its pulse to "
 "the screen refresh"
-msgstr ""
+msgstr "如果并行端口数据与视觉刺激有关，则使其脉冲与屏幕刷新同步"
 
 #: ../experiment/components/patch/__init__.py:17
+#, fuzzy
 msgid "Image/tex"
-msgstr ""
+msgstr "图像/tex"
 
 #: ../experiment/components/patch/__init__.py:31
 msgid "Patch: present images (bmp, jpg, tif...) or textures like gratings"
-msgstr ""
+msgstr "补丁：呈现图像（bmp, jpg, tif…）或材质，类比光栅"
 
 #: ../experiment/components/patch/__init__.py:53
 msgid ""
@@ -5359,65 +5370,67 @@ msgstr "需显示的图像——“sin”，“sqr”…或一个文件名（包
 
 #: ../experiment/components/patch/__init__.py:71
 msgid "Spatial frequency of image repeats across the patch, e.g. 4 or [2,3]"
-msgstr ""
+msgstr "在整个补丁上图像重复的空间频率，例：4 或 [2,3]"
 
 #: ../experiment/components/patch/__init__.py:80
 msgid "Spatial positioning of the image on the patch (in range 0-1.0)"
-msgstr ""
+msgstr "图像在补丁上的空间定位（范围为 0-1.0）"
 
 #: ../experiment/components/polygon/__init__.py:22
 msgid "Num. vertices"
-msgstr ""
+msgstr "顶点数量"
 
 #: ../experiment/components/polygon/__init__.py:23
 msgid "Fill color"
-msgstr ""
+msgstr "填充色"
 
 #: ../experiment/components/polygon/__init__.py:24
 msgid "Line color"
-msgstr ""
+msgstr "线条色"
 
 #: ../experiment/components/polygon/__init__.py:25
 msgid "Line width"
-msgstr ""
+msgstr "线条宽度"
 
 #: ../experiment/components/polygon/__init__.py:27
 #: ../localization/__init__.py:178
 msgid "Size [w,h]"
-msgstr ""
+msgstr "大小 [宽，高]"
 
 #: ../experiment/components/polygon/__init__.py:28
 msgid "Shape"
-msgstr ""
+msgstr "形状"
 
 #: ../experiment/components/polygon/__init__.py:37
 msgid "Polygon: any regular polygon (line, triangle, square...circle)"
-msgstr ""
+msgstr "多边形：任意常规多边形（线条，三角形，正方形…圆形）"
 
 #: ../experiment/components/polygon/__init__.py:79
 msgid "How many vertices in your regular polygon?"
-msgstr ""
+msgstr "常规多边形的顶点数量为？"
 
 #: ../experiment/components/polygon/__init__.py:87
 msgid ""
 "What are the vertices of your polygon? Should be an nx2 array or a list of "
 "[x, y] lists"
-msgstr ""
+msgstr "多边形的顶点为？请输入一个二维数组或一个[x, y]数列"
 
 #: ../experiment/components/polygon/__init__.py:93
 msgid "Vertices"
-msgstr ""
+msgstr "顶点"
 
 #: ../experiment/components/polygon/__init__.py:96
 msgid ""
 "What shape is this? With 'regular polygon...' you can set number of vertices "
 "and with 'custom polygon...' you can set vertices"
 msgstr ""
+"此形状为？若选择‘常规多边形…’，您可设置顶点数量；若选择‘个性化多边形…’，您可"
+"设置顶点"
 
 #: ../experiment/components/polygon/__init__.py:109
 msgid ""
 "Width of the shape's line (always in pixels - this does NOT use 'units')"
-msgstr ""
+msgstr "此形状线条的宽度为？（请始终使用像素作为单位-次变量不使用‘units’）"
 
 #: ../experiment/components/polygon/__init__.py:127
 msgid ""
@@ -5426,54 +5439,57 @@ msgid ""
 " but for higher-order polygons it represents the [w,h] of the ellipse that "
 "the polygon sits on!! "
 msgstr ""
+"请输入刺激的大小[宽，高]。请注意，线条只需‘宽’的值，对于三角形和矩形，则需输"
+"入[宽，高]\n"
+"而对于高阶多边形，[宽，高]表示该多边形外接椭圆的宽、高！"
 
 #: ../experiment/components/pump/__init__.py:18
 msgid "Pump index"
-msgstr ""
+msgstr "泵编号"
 
 #: ../experiment/components/pump/__init__.py:19
 msgid "Syringe type"
-msgstr ""
+msgstr "注射器类型"
 
 #: ../experiment/components/pump/__init__.py:20
 msgid "Pump action"
-msgstr ""
+msgstr "泵动作"
 
 #: ../experiment/components/pump/__init__.py:21
 msgid "Flow rate"
-msgstr ""
+msgstr "流速"
 
 #: ../experiment/components/pump/__init__.py:22
 msgid "Flow rate unit"
-msgstr ""
+msgstr "流速单位"
 
 #: ../experiment/components/pump/__init__.py:23
 msgid "Switch valve after dosing"
-msgstr ""
+msgstr "加药后开关阀门"
 
 #: ../experiment/components/pump/__init__.py:32
 msgid "Pump: deliver liquid stimuli via a Cetoni neMESYS syringe pump"
-msgstr ""
+msgstr "注射泵：通过 Cetoni neMESYS 注射泵输送液体刺激"
 
 #: ../experiment/components/pump/__init__.py:67
 msgid "The index of the pump(s) (first pump is 0)."
-msgstr ""
+msgstr "注射泵的编号（从0开始编号）"
 
 #: ../experiment/components/pump/__init__.py:74
 msgid "Syringe type and dimensions"
-msgstr ""
+msgstr "注射器类型和尺寸"
 
 #: ../experiment/components/pump/__init__.py:81
 msgid "Whether the syringe should be filled (aspirate) or emptied (dispense"
-msgstr ""
+msgstr "注射器是否应充满（抽吸）或清空（分配）"
 
 #: ../experiment/components/pump/__init__.py:101
 msgid "Switch the valve after pump operation"
-msgstr ""
+msgstr "泵运行后切换阀门"
 
 #: ../experiment/components/pump/__init__.py:107
 msgid "Sync pump onset to the screen refresh"
-msgstr ""
+msgstr "将泵启动同步到屏幕刷新"
 
 #: ../experiment/components/ratingScale/__init__.py:23
 msgid "Visual analog scale"
@@ -7097,7 +7113,7 @@ msgstr "扫描所有端口"
 
 #: ../monitors/MonitorCenter.py:401
 msgid "Get Photometer"
-msgstr ""
+msgstr 获取光度计""
 
 #: ../monitors/MonitorCenter.py:407
 msgid "Gamma Calibration..."

@@ -108,8 +108,10 @@ class PolygonComponent(BaseVisualComponent):
                          "polygon...' you can set vertices")
         self.params['shape'] = Param(
             shape, valType='str', inputType="choice", categ='Basic',
-            allowedVals=["line", "triangle", "rectangle", "circle", "cross", "star", "arrow",
+            allowedVals=["line", "triangle", "rectangle", "circle", "cross", "star7", "arrow",
                          "regular polygon...", "custom polygon..."],
+            allowedLabels=["Line", "Triangle", "Rectangle", "Circle", "Cross", "Star", "Arrow",
+                           "Regular polygon...", "Custom polygon..."],
             hint=msg, direct=False,
             label=_translate("Shape"))
 
@@ -178,7 +180,7 @@ class PolygonComponent(BaseVisualComponent):
             code = ("%s = visual.ShapeStim(\n" % inits['name'] +
                     "    win=win, name='%s',%s\n" % (inits['name'], unitsStr) +
                     "    size=%(size)s, vertices='circle',\n" % inits)
-        elif vertices in ['star']:
+        elif vertices in ['star', 'star7']:
             code = ("%s = visual.ShapeStim(\n" % inits['name'] +
                     "    win=win, name='%s', vertices='star7',%s\n" % (inits['name'], unitsStr) +
                     "    size=%(size)s,\n" % inits)
