@@ -378,7 +378,7 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
         # if state has changed, make an event
         if state != self.state[0]:
             resp = PhotodiodeResponse(
-                t=self.clock.getTime() + self.win.monitorFramePeriod,
+                t=self.clock.getTime(),
                 value=state,
                 channel=0,
                 threshold=self._threshold
@@ -397,7 +397,8 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
         return []
 
     def resetTimer(self, clock=logging.defaultClock):
-        self.clock.reset(clock.getTime())
+        self.clock._timeAtLastReset = clock._timeAtLastReset
+        self.clock._epochTimeAtLastReset = clock._epochTimeAtLastReset
 
     @property
     def pos(self):
