@@ -31,7 +31,7 @@ jobs:
       - name: Stage all changes
         id: staging
         run: |
-          ls -d ${{ github.workspace }}/psychopy/app/locale/*/*/*.mo | grep -v "en_US" | xargs git add -f
+          ls -d ${{ github.workspace }}/psychopy/app/locale/*/*/*.mo | grep -v "en_US" | xargs git add .
           echo "NUM_OF_STAGED=$(git diff --staged --name-only | wc -l)" >> $GITHUB_OUTPUT
 
       - name: Push translation changes
@@ -39,6 +39,6 @@ jobs:
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
-          ls -d ${{ github.workspace }}/psychopy/app/locale/*/*/*.mo | grep -v "en_US" | xargs git add
+          ls -d ${{ github.workspace }}/psychopy/app/locale/*/*/*.mo | grep -v "en_US" | xargs git add .
           git commit -m "[bot] Docs: Update translations"
           git push
