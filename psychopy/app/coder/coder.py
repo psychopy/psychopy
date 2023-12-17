@@ -963,7 +963,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, handlers.ThemeMixin):
         self.SetZoom(0)
 
     def analyseScript(self):
-        """Parse the the document and update the source tree if present.
+        """Parse the document and update the source tree if present.
 
         The script is analysed when loaded or when the user interact with it in
         a way that can potentially change the number of lines of executable

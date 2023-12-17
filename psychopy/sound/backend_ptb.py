@@ -612,7 +612,7 @@ class SoundPTB(_SoundBase):
 
     @property
     def stream(self):
-        """Read-only property returns the the stream on which the sound
+        """Read-only property returns the stream on which the sound
         will be played
         """
         if not self.streamLabel:

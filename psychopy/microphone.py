@@ -42,7 +42,7 @@ except (ModuleNotFoundError, ImportError, NameError):
         "session. Please install `psychopy-legacy-mic` and restart the session "
         "to enable support.")
 else:
-    # if we succesfully load the package, warn the user to use the newer stuff
+    # if we successfully load the package, warn the user to use the newer stuff
     logging.warning(
         "Attempting to import `psychopy.microphone`. Note that this library is "
         "deprecated for the purpose of audio capture, but may still provide "

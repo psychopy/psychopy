@@ -587,7 +587,7 @@ class Session:
         Parameters
         ----------
         key : str or Iterable[str]
-            Key or keys to get vaues of fro expInfo dict
+            Key or keys to get values of fro expInfo dict
 
         Returns
         -------
