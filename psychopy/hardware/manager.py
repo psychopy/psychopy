@@ -281,6 +281,23 @@ class DeviceManager:
         return aliases
 
     @staticmethod
+    def getAllDeviceAliases():
+        """
+        Get all aliases by which each device is known to DeviceManager
+
+        Returns
+        -------
+        dict[list[str]]
+            All names by which each device is known to DeviceManager
+        """
+        deviceMap = {}
+
+        for name in DeviceManager.devices:
+            deviceMap[name] = DeviceManager.getDeviceAliases(name)
+
+        return deviceMap
+
+    @staticmethod
     def updateDeviceName(oldName, newName):
         """
         Store an already added device by an additional name
