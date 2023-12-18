@@ -241,6 +241,13 @@ class DeviceManager:
                 DeviceManager.addDeviceAlias(deviceName, thisAlias)
 
             return True
+
+        # don't add alias if there's no device to alias!
+        if DeviceManager.getDevice(deviceName) is None:
+            raise KeyError(
+                f"Cannot add alias for {deviceName} as no device by this name has been added."
+            )
+
         # store same device by new handle
         DeviceManager.devices[alias] = DeviceManager.getDevice(deviceName)
 
