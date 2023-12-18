@@ -71,6 +71,13 @@ class DeviceManager:
         if liaison is not None:
             DeviceManager.liaison = liaison
 
+        # make sure we have at least one response device
+        if "defaultKeyboard" not in self.devices:
+            self.addDevice(
+                deviceClass="psychopy.hardware.keyboard.KeyboardDevice",
+                deviceName="defaultKeyboard"
+            )
+
     # --- utility ---
 
     def _getSerialPortsInUse(self):
