@@ -2446,6 +2446,10 @@ class Window():
         toReturn = numpy.frombuffer(bufferDat, dtype=numpy.uint8)
         toReturn = toReturn.reshape((h, w, 4))
 
+        # rebind front buffer if needed
+        if buffer == 'front' and self.useFBO:
+            GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, self.frameBuffer)
+
         # if we want the color data without an alpha channel, we need to
         # convert the data to a numpy array and remove the alpha channel
         if not includeAlpha:
