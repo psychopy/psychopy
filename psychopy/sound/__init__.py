@@ -44,17 +44,6 @@ from .exceptions import DependencyError, SoundFormatError
 from .audiodevice import *
 from .audioclip import *  # import objects related to AudioClip
 
-# import microphone if possible
-try:
-    from .microphone import *  # import objects related to the microphone class
-except ImportError as err:
-    formatted_tb = ''.join(
-        traceback.format_exception(type(err), err, err.__traceback__))
-    logging.error(
-        "Failed to import psychopy.sound.microphone. Mic recordings will not be"
-        "possible on this machine. For details see stack trace below:\n"
-        f"{formatted_tb}")
-
 # # import transcription if possible
 # try:
 #     from .transcribe import *  # import transcription engine stuff
