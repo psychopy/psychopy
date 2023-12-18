@@ -2311,8 +2311,9 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         isExp = filename.endswith(".py") or filename.endswith(".psyexp")
 
         # if the toolbar is done then adjust buttons
-        if 'runner' in self.ribbon.buttons:
-            self.ribbon.buttons['runner'].Enable(isExp)
+        for key in ("runner", "pyrun", "pypilot"):
+            if key in self.ribbon.buttons:
+                self.ribbon.buttons[key].Enable(isExp)
         # update menu items
         self.pavloviaMenu.syncBtn.Enable(bool(self.filename))
         self.pavloviaMenu.newBtn.Enable(bool(self.filename))
@@ -2591,6 +2592,11 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         """
         if self.sendToRunner(event):
             self.app.runner.panel.runLocal(event, focusOnExit='coder')
+            self.Raise()
+
+    def pilotFile(self, event=None):
+        if self.sendToRunner(event):
+            self.app.runner.panel.pilotLocal(event, focusOnExit='coder')
             self.Raise()
 
     def duplicateLine(self, event):
@@ -2929,12 +2935,28 @@ class CoderRibbon(ribbon.FrameRibbon):
             tooltip=_translate("Monitor settings and calibration"),
             callback=parent.app.openMonitorCenter
         )
+        # pilot Py
+        self.addButton(
+            section="py", name="pypilot", label=_translate("Pilot"), icon='pyPilot',
+            tooltip=_translate("Run the current script in Python with piloting features on"),
+            callback=parent.pilotFile, style=wx.BU_BOTTOM | wx.BU_EXACTFIT
+        )
+        # switch run/pilot
+        runPilotSwitch = self.addSwitchCtrl(
+            section="py", name="pyswitch",
+            labels=(_translate(""), _translate("")),
+            style=wx.HORIZONTAL
+        )
         # run Py
         self.addButton(
-            section="py", name="pyrun", label=_translate("Run in Python"), icon='pyRun',
-            tooltip=_translate("Run experiment locally in Python"),
-            callback=parent.runFile
+            section="py", name="pyrun", label=_translate("Run"), icon='pyRun',
+            tooltip=_translate("Run the current script in Python"),
+            callback=parent.runFile, style=wx.BU_BOTTOM | wx.BU_EXACTFIT
         )
+        # link buttons to switch
+        runPilotSwitch.addDependant(self.buttons['pyrun'], mode=1, action="enable")
+        runPilotSwitch.addDependant(self.buttons['pypilot'], mode=0, action="enable")
+        runPilotSwitch.setMode(0)
 
         self.addSeparator()
 

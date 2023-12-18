@@ -940,6 +940,31 @@ class SettingsComponent:
         )
         buff.writeIndented(code)
 
+        # write code for pilot mode
+        code = (
+            "# --- Define some variables which will change depending on pilot mode ---\n"
+            "'''\n"
+            "To run in pilot mode, either use the run/pilot toggle in Builder, Coder and Runner, \n"
+            "or run the experiment with `--pilot` as an argument. To change what pilot \n#"
+            "mode does, check out the 'Pilot mode' tab in preferences.\n"
+            "'''\n"
+            "# work out from system args whether we are running in pilot mode\n"
+            "PILOTING = core.setPilotModeFromArgs()\n"
+            "# start off with values from experiment settings\n"
+            "_fullScr = %(Full-screen window)s\n"
+            "_loggingLevel = logging.getLevel('%(logging level)s')\n"
+            "# if in pilot mode, apply overrides according to preferences\n"
+            "if PILOTING:\n"
+            "    # force windowed mode\n"
+            "    if prefs.piloting['forceWindowed']:\n"
+            "        _fullScr = False\n"
+            "    # override logging level\n"
+            "    _loggingLevel = logging.getLevel(\n"
+            "        prefs.piloting['pilotLoggingLevel']\n"
+            "    )\n"
+        )
+        buff.writeIndented(code % self.params)
+
     def prepareResourcesJS(self):
         """Sets up the resources folder and writes the info.php file for PsychoJS
         """
@@ -1243,21 +1268,20 @@ class SettingsComponent:
         buff.setIndentLevel(+1, relative=True)
 
         # set logging level
-        level = self.params['logging level'].val.upper()
         code = (
             "# this outputs to the screen, not a file\n"
-            "logging.console.setLevel(logging.%s)\n"
+            "logging.console.setLevel(_loggingLevel)\n"
         )
-        buff.writeIndentedLines(code % level)
+        buff.writeIndentedLines(code % self.params)
 
         if self.params['Save log file'].val:
             code = (
                 "# save a log file for detail verbose info\n"
-                "logFile = logging.LogFile(filename+'.log', level=logging.%s)\n"
+                "logFile = logging.LogFile(filename+'.log', level=_loggingLevel)\n"
                 "\n"
                 "return logFile\n"
             )
-            buff.writeIndentedLines(code % level)
+            buff.writeIndentedLines(code % self.params)
         # Exit function def
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("\n")
@@ -1714,12 +1738,22 @@ class SettingsComponent:
         params['size'] = self.params['Window size (pixels)']
         params['winType'] = self.params['winBackend']
 
+        # force windowed according to prefs/pilot mode
+        if params['fullScr']:
+            msg = _translate("Fullscreen settings ignored as running in pilot mode.")
+            code = (
+                f"if PILOTING:\n"
+                f"    logging.debug('{msg}')\n"
+                f"\n"
+            )
+            buff.writeIndentedLines(code % params)
+
         # Do we need to make a new window?
         code = (
             "if win is None:\n"
             "    # if not given a window to setup, make one\n"
             "    win = visual.Window(\n"
-            "        size=%(size)s, fullscr=%(fullScr)s, screen=%(screenNumber)s,\n"
+            "        size=%(size)s, fullscr=_fullScr, screen=%(screenNumber)s,\n"
             "        winType=%(winType)s, allowStencil=%(allowStencil)s,\n"
             "        monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s,\n"
             "        backgroundImage=%(backgroundImg)s, backgroundFit=%(backgroundFit)s,\n"

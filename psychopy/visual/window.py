@@ -20,6 +20,7 @@ from collections import deque
 
 from psychopy.contrib.lazy_import import lazy_import
 from psychopy import colors, event
+from psychopy.localization import _translate
 import math
 # from psychopy.clock import monotonicClock
 
@@ -379,6 +380,7 @@ class Window():
         else:
             self.scrWidthPIX = scrSize[0]
 
+        # if fullscreen not specified, get from prefs
         if fullscr is None:
             fullscr = prefs.general['fullscr']
         self._isFullScr = fullscr
