@@ -105,6 +105,8 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
     # WASAPI devices will be returned when calling static method
     # `Microphone.getDevices()`
     enforceWASAPI = True
+    # other instances of MicrophoneDevice, stored by index
+    _streams = {}
 
     def __init__(self,
                  index=None,
@@ -218,15 +220,23 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         # session
         logging.debug('Opening audio stream for device #{}'.format(
             self._device.deviceIndex))
+        if self._device.deviceIndex not in MicrophoneDevice._streams:
+            MicrophoneDevice._streams[self._device.deviceIndex] = audio.Stream(
+                device_id=self._device.deviceIndex,
+                latency_class=self._audioLatencyMode,
+                mode=self._mode,
+                freq=self._sampleRateHz,
+                channels=self._channels)
+            logging.debug('Stream opened')
+        else:
+            logging.debug(
+                "Stream already created for device at index {}, using created stream.".format(
+                    self._device.deviceIndex
+                )
+            )
 
-        self._stream = audio.Stream(
-            device_id=self._device.deviceIndex,
-            latency_class=self._audioLatencyMode,
-            mode=self._mode,
-            freq=self._sampleRateHz,
-            channels=self._channels)
-
-        logging.debug('Stream opened')
+        # store reference to stream in this instance
+        self._stream = MicrophoneDevice._streams[self._device.deviceIndex]
 
         assert isinstance(audioRunMode, (float, int)) and \
                (audioRunMode == 0 or audioRunMode == 1)
