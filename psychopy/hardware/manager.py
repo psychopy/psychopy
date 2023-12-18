@@ -239,6 +239,8 @@ class DeviceManager:
         if isinstance(alias, (list, tuple)):
             for thisAlias in alias:
                 DeviceManager.addDeviceAlias(deviceName, thisAlias)
+
+            return True
         # store same device by new handle
         DeviceManager.devices[alias] = DeviceManager.getDevice(deviceName)
 
