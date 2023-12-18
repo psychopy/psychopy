@@ -504,6 +504,7 @@ class BaseComponent:
         buff.setIndentLevel(+1, relative=True)
         code = (f"# keep track of stop time/frame for later\n"
                 f"{params['name']}.tStop = t  # not accounting for scr refresh\n"
+                f"{params['name']}.tStopRefresh = tThisFlipGlobal  # on global time\n"
                 f"{params['name']}.frameNStop = frameN  # exact frame index\n"
                 )
         if self.params['saveStartStop']:
