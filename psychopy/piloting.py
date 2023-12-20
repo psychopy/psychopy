@@ -53,8 +53,9 @@ def setPilotModeFromArgs():
     parser.add_argument('--pilot', action='store_true', dest='pilot')
     parser.add_argument('--d', action='store_true', dest='pilot')
     # set mode
+    known_args, unknownArgs = parser.parse_known_args()
     setPilotMode(
-        parser.parse_args().pilot
+        known_args.pilot
     )
 
     return getPilotMode()
