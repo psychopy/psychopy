@@ -252,6 +252,12 @@ class BaseComponent:
         # each routine
         pass
 
+    def writePreCode(self, buff):
+        """Write any code that a component needs that should be done before 
+        the session's `run` method is called.
+        """
+        pass
+
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame
         """
