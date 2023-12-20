@@ -30,7 +30,7 @@ To generate more designs, you can run the shapeMaker.psyexp task from Builder. W
 | 4 | 5 | 6 |
 | 7 | 8 | 9 |
 
-The answers for each new shape need to be added the the conditions file, where columns `a1` to `a9` relate to the shape grid locations as described above. E.g., `a1` relates to space 1 in the grid. So, for an all white shape created using 2 rows (so a 4 piece shape),  you would enter `"white.png"` in columns `a1` to `a4` in the conditions file, 
+The answers for each new shape need to be added the conditions file, where columns `a1` to `a9` relate to the shape grid locations as described above. E.g., `a1` relates to space 1 in the grid. So, for an all white shape created using 2 rows (so a 4 piece shape),  you would enter `"white.png"` in columns `a1` to `a4` in the conditions file, 
 and leave the rest of the cells for that row blank.
 
 ## Online demo of the task

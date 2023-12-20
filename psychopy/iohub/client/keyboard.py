@@ -262,7 +262,7 @@ class Keyboard(ioHubDeviceView):
 
     @property
     def reporting(self):
-        """Specifies if the the keyboard device is reporting / recording
+        """Specifies if the keyboard device is reporting / recording
         events.
 
           * True:  keyboard events are being reported.
