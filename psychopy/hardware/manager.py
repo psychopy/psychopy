@@ -53,6 +53,7 @@ class DeviceManager:
     liaison = None
     ioServer = None  # reference to currently running ioHub ioServer object
     devices = {}  # devices stored
+    deviceAliases = {} # aliases lut to reference devices
     aliases = {}  # aliases to get device classes by
 
     with (__folder__ / "knownDevices.json").open("rb") as f:
@@ -250,6 +251,7 @@ class DeviceManager:
 
         # store same device by new handle
         DeviceManager.devices[alias] = DeviceManager.getDevice(deviceName)
+        DeviceManager.deviceAliases[alias] = deviceName
 
         return True
 
@@ -273,10 +275,9 @@ class DeviceManager:
         # array to store aliases in
         aliases = []
         # iterate through devices
-        for key, device in DeviceManager.devices.items():
-            if device is obj:
-                # append device name if it's the same device
-                aliases.append(key)
+        for alias, aliasedDeviceName in DeviceManager.deviceAliases.items():
+            if deviceName == aliasedDeviceName:
+                aliases.append(alias)
 
         return aliases
 
@@ -287,15 +288,11 @@ class DeviceManager:
 
         Returns
         -------
-        dict[list[str]]
-            All names by which each device is known to DeviceManager
+        dict[str]
+            Stored device aliases
         """
-        deviceMap = {}
 
-        for name in DeviceManager.devices:
-            deviceMap[name] = DeviceManager.getDeviceAliases(name)
-
-        return deviceMap
+        return DeviceManager.deviceAliases
 
     @staticmethod
     def updateDeviceName(oldName, newName):
@@ -340,6 +337,11 @@ class DeviceManager:
         if hasattr(device, "close"):
             device.close()
         del DeviceManager.devices[deviceName]
+
+        # Claenup deviceAliases as well
+        for alias in list(DeviceManager.deviceAliases.keys()):
+            if deviceName == DeviceManager.deviceAliases[alias]:
+                del DeviceManager.deviceAliases[alias]
 
         return True
 
