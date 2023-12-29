@@ -246,28 +246,28 @@ def setDevice(dev, kind=None):
                             "not {!r}".format(kind))
 
 
-# Set the device according to user prefs (if current lib allows it)
-deviceNames = []
-if hasattr(backend, 'defaultOutput'):
-    pref = prefs.hardware['audioDevice']
-    # is it a list or a simple string?
-    if type(prefs.hardware['audioDevice'])==list:
-        # multiple options so use zeroth
-        dev = prefs.hardware['audioDevice'][0]
-    else:
-        # a single option
-        dev = prefs.hardware['audioDevice']
-    # is it simply "default" (do nothing)
-    if dev=='default' or systemtools.isVM_CI():
-        pass  # do nothing
-    elif dev not in backend.getDevices(kind='output'):
-        deviceNames = sorted(backend.getDevices(kind='output').keys())
-        logging.warn(
-            u"Requested audio device '{}' that is not available on "
-            "this hardware. The 'audioDevice' preference should be one of "
-            "{}".format(dev, deviceNames))
-    else:
-        setDevice(dev, kind='output')
+    # Set the device according to user prefs (if current lib allows it)
+    deviceNames = []
+    if hasattr(backend, 'defaultOutput'):
+        pref = prefs.hardware['audioDevice']
+        # is it a list or a simple string?
+        if type(prefs.hardware['audioDevice'])==list:
+            # multiple options so use zeroth
+            dev = prefs.hardware['audioDevice'][0]
+        else:
+            # a single option
+            dev = prefs.hardware['audioDevice']
+        # is it simply "default" (do nothing)
+        if dev=='default' or systemtools.isVM_CI():
+            pass  # do nothing
+        elif dev not in backend.getDevices(kind='output'):
+            deviceNames = sorted(backend.getDevices(kind='output').keys())
+            logging.warn(
+                u"Requested audio device '{}' that is not available on "
+                "this hardware. The 'audioDevice' preference should be one of "
+                "{}".format(dev, deviceNames))
+        else:
+            setDevice(dev, kind='output')
 
 
 if __name__ == "__main__":
