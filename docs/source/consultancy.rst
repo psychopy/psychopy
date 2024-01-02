@@ -100,8 +100,6 @@ Our packages
         }
     </style>
 
-    </style>
-
     <table>
         <tr class="header-row">
             <th colspan="5">Packages</th>
@@ -207,11 +205,12 @@ Our packages
         <a href="https://forms.clickup.com/4570406/f/4bf96-7632/5QVSTYUIXN6Y9BY2OI " style="background-color: #F2545B; color: white; padding: 10px 20px; text-decoration: none; display: inline-block; border-radius: 5px;">Request a licence</a>
         </div>
 
+
 Consultancy services
 --------------------
 
 .. raw:: html
-
+   
     <div class="image-carousel" style="display: flex; justify-content: center;">
         <img src="_images/cons_carousel3.png" style="width: 700px; display: block;">
         <img src="_images/cons_carousel4.png" style="width: 700px; display: none;">
@@ -222,32 +221,42 @@ Consultancy services
    var currentIndex = 0;
    var images = document.querySelectorAll('.image-carousel img');
 
+   function cycleImages() {
+       var totalImages = images.length;
+       images[currentIndex].style.display = 'none';
+       currentIndex = (currentIndex + 1) % totalImages;
+       images[currentIndex].style.display = 'block';
+   }
+
+   setInterval(cycleImages, 3000); // Change image every 3 seconds
+   </script>
+
 
 We've helped many researchers to create and debug experiments, as well as delivered bespoke tutorials. 
 If there's something you'd like us to do for you, just get in touch!
 
 .. raw:: html
 
-        <table>
-        <!-- Consultancy services section -->
-        <tr class="service-row">
-            <td colspan="5">Consultancy services</td>
-        </tr>
-        <tr class="service-sub-row">
-            <th> </th>
-            <th colspan="2">Universities/charities</th>
-            <th colspan="2">Commercial/businesses</th>
-        </tr>
-        <tr>
-            <td>Support cost per hour</td>
-            <td colspan="2">£70</td>
-            <td colspan="2">£105</td>
-        </tr>
-        <tr>
-            <td>Senior staff support cost per hour</td>
-            <td colspan="2">£140</td>
-            <td colspan="2">£210</td>
-        </tr>
+    <table>
+    <!-- Consultancy services section -->
+    <tr class="service-row">
+        <td colspan="5">Consultancy services</td>
+    </tr>
+    <tr class="service-sub-row">
+        <th> </th>
+        <th colspan="2">Universities/charities</th>
+        <th colspan="2">Commercial/businesses</th>
+    </tr>
+    <tr>
+        <td>Support cost per hour</td>
+        <td colspan="2">£70</td>
+        <td colspan="2">£105</td>
+    </tr>
+    <tr>
+        <td>Senior staff support cost per hour</td>
+        <td colspan="2">£140</td>
+        <td colspan="2">£210</td>
+    </tr>
     </table>
     <br>
     <br>
