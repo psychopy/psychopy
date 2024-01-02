@@ -217,7 +217,7 @@ Consultancy services
         <img src="_images/cons_carousel4.png" style="width: 700px; display: none;">
         <img src="_images/cons_carousel5.png" style="width: 700px; display: none;">
     </div>
-    <br>
+
    <script>
    var currentIndex = 0;
    var images = document.querySelectorAll('.image-carousel img');
