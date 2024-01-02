@@ -210,18 +210,6 @@ Our packages
 Consultancy services
 --------------------
 
-.. raw:: html
-
-    <div class="image-carousel" style="display: flex; justify-content: center;">
-        <img src="_images/cons_carousel3.png" style="width: 700px; display: block;">
-        <img src="_images/cons_carousel4.png" style="width: 700px; display: none;">
-        <img src="_images/cons_carousel5.png" style="width: 700px; display: none;">
-    </div>
-    <br>
-   <script>
-   var currentIndex = 0;
-   var images = document.querySelectorAll('.image-carousel img');
-
 
 We've helped many researchers to create and debug experiments, as well as delivered bespoke tutorials. 
 If there's something you'd like us to do for you, just get in touch!
@@ -254,3 +242,42 @@ If there's something you'd like us to do for you, just get in touch!
     <div style="text-align: center;">
         <a href="https://forms.clickup.com/4570406/f/4bf96-7552/ZN8URSTDTWDENY6RP9" style="background-color: #02A9EA; color: white; padding: 10px 20px; text-decoration: none; display: inline-block; border-radius: 5px;">Click here to make a request for support!</a>
     </div>
+
+        <div class="image-carousel" style="display: flex; justify-content: center;">
+        <img src="_images/cons_carousel3.png" style="width: 700px; display: block;">
+        <img src="_images/cons_carousel4.png" style="width: 700px; display: none;">
+        <img src="_images/cons_carousel5.png" style="width: 700px; display: none;">
+    </div>
+    <br>
+   <script>
+        var currentIndex = 0;
+        var images = document.querySelectorAll('.image-carousel img');
+
+        function showImage(index) {
+            // Hide all images
+            images.forEach(function(img) {
+                img.style.display = 'none';
+            });
+
+            // Show the image at the given index
+            images[index].style.display = 'block';
+        }
+
+        function nextImage() {
+            currentIndex = (currentIndex + 1) % images.length;
+            showImage(currentIndex);
+        }
+
+        function prevImage() {
+            currentIndex = (currentIndex - 1 + images.length) % images.length;
+            showImage(currentIndex);
+        }
+
+        // Initial display
+        showImage(currentIndex);
+
+        // Set up interval for automatic cycling (e.g., every 3 seconds)
+        setInterval(function() {
+            nextImage();
+        }, 3000);
+    </script>
