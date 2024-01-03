@@ -232,7 +232,7 @@ Consultancy services
    </script>
 
 
-We've helped many researchers to create and debug experiments, as well as delivered bespoke tutorials. 
+We've helped many researchers to create and debug experiments, as well as delivered bespoke tutorials and even bespoke workshops (take a look at our `Workshops page <https://workshops.psychopy.org>`_ for more information on those!)
 If there's something you'd like us to do for you, just get in touch!
 
 .. raw:: html
