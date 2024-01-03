@@ -5,4 +5,4 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from .keyboard import Keyboard
+from psychopy.hardware.keyboard import Keyboard
