@@ -18,6 +18,7 @@ from psychopy.tools import systemtools as st
 from psychopy.tools.attributetools import AttributeGetSetMixin
 from .base import BaseDevice
 
+
 def _findPossiblePorts():
     if sys.platform == 'win32':
         # get profiles for all serial port devices
@@ -258,9 +259,35 @@ class SerialDevice(BaseDevice, AttributeGetSetMixin):
 
         return resp
 
-    def isSameDevice(self, params):
-        port = self.portString[3:]
-        return params['port'] in (self.portString, port, int(port))
+    def isSameDevice(self, other):
+        """
+        Determine whether this object represents the same physical device as a given other object.
+
+        Parameters
+        ----------
+        other : SerialDevice, dict
+            Other SerialDevice to compare against, or a dict of params (which must include
+            `port` as a key)
+
+        Returns
+        -------
+        bool
+            True if the two objects represent the same physical device
+        """
+        if isinstance(other, type(self)):
+            # if given another object, get port
+            portString = other.portString
+        elif isinstance(other, dict) and "port" in other:
+            # if given a dict, get port from key
+            portString = other['port']
+            # make sure port is in the correct format
+            if not other['port'].startswith("COM"):
+                portString = "COM" + other['port']
+        else:
+            # if the other object is the wrong type or doesn't have a port, it's not this
+            return False
+
+        return self.portString == portString
 
     @staticmethod
     def getAvailableDevices():

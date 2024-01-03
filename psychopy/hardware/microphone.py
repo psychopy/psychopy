@@ -275,8 +275,33 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         logging.debug('Audio capture device #{} ready'.format(
             self._device.deviceIndex))
 
-    def isSameDevice(self, params):
-        return params['device'] == self._device
+    def isSameDevice(self, other):
+        """
+        Determine whether this object represents the same physical microphone as a given other
+        object.
+
+        Parameters
+        ----------
+        other : MicrophoneDevice, dict
+            Other MicrophoneDevice to compare against, or a dict of params (which must include
+            `index` as a key)
+
+        Returns
+        -------
+        bool
+            True if the two objects represent the same physical device
+        """
+        if isinstance(other, type(self)):
+            # if given another object, get index
+            index = other.index
+        elif isinstance(other, dict) and "index" in other:
+            # if given a dict, get index from key
+            index = other['index']
+        else:
+            # if the other object is the wrong type or doesn't have an index, it's not this
+            return False
+
+        return self.index == index
 
     @staticmethod
     def getDevices():

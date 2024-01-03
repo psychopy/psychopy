@@ -12,6 +12,8 @@ __all__ = [
     'BaseDevice'
 ]
 
+import json
+
 
 class BaseResponse:
     """
@@ -67,6 +69,57 @@ class BaseDevice:
         DeviceManager.deviceClasses.append(mro)
 
         return cls
+
+    def __eq__(self, other):
+        """
+        For BaseDevice objects, the == operator functions as shorthand for isSameDevice
+        """
+        return self.isSameDevice(other)
+
+    def getDeviceProfile(self):
+        """
+        Generate a dictionary describing this device by finding the profile from
+        getAvailableDevices which represents the same physical device as this object.
+
+        Returns
+        -------
+        dict
+            Dictionary representing this device
+        """
+        for profile in self.getAvailableDevices():
+            if self.isSameDevice(profile):
+                return profile
+
+    def getJSON(self):
+        """
+        Convert the output of getDeviceProfile to a JSON string.
+
+        Returns
+        -------
+        str
+            JSON string of getDeviceProfile.
+        """
+        return json.dumps(self.getDeviceProfile())
+
+    # the following methods must be implemented by subclasses of BaseDevice
+
+    def isSameDevice(self, other):
+        """
+        Determine whether this object represents the same physical device as a given other object.
+
+        Parameters
+        ----------
+        other : BaseDevice, dict
+            Other device object to compare against, or a dict of params.
+
+        Returns
+        -------
+        bool
+            True if the two objects represent the same physical device
+        """
+        raise NotImplementedError(
+            "All subclasses of BaseDevice must implement the method `getDict`"
+        )
 
     @staticmethod
     def getAvailableDevices():
