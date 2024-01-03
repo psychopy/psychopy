@@ -365,7 +365,21 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
         self.muteOutsidePsychopy = muteOutsidePsychopy
 
     def isSameDevice(self, other):
-        # all Keyboards seem to be the same device
+        """
+        Determine whether this object represents the same physical keyboard as a given other
+        object.
+
+        Parameters
+        ----------
+        other : KeyboardDevice, dict
+            Other KeyboardDevice to compare against, or a dict of params
+
+        Returns
+        -------
+        bool
+            True if the two objects represent the same physical device
+        """
+        # all Keyboards are the same device
         return True
 
     @classmethod
