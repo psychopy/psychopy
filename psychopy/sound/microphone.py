@@ -12,8 +12,6 @@ __all__ = ['Microphone']
 
 from psychopy.constants import NOT_STARTED
 from psychopy.hardware import DeviceManager
-from psychopy.hardware.microphone import MicrophoneDevice
-
 
 
 class Microphone:
