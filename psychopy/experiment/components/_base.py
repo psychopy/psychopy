@@ -1065,6 +1065,8 @@ class BaseDeviceComponent(BaseComponent):
     """
     Base class for most components which interface with a hardware device.
     """
+    # list of class strings (readable by DeviceManager) which this component's device could be
+    deviceClasses = []
 
     def __init__(
             self, exp, parentName,
