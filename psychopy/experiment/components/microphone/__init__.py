@@ -49,6 +49,7 @@ class MicrophoneComponent(BaseDeviceComponent):
     iconFile = Path(__file__).parent / 'microphone.png'
     tooltip = _translate('Microphone: basic sound capture (fixed onset & '
                          'duration), okay for spoken words')
+    deviceClasses = ['psychopy.hardware.microphone.MicrophoneDevice']
 
     def __init__(self, exp, parentName, name='mic',
                  startType='time (s)', startVal=0.0,

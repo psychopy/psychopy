@@ -394,6 +394,69 @@ class DeviceManager:
         return isinstance(device, cls)
 
     @staticmethod
+    def getRequiredDeviceNamesFromExperiments(experiments):
+        """
+        Get a list of device names referenced in a given set of experiments.
+
+        Parameters
+        ----------
+        experiments : list[str or Path]
+            List of paths pointing to .psyexp files to investigate
+
+        Returns
+        -------
+        dict[str:list[str]
+            Dict of device names against a list of the classes of device it's used to refer to
+        """
+        from psychopy import experiment
+
+        # dict in which to store usages
+        usages = {}
+
+        def _process(emt):
+            """
+            Process an element (Component or Routine) for device names and append them to the
+            usages dict.
+
+            Parameters
+            ----------
+            emt : Component or Routine
+                Element to process
+            """
+            # if we have a device name for this element...
+            if "deviceLabel" in emt.params:
+                # get init value so it lines up with boilerplate code
+                inits = experiment.getInitVals(emt.params)
+                # get value
+                deviceName = inits['deviceLabel'].val
+                # make sure device name is in usages dict
+                if deviceName not in usages:
+                    usages[deviceName] = []
+                print("DEVICE", type(emt).__name__, type(emt).deviceClasses)
+                # add any new usages
+                for cls in getattr(emt, "deviceClasses", []):
+                    if cls not in usages[deviceName]:
+                        usages[deviceName].append(cls)
+
+        # process each experiment
+        for file in experiments:
+            # create experiment object
+            exp = experiment.Experiment()
+            exp.loadFromXML(file)
+
+            # iterate through routines
+            for rt in exp.routines.values():
+                if isinstance(rt, experiment.routines.BaseStandaloneRoutine):
+                    # for standalone routines, get device names from params
+                    _process(rt)
+                else:
+                    # for regular routines, get device names from each component
+                    for comp in rt:
+                        _process(comp)
+
+        return usages
+
+    @staticmethod
     def getDeviceBy(attr, value, deviceClass="*"):
         """
         Get a device by the value of a particular attribute. e.g. get a Microphone device by its
