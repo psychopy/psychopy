@@ -4,6 +4,7 @@ import time
 import numpy as np
 from psychtoolbox import audio as audio
 from psychopy import logging as logging, prefs
+from psychopy.localization import _translate
 from psychopy.constants import NOT_STARTED
 from psychopy.hardware import BaseDevice
 from psychopy.sound.audiodevice import AudioDeviceInfo, AudioDeviceStatus
@@ -124,6 +125,18 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
                 "Microphone audio capture requires package `psychtoolbox` to "
                 "be installed.")
 
+        def _getDefaultDevice():
+            # get all devices
+            _devices = MicrophoneDevice.getDevices()
+            # if there are none, error
+            if not len(_devices):
+                raise AudioInvalidCaptureDeviceError(_translate(
+                    "Could not choose default recording device as no recording devices are "
+                    "connected."
+                ))
+
+            return _devices[0]
+
         def _getDeviceByIndex(deviceIndex):
             """Subroutine to get a device by index. Used to handle the case
             where the user specifies a device by index.
@@ -150,15 +163,18 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             if deviceIndex in devicesByIndex:
                 useDevice = devicesByIndex[deviceIndex]
             else:
-                raise AudioInvalidCaptureDeviceError(
-                    'No suitable audio recording devices found matching index '
-                    '{}.'.format(deviceIndex))
+                logging.warn(_translate(
+                    "Could not find audio recording device at index {}, using default."
+                ).format(deviceIndex))
+                useDevice = _getDefaultDevice()
 
             return useDevice
 
         # get information about the selected device
         if isinstance(index, AudioDeviceInfo):
             self._device = index
+        if index in (None, "none", "None", "NONE", -1, "default", "Default", "DEFAULT"):
+            self._device = _getDefaultDevice()
         elif isinstance(index, (int, float, str)):
             self._device = _getDeviceByIndex(index)
         else:
