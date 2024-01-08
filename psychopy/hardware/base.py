@@ -54,6 +54,25 @@ class BaseDevice:
     """
     Base class for device interfaces, includes support for DeviceManager and adding listeners.
     """
+    def __new__(cls, *args, **kwargs):
+        from psychopy.hardware.manager import DeviceManager
+        import inspect
+        # convert args to kwargs
+        argNames = inspect.getfullargspec(cls.__init__).args
+        for i, arg in enumerate(args):
+            kwargs[argNames[i]] = arg
+        # iterate through existing devices
+        for other in DeviceManager.devices.values():
+            # skip devices of different class
+            if not isinstance(other, cls):
+                continue
+            # if device already represented, use existing object
+            if other.isSameDevice(kwargs):
+                return other
+
+        # if first object to represent this device, make as normal
+        return super(BaseDevice, cls).__new__(cls)
+
     def __init_subclass__(cls, aliases=None):
         from psychopy.hardware.manager import DeviceManager
         import inspect
