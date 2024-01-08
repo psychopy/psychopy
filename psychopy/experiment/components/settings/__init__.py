@@ -1636,7 +1636,7 @@ class SettingsComponent:
         # add eyetracker to DeviceManager
         if self.params['eyetracker'] != "None":
             code = (
-                "deviceManager.addEyetracker(name='eyetracker')\n"
+                "deviceManager.devices['eyetracker'] = ioServer.getDevice('tracker')\n"
             )
             buff.writeIndentedLines(code % inits)
         # make default keyboard
