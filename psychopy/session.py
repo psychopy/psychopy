@@ -1338,9 +1338,6 @@ class Session:
         # If ExperimentHandler, get its data as a list of dicts
         if isinstance(value, data.ExperimentHandler):
             value = value.getJSON(priorityThreshold=self.priorityThreshold)
-        # Convert to JSON
-        if not isinstance(value, str):
-            value = json.dumps(value)
         # Send
         self.liaison.broadcastSync(message=value)
 
