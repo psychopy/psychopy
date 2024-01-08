@@ -1,4 +1,5 @@
 from psychopy import liaison, session, hardware
+from psychopy.hardware import DeviceManager
 from psychopy.tests import utils, skip_under_vm
 from pathlib import Path
 import json
@@ -147,3 +148,27 @@ class TestLiaison:
             self.server, self.protocol, "session", "runExperiment",
             "testNamedButtonBox"
         )
+
+    def test_device_JSON(self):
+        cases = {
+            'testMic': "psychopy.hardware.microphone.MicrophoneDevice",
+        }
+        for deviceName, deviceClass in cases.items():
+            # get the first available device
+            available = DeviceManager.getAvailableDevices(deviceClass)
+            if not available:
+                continue
+            profile = available[0]
+            # replace deviceName
+            profile['deviceName'] = deviceName
+            # setup device
+            DeviceManager.addDevice(**profile)
+            # call getDevice from Liaison
+            runInLiaison(
+                self.server, self.protocol, "DeviceManager", "getDevice",
+                deviceName
+            )
+            # get message
+            result = self.protocol.messages[-1]['result']
+            # whatever is returned should be json serializable, load it to confirm that it is
+            json.loads(result)
