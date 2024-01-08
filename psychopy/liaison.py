@@ -31,7 +31,7 @@ except ModuleNotFoundError as err:
 	)
 
 
-class PsychoPyEncoder(json.JSONEncoder):
+class LiaisonJSONEncoder(json.JSONEncoder):
 	"""
 	JSON encoder which calls the `getJSON` method of an object (if it has one) to convert to a
 	string before JSONifying.
@@ -216,7 +216,7 @@ class WebSocketServer:
 			the message to be sent to all clients
 		"""
 		if not isinstance(message, str):
-			message = json.dumps(message, cls=PsychoPyEncoder)
+			message = json.dumps(message, cls=LiaisonJSONEncoder)
 		for websocket in self._connections:
 			await websocket.send(message)
 
@@ -371,7 +371,7 @@ class WebSocketServer:
 							rawResult = method(*args)
 
 					# convert result to a string
-					result = json.dumps(rawResult, cls=PsychoPyEncoder)
+					result = json.dumps(rawResult, cls=LiaisonJSONEncoder)
 
 					# send a response back to the client:
 					response = {
