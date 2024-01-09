@@ -208,6 +208,7 @@ class GratingStim(BaseVisualStim, DraggingMixin, TextureMixin, ColorMixin,
         GL.glGenTextures(1, ctypes.byref(self._maskID))
         self.__dict__['texRes'] = texRes  # must be power of 2
         self.interpolate = interpolate
+        self._needTextureUpdate = True
 
         # NB Pedestal isn't currently being used during rendering - this is a
         # place-holder
@@ -328,9 +329,6 @@ class GratingStim(BaseVisualStim, DraggingMixin, TextureMixin, ColorMixin,
     def foreColor(self, value):
         # Call setter of parent mixin
         ColorMixin.foreColor.fset(self, value)
-        # Reset texture
-        self._needTextureUpdate = True
-        self._needUpdate = True
 
     @property
     def contrast(self):
@@ -341,9 +339,6 @@ class GratingStim(BaseVisualStim, DraggingMixin, TextureMixin, ColorMixin,
     def contrast(self, value):
         # Call setter of parent mixin
         ColorMixin.contrast.fset(self, value)
-        # Reset texture
-        self._needTextureUpdate = True
-        self._needUpdate = True
 
     @property
     def opacity(self):
@@ -354,9 +349,6 @@ class GratingStim(BaseVisualStim, DraggingMixin, TextureMixin, ColorMixin,
     def opacity(self, value):
         # Call setter of parent mixin
         BaseVisualStim.opacity.fset(self, value)
-        # Reset texture
-        self._needTextureUpdate = True
-        self._needUpdate = True
 
     @attributeSetter
     def tex(self, value):
