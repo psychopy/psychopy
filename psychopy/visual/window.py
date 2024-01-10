@@ -20,6 +20,7 @@ from collections import deque
 
 from psychopy.contrib.lazy_import import lazy_import
 from psychopy import colors, event
+from psychopy.localization import _translate
 import math
 # from psychopy.clock import monotonicClock
 
@@ -379,6 +380,7 @@ class Window():
         else:
             self.scrWidthPIX = scrSize[0]
 
+        # if fullscreen not specified, get from prefs
         if fullscr is None:
             fullscr = prefs.general['fullscr']
         self._isFullScr = fullscr
@@ -2445,6 +2447,10 @@ class Window():
         # convert to array
         toReturn = numpy.frombuffer(bufferDat, dtype=numpy.uint8)
         toReturn = toReturn.reshape((h, w, 4))
+
+        # rebind front buffer if needed
+        if buffer == 'front' and self.useFBO:
+            GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, self.frameBuffer)
 
         # if we want the color data without an alpha channel, we need to
         # convert the data to a numpy array and remove the alpha channel

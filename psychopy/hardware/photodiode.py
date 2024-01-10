@@ -1,6 +1,6 @@
 import json
 from psychopy import layout, logging
-from psychopy.hardware import base
+from psychopy.hardware import base, DeviceManager
 from psychopy.localization import _translate
 from psychopy.hardware import keyboard
 
@@ -56,7 +56,15 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
 
     @staticmethod
     def getAvailableDevices():
-        raise NotImplementedError()
+        devices = []
+        for cls in DeviceManager.deviceClasses:
+            # get class from class str
+            cls = DeviceManager._resolveClassString(cls)
+            # if class is a photodiode, add its available devices
+            if issubclass(cls, BasePhotodiodeGroup) and cls is not BasePhotodiodeGroup:
+                devices += cls.getAvailableDevices()
+
+        return devices
 
     def getResponses(self, state=None, channel=None, clear=True):
         """
@@ -342,8 +350,11 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
         from psychopy.core import Clock
         self.clock = Clock()
 
-    def setThreshold(self, threshold):
+    def _setThreshold(self, threshold, channel=None):
         self._threshold = threshold
+
+    def getThreshold(self, channel=None):
+        return self._threshold
 
     def dispatchMessages(self):
         """
@@ -358,7 +369,7 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
         h = int(h)
         # read front buffer luminances for specified area
         pixels = self.win._getPixels(
-            buffer="back",
+            buffer="front",
             rect=(left, bottom, w, h),
             makeLum=True
         )
@@ -366,8 +377,12 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
         state = pixels.mean() > (255 - self.getThreshold())
         # if state has changed, make an event
         if state != self.state[0]:
+            if self.win._frameTimes:
+                frameT = logging.defaultClock.getTime() - self.win._frameTimes[-1]
+            else:
+                frameT = 0
             resp = PhotodiodeResponse(
-                t=self.clock.getTime() + self.win.monitorFramePeriod,
+                t=self.clock.getTime() - frameT,
                 value=state,
                 channel=0,
                 threshold=self._threshold
@@ -383,10 +398,11 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
 
     @staticmethod
     def getAvailableDevices():
-        raise None
+        return []
 
     def resetTimer(self, clock=logging.defaultClock):
-        self.clock.reset(clock.getTime())
+        self.clock._timeAtLastReset = clock._timeAtLastReset
+        self.clock._epochTimeAtLastReset = clock._epochTimeAtLastReset
 
     @property
     def pos(self):
@@ -450,9 +466,9 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
 
     def findThreshold(self, win=None, channel=0):
         # there's no physical photodiode, so just pick a reasonable threshold
-        self.setThreshold(127)
+        self.setThreshold(127, channel=channel)
 
-        return self.getThreshold()
+        return self.getThreshold(channel=channel)
 
 
 class PhotodiodeValidator:

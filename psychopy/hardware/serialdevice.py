@@ -18,6 +18,7 @@ from psychopy.tools import systemtools as st
 from psychopy.tools.attributetools import AttributeGetSetMixin
 from .base import BaseDevice
 
+
 def _findPossiblePorts():
     if sys.platform == 'win32':
         # get profiles for all serial port devices
@@ -105,7 +106,8 @@ class SerialDevice(BaseDevice, AttributeGetSetMixin):
                     baudrate=baudrate, bytesize=byteSize,    # number of data bits
                     parity=parity,    # enable parity checking
                     stopbits=stopBits,  # number of stop bits
-                    timeout=3,             # set a timeout value, None for waiting forever
+                    timeout=self.pauseDuration * 3,             # set a timeout value, None for
+                    # waiting forever
                     xonxoff=0,             # enable software flow control
                     rtscts=0,)              # enable RTS/CTS flow control
 
@@ -235,31 +237,57 @@ class SerialDevice(BaseDevice, AttributeGetSetMixin):
         start = time.time()
         t = time.time() - start
         # get responses until we have one
-        resp = None
+        resp = b""
         while not resp and t < timeout:
             t = time.time() - start
-            resp = self.com.readline()
+            resp = self.com.read()
+        # keep getting responses until they stop sending
+        sending = resp
+        while sending and t < timeout:
+            t = time.time() - start
+            sending = self.com.read()
+            # if still sending, append to resp
+            resp += sending
         # if we timed out, return None
         if t > timeout:
             return
+        # decode to str
+        resp = resp.decode('utf-8')
+        # if multiline, split by eol
         if multiline:
-            # keep getting responses until they stop sending
-            sending = True
-            while sending and t < timeout:
-                t = time.time() - start
-                sending = self.com.readline()
-                # if still sending, append to resp
-                if sending:
-                    resp += sending
-        # if we timed out, return None
-        if t > timeout:
-            return
+            resp = resp.split(str(self.eol))
 
-        return resp.decode('utf-8')
+        return resp
 
-    def isSameDevice(self, params):
-        port = self.portString[3:]
-        return params['port'] in (self.portString, port, int(port))
+    def isSameDevice(self, other):
+        """
+        Determine whether this object represents the same physical device as a given other object.
+
+        Parameters
+        ----------
+        other : SerialDevice, dict
+            Other SerialDevice to compare against, or a dict of params (which must include
+            `port` as a key)
+
+        Returns
+        -------
+        bool
+            True if the two objects represent the same physical device
+        """
+        if isinstance(other, type(self)):
+            # if given another object, get port
+            portString = other.portString
+        elif isinstance(other, dict) and "port" in other:
+            # if given a dict, get port from key
+            portString = other['port']
+            # make sure port is in the correct format
+            if not other['port'].startswith("COM"):
+                portString = "COM" + other['port']
+        else:
+            # if the other object is the wrong type or doesn't have a port, it's not this
+            return False
+
+        return self.portString == portString
 
     @staticmethod
     def getAvailableDevices():

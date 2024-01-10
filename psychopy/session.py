@@ -587,7 +587,7 @@ class Session:
         Parameters
         ----------
         key : str or Iterable[str]
-            Key or keys to get vaues of fro expInfo dict
+            Key or keys to get values of fro expInfo dict
 
         Returns
         -------
@@ -997,6 +997,12 @@ class Session:
         thisExp.name = key
         # Mark ExperimentHandler as current
         self.currentExperiment = thisExp
+        # Make sure we have at least one response device
+        if "defaultKeyboard" not in DeviceManager.devices:
+            DeviceManager.addDevice(
+                deviceClass="psychopy.hardware.keyboard.KeyboardDevice",
+                deviceName="defaultKeyboard"
+            )
         # Hide Window message
         self.win.hideMessage()
         # Setup window for this experiment
@@ -1007,8 +1013,6 @@ class Session:
         self.win.stashAutoDraw()
         # Setup logging
         self.experiments[key].run.__globals__['logFile'] = self.logFile
-        # Setup devices
-        self.setupDevicesFromExperiment(key, expInfo=expInfo, thisExp=thisExp)
         # Log start
         logging.info(_translate(
             "Running experiment via Session: name={key}, expInfo={expInfo}"
@@ -1334,9 +1338,6 @@ class Session:
         # If ExperimentHandler, get its data as a list of dicts
         if isinstance(value, data.ExperimentHandler):
             value = value.getJSON(priorityThreshold=self.priorityThreshold)
-        # Convert to JSON
-        if not isinstance(value, str):
-            value = json.dumps(value)
         # Send
         self.liaison.broadcastSync(message=value)
 

@@ -329,9 +329,6 @@ class RatingScaleComponent(BaseComponent):
                     code = "%s.addData('%s.history', %s.getHistory())\n"
                     buff.writeIndented(code % (currLoop.params['name'],
                                                name, name))
-                if currLoop.params['name'].val == self.exp._expHandler.name:
-                    buff.writeIndented("%s.nextEntry()\n" %
-                                       self.exp._expHandler.name)
             else:
                 buff.writeIndented("# RatingScaleComponent: unknown loop "
                                    "type, not saving any data.\n")

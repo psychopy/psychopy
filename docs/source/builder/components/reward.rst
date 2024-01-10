@@ -35,7 +35,7 @@ Delay between sequences (s) :
     A sequence is a burst sequence, so multiples pulses. This delay is the duration between theses sequences
 
 Number of sequences : 
-    The number of burst sequences occuring during the time the water reward component is enable in the experiment.
+    The number of burst sequences occurring during the time the water reward component is enable in the experiment.
 
 Delay between pulses (s) : 
     The time duration between pulses in a burst sequence.

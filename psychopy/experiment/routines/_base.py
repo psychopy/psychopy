@@ -150,6 +150,15 @@ class BaseStandaloneRoutine:
         return
 
     def writeRoutineEndCode(self, buff):
+        # what loop are we in (or thisExp)?
+        if len(self.exp.flow._loopList):
+            currLoop = self.exp.flow._loopList[-1]  # last (outer-most) loop
+        else:
+            currLoop = self.exp._expHandler
+
+        if currLoop.params['name'].val == self.exp._expHandler.name:
+            buff.writeIndented("%s.nextEntry()\n" % self.exp._expHandler.name)
+
         # reset routineTimer at the *very end* of all non-nonSlip routines
         code = ('# the Routine "%s" was not non-slip safe, so reset '
                 'the non-slip timer\n'
@@ -733,6 +742,15 @@ class Routine(list):
     def writeRoutineEndCode(self, buff):
         # can we use non-slip timing?
         maxTime, useNonSlip = self.getMaxTime()
+
+        # what loop are we in (or thisExp)?
+        if len(self.exp.flow._loopList):
+            currLoop = self.exp.flow._loopList[-1]  # last (outer-most) loop
+        else:
+            currLoop = self.exp._expHandler
+
+        if currLoop.params['name'].val == self.exp._expHandler.name:
+            buff.writeIndented("%s.nextEntry()\n" % self.exp._expHandler.name)
 
         # reset routineTimer at the *very end* of all non-nonSlip routines
         if not useNonSlip:

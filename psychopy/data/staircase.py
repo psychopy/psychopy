@@ -1443,7 +1443,7 @@ class QuestPlusHandler(StairHandler):
         paramEstimationMethod : {'mean', 'mode'}
             How to calculate the final parameter estimate. `mean` returns the
             mean of each parameter, weighted by their respective posterior
-            probabilities. `mode` returns the the parameters at the peak of
+            probabilities. `mode` returns the parameters at the peak of
             the posterior distribution.
 
         extraInfo : dict

@@ -582,7 +582,7 @@ class PavloviaProject(dict):
     _datetimeKeys = ("created_at", "last_activity_at")
 
     def __init__(self, id, localRoot=None):
-        # Cache whatever form of ID is given, to avoid uneccesary calls to Pavlovia/GitLab later
+        # Cache whatever form of ID is given, to avoid unneccesary calls to Pavlovia/GitLab later
         if isinstance(id, int):
             # If created using a numeric ID...
             self.numericId = id

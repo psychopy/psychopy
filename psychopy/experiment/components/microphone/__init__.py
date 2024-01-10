@@ -27,17 +27,6 @@ except (ImportError, ModuleNotFoundError):
         "microphone stream will raise an error.")
     _hasPTB = False
 
-# Get list of devices
-if _hasPTB and not syst.isVM_CI():
-    devices = syst.getAudioCaptureDevices()
-    deviceIndices = [str(d['index']) for d in devices]
-    deviceNames = [d['name'] for d in devices]
-else:
-    devices = []
-    deviceIndices = []
-    deviceNames = []
-deviceIndices.append(None)
-deviceNames.append("default")
 # Get list of sample rates
 sampleRates = {r[1]: r[0] for r in sampleRateQualityLevels.values()}
 
@@ -60,6 +49,7 @@ class MicrophoneComponent(BaseDeviceComponent):
     iconFile = Path(__file__).parent / 'microphone.png'
     tooltip = _translate('Microphone: basic sound capture (fixed onset & '
                          'duration), okay for spoken words')
+    deviceClasses = ['psychopy.hardware.microphone.MicrophoneDevice']
 
     def __init__(self, exp, parentName, name='mic',
                  startType='time (s)', startVal=0.0,
@@ -98,10 +88,23 @@ class MicrophoneComponent(BaseDeviceComponent):
             "sampleRate",
             "maxSize",
         ]
+
+        def getDeviceIndices():
+            from psychopy.hardware.microphone import MicrophoneDevice
+            profiles = MicrophoneDevice.getAvailableDevices()
+
+            return [None] + [profile['index'] for profile in profiles]
+
+        def getDeviceNames():
+            from psychopy.hardware.microphone import MicrophoneDevice
+            profiles = MicrophoneDevice.getAvailableDevices()
+
+            return ["default"] + [profile['deviceName'] for profile in profiles]
+
         self.params['device'] = Param(
             device, valType='code', inputType="choice", categ="Device",
-            allowedVals=deviceIndices,
-            allowedLabels=deviceNames,
+            allowedVals=getDeviceIndices,
+            allowedLabels=getDeviceNames,
             label=_translate("Device"),
             hint=_translate(
                 "What microphone device would you like the use to record? This will only affect "
@@ -277,11 +280,6 @@ class MicrophoneComponent(BaseDeviceComponent):
         inits = getInitVals(self.params)
 
         # --- setup mic ---
-
-        # Substitute default if device not found
-        if inits['device'].val not in deviceIndices:
-            alert(4330, strFields={'device': self.params['device'].val})
-            inits['device'].val = None
         # Substitute sample rate value for numeric equivalent
         inits['sampleRate'] = sampleRates[inits['sampleRate'].val]
         # Substitute channel value for numeric equivalent
@@ -289,15 +287,14 @@ class MicrophoneComponent(BaseDeviceComponent):
         # initialise mic device
         code = (
             "# initialise microphone\n"
-            "if deviceManager.getDevice(%(deviceLabel)s) is None:\n"
-            "    deviceManager.addDevice(\n"
-            "        deviceClass='microphone',\n"
-            "        deviceName=%(deviceLabel)s,\n"
-            "        index=%(device)s,\n"
-            "        channels=%(channels)s, \n"
-            "        sampleRateHz=%(sampleRate)s, \n"
-            "        maxRecordingSize=%(maxSize)s\n"
-            "    )\n"
+            "deviceManager.addDevice(\n"
+            "    deviceClass='psychopy.hardware.microphone.MicrophoneDevice',\n"
+            "    deviceName=%(deviceLabel)s,\n"
+            "    index=%(device)s,\n"
+            "    channels=%(channels)s, \n"
+            "    sampleRateHz=%(sampleRate)s, \n"
+            "    maxRecordingSize=%(maxSize)s\n"
+            ")\n"
         )
         buff.writeOnceIndentedLines(code % inits)
 

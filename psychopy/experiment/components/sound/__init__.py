@@ -8,28 +8,41 @@ Distributed under the terms of the GNU General Public License (GPL).
 """
 
 from pathlib import Path
-from psychopy.experiment.components import BaseComponent, Param, getInitVals, _translate
+from psychopy.experiment.components import BaseDeviceComponent, Param, getInitVals, \
+    _translate
 from psychopy.tools.audiotools import knownNoteNames
 
 
-class SoundComponent(BaseComponent):
+class SoundComponent(BaseDeviceComponent):
     """An event class for presenting sound stimuli"""
     categories = ['Stimuli']
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'sound.png'
     tooltip = _translate('Sound: play recorded files or generated sounds', )
+    deviceClasses = ["psychopy.hardware.speaker.SpeakerDevice"]
 
-    def __init__(self, exp, parentName, name='sound_1', sound='A', volume=1,
+    def __init__(self,
+                 exp, parentName,
+                 # basic
+                 name='sound_1',
+                 sound='A',
                  startType='time (s)', startVal='0.0',
                  stopType='duration (s)', stopVal='1.0',
                  startEstim='', durationEstim='',
-                 stopWithRoutine=True,
-                 syncScreenRefresh=True):
+                 syncScreenRefresh=True,
+                 # device
+                 deviceLabel="",
+                 speakerIndex=-1,
+                 # playback
+                 volume=1,
+                 stopWithRoutine=True):
         super(SoundComponent, self).__init__(
             exp, parentName, name,
             startType=startType, startVal=startVal,
             stopType=stopType, stopVal=stopVal,
-            startEstim=startEstim, durationEstim=durationEstim)
+            startEstim=startEstim, durationEstim=durationEstim,
+            deviceLabel=deviceLabel
+        )
         self.type = 'Sound'
         self.url = "https://www.psychopy.org/builder/components/sound.html"
         self.exp.requirePsychopyLibs(['sound'])
@@ -79,6 +92,50 @@ class SoundComponent(BaseComponent):
                 "after the Routine has finished."),
             label=_translate('Stop with Routine?'))
 
+        # --- Device params ---
+        self.order += [
+            "speaker"
+        ]
+
+        def getSpeakerLabels():
+            from psychopy.hardware.speaker import SpeakerDevice
+            labels = [_translate("Default")]
+            for profile in SpeakerDevice.getAvailableDevices():
+                labels.append(profile['deviceName'])
+
+            return labels
+
+        def getSpeakerValues():
+            from psychopy.hardware.speaker import SpeakerDevice
+            vals = [-1]
+            for profile in SpeakerDevice.getAvailableDevices():
+                vals.append(profile['index'])
+
+            return vals
+
+        self.params['speakerIndex'] = Param(
+            speakerIndex, valType="code", inputType="choice", categ="Device",
+            allowedVals=getSpeakerValues,
+            allowedLabels=getSpeakerLabels,
+            hint=_translate(
+                "What speaker to play this sound on"
+            ),
+            label=_translate("Speaker")
+        )
+
+    def writeDeviceCode(self, buff):
+        inits = getInitVals(self.params)
+        # initialise speaker
+        code = (
+            "# create speaker %(deviceLabel)s\n"
+            "deviceManager.addDevice(\n"
+            "    deviceName=%(deviceLabel)s,\n"
+            "    deviceClass='psychopy.hardware.speaker.SpeakerDevice',\n"
+            "    index=%(speakerIndex)s\n"
+            ")\n"
+        )
+        buff.writeOnceIndentedLines(code % inits)
+
     def writeInitCode(self, buff):
         # replaces variable params with sensible defaults
         inits = getInitVals(self.params)
@@ -89,12 +146,21 @@ class SoundComponent(BaseComponent):
                 inits['stopVal'].val = -1
             elif float(inits['stopVal'].val) > 2:
                 inits['stopVal'].val = -1
-        buff.writeIndented("%s = sound.Sound(%s, secs=%s, stereo=%s, hamming=%s,\n"
-                           "    name='%s')\n" %
-                           (inits['name'], inits['sound'], inits['stopVal'],
-                            self.exp.settings.params['Force stereo'],
-                            inits['hamming'], inits['name']))
-        buff.writeIndented("%(name)s.setVolume(%(volume)s)\n" % (inits))
+        # are we forcing stereo?
+        inits['forceStereo'] = self.exp.settings.params['Force stereo']
+        # write init code
+        code = (
+            "%(name)s = sound.Sound(\n"
+            "    %(sound)s, \n"
+            "    secs=%(stopVal)s, \n"
+            "    stereo=%(forceStereo)s, \n"
+            "    hamming=%(hamming)s, \n"
+            "    speaker=%(deviceLabel)s,"
+            "    name='%(name)s'\n"
+            ")\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.writeIndented("%(name)s.setVolume(%(volume)s)\n" % inits)
 
     def writeRoutineStartCode(self, buff):
         if self.params['stopVal'].val in [None, 'None', '']:

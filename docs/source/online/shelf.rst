@@ -64,7 +64,7 @@ Boolean Records are perhaps the easiest to interact with, by means that they onl
 
 Imagine you have an experiment that can be "opened" or "closed" by a host. You could add a Record called "session_open", ensure it is Boolean, and in your experiment make it such that the participant can sign in as a host (with the power to open/close the session) or as a participant (who, for now, passively watches the session opening or closing).
 
-In our experiment we could get the session status and show it by adding a code component (ensure it's code type is JS) and using :code:`psychoJS.shelf.getBooleanValue(["session_open"])`. We can allow the host to open or close the session using a simple routine with a response component (in our demo we use a mouse) and in the End Routine tab using :code:`psychoJS.shelf.flipBooleanValue(["session_open"])`. In a separate routine (the one the participant views) we might repeatedly check what the value of the "session_open" record is so that we can use it to control somthing in our experiment, in our case, a picture of a door that opens/closes.
+In our experiment we could get the session status and show it by adding a code component (ensure it's code type is JS) and using :code:`psychoJS.shelf.getBooleanValue(["session_open"])`. We can allow the host to open or close the session using a simple routine with a response component (in our demo we use a mouse) and in the End Routine tab using :code:`psychoJS.shelf.flipBooleanValue(["session_open"])`. In a separate routine (the one the participant views) we might repeatedly check what the value of the "session_open" record is so that we can use it to control something in our experiment, in our case, a picture of a door that opens/closes.
 
 
 Interacting with Text Records

@@ -421,7 +421,7 @@ class VisualSystemHD(window.Window):
     #     return (self._diopters[eye] / 4.) + 1.
     #
     # def _getScreenFOV(self, eye, direction='horizontal', degrees=True):
-    #     """Compute the FOV of the the display."""
+    #     """Compute the FOV of the display."""
     #     if direction not in ('horizontal', 'vertical'):
     #         raise ValueError("Invalid `direction` specified, must be "
     #                          "'horizontal' or 'vertical'.")

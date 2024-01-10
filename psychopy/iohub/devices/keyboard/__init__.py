@@ -230,7 +230,7 @@ class KeyboardInputEvent(DeviceEvent):
         #: the unicode char (u'') representation of what key was pressed.
         # For standard character ascii keys (a-z,A-Z,0-9, some punctuation values), and
         #: unicode utf-8 encoded characters that have been successfully detected,
-        #: *char* will be the the actual key value pressed as a unicode character.
+        #: *char* will be the actual key value pressed as a unicode character.
         self.char = u''
 
         #: The id or handle of the window that had focus when the key was pressed.

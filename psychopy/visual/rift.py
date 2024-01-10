@@ -1007,7 +1007,7 @@ class Rift(window.Window):
         Parameters
         ----------
         absTime : float, optional
-            Absolute time the the tracking state refers to. If not specified,
+            Absolute time the tracking state refers to. If not specified,
             the predicted display time is used.
         latencyMarker : bool, optional
             Set a latency marker upon getting the tracking state. This is used

@@ -20,7 +20,7 @@ Online studies are realized via `PsychoJS <https://github.com/psychopy/psychojs>
 When making an experiment to run online, there are a few important considerations to make and we **highly** recommend reading through the considerations below, as they could save a lot of time in the long run!
 
 * Using :ref:`resources <handlingOnlineResources>` in online studies.
-* :ref:`Multisession testing, Counterbalancing, and mulitplayer games <usingShelf>`
+* :ref:`Multisession testing, Counterbalancing, and multiplayer games <usingShelf>`
 * :ref:`Caveats and cautions <onlineCaveats>` (timing accuracy and web-browser support).
 
 Related links
