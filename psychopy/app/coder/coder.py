@@ -2944,8 +2944,8 @@ class CoderRibbon(ribbon.FrameRibbon):
         # switch run/pilot
         runPilotSwitch = self.addSwitchCtrl(
             section="py", name="pyswitch",
-            labels=(_translate(""), _translate("")),
-            style=wx.HORIZONTAL
+            labels=(_translate("Pilot"), _translate("Run")),
+            style=wx.HORIZONTAL | wx.BU_NOTEXT
         )
         # run Py
         self.addButton(
