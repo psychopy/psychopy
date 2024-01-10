@@ -107,7 +107,7 @@ class TestLiaison:
             # we expect an error from this experiment, so don't crash the whole process
             pass
         # check that the error looks right in Liaison's output
-        assert self.protocol.messages[-1]['data'] == "error"
+        assert self.protocol.messages[-1]['context'] == "error"
 
     def test_add_device_with_listener(self):
         # add keyboard
