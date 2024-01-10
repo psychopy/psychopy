@@ -233,6 +233,8 @@ class SerialDevice(BaseDevice, AttributeGetSetMixin):
         # default timeout
         if timeout is None:
             timeout = 1
+        # set timeout
+        self.com.timeout = self.pauseDuration
         # get start time
         start = time.time()
         t = time.time() - start
@@ -241,13 +243,8 @@ class SerialDevice(BaseDevice, AttributeGetSetMixin):
         while not resp and t < timeout:
             t = time.time() - start
             resp = self.com.read()
-        # keep getting responses until they stop sending
-        sending = resp
-        while sending and t < timeout:
-            t = time.time() - start
-            sending = self.com.read()
-            # if still sending, append to resp
-            resp += sending
+        # get remaining chars
+        resp += self.com.read(self.com.inWaiting())
         # if we timed out, return None
         if t > timeout:
             return
