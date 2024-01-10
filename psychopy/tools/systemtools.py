@@ -489,7 +489,7 @@ def isPsychopyInFocus():
         if sys.platform == "darwin":
             from AppKit import NSWorkspace
             # get active application info
-            win = NSWorkspace.sharedWorkspace().activeApplication()
+            win = NSWorkspace.sharedWorkspace().frontmostApplication()
             # get window name
             winName = win['NSApplicationName']
 
