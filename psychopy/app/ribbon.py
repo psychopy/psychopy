@@ -509,6 +509,8 @@ class FrameRibbonSwitchCtrl(wx.Panel, handlers.ThemeMixin):
                 self, label=labels[i], size=(-1, 16),
                 style=wx.BORDER_NONE | wx.BU_EXACTFIT | alignEach[i]
             )
+            if style & wx.BU_NOTEXT:
+                btn.Hide()
             self.btnSizer.Add(btn, proportion=orientation == wx.VERTICAL, flag=wx.EXPAND)
             btn.Bind(wx.EVT_BUTTON, self.onModeSwitch)
             btn.Bind(wx.EVT_ENTER_WINDOW, self.onHover)
