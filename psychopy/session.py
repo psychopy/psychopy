@@ -1028,6 +1028,7 @@ class Session:
             )
         except Exception as _err:
             err = _err
+            err.userdata = key
         # Reinstate autodraw stimuli
         self.win.retrieveAutoDraw()
         # Restore original chdir

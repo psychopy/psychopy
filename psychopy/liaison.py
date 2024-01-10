@@ -390,7 +390,8 @@ class WebSocketServer:
 			msg = "".join(tb)
 			err = json.dumps({
 				'type': "error",
-				'msg': msg
-			})
+				'msg': msg,
+				'context': getattr(err, "userdata", None)
+			}, cls=LiaisonJSONEncoder)
 			await websocket.send(err)
 			

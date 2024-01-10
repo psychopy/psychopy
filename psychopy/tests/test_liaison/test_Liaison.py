@@ -88,6 +88,27 @@ class TestLiaison:
             "exp1"
         )
 
+    def test_experiment_error(self):
+        """
+        Test that an error in an experiment is sent to Liaison properly
+        """
+        # run an experiment with an error in it
+        runInLiaison(
+            self.server, self.protocol, "session", "addExperiment",
+            "error/error.psyexp", "error"
+        )
+        time.sleep(1)
+        try:
+            runInLiaison(
+                self.server, self.protocol, "session", "runExperiment",
+                "error"
+            )
+        except RuntimeError as err:
+            # we expect an error from this experiment, so don't crash the whole process
+            pass
+        # check that the error looks right in Liaison's output
+        assert self.protocol.messages[-1]['context'] == "error"
+
     def test_add_device_with_listener(self):
         # add keyboard
         runInLiaison(
