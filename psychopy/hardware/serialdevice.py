@@ -244,7 +244,7 @@ class SerialDevice(BaseDevice, AttributeGetSetMixin):
             t = time.time() - start
             resp = self.com.read()
         # get remaining chars
-        resp += self.com.read(self.com.inWaiting())
+        resp += self.com.readall()
         # if we timed out, return None
         if t > timeout:
             return
