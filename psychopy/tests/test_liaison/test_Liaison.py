@@ -98,10 +98,14 @@ class TestLiaison:
             "error/error.psyexp", "error"
         )
         time.sleep(1)
-        runInLiaison(
-            self.server, self.protocol, "session", "runExperiment",
-            "error"
-        )
+        try:
+            runInLiaison(
+                self.server, self.protocol, "session", "runExperiment",
+                "error"
+            )
+        except RuntimeError as err:
+            # we expect an error from this experiment, so don't crash the whole process
+            pass
         # check that the error looks right in Liaison's output
         assert self.protocol.messages[-1]['data'] == "error"
 
