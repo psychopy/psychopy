@@ -69,6 +69,8 @@
     errorDialog = boolean(default='True')
     # Theme
     theme = string(default='PsychopyLight')
+    # Show / hide splash screen
+    showSplash = boolean(default='True')
 
 # Settings for the Coder window
 [coder]
@@ -129,7 +131,7 @@
 # Settings for hardware
 [hardware]
     # LEGACY: choice of audio library
-    audioLib = list(default=list('sounddevice','PTB', 'pyo', 'pygame'))
+    audioLib = list(default=list('PTB', 'sounddevice', 'pyo', 'pygame'))
     # LEGACY: latency mode for PsychToolbox audio (3 is good for most applications. See
     audioLatencyMode = option(0, 1, 2, 3, 4, default=3)
     # audio driver to use
@@ -140,6 +142,13 @@
     parallelPorts = list(default=list('0x0378', '0x03BC'))
     # The name of the Qmix pump configuration to use
     qmixConfiguration = string(default='qmix_config')
+
+# Settings for piloting mode
+[piloting]
+    # Prevent the experiment from being fullscreen when piloting
+    forceWindowed = boolean(default=True)
+    # How much output to include in the log files when piloting ('error' is fewest messages, 'debug' is most)
+    pilotLoggingLevel = option('error', 'warning', 'data', 'exp', 'info', 'debug', default='debug')
 
 # Settings for connections
 [connections]

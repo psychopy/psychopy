@@ -1211,7 +1211,7 @@ def fitBBox(points, dtype=None):
     """Fit an axis-aligned bounding box around points.
 
     This computes the minimum and maximum extents for a bounding box to
-    completely enclose `points`. Keep in mind the the output in bounds are
+    completely enclose `points`. Keep in mind the output in bounds are
     axis-aligned and may not optimally fits the points (i.e. fits the points
     with the minimum required volume). However, this should work well enough for
     applications such as visibility testing (see

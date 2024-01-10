@@ -1,0 +1,52 @@
+{
+    "tpad_serial": {
+        "deviceid": "FTDIBUS/COMPORT&VID_0403&PID_6001",
+        "VID": "0403",
+        "PID": "6001",
+        "Manufacturer": "FTDI",
+        "Class Name": "Ports",
+        "Class GUID": "{4d36e978-e325-11ce-bfc1-08002be10318}",
+        "Device Description": "USB Serial Port (COM{N})"
+    },
+    "tpad_hid": {
+        "deviceid": "HID/VID_04D8&PID_0055",
+        "VID": "04D8",
+        "PID": "0055",
+        "Manufacturer": "(Standard keyboards)",
+        "Class Name": "Keyboard",
+        "Class GUID": "{4d36e96b-e325-11ce-bfc1-08002be10318}",
+        "Class Name2": "HIDClass",
+        "Class GUID2": "{745a17a0-74d3-11d0-b6fe-00a0c90f57da}",
+        "Device Description": "HID Keyboard Device"
+    },
+    "usbttl_bbtk": {
+        "instanceid": "FTDIBUS/VID_0403+PID_6001+BBTKUSBTTLA/0000",
+        "deviceid": "FTDIBUS/COMPORT&VID_0403&PID_6001",
+        "VID": "0403",
+        "PID": "6001",
+        "Manufacturer": "FTDI",
+        "Class Name": "Ports",
+        "Class GUID": "{4d36e96b-e325-11ce-bfc1-08002be10318}",
+        "Device Description": "USB Serial Port (COM{N})"
+    },
+
+    "millikey_serial": {
+        "instanceid": "USB/VID_16C0&PID_048A&MI_00/7&2b79b4e5&0&0000",
+        "deviceid": "USB/VID_16C0&PID_048A&MI_00",
+        "VID": "16C0",
+        "PID": "048A",
+        "Class Name": "",
+        "Class GUID": "{4d36e978-e325-11ce-bfc1-08002be10318}",
+        "Device Description": ""
+    },
+    "millikey_hid": {
+        "instanceid": "HID/VID_16C0&PID_048A&MI_02/8&d72fbfc&0&0000",
+        "deviceid": "HID/VID_16C0&PID_048A&MI_02",
+        "VID": "16C0",
+        "PID": "048A",
+        "Class Name": "Keyboard",
+        "Class GUID": "{4d36e96b-e325-11ce-bfc1-08002be10318}",
+        "Device Description": "(Standard keyboards)"
+    }
+    
+}

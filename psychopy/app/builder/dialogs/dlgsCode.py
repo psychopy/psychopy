@@ -400,7 +400,7 @@ class DlgCodeComponentProperties(wx.Dialog):
             sizer.Add(pyBox, 1, wx.EXPAND, 2)
             sizer.Add(jsBox, 1, wx.EXPAND, 2)
             panel.SetSizer(sizer)
-            tabLabel = _translate(tabName)
+            tabLabel = self.params.get(pyName).label
             # Add a visual indicator when tab contains code
             emptyCodeComp = CodeComponent('', '') # Spawn empty code component
             # If code tab is not empty and not the same as in empty code component, add an asterisk to tab name

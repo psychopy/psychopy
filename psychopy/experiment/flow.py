@@ -219,7 +219,7 @@ class Flow(list):
         # Open function def
         code = (
             '\n'
-            'def run(expInfo, thisExp, win, inputs, globalClock=None, thisSession=None):\n'
+            'def run(expInfo, thisExp, win, globalClock=None, thisSession=None):\n'
             '    """\n'
             '    Run the experiment flow.\n'
             '    \n'
@@ -232,8 +232,6 @@ class Flow(list):
             '        where to save it to.\n'
             '    psychopy.visual.Window\n'
             '        Window in which to run this experiment.\n'
-            '    inputs : dict\n'
-            '        Dictionary of input devices by name.\n'
             '    globalClock : psychopy.core.clock.Clock or None\n'
             '        Clock to get global time from - supply None to make a new one.\n'
             '    thisSession : psychopy.session.Session or None\n'
@@ -243,31 +241,29 @@ class Flow(list):
         script.writeIndentedLines(code)
         script.setIndentLevel(+1, relative=True)
 
-        # unpack inputs
+        # initialisation
         code = (
             "# mark experiment as started\n"
             "thisExp.status = STARTED\n"
             "# make sure variables created by exec are available globally\n"
             "exec = environmenttools.setExecEnvironment(globals())\n"
             "# get device handles from dict of input devices\n"
-            "ioServer = inputs['ioServer']\n"
-            "defaultKeyboard = inputs['defaultKeyboard']\n"
-            "eyetracker = inputs['eyetracker']\n"
+            "ioServer = deviceManager.ioServer\n"
+            "# get/create a default keyboard (e.g. to check for escape)\n"
+            "defaultKeyboard = deviceManager.getDevice('defaultKeyboard')\n"
+            "if defaultKeyboard is None:\n"
+            "    deviceManager.addDevice(\n"
+            "        deviceClass='keyboard', deviceName='defaultKeyboard', backend=%(keyboardBackend)s\n"
+            "    )\n"
+            "eyetracker = deviceManager.getDevice('eyetracker')\n"
             "# make sure we're running in the directory for this experiment\n"
             "os.chdir(_thisDir)\n"
-        )
-        script.writeIndentedLines(code)
-        # unpack filename
-        code = (
             "# get filename from ExperimentHandler for convenience\n"
             "filename = thisExp.dataFileName\n"
             "frameTolerance = 0.001  # how close to onset before 'same' frame\n"
-        )
-        if self.exp.settings.params['Enable Escape'].val:
-            code += (
             "endExpNow = False  # flag for 'escape' or other condition => quit the exp\n"
-            )
-        script.writeIndentedLines(code)
+        )
+        script.writeIndentedLines(code % self.exp.settings.params)
         # get frame dur from frame rate
         code = (
             "# get frame duration from frame rate in expInfo\n"
@@ -290,15 +286,32 @@ class Flow(list):
         # create clocks (after initialising stimuli)
         code = ("\n"
                 "# create some handy timers\n"
+                "\n"
+                "# global clock to track the time since experiment started\n"
                 "if globalClock is None:\n"
-                "    globalClock = core.Clock()  # to track the time since experiment started\n"
+                "    # create a clock if not given one\n"
+                "    globalClock = core.Clock()\n"
+                "if isinstance(globalClock, str):\n"
+                "    # if given a string, make a clock accoridng to it\n"
+                "    if globalClock == 'float':\n"
+                "        # get timestamps as a simple value\n"
+                "        globalClock = core.Clock(format='float')\n"
+                "    elif globalClock == 'iso':\n"
+                "        # get timestamps in ISO format\n"
+                "        globalClock = core.Clock(format='%Y-%m-%d_%H:%M:%S.%f%z')\n"
+                "    else:\n"
+                "        # get timestamps in a custom format\n"
+                "        globalClock = core.Clock(format=globalClock)\n"
                 "if ioServer is not None:\n"
                 "    ioServer.syncClock(globalClock)\n"
                 "logging.setDefaultClock(globalClock)\n"
-                "routineTimer = core.Clock()  # to track time remaining of each (possibly non-slip) routine\n"
+                "# routine timer to track time remaining of each (possibly non-slip) routine\n"
+                "routineTimer = core.Clock()\n"
                 "win.flip()  # flip window to reset last flip timer\n"
                 "# store the exact time the global clock started\n"
-                "expInfo['expStart'] = data.getDateStr(format='%Y-%m-%d %Hh%M.%S.%f %z', fractionalSecondDigits=6)\n"
+                "expInfo['expStart'] = data.getDateStr(\n"
+                "    format='%Y-%m-%d %Hh%M.%S.%f %z', fractionalSecondDigits=6\n"
+                ")\n"
         )
         script.writeIndentedLines(code)
         # run-time code
@@ -316,7 +329,7 @@ class Flow(list):
         code = (
             "\n"
             "# mark experiment as finished\n"
-            "endExperiment(thisExp, win=win, inputs=inputs)\n"
+            "endExperiment(thisExp, win=win)\n"
         )
         script.writeIndentedLines(code)
 

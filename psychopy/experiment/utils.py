@@ -31,3 +31,4 @@ class CodeGenerationException(Exception):
 
     def __str__(self):
         return "{}: ".format(self.source, self.message)
+

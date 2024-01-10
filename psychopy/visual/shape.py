@@ -95,6 +95,10 @@ knownShapes['square'] = knownShapes['rectangle']
 
 class BaseShapeStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
     """Create geometric (vector) shapes by defining vertex locations.
+    This is a lazy-imported class, therefore import using full path 
+    `from psychopy.visual.shape import BaseShapeStim` when inheriting
+    from it.
+    
 
     Shapes can be outlines or filled, set lineColor and fillColor to
     a color name, or None. They can also be rotated (stim.setOri(__)),
@@ -379,6 +383,9 @@ class BaseShapeStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
 class ShapeStim(BaseShapeStim):
     """A class for arbitrary shapes defined as lists of vertices (x,y).
+    This is a lazy-imported class, therefore import using full path 
+    `from psychopy.visual.shape import ShapeStim` when inheriting
+    from it.
 
     Shapes can be lines, polygons (concave, convex, self-crossing), or have
     holes or multiple regions.

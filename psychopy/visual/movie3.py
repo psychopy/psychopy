@@ -49,7 +49,9 @@ import pyglet.gl as GL
 
 
 class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
-    """A stimulus class for playing movies.
+    """A stimulus class for playing movies. This is a lazy-imported class,
+    therefore import using full path 
+    `from psychopy.visual.movie3 import MovieStim3` when inheriting from it.
 
     This class uses MoviePy and FFMPEG as a backend for loading and decoding
     video data from files.

@@ -313,7 +313,7 @@ class Wintab(ioHubDeviceView):
 
     @property
     def reporting(self):
-        """Specifies if the the device is reporting / recording events.
+        """Specifies if the device is reporting / recording events.
 
           * True:  events are being reported.
           * False: events are not being reported.

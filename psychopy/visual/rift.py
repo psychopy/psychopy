@@ -185,7 +185,10 @@ class LibOVRError(Exception):
 
 class Rift(window.Window):
     """Class provides a display and peripheral interface for the Oculus Rift
-    (see: https://www.oculus.com/) head-mounted display.
+    (see: https://www.oculus.com/) head-mounted display. This is a 
+    lazy-imported class, therefore import using full path 
+    `from psychopy.visual.rift import Rift` when inheriting from it.
+
 
     Requires PsychXR 0.2.4 to be installed. Setting the `winType='glfw'` is
     preferred for VR applications.
@@ -1004,7 +1007,7 @@ class Rift(window.Window):
         Parameters
         ----------
         absTime : float, optional
-            Absolute time the the tracking state refers to. If not specified,
+            Absolute time the tracking state refers to. If not specified,
             the predicted display time is used.
         latencyMarker : bool, optional
             Set a latency marker upon getting the tracking state. This is used

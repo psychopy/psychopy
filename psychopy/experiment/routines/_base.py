@@ -116,6 +116,9 @@ class BaseStandaloneRoutine:
 
         return dupe
 
+    def writeDeviceCode(self, buff):
+        return
+
     def writePreCode(self, buff):
         return
 
@@ -147,6 +150,15 @@ class BaseStandaloneRoutine:
         return
 
     def writeRoutineEndCode(self, buff):
+        # what loop are we in (or thisExp)?
+        if len(self.exp.flow._loopList):
+            currLoop = self.exp.flow._loopList[-1]  # last (outer-most) loop
+        else:
+            currLoop = self.exp._expHandler
+
+        if currLoop.params['name'].val == self.exp._expHandler.name:
+            buff.writeIndented("%s.nextEntry()\n" % self.exp._expHandler.name)
+
         # reset routineTimer at the *very end* of all non-nonSlip routines
         code = ('# the Routine "%s" was not non-slip safe, so reset '
                 'the non-slip timer\n'
@@ -217,6 +229,51 @@ class BaseStandaloneRoutine:
         self.params['disabled'].val = value
 
 
+class BaseValidatorRoutine(BaseStandaloneRoutine):
+    """
+    Subcategory of Standalone Routine, which sets up a "validator" - an object which is linked to in the Testing tab
+    of another Component and validates that the component behaved as expected. Any validator Routines should subclass
+    this rather than BaseStandaloneRoutine.
+    """
+    def writeRoutineStartValidationCode(self, buff, stim):
+        """
+        Write the routine start code to validate a given stimulus using this validator.
+
+        Parameters
+        ----------
+        buff : StringIO
+            String buffer to write code to.
+        stim : BaseComponent
+            Stimulus to validate
+
+        Returns
+        -------
+        int
+            Change in indentation level after writing
+        """
+        # this method should be overloaded when subclassing!
+        return 0
+
+    def writeEachFrameValidationCode(self, buff, stim):
+        """
+        Write the each frame code to validate a given stimulus using this validator.
+
+        Parameters
+        ----------
+        buff : StringIO
+            String buffer to write code to.
+        stim : BaseComponent
+            Stimulus to validate
+
+        Returns
+        -------
+        int
+            Change in indentation level after writing
+        """
+        # this method should be overloaded when subclassing!
+        return 0
+
+
 class Routine(list):
     """
     A Routine determines a single sequence of events, such
@@ -248,8 +305,13 @@ class Routine(list):
     def copy(self):
         # Create a new routine with the same experiment and name as this one
         dupe = type(self)(self.name, self.exp, components=())
+        # Replace duplicate Routine's setting component
+        dupe.settings.params = copy.deepcopy(self.settings.params)
         # Iterate through components
         for comp in self:
+            # Skip settings component
+            if isinstance(comp, RoutineSettingsComponent):
+                continue
             # Create a deep copy of each component...
             newComp = copy.deepcopy(comp)
             # ...but retain original exp reference
@@ -423,6 +485,7 @@ class Routine(list):
         # This is the beginning of the routine, before the loop starts
         for event in self:
             event.writeRoutineStartCode(buff)
+            event.writeRoutineStartValidationCode(buff)
 
         code = '# keep track of which components have finished\n'
         buff.writeIndentedLines(code)
@@ -476,6 +539,7 @@ class Routine(list):
             if event.type == 'Static':
                 continue  # we'll do those later
             event.writeFrameCode(buff)
+            event.writeEachFrameValidationCode(buff)
         # update static component code last
         for event in self.getStatics():
             event.writeFrameCode(buff)
@@ -491,7 +555,7 @@ class Routine(list):
             buff.writeIndentedLines(code)
         code = (
             "if thisExp.status == FINISHED or endExpNow:\n"
-            "    endExperiment(thisExp, inputs=inputs, win=win)\n"
+            "    endExperiment(thisExp, win=win)\n"
             "    return\n"
         )
         buff.writeIndentedLines(code)
@@ -678,6 +742,15 @@ class Routine(list):
     def writeRoutineEndCode(self, buff):
         # can we use non-slip timing?
         maxTime, useNonSlip = self.getMaxTime()
+
+        # what loop are we in (or thisExp)?
+        if len(self.exp.flow._loopList):
+            currLoop = self.exp.flow._loopList[-1]  # last (outer-most) loop
+        else:
+            currLoop = self.exp._expHandler
+
+        if currLoop.params['name'].val == self.exp._expHandler.name:
+            buff.writeIndented("%s.nextEntry()\n" % self.exp._expHandler.name)
 
         # reset routineTimer at the *very end* of all non-nonSlip routines
         if not useNonSlip:

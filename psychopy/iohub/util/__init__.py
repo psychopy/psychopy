@@ -13,6 +13,9 @@ import datetime
 from ..errors import print2err, printExceptionDetailsToStdErr
 import re
 import collections.abc
+import pathlib
+import psychopy.logging as logging
+import psychopy.plugins as plugins
 
 ########################
 #
@@ -29,6 +32,8 @@ try:
     from collections.abc import Iterable
 except ImportError:
     from collections import Iterable
+
+from psychopy.preferences import prefs
 
 
 def saveConfig(config, dst_path):
@@ -133,6 +138,54 @@ def module_directory(local_function):
     return moduleDirectory
 
 
+def getSupportedConfigSettings(moduleName, deviceClassName=None):
+    """Get the supported configuration settings for a device.
+
+    These are usually stored as YAML files within the module directory that 
+    defines the device class.
+
+    Parameters
+    ----------
+    moduleName : str
+        The name of the module to get the path for. Must be a package that defines
+        `__init__.py`.
+    deviceClassName : str, optional
+        The name of the specific device class to get the path for. If not provided, 
+        the default configuration file will be searched for in the module 
+        directory.
+    
+    Returns
+    -------
+    str
+        The path to the supported configuration settings file in YAML format.
+
+    """
+    yamlRoot = pathlib.Path(moduleName.__file__).parent
+    if deviceClassName is not None:
+        # file name for yaml file name convention for multiple files
+        fileName = 'supported_config_settings_{0}.yaml'.format(
+            deviceClassName.lower())
+        yamlFile = yamlRoot / pathlib.Path(moduleName.__file__).parent / fileName
+        if not yamlFile.exists():
+            raise FileNotFoundError(
+                "No config file found in module dir {0}".format(moduleName))
+        logging.debug(
+            "Found ioHub device configuration file: {0}".format(yamlFile))
+
+        return str(yamlFile)
+        
+    # file name for yaml file name convention for single file
+    yamlFile = yamlRoot / pathlib.Path('supported_config_settings.yaml')
+    if not yamlFile.exists():  # nothing is found
+        raise FileNotFoundError(
+            "No config file found in module dir {0}".format(moduleName))
+    
+    logging.debug(
+        "Found ioHub device configuration file: {0}".format(yamlFile))
+
+    return str(yamlFile)
+
+
 def isIterable(o):
     return isinstance(o, Iterable)
 
@@ -157,12 +210,12 @@ def getDevicePaths(device_name=""):
     from psychopy.iohub.devices import import_device
 
     # mdc - Changes here were made to support loading device modules from
-    #       extensions. This allows support for devices that are not included in 
+    #       extensions. This allows support for devices that are not included in
     #       the iohub package.
 
     def _getDevicePaths(iohub_device_path):
         """Look for device configuration files in the specified path.
-        
+
         Parameters
         ----------
         iohub_device_path : str
@@ -174,33 +227,79 @@ def getDevicePaths(device_name=""):
             A list of tuples containing the path to the device module and the
             name of the device module. If empty, no device configuration files
             were found.
-        
+
         """
         yaml_paths = []
-        for root, _, files in os.walk(iohub_device_path):
-            device_folder = None
-            for file in files:
-                if file == 'supported_config_settings.yaml':
-                    device_folder = root
-                    break
-            if device_folder:
-                for dfile in files:
-                    if dfile.startswith("default_") and dfile.endswith('.yaml'):
-                        yaml_paths.append((device_folder, dfile))
-        
+        # try to walk both the internal iohub_device_path and user-level packages folder
+        for route in (os.walk(iohub_device_path), os.walk(prefs.paths['packages'])):
+            for root, _, files in route:
+                # check each file in the route to see if it's a config yaml
+                device_folder = None
+                for file in files:
+                    if file == 'supported_config_settings.yaml':
+                        device_folder = root
+                        break
+                if device_folder:
+                    for dfile in files:
+                        if dfile.startswith("default_") and dfile.endswith('.yaml'):
+                            # if file is a new config yaml, append it
+                            item = (device_folder, dfile)
+                            if item not in yaml_paths:
+                                yaml_paths.append(item)
+
         return yaml_paths
 
     scs_yaml_paths = []  # stores the paths to the device config files
+    plugins.refreshBundlePaths()  # make sure eyetracker external plugins are reachable
 
     # get device paths for extant extensions
-    try:
+    try:  # tobii eyetrackers
+        logging.debug("Looking for Tobii device configuration file...")
         import psychopy_eyetracker_tobii.tobii as tobii
         deviceConfig = _getDevicePaths(os.path.dirname(tobii.__file__))
         if deviceConfig:
+            logging.debug("Found Tobii device configuration file.")
             scs_yaml_paths.extend(deviceConfig)
     except ImportError:
-        pass  # do nothing
-    
+        logging.debug("No Tobii device configuration file found.")
+
+    try:  # for SR Research EyeLink
+        logging.debug("Looking for SR Research EyeLink device configuration file...")
+        import psychopy_eyetracker_sr_research.sr_research.eyelink as eyelink
+        deviceConfig = _getDevicePaths(os.path.dirname(eyelink.__file__))
+        if deviceConfig:
+            logging.debug("Found SR Research EyeLink device configuration file.")
+            scs_yaml_paths.extend(deviceConfig)
+    except ImportError:
+        logging.debug("No SR Research EyeLink device configuration file found.")
+
+    try:  # for Gazepoint eye trackers
+        logging.debug("Looking for Gazepoint device configuration file...")
+        import psychopy_eyetracker_gazepoint.gazepoint.gp3 as gp3
+        deviceConfig = _getDevicePaths(os.path.dirname(gp3.__file__))
+        if deviceConfig:
+            logging.debug("Found Gazepoint device configuration file.")
+            scs_yaml_paths.extend(deviceConfig)
+    except ImportError:
+        logging.debug("No Gazepoint device configuration file found.")
+
+    try:  # for PupilLabs eye trackers
+        logging.debug("Looking for PupilLabs device configuration file...")
+        import psychopy_eyetracker_pupil_labs.pupil_labs.pupil_core as pupil_core
+        deviceConfig = _getDevicePaths(os.path.dirname(pupil_core.__file__))
+        if deviceConfig:
+            logging.debug("Found PupilLabs device configuration file.")
+            scs_yaml_paths.extend(deviceConfig)
+
+        import psychopy_eyetracker_pupil_labs.pupil_labs.neon as neon
+        deviceConfig = _getDevicePaths(os.path.dirname(neon.__file__))
+        if deviceConfig:
+            logging.debug("Found PupilLabs Neon device configuration file.")
+            scs_yaml_paths.extend(deviceConfig)
+
+    except ImportError:
+        logging.debug("No PupilLabs device configuration file found.")
+
     # use this method for built-in devices
     iohub_device_path = module_directory(import_device)
     if device_name:
@@ -241,6 +340,7 @@ def getDeviceDefaultConfig(device_name, builder_hides=True):
     if device_name.endswith(".EyeTracker"):
         device_name = device_name[:-11]
     device_paths = getDevicePaths(device_name)
+
     device_configs = []
     for dpath, dconf in device_paths:
         dname, dconf_dict = list(readConfig(os.path.join(dpath, dconf)).items())[0]
@@ -263,9 +363,10 @@ def getDeviceDefaultConfig(device_name, builder_hides=True):
                 else:
                     del dconf_dict[param]
         device_configs.append({dname: dconf_dict})
-    if len(device_configs) == 1:
-        # simplify return value when only one device was requested
-        return list(device_configs[0].values())[0]
+    # if len(device_configs) == 1:
+    #     # simplify return value when only one device was requested
+    #     return list(device_configs[0].values())[0]
+
     return device_configs
 
 
@@ -521,7 +622,7 @@ class NumPyRingBuffer():
     The getElements() method is used to retrieve the actual numpy array containing
     the elements in the ring buffer. The element in index 0 is the oldest remaining
     element added to the buffer, and index n (which can be up to max_size-1)
-    is the the most recent element added to the buffer.
+    is the most recent element added to the buffer.
 
     Methods that can be called from a standard numpy array can also be called using the
     NumPyRingBuffer instance created. However Numpy module level functions will not accept

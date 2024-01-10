@@ -7,17 +7,7 @@
 
 from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, _translate
-from psychopy.localization import _localized as __localized
-_localized = __localized.copy()
 import re
-
-# only use _localized values for label values, nothing functional:
-_localized.update({'saveMouseState': _translate('Save mouse state'),
-                   'forceEndRoutineOnPress': _translate('End Routine on press'),
-                   'timeRelativeTo': _translate('Time relative to'),
-                   'Clickable stimuli': _translate('Clickable stimuli'),
-                   'Store params for clicked': _translate('Store params for clicked'),
-                   'New clicks only': _translate('New clicks only')})
 
 
 class MouseComponent(BaseComponent):
@@ -677,9 +667,6 @@ class MouseComponent(BaseComponent):
 
         # get parent to write code too (e.g. store onset/offset times)
         super().writeRoutineEndCode(buff)
-
-        if currLoop.params['name'].val == self.exp._expHandler.name:
-            buff.writeIndented("%s.nextEntry()\n" % self.exp._expHandler.name)
 
     def writeRoutineEndCodeJS(self, buff):
         """Write code at end of routine"""

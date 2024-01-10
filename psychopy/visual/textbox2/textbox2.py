@@ -29,10 +29,8 @@ from ..basevisual import (
 )
 from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.tools import mathtools as mt
-from psychopy.tools.arraytools import val2array
-from psychopy.tools.monitorunittools import convertToPix
 from psychopy.colors import Color
-from .fontmanager import FontManager, GLFont
+from psychopy.tools.fontmanager import FontManager, GLFont
 from .. import shaders
 from ..rect import Rect
 from ... import core, alerts, layout
@@ -381,6 +379,7 @@ class TextBox2(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin):
                 shape='square', units=self.units,
                 autoLog=False
             )
+            self.container.disable()
         if value in ("scroll",):
             # If needed, create Slider
             from ..slider import Slider  # Slider contains textboxes, so only import now

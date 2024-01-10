@@ -33,8 +33,6 @@ After importing sound, the sound lib and driver being used will be stored as::
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-__all__ = []
-
 import sys
 import os
 import traceback
@@ -43,17 +41,9 @@ from psychopy.tools import systemtools
 from .exceptions import DependencyError, SoundFormatError
 from .audiodevice import *
 from .audioclip import *  # import objects related to AudioClip
+from . import microphone
 
-# import microphone if possible
-try:
-    from .microphone import *  # import objects related to the microphone class
-except ImportError as err:
-    formatted_tb = ''.join(
-        traceback.format_exception(type(err), err, err.__traceback__))
-    logging.error(
-        "Failed to import psychopy.sound.microphone. Mic recordings will not be"
-        "possible on this machine. For details see stack trace below:\n"
-        f"{formatted_tb}")
+__all__ = ["microphone"]
 
 # # import transcription if possible
 # try:
@@ -91,6 +81,8 @@ if systemtools.isVM_CI():
 # ensure that the value for `audioLib` is a list
 if isinstance(prefs.hardware['audioLib'], str):
     prefs.hardware['audioLib'] = [prefs.hardware['audioLib']]
+
+thisLibName = None  # name of the library we are trying to load
 
 # selection and fallback mechanism for audio libraries
 for thisLibName in prefs.hardware['audioLib']:
@@ -206,31 +198,40 @@ if Sound is not None:
     logging.info('sound is using audioLib: %s' % audioLib)
 else:
     # if we get here, there is no audioLib that is supported
-    raise DependencyError(
+    logging.error(
         "No audioLib could be loaded. Tried: {}\n Check whether the necessary "
         "audioLibs are installed".format(prefs.hardware['audioLib']))
 
-# warn the user 
-if audioLib.lower() != 'ptb':
-    # Could be running PTB, just aren't?
-    logging.warning("We strongly recommend you activate the PTB sound "
-                    "engine in PsychoPy prefs as the preferred audio "
-                    "engine. Its timing is vastly superior. Your prefs "
-                    "are currently set to use {} (in that order)."
-                    .format(prefs.hardware['audioLib']))
+# warn the user
+if audioLib is not None:
+    if audioLib.lower() != 'ptb':
+        # Could be running PTB, just aren't?
+        logging.warning("We strongly recommend you activate the PTB sound "
+                        "engine in PsychoPy prefs as the preferred audio "
+                        "engine. Its timing is vastly superior. Your prefs "
+                        "are currently set to use {} (in that order)."
+                        .format(prefs.hardware['audioLib']))
 
 
 # function to set the device (if current lib allows it)
 def setDevice(dev, kind=None):
     """Sets the device to be used for new streams being created.
 
-    :param dev: the device to be used (name, index or sounddevice.device)
-    :param kind: one of [None, 'output', 'input']
+    Parameters
+    ----------
+    dev: str or dict
+        Name of the device to be used (name, index or sounddevice.device)
+    kind: str
+        One of [None, 'output', 'input']
+
     """
+    if dev is None:
+        # if given None, do nothing
+        return
     if not hasattr(backend, 'defaultOutput'):
         raise IOError("Attempting to SetDevice (audio) but not supported by "
                       "the current audio library ({!r})".format(audioLib))
-    if hasattr(dev,'name'):
+    if hasattr(dev, 'name'):
         dev = dev['name']
     if kind is None:
         backend.defaultInput = backend.defaultOutput = dev
@@ -244,6 +245,7 @@ def setDevice(dev, kind=None):
         else:
             raise TypeError("`kind` should be one of [None, 'output', 'input']"
                             "not {!r}".format(kind))
+
 
 # Set the device according to user prefs (if current lib allows it)
 deviceNames = []

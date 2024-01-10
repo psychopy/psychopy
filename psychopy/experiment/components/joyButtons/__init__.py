@@ -9,17 +9,6 @@ from pathlib import Path
 
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy.experiment import CodeGenerationException, valid_var_re
-from psychopy.localization import _localized as __localized
-_localized = __localized.copy()
-
-# only use _localized values for label values, nothing functional:
-_localized.update({'allowedKeys': _translate('Allowed buttons'),
-                   'store': _translate('Store'),
-                   'forceEndRoutine': _translate('Force end of Routine'),
-                   'storeCorrect': _translate('Store correct'),
-                   'correctAns': _translate('Correct answer'),
-                   'deviceNumber': _translate('Device number'),
-                   'syncScreenRefresh': _translate('sync RT with screen')})
 
 
 class JoyButtonsComponent(BaseComponent):
@@ -462,6 +451,3 @@ class JoyButtonsComponent(BaseComponent):
                     "    %s.addData('%s.rt', %s.rt)\n" %
                     (currLoop.params['name'], name, name))
             buff.writeIndentedLines(code)
-
-        if currLoop.params['name'].val == self.exp._expHandler.name:
-            buff.writeIndented("%s.nextEntry()\n" % self.exp._expHandler.name)

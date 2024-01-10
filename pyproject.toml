@@ -27,9 +27,9 @@ classifiers = [
     ]
     
 dependencies = [
-    "numpy>=1.24.3",
-    "scipy>=1.10.1",
-    "matplotlib>=3.7.1",
+    "numpy",  # use numpy<1.24 for psychopy<2023.1
+    "scipy",
+    "matplotlib",
     "pyglet == 1.4.11; platform_system == \"Windows\"",
     "pyglet == 1.5.27; platform_system != \"Windows\"",
     "pillow>=9.4.0",
@@ -47,7 +47,6 @@ dependencies = [
     "pywinhook; platform_system == \"Windows\"",
     "gevent",
     "psutil",
-    "tables",
     "pyzmq>=22.2.1",
     "ujson",
     "msgpack",
@@ -90,6 +89,9 @@ dependencies = [
     "pyobjc-framework-Quartz < 8.0; platform_system == \"Darwin\"",
     "pyobjc; platform_system == \"Darwin\"",
     "python-xlib; platform_system == \"Linux\"",
+    'tables<3.9; python_version < "3.9"',
+    'tables; python_version >= "3.9"',
+    'blosc2<2.2.8; python_version < "3.9"',  # dependency of tables
 ]
 
 [project.optional-dependencies]  # This is optional dependencies
@@ -108,13 +110,11 @@ building = [
 ]
 suggested = [
     "pylsl>=1.16.1", # lab streaming layer for general connectivity
-    "xlwt",  # writing excel fiels with pandas
+    "xlwt",  # writing excel files with pandas
     "h5py",  # to read hdf5 files for analysis
-    "SpeechRecognition",
     "google-api-python-client",
     "pygaze>=1.1.2",
     "tobii_research",
-    "SMITE @ git+https://github.com/marcus-nystrom/SMITE.git@1.0.0rc1",
     "badapted>=0.0.3",
     "egi-pynetstation>=0.0.0rc1",
     "pyxid2>=1.0.5",

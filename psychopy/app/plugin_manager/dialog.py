@@ -145,17 +145,17 @@ class EnvironmentManagerDlg(wx.Dialog):
         self.output.open()
 
         if pkgtools._isUserPackage(packageName):
-            msg = 'Uninstalling package bundle for `{}` ...\n'.format(
+            msg = 'Uninstalling package bundle for `{}` ...'.format(
                 packageName)
             self.output.writeStdOut(msg)
 
             success = pkgtools._uninstallUserPackage(packageName)
             if success:
-                msg = 'Successfully removed package `{}`.\n'.format(
+                msg = 'Successfully removed package `{}`.'.format(
                     packageName)
             else:
                 msg = ('Failed to remove package `{}`, check log for '
-                       'details.\n').format(packageName)
+                       'details.').format(packageName)
 
             self.output.writeStdOut(msg)
 
@@ -220,24 +220,24 @@ class EnvironmentManagerDlg(wx.Dialog):
         # interpreter path
         pyExec = sys.executable
 
-        # determine installation path for bundle, create it if needed
-        bundlePath = plugins.getBundleInstallTarget(packageName)
-        if not os.path.exists(bundlePath):
-            self.output.writeStdOut(
-                "Creating bundle path `{}` for package `{}`.\n".format(
-                    bundlePath, packageName))
-            os.mkdir(bundlePath)  # make the directory
-        else:
-            self.output.writeStdOut(
-                "Using existing bundle path `{}` for package `{}`.\n".format(
-                    bundlePath, packageName))
+        # # determine installation path for bundle, create it if needed
+        # bundlePath = plugins.getBundleInstallTarget(packageName)
+        # if not os.path.exists(bundlePath):
+        #     self.output.writeStdOut(
+        #         "Creating bundle path `{}` for package `{}`.".format(
+        #             bundlePath, packageName))
+        #     os.mkdir(bundlePath)  # make the directory
+        # else:
+        #     self.output.writeStdOut(
+        #         "Using existing bundle path `{}` for package `{}`.".format(
+        #             bundlePath, packageName))
 
         # add the bundle to path, refresh makes it discoverable after install
-        if bundlePath not in sys.path:
-            sys.path.insert(0, bundlePath)
+        # if bundlePath not in sys.path:
+        #     sys.path.insert(0, bundlePath)
 
         # build the shell command to run the script
-        command = [pyExec, '-m', 'pip', 'install', packageName, '--target', bundlePath]
+        command = [pyExec, '-m', 'pip', 'install', packageName, '--user']
         # write command to output panel
         self.output.writeCmd(" ".join(command))
         # append own name to extra
@@ -246,6 +246,10 @@ class EnvironmentManagerDlg(wx.Dialog):
         extra.update(
             {'pipname': packageName}
         )
+        
+        # set the environment variable 
+        env = os.environ.copy()
+        env['PYTHONUSERBASE'] = prefs.paths['packages']
 
         # create a new job with the user script
         self.pipProcess = jobs.Job(
@@ -257,7 +261,7 @@ class EnvironmentManagerDlg(wx.Dialog):
             terminateCallback=self.onInstallExit,
             extra=extra
         )
-        self.pipProcess.start()
+        self.pipProcess.start(env=env)
 
     def installPlugin(self, pluginInfo, version=None):
         """Install a package.
@@ -337,13 +341,10 @@ class EnvironmentManagerDlg(wx.Dialog):
             # show info link
             if pluginInfo.docs:
                 msg = _translate(
-                    "\n"
-                    "\n"
-                    "For more information about the %s plugin, read the documentation at:\n"
+                    "For more information about the %s plugin, read the documentation at:"
                 ) % pluginInfo.name
                 self.output.writeStdOut(msg)
                 self.output.writeLink(pluginInfo.docs, link=pluginInfo.docs)
-                self.output.writeStdOut("\n")
 
         # clear pip process
         self.pipProcess = None
@@ -356,7 +357,7 @@ class EnvironmentManagerDlg(wx.Dialog):
         if any(["uninstalled" in changes for changes in pluginChanges.values()]):
             msg = _translate(
                 "It looks like you've uninstalled some plugins. In order for this to take effect, you will need to "
-                "restart the PsychoPy app.\n"
+                "restart the PsychoPy app."
             )
             dlg = wx.MessageDialog(
                 None, msg,

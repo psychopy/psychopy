@@ -7,7 +7,6 @@
 
 """Dialog classes for the Builder, including ParamCtrls
 """
-import functools
 import sys
 
 import os
@@ -40,8 +39,6 @@ from ...themes import handlers, icons
 
 white = wx.Colour(255, 255, 255, 255)
 codeSyntaxOkay = wx.Colour(220, 250, 220, 255)  # light green
-
-from ..localizedStrings import _localizedDialogs as _localized
 
 
 class ParamCtrls():
@@ -258,7 +255,7 @@ class ParamCtrls():
         #         parent, val, order=['Field', 'Default'])
         if hasattr(self.valueCtrl, 'SetToolTip'):
             self.valueCtrl.SetToolTip(wx.ToolTip(_translate(param.hint)))
-        if not isinstance(param.allowedVals, functools.partial) and len(param.allowedVals) == 1 or param.readOnly:
+        if not callable(param.allowedVals) and len(param.allowedVals) == 1 or param.readOnly:
             self.valueCtrl.Disable()  # visible but can't be changed
 
         # add a Validator to the valueCtrl
@@ -266,7 +263,7 @@ class ParamCtrls():
             self.valueCtrl.SetValidator(NameValidator())
         elif param.inputType in ("single", "multi"):
             # only want anything that is valType code, or can be with $
-            self.valueCtrl.SetValidator(CodeSnippetValidator(fieldName))
+            self.valueCtrl.SetValidator(CodeSnippetValidator(fieldName, param.label))
 
         # create the type control
         if len(param.allowedTypes):
@@ -279,9 +276,14 @@ class ParamCtrls():
                 self.typeCtrl.Disable()  # visible but can't be changed
 
         # create update control
+        _localizedUpdateLbls = {
+            'constant': _translate('constant'),
+            'set every repeat': _translate('set every repeat'),
+            'set every frame': _translate('set every frame'),
+        }
         if param.allowedUpdates is not None and len(param.allowedUpdates):
             # updates = display-only version of allowed updates
-            updateLabels = [_localized[upd] for upd in param.allowedUpdates]
+            updateLabels = [_localizedUpdateLbls.get(upd, upd) for upd in param.allowedUpdates]
             # allowedUpdates = extend version of allowed updates that includes
             # "set during:static period"
             allowedUpdates = copy.copy(param.allowedUpdates)
@@ -932,44 +934,9 @@ class _BaseParamsDlg(wx.Dialog):
         """
         Spawn some PsychoPy windows to display each monitor's number.
         """
-        from psychopy import visual
-        for n in range(wx.Display.GetCount()):
-            start = time.time()
-            # Open a window on the appropriate screen
-            win = visual.Window(
-                pos=(0, 0),
-                size=(128, 128),
-                units="norm",
-                screen=n,
-                color="black"
-            )
-            # Draw screen number to the window
-            screenNum = visual.TextBox2(
-                win, text=str(n + 1),
-                size=1, pos=0,
-                alignment="center", anchor="center",
-                letterHeight=0.5, bold=True,
-                fillColor=None, color="white"
-            )
-            # Progress bar
-            progBar = visual.Rect(
-                win, anchor="bottom left",
-                pos=(-1, -1), size=(0, 0.1), 
-                fillColor='white'
-            )
+        from psychopy.hardware import DeviceManager
 
-            # Frame loop
-            t = 0
-            while t < dur:
-                t = time.time() - start
-                # Set progress bar size
-                progBar.size = (t / 5 * 2, 0.1)
-                # Draw
-                progBar.draw()
-                screenNum.draw()
-                win.flip()
-            # Close window
-            win.close()
+        DeviceManager.showScreenNumbers(dur=5)
 
     def onNewTextSize(self, event):
         self.Fit()  # for ExpandoTextCtrl this is needed
@@ -1719,7 +1686,10 @@ class DlgLoopProperties(_BaseParamsDlg):
         or message, as appropriate. Upon completion this will disable the update button as
         we are now up to date.
         """
-        self.conditionsFile = self.constantsCtrls['conditionsFile'].valueCtrl.GetValue()
+        if "MultiStairHandler" in self.type:
+            self.conditionsFile = self.multiStairCtrls['conditionsFile'].valueCtrl.GetValue()
+        else:
+            self.conditionsFile = self.constantsCtrls['conditionsFile'].valueCtrl.GetValue()
         # Check whether the file and path are the same as previously
         isSameFilePathAndName = self.conditionsFileAbs == self.conditionsFileOrig
         # Start off with no message and assumed valid

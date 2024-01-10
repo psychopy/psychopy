@@ -7,16 +7,10 @@ Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 Distributed under the terms of the GNU General Public License (GPL).
 """
 
-from os import path
 from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, _translate
-from psychopy.localization import _localized as __localized
-_localized = __localized.copy()
 
 __author__ = 'Jon Peirce'
-
-# the absolute path to the folder containing this path
-_localized.update({'Custom code': _translate('Custom code')})
 
 
 class StaticComponent(BaseComponent):
@@ -105,7 +99,7 @@ class StaticComponent(BaseComponent):
     def writeFrameCodeJS(self, buff):
         # Start test
         self.writeStartTestCodeJS(buff)
-        buff.writeIndentedLines("ISI.status = PsychoJS.Status.STARTED;\n")
+        buff.writeIndentedLines("%(name)s.status = PsychoJS.Status.STARTED;\n" % self.params)
         self.writeParamUpdates(buff, target="PsychoJS")
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("}\n")
@@ -150,7 +144,7 @@ class StaticComponent(BaseComponent):
                 buff.writeIndentedLines(code % self.params)
                 buff.setIndentLevel(-1, relative=True)
                 buff.writeIndentedLines("}\n")
-        buff.writeIndentedLines("ISI.status = PsychoJS.Status.FINISHED;\n")
+        buff.writeIndentedLines("%(name)s.status = PsychoJS.Status.FINISHED;\n" % self.params)
         # Escape stop code indent
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("}\n")
@@ -224,23 +218,25 @@ class StaticComponent(BaseComponent):
             buff.writeIndented(code % self.params['name'])
             # Do updates
             for update in self.updatesList:
-                # update = {'compName':compName,'fieldName':fieldName,
-                #    'routine':routine}
                 compName = update['compName']
                 fieldName = update['fieldName']
-                # routine = self.exp.routines[update['routine']]
+                # get component
                 if hasattr(compName, 'params'):
-                    prms = compName.params  # it's already a compon so get params
+                    comp = compName
                 else:
-                    # it's a name so get compon and then get params
-                    prms = self.exp.getComponentFromName(str(compName)).params
+                    comp = self.exp.getComponentFromName(str(compName))
+                # component may be disabled or otherwise not present - skip it if so
+                if comp is None:
+                    return
+                # get params
+                prms = comp.params  # it's already a compon so get params
                 # If in JS, prepare resources
                 if target == "PsychoJS" and prms[fieldName].valType == "file":
                     # Do resource manager stuff
                     code = (
                         f"console.log('register and start downloading resources specified by component %(name)s');\n"
                         f"await psychoJS.serverManager.prepareResources(%({fieldName})s);\n"
-                        f"%(name)s.status = PsychoJS.Status.STARTED;\n"
+                        f"{self.params['name']}.status = PsychoJS.Status.STARTED;\n"
                     )
                     buff.writeIndentedLines(code % prms)
                 # Set values
