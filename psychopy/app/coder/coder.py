@@ -1318,6 +1318,11 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
         self.theme = colors.theme
 
+        # disable save buttons if currentDoc is None
+        if self.currentDoc is None:
+            self.ribbon.buttons['save'].Disable()
+            self.ribbon.buttons['saveas'].Disable()
+
     @property
     def useAutoComp(self):
         """Show autocomplete while typing."""
