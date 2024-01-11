@@ -929,11 +929,11 @@ class Session:
                 Element to process
             """
             # if we have a device name for this element...
-            if "deviceName" in emt.params:
+            if "deviceLabel" in emt.params:
                 # get init value so it lines up with boilerplate code
                 inits = experiment.getInitVals(emt.params)
                 # get value
-                deviceName = inits['deviceName'].val
+                deviceName = inits['deviceLabel'].val
                 # if deviceName exists from other elements, add usage to it
                 if deviceName in usages:
                     usages[deviceName].append(name)
