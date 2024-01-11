@@ -228,11 +228,15 @@ def setDevice(dev, kind=None):
     if dev is None:
         # if given None, do nothing
         return
+    
+    global backend  # pull from module namespace
     if not hasattr(backend, 'defaultOutput'):
         raise IOError("Attempting to SetDevice (audio) but not supported by "
                       "the current audio library ({!r})".format(audioLib))
+    
     if hasattr(dev, 'name'):
         dev = dev['name']
+
     if kind is None:
         backend.defaultInput = backend.defaultOutput = dev
     elif kind == 'input':
