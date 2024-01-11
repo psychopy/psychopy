@@ -256,6 +256,24 @@ class DeviceManager:
         return True
 
     @staticmethod
+    def removeDeviceAlias(deviceName):
+        """
+        Removes a device alias from DeviceManager, but doesn't delete the object to which the alias
+        corresponds.
+
+        Parameters
+        ----------
+        deviceName : str
+            Key by which the device to alias is currently stored.
+
+        Returns
+        -------
+        bool
+            True if completed successfully
+        """
+        DeviceManager.devices.pop(deviceName)
+
+    @staticmethod
     def getDeviceAliases(deviceName):
         """
         Get all aliases by which a device is known to DeviceManager
