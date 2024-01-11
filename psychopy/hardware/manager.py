@@ -432,7 +432,6 @@ class DeviceManager:
                 # make sure device name is in usages dict
                 if deviceName not in usages:
                     usages[deviceName] = []
-                print("DEVICE", type(emt).__name__, type(emt).deviceClasses)
                 # add any new usages
                 for cls in getattr(emt, "deviceClasses", []):
                     if cls not in usages[deviceName]:
