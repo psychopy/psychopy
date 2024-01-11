@@ -253,37 +253,43 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
 
         code = (
             "\n"
-            "// create counterbalance object for %(name)s \n"
-            "%(name)s = data.Counterbalancer({\n"
-            "    'entry': '%(name)s',\n"
-            "    'conditions': %(name)sConditions,\n"
-            "    'onFinished': %(onFinished)s\n"
+            "// get counterbalancing group \n"
+            "%(name)s = await psychoJS.shelf.counterbalanceSelect({\n"
+            "    key: ['%(name)s', '@designer', '@experiment'],\n"
+            "    groups: conditions.map(row => row.group),\n"
+            "    groupSizes: conditions.map(row => row.cap),\n"
             "});\n"
-            "// get group from online\n"
-            "%(name)s.allocateGroup();"
-            "\n"
         )
-        buff.writeIndentedLines(code % self.params)
-
+        # if ending experiment on depletion, write the code to do so
+        if self.params['endExperimentOnDepletion']:
+            code = (
+                "// if slots and repeats are fully depleted, end the experiment now\n"
+                "if (%(name)s.finished) {\n"
+                "    endExperiment(thisExp, win=win)\n"
+                "}\n"
+            )
+            buff.writeIndentedLines(code % self.params)
         # save data
         if self.params['saveData']:
             code = (
-            "thisExp.addData('%(name)s.group', %(name)s.group);\n"
-            "for (let _key in %(name)s.params) {\n"
-            "    thisExp.addData(f'%(name)s.{_key}', %(name)s.params[_key]);\n"
-            "};\n"
+                "thisExp.addData('%(name)s.group', %(name)s.group)\n"
+                "for _key, _val in %(name)s.params.items():\n"
+                "    thisExp.addData(f'%(name)s.{_key}', _val)\n"
             )
             buff.writeIndentedLines(code % self.params)
         # save remaining cap
         if self.params['saveRemaining']:
             code = (
-            "thisExp.addData('%(name)s.remaining', %(name)s.remaining);"
+                "thisExp.addData('%(name)s.remaining', %(name)s.remaining)"
             )
             buff.writeIndentedLines(code % self.params)
 
-        buff.setIndentLevel(-2, relative=True)
+    def writeExperimentEndCodeJS(self, buff):
         code = (
-            "  }\n"
-            "}\n"
+            "await psychoJS.shelf.counterbalanceConfirm(\n"
+            "    ['%(name)s', '@designer', '@experiment'],\n"
+            "    %(name)s.participantToken,\n"
+            "    (resp.keys === 'left')\n"
+            ")"
         )
         buff.writeIndentedLines(code % self.params)
