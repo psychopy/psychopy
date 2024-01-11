@@ -667,7 +667,7 @@ msgstr "&Werkzeuge"
 #: psychopy/app/builder/builder.py:434 psychopy/app/builder/builder.py:4353
 #: psychopy/app/coder/coder.py:1658 psychopy/app/coder/coder.py:2922
 msgid "Monitor Center"
-msgstr ""
+msgstr "Monitor Center"
 
 #: psychopy/app/builder/builder.py:435 psychopy/app/coder/coder.py:1659
 msgid "To set information about your monitor"
@@ -807,270 +807,283 @@ msgstr "README..."
 #: psychopy/app/builder/builder.py:524
 msgid "Add or edit the text shown when your experiment is opened"
 msgstr ""
+"Hinzufügen oder Bearbeiten des Textes, der beim Öffnen Ihres Experiments "
+"angezeigt wird"
 
 #: psychopy/app/builder/builder.py:535
 msgid "&Unpack Demos..."
-msgstr ""
+msgstr "&Unpack Demos..."
 
 #: psychopy/app/builder/builder.py:537
 msgid "Unpack demos to a writable location (so that they can be run)"
 msgstr ""
+"Entpacken der Demos an einem beschreibbaren Ort (damit sie ausgeführt werden "
+"können)"
 
 #: psychopy/app/builder/builder.py:541
 msgid "Browse on Pavlovia"
-msgstr ""
+msgstr "Stöbern auf Pavlovia"
 
 #: psychopy/app/builder/builder.py:542
 msgid "Get more demos from the online demos repository on Pavlovia"
-msgstr ""
+msgstr "Weitere Demos aus dem Online-Demos-Repository auf Pavlovia"
 
 #: psychopy/app/builder/builder.py:547
 msgid "Open demos folder"
-msgstr ""
+msgstr "Ordner \"Demos\" öffnen"
 
 #: psychopy/app/builder/builder.py:548
 msgid "Open the local folder where demos are stored"
-msgstr ""
+msgstr "Öffnen Sie den lokalen Ordner, in dem die Demos gespeichert sind"
 
 #: psychopy/app/builder/builder.py:554 psychopy/app/coder/coder.py:1707
 #: psychopy/app/runner/runner.py:209
 msgid "&Demos"
-msgstr ""
+msgstr "&Demos"
 
 #: psychopy/app/builder/builder.py:558 psychopy/app/coder/coder.py:1735
 msgid "&Pavlovia.org"
-msgstr ""
+msgstr "&Pavlovia.org"
 
 #: psychopy/app/builder/builder.py:562 psychopy/app/coder/coder.py:1740
 #: psychopy/app/runner/runner.py:213
 msgid "&Window"
-msgstr ""
+msgstr "&Fenster"
 
 #: psychopy/app/builder/builder.py:566 psychopy/app/coder/coder.py:1744
 msgid "&Help"
-msgstr ""
+msgstr "&Hilfe"
 
 #: psychopy/app/builder/builder.py:570 psychopy/app/coder/coder.py:1746
 msgid "&PsychoPy Homepage"
-msgstr ""
+msgstr "&PsychoPy Homepage"
 
 #: psychopy/app/builder/builder.py:571 psychopy/app/coder/coder.py:1747
 msgid "Go to the PsychoPy homepage"
-msgstr ""
+msgstr "Zur PsychoPy Homepage"
 
 #: psychopy/app/builder/builder.py:575
 msgid "&PsychoPy Builder Help"
-msgstr ""
+msgstr "&PsychoPy Builder Hilfe"
 
 #: psychopy/app/builder/builder.py:577
 msgid "Go to the online documentation for PsychoPy Builder"
-msgstr ""
+msgstr "Zur Online-Dokumentation PsychoPy Builder"
 
 #: psychopy/app/builder/builder.py:584 psychopy/app/coder/coder.py:1762
 msgid "&System Info..."
-msgstr ""
+msgstr "&System-Information..."
 
 #: psychopy/app/builder/builder.py:585 psychopy/app/coder/coder.py:1763
 msgid "Get system information."
-msgstr ""
+msgstr "System-Information abfragen."
 
 #: psychopy/app/builder/builder.py:590 psychopy/app/coder/coder.py:1768
 msgid "&About..."
-msgstr ""
+msgstr "&Über..."
 
 #: psychopy/app/builder/builder.py:590 psychopy/app/coder/coder.py:1769
-#, fuzzy
-#| msgid "Welcome to PsychoPy2!"
 msgid "About PsychoPy"
-msgstr "Willkommen auf PsychoPy2!"
+msgstr "Über PsychoPy"
 
 #: psychopy/app/builder/builder.py:593 psychopy/app/coder/coder.py:1773
 msgid "&News..."
-msgstr ""
+msgstr "&Neuigkeiten..."
 
 #: psychopy/app/builder/builder.py:594 psychopy/app/coder/coder.py:1774
 msgid "News"
-msgstr ""
+msgstr "Neuigkeiten"
 
 #: psychopy/app/builder/builder.py:707 psychopy/app/builder/builder.py:801
 msgid "PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*.*"
-msgstr ""
+msgstr "PsychoPy Experiments (*.psyexp)|*.psyexp|beliebige Datei (*.*)|*.*"
 
 #: psychopy/app/builder/builder.py:709 psychopy/app/builder/builder.py:803
 msgid "PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*"
-msgstr ""
+msgstr "PsychoPy Experiments (*.psyexp)|*.psyexp|beliebige Datei (*.*)|*"
 
 #: psychopy/app/builder/builder.py:716
 #: psychopy/app/builder/dialogs/__init__.py:1701
 #: psychopy/app/coder/coder.py:2350
 msgid "Open file ..."
-msgstr ""
+msgstr "Datei öffnen ..."
 
 #: psychopy/app/builder/builder.py:806 psychopy/app/coder/coder.py:2489
 msgid "Save file as ..."
-msgstr ""
+msgstr "Speichern als ..."
 
 #: psychopy/app/builder/builder.py:859
 msgid "Please save experiment before editing the README file"
-msgstr ""
+msgstr "Bitte Experiment vor Bearbeitung der README-Datei speichern"
 
 #: psychopy/app/builder/builder.py:860
 msgid "No readme file"
-msgstr ""
+msgstr "Keine Readme-Datei"
 
 #: psychopy/app/builder/builder.py:952
 #, python-format
 msgid "Experiment %s has changed. Save before quitting?"
-msgstr ""
+msgstr "Experiment %s hat sich geändert. Vor dem Beenden speichern?"
 
 #: psychopy/app/builder/builder.py:1055 psychopy/app/coder/coder.py:2837
 msgid "Are you sure you want to reset your preferences? This cannot be undone."
 msgstr ""
+"Sind Sie sicher, dass Sie Ihre Einstellungen zurücksetzen wollen? Dies kann "
+"nicht rückgängig gemacht werden."
 
 #: psychopy/app/builder/builder.py:1060 psychopy/app/coder/coder.py:2841
 msgid "I'm sure"
-msgstr ""
+msgstr "Ich bin sicher"
 
 #: psychopy/app/builder/builder.py:1061 psychopy/app/coder/coder.py:2842
 msgid "Wait, go back!"
-msgstr ""
+msgstr "Warte, zurück!"
 
 #: psychopy/app/builder/builder.py:1070 psychopy/app/coder/coder.py:2851
 msgid ""
 "Done! Your preferences have been reset. Changes will be applied when you "
 "next open PsychoPy."
 msgstr ""
+"Erledigt! Ihre Einstellungen wurden zurückgesetzt. Die Änderungen werden "
+"übernommen, wenn Sie PsychoPy das nächste Mal öffnen."
 
 #: psychopy/app/builder/builder.py:1189
 #, python-format
 msgid "Undo %(action)s\t%(key)s"
-msgstr ""
+msgstr "Rückgängig %(action)s\t%(key)s"
 
 #: psychopy/app/builder/builder.py:1204
 #, python-format
 msgid "Redo %(action)s\t%(key)s"
-msgstr ""
+msgstr "Wiederholen  %(action)s\t%(key)s"
 
 #: psychopy/app/builder/builder.py:1217
 msgid "Location to unpack demos"
-msgstr ""
+msgstr "Ort zum Auspacken der Demos"
 
 #: psychopy/app/builder/builder.py:1295 psychopy/app/builder/builder.py:2465
 #, python-format
 msgid "New name for copy of \"%(copied)s\"?  [%(default)s]"
-msgstr ""
+msgstr "Neue Name für Kopie von \"%(copied)s\"?  [%(default)s]"
 
 #: psychopy/app/builder/builder.py:1299
 msgid "Paste Routine"
-msgstr ""
+msgstr "Einfügen Routine"
 
 #: psychopy/app/builder/builder.py:1371
 msgid "What is the new name for the Routine?"
-msgstr ""
+msgstr "Wie lautet der neue Name für die Routine?"
 
 #: psychopy/app/builder/builder.py:1373 psychopy/app/coder/fileBrowser.py:97
 msgid "Rename"
-msgstr ""
+msgstr "Umbenennen"
 
 #: psychopy/app/builder/builder.py:1600
 #: psychopy/app/builder/dialogs/__init__.py:1988
 msgid "What is the name for the new Routine? (e.g. instr, trial, feedback)"
 msgstr ""
+"Wie lautet der Name für die neue Routine? (z. B., instr, trial, feedback)"
 
 #: psychopy/app/builder/builder.py:1630
 msgid "Do you want to remove routine '{}' from the experiment?"
-msgstr ""
+msgstr "Do you want to remove routine '{}' from the experiment?"
 
 #: psychopy/app/builder/builder.py:1636
 msgid "Remove routine?"
-msgstr ""
+msgstr "Routine entfernen?"
 
 #: psychopy/app/builder/builder.py:1876 psychopy/app/preferencesDlg.py:100
 msgid "paste"
-msgstr ""
+msgstr "einfügen"
 
 #: psychopy/app/builder/builder.py:2415
 msgid "Routine settings"
-msgstr ""
+msgstr "Einstellungen Routine"
 
 #: psychopy/app/builder/builder.py:2469
 msgid "Paste Component"
-msgstr ""
+msgstr "Einfügen Komponente"
 
 #: psychopy/app/builder/builder.py:2580
 msgid "Help"
-msgstr ""
+msgstr "Hilfe"
 
 #: psychopy/app/builder/builder.py:2713
 msgid "Cannot add component, experiment has no routines."
-msgstr ""
+msgstr "Kann keine Komponente hinzufügen, das Experiment hat keine Routinen."
 
 #: psychopy/app/builder/builder.py:2714 psychopy/app/preferencesDlg.py:844
 msgid "Error"
-msgstr ""
+msgstr "Fehler"
 
 #: psychopy/app/builder/builder.py:2898 psychopy/app/pavlovia_ui/project.py:914
 #: psychopy/app/pavlovia_ui/search.py:413 psychopy/app/pavlovia_ui/sync.py:35
 #: psychopy/app/pavlovia_ui/sync.py:130
 msgid "OK"
-msgstr ""
+msgstr "OK"
 
 #: psychopy/app/builder/builder.py:2941
 msgid "Get more..."
-msgstr ""
+msgstr "Mehr erfahren..."
 
 #: psychopy/app/builder/builder.py:2942
 msgid "Add new components and features via plugins."
-msgstr ""
+msgstr "Fügen Sie neue Komponenten und Funktionen über Plugins hinzu."
 
 #: psychopy/app/builder/builder.py:2948
 msgid "Filter components by whether they work with PsychoJS, PsychoPy or both."
 msgstr ""
+"Filtern Sie Komponenten danach, ob sie mit PsychoJS, PsychoPy oder beidem "
+"arbeiten."
 
 #: psychopy/app/builder/builder.py:3227 psychopy/app/utils.py:495
 msgid "Edit"
-msgstr ""
+msgstr "Editieren"
 
 #: psychopy/app/builder/builder.py:3230
 #, python-format
 msgid "&Close readme\t%s"
-msgstr ""
+msgstr "&Schließe readme\t%s"
 
 #: psychopy/app/builder/builder.py:3324 psychopy/app/builder/builder.py:3447
 msgid "Insert Routine"
-msgstr ""
+msgstr "Einfügen Routine"
 
 #: psychopy/app/builder/builder.py:3331 psychopy/app/builder/builder.py:3449
 msgid "Insert Loop"
-msgstr ""
+msgstr "Einfügen Schleife"
 
 #: psychopy/app/builder/builder.py:3395
 msgid "rename"
-msgstr ""
+msgstr "Umbenennen"
 
 #: psychopy/app/builder/builder.py:3478
 msgid "Select a Routine to insert (Esc to exit)"
-msgstr ""
+msgstr "Routine zum einfügen auswählen (Esc zum Verlassen)"
 
 #: psychopy/app/builder/builder.py:3518
 msgid "CANCEL Insert"
-msgstr ""
+msgstr "Abbruch Einfügen"
 
 #: psychopy/app/builder/builder.py:3520
 msgid "Click where you want to insert the Routine, or CANCEL insert."
 msgstr ""
+"Klicken Sie auf die Stelle, an der Sie die Routine einfügen möchten, oder "
+"brechen Sie das Einfügen ab."
 
 #: psychopy/app/builder/builder.py:3551
 msgid "CANCEL insert"
-msgstr ""
+msgstr "Abbruch Einfügen"
 
 #: psychopy/app/builder/builder.py:3554
 msgid "Click where you want the loop to start/end, or CANCEL insert."
 msgstr ""
+"Klicken Sie auf die Stelle, an der die Schleife beginnen/enden soll, oder "
+"brechen Sie das Einfügen ab."
 
 #: psychopy/app/builder/builder.py:3563
 msgid "Click the other end for the loop"
-msgstr ""
+msgstr "Klicken Sie auf das andere Ende für die Schleife"
 
 #: psychopy/app/builder/builder.py:3815
 #, python-format
@@ -1078,138 +1091,143 @@ msgid ""
 "The \"%s\" Loop is about to be deleted as well (by collapsing). OK to "
 "proceed?"
 msgstr ""
+"Die \"%s\" Schleife soll ebenfalls gelöscht werden (durch Zusammenklappen). "
+"Fortfahren?"
 
 #: psychopy/app/builder/builder.py:3817
 msgid "Impending Loop collapse"
-msgstr ""
+msgstr "Drohender Loop-Zusammenbruch"
 
 #: psychopy/app/builder/builder.py:4304 psychopy/app/coder/coder.py:2874
 msgid "New"
-msgstr ""
+msgstr "Neu"
 
 #: psychopy/app/builder/builder.py:4306 psychopy/app/coder/coder.py:2876
 msgid "Create new experiment file"
-msgstr ""
+msgstr "Neues Experiment erstellen"
 
 #: psychopy/app/builder/builder.py:4312 psychopy/app/coder/coder.py:2881
 msgid "Open"
-msgstr ""
+msgstr "Öffnen"
 
 #: psychopy/app/builder/builder.py:4314 psychopy/app/coder/coder.py:2883
 msgid "Open an existing experiment file"
-msgstr ""
+msgstr "Öffnen einer bestehenden Experimentdatei"
 
 #: psychopy/app/builder/builder.py:4319
 #: psychopy/app/builder/localizedStrings.py:33 psychopy/app/coder/coder.py:2888
 #: psychopy/app/utils.py:503 psychopy/monitors/MonitorCenter.py:259
 msgid "Save"
-msgstr ""
+msgstr "Speichern"
 
 #: psychopy/app/builder/builder.py:4327 psychopy/app/coder/coder.py:2896
 msgid "Save As..."
-msgstr ""
+msgstr "Speichern als..."
 
 #: psychopy/app/builder/builder.py:4334
 #: psychopy/app/coder/codeEditorBase.py:110 psychopy/app/coder/coder.py:2903
 msgid "Undo"
-msgstr ""
+msgstr "Rückgängig machen"
 
 #: psychopy/app/builder/builder.py:4342
 #: psychopy/app/coder/codeEditorBase.py:111 psychopy/app/coder/coder.py:2911
 msgid "Redo"
-msgstr ""
+msgstr "Wiederholen"
 
 #: psychopy/app/builder/builder.py:4355 psychopy/app/coder/coder.py:2924
 msgid "Monitor settings and calibration"
-msgstr ""
+msgstr "Monitoreinstellungen und Kalibrierung"
 
 #: psychopy/app/builder/builder.py:4360
 msgid "Experiment Settings"
-msgstr ""
+msgstr "Einstellungen Experiment"
 
 #: psychopy/app/builder/builder.py:4362
 msgid "Edit experiment settings"
-msgstr ""
+msgstr "Experimenteinstellungen bearbeiten"
 
 #: psychopy/app/builder/builder.py:4370
 msgid "Compile Python Script"
-msgstr ""
+msgstr "Python-Skript kompilieren"
 
 #: psychopy/app/builder/builder.py:4372
 msgid "Compile to Python script"
-msgstr ""
+msgstr "Kompilieren zu Python-Skript"
 
 #: psychopy/app/builder/builder.py:4377
 msgid "Compile JS Script"
-msgstr ""
+msgstr "JS-Skript kompilieren"
 
 #: psychopy/app/builder/builder.py:4379
 msgid "Compile to JS script"
-msgstr ""
+msgstr "Kompilieren zu JS-Script"
 
 #: psychopy/app/builder/builder.py:4384 psychopy/app/coder/coder.py:2938
 msgid "Runner"
-msgstr ""
+msgstr "Runner"
 
 #: psychopy/app/builder/builder.py:4386 psychopy/app/coder/coder.py:2939
 msgid "Send experiment to Runner"
-msgstr ""
+msgstr "Experiment an Runner senden"
 
 #: psychopy/app/builder/builder.py:4392 psychopy/app/coder/coder.py:2943
 msgid "Run"
-msgstr ""
+msgstr "Ausführen"
 
 #: psychopy/app/builder/builder.py:4394 psychopy/app/coder/coder.py:2944
 msgid "Run experiment"
-msgstr ""
+msgstr "Experiment ausführen"
 
 #: psychopy/app/builder/builder.py:4403
 msgid "Run online"
-msgstr ""
+msgstr "Online ausführen"
 
 #: psychopy/app/builder/builder.py:4404
 msgid "Run the study online (with pavlovia.org)"
-msgstr ""
+msgstr "Führen Sie die Studie online durch (mit pavlovia.org)"
 
 #: psychopy/app/builder/builder.py:4409
 msgid "Run in local browser"
-msgstr ""
+msgstr "Im lokalen Browser ausführen"
 
 #: psychopy/app/builder/builder.py:4410
 msgid "Run the study in PsychoJS on a local browser, not through pavlovia.org"
 msgstr ""
+"Führen Sie die Studie in PsychoJS in einem lokalen Browser aus, nicht über "
+"pavlovia.org"
 
 #: psychopy/app/builder/builder.py:4415 psychopy/app/coder/coder.py:2953
 msgid "Sync online"
-msgstr ""
+msgstr "Online synchronisieren"
 
 #: psychopy/app/builder/builder.py:4416 psychopy/app/coder/coder.py:2954
 msgid "Sync with web project (at pavlovia.org)"
-msgstr ""
+msgstr "Synchronisierung mit Webprojekt (auf pavlovia.org)"
 
 #: psychopy/app/builder/builder.py:4421 psychopy/app/coder/coder.py:2959
 msgid "Search Pavlovia.org"
-msgstr ""
+msgstr "Suche auf Pavlovia.org"
 
 #: psychopy/app/builder/builder.py:4422 psychopy/app/coder/coder.py:2960
 msgid "Find existing studies online (at pavlovia.org)"
-msgstr ""
+msgstr "Finden Sie bestehende Studien online (unter pavlovia.org)"
 
 #: psychopy/app/builder/builder.py:4427 psychopy/app/coder/coder.py:2965
 msgid "Current Pavlovia user"
-msgstr ""
+msgstr "Aktueller Pavlovia-Benutzer"
 
 #: psychopy/app/builder/builder.py:4428 psychopy/app/coder/coder.py:2966
 msgid "Log in/out of Pavlovia.org, view your user profile."
 msgstr ""
+"Loggen Sie sich bei Pavlovia.org ein/aus, sehen Sie Ihr Benutzerprofil."
 
 #: psychopy/app/builder/builder.py:4433
 msgid "View project"
-msgstr ""
+msgstr "Projekt anzeigen"
 
 #: psychopy/app/builder/builder.py:4434
 msgid "View details of this project"
-msgstr ""
+msgstr "Details zu diesem Projekt anzeigen"
 
 #: psychopy/app/builder/dialogs/__init__.py:294
 msgid "set during: "
@@ -1221,19 +1239,19 @@ msgstr ""
 #: psychopy/app/builder/dialogs/dlgsCode.py:41
 #: psychopy/app/builder/dialogs/dlgsCode.py:43
 msgid " Properties"
-msgstr ""
+msgstr " Eigenschaften"
 
 #: psychopy/app/builder/dialogs/__init__.py:987
 #: psychopy/app/builder/dialogs/dlgsCode.py:142
 #: psychopy/app/builder/dialogs/dlgsConditions.py:508
 #: psychopy/app/preferencesDlg.py:506
 msgid " Help "
-msgstr ""
+msgstr " Hilfe "
 
 #: psychopy/app/builder/dialogs/__init__.py:988
 #: psychopy/app/builder/dialogs/dlgsCode.py:143
 msgid "Go to online help about this component"
-msgstr ""
+msgstr "Online-Hilfe zu dieser Komponente aufrufen"
 
 #: psychopy/app/builder/dialogs/__init__.py:994
 #: psychopy/app/builder/dialogs/dlgsCode.py:145
@@ -1242,7 +1260,7 @@ msgstr ""
 #: psychopy/gui/wxgui.py:68 psychopy/monitors/MonitorCenter.py:1121
 #: psychopy/monitors/MonitorCenter.py:1229
 msgid " OK "
-msgstr ""
+msgstr " OK "
 
 #: psychopy/app/builder/dialogs/__init__.py:999
 #: psychopy/app/builder/dialogs/dlgsCode.py:148
@@ -1251,32 +1269,34 @@ msgstr ""
 #: psychopy/gui/wxgui.py:69 psychopy/monitors/MonitorCenter.py:1123
 #: psychopy/monitors/MonitorCenter.py:1232
 msgid " Cancel "
-msgstr ""
+msgstr " Abbrechen "
 
 #: psychopy/app/builder/dialogs/__init__.py:1178
 #: psychopy/app/builder/validators.py:379
 msgid "Missing name"
-msgstr ""
+msgstr "Fehlender Name"
 
 #: psychopy/app/builder/dialogs/__init__.py:1185
 #, python-format
 msgid "That name is in use (it's a %s). Try another name."
 msgstr ""
+"Dieser Name ist in Gebrauch (es ist ein %s). Versuchen Sie einen anderen "
+"Namen."
 
 #: psychopy/app/builder/dialogs/__init__.py:1188
 #: psychopy/app/builder/dialogs/dlgsConditions.py:296
 #: psychopy/app/builder/dialogs/dlgsConditions.py:583
 msgid "Name must be alphanumeric or _, no spaces"
-msgstr ""
+msgstr "Name muss alphanumerisch oder _ sein, keine Leerzeichen"
 
 #: psychopy/app/builder/dialogs/__init__.py:1469
 #: psychopy/app/builder/dialogs/__init__.py:1652
 msgid "No parameters set"
-msgstr ""
+msgstr "Keine Parameter gesetzt"
 
 #: psychopy/app/builder/dialogs/__init__.py:1548
 msgid "No parameters set (select a file above)"
-msgstr ""
+msgstr "Keine Parameter gesetzt (wählen Sie oben eine Datei aus)"
 
 #: psychopy/app/builder/dialogs/__init__.py:1641
 #, python-format
@@ -1284,19 +1304,21 @@ msgid ""
 "%(nCondition)i conditions, with %(nParam)i parameters\n"
 "%(paramStr)s"
 msgstr ""
+"%(nCondition)i Bedingungen, mit %(nParam)i Parametern\n"
+"%(paramStr)s"
 
 #: psychopy/app/builder/dialogs/__init__.py:1650
 msgid "No parameters set (conditionsFile not found)"
-msgstr ""
+msgstr "Keine Parameter gesetzt (Bedingungsdatei nicht gefunden)"
 
 #: psychopy/app/builder/dialogs/__init__.py:1737
 msgid "Conditions file set from variable."
-msgstr ""
+msgstr "Bedingungsdatei aus Variable."
 
 #: psychopy/app/builder/dialogs/__init__.py:1752
 #, python-format
 msgid "Could not read conditions from: %s\n"
-msgstr ""
+msgstr "Bedingungen konnten nicht gelesen werden von: %s\n"
 
 #: psychopy/app/builder/dialogs/__init__.py:1759
 #, python-format
@@ -1304,39 +1326,41 @@ msgid ""
 "Bad name in %s: Parameters (column headers) cannot contain dots or be "
 "duplicated."
 msgstr ""
+"Falscher Name in %s: Parameter (Spaltenüberschriften) dürfen keine Punkte "
+"enthalten oder doppelt vorkommen."
 
 #: psychopy/app/builder/dialogs/__init__.py:1775
 msgid "Builder variable(s) ({}) in file:{}"
-msgstr ""
+msgstr "Builder-Variable(n) ({}) in Datei:{}"
 
 #: psychopy/app/builder/dialogs/__init__.py:1805
 #, python-format
 msgid "Duplicate condition names, different conditions file: %s"
-msgstr ""
+msgstr "Doppelte Bedingungsnamen, andere Bedingungsdatei: %s"
 
 #: psychopy/app/builder/dialogs/__init__.py:1907
 msgid "Show screen numbers"
-msgstr ""
+msgstr "Bildschirmnummern anzeigen"
 
 #: psychopy/app/builder/dialogs/__init__.py:1972
 msgid "New Routine"
-msgstr ""
+msgstr "Neue Routine"
 
 #: psychopy/app/builder/dialogs/__init__.py:1984
 msgid "New Routine name:"
-msgstr ""
+msgstr "Neuer Routinenname:"
 
 #: psychopy/app/builder/dialogs/__init__.py:1992
 msgid "Routine Template:"
-msgstr ""
+msgstr "Vorlage Routine:"
 
 #: psychopy/app/builder/dialogs/__init__.py:1996
 msgid "Select a template to base your new Routine on"
-msgstr ""
+msgstr "Wählen Sie eine Vorlage, auf der Ihre neue Routine basieren soll"
 
 #: psychopy/app/builder/dialogs/dlgsCode.py:110
 msgid "disabled"
-msgstr ""
+msgstr "deaktiviert"
 
 #: psychopy/app/builder/dialogs/dlgsCode.py:238
 msgid ""
@@ -1344,10 +1368,14 @@ msgid ""
 "Py to JS auto-translation requires the metapensiero library.\n"
 "Available for Python 3.5+.\n"
 msgstr ""
+"\n"
+"Die automatische Übersetzung von Py nach JS erfordert die metapensiero-"
+"Bibliothek.\n"
+"Verfügbar für Python 3.5+.\n"
 
 #: psychopy/app/builder/dialogs/dlgsCode.py:240
 msgid "Warning: requires the metapensiero library"
-msgstr ""
+msgstr "Warnung: benötigt die metapensiero-Bibliothek"
 
 #: psychopy/app/builder/dialogs/dlgsCode.py:272
 msgid ""
@@ -1355,95 +1383,104 @@ msgid ""
 "Auto-JS translation will overwrite your existing JavaScript code.\n"
 "Press OK to continue, or Cancel.\n"
 msgstr ""
+"\n"
+"Die Auto-JS-Übersetzung überschreibt Ihren vorhandenen JavaScript-Code.\n"
+"Drücken Sie OK, um fortzufahren, oder Abbrechen.\n"
 
 #: psychopy/app/builder/dialogs/dlgsCode.py:274
 msgid "Warning: Python to JavaScript Translation"
-msgstr ""
+msgstr "Warnung: Übersetzung von Python nach JavaScript"
 
 #: psychopy/app/builder/dialogs/dlgsConditions.py:79
 msgid "New (no file)"
-msgstr ""
+msgstr "Neu (keine Datei)"
 
 #: psychopy/app/builder/dialogs/dlgsConditions.py:87
 msgid "Conditions data (no file)"
-msgstr ""
+msgstr "Bedingungsdaten (keine Datei)"
 
 #: psychopy/app/builder/dialogs/dlgsConditions.py:160
 msgid "Params:"
-msgstr ""
+msgstr "Parameter:"
 
 #: psychopy/app/builder/dialogs/dlgsConditions.py:169
 msgid "type:"
-msgstr ""
+msgstr "Type:"
 
 #: psychopy/app/builder/dialogs/dlgsConditions.py:225
 #, python-format
 msgid "cond %s:"
-msgstr ""
+msgstr "Bedingung %s:"
 
 #: psychopy/app/builder/dialogs/dlgsConditions.py:262
 msgid "Should be legal as a variable name (alphanumeric)"
-msgstr ""
+msgstr "Sollte als Variablenname zulässig sein (alphanumerisch)"
 
 #: psychopy/app/builder/dialogs/dlgsConditions.py:273
 msgid "extra white-space"
-msgstr ""
+msgstr "extra Leerzeichen"
 
 #: psychopy/app/builder/dialogs/dlgsConditions.py:439
 msgid "PREVIEW"
-msgstr ""
+msgstr "VORSCHAU"
 
 #: psychopy/app/builder/dialogs/dlgsConditions.py:476
 msgid "+cond."
-msgstr ""
+msgstr "+Bedingung."
 
 #: psychopy/app/builder/dialogs/dlgsConditions.py:477
 msgid "Add a condition (row); to delete a condition, delete all of its values."
 msgstr ""
+"Fügen Sie eine Bedingung (Zeile) hinzu; um eine Bedingung zu löschen, "
+"löschen Sie alle ihre Werte."
 
 #: psychopy/app/builder/dialogs/dlgsConditions.py:483
 msgid "+param"
-msgstr ""
+msgstr "+Parameter"
 
 #: psychopy/app/builder/dialogs/dlgsConditions.py:484
 msgid ""
 "Add a parameter (column); to delete a param, set its type to None, or delete "
 "all of its values."
 msgstr ""
+"Fügen Sie einen Parameter (Spalte) hinzu; um einen Parameter zu löschen, "
+"setzen Sie seinen Typ auf None, oder löschen Sie alle seine Werte."
 
 #: psychopy/app/builder/dialogs/dlgsConditions.py:490 psychopy/app/utils.py:499
 msgid "Preview"
-msgstr ""
+msgstr "Vorschau"
 
 #: psychopy/app/builder/dialogs/dlgsConditions.py:491
 msgid ""
 "Show all values as they would appear after saving to a file, without "
 "actually saving anything."
 msgstr ""
+"Zeigt alle Werte so an, wie sie nach dem Speichern in einer Datei erscheinen "
+"würden, ohne tatsächlich etwas zu speichern."
 
 #: psychopy/app/builder/dialogs/dlgsConditions.py:497
 msgid "Save as"
-msgstr ""
+msgstr "Speichern als"
 
 #: psychopy/app/builder/dialogs/dlgsConditions.py:509
 msgid "Go to online help"
-msgstr ""
+msgstr "Zur Online-Hilfe"
 
 #: psychopy/app/builder/dialogs/dlgsConditions.py:516
 msgid "Save and exit"
-msgstr ""
+msgstr "Speichern und beenden"
 
 #: psychopy/app/builder/dialogs/dlgsConditions.py:523
 msgid "Exit, discard any edits"
-msgstr ""
+msgstr "Beenden, alle Bearbeitungen verwerfen"
 
 #: psychopy/app/builder/dialogs/dlgsConditions.py:596
 msgid "Param name(s) adjusted to be legal. Look ok?"
-msgstr ""
+msgstr "Parameter-Name(n) angepasst, um legal zu sein. In Ordnung?"
 
 #: psychopy/app/builder/dialogs/findDlg.py:18
 msgid "Find in experiment..."
-msgstr ""
+msgstr "Finde in Experiment..."
 
 #: psychopy/app/builder/dialogs/findDlg.py:58
 msgid "Go"
@@ -1451,15 +1488,15 @@ msgstr ""
 
 #: psychopy/app/builder/dialogs/findDlg.py:68
 msgid "Component"
-msgstr ""
+msgstr "Komponente"
 
 #: psychopy/app/builder/dialogs/findDlg.py:69
 msgid "Parameter"
-msgstr ""
+msgstr "Parameter"
 
 #: psychopy/app/builder/dialogs/findDlg.py:70
 msgid "Value"
-msgstr ""
+msgstr "Wert"
 
 #: psychopy/app/builder/dialogs/paramCtrls.py:183
 #: psychopy/app/builder/dialogs/paramCtrls.py:1012
@@ -1467,6 +1504,8 @@ msgid ""
 "This parameter will be treated as code - we have already put in the $, so "
 "you don't have to."
 msgstr ""
+"Dieser Parameter wird als Code behandelt - wir haben das $ bereits "
+"eingegeben, Sie müssen es also nicht tun."
 
 #: psychopy/app/builder/dialogs/paramCtrls.py:261
 msgid ""
@@ -1474,55 +1513,65 @@ msgid ""
 "version of PsychoPy, it is not used. Click this button to delete it. "
 "WARNING: This may affect how this experiment works in older versions!"
 msgstr ""
+"Dieser Parameter stammt aus einer älteren Version von PsychoPy. In der "
+"aktuellen Version von PsychoPy wird er nicht verwendet. Klicken Sie auf "
+"diese Schaltfläche, um ihn zu löschen. WARNUNG: Dies kann die Funktionsweise "
+"dieses Experiments in älteren Versionen beeinträchtigen!"
 
 #: psychopy/app/builder/dialogs/paramCtrls.py:267
 msgid "DELETED"
-msgstr ""
+msgstr "GELÖSCHT"
 
 #: psychopy/app/builder/dialogs/paramCtrls.py:274
 msgid ""
 "This parameter will not be deleted until you click Okay. Click this button "
 "to revert the deletion and keep the parameter."
 msgstr ""
+"Dieser Parameter wird erst gelöscht, wenn Sie auf OK klicken. Klicken Sie "
+"auf diese Schaltfläche, um die Löschung rückgängig zu machen und den "
+"Parameter beizubehalten."
 
 #: psychopy/app/builder/dialogs/paramCtrls.py:638
 #: psychopy/app/builder/dialogs/paramCtrls.py:920
 msgid "Specify file ..."
-msgstr ""
+msgstr "Datei angeben ..."
 
 #: psychopy/app/builder/dialogs/paramCtrls.py:711
 msgid "Add custom item"
-msgstr ""
+msgstr "Benutzerdefiniertes Element hinzufügen"
 
 #: psychopy/app/builder/dialogs/paramCtrls.py:737
 msgid ""
 "Below are all of the surveys linked to your Pavlovia account - select the "
 "one you want and press OK to add its ID."
 msgstr ""
+"Nachfolgend finden Sie alle Umfragen, die mit Ihrem Pavlovia-Konto verknüpft "
+"sind. Wählen Sie die gewünschte Umfrage aus und drücken Sie OK, um die ID "
+"hinzuzufügen."
 
 #: psychopy/app/builder/dialogs/paramCtrls.py:746
 msgid "There are no surveys linked to your Pavlovia account."
-msgstr ""
+msgstr "Es sind keine Umfragen mit Ihrem Pavlovia-Konto verknüpft."
 
 #: psychopy/app/builder/dialogs/paramCtrls.py:757
 msgid "Click here to manage surveys on Pavlovia."
-msgstr ""
+msgstr "Klicken Sie hier, um Umfragen auf Pavlovia zu verwalten."
 
 #: psychopy/app/builder/dialogs/paramCtrls.py:764
 msgid "Refresh survey list"
-msgstr ""
+msgstr "Umfrage-Liste aktualisieren"
 
 #: psychopy/app/builder/dialogs/paramCtrls.py:832
 msgid "Find online..."
-msgstr ""
+msgstr "Finde online..."
 
 #: psychopy/app/builder/dialogs/paramCtrls.py:839
 msgid "Get survey ID from a list of your surveys on Pavlovia"
-msgstr ""
+msgstr "Umfrage-ID aus einer Liste Ihrer Umfragen auf Pavlovia abrufen"
 
 #: psychopy/app/builder/dialogs/paramCtrls.py:926
 msgid "Open/create in your default table editor"
-msgstr ""
+msgstr "Öffnen/Erstellen in Ihrer Standard-Tabellenverarbeitung"
 
 #: psychopy/app/builder/dialogs/paramCtrls.py:975
 #, python-brace-format
@@ -1530,20 +1579,24 @@ msgid ""
 "Once you have created and saved your table,please remember to add it to "
 "{name}"
 msgstr ""
+"Sobald Sie Ihre Tabelle erstellt und gespeichert haben, denken Sie bitte "
+"daran, sie zu {name} hinzuzufügen."
 
 #: psychopy/app/builder/dialogs/paramCtrls.py:977
 msgid "Reminder"
-msgstr ""
+msgstr "Erinnerung"
 
 #: psychopy/app/builder/dialogs/paramCtrls.py:1019
 msgid "Specify color ..."
-msgstr ""
+msgstr "Geben Sie die Farbe an ..."
 
 #: psychopy/app/builder/dialogs/paramCtrls.py:1128
 msgid ""
 "Could not interpret parameter value as a dict:\n"
 "{}"
 msgstr ""
+"Der Parameterwert konnte nicht als Dictionary interpretiert werden:\n"
+"{}"
 
 #: psychopy/app/builder/localizedStrings.py:20
 msgid "Basic"
@@ -1553,29 +1606,29 @@ msgstr ""
 #: psychopy/experiment/components/settings/__init__.py:58
 #: psychopy/experiment/components/settings/__init__.py:246
 msgid "Color"
-msgstr ""
+msgstr "Farbe"
 
 #: psychopy/app/builder/localizedStrings.py:22
 msgid "Layout"
-msgstr ""
+msgstr "Layout"
 
 #: psychopy/app/builder/localizedStrings.py:23
 msgid "Data"
-msgstr ""
+msgstr "Daten"
 
 #: psychopy/app/builder/localizedStrings.py:24
 #: psychopy/experiment/components/settings/__init__.py:56
 #: psychopy/experiment/components/settings/__init__.py:234
 msgid "Screen"
-msgstr ""
+msgstr "Monitor"
 
 #: psychopy/app/builder/localizedStrings.py:25
 msgid "Input"
-msgstr ""
+msgstr "Eingabe"
 
 #: psychopy/app/builder/localizedStrings.py:26
 msgid "Dots"
-msgstr ""
+msgstr "Punkte"
 
 #: psychopy/app/builder/localizedStrings.py:27
 msgid "Grating"
@@ -1988,11 +2041,12 @@ msgstr ""
 
 #: psychopy/app/builder/localizedStrings.py:165
 msgid "one of your Components, Routines, or condition parameters"
-msgstr ""
+msgstr "eine Ihrer Komponenten, Routinen oder Bedingungsparameter"
 
 #: psychopy/app/builder/localizedStrings.py:167
 msgid " Avoid `this`, `these`, `continue`, `Clock`, or `component` in name"
 msgstr ""
+" Vermeiden Sie `this`, `these`, `continue`, `Clock` oder `component` im Namen"
 
 #: psychopy/app/builder/localizedStrings.py:168
 msgid "Builder variable"
@@ -2110,12 +2164,16 @@ msgstr ""
 #, python-brace-format
 msgid "That name is in use (by {used}). Try another name."
 msgstr ""
+"Dieser Name wird bereits verwendet (von {used}). Versuchen Sie einen anderen "
+"Namen."
 
 #: psychopy/app/builder/validators.py:393
 msgid ""
 "Name can only contain letters, numbers and underscores (_), no spaces or "
 "other symbols"
 msgstr ""
+"Der Name darf nur Buchstaben, Zahlen und Unterstriche (_) enthalten, keine "
+"Leerzeichen oder andere Symbole"
 
 #: psychopy/app/builder/validators.py:494
 #, python-brace-format
@@ -2123,25 +2181,31 @@ msgid ""
 "Font `{val}` not found locally, will attempt to retrieve from Google Fonts "
 "when this experiment next runs"
 msgstr ""
+"Schriftart `{val}` nicht lokal gefunden, versucht bei der nächsten "
+"Ausführung dieses Experiments, sie von Google Fonts abzurufen"
 
 #: psychopy/app/builder/validators.py:513
 msgid "Python syntax error in field `{}`:  {}"
-msgstr ""
+msgstr "Python-Syntaxfehler im Feld `{}`:  {}"
 
 #: psychopy/app/builder/validators.py:528
 #, python-brace-format
 msgid ""
 "Looks like your variable '{code}' in '{displayName}' should be set to update."
 msgstr ""
+"Es sieht so aus, als ob Ihre Variable '{code}' in '{displayName}' auf Update "
+"gesetzt werden sollte."
 
 #: psychopy/app/builder/validators.py:548
 msgid "Python var `{}` in `{}` is same as Name"
-msgstr ""
+msgstr "Python var `{}` in `{}` ist identisch mit Name"
 
 #: psychopy/app/builder/validators.py:571
 #, python-brace-format
 msgid "Variable name ${newName} is in use (by {used}). Try another name."
 msgstr ""
+"Der Variablenname ${newName} wird bereits verwendet (von {used}). Versuchen "
+"Sie einen anderen Namen."
 
 #: psychopy/app/coder/codeEditorBase.py:112
 msgid "Cut"
