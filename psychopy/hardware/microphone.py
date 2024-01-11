@@ -125,6 +125,8 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
                 "Microphone audio capture requires package `psychtoolbox` to "
                 "be installed.")
 
+        from psychopy.hardware import DeviceManager
+
         def _getDefaultDevice():
             # get all devices
             _devices = MicrophoneDevice.getDevices()
@@ -172,20 +174,25 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
 
         # get information about the selected device
         if isinstance(index, AudioDeviceInfo):
+            # if already an AudioDeviceInfo object, great!
             self._device = index
-        if index in (None, "none", "None", "NONE", -1, "default", "Default", "DEFAULT"):
+        elif index in (None, "none", "None", "NONE", -1, "default", "Default", "DEFAULT"):
+            # if some variant of None, they've asked for default
             self._device = _getDefaultDevice()
-        elif isinstance(index, (int, float, str)):
-            self._device = _getDeviceByIndex(index)
+        elif isinstance(index, int) or (isinstance(index, str) and index.isnumeric()):
+            # if given an integer (or something like it), it's an index
+            self._device = _getDeviceByIndex(int(index))
+        elif isinstance(index, str):
+            # if given a str that's a name from DeviceManager, get info from device
+            device = DeviceManager.getDevice(index)
+            if isinstance(device, MicrophoneDevice):
+                self._device = _getDeviceByIndex(device.deviceIndex)
+            else:
+                # fallback to default
+                self._device = _getDefaultDevice()
         else:
-            # get default device, first enumerated usually
-            devices = MicrophoneDevice.getDevices()
-            if not devices:
-                raise AudioInvalidCaptureDeviceError(
-                    'No suitable audio recording devices found on this system. '
-                    'Check connections and try again.')
-
-            self._device = devices[0]  # use first
+            # default device as the ultimate fallback
+            self._device = _getDefaultDevice()
 
         logging.info('Using audio device #{} ({}) for audio capture'.format(
             self._device.deviceIndex, self._device.deviceName))
