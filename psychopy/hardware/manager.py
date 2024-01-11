@@ -256,7 +256,7 @@ class DeviceManager:
         return True
 
     @staticmethod
-    def removeDeviceAlias(deviceName):
+    def removeDeviceAlias(alias):
         """
         Removes a device alias from DeviceManager, but doesn't delete the object to which the alias
         corresponds.
@@ -271,7 +271,10 @@ class DeviceManager:
         bool
             True if completed successfully
         """
-        DeviceManager.devices.pop(deviceName)
+        DeviceManager.devices.pop(alias)
+        DeviceManager.deviceAliases.pop(alias)
+
+        return True
 
     @staticmethod
     def getDeviceAliases(deviceName):
