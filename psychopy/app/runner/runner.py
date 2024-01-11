@@ -786,9 +786,11 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         # thisItem = self.entries[self.currentFile]
 
         self.ribbon.buttons['remove'].Enable()
-        if not self.running:  # if we aren't already running we can enable run button
-            self.ribbon.buttons['pyrun'].Enable()
-            self.ribbon.buttons['pypilot'].Enable()
+        # enable rub/pilot ctrls
+        self.ribbon.buttons['pyswitch'].Enable()
+        runMode = self.ribbon.buttons['pyswitch'].mode
+        self.ribbon.buttons['pyswitch'].setMode(runMode)
+        # enable JS run
         if self.currentFile.suffix == '.psyexp':
             self.ribbon.buttons['jsrun'].Enable()
         else:
@@ -803,6 +805,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         self.currentFile = None
         self.currentExperiment = None
         self.currentProject = None
+        self.ribbon.buttons['pyswitch'].Disable()
         self.ribbon.buttons['pyrun'].Disable()
         self.ribbon.buttons['pypilot'].Disable()
         self.ribbon.buttons['jsrun'].Disable()
