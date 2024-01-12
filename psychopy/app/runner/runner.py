@@ -173,9 +173,9 @@ class RunnerFrame(wx.Frame, handlers.ThemeMixin):
 
         runMenuItems = [
             {'id': wx.ID_ANY,
-             'label': _translate("&Run\t%s") % keys['runScript'],
+             'label': _translate("&Run/pilot\t%s") % keys['runScript'],
              'status': _translate('Running experiment'),
-             'func': self.panel.runLocal},
+             'func': self.panel.onRunShortcut},
             {'id': wx.ID_ANY,
              'label': _translate('Run &JS for local debug'),
              'status': _translate('Launching local debug of online study'),
@@ -592,6 +592,34 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
             self.ribbon.buttons['pyrun'].Enable()
             self.ribbon.buttons['pypilot'].Enable()
 
+    def getRunMode(self):
+        """
+        Query whether we are in running or pilot mode.
+
+        Returns
+        -------
+        str
+            Either "run" for running mode or "pilot" for piloting mode
+        """
+        # map modes to button states
+        modes = {
+            0: "pilot",
+            1: "run"
+        }
+        # get mode from button
+        i = self.ribbon.buttons['pyswitch'].mode
+
+        return modes.get(int(i), "run")
+
+    def onRunShortcut(self, evt=None):
+        """
+        Callback for when the run shortcut is pressed - will either run or pilot depending on run mode
+        """
+        if self.getRunMode() == "pilot":
+            self.pilotLocal(evt)
+        else:
+            self.runLocal(evt)
+
     def runLocal(self, evt=None, focusOnExit='runner', args=None):
         """Run experiment from new process using inherited ScriptProcess class methods."""
         if self.currentSelection is None:
@@ -602,7 +630,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
             args = []
 
         # set switch mode
-        self.ribbon.buttons['pyswitch'].setMode("--pilot" in args)
+        self.ribbon.buttons['pyswitch'].setMode("--pilot" not in args)
 
         currentFile = str(self.currentFile)
         if self.currentFile.suffix == '.psyexp':
@@ -777,7 +805,10 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
 
     def onItemSelected(self, evt):
         """Set currentSelection to index of currently selected list item."""
-        self.currentSelection = evt.Index
+        if isinstance(evt, int):
+            self.currentSelection = evt
+        else:
+            self.currentSelection = evt.Index
         filename = self.expCtrl.GetItemText(self.currentSelection, filenameColumn)
         folder = self.expCtrl.GetItemText(self.currentSelection, folderColumn)
         self.currentFile = Path(folder, filename)

@@ -425,9 +425,9 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
                            _translate("Compile the exp to a script"))
         self.Bind(wx.EVT_MENU, self.compileScript, item)
         self.bldrRun = menu.Append(wx.ID_ANY,
-                           _translate("Run\t%s") % keys['runScript'],
+                           _translate("Run/pilot\t%s") % keys['runScript'],
                            _translate("Run the current script"))
-        self.Bind(wx.EVT_MENU, self.runFile, self.bldrRun, id=self.bldrRun)
+        self.Bind(wx.EVT_MENU, self.onRunShortcut, self.bldrRun, id=self.bldrRun)
         item = menu.Append(wx.ID_ANY,
                            _translate("Send to runner\t%s") % keys['runnerScript'],
                            _translate("Send current script to runner"))
@@ -1256,6 +1256,34 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.app.showRunner()
 
         return True
+
+    def getRunMode(self):
+        """
+        Query whether we are in running or pilot mode.
+
+        Returns
+        -------
+        str
+            Either "run" for running mode or "pilot" for piloting mode
+        """
+        # map modes to button states
+        modes = {
+            0: "pilot",
+            1: "run"
+        }
+        # get mode from button
+        i = self.ribbon.buttons['pyswitch'].mode
+
+        return modes.get(int(i), "run")
+
+    def onRunShortcut(self, evt=None):
+        """
+        Callback for when the run shortcut is pressed - will either run or pilot depending on run mode
+        """
+        if self.getRunMode() == "pilot":
+            self.pilotFile(evt)
+        else:
+            self.runFile(evt)
 
     def runFile(self, event=None):
         """

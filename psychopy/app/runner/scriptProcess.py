@@ -107,8 +107,12 @@ class ScriptProcess:
             return False
 
         # provide a message that the script is running
+        if "--pilot" in args:
+            runMsg = "## Piloting: {} ##"
+        else:
+            runMsg = "## Running: {} ##"
         # format the output message
-        runMsg = u"## Running: {} ##".format(fullPath)
+        runMsg = runMsg.format(fullPath)
         runMsg = runMsg.center(80, "#") + "\n"
 
         # if we have a runner frame, write to the output text box
@@ -307,15 +311,17 @@ class ScriptProcess:
         self.scriptProcess = None  # reset
 
         # disable the stop button after exiting, no longer needed
-        if hasattr(self, 'toolbar'):  # relies on this being a mixin class
-            self.toolbar.buttons['stopBtn'].Disable()
+        if hasattr(self, 'ribbon'):  # relies on this being a mixin class
+            self.ribbon.buttons['pystop'].Disable()
 
         # reactivate the current selection after running
-        if hasattr(self, 'expCtrl') and hasattr(self, 'toolbar'):
+        if hasattr(self, 'expCtrl') and hasattr(self, 'ribbon'):
             itemIdx = self.expCtrl.GetFirstSelected()
             if itemIdx >= 0:
                 self.expCtrl.Select(itemIdx)
-                self.toolbar.buttons['runBtn'].Disable()
+                self.onItemSelected(itemIdx)
+            else:
+                self.expCtrl.Deselect()
 
         def _focusOnOutput(win):
             """Subroutine to focus on a given output window."""
