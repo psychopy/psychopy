@@ -97,7 +97,7 @@ class TrialHandler(_BaseLoopHandler):
             hint=_translate("Name of this loop"))
         self.params['nReps'] = Param(
             nReps, valType='num', inputType="spin", updates=None, allowedUpdates=None,
-            label=_translate('nReps'),
+            label=_translate('Num. repeats'),
             hint=_translate("Number of repeats (for each condition)"))
         self.params['conditions'] = Param(
             list(conditions), valType='str', inputType="single",

@@ -52,7 +52,7 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
 
         self.params['nReps'] = Param(
             nReps, valType="code", inputType="single", categ="Basic",
-            label=_translate("nReps"),
+            label=_translate("Num. repeats"),
             hint=_translate(
                 "How many times to run slots down to depletion?"
             )
