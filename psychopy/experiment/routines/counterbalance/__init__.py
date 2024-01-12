@@ -17,8 +17,8 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
             self, exp, name='counterbalance',
             specMode="uniform",
             conditionsFile="", conditionsVariable="",
-            nGroups=2, pCap=10,
-            onFinished="ignore",
+            nGroups=2, nSlots=10,
+            nReps=1, endExperimentOnDepletion="ignore",
             saveData=True, saveRemaining=True
     ):
         BaseStandaloneRoutine.__init__(self, exp, name=name)
@@ -34,8 +34,9 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
             'specMode',
             'conditionsFile',
             'nGroups',
-            'pCap',
-            'onFinished'
+            'nSlots',
+            'nReps',
+            'endExperimentOnDepletion'
         ]
 
         self.params['specMode'] = Param(
@@ -46,6 +47,14 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
             hint=_translate(
                 "Specify groups using an Excel file (for fine tuned control), specify as a variable name, or specify a "
                 "number of groups to create equally likely groups with a uniform cap."
+            )
+        )
+
+        self.params['nReps'] = Param(
+            nReps, valType="code", inputType="single", categ="Basic",
+            label=_translate("Num. repeats"),
+            hint=_translate(
+                "How many times to run slots down to depletion?"
             )
         )
 
@@ -70,7 +79,7 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
         }, {
             "dependsOn": "specMode",  # must be param name
             "condition": "=='uniform'",  # val to check for
-            "param": 'pCap',  # param property to alter
+            "param": 'nSlots',  # param property to alter
             "true": "show",  # what to do with param if condition is True
             "false": "hide",  # permitted: hide, show, enable, disable
         }]
@@ -99,23 +108,20 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
             )
         )
 
-        self.params['pCap'] = Param(
-            pCap, valType="code", inputType="single", categ="Basic",
-            label=_translate("Cap per group"),
+        self.params['nSlots'] = Param(
+            nSlots, valType="code", inputType="single", categ="Basic",
+            label=_translate("Slots per group"),
             hint=_translate(
-                "Max number of participants in each group."
+                "Max number of participants in each group for each repeat."
             )
         )
 
-        self.params['onFinished'] = Param(
-            onFinished, valType="str", inputType="choice", categ="Basic",
-            allowedVals=["raise", "reset", "ignore"],
-            allowedLabels=[_translate("Raise error"), _translate("Reset participant caps"),
-                           _translate("Just set as finished")],
-            label=_translate("If finished..."),
+        self.params['endExperimentOnDepletion'] = Param(
+            endExperimentOnDepletion, valType="code", inputType="bool", categ="Basic",
+            label=_translate("End experiment on depletion"),
             hint=_translate(
-                "What to do when all groups are finished? Raise an error, reset the count or just continue with "
-                ".finished as True?"
+                "When all slots and repetitions are depleted, should the experiment end or "
+                "continue with .finished on this Routine as True?"
             )
         )
 
@@ -163,10 +169,10 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
                 "# create uniform conditions for %(name)s\n"
                 "%(name)sConditions = []\n"
                 "for n in range(%(nGroups)s):\n"
-                "    %(name)sConditions.append({"
+                "    %(name)sConditions.append({\n"
                 "        'group': n,\n"
                 "        'probability': 1/%(nGroups)s,\n"
-                "        'cap': %(pCap)s\n"
+                "        'cap': %(nSlots)s\n"
                 "    })\n"
             )
         buff.writeIndentedLines(code % self.params)
@@ -178,7 +184,7 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
             "    shelf=expShelf,\n"
             "    entry='%(name)s',\n"
             "    conditions=%(name)sConditions,\n"
-            "    onFinished=%(onFinished)s\n"
+            "    nReps=%(nReps)s\n"
             ")\n"
         )
         buff.writeIndentedLines(code % self.params)
@@ -191,6 +197,14 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
             "\n"
         )
         buff.writeIndentedLines(code % self.params)
+        # if ending experiment on depletion, write the code to do so
+        if self.params['endExperimentOnDepletion']:
+            code = (
+                "# if slots and repeats are fully depleted, end the experiment now\n"
+                "if %(name)s.finished:\n"
+                "    endExperiment(thisExp, win=win)\n"
+            )
+            buff.writeIndentedLines(code % self.params)
         # save data
         if self.params['saveData']:
             code = (
@@ -207,10 +221,11 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
             buff.writeIndentedLines(code % self.params)
 
     def writeRoutineBeginCodeJS(self, buff, modular=True):
+        # enter function def
         code = (
                 "\n"
-                "var %(name)s"
-                "function %(name)sRoutine(snapshot) {\n"
+                "var %(name)s\n"
+                "function %(name)sRoutineBegin(snapshot) {\n"
                 "  return async function () {\n"
         )
         buff.writeIndentedLines(code % self.params)
@@ -228,10 +243,10 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
                 "// create uniform conditions for %(name)s\n"
                 "let %(name)sConditions = [];\n"
                 "for (let n = 0; n < %(nGroups)s; n++) {\n"
-                "    %(name)sConditions.push({"
+                "    %(name)sConditions.push({\n"
                 "        'group': n,\n"
                 "        'probability': 1/%(nGroups)s,\n"
-                "        'cap': %(pCap)s\n"
+                "        'cap': %(nSlots)s\n"
                 "    });\n"
                 "}\n"
             )
@@ -239,37 +254,53 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
 
         code = (
             "\n"
-            "// create counterbalance object for %(name)s \n"
-            "%(name)s = data.Counterbalancer({\n"
-            "    'entry': '%(name)s',\n"
-            "    'conditions': %(name)sConditions,\n"
-            "    'onFinished': %(onFinished)s\n"
+            "// get counterbalancing group \n"
+            "%(name)s = await psychoJS.shelf.counterbalanceSelect({\n"
+            "    key: ['%(name)s', '@designer', '@experiment'],\n"
+            "    groups: %(name)sConditions.map(row => row.group),\n"
+            "    groupSizes: %(name)sConditions.map(row => row.cap),\n"
             "});\n"
-            "// get group from online\n"
-            "%(name)s.allocateGroup();"
-            "\n"
         )
         buff.writeIndentedLines(code % self.params)
-
+        # if ending experiment on depletion, write the code to do so
+        if self.params['endExperimentOnDepletion']:
+            code = (
+                "// if slots and repeats are fully depleted, end the experiment now\n"
+                "if (%(name)s.finished) {\n"
+                "    endExperiment(thisExp, win=win)\n"
+                "}\n"
+            )
+            buff.writeIndentedLines(code % self.params)
         # save data
         if self.params['saveData']:
             code = (
-            "thisExp.addData('%(name)s.group', %(name)s.group);\n"
-            "for (let _key in %(name)s.params) {\n"
-            "    thisExp.addData(f'%(name)s.{_key}', %(name)s.params[_key]);\n"
-            "};\n"
+                "thisExp.addData('%(name)s.group', %(name)s.group)\n"
+                "for (let _key in %(name)s.params) {\n"
+                "    thisExp.addData(`%(name)s.${_key}`, %(name)s.params[_key])\n"
+                "}\n"
             )
             buff.writeIndentedLines(code % self.params)
         # save remaining cap
         if self.params['saveRemaining']:
             code = (
-            "thisExp.addData('%(name)s.remaining', %(name)s.remaining);"
+                "thisExp.addData('%(name)s.remaining', %(name)s.remaining)\n"
             )
             buff.writeIndentedLines(code % self.params)
 
-        buff.setIndentLevel(-2, relative=True)
+        # exit function def
         code = (
             "  }\n"
             "}\n"
+        )
+        buff.setIndentLevel(-2, relative=True)
+        buff.writeIndentedLines(code % self.params)
+
+    def writeExperimentEndCodeJS(self, buff):
+        code = (
+            "await psychoJS.shelf.counterbalanceConfirm(\n"
+            "    ['%(name)s', '@designer', '@experiment'],\n"
+            "    %(name)s.participantToken,\n"
+            "    (resp.keys === 'left')\n"
+            ")\n"
         )
         buff.writeIndentedLines(code % self.params)

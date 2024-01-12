@@ -1,4 +1,5 @@
 from psychopy import logging
+from psychopy.tools.attributetools import attributeSetter
 
 
 class CounterbalancerFinishedError(BaseException):
@@ -10,8 +11,8 @@ class CounterbalancerFinishedError(BaseException):
 
 class Counterbalancer:
     """
-    Tool for getting a group assignment from the Shelf, and keeping track of which previous participants were assigned
-    to which groups.
+    Tool for getting a group assignment from the Shelf, and keeping track of which previous
+    participants were assigned to which groups.
 
     Parameters
     ----------
@@ -24,12 +25,11 @@ class Counterbalancer:
         - Its name
         - Max number of participants
         - [optional] Additional arbitrary parameters
-    onFinished : str or function
-        What to do when the participants remaining for all groups is 0. If given a function, will call that function,
-        but can also be given one of the following as strings:
-        - "raise" - Raise a CounterbalancerFinishedError when finished
-        - "reset" - Reset participant counters for each group back to their starting values
-        - "ignore" - Do nothing, simply continue with values at 0 and self.finished as True
+    nReps : int
+        Number of (total) times the slots for each group need to be depleted for the shelf entry
+        to be considered "finished". This sets the initial value for `reps` - each time the
+        number of slots left for all groups reaches 0, if `reps` is more than 1, the slots are
+        refilled and `reps` decreases by 1.
     autoLog : bool
         Whether to print to the log whenever an attribute of this object changes.
     """
@@ -38,8 +38,10 @@ class Counterbalancer:
             shelf,
             entry,
             conditions,
-            onFinished="ignore",
+            nReps=1,
             autoLog=False):
+        # store autolog
+        self.autoLog = autoLog
         # store ref to shelf
         self.shelf = shelf
         # store entry name
@@ -49,10 +51,11 @@ class Counterbalancer:
         # placeholder values before querying shelf
         self.group = None
         self.params = {}
-        # set behaviour on finished
-        self.onFinished = onFinished
-        # store autolog
-        self.autoLog = autoLog
+        # store total nReps
+        self.nReps = nReps
+        # get remaining reps
+        data = self.shelf.data.read()
+        self.reps = data.get("_reps", nReps)
 
     @property
     def data(self):
@@ -65,9 +68,63 @@ class Counterbalancer:
         """
         # make sure entry exists
         if self.entry not in self.shelf.data:
-            self.shelf.data[self.entry] = {}
+            self.makeNewEntry()
+        # filter out protected (_) entries
+        data = {
+            key: val
+            for key, val in self.shelf.data[self.entry].items()
+            if not str(key).startswith("_")
+        }
         # return entry
-        return self.shelf.data[self.entry]
+        return data
+
+    @attributeSetter
+    def reps(self, value):
+        """
+        Set the number of repetitions remaining for this shelf entry. If reps > 0 when
+        allocateGroups is called,
+
+        Parameters
+        ----------
+        value : int
+            Number of repetitions remaining
+        """
+        # make sure entry exists
+        if self.entry not in self.shelf.data:
+            self.makeNewEntry()
+        # get entry
+        entry = self.shelf.data[self.entry]
+        # set value in entry
+        entry['_reps'] = value
+        # reapply entry to shelf
+        self.shelf.data[self.entry] = entry
+        # store value
+        self.__dict__['reps'] = value
+
+    def makeNewEntry(self):
+        # create an entry with only reps
+        self.shelf.data[self.entry] = {'_reps': self.nReps}
+        # reset slots (to create groups)
+        self.resetSlots()
+
+    def resetSlots(self):
+        # get entry
+        entry = self.shelf.data[self.entry]
+        # populate entry with groups and caps
+        for row in self.conditions:
+            entry[row['group']] = row['cap']
+        # reapply entry to shelf
+        self.shelf.data[self.entry] = entry
+
+    @property
+    def depleted(self):
+        """
+        Returns
+        -------
+        bool
+            True if all participant counters are below 0, False otherwise.
+        """
+        return all(val <= 0 for val in self.data.values())
 
     @property
     def finished(self):
@@ -75,9 +132,10 @@ class Counterbalancer:
         Returns
         -------
         bool
-            True if all participant counters are at or below 0, False otherwise.
+            True if all participant counters are at or below 0 and there are no repetitions left,
+            False otherwise.
         """
-        return all(val <= 0 for val in self.data.values())
+        return self.depleted and self.reps <= 1
 
     @property
     def remaining(self):
@@ -99,31 +157,26 @@ class Counterbalancer:
         str
             Name of the chosen group.
         """
-        # handle behaviour on finished
+
         if self.finished:
-            # log warning regardless
-            msg = f"All groups in shelf entry '{self.entry}' are now finished."
+            # log warning
+            msg = (f"All groups in shelf entry '{self.entry}' are now finished, with no "
+                   f"repetitions remaining.")
             logging.warning(msg)
 
-            if callable(self.onFinished):
-                # if given a callable for onFinished, call it when finished
-                self.onFinished()
-            elif self.onFinished == "raise":
-                # if onFinished is raise, raise an error when finished
-                raise CounterbalancerFinishedError(msg)
-            elif self.onFinished == "reset":
-                # if onFinished is restart, reset caps for all groups
-                data = self.data.copy()
-                for row in self.conditions:
-                    data[row['group']] = row['cap']
-                self.shelf.data[self.entry] = data
+            # if onFinished is ignore, set group to None and params to blank
+            self.group = None
+            if len(self.conditions):
+                self.params = {key: None for key in self.conditions[0]}
             else:
-                # if onFinished is ignore, set group to None and params to blank
-                self.group = None
-                if len(self.conditions):
-                    self.params = {key: None for key in self.conditions[0]}
-                else:
-                    self.params = {'group': None}
+                self.params = {'group': None}
+
+            return
+        elif self.depleted:
+            # if depleted but not finished, reset slots before choosing
+            self.resetSlots()
+            # decrement reps
+            self.reps = self.reps - 1
 
         # get group assignment from shelf
         self.group = self.shelf.counterBalanceSelect(
