@@ -379,6 +379,7 @@ class TextBox2(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin):
                 shape='square', units=self.units,
                 autoLog=False
             )
+            self.container.disable()
         if value in ("scroll",):
             # If needed, create Slider
             from ..slider import Slider  # Slider contains textboxes, so only import now

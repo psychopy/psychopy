@@ -49,7 +49,7 @@ def addStandaloneRoutine(routineClass):
             "Routine `{}` does not define a `.categories` attribute.".format(
                 routineName))
 
-    pluginRoutines[compName] = routineClass
+    pluginRoutines[routineName] = routineClass
 
 
 def getAllStandaloneRoutines(fetchIcons=True):

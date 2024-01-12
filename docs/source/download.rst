@@ -15,7 +15,7 @@ For the easiest installation download and install the Standalone package.
 
     let filename;
     let url;
-    let version='2023.2.2';
+    let version='2023.2.3';
 
     let clientInfo = UAParser(navigator.userAgent);
     var osLabel;
@@ -72,7 +72,7 @@ of Python.
 The steps are to fetch Python. This method should work on a range of versions of Python
 but **we strongly recommend you use Python 3.8**. Older Python versions are no longer being tested and
 may not work correctly. Newer Python versions may not have wheels for all the necessary
-depedencies even though we believe that PsychoPy's code, itself, is compatible all the way up
+dependencies even though we believe that PsychoPy's code, itself, is compatible all the way up
 to Python 3.10.
 
 You can install |PsychoPy| and its dependencies (more than you'll strictly need, depending on the features you use)
@@ -81,7 +81,7 @@ by::
   pip install psychopy
 
 If you prefer *not* to install *all* the dependencies (e.g. because the platform or Python version you're
-on doesn't have that depedency easily available) then you could do::
+on doesn't have that dependency easily available) then you could do::
 
   pip install psychopy --no-deps
 

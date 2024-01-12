@@ -20,8 +20,7 @@ from .params import getCodeFromParamStr, Param
 from .components import getInitVals, getComponents, getAllComponents
 from .routines import getAllStandaloneRoutines
 from ._experiment import Experiment
-from .utils import unescapedDollarSign_re, valid_var_re, \
-     nonalphanumeric_re
+from .utils import unescapedDollarSign_re, valid_var_re, nonalphanumeric_re
 from psychopy.experiment.utils import CodeGenerationException
 
 

@@ -68,7 +68,7 @@ class ScriptProcess:
 
         return self.scriptProcess.isRunning
 
-    def runFile(self, event=None, fileName=None, focusOnExit='runner'):
+    def runFile(self, event=None, fileName=None, focusOnExit='runner', args=None):
         """Begin new process to run experiment.
 
         Parameters
@@ -136,6 +136,15 @@ class ScriptProcess:
         # pyExec = '"' + pyExec + '"'  # use quotes to prevent issues with spaces
         # fullPath = '"' + fullPath + '"'
         command = [pyExec, '-u', fullPath]  # passed to the Job object
+
+        # append args to command
+        if args is None:
+            args = []
+        if isinstance(args, str):
+            args = [args]
+        if not isinstance(args, list):
+            args = list(args)
+        command += args
 
         # create a new job with the user script
         self.scriptProcess = jobs.Job(

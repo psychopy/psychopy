@@ -109,6 +109,22 @@ class RunnerFrame(wx.Frame, handlers.ThemeMixin):
     def removeTask(self, evt=None):
         self.panel.removeTask(evt)
 
+    def getOutputPanel(self, name):
+        """
+        Get output panel which matches the given name.
+
+        Parameters
+        ----------
+        name : str
+            Key by which the output panel was stored on creation
+
+        Returns
+        -------
+        ScriptOutputPanel
+            Handle of the output panel
+        """
+        return self.panel.outputNotebook.panels[name]
+
     @property
     def stdOut(self):
         return self.panel.stdoutPnl.ctrl
@@ -530,6 +546,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         bmps = {
             self.alertsPnl: icons.ButtonIcon("alerts", size=16).bitmap,
             self.stdoutPnl: icons.ButtonIcon("stdout", size=16).bitmap,
+            self.outputNotebook.gitPnl: icons.ButtonIcon("pavlovia", size=16).bitmap,
         }
         for i in range(self.outputNotebook.GetPageCount()):
             pg = self.outputNotebook.GetPage(i)
@@ -573,11 +590,19 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         self.ribbon.buttons['pystop'].Disable()
         if self.currentSelection:
             self.ribbon.buttons['pyrun'].Enable()
+            self.ribbon.buttons['pypilot'].Enable()
 
-    def runLocal(self, evt=None, focusOnExit='runner'):
+    def runLocal(self, evt=None, focusOnExit='runner', args=None):
         """Run experiment from new process using inherited ScriptProcess class methods."""
         if self.currentSelection is None:
             return
+
+        # substitute args
+        if args is None:
+            args = []
+
+        # set switch mode
+        self.ribbon.buttons['pyswitch'].setMode("--pilot" in args)
 
         currentFile = str(self.currentFile)
         if self.currentFile.suffix == '.psyexp':
@@ -585,12 +610,19 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
                            exp=self.loadExperiment())
         procStarted = self.runFile(
             fileName=currentFile,
-            focusOnExit=focusOnExit)
+            focusOnExit=focusOnExit,
+            args=args
+        )
 
         # Enable/Disable btns
         if procStarted:
             self.ribbon.buttons['pyrun'].Disable()
+            self.ribbon.buttons['pypilot'].Disable()
             self.ribbon.buttons['pystop'].Enable()
+
+    def pilotLocal(self, evt=None, focusOnExit='runner', args=None):
+        # run in pilot mode
+        self.runLocal(evt, args=["--pilot"], focusOnExit=focusOnExit)
 
     def runOnline(self, evt=None):
         """Run PsychoJS task from https://pavlovia.org."""
@@ -756,6 +788,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         self.ribbon.buttons['remove'].Enable()
         if not self.running:  # if we aren't already running we can enable run button
             self.ribbon.buttons['pyrun'].Enable()
+            self.ribbon.buttons['pypilot'].Enable()
         if self.currentFile.suffix == '.psyexp':
             self.ribbon.buttons['jsrun'].Enable()
         else:
@@ -771,6 +804,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         self.currentExperiment = None
         self.currentProject = None
         self.ribbon.buttons['pyrun'].Disable()
+        self.ribbon.buttons['pypilot'].Disable()
         self.ribbon.buttons['jsrun'].Disable()
         self.ribbon.buttons['remove'].Disable()
         self.app.updateWindowMenu()
@@ -889,6 +923,10 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
 class RunnerOutputNotebook(aui.AuiNotebook, handlers.ThemeMixin):
     def __init__(self, parent):
         aui.AuiNotebook.__init__(self, parent, style=wx.BORDER_NONE)
+
+        # store pages by non-translated names for easy access (see RunnerFrame.getOutputPanel)
+        self.panels = {}
+
         # Alerts
         self.alertsPnl = ScriptOutputPanel(
             parent=parent,
@@ -898,6 +936,7 @@ class RunnerOutputNotebook(aui.AuiNotebook, handlers.ThemeMixin):
         self.AddPage(
             self.alertsPnl, caption=_translate("Alerts")
         )
+        self.panels['alerts'] = self.alertsPnl
 
         # StdOut
         self.stdoutPnl = ScriptOutputPanel(
@@ -908,6 +947,18 @@ class RunnerOutputNotebook(aui.AuiNotebook, handlers.ThemeMixin):
         self.AddPage(
             self.stdoutPnl, caption=_translate("Stdout")
         )
+        self.panels['stdout'] = self.stdoutPnl
+
+        # Git (Pavlovia) output
+        self.gitPnl = ScriptOutputPanel(
+            parent=parent,
+            style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE
+        )
+        self.gitPnl.ctrl.Bind(wx.EVT_TEXT, self.onWrite)
+        self.AddPage(
+            self.gitPnl, caption=_translate("Pavlovia")
+        )
+        self.panels['git'] = self.gitPnl
 
         self.SetMinSize((720, 720))
 
@@ -964,13 +1015,28 @@ class RunnerRibbon(ribbon.FrameRibbon):
         self.addSection(
             "py", label=_translate("Desktop"), icon="desktop"
         )
-        # run Py
-        btn = self.addButton(
-            section="py", name="pyrun", label=_translate("Run in Python"), icon='pyRun',
-            tooltip=_translate("Run the current script in Python"),
-            callback=parent.runLocal
+        # pilot Py
+        self.addButton(
+            section="py", name="pypilot", label=_translate("Pilot"), icon='pyPilot',
+            tooltip=_translate("Run the current script in Python with piloting features on"),
+            callback=parent.pilotLocal, style=wx.BU_BOTTOM | wx.BU_EXACTFIT
         )
-        btn.Disable()
+        # switch run/pilot
+        runPilotSwitch = self.addSwitchCtrl(
+            section="py", name="pyswitch",
+            labels=(_translate(""), _translate("")),
+            style=wx.HORIZONTAL
+        )
+        # run Py
+        self.addButton(
+            section="py", name="pyrun", label=_translate("Run"), icon='pyRun',
+            tooltip=_translate("Run the current script in Python"),
+            callback=parent.runLocal, style=wx.BU_BOTTOM | wx.BU_EXACTFIT
+        )
+        # link buttons to switch
+        runPilotSwitch.addDependant(self.buttons['pyrun'], mode=1, action="enable")
+        runPilotSwitch.addDependant(self.buttons['pypilot'], mode=0, action="enable")
+        runPilotSwitch.setMode(0)
         # stop
         self.addButton(
             section="py", name="pystop", label=_translate("Stop"), icon='stop',

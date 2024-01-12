@@ -66,15 +66,15 @@ es_NI ESI
 es_CL ESL
 es_MX ESM
 es_ES ESN español, España  (Spanish, Spain)
-es_CO ESO
+es_CO ESO Español, Colombia (Spanish, Colombia)
 es_PE ESR
 es_AR ESS
-es_US EST
+es_US EST Español, USA (Spanish, USA)
 es_PR ESU
 es_VE ESV
 es_UY ESY
 es_PY ESZ
-et_EE ETI
+et_EE ETI eesti (Estonian)
 eu_ES EUQ
 fa_IR FAR فارسی (Persian)
 fi_FI FIN suomi  (Finnish)

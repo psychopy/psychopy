@@ -30,25 +30,22 @@ __folder__ = Path(__file__).parent
 class DeviceManager:
     """Class for managing hardware devices.
 
-    An instance of this class is used to manage various hardware peripherals 
-    used by PsychoPy. It can be used to access devices such as microphones, 
-    button boxes, and cameras though a common interface. It can also be used to 
-    get information about available devices installed on the system, such as 
-    their settings and capabilities prior to initializing them.
+    An instance of this class is used to manage various hardware peripherals used by PsychoPy. It
+    can be used to access devices such as microphones, button boxes, and cameras though a common
+    interface. It can also be used to get information about available devices installed on the
+    system, such as their settings and capabilities prior to initializing them.
     
-    It is recommended that devices are initialized through the device manager
-    rather than directly. The device manager is responsible for keeping track
-    of devices and ensuring that they are properly closed when the program
-    exits. 
+    It is recommended that devices are initialized through the device manager rather than
+    directly. The device manager is responsible for keeping track of devices and ensuring that
+    they are properly closed when the program exits.
 
-    This class is implemented as a singleton, so there is only one
-    instance of it per ssession after its initialized. The instance can be 
-    accessed through the global variable `deviceManager` or by calling 
-    `getDeviceManager()`.
+    This class is implemented as a singleton, so there is only one instance of it per ssession
+    after its initialized. The instance can be accessed through the global variable
+    `deviceManager` or by calling `getDeviceManager()`.
 
-    Any subclass of BaseDevice is added to DeviceManager's `.deviceClasses`
-    list upon import, so devices matching that class become available through
-    `DeviceManager.getAvailableDevices("*")`.
+    Any subclass of BaseDevice is added to DeviceManager's `.deviceClasses` list upon import,
+    so devices matching that class become available through `DeviceManager.getAvailableDevices(
+    "*")`.
 
     """
     _instance = None  # singleton instance
@@ -56,6 +53,7 @@ class DeviceManager:
     liaison = None
     ioServer = None  # reference to currently running ioHub ioServer object
     devices = {}  # devices stored
+    deviceAliases = {} # aliases lut to reference devices
     aliases = {}  # aliases to get device classes by
 
     with (__folder__ / "knownDevices.json").open("rb") as f:
@@ -77,8 +75,7 @@ class DeviceManager:
     # --- utility ---
 
     def _getSerialPortsInUse(self):
-        """Get serial ports that are being used and the names of the devices
-        that are using them.
+        """Get serial ports that are being used and the names of the devices that are using them.
 
         This will only work if the devices have a `portString` attribute, which
         requires they inherit from `SerialDevice`.
@@ -99,7 +96,7 @@ class DeviceManager:
         return ports
 
     @staticmethod
-    def registerAlias(alias, deviceClass):
+    def registerClassAlias(alias, deviceClass):
         """
         Register an alias to rever to a particular class, for convenience.
 
@@ -108,7 +105,8 @@ class DeviceManager:
         alias : str
             Short, convenient string to refer to the class by. For example, "keyboard".
         deviceClass : str
-            Full import path for the class, in PsychoPy, of the device. For example `psychopy.hardware.keyboard.Keyboard`
+            Full import path for the class, in PsychoPy, of the device. For example
+            `psychopy.hardware.keyboard.Keyboard`
         """
         # if device class is an already registered alias, get the actual class str
         deviceClass = DeviceManager._resolveAlias(deviceClass)
@@ -118,8 +116,8 @@ class DeviceManager:
     @staticmethod
     def _resolveAlias(alias):
         """
-        Get a device class string from a previously registered alias. Returns the alias unchanged if
-        not found.
+        Get a device class string from a previously registered alias. Returns the alias unchanged
+        if not found.
 
         Parameters
         ----------
@@ -141,24 +139,32 @@ class DeviceManager:
         Parameters
         ----------
         deviceClass : str
-            Full import path for the class, in PsychoPy, of the device. For example `psychopy.hardware.keyboard.Keyboard`
+            Full import path for the class, in PsychoPy, of the device. For example
+            `psychopy.hardware.keyboard.Keyboard`
 
         Returns
         -------
         type
             Class pointed to by deviceClass
         """
+        if deviceClass in (None, "*"):
+            # resolve "any" flags to BaseDevice
+            deviceClass = "psychopy.hardware.base.BaseDevice"
         # get package and class names from deviceClass string
         parts = deviceClass.split(".")
         pkgName = ".".join(parts[:-1])
         clsName = parts[-1]
         # import package
-        pkg = importlib.import_module(pkgName)
+        try:
+            pkg = importlib.import_module(pkgName)
+        except:
+            raise ModuleNotFoundError(
+                f"Could not find module: {pkgName}"
+            )
         # get class
         cls = getattr(pkg, clsName)
 
         return cls
-
 
     # --- device management ---
     @staticmethod
@@ -169,7 +175,8 @@ class DeviceManager:
         Parameters
         ----------
         deviceClass : str
-            Full import path for the class, in PsychoPy, of the device. For example `psychopy.hardware.keyboard.Keyboard`
+            Full import path for the class, in PsychoPy, of the device. For example
+            `psychopy.hardware.keyboard.Keyboard`
         deviceName : str
             Arbitrary name to store device under.
         args : list
@@ -196,9 +203,10 @@ class DeviceManager:
     @staticmethod
     def addDeviceFromParams(params):
         """
-        Similar to addDevice, but rather than accepting arguments and keyword arguments, simply accepts a dict of
-        params. This is useful when receiving parameters from Liaison, communicating with a keyword-less language like
-        JavaScript. This is relatively niche and in most cases addDevice will work fine.
+        Similar to addDevice, but rather than accepting arguments and keyword arguments,
+        simply accepts a dict of params. This is useful when receiving parameters from Liaison,
+        communicating with a keyword-less language like JavaScript. This is relatively niche and
+        in most cases addDevice will work fine.
 
         Parameters
         ----------
@@ -211,6 +219,103 @@ class DeviceManager:
             Device created by the linked class init
         """
         return DeviceManager.addDevice(**params)
+
+    @staticmethod
+    def addDeviceAlias(deviceName, alias):
+        """
+        Store an already added device by an additional name
+
+        Parameters
+        ----------
+        deviceName : str
+            Key by which the device to alias is currently stored.
+        alias
+            Alias to create
+        Returns
+        -------
+        bool
+            True if completed successfully
+        """
+        # if given a list, call iteratively
+        if isinstance(alias, (list, tuple)):
+            for thisAlias in alias:
+                DeviceManager.addDeviceAlias(deviceName, thisAlias)
+
+            return True
+
+        # don't add alias if there's no device to alias!
+        if DeviceManager.getDevice(deviceName) is None:
+            raise KeyError(
+                f"Cannot add alias for {deviceName} as no device by this name has been added."
+            )
+
+        # store same device by new handle
+        DeviceManager.devices[alias] = DeviceManager.getDevice(deviceName)
+        DeviceManager.deviceAliases[alias] = deviceName
+
+        return True
+
+    @staticmethod
+    def getDeviceAliases(deviceName):
+        """
+        Get all aliases by which a device is known to DeviceManager
+
+        Parameters
+        ----------
+        deviceName : str
+            One name by which the device is known to DeviceManager
+
+        Returns
+        -------
+        list[str]
+            All names by which the device is known to DeviceManager
+        """
+        # get device object
+        obj = DeviceManager.getDevice(deviceName)
+        # array to store aliases in
+        aliases = []
+        # iterate through devices
+        for alias, aliasedDeviceName in DeviceManager.deviceAliases.items():
+            if deviceName == aliasedDeviceName:
+                aliases.append(alias)
+
+        return aliases
+
+    @staticmethod
+    def getAllDeviceAliases():
+        """
+        Get all aliases by which each device is known to DeviceManager
+
+        Returns
+        -------
+        dict[str]
+            Stored device aliases
+        """
+
+        return DeviceManager.deviceAliases
+
+    @staticmethod
+    def updateDeviceName(oldName, newName):
+        """
+        Store an already added device by an additional name
+
+        Parameters
+        ----------
+        oldName : str
+            Key by which the device to alias is currently stored.
+        newName
+            Key to change to.
+        Returns
+        -------
+        bool
+            True if completed successfully
+        """
+        # store same device by new handle
+        DeviceManager.addDeviceAlias(oldName, alias=newName)
+        # remove old name
+        DeviceManager.devices.pop(oldName)
+
+        return True
 
     @staticmethod
     def removeDevice(deviceName):
@@ -232,6 +337,11 @@ class DeviceManager:
         if hasattr(device, "close"):
             device.close()
         del DeviceManager.devices[deviceName]
+
+        # Claenup deviceAliases as well
+        for alias in list(DeviceManager.deviceAliases.keys()):
+            if deviceName == DeviceManager.deviceAliases[alias]:
+                del DeviceManager.deviceAliases[alias]
 
         return True
 
@@ -255,8 +365,8 @@ class DeviceManager:
     @staticmethod
     def hasDevice(deviceName, deviceClass="*"):
         """
-        Query whether the named device exists and, if relevant, whether it is
-        an instance of the expected class.
+        Query whether the named device exists and, if relevant, whether it is an instance of the
+        expected class.
 
         Parameters
         ----------
@@ -276,9 +386,6 @@ class DeviceManager:
         # if device is None, we don't have it
         if device is None:
             return False
-        # if class isn't set, then any device is fine
-        if deviceClass in (None, "*"):
-            return True
         # if device class is an already registered alias, get the actual class str
         deviceClass = DeviceManager._resolveAlias(deviceClass)
         # get device class
@@ -287,9 +394,73 @@ class DeviceManager:
         return isinstance(device, cls)
 
     @staticmethod
+    def getRequiredDeviceNamesFromExperiments(experiments):
+        """
+        Get a list of device names referenced in a given set of experiments.
+
+        Parameters
+        ----------
+        experiments : list[str or Path]
+            List of paths pointing to .psyexp files to investigate
+
+        Returns
+        -------
+        dict[str:list[str]
+            Dict of device names against a list of the classes of device it's used to refer to
+        """
+        from psychopy import experiment
+
+        # dict in which to store usages
+        usages = {}
+
+        def _process(emt):
+            """
+            Process an element (Component or Routine) for device names and append them to the
+            usages dict.
+
+            Parameters
+            ----------
+            emt : Component or Routine
+                Element to process
+            """
+            # if we have a device name for this element...
+            if "deviceLabel" in emt.params:
+                # get init value so it lines up with boilerplate code
+                inits = experiment.getInitVals(emt.params)
+                # get value
+                deviceName = inits['deviceLabel'].val
+                # make sure device name is in usages dict
+                if deviceName not in usages:
+                    usages[deviceName] = []
+                print("DEVICE", type(emt).__name__, type(emt).deviceClasses)
+                # add any new usages
+                for cls in getattr(emt, "deviceClasses", []):
+                    if cls not in usages[deviceName]:
+                        usages[deviceName].append(cls)
+
+        # process each experiment
+        for file in experiments:
+            # create experiment object
+            exp = experiment.Experiment()
+            exp.loadFromXML(file)
+
+            # iterate through routines
+            for rt in exp.routines.values():
+                if isinstance(rt, experiment.routines.BaseStandaloneRoutine):
+                    # for standalone routines, get device names from params
+                    _process(rt)
+                else:
+                    # for regular routines, get device names from each component
+                    for comp in rt:
+                        _process(comp)
+
+        return usages
+
+    @staticmethod
     def getDeviceBy(attr, value, deviceClass="*"):
         """
-        Get a device by the value of a particular attribute. e.g. get a Microphone device by its index.
+        Get a device by the value of a particular attribute. e.g. get a Microphone device by its
+        index.
 
         Parameters
         ----------
@@ -308,7 +479,7 @@ class DeviceManager:
         # get devices by class
         devices = DeviceManager.getInitialisedDevices(deviceClass=deviceClass)
         # try each matching device
-        for dev in devices:
+        for dev in devices.values():
             if hasattr(dev, attr):
                 # if device matches attribute, return it
                 if getattr(dev, attr) == value:
@@ -322,7 +493,8 @@ class DeviceManager:
         Parameters
         ----------
         deviceClass : str
-            Full import path for the class, in PsychoPy, of the device. For example `psychopy.hardware.keyboard.Keyboard`
+            Full import path for the class, in PsychoPy, of the device. For example
+            `psychopy.hardware.keyboard.Keyboard`
 
         Returns
         -------
@@ -331,14 +503,14 @@ class DeviceManager:
         """
         # if device class is an already registered alias, get the actual class str
         deviceClass = DeviceManager._resolveAlias(deviceClass)
+        # get actual device class from class str
+        cls = DeviceManager._resolveClassString(deviceClass)
 
         foundDevices = {}
         # iterate through devices and names
         for name, device in DeviceManager.devices.items():
-            # get class name for this device
-            thisDeviceClass = ".".join((type(device).__module__, type(device).__qualname__))
             # add device to array if device class matches requested
-            if deviceClass in (thisDeviceClass, "*"):
+            if isinstance(device, cls) or deviceClass == "*":
                 foundDevices[name] = device
 
         return foundDevices
@@ -370,7 +542,8 @@ class DeviceManager:
         ----------
         deviceClass : str or list
             Full import path for the class, in PsychoPy, of the device. For example
-            `psychopy.hardware.keyboard.Keyboard`. If given a list, will run iteratively for all items in the list.
+            `psychopy.hardware.keyboard.Keyboard`. If given a list, will run iteratively for all
+            items in the list.
 
         Returns
         -------
@@ -397,8 +570,8 @@ class DeviceManager:
         cls = DeviceManager._resolveClassString(deviceClass)
         # make sure cass has a getAvailableDevices method
         assert hasattr(cls, "getAvailableDevices"), (
-            f"Could not get available devices of type `{deviceClass}` as device class does not have a "
-            f"`getAvailableDevices` method."
+            f"Could not get available devices of type `{deviceClass}` as device class does not "
+            f"have a `getAvailableDevices` method."
         )
         # use class method
         devices = []
@@ -414,9 +587,9 @@ class DeviceManager:
     def closeAll():
         """Close all devices.
 
-        Close all devices that have been initialized. This is usually called on
-        exit to free resources cleanly. It is not necessary to call this method
-        manually as it is registered as an `atexit` handler.
+        Close all devices that have been initialized. This is usually called on exit to free
+        resources cleanly. It is not necessary to call this method manually as it is registered
+        as an `atexit` handler.
 
         The device manager will be reset after this method is called.
 
@@ -477,7 +650,8 @@ class DeviceManager:
             - "print": Create a PrintListener with default settings
             - "log": Create a LoggingListener with default settings
         startLoop : bool
-            If True, then upon adding the listener, start up an asynchronous loop to dispatch messages.
+            If True, then upon adding the listener, start up an asynchronous loop to dispatch
+            messages.
 
         Returns
         -------
@@ -491,8 +665,8 @@ class DeviceManager:
             listener = device.addListener(listener, startLoop=startLoop)
         else:
             raise AttributeError(
-                f"Could not add a listener to device {deviceName} ({type(device).__name__}) as it does not "
-                f"have an `addListener` method."
+                f"Could not add a listener to device {deviceName} ({type(device).__name__}) as it "
+                f"does not have an `addListener` method."
             )
 
         return listener
@@ -519,7 +693,133 @@ class DeviceManager:
             device.clearListeners()
 
         return True
-            
+
+    @staticmethod
+    def getResponseParams(deviceClass="*"):
+        """
+        Get the necessary params for initialising a response for the given device.
+
+        Parameters
+        ----------
+        deviceClass : str
+            Full import path for the class, in PsychoPy, of the device. For example
+            `psychopy.hardware.keyboard.Keyboard`. Use "*" to get for all currently imported
+            classes.
+
+        Returns
+        -------
+        list[str]
+            List of param names for the given device's response object
+        OR
+        dict[str:list[str]]
+            Lists of param names for all devices' response objects, in a dict against device class
+            strings
+        """
+        from psychopy.hardware.base import BaseResponseDevice, BaseDevice
+
+        if deviceClass == "*":
+            # if deviceClass is *, call for all types
+            params = {}
+            for deviceClass in DeviceManager.deviceClasses:
+                # skip base classes
+                if deviceClass in (BaseResponseDevice, BaseDevice):
+                    continue
+                params[deviceClass] = DeviceManager.getResponseParams(deviceClass)
+            return params
+
+        # resolve class string
+        deviceClass = DeviceManager._resolveAlias(deviceClass)
+        deviceClass = DeviceManager._resolveClassString(deviceClass)
+        # if device isn't a ResponseDevice, return None
+        if not issubclass(deviceClass, BaseResponseDevice):
+            return
+        # use inspect to get input params of response class
+        args = list(deviceClass.responseClass.__init__.__code__.co_varnames)
+        # remove "self" arg
+        if "self" in args:
+            args.remove("self")
+
+        return args
+
+    @staticmethod
+    def getScreenCount():
+        """
+        Get the number of currently connected screens
+
+        Returns
+        -------
+        int
+            Number of screens
+        """
+        import pyglet
+        # get screens
+        display = pyglet.canvas.Display()
+        allScrs = display.get_screens()
+
+        return len(allScrs)
+
+    @staticmethod
+    def showScreenNumbers(dur=5):
+        """
+        Spawn some PsychoPy windows to display each monitor's number.
+
+        Parameters
+        ----------
+        dur : float, int
+            How many seconds to show each window for
+        """
+        from psychopy import visual
+        import time
+
+        # make a window on each screen showing the screen number
+        wins = []
+        lbls = []
+        bars = []
+        for n in range(DeviceManager.getScreenCount()):
+            # create a window on the appropriate screen
+            win = visual.Window(
+                pos=(0, 0),
+                size=(128, 128),
+                units="norm",
+                screen=n,
+                color="black",
+                checkTiming=False
+            )
+            wins.append(win)
+            # create textbox with screen num
+            lbl = visual.TextBox2(
+                win, text=str(n + 1),
+                size=1, pos=0,
+                alignment="center", anchor="center",
+                letterHeight=0.5, bold=True,
+                fillColor=None, color="white"
+            )
+            lbls.append(lbl)
+            # progress bar to countdown dur
+            bar = visual.Rect(
+                win, anchor="bottom left",
+                pos=(-1, -1), size=(0, 0.1),
+                fillColor='white'
+            )
+            bars.append(bar)
+
+            # start a frame loop
+            start = time.time()
+            t = 0
+            while t < dur:
+                t = time.time() - start
+                # update progress bar
+                bar.size = (t / 5 * 2, 0.1)
+                # draw
+                bar.draw()
+                lbl.draw()
+                # flip
+                win.flip()
+
+            # close window
+            win.close()
+
+
 # handle to the device manager, which is a singleton
 deviceManager = DeviceManager()
 
@@ -545,9 +845,9 @@ def getDeviceManager():
 def closeAllDevices():
     """Close all devices.
 
-    Close all devices that have been initialized. This is usually called on
-    exit to free resources cleanly. It is not necessary to call this method
-    manually as it's registed as an `atexit` handler.
+    Close all devices that have been initialized. This is usually called on exit to free
+    resources cleanly. It is not necessary to call this method manually as it's registed as an
+    `atexit` handler.
 
     """
     devMgr = getDeviceManager()

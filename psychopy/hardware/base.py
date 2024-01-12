@@ -12,6 +12,8 @@ __all__ = [
     'BaseDevice'
 ]
 
+import json
+
 
 class BaseResponse:
     """
@@ -62,11 +64,72 @@ class BaseDevice:
         mro = inspect.getmodule(cls).__name__ + "." + cls.__name__
         # register aliases
         for alias in aliases:
-            DeviceManager.registerAlias(alias, mro)
+            DeviceManager.registerClassAlias(alias, mro)
         # store class string
         DeviceManager.deviceClasses.append(mro)
 
         return cls
+
+    def __eq__(self, other):
+        """
+        For BaseDevice objects, the == operator functions as shorthand for isSameDevice
+        """
+        return self.isSameDevice(other)
+
+    def getDeviceProfile(self):
+        """
+        Generate a dictionary describing this device by finding the profile from
+        getAvailableDevices which represents the same physical device as this object.
+
+        Returns
+        -------
+        dict
+            Dictionary representing this device
+        """
+        for profile in self.getAvailableDevices():
+            if self.isSameDevice(profile):
+                return profile
+
+    def getJSON(self, asString=True):
+        """
+        Convert the output of getDeviceProfile to a JSON string.
+
+        Parameters
+        ----------
+        asString : bool
+            If True, then the output will be converted to a string, otherwise will simply be a
+            JSON-friendly dict.
+
+        Returns
+        -------
+        str or dict
+            JSON string (or JSON friendly dict) of getDeviceProfile.
+        """
+        profile = self.getDeviceProfile()
+        if asString:
+            profile = json.dumps(profile)
+
+        return profile
+
+    # the following methods must be implemented by subclasses of BaseDevice
+
+    def isSameDevice(self, other):
+        """
+        Determine whether this object represents the same physical device as a given other object.
+
+        Parameters
+        ----------
+        other : BaseDevice, dict
+            Other device object to compare against, or a dict of params.
+
+        Returns
+        -------
+        bool
+            True if the two objects represent the same physical device
+        """
+        raise NotImplementedError(
+            "All subclasses of BaseDevice must implement the method `getDict`"
+        )
 
     @staticmethod
     def getAvailableDevices():
@@ -129,6 +192,28 @@ class BaseResponseDevice(BaseDevice):
             listener.receiveMessage(message)
 
         return True
+
+    def makeResponse(self, *args, **kwargs):
+        """
+        Programatically make a response on this device. The device won't necessarily physically register the response,
+        but it will be stored in this object same as an actual response.
+
+        Parameters
+        ----------
+        Function takes the same inputs as the response class for this device. For example, in KeyboardDevice, inputs
+        are code, tDown and name.
+
+        Returns
+        -------
+        BaseResponse
+            The response object created
+        """
+        # create response
+        resp = self.responseClass(*args, **kwargs)
+        # receive response
+        self.receiveMessage(resp)
+
+        return resp
 
     def clearResponses(self):
         """

@@ -91,6 +91,10 @@ def getLevel(level):
 
     Otherwise, the string "Level %s" % level is returned.
     """
+    # use allcaps
+    if isinstance(level, str):
+        level = level.upper()
+
     return _levelNames.get(level, "Level %s" % level)
 
 
