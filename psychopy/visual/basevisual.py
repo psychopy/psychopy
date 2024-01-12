@@ -1942,7 +1942,7 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
         """
         # format the input value as float vectors
         if type(val) in [tuple, list, numpy.ndarray]:
-            val = val2array(val)
+            val = val2array(val, length=len(val))
 
         # Set attribute with operation and log
         setAttribute(self, attrib, val, log, op)
