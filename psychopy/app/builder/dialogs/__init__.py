@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Dialog classes for the Builder, including ParamCtrls
@@ -710,10 +710,6 @@ class ParamNotebook(wx.Notebook, handlers.ThemeMixin):
             self.SetBackgroundColour("white")
 
     def __init__(self, parent, element, experiment):
-        # activate plugins so backends are available
-        if hasattr(element, "loadBackends"):
-            element.loadBackends()
-
         wx.Notebook.__init__(self, parent)
         self.parent = parent
         self.exp = experiment

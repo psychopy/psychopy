@@ -8,7 +8,7 @@ experimenter to create movie stimuli or instructions.
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 __all__ = [
@@ -64,7 +64,8 @@ import numpy as np
 from psychopy.constants import NOT_STARTED
 from psychopy.hardware import DeviceManager
 from psychopy.visual.movies.frame import MovieFrame, NULL_MOVIE_FRAME_INFO
-from psychopy.sound.microphone import Microphone, MicrophoneDevice
+from psychopy.sound.microphone import Microphone
+from psychopy.hardware.microphone import MicrophoneDevice
 from psychopy.tools import systemtools as st
 import psychopy.tools.movietools as movietools
 import psychopy.logging as logging
@@ -2434,7 +2435,7 @@ class Camera:
                     pass
 
 
-DeviceManager.registerAlias("camera", "psychopy.hardware.camera.Camera")
+DeviceManager.registerClassAlias("camera", "psychopy.hardware.camera.Camera")
 
 
 # ------------------------------------------------------------------------------

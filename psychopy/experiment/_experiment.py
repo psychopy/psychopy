@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Experiment classes:
@@ -324,12 +324,13 @@ class Experiment:
                 "    run(\n"
                 "        expInfo=expInfo, \n"
                 "        thisExp=thisExp, \n"
-                "        win=win\n"
+                "        win=win,\n"
+                "        globalClock=%(clockFormat)s\n"
                 "    )\n"
                 "    saveData(thisExp=thisExp)\n"
                 "    quit(thisExp=thisExp, win=win)\n"
             )
-            script.writeIndentedLines(code)
+            script.writeIndentedLines(code % self.settings.params)
 
             script = script.getvalue()
 
@@ -766,6 +767,9 @@ class Experiment:
         if self.settings.params['expName'].val in ['', None, 'None']:
             shortName = os.path.splitext(filenameBase)[0]
             self.setExpName(shortName)
+        # load plugins so that plugged in components get any additional params
+        from psychopy.plugins import activatePlugins
+        activatePlugins()
         # fetch routines
         routinesNode = root.find('Routines')
         allCompons = getAllComponents(
@@ -856,7 +860,9 @@ class Experiment:
                 for paramNode in routineNode:
                     if paramNode.tag == "Param":
                         for key, val in paramNode.items():
-                            setattr(routine.params[paramNode.get("name")], key, val)
+                            name = paramNode.get("name")
+                            if name in routine.params:
+                                setattr(routine.params[name], key, val)
                 # Add routine to experiment
                 self.addStandaloneRoutine(routine.name, routine)
         # for each component that uses a Static for updates, we need to set

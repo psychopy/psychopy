@@ -111,7 +111,7 @@ packages = ['pydoc',  # needed for help()
             'tables',  # 'cython',
             # these aren't needed, but liked
             'pylsl', 'pygaze',
-            'smite',  # https://github.com/marcus-nystrom/SMITE (not pypi!)
+            #'smite',  # https://github.com/marcus-nystrom/SMITE (not pypi!)
             'cv2',
             'questplus',
             'psychtoolbox',
@@ -126,7 +126,7 @@ if sys.version_info < (3, 9):
         [
             'moviepy', 
             'OpenGL', 'glfw',
-            'speech_recognition', 'googleapiclient', 'pocketsphinx',
+            'googleapiclient',
             'badapted', #'darc_toolbox',  # adaptive methods from Ben Vincent
             'egi_pynetstation', 'pylink', 'tobiiresearch',
             'pyxid2', 'ftd2xx',  # ftd2xx is used by cedrus

@@ -5,7 +5,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 __all__ = [
@@ -53,6 +53,7 @@ class DeviceManager:
     liaison = None
     ioServer = None  # reference to currently running ioHub ioServer object
     devices = {}  # devices stored
+    deviceAliases = {} # aliases lut to reference devices
     aliases = {}  # aliases to get device classes by
 
     with (__folder__ / "knownDevices.json").open("rb") as f:
@@ -95,7 +96,7 @@ class DeviceManager:
         return ports
 
     @staticmethod
-    def registerAlias(alias, deviceClass):
+    def registerClassAlias(alias, deviceClass):
         """
         Register an alias to rever to a particular class, for convenience.
 
@@ -146,17 +147,24 @@ class DeviceManager:
         type
             Class pointed to by deviceClass
         """
+        if deviceClass in (None, "*"):
+            # resolve "any" flags to BaseDevice
+            deviceClass = "psychopy.hardware.base.BaseDevice"
         # get package and class names from deviceClass string
         parts = deviceClass.split(".")
         pkgName = ".".join(parts[:-1])
         clsName = parts[-1]
         # import package
-        pkg = importlib.import_module(pkgName)
+        try:
+            pkg = importlib.import_module(pkgName)
+        except:
+            raise ModuleNotFoundError(
+                f"Could not find module: {pkgName}"
+            )
         # get class
         cls = getattr(pkg, clsName)
 
         return cls
-
 
     # --- device management ---
     @staticmethod
@@ -213,6 +221,124 @@ class DeviceManager:
         return DeviceManager.addDevice(**params)
 
     @staticmethod
+    def addDeviceAlias(deviceName, alias):
+        """
+        Store an already added device by an additional name
+
+        Parameters
+        ----------
+        deviceName : str
+            Key by which the device to alias is currently stored.
+        alias
+            Alias to create
+        Returns
+        -------
+        bool
+            True if completed successfully
+        """
+        # if given a list, call iteratively
+        if isinstance(alias, (list, tuple)):
+            for thisAlias in alias:
+                DeviceManager.addDeviceAlias(deviceName, thisAlias)
+
+            return True
+
+        # don't add alias if there's no device to alias!
+        if DeviceManager.getDevice(deviceName) is None:
+            raise KeyError(
+                f"Cannot add alias for {deviceName} as no device by this name has been added."
+            )
+
+        # store same device by new handle
+        DeviceManager.devices[alias] = DeviceManager.getDevice(deviceName)
+        DeviceManager.deviceAliases[alias] = deviceName
+
+        return True
+
+    @staticmethod
+    def removeDeviceAlias(alias):
+        """
+        Removes a device alias from DeviceManager, but doesn't delete the object to which the alias
+        corresponds.
+
+        Parameters
+        ----------
+        deviceName : str
+            Key by which the device to alias is currently stored.
+
+        Returns
+        -------
+        bool
+            True if completed successfully
+        """
+        DeviceManager.devices.pop(alias)
+        DeviceManager.deviceAliases.pop(alias)
+
+        return True
+
+    @staticmethod
+    def getDeviceAliases(deviceName):
+        """
+        Get all aliases by which a device is known to DeviceManager
+
+        Parameters
+        ----------
+        deviceName : str
+            One name by which the device is known to DeviceManager
+
+        Returns
+        -------
+        list[str]
+            All names by which the device is known to DeviceManager
+        """
+        # get device object
+        obj = DeviceManager.getDevice(deviceName)
+        # array to store aliases in
+        aliases = []
+        # iterate through devices
+        for alias, aliasedDeviceName in DeviceManager.deviceAliases.items():
+            if deviceName == aliasedDeviceName:
+                aliases.append(alias)
+
+        return aliases
+
+    @staticmethod
+    def getAllDeviceAliases():
+        """
+        Get all aliases by which each device is known to DeviceManager
+
+        Returns
+        -------
+        dict[str]
+            Stored device aliases
+        """
+
+        return DeviceManager.deviceAliases
+
+    @staticmethod
+    def updateDeviceName(oldName, newName):
+        """
+        Store an already added device by an additional name
+
+        Parameters
+        ----------
+        oldName : str
+            Key by which the device to alias is currently stored.
+        newName
+            Key to change to.
+        Returns
+        -------
+        bool
+            True if completed successfully
+        """
+        # store same device by new handle
+        DeviceManager.addDeviceAlias(oldName, alias=newName)
+        # remove old name
+        DeviceManager.devices.pop(oldName)
+
+        return True
+
+    @staticmethod
     def removeDevice(deviceName):
         """
         Remove the device matching a specified device type and name.
@@ -232,6 +358,11 @@ class DeviceManager:
         if hasattr(device, "close"):
             device.close()
         del DeviceManager.devices[deviceName]
+
+        # Claenup deviceAliases as well
+        for alias in list(DeviceManager.deviceAliases.keys()):
+            if deviceName == DeviceManager.deviceAliases[alias]:
+                del DeviceManager.deviceAliases[alias]
 
         return True
 
@@ -276,15 +407,74 @@ class DeviceManager:
         # if device is None, we don't have it
         if device is None:
             return False
-        # if class isn't set, then any device is fine
-        if deviceClass in (None, "*"):
-            return True
         # if device class is an already registered alias, get the actual class str
         deviceClass = DeviceManager._resolveAlias(deviceClass)
         # get device class
         cls = DeviceManager._resolveClassString(deviceClass)
         # assess whether device matches class
         return isinstance(device, cls)
+
+    @staticmethod
+    def getRequiredDeviceNamesFromExperiments(experiments):
+        """
+        Get a list of device names referenced in a given set of experiments.
+
+        Parameters
+        ----------
+        experiments : list[str or Path]
+            List of paths pointing to .psyexp files to investigate
+
+        Returns
+        -------
+        dict[str:list[str]
+            Dict of device names against a list of the classes of device it's used to refer to
+        """
+        from psychopy import experiment
+
+        # dict in which to store usages
+        usages = {}
+
+        def _process(emt):
+            """
+            Process an element (Component or Routine) for device names and append them to the
+            usages dict.
+
+            Parameters
+            ----------
+            emt : Component or Routine
+                Element to process
+            """
+            # if we have a device name for this element...
+            if "deviceLabel" in emt.params:
+                # get init value so it lines up with boilerplate code
+                inits = experiment.getInitVals(emt.params)
+                # get value
+                deviceName = inits['deviceLabel'].val
+                # make sure device name is in usages dict
+                if deviceName not in usages:
+                    usages[deviceName] = []
+                # add any new usages
+                for cls in getattr(emt, "deviceClasses", []):
+                    if cls not in usages[deviceName]:
+                        usages[deviceName].append(cls)
+
+        # process each experiment
+        for file in experiments:
+            # create experiment object
+            exp = experiment.Experiment()
+            exp.loadFromXML(file)
+
+            # iterate through routines
+            for rt in exp.routines.values():
+                if isinstance(rt, experiment.routines.BaseStandaloneRoutine):
+                    # for standalone routines, get device names from params
+                    _process(rt)
+                else:
+                    # for regular routines, get device names from each component
+                    for comp in rt:
+                        _process(comp)
+
+        return usages
 
     @staticmethod
     def getDeviceBy(attr, value, deviceClass="*"):
@@ -309,7 +499,7 @@ class DeviceManager:
         # get devices by class
         devices = DeviceManager.getInitialisedDevices(deviceClass=deviceClass)
         # try each matching device
-        for dev in devices:
+        for dev in devices.values():
             if hasattr(dev, attr):
                 # if device matches attribute, return it
                 if getattr(dev, attr) == value:
@@ -333,14 +523,14 @@ class DeviceManager:
         """
         # if device class is an already registered alias, get the actual class str
         deviceClass = DeviceManager._resolveAlias(deviceClass)
+        # get actual device class from class str
+        cls = DeviceManager._resolveClassString(deviceClass)
 
         foundDevices = {}
         # iterate through devices and names
         for name, device in DeviceManager.devices.items():
-            # get class name for this device
-            thisDeviceClass = ".".join((type(device).__module__, type(device).__qualname__))
             # add device to array if device class matches requested
-            if deviceClass in (thisDeviceClass, "*"):
+            if isinstance(device, cls) or deviceClass == "*":
                 foundDevices[name] = device
 
         return foundDevices

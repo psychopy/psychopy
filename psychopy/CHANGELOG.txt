@@ -403,7 +403,7 @@ Fixed:
 - TypeError in Window.resetViewport() #5135
 - PupilLabs lib was not being found due to missing `__init__` #5180
 - QUESTplus had ben removed from list of loop types #2da0cfa0a
-- Sound.pause() was reseting to start of track #a161e135a
+- Sound.pause() was resetting to start of track #a161e135a
 
 
 PsychoPy 2022.1

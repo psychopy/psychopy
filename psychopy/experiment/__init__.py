@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Experiment classes:
@@ -20,7 +20,7 @@ from .params import getCodeFromParamStr, Param
 from .components import getInitVals, getComponents, getAllComponents
 from .routines import getAllStandaloneRoutines
 from ._experiment import Experiment
-from .utils import unescapedDollarSign_re, valid_var_re, nonalphanumeric_re, loadPluginElements
+from .utils import unescapedDollarSign_re, valid_var_re, nonalphanumeric_re
 from psychopy.experiment.utils import CodeGenerationException
 
 
@@ -28,7 +28,6 @@ def getAllElements(fetchIcons=True):
     """
     Get all components and all standalone routines
     """
-    loadPluginElements()
     comps = getAllComponents(fetchIcons=fetchIcons)
     rts = getAllStandaloneRoutines(fetchIcons=fetchIcons)
     comps.update(rts)

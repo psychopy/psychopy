@@ -460,7 +460,7 @@ class ExperimentDataAccessUtility:
             print(self.hdfFile)
 
     def getExperimentMetaData(self):
-        """Returns the the metadata for the experiment the datStore file is
+        """Returns the metadata for the experiment the datStore file is
         for.
 
         **Docstr TBC.**
@@ -482,7 +482,7 @@ class ExperimentDataAccessUtility:
 
     def getSessionMetaData(self, sessions=None):
         """
-        Returns the the metadata associated with the experiment session codes in use.
+        Returns the metadata associated with the experiment session codes in use.
 
         **Docstr TBC.**
 

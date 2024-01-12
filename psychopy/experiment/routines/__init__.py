@@ -4,12 +4,11 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from importlib import import_module
 from ._base import BaseStandaloneRoutine, BaseValidatorRoutine, Routine
-from .utils import loadPluginRoutines
 from .unknown import UnknownRoutine
 from pathlib import Path
 from psychopy import logging
@@ -50,7 +49,7 @@ def addStandaloneRoutine(routineClass):
             "Routine `{}` does not define a `.categories` attribute.".format(
                 routineName))
 
-    pluginRoutines[compName] = routineClass
+    pluginRoutines[routineName] = routineClass
 
 
 def getAllStandaloneRoutines(fetchIcons=True):
@@ -72,8 +71,6 @@ def getAllStandaloneRoutines(fetchIcons=True):
         those added by plugins.
 
     """
-    # load plugins
-    loadPluginRoutines()
     # Safe import all modules within this folder (apart from protected ones with a _)
     for loc in Path(__file__).parent.glob("*"):
         if loc.is_dir() and not loc.name.startswith("_"):

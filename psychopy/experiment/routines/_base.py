@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Describes the Flow of an experiment
@@ -144,12 +144,31 @@ class BaseStandaloneRoutine:
         return
 
     def writeRoutineBeginCodeJS(self, buff, modular):
-        return
+        code = (
+            "function %(name)sRoutineBegin(snapshot) {\n"
+            "    return async function () {}\n"
+            "}\n"
+        )
+        buff.writeIndentedLines(code % self.params)
 
     def writeEachFrameCodeJS(self, buff, modular):
-        return
+        code = (
+            "function %(name)sRoutineEachFrame(snapshot) {\n"
+            "    return async function () {}\n"
+            "}\n"
+        )
+        buff.writeIndentedLines(code % self.params)
 
     def writeRoutineEndCode(self, buff):
+        # what loop are we in (or thisExp)?
+        if len(self.exp.flow._loopList):
+            currLoop = self.exp.flow._loopList[-1]  # last (outer-most) loop
+        else:
+            currLoop = self.exp._expHandler
+
+        if currLoop.params['name'].val == self.exp._expHandler.name:
+            buff.writeIndented("%s.nextEntry()\n" % self.exp._expHandler.name)
+
         # reset routineTimer at the *very end* of all non-nonSlip routines
         code = ('# the Routine "%s" was not non-slip safe, so reset '
                 'the non-slip timer\n'
@@ -157,7 +176,12 @@ class BaseStandaloneRoutine:
         buff.writeIndentedLines(code % self.name)
 
     def writeRoutineEndCodeJS(self, buff, modular):
-        return
+        code = (
+            "function %(name)sRoutineEnd(snapshot) {\n"
+            "    return async function () {}\n"
+            "}\n"
+        )
+        buff.writeIndentedLines(code % self.params)
 
     def writeExperimentEndCode(self, buff):
         return
@@ -226,6 +250,9 @@ class BaseValidatorRoutine(BaseStandaloneRoutine):
     of another Component and validates that the component behaved as expected. Any validator Routines should subclass
     this rather than BaseStandaloneRoutine.
     """
+    # list of class strings (readable by DeviceManager) which this component's device could be
+    deviceClasses = []
+
     def writeRoutineStartValidationCode(self, buff, stim):
         """
         Write the routine start code to validate a given stimulus using this validator.
@@ -733,6 +760,15 @@ class Routine(list):
     def writeRoutineEndCode(self, buff):
         # can we use non-slip timing?
         maxTime, useNonSlip = self.getMaxTime()
+
+        # what loop are we in (or thisExp)?
+        if len(self.exp.flow._loopList):
+            currLoop = self.exp.flow._loopList[-1]  # last (outer-most) loop
+        else:
+            currLoop = self.exp._expHandler
+
+        if currLoop.params['name'].val == self.exp._expHandler.name:
+            buff.writeIndented("%s.nextEntry()\n" % self.exp._expHandler.name)
 
         # reset routineTimer at the *very end* of all non-nonSlip routines
         if not useNonSlip:

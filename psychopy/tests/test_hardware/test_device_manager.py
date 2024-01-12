@@ -10,7 +10,7 @@ class TestDeviceManager:
     def test_all_devices(self):
         devices = (
             "psychopy.hardware.keyboard.KeyboardDevice",
-            "psychopy.sound.microphone.MicrophoneDevice",
+            "psychopy.hardware.microphone.MicrophoneDevice",
             "psychopy.hardware.serialdevice.SerialDevice",
             # "psychopy_bbtk.tpad.TPadPhotodiodeGroup",  # uncomment when running locally with a BBTK
 

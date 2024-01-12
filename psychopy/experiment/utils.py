@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Utility functions to support Experiment classes
@@ -31,26 +31,4 @@ class CodeGenerationException(Exception):
 
     def __str__(self):
         return "{}: ".format(self.source, self.message)
-
-
-def loadPluginElements():
-    """
-    Load relevant defs for any plugins with entry points in psychopy.experiment.components or
-    psychopy.experiment.routines, so that they are available to Builder.
-
-    Returns
-    -------
-    list[str]
-        List of names for all plugins loaded
-    """
-    from .components.utils import loadPluginComponents
-    from .routines.utils import loadPluginRoutines
-
-    imported = []
-    # load components
-    imported += loadPluginComponents()
-    # load routines
-    imported += loadPluginRoutines()
-
-    return imported
 

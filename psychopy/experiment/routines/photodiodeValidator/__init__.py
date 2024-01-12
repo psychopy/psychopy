@@ -3,12 +3,13 @@
 
 from pathlib import Path
 from psychopy.experiment import Param
+from psychopy.experiment.plugins import PluginDevicesMixin, DeviceBackend
 from psychopy.experiment.components import getInitVals
 from psychopy.experiment.routines import Routine, BaseValidatorRoutine
 from psychopy.localization import _translate
 
 
-class PhotodiodeValidatorRoutine(BaseValidatorRoutine):
+class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
     """
     Use a photodiode to confirm that stimuli are presented when they should be.
     """
@@ -17,6 +18,7 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine):
     categories = ['Validation']
     iconFile = Path(__file__).parent / 'photodiode_validator.png'
     tooltip = _translate('')
+    deviceClasses = []
 
     def __init__(
             self,
@@ -27,7 +29,7 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine):
             # layout
             findDiode=True, diodePos="(1, 1)", diodeSize="(0.1, 0.1)", diodeUnits="norm",
             # device
-            backend="bbtk-tpad", port="", channel="1",
+            deviceLabel="", deviceBackend="screenbuffer", port="", channel="0",
             # data
             saveValid=True,
     ):
@@ -43,10 +45,6 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine):
             importName="photodiode",
             importFrom="psychopy.hardware",
             importAs="phd"
-        )
-        exp.requireImport(
-            importName="tpad",
-            importFrom="psychopy_bbtk"
         )
 
         # --- Basic ---
@@ -144,33 +142,25 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine):
 
         # --- Device ---
         self.order += [
-            "backend",
-            "port",
-            "number",
+            "deviceLabel",
+            "deviceBackend",
+            "channel",
         ]
-        self.params['backend'] = Param(
-            backend, valType="code", inputType="choice", categ="Device",
-            allowedVals=["bbtk-tpad"],
-            allowedLabels=["Black Box Toolkit (BBTK) TPad"],
+        self.params['deviceLabel'] = Param(
+            deviceLabel, valType="str", inputType="single", categ="Device",
+            label=_translate("Device name"),
+            hint=_translate(
+                "A name to refer to this Component's associated hardware device by. If using the "
+                "same device for multiple components, be sure to use the same name here."
+            )
+        )
+        self.params['deviceBackend'] = Param(
+            deviceBackend, valType="code", inputType="choice", categ="Device",
+            allowedVals=self.getBackendKeys,
+            allowedLabels=self.getBackendLabels,
             label=_translate("Photodiode type"),
             hint=_translate(
                 "Type of photodiode to use."
-            )
-        )
-        def getPorts():
-            """
-            Get list of available serial ports via hardware.serialdevice.
-            """
-            from psychopy.hardware.serialdevice import ports
-            return list(ports)
-
-        self.params['port'] = Param(
-            port, valType="str", inputType="choice", categ="Device",
-            allowedVals=getPorts,
-            allowedLabels=getPorts,
-            label=_translate("Serial port"),
-            hint=_translate(
-                "Serial port which the photodiode is connected to."
             )
         )
         self.params['channel'] = Param(
@@ -191,13 +181,7 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine):
             )
         )
 
-    def _makeDeviceName(self):
-        # get port
-        port = self.params['port'].val
-        # construct string
-        name = f"photodiode{port}"
-
-        return name
+        self.loadBackends()
 
     def writeDeviceCode(self, buff):
         """
@@ -208,78 +192,67 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine):
         buff : io.StringIO
             Text buffer to write code to.
         """
+        # do usual backend-specific device code writing
+        PluginDevicesMixin.writeDeviceCode(self, buff)
+        # get inits
         inits = getInitVals(self.params)
-
-        # make device name
-        inits['deviceName'] = self._makeDeviceName()
-        # make deviceClass string
-        if self.params['backend'] == "bbtk-tpad":
-            inits['deviceClass'] = "psychopy_bbtk.tpad.TPadPhotodiodeGroup"
-        else:
-            raise NotImplementedError(f"Backend %(backend)s is not supported." % self.params)
-        # initialise diode device
+        # get device handle
         code = (
-            "# initialise photodiode\n"
-            "%(deviceName)s = deviceManager.getDevice('%(deviceName)s')\n"
-            "if %(deviceName)s is None:\n"
-            "    %(deviceName)s = deviceManager.addDevice(\n"
-            "        deviceClass='%(deviceClass)s',\n"
-            "        deviceName='%(deviceName)s',\n"
-            "        pad=%(port)s,\n"
-            "        channels=2\n"
-            "    )\n"
+            "%(deviceLabelCode)s = deviceManager.getDevice(%(deviceLabel)s)"
         )
         buff.writeOnceIndentedLines(code % inits)
         # find threshold if indicated
         if self.params['findThreshold']:
             code = (
                 "# find threshold for photodiode\n"
-                "if %(deviceName)s.getThreshold() is None:\n"
-                "    %(deviceName)s.findThreshold(win, channel=%(channel)s)\n"
+                "if %(deviceLabelCode)s.getThreshold(channel=%(channel)s) is None:\n"
+                "    %(deviceLabelCode)s.findThreshold(win, channel=%(channel)s)\n"
             )
-            buff.writeOnceIndentedLines(code % inits)
+        else:
+            code = (
+                "%(deviceLabelCode)s.setThreshold(%(threshold)s, channel=%(channel)s)"
+            )
+        buff.writeOnceIndentedLines(code % inits)
         # find pos if indicated
         if self.params['findDiode']:
             code = (
                 "# find position and size of photodiode\n"
-                "if %(deviceName)s.pos is None and %(deviceName)s.size is None and %(deviceName)s.units is None:\n"
-                "    %(deviceName)s.findPhotodiode(win, channel=%(channel)s)\n"
+                "if %(deviceLabelCode)s.pos is None and %(deviceLabelCode)s.size is None and %(deviceLabelCode)s.units is None:\n"
+                "    %(deviceLabelCode)s.findPhotodiode(win, channel=%(channel)s)\n"
             )
             buff.writeOnceIndentedLines(code % inits)
 
     def writeMainCode(self, buff):
         inits = getInitVals(self.params)
-        # make device name
-        inits['deviceName'] = self._makeDeviceName()
         # get diode
         code = (
             "# diode object for %(name)s\n"
-            "%(name)sDiode = deviceManager.getDevice('%(deviceName)s')\n"
+            "%(name)sDiode = deviceManager.getDevice(%(deviceLabel)s)\n"
         )
         buff.writeIndentedLines(code % inits)
 
         if self.params['threshold'] and not self.params['findThreshold']:
             code = (
-                "%(name)sDiode.setThreshold(%(threshold)s, channels=[%(channel)s])\n"
+                "%(name)sDiode.setThreshold(%(threshold)s, channel=%(channel)s)\n"
             )
             buff.writeIndentedLines(code % inits)
         # find/set diode position
         if not self.params['findDiode']:
             code = ""
             # set units (unless None)
-            if self.params['units']:
+            if self.params['diodeUnits']:
                 code += (
-                    "%(name)sDiode.units = %(units)s\n"
+                    "%(name)sDiode.units = %(diodeUnits)s\n"
                 )
             # set pos (unless None)
-            if self.params['pos']:
+            if self.params['diodePos']:
                 code += (
-                    "%(name)sDiode.pos = %(pos)s\n"
+                    "%(name)sDiode.pos = %(diodePos)s\n"
                 )
             # set size (unless None)
-            if self.params['size']:
+            if self.params['diodeSize']:
                 code += (
-                    "%(name)sDiode.size = %(size)s\n"
+                    "%(name)sDiode.size = %(diodeSize)s\n"
                 )
             buff.writeIndentedLines(code % inits)
         # create validator object
@@ -357,7 +330,7 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine):
         code = (
             "# validate {name} start time\n"
             "if {name}.status == STARTED and %(name)s.status == STARTED:\n"
-            "    %(name)s.tStart, %(name)s.tStartValid = %(name)s.validate(state=True, t={name}.tStart)\n"
+            "    %(name)s.tStart, %(name)s.tStartValid = %(name)s.validate(state=True, t={name}.tStartRefresh)\n"
             "    if %(name)s.tStart is not None:\n"
             "        %(name)s.status = FINISHED\n"
         )
@@ -377,7 +350,7 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine):
         code = (
             "# validate {name} stop time\n"
             "if {name}.status == FINISHED and %(name)s.status == STARTED:\n"
-            "    %(name)s.tStop, %(name)s.tStopValid = %(name)s.validate(state=False, t={name}.tStop)\n"
+            "    %(name)s.tStop, %(name)s.tStopValid = %(name)s.validate(state=False, t={name}.tStopRefresh)\n"
             "    if %(name)s.tStop is not None:\n"
             "        %(name)s.status = FINISHED\n"
         )
@@ -415,3 +388,40 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine):
 
         return stims
 
+
+class ScreenBufferPhotodiodeValidatorBackend(DeviceBackend):
+    """
+    Adds a basic screen buffer emulation backend for PhotodiodeValidator, as well as acting as an
+    example for implementing other photodiode device backends.
+    """
+
+    key = "screenbuffer"
+    label = _translate("Screen Buffer (Debug)")
+    component = PhotodiodeValidatorRoutine
+    deviceClasses = ["psychopy.hardware.photodiode.ScreenBufferPhotodiode"]
+
+    def getParams(self: PhotodiodeValidatorRoutine):
+        # define order
+        order = [
+        ]
+        # define params
+        params = {}
+
+        return params, order
+
+    def addRequirements(self):
+        # no requirements needed - so just return
+        return
+
+    def writeDeviceCode(self: PhotodiodeValidatorRoutine, buff):
+        # get inits
+        inits = getInitVals(self.params)
+        # make ButtonGroup object
+        code = (
+            "deviceManager.addDevice(\n"
+            "    deviceClass='psychopy.hardware.photodiode.ScreenBufferSampler',\n"
+            "    deviceName=%(deviceLabel)s,\n"
+            "    win=win,\n"
+            ")\n"
+        )
+        buff.writeOnceIndentedLines(code % inits)

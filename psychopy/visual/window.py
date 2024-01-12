@@ -4,7 +4,7 @@
 """A class representing a window for displaying one or more stimuli"""
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 
@@ -20,6 +20,7 @@ from collections import deque
 
 from psychopy.contrib.lazy_import import lazy_import
 from psychopy import colors, event
+from psychopy.localization import _translate
 import math
 # from psychopy.clock import monotonicClock
 
@@ -379,6 +380,7 @@ class Window():
         else:
             self.scrWidthPIX = scrSize[0]
 
+        # if fullscreen not specified, get from prefs
         if fullscr is None:
             fullscr = prefs.general['fullscr']
         self._isFullScr = fullscr
@@ -2375,6 +2377,93 @@ class Window():
         im = self._getFrame(buffer=buffer)
         self.movieFrames.append(im)
         return im
+
+    def _getPixels(self, rect=None, buffer='front', includeAlpha=True,
+                   makeLum=False):
+        """Return an array of pixel values from the current window buffer or
+        sub-region.
+
+        Parameters
+        ----------
+        rect : tuple[int], optional
+            The region of the window to capture in pixel coordinates (left,
+            bottom, width, height). If `None`, the whole window is captured.
+        buffer : str, optional
+            Buffer to capture.
+        includeAlpha : bool, optional
+            Include the alpha channel in the returned array. Default is `True`.
+        makeLum : bool, optional
+            Convert the RGB values to luminance values. Values are rounded to
+            the nearest integer. Default is `False`.
+
+        Returns
+        -------
+        ndarray
+            Pixel values as a 3D array of shape (height, width, channels). If
+            `includeAlpha` is `False`, the array will have shape (height, width,
+            3). If `makeLum` is `True`, the array will have shape (height,
+            width).
+
+        Examples
+        --------
+        Get the pixel values of the whole window::
+
+            pix = win._getPixels()
+
+        Get pixel values and convert to luminance and get average::
+
+            pix = win._getPixels(makeLum=True)
+            average = pix.mean()
+
+        """
+        # do the reading of the pixels
+        if buffer == 'back' and self.useFBO:
+            GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
+        elif buffer == 'back':
+            GL.glReadBuffer(GL.GL_BACK)
+        elif buffer == 'front':
+            if self.useFBO:
+                GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0)
+            GL.glReadBuffer(GL.GL_FRONT)
+        else:
+            raise ValueError("Requested read from buffer '{}' but should be "
+                             "'front' or 'back'".format(buffer))
+
+        if rect:
+            # box corners in pix
+            left, bottom, w, h = rect
+        else:
+            left = bottom = 0
+            w, h = self.size
+
+        # get pixel data
+        bufferDat = (GL.GLubyte * (4 * w * h))()
+        GL.glReadPixels(
+            left, bottom, w, h,
+            GL.GL_RGBA,
+            GL.GL_UNSIGNED_BYTE,
+            bufferDat)
+
+        # convert to array
+        toReturn = numpy.frombuffer(bufferDat, dtype=numpy.uint8)
+        toReturn = toReturn.reshape((h, w, 4))
+
+        # rebind front buffer if needed
+        if buffer == 'front' and self.useFBO:
+            GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, self.frameBuffer)
+
+        # if we want the color data without an alpha channel, we need to
+        # convert the data to a numpy array and remove the alpha channel
+        if not includeAlpha:
+            toReturn = toReturn[:, :, :3]  # remove alpha channel
+
+        # convert to luminance if requested
+        if makeLum:
+            coeffs = [0.2989, 0.5870, 0.1140]
+            toReturn = numpy.rint(numpy.dot(toReturn[:, :, :3], coeffs)).astype(
+                numpy.uint8)
+
+        return toReturn
 
     def _getFrame(self, rect=None, buffer='front'):
         """Return the current Window as an image.

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Describes the Flow of an experiment
@@ -286,15 +286,32 @@ class Flow(list):
         # create clocks (after initialising stimuli)
         code = ("\n"
                 "# create some handy timers\n"
+                "\n"
+                "# global clock to track the time since experiment started\n"
                 "if globalClock is None:\n"
-                "    globalClock = core.Clock()  # to track the time since experiment started\n"
+                "    # create a clock if not given one\n"
+                "    globalClock = core.Clock()\n"
+                "if isinstance(globalClock, str):\n"
+                "    # if given a string, make a clock accoridng to it\n"
+                "    if globalClock == 'float':\n"
+                "        # get timestamps as a simple value\n"
+                "        globalClock = core.Clock(format='float')\n"
+                "    elif globalClock == 'iso':\n"
+                "        # get timestamps in ISO format\n"
+                "        globalClock = core.Clock(format='%Y-%m-%d_%H:%M:%S.%f%z')\n"
+                "    else:\n"
+                "        # get timestamps in a custom format\n"
+                "        globalClock = core.Clock(format=globalClock)\n"
                 "if ioServer is not None:\n"
                 "    ioServer.syncClock(globalClock)\n"
                 "logging.setDefaultClock(globalClock)\n"
-                "routineTimer = core.Clock()  # to track time remaining of each (possibly non-slip) routine\n"
+                "# routine timer to track time remaining of each (possibly non-slip) routine\n"
+                "routineTimer = core.Clock()\n"
                 "win.flip()  # flip window to reset last flip timer\n"
                 "# store the exact time the global clock started\n"
-                "expInfo['expStart'] = data.getDateStr(format='%Y-%m-%d %Hh%M.%S.%f %z', fractionalSecondDigits=6)\n"
+                "expInfo['expStart'] = data.getDateStr(\n"
+                "    format='%Y-%m-%d %Hh%M.%S.%f %z', fractionalSecondDigits=6\n"
+                ")\n"
         )
         script.writeIndentedLines(code)
         # run-time code
