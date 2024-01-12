@@ -1,4 +1,5 @@
 from psychopy import liaison, session, hardware
+from psychopy.hardware import DeviceManager
 from psychopy.tests import utils, skip_under_vm
 from pathlib import Path
 import json
@@ -87,6 +88,27 @@ class TestLiaison:
             "exp1"
         )
 
+    def test_experiment_error(self):
+        """
+        Test that an error in an experiment is sent to Liaison properly
+        """
+        # run an experiment with an error in it
+        runInLiaison(
+            self.server, self.protocol, "session", "addExperiment",
+            "error/error.psyexp", "error"
+        )
+        time.sleep(1)
+        try:
+            runInLiaison(
+                self.server, self.protocol, "session", "runExperiment",
+                "error"
+            )
+        except RuntimeError as err:
+            # we expect an error from this experiment, so don't crash the whole process
+            pass
+        # check that the error looks right in Liaison's output
+        assert self.protocol.messages[-1]['context'] == "error"
+
     def test_add_device_with_listener(self):
         # add keyboard
         runInLiaison(
@@ -147,3 +169,27 @@ class TestLiaison:
             self.server, self.protocol, "session", "runExperiment",
             "testNamedButtonBox"
         )
+
+    def test_device_JSON(self):
+        cases = {
+            'testMic': "psychopy.hardware.microphone.MicrophoneDevice",
+        }
+        for deviceName, deviceClass in cases.items():
+            # get the first available device
+            available = DeviceManager.getAvailableDevices(deviceClass)
+            if not available:
+                continue
+            profile = available[0]
+            # replace deviceName
+            profile['deviceName'] = deviceName
+            # setup device
+            DeviceManager.addDevice(**profile)
+            # call getDevice from Liaison
+            runInLiaison(
+                self.server, self.protocol, "DeviceManager", "getDevice",
+                deviceName
+            )
+            # get message
+            result = self.protocol.messages[-1]['result']
+            # whatever is returned should be json serializable, load it to confirm that it is
+            json.loads(result)

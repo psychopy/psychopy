@@ -4,6 +4,7 @@ import time
 import numpy as np
 from psychtoolbox import audio as audio
 from psychopy import logging as logging, prefs
+from psychopy.localization import _translate
 from psychopy.constants import NOT_STARTED
 from psychopy.hardware import BaseDevice
 from psychopy.sound.audiodevice import AudioDeviceInfo, AudioDeviceStatus
@@ -124,6 +125,20 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
                 "Microphone audio capture requires package `psychtoolbox` to "
                 "be installed.")
 
+        from psychopy.hardware import DeviceManager
+
+        def _getDefaultDevice():
+            # get all devices
+            _devices = MicrophoneDevice.getDevices()
+            # if there are none, error
+            if not len(_devices):
+                raise AudioInvalidCaptureDeviceError(_translate(
+                    "Could not choose default recording device as no recording devices are "
+                    "connected."
+                ))
+
+            return _devices[0]
+
         def _getDeviceByIndex(deviceIndex):
             """Subroutine to get a device by index. Used to handle the case
             where the user specifies a device by index.
@@ -150,26 +165,34 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             if deviceIndex in devicesByIndex:
                 useDevice = devicesByIndex[deviceIndex]
             else:
-                raise AudioInvalidCaptureDeviceError(
-                    'No suitable audio recording devices found matching index '
-                    '{}.'.format(deviceIndex))
+                logging.warn(_translate(
+                    "Could not find audio recording device at index {}, using default."
+                ).format(deviceIndex))
+                useDevice = _getDefaultDevice()
 
             return useDevice
 
         # get information about the selected device
         if isinstance(index, AudioDeviceInfo):
+            # if already an AudioDeviceInfo object, great!
             self._device = index
-        elif isinstance(index, (int, float, str)):
-            self._device = _getDeviceByIndex(index)
+        elif index in (None, "none", "None", "NONE", -1, "default", "Default", "DEFAULT"):
+            # if some variant of None, they've asked for default
+            self._device = _getDefaultDevice()
+        elif isinstance(index, int) or (isinstance(index, str) and index.isnumeric()):
+            # if given an integer (or something like it), it's an index
+            self._device = _getDeviceByIndex(int(index))
+        elif isinstance(index, str):
+            # if given a str that's a name from DeviceManager, get info from device
+            device = DeviceManager.getDevice(index)
+            if isinstance(device, MicrophoneDevice):
+                self._device = _getDeviceByIndex(device.deviceIndex)
+            else:
+                # fallback to default
+                self._device = _getDefaultDevice()
         else:
-            # get default device, first enumerated usually
-            devices = MicrophoneDevice.getDevices()
-            if not devices:
-                raise AudioInvalidCaptureDeviceError(
-                    'No suitable audio recording devices found on this system. '
-                    'Check connections and try again.')
-
-            self._device = devices[0]  # use first
+            # default device as the ultimate fallback
+            self._device = _getDefaultDevice()
 
         logging.info('Using audio device #{} ({}) for audio capture'.format(
             self._device.deviceIndex, self._device.deviceName))

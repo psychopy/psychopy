@@ -278,6 +278,7 @@ class KeyboardButtonBoxBackend(DeviceBackend):
     key = "keyboard"
     label = _translate("Keyboard")
     component = ButtonBoxComponent
+    deviceClasses = ['psychopy.hardware.button.KeyboardButtonBox']
 
     def getParams(self: ButtonBoxComponent):
         # define order

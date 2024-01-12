@@ -252,6 +252,12 @@ class BaseComponent:
         # each routine
         pass
 
+    def writePreCode(self, buff):
+        """Write any code that a component needs that should be done before 
+        the session's `run` method is called.
+        """
+        pass
+
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame
         """
@@ -1065,6 +1071,8 @@ class BaseDeviceComponent(BaseComponent):
     """
     Base class for most components which interface with a hardware device.
     """
+    # list of class strings (readable by DeviceManager) which this component's device could be
+    deviceClasses = []
 
     def __init__(
             self, exp, parentName,

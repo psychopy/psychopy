@@ -929,11 +929,11 @@ class Session:
                 Element to process
             """
             # if we have a device name for this element...
-            if "deviceName" in emt.params:
+            if "deviceLabel" in emt.params:
                 # get init value so it lines up with boilerplate code
                 inits = experiment.getInitVals(emt.params)
                 # get value
-                deviceName = inits['deviceName'].val
+                deviceName = inits['deviceLabel'].val
                 # if deviceName exists from other elements, add usage to it
                 if deviceName in usages:
                     usages[deviceName].append(name)
@@ -1028,6 +1028,7 @@ class Session:
             )
         except Exception as _err:
             err = _err
+            err.userdata = key
         # Reinstate autodraw stimuli
         self.win.retrieveAutoDraw()
         # Restore original chdir
@@ -1338,9 +1339,6 @@ class Session:
         # If ExperimentHandler, get its data as a list of dicts
         if isinstance(value, data.ExperimentHandler):
             value = value.getJSON(priorityThreshold=self.priorityThreshold)
-        # Convert to JSON
-        if not isinstance(value, str):
-            value = json.dumps(value)
         # Send
         self.liaison.broadcastSync(message=value)
 

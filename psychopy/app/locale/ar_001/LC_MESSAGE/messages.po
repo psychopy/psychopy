@@ -24,25 +24,28 @@ msgstr ""
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:12
 #, python-brace-format
 msgid "Your stimulus size exceeds the {dimension} dimension of your window."
-msgstr ""
+msgstr "حجم المثير الذي قمت باستخدامه تجاوز حجم أبعاد {dimension} نافذتك."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:16
 #, python-brace-format
 msgid "Your stimulus size is smaller than 1 pixel ({dimension} dimension)."
-msgstr ""
+msgstr "حجم المثير الخاص بك أصغر من 1 بكسل (البعد {dimension})."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:20
 #, python-brace-format
 msgid ""
 "Your stimulus position exceeds the {dimension} dimension of your window."
-msgstr ""
+msgstr "يتجاوز موضع المثير الخاص بك بُعد {dimension} نافذتك."
 
+# Screen and monitor both translated as شاشة
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:24
 #, python-brace-format
 msgid ""
 "Your stimulus {type} time of {time} is less than a screen refresh for a {Hz}"
 "Hz monitor."
 msgstr ""
+"وقت المثير {type} الذي يبلغ {time} أقل من زمن تحديث الشاشة لشاشة {Hz} هرتز "
+"(Hz)."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:28
 #, python-brace-format
@@ -109,9 +112,8 @@ msgstr ""
 
 # "parameter" needs to be checked
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:63
-#, fuzzy
 msgid "Cannot calculate parameter."
-msgstr "لا يمكن حساب المتغير "
+msgstr "لا يمكن حساب المتغير."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:67
 #, python-brace-format
@@ -134,11 +136,11 @@ msgid ""
 "will default to Open Sans Regular."
 msgstr ""
 
-# "Default" translation might need revising 
+# "Default" translation might need revising
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:79
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Recording device '{device}' not found, using default device instead."
-msgstr "جهاز التسجيل '{device}'  غير موجود، استخدام الجهاز المعتاد بدلاً   "
+msgstr "جهاز التسجيل '{device}'  غير موجود، استخدام الجهاز المعتاد بدلاً."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:83
 #, python-brace-format

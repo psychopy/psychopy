@@ -19,6 +19,7 @@ class SoundComponent(BaseDeviceComponent):
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'sound.png'
     tooltip = _translate('Sound: play recorded files or generated sounds', )
+    deviceClasses = ["psychopy.hardware.speaker.SpeakerDevice"]
 
     def __init__(self,
                  exp, parentName,

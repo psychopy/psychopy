@@ -63,7 +63,13 @@ class PrefPropGrid(wx.Panel):
         )
         # move sash to min extent of page ctrls
         self.splitter.SetMinimumPaneSize(prefsImageSize[0] + 2)
-        self.splitter.SetSashPosition(self.lstPrefPages.GetColumnWidth(0))
+
+        if sys.platform == 'win32':
+            # works on windows only since it has a column
+            self.splitter.SetSashPosition(self.lstPrefPages.GetColumnWidth(0))
+        else:
+            # size that make sense on other platforms
+            self.splitter.SetSashPosition(150)
 
         self.SetSizer(bSizer1)
         self.Layout()

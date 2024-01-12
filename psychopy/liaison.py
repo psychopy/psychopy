@@ -31,6 +31,22 @@ except ModuleNotFoundError as err:
 	)
 
 
+class LiaisonJSONEncoder(json.JSONEncoder):
+	"""
+	JSON encoder which calls the `getJSON` method of an object (if it has one) to convert to a
+	string before JSONifying.
+	"""
+	def default(self, o):
+		# if object has a getJSON method, use it
+		if hasattr(o, "getJSON"):
+			return o.getJSON(asString=False)
+		# otherwise behave as normal
+		try:
+			return json.JSONEncoder.default(self, o=o)
+		except TypeError:
+			return str(o)
+
+
 class WebSocketServer:
 	"""
 	A simple Liaison server, using WebSockets as communication protocol.
@@ -199,6 +215,8 @@ class WebSocketServer:
 		message : string
 			the message to be sent to all clients
 		"""
+		if not isinstance(message, str):
+			message = json.dumps(message, cls=LiaisonJSONEncoder)
 		for websocket in self._connections:
 			await websocket.send(message)
 
@@ -353,10 +371,7 @@ class WebSocketServer:
 							rawResult = method(*args)
 
 					# convert result to a string
-					try:
-						result = json.dumps(rawResult)
-					except TypeError:
-						result = str(rawResult)
+					result = json.dumps(rawResult, cls=LiaisonJSONEncoder)
 
 					# send a response back to the client:
 					response = {
@@ -375,7 +390,8 @@ class WebSocketServer:
 			msg = "".join(tb)
 			err = json.dumps({
 				'type': "error",
-				'msg': msg
-			})
+				'msg': msg,
+				'context': getattr(err, "userdata", None)
+			}, cls=LiaisonJSONEncoder)
 			await websocket.send(err)
 			

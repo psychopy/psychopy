@@ -250,6 +250,9 @@ class BaseValidatorRoutine(BaseStandaloneRoutine):
     of another Component and validates that the component behaved as expected. Any validator Routines should subclass
     this rather than BaseStandaloneRoutine.
     """
+    # list of class strings (readable by DeviceManager) which this component's device could be
+    deviceClasses = []
+
     def writeRoutineStartValidationCode(self, buff, stim):
         """
         Write the routine start code to validate a given stimulus using this validator.

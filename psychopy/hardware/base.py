@@ -90,16 +90,26 @@ class BaseDevice:
             if self.isSameDevice(profile):
                 return profile
 
-    def getJSON(self):
+    def getJSON(self, asString=True):
         """
         Convert the output of getDeviceProfile to a JSON string.
 
+        Parameters
+        ----------
+        asString : bool
+            If True, then the output will be converted to a string, otherwise will simply be a
+            JSON-friendly dict.
+
         Returns
         -------
-        str
-            JSON string of getDeviceProfile.
+        str or dict
+            JSON string (or JSON friendly dict) of getDeviceProfile.
         """
-        return json.dumps(self.getDeviceProfile())
+        profile = self.getDeviceProfile()
+        if asString:
+            profile = json.dumps(profile)
+
+        return profile
 
     # the following methods must be implemented by subclasses of BaseDevice
 
