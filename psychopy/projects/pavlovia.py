@@ -582,7 +582,7 @@ class PavloviaProject(dict):
     _datetimeKeys = ("created_at", "last_activity_at")
 
     def __init__(self, id, localRoot=None):
-        # Cache whatever form of ID is given, to avoid uneccesary calls to Pavlovia/GitLab later
+        # Cache whatever form of ID is given, to avoid unneccesary calls to Pavlovia/GitLab later
         if isinstance(id, int):
             # If created using a numeric ID...
             self.numericId = id
@@ -855,11 +855,17 @@ class PavloviaProject(dict):
             self.push(infoStream)
             # Write updates
             t1 = time.time()
-            msg = ("Successful sync at: {}, took {:.3f}s"
-                   .format(time.strftime("%H:%M:%S", time.localtime()), t1 - t0))
+            msg = (
+                "Successful sync at: {}, took {:.3f}s.\n"
+                "View synced project here: {}\n".format(
+                    time.strftime("%H:%M:%S", time.localtime()),
+                    t1 - t0,
+                    "https://pavlovia.org/" + self['path_with_namespace']
+                )
+            )
             logging.info(msg)
             if infoStream:
-                infoStream.write(msg + "\n\n")
+                infoStream.write(msg + "\n")
                 time.sleep(0.5)
             # Refresh info
             self.refresh()

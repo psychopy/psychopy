@@ -84,7 +84,7 @@ class Test_RunnerFrame:
                               runnerPanel.toolbar.buttons['runBtn'].GetId())
         )
 
-        # wait until the the subprocess wakes up
+        # wait until the subprocess wakes up
         timeoutCounter = 0
         while runnerPanel.scriptProcess is None:
             # give a minute to start, raise exception otherwise

@@ -9,8 +9,6 @@ class PluginDevicesMixin:
         cls.backends = []
 
     def loadBackends(self):
-        from psychopy.plugins import activatePlugins
-        activatePlugins()
         # add params from backends
         for backend in self.backends:
             # get params using backend's method
@@ -68,22 +66,19 @@ class DeviceBackend:
     key = ""
     # what label should be displayed by Builder for this backend?
     label = ""
+    # values to append to the component's deviceClasses array
+    deviceClasses = []
 
     def __init_subclass__(cls):
-        """
-        Initialise a new backend for ButtonBoxComponent.
-
-        Parameters
-        ----------
-        key : str
-            Name of this backend - will be used in allowedVals for the deviceBackend parameter of ButtonBoxComponent.
-            This will be used for indexing, so shouldn't be localized (translated)!
-        label : str
-            Label for this backend - will be used in allowedLabels for the deviceBackend parameter of
-            ButtonBoxComponent.
-        """
         # add class to list of backends for ButtonBoxComponent
+        cls.component.backends = cls.component.backends.copy()
         cls.component.backends.append(cls)
+        # add device classes to component
+        if cls is not PluginDevicesMixin and hasattr(cls.component, "deviceClasses"):
+            for deviceClass in cls.deviceClasses:
+                if deviceClass not in cls.component.deviceClasses:
+                    cls.component.deviceClasses = cls.component.deviceClasses.copy()
+                    cls.component.deviceClasses.append(deviceClass)
 
     def getParams(self):
         """

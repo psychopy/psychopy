@@ -268,6 +268,7 @@ class Session:
         self.priorityThreshold = priorityThreshold
         # Add experiments
         self.experiments = {}
+        self.experimentObjects = {}
         if experiments is not None:
             for nm, exp in experiments.items():
                 self.addExperiment(exp, key=nm)
@@ -423,6 +424,11 @@ class Session:
             # Write script
             script = exp.writeScript(target="PsychoPy")
             pyFile.write_text(script, encoding="utf8")
+            # Store experiment object
+            self.experimentObjects[key] = exp
+        else:
+            # if no experiment object, store None
+            self.experimentObjects[key] = None
         # Handle if key is None
         if key is None:
             key = str(file.relative_to(self.root))
@@ -581,7 +587,7 @@ class Session:
         Parameters
         ----------
         key : str or Iterable[str]
-            Key or keys to get vaues of fro expInfo dict
+            Key or keys to get values of fro expInfo dict
 
         Returns
         -------
@@ -886,6 +892,66 @@ class Session:
 
         return True
 
+    def getRequiredDeviceNamesFromExperiment(self, key):
+        """
+        Get a list of device names referenced in a given experiment.
+
+        Parameters
+        ----------
+        key : str
+            Key by which the experiment is stored (see `.addExperiment`).
+
+        Returns
+        -------
+        list[str]
+            List of device names
+        """
+        # get an experiment object
+        exp = self.experimentObjects[key]
+        if exp is None:
+            raise ValueError(
+                f"Device names are not available for experiments added to Session directly as a "
+                f".py file."
+            )
+        # get ready to store usages
+        usages = {}
+
+        def _process(name, emt):
+            """
+            Process an element (Component or Routine) for device names and append them to the
+            usages dict.
+
+            Parameters
+            ----------
+            name : str
+                Name of this element in Builder
+            emt : Component or Routine
+                Element to process
+            """
+            # if we have a device name for this element...
+            if "deviceLabel" in emt.params:
+                # get init value so it lines up with boilerplate code
+                inits = experiment.getInitVals(emt.params)
+                # get value
+                deviceName = inits['deviceLabel'].val
+                # if deviceName exists from other elements, add usage to it
+                if deviceName in usages:
+                    usages[deviceName].append(name)
+                else:
+                    usages[deviceName] = [name]
+
+        # iterate through routines
+        for rtName, rt in exp.routines.items():
+            if isinstance(rt, experiment.routines.BaseStandaloneRoutine):
+                # for standalone routines, get device names from params
+                _process(rtName, rt)
+            else:
+                # for regular routines, get device names from each component
+                for comp in rt:
+                    _process(comp.name, comp)
+
+        return list(usages)
+
     def runExperiment(self, key, expInfo=None, blocking=True):
         """
         Run the `setupData` and `run` methods from one of this Session's experiments.
@@ -931,6 +997,12 @@ class Session:
         thisExp.name = key
         # Mark ExperimentHandler as current
         self.currentExperiment = thisExp
+        # Make sure we have at least one response device
+        if "defaultKeyboard" not in DeviceManager.devices:
+            DeviceManager.addDevice(
+                deviceClass="psychopy.hardware.keyboard.KeyboardDevice",
+                deviceName="defaultKeyboard"
+            )
         # Hide Window message
         self.win.hideMessage()
         # Setup window for this experiment
@@ -941,8 +1013,6 @@ class Session:
         self.win.stashAutoDraw()
         # Setup logging
         self.experiments[key].run.__globals__['logFile'] = self.logFile
-        # Setup devices
-        self.setupDevicesFromExperiment(key, expInfo=expInfo, thisExp=thisExp)
         # Log start
         logging.info(_translate(
             "Running experiment via Session: name={key}, expInfo={expInfo}"
@@ -958,6 +1028,7 @@ class Session:
             )
         except Exception as _err:
             err = _err
+            err.userdata = key
         # Reinstate autodraw stimuli
         self.win.retrieveAutoDraw()
         # Restore original chdir
@@ -986,7 +1057,8 @@ class Session:
             self.sendToLiaison({
                     'type': "experiment_status",
                     'name': thisExp.name,
-                    'status': thisExp.status
+                    'status': thisExp.status,
+                    'expInfo': expInfo
                 })
 
         return True
@@ -1267,9 +1339,6 @@ class Session:
         # If ExperimentHandler, get its data as a list of dicts
         if isinstance(value, data.ExperimentHandler):
             value = value.getJSON(priorityThreshold=self.priorityThreshold)
-        # Convert to JSON
-        if not isinstance(value, str):
-            value = json.dumps(value)
         # Send
         self.liaison.broadcastSync(message=value)
 

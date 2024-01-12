@@ -235,46 +235,6 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
         # return the view to previous state
         GL.glPopMatrix()
 
-    # overload ColorMixin methods so that they refresh the image after being called
-    @property
-    def foreColor(self):
-        # Call setter of parent mixin
-        return ColorMixin.foreColor.fget(self)
-
-    @foreColor.setter
-    def foreColor(self, value):
-        # Call setter of parent mixin
-        ColorMixin.foreColor.fset(self, value)
-        # Reset the image and mask-
-        self.setImage(self._imName, log=False)
-        self.texRes = self.__dict__['texRes']  # rebuilds the mask
-
-    @property
-    def contrast(self):
-        # Call setter of parent mixin
-        return ColorMixin.contrast.fget(self)
-
-    @contrast.setter
-    def contrast(self, value):
-        # Call setter of parent mixin
-        ColorMixin.contrast.fset(self, value)
-        # Reset the image and mask-
-        self.setImage(self._imName, log=False)
-        self.texRes = self.__dict__['texRes']  # rebuilds the mask
-
-    @property
-    def opacity(self):
-        # Call setter of parent mixin
-        return BaseVisualStim.opacity.fget(self)
-
-    @opacity.setter
-    def opacity(self, value):
-        # Call setter of parent mixin
-        BaseVisualStim.opacity.fset(self, value)
-        # Reset the image and mask-
-        self.setImage(self._imName, log=False)
-        self.texRes = self.__dict__['texRes']  # rebuilds the mask
-
     def _movieFrameToTexture(self, movieSrc):
         """Convert a movie frame to a texture and use it.
 

@@ -73,7 +73,9 @@ from psychopy.scripts.psyexpCompile import generateScript
 
 # Components which are always hidden
 alwaysHidden = [
-    'SettingsComponent', 'RoutineSettingsComponent', 'UnknownComponent', 'UnknownRoutine', 'UnknownStandaloneRoutine', 'UnknownPluginComponent'
+    'SettingsComponent', 'RoutineSettingsComponent', 'UnknownComponent', 'UnknownRoutine',
+    'UnknownStandaloneRoutine', 'UnknownPluginComponent', 'BaseComponent', 'BaseStandaloneRoutine',
+    'BaseValidatorRoutine'
 ]
 
 
@@ -1261,6 +1263,13 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         """
         if self.sendToRunner(event):
             self.app.runner.panel.runLocal(event)
+
+    def pilotFile(self, event=None):
+        """
+        Send the current file to the Runner and run it in pilot mode.
+        """
+        if self.sendToRunner(event):
+            self.app.runner.panel.pilotLocal(event)
 
     def onCopyRoutine(self, event=None):
         """copy the current routine from self.routinePanel
@@ -4380,12 +4389,28 @@ class BuilderRibbon(ribbon.FrameRibbon):
             tooltip=_translate("Write experiment as a Python script"),
             callback=parent.compileScript
         )
+        # pilot Py
+        self.addButton(
+            section="py", name="pypilot", label=_translate("Pilot"), icon='pyPilot',
+            tooltip=_translate("Run the current script in Python with piloting features on"),
+            callback=parent.pilotFile, style=wx.BU_BOTTOM | wx.BU_EXACTFIT
+        )
+        # switch run/pilot
+        runPilotSwitch = self.addSwitchCtrl(
+            section="py", name="pyswitch",
+            labels=(_translate("Pilot"), _translate("Run")),
+            style=wx.HORIZONTAL | wx.BU_NOTEXT
+        )
         # run Py
         self.addButton(
-            section="py", name="pyrun", label=_translate("Run in Python"), icon='pyRun',
-            tooltip=_translate("Run experiment locally in Python"),
-            callback=parent.runFile
+            section="py", name="pyrun", label=_translate("Run"), icon='pyRun',
+            tooltip=_translate("Run the current script in Python"),
+            callback=parent.runFile, style=wx.BU_BOTTOM | wx.BU_EXACTFIT
         )
+        # link buttons to switch
+        runPilotSwitch.addDependant(self.buttons['pyrun'], mode=1, action="enable")
+        runPilotSwitch.addDependant(self.buttons['pypilot'], mode=0, action="enable")
+        runPilotSwitch.setMode(0)
 
         self.addSeparator()
 

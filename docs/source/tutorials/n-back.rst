@@ -148,7 +148,7 @@ We don't want the number to be random on every trial, instead we want it to be t
 
 .. nextslide::
 
-OK so we are tracking the letters, now we want to detect when a target trial occurs so that we can select the n-th back. We can keep using our conditions file for this, where target is specifed in the *target* column of our spreadsheet. We then update our code::
+OK so we are tracking the letters, now we want to detect when a target trial occurs so that we can select the n-th back. We can keep using our conditions file for this, where target is specified in the *target* column of our spreadsheet. We then update our code::
 
 	n = 2 # first specify the n condition of the trial/block
 	if not target:

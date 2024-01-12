@@ -63,7 +63,13 @@ class PrefPropGrid(wx.Panel):
         )
         # move sash to min extent of page ctrls
         self.splitter.SetMinimumPaneSize(prefsImageSize[0] + 2)
-        self.splitter.SetSashPosition(self.lstPrefPages.GetColumnWidth(0))
+
+        if sys.platform == 'win32':
+            # works on windows only since it has a column
+            self.splitter.SetSashPosition(self.lstPrefPages.GetColumnWidth(0))
+        else:
+            # size that make sense on other platforms
+            self.splitter.SetSashPosition(150)
 
         self.SetSizer(bSizer1)
         self.Layout()
@@ -327,19 +333,40 @@ class PreferencesDlg(wx.Dialog):
 
         # add property pages to the manager
         self.proPrefs.addPage(
-            _translate('General'), 'general', ['general'],
-            'preferences-general')
+            label=_translate('General'),
+            name='general',
+            sections=['general'],
+            bitmap='preferences-general')
         self.proPrefs.addPage(
-            _translate('Application'), 'app', ['app', 'builder', 'coder'],
-            'preferences-app')
+            label=_translate('Application'),
+            name='app',
+            sections=['app', 'builder', 'coder'],
+            bitmap='preferences-app'
+        )
         self.proPrefs.addPage(
-            _translate('Key Bindings'), 'keyBindings', ['keyBindings'],
-            'preferences-keyboard')
+            label=_translate('Pilot mode'),
+            name='piloting',
+            sections=['piloting'],
+            bitmap='preferences-pilot'
+        )
         self.proPrefs.addPage(
-            _translate('Hardware'), 'hardware', ['hardware'], 'preferences-hardware')
+            label=_translate('Key Bindings'),
+            name='keyBindings',
+            sections=['keyBindings'],
+            bitmap='preferences-keyboard'
+        )
         self.proPrefs.addPage(
-            _translate('Connections'), 'connections', ['connections'],
-            'preferences-conn')
+            label=_translate('Hardware'),
+            name='hardware',
+            sections=['hardware'],
+            bitmap='preferences-hardware'
+        )
+        self.proPrefs.addPage(
+            label=_translate('Connections'),
+            name='connections',
+            sections=['connections'],
+            bitmap='preferences-conn'
+        )
         self.proPrefs.populateGrid()
 
         sbPrefs.Add(self.proPrefs, 1, wx.EXPAND)

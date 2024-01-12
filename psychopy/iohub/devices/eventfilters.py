@@ -116,7 +116,7 @@ class DeviceEventFilter():
         self.process()
 
     def _removeOutputEvents(self):
-        """Called by the the iohub Server when processing device events."""
+        """Called by the iohub Server when processing device events."""
         oevts = self._output_events
         self._output_events = []
         return oevts

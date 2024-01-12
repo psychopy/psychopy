@@ -150,6 +150,15 @@ class BaseStandaloneRoutine:
         return
 
     def writeRoutineEndCode(self, buff):
+        # what loop are we in (or thisExp)?
+        if len(self.exp.flow._loopList):
+            currLoop = self.exp.flow._loopList[-1]  # last (outer-most) loop
+        else:
+            currLoop = self.exp._expHandler
+
+        if currLoop.params['name'].val == self.exp._expHandler.name:
+            buff.writeIndented("%s.nextEntry()\n" % self.exp._expHandler.name)
+
         # reset routineTimer at the *very end* of all non-nonSlip routines
         code = ('# the Routine "%s" was not non-slip safe, so reset '
                 'the non-slip timer\n'
@@ -226,6 +235,9 @@ class BaseValidatorRoutine(BaseStandaloneRoutine):
     of another Component and validates that the component behaved as expected. Any validator Routines should subclass
     this rather than BaseStandaloneRoutine.
     """
+    # list of class strings (readable by DeviceManager) which this component's device could be
+    deviceClasses = []
+
     def writeRoutineStartValidationCode(self, buff, stim):
         """
         Write the routine start code to validate a given stimulus using this validator.
@@ -733,6 +745,15 @@ class Routine(list):
     def writeRoutineEndCode(self, buff):
         # can we use non-slip timing?
         maxTime, useNonSlip = self.getMaxTime()
+
+        # what loop are we in (or thisExp)?
+        if len(self.exp.flow._loopList):
+            currLoop = self.exp.flow._loopList[-1]  # last (outer-most) loop
+        else:
+            currLoop = self.exp._expHandler
+
+        if currLoop.params['name'].val == self.exp._expHandler.name:
+            buff.writeIndented("%s.nextEntry()\n" % self.exp._expHandler.name)
 
         # reset routineTimer at the *very end* of all non-nonSlip routines
         if not useNonSlip:

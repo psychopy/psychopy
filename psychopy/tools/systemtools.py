@@ -164,10 +164,15 @@ def getAudioDevices():
         enforceWASAPI = True  # use default if option not present in settings
 
     # query PTB for devices
-    if enforceWASAPI and sys.platform == 'win32':
-        allDevs = audio.get_devices(device_type=13)
-    else:
-        allDevs = audio.get_devices()
+    try:
+        if enforceWASAPI and sys.platform == 'win32':
+            allDevs = audio.get_devices(device_type=13)
+        else:
+            allDevs = audio.get_devices()
+    except Exception as err:
+        # if device detection fails, log warning rather than raising error
+        logging.warning(str(err))
+        allDevs = []
 
     # make sure we have an array of descriptors
     allDevs = [allDevs] if isinstance(allDevs, dict) else allDevs
@@ -484,7 +489,7 @@ def isPsychopyInFocus():
         if sys.platform == "darwin":
             from AppKit import NSWorkspace
             # get active application info
-            win = NSWorkspace.sharedWorkspace().activeApplication()
+            win = NSWorkspace.sharedWorkspace().frontmostApplication()
             # get window name
             winName = win['NSApplicationName']
 

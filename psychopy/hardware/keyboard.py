@@ -263,7 +263,7 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
         KeyboardDevice._instance = None
 
     def __init__(self, device=-1, bufferSize=10000, waitForStart=False, clock=None, backend=None,
-                 muteOutsidePsychopy=True):
+                 muteOutsidePsychopy=sys.platform != "linux"):
         """Create the device (default keyboard or select one)
 
         Parameters
@@ -286,7 +286,8 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
 
         muteOutsidePsychopy : bool
             If True, then this KeyboardDevice won't listen for keypresses unless the currently
-            active window is a PsychoPy window.
+            active window is a PsychoPy window. Default is True, unless on Linux (as detecting
+            window focus is significantly slower on Linux, potentially affecting timing).
 
         """
         BaseResponseDevice.__init__(self)
@@ -365,7 +366,21 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
         self.muteOutsidePsychopy = muteOutsidePsychopy
 
     def isSameDevice(self, other):
-        # all Keyboards seem to be the same device
+        """
+        Determine whether this object represents the same physical keyboard as a given other
+        object.
+
+        Parameters
+        ----------
+        other : KeyboardDevice, dict
+            Other KeyboardDevice to compare against, or a dict of params
+
+        Returns
+        -------
+        bool
+            True if the two objects represent the same physical device
+        """
+        # all Keyboards are the same device
         return True
 
     @classmethod

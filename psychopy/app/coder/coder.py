@@ -963,7 +963,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, handlers.ThemeMixin):
         self.SetZoom(0)
 
     def analyseScript(self):
-        """Parse the the document and update the source tree if present.
+        """Parse the document and update the source tree if present.
 
         The script is analysed when loaded or when the user interact with it in
         a way that can potentially change the number of lines of executable
@@ -2311,8 +2311,12 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         isExp = filename.endswith(".py") or filename.endswith(".psyexp")
 
         # if the toolbar is done then adjust buttons
-        if 'runner' in self.ribbon.buttons:
-            self.ribbon.buttons['runner'].Enable(isExp)
+        for key in ("runner", "pyrun", "pypilot"):
+            if key in self.ribbon.buttons:
+                self.ribbon.buttons[key].Enable(isExp)
+        # update save/saveas buttons
+        self.ribbon.buttons['save'].Enable(readonly and self.currentDoc.UNSAVED)
+        self.ribbon.buttons['saveas'].Enable(bool(self.filename))
         # update menu items
         self.pavloviaMenu.syncBtn.Enable(bool(self.filename))
         self.pavloviaMenu.newBtn.Enable(bool(self.filename))
@@ -2376,6 +2380,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
     def fileSave(self, event=None, filename=None, doc=None):
         """Save a ``doc`` with a particular ``filename``.
         If ``doc`` is ``None`` then the current active doc is used.
+        If the current active doc is also ``None``, then quit early.
         If the ``filename`` is ``None`` then the ``doc``'s current filename
         is used or a dlg is presented to get a new filename.
         """
@@ -2384,6 +2389,8 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
                 self.currentDoc.AutoCompCancel()
 
         if doc is None:
+            if self.currentDoc is None:
+                return
             doc = self.currentDoc
         if filename is None:
             filename = doc.filename
@@ -2537,8 +2544,11 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
             self.setTitle(title=self.winTitle, document=self.currentDoc)
             # clear the source tree
             self.structureWindow.srcTree.DeleteAllItems()
+            # disable save buttons
+            self.ribbon.buttons['save'].Disable()
+            self.ribbon.buttons['saveas'].Disable()
         else:
-            self.currentDoc = self.notebook.GetPage(newPageID)
+            self.setCurrentDoc(self.getOpenFilenames()[newPageID])
             self.structureWindow.refresh()
             # set to current file status
             self.setFileModified(self.currentDoc.UNSAVED)
@@ -2591,6 +2601,11 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         """
         if self.sendToRunner(event):
             self.app.runner.panel.runLocal(event, focusOnExit='coder')
+            self.Raise()
+
+    def pilotFile(self, event=None):
+        if self.sendToRunner(event):
+            self.app.runner.panel.pilotLocal(event, focusOnExit='coder')
             self.Raise()
 
     def duplicateLine(self, event):
@@ -2929,12 +2944,28 @@ class CoderRibbon(ribbon.FrameRibbon):
             tooltip=_translate("Monitor settings and calibration"),
             callback=parent.app.openMonitorCenter
         )
+        # pilot Py
+        self.addButton(
+            section="py", name="pypilot", label=_translate("Pilot"), icon='pyPilot',
+            tooltip=_translate("Run the current script in Python with piloting features on"),
+            callback=parent.pilotFile, style=wx.BU_BOTTOM | wx.BU_EXACTFIT
+        )
+        # switch run/pilot
+        runPilotSwitch = self.addSwitchCtrl(
+            section="py", name="pyswitch",
+            labels=(_translate("Pilot"), _translate("Run")),
+            style=wx.HORIZONTAL | wx.BU_NOTEXT
+        )
         # run Py
         self.addButton(
-            section="py", name="pyrun", label=_translate("Run in Python"), icon='pyRun',
-            tooltip=_translate("Run experiment locally in Python"),
-            callback=parent.runFile
+            section="py", name="pyrun", label=_translate("Run"), icon='pyRun',
+            tooltip=_translate("Run the current script in Python"),
+            callback=parent.runFile, style=wx.BU_BOTTOM | wx.BU_EXACTFIT
         )
+        # link buttons to switch
+        runPilotSwitch.addDependant(self.buttons['pyrun'], mode=1, action="enable")
+        runPilotSwitch.addDependant(self.buttons['pypilot'], mode=0, action="enable")
+        runPilotSwitch.setMode(0)
 
         self.addSeparator()
 

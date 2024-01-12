@@ -15,9 +15,8 @@ import copy
 import shutil
 from os.path import join, dirname, abspath, split
 from importlib import import_module  # helps python 2.7 -> 3.x migration
-from ._base import BaseVisualComponent, BaseComponent
+from ._base import BaseVisualComponent, BaseComponent, BaseDeviceComponent
 from ..params import Param
-from .utils import loadPluginComponents
 from psychopy.localization import _translate
 from psychopy.experiment import py2js
 import psychopy.logging as logging
@@ -25,6 +24,7 @@ import psychopy.logging as logging
 excludeComponents = [
     'BaseComponent',
     'BaseVisualComponent',
+    'BaseDeviceComponent',
     'BaseStandaloneRoutine'  # templates only
 ]  # this one isn't ready yet
 
@@ -166,8 +166,6 @@ def getComponents(folder=None, fetchIcons=True):
     importing from psychopy:
        `from psychopy.experiment.components import BaseComponent, Param`
     """
-    # load plugins
-    loadPluginComponents()
 
     if folder is None:
         pth = folder = dirname(__file__)
@@ -295,13 +293,13 @@ def getInitVals(params, target="PsychoPy"):
                                        .format(inits[name]))
                     inits[name].valType = 'code'
 
-        if name == "deviceName":
-            if not params[name]:
+        if name == "deviceLabel":
+            if "name" in inits and not params[name]:
                 # if deviceName exists but is blank, use component name
                 inits[name].val = inits['name'].val
             # make a code version of device name
-            inits['deviceNameCode'] = copy.copy(inits[name])
-            inits['deviceNameCode'].valType = "code"
+            inits['deviceLabelCode'] = copy.copy(inits[name])
+            inits['deviceLabelCode'].valType = "code"
 
         if not hasattr(inits[name], 'updates'):  # might be settings parameter instead
             continue

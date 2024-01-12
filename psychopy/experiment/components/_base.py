@@ -252,6 +252,12 @@ class BaseComponent:
         # each routine
         pass
 
+    def writePreCode(self, buff):
+        """Write any code that a component needs that should be done before 
+        the session's `run` method is called.
+        """
+        pass
+
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame
         """
@@ -504,6 +510,7 @@ class BaseComponent:
         buff.setIndentLevel(+1, relative=True)
         code = (f"# keep track of stop time/frame for later\n"
                 f"{params['name']}.tStop = t  # not accounting for scr refresh\n"
+                f"{params['name']}.tStopRefresh = tThisFlipGlobal  # on global time\n"
                 f"{params['name']}.frameNStop = frameN  # exact frame index\n"
                 )
         if self.params['saveStartStop']:
@@ -922,26 +929,53 @@ class BaseComponent:
         """Replaces word component with empty string"""
         return self.getType().replace('Component', '')
 
-    def getAllValidatorRoutines(self):
+    def getAllValidatorRoutines(self, attr="vals"):
         """
         Return a list of names for all validator Routines in the current experiment. Used to populate
         allowedVals in the `validator` param.
 
+        Parameters
+        ----------
+        attr : str
+            Attribute to get - either values (for allowedVals) or labels (for allowedLabels)
+
         Returns
         -------
         list[str]
-            List of Routine names
+            List of Routine names/labels
         """
         from psychopy.experiment.routines import BaseValidatorRoutine
 
         # iterate through all Routines in this Experiment
-        names = []
+        names = [""]
+        labels = [_translate("Do not validate")]
         for rtName, rt in self.exp.routines.items():
-            # if Routine is a validator, add its name
+            # if Routine is a validator, include it
             if isinstance(rt, BaseValidatorRoutine):
+                # add name
                 names.append(rtName)
+                # construct label
+                rtType = type(rt).__name__
+                labels.append(
+                    f"{rtName} ({rtType})"
+                )
 
-        return names
+        if attr == "labels":
+            return labels
+        else:
+            return names
+
+    def getAllValidatorRoutineVals(self):
+        """
+        Shorthand for calling getAllValidatorRoutines with `attr` as "vals"
+        """
+        return self.getAllValidatorRoutines(attr="vals")
+
+    def getAllValidatorRoutineLabels(self):
+        """
+        Shorthand for calling getAllValidatorRoutines with `attr` as "labels"
+        """
+        return self.getAllValidatorRoutines(attr="labels")
 
     def getValidator(self):
         """
@@ -954,6 +988,9 @@ class BaseComponent:
         """
         # return None if we have no such param
         if "validator" not in self.params:
+            return None
+        # return None if no validator is selected
+        if self.params['validator'].val in ("", None, "None", "none"):
             return None
         # strip spaces from param
         name = self.params['validator'].val.strip()
@@ -1028,6 +1065,56 @@ class BaseComponent:
         else:
             # Otherwise, we are not in a loop, so loop handler is just experiment handler
             return "thisExp"
+
+
+class BaseDeviceComponent(BaseComponent):
+    """
+    Base class for most components which interface with a hardware device.
+    """
+    # list of class strings (readable by DeviceManager) which this component's device could be
+    deviceClasses = []
+
+    def __init__(
+            self, exp, parentName,
+            # basic
+            name='',
+            startType='time (s)', startVal='',
+            stopType='duration (s)', stopVal='',
+            startEstim='', durationEstim='',
+            # device
+            deviceLabel="",
+            # data
+            saveStartStop=True, syncScreenRefresh=False,
+            # testing
+            disabled=False
+    ):
+        # initialise base component
+        BaseComponent.__init__(
+            self, exp, parentName,
+            name=name,
+            startType=startType, startVal=startVal,
+            stopType=stopType, stopVal=stopVal,
+            startEstim=startEstim, durationEstim=durationEstim,
+            saveStartStop=saveStartStop, syncScreenRefresh=syncScreenRefresh,
+            disabled=disabled
+        )
+        # require hardware
+        self.exp.requirePsychopyLibs(
+            ['hardware']
+        )
+        # --- Device params ---
+        self.order += [
+            "deviceLabel"
+        ]
+        # label to refer to device by
+        self.params['deviceLabel'] = Param(
+            deviceLabel, valType="str", inputType="single", categ="Device",
+            label=_translate("Device label"),
+            hint=_translate(
+                "A label to refer to this Component's associated hardware device by. If using the "
+                "same device for multiple components, be sure to use the same label here."
+            )
+        )
 
 
 class BaseVisualComponent(BaseComponent):
@@ -1162,10 +1249,11 @@ class BaseVisualComponent(BaseComponent):
         # --- Testing ---
         self.params['validator'] = Param(
             validator, valType="code", inputType="choice", categ="Testing",
-            allowedVals=self.getAllValidatorRoutines,
+            allowedVals=self.getAllValidatorRoutineVals,
+            allowedLabels=self.getAllValidatorRoutineLabels,
             label=_translate("Validate with..."),
             hint=_translate(
-                "Names of Validator components (separated by commas) to use to check the timing of this stimulus."
+                "Name of validator Component/Routine to use to check the timing of this stimulus."
             )
         )
 
