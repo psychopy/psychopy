@@ -3,6 +3,14 @@
 [![PyPI version](https://img.shields.io/pypi/v/psychopy.svg)](https://pypi.python.org/pypi/PsychoPy)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v1.4%20adopted-ff69b4.svg)](code-of-conduct.md)  
 
+---
+
+**Announcement!!**
+
+We are excited to announce that PsychoPy will be hosting a 3-day in-person code-sprint at the University of Nottingham from 15-17 April 2024. The code sprint will be an opportunity for us to get together in person and improve PsychoPy/JS. Anyone who would like to attend will need to fill out the [online application](https://run.pavlovia.org/pavlovia/survey/?surveyId=171ed328-d5ea-4819-83dc-9ba00ef5683b) by 31 January 2024. Those selected will be notified by the end of February.
+
+---
+
 PsychoPy is an open-source package for creating experiments in behavioral science. It aims to provide a single package that is:
 
 * precise enough for psychophysics
