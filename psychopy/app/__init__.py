@@ -17,8 +17,10 @@ __all__ = [
 
 import sys
 import os
+import io
 from .console import StdStreamDispatcher
 from .frametracker import openFrames
+from psychopy.preferences import prefs
 
 # Handle to the PsychoPy GUI application instance. We need to have this mainly
 # to allow the plugin system to access GUI to allow for changes after startup.
@@ -59,23 +61,22 @@ def startApp(showSplash=True, testMode=False, safeMode=False):
     if isAppStarted():  # do nothing it the app is already loaded
         return  # NOP
 
-    # Make sure logging is started before loading the bulk of the main
-    # application UI to catch as many errors as possible. After the app is
-    # loaded, messages are handled by the `StdStreamDispatcher` instance.
-    prefLogFilePath = None
-    if not testMode:
-        from psychopy.preferences import prefs
-        from psychopy.logging import console, DEBUG
+    # setup logging, this will dispatch all messages to the console and logfile
+    if StdStreamDispatcher.getInstance() is not None:
+        raise RuntimeError(
+            '`StdStreamDispatcher` instance initialized outside of `startApp`, '
+            'this is not permitted.')
 
-        # construct path to log file from preferences
-        userPrefsDir = prefs.paths['userPrefsDir']
-        prefLogFilePath = os.path.join(userPrefsDir, 'last_app_load.log')
-        lastRunLog = open(prefLogFilePath, 'w')  # open the file for writing
-        console.setLevel(DEBUG)
+    userPrefsDir = prefs.paths['userPrefsDir']
+    prefLogFilePath = os.path.join(userPrefsDir, 'last_app_load.log')
 
-        # NOTE - messages and errors cropping up before this point will go to
-        # console, afterwards to 'last_app_load.log'.
-        sys.stderr = sys.stdout = lastRunLog  # redirect output to file
+    # clear the log file
+    with io.open(prefLogFilePath, 'w', encoding='utf-8') as f:
+        f.write('')
+
+    # redirect logging
+    stdDisp = StdStreamDispatcher(None, prefLogFilePath)
+    stdDisp.redirect()
 
     # Create the application instance which starts loading it.
     # If `testMode==True`, all messages and errors (i.e. exceptions) will log to
@@ -84,19 +85,7 @@ def startApp(showSplash=True, testMode=False, safeMode=False):
     _psychopyApp = PsychoPyApp(
         0, testMode=testMode, showSplash=showSplash, safeMode=safeMode)
 
-    # After the app is loaded, we hand off logging to the stream dispatcher
-    # using the provided log file path. The dispatcher will write out any log
-    # messages to the extant log file and any GUI windows to show them to the
-    # user.
-
-    # ensure no instance was created before this one
-    if StdStreamDispatcher.getInstance() is not None:
-        raise RuntimeError(
-            '`StdStreamDispatcher` instance initialized outside of `startApp`, '
-            'this is not permitted.')
-
-    stdDisp = StdStreamDispatcher(_psychopyApp, prefLogFilePath)
-    stdDisp.redirect()
+    stdDisp.app = _psychopyApp  # update the reference, will broadcast messages
 
     if not testMode:
         # Setup redirection of errors to the error reporting dialog box. We
