@@ -221,10 +221,11 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
             buff.writeIndentedLines(code % self.params)
 
     def writeRoutineBeginCodeJS(self, buff, modular=True):
+        # enter function def
         code = (
                 "\n"
-                "var %(name)s"
-                "function %(name)sRoutine(snapshot) {\n"
+                "var %(name)s\n"
+                "function %(name)sRoutineBegin(snapshot) {\n"
                 "  return async function () {\n"
         )
         buff.writeIndentedLines(code % self.params)
@@ -242,7 +243,7 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
                 "// create uniform conditions for %(name)s\n"
                 "let %(name)sConditions = [];\n"
                 "for (let n = 0; n < %(nGroups)s; n++) {\n"
-                "    %(name)sConditions.push({"
+                "    %(name)sConditions.push({\n"
                 "        'group': n,\n"
                 "        'probability': 1/%(nGroups)s,\n"
                 "        'cap': %(nSlots)s\n"
@@ -256,10 +257,11 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
             "// get counterbalancing group \n"
             "%(name)s = await psychoJS.shelf.counterbalanceSelect({\n"
             "    key: ['%(name)s', '@designer', '@experiment'],\n"
-            "    groups: conditions.map(row => row.group),\n"
-            "    groupSizes: conditions.map(row => row.cap),\n"
+            "    groups: %(name)sConditions.map(row => row.group),\n"
+            "    groupSizes: %(name)sConditions.map(row => row.cap),\n"
             "});\n"
         )
+        buff.writeIndentedLines(code % self.params)
         # if ending experiment on depletion, write the code to do so
         if self.params['endExperimentOnDepletion']:
             code = (
@@ -273,16 +275,25 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
         if self.params['saveData']:
             code = (
                 "thisExp.addData('%(name)s.group', %(name)s.group)\n"
-                "for _key, _val in %(name)s.params.items():\n"
-                "    thisExp.addData(f'%(name)s.{_key}', _val)\n"
+                "for (let _key in %(name)s.params) {\n"
+                "    thisExp.addData(`%(name)s.${_key}`, %(name)s.params[_key])\n"
+                "}\n"
             )
             buff.writeIndentedLines(code % self.params)
         # save remaining cap
         if self.params['saveRemaining']:
             code = (
-                "thisExp.addData('%(name)s.remaining', %(name)s.remaining)"
+                "thisExp.addData('%(name)s.remaining', %(name)s.remaining)\n"
             )
             buff.writeIndentedLines(code % self.params)
+
+        # exit function def
+        code = (
+            "  }\n"
+            "}\n"
+        )
+        buff.setIndentLevel(-2, relative=True)
+        buff.writeIndentedLines(code % self.params)
 
     def writeExperimentEndCodeJS(self, buff):
         code = (
@@ -290,6 +301,6 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
             "    ['%(name)s', '@designer', '@experiment'],\n"
             "    %(name)s.participantToken,\n"
             "    (resp.keys === 'left')\n"
-            ")"
+            ")\n"
         )
         buff.writeIndentedLines(code % self.params)
