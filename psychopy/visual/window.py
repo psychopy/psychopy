@@ -3387,8 +3387,9 @@ class Window():
         # if we haven't made the indicator yet, do that now
         if self._pilotingIndicator is None:
             self._pilotingIndicator = TextBox2(
-                self, text=_translate("PILOTING"), letterHeight=0.1,
-                units="norm", size=(2, 2), alignment="bottom left",
+                self, text=_translate("PILOTING: Switch to run mode before testing."),
+                letterHeight=0.1, alignment="bottom left",
+                units="norm", size=(2, 2),
                 borderColor="#EC9703", color="#EC9703", fillColor="transparent",
                 borderWidth=20,
                 autoDraw=False
