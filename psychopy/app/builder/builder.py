@@ -1255,7 +1255,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             if not ok:
                 return False  # save file before compiling script
         self.app.showRunner()
-        self.stdoutFrame.addTask(fileName=self.filename)
+        self.app.runner.addTask(fileName=self.filename)
         self.app.runner.Raise()
         self.app.showRunner()
 
@@ -1266,11 +1266,12 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         Function to execute when switching between pilot and run modes
         """
         mode = evt.GetInt()
-        # update buttons
-        self.ribbon.buttons['pyrun'].Show(mode)
-        self.ribbon.buttons['pypilot'].Show(not mode)
-        self.ribbon.buttons['sendRunner'].Show(mode)
-        self.ribbon.buttons['pilotRunner'].Show(not mode)
+        # show/hide run buttons
+        for key in ("pyrun", "jsrun", "sendRunner"):
+            self.ribbon.buttons[key].Show(mode)
+        # hide/show pilot buttons
+        for key in ("pypilot", "jspilot", "pilotRunner"):
+            self.ribbon.buttons[key].Show(not mode)
         # update experiment mode
         if self.exp is not None:
             self.exp.runMode = mode
@@ -4457,11 +4458,18 @@ class BuilderRibbon(ribbon.FrameRibbon):
             tooltip=_translate("Write experiment as a JavaScript (JS) script"),
             callback=parent.fileExport
         )
+        # pilot JS
+        self.addButton(
+            section="browser", name="jspilot", label=_translate("Pilot in browser"),
+            icon='jsPilot',
+            tooltip=_translate("Pilot experiment locally in your browser"),
+            callback=parent.onPavloviaDebug
+        )
         # run JS
         self.addButton(
-            section="browser", name="jsrun", label=_translate("Run in local browser"), icon='jsRun',
-            tooltip=_translate("Run experiment in your browser"),
-            callback=parent.onPavloviaDebug
+            section="browser", name="jsrun", label=_translate("Run on Pavlovia"), icon='jsRun',
+            tooltip=_translate("Run experiment on Pavlovia"),
+            callback=parent.onPavloviaRun
         )
         # sync project
         self.addButton(

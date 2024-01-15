@@ -767,7 +767,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
             # de-select previous
             self.expCtrl.SetItemState(self.currentSelection or 0, 0, wx.LIST_STATE_SELECTED)
             # select new
-            self.expCtrl.Select(thisIndex)  # calls onSelectItem which updates other info
+            self.setSelection(thisIndex)  # calls onSelectItem which updates other info
 
         # Set column width
         self.expCtrl.SetColumnWidth(filenameColumn, wx.LIST_AUTOSIZE)
@@ -798,22 +798,35 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         """
         mode = evt.GetInt()
         # update buttons
-        self.ribbon.buttons['pyrun'].Show(mode)
-        self.ribbon.buttons['pypilot'].Show(not mode)
+        # show/hide run buttons
+        for key in ("pyrun", "jsrun"):
+            self.ribbon.buttons[key].Show(mode)
+        # hide/show pilot buttons
+        for key in ("pypilot", "jspilot"):
+            self.ribbon.buttons[key].Show(not mode)
         # update experiment mode
         if self.currentExperiment is not None:
             self.currentExperiment.runMode = mode
             self.currentExperiment.saveToXML(self.currentFile)
-            # re-add so column updates
-            self.addTask(fileName=self.currentFile)
+            # update current selection
+            runMode = "pilot"
+            if mode:
+                runMode = "run"
+            self.expCtrl.SetItem(self.currentSelection, runModeColumn, runMode)
         # update
         self.ribbon.Update()
         self.ribbon.Refresh()
         self.ribbon.Layout()
 
+    def setSelection(self, index):
+        self.expCtrl.Select(index)
+        self.onItemSelected(index)
+
     def onItemSelected(self, evt):
         """Set currentSelection to index of currently selected list item."""
-        self.currentSelection = evt.Index
+        if not isinstance(evt, int):
+            evt = evt.Index
+        self.currentSelection = evt
         filename = self.expCtrl.GetItemText(self.currentSelection, filenameColumn)
         folder = self.expCtrl.GetItemText(self.currentSelection, folderColumn)
         runMode = self.expCtrl.GetItemText(self.currentSelection, runModeColumn)
@@ -823,18 +836,19 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         # thisItem = self.entries[self.currentFile]
 
         self.ribbon.buttons['remove'].Enable()
-        # switch run mode
-        self.ribbon.buttons['pyswitch'].Enable()
-        self.ribbon.buttons['pyrun'].Show(runMode == "run")
-        self.ribbon.buttons['pypilot'].Show(runMode == "pilot")
         # enable run/pilot ctrls
+        self.ribbon.buttons['pyswitch'].Enable()
         self.ribbon.buttons['pyrun'].Enable()
         self.ribbon.buttons['pypilot'].Enable()
         # enable JS run
         if self.currentFile.suffix == '.psyexp':
             self.ribbon.buttons['jsrun'].Enable()
+            self.ribbon.buttons['jspilot'].Enable()
         else:
             self.ribbon.buttons['jsrun'].Disable()
+            self.ribbon.buttons['jspilot'].Disable()
+        # switch mode
+        self.ribbon.buttons['pyswitch'].setMode(runMode == "run")
         # update
         self.updateAlerts()
         self.app.updateWindowMenu()
@@ -853,6 +867,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         self.ribbon.buttons['pyrun'].Disable()
         self.ribbon.buttons['pypilot'].Disable()
         self.ribbon.buttons['jsrun'].Disable()
+        self.ribbon.buttons['jspilot'].Disable()
         self.ribbon.buttons['remove'].Disable()
         self.app.updateWindowMenu()
 
@@ -1101,15 +1116,21 @@ class RunnerRibbon(ribbon.FrameRibbon):
 
         # --- JS ---
         self.addSection(
-            "js", label=_translate("Browser"), icon="browser"
+            "browser", label=_translate("Browser"), icon="browser"
         )
-        # run JS
-        btn = self.addButton(
-            section="js", name="jsrun", label=_translate("Run in local browser"), icon='jsRun',
-            tooltip=_translate("Run the current script locally on your browser"),
+        # pilot JS
+        self.addButton(
+            section="browser", name="jspilot", label=_translate("Pilot in browser"),
+            icon='jsPilot',
+            tooltip=_translate("Pilot experiment locally in your browser"),
             callback=parent.runOnlineDebug
         )
-        btn.Disable()
+        # run JS
+        self.addButton(
+            section="browser", name="jsrun", label=_translate("Run on Pavlovia"), icon='jsRun',
+            tooltip=_translate("Run experiment on Pavlovia"),
+            callback=parent.runOnline
+        )
 
         self.addSeparator()
 
