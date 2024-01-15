@@ -719,8 +719,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             try:
                 self.exp.loadFromXML(filename)
                 # update run mode
-                runMode = int(self.exp.settings.params['runMode'].val)
-                self.ribbon.buttons['pyswitch'].setMode(runMode)
+                self.ribbon.buttons['pyswitch'].setMode(self.exp.runMode)
             except Exception:
                 print(u"Failed to load {}. Please send the following to"
                       u" the PsychoPy user list".format(filename))
@@ -1274,7 +1273,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.ribbon.buttons['pilotRunner'].Show(not mode)
         # update experiment mode
         if self.exp is not None:
-            self.exp.settings.params['runMode'].val = mode
+            self.exp.runMode = mode
             # mark as modified
             self.setIsModified(True)
         # update
@@ -1376,8 +1375,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             # add to undo stack
             self.addToUndoStack("EDIT experiment settings")
             # update run mode
-            runMode = int(self.exp.settings.params['runMode'].val)
-            self.ribbon.buttons['pyswitch'].setMode(runMode)
+            self.ribbon.buttons['pyswitch'].setMode(self.exp.runMode)
             # mark modified
             self.setIsModified(True)
 

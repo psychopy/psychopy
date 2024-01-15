@@ -187,6 +187,14 @@ class Experiment:
         """
         return ft.constructLegacyFilename(self.filename)
 
+    @property
+    def runMode(self):
+        return int(self.settings.params['runMode'].val)
+
+    @runMode.setter
+    def runMode(self, value):
+        self.settings.params['runMode'].val = value
+
     def requireImport(self, importName, importFrom='', importAs=''):
         """Add a top-level import to the experiment.
 
