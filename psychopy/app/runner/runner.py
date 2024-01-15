@@ -105,8 +105,8 @@ class RunnerFrame(wx.Frame, handlers.ThemeMixin):
         if self.panel.currentSelection >= 0:  # has valid item selected
             return self.panel.expCtrl.GetItem(self.panel.currentSelection).Text
 
-    def addTask(self, evt=None, fileName=None):
-        self.panel.addTask(fileName=fileName)
+    def addTask(self, evt=None, fileName=None, runMode="run"):
+        self.panel.addTask(fileName=fileName, runMode=runMode)
 
     def removeTask(self, evt=None):
         self.panel.removeTask(evt)
@@ -1044,17 +1044,19 @@ class RunnerRibbon(ribbon.FrameRibbon):
             "py", label=_translate("Desktop"), icon="desktop"
         )
         # pilot Py
-        self.addButton(
+        btn = self.addButton(
             section="py", name="pypilot", label=_translate("Pilot"), icon='pyPilot',
             tooltip=_translate("Run the current script in Python with piloting features on"),
             callback=parent.pilotLocal
         )
+        btn.Hide()
         # run Py
-        self.addButton(
+        btn = self.addButton(
             section="py", name="pyrun", label=_translate("Run"), icon='pyRun',
             tooltip=_translate("Run the current script in Python"),
             callback=parent.runLocal
         )
+        btn.Hide()
         # stop
         self.addButton(
             section="py", name="pystop", label=_translate("Stop"), icon='stop',
