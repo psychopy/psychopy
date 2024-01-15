@@ -425,9 +425,9 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
                            _translate("Compile the exp to a script"))
         self.Bind(wx.EVT_MENU, self.compileScript, item)
         self.bldrRun = menu.Append(wx.ID_ANY,
-                           _translate("Run\t%s") % keys['runScript'],
+                           _translate("Run/pilot\t%s") % keys['runScript'],
                            _translate("Run the current script"))
-        self.Bind(wx.EVT_MENU, self.runFile, self.bldrRun, id=self.bldrRun)
+        self.Bind(wx.EVT_MENU, self.onRunShortcut, self.bldrRun, id=self.bldrRun)
         item = menu.Append(wx.ID_ANY,
                            _translate("Send to runner\t%s") % keys['runnerScript'],
                            _translate("Send current script to runner"))
@@ -1281,6 +1281,19 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.ribbon.Update()
         self.ribbon.Refresh()
         self.ribbon.Layout()
+
+    def onRunShortcut(self, evt=None):
+        """
+        Callback for when the run shortcut is pressed - will either run or pilot depending on run mode
+        """
+        # do nothing if we have no experiment
+        if self.exp is None:
+            return
+        # run/pilot according to mode
+        if self.exp.runMode:
+            self.runFile(evt)
+        else:
+            self.pilotFile(evt)
 
     def runFile(self, event=None):
         """

@@ -175,9 +175,9 @@ class RunnerFrame(wx.Frame, handlers.ThemeMixin):
 
         runMenuItems = [
             {'id': wx.ID_ANY,
-             'label': _translate("&Run\t%s") % keys['runScript'],
+             'label': _translate("&Run/pilot\t%s") % keys['runScript'],
              'status': _translate('Running experiment'),
-             'func': self.panel.runLocal},
+             'func': self.panel.onRunShortcut},
             {'id': wx.ID_ANY,
              'label': _translate('Run &JS for local debug'),
              'status': _translate('Launching local debug of online study'),
@@ -599,6 +599,19 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         if self.currentSelection:
             self.ribbon.buttons['pyrun'].Enable()
             self.ribbon.buttons['pypilot'].Enable()
+
+    def onRunShortcut(self, evt=None):
+        """
+        Callback for when the run shortcut is pressed - will either run or pilot depending on run mode
+        """
+        # do nothing if we have no experiment
+        if self.currentExperiment is None:
+            return
+        # run/pilot according to mode
+        if self.currentExperiment.runMode:
+            self.runLocal(evt)
+        else:
+            self.pilotLocal(evt)
 
     def runLocal(self, evt=None, focusOnExit='runner', args=None):
         """Run experiment from new process using inherited ScriptProcess class methods."""

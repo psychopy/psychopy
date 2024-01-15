@@ -1661,9 +1661,9 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         # self.Bind(wx.EVT_MENU,  self.analyseCodeNow, id=self.IDs.analyzeNow)
 
         self.IDs.cdrRun = menu.Append(wx.ID_ANY,
-                                      _translate("Run\t%s") % keyCodes['runScript'],
+                                      _translate("Run/pilot\t%s") % keyCodes['runScript'],
                                       _translate("Run the current script")).GetId()
-        self.Bind(wx.EVT_MENU, self.runFile, id=self.IDs.cdrRun)
+        self.Bind(wx.EVT_MENU, self.onRunShortcut, id=self.IDs.cdrRun)
         item = menu.Append(wx.ID_ANY,
                                       _translate("Send to runner\t%s") % keyCodes['runnerScript'],
                                       _translate("Send current script to runner")).GetId()
@@ -2599,6 +2599,16 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.app.showRunner()
 
         return True
+
+    def onRunShortcut(self, evt=None):
+        """
+        Callback for when the run shortcut is pressed - will either run or pilot depending on run mode
+        """
+        # run/pilot according to mode
+        if self.ribbon.buttons['pyswitch'].mode:
+            self.runFile(evt)
+        else:
+            self.pilotFile(evt)
 
     def runFile(self, event=None):
         """
