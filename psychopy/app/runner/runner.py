@@ -792,6 +792,25 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         self.expCtrl.DeleteItem(self.currentSelection) # from wx control
         self.app.updateWindowMenu()
 
+    def onRunModeToggle(self, evt):
+        """
+        Function to execute when switching between pilot and run modes
+        """
+        mode = evt.GetInt()
+        # update buttons
+        self.ribbon.buttons['pyrun'].Show(mode)
+        self.ribbon.buttons['pypilot'].Show(not mode)
+        # update experiment mode
+        if self.currentExperiment is not None:
+            self.currentExperiment.runMode = mode
+            self.currentExperiment.saveToXML(self.currentFile)
+            # re-add so column updates
+            self.addTask(fileName=self.currentFile)
+        # update
+        self.ribbon.Update()
+        self.ribbon.Refresh()
+        self.ribbon.Layout()
+
     def onItemSelected(self, evt):
         """Set currentSelection to index of currently selected list item."""
         self.currentSelection = evt.Index
@@ -805,6 +824,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
 
         self.ribbon.buttons['remove'].Enable()
         # switch run mode
+        self.ribbon.buttons['pyswitch'].Enable()
         self.ribbon.buttons['pyrun'].Show(runMode == "run")
         self.ribbon.buttons['pypilot'].Show(runMode == "pilot")
         # enable run/pilot ctrls
@@ -829,6 +849,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         self.currentFile = None
         self.currentExperiment = None
         self.currentProject = None
+        self.ribbon.buttons['pyswitch'].Disable()
         self.ribbon.buttons['pyrun'].Disable()
         self.ribbon.buttons['pypilot'].Disable()
         self.ribbon.buttons['jsrun'].Disable()
@@ -1033,6 +1054,20 @@ class RunnerRibbon(ribbon.FrameRibbon):
             section="list", name="open", label=_translate("Open"), icon="fileopen",
             tooltip=_translate("Load tasks from a file"),
             callback=parent.parent.loadTaskList
+        )
+
+        self.addSeparator()
+
+        # --- Tools ---
+        self.addSection(
+            "experiment", label=_translate("Experiment"), icon="experiment"
+        )
+        # switch run/pilot
+        runPilotSwitch = self.addSwitchCtrl(
+            section="experiment", name="pyswitch",
+            labels=(_translate("Pilot"), _translate("Run")),
+            callback=parent.onRunModeToggle,
+            style=wx.HORIZONTAL
         )
 
         self.addSeparator()
