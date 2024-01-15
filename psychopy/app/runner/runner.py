@@ -752,17 +752,17 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
                 self.expCtrl.SetItem(thisIndex, folderColumn, str(thisFile.parent))  # add the folder name
                 # add the new item to our list of files
                 self.entries[thisFile.absolute()] = {'index': thisIndex}
-                # load psyexp
-                if Path(fileName).suffix == ".psyexp":
-                    exp = experiment.Experiment()
-                    exp.loadFromXML(fileName)
-                    # get run mode from file
-                    if exp.runMode:
-                        runMode = "run"
-                    else:
-                        runMode = "pilot"
-                # set run mode for item
-                self.expCtrl.SetItem(thisIndex, runModeColumn, runMode)  # add the folder name
+            # load psyexp
+            if Path(fileName).suffix == ".psyexp":
+                exp = experiment.Experiment()
+                exp.loadFromXML(fileName)
+                # get run mode from file
+                if exp.runMode:
+                    runMode = "run"
+                else:
+                    runMode = "pilot"
+            # set run mode for item
+            self.expCtrl.SetItem(thisIndex, runModeColumn, runMode)
 
         if filePaths:  # set selection to the final item to be added
             # Set item selection
