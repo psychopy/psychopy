@@ -145,6 +145,8 @@
     forceWindowed = boolean(default=True)
     # How much output to include in the log files when piloting ('error' is fewest messages, 'debug' is most)
     pilotLoggingLevel = option('error', 'warning', 'data', 'exp', 'info', 'debug', default='debug')
+    # Show an orange border around the window when in piloting mode
+    showPilotingIndicator = boolean(default=True)
 
 # Settings for connections
 [connections]
