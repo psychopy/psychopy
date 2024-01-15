@@ -621,6 +621,10 @@ class Window():
         self._showSplash = False
         self.resetViewport()  # set viewport to full window size
 
+        # piloting indicator
+        self._pilotingIndicator = None
+        self._showPilotingIndicator = False
+
         # over several frames with no drawing
         self._monitorFrameRate = None
         # for testing when to stop drawing a stim:
@@ -1353,9 +1357,13 @@ class Window():
         # keep the system awake (prevent screen-saver or sleep)
         platform_specific.sendStayAwake()
 
-        # Draw background (if present) for next frame
+        # draw background (if present) for next frame
         if hasattr(self.backgroundImage, "draw"):
             self.backgroundImage.draw()
+
+        # draw piloting indicator (if piloting) for next frame
+        if self._showPilotingIndicator:
+            self._pilotingIndicator.draw()
 
         #    If self.waitBlanking is True, then return the time that
         # GL.glFinish() returned, set as the 'now' variable. Otherwise
@@ -3371,6 +3379,29 @@ class Window():
         """
         if hasattr(self.backend, "setMouseType"):
             self.backend.setMouseType(name)
+
+    def showPilotingIndicator(self):
+        """
+        Show the visual indicator which shows we are in piloting mode.
+        """
+        # if we haven't made the indicator yet, do that now
+        if self._pilotingIndicator is None:
+            self._pilotingIndicator = TextBox2(
+                self, text=_translate("PILOTING"), letterHeight=0.1,
+                units="norm", size=(2, 2), alignment="bottom left",
+                borderColor="#EC9703", color="#EC9703", fillColor="transparent",
+                borderWidth=20,
+                autoDraw=False
+            )
+        # mark it as to be shown
+        self._showPilotingIndicator = True
+
+    def hidePilotingIndicator(self):
+        """
+        Hide the visual indicator which shows we are in piloting mode.
+        """
+        # mark indicator as to be hidden
+        self._showPilotingIndicator = False
 
     def showMessage(self, msg):
         """Show a message in the window. This can be used to show information

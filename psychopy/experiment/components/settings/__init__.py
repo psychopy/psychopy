@@ -1809,6 +1809,14 @@ class SettingsComponent:
         )
         buff.writeIndentedLines(code)
 
+        # show/hide pilot indicator
+        code = (
+            "# show a visual indicator if we're in piloting mode\n"
+            "if PILOTING and prefs.piloting['showPilotingIndicator']:\n"
+            "    win.showPilotingIndicator()\n"
+        )
+        buff.writeIndentedLines(code)
+
         # Import here to avoid circular dependency!
         from psychopy.experiment._experiment import RequiredImport
         microphoneImport = RequiredImport(importName='microphone',
@@ -1819,6 +1827,7 @@ class SettingsComponent:
                                     "microphone.switchOn()\n")
         # Exit function def
         code = (
+            "\n"
             "return win\n"
         )
         buff.writeIndentedLines(code)
