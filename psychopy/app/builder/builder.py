@@ -673,6 +673,8 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         #             startType='time (s)', startVal=0.0,
         #             stopType='duration (s)', stopVal=0.5)
         # routine.addComponent(ISI)
+        # set run mode to pilot
+        self.ribbon.buttons['pyswitch'].setMode(0)
         self.resetUndoStack()
         self.setIsModified(False)
         self.updateAllViews()
@@ -716,6 +718,9 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             self.exp = experiment.Experiment(prefs=self.app.prefs)
             try:
                 self.exp.loadFromXML(filename)
+                # update run mode
+                runMode = int(self.exp.settings.params['runMode'].val)
+                self.ribbon.buttons['pyswitch'].setMode(runMode)
             except Exception:
                 print(u"Failed to load {}. Please send the following to"
                       u" the PsychoPy user list".format(filename))
@@ -1257,6 +1262,26 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
         return True
 
+    def onRunModeToggle(self, evt):
+        """
+        Function to execute when switching between pilot and run modes
+        """
+        mode = evt.GetInt()
+        # update buttons
+        self.ribbon.buttons['pyrun'].Show(mode)
+        self.ribbon.buttons['pypilot'].Show(not mode)
+        self.ribbon.buttons['sendRunner'].Show(mode)
+        self.ribbon.buttons['pilotRunner'].Show(not mode)
+        # update experiment mode
+        if self.exp is not None:
+            self.exp.settings.params['runMode'].val = mode
+            # mark as modified
+            self.setIsModified(True)
+        # update
+        self.ribbon.Update()
+        self.ribbon.Refresh()
+        self.ribbon.Layout()
+
     def runFile(self, event=None):
         """
         Send the current file to the Runner and run it.
@@ -1348,7 +1373,12 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             frame=self, element=component, experiment=self.exp, timeout=timeout)
 
         if dlg.OK:
+            # add to undo stack
             self.addToUndoStack("EDIT experiment settings")
+            # update run mode
+            runMode = int(self.exp.settings.params['runMode'].val)
+            self.ribbon.buttons['pyswitch'].setMode(runMode)
+            # mark modified
             self.setIsModified(True)
 
     def addRoutine(self, event=None):
@@ -4358,15 +4388,36 @@ class BuilderRibbon(ribbon.FrameRibbon):
         self.addSection(
             "experiment", label=_translate("Experiment"), icon="experiment"
         )
+        # monitor center
+        self.addButton(
+            section="experiment", name='monitor', label=_translate('Monitor center'),
+            icon="monitors",
+            tooltip=_translate("Monitor settings and calibration"),
+            callback=parent.app.openMonitorCenter
+        )
         # settings
         self.addButton(
             section="experiment", name='expsettings', label=_translate('Experiment settings'), icon="expsettings",
             tooltip=_translate("Edit experiment settings"),
             callback=parent.setExperimentSettings
         )
+        # switch run/pilot
+        self.addSwitchCtrl(
+            section="experiment", name="pyswitch",
+            labels=(_translate("Pilot"), _translate("Run")),
+            startMode=0, callback=parent.onRunModeToggle,
+            style=wx.HORIZONTAL
+        )
         # send to runner
         self.addButton(
-            section="experiment", name='runner', label=_translate('Runner'), icon="runner",
+            section="experiment", name='sendRunner', label=_translate('Runner'), icon="runner",
+            tooltip=_translate("Send experiment to Runner"),
+            callback=parent.sendToRunner
+        )
+        # send to runner (pilot icon)
+        self.addButton(
+            section="experiment", name='pilotRunner', label=_translate('Runner'),
+            icon="runnerPilot",
             tooltip=_translate("Send experiment to Runner"),
             callback=parent.sendToRunner
         )
@@ -4376,12 +4427,6 @@ class BuilderRibbon(ribbon.FrameRibbon):
         # --- Python ---
         self.addSection(
             "py", label=_translate("Desktop"), icon="desktop"
-        )
-        # monitor center
-        self.addButton(
-            section="py", name='monitor', label=_translate('Monitor center'), icon="monitors",
-            tooltip=_translate("Monitor settings and calibration"),
-            callback=parent.app.openMonitorCenter
         )
         # compile python
         self.addButton(
@@ -4393,24 +4438,14 @@ class BuilderRibbon(ribbon.FrameRibbon):
         self.addButton(
             section="py", name="pypilot", label=_translate("Pilot"), icon='pyPilot',
             tooltip=_translate("Run the current script in Python with piloting features on"),
-            callback=parent.pilotFile, style=wx.BU_BOTTOM | wx.BU_EXACTFIT
-        )
-        # switch run/pilot
-        runPilotSwitch = self.addSwitchCtrl(
-            section="py", name="pyswitch",
-            labels=(_translate("Pilot"), _translate("Run")),
-            style=wx.HORIZONTAL | wx.BU_NOTEXT
+            callback=parent.pilotFile
         )
         # run Py
         self.addButton(
             section="py", name="pyrun", label=_translate("Run"), icon='pyRun',
             tooltip=_translate("Run the current script in Python"),
-            callback=parent.runFile, style=wx.BU_BOTTOM | wx.BU_EXACTFIT
+            callback=parent.runFile
         )
-        # link buttons to switch
-        runPilotSwitch.addDependant(self.buttons['pyrun'], mode=1, action="enable")
-        runPilotSwitch.addDependant(self.buttons['pypilot'], mode=0, action="enable")
-        runPilotSwitch.setMode(0)
 
         self.addSeparator()
 

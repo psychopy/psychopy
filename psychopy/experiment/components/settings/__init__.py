@@ -81,7 +81,7 @@ class SettingsComponent:
     tooltip = _translate("Edit settings for this experiment")
 
     def __init__(
-            self, parentName, exp, expName='', fullScr=True,
+            self, parentName, exp, expName='', fullScr=True, runMode=0,
             winSize=(1024, 768), screen=1, monitor='testMonitor', winBackend='pyglet',
             showMouse=False, saveLogFile=True, showExpInfo=True,
             expInfo="{'participant':'f\"{randint(0, 999999):06.0f}\"', 'session':'001'}",
@@ -163,6 +163,16 @@ class SettingsComponent:
             hint=_translate("Start the experiment with a dialog to set info"
                             " (e.g.participant or condition)"),
             label=_translate("Show info dialog"), categ='Basic')
+        self.params['runMode'] = Param(
+            runMode, valType="code", inputType="choice",
+            allowedVals=[0, 1],
+            allowedLabels=[_translate("Piloting"), _translate("Running")],
+            label=_translate("Run mode"),
+            hint=_translate(
+                "In piloting mode, all of the settings from prefs->piloting are applied. This is "
+                "recommended while the experiment is a work in progress."
+            )
+        )
         self.params['Enable Escape'] = Param(
             enableEscape, valType='bool', inputType="bool", allowedTypes=[],
             hint=_translate("Enable the <esc> key, to allow subjects to quit"
