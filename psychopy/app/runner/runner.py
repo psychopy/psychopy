@@ -32,7 +32,9 @@ from psychopy.scripts.psyexpCompile import generateScript
 from psychopy.app.runner.scriptProcess import ScriptProcess
 import psychopy.tools.versionchooser as versions
 
-folderColumn = 1
+
+folderColumn = 2
+runModeColumn = 1
 filenameColumn = 0
 
 
@@ -252,8 +254,11 @@ class RunnerFrame(wx.Frame, handlers.ThemeMixin):
             experiments = []
             for i in range(self.panel.expCtrl.GetItemCount()):
                 experiments.append(
-                    {'path': self.panel.expCtrl.GetItem(i, folderColumn).Text,
-                     'file': self.panel.expCtrl.GetItem(i, filenameColumn).Text}
+                    {
+                        'path': self.panel.expCtrl.GetItem(i, folderColumn).Text,
+                        'file': self.panel.expCtrl.GetItem(i, filenameColumn).Text,
+                        'runMode': self.panel.expCtrl.GetItem(i, runModeColumn).Text,
+                    },
                 )
             with open(newPath, 'w') as file:
                 json.dump(experiments, file)
@@ -292,7 +297,9 @@ class RunnerFrame(wx.Frame, handlers.ThemeMixin):
                     self.panel.expCtrl.DeleteAllItems()
                     for exp in experiments:
                         self.panel.addTask(
-                            fileName=os.path.join(exp['path'], exp['file']))
+                            fileName=os.path.join(exp['path'], exp['file']),
+                            runMode=exp.get('runMode', "run")
+                        )
                     self.listname = newPath
 
         dlg.Destroy()  # close the file browser
@@ -498,6 +505,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onDoubleClick, self.expCtrl)
         self.expCtrl.InsertColumn(filenameColumn, _translate('File'))
         self.expCtrl.InsertColumn(folderColumn, _translate('Path'))
+        self.expCtrl.InsertColumn(folderColumn, _translate('Run mode'))
         self.topPanel.sizer.Add(self.expCtrl, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
 
         # Setup panel for bottom half (alerts and stdout)
@@ -600,9 +608,6 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         # substitute args
         if args is None:
             args = []
-
-        # set switch mode
-        self.ribbon.buttons['pyswitch'].setMode("--pilot" in args)
 
         currentFile = str(self.currentFile)
         if self.currentFile.suffix == '.psyexp':
@@ -709,7 +714,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
 
         print("##### PsychoJS libs downloaded to {} #####\n".format(libPath))
 
-    def addTask(self, evt=None, fileName=None):
+    def addTask(self, evt=None, fileName=None, runMode="run"):
         """
         Add task to the expList listctrl.
 
@@ -747,6 +752,17 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
                 self.expCtrl.SetItem(thisIndex, folderColumn, str(thisFile.parent))  # add the folder name
                 # add the new item to our list of files
                 self.entries[thisFile.absolute()] = {'index': thisIndex}
+                # load psyexp
+                if Path(fileName).suffix == ".psyexp":
+                    exp = experiment.Experiment()
+                    exp.loadFromXML(fileName)
+                    # get run mode from file
+                    if exp.runMode:
+                        runMode = "run"
+                    else:
+                        runMode = "pilot"
+                # set run mode for item
+                self.expCtrl.SetItem(thisIndex, runModeColumn, runMode)  # add the folder name
 
         if filePaths:  # set selection to the final item to be added
             # Set item selection
@@ -758,6 +774,9 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         # Set column width
         self.expCtrl.SetColumnWidth(filenameColumn, wx.LIST_AUTOSIZE)
         self.expCtrl.SetColumnWidth(folderColumn, wx.LIST_AUTOSIZE)
+        self.expCtrl.SetColumnWidth(runModeColumn, wx.LIST_AUTOSIZE)
+
+        self.expCtrl.Refresh()
 
     def removeTask(self, evt):
         """Remove experiment entry from the expList listctrl."""
@@ -780,23 +799,30 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         self.currentSelection = evt.Index
         filename = self.expCtrl.GetItemText(self.currentSelection, filenameColumn)
         folder = self.expCtrl.GetItemText(self.currentSelection, folderColumn)
+        runMode = self.expCtrl.GetItemText(self.currentSelection, runModeColumn)
         self.currentFile = Path(folder, filename)
         self.currentExperiment = self.loadExperiment()
         self.currentProject = None  # until it's needed (slow to update)
         # thisItem = self.entries[self.currentFile]
 
         self.ribbon.buttons['remove'].Enable()
-        # enable rub/pilot ctrls
-        self.ribbon.buttons['pyswitch'].Enable()
-        runMode = self.ribbon.buttons['pyswitch'].mode
-        self.ribbon.buttons['pyswitch'].setMode(runMode)
+        # switch run mode
+        self.ribbon.buttons['pyrun'].Show(runMode == "run")
+        self.ribbon.buttons['pypilot'].Show(runMode == "pilot")
+        # enable run/pilot ctrls
+        self.ribbon.buttons['pyrun'].Enable()
+        self.ribbon.buttons['pypilot'].Enable()
         # enable JS run
         if self.currentFile.suffix == '.psyexp':
             self.ribbon.buttons['jsrun'].Enable()
         else:
             self.ribbon.buttons['jsrun'].Disable()
+        # update
         self.updateAlerts()
         self.app.updateWindowMenu()
+        self.ribbon.Update()
+        self.ribbon.Refresh()
+        self.ribbon.Layout()
 
     def onItemDeselected(self, evt):
         """Set currentSelection, currentFile, currentExperiment and currentProject to None."""
@@ -805,7 +831,6 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         self.currentFile = None
         self.currentExperiment = None
         self.currentProject = None
-        self.ribbon.buttons['pyswitch'].Disable()
         self.ribbon.buttons['pyrun'].Disable()
         self.ribbon.buttons['pypilot'].Disable()
         self.ribbon.buttons['jsrun'].Disable()
@@ -1022,24 +1047,14 @@ class RunnerRibbon(ribbon.FrameRibbon):
         self.addButton(
             section="py", name="pypilot", label=_translate("Pilot"), icon='pyPilot',
             tooltip=_translate("Run the current script in Python with piloting features on"),
-            callback=parent.pilotLocal, style=wx.BU_BOTTOM | wx.BU_EXACTFIT
-        )
-        # switch run/pilot
-        runPilotSwitch = self.addSwitchCtrl(
-            section="py", name="pyswitch",
-            labels=(_translate("Pilot"), _translate("Run")),
-            style=wx.HORIZONTAL | wx.BU_NOTEXT
+            callback=parent.pilotLocal
         )
         # run Py
         self.addButton(
             section="py", name="pyrun", label=_translate("Run"), icon='pyRun',
             tooltip=_translate("Run the current script in Python"),
-            callback=parent.runLocal, style=wx.BU_BOTTOM | wx.BU_EXACTFIT
+            callback=parent.runLocal
         )
-        # link buttons to switch
-        runPilotSwitch.addDependant(self.buttons['pyrun'], mode=1, action="enable")
-        runPilotSwitch.addDependant(self.buttons['pypilot'], mode=0, action="enable")
-        runPilotSwitch.setMode(0)
         # stop
         self.addButton(
             section="py", name="pystop", label=_translate("Stop"), icon='stop',
