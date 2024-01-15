@@ -754,10 +754,8 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
                 self.entries[thisFile.absolute()] = {'index': thisIndex}
             # load psyexp
             if Path(fileName).suffix == ".psyexp":
-                exp = experiment.Experiment()
-                exp.loadFromXML(fileName)
                 # get run mode from file
-                if exp.runMode:
+                if experiment.Experiment.getRunModeFromFile(fileName):
                     runMode = "run"
                 else:
                     runMode = "pilot"
