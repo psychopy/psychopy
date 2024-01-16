@@ -173,6 +173,8 @@ class TestLiaison:
     def test_device_JSON(self):
         cases = {
             'testMic': "psychopy.hardware.microphone.MicrophoneDevice",
+            'testPhotodiode': "psychopy.hardware.photodiode.ScreenBufferSampler",
+            'testButtonBox': "psychopy.hardware.button.KeyboardButtonBox"
         }
         for deviceName, deviceClass in cases.items():
             # get the first available device

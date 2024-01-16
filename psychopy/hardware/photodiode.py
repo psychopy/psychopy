@@ -396,6 +396,17 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
         """
         return message
 
+    def isSameDevice(self, other):
+        if isinstance(other, type(self)):
+            # if both objects are ScreenBufferSamplers, then compare windows
+            return other.win is self.win
+        elif isinstance(other, dict):
+            # if other is a dict of params, compare window to the win param
+            return other.get('win', None) is self.win
+        else:
+            # if types don't match up, it's not the same device
+            return False
+
     @staticmethod
     def getAvailableDevices():
         return []
