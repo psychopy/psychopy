@@ -103,7 +103,7 @@ class KeyboardButtonBox(BaseButtonGroup):
     """
     Use a standard keyboard to immitate the functions of a button box, mostly useful for testing.
     """
-    def __init__(self, buttons=(1, 2, 3, 4)):
+    def __init__(self, buttons=(1, 2, 3, 4), device=-1, bufferSize=10000):
         # initialise base class
         BaseButtonGroup.__init__(self, channels=len(buttons))
         # store buttons
@@ -111,7 +111,11 @@ class KeyboardButtonBox(BaseButtonGroup):
         # make own clock
         self.clock = core.Clock()
         # initialise keyboard
-        self.kb = keyboard.KeyboardDevice(clock=self.clock)
+        self.kb = keyboard.KeyboardDevice(
+            clock=self.clock,
+            device=device,
+            bufferSize=bufferSize
+        )
 
     def resetTimer(self, clock=logging.defaultClock):
         self.clock.reset(clock.getTime())
@@ -148,6 +152,10 @@ class KeyboardButtonBox(BaseButtonGroup):
         )
 
         return resp
+
+    def isSameDevice(self, other):
+        # all Keyboards are the same device
+        return True
 
 
 class ButtonBox:

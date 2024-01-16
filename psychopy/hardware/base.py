@@ -128,7 +128,7 @@ class BaseDevice:
             True if the two objects represent the same physical device
         """
         raise NotImplementedError(
-            "All subclasses of BaseDevice must implement the method `getDict`"
+            "All subclasses of BaseDevice must implement the method `isSameDevice`"
         )
 
     @staticmethod
