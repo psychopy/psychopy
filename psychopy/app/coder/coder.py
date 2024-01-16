@@ -1661,9 +1661,9 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         # self.Bind(wx.EVT_MENU,  self.analyseCodeNow, id=self.IDs.analyzeNow)
 
         self.IDs.cdrRun = menu.Append(wx.ID_ANY,
-                                      _translate("Run\t%s") % keyCodes['runScript'],
+                                      _translate("Run/pilot\t%s") % keyCodes['runScript'],
                                       _translate("Run the current script")).GetId()
-        self.Bind(wx.EVT_MENU, self.runFile, id=self.IDs.cdrRun)
+        self.Bind(wx.EVT_MENU, self.onRunShortcut, id=self.IDs.cdrRun)
         item = menu.Append(wx.ID_ANY,
                                       _translate("Send to runner\t%s") % keyCodes['runnerScript'],
                                       _translate("Send current script to runner")).GetId()
@@ -2002,9 +2002,10 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
         fileType = self.currentDoc.getFileType()
         # enable run buttons if current file is a Python script
-        if 'runner' in self.ribbon.buttons:
+        if 'sendRunner' in self.ribbon.buttons:
             isExp = fileType == 'Python'
-            self.ribbon.buttons['runner'].Enable(isExp)
+            self.ribbon.buttons['sendRunner'].Enable(isExp)
+            self.ribbon.buttons['pilotRunner'].Enable(isExp)
 
         self.statusBar.SetStatusText(fileType, 2)
 
@@ -2311,7 +2312,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         isExp = filename.endswith(".py") or filename.endswith(".psyexp")
 
         # if the toolbar is done then adjust buttons
-        for key in ("runner", "pyrun", "pypilot"):
+        for key in ("sendRunner", "pilotRunner", "pyrun", "pypilot"):
             if key in self.ribbon.buttons:
                 self.ribbon.buttons[key].Enable(isExp)
         # update save/saveas buttons
@@ -2587,13 +2588,27 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         if self.app.runner == None:
             self.app.showRunner()
         if fullPath.is_file():
-            self.app.runner.addTask(fileName=fullPath)
+            if self.ribbon.buttons['pyswitch'].mode:
+                runMode = "run"
+            else:
+                runMode = "pilot"
+            self.app.runner.addTask(fileName=fullPath, runMode=runMode)
         else:
             alert(code=6105, strFields={'path': str(fullPath)})
         self.app.runner.Raise()
         self.app.showRunner()
 
         return True
+
+    def onRunShortcut(self, evt=None):
+        """
+        Callback for when the run shortcut is pressed - will either run or pilot depending on run mode
+        """
+        # run/pilot according to mode
+        if self.ribbon.buttons['pyswitch'].mode:
+            self.runFile(evt)
+        else:
+            self.pilotFile(evt)
 
     def runFile(self, event=None):
         """
@@ -2787,7 +2802,8 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.onIdle(event=None)
         self.scriptProcess = None
         self.scriptProcessID = None
-        self.ribbon.buttons['runner'].Enable(True)
+        self.ribbon.buttons['sendRunner'].Enable(True)
+        self.ribbon.buttons['pilotRunner'].Enable(True)
 
     def onURL(self, evt):
         """decompose the URL of a file and line number"""
@@ -2926,12 +2942,28 @@ class CoderRibbon(ribbon.FrameRibbon):
             tooltip=_translate("Open a tool for choosing colors"),
             callback=parent.app.colorPicker
         )
+        # switch run/pilot
+        runPilotSwitch = self.addSwitchCtrl(
+            section="experiment", name="pyswitch",
+            labels=(_translate("Pilot"), _translate("Run")),
+            style=wx.HORIZONTAL
+        )
         # send to runner
         self.addButton(
-            section="experiment", name='runner', label=_translate('Runner'), icon="runner",
-            tooltip=_translate("Send current file to Runner"),
+            section="experiment", name='sendRunner', label=_translate('Runner'), icon="runner",
+            tooltip=_translate("Send experiment to Runner"),
             callback=parent.sendToRunner
         ).Disable()
+        # send to runner (pilot icon)
+        self.addButton(
+            section="experiment", name='pilotRunner', label=_translate('Runner'),
+            icon="runnerPilot",
+            tooltip=_translate("Send experiment to Runner"),
+            callback=parent.sendToRunner
+        ).Disable()
+        # link runner buttons to switch
+        runPilotSwitch.addDependant(self.buttons['sendRunner'], mode=1, action="show")
+        runPilotSwitch.addDependant(self.buttons['pilotRunner'], mode=0, action="show")
 
         self.addSeparator()
 
@@ -2948,24 +2980,17 @@ class CoderRibbon(ribbon.FrameRibbon):
         self.addButton(
             section="py", name="pypilot", label=_translate("Pilot"), icon='pyPilot',
             tooltip=_translate("Run the current script in Python with piloting features on"),
-            callback=parent.pilotFile, style=wx.BU_BOTTOM | wx.BU_EXACTFIT
-        )
-        # switch run/pilot
-        runPilotSwitch = self.addSwitchCtrl(
-            section="py", name="pyswitch",
-            labels=(_translate("Pilot"), _translate("Run")),
-            style=wx.HORIZONTAL | wx.BU_NOTEXT
+            callback=parent.pilotFile
         )
         # run Py
         self.addButton(
             section="py", name="pyrun", label=_translate("Run"), icon='pyRun',
             tooltip=_translate("Run the current script in Python"),
-            callback=parent.runFile, style=wx.BU_BOTTOM | wx.BU_EXACTFIT
+            callback=parent.runFile
         )
-        # link buttons to switch
-        runPilotSwitch.addDependant(self.buttons['pyrun'], mode=1, action="enable")
-        runPilotSwitch.addDependant(self.buttons['pypilot'], mode=0, action="enable")
-        runPilotSwitch.setMode(0)
+        # link run buttons to switch
+        runPilotSwitch.addDependant(self.buttons['pyrun'], mode=1, action="show")
+        runPilotSwitch.addDependant(self.buttons['pypilot'], mode=0, action="show")
 
         self.addSeparator()
 
@@ -3023,3 +3048,6 @@ class CoderRibbon(ribbon.FrameRibbon):
             tooltip=_translate("Switch to Runner view"),
             callback=parent.app.showRunner
         )
+
+        # start off in run mode
+        runPilotSwitch.setMode(1)

@@ -126,13 +126,13 @@ class FrameRibbon(wx.Panel, handlers.ThemeMixin):
         return btn
 
     def addSwitchCtrl(
-            self, section, name, labels=("", ""), startMode=0, style=wx.HORIZONTAL
+            self, section, name, labels=("", ""), startMode=0, callback=None, style=wx.HORIZONTAL
     ):
         # if section doesn't exist, make it
         if section not in self.sections:
             self.addSection(section, label=section)
         btn = self.sections[section].addSwitchCtrl(
-            name, labels, startMode=startMode, style=style
+            name, labels, startMode=startMode, callback=callback, style=style
         )
 
         return btn
@@ -313,10 +313,10 @@ class FrameRibbonSection(wx.Panel, handlers.ThemeMixin):
 
         return btn
 
-    def addSwitchCtrl(self, name, labels=("", ""), startMode=0, style=wx.HORIZONTAL):
+    def addSwitchCtrl(self, name, labels=("", ""), startMode=0, callback=None, style=wx.HORIZONTAL):
         # create button
         btn = FrameRibbonSwitchCtrl(
-            self, labels, startMode=startMode, style=style
+            self, labels, startMode=startMode, callback=callback, style=style
         )
         # store references
         self.buttons[name] = self.ribbon.buttons[name] = btn
@@ -472,6 +472,9 @@ class FrameRibbonDropdownButton(wx.Panel, handlers.ThemeMixin):
             evt.EventObject.SetBackgroundColour(colors.app['frame_bg'])
 
 
+EVT_RIBBON_SWITCH = wx.PyEventBinder(wx.IdManager.ReserveId())
+
+
 class FrameRibbonSwitchCtrl(wx.Panel, handlers.ThemeMixin):
     """
     A switch with two modes. Use `addDependency` to make presentation of other buttons
@@ -479,6 +482,7 @@ class FrameRibbonSwitchCtrl(wx.Panel, handlers.ThemeMixin):
     """
     def __init__(
             self, parent, labels=("", ""), startMode=0,
+            callback=None,
             style=wx.HORIZONTAL
     ):
         wx.Panel.__init__(self, parent)
@@ -539,7 +543,10 @@ class FrameRibbonSwitchCtrl(wx.Panel, handlers.ThemeMixin):
             icons.ButtonIcon(stem, size=size) for stem in stems
         ]
         # set starting mode
-        self.setMode(startMode)
+        self.setMode(startMode, silent=True)
+        # bind callback
+        if callback is not None:
+            self.Bind(EVT_RIBBON_SWITCH, callback)
 
         self.Layout()
 
@@ -568,7 +575,7 @@ class FrameRibbonSwitchCtrl(wx.Panel, handlers.ThemeMixin):
         else:
             self.setMode(0)
 
-    def setMode(self, mode):
+    def setMode(self, mode, silent=False):
         # set mode
         self.mode = mode
         # iterate through switch buttons
@@ -591,6 +598,12 @@ class FrameRibbonSwitchCtrl(wx.Panel, handlers.ThemeMixin):
                 ctrl.Show(mode == depend['mode'])
             if depend['action'] == "enable":
                 ctrl.Enable(mode == depend['mode'])
+        # emit event
+        if not silent:
+            evt = wx.CommandEvent(EVT_RIBBON_SWITCH.typeId)
+            evt.SetInt(mode)
+            evt.SetString(self.btns[mode].GetLabel())
+            wx.PostEvent(self, evt)
         # refresh
         self.Refresh()
         self.Update()

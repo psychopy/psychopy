@@ -187,6 +187,14 @@ class Experiment:
         """
         return ft.constructLegacyFilename(self.filename)
 
+    @property
+    def runMode(self):
+        return int(self.settings.params['runMode'].val)
+
+    @runMode.setter
+    def runMode(self, value):
+        self.settings.params['runMode'].val = value
+
     def requireImport(self, importName, importFrom='', importAs=''):
         """Add a top-level import to the experiment.
 
@@ -997,6 +1005,37 @@ class Experiment:
             # log message
             logging.warn(msg % "\n".join(unknownParams))
             logging.flush()
+
+    @staticmethod
+    def getRunModeFromFile(file):
+        """
+        Get the run mode stored in an experiment file without fully loading the experiment.
+
+        Parameters
+        ----------
+        file : Path or str
+            Path of the file to read
+
+        Returns
+        -------
+        int
+            0 for piloting mode, 1 for running mode
+        """
+        file = str(file)
+        # make and populate xml root element
+        tree = xml.ElementTree()
+        tree.parse(file)
+        # get root
+        root = tree.getroot()
+        # find settings node
+        settings = root.find("Settings")
+        # find param for runMode
+        for child in settings:
+            if child.attrib['name'] == "runMode":
+                # get value
+                return int(child.attrib['val'])
+
+        return 1
 
     def setExpName(self, name):
         self.settings.params['expName'].val = name
