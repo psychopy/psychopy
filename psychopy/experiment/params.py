@@ -165,6 +165,7 @@ class Param():
         self.codeWanted = False
         self.canBePath = canBePath
         self.direct = direct
+        self.plugin = None
         if inputType:
             self.inputType = inputType
         elif valType in inputDefaults:
@@ -322,6 +323,8 @@ class Param():
             element.set('valType', self.valType)
         if hasattr(self, 'updates'):
             element.set('updates', "{}".format(self.updates))
+        if hasattr(self, 'plugin') and self.plugin is not None:
+            element.set('plugin', "{}".format(self.plugin))
 
         return element
 

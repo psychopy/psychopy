@@ -766,7 +766,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
                 # add the new item to our list of files
                 self.entries[thisFile.absolute()] = {'index': thisIndex}
             # load psyexp
-            if Path(fileName).suffix == ".psyexp":
+            if thisFile.suffix == ".psyexp":
                 # get run mode from file
                 if experiment.Experiment.getRunModeFromFile(fileName):
                     runMode = "run"
@@ -819,8 +819,10 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
             self.ribbon.buttons[key].Show(not mode)
         # update experiment mode
         if self.currentExperiment is not None:
-            self.currentExperiment.runMode = mode
-            self.currentExperiment.saveToXML(self.currentFile)
+            # find any Builder windows with this experiment open
+            for frame in self.app.getAllFrames(frameType='builder'):
+                if frame.exp == self.currentExperiment:
+                    frame.ribbon.buttons['pyswitch'].setMode(mode)
             # update current selection
             runMode = "pilot"
             if mode:

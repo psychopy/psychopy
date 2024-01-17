@@ -390,7 +390,7 @@ class FrameRibbonButton(wx.Button, handlers.ThemeMixin):
         if tooltip and style | wx.BU_NOTEXT == style:
             # if there's no label, include it in the tooltip
             tooltip = f"{label}: {tooltip}"
-        self.SetToolTipString(tooltip)
+        self.SetToolTip(tooltip)
         # set icon
         bmpStyle = style & (wx.TOP | wx.BOTTOM | wx.LEFT | wx.RIGHT)
         self.SetBitmap(
