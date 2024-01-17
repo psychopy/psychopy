@@ -766,7 +766,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
                 # add the new item to our list of files
                 self.entries[thisFile.absolute()] = {'index': thisIndex}
             # load psyexp
-            if Path(fileName).suffix == ".psyexp":
+            if thisFile.suffix == ".psyexp":
                 # get run mode from file
                 if experiment.Experiment.getRunModeFromFile(fileName):
                     runMode = "run"
