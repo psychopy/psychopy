@@ -74,14 +74,16 @@ class _TestBaseComponentsMixin:
         Check that any references to device classes in this Routine object point to classes which
         exist.
         """
+        # make minimal experiment just for this test
+        comp, rt, exp = _make_minimal_experiment(self)
         # skip test if this element doesn't point to any hardware class
-        if not hasattr(self.comp, "deviceClasses"):
+        if not hasattr(comp, "deviceClasses"):
             pytest.skip()
             return
         # get device manager
         from psychopy.hardware import DeviceManager
         # iterate through device classes
-        for deviceClass in self.comp.deviceClasses:
+        for deviceClass in comp.deviceClasses:
             # resolve any aliases
             deviceClass = DeviceManager._resolveAlias(deviceClass)
             # try to import class
