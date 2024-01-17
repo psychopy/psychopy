@@ -673,8 +673,10 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         #             startType='time (s)', startVal=0.0,
         #             stopType='duration (s)', stopVal=0.5)
         # routine.addComponent(ISI)
-        # set run mode to pilot
-        self.ribbon.buttons['pyswitch'].setMode(0)
+        # set run mode silently and update icons
+        self.ribbon.buttons['pyswitch'].setMode(self.exp.runMode, silent=True)
+        self.updateRunModeIcons()
+        # update undo stack
         self.resetUndoStack()
         self.setIsModified(False)
         self.updateAllViews()
@@ -718,8 +720,9 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             self.exp = experiment.Experiment(prefs=self.app.prefs)
             try:
                 self.exp.loadFromXML(filename)
-                # update run mode
-                self.ribbon.buttons['pyswitch'].setMode(self.exp.runMode)
+                # set run mode silently and update buttons accordingly
+                self.ribbon.buttons['pyswitch'].setMode(self.exp.runMode, silent=True)
+                self.updateRunModeIcons()
             except Exception:
                 print(u"Failed to load {}. Please send the following to"
                       u" the PsychoPy user list".format(filename))
@@ -1261,17 +1264,27 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
         return True
 
-    def onRunModeToggle(self, evt):
+    def updateRunModeIcons(self, evt=None):
         """
-        Function to execute when switching between pilot and run modes
+        Function to update run/pilot icons according to run mode
         """
-        mode = evt.GetInt()
+        mode = self.ribbon.buttons['pyswitch'].mode
         # show/hide run buttons
         for key in ("pyrun", "jsrun", "sendRunner"):
             self.ribbon.buttons[key].Show(mode)
         # hide/show pilot buttons
         for key in ("pypilot", "jspilot", "pilotRunner"):
             self.ribbon.buttons[key].Show(not mode)
+        # update
+        self.ribbon.Layout()
+
+    def onRunModeToggle(self, evt):
+        """
+        Function to execute when switching between pilot and run modes
+        """
+        mode = evt.GetInt()
+        # update icons
+        self.updateRunModeIcons()
         # update experiment mode
         if self.exp is not None:
             self.exp.runMode = mode
