@@ -703,8 +703,11 @@ class Experiment:
                         # that have been removed
                         pass
                     elif componentNode is not None and componentNode.get("plugin") not in ("None", None):
-                        # don't warn people if param is from a plugin
+                        # don't warn people if comp/routine is from a plugin
                         pass
+                    elif paramNode.get('plugin', False):
+                        # load plugin name if param is from a plugin
+                        params[name].plugin = paramNode.get('plugin')
                     else:
                         # if param not recognised, mark as such
                         recognised = False
