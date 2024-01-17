@@ -161,7 +161,8 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             label=_translate("Photodiode type"),
             hint=_translate(
                 "Type of photodiode to use."
-            )
+            ),
+            direct=False
         )
         self.params['channel'] = Param(
             channel, valType="code", inputType="single", categ="Device",
