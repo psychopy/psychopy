@@ -11,9 +11,21 @@ from psychopy.hardware.button import ButtonResponse
 from psychopy.experiment.routines import Routine
 from psychopy.experiment.components.buttonBox import ButtonBoxComponent
 from psychopy.experiment.components.code import CodeComponent
+from .test_base_components import _TestBaseComponentsMixin
 
 
-class TestButtonBoxComponent:
+class TestButtonBoxComponent(_TestBaseComponentsMixin):
+    def setup_method(self):
+        self.exp = Experiment()
+        # make blank routine
+        self.routine = Routine(name="testRoutine", exp=self.exp)
+        self.exp.addRoutine("testRoutine", self.routine)
+        self.exp.flow.addRoutine(self.routine, 0)
+        # make component
+        self.comp = ButtonBoxComponent(
+            exp=self.exp, name="testPhotodiodeValidatorRoutine", parentName="testRoutine"
+        )
+
     def test_values(self):
         """
         Test that a variety of different values work when run from Builder.
