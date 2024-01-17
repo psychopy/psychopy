@@ -860,6 +860,8 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         else:
             self.ribbon.buttons['jsrun'].Disable()
             self.ribbon.buttons['jspilot'].Disable()
+        # disable stop
+        self.ribbon.buttons['pystop'].Disable()
         # switch mode
         self.ribbon.buttons['pyswitch'].setMode(runMode == "run")
         # update
