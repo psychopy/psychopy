@@ -663,7 +663,10 @@ class PavloviaUserCtrl(FrameRibbonDropdownButton):
         # update info once now (in case creation happens after logging in)
         self.updateInfo()
 
-    def __del__(self):
+        # bind deletion behaviour
+        self.Bind(wx.EVT_WINDOW_DESTROY, self.onDelete)
+
+    def onDelete(self, evt=None):
         i = self.frame.app.pavloviaButtons['user'].index(self)
         self.frame.app.pavloviaButtons['user'].pop(i)
 
@@ -787,7 +790,10 @@ class PavloviaProjectCtrl(FrameRibbonDropdownButton):
         # update info once now (in case creation happens after logging in)
         self.updateInfo()
 
-    def __del__(self):
+        # bind deletion behaviour
+        self.Bind(wx.EVT_WINDOW_DESTROY, self.onDelete)
+
+    def onDelete(self, evt=None):
         i = self.frame.app.pavloviaButtons['project'].index(self)
         self.frame.app.pavloviaButtons['project'].pop(i)
 
