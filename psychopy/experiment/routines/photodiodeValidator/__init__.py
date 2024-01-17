@@ -398,7 +398,7 @@ class ScreenBufferPhotodiodeValidatorBackend(DeviceBackend):
     key = "screenbuffer"
     label = _translate("Screen Buffer (Debug)")
     component = PhotodiodeValidatorRoutine
-    deviceClasses = ["psychopy.hardware.photodiode.ScreenBufferPhotodiode"]
+    deviceClasses = ["psychopy.hardware.photodiode.ScreenBufferSampler"]
 
     def getParams(self: PhotodiodeValidatorRoutine):
         # define order
