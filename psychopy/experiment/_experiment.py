@@ -789,9 +789,6 @@ class Experiment:
         if self.settings.params['expName'].val in ['', None, 'None']:
             shortName = os.path.splitext(filenameBase)[0]
             self.setExpName(shortName)
-        # load plugins so that plugged in components get any additional params
-        from psychopy.plugins import activatePlugins
-        activatePlugins()
         # fetch routines
         routinesNode = root.find('Routines')
         allCompons = getAllComponents(

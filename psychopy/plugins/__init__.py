@@ -1052,7 +1052,7 @@ def pluginEntryPoints(plugin, parse=False):
     return None
 
 
-def activatePlugins():
+def activatePlugins(which='all'):
     """Activate plugins.
 
     Calling this routine will load all startup plugins into the current process.
@@ -1069,11 +1069,9 @@ def activatePlugins():
             'been found in active distributions.')
         return  # nop if no plugins
 
-    # fully load startup plugins
-    for plugin in listPlugins('startup'):
+    # load each plugin and apply any changes to Builder
+    for plugin in listPlugins(which):
         loadPlugin(plugin)
-    # load Builder-relevant classes from all plugins, not just startup
-    for plugin in _installed_plugins_:
         loadPluginBuilderElements(plugin)
 
 

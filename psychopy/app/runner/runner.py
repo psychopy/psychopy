@@ -768,7 +768,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
             # load psyexp
             if thisFile.suffix == ".psyexp":
                 # get run mode from file
-                if experiment.Experiment.getRunModeFromFile(fileName):
+                if experiment.Experiment.getRunModeFromFile(thisFile):
                     runMode = "run"
                 else:
                     runMode = "pilot"
@@ -862,6 +862,8 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         else:
             self.ribbon.buttons['jsrun'].Disable()
             self.ribbon.buttons['jspilot'].Disable()
+        # disable stop
+        self.ribbon.buttons['pystop'].Disable()
         # switch mode
         self.ribbon.buttons['pyswitch'].setMode(runMode == "run")
         # update

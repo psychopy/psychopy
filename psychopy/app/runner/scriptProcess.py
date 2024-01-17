@@ -342,6 +342,9 @@ class ScriptProcess:
                 if self.app.runner is not None:
                     _focusOnOutput(self.app.runner)
                     self.app.runner.stdOut.SetFocus()
+                    self.app.runner.panel.ribbon.buttons['pyrun'].Enable()
+                    self.app.runner.panel.ribbon.buttons['pypilot'].Enable()
+                    self.app.runner.panel.ribbon.buttons['pystop'].Disable()
 
         EndBusyCursor()
 
