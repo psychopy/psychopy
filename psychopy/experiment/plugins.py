@@ -31,7 +31,6 @@ class PluginDevicesMixin:
                 self.params[key] = param
                 # store plugin reference
                 self.params[key].plugin = plugin
-                print("PARAM:", key, "PLUGIN:", plugin)
 
             # add dependencies so that backend params are only shown for this backend
             for name in params:
