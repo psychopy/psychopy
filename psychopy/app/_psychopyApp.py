@@ -255,43 +255,6 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             linuxConfDlg.ShowModal()
             linuxConfDlg.Destroy()
 
-    def _loadStartupPlugins(self):
-        """Routine for loading plugins registered to be loaded at startup.
-        """
-        if self._safeMode:  # nop, if running safe mode
-            return
-
-        # load any plugins
-        import psychopy.tools.pkgtools as pkgtools
-        pkgtools.refreshPackages()
-        from psychopy.plugins import scanPlugins, loadPlugin, listPlugins
-
-        # if we find valid plugins, attempt to load them
-        if not scanPlugins():
-            logging.debug("No PsychoPy plugin packages found in environment.")
-            return
-
-        # If we find plugins in the current environment, try loading the ones
-        # specified as startup plugins.
-        for pluginName in listPlugins('startup'):
-            logging.debug(
-                "Loading startup plugin `{}`.".format(pluginName))
-
-            if not loadPlugin(pluginName):
-                logging.error(
-                    ("Failed to load plugin `{}`! It might have been " 
-                     "uninstalled or is now unreachable.").format(pluginName))
-                
-                # remove plugin from list
-                pluginList = list(prefs.general['startUpPlugins'])
-                try:
-                    pluginList.remove(pluginName)
-                except ValueError:
-                    pass
-                else:
-                    prefs.general['startUpPlugins'] = pluginList
-                    prefs.saveUserPrefs()
-                
     def _doSingleInstanceCheck(self):
         """Set up the routines which check for and communicate with other
         PsychoPy GUI processes.
@@ -701,7 +664,8 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         # Load plugins here after everything is realized, make sure that we
         # refresh UI elements which are affected by plugins (e.g. the component
         # panel in Builder).
-        self._loadStartupPlugins()
+        from psychopy.plugins import activatePlugins
+        activatePlugins()
         self._refreshComponentPanels()
 
         # flush any errors to the last run log file
