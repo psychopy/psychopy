@@ -1,3 +1,4 @@
+import sys
 import webbrowser
 from pathlib import Path
 
@@ -159,10 +160,14 @@ class FrameRibbon(wx.Panel, handlers.ThemeMixin):
         """
         Add a vertical line.
         """
-        # make separator
-        sep = wx.StaticLine(self, style=wx.LI_VERTICAL)
-        # add separator
-        self.sizer.Add(sep, border=6, flag=wx.EXPAND | wx.ALL)
+        if sys.platform == "win32":
+            # make separator
+            sep = wx.StaticLine(self, style=wx.LI_VERTICAL)
+            # add separator
+            self.sizer.Add(sep, border=6, flag=wx.EXPAND | wx.ALL)
+        else:
+            # on non-Windows, just use a big space
+            self.sizer.AddSpacer(36)
 
     def addSpacer(self, size=6, section=None):
         """
@@ -276,7 +281,11 @@ class FrameRibbonSection(wx.Panel, handlers.ThemeMixin):
         # store references
         self.buttons[name] = self.ribbon.buttons[name] = btn
         # add button to sizer
-        self.sizer.Add(btn, border=0, flag=wx.EXPAND | wx.ALL)
+        flags = wx.EXPAND
+        if sys.platform == "darwin":
+            # add top padding on Mac
+            flags |= wx.TOP
+        self.sizer.Add(btn, border=12, flag=flags)
 
         return btn
 
