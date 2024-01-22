@@ -114,7 +114,8 @@ class KeyboardButtonBox(BaseButtonGroup):
         self.kb = keyboard.KeyboardDevice(
             clock=self.clock,
             device=device,
-            bufferSize=bufferSize
+            bufferSize=bufferSize,
+            muteOutsidePsychopy=False
         )
 
     def resetTimer(self, clock=logging.defaultClock):
