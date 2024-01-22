@@ -56,6 +56,8 @@ class Counterbalancer:
         # get remaining reps
         data = self.shelf.data.read()
         self.reps = data.get("_reps", nReps)
+        # update data for remaining in conditions
+        self.updateRemaining()
 
     @property
     def data(self):
@@ -193,5 +195,14 @@ class Counterbalancer:
         for key in ("group", "cap"):
             if key in self.params:
                 del self.params[key]
+        # update data for remaining in conditions
+        self.updateRemaining()
 
         return self.group
+
+    def updateRemaining(self):
+        # get data just once
+        data = self.data
+        # store all remaining info in conditions array
+        for row in self.conditions:
+            row['remaining'] = data[str(row['group'])]
