@@ -7,6 +7,7 @@ from itertools import chain
 from psychopy import logging
 from . import eyetracker, listener
 from .manager import DeviceManager, deviceManager
+from .base import BaseDevice
 
 try:
     from collections.abc import Iterable

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Helper functions in PsychoPy for interacting with Pavlovia.org
@@ -112,7 +112,7 @@ def login(tokenOrUsername, rememberMe=True):
         user = currentSession.user
         prefs.appData['projects']['pavloviaUser'] = user['username']
     # update Pavlovia button(s)
-    for btn in app._psychopyApp.pavloviaButtons['user'] + app._psychopyApp.pavloviaButtons['project']:
+    for btn in app.getAppInstance().pavloviaButtons['user'] + app.getAppInstance().pavloviaButtons['project']:
         btn.updateInfo()
 
 def logout():
@@ -135,7 +135,7 @@ def logout():
         if hasattr(frame, 'setUser'):
             frame.setUser(None)
     # update Pavlovia button(s)
-    for btn in app._psychopyApp.pavloviaButtons['user'] + app._psychopyApp.pavloviaButtons['project']:
+    for btn in app.getAppInstance().pavloviaButtons['user'] + app.getAppInstance().pavloviaButtons['project']:
         btn.updateInfo()
 
 
@@ -582,7 +582,7 @@ class PavloviaProject(dict):
     _datetimeKeys = ("created_at", "last_activity_at")
 
     def __init__(self, id, localRoot=None):
-        # Cache whatever form of ID is given, to avoid uneccesary calls to Pavlovia/GitLab later
+        # Cache whatever form of ID is given, to avoid unneccesary calls to Pavlovia/GitLab later
         if isinstance(id, int):
             # If created using a numeric ID...
             self.numericId = id
@@ -825,6 +825,9 @@ class PavloviaProject(dict):
         Optional params infoStream is needed if you
         want to update a sync window/panel
         """
+        # get info stream if not given
+        if infoStream is None:
+            infoStream = getInfoStream()
         # Error catch local root
         if not self.localRoot:
             dlg = wx.MessageDialog(self, message=_translate(
@@ -852,18 +855,24 @@ class PavloviaProject(dict):
             self.push(infoStream)
             # Write updates
             t1 = time.time()
-            msg = ("Successful sync at: {}, took {:.3f}s"
-                   .format(time.strftime("%H:%M:%S", time.localtime()), t1 - t0))
+            msg = (
+                "Successful sync at: {}, took {:.3f}s.\n"
+                "View synced project here: {}\n".format(
+                    time.strftime("%H:%M:%S", time.localtime()),
+                    t1 - t0,
+                    "https://pavlovia.org/" + self['path_with_namespace']
+                )
+            )
             logging.info(msg)
             if infoStream:
-                infoStream.write("\n" + msg)
+                infoStream.write(msg + "\n")
                 time.sleep(0.5)
             # Refresh info
             self.refresh()
         else:
             # If project doesn't exist, tell the user
             infoStream.write(
-                _translate("\n\nSync failed - could not find project with id {}").format(self.id)
+                _translate("Sync failed - could not find project with id {}\n\n").format(self.id)
             )
 
         return 1
@@ -880,14 +889,18 @@ class PavloviaProject(dict):
             1 if successful
             -1 if project is deleted on remote
         """
+        # get info stream if not given
+        if infoStream is None:
+            infoStream = getInfoStream()
+
         if infoStream:
-            infoStream.write("\nPulling changes from remote...")
+            infoStream.write("Pulling changes from remote...\n")
         if self.repo is None:
             self.cloneRepo(infoStream)
         try:
             info = self.repo.git.pull(self.remoteWithToken, 'master')
             if infoStream:
-                infoStream.write("\n{}".format(info))
+                infoStream.write("{}\n".format(info))
         except git.exc.GitCommandError as e:
             if ("The project you were looking for could not be found" in
                     traceback.format_exc()):
@@ -899,7 +912,7 @@ class PavloviaProject(dict):
 
         logging.debug('pull complete: {}'.format(self.project.http_url_to_repo))
         if infoStream:
-            infoStream.write("\ndone")
+            infoStream.write("done\n")
         return 1
 
     def push(self, infoStream=None):
@@ -914,12 +927,16 @@ class PavloviaProject(dict):
             1 if successful
             -1 if project deleted on remote
         """
+        # get info stream if not given
+        if infoStream is None:
+            infoStream = getInfoStream()
+
         if infoStream:
-            infoStream.write("\nPushing changes from remote...")
+            infoStream.write("Pushing changes from remote...\n")
         try:
             info = self.repo.git.push(self.remoteWithToken, 'master')
-            if infoStream:
-                infoStream.write("\n{}".format(info))
+            if infoStream and len(info):
+                infoStream.write("{}\n".format(info))
         except git.exc.GitCommandError as e:
             if ("The project you were looking for could not be found" in
                     traceback.format_exc()):
@@ -931,7 +948,7 @@ class PavloviaProject(dict):
 
         logging.debug('push complete: {}'.format(self.project.http_url_to_repo))
         if infoStream:
-            infoStream.write("done")
+            infoStream.write("done\n")
         return 1
 
     @property
@@ -991,6 +1008,10 @@ class PavloviaProject(dict):
         Use newRemote if we know that the remote has only just been created
         and is empty
         """
+        # get info stream if not given
+        if infoStream is None:
+            infoStream = getInfoStream()
+
         localFiles = glob.glob(os.path.join(self.localRoot, "*"))
         # glob doesn't match hidden files by default so search for them
         localFiles.extend(glob.glob(os.path.join(self.localRoot, ".*")))
@@ -1031,13 +1052,17 @@ class PavloviaProject(dict):
         return repo
 
     def firstPush(self, infoStream):
+        # get info stream if not given
+        if infoStream is None:
+            infoStream = getInfoStream()
         if infoStream:
-            infoStream.write("\nPushing to Pavlovia for the first time...")
+            infoStream.write("Pushing to Pavlovia for the first time...\n")
         info = self.repo.git.push('-u', self.remoteWithToken, 'master')
         self.project.attributes['default_branch'] = 'master'
         if infoStream:
-            infoStream.write("\n{}".format(info))
-            infoStream.write("\nSuccess!".format(info))
+            if len(info):
+                infoStream.write("{}\n".format(info))
+            infoStream.write("Success!\n".format(info))
 
     def cloneRepo(self, infoStream=None):
         """Gets the git.Repo object for this project, creating one if needed
@@ -1059,12 +1084,15 @@ class PavloviaProject(dict):
         AttributeError if the local project is inside a git repo
 
         """
+        # get info stream if not given
+        if infoStream is None:
+            infoStream = getInfoStream()
         if not self.localRoot:
             raise AttributeError("Cannot fetch a PavloviaProject until we have "
                                  "chosen a local folder.")
 
         if infoStream:
-            infoStream.SetValue("Cloning from remote...")
+            infoStream.write("Cloning from remote...\n")
         repo = git.Repo.clone_from(
                 self.remoteWithToken,
                 self.localRoot,
@@ -1142,6 +1170,10 @@ class PavloviaProject(dict):
 
         If files=None this is like `git add -u` (all files added/deleted)
         """
+        # get info stream if not given
+        if infoStream is None:
+            infoStream = getInfoStream()
+
         if files:
             if type(files) not in (list, tuple):
                 raise TypeError(
@@ -1457,4 +1489,20 @@ def refreshSession():
     else:
         _existingSession = PavloviaSession()
     return _existingSession
+
+
+def getInfoStream():
+    """
+    Get the Git output panel in the Runner frame, if any is active.
+
+    Returns
+    -------
+    ScriptOutputCtrl
+        Ctrl to write to
+    """
+    # attempt to get the Runner frame
+    frame = app.getAppFrame("runner")
+    # get ctrl from runner
+    if frame is not None:
+        return frame.getOutputPanel("git").ctrl
 

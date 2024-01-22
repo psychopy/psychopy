@@ -5,7 +5,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
@@ -1942,7 +1942,7 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
         """
         # format the input value as float vectors
         if type(val) in [tuple, list, numpy.ndarray]:
-            val = val2array(val)
+            val = val2array(val, length=len(val))
 
         # Set attribute with operation and log
         setAttribute(self, attrib, val, log, op)

@@ -31,6 +31,22 @@ except ModuleNotFoundError as err:
 	)
 
 
+class LiaisonJSONEncoder(json.JSONEncoder):
+	"""
+	JSON encoder which calls the `getJSON` method of an object (if it has one) to convert to a
+	string before JSONifying.
+	"""
+	def default(self, o):
+		# if object has a getJSON method, use it
+		if hasattr(o, "getJSON"):
+			return o.getJSON(asString=False)
+		# otherwise behave as normal
+		try:
+			return json.JSONEncoder.default(self, o=o)
+		except TypeError:
+			return str(o)
+
+
 class WebSocketServer:
 	"""
 	A simple Liaison server, using WebSockets as communication protocol.
@@ -85,7 +101,19 @@ class WebSocketServer:
 		referenceName : string
 			the name used to refer to the given target object when calling its method
 		"""
-		targetMethods = [fnct for fnct in dir(targetObject) if callable(getattr(targetObject, fnct)) and not fnct.startswith("__")]
+		targetCls = type(targetObject)
+		# choose methods
+		targetMethods = []
+		for name in dir(targetObject):
+			# if function is callable and not private, register it
+			fnct = getattr(targetObject, name)
+			if callable(fnct) and not name.startswith("__"):
+				targetMethods.append(name)
+			# if function is a property and not private, register its fget method
+			clsfnct = getattr(targetCls, name, None)
+			if isinstance(clsfnct, property) and not name.startswith("__"):
+				targetMethods.append(name)
+
 		self._methods[referenceName] = (targetObject, targetMethods)
 		# create, log and return success message
 		msg = (
@@ -187,8 +215,27 @@ class WebSocketServer:
 		message : string
 			the message to be sent to all clients
 		"""
+		if not isinstance(message, str):
+			message = json.dumps(message, cls=LiaisonJSONEncoder)
 		for websocket in self._connections:
 			await websocket.send(message)
+
+	def broadcastSync(self, message):
+		"""
+		Call Liaison.broadcast from a synchronous context.
+
+		Parameters
+		----------
+		message : string
+			the message to be sent to all clients
+		"""
+		try:
+			# try to run in new loop
+			asyncio.run(self.broadcast(message))
+		except RuntimeError:
+			# use existing if there's already a loop
+			loop = asyncio.get_event_loop()
+			loop.create_task(self.broadcast(message))
 
 	async def _connectionHandler(self, websocket):
 		"""
@@ -276,9 +323,18 @@ class WebSocketServer:
 				for arg in rawArgs:
 					# try to parse json string
 					try:
-						args.append(json.loads(arg))
+						arg = json.loads(arg)
 					except json.decoder.JSONDecodeError:
-						args.append(arg)
+						pass
+					# if arg is a known property, get its value
+					if isinstance(arg, str) and "." in arg:
+						_name, _attr = arg.split(".", 1)
+						if _name in self._methods:
+							_obj, _methods = self._methods[_name]
+							if _attr in _methods:
+								arg = getattr(_obj, _attr)
+					# append to list of args
+					args.append(arg)
 
 				if 'method' in decodedMessage:
 					# if method is init, initialise object from class and register it under reference name
@@ -315,10 +371,7 @@ class WebSocketServer:
 							rawResult = method(*args)
 
 					# convert result to a string
-					try:
-						result = json.dumps(rawResult)
-					except TypeError:
-						result = str(rawResult)
+					result = json.dumps(rawResult, cls=LiaisonJSONEncoder)
 
 					# send a response back to the client:
 					response = {
@@ -337,7 +390,8 @@ class WebSocketServer:
 			msg = "".join(tb)
 			err = json.dumps({
 				'type': "error",
-				'msg': msg
-			})
+				'msg': msg,
+				'context': getattr(err, "userdata", None)
+			}, cls=LiaisonJSONEncoder)
 			await websocket.send(err)
 			

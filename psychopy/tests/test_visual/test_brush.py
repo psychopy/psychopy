@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import pytest
+
+from psychopy import event
 from psychopy.visual.window import Window
 from psychopy.visual.brush import Brush
 from psychopy.visual.shape import ShapeStim
@@ -42,7 +44,8 @@ class Test_Brush():
 
     def test_brush_down(self):
         testBrush = Brush(self.win)
-        assert testBrush.brushDown == False
+        testMouse = event.Mouse()
+        assert testBrush.brushDown == testMouse.getPressed()[0]
 
     def test_brush_vertices(self):
         testBrush = Brush(self.win)

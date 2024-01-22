@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Dialog classes for the Builder, including ParamCtrls
@@ -934,44 +934,9 @@ class _BaseParamsDlg(wx.Dialog):
         """
         Spawn some PsychoPy windows to display each monitor's number.
         """
-        from psychopy import visual
-        for n in range(wx.Display.GetCount()):
-            start = time.time()
-            # Open a window on the appropriate screen
-            win = visual.Window(
-                pos=(0, 0),
-                size=(128, 128),
-                units="norm",
-                screen=n,
-                color="black"
-            )
-            # Draw screen number to the window
-            screenNum = visual.TextBox2(
-                win, text=str(n + 1),
-                size=1, pos=0,
-                alignment="center", anchor="center",
-                letterHeight=0.5, bold=True,
-                fillColor=None, color="white"
-            )
-            # Progress bar
-            progBar = visual.Rect(
-                win, anchor="bottom left",
-                pos=(-1, -1), size=(0, 0.1), 
-                fillColor='white'
-            )
+        from psychopy.hardware import DeviceManager
 
-            # Frame loop
-            t = 0
-            while t < dur:
-                t = time.time() - start
-                # Set progress bar size
-                progBar.size = (t / 5 * 2, 0.1)
-                # Draw
-                progBar.draw()
-                screenNum.draw()
-                win.flip()
-            # Close window
-            win.close()
+        DeviceManager.showScreenNumbers(dur=5)
 
     def onNewTextSize(self, event):
         self.Fit()  # for ExpandoTextCtrl this is needed

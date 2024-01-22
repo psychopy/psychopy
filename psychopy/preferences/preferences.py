@@ -41,7 +41,7 @@ class Preferences:
 
         import psychopy
         psychopy.prefs.hardware['audioLib'] = ['ptb', 'pyo','pygame']
-        print(prefs)
+        print(psychopy.prefs)
         # prints the location of the user prefs file and all the current vals
 
     Use the instance of `prefs`, as above, rather than the `Preferences` class
@@ -63,6 +63,7 @@ class Preferences:
         self.appDataCfg = None
 
         self.general = None
+        self.piloting = None
         self.coder = None
         self.builder = None
         self.connections = None
@@ -212,6 +213,7 @@ class Preferences:
         self.coder = self.userPrefsCfg['coder']
         self.builder = self.userPrefsCfg['builder']
         self.hardware = self.userPrefsCfg['hardware']
+        self.piloting = self.userPrefsCfg['piloting']
         self.connections = self.userPrefsCfg['connections']
         self.appData = self.appDataCfg
 

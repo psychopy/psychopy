@@ -84,6 +84,8 @@ class StairHandler(_BaseTrialHandler):
                 reversals to perform, `nReversals`, is less than the
                 length of this list, PsychoPy will automatically increase
                 the minimum number of reversals and emit a warning.
+                This minimum number of reversals is always set to be
+                greater than 0.
 
             stepSizes:
                 The size of steps as a single value or a list (or array).
@@ -1443,7 +1445,7 @@ class QuestPlusHandler(StairHandler):
         paramEstimationMethod : {'mean', 'mode'}
             How to calculate the final parameter estimate. `mean` returns the
             mean of each parameter, weighted by their respective posterior
-            probabilities. `mode` returns the the parameters at the peak of
+            probabilities. `mode` returns the parameters at the peak of
             the posterior distribution.
 
         extraInfo : dict

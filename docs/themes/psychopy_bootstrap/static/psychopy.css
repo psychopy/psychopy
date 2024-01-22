@@ -27,6 +27,8 @@
     --f1: "sans-serif"
     --f2: "Arvo"
     --f3: "Indie Flower"
+    --gradient: linear-gradient(#4582ec 0%, #fff 100%);
+    --theme-color: #66666E;
 }
 
 body {
@@ -82,6 +84,8 @@ h3::before {
   flex-direction: row;
   flex-wrap: wrap;
   width: 100%;
+  justify-content: center;
+  align-items: center;
 }
 
 .column-collapse { /* will convert to row for <768 */
@@ -218,6 +222,16 @@ blockquote {
     overflow: auto;
 }
 
+.title-tagline{
+    color: : black;
+    font-size: 150%;
+}
+
+.tagline-buttons{
+    font-size: 2em;
+    font-weight: bold
+}
+
 /* @media (min-width: 992px) {
   body {
     padding-top: 56px;
@@ -310,9 +324,20 @@ blockquote {
     }
 }
 
+
 /* set our responsive mode controls */
 
 @media (max-width: 768px) {
+
+    .tagline-buttons{
+    font-size: 2em;
+    font-weight: bold
+    }
+
+    .title-tagline{
+        font-size: 150%;
+    }
+
     .large-logo {
         display: none;
     }
@@ -364,6 +389,16 @@ blockquote {
 /* override the bootstrap max-widths to prevent jerky expanding */
 
 @media (max-width: 576px) {
+
+    .tagline-buttons{
+    font-size: 1.25em;
+    font-weight: bold
+    }
+    
+    .title-tagline{
+        font-size: 100%;
+    }
+
     .container {
         max-width: 90%
     }
@@ -428,3 +463,43 @@ blockquote {
   color: darkred;
   font-weight: bold;
 }
+
+.heroheader {
+  font-size: 60px;
+}
+
+.stats-container {
+    text-align: center; /* Center the text horizontally */
+    font-size: 16px;
+    font-weight: normal;
+    }
+
+.red_button {
+  background-color: #f44336; /* Green */
+  font-size: 16px;
+  border-radius: 4px;
+  border: none;
+  color: white;
+  padding: 12px 28px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+}
+
+.fade {
+  -webkit-transition: opacity 1s ease-in-out;
+  -moz-transition: opacity 1s ease-in-out;
+  -o-transition: opacity 1s ease-in-out;
+  transition: opacity 1s ease-in-out;
+}
+
+.fade-out {
+  opacity: 0;
+}
+
+.fade-in {
+  opacity: 1;
+}
+
+

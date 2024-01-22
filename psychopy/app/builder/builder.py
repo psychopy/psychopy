@@ -4,7 +4,7 @@
 """
 Defines the behavior of Psychopy's Builder view window
 Part of the PsychoPy library
-Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 Distributed under the terms of the GNU General Public License (GPL).
 """
 import collections
@@ -73,7 +73,9 @@ from psychopy.scripts.psyexpCompile import generateScript
 
 # Components which are always hidden
 alwaysHidden = [
-    'SettingsComponent', 'RoutineSettingsComponent', 'UnknownComponent', 'UnknownRoutine', 'UnknownStandaloneRoutine', 'UnknownPluginComponent'
+    'SettingsComponent', 'RoutineSettingsComponent', 'UnknownComponent', 'UnknownRoutine',
+    'UnknownStandaloneRoutine', 'UnknownPluginComponent', 'BaseComponent', 'BaseStandaloneRoutine',
+    'BaseValidatorRoutine'
 ]
 
 
@@ -423,9 +425,9 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
                            _translate("Compile the exp to a script"))
         self.Bind(wx.EVT_MENU, self.compileScript, item)
         self.bldrRun = menu.Append(wx.ID_ANY,
-                           _translate("Run\t%s") % keys['runScript'],
+                           _translate("Run/pilot\t%s") % keys['runScript'],
                            _translate("Run the current script"))
-        self.Bind(wx.EVT_MENU, self.runFile, self.bldrRun, id=self.bldrRun)
+        self.Bind(wx.EVT_MENU, self.onRunShortcut, self.bldrRun, id=self.bldrRun)
         item = menu.Append(wx.ID_ANY,
                            _translate("Send to runner\t%s") % keys['runnerScript'],
                            _translate("Send current script to runner"))
@@ -671,6 +673,10 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         #             startType='time (s)', startVal=0.0,
         #             stopType='duration (s)', stopVal=0.5)
         # routine.addComponent(ISI)
+        # set run mode silently and update icons
+        self.ribbon.buttons['pyswitch'].setMode(self.exp.runMode, silent=True)
+        self.updateRunModeIcons()
+        # update undo stack
         self.resetUndoStack()
         self.setIsModified(False)
         self.updateAllViews()
@@ -714,6 +720,9 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             self.exp = experiment.Experiment(prefs=self.app.prefs)
             try:
                 self.exp.loadFromXML(filename)
+                # set run mode silently and update buttons accordingly
+                self.ribbon.buttons['pyswitch'].setMode(self.exp.runMode, silent=True)
+                self.updateRunModeIcons()
             except Exception:
                 print(u"Failed to load {}. Please send the following to"
                       u" the PsychoPy user list".format(filename))
@@ -1249,11 +1258,55 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             if not ok:
                 return False  # save file before compiling script
         self.app.showRunner()
-        self.stdoutFrame.addTask(fileName=self.filename)
+        self.app.runner.addTask(fileName=self.filename)
         self.app.runner.Raise()
         self.app.showRunner()
 
         return True
+
+    def updateRunModeIcons(self, evt=None):
+        """
+        Function to update run/pilot icons according to run mode
+        """
+        mode = self.ribbon.buttons['pyswitch'].mode
+        # show/hide run buttons
+        for key in ("pyrun", "jsrun", "sendRunner"):
+            self.ribbon.buttons[key].Show(mode)
+        # hide/show pilot buttons
+        for key in ("pypilot", "jspilot", "pilotRunner"):
+            self.ribbon.buttons[key].Show(not mode)
+        # update
+        self.ribbon.Layout()
+
+    def onRunModeToggle(self, evt):
+        """
+        Function to execute when switching between pilot and run modes
+        """
+        mode = evt.GetInt()
+        # update icons
+        self.updateRunModeIcons()
+        # update experiment mode
+        if self.exp is not None:
+            self.exp.runMode = mode
+            # mark as modified
+            self.setIsModified(True)
+        # update
+        self.ribbon.Update()
+        self.ribbon.Refresh()
+        self.ribbon.Layout()
+
+    def onRunShortcut(self, evt=None):
+        """
+        Callback for when the run shortcut is pressed - will either run or pilot depending on run mode
+        """
+        # do nothing if we have no experiment
+        if self.exp is None:
+            return
+        # run/pilot according to mode
+        if self.exp.runMode:
+            self.runFile(evt)
+        else:
+            self.pilotFile(evt)
 
     def runFile(self, event=None):
         """
@@ -1261,6 +1314,13 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         """
         if self.sendToRunner(event):
             self.app.runner.panel.runLocal(event)
+
+    def pilotFile(self, event=None):
+        """
+        Send the current file to the Runner and run it in pilot mode.
+        """
+        if self.sendToRunner(event):
+            self.app.runner.panel.pilotLocal(event)
 
     def onCopyRoutine(self, event=None):
         """copy the current routine from self.routinePanel
@@ -1339,7 +1399,11 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             frame=self, element=component, experiment=self.exp, timeout=timeout)
 
         if dlg.OK:
+            # add to undo stack
             self.addToUndoStack("EDIT experiment settings")
+            # update run mode
+            self.ribbon.buttons['pyswitch'].setMode(self.exp.runMode)
+            # mark modified
             self.setIsModified(True)
 
     def addRoutine(self, event=None):
@@ -2668,7 +2732,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             # construct label
             label = name
             # remove "Component" from the end
-            for redundant in ['component', 'Component', "ButtonBox"]:
+            for redundant in ['component', 'Component']:
                 label = label.replace(redundant, "")
             # convert to title case
             label = st.CaseSwitcher.pascal2title(label)
@@ -4349,15 +4413,36 @@ class BuilderRibbon(ribbon.FrameRibbon):
         self.addSection(
             "experiment", label=_translate("Experiment"), icon="experiment"
         )
+        # monitor center
+        self.addButton(
+            section="experiment", name='monitor', label=_translate('Monitor center'),
+            icon="monitors",
+            tooltip=_translate("Monitor settings and calibration"),
+            callback=parent.app.openMonitorCenter
+        )
         # settings
         self.addButton(
             section="experiment", name='expsettings', label=_translate('Experiment settings'), icon="expsettings",
             tooltip=_translate("Edit experiment settings"),
             callback=parent.setExperimentSettings
         )
+        # switch run/pilot
+        self.addSwitchCtrl(
+            section="experiment", name="pyswitch",
+            labels=(_translate("Pilot"), _translate("Run")),
+            startMode=0, callback=parent.onRunModeToggle,
+            style=wx.HORIZONTAL
+        )
         # send to runner
         self.addButton(
-            section="experiment", name='runner', label=_translate('Runner'), icon="runner",
+            section="experiment", name='sendRunner', label=_translate('Runner'), icon="runner",
+            tooltip=_translate("Send experiment to Runner"),
+            callback=parent.sendToRunner
+        )
+        # send to runner (pilot icon)
+        self.addButton(
+            section="experiment", name='pilotRunner', label=_translate('Runner'),
+            icon="runnerPilot",
             tooltip=_translate("Send experiment to Runner"),
             callback=parent.sendToRunner
         )
@@ -4368,22 +4453,22 @@ class BuilderRibbon(ribbon.FrameRibbon):
         self.addSection(
             "py", label=_translate("Desktop"), icon="desktop"
         )
-        # monitor center
-        self.addButton(
-            section="py", name='monitor', label=_translate('Monitor center'), icon="monitors",
-            tooltip=_translate("Monitor settings and calibration"),
-            callback=parent.app.openMonitorCenter
-        )
         # compile python
         self.addButton(
             section="py", name="pycompile", label=_translate('Write Python'), icon='compile_py',
             tooltip=_translate("Write experiment as a Python script"),
             callback=parent.compileScript
         )
+        # pilot Py
+        self.addButton(
+            section="py", name="pypilot", label=_translate("Pilot"), icon='pyPilot',
+            tooltip=_translate("Run the current script in Python with piloting features on"),
+            callback=parent.pilotFile
+        )
         # run Py
         self.addButton(
-            section="py", name="pyrun", label=_translate("Run in Python"), icon='pyRun',
-            tooltip=_translate("Run experiment locally in Python"),
+            section="py", name="pyrun", label=_translate("Run"), icon='pyRun',
+            tooltip=_translate("Run the current script in Python"),
             callback=parent.runFile
         )
 
@@ -4399,11 +4484,18 @@ class BuilderRibbon(ribbon.FrameRibbon):
             tooltip=_translate("Write experiment as a JavaScript (JS) script"),
             callback=parent.fileExport
         )
+        # pilot JS
+        self.addButton(
+            section="browser", name="jspilot", label=_translate("Pilot in browser"),
+            icon='jsPilot',
+            tooltip=_translate("Pilot experiment locally in your browser"),
+            callback=parent.onPavloviaDebug
+        )
         # run JS
         self.addButton(
-            section="browser", name="jsrun", label=_translate("Run in local browser"), icon='jsRun',
-            tooltip=_translate("Run experiment in your browser"),
-            callback=parent.onPavloviaDebug
+            section="browser", name="jsrun", label=_translate("Run on Pavlovia"), icon='jsRun',
+            tooltip=_translate("Run experiment on Pavlovia"),
+            callback=parent.onPavloviaRun
         )
         # sync project
         self.addButton(
