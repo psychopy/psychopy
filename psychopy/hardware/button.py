@@ -122,7 +122,12 @@ class KeyboardButtonBox(BaseButtonGroup):
 
     @staticmethod
     def getAvailableDevices():
-        return keyboard.KeyboardDevice.getAvailableDevices()
+        profiles = []
+        for profile in keyboard.KeyboardDevice.getAvailableDevices():
+            # change device name to keyboard button box
+            profile['deviceName'] = "KeyboardButtonBox"
+            profiles.append(profile)
+        return profiles
 
     def dispatchMessages(self):
         messages = self.kb.getKeys(keyList=self.buttons, waitRelease=False, clear=True)
