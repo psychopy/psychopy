@@ -13,6 +13,7 @@ __all__ = [
 ]
 
 import json
+import inspect
 
 
 class BaseResponse:
@@ -56,7 +57,6 @@ class BaseDevice:
     """
     def __init_subclass__(cls, aliases=None):
         from psychopy.hardware.manager import DeviceManager
-        import inspect
         # handle no aliases
         if aliases is None:
             aliases = []
@@ -86,8 +86,14 @@ class BaseDevice:
         dict
             Dictionary representing this device
         """
+        # get class string
+        cls = type(self)
+        mro = inspect.getmodule(cls).__name__ + "." + cls.__name__
+        # iterate through available devices for this class
         for profile in self.getAvailableDevices():
             if self.isSameDevice(profile):
+                # if current profile is this device, add deviceClass and return it
+                profile['deviceClass'] = mro
                 return profile
 
     def getJSON(self, asString=True):
