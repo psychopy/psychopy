@@ -289,6 +289,12 @@ class Session:
         elif isinstance(clock, str):
             clock = core.Clock(format=clock)
         self.sessionClock = clock
+        # make sure we have a default keyboard
+        if DeviceManager.getDevice("defaultKeyboard") is None:
+            DeviceManager.addDevice(
+                deviceClass="psychopy.hardware.keyboard.KeyboardDevice",
+                deviceName="defaultKeyboard",
+            )
         # Store params as an aliased dict
         if params is None:
             params = {}
