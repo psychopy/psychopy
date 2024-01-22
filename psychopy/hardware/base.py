@@ -258,6 +258,19 @@ class BaseResponseDevice(BaseDevice):
             If True, then upon adding the listener, start up an asynchronous loop to dispatch messages.
         """
         from . import listener as lsnr
+        # map listener classes to names
+        listenerClasses = {
+            'liaison': lsnr.LiaisonListener,
+            'print': lsnr.PrintListener,
+            'log': lsnr.LoggingListener
+        }
+        # if device already has a listener, log warning and skip
+        for extantListener in self.listeners:
+            # get class of requested listener
+            listenerCls = listenerClasses.get(listener, type(listener))
+            # if the same type as extant listener, return it rather than duplicating
+            if isinstance(extantListener, listenerCls):
+                return extantListener
         # make listener if needed
         if not isinstance(listener, lsnr.BaseListener):
             # if given a string rather than an object handle, make an object of correct type
@@ -268,10 +281,10 @@ class BaseResponseDevice(BaseDevice):
                         "Cannot create a `liaison` listener as no liaison server is connected to DeviceManager."
                     )
                 listener = lsnr.LiaisonListener(DeviceManager.liaison)
-            if listener == "print":
-                listener = lsnr.PrintListener()
-            if listener == "log":
-                listener = lsnr.LoggingListener()
+            elif listener in listenerClasses:
+                listener = listenerClasses[listener]()
+            else:
+                raise ValueError(f"No known listener type '{listener}'")
         # add listener handle
         self.listeners.append(listener)
         # start loop if requested
