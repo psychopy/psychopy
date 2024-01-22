@@ -98,7 +98,7 @@
         <Param val="" valType="str" updates="None" name="bbtkSerialPort"/>
         <Param val="" valType="list" updates="None" name="correctAns"/>
         <Param val="keyboard" valType="str" updates="None" name="deviceBackend"/>
-        <Param val="testNamedButtonBox" valType="str" updates="None" name="deviceName"/>
+        <Param val="testNamedButtonBox" valType="str" updates="None" name="deviceLabel"/>
         <Param val="False" valType="bool" updates="None" name="disabled"/>
         <Param val="" valType="code" updates="None" name="durationEstim"/>
         <Param val="True" valType="bool" updates="None" name="forceEndRoutine"/>
