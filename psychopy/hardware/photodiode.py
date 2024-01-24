@@ -403,7 +403,7 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
         elif isinstance(other, dict):
             # if other is a dict of params and win is "Session.win", it's gotta be the same
             # window as Session can only currently have one window
-            if other.get('win', None) == "Session.win":
+            if other.get('win', None) == "session.win":
                 return True
             # otherwise, compare window to the win param
             return other.get('win', None) is self.win
