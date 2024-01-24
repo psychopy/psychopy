@@ -401,7 +401,11 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
             # if both objects are ScreenBufferSamplers, then compare windows
             return other.win is self.win
         elif isinstance(other, dict):
-            # if other is a dict of params, compare window to the win param
+            # if other is a dict of params and win is "Session.win", it's gotta be the same
+            # window as Session can only currently have one window
+            if other.get('win', None) == "Session.win":
+                return True
+            # otherwise, compare window to the win param
             return other.get('win', None) is self.win
         else:
             # if types don't match up, it's not the same device
@@ -409,7 +413,11 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
 
     @staticmethod
     def getAvailableDevices():
-        return []
+        return [{
+            'deviceName': "Photodiode Emulator (Screen Buffer)",
+            'deviceClass': "psychopy.hardware.photodiode.ScreenBufferSampler",
+            'win': "Session.win"
+        }]
 
     def resetTimer(self, clock=logging.defaultClock):
         self.clock._timeAtLastReset = clock._timeAtLastReset
