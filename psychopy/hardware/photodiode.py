@@ -401,7 +401,11 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
             # if both objects are ScreenBufferSamplers, then compare windows
             return other.win is self.win
         elif isinstance(other, dict):
-            # if other is a dict of params, compare window to the win param
+            # if other is a dict of params and win is "Session.win", it's gotta be the same
+            # window as Session can only currently have one window
+            if other.get('win', None) == "session.win":
+                return True
+            # otherwise, compare window to the win param
             return other.get('win', None) is self.win
         else:
             # if types don't match up, it's not the same device
@@ -409,7 +413,11 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
 
     @staticmethod
     def getAvailableDevices():
-        return []
+        return [{
+            'deviceName': "Photodiode Emulator (Screen Buffer)",
+            'deviceClass': "psychopy.hardware.photodiode.ScreenBufferSampler",
+            'win': "session.win"
+        }]
 
     def resetTimer(self, clock=logging.defaultClock):
         self.clock._timeAtLastReset = clock._timeAtLastReset
@@ -424,7 +432,9 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
     def pos(self, value):
         # retain None so value is identifiable as not set
         if value is None:
-            self._pos = None
+            self._pos = layout.Position(
+                (16, 16), "pix", win=self.win
+            )
             return
         # make sure we have a Position object
         if not isinstance(value, layout.Position):
@@ -443,7 +453,9 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
     def size(self, value):
         # retain None so value is identifiable as not set
         if value is None:
-            self._size = None
+            self._size = layout.Size(
+                (16, 16), "pix", win=self.win
+            )
             return
         # make sure we have a Size object
         if not isinstance(value, layout.Size):
