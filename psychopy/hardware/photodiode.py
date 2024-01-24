@@ -416,7 +416,7 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
         return [{
             'deviceName': "Photodiode Emulator (Screen Buffer)",
             'deviceClass': "psychopy.hardware.photodiode.ScreenBufferSampler",
-            'win': "Session.win"
+            'win': "session.win"
         }]
 
     def resetTimer(self, clock=logging.defaultClock):
@@ -432,7 +432,9 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
     def pos(self, value):
         # retain None so value is identifiable as not set
         if value is None:
-            self._pos = None
+            self._pos = layout.Position(
+                (16, 16), "pix", win=self.win
+            )
             return
         # make sure we have a Position object
         if not isinstance(value, layout.Position):
@@ -451,7 +453,9 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
     def size(self, value):
         # retain None so value is identifiable as not set
         if value is None:
-            self._size = None
+            self._size = layout.Size(
+                (16, 16), "pix", win=self.win
+            )
             return
         # make sure we have a Size object
         if not isinstance(value, layout.Size):
