@@ -1293,7 +1293,9 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
                 self.paneManager.LoadPerspective(self.appData['auiPerspective'])
             except Exception as err:
                 logging.error("Error loading perspective: %s" % err)
+                # defaults for the window if the perspective fails
                 self.SetSize(wx.Size(1024, 800))
+                self.Fit()
             self.paneManager.GetPane('SourceAsst').Caption(_translate("Source Assistant"))
             self.paneManager.GetPane('Editor').Caption(_translate("Editor"))
         else:
