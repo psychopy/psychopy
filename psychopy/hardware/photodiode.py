@@ -480,6 +480,8 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
     def findPhotodiode(self, win=None, channel=0):
         if win is None:
             win = self.win
+        else:
+            self.win = win
         # there's no physical photodiode, so just pick a reasonable place for it
         self._pos = layout.Position((0.95, -0.95), units="norm", win=win)
         self._size = layout.Size((0.05, 0.05), units="norm", win=win)
@@ -488,6 +490,7 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
         return self._pos, self._size
 
     def findThreshold(self, win=None, channel=0):
+        self.win = win
         # there's no physical photodiode, so just pick a reasonable threshold
         self.setThreshold(127, channel=channel)
 
