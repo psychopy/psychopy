@@ -1292,7 +1292,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
             self.paneManager.GetPane('SourceAsst').Caption(_translate("Source Assistant"))
             self.paneManager.GetPane('Editor').Caption(_translate("Editor"))
         else:
-            self.SetMinSize(wx.Size(480, 640))  # min size for whole window
+            self.SetMinSize(wx.Size(640, 480))  # min size for whole window
             self.SetSize(wx.Size(1024, 800))
             self.Fit()
         # Update panes PsychopyToolbar
