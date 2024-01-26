@@ -1286,13 +1286,19 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.outputWindow.write("v%s\n" % self.app.version)
 
         # Manage perspective
+        self.SetMinSize(wx.Size(640, 480))  # min size for whole window
         if (self.appData['auiPerspective'] and
                 'Shelf' in self.appData['auiPerspective']):
-            self.paneManager.LoadPerspective(self.appData['auiPerspective'])
+            try:
+                self.paneManager.LoadPerspective(self.appData['auiPerspective'])
+            except Exception as err:
+                logging.error("Error loading perspective: %s" % err)
+                # defaults for the window if the perspective fails
+                self.SetSize(wx.Size(1024, 800))
+                self.Fit()
             self.paneManager.GetPane('SourceAsst').Caption(_translate("Source Assistant"))
             self.paneManager.GetPane('Editor').Caption(_translate("Editor"))
         else:
-            self.SetMinSize(wx.Size(480, 640))  # min size for whole window
             self.SetSize(wx.Size(1024, 800))
             self.Fit()
         # Update panes PsychopyToolbar
