@@ -397,11 +397,11 @@ class PackageDetailsPanel(wx.Panel):
             )
 
         # Set values from params
-        self.nameCtrl.SetLabelText(self.params['name'])
-        self.authorCtrl.SetLabel(self.params['author'])
+        self.nameCtrl.SetLabel(self.params['name'] or "")
+        self.authorCtrl.SetLabel(self.params['author'] or "")
         self.authorCtrl.URL = "mailto:" + self.params['authorEmail']
         self.authorCtrl.SetToolTip(self.params['authorEmail'])
-        self.licenseCtrl.SetLabelText(" (License: %(license)s)" % self.params)
+        self.licenseCtrl.SetLabel(" (License: %(license)s)" % self.params)
         self.descCtrl.setValue("%(summary)s\n\n%(desc)s" % self.params)
         # Set current and possible versions
         self.versionCtrl.Clear()
