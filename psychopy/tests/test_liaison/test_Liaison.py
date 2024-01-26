@@ -138,6 +138,23 @@ class TestLiaison:
         assert lastMsg['data']['t'] == 1234
         assert lastMsg['data']['value'] == "a"
 
+    def test_actualize_session_win(self):
+        """
+        Test that attribute strings (e.g. "session.win") are actualized by Liaison to be the
+        object they represent.
+        """
+        # add screen buffer photodiode
+        runInLiaison(
+            self.server, self.protocol, "DeviceManager", "addDevice",
+            "psychopy.hardware.photodiode.ScreenBufferSampler", "screenBuffer",
+            "session.win"
+        )
+        # get screen buffer photodidoe
+        device = DeviceManager.getDevice("screenBuffer")
+        # make sure its window is a window object
+        from psychopy.visual import Window
+        assert isinstance(device.win, Window)
+
     def test_device_by_name(self):
         """
         Test that adding a device by name to the device manager prior to running means Components
