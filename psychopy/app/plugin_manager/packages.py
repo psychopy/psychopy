@@ -4,16 +4,15 @@ import wx
 import sys
 import subprocess as sp
 from pypi_search import search as pypi
-from packaging.version import parse as parseVersion
 
 from psychopy.app import utils
 from psychopy.app.themes import handlers, icons
 from psychopy.localization import _translate
-
 from psychopy.tools.pkgtools import (
     getInstalledPackages, getPackageMetadata, getPypiInfo, isInstalled,
     _isUserPackage, getInstallState
 )
+from psychopy.tools.versionchooser import parseVersionSafely
 
 
 class PackageManagerPanel(wx.Panel):
@@ -393,7 +392,7 @@ class PackageDetailsPanel(wx.Panel):
             # Sort versions in descending order
             self.params['releases'] = sorted(
                 self.params['releases'],
-                key=lambda v: parseVersion(v),
+                key=lambda v: parseVersionSafely(v),
                 reverse=True
             )
 
