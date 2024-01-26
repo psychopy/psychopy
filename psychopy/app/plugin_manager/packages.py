@@ -317,7 +317,7 @@ class PackageDetailsPanel(wx.Panel):
         self.sizer.Add(self.authorSzr, border=6, flag=wx.BOTTOM | wx.LEFT | wx.RIGHT | wx.EXPAND)
         self.authorPre = wx.StaticText(self, label=_translate("by "))
         self.authorSzr.Add(self.authorPre, border=0, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
-        self.authorCtrl = utils.HyperLinkCtrl(self)
+        self.authorCtrl = wx.StaticText(self)
         self.authorSzr.Add(self.authorCtrl, border=0, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
         self.licenseCtrl = wx.StaticText(self)
         self.authorSzr.Add(self.licenseCtrl, border=0, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
@@ -399,7 +399,6 @@ class PackageDetailsPanel(wx.Panel):
         # Set values from params
         self.nameCtrl.SetLabel(self.params['name'] or "")
         self.authorCtrl.SetLabel(self.params['author'] or "")
-        self.authorCtrl.URL = "mailto:" + self.params['authorEmail']
         self.authorCtrl.SetToolTip(self.params['authorEmail'])
         self.licenseCtrl.SetLabel(" (License: %(license)s)" % self.params)
         self.descCtrl.setValue("%(summary)s\n\n%(desc)s" % self.params)
