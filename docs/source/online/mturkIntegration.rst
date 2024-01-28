@@ -4,9 +4,7 @@
 Integrating with Amazon's Mechanical Turk (MTurk)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Sorry, the documentation for this hasn't yet been written.
-
-The features are in place to do this, and the general description of how to make it work are on the page :ref:`recruitingOnline`.
+Check out these `instructions <https://discourse.psychopy.org/t/how-to-use-mturk-for-recruiting/8486/7>`_ on how to integrate your Pavlovia with MTurk written by Arnon Weinberg!
 
 .. warning:: Using Mechanical truk (MTurk)
 
