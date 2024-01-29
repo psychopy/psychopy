@@ -12,6 +12,7 @@ from pathlib import Path
 
 from psychopy import experiment, logging, constants, data, core, __version__
 from psychopy.hardware.manager import DeviceManager, deviceManager
+from psychopy.hardware.listener import loop as listenerLoop
 from psychopy.tools.arraytools import AliasDict
 
 from psychopy.localization import _translate
@@ -1017,6 +1018,8 @@ class Session:
         self.win.flip()
         # Hold all autodraw stimuli
         self.win.stashAutoDraw()
+        # Pause the listener loop
+        listenerLoop.pause()
         # Setup logging
         self.experiments[key].run.__globals__['logFile'] = self.logFile
         # Log start
@@ -1037,6 +1040,8 @@ class Session:
             err.userdata = key
         # Reinstate autodraw stimuli
         self.win.retrieveAutoDraw()
+        # Restart the listener loop
+        listenerLoop.pause()
         # Restore original chdir
         os.chdir(str(self.root))
         # Store ExperimentHandler
