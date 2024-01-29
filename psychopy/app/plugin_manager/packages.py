@@ -4,16 +4,15 @@ import wx
 import sys
 import subprocess as sp
 from pypi_search import search as pypi
-from packaging.version import parse as parseVersion
 
 from psychopy.app import utils
 from psychopy.app.themes import handlers, icons
 from psychopy.localization import _translate
-
 from psychopy.tools.pkgtools import (
     getInstalledPackages, getPackageMetadata, getPypiInfo, isInstalled,
     _isUserPackage, getInstallState
 )
+from psychopy.tools.versionchooser import parseVersionSafely
 
 
 class PackageManagerPanel(wx.Panel):
@@ -318,7 +317,7 @@ class PackageDetailsPanel(wx.Panel):
         self.sizer.Add(self.authorSzr, border=6, flag=wx.BOTTOM | wx.LEFT | wx.RIGHT | wx.EXPAND)
         self.authorPre = wx.StaticText(self, label=_translate("by "))
         self.authorSzr.Add(self.authorPre, border=0, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
-        self.authorCtrl = utils.HyperLinkCtrl(self)
+        self.authorCtrl = wx.StaticText(self)
         self.authorSzr.Add(self.authorCtrl, border=0, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
         self.licenseCtrl = wx.StaticText(self)
         self.authorSzr.Add(self.licenseCtrl, border=0, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
@@ -393,16 +392,15 @@ class PackageDetailsPanel(wx.Panel):
             # Sort versions in descending order
             self.params['releases'] = sorted(
                 self.params['releases'],
-                key=lambda v: parseVersion(v),
+                key=lambda v: parseVersionSafely(v),
                 reverse=True
             )
 
         # Set values from params
-        self.nameCtrl.SetLabelText(self.params['name'])
-        self.authorCtrl.SetLabel(self.params['author'])
-        self.authorCtrl.URL = "mailto:" + self.params['authorEmail']
+        self.nameCtrl.SetLabel(self.params['name'] or "")
+        self.authorCtrl.SetLabel(self.params['author'] or "")
         self.authorCtrl.SetToolTip(self.params['authorEmail'])
-        self.licenseCtrl.SetLabelText(" (License: %(license)s)" % self.params)
+        self.licenseCtrl.SetLabel(" (License: %(license)s)" % self.params)
         self.descCtrl.setValue("%(summary)s\n\n%(desc)s" % self.params)
         # Set current and possible versions
         self.versionCtrl.Clear()

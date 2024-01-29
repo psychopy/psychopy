@@ -9,6 +9,7 @@
 
 import os
 import sys
+import re
 import subprocess  # for git commandline invocation
 from collections import OrderedDict
 from subprocess import CalledProcessError
@@ -18,7 +19,7 @@ from psychopy import prefs
 from psychopy import logging, tools, web, constants, preferences
 from pkg_resources import parse_version
 from importlib import reload
-from packaging.version import Version
+from packaging.version import Version, InvalidVersion, VERSION_PATTERN
 
 USERDIR = prefs.paths['userPrefsDir']
 VER_SUBDIR = 'versions'
@@ -40,6 +41,57 @@ for n in range(13):
     v = Version(f"3.{n}")
     av = max([key for key in versionMap if key <= v])
     versionMap[v] = versionMap[av]
+
+
+def parseVersionSafely(version, fallback=Version("0")):
+    """
+    Wrapper around packaging.version.parse which avoids raising an InvalidVersionError, making it
+    safer to use on potentially inconsistent version strings.
+
+    Checks for valid version string before parsing, then tries:
+    - With all but numbers, dots and keywords removed
+    - With all but numbers and dots removed
+    Finally, if the version number is still invalid, will return whatever is supplied as
+    `fallback` rather than raising an error.
+
+    Parameters
+    ----------
+    version : str
+        Version string to parse
+    fallback : Version
+        Value to return if version fails to parse
+
+    Returns
+    -------
+    Version
+        Parsed version string
+    """
+    # if version is already parsed, return unchanged
+    if isinstance(version, Version):
+        return Version
+    # if not a string, make into a string
+    if not isinstance(version, str):
+        version = str(version)
+    # if version is already valid, do normal parsing
+    if re.fullmatch(version, VERSION_PATTERN):
+        return Version(version)
+    # try stripping all but numbers, dots and keywords
+    version = "".join(
+        re.findall(r"\d|\.|a|b|c|rc|alpha|beta|pre|preview|post|rev|r|dev", version)
+    )
+    if re.fullmatch(version, VERSION_PATTERN):
+        return Version(version)
+    # try stripping all but numbers and dots
+    version = "".join(
+        re.findall(r"\d|\.", version)
+    )
+    if re.fullmatch(version, VERSION_PATTERN):
+        return Version(version)
+    # finally, try just in case and return fallback on fail
+    try:
+        return Version(version)
+    except InvalidVersion:
+        return fallback
 
 
 class VersionRange:
