@@ -41,10 +41,12 @@ for i in todo; do
 
     ${pythons[$i]} setupApp.py py2app || { echo 'setupApp.py failed' ; exit 1; }
     # copy over git-core folder
-    cp -R -L $(which git) dist/${names[$i]}.app/Contents/Resources/git-core/git
+    mkdir  dist/${names[$i]}.app/Contents/Resources/git-core
+    cp -R -L /usr/local/git/libexec/git-core dist/${names[$i]}.app/Contents/Resources/git-core
 
     # remove matplotlib tests (45mb)
-    rm -r dist/${names[$i]}.app/Contents/Resources/lib/python2.7/matplotlib/tests
+    pkg_site=$(ls -d1 dist/${names[$i]}.app/Contents/Resources/lib/python3.*)
+    rm -r ${pkg_site}/matplotlib/tests
     # strip all other architectures from binaries and move both to __fat copy
     mv dist/${names[$i]}.app dist/${names[$i]}__fat.app
     echo "stripping i386 using ditto"
