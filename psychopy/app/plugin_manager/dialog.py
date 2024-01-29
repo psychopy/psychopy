@@ -236,6 +236,10 @@ class EnvironmentManagerDlg(wx.Dialog):
         # if bundlePath not in sys.path:
         #     sys.path.insert(0, bundlePath)
 
+        # if given a pyproject.toml file, do editable install of parent folder
+        if str(packageName).endswith("pyproject.toml"):
+            packageName = f'-e "{os.path.dirname(packageName)}"'
+
         # build the shell command to run the script
         command = [pyExec, '-m', 'pip', 'install', packageName, '--user']
         # write command to output panel
