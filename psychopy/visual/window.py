@@ -21,6 +21,7 @@ from collections import deque
 from psychopy.contrib.lazy_import import lazy_import
 from psychopy import colors, event
 from psychopy.localization import _translate
+from psychopy.tools.systemtools import getCurrentPID, registerPID
 import math
 # from psychopy.clock import monotonicClock
 
@@ -658,6 +659,10 @@ class Window():
         self.backgroundFit = backgroundFit
         if hasattr(self.backgroundImage, "draw"):
             self.backgroundImage.draw()
+        
+        # register own pid with systemtools
+        self.pid = getCurrentPID()
+        registerPID(self.pid)
 
     def __del__(self):
         if self._closed is False:
