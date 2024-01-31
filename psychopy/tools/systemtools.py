@@ -510,7 +510,7 @@ def getCurrentPID():
         # get active application info
         win = NSWorkspace.sharedWorkspace().frontmostApplication()
         # get ID of active application
-        winID = "" # todo: Get ID on Mac
+        winID = win['NSApplicationProcessIdentifier'] # todo: Get ID on Mac
         # get parent PID (in case it's a child of a registered process)
         winID = psutil.Process(winID).ppid()
 
