@@ -481,7 +481,7 @@ def registerPID(pid):
 
     Parameters
     ----------
-    pid : str
+    pid : int
         Process ID (PID) of the window to register
     """
     global _pids
