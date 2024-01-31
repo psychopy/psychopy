@@ -659,10 +659,6 @@ class Window():
         self.backgroundFit = backgroundFit
         if hasattr(self.backgroundImage, "draw"):
             self.backgroundImage.draw()
-        
-        # register own pid with systemtools
-        self.pid = getCurrentPID()
-        registerPID(self.pid)
 
     def __del__(self):
         if self._closed is False:

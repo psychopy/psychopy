@@ -496,8 +496,11 @@ def getCurrentPID():
     """
     if sys.platform == "win32":
         import win32gui
+        import win32process
         # get ID of top window
         winID = win32gui.GetForegroundWindow()
+        # get parent PID (in case it's a child of a registered process)
+        winID = win32process.GetWindowThreadProcessId(winID)[-1]
 
     elif sys.platform == "darwin":
         from AppKit import NSWorkspace
