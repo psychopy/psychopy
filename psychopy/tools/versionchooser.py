@@ -16,7 +16,7 @@ from subprocess import CalledProcessError
 import psychopy  # for currently loaded version
 from psychopy import prefs
 # the following will all have been imported so import here and reload later
-from psychopy import logging, tools, web, constants, preferences
+from psychopy import logging, tools, web, constants, preferences, __version__
 from pkg_resources import parse_version
 from importlib import reload
 from packaging.version import Version, InvalidVersion, VERSION_PATTERN
@@ -41,6 +41,8 @@ for n in range(13):
     v = Version(f"3.{n}")
     av = max([key for key in versionMap if key <= v])
     versionMap[v] = versionMap[av]
+# parse current psychopy version
+psychopyVersion = Version(__version__)
 
 
 def parseVersionSafely(version, fallback=Version("0")):

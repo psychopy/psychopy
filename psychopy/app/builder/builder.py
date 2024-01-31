@@ -36,6 +36,7 @@ from ..pavlovia_ui.user import UserFrame
 from ..pavlovia_ui.functions import logInPavlovia
 from ...experiment import getAllElements, getAllCategories
 from ...experiment.routines import Routine, BaseStandaloneRoutine
+from psychopy.tools.versionchooser import parseVersionSafely, psychopyVersion
 
 try:
     import markdown_it as md
@@ -3142,6 +3143,13 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             anyShown = False
             for name, btn in self.objectHandles[cat].items():
                 shown = True
+                # Get element button refers to
+                if isinstance(btn, self.ComponentButton):
+                    emt = btn.component
+                elif isinstance(btn, self.RoutineButton):
+                    emt = btn.routine
+                else:
+                    emt = None
                 # Check whether button is hidden by filter
                 for v in view:
                     if v not in btn.element.targets:
@@ -3149,6 +3157,11 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
                 # Check whether button is hidden by prefs
                 if name in prefs.builder['hiddenComponents'] + alwaysHidden:
                     shown = False
+                # Check whether button refers to a future comp/rt
+                if hasattr(emt, "version"):
+                    ver = parseVersionSafely(emt.version)
+                    if ver > psychopyVersion:
+                        shown = False
                 # Show/hide button
                 btn.Show(shown)
                 # Count state towards category
