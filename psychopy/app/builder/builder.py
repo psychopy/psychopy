@@ -656,7 +656,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             if not self.fileClose(updateViews=False):
                 # close the existing (and prompt for save if necess)
                 return False
-        self.filename = 'untitled.psyexp'
+        self.filename = None
         self.exp = experiment.Experiment(prefs=self.app.prefs)
         defaultName = 'trial'
         # create the trial routine as an example
@@ -839,17 +839,15 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.app.coder.fileReload(event=None, filename=exportPath)
 
     def editREADME(self, event):
-        folder = Path(self.filename).parent
-        if folder == folder.parent:
+        if self.filename is None:
             dlg = wx.MessageDialog(
                 self,
                 _translate("Please save experiment before editing the README file"),
                 _translate("No readme file"),
                 wx.OK | wx.ICON_WARNING | wx.CENTRE)
             dlg.ShowModal()
-            return
-        self.updateReadme(show=True)
-        return
+        else:
+            self.updateReadme(show=True)
 
     def getShortFilename(self):
         """returns the filename without path or extension
@@ -875,7 +873,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             If None, show only when there is content.
         """
         # Make sure we have a file
-        if self.filename:
+        if self.filename is not None:
             dirname = Path(self.filename).parent
             possibles = list(dirname.glob('readme*'))
             if len(possibles) == 0:
@@ -897,7 +895,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             )
 
         # Set file
-        self.readmeFrame.file = self.readmeFilename
+        self.readmeFrame.setFile(self.readmeFilename)
         self.readmeFrame.ctrl.load()
 
         # Show/hide frame as appropriate
@@ -991,7 +989,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.appData['fileHistory'] = copy.copy(tmp[-fhMax:])
 
         # assign the data to this filename
-        self.appData['frames'][self.filename] = frameData
+        self.appData['frames'][str(self.filename)] = frameData
         # save the display data only for those frames in the history:
         tmp2 = {}
         for f in self.appData['frames']:
@@ -1001,7 +999,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
         # close self
         self.routinePanel.removePages()
-        self.filename = 'untitled.psyexp'
+        self.filename = None
         # add the current exp as the start point for undo:
         self.resetUndoStack()
         if updateViews:
@@ -1064,8 +1062,8 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         """Defines behavior to update window Title
         """
         if newTitle is None:
-            shortName = os.path.split(self.filename)[-1]
-            self.setTitle(title=self.winTitle, document=shortName)
+            newTitle = "untitled.py"
+        self.setTitle(title=self.winTitle, document=newTitle)
 
     def setIsModified(self, newVal=None):
         """Sets current modified status and updates save icon accordingly.
