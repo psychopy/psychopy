@@ -470,8 +470,10 @@ def _getCameraInfoWindows():
     return videoDevices
 
 
+# array of registered PIDs which PsychoPy considers to be safe
 _pids = [
-    os.getpid()
+    os.getpid(),
+    os.getppid()
 ]
 
 
@@ -504,10 +506,13 @@ def getCurrentPID():
 
     elif sys.platform == "darwin":
         from AppKit import NSWorkspace
+        import psutil
         # get active application info
         win = NSWorkspace.sharedWorkspace().frontmostApplication()
         # get ID of active application
         winID = "" # todo: Get ID on Mac
+        # get parent PID (in case it's a child of a registered process)
+        winID = psutil.Process(winID).ppid()
 
     elif sys.platform == "linux":
         # get window ID
