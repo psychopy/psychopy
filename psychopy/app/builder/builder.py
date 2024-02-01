@@ -927,8 +927,9 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             )
 
         # Set file
-        self.readmeFrame.setFile(self.readmeFilename)
-        self.readmeFrame.ctrl.load()
+        if self.fileExists:
+            self.readmeFrame.setFile(self.readmeFilename)
+            self.readmeFrame.ctrl.load()
 
         # Show/hide frame as appropriate
         if show is None:
@@ -3347,6 +3348,8 @@ class ReadmeFrame(wx.Frame, handlers.ThemeMixin):
         """Sets the readme file found with current builder experiment"""
         self.filename = filename
         self.expName = self.parent.exp.getExpName()
+        if not self.expName:
+            self.expName = "untitled"
         # check we can read
         if filename is None:  # check if we can write to the directory
             return False
@@ -3380,7 +3383,7 @@ class ReadmeFrame(wx.Frame, handlers.ThemeMixin):
         f.close()
         self._fileLastModTime = os.path.getmtime(filename)
         self.ctrl.setValue(readmeText)
-        self.SetTitle("%s readme (%s)" % (self.expName, filename))
+        self.SetTitle("readme (%s)" % self.expName)
 
     def refresh(self, evt=None):
         if hasattr(self, 'filename'):
