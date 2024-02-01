@@ -123,6 +123,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.appPrefs = self.app.prefs.app
         self.paths = self.app.prefs.paths
         self.frameType = 'builder'
+        self.fileExists = False
         self.filename = fileName
         self.htmlPath = None
         self.scriptProcess = None
@@ -189,7 +190,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.SetAcceleratorTable(accelTable)
 
         # setup a default exp
-        if fileName is not None and os.path.isfile(fileName):
+        if self.filename.is_file():
             self.fileOpen(filename=fileName, closeCurrent=False)
         else:
             self.lastSavedCopy = None
@@ -637,7 +638,17 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
     @filename.setter
     def filename(self, value):
-        self._filename = value
+        if value is None:
+            # mark nonexistant
+            self.fileExists = False
+            # keep placeholder name for labels and etc.
+            self._filename = Path("untitled.psyexp")
+        else:
+            # path-ise and set
+            self._filename = Path(value)
+            # mark existant
+            self.fileExists = Path(value).is_file()
+
         # skip if there's no ribbon
         if not hasattr(self, "ribbon"):
             return
@@ -645,7 +656,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         for key in ('compile_py', 'compile_js'):
             if key in self.ribbon.buttons:
                 self.ribbon.buttons[key].Enable(
-                    Path(value).is_file()
+                    self._filename.is_file()
                 )
 
     def fileNew(self, event=None, closeCurrent=True):
@@ -692,14 +703,13 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
                 wildcard = _translate("PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*.*")
             else:
                 wildcard = _translate("PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*")
-            # get path of current file (empty if current file is '')
-            if self.filename:
-                initPath = str(Path(self.filename).parent)
-            else:
-                initPath = ""
+            # get path of current file (or home dir to avoid temp)
+            initPath = self.filename.parent
+            if not self.fileExists:
+                initPath = Path.home()
             # Open dlg
             dlg = wx.FileDialog(self, message=_translate("Open file ..."),
-                                defaultDir=initPath,
+                                defaultDir=str(initPath),
                                 style=wx.FD_OPEN,
                                 wildcard=wildcard)
             if dlg.ShowModal() != wx.ID_OK:
@@ -712,6 +722,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             self.app.coder.setCurrentDoc(filename)
             self.app.coder.setFileModified(False)
             return
+
         with WindowFrozen(ctrl=self):
             # try to pause rendering until all panels updated
             if closeCurrent:
@@ -759,7 +770,10 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         """
         if filename is None:
             filename = self.filename
-        if filename.startswith('untitled'):
+        else:
+            filename = Path(filename)
+
+        if not self.fileExists:
             if not self.fileSaveAs(filename):
                 return False  # the user cancelled during saveAs
         else:
@@ -781,9 +795,17 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             usingDefaultName = True
         else:
             usingDefaultName = False
+        # force filename to Path
         if filename is None:
             filename = self.filename
-        initPath, filename = os.path.split(filename)
+        else:
+            filename = Path(filename)
+        # get parent and filename
+        initPath = filename.parent
+        filename = filename.name
+        # substitute temp dir for home
+        if not self.fileExists:
+            initPath = Path.home()
 
         if sys.platform != 'darwin':
             wildcard = _translate("PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*.*")
@@ -791,7 +813,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             wildcard = _translate("PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*")
         returnVal = False
         dlg = wx.FileDialog(
-            self, message=_translate("Save file as ..."), defaultDir=initPath,
+            self, message=_translate("Save file as ..."), defaultDir=str(initPath),
             defaultFile=filename, style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
             wildcard=wildcard)
 
@@ -804,8 +826,8 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
                     os.path.split(newPath)[1])[0]
                 self.exp.setExpName(newShortName)
             # actually save
-            self.fileSave(event=None, filename=newPath)
             self.filename = newPath
+            self.fileSave(event=None, filename=newPath)
             self.project = pavlovia.getProject(filename)
             returnVal = 1
         dlg.Destroy()
@@ -835,8 +857,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
                             exp=self.exp,
                             target="PsychoJS")
         # Open exported files
-        self.app.showCoder()
-        self.app.coder.fileNew(filepath=exportPath)
+        self.app.showCoder(fileList=[exportPath])
         self.app.coder.fileReload(event=None, filename=exportPath)
 
     def editREADME(self, event):
@@ -860,12 +881,8 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             Should the returned filename include the file extension? False by default.
         """
         # get file stem
-        if self.filename is None:
-            shortName = "untitled"
-            ext = ""
-        else:
-            shortName = Path(self.filename).stem
-            ext = Path(self.filename).suffix
+        shortName = self.filename.stem
+        ext = self.filename.suffix
         # append extension if requested
         if withExt:
             shortName += ext
@@ -891,20 +908,17 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             If None, show only when there is content.
         """
         # Make sure we have a file
-        if self.filename is not None:
-            dirname = Path(self.filename).parent
-            possibles = list(dirname.glob('readme*'))
-            if len(possibles) == 0:
-                possibles = list(dirname.glob('Readme*'))
-                possibles.extend(dirname.glob('README*'))
+        dirname = self.filename.parent
+        possibles = list(dirname.glob('readme*'))
+        if len(possibles) == 0:
+            possibles = list(dirname.glob('Readme*'))
+            possibles.extend(dirname.glob('README*'))
 
-            # still haven't found a file so use default name
-            if len(possibles) == 0:
-                self.readmeFilename = str(dirname / 'readme.md')  # use this as our default
-            else:
-                self.readmeFilename = str(possibles[0])  # take the first one found
+        # still haven't found a file so use default name
+        if len(possibles) == 0:
+            self.readmeFilename = str(dirname / 'readme.md')  # use this as our default
         else:
-            self.readmeFilename = None
+            self.readmeFilename = str(possibles[0])  # take the first one found
 
         # Make sure we have a frame
         if self.readmeFrame is None:
@@ -1263,8 +1277,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         Send the current file to the Runner.
         """
         # Check whether file is truly untitled (not just saved as untitled)
-        untitled = os.path.abspath("untitled.psyexp")
-        if not os.path.exists(self.filename) or os.path.abspath(self.filename) == untitled:
+        if not self.fileExists:
             ok = self.fileSave(self.filename)
             if not ok:
                 return False  # save file before compiling script
@@ -1459,10 +1472,14 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
     def compileScript(self, event=None):
         """Defines compile script button behavior"""
-        fullPath = self.filename.replace('.psyexp', '.py')
-        fullPath = self.generateScript(experimentPath=fullPath, exp=self.exp)
-        self.app.showCoder()  # make sure coder is visible
-        self.app.coder.fileNew(filepath=fullPath)
+        # save so we have a file to work off
+        self.fileSave()
+        # construct filename for py file
+        fullPath = self.filename.parent / (self.filename.stem + '.py')
+        # write script
+        fullPath = self.generateScript(experimentPath=str(fullPath), exp=self.exp)
+        # show it in Coder
+        self.app.showCoder(fileList=[fullPath])  # make sure coder is visible
         self.app.coder.fileReload(event=None, filename=fullPath)
 
     @property
@@ -3333,9 +3350,10 @@ class ReadmeFrame(wx.Frame, handlers.ThemeMixin):
         # check we can read
         if filename is None:  # check if we can write to the directory
             return False
-        elif not os.path.exists(filename):
-            with open(filename, "w") as f:
-                f.write("")
+        # Path-ise file
+        filename = Path(filename)
+        if not filename.is_file():
+            filename.write_text("")
             self.filename = filename
             return False
         elif not os.access(filename, os.R_OK):
