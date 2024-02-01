@@ -594,18 +594,6 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
 
         return response
 
-    def receiveMessage(self, message):
-        # disregard any messages sent while the PsychoPy window wasn't in focus (for security)
-        from psychopy.tools.systemtools import isPsychopyInFocus
-        if self.muteOutsidePsychopy and not isPsychopyInFocus():
-            # even if muted, we still want to send messages to listeners...
-            for listener in self.listeners:
-                listener.receiveMessage(message)
-            # ... but after that, we need to discard the message
-            return
-        # otherwise, receive as normal
-        return BaseResponseDevice.receiveMessage(self, message=message)
-
     def waitKeys(self, maxWait=float('inf'), keyList=None, waitRelease=True,
                  clear=True):
         """Same as `~psychopy.hardware.keyboard.Keyboard.getKeys`, 
