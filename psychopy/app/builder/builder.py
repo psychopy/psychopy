@@ -850,10 +850,27 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         else:
             self.updateReadme(show=True)
 
-    def getShortFilename(self):
-        """returns the filename without path or extension
+    def getShortFilename(self, withExt=False):
         """
-        return os.path.splitext(os.path.split(self.filename)[1])[0]
+        Returns the filename without path
+
+        Parameters
+        ----------
+        withExt : bool
+            Should the returned filename include the file extension? False by default.
+        """
+        # get file stem
+        if self.filename is None:
+            shortName = "untitled"
+            ext = ""
+        else:
+            shortName = Path(self.filename).stem
+            ext = Path(self.filename).suffix
+        # append extension if requested
+        if withExt:
+            shortName += ext
+
+        return shortName
 
     # def pluginManager(self, evt=None, value=True):
     #     """Show the plugin manager frame."""
@@ -1063,7 +1080,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         """Defines behavior to update window Title
         """
         if newTitle is None:
-            newTitle = "untitled.py"
+            newTitle = self.getShortFilename(withExt=True)
         self.setTitle(title=self.winTitle, document=newTitle)
 
     def setIsModified(self, newVal=None):
