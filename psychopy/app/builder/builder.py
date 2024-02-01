@@ -929,7 +929,9 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         # Set file
         if self.fileExists:
             self.readmeFrame.setFile(self.readmeFilename)
-            self.readmeFrame.ctrl.load()
+        else:
+            self.readmeFrame.setFile(None)
+        self.readmeFrame.ctrl.load()
 
         # Show/hide frame as appropriate
         if show is None:
@@ -3346,7 +3348,7 @@ class ReadmeFrame(wx.Frame, handlers.ThemeMixin):
 
     def setFile(self, filename):
         """Sets the readme file found with current builder experiment"""
-        self.filename = filename
+        self.filename = self.ctrl.file = filename
         self.expName = self.parent.exp.getExpName()
         if not self.expName:
             self.expName = "untitled"
