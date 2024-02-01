@@ -1476,7 +1476,10 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
     def compileScript(self, event=None):
         """Defines compile script button behavior"""
         # save so we have a file to work off
-        self.fileSave()
+        saved = self.fileSave()
+        # if save cancelled, return now
+        if not saved:
+            return
         # construct filename for py file
         fullPath = self.filename.parent / (self.filename.stem + '.py')
         # write script
