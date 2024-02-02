@@ -21,6 +21,7 @@ from collections import deque
 from psychopy.contrib.lazy_import import lazy_import
 from psychopy import colors, event
 from psychopy.localization import _translate
+from psychopy.tools.systemtools import getCurrentPID, registerPID
 import math
 # from psychopy.clock import monotonicClock
 
