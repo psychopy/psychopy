@@ -758,6 +758,8 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         """Save file, revert to SaveAs if the file hasn't yet been saved
         """
         if filename is None:
+            if self.filename is None:  # do a save as if no file name
+                return self.fileSaveAs(event)
             filename = self.filename
         if filename.startswith('untitled'):
             if not self.fileSaveAs(filename):
@@ -782,7 +784,12 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         else:
             usingDefaultName = False
         if filename is None:
-            filename = self.filename
+            if self.filename is None:
+                initPath = os.path.expanduser('~')  # user's home directory
+                filename = os.path.join(initPath, 'untitled.psyexp')
+            else:
+                filename = self.filename
+
         initPath, filename = os.path.split(filename)
 
         if sys.platform != 'darwin':
@@ -1262,6 +1269,9 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         """
         Send the current file to the Runner.
         """
+        if self.filename is None:
+            return False
+
         # Check whether file is truly untitled (not just saved as untitled)
         untitled = os.path.abspath("untitled.psyexp")
         if not os.path.exists(self.filename) or os.path.abspath(self.filename) == untitled:
