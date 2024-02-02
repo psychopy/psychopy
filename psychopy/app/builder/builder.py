@@ -36,6 +36,7 @@ from ..pavlovia_ui.user import UserFrame
 from ..pavlovia_ui.functions import logInPavlovia
 from ...experiment import getAllElements, getAllCategories
 from ...experiment.routines import Routine, BaseStandaloneRoutine
+from psychopy.tools.versionchooser import parseVersionSafely, psychopyVersion
 
 try:
     import markdown_it as md
@@ -656,7 +657,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             if not self.fileClose(updateViews=False):
                 # close the existing (and prompt for save if necess)
                 return False
-        self.filename = 'untitled.psyexp'
+        self.filename = None
         self.exp = experiment.Experiment(prefs=self.app.prefs)
         defaultName = 'trial'
         # create the trial routine as an example
@@ -839,22 +840,37 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.app.coder.fileReload(event=None, filename=exportPath)
 
     def editREADME(self, event):
-        folder = Path(self.filename).parent
-        if folder == folder.parent:
+        if self.filename is None:
             dlg = wx.MessageDialog(
                 self,
                 _translate("Please save experiment before editing the README file"),
                 _translate("No readme file"),
                 wx.OK | wx.ICON_WARNING | wx.CENTRE)
             dlg.ShowModal()
-            return
-        self.updateReadme(show=True)
-        return
+        else:
+            self.updateReadme(show=True)
 
-    def getShortFilename(self):
-        """returns the filename without path or extension
+    def getShortFilename(self, withExt=False):
         """
-        return os.path.splitext(os.path.split(self.filename)[1])[0]
+        Returns the filename without path
+
+        Parameters
+        ----------
+        withExt : bool
+            Should the returned filename include the file extension? False by default.
+        """
+        # get file stem
+        if self.filename is None:
+            shortName = "untitled"
+            ext = ""
+        else:
+            shortName = Path(self.filename).stem
+            ext = Path(self.filename).suffix
+        # append extension if requested
+        if withExt:
+            shortName += ext
+
+        return shortName
 
     # def pluginManager(self, evt=None, value=True):
     #     """Show the plugin manager frame."""
@@ -875,7 +891,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             If None, show only when there is content.
         """
         # Make sure we have a file
-        if self.filename:
+        if self.filename is not None:
             dirname = Path(self.filename).parent
             possibles = list(dirname.glob('readme*'))
             if len(possibles) == 0:
@@ -897,7 +913,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             )
 
         # Set file
-        self.readmeFrame.file = self.readmeFilename
+        self.readmeFrame.setFile(self.readmeFilename)
         self.readmeFrame.ctrl.load()
 
         # Show/hide frame as appropriate
@@ -991,7 +1007,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.appData['fileHistory'] = copy.copy(tmp[-fhMax:])
 
         # assign the data to this filename
-        self.appData['frames'][self.filename] = frameData
+        self.appData['frames'][str(self.filename)] = frameData
         # save the display data only for those frames in the history:
         tmp2 = {}
         for f in self.appData['frames']:
@@ -1001,7 +1017,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
         # close self
         self.routinePanel.removePages()
-        self.filename = 'untitled.psyexp'
+        self.filename = None
         # add the current exp as the start point for undo:
         self.resetUndoStack()
         if updateViews:
@@ -1064,8 +1080,8 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         """Defines behavior to update window Title
         """
         if newTitle is None:
-            shortName = os.path.split(self.filename)[-1]
-            self.setTitle(title=self.winTitle, document=shortName)
+            newTitle = self.getShortFilename(withExt=True)
+        self.setTitle(title=self.winTitle, document=newTitle)
 
     def setIsModified(self, newVal=None):
         """Sets current modified status and updates save icon accordingly.
@@ -3144,6 +3160,13 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             anyShown = False
             for name, btn in self.objectHandles[cat].items():
                 shown = True
+                # Get element button refers to
+                if isinstance(btn, self.ComponentButton):
+                    emt = btn.component
+                elif isinstance(btn, self.RoutineButton):
+                    emt = btn.routine
+                else:
+                    emt = None
                 # Check whether button is hidden by filter
                 for v in view:
                     if v not in btn.element.targets:
@@ -3151,6 +3174,11 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
                 # Check whether button is hidden by prefs
                 if name in prefs.builder['hiddenComponents'] + alwaysHidden:
                     shown = False
+                # Check whether button refers to a future comp/rt
+                if hasattr(emt, "version"):
+                    ver = parseVersionSafely(emt.version)
+                    if ver > psychopyVersion:
+                        shown = False
                 # Show/hide button
                 btn.Show(shown)
                 # Count state towards category

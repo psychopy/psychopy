@@ -44,27 +44,28 @@ def showNews(app=None, checkPrev=True):
         itemShown : bool
 
     """
-    if checkPrev and app.news:
-        toShow = None
-        if 'lastNewsDate' in prefs.appData:
-            lastNewsDate = prefs.appData['lastNewsDate']
+    if checkPrev:
+        if app.news:
+            toShow = None
+            if 'lastNewsDate' in prefs.appData:
+                lastNewsDate = prefs.appData['lastNewsDate']
+            else:
+                lastNewsDate = ""
+
+            for item in app.news:
+                if item['importance'] >= ANNOUNCE and item['date'] > lastNewsDate:
+                    toShow = item
+                    break
+
+            # update prefs lastNewsDate to match JavaScript Date().toISOString()
+            now = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
+            prefs.appData['lastNewsDate'] = now
+            prefs.saveAppData()
+
+            if not toShow:
+                return 0
         else:
-            lastNewsDate = ""
-
-        for item in app.news:
-            if item['importance'] >= ANNOUNCE and item['date'] > lastNewsDate:
-                toShow = item
-                break
-
-        # update prefs lastNewsDate to match JavaScript Date().toISOString()
-        now = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
-        prefs.appData['lastNewsDate'] = now
-        prefs.saveAppData()
-
-        if not toShow:
             return 0
-    else:
-        return 0
 
     dlg = wx.Dialog(None, style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER,
                     size=(800, 400))
@@ -75,7 +76,9 @@ def showNews(app=None, checkPrev=True):
     sizer.Add(browser, 1, wx.EXPAND, 10)
     dlg.SetSizer(sizer)
 
+    print(f"loading news page at: {newsURL}")
     browser.LoadURL(newsURL)
+    # browser.Reload()
     dlg.Show()
     return 1
 

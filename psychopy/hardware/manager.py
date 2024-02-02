@@ -254,6 +254,26 @@ class DeviceManager:
         DeviceManager.deviceAliases[alias] = deviceName
 
         return True
+    
+    @staticmethod
+    def registerPID(pid):
+        """
+        Register a given window with PsychoPy, marking it as safe to e.g. perform keylogging in.
+
+        Parameters
+        ----------
+        pid : str
+            Process ID (PID) of the window to register
+
+        Returns
+        -------
+        bool
+            True if completed successfully
+        """
+        # register PID
+        st.registerPID(pid)
+        
+        return True
 
     @staticmethod
     def removeDeviceAlias(alias):
