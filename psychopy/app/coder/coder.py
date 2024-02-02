@@ -2608,8 +2608,12 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
     def onRunShortcut(self, evt=None):
         """
-        Callback for when the run shortcut is pressed - will either run or pilot depending on run mode
+        Callback for when the run shortcut is pressed - will either run or pilot 
+        depending on run mode
         """
+        if self.currentDoc is None:
+            return
+
         # run/pilot according to mode
         if self.ribbon.buttons['pyswitch'].mode:
             self.runFile(evt)
@@ -2620,11 +2624,17 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         """
         Send the current file to the Runner and run it.
         """
+        if self.currentDoc is None:  # do nothing if no file is present
+            return
+
         if self.sendToRunner(event):
             self.app.runner.panel.runLocal(event, focusOnExit='coder')
             self.Raise()
 
     def pilotFile(self, event=None):
+        if self.currentDoc is None:
+            return
+
         if self.sendToRunner(event):
             self.app.runner.panel.pilotLocal(event, focusOnExit='coder')
             self.Raise()
