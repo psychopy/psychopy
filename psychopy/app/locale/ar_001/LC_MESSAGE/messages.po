@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PsychoPy v2023.2.3\n"
-"POT-Creation-Date: 2023-11-16 12:35+0000\n"
+"POT-Creation-Date: 2024-02-03 11:00+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jeremy R. Gray <jrgray@gmail.com>\n"
 "Language-Team: \n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=6; plural=(n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5);\n"
-"X-Generator: Poedit 3.4.1\n"
+"X-Generator: Poedit 3.4.2\n"
 "X-Poedit-Basepath: ../../../../..\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-KeywordsList: _translate\n"
@@ -53,6 +53,8 @@ msgid ""
 "Your stimulus {type} time of {time} seconds cannot be accurately presented "
 "for {time} on a {Hz}Hz monitor."
 msgstr ""
+"لا يمكن عرض وقت التحفيز {type} الذي يبلغ {time} ثانية بدقة لمدة {time} على "
+"شاشة {Hz} هرتز."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:32
 #, python-brace-format
@@ -61,6 +63,9 @@ msgid ""
 "recommend either updating PsychoPy or changing the \"Use Version\" setting "
 "in Experiment Settings to this version."
 msgstr ""
+"تم إنشاء التجربة في إصدار مستقبلي من PsychoPy ({version})، نوصي إما بتحديث "
+"PsychoPy أو تغيير إعداد \"استخدام الإصدار\" في إعدادات التجربة إلى هذا "
+"الإصدار."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:36
 #, python-brace-format
@@ -68,6 +73,8 @@ msgid ""
 "Experiment was built in a past version of PsychoPy ({version}), saving it in "
 "this version may add parameters which cannot be parsed."
 msgstr ""
+"تم إنشاء التجربة في إصدار سابق من PsychoPy ({version})، وقد يؤدي حفظها في "
+"هذا الإصدار إلى إضافة معلمات لا يمكن تحليلها."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:40
 #, python-brace-format
@@ -75,19 +82,21 @@ msgid ""
 "Your stimulus start {type} exceeds the stop {type}. Consider using a {type} "
 "duration."
 msgstr ""
+"بداية التحفيز الخاصة بك {type} تتجاوز نقطة التوقف {type}. فكر في استخدام مدة "
+"{type}."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:44
 #, python-brace-format
 msgid ""
 "Your stimulus {type} type {frameType} must be expressed as a whole number."
-msgstr ""
+msgstr "يجب التعبير عن نوع التحفيز {type} {frameType} كرقم صحيح."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:48
 #, python-brace-format
 msgid ""
 "Component {component} has stop time set as a duration, but doesn't have a "
 "start time"
-msgstr ""
+msgstr "تم تعيين وقت التوقف للمكوّن {component} كمدة، ولكن ليس له وقت بدء"
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:52
 #, python-brace-format
@@ -95,6 +104,8 @@ msgid ""
 "Python Syntax Error in '{codeTab}' tab. See '{code}' on line number "
 "{lineNumber} of the '{codeTab}' tab."
 msgstr ""
+"خطأ في بناء جملة Python في علامة التبويب '{codeTab}'. راجع \"{code}\" في "
+"السطر رقم {lineNumber} من علامة التبويب \"{codeTab}\"."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:56
 #, python-brace-format
@@ -102,6 +113,8 @@ msgid ""
 "JavaScript Syntax Error in '{codeTab}' tab. See '{lineNumber}' in the "
 "'{codeTab}' tab."
 msgstr ""
+"خطأ في بناء جملة JavaScript في علامة التبويب '{codeTab}'. راجع "
+"\"{lineNumber}\" في علامة التبويب \"{codeTab}\"."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:60
 #, python-brace-format
@@ -260,7 +273,7 @@ msgid "Psychology software in Python"
 msgstr ""
 
 #: psychopy/app/_psychopyApp.py:98 psychopy/app/builder/builder.py:381
-#: psychopy/app/coder/coder.py:1565 psychopy/app/runner/runner.py:207
+#: psychopy/app/coder/coder.py:1570 psychopy/app/runner/runner.py:207
 msgid "&View"
 msgstr ""
 
@@ -283,14 +296,14 @@ msgid "Open a new Coder view"
 msgstr ""
 
 #: psychopy/app/_psychopyApp.py:111 psychopy/app/builder/builder.py:358
-#: psychopy/app/coder/coder.py:343 psychopy/app/coder/coder.py:1438
+#: psychopy/app/coder/coder.py:343 psychopy/app/coder/coder.py:1443
 #: psychopy/app/pavlovia_ui/_base.py:39 psychopy/app/runner/runner.py:149
 #, python-format
 msgid "&Quit\t%s"
 msgstr ""
 
 #: psychopy/app/_psychopyApp.py:113 psychopy/app/builder/builder.py:359
-#: psychopy/app/coder/coder.py:1439 psychopy/app/pavlovia_ui/_base.py:40
+#: psychopy/app/coder/coder.py:1444 psychopy/app/pavlovia_ui/_base.py:40
 msgid "Terminate the program"
 msgstr ""
 
@@ -428,42 +441,42 @@ msgid "move to bottom"
 msgstr ""
 
 #: psychopy/app/builder/builder.py:295 psychopy/app/builder/builder.py:3224
-#: psychopy/app/coder/coder.py:1380 psychopy/app/pavlovia_ui/_base.py:24
+#: psychopy/app/coder/coder.py:1385 psychopy/app/pavlovia_ui/_base.py:24
 #: psychopy/app/runner/runner.py:206 psychopy/monitors/MonitorCenter.py:227
 msgid "&File"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:311 psychopy/app/coder/coder.py:1394
+#: psychopy/app/builder/builder.py:311 psychopy/app/coder/coder.py:1399
 #, python-format
 msgid "&New\t%s"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:314 psychopy/app/coder/coder.py:1395
+#: psychopy/app/builder/builder.py:314 psychopy/app/coder/coder.py:1400
 #, python-format
 msgid "&Open...\t%s"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:317 psychopy/app/coder/coder.py:1396
+#: psychopy/app/builder/builder.py:317 psychopy/app/coder/coder.py:1401
 msgid "Open &Recent"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:320 psychopy/app/coder/coder.py:1398
+#: psychopy/app/builder/builder.py:320 psychopy/app/coder/coder.py:1403
 #, python-format
 msgid "&Save\t%s"
 msgstr ""
 
 #: psychopy/app/builder/builder.py:321 psychopy/app/builder/builder.py:4321
-#: psychopy/app/coder/coder.py:2890
+#: psychopy/app/coder/coder.py:2898
 msgid "Save current experiment file"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:324 psychopy/app/coder/coder.py:1401
+#: psychopy/app/builder/builder.py:324 psychopy/app/coder/coder.py:1406
 #, python-format
 msgid "Save &as...\t%s"
 msgstr ""
 
 #: psychopy/app/builder/builder.py:325 psychopy/app/builder/builder.py:4329
-#: psychopy/app/coder/coder.py:2898
+#: psychopy/app/coder/coder.py:2906
 msgid "Save current experiment file as..."
 msgstr ""
 
@@ -476,7 +489,7 @@ msgstr ""
 msgid "Export experiment to html/javascript file"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:332 psychopy/app/coder/coder.py:1404
+#: psychopy/app/builder/builder.py:332 psychopy/app/coder/coder.py:1409
 #, python-format
 msgid "&Close file\t%s"
 msgstr ""
@@ -485,12 +498,12 @@ msgstr ""
 msgid "Close current experiment"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:344 psychopy/app/coder/coder.py:1420
+#: psychopy/app/builder/builder.py:344 psychopy/app/coder/coder.py:1425
 #, python-format
 msgid "&Preferences\t%s"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:347 psychopy/app/coder/coder.py:1425
+#: psychopy/app/builder/builder.py:347 psychopy/app/coder/coder.py:1430
 msgid "Reset preferences..."
 msgstr ""
 
@@ -498,34 +511,34 @@ msgstr ""
 msgid "Close PsychoPy Builder"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:364 psychopy/app/coder/coder.py:1445
+#: psychopy/app/builder/builder.py:364 psychopy/app/coder/coder.py:1450
 #: psychopy/monitors/MonitorCenter.py:235
 msgid "&Edit"
 msgstr ""
 
 #: psychopy/app/builder/builder.py:367 psychopy/app/builder/builder.py:1185
-#: psychopy/app/coder/coder.py:1511
+#: psychopy/app/coder/coder.py:1516
 #, python-format
 msgid "Undo\t%s"
 msgstr ""
 
 #: psychopy/app/builder/builder.py:368 psychopy/app/builder/builder.py:4336
-#: psychopy/app/coder/coder.py:1512 psychopy/app/coder/coder.py:2905
+#: psychopy/app/coder/coder.py:1517 psychopy/app/coder/coder.py:2913
 msgid "Undo last action"
 msgstr ""
 
 #: psychopy/app/builder/builder.py:372 psychopy/app/builder/builder.py:1200
-#: psychopy/app/coder/coder.py:1516
+#: psychopy/app/coder/coder.py:1521
 #, python-format
 msgid "Redo\t%s"
 msgstr ""
 
 #: psychopy/app/builder/builder.py:373 psychopy/app/builder/builder.py:4344
-#: psychopy/app/coder/coder.py:1517 psychopy/app/coder/coder.py:2913
+#: psychopy/app/coder/coder.py:1522 psychopy/app/coder/coder.py:2921
 msgid "Redo last action"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:376 psychopy/app/coder/coder.py:1450
+#: psychopy/app/builder/builder.py:376 psychopy/app/coder/coder.py:1455
 #, python-format
 msgid "&Paste\t%s"
 msgstr ""
@@ -575,21 +588,21 @@ msgstr ""
 msgid "Smaller routine items"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:427 psychopy/app/coder/coder.py:1626
+#: psychopy/app/builder/builder.py:427 psychopy/app/coder/coder.py:1631
 #: psychopy/app/runner/runner.py:200
 msgid "&Themes"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:431 psychopy/app/coder/coder.py:1656
+#: psychopy/app/builder/builder.py:431 psychopy/app/coder/coder.py:1661
 msgid "&Tools"
 msgstr ""
 
 #: psychopy/app/builder/builder.py:434 psychopy/app/builder/builder.py:4353
-#: psychopy/app/coder/coder.py:1658 psychopy/app/coder/coder.py:2922
+#: psychopy/app/coder/coder.py:1663 psychopy/app/coder/coder.py:2930
 msgid "Monitor Center"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:435 psychopy/app/coder/coder.py:1659
+#: psychopy/app/builder/builder.py:435 psychopy/app/coder/coder.py:1664
 msgid "To set information about your monitor"
 msgstr ""
 
@@ -602,45 +615,45 @@ msgstr ""
 msgid "Compile the exp to a script"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:443 psychopy/app/coder/coder.py:1673
+#: psychopy/app/builder/builder.py:443 psychopy/app/coder/coder.py:1678
 #, python-format
 msgid "Run\t%s"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:444 psychopy/app/coder/coder.py:1674
+#: psychopy/app/builder/builder.py:444 psychopy/app/coder/coder.py:1679
 msgid "Run the current script"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:447 psychopy/app/coder/coder.py:1677
+#: psychopy/app/builder/builder.py:447 psychopy/app/coder/coder.py:1682
 #, python-format
 msgid "Send to runner\t%s"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:448 psychopy/app/coder/coder.py:1678
+#: psychopy/app/builder/builder.py:448 psychopy/app/coder/coder.py:1683
 msgid "Send current script to runner"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:452 psychopy/app/coder/coder.py:1683
+#: psychopy/app/builder/builder.py:452 psychopy/app/coder/coder.py:1688
 msgid "PsychoPy updates..."
 msgstr ""
 
-#: psychopy/app/builder/builder.py:453 psychopy/app/coder/coder.py:1684
+#: psychopy/app/builder/builder.py:453 psychopy/app/coder/coder.py:1689
 msgid "Update PsychoPy to the latest, or a specific, version"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:457 psychopy/app/coder/coder.py:1687
+#: psychopy/app/builder/builder.py:457 psychopy/app/coder/coder.py:1692
 msgid "Plugin/packages manager..."
 msgstr ""
 
-#: psychopy/app/builder/builder.py:458 psychopy/app/coder/coder.py:1688
+#: psychopy/app/builder/builder.py:458 psychopy/app/coder/coder.py:1693
 msgid "Manage Python packages and optional plugins for PsychoPy"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:462 psychopy/app/coder/coder.py:1691
+#: psychopy/app/builder/builder.py:462 psychopy/app/coder/coder.py:1696
 msgid "Benchmark wizard"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:463 psychopy/app/coder/coder.py:1692
+#: psychopy/app/builder/builder.py:463 psychopy/app/coder/coder.py:1697
 msgid "Check software & hardware, generate report"
 msgstr ""
 
@@ -750,29 +763,29 @@ msgstr ""
 msgid "Open the local folder where demos are stored"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:554 psychopy/app/coder/coder.py:1707
+#: psychopy/app/builder/builder.py:554 psychopy/app/coder/coder.py:1712
 #: psychopy/app/runner/runner.py:209
 msgid "&Demos"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:558 psychopy/app/coder/coder.py:1735
+#: psychopy/app/builder/builder.py:558 psychopy/app/coder/coder.py:1740
 msgid "&Pavlovia.org"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:562 psychopy/app/coder/coder.py:1740
+#: psychopy/app/builder/builder.py:562 psychopy/app/coder/coder.py:1745
 #: psychopy/app/runner/runner.py:213
 msgid "&Window"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:566 psychopy/app/coder/coder.py:1744
+#: psychopy/app/builder/builder.py:566 psychopy/app/coder/coder.py:1749
 msgid "&Help"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:570 psychopy/app/coder/coder.py:1746
+#: psychopy/app/builder/builder.py:570 psychopy/app/coder/coder.py:1751
 msgid "&PsychoPy Homepage"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:571 psychopy/app/coder/coder.py:1747
+#: psychopy/app/builder/builder.py:571 psychopy/app/coder/coder.py:1752
 msgid "Go to the PsychoPy homepage"
 msgstr ""
 
@@ -784,29 +797,29 @@ msgstr ""
 msgid "Go to the online documentation for PsychoPy Builder"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:584 psychopy/app/coder/coder.py:1762
+#: psychopy/app/builder/builder.py:584 psychopy/app/coder/coder.py:1767
 msgid "&System Info..."
 msgstr ""
 
-#: psychopy/app/builder/builder.py:585 psychopy/app/coder/coder.py:1763
+#: psychopy/app/builder/builder.py:585 psychopy/app/coder/coder.py:1768
 msgid "Get system information."
 msgstr ""
 
-#: psychopy/app/builder/builder.py:590 psychopy/app/coder/coder.py:1768
+#: psychopy/app/builder/builder.py:590 psychopy/app/coder/coder.py:1773
 msgid "&About..."
 msgstr ""
 
-#: psychopy/app/builder/builder.py:590 psychopy/app/coder/coder.py:1769
+#: psychopy/app/builder/builder.py:590 psychopy/app/coder/coder.py:1774
 #, fuzzy
 #| msgid "Welcome to PsychoPy2!"
 msgid "About PsychoPy"
 msgstr "مرحبا بكم في PsychoPy2!"
 
-#: psychopy/app/builder/builder.py:593 psychopy/app/coder/coder.py:1773
+#: psychopy/app/builder/builder.py:593 psychopy/app/coder/coder.py:1778
 msgid "&News..."
 msgstr ""
 
-#: psychopy/app/builder/builder.py:594 psychopy/app/coder/coder.py:1774
+#: psychopy/app/builder/builder.py:594 psychopy/app/coder/coder.py:1779
 msgid "News"
 msgstr ""
 
@@ -820,11 +833,11 @@ msgstr ""
 
 #: psychopy/app/builder/builder.py:716
 #: psychopy/app/builder/dialogs/__init__.py:1701
-#: psychopy/app/coder/coder.py:2350
+#: psychopy/app/coder/coder.py:2355
 msgid "Open file ..."
 msgstr ""
 
-#: psychopy/app/builder/builder.py:806 psychopy/app/coder/coder.py:2489
+#: psychopy/app/builder/builder.py:806 psychopy/app/coder/coder.py:2497
 msgid "Save file as ..."
 msgstr ""
 
@@ -841,19 +854,19 @@ msgstr ""
 msgid "Experiment %s has changed. Save before quitting?"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:1055 psychopy/app/coder/coder.py:2837
+#: psychopy/app/builder/builder.py:1055 psychopy/app/coder/coder.py:2845
 msgid "Are you sure you want to reset your preferences? This cannot be undone."
 msgstr ""
 
-#: psychopy/app/builder/builder.py:1060 psychopy/app/coder/coder.py:2841
+#: psychopy/app/builder/builder.py:1060 psychopy/app/coder/coder.py:2849
 msgid "I'm sure"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:1061 psychopy/app/coder/coder.py:2842
+#: psychopy/app/builder/builder.py:1061 psychopy/app/coder/coder.py:2850
 msgid "Wait, go back!"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:1070 psychopy/app/coder/coder.py:2851
+#: psychopy/app/builder/builder.py:1070 psychopy/app/coder/coder.py:2859
 msgid ""
 "Done! Your preferences have been reset. Changes will be applied when you "
 "next open PsychoPy."
@@ -1001,43 +1014,43 @@ msgstr ""
 msgid "Impending Loop collapse"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:4304 psychopy/app/coder/coder.py:2874
+#: psychopy/app/builder/builder.py:4304 psychopy/app/coder/coder.py:2882
 msgid "New"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:4306 psychopy/app/coder/coder.py:2876
+#: psychopy/app/builder/builder.py:4306 psychopy/app/coder/coder.py:2884
 msgid "Create new experiment file"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:4312 psychopy/app/coder/coder.py:2881
+#: psychopy/app/builder/builder.py:4312 psychopy/app/coder/coder.py:2889
 msgid "Open"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:4314 psychopy/app/coder/coder.py:2883
+#: psychopy/app/builder/builder.py:4314 psychopy/app/coder/coder.py:2891
 msgid "Open an existing experiment file"
 msgstr ""
 
 #: psychopy/app/builder/builder.py:4319
-#: psychopy/app/builder/localizedStrings.py:33 psychopy/app/coder/coder.py:2888
+#: psychopy/app/builder/localizedStrings.py:33 psychopy/app/coder/coder.py:2896
 #: psychopy/app/utils.py:503 psychopy/monitors/MonitorCenter.py:259
 msgid "Save"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:4327 psychopy/app/coder/coder.py:2896
+#: psychopy/app/builder/builder.py:4327 psychopy/app/coder/coder.py:2904
 msgid "Save As..."
 msgstr ""
 
 #: psychopy/app/builder/builder.py:4334
-#: psychopy/app/coder/codeEditorBase.py:110 psychopy/app/coder/coder.py:2903
+#: psychopy/app/coder/codeEditorBase.py:110 psychopy/app/coder/coder.py:2911
 msgid "Undo"
 msgstr ""
 
 #: psychopy/app/builder/builder.py:4342
-#: psychopy/app/coder/codeEditorBase.py:111 psychopy/app/coder/coder.py:2911
+#: psychopy/app/coder/codeEditorBase.py:111 psychopy/app/coder/coder.py:2919
 msgid "Redo"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:4355 psychopy/app/coder/coder.py:2924
+#: psychopy/app/builder/builder.py:4355 psychopy/app/coder/coder.py:2932
 msgid "Monitor settings and calibration"
 msgstr ""
 
@@ -1065,19 +1078,19 @@ msgstr ""
 msgid "Compile to JS script"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:4384 psychopy/app/coder/coder.py:2938
+#: psychopy/app/builder/builder.py:4384 psychopy/app/coder/coder.py:2946
 msgid "Runner"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:4386 psychopy/app/coder/coder.py:2939
+#: psychopy/app/builder/builder.py:4386 psychopy/app/coder/coder.py:2947
 msgid "Send experiment to Runner"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:4392 psychopy/app/coder/coder.py:2943
+#: psychopy/app/builder/builder.py:4392 psychopy/app/coder/coder.py:2951
 msgid "Run"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:4394 psychopy/app/coder/coder.py:2944
+#: psychopy/app/builder/builder.py:4394 psychopy/app/coder/coder.py:2952
 msgid "Run experiment"
 msgstr ""
 
@@ -1097,27 +1110,27 @@ msgstr ""
 msgid "Run the study in PsychoJS on a local browser, not through pavlovia.org"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:4415 psychopy/app/coder/coder.py:2953
+#: psychopy/app/builder/builder.py:4415 psychopy/app/coder/coder.py:2961
 msgid "Sync online"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:4416 psychopy/app/coder/coder.py:2954
+#: psychopy/app/builder/builder.py:4416 psychopy/app/coder/coder.py:2962
 msgid "Sync with web project (at pavlovia.org)"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:4421 psychopy/app/coder/coder.py:2959
+#: psychopy/app/builder/builder.py:4421 psychopy/app/coder/coder.py:2967
 msgid "Search Pavlovia.org"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:4422 psychopy/app/coder/coder.py:2960
+#: psychopy/app/builder/builder.py:4422 psychopy/app/coder/coder.py:2968
 msgid "Find existing studies online (at pavlovia.org)"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:4427 psychopy/app/coder/coder.py:2965
+#: psychopy/app/builder/builder.py:4427 psychopy/app/coder/coder.py:2973
 msgid "Current Pavlovia user"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:4428 psychopy/app/coder/coder.py:2966
+#: psychopy/app/builder/builder.py:4428 psychopy/app/coder/coder.py:2974
 msgid "Log in/out of Pavlovia.org, view your user profile."
 msgstr ""
 
@@ -2193,7 +2206,7 @@ msgid "Editor"
 msgstr ""
 
 #: psychopy/app/coder/coder.py:1229 psychopy/app/coder/coder.py:1298
-#: psychopy/app/coder/coder.py:1582
+#: psychopy/app/coder/coder.py:1587
 msgid "Source Assistant"
 msgstr ""
 
@@ -2215,254 +2228,254 @@ msgstr ""
 msgid "Welcome to PsychoPy3!"
 msgstr "مرحبا بكم في PsychoPy2!"
 
-#: psychopy/app/coder/coder.py:1399
+#: psychopy/app/coder/coder.py:1404
 msgid "Save current file"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1402
+#: psychopy/app/coder/coder.py:1407
 msgid "Save current python file as..."
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1405
+#: psychopy/app/coder/coder.py:1410
 msgid "Close current file"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1407
+#: psychopy/app/coder/coder.py:1412
 msgid "Close all files"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1408
+#: psychopy/app/coder/coder.py:1413
 msgid "Close all files in the editor."
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1417
+#: psychopy/app/coder/coder.py:1422
 #, python-format
 msgid "Print\t%s"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1432
+#: psychopy/app/coder/coder.py:1437
 msgid "Close PsychoPy Coder"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1446
+#: psychopy/app/coder/coder.py:1451
 #, python-format
 msgid "Cu&t\t%s"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1448
+#: psychopy/app/coder/coder.py:1453
 #, python-format
 msgid "&Copy\t%s"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1452
+#: psychopy/app/coder/coder.py:1457
 msgid "Duplicate the current line (or current selection)"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1454
+#: psychopy/app/coder/coder.py:1459
 #, python-format
 msgid "&Duplicate\t%s"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1460
+#: psychopy/app/coder/coder.py:1465
 #, python-format
 msgid "&Find\t%s"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1463
+#: psychopy/app/coder/coder.py:1468
 #, python-format
 msgid "Find &Next\t%s"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1468
+#: psychopy/app/coder/coder.py:1473
 #, python-format
 msgid "Comment\t%s"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1469
+#: psychopy/app/coder/coder.py:1474
 msgid "Comment selected lines"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1473
+#: psychopy/app/coder/coder.py:1478
 #, python-format
 msgid "Uncomment\t%s"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1474
+#: psychopy/app/coder/coder.py:1479
 msgid "Un-comment selected lines"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1479
+#: psychopy/app/coder/coder.py:1484
 #, python-format
 msgid "Toggle comment\t%s"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1480
+#: psychopy/app/coder/coder.py:1485
 msgid "Toggle commenting of selected lines"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1485
+#: psychopy/app/coder/coder.py:1490
 #, python-format
 msgid "Toggle fold\t%s"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1486
+#: psychopy/app/coder/coder.py:1491
 msgid "Toggle folding of top level"
-msgstr ""
-
-#: psychopy/app/coder/coder.py:1492
-#, python-format
-msgid "Indent selection\t%s"
-msgstr ""
-
-#: psychopy/app/coder/coder.py:1493
-msgid "Increase indentation of current line"
 msgstr ""
 
 #: psychopy/app/coder/coder.py:1497
 #, python-format
-msgid "Dedent selection\t%s"
+msgid "Indent selection\t%s"
 msgstr ""
 
 #: psychopy/app/coder/coder.py:1498
+msgid "Increase indentation of current line"
+msgstr ""
+
+#: psychopy/app/coder/coder.py:1502
+#, python-format
+msgid "Dedent selection\t%s"
+msgstr ""
+
+#: psychopy/app/coder/coder.py:1503
 msgid "Decrease indentation of current line"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1501
+#: psychopy/app/coder/coder.py:1506
 msgid "Try to indent to the correct position w.r.t. last line"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1504
+#: psychopy/app/coder/coder.py:1509
 #, python-format
 msgid "SmartIndent\t%s"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1523
+#: psychopy/app/coder/coder.py:1528
 #, python-format
 msgid "Enlarge font\t%s"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1524
+#: psychopy/app/coder/coder.py:1529
 msgid "Increase font size"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1528
+#: psychopy/app/coder/coder.py:1533
 #, python-format
 msgid "Shrink font\t%s"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1529
+#: psychopy/app/coder/coder.py:1534
 msgid "Decrease font size"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1533
+#: psychopy/app/coder/coder.py:1538
 msgid "Reset font"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1534
+#: psychopy/app/coder/coder.py:1539
 msgid "Return fonts to their original size."
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1543 psychopy/app/coder/fileBrowser.py:290
+#: psychopy/app/coder/coder.py:1548 psychopy/app/coder/fileBrowser.py:290
 msgid "Editor file location"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1549
+#: psychopy/app/coder/coder.py:1554
 msgid "File browser pane location"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1556 psychopy/app/coder/fileBrowser.py:299
+#: psychopy/app/coder/coder.py:1561 psychopy/app/coder/fileBrowser.py:299
 msgid "Choose directory ..."
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1560
+#: psychopy/app/coder/coder.py:1565
 msgid "Change working directory to ..."
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1570
+#: psychopy/app/coder/coder.py:1575
 msgid "Panels"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1573
+#: psychopy/app/coder/coder.py:1578
 msgid "Shows the output and shell panes (and starts capturing stdout)"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1576
+#: psychopy/app/coder/coder.py:1581
 #, python-format
 msgid "&Output/Shell\t%s"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1580
+#: psychopy/app/coder/coder.py:1585
 msgid "Hide/show the source assistant pane."
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1590
+#: psychopy/app/coder/coder.py:1595
 msgid "Shows guides in the editor for your indentation level"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1593
+#: psychopy/app/coder/coder.py:1598
 #, python-format
 msgid "&Indentation guides\t%s"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1599
+#: psychopy/app/coder/coder.py:1604
 msgid "Show whitespace characters in the code"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1601
+#: psychopy/app/coder/coder.py:1606
 #, python-format
 msgid "&Whitespace\t%s"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1607
+#: psychopy/app/coder/coder.py:1612
 msgid "Show End Of Line markers in the code"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1610
+#: psychopy/app/coder/coder.py:1615
 #, python-format
 msgid "Show &EOLs\t%s"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1615
+#: psychopy/app/coder/coder.py:1620
 msgid "Enable/disable line wrapping in editors."
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1618
+#: psychopy/app/coder/coder.py:1623
 msgid "Line wrapping"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1695
+#: psychopy/app/coder/coder.py:1700
 msgid "csv from psydat"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1696
+#: psychopy/app/coder/coder.py:1701
 msgid "Create a .csv file from an existing .psydat file"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1701
+#: psychopy/app/coder/coder.py:1706
 msgid "Unit &testing...\tCtrl-T"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1702
+#: psychopy/app/coder/coder.py:1707
 msgid "Show dialog to run unit tests"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1751
+#: psychopy/app/coder/coder.py:1756
 msgid "&PsychoPy Coder Tutorial"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1752
+#: psychopy/app/coder/coder.py:1757
 msgid "Go to the online PsychoPy tutorial"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1756
+#: psychopy/app/coder/coder.py:1761
 msgid "&PsychoPy API (reference)"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1757
+#: psychopy/app/coder/coder.py:1762
 msgid "Go to the online PsychoPy reference manual"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1968 psychopy/app/coder/coder.py:2024
+#: psychopy/app/coder/coder.py:1973 psychopy/app/coder/coder.py:2029
 #, python-format
 msgid ""
 "'%s' was modified outside of PsychoPy:\n"
@@ -2470,24 +2483,24 @@ msgid ""
 "Reload (without saving)?"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:1972 psychopy/app/coder/coder.py:2028
+#: psychopy/app/coder/coder.py:1977 psychopy/app/coder/coder.py:2033
 msgid "Reloading file"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:2108 psychopy/app/coder/coder.py:2524
+#: psychopy/app/coder/coder.py:2113 psychopy/app/coder/coder.py:2532
 #, python-format
 msgid "Save changes to %s before quitting?"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:2248
+#: psychopy/app/coder/coder.py:2253
 msgid "Failed to open `{}`. Make sure that encoding of the file is utf-8."
 msgstr ""
 
-#: psychopy/app/coder/coder.py:2356
+#: psychopy/app/coder/coder.py:2361
 msgid "Loading file"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:2415
+#: psychopy/app/coder/coder.py:2423
 #, python-format
 msgid ""
 "File appears to have been modified outside of PsychoPy:\n"
@@ -2495,39 +2508,39 @@ msgid ""
 "OK to overwrite?"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:2424
+#: psychopy/app/coder/coder.py:2432
 #, python-format
 msgid ""
 "File '%s' lacks write-permission:\n"
 "Will try save-as instead."
 msgstr ""
 
-#: psychopy/app/coder/coder.py:2435
+#: psychopy/app/coder/coder.py:2443
 msgid "Saving file"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:2478
+#: psychopy/app/coder/coder.py:2486
 msgid ""
 "Python script (*.py)|*.py|JavaScript file (*.js)|*.js|Text file (*.txt)|*."
 "txt|Any file (*.*)|*.*"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:2483
+#: psychopy/app/coder/coder.py:2491
 msgid ""
 "Python script (*.py)|*.py|JavaScript file (*.js)|*.js|Text file (*.txt)|*."
 "txt|Any file (*.*)|*"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:2580
+#: psychopy/app/coder/coder.py:2588
 #, python-format
 msgid "Save changes to %s before running?"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:2929
+#: psychopy/app/coder/coder.py:2937
 msgid "Color Picker"
 msgstr ""
 
-#: psychopy/app/coder/coder.py:2931
+#: psychopy/app/coder/coder.py:2939
 msgid "Color Picker -> clipboard"
 msgstr ""
 
@@ -5476,7 +5489,7 @@ msgstr ""
 #: psychopy/experiment/components/patch/__init__.py:19
 #: psychopy/experiment/components/patch/__init__.py:102
 #: psychopy/experiment/components/polygon/__init__.py:21
-#: psychopy/experiment/components/polygon/__init__.py:134
+#: psychopy/experiment/components/polygon/__init__.py:136
 msgid "Interpolate"
 msgstr ""
 
@@ -5527,7 +5540,7 @@ msgstr ""
 #: psychopy/experiment/components/image/__init__.py:81
 #: psychopy/experiment/components/panorama/__init__.py:78
 #: psychopy/experiment/components/patch/__init__.py:97
-#: psychopy/experiment/components/polygon/__init__.py:129
+#: psychopy/experiment/components/polygon/__init__.py:131
 msgid "How should the image be interpolated if/when rescaled"
 msgstr ""
 
@@ -6176,13 +6189,13 @@ msgid "Line color"
 msgstr ""
 
 #: psychopy/experiment/components/polygon/__init__.py:20
-#: psychopy/experiment/components/polygon/__init__.py:126
+#: psychopy/experiment/components/polygon/__init__.py:128
 #: psychopy/experiment/components/progress/__init__.py:77
 msgid "Line width"
 msgstr ""
 
 #: psychopy/experiment/components/polygon/__init__.py:23
-#: psychopy/experiment/components/polygon/__init__.py:114
+#: psychopy/experiment/components/polygon/__init__.py:116
 msgid "Shape"
 msgstr ""
 
@@ -6210,13 +6223,13 @@ msgid ""
 "and with 'custom polygon...' you can set vertices"
 msgstr ""
 
-#: psychopy/experiment/components/polygon/__init__.py:119
+#: psychopy/experiment/components/polygon/__init__.py:121
 #: psychopy/experiment/components/progress/__init__.py:70
 msgid ""
 "Width of the shape's line (always in pixels - this does NOT use 'units')"
 msgstr ""
 
-#: psychopy/experiment/components/polygon/__init__.py:138
+#: psychopy/experiment/components/polygon/__init__.py:140
 msgid ""
 "Size of this stimulus [w,h]. Note that for a line only the first value is "
 "used, for triangle and rect the [w,h] is as expected,\n"
