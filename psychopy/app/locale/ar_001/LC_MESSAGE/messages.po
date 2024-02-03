@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PsychoPy v2023.2.3\n"
-"POT-Creation-Date: 2024-02-03 12:48+0000\n"
+"POT-Creation-Date: 2024-02-03 15:47+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jeremy R. Gray <jrgray@gmail.com>\n"
 "Language-Team: \n"
@@ -241,16 +241,19 @@ msgid ""
 "Eye tracker experiments should use 'ioHub' as the Input -> Keyboard Backend "
 "setting"
 msgstr ""
+"يجب أن تستخدم تجارب تتبع العين \"ioHub\" كإعداد الإدخال -> إعداد الواجهة "
+"الخلفية للوحة المفاتيح"
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:120
 #, python-brace-format
 msgid "Audio transcription service \"{transcriber}\" is not supported online."
-msgstr ""
+msgstr "خدمة النسخ الصوتي \"{transcriber}\" غير مدعومة عبر الإنترنت online."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:124
 #, python-brace-format
 msgid "Audio transcription service \"{transcriber}\" is not supported offline."
 msgstr ""
+"خدمة النسخ الصوتي \"{transcriber}\" غير مدعومة في وضع عدم الاتصال offline."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:128
 #, python-brace-format
@@ -258,12 +261,16 @@ msgid ""
 "Chosen transcriber '{engine}' requires an API key, please supply one in "
 "Preferences."
 msgstr ""
+"يتطلب الناسخ الذي تم اختياره '{engine}' مفتاح API، يرجى توفير واحد في "
+"التفضيلات."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:132
-#, python-brace-format
+#, fuzzy, python-brace-format
 msgid ""
 "Device parameter of microphone component \"{name}\" will not be used online."
 msgstr ""
+"لن يتم استخدام معامل الجهاز (device parameter) الخاص بمكوّن الميكروفون "
+"\"{name}\" عبر الإنترنت."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:136
 #, python-brace-format
