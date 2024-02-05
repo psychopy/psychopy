@@ -1141,18 +1141,20 @@ class RunnerRibbon(ribbon.FrameRibbon):
             "browser", label=_translate("Browser"), icon="browser"
         )
         # pilot JS
-        self.addButton(
+        btn = self.addButton(
             section="browser", name="jspilot", label=_translate("Pilot in browser"),
             icon='jsPilot',
             tooltip=_translate("Pilot experiment locally in your browser"),
             callback=parent.runOnlineDebug
         )
+        btn.Hide()
         # run JS
-        self.addButton(
+        btn = self.addButton(
             section="browser", name="jsrun", label=_translate("Run on Pavlovia"), icon='jsRun',
             tooltip=_translate("Run experiment on Pavlovia"),
             callback=parent.runOnline
         )
+        btn.Hide()
 
         self.addSeparator()
 
