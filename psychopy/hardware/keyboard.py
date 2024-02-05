@@ -142,6 +142,7 @@ class KeyPress(BaseResponse):
             self.name = name
             self.rt = tDown
         elif KeyboardDevice._backend == 'ptb':
+            self.rt = tDown
             if code not in keyNames and code in keyNames.values():
                 i = list(keyNames.values()).index(code)
                 code = list(keyNames.keys())[i]
@@ -548,10 +549,10 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
         response = None
 
         if KeyboardDevice._backend == 'ptb':
+            message['time'] -= self.clock.getLastResetTime()
             if message['down']:
                 # if message is from a key down event, make a new response
                 response = KeyPress(code=message['keycode'], tDown=message['time'])
-                response.rt = response.tDown - self.clock.getLastResetTime()
                 self._keysStillDown.append(response)
             else:
                 # if message is from a key up event, alter existing response
