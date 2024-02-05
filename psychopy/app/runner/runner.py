@@ -92,7 +92,10 @@ class RunnerFrame(wx.Frame, handlers.ThemeMixin):
 
         # hide alerts to begin with, more room for std while also making alerts more noticeable
         self.Layout()
-        self.SetSize(wx.Size(1024, 640))
+        if self.isRetina:
+            self.SetSize(wx.Size(920, 640))
+        else:
+            self.SetSize(wx.Size(1080, 920))
 
         self.theme = app.theme
 
