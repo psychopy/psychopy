@@ -299,6 +299,7 @@ class RunnerFrame(wx.Frame, handlers.ThemeMixin):
                     fileOk = False
 
                 if fileOk:
+                    self.panel.entries = {}
                     self.panel.expCtrl.DeleteAllItems()
                     for exp in experiments:
                         self.panel.addTask(
