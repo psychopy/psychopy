@@ -109,7 +109,8 @@ packages = ['pydoc',  # needed for help()
             'questplus',
             'psychtoolbox',
             'h5py',
-            'markdown_it'
+            'markdown_it',
+            'zeroconf', 'ifaddr',  # for pupillabs plugin (fail to build)
             ]
 
 # Add packages that older PsychoPy (<=2023.1.x) shipped, for useVersion() compatibility
