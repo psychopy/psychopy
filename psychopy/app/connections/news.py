@@ -76,7 +76,7 @@ def showNews(app=None, checkPrev=True):
     sizer.Add(browser, 1, wx.EXPAND, 10)
     dlg.SetSizer(sizer)
 
-    print(f"loading news page at: {newsURL}")
+    logging.debug(f"loading news page at: {newsURL}")
     browser.LoadURL(newsURL)
     # browser.Reload()
     dlg.Show()
