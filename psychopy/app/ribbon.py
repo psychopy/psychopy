@@ -217,9 +217,9 @@ class FrameRibbonSection(wx.Panel, handlers.ThemeMixin):
         self.border = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.border)
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.border.Add(
-            self.sizer, proportion=1, border=0, flag=wx.EXPAND | wx.ALL
-        )
+        self.border.Add(self.sizer, proportion=1, border=0, flag=(
+            wx.EXPAND | wx.ALL | wx.RESERVE_SPACE_EVEN_IF_HIDDEN
+        ))
         # add label sizer
         self.labelSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.border.Add(

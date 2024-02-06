@@ -829,8 +829,11 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             self.updateWindowMenu()
             wx.EndBusyCursor()
         else:
-            # Set output window and standard streams
+            # set output window and standard streams
             self.coder.setOutputWindow(True)
+            # open file list
+            for file in fileList:
+                self.coder.fileOpen(filename=file)
         self.coder.Show(True)
         self.SetTopWindow(self.coder)
         self.coder.Raise()

@@ -62,6 +62,7 @@ class RunnerFrame(wx.Frame, handlers.ThemeMixin):
         # detect retina displays (then don't use double-buffering)
         self.isRetina = self.GetContentScaleFactor() != 1
         self.SetDoubleBuffered(not self.isRetina)
+        self.SetMinSize(wx.Size(640, 480))
         # double buffered better rendering except if retina
         self.panel.SetDoubleBuffered(not self.isRetina)
 
@@ -91,6 +92,10 @@ class RunnerFrame(wx.Frame, handlers.ThemeMixin):
 
         # hide alerts to begin with, more room for std while also making alerts more noticeable
         self.Layout()
+        if self.isRetina:
+            self.SetSize(wx.Size(920, 640))
+        else:
+            self.SetSize(wx.Size(1080, 920))
 
         self.theme = app.theme
 
@@ -294,6 +299,7 @@ class RunnerFrame(wx.Frame, handlers.ThemeMixin):
                     fileOk = False
 
                 if fileOk:
+                    self.panel.entries = {}
                     self.panel.expCtrl.DeleteAllItems()
                     for exp in experiments:
                         self.panel.addTask(
@@ -462,6 +468,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
 
         # double buffered better rendering except if retina
         self.SetDoubleBuffered(parent.IsDoubleBuffered())
+        self.SetMinSize(wx.Size(640, 480))
 
         self.app = app
         self.prefs = self.app.prefs.coder
@@ -534,7 +541,6 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         self.splitter.SetMinimumPaneSize(360)
 
         self.SetSizerAndFit(self.mainSizer)
-        self.SetMinSize(self.Size)
 
         # Set starting states on buttons
         self.ribbon.buttons['pystop'].Disable()
@@ -1039,7 +1045,7 @@ class RunnerOutputNotebook(aui.AuiNotebook, handlers.ThemeMixin):
         )
         self.panels['git'] = self.gitPnl
 
-        self.SetMinSize((720, 720))
+        self.SetMinSize(wx.Size(100, 100))  # smaller than window min size
 
     def onWrite(self, evt):
         # get ctrl
@@ -1136,18 +1142,20 @@ class RunnerRibbon(ribbon.FrameRibbon):
             "browser", label=_translate("Browser"), icon="browser"
         )
         # pilot JS
-        self.addButton(
+        btn = self.addButton(
             section="browser", name="jspilot", label=_translate("Pilot in browser"),
             icon='jsPilot',
             tooltip=_translate("Pilot experiment locally in your browser"),
             callback=parent.runOnlineDebug
         )
+        btn.Hide()
         # run JS
-        self.addButton(
+        btn = self.addButton(
             section="browser", name="jsrun", label=_translate("Run on Pavlovia"), icon='jsRun',
             tooltip=_translate("Run experiment on Pavlovia"),
             callback=parent.runOnline
         )
+        btn.Hide()
 
         self.addSeparator()
 

@@ -112,8 +112,9 @@ def login(tokenOrUsername, rememberMe=True):
         user = currentSession.user
         prefs.appData['projects']['pavloviaUser'] = user['username']
     # update Pavlovia button(s)
-    for btn in app.getAppInstance().pavloviaButtons['user'] + app.getAppInstance().pavloviaButtons['project']:
-        btn.updateInfo()
+    if app.getAppInstance():
+        for btn in app.getAppInstance().pavloviaButtons['user'] + app.getAppInstance().pavloviaButtons['project']:
+            btn.updateInfo()
 
 def logout():
     """Log the current user out of pavlovia.
