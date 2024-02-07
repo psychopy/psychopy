@@ -337,7 +337,7 @@ class PhotodiodeValidationError(BaseException):
 
 
 class ScreenBufferSampler(BasePhotodiodeGroup):
-    def __init__(self, win, threshold=None, pos=None, size=None, units=None):
+    def __init__(self, win, threshold=125, pos=None, size=None, units=None):
         # store win
         self.win = win
         # default rect
@@ -360,6 +360,9 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
         """
         Check the screen for changes and dispatch events as appropriate
         """
+        # if there's no window, skip
+        if self.win is None:
+            return
         # get rect
         left, bottom = self._pos.pix + self.win.size / 2
         w, h = self._size.pix
