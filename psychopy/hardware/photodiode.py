@@ -337,7 +337,7 @@ class PhotodiodeValidationError(BaseException):
 
 
 class ScreenBufferSampler(BasePhotodiodeGroup):
-    def __init__(self, win, threshold=None, pos=(0.95, -0.95), size=(0.05, 0.05), units="norm"):
+    def __init__(self, win, threshold=None, pos=None, size=None, units=None):
         # store win
         self.win = win
         # default rect
@@ -548,9 +548,18 @@ class PhotodiodeValidator:
         diode.
         """
         for rect in (self.onRect, self.offRect):
+            # set units from diode
             rect.units = self.diode.units
-            rect.pos = self.diode.pos
-            rect.size = self.diode.size
+            # set pos from diode, or choose default if None
+            if self.diode.pos is not None:
+                rect.pos = self.diode.pos
+            else:
+                rect.pos = layout.Position((0.95, -0.95), units="norm", win=self.win)
+            # set size from diode, or choose default if None
+            if self.diode.size is not None:
+                rect.size = self.diode.size
+            else:
+                rect.size = layout.Size((0.05, 0.05), units="norm", win=self.win)
 
     def validate(self, state, t=None):
         """
