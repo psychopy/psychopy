@@ -158,6 +158,33 @@ class WebSocketServer:
 				registeredMethods.append(f"{name}.{method}")
 		return registeredMethods
 
+	def actualizeAttributes(self, arg):
+		"""
+		Convert a string pointing to an attribute of a registered object into the value of that
+		attribute.
+
+		Parameters
+		----------
+		arg : str
+			String in the format `object.attribute` pointing to the target attribute
+		"""
+		self._logger.debug(
+			f"Parsing raw arg: {arg}"
+		)
+
+		if isinstance(arg, str) and "." in arg:
+			_name, _attr = arg.split(".", 1)
+			if _name in self._methods:
+				_obj, _methods = self._methods[_name]
+				if _attr in _methods:
+					arg = getattr(_obj, _attr)
+		elif isinstance(arg, dict):
+			# actualize all values if given a dict of params
+			for key in arg:
+				arg[key] = self.actualizeAttributes(arg[key])
+
+		return arg
+
 	def start(self, host, port):
 		"""
 		Start the Liaison WebSocket server at the given address.
@@ -327,12 +354,7 @@ class WebSocketServer:
 					except json.decoder.JSONDecodeError:
 						pass
 					# if arg is a known property, get its value
-					if isinstance(arg, str) and "." in arg:
-						_name, _attr = arg.split(".", 1)
-						if _name in self._methods:
-							_obj, _methods = self._methods[_name]
-							if _attr in _methods:
-								arg = getattr(_obj, _attr)
+					arg = self.actualizeAttributes(arg)
 					# append to list of args
 					args.append(arg)
 
