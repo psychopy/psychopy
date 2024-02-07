@@ -68,6 +68,24 @@ class SerialDevice(BaseDevice, AttributeGetSetMixin):
     # list of supported devices (if more than one supports same protocol)
     driverFor = []
 
+    def __new__(cls, *args, **kwargs):
+        import inspect
+        # convert args to kwargs
+        argNames = inspect.getfullargspec(cls.__init__).args
+        for i, arg in enumerate(args):
+            kwargs[argNames[i]] = arg
+        # iterate through existing devices
+        for other in ports.values():
+            # skip None
+            if other is None:
+                continue
+            # if device already represented, use existing object
+            if other.isSameDevice(kwargs):
+                return other
+
+        # if first object to represent this device, make as normal
+        return super(BaseDevice, cls).__new__(cls)
+
     def __init__(self, port=None, baudrate=9600,
                  byteSize=8, stopBits=1,
                  parity="N",  # 'N'one, 'E'ven, 'O'dd, 'M'ask,
@@ -271,7 +289,7 @@ class SerialDevice(BaseDevice, AttributeGetSetMixin):
         bool
             True if the two objects represent the same physical device
         """
-        if isinstance(other, type(self)):
+        if isinstance(other, SerialDevice):
             # if given another object, get port
             portString = other.portString
         elif isinstance(other, dict) and "port" in other:
