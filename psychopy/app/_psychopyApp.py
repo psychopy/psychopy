@@ -173,6 +173,9 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             profile.enable()
             t0 = time.time()
 
+        from . import setAppInstance
+        setAppInstance(self)
+
         self._appLoaded = False  # set to true when all frames are created
         self.builder = None
         self.coder = None
