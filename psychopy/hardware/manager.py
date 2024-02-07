@@ -166,6 +166,26 @@ class DeviceManager:
 
         return cls
 
+    @staticmethod
+    def activatePlugins(which="all"):
+        """
+        Activate plugins, allowing them to be imported from PsychoPy and making device backends
+        from plugins visible to DeviceManager.
+
+        Parameters
+        ----------
+        which : str
+            Which set of plugins to import, the same values as would be passed to
+            `psychopy.plugins.listPlugins`
+
+        Returns
+        -------
+        bool
+            True if completed successfully
+        """
+        from psychopy.plugins import activatePlugins
+        activatePlugins(which=which)
+
     # --- device management ---
     @staticmethod
     def addDevice(deviceClass, deviceName, *args, **kwargs):
