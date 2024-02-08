@@ -64,6 +64,9 @@ class Microphone:
         # set initial status
         self.status = NOT_STARTED
 
+    def __del__(self):
+        self.saveClips()
+
     @property
     def recording(self):
         return self.device.recording
