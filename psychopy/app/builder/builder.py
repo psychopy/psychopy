@@ -827,6 +827,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
                 self.exp.setExpName(newShortName)
             # actually save
             self.filename = newPath
+            self.fileExists = True
             self.fileSave(event=None, filename=newPath)
             self.project = pavlovia.getProject(filename)
             returnVal = 1
