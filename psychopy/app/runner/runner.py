@@ -630,8 +630,10 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
 
         currentFile = str(self.currentFile)
         if self.currentFile.suffix == '.psyexp':
-            generateScript(experimentPath=currentFile.replace('.psyexp', '_lastrun.py'),
-                           exp=self.loadExperiment())
+            generateScript(
+                exp=self.loadExperiment(),
+                outfile=currentFile.replace('.psyexp', '_lastrun.py')
+            )
         procStarted = self.runFile(
             fileName=currentFile,
             focusOnExit=focusOnExit,
@@ -684,7 +686,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         command = [str(pythonExec), "-m", "http.server", str(port)]
 
         if not os.path.exists(jsFile):
-            generateScript(experimentPath=str(jsFile),
+            generateScript(outfile=str(jsFile),
                            exp=self.loadExperiment(),
                            target="PsychoJS")
 

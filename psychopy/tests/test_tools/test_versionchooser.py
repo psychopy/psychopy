@@ -57,7 +57,7 @@ class TestVersionChooser():
         # Write script
         scriptFile = str(self.temp / "versionText.py")
         generateScript(
-            experimentPath=scriptFile,
+            outfile=scriptFile,
             exp=exp,
             target="PsychoPy"
         )
@@ -77,7 +77,7 @@ class TestVersionChooser():
         # Write script
         scriptFile = str(self.temp / "versionText.js")
         generateScript(
-            experimentPath=scriptFile,
+            outfile=scriptFile,
             exp=exp,
             target="PsychoJS"
         )

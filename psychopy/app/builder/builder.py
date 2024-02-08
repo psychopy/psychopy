@@ -846,16 +846,17 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         """Exports the script as an HTML file (PsychoJS library)
         """
         # get path if not given one
-        expPath, expName = os.path.split(self.filename)
         if htmlPath is None:
             htmlPath = self._getHtmlPath(self.filename)
         if not htmlPath:
             return
 
-        exportPath = os.path.join(htmlPath, expName.replace('.psyexp', '.js'))
-        exportPath = self.generateScript(experimentPath=exportPath,
-                            exp=self.exp,
-                            target="PsychoJS")
+        exportPath = os.path.join(htmlPath, self.exp.name + '.js')
+        exportPath = self.generateScript(
+            outfile=exportPath,
+            exp=self.exp,
+            target="PsychoJS"
+        )
         # Open exported files
         self.app.showCoder(fileList=[exportPath])
         self.app.coder.fileReload(event=None, filename=exportPath)
@@ -1481,9 +1482,12 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         if not saved:
             return
         # construct filename for py file
-        fullPath = self.filename.parent / (self.filename.stem + '.py')
+        fullPath = self.filename.parent / (self.exp.name + '.py')
         # write script
-        fullPath = self.generateScript(experimentPath=str(fullPath), exp=self.exp)
+        fullPath = self.generateScript(
+            outfile=str(fullPath),
+            exp=self.exp
+        )
         # show it in Coder
         self.app.showCoder(fileList=[fullPath])  # make sure coder is visible
         self.app.coder.fileReload(event=None, filename=fullPath)
