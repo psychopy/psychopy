@@ -392,8 +392,8 @@ class DetailsPanel(wx.Panel):
             "useful to psychophysicists, you may want to add the keyword 'psychophysics'."
         ))
         # Update button
-        self.updateBtn = wx.Button(self, style=wx.BU_EXACTFIT)
-        self.updateBtn.SetBitmap(icons.ButtonIcon(stem="view-refresh", size=16, theme="light").bitmap)
+        self.updateBtn = wx.Button(self, label=_translate("Save"), style=wx.BU_EXACTFIT)
+        self.updateBtn.SetBitmap(icons.ButtonIcon(stem="savebtn", size=16, theme="light").bitmap)
         self.sizer.Add(self.updateBtn, flag=wx.ALIGN_RIGHT | wx.ALL)
         self.updateBtn.Bind(wx.EVT_BUTTON, self.doUpdate)
         self.updateBtn.Disable()
