@@ -10,6 +10,7 @@
 
 __all__ = ['Microphone']
 
+from pathlib import Path
 from psychopy.constants import NOT_STARTED
 from psychopy.hardware import DeviceManager
 
@@ -24,7 +25,19 @@ class Microphone:
             maxRecordingSize=24000,
             policyWhenFull='warn',
             audioLatencyMode=None,
-            audioRunMode=0):
+            audioRunMode=0,
+            name="mic",
+            recordingFolder=Path.home(),
+            recordingExt="wav",
+    ):
+        # store name
+        self.name = name
+        # store folder
+        self.recordingFolder = Path(recordingFolder)
+        # store ext (without dot)
+        while recordingExt.startswith("."):
+            recordingExt = recordingExt[1:]
+        self.recordingExt = recordingExt
         # look for device if initialised
         self.device = DeviceManager.getDevice(device)
         # if no matching name, try matching index
@@ -124,6 +137,51 @@ class Microphone:
 
     def poll(self):
         return self.device.poll()
+
+    def saveClips(self, clear=True):
+        """
+        Save all stored clips to audio files.
+
+        Parameters
+        ----------
+        clear : bool
+            If True, clips will be removed from this object once saved to files.
+        """
+        # iterate through all clips
+        for tag in self.clips:
+            for i, clip in enumerate(self.clips[tag]):
+                # construct filename
+                filename = self.getClipFilename(tag, i)
+                # save clip
+                clip.save(self.recordingFolder / filename)
+                # clear
+                if clear:
+                    del self.clips[tag][i]
+
+    def getClipFilename(self, tag, i=0):
+        """
+        Get the filename for a particular clip.
+
+        Parameters
+        ----------
+        tag : str
+            Tag assigned to the clip when `bank` was called
+        i : int
+            Index of clip within this tag (default is -1, i.e. the last clip)
+
+        Returns
+        -------
+        str
+            Constructed filename for this clip
+        """
+        # if there's more than 1 clip with this tag, append a counter
+        counter = ""
+        if i > 0:
+            counter += f"_{i}"
+        # construct filename
+        filename = f"recording_{self.name}_{tag}{counter}.{self.recordingExt}"
+
+        return filename
 
     def bank(self, tag=None, transcribe=False, **kwargs):
         """Store current buffer as a clip within the microphone object.
