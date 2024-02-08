@@ -120,7 +120,6 @@ class Experiment:
 
     def __init__(self, prefs=None):
         super(Experiment, self).__init__()
-        self.name = ''
         self.filename = ''  # update during load/save xml
         self.flow = Flow(exp=self)  # every exp has exactly one flow
         self.routines = collections.OrderedDict()
@@ -185,6 +184,14 @@ class Experiment:
         for lib in libs:
             self.requireImport(importName=lib,
                                importFrom='psychopy')
+
+    @property
+    def name(self):
+        return self.settings.params['expName'].val
+
+    @name.setter
+    def name(self, value):
+        self.settings.params['expName'].val = value
 
     @property
     def eyetracking(self):
