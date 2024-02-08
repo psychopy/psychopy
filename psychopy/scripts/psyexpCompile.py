@@ -204,20 +204,20 @@ def compileScript(infile=None, version=None, outfile=None):
             outfileNoModule = outfile.replace('.js', '-legacy-browsers.js')  # For no JS module script
             scriptNoModule = thisExp.writeScript(outfileNoModule, target=targetOutput, modular=False)
             # Store scripts in list
-            scriptDict = {'outfile': script, 'outfileNoModule': scriptNoModule}
+            scriptDict = [(outfile, script), (outfileNoModule, scriptNoModule)]
         else:
             script = thisExp.writeScript(outfile, target=targetOutput)
-            scriptDict = {'outfile': script}
+            scriptDict = [(outfile, script)]
 
         # Output script to file
-        for scripts in scriptDict:
-            if not type(scriptDict[scripts]) in (str, type(u'')):
+        for outfile, script in scriptDict:
+            if not type(script) in (str, type(u'')):
                 # We have a stringBuffer not plain string/text
-                scriptText = scriptDict[scripts].getvalue()
+                scriptText = script.getvalue()
             else:
                 # We already have the text
-                scriptText = scriptDict[scripts]
-            with io.open(eval(scripts), 'w', encoding='utf-8-sig') as f:
+                scriptText = script
+            with io.open(outfile, 'w', encoding='utf-8-sig') as f:
                 f.write(scriptText)
 
         return 1
