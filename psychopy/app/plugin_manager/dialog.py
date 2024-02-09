@@ -1,3 +1,6 @@
+import subprocess
+from pathlib import Path
+
 import wx
 
 from psychopy import prefs
@@ -238,10 +241,20 @@ class EnvironmentManagerDlg(wx.Dialog):
 
         # if given a pyproject.toml file, do editable install of parent folder
         if str(packageName).endswith("pyproject.toml"):
-            packageName = f'-e "{os.path.dirname(packageName)}"'
+            if False:# sys.platform != "darwin":
+                # on systems which allow it, do an editable install
+                packageName = f'-e "{os.path.dirname(packageName)}"'
+            else:
+                # on Mac, build a wheel
+                subprocess.call(
+                    [pyExec, '-m', 'build'],
+                    cwd=Path(packageName).parent
+                )
+                # get wheel path
+                packageName = [whl for whl in Path(packageName).parent.glob("**/*.whl")][0]
 
         # build the shell command to run the script
-        command = [pyExec, '-m', 'pip', 'install', packageName, '--user']
+        command = [pyExec, '-m', 'pip', 'install', str(packageName), '--user']
         # write command to output panel
         self.output.writeCmd(" ".join(command))
         # append own name to extra
