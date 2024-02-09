@@ -247,10 +247,10 @@ class DeviceManager:
             device = cls(*args, **kwargs)
         except Exception as err:
             # if initialization fails, generate a more informative ManagedDeviceError and return it
-            return ManagedDeviceError(
+            raise ManagedDeviceError(
                 msg=err.args[0],
                 deviceName=deviceName,
-                traceback = err.__traceback__,
+                traceback=err.__traceback__,
             )
         # store device by name
         DeviceManager.devices[deviceName] = device
