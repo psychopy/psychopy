@@ -199,10 +199,16 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
         buff.writeIndentedLines(code % self.params)
         # if ending experiment on depletion, write the code to do so
         if self.params['endExperimentOnDepletion']:
+            msg = _translate(
+                "Slots for Counterbalancer %(name)s have been fully depleted, ending experiment."
+            )
             code = (
-                "# if slots and repeats are fully depleted, end the experiment now\n"
-                "if %(name)s.finished:\n"
-                "    endExperiment(thisExp, win=win)\n"
+                f"# if slots and repeats are fully depleted, end the experiment now\n"
+                f"if %(name)s.finished:\n"
+                f"    # first print and log a message to make it clear why the experiment ended\n"
+                f"    print('{msg}')\n"
+                f"    logging.exp('{msg}')\n"
+                f"    endExperiment(thisExp, win=win)\n"
             )
             buff.writeIndentedLines(code % self.params)
         # save data
