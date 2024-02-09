@@ -55,7 +55,7 @@ class Counterbalancer:
         self.nReps = nReps
         # get remaining reps
         data = self.shelf.data.read()
-        self.reps = data.get("_reps", nReps)
+        self.reps = data[self.entry].get("_reps", nReps)
         # update data for remaining in conditions
         self.updateRemaining()
 
