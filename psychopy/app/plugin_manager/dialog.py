@@ -241,7 +241,7 @@ class EnvironmentManagerDlg(wx.Dialog):
 
         # if given a pyproject.toml file, do editable install of parent folder
         if str(packageName).endswith("pyproject.toml"):
-            if False:# sys.platform != "darwin":
+            if sys.platform != "darwin":
                 # on systems which allow it, do an editable install
                 packageName = f'-e "{os.path.dirname(packageName)}"'
             else:
