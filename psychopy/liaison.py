@@ -177,10 +177,6 @@ class WebSocketServer:
 		arg : str
 			String in the format `object.attribute` pointing to the target attribute
 		"""
-		self._logger.debug(
-			f"Parsing raw arg: {arg}"
-		)
-
 		if isinstance(arg, str) and "." in arg:
 			_name, _attr = arg.split(".", 1)
 			if _name in self._methods:
