@@ -415,7 +415,7 @@ class WebSocketServer:
 
 					await websocket.send(json.dumps(response))
 
-		except Exception as err:
+		except BaseException as err:
 			# JSONify any errors
 			err = json.dumps(err, cls=LiaisonJSONEncoder)
 			# send to server
