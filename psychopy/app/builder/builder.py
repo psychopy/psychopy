@@ -17,6 +17,8 @@ import glob
 import copy
 import traceback
 import codecs
+from types import SimpleNamespace
+
 import numpy
 import requests
 import io
@@ -181,6 +183,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.componentButtons = ComponentsPanel(self)
         self.ribbon = BuilderRibbon(self)
         # menus and toolbars
+        self.menuIDs = SimpleNamespace()
         self.makeMenus()
         self.CreateStatusBar()
         self.SetStatusText("")
@@ -310,16 +313,27 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             wx.ID_SAVEAS,
             _translate("Save &as...\t%s") % keys['saveAs'],
             _translate("Save current experiment file as..."))
-        exportMenu = menu.Append(
-            -1,
+        # export html
+        self.menuIDs.ID_EXPORT_HTML = wx.NewId()
+        menu.Append(
+            self.menuIDs.ID_EXPORT_HTML,
             _translate("Export HTML...\t%s") % keys['exportHTML'],
-            _translate("Export experiment to html/javascript file"))
+            _translate("Export experiment to html/javascript file")
+        )
+        self.Bind(wx.EVT_MENU, self.fileExport, id=self.menuIDs.ID_EXPORT_HTML)
+        # reveal folder
+        self.menuIDs.ID_REVEAL = wx.NewId()
+        menu.Append(
+            self.menuIDs.ID_REVEAL,
+            _translate("Reveal in file explorer..."),
+            _translate("Open the folder containing this experiment in your system's file explorer")
+        )
+        self.Bind(wx.EVT_MENU, self.fileReveal, id=self.menuIDs.ID_REVEAL)
         menu.Append(
             wx.ID_CLOSE,
             _translate("&Close file\t%s") % keys['close'],
             _translate("Close current experiment"))
         self.Bind(wx.EVT_MENU, self.app.newBuilderFrame, id=wx.ID_NEW)
-        self.Bind(wx.EVT_MENU, self.fileExport, id=exportMenu.GetId())
         self.Bind(wx.EVT_MENU, self.fileSave, id=wx.ID_SAVE)
         menu.Enable(wx.ID_SAVE, False)
         self.Bind(wx.EVT_MENU, self.fileSaveAs, id=wx.ID_SAVEAS)
@@ -648,7 +662,9 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             self._filename = Path(value)
             # mark existant
             self.fileExists = Path(value).is_file()
-
+        # enable/disable reveal button
+        if hasattr(self, "menuIDs"):
+            self.fileMenu.Enable(self.menuIDs.ID_REVEAL, self.fileExists)
         # skip if there's no ribbon
         if not hasattr(self, "ribbon"):
             return
@@ -764,6 +780,25 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
         self.project = pavlovia.getProject(filename)
         self.app.updateWindowMenu()
+
+    def fileReveal(self, evt=None):
+        """
+        Reveal the current file in the system file explorer.
+        """
+        # get current dir
+        if self.fileExists:
+            folder = Path(self.filename).parent
+        else:
+            folder = Path().home()
+        # choose a command according to OS
+        if sys.platform in ['win32']:
+            comm = "explorer"
+        elif sys.platform in ['darwin']:
+            comm = "open"
+        elif sys.platform in ['linux', 'linux2']:
+            comm = "dolphin"
+        # use command to open folder
+        subprocess.call(f"{comm} {folder}", shell=True)
 
     def fileSave(self, event=None, filename=None):
         """Save file, revert to SaveAs if the file hasn't yet been saved
