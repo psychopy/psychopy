@@ -20,11 +20,40 @@ from psychopy.tools import systemtools as st
 from serial.tools import list_ports
 from psychopy import logging
 import atexit
+import traceback
 import importlib
 import json
 from pathlib import Path
 
 __folder__ = Path(__file__).parent
+
+
+class ManagedDeviceError(BaseException):
+    """
+    Exception arising from a managed device, which will include information about the device from
+    DeviceManager.
+    """
+    def __init__(self, msg, deviceName, traceback=None):
+        # create exception
+        BaseException.__init__(self, msg)
+        # store device name
+        self.deviceName = deviceName
+        # store traceback
+        if traceback is not None:
+            self.traceback = traceback
+        else:
+            self.traceback = self.__traceback__
+
+    def getJSON(self):
+        tb = traceback.format_exception(type(self), self, self.traceback)
+        message = {
+            'type': "hardware_error",
+            'device': self.deviceName,
+            'msg': "".join(tb),
+            'context': getattr(self, "userdata", None)
+        }
+
+        return json.dumps(message)
 
 
 class DeviceManager:
@@ -213,8 +242,16 @@ class DeviceManager:
         deviceClass = DeviceManager._resolveAlias(deviceClass)
         # get device class
         cls = DeviceManager._resolveClassString(deviceClass)
-        # initialise device
-        device = cls(*args, **kwargs)
+        try:
+            # initialise device
+            device = cls(*args, **kwargs)
+        except Exception as err:
+            # if initialization fails, generate a more informative ManagedDeviceError and return it
+            return ManagedDeviceError(
+                msg=err.args[0],
+                deviceName=deviceName,
+                traceback = err.__traceback__,
+            )
         # store device by name
         DeviceManager.devices[deviceName] = device
 
