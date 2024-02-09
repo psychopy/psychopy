@@ -265,6 +265,8 @@ class BaseResponseDevice(BaseDevice):
             If True, then upon adding the listener, start up an asynchronous loop to dispatch messages.
         """
         from . import listener as lsnr
+        # dispatch existing events now (so listener doesn't get a lump of historic messages)
+        self.dispatchMessages()
         # map listener classes to names
         listenerClasses = {
             'liaison': lsnr.LiaisonListener,
