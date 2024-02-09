@@ -88,6 +88,7 @@ dependencies = [
     "pyobjc-core; platform_system == \"Darwin\"",
     "pyobjc-framework-Quartz < 8.0; platform_system == \"Darwin\"",
     "pyobjc; platform_system == \"Darwin\"",
+    "zeroconf"; platform_system == \"Darwin\"",
     "python-xlib; platform_system == \"Linux\"",
     'tables<3.9; python_version < "3.9"',
     'tables; python_version >= "3.9"',
