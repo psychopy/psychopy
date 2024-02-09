@@ -44,7 +44,7 @@ class ManagedDeviceError(BaseException):
         else:
             self.traceback = self.__traceback__
 
-    def getJSON(self):
+    def getJSON(self, asString=True):
         tb = traceback.format_exception(type(self), self, self.traceback)
         message = {
             'type': "hardware_error",
@@ -52,8 +52,11 @@ class ManagedDeviceError(BaseException):
             'msg': "".join(tb),
             'context': getattr(self, "userdata", None)
         }
+        # stringify if requested
+        if asString:
+            message = json.dumps(message)
 
-        return json.dumps(message)
+        return message
 
 
 class DeviceManager:
