@@ -720,12 +720,12 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             else:
                 wildcard = _translate("PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*")
             # get path of current file (or home dir to avoid temp)
-            initPath = self.filename.parent
+            initPath = str(self.filename.parent)
             if not self.fileExists:
-                initPath = Path.home()
+                initPath = None
             # Open dlg
             dlg = wx.FileDialog(self, message=_translate("Open file ..."),
-                                defaultDir=str(initPath),
+                                defaultDir=initPath,
                                 style=wx.FD_OPEN,
                                 wildcard=wildcard)
             if dlg.ShowModal() != wx.ID_OK:
