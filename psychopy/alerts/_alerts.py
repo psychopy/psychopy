@@ -172,9 +172,10 @@ def alert(code=None, obj=object, strFields=None, trace=None):
     # For tests detecting output - change when error handler set up
     handled = False
     for handler in _activeAlertHandlers:
-        if "alert" in handler.targets and False:
+        if "alert" in handler.targets:
             handled = True
             handler.write(msgAsStr)
+            handler.receiveAlert(msg)
     # if not sent to any handlers, print instead
     if not handled:
         sys.stderr.write(msgAsStr)
