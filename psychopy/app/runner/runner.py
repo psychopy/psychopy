@@ -31,6 +31,7 @@ from psychopy.projects.pavlovia import getProject
 from psychopy.scripts.psyexpCompile import generateScript
 from psychopy.app.runner.scriptProcess import ScriptProcess
 import psychopy.tools.versionchooser as versions
+from psychopy.alerts._alerts import _activeAlertHandlers
 
 
 folderColumn = 2
@@ -1017,6 +1018,7 @@ class RunnerOutputNotebook(aui.AuiNotebook, handlers.ThemeMixin):
         # Alerts
         self.alertsPnl = ScriptOutputPanel(
             parent=parent,
+            targets=["alert"],
             style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE
         )
         self.alertsPnl.ctrl.Bind(wx.EVT_TEXT, self.onWrite)
@@ -1028,6 +1030,7 @@ class RunnerOutputNotebook(aui.AuiNotebook, handlers.ThemeMixin):
         # StdOut
         self.stdoutPnl = ScriptOutputPanel(
             parent=parent,
+            targets=["stdout", "stderr"],
             style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE
         )
         self.stdoutPnl.ctrl.Bind(wx.EVT_TEXT, self.onWrite)
@@ -1039,6 +1042,7 @@ class RunnerOutputNotebook(aui.AuiNotebook, handlers.ThemeMixin):
         # Git (Pavlovia) output
         self.gitPnl = ScriptOutputPanel(
             parent=parent,
+            targets=[],
             style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE
         )
         self.gitPnl.ctrl.Bind(wx.EVT_TEXT, self.onWrite)
@@ -1048,6 +1052,10 @@ class RunnerOutputNotebook(aui.AuiNotebook, handlers.ThemeMixin):
         self.panels['git'] = self.gitPnl
 
         self.SetMinSize(wx.Size(100, 100))  # smaller than window min size
+
+    def __del__(self):
+        if self.alertsPnl in _activeAlertHandlers:
+            _activeAlertHandlers.pop(_activeAlertHandlers.index(self))
 
     def onWrite(self, evt):
         # get ctrl

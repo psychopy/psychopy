@@ -174,9 +174,9 @@ def alert(code=None, obj=object, strFields=None, trace=None):
         sys.stderr.receiveAlert(msg)
     else:
         # For tests detecting output - change when error handler set up
-        sys.stderr.write(msgAsStr)
         for handler in _activeAlertHandlers:
-            handler.receiveAlert(msg)
+            if "alert" in handler.targets:
+                handler.write(msgAsStr)
 
 
 # Create catalog

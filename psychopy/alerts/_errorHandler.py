@@ -12,9 +12,10 @@ class _BaseErrorHandler:
     """A base class for handling PsychoPy alerts and exceptions.
     """
 
-    def __init__(self, alwaysReceive=True, autoFlush=True):
+    def __init__(self, targets=("stdout", "stderr", "alert"), alwaysReceive=True, autoFlush=True):
         self.errors = []
         self.alerts = []
+        self.targets = targets
         self.alwaysReceive = alwaysReceive
         self.autoFlush = autoFlush
         _activeAlertHandlers.append(self)

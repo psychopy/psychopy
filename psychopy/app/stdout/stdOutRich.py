@@ -38,12 +38,14 @@ class StdOutRich(wx.richtext.RichTextCtrl, _BaseErrorHandler):
     A rich text ctrl for handling stdout/stderr
     """
 
-    def __init__(self, parent, style, size=None, font=None, fontSize=None, app=None):
+    def __init__(self, parent, style,
+                 targets=("stdout", "stderr", "alert"),
+                 size=None, font=None, fontSize=None, app=None):
         kwargs = {'parent': parent, 'style': style}
         if size is not None:
             kwargs['size'] = size
 
-        _BaseErrorHandler.__init__(self)
+        _BaseErrorHandler.__init__(self, targets=targets)
         wx.richtext.RichTextCtrl.__init__(self, **kwargs)
 
         self.prefs = prefs
@@ -242,6 +244,7 @@ class ScriptOutputPanel(wx.Panel, handlers.ThemeMixin):
 
     def __init__(self,
                  parent,
+                 targets=("stdout", "stderr", "alert"),
                  style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE,
                  font=None,
                  fontSize=None):
@@ -255,6 +258,7 @@ class ScriptOutputPanel(wx.Panel, handlers.ThemeMixin):
 
         # Text control
         self.ctrl = ScriptOutputCtrl(self,
+                                     targets=targets,
                                      style=style,
                                      font=font,
                                      fontSize=fontSize)
@@ -282,6 +286,7 @@ class ScriptOutputPanel(wx.Panel, handlers.ThemeMixin):
 class ScriptOutputCtrl(StdOutRich, handlers.ThemeMixin):
 
     def __init__(self, parent,
+                 targets=("stdout", "stderr", "alert"),
                  style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE,
                  size=None,
                  font=None,
@@ -290,6 +295,7 @@ class ScriptOutputCtrl(StdOutRich, handlers.ThemeMixin):
         StdOutRich.__init__(
             self,
             parent,
+            targets=targets,
             size=wx.DefaultSize if size is None else size,
             style=style)
 
