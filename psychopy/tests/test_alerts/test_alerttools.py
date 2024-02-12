@@ -9,7 +9,7 @@ class TestAlertTools():
 
     def setup_method(self):
         # Set ErrorHandler
-        self.error = _BaseErrorHandler()
+        self.error = _BaseErrorHandler(targets=["alert"])
 
         # Create experiment, trial, flow and test components
         self.exp = Experiment()
