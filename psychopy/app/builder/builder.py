@@ -1642,7 +1642,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         """
         if hasattr(self, "_project"):
             return self._project
-        elif self.filename:
+        elif self.fileExists:
             return pavlovia.getProject(self.filename)
         else:
             return None
