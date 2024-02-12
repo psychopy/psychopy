@@ -835,6 +835,8 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             # set output window and standard streams
             self.coder.setOutputWindow(True)
             # open file list
+            if fileList is None:
+                fileList = []
             for file in fileList:
                 self.coder.fileOpen(filename=file)
         self.coder.Show(True)
