@@ -32,6 +32,12 @@ class TestAlertsModule():
 
     def test_alert_written_to_console(self, capsys):
         """Test alerts are written to console when no errorhandler exists"""
+        # clear and store handlers
+        ogHandlers = _alerts._activeAlertHandlers.copy()
+        _alerts._activeAlertHandlers = []
+        # send an alert
         _alerts.alert(9999, self, strFields={"testString": "TEST ALERT"})
         out, err = capsys.readouterr()  # Capture stdout stream and test
         assert ("TEST_MSG TEST ALERT" in err)
+        # reinstate handlers
+        _alerts._activeAlertHandlers = ogHandlers
