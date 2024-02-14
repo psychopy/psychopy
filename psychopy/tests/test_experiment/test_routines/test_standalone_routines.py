@@ -18,7 +18,7 @@ class TestStandaloneRoutines:
         """
         pass
 
-    def teardown(self):
+    def teardown_method(self):
         pass
 
     def test_writing(self):
