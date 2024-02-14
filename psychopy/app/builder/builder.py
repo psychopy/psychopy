@@ -728,8 +728,9 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
                 return 0
             filename = dlg.GetPath()
 
+        filename = Path(filename)
         # did user try to open a script in Builder?
-        if filename.endswith('.py'):
+        if filename.suffix == '.py':
             self.app.showCoder()  # ensures that a coder window exists
             self.app.coder.setCurrentDoc(filename)
             self.app.coder.setFileModified(False)
