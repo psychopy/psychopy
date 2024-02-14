@@ -37,7 +37,7 @@ class Test_BuilderFrame():
         self.here = path.abspath(path.dirname(__file__))
         self.tmp_dir = mkdtemp(prefix='psychopy-tests-app')
 
-    def teardown(self):
+    def teardown_method(self):
         shutil.rmtree(self.tmp_dir, ignore_errors=True)
 
     @pytest.mark.usefixtures("get_app")
