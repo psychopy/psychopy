@@ -37,7 +37,7 @@ class _BaseTestStairHandler():
         if DEBUG:
             print(self.tmp_dir)
 
-    def teardown(self):
+    def teardown_method(self):
         shutil.rmtree(self.tmp_dir)
 
     def simulate(self):

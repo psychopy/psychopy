@@ -40,6 +40,15 @@ class LiaisonJSONEncoder(json.JSONEncoder):
 		# if object has a getJSON method, use it
 		if hasattr(o, "getJSON"):
 			return o.getJSON(asString=False)
+		# if object is an error, transform in standardised form
+		if isinstance(o, BaseException):
+			tb = traceback.format_exception(type(o), o, o.__traceback__)
+			msg = "".join(tb)
+			return {
+				'type': "error",
+				'msg': msg,
+				'context': getattr(o, "userdata", None)
+			}
 		# otherwise behave as normal
 		try:
 			return json.JSONEncoder.default(self, o=o)
@@ -168,10 +177,6 @@ class WebSocketServer:
 		arg : str
 			String in the format `object.attribute` pointing to the target attribute
 		"""
-		self._logger.debug(
-			f"Parsing raw arg: {arg}"
-		)
-
 		if isinstance(arg, str) and "." in arg:
 			_name, _attr = arg.split(".", 1)
 			if _name in self._methods:
@@ -406,14 +411,9 @@ class WebSocketServer:
 
 					await websocket.send(json.dumps(response))
 
-		except Exception as err:
-			# send any errors to server
-			tb = traceback.format_exception(type(err), err, err.__traceback__)
-			msg = "".join(tb)
-			err = json.dumps({
-				'type': "error",
-				'msg': msg,
-				'context': getattr(err, "userdata", None)
-			}, cls=LiaisonJSONEncoder)
+		except BaseException as err:
+			# JSONify any errors
+			err = json.dumps(err, cls=LiaisonJSONEncoder)
+			# send to server
 			await websocket.send(err)
 			

@@ -6,7 +6,7 @@ class TestVector:
     def setup_method(self):
         self.win = visual.Window(size=(128, 64), monitor="testMonitor")
 
-    def teardown(self):
+    def teardown_method(self):
         self.win.close()
         del self.win
 

@@ -34,6 +34,7 @@ def runInLiaison(server, protocol, obj, method, *args):
         server._processMessage(protocol, json.dumps(cmd))
     )
 
+
 @skip_under_vm
 class TestLiaison:
     def setup_class(self):
@@ -212,3 +213,16 @@ class TestLiaison:
             result = self.protocol.messages[-1]['result']
             # whatever is returned should be json serializable, load it to confirm that it is
             json.loads(result)
+
+    def test_device_error(self):
+        # add a device in a way which will trigger an error
+        runInLiaison(
+            self.server, self.protocol, "DeviceManager", "addDevice",
+            "psychopy.hardware.keyboard.KeyboardDevice", "testWrongKeyboard",
+            "-1", "wrong", "wrong", "wrong",
+        )
+        time.sleep(1)
+        # make sure error looks correct in JSON format
+        result = self.protocol.messages[-1]
+        assert result['type'] == "hardware_error"
+        assert "psychopy.hardware.manager.ManagedDeviceError" in result['msg']

@@ -10,7 +10,7 @@ def test_catalogue():
 class TestAlertsModule():
     """A class for testing the alerts module"""
 
-    def teardown(self):
+    def teardown_method(self):
         sys.stderr = sys.__stderr__
 
     def test_alert_catalog(self):
