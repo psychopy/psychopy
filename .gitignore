@@ -84,6 +84,7 @@ psychopy/tests/*Out.*
 psychopy/tests/data/*_local.png
 psychopy/tests/fails/*/*
 psychopy/tests/*htmlcov*
+ENVIRONMENT.txt
 
 # compile from psychopy/changelog.txt
 #docs/source/changelog.rst

@@ -248,6 +248,10 @@ jobs:
       run: |
          xvfb-run -a --server-args="-screen 0 1024x768x24" pytest -m "not needs_sound and not needs_wx and not needs_qt and not needs_pygame and not emulator" --cov=psychopy -v psychopy
 
+    - name: Get environment information
+      run: |
+         pip freeze > ENVIRONMENT.txt
+
     - name: upload failed app data
       if: always()
       uses: actions/upload-artifact@v3
@@ -268,6 +272,7 @@ jobs:
           !**/*.mp4
           !psychopy/tests/**/*.data
           !**/*.wav
+          ENVIRONMENT.txt
 
     - name: Upload coverage to Codecov
       if: always()
