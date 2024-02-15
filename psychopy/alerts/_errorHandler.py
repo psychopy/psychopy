@@ -49,4 +49,7 @@ class _BaseErrorHandler:
         self.alerts.append(alert)
 
     def __del__(self):
+        if self in _activeAlertHandlers:
+            i = _activeAlertHandlers.index(self)
+            _activeAlertHandlers.pop(i)
         self.flush()
