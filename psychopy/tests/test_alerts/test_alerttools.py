@@ -19,6 +19,9 @@ class TestAlertsHandler(_BaseErrorHandler):
     def lastMessage(self):
         return self.messages[-1]
 
+    def flush(self):
+        pass
+
 
 class TestAlertTools:
     """A class for testing the alerttools module"""
