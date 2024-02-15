@@ -4,12 +4,28 @@ from psychopy.alerts._errorHandler import _BaseErrorHandler
 from psychopy.experiment import getAllComponents, Experiment
 
 
-class TestAlertTools():
+class TestAlertsHandler(_BaseErrorHandler):
+    """
+    Error handler subclass which stored errors on write for testing
+    """
+    def __init__(self):
+        _BaseErrorHandler.__init__(self, targets=["alert"])
+        self.messages = []
+
+    def write(self, toWrite):
+        self.messages.append(toWrite)
+
+    @property
+    def lastMessage(self):
+        return self.messages[-1]
+
+
+class TestAlertTools:
     """A class for testing the alerttools module"""
 
     def setup_method(self):
         # Set ErrorHandler
-        self.error = _BaseErrorHandler(targets=["alert"])
+        self.error = TestAlertsHandler()
 
         # Create experiment, trial, flow and test components
         self.exp = Experiment()
@@ -32,84 +48,127 @@ class TestAlertTools():
         self.codeComp.params['Begin Experiment'].val = "(\n"
         self.codeComp.params['Begin JS Experiment'].val = "{\n"
 
-
     def test_2115_X_too_large(self):
         self.polygonComp.params['size'].val = [4, .5]
         self.exp.integrityCheck()
-        assert ('Your stimulus size exceeds the X dimension of your window.' in self.error.alerts[0].msg)
+        assert (
+            "Your stimulus size exceeds the X dimension of your window."
+            in self.error.lastMessage
+        ), self.error.messages
 
     def test_2115_Y_too_large(self):
         self.polygonComp.params['size'].val = [.5, 4]
         self.exp.integrityCheck()
-        assert ('Your stimulus size exceeds the Y dimension of your window.' in self.error.alerts[0].msg)
+        assert (
+            "Your stimulus size exceeds the Y dimension of your window."
+            in self.error.lastMessage
+        ), self.error.messages
 
     def test_size_too_small_x(self):
         self.polygonComp.params['size'].val = [.0000001, .05]
         self.exp.integrityCheck()
-        assert ('Your stimulus size is smaller than 1 pixel (X dimension)' in self.error.alerts[0].msg)
+        assert (
+            "Your stimulus size is smaller than 1 pixel (X dimension)"
+            in self.error.lastMessage
+        ), self.error.messages
 
     def test_size_too_small_y(self):
         self.polygonComp.params['size'].val = [.05, .0000001]
         self.exp.integrityCheck()
-        assert ('Your stimulus size is smaller than 1 pixel (Y dimension)' in self.error.alerts[0].msg)
+        assert (
+            "Your stimulus size is smaller than 1 pixel (Y dimension)"
+            in self.error.lastMessage
+        ), self.error.messages
 
     def test_position_x_dimension(self):
         self.polygonComp.params['pos'].val = [4, .5]
         self.exp.integrityCheck()
-        assert ('Your stimulus position exceeds the X dimension' in self.error.alerts[0].msg)
+        assert (
+            "Your stimulus position exceeds the X dimension"
+            in self.error.lastMessage
+        ), self.error.messages
 
     def test_position_y_dimension(self):
         self.polygonComp.params['pos'].val = [.5, 4]
         self.exp.integrityCheck()
-        assert ('Your stimulus position exceeds the Y dimension' in self.error.alerts[0].msg)
+        assert (
+            "Your stimulus position exceeds the Y dimension"
+            in self.error.lastMessage
+        ), self.error.messages
 
     def test_variable_fail(self):
         self.polygonComp.params['pos'].val = '$pos'
         self.polygonComp.params['size'].val = '$size'
         self.exp.integrityCheck()
-        assert (len(self.error.alerts) == 0)
+        assert (len(self.error.messages) == 0)
 
     def test_timing(self):
         self.polygonComp.params['startVal'].val = 12
         self.polygonComp.params['stopVal'].val = 10
         self.exp.integrityCheck()
-        assert ('Your stimulus start time exceeds the stop time' in self.error.alerts[0].msg)
+        assert (
+                "Your stimulus start time exceeds the stop time"
+                in self.error.lastMessage
+        ), self.error.messages
 
     def test_disabled(self):
         self.polygonComp.params['disabled'].val = True
         alerttools.testDisabled(self.polygonComp)
-        assert (f"The component {self.polygonComp.params['name']} is currently disabled" in self.error.alerts[0].msg)
+        assert (
+            f"The component {self.polygonComp.params['name']} is currently disabled"
+            in self.error.lastMessage
+        ), self.error.messages
 
     def test_achievable_visual_stim_onset(self):
         self.polygonComp.params['startVal'].val = .001
         self.exp.integrityCheck()
-        assert ('Your stimulus start time of 0.001 is less than a screen refresh for a 60Hz monitor' in self.error.alerts[0].msg)
+        assert (
+            "Your stimulus start time of 0.001 seconds cannot be accurately presented for 0.001 on "
+            "a 60Hz monitor."
+            in self.error.lastMessage
+        ), self.error.messages
 
     def test_achievable_visual_stim_offset(self):
         self.polygonComp.params['stopVal'].val = .001
         self.polygonComp.params['stopType'].val = "duration (s)"
         self.exp.integrityCheck()
-        assert ('Your stimulus stop time of 0.001 is less than a screen refresh for a 60Hz monitor' in self.error.alerts[0].msg)
+        assert (
+            "Your stimulus stop time of 0.001 seconds cannot be accurately presented for 0.001 on "
+            "a 60Hz monitor."
+            in self.error.lastMessage
+        ), self.error.messages
 
     def test_valid_visual_timing(self):
         self.polygonComp.params['startVal'].val = 1.01
         self.polygonComp.params['stopVal'].val = 2.01
         self.exp.integrityCheck()
-        assert ('start time of 1.01 seconds cannot be accurately presented' in self.error.alerts[0].msg)
+        assert (
+            "start time of 1.01 seconds cannot be accurately presented"
+            in self.error.lastMessage
+        ), self.error.messages
 
     def test_4115_frames_as_int(self):
         self.polygonComp.params['startVal'].val = .5
         self.polygonComp.params['startType'].val = "duration (frames)"
         self.exp.integrityCheck()
-        assert ("Your stimulus start type \'duration (frames)\' must be expressed as a whole number" in self.error.alerts[0].msg)
+        assert (
+            "Your stimulus start type \'duration (frames)\' must be expressed as a whole number"
+            in self.error.lastMessage
+        ), self.error.messages
 
     def test_python_syntax(self):
         alerttools.checkPythonSyntax(self.codeComp, 'Begin Experiment')
-        assert ("Python Syntax Error in 'Begin Experiment'" in self.error.alerts[0].msg)
+        assert (
+            "Python Syntax Error in 'Begin Experiment'"
+            in self.error.lastMessage
+        ), self.error.messages
 
     def test_javascript_syntax(self):
         alerttools.checkJavaScriptSyntax(self.codeComp, 'Begin JS Experiment')
-        assert ("JavaScript Syntax Error in 'Begin JS Experiment'" in self.error.alerts[0].msg)
+        assert (
+            "JavaScript Syntax Error in 'Begin JS Experiment'"
+            in self.error.lastMessage
+        ), self.error.messages
 
 def test_validDuration():
     testVals = [
