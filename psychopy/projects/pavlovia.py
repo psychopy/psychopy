@@ -422,7 +422,10 @@ class PavloviaSession:
         self.session = requests.Session()
         if prefs.connections['proxy']:  # if we have a proxy then we'll need to use
             # the requests session to set the proxy
-            self.session.proxies = prefs.connections['proxy']
+            self.session.proxies = {
+                'https': prefs.connections['proxy'],
+                'http': prefs.connections['proxy']
+            }
         if token:
             if len(token) < 64:
                 raise ValueError(
