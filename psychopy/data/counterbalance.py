@@ -53,9 +53,11 @@ class Counterbalancer:
         self.params = {}
         # store total nReps
         self.nReps = nReps
+        # make sure entry exists
+        if self.entry not in self.shelf.data:
+            self.makeNewEntry()
         # get remaining reps
-        data = self.shelf.data.read()
-        self.reps = data[self.entry].get("_reps", nReps)
+        self.reps = self.shelf.data[self.entry].get("_reps", nReps)
         # update data for remaining in conditions
         self.updateRemaining()
 
