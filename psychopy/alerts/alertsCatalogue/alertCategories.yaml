@@ -77,6 +77,7 @@
   4700:
     cat: Loops
     4705: Column name from conditions file clashes with variable name
+    4710: Column name from conditions file likely to clash with derived variable names
 
 5000:
   cat: Online studies

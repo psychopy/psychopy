@@ -350,10 +350,6 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.Bind(wx.EVT_MENU, self.resetPrefs, item)
         # item = menu.Append(wx.NewId(), "Plug&ins")
         # self.Bind(wx.EVT_MENU, self.pluginManager, item)
-        menu.AppendSeparator()
-        msg = _translate("Close PsychoPy Builder")
-        item = menu.Append(wx.ID_ANY, msg)
-        self.Bind(wx.EVT_MENU, self.closeFrame, id=item.GetId())
         self.fileMenu.AppendSeparator()
         self.fileMenu.Append(wx.ID_EXIT,
                              _translate("&Quit\t%s") % keys['quit'],
@@ -720,18 +716,19 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             else:
                 wildcard = _translate("PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*")
             # get path of current file (or home dir to avoid temp)
-            initPath = self.filename.parent
+            initPath = str(self.filename.parent)
             if not self.fileExists:
-                initPath = Path.home()
+                initPath = None
             # Open dlg
             dlg = wx.FileDialog(self, message=_translate("Open file ..."),
-                                defaultDir=str(initPath),
+                                defaultDir=initPath,
                                 style=wx.FD_OPEN,
                                 wildcard=wildcard)
             if dlg.ShowModal() != wx.ID_OK:
                 return 0
             filename = dlg.GetPath()
 
+        filename = str(filename)
         # did user try to open a script in Builder?
         if filename.endswith('.py'):
             self.app.showCoder()  # ensures that a coder window exists
@@ -1642,7 +1639,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         """
         if hasattr(self, "_project"):
             return self._project
-        elif self.filename:
+        elif self.fileExists:
             return pavlovia.getProject(self.filename)
         else:
             return None
