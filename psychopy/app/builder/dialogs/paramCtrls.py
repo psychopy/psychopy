@@ -331,7 +331,7 @@ BoolCtrl = wx.CheckBox
 class ChoiceCtrl(wx.Choice, _ValidatorMixin, _HideMixin):
     def __init__(self, parent, valType,
                  val="", choices=[], labels=[], fieldName="",
-                 size=wx.Size(-1, 24)):
+                 size=wx.Size(-1, -1)):
         self._choices = choices
         self._labels = labels
         # Create choice ctrl from labels
