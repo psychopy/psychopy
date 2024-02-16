@@ -1603,6 +1603,13 @@ class DlgLoopProperties(_BaseParamsDlg):
                         'category': ", ".join(clashes)
                     })
                 paramStr += (str(param) + ', ')
+                # check for derivables
+                derivable = self.exp.namespace.isPossiblyDerivable(param)
+                if derivable:
+                    alert(4710, strFields={
+                        'param': param,
+                        'msg': derivable
+                    })
             paramStr = paramStr[:-2] + "]"  # remove final comma and add ]
             # generate summary info
             msg = _translate('%(nCondition)i conditions, with %(nParam)i '

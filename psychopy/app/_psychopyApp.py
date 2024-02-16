@@ -592,10 +592,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                     "Failed to open Builder with requested experiments, opening with no experiments open.\n"
                     "Requested: {}\n"
                     "Err: {}"
-                ).format(exps, traceback.format_exception_only(err)))
-                logging.debug(
-                    "\n".join(traceback.format_exception(err))
-                )
+                ).format(exps, err))
 
         if view.direct:
             self.showRunner()
@@ -835,6 +832,8 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             # set output window and standard streams
             self.coder.setOutputWindow(True)
             # open file list
+            if fileList is None:
+                fileList = []
             for file in fileList:
                 self.coder.fileOpen(filename=file)
         self.coder.Show(True)
