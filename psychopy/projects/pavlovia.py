@@ -419,6 +419,13 @@ class PavloviaSession:
     def startSession(self, token):
         """Start a gitlab session as best we can
         (if no token then start an empty session)"""
+        self.session = requests.Session()
+        if prefs.connections['proxy']:  # if we have a proxy then we'll need to use
+            # the requests session to set the proxy
+            self.session.proxies = {
+                'https': prefs.connections['proxy'],
+                'http': prefs.connections['proxy']
+            }
         if token:
             if len(token) < 64:
                 raise ValueError(
@@ -426,26 +433,20 @@ class PavloviaSession:
                         "than expected length ({} not 64) for gitlab token"
                             .format(repr(token), len(token)))
             # Setup gitlab session
-            if parse_version(gitlab.__version__) > parse_version("1.4"):
-                self.gitlab = gitlab.Gitlab(rootURL, oauth_token=token, timeout=10, per_page=100)
-            else:
-                self.gitlab = gitlab.Gitlab(rootURL, oauth_token=token, timeout=10)
+            self.gitlab = gitlab.Gitlab(rootURL, oauth_token=token,
+                                        timeout=10, session=self.session,
+                                        per_page=100)
             self.gitlab.auth()
             self.username = self.gitlab.user.username
             self.userID = self.gitlab.user.id  # populate when token property is set
             self.userFullName = self.gitlab.user.name
             self.authenticated = True
-            # Setup http session
-            self.session = requests.Session()
+            # add the token (although this is also in the gitlab object)
             self.session.headers = {'OauthToken': token}
         else:
-            # Setup gitlab session
-            if parse_version(gitlab.__version__) > parse_version("1.4"):
-                self.gitlab = gitlab.Gitlab(rootURL, timeout=10, per_page=100)
-            else:
-                self.gitlab = gitlab.Gitlab(rootURL, timeout=10)
-            # Setup http session
-            self.session = requests.Session()
+            self.gitlab = gitlab.Gitlab(rootURL,
+                                        timeout=10, session=self.session,
+                                        per_page=100)
 
     @property
     def user(self):
