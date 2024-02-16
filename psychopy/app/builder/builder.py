@@ -1002,7 +1002,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
     def checkSave(self):
         """Check whether we need to save before quitting
         """
-        if hasattr(self, 'isModified') and self.isModified:
+        if hasattr(self, 'isModified') and self.isModified and not self.app.testMode:
             self.Show(True)
             self.Raise()
             self.app.SetTopWindow(self)
