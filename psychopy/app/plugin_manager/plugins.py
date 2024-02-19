@@ -1251,7 +1251,7 @@ def getAllPluginDetails():
                 deletePluginDlgCache()
                 # write the new plugin database file
                 with open(pluginDatabaseFile, 'w') as f:  # save the file
-                    f.write(serverPluginDatabase)
+                    json.dump(serverPluginDatabase, f, indent=True)
                 localPluginDatabase = serverPluginDatabase
         refreshPlugins = True
     else:
