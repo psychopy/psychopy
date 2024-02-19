@@ -3254,7 +3254,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
 
         # Do sizing
         self.Layout()
-        self.SetupScrolling()
+        self.SetupScrolling(scrollToTop=False)
 
     def _applyAppTheme(self, target=None):
         # Style component panel
