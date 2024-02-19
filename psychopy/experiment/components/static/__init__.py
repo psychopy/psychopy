@@ -156,21 +156,21 @@ class StaticComponent(BaseComponent):
         """
         buff.writeIndented("# *%s* period\n" % (self.params['name']))
         needsUnindent = BaseComponent.writeStartTestCode(self, buff)
-
-        if self.params['stopType'].val == 'time (s)':
-            durationSecsStr = "%(stopVal)s-t" % (self.params)
-        elif self.params['stopType'].val == 'duration (s)':
-            durationSecsStr = "%(stopVal)s" % (self.params)
-        elif self.params['stopType'].val == 'duration (frames)':
-            durationSecsStr = "%(stopVal)s*frameDur" % (self.params)
-        elif self.params['stopType'].val == 'frame N':
-            durationSecsStr = "(%(stopVal)s-frameN)*frameDur" % (self.params)
-        else:
-            msg = ("Couldn't deduce end point for startType=%(startType)s, "
-                   "stopType=%(stopType)s")
-            raise Exception(msg % self.params)
-        vals = (self.params['name'], durationSecsStr)
-        buff.writeIndented("%s.start(%s)\n" % vals)
+        if needsUnindent:
+            if self.params['stopType'].val == 'time (s)':
+                durationSecsStr = "%(stopVal)s-t" % (self.params)
+            elif self.params['stopType'].val == 'duration (s)':
+                durationSecsStr = "%(stopVal)s" % (self.params)
+            elif self.params['stopType'].val == 'duration (frames)':
+                durationSecsStr = "%(stopVal)s*frameDur" % (self.params)
+            elif self.params['stopType'].val == 'frame N':
+                durationSecsStr = "(%(stopVal)s-frameN)*frameDur" % (self.params)
+            else:
+                msg = ("Couldn't deduce end point for startType=%(startType)s, "
+                       "stopType=%(stopType)s")
+                raise Exception(msg % self.params)
+            vals = (self.params['name'], durationSecsStr)
+            buff.writeIndented("%s.start(%s)\n" % vals)
 
         return needsUnindent
 
