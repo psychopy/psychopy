@@ -847,10 +847,12 @@ class PavloviaProject(dict):
             dlg.ShowModal()
             return
         if self.project is not None:
-            # Reset local repo so it checks again (rather than erroring if it's been deleted without an app restart)
-            self._repo = None
             # Jot down start time
             t0 = time.time()
+            # make repo
+            repo = self.newRepo(infoStream)
+            if repo is None:
+                return 0
             # If first commit, do initial push
             if not bool(self.project.attributes['default_branch']):
                 self.firstPush(infoStream=infoStream)
@@ -1037,6 +1039,8 @@ class PavloviaProject(dict):
                     bareRemote = True
                 else:
                     bareRemote = False
+
+        repo = None
         # if remote is new (or existed but is bare) then init and push
         if localFiles and bareRemote:  # existing folder
             repo = git.Repo.init(self.localRoot)
@@ -1048,10 +1052,35 @@ class PavloviaProject(dict):
             self.stageFiles(['.gitignore'])
             self.commit('Create repository (including .gitignore)')
             self._newRemote = False
+        elif localFiles:
+            # get project name
+            if "/" in self.stringId:
+                _, projectName = self.stringId.split("/")
+            else:
+                projectName = self.stringId
+            # ask user if they want to clone to a subfolder
+            msg = _translate(
+                    "Folder '{localRoot}' is not empty, use '{localRoot}/{projectName}' instead?"
+            )
+            dlg = wx.MessageDialog(
+                None,
+                msg.format(localRoot=self.localRoot, projectName=projectName),
+                style=wx.ICON_QUESTION | wx.YES_NO | wx.CANCEL)
+            resp = dlg.ShowModal()
+            if resp == wx.ID_YES:
+                # if yes, update local root
+                self.localRoot = pathlib.Path(self.localRoot) / projectName
+                # try again
+                self.newRepo(infoStream=infoStream)
+            elif resp == wx.ID_CANCEL:
+                # if they cancelled, stop
+                infoStream.write(
+                    "Clone cancelled by user.\n"
+                )
+                repo = None
         else:
             # no files locally so safe to try and clone from remote
             repo = self.cloneRepo(infoStream=infoStream)
-            # TODO: add the further case where there are remote AND local files!
 
         return repo
 
@@ -1141,6 +1170,11 @@ class PavloviaProject(dict):
     def getChanges(self):
         """Find all the not-yet-committed changes in the repository"""
         changeDict = {}
+        changeList = []
+        # if we don't have a repo object, there's no changes
+        if not hasattr(self, "_repo") or self._repo is None:
+            return changeDict, changeList
+        # get changes
         changeDict['untracked'] = self.repo.untracked_files
         changeDict['changed'] = []
         changeDict['deleted'] = []
@@ -1162,7 +1196,6 @@ class PavloviaProject(dict):
                 changeDict['changed'].append(this.b_path)
             else:
                 raise ValueError("Found an unexpected change_type '{}' in gitpython Diff".format(this.change_type))
-        changeList = []
         for categ in changeDict:
             changeList.extend(changeDict[categ])
         return changeDict, changeList
