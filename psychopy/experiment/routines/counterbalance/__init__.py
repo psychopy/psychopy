@@ -273,23 +273,23 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
             code = (
                 "// if slots and repeats are fully depleted, end the experiment now\n"
                 "if (%(name)s.finished) {\n"
-                "    endExperiment(thisExp, win=win)\n"
+                "    endExperiment(psychoJS.experiment, win=win)\n"
                 "}\n"
             )
             buff.writeIndentedLines(code % self.params)
         # save data
         if self.params['saveData']:
             code = (
-                "thisExp.addData('%(name)s.group', %(name)s.group)\n"
+                "psychoJS.experiment.addData('%(name)s.group', %(name)s.group)\n"
                 "for (let _key in %(name)s.params) {\n"
-                "    thisExp.addData(`%(name)s.${_key}`, %(name)s.params[_key])\n"
+                "    psychoJS.experiment.addData(`%(name)s.${_key}`, %(name)s.params[_key])\n"
                 "}\n"
             )
             buff.writeIndentedLines(code % self.params)
         # save remaining cap
         if self.params['saveRemaining']:
             code = (
-                "thisExp.addData('%(name)s.remaining', %(name)s.remaining)\n"
+                "psychoJS.experiment.addData('%(name)s.remaining', %(name)s.remaining)\n"
             )
             buff.writeIndentedLines(code % self.params)
 
