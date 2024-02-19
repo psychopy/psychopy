@@ -967,6 +967,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             self.readmeFrame.setFile(self.readmeFilename)
         else:
             self.readmeFrame.setFile(None)
+            show = False
         self.readmeFrame.ctrl.load()
 
         # Show/hide frame as appropriate
