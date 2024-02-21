@@ -849,10 +849,11 @@ class PavloviaProject(dict):
         if self.project is not None:
             # Jot down start time
             t0 = time.time()
-            # make repo
-            repo = self.newRepo(infoStream)
-            if repo is None:
-                return 0
+            # make repo if needed
+            if self.repo is None:
+                repo = self.newRepo(infoStream)
+                if repo is None:
+                    return 0
             # If first commit, do initial push
             if not bool(self.project.attributes['default_branch']):
                 self.firstPush(infoStream=infoStream)
