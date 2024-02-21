@@ -681,7 +681,7 @@ class ExperimentHandler(_ComparisonMixin):
             'threshold': priorityThreshold,
         }
 
-        return json.dumps(context, indent=True, allow_nan=False)
+        return json.dumps(context, indent=True, allow_nan=False, default=str)
         
     def close(self):
         if self.dataFileName not in ['', None]:
