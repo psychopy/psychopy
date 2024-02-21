@@ -834,7 +834,11 @@ class Mouse:
         at (0, 0) to prevent it from going off the screen and getting lost!
         You can still use getRel() in that case.
         """
-        if self.win is not None:  # use default window if we don't have one
+        if self.win:  # use default window if we don't have one
+            self.win.setMouseVisible(visible)
+        elif usePygame:
+            mouse.set_visible(visible)
+        else:
             from psychopy.visual import openWindows
             if openWindows:
                 w = openWindows[0]()  # type: psychopy.visual.Window
@@ -844,11 +848,7 @@ class Mouse:
                     "being opened")
                 return None
             w.setMouseVisible(visible)
-        elif usePygame:
-            mouse.set_visible(visible)
-        else:
-            self.win.setMouseVisible(visible)
-
+            
         self._visible = visible  # set internal state
 
     def clickReset(self, buttons=(0, 1, 2)):
