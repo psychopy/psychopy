@@ -2070,8 +2070,10 @@ class SettingsComponent:
                     "    };\n"
                     "}\n")
         buff.writeIndentedLines(recordLoopIterationFunc)
-
-        code = ("\nasync function quitPsychoJS(message, isCompleted) {\n")
+        code = (
+            "\n"
+            "async function quitPsychoJS(message, isCompleted) {\n"
+        )
         buff.writeIndented(code)
         buff.setIndentLevel(1, relative=True)
         code = ("// Check for and save orphaned data\n"
@@ -2084,10 +2086,8 @@ class SettingsComponent:
         for thisRoutine in list(self.exp.routines.values()):
             # a single routine is a list of components:
             for thisComp in thisRoutine:
-                if thisComp.type in ['Code', 'EmotivRecording']:
-                    buff.writeIndented("\n")
+                if hasattr(thisComp, "writeExperimentEndCodeJS"):
                     thisComp.writeExperimentEndCodeJS(buff)
-                    buff.writeIndented("\n")
 
         code = ("psychoJS.window.close();\n"
                 "psychoJS.quit({message: message, isCompleted: isCompleted});\n\n"
