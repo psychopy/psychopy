@@ -91,7 +91,7 @@ class StdOutRich(wx.richtext.RichTextCtrl, _BaseErrorHandler):
             alert.msg = sanitize(alert.msg)
             # Write Code
             self.BeginBold()
-            self.BeginTextColour(wx.BLUE)
+            self.BeginTextColour(colors.scheme['blue'])
             self.BeginURL(alert.url)
             self.WriteText("Alert {}:".format(alert.code))
             self.EndURL()
@@ -99,9 +99,7 @@ class StdOutRich(wx.richtext.RichTextCtrl, _BaseErrorHandler):
             self.EndTextColour()
 
             # Write Message
-            self.BeginTextColour([0, 0, 0])
             self.WriteText(alert.msg)
-            self.EndTextColour()
 
             # Write name of component
             # self.BeginTextColour([200, 0, 230])
@@ -110,12 +108,10 @@ class StdOutRich(wx.richtext.RichTextCtrl, _BaseErrorHandler):
 
             # Write URL
             self.WriteText("\n\t"+_translate("For further info see "))
-            self.BeginBold()
             self.BeginTextColour(wx.BLUE)
             self.BeginURL(alert.url)
             self.WriteText("{:<15}".format(alert.url))
             self.EndURL()
-            self.EndBold()
             self.EndTextColour()
 
             self.Newline()
@@ -141,19 +137,17 @@ class StdOutRich(wx.richtext.RichTextCtrl, _BaseErrorHandler):
                 # this line contains a file/line location so write as URL
                 # self.BeginStyle(self.urlStyle)  # this should be done with
                 # styles, but they don't exist in wx as late as 2.8.4.0
-                self.BeginBold()
-                self.BeginTextColour(wx.BLUE)
+                self.BeginTextColour(colors.scheme['blue'])
                 self.BeginURL(thisLine)
                 self.WriteText(thisLine)
                 self.EndURL()
-                self.EndBold()
                 self.EndTextColour()
-            elif len(re.findall('WARNING', thisLine)) > 0:
-                self.BeginTextColour([0, 150, 0])
+            elif len(re.findall('CRITICAL|ERROR|WARNING|DEPRECATION', thisLine)) > 0:
+                self.BeginTextColour(colors.scheme['red'])
                 self.WriteText(thisLine)
                 self.EndTextColour()
-            elif len(re.findall('ERROR', thisLine)) > 0:
-                self.BeginTextColour([150, 0, 0])
+            elif len(re.findall('DATA|EXP|INFO|DEBUG', thisLine)):
+                self.BeginTextColour(colors.scheme['grey'])
                 self.WriteText(thisLine)
                 self.EndTextColour()
             else:
@@ -163,7 +157,6 @@ class StdOutRich(wx.richtext.RichTextCtrl, _BaseErrorHandler):
         self.ShowPosition(self.GetLastPosition())
 
     def flush(self):
-
         for alert in self.alerts:
             self.write(alert)
 
@@ -269,6 +262,7 @@ class ScriptOutputPanel(wx.Panel, handlers.ThemeMixin):
         self.sizer.Prepend(self.toolbar, border=6, flag=wx.EXPAND | wx.TOP | wx.BOTTOM)
 
     def _applyAppTheme(self):
+        self.ctrl._applyAppTheme()
         # Set background
         self.SetBackgroundColour(fonts.coderTheme.base.backColor)
         self.Refresh()
@@ -299,94 +293,6 @@ class ScriptOutputCtrl(StdOutRich, handlers.ThemeMixin):
         self._fontSize = fontSize
         self.Bind(wx.EVT_TEXT_URL, self.onURL)
 
-    def write(self, inStr):
-        """Write (append) text to the control.
-
-        Formatting is automatically applied to the text assuming the text
-        follows PsychoPy's standard formatting conventions.
-
-        Parameters
-        ----------
-        inStr : str
-            Text to append.
-
-        """
-        # mostly taken from the existing StdOutRich class used by runner
-        self.MoveEnd()  # always 'append' text rather than 'writing' it
-
-        if isinstance(inStr, AlertEntry):
-            alert = inStr
-            # Write Code
-            self.BeginBold()
-            self.BeginTextColour(wx.BLUE)
-            self.BeginURL(alert.url)
-            self.WriteText("Alert {}:".format(alert.code))
-            self.EndURL()
-            self.EndBold()
-            self.EndTextColour()
-
-            # Write Message
-            self.BeginTextColour([0, 0, 0])
-            self.WriteText(alert.msg)
-            self.EndTextColour()
-
-            # Write URL
-            self.WriteText("\n\t"+_translate("For further info see "))
-            self.BeginBold()
-            self.BeginTextColour(wx.BLUE)
-            self.BeginURL(alert.url)
-            self.WriteText("{:<15}".format(alert.url))
-            self.EndURL()
-            self.EndBold()
-            self.EndTextColour()
-
-            self.Newline()
-            self.ShowPosition(self.GetLastPosition())
-
-            self._applyAppTheme()
-
-            return
-
-        # convert to unicode if needed
-        if isinstance(inStr, bytes):
-            try:
-                inStr = inStr.decode('utf-8')
-            except UnicodeDecodeError:
-                inStr = inStr.decode(_prefEncoding)
-
-        # process the line, apply formatting and append
-        for thisLine in inStr.splitlines(True):
-            try:
-                thisLine = thisLine.replace("\t", "    ")
-            except Exception as e:
-                self.WriteText(str(e))
-
-            if len(re.findall('".*", line.*', thisLine)) > 0:
-                # this line contains a file/line location so write as URL
-                # self.BeginStyle(self.urlStyle)  # this should be done with
-                # styles, but they don't exist in wx as late as 2.8.4.0
-                self.BeginBold()
-                self.BeginTextColour(wx.BLUE)
-                self.BeginURL(thisLine)
-                self.WriteText(thisLine)
-                self.EndURL()
-                self.EndBold()
-                self.EndTextColour()
-            elif len(re.findall('WARNING', thisLine)) > 0:
-                self.BeginTextColour([0, 150, 0])
-                self.WriteText(thisLine)
-                self.EndTextColour()
-            elif len(re.findall('ERROR', thisLine)) > 0:
-                self.BeginTextColour([150, 0, 0])
-                self.WriteText(thisLine)
-                self.EndTextColour()
-            else:
-                # line to write as simple text
-                self.WriteText(thisLine)
-        self._applyAppTheme()
-        self.MoveEnd()  # go to end of stdout so user can see updated text
-        self.ShowPosition(self.GetLastPosition())
-
     def onURL(self, evt):
         """Open link in default browser."""
         wx.BeginBusyCursor()
@@ -411,7 +317,6 @@ class ScriptOutputCtrl(StdOutRich, handlers.ThemeMixin):
 
     def clear(self, evt=None):
         self.Clear()
-        self._applyAppTheme()
 
     def flush(self):
 
