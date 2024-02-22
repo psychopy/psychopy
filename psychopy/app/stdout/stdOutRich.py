@@ -189,8 +189,13 @@ class StdOutRich(wx.richtext.RichTextCtrl, _BaseErrorHandler, handlers.ThemeMixi
                     # anything else
                     self.BeginStyle(self._styles['base'])
                     self.WriteText(thisLine)
-
-        self.MoveEnd()  # go to end of stdout so user can see updated text
+        # cap number of lines
+        text = self.GetValue()
+        maxLength = 100000
+        if len(text) > maxLength:
+            self.Remove(0, 1000)
+        # go to end of stdout so user can see updated text
+        self.MoveEnd()
         self.ShowPosition(self.GetLastPosition())
 
     def flush(self):
