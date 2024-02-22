@@ -863,8 +863,8 @@ class PavloviaProject(dict):
             # Write updates
             t1 = time.time()
             msg = (
-                "Successful sync at: {}, took {:.3f}s.\n"
-                "View synced project here: {}\n".format(
+                "Successful sync at: {}, took {:.3f}s. View synced project here:\n"
+                "{}\n".format(
                     time.strftime("%H:%M:%S", time.localtime()),
                     t1 - t0,
                     "https://pavlovia.org/" + self['path_with_namespace']

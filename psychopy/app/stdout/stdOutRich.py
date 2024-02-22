@@ -168,6 +168,12 @@ class StdOutRich(wx.richtext.RichTextCtrl, _BaseErrorHandler, handlers.ThemeMixi
                     self.BeginURL(thisLine)
                     self.WriteText(thisLine)
                     self.EndURL()
+                elif re.match('https?://.*', thisLine):
+                    # this line contains an actual URL
+                    self.BeginStyle(self._styles['link'])
+                    self.BeginURL(thisLine)
+                    self.WriteText(thisLine)
+                    self.EndURL()
                 elif len(re.findall('CRITICAL|ERROR', thisLine)) > 0:
                     # this line contains an error
                     self.BeginStyle(self._styles['error'])
