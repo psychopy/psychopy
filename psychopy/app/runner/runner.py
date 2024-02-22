@@ -1047,7 +1047,38 @@ class RunnerOutputNotebook(aui.AuiNotebook, handlers.ThemeMixin):
         )
         self.panels['git'] = self.gitPnl
 
+        # bind function when page receives focus
+        self._readCache = {}
+        self.Bind(aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.onFocus)
+
         self.SetMinSize(wx.Size(100, 100))  # smaller than window min size
+
+    def setRead(self, i, state):
+        """
+        Mark a tab (by index) as read/unread (determines whether the page gets a little blue dot)
+
+        Parameters
+        ----------
+        i : int
+            Index of the page to set
+        state : bool
+            True for read (i.e. no dot), False for unread (i.e. dot)
+        """
+        # if state matches cached state, don't bother updating again
+        if self._readCache.get(i, None) == state:
+            return
+        # cache read value
+        self._readCache[i] = state
+        # get tab label without asterisk
+        label = self.GetPageText(i).replace(" *", "")
+        # add/remove asterisk
+        if state:
+            self.SetPageText(i, label)
+        else:
+            self.SetPageText(i, label + " *")
+        # update
+        self.Update()
+        self.Refresh()
 
     def onWrite(self, evt):
         # get ctrl
@@ -1056,10 +1087,19 @@ class RunnerOutputNotebook(aui.AuiNotebook, handlers.ThemeMixin):
         for i in range(self.GetPageCount()):
             # get page window
             page = self.GetPage(i)
-            # is the ctrl a child of that window?
-            if page.IsDescendant(ctrl):
-                # if so, focus that page
-                self.SetSelection(i)
+            # is the ctrl a child of that window, and is it deselected?
+            if page.IsDescendant(ctrl) and self.GetSelection() != i:
+                # mark unread
+                self.setRead(i, False)
+                # alerts and pavlovia get focus too when written to
+                if page in (self.panels['git'], self.panels['alerts']):
+                    self.SetSelection(i)
+
+    def onFocus(self, evt):
+        # get index of new selection
+        i = evt.GetSelection()
+        # set read status
+        self.setRead(i, True)
 
 
 class RunnerRibbon(ribbon.FrameRibbon):
