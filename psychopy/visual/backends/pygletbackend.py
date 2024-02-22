@@ -398,9 +398,6 @@ class PygletBackend(BaseBackend):
         if flipThisFrame:
             self.winHandle.flip()
 
-    def setMouseVisibility(self, visibility):
-        self.winHandle.set_mouse_visible(visibility)
-
     def setCurrent(self):
         """Sets this window to be the current rendering target.
 
@@ -720,6 +717,42 @@ class PygletBackend(BaseBackend):
     # --------------------------------------------------------------------------
     # Mouse event handlers and utilities
     #
+    @property
+    def mouseVisible(self):
+        """Get the visibility of the mouse cursor.
+
+        Returns
+        -------
+        bool
+            `True` if the mouse cursor is visible.
+
+        """
+
+        return self.winHandle._mouse_visible
+
+    @mouseVisible.setter
+    def mouseVisible(self, visibility):
+        """Set the visibility of the mouse cursor.
+
+        Parameters
+        ----------
+        visibility : bool
+            If `True`, the mouse cursor is visible.
+
+        """
+        self.winHandle.set_mouse_visible(visibility)
+
+    def setMouseVisibility(self, visibility):
+        """Set the visibility of the mouse cursor.
+
+        Parameters
+        ----------
+        visibility : bool
+            If `True`, the mouse cursor is visible.
+
+        """
+        self.winHandle.set_mouse_visible(visibility)
+
     def onMouseButton(self, *args, **kwargs):
         """Event handler for any mouse button event (pressed and released).
 

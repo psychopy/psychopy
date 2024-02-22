@@ -273,7 +273,7 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
             code = (
                 "// if slots and repeats are fully depleted, end the experiment now\n"
                 "if (%(name)s.finished) {\n"
-                "    endExperiment(psychoJS.experiment, win=win)\n"
+                "    quitPsychoJS('No more slots remaining for this study.', true)\n"
                 "}\n"
             )
             buff.writeIndentedLines(code % self.params)
@@ -295,6 +295,7 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
 
         # exit function def
         code = (
+            "    return Scheduler.Event.NEXT;\n"
             "  }\n"
             "}\n"
         )
@@ -306,7 +307,7 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
             "await psychoJS.shelf.counterbalanceConfirm(\n"
             "    ['%(name)s', '@designer', '@experiment'],\n"
             "    %(name)s.participantToken,\n"
-            "    (resp.keys === 'left')\n"
-            ")\n"
+            "    isCompleted\n"
+            ");\n"
         )
         buff.writeIndentedLines(code % self.params)
