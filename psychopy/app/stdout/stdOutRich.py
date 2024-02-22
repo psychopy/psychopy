@@ -33,7 +33,7 @@ from psychopy.alerts._alerts import AlertEntry
 from psychopy.alerts._errorHandler import _BaseErrorHandler
 
 
-class StdOutRich(wx.richtext.RichTextCtrl, _BaseErrorHandler):
+class StdOutRich(wx.richtext.RichTextCtrl, _BaseErrorHandler, handlers.ThemeMixin):
     """
     A rich text ctrl for handling stdout/stderr
     """
@@ -58,6 +58,41 @@ class StdOutRich(wx.richtext.RichTextCtrl, _BaseErrorHandler):
         self.parent = parent
         self.app = app
         self.Bind(wx.EVT_TEXT_URL, self.onURL)
+        self._applyAppTheme()
+
+    def _applyAppTheme(self):
+        # do usual theme stuff
+        handlers.ThemeMixin._applyAppTheme(self)
+        # get base font
+        font = fonts.coderTheme.base
+        # dict of styles
+        self._styles = {
+            'base': wx.richtext.RichTextAttr(wx.TextAttr(
+                colText=font.foreColor,
+                colBack=font.backColor,
+                font=font.obj,
+            )),
+            'error': wx.richtext.RichTextAttr(wx.TextAttr(
+                colText=colors.scheme['red'],
+                colBack=font.backColor,
+                font=font.obj,
+            )),
+            'warning': wx.richtext.RichTextAttr(wx.TextAttr(
+                colText=colors.scheme['orange'],
+                colBack=font.backColor,
+                font=font.obj,
+            )),
+            'info': wx.richtext.RichTextAttr(wx.TextAttr(
+                colText=colors.scheme['lightgrey'],
+                colBack=font.backColor,
+                font=font.obj,
+            )),
+            'link': wx.richtext.RichTextAttr(wx.TextAttr(
+                colText=colors.scheme['blue'],
+                colBack=font.backColor,
+                font=font.obj,
+            )),
+        }
 
     def onURL(self, evt=None):
         wx.BeginBusyCursor()
@@ -89,70 +124,66 @@ class StdOutRich(wx.richtext.RichTextCtrl, _BaseErrorHandler):
             alert = inStr
             # sanitize message
             alert.msg = sanitize(alert.msg)
+
             # Write Code
-            self.BeginBold()
-            self.BeginTextColour(colors.scheme['blue'])
+            self.BeginStyle(self._styles['link'])
             self.BeginURL(alert.url)
             self.WriteText("Alert {}:".format(alert.code))
             self.EndURL()
-            self.EndBold()
-            self.EndTextColour()
 
             # Write Message
-            self.WriteText(alert.msg)
-
-            # Write name of component
-            # self.BeginTextColour([200, 0, 230])
-            # self.WriteText("{:<20}".format(alert.name))
-            # self.EndTextColour()
+            self.BeginStyle(self._styles['base'])
+            self.WriteText("\n\t" + alert.msg)
 
             # Write URL
+            self.BeginStyle(self._styles['base'])
             self.WriteText("\n\t"+_translate("For further info see "))
-            self.BeginTextColour(wx.BLUE)
+            self.BeginStyle(self._styles['link'])
             self.BeginURL(alert.url)
             self.WriteText("{:<15}".format(alert.url))
             self.EndURL()
-            self.EndTextColour()
 
             self.Newline()
             self.ShowPosition(self.GetLastPosition())
-            return
+        else:
+            # if it comes form a stdout in Py3 then convert to unicode
+            if type(inStr) == bytes:
+                try:
+                    inStr = inStr.decode('utf-8')
+                except UnicodeDecodeError:
+                    inStr = inStr.decode(_prefEncoding)
 
-        # if it comes form a stdout in Py3 then convert to unicode
-        if type(inStr) == bytes:
-            try:
-                inStr = inStr.decode('utf-8')
-            except UnicodeDecodeError:
-                inStr = inStr.decode(_prefEncoding)
+            # sanitize message
+            inStr = sanitize(inStr)
 
-        # sanitize message
-        inStr = sanitize(inStr)
+            for thisLine in inStr.splitlines(True):
+                try:
+                    thisLine = thisLine.replace("\t", "    ")
+                except Exception as e:
+                    self.WriteText(str(e))
 
-        for thisLine in inStr.splitlines(True):
-            try:
-                thisLine = thisLine.replace("\t", "    ")
-            except Exception as e:
-                self.WriteText(str(e))
-            if len(re.findall('".*", line.*', thisLine)) > 0:
-                # this line contains a file/line location so write as URL
-                # self.BeginStyle(self.urlStyle)  # this should be done with
-                # styles, but they don't exist in wx as late as 2.8.4.0
-                self.BeginTextColour(colors.scheme['blue'])
-                self.BeginURL(thisLine)
-                self.WriteText(thisLine)
-                self.EndURL()
-                self.EndTextColour()
-            elif len(re.findall('CRITICAL|ERROR|WARNING|DEPRECATION', thisLine)) > 0:
-                self.BeginTextColour(colors.scheme['red'])
-                self.WriteText(thisLine)
-                self.EndTextColour()
-            elif len(re.findall('DATA|EXP|INFO|DEBUG', thisLine)):
-                self.BeginTextColour(colors.scheme['grey'])
-                self.WriteText(thisLine)
-                self.EndTextColour()
-            else:
-                # line to write as simple text
-                self.WriteText(thisLine)
+                if len(re.findall('".*", line.*', thisLine)) > 0:
+                    # this line contains a file/line location so write as URL
+                    self.BeginStyle(self._styles['link'])
+                    self.BeginURL(thisLine)
+                    self.WriteText(thisLine)
+                    self.EndURL()
+                elif len(re.findall('CRITICAL|ERROR', thisLine)) > 0:
+                    # this line contains an error
+                    self.BeginStyle(self._styles['error'])
+                    self.WriteText(thisLine)
+                elif len(re.findall('WARNING|DEPRECATION', thisLine)) > 0:
+                    # this line contains a warning
+                    self.BeginStyle(self._styles['warning'])
+                elif len(re.findall('DATA|EXP|INFO|DEBUG', thisLine)):
+                    # this line contains logging
+                    self.BeginStyle(self._styles['info'])
+                    self.WriteText(thisLine)
+                else:
+                    # anything else
+                    self.BeginStyle(self._styles['base'])
+                    self.WriteText(thisLine)
+
         self.MoveEnd()  # go to end of stdout so user can see updated text
         self.ShowPosition(self.GetLastPosition())
 
