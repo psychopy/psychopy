@@ -107,7 +107,7 @@ class DlgCodeComponentProperties(wx.Dialog):
                                                   _translate(param.label))
             elif paramName == 'disabled':
                 # Create bool control to disable/enable component
-                self.disableCtrl = wx.CheckBox(self, wx.ID_ANY, label=_translate('disabled'))
+                self.disableCtrl = wx.CheckBox(self, wx.ID_ANY, label=_translate('Disabled'))
                 self.disableCtrl.SetValue(bool(param.val))
             else:
                 codeType = ["Py", "JS"]["JS" in paramName]  # Give CodeBox a code type
