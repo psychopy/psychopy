@@ -149,7 +149,7 @@ class DlgCodeComponentProperties(wx.Dialog):
         self.warnings = WarningManager(self)  # to store warnings for all fields
         self.__do_layout()
         if openToPage is None:
-            openToPage = 0
+            openToPage = 1
         self.codeNotebook.SetSelection(openToPage)
         self.Update()
         self.Bind(wx.EVT_BUTTON, self.helpButtonHandler, self.helpButton)
