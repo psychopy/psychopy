@@ -627,6 +627,8 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         # substitute args
         if args is None:
             args = []
+        # start off looking at stdout (will switch to Alerts if there are any)
+        self.outputNotebook.SetSelectionToWindow(self.stdoutPnl)
 
         currentFile = str(self.currentFile)
         if self.currentFile.suffix == '.psyexp':
