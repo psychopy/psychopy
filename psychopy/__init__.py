@@ -12,7 +12,7 @@
 import os
 import sys
 
-__version__ = '2024.1.0rc8'
+__version__ = '2024.1.0rc10'
 __license__ = 'GPL v3'
 __author__ = 'Open Science Tools Ltd'
 __author_email__ = 'support@opensciencetools.org'
@@ -63,4 +63,3 @@ try:
     import readline
 except ImportError:
     pass  # all that will happen is the stderr/stdout might get redirected
-
