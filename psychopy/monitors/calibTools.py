@@ -142,8 +142,7 @@ class Monitor:
         thisGamma = self.getGamma()
         # run the test just on this
         array = np.array
-        return (thisGamma is None or
-                np.alltrue(array(thisGamma) == array([1, 1, 1])))
+        return (thisGamma is None or np.all(array(thisGamma) == array([1, 1, 1])))
 
 # functions to set params of current calibration
     def setSizePix(self, pixels):
@@ -285,8 +284,7 @@ class Monitor:
         """Returns just the gamma value (not the whole grid)
         """
         gridInCurrent = 'gammaGrid' in self.currentCalib
-        if (gridInCurrent and
-                not np.alltrue(self.getGammaGrid()[1:, 2] == 1)):
+        if (gridInCurrent and not np.all(self.getGammaGrid()[1:, 2] == 1)):
             return self.getGammaGrid()[1:, 2]
         elif 'gamma' in self.currentCalib:
             return self.currentCalib['gamma']

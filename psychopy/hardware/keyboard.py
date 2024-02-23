@@ -63,8 +63,6 @@ from __future__ import absolute_import, division, print_function
 import json
 from collections import deque
 import sys
-import copy
-import psychopy.core
 import psychopy.clock
 from psychopy import logging
 from psychopy.constants import NOT_STARTED
@@ -623,7 +621,7 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
         Returns None if times out.
     
         """
-        timer = psychopy.core.Clock()
+        timer = psychopy.clock.Clock()
 
         if clear:
             self.clearEvents()
@@ -632,6 +630,7 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
             keys = self.getKeys(keyList=keyList, waitRelease=waitRelease, clear=clear)
             if keys:
                 return keys
+            psychopy.clock._dispatchWindowEvents()  # prevent "app is not responding"
             time.sleep(0.00001)
 
         logging.data('No keypress (maxWait exceeded)')

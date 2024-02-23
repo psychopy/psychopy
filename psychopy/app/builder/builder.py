@@ -717,13 +717,15 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
                 wildcard = _translate("PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*")
             # get path of current file (or home dir to avoid temp)
             initPath = str(self.filename.parent)
-            if not self.fileExists:
-                initPath = None
-            # Open dlg
-            dlg = wx.FileDialog(self, message=_translate("Open file ..."),
-                                defaultDir=initPath,
-                                style=wx.FD_OPEN,
-                                wildcard=wildcard)
+            if self.fileExists:
+                dlg = wx.FileDialog(self, message=_translate("Open file ..."),
+                                    defaultDir=initPath,
+                                    style=wx.FD_OPEN,
+                                    wildcard=wildcard)
+            else:
+                dlg = wx.FileDialog(self, message=_translate("Open file ..."),
+                                    style=wx.FD_OPEN,
+                                    wildcard=wildcard)
             if dlg.ShowModal() != wx.ID_OK:
                 return 0
             filename = dlg.GetPath()
@@ -965,6 +967,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             self.readmeFrame.setFile(self.readmeFilename)
         else:
             self.readmeFrame.setFile(None)
+            show = False
         self.readmeFrame.ctrl.load()
 
         # Show/hide frame as appropriate
@@ -999,7 +1002,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
     def checkSave(self):
         """Check whether we need to save before quitting
         """
-        if hasattr(self, 'isModified') and self.isModified:
+        if hasattr(self, 'isModified') and self.isModified and not self.app.testMode:
             self.Show(True)
             self.Raise()
             self.app.SetTopWindow(self)
@@ -3251,7 +3254,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
 
         # Do sizing
         self.Layout()
-        self.SetupScrolling()
+        self.SetupScrolling(scrollToTop=False)
 
     def _applyAppTheme(self, target=None):
         # Style component panel

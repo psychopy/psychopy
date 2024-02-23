@@ -273,28 +273,29 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
             code = (
                 "// if slots and repeats are fully depleted, end the experiment now\n"
                 "if (%(name)s.finished) {\n"
-                "    endExperiment(thisExp, win=win)\n"
+                "    quitPsychoJS('No more slots remaining for this study.', true)\n"
                 "}\n"
             )
             buff.writeIndentedLines(code % self.params)
         # save data
         if self.params['saveData']:
             code = (
-                "thisExp.addData('%(name)s.group', %(name)s.group)\n"
+                "psychoJS.experiment.addData('%(name)s.group', %(name)s.group)\n"
                 "for (let _key in %(name)s.params) {\n"
-                "    thisExp.addData(`%(name)s.${_key}`, %(name)s.params[_key])\n"
+                "    psychoJS.experiment.addData(`%(name)s.${_key}`, %(name)s.params[_key])\n"
                 "}\n"
             )
             buff.writeIndentedLines(code % self.params)
         # save remaining cap
         if self.params['saveRemaining']:
             code = (
-                "thisExp.addData('%(name)s.remaining', %(name)s.remaining)\n"
+                "psychoJS.experiment.addData('%(name)s.remaining', %(name)s.remaining)\n"
             )
             buff.writeIndentedLines(code % self.params)
 
         # exit function def
         code = (
+            "    return Scheduler.Event.NEXT;\n"
             "  }\n"
             "}\n"
         )
@@ -306,7 +307,7 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
             "await psychoJS.shelf.counterbalanceConfirm(\n"
             "    ['%(name)s', '@designer', '@experiment'],\n"
             "    %(name)s.participantToken,\n"
-            "    (resp.keys === 'left')\n"
-            ")\n"
+            "    isCompleted\n"
+            ");\n"
         )
         buff.writeIndentedLines(code % self.params)

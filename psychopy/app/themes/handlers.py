@@ -134,12 +134,6 @@ def styleTextCtrl(target):
         style = wx.richtext.RichTextAttr(style)
     # Set base style
     target.SetDefaultStyle(style)
-    # Style existing content
-    i = 0
-    for ln in range(target.GetNumberOfLines()):
-        # Line length +1 (to include the \n)
-        i += target.GetLineLength(ln) + 1
-    target.SetStyle(start=0, end=i, style=style)
     # Update
     target.Refresh()
     target.Update()

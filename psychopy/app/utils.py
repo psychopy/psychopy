@@ -528,6 +528,8 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         # Disable read only so value can change
         self.rawTextCtrl.SetReadOnly(False)
         # Change value
+        if value is None:
+            value = ""
         self.rawTextCtrl.SetValue(value)
         # Restore readonly state
         self.rawTextCtrl.SetReadOnly(og)
