@@ -2272,7 +2272,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
                 self.fileHistory.AddFileToHistory(filename)
             else:
                 # set name for an untitled document
-                filename = 'untitled.py'
+                filename = shortName = 'untitled.py'
                 allFileNames = self.getOpenFilenames()
                 n = 1
                 while filename in allFileNames:
