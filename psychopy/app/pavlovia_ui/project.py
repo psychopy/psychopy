@@ -842,7 +842,7 @@ def syncProject(parent, project, file="", closeFrameWhenDone=False):
         committed = functions.showCommitDialog(parent, project, initMsg="")
         # Cancel sync if commit cancelled
         if committed == -1:
-            pavlovia.getInfoStream().Write(_translate(
+            pavlovia.getInfoStream().write(_translate(
                 "\n"
                 "Sync cancelled by user."
             ))
