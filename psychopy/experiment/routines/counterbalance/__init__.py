@@ -230,7 +230,6 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
         # enter function def
         code = (
                 "\n"
-                "var %(name)s\n"
                 "function %(name)sRoutineBegin(snapshot) {\n"
                 "  return async function () {\n"
         )
