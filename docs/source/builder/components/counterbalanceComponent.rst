@@ -32,3 +32,8 @@ Save data
 
 Save remaining cap 
     Save how many more participants are left to be tested for the group that was selected.
+
+
+Example
+=======
+Click here for an example on how to use the Counterbalance Routine.

@@ -131,7 +131,40 @@ First, we check, has this participant taken part at all? We can do that by check
 .. _counterbalanceShelf:
 
 Counterbalancing
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^
+**Method 1 (recommended)**
+*PsychoPy Version 2024.1 or later required*
+
+**Demo link:** `here <>`_
+
+**Demo experiment files:** `here <>`_
+
+We now have a Counterbalance Routine where you can set up your counterbalance groups in Builder Mode (*see Demo experiment files*) and interact with the Shelf with the record type, Counterbalance.
+
+To set up your Counterbalance Shelf, you would need to first upload your task to Pavlovia and set it to Pilot/Running Mode. 
+
+In your Shelf view of your Dashboard, click on Add Record. In Key, add the name of your Counterbalance Routine as in your Builder task. For Scope, choose Experiment and select the name of your Builder task. For Type, select Counterbalance (*you might need to scroll down*).
+
+Once you click on Ok, you will see an empty table in Value. Here, set up the same group parameters as in your Builder task.
+
+.. figure:: /images/counterbalanceRecordTypeParameters.png
+    :name: shelfAccess
+    :align: center
+    :figclass: align-center
+
+Your resulting Shelf record should look like this:
+
+.. figure:: /images/counterbalanceRecordType.png
+    :name: shelfAccess
+    :align: center
+    :figclass: align-center
+
+|
+To find out more about the Counterbalance Routine, click here.
+
+
+|
+**Method 2**
 
 **Demo link:** `here <https://run.pavlovia.org/lpxrh6/shelf_counterbalance_demo/>`_
 
