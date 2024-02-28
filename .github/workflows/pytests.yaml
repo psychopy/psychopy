@@ -10,14 +10,14 @@ permissions:
 
 jobs:
 
-  testsuite_mac:
+  testsuite:
 
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: true
       matrix:
-        os: [macos-latest]
-        python-version: [3.8]
+        os: [macos-latest, ubuntu-latest]
+        python-version: [3.8, 3.10]
 
     steps:
     - uses: actions/checkout@v3
@@ -26,6 +26,44 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
+
+    - name: get_month
+      if: runner.os=='Linux'
+      id: month
+      run: echo "::set-output name=month::$(date +'%Y-%m')"
+  
+    - name: cache wxPython for linux
+      if: runner.os=='Linux'
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ matrix.os }}-py${{ matrix.python-version }}-${{ steps.get_month.outputs.month }}
+        
+    - name: Install Linux system dependencies
+      if: runner.os=='Linux'
+      run: |
+        # mostly for wxPython:
+        sudo apt-get update
+        sudo apt-get install -y -qq python3-dev libgtk-3-dev
+        sudo apt-get install -y -qq libgstreamer1.0-0 gstreamer1.0-plugins-base
+        sudo apt-get install -y -qq libwebkit2gtk-4.0-dev
+        sudo apt-get install -y -qq libpng-dev libjpeg-dev libtiff-dev libnotify-dev libsm-dev
+        sudo apt-get install -y -qq libsdl2-dev libsdl2-mixer-2.0-0 libsdl2-image-2.0-0 libsdl2-2.0-0
+        sudo apt-get install -y -qq libportaudio2
+        # virtual frame buffer
+        sudo apt install llvm-13-dev  # for xvfb
+        sudo apt install xvfb xauth libgl1-mesa-dri
+
+        # set up fake sound device?
+        # sudo apt-get install -y -qq libasound2-dev alsa-utils alsa-oss
+        # sudo apt-get install -y linux-modules-extra-$(uname -r)  # needed for modprobe snd-dummy
+        # sudo sh .github/workflows/prep_dummy_soundcard.sh  # couldn't find that file
+
+        # for PyQt:
+        sudo apt-get install -y -qq libdbus-1-3
+        sudo apt-get install -y -qq '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
+        export LIBGL_ALWAYS_INDIRECT=0
+        export QT_DEBUG_PLUGINS=1 # let us know about missing dependencies?
 
     - name: Pre-Install
       run: |
@@ -48,8 +86,11 @@ jobs:
 
     - name: Install plugins
       run: |
-        # for pocketsphinx we need this adapted package:
-        brew install swig vlc portaudio portmidi liblo sdl2
+        if [ "${{ runner.os }}" == "macOS" ]
+        then
+          # for pocketsphinx we need this adapted package:
+          brew install swig vlc portaudio portmidi liblo sdl2
+        fi
         # install optional components
         pip install psychopy-sounddevice psychopy-pyo psychopy-legacy-mic psychopy-connect psychopy-crs psychopy-emotiv psychopy-gammasci psychopy-mri-emulator
         pip install moviepy
@@ -75,21 +116,29 @@ jobs:
 #        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
 #        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
-    - name: Test gui toolkits Qt
+    - name: Set nice level (linux)
+      if: runner.os=='Linux'
+      run: |
+        # sudo setcap cap_sys_nice=eip ${{ env.pythonLocation }}/python
+        export PYTHON_EXECUTABLE=`python -c "import os; import sys; print(os.path.realpath(sys.executable))"`
+        sudo setcap cap_sys_nice+ep ${PYTHON_EXECUTABLE}
+        getcap ${PYTHON_EXECUTABLE}  # did it work?
+
+    - name: Test gui toolkits
+      if: runner.os=='Linux'
       run: |
         # quick test of the gui toolkits (without pytest swallowing errors)
-        python psychopy/tests/test_gui/test_DlgFromDictQt.py
-
-# always fails due to lack of pythonw
-#    - name: Test gui toolkits Wx
-#      if: always()
-#      run: |
-#        # quick test of the gui toolkits (without pytest swallowing errors)
-#        pythonw psychopy/tests/test_gui/test_DlgFromDictWx.py
+        xvfb-run -a --server-args="-screen 0 1024x768x24" python psychopy/tests/test_gui/test_DlgFromDictQt.py
+        xvfb-run -a --server-args="-screen 0 1024x768x24" python psychopy/tests/test_gui/test_DlgFromDictWx.py
 
     - name: Test with pytest
       run: |
-        pytest --ignore="psychopy/tests/test_app" --ignore="psychopy/tests/test_preferences" --ignore="psychopy/tests/test_experiment/needs_wx" -m "not needs_sound and not needs_wx and not emulator"  --cov=psychopy -v psychopy
+        if [ "${{ runner.os }}" == "Linux" ]
+        then
+          xvfb-run -a --server-args="-screen 0 1024x768x24" pytest -m "not needs_sound and not needs_wx and not needs_qt and not needs_pygame and not emulator" --cov=psychopy -v psychopy
+        else
+          pytest --ignore="psychopy/tests/test_app" --ignore="psychopy/tests/test_preferences" --ignore="psychopy/tests/test_experiment/needs_wx" -m "not needs_sound and not needs_wx and not emulator"  --cov=psychopy -v psychopy
+        fi
 
     - name: upload failed app data
       if: always()
@@ -144,138 +193,8 @@ jobs:
 #        # uninstall the build (but not the dependencies)
 #        pip uninstall --yes psychopy
 
-  testsuite_ubuntu:
-
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false  # debugging builds lets see them all!
-      matrix:
-        os: [ubuntu-latest]
-        python-version: [3.8]
-
-    steps:
-    - uses: actions/checkout@v3
-
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
-
-    - name: get_month
-      if: runner.os=='Linux'
-      id: month
-      run: echo "::set-output name=month::$(date +'%Y-%m')"
-
-    - name: cache wxPython for linux
-      if: runner.os=='Linux'
-      uses: actions/cache@v3
-      with:
-        path: ~/.cache/pip
-        key: ${{ matrix.os }}-py${{ matrix.python-version }}-${{ steps.get_month.outputs.month }}
-
-    - name: Install apt-get dependencies
-      if: runner.os=='Linux'
-      run: |
-        # mostly for wxPython:
-        sudo apt-get update
-        sudo apt-get install -y -qq python3-dev libgtk-3-dev
-        sudo apt-get install -y -qq libgstreamer1.0-0 gstreamer1.0-plugins-base
-        sudo apt-get install -y -qq libwebkit2gtk-4.0-dev
-        sudo apt-get install -y -qq libpng-dev libjpeg-dev libtiff-dev libnotify-dev libsm-dev
-        sudo apt-get install -y -qq libsdl2-dev libsdl2-mixer-2.0-0 libsdl2-image-2.0-0 libsdl2-2.0-0
-        sudo apt-get install -y -qq libportaudio2
-        # virtual frame buffer
-        sudo apt install llvm-13-dev  # for xvfb
-        sudo apt install xvfb xauth libgl1-mesa-dri
-
-        # set up fake sound device?
-        # sudo apt-get install -y -qq libasound2-dev alsa-utils alsa-oss
-        # sudo apt-get install -y linux-modules-extra-$(uname -r)  # needed for modprobe snd-dummy
-        # sudo sh .github/workflows/prep_dummy_soundcard.sh  # couldn't find that file
-
-        # for PyQt:
-        sudo apt-get install -y -qq libdbus-1-3
-        sudo apt-get install -y -qq '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
-        export LIBGL_ALWAYS_INDIRECT=0
-        export QT_DEBUG_PLUGINS=1 # let us know about missing dependencies?
-
-    - name: Install packaging and testing libs
-      run: |
-        python -m pip install --upgrade pip
-        pip install pytest pytest-cov flake8 xmlschema
-        pip install wheel
-        pip install six  # for configobj and wxpython
-        pip install distro  # used by createInitFile
-
-    - name: Install wxPython from https://extras.wxpython.org/wxPython4/extras
-      if: runner.os=='Linux'
-      run: |
-        # these are needed to build wxPython
-        pip install attrdict3  # used by wxpython setup
-        pip install pip install -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-20.04/ wxPython
-
-    - name: Install main dependencies (pip)
-      run: |
-        pip install .
-
-    - name: Install PsychoPy plugins
-      run: |
-        # install optional components
-        pip install psychopy-sounddevice psychopy-pyo psychopy-legacy-mic psychopy-connect psychopy-crs psychopy-emotiv psychopy-gammasci psychopy-mri-emulator
-        pip install moviepy
-
-    - name: Set nice level
-      if: runner.os=='Linux'
-      run: |
-        # sudo setcap cap_sys_nice=eip ${{ env.pythonLocation }}/python
-        export PYTHON_EXECUTABLE=`python -c "import os; import sys; print(os.path.realpath(sys.executable))"`
-        sudo setcap cap_sys_nice+ep ${PYTHON_EXECUTABLE}
-        getcap ${PYTHON_EXECUTABLE}  # did it work?
-
-    - name: Test gui toolkits Qt
-      if: runner.os=='Linux'
-      run: |
-        # quick test of the gui toolkits (without pytest swallowing errors)
-        xvfb-run -a --server-args="-screen 0 1024x768x24" python psychopy/tests/test_gui/test_DlgFromDictQt.py
-
-    - name: Test gui toolkits Wx
-      if: runner.os=='Linux'
-      run: |
-        # quick test of the gui toolkits (without pytest swallowing errors)
-        xvfb-run -a --server-args="-screen 0 1024x768x24" python psychopy/tests/test_gui/test_DlgFromDictWx.py
-
-    - name: Test with pytest
-      run: |
-         xvfb-run -a --server-args="-screen 0 1024x768x24" pytest -m "not needs_sound and not needs_wx and not needs_qt and not needs_pygame and not emulator" --cov=psychopy -v psychopy
-
-    - name: upload failed app data
-      if: always()
-      uses: actions/upload-artifact@v3
-      with:
-        name: prefs for ${{ matrix.os }}_${{ matrix.python-version }}
-        path: |
-          ~/.psychopy3
-          !~/.psychopy3/versions
-          !~/.psychopy3/fonts
-
-    - name: upload failed screenshots
-      if: always()
-      uses: actions/upload-artifact@v3
-      with:
-        name: test artifacts
-        path: |
-          psychopy/tests/fails
-          !**/*.mp4
-          !psychopy/tests/**/*.data
-          !**/*.wav
-
-    - name: Upload coverage to Codecov
-      if: always()
-      uses: codecov/codecov-action@v3
-      with:
-        fail_ci_if_error: false
-
 #    - name: test docs to pdf
+#      if: runner.os=='Linux'
 #      run: |
 #        sudo apt-get install -y python3-sphinx
 #        which sphinx-build
