@@ -939,7 +939,7 @@ class PavloviaProject(dict):
             infoStream = getInfoStream()
 
         if infoStream:
-            infoStream.write("Pushing changes from remote...\n")
+            infoStream.write("Pushing changes to remote...\n")
         try:
             info = self.repo.git.push(self.remoteWithToken, 'master')
             if infoStream and len(info):
@@ -1091,6 +1091,14 @@ class PavloviaProject(dict):
             infoStream = getInfoStream()
         if infoStream:
             infoStream.write("Pushing to Pavlovia for the first time...\n")
+        # construct initial commit
+        self.stageFiles(infoStream=infoStream)
+        info = self.commit(
+            _translate("Push initial project files")
+        )
+        if infoStream and len(info):
+            infoStream.write("{}\n".format(info))
+        # push
         info = self.repo.git.push('-u', self.remoteWithToken, 'master')
         self.project.attributes['default_branch'] = 'master'
         if infoStream:
@@ -1244,10 +1252,12 @@ class PavloviaProject(dict):
 
     def commit(self, message):
         """Commits the staged changes"""
-        self.repo.git.commit('-m', message)
+        info = self.repo.git.commit('-m', message)
         time.sleep(0.1)
         # then get a new copy of the repo
         self.repo = git.Repo(self.localRoot)
+
+        return info
 
     def save(self):
         """Saves the metadata to gitlab.pavlovia.org"""
