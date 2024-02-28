@@ -14,6 +14,7 @@ from psychopy.experiment import getAllStandaloneRoutines
 from psychopy.experiment.routines._base import Routine, BaseStandaloneRoutine
 from psychopy.experiment.loops import LoopTerminator, LoopInitiator
 from psychopy.tools import filetools as ft
+from psychopy.preferences import prefs
 
 
 class Flow(list):
@@ -245,6 +246,14 @@ class Flow(list):
         if self.exp.settings.params['rush']:
             code = (
                 "# enter 'rush' mode (raise CPU priority)\n"
+            )
+            # put inside an if statement if rush can be overwritten by piloting
+            if prefs.piloting['forceNonRush']:
+                code += (
+                    "if not PILOTING:\n"
+                    "    "
+                )
+            code += (
                 "core.rush(enable=True)\n"
             )
             script.writeIndentedLines(code)
