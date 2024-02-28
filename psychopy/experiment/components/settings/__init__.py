@@ -81,7 +81,7 @@ class SettingsComponent:
     tooltip = _translate("Edit settings for this experiment")
 
     def __init__(
-            self, parentName, exp, expName='', fullScr=True, runMode=0,
+            self, parentName, exp, expName='', fullScr=True, runMode=0, rush=False,
             winSize=(1024, 768), screen=1, monitor='testMonitor', winBackend='pyglet',
             showMouse=False, saveLogFile=True, showExpInfo=True,
             expInfo="{'participant':'f\"{randint(0, 999999):06.0f}\"', 'session':'001'}",
@@ -151,6 +151,7 @@ class SettingsComponent:
             'runMode',
             'Use version',
             'Enable Escape',
+            'rush',
             'Show info dlg',
             'Experiment info',
         ]
@@ -195,6 +196,13 @@ class SettingsComponent:
                 "Enable the <esc> key, to allow subjects to quit / break out of the experiment"
             ),
             label=_translate("Enable escape key")
+        )
+        self.params['rush'] = Param(
+            rush, valType="bool", inputType="bool", categ="Basic",
+            hint=_translate(
+                "Enable 'rush' mode, which will raise CPU priority while the experiment is running"
+            ),
+            label=_translate("Enable 'rush' mode")
         )
         self.params['Show info dlg'] = Param(
             showExpInfo, valType='bool', inputType="bool", categ='Basic',

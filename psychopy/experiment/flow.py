@@ -241,6 +241,13 @@ class Flow(list):
         script.writeIndentedLines(code)
         script.setIndentLevel(+1, relative=True)
 
+        # start rush mode
+        if self.exp.settings.params['rush']:
+            code = (
+                "# enter 'rush' mode (raise CPU priority)\n"
+                "core.rush(enable=True)\n"
+            )
+            script.writeIndentedLines(code)
         # initialisation
         code = (
             "# mark experiment as started\n"
@@ -332,6 +339,13 @@ class Flow(list):
             "endExperiment(thisExp, win=win)\n"
         )
         script.writeIndentedLines(code)
+        # end rush mode
+        if self.exp.settings.params['rush']:
+            code = (
+                "# end 'rush' mode\n"
+                "core.rush(enable=False)\n"
+            )
+            script.writeIndentedLines(code)
 
         # Exit function def
         script.setIndentLevel(-1, relative=True)
