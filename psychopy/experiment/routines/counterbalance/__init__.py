@@ -22,6 +22,7 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
             saveData=True, saveRemaining=True
     ):
         BaseStandaloneRoutine.__init__(self, exp, name=name)
+        self.url = "https://psychopy.org/builder/components/counterbalanceComponent.html"
 
         # we don't need a stop time
         del self.params['stopVal']
