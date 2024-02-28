@@ -598,6 +598,11 @@ class TextBox2(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin):
             # If given an array, convert it to a Vector
             self._letterHeight = layout.Size(value, units=self.units, win=self.win)
 
+    def setLetterHeight(self, value, log=None):
+        setAttribute(
+            self, "letterHeight", value=value, log=log
+        )
+
     @property
     def letterHeightPix(self):
         """
