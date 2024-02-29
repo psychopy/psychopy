@@ -198,6 +198,9 @@ class StdOutRich(wx.richtext.RichTextCtrl, _BaseErrorHandler, handlers.ThemeMixi
         self.MoveEnd()
         self.ShowPosition(self.GetLastPosition())
 
+        if evt is not None:
+            evt.Skip()
+
     def flush(self):
         for alert in self.alerts:
             self.write(alert)

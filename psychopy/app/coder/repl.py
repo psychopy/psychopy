@@ -234,6 +234,10 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
     #     """
     #     pass
 
+    def setFonts(self):
+        """Set the font for the console."""
+        self.txtTerm._applyAppTheme()
+
     def getNamespace(self):
         """Get variable names in the current namespace.
         """
