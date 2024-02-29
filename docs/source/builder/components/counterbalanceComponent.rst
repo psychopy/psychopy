@@ -36,4 +36,4 @@ Save remaining cap
 
 Example
 =======
-Click here for an example on how to use the Counterbalance Routine.
+Click `here <https://www.psychopy.org/online/shelf.html#counterbalanceshelf>`_ for an example on how to use the Counterbalance Routine.

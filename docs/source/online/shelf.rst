@@ -152,6 +152,7 @@ Once you click on Ok, you will see an empty table in Value. Here, set up the sam
     :align: center
     :figclass: align-center
 
+|
 Your resulting Shelf record should look like this:
 
 .. figure:: /images/counterbalanceRecordType.png
