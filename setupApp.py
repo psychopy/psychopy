@@ -13,9 +13,12 @@ import bdist_mpkg  # noqa: needed to build bdist, even though not explicitly use
 import py2app  # noqa: needed to build app bundle, even though not explicitly used here
 from ctypes.util import find_library
 import importlib
+import building.compile_po
 
 import psychopy
 version = psychopy.__version__
+
+building.compile_po.compilePoFiles()
 
 # regenerate __init__.py only if we're in the source repos (not in a zip file)
 try:
