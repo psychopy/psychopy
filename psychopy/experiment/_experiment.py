@@ -1014,14 +1014,11 @@ class Experiment:
         if len(unknownParams):
             # construct message
             msg = _translate(
-                "Parameters which are not known to this version of PsychoPy, have come "
-                "from your experiment file:\n"
-                "%s\n"
-                "This experiment may not run correctly in the "
-                "current version."
+                "Parameters not known to this version of PsychoPy have come from your experiment "
+                "file: %s. This experiment may not run correctly in the current version."
             )
             # log message
-            logging.warn(msg % "\n".join(unknownParams))
+            logging.warn(msg % ", ".join(unknownParams))
             logging.flush()
 
     @staticmethod
