@@ -493,7 +493,10 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
 
     def populate(self):
         # Get all plugin details
-        items = getAllPluginDetails()
+        try:
+            items = getAllPluginDetails()
+        except json.decoder.JSONDecodeError:
+            return
         # Start off assuming no headings
         self.badItemLbl.Hide()
         # Put installed packages at top of list
