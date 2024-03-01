@@ -134,9 +134,9 @@ Counterbalancing
 ^^^^^^^^^^^^^^^^^
 **PsychoPy Version 2024.1 or later required**
 
-**Demo link:** `here <>`_
+**Demo link:** `here <https://run.pavlovia.org/Consultancy/numgroup_test>`_
 
-**Demo experiment files:** `here <>`_
+**Demo experiment files:** `here <https://gitlab.pavlovia.org/Consultancy/numgroup_test>`_
 
 We now have a Counterbalance Routine where you can set up your counterbalance groups in Builder Mode and interact with the Shelf with the record type, Counterbalance.
 
