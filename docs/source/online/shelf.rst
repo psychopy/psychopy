@@ -139,8 +139,14 @@ Counterbalancing
 
 **Demo experiment files:** `here <>`_
 
-We now have a Counterbalance Routine where you can set up your counterbalance groups in Builder Mode (*see Demo experiment files*) and interact with the Shelf with the record type, Counterbalance.
+We now have a Counterbalance Routine where you can set up your counterbalance groups in Builder Mode and interact with the Shelf with the record type, Counterbalance.
 
+.. figure:: /images/counterbalanceBuilder.png
+    :name: shelfAccess
+    :align: center
+    :figclass: align-center
+
+|
 To set up your Counterbalance Shelf, you would need to first upload your task to Pavlovia and set it to Pilot/Running Mode. 
 
 In your Shelf view of your Dashboard, click on Add Record. In Key, add the name of your Counterbalance Routine as in your Builder task. For Scope, choose Experiment and select the name of your Builder task. For Type, select Counterbalance (*you might need to scroll down*).
@@ -162,39 +168,6 @@ Your resulting Shelf record should look like this:
 
 |
 To find out more about the Counterbalance Routine, click here.
-
-
-|
-**Method 2**
-
-**Demo link:** `here <https://run.pavlovia.org/lpxrh6/shelf_counterbalance_demo/>`_
-
-**Demo experiment files:** `here <https://gitlab.pavlovia.org/lpxrh6/shelf_counterbalance_demo/>`_
-
-Counterbalancing can be a pain, but online it is even more painful! There are many more participants available in the pool and the researcher has less control over group assignment (compared with in the lab!). The Shelf now has handy helper functions to assist.
-
-* :code:`psychoJS.shelf.counterbalanceSelect()`
-
-To get started you must make a record with the type, Dictionary. It must also have the following fields:
-
-
-.. figure:: /images/counterbalanceShelf1.png
-    :name: shelfAccess
-    :align: center
-    :figclass: align-center
-
-|
-    Example set up for a Shelf Record used to assist with counterbalancing. The Key Components need to have a meaningful name and since this record is for counterbalancing the groups, "my_groups" is used here. There are two types of scopes: 1) DESIGNER - This shelf record can be used for all experiments; 2) EXPERIMENT - This shelf record can only be used for the selected experiment.
-|
-.. figure:: /images/counterbalanceCodeComponent1.png
-    :name: shelfCodeComponent
-    :align: center
-    :figclass: align-center
-
-**Note that the key within the code component uses the same name as the Key Component in the Shelf record.**
-
-|   
-In your experiment, you can then use :code:`counterbal = await psychoJS.shelf.counterBalanceSelect({key: ['my_groups']})` which will return a counterbalance object `counterbal` with two properties, :code:`counterbal.group` indicates the group selected for this participant and :code:`counterbal.finished` indicating if sampling has completed (i.e. all groups are full). If during testing you notice that some groups need "topping up" e.g. the data from one participant is unusable, you can always edit the Shelf directly to allow more participants in each group.
 
 
 .. _leaderboardShelf:
