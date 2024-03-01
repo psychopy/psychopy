@@ -1196,7 +1196,13 @@ def getAllPluginDetails():
             resp = requests.get(srcURL)
             if resp.status_code == 404:
                 return None
-            return resp.text
+            value = resp.text
+            # confirm json is valid
+            try:
+                json.loads(value)
+                return value
+            except json.decoder.JSONDecodeError:
+                return None
         except requests.exceptions.ConnectionError:
             return None
         
