@@ -5,35 +5,73 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-"""Functions and classes related to attribute handling
+"""
+Functions and classes related to attribute handling
 """
 
 import numpy
+import inspect
 from psychopy import logging
 from functools import partialmethod
 from psychopy.tools.stringtools import CaseSwitcher
 
 
 class attributeSetter:
-    """Makes functions appear as attributes. Takes care of autologging.
+    """
+    Decorator to make functions appear as attributes. Takes care of autologging and is faster
+    than property/setter pairs. Use the default value for the argument `value` in the decorated
+    method to handle when the attribute is queried before being set.
+
+    Example
+    -------
+    ```
+    from psychopy.tools.attributetools import  attributeSetter
+
+    class ExampleVisualStim(BaseVisualStim):
+        @attributeSetter
+        def someAttrib(self, value=None):
+            '''
+            Some attribute in a visual stim. If not set yet, will be None.
+            '''
+            # set the value in the object's dict
+            self.__dict__['someAttrib']
+    ```
     """
 
     def __init__(self, func, doc=None):
+        # store ref to function
         self.func = func
+        # copy docs if there are any
         if doc is not None:
             self.__doc__ = doc
         else:
             self.__doc__ = func.__doc__
+    
+    def __get__(self, obj, owner):
+        """
+        If attribute value is queried before being set, get its default value from the method
+        signature. If it has none, will return the attributeSetter object itself.
+        """
+        if self.func.__name__ in obj.__dict__:
+            # if value has been set, return it
+            return obj.__dict__[self.func.__name__]
+        else:
+            # otherwise, get default from function signature
+            sig = inspect.signature(self.func)
+            if "value" in sig.parameters and sig.parameters['value'].default is not inspect._empty:
+                    # if there is a default (as recommended), return it
+                    return sig.parameters['value'].default
+            # if there's no default, return attributeSetter object itself
+            return self
 
     def __set__(self, obj, value):
-        newValue = self.func(obj, value)
-        # log=None defaults to obj.autoLog:
-        logAttrib(obj, log=None, attrib=self.func.__name__,
-                  value=value)
+        """
+        When attribute is set, will instead call the decorated function and will log change if
+        object's autoLog attribute is True. This is useful for inspection/debugging.
 
-        # Useful for inspection/debugging. Keeps track of all settings of
-        # attributes.
-        '''
+        Example
+        -------
+        ```
         import traceback
         origin = traceback.extract_stack()[-2]
         # print('%s.%s = %s (line %i)' %(obj.__class__.__name__,
@@ -42,7 +80,18 @@ class attributeSetter:
         #        self.func.__name__, value.__repr__(),
         #        origin[1], origin[0].split('/')[-1],
         #        origin[1], origin[3].__repr__())))  # long
-        '''
+        ```
+        """
+        # call the decorated function
+        newValue = self.func(obj, value)
+        # do logging
+        logAttrib(
+            obj, 
+            log=None, # log=None defaults to obj.autoLog
+            attrib=self.func.__name__,
+            value=value
+        )
+
         return newValue
 
     def __repr__(self):
