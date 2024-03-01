@@ -132,8 +132,7 @@ First, we check, has this participant taken part at all? We can do that by check
 
 Counterbalancing
 ^^^^^^^^^^^^^^^^^
-**Method 1 (recommended)**
-*PsychoPy Version 2024.1 or later required*
+**PsychoPy Version 2024.1 or later required**
 
 **Demo link:** `here <>`_
 
@@ -167,7 +166,7 @@ Your resulting Shelf record should look like this:
     :figclass: align-center
 
 |
-To find out more about the Counterbalance Routine, click here.
+To find out more about the Counterbalance Routine, click `here <https://www.psychopy.org/builder/components/counterbalanceStandaloneRoutine.html>`_
 
 
 .. _leaderboardShelf:

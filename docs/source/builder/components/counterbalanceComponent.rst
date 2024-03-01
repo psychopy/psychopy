@@ -1,11 +1,11 @@
-.. _counterbalanceComponent:
+.. _counterbalanceStandaloneRoutine:
 
-Counterbalance component
+Counterbalance Standalone Routine
 -------------------------------
 
 **Available from PsychoPy version 2024.1.0**
 
-The counterbalance routine is available to use locally and online. Click `here <https://www.psychopy.org/online/shelf.html#counterbalanceshelf>`_ for an example on how to use the Counterbalance Routine.
+The counterbalance standalone routine is available to use locally and online. Click `here <https://www.psychopy.org/online/shelf.html#counterbalanceshelf>`_ for an example on how to use the Counterbalance Routine.
 
 
 Parameters
@@ -22,9 +22,11 @@ Groups from... : Specify how many groups you want in your experiment
 
     Choosing from ``Condition file`` allows maximum flexibility in setting up groups. By using an excel spreadsheet, the probability of each group occuring, slots per group and any other additional parameters can be speficied.
 
-Num.repeats : How many times you want the sampling to repeat. For example, if you put 2, the experiment will finish collecting all the required participant based on the counterbalance groups and then repeat the same procedure the second time.   
+Num.repeats : integer
+    How many times you want the sampling to repeat. For example, if you put 2, the experiment will finish collecting all the required participant based on the counterbalance groups and then repeat the same procedure the second time.   
 
-Num.repeats : If checked, this ends the experiment when all participants have filled all the counterbalance groups.
+End experiment on depletion : boolean
+    If checked, this ends the experiment when all participants have filled all the counterbalance groups.
 
 
 Data
