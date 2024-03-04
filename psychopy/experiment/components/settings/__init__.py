@@ -1320,7 +1320,9 @@ class SettingsComponent:
         sorting = "False"  # in Py3 dicts are chrono-sorted so default no sort
         code = (
             f"# show participant info dialog\n"
-            f"dlg = gui.DlgFromDict(dictionary=expInfo, sortKeys={sorting}, title=expName)\n"
+            f"dlg = gui.DlgFromDict(\n"
+            f"    dictionary=expInfo, sortKeys={sorting}, title=expName, alwaysOnTop=True\n"
+            f")\n"
             f"if dlg.OK == False:\n"
             f"    core.quit()  # user pressed cancel\n"
             f"# return expInfo\n"
