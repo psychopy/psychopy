@@ -181,6 +181,7 @@ class StdOutRich(wx.richtext.RichTextCtrl, _BaseErrorHandler, handlers.ThemeMixi
                 elif len(re.findall('WARNING|DEPRECATION', thisLine)) > 0:
                     # this line contains a warning
                     self.BeginStyle(self._styles['warning'])
+                    self.WriteText(thisLine)
                 elif len(re.findall('DATA|EXP|INFO|DEBUG', thisLine)):
                     # this line contains logging
                     self.BeginStyle(self._styles['info'])
@@ -197,6 +198,9 @@ class StdOutRich(wx.richtext.RichTextCtrl, _BaseErrorHandler, handlers.ThemeMixi
         # go to end of stdout so user can see updated text
         self.MoveEnd()
         self.ShowPosition(self.GetLastPosition())
+
+        if evt is not None:
+            evt.Skip()
 
     def flush(self):
         for alert in self.alerts:

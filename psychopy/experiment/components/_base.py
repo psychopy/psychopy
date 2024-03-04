@@ -13,6 +13,7 @@ from xml.etree.ElementTree import Element
 from psychopy import prefs
 from psychopy.constants import FOREVER
 from ..params import Param
+from psychopy.experiment.utils import canBeNumeric
 from psychopy.experiment.utils import CodeGenerationException
 from psychopy.experiment.utils import unescapedDollarSign_re
 from psychopy.experiment.params import getCodeFromParamStr
@@ -703,16 +704,12 @@ class BaseComponent:
         """
         if paramName == 'advancedParams':
             return  # advancedParams is not really a parameter itself
-        elif paramName == 'letterHeight':
-            paramCaps = 'Height'  # setHeight for TextStim
         elif paramName == 'image' and self.getType() == 'PatchComponent':
             paramCaps = 'Tex'  # setTex for PatchStim
         elif paramName == 'sf':
             paramCaps = 'SF'  # setSF, not SetSf
         elif paramName == 'coherence':
             paramCaps = 'FieldCoherence'
-        elif paramName == 'fieldPos':
-            paramCaps = 'FieldPos'
         else:
             paramCaps = paramName[0].capitalize() + paramName[1:]
 
@@ -1353,14 +1350,3 @@ class BaseVisualComponent(BaseComponent):
                     "\n"
                 )
                 indented -= 1
-
-
-def canBeNumeric(inStr):
-    """Determines whether the input can be converted to a float
-    (using a try: float(instr))
-    """
-    try:
-        float(inStr)
-        return True
-    except Exception:
-        return False

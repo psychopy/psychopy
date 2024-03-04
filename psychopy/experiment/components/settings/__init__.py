@@ -81,7 +81,7 @@ class SettingsComponent:
     tooltip = _translate("Edit settings for this experiment")
 
     def __init__(
-            self, parentName, exp, expName='', fullScr=True, runMode=0,
+            self, parentName, exp, expName='', fullScr=True, runMode=0, rush=False,
             winSize=(1024, 768), screen=1, monitor='testMonitor', winBackend='pyglet',
             showMouse=False, saveLogFile=True, showExpInfo=True,
             expInfo="{'participant':'f\"{randint(0, 999999):06.0f}\"', 'session':'001'}",
@@ -139,32 +139,31 @@ class SettingsComponent:
         # params
         self.params = {}
         self.depends = []
-        self.order = ['expName', 'Use version', 'Enable Escape',  'Show info dlg', 'Experiment info',  # Basic tab
+        self.order = [
                       'Audio lib', 'Audio latency priority', "Force stereo",  # Audio tab
                       'HTML path', 'exportHTML', 'Completed URL', 'Incomplete URL', 'End Message', 'Resources',  # Online tab
                       ]
         self.depends = []
-        # basic params
+
+        # --- Basic params ---
+        self.order += [
+            'expName',
+            'runMode',
+            'Use version',
+            'Enable Escape',
+            'rush',
+            'Show info dlg',
+            'Experiment info',
+        ]
         self.params['expName'] = Param(
-            expName, valType='str',  inputType="single", allowedTypes=[],
-            hint=_translate("Name of the entire experiment (taken by default"
-                            " from the filename on save)"),
-            label=_translate("Experiment name"))
-        self.depends.append(
-            {"dependsOn": "Show info dlg",  # must be param name
-             "condition": "==True",  # val to check for
-             "param": "Experiment info",  # param property to alter
-             "true": "enable",  # what to do with param if condition is True
-             "false": "disable",  # permitted: hide, show, enable, disable
-             }
+            expName, valType='str', inputType="single", categ='Basic',
+            hint=_translate(
+                "Name of the entire experiment (taken by default from the filename on save)"
+            ),
+            label=_translate("Experiment name")
         )
-        self.params['Show info dlg'] = Param(
-            showExpInfo, valType='bool', inputType="bool", allowedTypes=[],
-            hint=_translate("Start the experiment with a dialog to set info"
-                            " (e.g.participant or condition)"),
-            label=_translate("Show info dialog"), categ='Basic')
         self.params['runMode'] = Param(
-            runMode, valType="code", inputType="choice",
+            runMode, valType="code", inputType="choice", categ="Basic",
             allowedVals=[0, 1],
             allowedLabels=[_translate("Piloting"), _translate("Running")],
             label=_translate("Run mode"),
@@ -173,32 +172,64 @@ class SettingsComponent:
                 "recommended while the experiment is a work in progress."
             )
         )
-        self.params['Enable Escape'] = Param(
-            enableEscape, valType='bool', inputType="bool", allowedTypes=[],
-            hint=_translate("Enable the <esc> key, to allow subjects to quit"
-                            " / break out of the experiment"),
-            label=_translate("Enable escape key"))
-        self.params['Experiment info'] = Param(
-            expInfo, valType='code', inputType="dict", categ='Basic',
-            allowedLabels=(_translate("Field"), _translate("Default")),
-            hint=_translate("The info to present in a dialog box. Right-click"
-                            " to check syntax and preview the dialog box."),
-            label=_translate("Experiment info"))
+
         def getVersions():
+            """
+            Search for options locally available
+            """
             import psychopy.tools.versionchooser as versions
             available = versions._versionFilter(versions.versionOptions(), wx_version)
             available += ['']
             available += versions._versionFilter(versions.availableVersions(), wx_version)
             return available
+
         self.params['Use version'] = Param(
             useVersion, valType='str', inputType="choice",
-            # search for options locally only by default, otherwise sluggish
             allowedVals=getVersions,
-            hint=_translate("The version of PsychoPy to use when running "
-                            "the experiment."),
-            label=_translate("Use PsychoPy version"), categ='Basic')
+            hint=_translate(
+                "The version of PsychoPy to use when running the experiment."
+            ),
+            label=_translate("Use PsychoPy version"))
+        self.params['Enable Escape'] = Param(
+            enableEscape, valType='bool', inputType="bool", categ="Basic",
+            hint=_translate(
+                "Enable the <esc> key, to allow subjects to quit / break out of the experiment"
+            ),
+            label=_translate("Enable escape key")
+        )
+        self.params['rush'] = Param(
+            rush, valType="bool", inputType="bool", categ="Basic",
+            hint=_translate(
+                "Enable 'rush' mode, which will raise CPU priority while the experiment is running"
+            ),
+            label=_translate("Enable 'rush' mode")
+        )
+        self.params['Show info dlg'] = Param(
+            showExpInfo, valType='bool', inputType="bool", categ='Basic',
+            hint=_translate(
+                "Start the experiment with a dialog to set info (e.g.participant or condition)"
+            ),
+            label=_translate("Show info dialog")
+        )
+        self.depends.append(
+            {"dependsOn": "Show info dlg",  # must be param name
+             "condition": "==True",  # val to check for
+             "param": "Experiment info",  # param property to alter
+             "true": "enable",  # what to do with param if condition is True
+             "false": "disable",  # permitted: hide, show, enable, disable
+             }
+        )
+        self.params['Experiment info'] = Param(
+            expInfo, valType='code', inputType="dict", categ='Basic',
+            allowedLabels=(_translate("Field"), _translate("Default")),
+            hint=_translate(
+                "The info to present in a dialog box. Right-click to check syntax and preview "
+                "the dialog box."
+            ),
+            label=_translate("Experiment info")
+        )
 
-        # screen params
+        # --- Screen params ---
         self.order += [
             "Monitor",
             "winBackend",
