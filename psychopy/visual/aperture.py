@@ -93,17 +93,9 @@ class Aperture(MinimalStim, ContainerMixin):
             self.units = win.units
 
         vertices = shape
-        if shape in knownShapes:
-            # if given a shape name, get vertices from known shapes
-            vertices = knownShapes[shape]
-        elif isinstance(shape, str) and os.path.isfile(shape):
+        if isinstance(shape, str) and os.path.isfile(shape):
             # see if it points to a file
             self.__dict__['filename'] = shape
-        else:
-            msg = ("Unrecognized shape for aperture. Expected 'circle',"
-                   " 'square', 'triangle', vertices, filename, or None;"
-                   " got %s")
-            logging.error(msg % repr(shape))
 
         if self.__dict__['filename']:
             self._shape = ImageStim(
