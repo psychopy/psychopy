@@ -270,11 +270,15 @@ class Color:
         self._requestedSpace = None
 
         self.set(color=color, space=space)
-
+    
+    perform_validation = True # Static flag
     def validate(self, color, space=None):
         """
         Check that a color value is valid in the given space, or all spaces if space==None.
         """
+        if (not Color.perform_validation):
+            return color, space
+
         # Treat None as a named color
         if color is None:
             color = "none"
@@ -487,10 +491,18 @@ class Color:
         return self.__deepcopy__()
 
     def __deepcopy__(self):
+        # optimization to disable validation while copying
+        # since it isn't necessary and is very slow
+        original_perform_validation = Color.perform_validation
+        Color.perform_validation = False
+
         dupe = self.__class__(
             self._requested, self._requestedSpace, self.contrast)
         dupe.rgba = self.rgba
         dupe.valid = self.valid
+
+        Color.perform_validation = original_perform_validation
+
         return dupe
 
     def getReadable(self, contrast=4.5/21):
