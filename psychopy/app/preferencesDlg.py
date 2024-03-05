@@ -588,7 +588,7 @@ class PreferencesDlg(wx.Dialog):
                         options = self.audioDevNames
                         try:
                             default = self.audioDevNames.index(
-                                self.audioDevDefault)
+                                self.audioDevDefault[0])
                         except ValueError:
                             default = 0
                     else:
@@ -663,8 +663,8 @@ class PreferencesDlg(wx.Dialog):
                     self.app.theme = self.prefsCfg[sectionName][prefName] = self.themeList[thisPref]
                     continue
                 elif prefName == 'audioDevice':
-                    self.prefsCfg[sectionName][prefName] = \
-                        self.audioDevNames[thisPref]
+                    self.audioDevDefault = [self.audioDevNames[thisPref]]
+                    self.prefsCfg[sectionName][prefName] = self.audioDevDefault
                     continue
                 elif prefName == 'locale':
                     # '' corresponds to system locale
