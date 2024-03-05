@@ -12,7 +12,7 @@
 import os
 import sys
 
-__version__ = '2024.1.0rc13'
+__version__ = '2024.1.0rc14'
 __license__ = 'GPL v3'
 __author__ = 'Open Science Tools Ltd'
 __author_email__ = 'support@opensciencetools.org'
@@ -50,13 +50,6 @@ if 'installing' not in locals():
         if _pathName.is_dir():
             sys.path.append(str(_pathName))
 
-    # add paths from plugins/packages (installed by plugins manager)
-    _userPackagePath = prefs.paths['userPackages']
-    _userScripts = prefs.paths['userScripts']
-    if _userPackagePath.is_dir():
-        sys.path.append(str(_userPackagePath))  # user site-packages
-        sys.path.append(str(_userScripts))  # user scripts
-    
     from psychopy.tools.versionchooser import useVersion, ensureMinimal
 
 if sys.version_info.major < 3:
