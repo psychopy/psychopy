@@ -168,7 +168,8 @@ def getSupportedConfigSettings(moduleName, deviceClassName=None):
         yamlFile = yamlRoot / pathlib.Path(moduleName.__file__).parent / fileName
         if not yamlFile.exists():
             raise FileNotFoundError(
-                "No config file found in module dir {0}".format(moduleName))
+                "No config file found in module dir for: {0}".format(
+                    moduleName))
         logging.debug(
             "Found ioHub device configuration file: {0}".format(yamlFile))
 
