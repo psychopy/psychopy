@@ -147,11 +147,12 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
                     "Could not choose default recording device as no recording devices are "
                     "connected."
                 ))
-
+            # use first device
             self._device = _devices[0]
         elif isinstance(index, str):
             # if given a str that's a name from DeviceManager, get info from device
             device = DeviceManager.getDevice(index)
+            # try to duplicate and fail if not found
             if isinstance(device, MicrophoneDevice):
                 self._device = device._device
             else:
@@ -268,8 +269,35 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             self._device.deviceIndex))
 
     def findBestDevice(self, index, sampleRateHz, channels):
+        """
+        Find the closest match among the microphone profiles listed by psychtoolbox as valid.
+
+        Parameters
+        ----------
+        index : int
+            Index of the device
+        sampleRateHz : int
+            Sample rate of the device
+        channels : int
+            Number of audio channels in input stream
+
+        Returns
+        -------
+        AudioDeviceInfo
+            Device info object for the chosen configuration
+
+        Raises
+        ------
+        logging.Warning
+            If an exact match can't be found, will use the first match to the device index and
+            raise a warning.
+        KeyError
+            If no match is found whatsoever, will raise a KeyError
+        """
+        # start off with no chosen device and no fallback
         fallbackDevice = None
         chosenDevice = None
+        # iterate through device profiles
         for profile in self.getDevices():
             # if same index, keep as fallback
             if profile.deviceIndex == index:
@@ -281,6 +309,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
                 profile.inputChannels == channels,
             )):
                 chosenDevice = profile
+        # if no exact match found, use fallback and raise warning
         if chosenDevice is None:
             logging.warning(
                 f"Could not find exact match for specified parameters (index={index}, sampleRateHz="
@@ -290,6 +319,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
                 f"channels={fallbackDevice.inputChannels})"
             )
             chosenDevice = fallbackDevice
+        # if no index match found, raise error
         if chosenDevice is None:
             raise KeyError(
                 f"Could not find any device with index {index}"
