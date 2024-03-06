@@ -50,6 +50,13 @@ if 'installing' not in locals():
         if _pathName.is_dir():
             sys.path.append(str(_pathName))
 
+    # add paths from plugins/packages (installed by plugins manager)
+    _userPackagePath = prefs.paths['userPackages']
+    _userScripts = prefs.paths['userScripts']
+    if _userPackagePath.is_dir():
+        sys.path.append(str(_userPackagePath))  # user site-packages
+        sys.path.append(str(_userScripts))  # user scripts
+        
     from psychopy.tools.versionchooser import useVersion, ensureMinimal
 
 if sys.version_info.major < 3:
