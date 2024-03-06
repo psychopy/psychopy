@@ -5,6 +5,7 @@
 import importlib
 import os
 import sys
+import inspect
 from operator import itemgetter
 from collections import deque, OrderedDict
 
@@ -850,10 +851,33 @@ class ioServer():
         # get config from path
         dev_conf_pth = os.path.join(dev_file_pth,
                                     'default_%s.yaml' % (dev_cls_name.lower()))
-
         self.log('Loading Device Defaults file: %s' % (dev_cls_name,))
-        # load config
-        _dconf = yload(open(dev_conf_pth, 'r'), Loader=yLoader)
+
+        # Load config, try first from the usual location. If the file isn't 
+        # present, look at the directory the device interface class is located 
+        # in. This additional step is required for devices which are offloaded 
+        # to plugins.
+        try:
+            _dconf = yload(open(dev_conf_pth, 'r'), Loader=yLoader)
+        except FileNotFoundError:
+            # Look for the file using an alternative method, this may be due to
+            # file being located in a plugin directory, for now only the 
+            # EyeTracker device is offloaded to plugins.
+            if dev_cls_name.endswith('EyeTracker'):
+                # Get the path from the object handles which reference the 
+                # file in the plugin directory
+                dev_conf_pth = os.path.dirname(
+                    inspect.getfile(dev_mod.EyeTracker))
+                dev_conf_pth = os.path.join(
+                    dev_conf_pth, 'default_%s.yaml' % (dev_cls_name.lower()))
+                with open(dev_conf_pth, 'r') as conf_file:
+                    _dconf = yload(conf_file, Loader=yLoader)
+            else:
+                print2err(
+                    'ERROR: Device Defaults file not found: %s' % (
+                        dev_cls_name,))
+                return None
+
         _, def_dev_conf = _dconf.popitem()
 
         self.processDeviceConfigDictionary(dev_mod_pth, dev_cls_name, dev_conf,

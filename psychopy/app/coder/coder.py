@@ -2272,7 +2272,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
                 self.fileHistory.AddFileToHistory(filename)
             else:
                 # set name for an untitled document
-                filename = 'untitled.py'
+                filename = shortName = 'untitled.py'
                 allFileNames = self.getOpenFilenames()
                 n = 1
                 while filename in allFileNames:
@@ -2608,8 +2608,12 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
     def onRunShortcut(self, evt=None):
         """
-        Callback for when the run shortcut is pressed - will either run or pilot depending on run mode
+        Callback for when the run shortcut is pressed - will either run or pilot 
+        depending on run mode
         """
+        if self.currentDoc is None:
+            return
+
         # run/pilot according to mode
         if self.ribbon.buttons['pyswitch'].mode:
             self.runFile(evt)
@@ -2620,11 +2624,17 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         """
         Send the current file to the Runner and run it.
         """
+        if self.currentDoc is None:  # do nothing if no file is present
+            return
+
         if self.sendToRunner(event):
             self.app.runner.panel.runLocal(event, focusOnExit='coder')
             self.Raise()
 
     def pilotFile(self, event=None):
+        if self.currentDoc is None:
+            return
+
         if self.sendToRunner(event):
             self.app.runner.panel.pilotLocal(event, focusOnExit='coder')
             self.Raise()
@@ -2909,13 +2919,13 @@ class CoderRibbon(ribbon.FrameRibbon):
             section="file", name="save", label=_translate("Save"), icon="filesave",
             tooltip=_translate("Save current text file"),
             callback=parent.fileSave
-        )
+        ).Disable()
         # file save as
         self.addButton(
             section="file", name="saveas", label=_translate("Save as..."), icon="filesaveas",
             tooltip=_translate("Save current text file as..."),
             callback=parent.fileSaveAs
-        )
+        ).Disable()
 
         self.addSeparator()
 
@@ -2987,13 +2997,13 @@ class CoderRibbon(ribbon.FrameRibbon):
             section="py", name="pypilot", label=_translate("Pilot"), icon='pyPilot',
             tooltip=_translate("Run the current script in Python with piloting features on"),
             callback=parent.pilotFile
-        )
+        ).Disable()
         # run Py
         self.addButton(
             section="py", name="pyrun", label=_translate("Run"), icon='pyRun',
             tooltip=_translate("Run the current script in Python"),
             callback=parent.runFile
-        )
+        ).Disable()
         # link run buttons to switch
         runPilotSwitch.addDependant(self.buttons['pyrun'], mode=1, action="show")
         runPilotSwitch.addDependant(self.buttons['pypilot'], mode=0, action="show")

@@ -774,7 +774,7 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         display.
         Also note that this position is in scale units, not in coordinates"""
         rating = self._granularRating(rating)
-        if ('markerPos' not in self.__dict__ or not np.alltrue(
+        if ('markerPos' not in self.__dict__ or not np.all(
                 self.__dict__['markerPos'] == rating)):
             self.__dict__['markerPos'] = rating
             self._updateMarkerPos = True

@@ -1812,7 +1812,7 @@ class BaseRigidBodyStim(ColorMixin, WindowMixin):
         super(BaseRigidBodyStim, self).__init__()
 
         self.win = win
-
+        self.autoLog = autoLog
         self.colorSpace = colorSpace
         self.contrast = contrast
         self.opacity = opacity
@@ -1822,8 +1822,6 @@ class BaseRigidBodyStim(ColorMixin, WindowMixin):
         self.material = None
 
         self._vao = None
-
-        self.autoLog = autoLog
 
     @property
     def thePose(self):

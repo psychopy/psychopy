@@ -63,8 +63,6 @@ from __future__ import absolute_import, division, print_function
 import json
 from collections import deque
 import sys
-import copy
-import psychopy.core
 import psychopy.clock
 from psychopy import logging
 from psychopy.constants import NOT_STARTED
@@ -142,6 +140,7 @@ class KeyPress(BaseResponse):
             self.name = name
             self.rt = tDown
         elif KeyboardDevice._backend == 'ptb':
+            self.rt = tDown
             if code not in keyNames and code in keyNames.values():
                 i = list(keyNames.values()).index(code)
                 code = list(keyNames.keys())[i]
@@ -548,10 +547,10 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
         response = None
 
         if KeyboardDevice._backend == 'ptb':
+            message['time'] -= self.clock.getLastResetTime()
             if message['down']:
                 # if message is from a key down event, make a new response
                 response = KeyPress(code=message['keycode'], tDown=message['time'])
-                response.rt = response.tDown - self.clock.getLastResetTime()
                 self._keysStillDown.append(response)
             else:
                 # if message is from a key up event, alter existing response
@@ -622,7 +621,7 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
         Returns None if times out.
     
         """
-        timer = psychopy.core.Clock()
+        timer = psychopy.clock.Clock()
 
         if clear:
             self.clearEvents()
@@ -631,6 +630,7 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
             keys = self.getKeys(keyList=keyList, waitRelease=waitRelease, clear=clear)
             if keys:
                 return keys
+            psychopy.clock._dispatchWindowEvents()  # prevent "app is not responding"
             time.sleep(0.00001)
 
         logging.data('No keypress (maxWait exceeded)')

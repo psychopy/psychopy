@@ -554,7 +554,7 @@ def xydist(p1=(0.0, 0.0), p2=(0.0, 0.0)):
     return numpy.sqrt(pow(p1[0] - p2[0], 2) + pow(p1[1] - p2[1], 2))
 
 
-class Mouse():
+class Mouse:
     """Easy way to track what your mouse is doing.
 
     It needn't be a class, but since Joystick works better
@@ -578,7 +578,7 @@ class Mouse():
                  newPos=None,
                  win=None):
         super(Mouse, self).__init__()
-        self.visible = visible
+        self._visible = visible
         self.lastPos = None
         self.prevPos = None  # used for motion detection and timing
         if win:
@@ -799,7 +799,8 @@ class Mouse():
         mouseWheelRel = numpy.array([0.0, 0.0])
         return rel
 
-    def getVisible(self):
+    @property
+    def visible(self):
         """Gets the visibility of the mouse (1 or 0)
         """
         if usePygame:
@@ -807,6 +808,24 @@ class Mouse():
         else:
             print("Getting the mouse visibility is not supported under"
                   " pyglet, but you can set it anyway")
+    
+    @visible.setter
+    def visible(self, visible):
+        """Sets the visibility of the mouse to 1 or 0
+
+        NB when the mouse is not visible its absolute position is held
+        at (0, 0) to prevent it from going off the screen and getting lost!
+        You can still use getRel() in that case.
+        """
+        self.setVisible(visible)
+
+    def getVisible(self):
+        """Gets the visibility of the mouse (1 or 0)
+        """
+        if usePygame:
+            return mouse.get_visible()
+        
+        return self._visible
 
     def setVisible(self, visible):
         """Sets the visibility of the mouse to 1 or 0
@@ -819,14 +838,18 @@ class Mouse():
             self.win.setMouseVisible(visible)
         elif usePygame:
             mouse.set_visible(visible)
-        else:  # try communicating with window directly?
+        else:
             from psychopy.visual import openWindows
-            if psychopy.core.openWindows:
-                w = psychopy.core.openWindows[0]()  # type: psychopy.visual.Window
+            if openWindows:
+                w = openWindows[0]()  # type: psychopy.visual.Window
             else:
-                logging.warning("Called event.Mouse.getPos() for the mouse with no Window being opened")
+                logging.warning(
+                    "Called event.Mouse.getPos() for the mouse with no Window " 
+                    "being opened")
                 return None
             w.setMouseVisible(visible)
+            
+        self._visible = visible  # set internal state
 
     def clickReset(self, buttons=(0, 1, 2)):
         """Reset a 3-item list of core.Clocks use in timing button clicks.

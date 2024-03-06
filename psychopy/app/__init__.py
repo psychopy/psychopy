@@ -154,6 +154,19 @@ def getAppInstance():
     return _psychopyAppInstance  # use a function here to protect the reference
 
 
+def setAppInstance(obj):
+    """
+    Define a reference to the current PsychoPyApp object.
+
+    Parameters
+    ----------
+    obj : psychopy.app._psychopyApp.PsychoPyApp
+        Current instance of the PsychoPy app
+    """
+    global _psychopyAppInstance
+    _psychopyAppInstance = obj
+
+
 def isAppStarted():
     """Check if the GUI portion of PsychoPy is running.
 

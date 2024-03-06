@@ -40,6 +40,15 @@ class LiaisonJSONEncoder(json.JSONEncoder):
 		# if object has a getJSON method, use it
 		if hasattr(o, "getJSON"):
 			return o.getJSON(asString=False)
+		# if object is an error, transform in standardised form
+		if isinstance(o, BaseException):
+			tb = traceback.format_exception(type(o), o, o.__traceback__)
+			msg = "".join(tb)
+			return {
+				'type': "error",
+				'msg': msg,
+				'context': getattr(o, "userdata", None)
+			}
 		# otherwise behave as normal
 		try:
 			return json.JSONEncoder.default(self, o=o)
@@ -157,6 +166,29 @@ class WebSocketServer:
 			for method in self._methods[name][1]:
 				registeredMethods.append(f"{name}.{method}")
 		return registeredMethods
+
+	def actualizeAttributes(self, arg):
+		"""
+		Convert a string pointing to an attribute of a registered object into the value of that
+		attribute.
+
+		Parameters
+		----------
+		arg : str
+			String in the format `object.attribute` pointing to the target attribute
+		"""
+		if isinstance(arg, str) and "." in arg:
+			_name, _attr = arg.split(".", 1)
+			if _name in self._methods:
+				_obj, _methods = self._methods[_name]
+				if _attr in _methods:
+					arg = getattr(_obj, _attr)
+		elif isinstance(arg, dict):
+			# actualize all values if given a dict of params
+			for key in arg:
+				arg[key] = self.actualizeAttributes(arg[key])
+
+		return arg
 
 	def start(self, host, port):
 		"""
@@ -327,12 +359,7 @@ class WebSocketServer:
 					except json.decoder.JSONDecodeError:
 						pass
 					# if arg is a known property, get its value
-					if isinstance(arg, str) and "." in arg:
-						_name, _attr = arg.split(".", 1)
-						if _name in self._methods:
-							_obj, _methods = self._methods[_name]
-							if _attr in _methods:
-								arg = getattr(_obj, _attr)
+					arg = self.actualizeAttributes(arg)
 					# append to list of args
 					args.append(arg)
 
@@ -384,14 +411,9 @@ class WebSocketServer:
 
 					await websocket.send(json.dumps(response))
 
-		except Exception as err:
-			# send any errors to server
-			tb = traceback.format_exception(type(err), err, err.__traceback__)
-			msg = "".join(tb)
-			err = json.dumps({
-				'type': "error",
-				'msg': msg,
-				'context': getattr(err, "userdata", None)
-			}, cls=LiaisonJSONEncoder)
+		except BaseException as err:
+			# JSONify any errors
+			err = json.dumps(err, cls=LiaisonJSONEncoder)
+			# send to server
 			await websocket.send(err)
 			

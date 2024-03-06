@@ -57,7 +57,7 @@ class _ValidatorMixin:
             return
 
         if valid:
-            self.SetForegroundColour(wx.Colour(0, 0, 0))
+            self.SetForegroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_BTNTEXT))
         else:
             self.SetForegroundColour(wx.Colour(1, 0, 0))
 
@@ -331,12 +331,12 @@ BoolCtrl = wx.CheckBox
 class ChoiceCtrl(wx.Choice, _ValidatorMixin, _HideMixin):
     def __init__(self, parent, valType,
                  val="", choices=[], labels=[], fieldName="",
-                 size=wx.Size(-1, 24)):
+                 size=wx.Size(-1, -1)):
         self._choices = choices
         self._labels = labels
         # Create choice ctrl from labels
         wx.Choice.__init__(self)
-        self.Create(parent, -1, size=size, name=fieldName)
+        self.Create(parent, -1, name=fieldName)
         self.populate()
         self.valType = valType
         self.SetStringSelection(val)
@@ -958,13 +958,19 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
         self.xlBtn.Enable(self.valid)
         # get frame
         frame = self.GetParent()
-        while hasattr(frame, "GetParent") and not (hasattr(frame, "routine") or hasattr(frame, "component")):
+        if frame is None:
+            frame = self.GetTopLevelParent()
+        while hasattr(frame, "GetParent") and not (
+                hasattr(frame, "routine") or hasattr(frame, "component") or hasattr(frame, "type")
+        ):
             frame = frame.GetParent()
         # get comp type from frame
         if hasattr(frame, "component"):
             thisType = frame.component.type
         elif hasattr(frame, "routine"):
             thisType = frame.routine.type
+        elif hasattr(frame, "type"):
+            thisType = frame.type
         else:
             thisType = None
         # does this component have a default template?

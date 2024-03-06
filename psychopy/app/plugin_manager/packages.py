@@ -160,7 +160,10 @@ class PackageListCtrl(wx.Panel):
         self.sizer.Add(self.orLbl, border=3, flag=wx.ALL | wx.ALIGN_CENTER)
         # Add by file...
         self.addFileBtn = wx.Button(self, label=_translate("Install from file"))
-        self.addFileBtn.SetToolTip(_translate("Install a package from a local file, such as a .egg or wheel."))
+        self.addFileBtn.SetToolTip(_translate(
+            "Install a package from a local file, such as a .egg or .whl. You can also point to a "
+            "pyproject.toml file to add an 'editable install' of an in-development package."
+        ))
         self.addFileBtn.Bind(wx.EVT_BUTTON, self.onAddFromFile)
         self.sizer.Add(self.addFileBtn, border=6, flag=wx.ALL | wx.ALIGN_CENTER)
         # Add button to open pip
@@ -287,7 +290,10 @@ class PackageListCtrl(wx.Panel):
         # Create dialog to get package file location
         dlg = wx.FileDialog(
             self,
-            wildcard="Wheel files (*.whl)|*.whl|Source distribution files (*.sdist)|*.sdist|All files (*.*)|*.*",
+            wildcard="Wheel files (*.whl)|*.whl|"
+                     "Source distribution files (*.sdist)|*.sdist|"
+                     "Python project (pyproject.toml)|pyproject.toml|"
+                     "All files (*.*)|*.*",
             style=wx.FD_OPEN | wx.FD_SHOW_HIDDEN)
         if dlg.ShowModal() == wx.ID_OK:
             # Install

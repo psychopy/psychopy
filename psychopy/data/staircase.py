@@ -720,7 +720,7 @@ class QuestHandler(StairHandler):
                                      pos=[0,0], units='deg')
         ...
         # create staircase object
-        # trying to find out the point where subject's response is 50 / 50
+        # trying to find out the contrast where subject gets 63% correct
         # if wanted to do a 2AFC then the defaults for pThreshold and gamma
         # are good. As start value, we'll use 50% contrast, with SD = 20%
         staircase = data.QuestHandler(0.5, 0.2,

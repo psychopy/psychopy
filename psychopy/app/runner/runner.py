@@ -62,6 +62,7 @@ class RunnerFrame(wx.Frame, handlers.ThemeMixin):
         # detect retina displays (then don't use double-buffering)
         self.isRetina = self.GetContentScaleFactor() != 1
         self.SetDoubleBuffered(not self.isRetina)
+        self.SetMinSize(wx.Size(640, 480))
         # double buffered better rendering except if retina
         self.panel.SetDoubleBuffered(not self.isRetina)
 
@@ -91,6 +92,10 @@ class RunnerFrame(wx.Frame, handlers.ThemeMixin):
 
         # hide alerts to begin with, more room for std while also making alerts more noticeable
         self.Layout()
+        if self.isRetina:
+            self.SetSize(wx.Size(920, 640))
+        else:
+            self.SetSize(wx.Size(1080, 920))
 
         self.theme = app.theme
 
@@ -294,6 +299,7 @@ class RunnerFrame(wx.Frame, handlers.ThemeMixin):
                     fileOk = False
 
                 if fileOk:
+                    self.panel.entries = {}
                     self.panel.expCtrl.DeleteAllItems()
                     for exp in experiments:
                         self.panel.addTask(
@@ -462,6 +468,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
 
         # double buffered better rendering except if retina
         self.SetDoubleBuffered(parent.IsDoubleBuffered())
+        self.SetMinSize(wx.Size(640, 480))
 
         self.app = app
         self.prefs = self.app.prefs.coder
@@ -534,7 +541,6 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         self.splitter.SetMinimumPaneSize(360)
 
         self.SetSizerAndFit(self.mainSizer)
-        self.SetMinSize(self.Size)
 
         # Set starting states on buttons
         self.ribbon.buttons['pystop'].Disable()
@@ -621,11 +627,15 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         # substitute args
         if args is None:
             args = []
+        # start off looking at stdout (will switch to Alerts if there are any)
+        self.outputNotebook.SetSelectionToWindow(self.stdoutPnl)
 
         currentFile = str(self.currentFile)
         if self.currentFile.suffix == '.psyexp':
-            generateScript(experimentPath=currentFile.replace('.psyexp', '_lastrun.py'),
-                           exp=self.loadExperiment())
+            generateScript(
+                exp=self.loadExperiment(),
+                outfile=currentFile.replace('.psyexp', '_lastrun.py')
+            )
         procStarted = self.runFile(
             fileName=currentFile,
             focusOnExit=focusOnExit,
@@ -678,7 +688,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         command = [str(pythonExec), "-m", "http.server", str(port)]
 
         if not os.path.exists(jsFile):
-            generateScript(experimentPath=str(jsFile),
+            generateScript(outfile=str(jsFile),
                            exp=self.loadExperiment(),
                            target="PsychoJS")
 
@@ -1039,7 +1049,38 @@ class RunnerOutputNotebook(aui.AuiNotebook, handlers.ThemeMixin):
         )
         self.panels['git'] = self.gitPnl
 
-        self.SetMinSize((720, 720))
+        # bind function when page receives focus
+        self._readCache = {}
+        self.Bind(aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.onFocus)
+
+        self.SetMinSize(wx.Size(100, 100))  # smaller than window min size
+
+    def setRead(self, i, state):
+        """
+        Mark a tab (by index) as read/unread (determines whether the page gets a little blue dot)
+
+        Parameters
+        ----------
+        i : int
+            Index of the page to set
+        state : bool
+            True for read (i.e. no dot), False for unread (i.e. dot)
+        """
+        # if state matches cached state, don't bother updating again
+        if self._readCache.get(i, None) == state:
+            return
+        # cache read value
+        self._readCache[i] = state
+        # get tab label without asterisk
+        label = self.GetPageText(i).replace(" *", "")
+        # add/remove asterisk
+        if state:
+            self.SetPageText(i, label)
+        else:
+            self.SetPageText(i, label + " *")
+        # update
+        self.Update()
+        self.Refresh()
 
     def onWrite(self, evt):
         # get ctrl
@@ -1048,10 +1089,19 @@ class RunnerOutputNotebook(aui.AuiNotebook, handlers.ThemeMixin):
         for i in range(self.GetPageCount()):
             # get page window
             page = self.GetPage(i)
-            # is the ctrl a child of that window?
-            if page.IsDescendant(ctrl):
-                # if so, focus that page
-                self.SetSelection(i)
+            # is the ctrl a child of that window, and is it deselected?
+            if page.IsDescendant(ctrl) and self.GetSelection() != i:
+                # mark unread
+                self.setRead(i, False)
+                # alerts and pavlovia get focus too when written to
+                if page in (self.panels['git'], self.panels['alerts']):
+                    self.SetSelection(i)
+
+    def onFocus(self, evt):
+        # get index of new selection
+        i = evt.GetSelection()
+        # set read status
+        self.setRead(i, True)
 
 
 class RunnerRibbon(ribbon.FrameRibbon):
@@ -1136,18 +1186,20 @@ class RunnerRibbon(ribbon.FrameRibbon):
             "browser", label=_translate("Browser"), icon="browser"
         )
         # pilot JS
-        self.addButton(
+        btn = self.addButton(
             section="browser", name="jspilot", label=_translate("Pilot in browser"),
             icon='jsPilot',
             tooltip=_translate("Pilot experiment locally in your browser"),
             callback=parent.runOnlineDebug
         )
+        btn.Hide()
         # run JS
-        self.addButton(
+        btn = self.addButton(
             section="browser", name="jsrun", label=_translate("Run on Pavlovia"), icon='jsRun',
             tooltip=_translate("Run experiment on Pavlovia"),
             callback=parent.runOnline
         )
+        btn.Hide()
 
         self.addSeparator()
 

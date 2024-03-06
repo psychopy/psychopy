@@ -100,7 +100,7 @@ class TestComponentCompilerPython():
         if not os.path.isdir(os.path.join(TESTS_DATA_PATH, "correctScript", "python")):
             os.mkdir(os.path.join(TESTS_DATA_PATH, "correctScript", "python"))
 
-    def teardown(self):
+    def teardown_method(self):
         shutil.rmtree(self.temp_dir)
 
     def test_all_components(self):

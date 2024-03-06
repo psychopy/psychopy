@@ -13,9 +13,12 @@ import bdist_mpkg  # noqa: needed to build bdist, even though not explicitly use
 import py2app  # noqa: needed to build app bundle, even though not explicitly used here
 from ctypes.util import find_library
 import importlib
+import building.compile_po
 
 import psychopy
 version = psychopy.__version__
+
+building.compile_po.compilePoFiles()
 
 # regenerate __init__.py only if we're in the source repos (not in a zip file)
 try:
@@ -109,7 +112,8 @@ packages = ['pydoc',  # needed for help()
             'questplus',
             'psychtoolbox',
             'h5py',
-            'markdown_it'
+            'markdown_it',
+            'zeroconf', 'ifaddr',  # for pupillabs plugin (fail to build)
             ]
 
 # Add packages that older PsychoPy (<=2023.1.x) shipped, for useVersion() compatibility
@@ -132,11 +136,12 @@ if sys.version_info < (3, 9):
     packages.remove('PyQt6')  # PyQt6 is not compatible with earlier PsychoPy versions
 
 # check the includes and packages are all available
+missing_pkgs = []
 for pkg in includes+packages:
-    missing_pkgs = []
+    
     try:
         importlib.import_module(pkg)
-    except ImportError:
+    except (ImportError, ModuleNotFoundError):
         missing_pkgs.append(pkg)
 if missing_pkgs:
     raise ImportError("Missing packages: %s" % missing_pkgs)

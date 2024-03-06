@@ -343,10 +343,17 @@ class MicrophoneComponent(BaseDeviceComponent):
 
     def writeInitCode(self, buff):
         inits = getInitVals(self.params)
+        if inits['outputType'].val == 'default':
+            inits['outputType'].val = 'wav'
         # Assign name to device var name
         code = (
-            "# link %(name)s to device object\n"
-            "%(name)s = sound.microphone.Microphone(device=%(deviceLabel)s)\n"
+            "# make microphone object for %(name)s\n"
+            "%(name)s = sound.microphone.Microphone(\n"
+            "    device=%(deviceLabel)s,\n"
+            "    name='%(name)s',\n"
+            "    recordingFolder=%(name)sRecFolder,\n"
+            "    recordingExt='%(outputType)s'\n"
+            ")\n"
         )
         buff.writeIndentedLines(code % inits)
 
@@ -460,8 +467,6 @@ class MicrophoneComponent(BaseDeviceComponent):
         transcribe = inits['transcribe'].val
         if inits['transcribe'].val == False:
             inits['transcribeBackend'].val = None
-        if inits['outputType'].val == 'default':
-            inits['outputType'].val = 'wav'
         # Warn user if their transcriber won't work locally
         if inits['transcribe'].val:
             if  inits['transcribeBackend'].val in localTranscribers:
@@ -504,7 +509,9 @@ class MicrophoneComponent(BaseDeviceComponent):
         buff.setIndentLevel(-1, relative=True)
         code = (
             ")\n"
-            "%(loop)s.addData('%(name)s.clip', os.path.join(%(name)sRecFolder, 'recording_%(name)s_%%s.%(outputType)s' %% tag))\n"
+            "%(loop)s.addData(\n"
+            "    '%(name)s.clip', %(name)s.recordingFolder / %(name)s.getClipFilename(tag)\n"
+            ")"
         )
         buff.writeIndentedLines(code % inits)
         if transcribe:
@@ -611,35 +618,9 @@ class MicrophoneComponent(BaseDeviceComponent):
         # Save recording
         code = (
             "# save %(name)s recordings\n"
-            "for tag in %(name)s.clips:"
+            "%(name)s.saveClips()\n"
         )
         buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(1, relative=True)
-        code = (
-                "for i, clip in enumerate(%(name)s.clips[tag]):\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(1, relative=True)
-        code = (
-                    "clipFilename = 'recording_%(name)s_%%s.%(outputType)s' %% tag\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        code = (
-                    "# if there's more than 1 clip with this tag, append a counter for all beyond the first\n"
-                    "if i > 0:\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(1, relative=True)
-        code = (
-                        "clipFilename += '_%%s' %% i"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(-1, relative=True)
-        code = (
-                    "clip.save(os.path.join(%(name)sRecFolder, clipFilename))\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(-2, relative=True)
 
 
 def getDeviceName(index):

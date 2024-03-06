@@ -20,6 +20,7 @@ $v = [Io.File]::ReadAllText($versionfile).Trim()
 
 for ($i=0; $i -lt $pyPaths.Length; $i++) {
     [console]::beep(440,300); [console]::beep(880,300)
+    Invoke-Expression ("& '{0}/python.exe' building/compile_po.py" -f $pyPaths[$i])
     # try to uninstall psychopy from site-packages
     # re-install the current version as editable/developer
     if ($install_pp -eq 1) {

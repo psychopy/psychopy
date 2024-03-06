@@ -528,6 +528,8 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         # Disable read only so value can change
         self.rawTextCtrl.SetReadOnly(False)
         # Change value
+        if value is None:
+            value = ""
         self.rawTextCtrl.SetValue(value)
         # Restore readonly state
         self.rawTextCtrl.SetReadOnly(og)
@@ -591,11 +593,20 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
 
     def save(self, evt=None):
         if self.file is None:
-            return
-        # Write current contents to file
+            # if no file, open dialog to choose one
+            dlg = wx.FileDialog(
+                self, message=_translate("Save file as..."), defaultDir=str(Path.home()),
+                style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
+                wildcard="Markdown file (*.md)|*.md|Text file (*.txt)|*.txt|Any file (*.*)|*.*")
+            if dlg.ShowModal() == wx.ID_OK:
+                self.file = dlg.GetPath()
+                self.load()
+            else:
+                return
+        # write current contents to file
         with open(self.file, "w") as f:
             f.write(self.rawTextCtrl.GetValue())
-        # Disable save button
+        # disable save button
         self.saveBtn.Disable()
 
     def onEdit(self, evt=None):
