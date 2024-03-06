@@ -130,7 +130,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         # numericise index if needed
         if isinstance(index, str):
             try:
-                index = float(index)
+                index = int(index)
             except ValueError:
                 pass
 
