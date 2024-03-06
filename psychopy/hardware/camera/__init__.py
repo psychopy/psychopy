@@ -840,6 +840,7 @@ class CameraInterfaceFFmpeg(CameraInterface):
                   self._warmupBarrier,
                   self._recordBarrier,
                   self._mic))
+        self._playerThread.daemon=True
         self._playerThread.start()
 
         self._warmupBarrier.wait()
@@ -1281,6 +1282,7 @@ class CameraInterfaceOpenCV(CameraInterface):
                   self._warmUpBarrier,
                   self._recordBarrier,
                   self._mic))
+        self._playerThread.daemon=True
         self._playerThread.start()
 
         self._warmUpBarrier.wait()  # wait until the camera is ready
