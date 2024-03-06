@@ -13,7 +13,7 @@ endBtn = visual.ButtonStim(win, "End",
     pos=(0, -0.45), anchor='bottom-center', 
     size=(0.2, 0.1), letterHeight=0.05)
 # Color space chooser
-spaces = ['named', 'hex', 'rgb', 'rgb1', 'rgb255', 'hsv', 'lms', 'dkl']
+spaces = ['named', 'hex', 'rgb', 'rgb1', 'rgb255', 'hsv', 'lms']
 spaceCtrl = visual.Slider(win, style="radio",
     ticks=list(range(len(spaces))), granularity=1,
     labels=spaces,
@@ -53,7 +53,7 @@ while not endBtn.isClicked:
         if "," in val:
             val = eval(val)
         # Get color space from radio slider
-        space = spaces[int(spaceCtrl.value)]
+        space = spaces[int(spaceCtrl.markerPos)]
         col = colors.Color(val, space)
     except:
         col = False

@@ -119,7 +119,7 @@ class _SoundBase(AttributeGetSetMixin):
         if speaker is None:
             # if no device, populate from prefs
             pref = prefs.hardware['audioDevice']
-            if isinstance(prefs, (list, tuple)):
+            if isinstance(pref, (list, tuple)):
                 pref = pref[0]
             speaker = pref
         # look for device if initialised
