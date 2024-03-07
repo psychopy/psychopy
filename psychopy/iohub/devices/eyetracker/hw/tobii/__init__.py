@@ -9,7 +9,15 @@ yamlFile = None
 try:
     from psychopy_eyetracker_tobii.tobii import (
         __file__,
-        EyeTracker
+        EyeTracker, 
+        MonocularEyeSampleEvent,
+        BinocularEyeSampleEvent, 
+        FixationStartEvent,
+        FixationEndEvent, 
+        SaccadeStartEvent,
+        SaccadeEndEvent, 
+        BlinkStartEvent,
+        BlinkEndEvent
     )
 except (ModuleNotFoundError, ImportError, NameError):
     logging.error(
