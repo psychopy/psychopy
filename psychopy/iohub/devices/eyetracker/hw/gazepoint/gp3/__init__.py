@@ -8,7 +8,15 @@ import psychopy.logging as logging
 try:
     from psychopy_eyetracker_gazepoint.gp3 import (
         __file__,
-        EyeTracker
+        EyeTracker, 
+        MonocularEyeSampleEvent,
+        BinocularEyeSampleEvent, 
+        FixationStartEvent,
+        FixationEndEvent, 
+        SaccadeStartEvent,
+        SaccadeEndEvent, 
+        BlinkStartEvent,
+        BlinkEndEvent
     )
 except (ModuleNotFoundError, ImportError, NameError):
     logging.error(
