@@ -864,8 +864,8 @@ class PavloviaProject(dict):
                 repo = self.newRepo(infoStream)
                 if repo is None:
                     return 0
-            # If first commit, do initial push
-            if not bool(self.project.attributes['default_branch']):
+            # If first commit (besides repo creation), do initial push
+            if len(self.project.commits.list()) < 2:
                 self.firstPush(infoStream=infoStream)
             # Pull and push
             self.pull(infoStream)
