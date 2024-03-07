@@ -309,8 +309,9 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
                 profile.inputChannels == channels,
             )):
                 chosenDevice = profile
-        # if no exact match found, use fallback and raise warning
-        if chosenDevice is None:
+
+        if chosenDevice is None and fallbackDevice is not None:
+            # if no exact match found, use fallback and raise warning
             logging.warning(
                 f"Could not find exact match for specified parameters (index={index}, sampleRateHz="
                 f"{sampleRateHz}, channels={channels}), falling back to best approximation ("
@@ -319,8 +320,8 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
                 f"channels={fallbackDevice.inputChannels})"
             )
             chosenDevice = fallbackDevice
-        # if no index match found, raise error
-        if chosenDevice is None:
+        elif chosenDevice is None:
+            # if no index match found, raise error
             raise KeyError(
                 f"Could not find any device with index {index}"
             )
