@@ -7,7 +7,10 @@ import psychopy.logging as logging
 
 yamlFile = None
 try:
-    from psychopy_eyetracker_tobii.tobii import *
+    from psychopy_eyetracker_tobii.tobii import (
+        __file__,
+        EyeTracker
+    )
 except (ModuleNotFoundError, ImportError, NameError):
     logging.error(
         "The Tobii eyetracker requires package 'psychopy-eyetracker-tobii' to "

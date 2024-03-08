@@ -1,92 +1,91 @@
-﻿<?xml version="1.0" ?>
 <PsychoPy2experiment encoding="utf-8" version="3.2.0">
   <Settings>
-    <Param name="Audio latency priority" updates="None" val="Use prefs" valType="str"/>
-    <Param name="Audio lib" updates="None" val="Use prefs" valType="str"/>
-    <Param name="Completed URL" updates="None" val="" valType="str"/>
-    <Param name="Data filename" updates="None" val="u'data/%s_%s' % (expName, expInfo['date'])" valType="code"/>
-    <Param name="Enable Escape" updates="None" val="True" valType="bool"/>
-    <Param name="Experiment info" updates="None" val="{'rows': '[2,3]'}" valType="code"/>
-    <Param name="Force stereo" updates="None" val="True" valType="bool"/>
-    <Param name="Full-screen window" updates="None" val="True" valType="bool"/>
-    <Param name="HTML path" updates="None" val="html" valType="str"/>
-    <Param name="Incomplete URL" updates="None" val="" valType="str"/>
-    <Param name="JS libs" updates="None" val="packaged" valType="str"/>
-    <Param name="Monitor" updates="None" val="testMonitor" valType="str"/>
-    <Param name="Save csv file" updates="None" val="False" valType="bool"/>
-    <Param name="Save excel file" updates="None" val="False" valType="bool"/>
-    <Param name="Save log file" updates="None" val="True" valType="bool"/>
-    <Param name="Save psydat file" updates="None" val="True" valType="bool"/>
-    <Param name="Save wide csv file" updates="None" val="True" valType="bool"/>
-    <Param name="Screen" updates="None" val="1" valType="num"/>
-    <Param name="Show info dlg" updates="None" val="True" valType="bool"/>
-    <Param name="Show mouse" updates="None" val="False" valType="bool"/>
-    <Param name="Units" updates="None" val="pix" valType="str"/>
-    <Param name="Use version" updates="None" val="" valType="str"/>
-    <Param name="Window size (pixels)" updates="None" val="[1920, 1080]" valType="code"/>
-    <Param name="blendMode" updates="None" val="avg" valType="str"/>
-    <Param name="color" updates="None" val="$[0,0,0]" valType="str"/>
-    <Param name="colorSpace" updates="None" val="rgb" valType="str"/>
-    <Param name="expName" updates="None" val="shapeMaker" valType="str"/>
-    <Param name="exportHTML" updates="None" val="on Sync" valType="str"/>
-    <Param name="logging level" updates="None" val="exp" valType="code"/>
-  </Settings>
+    <Param name="Audio latency priority" updates="None" val="Use prefs" valType="str" />
+    <Param name="Audio lib" updates="None" val="Use prefs" valType="str" />
+    <Param name="Completed URL" updates="None" val="" valType="str" />
+    <Param name="Data filename" updates="None" val="u'data/%s_%s' % (expName, expInfo['date'])" valType="code" />
+    <Param name="Enable Escape" updates="None" val="True" valType="bool" />
+    <Param name="Experiment info" updates="None" val="{'rows': '[2,3]'}" valType="code" />
+    <Param name="Force stereo" updates="None" val="True" valType="bool" />
+    <Param name="Full-screen window" updates="None" val="True" valType="bool" />
+    <Param name="HTML path" updates="None" val="html" valType="str" />
+    <Param name="Incomplete URL" updates="None" val="" valType="str" />
+    <Param name="JS libs" updates="None" val="packaged" valType="str" />
+    <Param name="Monitor" updates="None" val="testMonitor" valType="str" />
+    <Param name="Save csv file" updates="None" val="False" valType="bool" />
+    <Param name="Save excel file" updates="None" val="False" valType="bool" />
+    <Param name="Save log file" updates="None" val="True" valType="bool" />
+    <Param name="Save psydat file" updates="None" val="True" valType="bool" />
+    <Param name="Save wide csv file" updates="None" val="True" valType="bool" />
+    <Param name="Screen" updates="None" val="1" valType="num" />
+    <Param name="Show info dlg" updates="None" val="True" valType="bool" />
+    <Param name="Show mouse" updates="None" val="False" valType="bool" />
+    <Param name="Units" updates="None" val="pix" valType="str" />
+    <Param name="Use version" updates="None" val="" valType="str" />
+    <Param name="Window size (pixels)" updates="None" val="[1920, 1080]" valType="code" />
+    <Param name="blendMode" updates="None" val="avg" valType="str" />
+    <Param name="color" updates="None" val="$[0,0,0]" valType="str" />
+    <Param name="colorSpace" updates="None" val="rgb" valType="str" />
+    <Param name="expName" updates="None" val="shapeMaker" valType="str" />
+    <Param name="exportHTML" updates="None" val="on Sync" valType="str" />
+    <Param name="logging level" updates="None" val="exp" valType="code" />
+  <Param val="0" valType="code" updates="constant" name="runMode" /></Settings>
   <Routines>
     <Routine name="trial">
       <CodeComponent name="code">
-        <Param name="Begin Experiment" updates="constant" val="baseShape = visual.Rect(win, units=&quot;pix&quot;, size=(600,600), fillColor=&quot;white&quot;)&amp;#10;&amp;#10;def randCol():&amp;#10;    if random() &gt;=.5:&amp;#10;        return &quot;black&quot;&amp;#10;    return &quot;white&quot;&amp;#10;&amp;#10;def createGrid(rows, size, pos, names):&amp;#10;    inc = (size/rows)/2&amp;#10;    if rows == 2:&amp;#10;        rowStart = pos[0] - size/4&amp;#10;        colStart = pos[1] + size/4&amp;#10;    else:&amp;#10;        rowStart = pos[0] - size/2&amp;#10;        colStart = pos[1] + size/2&amp;#10;    row, col = rowStart/rows, colStart/rows&amp;#10;    counter = 0&amp;#10;    &amp;#10;    grid = []&amp;#10;    for i in range(rows):&amp;#10;        for j in range(rows):&amp;#10;            grid.append(visual.Rect(win, name=names[counter], units='pix', size = [size/rows, size/rows], pos= [row,col], lineColor= 'lightgrey', fillColor=randCol()))&amp;#10;            row += inc&amp;#10;            counter += 1&amp;#10;        col -= inc&amp;#10;        row = rowStart/rows&amp;#10;    return grid&amp;#10;&amp;#10;def drawGrid(grid):&amp;#10;    for i in grid:&amp;#10;        i.draw()&amp;#10;&amp;#10;imageCounter = 0" valType="extendedCode"/>
-        <Param name="Begin JS Experiment" updates="constant" val="" valType="extendedCode"/>
-        <Param name="Begin JS Routine" updates="constant" val="" valType="extendedCode"/>
-        <Param name="Begin Routine" updates="constant" val="grid = createGrid(int(expInfo['rows']), 600, (0,0), names=[1,2,3,4,5,6,7,8,9])&amp;#10;captured = False" valType="extendedCode"/>
-        <Param name="Code Type" updates="None" val="Py" valType="str"/>
-        <Param name="Each Frame" updates="constant" val="for i in range(60):&amp;#10;    baseShape.draw()&amp;#10;    drawGrid(grid)&amp;#10;    if i == 20 and not captured:&amp;#10;        win.getMovieFrame(buffer='back')&amp;#10;        captured = True&amp;#10;    " valType="extendedCode"/>
-        <Param name="Each JS Frame" updates="constant" val="" valType="extendedCode"/>
-        <Param name="End Experiment" updates="constant" val="" valType="extendedCode"/>
-        <Param name="End JS Experiment" updates="constant" val="" valType="extendedCode"/>
-        <Param name="End JS Routine" updates="constant" val="" valType="extendedCode"/>
-        <Param name="End Routine" updates="constant" val="win.saveMovieFrames('design{}_{}pieces.jpg'.format(imageCounter,int(expInfo['rows'])**2))&amp;#10;imageCounter += 1" valType="extendedCode"/>
-        <Param name="disabled" updates="None" val="False" valType="bool"/>
-        <Param name="name" updates="None" val="code" valType="code"/>
+        <Param name="Begin Experiment" updates="constant" val="baseShape = visual.Rect(win, units=&quot;pix&quot;, size=(600,600), fillColor=&quot;white&quot;)&amp;#10;&amp;#10;def randCol():&amp;#10;    if random() &gt;=.5:&amp;#10;        return &quot;black&quot;&amp;#10;    return &quot;white&quot;&amp;#10;&amp;#10;def createGrid(rows, size, pos, names):&amp;#10;    inc = (size/rows)/2&amp;#10;    if rows == 2:&amp;#10;        rowStart = pos[0] - size/4&amp;#10;        colStart = pos[1] + size/4&amp;#10;    else:&amp;#10;        rowStart = pos[0] - size/2&amp;#10;        colStart = pos[1] + size/2&amp;#10;    row, col = rowStart/rows, colStart/rows&amp;#10;    counter = 0&amp;#10;    &amp;#10;    grid = []&amp;#10;    for i in range(rows):&amp;#10;        for j in range(rows):&amp;#10;            grid.append(visual.Rect(win, name=names[counter], units='pix', size = [size/rows, size/rows], pos= [row,col], lineColor= 'lightgrey', fillColor=randCol()))&amp;#10;            row += inc&amp;#10;            counter += 1&amp;#10;        col -= inc&amp;#10;        row = rowStart/rows&amp;#10;    return grid&amp;#10;&amp;#10;def drawGrid(grid):&amp;#10;    for i in grid:&amp;#10;        i.draw()&amp;#10;&amp;#10;imageCounter = 0" valType="extendedCode" />
+        <Param name="Begin JS Experiment" updates="constant" val="" valType="extendedCode" />
+        <Param name="Begin JS Routine" updates="constant" val="" valType="extendedCode" />
+        <Param name="Begin Routine" updates="constant" val="grid = createGrid(int(expInfo['rows']), 600, (0,0), names=[1,2,3,4,5,6,7,8,9])&amp;#10;captured = False" valType="extendedCode" />
+        <Param name="Code Type" updates="None" val="Py" valType="str" />
+        <Param name="Each Frame" updates="constant" val="for i in range(60):&amp;#10;    baseShape.draw()&amp;#10;    drawGrid(grid)&amp;#10;    if i == 20 and not captured:&amp;#10;        win.getMovieFrame(buffer='back')&amp;#10;        captured = True&amp;#10;    " valType="extendedCode" />
+        <Param name="Each JS Frame" updates="constant" val="" valType="extendedCode" />
+        <Param name="End Experiment" updates="constant" val="" valType="extendedCode" />
+        <Param name="End JS Experiment" updates="constant" val="" valType="extendedCode" />
+        <Param name="End JS Routine" updates="constant" val="" valType="extendedCode" />
+        <Param name="End Routine" updates="constant" val="win.saveMovieFrames('design{}_{}pieces.jpg'.format(imageCounter,int(expInfo['rows'])**2))&amp;#10;imageCounter += 1" valType="extendedCode" />
+        <Param name="disabled" updates="None" val="False" valType="bool" />
+        <Param name="name" updates="None" val="code" valType="code" />
       </CodeComponent>
       <TextComponent name="text">
-        <Param name="color" updates="constant" val="white" valType="str"/>
-        <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
-        <Param name="disabled" updates="None" val="False" valType="bool"/>
-        <Param name="durationEstim" updates="None" val="" valType="code"/>
-        <Param name="flip" updates="constant" val="" valType="str"/>
-        <Param name="font" updates="constant" val="Arial" valType="str"/>
-        <Param name="languageStyle" updates="None" val="LTR" valType="str"/>
-        <Param name="letterHeight" updates="constant" val="0.1" valType="code"/>
-        <Param name="name" updates="None" val="text" valType="code"/>
-        <Param name="opacity" updates="constant" val="1" valType="code"/>
-        <Param name="ori" updates="constant" val="0" valType="code"/>
-        <Param name="pos" updates="constant" val="(0, 0)" valType="code"/>
-        <Param name="saveStartStop" updates="None" val="True" valType="bool"/>
-        <Param name="startEstim" updates="None" val="" valType="code"/>
-        <Param name="startType" updates="None" val="time (s)" valType="str"/>
-        <Param name="startVal" updates="None" val="0.0" valType="code"/>
-        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
-        <Param name="stopVal" updates="constant" val=".4" valType="code"/>
-        <Param name="syncScreenRefresh" updates="None" val="True" valType="bool"/>
-        <Param name="text" updates="constant" val="" valType="str"/>
-        <Param name="units" updates="None" val="from exp settings" valType="str"/>
-        <Param name="wrapWidth" updates="constant" val="" valType="code"/>
+        <Param name="color" updates="constant" val="white" valType="str" />
+        <Param name="colorSpace" updates="constant" val="rgb" valType="str" />
+        <Param name="disabled" updates="None" val="False" valType="bool" />
+        <Param name="durationEstim" updates="None" val="" valType="code" />
+        <Param name="flip" updates="constant" val="" valType="str" />
+        <Param name="font" updates="constant" val="Arial" valType="str" />
+        <Param name="languageStyle" updates="None" val="LTR" valType="str" />
+        <Param name="letterHeight" updates="constant" val="0.1" valType="code" />
+        <Param name="name" updates="None" val="text" valType="code" />
+        <Param name="opacity" updates="constant" val="1" valType="code" />
+        <Param name="ori" updates="constant" val="0" valType="code" />
+        <Param name="pos" updates="constant" val="(0, 0)" valType="code" />
+        <Param name="saveStartStop" updates="None" val="True" valType="bool" />
+        <Param name="startEstim" updates="None" val="" valType="code" />
+        <Param name="startType" updates="None" val="time (s)" valType="str" />
+        <Param name="startVal" updates="None" val="0.0" valType="code" />
+        <Param name="stopType" updates="None" val="duration (s)" valType="str" />
+        <Param name="stopVal" updates="constant" val=".4" valType="code" />
+        <Param name="syncScreenRefresh" updates="None" val="True" valType="bool" />
+        <Param name="text" updates="constant" val="" valType="str" />
+        <Param name="units" updates="None" val="from exp settings" valType="str" />
+        <Param name="wrapWidth" updates="constant" val="" valType="code" />
       </TextComponent>
     </Routine>
   </Routines>
   <Flow>
     <LoopInitiator loopType="TrialHandler" name="trials">
-      <Param name="Selected rows" updates="None" val="" valType="str"/>
-      <Param name="conditions" updates="None" val="None" valType="str"/>
-      <Param name="conditionsFile" updates="None" val="" valType="str"/>
-      <Param name="endPoints" updates="None" val="[0, 1]" valType="num"/>
-      <Param name="isTrials" updates="None" val="True" valType="bool"/>
-      <Param name="loopType" updates="None" val="random" valType="str"/>
-      <Param name="nReps" updates="None" val="5" valType="code"/>
-      <Param name="name" updates="None" val="trials" valType="code"/>
-      <Param name="random seed" updates="None" val="" valType="code"/>
+      <Param name="Selected rows" updates="None" val="" valType="str" />
+      <Param name="conditions" updates="None" val="None" valType="str" />
+      <Param name="conditionsFile" updates="None" val="" valType="str" />
+      <Param name="endPoints" updates="None" val="[0, 1]" valType="num" />
+      <Param name="isTrials" updates="None" val="True" valType="bool" />
+      <Param name="loopType" updates="None" val="random" valType="str" />
+      <Param name="nReps" updates="None" val="5" valType="code" />
+      <Param name="name" updates="None" val="trials" valType="code" />
+      <Param name="random seed" updates="None" val="" valType="code" />
     </LoopInitiator>
-    <Routine name="trial"/>
-    <LoopTerminator name="trials"/>
+    <Routine name="trial" />
+    <LoopTerminator name="trials" />
   </Flow>
 </PsychoPy2experiment>
