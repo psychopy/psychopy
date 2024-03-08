@@ -44,7 +44,15 @@ if 'installing' not in locals():
     from psychopy.preferences import prefs
     for _pathName in prefs.general['paths']:
         sys.path.append(_pathName)
-    # add paths from plugins/packages (installed by plugins manager)
+    
+    # add paths from main plugins/packages (installed by plugins manager)
+    _userPackagePath = prefs.paths['userPackages']
+    _userScripts = prefs.paths['userScripts']
+    if _userPackagePath.is_dir():
+        sys.path.append(str(_userPackagePath))  # user site-packages
+        sys.path.append(str(_userScripts))  # user scripts
+
+    # add paths from individual plugins/packages (installed by plugins manager)
     import pathlib as _pathlib
     for _pathName in _pathlib.Path(prefs.paths['packages']).glob("*"):
         if _pathName.is_dir():
