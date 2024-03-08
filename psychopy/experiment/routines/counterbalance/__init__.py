@@ -304,10 +304,12 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
 
     def writeExperimentEndCodeJS(self, buff):
         code = (
-            "await psychoJS.shelf.counterbalanceConfirm(\n"
+            "if (%(name)s) {\n"
+            "  await psychoJS.shelf.counterbalanceConfirm(\n"
             "    ['%(name)s', '@designer', '@experiment'],\n"
             "    %(name)s.participantToken,\n"
             "    isCompleted\n"
-            ");\n"
+            "  );\n"
+            "}\n"
         )
         buff.writeIndentedLines(code % self.params)
