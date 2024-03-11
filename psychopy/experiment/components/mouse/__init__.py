@@ -167,7 +167,7 @@ class MouseComponent(BaseComponent):
             "    for obj in _corrAns:\n"
             "        # is this object clicked on?\n"
             "        if obj.contains(%(name)s):\n"
-            "            corr = 1\n"
+            "            _corr = 1\n"
             "    %(name)s.corr.append(_corr)\n"
         )
         # Write force end code
