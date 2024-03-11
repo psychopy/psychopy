@@ -64,7 +64,7 @@ Boolean Records are perhaps the easiest to interact with, by means that they onl
 
 Imagine you have an experiment that can be "opened" or "closed" by a host. You could add a Record called "session_open", ensure it is Boolean, and in your experiment make it such that the participant can sign in as a host (with the power to open/close the session) or as a participant (who, for now, passively watches the session opening or closing).
 
-In our experiment we could get the session status and show it by adding a code component (ensure it's code type is JS) and using :code:`psychoJS.shelf.getBooleanValue(["session_open"])`. We can allow the host to open or close the session using a simple routine with a response component (in our demo we use a mouse) and in the End Routine tab using :code:`psychoJS.shelf.flipBooleanValue(["session_open"])`. In a separate routine (the one the participant views) we might repeatedly check what the value of the "session_open" record is so that we can use it to control somthing in our experiment, in our case, a picture of a door that opens/closes.
+In our experiment we could get the session status and show it by adding a code component (ensure it's code type is JS) and using :code:`psychoJS.shelf.getBooleanValue(["session_open"])`. We can allow the host to open or close the session using a simple routine with a response component (in our demo we use a mouse) and in the End Routine tab using :code:`psychoJS.shelf.flipBooleanValue(["session_open"])`. In a separate routine (the one the participant views) we might repeatedly check what the value of the "session_open" record is so that we can use it to control something in our experiment, in our case, a picture of a door that opens/closes.
 
 
 Interacting with Text Records
@@ -131,36 +131,42 @@ First, we check, has this participant taken part at all? We can do that by check
 .. _counterbalanceShelf:
 
 Counterbalancing
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^
+**PsychoPy Version 2024.1 or later required**
 
-**Demo link:** `here <https://run.pavlovia.org/lpxrh6/shelf_counterbalance_demo/>`_
+**Demo link:** `here <https://run.pavlovia.org/Consultancy/numgroup_test>`_
 
-**Demo experiment files:** `here <https://gitlab.pavlovia.org/lpxrh6/shelf_counterbalance_demo/>`_
+**Demo experiment files:** `here <https://gitlab.pavlovia.org/Consultancy/numgroup_test>`_
 
-Counterbalancing can be a pain, but online it is even more painful! There are many more participants available in the pool and the researcher has less control over group assignment (compared with in the lab!). The Shelf now has handy helper functions to assist.
+We now have a Counterbalance Routine where you can set up your counterbalance groups in Builder Mode and interact with the Shelf with the record type, Counterbalance.
 
-* :code:`psychoJS.shelf.counterbalanceSelect()`
-
-To get started you must make a record with the type, Dictionary. It must also have the following fields:
-
-
-.. figure:: /images/counterbalanceShelf1.png
+.. figure:: /images/counterbalanceBuilder.png
     :name: shelfAccess
     :align: center
     :figclass: align-center
 
 |
-    Example set up for a Shelf Record used to assist with counterbalancing. The Key Components need to have a meaningful name and since this record is for counterbalancing the groups, "my_groups" is used here. There are two types of scopes: 1) DESIGNER - This shelf record can be used for all experiments; 2) EXPERIMENT - This shelf record can only be used for the selected experiment.
-|
-.. figure:: /images/counterbalanceCodeComponent1.png
-    :name: shelfCodeComponent
+To set up your Counterbalance Shelf, you would need to first upload your task to Pavlovia and set it to Pilot/Running Mode. 
+
+In your Shelf view of your Dashboard, click on Add Record. In Key, add the name of your Counterbalance Routine as in your Builder task. For Scope, choose Experiment and select the name of your Builder task. For Type, select Counterbalance (*you might need to scroll down*).
+
+Once you click on Ok, you will see an empty table in Value. Here, set up the same group parameters as in your Builder task.
+
+.. figure:: /images/counterbalanceRecordTypeParameters.png
+    :name: shelfAccess
     :align: center
     :figclass: align-center
 
-**Note that the key within the code component uses the same name as the Key Component in the Shelf record.**
+|
+Your resulting Shelf record should look like this:
 
-|   
-In your experiment, you can then use :code:`counterbal = await psychoJS.shelf.counterBalanceSelect({key: ['my_groups']})` which will return a counterbalance object `counterbal` with two properties, :code:`counterbal.group` indicates the group selected for this participant and :code:`counterbal.finished` indicating if sampling has completed (i.e. all groups are full). If during testing you notice that some groups need "topping up" e.g. the data from one participant is unusable, you can always edit the Shelf directly to allow more participants in each group.
+.. figure:: /images/counterbalanceRecordType.png
+    :name: shelfAccess
+    :align: center
+    :figclass: align-center
+
+|
+To find out more about the Counterbalance Routine, click `here <https://www.psychopy.org/builder/components/counterbalanceStandaloneRoutine.html>`_
 
 
 .. _leaderboardShelf:

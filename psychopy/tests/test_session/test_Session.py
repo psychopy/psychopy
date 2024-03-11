@@ -1,30 +1,21 @@
 import json
-
-import numpy as np
-
-from psychopy import session, visual, logging, clock
-from psychopy.hardware import keyboard
-from psychopy.tests import utils
-from psychopy.constants import STARTED, PAUSED, STOPPED
+from psychopy import session, visual, clock
+from psychopy.hardware import deviceManager
+from psychopy.tests import utils, skip_under_vm
 from pathlib import Path
 import shutil
-import inspect
 import threading
 import time
 
 
+@skip_under_vm
 class TestSession:
     def setup_class(cls):
         root = Path(utils.TESTS_DATA_PATH) / "test_session" / "root"
-        inputs = {
-            'defaultKeyboard': keyboard.Keyboard(),
-            'eyetracker': None
-        }
-        win = visual.Window([128,128], pos=[50,50], allowGUI=False, autoLog=False)
+        win = visual.Window([128, 128], pos=[50, 50], allowGUI=False, autoLog=False)
         cls.sess = session.Session(
             root,
             loggingLevel="info",
-            inputs=inputs,
             win=win,
             experiments={
                 'exp1': "exp1/exp1.psyexp",
@@ -34,6 +25,8 @@ class TestSession:
                 'annotation': "annotation/annotation.psyexp"
             }
         )
+        # setup devices
+        cls.sess.setupDevicesFromExperiment("exp1")
 
     def test_outside_root(self):
         # Add an experiment from outside of the Session root
@@ -90,7 +83,7 @@ class TestSession:
         def _sameTimes():
             times = [
                 # ioHub process time
-                self.sess.inputs['ioServer'].getTime(),
+                deviceManager.ioServer.getTime(),
                 # ioHub time in current process
                 iohub.Computer.global_clock.getTime(),
                 # experiment time
@@ -102,15 +95,13 @@ class TestSession:
             same = [d < 0.001 for d in deltas]
 
             return all(same)
-        # setup experiment inputs
-        self.sess.setupInputsFromExperiment("exp1")
         # knock ioHub timer out of sync
         time.sleep(1)
         # run experiment
         self.sess.runExperiment("exp1")
         # confirm that ioHub timer was brought back into sync
         assert _sameTimes(), (
-            self.sess.inputs['ioServer'].getTime(),
+            deviceManager.ioServer.getTime(),
             iohub.Computer.global_clock.getTime(),
             self.sess.sessionClock.getTime(),
         )
@@ -198,6 +189,49 @@ class TestSession:
         # check that our reference to expInfo is updated too
         assert 'insertedKey' in expInfo
         assert expInfo['insertedKey'] == "insertedValue"
+
+    def test_get_frame_rate(self):
+        """
+        Test getting the frame rate of the monitor.
+        """
+        # get frame rate forcing retest
+        fr1 = self.sess.getFrameRate(retest=True)
+        print(fr1)
+        assert isinstance(fr1, (float, int))
+        # get frame rate again without a retest and confirm it's the same
+        fr2 = self.sess.getFrameRate(retest=False)
+        assert fr1 == fr2
+
+    def test_frame_rate(self):
+        """
+        Test that frameRate is present in expInfo when running from Session.
+        """
+        # add test experiment to Session
+        self.sess.addExperiment("frameRate/frameRate.psyexp", "frameRate")
+        # make expInfo dict
+        expInfo = {'participant': "test", 'date': "0/0/000"}
+        # run test experiment
+        self.sess.runExperiment(
+            "frameRate",
+            expInfo=expInfo,
+            blocking=True
+        )
+
+    def test_get_device_names(self):
+        """
+        Test that device names can be got from an experiment as expected.
+
+        Returns
+        -------
+
+        """
+        # add test experiment to Session
+        self.sess.addExperiment(
+            "testNamedButtonBox/testNamedButtonBox.psyexp", "testNamedButtonBox"
+        )
+        # check its reported device names
+        names = self.sess.getRequiredDeviceNamesFromExperiment("testNamedButtonBox")
+        assert names == ["testNamedButtonBox"]
 
     # def test_error(self, capsys):
     #     """

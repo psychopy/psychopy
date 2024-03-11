@@ -4,7 +4,7 @@
 """Display an image on `psycopy.visual.Window`"""
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
@@ -234,46 +234,6 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
 
         # return the view to previous state
         GL.glPopMatrix()
-
-    # overload ColorMixin methods so that they refresh the image after being called
-    @property
-    def foreColor(self):
-        # Call setter of parent mixin
-        return ColorMixin.foreColor.fget(self)
-
-    @foreColor.setter
-    def foreColor(self, value):
-        # Call setter of parent mixin
-        ColorMixin.foreColor.fset(self, value)
-        # Reset the image and mask-
-        self.setImage(self._imName, log=False)
-        self.texRes = self.__dict__['texRes']  # rebuilds the mask
-
-    @property
-    def contrast(self):
-        # Call setter of parent mixin
-        return ColorMixin.contrast.fget(self)
-
-    @contrast.setter
-    def contrast(self, value):
-        # Call setter of parent mixin
-        ColorMixin.contrast.fset(self, value)
-        # Reset the image and mask-
-        self.setImage(self._imName, log=False)
-        self.texRes = self.__dict__['texRes']  # rebuilds the mask
-
-    @property
-    def opacity(self):
-        # Call setter of parent mixin
-        return BaseVisualStim.opacity.fget(self)
-
-    @opacity.setter
-    def opacity(self, value):
-        # Call setter of parent mixin
-        BaseVisualStim.opacity.fset(self, value)
-        # Reset the image and mask-
-        self.setImage(self._imName, log=False)
-        self.texRes = self.__dict__['texRes']  # rebuilds the mask
 
     def _movieFrameToTexture(self, movieSrc):
         """Convert a movie frame to a texture and use it.

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Experiment classes:
@@ -165,6 +165,7 @@ class Param():
         self.codeWanted = False
         self.canBePath = canBePath
         self.direct = direct
+        self.plugin = None
         if inputType:
             self.inputType = inputType
         elif valType in inputDefaults:
@@ -300,12 +301,15 @@ class Param():
         """Return a bool, so we can do `if thisParam`
         rather than `if thisParam.val`"""
         if self.val in ['True', 'true', 'TRUE', True, 1, 1.0]:
-            # Return True for aliases of True
+            # return True for aliases of True
             return True
         if self.val in ['False', 'false', 'FALSE', False, 0, 0.0]:
-            # Return False for aliases of False
+            # return False for aliases of False
             return False
-        # If not a clear alias, use bool method of value
+        if self.val in ['None', 'none', None, ""]:
+            # return False for aliases of None
+            return False
+        # if not a clear alias, use bool method of value
         return bool(self.val)
 
     @property
@@ -319,6 +323,8 @@ class Param():
             element.set('valType', self.valType)
         if hasattr(self, 'updates'):
             element.set('updates', "{}".format(self.updates))
+        if hasattr(self, 'plugin') and self.plugin is not None:
+            element.set('plugin', "{}".format(self.plugin))
 
         return element
 

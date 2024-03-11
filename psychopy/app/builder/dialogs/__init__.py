@@ -2,12 +2,11 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Dialog classes for the Builder, including ParamCtrls
 """
-import functools
 import sys
 
 import os
@@ -163,8 +162,7 @@ class ParamCtrls():
                 valType=param.valType,
                 choices=param.allowedVals, 
                 labels=param.allowedLabels,
-                fieldName=fieldName, 
-                size=wx.Size(int(self.valueWidth), 24))
+                fieldName=fieldName)
         elif param.inputType == 'multiChoice':
             self.valueCtrl = paramCtrls.MultiChoiceCtrl(
                 parent, 
@@ -256,7 +254,7 @@ class ParamCtrls():
         #         parent, val, order=['Field', 'Default'])
         if hasattr(self.valueCtrl, 'SetToolTip'):
             self.valueCtrl.SetToolTip(wx.ToolTip(_translate(param.hint)))
-        if not isinstance(param.allowedVals, functools.partial) and len(param.allowedVals) == 1 or param.readOnly:
+        if not callable(param.allowedVals) and len(param.allowedVals) == 1 or param.readOnly:
             self.valueCtrl.Disable()  # visible but can't be changed
 
         # add a Validator to the valueCtrl
@@ -491,7 +489,7 @@ class StartStopCtrls(wx.GridBagSizer):
                 localizedChoices = list(map(_translate, param.allowedVals or [param.val]))
                 self.ctrls[name] = wx.Choice(parent,
                                              choices=localizedChoices,
-                                             size=wx.Size(96, 24))
+                                             size=wx.Size(96, -1))
                 self.ctrls[name]._choices = copy.copy(param.allowedVals)
                 self.ctrls[name].SetSelection(param.allowedVals.index(str(param.val)))
                 self.Add(self.ctrls[name], (0, 1), border=6, flag=wx.EXPAND | wx.TOP)
@@ -935,44 +933,9 @@ class _BaseParamsDlg(wx.Dialog):
         """
         Spawn some PsychoPy windows to display each monitor's number.
         """
-        from psychopy import visual
-        for n in range(wx.Display.GetCount()):
-            start = time.time()
-            # Open a window on the appropriate screen
-            win = visual.Window(
-                pos=(0, 0),
-                size=(128, 128),
-                units="norm",
-                screen=n,
-                color="black"
-            )
-            # Draw screen number to the window
-            screenNum = visual.TextBox2(
-                win, text=str(n + 1),
-                size=1, pos=0,
-                alignment="center", anchor="center",
-                letterHeight=0.5, bold=True,
-                fillColor=None, color="white"
-            )
-            # Progress bar
-            progBar = visual.Rect(
-                win, anchor="bottom left",
-                pos=(-1, -1), size=(0, 0.1), 
-                fillColor='white'
-            )
+        from psychopy.hardware import DeviceManager
 
-            # Frame loop
-            t = 0
-            while t < dur:
-                t = time.time() - start
-                # Set progress bar size
-                progBar.size = (t / 5 * 2, 0.1)
-                # Draw
-                progBar.draw()
-                screenNum.draw()
-                win.flip()
-            # Close window
-            win.close()
+        DeviceManager.showScreenNumbers(dur=5)
 
     def onNewTextSize(self, event):
         self.Fit()  # for ExpandoTextCtrl this is needed
@@ -1639,6 +1602,13 @@ class DlgLoopProperties(_BaseParamsDlg):
                         'category': ", ".join(clashes)
                     })
                 paramStr += (str(param) + ', ')
+                # check for derivables
+                derivable = self.exp.namespace.isPossiblyDerivable(param)
+                if derivable:
+                    alert(4710, strFields={
+                        'param': param,
+                        'msg': derivable
+                    })
             paramStr = paramStr[:-2] + "]"  # remove final comma and add ]
             # generate summary info
             msg = _translate('%(nCondition)i conditions, with %(nParam)i '

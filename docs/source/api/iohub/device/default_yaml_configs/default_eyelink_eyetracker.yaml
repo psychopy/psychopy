@@ -162,7 +162,7 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
         #   applied to the sample event data before it is sent to the specified data stream.
         #   The sample filter section can contain multiple key : value entries if 
         #   the tracker implementation supports it, where each key is a sample stream type,
-        #   and each value is the accociated filter level for that sample data stream.
+        #   and each value is the associated filter level for that sample data stream.
         #   sr_research.eyelink.EyeTracker supported stream types are: 
         #       FILTER_ALL, FILTER_FILE, FILTER_ONLINE 
         #   Supported sr_research.eyelink.EyeTracker filter levels are:
@@ -186,7 +186,7 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
             # tracking_mode: Define whether the eye tracker should run in a pupil only
             #   mode or run in a pupil-cr mode. Valid options are: 
             #       PUPIL_CR_TRACKING, PUPIL_ONLY_TRACKING
-            #   Depending on other settngs on the eyelink Host and the model and mode of
+            #   Depending on other settings on the eyelink Host and the model and mode of
             #   eye tracker being used, this parameter may not be able to set the
             #   specified tracking mode. CHeck the mode listed on the camera setup
             #   screen of the Host PC after the experiment has started to confirm if

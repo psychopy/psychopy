@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Experiment classes:
@@ -97,7 +97,7 @@ class TrialHandler(_BaseLoopHandler):
             hint=_translate("Name of this loop"))
         self.params['nReps'] = Param(
             nReps, valType='num', inputType="spin", updates=None, allowedUpdates=None,
-            label=_translate('nReps'),
+            label=_translate('Num. repeats'),
             hint=_translate("Number of repeats (for each condition)"))
         self.params['conditions'] = Param(
             list(conditions), valType='str', inputType="single",
@@ -196,7 +196,7 @@ class TrialHandler(_BaseLoopHandler):
         buff.setIndentLevel(1, relative=True)
         code = (
             "currentLoop = %(name)s\n"
-            "thisExp.timestampOnFlip(win, 'thisRow.t')\n"
+            "thisExp.timestampOnFlip(win, 'thisRow.t', format=globalClock.format)\n"
         )
         buff.writeIndentedLines(code % self.params)
 
@@ -206,7 +206,6 @@ class TrialHandler(_BaseLoopHandler):
             "if thisExp.status == PAUSED:\n"
             "    pauseExperiment(\n"
             "        thisExp=thisExp, \n"
-            "        inputs=inputs, \n"
             "        win=win, \n"
             "        timers=[routineTimer], \n"
             "        playbackComponents=[]\n"
@@ -526,7 +525,7 @@ class StairHandler(_BaseLoopHandler):
         buff.setIndentLevel(1, relative=True)
         code = (
             "currentLoop = %(name)s\n"
-            "thisExp.timestampOnFlip(win, 'thisRow.t')\n"
+            "thisExp.timestampOnFlip(win, 'thisRow.t', format=globalClock.format)\n"
         )
         buff.writeIndentedLines(code % self.params)
         buff.writeIndented("level = %s\n" % self.thisName)
@@ -657,7 +656,7 @@ class MultiStairHandler(_BaseLoopHandler):
         buff.setIndentLevel(1, relative=True)
         code = (
             "currentLoop = %(name)s\n"
-            "thisExp.timestampOnFlip(win, 'thisRow.t')\n"
+            "thisExp.timestampOnFlip(win, 'thisRow.t', format=globalClock.format)\n"
         )
         buff.writeIndentedLines(code % self.params)
         # uncluttered namespace

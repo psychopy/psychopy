@@ -2,9 +2,10 @@
 # Part of the PsychoPy library
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
-
+import importlib
 import os
 import sys
+import inspect
 from operator import itemgetter
 from collections import deque, OrderedDict
 
@@ -835,6 +836,7 @@ class ioServer():
 
         DeviceClass = None
         cls_name_start = dev_cls_name.rfind('.')
+        # define subdirectory to look in
         iohub_submod = 'psychopy.iohub.'
         iohub_submod_len = len(iohub_submod)
         dev_mod_pth = iohub_submod + 'devices.'
@@ -843,15 +845,39 @@ class ioServer():
             dev_cls_name = dev_cls_name[cls_name_start + 1:]
         else:
             dev_mod_pth += dev_cls_name.lower()
-
-        dev_file_pth = dev_mod_pth[iohub_submod_len:].replace('.', os.path.sep)
-
-        dev_conf_pth = os.path.join(IOHUB_DIRECTORY, dev_file_pth,
+        # convert subdirectory to path
+        dev_mod = importlib.import_module(dev_mod_pth)
+        dev_file_pth = os.path.dirname(dev_mod.__file__)
+        # get config from path
+        dev_conf_pth = os.path.join(dev_file_pth,
                                     'default_%s.yaml' % (dev_cls_name.lower()))
-
         self.log('Loading Device Defaults file: %s' % (dev_cls_name,))
 
-        _dconf = yload(open(dev_conf_pth, 'r'), Loader=yLoader)
+        # Load config, try first from the usual location. If the file isn't 
+        # present, look at the directory the device interface class is located 
+        # in. This additional step is required for devices which are offloaded 
+        # to plugins.
+        try:
+            _dconf = yload(open(dev_conf_pth, 'r'), Loader=yLoader)
+        except FileNotFoundError:
+            # Look for the file using an alternative method, this may be due to
+            # file being located in a plugin directory, for now only the 
+            # EyeTracker device is offloaded to plugins.
+            if dev_cls_name.endswith('EyeTracker'):
+                # Get the path from the object handles which reference the 
+                # file in the plugin directory
+                dev_conf_pth = os.path.dirname(
+                    inspect.getfile(dev_mod.EyeTracker))
+                dev_conf_pth = os.path.join(
+                    dev_conf_pth, 'default_%s.yaml' % (dev_cls_name.lower()))
+                with open(dev_conf_pth, 'r') as conf_file:
+                    _dconf = yload(conf_file, Loader=yLoader)
+            else:
+                print2err(
+                    'ERROR: Device Defaults file not found: %s' % (
+                        dev_cls_name,))
+                return None
+
         _, def_dev_conf = _dconf.popitem()
 
         self.processDeviceConfigDictionary(dev_mod_pth, dev_cls_name, dev_conf,

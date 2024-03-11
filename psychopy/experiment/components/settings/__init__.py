@@ -8,18 +8,18 @@ from xml.etree.ElementTree import Element
 import re
 from psychopy import logging, plugins
 from psychopy.experiment.components import Param, _translate
+from psychopy.experiment.routines import Routine, BaseStandaloneRoutine
 from psychopy.experiment.routines.eyetracker_calibrate import EyetrackerCalibrationRoutine
-import psychopy.tools.versionchooser as versions
 from psychopy.experiment import utils as exputils
 from psychopy.monitors import Monitor
 from psychopy.iohub import util as ioUtil
 from psychopy.alerts import alert
 from psychopy.tools.filetools import genDelimiter
+from psychopy.data.utils import parsePipeSyntax
 
 # for creating html output folders:
 import shutil
 import hashlib
-from pkg_resources import parse_version
 import ast  # for doing literal eval to convert '["a","b"]' to a list
 
 try:
@@ -80,40 +80,49 @@ class SettingsComponent:
     iconFile = Path(__file__).parent / 'settings.png'
     tooltip = _translate("Edit settings for this experiment")
 
-    def __init__(self, parentName, exp, expName='', fullScr=True,
-                 winSize=(1024, 768), screen=1, monitor='testMonitor', winBackend='pyglet',
-                 showMouse=False, saveLogFile=True, showExpInfo=True,
-                 expInfo="{'participant':'f\"{randint(0, 999999):06.0f}\"', 'session':'001'}",
-                 units='height', logging='exp',
-                 color='$[0,0,0]', colorSpace='rgb', enableEscape=True,
-                 backgroundImg="", backgroundFit="none",
-                 blendMode='avg',
-                 sortColumns="time", colPriority={'thisRow.t': "priority.CRITICAL", 'expName': "priority.LOW"},
-                 saveXLSXFile=False, saveCSVFile=False, saveHDF5File=False,
-                 saveWideCSVFile=True, savePsydatFile=True,
-                 savedDataFolder='', savedDataDelim='auto',
-                 useVersion='',
-                 eyetracker="None",
-                 mgMove='CONTINUOUS', mgBlink='MIDDLE_BUTTON', mgSaccade=0.5,
-                 gpAddress='127.0.0.1', gpPort=4242,
-                 elModel='EYELINK 1000 DESKTOP', elSimMode=False, elSampleRate=1000, elTrackEyes="RIGHT_EYE",
-                 elLiveFiltering="FILTER_LEVEL_OFF", elDataFiltering="FILTER_LEVEL_2",
-                 elTrackingMode='PUPIL_CR_TRACKING', elPupilMeasure='PUPIL_AREA', elPupilAlgorithm='ELLIPSE_FIT',
-                 elAddress='100.1.1.1',
-                 tbModel="", tbLicenseFile="", tbSerialNo="", tbSampleRate=60,
-                 plPupillometryOnly=False,
-                 plSurfaceName="psychopy_iohub_surface",
-                 plConfidenceThreshold=0.6,
-                 plPupilRemoteAddress="127.0.0.1",
-                 plPupilRemotePort=50020,
-                 plPupilRemoteTimeoutMs=1000,
-                 plPupilCaptureRecordingEnabled=True,
-                 plPupilCaptureRecordingLocation="",
-                 keyboardBackend="ioHub",
-                 filename=None, exportHTML='on Sync', endMessage=''):
+    def __init__(
+            self, parentName, exp, expName='', fullScr=True, runMode=0, rush=False,
+            winSize=(1024, 768), screen=1, monitor='testMonitor', winBackend='pyglet',
+            showMouse=False, saveLogFile=True, showExpInfo=True,
+            expInfo="{'participant':'f\"{randint(0, 999999):06.0f}\"', 'session':'001'}",
+            units='height', logging='warning',
+            color='$[0,0,0]', colorSpace='rgb', enableEscape=True,
+            measureFrameRate=True, frameRate="", frameRateMsg=_translate(
+                "Attempting to measure frame rate of screen, please wait..."
+            ),
+            backgroundImg="", backgroundFit="none",
+            blendMode='avg',
+            sortColumns="time", colPriority={'thisRow.t': "priority.CRITICAL", 'expName': "priority.LOW"},
+            saveXLSXFile=False, saveCSVFile=False, saveHDF5File=False,
+            saveWideCSVFile=True, savePsydatFile=True,
+            savedDataFolder='', savedDataDelim='auto',
+            clockFormat="float",
+            useVersion='',
+            eyetracker="None",
+            mgMove='CONTINUOUS', mgBlink='MIDDLE_BUTTON', mgSaccade=0.5,
+            gpAddress='127.0.0.1', gpPort=4242,
+            elModel='EYELINK 1000 DESKTOP', elSimMode=False, elSampleRate=1000, elTrackEyes="RIGHT_EYE",
+            elLiveFiltering="FILTER_LEVEL_OFF", elDataFiltering="FILTER_LEVEL_2",
+            elTrackingMode='PUPIL_CR_TRACKING', elPupilMeasure='PUPIL_AREA', elPupilAlgorithm='ELLIPSE_FIT',
+            elAddress='100.1.1.1',
+            tbModel="", tbLicenseFile="", tbSerialNo="", tbSampleRate=60,
+            plPupillometryOnly=False,
+            plSurfaceName="psychopy_iohub_surface",
+            plConfidenceThreshold=0.6,
+            plPupilRemoteAddress="127.0.0.1",
+            plPupilRemotePort=50020,
+            plPupilRemoteTimeoutMs=1000,
+            plPupilCaptureRecordingEnabled=True,
+            plPupilCaptureRecordingLocation="",
+            plCompanionAddress="neon.local",
+            plCompanionPort=8080,
+            plCompanionRecordingEnabled=True,
+            keyboardBackend="ioHub",
+            filename=None, exportHTML='on Sync', endMessage=''
+    ):
         self.type = 'Settings'
         self.exp = exp  # so we can access the experiment if necess
-        self.exp.requirePsychopyLibs(['visual', 'gui'])
+        self.exp.requirePsychopyLibs(['visual', 'gui', 'hardware'])
         self.parentName = parentName
         self.url = "https://www.psychopy.org/builder/settings.html"
         self._monitor = None
@@ -130,19 +139,78 @@ class SettingsComponent:
         # params
         self.params = {}
         self.depends = []
-        self.order = ['expName', 'Use version', 'Enable Escape',  'Show info dlg', 'Experiment info',  # Basic tab
+        self.order = [
                       'Audio lib', 'Audio latency priority', "Force stereo",  # Audio tab
                       'HTML path', 'exportHTML', 'Completed URL', 'Incomplete URL', 'End Message', 'Resources',  # Online tab
-                      'Monitor', 'Screen', 'Full-screen window', 'Window size (pixels)', 'Show mouse', 'Units', 'color',
-                      'colorSpace',  # Screen tab
                       ]
         self.depends = []
-        # basic params
+
+        # --- Basic params ---
+        self.order += [
+            'expName',
+            'runMode',
+            'Use version',
+            'Enable Escape',
+            'rush',
+            'Show info dlg',
+            'Experiment info',
+        ]
         self.params['expName'] = Param(
-            expName, valType='str',  inputType="single", allowedTypes=[],
-            hint=_translate("Name of the entire experiment (taken by default"
-                            " from the filename on save)"),
-            label=_translate("Experiment name"))
+            expName, valType='str', inputType="single", categ='Basic',
+            hint=_translate(
+                "Name of the entire experiment (taken by default from the filename on save)"
+            ),
+            label=_translate("Experiment name")
+        )
+        self.params['runMode'] = Param(
+            runMode, valType="code", inputType="choice", categ="Basic",
+            allowedVals=[0, 1],
+            allowedLabels=[_translate("Piloting"), _translate("Running")],
+            label=_translate("Run mode"),
+            hint=_translate(
+                "In piloting mode, all of the settings from prefs->piloting are applied. This is "
+                "recommended while the experiment is a work in progress."
+            )
+        )
+
+        def getVersions():
+            """
+            Search for options locally available
+            """
+            import psychopy.tools.versionchooser as versions
+            available = versions._versionFilter(versions.versionOptions(), wx_version)
+            available += ['']
+            available += versions._versionFilter(versions.availableVersions(), wx_version)
+            return available
+
+        self.params['Use version'] = Param(
+            useVersion, valType='str', inputType="choice",
+            allowedVals=getVersions,
+            hint=_translate(
+                "The version of PsychoPy to use when running the experiment."
+            ),
+            label=_translate("Use PsychoPy version"))
+        self.params['Enable Escape'] = Param(
+            enableEscape, valType='bool', inputType="bool", categ="Basic",
+            hint=_translate(
+                "Enable the <esc> key, to allow subjects to quit / break out of the experiment"
+            ),
+            label=_translate("Enable escape key")
+        )
+        self.params['rush'] = Param(
+            rush, valType="bool", inputType="bool", categ="Basic",
+            hint=_translate(
+                "Enable 'rush' mode, which will raise CPU priority while the experiment is running"
+            ),
+            label=_translate("Enable 'rush' mode")
+        )
+        self.params['Show info dlg'] = Param(
+            showExpInfo, valType='bool', inputType="bool", categ='Basic',
+            hint=_translate(
+                "Start the experiment with a dialog to set info (e.g.participant or condition)"
+            ),
+            label=_translate("Show info dialog")
+        )
         self.depends.append(
             {"dependsOn": "Show info dlg",  # must be param name
              "condition": "==True",  # val to check for
@@ -151,33 +219,34 @@ class SettingsComponent:
              "false": "disable",  # permitted: hide, show, enable, disable
              }
         )
-        self.params['Show info dlg'] = Param(
-            showExpInfo, valType='bool', inputType="bool", allowedTypes=[],
-            hint=_translate("Start the experiment with a dialog to set info"
-                            " (e.g.participant or condition)"),
-            label=_translate("Show info dialog"), categ='Basic')
-        self.params['Enable Escape'] = Param(
-            enableEscape, valType='bool', inputType="bool", allowedTypes=[],
-            hint=_translate("Enable the <esc> key, to allow subjects to quit"
-                            " / break out of the experiment"),
-            label=_translate("Enable escape key"))
         self.params['Experiment info'] = Param(
             expInfo, valType='code', inputType="dict", categ='Basic',
             allowedLabels=(_translate("Field"), _translate("Default")),
-            hint=_translate("The info to present in a dialog box. Right-click"
-                            " to check syntax and preview the dialog box."),
-            label=_translate("Experiment info"))
-        self.params['Use version'] = Param(
-            useVersion, valType='str', inputType="choice",
-            # search for options locally only by default, otherwise sluggish
-            allowedVals=versions._versionFilter(versions.versionOptions(), wx_version)
-                        + ['']
-                        + versions._versionFilter(versions.availableVersions(), wx_version),
-            hint=_translate("The version of PsychoPy to use when running "
-                            "the experiment."),
-            label=_translate("Use PsychoPy version"), categ='Basic')
+            hint=_translate(
+                "The info to present in a dialog box. Right-click to check syntax and preview "
+                "the dialog box."
+            ),
+            label=_translate("Experiment info")
+        )
 
-        # screen params
+        # --- Screen params ---
+        self.order += [
+            "Monitor",
+            "winBackend",
+            "Screen",
+            "Full-screen window",
+            "Show mouse",
+            "Window size (pixels)",
+            "Units",
+            "color",
+            "blendMode",
+            "colorSpace",
+            "backgroundImg",
+            "backgroundFit",
+            "measureFrameRate",
+            "frameRate",
+            "frameRateMsg",
+        ]
         self.params['Full-screen window'] = Param(
             fullScr, valType='bool', inputType="bool", allowedTypes=[],
             hint=_translate("Run the experiment full-screen (recommended)"),
@@ -207,7 +276,7 @@ class SettingsComponent:
             hint=_translate("Color of the screen (e.g. black, $[1.0,1.0,1.0],"
                             " $variable. Right-click to bring up a "
                             "color-picker.)"),
-            label=_translate("Color"), categ='Screen')
+            label=_translate("Background color"), categ='Screen')
         self.params['colorSpace'] = Param(
             colorSpace, valType='str', inputType="choice",
             hint=_translate("Needed if color is defined numerically (see "
@@ -243,6 +312,44 @@ class SettingsComponent:
             showMouse, valType='bool', inputType="bool", allowedTypes=[],
             hint=_translate("Should the mouse be visible on screen? Only applicable for fullscreen experiments."),
             label=_translate("Show mouse"), categ='Screen')
+        self.params['measureFrameRate'] = Param(
+            measureFrameRate, valType="bool", inputType="bool", categ="Screen",
+            label=_translate("Measure frame rate?"),
+            hint=_translate(
+                "Should we measure your frame rate at the start of the experiment? This is "
+                "highly recommended for precise timing."
+            )
+        )
+        self.params['frameRate'] = Param(
+            frameRate, valType="code", inputType="single", categ="Screen",
+            label=_translate("Frame rate"),
+            hint=_translate(
+                "Frame rate to store instead of measuring at the start of the experiment. Leave "
+                "blank to store no frame rate, but be wary: This will lead to errors if frame rate "
+                "isn't supplied by other means."
+            )
+        )
+        self.depends.append({
+                "dependsOn": "measureFrameRate",  # if...
+                "condition": "",  # meets...
+                "param": "frameRate",  # then...
+                "true": "hide",  # should...
+                "false": "show",  # otherwise...
+        })
+        self.params['frameRateMsg'] = Param(
+            frameRateMsg, valType="str", inputType="single", categ="Screen",
+            label=_translate("Frame rate message"),
+            hint=_translate(
+                "Message to display while frame rate is measured. Leave blank for no message."
+            )
+        )
+        self.depends.append({
+                "dependsOn": "measureFrameRate",  # if...
+                "condition": "",  # meets...
+                "param": "frameRateMsg",  # then...
+                "true": "show",  # should...
+                "false": "hide",  # otherwise...
+        })
         # self.depends.append(
         #     {"dependsOn": 'Full-screen window',  # must be param name
         #      "condition": "==True",  # val to check for
@@ -289,7 +396,8 @@ class SettingsComponent:
             "Save wide csv file",
             "Save psydat file",
             "Save hdf5 file",
-            "logging level"
+            "logging level",
+            "clockFormat",
         ]
         self.params['Data filename'] = Param(
             filename, valType='code', inputType="single", allowedTypes=[],
@@ -357,6 +465,16 @@ class SettingsComponent:
             hint=_translate("How much output do you want in the log files? "
                             "('error' is fewest messages, 'debug' is most)"),
             label=_translate("Logging level"), categ='Data')
+        self.params['clockFormat'] = Param(
+            clockFormat, valType="str", inputType="choice", categ="Data",
+            allowedVals=["iso", "float"],
+            allowedLabels=["Wall clock", "Experiment start"],
+            label=_translate("Clock format"),
+            hint=_translate(
+                "Format to use for Routine start timestamps; either wall clock time (in ISO 8601 "
+                "format) or seconds since experiment start (as a float)."
+            )
+        )
 
         # HTML output params
         # self.params['OSF Project ID'] = ProjIDParam(
@@ -407,6 +525,7 @@ class SettingsComponent:
             "Pupil Labs": ["plPupillometryOnly", "plSurfaceName", "plConfidenceThreshold",
                            "plPupilRemoteAddress", "plPupilRemotePort", "plPupilRemoteTimeoutMs",
                            "plPupilCaptureRecordingEnabled", "plPupilCaptureRecordingLocation"],
+            "Pupil Labs (Neon)": ["plCompanionAddress", "plCompanionPort", "plCompanionRecordingEnabled"],
         }
         for tracker in trackerParams:
             for depParam in trackerParams[tracker]:
@@ -607,6 +726,21 @@ class SettingsComponent:
             hint=_translate("Pupil capture recording location"),
             label=_translate("Pupil capture recording location"), categ="Eyetracking"
         )
+        self.params['plCompanionAddress'] = Param(
+            plCompanionAddress, valType='str', inputType="single",
+            hint=_translate("Companion address"),
+            label=_translate("Companion address"), categ="Eyetracking"
+        )
+        self.params['plCompanionPort'] = Param(
+            plCompanionPort, valType='num', inputType="single",
+            hint=_translate("Companion port"),
+            label=_translate("Companion port"), categ="Eyetracking"
+        )
+        self.params['plCompanionRecordingEnabled'] = Param(
+            plCompanionRecordingEnabled, valType='bool', inputType="bool",
+            hint=_translate("Recording enabled"),
+            label=_translate("Recording enabled"), categ="Eyetracking"
+        )
 
         # Input
         self.params['keyboardBackend'] = Param(
@@ -631,41 +765,57 @@ class SettingsComponent:
             element.append(paramNode)
         return element
 
-    def getInfo(self):
-        """Rather than converting the value of params['Experiment Info']
-        into a dict from a string (which can lead to errors) use this function
-        :return: expInfo as a dict
+    def getInfo(self, removePipeSyntax=False):
         """
-        
+        Rather than converting the value of params['Experiment Info']
+        into a dict from a string (which can lead to errors) use this function
+        :return:
+
+        Parameters
+        ----------
+        removePipeSyntax : bool
+            If True, then keys in expInfo dict are returned with pipe syntax (e.g. |req, |cfg, etc.) removed.
+
+        Returns
+        -------
+        dict
+            expInfo as a dict
+        """
+
         infoStr = str(self.params['Experiment info'].val).strip()
         if len(infoStr) == 0:
             return {}
         try:
             infoDict = ast.literal_eval(infoStr)
+            newDict = {}
             # check for strings of lists: "['male','female']"
             for key in infoDict:
                 val = infoDict[key]
+                # sanitize key if requested
+                if removePipeSyntax:
+                    key, _ = parsePipeSyntax(key)
+
                 if exputils.list_like_re.search(str(val)):
                     # Try to call it with ast, if it produces a list/tuple, treat val type as list
                     try:
                         isList = ast.literal_eval(str(val))
                     except ValueError:
                         # If ast errors, treat as code
-                        infoDict[key] = Param(val=val, valType='code')
+                        newDict[key] = Param(val=val, valType='code')
                     else:
                         if isinstance(isList, (list, tuple)):
                             # If ast produces a list, treat as list
-                            infoDict[key] = Param(val=val, valType='list')
+                            newDict[key] = Param(val=val, valType='list')
                         else:
                             # If ast produces anything else, treat as code
-                            infoDict[key] = Param(val=val, valType='code')
+                            newDict[key] = Param(val=val, valType='code')
                 elif val in ['True', 'False']:
-                    infoDict[key] = Param(val=val, valType='bool')
+                    newDict[key] = Param(val=val, valType='bool')
                 elif isinstance(val, str):
-                    infoDict[key] = Param(val=val, valType='str')
+                    newDict[key] = Param(val=val, valType='str')
 
         except (ValueError, SyntaxError):
-            """under Python3 {'participant':'', 'session':02} raises an error because 
+            """under Python3 {'participant':'', 'session':02} raises an error because
             ints can't have leading zeros. We will check for those and correct them
             tests = ["{'participant':'', 'session':02}",
                     "{'participant':'', 'session':02}",
@@ -682,13 +832,13 @@ class SettingsComponent:
             # 0 or more spaces, 1-5 zeros, 0 or more digits:
             pattern = re.compile(r": *0{1,5}\d*")
             try:
-                infoDict = eval(re.sub(pattern, entryToString, infoStr))
+                newDict = eval(re.sub(pattern, entryToString, infoStr))
             except SyntaxError:  # still a syntax error, possibly caused by user
                 msg = ('Builder Expt: syntax error in '
                               '"Experiment info" settings (expected a dict)')
                 logging.error(msg)
                 raise AttributeError(msg)
-        return infoDict
+        return newDict
 
     def getType(self):
         return self.__class__.__name__
@@ -712,7 +862,7 @@ class SettingsComponent:
             'Builder (v%s),\n'
             '    on %s\n' % (version, localDateTime) +
             'If you publish work using this script the most relevant '
-            'publication is:\n\n'            
+            'publication is:\n\n'
             u'    Peirce J, Gray JR, Simpson S, MacAskill M, Höchenberger R, Sogo H, '
             u'Kastman E, Lindeløv JK. (2019) \n'
             '        PsychoPy2: Experiments in behavior made easy Behav Res 51: 195. \n'
@@ -801,29 +951,60 @@ class SettingsComponent:
 
         code = (
             "# --- Setup global variables (available in all functions) ---\n"
-            "# Ensure that relative paths start from the same directory as this script\n"
+            "# create a device manager to handle hardware (keyboards, mice, mirophones, speakers, etc.)\n"
+            "deviceManager = hardware.DeviceManager()\n"
+            "# ensure that relative paths start from the same directory as this script\n"
             "_thisDir = os.path.dirname(os.path.abspath(__file__))\n"
-            "# Store info about the experiment session\n"
+            "# store info about the experiment session\n"
             "psychopyVersion = '%(version)s'\n"
             "expName = %(expName)s  # from the Builder filename that created this script\n"
         )
         buff.writeIndentedLines(code % params)
-        # Construct exp info dict
+        # get info for this experiment
+        expInfo = self.getInfo(removePipeSyntax=False)
+        # add internal expInfo keys
+        expInfo['date|hid'] = "data.getDateStr()"
+        expInfo['expName|hid'] = "expName"
+        expInfo['psychopyVersion|hid'] = "psychopyVersion"
+        # construct exp info dict
         code = (
+            "# information about this experiment\n"
             "expInfo = {\n"
         )
-        for key, value in self.getInfo().items():
+        for key, value in expInfo.items():
             code += (
             f"    '{key}': {value},\n"
             )
         code += (
-            "    'date': data.getDateStr(),  # add a simple timestamp\n"
-            "    'expName': expName,\n"
-            "    'psychopyVersion': psychopyVersion,\n"
             "}\n"
             "\n"
         )
         buff.writeIndented(code)
+
+        # write code for pilot mode
+        code = (
+            "# --- Define some variables which will change depending on pilot mode ---\n"
+            "'''\n"
+            "To run in pilot mode, either use the run/pilot toggle in Builder, Coder and Runner, \n"
+            "or run the experiment with `--pilot` as an argument. To change what pilot \n#"
+            "mode does, check out the 'Pilot mode' tab in preferences.\n"
+            "'''\n"
+            "# work out from system args whether we are running in pilot mode\n"
+            "PILOTING = core.setPilotModeFromArgs()\n"
+            "# start off with values from experiment settings\n"
+            "_fullScr = %(Full-screen window)s\n"
+            "_loggingLevel = logging.getLevel('%(logging level)s')\n"
+            "# if in pilot mode, apply overrides according to preferences\n"
+            "if PILOTING:\n"
+            "    # force windowed mode\n"
+            "    if prefs.piloting['forceWindowed']:\n"
+            "        _fullScr = False\n"
+            "    # override logging level\n"
+            "    _loggingLevel = logging.getLevel(\n"
+            "        prefs.piloting['pilotLoggingLevel']\n"
+            "    )\n"
+        )
+        buff.writeIndented(code % self.params)
 
     def prepareResourcesJS(self):
         """Sets up the resources folder and writes the info.php file for PsychoJS
@@ -891,6 +1072,7 @@ class SettingsComponent:
             copyFileWithMD5(srcFile['abs'], dstAbs)
 
     def writeInitCodeJS(self, buff, version, localDateTime, modular=True):
+        from psychopy.tools import versionchooser as versions
         # create resources folder
         if self.exp.htmlFolder:
             self.prepareResourcesJS()
@@ -918,7 +1100,7 @@ class SettingsComponent:
         # Write header comment
         starLen = "*"*(len(jsFilename) + 9)
         code = ("/%s \n"
-               " * %s *\n" 
+               " * %s *\n"
                " %s/\n\n")
         buff.writeIndentedLines(code % (starLen, jsFilename.title(), starLen))
 
@@ -954,7 +1136,7 @@ class SettingsComponent:
 
     def writeExpSetupCodeJS(self, buff, version):
 
-        
+
         # write the code to set up experiment
         buff.setIndentLevel(0, relative=False)
         template = readTextFile("JS_setupExp.tmpl")
@@ -989,7 +1171,7 @@ class SettingsComponent:
             name=self.params['expName'].val,
             loggingLevel=self.params['logging level'].val.upper(),
             setRedirectURL=setRedirectURL,
-            version=version, 
+            version=version,
             field_separator=repr(delim)
         )
         buff.writeIndentedLines(code)
@@ -1024,11 +1206,20 @@ class SettingsComponent:
         buff.writeIndentedLines(code)
         buff.setIndentLevel(+1, relative=True)
 
+        # remove pipe syntax from expInfo
+        code = (
+            "# remove dialog-specific syntax from expInfo\n"
+            "for key, val in expInfo.copy().items():\n"
+            "    newKey, _ = data.utils.parsePipeSyntax(key)\n"
+            "    expInfo[newKey] = expInfo.pop(key)\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
         # figure out participant id field (if any)
         participantVal = ''
-        for field in ('participant', 'Participant', 'Subject', 'Observer'):
-            if field in self.getInfo():
-                participantVal = " + expInfo['%s']" % field
+        for target in ('participant', 'Participant', 'Subject', 'Observer'):
+            if target in self.getInfo(removePipeSyntax=True):
+                participantVal = " + expInfo['%s']" % target
                 break
         # make sure we have a filename
         if not params['Data filename'].val:  # i.e., the user deleted it
@@ -1118,21 +1309,20 @@ class SettingsComponent:
         buff.setIndentLevel(+1, relative=True)
 
         # set logging level
-        level = self.params['logging level'].val.upper()
         code = (
             "# this outputs to the screen, not a file\n"
-            "logging.console.setLevel(logging.%s)\n"
+            "logging.console.setLevel(_loggingLevel)\n"
         )
-        buff.writeIndentedLines(code % level)
+        buff.writeIndentedLines(code % self.params)
 
         if self.params['Save log file'].val:
             code = (
                 "# save a log file for detail verbose info\n"
-                "logFile = logging.LogFile(filename+'.log', level=logging.%s)\n"
+                "logFile = logging.LogFile(filename+'.log', level=_loggingLevel)\n"
                 "\n"
                 "return logFile\n"
             )
-            buff.writeIndentedLines(code % level)
+            buff.writeIndentedLines(code % self.params)
         # Exit function def
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("\n")
@@ -1147,7 +1337,7 @@ class SettingsComponent:
             '    Parameters\n'
             '    ==========\n'
             '    expInfo : dict\n'
-            '        Information about this experiment, created by the `setupExpInfo` function.\n'
+            '        Information about this experiment.\n'
             '    \n'
             '    Returns\n'
             '    ==========\n'
@@ -1160,19 +1350,12 @@ class SettingsComponent:
 
         sorting = "False"  # in Py3 dicts are chrono-sorted so default no sort
         code = (
-            f"# temporarily remove keys which the dialog doesn't need to show\n"
-            f"poppedKeys = {{\n"
-            f"    'date': expInfo.pop('date', data.getDateStr()),\n"
-            f"    'expName': expInfo.pop('expName', expName),\n"
-            f"    'psychopyVersion': expInfo.pop('psychopyVersion', psychopyVersion),\n"
-            f"}}\n"
             f"# show participant info dialog\n"
-            f"dlg = gui.DlgFromDict(dictionary=expInfo, "
-            f"sortKeys={sorting}, title=expName)\n"
+            f"dlg = gui.DlgFromDict(\n"
+            f"    dictionary=expInfo, sortKeys={sorting}, title=expName, alwaysOnTop=True\n"
+            f")\n"
             f"if dlg.OK == False:\n"
             f"    core.quit()  # user pressed cancel\n"
-            f"# restore hidden keys\n"
-            f"expInfo.update(poppedKeys)\n"
             f"# return expInfo\n"
             f"return expInfo\n"
         )
@@ -1182,13 +1365,14 @@ class SettingsComponent:
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("\n")
 
-    def writeIohubCode(self, buff):
+    def writeDevicesCode(self, buff):
         # Open function def
         code = (
             '\n'
-            'def setupInputs(expInfo, thisExp, win):\n'
+            'def setupDevices(expInfo, thisExp, win):\n'
             '    """\n'
-            '    Setup whatever inputs are available (mouse, keyboard, eyetracker, etc.)\n'
+            '    Setup whatever devices are available (mouse, keyboard, speaker, eyetracker, etc.) and add them to \n'
+            '    the device manager (deviceManager)\n'
             '    \n'
             '    Parameters\n'
             '    ==========\n'
@@ -1201,8 +1385,8 @@ class SettingsComponent:
             '        Window in which to run this experiment.\n'
             '    Returns\n'
             '    ==========\n'
-            '    dict\n'
-            '        Dictionary of input devices by name.\n'
+            '    bool\n'
+            '        True if completed successfully.\n'
             '    """\n'
         )
         buff.writeIndentedLines(code)
@@ -1218,7 +1402,6 @@ class SettingsComponent:
         # Make ioConfig dict
         code = (
             "# --- Setup input devices ---\n"
-            "inputs = {}\n"
             "ioConfig = {}\n"
         )
         buff.writeIndentedLines(code % inits)
@@ -1231,7 +1414,7 @@ class SettingsComponent:
             if self.params['Monitor'].val in ["", None, "None"]:
                 alert(code=4545)
             # Alert user if they need calibration and don't have it
-            if self.params['eyetracker'].val != "MouseGaze":
+            if not self.params['eyetracker'].val in ["MouseGaze", "Pupil Labs (Neon)"]:
                 if not any(isinstance(rt, EyetrackerCalibrationRoutine)
                            for rt in self.exp.flow):
                     alert(code=4510, strFields={"eyetracker": self.params['eyetracker'].val})
@@ -1414,6 +1597,29 @@ class SettingsComponent:
                 )
                 buff.writeIndentedLines(code % inits)
 
+            elif self.params['eyetracker'] == "Pupil Labs (Neon)":
+                # Open runtime_settings dict
+                code = (
+                    "'runtime_settings': {\n"
+                )
+                buff.writeIndentedLines(code % inits)
+                buff.setIndentLevel(1, relative=True)
+
+                # Define runtime_settings dict
+                code = (
+                    "'companion_address': %(plCompanionAddress)s,\n"
+                    "'companion_port': %(plCompanionPort)s,\n"
+                    "'recording_enabled': %(plCompanionRecordingEnabled)s,\n"
+                )
+                buff.writeIndentedLines(code % inits)
+
+                # Close runtime_settings dict
+                buff.setIndentLevel(-1, relative=True)
+                code = (
+                    "}\n"
+                )
+                buff.writeIndentedLines(code % inits)
+
             # Close ioDevice dict
             buff.setIndentLevel(-1, relative=True)
             code = (
@@ -1458,38 +1664,46 @@ class SettingsComponent:
                     f"ioServer = io.launchHubServer(window=win, **ioConfig)\n"
                 )
             buff.writeIndentedLines(code % inits)
-            # Get eyetracker name
-            if self.params['eyetracker'] != "None":
-                code = (
-                    "eyetracker = ioServer.getDevice('tracker')\n"
-                )
-                buff.writeIndentedLines(code % inits)
-            else:
-                code = (
-                    "eyetracker = None\n"
-                )
-                buff.writeIndentedLines(code % inits)
         else:
             code = (
                 "ioSession = ioServer = eyetracker = None"
             )
             buff.writeIndentedLines(code % inits)
 
-        # Make default keyboard
+        # store ioServer
+        code = (
+            "# store ioServer object in the device manager\n"
+            "deviceManager.ioServer = ioServer\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        # add eyetracker to DeviceManager
+        if self.params['eyetracker'] != "None":
+            code = (
+                "deviceManager.devices['eyetracker'] = ioServer.getDevice('tracker')\n"
+            )
+            buff.writeIndentedLines(code % inits)
+        # make default keyboard
         code = (
             "\n"
             "# create a default keyboard (e.g. to check for escape)\n"
-            "defaultKeyboard = keyboard.Keyboard(backend=%(keyboardBackend)s)\n"
+            "if deviceManager.getDevice('defaultKeyboard') is None:\n"
+            "    deviceManager.addDevice(\n"
+            "        deviceClass='keyboard', deviceName='defaultKeyboard', backend=%(keyboardBackend)s\n"
+            "    )\n"
         )
         buff.writeIndentedLines(code % inits)
+        # write any device setup code required by a component
+        for rt in self.exp.flow:
+            if isinstance(rt, Routine):
+                for comp in rt:
+                    if hasattr(comp, "writeDeviceCode"):
+                        comp.writeDeviceCode(buff)
+            elif isinstance(rt, BaseStandaloneRoutine):
+                rt.writeDeviceCode(buff)
 
         code = (
-            "# return inputs dict\n"
-            "return {\n"
-            "    'ioServer': ioServer,\n"
-            "    'defaultKeyboard': defaultKeyboard,\n"
-            "    'eyetracker': eyetracker,\n"
-            "}\n"
+            "# return True if completed successfully\n"
+            "return True\n"
         )
         buff.writeIndentedLines(code)
         # Exit function def
@@ -1567,21 +1781,29 @@ class SettingsComponent:
         params['size'] = self.params['Window size (pixels)']
         params['winType'] = self.params['winBackend']
 
+        # force windowed according to prefs/pilot mode
+        if params['fullScr']:
+            msg = _translate("Fullscreen settings ignored as running in pilot mode.")
+            code = (
+                f"if PILOTING:\n"
+                f"    logging.debug('{msg}')\n"
+                f"\n"
+            )
+            buff.writeIndentedLines(code % params)
+
         # Do we need to make a new window?
         code = (
             "if win is None:\n"
             "    # if not given a window to setup, make one\n"
             "    win = visual.Window(\n"
-            "        size=%(size)s, fullscr=%(fullScr)s, screen=%(screenNumber)s,\n"
+            "        size=%(size)s, fullscr=_fullScr, screen=%(screenNumber)s,\n"
             "        winType=%(winType)s, allowStencil=%(allowStencil)s,\n"
             "        monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s,\n"
             "        backgroundImage=%(backgroundImg)s, backgroundFit=%(backgroundFit)s,\n"
             "        blendMode=%(blendMode)s, useFBO=%(useFBO)s,\n"
-            "        units=%(Units)s\n"
+            "        units=%(Units)s, \n"
+            "        checkTiming=False  # we're going to do this ourselves in a moment\n"
             "    )\n"
-            "    if expInfo is not None:\n"
-            "        # store frame rate of monitor if we can measure it\n"
-            "        expInfo['frameRate'] = win.getActualFrameRate()\n"
             "else:\n"
             "    # if we have a window, just set the attributes which are safe to set\n"
             "    win.color = %(color)s\n"
@@ -1591,6 +1813,22 @@ class SettingsComponent:
             "    win.units = %(Units)s\n"
         )
         buff.writeIndentedLines(code % params)
+        # do/skip frame rate measurement according to params
+        if self.params['measureFrameRate']:
+            code = (
+            "if expInfo is not None:\n"
+            "    # get/measure frame rate if not already in expInfo\n"
+            "    if win._monitorFrameRate is None:\n"
+            "        win.getActualFrameRate(infoMsg=%(frameRateMsg)s)\n"
+            "    expInfo['frameRate'] = win._monitorFrameRate\n"
+            )
+            buff.writeIndentedLines(code % params)
+        elif self.params['frameRate']:
+            code = (
+            "if expInfo is not None:\n"
+            "    expInfo['frameRate'] = %(frameRate)s\n"
+            )
+            buff.writeIndentedLines(code % params)
 
         # Show/hide mouse according to param
         code = (
@@ -1604,6 +1842,14 @@ class SettingsComponent:
         )
         buff.writeIndentedLines(code)
 
+        # show/hide pilot indicator
+        code = (
+            "# show a visual indicator if we're in piloting mode\n"
+            "if PILOTING and prefs.piloting['showPilotingIndicator']:\n"
+            "    win.showPilotingIndicator()\n"
+        )
+        buff.writeIndentedLines(code)
+
         # Import here to avoid circular dependency!
         from psychopy.experiment._experiment import RequiredImport
         microphoneImport = RequiredImport(importName='microphone',
@@ -1614,6 +1860,7 @@ class SettingsComponent:
                                     "microphone.switchOn()\n")
         # Exit function def
         code = (
+            "\n"
             "return win\n"
         )
         buff.writeIndentedLines(code)
@@ -1686,7 +1933,7 @@ class SettingsComponent:
     def writePauseCode(self, buff):
         # Open function def
         code = (
-            'def pauseExperiment(thisExp, inputs=None, win=None, timers=[], playbackComponents=[]):\n'
+            'def pauseExperiment(thisExp, win=None, timers=[], playbackComponents=[]):\n'
             '    """\n'
             '    Pause this experiment, preventing the flow from advancing to the next routine until resumed.\n'
             '    \n'
@@ -1695,8 +1942,6 @@ class SettingsComponent:
             '    thisExp : psychopy.data.ExperimentHandler\n'
             '        Handler object for this experiment, contains the data to save and information about \n'
             '        where to save it to.\n'
-            '    inputs : dict\n'
-            '        Dictionary of input devices by name.\n'
             '    win : psychopy.visual.Window\n'
             '        Window for this experiment.\n'
             '    timers : list, tuple\n'
@@ -1719,26 +1964,29 @@ class SettingsComponent:
             "    comp.pause()\n"
             "# prevent components from auto-drawing\n"
             "win.stashAutoDraw()\n"
+            "# make sure we have a keyboard\n"
+            "defaultKeyboard = deviceManager.getDevice('defaultKeyboard')\n"
+            "if defaultKeyboard is None:\n"
+            "    defaultKeyboard = deviceManager.addKeyboard(\n"
+            "        deviceClass='keyboard',\n"
+            "        deviceName='defaultKeyboard',\n"
+            "        backend=%(keyboardBackend)s,\n"
+            "    )\n"
             "# run a while loop while we wait to unpause\n"
             "while thisExp.status == PAUSED:\n"
         )
         if self.params['Enable Escape'].val:
             code += (
-            "    # make sure we have a keyboard\n"
-            "    if inputs is None:\n"
-            "        inputs = {\n"
-            "            'defaultKeyboard': keyboard.Keyboard(backend=%(keyboardBackend)s)\n"
-            "        }\n"
             "    # check for quit (typically the Esc key)\n"
-            "    if inputs['defaultKeyboard'].getKeys(keyList=['escape']):\n"
-            "        endExperiment(thisExp, win=win, inputs=inputs)\n"
+            "    if defaultKeyboard.getKeys(keyList=['escape']):\n"
+            "        endExperiment(thisExp, win=win)\n"
             )
         code += (
             "    # flip the screen\n"
             "    win.flip()\n"
             "# if stop was requested while paused, quit\n"
             "if thisExp.status == FINISHED:\n"
-            "    endExperiment(thisExp, inputs=inputs, win=win)\n"
+            "    endExperiment(thisExp, win=win)\n"
             "# resume any playback components\n"
             "for comp in playbackComponents:\n"
             "    comp.play()\n"
@@ -1760,7 +2008,7 @@ class SettingsComponent:
         # Open function def
         code = (
             '\n'
-            'def endExperiment(thisExp, inputs=None, win=None):\n'
+            'def endExperiment(thisExp, win=None):\n'
             '    """\n'
             '    End this experiment, performing final shut down operations.\n'
             '    \n'
@@ -1771,8 +2019,6 @@ class SettingsComponent:
             '    thisExp : psychopy.data.ExperimentHandler\n'
             '        Handler object for this experiment, contains the data to save and information about \n'
             '        where to save it to.\n'
-            '    inputs : dict\n'
-            '        Dictionary of input devices by name.\n'
             '    win : psychopy.visual.Window\n'
             '        Window for this experiment.\n'
             '    """\n'
@@ -1790,9 +2036,8 @@ class SettingsComponent:
             "# mark experiment handler as finished\n"
             "thisExp.status = FINISHED\n"
             "# shut down eyetracker, if there is one\n"
-            "if inputs is not None:\n"
-            "    if 'eyetracker' in inputs and inputs['eyetracker'] is not None:\n"
-            "        inputs['eyetracker'].setConnectionState(False)\n"
+            "if deviceManager.getDevice('eyetracker') is not None:\n"
+            "    deviceManager.removeDevice('eyetracker')\n"
         )
         if self.params['Save log file'].val:
             code += (
@@ -1806,7 +2051,7 @@ class SettingsComponent:
         # Open function def
         code = (
             '\n'
-            'def quit(thisExp, win=None, inputs=None, thisSession=None):\n'
+            'def quit(thisExp, win=None, thisSession=None):\n'
             '    """\n'
             '    Fully quit, closing the window and ending the Python process.\n'
             '    \n'
@@ -1814,8 +2059,6 @@ class SettingsComponent:
             '    ==========\n'
             '    win : psychopy.visual.Window\n'
             '        Window to close.\n'
-            '    inputs : dict\n'
-            '        Dictionary of input devices by name.\n'
             '    thisSession : psychopy.session.Session or None\n'
             '        Handle of the Session object this experiment is being run from, if any.\n'
             '    """\n'
@@ -1831,9 +2074,9 @@ class SettingsComponent:
             "    # and win.timeOnFlip() tasks get executed before quitting\n"
             "    win.flip()\n"
             "    win.close()\n"
-            "if inputs is not None:\n"
-            "    if 'eyetracker' in inputs and inputs['eyetracker'] is not None:\n"
-            "        inputs['eyetracker'].setConnectionState(False)\n"
+            "# shut down eyetracker, if there is one\n"
+            "if deviceManager.getDevice('eyetracker') is not None:\n"
+            "    deviceManager.removeDevice('eyetracker')\n"
         )
         if self.params['Save log file'].val:
             code += (
@@ -1860,8 +2103,10 @@ class SettingsComponent:
                     "    };\n"
                     "}\n")
         buff.writeIndentedLines(recordLoopIterationFunc)
-
-        code = ("\nasync function quitPsychoJS(message, isCompleted) {\n")
+        code = (
+            "\n"
+            "async function quitPsychoJS(message, isCompleted) {\n"
+        )
         buff.writeIndented(code)
         buff.setIndentLevel(1, relative=True)
         code = ("// Check for and save orphaned data\n"
@@ -1874,10 +2119,8 @@ class SettingsComponent:
         for thisRoutine in list(self.exp.routines.values()):
             # a single routine is a list of components:
             for thisComp in thisRoutine:
-                if thisComp.type in ['Code', 'EmotivRecording']:
-                    buff.writeIndented("\n")
+                if hasattr(thisComp, "writeExperimentEndCodeJS"):
                     thisComp.writeExperimentEndCodeJS(buff)
-                    buff.writeIndented("\n")
 
         code = ("psychoJS.window.close();\n"
                 "psychoJS.quit({message: message, isCompleted: isCompleted});\n\n"

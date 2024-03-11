@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 from copy import copy
 from pathlib import Path
@@ -24,7 +24,7 @@ class SerialOutComponent(BaseComponent):
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
-                 port="COM3", baudrate=9600, bytesize=8, stopbits=1, parity='None',
+                 port="COM3", baudrate=9600, bytesize=8, stopbits=1, parity='N',
                  startdata=1, stopdata=0,
                  timeout="", getResponse=False,
                  syncScreenRefresh=False):

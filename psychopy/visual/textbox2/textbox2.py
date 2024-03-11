@@ -379,6 +379,7 @@ class TextBox2(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin):
                 shape='square', units=self.units,
                 autoLog=False
             )
+            self.container.disable()
         if value in ("scroll",):
             # If needed, create Slider
             from ..slider import Slider  # Slider contains textboxes, so only import now
@@ -596,6 +597,11 @@ class TextBox2(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin):
         elif isinstance(value, (list, tuple, np.ndarray)):
             # If given an array, convert it to a Vector
             self._letterHeight = layout.Size(value, units=self.units, win=self.win)
+
+    def setLetterHeight(self, value, log=None):
+        setAttribute(
+            self, "letterHeight", value=value, log=log
+        )
 
     @property
     def letterHeightPix(self):

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
@@ -162,13 +162,13 @@ class MouseComponent(BaseComponent):
         code = (
             "# check whether click was in correct object\n"
             "if gotValidClick:\n"
-            "    corr = 0\n"
-            "    corrAns = environmenttools.getFromNames(%(correctAns)s, namespace=locals())\n"
-            "    for obj in corrAns:\n"
+            "    _corr = 0\n"
+            "    _corrAns = environmenttools.getFromNames(%(correctAns)s, namespace=locals())\n"
+            "    for obj in _corrAns:\n"
             "        # is this object clicked on?\n"
             "        if obj.contains(%(name)s):\n"
-            "            corr = 1\n"
-            "    %(name)s.corr.append(corr)\n"
+            "            _corr = 1\n"
+            "    %(name)s.corr.append(_corr)\n"
         )
         # Write force end code
         if self.params['forceEndRoutineOnPress'] == 'correct click':
@@ -667,9 +667,6 @@ class MouseComponent(BaseComponent):
 
         # get parent to write code too (e.g. store onset/offset times)
         super().writeRoutineEndCode(buff)
-
-        if currLoop.params['name'].val == self.exp._expHandler.name:
-            buff.writeIndented("%s.nextEntry()\n" % self.exp._expHandler.name)
 
     def writeRoutineEndCodeJS(self, buff):
         """Write code at end of routine"""

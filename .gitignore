@@ -19,6 +19,7 @@
 /.cache
 /.idea
 /.untitled.py
+scratch.py
 
 # Compiled source #
 ###################
@@ -32,6 +33,7 @@
 *.so
 *.egg
 .eggs
+psychopy/app/locale/**/LC_MESSAGE/messages.mo
 
 # Python files #
 ################

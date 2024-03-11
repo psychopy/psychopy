@@ -51,7 +51,7 @@ class TestComponentDialogs:
                          "End Experiment"]},
             # None populated
             {'params': [],
-             'first': "Before Experiment",
+             'first': "Begin Experiment",
              'starred': []},
         ]
         # For each case...

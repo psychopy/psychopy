@@ -11,6 +11,8 @@ from functools import partial
 from pathlib import Path
 
 from psychopy import experiment, logging, constants, data, core, __version__
+from psychopy.hardware.manager import DeviceManager, deviceManager
+from psychopy.hardware.listener import loop as listenerLoop
 from psychopy.tools.arraytools import AliasDict
 
 from psychopy.localization import _translate
@@ -244,7 +246,6 @@ class Session:
                  experiments=None,
                  loggingLevel="info",
                  priorityThreshold=constants.priority.EXCLUDE+1,
-                 inputs=None,
                  params=None,
                  liaison=None):
         # Store root and add to Python path
@@ -268,6 +269,7 @@ class Session:
         self.priorityThreshold = priorityThreshold
         # Add experiments
         self.experiments = {}
+        self.experimentObjects = {}
         if experiments is not None:
             for nm, exp in experiments.items():
                 self.addExperiment(exp, key=nm)
@@ -280,16 +282,6 @@ class Session:
             # If win is the name of an experiment, setup from that experiment's method
             self.win = None
             self.setupWindowFromExperiment(win)
-        # Store/create inputs dict
-        self.inputs = {
-            'defaultKeyboard': None,
-            'eyetracker': None
-        }
-        if isinstance(inputs, dict):
-            self.inputs = inputs
-        elif inputs in self.experiments:
-            # If inputs is the name of an experiment, setup from that experiment's method
-            self.setupInputsFromExperiment(inputs)
         # Setup Session clock
         if clock in (None, "float"):
             clock = core.Clock()
@@ -298,6 +290,12 @@ class Session:
         elif isinstance(clock, str):
             clock = core.Clock(format=clock)
         self.sessionClock = clock
+        # make sure we have a default keyboard
+        if DeviceManager.getDevice("defaultKeyboard") is None:
+            DeviceManager.addDevice(
+                deviceClass="psychopy.hardware.keyboard.KeyboardDevice",
+                deviceName="defaultKeyboard",
+            )
         # Store params as an aliased dict
         if params is None:
             params = {}
@@ -433,6 +431,11 @@ class Session:
             # Write script
             script = exp.writeScript(target="PsychoPy")
             pyFile.write_text(script, encoding="utf8")
+            # Store experiment object
+            self.experimentObjects[key] = exp
+        else:
+            # if no experiment object, store None
+            self.experimentObjects[key] = None
         # Handle if key is None
         if key is None:
             key = str(file.relative_to(self.root))
@@ -591,7 +594,7 @@ class Session:
         Parameters
         ----------
         key : str or Iterable[str]
-            Key or keys to get vaues of fro expInfo dict
+            Key or keys to get values of fro expInfo dict
 
         Returns
         -------
@@ -656,6 +659,18 @@ class Session:
         # get expInfo from ExperimentHandler object
         return self.currentExperiment.extraInfo
 
+    @property
+    def win(self):
+        """
+        Window associated with this Session. Defined as a property so as to be accessible from Liaison
+        if needed.
+        """
+        return self._win
+
+    @win.setter
+    def win(self, value):
+        self._win = value
+
     def setupWindowFromExperiment(self, key, expInfo=None, blocking=True):
         """
         Setup the window for this Session via the 'setupWindow` method from one of this
@@ -703,7 +718,7 @@ class Session:
 
         return True
 
-    def setupWindowFromParams(self, params, blocking=True):
+    def setupWindowFromParams(self, params, measureFrameRate=False, blocking=True):
         """
         Create/setup a window from a dict of parameters
 
@@ -712,6 +727,8 @@ class Session:
         params : dict
             Dict of parameters to create the window from, keys should be from the
             __init__ signature of psychopy.visual.Window
+        measureFrameRate : bool
+            If True, will measure frame rate upon window creation.
         blocking : bool
             Should calling this method block the current thread?
 
@@ -755,10 +772,40 @@ class Session:
             self.win.units = params.get('units', self.win.units)
         # Set window title to signify that we're in a Session
         self.win.title = "PsychoPy Session"
+        # Measure frame rate
+        if measureFrameRate:
+            expInfo = self.getCurrentExpInfo()
+            expInfo['frameRate'] = self.win.getActualFrameRate()
 
         return True
 
+    def getFrameRate(self, retest=False):
+        """
+        Get the frame rate from the window.
+
+        Parameters
+        ----------
+        retest : bool
+            If True, then will always run the frame rate test again, even if measured frame rate is already available.
+
+        Returns
+        -------
+        float
+            Frame rate retrieved from Session window.
+        """
+        # if asked to, or if not yet measured, measure framerate
+        if retest or self.win._monitorFrameRate is None:
+            self.win._monitorFrameRate = self.win.getActualFrameRate()
+        # return from Window object
+        return self.win._monitorFrameRate
+
     def setupInputsFromExperiment(self, key, expInfo=None, thisExp=None, blocking=True):
+        """
+        Deprecated: legacy alias of setupDevicesFromExperiment
+        """
+        self.setupDevicesFromExperiment(key, expInfo=expInfo, thisExp=thisExp, blocking=blocking)
+
+    def setupDevicesFromExperiment(self, key, expInfo=None, thisExp=None, blocking=True):
         """
         Setup inputs for this Session via the 'setupInputs` method from one of this Session's experiments.
 
@@ -792,15 +839,20 @@ class Session:
         if threading.current_thread() != threading.main_thread() and not blocking:
             # The queue is emptied each iteration of the while loop in `Session.start`
             _queue.queueTask(
-                self.setupInputsFromExperiment,
+                self.setupDevicesFromExperiment,
                 key, expInfo=expInfo
             )
             return True
 
         if expInfo is None:
             expInfo = self.getExpInfoFromExperiment(key)
-        # Run the setupInputs method
-        self.inputs = self.experiments[key].setupInputs(expInfo=expInfo, thisExp=thisExp, win=self.win)
+        # store current devices dict
+        ogDevices = DeviceManager.devices.copy()
+        # run the setupDevices method
+        self.experiments[key].setupDevices(expInfo=expInfo, thisExp=thisExp, win=self.win)
+        # reinstate any original devices which were overwritten
+        for key, obj in ogDevices.items():
+            DeviceManager.devices[key] = obj
 
         return True
 
@@ -814,7 +866,7 @@ class Session:
             Name of this input, what to store it under in the inputs dict.
         params : dict
             Dict of parameters to create the keyboard from, keys should be from the
-            __init__ signature of psychopy.hardware.keyboard.Keyboard
+            `addKeyboard` function in hardware.DeviceManager
         blocking : bool
             Should calling this method block the current thread?
 
@@ -843,10 +895,69 @@ class Session:
             return True
 
         # Create keyboard
-        from psychopy.hardware.keyboard import Keyboard
-        self.inputs[name] = Keyboard(**params)
+        deviceManager.addKeyboard(*params)
 
         return True
+
+    def getRequiredDeviceNamesFromExperiment(self, key):
+        """
+        Get a list of device names referenced in a given experiment.
+
+        Parameters
+        ----------
+        key : str
+            Key by which the experiment is stored (see `.addExperiment`).
+
+        Returns
+        -------
+        list[str]
+            List of device names
+        """
+        # get an experiment object
+        exp = self.experimentObjects[key]
+        if exp is None:
+            raise ValueError(
+                f"Device names are not available for experiments added to Session directly as a "
+                f".py file."
+            )
+        # get ready to store usages
+        usages = {}
+
+        def _process(name, emt):
+            """
+            Process an element (Component or Routine) for device names and append them to the
+            usages dict.
+
+            Parameters
+            ----------
+            name : str
+                Name of this element in Builder
+            emt : Component or Routine
+                Element to process
+            """
+            # if we have a device name for this element...
+            if "deviceLabel" in emt.params:
+                # get init value so it lines up with boilerplate code
+                inits = experiment.getInitVals(emt.params)
+                # get value
+                deviceName = inits['deviceLabel'].val
+                # if deviceName exists from other elements, add usage to it
+                if deviceName in usages:
+                    usages[deviceName].append(name)
+                else:
+                    usages[deviceName] = [name]
+
+        # iterate through routines
+        for rtName, rt in exp.routines.items():
+            if isinstance(rt, experiment.routines.BaseStandaloneRoutine):
+                # for standalone routines, get device names from params
+                _process(rtName, rt)
+            else:
+                # for regular routines, get device names from each component
+                for comp in rt:
+                    _process(comp.name, comp)
+
+        return list(usages)
 
     def runExperiment(self, key, expInfo=None, blocking=True):
         """
@@ -893,18 +1004,24 @@ class Session:
         thisExp.name = key
         # Mark ExperimentHandler as current
         self.currentExperiment = thisExp
+        # Make sure we have at least one response device
+        if "defaultKeyboard" not in DeviceManager.devices:
+            DeviceManager.addDevice(
+                deviceClass="psychopy.hardware.keyboard.KeyboardDevice",
+                deviceName="defaultKeyboard"
+            )
         # Hide Window message
         self.win.hideMessage()
         # Setup window for this experiment
-        self.setupWindowFromExperiment(key=key)
+        self.setupWindowFromExperiment(expInfo=expInfo, key=key)
         self.win.flip()
         self.win.flip()
         # Hold all autodraw stimuli
         self.win.stashAutoDraw()
+        # Pause the listener loop
+        listenerLoop.pause()
         # Setup logging
         self.experiments[key].run.__globals__['logFile'] = self.logFile
-        # Setup inputs
-        self.setupInputsFromExperiment(key, expInfo=expInfo, thisExp=thisExp)
         # Log start
         logging.info(_translate(
             "Running experiment via Session: name={key}, expInfo={expInfo}"
@@ -915,14 +1032,16 @@ class Session:
                 expInfo=expInfo,
                 thisExp=thisExp,
                 win=self.win,
-                inputs=self.inputs,
                 globalClock=self.sessionClock,
                 thisSession=self
             )
         except Exception as _err:
             err = _err
+            err.userdata = key
         # Reinstate autodraw stimuli
         self.win.retrieveAutoDraw()
+        # Restart the listener loop
+        listenerLoop.pause()
         # Restore original chdir
         os.chdir(str(self.root))
         # Store ExperimentHandler
@@ -949,7 +1068,8 @@ class Session:
             self.sendToLiaison({
                     'type': "experiment_status",
                     'name': thisExp.name,
-                    'status': thisExp.status
+                    'status': thisExp.status,
+                    'expInfo': expInfo
                 })
 
         return True
@@ -1230,11 +1350,8 @@ class Session:
         # If ExperimentHandler, get its data as a list of dicts
         if isinstance(value, data.ExperimentHandler):
             value = value.getJSON(priorityThreshold=self.priorityThreshold)
-        # Convert to JSON
-        if not isinstance(value, str):
-            value = json.dumps(value)
         # Send
-        asyncio.run(self.liaison.broadcast(message=value))
+        self.liaison.broadcastSync(message=value)
 
     def close(self, blocking=True):
         """
@@ -1311,6 +1428,8 @@ if __name__ == "__main__":
         from psychopy import liaison
         # Create liaison server
         liaisonServer = liaison.WebSocketServer()
+        # Add DeviceManager to liaison server
+        liaisonServer.registerClass(DeviceManager, "DeviceManager")
         # Add session to liaison server
         liaisonServer.registerClass(Session, "session")
         # Register queue with liaison

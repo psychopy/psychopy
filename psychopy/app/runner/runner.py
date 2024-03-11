@@ -2,17 +2,19 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 import glob
 import json
 import errno
 
+from .. import ribbon
 from ..stdout.stdOutRich import ScriptOutputPanel
 from ..themes import handlers, colors, icons
 from ..themes.ui import ThemeSwitcher
 
 import wx
+import wx.lib.agw.aui as aui
 import os
 import sys
 import time
@@ -30,7 +32,9 @@ from psychopy.scripts.psyexpCompile import generateScript
 from psychopy.app.runner.scriptProcess import ScriptProcess
 import psychopy.tools.versionchooser as versions
 
-folderColumn = 1
+
+folderColumn = 2
+runModeColumn = 1
 filenameColumn = 0
 
 
@@ -58,6 +62,7 @@ class RunnerFrame(wx.Frame, handlers.ThemeMixin):
         # detect retina displays (then don't use double-buffering)
         self.isRetina = self.GetContentScaleFactor() != 1
         self.SetDoubleBuffered(not self.isRetina)
+        self.SetMinSize(wx.Size(640, 480))
         # double buffered better rendering except if retina
         self.panel.SetDoubleBuffered(not self.isRetina)
 
@@ -86,8 +91,11 @@ class RunnerFrame(wx.Frame, handlers.ThemeMixin):
         self.Bind(wx.EVT_CLOSE, self.onClose)
 
         # hide alerts to begin with, more room for std while also making alerts more noticeable
-        self.panel.alertsToggleBtn.ToggleMenu(False)
         self.Layout()
+        if self.isRetina:
+            self.SetSize(wx.Size(920, 640))
+        else:
+            self.SetSize(wx.Size(1080, 920))
 
         self.theme = app.theme
 
@@ -102,19 +110,35 @@ class RunnerFrame(wx.Frame, handlers.ThemeMixin):
         if self.panel.currentSelection >= 0:  # has valid item selected
             return self.panel.expCtrl.GetItem(self.panel.currentSelection).Text
 
-    def addTask(self, evt=None, fileName=None):
-        self.panel.addTask(fileName=fileName)
+    def addTask(self, evt=None, fileName=None, runMode="run"):
+        self.panel.addTask(fileName=fileName, runMode=runMode)
 
     def removeTask(self, evt=None):
         self.panel.removeTask(evt)
 
+    def getOutputPanel(self, name):
+        """
+        Get output panel which matches the given name.
+
+        Parameters
+        ----------
+        name : str
+            Key by which the output panel was stored on creation
+
+        Returns
+        -------
+        ScriptOutputPanel
+            Handle of the output panel
+        """
+        return self.panel.outputNotebook.panels[name]
+
     @property
     def stdOut(self):
-        return self.panel.stdoutCtrl
+        return self.panel.stdoutPnl.ctrl
 
     @property
     def alerts(self):
-        return self.panel.alertsCtrl
+        return self.panel.alertsPnl.ctrl
 
     def makeMenu(self):
         """Create Runner menubar."""
@@ -156,9 +180,9 @@ class RunnerFrame(wx.Frame, handlers.ThemeMixin):
 
         runMenuItems = [
             {'id': wx.ID_ANY,
-             'label': _translate("&Run\t%s") % keys['runScript'],
+             'label': _translate("&Run/pilot\t%s") % keys['runScript'],
              'status': _translate('Running experiment'),
-             'func': self.panel.runLocal},
+             'func': self.panel.onRunShortcut},
             {'id': wx.ID_ANY,
              'label': _translate('Run &JS for local debug'),
              'status': _translate('Launching local debug of online study'),
@@ -200,9 +224,7 @@ class RunnerFrame(wx.Frame, handlers.ThemeMixin):
         viewMenu.AppendSubMenu(self.themesMenu, _translate("&Themes"))
 
         # Frame switcher
-        framesMenu = wx.Menu()
-        FrameSwitcher.makeViewSwitcherButtons(framesMenu, frame=self, app=self.app)
-        viewMenu.AppendSubMenu(framesMenu, _translate("&Frames"))
+        FrameSwitcher.makeViewSwitcherButtons(viewMenu, frame=self, app=self.app)
 
         # Create menus
         self.runnerMenu.Append(fileMenu, _translate('&File'))
@@ -237,8 +259,11 @@ class RunnerFrame(wx.Frame, handlers.ThemeMixin):
             experiments = []
             for i in range(self.panel.expCtrl.GetItemCount()):
                 experiments.append(
-                    {'path': self.panel.expCtrl.GetItem(i, folderColumn).Text,
-                     'file': self.panel.expCtrl.GetItem(i, filenameColumn).Text}
+                    {
+                        'path': self.panel.expCtrl.GetItem(i, folderColumn).Text,
+                        'file': self.panel.expCtrl.GetItem(i, filenameColumn).Text,
+                        'runMode': self.panel.expCtrl.GetItem(i, runModeColumn).Text,
+                    },
                 )
             with open(newPath, 'w') as file:
                 json.dump(experiments, file)
@@ -274,10 +299,13 @@ class RunnerFrame(wx.Frame, handlers.ThemeMixin):
                     fileOk = False
 
                 if fileOk:
+                    self.panel.entries = {}
                     self.panel.expCtrl.DeleteAllItems()
                     for exp in experiments:
                         self.panel.addTask(
-                            fileName=os.path.join(exp['path'], exp['file']))
+                            fileName=os.path.join(exp['path'], exp['file']),
+                            runMode=exp.get('runMode', "run")
+                        )
                     self.listname = newPath
 
         dlg.Destroy()  # close the file browser
@@ -427,162 +455,11 @@ class RunnerFrame(wx.Frame, handlers.ThemeMixin):
 
 
 class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
-
-    class SizerButton(wx.ToggleButton, handlers.ThemeMixin):
-        """Button to show/hide a category of components"""
-
-        def __init__(self, parent, label, sizer):
-            # Initialise button
-            wx.ToggleButton.__init__(self, parent,
-                                     label="   " + label, size=(-1, 24),
-                                     style=wx.BORDER_NONE | wx.BU_LEFT)
-            self.parent = parent
-            # Link to category of buttons
-            self.menu = sizer
-            # Default states to false
-            self.state = False
-            self.hover = False
-            # Bind toggle function
-            self.Bind(wx.EVT_TOGGLEBUTTON, self.ToggleMenu)
-            # Bind hover functions
-            self.Bind(wx.EVT_ENTER_WINDOW, self.hoverOn)
-            self.Bind(wx.EVT_LEAVE_WINDOW, self.hoverOff)
-
-        def ToggleMenu(self, event):
-            # If triggered manually with a bool, treat that as a substitute for event selection
-            if isinstance(event, bool):
-                state = event
-            else:
-                state = event.GetSelection()
-            self.SetValue(state)
-            # Show / hide contents according to state
-            self.menu.Show(state)
-            # Do layout
-            self.parent.Layout()
-            # Restyle
-            self._applyAppTheme()
-
-        def hoverOn(self, event):
-            """Apply hover effect"""
-            self.hover = True
-            self._applyAppTheme()
-
-        def hoverOff(self, event):
-            """Unapply hover effect"""
-            self.hover = False
-            self._applyAppTheme()
-
-        def _applyAppTheme(self):
-            """Apply app theme to this button"""
-            if self.hover:
-                # If hovered over currently, use hover colours
-                self.SetForegroundColour(colors.app['txtbutton_fg_hover'])
-                # self.icon.SetForegroundColour(ThemeMixin.appColors['txtbutton_fg_hover'])
-                self.SetBackgroundColour(colors.app['txtbutton_bg_hover'])
-            else:
-                # Otherwise, use regular colours
-                self.SetForegroundColour(colors.app['text'])
-                # self.icon.SetForegroundColour(ThemeMixin.appColors['text'])
-                self.SetBackgroundColour(colors.app['panel_bg'])
-
-    class RunnerToolbar(wx.Panel, handlers.ThemeMixin):
-        def __init__(self, parent, runner):
-            """
-            Parameters
-            ==========
-            parent : wx.Window
-                Window to use as parent when creating this panel
-            runner : RunnerPanel
-                Runner panel containing all the necessary methods to bind button functions to
-            """
-            wx.Panel.__init__(self, parent)
-            # Setup sizer
-            self.sizer = wx.BoxSizer(wx.VERTICAL)
-            self.SetSizer(self.sizer)
-
-            # Button storage
-            self.buttons = {}
-
-            # Plus
-            self.buttons['plusBtn'] = wx.Button(self, size=(32, 32), style=wx.BORDER_NONE)
-            self.buttons['plusBtn'].SetToolTip(
-                _translate("Add experiment to list")
-            )
-            self.buttons['plusBtn'].Bind(wx.EVT_BUTTON, runner.addTask)
-            self.buttons['plusBtn'].stem = "addExp"
-            self.sizer.Add(self.buttons['plusBtn'], border=5, flag=wx.ALL)
-            # Minus
-            self.buttons['negBtn'] = wx.Button(self, size=(32, 32), style=wx.BORDER_NONE)
-            self.buttons['negBtn'].SetToolTip(
-                _translate("Remove experiment from list")
-            )
-            self.buttons['negBtn'].Bind(wx.EVT_BUTTON, runner.removeTask)
-            self.buttons['negBtn'].stem = "removeExp"
-            self.sizer.Add(self.buttons['negBtn'], border=5, flag=wx.ALL)
-            # Save
-            self.buttons['saveBtn'] = wx.Button(self, size=(32, 32), style=wx.BORDER_NONE)
-            self.buttons['saveBtn'].SetToolTip(
-                _translate("Save task list to a file")
-            )
-            self.buttons['saveBtn'].Bind(wx.EVT_BUTTON, runner.parent.saveTaskList)
-            self.buttons['saveBtn'].stem = "filesaveas"
-            self.sizer.Add(self.buttons['saveBtn'], border=5, flag=wx.ALL)
-            # Load
-            self.buttons['loadBtn'] = wx.Button(self, size=(32, 32), style=wx.BORDER_NONE)
-            self.buttons['loadBtn'].SetToolTip(
-                _translate("Load tasks from a file")
-            )
-            self.buttons['loadBtn'].Bind(wx.EVT_BUTTON, runner.parent.loadTaskList)
-            self.buttons['loadBtn'].stem = "fileopen"
-            self.sizer.Add(self.buttons['loadBtn'], border=5, flag=wx.ALL)
-            # Run
-            self.buttons['runBtn'] = wx.Button(self, size=(32, 32), style=wx.BORDER_NONE)
-            self.buttons['runBtn'].SetToolTip(
-                _translate("Run the current script in Python")
-            )
-            self.buttons['runBtn'].Bind(wx.EVT_BUTTON, runner.runLocal)
-            self.buttons['runBtn'].stem = "run"
-            self.sizer.Add(self.buttons['runBtn'], border=5, flag=wx.ALL)
-            # Stop
-            self.buttons['stopBtn'] = wx.Button(self, size=(32, 32), style=wx.BORDER_NONE)
-            self.buttons['stopBtn'].SetToolTip(
-                _translate("Stop task")
-            )
-            self.buttons['stopBtn'].Bind(wx.EVT_BUTTON, runner.stopTask)
-            self.buttons['stopBtn'].stem = "stop"
-            self.sizer.Add(self.buttons['stopBtn'], border=5, flag=wx.ALL)
-            # Run online
-            self.buttons['onlineBtn'] = wx.Button(self, size=(32, 32), style=wx.BORDER_NONE)
-            self.buttons['onlineBtn'].SetToolTip(
-                _translate("Run PsychoJS task from Pavlovia")
-            )
-            self.buttons['onlineBtn'].Bind(wx.EVT_BUTTON, runner.runOnline)
-            self.buttons['onlineBtn'].stem = "globe_run"
-            self.sizer.Add(self.buttons['onlineBtn'], border=5, flag=wx.ALL)
-            # Debug online
-            self.buttons['onlineDebugBtn'] = wx.Button(self, size=(32, 32), style=wx.BORDER_NONE)
-            self.buttons['onlineDebugBtn'].SetToolTip(
-                _translate("Run PsychoJS task in local debug mode")
-            )
-            self.buttons['onlineDebugBtn'].Bind(wx.EVT_BUTTON, runner.runOnlineDebug)
-            self.buttons['onlineDebugBtn'].stem = "globe_bug"
-            self.sizer.Add(self.buttons['onlineDebugBtn'], border=5, flag=wx.ALL)
-
-        def _applyAppTheme(self):
-            # Iterate through buttons
-            for child in self.GetChildren():
-                child.SetBackgroundColour(colors.app['panel_bg'])
-                if isinstance(child, wx.Button) and hasattr(child, "stem"):
-                    # For each button, recreate bitmap from stored stem
-                    child.SetBitmap(
-                        icons.ButtonIcon(child.stem, size=(32, 32)).bitmap
-                    )
-
     def __init__(self, parent=None, id=wx.ID_ANY, title='', app=None):
         super(RunnerPanel, self).__init__(parent=parent,
                                           id=id,
                                           pos=wx.DefaultPosition,
-                                          size=[400,700],
+                                          size=[1080, 720],
                                           style=wx.DEFAULT_FRAME_STYLE,
                                           name=title,
                                           )
@@ -591,6 +468,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
 
         # double buffered better rendering except if retina
         self.SetDoubleBuffered(parent.IsDoubleBuffered())
+        self.SetMinSize(wx.Size(640, 480))
 
         self.app = app
         self.prefs = self.app.prefs.coder
@@ -605,8 +483,14 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         self.currentSelection = None
         self.currentExperiment = None
 
+        # setup sizer
+        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
+
+        # setup ribbon
+        self.ribbon = RunnerRibbon(self)
+        self.mainSizer.Add(self.ribbon, border=0, flag=wx.EXPAND | wx.ALL)
+
         # Setup splitter
-        self.mainSizer = wx.BoxSizer()
         self.splitter = wx.SplitterWindow(self, style=wx.SP_NOBORDER)
         self.mainSizer.Add(self.splitter, proportion=1, border=0, flag=wx.EXPAND | wx.ALL)
 
@@ -621,7 +505,6 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         self.expCtrl = wx.ListCtrl(self.topPanel,
                                    id=wx.ID_ANY,
                                    style=wx.LC_REPORT | wx.BORDER_NONE | wx.LC_NO_HEADER | wx.LC_SINGLE_SEL)
-        self.expCtrl.SetMinSize((500, -1))
         self.expCtrl.Bind(wx.EVT_LIST_ITEM_SELECTED,
                           self.onItemSelected, self.expCtrl)
         self.expCtrl.Bind(wx.EVT_LIST_ITEM_DESELECTED,
@@ -629,53 +512,39 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onDoubleClick, self.expCtrl)
         self.expCtrl.InsertColumn(filenameColumn, _translate('File'))
         self.expCtrl.InsertColumn(folderColumn, _translate('Path'))
+        self.expCtrl.InsertColumn(folderColumn, _translate('Run mode'))
         self.topPanel.sizer.Add(self.expCtrl, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
 
-        # Toolbar
-        self.toolbar = self.RunnerToolbar(self.topPanel, runner=self)
-        self.topPanel.sizer.Add(self.toolbar, proportion=0, border=12, flag=wx.LEFT | wx.RIGHT | wx.EXPAND)
-
         # Setup panel for bottom half (alerts and stdout)
-        self.bottomPanel = wx.Panel(self.splitter)
+        self.bottomPanel = wx.Panel(self.splitter, style=wx.BORDER_NONE)
+        self.bottomPanel.border = wx.BoxSizer()
+        self.bottomPanel.SetSizer(self.bottomPanel.border)
         self.bottomPanel.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.bottomPanel.SetSizer(self.bottomPanel.sizer)
+        self.bottomPanel.border.Add(self.bottomPanel.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
 
-        # Alerts
-        self._selectedHiddenAlerts = False  # has user manually hidden alerts?
-        self.alertsPnl = ScriptOutputPanel(parent=self.bottomPanel,
-                                           style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE)
-        self.alertsPnl.SetMinSize((-1, 150))
-        self.alertsToggleBtn = self.SizerButton(self.bottomPanel, _translate("Alerts"), self.alertsPnl)
-        self.bottomPanel.sizer.Add(self.alertsToggleBtn, 0, wx.TOP | wx.EXPAND, 10)
-        self.bottomPanel.sizer.Add(self.alertsPnl, proportion=1, border=10, flag=wx.EXPAND | wx.ALL)
-        self.alertsCtrl = self.alertsPnl.ctrl
-        self.setAlertsVisible(True)
-
-        # StdOut
-        self.stdoutPnl = ScriptOutputPanel(parent=self.bottomPanel,
-                                     style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE)
-        self.stdoutPnl.SetMinSize((-1, 150))
-        self.stdoutToggleBtn = self.SizerButton(self.bottomPanel, _translate("Stdout"), self.stdoutPnl)
-        self.bottomPanel.sizer.Add(self.stdoutToggleBtn, proportion=0, border=10, flag=wx.TOP | wx.EXPAND)
-        self.bottomPanel.sizer.Add(self.stdoutPnl, proportion=1, border=10, flag=wx.EXPAND | wx.ALL)
-        self.stdoutCtrl = self.stdoutPnl.ctrl
-        self.setStdoutVisible(True)
+        # Setup notebook for output
+        self.outputNotebook = RunnerOutputNotebook(self.bottomPanel)
+        self.stdoutPnl = self.outputNotebook.stdoutPnl
+        self.stdoutCtrl = self.outputNotebook.stdoutPnl.ctrl
+        self.alertsPnl = self.outputNotebook.alertsPnl
+        self.alertsCtrl = self.outputNotebook.alertsPnl.ctrl
+        self.bottomPanel.sizer.Add(
+            self.outputNotebook, proportion=1, border=6, flag=wx.ALL | wx.EXPAND
+        )
 
         # Assign to splitter
-        self.splitter.SplitHorizontally(
+        self.splitter.SplitVertically(
             window1=self.topPanel,
             window2=self.bottomPanel,
-            sashPosition=0
+            sashPosition=480
         )
-        self.splitter.SetMinimumPaneSize(self.topPanel.GetBestSize()[1])
+        self.splitter.SetMinimumPaneSize(360)
 
         self.SetSizerAndFit(self.mainSizer)
-        self.SetMinSize(self.Size)
 
         # Set starting states on buttons
-        self.toolbar.buttons['stopBtn'].Disable()
-        self.alertsToggleBtn.ToggleMenu(True)
-        self.stdoutToggleBtn.ToggleMenu(True)
+        self.ribbon.buttons['pystop'].Disable()
+        self.ribbon.buttons['remove'].Disable()
 
         self.theme = parent.theme
 
@@ -685,19 +554,21 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         self.topPanel.SetBackgroundColour(colors.app['panel_bg'])
         self.bottomPanel.SetBackgroundColour(colors.app['panel_bg'])
         # Theme buttons
-        self.toolbar.theme = self.theme
-        # Add icons to buttons
-        bmp = icons.ButtonIcon("stdout", size=(16, 16)).bitmap
-        self.stdoutToggleBtn.SetBitmap(bmp)
-        self.stdoutToggleBtn.SetBitmapMargins(x=6, y=0)
-        bmp = icons.ButtonIcon("alerts", size=(16, 16)).bitmap
-        self.alertsToggleBtn.SetBitmap(bmp)
-        self.alertsToggleBtn.SetBitmapMargins(x=6, y=0)
+        self.ribbon.theme = self.theme
+        # Theme notebook
+        self.outputNotebook.theme = self.theme
+        bmps = {
+            self.alertsPnl: icons.ButtonIcon("alerts", size=16).bitmap,
+            self.stdoutPnl: icons.ButtonIcon("stdout", size=16).bitmap,
+            self.outputNotebook.gitPnl: icons.ButtonIcon("pavlovia", size=16).bitmap,
+        }
+        for i in range(self.outputNotebook.GetPageCount()):
+            pg = self.outputNotebook.GetPage(i)
+            if pg in bmps:
+                self.outputNotebook.SetPageBitmap(i, bmps[pg])
         # Apply app theme on objects in non-theme-mixin panels
         for obj in (
-                self.alertsPnl, self.alertsToggleBtn,
-                self.stdoutPnl, self.stdoutToggleBtn,
-                self.expCtrl, self.toolbar
+                self.expCtrl, self.ribbon
         ):
             obj.theme = self.theme
             if hasattr(obj, "_applyAppTheme"):
@@ -708,23 +579,16 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         self.Refresh()
 
     def setAlertsVisible(self, new=True):
-        if type(new) == bool:
-            self.alertsCtrl.Show(new)
-        # or could be an event from button click (a toggle)
-        else:
-            show = (not self.alertsCtrl.IsShown())
-            self.alertsCtrl.Show(show)
-            self._selectedHiddenAlerts = not show
-        self.Layout()
+        if new:
+            self.outputNotebook.SetSelectionToPage(
+                self.outputNotebook.GetPageIndex(self.alertsPnl)
+            )
 
     def setStdoutVisible(self, new=True):
-        # could be a boolean from our own code
-        if type(new) == bool:
-            self.stdoutCtrl.Show(new)
-        # or could be an event (so toggle) from button click
-        else:
-            self.stdoutCtrl.Show(not self.stdoutCtrl.IsShown())
-        self.Layout()
+        if new:
+            self.outputNotebook.SetSelectionToPage(
+                self.outputNotebook.GetPageIndex(self.stdoutPnl)
+            )
 
     def stopTask(self, event=None):
         """Kill script processes currently running."""
@@ -737,27 +601,56 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         if self.scriptProcess is not None:
             self.stopFile(event)
 
-        self.toolbar.buttons['stopBtn'].Disable()
+        self.ribbon.buttons['pystop'].Disable()
         if self.currentSelection:
-            self.toolbar.buttons['runBtn'].Enable()
+            self.ribbon.buttons['pyrun'].Enable()
+            self.ribbon.buttons['pypilot'].Enable()
 
-    def runLocal(self, evt=None, focusOnExit='runner'):
+    def onRunShortcut(self, evt=None):
+        """
+        Callback for when the run shortcut is pressed - will either run or pilot depending on run mode
+        """
+        # do nothing if we have no experiment
+        if self.currentExperiment is None:
+            return
+        # run/pilot according to mode
+        if self.currentExperiment.runMode:
+            self.runLocal(evt)
+        else:
+            self.pilotLocal(evt)
+
+    def runLocal(self, evt=None, focusOnExit='runner', args=None):
         """Run experiment from new process using inherited ScriptProcess class methods."""
         if self.currentSelection is None:
             return
 
+        # substitute args
+        if args is None:
+            args = []
+        # start off looking at stdout (will switch to Alerts if there are any)
+        self.outputNotebook.SetSelectionToWindow(self.stdoutPnl)
+
         currentFile = str(self.currentFile)
         if self.currentFile.suffix == '.psyexp':
-            generateScript(experimentPath=currentFile.replace('.psyexp', '_lastrun.py'),
-                           exp=self.loadExperiment())
+            generateScript(
+                exp=self.loadExperiment(),
+                outfile=currentFile.replace('.psyexp', '_lastrun.py')
+            )
         procStarted = self.runFile(
             fileName=currentFile,
-            focusOnExit=focusOnExit)
+            focusOnExit=focusOnExit,
+            args=args
+        )
 
         # Enable/Disable btns
         if procStarted:
-            self.toolbar.buttons['runBtn'].Disable()
-            self.toolbar.buttons['stopBtn'].Enable()
+            self.ribbon.buttons['pyrun'].Disable()
+            self.ribbon.buttons['pypilot'].Disable()
+            self.ribbon.buttons['pystop'].Enable()
+
+    def pilotLocal(self, evt=None, focusOnExit='runner', args=None):
+        # run in pilot mode
+        self.runLocal(evt, args=["--pilot"], focusOnExit=focusOnExit)
 
     def runOnline(self, evt=None):
         """Run PsychoJS task from https://pavlovia.org."""
@@ -795,7 +688,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         command = [str(pythonExec), "-m", "http.server", str(port)]
 
         if not os.path.exists(jsFile):
-            generateScript(experimentPath=str(jsFile),
+            generateScript(outfile=str(jsFile),
                            exp=self.loadExperiment(),
                            target="PsychoJS")
 
@@ -844,7 +737,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
 
         print("##### PsychoJS libs downloaded to {} #####\n".format(libPath))
 
-    def addTask(self, evt=None, fileName=None):
+    def addTask(self, evt=None, fileName=None, runMode="run"):
         """
         Add task to the expList listctrl.
 
@@ -882,17 +775,29 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
                 self.expCtrl.SetItem(thisIndex, folderColumn, str(thisFile.parent))  # add the folder name
                 # add the new item to our list of files
                 self.entries[thisFile.absolute()] = {'index': thisIndex}
+            # load psyexp
+            if thisFile.suffix == ".psyexp":
+                # get run mode from file
+                if experiment.Experiment.getRunModeFromFile(thisFile):
+                    runMode = "run"
+                else:
+                    runMode = "pilot"
+            # set run mode for item
+            self.expCtrl.SetItem(thisIndex, runModeColumn, runMode)
 
         if filePaths:  # set selection to the final item to be added
             # Set item selection
             # de-select previous
             self.expCtrl.SetItemState(self.currentSelection or 0, 0, wx.LIST_STATE_SELECTED)
             # select new
-            self.expCtrl.Select(thisIndex)  # calls onSelectItem which updates other info
+            self.setSelection(thisIndex)  # calls onSelectItem which updates other info
 
         # Set column width
         self.expCtrl.SetColumnWidth(filenameColumn, wx.LIST_AUTOSIZE)
         self.expCtrl.SetColumnWidth(folderColumn, wx.LIST_AUTOSIZE)
+        self.expCtrl.SetColumnWidth(runModeColumn, wx.LIST_AUTOSIZE)
+
+        self.expCtrl.Refresh()
 
     def removeTask(self, evt):
         """Remove experiment entry from the expList listctrl."""
@@ -910,26 +815,73 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         self.expCtrl.DeleteItem(self.currentSelection) # from wx control
         self.app.updateWindowMenu()
 
+    def onRunModeToggle(self, evt):
+        """
+        Function to execute when switching between pilot and run modes
+        """
+        mode = evt.GetInt()
+        # update buttons
+        # show/hide run buttons
+        for key in ("pyrun", "jsrun"):
+            self.ribbon.buttons[key].Show(mode)
+        # hide/show pilot buttons
+        for key in ("pypilot", "jspilot"):
+            self.ribbon.buttons[key].Show(not mode)
+        # update experiment mode
+        if self.currentExperiment is not None:
+            # find any Builder windows with this experiment open
+            for frame in self.app.getAllFrames(frameType='builder'):
+                if frame.exp == self.currentExperiment:
+                    frame.ribbon.buttons['pyswitch'].setMode(mode)
+            # update current selection
+            runMode = "pilot"
+            if mode:
+                runMode = "run"
+            self.expCtrl.SetItem(self.currentSelection, runModeColumn, runMode)
+        # update
+        self.ribbon.Update()
+        self.ribbon.Refresh()
+        self.ribbon.Layout()
+
+    def setSelection(self, index):
+        self.expCtrl.Select(index)
+        self.onItemSelected(index)
+
     def onItemSelected(self, evt):
         """Set currentSelection to index of currently selected list item."""
-        self.currentSelection = evt.Index
+        if not isinstance(evt, int):
+            evt = evt.Index
+        self.currentSelection = evt
         filename = self.expCtrl.GetItemText(self.currentSelection, filenameColumn)
         folder = self.expCtrl.GetItemText(self.currentSelection, folderColumn)
+        runMode = self.expCtrl.GetItemText(self.currentSelection, runModeColumn)
         self.currentFile = Path(folder, filename)
         self.currentExperiment = self.loadExperiment()
         self.currentProject = None  # until it's needed (slow to update)
         # thisItem = self.entries[self.currentFile]
 
-        if not self.running:  # if we aren't already running we can enable run button
-            self.toolbar.buttons['runBtn'].Enable()
+        self.ribbon.buttons['remove'].Enable()
+        # enable run/pilot ctrls
+        self.ribbon.buttons['pyswitch'].Enable()
+        self.ribbon.buttons['pyrun'].Enable()
+        self.ribbon.buttons['pypilot'].Enable()
+        # enable JS run
         if self.currentFile.suffix == '.psyexp':
-            self.toolbar.buttons['onlineBtn'].Enable()
-            self.toolbar.buttons['onlineDebugBtn'].Enable()
+            self.ribbon.buttons['jsrun'].Enable()
+            self.ribbon.buttons['jspilot'].Enable()
         else:
-            self.toolbar.buttons['onlineBtn'].Disable()
-            self.toolbar.buttons['onlineDebugBtn'].Disable()
+            self.ribbon.buttons['jsrun'].Disable()
+            self.ribbon.buttons['jspilot'].Disable()
+        # disable stop
+        self.ribbon.buttons['pystop'].Disable()
+        # switch mode
+        self.ribbon.buttons['pyswitch'].setMode(runMode == "run")
+        # update
         self.updateAlerts()
         self.app.updateWindowMenu()
+        self.ribbon.Update()
+        self.ribbon.Refresh()
+        self.ribbon.Layout()
 
     def onItemDeselected(self, evt):
         """Set currentSelection, currentFile, currentExperiment and currentProject to None."""
@@ -938,9 +890,12 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         self.currentFile = None
         self.currentExperiment = None
         self.currentProject = None
-        self.toolbar.buttons['runBtn'].Disable()
-        self.toolbar.buttons['onlineBtn'].Disable()
-        self.toolbar.buttons['onlineDebugBtn'].Disable()
+        self.ribbon.buttons['pyswitch'].Disable()
+        self.ribbon.buttons['pyrun'].Disable()
+        self.ribbon.buttons['pypilot'].Disable()
+        self.ribbon.buttons['jsrun'].Disable()
+        self.ribbon.buttons['jspilot'].Disable()
+        self.ribbon.buttons['remove'].Disable()
         self.app.updateWindowMenu()
 
     def updateAlerts(self):
@@ -954,19 +909,15 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         else:
             nAlerts = 0
         # update labels and text accordingly
-        self.alertsToggleBtn.SetLabelText("   " + _translate("Alerts ({})").format(nAlerts))
         sys.stdout.flush()
         sys.stdout = sys.stderr = prev
         if nAlerts == 0:
             self.setAlertsVisible(False)
-        # elif selected hidden then don't touch
-        elif not self._selectedHiddenAlerts:
-            self.setAlertsVisible(True)
 
     def onDoubleClick(self, evt):
         self.currentSelection = evt.Index
-        filename = self.expCtrl.GetItem(self.currentSelection, 0).Text
-        folder = self.expCtrl.GetItem(self.currentSelection, 1).Text
+        filename = self.expCtrl.GetItem(self.currentSelection, filenameColumn).Text
+        folder = self.expCtrl.GetItem(self.currentSelection, folderColumn).Text
         filepath = os.path.join(folder, filename)
         if filename.endswith('psyexp'):
             # do we have that file already in a frame?
@@ -1056,3 +1007,233 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
     @currentProject.setter
     def currentProject(self, project):
         self._currentProject = None
+
+
+class RunnerOutputNotebook(aui.AuiNotebook, handlers.ThemeMixin):
+    def __init__(self, parent):
+        aui.AuiNotebook.__init__(self, parent, style=wx.BORDER_NONE)
+
+        # store pages by non-translated names for easy access (see RunnerFrame.getOutputPanel)
+        self.panels = {}
+
+        # Alerts
+        self.alertsPnl = ScriptOutputPanel(
+            parent=parent,
+            style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE
+        )
+        self.alertsPnl.ctrl.Bind(wx.EVT_TEXT, self.onWrite)
+        self.AddPage(
+            self.alertsPnl, caption=_translate("Alerts")
+        )
+        self.panels['alerts'] = self.alertsPnl
+
+        # StdOut
+        self.stdoutPnl = ScriptOutputPanel(
+            parent=parent,
+            style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE
+        )
+        self.stdoutPnl.ctrl.Bind(wx.EVT_TEXT, self.onWrite)
+        self.AddPage(
+            self.stdoutPnl, caption=_translate("Stdout")
+        )
+        self.panels['stdout'] = self.stdoutPnl
+
+        # Git (Pavlovia) output
+        self.gitPnl = ScriptOutputPanel(
+            parent=parent,
+            style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE
+        )
+        self.gitPnl.ctrl.Bind(wx.EVT_TEXT, self.onWrite)
+        self.AddPage(
+            self.gitPnl, caption=_translate("Pavlovia")
+        )
+        self.panels['git'] = self.gitPnl
+
+        # bind function when page receives focus
+        self._readCache = {}
+        self.Bind(aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.onFocus)
+
+        self.SetMinSize(wx.Size(100, 100))  # smaller than window min size
+
+    def setRead(self, i, state):
+        """
+        Mark a tab (by index) as read/unread (determines whether the page gets a little blue dot)
+
+        Parameters
+        ----------
+        i : int
+            Index of the page to set
+        state : bool
+            True for read (i.e. no dot), False for unread (i.e. dot)
+        """
+        # if state matches cached state, don't bother updating again
+        if self._readCache.get(i, None) == state:
+            return
+        # cache read value
+        self._readCache[i] = state
+        # get tab label without asterisk
+        label = self.GetPageText(i).replace(" *", "")
+        # add/remove asterisk
+        if state:
+            self.SetPageText(i, label)
+        else:
+            self.SetPageText(i, label + " *")
+        # update
+        self.Update()
+        self.Refresh()
+
+    def onWrite(self, evt):
+        # get ctrl
+        ctrl = evt.GetEventObject()
+        # iterate through pages
+        for i in range(self.GetPageCount()):
+            # get page window
+            page = self.GetPage(i)
+            # is the ctrl a child of that window, and is it deselected?
+            if page.IsDescendant(ctrl) and self.GetSelection() != i:
+                # mark unread
+                self.setRead(i, False)
+                # alerts and pavlovia get focus too when written to
+                if page in (self.panels['git'], self.panels['alerts']):
+                    self.SetSelection(i)
+
+    def onFocus(self, evt):
+        # get index of new selection
+        i = evt.GetSelection()
+        # set read status
+        self.setRead(i, True)
+
+
+class RunnerRibbon(ribbon.FrameRibbon):
+    def __init__(self, parent):
+        # initialize
+        ribbon.FrameRibbon.__init__(self, parent)
+
+        # --- File ---
+        self.addSection(
+            "list", label=_translate("Manage list"), icon="file"
+        )
+        # add experiment
+        self.addButton(
+            section="list", name="add", label=_translate("Add"), icon="addExp",
+            tooltip=_translate("Add experiment to list"),
+            callback=parent.addTask
+        )
+        # remove experiment
+        self.addButton(
+            section="list", name="remove", label=_translate("Remove"), icon="removeExp",
+            tooltip=_translate("Remove experiment from list"),
+            callback=parent.removeTask
+        )
+        # save
+        self.addButton(
+            section="list", name="save", label=_translate("Save"), icon="filesaveas",
+            tooltip=_translate("Save task list to a file"),
+            callback=parent.parent.saveTaskList
+        )
+        # load
+        self.addButton(
+            section="list", name="open", label=_translate("Open"), icon="fileopen",
+            tooltip=_translate("Load tasks from a file"),
+            callback=parent.parent.loadTaskList
+        )
+
+        self.addSeparator()
+
+        # --- Tools ---
+        self.addSection(
+            "experiment", label=_translate("Experiment"), icon="experiment"
+        )
+        # switch run/pilot
+        runPilotSwitch = self.addSwitchCtrl(
+            section="experiment", name="pyswitch",
+            labels=(_translate("Pilot"), _translate("Run")),
+            callback=parent.onRunModeToggle,
+            style=wx.HORIZONTAL
+        )
+
+        self.addSeparator()
+
+        # --- Python ---
+        self.addSection(
+            "py", label=_translate("Desktop"), icon="desktop"
+        )
+        # pilot Py
+        btn = self.addButton(
+            section="py", name="pypilot", label=_translate("Pilot"), icon='pyPilot',
+            tooltip=_translate("Run the current script in Python with piloting features on"),
+            callback=parent.pilotLocal
+        )
+        btn.Hide()
+        # run Py
+        btn = self.addButton(
+            section="py", name="pyrun", label=_translate("Run"), icon='pyRun',
+            tooltip=_translate("Run the current script in Python"),
+            callback=parent.runLocal
+        )
+        btn.Hide()
+        # stop
+        self.addButton(
+            section="py", name="pystop", label=_translate("Stop"), icon='stop',
+            tooltip=_translate("Stop the current (Python) script"),
+            callback=parent.stopTask
+        )
+
+        self.addSeparator()
+
+        # --- JS ---
+        self.addSection(
+            "browser", label=_translate("Browser"), icon="browser"
+        )
+        # pilot JS
+        btn = self.addButton(
+            section="browser", name="jspilot", label=_translate("Pilot in browser"),
+            icon='jsPilot',
+            tooltip=_translate("Pilot experiment locally in your browser"),
+            callback=parent.runOnlineDebug
+        )
+        btn.Hide()
+        # run JS
+        btn = self.addButton(
+            section="browser", name="jsrun", label=_translate("Run on Pavlovia"), icon='jsRun',
+            tooltip=_translate("Run experiment on Pavlovia"),
+            callback=parent.runOnline
+        )
+        btn.Hide()
+
+        self.addSeparator()
+
+        # --- Pavlovia ---
+        self.addSection(
+            name="pavlovia", label=_translate("Pavlovia"), icon="pavlovia"
+        )
+        # pavlovia user
+        self.addPavloviaUserCtrl(
+            section="pavlovia", name="pavuser", frame=parent
+        )
+
+        # --- Views ---
+        self.addStretchSpacer()
+        self.addSeparator()
+
+        self.addSection(
+            "views", label=_translate("Views"), icon="windows"
+        )
+        # show Builder
+        self.addButton(
+            section="views", name="builder", label=_translate("Show Builder"), icon="showBuilder",
+            tooltip=_translate("Switch to Builder view"),
+            callback=parent.app.showBuilder
+        )
+        # show Coder
+        self.addButton(
+            section="views", name="coder", label=_translate("Show Coder"), icon="showCoder",
+            tooltip=_translate("Switch to Coder view"),
+            callback=parent.app.showCoder
+        )
+        # show Runner
+        self.addButton(
+            section="views", name="runner", label=_translate("Show Runner"), icon="showRunner",
+            tooltip=_translate("Switch to Runner view"),
+            callback=parent.app.showRunner
+        ).Disable()

@@ -143,6 +143,17 @@
     # The name of the Qmix pump configuration to use
     qmixConfiguration = string(default='qmix_config')
 
+# Settings for piloting mode
+[piloting]
+    # Prevent the experiment from being fullscreen when piloting
+    forceWindowed = boolean(default=True)
+    # How much output to include in the log files when piloting ('error' is fewest messages, 'debug' is most)
+    pilotLoggingLevel = option('error', 'warning', 'data', 'exp', 'info', 'debug', default='debug')
+    # Show an orange border around the window when in piloting mode
+    showPilotingIndicator = boolean(default=True)
+    # Prevent experiment from enabling rush mode when piloting
+    forceNonRush = boolean(default=True)
+
 # Settings for connections
 [connections]
     # the http proxy for usage stats and auto-updating; format is host: port

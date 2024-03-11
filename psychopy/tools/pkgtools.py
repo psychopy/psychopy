@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Tools for working with packages within the Python environment.
@@ -574,15 +574,27 @@ def getPypiInfo(packageName, silence=False):
             dlg.ShowModal()
         return
 
-    return {
-        'name': data['info'].get('Name', packageName),
-        'author': data['info'].get('author', 'Unknown'),
-        'authorEmail': data['info'].get('author_email', 'Unknown'),
-        'license': data['info'].get('license', 'Unknown'),
-        'summary': data['info'].get('summary', ''),
-        'desc': data['info'].get('description', ''),
-        'releases': list(data['releases']),
-    }
+    if 'info' not in data:
+        # handle case where the data cannot be retrived
+        return {
+            'name': packageName,
+            'author': 'Unknown',
+            'authorEmail': 'Unknown',
+            'license': 'Unknown',
+            'summary': '',
+            'desc': 'Failed to get package info from PyPI.',
+            'releases': [],
+        }
+    else:
+        return {
+            'name': data['info'].get('Name', packageName),
+            'author': data['info'].get('author', 'Unknown'),
+            'authorEmail': data['info'].get('author_email', 'Unknown'),
+            'license': data['info'].get('license', 'Unknown'),
+            'summary': data['info'].get('summary', ''),
+            'desc': data['info'].get('description', ''),
+            'releases': list(data['releases']),
+        }
 
 
 if __name__ == "__main__":

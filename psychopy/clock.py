@@ -16,7 +16,7 @@ Clock logic.
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 import logging
 import time
@@ -121,24 +121,37 @@ class Timestamp(float):
         - float : Seconds since arbitrary start time (if only using as a duration)
         - float : Seconds since epoch (for an absolute time)
         - str : Time string in the format specified by the parameter `format`
-
     format : str or class
         Time format string (as in time.strftime) indicated how to convert this timestamp to a string, and how to
         interpret its value if given as a string. Use `float` (default) to always print timestamp as a float, or `str`
         as
+    lastReset : float
+        Epoch time at last clock reset. Will be added to raw value if printing to string.
 
     """
-    def __new__(cls, value, format=float):
-        return float.__new__(cls, value)
-
-    def __init__(self, value, format=float):
+    def __new__(cls, value, format=float, lastReset=0.0):
         # if given a string, attempt to parse it using the given format
         if isinstance(value, str):
-            value = time.strptime(value, format)
+            # substitute nonspecified str format for ISO 8601
+            if format in (str, "str"):
+                format = "%Y-%m-%d_%H:%M:%S.%f%z"
+            # try to parse
+            try:
+                value = datetime.strptime(value, format)
+            except ValueError as err:
+                # if parsing fails, try again without %z (as this is excluded in GMT)
+                if format.endswith("%z"):
+                    value = datetime.strptime(value, format[:-2])
+            # convert to timestamp
+            value = datetime.timestamp(value) - lastReset
+
+        return float.__new__(cls, value)
+
+    def __init__(self, value, format=float, lastReset=0.0):
+        self.lastReset = lastReset
+        self.format = format
         # create self as float representing the time
         float.__init__(value)
-        # store default format
-        self.format = format
 
     def __str__(self):
         # use strftime to return with own format
@@ -168,11 +181,11 @@ class Timestamp(float):
             The value of this timestamp in the requested format.
         """
         # if format is unspecified, use own default
-        if format in (None, "float"):
+        if format is None:
             format = self.format
-        # if format is float, return as is
+        # if format is float, return as simple (non-timestamp) float
         if format in (float, "float"):
-            return self
+            return float(self)
         # otherwise, format to string in requested format
         return self.strftime(format=format)
 
@@ -201,7 +214,7 @@ class Timestamp(float):
         if format in (str, "str"):
             format = "%Y-%m-%d_%H:%M:%S.%f%z"
         # convert to datetime
-        now = datetime.fromtimestamp(self)
+        now = datetime.fromtimestamp(self + self.lastReset)
         # format
         return now.strftime(format)
 
@@ -263,16 +276,16 @@ class MonotonicClock:
         # substitute nonspecified str format for ISO 8601
         if format in (str, "str"):
             format = "%Y-%m-%d_%H:%M:%S.%f%z"
-        # only use applyZero if format is float
-        if format not in (float, "float"):
-            applyZero = False
         # get time since last reset
         t = getTime() - self._timeAtLastReset
+        # get last reset time from epoch
+        lastReset = self._epochTimeAtLastReset
         if not applyZero:
-            # if not applying zero, add epoch start time
+            # if not applying zero, add epoch start time to t rather than supplying it
             t += self._epochTimeAtLastReset
+            lastReset = 0
 
-        return Timestamp(t, format)
+        return Timestamp(t, format, lastReset=lastReset)
 
     def getLastResetTime(self):
         """

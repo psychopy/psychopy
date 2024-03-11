@@ -5,7 +5,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 __all__ = [
@@ -799,6 +799,16 @@ class Mouse(AttributeGetSetMixin):
     @property
     def velocity(self):
         """The velocity of the mouse cursor on-screen in window units (`float`).
+
+        The velocity is calculated as the relative change in position of the
+        mouse cursor between motion events divided by the time elapsed between
+        the events.
+
+        Returns
+        -------
+        float
+            Velocity of the mouse cursor in window units per second.
+
         """
         if self._velocityNeedsUpdate:
             tdelta = self.motionAbsTime - \

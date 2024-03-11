@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """A Backend class defines the core low-level functions required by a Window
@@ -398,9 +398,6 @@ class PygletBackend(BaseBackend):
         if flipThisFrame:
             self.winHandle.flip()
 
-    def setMouseVisibility(self, visibility):
-        self.winHandle.set_mouse_visible(visibility)
-
     def setCurrent(self):
         """Sets this window to be the current rendering target.
 
@@ -720,6 +717,42 @@ class PygletBackend(BaseBackend):
     # --------------------------------------------------------------------------
     # Mouse event handlers and utilities
     #
+    @property
+    def mouseVisible(self):
+        """Get the visibility of the mouse cursor.
+
+        Returns
+        -------
+        bool
+            `True` if the mouse cursor is visible.
+
+        """
+
+        return self.winHandle._mouse_visible
+
+    @mouseVisible.setter
+    def mouseVisible(self, visibility):
+        """Set the visibility of the mouse cursor.
+
+        Parameters
+        ----------
+        visibility : bool
+            If `True`, the mouse cursor is visible.
+
+        """
+        self.winHandle.set_mouse_visible(visibility)
+
+    def setMouseVisibility(self, visibility):
+        """Set the visibility of the mouse cursor.
+
+        Parameters
+        ----------
+        visibility : bool
+            If `True`, the mouse cursor is visible.
+
+        """
+        self.winHandle.set_mouse_visible(visibility)
+
     def onMouseButton(self, *args, **kwargs):
         """Event handler for any mouse button event (pressed and released).
 

@@ -200,7 +200,7 @@ class ioHubDeviceView():
 
 class ioHubDevices():
     """
-    Provides .name access to the the ioHub device's created when the ioHub
+    Provides .name access to the ioHub device's created when the ioHub
     Server is started. Each iohub device is accessible via a dynamically
     created attribute of this class, the name of which is defined by the
     device configuration 'name' setting. Each device attribute is an instance
@@ -1335,6 +1335,10 @@ class ioHubConnection():
         Check if an iohub server reply contains an error that should be raised
         by the local process.
         """
+        # is it an ioHub error object?
+        if isinstance(data, ioHubError):
+            return True
+
         if isIterable(data) and len(data) > 0:
             d0 = data[0]
             if isIterable(d0):

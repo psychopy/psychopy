@@ -368,26 +368,25 @@ class ExperimentHandler(_ComparisonMixin):
         """
         self.addData("notes", value)
 
-    def timestampOnFlip(self, win, name):
+    def timestampOnFlip(self, win, name, format=float):
         """Add a timestamp (in the future) to the current row
 
         Parameters
         ----------
 
         win : psychopy.visual.Window
-
             The window object that we'll base the timestamp flip on
-
         name : str
-
             The name of the column in the datafile being written,
             such as 'myStim.stopped'
+        format : str, class or None
+            Format in which to return time, see clock.Timestamp.resolve() for more info. Defaults to `float`.
         """
         # make sure the name is used when writing the datafile
         if name not in self.dataNames:
             self.dataNames.append(name)
-        #
-        win.timeOnFlip(self.thisEntry, name)
+        # tell win to record timestamp on flip
+        win.timeOnFlip(self.thisEntry, name, format=format)
 
     @property
     def status(self):
@@ -682,7 +681,7 @@ class ExperimentHandler(_ComparisonMixin):
             'threshold': priorityThreshold,
         }
 
-        return json.dumps(context, indent=True, allow_nan=False)
+        return json.dumps(context, indent=True, allow_nan=False, default=str)
         
     def close(self):
         if self.dataFileName not in ['', None]:

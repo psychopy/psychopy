@@ -4,13 +4,14 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from importlib import import_module
-from ._base import BaseStandaloneRoutine, Routine
+from ._base import BaseStandaloneRoutine, BaseValidatorRoutine, Routine
 from .unknown import UnknownRoutine
 from pathlib import Path
+from psychopy import logging
 
 # Standalone components loaded from plugins are stored in this dictionary. These
 # are added by calling `addStandaloneRoutine`. Plugins will always override
@@ -48,7 +49,7 @@ def addStandaloneRoutine(routineClass):
             "Routine `{}` does not define a `.categories` attribute.".format(
                 routineName))
 
-    pluginRoutines[compName] = routineClass
+    pluginRoutines[routineName] = routineClass
 
 
 def getAllStandaloneRoutines(fetchIcons=True):
@@ -76,7 +77,18 @@ def getAllStandaloneRoutines(fetchIcons=True):
             import_module("." + loc.name, package="psychopy.experiment.routines")
 
     # Get list of subclasses of BaseStandalone
-    classList = BaseStandaloneRoutine.__subclasses__()
+    def getSubclasses(cls, classList=None):
+        # create list if needed
+        if classList is None:
+            classList = []
+        # add to class list
+        classList.append(cls)
+        # recur for subclasses
+        for subcls in cls.__subclasses__():
+            getSubclasses(subcls, classList)
+
+        return classList
+    classList = getSubclasses(BaseStandaloneRoutine)
     # Remove unknown
     #if UnknownRoutine in classList:
     #    classList.remove(UnknownRoutine)

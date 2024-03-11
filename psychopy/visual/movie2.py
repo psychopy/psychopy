@@ -58,7 +58,7 @@ Testing has only been done on Windows and Linux so far.
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 #
 # Contributed by Sol Simpson, April 2014.
@@ -176,7 +176,9 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
     """A stimulus class for playing movies (mpeg, avi, etc...) in PsychoPy
     that does not require avbin. Instead it requires the cv2 python package
     for OpenCV. The VLC media player also needs to be installed on the
-    psychopy computer.
+    psychopy computer. This is a lazy-imported class, therefore import using
+    full path `from psychopy.visual.movie2 import MovieStim2` when
+    inheriting from it.
 
     **Example**::
 
