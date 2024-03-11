@@ -916,8 +916,8 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
 
     def onDoubleClick(self, evt):
         self.currentSelection = evt.Index
-        filename = self.expCtrl.GetItem(self.currentSelection, 0).Text
-        folder = self.expCtrl.GetItem(self.currentSelection, 1).Text
+        filename = self.expCtrl.GetItem(self.currentSelection, filenameColumn).Text
+        folder = self.expCtrl.GetItem(self.currentSelection, folderColumn).Text
         filepath = os.path.join(folder, filename)
         if filename.endswith('psyexp'):
             # do we have that file already in a frame?
