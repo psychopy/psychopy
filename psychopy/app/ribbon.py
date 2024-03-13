@@ -195,6 +195,7 @@ class FrameRibbon(wx.Panel, handlers.ThemeMixin):
 
     def _applyAppTheme(self):
         self.SetBackgroundColour(colors.app['frame_bg'])
+        self.Refresh()
 
 
 class FrameRibbonSection(wx.Panel, handlers.ThemeMixin):
