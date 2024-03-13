@@ -414,7 +414,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             w, h = splashImage.GetSize()
             splash.SetTextPosition((340, h - 30))
             splash.SetText(
-                _translate("Copyright (C) 2022 OpenScienceTools.org"))
+                _translate("Copyright (C) {year} OpenScienceTools.org").format(year=2024))
         else:
             splash = None
 
@@ -560,7 +560,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                     "Failed to open Runner with requested file list, opening without file list.\n"
                     "Requested: {}\n"
                     "Err: {}"
-                ).format(runlist, traceback.format_exception_only(err)))
+                ).format(runlist, err))
                 logging.debug(
                     "\n".join(traceback.format_exception(err))
                 )
@@ -575,7 +575,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                     "Failed to open Coder with requested scripts, opening with no scripts open.\n"
                     "Requested: {}\n"
                     "Err: {}"
-                ).format(scripts, traceback.format_exception_only(err)))
+                ).format(scripts, err))
                 logging.debug(
                     "\n".join(traceback.format_exception(err))
                 )

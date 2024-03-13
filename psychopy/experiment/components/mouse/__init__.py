@@ -162,13 +162,13 @@ class MouseComponent(BaseComponent):
         code = (
             "# check whether click was in correct object\n"
             "if gotValidClick:\n"
-            "    corr = 0\n"
-            "    corrAns = environmenttools.getFromNames(%(correctAns)s, namespace=locals())\n"
-            "    for obj in corrAns:\n"
+            "    _corr = 0\n"
+            "    _corrAns = environmenttools.getFromNames(%(correctAns)s, namespace=locals())\n"
+            "    for obj in _corrAns:\n"
             "        # is this object clicked on?\n"
             "        if obj.contains(%(name)s):\n"
-            "            corr = 1\n"
-            "    %(name)s.corr.append(corr)\n"
+            "            _corr = 1\n"
+            "    %(name)s.corr.append(_corr)\n"
         )
         # Write force end code
         if self.params['forceEndRoutineOnPress'] == 'correct click':

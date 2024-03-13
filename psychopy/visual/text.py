@@ -286,6 +286,11 @@ class TextStim(BaseVisualStim, DraggingMixin, ForeColorMixin, ContainerMixin):
         but use this method if you need to suppress the log message. """
         setAttribute(self, 'height', height, log)
 
+    def setLetterHeight(self, height, log=None):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message. """
+        setAttribute(self, 'height', height, log)
+
     @attributeSetter
     def font(self, font):
         """String. Set the font to be used for text rendering. font should

@@ -10,21 +10,22 @@
 import sys
 import wx
 import wx.richtext
+from psychopy.app.stdout import StdOutRich
 from psychopy.app.themes import handlers, colors, icons, fonts
 from psychopy.localization import _translate
 import os
 
 
-class ConsoleTextCtrl(wx.richtext.RichTextCtrl, handlers.ThemeMixin):
+class ConsoleTextCtrl(StdOutRich, handlers.ThemeMixin):
     """Class for the console text control. This is needed to allow for theming.
     """
     def __init__(self, parent, id_=wx.ID_ANY, value="", pos=wx.DefaultPosition,
                  size=wx.DefaultSize, style=0,
                  name=wx.TextCtrlNameStr):
 
-        wx.richtext.RichTextCtrl.__init__(
-            self, parent, id=id_, value=value, pos=pos, size=size, style=style,
-            validator=wx.DefaultValidator, name=name)
+        StdOutRich.__init__(
+            self, parent, style, size=size
+        )
 
 
 class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
@@ -177,15 +178,8 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
         #     self.txtTerm.OSXDisableAllSmartSubstitutions()
         #     self.txtTerm.MacCheckSpelling(False)
 
-        self.txtTerm.WriteText(_translate("Hit [Return] to start a Python session."))
+        self.txtTerm.write(_translate("Hit [Return] to start a Python session."))
         self._lastTextPos = self.txtTerm.GetLastPosition()
-
-        # Setup fonts and margins
-        self.setFonts()
-
-    def setFonts(self):
-        """Set the font for the console."""
-        self.txtTerm._applyAppTheme()
 
     def onTerminate(self, event):
         # hooks for the process we're communicating with
@@ -196,9 +190,8 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
         self._stdin_buffer = []
 
         self.txtTerm.Clear()
-        self.txtTerm.WriteText(_translate("Hit [Return] to start a Python shell."))
+        self.txtTerm.write(_translate("Hit [Return] to start a Python shell."))
         self._lastTextPos = self.txtTerm.GetLastPosition()
-        self.setFonts()
         self.toolbar.update()
 
     @property
@@ -241,6 +234,10 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
     #     """
     #     pass
 
+    def setFonts(self):
+        """Set the font for the console."""
+        self.txtTerm._applyAppTheme()
+
     def getNamespace(self):
         """Get variable names in the current namespace.
         """
@@ -271,7 +268,7 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
         if self._process.IsInputAvailable():
             stdin_text = self._process.InputStream.read()
             txt = stdin_text.decode('utf-8')
-            self.txtTerm.WriteText(txt)
+            self.txtTerm.write(txt)
 
             # special stuff
             if txt == '\r':  # handle carriage returns at some point
@@ -289,7 +286,7 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
             # check if the input stream has bytes to process
             if self._process.IsErrorAvailable():
                 stderr_text = self._process.ErrorStream.read()
-                self.txtTerm.WriteText(stderr_text.decode('utf-8'))
+                self.txtTerm.write(stderr_text.decode('utf-8'))
 
                 self._isBusy = False
 
@@ -301,7 +298,6 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
             self._lastTextPos = self.txtTerm.GetLastPosition()
             self.txtTerm.SetInsertionPoint(-1)
             self.txtTerm.ShowPosition(self._lastTextPos)
-            # self.setFonts()  # update fonts
 
     def resetCaret(self):
         """Place the caret at the entry position if not in an editable region.
@@ -324,7 +320,6 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
 
         # convert to bytes
         for line in lines.split('\n'):
-            self.setFonts()  # update fonts
             self.submit(line)
 
     def submit(self, line):
@@ -350,10 +345,8 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
 
         # inform the user that we're starting the console
         self.txtTerm.Clear()
-        self.txtTerm.WriteText(
+        self.txtTerm.write(
             "Starting Python interpreter session, please wait ...\n")
-
-        self.txtTerm._applyAppTheme()
 
         # setup the sub-process
         wx.BeginBusyCursor()
@@ -374,13 +367,12 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
 
         # clear all text in the widget and display the welcome message
         self.txtTerm.Clear()
-        self.txtTerm.WriteText(
+        self.txtTerm.write(
             "Python shell in PsychoPy (pid:{}) - type some commands!\n".format(
                 self._pid))  # show the subprocess PID for reference
         self._lastTextPos = self.txtTerm.GetLastPosition()
         self.toolbar.update()
 
-        self.setFonts()
         wx.EndBusyCursor()
 
     def interrupt(self, evt=None):
@@ -408,7 +400,6 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
         self.txtTerm.Clear()
         self._lastTextPos = self.txtTerm.GetLastPosition()
         self.push('')
-        self.setFonts()
 
     def onMaxLength(self, event):
         """What to do if we exceed the buffer size limit for the control.
@@ -423,7 +414,7 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
         """
         self.txtTerm.Remove(self._lastTextPos, self.txtTerm.GetLastPosition())
         if replaceWith:
-            self.txtTerm.WriteText(replaceWith)
+            self.txtTerm.write(replaceWith)
 
         self.txtTerm.SetInsertionPoint(self.txtTerm.GetLastPosition())
 

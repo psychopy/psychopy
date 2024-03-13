@@ -2035,17 +2035,22 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
     #     PluginManagerFrame(self).ShowModal()
 
     def OnFindOpen(self, event):
-        # open the find dialog if not already open
-        if self.findDlg is not None:
-            return
         if not self.currentDoc:
+            # don't do anything if there's no document to search
             return
-        win = wx.Window.FindFocus()
-        self.findData.SetFindString(self.currentDoc.GetSelectedText())
-        self.findDlg = wx.FindReplaceDialog(win, self.findData, "Find",
-                                            wx.FR_NOWHOLEWORD)
-        self.findDlg.Bind(wx.EVT_FIND_CLOSE, self.OnFindClose)
-        self.findDlg.Show()
+        if self.findDlg is not None:
+            # if find dlg already exists, show it and give it focus
+            self.findDlg.Show()
+            self.findDlg.Raise()
+            self.findDlg.SetFocus()
+        else:
+            # if not, make one now
+            win = wx.Window.FindFocus()
+            self.findData.SetFindString(self.currentDoc.GetSelectedText())
+            self.findDlg = wx.FindReplaceDialog(win, self.findData, "Find",
+                                                wx.FR_NOWHOLEWORD)
+            self.findDlg.Bind(wx.EVT_FIND_CLOSE, self.OnFindClose)
+            self.findDlg.Show()
 
     def OnFindNext(self, event):
         # find the next occurrence of text according to last find dialogue data
@@ -2272,7 +2277,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
                 self.fileHistory.AddFileToHistory(filename)
             else:
                 # set name for an untitled document
-                filename = 'untitled.py'
+                filename = shortName = 'untitled.py'
                 allFileNames = self.getOpenFilenames()
                 n = 1
                 while filename in allFileNames:

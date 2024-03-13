@@ -24,7 +24,7 @@ import webbrowser
 from pathlib import Path
 from subprocess import Popen, PIPE
 
-from psychopy import experiment
+from psychopy import experiment, logging
 from psychopy.app.utils import FrameSwitcher, FileDropTarget
 from psychopy.localization import _translate
 from psychopy.projects.pavlovia import getProject
@@ -474,7 +474,9 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         self.prefs = self.app.prefs.coder
         self.paths = self.app.prefs.paths
         self.parent = parent
+        # start values for server stuff
         self.serverProcess = None
+        self.serverPort = None
 
         # self.entries is dict of dicts: {filepath: {'index': listCtrlInd}} and may store more info later
         self.entries = {}
@@ -547,6 +549,10 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         self.ribbon.buttons['remove'].Disable()
 
         self.theme = parent.theme
+
+    def __del__(self):
+        if self.serverProcess is not None:
+            self.killServer()
 
     def _applyAppTheme(self):
         # Srt own background
@@ -627,6 +633,8 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         # substitute args
         if args is None:
             args = []
+        # start off looking at stdout (will switch to Alerts if there are any)
+        self.outputNotebook.SetSelectionToWindow(self.stdoutPnl)
 
         currentFile = str(self.currentFile)
         if self.currentFile.suffix == '.psyexp':
@@ -672,38 +680,58 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         if self.currentSelection is None:
             return
 
-        # we only want one server process open
-        if self.serverProcess is not None:
-            self.serverProcess.kill()
-            self.serverProcess = None
-
-        # Get PsychoJS libs
-        self.getPsychoJS()
-
+        # get relevant paths
         htmlPath = str(self.currentFile.parent / self.outputPath)
         jsFile = self.currentFile.parent / (self.currentFile.stem + ".js")
-        pythonExec = Path(sys.executable)
-        command = [str(pythonExec), "-m", "http.server", str(port)]
-
+        # make sure JS file exists
         if not os.path.exists(jsFile):
             generateScript(outfile=str(jsFile),
                            exp=self.loadExperiment(),
                            target="PsychoJS")
-
-        self.serverProcess = Popen(command,
-                                   bufsize=1,
-                                   cwd=htmlPath,
-                                   stdout=PIPE,
-                                   stderr=PIPE,
-                                   shell=False,
-                                   universal_newlines=True,
-
-                                   )
-
-        time.sleep(.1)  # Wait for subprocess to start server
+        # start server
+        self.startServer(htmlPath, port=port)
+        # open experiment
         webbrowser.open("http://localhost:{}".format(port))
-        print("##### Local server started! #####\n\n"
-              "##### Running PsychoJS task from {} #####\n".format(htmlPath))
+        # log experiment open
+        print(
+            f"##### Running PsychoJS task from {htmlPath} on port {port} #####\n"
+        )
+
+    def startServer(self, htmlPath, port=12002):
+        # we only want one server process open
+        if self.serverProcess is not None:
+            self.killServer()
+        # get PsychoJS libs
+        self.getPsychoJS()
+        # construct command
+        command = [sys.executable, "-m", "http.server", str(port)]
+        # open server
+        self.serverPort = port
+        self.serverProcess = Popen(
+            command,
+            bufsize=1,
+            cwd=htmlPath,
+            stdout=PIPE,
+            stderr=PIPE,
+            shell=False,
+            universal_newlines=True,
+        )
+        time.sleep(.1)
+        # log server start
+        logging.info(f"Local server started on port {port} in directory {htmlPath}")
+
+    def killServer(self):
+        # we can only close if there is a process
+        if self.serverProcess is None:
+            return
+        # kill subprocess
+        self.serverProcess.terminate()
+        time.sleep(.1)
+        # log server stopped
+        logging.info(f"Local server on port {self.serverPort} stopped")
+        # reset references to server stuff
+        self.serverProcess = None
+        self.serverPort = None
 
     def onURL(self, evt):
         self.parent.onURL(evt)
@@ -914,8 +942,8 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
 
     def onDoubleClick(self, evt):
         self.currentSelection = evt.Index
-        filename = self.expCtrl.GetItem(self.currentSelection, 0).Text
-        folder = self.expCtrl.GetItem(self.currentSelection, 1).Text
+        filename = self.expCtrl.GetItem(self.currentSelection, filenameColumn).Text
+        folder = self.expCtrl.GetItem(self.currentSelection, folderColumn).Text
         filepath = os.path.join(folder, filename)
         if filename.endswith('psyexp'):
             # do we have that file already in a frame?
@@ -1047,7 +1075,38 @@ class RunnerOutputNotebook(aui.AuiNotebook, handlers.ThemeMixin):
         )
         self.panels['git'] = self.gitPnl
 
+        # bind function when page receives focus
+        self._readCache = {}
+        self.Bind(aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.onFocus)
+
         self.SetMinSize(wx.Size(100, 100))  # smaller than window min size
+
+    def setRead(self, i, state):
+        """
+        Mark a tab (by index) as read/unread (determines whether the page gets a little blue dot)
+
+        Parameters
+        ----------
+        i : int
+            Index of the page to set
+        state : bool
+            True for read (i.e. no dot), False for unread (i.e. dot)
+        """
+        # if state matches cached state, don't bother updating again
+        if self._readCache.get(i, None) == state:
+            return
+        # cache read value
+        self._readCache[i] = state
+        # get tab label without asterisk
+        label = self.GetPageText(i).replace(" *", "")
+        # add/remove asterisk
+        if state:
+            self.SetPageText(i, label)
+        else:
+            self.SetPageText(i, label + " *")
+        # update
+        self.Update()
+        self.Refresh()
 
     def onWrite(self, evt):
         # get ctrl
@@ -1056,10 +1115,19 @@ class RunnerOutputNotebook(aui.AuiNotebook, handlers.ThemeMixin):
         for i in range(self.GetPageCount()):
             # get page window
             page = self.GetPage(i)
-            # is the ctrl a child of that window?
-            if page.IsDescendant(ctrl):
-                # if so, focus that page
-                self.SetSelection(i)
+            # is the ctrl a child of that window, and is it deselected?
+            if page.IsDescendant(ctrl) and self.GetSelection() != i:
+                # mark unread
+                self.setRead(i, False)
+                # alerts and pavlovia get focus too when written to
+                if page in (self.panels['git'], self.panels['alerts']):
+                    self.SetSelection(i)
+
+    def onFocus(self, evt):
+        # get index of new selection
+        i = evt.GetSelection()
+        # set read status
+        self.setRead(i, True)
 
 
 class RunnerRibbon(ribbon.FrameRibbon):

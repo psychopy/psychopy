@@ -146,7 +146,9 @@ class BaseStandaloneRoutine:
     def writeRoutineBeginCodeJS(self, buff, modular):
         code = (
             "function %(name)sRoutineBegin(snapshot) {\n"
-            "    return async function () {}\n"
+            "    return async function () {\n"
+            "        return Scheduler.Event.NEXT;\n"
+            "    }\n"
             "}\n"
         )
         buff.writeIndentedLines(code % self.params)
@@ -154,7 +156,9 @@ class BaseStandaloneRoutine:
     def writeEachFrameCodeJS(self, buff, modular):
         code = (
             "function %(name)sRoutineEachFrame(snapshot) {\n"
-            "    return async function () {}\n"
+            "    return async function () {\n"
+            "        return Scheduler.Event.NEXT;\n"
+            "    }\n"
             "}\n"
         )
         buff.writeIndentedLines(code % self.params)
@@ -178,7 +182,9 @@ class BaseStandaloneRoutine:
     def writeRoutineEndCodeJS(self, buff, modular):
         code = (
             "function %(name)sRoutineEnd(snapshot) {\n"
-            "    return async function () {}\n"
+            "    return async function () {\n"
+            "        return Scheduler.Event.NEXT;\n"
+            "    }\n"
             "}\n"
         )
         buff.writeIndentedLines(code % self.params)

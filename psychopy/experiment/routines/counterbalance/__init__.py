@@ -22,6 +22,7 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
             saveData=True, saveRemaining=True
     ):
         BaseStandaloneRoutine.__init__(self, exp, name=name)
+        self.url = "https://psychopy.org/builder/components/counterbalanceComponent.html"
 
         # we don't need a stop time
         del self.params['stopVal']
@@ -230,7 +231,6 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
         # enter function def
         code = (
                 "\n"
-                "var %(name)s\n"
                 "function %(name)sRoutineBegin(snapshot) {\n"
                 "  return async function () {\n"
         )
@@ -273,7 +273,7 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
             code = (
                 "// if slots and repeats are fully depleted, end the experiment now\n"
                 "if (%(name)s.finished) {\n"
-                "    endExperiment(psychoJS.experiment, win=win)\n"
+                "    quitPsychoJS('No more slots remaining for this study.', true)\n"
                 "}\n"
             )
             buff.writeIndentedLines(code % self.params)
@@ -295,6 +295,7 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
 
         # exit function def
         code = (
+            "    return Scheduler.Event.NEXT;\n"
             "  }\n"
             "}\n"
         )
@@ -303,10 +304,12 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
 
     def writeExperimentEndCodeJS(self, buff):
         code = (
-            "await psychoJS.shelf.counterbalanceConfirm(\n"
+            "if (%(name)s) {\n"
+            "  await psychoJS.shelf.counterbalanceConfirm(\n"
             "    ['%(name)s', '@designer', '@experiment'],\n"
             "    %(name)s.participantToken,\n"
-            "    (resp.keys === 'left')\n"
-            ")\n"
+            "    isCompleted\n"
+            "  );\n"
+            "}\n"
         )
         buff.writeIndentedLines(code % self.params)

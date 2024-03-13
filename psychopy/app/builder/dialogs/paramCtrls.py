@@ -958,13 +958,19 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
         self.xlBtn.Enable(self.valid)
         # get frame
         frame = self.GetParent()
-        while hasattr(frame, "GetParent") and not (hasattr(frame, "routine") or hasattr(frame, "component")):
+        if frame is None:
+            frame = self.GetTopLevelParent()
+        while hasattr(frame, "GetParent") and not (
+                hasattr(frame, "routine") or hasattr(frame, "component") or hasattr(frame, "type")
+        ):
             frame = frame.GetParent()
         # get comp type from frame
         if hasattr(frame, "component"):
             thisType = frame.component.type
         elif hasattr(frame, "routine"):
             thisType = frame.routine.type
+        elif hasattr(frame, "type"):
+            thisType = frame.type
         else:
             thisType = None
         # does this component have a default template?
