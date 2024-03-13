@@ -223,21 +223,23 @@ class EnvironmentManagerDlg(wx.Dialog):
         # interpreter path
         pyExec = sys.executable
 
-        # # determine installation path for bundle, create it if needed
-        # bundlePath = plugins.getBundleInstallTarget(packageName)
-        # if not os.path.exists(bundlePath):
-        #     self.output.writeStdOut(
-        #         "Creating bundle path `{}` for package `{}`.".format(
-        #             bundlePath, packageName))
-        #     os.mkdir(bundlePath)  # make the directory
-        # else:
-        #     self.output.writeStdOut(
-        #         "Using existing bundle path `{}` for package `{}`.".format(
-        #             bundlePath, packageName))
+        # we need to use bundles on MacOS
+        if sys.platform == "darwin":
+            # determine installation path for bundle, create it if needed
+            bundlePath = plugins.getBundleInstallTarget(packageName)
+            if not os.path.exists(bundlePath):
+                self.output.writeStdOut(
+                    "Creating bundle path `{}` for package `{}`.".format(
+                        bundlePath, packageName))
+                os.mkdir(bundlePath)  # make the directory
+            else:
+                self.output.writeStdOut(
+                    "Using existing bundle path `{}` for package `{}`.".format(
+                        bundlePath, packageName))
 
-        # add the bundle to path, refresh makes it discoverable after install
-        # if bundlePath not in sys.path:
-        #     sys.path.insert(0, bundlePath)
+            # add the bundle to path, refresh makes it discoverable after install
+            if bundlePath not in sys.path:
+                sys.path.insert(0, bundlePath)
 
         # if given a pyproject.toml file, do editable install of parent folder
         if str(packageName).endswith("pyproject.toml"):
@@ -251,11 +253,23 @@ class EnvironmentManagerDlg(wx.Dialog):
                     cwd=Path(packageName).parent
                 )
                 # get wheel path
-                packageName = [whl for whl in Path(packageName).parent.glob("**/*.whl")][0]
+                packageName = [
+                    whl for whl in Path(packageName).parent.glob("**/*.whl")][0]
 
-        # build the shell command to run the script
-        command = [pyExec, '-m', 'pip', 'install', str(packageName), '--user',
-                   '--prefer-binary', '--no-input', '--no-color']
+        # On MacOS, we need to install to target instead of user since py2app
+        # doesn't support user installs correctly, this is a workaround for that
+        env = os.environ.copy()
+        if sys.platform != "darwin":
+            # build the shell command to run the script
+            command = [pyExec, '-m', 'pip', 'install', str(packageName), 
+                       '--user', '--prefer-binary']
+            # set the environment variable 
+            env['PYTHONUSERBASE'] = prefs.paths['packages']
+        else:
+            # use --target on MacOS with a bundle
+            command = [pyExec, '-m', 'pip', 'install', packageName, '--target', 
+                       bundlePath, '--prefer-binary']
+            
         # write command to output panel
         self.output.writeCmd(" ".join(command))
         # append own name to extra
@@ -264,10 +278,6 @@ class EnvironmentManagerDlg(wx.Dialog):
         extra.update(
             {'pipname': packageName}
         )
-        
-        # set the environment variable 
-        env = os.environ.copy()
-        env['PYTHONUSERBASE'] = prefs.paths['packages']
 
         # create a new job with the user script
         self.pipProcess = jobs.Job(
