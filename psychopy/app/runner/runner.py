@@ -488,6 +488,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
 
         # setup ribbon
         self.ribbon = RunnerRibbon(self)
+        self.ribbon.buttons['pyswitch'].setMode(0)
         self.mainSizer.Add(self.ribbon, border=0, flag=wx.EXPAND | wx.ALL)
 
         # Setup splitter
@@ -1159,25 +1160,23 @@ class RunnerRibbon(ribbon.FrameRibbon):
             "py", label=_translate("Desktop"), icon="desktop"
         )
         # pilot Py
-        btn = self.addButton(
+        self.addButton(
             section="py", name="pypilot", label=_translate("Pilot"), icon='pyPilot',
             tooltip=_translate("Run the current script in Python with piloting features on"),
             callback=parent.pilotLocal
-        )
-        btn.Hide()
+        ).Disable()
         # run Py
-        btn = self.addButton(
+        self.addButton(
             section="py", name="pyrun", label=_translate("Run"), icon='pyRun',
             tooltip=_translate("Run the current script in Python"),
             callback=parent.runLocal
-        )
-        btn.Hide()
+        ).Disable()
         # stop
         self.addButton(
             section="py", name="pystop", label=_translate("Stop"), icon='stop',
             tooltip=_translate("Stop the current (Python) script"),
             callback=parent.stopTask
-        )
+        ).Disable()
 
         self.addSeparator()
 
@@ -1186,20 +1185,18 @@ class RunnerRibbon(ribbon.FrameRibbon):
             "browser", label=_translate("Browser"), icon="browser"
         )
         # pilot JS
-        btn = self.addButton(
+        self.addButton(
             section="browser", name="jspilot", label=_translate("Pilot in browser"),
             icon='jsPilot',
             tooltip=_translate("Pilot experiment locally in your browser"),
             callback=parent.runOnlineDebug
-        )
-        btn.Hide()
+        ).Disable()
         # run JS
-        btn = self.addButton(
+        self.addButton(
             section="browser", name="jsrun", label=_translate("Run on Pavlovia"), icon='jsRun',
             tooltip=_translate("Run experiment on Pavlovia"),
             callback=parent.runOnline
-        )
-        btn.Hide()
+        ).Disable()
 
         self.addSeparator()
 
