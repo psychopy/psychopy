@@ -53,6 +53,8 @@ def styleNotebook(target):
         if hasattr(page, "tabIcon"):
             btn = icons.ButtonIcon(page.tabIcon, size=(16, 16))
             target.SetPageBitmap(index, btn.bitmap)
+    target.Refresh()
+    target.GetAuiManager().Update()
 
 
 def styleCodeEditor(target):
