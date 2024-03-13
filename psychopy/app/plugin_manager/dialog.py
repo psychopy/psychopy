@@ -254,7 +254,8 @@ class EnvironmentManagerDlg(wx.Dialog):
                 packageName = [whl for whl in Path(packageName).parent.glob("**/*.whl")][0]
 
         # build the shell command to run the script
-        command = [pyExec, '-m', 'pip', 'install', str(packageName), '--user']
+        command = [pyExec, '-m', 'pip', 'install', str(packageName), '--user',
+                   '--prefer-binary', '--no-input', '--no-color']
         # write command to output panel
         self.output.writeCmd(" ".join(command))
         # append own name to extra
