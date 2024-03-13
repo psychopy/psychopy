@@ -9,7 +9,7 @@
       "font": ["Consolas", "Monaco", "Lucida Console"]
     },
     "margin": {
-      "fg": "",
+      "fg": "#000000",
       "bg": "#CDCDCD",
       "font": ""
     },

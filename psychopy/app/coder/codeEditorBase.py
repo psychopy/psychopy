@@ -61,21 +61,6 @@ class BaseCodeEditor(wx.stc.StyledTextCtrl, handlers.ThemeMixin):
         self.SetMarginSensitive(1, True)
         self.SetMarginWidth(1, 12)
 
-        self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDEROPEN,
-                          wx.stc.STC_MARK_BOXMINUS, "white", "#808080")
-        self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDER,
-                          wx.stc.STC_MARK_BOXPLUS, "white", "#808080")
-        self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDERSUB,
-                          wx.stc.STC_MARK_VLINE, "white", "#808080")
-        self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDERTAIL,
-                          wx.stc.STC_MARK_LCORNER, "white", "#808080")
-        self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDEREND,
-                          wx.stc.STC_MARK_BOXPLUSCONNECTED, "white", "#808080")
-        self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDEROPENMID,
-                          wx.stc.STC_MARK_BOXMINUSCONNECTED, "white", "#808080")
-        self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDERMIDTAIL,
-                          wx.stc.STC_MARK_TCORNER, "white", "#808080")
-
         # Set what kind of events will trigger a modified event
         self.SetModEventMask(wx.stc.STC_MOD_DELETETEXT |
                              wx.stc.STC_MOD_INSERTTEXT)
