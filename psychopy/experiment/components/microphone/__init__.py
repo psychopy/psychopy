@@ -36,7 +36,6 @@ onlineTranscribers = {
 localTranscribers = {
     "Google": "google",
     "Whisper": "whisper", 
-    "Built-in": "sphinx"
 }
 allTranscribers = {**localTranscribers, **onlineTranscribers}
 
