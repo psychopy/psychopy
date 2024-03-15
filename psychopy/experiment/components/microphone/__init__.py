@@ -36,7 +36,6 @@ onlineTranscribers = {
 localTranscribers = {
     "Google": "google",
     "Whisper": "whisper", 
-    "Built-in": "sphinx"
 }
 allTranscribers = {**localTranscribers, **onlineTranscribers}
 
@@ -201,7 +200,8 @@ class MicrophoneComponent(BaseDeviceComponent):
 
         self.params['transcribeBackend'] = Param(
             transcribeBackend, valType='code', inputType='choice', categ='Transcription',
-            allowedVals=list(allTranscribers), direct=False,
+            allowedLabels=list(allTranscribers), allowedVals=list(allTranscribers.values()),
+            direct=False,
             hint=_translate("What transcription service to use to transcribe audio?"),
             label=_translate("Transcription backend")
         )
