@@ -41,34 +41,47 @@ class BaseSearchPanel(wx.Panel):
         wx.Panel.__init__ (
             self, parent, id=id, pos=pos, size=size, style=style, name=name)
 
-        szrMain = wx.BoxSizer( wx.VERTICAL )
+        szrMain = wx.BoxSizer(wx.VERTICAL)
+        szrSearchPanel = wx.BoxSizer(wx.HORIZONTAL)
 
-        szrSearchPanel = wx.BoxSizer( wx.HORIZONTAL )
+        self.lblSearchBar = wx.StaticText(
+            self, wx.ID_ANY, u"Search:", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.lblSearchBar.Wrap(-1)
 
-        self.lblSearchBar = wx.StaticText( self, wx.ID_ANY, u"Search:", wx.DefaultPosition, wx.DefaultSize, 0 )
-        self.lblSearchBar.Wrap( -1 )
+        szrSearchPanel.Add(self.lblSearchBar, 0, 
+            wx.ALIGN_CENTER_VERTICAL|wx.RIGHT, 5)
 
-        szrSearchPanel.Add( self.lblSearchBar, 0, wx.ALIGN_CENTER_VERTICAL|wx.RIGHT, 5 )
+        self.txtSearch = wx.TextCtrl(
+            self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 
+            wx.TE_PROCESS_ENTER )
+        szrSearchPanel.Add(
+            self.txtSearch, 1, wx.ALIGN_CENTER_VERTICAL|wx.RIGHT, 5)
 
-        self.txtSearch = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_PROCESS_ENTER )
-        szrSearchPanel.Add( self.txtSearch, 1, wx.ALIGN_CENTER_VERTICAL|wx.RIGHT, 5 )
-
-        self.tglMatchCase = wx.BitmapToggleButton( self, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.tglMatchCase = wx.BitmapToggleButton(
+            self, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, 
+            wx.DefaultSize, 0)
         self.tglMatchCase.SetToolTip( u"Match case of search term." )
-        szrSearchPanel.Add( self.tglMatchCase, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
+        szrSearchPanel.Add(self.tglMatchCase, 0, wx.ALIGN_CENTER_VERTICAL, 5)
 
-        self.tglMatchWord = wx.BitmapToggleButton( self, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0 )
-        self.tglMatchWord.SetToolTip( u"Match only whole words." )
-        szrSearchPanel.Add( self.tglMatchWord, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
+        self.tglMatchWord = wx.BitmapToggleButton(
+            self, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, 
+            wx.DefaultSize, 0)
+        self.tglMatchWord.SetToolTip(u"Match only whole words.")
+        szrSearchPanel.Add(self.tglMatchWord, 0, wx.ALIGN_CENTER_VERTICAL, 5)
 
-        self.tglUseRegEx = wx.BitmapToggleButton( self, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0 )
-        self.tglUseRegEx.SetToolTip( u"Evaluate search text as a regular expression." )
-        szrSearchPanel.Add( self.tglUseRegEx, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
+        self.tglUseRegEx = wx.BitmapToggleButton(
+            self, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, 
+            wx.DefaultSize, 0)
+        self.tglUseRegEx.SetToolTip(
+            u"Evaluate search text as a regular expression.")
+        szrSearchPanel.Add(self.tglUseRegEx, 0, wx.ALIGN_CENTER_VERTICAL, 5)
 
-        szrMain.Add( szrSearchPanel, 0, wx.ALL|wx.EXPAND, 5 )
+        szrMain.Add(szrSearchPanel, 0, wx.ALL|wx.EXPAND, 5)
 
-        self.tvwSearchResults = wx.dataview.TreeListCtrl( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.dataview.TL_DEFAULT_STYLE )
-        szrMain.Add( self.tvwSearchResults, 1, wx.EXPAND, 5 )
+        self.tvwSearchResults = wx.dataview.TreeListCtrl(
+            self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 
+            wx.dataview.TL_DEFAULT_STYLE)
+        szrMain.Add(self.tvwSearchResults, 1, wx.EXPAND, 5)
 
 
         self.SetSizer( szrMain )
