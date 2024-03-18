@@ -50,6 +50,7 @@ from psychopy.app.themes import handlers, colors
 from psychopy.app.coder.folding import CodeEditorFoldingMixin
 from psychopy.app.stdout.stdOutRich import ScriptOutputPanel
 from psychopy.app.coder.repl import PythonREPLCtrl
+from psychopy.app.coder.searchPanel import SearchPanel
 # from ..plugin_manager import PluginManagerFrame
 
 try:
@@ -1262,6 +1263,11 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.consoleOutput.SetName("ConsoleOutput")
         self.shelf.AddPage(self.consoleOutputPanel, _translate('Output'))
 
+        # search panel
+        self.searchPanel = SearchPanel(self.shelf, self)
+        self.searchPanel.SetName("Search")
+        self.shelf.AddPage(self.searchPanel, _translate('Search'))
+
         for i in range(self.shelf.GetPageCount()):
             self.shelf.SetCloseButton(i, False)
 
@@ -2226,6 +2232,9 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
             if self.notebook.GetPage(ii).filename == filename:
                 return ii
         return -1
+
+    def getOpenDocs(self):
+        return [self.notebook.GetPage(ii) for ii in range(self.notebook.GetPageCount())]
 
     def setCurrentDoc(self, filename, keepHidden=False):
         # check if this file is already open
