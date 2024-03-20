@@ -481,6 +481,16 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         self.sizer.Add(self.badItemLbl, border=9, flag=wx.ALL | wx.EXPAND)
         self.badItemSizer = wx.BoxSizer(wx.VERTICAL)
         self.sizer.Add(self.badItemSizer, border=3, flag=wx.ALL | wx.EXPAND)
+        # ctrl to display when plugins can't be retrieved
+        self.errorCtrl = utils.MarkdownCtrl(
+            self, value=_translate(
+                "Could not retrieve plugins. Try restarting the PsychoPy app and make sure you "
+                "are connected to the internet."
+            ),
+            style=wx.TE_READONLY
+        )
+        self.sizer.Add(self.errorCtrl, proportion=1, border=3, flag=wx.ALL | wx.EXPAND)
+        self.errorCtrl.Hide()
 
         # Bind deselect
         self.Bind(wx.EVT_LEFT_DOWN, self.onDeselect)
@@ -494,17 +504,19 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             self.initState[item.info.pipname] = {"installed": item.info.installed, "active": item.info.active}
 
     def populate(self):
-        # Get all plugin details
+        # get all plugin details
         items = getAllPluginDetails()
-        # Start off assuming no headings
+        # start off assuming no headings
         self.badItemLbl.Hide()
-        # Put installed packages at top of list
+        # put installed packages at top of list
         items.sort(key=lambda obj: obj.installed, reverse=True)
         for item in items:
             item.setParent(self)
             self.appendItem(item)
-
-        # Layout
+        # if we got no items, display error message
+        if not len(items):
+            self.errorCtrl.Show()
+        # layout
         self.Layout()
         self.SetupScrolling()
 
@@ -699,7 +711,7 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         # Add placeholder for when there's no plugin selected
         self.placeholder = utils.MarkdownCtrl(
             self, value=_translate("Select a plugin to view details."),
-            style=wx.TE_MULTILINE | wx.BORDER_NONE | wx.TE_NO_VSCROLL
+            style=wx.TE_READONLY
         )
         self.border.Add(
             self.placeholder,
@@ -842,7 +854,6 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.sizer.ShowItems(value is not None)
         # Show/hide placeholder according to None
         self.placeholder.Show(value is None)
-        self.placeholder.editBtn.Hide()
         # Handle None
         if value is None:
             value = PluginInfo(
