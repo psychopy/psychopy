@@ -9,9 +9,12 @@
 
 __all__ = [
     'MovieFileWriter',
+    'MovieFileReader',
     'closeAllMovieWriters',
     'addAudioToMovie',
+    'MOVIE_READER_FFPYPLAYER',
     'MOVIE_WRITER_FFPYPLAYER',
+    'MOVIE_READER_OPENCV',
     'MOVIE_WRITER_OPENCV',
     'MOVIE_WRITER_NULL',
     'VIDEO_RESOLUTIONS'
@@ -26,8 +29,8 @@ import numpy as np
 import psychopy.logging as logging
 
 # constants for specifying encoders for the movie writer
-MOVIE_WRITER_FFPYPLAYER = u'ffpyplayer'
-MOVIE_WRITER_OPENCV = u'opencv'
+MOVIE_WRITER_FFPYPLAYER = MOVIE_READER_FFPYPLAYER = u'ffpyplayer'
+MOVIE_WRITER_OPENCV = MOVIE_READER_OPENCV = u'opencv'
 MOVIE_WRITER_NULL = u'null'   # use prefs for default
 
 # Common video resolutions in pixels (width, height). Users should be able to
@@ -58,6 +61,747 @@ VIDEO_RESOLUTIONS = {
 # the file is finalized. We identify movie writers by hashing the filename they 
 # are presently writing to. 
 _openMovieWriters = set()
+
+# Keep track of movie readers here. This is used to close all movie readers
+# when the main thread exits. We identify movie readers by hashing the filename
+# they are presently reading from.
+_openMovieReaders = set()
+
+
+class MovieFileReader:
+    """Read movie frames from file.
+
+    This class allows for the reading of movie frames from a file for playback
+    or analysis. Reading frames from a movie file is a slow process, so this
+    class uses a separate thread to decode movie frames in the background.
+
+    This class is suitable for real-time playback applications. It features a 
+    range of playback controls for controlling video and audio presentation. 
+    
+    Frame color data is output as Numpy arrays. These arrays can be passed 
+    directly to texture buffers to be rendered to the screen.
+
+    Parameters
+    ----------
+    filename : str
+        The name (or path) of the file to read the movie from.
+    decoderLib : str
+        The library to use to handle decoding the movie. The default is
+        'ffpyplayer'.
+    decoderOpts : dict or None
+        A dictionary of options to pass to the decoder. These option can be used
+        to control the quality of the movie, for example. The options depend on
+        the `decoderLib` in use. If `None`, the reader will use the default
+        options for the backend.
+    maxQueueSize : int
+        The maximum number of frames to queue in memory. If the queue is full,
+        the reader will wait until a frame is removed from the queue before
+        adding a new frame. Consider reducing this value to reduce CPU usage if
+        you are presenting frames slower than they are being read from the movie
+        file. If `0`, the queue size is unlimited. Value must be >=0.
+
+    Notes
+    -----
+    * If `decoderLib='ffpyplayer'`, audio playback is handled externally by 
+      SDL2. This means that audio playback is not synchronized with frame 
+      presentation in PsychoPy. However, playback will not begin until the audio 
+      track starts playing. 
+
+    """
+    def __init__(self, 
+                 filename, 
+                 decoderLib='ffpyplayer', 
+                 decoderOpts=None, 
+                 maxQueueSize=0):
+        
+        if maxQueueSize < 0:
+            raise ValueError('`maxQueueSize` must be >=0.')
+
+        self._filename = filename
+        self._decoderLib = decoderLib
+        self._decoderOpts = {} if decoderOpts is None else decoderOpts
+
+        # thread for the reader
+        self._player = None  # player interface object
+        self._readerThread = None
+        self._lastFrame = None
+        self._frameQueue = queue.Queue(maxsize=maxQueueSize)
+        self._exitEvent = threading.Event()  # signal to exit the reader thread
+        self._exitEvent.clear()
+        
+        # This lock is used to prevent the reader thread from get frames while
+        # another thread is accessing playback controls (e.g. play, pause, seek)
+        self._readLock = threading.Lock()
+
+        # barrier used to synchronize the reader thread with other threads
+        self._warmupBarrier = None
+
+    def __hash__(self):
+        """Use the absolute file path as the hash value since we only allow one
+        instance per file.
+        """
+        return hash(os.path.abspath(self._filename))
+    
+    def _clearFrameQueue(self):
+        """Clear the frame queue in a thread-safe way.
+        """
+        with self._frameQueue.mutex:
+            self._frameQueue.queue.clear()
+    
+    @property
+    def filename(self):
+        """The name (path) of the movie file (`str`).
+
+        This cannot be changed after the reader has been opened.
+
+        """
+        return self._filename
+    
+    def load(self, filename):
+        """Load a movie file.
+
+        This is an alias for `setMovie()` to synchronize naming with other video
+        classes around PsychoPy.
+
+        Parameters
+        ----------
+        filename : str
+            The name (path) of the file to read the movie from.
+
+        """
+        self.setMovie(filename)
+
+    def setMovie(self, filename):
+        """Set the movie file to read from and open it.
+
+        If there is a movie file currently open, it will be closed before
+        opening the new movie file. Playback will be reset to the beginning of
+        the movie.
+        
+        Parameters
+        ----------
+        filename : str
+            The name (path) of the file to read the movie from.
+        
+        """
+        if self.isOpen:
+            self.close()
+
+        # check if the file exists and is readable
+        if not os.path.isfile(filename):
+            raise IOError('Movie file does not exist: {}'.format(filename))
+
+        self._filename = filename
+
+        self.open()
+
+    def _openFFPyPlayer(self):
+        """Open a movie reader using FFPyPlayer.
+        """
+        # import in the class too avoid hard dependency on ffpyplayer
+        try:
+            from ffpyplayer.player import MediaPlayer
+        except ImportError:
+            raise ImportError(
+                'The `ffpyplayer` library is required to read movie files with '
+                '`decoderLib=ffpyplayer`.')
+
+        def _asyncFrameReader(moviePlayer, frameQueue, readLock, exitEvent,
+                              warmupBarrier=None):
+            """Local function used to read frames from the movie file.
+
+            This is executed in a thread to allow the main thread to continue
+            adding frames to the movie while the movie is being written to
+            disk.
+
+            Parameters
+            ----------
+            moviePlayer : ffpyplayer.player.MediaPlayer
+                The movie player object used to read frames from the movie file.
+            frameQueue : queue.Queue
+                A queue containing the frames read from the movie file.
+            readLock : threading.Lock
+                A lock used to synchronize access to the movie reader object for
+                accessing playback controls.
+            exitEvent : threading.Event
+                An event used to signal the reader thread to exit.
+            warmupBarrier : threading.Barrier or None
+                A `threading.Barrier` object used to synchronize the movie
+                reader with other threads. This guarantees that the movie reader
+                is ready before frames are passed te the queue. If `None`,
+                no synchronization is performed.
+
+            """
+            # wait until initialized
+            while moviePlayer.get_metadata()['src_vid_size'] == (0, 0):
+                time.sleep(0.01)
+            
+            if warmupBarrier is not None:
+                warmupBarrier.wait()
+
+            while not exitEvent.is_set():  # quit if signaled
+                # pull a frame from the stream, we keep this running 'hot' so
+                # that we don't miss frames, we just discard them if we don't
+                # need them
+                with readLock:
+                    frame, val = moviePlayer.get_frame(show=True)
+
+                if frame is None:
+                    continue
+
+                frameQueue.put((frame, val))
+                    
+                if val == 'eof':  # thread should exit if stream is done
+                    break
+                elif val == 'paused':
+                    continue
+
+            # if we're here, the reader thread should exit
+            with readLock:
+                moviePlayer.set_pause(True)
+                moviePlayer.close_player()
+
+        logging.info("Opening movie file: {}".format(self._filename))
+
+        # default options
+        defaultFFOpts = {
+            'paused': True,
+            'loop': 1
+        }
+
+        # merge user settings with defaults, user settings take precedence
+        defaultFFOpts.update(self._decoderOpts)
+        self._decoderOpts = defaultFFOpts
+
+        # create media player
+        self._player = MediaPlayer(
+            self._filename,
+            ff_opts=self._decoderOpts)
+        
+        # initialize the thread, the thread will wait on frames to be added to
+        # the queue
+        logging.debug("Starting movie reader thread...")
+
+        self._warmupBarrier = threading.Barrier(2)  # hold thread until ready
+        self._readerThread = threading.Thread(
+            target=_asyncFrameReader,
+            args=(
+                self._player, 
+                self._frameQueue, 
+                self._readLock,
+                self._exitEvent,
+                self._warmupBarrier))
+        
+        logging.debug("Waiting for movie reader thread to start...")
+
+        self._readerThread.start()
+        self._warmupBarrier.wait()
+
+        logging.debug("Movie reader thread started.")
+
+    def open(self):
+        """Open the movie file for reading.
+
+        """
+        self._exitEvent.clear()  # clear the exit event
+        
+        logging.debug("Using decoder library: {}".format(self._decoderLib))
+        if self._decoderLib == 'ffpyplayer':
+            self._openFFPyPlayer()
+
+        # register the reader with the global list of open movie readers
+        if self in _openMovieReaders:
+            raise RuntimeError(
+                'Movie reader already open for file: {}'.format(self._filename))
+        
+        _openMovieReaders.add(self)
+
+    @property
+    def isOpen(self):
+        """Whether the movie file is open (`bool`).
+
+        If `True`, the movie file is open and frames can be read from it. If
+        `False`, the movie file is closed and no more frames can be read from
+        it.
+
+        """
+        return self._readerThread is not None and self._readerThread.is_alive()
+
+    def close(self):
+        """Close the movie file.
+
+        """
+        if self._readerThread is None:
+            return
+        
+        # signal the reader thread to exit
+        self._exitEvent.set()
+        self._readerThread.join()
+
+        # remove the reader from the global list of open movie readers
+        if self in _openMovieReaders:
+            _openMovieReaders.remove(self)
+
+    # -------------------------------------------------------------------------
+    # Video playback controls
+    #
+
+    def play(self):
+        """Play the movie.
+
+        Start decoding frames from the movie file and add them to the frame
+        queue. If an audio track is present, it will be played as well.
+
+        """
+        if not self.isOpen:
+            return
+        
+        with self._readLock:
+            # unpause the movie to play it
+            if self._player.get_pause():
+                self._player.set_pause(False)
+
+    @property
+    def isPlaying(self):
+        """Whether the movie is playing (`bool`).
+
+        If `True`, the movie is playing. If `False`, the movie is paused.
+
+        """
+        return not self.isPaused
+    
+    @property
+    def isPaused(self):
+        """Whether the movie is paused (`bool`).
+
+        If `True`, the movie is paused. If `False`, the movie is playing.
+
+        """
+        if not self.isOpen:
+            return False
+        
+        with self._readLock:
+            return self._player.get_pause()
+
+    def pause(self):
+        """Pause the movie.
+
+        """
+        if not self.isOpen:
+            return
+        
+        with self._readLock:
+            self._player.set_pause(True)
+
+    def stop(self):
+        """Stop the movie.
+
+        Stop the movie and reset the playback position to the beginning of the
+        movie.
+
+        """
+        if not self.isOpen:
+            return
+        
+        self._clearFrameQueue()
+
+        with self._readLock:
+            self._player.set_pause(True)
+            self._player.seek(0.0, relative=False)
+
+    def seek(self, pts, relative=False, pause=False):
+        """Seek to a specific time in the movie.
+
+        Seeking invalidates all the frames in the frame queue since they are no
+        longer in sequence. This means that any frames in the queue will be
+        discarded. If you want to seek to a specific frame, you should call
+        `getFrames()` after seeking to get the frame at the new position.
+
+        Parameters
+        ----------
+        pts : float
+            Presentation timestamp (PTS) to seek to in seconds.
+        relative : bool
+            If `True`, `pts` is interpreted as a relative time offset from the
+            current position. If `False`, `pts` is interpreted as an absolute
+            time offset from the beginning of the movie.
+        pause : bool
+            If `True`, the movie will be paused after seeking. If `False`, the
+            movie will continue playing after seeking.
+
+        """
+        if not self.isOpen:
+            return
+
+        if pause:
+            self._player.set_pause(True)
+
+        self._clearFrameQueue()
+
+        with self._readLock:
+            self._player.seek(
+                pts, 
+                relative=relative, 
+                seek_by_bytes='auto', 
+                accurate=True)
+            
+    # -------------------------------------------------------------------------
+    # Audio playback controls
+    #
+            
+    @property
+    def volume(self):
+        """The volume of the movie (`float`).
+
+        This value is in the range [0, 1].
+
+        """
+        if not self.isOpen:
+            return 0.0
+        
+        with self._readLock:
+            return self._player.get_volume()
+        
+    @volume.setter
+    def volume(self, volume):
+        if not self.isOpen:
+            return
+        
+        self.setVolume(volume)
+    
+    def setVolume(self, volume):
+        """Set the volume of the movie.
+
+        Parameters
+        ----------
+        volume : float
+            The volume of the movie. Must be in the range [0, 1].
+
+        """
+        if not self.isOpen:
+            return
+        
+        # ensure volume is in the range [0, 1]
+        volume = max(0.0, min(1.0, volume))
+        
+        with self._readLock:
+            self._player.set_volume(volume)
+
+    @property
+    def mute(self):
+        """Whether the movie is muted (`bool`).
+
+        If `True`, the movie is muted. If `False`, the movie is unmuted.
+
+        """
+        if not self.isOpen:
+            return False
+        
+        with self._readLock:
+            return self._player.get_mute()
+    
+    @mute.setter
+    def mute(self, mute):
+        if not self.isOpen:
+            return
+        
+        self.setMute(mute)
+
+    def setMute(self, mute):
+        """Mute or unmute the movie.
+
+        Parameters
+        ----------
+        mute : bool
+            If `True`, the movie will be muted. If `False`, the movie will be
+            unmuted.
+
+        """
+        if not self.isOpen:
+            return
+        
+        with self._readLock:
+            self._player.set_mute(mute)
+
+    # -------------------------------------------------------------------------
+    # Video frame access
+    #
+
+    def _enqueueFrame(self):
+        """Grab a queued frame from the decoder.
+        
+        Returns
+        -------
+        bool 
+            `True` if a frame has been enqueued. Returns `False` if the decoder 
+            has not acquired a new frame yet.
+        
+        """
+        if not self.isOpen:
+            return False
+        
+        try:
+            frameData = self._frameQueue.get_nowait()
+        except queue.Empty:
+            return False
+        
+        frame, val = frameData  # update the frame
+
+        if val == 'eof':  # handle end of stream
+            print('End of stream')
+            return False
+        elif val == 'paused':  # handle when paused
+            return False
+        elif frame is None:  # handle when no frame is available
+            return False
+        
+        frameImage, pts = frame  # otherwise, unpack the frame
+
+        # if we have a new frame, update the frame information
+        videoBuffer = frameImage.to_bytearray()[0]
+        videoFrameArray = np.frombuffer(videoBuffer, dtype=np.uint8)
+
+        self._lastFrame = videoFrameArray, pts
+
+        return True
+    
+    @property
+    def framesWaiting(self):
+        """The number of frames waiting to be written to disk (`int`).
+
+        This value increases when you call `addFrame()` and decreases when the
+        frame is written to disk. This number can be reduced to zero by calling
+        `flush()`.
+
+        """
+        return self._frameQueue.qsize()
+    
+    @property
+    def duration(self):
+        """The duration of the movie in seconds (`float`).
+
+        This is the total duration of the movie in seconds based on the number 
+        of frames that have been added to the movie and the frame rate. This 
+        does not represent the actual duration of the movie file on disk, which
+        may be longer if frames are still being written to disk.
+
+        """
+        if not self.isOpen:
+            return 0.0
+        
+        with self._readLock:
+            return self._player.get_metadata()['src_duration']
+        
+    def _bufferFrames(self, numFrames):
+        """Buffer frames in the queue.
+
+        This function is used to buffer frames in the queue. This is useful if
+        you want to ensure that there are frames in the queue before calling
+        `getFrames()`.
+
+        Parameters
+        ----------
+        numFrames : int
+            The number of frames to buffer.
+
+        """
+        if not self.isOpen:
+            return
+        
+        while self.framesWaiting < numFrames:
+            # should warn if this returns False to tell the user we're not
+            # keeping up with playback
+            self._enqueueFrame()   
+
+    def getFrames(self):
+        """Get most recently decoded frames from the movie file.
+
+        Returns a list of frames obtained from the decoder since the last call
+        to `getFrames()`.
+
+        Returns
+        -------
+        frame : list
+            List of movie frames. Each element in the list is a tuple containing
+            the frame data and the presentation timestamp (PTS) of the frame in
+            seconds. The frame data is a numpy array of shape `(w, h, 3)` or
+            `(w, h, 4)` depending on the pixel format of the movie.
+
+        """
+        frames = []
+        while self._enqueueFrame():
+            frames.append(self._lastFrame)
+
+        return frames
+    
+    def getCurrentFrame(self):
+        """Get the frame whose presentation timestamp (PTS) is closest to the
+        current time. Use this function for getting frames for real-time 
+        presentation.
+
+        This only works if the movie is playing and if presentation timestamps 
+        are synced to the video's audio track or external clock. If the movie is 
+        paused, this function will return the most recently decoded frame.
+
+        Parameters
+        ----------
+        absTime : float or None
+            The absolute time in seconds to get the frame at.
+        dropFrame : bool
+            If `True`, the frame is dropped if it is not available, and the 
+            most recent frame will be returned immediately. If `False`, the 
+            function will block until the desired frame is returned.
+
+        Returns
+        -------
+        frame : tuple
+            A tuple containing the frame data and the presentation timestamp 
+            (PTS) of the frame in seconds. The frame data is a numpy array of 
+            shape `(w, h, 3)` or `(w, h, 4)` depending on the pixel format of 
+            the movie.
+
+        """
+        if not self.isOpen:
+            return None
+        
+        ptsNow = self.pts
+
+        if self._lastFrame is None:  # get the frame if we don't have one yet
+            self._enqueueFrame()
+
+        frameInterval = self.frameInterval
+        while ptsNow - self._lastFrame[1] > frameInterval:
+            self._enqueueFrame()
+            
+        return self._lastFrame[0]  # color data only
+            
+    # -------------------------------------------------------------------------
+    # Video metadata access
+    #
+    
+    @property
+    def size(self):
+        """The size `(w, h)` of the movie in pixels (`tuple`).
+
+        """
+        return self.getSize()
+    
+    def getSize(self):
+        """Get the size of the movie in pixels (`tuple`).
+
+        Returns
+        -------
+        tuple
+            The size of the movie in pixels (width, height). If the movie is not
+            open, this returns (-1, -1).
+
+        """
+        if not self.isOpen:
+            return (-1, -1)
+        
+        with self._readLock:
+            return self._player.get_metadata()['src_vid_size']
+        
+    @property
+    def fps(self):
+        """The frame rate of the movie (`float`).
+
+        """
+        return self.getFrameRate()
+    
+    @property
+    def frameRate(self):
+        """The frame rate of the movie (`float`).
+
+        This is an alias for `fps` to synchronize naming with other video
+        classes around PsychoPy.
+
+        """
+        return self.getFrameRate()
+    
+    def getFrameRate(self):
+        """Get the frame rate of the movie (`float`).
+
+        Returns
+        -------
+        float
+            The frame rate of the movie in frames per second.
+
+        """
+        if not self.isOpen:
+            return None
+        
+        with self._readLock:
+            val = self._player.get_metadata()['frame_rate']
+        
+        # handle different formats fps comes in
+        if isinstance(val, tuple):
+            val = val[0] / float(val[1])
+        else:
+            val = float(val)
+            
+        return val
+    
+    @property
+    def frameInterval(self):
+        """The frame interval of the movie in seconds (`float`).
+
+        """
+        return self.getFrameInterval()
+    
+    def getFrameInterval(self):
+        """Get the frame interval of the movie in seconds (`float`).
+
+        Returns
+        -------
+        float
+            The frame interval of the movie in seconds.
+
+        """
+        if not self.isOpen:
+            return None
+        
+        with self._readLock:
+            val = self._player.get_metadata()['frame_rate']
+        
+        # handle different formats fps comes in
+        if isinstance(val, tuple):
+            val = val[1] / float(val[0])
+        else:
+            val = 1.0 / float(val)
+            
+        return val
+    
+    @property
+    def pts(self):
+        """The presentation timestamp (PTS) of the most recent frame in seconds
+        (`float`).
+
+        """
+        return self.getPTS()
+
+    def getPTS(self):
+        """Get the presentation timestamp (PTS) of the most recent frame in
+        seconds (`float`).
+
+        Returns
+        -------
+        float
+            The presentation timestamp (PTS) of the most recent frame in
+            seconds.
+
+        """
+        if not self.isOpen:
+            return None
+        
+        with self._readLock:
+            return self._player.get_pts()
+
+    def __del__(self):
+        """Close the movie file when the object is deleted.
+        """
+        if hasattr(self, '_readerThread') and self._readerThread is not None:
+            self.close()
 
 
 class MovieFileWriter:
@@ -933,6 +1677,28 @@ class MovieFileWriter:
             pass
 
 
+def closeAllMovieReaders():
+    """Signal all movie readers to close.
+
+    This function should only be called once at the end of the program. This can 
+    be registered `atexit` to ensure that all movie writers are closed when the 
+    program exits.
+
+    """
+    global _openMovieReaders
+
+    if not _openMovieReaders:  # do nothing if no movie writers are open
+        return
+
+    logging.info('Closing all open ({}) movie readers now'.format(
+        len(_openMovieReaders)))
+
+    for movieReader in _openMovieReaders.copy():
+        movieReader.close()
+        
+    _openMovieReaders.clear()  # clear the set to free references
+
+
 def closeAllMovieWriters():
     """Signal all movie writers to close.
 
@@ -963,6 +1729,7 @@ def closeAllMovieWriters():
 
 
 # register the cleanup function to run when the program exits
+atexit.register(closeAllMovieReaders)
 atexit.register(closeAllMovieWriters)
 
 
