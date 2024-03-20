@@ -1290,8 +1290,8 @@ def getAllPluginDetails():
         # otherwise use cached
         pluginDatabase = localPluginDatabase
     else:
-        # if we have neither, return blank list
-        return []
+        # if we have neither, treat as blank list
+        pluginDatabase = []
 
     # check if we need to update plugin objects, if not return the cached data
     global _pluginObjects
