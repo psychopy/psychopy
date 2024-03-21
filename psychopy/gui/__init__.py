@@ -1,47 +1,80 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-#  Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
-# Distributed under the terms of the GNU General Public License (GPL).
-
-"""
-Graphical user interface elements for experiments.
-
-This lib will attempt to use PyQt (4 or 5) if possible and will revert to
-using wxPython if PyQt is not found.
-"""
-
+import importlib
 import sys
-from .. import constants
 
-# check if wx has been imported. If so, import here too and check for app
-if 'wx' in sys.modules:
-    import wx
-    wxApp = wx.GetApp()
-else:
-    wxApp = None
 
-# then setup prefs for
-haveQt = False  # until we confirm otherwise
-if wxApp is None:  # i.e. don't try this if wx is already running
-    # set order for attempts on PyQt5/PyQt6
-    importOrder = ['PyQt6', 'PyQt5']
-    # then check each in turn
-    for libname in importOrder:
+__all__ = [
+    # functions for controlling which backend we're using
+    "setBackend",
+    "getBackend"
+    # values for the actual module
+    "Dlg",
+    "DlgFromDict"
+]
+
+
+_backend = None
+Dlg = DlgFromDict = None
+
+
+def setBackend(name):
+    """
+    Set the backend for psychopy.gui to use.
+
+    Parameters
+    ----------
+    name : str
+        Name of the backend, should match the backend module name. One of:
+        - "wx"
+        - "qt"
+    """
+    # import submodule by name
+    submod = importlib.import_module("." + name, package="psychopy.gui")
+    # get Dialog class
+    global Dlg
+    Dlg = submod.Dlg
+    # legacy dialog from dict method
+    global DlgFromDict
+    DlgFromDict = Dlg.fromDict
+    # store value
+    global _backend
+    _backend = name
+
+
+def getBackend():
+    """
+    Get the backend currently used by psychopy.gui.
+
+    Returns
+    -------
+    str
+        Name of the backend, should match the backend module name. One of:
+        - "wx"
+        - "qt"
+    """
+    return _backend
+
+
+_found = False
+# set backend according to what's imported (prioritise wx)
+for moduleName, backendName in [
+    ("wx", "wxgui"),
+    ("PyQt5", "qtgui"),
+    ("PyQt6", "qtgui"),
+]:
+    if moduleName in sys.modules:
+        setBackend(backendName)
+        _found = True
+# if nothing is imported, set backend according to what's installed (prioritise qt)
+if not _found:
+    for moduleName, backendName in [
+        ("wx", "wxgui"),
+        ("PyQt5", "qtgui"),
+        ("PyQt6", "qtgui"),
+    ]:
         try:
-            exec("import {}".format(libname))
-            haveQt = libname
-            break
-        except ImportError:
+            importlib.import_module(moduleName)
+        except ModuleNotFoundError:
             pass
-
-# now we know what we can import let's import the rest
-if haveQt:
-    from .qtgui import *
-else:
-    try:
-        from .wxgui import *
-    except ImportError:
-        print("Neither wxPython nor PyQt could be imported "
-              "so gui is not available")
+        else:
+            setBackend(backendName)
+            _found = True
