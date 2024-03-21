@@ -1,4 +1,4 @@
-from psychopy.gui2.base import BaseDialog
+from psychopy.gui2.base import BaseDlg
 from psychopy.localization import _translate
 # import the newest version of PyQt available
 try:
@@ -17,7 +17,45 @@ if qtapp is None:
     qtapp.setStyle('Fusion')
 
 
-class Dialog(QtWidgets.QDialog, BaseDialog):
+class Dlg(QtWidgets.QDialog, BaseDlg):
+    class ReadmoreCtrl(QtWidgets.QLabel, BaseDlg.BaseReadmoreCtrl):
+        """
+        A linked label which shows/hides a set of control on click.
+        """
+
+        def __init__(self, parent, dlg, label=""):
+            QtWidgets.QLabel.__init__(self, parent)
+            # store reference to dialog
+            self.dlg = dlg
+            # set initial label
+            self.setLabel(label)
+            # bind onclick
+            self.setOpenExternalLinks(False)
+            self.linkActivated.connect(self.onToggle)
+
+        def setLabel(self, label, state=None):
+            """
+            Set the label of this ctrl (not including the arrow).
+
+            Parameters
+            ----------
+            label : str
+                The label itself, without any arrow
+            state : bool
+                What state to append an arrow for, use None to simply use the current state
+            """
+            # if not given a state, use current state
+            if state is None:
+                state = self.state
+            # store label root
+            self.label = label
+            # get label with arrow
+            label = self.getLabelWithArrow(label, state=state)
+            # construct text to set
+            text = f"<a href='.' style='color: black; text-decoration: none;'>{label}</a>"
+            # set label text
+            self.setText(text)
+
     def __init__(
             self, title=_translate('PsychoPy Dialog'),
             screen=-1, alwaysOnTop=False
@@ -44,6 +82,7 @@ class Dialog(QtWidgets.QDialog, BaseDialog):
         self.scroller = QtWidgets.QScrollArea(self)
         self.scroller.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.scroller.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.scroller.setFrameStyle(QtWidgets.QFrame.Shape.NoFrame)
         self.scroller.setWidgetResizable(True)
         self.panel = QtWidgets.QWidget(self)
         self.scroller.setWidget(self.panel)
@@ -51,11 +90,18 @@ class Dialog(QtWidgets.QDialog, BaseDialog):
         # set maximum height from screen
         h = int(screenObj.size().height() * 0.8)
         self.setMaximumHeight(h)
+        # set a nice looking minimum size
+        self.setMinimumSize(384, 128)
         # setup ctrls sizer
         self.sizer = QtWidgets.QGridLayout()
         self.sizer.setSpacing(10)
         self.sizer.setColumnMinimumWidth(1, 250)
         self.panel.setLayout(self.sizer)
+        # make readmorectrl (starts off hidden)
+        self.readmoreCtrl = self.ReadmoreCtrl(
+            self.panel, dlg=self, label=_translate("Configuration fields...")
+        )
+        self.readmoreCtrl.setVisible(False)
 
         # add okay and cancel buttons
         buttons = (
@@ -67,14 +113,6 @@ class Dialog(QtWidgets.QDialog, BaseDialog):
         self.buttonBox.rejected.connect(self.reject)
         self.border.addWidget(self.buttonBox)
 
-    def addTextField(self, name, value):
-        ctrl = QtWidgets.QTextEdit(str(value), parent=self)
-        self.sizer.addWidget(ctrl, self.currentRow, 1)
-        self.resize(
-            self.panel.sizeHint().width() + 12,
-            self.panel.sizeHint().height()
-        )
-
     def addLabel(self, key, label=None):
         # substitute label text for key if None
         if label is None:
@@ -85,6 +123,17 @@ class Dialog(QtWidgets.QDialog, BaseDialog):
         self.sizer.addWidget(lbl, self.currentRow, 0)
 
         return lbl
+
+    def insertReadmoreCtrl(self, row=None):
+        # if row is None, use current row
+        if row is None:
+            row = self.currentRow
+        # show readmore
+        self.readmoreCtrl.setVisible(True)
+        # add it to the sizer
+        self.sizer.addWidget(self.readmoreCtrl, row, 0, 1, -1)
+        # iterate row to account for the new item
+        self.currentRow += 1
 
     def makeField(self, key, value="", label=None, tip="", index=-1):
         # make a label
@@ -104,7 +153,7 @@ class Dialog(QtWidgets.QDialog, BaseDialog):
             # otherwise, make a text ctrl
             ctrl = QtWidgets.QLineEdit(self.panel)
             # set start value
-            ctrl.setText(value)
+            ctrl.setText(str(value))
         # add to sizer
         self.sizer.addWidget(ctrl, self.currentRow, 1)
 
@@ -119,9 +168,6 @@ class Dialog(QtWidgets.QDialog, BaseDialog):
     def enableField(self, key, enable=True):
         # enable/disable ctrl
         self.ctrls[key].setEnabled(enable)
-
-    def setConfigField(self, key, config=True):
-        pass
 
     def display(self):
         self.exec()

@@ -1,15 +1,101 @@
 from psychopy.gui import util
 
 
-class BaseDialog:
+class BaseDlg:
     """
     Base class for all psychopy.gui.Dialog classes. The methods described here are standard
     across Dialog classes, even though the backend will be completely different.
     """
+
+    class BaseReadmoreCtrl:
+        # current state of the ctrl - True = showing, False = hiding
+        state = False
+        # label for the ctrl, not including the arrow
+        label = ""
+        # list of fields connected to this ReadmoreCtrl
+        linkedFields = []
+        # Dlg object which this readme ctrl is connected to
+        dlg = None
+
+        @staticmethod
+        def getLabelWithArrow(label, state=None):
+            """
+            Get specified label with an arrow matching the specified state.
+
+            Parameters
+            ----------
+            label : str
+                The label itself, without any arrow
+            state : bool
+                What state to append an arrow for
+            """
+            # choose an arrow according to state
+            if state:
+                arrow = "▾"
+            else:
+                arrow = "▸"
+
+            return arrow + " " + label
+
+        def setLabel(self, label, state=None):
+            """
+            Set the label of this ctrl (not including the arrow).
+
+            Parameters
+            ----------
+            label : str
+                The label itself, without any arrow
+            state : bool
+                What state to append an arrow for, use None to simply use the current state
+            """
+            raise NotImplementedError()
+
+        def onToggle(self, evt=None):
+            """
+            Toggle visibility of linked ctrls. Called on press.
+            """
+            # toggle state
+            self.state = not self.state
+            # update label
+            self.setLabel(self.label, state=self.state)
+            # show/hide ctrls
+            self.showCtrls(self.state)
+
+        def linkField(self, key):
+            """
+            Connect a field to this ReadmoreCtrl such that it's shown/hidden on toggle.
+            """
+            # add to array of linked ctrls
+            if key not in self.linkedFields:
+                self.linkedFields.append(key)
+
+        def unlinkField(self, key):
+            """
+            Disconnect a field from this ReadmoreCtrl such that it's not longer shown/hidden on
+            toggle.
+            """
+            # add to array of linked ctrls
+            if key in self.linkedFields:
+                self.linkedFields.remove(key)
+
+        def showCtrls(self, show=True):
+            """
+            Show or hide the linked ctrls for this ReadmoreCtrl
+
+            Parameters
+            ----------
+            show : bool
+                Whether to show (True) or hide (False) linked ctrls.
+            """
+            for key in self.linkedFields:
+                self.dlg.showField(key, show=show)
+
     labels = {}
     ctrls = {}
     requiredFields = []
     currentRow = 0
+    # this should be overwritten in __init__ as a subclass of BaseReadmoreCtrl
+    readmoreCtrl = None
 
     def addField(
             self, key, label=None, tip="", value="", flags=None, index=-1
@@ -57,6 +143,16 @@ class BaseDialog:
                 self.requiredFields.remove(key)
 
     def setConfigField(self, key, config=True):
+        if config:
+            # if config, add to config fields
+            self.readmoreCtrl.linkField(key)
+            # show/hide according to readmore toggle state
+            self.showField(key, show=self.readmoreCtrl.state)
+        else:
+            # if not config, remove from config fields
+            self.readmoreCtrl.unlinkField(key)
+
+    def insertReadmoreCtrl(self, row=None):
         raise NotImplementedError()
 
     def display(self):
@@ -92,7 +188,11 @@ class BaseDialog:
         )
         # iterate through params
         for param in params:
-            # add a field for each
-            dlg.addField(**param)
+            if isinstance(param, dict):
+                # add a field for each param
+                dlg.addField(**param)
+            elif param == "---":
+                # if param is ---, make the readmore ctrl here
+                dlg.insertReadmoreCtrl()
         # show
         dlg.display()

@@ -7,12 +7,13 @@ __all__ = [
     "setBackend",
     "getBackend"
     # values for the actual module
-    "Dialog"
+    "Dlg",
+    "DlgFromDict"
 ]
 
 
 _backend = None
-Dialog = None
+Dlg = DlgFromDict = None
 
 
 def setBackend(name):
@@ -29,8 +30,11 @@ def setBackend(name):
     # import submodule by name
     submod = importlib.import_module("." + name, package="psychopy.gui2")
     # get Dialog class
-    global Dialog
-    Dialog = submod.Dialog
+    global Dlg
+    Dlg = submod.Dlg
+    # legacy dialog from dict method
+    global DlgFromDict
+    DlgFromDict = Dlg.fromDict
     # store value
     global _backend
     _backend = name
@@ -53,9 +57,9 @@ def getBackend():
 _found = False
 # set backend according to what's imported (prioritise wx)
 for moduleName, backendName in [
-    ("wx", "wx"),
-    ("PyQt5", "qt"),
-    ("PyQt6", "qt"),
+    ("wx", "wxgui"),
+    ("PyQt5", "qtgui"),
+    ("PyQt6", "qtgui"),
 ]:
     if moduleName in sys.modules:
         setBackend(backendName)
@@ -63,10 +67,9 @@ for moduleName, backendName in [
 # if nothing is imported, set backend according to what's installed (prioritise qt)
 if not _found:
     for moduleName, backendName in [
-        ("wx", "wx"),
-        ("PyQt4", "qt"),
-        ("PyQt5", "qt"),
-        ("PyQt6", "qt"),
+        ("wx", "wxgui"),
+        ("PyQt5", "qtgui"),
+        ("PyQt6", "qtgui"),
     ]:
         try:
             importlib.import_module(moduleName)
