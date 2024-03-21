@@ -58,6 +58,7 @@ class Dlg(QtWidgets.QDialog, BaseDlg):
 
     def __init__(
             self, title=_translate('PsychoPy Dialog'),
+            pos=None, size=None,
             screen=-1, alwaysOnTop=False
     ):
         QtWidgets.QDialog.__init__(self, None)
@@ -87,11 +88,25 @@ class Dlg(QtWidgets.QDialog, BaseDlg):
         self.panel = QtWidgets.QWidget(self)
         self.scroller.setWidget(self.panel)
         self.border.addWidget(self.scroller, 1)
-        # set maximum height from screen
+        # set maximum size from screen
+        w = int(screenObj.size().width() * 0.8)
         h = int(screenObj.size().height() * 0.8)
-        self.setMaximumHeight(h)
+        self.setMaximumSize(w, h)
         # set a nice looking minimum size
         self.setMinimumSize(384, 128)
+        # resize if size given
+        if size is not None:
+            # make sure size is an array of 2
+            if isinstance(size, (int, float)):
+                size = [int(size)] * 2
+            # do resize
+            self.resize(*size)
+        # reposition if pos given
+        if pos is not None:
+            # make sure pos is an array of 2
+            if isinstance(pos, (int, float)):
+                pos = [int(pos)] * 2
+            self.move(*pos)
         # setup ctrls sizer
         self.sizer = QtWidgets.QGridLayout()
         self.sizer.setSpacing(10)

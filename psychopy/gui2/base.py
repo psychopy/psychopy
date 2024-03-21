@@ -1,4 +1,5 @@
 from psychopy.gui import util
+from psychopy.localization import _translate
 
 
 class BaseDlg:
@@ -159,7 +160,12 @@ class BaseDlg:
         raise NotImplementedError()
 
     @classmethod
-    def fromDict(cls, dictionary, labels=None, tooltips=None):
+    def fromDict(
+            cls, dictionary, labels=None, tooltips=None,
+            title=_translate('PsychoPy Dialog'),
+            pos=None, size=None,
+            screen=-1, alwaysOnTop=False
+    ):
         """
         Create a new psychopy.gui.Dialog object from a dictionary.
 
@@ -171,6 +177,16 @@ class BaseDlg:
             Labels to use, against their corresponding keys
         tooltips : dict
             Tooltips to use, against their corresponding keys
+        title : str
+            Title to use on the title bar of the dialog
+        pos : tuple[int{2}] or list[int{2}]
+            Where on screen to position the dialog, use None to center
+        size : tuple[int{2}] or list[int{2}]
+            How big should the dialog start off as, use None to fit content
+        screen : int
+            Which screen to display the dialog on, use -1 for main display
+        alwaysOnTop : bool
+            If True, dialog will stay on top of all other windows
 
         Returns
         -------
@@ -178,7 +194,11 @@ class BaseDlg:
             Handle of the created Dialog object.
         """
         # create object
-        dlg = cls()
+        dlg = cls(
+            title=title,
+            pos=pos, size=size,
+            screen=screen, alwaysOnTop=alwaysOnTop
+        )
 
         # convert to a list of params
         params = util.makeDisplayParams(
