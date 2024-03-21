@@ -2,8 +2,11 @@
 # -*- coding: utf-8 -*-
 
 from collections import OrderedDict
-from psychopy.gui.qtgui import DlgFromDict
+from psychopy.gui.qtgui import Dlg
 import pytest
+
+
+DlgFromDict = Dlg.fromDict
 
 
 @pytest.mark.needs_qt

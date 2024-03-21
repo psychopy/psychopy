@@ -2,8 +2,11 @@
 # -*- coding: utf-8 -*-
 
 from collections import OrderedDict
-from psychopy.gui.wxgui import DlgFromDict
+from psychopy.gui.wxgui import Dlg
 import pytest
+
+
+DlgFromDict = Dlg.fromDict
 
 
 @pytest.mark.needs_wx
