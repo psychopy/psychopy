@@ -216,3 +216,46 @@ class BaseDlg:
                 dlg.insertReadmoreCtrl()
         # show
         dlg.display()
+
+
+class BaseMessageDialog:
+    # message to display if there's no prompt
+    nullPrompt = _translate("No details provided. ('prompt' value not set).")
+    # array to store icons against levels (should be overloaded by subclasses)
+    icons = {
+        'info': None,
+        'warn': None,
+        'critical': None,
+        'about': None,
+    }
+
+    def display(self):
+        raise NotImplementedError()
+
+    @classmethod
+    def info(cls, title=_translate("Information"), prompt=None):
+        # make dlg
+        dlg = cls(title=title, prompt=prompt, level="info")
+
+        return dlg.display()
+
+    @classmethod
+    def warn(cls, title=_translate("Warning"), prompt=None):
+        # make dlg
+        dlg = cls(title=title, prompt=prompt, level="warn")
+
+        return dlg.display()
+
+    @classmethod
+    def critical(cls, title=_translate("Critical"), prompt=None):
+        # make dlg
+        dlg = cls(title=title, prompt=prompt, level="critical")
+
+        return dlg.display()
+
+    @classmethod
+    def about(cls, title=_translate("About Experiment"), prompt=None):
+        # make dlg
+        dlg = cls(title=title, prompt=prompt, level="about")
+
+        return dlg.display()

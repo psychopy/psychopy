@@ -5,15 +5,25 @@ import sys
 __all__ = [
     # functions for controlling which backend we're using
     "setBackend",
-    "getBackend"
+    "getBackend",
     # values for the actual module
     "Dlg",
-    "DlgFromDict"
+    "MessageDlg",
+    "fileSaveDlg",
+    "fileOpenDlg",
 ]
+# handle aliases for legacy functions
+legacyAliases = {
+    'DlgFromDict': ("Dlg", "fromDict"),
+    'infoDlg': ("MessageDlg", "info"),
+    'warnDlg': ("MessageDlg", "warn"),
+    'criticalDlg': ("MessageDlg", "critical"),
+    'aboutDlg': ("MessageDlg", "about"),
+}
+__all__ += list(legacyAliases)
 
 
 _backend = None
-Dlg = DlgFromDict = None
 
 
 def setBackend(name):
@@ -29,12 +39,26 @@ def setBackend(name):
     """
     # import submodule by name
     submod = importlib.import_module("." + name, package="psychopy.gui")
-    # get Dialog class
-    global Dlg
-    Dlg = submod.Dlg
-    # legacy dialog from dict method
-    global DlgFromDict
-    DlgFromDict = Dlg.fromDict
+    # get everything from __all__
+    for name in __all__:
+        # skip functions which are genuinely here
+        if name in ("setBackend", "getBackend"):
+            continue
+        # skip legacy aliases (for now)
+        if name in legacyAliases:
+            continue
+        # alias function
+        globals()[name] = getattr(submod, name)
+    # handle legacy aliases
+    for name, mro in legacyAliases.items():
+        # start off in globals
+        target = globals()[mro[0]]
+        # for any further levels, tunnel down
+        for lvl in mro[1:]:
+            target = getattr(target, lvl)
+        # do aliasing
+        globals()[name] = target
+
     # store value
     global _backend
     _backend = name

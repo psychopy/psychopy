@@ -1,4 +1,6 @@
-from psychopy.gui.base import BaseDlg
+from pathlib import Path
+
+from psychopy.gui.base import BaseDlg, BaseMessageDialog
 from psychopy.localization import _translate
 # import the newest version of PyQt available
 try:
@@ -186,4 +188,126 @@ class Dlg(QtWidgets.QDialog, BaseDlg):
         self.ctrls[key].setEnabled(enable)
 
     def display(self):
-        self.exec()
+        return self.exec()
+
+
+def fileSaveDlg(initFilePath="", initFileName="",
+                prompt=_translate("Select file to save"),
+                allowed=None):
+    """A simple dialogue allowing write access to the file system.
+    (Useful in case you collect an hour of data and then try to
+    save to a non-existent directory!!)
+
+    :parameters:
+        initFilePath: string
+            default file path on which to open the dialog
+        initFileName: string
+            default file name, as suggested file
+        prompt: string (default "Select file to open")
+            can be set to custom prompts
+        allowed: string
+            a string to specify file filters.
+            e.g. "Text files (\\*.txt) ;; Image files (\\*.bmp \\*.gif)"
+            See https://www.riverbankcomputing.com/static/Docs/PyQt4/qfiledialog.html
+            #getSaveFileName
+            for further details
+
+    If initFilePath or initFileName are empty or invalid then
+    current path and empty names are used to start search.
+
+    If user cancels the None is returned.
+    """
+    if allowed is None:
+        allowed = ("All files (*.*);;"
+                   "txt (*.txt);;"
+                   "pickled files (*.pickle *.pkl);;"
+                   "shelved files (*.shelf)")
+
+    fdir = str(Path(initFilePath) / initFileName)
+    pathOut = QtWidgets.QFileDialog.getSaveFileName(parent=None, caption=prompt,
+                                              directory=fdir, filter=allowed)
+    if type(pathOut) == tuple:  # some versions(?) of PyQt return (files, filter)
+        pathOut = pathOut[0]
+
+    if len(pathOut) == 0:
+        return None
+    return str(pathOut) or None
+
+
+def fileOpenDlg(tryFilePath="",
+                tryFileName="",
+                prompt=_translate("Select file to open"),
+                allowed=None):
+    """A simple dialogue allowing read access to the file system.
+
+    :parameters:
+
+        tryFilePath: string
+            default file path on which to open the dialog
+
+        tryFileName: string
+            default file name, as suggested file
+
+        prompt: string (default "Select file to open")
+            can be set to custom prompts
+
+        allowed: string (available since v1.62.01)
+            a string to specify file filters.
+            e.g. "Text files (\\*.txt) ;; Image files (\\*.bmp \\*.gif)"
+            See https://www.riverbankcomputing.com/static/Docs/PyQt4/qfiledialog.html
+            #getOpenFileNames
+            for further details
+
+    If tryFilePath or tryFileName are empty or invalid then
+    current path and empty names are used to start search.
+
+    If user cancels, then None is returned.
+    """
+
+    if allowed is None:
+        allowed = ("All files (*.*);;"
+                   "PsychoPy Data (*.psydat);;"
+                   "txt (*.txt *.dlm *.csv);;"
+                   "pickled files (*.pickle *.pkl);;"
+                   "shelved files (*.shelf)")
+    fdir = str(Path(tryFilePath) / tryFileName)
+    filesToOpen = QtWidgets.QFileDialog.getOpenFileNames(parent=None,
+                                                         caption=prompt,
+                                                         directory=fdir,
+                                                         filter=allowed)
+    if type(filesToOpen) == tuple:  # some versions(?) of PyQt return (files, filter)
+        filesToOpen = filesToOpen[0]
+
+    filesToOpen = [str(fpath) for fpath in filesToOpen
+                   if Path(fpath).exists()]
+    if len(filesToOpen) == 0:
+        return None
+    return filesToOpen
+
+
+class MessageDlg(QtWidgets.QMessageBox, BaseMessageDialog):
+    # array to store icons against levels
+    icons = {
+        'info': QtWidgets.QMessageBox.Icon.Information,
+        'warn': QtWidgets.QMessageBox.Icon.Warning,
+        'critical': QtWidgets.QMessageBox.Icon.Critical,
+        'about': QtWidgets.QMessageBox.Icon.Information,
+    }
+
+    def __init__(
+            self, title="", prompt=None, level="info"
+    ):
+        # check the level descriptor is okay
+        assert level in self.icons, _translate(
+            "{} is not a known level of MessageDlg, should be one of: {}"
+        ).format(level, list(self.icons))
+        # substitute null prompt
+        if prompt is None:
+            prompt = self.nullPrompt
+        # make dialog
+        QtWidgets.QMessageBox.__init__(
+            self, None, title=title, text=prompt, icon=self.icons[level]
+        )
+
+    def display(self):
+        return self.exec()

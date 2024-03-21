@@ -1,5 +1,6 @@
-from psychopy.gui.base import BaseDlg
+from psychopy.gui.base import BaseDlg, BaseMessageDialog
 from psychopy.localization import _translate
+from pathlib import Path
 import wx, wx.lib.scrolledpanel
 
 
@@ -177,4 +178,125 @@ class Dlg(wx.Dialog, BaseDlg):
         self.ctrls[key].Enable(enable)
 
     def display(self):
-        self.ShowModal()
+        return self.ShowModal()
+
+
+def fileSaveDlg(initFilePath="", initFileName="",
+                prompt=_translate("Select file to save"),
+                allowed=None):
+    """A simple dialogue allowing write access to the file system.
+    (Useful in case you collect an hour of data and then try to
+    save to a non-existent directory!!)
+
+    :parameters:
+
+        initFilePath: string
+            default file path on which to open the dialog
+
+        initFileName: string
+            default file name, as suggested file
+
+        prompt: string (default "Select file to open")
+            can be set to custom prompts
+
+        allowed: string
+            A string to specify file filters.
+            e.g. "BMP files (*.bmp)|*.bmp|GIF files (*.gif)|*.gif"
+            See https://docs.wxpython.org/wx.FileDialog.html
+            for further details
+
+    If initFilePath or initFileName are empty or invalid then
+    current path and empty names are used to start search.
+
+    If user cancels the None is returned.
+    """
+    if allowed is None:
+        allowed = "All files (*.*)|*.*"
+        # "txt (*.txt)|*.txt"
+        # "pickled files (*.pickle, *.pkl)|*.pickle"
+        # "shelved files (*.shelf)|*.shelf"
+    app = wxapp
+    dlg = wx.FileDialog(None, prompt, initFilePath,
+                        initFileName, allowed, wx.FD_SAVE)
+    if dlg.ShowModal() == wx.ID_OK:
+        # get names of images and their directory
+        outName = dlg.GetFilename()
+        outPath = dlg.GetDirectory()
+        dlg.Destroy()
+        # tmpApp.Destroy()  # this causes an error message for some reason
+        fullPath = Path(outPath) / outName
+    else:
+        fullPath = ""
+    return str(fullPath)
+
+
+def fileOpenDlg(tryFilePath="",
+                tryFileName="",
+                prompt=_translate("Select file(s) to open"),
+                allowed=None):
+    """
+    A simple dialogue allowing read access to the file system.
+
+    :parameters:
+        tryFilePath: string
+            default file path on which to open the dialog
+        tryFileName: string
+            default file name, as suggested file
+        prompt: string (default "Select file to open")
+            can be set to custom prompts
+        allowed: string (available since v1.62.01)
+            a string to specify file filters.
+            e.g. "BMP files (*.bmp)|*.bmp|GIF files (*.gif)|*.gif"
+            See https://docs.wxpython.org/wx.FileDialog.html
+            for further details
+
+    If tryFilePath or tryFileName are empty or invalid then
+    current path and empty names are used to start search.
+
+    If user cancels, then None is returned.
+    """
+    if allowed is None:
+        allowed = ("PsychoPy Data (*.psydat)|*.psydat|"
+                   "txt (*.txt,*.dlm,*.csv)|*.txt;*.dlm;*.csv|"
+                   "pickled files (*.pickle, *.pkl)|*.pickle|"
+                   "shelved files (*.shelf)|*.shelf|"
+                   "All files (*.*)|*.*")
+    global app  # avoid recreating for every gui
+    app = wxapp
+    dlg = wx.FileDialog(None, prompt, tryFilePath, tryFileName, allowed,
+                        wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_MULTIPLE)
+    if dlg.ShowModal() == wx.ID_OK:
+        # get names of images and their directory
+        fullPaths = dlg.GetPaths()
+    else:
+        fullPaths = None
+    dlg.Destroy()
+    return fullPaths
+
+
+class MessageDlg(wx.MessageDialog, BaseMessageDialog):
+    # array to store icons against levels
+    icons = {
+        'info': wx.ICON_INFORMATION,
+        'warn': wx.ICON_WARNING,
+        'critical': wx.ICON_ERROR,
+        'about': wx.ICON_INFORMATION,
+    }
+
+    def __init__(
+            self, title="", prompt=None, level="info"
+    ):
+        # check the level descriptor is okay
+        assert level in self.icons, _translate(
+            "{} is not a known level of MessageDlg, should be one of: {}"
+        ).format(level, list(self.icons))
+        # substitute null prompt
+        if prompt is None:
+            prompt = self.nullPrompt
+        # make dialog
+        wx.MessageDialog.__init__(
+            self, None,  prompt, caption=title, style=self.icons[level]
+        )
+
+    def display(self):
+        return self.ShowModal()
