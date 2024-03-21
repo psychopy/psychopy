@@ -72,6 +72,7 @@ class Dlg(QtWidgets.QDialog, BaseDlg):
             self.setWindowFlags(Qt.WindowType.WindowStaysOnTopHint)
         # setup layout
         self.border = QtWidgets.QVBoxLayout()
+        self.border.setSpacing(6)
         self.setLayout(self.border)
         # add label
         self.requiredMsg = QtWidgets.QLabel(
@@ -92,15 +93,16 @@ class Dlg(QtWidgets.QDialog, BaseDlg):
         w = int(screenObj.size().width() * 0.8)
         h = int(screenObj.size().height() * 0.8)
         self.setMaximumSize(w, h)
-        # set a nice looking minimum size
-        self.setMinimumSize(384, 128)
         # resize if size given
         if size is not None:
             # make sure size is an array of 2
             if isinstance(size, (int, float)):
                 size = [int(size)] * 2
-            # do resize
-            self.resize(*size)
+            # set minimum size
+            self.setMinimumSize(*size)
+        else:
+            # if no size given, use a nice minimum size
+            self.setMinimumSize(384, 128)
         # reposition if pos given
         if pos is not None:
             # make sure pos is an array of 2
@@ -109,8 +111,7 @@ class Dlg(QtWidgets.QDialog, BaseDlg):
             self.move(*pos)
         # setup ctrls sizer
         self.sizer = QtWidgets.QGridLayout()
-        self.sizer.setSpacing(10)
-        self.sizer.setColumnMinimumWidth(1, 250)
+        self.sizer.setSpacing(6)
         self.panel.setLayout(self.sizer)
         # make readmorectrl (starts off hidden)
         self.readmoreCtrl = self.ReadmoreCtrl(
