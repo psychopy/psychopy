@@ -245,9 +245,9 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
                     del(jwe_tmp)
             else:  # make sure we set to None (in case prev clip had audio)
                 self._audioStream = None
-        elif not filename.startswith(prefs.paths['resources']):
+        elif not filename.startswith(prefs.paths['assets']):
             # If not found, and we aren't already looking in the Resources folder, try again in the Resources folder
-            self.loadMovie(Path(prefs.paths['resources']) / filename, log=False)
+            self.loadMovie(Path(prefs.paths['assets']) / filename, log=False)
         else:
             # Raise error if *still* not found
             raise IOError("Movie file '%s' was not found" % filename)

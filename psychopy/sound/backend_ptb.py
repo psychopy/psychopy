@@ -444,7 +444,7 @@ class SoundPTB(_SoundBase):
     def _setSndFromFile(self, filename):
         # alias default names (so it always points to default.png)
         if filename in ft.defaultStim:
-            filename = Path(prefs.paths['resources']) / ft.defaultStim[filename]
+            filename = Path(prefs.paths['assets']) / ft.defaultStim[filename]
         self.sndFile = f = sf.SoundFile(filename)
         self.sourceType = 'file'
         self.sampleRate = f.samplerate

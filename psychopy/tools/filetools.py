@@ -74,7 +74,7 @@ def _synonymiseExtensions(assets):
 
 
 # Names accepted by stimulus classes & the filename of the default stimulus to use
-defaultStimRoot = Path(__file__).parent.parent / "app" / "Resources"
+defaultStimRoot = Path(__file__).parent.parent / "assets"
 defaultStim = {
     # Image stimuli
     "default.png": "default.png",

@@ -268,7 +268,7 @@ class SoundPySoundCard(_SoundBase):
     def _setSndFromFile(self, fileName):
         # alias default names (so it always points to default.png)
         if fileName in ft.defaultStim:
-            fileName = Path(prefs.paths['resources']) / ft.defaultStim[fileName]
+            fileName = Path(prefs.paths['assets']) / ft.defaultStim[fileName]
         # load the file
         if not path.isfile(fileName):
             msg = "Sound file %s could not be found." % fileName
