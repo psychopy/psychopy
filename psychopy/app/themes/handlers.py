@@ -53,6 +53,8 @@ def styleNotebook(target):
         if hasattr(page, "tabIcon"):
             btn = icons.ButtonIcon(page.tabIcon, size=(16, 16))
             target.SetPageBitmap(index, btn.bitmap)
+    target.Refresh()
+    target.GetAuiManager().Update()
 
 
 def styleCodeEditor(target):
@@ -64,6 +66,20 @@ def styleCodeEditor(target):
     margin = fonts.coderTheme.margin
     target.SetFoldMarginColour(True, margin.backColor)
     target.SetFoldMarginHiColour(True, margin.backColor)
+    # style folding interface
+    for marknum, mark in [
+        (wx.stc.STC_MARKNUM_FOLDEREND, wx.stc.STC_MARK_BOXPLUSCONNECTED),
+        (wx.stc.STC_MARKNUM_FOLDEROPENMID, wx.stc.STC_MARK_BOXMINUSCONNECTED),
+        (wx.stc.STC_MARKNUM_FOLDEROPEN, wx.stc.STC_MARK_BOXMINUS),
+        (wx.stc.STC_MARKNUM_FOLDER, wx.stc.STC_MARK_BOXPLUS),
+        (wx.stc.STC_MARKNUM_FOLDERSUB, wx.stc.STC_MARK_VLINE),
+        (wx.stc.STC_MARKNUM_FOLDERTAIL, wx.stc.STC_MARK_LCORNER),
+        (wx.stc.STC_MARKNUM_FOLDERMIDTAIL, wx.stc.STC_MARK_TCORNER),
+    ]:
+        target.MarkerDefine(
+            marknum, mark,
+            fonts.coderTheme.margin.backColor, fonts.coderTheme.margin.foreColor
+        )
     # Set caret colour
     caret = fonts.coderTheme.caret
     target.SetCaretForeground(caret.foreColor)

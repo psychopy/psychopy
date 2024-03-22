@@ -1211,7 +1211,7 @@ class Experiment:
         # Get resources for components
         compResources = []
         handled = False
-        for thisEntry in self.flow:
+        for thisEntry in self.flow.getUniqueEntries():
             if thisEntry.getType() == 'Routine':
                 # find all params of all compons and check if valid filename
                 for thisComp in thisEntry:

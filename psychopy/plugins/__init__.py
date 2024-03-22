@@ -706,7 +706,7 @@ def loadPlugin(plugin):
                 except (ModuleNotFoundError, ImportError):
                     importSuccess = False
                     logging.error(
-                        "Plugin `{}` entry point requires module `{}`, but it"
+                        "Plugin `{}` entry point requires module `{}`, but it "
                         "cannot be imported.".format(plugin, ep.module_name))
                 except:
                     importSuccess = False
