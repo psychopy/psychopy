@@ -206,7 +206,12 @@ class Dlg(wx.Dialog, BaseDlg):
         btn.Enable(enable=enable)
 
     def display(self):
-        return self.ShowModal()
+        # show dlg and wait for response
+        ret = self.ShowModal()
+        # record whether OK was pressed
+        self.OK = ret == wx.ID_OK
+        # return response
+        return ret
 
 
 def fileSaveDlg(initFilePath="", initFileName="",

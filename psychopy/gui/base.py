@@ -19,6 +19,8 @@ class BaseDlg:
         linkedFields = []
         # Dlg object which this readme ctrl is connected to
         dlg = None
+        # start off without OK pressed
+        OK = False
 
         @staticmethod
         def getLabelWithArrow(label, state=None):

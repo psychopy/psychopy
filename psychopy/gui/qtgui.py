@@ -217,7 +217,12 @@ class Dlg(QtWidgets.QDialog, BaseDlg):
         btn.setEnabled(enable)
 
     def display(self):
-        return self.exec()
+        # show dlg and wait for response
+        ret = self.exec()
+        # record whether OK was pressed
+        self.OK = bool(ret)
+        # return response
+        return ret
 
 
 def fileSaveDlg(initFilePath="", initFileName="",
