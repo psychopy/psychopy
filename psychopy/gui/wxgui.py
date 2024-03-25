@@ -55,7 +55,7 @@ class Dlg(wx.Dialog, BaseDlg):
         wx.Dialog.__init__(self, None, style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
         # todo: wx doesn't seem to have a built in method to set screen, can we hack it?
         # set title
-        self.SetTitle(title)
+        self.setTitle(title)
         # set always stay on top
         if alwaysOnTop:
             self.SetWindowStyle(wx.STAY_ON_TOP)
@@ -179,6 +179,12 @@ class Dlg(wx.Dialog, BaseDlg):
             return ctrl.GetStringSelection()
         elif isinstance(ctrl, (wx.TextCtrl, wx.CheckBox)):
             return ctrl.GetValue()
+
+    def setTitle(self, title):
+        self.SetTitle(title)
+
+    def getTitle(self):
+        return self.GetTitle()
 
     def showField(self, key, show=True):
         # show/hide label

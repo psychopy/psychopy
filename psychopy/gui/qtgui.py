@@ -68,7 +68,7 @@ class Dlg(QtWidgets.QDialog, BaseDlg):
         screenObj = qtapp.screens()[screen]
         self.setScreen(screenObj)
         # set title
-        self.setWindowTitle(title)
+        self.setTitle(title)
         # set always stay on top
         if alwaysOnTop:
             self.setWindowFlags(Qt.WindowType.WindowStaysOnTopHint)
@@ -193,6 +193,12 @@ class Dlg(QtWidgets.QDialog, BaseDlg):
             return bool(ctrl.checkState().value)
         elif isinstance(ctrl, QtWidgets.QLineEdit):
             return ctrl.text()
+
+    def setTitle(self, title):
+        self.setWindowTitle(title)
+
+    def getTitle(self):
+        return self.windowTitle()
 
     def showField(self, key, show=True):
         # show/hide label

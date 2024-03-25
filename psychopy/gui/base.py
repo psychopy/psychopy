@@ -148,6 +148,12 @@ class BaseDlg:
     def getRawFieldValue(self, key):
         raise NotImplementedError()
 
+    def setTitle(self, title):
+        raise NotImplementedError()
+
+    def getTitle(self):
+        raise NotImplementedError()
+
     def getFieldValue(self, key):
         # get raw value
         value = self.getRawFieldValue(key)

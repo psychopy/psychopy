@@ -20,7 +20,7 @@ class BaseDlgTest:
         ]
         for case in cases:
             dlg = Dlg.fromDict(self.basicDict, title=case, show=False)
-            assert dlg.windowTitle() == case
+            assert dlg.getTitle() == case
             del dlg
 
     def test_copy_dict(self):
