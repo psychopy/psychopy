@@ -52,13 +52,14 @@ class Dlg(wx.Dialog, BaseDlg):
             pos=None, size=None,
             screen=-1, alwaysOnTop=False
     ):
-        wx.Dialog.__init__(self, None, style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
+        _style = wx.CAPTION | wx.RESIZE_BORDER
+        wx.Dialog.__init__(self, None, style=_style)
         # todo: wx doesn't seem to have a built in method to set screen, can we hack it?
         # set title
         self.setTitle(title)
         # set always stay on top
         if alwaysOnTop:
-            self.SetWindowStyle(wx.STAY_ON_TOP)
+            self.SetWindowStyle(_style | wx.STAY_ON_TOP)
         # setup layout
         self.border = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.border)
