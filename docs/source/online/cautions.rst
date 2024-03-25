@@ -5,7 +5,7 @@ Caveats and cautions
 
 The first caution to be aware of here is that PsychoJS was only written in 2016. It hasn't been widely battle-tested and almost certainly has some rough edges. Use it carefully and check your study does what you expect.
 
-For an in-depth examination of the pros and cons of running studies online (including a consideration of timing issues) see `Woods et al (2015) <https://peerj.com/articles/1058/>`_
+For an in-depth examination of the pros and cons of running studies online (including a consideration of timing issues), see `The timing mega-study (Bridges et al., 2020) <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7512138/>`_.
 
 Differences between |PsychoPy| and PsychoJS studies
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
