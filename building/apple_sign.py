@@ -166,9 +166,7 @@ class AppSigner:
             print("[Error] Upload failed: You probably need a new app-specific "
                   "password from https://appleid.apple.com/account/manage")
             exit(1)
-        elif m is None or not ('No errors uploading' in output):
-            print(f'[Error] Upload failed: {output}')
-            exit(1)
+        print(output)
         uuid = m[0].strip()
         self._appNotarizeUUID = uuid
         print(f'Uploaded file {filename} in {time.time()-t0:.03f}s: {uuid}')
