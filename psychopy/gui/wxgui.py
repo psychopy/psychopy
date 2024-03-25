@@ -171,7 +171,7 @@ class Dlg(wx.Dialog, BaseDlg):
 
         return lbl, ctrl
 
-    def getFieldValue(self, key):
+    def getRawFieldValue(self, key):
         # get ctrl
         ctrl = self.ctrls[key]
         # get value according to ctrl type

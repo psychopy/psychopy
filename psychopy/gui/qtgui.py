@@ -183,14 +183,14 @@ class Dlg(QtWidgets.QDialog, BaseDlg):
 
         return lbl, ctrl
 
-    def getFieldValue(self, key):
+    def getRawFieldValue(self, key):
         # get ctrl
         ctrl = self.ctrls[key]
         # get value according to ctrl type
         if isinstance(ctrl, QtWidgets.QComboBox):
             return ctrl.currentText()
         elif isinstance(ctrl, QtWidgets.QCheckBox):
-            return ctrl.checkState()
+            return bool(ctrl.checkState().value)
         elif isinstance(ctrl, QtWidgets.QLineEdit):
             return ctrl.text()
 

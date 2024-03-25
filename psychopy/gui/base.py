@@ -1,3 +1,5 @@
+import json
+import numpy as np
 from psychopy.gui import util
 from psychopy.localization import _translate
 
@@ -93,8 +95,11 @@ class BaseDlg:
 
     labels = {}
     ctrls = {}
+    fieldTypes = {}
     requiredFields = []
     currentRow = 0
+    # for when copyDict is True in .fromDict
+    dictionary = {}
     # this should be overwritten in __init__ as a subclass of BaseReadmoreCtrl
     readmoreCtrl = None
 
@@ -112,6 +117,11 @@ class BaseDlg:
         self.labels[key], self.ctrls[key] = self.makeField(
             key, value=value, label=label, tip=tip, index=index
         )
+        # store data type
+        if isinstance(value, (list, tuple)):
+            self.fieldTypes[key] = str
+        else:
+            self.fieldTypes[key] = type(value)
         # show/hide field
         self.showField(key, "hid" not in flags)
         # enable/disable field
@@ -135,8 +145,54 @@ class BaseDlg:
     def enableField(self, key, enable=True):
         raise NotImplementedError()
 
-    def getFieldValue(self, key):
+    def getRawFieldValue(self, key):
         raise NotImplementedError()
+
+    def getFieldValue(self, key):
+        # get raw value
+        value = self.getRawFieldValue(key)
+        # get data type
+        thisType = self.fieldTypes[key]
+        # process according to type
+        try:
+            if thisType in (str, bytes):
+                value = str(value)
+            elif thisType == tuple:
+                jtext = "[" + str(value) + "]"
+                value = json.loads(jtext)[0]
+            elif thisType == list:
+                jtext = "[" + str(value) + "]"
+                value = json.loads(jtext)[0]
+            elif thisType == float:
+                value = float(value)
+            elif thisType == int:
+                value = int(value)
+            elif thisType == dict:
+                jtext = "[" + str(value) + "]"
+                value = json.loads(jtext)[0]
+            elif thisType == np.ndarray:
+                value = np.array(
+                    json.loads("[" + str(value) + "]")[0])
+        except Exception as e:
+            value = str(value)
+
+        return value
+
+    def getDict(self, removeTags=True):
+        # get the value of every field and store it in the dict
+        for field in self.ctrls:
+            self.dictionary[field] = self.getFieldValue(field)
+            # get processed equivalent of key
+            key, flags = util.parsePipeSyntax(field)
+            if removeTags:
+                # if removing tags, pop value to processed key
+                self.dictionary[key] = self.dictionary.pop(field)
+            else:
+                # if not, make sure processed keys are not present
+                if key != field and key in self.dictionary:
+                    del self.dictionary[key]
+
+        return self.dictionary
 
     def setRequiredField(self, key, required=True):
         if required:
@@ -227,6 +283,9 @@ class BaseDlg:
             pos=pos, size=size,
             screen=screen, alwaysOnTop=alwaysOnTop
         )
+        # if not copying the dict, add its handle to the dlg
+        if not copyDict:
+            dlg.dictionary = dictionary
 
         # convert to a list of params
         params = util.makeDisplayParams(
