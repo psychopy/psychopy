@@ -123,6 +123,8 @@ class BaseDlg:
 
         # iterate row
         self.currentRow += 1
+        # validate
+        self.validate()
 
     def makeField(self, key, value="", label=None, tip="", index=-1):
         raise NotImplementedError()
@@ -131,6 +133,9 @@ class BaseDlg:
         raise NotImplementedError()
 
     def enableField(self, key, enable=True):
+        raise NotImplementedError()
+
+    def getFieldValue(self, key):
         raise NotImplementedError()
 
     def setRequiredField(self, key, required=True):
@@ -156,15 +161,33 @@ class BaseDlg:
     def insertReadmoreCtrl(self, row=None):
         raise NotImplementedError()
 
+    def enableOK(self, enable=True):
+        raise NotImplementedError()
+
     def display(self):
         raise NotImplementedError()
+
+    def validate(self, evt=None):
+        # start off assuming valid
+        valid = True
+        # check all required fields
+        for key in self.requiredFields:
+            # valid if there's a response
+            valid = valid and bool(self.getFieldValue(key))
+        # enable/disable OK button
+        self.enableOK(enable=valid)
 
     @classmethod
     def fromDict(
             cls, dictionary, labels=None, tooltips=None,
             title=_translate('PsychoPy Dialog'),
+            copyDict=True,
             pos=None, size=None,
-            screen=-1, alwaysOnTop=False
+            screen=-1, alwaysOnTop=False,
+            show=True,
+            # legacy
+            sort_keys=None, copy_dict=None,
+            sortKeys=None,
     ):
         """
         Create a new psychopy.gui.Dialog object from a dictionary.
@@ -179,6 +202,9 @@ class BaseDlg:
             Tooltips to use, against their corresponding keys
         title : str
             Title to use on the title bar of the dialog
+        copyDict : bool
+            If True, will create and return a copy of the given dictionary, rather than editing
+            it inplace.
         pos : tuple[int{2}] or list[int{2}]
             Where on screen to position the dialog, use None to center
         size : tuple[int{2}] or list[int{2}]
@@ -187,6 +213,8 @@ class BaseDlg:
             Which screen to display the dialog on, use -1 for main display
         alwaysOnTop : bool
             If True, dialog will stay on top of all other windows
+        show : bool
+            If False, dialog will be created but not shown until you call its `.display` method.
 
         Returns
         -------
@@ -215,7 +243,9 @@ class BaseDlg:
                 # if param is ---, make the readmore ctrl here
                 dlg.insertReadmoreCtrl()
         # show
-        dlg.display()
+        if show:
+            dlg.display()
+        return dlg
 
 
 class BaseMessageDialog:

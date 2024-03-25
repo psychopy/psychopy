@@ -48,6 +48,9 @@ def makeDisplayParams(expInfo, sortKeys=True, labels=None, tooltips=None, fixed=
         for flag in flags:
             if flag.isnumeric():
                 i = int(flag)
+        # if required, make sure we have a * in the label
+        if "req" in flags:
+            label += "*"
         # construct display param
         param = {
             'key': key,

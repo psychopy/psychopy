@@ -139,13 +139,19 @@ class Dlg(wx.Dialog, BaseDlg):
         if isinstance(value, (list, tuple)):
             # make a choice ctrl if value is a list
             ctrl = wx.Choice(self.panel, choices=value)
+            # bind to validator
+            ctrl.Bind(wx.EVT_CHOICE, self.validate)
         elif isinstance(value, bool):
             # make a checkbox if value is a bool
             ctrl = wx.CheckBox(self.panel)
             ctrl.SetValue(value)
+            # bind to validator
+            ctrl.Bind(wx.EVT_CHECKBOX, self.validate)
         else:
             # otherwise, make a text ctrl
             ctrl = wx.TextCtrl(self.panel, value=str(value))
+            # bind to validator
+            ctrl.Bind(wx.EVT_TEXT, self.validate)
         # add to sizer
         self.sizer.Add(
             ctrl, pos=(self.currentRow, 1), border=6, flag=wx.EXPAND | wx.ALL
@@ -165,6 +171,15 @@ class Dlg(wx.Dialog, BaseDlg):
 
         return lbl, ctrl
 
+    def getFieldValue(self, key):
+        # get ctrl
+        ctrl = self.ctrls[key]
+        # get value according to ctrl type
+        if isinstance(ctrl, wx.Choice):
+            return ctrl.GetStringSelection()
+        elif isinstance(ctrl, (wx.TextCtrl, wx.CheckBox)):
+            return ctrl.GetValue()
+
     def showField(self, key, show=True):
         # show/hide label
         self.labels[key].Show(show)
@@ -176,6 +191,12 @@ class Dlg(wx.Dialog, BaseDlg):
     def enableField(self, key, enable=True):
         # enable/disable ctrl
         self.ctrls[key].Enable(enable)
+
+    def enableOK(self, enable=True):
+        # get OK button
+        btn = self.FindWindowById(wx.ID_OK)
+        # set enabled state
+        btn.Enable(enable=enable)
 
     def display(self):
         return self.ShowModal()

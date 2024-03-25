@@ -162,20 +162,37 @@ class Dlg(QtWidgets.QDialog, BaseDlg):
             ctrl = QtWidgets.QComboBox(self.panel)
             # set choices
             ctrl.addItems(value)
+            # bind validation
+            ctrl.currentTextChanged.connect(self.validate)
         elif isinstance(value, bool):
             # make a checkbox if value is a bool
             ctrl = QtWidgets.QCheckBox(self.panel)
             # set start value
             ctrl.setChecked(value)
+            # bind validation
+            ctrl.stateChanged.connect(self.validate)
         else:
             # otherwise, make a text ctrl
             ctrl = QtWidgets.QLineEdit(self.panel)
             # set start value
             ctrl.setText(str(value))
+            # bind validation
+            ctrl.textChanged.connect(self.validate)
         # add to sizer
         self.sizer.addWidget(ctrl, self.currentRow, 1)
 
         return lbl, ctrl
+
+    def getFieldValue(self, key):
+        # get ctrl
+        ctrl = self.ctrls[key]
+        # get value according to ctrl type
+        if isinstance(ctrl, QtWidgets.QComboBox):
+            return ctrl.currentText()
+        elif isinstance(ctrl, QtWidgets.QCheckBox):
+            return ctrl.checkState()
+        elif isinstance(ctrl, QtWidgets.QLineEdit):
+            return ctrl.text()
 
     def showField(self, key, show=True):
         # show/hide label
@@ -186,6 +203,12 @@ class Dlg(QtWidgets.QDialog, BaseDlg):
     def enableField(self, key, enable=True):
         # enable/disable ctrl
         self.ctrls[key].setEnabled(enable)
+
+    def enableOK(self, enable=True):
+        # get OK button
+        btn = self.buttonBox.button(QtWidgets.QDialogButtonBox.StandardButton.Ok)
+        # set enabled state
+        btn.setEnabled(enable)
 
     def display(self):
         return self.exec()
