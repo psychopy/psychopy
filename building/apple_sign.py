@@ -160,7 +160,7 @@ class AppSigner:
                   f'--team-id {self._identity} ')
         # cmdStr = (f"xcrun altool --notarize-app -t osx -f {fileToNotarize} "
         #           f"--primary-bundle-id {BUNDLE_ID} -u {USERNAME} ")
-        print(cmdStr)
+        # print(cmdStr)
         t0 = time.time()
         exitcode, output = subprocess.getstatusoutput(cmdStr)
         m = re.findall(r"^  id: (.*)$", output, re.M)
@@ -207,13 +207,15 @@ class AppSigner:
         # can use 'xcrun notarytool info' to check status or 'xcrun notarytool wait'
         cmdStr = (f'xcrun notarytool wait {self._appNotarizeUUID} '
                   f'--apple-id "{USERNAME}" '
-                  f'--password {self._pword} ')
+                  f'--password {self._pword} '
+                  f'--team-id {self._identity} ')
         exitcode, output = subprocess.getstatusoutput(cmdStr)
         print(output)
         # always fetch the log file too
         cmdStr = (f'xcrun notarytool log {self._appNotarizeUUID} '
                   f'--apple-id "{USERNAME}" '
-                  f'--password {self._pword}  "developer_log.json"')
+                  f'--password {self._pword}  '
+                  f'--team-id {self._identity} "developer_log.json"')
         exitcode, output = subprocess.getstatusoutput(cmdStr)
         print(output)
 
