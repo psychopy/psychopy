@@ -2668,8 +2668,11 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
                     self.redrawRoutine()  # need to refresh timings section
                     self.Refresh()  # then redraw visible
                     self.frame.flowPanel.canvas.draw()
-            # Redraw if timings have changed
-            if component.getStartAndDuration() != initialTimings:
+            # Redraw if timings have changed (or always, if comp was RoutineSettings)
+            if (
+                component.getStartAndDuration() != initialTimings
+                or component.type == "RoutineSettingsComponent"
+            ):
                 self.redrawRoutine()  # need to refresh timings section
                 self.Refresh()  # then redraw visible
                 self.frame.flowPanel.canvas.draw()
