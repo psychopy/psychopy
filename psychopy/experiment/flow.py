@@ -72,6 +72,20 @@ class Flow(list):
 
         return element
 
+    def getUniqueEntries(self):
+        """
+        Get all entries on the flow, without duplicate entries.
+        """
+        # array to store entries in
+        entries = []
+        # iterate through all entries
+        for entry in self:
+            # append if not present
+            if entry not in entries:
+                entries.append(entry)
+
+        return entries
+
     def addLoop(self, loop, startPos, endPos):
         """Adds initiator and terminator objects for the loop
         into the Flow list"""
