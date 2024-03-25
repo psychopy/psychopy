@@ -2320,7 +2320,11 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         dc.SetId(id)
         # get max time & check if we have a hard stop
         tMax, hardStop = self.getMaxTime()
-        if hardStop or self.routine.settings.params.get("durationEstim", False):
+        # if routine has an estimated stop, it's not a hard stop but we shold draw the line anyway
+        if self.routine.settings.params.get("durationEstim", False):
+            hardStop = True
+
+        if hardStop:
             # if hard stop, draw orange final line
             dc.SetPen(
                 wx.Pen(colors.app['rt_comp_force'], width=4)
