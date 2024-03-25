@@ -154,7 +154,10 @@ class AppSigner:
             raise ValueError('No app-specific password provided for notarizing')
         filename = Path(fileToNotarize).name
         print(f'Sending {filename} to apple for notarizing')
-        cmdStr = (f'xcrun notarytool submit {fileToNotarize} --keychain-profile "ost-notarization"')
+        cmdStr = (f'xcrun notarytool submit {fileToNotarize} '
+                  f'--apple-id "{USERNAME}" '
+                  f'--password {self._pword} '
+                  f'--team-id {self._identity} ')
         # cmdStr = (f"xcrun altool --notarize-app -t osx -f {fileToNotarize} "
         #           f"--primary-bundle-id {BUNDLE_ID} -u {USERNAME} ")
         print(cmdStr)
@@ -202,10 +205,16 @@ class AppSigner:
 
     def awaitNotarized(self):
         # can use 'xcrun notarytool info' to check status or 'xcrun notarytool wait'
-        exitcode, output = subprocess.getstatusoutput(f'xcrun notarytool wait {self._appNotarizeUUID} --keychain-profile "ost-notarization"')
+        cmdStr = (f'xcrun notarytool wait {self._appNotarizeUUID} '
+                  f'--apple-id "{USERNAME}" '
+                  f'--password {self._pword} ')
+        exitcode, output = subprocess.getstatusoutput(cmdStr)
         print(output)
         # always fetch the log file too
-        exitcode, output = subprocess.getstatusoutput(f'xcrun notarytool log {self._appNotarizeUUID} --keychain-profile "ost-notarization" developer_log.json')
+        cmdStr = (f'xcrun notarytool log {self._appNotarizeUUID} '
+                  f'--apple-id "{USERNAME}" '
+                  f'--password {self._pword}  "developer_log.json"')
+        exitcode, output = subprocess.getstatusoutput(cmdStr)
         print(output)
 
     def staple(self, filepath):
