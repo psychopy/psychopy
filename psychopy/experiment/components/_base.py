@@ -875,7 +875,6 @@ class BaseComponent:
             # deduce duration (s) if possible. Duration used because component
             # time icon needs width
             if canBeNumeric(self.params['durationEstim'].val):
-                numericStop = True
                 duration = float(self.params['durationEstim'].val)
             elif self.params['stopVal'].val in ['', '-1', 'None']:
                 duration = FOREVER  # infinite duration

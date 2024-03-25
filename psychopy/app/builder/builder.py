@@ -2320,6 +2320,10 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         dc.SetId(id)
         # get max time & check if we have a hard stop
         tMax, hardStop = self.getMaxTime()
+        # if routine has an estimated stop, it's not a hard stop but we shold draw the line anyway
+        if self.routine.settings.params.get("durationEstim", False):
+            hardStop = True
+
         if hardStop:
             # if hard stop, draw orange final line
             dc.SetPen(
@@ -2664,8 +2668,11 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
                     self.redrawRoutine()  # need to refresh timings section
                     self.Refresh()  # then redraw visible
                     self.frame.flowPanel.canvas.draw()
-            # Redraw if timings have changed
-            if component.getStartAndDuration() != initialTimings:
+            # Redraw if timings have changed (or always, if comp was RoutineSettings)
+            if (
+                component.getStartAndDuration() != initialTimings
+                or component.type == "RoutineSettingsComponent"
+            ):
                 self.redrawRoutine()  # need to refresh timings section
                 self.Refresh()  # then redraw visible
                 self.frame.flowPanel.canvas.draw()
