@@ -29,6 +29,8 @@ movie is long then audio will be huge and currently the whole thing gets
 # Distributed under the terms of the GNU General Public License (GPL).
 from pathlib import Path
 
+from psychopy.tools.versiontools import deprecated
+
 reportNDroppedFrames = 10
 
 import os
@@ -48,6 +50,7 @@ from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED
 import pyglet.gl as GL
 
 
+@deprecated("2023.1.0", replacement="psychopy.visual.MovieStim")
 class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
     """A stimulus class for playing movies. This is a lazy-imported class,
     therefore import using full path 

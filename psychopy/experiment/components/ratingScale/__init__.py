@@ -11,7 +11,13 @@ from psychopy.experiment.components import BaseComponent, Param, _translate
 
 __author__ = 'Jeremy Gray'
 
+from psychopy.tools.versiontools import deprecated
 
+
+@deprecated(
+    "3.0.0", removal="2024.2.0",
+    replacement="psychopy.experiment.components.slider.SliderComponent"
+)
 class RatingScaleComponent(BaseComponent):
     """A class for presenting a rating scale as a builder Component
     """

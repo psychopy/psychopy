@@ -17,6 +17,7 @@ from psychopy import core, misc, colors, logging
 import psychopy.tools.colorspacetools as colortools
 import psychopy.tools.arraytools as arraytools
 import pyglet
+from ...tools.versiontools import deprecated
 pyglet.options['debug_gl'] = False
 from pyglet.gl import (glCallList, glFinish, glGenLists, glNewList, glViewport,
                        glMatrixMode, glLoadIdentity, glDisable, glEnable, glColorMaterial,
@@ -76,6 +77,7 @@ def getGLInfo():
     return gl_info
 
 
+@deprecated("2020.2.0", replacement="psychopy.visual.TextBox2")
 class TextBox:
     """
     Similar to the visual.TextStim component, TextBox can be used to display

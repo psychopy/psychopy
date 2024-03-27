@@ -7,8 +7,13 @@
 
 from pathlib import Path
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
+from psychopy.tools.versiontools import deprecated
 
 
+@deprecated(
+    "1.81.00", removal="2024.2.0",
+    replacement="psychopy.experiment.components.grating.GratingStim"
+)
 class PatchComponent(BaseVisualComponent):
     """An event class for presenting image-based stimuli"""
 

@@ -11,6 +11,7 @@ import sys
 import numpy
 
 from psychopy import core, logging, event
+from psychopy.tools.versiontools import deprecated
 from psychopy.visual.circle import Circle
 from psychopy.visual.patch import PatchStim
 from psychopy.visual.shape import ShapeStim
@@ -21,6 +22,7 @@ from psychopy.tools.attributetools import logAttrib
 from psychopy.constants import FINISHED, STARTED, NOT_STARTED
 
 
+@deprecated("3.0.0", removal="2024.2.0", replacement="psychopy.visual.Slider")
 class RatingScale(MinimalStim):
     """A class for obtaining ratings, e.g., on a 1-to-7 or categorical scale.
     This is a lazy-imported class, therefore import using full path 

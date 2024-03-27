@@ -70,6 +70,8 @@ Testing has only been done on Windows and Linux so far.
 
 # If True then, on each flip a new movie frame is displayed, the frame index,
 # flip time, and time since last movie frame flip will be printed
+from psychopy.tools.versiontools import deprecated
+
 reportNDroppedFrames = 10
 
 import os
@@ -172,6 +174,7 @@ if not OK:
                  "MovieStim2 movies (the OpenCV backend)")
 
 
+@deprecated("2023.1.0", replacement="psychopy.visual.MovieStim")
 class MovieStim2(BaseVisualStim, ContainerMixin):
     """A stimulus class for playing movies (mpeg, avi, etc...) in PsychoPy
     that does not require avbin. Instead it requires the cv2 python package
