@@ -137,7 +137,7 @@ class _SoundBase(AttributeGetSetMixin):
 
         return device
 
-    def setSound(self, value, secs=0.5, octave=4, hamming=True, log=True):
+    def setSound(self, value, device, secs=0.5, octave=4, hamming=True, log=True):
         """Set the sound to be played.
 
         Often this is not needed by the user - it is called implicitly during

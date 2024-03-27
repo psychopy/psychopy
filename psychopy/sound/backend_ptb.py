@@ -115,10 +115,10 @@ def getDevices(kind=None):
     return devs
 
 
-def getStreamLabel(sampleRate, channels, blockSize):
+def getStreamLabel(sampleRate, channels, blockSize, deviceID):
     """Returns the string repr of the stream label
     """
-    return "{}_{}_{}".format(sampleRate, channels, blockSize)
+    return "{}_{}_{}_{}".format(sampleRate, channels, blockSize, deviceID)
 
 
 class _StreamsDict(dict):
@@ -128,7 +128,7 @@ class _StreamsDict(dict):
     use the instance `streams` rather than creating a new instance of this
     """
 
-    def getStream(self, sampleRate, channels, blockSize):
+    def getStream(self, sampleRate, channels, blockSize, device_id):
         """Gets a stream of exact match or returns a new one
         (if possible for the current operating system)
         """
@@ -140,9 +140,10 @@ class _StreamsDict(dict):
         else:
             return self._getStream(sampleRate,
                                    channels=channels,
-                                   blockSize=blockSize)
+                                   blockSize=blockSize,
+                                   device_id=device_id)
 
-    def _getSimilar(self, sampleRate, channels=-1, blockSize=-1):
+    def _getSimilar(self, sampleRate, channels=-1, blockSize=-1, device_id=defaultOutput):
         """Do we already have a compatible stream?
 
         Many sounds can allow channels and blocksize to change but samplerate
@@ -165,28 +166,28 @@ class _StreamsDict(dict):
         if (sampleRate not in [None, -1, 0] and
                 channels not in [None, -1] and
                 blockSize not in [None, -1]):
-            return self._getStream(sampleRate, channels, blockSize)
+            return self._getStream(sampleRate, channels, blockSize, device_id)
 
-    def _getStream(self, sampleRate, channels, blockSize):
+    def _getStream(self, sampleRate, channels, blockSize, device_id):
         """Strict check for this format or create new
         """
-        label = getStreamLabel(sampleRate, channels, blockSize)
+        label = getStreamLabel(sampleRate, channels, blockSize, device_id)
         # try to retrieve existing stream of that name
         if label in self:
             pass
         # todo: check if this is still needed on win32
         # on some systems more than one stream isn't supported so check
-        elif sys.platform == 'win32' and len(self):
-            raise SoundFormatError(
-                "Tried to create audio stream {} but {} already exists "
-                "and {} doesn't support multiple portaudio streams"
-                    .format(label, list(self.keys())[0], sys.platform)
-            )
+        # elif sys.platform == 'win32' and len(self):
+        #     raise SoundFormatError(
+        #         "Tried to create audio stream {} but {} already exists "
+        #         "and {} doesn't support multiple portaudio streams"
+        #             .format(label, list(self.keys())[0], sys.platform)
+        #    )
         else:
 
             # create new stream
             self[label] = _MasterStream(sampleRate, channels, blockSize,
-                                       device=defaultOutput)
+                                       device=device_id)
         return label, self[label]
 
 
@@ -208,7 +209,6 @@ class _MasterStream(audio.Stream):
         self.channels = channels
         self.duplex = duplex
         self.blockSize = blockSize
-        self.label = getStreamLabel(sampleRate, channels, blockSize)
         if type(device) == list and len(device):
             device = device[0]
         if type(device)==str:  # we need to convert name to an ID or make None
@@ -219,6 +219,7 @@ class _MasterStream(audio.Stream):
                 deviceID = None
         else:
             deviceID = device
+        self.label = getStreamLabel(sampleRate, channels, blockSize, deviceID)
         self.sounds = []  # list of dicts for sounds currently playing
         self.takeTimeStamp = False
         self.frameN = 1
@@ -246,7 +247,7 @@ class _MasterStream(audio.Stream):
                       .format(device, mode+8, audioLatencyClass, sampleRate, channels))
                 raise(e)
             except Exception as e:
-                audio.Stream.__init__(self, mode=mode+8,
+                audio.Stream.__init__(self, device, mode=mode+8,
                                     latency_class=audioLatencyClass,
                                     freq=sampleRate, 
                                     channels=channels,
@@ -439,7 +440,7 @@ class SoundPTB(_SoundBase):
         # reset self.loops to what was requested (in case altered for infinite play of tones)
         self.loops = self._loopsRequested
         # start with the base class method
-        _SoundBase.setSound(self, value, secs, octave, hamming, log)
+        _SoundBase.setSound(self, value, self.speaker, secs, octave, hamming, log)
 
     def _setSndFromFile(self, filename):
         # alias default names (so it always points to default.png)
@@ -514,7 +515,7 @@ class SoundPTB(_SoundBase):
         self.sourceType = "array"
 
         if not self.track:  # do we have one already?
-            self.track = audio.Slave(self.stream.handle, data=self.sndArr,
+            self.track = audio.Slave(self.stream.handle, device_id=self.speaker.index, data=self.sndArr,
                                      volume=self.volume)
         else:
             self.track.stop()
@@ -615,26 +616,27 @@ class SoundPTB(_SoundBase):
         """Read-only property returns the stream on which the sound
         will be played
         """
-        if not self.streamLabel:
-            try:
-                label, s = streams.getStream(sampleRate=self.sampleRate,
-                                             channels=self.channels,
-                                             blockSize=self.blockSize)
-            except SoundFormatError as err:
-                # try to use something similar (e.g. mono->stereo)
-                # then check we have an appropriate stream open
-                altern = streams._getSimilar(sampleRate=self.sampleRate,
-                                             channels=-1,
-                                             blockSize=-1)
-                if altern is None:
-                    raise SoundFormatError(err)
-                else:  # safe to extract data
-                    label, s = altern
-                # update self in case it changed to fit the stream
-                self.sampleRate = s.sampleRate
-                self.channels = s.channels
-                self.blockSize = s.blockSize
-            self.streamLabel = label
+        #if not self.streamLabel:
+        try:
+            label, s = streams.getStream(sampleRate=self.sampleRate,
+                                            channels=self.channels,
+                                            blockSize=self.blockSize,
+                                            device_id=self.speaker.index)
+        except SoundFormatError as err:
+            # try to use something similar (e.g. mono->stereo)
+            # then check we have an appropriate stream open
+            altern = streams._getSimilar(sampleRate=self.sampleRate,
+                                            channels=-1,
+                                            blockSize=-1)
+            if altern is None:
+                raise SoundFormatError(err)
+            else:  # safe to extract data
+                label, s = altern
+            # update self in case it changed to fit the stream
+            self.sampleRate = s.sampleRate
+            self.channels = s.channels
+            self.blockSize = s.blockSize
+        self.streamLabel = label
 
         return streams[self.streamLabel]
 
