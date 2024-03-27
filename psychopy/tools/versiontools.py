@@ -10,6 +10,22 @@ class DeprecationError(DeprecationWarning):
 
 
 class Deprecated:
+    """
+    A function, method or class which is deprecated. This means calling / initialising it will
+    print a warning, up until the version marked for its removal.
+
+    Parameters
+    ----------
+    fcn : callable
+        Object marked as deprecated
+    deprecation : Version
+        Version in which fcn was rendered obsolete and support for it ended.
+    removal : Version
+        Version in which fcn is due to be removed.
+    replacement : function, class or str
+        Object to use instead of fcn, can be supplied directly as a handle or as an import
+        string (e.g. `psychopy.visual.Slider`)
+    """
     # owner starts off as None until assigned
     owner = None
 
@@ -108,6 +124,10 @@ class Deprecated:
 
 
 class _Deprecator:
+    """
+    Intermediary which takes the values given to `deprecated` and supplies them to create an
+    instance of the class `Deprecated` when applied to a decorated object.
+    """
     def __init__(self, deprecation, removal=None, replacement=None):
         self.deprecation = deprecation
         self.removal = removal
@@ -124,6 +144,20 @@ class _Deprecator:
 
 
 def deprecated(deprecation, removal=None, replacement=None):
+    """
+    Decorator to mark a class, method or function as deprecated. This means calling /
+    initialising it will print a warning, up until the version marked for its removal.
+
+    Parameters
+    ----------
+    deprecation : Version
+        Version in which the decorated object was rendered obsolete and support for it ended.
+    removal : Version
+        Version in which the decorated object is due to be removed.
+    replacement : function, class or str
+        Object to use instead of this one, can be supplied directly as a handle or as an import
+        string (e.g. `psychopy.visual.Slider`)
+    """
     return _Deprecator(
         deprecation=deprecation,
         removal=removal,
