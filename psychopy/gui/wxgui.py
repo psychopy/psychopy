@@ -1,324 +1,217 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-# Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
-# Distributed under the terms of the GNU General Public License (GPL).
-
-"""To build simple dialogues etc. (requires wxPython)
-"""
-
-from psychopy import logging
-import wx
-import numpy
-import os
+from psychopy.gui.base import BaseDlg, BaseMessageDialog
 from psychopy.localization import _translate
-from pkg_resources import parse_version
-
-OK = wx.ID_OK
-
-thisVer = parse_version(wx.__version__)
-
-def ensureWxApp():
-    # make sure there's a wxApp prior to showing a gui, e.g., for expInfo
-    # dialog
-    try:
-        wx.Dialog(None, -1)  # not shown; FileDialog gives same exception
-        return True
-    except wx._core.PyNoAppError:
-        if thisVer < parse_version('2.9'):
-            return wx.PySimpleApp()
-        elif thisVer >= parse_version('4.0') and thisVer < parse_version('4.1'):
-            raise Exception(
-                    "wx>=4.0 clashes with pyglet and making it unsafe "
-                    "as a PsychoPy gui helper. Please install PyQt (4 or 5)"
-                    " or wxPython3 instead.")
-        else:
-            return wx.App(False)
+from pathlib import Path
+import wx, wx.lib.scrolledpanel
 
 
-class Dlg(wx.Dialog):
-    """A simple dialogue box. You can add text or input boxes
-    (sequentially) and then retrieve the values.
+wxapp = wx.GetApp()
+if wxapp is None:
+    wxapp = wx.App()
 
-    see also the function *dlgFromDict* for an **even simpler** version
 
-    **Example:**    ::
-
-        from psychopy import gui
-
-        myDlg = gui.Dlg(title="JWP's experiment")
-        myDlg.addText('Subject info')
-        myDlg.addField('Name:')
-        myDlg.addField('Age:', 21)
-        myDlg.addText('Experiment Info')
-        myDlg.addField('Grating Ori:',45)
-        myDlg.addField('Group:', choices=["Test", "Control"])
-        myDlg.show()  # show dialog and wait for OK or Cancel
-        if myDlg.OK:  # then the user pressed OK
-            thisInfo = myDlg.data
-            print(thisInfo)
-        else:
-            print('user cancelled')
-    """
-
-    def __init__(self, title=_translate('PsychoPy dialogue'),
-                 pos=wx.DefaultPosition, size=wx.DefaultSize,
-                 style=wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT,
-                 labelButtonOK=_translate(" OK "),
-                 labelButtonCancel=_translate(" Cancel ")):
-        style = style | wx.RESIZE_BORDER
-        global app  # avoid recreating for every gui
-        if pos is None:
-            pos = wx.DefaultPosition
-        app = ensureWxApp()
-        super().__init__(parent=None, id=-1, title=title, style=style, pos=pos)
-        self.inputFields = []
-        self.inputFieldTypes = []
-        self.inputFieldNames = []
-        self.data = []
-        # prepare a frame in which to hold objects
-        self.sizer = wx.BoxSizer(wx.VERTICAL)
-        # self.addText('')  # insert some space at top of dialogue
-        self.pos = pos
-        self.labelButtonOK = labelButtonOK
-        self.labelButtonCancel = labelButtonCancel
-
-    def addText(self, text, color=''):
-        # the horizontal extent can depend on the locale and font in use:
-        font = self.GetFont()
-        dc = wx.WindowDC(self)
-        dc.SetFont(font)
-        textWidth, textHeight = dc.GetTextExtent(text)
-        textLength = wx.Size(textWidth + 50, textHeight)
-
-        _style = wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
-        myTxt = wx.StaticText(self, -1, label=text, style=_style,
-                              size=textLength)
-        if len(color):
-            myTxt.SetForegroundColour(color)
-        self.sizer.Add(myTxt, 1, wx.ALIGN_CENTER)
-
-    def addField(self, label='', initial='', color='', choices=None, tip=''):
-        """Adds a (labelled) input field to the dialogue box, optional text
-        color and tooltip. Returns a handle to the field (but not to the
-        label). If choices is a list or tuple, it will create a dropdown
-        selector.
+class Dlg(wx.Dialog, BaseDlg):
+    class ReadmoreCtrl(wx.Button, BaseDlg.BaseReadmoreCtrl):
         """
-        self.inputFieldNames.append(label)
-        if choices:
-            self.inputFieldTypes.append(str)
-        else:
-            self.inputFieldTypes.append(type(initial))
-        if type(initial) == numpy.ndarray:
-            initial = initial.tolist()  # convert numpy arrays to lists
-        container = wx.GridSizer(cols=2, vgap=0, hgap=10)
-        # create label
-        font = self.GetFont()
-        dc = wx.WindowDC(self)
-        dc.SetFont(font)
-        labelWidth, labelHeight = dc.GetTextExtent(label)
-        labelLength = wx.Size(labelWidth + 16, labelHeight)
-        inputLabel = wx.StaticText(self, -1, label,
-                                   size=labelLength,
-                                   style=wx.ALIGN_RIGHT)
-        if len(color):
-            inputLabel.SetForegroundColour(color)
-        _style = wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT
-        container.Add(inputLabel, 1, _style)
-        # create input control
-        if type(initial) == bool:
-            inputBox = wx.CheckBox(self, -1)
-            inputBox.SetValue(initial)
-        elif not choices:
-            inputWidth, inputHeight = dc.GetTextExtent(str(initial))
-            inputLength = wx.Size(max(50, inputWidth + 16),
-                                  max(25, inputHeight + 8))
-            inputBox = wx.TextCtrl(self, -1, str(initial),
-                                   size=inputLength)
-        else:
-            inputBox = wx.Choice(self, -1,
-                                 choices=[str(option)
-                                          for option in list(choices)])
-            # Somewhat dirty hack that allows us to treat the choice just like
-            # an input box when retrieving the data
-            inputBox.GetValue = inputBox.GetStringSelection
-            initial = choices.index(initial) if initial in choices else 0
-            inputBox.SetSelection(initial)
-        if len(color):
-            inputBox.SetForegroundColour(color)
-        if len(tip):
-            inputBox.SetToolTip(wx.ToolTip(tip))
-
-        container.Add(inputBox, 1, wx.ALIGN_CENTER_VERTICAL)
-        self.sizer.Add(container, 1, wx.ALIGN_CENTER)
-
-        self.inputFields.append(inputBox)  # store this to get data back on OK
-        return inputBox
-
-    def addFixedField(self, label='', value='', tip=''):
-        """Adds a field to the dialogue box (like addField) but the
-        field cannot be edited. e.g. Display experiment version.
-        tool-tips are disabled (by wx).
+        A linked label which shows/hides a set of control on click.
         """
-        thisField = self.addField(label, value, color='Gray', tip=tip)
-        # wx disables tooltips too; we pass them in anyway
-        thisField.Disable()
-        return thisField
+
+        def __init__(self, parent, dlg, label=""):
+            wx.Button.__init__(
+                self, parent, style=wx.BORDER_NONE | wx.BU_EXACTFIT | wx.BG_STYLE_TRANSPARENT
+            )
+            # store reference to dialog
+            self.dlg = dlg
+            # set initial label
+            self.setLabel(label)
+            # bind onclick
+            self.Bind(wx.EVT_BUTTON, self.onToggle)
+
+        def setLabel(self, label, state=None):
+            """
+            Set the label of this ctrl (not including the arrow).
+
+            Parameters
+            ----------
+            label : str
+                The label itself, without any arrow
+            state : bool
+                What state to append an arrow for, use None to simply use the current state
+            """
+            # if not given a state, use current state
+            if state is None:
+                state = self.state
+            # store label root
+            self.label = label
+            # get label with arrow
+            text = self.getLabelWithArrow(label, state=state)
+            # set label text
+            self.SetLabel(text)
+
+    def __init__(
+            self, title=_translate('PsychoPy Dialog'),
+            pos=None, size=None,
+            screen=-1, alwaysOnTop=False
+    ):
+        _style = wx.CAPTION | wx.RESIZE_BORDER
+        wx.Dialog.__init__(self, None, style=_style)
+        # todo: wx doesn't seem to have a built in method to set screen, can we hack it?
+        # set title
+        self.setTitle(title)
+        # set always stay on top
+        if alwaysOnTop:
+            self.SetWindowStyle(_style | wx.STAY_ON_TOP)
+        # setup layout
+        self.border = wx.BoxSizer(wx.VERTICAL)
+        self.SetSizer(self.border)
+        # add label
+        self.requiredMsg = wx.StaticText(
+            self,
+            label=_translate("Fields marked with an asterisk (*) are required.")
+        )
+        self.border.Add(self.requiredMsg, border=6, flag=wx.ALL | wx.EXPAND)
+        # setup ctrls panel
+        self.panel = wx.lib.scrolledpanel.ScrolledPanel(self)
+        self.border.Add(self.panel, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
+        # set maximum size from screen
+        w = int(wx.GetDisplaySize()[0] * 0.8)
+        h = int(wx.GetDisplaySize()[1] * 0.8)
+        self.SetMaxSize(wx.Size(w, h))
+        # resize if size given
+        if size is not None:
+            # make sure size is an array of 2
+            if isinstance(size, (int, float)):
+                size = [int(size)] * 2
+            # set minimum size
+            self.SetMinSize(*size)
+        else:
+            # if no size given, use a nice minimum size
+            self.SetMinSize(wx.Size(384, 128))
+        # reposition if pos given
+        if pos is not None:
+            # make sure pos is an array of 2
+            if isinstance(pos, (int, float)):
+                pos = [int(pos)] * 2
+            self.SetPosition(*pos)
+        else:
+            self.Center()
+        # setup ctrls sizer
+        self.sizer = wx.GridBagSizer(vgap=3, hgap=6)
+        self.sizer.SetEmptyCellSize((0, 0))
+        self.panel.SetSizer(self.sizer)
+        # make readmorectrl (starts off hidden)
+        self.readmoreCtrl = self.ReadmoreCtrl(
+            self.panel, dlg=self, label=_translate("Configuration fields...")
+        )
+        self.readmoreCtrl.Show(False)
+
+        # add okay and cancel buttons
+        buttons = wx.OK | wx.CANCEL
+        self.buttonBox = self.CreateStdDialogButtonSizer(flags=buttons)
+        self.border.Add(self.buttonBox, border=6, flag=wx.ALIGN_RIGHT | wx.ALL)
+
+    def addLabel(self, key, label=None):
+        # substitute label text for key if None
+        if label is None:
+            label = key
+        # make label object
+        lbl = wx.StaticText(self.panel, label=label)
+        # add to sizer
+        self.sizer.Add(lbl, pos=(self.currentRow, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL)
+
+        return lbl
+
+    def insertReadmoreCtrl(self, row=None):
+        # if row is None, use current row
+        if row is None:
+            row = self.currentRow
+        # show readmore
+        self.readmoreCtrl.Show(True)
+        # add it to the sizer
+        self.sizer.Add(
+            self.readmoreCtrl, pos=(row, 0), span=(1, 2), flag=wx.EXPAND | wx.ALL
+        )
+        # iterate row to account for the new item
+        self.currentRow += 1
+
+    def makeField(self, key, value="", label=None, tip="", index=-1):
+        # make a label
+        lbl = self.addLabel(key, label=label)
+        # make ctrl
+        if isinstance(value, (list, tuple)):
+            # make a choice ctrl if value is a list
+            ctrl = wx.Choice(self.panel, choices=value)
+            # bind to validator
+            ctrl.Bind(wx.EVT_CHOICE, self.validate)
+        elif isinstance(value, bool):
+            # make a checkbox if value is a bool
+            ctrl = wx.CheckBox(self.panel)
+            ctrl.SetValue(value)
+            # bind to validator
+            ctrl.Bind(wx.EVT_CHECKBOX, self.validate)
+        else:
+            # otherwise, make a text ctrl
+            ctrl = wx.TextCtrl(self.panel, value=str(value))
+            # bind to validator
+            ctrl.Bind(wx.EVT_TEXT, self.validate)
+        # add to sizer
+        self.sizer.Add(
+            ctrl, pos=(self.currentRow, 1), border=6, flag=wx.EXPAND | wx.ALL
+        )
+        # if this is the first field, set growable on the ctrl column
+        if self.currentRow == 1:
+            self.sizer.AddGrowableCol(1, proportion=1)
+        # update layout
+        self.Layout()
+        self.Fit()
+        # figure out virtual size
+        vsize = self.panel.GetBestVirtualSize()
+        # if virtual size is greater than actual size, setup scrolling
+        if self.GetSize()[1] < vsize[1]:
+            self.SetSize(vsize)
+            self.panel.SetupScrolling(scroll_x=False)
+
+        return lbl, ctrl
+
+    def getRawFieldValue(self, key):
+        # get ctrl
+        ctrl = self.ctrls[key]
+        # get value according to ctrl type
+        if isinstance(ctrl, wx.Choice):
+            return ctrl.GetStringSelection()
+        elif isinstance(ctrl, (wx.TextCtrl, wx.CheckBox)):
+            return ctrl.GetValue()
+
+    def setTitle(self, title):
+        self.SetTitle(title)
+
+    def getTitle(self):
+        return self.GetTitle()
+
+    def showField(self, key, show=True):
+        # show/hide label
+        self.labels[key].Show(show)
+        # show/hide ctrl
+        self.ctrls[key].Show(show)
+        # update layout
+        self.Layout()
+
+    def enableField(self, key, enable=True):
+        # enable/disable ctrl
+        self.ctrls[key].Enable(enable)
+
+    def enableOK(self, enable=True):
+        # get OK button
+        btn = self.FindWindowById(wx.ID_OK)
+        # set enabled state
+        btn.Enable(enable=enable)
 
     def display(self):
-        """Presents the dialog and waits for the user to press OK or CANCEL.
-
-        If user presses OK button, function returns a list containing the
-        updated values coming from each of the input fields created.
-        Otherwise, None is returned.
-
-        :return: self.data
-        """
-        # add buttons for OK and Cancel
-        buttons = self.CreateStdDialogButtonSizer(flags=wx.OK | wx.CANCEL)
-        self.sizer.Add(buttons, 1, flag=wx.ALIGN_RIGHT, border=5)
-
-        self.SetSizerAndFit(self.sizer)
-        if self.pos is None:
-            self.Center()
-        if self.ShowModal() == wx.ID_OK:
-            self.data = []
-            # get data from input fields
-            for n in range(len(self.inputFields)):
-                thisName = self.inputFieldNames[n]
-                thisVal = self.inputFields[n].GetValue()
-                thisType = self.inputFieldTypes[n]
-                # try to handle different types of input from strings
-                logging.debug("%s: %s" % (self.inputFieldNames[n],
-                                          str(thisVal)))
-                if thisType in (tuple, list, float, int):
-                    # probably a tuple or list
-                    exec("self.data.append(" + thisVal + ")")  # evaluate it
-                elif thisType == numpy.ndarray:
-                    exec("self.data.append(numpy.array(" + thisVal + "))")
-                elif thisType in (str, bool):
-                    self.data.append(thisVal)
-                else:
-                    logging.warning('unknown type:' + self.inputFieldNames[n])
-                    self.data.append(thisVal)
-            self.OK = True
-        else:
-            self.OK = False
-        self.Destroy()
-        if self.OK:
-            return self.data
-
-    def show(self):
-        """Presents the dialog and waits for the user to press either
-        OK or CANCEL.
-
-        When they do, dlg.OK will be set to True or False (according to
-        which button they pressed. If OK==True then dlg.data will be
-        populated with a list of values coming from each of the input
-        fields created.
-        """
-        return self.display()
-
-class DlgFromDict(Dlg):
-    """Creates a dialogue box that represents a dictionary of values.
-    Any values changed by the user are change (in-place) by this
-    dialogue box.
-
-    Parameters
-    ----------
-
-    sortKeys : bool
-        Whether the dictionary keys should be ordered alphabetically
-        for displaying.
-
-    copyDict : bool
-        If False, modify ``dictionary`` in-place. If True, a copy of
-        the dictionary is created, and the altered version (after
-        user interaction) can be retrieved from
-        :attr:~`psychopy.gui.DlgFromDict.dictionary`.
-
-    show : bool
-        Whether to immediately display the dialog upon instantiation.
-         If False, it can be displayed at a later time by calling
-         its `show()` method.
-
-    e.g.:
-
-    ::
-
-        info = {'Observer':'jwp', 'GratingOri':45,
-                'ExpVersion': 1.1, 'Group': ['Test', 'Control']}
-        infoDlg = gui.DlgFromDict(dictionary=info,
-                    title='TestExperiment', fixed=['ExpVersion'])
-        if infoDlg.OK:
-            print(info)
-        else:
-            print('User Cancelled')
-
-    In the code above, the contents of *info* will be updated to the values
-    returned by the dialogue box.
-
-    If the user cancels (rather than pressing OK),
-    then the dictionary remains unchanged. If you want to check whether
-    the user hit OK, then check whether DlgFromDict.OK equals
-    True or False
-
-    See GUI.py for a usage demo, including order and tip (tooltip).
-    """
-
-    def __init__(self, dictionary, title='', fixed=None, order=None, tip=None,
-                 sortKeys=True, copyDict=False, show=True,
-                 sort_keys=None, copy_dict=None):
-        # We don't explicitly check for None identity
-        # for backward-compatibility reasons.
-        if not fixed:
-            fixed = []
-        if not order:
-            order = []
-        if not tip:
-            tip = dict()
-
-        # app = ensureWxApp() done by Dlg
-        super().__init__(title)
-
-        if copyDict:
-            self.dictionary = dictionary.copy()
-        else:
-            self.dictionary = dictionary
-
-        self._keys = list(self.dictionary.keys())
-
-        if sortKeys:
-            self._keys.sort()
-        if order:
-            self._keys = list(order) + list(set(self._keys).difference(set(order)))
-
-        types = dict()
-
-        for field in self._keys:
-            types[field] = type(self.dictionary[field])
-            tooltip = ''
-            if field in tip:
-                tooltip = tip[field]
-            if field in fixed:
-                self.addFixedField(field, self.dictionary[field], tip=tooltip)
-            elif type(self.dictionary[field]) in [list, tuple]:
-                self.addField(field, choices=self.dictionary[field],
-                              tip=tooltip)
-            else:
-                self.addField(field, self.dictionary[field], tip=tooltip)
-
-        if show:
-            self.show()
-
-    def show(self):
-        """Display the dialog.
-        """
-        super().show()
-        if self.OK:
-            for n, thisKey in enumerate(self._keys):
-                self.dictionary[thisKey] = self.data[n]
+        # show dlg and wait for response
+        ret = self.ShowModal()
+        # record whether OK was pressed
+        self.OK = ret == wx.ID_OK
+        # return response
+        return ret
 
 
 def fileSaveDlg(initFilePath="", initFileName="",
@@ -355,27 +248,27 @@ def fileSaveDlg(initFilePath="", initFileName="",
         # "txt (*.txt)|*.txt"
         # "pickled files (*.pickle, *.pkl)|*.pickle"
         # "shelved files (*.shelf)|*.shelf"
-    global app  # avoid recreating for every gui
-    app = ensureWxApp()
+    app = wxapp
     dlg = wx.FileDialog(None, prompt, initFilePath,
                         initFileName, allowed, wx.FD_SAVE)
-    if dlg.ShowModal() == OK:
+    if dlg.ShowModal() == wx.ID_OK:
         # get names of images and their directory
         outName = dlg.GetFilename()
         outPath = dlg.GetDirectory()
         dlg.Destroy()
         # tmpApp.Destroy()  # this causes an error message for some reason
-        fullPath = os.path.join(outPath, outName)
+        fullPath = Path(outPath) / outName
     else:
-        fullPath = None
-    return fullPath
+        fullPath = ""
+    return str(fullPath)
 
 
 def fileOpenDlg(tryFilePath="",
                 tryFileName="",
                 prompt=_translate("Select file(s) to open"),
                 allowed=None):
-    """A simple dialogue allowing read access to the file system.
+    """
+    A simple dialogue allowing read access to the file system.
 
     :parameters:
         tryFilePath: string
@@ -402,13 +295,41 @@ def fileOpenDlg(tryFilePath="",
                    "shelved files (*.shelf)|*.shelf|"
                    "All files (*.*)|*.*")
     global app  # avoid recreating for every gui
-    app = ensureWxApp()
+    app = wxapp
     dlg = wx.FileDialog(None, prompt, tryFilePath, tryFileName, allowed,
                         wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_MULTIPLE)
-    if dlg.ShowModal() == OK:
+    if dlg.ShowModal() == wx.ID_OK:
         # get names of images and their directory
         fullPaths = dlg.GetPaths()
     else:
         fullPaths = None
     dlg.Destroy()
     return fullPaths
+
+
+class MessageDlg(wx.MessageDialog, BaseMessageDialog):
+    # array to store icons against levels
+    icons = {
+        'info': wx.ICON_INFORMATION,
+        'warn': wx.ICON_WARNING,
+        'critical': wx.ICON_ERROR,
+        'about': wx.ICON_INFORMATION,
+    }
+
+    def __init__(
+            self, title="", prompt=None, level="info"
+    ):
+        # check the level descriptor is okay
+        assert level in self.icons, _translate(
+            "{} is not a known level of MessageDlg, should be one of: {}"
+        ).format(level, list(self.icons))
+        # substitute null prompt
+        if prompt is None:
+            prompt = self.nullPrompt
+        # make dialog
+        wx.MessageDialog.__init__(
+            self, None,  prompt, caption=title, style=self.icons[level]
+        )
+
+    def display(self):
+        return self.ShowModal()

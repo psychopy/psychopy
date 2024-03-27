@@ -1348,11 +1348,10 @@ class SettingsComponent:
         buff.writeIndentedLines(code)
         buff.setIndentLevel(+1, relative=True)
 
-        sorting = "False"  # in Py3 dicts are chrono-sorted so default no sort
         code = (
             f"# show participant info dialog\n"
-            f"dlg = gui.DlgFromDict(\n"
-            f"    dictionary=expInfo, sortKeys={sorting}, title=expName, alwaysOnTop=True\n"
+            f"dlg = gui.Dlg.fromDict(\n"
+            f"    dictionary=expInfo, title=expName, alwaysOnTop=True\n"
             f")\n"
             f"if dlg.OK == False:\n"
             f"    core.quit()  # user pressed cancel\n"
