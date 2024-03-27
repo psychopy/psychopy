@@ -4,7 +4,7 @@
 """Classes for 3D stimuli."""
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from psychopy import logging
@@ -28,7 +28,10 @@ import pyglet.gl as GL
 
 
 class LightSource:
-    """Class for representing a light source in a scene.
+    """Class for representing a light source in a scene. This is a 
+    lazy-imported class, therefore import using full path 
+    `from psychopy.visual.stim3d import LightSource` when inheriting from it.
+
 
     Only point and directional lighting is supported by this object for now. The
     ambient color of the light source contributes to the scene ambient color
@@ -401,7 +404,9 @@ class LightSource:
 
 
 class SceneSkybox:
-    """Class to render scene skyboxes.
+    """Class to render scene skyboxes. This is a 
+    lazy-imported class, therefore import using full path 
+    `from psychopy.visual.stim3d import SceneSkybox` when inheriting from it.
 
     A skybox provides background imagery to serve as a visual reference for the
     scene. Background images are projected onto faces of a cube centered about
@@ -587,6 +592,9 @@ class SceneSkybox:
 
 class BlinnPhongMaterial:
     """Class representing a material using the Blinn-Phong lighting model.
+    This is a lazy-imported class, therefore import using full path 
+    `from psychopy.visual.stim3d import BlinnPhongMaterial` when inheriting
+    from it.
 
     This class stores material information to modify the appearance of drawn
     primitives with respect to lighting, such as color (diffuse, specular,
@@ -1153,7 +1161,10 @@ class BlinnPhongMaterial:
 
 
 class RigidBodyPose:
-    """Class for representing rigid body poses.
+    """Class for representing rigid body poses. This is a lazy-imported
+    class, therefore import using full path
+    `from psychopy.visual.stim3d import RigidBodyPose` when inheriting
+    from it.
 
     This class is an abstract representation of a rigid body pose, where the
     position of the body in a scene is represented by a vector/coordinate and
@@ -1683,7 +1694,10 @@ class RigidBodyPose:
 
 
 class BoundingBox:
-    """Class for representing object bounding boxes.
+    """Class for representing object bounding boxes. This is a 
+    lazy-imported class, therefore import using full path 
+    `from psychopy.visual.stim3d import BoundingBox` when inheriting from it.
+
 
     A bounding box is a construct which represents a 3D rectangular volume about
     some pose, defined by its minimum and maximum extents in the reference frame
@@ -1798,7 +1812,7 @@ class BaseRigidBodyStim(ColorMixin, WindowMixin):
         super(BaseRigidBodyStim, self).__init__()
 
         self.win = win
-
+        self.autoLog = autoLog
         self.colorSpace = colorSpace
         self.contrast = contrast
         self.opacity = opacity
@@ -1808,8 +1822,6 @@ class BaseRigidBodyStim(ColorMixin, WindowMixin):
         self.material = None
 
         self._vao = None
-
-        self.autoLog = autoLog
 
     @property
     def thePose(self):
@@ -2088,7 +2100,10 @@ class BaseRigidBodyStim(ColorMixin, WindowMixin):
 
 
 class SphereStim(BaseRigidBodyStim):
-    """Class for drawing a UV sphere.
+    """Class for drawing a UV sphere. This is a 
+    lazy-imported class, therefore import using full path 
+    `from psychopy.visual.stim3d import SphereStim` when inheriting from it.
+
 
     The resolution of the sphere mesh can be controlled by setting `sectors`
     and `stacks` which controls the number of latitudinal and longitudinal
@@ -2223,7 +2238,10 @@ class SphereStim(BaseRigidBodyStim):
 
 
 class BoxStim(BaseRigidBodyStim):
-    """Class for drawing 3D boxes.
+    """Class for drawing 3D boxes. This is a 
+    lazy-imported class, therefore import using full path 
+    `from psychopy.visual.stim3d import BoxStim` when inheriting from it.
+
 
     Draws a rectangular box with dimensions specified by `size` (length, width,
     height) in scene units.
@@ -2330,7 +2348,10 @@ class BoxStim(BaseRigidBodyStim):
 
 
 class PlaneStim(BaseRigidBodyStim):
-    """Class for drawing planes.
+    """Class for drawing planes. This is a 
+    lazy-imported class, therefore import using full path 
+    `from psychopy.visual.stim3d import PlaneStim` when inheriting from it.
+
 
     Draws a plane with dimensions specified by `size` (length, width) in scene
     units.
@@ -2432,6 +2453,9 @@ class PlaneStim(BaseRigidBodyStim):
 
 class ObjMeshStim(BaseRigidBodyStim):
     """Class for loading and presenting 3D stimuli in the Wavefront OBJ format.
+    This is a lazy-imported class, therefore import using full path 
+    `from psychopy.visual.stim3d import ObjMeshStim` when inheriting from it.
+
 
     Calling the `draw` method will render the mesh to the current buffer. The
     render target (FBO or back buffer) must have a depth buffer attached to it

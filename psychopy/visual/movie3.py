@@ -25,7 +25,7 @@ movie is long then audio will be huge and currently the whole thing gets
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 from pathlib import Path
 
@@ -49,7 +49,9 @@ import pyglet.gl as GL
 
 
 class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
-    """A stimulus class for playing movies.
+    """A stimulus class for playing movies. This is a lazy-imported class,
+    therefore import using full path 
+    `from psychopy.visual.movie3 import MovieStim3` when inheriting from it.
 
     This class uses MoviePy and FFMPEG as a backend for loading and decoding
     video data from files.

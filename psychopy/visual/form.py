@@ -3,7 +3,7 @@
 
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 import copy
 import psychopy
@@ -13,6 +13,7 @@ from psychopy.data.utils import importConditions, listFromString
 from psychopy.visual.basevisual import (BaseVisualStim,
                                         ContainerMixin,
                                         ColorMixin)
+from psychopy.tools import stimulustools as stt
 from psychopy import logging, layout
 from random import shuffle
 from pathlib import Path
@@ -100,24 +101,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         Randomize order of Form elements
     """
 
-    knownStyles = {
-        'light': {
-            'fillColor': [0.89, 0.89, 0.89],
-            'borderColor': None,
-            'itemColor': 'black',
-            'responseColor': 'black',
-            'markerColor': [0.89, -0.35, -0.28],
-            'font': "Open Sans",
-        },
-        'dark': {
-            'fillColor': [-0.19, -0.19, -0.14],
-            'borderColor': None,
-            'itemColor': 'white',
-            'responseColor': 'white',
-            'markerColor': [0.89, -0.35, -0.28],
-            'font': "Open Sans",
-        },
-    }
+    knownStyles = stt.formStyles
 
     def __init__(self,
                  win,

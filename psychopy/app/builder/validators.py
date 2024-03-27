@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Module containing validators for various parameters.
@@ -13,9 +13,8 @@ import psychopy.experiment.utils
 from psychopy.tools import stringtools
 from psychopy.localization import _translate
 from . import experiment
-from .localizedStrings import _localized
 from pkg_resources import parse_version
-from ...visual.textbox2.fontmanager import FontManager
+from psychopy.tools.fontmanager import FontManager
 
 fontMGR = FontManager()
 
@@ -414,18 +413,15 @@ class CodeSnippetValidator(BaseValidator):
     @see: _BaseParamsDlg
     """
 
-    def __init__(self, fieldName):
+    def __init__(self, fieldName, displayName=None):
         super(CodeSnippetValidator, self).__init__()
         self.fieldName = fieldName
-        try:
-            self.displayName = _localized[fieldName]
-        except KeyError:
-            # should have all _localized[fieldName] from .localizedStrings
-            # might as well try to do something useful if fail:
-            self.displayName = _translate(fieldName)
+        if displayName is None:
+            displayName = fieldName
+        self.displayName = displayName
 
     def Clone(self):
-        return self.__class__(self.fieldName)
+        return self.__class__(self.fieldName, self.displayName)
 
     def check(self, parent):
         """Checks python syntax of code snippets, and for self-reference.

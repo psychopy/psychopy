@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 """Utilities for extending PsychoPy with plugins."""
 
@@ -507,6 +507,51 @@ def isStartUpPlugin(plugin):
     return plugin in listPlugins(which='startup')
 
 
+def loadPluginBuilderElements(plugin):
+    """
+    Load entry points from plugin which are relevant to Builder, e.g.
+    Component/Routine extensions for listing available hardware backends.
+
+    Parameters
+    ----------
+    plugin : str
+        Name of the plugin package to load. This usually refers to the package
+        or project name.
+
+    Returns
+    -------
+    bool
+        `True` if successful, `False` if failed.
+    """
+    # if plugin has already failed to load once, don't try again
+    if plugin in _failed_plugins_:
+        return False
+    # get entry points for plugin
+    ep = pluginEntryPoints(plugin)
+    # define modules in which entry points are relevant to Builder
+    modules = (
+        "psychopy.experiment.routines",
+        "psychopy.experiment.components",
+    )
+    # get any points pointing to these modules
+    relevantPoints = []
+    for mod in modules:
+        pts = ep.get(mod, {})
+        relevantPoints += list(pts.values())
+    # import all relevant classes
+    for point in relevantPoints:
+        try:
+            importlib.import_module(point.module_name)
+            return True
+        except:
+            # if import failed for any reason, log error and mark failure
+            logging.error(
+                f"Failed to load {point.module_name}.{point.name} from plugin {plugin}."
+            )
+            _failed_plugins_.append(plugin)
+            return False
+
+
 def loadPlugin(plugin):
     """Load a plugin to extend PsychoPy.
 
@@ -661,9 +706,9 @@ def loadPlugin(plugin):
                 except (ModuleNotFoundError, ImportError):
                     importSuccess = False
                     logging.error(
-                        "Plugin `{}` entry point requires module `{}`, but it"
+                        "Plugin `{}` entry point requires module `{}`, but it "
                         "cannot be imported.".format(plugin, ep.module_name))
-                except (NameError, AttributeError):
+                except:
                     importSuccess = False
                     logging.error(
                         "Plugin `{}` entry point requires module `{}`, but an "
@@ -747,6 +792,8 @@ def loadPlugin(plugin):
                 _registerWindowBackend(attr, ep)
             elif fqn == 'psychopy.experiment.components':  # if component
                 _registerBuilderComponent(ep)
+            elif fqn == 'psychopy.experiment.routine':  # if component
+                _registerBuilderStandaloneRoutine(ep)
             elif fqn == 'psychopy.hardware.photometer':  # photometer
                 _registerPhotometer(ep)
 
@@ -1005,7 +1052,7 @@ def pluginEntryPoints(plugin, parse=False):
     return None
 
 
-def activatePlugins():
+def activatePlugins(which='all'):
     """Activate plugins.
 
     Calling this routine will load all startup plugins into the current process.
@@ -1022,18 +1069,26 @@ def activatePlugins():
             'been found in active distributions.')
         return  # nop if no plugins
 
-    # go over the list of plugins and load them
-    for plugin in listPlugins('startup'):
+    # load each plugin and apply any changes to Builder
+    for plugin in listPlugins(which):
         loadPlugin(plugin)
+        loadPluginBuilderElements(plugin)
+
+
+# Keep track of currently installed window backends. When a window is loaded,
+# its `winType` is looked up here and the matching backend is loaded. Plugins
+# which define entry points into this module will update `winTypes` if they
+# define subclasses of `BaseBackend` that have valid names.
+_winTypes = {
+    'pyglet': '.pygletbackend.PygletBackend',
+    'glfw': '.glfwbackend.GLFWBackend',  # moved to plugin
+    'pygame': '.pygamebackend.PygameBackend'
+}
 
 
 def getWindowBackends():
-    # get reference to the backend class
-    fqn = 'psychopy.visual.backends'
-    backend = resolveObjectFromName(
-        fqn, resolve=(fqn not in sys.modules), error=False)
     # Return winTypes array from backend object
-    return backend.winTypes
+    return _winTypes
 
 
 def discoverModuleClasses(nameSpace, classType, includeUnbound=True):
@@ -1128,7 +1183,8 @@ def discoverModuleClasses(nameSpace, classType, includeUnbound=True):
 # Registration functions
 #
 # These functions are called to perform additional operations when a plugin is
-# loaded.
+# loaded. Most plugins that specify an entry point elsewhere will not need to
+# use these functions to appear in the application.
 #
 
 def _registerWindowBackend(attr, ep):
@@ -1229,6 +1285,38 @@ def _registerBuilderComponent(ep):
     else:
         raise AttributeError(
             "Cannot find function `addComponent()` in namespace "
+            "`{}`".format(fqn))
+
+
+def _registerBuilderStandaloneRoutine(ep):
+    """Register a PsychoPy builder standalone routine module.
+
+    This function is called by :func:`loadPlugin` when encountering an entry
+    point group for :mod:`psychopy.experiment.routine`.
+
+    This function is called by :func:`loadPlugin`, it should not be used for any
+    other purpose.
+
+    Parameters
+    ----------
+    ep : ClassType
+        Class defining the standalone routine.
+
+    """
+    # get reference to the backend class
+    fqn = 'psychopy.experiment.routines'
+    routinePkg = resolveObjectFromName(
+        fqn, resolve=(fqn not in sys.modules), error=False)
+
+    if routinePkg is None:
+        logging.error("Failed to resolve name `{}`.".format(fqn))
+        return
+
+    if hasattr(routinePkg, 'addStandaloneRoutine'):
+        routinePkg.addStandaloneRoutine(ep)
+    else:
+        raise AttributeError(
+            "Cannot find function `addStandaloneRoutine()` in namespace "
             "`{}`".format(fqn))
 
 

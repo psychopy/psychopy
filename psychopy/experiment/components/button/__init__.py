@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from os import path
@@ -11,26 +11,6 @@ from pathlib import Path
 from psychopy.alerts import alerttools
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
 from psychopy.experiment.py2js_transpiler import translatePythonToJavaScript
-from psychopy.localization import _localized as __localized
-_localized = __localized.copy()
-
-# only use _localized values for label values, nothing functional:
-_localized.update({'callback': _translate("Callback Function"),
-                   'forceEndRoutine': _translate('Force end of Routine'),
-                   'text': _translate('Button text'),
-                   'font': _translate('Font'),
-                   'letterHeight': _translate('Letter height'),
-                   'bold': _translate('Bold'),
-                   'italic': _translate('Italic'),
-                   'padding': _translate('Padding'),
-                   'anchor': _translate('Anchor'),
-                   'fillColor': _translate('Fill Colour'),
-                   'borderColor': _translate('Border Colour'),
-                   'borderWidth': _translate('Border Width'),
-                   'oncePerClick': _translate('Run once per click'),
-                   'save': _translate("Record clicks"),
-                   'timeRelativeTo': _translate("Time relative to")
-                   })
 
 
 class ButtonComponent(BaseVisualComponent):

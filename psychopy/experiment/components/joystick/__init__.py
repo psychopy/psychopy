@@ -2,25 +2,14 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy.experiment import valid_var_re
 from psychopy.experiment import CodeGenerationException, valid_var_re
-from psychopy.localization import _localized as __localized
-_localized = __localized.copy()
 import re
-
-# only use _localized values for label values, nothing functional:
-_localized.update({'saveJoystickState': _translate('Save joystick state'),
-                   'forceEndRoutineOnPress': _translate('End Routine on press'),
-                   'timeRelativeTo': _translate('Time relative to'),
-                   'Clickable stimuli': _translate('Clickable stimuli'),
-                   'Store params for clicked': _translate('Store params for clicked'),
-                   'deviceNumber': _translate('Device number'),
-                   'allowedButtons': _translate('Allowed Buttons')})
 
 
 class JoystickComponent(BaseComponent):
@@ -581,6 +570,3 @@ class JoystickComponent(BaseComponent):
 
         # get parent to write code too (e.g. store onset/offset times)
         super().writeRoutineEndCode(buff)
-
-        if currLoop.params['name'].val == self.exp._expHandler.name:
-            buff.writeIndented("%s.nextEntry()\n" % self.exp._expHandler.name)

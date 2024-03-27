@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
@@ -10,8 +10,6 @@ from pathlib import Path
 from psychopy.experiment import Param
 from psychopy.experiment.components import getInitVals, _translate
 from psychopy.experiment.components.polygon import PolygonComponent
-from psychopy.localization import _localized as __localized
-_localized = __localized.copy()
 
 __author__ = 'Jeremy Gray, Jon Peirce'
 # March 2011; builder-component for Yuri Spitsyn's visual.Aperture class

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import ast
@@ -506,22 +506,16 @@ def transformPsychoJsCode(psychoJsCode, addons, namespace=[]):
 
         """
 
-    lines = psychoJsCode.splitlines()
-
-    # remove the initial variable declarations, unless it is for _pj:
-    if lines[0].find('var _pj;') == 0:
-        transformedPsychoJSCode = 'var _pj;\n'
-        startIndex = 1
-    else:
-        startIndex = 0
-
-    for index in range(startIndex, len(lines)):
+    for index, thisLine in enumerate(psychoJsCode.splitlines()):
         include = True
-
+        # remove the initial variable declarations, unless it is for _pj:
+        if index == 0 and thisLine.find('var _pj;') == 0:
+            transformedPsychoJSCode = 'var _pj;\n'
+            continue
         # Remove var defs if variable is defined earlier in experiment
-        if lines[index].startswith("var "):
+        if thisLine.startswith("var "):
             # Get var names
-            varNames = lines[index][4:-1].split(", ")
+            varNames = thisLine[4:-1].split(", ")
             validVarNames = []
             for varName in varNames:
                 if namespace is not None and varName not in namespace:
@@ -531,11 +525,11 @@ def transformPsychoJsCode(psychoJsCode, addons, namespace=[]):
             if not len(validVarNames):
                 include = False
             # Recombine line
-            lines[index] = f"var {', '.join(validVarNames)};"
+            thisLine = f"var {', '.join(validVarNames)};"
 
         # Append line
         if include:
-            transformedPsychoJSCode += lines[index]
+            transformedPsychoJSCode += thisLine
             transformedPsychoJSCode += '\n'
 
     return transformedPsychoJSCode

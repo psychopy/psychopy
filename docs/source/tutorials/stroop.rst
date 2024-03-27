@@ -7,7 +7,7 @@
 How to make a Stroop task in PsychoPy
 =====================================
 
-A great starter exeriment
+A great starter experiment
 ----------------------------------------------
 
 The Stroop task is a great starting point for learning to use PsychoPy, it is why we use it in `the textbook <https://us.sagepub.com/en-us/nam/building-experiments-in-psychopy/book253480>`_! So let's talk through the basics of making a Stroop in PsychoPy.

@@ -1,4 +1,4 @@
-Copyright (c) 2002-2019, Jon Peirce. (c) 2019-2022 Open Science Tools Ltd
+Copyright (c) 2002-2019, Jon Peirce. (c) 2019-2024 Open Science Tools Ltd
 All rights reserved.
 
 PsychoPy is a Registered Trademark of Open Science Tools Ltd.

@@ -228,7 +228,7 @@ class Display(Device):
 
     def getBounds(self):
         """Get the Display's pixel bounds; representing the left,top,right,and
-        bottom edge of the the display screen in native pixel units.
+        bottom edge of the display screen in native pixel units.
 
         .. note:: (left, top, right, bottom) bounds will 'not' always be (0, 0, pixel_width, pixel_height). If a multiple display setup is being used, (left, top, right, bottom) indicates the actual absolute pixel bounds assigned to that monitor by the OS. It can be assumed that right = left + display_pixel_width and bottom =  top + display_pixel_height
 
@@ -565,7 +565,7 @@ class Display(Device):
             phys_width,
             phys_height):
         '''
-        For the the screen index the  full screen psychopy window is created
+        For the screen index the  full screen psychopy window is created
         over, this function maps from psychopy coord space (pix, norm, deg,
         all with center = 0,0) to system pix position.
 

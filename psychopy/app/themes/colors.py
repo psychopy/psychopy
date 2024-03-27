@@ -62,6 +62,7 @@ scheme = {
     'white': BaseColor(255, 255, 255, 255),
     'offwhite': BaseColor(242, 242, 242, 255),
     'grey': BaseColor(102, 102, 110, 255),
+    'lightgrey': BaseColor(172, 172, 176, 255),
     'black': BaseColor(0, 0, 0, 255),
     'red': BaseColor(242, 84, 91, 255),
     'purple': BaseColor(195, 190, 247, 255),

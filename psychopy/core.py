@@ -4,7 +4,7 @@
 """Basic functions, including timing, rush (imported), quit
 """
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import sys
@@ -23,6 +23,7 @@ from psychopy.clock import (MonotonicClock, Clock, CountdownTimer,
 from psychopy.platform_specific import rush  # pylint: disable=W0611
 from psychopy import logging
 from psychopy.constants import STARTED, NOT_STARTED, FINISHED
+from psychopy.piloting import PILOTING, getPilotMode, setPilotMode, setPilotModeFromArgs
 
 try:
     import pyglet
