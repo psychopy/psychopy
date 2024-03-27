@@ -17,6 +17,9 @@ class Deprecated:
         self.fcn = fcn
         self.deprecation = deprecation
         self.removal = removal
+        # stringify replacement
+        if callable(replacement):
+            replacement = "%s.%s" % (replacement.__module__, replacement.__name__)
         self.replacement = replacement
 
     @property
@@ -68,8 +71,8 @@ class Deprecated:
         # additional statement about replacement
         if self.replacement is not None:
             msg += _translate(
-                " Please use %s.%s instead."
-            ) % (self.replacement.__module__, self.replacement.__name__)
+                " Please use %s instead."
+            ) % self.replacement
 
         return msg
 
