@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import os
@@ -709,3 +709,75 @@ def getDateStr(format="%Y-%m-%d_%Hh%M.%S.%f", fractionalSecondDigits=3):
             microsecs, microsecs[:int(fractionalSecondDigits)],
         )
     return nowStr
+
+
+def parsePipeSyntax(key, stripKey=True):
+    """
+    Parse "pipe syntax" within an expInfo key / all keys in an expInfo dict. Pipe syntax is as follows:
+
+    |req = Required input
+    |cfg = Configuration parameter, hidden behind "read more" tag
+    |fix = Fixed parameter, meaning its value can't be changed
+    |hid = Hidden parameter, meaning it's not down by DlgFromDict
+
+    An unescaped * in the key is considered shorthand for |req.
+
+    Parameters
+    ----------
+    key : str
+        A key to parse.
+    stripKey : bool
+        If True, trailing spaces will be removed from processed keys. Trailing spaces are removed from flags regardless.
+
+    Returns
+    -------
+    str
+        `value` with pipe syntax removed
+    list
+        List of flags found
+    """
+    # add |req if an unescaped * is present
+    key = re.sub(r"(?<!\\)\*", "|req", key)
+    # get flags
+    key, *flags = key.split("|")
+    # remove duplicates
+    flags = list(set(flags))
+    # strip key if requested
+    if stripKey:
+        key = key.strip()
+    # strip each flag
+    flags = [flag.strip() for flag in flags]
+
+    return key, flags
+
+
+def parsePipeSyntaxDict(expInfo, stripKey=True):
+    """
+    Calls `parsePipeSyntax` on each key in an expInfo dict and returns two new dicts: One with values against sanitized
+    keys, the other with flags against processed keys.
+
+    Parameters
+    ----------
+    expInfo : dict
+        Dict whose flags to process
+    stripKey : bool
+        If True, trailing spaces will be removed from keys. Trailing spaces are removed from flags regardless.
+
+    Returns
+    -------
+    dict
+        The values from `expInfo` with processed keys, i.e. no pipe syntax
+    dict
+        The flags extraced from processing pipe syntax with processed keys, i.e. no pipe syntax
+    """
+    valuesDict = {}
+    flagsDict = {}
+    for key in expInfo:
+        # parse key for syntax
+        newKey, flags = parsePipeSyntax(key)
+        # store original value under parsed key
+        valuesDict[newKey] = expInfo[key]
+        # store parsed flags under parsed key
+        flagsDict[newKey] = flags
+
+    return valuesDict, flagsDict

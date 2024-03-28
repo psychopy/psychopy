@@ -2,21 +2,14 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
 import copy
 
 from psychopy.experiment.components import BaseVisualComponent, getInitVals, Param, _translate
-from psychopy.localization import _localized as __localized
-_localized = __localized.copy()
 
-# only use _localized values for label values, nothing functional:
-_localized.update({'movie': _translate('Movie file'),
-                   'forceEndRoutine': _translate('Force end of Routine'),
-                   'backend': _translate('backend'),
-                   'No audio': _translate('No audio')})
 
 class MovieComponent(BaseVisualComponent):
     """An event class for presenting movie-based stimuli"""

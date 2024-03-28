@@ -88,7 +88,7 @@ def test_logistic():
     if PLOTTING:
         plotFit(modResps, thresh, 'Logistic (thresh=%.2f, params=%s)' %(fit.inverse(0.75), fit.params))
 
-def teardown():
+def teardown_method():
     if PLOTTING:
         pylab.show()
 

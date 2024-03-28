@@ -5,7 +5,7 @@
 RBGA object.`"""
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 
@@ -37,7 +37,10 @@ import numpy
 
 
 class BufferImageStim(ImageStim):
-    """Take a "screen-shot", save as an ImageStim (RBGA object).
+    """Take a "screen-shot", save as an ImageStim (RBGA object). This is
+    a lazy-imported class, therefore import using full path 
+    `from psychopy.visual.bufferimage import BufferImageStim` when
+    inheriting from it.
 
     The screen-shot is a single collage image composed of static elements
     that you can treat as being a single stimulus. The screen-shot can be of

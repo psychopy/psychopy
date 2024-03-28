@@ -4,7 +4,7 @@
 """A class representing a window for displaying one or more stimuli"""
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 
@@ -20,6 +20,8 @@ from collections import deque
 
 from psychopy.contrib.lazy_import import lazy_import
 from psychopy import colors, event
+from psychopy.localization import _translate
+from psychopy.tools.systemtools import getCurrentPID, registerPID
 import math
 # from psychopy.clock import monotonicClock
 
@@ -189,7 +191,8 @@ class Window():
                  bpc=(8, 8, 8),
                  depthBits=8,
                  stencilBits=8,
-                 backendConf=None):
+                 backendConf=None,
+                 infoMsg=None):
         """
         These attributes can only be set at initialization. See further down
         for a list of attributes which can be changed after initialization
@@ -242,7 +245,9 @@ class Window():
             instead.
         checkTiming : bool
             Whether to calculate frame duration on initialization. Estimated
-            duration is saved in :py:attr:`~Window.monitorFramePeriod`.
+            duration is saved in :py:attr:`~Window.monitorFramePeriod`. The
+            message displayed on the screen can be set with the `infoMsg`
+            argument.
         allowStencil : bool
             When set to `True`, this allows operations that use the OpenGL
             stencil buffer (notably, allowing the
@@ -298,6 +303,11 @@ class Window():
             available across all of them. This allows you to pass special
             configuration options to a specific backend to configure the
             feature.
+        infoMsg : str or None
+            Message to display during frame rate measurement (i.e., when
+            ``checkTiming=True``). Default is None, which means that a default
+            message is displayed. If you want to hide the message, pass an
+            empty string.
 
         Notes
         -----
@@ -371,6 +381,7 @@ class Window():
         else:
             self.scrWidthPIX = scrSize[0]
 
+        # if fullscreen not specified, get from prefs
         if fullscr is None:
             fullscr = prefs.general['fullscr']
         self._isFullScr = fullscr
@@ -588,6 +599,9 @@ class Window():
         self._toDrawDepths = []
         self._eventDispatchers = []
 
+        # dict of stimulus:validator pairs
+        self.validators = {}
+
         self.lastFrameT = core.getTime()
         self.waitBlanking = waitBlanking
 
@@ -608,12 +622,16 @@ class Window():
         self._showSplash = False
         self.resetViewport()  # set viewport to full window size
 
+        # piloting indicator
+        self._pilotingIndicator = None
+        self._showPilotingIndicator = False
+
         # over several frames with no drawing
         self._monitorFrameRate = None
         # for testing when to stop drawing a stim:
         self.monitorFramePeriod = 0.0
         if checkTiming:
-            self._monitorFrameRate = self.getActualFrameRate()
+            self._monitorFrameRate = self.getActualFrameRate(infoMsg=infoMsg)
 
         if self._monitorFrameRate is not None:
             self.monitorFramePeriod = 1.0 / self._monitorFrameRate
@@ -898,7 +916,7 @@ class Window():
                              'args': args,
                              'kwargs': kwargs})
 
-    def timeOnFlip(self, obj, attrib):
+    def timeOnFlip(self, obj, attrib, format=float):
         """Retrieves the time on the next flip and assigns it to the `attrib`
         for this `obj`.
 
@@ -908,6 +926,8 @@ class Window():
             A mutable object (usually a dict of class instance).
         attrib : str
             Key or attribute of `obj` to assign the flip time to.
+        format : str, class or None
+            Format in which to return time, see clock.Timestamp.resolve() for more info. Defaults to `float`.
 
         Examples
         --------
@@ -916,7 +936,7 @@ class Window():
             win.getTimeOnFlip(myTimingDict, 'tStartRefresh')
 
         """
-        self.callOnFlip(self._assignFlipTime, obj, attrib)
+        self.callOnFlip(self._assignFlipTime, obj, attrib, format)
 
     def getFutureFlipTime(self, targetTime=0, clock=None):
         """The expected time of the next screen refresh. This is currently
@@ -957,7 +977,7 @@ class Window():
 
         return output
 
-    def _assignFlipTime(self, obj, attrib):
+    def _assignFlipTime(self, obj, attrib, format=float):
         """Helper function to assign the time of last flip to the obj.attrib
 
         Parameters
@@ -966,12 +986,15 @@ class Window():
             A mutable object (usually a dict of class instance).
         attrib : str
             Key or attribute of ``obj`` to assign the flip time to.
+        format : str, class or None
+            Format in which to return time, see clock.Timestamp.resolve() for more info. Defaults to `float`.
 
         """
+        frameTime = self._frameTime.resolve(format=format)
         if hasattr(obj, attrib):
-            setattr(obj, attrib, self._frameTime)
+            setattr(obj, attrib, frameTime)
         elif isinstance(obj, dict):
-            obj[attrib] = self._frameTime
+            obj[attrib] = frameTime
         else:
             raise TypeError("Window.getTimeOnFlip() should be called with an "
                             "object and its attribute or a dict and its key. "
@@ -1155,9 +1178,12 @@ class Window():
 
         if self._toDraw:
             for thisStim in self._toDraw:
-                # Draw
+                # draw
                 thisStim.draw()
-                # Handle dragging
+                # draw validation rect if needed
+                if thisStim in self.validators:
+                    self.validators[thisStim].draw()
+                # handle dragging
                 if getattr(thisStim, "draggable", False):
                     thisStim.doDragging()
         else:
@@ -1332,9 +1358,13 @@ class Window():
         # keep the system awake (prevent screen-saver or sleep)
         platform_specific.sendStayAwake()
 
-        # Draw background (if present) for next frame
+        # draw background (if present) for next frame
         if hasattr(self.backgroundImage, "draw"):
             self.backgroundImage.draw()
+
+        # draw piloting indicator (if piloting) for next frame
+        if self._showPilotingIndicator:
+            self._pilotingIndicator.draw()
 
         #    If self.waitBlanking is True, then return the time that
         # GL.glFinish() returned, set as the 'now' variable. Otherwise
@@ -2357,6 +2387,93 @@ class Window():
         self.movieFrames.append(im)
         return im
 
+    def _getPixels(self, rect=None, buffer='front', includeAlpha=True,
+                   makeLum=False):
+        """Return an array of pixel values from the current window buffer or
+        sub-region.
+
+        Parameters
+        ----------
+        rect : tuple[int], optional
+            The region of the window to capture in pixel coordinates (left,
+            bottom, width, height). If `None`, the whole window is captured.
+        buffer : str, optional
+            Buffer to capture.
+        includeAlpha : bool, optional
+            Include the alpha channel in the returned array. Default is `True`.
+        makeLum : bool, optional
+            Convert the RGB values to luminance values. Values are rounded to
+            the nearest integer. Default is `False`.
+
+        Returns
+        -------
+        ndarray
+            Pixel values as a 3D array of shape (height, width, channels). If
+            `includeAlpha` is `False`, the array will have shape (height, width,
+            3). If `makeLum` is `True`, the array will have shape (height,
+            width).
+
+        Examples
+        --------
+        Get the pixel values of the whole window::
+
+            pix = win._getPixels()
+
+        Get pixel values and convert to luminance and get average::
+
+            pix = win._getPixels(makeLum=True)
+            average = pix.mean()
+
+        """
+        # do the reading of the pixels
+        if buffer == 'back' and self.useFBO:
+            GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
+        elif buffer == 'back':
+            GL.glReadBuffer(GL.GL_BACK)
+        elif buffer == 'front':
+            if self.useFBO:
+                GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0)
+            GL.glReadBuffer(GL.GL_FRONT)
+        else:
+            raise ValueError("Requested read from buffer '{}' but should be "
+                             "'front' or 'back'".format(buffer))
+
+        if rect:
+            # box corners in pix
+            left, bottom, w, h = rect
+        else:
+            left = bottom = 0
+            w, h = self.size
+
+        # get pixel data
+        bufferDat = (GL.GLubyte * (4 * w * h))()
+        GL.glReadPixels(
+            left, bottom, w, h,
+            GL.GL_RGBA,
+            GL.GL_UNSIGNED_BYTE,
+            bufferDat)
+
+        # convert to array
+        toReturn = numpy.frombuffer(bufferDat, dtype=numpy.uint8)
+        toReturn = toReturn.reshape((h, w, 4))
+
+        # rebind front buffer if needed
+        if buffer == 'front' and self.useFBO:
+            GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, self.frameBuffer)
+
+        # if we want the color data without an alpha channel, we need to
+        # convert the data to a numpy array and remove the alpha channel
+        if not includeAlpha:
+            toReturn = toReturn[:, :, :3]  # remove alpha channel
+
+        # convert to luminance if requested
+        if makeLum:
+            coeffs = [0.2989, 0.5870, 0.1140]
+            toReturn = numpy.rint(numpy.dot(toReturn[:, :, :3], coeffs)).astype(
+                numpy.uint8)
+
+        return toReturn
+
     def _getFrame(self, rect=None, buffer='front'):
         """Return the current Window as an image.
         """
@@ -3264,6 +3381,30 @@ class Window():
         if hasattr(self.backend, "setMouseType"):
             self.backend.setMouseType(name)
 
+    def showPilotingIndicator(self):
+        """
+        Show the visual indicator which shows we are in piloting mode.
+        """
+        # if we haven't made the indicator yet, do that now
+        if self._pilotingIndicator is None:
+            self._pilotingIndicator = TextBox2(
+                self, text=_translate("PILOTING: Switch to run mode before testing."),
+                letterHeight=0.1, alignment="bottom left",
+                units="norm", size=(2, 2),
+                borderColor="#EC9703", color="#EC9703", fillColor="transparent",
+                borderWidth=20,
+                autoDraw=False
+            )
+        # mark it as to be shown
+        self._showPilotingIndicator = True
+
+    def hidePilotingIndicator(self):
+        """
+        Hide the visual indicator which shows we are in piloting mode.
+        """
+        # mark indicator as to be hidden
+        self._showPilotingIndicator = False
+
     def showMessage(self, msg):
         """Show a message in the window. This can be used to show information
         to the participant.
@@ -3301,7 +3442,7 @@ class Window():
         self._showSplash = False
 
     def getActualFrameRate(self, nIdentical=10, nMaxFrames=100,
-                           nWarmUpFrames=10, threshold=1):
+                           nWarmUpFrames=10, threshold=1, infoMsg=None):
         """Measures the actual frames-per-second (FPS) for the screen.
 
         This is done by waiting (for a max of `nMaxFrames`) until
@@ -3339,8 +3480,10 @@ class Window():
         screen = self.screen
         name = self.name
 
-        self.showMessage(
-            "Attempting to measure frame rate of screen, please wait ...")
+        if infoMsg is None:
+            infoMsg = "Attempting to measure frame rate of screen, please wait ..."
+
+        self.showMessage(infoMsg)
 
         # log that we're measuring the frame rate now
         if self.autoLog:

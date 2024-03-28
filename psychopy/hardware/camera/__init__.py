@@ -8,7 +8,7 @@ experimenter to create movie stimuli or instructions.
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 __all__ = [
@@ -62,8 +62,11 @@ import time
 import numpy as np
 
 from psychopy.constants import NOT_STARTED
+from psychopy.hardware import DeviceManager
 from psychopy.visual.movies.frame import MovieFrame, NULL_MOVIE_FRAME_INFO
 from psychopy.sound.microphone import Microphone
+from psychopy.hardware.microphone import MicrophoneDevice
+from psychopy.tools import systemtools as st
 import psychopy.tools.movietools as movietools
 import psychopy.logging as logging
 from psychopy.localization import _translate
@@ -837,6 +840,7 @@ class CameraInterfaceFFmpeg(CameraInterface):
                   self._warmupBarrier,
                   self._recordBarrier,
                   self._mic))
+        self._playerThread.daemon=True
         self._playerThread.start()
 
         self._warmupBarrier.wait()
@@ -1278,6 +1282,7 @@ class CameraInterfaceOpenCV(CameraInterface):
                   self._warmUpBarrier,
                   self._recordBarrier,
                   self._mic))
+        self._playerThread.daemon=True
         self._playerThread.start()
 
         self._warmUpBarrier.wait()  # wait until the camera is ready
@@ -1690,7 +1695,7 @@ class Camera:
                     self._device = device
                 else:
                     raise TypeError(
-                        "Incorrect type for `camera`, expected `int` or `str`.")
+                        f"Incorrect type for `camera`, expected `int` or `str` but received {repr(device)}")
 
             # get the camera information
             if self._device in _formatMapping:
@@ -1698,7 +1703,7 @@ class Camera:
             else:
                 # raise error if couldn't find matching camera info
                 raise CameraFormatNotSupportedError(
-                    'Specified camera format is not supported.')
+                    f'Specified camera format {repr(self._device)} is not supported.')
 
         # # operating mode
         # if mode not in (CAMERA_MODE_VIDEO, CAMERA_MODE_CV, CAMERA_MODE_PHOTO):
@@ -1707,9 +1712,16 @@ class Camera:
         #         "`'cv'` or `'photo'`.")
         # self._mode = mode
 
-        if not isinstance(mic, Microphone):
-            TypeError(
-                "Expected type for parameter `mic`, expected `Microphone`.")
+        _requestedMic = mic
+        # if not given a Microphone or MicrophoneDevice, get it from DeviceManager
+        if not isinstance(mic, (Microphone, MicrophoneDevice)):
+            mic = DeviceManager.getDevice(mic)
+        # if not known by name, try index
+        if mic is None:
+            mic = DeviceManager.getDeviceBy("index", mic, deviceClass="microphone")
+        # if not known by name or index, raise error
+        if mic is None:
+            raise SystemError(f"Could not find microphone {_requestedMic}")
 
         # current camera frame since the start of recording
         self._player = None  # media player instance
@@ -1881,6 +1893,19 @@ class Camera:
             return Camera._getCamerasCache['ffpyplayer']
         else:
             raise ValueError("Invalid value for parameter `cameraLib`")
+
+    @staticmethod
+    def getAvailableDevices():
+        devices = []
+        for dev in st.getCameras():
+            for spec in dev:
+                devices.append({
+                    'device': spec['index'],
+                    'frameRate': spec['frameRate'],
+                    'frameSize': spec['frameSize'],
+                })
+
+        return devices
 
     @staticmethod
     def getCameraDescriptions(collapse=False):
@@ -2410,6 +2435,9 @@ class Camera:
                     self._mic.close()
                 except AttributeError:
                     pass
+
+
+DeviceManager.registerClassAlias("camera", "psychopy.hardware.camera.Camera")
 
 
 # ------------------------------------------------------------------------------

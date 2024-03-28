@@ -2,28 +2,12 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from os import path
 from pathlib import Path
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
-from psychopy.localization import _localized as __localized
-_localized = __localized.copy()
-
-# only use _localized values for label values, nothing functional:
-_localized.update({'nDots': _translate('Number of dots'),
-                   'dir': _translate('Direction'),
-                   'speed': _translate('Speed'),
-                   'coherence': _translate('Coherence'),
-                   'dotSize': _translate('Dot size'),
-                   'dotLife': _translate('Dot life-time'),
-                   'signalDots': _translate('Signal dots'),
-                   'noiseDots': _translate('Noise dots'),
-                   'fieldShape': _translate('Field shape'),
-                   'fieldSize': _translate('Field size'),
-                   'fieldPos': _translate('Field position'),
-                   'refreshDots': _translate('Dot refresh rule')})
 
 
 class DotsComponent(BaseVisualComponent):

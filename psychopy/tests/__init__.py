@@ -16,3 +16,32 @@ except ImportError:
     skip_under_travis = no_op
     skip_under_ghActions = no_op
     skip_under_vm = no_op
+
+
+def requires_plugin(plugin):
+    """
+    Decorator to skip test if a particular plugin is not installed.
+
+    Parameters
+    ----------
+    plugin : str
+        Name of plugin which must be installed in other for decorated test to run
+
+    Returns
+    -------
+        pytest.mark with condition on which to run the test
+
+    Examples
+    --------
+        ```
+        @requires_plugin("psychopy-visionscience")
+        def test_EnvelopeGrating():
+            win = visual.Window()
+            stim = visual.EnvelopeGrating(win)
+            stim.draw()
+            win.flip()
+        ```
+    """
+    from psychopy import plugins
+
+    return pytest.mark.skipif(plugin not in plugins.listPlugins(), reason="Cannot run that test on a virtual machine")

@@ -59,7 +59,7 @@ class TestComponents():
         """
         pass
 
-    def teardown(self):
+    def teardown_method(self):
         pass
 
     def test_component_attribs(self):

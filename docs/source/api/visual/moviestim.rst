@@ -1,6 +1,9 @@
 
 :class:`MovieStim`
 ------------------------------------------------------------------------
+Class for presenting movie clips as stimuli. This is a lazy-imported
+class, therefore import using full path
+`from psychopy.visual.movies import MovieStim` when inheriting from it.
 
 Attributes
 =============

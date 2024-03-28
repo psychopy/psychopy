@@ -29,10 +29,8 @@ from ..basevisual import (
 )
 from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.tools import mathtools as mt
-from psychopy.tools.arraytools import val2array
-from psychopy.tools.monitorunittools import convertToPix
 from psychopy.colors import Color
-from .fontmanager import FontManager, GLFont
+from psychopy.tools.fontmanager import FontManager, GLFont
 from .. import shaders
 from ..rect import Rect
 from ... import core, alerts, layout
@@ -599,6 +597,11 @@ class TextBox2(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin):
         elif isinstance(value, (list, tuple, np.ndarray)):
             # If given an array, convert it to a Vector
             self._letterHeight = layout.Size(value, units=self.units, win=self.win)
+
+    def setLetterHeight(self, value, log=None):
+        setAttribute(
+            self, "letterHeight", value=value, log=log
+        )
 
     @property
     def letterHeightPix(self):

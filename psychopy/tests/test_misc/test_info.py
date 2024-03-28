@@ -11,7 +11,7 @@ class TestInfo():
     @classmethod
     def setup_class(self):
         self.win = visual.Window(size=(100,100), autoLog=False)
-    def teardown(self):
+    def teardown_method(self):
         self.win.close()
 
     def test_info(self):

@@ -541,20 +541,17 @@ class Color:
         # Treat 1x1 arrays as a float
         if isinstance(value, np.ndarray):
             if value.size == 1:
-                value = float(value)
-        # Clip value(s) to within range
-        if isinstance(value, np.ndarray):
-            value = np.clip(value, 0, 1)
+                value = float(value[0])
         else:
-            # If coercible to float, do so
             try:
-                value = float(value)
+                value = float(value)  # If coercible to float, do so
             except (TypeError, ValueError) as err:
                 raise TypeError(
-                    "Could not set alpha as value `{}` of type `{}`".format(value, type(value).__name__)
+                    "Could not set alpha as value `{}` of type `{}`".format(
+                        value, type(value).__name__
+                    )
                 )
-            value = min(value, 1)
-            value = max(value, 0)
+        value = np.clip(value, 0, 1)  # Clip value(s) to within range
         # Set value
         self._alpha = value
         # Clear render cache

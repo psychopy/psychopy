@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Classes and functions for creating and managing subprocesses spawned by the
@@ -218,7 +218,7 @@ class Job:
         self._stdoutReader = None
         self._stderrReader = None
 
-    def start(self, cwd=None):
+    def start(self, cwd=None, env=None):
         """Start the subprocess.
 
         Parameters
@@ -226,6 +226,9 @@ class Job:
         cwd : str or None
             Working directory for the subprocess. Leave `None` to use the same
             as the application.
+        env : dict or None
+            Environment variables to pass to the subprocess. Leave `None` to
+            use the same as the application.
 
         Returns
         -------
@@ -254,7 +257,7 @@ class Job:
                 preexec_fn=None,
                 shell=False,
                 cwd=cwd,
-                env=None,
+                env=env,
                 universal_newlines=True,  # gives us back a string instead of bytes
                 creationflags=0,
                 text=True
