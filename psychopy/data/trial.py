@@ -737,7 +737,7 @@ class TrialHandler(_BaseTrialHandler):
 
 
 class Trial(dict):
-    def __init__(self, parent, thisN, thisRepN, thisTrialN, data=None):
+    def __init__(self, parent, thisN, thisRepN, thisTrialN, thisIndex, data=None):
         dict.__init__(self)
         # TrialHandler containing this trial
         self.parent = parent
@@ -745,6 +745,7 @@ class Trial(dict):
         self.thisN = thisN
         self.thisRepN = thisRepN
         self.thisTrialN = thisTrialN
+        self.thisIndex = thisIndex
         # data for this trial
         if data is None:
             data = {}
@@ -1067,32 +1068,30 @@ class TrialHandler2(_BaseTrialHandler):
                 if thisN < len(self.elapsed):
                     pass
                 else:
-                    # if not elapsed, make object
+                    # if not elapsed,get data according to method
+                    if self.method == 'fullRandom':
+                        # if full random, select randomly with no thought to taken
+                        thisIndex = self._rng.integers(0, len(self.trialList))
+                    elif self.method == "random":
+                        # if partial random, select randomly avoiding already selected
+                        thisIndex = self._rng.choice(conditionIndices)
+                        # delete selected for next trial
+                        conditionIndices.pop(conditionIndices.index(thisIndex))
+                    elif self.method == "sequential":
+                        # if sequential, select sequentially
+                        thisIndex = thisTrialN
+                    else:
+                        # if no method, error
+                        raise ValueError(f"Unrecognised selection method {self.method}")
+                    # make Trial object
                     thisTrial = Trial(
                         self,
                         thisN=thisN,
                         thisRepN=thisRepN,
                         thisTrialN=thisTrialN,
-                        data={}
+                        thisIndex=thisIndex,
+                        data=self.trialList[thisIndex].copy()
                     )
-                    # get data according to method
-                    if self.method == 'fullRandom':
-                        # if full random, select randomly with no thought to taken
-                        data = np.random.choice(self.trialList).copy()
-                    elif self.method == "random":
-                        # if partial random, select randomly avoiding already selected
-                        i = np.random.choice(conditionIndices)
-                        data = self.trialList[i].copy()
-                        # delete selected for next trial
-                        conditionIndices.pop(conditionIndices.index(i))
-                    elif self.method == "sequential":
-                        # if sequential, select sequentially
-                        data = self.trialList[thisTrialN].copy()
-                    else:
-                        # if no method, use blank data
-                        data = {}
-                    # assign data to trial
-                    thisTrial.data = data
                     # append trial
                     self.upcoming.append(thisTrial)
                 # iterate thisN
