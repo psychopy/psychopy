@@ -304,7 +304,7 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
 
     def writeExperimentEndCodeJS(self, buff):
         code = (
-            "if (%(name)s) {\n"
+            "if (%(name)s && !%(name)s.finished) {\n"
             "  await psychoJS.shelf.counterbalanceConfirm(\n"
             "    ['%(name)s', '@designer', '@experiment'],\n"
             "    %(name)s.participantToken,\n"
