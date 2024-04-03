@@ -20,7 +20,8 @@ specfiles = ('baseNoArch.spec', 'Darwin.spec',
              'FreeBSD.spec', 'Linux.spec', 'Windows.spec')
 # list of sections to parse.
 prefsDlgSections = ('[general]', '[app]', '[coder]', '[builder]', 
-                    '[hardware]', '[connections]', '[keyBindings]')
+                    '[hardware]', '[piloting]', '[connections]',
+                    '[keyBindings]')
 # regular expression to extract comment text (as in-lined in .spec files)
 commentObj = re.compile(r'\#\s*(\S.*$)')
 
