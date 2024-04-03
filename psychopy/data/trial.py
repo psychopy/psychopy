@@ -736,6 +736,40 @@ class TrialHandler(_BaseTrialHandler):
             self.getExp().addData(thisType, value)
 
 
+class Trial(dict):
+    def __init__(self, parent, thisN, thisRepN, thisTrialN, data=None):
+        dict.__init__(self)
+        # TrialHandler containing this trial
+        self.parent = parent
+        # state information about this trial
+        self.thisN = thisN
+        self.thisRepN = thisRepN
+        self.thisTrialN = thisTrialN
+        # data for this trial
+        if data is None:
+            data = {}
+        self.data = data
+
+    def __repr__(self):
+        return (
+            f"<Trial {self.thisN} ({self.thisTrialN} in rep {self.thisRepN}) "
+            f"data={ {key: val for key,val in self.items()} }>"
+        )
+
+    @property
+    def data(self):
+        # return self when getting data (so it's modified by modifying data)
+        return self
+
+    @data.setter
+    def data(self, value: dict):
+        # when setting data, clear self...
+        self.clear()
+        # ... and set each value from the given dict
+        for key, val in value.items():
+            self[key] = val
+
+
 class TrialHandler2(_BaseTrialHandler):
     """Class to handle trial sequencing and data storage.
 
@@ -860,11 +894,6 @@ class TrialHandler2(_BaseTrialHandler):
         self.remainingIndices = []
         self.prevIndices = []
         self.method = method
-        self.thisRepN = 0  # records which repetition or pass we are on
-        self.thisTrialN = -1  # records trial number within this repetition
-        self.thisN = -1
-        self.thisIndex = None  # index of current trial in the conditions list
-        self.thisTrial = {}
         self.finished = False
         self.extraInfo = extraInfo
         self.seed = seed
@@ -872,7 +901,9 @@ class TrialHandler2(_BaseTrialHandler):
         self._trialAborted = False
 
         # store a list of dicts, convert to pandas DataFrame on access
-        self._data = []
+        self.elapsed = []
+        self.upcoming = None
+        self.thisTrial = None
 
         self.originPath, self.origin = self.getOriginPathAndFile(originPath)
         self._exp = None  # the experiment handler that owns me!
@@ -941,7 +972,7 @@ class TrialHandler2(_BaseTrialHandler):
         Note that data are stored internally as a list of dictionaries,
         one per trial. These are converted to a DataFrame on access.
         """
-        return pd.DataFrame(self._data)
+        return pd.DataFrame(self.elapsed)
 
     def __next__(self):
         """Advances to next trial and returns it.
@@ -963,22 +994,21 @@ class TrialHandler2(_BaseTrialHandler):
                     break  # break out of the forever loop
                 # do stuff here for the trial
         """
-        # update pointer for next trials
-        self.thisTrialN += 1  # number of trial this pass
-        self.thisN += 1  # number of trial in total
-        self.nRemaining -= 1
-        if self.thisIndex is not None:
-            self.prevIndices.append(self.thisIndex)
-
-        try:
-            self.thisTrial = self.sequence[self.thisN]
-        except IndexError:
+        # mark previous trial as elapsed
+        if self.thisTrial is not None:
+            self.elapsed.append(self.thisTrial)
+        # if upcoming is None, recaculate
+        if self.upcoming is None:
+            self.calculateUpcoming()
+        # if upcoming is empty, finish
+        if not self.upcoming:
             self.finished = True
             self.thisTrial = None
             raise StopIteration
+        # get first upcoming trial
+        self.thisTrial = self.upcoming.pop(0)
 
         # update data structure with new info
-        self._data.append(self.thisTrial)  # update the data list of dicts
         self.addData('thisN', self.thisN)
         self.addData('thisTrialN', self.thisTrialN)
         self.addData('thisRepN', self.thisRepN)
@@ -986,83 +1016,88 @@ class TrialHandler2(_BaseTrialHandler):
             msg = 'New trial (rep=%i, index=%i): %s'
             vals = (self.thisRepN, self.thisTrialN, self.thisTrial)
             logging.exp(msg % vals, obj=self.thisTrial)
-
-        # if the trial was aborted, reset the flag
-        self._trialAborted = False
         
         return self.thisTrial
 
     next = __next__  # allows user to call without a loop `val = trials.next()`
 
     @property
-    def sequence(self):
-        if self._needSequenceUpdate:
-            self._sequence = self._createSequence()
-        return self._sequence
+    def thisN(self):
+        if self.thisTrial is None:
+            if len(self.elapsed):
+                return self.elapsed[-1].thisN
+            else:
+                return -1
+        return self.thisTrial.thisN
+
+    @property
+    def thisTrialN(self):
+        if self.thisTrial is None:
+            if len(self.elapsed):
+                return self.elapsed[-1].thisTrialN
+            else:
+                return -1
+        return self.thisTrial.thisTrialN
+
+    @property
+    def thisRepN(self):
+        if self.thisTrial is None:
+            if len(self.elapsed):
+                return self.elapsed[-1].thisRepN
+            else:
+                return -1
+        return self.thisTrial.thisRepN
     
-    def _createSequence(self, fromIndex=-1):
+    def calculateUpcoming(self, fromIndex=-1):
         """Rebuild the sequence of trial/state info as if running the trials
 
         Args:
             fromIndex (int, optional): the point in the sequnce from where to rebuild. Defaults to -1.
         """
-        if self._sequence is None:
-            self._sequence = []
-            state = {
-                'thisN': self.thisN,
-                'thisRepN': self.thisRepN,
-                'thisTrialN': self.thisTrialN,
-                'remainingIndices': self.remainingIndices,
-            }
-        else: # recalculate the sequence from this point
-            state = self._sequenceState[fromIndex]
-
-        trialsRemaining = True  # until we find otherwise
-        while trialsRemaining:  # abort when we discover we've reached the end
-            
-            if state['remainingIndices'] == []:
-                # we've just started, or just starting a new repeat
-                conditionIndices = list(range(len(self.trialList)))
-                if (self.method == 'fullRandom' and state['thisN'] == 0):
-                    # we've only just started on a fullRandom sequence
-                    conditions *= self.nReps
-                    # NB permutation *returns* a shuffled array
-                    state['remainingIndices'] = list(self._rng.permutation(conditionIndices))
-                elif (self.method in ('sequential', 'random') and
-                            self.thisRepN < self.nReps):
-                    # start a new repetition
-                    state['thisTrialN'] = 0
-                    state['thisRepN'] += 1
-                    if self.method == 'random':
-                        self._rng.shuffle(conditionIndices)  # shuffle (is in-place)
-                    state['remainingIndices'] = list(conditionIndices)
+        # clear upcoming
+        self.upcoming = []
+        # start off at thisN = 0
+        thisN = 0
+        # iterate through reps
+        for thisRepN in range(self.nReps):
+            # get available conditions indices this repeat
+            conditionIndices = list(range(len(self.trialList)))
+            # iterate through trials each rep
+            for thisTrialN in range(len(self.trialList)):
+                if thisN < len(self.elapsed):
+                    pass
                 else:
-                    trialsRemaining = False  # there are no more trials so escape the while loop
-                    break
-
-            # at least one more trial to add
-            # fetch the trial info for this new state
-            if len(self.trialList) == 0:
-                state['thisIndex'] = 0
-                state['thisTrial'] = {}
-            else:
-                state['thisIndex'] = state['remainingIndices'].pop(0)
-                # if None then use empty dict
-                thisTrial = self.trialList[state['thisIndex']] or {}
-                state['thisTrial'] = copy.copy(thisTrial)
-            # for fullRandom check how many times this has come up before
-            if self.method == 'fullRandom':
-                state['thisRepN'] = self.prevIndices.count(state['thisIndex'])
-            self._sequence.append(copy.copy(state))
-
-    @property
-    def trialAborted(self):
-        """`True` if the trial has been aborted an should end.
-        
-        This flag is reset to `False` on the next call to `next()`.
-        
-        """
-        return self._trialAborted 
+                    # if not elapsed, make object
+                    thisTrial = Trial(
+                        self,
+                        thisN=thisN,
+                        thisRepN=thisRepN,
+                        thisTrialN=thisTrialN,
+                        data={}
+                    )
+                    # get data according to method
+                    if self.method == 'fullRandom':
+                        # if full random, select randomly with no thought to taken
+                        data = np.random.choice(self.trialList).copy()
+                    elif self.method == "random":
+                        # if partial random, select randomly avoiding already selected
+                        i = np.random.choice(conditionIndices)
+                        data = self.trialList[i].copy()
+                        # delete selected for next trial
+                        conditionIndices.pop(conditionIndices.index(i))
+                    elif self.method == "sequential":
+                        # if sequential, select sequentially
+                        data = self.trialList[thisTrialN].copy()
+                    else:
+                        # if no method, use blank data
+                        data = {}
+                    # assign data to trial
+                    thisTrial.data = data
+                    # append trial
+                    self.upcoming.append(thisTrial)
+                # iterate thisN
+                thisN += 1
+        return self.elapsed + self.upcoming
 
     def abortCurrentTrial(self, action='random'):
         """Abort the current trial.
@@ -1083,39 +1118,17 @@ class TrialHandler2(_BaseTrialHandler):
           not used.
 
         """
-        # check if value for parameter `action` is valid
-        if not isinstance(action, str):  # type checks for params
-            raise TypeError(
-                "Parameter `action` specified incorrect type, must be `str`.")
-        
-        if action not in ('random', 'append'):
-            raise ValueError(
-                "Value for parameter `action` must be either 'random' or "
-                "'append'.")
-
-        # use the appropriate action for the current sampling method
-        if action == 'random':  # insert trial into random index
-            # use numpy RNG to sample a new index
-            newIndex = np.random.randint(0, len(self.remainingIndices))
-            self.remainingIndices.insert(newIndex, self.thisIndex)
-        elif action == 'append':  # insert at end of trial block
-            self.remainingIndices.append(self.thisIndex)
-
-        # flag that the trial has been aborted, user can take approriate action
-        self._trialAborted = True  
+        # clear this trial so it's not appended to elapsed
+        self.thisTrial = None
+        # clear upcoming trials so they're recalculated on next iteration
+        self.upcoming = None
 
     def getFutureTrial(self, n=1):
         """Returns the condition for n trials into the future, without
         advancing the trials. Returns 'None' if attempting to go beyond
         the last trial.
         """
-        # check that we don't go out of bounds for either positive or negative
-        # offsets:
-        if n > self.nRemaining or self.thisN + n < 0:
-            return None
-        seqs = np.array(self.sequenceIndices).transpose().flat
-        condIndex = seqs[self.thisN + n]
-        return self.trialList[condIndex]
+        return self.upcoming[n]
 
     def getEarlierTrial(self, n=-1):
         """Returns the condition information from n trials previously.
@@ -1125,7 +1138,7 @@ class TrialHandler2(_BaseTrialHandler):
         # treat positive offset values as equivalent to negative ones:
         if n > 0:
             n = n * -1
-        return self.getFutureTrial(n)
+        return self.elapsed[n]
 
     def saveAsWideText(self, fileName,
                        delim=None,
