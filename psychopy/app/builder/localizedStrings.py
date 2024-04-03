@@ -26,6 +26,10 @@ _localizedCategories = {
     'Dots': _translate('Dots'),
     'Grating': _translate('Grating'),
     'Advanced': _translate('Advanced'),
+    'Favorites': _translate('Favorites'),
+    'Stimuli': _translate('Stimuli'),
+    'Responses': _translate('Responses'),
+    'I/O': _translate('I/O'),
     'Custom': _translate('Custom'),
     'Carrier': _translate('Carrier'),
     'Envelope': _translate('Envelope'),
@@ -41,7 +45,8 @@ _localizedCategories = {
     'Animation':_translate('Animation'),
     'Transcription':_translate('Transcription'),
     'Timing':_translate('Timing'),
-    'Playback':_translate('Playback')
+    'Playback':_translate('Playback'),
+    'Window':_translate('Window')
 }
 
 _localizedDialogs = {
@@ -86,6 +91,11 @@ _localizedDialogs = {
     'pix': 'pix', 'deg': 'deg', 'cm': 'cm',
     'norm': 'norm', 'height': 'height',
     'degFlat': 'degFlat', 'degFlatPos':'degFlatPos',
+    # background image:
+    'cover':_translate('cover'),
+    'contain':_translate('contain'),
+    'fill':_translate('fill'),
+    'scale-down':_translate('scale-down'),
     # anchor
     'center': _translate('center'),
     'top-center': _translate('top-center'),
@@ -107,7 +117,7 @@ _localizedDialogs = {
     'add': _translate('add'),
     'avg': _translate('average'),
     'average (no FBO)': _translate('average (no FBO)'),  # blend mode
-    'use prefs': _translate('use preferences'),
+    'use prefs': _translate('use prefs'),
     'on Sync': _translate('on Sync'), # export HTML
     'on Save': _translate('on Save'),
     'manually': _translate('manually'),
@@ -123,6 +133,9 @@ _localizedDialogs = {
     'data': _translate('data'),
     'warning': _translate('warning'),
     'error': _translate('error'),
+    # Clock format:
+    'Experiment start':_translate('Experiment start'),
+    'Wall clock':_translate('Wall clock'),
     # Experiment info dialog:
     'Field': _translate('Field'),
     'Default': _translate('Default'),
@@ -155,6 +168,7 @@ _localizedDialogs = {
     # Form
     'rows': _translate('rows'),
     'columns': _translate('columns'),
+    'custom...': _translate('custom...'),
     # Variable component
     'first': _translate('first'),
     'last': _translate('last'),
@@ -199,8 +213,6 @@ _localizedDialogs = {
     'visible': _translate('visible'),
     'scroll': _translate('scroll'),
     'hidden': _translate('hidden'),
-    # Form
-    'custom...': _translate('custom...')
 }
 
 
