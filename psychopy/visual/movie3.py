@@ -103,8 +103,10 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
         # by __repr__
         self._initParams = dir()
         self._initParams.remove('self')
-        super(MovieStim3, self).__init__(win, units=units, name=name,
-                                         autoLog=False)
+        BaseVisualStim.__init__(
+            self, win, units=units, name=name,
+            autoLog=False
+        )
 
         retraceRate = win._monitorFrameRate
         # if retraceRate is None:

@@ -29,5 +29,5 @@ class PatchStim(GratingStim):
         whereas the ImageStim is designed to be use for non-cyclic images
         (photographs, not gratings).
         """
-        super(PatchStim, self).__init__(*args, **kwargs)
+        GratingStim.__init__(self, *args, **kwargs)
         self.setImage = self.setTex

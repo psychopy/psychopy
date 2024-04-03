@@ -153,9 +153,9 @@ def deprecated(deprecation, removal=None, replacement=None):
 
     Parameters
     ----------
-    deprecation : Version
+    deprecation : Version or str
         Version in which the decorated object was rendered obsolete and support for it ended.
-    removal : Version
+    removal : Version or str
         Version in which the decorated object is due to be removed.
     replacement : function, class or str
         Object to use instead of this one, can be supplied directly as a handle or as an import

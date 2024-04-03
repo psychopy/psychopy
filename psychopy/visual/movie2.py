@@ -229,8 +229,10 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         # by __repr__
         self._initParams = dir()
         self._initParams.remove('self')
-        super(MovieStim2, self).__init__(win, units=units, name=name,
-                                         autoLog=False)
+        BaseVisualStim.__init__(
+            self, win, units=units, name=name,
+            autoLog=False
+        )
         # check for pyglet
         if win.winType != 'pyglet':
             logging.error(
