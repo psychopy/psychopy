@@ -970,41 +970,12 @@ class TrialHandler2(_BaseTrialHandler):
         if self.thisIndex is not None:
             self.prevIndices.append(self.thisIndex)
 
-        # thisRepN has exceeded nReps
-        if self.remainingIndices == []:
-            # we've just started, or just starting a new repeat
-            sequence = list(range(len(self.trialList)))
-            if (self.method == 'fullRandom' and
-                        self.thisN < (self.nReps * len(self.trialList))):
-                # we've only just started on a fullRandom sequence
-                sequence *= self.nReps
-                # NB permutation *returns* a shuffled array
-                self.remainingIndices = list(self._rng.permutation(sequence))
-            elif (self.method in ('sequential', 'random') and
-                          self.thisRepN < self.nReps):
-                # start a new repetition
-                self.thisTrialN = 0
-                self.thisRepN += 1
-                if self.method == 'random':
-                    self._rng.shuffle(sequence)  # shuffle (is in-place)
-                self.remainingIndices = list(sequence)
-            else:
-                # we've finished
-                self.finished = True
-                self._terminate()  # raises Stop (code won't go beyond here)
-
-        # fetch the trial info
-        if len(self.trialList) == 0:
-            self.thisIndex = 0
-            self.thisTrial = {}
-        else:
-            self.thisIndex = self.remainingIndices.pop(0)
-            # if None then use empty dict
-            thisTrial = self.trialList[self.thisIndex] or {}
-            self.thisTrial = copy.copy(thisTrial)
-        # for fullRandom check how many times this has come up before
-        if self.method == 'fullRandom':
-            self.thisRepN = self.prevIndices.count(self.thisIndex)
+        try:
+            self.thisTrial = self.sequence[self.thisN]
+        except IndexError:
+            self.finished = True
+            self.thisTrial = None
+            raise StopIteration
 
         # update data structure with new info
         self._data.append(self.thisTrial)  # update the data list of dicts
@@ -1022,6 +993,67 @@ class TrialHandler2(_BaseTrialHandler):
         return self.thisTrial
 
     next = __next__  # allows user to call without a loop `val = trials.next()`
+
+    @property
+    def sequence(self):
+        if self._needSequenceUpdate:
+            self._sequence = self._createSequence()
+        return self._sequence
+    
+    def _createSequence(self, fromIndex=-1):
+        """Rebuild the sequence of trial/state info as if running the trials
+
+        Args:
+            fromIndex (int, optional): the point in the sequnce from where to rebuild. Defaults to -1.
+        """
+        if self._sequence is None:
+            self._sequence = []
+            state = {
+                'thisN': self.thisN,
+                'thisRepN': self.thisRepN,
+                'thisTrialN': self.thisTrialN,
+                'remainingIndices': self.remainingIndices,
+            }
+        else: # recalculate the sequence from this point
+            state = self._sequenceState[fromIndex]
+
+        trialsRemaining = True  # until we find otherwise
+        while trialsRemaining:  # abort when we discover we've reached the end
+            
+            if state['remainingIndices'] == []:
+                # we've just started, or just starting a new repeat
+                conditionIndices = list(range(len(self.trialList)))
+                if (self.method == 'fullRandom' and state['thisN'] == 0):
+                    # we've only just started on a fullRandom sequence
+                    conditions *= self.nReps
+                    # NB permutation *returns* a shuffled array
+                    state['remainingIndices'] = list(self._rng.permutation(conditionIndices))
+                elif (self.method in ('sequential', 'random') and
+                            self.thisRepN < self.nReps):
+                    # start a new repetition
+                    state['thisTrialN'] = 0
+                    state['thisRepN'] += 1
+                    if self.method == 'random':
+                        self._rng.shuffle(conditionIndices)  # shuffle (is in-place)
+                    state['remainingIndices'] = list(conditionIndices)
+                else:
+                    trialsRemaining = False  # there are no more trials so escape the while loop
+                    break
+
+            # at least one more trial to add
+            # fetch the trial info for this new state
+            if len(self.trialList) == 0:
+                state['thisIndex'] = 0
+                state['thisTrial'] = {}
+            else:
+                state['thisIndex'] = state['remainingIndices'].pop(0)
+                # if None then use empty dict
+                thisTrial = self.trialList[state['thisIndex']] or {}
+                state['thisTrial'] = copy.copy(thisTrial)
+            # for fullRandom check how many times this has come up before
+            if self.method == 'fullRandom':
+                state['thisRepN'] = self.prevIndices.count(state['thisIndex'])
+            self._sequence.append(copy.copy(state))
 
     @property
     def trialAborted(self):
