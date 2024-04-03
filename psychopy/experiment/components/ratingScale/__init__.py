@@ -48,8 +48,8 @@ class RatingScaleComponent(BaseComponent):
                  markerStart='',
                  storeRating=True, storeRatingTime=True, storeHistory=False,
                  customize_everything=''):
-        super(RatingScaleComponent, self).__init__(
-            exp, parentName, name,
+        BaseComponent.__init__(
+            self, exp, parentName, name,
             startType=startType, startVal=startVal,
             stopType=stopType, stopVal=stopVal,
             startEstim=startEstim, durationEstim=durationEstim)

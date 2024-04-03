@@ -30,8 +30,8 @@ class PatchComponent(BaseVisualComponent):
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim=''):
-        super(PatchComponent, self).__init__(
-            exp, parentName, name=name, units=units,
+        BaseVisualComponent.__init__(
+            self, exp, parentName, name=name, units=units,
             color=color, colorSpace=colorSpace,
             pos=pos, size=size, ori=ori,
             startType=startType, startVal=startVal,

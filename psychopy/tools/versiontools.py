@@ -30,12 +30,15 @@ class Deprecated:
     owner = None
 
     def __init__(self, fcn, deprecation, removal=None, replacement=None):
+        # reference function
         self.fcn = fcn
+        # store deprecation info
         self.deprecation = deprecation
         self.removal = removal
         # stringify replacement
         if callable(replacement):
             replacement = "%s.%s" % (replacement.__module__, replacement.__name__)
+        # reference replacement
         self.replacement = replacement
 
     @property
@@ -112,9 +115,9 @@ class Deprecated:
             )
         # run
         if self.owner is None:
-            self.fcn(*args, **kwargs)
+            return self.fcn(*args, **kwargs)
         else:
-            self.fcn(self.owner, *args, **kwargs)
+            return self.fcn(self.owner, *args, **kwargs)
 
     def __set_name__(self, owner, name):
         # store reference to owner
