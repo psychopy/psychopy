@@ -6,7 +6,7 @@ the resolution and color in the file (subject to gamma correction if set).
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import os
@@ -45,7 +45,9 @@ import numpy
 class SimpleImageStim(MinimalStim, WindowMixin):
     """A simple stimulus for loading images from a file and presenting at
     exactly the resolution and color in the file (subject to gamma correction
-    if set).
+    if set). This is a lazy-imported class, therefore import using full path 
+    `from psychopy.visual.simpleimage import SimpleImageStim` when inheriting
+    from it.
 
     Unlike the ImageStim, this type of stimulus cannot be rescaled, rotated or
     masked (although flipping horizontally or vertically is possible). Drawing

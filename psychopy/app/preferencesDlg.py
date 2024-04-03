@@ -20,164 +20,6 @@ from psychopy import sound
 from psychopy.app.utils import getSystemFonts
 import collections
 
-# labels mappings for display:
-_localized = {
-    # category labels
-    'General': _translate('General'),
-    'Application': _translate('Application'),
-    'Key Bindings': _translate('Key Bindings'),
-    'Hardware': _translate('Hardware'),
-    'Connections': _translate('Connections'),
-    # section labels
-    'general': _translate('general'),
-    'app': _translate('app'),
-    'builder': "Builder",  # not localized
-    'coder': "Coder",  # not localized
-    'runner': "Runner",  # not localized
-    'hardware': _translate('Hardware'),
-    'connections': _translate('Connections'), # not 'connections'
-    'keyBindings': _translate('Key Bindings'), # not 'keyBindings'
-    # pref labels in General section
-    'winType': _translate("window type"),
-    'units': _translate("units"),
-    'fullscr': _translate("full-screen"),
-    'allowGUI': _translate("allow GUI"),
-    'paths': _translate('paths'),
-    'flac': _translate('flac audio compression'),
-    'shutdownKey': _translate("shutdown key"),
-    'shutdownKeyModifiers': _translate("shutdown key modifier keys"),
-    'gammaErrorPolicy': _translate("gammaErrorPolicy"),
-    'startUpPlugins': _translate("start up plugins"),
-    'appKeyGoogleCloud':_translate('appKeyGoogleCloud'),
-    'transcrKeyAzure':_translate('transcrKeyAzure'),
-    # pref labels in App section
-    'showStartupTips': _translate("show start-up tips"),
-    'defaultView': _translate("default view"),
-    'resetPrefs': _translate('reset preferences'),
-    'autoSavePrefs': _translate('auto-save prefs'),
-    'debugMode': _translate('debug mode'),
-    'locale': _translate('locale'),
-    'errorDialog': _translate('error dialog'),
-    'theme': _translate('theme'),
-    # pref labels in Builder section
-    'reloadPrevExp': _translate('reload previous exp'),
-    'codeComponentLanguage': _translate('Code component language'),
-    'unclutteredNamespace': _translate('uncluttered namespace'),
-    'componentsFolders': _translate('components folders'),
-    'componentFilter':_translate('componentFilter'),
-    'hiddenComponents': _translate('hidden components'),
-    'unpackedDemosDir': _translate('unpacked demos dir'),
-    'savedDataFolder': _translate('saved data folder'),
-    'builderLayout': _translate('Builder layout'),
-    'alwaysShowReadme': _translate('always show readme'),
-    'maxFavorites': _translate('max favorites'),
-    'confirmRoutineClose': _translate('confirmRoutineClose'),
-    # pref labels in Coder section
-    'readonly': _translate('read-only'),
-    'outputFont': _translate('output font'),
-    'codeFont': _translate('code font'),
-    'outputFontSize': _translate('output font size'),
-    'codeFontSize': _translate('code font size'),
-    'lineSpacing': _translate('lineSpacing'),
-    'edgeGuideColumn': _translate('edgeGuideColumn'),
-    'showSourceAsst': _translate('show source asst'),
-    'showOutput': _translate('show output'),
-    'autocomplete': _translate('auto complete'),
-    'reloadPrevFiles': _translate('reload previous files'),
-    'preferredShell': _translate('preferred shell'),
-    # pref labels in KeyBindings section
-    'open': _translate('open'),
-    'new': _translate('new'),
-    'save': _translate('save'),
-    'saveAs': _translate('save as'),
-    'print': _translate('print'),
-    'close': _translate('close'),
-    'quit': _translate('quit'),
-    'preferences': _translate('preferences'),
-    'exportHTML': _translate('export HTML'),
-    'cut': _translate('cut'),
-    'copy': _translate('copy'),
-    'paste': _translate('paste'),
-    'duplicate': _translate('duplicate'),
-    'indent': _translate('indent'),
-    'dedent': _translate('dedent'),
-    'smartIndent': _translate('smart indent'),
-    'find': _translate('find'),
-    'findAgain': _translate('find again'),
-    'undo': _translate('undo'),
-    'redo': _translate('redo'),
-    'comment': _translate('comment'),
-    'uncomment': _translate('uncomment'),
-    'toggle comment': _translate('toggle comment'),
-    'fold': _translate('fold'),
-    'enlargeFont': _translate('enlarge Font'),
-    'shrinkFont': _translate('shrink Font'),
-    'analyseCode': _translate('analyze code'),
-    'compileScript': _translate('compile script'),
-    'runScript': _translate('run script'),
-    'runnerScript': _translate('runner script'),
-    'stopScript': _translate('stop script'),
-    'toggleWhitespace': _translate('toggle whitespace'),
-    'toggleEOLs': _translate('toggle EOLs'),
-    'toggleIndentGuides': _translate('toggle indent guides'),
-    'newRoutine': _translate('new Routine'),
-    'copyRoutine': _translate('copy Routine'),
-    'pasteRoutine': _translate('paste Routine'),
-    'pasteCompon': _translate('paste Component'),
-    'toggleOutputPanel': _translate('toggle output panel'),
-    'renameRoutine': _translate('rename Routine'),
-    'cycleWindows': _translate('cycle windows'),
-    'largerFlow': _translate('larger Flow'),
-    'smallerFlow': _translate('smaller Flow'),
-    'largerRoutine': _translate('larger routine'),
-    'smallerRoutine': _translate('smaller routine'),
-    'toggleReadme': _translate('toggle readme'),
-    'pavlovia_logIn': _translate('login to pavlovia'),
-    'OSF_logIn': _translate('login to OSF'),
-    'projectsSync': _translate('sync projects'),
-    'projectsFind': _translate('find projects'),
-    'projectsOpen': _translate('open projects'),
-    'projectsNew': _translate('new projects'),
-    # pref labels in Hardware section
-    'audioLib': _translate("audio library"),
-    'audioLatencyMode': _translate("audio latency mode"),
-    'audioDriver': _translate("audio driver"),
-    'audioDevice': _translate("audio device"),
-    'parallelPorts': _translate("parallel ports"),
-    'qmixConfiguration': _translate("Qmix configuration"),
-    'highDPI': _translate('Try to support display high DPI'),
-    # pref labels in Connections section
-    'proxy': _translate('proxy'),
-    'autoProxy': _translate('auto-proxy'),
-    'allowUsageStats': _translate('allow usage stats'),
-    'checkForUpdates': _translate('check for updates'),
-    'timeout': _translate('timeout'),
-    # pref wxChoice lists:
-    'all': _translate('Builder, Coder and Runner'),
-    'keep': _translate('same as in the file'),  # line endings
-    'abort': _translate('abort'), # gammaErrorPolicy
-    'warn': _translate('warn'), # gammaErrorPolicy
-    # not translated:
-    'pix': 'pix',
-    'deg': 'deg',
-    'cm': 'cm',
-    'norm': 'norm',
-    'height': 'height',
-    'pyshell': 'pyshell',
-    'iPython': 'iPython',
-    # obsolete labels
-    'largeIcons': _translate("large icons"),
-    'darkMode': _translate("dark mode"),
-    'highDPI': _translate('highDPI'),
-    'commentFont': _translate('comment font'),
-    'switchToBuilder': _translate('switch to Builder'),
-    'switchToCoder': _translate('switch to Coder'),
-    'switchToRunner': _translate('switch to Runner'),
-    'projectsLogIn': _translate('login to projects'),
-    'useRunner': _translate("use Runner"),
-}
-# add pre-translated names-of-langauges, for display in locale pref:
-_localized.update(localization.locname)
 
 audioLatencyLabels = {0: _translate('Latency not important'),
                       1: _translate('Share low-latency driver'),
@@ -196,26 +38,38 @@ class PrefPropGrid(wx.Panel):
             self, parent, id=id, pos=pos, size=size, style=style, name=name)
         bSizer1 = wx.BoxSizer(wx.HORIZONTAL)
         self.app = wx.GetApp()
-
+        # make splitter so panels are resizable
+        self.splitter = wx.SplitterWindow(self)
+        bSizer1.Add(self.splitter, proportion=1, border=6, flag=wx.EXPAND | wx.ALL)
+        # tabs panel
         self.lstPrefPages = wx.ListCtrl(
-            self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
-            wx.LC_ALIGN_TOP | wx.LC_ICON | wx.LC_SINGLE_SEL)
-        bSizer1.Add(self.lstPrefPages, 0,
-                    wx.BOTTOM | wx.EXPAND | wx.LEFT | wx.TOP, 5)
-
+            self.splitter, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
+            wx.LC_ALIGN_TOP | wx.LC_LIST | wx.LC_SINGLE_SEL)
+        # images for tabs panel
         prefsImageSize = wx.Size(48, 48)
         self.prefsIndex = 0
         self.prefsImages = wx.ImageList(
             prefsImageSize.GetWidth(), prefsImageSize.GetHeight())
-        self.lstPrefPages.AssignImageList(self.prefsImages, wx.IMAGE_LIST_NORMAL)
-
+        self.lstPrefPages.AssignImageList(self.prefsImages, wx.IMAGE_LIST_SMALL)
+        # property grid
         self.proPrefs = pg.PropertyGridManager(
-            self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
+            self.splitter, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
             wx.propgrid.PGMAN_DEFAULT_STYLE | wx.propgrid.PG_BOLD_MODIFIED |
             wx.propgrid.PG_DESCRIPTION | wx.TAB_TRAVERSAL)
         self.proPrefs.SetExtraStyle(wx.propgrid.PG_EX_MODE_BUTTONS)
+        # assign panels to splitter
+        self.splitter.SplitVertically(
+            self.lstPrefPages, self.proPrefs
+        )
+        # move sash to min extent of page ctrls
+        self.splitter.SetMinimumPaneSize(prefsImageSize[0] + 2)
 
-        bSizer1.Add(self.proPrefs, 1, wx.ALL | wx.EXPAND, 5)
+        if sys.platform == 'win32':
+            # works on windows only since it has a column
+            self.splitter.SetSashPosition(self.lstPrefPages.GetColumnWidth(0))
+        else:
+            # size that make sense on other platforms
+            self.splitter.SetSashPosition(150)
 
         self.SetSizer(bSizer1)
         self.Layout()
@@ -267,7 +121,7 @@ class PrefPropGrid(wx.Panel):
                                     list(sections))
         self.pageNames[name] = self.pageIdx
         self.lstPrefPages.InsertItem(
-            self.lstPrefPages.GetItemCount(), _localized[label], self.pageIdx)
+            self.lstPrefPages.GetItemCount(), label, self.pageIdx)
 
         self.pageIdx += 1
 
@@ -389,7 +243,7 @@ class PrefPropGrid(wx.Panel):
             pagePtr.Clear()
 
             for s in sections:
-                _ = pagePtr.Append(pg.PropertyCategory(_localized[s], s))
+                _ = pagePtr.Append(pg.PropertyCategory(s, s))
                 for name, prop in self.sections[s].items():
                     if name in prefs.legacy:
                         # If this is included in the config file only for legacy, don't show it
@@ -479,19 +333,40 @@ class PreferencesDlg(wx.Dialog):
 
         # add property pages to the manager
         self.proPrefs.addPage(
-            'General', 'general', ['general'],
-            'preferences-general')
+            label=_translate('General'),
+            name='general',
+            sections=['general'],
+            bitmap='preferences-general')
         self.proPrefs.addPage(
-            'Application', 'app', ['app', 'builder', 'coder'],
-            'preferences-app')
+            label=_translate('Application'),
+            name='app',
+            sections=['app', 'builder', 'coder'],
+            bitmap='preferences-app'
+        )
         self.proPrefs.addPage(
-            'Key Bindings', 'keyBindings', ['keyBindings'],
-            'preferences-keyboard')
+            label=_translate('Pilot mode'),
+            name='piloting',
+            sections=['piloting'],
+            bitmap='preferences-pilot'
+        )
         self.proPrefs.addPage(
-            'Hardware', 'hardware', ['hardware'], 'preferences-hardware')
+            label=_translate('Key Bindings'),
+            name='keyBindings',
+            sections=['keyBindings'],
+            bitmap='preferences-keyboard'
+        )
         self.proPrefs.addPage(
-            'Connections', 'connections', ['connections'],
-            'preferences-conn')
+            label=_translate('Hardware'),
+            name='hardware',
+            sections=['hardware'],
+            bitmap='preferences-hardware'
+        )
+        self.proPrefs.addPage(
+            label=_translate('Connections'),
+            name='connections',
+            sections=['connections'],
+            bitmap='preferences-conn'
+        )
         self.proPrefs.populateGrid()
 
         sbPrefs.Add(self.proPrefs, 1, wx.EXPAND)
@@ -593,10 +468,7 @@ class PreferencesDlg(wx.Dialog):
                         thisPref = thisPref.replace('Ctrl+', 'Cmd+')
 
                 # can we translate this pref?
-                try:
-                    pLabel = _localized[prefName]
-                except Exception:
-                    pLabel = prefName
+                pLabel = prefName
 
                 # get tooltips from comment lines from the spec, as parsed by
                 # configobj
@@ -649,8 +521,7 @@ class PreferencesDlg(wx.Dialog):
                         # set default locale ''
                         default = locales.index('')
                     # '' must be appended after other labels are translated
-                    labels = [_translate('system locale')] + [_localized[i] 
-                                     for i in self.app.localization.available]
+                    labels = [_translate('system locale') + i for i in self.app.localization.available]
                     self.proPrefs.addEnumItem(
                             sectionName,
                             pLabel,
@@ -717,7 +588,7 @@ class PreferencesDlg(wx.Dialog):
                         options = self.audioDevNames
                         try:
                             default = self.audioDevNames.index(
-                                self.audioDevDefault)
+                                self.audioDevDefault[0])
                         except ValueError:
                             default = 0
                     else:
@@ -738,10 +609,7 @@ class PreferencesDlg(wx.Dialog):
 
                     labels = []  # display only
                     for opt in options:
-                        try:
-                            labels.append(_localized[opt])
-                        except Exception:
-                            labels.append(opt)
+                        labels.append(opt)
 
                     self.proPrefs.addEnumItem(
                             sectionName,
@@ -795,8 +663,8 @@ class PreferencesDlg(wx.Dialog):
                     self.app.theme = self.prefsCfg[sectionName][prefName] = self.themeList[thisPref]
                     continue
                 elif prefName == 'audioDevice':
-                    self.prefsCfg[sectionName][prefName] = \
-                        self.audioDevNames[thisPref]
+                    self.audioDevDefault = [self.audioDevNames[thisPref]]
+                    self.prefsCfg[sectionName][prefName] = self.audioDevDefault
                     continue
                 elif prefName == 'locale':
                     # '' corresponds to system locale
@@ -832,12 +700,8 @@ class PreferencesDlg(wx.Dialog):
                             newVal = eval(thisPref)
                     except Exception:
                         # if eval() failed, show warning dialog and return
-                        try:
-                            pLabel = _localized[prefName]
-                            sLabel = _localized[sectionName]
-                        except Exception:
-                            pLabel = prefName
-                            sLabel = sectionName
+                        pLabel = prefName
+                        sLabel = sectionName
                         txt = _translate(
                             'Invalid value in "%(pref)s" ("%(section)s" Tab)')
                         msg = txt % {'pref': pLabel, 'section': sLabel}

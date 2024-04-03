@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Base class for serial devices. Includes some convenience methods to open
@@ -13,13 +13,50 @@ import sys
 import time
 
 from psychopy import logging
-try:
-    import serial
-except ImportError:
-    serial = False
+import serial
+from psychopy.tools import systemtools as st
+from psychopy.tools.attributetools import AttributeGetSetMixin
+from .base import BaseDevice
 
 
-class SerialDevice:
+def _findPossiblePorts():
+    if sys.platform == 'win32':
+        # get profiles for all serial port devices
+        profiles = st.systemProfilerWindowsOS(classname="Ports")
+        # get COM port for each device
+        final = []
+        for profile in profiles:
+            # find "COM" in profile description
+            desc = profile['Device Description']
+            start = desc.find("COM") + 3
+            end = desc.find(")", start)
+            # skip this profile if there's no reference to a COM port
+            if -1 in (start, end):
+                continue
+            # get COM port number
+            num = desc[start:end]
+            # skip this profile if COM port number doesn't look numeric
+            if not num.isnumeric():
+                continue
+            # store COM port
+            final.append(f"COM{num}")
+    else:
+        # on linux and mac the options are too wide so use serial.tools
+        from serial.tools import list_ports
+        poss = list_ports.comports()
+        # filter out any that report 'n/a' for their hardware
+        final = []
+        for p in poss:
+            if p[2] != 'n/a':
+                final.append(p[0])  # just the port address
+    return final
+
+
+# map out all ports on this device, to be filled as serial devices are initialised
+ports = {port: None for port in _findPossiblePorts()}
+
+
+class SerialDevice(BaseDevice, AttributeGetSetMixin):
     """A base class for serial devices, to be sub-classed by specific devices
 
     If port=None then the SerialDevice.__init__() will search for the device
@@ -30,6 +67,24 @@ class SerialDevice:
     longName = ""
     # list of supported devices (if more than one supports same protocol)
     driverFor = []
+
+    def __new__(cls, *args, **kwargs):
+        import inspect
+        # convert args to kwargs
+        argNames = inspect.getfullargspec(cls.__init__).args
+        for i, arg in enumerate(args):
+            kwargs[argNames[i]] = arg
+        # iterate through existing devices
+        for other in ports.values():
+            # skip None
+            if other is None:
+                continue
+            # if device already represented, use existing object
+            if other.isSameDevice(kwargs):
+                return other
+
+        # if first object to represent this device, make as normal
+        return super(BaseDevice, cls).__new__(cls)
 
     def __init__(self, port=None, baudrate=9600,
                  byteSize=8, stopBits=1,
@@ -45,11 +100,11 @@ class SerialDevice:
 
         # get a list of port names to try
         if port is None:
-            ports = self._findPossiblePorts()
+            tryPorts = self._findPossiblePorts()
         elif type(port) in [int, float]:
-            ports = ['COM%i' % port]
+            tryPorts = ['COM%i' % port]
         else:
-            ports = [port]
+            tryPorts = [port]
 
         self.pauseDuration = pauseDuration
         self.com = None
@@ -62,14 +117,15 @@ class SerialDevice:
         self.type = self.name  # for backwards compatibility
 
         # try to open the port
-        for portString in ports:
+        for portString in tryPorts:
             try:
                 self.com = serial.Serial(
                     portString,
                     baudrate=baudrate, bytesize=byteSize,    # number of data bits
                     parity=parity,    # enable parity checking
                     stopbits=stopBits,  # number of stop bits
-                    timeout=3,             # set a timeout value, None for waiting forever
+                    timeout=self.pauseDuration * 3,             # set a timeout value, None for
+                    # waiting forever
                     xonxoff=0,             # enable software flow control
                     rtscts=0,)              # enable RTS/CTS flow control
 
@@ -115,30 +171,18 @@ class SerialDevice:
         if self.OK:  # we have successfully sent and read a command
             msg = "Successfully opened %s with a %s"
             logging.info(msg % (self.portString, self.name))
+            # store device in ports dict
+            global ports
+            ports[port] = self
         # we aren't in a time-critical period so flush messages
         logging.flush()
-
-    def _findPossiblePorts(self):
-        # serial's built-in check doesn't work too well on win32 so just try
-        # all
-        if sys.platform == 'win32':
-            return ['COM' + str(i) for i in range(20)]
-        # on linux and mac the options are too wide so use serial.tools
-        from serial.tools import list_ports
-        poss = list_ports.comports()
-        # filter out any that report 'n/a' for their hardware
-        final = []
-        for p in poss:
-            if p[2] != 'n/a':
-                final.append(p[0])  # just the port address
-        return final
 
     def isAwake(self):
         """This should be overridden by the device class
         """
         # send a command to the device and check the response matches what
         # you expect; then return True or False
-        raise NotImplementedError
+        return True
 
     def pause(self):
         """Pause for a default period for this device
@@ -188,6 +232,97 @@ class SerialDevice:
             retVal = retVal.decode('utf-8')
         return retVal
 
+    def awaitResponse(self, multiline=False, timeout=None):
+        """
+        Repeatedly request responses until one arrives, or until a timeout is hit.
+
+        Parameters
+        ----------
+        multiline : bool
+            Look for additional lines after the first? WARNING: May be slow if there are none.
+        timeout
+            Time after which to give up waiting (by default is 10x pause length)
+
+        Returns
+        -------
+        str
+            The message eventually received
+        """
+        # default timeout
+        if timeout is None:
+            timeout = 1
+        # set timeout
+        self.com.timeout = self.pauseDuration
+        # get start time
+        start = time.time()
+        t = time.time() - start
+        # get responses until we have one
+        resp = b""
+        while not resp and t < timeout:
+            t = time.time() - start
+            resp = self.com.read()
+        # get remaining chars
+        resp += self.com.readall()
+        # if we timed out, return None
+        if t > timeout:
+            return
+        # decode to str
+        resp = resp.decode('utf-8')
+        # if multiline, split by eol
+        if multiline:
+            resp = resp.split(str(self.eol))
+
+        return resp
+
+    def isSameDevice(self, other):
+        """
+        Determine whether this object represents the same physical device as a given other object.
+
+        Parameters
+        ----------
+        other : SerialDevice, dict
+            Other SerialDevice to compare against, or a dict of params (which must include
+            `port` as a key)
+
+        Returns
+        -------
+        bool
+            True if the two objects represent the same physical device
+        """
+        if isinstance(other, SerialDevice):
+            # if given another object, get port
+            portString = other.portString
+        elif isinstance(other, dict) and "port" in other:
+            # if given a dict, get port from key
+            portString = other['port']
+            # make sure port is in the correct format
+            if not other['port'].startswith("COM"):
+                portString = "COM" + other['port']
+        else:
+            # if the other object is the wrong type or doesn't have a port, it's not this
+            return False
+
+        return self.portString == portString
+
+    @staticmethod
+    def getAvailableDevices():
+        ports = st.getSerialPorts()
+        devices = []
+        for profile in ports:
+            device = {
+                'deviceName': profile.get('device_name', "Unknown Serial Device"),
+                'port': profile.get('port', None),
+                'baudrate': profile.get('baudrate', 9600),
+                'byteSize': profile.get('bytesize', 8),
+                'stopBits': profile.get('stopbits', 1),
+                'parity': profile.get('parity', "N"),
+            }
+            devices.append(device)
+        return devices
+
+    def close(self):
+        self.com.close()
+
     def __del__(self):
         if self.com is not None:
             self.com.close()
@@ -197,6 +332,10 @@ class SerialDevice:
         if self.com is None:
             return None
         return self.com.isOpen()
+
+    @staticmethod
+    def _findPossiblePorts():
+        return _findPossiblePorts()
 
 
 if __name__ == "__main__":

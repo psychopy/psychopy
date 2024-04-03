@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Backends provide the window creation and flipping commands.
@@ -11,15 +11,9 @@
 import psychopy.plugins as plugins
 from ._base import BaseBackend
 
-# Keep track of currently installed window backends. When a window is loaded,
-# its `winType` is looked up here and the matching backend is loaded. Plugins
-# which define entry points into this module will update `winTypes` if they
-# define subclasses of `BaseBackend` that have valid names.
-winTypes = {
-    'pyglet': '.pygletbackend.PygletBackend',
-    'glfw': '.glfwbackend.GLFWBackend',  # moved to plugin
-    'pygame': '.pygamebackend.PygameBackend'
-}
+# Alias plugins.winTypes here, such that any plugins referencing visual.winTypes
+# will also update the matching dict in plugins
+winTypes = plugins._winTypes
 
 
 def getBackend(win, *args, **kwargs):

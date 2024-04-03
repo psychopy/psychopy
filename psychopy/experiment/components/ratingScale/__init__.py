@@ -2,37 +2,14 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
 from psychopy.tools.stringtools import getArgs
 from psychopy.experiment.components import BaseComponent, Param, _translate
-from psychopy.localization import _localized as __localized
-_localized = __localized.copy()
 
 __author__ = 'Jeremy Gray'
-
-# only use _localized values for label values, nothing functional:
-_localized.update({'visualAnalogScale': _translate('Visual analog scale'),
-                   'categoryChoices': _translate('Category choices'),
-                   'scaleDescription': _translate('Scale description'),
-                   'low': _translate('Lowest value'),
-                   'high': _translate('Highest value'),
-                   'labels': _translate('Labels'),
-                   'marker': _translate('Marker type'),
-                   'markerStart': _translate('Marker start'),
-                   'size': _translate('Size'),
-                   'pos': _translate('Position [x,y]'),
-                   'tickHeight': _translate('Tick height'),
-                   'disappear': _translate('Disappear'),
-                   'forceEndRoutine': _translate('Force end of Routine'),
-                   'showAccept': _translate('Show accept'),
-                   'singleClick': _translate('Single click'),
-                   'storeHistory': _translate('Store history'),
-                   'storeRating': _translate('Store rating'),
-                   'storeRatingTime': _translate('Store rating time'),
-                   'customize_everything': _translate('Customize everything :')})
 
 
 class RatingScaleComponent(BaseComponent):
@@ -352,9 +329,6 @@ class RatingScaleComponent(BaseComponent):
                     code = "%s.addData('%s.history', %s.getHistory())\n"
                     buff.writeIndented(code % (currLoop.params['name'],
                                                name, name))
-                if currLoop.params['name'].val == self.exp._expHandler.name:
-                    buff.writeIndented("%s.nextEntry()\n" %
-                                       self.exp._expHandler.name)
             else:
                 buff.writeIndented("# RatingScaleComponent: unknown loop "
                                    "type, not saving any data.\n")

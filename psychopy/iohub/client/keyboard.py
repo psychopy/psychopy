@@ -262,7 +262,7 @@ class Keyboard(ioHubDeviceView):
 
     @property
     def reporting(self):
-        """Specifies if the the keyboard device is reporting / recording
+        """Specifies if the keyboard device is reporting / recording
         events.
 
           * True:  keyboard events are being reported.
@@ -335,7 +335,8 @@ class Keyboard(ioHubDeviceView):
             return []
 
         def filterEvent(e):
-            r1 = (keys is None or e.key in keys) and (ignoreKeys is None or e.key not in ignoreKeys)
+            r1 = (keys is None or e.key in keys) and (
+                ignoreKeys is None or e.key not in ignoreKeys)
             r2 = (chars is None or e.char in chars)
             r3 = True
             if duration is not None:
@@ -348,11 +349,13 @@ class Keyboard(ioHubDeviceView):
         press_evt = []
         release_evt = []
         if etype is None or etype == Keyboard.KEY_PRESS:
-            press_evt = [e for e in self._events.get(self.KEY_PRESS,
-                                                     []) if filterEvent(e)]
+            press_evt = [
+                e for e in self._events.get(
+                    Keyboard.KEY_PRESS, []) if filterEvent(e)]
         if etype is None or etype == Keyboard.KEY_RELEASE:
-            release_evt = [e for e in self._events.get(self.KEY_RELEASE,
-                                                       []) if filterEvent(e)]
+            release_evt = [
+                e for e in self._events.get(
+                    Keyboard.KEY_RELEASE, []) if filterEvent(e)]
 
         return_events = sorted(press_evt + release_evt, key=lambda x: x.time)
 
@@ -437,7 +440,14 @@ class Keyboard(ioHubDeviceView):
         key = []
 
         def pumpKeys():
-            key = self.getKeys(keys, chars, mods, duration, etype, clear)
+            key = self.getKeys(
+                keys=keys,
+                chars=chars,
+                mods=mods,
+                duration=duration,
+                etype=etype,
+                clear=clear
+            )
             if key:
                 return key
             win32MessagePump()
@@ -469,8 +479,16 @@ class Keyboard(ioHubDeviceView):
 
         This method is identical, but only returns KeyboardPress events.
         """
-        return self.waitForKeys(maxWait, keys, chars, mods, duration,
-                                self.KEY_PRESS, clear, checkInterval)
+        return self.waitForKeys(
+            maxWait=maxWait,
+            keys=keys,
+            chars=chars,
+            mods=mods,
+            duration=duration,
+            etype=Keyboard.KEY_PRESS,  # used this instead of `self.KEY_PRESS`
+            clear=clear,
+            checkInterval=checkInterval
+        )
 
     def waitForReleases(self, maxWait=None, keys=None, chars=None, mods=None,
                         duration=None, clear=True, checkInterval=0.002):
@@ -478,5 +496,13 @@ class Keyboard(ioHubDeviceView):
 
         This method is identical, but only returns KeyboardRelease events.
         """
-        return self.waitForKeys(maxWait, keys, chars, mods, duration,
-                                self.KEY_RELEASE, clear, checkInterval)
+        return self.waitForKeys(
+            maxWait=maxWait,
+            keys=keys,
+            chars=chars,
+            mods=mods,
+            duration=duration,
+            etype=Keyboard.KEY_RELEASE,  # used this instead of `self.KEY_RLEASE`
+            clear=clear,
+            checkInterval=checkInterval
+        )

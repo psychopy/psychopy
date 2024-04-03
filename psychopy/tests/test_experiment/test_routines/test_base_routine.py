@@ -70,6 +70,24 @@ class _TestBaseStandaloneRoutinesMixin:
                         f"in {type(rt).__name__} not found in {target} script."
                     )
 
+    def testDeviceClassRefs(self):
+        """
+        Check that any references to device classes in this Routine object point to classes which
+        exist.
+        """
+        # skip test if this element doesn't point to any hardware class
+        if not hasattr(self.rt, "deviceClasses"):
+            pytest.skip()
+            return
+        # get device manager
+        from psychopy.hardware import DeviceManager
+        # iterate through device classes
+        for deviceClass in self.rt.deviceClasses:
+            # resolve any aliases
+            deviceClass = DeviceManager._resolveAlias(deviceClass)
+            # try to import class
+            DeviceManager._resolveClassString(deviceClass)
+
 
 class _TestDisabledMixin:
     def test_disabled_default_val(self):

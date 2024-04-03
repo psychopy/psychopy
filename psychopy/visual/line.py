@@ -6,7 +6,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 
@@ -21,7 +21,10 @@ from psychopy.tools.attributetools import attributeSetter, setAttribute
 
 
 class Line(ShapeStim):
-    """Creates a Line between two points.
+    """Creates a Line between two points. This is
+    a lazy-imported class, therefore import using full path 
+    `from psychopy.visual.line import Line` when
+    inheriting from it.
 
     `Line` accepts all input parameters, that :class:`~psychopy.visual.ShapeStim`
     accepts, except for `vertices`, `closeShape` and `fillColor`.

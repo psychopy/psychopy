@@ -2,21 +2,12 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals
-from psychopy.localization import _translate, _localized as __localized
-_localized = __localized.copy()
-
-# only use _localized values for label values, nothing functional:
-_localized.update({'image': _translate('Image'),
-                   'mask': _translate('Mask'),
-                   'texture resolution': _translate('Texture resolution'),
-                   'flipVert': _translate('Flip vertically'),
-                   'flipHoriz': _translate('Flip horizontally'),
-                   'interpolate': _translate('Interpolate')})
+from psychopy.localization import _translate
 
 
 class ImageComponent(BaseVisualComponent):

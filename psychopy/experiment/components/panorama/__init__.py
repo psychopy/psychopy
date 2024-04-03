@@ -3,10 +3,6 @@
 
 from pathlib import Path
 from psychopy.experiment.components import Param, _translate, getInitVals, BaseVisualComponent
-from psychopy import prefs
-
-# only use _localized values for label values, nothing functional:
-_localized = {'name': _translate("Name")}
 
 
 class PanoramaComponent(BaseVisualComponent):

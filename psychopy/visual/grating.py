@@ -6,7 +6,7 @@ in either dimension. One of the main stimuli for PsychoPy.
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
@@ -35,7 +35,9 @@ import numpy
 class GratingStim(BaseVisualStim, DraggingMixin, TextureMixin, ColorMixin,
                   ContainerMixin):
     """Stimulus object for drawing arbitrary bitmaps that can repeat (cycle) in
-    either dimension.
+    either dimension. This is a lazy-imported class, therefore import using 
+    full path `from psychopy.visual.grating import GratingStim` when inheriting
+    from it.
 
     One of the main stimuli for PsychoPy.
 
@@ -206,6 +208,7 @@ class GratingStim(BaseVisualStim, DraggingMixin, TextureMixin, ColorMixin,
         GL.glGenTextures(1, ctypes.byref(self._maskID))
         self.__dict__['texRes'] = texRes  # must be power of 2
         self.interpolate = interpolate
+        self._needTextureUpdate = True
 
         # NB Pedestal isn't currently being used during rendering - this is a
         # place-holder
@@ -314,46 +317,6 @@ class GratingStim(BaseVisualStim, DraggingMixin, TextureMixin, ColorMixin,
         # Recode phase to numpy array
         value = val2array(value)
         self.__dict__['phase'] = value
-        self._needUpdate = True
-
-    # overload ColorMixin methods so that they refresh the image after being called
-    @property
-    def foreColor(self):
-        # Call setter of parent mixin
-        return ColorMixin.foreColor.fget(self)
-
-    @foreColor.setter
-    def foreColor(self, value):
-        # Call setter of parent mixin
-        ColorMixin.foreColor.fset(self, value)
-        # Reset texture
-        self._needTextureUpdate = True
-        self._needUpdate = True
-
-    @property
-    def contrast(self):
-        # Call setter of parent mixin
-        return ColorMixin.contrast.fget(self)
-
-    @contrast.setter
-    def contrast(self, value):
-        # Call setter of parent mixin
-        ColorMixin.contrast.fset(self, value)
-        # Reset texture
-        self._needTextureUpdate = True
-        self._needUpdate = True
-
-    @property
-    def opacity(self):
-        # Call setter of parent mixin
-        return BaseVisualStim.opacity.fget(self)
-
-    @opacity.setter
-    def opacity(self, value):
-        # Call setter of parent mixin
-        BaseVisualStim.opacity.fset(self, value)
-        # Reset texture
-        self._needTextureUpdate = True
         self._needUpdate = True
 
     @attributeSetter
