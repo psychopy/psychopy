@@ -63,7 +63,7 @@ class SoundComponent(BaseDeviceComponent):
                          " to specify Hz (e.g. 440) or a filename")
         self.params['sound'] = Param(
             sound, valType='str', inputType="file", allowedTypes=[], updates='constant', categ='Basic',
-            allowedUpdates=['constant', 'set every repeat'],
+            allowedUpdates=['set every repeat'],
             hint=hnt,
             label=_translate("Sound"))
         _allowed = ['constant', 'set every repeat', 'set every frame']
