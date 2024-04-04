@@ -37,7 +37,8 @@ SIGN_ALL = True
 
 
 class AppSigner:
-    def __init__(self, appFile, version, identity='', pword='', destination=None, verbose=False):
+    def __init__(self, appFile, version, destination=None, verbose=False,
+                 team_id='', apple_id='', pword=''):
         self.appFile = Path(appFile)
         self.version = version
         self.destination = destination
@@ -46,7 +47,8 @@ class AppSigner:
         self._dmgBuildFile = None
         self._pword = pword
         self.verbose = verbose
-        self._identity = identity
+        self._apple_id = apple_id
+        self._team_id = team_id
 
     def signAll(self, verbose=None):
         if verbose is None:
@@ -96,10 +98,10 @@ class AppSigner:
                        appFile=False):
         if verbose is None:
             verbose = self.verbose
-        if not self._identity:
+        if not self._apple_id:
             raise ValueError('No identity provided for signing')
         cmd = ['codesign', str(filename),
-               '--sign',  self._identity,
+               '--sign',  self._apple_id,
                '--entitlements', str(ENTITLEMENTS),
                '--force',
                '--timestamp',
@@ -154,7 +156,10 @@ class AppSigner:
             raise ValueError('No app-specific password provided for notarizing')
         filename = Path(fileToNotarize).name
         print(f'Sending {filename} to apple for notarizing')
-        cmdStr = (f'xcrun notarytool submit {fileToNotarize} --keychain-profile "ost-notarization"')
+        cmdStr = (f'xcrun notarytool submit {fileToNotarize} '
+                  f'--apple-id "{self._apple_id}" '
+                  f'--team-id "{self._team_id}" '
+                  f'--password "{self._pword}"')
         # cmdStr = (f"xcrun altool --notarize-app -t osx -f {fileToNotarize} "
         #           f"--primary-bundle-id {BUNDLE_ID} -u {USERNAME} ")
         print(cmdStr)
@@ -329,7 +334,9 @@ def main():
                         action='store', required=False, default='true')
     parser.add_argument("--runPostDmgBuild", help="Runs up until dmg is built (and notarised) then exits",
                         action='store', required=False, default='true')
-    parser.add_argument("--id", help="ost id for codesigning",
+    parser.add_argument("--teamid", help="ost id from apple for codesigning",
+                        action='store', required=False, default=None)
+    parser.add_argument("--appleid", help="apple id for codesigning",
                         action='store', required=False, default=None)
     parser.add_argument("--pwd", help="password for app-specific password",
                         action='store', required=False, default=None)
@@ -343,12 +350,17 @@ def main():
     else:
         NOTARIZE = True
 
-    # codesigning identity from CLI args?
-    if args.id:
-        IDENTITY = args.id
+    # codesigning TEAM_ID from CLI args?
+    if args.teamid:
+        TEAM_ID = args.teamid
     else:
         with Path().home()/ 'keys/apple_ost_id' as p:
-            IDENTITY = p.read_text().strip()
+            TEAM_ID = p.read_text().strip()
+    if args.appleid:
+        APPLE_ID = args.appleid
+    else:
+        with Path().home()/ 'keys/apple_id' as p:
+            APPLE_ID = p.read_text().strip()
     if args.pwd:
         PWORD = args.pwd
     else:
@@ -357,7 +369,8 @@ def main():
             
     if args.file:  # not the whole app - just sign one file
         distFolder = (thisFolder / '../dist').resolve()
-        signer = AppSigner(appFile='', version=None, pword=PWORD, identity=IDENTITY)
+        signer = AppSigner(appFile='', version=None, 
+                           pword=PWORD, teamd_id=TEAM_ID, apple_id=APPLE_ID)
         signer.signSingleFile(args.file, removeFailed=False, verbose=True)
         signer.signCheck(args.file, verbose=True)
 
@@ -369,7 +382,8 @@ def main():
 
     else:  # full app signing and notarization
         distFolder = (thisFolder / '../dist').resolve()
-        signer = AppSigner(appFile=distFolder/args.app, version=args.version, pword=PWORD, identity=IDENTITY)
+        signer = AppSigner(appFile=distFolder/args.app, version=args.version, 
+                           pword=PWORD, teamd_id=TEAM_ID, apple_id=APPLE_ID)
 
         if args.runPreDmgBuild:
             if SIGN_ALL:
