@@ -101,7 +101,7 @@ class AppSigner:
         if not self._apple_id:
             raise ValueError('No identity provided for signing')
         cmd = ['codesign', str(filename),
-               '--sign',  self._apple_id,
+               '--sign',  self._team_id,
                '--entitlements', str(ENTITLEMENTS),
                '--force',
                '--timestamp',
