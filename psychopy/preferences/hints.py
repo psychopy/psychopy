@@ -162,22 +162,37 @@ _translate("audio device to use (if audioLib allows control)")
 _translate("a list of parallel ports")
 
 # baseNoArch.spec,[hardware],line131
-_translate("the http proxy for usage stats and auto-updating; format is host: port")
+_translate("The name of the Qmix pump configuration to use")
 
 # baseNoArch.spec,[hardware],line133
+_translate("Prevent the experiment from being fullscreen when piloting")
+
+# baseNoArch.spec,[hardware],line135
+_translate("How much output to include in the log files when piloting ('error' is fewest messages, 'debug' is most)")
+
+# baseNoArch.spec,[hardware],line137
+_translate("Show an orange border around the window when in piloting mode")
+
+# baseNoArch.spec,[hardware],line139
+_translate("Prevent experiment from enabling rush mode when piloting")
+
+# baseNoArch.spec,[hardware],line142
+_translate("the http proxy for usage stats and auto-updating; format is host: port")
+
+# baseNoArch.spec,[piloting],line144
 _translate(
     "override the above proxy settings with values found in the environment (if possible)")
 
-# baseNoArch.spec,[hardware],line135
+# baseNoArch.spec,[piloting],line146
 _translate("allow PsychoPy to send anonymous usage stats; please allow if possible, it helps PsychoPy's development")
 
-# baseNoArch.spec,[hardware],line137
+# baseNoArch.spec,[piloting],line148
 _translate("allow PsychoPy to check for new features and bug fixes")
 
-# baseNoArch.spec,[hardware],line139
+# baseNoArch.spec,[piloting],line150
 _translate("max time to wait for a connection response")
 
-# baseNoArch.spec,[hardware],line142
+# baseNoArch.spec,[piloting],line153
 _translate("open an existing file")
 
 # baseNoArch.spec,[connections],line155
