@@ -169,7 +169,7 @@ class PluginInfo:
                     if ext in pil.registered_extensions():
                         content = requests.get(self._requestedIcon).content
                         writeOut = os.path.join(appPluginCacheDir, fname)
-                        with open(writeOut, 'wb') as f:
+                        with open(writeOut, 'wb', encoding='utf-8') as f:
                             f.write(content)
                         self._icon = utils.ImageData(os.path.join(
                             appPluginCacheDir, fname))
@@ -1253,7 +1253,7 @@ def getAllPluginDetails():
             return None
         # attempt to parse JSON
         try:
-            with srcFile.open("r") as f:
+            with srcFile.open("r", encoding="utf-8") as f:
                 return json.load(f)
         except json.decoder.JSONDecodeError:
             # if JSON parse fails, return nothing
@@ -1283,7 +1283,7 @@ def getAllPluginDetails():
         if str(pluginDatabase) != str(localPluginDatabase):
             deletePluginDlgCache()
             # write new contents to file
-            with pluginDatabaseFile.open("w") as f:
+            with pluginDatabaseFile.open("w", encoding='utf-8') as f:
                 json.dump(pluginDatabase, f, indent=True)
 
     elif localPluginDatabase is not None:
