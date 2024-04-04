@@ -164,12 +164,9 @@ class SoundComponent(BaseDeviceComponent):
         buff.writeIndented("%(name)s.setVolume(%(volume)s)\n" % inits)
 
     def writeRoutineStartCode(self, buff):
-        if self.params['stopVal'].val in [None, 'None', '']:
-            buff.writeIndentedLines("%(name)s.setSound(%(sound)s, hamming=%(hamming)s)\n"
-                                    "%(name)s.setVolume(%(volume)s, log=False)\n" % self.params)
-        else:
-            buff.writeIndentedLines("%(name)s.setSound(%(sound)s, secs=%(stopVal)s, hamming=%(hamming)s)\n"
-                                    "%(name)s.setVolume(%(volume)s, log=False)\n" % self.params)
+        # write base code
+        BaseDeviceComponent.writeRoutineStartCode(self, buff)
+        # seek back to 0
         code = (
             "%(name)s.seek(0)\n"
         )
