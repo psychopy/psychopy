@@ -370,7 +370,7 @@ def main():
     if args.file:  # not the whole app - just sign one file
         distFolder = (thisFolder / '../dist').resolve()
         signer = AppSigner(appFile='', version=None, 
-                           pword=PWORD, teamd_id=TEAM_ID, apple_id=APPLE_ID)
+                           pword=PWORD, team_id=TEAM_ID, apple_id=APPLE_ID)
         signer.signSingleFile(args.file, removeFailed=False, verbose=True)
         signer.signCheck(args.file, verbose=True)
 
@@ -383,7 +383,7 @@ def main():
     else:  # full app signing and notarization
         distFolder = (thisFolder / '../dist').resolve()
         signer = AppSigner(appFile=distFolder/args.app, version=args.version, 
-                           pword=PWORD, teamd_id=TEAM_ID, apple_id=APPLE_ID)
+                           pword=PWORD, team_id=TEAM_ID, apple_id=APPLE_ID)
 
         if args.runPreDmgBuild:
             if SIGN_ALL:
