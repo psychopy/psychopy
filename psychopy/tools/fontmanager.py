@@ -32,23 +32,23 @@ from psychopy.exceptions import MissingFontError
 #  OS Font paths
 _X11FontDirectories = [
     # an old standard installation point
-    "/usr/X11R6/lib/X11/fonts/TTF",
-    "/usr/X11/lib/X11/fonts",
+    Path("/usr/X11R6/lib/X11/fonts/TTF"),
+    Path("/usr/X11/lib/X11/fonts"),
     # here is the new standard location for fonts
-    "/usr/share/fonts",
+    Path("/usr/share/fonts"),
     # documented as a good place to install new fonts
-    "/usr/local/share/fonts",
+    Path("/usr/local/share/fonts"),
     # common application, not really useful
-    "/usr/lib/openoffice/share/fonts/truetype",
+    Path("/usr/lib/openoffice/share/fonts/truetype"),
 ]
 
 _OSXFontDirectories = [
-    "/Library/Fonts/",
-    str(Path.home() / "Library" / "Fonts"),
-    "/Network/Library/Fonts",
-    "/System/Library/Fonts",
+    Path("/Library/Fonts/"),
+    Path.home() / "Library" / "Fonts",
+    Path("/Network/Library/Fonts"),
+    Path("/System/Library/Fonts"),
     # fonts installed via MacPorts
-    "/opt/local/share/fonts",
+    Path("/opt/local/share/fonts"),
 ]
 
 _weightMap = {
@@ -671,6 +671,10 @@ def findFontFiles(folders=None, recursive=True):
     # if no folders given, start off with blank list
     if folders is None:
         folders = []
+    # make sure folders are all paths
+    for i, thisFolder in enumerate(folders):
+        if not isinstance(thisFolder, Path):
+            folders[i] = Path(thisFolder)
     # add packaged assets folder
     folders.append(
         Path(prefs.paths['assets']) / "fonts"
