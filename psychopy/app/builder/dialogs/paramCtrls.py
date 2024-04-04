@@ -362,9 +362,9 @@ class ChoiceCtrl(wx.Choice, _ValidatorMixin, _HideMixin):
         _labels = {}
         for i, value in enumerate(choices):
             if i < len(labels):
-                _labels[value] = labels[i]
+                _labels[value] = _translate(labels[i]) if labels[i] != '' else ''
             else:
-                _labels[value] = value
+                _labels[value] = _translate(value) if value != '' else ''
         labels = _labels
         # store labels and choices
         self.labels = labels

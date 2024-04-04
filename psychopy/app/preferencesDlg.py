@@ -521,7 +521,8 @@ class PreferencesDlg(wx.Dialog):
                         # set default locale ''
                         default = locales.index('')
                     # '' must be appended after other labels are translated
-                    labels = [_translate('system locale') + i for i in self.app.localization.available]
+                    labels = self.app.localization.available.copy()
+                    labels.insert(0, _translate('system locale'))
                     self.proPrefs.addEnumItem(
                             sectionName,
                             pLabel,
