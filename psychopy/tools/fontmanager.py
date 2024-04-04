@@ -944,6 +944,45 @@ class FontManager():
         fontPaths = findFontFiles([fontDir], recursive=recursive)
         return self.addFontFiles(fontPaths)
 
+    @staticmethod
+    def isFamily(font, family):
+        """
+        Check whether a font is of a particular family
+
+        Parameters
+        ----------
+        font : freetype.Face
+            Font object whose family attribute to check
+        family : str
+            Family name to check against
+
+        Returns
+        -------
+        bool
+            True if the given font appears to be of the given family
+        """
+        # get font name
+        fontName = font.family_name.decode("utf-8")
+        # if it's already a perfect match, our work here is done!
+        if fontName == family:
+            return True
+        # convert both names to lowercase
+        fontName = fontName.lower()
+        family = family.lower()
+        # do they match now?
+        if fontName == family:
+            return True
+        # convert space-like chars to underscores
+        spacelike = r"[\s\t-_+]"
+        fontName = re.sub(pattern=spacelike, repl="_", string=fontName)
+        family = re.sub(pattern=spacelike, repl="_", string=family)
+        # do they match now?
+        if fontName == family:
+            return True
+
+        # if this all failed, it's not the same family
+        return False
+
     # Class methods for FontManager below this comment should not need to be
     # used by user scripts in most situations. Accessing them is okay.
 
