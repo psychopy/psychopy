@@ -24,13 +24,13 @@ from bidi import algorithm as bidi
 import re
 
 from ..aperture import Aperture
-from ..basevisual import BaseVisualStim, ColorMixin, ContainerMixin, WindowMixin
+from ..basevisual import (
+    BaseVisualStim, ColorMixin, ContainerMixin, WindowMixin, DraggingMixin
+)
 from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.tools import mathtools as mt
-from psychopy.tools.arraytools import val2array
-from psychopy.tools.monitorunittools import convertToPix
 from psychopy.colors import Color
-from .fontmanager import FontManager, GLFont
+from psychopy.tools.fontmanager import FontManager, GLFont
 from .. import shaders
 from ..rect import Rect
 from ... import core, alerts, layout
@@ -66,7 +66,7 @@ debug = False
 # If text is ". " we don't want to start next line with single space?
 
 
-class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
+class TextBox2(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin):
     def __init__(self, win, text,
                  font="Open Sans",
                  pos=(0, 0), units=None, letterHeight=None,
@@ -80,6 +80,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                  italic=False,
                  placeholder="Type here...",
                  lineSpacing=None,
+                 letterSpacing=None,
                  padding=None,  # gap between box and text
                  speechPoint=None,
                  anchor='center',
@@ -90,6 +91,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                  editable=False,
                  overflow="visible",
                  lineBreaking='default',
+                 draggable=False,
                  name='',
                  autoLog=None,
                  autoDraw=False,
@@ -132,6 +134,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         lineBreaking: Specifying 'default', text will be broken at a set of
             characters defined in the module. Specifying 'uax14', text will be
             broken in accordance with UAX#14 (Unicode Line Breaking Algorithm).
+        draggable : bool
+            Can this stimulus be dragged by a mouse click?
         name
         autoLog
         """
@@ -142,6 +146,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.colorSpace = colorSpace
         ColorMixin.foreColor.fset(self, color)  # Have to call the superclass directly on init as text has not been set
         self.onTextCallback = onTextCallback
+        self.draggable = draggable
 
         # Box around the whole textbox - drawn
         self.box = Rect(
@@ -189,6 +194,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.font = font
         if lineSpacing is not None:
             self.lineSpacing = lineSpacing
+        self.letterSpacing = letterSpacing
         # If font not found, default to Open Sans Regular and raise alert
         if not self.glFont:
             alerts.alert(4325, self, {
@@ -373,6 +379,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 shape='square', units=self.units,
                 autoLog=False
             )
+            self.container.disable()
         if value in ("scroll",):
             # If needed, create Slider
             from ..slider import Slider  # Slider contains textboxes, so only import now
@@ -591,6 +598,11 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             # If given an array, convert it to a Vector
             self._letterHeight = layout.Size(value, units=self.units, win=self.win)
 
+    def setLetterHeight(self, value, log=None):
+        setAttribute(
+            self, "letterHeight", value=value, log=log
+        )
+
     @property
     def letterHeightPix(self):
         """
@@ -610,6 +622,21 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         if hasattr(self.glFont, "lineSpacing"):
             self.glFont.lineSpacing = value
         self._needVertexUpdate = True
+
+    @attributeSetter
+    def letterSpacing(self, value):
+        """
+        Distance between letters, relative to the current font's default. Set as None or 1
+        to use font default unchanged.
+        """
+        # Default is 1
+        if value is None:
+            value = 1
+        # Set
+        self.__dict__['letterSpacing'] = value
+        # If text has been set, layout
+        if hasattr(self, "_text"):
+            self._layout()
 
     @property
     def fontMGR(self):
@@ -898,7 +925,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 else:
                     self._colors[i*4 : i*4+4, :4] = rgb # set default color
                 self._lineNs[i] = lineN
-                current[0] = current[0] + glyph.advance[0] + fakeBold / 2
+                current[0] = current[0] + (glyph.advance[0] + fakeBold / 2) * self.letterSpacing
                 current[1] = current[1] + glyph.advance[1]
 
                 # are we wrapping the line?

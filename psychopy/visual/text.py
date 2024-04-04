@@ -5,7 +5,7 @@
 '''
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import os
@@ -28,8 +28,9 @@ from psychopy import logging
 # (JWP has no idea why!)
 from psychopy.tools.monitorunittools import cm2pix, deg2pix, convertToPix
 from psychopy.tools.attributetools import attributeSetter, setAttribute
-from psychopy.visual.basevisual import (BaseVisualStim, ForeColorMixin,
-                                        ContainerMixin, WindowMixin)
+from psychopy.visual.basevisual import (
+    BaseVisualStim, DraggingMixin, ForeColorMixin, ContainerMixin, WindowMixin
+)
 from psychopy.colors import Color
 
 # for displaying right-to-left (possibly bidirectional) text correctly:
@@ -70,7 +71,7 @@ defaultWrapWidth = {'cm': 15.0,
                     'pixels': 500}
 
 
-class TextStim(BaseVisualStim, ForeColorMixin, ContainerMixin):
+class TextStim(BaseVisualStim, DraggingMixin, ForeColorMixin, ContainerMixin):
     """Class of text stimuli to be displayed in a
     :class:`~psychopy.visual.Window`
     """
@@ -101,6 +102,7 @@ class TextStim(BaseVisualStim, ForeColorMixin, ContainerMixin):
                  flipHoriz=False,
                  flipVert=False,
                  languageStyle='LTR',
+                 draggable=False,
                  name=None,
                  autoLog=None,
                  autoDraw=False):
@@ -157,6 +159,7 @@ class TextStim(BaseVisualStim, ForeColorMixin, ContainerMixin):
 
         super(TextStim, self).__init__(
             win, units=units, name=name, autoLog=False)
+        self.draggable = draggable
 
         if win.blendMode=='add':
             logging.warning("Pyglet text does not honor the Window setting "
@@ -279,6 +282,11 @@ class TextStim(BaseVisualStim, ForeColorMixin, ContainerMixin):
         self.height = getattr(self._size, self.units)[1]
 
     def setHeight(self, height, log=None):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message. """
+        setAttribute(self, 'height', height, log)
+
+    def setLetterHeight(self, height, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message. """
         setAttribute(self, 'height', height, log)

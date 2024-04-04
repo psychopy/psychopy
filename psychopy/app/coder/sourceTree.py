@@ -4,7 +4,7 @@
 """Classes and functions for the coder source tree."""
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from collections import deque
@@ -203,8 +203,8 @@ class SourceTreePanel(wx.Panel, handlers.ThemeMixin):
             # take value before keyword end as def type, value after as def name
             kwrdEnd = len(re.findall(r' |\(|\)', kwrd))
             try:
-                defType = lineTokens[kwrdEnd]
-                defName = lineTokens[kwrdEnd+1]
+                defType = lineTokens[kwrdEnd-1]
+                defName = lineTokens[kwrdEnd]
             except ValueError:
                 # if for some reason the line is valid but cannot be parsed, ignore it
                 continue

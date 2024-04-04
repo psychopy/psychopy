@@ -5,7 +5,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from .calibData import wavelength_5nm, juddVosXYZ1976_5nm, cones_SmithPokorny
@@ -142,8 +142,7 @@ class Monitor:
         thisGamma = self.getGamma()
         # run the test just on this
         array = np.array
-        return (thisGamma is None or
-                np.alltrue(array(thisGamma) == array([1, 1, 1])))
+        return (thisGamma is None or np.all(array(thisGamma) == array([1, 1, 1])))
 
 # functions to set params of current calibration
     def setSizePix(self, pixels):
@@ -285,8 +284,7 @@ class Monitor:
         """Returns just the gamma value (not the whole grid)
         """
         gridInCurrent = 'gammaGrid' in self.currentCalib
-        if (gridInCurrent and
-                not np.alltrue(self.getGammaGrid()[1:, 2] == 1)):
+        if (gridInCurrent and not np.all(self.getGammaGrid()[1:, 2] == 1)):
             return self.getGammaGrid()[1:, 2]
         elif 'gamma' in self.currentCalib:
             return self.currentCalib['gamma']

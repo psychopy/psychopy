@@ -1,15 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+import json
 import sys
 import copy
 import pickle
 import atexit
+import pandas as pd
 
-import psychopy.visual.window
+from psychopy import constants, clock
 from psychopy import logging
 from psychopy.tools.filetools import (openOutputFile, genDelimiter,
                                       genFilenameFromDelimiter)
+from psychopy.localization import _translate
 from .utils import checkValidFilePath
 from .base import _ComparisonMixin
 
@@ -34,6 +36,7 @@ class ExperimentHandler(_ComparisonMixin):
                  originPath=None,
                  savePickle=True,
                  saveWideText=True,
+                 sortColumns=False,
                  dataFileName='',
                  autoLog=True,
                  appendFiles=False):
@@ -70,6 +73,13 @@ class ExperimentHandler(_ComparisonMixin):
 
             saveWideText : True (default) or False
 
+            sortColumns : str or bool
+                How (if at all) to sort columns in the data file, if none is given to saveAsWideText. Can be:
+                - "alphabetical", "alpha", "a" or True: Sort alphabetically by header name
+                - "priority", "pr" or "p": Sort according to priority
+                - other: Do not sort, columns remain in order they were added
+
+
             autoLog : True (default) or False
         """
         self.loops = []
@@ -85,12 +95,18 @@ class ExperimentHandler(_ComparisonMixin):
         self.savePickle = savePickle
         self.saveWideText = saveWideText
         self.dataFileName = dataFileName
+        self.sortColumns = sortColumns
         self.thisEntry = {}
         self.entries = []  # chronological list of entries
         self._paramNamesSoFar = []
-        self.dataNames = []  # names of all the data (eg. resp.keys)
+        self.dataNames = ['thisRow.t', 'notes']  # names of all the data (eg. resp.keys)
+        self.columnPriority = {
+            'thisRow.t': constants.priority.CRITICAL - 1,
+            'notes': constants.priority.MEDIUM - 1,
+        }
         self.autoLog = autoLog
         self.appendFiles = appendFiles
+        self.status = constants.NOT_STARTED
 
         if dataFileName in ['', None]:
             logging.warning('ExperimentHandler created with no dataFileName'
@@ -198,8 +214,9 @@ class ExperimentHandler(_ComparisonMixin):
 
         return names, vals
 
-    def addData(self, name, value):
-        """Add the data with a given name to the current experiment.
+    def addData(self, name, value, row=None, priority=None):
+        """
+        Add the data with a given name to the current experiment.
 
         Typically the user does not need to use this function; if you added
         your data to the loop and had already added the loop to the
@@ -217,6 +234,24 @@ class ExperimentHandler(_ComparisonMixin):
             exp.addData('resp.key', 'k')
             # end of trial - move to next line in data output
             exp.nextEntry()
+
+        Parameters
+        ----------
+        name : str
+            Name of the column to add data as.
+        value : any
+            Value to add
+        row : int or None
+            Row in which to add this data. Leave as None to add to the current entry.
+        priority : int
+            Priority value to set the column to - higher priority columns appear nearer to the start of
+            the data file. Use values from `constants.priority` as landmark values:
+            - CRITICAL: Always at the start of the data file, generally reserved for Routine start times
+            - HIGH: Important columns which are near the front of the data file
+            - MEDIUM: Possibly important columns which are around the middle of the data file
+            - LOW: Columns unlikely to be important which are at the end of the data file
+            - EXCLUDE: Always at the end of the data file, actively marked as unimportant
+
         """
         if name not in self.dataNames:
             self.dataNames.append(name)
@@ -226,28 +261,200 @@ class ExperimentHandler(_ComparisonMixin):
         except TypeError:
             # unhashable type (list, dict, ...) == mutable, so need a copy()
             value = copy.deepcopy(value)
-        self.thisEntry[name] = value
 
-    def timestampOnFlip(self, win, name):
+        # if value is a Timestamp, resolve to a simple value
+        if isinstance(value, clock.Timestamp):
+            value = value.resolve()
+
+        # get entry from row number
+        entry = self.thisEntry
+        if row is not None:
+            entry = self.entries[row]
+        entry[name] = value
+
+        # set priority if given
+        if priority is not None:
+            self.setPriority(name, priority)
+
+    def getPriority(self, name):
+        """
+        Get the priority value for a given column. If no priority value is
+        stored, returns best guess based on column name.
+
+        Parameters
+        ----------
+        name : str
+            Column name
+
+        Returns
+        -------
+        int
+            The priority value stored/guessed for this column, most likely a value from `constants.priority`, one of:
+            - CRITICAL (30): Always at the start of the data file, generally reserved for Routine start times
+            - HIGH (20): Important columns which are near the front of the data file
+            - MEDIUM (10): Possibly important columns which are around the middle of the data file
+            - LOW (0): Columns unlikely to be important which are at the end of the data file
+            - EXCLUDE (-10): Always at the end of the data file, actively marked as unimportant
+        """
+        if name not in self.columnPriority:
+            # store priority if not specified already
+            self.columnPriority[name] = self._guessPriority(name)
+        # return stored priority
+        return self.columnPriority[name]
+
+    def _guessPriority(self, name):
+        """
+        Get a best guess at the priority of a column based on its name
+
+        Parameters
+        ----------
+        name : str
+            Name of the column
+
+        Returns
+        -------
+        int
+            One of the following:
+            - HIGH (19): Important columns which are near the front of the data file
+            - MEDIUM (9): Possibly important columns which are around the middle of the data file
+            - LOW (-1): Columns unlikely to be important which are at the end of the data file
+
+            NOTE: Values returned from this function are 1 less than values in `constants.priority`,
+            columns whose priority was guessed are behind equivalently prioritised columns whose priority
+            was specified.
+        """
+        # if there's a dot, get attribute name
+        if "." in name:
+            name = name.split(".")[-1]
+
+        # start off assuming low priority
+        priority = constants.priority.LOW
+        # if name is one of identified likely high priority columns, it's medium priority
+        if name in [
+            "keys", "rt", "x", "y", "leftButton", "numClicks", "numLooks", "clip", "response", "value",
+            "frameRate", "participant"
+        ]:
+            priority = constants.priority.MEDIUM
+
+        return priority - 1
+
+    def setPriority(self, name, value=constants.priority.HIGH):
+        """
+        Set the priority of a column in the data file.
+
+        Parameters
+        ----------
+        name : str
+            Name of the column, e.g. `text.started`
+        value : int
+            Priority value to set the column to - higher priority columns appear nearer to the start of
+            the data file. Use values from `constants.priority` as landmark values:
+            - CRITICAL (30): Always at the start of the data file, generally reserved for Routine start times
+            - HIGH (20): Important columns which are near the front of the data file
+            - MEDIUM (10): Possibly important columns which are around the middle of the data file
+            - LOW (0): Columns unlikely to be important which are at the end of the data file
+            - EXCLUDE (-10): Always at the end of the data file, actively marked as unimportant
+        """
+        self.columnPriority[name] = value
+
+    def addAnnotation(self, value):
+        """
+        Add an annotation at the current point in the experiment
+
+        Parameters
+        ----------
+        value : str
+            Value of the annotation
+        """
+        self.addData("notes", value)
+
+    def timestampOnFlip(self, win, name, format=float):
         """Add a timestamp (in the future) to the current row
 
         Parameters
         ----------
 
         win : psychopy.visual.Window
-
             The window object that we'll base the timestamp flip on
-
         name : str
-
             The name of the column in the datafile being written,
             such as 'myStim.stopped'
+        format : str, class or None
+            Format in which to return time, see clock.Timestamp.resolve() for more info. Defaults to `float`.
         """
         # make sure the name is used when writing the datafile
         if name not in self.dataNames:
             self.dataNames.append(name)
-        #
-        win.timeOnFlip(self.thisEntry, name)
+        # tell win to record timestamp on flip
+        win.timeOnFlip(self.thisEntry, name, format=format)
+
+    @property
+    def status(self):
+        return self._status
+
+    @status.setter
+    def status(self, value):
+        """
+        Status of this experiment, from psychopy.constants.
+
+        Parameters
+        ----------
+        value : int
+            One of the values from psychopy.constants.
+        """
+        # log change
+        valStr = {
+            constants.NOT_STARTED: "NOT_STARTED",
+            constants.STARTED: "STARTED",
+            constants.PAUSED: "PAUSED",
+            constants.RECORDING: "RECORDING",
+            constants.STOPPED: "STOPPED",
+            constants.SEEKING: "SEEKING",
+            constants.STOPPING: "STOPPING",
+            constants.INVALID: "INVALID"
+        }[value]
+        logging.exp(f"{self.name}: status = {valStr}", obj=self)
+        # make change
+        self._status = value
+
+    def pause(self):
+        """
+        Set status to be PAUSED.
+        """
+        # warn if experiment is already paused
+        if self.status == constants.PAUSED:
+            logging.warn(_translate(
+                "Attempted to pause experiment '{}', but it is already paused. "
+                "Status will remain unchanged.".format(self.name)
+            ))
+        # set own status
+        self.status = constants.PAUSED
+
+    def resume(self):
+        """
+        Set status to be STARTED.
+        """
+        # warn if experiment is already running
+        if self.status == constants.STARTED:
+            logging.warn(_translate(
+                "Attempted to resume experiment '{}', but it is not paused. "
+                "Status will remain unchanged.".format(self.name)
+            ))
+        # set own status
+        self.status = constants.STARTED
+
+    def stop(self):
+        """
+        Set status to be FINISHED.
+        """
+        # warn if experiment is already paused
+        if self.status == constants.FINISHED:
+            logging.warn(_translate(
+                "Attempted to stop experiment '{}', but it is already stopping. "
+                "Status will remain unchanged.".format(self.name)
+            ))
+        # set own status
+        self.status = constants.STOPPED
 
     def nextEntry(self):
         """Calling nextEntry indicates to the ExperimentHandler that the
@@ -264,6 +471,7 @@ class ExperimentHandler(_ComparisonMixin):
         if type(self.extraInfo) == dict:
             this.update(self.extraInfo)
         self.entries.append(this)
+        # add new entry with its
         self.thisEntry = {}
 
     def getAllEntries(self):
@@ -286,7 +494,7 @@ class ExperimentHandler(_ComparisonMixin):
                        appendFile=None,
                        encoding='utf-8-sig',
                        fileCollisionMethod='rename',
-                       sortColumns=False):
+                       sortColumns=None):
         """Saves a long, wide-format text file, with one line representing
         the attributes and data for a single trial. Suitable for analysis
         in R and SPSS.
@@ -327,8 +535,11 @@ class ExperimentHandler(_ComparisonMixin):
                 Collision method passed to
                 :func:`~psychopy.tools.fileerrortools.handleFileCollision`
 
-            sortColumns:
-                will sort columns alphabetically by header name if True
+            sortColumns : str or bool
+                How (if at all) to sort columns in the data file. Can be:
+                - "alphabetical", "alpha", "a" or True: Sort alphabetically by header name
+                - "priority", "pr" or "p": Sort according to priority
+                - other: Do not sort, columns remain in order they were added
 
         """
         # set default delimiter if none given
@@ -357,9 +568,20 @@ class ExperimentHandler(_ComparisonMixin):
         names.extend(self._getExtraInfo()[0])
         if len(names) < 1:
             logging.error("No data was found, so data file may not look as expected.")
-        # sort names if requested
-        if sortColumns:
+        # if sort columns not specified, use default from self
+        if sortColumns is None:
+            sortColumns = self.sortColumns
+        # sort names as requested
+        if sortColumns in ("alphabetical", "alpha", "a", True):
+            # sort alphabetically
             names.sort()
+        elif sortColumns in ("priority", "pr" or "p"):
+            # map names to their priority
+            priorityMap = []
+            for name in names:
+                priority = self.columnPriority.get(name, self._guessPriority(name))
+                priorityMap.append((priority, name))
+            names = [name for priority, name in sorted(priorityMap, reverse=True)]
         # write a header line
         if not matrixOnly:
             for heading in names:
@@ -427,6 +649,39 @@ class ExperimentHandler(_ComparisonMixin):
         self.entries = origEntries  # revert list of completed entries post-save
         self.savePickle = savePickle
         self.saveWideText = saveWideText
+
+    def getJSON(self, priorityThreshold=constants.priority.EXCLUDE+1):
+        """
+        Get the experiment data as a JSON string.
+
+        Parameters
+        ----------
+        priorityThreshold : int
+            Output will only include columns whose priority is greater than or equal to this value. Use values in
+            psychopy.constants.priority as a guideline for priority levels. Default is -9 (constants.priority.EXCLUDE +
+            1)
+
+        Returns
+        -------
+        str
+            JSON string with the following fields:
+            - 'type': Indicates that this is data from an ExperimentHandler (will always be "trials_data")
+            - 'trials': `list` of `dict`s representing requested trials data
+            - 'priority': `dict` of column names
+        """
+        # get columns which meet threshold
+        cols = [col for col in self.dataNames if self.getPriority(col) >= priorityThreshold]
+        # convert just relevant entries to a DataFrame
+        trials = pd.DataFrame(self.entries, columns=cols).fillna(value="")
+        # put in context
+        context = {
+            'type': "trials_data",
+            'trials': trials.to_dict(orient="records"),
+            'priority': self.columnPriority,
+            'threshold': priorityThreshold,
+        }
+
+        return json.dumps(context, indent=True, allow_nan=False, default=str)
         
     def close(self):
         if self.dataFileName not in ['', None]:

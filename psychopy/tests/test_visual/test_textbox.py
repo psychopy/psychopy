@@ -8,7 +8,7 @@ from psychopy.tests.test_visual.test_basevisual import _TestColorMixin, _TestUni
 from psychopy.tests.test_experiment.test_component_compile_python import _TestBoilerplateMixin
 from psychopy.visual import Window
 from psychopy.visual import TextBox2
-from psychopy.visual.textbox2.fontmanager import FontManager
+from psychopy.tools.fontmanager import FontManager
 import pytest
 from psychopy.tests import utils
 
@@ -37,7 +37,7 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin):
         # Textbox foreground is too unreliable due to fonts for pixel analysis
         self.foreUsed = False
 
-    def teardown(self):
+    def teardown_method(self):
         self.win.close()
 
     def test_glyph_rendering(self):
@@ -436,6 +436,21 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin):
     def test_alerts(self):
         noFontTextbox = TextBox2(self.win, "", font="Raleway Dots", bold=True)
         assert (self.error.alerts[0].code == 4325)
+
+    def test_letter_spacing(self):
+        cases = (0.6, 0.8, 1, None, 1.2, 1.4, 1.6, 1.8, 2.0)
+
+        for case in cases:
+            self.win.flip()
+            # Set letter spacing
+            self.obj.letterSpacing = case
+            # Draw
+            self.obj.draw()
+            # Compare
+            nameSafe = str(case).replace(".", "p")
+            filename = Path(utils.TESTS_DATA_PATH) / f"TestTextbox_testLetterSpacing_{nameSafe}.png"
+            self.win.getMovieFrame(buffer='back').save(filename)
+            utils.compareScreenshot(filename, self.win, crit=20)
 
 
 def test_font_manager():

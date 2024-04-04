@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Experiment classes:
@@ -15,6 +15,7 @@ The code that writes out a *_lastrun.py experiment file is (in order):
         which will call the .writeBody() methods from each component
     settings.SettingsComponent.writeEndCode()
 """
+import functools
 from xml.etree.ElementTree import Element
 
 import re
@@ -164,6 +165,7 @@ class Param():
         self.codeWanted = False
         self.canBePath = canBePath
         self.direct = direct
+        self.plugin = None
         if inputType:
             self.inputType = inputType
         elif valType in inputDefaults:
@@ -274,6 +276,8 @@ class Param():
                 return self.val.strip('$')
             else:
                 return f"\"{self.val}\""
+        elif self.valType == "dict":
+            return str(self.val)
         else:
             raise TypeError("Can't represent a Param of type %s" %
                             self.valType)
@@ -297,12 +301,15 @@ class Param():
         """Return a bool, so we can do `if thisParam`
         rather than `if thisParam.val`"""
         if self.val in ['True', 'true', 'TRUE', True, 1, 1.0]:
-            # Return True for aliases of True
+            # return True for aliases of True
             return True
         if self.val in ['False', 'false', 'FALSE', False, 0, 0.0]:
-            # Return False for aliases of False
+            # return False for aliases of False
             return False
-        # If not a clear alias, use bool method of value
+        if self.val in ['None', 'none', None, ""]:
+            # return False for aliases of None
+            return False
+        # if not a clear alias, use bool method of value
         return bool(self.val)
 
     @property
@@ -316,6 +323,8 @@ class Param():
             element.set('valType', self.valType)
         if hasattr(self, 'updates'):
             element.set('updates', "{}".format(self.updates))
+        if hasattr(self, 'plugin') and self.plugin is not None:
+            element.set('plugin', "{}".format(self.plugin))
 
         return element
 
@@ -360,6 +369,28 @@ class Param():
         return False, val
 
     __nonzero__ = __bool__  # for python2 compatibility
+
+
+class Partial(functools.partial):
+    """
+    Value to supply to `allowedVals` or `allowedLabels` which contains a reference
+    to a method and arguments to use when populating the control.
+
+    Parameters
+    ----------
+    method : method
+        Method to call, should return the values to be used in the relevant control.
+    args : tuple, list
+        Array of positional arguments. To use the value of another parameter, supply
+        a handle to its Param object.
+    kwargs : dict
+        Dict of keyword arguments. To use the value of another parameter, supply
+        a handle to its Param object.
+    """
+    def __init__(self, method, args=(), kwargs=dict()):
+        self.method = method
+        self.args = args
+        self.kwargs = kwargs
 
 
 def getCodeFromParamStr(val, target=None):

@@ -69,6 +69,8 @@
     errorDialog = boolean(default='True')
     # Theme
     theme = string(default='PsychopyLight')
+    # Show / hide splash screen
+    showSplash = boolean(default='True')
 
 # Settings for the Coder window
 [coder]
@@ -111,6 +113,8 @@
     componentFilter = option('PsychoPy', 'PsychoJS', 'Any', 'Both', default='Any')
     # a list of components to hide (eg, because you never use them)
     hiddenComponents = list(default=list('RatingScaleComponent', 'PatchComponent', 'UnknownComponent'))
+    # Abbreviate long component names to maximise timeline space?
+    abbreviateLongCompNames = boolean(default=False)
     # where the Builder demos are located on this computer (after unpacking)
     unpackedDemosDir = string(default='')
     # name of the folder where subject data should be saved (relative to the script)
@@ -126,9 +130,9 @@
 
 # Settings for hardware
 [hardware]
-    # choice of audio library
-    audioLib = list(default=list('sounddevice','PTB', 'pyo', 'pygame'))
-    # latency mode for PsychToolbox audio (3 is good for most applications. See
+    # LEGACY: choice of audio library
+    audioLib = list(default=list('PTB', 'sounddevice', 'pyo', 'pygame'))
+    # LEGACY: latency mode for PsychToolbox audio (3 is good for most applications. See
     audioLatencyMode = option(0, 1, 2, 3, 4, default=3)
     # audio driver to use
     audioDriver = list(default=list('Primary Sound','ASIO','Audigy'))
@@ -138,6 +142,17 @@
     parallelPorts = list(default=list('0x0378', '0x03BC'))
     # The name of the Qmix pump configuration to use
     qmixConfiguration = string(default='qmix_config')
+
+# Settings for piloting mode
+[piloting]
+    # Prevent the experiment from being fullscreen when piloting
+    forceWindowed = boolean(default=True)
+    # How much output to include in the log files when piloting ('error' is fewest messages, 'debug' is most)
+    pilotLoggingLevel = option('error', 'warning', 'data', 'exp', 'info', 'debug', default='debug')
+    # Show an orange border around the window when in piloting mode
+    showPilotingIndicator = boolean(default=True)
+    # Prevent experiment from enabling rush mode when piloting
+    forceNonRush = boolean(default=True)
 
 # Settings for connections
 [connections]
@@ -234,6 +249,8 @@
     pasteRoutine = string(default='Ctrl+Shift+V')
     # Builder: paste the copied component
     pasteCompon = string(default='Ctrl+Alt+V')
+    # Builder: find
+    builderFind = string(default='Ctrl+F')
     # Coder: show / hide the output panel
     toggleOutputPanel = string(default='Ctrl+Shift+O')
     #Builder: rename an existing routine

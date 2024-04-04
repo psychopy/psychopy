@@ -136,7 +136,7 @@ Section "PsychoPy" SEC01
     Var /GLOBAL AppDir
     StrCpy $AppDir "$InstDir\Lib\site-packages\psychopy\app"
 
-    File /r /x *.pyo /x *.chm /x Editra /x doc "${PYPATH}*.*"
+    File /r /x *.pyo /x *.chm /x Editra /x doc "${PYPATH}\*.*"
     ;File "C:\Program Files\ffmpeg.exe"  ; useful alternative just to run a test file
 
     ; Shortcuts

@@ -5,7 +5,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 __all__ = [
@@ -19,6 +19,7 @@ import numpy as np
 import psychopy.core as core
 import psychopy.visual.window as window
 from psychopy.tools.monitorunittools import pix2cm, pix2deg, cm2pix, deg2pix
+from psychopy.tools.attributetools import AttributeGetSetMixin
 
 
 # mouse button indices
@@ -45,7 +46,7 @@ MOUSE_POS_CURRENT = 0
 MOUSE_POS_PREVIOUS = 1
 
 
-class Mouse:
+class Mouse(AttributeGetSetMixin):
     """Class for using pointing devices (e.g., mice, trackballs, etc.) as input.
 
     PsychoPy presently only supports one pointing device input at a time.
@@ -181,6 +182,9 @@ class Mouse:
     # have the window automatically be set when a cursor hovers over it
     _autoFocus = True
 
+    # scaling factor for highdpi displays
+    _winScaleFactor = 1.0
+
     def __init__(self, win=None, pos=(0, 0), visible=True, exclusive=False,
                  autoFocus=True):
         # only setup if previously not instanced
@@ -189,6 +193,10 @@ class Mouse:
             self.visible = visible
             self.exclusive = exclusive
             self.autoFocus = autoFocus
+            if self.win is not None:
+                self._winScaleFactor = self.win.getContentScaleFactor()
+            else:
+                self._winScaleFactor = 1.0   # default to 1.0
 
             if self.win is not None and pos is not None:
                 self.setPos(pos)
@@ -374,6 +382,8 @@ class Mouse:
         if self.win.units == 'pix':
             if self.win.useRetina:
                 pos /= 2.0
+            else:
+                pos /= self._winScaleFactor
             return pos
         elif self.win.units == 'norm':
             return pos * 2.0 / self.win.size
@@ -405,6 +415,10 @@ class Mouse:
             return pos
 
         if self.win.units == 'pix':
+            if self.win.useRetina:
+                pos *= 2.0
+            else:
+                pos *= self._winScaleFactor
             return pos
         elif self.win.units == 'norm':
             return pos * self.win.size / 2.0
@@ -785,6 +799,16 @@ class Mouse:
     @property
     def velocity(self):
         """The velocity of the mouse cursor on-screen in window units (`float`).
+
+        The velocity is calculated as the relative change in position of the
+        mouse cursor between motion events divided by the time elapsed between
+        the events.
+
+        Returns
+        -------
+        float
+            Velocity of the mouse cursor in window units per second.
+
         """
         if self._velocityNeedsUpdate:
             tdelta = self.motionAbsTime - \

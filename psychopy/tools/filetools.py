@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Functions and classes related to file and directory handling
@@ -294,6 +294,15 @@ def genFilenameFromDelimiter(filename, delim):
             filename += '.txt'
 
     return filename
+
+
+def constructLegacyFilename(filename):
+    # make path object from filename
+    filename = Path(filename)
+    # construct legacy variant name
+    legacyName = filename.parent / (filename.stem + "_legacy" + filename.suffix)
+
+    return legacyName
 
 
 class DictStorage(dict):

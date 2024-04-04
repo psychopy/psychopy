@@ -6,7 +6,7 @@ as a special case of a :class:`~psychopy.visual.Polygon`
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import psychopy  # so we can get the __path__
@@ -78,6 +78,8 @@ class Circle(Polygon):
     interpolate : bool
         Enable smoothing (anti-aliasing) when drawing shape outlines. This
         produces a smoother (less-pixelated) outline of the shape.
+    draggable : bool
+        Can this stimulus be dragged by a mouse click?
     lineRGB, fillRGB: array_like, :class:`~psychopy.colors.Color` or None
         *Deprecated*. Please use `lineColor` and `fillColor`. These
         arguments may be removed in a future version.
@@ -125,6 +127,7 @@ class Circle(Polygon):
                  contrast=1.0,
                  depth=0,
                  interpolate=True,
+                 draggable=False,
                  lineRGB=False,
                  fillRGB=False,
                  name=None,
@@ -160,6 +163,7 @@ class Circle(Polygon):
             contrast=contrast,
             depth=depth,
             interpolate=interpolate,
+            draggable=draggable,
             lineRGB=lineRGB,
             fillRGB=fillRGB,
             name=name,

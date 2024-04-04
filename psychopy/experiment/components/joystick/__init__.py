@@ -2,25 +2,14 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy.experiment import valid_var_re
 from psychopy.experiment import CodeGenerationException, valid_var_re
-from psychopy.localization import _localized as __localized
-_localized = __localized.copy()
 import re
-
-# only use _localized values for label values, nothing functional:
-_localized.update({'saveJoystickState': _translate('Save joystick state'),
-                   'forceEndRoutineOnPress': _translate('End Routine on press'),
-                   'timeRelativeTo': _translate('Time relative to'),
-                   'Clickable stimuli': _translate('Clickable stimuli'),
-                   'Store params for clicked': _translate('Store params for clicked'),
-                   'deviceNumber': _translate('Device number'),
-                   'allowedButtons': _translate('Allowed Buttons')})
 
 
 class JoystickComponent(BaseComponent):
@@ -62,9 +51,9 @@ class JoystickComponent(BaseComponent):
             save, valType='str', inputType="choice", categ='Data',
             allowedVals=['final', 'on click', 'every frame', 'never'],
             hint=msg, direct=False,
-            label=_localized['saveJoystickState'])
+            label=_translate("Save joystick state"))
 
-        msg = _translate("Should a button press force the end of the routine"
+        msg = _translate("Should a button press force the end of the Routine"
                          " (e.g end the trial)?")
         if forceEndRoutineOnPress is True:
             forceEndRoutineOnPress = 'any click'
@@ -75,7 +64,7 @@ class JoystickComponent(BaseComponent):
             allowedVals=['never', 'any click', 'valid click'],
             updates='constant',
             hint=msg, direct=False,
-            label=_localized['forceEndRoutineOnPress'])
+            label=_translate("End Routine on press"))
 
         msg = _translate("What should the values of joystick.time should be "
                          "relative to?")
@@ -84,7 +73,7 @@ class JoystickComponent(BaseComponent):
             allowedVals=['joystick onset', 'experiment', 'routine'],
             updates='constant', direct=False,
             hint=msg,
-            label=_localized['timeRelativeTo'])
+            label=_translate("Time relative to"))
 
         msg = _translate('A comma-separated list of your stimulus names that '
                          'can be "clicked" by the participant. '
@@ -94,7 +83,7 @@ class JoystickComponent(BaseComponent):
             '', valType='list', inputType="single", categ='Data',
             updates='constant',
             hint=msg,
-            label=_localized['Clickable stimuli'])
+            label=_translate("Clickable stimuli"))
 
         msg = _translate('The params (e.g. name, text), for which you want '
                          'to store the current value, for the stimulus that was'
@@ -105,7 +94,7 @@ class JoystickComponent(BaseComponent):
             'name,', valType='list', inputType="single", categ='Data',
             updates='constant', allowedUpdates=[],
             hint=msg, direct=False,
-            label=_localized['Store params for clicked'])
+            label=_translate("Store params for clicked"))
 
         msg = _translate('Device number, if you have multiple devices which'
                          ' one do you want (0, 1, 2...)')
@@ -114,7 +103,7 @@ class JoystickComponent(BaseComponent):
             deviceNumber, valType='int', inputType="single", allowedTypes=[], categ='Hardware',
             updates='constant', allowedUpdates=[],
             hint=msg,
-            label=_localized['deviceNumber'])
+            label=_translate("Device number"))
 
         msg = _translate('Buttons to be read (blank for any) numbers separated by '
                          'commas')
@@ -123,7 +112,7 @@ class JoystickComponent(BaseComponent):
             allowedButtons, valType='list', inputType="single", allowedTypes=[], categ='Data',
             updates='constant', allowedUpdates=[],
             hint=msg,
-            label=_localized['allowedButtons'])
+            label=_translate("Allowed buttons"))
 
     @property
     def _clickableParamsList(self):
@@ -439,7 +428,7 @@ class JoystickComponent(BaseComponent):
                     #"print({name}.pressedButtons)\n"
                     #"print({name}.newPressedButtons)\n"
                     "[logging.data(\"joystick_{{}}_button: {{}}, pos=({{:1.4f}},{{:1.4f}})\".format("
-                    "{name}.device_number, i, {name}.getX(), {name}.getY()) for i in {name}.pressedButtons]\n"
+                    "{name}.device_number, i, {name}.getX(), {name}.getY())) for i in {name}.pressedButtons]\n"
             )
             buff.writeIndentedLines(code.format(**self.params))
 
@@ -581,6 +570,3 @@ class JoystickComponent(BaseComponent):
 
         # get parent to write code too (e.g. store onset/offset times)
         super().writeRoutineEndCode(buff)
-
-        if currLoop.params['name'].val == self.exp._expHandler.name:
-            buff.writeIndented("%s.nextEntry()\n" % self.exp._expHandler.name)

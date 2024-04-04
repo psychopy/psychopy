@@ -16,11 +16,13 @@ Clock logic.
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 import logging
 import time
 import sys
+from datetime import datetime
+
 from pkg_resources import parse_version
 
 try:
@@ -108,6 +110,115 @@ else:
     getTime = timeit.default_timer
 
 
+class Timestamp(float):
+    """
+    Object to represent a timestamp, which can return itself in a variety of formats.
+
+    Parameters
+    ----------
+    value : float or str
+        Current time, as either:
+        - float : Seconds since arbitrary start time (if only using as a duration)
+        - float : Seconds since epoch (for an absolute time)
+        - str : Time string in the format specified by the parameter `format`
+    format : str or class
+        Time format string (as in time.strftime) indicated how to convert this timestamp to a string, and how to
+        interpret its value if given as a string. Use `float` (default) to always print timestamp as a float, or `str`
+        as
+    lastReset : float
+        Epoch time at last clock reset. Will be added to raw value if printing to string.
+
+    """
+    def __new__(cls, value, format=float, lastReset=0.0):
+        # if given a string, attempt to parse it using the given format
+        if isinstance(value, str):
+            # substitute nonspecified str format for ISO 8601
+            if format in (str, "str"):
+                format = "%Y-%m-%d_%H:%M:%S.%f%z"
+            # try to parse
+            try:
+                value = datetime.strptime(value, format)
+            except ValueError as err:
+                # if parsing fails, try again without %z (as this is excluded in GMT)
+                if format.endswith("%z"):
+                    value = datetime.strptime(value, format[:-2])
+            # convert to timestamp
+            value = datetime.timestamp(value) - lastReset
+
+        return float.__new__(cls, value)
+
+    def __init__(self, value, format=float, lastReset=0.0):
+        self.lastReset = lastReset
+        self.format = format
+        # create self as float representing the time
+        float.__init__(value)
+
+    def __str__(self):
+        # use strftime to return with own format
+        return self.strftime(format=self.format)
+
+    def __format__(self, format_spec):
+        if self.format in (float, "float"):
+            # format as normal if float is requested
+            return float.__format__(self, format_spec)
+        else:
+            # otherwise just stringify
+            return str(self)
+
+    def resolve(self, format=None):
+        """
+        Get the value of this timestamp as a simple value, either str or float.
+
+        Parameters
+        ----------
+        format : str, class or None
+            Time format string, as in time.strftime, or `float` to return as a float. Defaults (None) to using the
+            format given when this timestamp was initialised.
+
+        Returns
+        -------
+        str, float
+            The value of this timestamp in the requested format.
+        """
+        # if format is unspecified, use own default
+        if format is None:
+            format = self.format
+        # if format is float, return as simple (non-timestamp) float
+        if format in (float, "float"):
+            return float(self)
+        # otherwise, format to string in requested format
+        return self.strftime(format=format)
+
+    def strftime(self, format="%Y-%m-%d_%H:%M:%S.%f%z"):
+        """
+        Format this timestamp into a string with the given format.
+
+        Parameters
+        ----------
+        format : str, class or None
+            Time format string, as in time.strftime, or `float` to print as a float. Defaults (None) to using the
+            format given when this timestamp was initialised.
+
+        Returns
+        -------
+        str
+            This timestamp as a string
+        """
+        # if format is unspecified, use own default
+        if format in (None, "None"):
+            format = self.format
+        # if format is float, print using base method
+        if format in (float, "float"):
+            return float.__str__(self)
+        # substitute nonspecified str format for ISO 8601
+        if format in (str, "str"):
+            format = "%Y-%m-%d_%H:%M:%S.%f%z"
+        # convert to datetime
+        now = datetime.fromtimestamp(self + self.lastReset)
+        # format
+        return now.strftime(format)
+
+
 class MonotonicClock:
     """A convenient class to keep track of time in your experiments using a
     sub-millisecond timer.
@@ -124,28 +235,57 @@ class MonotonicClock:
     Version Notes: This class was added in PsychoPy 1.77.00
 
     """
-    def __init__(self, start_time=None):
+    def __init__(self, start_time=None, format=float):
         super(MonotonicClock, self).__init__()
         if start_time is None:
             # this is sub-millisecond timer in python
             self._timeAtLastReset = getTime()
         else:
             self._timeAtLastReset = start_time
+        self._epochTimeAtLastReset = time.time()
+        # store default format
+        self.format = format
 
-    def getTime(self, applyZero=True):
-        """Returns the current time on this clock in secs (sub-ms precision).
-
-        If applying zero then this will be the time since the clock was created
-        (typically the beginning of the script).
-
-        If not applying zero then it is whatever the underlying clock uses as
-        its base time but that is system dependent. e.g. can be time since
-        reboot, time since Unix Epoch etc
+    def getTime(self, applyZero=True, format=None):
         """
-        if applyZero:
-            return getTime() - self._timeAtLastReset
-        else:
-            return getTime()
+        Returns the current time on this clock in secs (sub-ms precision).
+
+        Parameters
+        ----------
+        applyZero : bool
+            If applying zero then this will be the time since the clock was created (typically the beginning of the
+            script). If not applying zero then it is whatever the underlying clock uses as its base time but that is
+            system dependent. e.g. can be time since reboot, time since Unix Epoch etc.
+
+            Only applies when format is `float`.
+        format : type, str or None
+            Format in which to show timestamp when converting to a string. Can be either:
+            - time format codes: Time will return as a string in that format, as in time.strftime
+            - `str`: Time will return as a string in ISO 8601 (YYYY-MM-DD_HH:MM:SS.mmmmmmZZZZ)
+            - `None`: Will use this clock's `format` attribute
+
+        Returns
+        -------
+        Timestamp
+            Time with format requested.
+        """
+
+        # substitute no format for default
+        if format in (None, "None"):
+            format = self.format
+        # substitute nonspecified str format for ISO 8601
+        if format in (str, "str"):
+            format = "%Y-%m-%d_%H:%M:%S.%f%z"
+        # get time since last reset
+        t = getTime() - self._timeAtLastReset
+        # get last reset time from epoch
+        lastReset = self._epochTimeAtLastReset
+        if not applyZero:
+            # if not applying zero, add epoch start time to t rather than supplying it
+            t += self._epochTimeAtLastReset
+            lastReset = 0
+
+        return Timestamp(t, format, lastReset=lastReset)
 
     def getLastResetTime(self):
         """
@@ -167,8 +307,8 @@ class Clock(MonotonicClock):
     except that it can also be reset to 0 or another value at any point.
 
     """
-    def __init__(self):
-        super(Clock, self).__init__()
+    def __init__(self, format=float):
+        super(Clock, self).__init__(format=format)
 
     def reset(self, newT=0.0):
         """Reset the time on the clock. With no args time will be
@@ -176,6 +316,7 @@ class Clock(MonotonicClock):
         time on the clock
         """
         self._timeAtLastReset = getTime() + newT
+        self._epochTimeAtLastReset = time.time()
 
     def addTime(self, t):
         """Add more time to the Clock/Timer
@@ -188,6 +329,7 @@ class Clock(MonotonicClock):
                 # do something
         """
         self._timeAtLastReset -= t
+        self._epochTimeAtLastReset -= t
 
     def add(self, t):
         """DEPRECATED: use .addTime() instead
@@ -199,6 +341,7 @@ class Clock(MonotonicClock):
                         "the counterintuitive design (it added time to the baseline, which "
                         "reduced the values returned from getTime()")
         self._timeAtLastReset += t
+        self._epochTimeAtLastReset += t
 
 
 class CountdownTimer(Clock):
@@ -223,7 +366,7 @@ class CountdownTimer(Clock):
         super(CountdownTimer, self).__init__()
         self._countdown_duration = start
         if start:
-            self.add(start)
+            self.reset()
 
     def getTime(self):
         """Returns the current time left on this timer in seconds with sub-ms
@@ -243,6 +386,7 @@ class CountdownTimer(Clock):
         """
 
         self._timeAtLastReset += t
+        self._epochTimeAtLastReset += t
 
     def reset(self, t=None):
         """Reset the time on the clock.
@@ -255,11 +399,9 @@ class CountdownTimer(Clock):
             received, this will be the new time on the clock.
 
         """
-        if t is None:
-            Clock.reset(self, self._countdown_duration)
-        else:
+        if t is not None:
             self._countdown_duration = t
-            Clock.reset(self, t)
+        Clock.reset(self, self._countdown_duration)
 
 
 class StaticPeriod:

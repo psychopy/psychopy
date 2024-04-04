@@ -17,7 +17,7 @@ class TestSpeed:
     def setup_method(self):
         self.tmp_dir = mkdtemp(prefix='psychopy-tests-app')
 
-    def teardown(self):
+    def teardown_method(self):
         shutil.rmtree(self.tmp_dir, ignore_errors=True)
 
     @pytest.mark.usefixtures("get_app")

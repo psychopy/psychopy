@@ -3,7 +3,7 @@
 
 """
 Part of the PsychoPy library
-Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 Distributed under the terms of the GNU General Public License (GPL).
 """
 import copy
@@ -13,13 +13,14 @@ from xml.etree.ElementTree import Element
 from psychopy import prefs
 from psychopy.constants import FOREVER
 from ..params import Param
+from psychopy.experiment.utils import canBeNumeric
 from psychopy.experiment.utils import CodeGenerationException
 from psychopy.experiment.utils import unescapedDollarSign_re
 from psychopy.experiment.params import getCodeFromParamStr
 from psychopy.alerts import alerttools
 from psychopy.colors import nonAlphaSpaces
 
-from psychopy.localization import _translate, _localized
+from psychopy.localization import _translate
 
 
 class BaseComponent:
@@ -32,6 +33,8 @@ class BaseComponent:
     plugin = None
     iconFile = Path(__file__).parent / "unknown" / "unknown.png"
     tooltip = ""
+    # what version was this Component added in?
+    version = "0.0.0"
 
     def __init__(self, exp, parentName, name='',
                  startType='time (s)', startVal='',
@@ -39,7 +42,7 @@ class BaseComponent:
                  startEstim='', durationEstim='',
                  saveStartStop=True, syncScreenRefresh=False,
                  disabled=False):
-        self.type = 'Base'
+        self.type = type(self).__name__
         self.exp = exp  # so we can access the experiment if necess
         self.parentName = parentName  # to access the routine too if needed
 
@@ -55,18 +58,18 @@ class BaseComponent:
         self.order = ['name', 'startVal', 'startEstim', 'startType', 'stopVal', 'durationEstim', 'stopType']  # name first, then timing, then others
 
         msg = _translate(
-            "Name of this component (alphanumeric or _, no spaces)")
+            "Name of this Component (alphanumeric or _, no spaces)")
         self.params['name'] = Param(name,
             valType='code', inputType="single", categ='Basic',
             hint=msg,
-            label=_localized['name'])
+            label=_translate("Name"))
 
         msg = _translate("How do you want to define your start point?")
         self.params['startType'] = Param(startType,
             valType='str', inputType="choice", categ='Basic',
             allowedVals=['time (s)', 'frame N', 'condition'],
             hint=msg, direct=False,
-            label=_localized['startType'])
+            label=_translate("Start type"))
 
         msg = _translate("How do you want to define your end point?")
         self.params['stopType'] = Param(stopType,
@@ -74,32 +77,32 @@ class BaseComponent:
             allowedVals=['duration (s)', 'duration (frames)', 'time (s)',
                          'frame N', 'condition'],
             hint=msg, direct=False,
-            label=_localized['stopType'])
+            label=_translate("Stop type"))
 
         self.params['startVal'] = Param(startVal,
             valType='code', inputType="single", categ='Basic',
-            hint=_translate("When does the component start?"), allowedTypes=[],
-            label=_localized['startVal'])
+            hint=_translate("When does the Component start?"), allowedTypes=[],
+            label=_translate("Start"))
 
         self.params['stopVal'] = Param(stopVal,
             valType='code', inputType="single", categ='Basic',
             updates='constant', allowedUpdates=[], allowedTypes=[],
-            hint=_translate("When does the component end? (blank is endless)"),
-            label=_localized['stopVal'])
+            hint=_translate("When does the Component end? (blank is endless)"),
+            label=_translate("Stop"))
 
         msg = _translate("(Optional) expected start (s), purely for "
                          "representing in the timeline")
         self.params['startEstim'] = Param(startEstim,
             valType='code', inputType="single", categ='Basic',
             hint=msg, allowedTypes=[], direct=False,
-            label=_localized['startEstim'])
+            label=_translate("Expected start (s)"))
 
         msg = _translate("(Optional) expected duration (s), purely for "
                          "representing in the timeline")
         self.params['durationEstim'] = Param(durationEstim,
             valType='code', inputType="single", categ='Basic',
             hint=msg, allowedTypes=[], direct=False,
-            label=_localized['durationEstim'])
+            label=_translate("Expected duration (s)"))
 
         msg = _translate("Store the onset/offset times in the data file "
                          "(as well as in the log file).")
@@ -115,16 +118,19 @@ class BaseComponent:
             hint=msg, allowedTypes=[],
             label=_translate('Sync timing with screen refresh'))
 
-        msg = _translate("Disable this component")
+        msg = _translate("Disable this Component")
         self.params['disabled'] = Param(disabled,
             valType='bool', inputType="bool", categ="Testing",
             hint=msg, allowedTypes=[], direct=False,
-            label=_translate('Disable component'))
+            label=_translate('Disable Component'))
 
     @property
     def _xml(self):
+        return self.makeXmlNode(self.__class__.__name__)
+
+    def makeXmlNode(self, tag):
         # Make root element
-        element = Element(self.__class__.__name__)
+        element = Element(tag)
         element.set("name", self.params['name'].val)
         element.set("plugin", str(self.plugin))
         # Add an element for each parameter
@@ -160,6 +166,26 @@ class BaseComponent:
             newCompon.params[name] = copy.deepcopy(param)
 
         return newCompon
+
+    def hideParam(self, name):
+        """
+        Set a param to always be hidden.
+
+        Parameters
+        ==========
+        name : str
+            Name of the param to hide
+        """
+        # Add to depends, but have it depend on itself and be hidden either way
+        self.depends.append(
+            {
+                "dependsOn": name,  # if...
+                "condition": "",  # meets...
+                "param": name,  # then...
+                "true": "hide",  # should...
+                "false": "hide",  # otherwise...
+            }
+        )
 
     def integrityCheck(self):
         """
@@ -225,6 +251,12 @@ class BaseComponent:
         # Note: settings.writeStartCode() is done first, then
         # Routine.writeStartCode() will call this method for each component in
         # each routine
+        pass
+
+    def writePreCode(self, buff):
+        """Write any code that a component needs that should be done before 
+        the session's `run` method is called.
+        """
         pass
 
     def writeFrameCode(self, buff):
@@ -357,6 +389,15 @@ class BaseComponent:
                 # use the time ignoring any flips
                 code += f"thisExp.addData('{params['name']}.started', t)\n"
         buff.writeIndentedLines(code)
+        # validate presentation time
+        validator = self.getValidator()
+        if validator:
+            # queue validation
+            code = (
+                "# tell attached validator (%(name)s) to start looking for a start flag\n"
+                "%(name)s.status = STARTED\n"
+            )
+            buff.writeIndentedLines(code % validator.params)
         # Set status
         code = (
             "# update status\n"
@@ -470,6 +511,7 @@ class BaseComponent:
         buff.setIndentLevel(+1, relative=True)
         code = (f"# keep track of stop time/frame for later\n"
                 f"{params['name']}.tStop = t  # not accounting for scr refresh\n"
+                f"{params['name']}.tStopRefresh = tThisFlipGlobal  # on global time\n"
                 f"{params['name']}.frameNStop = frameN  # exact frame index\n"
                 )
         if self.params['saveStartStop']:
@@ -481,6 +523,16 @@ class BaseComponent:
                 # use the time ignoring any flips
                 code += f"thisExp.addData('{params['name']}.stopped', t)\n"
         buff.writeIndentedLines(code)
+
+        # validate presentation time
+        validator = self.getValidator()
+        if validator:
+            # queue validation
+            code = (
+                "# tell attached validator (%(name)s) to start looking for a start flag\n"
+                "%(name)s.status = STARTED\n"
+            )
+            buff.writeIndentedLines(code % validator.params)
 
         # Set status
         code = (
@@ -652,16 +704,12 @@ class BaseComponent:
         """
         if paramName == 'advancedParams':
             return  # advancedParams is not really a parameter itself
-        elif paramName == 'letterHeight':
-            paramCaps = 'Height'  # setHeight for TextStim
         elif paramName == 'image' and self.getType() == 'PatchComponent':
             paramCaps = 'Tex'  # setTex for PatchStim
         elif paramName == 'sf':
             paramCaps = 'SF'  # setSF, not SetSf
         elif paramName == 'coherence':
             paramCaps = 'FieldCoherence'
-        elif paramName == 'fieldPos':
-            paramCaps = 'FieldPos'
         else:
             paramCaps = paramName[0].capitalize() + paramName[1:]
 
@@ -800,20 +848,7 @@ class BaseComponent:
 
         return False
 
-    def getStartAndDuration(self):
-        """Determine the start and duration of the stimulus
-        purely for Routine rendering purposes in the app (does not affect
-        actual drawing during the experiment)
-
-        start, duration, nonSlipSafe = component.getStartAndDuration()
-
-        nonSlipSafe indicates that the component's duration is a known fixed
-        value and can be used in non-slip global clock timing (e.g for fMRI)
-        """
-        if not 'startType' in self.params:
-            # this component does not have any start
-            return None, None, True
-
+    def getStart(self):
         # deduce a start time (s) if possible
         startType = self.params['startType'].val
         numericStart = canBeNumeric(self.params['startVal'].val)
@@ -825,10 +860,9 @@ class BaseComponent:
         else:
             startTime = None
 
-        if 'stopType' not in self.params:
-            # this component does not have any stop
-            return startTime, 0, numericStart
+        return startTime, numericStart
 
+    def getDuration(self, startTime=0):
         # deduce stop time (s) if possible
         stopType = self.params['stopType'].val
         numericStop = canBeNumeric(self.params['stopVal'].val)
@@ -847,14 +881,42 @@ class BaseComponent:
             else:
                 duration = None
 
-        nonSlipSafe = numericStop and (numericStart or stopType == 'time (s)')
+        return duration, numericStop
+
+    def getStartAndDuration(self):
+        """Determine the start and duration of the stimulus
+        purely for Routine rendering purposes in the app (does not affect
+        actual drawing during the experiment)
+
+        start, duration, nonSlipSafe = component.getStartAndDuration()
+
+        nonSlipSafe indicates that the component's duration is a known fixed
+        value and can be used in non-slip global clock timing (e.g for fMRI)
+        """
+        # If has a start, calculate it
+        if 'startType' in self.params:
+            startTime, numericStart = self.getStart()
+        else:
+            startTime, numericStart = None, False
+
+        # If has a stop, calculate it
+        if 'stopType' in self.params:
+            duration, numericStop = self.getDuration(startTime=startTime)
+        else:
+            duration, numericStop = 0, False
+
+        nonSlipSafe = numericStop and (numericStart or self.params['stopType'].val == 'time (s)')
         return startTime, duration, nonSlipSafe
 
     def getPosInRoutine(self):
         """Find the index (position) in the parent Routine (0 for top)
         """
+        # get Routine
         routine = self.exp.routines[self.parentName]
-        return routine.index(self)
+        # make list of non-settings components in Routine
+        comps = [comp for comp in routine if not comp == routine.settings]
+        # get index
+        return comps.index(self)
 
     def getType(self):
         """Returns the name of the current object class"""
@@ -863,6 +925,115 @@ class BaseComponent:
     def getShortType(self):
         """Replaces word component with empty string"""
         return self.getType().replace('Component', '')
+
+    def getAllValidatorRoutines(self, attr="vals"):
+        """
+        Return a list of names for all validator Routines in the current experiment. Used to populate
+        allowedVals in the `validator` param.
+
+        Parameters
+        ----------
+        attr : str
+            Attribute to get - either values (for allowedVals) or labels (for allowedLabels)
+
+        Returns
+        -------
+        list[str]
+            List of Routine names/labels
+        """
+        from psychopy.experiment.routines import BaseValidatorRoutine
+
+        # iterate through all Routines in this Experiment
+        names = [""]
+        labels = [_translate("Do not validate")]
+        for rtName, rt in self.exp.routines.items():
+            # if Routine is a validator, include it
+            if isinstance(rt, BaseValidatorRoutine):
+                # add name
+                names.append(rtName)
+                # construct label
+                rtType = type(rt).__name__
+                labels.append(
+                    f"{rtName} ({rtType})"
+                )
+
+        if attr == "labels":
+            return labels
+        else:
+            return names
+
+    def getAllValidatorRoutineVals(self):
+        """
+        Shorthand for calling getAllValidatorRoutines with `attr` as "vals"
+        """
+        return self.getAllValidatorRoutines(attr="vals")
+
+    def getAllValidatorRoutineLabels(self):
+        """
+        Shorthand for calling getAllValidatorRoutines with `attr` as "labels"
+        """
+        return self.getAllValidatorRoutines(attr="labels")
+
+    def getValidator(self):
+        """
+        Get the validator associated with this Component.
+
+        Returns
+        -------
+        BaseStandaloneRoutine or None
+            Validator Routine object
+        """
+        # return None if we have no such param
+        if "validator" not in self.params:
+            return None
+        # return None if no validator is selected
+        if self.params['validator'].val in ("", None, "None", "none"):
+            return None
+        # strip spaces from param
+        name = self.params['validator'].val.strip()
+        # look for Components matching validator name
+        for rt in self.exp.routines.values():
+            for comp in rt:
+                if comp.name == name:
+                    return comp
+
+    def writeRoutineStartValidationCode(self, buff):
+        """
+        WWrite Routine start code to validate this stimulus against the specified validator.
+
+        Parameters
+        ----------
+        buff : StringIO
+            String buffer to write code to.
+        """
+        # get validator
+        validator = self.getValidator()
+        # if there is no validator, don't write any code
+        if validator is None:
+            return
+        # if there is a validator, write its code
+        indent = validator.writeRoutineStartValidationCode(buff, stim=self)
+        # if validation code indented the buffer, dedent
+        buff.setIndentLevel(-indent, relative=True)
+
+    def writeEachFrameValidationCode(self, buff):
+        """
+        Write each frame code to validate this stimulus against the specified validator.
+
+        Parameters
+        ----------
+        buff : StringIO
+            String buffer to write code to.
+        """
+        # get validator
+        validator = self.getValidator()
+        # if there is no validator, don't write any code
+        if validator is None:
+            return
+        # if there is a validator, write its code
+        indent = validator.writeEachFrameValidationCode(buff, stim=self)
+        # if validation code indented the buffer, dedent
+        buff.setIndentLevel(-indent, relative=True)
 
     @property
     def name(self):
@@ -893,6 +1064,56 @@ class BaseComponent:
             return "thisExp"
 
 
+class BaseDeviceComponent(BaseComponent):
+    """
+    Base class for most components which interface with a hardware device.
+    """
+    # list of class strings (readable by DeviceManager) which this component's device could be
+    deviceClasses = []
+
+    def __init__(
+            self, exp, parentName,
+            # basic
+            name='',
+            startType='time (s)', startVal='',
+            stopType='duration (s)', stopVal='',
+            startEstim='', durationEstim='',
+            # device
+            deviceLabel="",
+            # data
+            saveStartStop=True, syncScreenRefresh=False,
+            # testing
+            disabled=False
+    ):
+        # initialise base component
+        BaseComponent.__init__(
+            self, exp, parentName,
+            name=name,
+            startType=startType, startVal=startVal,
+            stopType=stopType, stopVal=stopVal,
+            startEstim=startEstim, durationEstim=durationEstim,
+            saveStartStop=saveStartStop, syncScreenRefresh=syncScreenRefresh,
+            disabled=disabled
+        )
+        # require hardware
+        self.exp.requirePsychopyLibs(
+            ['hardware']
+        )
+        # --- Device params ---
+        self.order += [
+            "deviceLabel"
+        ]
+        # label to refer to device by
+        self.params['deviceLabel'] = Param(
+            deviceLabel, valType="str", inputType="single", categ="Device",
+            label=_translate("Device label"),
+            hint=_translate(
+                "A label to refer to this Component's associated hardware device by. If using the "
+                "same device for multiple components, be sure to use the same label here."
+            )
+        )
+
+
 class BaseVisualComponent(BaseComponent):
     """Base class for most visual stimuli
     """
@@ -909,7 +1130,7 @@ class BaseVisualComponent(BaseComponent):
                  stopType='duration (s)', stopVal='',
                  startEstim='', durationEstim='',
                  saveStartStop=True, syncScreenRefresh=True,
-                 disabled=False):
+                 validator="", disabled=False):
 
         super(BaseVisualComponent, self).__init__(
             exp, parentName, name,
@@ -941,7 +1162,7 @@ class BaseVisualComponent(BaseComponent):
             allowedVals=['from exp settings', 'deg', 'cm', 'pix', 'norm',
                          'height', 'degFlatPos', 'degFlat'],
             hint=msg,
-            label=_localized['units'])
+            label=_translate("Spatial units"))
 
         msg = _translate("Foreground color of this stimulus (e.g. $[1,1,0], red )")
         self.params['color'] = Param(color,
@@ -950,7 +1171,7 @@ class BaseVisualComponent(BaseComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['color'])
+            label=_translate("Foreground color"))
 
         msg = _translate("In what format (color space) have you specified "
                          "the colors? (rgb, dkl, lms, hsv)")
@@ -959,7 +1180,7 @@ class BaseVisualComponent(BaseComponent):
             allowedVals=['rgb', 'dkl', 'lms', 'hsv'],
             updates='constant',
             hint=msg,
-            label=_localized['colorSpace'])
+            label=_translate("Color space"))
 
         msg = _translate("Fill color of this stimulus (e.g. $[1,1,0], red )")
         self.params['fillColor'] = Param(fillColor,
@@ -967,15 +1188,15 @@ class BaseVisualComponent(BaseComponent):
             updates='constant', allowedTypes=[],
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['fillColor'])
+            label=_translate("Fill color"))
 
-        msg = _translate("Color of this stimulus (e.g. $[1,1,0], red )")
+        msg = _translate("Border color of this stimulus (e.g. $[1,1,0], red )")
         self.params['borderColor'] = Param(borderColor,
             valType='color', inputType="color", categ='Appearance',
             updates='constant',allowedTypes=[],
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['borderColor'])
+            label=_translate("Border color"))
 
         msg = _translate("Opacity of the stimulus (1=opaque, 0=fully transparent, 0.5=translucent). "
                          "Leave blank for each color to have its own opacity (recommended if any color is None).")
@@ -984,7 +1205,7 @@ class BaseVisualComponent(BaseComponent):
             updates='constant', allowedTypes=[],
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['opacity'])
+            label=_translate("Opacity"))
 
         msg = _translate("Contrast of the stimulus (1.0=unchanged contrast, "
                          "0.5=decrease contrast, 0.0=uniform/no contrast, "
@@ -994,7 +1215,7 @@ class BaseVisualComponent(BaseComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['contrast'])
+            label=_translate("Contrast"))
 
         msg = _translate("Position of this stimulus (e.g. [1,2] )")
         self.params['pos'] = Param(pos,
@@ -1002,7 +1223,7 @@ class BaseVisualComponent(BaseComponent):
             updates='constant', allowedTypes=[],
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['pos'])
+            label=_translate("Position [x,y]"))
 
         msg = _translate("Size of this stimulus (either a single value or "
                          "x,y pair, e.g. 2.5, [1,2] ")
@@ -1011,16 +1232,27 @@ class BaseVisualComponent(BaseComponent):
             updates='constant', allowedTypes=[],
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['size'])
+            label=_translate("Size [w,h]"))
 
         self.params['ori'] = Param(ori,
             valType='num', inputType="spin", categ='Layout',
             updates='constant', allowedTypes=[], allowedVals=[-360,360],
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=_translate("Orientation of this stimulus (in deg)"),
-            label=_localized['ori'])
+            label=_translate("Orientation"))
 
         self.params['syncScreenRefresh'].readOnly = True
+
+        # --- Testing ---
+        self.params['validator'] = Param(
+            validator, valType="code", inputType="choice", categ="Testing",
+            allowedVals=self.getAllValidatorRoutineVals,
+            allowedLabels=self.getAllValidatorRoutineLabels,
+            label=_translate("Validate with..."),
+            hint=_translate(
+                "Name of validator Component/Routine to use to check the timing of this stimulus."
+            )
+        )
 
     def integrityCheck(self):
         """
@@ -1082,23 +1314,6 @@ class BaseVisualComponent(BaseComponent):
             buff.writeIndented(f"// *{params['name']}* not supported by PsychoJS\n")
             return
 
-        buff.writeIndentedLines(f"\n// *{params['name']}* updates\n")
-        # writes an if statement to determine whether to draw etc
-        self.writeStartTestCodeJS(buff)
-        buff.writeIndented(f"{params['name']}.setAutoDraw(true);\n")
-        # to get out of the if statement
-        buff.setIndentLevel(-1, relative=True)
-        buff.writeIndented("}\n\n")
-
-        # test for stop (only if there was some setting for duration or stop)
-        if self.params['stopVal'].val not in ('', None, -1, 'None'):
-            # writes an if statement to determine whether to draw etc
-            self.writeStopTestCodeJS(buff)
-            buff.writeIndented(f"{params['name']}.setAutoDraw(false);\n")
-            # to get out of the if statement
-            buff.setIndentLevel(-1, relative=True)
-            buff.writeIndented("}\n")
-
         # set parameters that need updating every frame
         # do any params need updating? (this method inherited from _base)
         if self.checkNeedToUpdate('set every frame'):
@@ -1109,13 +1324,28 @@ class BaseVisualComponent(BaseComponent):
             buff.setIndentLevel(-1, relative=True)  # to exit the if block
             buff.writeIndented("}\n")
 
-
-def canBeNumeric(inStr):
-    """Determines whether the input can be converted to a float
-    (using a try: float(instr))
-    """
-    try:
-        float(inStr)
-        return True
-    except Exception:
-        return False
+        buff.writeIndentedLines(f"\n// *{params['name']}* updates\n")
+        # writes an if statement to determine whether to draw etc
+        indented = self.writeStartTestCodeJS(buff)
+        if indented:
+            buff.writeIndentedLines(f"{params['name']}.setAutoDraw(true);\n")
+            # to get out of the if statement
+            while indented > 0:
+                buff.setIndentLevel(-1, relative=True)
+                buff.writeIndentedLines(
+                    "}\n"
+                    "\n"
+                )
+                indented -= 1
+        # writes an if statement to determine whether to draw etc
+        indented = self.writeStopTestCodeJS(buff)
+        if indented:
+            buff.writeIndentedLines(f"{params['name']}.setAutoDraw(false);\n")
+            # to get out of the if statement
+            while indented > 0:
+                buff.setIndentLevel(-1, relative=True)
+                buff.writeIndentedLines(
+                    "}\n"
+                    "\n"
+                )
+                indented -= 1

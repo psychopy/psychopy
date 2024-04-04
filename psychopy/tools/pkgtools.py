@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Tools for working with packages within the Python environment.
@@ -33,7 +33,18 @@ import os
 import os.path
 import requests
 import shutil
+import site
 
+# On import we want to configure the user site-packages dir and add it to the
+# import path. 
+
+# set user site-packages dir
+site.USER_BASE = prefs.paths['packages']
+site.USER_SITE = None  # clear, recompute this value 
+logging.debug('User site-packages dir set to: %s' % site.getusersitepackages())
+
+if not site.USER_SITE in sys.path:
+    site.addsitedir(site.getusersitepackages()) 
 
 # add packages dir to import path
 if prefs.paths['packages'] not in pkg_resources.working_set.entries:
@@ -136,8 +147,10 @@ def installPackage(package, target=None, upgrade=False, forceReinstall=False,
         Package name (e.g., `'psychopy-connect'`, `'scipy'`, etc.) with version
         if needed. You may also specify URLs to Git repositories and such.
     target : str or None
-        Location to install packages to. This defaults to the 'packages' folder
-        in the user PsychoPy folder if `None`.
+        Location to install packages to directly to. If `None`, the user's
+        package directory is set at the prefix and the package is installed
+        there. If a `target` is specified, the package top-level directory
+        must be added to `sys.path` manually.
     upgrade : bool
         Upgrade the specified package to the newest available version.
     forceReinstall : bool
@@ -165,9 +178,15 @@ def installPackage(package, target=None, upgrade=False, forceReinstall=False,
             'exist.'.format(package, target))
 
     # construct the pip command and execute as a subprocess
-    cmd = [sys.executable, "-m", "pip", "install", package, "--target", target]
+    cmd = [sys.executable, "-m", "pip", "install", package]
 
     # optional args
+    if target is None:  # default to user packages dir
+        cmd.append('--prefix')
+        cmd.append(prefs.paths['packages'])
+    else:
+        cmd.append('--target')
+        cmd.append(target)
     if upgrade:
         cmd.append('--upgrade')
     if forceReinstall:
@@ -415,12 +434,18 @@ def uninstallPackage(package):
         # construct the pip command and execute as a subprocess
         cmd = [sys.executable, "-m", "pip", "uninstall", package, "--yes",
                '--no-input', '--no-color']
+
+        # setup the environment to use the user's site-packages
+        env = os.environ.copy()
+        env["PYTHONUSERBASE"] = site.USER_BASE
+
         # run command in subprocess
         output = sp.Popen(
             cmd,
             stdout=sp.PIPE,
             stderr=sp.PIPE,
             shell=False,
+            env=env,
             universal_newlines=True)
         stdout, stderr = output.communicate()  # blocks until process exits
 
@@ -541,23 +566,35 @@ def getPypiInfo(packageName, silence=False):
     except (requests.ConnectionError, requests.JSONDecodeError) as err:
         import wx
         dlg = wx.MessageDialog(None, message=_translate(
-            f"Could not get info for package {packageName}. Reason:\n"
-            f"\n"
-            f"{err}"
-        ), style=wx.ICON_ERROR)
+            "Could not get info for package {}. Reason:\n"
+            "\n"
+            "{}"
+        ).format(packageName,err), style=wx.ICON_ERROR)
         if not silence:
             dlg.ShowModal()
         return
 
-    return {
-        'name': data['info'].get('Name', packageName),
-        'author': data['info'].get('author', 'Unknown'),
-        'authorEmail': data['info'].get('author_email', 'Unknown'),
-        'license': data['info'].get('license', 'Unknown'),
-        'summary': data['info'].get('summary', ''),
-        'desc': data['info'].get('description', ''),
-        'releases': list(data['releases']),
-    }
+    if 'info' not in data:
+        # handle case where the data cannot be retrived
+        return {
+            'name': packageName,
+            'author': 'Unknown',
+            'authorEmail': 'Unknown',
+            'license': 'Unknown',
+            'summary': '',
+            'desc': 'Failed to get package info from PyPI.',
+            'releases': [],
+        }
+    else:
+        return {
+            'name': data['info'].get('Name', packageName),
+            'author': data['info'].get('author', 'Unknown'),
+            'authorEmail': data['info'].get('author_email', 'Unknown'),
+            'license': data['info'].get('license', 'Unknown'),
+            'summary': data['info'].get('summary', ''),
+            'desc': data['info'].get('description', ''),
+            'releases': list(data['releases']),
+        }
 
 
 if __name__ == "__main__":

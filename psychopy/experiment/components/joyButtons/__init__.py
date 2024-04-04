@@ -2,24 +2,13 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
 
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy.experiment import CodeGenerationException, valid_var_re
-from psychopy.localization import _localized as __localized
-_localized = __localized.copy()
-
-# only use _localized values for label values, nothing functional:
-_localized.update({'allowedKeys': _translate('Allowed buttons'),
-                   'store': _translate('Store'),
-                   'forceEndRoutine': _translate('Force end of Routine'),
-                   'storeCorrect': _translate('Store correct'),
-                   'correctAns': _translate('Correct answer'),
-                   'deviceNumber': _translate('Device number'),
-                   'syncScreenRefresh': _translate('sync RT with screen')})
 
 
 class JoyButtonsComponent(BaseComponent):
@@ -62,7 +51,7 @@ class JoyButtonsComponent(BaseComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat'],
             hint=(msg),
-            label=_localized['allowedKeys'])
+            label=_translate("Allowed buttons"))
 
         msg = _translate("Choose which (if any) responses to store at the "
                          "end of a trial")
@@ -71,7 +60,7 @@ class JoyButtonsComponent(BaseComponent):
             allowedVals=['last key', 'first key', 'all keys', 'nothing'],
             updates='constant', direct=False,
             hint=msg,
-            label=_localized['store'])
+            label=_translate("Store"))
 
         msg = _translate("Should a response force the end of the Routine "
                          "(e.g end the trial)?")
@@ -79,7 +68,7 @@ class JoyButtonsComponent(BaseComponent):
             forceEndRoutine, valType='bool', inputType="bool", allowedTypes=[], categ='Basic',
             updates='constant',
             hint=msg,
-            label=_localized['forceEndRoutine'])
+            label=_translate("Force end of Routine"))
 
         msg = _translate("Do you want to save the response as "
                          "correct/incorrect?")
@@ -87,7 +76,7 @@ class JoyButtonsComponent(BaseComponent):
             storeCorrect, valType='bool', inputType="bool", allowedTypes=[], categ='Data',
             updates='constant',
             hint=msg,
-            label=_localized['storeCorrect'])
+            label=_translate("Store correct"))
 
         self.depends += [  # allows params to turn each other off/on
             {"dependsOn": "storeCorrect",  # must be param name
@@ -106,7 +95,7 @@ class JoyButtonsComponent(BaseComponent):
             correctAns, valType='list', inputType="single", allowedTypes=[], categ='Data',
             updates='constant',
             hint=msg,
-            label=_localized['correctAns'])
+            label=_translate("Correct answer"))
 
         msg = _translate(
             "A reaction time to a visual stimulus should be based on when "
@@ -115,7 +104,7 @@ class JoyButtonsComponent(BaseComponent):
             syncScreenRefresh, valType='bool', inputType="bool", categ='Data',
             updates='constant',
             hint=msg,
-            label=_localized['syncScreenRefresh'])
+            label=_translate("Sync RT with screen"))
 
         msg = _translate(
             "Device number, if you have multiple devices which"
@@ -124,7 +113,7 @@ class JoyButtonsComponent(BaseComponent):
             deviceNumber, valType='int', inputType="int", allowedTypes=[], categ='Hardware',
             updates='constant', allowedUpdates=[],
             hint=msg,
-            label=_localized['deviceNumber'])
+            label=_translate("Device number"))
 
     def writeStartCode(self, buff):
         code = ("from psychopy.hardware import joystick as joysticklib  "
@@ -462,6 +451,3 @@ class JoyButtonsComponent(BaseComponent):
                     "    %s.addData('%s.rt', %s.rt)\n" %
                     (currLoop.params['name'], name, name))
             buff.writeIndentedLines(code)
-
-        if currLoop.params['name'].val == self.exp._expHandler.name:
-            buff.writeIndented("%s.nextEntry()\n" % self.exp._expHandler.name)

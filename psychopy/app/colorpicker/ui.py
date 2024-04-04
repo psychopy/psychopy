@@ -1,12 +1,5 @@
 # -*- coding: utf-8 -*-
 
-###########################################################################
-## Python code generated with wxFormBuilder (version 3.10.0-4761b0c)
-## http://www.wxformbuilder.org/
-##
-## PLEASE DO *NOT* EDIT THIS FILE!
-###########################################################################
-
 import wx
 import wx.xrc
 from psychopy.localization import _translate

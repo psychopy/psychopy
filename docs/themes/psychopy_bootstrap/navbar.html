@@ -16,37 +16,44 @@
         <!-- <span class="navbar-text navbar-version pull-right"><b>{{ version|e }}</b></span> -->
       </div>
 
-        <div class="collapse navbar-collapse nav-collapse w-100 pull-right">
-          <ul class="nav navbar-nav ml-auto">
-            <li><a href="https://discourse.psychopy.org">Forum</a></li>
-            <li><a href="{{ pathto('download') }}" style="font-weight:bold">Download</a></li>
-            <li class="dropdown globaltoc-container">
-                    <a role="button"
-                       id="dLabelGlobalToc"
-                       data-toggle="dropdown"
-                       data-target="#"
-                       href="#">Documentation <b class="caret"></b></a>
-                    <ul class="dropdown-menu globaltoc"
-                        role="menu"
-                        aria-labelledby="dLabelGlobalToc">
-                        <ul>
-                            <li class="toctree-l1"><a class="reference internal" href="{{ pathto('about/index') }}">About</a>
-                            </li>
-                            <li class="toctree-l1"><a class="reference internal" href="{{ pathto('documentation') }}">Documentation</a></li>
-                            <li class="toctree-l1"><a class="reference internal" href="{{ pathto('api/index') }}">Reference Manual
-                                (API)</a></li>
-                            <li class="toctree-l1"><a class="reference internal" href="{{ pathto('changelog') }}">Changelog</a>
-                            </li>
-                            <li class="toctree-l1"><a class="reference internal" href=https://workshops.psychopy.org/teaching/index.html>Resources
-                                (e.g. for teaching)</a></li>
-                            <li class="toctree-l1"><a class="reference internal" href=https://workshops.psychopy.org/>Workshops</a></li>
-                            <li class="toctree-l1"><a class="reference internal" href="{{ pathto('consultancy') }}">
-                              Consultancy
-                            </a></li>
-                        </ul>
-                    </ul>
+      <div class="collapse navbar-collapse nav-collapse w-100 pull-right">
+        <ul class="nav navbar-nav ml-auto">
+
+          <li><a href="https://psychopy.org/" style="font-weight:bold">Home</a></li>
+          <li><a href="https://psychopy.org/about/index.html" >About</a></li>
+          <li><a href="https://pavlovia.org/">Pavlovia.org</a></li>
+           <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Download<span class="caret"></span></a>
+            <ul class="dropdown-menu">
+              <li><a href="https://www.psychopy.org/download.html">Install</a></li>
+              <li><a href="https://www.psychopy.org/changelog.html">Change Log</a></li>
+              <!-- Add more dropdown options as needed -->
+            </ul>
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Support <span class="caret"></span></a>
+            <ul class="dropdown-menu">
+              <li><a href="https://discourse.psychopy.org/">Forum</a></li>
+              <li><a href="https://psychopy.org/consultancy.html">Consultancy</a></li>
+              <!-- Add more dropdown options as needed -->
+            </ul>
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Learn<span class="caret"></span></a>
+            <ul class="dropdown-menu">
+              <li><a href="https://psychopy.org/documentation.html">Documentation</a></li>
+              <li><a href="https://workshops.psychopy.org/">Workshops</a></li>
+              <li><a href="https://psychopy.org/teaching/index.html">Teaching</a></li>
+              <li><a href="https://www.youtube.com/channel/UCQo2aB6cXJasHyXJp0afaWg">YouTube</a></li>
+              <li><a href="https://pavlovia.org/explore/demos?sort=DEFAULT">Demos</a></li>
+              <!-- Add more dropdown options as needed -->
+            </ul>
+          <li class="dropdown">
+                      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">More<span class="caret"></span></a>
+                      <ul class="dropdown-menu">
+                        <li><a href="https://psychopy.org/api/index.html">API</a></li>
+                        <li><a href="https://psychopy.org/developers/index.html">Contribute</a></li>
+                        <!-- Add more dropdown options as needed -->
+                      </ul>
                 </li>
-            <li><a href="{{ pathto('consultancy') }}" style="font-weight:bold">Consultancy</a></li>
             {% if theme_navbar_links %}
               {%- for link in theme_navbar_links %}
                 <li><a href="{{ pathto(*link[1:]) }}">{{ link[0] }}</a></li>

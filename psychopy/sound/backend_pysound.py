@@ -115,7 +115,7 @@ class SoundPySoundCard(_SoundBase):
 
     def __init__(self, value="C", secs=0.5, octave=4, sampleRate=44100,
                  bits=None, name='', autoLog=True, loops=0, bufferSize=128,
-                 volume=1, stereo=True):
+                 volume=1, stereo=True, speaker=None):
         """Create a sound and get ready to play
 
         :parameters:
@@ -171,6 +171,8 @@ class SoundPySoundCard(_SoundBase):
         """
         self.name = name  # only needed for autoLogging
         self.autoLog = autoLog
+
+        self.speaker = self._parseSpeaker(speaker)
 
         self.sampleRate = sampleRate
         self.bufferSize = bufferSize

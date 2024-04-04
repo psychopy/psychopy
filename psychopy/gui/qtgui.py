@@ -4,31 +4,35 @@
 # To build simple dialogues etc. (requires pyqt4)
 #
 #  Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
+import importlib
+from psychopy import logging, data
+from . import util
 
 haveQt = False  # until we confirm otherwise
-importOrder = ['PyQt5', 'PyQt4']
+importOrder = ['PyQt6', 'PyQt5']
 
 for libname in importOrder:
     try:
-        exec("import {}".format(libname))
+        importlib.import_module(f"{libname}.QtCore")
         haveQt = libname
+        logging.debug(f"psychopy.gui is using {haveQt}")
         break
-    except ImportError:
+    except ModuleNotFoundError:
         pass
 
 if not haveQt:
     # do the main import again not in a try...except to recreate error
-    exec("import {}".format(importOrder[0]))
+    import PyQt6
+elif haveQt == 'PyQt6':
+    from PyQt6 import QtWidgets
+    from PyQt6 import QtGui
+    from PyQt6.QtCore import Qt
 elif haveQt == 'PyQt5':
     from PyQt5 import QtWidgets
     from PyQt5 import QtGui
     from PyQt5.QtCore import Qt
-else:
-    from PyQt4 import QtGui  
-    QtWidgets = QtGui  # in qt4 these were all in one package
-    from PyQt4.QtCore import Qt
 
 from psychopy import logging
 import numpy as np
@@ -37,7 +41,6 @@ import sys
 import json
 from psychopy.localization import _translate
 
-OK = QtWidgets.QDialogButtonBox.Ok
 
 qtapp = QtWidgets.QApplication.instance()
 
@@ -52,6 +55,77 @@ def ensureQtApp():
 
 
 wasMouseVisible = True
+
+
+class ReadmoreCtrl(QtWidgets.QLabel):
+    """
+    A linked label which shows/hides a set of control on click.
+    """
+    def __init__(self, parent, label=""):
+        QtWidgets.QLabel.__init__(self, parent)
+        # set initial state and label
+        self.state = False
+        self.label = label
+        self.updateLabel()
+        # array to store linked ctrls
+        self.linkedCtrls = []
+        # bind onclick
+        self.setOpenExternalLinks(False)
+        self.linkActivated.connect(self.onToggle)
+
+    def updateLabel(self):
+        """
+        Update label so that e.g. arrow matches current state.
+        """
+        # reset label to its own value to refresh
+        self.setLabel(self.label)
+
+    def setLabel(self, label=""):
+        """
+        Set the label of this ctrl (will append arrow and necessary HTML for a link)
+        """
+        # store label root
+        self.label = label
+        # choose an arrow according to state
+        if self.state:
+            arrow = "▾"
+        else:
+            arrow = "▸"
+        # construct text to set
+        text = f"<a href='.' style='color: black; text-decoration: none;'>{arrow} {label}</a>"
+        # set label text
+        self.setText(text)
+
+    def onToggle(self, evt=None):
+        """
+        Toggle visibility of linked ctrls. Called on press.
+        """
+        # toggle state
+        self.state = not self.state
+        # show/hide linked ctrls according to state
+        for ctrl in self.linkedCtrls:
+            if self.state:
+                ctrl.show()
+            else:
+                ctrl.hide()
+        # update label
+        self.updateLabel()
+        # resize dlg
+        self.parent().adjustSize()
+
+    def linkCtrl(self, ctrl):
+        """
+        Connect a ctrl to this ReadmoreCtrl such that it's shown/hidden on toggle.
+        """
+        # add to array of linked ctrls
+        self.linkedCtrls.append(ctrl)
+        # show/hide according to own state
+        if self.state:
+            ctrl.show()
+        else:
+            ctrl.hide()
+        # resize dlg
+        self.parent().adjustSize()
 
 
 class Dlg(QtWidgets.QDialog):
@@ -85,39 +159,38 @@ class Dlg(QtWidgets.QDialog):
                  pos=None, size=None, style=None,
                  labelButtonOK=_translate(" OK "),
                  labelButtonCancel=_translate(" Cancel "),
-                 screen=-1):
+                 screen=-1, alwaysOnTop=False):
 
         ensureQtApp()
-        QtWidgets.QDialog.__init__(self, None, Qt.WindowTitleHint)
+        QtWidgets.QDialog.__init__(self, None)
 
         self.inputFields = []
         self.inputFieldTypes = {}
         self.inputFieldNames = []
-        self.data = []
+        self.data = {}
         self.irow = 0
         self.pos = pos
         # QtWidgets.QToolTip.setFont(QtGui.QFont('SansSerif', 10))
 
+        # set always stay on top
+        if alwaysOnTop:
+            self.setWindowFlags(Qt.WindowType.WindowStaysOnTopHint)
+
         # add buttons for OK and Cancel
-        self.buttonBox = QtWidgets.QDialogButtonBox(Qt.Horizontal,
-                                                    parent=self)
-        self.okbutton = QtWidgets.QPushButton(labelButtonOK,
-                                              parent=self)
-        self.cancelbutton = QtWidgets.QPushButton(labelButtonCancel,
-                                                  parent=self)
-        self.buttonBox.addButton(self.okbutton,
-                                 QtWidgets.QDialogButtonBox.ActionRole)
-        self.buttonBox.addButton(self.cancelbutton,
-                                 QtWidgets.QDialogButtonBox.ActionRole)
-        self.okbutton.clicked.connect(self.accept)
-        self.cancelbutton.clicked.connect(self.reject)
+        buttons = QtWidgets.QDialogButtonBox.StandardButton.Ok | QtWidgets.QDialogButtonBox.StandardButton.Cancel
+        self.buttonBox = QtWidgets.QDialogButtonBox(buttons, parent=self)
+        self.buttonBox.accepted.connect(self.accept)
+        self.buttonBox.rejected.connect(self.reject)
+        # store references to OK and CANCEL buttons
+        self.okBtn = self.buttonBox.button(QtWidgets.QDialogButtonBox.StandardButton.Ok)
+        self.cancelBtn = self.buttonBox.button(QtWidgets.QDialogButtonBox.StandardButton.Cancel)
 
         if style:
             raise RuntimeWarning("Dlg does not currently support the "
                                  "style kwarg.")
         self.size = size
 
-        if haveQt == 'PyQt5':
+        if haveQt in ['PyQt5', 'PyQt6']:
             nScreens = len(qtapp.screens())
         else:
             nScreens = QtWidgets.QDesktopWidget().screenCount()
@@ -126,22 +199,27 @@ class Dlg(QtWidgets.QDialog):
         # self.labelButtonCancel = labelButtonCancel
 
         self.layout = QtWidgets.QGridLayout()
-        self.layout.setColumnStretch(1, 1)
         self.layout.setSpacing(10)
         self.layout.setColumnMinimumWidth(1, 250)
+
+        # add placeholder for readmore control sizer
+        self.readmore = None
+
+        # add message about required fields (shown/hidden by validate)
+        msg = _translate("Fields marked with an asterisk (*) are required.")
+        self.requiredMsg = QtWidgets.QLabel(text=msg, parent=self)
+        self.layout.addWidget(self.requiredMsg, 0, 0, 1, -1)
+        self.irow += 1
 
         self.setLayout(self.layout)
 
         self.setWindowTitle(title)
 
-
     def addText(self, text, color='', isFieldLabel=False):
         textLabel = QtWidgets.QLabel(text, parent=self)
 
         if len(color):
-            palette = QtGui.QPalette()
-            palette.setColor(QtGui.QPalette.Foreground, QtGui.QColor(color))
-            textLabel.setPalette(palette)
+            textLabel.setStyleSheet("color: {0};".format(color))
 
         if isFieldLabel is True:
             self.layout.addWidget(textLabel, self.irow, 0, 1, 1)
@@ -151,8 +229,8 @@ class Dlg(QtWidgets.QDialog):
 
         return textLabel
 
-    def addField(self, label='', initial='', color='', choices=None, tip='',
-                 enabled=True):
+    def addField(self, key, label='', initial='', color='', choices=None, tip='',
+                 required=False, enabled=True):
         """Adds a (labelled) input field to the dialogue box,
         optional text color and tooltip.
 
@@ -175,19 +253,18 @@ class Dlg(QtWidgets.QDialog):
 
         # create input control
         if type(initial) == bool and not choices:
-            self.data.append(initial)
+            self.data[key] = initial
             inputBox = QtWidgets.QCheckBox(parent=self)
             inputBox.setChecked(initial)
 
             def handleCheckboxChange(new_state):
-                ix = self.inputFields.index(inputBox)
-                self.data[ix] = inputBox.isChecked()
+                self.data[key] = inputBox.isChecked()
                 msg = "handleCheckboxChange: inputFieldName={0}, checked={1}"
-                logging.debug(msg.format(label, self.data[ix]))
+                logging.debug(msg.format(label, self.data[key]))
 
             inputBox.stateChanged.connect(handleCheckboxChange)
         elif not choices:
-            self.data.append(initial)
+            self.data[key] = initial
             inputBox = QtWidgets.QLineEdit(str(initial), parent=self)
 
             def handleLineEditChange(new_text):
@@ -197,38 +274,40 @@ class Dlg(QtWidgets.QDialog):
 
                 try:
                     if thisType in (str, bytes):
-                        self.data[ix] = str(new_text)
+                        self.data[key] = str(new_text)
                     elif thisType == tuple:
                         jtext = "[" + str(new_text) + "]"
-                        self.data[ix] = json.loads(jtext)[0]
+                        self.data[key] = json.loads(jtext)[0]
                     elif thisType == list:
                         jtext = "[" + str(new_text) + "]"
-                        self.data[ix] = json.loads(jtext)[0]
+                        self.data[key] = json.loads(jtext)[0]
                     elif thisType == float:
-                        self.data[ix] = float(new_text)
+                        self.data[key] = float(new_text)
                     elif thisType == int:
-                        self.data[ix] = int(new_text)
+                        self.data[key] = int(new_text)
                     elif thisType == dict:
                         jtext = "[" + str(new_text) + "]"
-                        self.data[ix] = json.loads(jtext)[0]
+                        self.data[key] = json.loads(jtext)[0]
                     elif thisType == np.ndarray:
-                        self.data[ix] = np.array(
+                        self.data[key] = np.array(
                             json.loads("[" + str(new_text) + "]")[0])
                     else:
-                        self.data[ix] = new_text
+                        self.data[key] = new_text
                         msg = ("Unknown type in handleLineEditChange: "
                                "inputFieldName={0}, type={1}, value={2}")
                         logging.warning(msg.format(label, thisType,
                                                    self.data[ix]))
                     msg = ("handleLineEditChange: inputFieldName={0}, "
                            "type={1}, value={2}")
-                    logging.debug(msg.format(label, thisType, self.data[ix]))
+                    logging.debug(msg.format(label, thisType, self.data[key]))
                 except Exception as e:
-                    self.data[ix] = str(new_text)
+                    self.data[key] = str(new_text)
                     msg = ('Error in handleLineEditChange: inputFieldName='
                            '{0}, type={1}, value={2}, error={3}')
-                    logging.error(msg.format(label, thisType, self.data[ix],
+                    logging.error(msg.format(label, thisType, self.data[key],
                                              e))
+
+                self.validate()
 
             inputBox.textEdited.connect(handleLineEditChange)
         else:
@@ -248,20 +327,23 @@ class Dlg(QtWidgets.QDialog):
                 initial = 0
             inputBox.setCurrentIndex(initial)
 
-            self.data.append(choices[initial])
+            self.data[key] = choices[initial]
 
             def handleCurrentIndexChanged(new_index):
                 ix = self.inputFields.index(inputBox)
                 try:
-                    self.data[ix] = inputBox.itemData(new_index).toPyObject()[0]
+                    self.data[key] = inputBox.itemData(new_index).toPyObject()[0]
                 except AttributeError:
-                    self.data[ix] = inputBox.itemData(new_index)[0]
+                    self.data[key] = inputBox.itemData(new_index)[0]
                 msg = ("handleCurrentIndexChanged: inputFieldName={0}, "
                        "selected={1}, type: {2}")
-                logging.debug(msg.format(label, self.data[ix],
-                                         type(self.data[ix])))
+                logging.debug(msg.format(label, self.data[key],
+                                         type(self.data[key])))
 
             inputBox.currentIndexChanged.connect(handleCurrentIndexChanged)
+
+        # set required (attribute is checked later by validate fcn)
+        inputBox.required = required
 
         if len(color):
             inputBox.setPalette(inputLabel.palette())
@@ -270,18 +352,39 @@ class Dlg(QtWidgets.QDialog):
         inputBox.setEnabled(enabled)
         self.layout.addWidget(inputBox, self.irow, 1)
 
+        # link to readmore ctrl if we're in one
+        if self.readmore is not None:
+            self.readmore.linkCtrl(inputBox)
+            self.readmore.linkCtrl(inputLabel)
+
         self.inputFields.append(inputBox)  # store this to get data back on OK
         self.irow += 1
 
         return inputBox
 
-    def addFixedField(self, label='', initial='', color='', choices=None,
+    def addFixedField(self, key, label='', initial='', color='', choices=None,
                       tip=''):
         """Adds a field to the dialog box (like addField) but the field cannot
         be edited. e.g. Display experiment version.
         """
-        return self.addField(label, initial, color, choices, tip,
+        return self.addField(key, label, initial, color, choices, tip,
                              enabled=False)
+
+    def addReadmoreCtrl(self):
+        line = ReadmoreCtrl(self, label=_translate("Configuration fields..."))
+
+        self.layout.addWidget(line, self.irow, 0, 1, 2)
+        self.irow += 1
+
+        self.enterReadmoreCtrl(line)
+
+        return line
+
+    def enterReadmoreCtrl(self, ctrl):
+        self.readmore = ctrl
+
+    def exitReadmoreCtrl(self):
+        self.readmore = None
 
     def display(self):
         """Presents the dialog and waits for the user to press OK or CANCEL.
@@ -293,6 +396,35 @@ class Dlg(QtWidgets.QDialog):
         :return: self.data
         """
         return self.exec_()
+
+    def validate(self):
+        """
+        Make sure that required fields have a value.
+        """
+        # start off assuming valid
+        valid = True
+        # start off assuming no required fields
+        hasRequired = False
+        # iterate through fields
+        for field in self.inputFields:
+            # if field isn't required, skip
+            if not field.required:
+                continue
+            # if we got this far, we have a required field
+            hasRequired = True
+            # validation is only relevant for text fields, others have defaults
+            if not isinstance(field, QtWidgets.QLineEdit):
+                continue
+            # check that we have text
+            if not len(field.text()):
+                valid = False
+        # if not valid, disable OK button
+        self.okBtn.setEnabled(valid)
+        # show required message if we have any required fields
+        if hasRequired:
+            self.requiredMsg.show()
+        else:
+            self.requiredMsg.hide()
 
     def show(self):
         """Presents the dialog and waits for the user to press OK or CANCEL.
@@ -323,15 +455,15 @@ class Dlg(QtWidgets.QDialog):
         if self.pos is None:
             # Center Dialog on appropriate screen
             frameGm = self.frameGeometry()
-            desktop = QtWidgets.QApplication.desktop()
-            qtscreen = self.screen
             if self.screen <= 0:
-                qtscreen = desktop.primaryScreen()
-            centerPoint = desktop.screenGeometry(qtscreen).center()
+                qtscreen = QtGui.QGuiApplication.primaryScreen()
+            else:
+                qtscreen = self.screen
+            centerPoint = qtscreen.availableGeometry().center()
             frameGm.moveCenter(centerPoint)
             self.move(frameGm.topLeft())
         else:
-            self.move(self.pos[0],self.pos[1])
+            self.move(self.pos[0], self.pos[1])
         QtWidgets.QDialog.show(self)
         self.raise_()
         self.activateWindow()
@@ -339,7 +471,7 @@ class Dlg(QtWidgets.QDialog):
             self.inputFields[0].setFocus()
 
         self.OK = False
-        if QtWidgets.QDialog.exec_(self) == QtWidgets.QDialog.Accepted:
+        if QtWidgets.QDialog.exec(self):  # == QtWidgets.QDialog.accepted:
             self.OK = True
             return self.data
 
@@ -425,59 +557,69 @@ class DlgFromDict(Dlg):
 
     def __init__(self, dictionary, title='', fixed=None, order=None,
                  tip=None, screen=-1, sortKeys=True, copyDict=False,
-                 labels=None, show=True,
-                 sort_keys=None, copy_dict=None):
+                 labels=None, show=True, alwaysOnTop=False):
+        # Note: As of 2023.2.0, we do not allow sort_keys or copy_dict
 
-        # We allowed for snake_case parameters in previous releases. This needs
-        # to end soon.
-        if sort_keys:
-            sortKeys = sort_keys
-            logging.warning("Parameter 'sort_keys' is deprecated. "
-                            "Use 'sortKeys' instead.")
-
-        if copy_dict:
-            copyDict = copy_dict
-            logging.warning("Parameter 'copy_dict' is deprecated. "
-                            "Use 'copyDict' instead.")
-        
-        # We don't explicitly check for None identity
-        # for backward-compatibility reasons.
-        if not fixed:
-            fixed = []
-        if not order:
-            order = []
-        if not labels:
-            labels = dict()
-        if not tip:
-            tip = dict()
-
-        Dlg.__init__(self, title, screen=screen)
+        Dlg.__init__(self, title, screen=screen, alwaysOnTop=alwaysOnTop)
 
         if copyDict:
             self.dictionary = dictionary.copy()
         else:
             self.dictionary = dictionary
-
-        self._keys = list(self.dictionary.keys())
-        self._labels = labels
-
-        if order:
-            self._keys = list(order) + list(set(self._keys).difference(set(order)))
-        elif sortKeys:
-            self._keys.sort()
-
-        for field in self._keys:
-            label = labels[field] if field in labels else field
-            tooltip = ''
-            if field in tip:
-                tooltip = tip[field]
-            if field in fixed:
-                self.addFixedField(label, self.dictionary[field], tip=tooltip)
-            elif type(self.dictionary[field]) in [list, tuple]:
-                self.addField(label, choices=self.dictionary[field],
-                              tip=tooltip)
+        # initialise storage attributes
+        self._labels = []
+        self._keys = []
+        # convert to a list of params
+        params = util.makeDisplayParams(
+            self.dictionary,
+            sortKeys=sortKeys,
+            labels=labels,
+            tooltips=tip,
+            order=order,
+            fixed=fixed
+        )
+        # make ctrls
+        for param in params:
+            # if param is the readmore button, add it and continue
+            if param == "---":
+                self.addReadmoreCtrl()
+                continue
+            # add asterisk to label if needed
+            if "req" in param['flags'] and "*" not in param['label']:
+                param['label'] += "*"
+            # store attributes from this param
+            self._labels.append(param['label'])
+            self._keys.append(param['key'])
+            # make ctrls
+            if "hid" in param['flags']:
+                # don't add anything if it's hidden
+                pass
+            elif "fix" in param['flags']:
+                self.addFixedField(
+                    param['key'],
+                    label=param['label'],
+                    initial=param['value'],
+                    tip=param['tip']
+                )
+            elif isinstance(param['value'], (list, tuple)):
+                self.addField(
+                    param['key'],
+                    choices=param['value'],
+                    label=param['label'],
+                    tip=param['tip'],
+                    required="req" in param['flags']
+                )
             else:
-                self.addField(label, self.dictionary[field], tip=tooltip)
+                self.addField(
+                    param['key'],
+                    initial=param['value'],
+                    label=param['label'],
+                    tip=param['tip'],
+                    required="req" in param['flags']
+                )
+
+        # validate so the required message is shown/hidden as appropriate
+        self.validate()
 
         if show:
             self.show()
@@ -485,17 +627,10 @@ class DlgFromDict(Dlg):
     def show(self):
         """Display the dialog.
         """
-        ok_data = self.exec_()
-        if ok_data:
-            for n, thisKey in enumerate(self._keys):
-                if thisKey in self._labels:
-                    labelKey = self._labels[thisKey]
-                else:
-                    labelKey = thisKey
-                try:
-                    self.dictionary[thisKey] = self.inputFieldTypes[labelKey](self.data[n])
-                except ValueError:
-                    self.dictionary[thisKey] = self.data[n]
+        data = self.exec_()
+        if data is not None:
+            self.dictionary.update(data)
+        return self.dictionary
 
 
 def fileSaveDlg(initFilePath="", initFileName="",
@@ -689,7 +824,7 @@ if __name__ == '__main__':
 
     # Test Dict Dialog
 
-    info = {'Observer': 'jwp', 'GratingOri': 45,
+    info = {'Observer*': 'jwp', 'GratingOri': 45,
             'ExpVersion': 1.1, 'Group': ['Test', 'Control']}
     dictDlg = DlgFromDict(dictionary=info, title='TestExperiment',
                           labels={'Group': 'Participant Group'},
@@ -728,3 +863,4 @@ if __name__ == '__main__':
     # win.flip()
     # from psychopy import event
     # event.waitKeys()
+

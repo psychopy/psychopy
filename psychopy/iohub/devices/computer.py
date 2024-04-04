@@ -524,6 +524,20 @@ class Computer():
         return Computer.global_clock.getTime()
 
     @staticmethod
+    def syncClock(params):
+        """
+        Sync parameters between Computer.global_clock and a given dict.
+
+        Parameters
+        ----------
+        params : dict
+            Dict of attributes and values to apply to the computer's global clock. See
+            `psychopy.clock.MonotonicClock` for what attributes to include.
+        """
+        for key, value in params.items():
+            setattr(Computer.global_clock, key, value)
+
+    @staticmethod
     def getPhysicalSystemMemoryInfo():
         """Return a class containing information about current memory usage.
 

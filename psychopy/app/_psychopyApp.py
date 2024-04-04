@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
-
+import traceback
 from pathlib import Path
 
 from psychopy.app.colorpicker import PsychoColorPicker
@@ -173,11 +173,19 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             profile.enable()
             t0 = time.time()
 
+        from . import setAppInstance
+        setAppInstance(self)
+
         self._appLoaded = False  # set to true when all frames are created
         self.builder = None
         self.coder = None
         self.runner = None
         self.version = psychopy.__version__
+        # array of handles to extant Pavlovia buttons
+        self.pavloviaButtons = {
+            'user': [],
+            'project': [],
+        }
         # set default paths and prefs
         self.prefs = psychopy.prefs
         self._currentThemeSpec = None
@@ -250,41 +258,6 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             linuxConfDlg.ShowModal()
             linuxConfDlg.Destroy()
 
-    def _loadStartupPlugins(self):
-        """Routine for loading plugins registered to be loaded at startup.
-        """
-        if self._safeMode:  # nop, if running safe mode
-            return
-
-        # load any plugins
-        from psychopy.plugins import scanPlugins, loadPlugin, listPlugins
-
-        # if we find valid plugins, attempt to load them
-        if not scanPlugins():
-            logging.debug("No PsychoPy plugin packages found in environment.")
-            return
-
-        # If we find plugins in the current environment, try loading the ones
-        # specified as startup plugins.
-        for pluginName in listPlugins('startup'):
-            logging.debug(
-                "Loading startup plugin `{}`.".format(pluginName))
-
-            if not loadPlugin(pluginName):
-                logging.error(
-                    ("Failed to load plugin `{}`! It might have been " 
-                     "uninstalled or is now unreachable.").format(pluginName))
-                
-                # remove plugin from list
-                pluginList = list(prefs.general['startUpPlugins'])
-                try:
-                    pluginList.remove(pluginName)
-                except ValueError:
-                    pass
-                else:
-                    prefs.general['startUpPlugins'] = pluginList
-                    prefs.saveUserPrefs()
-                
     def _doSingleInstanceCheck(self):
         """Set up the routines which check for and communicate with other
         PsychoPy GUI processes.
@@ -441,7 +414,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             w, h = splashImage.GetSize()
             splash.SetTextPosition((340, h - 30))
             splash.SetText(
-                _translate("Copyright (C) 2022 OpenScienceTools.org"))
+                _translate("Copyright (C) {year} OpenScienceTools.org").format(year=2024))
         else:
             splash = None
 
@@ -576,15 +549,58 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
 
         # Create windows
         if view.runner:
-            self.showRunner(fileList=runlist)
+            # open Runner is requested
+            try:
+                self.showRunner(fileList=runlist)
+            except Exception as err:
+                # if Runner failed with file, try without
+                self.showRunner()
+                # log error
+                logging.error(_translate(
+                    "Failed to open Runner with requested file list, opening without file list.\n"
+                    "Requested: {}\n"
+                    "Err: {}"
+                ).format(runlist, err))
+                logging.debug(
+                    "\n".join(traceback.format_exception(err))
+                )
+
         if view.coder:
-            self.showCoder(fileList=scripts)
+            # open Coder if requested
+            try:
+                self.showCoder(fileList=scripts)
+            except Exception as err:
+                # if Coder failed with file, try without
+                logging.error(_translate(
+                    "Failed to open Coder with requested scripts, opening with no scripts open.\n"
+                    "Requested: {}\n"
+                    "Err: {}"
+                ).format(scripts, err))
+                logging.debug(
+                    "\n".join(traceback.format_exception(err))
+                )
+                self.showCoder()
         if view.builder:
-            self.showBuilder(fileList=exps)
+            # open Builder if requested
+            try:
+                self.showBuilder(fileList=exps)
+            except Exception as err:
+                # if Builder failed with file, try without
+                self.showBuilder()
+                # log error
+                logging.error(_translate(
+                    "Failed to open Builder with requested experiments, opening with no experiments open.\n"
+                    "Requested: {}\n"
+                    "Err: {}"
+                ).format(exps, err))
+
         if view.direct:
             self.showRunner()
             for exp in [file for file in args if file.endswith('.psyexp') or file.endswith('.py')]:
                 self.runner.panel.runFile(exp)
+        # if we started a busy cursor which never finished, finish it now
+        if wx.IsBusy():
+            wx.EndBusyCursor()
 
         # send anonymous info to https://usage.psychopy.org
         # please don't disable this, it's important for PsychoPy's development
@@ -648,7 +664,8 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         # Load plugins here after everything is realized, make sure that we
         # refresh UI elements which are affected by plugins (e.g. the component
         # panel in Builder).
-        self._loadStartupPlugins()
+        from psychopy.plugins import activatePlugins
+        activatePlugins()
         self._refreshComponentPanels()
 
         # flush any errors to the last run log file
@@ -812,8 +829,13 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             self.updateWindowMenu()
             wx.EndBusyCursor()
         else:
-            # Set output window and standard streams
+            # set output window and standard streams
             self.coder.setOutputWindow(True)
+            # open file list
+            if fileList is None:
+                fileList = []
+            for file in fileList:
+                self.coder.fileOpen(filename=file)
         self.coder.Show(True)
         self.SetTopWindow(self.coder)
         self.coder.Raise()
@@ -1050,7 +1072,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         info.SetVersion('v' + psychopy.__version__)
         info.SetDescription(msg)
 
-        info.SetCopyright('(C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.')
+        info.SetCopyright('(C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.')
         info.SetWebSite('https://www.psychopy.org')
         info.SetLicence(license)
         # developers

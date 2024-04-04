@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
-
+import ast
 import os
 import subprocess
 import sys
@@ -22,7 +22,6 @@ import re
 from pathlib import Path
 
 from . import CodeBox
-from ..localizedStrings import _localizedDialogs as _localized
 from ...coder import BaseCodeEditor
 from ...themes import icons, handlers
 from ... import utils
@@ -58,31 +57,33 @@ class _ValidatorMixin:
             return
 
         if valid:
-            self.SetForegroundColour(wx.Colour(0, 0, 0))
+            self.SetForegroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_BTNTEXT))
         else:
             self.SetForegroundColour(wx.Colour(1, 0, 0))
 
     def updateCodeFont(self, valType):
         """Style input box according to code wanted"""
-        if not hasattr(self, "SetFont"):
+        if not hasattr(self, "SetStyle"):
             # Skip if font not applicable to object type
             return
         if self.GetName() == "name":
             # Name is never code
             valType = "str"
 
-        fontNormal = self.GetTopLevelParent().app._mainFont
+        # get font
         if valType == "code" or hasattr(self, "dollarLbl"):
-            # Set font
-            fontCode = self.GetTopLevelParent().app._codeFont
-            fontCodeBold = fontCode.Bold()
-            if fontCodeBold.IsOk():
-                self.SetFont(fontCodeBold)
-            else:
-                # use normal font if the bold version is invalid on the system
-                self.SetFont(fontCode)
+            font = self.GetTopLevelParent().app._codeFont.Bold()
         else:
-            self.SetFont(fontNormal)
+            font = self.GetTopLevelParent().app._mainFont
+
+        # set font
+        if sys.platform == "linux":
+            # have to go via SetStyle on Linux
+            style = wx.TextAttr(self.GetForegroundColour(), font=font)
+            self.SetStyle(0, len(self.GetValue()), style)
+        else:
+            # otherwise SetFont is fine
+            self.SetFont(font)
 
 
 class _FileMixin(_FrameMixin):
@@ -330,50 +331,70 @@ BoolCtrl = wx.CheckBox
 class ChoiceCtrl(wx.Choice, _ValidatorMixin, _HideMixin):
     def __init__(self, parent, valType,
                  val="", choices=[], labels=[], fieldName="",
-                 size=wx.Size(-1, 24)):
-        self._choices = list(choices)
-        # If not given any labels, alias values
-        if not labels:
-            labels = self._choices
-        # Map labels to values
-        self._labels = {}
-        for i, value in enumerate(self._choices):
-            if i < len(labels):
-                self._labels[value] = labels[i]
-            else:
-                self._labels[value] = value
-        # Translate labels
-        for v, l in self._labels.items():
-            if l in _localized:
-                self._labels[v] = _localized[l]
+                 size=wx.Size(-1, -1)):
+        self._choices = choices
+        self._labels = labels
         # Create choice ctrl from labels
         wx.Choice.__init__(self)
-        self.Create(parent, -1, size=size, choices=[self._labels[c] for c in self._choices], name=fieldName)
+        self.Create(parent, -1, name=fieldName)
+        self.populate()
         self.valType = valType
         self.SetStringSelection(val)
 
+    def populate(self):
+        if callable(self._choices):
+            # if choices are given as a partial, execute it now to get values
+            choices = self._choices()
+        else:
+            # otherwise, treat it as a list
+            choices = list(self._choices)
+
+        if callable(self._labels):
+            # if labels are given as a partial, execute it now to get values
+            labels = self._labels()
+        elif self._labels:
+            # otherwise, treat it as a list
+            labels = list(self._labels)
+        else:
+            # if not given any labels, alias values
+            labels = choices
+        # Map labels to values
+        _labels = {}
+        for i, value in enumerate(choices):
+            if i < len(labels):
+                _labels[value] = labels[i]
+            else:
+                _labels[value] = value
+        labels = _labels
+        # store labels and choices
+        self.labels = labels
+        self.choices = choices
+
+        # apply to ctrl
+        self.SetItems([str(self.labels[c]) for c in self.choices])
+
     def SetStringSelection(self, string):
-        strChoices = [str(choice) for choice in self._choices]
-        if string not in self._choices:
+        strChoices = [str(choice) for choice in self.choices]
+        if string not in self.choices:
             if string in strChoices:
                 # If string is a stringified version of a value in choices, stringify the value in choices
                 i = strChoices.index(string)
-                self._labels[string] = self._labels.pop(self._choices[i])
-                self._choices[i] = string
+                self.labels[string] = self.labels.pop(self.choices[i])
+                self.choices[i] = string
             else:
                 # Otherwise it is a genuinely new value, so add it to options
-                self._choices.append(string)
-                self._labels[string] = string
+                self.choices.append(string)
+                self.labels[string] = string
             # Refresh items
             self.SetItems(
-                [self._labels[c] for c in self._choices]
+                [str(self.labels[c]) for c in self.choices]
             )
         # Don't use wx.Choice.SetStringSelection here because label string is localized.
-        wx.Choice.SetSelection(self, self._choices.index(string))
+        wx.Choice.SetSelection(self, self.choices.index(string))
 
-    def GetValue(self):
+    def getValue(self):
         # Don't use wx.Choice.GetStringSelection here because label string is localized.
-        return self._choices[self.GetSelection()]
+        return self.choices[self.GetSelection()]
 
 
 class MultiChoiceCtrl(wx.CheckListBox, _ValidatorMixin, _HideMixin):
@@ -904,6 +925,7 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
         expRoot = Path(cmpRoot).parent
         self.templates = {
             'Form': Path(cmpRoot) / "form" / "formItems.xltx",
+            'CounterBalance': Path(expRoot) / "routines" / "counterbalance" / "counterbalanceItems.xltx",
             'TrialHandler': Path(expRoot) / "loopTemplate.xltx",
             'StairHandler': Path(expRoot) / "loopTemplate.xltx",
             'MultiStairHandler:simple': Path(expRoot) / "staircaseTemplate.xltx",
@@ -932,13 +954,28 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
         if "$" in self.GetValue():
             self.xlBtn.Disable()
             return
-        # Enable Excel button if valid
+        # enable Excel button if valid
         self.xlBtn.Enable(self.valid)
-        # Is component type available?
-        if self.GetValue() in [None, ""] + self.validExt and hasattr(self.GetTopLevelParent(), 'type'):
-            # Does this component have a default template?
-            if self.GetTopLevelParent().type in self.templates:
-                self.xlBtn.Enable(True)
+        # get frame
+        frame = self.GetParent()
+        if frame is None:
+            frame = self.GetTopLevelParent()
+        while hasattr(frame, "GetParent") and not (
+                hasattr(frame, "routine") or hasattr(frame, "component") or hasattr(frame, "type")
+        ):
+            frame = frame.GetParent()
+        # get comp type from frame
+        if hasattr(frame, "component"):
+            thisType = frame.component.type
+        elif hasattr(frame, "routine"):
+            thisType = frame.routine.type
+        elif hasattr(frame, "type"):
+            thisType = frame.type
+        else:
+            thisType = None
+        # does this component have a default template?
+        if thisType in self.templates:
+            self.xlBtn.Enable(True)
 
     def openExcel(self, event):
         """Either open the specified excel sheet, or make a new one from a template"""
@@ -949,11 +986,22 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
                 "please remember to add it to {name}").format(name=_translate(self.Name)),
                              caption=_translate("Reminder"))
             dlg.ShowModal()
-            if hasattr(self.GetTopLevelParent(), 'type'):
-                if self.GetTopLevelParent().type in self.templates:
-                    file = self.templates[self.GetTopLevelParent().type] # Open type specific template
-                else:
-                    file = self.templates['None'] # Open blank template
+            # get frame
+            frame = self.GetParent()
+            while hasattr(frame, "GetParent") and not (hasattr(frame, "routine") or hasattr(frame, "component")):
+                frame = frame.GetParent()
+            # get comp type from frame
+            if hasattr(frame, "component"):
+                thisType = frame.component.type
+            elif hasattr(frame, "routine"):
+                thisType = frame.routine.type
+            else:
+                thisType = "None"
+            # open type specific template, or blank
+            if thisType in self.templates:
+                file = self.templates[thisType]
+            else:
+                file = self.templates['None']
         # Open whatever file is used
         try:
             os.startfile(file)
@@ -1064,7 +1112,9 @@ def validate(obj, valType):
     if valType == "file":
         val = Path(str(val))
         if not val.is_absolute():
-            frame = obj.GetTopLevelParent().frame
+            frame = obj.GetTopLevelParent()
+            if hasattr(frame, "frame"):
+                frame = frame.frame
             # If not an absolute path, append to current directory
             val = Path(frame.filename).parent / val
         if not val.is_file():
@@ -1091,23 +1141,35 @@ def validate(obj, valType):
 
 class DictCtrl(ListWidget, _ValidatorMixin, _HideMixin):
     def __init__(self, parent,
-                 val={}, valType='dict',
+                 val={}, labels=(_translate("Field"), _translate("Default")), valType='dict',
                  fieldName=""):
+        # try to convert to a dict if given a string
+        if isinstance(val, str):
+            try:
+                val = ast.literal_eval(val)
+            except:
+                raise ValueError(_translate("Could not interpret parameter value as a dict:\n{}").format(val))
+        # raise error if still not a dict
         if not isinstance(val, (dict, list)):
-            raise ValueError("DictCtrl must be supplied with either a dict or a list of 1-long dicts, value supplied was {}".format(val))
+            raise ValueError("DictCtrl must be supplied with either a dict or a list of 1-long dicts, value supplied was {}: {}".format(type(val), val))
+        # Get labels
+        keyLbl, valLbl = labels
         # If supplied with a dict, convert it to a list of dicts
         if isinstance(val, dict):
             newVal = []
             for key, v in val.items():
                 if hasattr(v, "val"):
                     v = v.val
-                newVal.append({'Field': key, 'Default': v})
+                newVal.append({keyLbl: key, valLbl: v})
             val = newVal
+        # Make sure we have at least 1 value
+        if not len(val):
+            val = [{keyLbl: "", valLbl: ""}]
         # If any items within the list are not dicts or are dicts longer than 1, throw error
         if not all(isinstance(v, dict) and len(v) == 2 for v in val):
             raise ValueError("DictCtrl must be supplied with either a dict or a list of 1-long dicts, value supplied was {}".format(val))
         # Create ListWidget
-        ListWidget.__init__(self, parent, val, order=['Field', 'Default'])
+        ListWidget.__init__(self, parent, val, order=labels)
 
     def SetForegroundColour(self, color):
         for child in self.Children:

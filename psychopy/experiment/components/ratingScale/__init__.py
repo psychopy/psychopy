@@ -2,41 +2,18 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
 from psychopy.tools.stringtools import getArgs
 from psychopy.experiment.components import BaseComponent, Param, _translate
-from psychopy.localization import _localized as __localized
-_localized = __localized.copy()
 
 __author__ = 'Jeremy Gray'
 
-# only use _localized values for label values, nothing functional:
-_localized.update({'visualAnalogScale': _translate('Visual analog scale'),
-                   'categoryChoices': _translate('Category choices'),
-                   'scaleDescription': _translate('Scale description'),
-                   'low': _translate('Lowest value'),
-                   'high': _translate('Highest value'),
-                   'labels': _translate('Labels'),
-                   'marker': _translate('Marker type'),
-                   'markerStart': _translate('Marker start'),
-                   'size': _translate('Size'),
-                   'pos': _translate('Position [x,y]'),
-                   'tickHeight': _translate('Tick height'),
-                   'disappear': _translate('Disappear'),
-                   'forceEndRoutine': _translate('Force end of Routine'),
-                   'showAccept': _translate('Show accept'),
-                   'singleClick': _translate('Single click'),
-                   'storeHistory': _translate('Store history'),
-                   'storeRating': _translate('Store rating'),
-                   'storeRatingTime': _translate('Store rating time'),
-                   'customize_everything': _translate('Customize everything :')})
-
 
 class RatingScaleComponent(BaseComponent):
-    """A class for presenting a rating scale as a builder component
+    """A class for presenting a rating scale as a builder Component
     """
     categories = ['Responses']
     targets = ['PsychoPy']
@@ -87,50 +64,50 @@ class RatingScaleComponent(BaseComponent):
             hint=_translate("Show a continuous visual analog scale; returns"
                             " 0.00 to 1.00; takes precedence over numeric "
                             "scale or categorical choices"),
-            label=_localized['visualAnalogScale'])
+            label=_translate("Visual analog scale"))
         self.params['categoryChoices'] = Param(
             categoryChoices, valType='list',  inputType="single", allowedTypes=[], categ='Basic',
             updates='constant', allowedUpdates=[],
             hint=_translate("A list of categories (non-numeric alternatives)"
                             " to present, space or comma-separated; these "
                             "take precedence over a numeric scale"),
-            label=_localized['categoryChoices'])
+            label=_translate("Category choices"))
         self.params['scaleDescription'] = Param(
             scaleDescription, valType='str',  inputType="single", allowedTypes=[], categ='Basic',
             updates='constant', allowedUpdates=[],
             hint=_translate("Brief instructions, such as a description of "
                             "the scale numbers as seen by the subject."),
-            label=_localized['scaleDescription'])
+            label=_translate("Scale description"))
         self.params['low'] = Param(
             low, valType='num',  inputType="single", allowedTypes=[], categ='Data',
             updates='constant', allowedUpdates=[],
             hint=_translate("Lowest rating (low end of the scale); not"
                             " used for categories."),
-            label=_localized['low'])
+            label=_translate("Lowest value"))
         self.params['high'] = Param(
             high, valType='num',  inputType="single", allowedTypes=[], categ='Data',
             updates='constant', allowedUpdates=[],
             hint=_translate("Highest rating (top end of the scale); "
                             "not used for categories."),
-            label=_localized['high'])
+            label=_translate("Highest value"))
         self.params['labels'] = Param(
             labels, valType='list',  inputType="single", allowedTypes=[], categ='Data',
             updates='constant', allowedUpdates=[],  # categ="Advanced",
             hint=_translate("Labels for the ends of the scale, "
                             "separated by commas"),
-            label=_localized['labels'])
+            label=_translate("Labels"))
         self.params['marker'] = Param(
             marker, valType='str', inputType="choice", allowedTypes=[], categ='Interface',
             allowedVals=['triangle', 'circle', 'glow', 'slider', 'hover'],
             updates='constant', allowedUpdates=[],  # categ="Advanced",
             hint=_translate("Style for the marker: triangle, circle, glow, "
                             "slider, hover"),
-            label=_localized['marker'])
+            label=_translate("Marker type"))
         self.params['markerStart'] = Param(
             markerStart, valType='num',  inputType="single", allowedTypes=[], categ='Data',
             updates='constant', allowedUpdates=[],  # categ="Advanced",
             hint=_translate("initial position for the marker"),
-            label=_localized['markerStart'])
+            label=_translate("Marker start"))
 
         # advanced params:
         self.params['singleClick'] = Param(
@@ -138,56 +115,56 @@ class RatingScaleComponent(BaseComponent):
             updates='constant', allowedUpdates=[], categ="Interface",
             hint=_translate("Should clicking the line accept that rating "
                             "(without needing to confirm via 'accept')?"),
-            label=_localized['singleClick'])
+            label=_translate("Single click"))
         self.params['disappear'] = Param(
             disappear, valType='bool',  inputType="bool", allowedTypes=[],
             updates='constant', allowedUpdates=[], categ="Interface",
             hint=_translate("Hide the scale when a rating has been accepted;"
                             " False to remain on-screen"),
-            label=_localized['disappear'])
+            label=_translate("Disappear"))
         self.params['showAccept'] = Param(
             showAccept, valType='bool',  inputType="bool", allowedTypes=[],
             updates='constant', allowedUpdates=[], categ="Interface",
             hint=_translate("Should the accept button by visible?"),
-            label=_localized['showAccept'])
+            label=_translate("Show accept"))
         self.params['storeRating'] = Param(
             storeRating, valType='bool', inputType="bool", allowedTypes=[],
             updates='constant', allowedUpdates=[], categ="Data",
             hint=_translate("store the rating"),
-            label=_localized['storeRating'])
+            label=_translate("Store rating"))
         self.params['storeRatingTime'] = Param(
             storeRatingTime, valType='bool',  inputType="bool", allowedTypes=[],
             updates='constant', allowedUpdates=[], categ="Data",
             hint=_translate("store the time taken to make the choice (in "
                             "seconds)"),
-            label=_localized['storeRatingTime'])
+            label=_translate("Store rating time"))
         self.params['storeHistory'] = Param(
             storeHistory, valType='bool', inputType="bool", allowedTypes=[],
             updates='constant', allowedUpdates=[], categ="Data",
             hint=_translate("store the history of (selection, time)"),
-            label=_localized['storeHistory'])
+            label=_translate("Store history"))
         self.params['forceEndRoutine'] = Param(
             forceEndRoutine, valType='bool',  inputType="bool", allowedTypes=[],
             updates='constant', allowedUpdates=[], categ="Basic",
             hint=_translate("Should accepting a rating cause the end of the "
-                            "routine (e.g. trial)?"),
-            label=_localized['forceEndRoutine'])
+                            "Routine (e.g. trial)?"),
+            label=_translate("Force end of Routine"))
         self.params['tickHeight'] = Param(
             tickHeight, valType='num', inputType="single", allowedTypes=[],
             updates='constant', allowedUpdates=[], categ="Interface",
             hint=_translate("height of tick marks (1 is upward, 0 is hidden,"
                             " -1 is downward)"),
-            label=_localized['tickHeight'])
+            label=_translate("Tick height"))
 
         # customization:
         self.params['customize_everything'] = Param(
             customize_everything, valType='code', inputType="multi", allowedTypes=[],
             updates='constant', allowedUpdates=[], categ="Custom",
             hint=_translate("Use this text to create the rating scale as you"
-                            " would in a code component; overrides all"
+                            " would in a code Component; overrides all"
                             " dialog settings except time parameters, "
                             "forceEndRoutine, storeRatingTime, storeRating"),
-            label=_localized['customize_everything'])
+            label=_translate("Customize everything :"))
 
         self.params['size'] = Param(size,
             valType='list', inputType="single", categ='Layout',
@@ -195,14 +172,14 @@ class RatingScaleComponent(BaseComponent):
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=_translate("Size of this stimulus (either a single value or "
                          "x,y pair, e.g. 2.5, [1,2] "),
-            label=_localized['size'])
+            label=_translate("Size"))
 
         self.params['pos'] = Param(pos,
             valType='list', inputType="single", categ='Layout',
             updates='constant', allowedTypes=[],
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=_translate("Position of this stimulus (e.g. [1,2] )"),
-            label=_localized['pos'])
+            label=_translate("Position [x,y]"))
 
     def writeInitCode(self, buff):
         # build up an initialization string for RatingScale():
@@ -352,9 +329,6 @@ class RatingScaleComponent(BaseComponent):
                     code = "%s.addData('%s.history', %s.getHistory())\n"
                     buff.writeIndented(code % (currLoop.params['name'],
                                                name, name))
-                if currLoop.params['name'].val == self.exp._expHandler.name:
-                    buff.writeIndented("%s.nextEntry()\n" %
-                                       self.exp._expHandler.name)
             else:
                 buff.writeIndented("# RatingScaleComponent: unknown loop "
                                    "type, not saving any data.\n")

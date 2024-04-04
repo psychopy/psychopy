@@ -6,7 +6,7 @@ local installation of VLC media player (https://www.videolan.org/).
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 #
 # VlcMovieStim originally contributed by Dan Fitch, April 2019. The `MovieStim2`
@@ -51,7 +51,10 @@ reportNDroppedFrames = 10
 
 class VlcMovieStim(BaseVisualStim, ContainerMixin):
     """A stimulus class for playing movies in various formats (mpeg, avi,
-    etc...) in PsychoPy using the VLC media player as a decoder.
+    etc...) in PsychoPy using the VLC media player as a decoder. This is
+    a lazy-imported class, therefore import using full path 
+    `from psychopy.visual.vlcmoviestim import VlcMovieStim` when inheriting
+    from it.
 
     This movie class is very efficient and better suited for playing
     high-resolution videos (720p+) than the other movie classes. However, audio
@@ -403,6 +406,11 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         # Set callbacks since we have the resources to write to.
         thisInstance = ctypes.cast(
             ctypes.pointer(ctypes.py_object(self)), ctypes.c_void_p)
+        
+        # we need to increment the ref count
+        ctypes.pythonapi.Py_IncRef(ctypes.py_object(thisInstance))
+        
+
         self._player.video_set_callbacks(
             vlcLockCallback, vlcUnlockCallback, vlcDisplayCallback,
             thisInstance)

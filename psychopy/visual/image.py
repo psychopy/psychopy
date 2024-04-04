@@ -4,7 +4,7 @@
 """Display an image on `psycopy.visual.Window`"""
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
@@ -26,12 +26,13 @@ import psychopy  # so we can get the __path__
 from psychopy import logging, colors, layout
 
 from psychopy.tools.attributetools import attributeSetter, setAttribute
-from psychopy.visual.basevisual import BaseVisualStim
-from psychopy.visual.basevisual import (ContainerMixin, ColorMixin,
-                                        TextureMixin)
+from psychopy.visual.basevisual import (
+    BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin, TextureMixin
+)
 
 
-class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
+class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
+                TextureMixin):
     """Display an image on a :class:`psychopy.visual.Window`
     """
 
@@ -50,6 +51,7 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
                  opacity=None,
                  depth=0,
                  interpolate=False,
+                 draggable=False,
                  flipHoriz=False,
                  flipVert=False,
                  texRes=128,
@@ -64,6 +66,7 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
 
         super(ImageStim, self).__init__(win, units=units, name=name,
                                         autoLog=False)  # set at end of init
+        self.draggable = draggable
         # use shaders if available by default, this is a good thing
         self.__dict__['useShaders'] = win._haveShaders
 
@@ -215,7 +218,9 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
         # If our image is a movie stim object, pull pixel data from the most
         # recent frame and write it to the memory
         if hasattr(self.image, 'getVideoFrame'):
-            self._movieFrameToTexture(self.image.getVideoFrame())
+            videoFrame = self.image.getVideoFrame()
+            if videoFrame is not None:
+                self._movieFrameToTexture(videoFrame)
 
         GL.glPushMatrix()  # push before the list, pop after
         win.setScale('pix')
@@ -229,46 +234,6 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
 
         # return the view to previous state
         GL.glPopMatrix()
-
-    # overload ColorMixin methods so that they refresh the image after being called
-    @property
-    def foreColor(self):
-        # Call setter of parent mixin
-        return ColorMixin.foreColor.fget(self)
-
-    @foreColor.setter
-    def foreColor(self, value):
-        # Call setter of parent mixin
-        ColorMixin.foreColor.fset(self, value)
-        # Reset the image and mask-
-        self.setImage(self._imName, log=False)
-        self.texRes = self.__dict__['texRes']  # rebuilds the mask
-
-    @property
-    def contrast(self):
-        # Call setter of parent mixin
-        return ColorMixin.contrast.fget(self)
-
-    @contrast.setter
-    def contrast(self, value):
-        # Call setter of parent mixin
-        ColorMixin.contrast.fset(self, value)
-        # Reset the image and mask-
-        self.setImage(self._imName, log=False)
-        self.texRes = self.__dict__['texRes']  # rebuilds the mask
-
-    @property
-    def opacity(self):
-        # Call setter of parent mixin
-        return BaseVisualStim.opacity.fget(self)
-
-    @opacity.setter
-    def opacity(self, value):
-        # Call setter of parent mixin
-        BaseVisualStim.opacity.fset(self, value)
-        # Reset the image and mask-
-        self.setImage(self._imName, log=False)
-        self.texRes = self.__dict__['texRes']  # rebuilds the mask
 
     def _movieFrameToTexture(self, movieSrc):
         """Convert a movie frame to a texture and use it.

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Container for all visual-related functions and classes
@@ -62,6 +62,7 @@ from psychopy.visual.custommouse import CustomMouse
 from psychopy.visual.elementarray import ElementArrayStim
 from psychopy.visual.ratingscale import RatingScale
 from psychopy.visual.slider import Slider
+from psychopy.visual.progress import Progress
 from psychopy.visual.simpleimage import SimpleImageStim
 
 # stimuli derived from BaseVisualStim

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
@@ -12,16 +12,13 @@ import time, sys, os
 import argparse
 import shutil
 import dmgbuild
+import argparse
 
 thisFolder = Path(__file__).parent
 finalDistFolder = thisFolder.parent.parent/'dist'
 
-with Path().home()/ 'keys/apple_ost_id' as p:
-    IDENTITY = p.read_text().strip()
-with Path().home()/ 'keys/apple_psychopy_app_specific' as p:
-    PWORD = p.read_text().strip()
-
-ENTITLEMENTS = thisFolder / "entitlements.plist"
+ENTITLEMENTS = (thisFolder / "entitlements.plist").absolute()
+assert ENTITLEMENTS.exists()
 BUNDLE_ID = "org.opensciencetools.psychopy"
 USERNAME = "admin@opensciencetools.org"
 
@@ -40,15 +37,20 @@ SIGN_ALL = True
 
 
 class AppSigner:
-    def __init__(self, appFile, version, destination=None):
+    def __init__(self, appFile, version, identity='', pword='', destination=None, verbose=False):
         self.appFile = Path(appFile)
         self.version = version
         self.destination = destination
         self._zipFile = None #'/Users/lpzjwp/code/psychopy/git/dist/PsychoPy3_2020.2.3.zip'
         self._appNotarizeUUID = None
         self._dmgBuildFile = None
+        self._pword = pword
+        self.verbose = verbose
+        self._identity = identity
 
-    def signAll(self):
+    def signAll(self, verbose=None):
+        if verbose is None:
+            verbose = self.verbose
         # remove files that we know will fail the signing:
         for filename in self.appFile.glob("**/Frameworks/SDL*"):
             shutil.rmtree(filename)
@@ -90,10 +92,14 @@ class AppSigner:
         print(f'...done signing app in {time.time()-t0:.03f}s')
         sys.stdout.flush()
 
-    def signSingleFile(self, filename, removeFailed=False, verbose=True,
+    def signSingleFile(self, filename, removeFailed=False, verbose=None,
                        appFile=False):
+        if verbose is None:
+            verbose = self.verbose
+        if not self._identity:
+            raise ValueError('No identity provided for signing')
         cmd = ['codesign', str(filename),
-               '--sign',  IDENTITY,
+               '--sign',  self._identity,
                '--entitlements', str(ENTITLEMENTS),
                '--force',
                '--timestamp',
@@ -110,7 +116,7 @@ class AppSigner:
         # if failed and removing then remove
         if (exitcode != 0 or 'failed' in output) and removeFailed:
             Path(filename).unlink()
-            print(f"REMOVED FILE {filename}: failed to codesign")
+            print(f"FILE {filename}: failed to codesign")
         return self.signCheck(filename, verbose=False, removeFailed=removeFailed)
 
     def signCheck(self, filepath=None, verbose=False, strict=True,
@@ -143,23 +149,25 @@ class AppSigner:
         return warnings
 
     def upload(self, fileToNotarize):
+        """Uploads a file to Apple for notarizing"""
+        if not self._pword:
+            raise ValueError('No app-specific password provided for notarizing')
         filename = Path(fileToNotarize).name
         print(f'Sending {filename} to apple for notarizing')
-        cmdStr = (f"xcrun altool --notarize-app -t osx -f {fileToNotarize} "
-                  f"--primary-bundle-id {BUNDLE_ID} -u {USERNAME} ")
+        cmdStr = (f'xcrun notarytool submit {fileToNotarize} --keychain-profile "ost-notarization"')
+        # cmdStr = (f"xcrun altool --notarize-app -t osx -f {fileToNotarize} "
+        #           f"--primary-bundle-id {BUNDLE_ID} -u {USERNAME} ")
         print(cmdStr)
-        cmdStr += f"-p {PWORD}"
         t0 = time.time()
         exitcode, output = subprocess.getstatusoutput(cmdStr)
-        m = re.match('.*RequestUUID = (.*)\n', output, re.S)
+        m = re.findall(r"^  id: (.*)$", output, re.M)
+
         if 'Please sign in with an app-specific password' in output:
             print("[Error] Upload failed: You probably need a new app-specific "
                   "password from https://appleid.apple.com/account/manage")
             exit(1)
-        elif m is None or not ('No errors uploading' in output):
-            print(f'[Error] Upload failed: {output}')
-            exit(1)
-        uuid = m.group(1).strip()
+        print(output)
+        uuid = m[0].strip()
         self._appNotarizeUUID = uuid
         print(f'Uploaded file {filename} in {time.time()-t0:.03f}s: {uuid}')
         print(f'Upload to Apple completed at {time.ctime()}')
@@ -193,27 +201,12 @@ class AppSigner:
             return zipFilename
 
     def awaitNotarized(self):
-        while self.checkStatus(self._appNotarizeUUID):  # returns True while in progress
-            time.sleep(30)
-
-
-    def checkStatus(self, uuid):
-        cmd = ['xcrun', 'altool', '--notarization-info', self._appNotarizeUUID,
-               '-u', USERNAME, '-p', PWORD]
-        cmdStr = ' '.join(cmd)
-        exitcode, output = subprocess.getstatusoutput(cmdStr)
-
-        in_progress = 'Status: in progress' in output
-        success = 'Status: success' in output
-
-        if not in_progress:
-            print(f'Notarization completed at {time.ctime()}')
-            if not success:
-                print('*********Notarization failed*************')
-                print(output)
-                exit(1)
-
-        return in_progress
+        # can use 'xcrun notarytool info' to check status or 'xcrun notarytool wait'
+        exitcode, output = subprocess.getstatusoutput(f'xcrun notarytool wait {self._appNotarizeUUID} --keychain-profile "ost-notarization"')
+        print(output)
+        # always fetch the log file too
+        exitcode, output = subprocess.getstatusoutput(f'xcrun notarytool log {self._appNotarizeUUID} --keychain-profile "ost-notarization" developer_log.json')
+        print(output)
 
     def staple(self, filepath):
         cmdStr = f'xcrun stapler staple {filepath}'
@@ -225,12 +218,6 @@ class AppSigner:
             exit(1)
         else:
             print(f"Staple successful. You can verify with\n    xcrun stapler validate {filepath}")
-
-    def checkAppleLogFile(self):
-        cmdStr = f"xcrun altool --notarization-info {self._appNotarizeUUID} -u {USERNAME} -p {PWORD}"
-
-        exitcode, output = subprocess.getstatusoutput(cmdStr)
-        print(f"exitcode={exitcode}: {output}")
 
     def dmgBuild(self):
         dmgFilename = str(self.appFile).replace(".app", "_rw.dmg")
@@ -342,6 +329,10 @@ def main():
                         action='store', required=False, default='true')
     parser.add_argument("--runPostDmgBuild", help="Runs up until dmg is built (and notarised) then exits",
                         action='store', required=False, default='true')
+    parser.add_argument("--id", help="ost id for codesigning",
+                        action='store', required=False, default=None)
+    parser.add_argument("--pwd", help="password for app-specific password",
+                        action='store', required=False, default=None)
     args = parser.parse_args()
     args.runPreDmgBuild = args.runPreDmgBuild.lower() in ['true', 'True', '1', 'y', 'yes']
     args.runDmgBuild = args.runDmgBuild.lower() in ['true', 'True', '1', 'y', 'yes']
@@ -352,10 +343,21 @@ def main():
     else:
         NOTARIZE = True
 
+    # codesigning identity from CLI args?
+    if args.id:
+        IDENTITY = args.id
+    else:
+        with Path().home()/ 'keys/apple_ost_id' as p:
+            IDENTITY = p.read_text().strip()
+    if args.pwd:
+        PWORD = args.pwd
+    else:
+        with Path().home()/ 'keys/apple_psychopy_app_specific' as p:
+            PWORD = p.read_text().strip()
+            
     if args.file:  # not the whole app - just sign one file
         distFolder = (thisFolder / '../dist').resolve()
-        signer = AppSigner(appFile='',
-                           version=None)
+        signer = AppSigner(appFile='', version=None, pword=PWORD, identity=IDENTITY)
         signer.signSingleFile(args.file, removeFailed=False, verbose=True)
         signer.signCheck(args.file, verbose=True)
 
@@ -367,8 +369,7 @@ def main():
 
     else:  # full app signing and notarization
         distFolder = (thisFolder / '../dist').resolve()
-        signer = AppSigner(appFile=distFolder/args.app,
-                        version=args.version)
+        signer = AppSigner(appFile=distFolder/args.app, version=args.version, pword=PWORD, identity=IDENTITY)
 
         if args.runPreDmgBuild:
             if SIGN_ALL:

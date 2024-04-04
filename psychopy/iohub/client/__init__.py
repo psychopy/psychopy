@@ -200,7 +200,7 @@ class ioHubDeviceView():
 
 class ioHubDevices():
     """
-    Provides .name access to the the ioHub device's created when the ioHub
+    Provides .name access to the ioHub device's created when the ioHub
     Server is started. Each iohub device is accessible via a dynamically
     created attribute of this class, the name of which is defined by the
     device configuration 'name' setting. Each device attribute is an instance
@@ -712,6 +712,23 @@ class ioHubConnection():
         testing time bases between processes only.
         """
         return self._sendToHubServer(('RPC', 'getTime'))[2]
+
+    def syncClock(self, clock):
+        """
+        Synchronise ioHub's internal clock with a given instance of MonotonicClock.
+        """
+        params = {
+            '_timeAtLastReset': clock._timeAtLastReset,
+            '_epochTimeAtLastReset': clock._epochTimeAtLastReset,
+            'format': clock.format,
+        }
+        if isinstance(params['format'], type):
+            params['format'] = params['format'].__name__
+        # sync clock in this process
+        for key, value in params.items():
+            setattr(Computer.global_clock, key, value)
+        # sync clock in server process
+        return self._sendToHubServer(('RPC', 'syncClock', (params,)))
 
     def setPriority(self, level='normal', disable_gc=False):
         """See Computer.setPriority documentation, where current process will
@@ -1318,6 +1335,10 @@ class ioHubConnection():
         Check if an iohub server reply contains an error that should be raised
         by the local process.
         """
+        # is it an ioHub error object?
+        if isinstance(data, ioHubError):
+            return True
+
         if isIterable(data) and len(data) > 0:
             d0 = data[0]
             if isIterable(d0):
@@ -1333,7 +1354,8 @@ class ioHubConnection():
     def _osxKillAndFreePort(self):
         server_udp_port = self._iohub_server_config.get('udp_port', 9000)
         p = subprocess.Popen(['lsof', '-i:%d'%server_udp_port, '-P'],
-                             stdout=subprocess.PIPE)
+                             stdout=subprocess.PIPE,
+                             encoding='utf-8')
         lines = p.communicate()[0]
         for line in lines.splitlines():
             if line.startswith('Python'):

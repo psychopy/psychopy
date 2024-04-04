@@ -98,7 +98,7 @@ class TestExperimentHandler():
         # get data file contents:
         with io.open(exp.dataFileName + '.csv', 'r', encoding='utf-8-sig') as f:
             contents = f.read()
-        assert contents == "mutable,\n[1],\n[9999],\n"
+        assert contents == "thisRow.t,notes,mutable,\n,,[1],\n,,[9999],\n"
 
     def test_unicode_conditions(self):
         fileName = self.tmpDir + 'unicode_conds'

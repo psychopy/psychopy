@@ -5,7 +5,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 __all__ = [
@@ -181,8 +181,8 @@ class AudioDeviceInfo:
 
     def __repr__(self):
         return (f"AudioDeviceInfo(deviceIndex={self.deviceIndex}, "
-                f"deviceName={self.deviceName}, "
-                f"hostAPIName={self.hostAPIName}, "
+                f"deviceName={repr(self.deviceName)}, "
+                f"hostAPIName={repr(self.hostAPIName)}, "
                 f"outputChannels={self.outputChannels}, "
                 f"outputLatency={repr(self.outputLatency)}, "
                 f"inputChannels={self.inputChannels}, "
@@ -464,7 +464,7 @@ class AudioDeviceStatus:
                  cpuLoad=0.0,
                  predictedLatency=0.0,
                  latencyBias=0.0,
-                 sampleRate=SAMPLE_RATE_48kHz,
+                 sampleRate=SAMPLE_RATE_44p1kHz,
                  outDeviceIndex=0,
                  inDeviceIndex=0,
                  audioLib=u'Null Audio Library'):

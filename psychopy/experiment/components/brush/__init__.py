@@ -2,21 +2,12 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from os import path
 from pathlib import Path
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
-from psychopy import logging
-from psychopy.localization import _localized as __localized
-_localized = __localized.copy()
 
-# only use _localized values for label values, nothing functional:
-_localized.update({'lineWidth': _translate('Brush Size'),
-                   'lineColor': _translate('Brush Color'),
-                   'lineColorSpace': _translate('Brush Color Space'),
-                   'buttonRequired':_translate('Press Button')})
 
 class BrushComponent(BaseVisualComponent):
     """A class for drawing freehand responses"""
@@ -54,7 +45,7 @@ class BrushComponent(BaseVisualComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat'],
             hint=msg,
-            label=_localized['lineColor'])
+            label= _translate("Brush color"))
 
         msg = _translate("Width of the brush's line (always in pixels and limited to 10px max width)")
         self.params['lineWidth'] = Param(
@@ -62,7 +53,7 @@ class BrushComponent(BaseVisualComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat'],
             hint=msg,
-            label=_localized['lineWidth'])
+            label= _translate("Brush size"))
 
         self.params['lineColorSpace'] = self.params['colorSpace']
         del self.params['colorSpace']
@@ -76,7 +67,7 @@ class BrushComponent(BaseVisualComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat'],
             hint=msg,
-            label=_localized['buttonRequired'])
+            label= _translate("Press button"))
 
         # Remove BaseVisual params which are not needed
         del self.params['color']  # because color is defined by lineColor

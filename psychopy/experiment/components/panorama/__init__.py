@@ -3,10 +3,6 @@
 
 from pathlib import Path
 from psychopy.experiment.components import Param, _translate, getInitVals, BaseVisualComponent
-from psychopy import prefs
-
-# only use _localized values for label values, nothing functional:
-_localized = {'name': _translate('Name')}
 
 
 class PanoramaComponent(BaseVisualComponent):
@@ -18,6 +14,7 @@ class PanoramaComponent(BaseVisualComponent):
     """
     categories = ['Stimuli']
     targets = ['PsychoPy']
+    version = "2023.1.0"
     iconFile = Path(__file__).parent / 'panorama.png'
     tooltip = _translate('Panorama: Present a panoramic image (such as from a phone camera in Panorama mode) on '
                          'screen.')
@@ -80,7 +77,7 @@ class PanoramaComponent(BaseVisualComponent):
             allowedVals=['linear', 'nearest'], categ='Basic',
             updates='constant', allowedUpdates=[],
             hint=msg, direct=False,
-            label=_translate("interpolate"))
+            label=_translate("Interpolate"))
 
         # Position controls
         
@@ -95,7 +92,7 @@ class PanoramaComponent(BaseVisualComponent):
                 "Mouse", "Drag", "Keyboard (Arrow Keys)", "Keyboard (WASD)", "Keyboard (Custom keys)", "Custom"],
             updates="constant",
             hint=msg,
-            label=_translate("Position Control")
+            label=_translate("Position control")
         )
         
         self.depends.append(
@@ -194,7 +191,7 @@ class PanoramaComponent(BaseVisualComponent):
         self.params['posSensitivity'] = Param(
             posSensitivity, valType='code', inputType="single", categ="Basic",
             hint=msg,
-            label=_translate("Movement Sensitivity")
+            label=_translate("Movement sensitivity")
         )
 
         # Zoom controls
@@ -210,11 +207,11 @@ class PanoramaComponent(BaseVisualComponent):
                 "Mouse Wheel", "Mouse Wheel (Inverted)", "Keyboard (Arrow Keys)", "Keyboard (+-)", "Keyboard (Custom keys)", "Custom"],
             updates="constant",
             hint=msg,
-            label=_translate("Zoom Control")
+            label=_translate("Zoom control")
         )
 
         keys = {'inKey': inKey, 'outKey': outKey}
-        labels = {'inKey': _translate("Zoom In"), 'outKey': _translate("Zoom Out")}
+        labels = {'inKey': _translate("Zoom in"), 'outKey': _translate("Zoom out")}
         for key, val in keys.items():
             # Only show key controls if zoom type is custom keys
             self.depends.append(
@@ -271,7 +268,7 @@ class PanoramaComponent(BaseVisualComponent):
         self.params['zoomSensitivity'] = Param(
             zoomSensitivity, valType='code', inputType="single", categ="Basic",
             hint=msg,
-            label=_translate("Zoom Sensitivity")
+            label=_translate("Zoom sensitivity")
         )
 
 

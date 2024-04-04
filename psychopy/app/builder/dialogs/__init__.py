@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Dialog classes for the Builder, including ParamCtrls
@@ -26,6 +26,7 @@ from .. import experiment
 from .. validators import NameValidator, CodeSnippetValidator, WarningManager
 from .dlgsConditions import DlgConditions
 from .dlgsCode import DlgCodeComponentProperties, CodeBox
+from .findDlg import BuilderFindDlg
 from . import paramCtrls
 from psychopy import data, logging, exceptions
 from psychopy.localization import _translate
@@ -38,8 +39,6 @@ from ...themes import handlers, icons
 
 white = wx.Colour(255, 255, 255, 255)
 codeSyntaxOkay = wx.Colour(220, 250, 220, 255)  # light green
-
-from ..localizedStrings import _localizedDialogs as _localized
 
 
 class ParamCtrls():
@@ -109,92 +108,144 @@ class ParamCtrls():
             # settings. If remote info has become available in the meantime,
             # now populate with that as well
             if vc._remoteVersionsCache:
-                options = vc._versionFilter(vc.versionOptions(local=False), wx.__version__)
-                versions = vc._versionFilter(vc.availableVersions(local=False), wx.__version__)
+                options = vc._versionFilter(
+                    vc.versionOptions(local=False), wx.__version__)
+                versions = vc._versionFilter(
+                    vc.availableVersions(local=False), wx.__version__)
                 param.allowedVals = (options + [''] + versions)
 
         if param.inputType == "single":
             # Create single line string control
-            self.valueCtrl = paramCtrls.SingleLineCtrl(parent,
-                                                       val=str(param.val), valType=param.valType,
-                                                       fieldName=fieldName, size=wx.Size(self.valueWidth, 24))
+            self.valueCtrl = paramCtrls.SingleLineCtrl(
+                parent, 
+                val=str(param.val), 
+                valType=param.valType,
+                fieldName=fieldName, 
+                size=wx.Size(int(self.valueWidth), 24))
         elif param.inputType == 'multi':
             if param.valType == "extendedCode":
                 # Create multiline code control
-                self.valueCtrl = paramCtrls.CodeCtrl(parent,
-                                                     val=str(param.val), valType=param.valType,
-                                                     fieldName=fieldName, size=wx.Size(self.valueWidth, 144))
+                self.valueCtrl = paramCtrls.CodeCtrl(
+                    parent, 
+                    val=str(param.val), 
+                    valType=param.valType, 
+                    fieldName=fieldName, 
+                    size=wx.Size(int(self.valueWidth), 144))
             else:
                 # Create multiline string control
-                self.valueCtrl = paramCtrls.MultiLineCtrl(parent,
-                                                          val=str(param.val), valType=param.valType,
-                                                          fieldName=fieldName, size=wx.Size(self.valueWidth, 144))
+                self.valueCtrl = paramCtrls.MultiLineCtrl(
+                    parent, 
+                    val=str(param.val),
+                    valType=param.valType,
+                    fieldName=fieldName, 
+                    size=wx.Size(int(self.valueWidth), 144))
             # Set focus if field is text of a Textbox or Text component
             if fieldName == 'text':
                 self.valueCtrl.SetFocus()
         elif param.inputType == 'spin':
             # Create single line string control
-            self.valueCtrl = paramCtrls.SingleLineCtrl(parent,
-                                                       val=str(param.val), valType=param.valType,
-                                                       fieldName=fieldName, size=wx.Size(self.valueWidth, 24))
+            self.valueCtrl = paramCtrls.SingleLineCtrl(
+                parent, 
+                val=str(param.val), 
+                valType=param.valType,
+                fieldName=fieldName, 
+                size=wx.Size(int(self.valueWidth), 24))
             # Will have to disable spinCtrl until we have a dropdown for inputType, sadly
             # self.valueCtrl = paramCtrls.IntCtrl(parent,
             #                                     val=param.val, valType=param.valType,
             #                                     fieldName=fieldName,size=wx.Size(self.valueWidth, 24),
             #                                     limits=param.allowedVals)
         elif param.inputType == 'choice':
-            self.valueCtrl = paramCtrls.ChoiceCtrl(parent,
-                                                   val=str(param.val), valType=param.valType,
-                                                   choices=param.allowedVals, labels=param.allowedLabels,
-                                                   fieldName=fieldName, size=wx.Size(self.valueWidth, 24))
+            self.valueCtrl = paramCtrls.ChoiceCtrl(
+                parent, 
+                val=str(param.val), 
+                valType=param.valType,
+                choices=param.allowedVals, 
+                labels=param.allowedLabels,
+                fieldName=fieldName)
         elif param.inputType == 'multiChoice':
-            self.valueCtrl = paramCtrls.MultiChoiceCtrl(parent, valType=param.valType,
-                                                        vals=param.val, choices=param.allowedVals, fieldName=fieldName,
-                                                        size=wx.Size(self.valueWidth, -1))
+            self.valueCtrl = paramCtrls.MultiChoiceCtrl(
+                parent, 
+                valType=param.valType, 
+                vals=param.val, 
+                choices=param.allowedVals, 
+                fieldName=fieldName,
+                size=wx.Size(int(self.valueWidth), -1))
         elif param.inputType == 'richChoice':
-            self.valueCtrl = paramCtrls.RichChoiceCtrl(parent, valType=param.valType,
-                                                       vals=param.val,
-                                                       choices=param.allowedVals, labels=param.allowedLabels,
-                                                       fieldName=fieldName,
-                                                       size=wx.Size(self.valueWidth, -1))
+            self.valueCtrl = paramCtrls.RichChoiceCtrl(
+                parent, 
+                valType=param.valType,
+                vals=param.val,
+                choices=param.allowedVals, 
+                labels=param.allowedLabels,
+                fieldName=fieldName,
+                size=wx.Size(int(self.valueWidth), -1))
         elif param.inputType == 'bool':
-            self.valueCtrl = paramCtrls.BoolCtrl(parent,
-                                                 name=fieldName, size=wx.Size(self.valueWidth, 24))
+            self.valueCtrl = paramCtrls.BoolCtrl(
+                parent, 
+                name=fieldName, 
+                size=wx.Size(int(self.valueWidth), 24))
             self.valueCtrl.SetValue(bool(param))
         elif param.inputType == 'file' or browse:
-            self.valueCtrl = paramCtrls.FileCtrl(parent,
-                                                 val=str(param.val), valType=param.valType,
-                                                 fieldName=fieldName, size=wx.Size(self.valueWidth, 24))
+            self.valueCtrl = paramCtrls.FileCtrl(
+                parent, 
+                val=str(param.val),
+                valType=param.valType,
+                fieldName=fieldName, 
+                size=wx.Size(int(self.valueWidth), 24))
             self.valueCtrl.allowedVals = param.allowedVals
         elif param.inputType == 'survey':
-            self.valueCtrl = paramCtrls.SurveyCtrl(parent,
-                                                   val=str(param.val), valType=param.valType,
-                                                   fieldName=fieldName, size=wx.Size(self.valueWidth, 24))
+            self.valueCtrl = paramCtrls.SurveyCtrl(
+                parent, 
+                val=str(param.val), 
+                valType=param.valType,
+                fieldName=fieldName, 
+                size=wx.Size(int(self.valueWidth), 24))
             self.valueCtrl.allowedVals = param.allowedVals
         elif param.inputType == 'fileList':
-            self.valueCtrl = paramCtrls.FileListCtrl(parent,
-                                                     choices=param.val, valType=param.valType,
-                                                     size=wx.Size(self.valueWidth, 100), pathtype="rel")
+            self.valueCtrl = paramCtrls.FileListCtrl(
+                parent, 
+                choices=param.val, 
+                valType=param.valType,
+                size=wx.Size(int(self.valueWidth), 100), 
+                pathtype="rel")
         elif param.inputType == 'table':
-            self.valueCtrl = paramCtrls.TableCtrl(parent, val=param.val, valType=param.valType,
-                                                  fieldName=fieldName, size=wx.Size(self.valueWidth, 24))
+            self.valueCtrl = paramCtrls.TableCtrl(
+                parent, 
+                val=param.val, 
+                valType=param.valType,
+                fieldName=fieldName, 
+                size=wx.Size(int(self.valueWidth), 24))
         elif param.inputType == 'color':
-            self.valueCtrl = paramCtrls.ColorCtrl(parent,
-                                                  val=param.val, valType=param.valType,
-                                                  fieldName=fieldName, size=wx.Size(self.valueWidth, 24))
+            self.valueCtrl = paramCtrls.ColorCtrl(
+                parent,
+                val=param.val, 
+                valType=param.valType,
+                fieldName=fieldName, 
+                size=wx.Size(int(self.valueWidth), 24))
         elif param.inputType == 'dict':
-            self.valueCtrl = paramCtrls.DictCtrl(parent,
-                                                 val=self.exp.settings.getInfo(), valType=param.valType,
-                                                 fieldName=fieldName)
+            self.valueCtrl = paramCtrls.DictCtrl(
+                parent,
+                val=param.val,
+                labels=param.allowedLabels,
+                valType=param.valType,
+                fieldName=fieldName)
         elif param.inputType == 'inv':
-            self.valueCtrl = paramCtrls.InvalidCtrl(parent,
-                                                    val=str(param.val), valType=param.valType,
-                                                    fieldName=fieldName, size=wx.Size(self.valueWidth, 24))
+            self.valueCtrl = paramCtrls.InvalidCtrl(
+                parent,
+                val=str(param.val), 
+                valType=param.valType,
+                fieldName=fieldName, 
+                size=wx.Size(int(self.valueWidth), 24))
         else:
-            self.valueCtrl = paramCtrls.SingleLineCtrl(parent,
-                                                       val=str(param.val), valType=param.valType,
-                                                       fieldName=fieldName,size=wx.Size(self.valueWidth, 24))
-            logging.warn(f"Parameter {fieldName} has unrecognised inputType \"{param.inputType}\"")
+            self.valueCtrl = paramCtrls.SingleLineCtrl(
+                parent,
+                val=str(param.val), 
+                valType=param.valType,
+                fieldName=fieldName,
+                size=wx.Size(int(self.valueWidth), 24))
+            logging.warn(
+                f"Parameter {fieldName} has unrecognised inputType \"{param.inputType}\"")
 
         # if fieldName == 'Experiment info':
         #     # for expInfo convert from a string to the list-of-dicts
@@ -203,7 +254,7 @@ class ParamCtrls():
         #         parent, val, order=['Field', 'Default'])
         if hasattr(self.valueCtrl, 'SetToolTip'):
             self.valueCtrl.SetToolTip(wx.ToolTip(_translate(param.hint)))
-        if len(param.allowedVals) == 1 or param.readOnly:
+        if not callable(param.allowedVals) and len(param.allowedVals) == 1 or param.readOnly:
             self.valueCtrl.Disable()  # visible but can't be changed
 
         # add a Validator to the valueCtrl
@@ -211,7 +262,7 @@ class ParamCtrls():
             self.valueCtrl.SetValidator(NameValidator())
         elif param.inputType in ("single", "multi"):
             # only want anything that is valType code, or can be with $
-            self.valueCtrl.SetValidator(CodeSnippetValidator(fieldName))
+            self.valueCtrl.SetValidator(CodeSnippetValidator(fieldName, param.label))
 
         # create the type control
         if len(param.allowedTypes):
@@ -224,9 +275,14 @@ class ParamCtrls():
                 self.typeCtrl.Disable()  # visible but can't be changed
 
         # create update control
+        _localizedUpdateLbls = {
+            'constant': _translate('constant'),
+            'set every repeat': _translate('set every repeat'),
+            'set every frame': _translate('set every frame'),
+        }
         if param.allowedUpdates is not None and len(param.allowedUpdates):
             # updates = display-only version of allowed updates
-            updateLabels = [_localized[upd] for upd in param.allowedUpdates]
+            updateLabels = [_localizedUpdateLbls.get(upd, upd) for upd in param.allowedUpdates]
             # allowedUpdates = extend version of allowed updates that includes
             # "set during:static period"
             allowedUpdates = copy.copy(param.allowedUpdates)
@@ -433,7 +489,7 @@ class StartStopCtrls(wx.GridBagSizer):
                 localizedChoices = list(map(_translate, param.allowedVals or [param.val]))
                 self.ctrls[name] = wx.Choice(parent,
                                              choices=localizedChoices,
-                                             size=wx.Size(96, 24))
+                                             size=wx.Size(96, -1))
                 self.ctrls[name]._choices = copy.copy(param.allowedVals)
                 self.ctrls[name].SetSelection(param.allowedVals.index(str(param.val)))
                 self.Add(self.ctrls[name], (0, 1), border=6, flag=wx.EXPAND | wx.TOP)
@@ -491,12 +547,13 @@ class StartStopCtrls(wx.GridBagSizer):
 
 class ParamNotebook(wx.Notebook, handlers.ThemeMixin):
     class CategoryPage(wx.Panel, handlers.ThemeMixin):
-        def __init__(self, parent, dlg, params):
+        def __init__(self, parent, dlg, params, categ=None):
             wx.Panel.__init__(self, parent, size=(600, -1))
             self.parent = parent
             self.parent = parent
             self.dlg = dlg
             self.app = self.dlg.app
+            self.categ = categ
             # Setup sizer
             self.border = wx.BoxSizer()
             self.SetSizer(self.border)
@@ -619,6 +676,13 @@ class ParamNotebook(wx.Notebook, handlers.ThemeMixin):
                     if not dependentCtrls.getVisible():
                         isChanged = True
                     dependentCtrls.setVisible(True)
+                elif action == "populate":
+                    # only repopulate if dependency ctrl has changed
+                    dependencyParam = self.parent.element.params[thisDep['dependsOn']]
+                    if dependencyParam.val != dependencyCtrls.getValue():
+                        dependencyParam.val = dependencyCtrls.getValue()
+                        if hasattr(dependentCtrls.valueCtrl, "populate"):
+                            dependentCtrls.valueCtrl.populate()
                 else:
                     # if action is "enable" then do ctrl.Enable() etc
                     for ctrlName in ['valueCtrl', 'nameCtrl', 'updatesCtrl']:
@@ -672,7 +736,7 @@ class ParamNotebook(wx.Notebook, handlers.ThemeMixin):
         # Setup pages
         self.paramCtrls = {}
         for categ, params in paramsByCateg.items():
-            page = self.CategoryPage(self, self.parent, params)
+            page = self.CategoryPage(self, self.parent, params, categ=categ)
             self.paramCtrls.update(page.ctrls)
             # Add page to notebook
             self.AddPage(page, _translate(categ))
@@ -736,6 +800,16 @@ class ParamNotebook(wx.Notebook, handlers.ThemeMixin):
             del self.params[fieldName]
         return self.params
 
+    def getCategoryIndex(self, categ):
+        """
+        Get page index for a given category
+        """
+        # iterate through pages by index
+        for i in range(self.GetPageCount()):
+            # if this page is the correct category, return current index
+            if self.GetPage(i).categ == categ:
+                return i
+
     def _updateStaticUpdates(self, fieldName, updates, newUpdates):
         """If the old/new updates ctrl is using a Static component then we
         need to remove/add the component name to the appropriate static
@@ -765,7 +839,7 @@ class _BaseParamsDlg(wx.Dialog):
                  showAdvanced=False,
                  size=wx.DefaultSize,
                  style=_style, editing=False,
-                 timeout=None):
+                 timeout=None, openToPage=None):
 
         # translate title
         if "name" in element.params:
@@ -823,6 +897,10 @@ class _BaseParamsDlg(wx.Dialog):
 
         self.ctrls = ParamNotebook(self, element, experiment)
         self.paramCtrls = self.ctrls.paramCtrls
+        # open to page
+        if openToPage is not None:
+            i = self.ctrls.getCategoryIndex(openToPage)
+            self.ctrls.ChangeSelection(i)
 
         self.mainSizer.Add(self.ctrls,  # ctrls is the notebook of params
                            proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
@@ -855,43 +933,9 @@ class _BaseParamsDlg(wx.Dialog):
         """
         Spawn some PsychoPy windows to display each monitor's number.
         """
-        from psychopy import visual
-        for n in range(wx.Display.GetCount()):
-            start = time.time()
-            # Open a window on the appropriate screen
-            win = visual.Window(
-                pos=(0, 0),
-                size=(128, 128),
-                units="norm",
-                screen=n,
-                color="black"
-            )
-            # Draw screen number to the window
-            screenNum = visual.TextBox2(
-                win, text=str(n + 1),
-                size=1, pos=0,
-                alignment="center", anchor="center",
-                letterHeight=0.5, bold=True,
-                fillColor=None, color="white"
-            )
-            # Progress bar
-            progBar = visual.Rect(
-                win, anchor="bottom left",
-                pos=(-1, -1), size=(0, 0.1)
-            )
+        from psychopy.hardware import DeviceManager
 
-            # Frame loop
-            t = 0
-            while t < dur:
-                t = time.time() - start
-                # Set progress bar size
-                progBar.size = (t / 5 * 2, 0.1)
-                # Draw
-                progBar.draw()
-                screenNum.draw()
-                win.flip()
-            # Close window
-            win.close()
+        DeviceManager.showScreenNumbers(dur=5)
 
     def onNewTextSize(self, event):
         self.Fit()  # for ExpandoTextCtrl this is needed
@@ -1227,7 +1271,8 @@ class DlgLoopProperties(_BaseParamsDlg):
         self.paramCtrls.update(self.staircaseCtrls)
         self.paramCtrls.update(self.multiStairCtrls)
 
-        self.updateSummary()
+        if "conditionsFile" in self.globalCtrls:
+            self.updateSummary()
 
         # show dialog and get most of the data
         self.show()
@@ -1557,6 +1602,13 @@ class DlgLoopProperties(_BaseParamsDlg):
                         'category': ", ".join(clashes)
                     })
                 paramStr += (str(param) + ', ')
+                # check for derivables
+                derivable = self.exp.namespace.isPossiblyDerivable(param)
+                if derivable:
+                    alert(4710, strFields={
+                        'param': param,
+                        'msg': derivable
+                    })
             paramStr = paramStr[:-2] + "]"  # remove final comma and add ]
             # generate summary info
             msg = _translate('%(nCondition)i conditions, with %(nParam)i '
@@ -1640,7 +1692,10 @@ class DlgLoopProperties(_BaseParamsDlg):
         or message, as appropriate. Upon completion this will disable the update button as
         we are now up to date.
         """
-        self.conditionsFile = self.constantsCtrls['conditionsFile'].valueCtrl.GetValue()
+        if "MultiStairHandler" in self.type:
+            self.conditionsFile = self.multiStairCtrls['conditionsFile'].valueCtrl.GetValue()
+        else:
+            self.conditionsFile = self.constantsCtrls['conditionsFile'].valueCtrl.GetValue()
         # Check whether the file and path are the same as previously
         isSameFilePathAndName = self.conditionsFileAbs == self.conditionsFileOrig
         # Start off with no message and assumed valid
@@ -1778,13 +1833,14 @@ class DlgComponentProperties(_BaseParamsDlg):
                  suppressTitles=True, size=wx.DefaultSize,
                  style=wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT,
                  editing=False,
-                 timeout=None, testing=False, type=None):
+                 timeout=None, testing=False, type=None,
+                 openToPage=None):
         style = style | wx.RESIZE_BORDER
         self.type = type or element.type
         _BaseParamsDlg.__init__(self, frame=frame, element=element, experiment=experiment,
                                 size=size,
                                 style=style, editing=editing,
-                                timeout=timeout)
+                                timeout=timeout, openToPage=openToPage)
         self.frame = frame
         self.app = frame.app
         self.dpi = self.app.dpi

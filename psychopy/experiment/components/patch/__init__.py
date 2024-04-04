@@ -2,21 +2,11 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
-from psychopy.localization import _localized as __localized
-_localized = __localized.copy()
-
-# only use _localized values for label values, nothing functional:
-_localized.update({'image': _translate('Image/tex'),
-                   'mask': _translate('Mask'),
-                   'sf': _translate('Spatial frequency'),
-                   'phase': _translate('Phase (in cycles)'),
-                   'texture resolution': _translate('Texture resolution'),
-                   'interpolate': _translate('Interpolate')})
 
 
 class PatchComponent(BaseVisualComponent):
@@ -54,7 +44,7 @@ class PatchComponent(BaseVisualComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['image'])
+            label=_translate("Image/tex"))
 
         msg = _translate("An image to define the alpha mask (ie shape)- "
                          "gauss, circle... or a filename (including path)")
@@ -63,7 +53,7 @@ class PatchComponent(BaseVisualComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['mask'])
+            label=_translate("Mask"))
 
         msg = _translate("Spatial frequency of image repeats across the "
                          "patch, e.g. 4 or [2,3]")
@@ -72,7 +62,7 @@ class PatchComponent(BaseVisualComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['sf'])
+            label=_translate("Spatial frequency"))
 
         msg = _translate(
             "Spatial positioning of the image on the patch (in range 0-1.0)")
@@ -81,7 +71,7 @@ class PatchComponent(BaseVisualComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['phase'])
+            label=_translate("Phase (in cycles)"))
 
         msg = _translate(
             "Resolution of the texture for standard ones such as sin, sqr "
@@ -91,7 +81,7 @@ class PatchComponent(BaseVisualComponent):
             allowedVals=['32', '64', '128', '256', '512'],
             updates='constant', allowedUpdates=[],
             hint=msg,
-            label=_localized['texture resolution'])
+            label=_translate("Texture resolution"))
 
         msg = _translate(
             "How should the image be interpolated if/when rescaled")
@@ -99,7 +89,7 @@ class PatchComponent(BaseVisualComponent):
             interpolate, valType='str', inputType="choice", allowedVals=['linear', 'nearest'], categ='Texture',
             updates='constant', allowedUpdates=[],
             hint=msg,
-            label=_localized['interpolate'])
+            label=_translate("Interpolate"))
 
     def writeInitCode(self, buff):
         # do we need units code?

@@ -2,30 +2,13 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from os import path
 from pathlib import Path
-
 from psychopy import prefs
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy.alerts import alerttools
-
-_localized = {'Code Type': _translate('Code Type'),
-              'Before Experiment': _translate('Before Experiment'),
-              'Begin Experiment': _translate('Begin Experiment'),
-              'Begin Routine': _translate('Begin Routine'),
-              'Each Frame': _translate('Each Frame'),
-              'End Routine': _translate('End Routine'),
-              'End Experiment': _translate('End Experiment'),
-              'Before JS Experiment': _translate('Before JS Experiment'),
-              'Begin JS Experiment': _translate('Begin JS Experiment'),
-              'Begin JS Routine': _translate('Begin JS Routine'),
-              'Each JS Frame': _translate('Each JS Frame'),
-              'End JS Routine': _translate('End JS Routine'),
-              'End JS Experiment': _translate('End JS Experiment'),
-              }
 
 
 class CodeComponent(BaseComponent):
@@ -63,7 +46,7 @@ class CodeComponent(BaseComponent):
             codeType, valType='str', inputType="choice", allowedTypes=[],
             allowedVals=['Py', 'JS', 'Both', 'Auto->JS'],
             hint=msg, direct=False,
-            label=_localized['Code Type'])
+            label=_translate("Code type"))
 
         msg = _translate("Code to run before the experiment starts "
                          "(initialization); right-click checks syntax")
@@ -71,7 +54,7 @@ class CodeComponent(BaseComponent):
             beforeExp, valType='extendedCode', inputType="multi", allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint=msg,
-            label=_localized['Before Experiment'])
+            label=_translate("Before experiment"))
 
         msg = _translate("Code at the start of the experiment ; right-click "
                          "checks syntax")
@@ -79,7 +62,7 @@ class CodeComponent(BaseComponent):
             beginExp, valType='extendedCode', inputType="multi", allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint=msg,
-            label=_localized['Begin Experiment'])
+            label=_translate("Begin experiment"))
 
         msg = _translate("Code to be run at the start of each repeat of the "
                          "Routine (e.g. each trial); "
@@ -88,7 +71,7 @@ class CodeComponent(BaseComponent):
             beginRoutine, valType='extendedCode', inputType="multi", allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint=msg,
-            label=_localized['Begin Routine'])
+            label=_translate("Begin Routine"))
 
         msg = _translate("Code to be run on every video frame during for the"
                          " duration of this Routine; "
@@ -97,7 +80,7 @@ class CodeComponent(BaseComponent):
             eachFrame, valType='extendedCode', inputType="multi", allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint=msg,
-            label=_localized['Each Frame'])
+            label=_translate("Each frame"))
 
         msg = _translate("Code at the end of this repeat of the Routine (e.g."
                          " getting/storing responses); "
@@ -106,7 +89,7 @@ class CodeComponent(BaseComponent):
             endRoutine, valType='extendedCode', inputType="multi", allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint=msg,
-            label=_localized['End Routine'])
+            label=_translate("End Routine"))
 
         msg = _translate("Code at the end of the entire experiment (e.g. "
                          "saving files, resetting computer); "
@@ -115,7 +98,7 @@ class CodeComponent(BaseComponent):
             endExperiment, valType='extendedCode', inputType="multi", allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint=msg,
-            label=_localized['End Experiment'])
+            label=_translate("End experiment"))
         # todo: copy initial vals once javscript interp can do comments
         msg = _translate("Code before the start of the experiment (initialization"
                          "); right-click checks syntax")
@@ -123,14 +106,14 @@ class CodeComponent(BaseComponent):
             '', valType='extendedCode', inputType="multi", allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint=msg,
-            label=_localized['Before JS Experiment'])
+            label=_translate("Before JS experiment"))
         msg = _translate("Code at the start of the experiment (initialization"
                          "); right-click checks syntax")
         self.params['Begin JS Experiment'] = Param(
             '', valType='extendedCode', inputType="multi", allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint=msg,
-            label=_localized['Begin JS Experiment'])
+            label=_translate("Begin JS experiment"))
 
         msg = _translate("Code to be run at the start of each repeat of the "
                          "Routine (e.g. each trial); "
@@ -139,7 +122,7 @@ class CodeComponent(BaseComponent):
             '', valType='extendedCode', inputType="multi", allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint=msg,
-            label=_localized['Begin JS Routine'])
+            label=_translate("Begin JS Routine"))
 
         msg = _translate("Code to be run on every video frame during for the"
                          " duration of this Routine; "
@@ -148,7 +131,7 @@ class CodeComponent(BaseComponent):
             '', valType='extendedCode', inputType="multi", allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint=msg,
-            label=_localized['Each JS Frame'])
+            label=_translate("Each JS frame"))
 
         msg = _translate("Code at the end of this repeat of the Routine (e.g."
                          " getting/storing responses); "
@@ -157,7 +140,7 @@ class CodeComponent(BaseComponent):
             '', valType='extendedCode', inputType="multi", allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint=msg,
-            label=_localized['End JS Routine'])
+            label=_translate("End JS Routine"))
 
         msg = _translate("Code at the end of the entire experiment (e.g. "
                          "saving files, resetting computer); "
@@ -166,7 +149,7 @@ class CodeComponent(BaseComponent):
             '', valType='extendedCode', inputType="multi", allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint=msg,
-            label=_localized['End JS Experiment'])
+            label=_translate("End JS experiment"))
 
         # these inherited params are harmless but might as well trim:
         for p in ('startType', 'startVal', 'startEstim', 'stopVal',

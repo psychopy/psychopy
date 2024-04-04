@@ -6,7 +6,7 @@ pygame to be installed).
 See demo_mouse.py and i{demo_joystick.py} for examples
 """
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # 01/2011 modified by Dave Britton to get mouse event timing
@@ -66,6 +66,11 @@ from psychopy.tools.monitorunittools import cm2pix, deg2pix, pix2cm, pix2deg
 from psychopy import logging
 from psychopy.constants import NOT_STARTED
 
+
+# global variable to keep track of mouse buttons
+mouseButtons = [0, 0, 0]
+
+
 if havePyglet or haveGLFW:
     # importing from mouse takes ~250ms, so do it now
     if havePyglet:
@@ -83,7 +88,6 @@ if havePyglet or haveGLFW:
         )
 
     _keyBuffer = []
-    mouseButtons = [0, 0, 0]
     mouseWheelRel = numpy.array([0.0, 0.0])
     # list of 3 clocks that are reset on mouse button presses
     mouseClick = [psychopy.core.Clock(), psychopy.core.Clock(),
@@ -550,7 +554,7 @@ def xydist(p1=(0.0, 0.0), p2=(0.0, 0.0)):
     return numpy.sqrt(pow(p1[0] - p2[0], 2) + pow(p1[1] - p2[1], 2))
 
 
-class Mouse():
+class Mouse:
     """Easy way to track what your mouse is doing.
 
     It needn't be a class, but since Joystick works better
@@ -574,7 +578,7 @@ class Mouse():
                  newPos=None,
                  win=None):
         super(Mouse, self).__init__()
-        self.visible = visible
+        self._visible = visible
         self.lastPos = None
         self.prevPos = None  # used for motion detection and timing
         if win:
@@ -590,6 +594,13 @@ class Mouse():
                 logging.error('Mouse: failed to get a default visual.Window'
                               ' (need to create one first)')
                 self.win = None
+
+        # get the scaling factors for the display
+        if self.win is not None:
+            self._winScaleFactor = self.win.getContentScaleFactor()
+        else:
+            self._winScaleFactor = 1.0
+
         # for builder: set status to STARTED, NOT_STARTED etc
         self.status = None
         self.mouseClock = psychopy.core.Clock()
@@ -598,9 +609,6 @@ class Mouse():
         global usePygame
         if havePygame and not pygame.display.get_init():
             usePygame = False
-        if not usePygame:
-            global mouseButtons
-            mouseButtons = [0, 0, 0]
         self.setVisible(visible)
         if newPos is not None:
             self.setPos(newPos)
@@ -630,7 +638,9 @@ class Mouse():
                 if self.win.useRetina:
                     newPosPix = numpy.array(self.win.size) / 4 + newPosPix / 2
                 else:
-                    newPosPix = numpy.array(self.win.size) / 2 + newPosPix
+                    wsf = self._winScaleFactor 
+                    newPosPix = \
+                        numpy.array(self.win.size) / (2 * wsf) + newPosPix / wsf
                 x, y = int(newPosPix[0]), int(newPosPix[1])
                 self.win.winHandle.set_mouse_position(x, y)
                 self.win.winHandle._mouse_x = x
@@ -659,8 +669,12 @@ class Mouse():
             if self.win:
                 w = self.win.winHandle
             else:
-                defDisplay = _default_display_
-                w = defDisplay.get_windows()[0]
+
+                if psychopy.core.openWindows:
+                    w = psychopy.core.openWindows[0]()
+                else:
+                    logging.warning("Called event.Mouse.getPos() for the mouse with no Window being opened")
+                    return None
 
             # get position in window
             lastPosPix[:] = w._mouse_x, w._mouse_y
@@ -669,7 +683,8 @@ class Mouse():
             if self.win.useRetina:
                 lastPosPix = lastPosPix * 2 - numpy.array(self.win.size) / 2
             else:
-                lastPosPix = lastPosPix - numpy.array(self.win.size) / 2
+                wsf = self._winScaleFactor 
+                lastPosPix = lastPosPix * wsf - numpy.array(self.win.size) / 2
 
         self.lastPos = self._pix2windowUnits(lastPosPix)
 
@@ -784,7 +799,8 @@ class Mouse():
         mouseWheelRel = numpy.array([0.0, 0.0])
         return rel
 
-    def getVisible(self):
+    @property
+    def visible(self):
         """Gets the visibility of the mouse (1 or 0)
         """
         if usePygame:
@@ -792,6 +808,24 @@ class Mouse():
         else:
             print("Getting the mouse visibility is not supported under"
                   " pyglet, but you can set it anyway")
+    
+    @visible.setter
+    def visible(self, visible):
+        """Sets the visibility of the mouse to 1 or 0
+
+        NB when the mouse is not visible its absolute position is held
+        at (0, 0) to prevent it from going off the screen and getting lost!
+        You can still use getRel() in that case.
+        """
+        self.setVisible(visible)
+
+    def getVisible(self):
+        """Gets the visibility of the mouse (1 or 0)
+        """
+        if usePygame:
+            return mouse.get_visible()
+        
+        return self._visible
 
     def setVisible(self, visible):
         """Sets the visibility of the mouse to 1 or 0
@@ -804,10 +838,18 @@ class Mouse():
             self.win.setMouseVisible(visible)
         elif usePygame:
             mouse.set_visible(visible)
-        else:  # try communicating with window directly?
-            plat = _default_display_
-            w = plat.get_windows()[0]
-            w.set_mouse_visible(visible)
+        else:
+            from psychopy.visual import openWindows
+            if openWindows:
+                w = openWindows[0]()  # type: psychopy.visual.Window
+            else:
+                logging.warning(
+                    "Called event.Mouse.getPos() for the mouse with no Window " 
+                    "being opened")
+                return None
+            w.setMouseVisible(visible)
+            
+        self._visible = visible  # set internal state
 
     def clickReset(self, buttons=(0, 1, 2)):
         """Reset a 3-item list of core.Clocks use in timing button clicks.

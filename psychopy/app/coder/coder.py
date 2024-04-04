@@ -31,7 +31,8 @@ import time
 import textwrap
 import codecs
 
-from .. import stdOutRich, dialogs
+from .. import dialogs, ribbon
+from ..stdout import stdOutRich
 from .. import pavlovia_ui
 from psychopy import logging, prefs
 from psychopy.alerts._alerts import alert
@@ -41,14 +42,13 @@ from ..ui import BaseAuiFrame
 from psychopy.projects import pavlovia
 import psychopy.app.pavlovia_ui.menu
 import psychopy.app.plugin_manager.dialog
-from psychopy.app.console import StdStreamDispatcher
 from psychopy.app.errorDlg import exceptionCallback
 from psychopy.app.coder.codeEditorBase import BaseCodeEditor
 from psychopy.app.coder.fileBrowser import FileBrowserPanel
 from psychopy.app.coder.sourceTree import SourceTreePanel
 from psychopy.app.themes import handlers, colors
 from psychopy.app.coder.folding import CodeEditorFoldingMixin
-from psychopy.app.coder.scriptOutput import ScriptOutputPanel
+from psychopy.app.stdout.stdOutRich import ScriptOutputPanel
 from psychopy.app.coder.repl import PythonREPLCtrl
 # from ..plugin_manager import PluginManagerFrame
 
@@ -79,14 +79,6 @@ try:  # needed for wx.py shell
 except Exception:
     haveCode = False
 
-_localized = {'basic': _translate('basic'),
-              'input': _translate('input'),
-              'stimuli': _translate('stimuli'),
-              'experiment control': _translate('exp control'),
-              'iohub': 'ioHub',  # no translation
-              'hardware': _translate('hardware'),
-              'timing': _translate('timing'),
-              'misc': _translate('misc')}
 
 def toPickle(filename, data):
     """save data (of any sort) as a pickle file
@@ -971,7 +963,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, handlers.ThemeMixin):
         self.SetZoom(0)
 
     def analyseScript(self):
-        """Parse the the document and update the source tree if present.
+        """Parse the document and update the source tree if present.
 
         The script is analysed when loaded or when the user interact with it in
         a way that can potentially change the number of lines of executable
@@ -1163,15 +1155,11 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         # Setup pane and art managers
         self.paneManager = self.getAuiManager()
 
-        # Create toolbar
-        self.toolbar = CoderToolbar(self)
-        self.SetToolBar(self.toolbar)
-        self.toolbar.Realize()
         # Create menus and status bar
-        self.makeMenus()
-        self.makeStatusBar()
         self.fileMenu = self.editMenu = self.viewMenu = None
         self.helpMenu = self.toolsMenu = None
+        self.makeMenus()
+        self.makeStatusBar()
         self.pavloviaMenu.syncBtn.Enable(bool(self.filename))
         self.pavloviaMenu.newBtn.Enable(bool(self.filename))
         # Link to file drop function
@@ -1182,6 +1170,14 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
             self, -1, size=wx.Size(480, 480),
             agwStyle=aui.AUI_NB_TAB_MOVE | aui.AUI_NB_CLOSE_ON_ACTIVE_TAB)
 
+        # add ribbon
+        self.ribbon = CoderRibbon(self)
+        self.paneManager.AddPane(self.ribbon,
+                                 aui.AuiPaneInfo().
+                                 Name("Ribbon").
+                                 DockFixed(True).
+                                 CloseButton(False).MaximizeButton(True).PaneBorder(False).CaptionVisible(False).
+                                 Top())
         # Add editor panel
         self.paneManager.AddPane(self.notebook, aui.AuiPaneInfo().
                                  Name("Editor").
@@ -1280,8 +1276,6 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
                                  BottomDockable(True).TopDockable(True).
                                  CloseButton(False).
                                  Bottom())
-        if 'pavloviaSync' in self.btnHandles:
-            self.toolbar.EnableTool(self.btnHandles['pavloviaSync'].Id, bool(self.filename))
         self.unitTestFrame = None
 
         # Link to Runner output
@@ -1292,31 +1286,39 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.outputWindow.write("v%s\n" % self.app.version)
 
         # Manage perspective
+        self.SetMinSize(wx.Size(640, 480))  # min size for whole window
         if (self.appData['auiPerspective'] and
                 'Shelf' in self.appData['auiPerspective']):
-            self.paneManager.LoadPerspective(self.appData['auiPerspective'])
+            try:
+                self.paneManager.LoadPerspective(self.appData['auiPerspective'])
+            except Exception as err:
+                logging.error("Error loading perspective: %s" % err)
+                # defaults for the window if the perspective fails
+                self.SetSize(wx.Size(1024, 800))
+                self.Fit()
             self.paneManager.GetPane('SourceAsst').Caption(_translate("Source Assistant"))
             self.paneManager.GetPane('Editor').Caption(_translate("Editor"))
         else:
-            self.SetMinSize(wx.Size(480, 640))  # min size for whole window
             self.SetSize(wx.Size(1024, 800))
             self.Fit()
         # Update panes PsychopyToolbar
         isExp = filename.endswith(".py") or filename.endswith(".psyexp")
 
-        # if the toolbar is done then adjust buttons
-        if hasattr(self, 'cdrBtnRunner'):
-            self.toolbar.EnableTool(self.cdrBtnRunner.Id, isExp)
-            self.toolbar.EnableTool(self.cdrBtnRun.Id, isExp)
         # Hide panels as specified
         self.paneManager.GetPane("SourceAsst").Show(self.prefs['showSourceAsst'])
         self.paneManager.GetPane("Shelf").Show(self.prefs['showOutput'])
+        self.paneManager.GetPane("Ribbon").Show()
         self.paneManager.Update()
         #self.chkShowAutoComp.Check(self.prefs['autocomplete'])
         self.SendSizeEvent()
         self.app.trackFrame(self)
 
         self.theme = colors.theme
+
+        # disable save buttons if currentDoc is None
+        if self.currentDoc is None:
+            self.ribbon.buttons['save'].Disable()
+            self.ribbon.buttons['saveas'].Disable()
 
     @property
     def useAutoComp(self):
@@ -1397,9 +1399,11 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         menu.Append(wx.ID_SAVE,
                     _translate("&Save\t%s") % keyCodes['save'],
                     _translate("Save current file"))
+        menu.Enable(wx.ID_SAVE, False)
         menu.Append(wx.ID_SAVEAS,
                     _translate("Save &as...\t%s") % keyCodes['saveAs'],
                     _translate("Save current python file as..."))
+        menu.Enable(wx.ID_SAVEAS, False)
         menu.Append(wx.ID_CLOSE,
                     _translate("&Close file\t%s") % keyCodes['close'],
                     _translate("Close current file"))
@@ -1626,9 +1630,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
                            _translate("&Themes"))
 
         # Frame switcher
-        framesMenu = wx.Menu()
-        FrameSwitcher.makeViewSwitcherButtons(framesMenu, frame=self, app=self.app)
-        menu.AppendSubMenu(framesMenu, _translate("&Frames"))
+        FrameSwitcher.makeViewSwitcherButtons(menu, frame=self, app=self.app)
 
         # ---_view---#000000#FFFFFF-------------------------------------------
         # self.shellMenu = wx.Menu()
@@ -1672,9 +1674,9 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         # self.Bind(wx.EVT_MENU,  self.analyseCodeNow, id=self.IDs.analyzeNow)
 
         self.IDs.cdrRun = menu.Append(wx.ID_ANY,
-                                      _translate("Run\t%s") % keyCodes['runScript'],
+                                      _translate("Run/pilot\t%s") % keyCodes['runScript'],
                                       _translate("Run the current script")).GetId()
-        self.Bind(wx.EVT_MENU, self.runFile, id=self.IDs.cdrRun)
+        self.Bind(wx.EVT_MENU, self.onRunShortcut, id=self.IDs.cdrRun)
         item = menu.Append(wx.ID_ANY,
                                       _translate("Send to runner\t%s") % keyCodes['runnerScript'],
                                       _translate("Send current script to runner")).GetId()
@@ -1980,7 +1982,8 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
                     dlg.Destroy()
                 self.fileStatusLastChecked = time.time()
                 # Enable / disable save button
-                self.toolbar.enableSave(self.currentDoc.UNSAVED)
+                self.ribbon.buttons['save'].Enable(self.currentDoc.UNSAVED)
+                self.fileMenu.Enable(wx.ID_SAVE, self.currentDoc.UNSAVED)
 
     def pageChanged(self, event):
         """Event called when the user switches between editor tabs."""
@@ -2013,10 +2016,10 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
         fileType = self.currentDoc.getFileType()
         # enable run buttons if current file is a Python script
-        if hasattr(self, 'cdrBtnRunner'):
+        if 'sendRunner' in self.ribbon.buttons:
             isExp = fileType == 'Python'
-            self.toolbar.EnableTool(self.cdrBtnRunner.Id, isExp)
-            self.toolbar.EnableTool(self.cdrBtnRun.Id, isExp)
+            self.ribbon.buttons['sendRunner'].Enable(isExp)
+            self.ribbon.buttons['pilotRunner'].Enable(isExp)
 
         self.statusBar.SetStatusText(fileType, 2)
 
@@ -2040,17 +2043,22 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
     #     PluginManagerFrame(self).ShowModal()
 
     def OnFindOpen(self, event):
-        # open the find dialog if not already open
-        if self.findDlg is not None:
-            return
         if not self.currentDoc:
+            # don't do anything if there's no document to search
             return
-        win = wx.Window.FindFocus()
-        self.findData.SetFindString(self.currentDoc.GetSelectedText())
-        self.findDlg = wx.FindReplaceDialog(win, self.findData, "Find",
-                                            wx.FR_NOWHOLEWORD)
-        self.findDlg.Bind(wx.EVT_FIND_CLOSE, self.OnFindClose)
-        self.findDlg.Show()
+        if self.findDlg is not None:
+            # if find dlg already exists, show it and give it focus
+            self.findDlg.Show()
+            self.findDlg.Raise()
+            self.findDlg.SetFocus()
+        else:
+            # if not, make one now
+            win = wx.Window.FindFocus()
+            self.findData.SetFindString(self.currentDoc.GetSelectedText())
+            self.findDlg = wx.FindReplaceDialog(win, self.findData, "Find",
+                                                wx.FR_NOWHOLEWORD)
+            self.findDlg.Bind(wx.EVT_FIND_CLOSE, self.OnFindClose)
+            self.findDlg.Show()
 
     def OnFindNext(self, event):
         # find the next occurrence of text according to last find dialogue data
@@ -2207,7 +2215,8 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
         if doc == self.currentDoc:
             # Enable / disable save button
-            self.toolbar.enableSave(self.currentDoc.UNSAVED)
+            self.ribbon.buttons['save'].Enable(self.currentDoc.UNSAVED)
+            self.fileMenu.Enable(wx.ID_SAVE, self.currentDoc.UNSAVED)
 
         self.currentDoc.analyseScript()
 
@@ -2228,6 +2237,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         docID = self.findDocID(filename)
         readOnlyPref = 'readonly' in self.app.prefs.coder
         readonly = readOnlyPref and self.app.prefs.coder['readonly']
+        path, shortName = os.path.split(filename)
         if docID >= 0:
             self.currentDoc = self.notebook.GetPage(docID)
             self.notebook.SetSelection(docID)
@@ -2276,7 +2286,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
                 self.fileHistory.AddFileToHistory(filename)
             else:
                 # set name for an untitled document
-                filename = 'untitled.py'
+                filename = shortName = 'untitled.py'
                 allFileNames = self.getOpenFilenames()
                 n = 1
                 while filename in allFileNames:
@@ -2288,7 +2298,6 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
             self.currentDoc.EmptyUndoBuffer()
 
-            path, shortName = os.path.split(filename)
             self.notebook.AddPage(p, shortName)
             nbIndex = len(self.getOpenFilenames()) - 1
             if isinstance(self.notebook, wx.Notebook):
@@ -2304,12 +2313,6 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
             fileType = self.currentDoc.getFileType()
 
-            # enable run buttons if current file is a Python script
-            if hasattr(self, 'cdrBtnRunner'):
-                isExp = fileType == 'Python'
-                self.toolbar.EnableTool(self.cdrBtnRunner.Id, isExp)
-                self.toolbar.EnableTool(self.cdrBtnRun.Id, isExp)
-
             # line wrapping
             self.currentDoc.SetWrapMode(
                 wx.stc.STC_WRAP_WORD if self.lineWrapChk.IsChecked() else wx.stc.STC_WRAP_NONE)
@@ -2318,6 +2321,8 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.setTitle(title=self.winTitle, document=fname)
         #if len(self.getOpenFilenames()) > 0:
         self.currentDoc.analyseScript()
+        if os.path.isdir(path):
+            self.fileBrowserWindow.gotoDir(path)
 
         if not keepHidden:
             self.Show()  # if the user had closed the frame it might be hidden
@@ -2327,16 +2332,22 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         isExp = filename.endswith(".py") or filename.endswith(".psyexp")
 
         # if the toolbar is done then adjust buttons
-        if hasattr(self, 'cdrBtnRunner'):
-            self.toolbar.EnableTool(self.cdrBtnRunner.Id, isExp)
-            self.toolbar.EnableTool(self.cdrBtnRun.Id, isExp)
-        if 'pavloviaSync' in self.btnHandles:
-            self.toolbar.EnableTool(self.btnHandles['pavloviaSync'].Id, bool(self.filename))
+        for key in ("sendRunner", "pilotRunner", "pyrun", "pypilot"):
+            if key in self.ribbon.buttons:
+                self.ribbon.buttons[key].Enable(isExp)
+        # update save/saveas buttons
+        self.ribbon.buttons['save'].Enable(readonly and self.currentDoc.UNSAVED)
+        self.fileMenu.Enable(wx.ID_SAVE, readonly and self.currentDoc.UNSAVED)
+        self.ribbon.buttons['saveas'].Enable(bool(self.filename))
+        self.fileMenu.Enable(wx.ID_SAVEAS, bool(self.filename))
         # update menu items
         self.pavloviaMenu.syncBtn.Enable(bool(self.filename))
         self.pavloviaMenu.newBtn.Enable(bool(self.filename))
         self.app.updateWindowMenu()
         self.fileBrowserWindow.updateFileBrowser()
+        # update pavlovia project
+        self.project = pavlovia.getProject(self.currentDoc.filename)
+        self.ribbon.buttons['pavproject'].updateInfo()
 
     def fileOpen(self, event=None, filename=None):
         if not filename:
@@ -2392,6 +2403,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
     def fileSave(self, event=None, filename=None, doc=None):
         """Save a ``doc`` with a particular ``filename``.
         If ``doc`` is ``None`` then the current active doc is used.
+        If the current active doc is also ``None``, then quit early.
         If the ``filename`` is ``None`` then the ``doc``'s current filename
         is used or a dlg is presented to get a new filename.
         """
@@ -2400,6 +2412,8 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
                 self.currentDoc.AutoCompCancel()
 
         if doc is None:
+            if self.currentDoc is None:
+                return
             doc = self.currentDoc
         if filename is None:
             filename = doc.filename
@@ -2553,8 +2567,11 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
             self.setTitle(title=self.winTitle, document=self.currentDoc)
             # clear the source tree
             self.structureWindow.srcTree.DeleteAllItems()
+            # disable save buttons
+            self.ribbon.buttons['save'].Disable()
+            self.ribbon.buttons['saveas'].Disable()
         else:
-            self.currentDoc = self.notebook.GetPage(newPageID)
+            self.setCurrentDoc(self.getOpenFilenames()[newPageID])
             self.structureWindow.refresh()
             # set to current file status
             self.setFileModified(self.currentDoc.UNSAVED)
@@ -2570,9 +2587,10 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         for fname in self.getOpenFilenames():
             self.fileClose(event, fname, checkSave)
 
-    def runFile(self, event=None):
-        """Open Runner for running the script."""
-
+    def sendToRunner(self, evt=None):
+        """
+        Send the current file to the Runner.
+        """
         fullPath = Path(self.currentDoc.filename)
         # does the file need saving before running?
         if self.currentDoc.UNSAVED or not fullPath.is_file():
@@ -2583,7 +2601,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
             sys.stdout.flush()
             dlg.Destroy()
             if resp == wx.ID_CANCEL:
-                return -1  # return, don't run
+                return False  # return, don't run
             elif resp == wx.ID_YES:
                 self.fileSave(None)  # save then run
             elif resp == wx.ID_NO:
@@ -2592,16 +2610,50 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         if self.app.runner == None:
             self.app.showRunner()
         if fullPath.is_file():
-            self.app.runner.addTask(fileName=fullPath)
+            if self.ribbon.buttons['pyswitch'].mode:
+                runMode = "run"
+            else:
+                runMode = "pilot"
+            self.app.runner.addTask(fileName=fullPath, runMode=runMode)
         else:
             alert(code=6105, strFields={'path': str(fullPath)})
         self.app.runner.Raise()
-        if event:
-            if event.Id in [self.cdrBtnRun.Id, self.IDs.cdrRun]:
-                self.app.runner.panel.runLocal(event, focusOnExit='coder')
-                self.Raise()
-            else:
-                self.app.showRunner()
+        self.app.showRunner()
+
+        return True
+
+    def onRunShortcut(self, evt=None):
+        """
+        Callback for when the run shortcut is pressed - will either run or pilot 
+        depending on run mode
+        """
+        if self.currentDoc is None:
+            return
+
+        # run/pilot according to mode
+        if self.ribbon.buttons['pyswitch'].mode:
+            self.runFile(evt)
+        else:
+            self.pilotFile(evt)
+
+    def runFile(self, event=None):
+        """
+        Send the current file to the Runner and run it.
+        """
+        if self.currentDoc is None:  # do nothing if no file is present
+            return
+
+        if self.sendToRunner(event):
+            self.app.runner.panel.runLocal(event, focusOnExit='coder')
+            self.Raise()
+
+    def pilotFile(self, event=None):
+        if self.currentDoc is None:
+            return
+
+        if self.sendToRunner(event):
+            self.app.runner.panel.pilotLocal(event, focusOnExit='coder')
+            self.Raise()
 
     def duplicateLine(self, event):
         """Duplicate the current line."""
@@ -2775,15 +2827,16 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         # changes the document flag, updates save buttons
         self.currentDoc.UNSAVED = isModified
         # Enable / disable save button
-        self.toolbar.enableSave(self.currentDoc.UNSAVED)
+        self.ribbon.buttons['save'].Enable(self.currentDoc.UNSAVED)
+        self.fileMenu.Enable(wx.ID_SAVE, self.currentDoc.UNSAVED)
 
     def onProcessEnded(self, event):
         # this is will check the stdout and stderr for any last messages
         self.onIdle(event=None)
         self.scriptProcess = None
         self.scriptProcessID = None
-        self.toolbar.EnableTool(self.cdrBtnRun.Id, True)
-        self.toolbar.EnableTool(self.cdrBtnRunner.Id, True)
+        self.ribbon.buttons['sendRunner'].Enable(True)
+        self.ribbon.buttons['pilotRunner'].Enable(True)
 
     def onURL(self, evt):
         """decompose the URL of a file and line number"""
@@ -2814,12 +2867,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         """Push changes to project repo, or create new proj if proj is None"""
         self.project = pavlovia.getProject(self.currentDoc.filename)
         self.fileSave(self.currentDoc.filename)  # Must save on sync else changes not pushed
-        syncBtnId = self.toolbar.buttons['pavloviaSync'].GetId()
-        self.toolbar.EnableTool(syncBtnId, False)
-        try:
-            pavlovia_ui.syncProject(parent=self, file=self.currentDoc.filename, project=self.project)
-        finally:
-            self.toolbar.EnableTool(syncBtnId, True)
+        pavlovia_ui.syncProject(parent=self, file=self.currentDoc.filename, project=self.project)
 
     def onPavloviaRun(self, evt=None):
         # TODO: Allow user to run project from coder
@@ -2862,130 +2910,177 @@ class StyledNotebook(aui.AuiNotebook, handlers.ThemeMixin):
     pass
 
 
-class CoderToolbar(BasePsychopyToolbar):
-    def makeTools(self):
-        # Clear any existing tools
-        self.ClearTools()
-        self.buttons = {}
+class CoderRibbon(ribbon.FrameRibbon):
+    def __init__(self, parent):
+        # initialize
+        ribbon.FrameRibbon.__init__(self, parent)
 
-        # New
-        self.buttons['filenew'] = self.makeTool(
-            name='filenew',
-            label=_translate('New'),
-            shortcut='new',
-            tooltip=_translate("Create new experiment file"),
-            func=self.frame.fileNew)
-        # Open
-        self.buttons['fileopen'] = self.makeTool(
-            name='fileopen',
-            label=_translate('Open'),
-            shortcut='open',
-            tooltip=_translate("Open an existing experiment file"),
-            func=self.frame.fileOpen)
-        # Save
-        self.buttons['filesave'] = self.makeTool(
-            name='filesave',
-            label=_translate('Save'),
-            shortcut='save',
-            tooltip=_translate("Save current experiment file"),
-            func=self.frame.fileSave)
-        self.frame.cdrBtnSave = self.buttons['filesave']
-        # SaveAs
-        self.buttons['filesaveas'] = self.makeTool(
-            name='filesaveas',
-            label=_translate('Save As...'),
-            shortcut='saveAs',
-            tooltip=_translate("Save current experiment file as..."),
-            func=self.frame.fileSaveAs)
-        # Undo
-        self.buttons['undo'] = self.makeTool(
-            name='undo',
-            label=_translate('Undo'),
-            shortcut='undo',
+        # --- File ---
+        self.addSection(
+            "file", label=_translate("File"), icon="file"
+        )
+        # file new
+        self.addButton(
+            section="file", name="new", label=_translate("New"), icon="filenew",
+            tooltip=_translate("Create new text file"),
+            callback=parent.fileNew
+        )
+        # file open
+        self.addButton(
+            section="file", name="open", label=_translate("Open"), icon="fileopen",
+            tooltip=_translate("Open an existing text file"),
+            callback=parent.fileOpen
+        )
+        # file save
+        self.addButton(
+            section="file", name="save", label=_translate("Save"), icon="filesave",
+            tooltip=_translate("Save current text file"),
+            callback=parent.fileSave
+        ).Disable()
+        # file save as
+        self.addButton(
+            section="file", name="saveas", label=_translate("Save as..."), icon="filesaveas",
+            tooltip=_translate("Save current text file as..."),
+            callback=parent.fileSaveAs
+        ).Disable()
+
+        self.addSeparator()
+
+        # --- Edit ---
+        self.addSection(
+            "edit", label=_translate("Edit"), icon="edit"
+        )
+        # undo
+        self.addButton(
+            section="edit", name="undo", label=_translate("Undo"), icon="undo",
             tooltip=_translate("Undo last action"),
-            func=self.frame.undo)
-        self.frame.cdrBtnUndo = self.buttons['undo']
-        # Redo
-        self.buttons['redo'] = self.makeTool(
-            name='redo',
-            label=_translate('Redo'),
-            shortcut='redo',
+            callback=parent.undo
+        )
+        # redo
+        self.addButton(
+            section="edit", name="redo", label=_translate("Redo"), icon="redo",
             tooltip=_translate("Redo last action"),
-            func=self.frame.redo)
-        self.frame.cdrBtnRedo = self.buttons['redo']
+            callback=parent.redo
+        )
 
-        self.AddSeparator()  # Separator
+        self.addSeparator()
 
-        # Monitor center
-        self.buttons['monitors'] = self.makeTool(
-            name='monitors',
-            label=_translate('Monitor Center'),
-            shortcut='none',
+        # --- Tools ---
+        self.addSection(
+            "experiment", label=_translate("Experiment"), icon="experiment"
+        )
+        # settings
+        self.addButton(
+            section="experiment", name='color', label=_translate('Color picker'), icon="color",
+            tooltip=_translate("Open a tool for choosing colors"),
+            callback=parent.app.colorPicker
+        )
+        # switch run/pilot
+        runPilotSwitch = self.addSwitchCtrl(
+            section="experiment", name="pyswitch",
+            labels=(_translate("Pilot"), _translate("Run")),
+            style=wx.HORIZONTAL
+        )
+        # send to runner
+        self.addButton(
+            section="experiment", name='sendRunner', label=_translate('Runner'), icon="runner",
+            tooltip=_translate("Send experiment to Runner"),
+            callback=parent.sendToRunner
+        ).Disable()
+        # send to runner (pilot icon)
+        self.addButton(
+            section="experiment", name='pilotRunner', label=_translate('Runner'),
+            icon="runnerPilot",
+            tooltip=_translate("Send experiment to Runner"),
+            callback=parent.sendToRunner
+        ).Disable()
+        # link runner buttons to switch
+        runPilotSwitch.addDependant(self.buttons['sendRunner'], mode=1, action="show")
+        runPilotSwitch.addDependant(self.buttons['pilotRunner'], mode=0, action="show")
+
+        self.addSeparator()
+
+        # --- Python ---
+        self.addSection(name="py", label=_translate("Desktop"), icon="desktop")
+
+        # monitor center
+        self.addButton(
+            section="py", name='monitor', label=_translate('Monitor center'), icon="monitors",
             tooltip=_translate("Monitor settings and calibration"),
-            func=self.frame.app.openMonitorCenter)
-        # Color picker
-        self.buttons['color'] = self.makeTool(
-            name='color',
-            label=_translate('Color Picker'),
-            shortcut='none',
-            tooltip=_translate("Color Picker -> clipboard"),
-            func=self.frame.app.colorPicker)
+            callback=parent.app.openMonitorCenter
+        )
+        # pilot Py
+        self.addButton(
+            section="py", name="pypilot", label=_translate("Pilot"), icon='pyPilot',
+            tooltip=_translate("Run the current script in Python with piloting features on"),
+            callback=parent.pilotFile
+        ).Disable()
+        # run Py
+        self.addButton(
+            section="py", name="pyrun", label=_translate("Run"), icon='pyRun',
+            tooltip=_translate("Run the current script in Python"),
+            callback=parent.runFile
+        ).Disable()
+        # link run buttons to switch
+        runPilotSwitch.addDependant(self.buttons['pyrun'], mode=1, action="show")
+        runPilotSwitch.addDependant(self.buttons['pypilot'], mode=0, action="show")
 
-        self.AddSeparator()
+        self.addSeparator()
 
-        # Send to runner
-        self.buttons['runner'] = self.makeTool(
-            'runner', _translate('Runner'), 'runnerScript',
-            _translate("Send experiment to Runner"),
-            self.frame.runFile)
-        self.frame.cdrBtnRunner = self.buttons['runner']
-        self.buttons['run'] = self.makeTool(
-            'run', _translate('Run'), 'runScript',
-            _translate("Run experiment"),
-            self.frame.runFile)
-        self.frame.cdrBtnRun = self.buttons['run']
+        # --- Browser ---
+        self.addSection(
+            name="browser", label=_translate("Browser"), icon="browser"
+        )
 
-        self.AddSeparator()
+        # sync project
+        self.addButton(
+            section="browser", name="pavsync", label=_translate("Sync"), icon='pavsync',
+            tooltip=_translate("Sync project with Pavlovia"),
+            callback=parent.onPavloviaSync
+        )
 
-        # Pavlovia sync
-        self.buttons['pavloviaSync'] = self.makeTool(
-            name='globe_greensync',
-            label=_translate("Sync online"),
-            tooltip=_translate("Sync with web project (at pavlovia.org)"),
-            func=self.frame.onPavloviaSync)
-        # Pavlovia search
-        self.buttons['pavloviaSearch'] = self.makeTool(
-            name='globe_magnifier',
-            label=_translate("Search Pavlovia.org"),
-            tooltip=_translate("Find existing studies online (at pavlovia.org)"),
-            func=self.onPavloviaSearch)
-        # Pavlovia user
-        self.buttons['pavloviaUser'] = self.makeTool(
-            name='globe_user',
-            label=_translate("Current Pavlovia user"),
-            tooltip=_translate("Log in/out of Pavlovia.org, view your user profile."),
-            func=self.onPavloviaUser)
+        self.addSeparator()
 
-        self.frame.btnHandles = self.buttons
+        # --- Pavlovia ---
+        self.addSection(
+            name="pavlovia", label=_translate("Pavlovia"), icon="pavlovia"
+        )
+        # pavlovia user
+        self.addPavloviaUserCtrl(
+            section="pavlovia", name="pavuser", frame=parent
+        )
+        # pavlovia project
+        self.addPavloviaProjectCtrl(
+            section="pavlovia", name="pavproject", frame=parent
+        )
 
-    def onPavloviaSearch(self, evt=None):
-        searchDlg = SearchFrame(
-                app=self.frame.app, parent=self.frame,
-                pos=self.frame.GetPosition())
-        searchDlg.Show()
+        self.addSeparator()
 
-    def onPavloviaUser(self, evt=None):
-        userDlg = UserFrame(self.frame)
-        userDlg.ShowModal()
+        # --- Views ---
+        self.addStretchSpacer()
+        self.addSeparator()
 
-    def enableSave(self, enable=True):
-        """
-        Enable or disable the save button.
-        """
-        self.EnableTool(self.buttons['filesave'].GetId(), enable)
+        self.addSection(
+            "views", label=_translate("Views"), icon="windows"
+        )
+        # show Builder
+        self.addButton(
+            section="views", name="builder", label=_translate("Show Builder"), icon="showBuilder",
+            tooltip=_translate("Switch to Builder view"),
+            callback=parent.app.showBuilder
+        )
+        # show Coder
+        self.addButton(
+            section="views", name="coder", label=_translate("Show Coder"), icon="showCoder",
+            tooltip=_translate("Switch to Coder view"),
+            callback=parent.app.showCoder
+        ).Disable()
+        # show Runner
+        self.addButton(
+            section="views", name="runner", label=_translate("Show Runner"), icon="showRunner",
+            tooltip=_translate("Switch to Runner view"),
+            callback=parent.app.showRunner
+        )
 
-    def disableSave(self):
-        """
-        Alias for .enableSave(False)
-        """
-        self.enableSave(False)
+        # start off in run mode
+        runPilotSwitch.setMode(1)

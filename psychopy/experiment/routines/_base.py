@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Describes the Flow of an experiment
@@ -14,6 +14,7 @@ from xml.etree.ElementTree import Element
 from pathlib import Path
 
 from psychopy.experiment.components.static import StaticComponent
+from psychopy.experiment.components.routineSettings import RoutineSettingsComponent
 from psychopy.localization import _translate
 from psychopy.experiment import Param
 
@@ -24,6 +25,8 @@ class BaseStandaloneRoutine:
     iconFile = Path(__file__).parent / "unknown" / "unknown.png"
     tooltip = ""
     limit = float('inf')
+    # what version was this Routine added in?
+    version = "0.0.0"
 
     def __init__(self, exp, name='',
                  stopType='duration (s)', stopVal='',
@@ -37,16 +40,16 @@ class BaseStandaloneRoutine:
         self.order = ['stopVal', 'stopType', 'name']
 
         msg = _translate(
-            "Name of this routine (alphanumeric or _, no spaces)")
+            "Name of this Routine (alphanumeric or _, no spaces)")
         self.params['name'] = Param(name,
                                     valType='code', inputType="single", categ='Basic',
                                     hint=msg,
-                                    label=_translate('name'))
+                                    label=_translate('Name'))
 
         self.params['stopVal'] = Param(stopVal,
             valType='num', inputType="single", categ='Basic',
             updates='constant', allowedUpdates=[], allowedTypes=[],
-            hint=_translate("When does the routine end? (blank is endless)"),
+            hint=_translate("When does the Routine end? (blank is endless)"),
             label=_translate('Stop'))
 
         msg = _translate("How do you want to define your end point?")
@@ -54,14 +57,14 @@ class BaseStandaloneRoutine:
             valType='str', inputType="choice", categ='Basic',
             allowedVals=['duration (s)', 'duration (frames)', 'condition'],
             hint=msg, direct=False,
-            label=_translate('Stop Type...'))
+            label=_translate('Stop type...'))
 
         # Testing
-        msg = _translate("Disable this routine")
+        msg = _translate("Disable this Routine")
         self.params['disabled'] = Param(disabled,
             valType='bool', inputType="bool", categ="Testing",
             hint=msg, allowedTypes=[], direct=False,
-            label=_translate('Disable routine'))
+            label=_translate('Disable Routine'))
 
     def __repr__(self):
         _rep = "psychopy.experiment.routines.%s(name='%s', exp=%s)"
@@ -113,6 +116,9 @@ class BaseStandaloneRoutine:
 
         return dupe
 
+    def writeDeviceCode(self, buff):
+        return
+
     def writePreCode(self, buff):
         return
 
@@ -138,12 +144,35 @@ class BaseStandaloneRoutine:
         return
 
     def writeRoutineBeginCodeJS(self, buff, modular):
-        return
+        code = (
+            "function %(name)sRoutineBegin(snapshot) {\n"
+            "    return async function () {\n"
+            "        return Scheduler.Event.NEXT;\n"
+            "    }\n"
+            "}\n"
+        )
+        buff.writeIndentedLines(code % self.params)
 
     def writeEachFrameCodeJS(self, buff, modular):
-        return
+        code = (
+            "function %(name)sRoutineEachFrame(snapshot) {\n"
+            "    return async function () {\n"
+            "        return Scheduler.Event.NEXT;\n"
+            "    }\n"
+            "}\n"
+        )
+        buff.writeIndentedLines(code % self.params)
 
     def writeRoutineEndCode(self, buff):
+        # what loop are we in (or thisExp)?
+        if len(self.exp.flow._loopList):
+            currLoop = self.exp.flow._loopList[-1]  # last (outer-most) loop
+        else:
+            currLoop = self.exp._expHandler
+
+        if currLoop.params['name'].val == self.exp._expHandler.name:
+            buff.writeIndented("%s.nextEntry()\n" % self.exp._expHandler.name)
+
         # reset routineTimer at the *very end* of all non-nonSlip routines
         code = ('# the Routine "%s" was not non-slip safe, so reset '
                 'the non-slip timer\n'
@@ -151,7 +180,14 @@ class BaseStandaloneRoutine:
         buff.writeIndentedLines(code % self.name)
 
     def writeRoutineEndCodeJS(self, buff, modular):
-        return
+        code = (
+            "function %(name)sRoutineEnd(snapshot) {\n"
+            "    return async function () {\n"
+            "        return Scheduler.Event.NEXT;\n"
+            "    }\n"
+            "}\n"
+        )
+        buff.writeIndentedLines(code % self.params)
 
     def writeExperimentEndCode(self, buff):
         return
@@ -193,7 +229,10 @@ class BaseStandaloneRoutine:
     def name(self):
         if hasattr(self, 'params'):
             if 'name' in self.params:
-                return self.params['name'].val
+                if hasattr(self.params['name'], "val"):
+                    return self.params['name'].val
+                else:
+                    return self.params['name']
         return self.type
 
     @name.setter
@@ -211,6 +250,54 @@ class BaseStandaloneRoutine:
         self.params['disabled'].val = value
 
 
+class BaseValidatorRoutine(BaseStandaloneRoutine):
+    """
+    Subcategory of Standalone Routine, which sets up a "validator" - an object which is linked to in the Testing tab
+    of another Component and validates that the component behaved as expected. Any validator Routines should subclass
+    this rather than BaseStandaloneRoutine.
+    """
+    # list of class strings (readable by DeviceManager) which this component's device could be
+    deviceClasses = []
+
+    def writeRoutineStartValidationCode(self, buff, stim):
+        """
+        Write the routine start code to validate a given stimulus using this validator.
+
+        Parameters
+        ----------
+        buff : StringIO
+            String buffer to write code to.
+        stim : BaseComponent
+            Stimulus to validate
+
+        Returns
+        -------
+        int
+            Change in indentation level after writing
+        """
+        # this method should be overloaded when subclassing!
+        return 0
+
+    def writeEachFrameValidationCode(self, buff, stim):
+        """
+        Write the each frame code to validate a given stimulus using this validator.
+
+        Parameters
+        ----------
+        buff : StringIO
+            String buffer to write code to.
+        stim : BaseComponent
+            Stimulus to validate
+
+        Returns
+        -------
+        int
+            Change in indentation level after writing
+        """
+        # this method should be overloaded when subclassing!
+        return 0
+
+
 class Routine(list):
     """
     A Routine determines a single sequence of events, such
@@ -223,23 +310,17 @@ class Routine(list):
     """
 
     targets = ["PsychoPy", "PsychoJS"]
+    version = "0.0.0"
 
     def __init__(self, name, exp, components=(), disabled=False):
+        self.settings = RoutineSettingsComponent(exp, name, disabled=disabled)
         super(Routine, self).__init__()
-        self.params = {'name': name}
 
-        # Testing
-        msg = _translate("Disable this component")
-        self.params['disabled'] = Param(disabled,
-            valType='bool', inputType="bool", categ="Testing",
-            hint=msg, allowedTypes=[], direct=False,
-            label=_translate('Disable component'))
-
-        self.name = name
         self.exp = exp
         self._clockName = None  # for scripts e.g. "t = trialClock.GetTime()"
         self.type = 'Routine'
         list.__init__(self, list(components))
+        self.addComponent(self.settings)
 
     def __repr__(self):
         _rep = "psychopy.experiment.Routine(name='%s', exp=%s, components=%s)"
@@ -248,8 +329,13 @@ class Routine(list):
     def copy(self):
         # Create a new routine with the same experiment and name as this one
         dupe = type(self)(self.name, self.exp, components=())
+        # Replace duplicate Routine's setting component
+        dupe.settings.params = copy.deepcopy(self.settings.params)
         # Iterate through components
         for comp in self:
+            # Skip settings component
+            if isinstance(comp, RoutineSettingsComponent):
+                continue
             # Create a deep copy of each component...
             newComp = copy.deepcopy(comp)
             # ...but retain original exp reference
@@ -272,14 +358,18 @@ class Routine(list):
 
     @property
     def name(self):
-        return self.params['name']
+        return self.params['name'].val
 
     @name.setter
     def name(self, name):
-        self.params['name'] = name
+        self.params['name'].val = name
         # Update references in components
         for comp in self:
             comp.parentName = name
+
+    @property
+    def params(self):
+        return self.settings.params
 
     def integrityCheck(self):
         """Run tests on self and on all the Components inside"""
@@ -419,6 +509,7 @@ class Routine(list):
         # This is the beginning of the routine, before the loop starts
         for event in self:
             event.writeRoutineStartCode(buff)
+            event.writeRoutineStartValidationCode(buff)
 
         code = '# keep track of which components have finished\n'
         buff.writeIndentedLines(code)
@@ -472,6 +563,7 @@ class Routine(list):
             if event.type == 'Static':
                 continue  # we'll do those later
             event.writeFrameCode(buff)
+            event.writeEachFrameValidationCode(buff)
         # update static component code last
         for event in self.getStatics():
             event.writeFrameCode(buff)
@@ -481,12 +573,16 @@ class Routine(list):
             code = (
                 '\n'
                 '# check for quit (typically the Esc key)\n'
-                'if endExpNow or defaultKeyboard.getKeys(keyList=["escape"]):\n'
-                '    core.quit()\n'
-                '    if eyetracker:\n'
-                '        eyetracker.setConnectionState(False)\n'
+                'if defaultKeyboard.getKeys(keyList=["escape"]):\n'
+                '    thisExp.status = FINISHED\n'
             )
             buff.writeIndentedLines(code)
+        code = (
+            "if thisExp.status == FINISHED or endExpNow:\n"
+            "    endExperiment(thisExp, win=win)\n"
+            "    return\n"
+        )
+        buff.writeIndentedLines(code)
 
         # are we done yet?
         code = (
@@ -671,6 +767,15 @@ class Routine(list):
         # can we use non-slip timing?
         maxTime, useNonSlip = self.getMaxTime()
 
+        # what loop are we in (or thisExp)?
+        if len(self.exp.flow._loopList):
+            currLoop = self.exp.flow._loopList[-1]  # last (outer-most) loop
+        else:
+            currLoop = self.exp._expHandler
+
+        if currLoop.params['name'].val == self.exp._expHandler.name:
+            buff.writeIndented("%s.nextEntry()\n" % self.exp._expHandler.name)
+
         # reset routineTimer at the *very end* of all non-nonSlip routines
         if not useNonSlip:
             code = ('# the Routine "%s" was not non-slip safe, so reset '
@@ -783,7 +888,12 @@ class Routine(list):
                 except Exception:
                     thisT = 0
                 maxTime = max(maxTime, thisT)
-        if maxTime == 0:  # if there are no components
+        # if max set by routine, override calculated max
+        rtDur, numericStop = self.settings.getDuration()
+        if rtDur != FOREVER:
+            maxTime = rtDur
+        # if there are no components, default to 10s
+        if maxTime == 0:
             maxTime = 10
             nonSlipSafe = False
         return maxTime, nonSlipSafe

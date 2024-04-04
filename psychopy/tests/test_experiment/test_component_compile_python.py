@@ -100,7 +100,7 @@ class TestComponentCompilerPython():
         if not os.path.isdir(os.path.join(TESTS_DATA_PATH, "correctScript", "python")):
             os.mkdir(os.path.join(TESTS_DATA_PATH, "correctScript", "python"))
 
-    def teardown(self):
+    def teardown_method(self):
         shutil.rmtree(self.temp_dir)
 
     def test_all_components(self):
@@ -150,8 +150,10 @@ class TestComponentCompilerPython():
 
     def test_component_type_in_experiment(self):
         for compName, compObj in self.allComp.items():
-            if (compName not in ['SettingsComponent', 'UnknownComponent', 'UnknownPluginComponent']
-                    and "PsychoPy" in compObj.targets):
+            if (compName not in [
+                'SettingsComponent', 'UnknownComponent',
+                'UnknownPluginComponent', 'RoutineSettingsComponent'
+            ] and "PsychoPy" in compObj.targets):
                 # reset exp
                 self.reset_experiment()
                 # Add components

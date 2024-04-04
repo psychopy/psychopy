@@ -83,6 +83,7 @@
 
   <xsd:group name="ComponentGroup">
     <xsd:choice>
+      <xsd:element name="RoutineSettingsComponent" type="Component"/>
       <xsd:element name="ApertureComponent" type="Component"/>
       <xsd:element name="ButtonComponent" type="Component"/>
       <xsd:element name="cedrusButtonBoxComponent" type="Component"/>

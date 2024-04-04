@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Dialog classes for the Builder Code component
@@ -33,7 +33,8 @@ class DlgCodeComponentProperties(wx.Dialog):
     def __init__(self, frame, element, experiment,
                  helpUrl=None, suppressTitles=True, size=(1000,600),
                  style=_style, editing=False, depends=[],
-                 timeout=None, type="Code"):
+                 timeout=None, type="Code",
+                 openToPage=None):
 
         # translate title
         if "name" in element.params:
@@ -75,7 +76,6 @@ class DlgCodeComponentProperties(wx.Dialog):
         # in FlatNoteBook the tab controls (left,right,close) are ugly on mac
         #   and also can't be killed
 
-        openToPage = None
         for paramN, paramName in enumerate(self.order):
             param = self.params.get(paramName)
             if paramName == 'name':
@@ -107,7 +107,7 @@ class DlgCodeComponentProperties(wx.Dialog):
                                                   _translate(param.label))
             elif paramName == 'disabled':
                 # Create bool control to disable/enable component
-                self.disableCtrl = wx.CheckBox(self, wx.ID_ANY, label=_translate('disabled'))
+                self.disableCtrl = wx.CheckBox(self, wx.ID_ANY, label=_translate('Disabled'))
                 self.disableCtrl.SetValue(bool(param.val))
             else:
                 codeType = ["Py", "JS"]["JS" in paramName]  # Give CodeBox a code type
@@ -119,6 +119,9 @@ class DlgCodeComponentProperties(wx.Dialog):
                     _panel.tabN = len(self.tabs)
                     _panel.app = self.app
                     self.tabs[tabName] = _panel
+                # if openToPage refers to this page by name, convert to index
+                if openToPage == paramName:
+                    openToPage = _panel.tabN
 
                 self.codeBoxes[paramName] = CodeBox(_panel, wx.ID_ANY,
                                                     pos=wx.DefaultPosition,
@@ -129,7 +132,7 @@ class DlgCodeComponentProperties(wx.Dialog):
                 self.codeBoxes[paramName].AddText(param.val)
                 self.codeBoxes[paramName].Bind(wx.EVT_KEY_UP, self.onKeyUp)  # For real time translation
 
-                if len(param.val.strip()) and hasattr(_panel, "tabN"):
+                if len(param.val.strip()) and hasattr(_panel, "tabN") and not isinstance(openToPage, str):
                     if openToPage is None or openToPage > _panel.tabN:
                         # index of first non-blank page
                         openToPage = _panel.tabN
@@ -146,7 +149,7 @@ class DlgCodeComponentProperties(wx.Dialog):
         self.warnings = WarningManager(self)  # to store warnings for all fields
         self.__do_layout()
         if openToPage is None:
-            openToPage = 0
+            openToPage = 1
         self.codeNotebook.SetSelection(openToPage)
         self.Update()
         self.Bind(wx.EVT_BUTTON, self.helpButtonHandler, self.helpButton)
@@ -397,7 +400,7 @@ class DlgCodeComponentProperties(wx.Dialog):
             sizer.Add(pyBox, 1, wx.EXPAND, 2)
             sizer.Add(jsBox, 1, wx.EXPAND, 2)
             panel.SetSizer(sizer)
-            tabLabel = _translate(tabName)
+            tabLabel = self.params.get(pyName).label
             # Add a visual indicator when tab contains code
             emptyCodeComp = CodeComponent('', '') # Spawn empty code component
             # If code tab is not empty and not the same as in empty code component, add an asterisk to tab name
