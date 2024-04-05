@@ -74,12 +74,9 @@ class MovieFileReader:
     This class allows for the reading of movie frames from a file for playback
     or analysis. Reading frames from a movie file is a slow process, so this
     class uses a separate thread to decode movie frames in the background.
-
-    This class is suitable for real-time playback applications. It features a 
-    range of playback controls for controlling video and audio presentation. 
     
-    Frame color data is output as Numpy arrays. These arrays can be passed 
-    directly to texture buffers to be rendered to the screen.
+    Frame color and audio data is output as Numpy arrays. These arrays can be 
+    passed directly to texture or audio buffers, respectivley.
 
     Parameters
     ----------
@@ -105,7 +102,10 @@ class MovieFileReader:
     * If `decoderLib='ffpyplayer'`, audio playback is handled externally by 
       SDL2. This means that audio playback is not synchronized with frame 
       presentation in PsychoPy. However, playback will not begin until the audio 
-      track starts playing. 
+      track starts playing.
+    * Do not access private attributes or methods of this class directly since 
+      doing so is not thread-safe. Use the public methods provided by this class
+      to interact with the movie reader.
 
     """
     def __init__(self, 
@@ -125,9 +125,12 @@ class MovieFileReader:
         self._player = None  # player interface object
         self._readerThread = None
         self._lastFrame = None
-        self._frameQueue = queue.Queue(maxsize=maxQueueSize)
         self._exitEvent = threading.Event()  # signal to exit the reader thread
         self._exitEvent.clear()
+
+        # queues for video and audio frames
+        self._frameQueue = queue.Queue(maxsize=maxQueueSize)
+        self._audioQueue = queue.Queue(maxsize=maxQueueSize)
         
         # This lock is used to prevent the reader thread from get frames while
         # another thread is accessing playback controls (e.g. play, pause, seek)
@@ -135,6 +138,12 @@ class MovieFileReader:
 
         # barrier used to synchronize the reader thread with other threads
         self._warmupBarrier = None
+
+        # store decoded video segmenets in memory
+        self._videoSegments = []
+
+        # video segment format
+        # [{'video': videoFrame, 'audio': audioFrame, 'pts': pts}, ...]
 
     def __hash__(self):
         """Use the absolute file path as the hash value since we only allow one
@@ -266,7 +275,7 @@ class MovieFileReader:
         # default options
         defaultFFOpts = {
             'paused': True,
-            'loop': 1
+            # 'loop': 1
         }
 
         # merge user settings with defaults, user settings take precedence
@@ -308,6 +317,11 @@ class MovieFileReader:
         logging.debug("Using decoder library: {}".format(self._decoderLib))
         if self._decoderLib == 'ffpyplayer':
             self._openFFPyPlayer()
+        elif self._decoderLib == 'opencv':
+            self._openOpenCV()
+        else:
+            raise ValueError(
+                'Unknown decoder library: {}'.format(self._decoderLib))
 
         # register the reader with the global list of open movie readers
         if self in _openMovieReaders:
@@ -341,6 +355,155 @@ class MovieFileReader:
         # remove the reader from the global list of open movie readers
         if self in _openMovieReaders:
             _openMovieReaders.remove(self)
+
+    def _defragVideoSegments(self):
+        """Defragment the video segment buffer.
+
+        This function defragments the video segment buffer by removing segments
+        which are no longer needed. This is used to prevent the video segment
+        buffer from growing indefinitely.
+
+        """
+        if not self._videoSegments:
+            return
+
+    def _frameInSegmentBuffer(self, pts):
+        """Check if a frame is in the video segment buffer.
+
+        Parameters
+        ----------
+        pts : float
+            The presentation timestamp (PTS) of the frame to check.
+
+        Returns
+        -------
+        bool
+            `True` if the frame is in the video segment buffer. `False` if the
+            frame is not in the buffer.
+
+        """
+        for segment in self._videoSegments:
+            if segment[0] <= pts < segment[1]:
+                return True
+
+        return False
+
+    def start(self, initialPTS=0.0):
+        """Start decoding movie frames in background thread.
+
+        This begins decoding movie frames from the movie file and adding them to
+        the frame queue. This will continue until either: the frame queue is 
+        full, the `stop()` method is called, the file is closed, or the end of 
+        the movie is reached.
+
+        If an audio track is present, audio samples will be decoded and added to
+        the audio queue (if appicable).
+
+        Parameters
+        ----------
+        initialPTS : float, None
+            The initial presentation timestamp (PTS) to start decoding frames
+            from in seconds. If `0.0`, decoding will start from the beginning of
+            the movie. If `None`, decoding will start from the current position
+            in the movie.
+
+        """
+        if not self.isOpen:
+            self.open()  # call open if not already open
+            logging.warning(
+                'Movie reader is not open. Opening movie file: {}'.format(
+                    self._filename))
+
+        # use the read lock to prevent the reader thread from interacting with
+        # the media reader object
+        with self._readLock:
+            if self._decoderLib == 'ffpyplayer':
+                if initialPTS is not None:
+                    self.seek(initialPTS, relative=False, pause=False)
+                    
+                # unpause the movie to play it
+                if self._player.get_pause():
+                    self._player.set_pause(False)
+            elif self._decoderLib == 'opencv':
+                raise NotImplementedError(
+                    'The `opencv` library is not supported for movie reading.')
+            else:
+                raise ValueError(
+                    'Unknown decoder library: {}'.format(self._decoderLib))
+
+    def stop(self):
+        """Stop decoding movie frames in background thread.
+
+        This halts the decoding of movie frames from the movie file and stops
+        adding them to the frame queue. This will not close the movie file.
+
+        """
+        self.pause()
+
+    @property
+    def isDecoding(self):
+        """Whether the movie reader is decoding frames (`bool`).
+
+        If `True`, the movie reader is decoding frames from the movie file. If
+        `False`, the movie reader is paused.
+
+        """
+        return self.isPlaying
+
+    def memoryUsed(self):
+        """Get the amount of memory used by the movie reader.
+
+        Returns
+        -------
+        int
+            The amount of memory used by the movie reader in bytes.
+
+        """
+        return self._frameQueue.qsize() * 3 * np.prod(self.getSize())
+
+    def clearSegments(self):
+        """Clear all buffered video segments.
+
+        This function clears all buffered video segments from memory. This is
+        useful if you want to free up memory used by the video segment buffer.
+
+        """
+        self._videoSegments = []
+
+    def getFrame(self, pts=0.0, dropFrame=True):
+        """Get a frame from the movie file.
+        
+        This must be called after `start()` to get frames from the movie file.
+
+        Parameters
+        ----------
+        pts : float or None
+            The presentation timestamp (PTS) of the frame to get in seconds.
+        dropFrame : bool
+            If `True`, the frame is dropped if it is not available, and the 
+            most recent frame will be returned immediately. If `False`, the 
+            function will block until the desired frame is returned.
+
+        Returns
+        -------
+        dict
+            A mapping of video and audio frames to their respective presentation
+            timestamps (PTS) in seconds.
+
+        """
+        with self._readLock:
+            if not self._frameInSegmentBuffer(pts):
+                self.seek(pts, relative=False, pause=False)
+            
+            if not dropFrame:
+                while not self._frameInSegmentBuffer(pts):
+                    time.sleep(0.01)
+            
+            self._defragVideoSegments()
+            
+            for segment in self._videoSegments:
+                if segment[0] <= pts < segment[1]:
+                    return segment
 
     # -------------------------------------------------------------------------
     # Video playback controls
@@ -802,6 +965,7 @@ class MovieFileReader:
         """
         if hasattr(self, '_readerThread') and self._readerThread is not None:
             self.close()
+
 
 
 class MovieFileWriter:
