@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Dialog classes for the Builder Code component
@@ -107,7 +107,7 @@ class DlgCodeComponentProperties(wx.Dialog):
                                                   _translate(param.label))
             elif paramName == 'disabled':
                 # Create bool control to disable/enable component
-                self.disableCtrl = wx.CheckBox(self, wx.ID_ANY, label=_translate('disabled'))
+                self.disableCtrl = wx.CheckBox(self, wx.ID_ANY, label=_translate('Disabled'))
                 self.disableCtrl.SetValue(bool(param.val))
             else:
                 codeType = ["Py", "JS"]["JS" in paramName]  # Give CodeBox a code type
@@ -149,7 +149,7 @@ class DlgCodeComponentProperties(wx.Dialog):
         self.warnings = WarningManager(self)  # to store warnings for all fields
         self.__do_layout()
         if openToPage is None:
-            openToPage = 0
+            openToPage = 1
         self.codeNotebook.SetSelection(openToPage)
         self.Update()
         self.Bind(wx.EVT_BUTTON, self.helpButtonHandler, self.helpButton)
@@ -400,7 +400,7 @@ class DlgCodeComponentProperties(wx.Dialog):
             sizer.Add(pyBox, 1, wx.EXPAND, 2)
             sizer.Add(jsBox, 1, wx.EXPAND, 2)
             panel.SetSizer(sizer)
-            tabLabel = _translate(tabName)
+            tabLabel = self.params.get(pyName).label
             # Add a visual indicator when tab contains code
             emptyCodeComp = CodeComponent('', '') # Spawn empty code component
             # If code tab is not empty and not the same as in empty code component, add an asterisk to tab name

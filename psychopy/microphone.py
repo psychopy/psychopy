@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Audio capture and analysis using pyo.
@@ -42,7 +42,7 @@ except (ModuleNotFoundError, ImportError, NameError):
         "session. Please install `psychopy-legacy-mic` and restart the session "
         "to enable support.")
 else:
-    # if we succesfully load the package, warn the user to use the newer stuff
+    # if we successfully load the package, warn the user to use the newer stuff
     logging.warning(
         "Attempting to import `psychopy.microphone`. Note that this library is "
         "deprecated for the purpose of audio capture, but may still provide "

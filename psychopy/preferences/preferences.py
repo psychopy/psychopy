@@ -41,7 +41,7 @@ class Preferences:
 
         import psychopy
         psychopy.prefs.hardware['audioLib'] = ['ptb', 'pyo','pygame']
-        print(prefs)
+        print(psychopy.prefs)
         # prints the location of the user prefs file and all the current vals
 
     Use the instance of `prefs`, as above, rather than the `Preferences` class
@@ -63,6 +63,7 @@ class Preferences:
         self.appDataCfg = None
 
         self.general = None
+        self.piloting = None
         self.coder = None
         self.builder = None
         self.connections = None
@@ -163,7 +164,30 @@ class Preferences:
             except OSError as err:
                 if err.errno != errno.EEXIST:
                     raise
+        
+        # root site-packages directory for user-installed packages and add it
+        pyVer = 'Python{}{}'.format(
+            sys.version_info.major, sys.version_info.minor)
+        prefixRootDir = Path(
+            self.paths['userPrefsDir']) / 'packages' / pyVer
 
+        # populate directory structure for user-installed packages
+        if not prefixRootDir.is_dir():
+            prefixRootDir.mkdir()
+        
+        userSiteDir = prefixRootDir / 'site-packages'
+        if not userSiteDir.is_dir():
+            userSiteDir.mkdir()
+
+        # Scripts directory for user-installed packages
+        userScriptsDir = prefixRootDir / 'Scripts'
+        if not userScriptsDir.is_dir():
+            userScriptsDir.mkdir()
+
+        # add paths from plugins/packages (installed by plugins manager)
+        self.paths['userPackages'] = userSiteDir
+        self.paths['userScripts'] = userScriptsDir
+        
         # Get dir for base and user themes
         baseThemeDir = Path(self.paths['appDir']) / "themes" / "spec"
         userThemeDir = Path(self.paths['themes'])
@@ -212,6 +236,7 @@ class Preferences:
         self.coder = self.userPrefsCfg['coder']
         self.builder = self.userPrefsCfg['builder']
         self.hardware = self.userPrefsCfg['hardware']
+        self.piloting = self.userPrefsCfg['piloting']
         self.connections = self.userPrefsCfg['connections']
         self.appData = self.appDataCfg
 

@@ -5,7 +5,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 __all__ = [
@@ -541,8 +541,10 @@ class MovieStreamThreadFFPyPlayer(threading.Thread):
                     self._player.set_mute(bool(cmdVal))
                     needsWait = True
                 elif cmdOpCode == 'play':
+                    self._player.set_mute(False)
                     self._player.set_pause(False)
                 elif cmdOpCode == 'pause':
+                    self._player.set_mute(True)
                     self._player.set_pause(True)
                 elif cmdOpCode == 'seek':
                     seekToPts, seekRel = cmdVal
@@ -552,6 +554,7 @@ class MovieStreamThreadFFPyPlayer(threading.Thread):
                         accurate=True)
                     time.sleep(0.1)  # long wait for seeking
                 elif cmdOpCode == 'stop':  # stop playback, return to start
+                    self._player.set_mute(True)
                     self._player.seek(
                         -1.0,  # seek to beginning
                         relative=False,

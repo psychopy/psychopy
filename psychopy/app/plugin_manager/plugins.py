@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import wx
 from wx.lib import scrolledpanel
 import webbrowser
@@ -5,11 +7,18 @@ from PIL import Image as pil
 
 from psychopy.tools import pkgtools
 from psychopy.app.themes import theme, handlers, colors, icons
+from psychopy.tools import stringtools as st
 from psychopy.tools.versionchooser import VersionRange
 from psychopy.app import utils
 from psychopy.localization import _translate
 from psychopy import plugins, __version__
+from psychopy.preferences import prefs
 import requests
+import os.path
+import errno
+import sys
+import json
+import glob
 
 
 class AuthorInfo:
@@ -129,10 +138,50 @@ class PluginInfo:
 
     @property
     def icon(self):
-        # memoize on first access
-        if self._requestedIcon is not None:
-            self._icon = utils.ImageData(self._requestedIcon)
+        # check if the directory for the plugin cache exists, create it otherwise
+        appPluginCacheDir = os.path.join(
+            prefs.paths['userCacheDir'], 'appCache', 'plugins')
+        try:
+            os.makedirs(appPluginCacheDir, exist_ok=True)
+        except OSError as err:
+            if err.errno != errno.EEXIST:
+                raise
 
+        if isinstance(self._requestedIcon, str):
+            if st.is_url(self._requestedIcon):
+                # get the file name from the URL in the JSON
+                fname = str(self._requestedIcon).split("/")
+                if len(fname) > 1:
+                    fname = fname[-1]
+                else:
+                    pass  # not a valid URL, use broken image icon
+
+                # check if the icon is already in the cache, use it if so
+                if fname in os.listdir(appPluginCacheDir):
+                    self._icon = utils.ImageData(os.path.join(
+                        appPluginCacheDir, fname))
+                    return self._icon
+                
+                # if not, download it
+                if st.is_url(self._requestedIcon):
+                    # download to cache directory
+                    ext = "." + str(self._requestedIcon).split(".")[-1]
+                    if ext in pil.registered_extensions():
+                        content = requests.get(self._requestedIcon).content
+                        writeOut = os.path.join(appPluginCacheDir, fname)
+                        with open(writeOut, 'wb', encoding='utf-8') as f:
+                            f.write(content)
+                        self._icon = utils.ImageData(os.path.join(
+                            appPluginCacheDir, fname))
+
+            elif st.is_file(self._requestedIcon):
+                self._icon = utils.ImageData(self._requestedIcon) 
+            else:
+                raise ValueError("Invalid icon URL or file path.")
+            
+            return self._icon
+        
+        # icon already loaded into memory, just return that
         if hasattr(self, "_icon"):
             return self._icon
 
@@ -432,6 +481,16 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         self.sizer.Add(self.badItemLbl, border=9, flag=wx.ALL | wx.EXPAND)
         self.badItemSizer = wx.BoxSizer(wx.VERTICAL)
         self.sizer.Add(self.badItemSizer, border=3, flag=wx.ALL | wx.EXPAND)
+        # ctrl to display when plugins can't be retrieved
+        self.errorCtrl = utils.MarkdownCtrl(
+            self, value=_translate(
+                "Could not retrieve plugins. Try restarting the PsychoPy app and make sure you "
+                "are connected to the internet."
+            ),
+            style=wx.TE_READONLY
+        )
+        self.sizer.Add(self.errorCtrl, proportion=1, border=3, flag=wx.ALL | wx.EXPAND)
+        self.errorCtrl.Hide()
 
         # Bind deselect
         self.Bind(wx.EVT_LEFT_DOWN, self.onDeselect)
@@ -445,17 +504,19 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             self.initState[item.info.pipname] = {"installed": item.info.installed, "active": item.info.active}
 
     def populate(self):
-        # Get all plugin details
+        # get all plugin details
         items = getAllPluginDetails()
-        # Start off assuming no headings
+        # start off assuming no headings
         self.badItemLbl.Hide()
-        # Put installed packages at top of list
+        # put installed packages at top of list
         items.sort(key=lambda obj: obj.installed, reverse=True)
         for item in items:
             item.setParent(self)
             self.appendItem(item)
-
-        # Layout
+        # if we got no items, display error message
+        if not len(items):
+            self.errorCtrl.Show()
+        # layout
         self.Layout()
         self.SetupScrolling()
 
@@ -650,7 +711,7 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         # Add placeholder for when there's no plugin selected
         self.placeholder = utils.MarkdownCtrl(
             self, value=_translate("Select a plugin to view details."),
-            style=wx.TE_MULTILINE | wx.BORDER_NONE | wx.TE_NO_VSCROLL
+            style=wx.TE_READONLY
         )
         self.border.Add(
             self.placeholder,
@@ -793,7 +854,6 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.sizer.ShowItems(value is not None)
         # Show/hide placeholder according to None
         self.placeholder.Show(value is None)
-        self.placeholder.editBtn.Hide()
         # Handle None
         if value is None:
             value = PluginInfo(
@@ -872,11 +932,11 @@ class AuthorDetailsPanel(wx.Panel, handlers.ThemeMixin):
         # Button sizer
         self.buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.detailsSizer.Add(self.buttonSizer, border=3, flag=wx.ALIGN_RIGHT | wx.ALL)
-        # Email button
-        self.emailBtn = wx.Button(self, style=wx.BU_EXACTFIT)
-        self.emailBtn.SetToolTip(_translate("Email author"))
-        self.emailBtn.Bind(wx.EVT_BUTTON, self.onEmailBtn)
-        self.buttonSizer.Add(self.emailBtn, border=3, flag=wx.EXPAND | wx.ALL)
+        # # Email button
+        # self.emailBtn = wx.Button(self, style=wx.BU_EXACTFIT)
+        # self.emailBtn.SetToolTip(_translate("Email author"))
+        # self.emailBtn.Bind(wx.EVT_BUTTON, self.onEmailBtn)
+        # self.buttonSizer.Add(self.emailBtn, border=3, flag=wx.EXPAND | wx.ALL)
         # GitHub button
         self.githubBtn = wx.Button(self, style=wx.BU_EXACTFIT)
         self.githubBtn.SetToolTip(_translate("Author's GitHub"))
@@ -898,9 +958,9 @@ class AuthorDetailsPanel(wx.Panel, handlers.ThemeMixin):
         # Name font
         from psychopy.app.themes import fonts
         self.name.SetFont(fonts.appTheme['h4'].obj)
-        # Email button bitmap
-        self.emailBtn.SetBitmap(icons.ButtonIcon("email", 16).bitmap)
-        self.emailBtn.SetBitmapDisabled(icons.ButtonIcon("email", 16).bitmap)
+        # # Email button bitmap
+        # self.emailBtn.SetBitmap(icons.ButtonIcon("email", 16).bitmap)
+        # self.emailBtn.SetBitmapDisabled(icons.ButtonIcon("email", 16).bitmap)
         # Github button bitmap
         self.githubBtn.SetBitmap(icons.ButtonIcon("github", 16).bitmap)
         self.githubBtn.SetBitmapDisabled(icons.ButtonIcon("github", 16).bitmap)
@@ -948,7 +1008,7 @@ class AuthorDetailsPanel(wx.Panel, handlers.ThemeMixin):
         else:
             self.name.SetToolTip("")
         # Show/hide buttons
-        self.emailBtn.Show(bool(value.email))
+        # self.emailBtn.Show(bool(value.email))
         self.githubBtn.Show(bool(value.github))
 
     def onEmailBtn(self, evt=None):
@@ -1096,24 +1156,153 @@ def markActive(pluginItem, pluginPanel, active=True):
         pluginPanel.Update()
 
 
+# store plugin objects for later use
+_pluginObjects = None
+# persistent variable to keep track of whether we need to update plugins
+redownloadPlugins = True
+
+
 def getAllPluginDetails():
+    """Get all plugin details from the server and return as a list of
+    `PluginInfo` objects.
+
+    This function will download the plugin database from the server and
+    return a list of `PluginInfo` objects, one for each plugin in the
+    database. The database is cached locally and will only be replaced when
+    the server version is newer than the local version. This allows the user 
+    to use the plugin manager offline or when the server is down.
+
+    Returns
+    -------
+    list of PluginInfo
+        List of plugin details.
+
     """
-    Placeholder function - returns an example list of objects with desired
-    structure.
-    """
-    # Request plugin info list from server
-    resp = requests.get("https://psychopy.org/plugins.json")
-    # If 404, return None so the interface can handle this nicely rather than an
-    # unhandled error.
-    if resp.status_code == 404:
-        return
+    # check if the local `plugins.json` file exists and is up to date
+    appPluginCacheDir = os.path.join(
+        prefs.paths['userCacheDir'], 'appCache', 'plugins')
+    
+    # create the cache directory if it doesn't exist
+    if not os.path.exists(appPluginCacheDir):
+        try:
+            os.makedirs(appPluginCacheDir)
+        except OSError:
+            pass
+
+    # where the database is expected to be
+    pluginDatabaseFile = Path(appPluginCacheDir) / "plugins.json"
+
+    def downloadPluginDatabase(srcURL="https://psychopy.org/plugins.json"):
+        """Downloads the plugin database from the server and returns the text
+        as a string. If the download fails, returns None.
+
+        Parameters
+        ----------
+        srcURL : str
+            The URL to download the plugin database from.
+
+        Returns
+        -------
+        list or None
+            The plugin database as a list, or None if the download failed.
+        
+        """
+        global redownloadPlugins
+        # if plugins already up to date, skip
+        if not redownloadPlugins:
+            return None
+        # download database from website
+        try:
+            resp = requests.get(srcURL)
+        except requests.exceptions.ConnectionError:
+            # if connection to website fails, return nothing
+            return None
+        # if download failed, return nothing
+        if resp.status_code == 404:
+            return None
+        # otherwise get as a string
+        value = resp.text
+        # attempt to parse JSON
+        try:
+            database = json.loads(value)
+        except json.decoder.JSONDecodeError:
+            # if JSON parse fails, return nothing
+            return None
+        # if we made it this far, mark plugins as not needing update
+        redownloadPlugins = False
+
+        return database
+        
+    def readLocalPluginDatabase(srcFile):
+        """Read the local plugin database file (if it exists) and return the
+        text as a string. If the file doesn't exist, returns None.
+
+        Parameters
+        ----------
+        srcFile : pathlib.Path
+            The expected path to the plugin database file.
+        
+        Returns
+        -------
+        list or None
+            The plugin database as a list, or None if the file doesn't exist.
+        
+        """
+        # if source file doesn't exist, return nothing
+        if not srcFile.is_file():
+            return None
+        # attempt to parse JSON
+        try:
+            with srcFile.open("r", encoding="utf-8") as f:
+                return json.load(f)
+        except json.decoder.JSONDecodeError:
+            # if JSON parse fails, return nothing
+            return None
+    
+    def deletePluginDlgCache():
+        """Delete the local plugin database file and cached files related to 
+        the Plugin dialog.
+        """
+        if os.path.exists(appPluginCacheDir):
+            files = glob.glob(os.path.join(appPluginCacheDir, '*'))
+            for f in files:
+                os.remove(f)
+                
+    # get a copy of the plugin database from the server, check if it's newer
+    # than the local copy, and if so, replace the local copy
+
+    # get remote database
+    serverPluginDatabase = downloadPluginDatabase()
+    # get local database
+    localPluginDatabase = readLocalPluginDatabase(pluginDatabaseFile)
+
+    if serverPluginDatabase is not None:
+        # if we have a database from the remote, use it
+        pluginDatabase = serverPluginDatabase
+        # if the file contents has changed, delete cached icons and etc.
+        if str(pluginDatabase) != str(localPluginDatabase):
+            deletePluginDlgCache()
+            # write new contents to file
+            with pluginDatabaseFile.open("w", encoding='utf-8') as f:
+                json.dump(pluginDatabase, f, indent=True)
+
+    elif localPluginDatabase is not None:
+        # otherwise use cached
+        pluginDatabase = localPluginDatabase
+    else:
+        # if we have neither, treat as blank list
+        pluginDatabase = []
+
+    # check if we need to update plugin objects, if not return the cached data
+    global _pluginObjects
+    requiresRefresh = _pluginObjects is None
+    if not requiresRefresh:
+        return _pluginObjects
 
     # Create PluginInfo objects from info list
     objs = []
-    for info in resp.json():
-        objs.append(
-            PluginInfo(**info)
-        )
+    for info in pluginDatabase:
+        objs.append(PluginInfo(**info))
 
     # Add info objects for local plugins which aren't found online
     localPlugins = plugins.listPlugins(which='all')
@@ -1137,7 +1326,9 @@ def getAllPluginDetails():
             # Add to list
             objs.append(info)
 
-    return objs
+    _pluginObjects = objs  # cache for later
+
+    return _pluginObjects
 
 
 if __name__ == "__main__":

@@ -7,7 +7,8 @@ import Quartz as Qz
 from AppKit import NSEvent
 
 from . import MouseDevice
-from .. import Keyboard, Computer, Device
+from ..keyboard import Keyboard
+from .. import Computer, Device
 from ...errors import print2err, printExceptionDetailsToStdErr
 from ...constants import EventConstants, MouseConstants
 

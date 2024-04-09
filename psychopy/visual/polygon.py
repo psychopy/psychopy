@@ -5,7 +5,7 @@
 :class:`~psychopy.visual.ShapeStim`"""
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import psychopy  # so we can get the __path__
@@ -16,7 +16,9 @@ import numpy as np
 
 
 class Polygon(BaseShapeStim):
-    """Creates a regular polygon (triangles, pentagons, ...).
+    """Creates a regular polygon (triangles, pentagons, ...). This is
+    a lazy-imported class, therefore import using full path 
+    `from psychopy.visual.polygon import Polygon` when inheriting from it.
 
     This class is a special case of a :class:`~psychopy.visual.ShapeStim` that
     accepts the same parameters except `closeShape` and `vertices`.

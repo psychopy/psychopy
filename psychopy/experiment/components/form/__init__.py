@@ -2,26 +2,17 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
 from psychopy.experiment.components import Param, getInitVals, _translate, BaseVisualComponent
-from psychopy.visual import form
-from psychopy.localization import _localized as __localized
-_localized = __localized.copy()
+from psychopy.tools.stimulustools import formStyles
 
 __author__ = 'Jon Peirce, David Bridges, Anthony Haffey'
 
-# only use _localized values for label values, nothing functional:
-_localized.update({'Items': _translate('Items'),
-                   'Text Height': _translate('Text Height'),
-                   'Style': _translate('Styles'),
-                   'Item Padding': _translate('Item Padding'),
-                   'Data Format': _translate('Data Format'),
-                   'Randomize': _translate('Randomize')
-                   })
-knownStyles = list(form.Form.knownStyles)
+
+knownStyles = list(formStyles)
 
 
 class FormComponent(BaseVisualComponent):

@@ -2,21 +2,12 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 from copy import copy
 from pathlib import Path
 from psychopy.tools import stringtools as st
 from psychopy.experiment.components import BaseComponent, Param, _translate, getInitVals
-from psychopy.localization import _localized as __localized
-_localized = __localized.copy()
-
-# only use _localized values for label values, nothing functional:
-_localized.update({'address': _translate('Port address'),
-                   'register': _translate('U3 Register'),
-                   'startData': _translate("Start data"),
-                   'stopData': _translate("Stop data"),
-                   'syncScreenRefresh': _translate('Sync to screen')})
 
 
 class SerialOutComponent(BaseComponent):
@@ -33,7 +24,7 @@ class SerialOutComponent(BaseComponent):
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
-                 port="COM3", baudrate=9600, bytesize=8, stopbits=1, parity='None',
+                 port="COM3", baudrate=9600, bytesize=8, stopbits=1, parity='N',
                  startdata=1, stopdata=0,
                  timeout="", getResponse=False,
                  syncScreenRefresh=False):

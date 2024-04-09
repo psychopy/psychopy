@@ -4,7 +4,7 @@
 """Classes and functions for the coder file browser pane."""
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import wx
@@ -18,7 +18,7 @@ except Exception:
 import os
 import sys
 import subprocess
-import imghdr
+import mimetypes
 from ..themes import icons, colors, handlers
 from psychopy.localization import _translate
 
@@ -537,22 +537,32 @@ class FileBrowserPanel(wx.Panel, handlers.ThemeMixin):
             if isinstance(self.selectedItem, FolderItemData):
                 self.gotoDir(self.selectedItem.abspath)
             elif isinstance(self.selectedItem, FileItemData):
-                # check if an image file
-                if not imghdr.what(self.selectedItem.abspath):
+                # add some mimetypes which aren't recognised by default
+                mimetypes.add_type("text/xml", ".psyexp")
+                mimetypes.add_type("text/json", ".psyrun")
+                mimetypes.add_type("text/markdown", ".md")
+                mimetypes.add_type("text/config", ".cfg")
+                mimetypes.add_type("text/plain", ".log")
+                mimetypes.add_type("text/plain", ".yaml")
+                # try to guess data type
+                dataType = mimetypes.guess_type(self.selectedItem.abspath)[0]
+
+                if dataType and "text" in dataType:
+                    # open text files in editor
                     self.coder.fileOpen(None, self.selectedItem.abspath)
                 else:
+                    # open other files in system default
                     if sys.platform == 'win32':
-                        imgCmd = 'explorer'
+                        cmd = 'explorer'
                     elif sys.platform == 'darwin':
-                        imgCmd = 'open'
+                        cmd = 'open'
                     elif sys.platform == 'linux':
-                        imgCmd = 'xdg-open'
+                        cmd = 'xdg-open'
                     else:
                         return  # not supported
 
-                    # show image in viewer
                     subprocess.run(
-                        [imgCmd, self.selectedItem.abspath], shell=True)
+                        [cmd, self.selectedItem.abspath], shell=True)
 
     def OnItemSelected(self, evt=None):
         """Event for when an item is selected."""

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """utility classes for the Builder
@@ -311,7 +311,7 @@ class BasePsychopyToolbar(wx.ToolBar, handlers.ThemeMixin):
         self.frame = frame
         self.app = self.frame.app
         # Configure toolbar appearance
-        self.SetWindowStyle(wx.TB_HORIZONTAL | wx.NO_BORDER | wx.TB_FLAT | wx.TB_NODIVIDER)
+        self.SetWindowStyle(wx.TB_HORIZONTAL | wx.NO_BORDER | wx.TB_FLAT | wx.TB_NODIVIDER | wx.TB_HORZ_TEXT)
         # Set icon size
         self.iconSize = 32
         self.SetToolBitmapSize((self.iconSize, self.iconSize))
@@ -340,15 +340,13 @@ class BasePsychopyToolbar(wx.ToolBar, handlers.ThemeMixin):
         # Make button
         if 'phoenix' in wx.PlatformInfo:
             btn = self.AddTool(
-                wx.ID_ANY, label=label,
-                bitmap=icn.bitmap, shortHelp=tooltip,
+                wx.ID_ANY, label="",
+                bitmap=icn.bitmap, shortHelp=label,
                 kind=wx.ITEM_NORMAL
             )
         else:
             btn = self.AddSimpleTool(
-                wx.ID_ANY, label=label,
-                bitmap=icn.bitmap, shortHelp=tooltip,
-                kind=wx.ITEM_NORMAL
+                wx.ID_ANY, bitmap=icn.bitmap
             )
         # Bind tool to function
         if func is None:
@@ -450,7 +448,7 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
             Path to markdown file to edit via this control.
         style : wx.Style
             Style tags for this control. Accepts the following:
-            - wx.READONLY: Hides all button controls and shows only the rendered HTML
+            - wx.TE_READONLY: Hides all button controls and shows only the rendered HTML
             - wx.RIGHT: Arranges buttons vertically along the right hand side
             - wx.BOTTOM: Arranges buttons horizontally along the bottom
             - wx.BU_NOTEXT: Don't show any label on the buttons
@@ -513,7 +511,7 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         if value is None and self.file is not None:
                 self.load()
         elif value is not None:
-            self.rawTextCtrl.SetValue(value)
+            self.setValue(value)
 
         # Set initial view
         self.showHTML()
@@ -530,6 +528,8 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         # Disable read only so value can change
         self.rawTextCtrl.SetReadOnly(False)
         # Change value
+        if value is None:
+            value = ""
         self.rawTextCtrl.SetValue(value)
         # Restore readonly state
         self.rawTextCtrl.SetReadOnly(og)
@@ -593,11 +593,20 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
 
     def save(self, evt=None):
         if self.file is None:
-            return
-        # Write current contents to file
+            # if no file, open dialog to choose one
+            dlg = wx.FileDialog(
+                self, message=_translate("Save file as..."), defaultDir=str(Path.home()),
+                style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
+                wildcard="Markdown file (*.md)|*.md|Text file (*.txt)|*.txt|Any file (*.*)|*.*")
+            if dlg.ShowModal() == wx.ID_OK:
+                self.file = dlg.GetPath()
+                self.load()
+            else:
+                return
+        # write current contents to file
         with open(self.file, "w") as f:
             f.write(self.rawTextCtrl.GetValue())
-        # Disable save button
+        # disable save button
         self.saveBtn.Disable()
 
     def onEdit(self, evt=None):
@@ -1441,7 +1450,6 @@ class FrameSwitcher(wx.Menu):
         self.Bind(wx.EVT_MENU, self.nextWindow, self.next)
         self.AppendSeparator()
         self.makeViewSwitcherButtons(self, frame=self.Window, app=self.app)
-        self.AppendSeparator()
         self.updateFrames()
 
     @staticmethod
@@ -1480,6 +1488,8 @@ class FrameSwitcher(wx.Menu):
                 wx.ID_ANY, _translate("Show &runner"), _translate("Show Runner")
             )
             parent.Bind(wx.EVT_MENU, app.showRunner, items['runner'])
+
+        parent.AppendSeparator()
 
         return items
 

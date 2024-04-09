@@ -7,10 +7,10 @@ param ($install_pp=1)
 # python setup.py bdist_wininst --install-script=psychopy_post_inst.py
 
 # remove editable installation
-# $pyPaths = @("C:\Python36\", "C:\Python36_64\")
+# $pyPaths = @("C:\Python36", "C:\Python36_64")
 # $names = @("PsychoPy3", "PsychoPy3")
 # $archs = @("win32", "win64")
-$pyPaths = @("C:\Python38\")
+$pyPaths = @("C:\Python38")
 $names = @("PsychoPy")
 $archs = @("win64")
 
@@ -20,10 +20,11 @@ $v = [Io.File]::ReadAllText($versionfile).Trim()
 
 for ($i=0; $i -lt $pyPaths.Length; $i++) {
     [console]::beep(440,300); [console]::beep(880,300)
+    Invoke-Expression ("& '{0}/python.exe' building/compile_po.py" -f $pyPaths[$i])
     # try to uninstall psychopy from site-packages
     # re-install the current version as editable/developer
     if ($install_pp -eq 1) {
-        Invoke-Expression ("& '{0}python.exe' -m pip install . --no-deps --force" -f $pyPaths[$i])
+        Invoke-Expression ("& '{0}/python.exe' -m pip install . --no-deps --force" -f $pyPaths[$i])
         echo ("Installed current PsychoPy")
         xcopy /I /Y psychopy\*.txt $pyPaths[$i]
     }
@@ -39,9 +40,9 @@ for ($i=0; $i -lt $pyPaths.Length; $i++) {
 
     if ($install_pp -eq 1) {
         # try to uninstall psychopy from site-packages
-        Invoke-Expression ("& '{0}python.exe' -m pip uninstall -y psychopy" -f $pyPaths[$i])
+        Invoke-Expression ("& '{0}/python.exe' -m pip uninstall -y psychopy" -f $pyPaths[$i])
         # re-install the current version as editable/developer
-        Invoke-Expression ("& '{0}python.exe' -m pip install -e . --no-deps" -f $pyPaths[$i])
+        Invoke-Expression ("& '{0}/python.exe' -m pip install -e . --no-deps" -f $pyPaths[$i])
     }
 }
 

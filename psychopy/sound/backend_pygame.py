@@ -150,9 +150,10 @@ class SoundPygame(_SoundBase):
     """
     def __init__(self, value="C", secs=0.5, octave=4, sampleRate=44100,
                  bits=16, name='', autoLog=True, loops=0, stereo=True,
-                 hamming=False):
+                 hamming=False, speaker=None):
         self.name = name  # only needed for autoLogging
         self.autoLog = autoLog
+        self.speaker = self._parseSpeaker(speaker)
 
         if stereo == True:
             stereoChans = 2
