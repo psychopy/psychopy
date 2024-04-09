@@ -79,7 +79,7 @@ class TextBox2(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin):
                  bold=False,
                  italic=False,
                  placeholder="Type here...",
-                 lineSpacing=None,
+                 lineSpacing=1.0,
                  letterSpacing=None,
                  padding=None,  # gap between box and text
                  speechPoint=None,
@@ -190,10 +190,11 @@ class TextBox2(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin):
         self._pixelScaling = self.letterHeightPix / self.letterHeight
         self.bold = bold
         self.italic = italic
+        if lineSpacing is None:
+            lineSpacing = 1.0
+        self.lineSpacing = lineSpacing
         self.glFont = None  # will be set by the self.font attribute setter
         self.font = font
-        if lineSpacing is not None:
-            self.lineSpacing = lineSpacing
         self.letterSpacing = letterSpacing
         # If font not found, default to Open Sans Regular and raise alert
         if not self.glFont:
@@ -353,7 +354,7 @@ class TextBox2(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin):
             self.caret.color = self._foreColor
 
     @attributeSetter
-    def font(self, fontName, italic=False, bold=False):
+    def font(self, fontName):
         if isinstance(fontName, GLFont):
             self.glFont = fontName
             self.__dict__['font'] = fontName.name
@@ -362,7 +363,9 @@ class TextBox2(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin):
             self.glFont = allFonts.getFont(
                     fontName,
                     size=self.letterHeightPix,
-                    bold=self.bold, italic=self.italic)
+                    bold=self.bold,
+                    italic=self.italic,
+                    lineSpacing=self.lineSpacing)
 
     @attributeSetter
     def overflow(self, value):
@@ -609,19 +612,6 @@ class TextBox2(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin):
         Convenience function to get self._letterHeight.pix and be guaranteed a return that is a single integer
         """
         return self._letterHeight.pix[1]
-
-    @property
-    def lineSpacing(self):
-        if hasattr(self.glFont, "lineSpacing"):
-            return self.glFont.lineSpacing
-
-    @lineSpacing.setter
-    def lineSpacing(self, value):
-        if hasattr(self, "_placeholder"):
-            self._placeholder.lineSpacing = value
-        if hasattr(self.glFont, "lineSpacing"):
-            self.glFont.lineSpacing = value
-        self._needVertexUpdate = True
 
     @attributeSetter
     def letterSpacing(self, value):
