@@ -312,6 +312,23 @@ class Param():
         # if not a clear alias, use bool method of value
         return bool(self.val)
 
+    def __deepcopy__(self, memo):
+        return Param(
+            val=self.val,
+            valType=self.valType,
+            inputType=self.inputType,
+            allowedVals=self.allowedVals,
+            allowedTypes=self.allowedTypes,
+            hint=self.hint,
+            label=self.label,
+            updates=self.updates,
+            allowedUpdates=self.allowedUpdates,
+            allowedLabels=self.allowedLabels,
+            direct=self.direct,
+            canBePath=self.canBePath,
+            categ=self.categ
+        )
+
     @property
     def _xml(self):
         # Make root element
