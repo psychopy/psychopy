@@ -206,8 +206,13 @@ class Keyboard(AttributeGetSetMixin):
         self.rt = []  # response time(s)
         self.time = []  # Epoch
 
-        # get clock from device
-        self.clock = self.device.clock
+    @property
+    def clock(self):
+        return self.device.clock
+
+    @clock.setter
+    def clock(self, value):
+        self.device.clock = value
 
     def getBackend(self):
         return self.device.getBackend()
