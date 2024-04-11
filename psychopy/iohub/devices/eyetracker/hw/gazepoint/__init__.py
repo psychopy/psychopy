@@ -6,7 +6,7 @@
 import psychopy.logging as logging
 
 try:
-    from psychopy_eyetracker_gazepoint import gp3
+    from psychopy_eyetracker_gazepoint.gazepoint import gp3
 except (ModuleNotFoundError, ImportError, NameError):
     logging.error(
         "The Gazepoint eyetracker requires package " 
