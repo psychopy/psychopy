@@ -920,6 +920,9 @@ class TextBox2(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin):
 
                 # are we wrapping the line?
                 if charcode == "\n":
+                    # check if we have stored the top/bottom of the previous line yet
+                    if lineN + 1 > len(_lineBottoms):
+                        _lineBottoms.append(current[1])
                     lineWPix = current[0]
                     current[0] = 0
                     current[1] -= font.height
@@ -1618,6 +1621,8 @@ class Caret(ColorMixin):
             self.index = len(self.textbox._lineNs)
         # Get line of index
         if self.index >= len(self.textbox._lineNs):
+            if len(self.textbox._lineBottoms) - 1 > self.textbox._lineNs[-1]:
+                return len(self.textbox._lineBottoms) - 1
             return self.textbox._lineNs[-1]
         else:
             return self.textbox._lineNs[self.index]
@@ -1708,9 +1713,12 @@ class Caret(ColorMixin):
         else:
             # Otherwise, get caret position from character vertices
             if self.index >= len(textbox._lineNs):
-                # If the caret is after the last char, position it to the right
-                chrVerts = textbox._vertices.pix[range((ii-1) * 4, (ii-1) * 4 + 4)]
-                x = chrVerts[2, 0]  # x-coord of left edge (of final char)
+                if len(textbox._lineBottoms) - 1 > textbox._lineNs[-1]:
+                    x = textbox._lineWidths[len(textbox._lineBottoms) - 1]
+                else:
+                    # If the caret is after the last char, position it to the right
+                    chrVerts = textbox._vertices.pix[range((ii-1) * 4, (ii-1) * 4 + 4)]
+                    x = chrVerts[2, 0]  # x-coord of left edge (of final char)
             else:
                 # Otherwise, position it to the left
                 chrVerts = textbox._vertices.pix[range(ii * 4, ii * 4 + 4)]
