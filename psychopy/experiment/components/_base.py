@@ -36,6 +36,8 @@ class BaseComponent:
     tooltip = ""
     # what version was this Component added in?
     version = "0.0.0"
+    # is it still in beta?
+    beta = False
 
     def __init__(self, exp, parentName, name='',
                  startType='time (s)', startVal='',
@@ -1098,6 +1100,11 @@ class BaseComponent:
             f"    {', '.join(self.targets)}\n"
             f"\n"
         )
+        # beta warning
+        if self.beta:
+            content += (
+                f"**Note: Since this is still in beta, keep an eye out for bug fixes.**"
+            )
         # params heading
         content += (
             f"{h2 % 'Parameters'}\n"
