@@ -293,7 +293,8 @@ class BaseStandaloneRoutine:
         # beta warning
         if self.beta:
             content += (
-                f"**Note: Since this is still in beta, keep an eye out for bug fixes.**"
+                f"**Note: Since this is still in beta, keep an eye out for bug fixes.**\n"
+                f"\n"
             )
         # params heading
         content += (
