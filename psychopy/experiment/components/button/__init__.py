@@ -15,7 +15,12 @@ from psychopy.experiment.py2js_transpiler import translatePythonToJavaScript
 
 class ButtonComponent(BaseVisualComponent):
     """
-    A component for presenting a clickable textbox with a programmable callback
+    This component allows you to show a static textbox which ends the routine and/or triggers
+    a "callback" (some custom code) when pressed. The nice thing about the button component is
+    that you can allow mouse/touch responses with a single component instead of needing 3 separate
+    components i.e. a textbox component (to display as a "clickable" thing), a mouse component
+    (to click the textbox) and a code component (not essential, but for example to check if a
+    clicked response was correct or incorrect).
     """
     categories = ['Responses']
     targets = ['PsychoPy', 'PsychoJS']
