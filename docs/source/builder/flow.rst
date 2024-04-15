@@ -67,7 +67,7 @@ Using a simple staircase
 -------------------------------------------------------------
 A simple staircase allows you to input the step sizes that you want the staircase to take when a user gets an answer correct or incorrect. 
 
-** To add one simple staircase**
+  **To add one simple staircase**
 
 * To add just one simple staircase, you'll firstly need to add a loop around the routines you want to repeat. Then, from the loop type drop-down list select "staircase":
 
@@ -81,6 +81,7 @@ A simple staircase allows you to input the step sizes that you want the staircas
     * min value: The smallest legal value for the staircase.
     * step sizes: The size of steps as a single value or a list. For a single value the step size is fixed. For a list the step size will progress to the next value at each reversal.
     * step type: The type of steps that should be taken each time:
+  
             * 'lin' - This will simply add or subtract that amount at each step. 
             * 'log' - This will add or subtract a certain number of log units at each step (note that this will prevent your value ever reaching zero or less).
             * 'db' - This will add or subtract a certain number of decibels at each step (note that this will prevent your value ever reaching zero or less).
@@ -91,7 +92,7 @@ A simple staircase allows you to input the step sizes that you want the staircas
 * Complete these fields as required for your experiment and click OK to save the loop.
 * Now that you have your conditions set up, you will need to *use* the estimates that are being produced by the staircase to control the particular aspect of the stimulus that you're investigating (contrast, or opacity for example). To do this, simply use the variable `$level` as the value for that parameter and set every repeat!
 
-** To add more than one simple staircase**
+**To add more than one simple staircase**
 
 * To add more than one staircase, add a loop in the same way as above but select "Interleaved staircases" from the loop type drop-down list, then "simple" from the stair type drop-down:
 
@@ -110,6 +111,7 @@ A simple staircase allows you to input the step sizes that you want the staircas
     * minVal: The smallest legal value for the staircase.
     * stepSizes: The size of steps as a single value or a list. For a single value the step size is fixed. For a list the step size will progress to the next value at each reversal.
     * stepType: The type of steps that should be taken each time:
+  
             * 'lin' - This will simply add or subtract that amount at each step. 
             * 'log' - This will add or subtract a certain number of log units at each step (note that this will prevent your value ever reaching zero or less).
             * 'db' - This will add or subtract a certain number of decibels at each step (note that this will prevent your value ever reaching zero or less).
@@ -153,7 +155,7 @@ Rather than setting the step sizes manually, as with a simple staircase, the QUE
     * grain: Grain: This is the quantization (step size) of the internal table, e.g., 0.01.
     * minVal **Use this along with maxVal when running the staircase locally (i.e., not online)**: The minimum value that the staircase will return (good for preventing impossible contrast values, for instance). 
     * maxVal **Use this along with minVal when running the staircase locally (i.e., not online)**: The maximum value that the staircase will return (good for preventing impossible contrast values, for instance).
-    * range **Use this when running the staircase online)**: This is the intensity difference between the largest and smallest value, centered on startVal. Be generous with the range so that you don't exclude possible values for the threshold estimate.
+    * range **(Use this when running the staircase online)**: This is the intensity difference between the largest and smallest value, centered on startVal. Be generous with the range so that you don't exclude possible values for the threshold estimate.
 
 * Complete these fields as required for your experiment and click OK to save the loop.
 * Add as many staircases as you need to the conditions file.
@@ -238,4 +240,4 @@ Once you have a loop around the routine you want to repeat, you can use the vari
 You could then add a Text component and in the *text* field type :code:`$letter` and then set the corresponding dropsown box to "set every repeat". This indicates that you want the value of this parameter to change on each iteration of your loop, and the value of that parameter on each loop will correspond to the value of "letter" drawn on each trial.
 
 .. note::
-    You only need to use the $ sign if that field name does not already contain a $ sign! You also don't need several dollar signs in a field e.g. you wouldn't set the position of a stimulys on each repeat using :code:`($myX, $myY)` instead you would just use :code:`$(myX, myY)` - this is because the dollar sign indicates that this field will now accept python code, rather than that this value corresponds to a variable.
+    You only need to use the $ sign if that field name does not already contain a $ sign! You also don't need several dollar signs in a field e.g. you wouldn't set the position of a stimulus on each repeat using :code:`($myX, $myY)` instead you would just use :code:`$(myX, myY)` - this is because the dollar sign indicates that this field will now accept python code, rather than that this value corresponds to a variable.
