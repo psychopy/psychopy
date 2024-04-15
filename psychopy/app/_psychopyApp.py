@@ -654,8 +654,11 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             self.coder.setOutputWindow()  # takes control of sys.stdout
 
         # if the program gets here, there are no other instances running
-        self._timer = wx.PyTimer(self._bgCheckAndLoad)
-        self._timer.Start(250)
+        # self._timer = wx.PyTimer(self._bgCheckAndLoad)
+        # self._timer.Start(250)
+
+        from . import idle
+        idle.addTask('instanceCheck', self._bgCheckAndLoad, thread=False)
 
         # load plugins after the app has been mostly realized
         if splash:
@@ -677,7 +680,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
 
         return True
 
-    def _bgCheckAndLoad(self):
+    def _bgCheckAndLoad(self, *args):
         """Check shared memory for messages from other instances. This only is
         called periodically in the first and only instance of PsychoPy.
 
@@ -685,7 +688,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         if not self._appLoaded:  # only open files if we have a UI
             return
 
-        self._timer.Stop()
+        # self._timer.Stop()
 
         self._sharedMemory.seek(0)
         if self._sharedMemory.read(1) == b'+':  # available data
@@ -705,8 +708,8 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                 topWindow.Iconize(False)
             else:
                 topWindow.Raise()
-
-        self._timer.Start(1000)  # 1 second interval
+        
+        # self._timer.Start(1000)  # 1 second interval
 
     @property
     def appLoaded(self):
