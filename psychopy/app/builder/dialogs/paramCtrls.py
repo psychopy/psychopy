@@ -995,6 +995,8 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
                 thisType = frame.component.type
             elif hasattr(frame, "routine"):
                 thisType = frame.routine.type
+            elif hasattr(frame, "type"):
+                thisType = frame.type
             else:
                 thisType = "None"
             # open type specific template, or blank
