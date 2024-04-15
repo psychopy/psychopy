@@ -22,7 +22,7 @@ class TextComponent(BaseVisualComponent):
     def __init__(self, exp, parentName, name='text',
                  # effectively just a display-value
                  text=_translate('Any text\n\nincluding line breaks'),
-                 font='Open Sans', units='from exp settings',
+                 font='Arial', units='from exp settings',
                  color='white', colorSpace='rgb',
                  pos=(0, 0), letterHeight=0.05, ori=0,
                  startType='time (s)', startVal=0.0,
