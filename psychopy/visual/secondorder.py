@@ -30,7 +30,7 @@ class EnvelopeGrating:
     """
     `psychopy.visual.EnvelopeGrating` is now located within the `psychopy-visionscience` plugin. You
     can find the documentation for it
-    `here <https://psychopy.github.io/psychopy-visionscience/coder/EnvelopeGrating.html>`_
+    `here <https://psychopy.github.io/psychopy-visionscience/coder/EnvelopeGrating>`_
     """
 
 

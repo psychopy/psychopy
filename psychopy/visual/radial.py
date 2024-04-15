@@ -30,7 +30,7 @@ except (ModuleNotFoundError, ImportError):
 class RadialStim:
     """
     `psychopy.visual.RadialStim` is now located within the `psychopy-visionscience` plugin. You
-    can find the documentation for it `here <https://psychopy.github.io/psychopy-visionscience/coder/RadialStim.html>`_
+    can find the documentation for it `here <https://psychopy.github.io/psychopy-visionscience/coder/RadialStim>`_
     """
 
 
