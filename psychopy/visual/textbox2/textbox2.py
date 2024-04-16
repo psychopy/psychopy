@@ -79,7 +79,7 @@ class TextBox2(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin):
                  bold=False,
                  italic=False,
                  placeholder="Type here...",
-                 lineSpacing=None,
+                 lineSpacing=1.0,
                  letterSpacing=None,
                  padding=None,  # gap between box and text
                  speechPoint=None,
@@ -190,10 +190,11 @@ class TextBox2(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin):
         self._pixelScaling = self.letterHeightPix / self.letterHeight
         self.bold = bold
         self.italic = italic
+        if lineSpacing is None:
+            lineSpacing = 1.0
+        self.lineSpacing = lineSpacing
         self.glFont = None  # will be set by the self.font attribute setter
         self.font = font
-        if lineSpacing is not None:
-            self.lineSpacing = lineSpacing
         self.letterSpacing = letterSpacing
         # If font not found, default to Open Sans Regular and raise alert
         if not self.glFont:
@@ -353,7 +354,7 @@ class TextBox2(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin):
             self.caret.color = self._foreColor
 
     @attributeSetter
-    def font(self, fontName, italic=False, bold=False):
+    def font(self, fontName):
         if isinstance(fontName, GLFont):
             self.glFont = fontName
             self.__dict__['font'] = fontName.name
@@ -362,7 +363,9 @@ class TextBox2(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin):
             self.glFont = allFonts.getFont(
                     fontName,
                     size=self.letterHeightPix,
-                    bold=self.bold, italic=self.italic)
+                    bold=self.bold,
+                    italic=self.italic,
+                    lineSpacing=self.lineSpacing)
 
     @attributeSetter
     def overflow(self, value):
@@ -609,19 +612,6 @@ class TextBox2(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin):
         Convenience function to get self._letterHeight.pix and be guaranteed a return that is a single integer
         """
         return self._letterHeight.pix[1]
-
-    @property
-    def lineSpacing(self):
-        if hasattr(self.glFont, "lineSpacing"):
-            return self.glFont.lineSpacing
-
-    @lineSpacing.setter
-    def lineSpacing(self, value):
-        if hasattr(self, "_placeholder"):
-            self._placeholder.lineSpacing = value
-        if hasattr(self.glFont, "lineSpacing"):
-            self.glFont.lineSpacing = value
-        self._needVertexUpdate = True
 
     @attributeSetter
     def letterSpacing(self, value):
@@ -930,6 +920,9 @@ class TextBox2(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin):
 
                 # are we wrapping the line?
                 if charcode == "\n":
+                    # check if we have stored the top/bottom of the previous line yet
+                    if lineN + 1 > len(_lineBottoms):
+                        _lineBottoms.append(current[1])
                     lineWPix = current[0]
                     current[0] = 0
                     current[1] -= font.height
@@ -1628,6 +1621,8 @@ class Caret(ColorMixin):
             self.index = len(self.textbox._lineNs)
         # Get line of index
         if self.index >= len(self.textbox._lineNs):
+            if len(self.textbox._lineBottoms) - 1 > self.textbox._lineNs[-1]:
+                return len(self.textbox._lineBottoms) - 1
             return self.textbox._lineNs[-1]
         else:
             return self.textbox._lineNs[self.index]
@@ -1718,9 +1713,12 @@ class Caret(ColorMixin):
         else:
             # Otherwise, get caret position from character vertices
             if self.index >= len(textbox._lineNs):
-                # If the caret is after the last char, position it to the right
-                chrVerts = textbox._vertices.pix[range((ii-1) * 4, (ii-1) * 4 + 4)]
-                x = chrVerts[2, 0]  # x-coord of left edge (of final char)
+                if len(textbox._lineBottoms) - 1 > textbox._lineNs[-1]:
+                    x = textbox._lineWidths[len(textbox._lineBottoms) - 1]
+                else:
+                    # If the caret is after the last char, position it to the right
+                    chrVerts = textbox._vertices.pix[range((ii-1) * 4, (ii-1) * 4 + 4)]
+                    x = chrVerts[2, 0]  # x-coord of left edge (of final char)
             else:
                 # Otherwise, position it to the left
                 chrVerts = textbox._vertices.pix[range(ii * 4, ii * 4 + 4)]

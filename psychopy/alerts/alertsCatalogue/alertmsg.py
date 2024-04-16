@@ -47,6 +47,10 @@ _translate(
 _translate(
     "Component {component} has stop time set as a duration, but doesn't have a start time")
 
+# Alert 4125
+_translate(
+    "Microphone component `{name}` given blank stop time, using max duration allowed by buffer size ({stopVal}s).")
+
 # Alert 4205
 _translate(
     "Python Syntax Error in '{codeTab}' tab. See '{code}' on line number {lineNumber} of the '{codeTab}' tab.")
@@ -127,6 +131,13 @@ _translate(
 _translate(
     "Chosen transcriber '{engine}' requires an API key, please supply one in Preferences.")
 
+# Alert 4705
+_translate(
+    "Column name '{param}' in conditions file already exists as a variable in this experiment ({category}).")
+
+# Alert 4710
+_translate("Column name '{param}' is likely to cause name clashes. {msg}.")
+
 # Alert 5055
 _translate(
     "Device parameter of microphone component \"{name}\" will not be used online.")
@@ -134,6 +145,10 @@ _translate(
 # Alert 6105
 _translate(
     "The file you are attempting to run does not seem to exist, the full path supplied to Runner was {path}")
+
+# Alert 7105
+_translate(
+    "Component {name} comes from the plugin {plugin}, which is either not installed or not activated.")
 
 # Alert 8105
 _translate(
