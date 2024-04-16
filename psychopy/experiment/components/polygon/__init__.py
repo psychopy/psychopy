@@ -223,7 +223,7 @@ class PolygonComponent(BaseVisualComponent):
         # check for NoneTypes
         for param in inits:
             if inits[param] in [None, 'None', 'none', '']:
-                inits[param].val = undefined
+                inits[param].val = 'undefined'
 
         if inits['size'].val in ['1.0', '1']:
             inits['size'].val = '[1.0, 1.0]'
@@ -279,9 +279,20 @@ class PolygonComponent(BaseVisualComponent):
         code += ("  ori: {ori}, pos: {pos},\n"
                  "  anchor: {anchor},\n"
                  "  lineWidth: {lineWidth}, \n"
-                 "  colorSpace: {colorSpace},\n"
-                 "  lineColor: new util.Color({lineColor}),\n"
-                 "  fillColor: new util.Color({fillColor}),\n"
+                 "  colorSpace: {colorSpace},\n")      
+
+        if inits['lineColor'] == 'undefined':
+            code +=  "  lineColor: {lineColor},\n"
+        else:    
+            code +=  "  lineColor: new util.Color({lineColor}),\n"
+
+        if inits['fillColor'] == 'undefined':
+            code +=  "  fillColor: {fillColor},\n"
+        else:    
+            code +=  "  fillColor: new util.Color({fillColor}),\n"
+
+
+        code += (        "  fillColor: {fillColor},\n"
                  "  opacity: {opacity}, depth: {depth}, interpolate: {interpolate},\n"
                  "}});\n\n")
 
