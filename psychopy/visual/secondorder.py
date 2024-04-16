@@ -25,11 +25,12 @@ except (ModuleNotFoundError, ImportError):
         "install `psychopy-visionscience` and restart the session to enable "
         "support.")
 
+
 class EnvelopeGrating:
     """
     `psychopy.visual.EnvelopeGrating` is now located within the `psychopy-visionscience` plugin. You
     can find the documentation for it
-    [here](https://psychopy.github.io/psychopy-visionscience/coder/NoiseStim/)
+    `here <https://psychopy.github.io/psychopy-visionscience/coder/EnvelopeGrating>`_
     """
 
 
