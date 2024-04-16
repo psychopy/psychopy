@@ -279,9 +279,20 @@ class PolygonComponent(BaseVisualComponent):
         code += ("  ori: {ori}, pos: {pos},\n"
                  "  anchor: {anchor},\n"
                  "  lineWidth: {lineWidth}, \n"
-                 "  colorSpace: {colorSpace},\n"
-                 "  lineColor: new util.Color({lineColor}),\n"
-                 "  fillColor: new util.Color({fillColor}),\n"
+                 "  colorSpace: {colorSpace},\n")      
+
+        if inits['lineColor'] == 'undefined':
+            code +=  "  lineColor: {lineColor},\n"
+        else:    
+            code +=  "  lineColor: new util.Color({lineColor}),\n"
+
+        if inits['fillColor'] == 'undefined':
+            code +=  "  fillColor: {fillColor},\n"
+        else:    
+            code +=  "  fillColor: new util.Color({fillColor}),\n"
+
+
+        code += (        "  fillColor: {fillColor},\n"
                  "  opacity: {opacity}, depth: {depth}, interpolate: {interpolate},\n"
                  "}});\n\n")
 
