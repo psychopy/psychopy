@@ -223,7 +223,7 @@ class PolygonComponent(BaseVisualComponent):
         # check for NoneTypes
         for param in inits:
             if inits[param] in [None, 'None', 'none', '']:
-                inits[param].val = 'undefined'
+                inits[param].val = undefined
 
         if inits['size'].val in ['1.0', '1']:
             inits['size'].val = '[1.0, 1.0]'
