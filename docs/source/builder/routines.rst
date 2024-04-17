@@ -9,4 +9,4 @@ To create a new Routine, you can either select "Insert Routine" from within your
 
 Within a Routine there are a number of components. These components determine the occurrence of a stimulus, or the recording of a response. Any number of components can be added to a Routine. Each has its own line in the Routine view that shows when the component starts and finishes in time, and these can overlap.
 
-For now the time axis of the Routines panel is fixed, representing seconds (one line is one second). If you choose to present your stimuli based on another timing unit, e.g. number of frames (more precise) and can be scaled up or down to allow veYou can specify the "Expected duration" within the component - that will mean that this component still appears on your routine timeline.
+For now the time axis of the Routines panel is fixed, representing seconds (one line is one second). If you choose to present your stimuli based on another timing unit, e.g. number of frames (more precise), you can specify the "Expected duration" within the component - that will mean that this component still appears on your routine timeline.
