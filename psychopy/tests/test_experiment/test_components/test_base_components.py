@@ -7,6 +7,7 @@ import pytest
 
 from psychopy import experiment
 from psychopy.experiment.components import BaseComponent
+from psychopy.experiment.exports import IndentingBuffer
 
 
 def _make_minimal_experiment(obj):
@@ -15,7 +16,7 @@ def _make_minimal_experiment(obj):
     component but with all default params.
     """
     # Skip whole test if required attributes aren't present
-    if not hasattr(obj, "comp"):
+    if not hasattr(obj, "comp") or obj.comp is None:
         pytest.skip()
     # Make blank experiment
     exp = experiment.Experiment()
@@ -49,13 +50,15 @@ def _find_global_resource_in_js_experiment(script, resource):
 
 
 class _TestBaseComponentsMixin:
-    # Class in the PsychoPy libraries (visual, sound, hardware, etc.) corresponding to this component
+    # component class to test
+    comp = None
+    # class in the PsychoPy libraries (visual, sound, hardware, etc.) corresponding to this component
     libraryClass = None
 
     def test_icons(self):
         """Check that component has icons for each app theme"""
         # Skip whole test if required attributes aren't present
-        if not hasattr(self, "comp"):
+        if self.comp is None:
             pytest.skip()
         # Pathify icon file path
         icon = Path(self.comp.iconFile)
@@ -165,6 +168,73 @@ class _TestBaseComponentsMixin:
                 assert hasattr(self.libraryClass, methodName), (
                     f"Parameter {paramName} can be set {settableStr}, but does not have a method {methodName}"
                 )
+    
+    def test_indentation_consistency(self):
+        """
+        No component should exit any of its write methods at a different indent level as it entered, as this would break subsequent components / routines.
+        """
+        # skip if required attributes aren't present
+        if self.comp.__name__ in ("SettingsComponent",):
+            pytest.skip()
+        # make minimal experiment just for this test
+        comp, rt, exp = _make_minimal_experiment(self)
+        # skip if component doesn't have a start/stop time
+        if "startVal" not in comp.params or "stopVal" not in comp.params:
+            pytest.skip()
+        # create a text buffer to write to
+        buff = IndentingBuffer(target="PsychoPy")
+        # template message for if test fails
+        errMsgTemplate = "Writing {} code for {} changes indent level by {} when start is `{}` and stop is `{}`."
+        # setup flow for writing
+        exp.flow.writeStartCode(buff)
+        # combinations of start/stop being set/unset to try
+        cases = [
+            {"startVal": "0", "stopVal": "1"},
+            {"startVal": "", "stopVal": "1"},
+            {"startVal": "0", "stopVal": ""},
+            {"startVal": "", "stopVal": ""},
+        ]
+        for case in cases:
+            # update error message for this case
+            errMsg = errMsgTemplate.format(
+                "{}", type(comp).__name__, "{}", case['startVal'], case['stopVal']
+            )
+            # set start/stop types
+            comp.params["startType"].val = "time (s)"
+            comp.params["stopType"].val = "time (s)"
+            # set start/stop values
+            for param, val in case.items():
+                comp.params[param].val = val
+            # write init code
+            comp.writeInitCode(buff)
+            # check indent
+            assert buff.indentLevel == 0, errMsg.format(
+                "init", buff.indentLevel
+            )
+            # write routine start code
+            comp.writeRoutineStartCode(buff)
+            # check indent
+            assert buff.indentLevel == 0, errMsg.format(
+                "routine start", buff.indentLevel
+            )
+            # write each frame code
+            comp.writeFrameCode(buff)
+            # check indent
+            assert buff.indentLevel == 0, errMsg.format(
+                "each frame", buff.indentLevel
+            )
+            # write end routine code
+            comp.writeRoutineEndCode(buff)
+            # check indent
+            assert buff.indentLevel == 0, errMsg.format(
+                "routine end", buff.indentLevel
+            )
+            # write end experiment code
+            comp.writeExperimentEndCode(buff)
+            # check indent
+            assert buff.indentLevel == 0, errMsg.format(
+                "experiment end", buff.indentLevel
+            )
 
 
 class _TestDisabledMixin:
