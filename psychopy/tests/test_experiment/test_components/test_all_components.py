@@ -1,10 +1,10 @@
 from psychopy.experiment.exports import IndentingBuffer
-from . import _TestBaseComponentsMixin, _TestDisabledMixin
+from . import BaseComponentTests
 from psychopy import experiment
 import inspect
 
 
-class _Generic(_TestBaseComponentsMixin, _TestDisabledMixin):
+class _Generic(BaseComponentTests):
     def __init__(self, compClass):
         self.exp = experiment.Experiment()
         self.rt = experiment.routines.Routine(exp=self.exp, name="testRoutine")
@@ -18,14 +18,12 @@ def test_all_components():
     for compName, compClass in experiment.getAllComponents().items():
         if compName == "SettingsComponent":
             continue
-        # Make a generic testing object for this component
-        tester = _Generic(compClass)
-        # Run each method from _TestBaseComponentsMixin on tester
-        for attr, meth in _TestBaseComponentsMixin.__dict__.items():
-            if inspect.ismethod(meth):
-                meth(tester)
-        # Run each method from _TestBaseComponentsMixin on tester
-        for attr, meth in _TestDisabledMixin.__dict__.items():
+        # make a generic testing object for this component
+        tester = BaseComponentTests()
+        # make sure it has a comp class assigned
+        tester.comp = compClass
+        # Run each method from BaseComponentTests on tester
+        for attr, meth in BaseComponentTests.__dict__.items():
             if inspect.ismethod(meth):
                 meth(tester)
 
