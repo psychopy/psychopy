@@ -207,10 +207,17 @@ class AppSigner:
 
     def awaitNotarized(self):
         # can use 'xcrun notarytool info' to check status or 'xcrun notarytool wait'
-        exitcode, output = subprocess.getstatusoutput(f'xcrun notarytool wait {self._appNotarizeUUID} --keychain-profile "ost-notarization"')
+        exitcode, output = subprocess.getstatusoutput(f'xcrun notarytool wait {self._appNotarizeUUID} '
+                  f'--apple-id "{self._apple_id}" '
+                  f'--team-id "{self._team_id}" '
+                  f'--password "{self._pword}"')
         print(output)
         # always fetch the log file too
-        exitcode, output = subprocess.getstatusoutput(f'xcrun notarytool log {self._appNotarizeUUID} --keychain-profile "ost-notarization" developer_log.json')
+        exitcode, output = subprocess.getstatusoutput(f'xcrun notarytool log {self._appNotarizeUUID} '
+                  f'--apple-id "{self._apple_id}" '
+                  f'--team-id "{self._team_id}" '
+                  f'--password "{self._pword}" '
+                  f' developer_log.json')
         print(output)
 
     def staple(self, filepath):
