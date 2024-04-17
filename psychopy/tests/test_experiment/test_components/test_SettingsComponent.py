@@ -1,13 +1,11 @@
 from pathlib import Path
 
-from . import _TestBaseComponentsMixin, _TestDisabledMixin
 from .test_base_components import _find_global_resource_in_js_experiment
-from psychopy.experiment.components.settings import SettingsComponent
 from psychopy import experiment
 from ...utils import TESTS_DATA_PATH
 
 
-class TestSettingsComponent(_TestBaseComponentsMixin):
+class TestSettingsComponent:
     def test_unhandled_resources_js(self):
         """
         Check that resources not otherwise handled are present at the start of the experiment
