@@ -267,61 +267,47 @@ class LegacyForeColorMixin:
     """
     Mixin class to give an object all of the legacy functions for setting foreground color
     """
-    def setDKL(self, color, operation=''):
-        """DEPRECATED since v1.60.05: Please use the `color` attribute
+    @attributeSetter
+    def DKL(self, value="black"):
         """
-        self.setForeColor(color, 'dkl', operation)
+        DEPRECATED: Legacy property for setting the foreground color of a stimulus in DKL, instead
+        use `obj._foreColor.dkl`
+        """
+        self.foreColor = Color(value, 'dkl')
 
-    def setLMS(self, color, operation=''):
-        """DEPRECATED since v1.60.05: Please use the `color` attribute
+    @attributeSetter
+    def LMS(self, value="black"):
         """
-        self.setForeColor(color, 'lms', operation)
+        DEPRECATED: Legacy property for setting the foreground color of a stimulus in LMS, instead
+        use `obj._foreColor.lms`
+        """
+        self.foreColor = Color(value, 'lms')
 
-    @property
-    def foreRGB(self):
+    @attributeSetter
+    def foreRGB(self, value="black"):
         """
-        DEPRECATED: Legacy property for setting the foreground color of a stimulus in RGB, instead use `obj._foreColor.rgb`
+        DEPRECATED: Legacy property for setting the foreground color of a stimulus in RGB, instead
+        use `obj._foreColor.rgb`
         """
-        return self._foreColor.rgb
-
-    @foreRGB.setter
-    def foreRGB(self, value):
         self.foreColor = Color(value, 'rgb')
 
-    @property
-    def RGB(self):
+    @attributeSetter
+    def RGB(self, value="black"):
         """
-        DEPRECATED: Legacy property for setting the foreground color of a stimulus in RGB, instead use `obj._foreColor.rgb`
+        DEPRECATED: Legacy property for setting the foreground color of a stimulus in RGB, instead
+        use `obj._foreColor.rgb`
         """
-        return self.foreRGB
+        self.foreColor = Color(value, 'rgb')
 
-    @RGB.setter
-    def RGB(self, value):
-        self.foreRGB = value
-
-    def setRGB(self, color, operation='', log=None):
+    @attributeSetter
+    def foreColorSpace(self, value="rgb"):
         """
-        DEPRECATED: Legacy setter for foreground RGB, instead set `obj._foreColor.rgb`
+        Deprecated, please use colorSpace instead.
         """
-        self.setForeColor(color, 'rgb', operation, log)
-
-    def setForeRGB(self, color, operation='', log=None):
-        """
-        DEPRECATED: Legacy setter for foreground RGB, instead set `obj._foreColor.rgb`
-        """
-        self.setForeColor(color, 'rgb', operation, log)
-
-    @property
-    def foreColorSpace(self):
-        """Deprecated, please use colorSpace to set color space for the entire
-        object.
-        """
-        return self.colorSpace
-
-    @foreColorSpace.setter
-    def foreColorSpace(self, value):
         logging.warning(
-            "Setting color space by attribute rather than by object is deprecated. Value of foreColorSpace has been assigned to colorSpace.")
+            "Attribute foreColorSpace is deprecated. Value has been assigned to colorSpace "
+            "instead."
+        )
         self.colorSpace = value
 
 
@@ -329,63 +315,48 @@ class LegacyFillColorMixin:
     """
     Mixin class to give an object all of the legacy functions for setting fill color
     """
-    @property
-    def fillRGB(self):
+    @attributeSetter
+    def fillRGB(self, value="white"):
         """
-        DEPRECATED: Legacy property for setting the fill color of a stimulus in RGB, instead use `obj._fillColor.rgb`
+        DEPRECATED: Legacy property for setting the fill color of a stimulus in RGB, instead use
+        `obj._fillColor.rgb`
         """
-        return self._fillColor.rgb
-
-    @fillRGB.setter
-    def fillRGB(self, value):
+        logging.warning(
+            "Attribute fillRGB is deprecated. Value has been assigned to fillColor instead."
+        )
         self.fillColor = Color(value, 'rgb')
 
-    @property
-    def backRGB(self):
+    @attributeSetter
+    def backRGB(self, value="white"):
         """
-        DEPRECATED: Legacy property for setting the fill color of a stimulus in RGB, instead use `obj._fillColor.rgb`
+        DEPRECATED: Legacy property for setting the fill color of a stimulus in RGB, instead use
+        `obj._fillColor.rgb`
         """
-        return self.fillRGB
+        logging.warning(
+            "Attribute backRGB is deprecated. Value has been assigned to fillColor instead."
+        )
+        self.fillColor = Color(value, 'rgb')
 
-    @backRGB.setter
-    def backRGB(self, value):
-        self.fillRGB = value
-
-    def setFillRGB(self, color, operation='', log=None):
+    @attributeSetter
+    def fillColorSpace(self, value="rgb"):
         """
-        DEPRECATED: Legacy setter for fill RGB, instead set `obj._fillColor.rgb`
+        Deprecated, please use colorSpace instead.
         """
-        self.setFillColor(color, 'rgb', operation, log)
-
-    def setBackRGB(self, color, operation='', log=None):
-        """
-        DEPRECATED: Legacy setter for fill RGB, instead set `obj._fillColor.rgb`
-        """
-        self.setFillColor(color, 'rgb', operation, log)
-
-    @property
-    def fillColorSpace(self):
-        """Deprecated, please use colorSpace to set color space for the entire
-        object.
-        """
-        return self.colorSpace
-
-    @fillColorSpace.setter
-    def fillColorSpace(self, value):
-        logging.warning("Setting color space by attribute rather than by object is deprecated. Value of fillColorSpace has been assigned to colorSpace.")
+        logging.warning(
+            "Attribute fillColorSpace is deprecated. Value has been assigned to colorSpace "
+            "instead."
+        )
         self.colorSpace = value
 
-    @property
-    def backColorSpace(self):
-        """Deprecated, please use colorSpace to set color space for the entire
-        object.
+    @attributeSetter
+    def backColorSpace(self, value="rgb"):
         """
-        return self.colorSpace
-
-    @backColorSpace.setter
-    def backColorSpace(self, value):
+        Deprecated, please use colorSpace instead.
+        """
         logging.warning(
-            "Setting color space by attribute rather than by object is deprecated. Value of backColorSpace has been assigned to colorSpace.")
+            "Attribute backColorSpace is deprecated. Value has been assigned to colorSpace "
+            "instead."
+        )
         self.colorSpace = value
 
 
@@ -393,64 +364,48 @@ class LegacyBorderColorMixin:
     """
     Mixin class to give an object all of the legacy functions for setting border color
     """
-    @property
-    def borderRGB(self):
+    @attributeSetter
+    def borderRGB(self, value="black"):
         """
-        DEPRECATED: Legacy property for setting the border color of a stimulus in RGB, instead use `obj._borderColor.rgb`
+        DEPRECATED: Legacy property for setting the border color of a stimulus in RGB, instead
+        use `obj._borderColor.rgb`
         """
-        return self._borderColor.rgb
-
-    @borderRGB.setter
-    def borderRGB(self, value):
+        logging.warning(
+            "Attribute borderRGB is deprecated. Value has been assigned to borderColor instead."
+        )
         self.borderColor = Color(value, 'rgb')
 
-    @property
-    def lineRGB(self):
+    @attributeSetter
+    def lineRGB(self, value="black"):
         """
-        DEPRECATED: Legacy property for setting the border color of a stimulus in RGB, instead use `obj._borderColor.rgb`
+        DEPRECATED: Legacy property for setting the border color of a stimulus in RGB, instead use
+        `obj._borderColor.rgb`
         """
-        return self.borderRGB
-
-    @lineRGB.setter
-    def lineRGB(self, value):
-        self.borderRGB = value
-
-    def setBorderRGB(self, color, operation='', log=None):
-        """
-        DEPRECATED: Legacy setter for border RGB, instead set `obj._borderColor.rgb`
-        """
-        self.setBorderColor(color, 'rgb', operation, log)
-
-    def setLineRGB(self, color, operation='', log=None):
-        """
-        DEPRECATED: Legacy setter for border RGB, instead set `obj._borderColor.rgb`
-        """
-        self.setBorderColor(color, 'rgb', operation, log)
-
-    @property
-    def borderColorSpace(self):
-        """Deprecated, please use colorSpace to set color space for the entire
-        object
-        """
-        return self.colorSpace
-
-    @borderColorSpace.setter
-    def borderColorSpace(self, value):
         logging.warning(
-            "Setting color space by attribute rather than by object is deprecated. Value of borderColorSpace has been assigned to colorSpace.")
+            "Attribute lineRGB is deprecated. Value has been assigned to borderColor instead."
+        )
+        self.borderColor = Color(value, 'rgb')
+
+    @attributeSetter
+    def borderColorSpace(self, value="rgb"):
+        """
+        Deprecated, please use colorSpace instead.
+        """
+        logging.warning(
+            "Attribute borderColorSpace is deprecated. Value has been assigned to colorSpace "
+            "instead."
+        )
         self.colorSpace = value
 
-    @property
-    def lineColorSpace(self):
-        """Deprecated, please use colorSpace to set color space for the entire
-        object
+    @attributeSetter
+    def lineColorSpace(self, value="rgb"):
         """
-        return self.colorSpace
-
-    @lineColorSpace.setter
-    def lineColorSpace(self, value):
+        Deprecated, please use colorSpace instead.
+        """
         logging.warning(
-            "Setting color space by attribute rather than by object is deprecated. Value of lineColorSpace has been assigned to colorSpace.")
+            "Attribute lineColorSpace is deprecated. Value has been assigned to colorSpace "
+            "instead."
+        )
         self.colorSpace = value
 
 
@@ -458,6 +413,7 @@ class LegacyColorMixin(LegacyForeColorMixin, LegacyFillColorMixin, LegacyBorderC
     """
     Mixin class to give an object all of the legacy functions for setting all colors (fore, fill and border
     """
+    pass
 
 
 class BaseColorMixin:
@@ -1311,12 +1267,6 @@ class TextureMixin:
             value, id=self._maskID, pixFormat=GL.GL_ALPHA, dataType=dataType,
             stim=self, res=self.texRes, maskParams=self.maskParams,
             wrapping=False)
-
-    def setMask(self, value, log=None):
-        """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message.
-        """
-        setAttribute(self, 'mask', value, log)
 
     @attributeSetter
     def texRes(self, value):
