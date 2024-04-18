@@ -34,7 +34,7 @@ class attributeSetter:
             Some attribute in a visual stim. If not set yet, will be None.
             '''
             # set the value in the object's dict
-            self.__dict__['someAttrib']
+            self.__dict__['someAttrib'] = value
     ```
     """
 
@@ -47,7 +47,7 @@ class attributeSetter:
         else:
             self.__doc__ = func.__doc__
     
-    def __get__(self, obj, owner):
+    def __get__(self, obj, cls):
         """
         If attribute value is queried before being set, get its default value from the method
         signature. If it has none, will return the attributeSetter object itself.
