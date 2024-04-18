@@ -52,6 +52,10 @@ class attributeSetter:
         If attribute value is queried before being set, get its default value from the method
         signature. If it has none, will return the attributeSetter object itself.
         """
+        # from class, treat as method
+        if obj is None:
+            return self
+        # from object, treat as attribute
         if self.func.__name__ in obj.__dict__:
             # if value has been set, return it
             return obj.__dict__[self.func.__name__]
@@ -219,8 +223,8 @@ def logAttrib(obj, log, attrib, value=None):
 
 class AttributeGetSetMixin:
     """
-    For all attributeSetter and property/setter methods, makes a get and set method whose names are the attribute name,
-    in PascalCase, preceeded by "set" or "get"
+    For all attributeSetter and property/setter methods, makes a get and set method whose names
+    are the attribute name, in PascalCase, preceeded by "set" or "get"
     """
     def __init_subclass__(cls, **kwargs):
         # iterate through methods
