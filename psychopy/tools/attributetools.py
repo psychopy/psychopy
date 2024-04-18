@@ -104,11 +104,16 @@ class attributeSetter:
         """
         # make PascalCase variation of name
         pascalName = CaseSwitcher.camel2pascal(name)
+        # create setter
+        def setter(obj, value, operation='', log=None):
+            setAttribute(obj, name, value, operation=operation, log=log)
+        setter.__doc__ = self.func.__doc__
         # assign setter
-        setattr(cls, "set" + pascalName, self.func)
+        setattr(cls, "set" + pascalName, setter)
         # create getter
         def getter(obj):
             return getattr(obj, name)
+        getter.__doc__ = self.func.__doc__
         # assign getter
         setattr(cls, "get" + pascalName, getter)
 
