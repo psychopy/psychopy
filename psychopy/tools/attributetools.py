@@ -98,6 +98,20 @@ class attributeSetter:
 
         return newValue
 
+    def __set_name__(self, cls, name):
+        """
+        When assigned to a class, also create setWhatever/getWhatever methods.
+        """
+        # make PascalCase variation of name
+        pascalName = CaseSwitcher.camel2pascal(name)
+        # assign setter
+        setattr(cls, "set" + pascalName, self.func)
+        # create getter
+        def getter(obj):
+            return getattr(obj, name)
+        # assign getter
+        setattr(cls, "get" + pascalName, getter)
+
     def __repr__(self):
         return repr(self.__getattribute__)
 
