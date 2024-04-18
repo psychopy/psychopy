@@ -367,12 +367,6 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
 
         self._needTextureUpdate = False
 
-    def setImage(self, value, log=None):
-        """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message.
-        """
-        setAttribute(self, 'image', value, log)
-
     @property
     def aspectRatio(self):
         """

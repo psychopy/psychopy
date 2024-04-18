@@ -8,6 +8,7 @@
 """
 Functions and classes related to attribute handling
 """
+from pathlib import Path
 
 import numpy
 import inspect
@@ -164,8 +165,12 @@ def setAttribute(self, attrib, value, log=None,
 
         # Apply operation except for the case when new or old value
         # are None or string-like
-        if (value is not None and type(value)!=str
-                and oldValue is not None and type(oldValue)!=str):
+        if (
+                value is not None
+                and not isinstance(value, (str, Path))
+                and oldValue is not None
+                and not isinstance(oldValue, (str, Path))
+        ):
             value = numpy.array(value, float)
 
             # Calculate new value using operation
