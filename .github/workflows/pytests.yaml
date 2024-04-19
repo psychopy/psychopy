@@ -218,12 +218,6 @@ jobs:
       run: |
         pip install .
 
-    - name: Install PsychoPy plugins
-      run: |
-        # install optional components
-        pip install psychopy-sounddevice psychopy-pyo psychopy-legacy-mic psychopy-connect psychopy-crs psychopy-emotiv psychopy-gammasci psychopy-mri-emulator
-        pip install moviepy
-
     - name: Set nice level
       if: runner.os=='Linux'
       run: |
