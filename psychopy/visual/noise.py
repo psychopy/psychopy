@@ -16,6 +16,7 @@ These are optional components that can be obtained by installing the
 """
 
 import psychopy.logging as logging
+from psychopy.tools.pkgtools import PluginStub
 
 # Requires shaders if you don't have them it will just throw and error.
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
@@ -23,20 +24,12 @@ import psychopy.logging as logging
 # up by the pyglet GL engine and have no effect.
 # Shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
 
-try:
-    from psychopy_visionscience import NoiseStim
-except (ModuleNotFoundError, ImportError):
-    logging.error(
-        "Support for `NoiseStim` is not available this session. Please install "
-        "`psychopy-visionscience` and restart the session to enable support.")
-
-
-class NoiseStim:
-    """
-    `psychopy.visual.NoiseStim` is now located within the `psychopy-visionscience` plugin. You
-    can find the documentation for it `here
-    <https://psychopy.github.io/psychopy-visionscience/coder/NoiseStim>`_
-    """
+class NoiseStim(
+    PluginStub, 
+    plugin="psychopy-visionscience", 
+    doclink="https://psychopy.github.io/psychopy-visionscience/coder/NoiseStim/"
+):
+    pass
 
 
 if __name__ == "__main__":
