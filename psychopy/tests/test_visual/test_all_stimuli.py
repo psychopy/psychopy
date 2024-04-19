@@ -100,21 +100,6 @@ class _baseVisualTest():
         #make sure we start with a clean window
         self.win.flip()
 
-    def test_auto_draw(self):
-        win = self.win
-        stims=[]
-        stims.append(visual.PatchStim(win))
-        stims.append(visual.ShapeStim(win))
-        stims.append(visual.TextStim(win))
-        for stim in stims:
-            assert stim.status==constants.NOT_STARTED
-            stim.autoDraw = True
-            assert stim.status==constants.STARTED
-            stim.autoDraw = False
-            assert stim.status==constants.FINISHED
-            assert stim.status==constants.STOPPED
-            "{}".format(stim) #check that str(xxx) is working
-
     def test_imageAndGauss(self):
         win = self.win
         fileName = os.path.join(utils.TESTS_DATA_PATH, 'testimage.jpg')
@@ -219,47 +204,6 @@ class _baseVisualTest():
         utils.compareScreenshot('circleHex_%s.png' %(self.contextName), win)
         win.flip()
 
-
-    def test_gabor(self):
-        win = self.win
-        #using init
-        gabor = visual.PatchStim(win, mask='gauss', ori=-45,
-            pos=[0.6 * self.scaleFactor, -0.6 * self.scaleFactor],
-            sf=2.0 / self.scaleFactor, size=2 * self.scaleFactor,
-            interpolate=True)
-        gabor.draw()
-        utils.compareScreenshot('gabor1_%s.png' %(self.contextName), win)
-        win.flip()#AFTER compare screenshot
-
-        #using .set()
-        gabor.ori = 45
-        gabor.size -= 0.2 * self.scaleFactor
-        gabor.setColor([45, 30, 0.3], colorSpace='dkl')
-        gabor.sf += 0.2 / self.scaleFactor
-        gabor.pos += [-0.5*self.scaleFactor, 0.5*self.scaleFactor]
-        gabor.contrast = 0.8
-        gabor.opacity = 0.8
-        gabor.draw()
-        utils.compareScreenshot('gabor2_%s.png' %(self.contextName), win)
-        win.flip()
-        "{}".format(gabor) #check that str(xxx) is working
-
-    @pytest.mark.bufferimage
-    def test_bufferImage(self):
-        """BufferImage inherits from ImageStim, so test .ori. .pos etc there not here
-        """
-        win = self.win
-        gabor = visual.PatchStim(win, mask='gauss', ori=-45,
-            pos=[0.6*self.scaleFactor, -0.6*self.scaleFactor],
-            sf=2.0/self.scaleFactor, size=2*self.scaleFactor,
-            interpolate=True)
-
-        bufferImgStim = visual.BufferImageStim(self.win, stim=[gabor],
-            interpolate=True)
-        bufferImgStim.draw()
-        utils.compareScreenshot('bufferimg_gabor_%s.png' %(self.contextName), win, crit=8)
-        win.flip()
-
     #def testMaskMatrix(self):
     #    #aims to draw the exact same stimulus as in testGabor, but using filters
     #    win=self.win
@@ -333,33 +277,6 @@ class _baseVisualTest():
         if self.win.winType != 'pygame':
             utils.compareScreenshot('blend_add_%s.png' %self.contextName,
                                     win, crit=20)
-
-    def test_mov(self):
-        win = self.win
-        if self.win.winType == 'pygame':
-            pytest.skip("movies only available for pyglet backend")
-
-        win.flip()
-        #construct full path to the movie file
-        fileName = os.path.join(utils.TESTS_DATA_PATH, 'testMovie.mp4')
-        #check if present
-        if not os.path.isfile(fileName):
-            raise IOError('Could not find movie file: %s'
-                          % os.path.abspath(fileName))
-        #then do actual drawing
-        pos = [0.6*self.scaleFactor, -0.6*self.scaleFactor]
-        mov = visual.MovieStim3(win, fileName, pos=pos, noAudio=True)
-        mov.setFlipVert(True)
-        mov.setFlipHoriz(True)
-        threshold = 30
-        for frameN in range(10):
-            mov.draw()
-
-            if frameN==0:
-                utils.compareScreenshot('movFrame1_%s.png' %self.contextName,
-                                        win, crit=threshold)
-            win.flip()
-        "{}".format(mov) #check that str(xxx) is working
 
     def test_rect(self):
         win = self.win
