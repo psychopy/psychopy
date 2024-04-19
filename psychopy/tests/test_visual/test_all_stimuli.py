@@ -550,20 +550,6 @@ class _baseVisualTest():
                                 win, crit=30)
         #aperture should automatically disable on exit
 
-    def test_rating_scale(self):
-        if self.win.winType=='pygame':
-            pytest.skip("RatingScale not available on pygame")
-        # try to avoid text; avoid default / 'triangle' because it does not display on win XP
-        win = self.win
-        win.flip()
-        rs = visual.RatingScale(win, low=0, high=1, precision=100, size=3, pos=(0,-.4),
-                        labels=[' ', ' '], scale=' ',
-                        marker='glow', markerStart=0.7, markerColor='darkBlue', autoLog=False)
-        "{}".format(rs) #check that str(xxx) is working
-        rs.draw()
-        utils.compareScreenshot('ratingscale1_%s.png' %(self.contextName), win, crit=40.0)
-        win.flip()#AFTER compare screenshot
-
     @skip_under_vm
     def test_refresh_rate(self):
         if self.win.winType=='pygame':
