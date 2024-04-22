@@ -15,9 +15,7 @@ Overview
     Rect.units
     Rect.lineWidth
     Rect.lineColor
-    Rect.lineColorSpace
     Rect.fillColor
-    Rect.fillColorSpace
     Rect.pos
     Rect.size
     Rect.ori

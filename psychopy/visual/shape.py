@@ -117,34 +117,33 @@ class BaseShapeStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
     _defaultFillColor = None
     _defaultLineColor = "black"
 
-    def __init__(self,
-                 win,
-                 units='',
-                 lineWidth=1.5,
-                 lineColor=False, # uses False in place of None to distinguish between "not set" and "transparent"
-                 fillColor=False, # uses False in place of None to distinguish between "not set" and "transparent"
-                 colorSpace='rgb',
-                 vertices=((-0.5, 0), (0, +0.5), (+0.5, 0)),
-                 closeShape=True,
-                 pos=(0, 0),
-                 size=1,
-                 anchor=None,
-                 ori=0.0,
-                 opacity=None,
-                 contrast=1.0,
-                 depth=0,
-                 interpolate=True,
-                 draggable=False,
-                 name=None,
-                 autoLog=None,
-                 autoDraw=False,
-                 # legacy
-                 color=False,
-                 lineRGB=False,
-                 fillRGB=False,
-                 fillColorSpace=None,
-                 lineColorSpace=None
-                 ):
+    def __init__(
+            self,
+            win,
+            units='',
+            lineWidth=1.5,
+            lineColor=False, # uses False in place of None to distinguish between "not set" and "transparent"
+            fillColor=False, # uses False in place of None to distinguish between "not set" and "transparent"
+            colorSpace='rgb',
+            vertices=((-0.5, 0), (0, +0.5), (+0.5, 0)),
+            closeShape=True,
+            pos=(0, 0),
+            size=1,
+            anchor=None,
+            ori=0.0,
+            opacity=None,
+            contrast=1.0,
+            depth=0,
+            interpolate=True,
+            draggable=False,
+            name=None,
+            autoLog=None,
+            autoDraw=False,
+            # legacy
+            color=False,
+            lineRGB=False,
+            fillRGB=False
+        ):
         """ """  # all doc is in the attributes
         # what local vars are defined (these are the init params) for use by
         # __repr__
@@ -492,11 +491,6 @@ class ShapeStim(BaseShapeStim):
     lineRGB, fillRGB: array_like, :class:`~psychopy.colors.Color` or None
         *Deprecated*. Please use `lineColor` and `fillColor`. These
         arguments may be removed in a future version.
-    lineColorSpace, fillColorSpace : str
-        Colorspace to use for the outline and fill. These change how the
-        values passed to `lineColor` and `fillColor` are interpreted.
-        *Deprecated*. Please use `colorSpace` to set both outline and fill
-        colorspace. These arguments may be removed in a future version.
 
     """
     # Author: Jeremy Gray, November 2015, using psychopy.contrib.tesselate
@@ -527,8 +521,6 @@ class ShapeStim(BaseShapeStim):
                  color=False,
                  lineRGB=False,
                  fillRGB=False,
-                 fillColorSpace=None,
-                 lineColorSpace=None
                  ):
 
         # what local vars are defined (init params, for use by __repr__)
@@ -540,9 +532,7 @@ class ShapeStim(BaseShapeStim):
                                         lineWidth=lineWidth,
                                         colorSpace=colorSpace,
                                         lineColor=lineColor,
-                                        lineColorSpace=lineColorSpace,
                                         fillColor=fillColor,
-                                        fillColorSpace=fillColorSpace,
                                         vertices=None,  # dummy verts
                                         closeShape=self.closeShape,
                                         pos=pos,

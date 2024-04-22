@@ -74,8 +74,8 @@ polygon = visual.ShapeStim(
     win=win, name='polygon',
     vertices=[[-(0.5, 0.5)[0]/2.0,-(0.5, 0.5)[1]/2.0], [+(0.5, 0.5)[0]/2.0,-(0.5, 0.5)[1]/2.0], [0,(0.5, 0.5)[1]/2.0]],
     ori=0, pos=(0, 0),
-    lineWidth=1, lineColor=[1,1,1], lineColorSpace='rgb',
-    fillColor=[1,1,1], fillColorSpace='rgb',
+    lineWidth=1, lineColor=[1,1,1],
+    fillColor=[1,1,1], colorSpace='rgb',
     opacity=1, depth=0.0, interpolate=True)
 
 # Create some handy timers

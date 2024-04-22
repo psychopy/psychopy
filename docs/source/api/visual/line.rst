@@ -15,9 +15,7 @@ Overview
     Line.units
     Line.lineWidth
     Line.lineColor
-    Line.lineColorSpace
     Line.fillColor
-    Line.fillColorSpace
     Line.pos
     Line.size
     Line.ori

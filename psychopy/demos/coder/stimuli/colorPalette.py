@@ -68,7 +68,7 @@ valSlider = visual.Slider(win=win, name='valSlider',
     
 visualFeedback = visual.Rect(win=win, name='visualFeedback',
                              width=(0.15, 0.15)[0], height=(0.15, 0.15)[1],
-                             pos=(0, 0.35),fillColor=[0,0,0], fillColorSpace='hsv',
+                             pos=(0, 0.35),fillColor=[0,0,0], colorSpace='hsv',
                              depth=-6.0)
 
 hsvText = visual.TextStim(win=win, name='hsvText',

@@ -304,7 +304,7 @@ ApertureComponent.vertices.staticUpdater:None
 ApertureComponent.vertices.updates:constant
 ApertureComponent.vertices.val:
 ApertureComponent.vertices.valType:list
-BrushComponent.order:['name', 'startVal', 'startEstim', 'startType', 'stopVal', 'durationEstim', 'stopType', 'color', 'fillColor', 'borderColor', 'colorSpace', 'size', 'pos', 'units', 'anchor', 'ori', 'lineWidth', 'lineColor', 'lineColorSpace', 'opacity']
+BrushComponent.order:['name', 'startVal', 'startEstim', 'startType', 'stopVal', 'durationEstim', 'stopType', 'color', 'fillColor', 'borderColor', 'colorSpace', 'size', 'pos', 'units', 'anchor', 'ori', 'lineWidth', 'lineColor', 'opacity']
 BrushComponent.buttonRequired.default:True
 BrushComponent.buttonRequired.allowedLabels:[]
 BrushComponent.buttonRequired.allowedTypes:[]
@@ -390,23 +390,6 @@ BrushComponent.lineColor.staticUpdater:None
 BrushComponent.lineColor.updates:constant
 BrushComponent.lineColor.val:$[1,1,1]
 BrushComponent.lineColor.valType:color
-BrushComponent.lineColorSpace.default:'rgb'
-BrushComponent.lineColorSpace.allowedLabels:[]
-BrushComponent.lineColorSpace.allowedTypes:[]
-BrushComponent.lineColorSpace.allowedUpdates:None
-BrushComponent.lineColorSpace.allowedVals:['rgb', 'dkl', 'lms', 'hsv']
-BrushComponent.lineColorSpace.canBePath:True
-BrushComponent.lineColorSpace.categ:Appearance
-BrushComponent.lineColorSpace.codeWanted:False
-BrushComponent.lineColorSpace.direct:True
-BrushComponent.lineColorSpace.hint:In what format (color space) have you specified the colors? (rgb, dkl, lms, hsv)
-BrushComponent.lineColorSpace.inputType:choice
-BrushComponent.lineColorSpace.label:Color Space
-BrushComponent.lineColorSpace.readOnly:False
-BrushComponent.lineColorSpace.staticUpdater:None
-BrushComponent.lineColorSpace.updates:constant
-BrushComponent.lineColorSpace.val:rgb
-BrushComponent.lineColorSpace.valType:str
 BrushComponent.lineWidth.default:1.5
 BrushComponent.lineWidth.allowedLabels:[]
 BrushComponent.lineWidth.allowedTypes:[]

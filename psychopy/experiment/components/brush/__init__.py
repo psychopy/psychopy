@@ -18,7 +18,7 @@ class BrushComponent(BaseVisualComponent):
     tooltip = _translate('Brush: a drawing tool')
 
     def __init__(self, exp, parentName, name='brush',
-                 lineColor='$[1,1,1]', lineColorSpace='rgb',
+                 lineColor='$[1,1,1]', colorSpace='rgb',
                  lineWidth=1.5, opacity=1,
                  buttonRequired=True,
                  startType='time (s)', startVal=0.0,
@@ -28,7 +28,9 @@ class BrushComponent(BaseVisualComponent):
             exp, parentName, name=name,
             startType=startType, startVal=startVal,
             stopType=stopType, stopVal=stopVal,
-            startEstim=startEstim, durationEstim=durationEstim)
+            startEstim=startEstim, durationEstim=durationEstim,
+            colorSpace=colorSpace
+        )
 
         self.type = 'Brush'
         self.url = "https://www.psychopy.org/builder/components/brush.html"
@@ -85,7 +87,7 @@ class BrushComponent(BaseVisualComponent):
             "{name} = visual.Brush(win=win, name='{name}',\n"
             "   lineWidth={lineWidth},\n"
             "   lineColor={lineColor},\n"
-            "   lineColorSpace={lineColorSpace},\n"
+            "   colorSpace={lineColorSpace},\n"
             "   opacity={opacity},\n"
             "   buttonRequired={buttonRequired},\n"
             "   depth={depth}\n"

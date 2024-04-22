@@ -16,9 +16,7 @@ Overview
     Pie.units
     Pie.lineWidth
     Pie.lineColor
-    Pie.lineColorSpace
     Pie.fillColor
-    Pie.fillColorSpace
     Pie.pos
     Pie.size
     Pie.ori

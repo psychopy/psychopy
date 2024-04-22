@@ -311,19 +311,6 @@ class LegacyForeColorMixin:
         """
         self.setForeColor(color, 'rgb', operation, log)
 
-    @property
-    def foreColorSpace(self):
-        """Deprecated, please use colorSpace to set color space for the entire
-        object.
-        """
-        return self.colorSpace
-
-    @foreColorSpace.setter
-    def foreColorSpace(self, value):
-        logging.warning(
-            "Setting color space by attribute rather than by object is deprecated. Value of foreColorSpace has been assigned to colorSpace.")
-        self.colorSpace = value
-
 
 class LegacyFillColorMixin:
     """
@@ -363,31 +350,6 @@ class LegacyFillColorMixin:
         """
         self.setFillColor(color, 'rgb', operation, log)
 
-    @property
-    def fillColorSpace(self):
-        """Deprecated, please use colorSpace to set color space for the entire
-        object.
-        """
-        return self.colorSpace
-
-    @fillColorSpace.setter
-    def fillColorSpace(self, value):
-        logging.warning("Setting color space by attribute rather than by object is deprecated. Value of fillColorSpace has been assigned to colorSpace.")
-        self.colorSpace = value
-
-    @property
-    def backColorSpace(self):
-        """Deprecated, please use colorSpace to set color space for the entire
-        object.
-        """
-        return self.colorSpace
-
-    @backColorSpace.setter
-    def backColorSpace(self, value):
-        logging.warning(
-            "Setting color space by attribute rather than by object is deprecated. Value of backColorSpace has been assigned to colorSpace.")
-        self.colorSpace = value
-
 
 class LegacyBorderColorMixin:
     """
@@ -426,32 +388,6 @@ class LegacyBorderColorMixin:
         DEPRECATED: Legacy setter for border RGB, instead set `obj._borderColor.rgb`
         """
         self.setBorderColor(color, 'rgb', operation, log)
-
-    @property
-    def borderColorSpace(self):
-        """Deprecated, please use colorSpace to set color space for the entire
-        object
-        """
-        return self.colorSpace
-
-    @borderColorSpace.setter
-    def borderColorSpace(self, value):
-        logging.warning(
-            "Setting color space by attribute rather than by object is deprecated. Value of borderColorSpace has been assigned to colorSpace.")
-        self.colorSpace = value
-
-    @property
-    def lineColorSpace(self):
-        """Deprecated, please use colorSpace to set color space for the entire
-        object
-        """
-        return self.colorSpace
-
-    @lineColorSpace.setter
-    def lineColorSpace(self, value):
-        logging.warning(
-            "Setting color space by attribute rather than by object is deprecated. Value of lineColorSpace has been assigned to colorSpace.")
-        self.colorSpace = value
 
 
 class LegacyColorMixin(LegacyForeColorMixin, LegacyFillColorMixin, LegacyBorderColorMixin):

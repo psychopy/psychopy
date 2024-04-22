@@ -15,9 +15,7 @@ Overview
     Polygon.units
     Polygon.lineWidth
     Polygon.lineColor
-    Polygon.lineColorSpace
     Polygon.fillColor
-    Polygon.fillColorSpace
     Polygon.pos
     Polygon.size
     Polygon.ori

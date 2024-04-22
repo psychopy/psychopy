@@ -77,10 +77,8 @@
         <Param val="False" valType="bool" updates="None" name="disabled" />
         <Param val="" valType="code" updates="None" name="durationEstim" />
         <Param val="$[1,1,1]" valType="str" updates="constant" name="fillColor" />
-        <Param val="rgb" valType="str" updates="constant" name="fillColorSpace" />
         <Param val="linear" valType="str" updates="constant" name="interpolate" />
         <Param val="$[1,1,1]" valType="str" updates="constant" name="lineColor" />
-        <Param val="rgb" valType="str" updates="constant" name="lineColorSpace" />
         <Param val="1" valType="code" updates="constant" name="lineWidth" />
         <Param val="4" valType="int" updates="constant" name="nVertices" />
         <Param val="stim" valType="code" updates="None" name="name" />

@@ -260,28 +260,6 @@ class _TestColorMixin:
                 self.obj.setLineColor('white')
                 self.obj.opacity = 1
 
-                # Test old color space setters
-                # foreColorSpace
-                self.obj.foreColorSpace = space
-                assert self.obj.colorSpace == space
-                self.obj.foreColorSpace = 'named'
-                # fillColorSpace
-                self.obj.fillColorSpace = space
-                assert self.obj.colorSpace == space
-                self.obj.fillColorSpace = 'named'
-                # backColorSpace
-                self.obj.backColorSpace = space
-                assert self.obj.colorSpace == space
-                self.obj.backColorSpace = 'named'
-                # borderColorSpace
-                self.obj.borderColorSpace = space
-                assert self.obj.colorSpace == space
-                self.obj.borderColorSpace = 'named'
-                # lineColorSpace
-                self.obj.lineColorSpace = space
-                assert self.obj.colorSpace == space
-                self.obj.lineColorSpace = 'named'
-
 
 class _TestUnitsMixin:
     """

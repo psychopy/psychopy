@@ -173,7 +173,7 @@ class Test_Window:
         utils.comparePixelColor(self.win, colors.Color('grey') - colors.Color('black'), coord=(50, 50))
 
         # Check alerts
-        visual.helpers.setColor(obj, color="white", colorSpaceAttrib="fillColorSpace", rgbAttrib="fillRGB")
+        visual.helpers.setColor(obj, color="white", colorSpaceAttrib="colorSpace", rgbAttrib="fillRGB")
         assert any(err.code == 8105 for err in self.error.alerts), "Alert 8105 not triggered"
         assert any(err.code == 8110 for err in self.error.alerts), "Alert 8110 not triggered"
 

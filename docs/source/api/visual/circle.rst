@@ -17,9 +17,7 @@ Attributes
     Circle.units
     Circle.lineWidth
     Circle.lineColor
-    Circle.lineColorSpace
     Circle.fillColor
-    Circle.fillColorSpace
     Circle.pos
     Circle.size
     Circle.ori

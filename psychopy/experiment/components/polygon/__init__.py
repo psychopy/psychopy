@@ -22,8 +22,8 @@ class PolygonComponent(BaseVisualComponent):
 
     def __init__(self, exp, parentName, name='polygon', interpolate='linear',
                  units='from exp settings', anchor='center',
-                 lineColor='white', lineColorSpace='rgb', lineWidth=1,
-                 fillColor='white', fillColorSpace='rgb',
+                 lineColor='white', lineWidth=1,
+                 fillColor='white',
                  shape='triangle', nVertices=4, vertices="",
                  pos=(0, 0), size=(0.5, 0.5), ori=0,
                  startType='time (s)', startVal=0.0,

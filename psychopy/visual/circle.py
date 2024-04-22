@@ -39,11 +39,6 @@ class Circle(Polygon):
     lineColor, fillColor : array_like, str, :class:`~psychopy.colors.Color` or None
         Color of the circle's outline and fill. If `None`, a fully
         transparent color is used which makes the fill or outline invisible.
-    lineColorSpace, fillColorSpace : str
-        Colorspace to use for the outline and fill. These change how the
-        values passed to `lineColor` and `fillColor` are interpreted.
-        *Deprecated*. Please use `colorSpace` to set both outline and fill
-        colorspace. These arguments may be removed in a future version.
     pos : array_like
         Initial position (`x`, `y`) of the circle on-screen relative to the
         origin located at the center of the window or buffer in `units`
@@ -135,8 +130,6 @@ class Circle(Polygon):
                  autoDraw=False,
                  # legacy
                  color=False,
-                 fillColorSpace=None,
-                 lineColorSpace=None,
                  ):
 
         # what local vars are defined (these are the init params) for use by
@@ -152,9 +145,7 @@ class Circle(Polygon):
             units=units,
             lineWidth=lineWidth,
             lineColor=lineColor,
-            lineColorSpace=lineColorSpace,
             fillColor=fillColor,
-            fillColorSpace=fillColorSpace,
             pos=pos,
             size=size,
             anchor=anchor,

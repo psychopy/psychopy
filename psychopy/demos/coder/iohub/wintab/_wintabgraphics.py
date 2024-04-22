@@ -233,7 +233,7 @@ class PenTracesStim(MinimalStim):
                                                  units='pix',
                                                  lineWidth=self.lineWidth,
                                                  color=self.lineColor,
-                                                 lineColorSpace='rgb255',
+                                                 colorSpace='rgb255',
                                                  vertices=self.current_points,
                                                  closeShape=False,
                                                  pos=(0, 0),

@@ -26,7 +26,7 @@ class Brush(MinimalStim):
                  win,
                  lineWidth=1.5,
                  lineColor=(1.0, 1.0, 1.0),
-                 lineColorSpace='rgb',
+                 colorSpace='rgb',
                  opacity=1.0,
                  closeShape=False,
                  buttonRequired=True,
@@ -43,7 +43,7 @@ class Brush(MinimalStim):
         self.name = name
         self.depth = depth
         self.lineColor = lineColor
-        self.lineColorSpace = lineColorSpace
+        self.colorSpace = colorSpace
         self.lineWidth = lineWidth
         self.opacity = opacity
         self.closeShape = closeShape
@@ -81,7 +81,7 @@ class Brush(MinimalStim):
                                      closeShape=self.closeShape,
                                      lineWidth=self.lineWidth,
                                      lineColor=self.lineColor,
-                                     colorSpace=self.lineColorSpace,
+                                     colorSpace=self.colorSpace,
                                      opacity=self.opacity,
                                      autoLog=False,
                                      autoDraw=True))

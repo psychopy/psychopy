@@ -31,8 +31,6 @@ Overview
     ShapeStim.autoLog
     ShapeStim.autoDraw
     ShapeStim.color
-    ShapeStim.lineColorSpace
-    ShapeStim.fillColorSpace
 
 Details
 =======
