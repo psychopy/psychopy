@@ -274,7 +274,7 @@ class GratingStim(BaseVisualStim, DraggingMixin, TextureMixin, ColorMixin,
             logging.exp("Created {} = {}".format(self.name, self))
 
     @attributeSetter
-    def sf(self, value):
+    def sf(self, value=1):
         """Spatial frequency of the grating texture.
 
         Should be a :ref:`x,y-pair <attrib-xy>` or :ref:`scalar <attrib-scalar>`
@@ -303,7 +303,7 @@ class GratingStim(BaseVisualStim, DraggingMixin, TextureMixin, ColorMixin,
         self._needUpdate = True
 
     @attributeSetter
-    def phase(self, value):
+    def phase(self, value=(0.0, 0.0)):
         """Phase of the stimulus in each dimension of the texture.
 
         Should be an :ref:`x,y-pair <attrib-xy>` or :ref:`scalar
@@ -320,7 +320,7 @@ class GratingStim(BaseVisualStim, DraggingMixin, TextureMixin, ColorMixin,
         self._needUpdate = True
 
     @attributeSetter
-    def tex(self, value):
+    def tex(self, value="sin"):
         """Texture to used on the stimulus as a grating (aka carrier).
 
         This can be one of various options:
@@ -346,7 +346,7 @@ class GratingStim(BaseVisualStim, DraggingMixin, TextureMixin, ColorMixin,
         self._needTextureUpdate = False
 
     @attributeSetter
-    def blendmode(self, value):
+    def blendmode(self, value='avg'):
         """The OpenGL mode in which the stimulus is draw
 
         Can the 'avg' or 'add'. Average (avg) places the new stimulus over the
@@ -357,26 +357,6 @@ class GratingStim(BaseVisualStim, DraggingMixin, TextureMixin, ColorMixin,
         """
         self.__dict__['blendmode'] = value
         self._needUpdate = True
-
-    def setSF(self, value, operation='', log=None):
-        """DEPRECATED. Use 'stim.parameter = value' syntax instead
-        """
-        self._set('sf', value, operation, log=log)
-
-    def setPhase(self, value, operation='', log=None):
-        """DEPRECATED. Use 'stim.parameter = value' syntax instead
-        """
-        self._set('phase', value, operation, log=log)
-
-    def setTex(self, value, log=None):
-        """DEPRECATED. Use 'stim.parameter = value' syntax instead
-        """
-        self.tex = value
-
-    def setBlendmode(self, value, log=None):
-        """DEPRECATED. Use 'stim.parameter = value' syntax instead
-        """
-        self._set('blendmode', value, log=log)
 
     def draw(self, win=None):
         """Draw the stimulus in its relevant window.
@@ -499,3 +479,6 @@ class GratingStim(BaseVisualStim, DraggingMixin, TextureMixin, ColorMixin,
             self._cycles = self.sf
         else:
             self._cycles = self.sf * self.size
+
+# alias the all caps version of setSf
+GratingStim.setSF = GratingStim.setSf
