@@ -745,7 +745,7 @@ class FontManager():
     _fontInfos = {}  # JWP: dict of name:FontInfo objects
 
     def __init__(self, monospaceOnly=False):
-        self.addFontDirectory(prefs.paths['resources'])
+        self.addFontDirectory(prefs.paths['assets'])
         # if FontManager.freetype_import_error:
         #    raise Exception('Appears the freetype library could not load.
         #       Error: %s'%(str(FontManager.freetype_import_error)))
@@ -888,21 +888,29 @@ class FontManager():
         """
         fi_list = set()
         if os.path.isfile(fontPath) and os.path.exists(fontPath):
+            # try to make a Face object
             try:
                 face = ft.Face(str(fontPath))
             except Exception:
                 logging.warning("Font Manager failed to load file {}"
                                 .format(fontPath))
                 return
+            # make sure it has a name
             if face.family_name is None:
                 logging.warning("{} doesn't have valid font family name"
                                 .format(fontPath))
                 return
-            if monospaceOnly:
-                if face.is_fixed_width:
-                    fi_list.add(self._createFontInfo(fontPath, face))
+            # create a FontInfo object
+            if face.is_fixed_width or not monospaceOnly:
+                fi_obj = self._createFontInfo(fontPath, face)
             else:
-                fi_list.add(self._createFontInfo(fontPath, face))
+                return
+            # store in local list
+            fi_list.add(fi_obj)
+            # store in object list
+            if face.family_name not in self._fontInfos:
+                self._fontInfos[face.family_name] = fi_obj
+
         return fi_list
 
     def addFontFiles(self, fontPaths, monospaceOnly=False):
