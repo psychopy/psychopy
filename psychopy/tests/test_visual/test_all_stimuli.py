@@ -283,7 +283,7 @@ class _baseVisualTest():
     def test_text(self):
         win = self.win
         #set font
-        fontFile = str(Path(prefs.paths['resources']) / "fonts" / 'DejaVuSerif.ttf')
+        fontFile = str(Path(prefs.paths['assets']) / "fonts" / 'DejaVuSerif.ttf')
         #using init
         stim = visual.TextStim(win,text=u'\u03A8a', color=[0.5, 1.0, 1.0], ori=15,
             height=0.8*self.scaleFactor, pos=[0,0], font='DejaVu Serif',
