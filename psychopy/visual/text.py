@@ -355,7 +355,7 @@ class TextStim(BaseVisualStim, DraggingMixin, ForeColorMixin, ContainerMixin):
         setAttribute(self, 'font', font, log)
 
     @attributeSetter
-    def text(self, text):
+    def text(self, text=None):
         """The text to be rendered. Use \\\\n to make new lines.
 
         Issues: May be slow, and pyglet has a memory leak when setting text.
@@ -387,12 +387,6 @@ class TextStim(BaseVisualStim, DraggingMixin, ForeColorMixin, ContainerMixin):
 
         self._needSetText = False
         return self.__dict__['text']
-
-    def setText(self, text=None, log=None):
-        """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message.
-        """
-        setAttribute(self, 'text', text, log)
 
     def _setTextShaders(self, value=None):
         """Set the text to be rendered using the current font
@@ -733,7 +727,7 @@ class TextStim(BaseVisualStim, DraggingMixin, ForeColorMixin, ContainerMixin):
         # update list if necss and then call it
         if win.winType in ["pyglet", "glfw"]:
             if self._needSetText:
-                self.setText()
+                self.setText(None)
 
             # unbind the mask texture regardless
             GL.glActiveTexture(GL.GL_TEXTURE1)
