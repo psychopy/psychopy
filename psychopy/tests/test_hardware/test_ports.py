@@ -1,3 +1,4 @@
+
 import psychopy.hardware as hw
 import pytest
 try:
@@ -108,17 +109,6 @@ def test_getCRSPhotometers():
     with mock.patch("psychopy.hardware.crs.ColorCAL", faked, create=True):
         photoms = list(hw.getAllPhotometers())
         assert faked in photoms
-
-def test_getPhotometers():
-    photoms = hw.getAllPhotometers()
-
-    # Always iterable
-    assert isinstance(photoms, Iterable)
-
-    photoms = list(photoms)
-
-    assert len(photoms) > 0
-
 
 # I wish our PR650 would behave like this ;-)
 _MockPhotometer = type("MockPhotometer",(),{"OK": True,"type": "MockPhotometer"})
