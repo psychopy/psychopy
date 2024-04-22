@@ -259,7 +259,7 @@ class _baseTest():
         m.getPressed(getTime=True)
 
     def test_isPressedIn(self):
-        m = event.Mouse(self.win, newPos=(0,0))
+        m = event.Mouse(win=self.win, newPos=(0,0))
         s = ShapeStim(self.win, vertices=[[10,10],[10,-10],[-10,-10],[-10,10]], autoLog=False)
         if not s.contains(m.getPos()):
             pytest.skip()  # or can't test
