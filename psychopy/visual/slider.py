@@ -750,7 +750,7 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         self.rating = val
 
     @attributeSetter
-    def ticks(self, value):
+    def ticks(self, value=(1, 2, 3, 4, 5)):
         if isinstance(value, (list, tuple, np.ndarray)):
             # make sure all values are numeric
             for i, subval in enumerate(value):
@@ -768,7 +768,7 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         self.__dict__['ticks'] = value
 
     @attributeSetter
-    def markerPos(self, rating):
+    def markerPos(self, rating=None):
         """The position on the scale where the marker should be. Note that
         this does not alter the value of the reported rating, only its visible
         display.
@@ -800,24 +800,6 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         """Get the RT for most recent rating (or None if no response yet)
         """
         return self.rt
-
-    def getMarkerPos(self):
-        """Get the current marker position (or None if no response yet)
-        """
-        return self.markerPos
-
-    def setMarkerPos(self, rating):
-        """Set the current marker position (or None if no response yet)
-
-        Parameters
-        ----------
-        rating : int or float
-            The rating on the scale where we want to set the marker
-        """
-        if self._updateMarkerPos:
-            self.marker.pos = self._ratingToPos(rating)
-            self.markerPos = rating
-            self._updateMarkerPos = False
 
     def draw(self):
         """Draw the Slider, with all its constituent elements on this frame
@@ -867,7 +849,7 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
             self.contrast = 1.0
 
     @attributeSetter
-    def contrast(self, contrast):
+    def contrast(self, contrast=1):
         """Set all elements of the Slider (labels, ticks, line) to a contrast
 
         Parameters
@@ -1109,7 +1091,7 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         return style
 
     @attributeSetter
-    def styleTweaks(self, styleTweaks):
+    def styleTweaks(self, styleTweaks=[]):
         """Sets some predefined style tweaks or use these to create your own.
 
         If you fancy creating and including your own style tweaks that would be great!
