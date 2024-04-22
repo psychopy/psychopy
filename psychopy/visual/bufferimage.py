@@ -160,8 +160,12 @@ class BufferImageStim(ImageStim):
             pos *= win.size / 2.
 
         size = region.size / win.size / 2.
+        # convert image to a numpy array in rgb1
+        img = numpy.array(region, float) / 255
+        img = numpy.flipud(img)
+        # build a regular ImageStim with the captured data
         super(BufferImageStim, self).__init__(
-            win, image=region, units='pix', mask=mask, pos=pos,
+            win, image=img, units='pix', mask=mask, pos=pos,
             size=size, interpolate=interpolate, name=name, autoLog=False)
         self.size = region.size
 
