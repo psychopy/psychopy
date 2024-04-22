@@ -522,26 +522,14 @@ class TextStim(BaseVisualStim, DraggingMixin, ForeColorMixin, ContainerMixin):
         """If set to True then the text will be flipped left-to-right.  The
         flip is relative to the original, not relative to the current state.
         """
-        self.__dict__['flipHoriz'] = value
-
-    def setFlipHoriz(self, newVal=True, log=None):
-        """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message.
-        """
-        setAttribute(self, 'flipHoriz', newVal, log)
+        self.__dict__['flipHoriz'] = bool(value)
 
     @attributeSetter
     def flipVert(self, value):
         """If set to True then the text will be flipped top-to-bottom.  The
         flip is relative to the original, not relative to the current state.
         """
-        self.__dict__['flipVert'] = value
-
-    def setFlipVert(self, newVal=True, log=None):
-        """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message
-        """
-        setAttribute(self, 'flipVert', newVal, log)
+        self.__dict__['flipVert'] = bool(value)
 
     def setFlip(self, direction, log=None):
         """(used by Builder to simplify the dialog)
