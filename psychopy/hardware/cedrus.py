@@ -19,18 +19,17 @@ instead (bundled with Standalone PsychoPy)::
 """
 
 import psychopy.logging as logging
+from psychopy.tools.pkgtools import PluginStub
 
-try:
-    from psychopy_cedrus import RB730
-except (ModuleNotFoundError, ImportError):
-    logging.error(
-        "Support for Cedrus Corporation hardware is not available this "
-        "session. Please install `psychopy-cedrus` and restart the session "
-        "to enable support.")
-except Exception as e:
-    logging.error(
-        "Error encountered while loading `psychopy-cedrus`. Check logs for "
-        "more information.")
+
+class RB730(
+    PluginStub, 
+    plugin="psychopy-cedrus", 
+    doclink="https://psychopy.github.io/psychopy-cedrus/coder/RB730"
+):
+    pass
+
+
 
 if __name__ == "__main__":
     pass

@@ -18,20 +18,23 @@ These are optional components that can be obtained by installing the
 
 """
 
-import psychopy.logging as logging
 
-try:
-    from psychopy_mri_emulator import (
-        SyncGenerator, ResponseEmulator, launchScan)
-except (ModuleNotFoundError, ImportError):
-    logging.error(
-        "Support for software fMRI emulation is not available this session. "
-        "Please install `psychopy-mri-emulator` and restart the session to "
-        "enable support.")
-except Exception as e:
-    logging.error(
-        "Error encountered while loading `psychopy-mri-emulator`. Check logs "
-        "for more information.")
+from psychopy.tools.pkgtools import PluginStub
+
+
+class SyncGenerator(
+    PluginStub,
+    plugin="psychopy-mri-emulator"
+):
+    pass
+
+
+class ResponseEmulator(
+    PluginStub,
+    plugin="psychopy-mri-emulator"
+):
+    pass
+
 
 if __name__ == "__main__":
     pass
