@@ -6,6 +6,7 @@ Created on Sun Nov 10 12:18:45 2013
 
 @author: Sol
 """
+import inspect
 import os
 import sys
 from pathlib import Path
@@ -20,6 +21,10 @@ from .textureatlas import TextureAtlas
 from pyglet.gl import (glGenLists, glNewList, GL_COMPILE, GL_QUADS,
                        glBegin, glTexCoord2f, glVertex2f, glEnd,
                        glEndList, glTranslatef)
+
+from psychopy import logging
+from psychopy.preferences import prefs
+from psychopy.localization import _translate
 
 #  OS Font paths
 _X11FontDirectories = [
@@ -44,7 +49,14 @@ _OSXFontDirectories = [
     ""
 ]
 
-supportedExtensions = ['ttf', 'otf', 'ttc', 'dfont']
+supportedExtensions = [
+    "ttf",
+    "otf",
+    "ttc",
+    "dfont",
+    "truetype",
+    "opentype"
+]
 
 log = math.log
 ceil = math.ceil
@@ -263,43 +275,70 @@ class FontManager:
             self.updateFontInfo(monospace)
         return self._available_font_info
 
-    def findFontFiles(self, folders=(), recursive=True):
+    def findFontFiles(self, folders=None, recursive=True):
         """Search for font files in the folder (or system folders)
     
         Parameters
         ----------
         folders: iterable
-            folders to search. If empty then search typical system folders
+            Folders to search in addition to usual system folders and current script's folder
+        recursive : bool
+            If True, then also search subfolders within specified folders
     
         Returns
         -------
-        list of pathlib.Path objects
+        list[str]
+            Paths to font files (as strings)
         """
-        searchPaths=folders
-        if searchPaths is None or len(searchPaths) == 0:
-            if sys.platform == 'win32':
-                searchPaths = []  # just leave it to matplotlib as below
-            elif sys.platform == 'darwin':
-                # on mac matplotlib doesn't include 'ttc' files (which are fine)
-                searchPaths = _OSXFontDirectories
-            elif sys.platform.startswith('linux'):
-                searchPaths = _X11FontDirectories
-        # search those folders
-        fontPaths = []
-        for thisFolder in searchPaths:
-            thisFolder = Path(thisFolder)
-            for thisExt in supportedExtensions:
-                if recursive:
-                    fontPaths.extend([str(p.absolute()) for p in thisFolder.rglob("*.{}".format(thisExt))])
-                else:
-                    fontPaths.extend([str(p.absolute()) for p in thisFolder.glob("*.{}".format(thisExt))])
-    
-        # if we failed let matplotlib have a go
-        if fontPaths:
-            return fontPaths
-        else:
+        # start off with nothing
+        found = []
+        # start off with whatever matplotlib finds
+        try:
             from matplotlib import font_manager
-            return font_manager.findSystemFonts()
+            found += font_manager.findSystemFonts()
+        except Exception as err:
+            logging.warn(_translate(
+                "Matplotlib failed to find fonts, original error: {}"
+            ).format(err))
+        # if no folders given, start off with blank list
+        if folders is None:
+            folders = []
+        # add packaged assets folder
+        folders.append(
+            Path(prefs.paths['assets']) / "fonts"
+        )
+        # add the user folder
+        folders.append(
+            Path(prefs.paths['userPrefsDir']) / "fonts"
+        )
+        # add the folder the current script was called from
+        _frame = inspect.currentframe()
+        folders.append(
+            Path(inspect.getfile(_frame))
+        )
+        # add OS folders (windows is already covered by matplotlib)
+        if sys.platform == 'darwin':
+            folders += _OSXFontDirectories
+        elif sys.platform.startswith('linux'):
+            folders += _X11FontDirectories
+        # check requested folders
+        for thisFolder in folders:
+            # try all extensions...
+            for ext in supportedExtensions:
+                # construct glob based on recursive or not
+                if recursive:
+                    searchStr = f"**/*.{ext}"
+                else:
+                    searchStr = f"*.{ext}"
+                # do recursive glob search
+                for file in thisFolder.glob(searchStr):
+                    # stringify Path object
+                    file = str(file)
+                    # if file is new, append to found array
+                    if file not in found:
+                        found.append(file)
+
+        return found
 
     def updateFontInfo(self, monospace_only=True):
         self._available_font_info.clear()

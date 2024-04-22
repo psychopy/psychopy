@@ -14,6 +14,7 @@
 # Distributed under the Boost Software License, Version 1.0
 # (see http://www.boost.org/LICENSE_1_0.txt)
 #
+import inspect
 import re
 import sys, os
 import math
@@ -31,23 +32,23 @@ from psychopy.exceptions import MissingFontError
 #  OS Font paths
 _X11FontDirectories = [
     # an old standard installation point
-    "/usr/X11R6/lib/X11/fonts/TTF",
-    "/usr/X11/lib/X11/fonts",
+    Path("/usr/X11R6/lib/X11/fonts/TTF"),
+    Path("/usr/X11/lib/X11/fonts"),
     # here is the new standard location for fonts
-    "/usr/share/fonts",
+    Path("/usr/share/fonts"),
     # documented as a good place to install new fonts
-    "/usr/local/share/fonts",
+    Path("/usr/local/share/fonts"),
     # common application, not really useful
-    "/usr/lib/openoffice/share/fonts/truetype",
+    Path("/usr/lib/openoffice/share/fonts/truetype"),
 ]
 
 _OSXFontDirectories = [
-    "/Library/Fonts/",
-    str(Path.home() / "Library" / "Fonts"),
-    "/Network/Library/Fonts",
-    "/System/Library/Fonts",
+    Path("/Library/Fonts/"),
+    Path.home() / "Library" / "Fonts",
+    Path("/Network/Library/Fonts"),
+    Path("/System/Library/Fonts"),
     # fonts installed via MacPorts
-    "/opt/local/share/fonts",
+    Path("/opt/local/share/fonts"),
 ]
 
 _weightMap = {
@@ -641,54 +642,75 @@ class TextureGlyph:
             return 0
 
 
-def findFontFiles(folders=(), recursive=True):
-    """Search for font files in the folder (or system folders)
+def findFontFiles(folders=None, recursive=True):
+    """
+    Search for font files in the folder (or system folders)
 
     Parameters
     ----------
-    folders: iterable
-        folders to search. If empty then search typical system folders
+    folders: list
+        Folders to search in addition to usual system folders and current script's folder
+    recursive : bool
+        If True, then also search subfolders within specified folders
 
     Returns
     -------
-    list of pathlib.Path objects
+    list[str]
+        Paths to font files (as strings)
     """
-    searchPaths = folders
-    if searchPaths is None or len(searchPaths)==0:
-        if sys.platform == 'win32':
-            searchPaths = []  # just leave it to matplotlib as below
-        elif sys.platform == 'darwin':
-            # on mac matplotlib doesn't include 'ttc' files (which are fine)
-            searchPaths = _OSXFontDirectories
-        elif sys.platform.startswith('linux'):
-            searchPaths = _X11FontDirectories
-    # search those folders
-    fontPaths = []
-    for thisFolder in searchPaths:
-        thisFolder = Path(thisFolder)
-        try:
-            for thisExt in supportedExtensions:
-                if recursive:
-                    fontPaths.extend(thisFolder.rglob("*.{}".format(thisExt)))
-                else:
-                    fontPaths.extend(thisFolder.glob("*.{}".format(thisExt)))
-        except PermissionError:
-            logging.warning(f"The fonts folder '{thisFolder}' exists but the current user doesn't have read "
-                            "access to it. Fonts from that folder won't be available to TextBox")
-
-    # if we failed let matplotlib have a go
-    if not fontPaths:
+    # start off with nothing
+    found = []
+    # start off with whatever matplotlib finds
+    try:
         from matplotlib import font_manager
-        fontPaths = font_manager.findSystemFonts()
-
-    # search resources folder and user's own fonts folder
-    for thisFolder in [Path(prefs.paths['fonts']), Path(prefs.paths['resources']) / "fonts"]:
-        for thisExt in supportedExtensions:
+        found += font_manager.findSystemFonts()
+    except Exception as err:
+        logging.warn(
+            f"Matplotlib failed to find fonts, original error: {err}"
+        )
+    # if no folders given, start off with blank list
+    if folders is None:
+        folders = []
+    # make sure folders are all paths
+    for i, thisFolder in enumerate(folders):
+        if not isinstance(thisFolder, Path):
+            folders[i] = Path(thisFolder)
+    # add packaged assets folder
+    folders.append(
+        Path(prefs.paths['assets']) / "fonts"
+    )
+    # add the user folder
+    folders.append(
+        Path(prefs.paths['userPrefsDir']) / "fonts"
+    )
+    # add the folder the current script was called from
+    _frame = inspect.currentframe()
+    folders.append(
+        Path(inspect.getfile(_frame))
+    )
+    # add OS folders (windows is already covered by matplotlib)
+    if sys.platform == 'darwin':
+        folders += _OSXFontDirectories
+    elif sys.platform.startswith('linux'):
+        folders += _X11FontDirectories
+    # check requested folders
+    for thisFolder in folders:
+        # try all extensions...
+        for ext in supportedExtensions:
+            # construct glob based on recursive or not
             if recursive:
-                fontPaths.extend(thisFolder.rglob("*.{}".format(thisExt)))
+                searchStr = f"**/*.{ext}"
             else:
-                fontPaths.extend(thisFolder.glob("*.{}".format(thisExt)))
-    return fontPaths
+                searchStr = f"*.{ext}"
+            # do recursive glob search
+            for file in thisFolder.glob(searchStr):
+                # stringify Path object
+                file = str(file)
+                # if file is new, append to found array
+                if file not in found:
+                    found.append(file)
+
+    return found
 
 
 class FontManager():
@@ -921,6 +943,45 @@ class FontManager():
         """
         fontPaths = findFontFiles([fontDir], recursive=recursive)
         return self.addFontFiles(fontPaths)
+
+    @staticmethod
+    def isFamily(font, family):
+        """
+        Check whether a font is of a particular family
+
+        Parameters
+        ----------
+        font : freetype.Face
+            Font object whose family attribute to check
+        family : str
+            Family name to check against
+
+        Returns
+        -------
+        bool
+            True if the given font appears to be of the given family
+        """
+        # get font name
+        fontName = font.family_name.decode("utf-8")
+        # if it's already a perfect match, our work here is done!
+        if fontName == family:
+            return True
+        # convert both names to lowercase
+        fontName = fontName.lower()
+        family = family.lower()
+        # do they match now?
+        if fontName == family:
+            return True
+        # convert space-like chars to underscores
+        spacelike = r"[\s\t-_+]"
+        fontName = re.sub(pattern=spacelike, repl="_", string=fontName)
+        family = re.sub(pattern=spacelike, repl="_", string=family)
+        # do they match now?
+        if fontName == family:
+            return True
+
+        # if this all failed, it's not the same family
+        return False
 
     # Class methods for FontManager below this comment should not need to be
     # used by user scripts in most situations. Accessing them is okay.
