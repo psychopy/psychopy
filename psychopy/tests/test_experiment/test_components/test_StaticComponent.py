@@ -1,23 +1,14 @@
 from pathlib import Path
 
-from . import _TestBaseComponentsMixin, _TestDisabledMixin
+from . import BaseComponentTests
 from .test_base_components import _find_global_resource_in_js_experiment
 from psychopy.experiment.components.static import StaticComponent
 from psychopy import experiment, data
 from ...utils import TESTS_DATA_PATH
 
 
-class TestStaticComponent(_TestBaseComponentsMixin, _TestDisabledMixin):
-    def setup_method(self):
-        # Make blank experiment
-        self.exp = experiment.Experiment()
-        # Make blank routine
-        self.routine = experiment.routines.Routine(name="testRoutine", exp=self.exp)
-        self.exp.addRoutine("testRoutine", self.routine)
-        self.exp.flow.addRoutine(self.routine, 0)
-        # Make Static component
-        self.comp = StaticComponent(exp=self.exp, parentName="testRoutine", name="testStatic")
-        self.routine.addComponent(self.comp)
+class TestStaticComponent(BaseComponentTests):
+    comp = StaticComponent
 
     def test_handled_resources_removed(self):
         """
