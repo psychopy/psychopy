@@ -68,7 +68,7 @@ debug = False
 
 class TextBox2(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin):
     def __init__(self, win, text,
-                 font="Open Sans",
+                 font="Arial",
                  pos=(0, 0), units=None, letterHeight=None,
                  size=None,
                  color=(1.0, 1.0, 1.0), colorSpace='rgb',

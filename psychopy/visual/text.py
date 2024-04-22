@@ -78,7 +78,7 @@ class TextStim(BaseVisualStim, DraggingMixin, ForeColorMixin, ContainerMixin):
 
     def __init__(self, win,
                  text="Hello World",
-                 font="",
+                 font="Arial",
                  pos=(0.0, 0.0),
                  depth=0,
                  rgb=None,

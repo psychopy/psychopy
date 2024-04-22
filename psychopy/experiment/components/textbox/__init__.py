@@ -25,7 +25,7 @@ class TextboxComponent(BaseVisualComponent):
                  # effectively just a display-value
                  text=_translate('Any text\n\nincluding line breaks'),
                  placeholder=_translate("Type here..."),
-                 font='Arial', units='from exp settings', bold=False, italic=False,
+                 font="Arial", units='from exp settings', bold=False, italic=False,
                  color='white', colorSpace='rgb', opacity="",
                  pos=(0, 0), size=(0.5, 0.5), letterHeight=0.05, ori=0,
                  speechPoint="",
