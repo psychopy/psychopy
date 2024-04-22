@@ -456,8 +456,8 @@ class BaseColorMixin:
         else:
             logging.error(f"'{value}' is not a valid color space")
 
-    @property
-    def contrast(self):
+    @attributeSetter
+    def contrast(self, value=1):
         """A value that is simply multiplied by the color.
 
         Value should be: a float between -1 (negative) and 1 (unchanged).
@@ -483,31 +483,13 @@ class BaseColorMixin:
 
         """
         if hasattr(self, '_foreColor'):
-            return self._foreColor.contrast
-
-    @contrast.setter
-    def contrast(self, value):
-        if hasattr(self, '_foreColor'):
             self._foreColor.contrast = value
         if hasattr(self, '_fillColor'):
             self._fillColor.contrast = value
         if hasattr(self, '_borderColor'):
             self._borderColor.contrast = value
 
-    def setContrast(self, newContrast, operation='', log=None):
-        """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message
-        """
-        if newContrast is not None:
-            self.contrast = newContrast
-        if operation in ['', '=']:
-            self.contrast = newContrast
-        elif operation in ['+']:
-            self.contrast += newContrast
-        elif operation in ['-']:
-            self.contrast -= newContrast
-        else:
-            logging.error(f"Operation '{operation}' not recognised.")
+        self.__dict__['contrast'] = value
 
     def _getDesiredRGB(self, rgb, colorSpace, contrast):
         """ Convert color to RGB while adding contrast.
@@ -1284,7 +1266,7 @@ class TextureMixin:
             setAttribute(self, 'mask', self.mask, log=False)
 
     @attributeSetter
-    def maskParams(self, value):
+    def maskParams(self, value=None):
         """Various types of input. Default to `None`.
 
         This is used to pass additional parameters to the mask if those are
