@@ -3151,7 +3151,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             ('ImageComponent', allElements['ImageComponent']),
             ('KeyboardComponent', allElements['KeyboardComponent']),
             ('SoundComponent', allElements['SoundComponent']),
-            ('TextComponent', allElements['TextComponent']),
+            ('TextBoxComponent', allElements['TextComponent']),
             ('MouseComponent', allElements['MouseComponent']),
             ('SliderComponent', allElements['SliderComponent']),
         ]
