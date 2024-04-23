@@ -19,6 +19,8 @@ If your copy of the repository comes from before we used the 2-trunk GitFlow the
 - :ref:`addFeature`
 - :ref:`pullRequest`
 
+If you're *really* new to contributing you might want to walk through the steps in our :ref:`editingDocs` page to make a small change before trying out a bigger one!
+
 .. _gitWorkflow:
 
 PsychoPy Git Flow

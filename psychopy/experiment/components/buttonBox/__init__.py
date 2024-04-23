@@ -6,12 +6,13 @@ from psychopy.localization import _translate
 
 class ButtonBoxComponent(BaseDeviceComponent, PluginDevicesMixin):
     """
-
+    Component for getting button presses from a button box device.
     """
     categories = ['Responses']  # which section(s) in the components panel
     targets = ['PsychoPy']
     iconFile = Path(__file__).parent / 'buttonBox.png'
     tooltip = _translate('Button Box: Get input from a button box')
+    beta = True
 
     def __init__(
             self, exp, parentName,

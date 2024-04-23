@@ -1,5 +1,6 @@
 .. _joystickComponent:
 
+-------------------------------
 Joystick Component
 -------------------------------
 
@@ -17,8 +18,13 @@ Joystick Emulation
     Joystick position corresponds to mouse position and mouse buttons correspond to joystick buttons (0,1,2).
     Other buttons can be simulated with key chords: 'ctrl' + 'alt' + digit(0..9).
 
+Categories:
+    Inputs
+Works in:
+    PsychoPy
+
 Scenarios
-~~~~~~~~~~~~~~~~~
+-------------------------------
 
 This can be used in various ways. Here are some scenarios (email the list if you have other uses for your joystick):
 
@@ -32,23 +38,28 @@ Use the joystick to control stimulus parameters
 
 Tracking the entire path of the joystick during a period
 
-Parameters Basic
-~~~~~~~~~~~~~~~~~~
 
-Name : string
+Parameters
+-------------------------------
+
+Basic
+===============================
+
+
+Name
     Everything in a |PsychoPy| experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
 
-start :
+Start
     The time that the joystick should first be checked. See :ref:`startStop` for details.
 
-stop :
+Stop
     When the joystick is no longer checked. See :ref:`startStop` for details.
 
-Force End Routine on Press
+End Routine on press
     If this box is checked then the :ref:`Routine <Routines>` will end as soon as one of the joystick buttons is pressed.
 
 Data
-====
+===============================
 What information to save, how to lay it out and when to save it.
 
 Save Joystick State
@@ -71,6 +82,12 @@ Store params for clicked
 Allowed Buttons
     Joystick buttons accepted for input (blank for any) numbers separated by 'commas'.
 
+Save onset/offset times
+    Store the onset/offset times in the data file (as well as in the log file).
+
+Sync timing with screen refresh
+    Synchronize times with screen refresh (good for visual stimuli and responses based on them)
+
 Hardware
 ========
 Parameters for controlling hardware.
@@ -78,7 +95,11 @@ Parameters for controlling hardware.
 Device Number
     If you have multiple joystick/gamepad devices which one do you want (0, 1, 2, ...).
 
+Testing
+===============================
 
+Disable Component
+    Disable this Component
 
 .. seealso::
 

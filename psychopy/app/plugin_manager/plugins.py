@@ -169,7 +169,7 @@ class PluginInfo:
                     if ext in pil.registered_extensions():
                         content = requests.get(self._requestedIcon).content
                         writeOut = os.path.join(appPluginCacheDir, fname)
-                        with open(writeOut, 'wb', encoding='utf-8') as f:
+                        with open(writeOut, 'wb') as f:
                             f.write(content)
                         self._icon = utils.ImageData(os.path.join(
                             appPluginCacheDir, fname))

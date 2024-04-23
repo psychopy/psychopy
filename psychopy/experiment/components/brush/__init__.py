@@ -10,7 +10,9 @@ from psychopy.experiment.components import BaseVisualComponent, Param, getInitVa
 
 
 class BrushComponent(BaseVisualComponent):
-    """A class for drawing freehand responses"""
+    """
+    This component is a freehand drawing tool.
+    """
 
     categories = ['Responses']
     targets = ['PsychoPy', 'PsychoJS']

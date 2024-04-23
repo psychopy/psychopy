@@ -6,7 +6,7 @@
 import psychopy.logging as logging
 
 try:
-    from psychopy_eyetracker_gazepoint.gp3.calibration import (
+    from psychopy_eyetracker_gazepoint.gazepoint.gp3.calibration import (
         GazepointCalibrationProcedure)
 except (ModuleNotFoundError, ImportError, NameError):
     logging.error(

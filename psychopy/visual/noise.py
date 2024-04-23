@@ -30,5 +30,14 @@ except (ModuleNotFoundError, ImportError):
         "Support for `NoiseStim` is not available this session. Please install "
         "`psychopy-visionscience` and restart the session to enable support.")
 
+
+class NoiseStim:
+    """
+    `psychopy.visual.NoiseStim` is now located within the `psychopy-visionscience` plugin. You
+    can find the documentation for it `here
+    <https://psychopy.github.io/psychopy-visionscience/coder/NoiseStim>`_
+    """
+
+
 if __name__ == "__main__":
     pass

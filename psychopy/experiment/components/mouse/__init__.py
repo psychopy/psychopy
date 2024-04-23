@@ -364,10 +364,22 @@ class MouseComponent(BaseComponent):
             buff.writeIndentedLines(code % self.params)
             buff.setIndentLevel(1, relative=True)
             dedent += 1
+            # keep track of whether something's been written
+            hasContent = False
+            # write code to check clickable stim, if there are any
             if self.params['clickable'].val:
                 self._writeClickableObjectsCode(buff)
+                hasContent = True
+            # write code to check correct stim, if there are any
             if self.params['storeCorrect']:
                 self._writeCorrectAnsCode(buff)
+                hasContent = True
+            # if current if statement has no content, add a pass
+            if not hasContent:
+                buff.writeIndentedLines(
+                    "pass"
+                )
+
             return buff, dedent
 
         # No mouse tracking, end routine on any or valid click

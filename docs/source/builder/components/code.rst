@@ -8,7 +8,11 @@ Code Component
     .. image:: /images/code_component.gif
        :alt: A code component in action
 
-The `Code Component` can be used to insert short pieces of python code into your experiments. This might be create a variable that you want for another :ref:`Component <components>`, to manipulate images before displaying them, to interact with hardware for which there isn't yet a pre-packaged component in |PsychoPy| (e.g. writing code to interact with the serial/parallel ports). See `code uses`_ below.
+This Component can be used to insert short pieces of python code into your experiments. This might
+be
+create
+ a variable that you want for another :ref:`Component <components>`, to manipulate images before
+displaying them, to interact with hardware for which there isn't yet a pre-packaged component in |PsychoPy| (e.g. writing code to interact with the serial/parallel ports). See `code uses`_ below.
 
 Be aware that the code for each of the components in your :ref:`Routine <routines>` are executed in the order they appear on the :ref:`Routine <routines>` display (from top to bottom). If you want your `Code Component` to alter a variable to be used by another component immediately, then it needs to be above that component in the view. You may want the code not to take effect until next frame however, in which case put it at the bottom of the :ref:`Routine <routines>`. You can move `Components` up and down the :ref:`Routine <routines>` by right-clicking on their icons.
 
