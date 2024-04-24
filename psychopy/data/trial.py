@@ -1060,46 +1060,70 @@ class TrialHandler2(_BaseTrialHandler):
         """
         # clear upcoming
         self.upcoming = []
-        # start off at thisN = 0
+        # start off at 0 trial
+        thisTrialN = 0
         thisN = 0
-        # iterate through reps
-        for thisRepN in range(self.nReps):
-            # get available conditions indices this repeat
-            conditionIndices = list(range(len(self.trialList)))
-            # iterate through trials each rep
-            for thisTrialN in range(len(self.trialList)):
-                if thisN < len(self.elapsed):
-                    pass
+        thisRepN = 0
+        # empty array to store indices once taken
+        prevIndices = []
+        # empty array to store remaining indices
+        remainingIndices = []
+        # iterate a while loop until we run out of trials
+        while thisN < (self.nReps * len(self.trialList)):
+            if not remainingIndices:
+                # we've just started, or just starting a new repeat
+                sequence = list(range(len(self.trialList)))
+                if (self.method == 'fullRandom' and
+                        thisN < (self.nReps * len(self.trialList))):
+                    # we've only just started on a fullRandom sequence
+                    sequence *= self.nReps
+                    # NB permutation *returns* a shuffled array
+                    remainingIndices = list(self._rng.permutation(sequence))
+                elif (self.method in ('sequential', 'random') and
+                      thisRepN < self.nReps):
+                    thisTrialN = 0
+                    thisRepN += 1
+                    if self.method == 'random':
+                        self._rng.shuffle(sequence)  # shuffle (is in-place)
+                    remainingIndices = list(sequence)
                 else:
-                    # if not elapsed,get data according to method
-                    if self.method == 'fullRandom':
-                        # if full random, select randomly with no thought to taken
-                        thisIndex = self._rng.integers(0, len(self.trialList))
-                    elif self.method == "random":
-                        # if partial random, select randomly avoiding already selected
-                        thisIndex = self._rng.choice(conditionIndices)
-                        # delete selected for next trial
-                        conditionIndices.pop(conditionIndices.index(thisIndex))
-                    elif self.method == "sequential":
-                        # if sequential, select sequentially
-                        thisIndex = thisTrialN
-                    else:
-                        # if no method, error
-                        raise ValueError(f"Unrecognised selection method {self.method}")
-                    # make Trial object
-                    thisTrial = Trial(
-                        self,
-                        thisN=thisN,
-                        thisRepN=thisRepN,
-                        thisTrialN=thisTrialN,
-                        thisIndex=thisIndex,
-                        data=self.trialList[thisIndex]
-                    )
-                    # append trial
-                    self.upcoming.append(thisTrial)
-                # iterate thisN
-                thisN += 1
-        return self.elapsed + self.upcoming
+                    # we've finished
+                    break
+
+            if thisN < len(self.elapsed):
+                # trial has already happened - get its value
+                thisTrial = self.elapsed[thisN]
+                # remove from remaining
+                remainingIndices.pop(remainingIndices.index(thisTrial.thisIndex))
+            else:
+                # fetch the trial info
+                if len(self.trialList) == 0:
+                    thisIndex = 0
+                    thisTrial = {}
+                else:
+                    thisIndex = remainingIndices.pop(0)
+                    # if None then use empty dict
+                    thisTrial = self.trialList[thisIndex] or {}
+                    thisTrial = copy.copy(thisTrial)
+                # make Trial object
+                thisTrial = Trial(
+                    self,
+                    thisN=thisN,
+                    thisRepN=thisRepN,
+                    thisTrialN=thisTrialN,
+                    thisIndex=thisIndex,
+                    data=thisTrial
+                )
+                # otherwise, append trial
+                self.upcoming.append(thisTrial)
+            # for fullRandom check how many times this has come up before
+            if self.method == 'fullRandom':
+                thisTrial.thisRepN = prevIndices.count(thisTrial.thisIndex)
+            # update prev indices
+            prevIndices.append(thisTrial.thisIndex)
+            # update pointer for next trials
+            thisTrialN += 1  # number of trial this pass
+            thisN += 1  # number of trial in total
 
     def abortCurrentTrial(self, action='random'):
         """Abort the current trial.
@@ -1452,7 +1476,17 @@ class TrialHandler2(_BaseTrialHandler):
             self.columns.append(thisType)
         # make sure we have a thisTrial
         if self.thisTrial is None:
-            self.thisTrial = {}
+            if self.upcoming:
+                self.thisTrial = self.upcoming.pop(0)
+            else:
+                self.thisTrial = Trial(
+                        self,
+                        thisN=0,
+                        thisRepN=0,
+                        thisTrialN=0,
+                        thisIndex=0,
+                        data={}
+                    )
         # save the actual value in a data dict
         self.thisTrial[thisType] = value
         if self.getExp() is not None:

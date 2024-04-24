@@ -138,7 +138,7 @@ class TestTrialHandler2:
 
         for thisTrial in trials:
             resp = 'resp' + str(thisTrial['trialType'])
-            randResp = rng.rand()
+            randResp = np.round(rng.rand(), 9)
             trials.addData('resp', resp)
             trials.addData('rand', randResp)
 
