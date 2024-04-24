@@ -749,6 +749,8 @@ class Trial(dict):
         # data for this trial
         if data is None:
             data = {}
+        else:
+            data = data.copy()
         self.data = data
 
     def __repr__(self):
@@ -1090,7 +1092,7 @@ class TrialHandler2(_BaseTrialHandler):
                         thisRepN=thisRepN,
                         thisTrialN=thisTrialN,
                         thisIndex=thisIndex,
-                        data=self.trialList[thisIndex].copy()
+                        data=self.trialList[thisIndex]
                     )
                     # append trial
                     self.upcoming.append(thisTrial)
@@ -1138,6 +1140,183 @@ class TrialHandler2(_BaseTrialHandler):
         if n > 0:
             n = n * -1
         return self.elapsed[n]
+
+    def _createOutputArray(self, stimOut, dataOut, delim=None,
+                           matrixOnly=False):
+        """Does the leg-work for saveAsText and saveAsExcel.
+        Combines stimOut with ._parseDataOutput()
+        """
+        if (stimOut == [] and
+                len(self.trialList) and
+                hasattr(self.trialList[0], 'keys')):
+            stimOut = list(self.trialList[0].keys())
+            # these get added somewhere (by DataHandler?)
+            if 'n' in stimOut:
+                stimOut.remove('n')
+            if 'float' in stimOut:
+                stimOut.remove('float')
+
+        lines = []
+        # parse the dataout section of the output
+        dataOut, dataAnal, dataHead = self._createOutputArrayData(dataOut)
+        if not matrixOnly:
+            thisLine = []
+            lines.append(thisLine)
+            # write a header line
+            for heading in list(stimOut) + dataHead:
+                if heading == 'ran_sum':
+                    heading = 'n'
+                elif heading == 'order_raw':
+                    heading = 'order'
+                thisLine.append(heading)
+
+        # loop through stimuli, writing data
+        for stimN in range(len(self.trialList)):
+            thisLine = []
+            lines.append(thisLine)
+            # first the params for this stim (from self.trialList)
+            for heading in stimOut:
+                thisLine.append(self.trialList[stimN][heading])
+
+            # then the data for this stim (from self.data)
+            for thisDataOut in dataOut:
+                # make a string version of the data and then format it
+                tmpData = dataAnal[thisDataOut][stimN]
+                if hasattr(tmpData, 'tolist'):  # is a numpy array
+                    strVersion = str(tmpData.tolist())
+                    # for numeric data replace None with a blank cell
+                    if tmpData.dtype.kind not in ['SaUV']:
+                        strVersion = strVersion.replace('None', '')
+                elif tmpData in [None, 'None']:
+                    strVersion = ''
+                else:
+                    strVersion = str(tmpData)
+
+                if strVersion == '()':
+                    # 'no data' in masked array should show as "--"
+                    strVersion = "--"
+                # handle list of values (e.g. rt_raw )
+                if (len(strVersion) and
+                            strVersion[0] in '[(' and
+                            strVersion[-1] in '])'):
+                    strVersion = strVersion[1:-1]  # skip first and last chars
+                # handle lists of lists (e.g. raw of multiple key presses)
+                if (len(strVersion) and
+                            strVersion[0] in '[(' and
+                            strVersion[-1] in '])'):
+                    tup = eval(strVersion)  # convert back to a tuple
+                    for entry in tup:
+                        # contents of each entry is a list or tuple so keep in
+                        # quotes to avoid probs with delim
+                        thisLine.append(str(entry))
+                else:
+                    thisLine.extend(strVersion.split(','))
+
+        # add self.extraInfo
+        if (self.extraInfo != None) and not matrixOnly:
+            lines.append([])
+            # give a single line of space and then a heading
+            lines.append(['extraInfo'])
+            for key, value in list(self.extraInfo.items()):
+                lines.append([key, value])
+        return lines
+
+    def _createOutputArrayData(self, dataOut):
+        """This just creates the dataOut part of the output matrix.
+        It is called by _createOutputArray() which creates the header
+        line and adds the stimOut columns
+        """
+        dataHead = []  # will store list of data headers
+        dataAnal = dict([])  # will store data that has been analyzed
+        if type(dataOut) == str:
+            # don't do list convert or we get a list of letters
+            dataOut = [dataOut]
+        elif type(dataOut) != list:
+            dataOut = list(dataOut)
+
+        # expand any 'all' dataTypes to be full list of available dataTypes
+        allDataTypes = list(self.data.keys())
+        # ready to go through standard data types
+        dataOutNew = []
+        for thisDataOut in dataOut:
+            if thisDataOut == 'n':
+                # n is really just the sum of the ran trials
+                dataOutNew.append('ran_sum')
+                continue  # no need to do more with this one
+            # then break into dataType and analysis
+            dataType, analType = thisDataOut.rsplit('_', 1)
+            if dataType == 'all':
+                dataOutNew.extend(
+                    [key + "_" + analType for key in allDataTypes])
+                if 'order_mean' in dataOutNew:
+                    dataOutNew.remove('order_mean')
+                if 'order_std' in dataOutNew:
+                    dataOutNew.remove('order_std')
+            else:
+                dataOutNew.append(thisDataOut)
+        dataOut = dataOutNew
+        # sort so all datatypes come together, rather than all analtypes
+        dataOut.sort()
+
+        # do the various analyses, keeping track of fails (e.g. mean of a
+        # string)
+        dataOutInvalid = []
+        # add back special data types (n and order)
+        if 'ran_sum' in dataOut:
+            # move n to the first column
+            dataOut.remove('ran_sum')
+            dataOut.insert(0, 'ran_sum')
+        if 'order_raw' in dataOut:
+            # move order_raw to the second column
+            dataOut.remove('order_raw')
+            dataOut.append('order_raw')
+        # do the necessary analysis on the data
+        for thisDataOutN, thisDataOut in enumerate(dataOut):
+            dataType, analType = thisDataOut.rsplit('_', 1)
+            if not dataType in self.data:
+                # that analysis can't be done
+                dataOutInvalid.append(thisDataOut)
+                continue
+            thisData = self.data[dataType]
+
+            # set the header
+            dataHead.append(dataType + '_' + analType)
+            # analyse thisData using numpy module
+            if analType in dir(np):
+                try:
+                    # will fail if we try to take mean of a string for example
+                    if analType == 'std':
+                        thisAnal = np.std(thisData, axis=1, ddof=0)
+                        # normalise by N-1 instead. This should work by
+                        # setting ddof=1 but doesn't as of 08/2010 (because
+                        # of using a masked array?)
+                        N = thisData.shape[1]
+                        if N == 1:
+                            thisAnal *= 0  # prevent a divide-by-zero error
+                        else:
+                            sqrt = np.sqrt
+                            thisAnal = thisAnal * sqrt(N) / sqrt(N - 1)
+                    else:
+                        thisAnal = eval("np.%s(thisData,1)" % analType)
+                except Exception:
+                    # that analysis doesn't work
+                    dataHead.remove(dataType + '_' + analType)
+                    dataOutInvalid.append(thisDataOut)
+                    continue  # to next analysis
+            elif analType == 'raw':
+                thisAnal = thisData
+            else:
+                raise AttributeError('You can only use analyses from numpy')
+            # add extra cols to header if necess
+            if len(thisAnal.shape) > 1:
+                for n in range(thisAnal.shape[1] - 1):
+                    dataHead.append("")
+            dataAnal[thisDataOut] = thisAnal
+
+        # remove invalid analyses (e.g. average of a string)
+        for invalidAnal in dataOutInvalid:
+            dataOut.remove(invalidAnal)
+        return dataOut, dataAnal, dataHead
 
     def saveAsWideText(self, fileName,
                        delim=None,
