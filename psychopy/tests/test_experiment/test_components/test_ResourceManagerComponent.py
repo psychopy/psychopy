@@ -1,23 +1,13 @@
 from pathlib import Path
 
-from . import _TestBaseComponentsMixin, _TestDisabledMixin
-from .test_base_components import _find_global_resource_in_js_experiment
+from psychopy.tests.test_experiment.test_components.test_base_components import BaseComponentTests, _find_global_resource_in_js_experiment
 from psychopy.experiment.components.resourceManager import ResourceManagerComponent
 from psychopy import experiment
 from ...utils import TESTS_DATA_PATH
 
 
-class TestResourceManagerComponent(_TestBaseComponentsMixin, _TestDisabledMixin):
-    def setup_method(self):
-        # Make blank experiment
-        self.exp = experiment.Experiment()
-        # Make blank routine
-        self.routine = experiment.routines.Routine(name="testRoutine", exp=self.exp)
-        self.exp.addRoutine("testRoutine", self.routine)
-        self.exp.flow.addRoutine(self.routine, 0)
-        # Make Resource Manager component
-        self.comp = ResourceManagerComponent(exp=self.exp, parentName="testRoutine", name="testResourceManager")
-        self.routine.addComponent(self.comp)
+class TestResourceManagerComponent(BaseComponentTests):
+    comp = ResourceManagerComponent
 
     def test_handled_resources_removed(self):
         """
