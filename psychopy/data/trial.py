@@ -612,7 +612,7 @@ class TrialHandler(_BaseTrialHandler):
                 Defaults to `utf-8-sig`.
 
         """
-        if self.thisTrialN < 1 and self.thisRepN < 1:
+        if self.thisTrialN < 0 and self.thisRepN < 0:
             # if both are < 1 we haven't started
             logging.info('TrialHandler.saveAsWideText called but no '
                          'trials completed. Nothing saved')
@@ -1374,7 +1374,7 @@ class TrialHandler2(_BaseTrialHandler):
                 Defaults to `utf-8-sig`.
 
         """
-        if self.thisTrialN < 1 and self.thisRepN < 1:
+        if self.thisTrialN < 0 and self.thisRepN < 0:
             # if both are < 1 we haven't started
             logging.info('TrialHandler.saveAsWideText called but no '
                          'trials completed. Nothing saved')
@@ -2095,7 +2095,7 @@ class TrialHandlerExt(TrialHandler):
                 Defaults to `utf-8-sig`.
 
         """
-        if self.thisTrialN < 1 and self.thisRepN < 1:
+        if self.thisTrialN < 0 and self.thisRepN < 0:
             # if both are < 1 we haven't started
             logging.info('TrialHandler.saveAsWideText called but no trials'
                          ' completed. Nothing saved')
