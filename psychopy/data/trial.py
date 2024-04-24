@@ -1007,6 +1007,7 @@ class TrialHandler2(_BaseTrialHandler):
         if not self.upcoming:
             self.finished = True
             self.thisTrial = None
+            self._terminate()
             raise StopIteration
         # get first upcoming trial
         self.thisTrial = self.upcoming.pop(0)
@@ -1449,6 +1450,9 @@ class TrialHandler2(_BaseTrialHandler):
         # store in the columns list to help ordering later
         if thisType not in self.columns:
             self.columns.append(thisType)
+        # make sure we have a thisTrial
+        if self.thisTrial is None:
+            self.thisTrial = {}
         # save the actual value in a data dict
         self.thisTrial[thisType] = value
         if self.getExp() is not None:
