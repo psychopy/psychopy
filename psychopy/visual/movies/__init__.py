@@ -217,7 +217,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         if isinstance(filename, str):
             # alias default names (so it always points to default.png)
             if filename in defaultStim:
-                filename = Path(prefs.paths['resources']) / defaultStim[filename]
+                filename = Path(prefs.paths['assets']) / defaultStim[filename]
 
             # check if the file has can be loaded
             if not os.path.isfile(filename):

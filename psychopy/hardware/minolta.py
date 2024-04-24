@@ -12,19 +12,12 @@ These are optional components that can be obtained by installing the
 
 """
 
-import psychopy.logging as logging
+from psychopy.tools.pkgtools import PluginStub
 
-try:
-    from psychopy_minolta import CS100A, LS100
-except (ModuleNotFoundError, ImportError):
-    logging.error(
-        "Support for Konica Minolta hardware is not available this session. "
-        "Please install `psychopy-minolta` and restart the session to enable "
-        "support.")
-except Exception as e:
-    logging.error(
-        "Error encountered while loading `psychopy-minolta`. Check logs for "
-        "more information.")
 
-if __name__ == "__main__":
+class CS100A(PluginStub, plugin="psychopy-minolta", doclink="https://psychopy.github.io/psychopy-minolta/coder/CS100A"):
+    pass
+
+
+class LS100(PluginStub, plugin="psychopy-minolta", doclink="https://psychopy.github.io/psychopy-minolta/coder/LS100"):
     pass

@@ -79,8 +79,8 @@ for i in todo; do
     say -v kate "Finished building for ${pythons[$i]}"
 done
 
-osascript -e "set Volume 0.2"
-say -v Karen "all done"
-osascript -e "set Volume 3"
+# osascript -e "set Volume 0.2"
+# say -v Karen "all done"
+# osascript -e "set Volume 3"
 mv dist/*.dmg ../dist
 mv dist/*.app ../dist

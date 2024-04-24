@@ -164,6 +164,7 @@ Your resulting Shelf record should look like this:
     :name: shelfAccess
     :align: center
     :figclass: align-center
+    :width: 75%
 
 |
 To find out more about the Counterbalance Routine, click `here <https://www.psychopy.org/builder/components/counterbalanceStandaloneRoutine.html>`_
@@ -186,6 +187,7 @@ You would not need to add any fields within the shelf record on Pavlovia as they
     :name: leaderboardShelf
     :align: center
     :figclass: align-center
+    
 
 |
 
@@ -195,6 +197,7 @@ If you would like to just record each participants' scores, you would only need 
     :name: leaderboardCodeComponent
     :align: center
     :figclass: align-center
+    :width: 85%
 
 |
 
@@ -204,6 +207,7 @@ This is how you would fetch all the records that's stored within the leaderboard
     :name: fetchLeaderboardCodeComponent1
     :align: center
     :figclass: align-center
+    :width: 75%
 
 |
 
@@ -211,6 +215,7 @@ This is how you would fetch all the records that's stored within the leaderboard
     :name: fetchLeaderboardCodeComponent2
     :align: center
     :figclass: align-center
+    :width: 75%
 
 |
 
@@ -222,6 +227,7 @@ This is an example JavaScript snippet to fetch all the reaction times recorded a
     :name: leaderboardRTCodeComponent1
     :align: center
     :figclass: align-center
+    :width: 75%
 
 |
 
@@ -233,12 +239,14 @@ This is an example JavaScript snippet to fetch all the accuracy stored and sort 
     :name: leaderboardSortAccuracyCodeComponent1
     :align: center
     :figclass: align-center
+    :width: 75%
 |
 
 .. figure:: /images/leaderboard_images/leaderboardAccuracyCode2.png
     :name: leaderboardSortAccuracyCodeComponent2
     :align: center
     :figclass: align-center
+    :width: 75%
 
 |
 
@@ -248,6 +256,7 @@ The above code component only sorts the accuracies of each participant but doesn
     :name: leaderboardSortIDCodeComponent1
     :align: center
     :figclass: align-center
+    :width: 75%
 
 |
 
@@ -255,6 +264,7 @@ The above code component only sorts the accuracies of each participant but doesn
     :name: leaderboardSortIDCodeComponent2
     :align: center
     :figclass: align-center
+    :width: 75%
 
 |
 
@@ -262,5 +272,33 @@ The IDs and accuracy scores are stored in the separate lists (in descending orde
 
 .. figure:: /images/leaderboard_images/leaderboardExample.png
     :name: leaderboardExample
+    :align: center
+    :figclass: align-center
+    :width: 60%
+
+.. _checkIdsShelf:
+
+Checking existing participant IDs
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Demo link:** `here <https://run.pavlovia.org/SueLynnNotts/check_id_demo>`_
+
+**Demo experiment files:** `here <https://gitlab.pavlovia.org/SueLynnNotts/check_id_demo>`_
+
+When running multi-session experiments online, it is sometimes difficult to tell if the person accessing the link is a participant from a previous session. This participant ID checker using the List type Shelf uses a prepopulated list of IDs to first check if the participant ID entered at the startup dialog box exists in the prepopulated list (see list below for accepted IDs) before either showing a message saying "Welcome back!" or "Sorry, your id couldn't be found."
+
+|
+
+.. figure:: /images/shelf_list_ids.png
+    :name: acceptedIDs
+    :align: center
+    :figclass: align-center
+
+|
+
+In the experiment files, there's a spreadsheet which automatically formats the IDs to be copied into the Shelf record (see below for an example).
+
+.. figure:: /images/shelf_id_record.png
+    :name: acceptedIDs
     :align: center
     :figclass: align-center

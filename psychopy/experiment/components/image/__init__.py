@@ -22,7 +22,7 @@ class ImageComponent(BaseVisualComponent):
                  interpolate='linear', units='from exp settings',
                  color='$[1,1,1]', colorSpace='rgb', pos=(0, 0),
                  size=(0.5, 0.5), anchor="center", ori=0, texRes='128', flipVert=False,
-                 flipHoriz=False,
+                 flipHoriz=False, draggable=False,
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim=''):
@@ -106,6 +106,14 @@ class ImageComponent(BaseVisualComponent):
             updates='constant',
             hint=_translate("Which point on the stimulus should be anchored to its exact position?"),
             label=_translate("Anchor"))
+        self.params['draggable'] = Param(
+            draggable, valType="code", inputType="bool", categ="Layout",
+            updates="constant",
+            label="Draggable?",
+            hint=_translate(
+                "Should this stimulus be moveble by clicking and dragging?"
+            )
+        )
 
         del self.params['fillColor']
         del self.params['borderColor']
@@ -123,7 +131,7 @@ class ImageComponent(BaseVisualComponent):
                 "    win=win,\n"
                 "    name='{inits[name]}', {units}\n"
                 "    image={inits[image]}, mask={inits[mask]}, anchor={inits[anchor]},\n"
-                "    ori={inits[ori]}, pos={inits[pos]}, size={inits[size]},\n"
+                "    ori={inits[ori]}, pos={inits[pos]}, draggable={inits[draggable]}, size={inits[size]},\n"
                 "    color={inits[color]}, colorSpace={inits[colorSpace]}, opacity={inits[opacity]},\n"
                 "    flipHoriz={inits[flipHoriz]}, flipVert={inits[flipVert]},\n"
                 # no newline - start optional parameters
@@ -164,7 +172,10 @@ class ImageComponent(BaseVisualComponent):
                 "  name : '{inits[name]}', {units}\n"
                 "  image : {inits[image]}, mask : {inits[mask]},\n"
                 "  anchor : {inits[anchor]},\n"
-                "  ori : {inits[ori]}, pos : {inits[pos]}, size : {inits[size]},\n"
+                "  ori : {inits[ori]}, \n"
+                "  pos : {inits[pos]}, \n"
+                "  draggable: {inits[draggable]},\n"
+                "  size : {inits[size]},\n"
                 "  color : new util.Color({inits[color]}), opacity : {inits[opacity]},\n"
                 "  flipHoriz : {inits[flipHoriz]}, flipVert : {inits[flipVert]},\n"
                 # no newline - start optional parameters

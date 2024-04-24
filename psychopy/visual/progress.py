@@ -309,3 +309,5 @@ class Progress(shape.ShapeStim):
     @attributeSetter
     def ori(self, value):
         shape.ShapeStim.ori.func(self, value)
+        if hasattr(self, "bar"):
+            self.bar.ori = value
