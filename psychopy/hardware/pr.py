@@ -12,19 +12,12 @@ These are optional components that can be obtained by installing the
 
 """
 
-import psychopy.logging as logging
+from psychopy.tools.pkgtools import PluginStub
 
-try:
-    from psychopy_photoresearch import PR650, PR655
-except (ModuleNotFoundError, ImportError):
-    logging.error(
-        "Support for Photo Research Inc. hardware is not available this "
-        "session. Please install `psychopy-photoresearch` and restart the "
-        "session to enable support.")
-except Exception as e:
-    logging.error(
-        "Error encountered while loading `psychopy-photoresearch`. Check logs "
-        "for more information.")
 
-if __name__ == "__main__":
+class PR650(PluginStub, plugin="psychopy-photoresearch", doclink="https://psychopy.github.io/psychopy-photoresearch/coder/PR650"):
+    pass
+
+
+class PR655(PluginStub, plugin="psychopy-photoresearch", doclink="https://psychopy.github.io/psychopy-photoresearch/coder/PR655"):
     pass

@@ -826,7 +826,7 @@ def load(filename, codec=None):
     """
     # alias default names (so it always points to default.png)
     if filename in ft.defaultStim:
-        filename = Path(prefs.paths['resources']) / ft.defaultStim[filename]
+        filename = Path(prefs.paths['assets']) / ft.defaultStim[filename]
     return AudioClip.load(filename, codec)
 
 

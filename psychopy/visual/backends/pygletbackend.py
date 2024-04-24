@@ -258,8 +258,12 @@ class PygletBackend(BaseBackend):
                 "graphics card and/or graphics drivers.")
         try:
             icns = [
-                pyglet.image.load(prefs.paths['resources'] + os.sep + "Psychopy Window Favicon@16w.png"),
-                pyglet.image.load(prefs.paths['resources'] + os.sep + "Psychopy Window Favicon@32w.png"),
+                pyglet.image.load(
+                    prefs.paths['assets'] + os.sep + "Psychopy Window Favicon@16w.png"
+                ),
+                pyglet.image.load(
+                    prefs.paths['assets'] + os.sep + "Psychopy Window Favicon@32w.png"
+                ),
             ]
             self.winHandle.set_icon(*icns)
         except BaseException:
@@ -347,8 +351,8 @@ class PygletBackend(BaseBackend):
                                         int(win.pos[1] + thisScreen.y))
 
         try:  # to load an icon for the window
-            iconFile = os.path.join(psychopy.prefs.paths['resources'],
-                                    'psychopy.ico')
+            iconFile = os.path.join(psychopy.prefs.paths['assets'],
+                                    'window.ico')
             icon = pyglet.image.load(filename=iconFile)
             self.winHandle.set_icon(icon)
         except Exception:
