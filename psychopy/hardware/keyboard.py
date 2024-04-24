@@ -573,7 +573,7 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
             if message.type == "KEYBOARD_PRESS":
                 # if message is from a key down event, make a new response
                 response = KeyPress(code=message.char, tDown=message.time, name=message.key)
-                response.rt = response.tDown
+                response.rt = response.tDown - self.clock.getLastResetTime()
                 self._keysStillDown.append(response)
             else:
                 # if message is from a key up event, alter existing response
