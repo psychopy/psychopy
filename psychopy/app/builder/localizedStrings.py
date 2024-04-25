@@ -115,7 +115,8 @@ _localizedDialogs = {
     'set every frame': _translate('set every frame'),
     # strings for allowedVals in settings:
     'add': _translate('add'),
-    'avg': _translate('average'),
+    'average': _translate('average'),
+    'avg': _translate('avg'),
     'average (no FBO)': _translate('average (no FBO)'),  # blend mode
     'use prefs': _translate('use prefs'),
     'on Sync': _translate('on Sync'), # export HTML
