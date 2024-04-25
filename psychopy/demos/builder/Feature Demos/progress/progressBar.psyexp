@@ -125,7 +125,7 @@
         <Param val="from exp settings" valType="str" updates="None" name="units" />
       </TextboxComponent>
       <ProgressComponent name="timer10" plugin="None">
-        <Param val="center left" valType="str" updates="constant" name="anchor" />
+        <Param val="center-left" valType="str" updates="constant" name="anchor" />
         <Param val="grey" valType="color" updates="constant" name="borderColor" />
         <Param val="grey" valType="color" updates="constant" name="color" />
         <Param val="rgb" valType="str" updates="constant" name="colorSpace" />
@@ -190,7 +190,7 @@
         <Param val="from exp settings" valType="str" updates="None" name="units" />
       </TextboxComponent>
       <ProgressComponent name="timer5" plugin="None">
-        <Param val="center left" valType="str" updates="constant" name="anchor" />
+        <Param val="center-left" valType="str" updates="constant" name="anchor" />
         <Param val="darkgrey" valType="color" updates="constant" name="borderColor" />
         <Param val="darkgrey" valType="color" updates="constant" name="color" />
         <Param val="rgb" valType="str" updates="constant" name="colorSpace" />
@@ -255,7 +255,7 @@
         <Param val="from exp settings" valType="str" updates="None" name="units" />
       </TextboxComponent>
       <ProgressComponent name="timer1" plugin="None">
-        <Param val="center left" valType="str" updates="constant" name="anchor" />
+        <Param val="center-left" valType="str" updates="constant" name="anchor" />
         <Param val="lightgrey" valType="color" updates="constant" name="borderColor" />
         <Param val="lightgrey" valType="color" updates="constant" name="color" />
         <Param val="rgb" valType="str" updates="constant" name="colorSpace" />
@@ -320,7 +320,7 @@
         <Param val="from exp settings" valType="str" updates="None" name="units" />
       </TextboxComponent>
       <ProgressComponent name="trialCtr" plugin="None">
-        <Param val="center left" valType="str" updates="constant" name="anchor" />
+        <Param val="center-left" valType="str" updates="constant" name="anchor" />
         <Param val="dodgerblue" valType="color" updates="constant" name="borderColor" />
         <Param val="dodgerblue" valType="color" updates="constant" name="color" />
         <Param val="rgb" valType="str" updates="constant" name="colorSpace" />
