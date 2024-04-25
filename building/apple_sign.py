@@ -207,10 +207,17 @@ class AppSigner:
 
     def awaitNotarized(self):
         # can use 'xcrun notarytool info' to check status or 'xcrun notarytool wait'
-        exitcode, output = subprocess.getstatusoutput(f'xcrun notarytool wait {self._appNotarizeUUID} --keychain-profile "ost-notarization"')
+        exitcode, output = subprocess.getstatusoutput(f'xcrun notarytool wait {self._appNotarizeUUID} '
+                  f'--apple-id "{self._apple_id}" '
+                  f'--team-id "{self._team_id}" '
+                  f'--password "{self._pword}"')
         print(output)
         # always fetch the log file too
-        exitcode, output = subprocess.getstatusoutput(f'xcrun notarytool log {self._appNotarizeUUID} --keychain-profile "ost-notarization" developer_log.json')
+        exitcode, output = subprocess.getstatusoutput(f'xcrun notarytool log {self._appNotarizeUUID} '
+                  f'--apple-id "{self._apple_id}" '
+                  f'--team-id "{self._team_id}" '
+                  f'--password "{self._pword}" '
+                  f' developer_log.json')
         print(output)
 
     def staple(self, filepath):
@@ -269,31 +276,22 @@ class AppSigner:
         time.sleep(10)
         volName = output.split('\t')[-1]
         self.staple(f"'{volName}/{appName}'")
-        cmdStr = f"hdiutil detach '{volName}' -quiet"
-        print(f'cmdStr was: {cmdStr}')
-        for n in range(5):  # if we do this too fast then it fails. Try 5 times
-            time.sleep(10)
-            exitcode, output = subprocess.getstatusoutput(cmdStr)
-            print(output)
-            if exitcode == 0:
-                break  # succeeded so stop
-        if exitcode != 0:
-            print(f'*********Failed to detach {volName} (wrong name?) *************')
-            time.sleep(10)  # wait for 10s and then try more forcefully
-            import diskutil_parser.cmd
-            import sh
-            disks = diskutil_parser.cmd.diskutil_list()
-            for disk in disks:
-                print(f"checking /dev/{disk.device_id} ({disk.partition_scheme})")
-                for part in disk.partitions:
-                    if "PsychoPy" in part.name:
-                        print("Ejecting - ", part.name, part.mount_point)
-                        try:
-                            sh.diskutil("unmountDisk", "force", f"/dev/{disk.device_id}")
-                            sh.diskutil("eject", f"/dev/{disk.device_id}")
-                        except sh.ErrorReturnCode_1:
-                            print("still can't eject that disk")
-                            exit(1)
+    
+        time.sleep(10)  # wait for 10s and then try more forcefully
+        import diskutil_parser.cmd
+        import sh
+        disks = diskutil_parser.cmd.diskutil_list()
+        for disk in disks:
+            print(f"checking /dev/{disk.device_id} ({disk.partition_scheme})")
+            for part in disk.partitions:
+                if "PsychoPy" in part.name:
+                    print("Ejecting - ", part.name, part.mount_point)
+                    try:
+                        sh.diskutil("unmountDisk", "force", f"/dev/{disk.device_id}")
+                        sh.diskutil("eject", f"/dev/{disk.device_id}")
+                    except sh.ErrorReturnCode_1:
+                        print("Can't eject that disk")
+                        exit(1)
 
 
     def dmgCompress(self):
