@@ -115,7 +115,8 @@ _localizedDialogs = {
     'set every frame': _translate('set every frame'),
     # strings for allowedVals in settings:
     'add': _translate('add'),
-    'avg': _translate('average'),
+    'average': _translate('average'),
+    'avg': _translate('avg'),
     'average (no FBO)': _translate('average (no FBO)'),  # blend mode
     'use prefs': _translate('use prefs'),
     'on Sync': _translate('on Sync'), # export HTML
@@ -157,14 +158,15 @@ _localizedDialogs = {
     'last click': _translate('last click'),
     'button onset': _translate('button onset'),
     # Polygon:
-    'line': _translate('line'),
-    'triangle': _translate('triangle'),
-    'rectangle': _translate('rectangle'),
-    'cross': _translate('cross'),
-    'star': _translate('star'),
-    'arrow': _translate('arrow'),
-    'regular polygon...': _translate('regular polygon...'),
-    'custom polygon...': _translate('custom polygon...'),
+    'Line': _translate('Line'),
+    'Triangle': _translate('Triangle'),
+    'Rectangle': _translate('Rectangle'),
+    'Circle': _translate('Circle'),
+    'Cross': _translate('Cross'),
+    'Star': _translate('Star'),
+    'Arrow': _translate('Arrow'),
+    'Regular polygon...': _translate('Regular polygon...'),
+    'Custom polygon...': _translate('Custom polygon...'),
     # Form
     'rows': _translate('rows'),
     'columns': _translate('columns'),
