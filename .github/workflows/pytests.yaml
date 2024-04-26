@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: [macos-latest, ubuntu-latest]
+        os: [macos-11, ubuntu-latest]
         python-version: ['3.8', '3.10']
 
     steps:
@@ -75,11 +75,11 @@ jobs:
         python ./building/plat_custom_installs.py
 
         pip install pdm
-        pdm config python.use_venv false  # don't need/want venv in a vm!
-        pdm install  # fetch dependendices in lock file
-        pdm add -G tests
-        pdm install -G tests
-        pdm build
+        # pdm config python.use_venv false  # don't need/want venv in a vm!
+        # pdm install  # fetch dependendices in lock file
+        # pdm add -G tests
+        # pdm install -G tests
+        # pdm build
         # install with pip both the main and [tests] group
         pip install . --prefer-binary  # install with pip
         pip install '.[tests]' --prefer-binary  # optional dependency group
