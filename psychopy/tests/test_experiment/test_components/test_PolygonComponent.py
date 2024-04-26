@@ -1,37 +1,21 @@
-from pathlib import Path
-
-from . import _TestDisabledMixin, _TestBaseComponentsMixin
-from psychopy.experiment import Experiment
-from psychopy.experiment.loops import TrialHandler
-from psychopy.experiment.routines import Routine
+from psychopy.tests.test_experiment.test_components.test_base_components import BaseComponentTests, _TestLibraryClassMixin
 from psychopy.experiment.components.polygon import PolygonComponent
 from psychopy.visual.polygon import Polygon
 
 
-class TestPolygonComponent(_TestBaseComponentsMixin, _TestDisabledMixin):
+class TestPolygonComponent(BaseComponentTests, _TestLibraryClassMixin):
     """
     Test that Polygon coponents have the correct params and write as expected.
     """
+    comp = PolygonComponent
     libraryClass = Polygon
-
-    def setup_method(self):
-        # Make blank experiment
-        self.exp = Experiment()
-        # Make blank routine
-        self.routine = Routine(name="testRoutine", exp=self.exp)
-        self.exp.addRoutine("testRoutine", self.routine)
-        self.exp.flow.addRoutine(self.routine, 0)
-        # Add loop around routine
-        self.loop = TrialHandler(exp=self.exp, name="testLoop")
-        self.exp.flow.addLoop(self.loop, 0, -1)
-        # Make a rect for when we need something to click on
-        self.comp = PolygonComponent(exp=self.exp, parentName="testRoutine", name="testPolygon")
-        self.routine.addComponent(self.comp)
 
     def test_vertices_usage(self):
         """
         Test that vertices values are used only under the correct conditions
         """
+        # make minimal experiment just for this test
+        comp, rt, exp = self.make_minimal_experiment()
         # Define values to look for and avoid in code according to value of shape
         cases = [
             # Shape is a line
@@ -61,14 +45,14 @@ class TestPolygonComponent(_TestBaseComponentsMixin, _TestDisabledMixin):
              'avoid': ["___nVertices___"]},
         ]
         # Setup component with markers for nVertices and vertices
-        self.comp.params['nVertices'].val = "___nVertices___"
-        self.comp.params['vertices'].val = "___vertices___"
+        comp.params['nVertices'].val = "___nVertices___"
+        comp.params['vertices'].val = "___vertices___"
         # Test each case
         for case in cases:
             # Set shape
-            self.comp.params['shape'].val = case['val']
+            comp.params['shape'].val = case['val']
             # Write experiment
-            pyScript = self.exp.writeScript(target="PsychoPy")
+            pyScript = exp.writeScript(target="PsychoPy")
             # Look for sought values in experiment script
             for seekVal in case['seek']:
                 assert seekVal in pyScript, (

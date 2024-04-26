@@ -7,14 +7,14 @@ As an application, |PsychoPy| has two main views: the :doc:`Builder <builder/ind
 
 #. :doc:`Builder <builder/index>`. You can generate a wide range of experiments easily from the Builder using its intuitive, graphical user interface (GUI). This might be all you ever need to do. But you can always compile your experiment into a python script for fine-tuning, and this is a quick way for experienced programmers to explore some of PsychoPy's libraries and conventions. **Note: if you are taking a study online we highly advise even experienced coders use Builder view, as the JS version of your experiment will also be generated**
 
-.. figure:: /images/builder.png
+.. figure:: /images/builderApril24.png
   :width: 80%
   :align: center
   :alt: The Builder view
 
 #. :doc:`Coder <coder/index>`. For those comfortable with programming, the Coder view provides a basic code editor with syntax highlighting, code folding, and so on. Importantly, it has its own output window and Demo menu. The demos illustrate how to do specific tasks or use specific features; they are not whole experiments. The :doc:`Coder tutorials <coder/index>` should help get you going, and the :ref:`api` will give you the details.
 
-.. figure:: /images/coder.png
+.. figure:: /images/coderApril24.png
   :width: 80%
   :align: center
   :alt: The Coder view
@@ -38,7 +38,7 @@ Start |PsychoPy|, and be sure to be in the Builder view.
 * If you have poked around a bit in the Builder already, be sure to start with a clean slate. To get a new Builder view, type `Ctrl-N` on Windows or Linux, or `Cmd-N` on Mac.
 * Click on a Text component and a Text Properties dialog will pop up.
 
-  .. image:: /images/textdialog.png
+  .. image:: /images/textComponentApril24.png
     :width: 80%
     :align: center
 

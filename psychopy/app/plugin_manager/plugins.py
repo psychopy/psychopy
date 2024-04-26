@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import wx
 from wx.lib import scrolledpanel
 import webbrowser
@@ -479,6 +481,16 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         self.sizer.Add(self.badItemLbl, border=9, flag=wx.ALL | wx.EXPAND)
         self.badItemSizer = wx.BoxSizer(wx.VERTICAL)
         self.sizer.Add(self.badItemSizer, border=3, flag=wx.ALL | wx.EXPAND)
+        # ctrl to display when plugins can't be retrieved
+        self.errorCtrl = utils.MarkdownCtrl(
+            self, value=_translate(
+                "Could not retrieve plugins. Try restarting the PsychoPy app and make sure you "
+                "are connected to the internet."
+            ),
+            style=wx.TE_READONLY
+        )
+        self.sizer.Add(self.errorCtrl, proportion=1, border=3, flag=wx.ALL | wx.EXPAND)
+        self.errorCtrl.Hide()
 
         # Bind deselect
         self.Bind(wx.EVT_LEFT_DOWN, self.onDeselect)
@@ -492,17 +504,19 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             self.initState[item.info.pipname] = {"installed": item.info.installed, "active": item.info.active}
 
     def populate(self):
-        # Get all plugin details
+        # get all plugin details
         items = getAllPluginDetails()
-        # Start off assuming no headings
+        # start off assuming no headings
         self.badItemLbl.Hide()
-        # Put installed packages at top of list
+        # put installed packages at top of list
         items.sort(key=lambda obj: obj.installed, reverse=True)
         for item in items:
             item.setParent(self)
             self.appendItem(item)
-
-        # Layout
+        # if we got no items, display error message
+        if not len(items):
+            self.errorCtrl.Show()
+        # layout
         self.Layout()
         self.SetupScrolling()
 
@@ -697,7 +711,7 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         # Add placeholder for when there's no plugin selected
         self.placeholder = utils.MarkdownCtrl(
             self, value=_translate("Select a plugin to view details."),
-            style=wx.TE_MULTILINE | wx.BORDER_NONE | wx.TE_NO_VSCROLL
+            style=wx.TE_READONLY
         )
         self.border.Add(
             self.placeholder,
@@ -840,7 +854,6 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.sizer.ShowItems(value is not None)
         # Show/hide placeholder according to None
         self.placeholder.Show(value is None)
-        self.placeholder.editBtn.Hide()
         # Handle None
         if value is None:
             value = PluginInfo(
@@ -1145,6 +1158,8 @@ def markActive(pluginItem, pluginPanel, active=True):
 
 # store plugin objects for later use
 _pluginObjects = None
+# persistent variable to keep track of whether we need to update plugins
+redownloadPlugins = True
 
 
 def getAllPluginDetails():
@@ -1175,7 +1190,7 @@ def getAllPluginDetails():
             pass
 
     # where the database is expected to be
-    pluginDatabaseFile = os.path.join(appPluginCacheDir, 'plugins.json')
+    pluginDatabaseFile = Path(appPluginCacheDir) / "plugins.json"
 
     def downloadPluginDatabase(srcURL="https://psychopy.org/plugins.json"):
         """Downloads the plugin database from the server and returns the text
@@ -1188,23 +1203,35 @@ def getAllPluginDetails():
 
         Returns
         -------
-        str or None
-            The plugin database as a string, or None if the download failed.
+        list or None
+            The plugin database as a list, or None if the download failed.
         
         """
+        global redownloadPlugins
+        # if plugins already up to date, skip
+        if not redownloadPlugins:
+            return None
+        # download database from website
         try:
             resp = requests.get(srcURL)
-            if resp.status_code == 404:
-                return None
-            value = resp.text
-            # confirm json is valid
-            try:
-                json.loads(value)
-                return value
-            except json.decoder.JSONDecodeError:
-                return None
         except requests.exceptions.ConnectionError:
+            # if connection to website fails, return nothing
             return None
+        # if download failed, return nothing
+        if resp.status_code == 404:
+            return None
+        # otherwise get as a string
+        value = resp.text
+        # attempt to parse JSON
+        try:
+            database = json.loads(value)
+        except json.decoder.JSONDecodeError:
+            # if JSON parse fails, return nothing
+            return None
+        # if we made it this far, mark plugins as not needing update
+        redownloadPlugins = False
+
+        return database
         
     def readLocalPluginDatabase(srcFile):
         """Read the local plugin database file (if it exists) and return the
@@ -1212,20 +1239,25 @@ def getAllPluginDetails():
 
         Parameters
         ----------
-        srcFile : str
+        srcFile : pathlib.Path
             The expected path to the plugin database file.
         
         Returns
         -------
-        str or None
-            The plugin database as a string, or None if the file doesn't exist.
+        list or None
+            The plugin database as a list, or None if the file doesn't exist.
         
         """
-        if os.path.exists(srcFile):
-            with open(srcFile, 'r') as f:
-                return f.read()
-            
-        return None
+        # if source file doesn't exist, return nothing
+        if not srcFile.is_file():
+            return None
+        # attempt to parse JSON
+        try:
+            with srcFile.open("r", encoding="utf-8") as f:
+                return json.load(f)
+        except json.decoder.JSONDecodeError:
+            # if JSON parse fails, return nothing
+            return None
     
     def deletePluginDlgCache():
         """Delete the local plugin database file and cached files related to 
@@ -1238,47 +1270,38 @@ def getAllPluginDetails():
                 
     # get a copy of the plugin database from the server, check if it's newer
     # than the local copy, and if so, replace the local copy
-    refreshPlugins = False  # database has changed
-    serverPluginDatabase = downloadPluginDatabase()  # text
-    localPluginDatabase = readLocalPluginDatabase(pluginDatabaseFile)  # text
+
+    # get remote database
+    serverPluginDatabase = downloadPluginDatabase()
+    # get local database
+    localPluginDatabase = readLocalPluginDatabase(pluginDatabaseFile)
+
     if serverPluginDatabase is not None:
-        if localPluginDatabase is None:
+        # if we have a database from the remote, use it
+        pluginDatabase = serverPluginDatabase
+        # if the file contents has changed, delete cached icons and etc.
+        if str(pluginDatabase) != str(localPluginDatabase):
             deletePluginDlgCache()
-            # write the new plugin database file
-            with open(pluginDatabaseFile, 'w') as f:  # save the file
-                f.write(serverPluginDatabase)
-            localPluginDatabase = json.loads(serverPluginDatabase)
-        else:
-            # exists, but does it need updating?
-            localPluginDatabase = json.loads(localPluginDatabase)
-            serverPluginDatabase = json.loads(serverPluginDatabase)
-            if localPluginDatabase != serverPluginDatabase:
-                # clear the old cache
-                deletePluginDlgCache()
-                # write the new plugin database file
-                with open(pluginDatabaseFile, 'w') as f:  # save the file
-                    json.dump(serverPluginDatabase, f, indent=True)
-                localPluginDatabase = serverPluginDatabase
-        refreshPlugins = True
+            # write new contents to file
+            with pluginDatabaseFile.open("w", encoding='utf-8') as f:
+                json.dump(pluginDatabase, f, indent=True)
+
+    elif localPluginDatabase is not None:
+        # otherwise use cached
+        pluginDatabase = localPluginDatabase
     else:
-        # no server connection, use local copy
-        if localPluginDatabase is None:
-            # no local copy, so no plugins
-            return []
-        else:
-            # use local copy
-            localPluginDatabase = json.loads(localPluginDatabase)
-        refreshPlugins = True
+        # if we have neither, treat as blank list
+        pluginDatabase = []
 
     # check if we need to update plugin objects, if not return the cached data
     global _pluginObjects
-    requiresRefresh = refreshPlugins or _pluginObjects is None
+    requiresRefresh = _pluginObjects is None
     if not requiresRefresh:
         return _pluginObjects
 
     # Create PluginInfo objects from info list
     objs = []
-    for info in localPluginDatabase:
+    for info in pluginDatabase:
         objs.append(PluginInfo(**info))
 
     # Add info objects for local plugins which aren't found online

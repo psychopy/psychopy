@@ -31,5 +31,14 @@ class NoiseStim(
     pass
 
 
+
+class NoiseStim:
+    """
+    `psychopy.visual.NoiseStim` is now located within the `psychopy-visionscience` plugin. You
+    can find the documentation for it `here
+    <https://psychopy.github.io/psychopy-visionscience/coder/NoiseStim>`_
+    """
+
+
 if __name__ == "__main__":
     pass
