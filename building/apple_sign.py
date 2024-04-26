@@ -154,21 +154,23 @@ class AppSigner:
             raise ValueError('No app-specific password provided for notarizing')
         filename = Path(fileToNotarize).name
         print(f'Sending {filename} to apple for notarizing')
-        cmdStr = (f"xcrun altool --notarize-app -t osx -f {fileToNotarize} "
-                  f"--primary-bundle-id {BUNDLE_ID} -u {USERNAME} ")
-        print(cmdStr)
-        cmdStr += f"-p {self._pword}"
+        cmdStr = (f'xcrun notarytool submit {fileToNotarize} '
+                  f'--apple-id "{USERNAME}" '
+                  f'--password {self._pword} '
+                  f'--team-id {self._identity} ')
+        # cmdStr = (f"xcrun altool --notarize-app -t osx -f {fileToNotarize} "
+        #           f"--primary-bundle-id {BUNDLE_ID} -u {USERNAME} ")
+        # print(cmdStr)
         t0 = time.time()
         exitcode, output = subprocess.getstatusoutput(cmdStr)
-        m = re.match('.*RequestUUID = (.*)\n', output, re.S)
+        m = re.findall(r"^  id: (.*)$", output, re.M)
+
         if 'Please sign in with an app-specific password' in output:
             print("[Error] Upload failed: You probably need a new app-specific "
                   "password from https://appleid.apple.com/account/manage")
             exit(1)
-        elif m is None or not ('No errors uploading' in output):
-            print(f'[Error] Upload failed: {output}')
-            exit(1)
-        uuid = m.group(1).strip()
+        print(output)
+        uuid = m[0].strip()
         self._appNotarizeUUID = uuid
         print(f'Uploaded file {filename} in {time.time()-t0:.03f}s: {uuid}')
         print(f'Upload to Apple completed at {time.ctime()}')
@@ -202,27 +204,20 @@ class AppSigner:
             return zipFilename
 
     def awaitNotarized(self):
-        while self.checkStatus(self._appNotarizeUUID):  # returns True while in progress
-            time.sleep(30)
-
-
-    def checkStatus(self, uuid):
-        cmd = ['xcrun', 'altool', '--notarization-info', self._appNotarizeUUID,
-               '-u', USERNAME, '-p', self._pword]
-        cmdStr = ' '.join(cmd)
+        # can use 'xcrun notarytool info' to check status or 'xcrun notarytool wait'
+        cmdStr = (f'xcrun notarytool wait {self._appNotarizeUUID} '
+                  f'--apple-id "{USERNAME}" '
+                  f'--password {self._pword} '
+                  f'--team-id {self._identity} ')
         exitcode, output = subprocess.getstatusoutput(cmdStr)
-
-        in_progress = 'Status: in progress' in output
-        success = 'Status: success' in output
-
-        if not in_progress:
-            print(f'Notarization completed at {time.ctime()}')
-            if not success:
-                print('*********Notarization failed*************')
-                print(output)
-                exit(1)
-
-        return in_progress
+        print(output)
+        # always fetch the log file too
+        cmdStr = (f'xcrun notarytool log {self._appNotarizeUUID} '
+                  f'--apple-id "{USERNAME}" '
+                  f'--password {self._pword}  '
+                  f'--team-id {self._identity} "developer_log.json"')
+        exitcode, output = subprocess.getstatusoutput(cmdStr)
+        print(output)
 
     def staple(self, filepath):
         cmdStr = f'xcrun stapler staple {filepath}'
@@ -234,12 +229,6 @@ class AppSigner:
             exit(1)
         else:
             print(f"Staple successful. You can verify with\n    xcrun stapler validate {filepath}")
-
-    def checkAppleLogFile(self):
-        cmdStr = f"xcrun altool --notarization-info {self._appNotarizeUUID} -u {USERNAME} -p {PWORD}"
-
-        exitcode, output = subprocess.getstatusoutput(cmdStr)
-        print(f"exitcode={exitcode}: {output}")
 
     def dmgBuild(self):
         dmgFilename = str(self.appFile).replace(".app", "_rw.dmg")

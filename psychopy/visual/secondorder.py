@@ -15,15 +15,16 @@ These are optional components that can be obtained by installing the
 
 """
 
-import psychopy.logging as logging
+from psychopy.tools.pkgtools import PluginStub
 
-try:
-    from psychopy_visionscience import EnvelopeGrating
-except (ModuleNotFoundError, ImportError):
-    logging.error(
-        "Support for `EnvelopeGrating` is not available this session. Please "
-        "install `psychopy-visionscience` and restart the session to enable "
-        "support.")
+
+class EnvelopeGrating(
+    PluginStub,
+    plugin="psychopy-visionscience",
+    doclink="https://psychopy.github.io/psychopy-visionscience/coder/EnvelopeGrating"
+):
+    pass
+
 
 if __name__ == "__main__":
     pass

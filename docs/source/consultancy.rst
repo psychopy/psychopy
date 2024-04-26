@@ -3,9 +3,9 @@ Pricing
 
 PsychoPy is free and always will be, but you can choose to take advantage of other services, like hosting your experiment online on `pavlovia.org <https://pavlovia.org>`_, or hiring us to build your experiment for you!
 
-Our packages
-----------------
-*Please note that if you are from a VAT paying country, you will need to add VAT to the prices below*
+Workshops
+---------
+We offer a range of workshops as well as creating bespoke workshops. Just use the "more" links for more information!
 
 .. raw:: html
 
@@ -24,13 +24,13 @@ Our packages
         }
 
         th {
-            background-color: #F68D92;
+            background-color: #72D6FE;
             color: white;
         }
 
         .header-row th {
             text-align: center;
-            background-color: #F2545B;
+            background-color: #02A9EA;
             color: white;
         }
 
@@ -57,7 +57,7 @@ Our packages
         .cust_tooltip .tooltiptext {
             visibility: hidden;
             width: 500px;
-            background-color: #FCD9DB;
+            background-color: #72D6FE;
             color: black;
             text-align: center;
             border-radius: 6px;
@@ -99,8 +99,112 @@ Our packages
             display: block; /* Shows the first image by default */
         }
     </style>
+    
+    <table>
+        <!-- Consultancy services section -->
+        <tr class="service-row">
+            <td colspan="8">Workshops</td>
+        </tr>
+        <tr class="service-sub-row">
+            <th> </th>
+            <th colspan="2">Location</th>
+            <th colspan="2">Duration</th>
+            <th colspan="2">Cost</th>
+            <th colspan="2">Info</th>
+        </tr>
+        <tr>
+            <td>Official Three Day PsychoPy workshop</td>
+            <td colspan="2">University of Nottingham, UK</td>
+            <td colspan="2">3 days</td>
+            <td colspan="2"><li>Student: £400</li><li>Academic staff: £450</li><li>Industry: £600</li></td>
+            <td colspan="2"><a href = "https://workshops.psychopy.org/#nottingham_workshop"> More</a></td>
+        </tr>
+        <tr>
+            <td>PsychoPy + Tobii eye tracking workshop</td>
+            <td colspan="2">University of Nottingham, UK</td>
+            <td colspan="2">Half day</td>
+            <td colspan="2"><li>Student: £75</li><li>Academic staff: £100</li><li>Industry: £150</li></td>
+            <td colspan="2"><a href = "https://workshops.psychopy.org/#tobii_workshop"> More</a></td>
+        </tr>
+        <tr>
+            <td>Pavlovia Survey Feature Showcase</td>
+            <td colspan="2">Virtual</td>
+            <td colspan="2">1 hour</td>
+            <td colspan="2">Free</td>
+            <td colspan="2"><a href = "https://workshops.psychopy.org/#feature_showcase"> More</a></td>
+        </tr>
+        <tr>
+            <td>Getting Started with PsychoPy</td>
+            <td colspan="2">Virtual</td>
+            <td colspan="2">1.5 hours</td>
+            <td colspan="2">£20 (waiver available)</td>
+            <td colspan="2"><a href = "https://workshops.psychopy.org/topics.html"> More</a></td>
+        </tr>
+        <tr>
+            <td>Running Experiments Online with Pavlovia</td>
+            <td colspan="2">Virtual</td>
+            <td colspan="2">1.5 hours</td>
+            <td colspan="2">£20 (waiver available)</td>
+            <td colspan="2"><a href = "https://workshops.psychopy.org/topics.html"> More</a></td>
+        </tr>
+        <tr>
+            <td>Extending Experiments with Python Code</td>
+            <td colspan="2">Virtual</td>
+            <td colspan="2">1.5 hours</td>
+            <td colspan="2">£20 (waiver available)</td>
+            <td colspan="2"><a href = "https://workshops.psychopy.org/topics.html"> More</a></td>
+        </tr>
+        <tr>
+            <td>Coding an experiment from scratch using Python</td>
+            <td colspan="2">Virtual</td>
+            <td colspan="2">1.5 hours</td>
+            <td colspan="2">£20 (waiver available)</td>
+            <td colspan="2"><a href = "https://workshops.psychopy.org/topics.html"> More</a></td>
+        </tr>
+    </table>
+    <br>
+    <br>
 
-    </style>
+Consultancy services
+--------------------
+
+We've helped many researchers to create and debug experiments, as well as delivered bespoke tutorials. 
+If there's something you'd like us to do for you, just get in touch!
+
+.. raw:: html
+
+    <table>
+    <!-- Consultancy services section -->
+    <tr class="service-row">
+        <td colspan="5">Consultancy services</td>
+    </tr>
+    <tr class="service-sub-row">
+        <th> </th>
+        <th colspan="2">Universities/charities</th>
+        <th colspan="2">Commercial/businesses</th>
+    </tr>
+    <tr>
+        <td>Support cost per hour</td>
+        <td colspan="2">£70</td>
+        <td colspan="2">£105</td>
+    </tr>
+    <tr>
+        <td>Senior staff support cost per hour</td>
+        <td colspan="2">£140</td>
+        <td colspan="2">£210</td>
+    </tr>
+    </table>
+    <br>
+    <br>
+    <div style="text-align: center;">
+        <a href="https://forms.clickup.com/4570406/f/4bf96-7552/ZN8URSTDTWDENY6RP9" style="background-color: #02A9EA; color: white; padding: 10px 20px; text-decoration: none; display: inline-block; border-radius: 5px;">Click here to make a request for support!</a>
+    </div>
+
+Our packages
+----------------
+*Please note that if you are from a VAT paying country, you will need to add VAT to the prices below*
+
+.. raw:: html
 
     <table>
         <tr class="header-row">
@@ -112,17 +216,6 @@ Our packages
             <th>Pavlovia Licence</th>
             <th>Pavlovia Licence + Workshops</th>
             <th>Pavlovia Licence + Workshops + Clinic</th>
-        </tr>
-        <tr>
-            <td>
-                <div class="cust_tooltip">
-                   Price per 12 months
-                </div>
-            </td>
-            <td>Free</td>
-            <td>£1800</td>
-            <td>£2000</td>
-            <td>£5000</td>
         </tr>
         <!-- Features with tooltips and info icons -->
         <tr>
@@ -196,70 +289,26 @@ Our packages
             <td>—</td>
             <td>✓</td>
         </tr>
+        <tr>
+            <td>
+                <div class="cust_tooltip">
+                   Price per 12 months
+                </div>
+            </td>
+            <td>Free</td>
+            <td>£1800</td>
+            <td>£2000</td>
+            <td>£5000</td>
+        </tr>
         </table>
         <br>
         <br>
         <div style="text-align: center;">
-        <a href="https://forms.clickup.com/4570406/f/4bf96-7612/VKR8FZTODF28ICX863" style="background-color: #F2545B; color: white; padding: 10px 20px; text-decoration: none; display: inline-block; border-radius: 5px;">Book a free one hour demo</a>
+        <a href="https://forms.clickup.com/4570406/f/4bf96-7612/VKR8FZTODF28ICX863" style="background-color: #02A9EA; color: white; padding: 10px 20px; text-decoration: none; display: inline-block; border-radius: 5px;">Book a free one hour demo</a>
         </div>
         <br>
         <div style="text-align: center;">
-        <a href="https://forms.clickup.com/4570406/f/4bf96-7632/5QVSTYUIXN6Y9BY2OI " style="background-color: #F2545B; color: white; padding: 10px 20px; text-decoration: none; display: inline-block; border-radius: 5px;">Request a licence</a>
+        <a href="https://forms.clickup.com/4570406/f/4bf96-7632/5QVSTYUIXN6Y9BY2OI " style="background-color: #02A9EA; color: white; padding: 10px 20px; text-decoration: none; display: inline-block; border-radius: 5px;">Request a licence</a>
         </div>
 
-Consultancy services
---------------------
 
-.. raw:: html
-
-    <div class="image-carousel" style="display: flex; justify-content: center;">
-        <img src="_images/cons_carousel3.png" style="width: 700px; display: block;">
-        <img src="_images/cons_carousel4.png" style="width: 700px; display: none;">
-        <img src="_images/cons_carousel5.png" style="width: 700px; display: none;">
-    </div>
-    <br>
-   <script>
-   var currentIndex = 0;
-   var images = document.querySelectorAll('.image-carousel img');
-
-   function cycleImages() {
-       var totalImages = images.length;
-       images[currentIndex].style.display = 'none';
-       currentIndex = (currentIndex + 1) % totalImages;
-       images[currentIndex].style.display = 'block';
-   }
-
-   setInterval(cycleImages, 3000); // Change image every 3 seconds
-   </script>
-
-We've helped many researchers to create and debug experiments, as well as delivered bespoke tutorials. 
-If there's something you'd like us to do for you, just get in touch!
-
-.. raw:: html
-
-        <table>
-        <!-- Consultancy services section -->
-        <tr class="service-row">
-            <td colspan="5">Consultancy services</td>
-        </tr>
-        <tr class="service-sub-row">
-            <th> </th>
-            <th colspan="2">Universities/charities</th>
-            <th colspan="2">Commercial/businesses</th>
-        </tr>
-        <tr>
-            <td>Support cost per hour</td>
-            <td colspan="2">£70</td>
-            <td colspan="2">£105</td>
-        </tr>
-        <tr>
-            <td>Senior staff support cost per hour</td>
-            <td colspan="2">£140</td>
-            <td colspan="2">£210</td>
-        </tr>
-    </table>
-    <br>
-    <br>
-    <div style="text-align: center;">
-        <a href="https://forms.clickup.com/4570406/f/4bf96-7552/ZN8URSTDTWDENY6RP9" style="background-color: #02A9EA; color: white; padding: 10px 20px; text-decoration: none; display: inline-block; border-radius: 5px;">Click here to make a request for support!</a>
-    </div>

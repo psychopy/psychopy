@@ -1156,10 +1156,10 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.paneManager = self.getAuiManager()
 
         # Create menus and status bar
-        self.makeMenus()
-        self.makeStatusBar()
         self.fileMenu = self.editMenu = self.viewMenu = None
         self.helpMenu = self.toolsMenu = None
+        self.makeMenus()
+        self.makeStatusBar()
         self.pavloviaMenu.syncBtn.Enable(bool(self.filename))
         self.pavloviaMenu.newBtn.Enable(bool(self.filename))
         # Link to file drop function
@@ -1315,6 +1315,11 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
         self.theme = colors.theme
 
+        # disable save buttons if currentDoc is None
+        if self.currentDoc is None:
+            self.ribbon.buttons['save'].Disable()
+            self.ribbon.buttons['saveas'].Disable()
+
     @property
     def useAutoComp(self):
         """Show autocomplete while typing."""
@@ -1394,9 +1399,11 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         menu.Append(wx.ID_SAVE,
                     _translate("&Save\t%s") % keyCodes['save'],
                     _translate("Save current file"))
+        menu.Enable(wx.ID_SAVE, False)
         menu.Append(wx.ID_SAVEAS,
                     _translate("Save &as...\t%s") % keyCodes['saveAs'],
                     _translate("Save current python file as..."))
+        menu.Enable(wx.ID_SAVEAS, False)
         menu.Append(wx.ID_CLOSE,
                     _translate("&Close file\t%s") % keyCodes['close'],
                     _translate("Close current file"))
@@ -1976,6 +1983,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
                 self.fileStatusLastChecked = time.time()
                 # Enable / disable save button
                 self.ribbon.buttons['save'].Enable(self.currentDoc.UNSAVED)
+                self.fileMenu.Enable(wx.ID_SAVE, self.currentDoc.UNSAVED)
 
     def pageChanged(self, event):
         """Event called when the user switches between editor tabs."""
@@ -2035,17 +2043,22 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
     #     PluginManagerFrame(self).ShowModal()
 
     def OnFindOpen(self, event):
-        # open the find dialog if not already open
-        if self.findDlg is not None:
-            return
         if not self.currentDoc:
+            # don't do anything if there's no document to search
             return
-        win = wx.Window.FindFocus()
-        self.findData.SetFindString(self.currentDoc.GetSelectedText())
-        self.findDlg = wx.FindReplaceDialog(win, self.findData, "Find",
-                                            wx.FR_NOWHOLEWORD)
-        self.findDlg.Bind(wx.EVT_FIND_CLOSE, self.OnFindClose)
-        self.findDlg.Show()
+        if self.findDlg is not None:
+            # if find dlg already exists, show it and give it focus
+            self.findDlg.Show()
+            self.findDlg.Raise()
+            self.findDlg.SetFocus()
+        else:
+            # if not, make one now
+            win = wx.Window.FindFocus()
+            self.findData.SetFindString(self.currentDoc.GetSelectedText())
+            self.findDlg = wx.FindReplaceDialog(win, self.findData, "Find",
+                                                wx.FR_NOWHOLEWORD)
+            self.findDlg.Bind(wx.EVT_FIND_CLOSE, self.OnFindClose)
+            self.findDlg.Show()
 
     def OnFindNext(self, event):
         # find the next occurrence of text according to last find dialogue data
@@ -2203,6 +2216,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         if doc == self.currentDoc:
             # Enable / disable save button
             self.ribbon.buttons['save'].Enable(self.currentDoc.UNSAVED)
+            self.fileMenu.Enable(wx.ID_SAVE, self.currentDoc.UNSAVED)
 
         self.currentDoc.analyseScript()
 
@@ -2272,7 +2286,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
                 self.fileHistory.AddFileToHistory(filename)
             else:
                 # set name for an untitled document
-                filename = 'untitled.py'
+                filename = shortName = 'untitled.py'
                 allFileNames = self.getOpenFilenames()
                 n = 1
                 while filename in allFileNames:
@@ -2323,7 +2337,9 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
                 self.ribbon.buttons[key].Enable(isExp)
         # update save/saveas buttons
         self.ribbon.buttons['save'].Enable(readonly and self.currentDoc.UNSAVED)
+        self.fileMenu.Enable(wx.ID_SAVE, readonly and self.currentDoc.UNSAVED)
         self.ribbon.buttons['saveas'].Enable(bool(self.filename))
+        self.fileMenu.Enable(wx.ID_SAVEAS, bool(self.filename))
         # update menu items
         self.pavloviaMenu.syncBtn.Enable(bool(self.filename))
         self.pavloviaMenu.newBtn.Enable(bool(self.filename))
@@ -2812,6 +2828,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.currentDoc.UNSAVED = isModified
         # Enable / disable save button
         self.ribbon.buttons['save'].Enable(self.currentDoc.UNSAVED)
+        self.fileMenu.Enable(wx.ID_SAVE, self.currentDoc.UNSAVED)
 
     def onProcessEnded(self, event):
         # this is will check the stdout and stderr for any last messages

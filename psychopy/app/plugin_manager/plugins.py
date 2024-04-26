@@ -919,11 +919,11 @@ class AuthorDetailsPanel(wx.Panel, handlers.ThemeMixin):
         # Button sizer
         self.buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.detailsSizer.Add(self.buttonSizer, border=3, flag=wx.ALIGN_RIGHT | wx.ALL)
-        # Email button
-        self.emailBtn = wx.Button(self, style=wx.BU_EXACTFIT)
-        self.emailBtn.SetToolTip(_translate("Email author"))
-        self.emailBtn.Bind(wx.EVT_BUTTON, self.onEmailBtn)
-        self.buttonSizer.Add(self.emailBtn, border=3, flag=wx.EXPAND | wx.ALL)
+        # # Email button
+        # self.emailBtn = wx.Button(self, style=wx.BU_EXACTFIT)
+        # self.emailBtn.SetToolTip(_translate("Email author"))
+        # self.emailBtn.Bind(wx.EVT_BUTTON, self.onEmailBtn)
+        # self.buttonSizer.Add(self.emailBtn, border=3, flag=wx.EXPAND | wx.ALL)
         # GitHub button
         self.githubBtn = wx.Button(self, style=wx.BU_EXACTFIT)
         self.githubBtn.SetToolTip(_translate("Author's GitHub"))
@@ -945,9 +945,9 @@ class AuthorDetailsPanel(wx.Panel, handlers.ThemeMixin):
         # Name font
         from psychopy.app.themes import fonts
         self.name.SetFont(fonts.appTheme['h4'].obj)
-        # Email button bitmap
-        self.emailBtn.SetBitmap(icons.ButtonIcon("email", 16).bitmap)
-        self.emailBtn.SetBitmapDisabled(icons.ButtonIcon("email", 16).bitmap)
+        # # Email button bitmap
+        # self.emailBtn.SetBitmap(icons.ButtonIcon("email", 16).bitmap)
+        # self.emailBtn.SetBitmapDisabled(icons.ButtonIcon("email", 16).bitmap)
         # Github button bitmap
         self.githubBtn.SetBitmap(icons.ButtonIcon("github", 16).bitmap)
         self.githubBtn.SetBitmapDisabled(icons.ButtonIcon("github", 16).bitmap)
@@ -995,7 +995,7 @@ class AuthorDetailsPanel(wx.Panel, handlers.ThemeMixin):
         else:
             self.name.SetToolTip("")
         # Show/hide buttons
-        self.emailBtn.Show(bool(value.email))
+        # self.emailBtn.Show(bool(value.email))
         self.githubBtn.Show(bool(value.github))
 
     def onEmailBtn(self, evt=None):
@@ -1196,7 +1196,13 @@ def getAllPluginDetails():
             resp = requests.get(srcURL)
             if resp.status_code == 404:
                 return None
-            return resp.text
+            value = resp.text
+            # confirm json is valid
+            try:
+                json.loads(value)
+                return value
+            except json.decoder.JSONDecodeError:
+                return None
         except requests.exceptions.ConnectionError:
             return None
         

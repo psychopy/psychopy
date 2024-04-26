@@ -14,19 +14,8 @@ These are optional components that can be obtained by installing the
 
 """
 
-import psychopy.logging as logging
+from psychopy.tools.pkgtools import PluginStub
 
-try:
-    from psychopy_gammasci import S470
-except (ModuleNotFoundError, ImportError):
-    logging.error(
-        "Support for Gamma-Scientific Inc. hardware is not available this "
-        "session. Please install `psychopy-gammasci` and restart the session "
-        "to enable support.")
-except Exception as e:
-    logging.error(
-        "Error encountered while loading `psychopy-gammasci`. Check logs for "
-        "more information.")
 
-if __name__ == "__main__":
+class S470(PluginStub, plugin="psychopy-gammasci", doclink="https://psychopy.github.io/psychopy-gammasci/coder/S470"):
     pass

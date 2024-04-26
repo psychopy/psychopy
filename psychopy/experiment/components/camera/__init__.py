@@ -427,7 +427,7 @@ class CameraComponent(BaseDeviceComponent):
         code = (
             "# initialise camera\n"
             "cam = deviceManager.addDevice(\n"
-            "    deviceClass='camera',\n"
+            "    deviceClass='psychopy.hardware.camera.Camera',\n"
             "    deviceName=%(deviceLabel)s,\n"
             "    cameraLib=%(cameraLib)s, \n"
             "    device=%(device)s, \n"
@@ -456,25 +456,11 @@ class CameraComponent(BaseDeviceComponent):
 
     def writeInitCode(self, buff):
         inits = getInitVals(self.params, "PsychoPy")
-        self.setupMicNameInInits(inits)
-        # substitute manual values if backend is opencv
-        if self.params['cameraLib'] == "opencv":
-            inits['device'] = inits['deviceManual']
-            inits['resolution'] = inits['resolutionManual']
-            inits['frameRate'] = inits['frameRateManual']
-        # Substitute sample rate value for numeric equivalent
-        inits['micSampleRate'] = micSampleRates[inits['micSampleRate'].val]
-        # Substitute channel value for numeric equivalent
-        inits['micChannels'] = {'mono': 1, 'stereo': 2, 'auto': None}[
-            self.params['micChannels'].val]
 
         # Create Microphone object
         code = (
-            "# create a camera object\n"
-            "%(name)s = camera.Camera(\n"
-            "    device=%(deviceLabel)s, \n"
-            "    mic=%(micDeviceLabel)s, \n"
-            ")\n"
+            "# get camera object\n"
+            "%(name)s = deviceManager.getDevice(%(deviceLabel)s)\n"
         )
         buff.writeIndentedLines(code % inits)
 

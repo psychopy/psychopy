@@ -29,6 +29,7 @@ The table below shows you the current state of play of PsychoJS. Per feature we 
     , :darkred:`Not supported`, Apertures\, Envelope Gratings\, Noise
   **Responses**,,
     :ref:`Form <formComponent>`, :darkgreen:`Built-in`,
+    :ref:`Pavlovia Surveys <advancedsurvey>`, :darkgreen:`Built-in`,
     Gyroscope, :darkorange:`Prototype`, Measures the orientation of tablets and smartphones. `Try it out <https://pavlovia.org/tpronk/demo_gyroscope>`_
     Eye-tracking, :darkorange:`Prototype`, `Try it out  <https://pavlovia.org/demos/demo_eye_tracking2/>`_
     :ref:`Keyboard <keyboard>`, :darkgreen:`Built-in`, 

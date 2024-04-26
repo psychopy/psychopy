@@ -890,7 +890,7 @@ class Routine(list):
                 maxTime = max(maxTime, thisT)
         # if max set by routine, override calculated max
         rtDur, numericStop = self.settings.getDuration()
-        if numericStop and rtDur != FOREVER:
+        if rtDur != FOREVER:
             maxTime = rtDur
         # if there are no components, default to 10s
         if maxTime == 0:

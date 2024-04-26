@@ -32,3 +32,13 @@ class CodeGenerationException(Exception):
     def __str__(self):
         return "{}: ".format(self.source, self.message)
 
+
+def canBeNumeric(inStr):
+    """Determines whether the input can be converted to a float
+    (using a try: float(instr))
+    """
+    try:
+        float(inStr)
+        return True
+    except Exception:
+        return False

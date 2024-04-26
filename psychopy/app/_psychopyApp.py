@@ -209,7 +209,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         # allocated when `OnInit` is called.
         self._sharedMemory = None
         self._singleInstanceChecker = None  # checker for instances
-        self._timer = None
+        self._lastInstanceCheckTime = -1.0
         # Size of the memory map buffer, needs to be large enough to hold UTF-8
         # encoded long file paths.
         self.mmap_sz = 2048
@@ -414,7 +414,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             w, h = splashImage.GetSize()
             splash.SetTextPosition((340, h - 30))
             splash.SetText(
-                _translate("Copyright (C) 2022 OpenScienceTools.org"))
+                _translate("Copyright (C) {year} OpenScienceTools.org").format(year=2024))
         else:
             splash = None
 
@@ -560,7 +560,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                     "Failed to open Runner with requested file list, opening without file list.\n"
                     "Requested: {}\n"
                     "Err: {}"
-                ).format(runlist, traceback.format_exception_only(err)))
+                ).format(runlist, err))
                 logging.debug(
                     "\n".join(traceback.format_exception(err))
                 )
@@ -575,7 +575,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                     "Failed to open Coder with requested scripts, opening with no scripts open.\n"
                     "Requested: {}\n"
                     "Err: {}"
-                ).format(scripts, traceback.format_exception_only(err)))
+                ).format(scripts, err))
                 logging.debug(
                     "\n".join(traceback.format_exception(err))
                 )
@@ -653,10 +653,6 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         if self.coder:
             self.coder.setOutputWindow()  # takes control of sys.stdout
 
-        # if the program gets here, there are no other instances running
-        self._timer = wx.PyTimer(self._bgCheckAndLoad)
-        self._timer.Start(250)
-
         # load plugins after the app has been mostly realized
         if splash:
             splash.SetText(_translate("  Loading plugins..."))
@@ -677,15 +673,16 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
 
         return True
 
-    def _bgCheckAndLoad(self):
-        """Check shared memory for messages from other instances. This only is
-        called periodically in the first and only instance of PsychoPy.
+    def _bgCheckAndLoad(self, *args):
+        """Check shared memory for messages from other instances. 
+        
+        This only is called periodically in the first and only instance of 
+        PsychoPy running on the machine. This is called within the app's main
+        idle event method, with a frequency no more that once per second.
 
         """
         if not self._appLoaded:  # only open files if we have a UI
             return
-
-        self._timer.Stop()
 
         self._sharedMemory.seek(0)
         if self._sharedMemory.read(1) == b'+':  # available data
@@ -705,8 +702,6 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                 topWindow.Iconize(False)
             else:
                 topWindow.Raise()
-
-        self._timer.Start(1000)  # 1 second interval
 
     @property
     def appLoaded(self):
@@ -1178,8 +1173,23 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                 self._allFrames.remove(entry)
 
     def onIdle(self, evt):
+        """Run idle tasks, including background checks for new instances.
+
+        Some of these run once while others are added as tasks to be run
+        repeatedly.
+
+        """
         from . import idle
-        idle.doIdleTasks(app=self)
+        idle.doIdleTasks(app=self)  # run once
+
+        # do the background check for new instances, check each second
+        tNow = time.time()
+        if tNow - self._lastInstanceCheckTime > 1.0:  # every second
+            if not self.testMode:
+                self._bgCheckAndLoad()
+            
+            self._lastInstanceCheckTime = time.time()
+
         evt.Skip()
 
     @property

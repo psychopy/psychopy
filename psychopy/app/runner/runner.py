@@ -24,7 +24,7 @@ import webbrowser
 from pathlib import Path
 from subprocess import Popen, PIPE
 
-from psychopy import experiment
+from psychopy import experiment, logging
 from psychopy.app.utils import FrameSwitcher, FileDropTarget
 from psychopy.localization import _translate
 from psychopy.projects.pavlovia import getProject
@@ -474,7 +474,9 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         self.prefs = self.app.prefs.coder
         self.paths = self.app.prefs.paths
         self.parent = parent
+        # start values for server stuff
         self.serverProcess = None
+        self.serverPort = None
 
         # self.entries is dict of dicts: {filepath: {'index': listCtrlInd}} and may store more info later
         self.entries = {}
@@ -488,6 +490,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
 
         # setup ribbon
         self.ribbon = RunnerRibbon(self)
+        self.ribbon.buttons['pyswitch'].setMode(0)
         self.mainSizer.Add(self.ribbon, border=0, flag=wx.EXPAND | wx.ALL)
 
         # Setup splitter
@@ -547,6 +550,10 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         self.ribbon.buttons['remove'].Disable()
 
         self.theme = parent.theme
+
+    def __del__(self):
+        if self.serverProcess is not None:
+            self.killServer()
 
     def _applyAppTheme(self):
         # Srt own background
@@ -674,38 +681,58 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         if self.currentSelection is None:
             return
 
-        # we only want one server process open
-        if self.serverProcess is not None:
-            self.serverProcess.kill()
-            self.serverProcess = None
-
-        # Get PsychoJS libs
-        self.getPsychoJS()
-
+        # get relevant paths
         htmlPath = str(self.currentFile.parent / self.outputPath)
         jsFile = self.currentFile.parent / (self.currentFile.stem + ".js")
-        pythonExec = Path(sys.executable)
-        command = [str(pythonExec), "-m", "http.server", str(port)]
-
+        # make sure JS file exists
         if not os.path.exists(jsFile):
             generateScript(outfile=str(jsFile),
                            exp=self.loadExperiment(),
                            target="PsychoJS")
-
-        self.serverProcess = Popen(command,
-                                   bufsize=1,
-                                   cwd=htmlPath,
-                                   stdout=PIPE,
-                                   stderr=PIPE,
-                                   shell=False,
-                                   universal_newlines=True,
-
-                                   )
-
-        time.sleep(.1)  # Wait for subprocess to start server
+        # start server
+        self.startServer(htmlPath, port=port)
+        # open experiment
         webbrowser.open("http://localhost:{}".format(port))
-        print("##### Local server started! #####\n\n"
-              "##### Running PsychoJS task from {} #####\n".format(htmlPath))
+        # log experiment open
+        print(
+            f"##### Running PsychoJS task from {htmlPath} on port {port} #####\n"
+        )
+
+    def startServer(self, htmlPath, port=12002):
+        # we only want one server process open
+        if self.serverProcess is not None:
+            self.killServer()
+        # get PsychoJS libs
+        self.getPsychoJS()
+        # construct command
+        command = [sys.executable, "-m", "http.server", str(port)]
+        # open server
+        self.serverPort = port
+        self.serverProcess = Popen(
+            command,
+            bufsize=1,
+            cwd=htmlPath,
+            stdout=PIPE,
+            stderr=PIPE,
+            shell=False,
+            universal_newlines=True,
+        )
+        time.sleep(.1)
+        # log server start
+        logging.info(f"Local server started on port {port} in directory {htmlPath}")
+
+    def killServer(self):
+        # we can only close if there is a process
+        if self.serverProcess is None:
+            return
+        # kill subprocess
+        self.serverProcess.terminate()
+        time.sleep(.1)
+        # log server stopped
+        logging.info(f"Local server on port {self.serverPort} stopped")
+        # reset references to server stuff
+        self.serverProcess = None
+        self.serverPort = None
 
     def onURL(self, evt):
         self.parent.onURL(evt)
@@ -916,8 +943,8 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
 
     def onDoubleClick(self, evt):
         self.currentSelection = evt.Index
-        filename = self.expCtrl.GetItem(self.currentSelection, 0).Text
-        folder = self.expCtrl.GetItem(self.currentSelection, 1).Text
+        filename = self.expCtrl.GetItem(self.currentSelection, filenameColumn).Text
+        folder = self.expCtrl.GetItem(self.currentSelection, folderColumn).Text
         filepath = os.path.join(folder, filename)
         if filename.endswith('psyexp'):
             # do we have that file already in a frame?
@@ -1159,25 +1186,23 @@ class RunnerRibbon(ribbon.FrameRibbon):
             "py", label=_translate("Desktop"), icon="desktop"
         )
         # pilot Py
-        btn = self.addButton(
+        self.addButton(
             section="py", name="pypilot", label=_translate("Pilot"), icon='pyPilot',
             tooltip=_translate("Run the current script in Python with piloting features on"),
             callback=parent.pilotLocal
-        )
-        btn.Hide()
+        ).Disable()
         # run Py
-        btn = self.addButton(
+        self.addButton(
             section="py", name="pyrun", label=_translate("Run"), icon='pyRun',
             tooltip=_translate("Run the current script in Python"),
             callback=parent.runLocal
-        )
-        btn.Hide()
+        ).Disable()
         # stop
         self.addButton(
             section="py", name="pystop", label=_translate("Stop"), icon='stop',
             tooltip=_translate("Stop the current (Python) script"),
             callback=parent.stopTask
-        )
+        ).Disable()
 
         self.addSeparator()
 
@@ -1186,20 +1211,18 @@ class RunnerRibbon(ribbon.FrameRibbon):
             "browser", label=_translate("Browser"), icon="browser"
         )
         # pilot JS
-        btn = self.addButton(
+        self.addButton(
             section="browser", name="jspilot", label=_translate("Pilot in browser"),
             icon='jsPilot',
             tooltip=_translate("Pilot experiment locally in your browser"),
             callback=parent.runOnlineDebug
-        )
-        btn.Hide()
+        ).Disable()
         # run JS
-        btn = self.addButton(
+        self.addButton(
             section="browser", name="jsrun", label=_translate("Run on Pavlovia"), icon='jsRun',
             tooltip=_translate("Run experiment on Pavlovia"),
             callback=parent.runOnline
-        )
-        btn.Hide()
+        ).Disable()
 
         self.addSeparator()
 

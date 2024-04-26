@@ -436,7 +436,17 @@ class PavloviaSession:
             self.gitlab = gitlab.Gitlab(rootURL, oauth_token=token,
                                         timeout=10, session=self.session,
                                         per_page=100)
-            self.gitlab.auth()
+            try:
+                self.gitlab.auth()
+            except gitlab.exceptions.GitlabParsingError as err:
+                raise ConnectionError(
+                    "Failed to authenticate with the gitlab.pavlovia.org server. "
+                    "Received a string that could not be parsed by the gitlab library. "
+                    "This may be caused by having an institutional proxy server but "
+                    "not setting the proxy setting in PsychoPy preferences. If that "
+                    "isn't the case for you, then please get in touch so we can work out "
+                    "what the cause was in your case! support@opensciencetools.org")
+            
             self.username = self.gitlab.user.username
             self.userID = self.gitlab.user.id  # populate when token property is set
             self.userFullName = self.gitlab.user.name
@@ -854,8 +864,8 @@ class PavloviaProject(dict):
                 repo = self.newRepo(infoStream)
                 if repo is None:
                     return 0
-            # If first commit, do initial push
-            if not bool(self.project.attributes['default_branch']):
+            # If first commit (besides repo creation), do initial push
+            if len(self.project.commits.list()) < 2:
                 self.firstPush(infoStream=infoStream)
             # Pull and push
             self.pull(infoStream)
