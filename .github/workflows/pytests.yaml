@@ -36,12 +36,12 @@ jobs:
         pip install attrdict3  # used by wxpython setup
         python ./building/plat_custom_installs.py
 
-        pip install pdm
-        pdm config python.use_venv false  # don't need/want venv in a vm!
-        pdm install  # fetch dependendices in lock file
-        pdm add -G tests
-        pdm install -G tests
-        pdm build
+        # pip install pdm
+        # pdm config python.use_venv false  # don't need/want venv in a vm!
+        # pdm install  # fetch dependendices in lock file
+        # pdm add -G tests
+        # pdm install -G tests
+        # pdm build
         # install with pip both the main and [tests] group
         pip install . --prefer-binary  # install with pip
         pip install '.[tests]' --prefer-binary  # optional dependency group
