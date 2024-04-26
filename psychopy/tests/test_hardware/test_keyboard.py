@@ -79,6 +79,10 @@ class _MillikeyMixin:
         from psychopy.hardware.serialdevice import SerialDevice
         from psychopy.tools import systemtools as st
 
+        # systemtools only works on Windows so skip millikey-dependent tests on other OS's
+        if sys.platform != "win32":
+            return
+
         # use systemtools to find millikey port
         for profile in st.systemProfilerWindowsOS(classname="Ports", connected=True):
             # identify by driver name
