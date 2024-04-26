@@ -142,8 +142,10 @@ class _MillikeyMixin:
         Requires a Millikey device to run.
         """
         self.makeMillikeyKeypress(key="a", duration=10, delay=10)
+        # get last message
+        resp = self.kb.getKeys()[-1]
         # check whether the created press was received
-        assert any(resp.code == "a" for resp in self.kb.getKeys())
+        assert resp.name == "a"
 
     def testPhysicalKeypressTiming(self):
         """
@@ -174,7 +176,7 @@ class _MillikeyMixin:
             # get last message
             resp = self.kb.getKeys()[-1]
             # check correct key
-            assert resp.code == ans
+            assert resp.name == ans
             # check correct rt
             assert abs(resp.rt - rt / 1000) <= tolerance / 1000
             # check correct duration
