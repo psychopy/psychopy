@@ -1,74 +1,99 @@
 .. _buttonComponent:
 
+-------------------------------
 Button Component
 -------------------------------
 
 This component allows you to show a static textbox which ends the routine and/or triggers a "callback" (some custom code) when pressed. The nice thing about the button component is that you can allow mouse/touch responses with a single component instead of needing 3 separate components i.e. a textbox component (to display as a "clickable" thing), a mouse component (to click the textbox) and a code component (not essential, but for example to check if a clicked response was correct or incorrect).
 
-name : string
+Categories:
+    Responses
+Works in:
+    PsychoPy, PsychoJS
+
+**Note: Since this is still in beta, keep an eye out for bug fixes.**
+
+Parameters
+-------------------------------
+
+Basic
+===============================
+
+Name
     Everything in a |PsychoPy| experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
     
-start :
+Start
     The time that the stimulus should first appear. See :ref:`startStop` for details.
 
-stop : 
+Stop
     The duration for which the stimulus is presented. See :ref:`startStop` for details.
 
-Force End Routine on Press
+Force end of Routine
     If this box is checked then the :ref:`Routine <Routines>` will end as soon as one of the mouse buttons is pressed.
 
-button text : string
+Button text
     Text to be shown
 
-callback function : code
+Callback function
     Custom code to run when the button is pressed
 
-run once per click : bool
+Run once per click
     Whether the callback function to only run once when the button is inititally clicked, or whether it should run continuously each frame while the button is pressed.
 
 Appearance
 ==========
 How should the stimulus look? Colour, borders, etc.
 
-text color : color
+Text color
     See :ref:`colorspaces`
 
-fill color : color
+Fill color
     See :ref:`colorspaces`
 
-border color : color
+Border color
     See :ref:`colorspaces`
 
-color space : rgb, dkl, lms, hsv
+Color space
     See :ref:`colorspaces`
 
-border width : int | float
+Border width
     How wide should the line be? Width is specified in chosen spatial units, see :doc:`../../general/units`
 
-opacity :
+Opacity
     Vary the transparency, from 0.0 = invisible to 1.0 = opaque
 
 Layout
 ======
 How should the stimulus be laid out? Padding, margins, size, position, etc.
 
-ori : degrees
+Orientation
     The orientation of the stimulus in degrees.
 
-pos : [X,Y]
+Position [x,y]
     The position of the centre of the stimulus, in the units specified by the stimulus or window
 
-size : (width, height)
+Size [w,h]
     Size of the stimulus on screen
 
-spatial units : deg, cm, pix, norm, or inherit from window
+Spatial units
     See :doc:`../../general/units`
 
-padding : float
+Padding
     How much space should there be between the box edge and the text?
 
-anchor : center, center-left, center-right, top-left, top-center, top-right, bottom-left, bottom-center, bottom-right
+Anchor
     What point on the button should be anchored to its position? For example, if the position of the button is (0, 0), should the middle of the button be in the middle of the screen, should its top left corner be in the middle of the screen, etc.?
+
+    Options:
+    - center
+    - top-center
+    - bottom-center
+    - center-left
+    - center-right
+    - top-left
+    - top-right
+    - bottom-left
+    - bottom-right
 
 Formatting
 ==========
@@ -85,6 +110,43 @@ letter height : integer or float
 
 line spacing : float
     How tall should each line be, proportional to the size of the font?
+
+Data
+===============================
+
+Save onset/offset times
+    Store the onset/offset times in the data file (as well as in the log file).
+
+Sync timing with screen refresh
+    Synchronize times with screen refresh (good for visual stimuli and responses based on them)
+
+Record clicks
+    What clicks on this button should be saved to the data output?
+    
+    Options:
+    - first click
+    - last click
+    - every click
+    - none
+
+Time relative to
+    What should the values of mouse.time should be relative to?
+    
+    Options:
+    - button onset
+    - experiment
+    - routine
+
+Testing
+===============================
+
+Disable Component
+    Disable this Component
+
+Validate with...
+    Name of validator Component/Routine to use to check the timing of this stimulus.
+
+    Options are generated live, so will vary according to your setup.
 
 .. seealso::
 	

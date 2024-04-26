@@ -15,8 +15,14 @@ from psychopy import visual, logging, core, event
 visual.useFBO = True  # if available (try without for comparison)
 
 import matplotlib
-matplotlib.use('QtAgg')  # change this to control the plotting 'back end'
 import pylab
+import sys
+if sys.platform == "darwin":
+    # on Mac...
+    matplotlib.use('QtAgg')
+else:
+    # on any other OS...
+    matplotlib.use('Qt4Agg')
 
 nIntervals = 500
 win = visual.Window([1280, 1024], fullscr=True, allowGUI=False, waitBlanking=True)

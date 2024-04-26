@@ -2,42 +2,30 @@ from pathlib import Path
 from tempfile import mkdtemp
 
 from psychopy import experiment
-from . import _TestDisabledMixin, _TestBaseComponentsMixin
+from . import BaseComponentTests
 from psychopy.experiment.loops import TrialHandler
 from psychopy.experiment.routines import Routine
 from psychopy.experiment.components.code import CodeComponent
 from psychopy.tests.utils import TESTS_DATA_PATH
 
 
-class TestCodeComponent(_TestBaseComponentsMixin, _TestDisabledMixin):
+class TestCodeComponent(BaseComponentTests):
     """
     Test that Code coponents have the correct params and write as expected.
     """
+    comp = CodeComponent
 
     @classmethod
     def setup_class(cls):
-        cls.exp = experiment.Experiment() # create once, not every test
         try:
             cls.tempDir = mkdtemp(dir=Path(__file__).root, prefix='psychopy-tests-app')
         except (PermissionError, OSError):
             # can't write to root on Linux
             cls.tempDir = mkdtemp(prefix='psychopy-tests-app')
 
-    def setup_method(self):
-        # Make blank experiment
-        self.exp = experiment.Experiment()
-        # Make blank routine
-        self.routine = Routine(name="testRoutine", exp=self.exp)
-        self.exp.addRoutine("testRoutine", self.routine)
-        self.exp.flow.addRoutine(self.routine, 0)
-        # Add loop around routine
-        self.loop = TrialHandler(exp=self.exp, name="testLoop")
-        self.exp.flow.addLoop(self.loop, 0, -1)
-        # Make Mouse component
-        self.comp = CodeComponent(exp=self.exp, parentName="testRoutine", name="testCode")
-        self.routine.addComponent(self.comp)
-
     def test_all_code_component_tabs(self):
+        # make minimal experiment just for this test
+        comp, rt, exp = self.make_minimal_experiment()
         # Names of each tab in a Code component
         tabs = {
             'Before Experiment': '___before_experiment___',
@@ -50,11 +38,11 @@ class TestCodeComponent(_TestBaseComponentsMixin, _TestDisabledMixin):
         # Add markers to component
         for paramName, marker in tabs.items():
             jsParamName = paramName.replace(" ", " JS ")
-            self.comp.params[paramName].val = self.comp.params[jsParamName].val = marker
+            comp.params[paramName].val = comp.params[jsParamName].val = " = ".join([self.comp.__name__, comp.name, marker])
 
         # Write script
-        pyScript = self.exp.writeScript(target="PsychoPy")
-        jsScript = self.exp.writeScript(target="PsychoJS")
+        pyScript = exp.writeScript(target="PsychoPy")
+        jsScript = exp.writeScript(target="PsychoJS")
 
         # Check that code from each tab exists in compiled script
         for lang, script in {"Python": pyScript, "JS": jsScript}.items():

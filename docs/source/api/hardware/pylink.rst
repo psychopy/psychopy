@@ -15,6 +15,3 @@ https://www.sr-support.com/thread-13.html
 For documentation of ``pylink``, see:
 
 https://www.sr-support.com/thread-48.html
-
-.. automodule:: pylink
-    :members:

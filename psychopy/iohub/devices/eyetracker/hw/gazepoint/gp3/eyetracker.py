@@ -6,7 +6,7 @@
 import psychopy.logging as logging
 
 try:
-    from psychopy_eyetracker_gazepoint.gp3.eyetracker import (
+    from psychopy_eyetracker_gazepoint.gazepoint.gp3.eyetracker import (
         ET_UNDEFINED, 
         EyeTracker,
         to_numeric,
