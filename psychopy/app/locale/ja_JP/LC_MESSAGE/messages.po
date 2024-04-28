@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PsychoPy 2024.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-04 14:13+0900\n"
-"PO-Revision-Date: 2024-04-04 14:15+0900\n"
+"POT-Creation-Date: 2024-04-25 11:31+0900\n"
+"PO-Revision-Date: 2024-04-25 11:32+0900\n"
 "Last-Translator: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language-Team: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language: ja\n"
@@ -429,7 +429,7 @@ msgstr ""
 "PsychoPyはあなたからのフィードバックを求めています. 不具合を見つけたら\n"
 "psychopy-users@googlegroups.com に御連絡ください"
 
-#: app/builder/builder.py:285 app/builder/builder.py:3384
+#: app/builder/builder.py:285 app/builder/builder.py:3387
 #: app/coder/coder.py:1382 app/pavlovia_ui/_base.py:24 app/runner/runner.py:230
 #: monitors/MonitorCenter.py:227
 msgid "&File"
@@ -454,7 +454,7 @@ msgstr "最近開いたファイル(&R)"
 msgid "&Save\t%s"
 msgstr "保存(&S)\t%s"
 
-#: app/builder/builder.py:311 app/builder/builder.py:4482
+#: app/builder/builder.py:311 app/builder/builder.py:4485
 msgid "Save current experiment file"
 msgstr "現在の実験を実験ファイルに保存します"
 
@@ -463,7 +463,7 @@ msgstr "現在の実験を実験ファイルに保存します"
 msgid "Save &as...\t%s"
 msgstr "名前を付けて保存(&a)...\t%s"
 
-#: app/builder/builder.py:315 app/builder/builder.py:4488
+#: app/builder/builder.py:315 app/builder/builder.py:4491
 msgid "Save current experiment file as..."
 msgstr "現在の実験をファイル名を指定して保存します."
 
@@ -514,7 +514,7 @@ msgstr "編集(&E)"
 msgid "Undo\t%s"
 msgstr "元に戻す\t%s"
 
-#: app/builder/builder.py:365 app/builder/builder.py:4501
+#: app/builder/builder.py:365 app/builder/builder.py:4504
 #: app/coder/coder.py:1516 app/coder/coder.py:2956
 msgid "Undo last action"
 msgstr "直前の操作を元に戻します"
@@ -525,7 +525,7 @@ msgstr "直前の操作を元に戻します"
 msgid "Redo\t%s"
 msgstr "繰り返す\t%s"
 
-#: app/builder/builder.py:370 app/builder/builder.py:4507
+#: app/builder/builder.py:370 app/builder/builder.py:4510
 #: app/coder/coder.py:1521 app/coder/coder.py:2962
 msgid "Redo last action"
 msgstr "直前の操作を繰り返します"
@@ -535,12 +535,12 @@ msgstr "直前の操作を繰り返します"
 msgid "&Paste\t%s"
 msgstr "貼り付け(&P)\t%s"
 
-#: app/builder/builder.py:393 app/builder/builder.py:3393
+#: app/builder/builder.py:393 app/builder/builder.py:3396
 #, python-format
 msgid "&Toggle readme\t%s"
 msgstr "Readme表示ON/OFF(&T)\t%s"
 
-#: app/builder/builder.py:395 app/builder/builder.py:3395
+#: app/builder/builder.py:395 app/builder/builder.py:3398
 msgid "Toggle Readme"
 msgstr "Readmeファイルの表示ON/OFFを切り替えます"
 
@@ -871,7 +871,7 @@ msgstr "繰り返す %(action)s\t%(key)s"
 msgid "Location to unpack demos"
 msgstr "デモを展開する場所を選択してください"
 
-#: app/builder/builder.py:1410 app/builder/builder.py:2601
+#: app/builder/builder.py:1410 app/builder/builder.py:2604
 #, python-format
 msgid "New name for copy of \"%(copied)s\"?  [%(default)s]"
 msgstr "%(copied)sのコピーの名前は？ [%(default)s]"
@@ -913,8 +913,8 @@ msgstr "上に貼り付け"
 msgid "Paste below"
 msgstr "下に貼り付け"
 
-#: app/builder/builder.py:1885 app/builder/builder.py:3387
-#: app/builder/builder.py:4496 app/coder/coder.py:2951 app/utils.py:493
+#: app/builder/builder.py:1885 app/builder/builder.py:3390
+#: app/builder/builder.py:4499 app/coder/coder.py:2951 app/utils.py:493
 msgid "Edit"
 msgstr "編集"
 
@@ -942,99 +942,99 @@ msgstr "一番下へ"
 msgid "paste"
 msgstr "貼り付け"
 
-#: app/builder/builder.py:2551
+#: app/builder/builder.py:2554
 msgid "Routine settings"
 msgstr "Routineの設定"
 
-#: app/builder/builder.py:2605
+#: app/builder/builder.py:2608
 msgid "Paste Component"
 msgstr "Componentの貼り付け"
 
-#: app/builder/builder.py:2719
+#: app/builder/builder.py:2722
 msgid "Help"
 msgstr "ヘルプ"
 
-#: app/builder/builder.py:2857
+#: app/builder/builder.py:2860
 msgid "Cannot add component, experiment has no routines."
 msgstr "実験にRoutineがないのでコンポーネントを追加できません."
 
-#: app/builder/builder.py:2858 app/preferencesDlg.py:709
+#: app/builder/builder.py:2861 app/preferencesDlg.py:709
 msgid "Error"
 msgstr "エラー"
 
-#: app/builder/builder.py:2908
+#: app/builder/builder.py:2911
 msgid "Remove from favorites"
 msgstr "お気に入りから削除"
 
-#: app/builder/builder.py:2912
+#: app/builder/builder.py:2915
 msgid "Add to favorites"
 msgstr "お気に入りに追加"
 
-#: app/builder/builder.py:3046 app/pavlovia_ui/project.py:914
+#: app/builder/builder.py:3049 app/pavlovia_ui/project.py:914
 #: app/pavlovia_ui/search.py:413 app/pavlovia_ui/sync.py:97
 msgid "OK"
 msgstr "OK"
 
-#: app/builder/builder.py:3089
+#: app/builder/builder.py:3092
 msgid "Get more..."
 msgstr "追加..."
 
-#: app/builder/builder.py:3090
+#: app/builder/builder.py:3093
 msgid "Add new components and features via plugins."
 msgstr "プラグインを用いて新しいコンポーネントおよび機能を追加します."
 
-#: app/builder/builder.py:3096
+#: app/builder/builder.py:3099
 msgid "Filter components by whether they work with PsychoJS, PsychoPy or both."
 msgstr ""
 "PsychoJS(オンライン)のみ, PsychoPy(ローカル)のみ, 両方で使えるコンポーネント"
 "のみを表示します."
 
-#: app/builder/builder.py:3390
+#: app/builder/builder.py:3393
 #, python-format
 msgid "&Close readme\t%s"
 msgstr "Readmeを閉じる(&C)\t%s"
 
-#: app/builder/builder.py:3487 app/builder/builder.py:3610
+#: app/builder/builder.py:3490 app/builder/builder.py:3613
 msgid "Insert Routine"
 msgstr "Routineを挿入"
 
-#: app/builder/builder.py:3494 app/builder/builder.py:3612
+#: app/builder/builder.py:3497 app/builder/builder.py:3615
 msgid "Insert Loop"
 msgstr "Loopを挿入"
 
-#: app/builder/builder.py:3557
+#: app/builder/builder.py:3560
 msgid "remove"
 msgstr "削除"
 
-#: app/builder/builder.py:3558
+#: app/builder/builder.py:3561
 msgid "rename"
 msgstr "名前の変更"
 
-#: app/builder/builder.py:3641
+#: app/builder/builder.py:3644
 msgid "Select a Routine to insert (Esc to exit)"
 msgstr "挿入するRoutineを選んでください(Escで中止)"
 
-#: app/builder/builder.py:3681
+#: app/builder/builder.py:3684
 msgid "CANCEL Insert"
 msgstr "挿入を中止"
 
-#: app/builder/builder.py:3683
+#: app/builder/builder.py:3686
 msgid "Click where you want to insert the Routine, or CANCEL insert."
 msgstr "Routineを挿入する位置をクリックするか, 挿入を中止してください."
 
-#: app/builder/builder.py:3714
+#: app/builder/builder.py:3717
 msgid "CANCEL insert"
 msgstr "挿入を中止"
 
-#: app/builder/builder.py:3717
+#: app/builder/builder.py:3720
 msgid "Click where you want the loop to start/end, or CANCEL insert."
 msgstr "挿入するLoopの始点または終点をクリックするか, 挿入を中止してください."
 
-#: app/builder/builder.py:3726
+#: app/builder/builder.py:3729
 msgid "Click the other end for the loop"
 msgstr "挿入するLoopのもう一端をクリックしてください"
 
-#: app/builder/builder.py:3978
+#: app/builder/builder.py:3981
 #, python-format
 msgid ""
 "The \"%s\" Loop is about to be deleted as well (by collapsing). OK to "
@@ -1043,191 +1043,191 @@ msgstr ""
 "「%s」というLoopの内容が空になるため削除されようとしています. よろしいです"
 "か？"
 
-#: app/builder/builder.py:3980
+#: app/builder/builder.py:3983
 msgid "Impending Loop collapse"
 msgstr "Loopが空になろうとしています"
 
-#: app/builder/builder.py:4465 app/coder/coder.py:2920 app/runner/runner.py:516
+#: app/builder/builder.py:4468 app/coder/coder.py:2920 app/runner/runner.py:516
 msgid "File"
 msgstr "ファイル"
 
-#: app/builder/builder.py:4469 app/coder/coder.py:2924
+#: app/builder/builder.py:4472 app/coder/coder.py:2924
 msgid "New"
 msgstr "新規"
 
-#: app/builder/builder.py:4470
+#: app/builder/builder.py:4473
 msgid "Create new experiment file"
 msgstr "新しい実験ファイルを作成します"
 
-#: app/builder/builder.py:4475 app/coder/coder.py:2930
+#: app/builder/builder.py:4478 app/coder/coder.py:2930
 #: app/runner/runner.py:1163
 msgid "Open"
 msgstr "開く"
 
-#: app/builder/builder.py:4476
+#: app/builder/builder.py:4479
 msgid "Open an existing experiment file"
 msgstr "実験ファイルを開きます"
 
-#: app/builder/builder.py:4481 app/builder/localizedStrings.py:37
+#: app/builder/builder.py:4484 app/builder/localizedStrings.py:37
 #: app/coder/coder.py:2936 app/pavlovia_ui/project.py:395
 #: app/runner/runner.py:1157 app/utils.py:501 monitors/MonitorCenter.py:259
 msgid "Save"
 msgstr "保存"
 
-#: app/builder/builder.py:4487 app/coder/coder.py:2942
+#: app/builder/builder.py:4490 app/coder/coder.py:2942
 msgid "Save as..."
 msgstr "名前を付けて保存..."
 
-#: app/builder/builder.py:4500 app/coder/codeEditorBase.py:101
+#: app/builder/builder.py:4503 app/coder/codeEditorBase.py:101
 #: app/coder/coder.py:2955
 msgid "Undo"
 msgstr "元に戻す"
 
-#: app/builder/builder.py:4506 app/coder/codeEditorBase.py:102
+#: app/builder/builder.py:4509 app/coder/codeEditorBase.py:102
 #: app/coder/coder.py:2961
 msgid "Redo"
 msgstr "繰り返す"
 
-#: app/builder/builder.py:4515 app/builder/localizedStrings.py:81
+#: app/builder/builder.py:4518 app/builder/localizedStrings.py:81
 #: app/coder/coder.py:2970 app/runner/runner.py:1172
 msgid "Experiment"
 msgstr "実験"
 
-#: app/builder/builder.py:4519 app/coder/coder.py:3008
+#: app/builder/builder.py:4522 app/coder/coder.py:3008
 msgid "Monitor center"
 msgstr "モニターセンター"
 
-#: app/builder/builder.py:4521 app/coder/coder.py:3009
+#: app/builder/builder.py:4524 app/coder/coder.py:3009
 msgid "Monitor settings and calibration"
 msgstr "モニターの設定とキャリブレーション"
 
-#: app/builder/builder.py:4526
+#: app/builder/builder.py:4529
 msgid "Experiment settings"
 msgstr "実験の設定"
 
-#: app/builder/builder.py:4527
+#: app/builder/builder.py:4530
 msgid "Edit experiment settings"
 msgstr "実験の設定"
 
-#: app/builder/builder.py:4533 app/builder/builder.py:4565
+#: app/builder/builder.py:4536 app/builder/builder.py:4568
 #: app/coder/coder.py:2981 app/coder/coder.py:3014 app/runner/runner.py:1177
 #: app/runner/runner.py:1190
 msgid "Pilot"
 msgstr "Pilot"
 
-#: app/builder/builder.py:4533 app/builder/builder.py:4571
+#: app/builder/builder.py:4536 app/builder/builder.py:4574
 #: app/coder/coder.py:2981 app/coder/coder.py:3020 app/runner/runner.py:1177
 #: app/runner/runner.py:1196
 msgid "Run"
 msgstr "実行"
 
-#: app/builder/builder.py:4539 app/builder/builder.py:4545
+#: app/builder/builder.py:4542 app/builder/builder.py:4548
 #: app/coder/coder.py:2986 app/coder/coder.py:2992
 msgid "Runner"
 msgstr "Runner"
 
-#: app/builder/builder.py:4540 app/builder/builder.py:4547
+#: app/builder/builder.py:4543 app/builder/builder.py:4550
 #: app/coder/coder.py:2987 app/coder/coder.py:2994
 msgid "Send experiment to Runner"
 msgstr "実験をRunnerに追加"
 
-#: app/builder/builder.py:4555 app/coder/coder.py:3004
+#: app/builder/builder.py:4558 app/coder/coder.py:3004
 #: app/runner/runner.py:1186
 msgid "Desktop"
 msgstr "デスクトップ"
 
-#: app/builder/builder.py:4559
+#: app/builder/builder.py:4562
 msgid "Write Python"
 msgstr "Pythonで出力"
 
-#: app/builder/builder.py:4560
+#: app/builder/builder.py:4563
 msgid "Write experiment as a Python script"
 msgstr "実験をPythonスクリプトとして出力します"
 
-#: app/builder/builder.py:4566 app/coder/coder.py:3015
+#: app/builder/builder.py:4569 app/coder/coder.py:3015
 #: app/runner/runner.py:1191
 msgid "Run the current script in Python with piloting features on"
 msgstr "現在のスクリプトを動作確認(piloting)モードでPythonで実行"
 
-#: app/builder/builder.py:4572 app/coder/coder.py:3021
+#: app/builder/builder.py:4575 app/coder/coder.py:3021
 #: app/runner/runner.py:1197
 msgid "Run the current script in Python"
 msgstr "現在のスクリプトをPythonで実行"
 
-#: app/builder/builder.py:4580 app/coder/coder.py:3032
+#: app/builder/builder.py:4583 app/coder/coder.py:3032
 #: app/runner/runner.py:1211
 msgid "Browser"
 msgstr "ブラウザ"
 
-#: app/builder/builder.py:4584
+#: app/builder/builder.py:4587
 msgid "Write JS"
 msgstr "JSで出力"
 
-#: app/builder/builder.py:4585
+#: app/builder/builder.py:4588
 msgid "Write experiment as a JavaScript (JS) script"
 msgstr "実験をJavaScript (JS)ファイルとして出力します"
 
-#: app/builder/builder.py:4590 app/runner/runner.py:1215
+#: app/builder/builder.py:4593 app/runner/runner.py:1215
 msgid "Pilot in browser"
 msgstr "ブラウザで動作確認"
 
-#: app/builder/builder.py:4592 app/runner/runner.py:1217
+#: app/builder/builder.py:4595 app/runner/runner.py:1217
 msgid "Pilot experiment locally in your browser"
 msgstr "このPC上でブラウザを使って実験の動作確認(pilot)します"
 
-#: app/builder/builder.py:4597 app/runner/runner.py:1222
+#: app/builder/builder.py:4600 app/runner/runner.py:1222
 msgid "Run on Pavlovia"
 msgstr "Pavloviaで実行"
 
-#: app/builder/builder.py:4598 app/runner/runner.py:1223
+#: app/builder/builder.py:4601 app/runner/runner.py:1223
 msgid "Run experiment on Pavlovia"
 msgstr "実験をPavloviaで実行"
 
-#: app/builder/builder.py:4603 app/coder/coder.py:3037
+#: app/builder/builder.py:4606 app/coder/coder.py:3037
 #: app/pavlovia_ui/project.py:308
 msgid "Sync"
 msgstr "同期"
 
-#: app/builder/builder.py:4604 app/coder/coder.py:3038
+#: app/builder/builder.py:4607 app/coder/coder.py:3038
 msgid "Sync project with Pavlovia"
 msgstr "Pavlovia上のプロジェクトと同期"
 
-#: app/builder/builder.py:4612 app/coder/coder.py:3046
+#: app/builder/builder.py:4615 app/coder/coder.py:3046
 #: app/runner/runner.py:1075 app/runner/runner.py:1231
 msgid "Pavlovia"
 msgstr "Pavlovia"
 
-#: app/builder/builder.py:4630 app/coder/coder.py:3064
+#: app/builder/builder.py:4633 app/coder/coder.py:3064
 #: app/runner/runner.py:1243
 msgid "Views"
 msgstr "ビュー"
 
-#: app/builder/builder.py:4634 app/coder/coder.py:3068
+#: app/builder/builder.py:4637 app/coder/coder.py:3068
 #: app/runner/runner.py:1247 app/utils.py:1474
 msgid "Show Builder"
 msgstr "Builderを表示"
 
-#: app/builder/builder.py:4635 app/coder/coder.py:3069
+#: app/builder/builder.py:4638 app/coder/coder.py:3069
 #: app/runner/runner.py:1248
 msgid "Switch to Builder view"
 msgstr "Builderへ切り替え"
 
-#: app/builder/builder.py:4640 app/coder/coder.py:3074
+#: app/builder/builder.py:4643 app/coder/coder.py:3074
 #: app/runner/runner.py:1253 app/utils.py:1481
 msgid "Show Coder"
 msgstr "Coderを表示"
 
-#: app/builder/builder.py:4641 app/coder/coder.py:3075
+#: app/builder/builder.py:4644 app/coder/coder.py:3075
 #: app/runner/runner.py:1254
 msgid "Switch to Coder view"
 msgstr "Coderへ切り替え"
 
-#: app/builder/builder.py:4646 app/coder/coder.py:3080
+#: app/builder/builder.py:4649 app/coder/coder.py:3080
 #: app/runner/runner.py:1259 app/utils.py:1488
 msgid "Show Runner"
 msgstr "Runnerを表示"
 
-#: app/builder/builder.py:4647 app/coder/coder.py:3081
+#: app/builder/builder.py:4650 app/coder/coder.py:3081
 #: app/runner/runner.py:1260
 msgid "Switch to Runner view"
 msgstr "Runnerへ切り替え"
@@ -1496,7 +1496,7 @@ msgstr "パラメータ"
 msgid "Value"
 msgstr "値"
 
-#: app/builder/dialogs/paramCtrls.py:181 app/builder/dialogs/paramCtrls.py:1033
+#: app/builder/dialogs/paramCtrls.py:181 app/builder/dialogs/paramCtrls.py:1035
 msgid ""
 "This parameter will be treated as code - we have already put in the $, so "
 "you don't have to."
@@ -1575,22 +1575,22 @@ msgstr "表を作成, 保存したら忘れずに{name}に設定してくださ�
 msgid "Reminder"
 msgstr "リマインダ"
 
-#: app/builder/dialogs/paramCtrls.py:1040
+#: app/builder/dialogs/paramCtrls.py:1042
 msgid "Specify color ..."
 msgstr "色を選択..."
 
-#: app/builder/dialogs/paramCtrls.py:1144 app/builder/localizedStrings.py:140
+#: app/builder/dialogs/paramCtrls.py:1146 app/builder/localizedStrings.py:141
 #: experiment/components/settings/__init__.py:224
 msgid "Field"
 msgstr "フィールド"
 
-#: app/builder/dialogs/paramCtrls.py:1144 app/builder/localizedStrings.py:141
+#: app/builder/dialogs/paramCtrls.py:1146 app/builder/localizedStrings.py:142
 #: experiment/components/settings/__init__.py:224
 #: experiment/components/sound/__init__.py:103
 msgid "Default"
 msgstr "既定値"
 
-#: app/builder/dialogs/paramCtrls.py:1151
+#: app/builder/dialogs/paramCtrls.py:1153
 msgid ""
 "Could not interpret parameter value as a dict:\n"
 "{}"
@@ -1651,7 +1651,7 @@ msgstr "反応"
 msgid "I/O"
 msgstr "I/O"
 
-#: app/builder/localizedStrings.py:33 app/builder/localizedStrings.py:211
+#: app/builder/localizedStrings.py:33 app/builder/localizedStrings.py:213
 msgid "Custom"
 msgstr "カスタム"
 
@@ -1891,300 +1891,308 @@ msgstr "右下"
 msgid "add"
 msgstr "加算"
 
-#: app/builder/localizedStrings.py:118 app/builder/localizedStrings.py:176
+#: app/builder/localizedStrings.py:118 app/builder/localizedStrings.py:178
 msgid "average"
 msgstr "平均"
 
 #: app/builder/localizedStrings.py:119
+msgid "avg"
+msgstr "平均"
+
+#: app/builder/localizedStrings.py:120
 msgid "average (no FBO)"
 msgstr "平均 (FBO(フレームバッファオブジェクト)なし)"
 
-#: app/builder/localizedStrings.py:120
+#: app/builder/localizedStrings.py:121
 msgid "use prefs"
 msgstr "PsychoPyの設定を用いる"
 
-#: app/builder/localizedStrings.py:121
+#: app/builder/localizedStrings.py:122
 msgid "on Sync"
 msgstr "同期時"
 
-#: app/builder/localizedStrings.py:122
+#: app/builder/localizedStrings.py:123
 msgid "on Save"
 msgstr "保存時"
 
-#: app/builder/localizedStrings.py:123
+#: app/builder/localizedStrings.py:124
 msgid "manually"
 msgstr "手作業で"
 
-#: app/builder/localizedStrings.py:125
+#: app/builder/localizedStrings.py:126
 msgid "auto"
 msgstr "自動"
 
-#: app/builder/localizedStrings.py:126
+#: app/builder/localizedStrings.py:127
 msgid "comma"
 msgstr "カンマ( , )"
 
-#: app/builder/localizedStrings.py:127
+#: app/builder/localizedStrings.py:128
 msgid "semicolon"
 msgstr "セミコロン( ; )"
 
-#: app/builder/localizedStrings.py:128
+#: app/builder/localizedStrings.py:129
 msgid "tab"
 msgstr "タブ(TAB)"
 
-#: app/builder/localizedStrings.py:130
+#: app/builder/localizedStrings.py:131
 msgid "debug"
 msgstr "debug"
 
-#: app/builder/localizedStrings.py:131
+#: app/builder/localizedStrings.py:132
 msgid "info"
 msgstr "info"
 
-#: app/builder/localizedStrings.py:132
+#: app/builder/localizedStrings.py:133
 msgid "exp"
 msgstr "exp"
 
-#: app/builder/localizedStrings.py:133
+#: app/builder/localizedStrings.py:134
 msgid "data"
 msgstr "data"
 
-#: app/builder/localizedStrings.py:134
+#: app/builder/localizedStrings.py:135
 msgid "warning"
 msgstr "warning"
 
-#: app/builder/localizedStrings.py:135
+#: app/builder/localizedStrings.py:136
 msgid "error"
 msgstr "error"
 
-#: app/builder/localizedStrings.py:137
+#: app/builder/localizedStrings.py:138
 msgid "Experiment start"
 msgstr "実験開始時から"
 
-#: app/builder/localizedStrings.py:138
+#: app/builder/localizedStrings.py:139
 msgid "Wall clock"
 msgstr "実時間"
 
-#: app/builder/localizedStrings.py:143
+#: app/builder/localizedStrings.py:144
 msgid "press"
 msgstr "押した時"
 
-#: app/builder/localizedStrings.py:144
+#: app/builder/localizedStrings.py:145
 msgid "release"
 msgstr "放した時"
 
-#: app/builder/localizedStrings.py:146
+#: app/builder/localizedStrings.py:147
 msgid "any click"
 msgstr "全てのクリック"
 
-#: app/builder/localizedStrings.py:147
+#: app/builder/localizedStrings.py:148
 msgid "valid click"
 msgstr "有効なクリック"
 
-#: app/builder/localizedStrings.py:148
+#: app/builder/localizedStrings.py:149
 msgid "on valid click"
 msgstr "有効なクリック時"
 
-#: app/builder/localizedStrings.py:149
+#: app/builder/localizedStrings.py:150
 msgid "correct click"
 msgstr "正しいクリック"
 
-#: app/builder/localizedStrings.py:150
+#: app/builder/localizedStrings.py:151
 msgid "mouse onset"
 msgstr "Mouseコンポーネント開始時"
 
-#: app/builder/localizedStrings.py:151
+#: app/builder/localizedStrings.py:152
 msgid "Routine"
 msgstr "Routine開始時"
 
-#: app/builder/localizedStrings.py:153
+#: app/builder/localizedStrings.py:154
 msgid "joystick onset"
 msgstr "Joystickコンポーネント開始時"
 
-#: app/builder/localizedStrings.py:155
+#: app/builder/localizedStrings.py:156
 msgid "every click"
 msgstr "全てのクリック"
 
-#: app/builder/localizedStrings.py:156
+#: app/builder/localizedStrings.py:157
 msgid "first click"
 msgstr "最初のクリック"
 
-#: app/builder/localizedStrings.py:157
+#: app/builder/localizedStrings.py:158
 msgid "last click"
 msgstr "最後のクリック"
 
-#: app/builder/localizedStrings.py:158
+#: app/builder/localizedStrings.py:159
 msgid "button onset"
 msgstr "ボタンの開始時"
 
-#: app/builder/localizedStrings.py:160
-msgid "line"
+#: app/builder/localizedStrings.py:161
+msgid "Line"
 msgstr "直線"
 
-#: app/builder/localizedStrings.py:161
-msgid "triangle"
+#: app/builder/localizedStrings.py:162
+msgid "Triangle"
 msgstr "三角形"
 
-#: app/builder/localizedStrings.py:162
-msgid "rectangle"
+#: app/builder/localizedStrings.py:163
+msgid "Rectangle"
 msgstr "長方形"
 
-#: app/builder/localizedStrings.py:163
-msgid "cross"
-msgstr "十字"
-
 #: app/builder/localizedStrings.py:164
-msgid "star"
-msgstr "星"
+msgid "Circle"
+msgstr "円"
 
 #: app/builder/localizedStrings.py:165
-msgid "arrow"
-msgstr "矢印"
+msgid "Cross"
+msgstr "十字"
 
-#: app/builder/localizedStrings.py:166
-msgid "regular polygon..."
-msgstr "正多角形..."
+#: app/builder/localizedStrings.py:166 app/pavlovia_ui/project.py:194
+msgid "Star"
+msgstr "スター"
 
 #: app/builder/localizedStrings.py:167
-msgid "custom polygon..."
-msgstr "カスタムポリゴン..."
+msgid "Arrow"
+msgstr "矢印"
+
+#: app/builder/localizedStrings.py:168
+msgid "Regular polygon..."
+msgstr "正多角形..."
 
 #: app/builder/localizedStrings.py:169
+msgid "Custom polygon..."
+msgstr "カスタムポリゴン..."
+
+#: app/builder/localizedStrings.py:171
 msgid "rows"
 msgstr "行"
 
-#: app/builder/localizedStrings.py:170
+#: app/builder/localizedStrings.py:172
 msgid "columns"
 msgstr "列"
 
-#: app/builder/localizedStrings.py:171
+#: app/builder/localizedStrings.py:173
 msgid "custom..."
 msgstr "カスタム..."
 
-#: app/builder/localizedStrings.py:173
+#: app/builder/localizedStrings.py:175
 msgid "first"
 msgstr "最初"
 
-#: app/builder/localizedStrings.py:174
+#: app/builder/localizedStrings.py:176
 msgid "last"
 msgstr "最後"
 
-#: app/builder/localizedStrings.py:175
+#: app/builder/localizedStrings.py:177
 msgid "all"
 msgstr "すべて"
 
-#: app/builder/localizedStrings.py:179
+#: app/builder/localizedStrings.py:181
 msgid "one of your Components, Routines, or condition parameters"
 msgstr "他のコンポーネントやルーチン，パラメータ"
 
-#: app/builder/localizedStrings.py:181
+#: app/builder/localizedStrings.py:183
 msgid " Avoid `this`, `these`, `continue`, `Clock`, or `component` in name"
 msgstr ""
 " this, these, continue, Clock, componentを名前に含まないようにしてください"
 
-#: app/builder/localizedStrings.py:182
+#: app/builder/localizedStrings.py:184
 msgid "Builder variable"
 msgstr "Builderの変数"
 
-#: app/builder/localizedStrings.py:183
+#: app/builder/localizedStrings.py:185
 msgid "Psychopy module"
 msgstr "PsychoPyのモジュール名"
 
-#: app/builder/localizedStrings.py:184
+#: app/builder/localizedStrings.py:186
 msgid "numpy function"
 msgstr "numpyの関数"
 
-#: app/builder/localizedStrings.py:185
+#: app/builder/localizedStrings.py:187
 msgid "python keyword"
 msgstr "Pythonのキーワード"
 
-#: app/builder/localizedStrings.py:187
+#: app/builder/localizedStrings.py:189
 msgid "look at"
 msgstr "ROI内に視線が入ったとき"
 
-#: app/builder/localizedStrings.py:188
+#: app/builder/localizedStrings.py:190
 msgid "look away"
 msgstr "ROI外へ視線が出たとき"
 
-#: app/builder/localizedStrings.py:189
+#: app/builder/localizedStrings.py:191
 msgid "every look"
 msgstr "全ての停留"
 
-#: app/builder/localizedStrings.py:190
+#: app/builder/localizedStrings.py:192
 msgid "first look"
 msgstr "最初の停留"
 
-#: app/builder/localizedStrings.py:191
+#: app/builder/localizedStrings.py:193
 msgid "last look"
 msgstr "最後の停留"
 
-#: app/builder/localizedStrings.py:192
+#: app/builder/localizedStrings.py:194
 msgid "roi onset"
 msgstr "ROI開始時"
 
-#: app/builder/localizedStrings.py:194
+#: app/builder/localizedStrings.py:196
 msgid "Start and Stop"
 msgstr "開始と終了"
 
-#: app/builder/localizedStrings.py:195
+#: app/builder/localizedStrings.py:197
 msgid "Start Only"
 msgstr "開始のみ"
 
-#: app/builder/localizedStrings.py:196
+#: app/builder/localizedStrings.py:198
 msgid "Stop Only"
 msgstr "終了のみ"
 
-#: app/builder/localizedStrings.py:197
+#: app/builder/localizedStrings.py:199
 msgid "None"
 msgstr "なし"
 
-#: app/builder/localizedStrings.py:199
+#: app/builder/localizedStrings.py:201
 msgid "Start and Check"
 msgstr "開始と確認"
 
-#: app/builder/localizedStrings.py:201
+#: app/builder/localizedStrings.py:203
 msgid "Check Only"
 msgstr "確認のみ"
 
-#: app/builder/localizedStrings.py:203
+#: app/builder/localizedStrings.py:205
 msgid "Mouse"
 msgstr "マウス"
 
-#: app/builder/localizedStrings.py:204
+#: app/builder/localizedStrings.py:206
 msgid "Drag"
 msgstr "ドラッグ"
 
-#: app/builder/localizedStrings.py:205
+#: app/builder/localizedStrings.py:207
 msgid "Keyboard (Arrow Keys)"
 msgstr "キーボード (カーソルキー)"
 
-#: app/builder/localizedStrings.py:206
+#: app/builder/localizedStrings.py:208
 msgid "Keyboard (WASD)"
 msgstr "キーボード (W,A,S,Dキー)"
 
-#: app/builder/localizedStrings.py:207
+#: app/builder/localizedStrings.py:209
 msgid "Keyboard (Custom keys)"
 msgstr "キーボード (カスタムキー)"
 
-#: app/builder/localizedStrings.py:208
+#: app/builder/localizedStrings.py:210
 msgid "Mouse Wheel"
 msgstr "マウスホイール"
 
-#: app/builder/localizedStrings.py:209
+#: app/builder/localizedStrings.py:211
 msgid "Mouse Wheel (Inverted)"
 msgstr "マウスホイール (逆回転)"
 
-#: app/builder/localizedStrings.py:210
+#: app/builder/localizedStrings.py:212
 msgid "Keyboard (+-)"
 msgstr "キーボード (＋ーキー)"
 
-#: app/builder/localizedStrings.py:213
+#: app/builder/localizedStrings.py:215
 msgid "visible"
 msgstr "表示"
 
-#: app/builder/localizedStrings.py:214
+#: app/builder/localizedStrings.py:216
 msgid "scroll"
 msgstr "スクロール"
 
-#: app/builder/localizedStrings.py:215
+#: app/builder/localizedStrings.py:217
 msgid "hidden"
 msgstr "隠す"
 
@@ -3363,10 +3371,6 @@ msgstr "Pavlovia上でプロジェクトを作成"
 msgid "Submit changes to Pavlovia"
 msgstr "Pavloviaに変更を送信"
 
-#: app/pavlovia_ui/project.py:194
-msgid "Star"
-msgstr "スター"
-
 #: app/pavlovia_ui/project.py:244
 msgid ""
 "An image to represent this project, this helps it stand out when browsing on "
@@ -3618,9 +3622,9 @@ msgstr "フィルタ..."
 msgid "Author"
 msgstr "作者"
 
-#: app/pavlovia_ui/search.py:174 experiment/components/_base.py:65
+#: app/pavlovia_ui/search.py:174 experiment/components/_base.py:68
 #: experiment/loops.py:96 experiment/loops.py:429 experiment/loops.py:583
-#: experiment/routines/_base.py:47
+#: experiment/routines/_base.py:50
 msgid "Name"
 msgstr "名前"
 
@@ -4093,9 +4097,9 @@ msgstr "タスクリストをファイルに保存します"
 msgid "Load tasks from a file"
 msgstr "タスクリストをファイルから読み込みます"
 
-#: app/runner/runner.py:1202 experiment/components/_base.py:91
+#: app/runner/runner.py:1202 experiment/components/_base.py:94
 #: experiment/components/panorama/__init__.py:139
-#: experiment/routines/_base.py:53
+#: experiment/routines/_base.py:56
 msgid "Stop"
 msgstr "終了"
 
@@ -4276,70 +4280,70 @@ msgstr ""
 "メータが含まれています. この実験は現在使用中のバージョンでは正常に動作しない"
 "可能性があります."
 
-#: experiment/components/_base.py:61
+#: experiment/components/_base.py:64
 msgid "Name of this Component (alphanumeric or _, no spaces)"
 msgstr ""
 "このコンポーネントの名前を指定します (英数字と_のみ;スペースを含まない)"
 
-#: experiment/components/_base.py:67
+#: experiment/components/_base.py:70
 msgid "How do you want to define your start point?"
 msgstr "開始時刻の指定方法を選択します"
 
-#: experiment/components/_base.py:72
+#: experiment/components/_base.py:75
 msgid "Start type"
 msgstr "開始時刻の指定法"
 
-#: experiment/components/_base.py:74 experiment/routines/_base.py:55
+#: experiment/components/_base.py:77 experiment/routines/_base.py:58
 msgid "How do you want to define your end point?"
 msgstr "終了時刻の指定方法を選択します"
 
-#: experiment/components/_base.py:80
+#: experiment/components/_base.py:83
 msgid "Stop type"
 msgstr "終了時刻の指定法"
 
-#: experiment/components/_base.py:84
+#: experiment/components/_base.py:87
 msgid "When does the Component start?"
 msgstr "開始時刻を指定します"
 
-#: experiment/components/_base.py:85
+#: experiment/components/_base.py:88
 msgid "Start"
 msgstr "開始"
 
-#: experiment/components/_base.py:90
+#: experiment/components/_base.py:93
 msgid "When does the Component end? (blank is endless)"
 msgstr "終了時刻を指定します (空白の場合はRoutine終了まで)"
 
-#: experiment/components/_base.py:93
+#: experiment/components/_base.py:96
 msgid "(Optional) expected start (s), purely for representing in the timeline"
 msgstr ""
 "(オプション) 予想開始時刻; 開始時刻が不確定の場合などのタイムライン表示専用で"
 "す"
 
-#: experiment/components/_base.py:98
+#: experiment/components/_base.py:101
 msgid "Expected start (s)"
 msgstr "予想開始時刻 (s)"
 
-#: experiment/components/_base.py:100
+#: experiment/components/_base.py:103
 msgid ""
 "(Optional) expected duration (s), purely for representing in the timeline"
 msgstr ""
 "(オプション) 予想実行時間; 実行時間が不確定の場合などのタイムライン表示専用で"
 "す"
 
-#: experiment/components/_base.py:105
+#: experiment/components/_base.py:108
 msgid "Expected duration (s)"
 msgstr "予想実行時間 (s)"
 
-#: experiment/components/_base.py:107
+#: experiment/components/_base.py:110
 msgid ""
 "Store the onset/offset times in the data file (as well as in the log file)."
 msgstr "開始・終了時刻を(ログファイルと同様に)データファイルに出力します."
 
-#: experiment/components/_base.py:112
+#: experiment/components/_base.py:115
 msgid "Save onset/offset times"
 msgstr "開始・終了時刻を保存"
 
-#: experiment/components/_base.py:114
+#: experiment/components/_base.py:117
 msgid ""
 "Synchronize times with screen refresh (good for visual stimuli and responses "
 "based on them)"
@@ -4347,27 +4351,27 @@ msgstr ""
 "時刻をスクリーンの描画に同期します(視覚刺激および視覚刺激への反応の記録に有効"
 "です)"
 
-#: experiment/components/_base.py:119
+#: experiment/components/_base.py:122
 msgid "Sync timing with screen refresh"
 msgstr "時間計測をスクリーンに同期"
 
-#: experiment/components/_base.py:121
+#: experiment/components/_base.py:124
 msgid "Disable this Component"
 msgstr "このコンポーネントを無効にします"
 
-#: experiment/components/_base.py:125
+#: experiment/components/_base.py:128
 msgid "Disable Component"
 msgstr "コンポーネントの無効化"
 
-#: experiment/components/_base.py:948
+#: experiment/components/_base.py:951
 msgid "Do not validate"
 msgstr ""
 
-#: experiment/components/_base.py:1109
+#: experiment/components/_base.py:1231
 msgid "Device label"
 msgstr "デバイスラベル"
 
-#: experiment/components/_base.py:1111
+#: experiment/components/_base.py:1233
 msgid ""
 "A label to refer to this Component's associated hardware device by. If using "
 "the same device for multiple components, be sure to use the same label here."
@@ -4376,28 +4380,28 @@ msgstr ""
 "ポーネントで同一のデバイスを使用する場合, 同じラベルがここに入力されているこ"
 "とを確認してください."
 
-#: experiment/components/_base.py:1159
+#: experiment/components/_base.py:1281
 #: experiment/routines/eyetracker_calibrate/__init__.py:119
 #: experiment/routines/eyetracker_validate/__init__.py:162
 msgid "Units of dimensions for this stimulus"
 msgstr "この刺激に適用する単位を指定します"
 
-#: experiment/components/_base.py:1165
+#: experiment/components/_base.py:1287
 #: experiment/routines/eyetracker_calibrate/__init__.py:120
 #: experiment/routines/eyetracker_validate/__init__.py:163
 #: experiment/routines/photodiodeValidator/__init__.py:127
 msgid "Spatial units"
 msgstr "空間の単位"
 
-#: experiment/components/_base.py:1167
+#: experiment/components/_base.py:1289
 msgid "Foreground color of this stimulus (e.g. $[1,1,0], red )"
 msgstr "前景色($[1.0,1.0,0.0],redなど)を指定します"
 
-#: experiment/components/_base.py:1174
+#: experiment/components/_base.py:1296
 msgid "Foreground color"
 msgstr "前景色"
 
-#: experiment/components/_base.py:1176
+#: experiment/components/_base.py:1298
 #: experiment/routines/eyetracker_calibrate/__init__.py:93
 #: experiment/routines/eyetracker_validate/__init__.py:135
 msgid ""
@@ -4405,7 +4409,7 @@ msgid ""
 "hsv)"
 msgstr "色指定に用いる色空間は？ (rgb, dkl, lms, hsv)"
 
-#: experiment/components/_base.py:1183
+#: experiment/components/_base.py:1305
 #: experiment/components/routineSettings/__init__.py:118
 #: experiment/components/settings/__init__.py:285
 #: experiment/routines/eyetracker_calibrate/__init__.py:94
@@ -4413,24 +4417,24 @@ msgstr "色指定に用いる色空間は？ (rgb, dkl, lms, hsv)"
 msgid "Color space"
 msgstr "色空間"
 
-#: experiment/components/_base.py:1185
+#: experiment/components/_base.py:1307
 msgid "Fill color of this stimulus (e.g. $[1,1,0], red )"
 msgstr "塗りつぶし色($[1.0,1.0,0.0],redなど)を指定します"
 
-#: experiment/components/_base.py:1191
+#: experiment/components/_base.py:1313
 msgid "Fill color"
 msgstr "塗りつぶしの色"
 
-#: experiment/components/_base.py:1193
+#: experiment/components/_base.py:1315
 msgid "Border color of this stimulus (e.g. $[1,1,0], red )"
 msgstr "枠線の色($[1.0,1.0,0.0],redなど)を指定します"
 
-#: experiment/components/_base.py:1199
+#: experiment/components/_base.py:1321
 #: experiment/components/progress/__init__.py:55
 msgid "Border color"
 msgstr "枠線の色"
 
-#: experiment/components/_base.py:1201
+#: experiment/components/_base.py:1323
 msgid ""
 "Opacity of the stimulus (1=opaque, 0=fully transparent, 0.5=translucent). "
 "Leave blank for each color to have its own opacity (recommended if any color "
@@ -4440,11 +4444,11 @@ msgstr ""
 "が独自の不透明度を持つ場合は空白のままにしてください(いずれかの色がNoneの場合"
 "に推奨)."
 
-#: experiment/components/_base.py:1208
+#: experiment/components/_base.py:1330
 msgid "Opacity"
 msgstr "不透明度"
 
-#: experiment/components/_base.py:1210
+#: experiment/components/_base.py:1332
 msgid ""
 "Contrast of the stimulus (1.0=unchanged contrast, 0.5=decrease contrast, "
 "0.0=uniform/no contrast, -0.5=slightly inverted, -1.0=totally inverted)"
@@ -4452,64 +4456,64 @@ msgstr ""
 "刺激のコントラスト (1.0=変更なし, 0.5=コントラスト減少, 0.0=コントラスト無"
 "し, -0.5=やや反転, -1.0=完全に反転)"
 
-#: experiment/components/_base.py:1218
+#: experiment/components/_base.py:1340
 msgid "Contrast"
 msgstr "コントラスト"
 
-#: experiment/components/_base.py:1220
+#: experiment/components/_base.py:1342
 #: experiment/components/ratingScale/__init__.py:181
 msgid "Position of this stimulus (e.g. [1,2] )"
 msgstr "刺激の位置を指定します (例:[1,2])"
 
-#: experiment/components/_base.py:1226
+#: experiment/components/_base.py:1348
 #: experiment/components/ratingScale/__init__.py:182
 #: experiment/routines/photodiodeValidator/__init__.py:111
 msgid "Position [x,y]"
 msgstr "位置 [x,y]"
 
-#: experiment/components/_base.py:1228
+#: experiment/components/_base.py:1350
 #: experiment/components/ratingScale/__init__.py:173
 msgid ""
 "Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] "
 msgstr ""
 "刺激の大きさを指定します (単一の値または縦横の値のペア, 例: 2.5, [1,2]) "
 
-#: experiment/components/_base.py:1235
+#: experiment/components/_base.py:1357
 msgid "Size [w,h]"
 msgstr "サイズ [w,h]"
 
-#: experiment/components/_base.py:1241
+#: experiment/components/_base.py:1363
 msgid "Orientation of this stimulus (in deg)"
 msgstr "刺激の回転方向を指定します (単位は度)"
 
-#: experiment/components/_base.py:1242
+#: experiment/components/_base.py:1364
 msgid "Orientation"
 msgstr "回転角度"
 
-#: experiment/components/_base.py:1251
+#: experiment/components/_base.py:1373
 msgid "Validate with..."
 msgstr ""
 
-#: experiment/components/_base.py:1253
+#: experiment/components/_base.py:1375
 msgid ""
 "Name of validator Component/Routine to use to check the timing of this "
 "stimulus."
 msgstr ""
 
-#: experiment/components/aperture/__init__.py:26
+#: experiment/components/aperture/__init__.py:30
 msgid "Aperture: restrict the drawing of stimuli to a given region"
 msgstr "Aperture: 刺激の描画範囲を指定した領域に制限します"
 
-#: experiment/components/aperture/__init__.py:49
+#: experiment/components/aperture/__init__.py:53
 msgid "How big is the aperture? (a single number for diameter)"
 msgstr "窓の直径を指定します"
 
-#: experiment/components/aperture/__init__.py:65
+#: experiment/components/aperture/__init__.py:69
 msgid "Which point on the aperture should be anchored to its exact position?"
 msgstr "位置で指定した座標に窓のどの部分を揃えますか?"
 
-#: experiment/components/aperture/__init__.py:66
-#: experiment/components/button/__init__.py:134
+#: experiment/components/aperture/__init__.py:70
+#: experiment/components/button/__init__.py:139
 #: experiment/components/grating/__init__.py:85
 #: experiment/components/image/__init__.py:108
 #: experiment/components/movie/__init__.py:121
@@ -4519,65 +4523,65 @@ msgstr "位置で指定した座標に窓のどの部分を揃えますか?"
 msgid "Anchor"
 msgstr "位置揃え"
 
-#: experiment/components/aperture/__init__.py:69
+#: experiment/components/aperture/__init__.py:73
 #: experiment/components/ratingScale/__init__.py:175
 msgid "Size"
 msgstr "サイズ"
 
-#: experiment/components/aperture/__init__.py:70
+#: experiment/components/aperture/__init__.py:74
 msgid "Where is the aperture centred?"
 msgstr "窓の中心位置を指定します"
 
-#: experiment/components/brush/__init__.py:18
+#: experiment/components/brush/__init__.py:20
 msgid "Brush: a drawing tool"
 msgstr "Brush: 描画ツール"
 
-#: experiment/components/brush/__init__.py:42
+#: experiment/components/brush/__init__.py:44
 msgid "Fill color of this brush"
 msgstr "ブラシの塗りつぶし色"
 
-#: experiment/components/brush/__init__.py:48
+#: experiment/components/brush/__init__.py:50
 msgid "Brush color"
 msgstr "ブラシの色"
 
-#: experiment/components/brush/__init__.py:50
+#: experiment/components/brush/__init__.py:52
 msgid ""
 "Width of the brush's line (always in pixels and limited to 10px max width)"
 msgstr "ブラシの幅を指定します (単位の設定に関わらずpixで指定, 上限は10px)"
 
-#: experiment/components/brush/__init__.py:56
+#: experiment/components/brush/__init__.py:58
 msgid "Brush size"
 msgstr "ブラシの幅"
 
-#: experiment/components/brush/__init__.py:61
+#: experiment/components/brush/__init__.py:63
 msgid "The line opacity"
 msgstr "線の不透明度"
 
-#: experiment/components/brush/__init__.py:64
+#: experiment/components/brush/__init__.py:66
 msgid "Whether a button needs to be pressed to draw (True/False)"
 msgstr "Trueならボタンを押している時にのみ描画, Falseなら常に描画"
 
-#: experiment/components/brush/__init__.py:70
+#: experiment/components/brush/__init__.py:72
 msgid "Press button"
 msgstr "ボタン操作"
 
-#: experiment/components/button/__init__.py:24
+#: experiment/components/button/__init__.py:29
 msgid "Button: A clickable textbox"
 msgstr "Button: クリック可能なテキストボックス"
 
-#: experiment/components/button/__init__.py:31
+#: experiment/components/button/__init__.py:36
 msgid "Click here"
 msgstr "Click here"
 
-#: experiment/components/button/__init__.py:58
+#: experiment/components/button/__init__.py:63
 #: experiment/components/textbox/__init__.py:65
 #: experiment/routines/eyetracker_calibrate/__init__.py:54
 #: experiment/routines/eyetracker_validate/__init__.py:95
 msgid "Text color"
 msgstr "文字色"
 
-#: experiment/components/button/__init__.py:63
-#: experiment/components/buttonBox/__init__.py:60
+#: experiment/components/button/__init__.py:68
+#: experiment/components/buttonBox/__init__.py:61
 #: experiment/components/joyButtons/__init__.py:65
 #: experiment/components/keyboard/__init__.py:82
 msgid "Should a response force the end of the Routine (e.g end the trial)?"
@@ -4585,8 +4589,8 @@ msgstr ""
 "キー押しを検出すると強制的にRoutineを終了します(「有効なクリック」なら「ク"
 "リック可能な視覚刺激」をクリック時のみ終了)"
 
-#: experiment/components/button/__init__.py:65
-#: experiment/components/buttonBox/__init__.py:62
+#: experiment/components/button/__init__.py:70
+#: experiment/components/buttonBox/__init__.py:63
 #: experiment/components/joyButtons/__init__.py:71
 #: experiment/components/keyboard/__init__.py:88
 #: experiment/components/movie/__init__.py:93
@@ -4595,7 +4599,7 @@ msgstr ""
 msgid "Force end of Routine"
 msgstr "Routineを終了"
 
-#: experiment/components/button/__init__.py:81
+#: experiment/components/button/__init__.py:86
 msgid ""
 "Should the callback run once per click (True), or each frame until click is "
 "released (False)"
@@ -4603,36 +4607,36 @@ msgstr ""
 "コールバック関数をクリック毎に1回実行する(True)か, クリックが終わるまで毎フ"
 "レーム実行する(False)かを設定します"
 
-#: experiment/components/button/__init__.py:82
+#: experiment/components/button/__init__.py:87
 msgid "Run once per click"
 msgstr "クリック毎に1回実行"
 
-#: experiment/components/button/__init__.py:87
+#: experiment/components/button/__init__.py:92
 msgid "Code to run when button is clicked"
 msgstr "ボタンがクリックされた時に実行するコード"
 
-#: experiment/components/button/__init__.py:88
+#: experiment/components/button/__init__.py:93
 msgid "Callback function"
 msgstr "コールバック関数"
 
-#: experiment/components/button/__init__.py:92
+#: experiment/components/button/__init__.py:97
 #: experiment/components/text/__init__.py:52
 #: experiment/components/textbox/__init__.py:70
 msgid "The text to be displayed"
 msgstr "描画する文字列を指定します"
 
-#: experiment/components/button/__init__.py:93
+#: experiment/components/button/__init__.py:98
 msgid "Button text"
 msgstr "ボタンのテキスト"
 
-#: experiment/components/button/__init__.py:97
+#: experiment/components/button/__init__.py:102
 #: experiment/components/form/__init__.py:90
 #: experiment/components/text/__init__.py:58
 #: experiment/components/textbox/__init__.py:90
 msgid "The font name (e.g. Comic Sans)"
 msgstr "フォント名を指定します (例: Comic Sans)"
 
-#: experiment/components/button/__init__.py:98
+#: experiment/components/button/__init__.py:103
 #: experiment/components/form/__init__.py:91
 #: experiment/components/slider/__init__.py:175
 #: experiment/components/text/__init__.py:59
@@ -4640,78 +4644,78 @@ msgstr "フォント名を指定します (例: Comic Sans)"
 msgid "Font"
 msgstr "フォント"
 
-#: experiment/components/button/__init__.py:102
+#: experiment/components/button/__init__.py:107
 #: experiment/components/text/__init__.py:64
 #: experiment/components/textbox/__init__.py:95
 msgid ""
 "Specifies the height of the letter (the width is then determined by the font)"
 msgstr "文字列の高さを指定します (幅は高さとフォントの種類から決定)"
 
-#: experiment/components/button/__init__.py:104
+#: experiment/components/button/__init__.py:109
 #: experiment/components/slider/__init__.py:182
 #: experiment/components/text/__init__.py:66
 #: experiment/components/textbox/__init__.py:97
 msgid "Letter height"
 msgstr "文字の高さ"
 
-#: experiment/components/button/__init__.py:108
+#: experiment/components/button/__init__.py:113
 #: experiment/components/textbox/__init__.py:118
 msgid "Should text be italic?"
 msgstr "イタリック体のフォントを使用します"
 
-#: experiment/components/button/__init__.py:109
+#: experiment/components/button/__init__.py:114
 #: experiment/components/textbox/__init__.py:119
 msgid "Italic"
 msgstr "イタリック"
 
-#: experiment/components/button/__init__.py:113
+#: experiment/components/button/__init__.py:118
 #: experiment/components/textbox/__init__.py:123
 msgid "Should text be bold?"
 msgstr "ボールド体のフォントを使用します"
 
-#: experiment/components/button/__init__.py:114
+#: experiment/components/button/__init__.py:119
 #: experiment/components/textbox/__init__.py:124
 msgid "Bold"
 msgstr "ボールド"
 
-#: experiment/components/button/__init__.py:118
+#: experiment/components/button/__init__.py:123
 #: experiment/components/textbox/__init__.py:133
 msgid "Defines the space between text and the textbox border"
 msgstr "テキストボックスの枠線と文字との間隔を指定します"
 
-#: experiment/components/button/__init__.py:119
+#: experiment/components/button/__init__.py:124
 #: experiment/components/textbox/__init__.py:134
 msgid "Padding"
 msgstr "枠内の余白"
 
-#: experiment/components/button/__init__.py:133
+#: experiment/components/button/__init__.py:138
 msgid "Should text anchor to the top, center or bottom of the box?"
 msgstr "テキストをどのように揃えますか？"
 
-#: experiment/components/button/__init__.py:138
+#: experiment/components/button/__init__.py:143
 #: experiment/components/textbox/__init__.py:183
 msgid "Textbox border width"
 msgstr "テキストボックスの枠線の幅"
 
-#: experiment/components/button/__init__.py:139
+#: experiment/components/button/__init__.py:144
 #: experiment/components/textbox/__init__.py:184
 msgid "Border width"
 msgstr "枠線の幅"
 
-#: experiment/components/button/__init__.py:144
+#: experiment/components/button/__init__.py:149
 msgid "What clicks on this button should be saved to the data output?"
 msgstr "このボタンに対するどのクリックを記録しますか？"
 
-#: experiment/components/button/__init__.py:146
+#: experiment/components/button/__init__.py:151
 msgid "Record clicks"
 msgstr "クリックを記録"
 
-#: experiment/components/button/__init__.py:153
+#: experiment/components/button/__init__.py:158
 #: experiment/components/mouse/__init__.py:68
 msgid "What should the values of mouse.time should be relative to?"
 msgstr "時計の開始時刻を実験開始時にするかRoutine開始時にするか指定します"
 
-#: experiment/components/button/__init__.py:155
+#: experiment/components/button/__init__.py:160
 #: experiment/components/joystick/__init__.py:76
 #: experiment/components/mouse/__init__.py:75
 msgid "Time relative to"
@@ -4721,53 +4725,53 @@ msgstr "時刻の基準"
 msgid "Button Box: Get input from a button box"
 msgstr "Button Box: ボタンボックスからの入力を取得します"
 
-#: experiment/components/buttonBox/__init__.py:75
+#: experiment/components/buttonBox/__init__.py:76
 msgid "Press"
 msgstr "押した時"
 
-#: experiment/components/buttonBox/__init__.py:75
+#: experiment/components/buttonBox/__init__.py:76
 msgid "Release"
 msgstr "放した時"
 
-#: experiment/components/buttonBox/__init__.py:77
+#: experiment/components/buttonBox/__init__.py:78
 msgid ""
 "When should the button press be registered? As soon as pressed, or when "
 "released?"
 msgstr "ボタン押しをどの瞬間に記録しますか? 押された瞬間か, 放された瞬間か?"
 
-#: experiment/components/buttonBox/__init__.py:79
+#: experiment/components/buttonBox/__init__.py:80
 msgid "Register button press on..."
 msgstr "ボタン押し記録のタイミング..."
 
-#: experiment/components/buttonBox/__init__.py:84
+#: experiment/components/buttonBox/__init__.py:85
 msgid "Last button"
 msgstr "最後のボタン"
 
-#: experiment/components/buttonBox/__init__.py:84
+#: experiment/components/buttonBox/__init__.py:85
 msgid "First button"
 msgstr "最初のボタン"
 
-#: experiment/components/buttonBox/__init__.py:85
+#: experiment/components/buttonBox/__init__.py:86
 msgid "All buttons"
 msgstr "全てのボタン"
 
-#: experiment/components/buttonBox/__init__.py:85
+#: experiment/components/buttonBox/__init__.py:86
 msgid "Nothing"
 msgstr "なし"
 
-#: experiment/components/buttonBox/__init__.py:88
+#: experiment/components/buttonBox/__init__.py:89
 #: experiment/components/joyButtons/__init__.py:56
 #: experiment/components/keyboard/__init__.py:100
 msgid "Choose which (if any) responses to store at the end of a trial"
 msgstr "記録するキーを指定します"
 
-#: experiment/components/buttonBox/__init__.py:90
+#: experiment/components/buttonBox/__init__.py:91
 #: experiment/components/joyButtons/__init__.py:63
 #: experiment/components/keyboard/__init__.py:107
 msgid "Store"
 msgstr "記録"
 
-#: experiment/components/buttonBox/__init__.py:94
+#: experiment/components/buttonBox/__init__.py:95
 msgid ""
 "A comma-separated list of button indices (should be whole numbers), leave "
 "blank to listen for all buttons."
@@ -4775,27 +4779,27 @@ msgstr ""
 "カンマ区切りのボタンインデックス(整数)を指定します. 全てのボタンを使用する場"
 "合は空白にします."
 
-#: experiment/components/buttonBox/__init__.py:97
+#: experiment/components/buttonBox/__init__.py:98
 #: experiment/components/joyButtons/__init__.py:54
 #: experiment/components/joystick/__init__.py:115
 msgid "Allowed buttons"
 msgstr "検出するボタン"
 
-#: experiment/components/buttonBox/__init__.py:102
+#: experiment/components/buttonBox/__init__.py:103
 #: experiment/components/joyButtons/__init__.py:73
 #: experiment/components/keyboard/__init__.py:109
 #: experiment/components/mouse/__init__.py:108
 msgid "Do you want to save the response as correct/incorrect?"
 msgstr "反応の正誤を記録します"
 
-#: experiment/components/buttonBox/__init__.py:104
+#: experiment/components/buttonBox/__init__.py:105
 #: experiment/components/joyButtons/__init__.py:79
 #: experiment/components/keyboard/__init__.py:115
 #: experiment/components/mouse/__init__.py:114
 msgid "Store correct"
 msgstr "正答を記録"
 
-#: experiment/components/buttonBox/__init__.py:117
+#: experiment/components/buttonBox/__init__.py:118
 msgid ""
 "What is the 'correct' key? Might be helpful to add a correctAns column and "
 "use $correctAns to compare to the key press. "
@@ -4803,18 +4807,18 @@ msgstr ""
 "正答とするキーを指定します. 条件ファイルにcorrectAnsという列を追加して, 押さ"
 "れたキーと$correctAnsを比較とすると実行中の正答判定に便利です."
 
-#: experiment/components/buttonBox/__init__.py:120
+#: experiment/components/buttonBox/__init__.py:121
 #: experiment/components/joyButtons/__init__.py:98
 #: experiment/components/keyboard/__init__.py:134
 #: experiment/components/mouse/__init__.py:132
 msgid "Correct answer"
 msgstr "正答"
 
-#: experiment/components/buttonBox/__init__.py:131
+#: experiment/components/buttonBox/__init__.py:132
 msgid "Device backend"
 msgstr "デバイスのバックエンド"
 
-#: experiment/components/buttonBox/__init__.py:133
+#: experiment/components/buttonBox/__init__.py:134
 msgid ""
 "What kind of button box is it? What package/plugin should be used to talk to "
 "it?"
@@ -4822,15 +4826,15 @@ msgstr ""
 "ボタンボックスの種類を指定します. どのパッケージ/プラグインをボタンボックスの"
 "制御に使用しますか?"
 
-#: experiment/components/buttonBox/__init__.py:279
+#: experiment/components/buttonBox/__init__.py:280
 msgid "Keyboard"
 msgstr "キーボード"
 
-#: experiment/components/buttonBox/__init__.py:292
+#: experiment/components/buttonBox/__init__.py:293
 msgid "Buttons"
 msgstr "ボタン"
 
-#: experiment/components/buttonBox/__init__.py:294
+#: experiment/components/buttonBox/__init__.py:295
 msgid ""
 "Keys to treat as buttons (in order of what button index you want them to "
 "be). Must be the same length as the number of buttons."
@@ -4838,20 +4842,20 @@ msgstr ""
 "ボタンとして扱うキーの名前 (割り当てるボタンインデックスの順に並べます). ボタ"
 "ン数と同じ個数でなければいけません."
 
-#: experiment/components/camera/__init__.py:34
+#: experiment/components/camera/__init__.py:47
 msgid "Webcam: Record video from a webcam."
 msgstr "Webcam: ウェブカメラによるビデオ録画"
 
-#: experiment/components/camera/__init__.py:192
+#: experiment/components/camera/__init__.py:205
 msgid "Python package to use behind the scenes."
 msgstr "バックエンドに使用するPythonパッケージを指定します."
 
-#: experiment/components/camera/__init__.py:193
+#: experiment/components/camera/__init__.py:206
 #: experiment/components/movie/__init__.py:63
 msgid "Backend"
 msgstr "バックエンド"
 
-#: experiment/components/camera/__init__.py:196
+#: experiment/components/camera/__init__.py:209
 msgid ""
 "What device would you like to use to record video? This will only affect "
 "local experiments - online experiments ask the participant which device to "
@@ -4860,22 +4864,22 @@ msgstr ""
 "ビデオ録画に使用するデバイスを選択します. この設定はローカルPCで時効する実験"
 "にのみ有効です. オンライン実験では参加者がどのデバイスを使うか選択します."
 
-#: experiment/components/camera/__init__.py:226
-#: experiment/components/camera/__init__.py:238
+#: experiment/components/camera/__init__.py:239
+#: experiment/components/camera/__init__.py:251
 msgid "Video device"
 msgstr "ビデオデバイス"
 
-#: experiment/components/camera/__init__.py:240
+#: experiment/components/camera/__init__.py:253
 msgid "Resolution (w x h) to record to, leave blank to use device default."
 msgstr ""
 "録画する解像度(w x  h). デバイスのデフォルト値を使う場合は空白にします."
 
-#: experiment/components/camera/__init__.py:246
-#: experiment/components/camera/__init__.py:258
+#: experiment/components/camera/__init__.py:259
+#: experiment/components/camera/__init__.py:271
 msgid "Resolution"
 msgstr "解像度"
 
-#: experiment/components/camera/__init__.py:260
+#: experiment/components/camera/__init__.py:273
 msgid ""
 "Frame rate (frames per second) to record at, leave blank to use device "
 "default."
@@ -4883,13 +4887,13 @@ msgstr ""
 "録画時のフレームレート(1秒あたりのフレーム数). デバイスのデフォルト値を使う場"
 "合は空白にします."
 
-#: experiment/components/camera/__init__.py:271
-#: experiment/components/camera/__init__.py:288
+#: experiment/components/camera/__init__.py:284
+#: experiment/components/camera/__init__.py:301
 #: experiment/components/settings/__init__.py:325
 msgid "Frame rate"
 msgstr "フレームレート"
 
-#: experiment/components/camera/__init__.py:282
+#: experiment/components/camera/__init__.py:295
 msgid ""
 " For some cameras, you may need to use `camera.CAMERA_FRAMERATE_NTSC` or "
 "`camera.CAMERA_FRAMERATE_NTSC / 2`."
@@ -4897,11 +4901,11 @@ msgstr ""
 " カメラの機種によっては, `camera.CAMERA_FRAMERATE_NTSC` または `camera."
 "CAMERA_FRAMERATE_NTSC / 2` を指定する必要があります."
 
-#: experiment/components/camera/__init__.py:320
+#: experiment/components/camera/__init__.py:333
 msgid "Microphone device label"
 msgstr "マイクデバイスのラベル"
 
-#: experiment/components/camera/__init__.py:322
+#: experiment/components/camera/__init__.py:335
 msgid ""
 "A label to refer to this Component's associated microphone device by. If "
 "using the same device for multiple components, be sure to use the same label "
@@ -4911,7 +4915,7 @@ msgstr ""
 "トで同一のデバイスを使用する場合, 同じラベルがここに入力されていることを確認"
 "してください."
 
-#: experiment/components/camera/__init__.py:340
+#: experiment/components/camera/__init__.py:353
 #: experiment/components/microphone/__init__.py:109
 msgid ""
 "What microphone device would you like the use to record? This will only "
@@ -4921,11 +4925,11 @@ msgstr ""
 "録音に使用するマイクデバイスを選択します. この設定はローカルPCで時効する実験"
 "にのみ有効です. オンライン実験では参加者がどのマイクを使うか選択します."
 
-#: experiment/components/camera/__init__.py:348
+#: experiment/components/camera/__init__.py:361
 msgid "Microphone"
 msgstr "マイク"
 
-#: experiment/components/camera/__init__.py:351
+#: experiment/components/camera/__init__.py:364
 #: experiment/components/microphone/__init__.py:122
 msgid ""
 "Record two channels (stereo) or one (mono, smaller file). Select 'auto' to "
@@ -4934,22 +4938,22 @@ msgstr ""
 "ステレオ録音(2チャネル)かモノラル録音(1チャネル)かを指定します. 選択したデバ"
 "イスでサポートされる最大のチャネル数で録音する場合はautoを指定します."
 
-#: experiment/components/camera/__init__.py:358
+#: experiment/components/camera/__init__.py:371
 #: experiment/components/microphone/__init__.py:120
 msgid "Channels"
 msgstr "チャネル"
 
-#: experiment/components/camera/__init__.py:361
+#: experiment/components/camera/__init__.py:374
 #: experiment/components/microphone/__init__.py:131
 msgid "How many samples per second (Hz) to record at"
 msgstr "録音のサンプリングレート(Hz)を指定します"
 
-#: experiment/components/camera/__init__.py:366
+#: experiment/components/camera/__init__.py:379
 #: experiment/components/microphone/__init__.py:129
 msgid "Sample rate (hz)"
 msgstr "サンプリングレート(Hz)"
 
-#: experiment/components/camera/__init__.py:369
+#: experiment/components/camera/__init__.py:382
 #: experiment/components/microphone/__init__.py:139
 msgid ""
 "To avoid excessively large output files, what is the biggest file size you "
@@ -4958,63 +4962,63 @@ msgstr ""
 "過度に大きなファイルが作成されないように、録音ファイルサイズの上限を指定して"
 "ください."
 
-#: experiment/components/camera/__init__.py:374
+#: experiment/components/camera/__init__.py:387
 #: experiment/components/microphone/__init__.py:137
 msgid "Max recording size (kb)"
 msgstr "最大録音データサイズ(kb)"
 
-#: experiment/components/camera/__init__.py:377
+#: experiment/components/camera/__init__.py:390
 msgid "Save webcam output to a file?"
 msgstr "webカメラの出力をファイルに保存しますか?"
 
-#: experiment/components/camera/__init__.py:381
+#: experiment/components/camera/__init__.py:394
 msgid "Save file?"
 msgstr "ファイルへ保存"
 
-#: experiment/components/code/__init__.py:20
+#: experiment/components/code/__init__.py:53
 msgid "Code: insert python commands into an experiment"
 msgstr "Code: Pythonのコードを実験に挿入します"
 
-#: experiment/components/code/__init__.py:44
+#: experiment/components/code/__init__.py:77
 msgid "Display Python or JS Code"
 msgstr "PythonとJavaScriptのコード表示を切り替えます"
 
-#: experiment/components/code/__init__.py:49
+#: experiment/components/code/__init__.py:82
 msgid "Code type"
 msgstr "コードタイプ"
 
-#: experiment/components/code/__init__.py:51
+#: experiment/components/code/__init__.py:84
 msgid ""
 "Code to run before the experiment starts (initialization); right-click "
 "checks syntax"
 msgstr "実験初期化処理の前に実行されるコード; 右クリックで文法をチェック"
 
-#: experiment/components/code/__init__.py:57
+#: experiment/components/code/__init__.py:90
 msgid "Before experiment"
 msgstr "実験初期化中"
 
-#: experiment/components/code/__init__.py:59
+#: experiment/components/code/__init__.py:92
 msgid "Code at the start of the experiment ; right-click checks syntax"
 msgstr "実験開始時に実行されるコード; 右クリックで文法をチェック"
 
-#: experiment/components/code/__init__.py:65
+#: experiment/components/code/__init__.py:98
 msgid "Begin experiment"
 msgstr "実験開始時"
 
-#: experiment/components/code/__init__.py:67
-#: experiment/components/code/__init__.py:118
+#: experiment/components/code/__init__.py:100
+#: experiment/components/code/__init__.py:151
 msgid ""
 "Code to be run at the start of each repeat of the Routine (e.g. each trial); "
 "right-click checks syntax"
 msgstr ""
 "Routineが繰り返し開始される度に実行されるコード; 右クリックで文法をチェック"
 
-#: experiment/components/code/__init__.py:74
+#: experiment/components/code/__init__.py:107
 msgid "Begin Routine"
 msgstr "Routine開始時"
 
-#: experiment/components/code/__init__.py:76
-#: experiment/components/code/__init__.py:127
+#: experiment/components/code/__init__.py:109
+#: experiment/components/code/__init__.py:160
 msgid ""
 "Code to be run on every video frame during for the duration of this Routine; "
 "right-click checks syntax"
@@ -5022,12 +5026,12 @@ msgstr ""
 "このRoutineの実行中, フレームが描画される度に実行されるコード; 右クリックで文"
 "法をチェック"
 
-#: experiment/components/code/__init__.py:83
+#: experiment/components/code/__init__.py:116
 msgid "Each frame"
 msgstr "フレーム毎"
 
-#: experiment/components/code/__init__.py:85
-#: experiment/components/code/__init__.py:136
+#: experiment/components/code/__init__.py:118
+#: experiment/components/code/__init__.py:169
 msgid ""
 "Code at the end of this repeat of the Routine (e.g. getting/storing "
 "responses); right-click checks syntax"
@@ -5035,12 +5039,12 @@ msgstr ""
 "Routineが終了する度に実行されるコード (反応の取得や記録など); 右クリックで文"
 "法をチェック"
 
-#: experiment/components/code/__init__.py:92
+#: experiment/components/code/__init__.py:125
 msgid "End Routine"
 msgstr "Routine終了時"
 
-#: experiment/components/code/__init__.py:94
-#: experiment/components/code/__init__.py:145
+#: experiment/components/code/__init__.py:127
+#: experiment/components/code/__init__.py:178
 msgid ""
 "Code at the end of the entire experiment (e.g. saving files, resetting "
 "computer); right-click checks syntax"
@@ -5048,21 +5052,21 @@ msgstr ""
 "実験全体の終了時に実験されるコード (ファイルの保存など); 右クリックで文法を"
 "チェック"
 
-#: experiment/components/code/__init__.py:101
+#: experiment/components/code/__init__.py:134
 msgid "End experiment"
 msgstr "実験終了時"
 
-#: experiment/components/code/__init__.py:103
+#: experiment/components/code/__init__.py:136
 msgid ""
 "Code before the start of the experiment (initialization); right-click checks "
 "syntax"
 msgstr "実験初期化処理の前に実行されるコード; 右クリックで文法をチェック"
 
-#: experiment/components/code/__init__.py:109
+#: experiment/components/code/__init__.py:142
 msgid "Before JS experiment"
 msgstr "実験初期化前 (JS)"
 
-#: experiment/components/code/__init__.py:110
+#: experiment/components/code/__init__.py:143
 msgid ""
 "Code at the start of the experiment (initialization); right-click checks "
 "syntax"
@@ -5070,23 +5074,23 @@ msgstr ""
 "実験開始時に実行されるコード (実験の初期化処理など); 右クリックで文法をチェッ"
 "ク"
 
-#: experiment/components/code/__init__.py:116
+#: experiment/components/code/__init__.py:149
 msgid "Begin JS experiment"
 msgstr "実験開始時 (JS)"
 
-#: experiment/components/code/__init__.py:125
+#: experiment/components/code/__init__.py:158
 msgid "Begin JS Routine"
 msgstr "Routine開始時 (JS)"
 
-#: experiment/components/code/__init__.py:134
+#: experiment/components/code/__init__.py:167
 msgid "Each JS frame"
 msgstr "フレーム毎 (JS)"
 
-#: experiment/components/code/__init__.py:143
+#: experiment/components/code/__init__.py:176
 msgid "End JS Routine"
 msgstr "Routine終了時 (JS)"
 
-#: experiment/components/code/__init__.py:152
+#: experiment/components/code/__init__.py:185
 msgid "End JS experiment"
 msgstr "実験終了時 (JS)"
 
@@ -6387,7 +6391,7 @@ msgid "Settings for this Routine."
 msgstr "このルーチンの設定"
 
 #: experiment/components/routineSettings/__init__.py:51
-#: experiment/routines/_base.py:67
+#: experiment/routines/_base.py:70
 msgid "Disable Routine"
 msgstr "このルーチンを無効にします"
 
@@ -7229,11 +7233,11 @@ msgstr "キーボード入力の検出にどのパッケージを使いますか
 msgid "Keyboard backend"
 msgstr "キーボードバックエンド"
 
-#: experiment/components/settings/__init__.py:1271
+#: experiment/components/settings/__init__.py:1274
 msgid "Could not interpret value as dict: {}"
 msgstr "dictオブジェクトとして解釈できません: {}"
 
-#: experiment/components/settings/__init__.py:1786
+#: experiment/components/settings/__init__.py:1789
 msgid "Fullscreen settings ignored as running in pilot mode."
 msgstr "フルスクリーン設定はpilotモードでの実行時には無視されます."
 
@@ -7817,25 +7821,25 @@ msgstr "個々のステアケースの差を定義する辞書オブジェクト
 msgid "An xlsx or csv file specifying the parameters for each condition"
 msgstr "各条件のパラメータを定義したxlsxファイルまたはcsvファイルを指定します"
 
-#: experiment/routines/_base.py:43
+#: experiment/routines/_base.py:46
 msgid "Name of this Routine (alphanumeric or _, no spaces)"
 msgstr "このルーチンの名前  (英数字と_のみ;スペースを含まない)"
 
-#: experiment/routines/_base.py:52
+#: experiment/routines/_base.py:55
 msgid "When does the Routine end? (blank is endless)"
 msgstr "終了時刻を指定します (空白の場合はRoutine終了まで)"
 
-#: experiment/routines/_base.py:60
+#: experiment/routines/_base.py:63
 msgid "Stop type..."
 msgstr "終了時刻の指定法..."
 
-#: experiment/routines/_base.py:63
+#: experiment/routines/_base.py:66
 msgid "Disable this Routine"
 msgstr "ルーチンを無効化"
 
 #: experiment/routines/counterbalance/__init__.py:11
 msgid "Counter-balance"
-msgstr ""
+msgstr "Counter-balance"
 
 #: experiment/routines/counterbalance/__init__.py:13
 msgid ""
@@ -7851,8 +7855,8 @@ msgid "Num. groups"
 msgstr "グループ数"
 
 #: experiment/routines/counterbalance/__init__.py:46
-msgid "Conditions file"
-msgstr "条件ファイル"
+msgid "Conditions file (local only)"
+msgstr "条件ファイル (ローカルのみ有効)"
 
 #: experiment/routines/counterbalance/__init__.py:47
 msgid "Groups from..."
@@ -8221,8 +8225,8 @@ msgid "Survey JSON"
 msgstr "調査のJSONファイル"
 
 #: experiment/routines/photodiodeValidator/__init__.py:20
-msgid "photodiode"
-msgstr ""
+msgid "Photodiode validator"
+msgstr "Photodiode validator"
 
 #: experiment/routines/photodiodeValidator/__init__.py:65
 msgid "Variability (s)"
@@ -8348,7 +8352,7 @@ msgstr "アスタリスク(*)がついた項目は必須です."
 
 #: gui/qtgui.py:374
 msgid "Configuration fields..."
-msgstr ""
+msgstr "設定フィールド..."
 
 #: gui/qtgui.py:637 gui/wxgui.py:325
 msgid "Select file to save"
@@ -9805,6 +9809,15 @@ msgstr "PsychoPyに戻るにはキャンセルをクリックします."
 #: visual/window.py:3391
 msgid "PILOTING: Switch to run mode before testing."
 msgstr "PILOTING: Switch to run mode before testing."
+
+#~ msgid "Conditions file"
+#~ msgstr "条件ファイル"
+
+#~ msgid "star"
+#~ msgstr "星"
+
+#~ msgid "line"
+#~ msgstr "直線"
 
 #~ msgid "PsychoPy"
 #~ msgstr "PsychoPy"

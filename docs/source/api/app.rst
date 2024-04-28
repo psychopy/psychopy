@@ -1,5 +1,5 @@
 :mod:`psychopy.app` - the |PsychoPy| application suite
-====================================================
+======================================================
 
 This module contains everything needed to run and manage the wxPython |PsychoPy|
 GUI application suite (e.g., Coder, Builder and Runner).
