@@ -1073,6 +1073,19 @@ class Session:
                 })
 
         return True
+    
+    def getFutureTrial(self, n=1):
+        """
+        Returns the condition for n trials into the future, without
+        advancing the trials. Returns 'None' if attempting to go beyond
+        the last trial in the current loop, if there is no current loop 
+        or if there is no current experiment.
+        """
+        # return None if there's no current experiment
+        if self.currentExperiment is None:
+            return None
+        # get future trial from current experiment
+        return self.currentExperiment.getFutureTrial(n)
 
     def pauseExperiment(self):
         """

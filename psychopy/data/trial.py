@@ -1154,7 +1154,11 @@ class TrialHandler2(_BaseTrialHandler):
         advancing the trials. Returns 'None' if attempting to go beyond
         the last trial.
         """
-        return self.upcoming[n]
+        # return None if requesting beyond last trial
+        if n > len(self.upcoming):
+            return None
+        # return the corresponding trial from upcoming trials array
+        return self.upcoming[n-1]
 
     def getEarlierTrial(self, n=-1):
         """Returns the condition information from n trials previously.
@@ -1164,6 +1168,10 @@ class TrialHandler2(_BaseTrialHandler):
         # treat positive offset values as equivalent to negative ones:
         if n > 0:
             n = n * -1
+        # return None if requesting before first trial
+        if abs(n) > len(self.upcoming):
+            return None
+        # return the corresponding trial from elapsed trials array
         return self.elapsed[n]
 
     def _createOutputArray(self, stimOut, dataOut, delim=None,

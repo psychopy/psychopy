@@ -9,6 +9,7 @@ import pandas as pd
 
 from psychopy import constants, clock
 from psychopy import logging
+from psychopy.data.trial import TrialHandler2
 from psychopy.tools.filetools import (openOutputFile, genDelimiter,
                                       genFilenameFromDelimiter)
 from psychopy.localization import _translate
@@ -455,6 +456,18 @@ class ExperimentHandler(_ComparisonMixin):
             ))
         # set own status
         self.status = constants.STOPPED
+    
+    def getFutureTrial(self, n=1):
+        """
+        Returns the condition for n trials into the future, without
+        advancing the trials. Returns 'None' if attempting to go beyond
+        the last trial in the current loop, or if there is no current loop.
+        """
+        # return None if there isn't a TrialHandler2 active
+        if not isinstance(self.currentLoop, TrialHandler2):
+            return None
+        # get future trial from current loop
+        return self.currentLoop.getFutureTrial(n)
 
     def nextEntry(self):
         """Calling nextEntry indicates to the ExperimentHandler that the
