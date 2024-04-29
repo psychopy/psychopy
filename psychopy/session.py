@@ -1100,7 +1100,7 @@ class Session:
         return trial
     
         
-    def getFutureTrials(self, n=1, start=0):
+    def getFutureTrials(self, n=1, start=0, asDict=False):
         """
         Returns Trial objects for a given range in the future. Will start looking at `start` trials 
         in the future and will return n trials from then, so e.g. to get all trials from 2 in the 
@@ -1115,8 +1115,10 @@ class Session:
         
         Returns
         -------
-        list[Trial or None]
+        list[Trial or dict or None]
             List of Trial objects n long. Any trials beyond the last trial are None.
+        asDict : bool
+            If True, convert Trial objects to a dict before returning (useful for Liaison)
         """
         # blank list to store trials in
         trials = []
@@ -1124,7 +1126,7 @@ class Session:
         for i in range(n):
             # add each to the list
             trials.append(
-                self.getFutureTrial(start + i)
+                self.getFutureTrial(start + i, asDict=asDict)
             )
         
         return trials
