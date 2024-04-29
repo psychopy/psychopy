@@ -788,9 +788,8 @@ class Trial(dict):
             'thisRepN': self.thisRepN, 
             'thisTrialN': self.thisTrialN, 
             'thisIndex': self.thisIndex, 
-            'data': self.data,
+            'data': {key: val for key, val in self.items()},
         }
-
     
     def getJSON(self):
         """
@@ -1193,6 +1192,9 @@ class TrialHandler2(_BaseTrialHandler):
         Trial or None
             Trial object for n trials into the future.
         """
+        # make sure n is an integer
+        if isinstance(n, str) and n.isnumeric():
+            n = int(n)
         # return None if requesting beyond last trial
         if n > len(self.upcoming):
             return None
