@@ -1183,15 +1183,50 @@ class TrialHandler2(_BaseTrialHandler):
         self.upcoming = None
 
     def getFutureTrial(self, n=1):
-        """Returns the condition for n trials into the future, without
+        """
+        Returns the condition for n trials into the future, without
         advancing the trials. Returns 'None' if attempting to go beyond
         the last trial.
+
+        Returns
+        -------
+        Trial or None
+            Trial object for n trials into the future.
         """
         # return None if requesting beyond last trial
         if n > len(self.upcoming):
             return None
         # return the corresponding trial from upcoming trials array
         return self.upcoming[n-1]
+    
+    def getFutureTrials(self, n=1, start=0):
+        """
+        Returns Trial objects for a given range in the future. Will start looking at `start` trials 
+        in the future and will return n trials from then, so e.g. to get all trials from 2 in the 
+        future to 5 in the future you would use `start=2` and `n=3`.
+
+        Parameters
+        ----------
+        n : int, optional
+            How many trials into the future to look, by default 1
+        start : int, optional
+            How many trials into the future to start looking at, by default 0
+        
+        Returns
+        -------
+        list[Trial or None]
+            List of Trial objects n long. Any trials beyond the last trial are None.
+        """
+        # blank list to store trials in
+        trials = []
+        # iterate through n trials
+        for i in range(n):
+            # add each to the list
+            trials.append(
+                self.getFutureTrial(start + i)
+            )
+        
+        return trials
 
     def getEarlierTrial(self, n=-1):
         """Returns the condition information from n trials previously.

@@ -468,6 +468,36 @@ class ExperimentHandler(_ComparisonMixin):
             return None
         # get future trial from current loop
         return self.currentLoop.getFutureTrial(n)
+    
+        
+    def getFutureTrials(self, n=1, start=0):
+        """
+        Returns Trial objects for a given range in the future. Will start looking at `start` trials 
+        in the future and will return n trials from then, so e.g. to get all trials from 2 in the 
+        future to 5 in the future you would use `start=2` and `n=3`.
+
+        Parameters
+        ----------
+        n : int, optional
+            How many trials into the future to look, by default 1
+        start : int, optional
+            How many trials into the future to start looking at, by default 0
+        
+        Returns
+        -------
+        list[Trial or None]
+            List of Trial objects n long. Any trials beyond the last trial are None.
+        """
+        # blank list to store trials in
+        trials = []
+        # iterate through n trials
+        for i in range(n):
+            # add each to the list
+            trials.append(
+                self.getFutureTrial(start + i)
+            )
+        
+        return trials
 
     def nextEntry(self):
         """Calling nextEntry indicates to the ExperimentHandler that the
