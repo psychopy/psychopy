@@ -783,6 +783,7 @@ class Trial(dict):
             Dict containing information for this Trial.
         """
         return {
+            'type': "trial_data",
             'thisN': self.thisN, 
             'thisRepN': self.thisRepN, 
             'thisTrialN': self.thisTrialN, 
