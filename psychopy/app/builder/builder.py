@@ -4,7 +4,7 @@
 """
 Defines the behavior of Psychopy's Builder view window
 Part of the PsychoPy library
-Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 Distributed under the terms of the GNU General Public License (GPL).
 """
 import collections
@@ -17,6 +17,8 @@ import glob
 import copy
 import traceback
 import codecs
+from types import SimpleNamespace
+
 import numpy
 import requests
 import io
@@ -36,6 +38,7 @@ from ..pavlovia_ui.user import UserFrame
 from ..pavlovia_ui.functions import logInPavlovia
 from ...experiment import getAllElements, getAllCategories
 from ...experiment.routines import Routine, BaseStandaloneRoutine
+from psychopy.tools.versionchooser import parseVersionSafely, psychopyVersion
 
 try:
     import markdown_it as md
@@ -122,6 +125,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.appPrefs = self.app.prefs.app
         self.paths = self.app.prefs.paths
         self.frameType = 'builder'
+        self.fileExists = False
         self.filename = fileName
         self.htmlPath = None
         self.scriptProcess = None
@@ -179,6 +183,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.componentButtons = ComponentsPanel(self)
         self.ribbon = BuilderRibbon(self)
         # menus and toolbars
+        self.menuIDs = SimpleNamespace()
         self.makeMenus()
         self.CreateStatusBar()
         self.SetStatusText("")
@@ -188,7 +193,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.SetAcceleratorTable(accelTable)
 
         # setup a default exp
-        if fileName is not None and os.path.isfile(fileName):
+        if self.filename.is_file():
             self.fileOpen(filename=fileName, closeCurrent=False)
         else:
             self.lastSavedCopy = None
@@ -308,16 +313,27 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             wx.ID_SAVEAS,
             _translate("Save &as...\t%s") % keys['saveAs'],
             _translate("Save current experiment file as..."))
-        exportMenu = menu.Append(
-            -1,
+        # export html
+        self.menuIDs.ID_EXPORT_HTML = wx.NewId()
+        menu.Append(
+            self.menuIDs.ID_EXPORT_HTML,
             _translate("Export HTML...\t%s") % keys['exportHTML'],
-            _translate("Export experiment to html/javascript file"))
+            _translate("Export experiment to html/javascript file")
+        )
+        self.Bind(wx.EVT_MENU, self.fileExport, id=self.menuIDs.ID_EXPORT_HTML)
+        # reveal folder
+        self.menuIDs.ID_REVEAL = wx.NewId()
+        menu.Append(
+            self.menuIDs.ID_REVEAL,
+            _translate("Reveal in file explorer..."),
+            _translate("Open the folder containing this experiment in your system's file explorer")
+        )
+        self.Bind(wx.EVT_MENU, self.fileReveal, id=self.menuIDs.ID_REVEAL)
         menu.Append(
             wx.ID_CLOSE,
             _translate("&Close file\t%s") % keys['close'],
             _translate("Close current experiment"))
         self.Bind(wx.EVT_MENU, self.app.newBuilderFrame, id=wx.ID_NEW)
-        self.Bind(wx.EVT_MENU, self.fileExport, id=exportMenu.GetId())
         self.Bind(wx.EVT_MENU, self.fileSave, id=wx.ID_SAVE)
         menu.Enable(wx.ID_SAVE, False)
         self.Bind(wx.EVT_MENU, self.fileSaveAs, id=wx.ID_SAVEAS)
@@ -334,10 +350,6 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.Bind(wx.EVT_MENU, self.resetPrefs, item)
         # item = menu.Append(wx.NewId(), "Plug&ins")
         # self.Bind(wx.EVT_MENU, self.pluginManager, item)
-        menu.AppendSeparator()
-        msg = _translate("Close PsychoPy Builder")
-        item = menu.Append(wx.ID_ANY, msg)
-        self.Bind(wx.EVT_MENU, self.closeFrame, id=item.GetId())
         self.fileMenu.AppendSeparator()
         self.fileMenu.Append(wx.ID_EXIT,
                              _translate("&Quit\t%s") % keys['quit'],
@@ -425,9 +437,9 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
                            _translate("Compile the exp to a script"))
         self.Bind(wx.EVT_MENU, self.compileScript, item)
         self.bldrRun = menu.Append(wx.ID_ANY,
-                           _translate("Run\t%s") % keys['runScript'],
+                           _translate("Run/pilot\t%s") % keys['runScript'],
                            _translate("Run the current script"))
-        self.Bind(wx.EVT_MENU, self.runFile, self.bldrRun, id=self.bldrRun)
+        self.Bind(wx.EVT_MENU, self.onRunShortcut, self.bldrRun, id=self.bldrRun)
         item = menu.Append(wx.ID_ANY,
                            _translate("Send to runner\t%s") % keys['runnerScript'],
                            _translate("Send current script to runner"))
@@ -636,7 +648,19 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
     @filename.setter
     def filename(self, value):
-        self._filename = value
+        if value is None:
+            # mark nonexistant
+            self.fileExists = False
+            # keep placeholder name for labels and etc.
+            self._filename = Path("untitled.psyexp")
+        else:
+            # path-ise and set
+            self._filename = Path(value)
+            # mark existant
+            self.fileExists = Path(value).is_file()
+        # enable/disable reveal button
+        if hasattr(self, "menuIDs"):
+            self.fileMenu.Enable(self.menuIDs.ID_REVEAL, self.fileExists)
         # skip if there's no ribbon
         if not hasattr(self, "ribbon"):
             return
@@ -644,7 +668,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         for key in ('compile_py', 'compile_js'):
             if key in self.ribbon.buttons:
                 self.ribbon.buttons[key].Enable(
-                    Path(value).is_file()
+                    self._filename.is_file()
                 )
 
     def fileNew(self, event=None, closeCurrent=True):
@@ -656,7 +680,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             if not self.fileClose(updateViews=False):
                 # close the existing (and prompt for save if necess)
                 return False
-        self.filename = 'untitled.psyexp'
+        self.filename = None
         self.exp = experiment.Experiment(prefs=self.app.prefs)
         defaultName = 'trial'
         # create the trial routine as an example
@@ -673,6 +697,10 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         #             startType='time (s)', startVal=0.0,
         #             stopType='duration (s)', stopVal=0.5)
         # routine.addComponent(ISI)
+        # set run mode silently and update icons
+        self.ribbon.buttons['pyswitch'].setMode(self.exp.runMode, silent=True)
+        self.updateRunModeIcons()
+        # update undo stack
         self.resetUndoStack()
         self.setIsModified(False)
         self.updateAllViews()
@@ -687,26 +715,29 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
                 wildcard = _translate("PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*.*")
             else:
                 wildcard = _translate("PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*")
-            # get path of current file (empty if current file is '')
-            if self.filename:
-                initPath = str(Path(self.filename).parent)
+            # get path of current file (or home dir to avoid temp)
+            initPath = str(self.filename.parent)
+            if self.fileExists:
+                dlg = wx.FileDialog(self, message=_translate("Open file ..."),
+                                    defaultDir=initPath,
+                                    style=wx.FD_OPEN,
+                                    wildcard=wildcard)
             else:
-                initPath = ""
-            # Open dlg
-            dlg = wx.FileDialog(self, message=_translate("Open file ..."),
-                                defaultDir=initPath,
-                                style=wx.FD_OPEN,
-                                wildcard=wildcard)
+                dlg = wx.FileDialog(self, message=_translate("Open file ..."),
+                                    style=wx.FD_OPEN,
+                                    wildcard=wildcard)
             if dlg.ShowModal() != wx.ID_OK:
                 return 0
             filename = dlg.GetPath()
 
+        filename = str(filename)
         # did user try to open a script in Builder?
         if filename.endswith('.py'):
             self.app.showCoder()  # ensures that a coder window exists
             self.app.coder.setCurrentDoc(filename)
             self.app.coder.setFileModified(False)
             return
+
         with WindowFrozen(ctrl=self):
             # try to pause rendering until all panels updated
             if closeCurrent:
@@ -716,6 +747,9 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             self.exp = experiment.Experiment(prefs=self.app.prefs)
             try:
                 self.exp.loadFromXML(filename)
+                # set run mode silently and update buttons accordingly
+                self.ribbon.buttons['pyswitch'].setMode(self.exp.runMode, silent=True)
+                self.updateRunModeIcons()
             except Exception:
                 print(u"Failed to load {}. Please send the following to"
                       u" the PsychoPy user list".format(filename))
@@ -746,12 +780,34 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.project = pavlovia.getProject(filename)
         self.app.updateWindowMenu()
 
+    def fileReveal(self, evt=None):
+        """
+        Reveal the current file in the system file explorer.
+        """
+        # get current dir
+        if self.fileExists:
+            folder = Path(self.filename).parent
+        else:
+            folder = Path().home()
+        # choose a command according to OS
+        if sys.platform in ['win32']:
+            comm = "explorer"
+        elif sys.platform in ['darwin']:
+            comm = "open"
+        elif sys.platform in ['linux', 'linux2']:
+            comm = "dolphin"
+        # use command to open folder
+        subprocess.call(f"{comm} {folder}", shell=True)
+
     def fileSave(self, event=None, filename=None):
         """Save file, revert to SaveAs if the file hasn't yet been saved
         """
         if filename is None:
             filename = self.filename
-        if filename.startswith('untitled'):
+        else:
+            filename = Path(filename)
+
+        if not self.fileExists:
             if not self.fileSaveAs(filename):
                 return False  # the user cancelled during saveAs
         else:
@@ -773,9 +829,17 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             usingDefaultName = True
         else:
             usingDefaultName = False
+        # force filename to Path
         if filename is None:
             filename = self.filename
-        initPath, filename = os.path.split(filename)
+        else:
+            filename = Path(filename)
+        # get parent and filename
+        initPath = filename.parent
+        filename = filename.name
+        # substitute temp dir for home
+        if not self.fileExists:
+            initPath = Path.home()
 
         if sys.platform != 'darwin':
             wildcard = _translate("PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*.*")
@@ -783,7 +847,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             wildcard = _translate("PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*")
         returnVal = False
         dlg = wx.FileDialog(
-            self, message=_translate("Save file as ..."), defaultDir=initPath,
+            self, message=_translate("Save file as ..."), defaultDir=str(initPath),
             defaultFile=filename, style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
             wildcard=wildcard)
 
@@ -796,8 +860,9 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
                     os.path.split(newPath)[1])[0]
                 self.exp.setExpName(newShortName)
             # actually save
-            self.fileSave(event=None, filename=newPath)
             self.filename = newPath
+            self.fileExists = True
+            self.fileSave(event=None, filename=newPath)
             self.project = pavlovia.getProject(filename)
             returnVal = 1
         dlg.Destroy()
@@ -816,38 +881,49 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         """Exports the script as an HTML file (PsychoJS library)
         """
         # get path if not given one
-        expPath, expName = os.path.split(self.filename)
         if htmlPath is None:
             htmlPath = self._getHtmlPath(self.filename)
         if not htmlPath:
             return
 
-        exportPath = os.path.join(htmlPath, expName.replace('.psyexp', '.js'))
-        exportPath = self.generateScript(experimentPath=exportPath,
-                            exp=self.exp,
-                            target="PsychoJS")
+        exportPath = os.path.join(htmlPath, self.exp.name + '.js')
+        exportPath = self.generateScript(
+            outfile=exportPath,
+            exp=self.exp,
+            target="PsychoJS"
+        )
         # Open exported files
-        self.app.showCoder()
-        self.app.coder.fileNew(filepath=exportPath)
+        self.app.showCoder(fileList=[exportPath])
         self.app.coder.fileReload(event=None, filename=exportPath)
 
     def editREADME(self, event):
-        folder = Path(self.filename).parent
-        if folder == folder.parent:
+        if self.filename is None:
             dlg = wx.MessageDialog(
                 self,
                 _translate("Please save experiment before editing the README file"),
                 _translate("No readme file"),
                 wx.OK | wx.ICON_WARNING | wx.CENTRE)
             dlg.ShowModal()
-            return
-        self.updateReadme(show=True)
-        return
+        else:
+            self.updateReadme(show=True)
 
-    def getShortFilename(self):
-        """returns the filename without path or extension
+    def getShortFilename(self, withExt=False):
         """
-        return os.path.splitext(os.path.split(self.filename)[1])[0]
+        Returns the filename without path
+
+        Parameters
+        ----------
+        withExt : bool
+            Should the returned filename include the file extension? False by default.
+        """
+        # get file stem
+        shortName = self.filename.stem
+        ext = self.filename.suffix
+        # append extension if requested
+        if withExt:
+            shortName += ext
+
+        return shortName
 
     # def pluginManager(self, evt=None, value=True):
     #     """Show the plugin manager frame."""
@@ -868,20 +944,17 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             If None, show only when there is content.
         """
         # Make sure we have a file
-        if self.filename:
-            dirname = Path(self.filename).parent
-            possibles = list(dirname.glob('readme*'))
-            if len(possibles) == 0:
-                possibles = list(dirname.glob('Readme*'))
-                possibles.extend(dirname.glob('README*'))
+        dirname = self.filename.parent
+        possibles = list(dirname.glob('readme*'))
+        if len(possibles) == 0:
+            possibles = list(dirname.glob('Readme*'))
+            possibles.extend(dirname.glob('README*'))
 
-            # still haven't found a file so use default name
-            if len(possibles) == 0:
-                self.readmeFilename = str(dirname / 'readme.md')  # use this as our default
-            else:
-                self.readmeFilename = str(possibles[0])  # take the first one found
+        # still haven't found a file so use default name
+        if len(possibles) == 0:
+            self.readmeFilename = str(dirname / 'readme.md')  # use this as our default
         else:
-            self.readmeFilename = None
+            self.readmeFilename = str(possibles[0])  # take the first one found
 
         # Make sure we have a frame
         if self.readmeFrame is None:
@@ -890,7 +963,11 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             )
 
         # Set file
-        self.readmeFrame.file = self.readmeFilename
+        if self.fileExists:
+            self.readmeFrame.setFile(self.readmeFilename)
+        else:
+            self.readmeFrame.setFile(None)
+            show = False
         self.readmeFrame.ctrl.load()
 
         # Show/hide frame as appropriate
@@ -925,7 +1002,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
     def checkSave(self):
         """Check whether we need to save before quitting
         """
-        if hasattr(self, 'isModified') and self.isModified:
+        if hasattr(self, 'isModified') and self.isModified and not self.app.testMode:
             self.Show(True)
             self.Raise()
             self.app.SetTopWindow(self)
@@ -984,7 +1061,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.appData['fileHistory'] = copy.copy(tmp[-fhMax:])
 
         # assign the data to this filename
-        self.appData['frames'][self.filename] = frameData
+        self.appData['frames'][str(self.filename)] = frameData
         # save the display data only for those frames in the history:
         tmp2 = {}
         for f in self.appData['frames']:
@@ -994,7 +1071,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
         # close self
         self.routinePanel.removePages()
-        self.filename = 'untitled.psyexp'
+        self.filename = None
         # add the current exp as the start point for undo:
         self.resetUndoStack()
         if updateViews:
@@ -1057,8 +1134,8 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         """Defines behavior to update window Title
         """
         if newTitle is None:
-            shortName = os.path.split(self.filename)[-1]
-            self.setTitle(title=self.winTitle, document=shortName)
+            newTitle = self.getShortFilename(withExt=True)
+        self.setTitle(title=self.winTitle, document=newTitle)
 
     def setIsModified(self, newVal=None):
         """Sets current modified status and updates save icon accordingly.
@@ -1240,8 +1317,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         Send the current file to the Runner.
         """
         # Check whether file is truly untitled (not just saved as untitled)
-        untitled = os.path.abspath("untitled.psyexp")
-        if not os.path.exists(self.filename) or os.path.abspath(self.filename) == untitled:
+        if not self.fileExists:
             ok = self.fileSave(self.filename)
             if not ok:
                 return False  # save file before compiling script
@@ -1251,11 +1327,55 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             if not ok:
                 return False  # save file before compiling script
         self.app.showRunner()
-        self.stdoutFrame.addTask(fileName=self.filename)
+        self.app.runner.addTask(fileName=self.filename)
         self.app.runner.Raise()
         self.app.showRunner()
 
         return True
+
+    def updateRunModeIcons(self, evt=None):
+        """
+        Function to update run/pilot icons according to run mode
+        """
+        mode = self.ribbon.buttons['pyswitch'].mode
+        # show/hide run buttons
+        for key in ("pyrun", "jsrun", "sendRunner"):
+            self.ribbon.buttons[key].Show(mode)
+        # hide/show pilot buttons
+        for key in ("pypilot", "jspilot", "pilotRunner"):
+            self.ribbon.buttons[key].Show(not mode)
+        # update
+        self.ribbon.Layout()
+
+    def onRunModeToggle(self, evt):
+        """
+        Function to execute when switching between pilot and run modes
+        """
+        mode = evt.GetInt()
+        # update icons
+        self.updateRunModeIcons()
+        # update experiment mode
+        if self.exp is not None:
+            self.exp.runMode = mode
+            # mark as modified
+            self.setIsModified(True)
+        # update
+        self.ribbon.Update()
+        self.ribbon.Refresh()
+        self.ribbon.Layout()
+
+    def onRunShortcut(self, evt=None):
+        """
+        Callback for when the run shortcut is pressed - will either run or pilot depending on run mode
+        """
+        # do nothing if we have no experiment
+        if self.exp is None:
+            return
+        # run/pilot according to mode
+        if self.exp.runMode:
+            self.runFile(evt)
+        else:
+            self.pilotFile(evt)
 
     def runFile(self, event=None):
         """
@@ -1348,7 +1468,11 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             frame=self, element=component, experiment=self.exp, timeout=timeout)
 
         if dlg.OK:
+            # add to undo stack
             self.addToUndoStack("EDIT experiment settings")
+            # update run mode
+            self.ribbon.buttons['pyswitch'].setMode(self.exp.runMode)
+            # mark modified
             self.setIsModified(True)
 
     def addRoutine(self, event=None):
@@ -1388,10 +1512,20 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
     def compileScript(self, event=None):
         """Defines compile script button behavior"""
-        fullPath = self.filename.replace('.psyexp', '.py')
-        fullPath = self.generateScript(experimentPath=fullPath, exp=self.exp)
-        self.app.showCoder()  # make sure coder is visible
-        self.app.coder.fileNew(filepath=fullPath)
+        # save so we have a file to work off
+        saved = self.fileSave()
+        # if save cancelled, return now
+        if not saved:
+            return
+        # construct filename for py file
+        fullPath = self.filename.parent / (self.exp.name + '.py')
+        # write script
+        fullPath = self.generateScript(
+            outfile=str(fullPath),
+            exp=self.exp
+        )
+        # show it in Coder
+        self.app.showCoder(fileList=[fullPath])  # make sure coder is visible
         self.app.coder.fileReload(event=None, filename=fullPath)
 
     @property
@@ -1508,7 +1642,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         """
         if hasattr(self, "_project"):
             return self._project
-        elif self.filename:
+        elif self.fileExists:
             return pavlovia.getProject(self.filename)
         else:
             return None
@@ -2105,6 +2239,9 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         # if max came from routine settings, mark as hard stop
         rtMax, rtMaxIsNum = self.routine.settings.getDuration()
         hardStop = rtMaxIsNum and rtMax == maxTime
+        # handle no max
+        if maxTime is None:
+            maxTime = 10
 
         return maxTime, hardStop
 
@@ -2186,6 +2323,10 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         dc.SetId(id)
         # get max time & check if we have a hard stop
         tMax, hardStop = self.getMaxTime()
+        # if routine has an estimated stop, it's not a hard stop but we shold draw the line anyway
+        if self.routine.settings.params.get("durationEstim", False):
+            hardStop = True
+
         if hardStop:
             # if hard stop, draw orange final line
             dc.SetPen(
@@ -2530,8 +2671,11 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
                     self.redrawRoutine()  # need to refresh timings section
                     self.Refresh()  # then redraw visible
                     self.frame.flowPanel.canvas.draw()
-            # Redraw if timings have changed
-            if component.getStartAndDuration() != initialTimings:
+            # Redraw if timings have changed (or always, if comp was RoutineSettings)
+            if (
+                component.getStartAndDuration() != initialTimings
+                or component.type == "RoutineSettingsComponent"
+            ):
                 self.redrawRoutine()  # need to refresh timings section
                 self.Refresh()  # then redraw visible
                 self.frame.flowPanel.canvas.draw()
@@ -3089,6 +3233,13 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             anyShown = False
             for name, btn in self.objectHandles[cat].items():
                 shown = True
+                # Get element button refers to
+                if isinstance(btn, self.ComponentButton):
+                    emt = btn.component
+                elif isinstance(btn, self.RoutineButton):
+                    emt = btn.routine
+                else:
+                    emt = None
                 # Check whether button is hidden by filter
                 for v in view:
                     if v not in btn.element.targets:
@@ -3096,6 +3247,11 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
                 # Check whether button is hidden by prefs
                 if name in prefs.builder['hiddenComponents'] + alwaysHidden:
                     shown = False
+                # Check whether button refers to a future comp/rt
+                if hasattr(emt, "version"):
+                    ver = parseVersionSafely(emt.version)
+                    if ver > psychopyVersion:
+                        shown = False
                 # Show/hide button
                 btn.Show(shown)
                 # Count state towards category
@@ -3108,7 +3264,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
 
         # Do sizing
         self.Layout()
-        self.SetupScrolling()
+        self.SetupScrolling(scrollToTop=False)
 
     def _applyAppTheme(self, target=None):
         # Style component panel
@@ -3245,14 +3401,17 @@ class ReadmeFrame(wx.Frame, handlers.ThemeMixin):
 
     def setFile(self, filename):
         """Sets the readme file found with current builder experiment"""
-        self.filename = filename
+        self.filename = self.ctrl.file = filename
         self.expName = self.parent.exp.getExpName()
+        if not self.expName:
+            self.expName = "untitled"
         # check we can read
         if filename is None:  # check if we can write to the directory
             return False
-        elif not os.path.exists(filename):
-            with open(filename, "w") as f:
-                f.write("")
+        # Path-ise file
+        filename = Path(filename)
+        if not filename.is_file():
+            filename.write_text("")
             self.filename = filename
             return False
         elif not os.access(filename, os.R_OK):
@@ -3279,7 +3438,7 @@ class ReadmeFrame(wx.Frame, handlers.ThemeMixin):
         f.close()
         self._fileLastModTime = os.path.getmtime(filename)
         self.ctrl.setValue(readmeText)
-        self.SetTitle("%s readme (%s)" % (self.expName, filename))
+        self.SetTitle("readme (%s)" % self.expName)
 
     def refresh(self, evt=None):
         if hasattr(self, 'filename'):
@@ -4358,15 +4517,36 @@ class BuilderRibbon(ribbon.FrameRibbon):
         self.addSection(
             "experiment", label=_translate("Experiment"), icon="experiment"
         )
+        # monitor center
+        self.addButton(
+            section="experiment", name='monitor', label=_translate('Monitor center'),
+            icon="monitors",
+            tooltip=_translate("Monitor settings and calibration"),
+            callback=parent.app.openMonitorCenter
+        )
         # settings
         self.addButton(
             section="experiment", name='expsettings', label=_translate('Experiment settings'), icon="expsettings",
             tooltip=_translate("Edit experiment settings"),
             callback=parent.setExperimentSettings
         )
+        # switch run/pilot
+        self.addSwitchCtrl(
+            section="experiment", name="pyswitch",
+            labels=(_translate("Pilot"), _translate("Run")),
+            startMode=0, callback=parent.onRunModeToggle,
+            style=wx.HORIZONTAL
+        )
         # send to runner
         self.addButton(
-            section="experiment", name='runner', label=_translate('Runner'), icon="runner",
+            section="experiment", name='sendRunner', label=_translate('Runner'), icon="runner",
+            tooltip=_translate("Send experiment to Runner"),
+            callback=parent.sendToRunner
+        )
+        # send to runner (pilot icon)
+        self.addButton(
+            section="experiment", name='pilotRunner', label=_translate('Runner'),
+            icon="runnerPilot",
             tooltip=_translate("Send experiment to Runner"),
             callback=parent.sendToRunner
         )
@@ -4376,12 +4556,6 @@ class BuilderRibbon(ribbon.FrameRibbon):
         # --- Python ---
         self.addSection(
             "py", label=_translate("Desktop"), icon="desktop"
-        )
-        # monitor center
-        self.addButton(
-            section="py", name='monitor', label=_translate('Monitor center'), icon="monitors",
-            tooltip=_translate("Monitor settings and calibration"),
-            callback=parent.app.openMonitorCenter
         )
         # compile python
         self.addButton(
@@ -4393,24 +4567,14 @@ class BuilderRibbon(ribbon.FrameRibbon):
         self.addButton(
             section="py", name="pypilot", label=_translate("Pilot"), icon='pyPilot',
             tooltip=_translate("Run the current script in Python with piloting features on"),
-            callback=parent.pilotFile, style=wx.BU_BOTTOM | wx.BU_EXACTFIT
-        )
-        # switch run/pilot
-        runPilotSwitch = self.addSwitchCtrl(
-            section="py", name="pyswitch",
-            labels=(_translate("Pilot"), _translate("Run")),
-            style=wx.HORIZONTAL | wx.BU_NOTEXT
+            callback=parent.pilotFile
         )
         # run Py
         self.addButton(
             section="py", name="pyrun", label=_translate("Run"), icon='pyRun',
             tooltip=_translate("Run the current script in Python"),
-            callback=parent.runFile, style=wx.BU_BOTTOM | wx.BU_EXACTFIT
+            callback=parent.runFile
         )
-        # link buttons to switch
-        runPilotSwitch.addDependant(self.buttons['pyrun'], mode=1, action="enable")
-        runPilotSwitch.addDependant(self.buttons['pypilot'], mode=0, action="enable")
-        runPilotSwitch.setMode(0)
 
         self.addSeparator()
 
@@ -4424,11 +4588,18 @@ class BuilderRibbon(ribbon.FrameRibbon):
             tooltip=_translate("Write experiment as a JavaScript (JS) script"),
             callback=parent.fileExport
         )
+        # pilot JS
+        self.addButton(
+            section="browser", name="jspilot", label=_translate("Pilot in browser"),
+            icon='jsPilot',
+            tooltip=_translate("Pilot experiment locally in your browser"),
+            callback=parent.onPavloviaDebug
+        )
         # run JS
         self.addButton(
-            section="browser", name="jsrun", label=_translate("Run in local browser"), icon='jsRun',
-            tooltip=_translate("Run experiment in your browser"),
-            callback=parent.onPavloviaDebug
+            section="browser", name="jsrun", label=_translate("Run on Pavlovia"), icon='jsRun',
+            tooltip=_translate("Run experiment on Pavlovia"),
+            callback=parent.onPavloviaRun
         )
         # sync project
         self.addButton(

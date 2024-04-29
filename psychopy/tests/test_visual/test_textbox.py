@@ -37,7 +37,7 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin):
         # Textbox foreground is too unreliable due to fonts for pixel analysis
         self.foreUsed = False
 
-    def teardown(self):
+    def teardown_method(self):
         self.win.close()
 
     def test_glyph_rendering(self):

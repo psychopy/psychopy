@@ -8,7 +8,7 @@ experimenter to create movie stimuli or instructions.
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 __all__ = [
@@ -840,6 +840,7 @@ class CameraInterfaceFFmpeg(CameraInterface):
                   self._warmupBarrier,
                   self._recordBarrier,
                   self._mic))
+        self._playerThread.daemon=True
         self._playerThread.start()
 
         self._warmupBarrier.wait()
@@ -1281,6 +1282,7 @@ class CameraInterfaceOpenCV(CameraInterface):
                   self._warmUpBarrier,
                   self._recordBarrier,
                   self._mic))
+        self._playerThread.daemon=True
         self._playerThread.start()
 
         self._warmUpBarrier.wait()  # wait until the camera is ready
@@ -1693,7 +1695,7 @@ class Camera:
                     self._device = device
                 else:
                     raise TypeError(
-                        "Incorrect type for `camera`, expected `int` or `str`.")
+                        f"Incorrect type for `camera`, expected `int` or `str` but received {repr(device)}")
 
             # get the camera information
             if self._device in _formatMapping:
@@ -1701,7 +1703,7 @@ class Camera:
             else:
                 # raise error if couldn't find matching camera info
                 raise CameraFormatNotSupportedError(
-                    'Specified camera format is not supported.')
+                    f'Specified camera format {repr(self._device)} is not supported.')
 
         # # operating mode
         # if mode not in (CAMERA_MODE_VIDEO, CAMERA_MODE_CV, CAMERA_MODE_PHOTO):
@@ -2194,6 +2196,9 @@ class Camera:
     def stop(self):
         """Stop recording frames and audio (if available).
         """
+        if self._captureThread is None:  # do nothing if not open
+            return
+
         if not self._captureThread.isOpen():
             raise RuntimeError("Cannot stop recording, stream is not open.")
 
@@ -2215,6 +2220,9 @@ class Camera:
         to save the frames to disk.
 
         """
+        if self._captureThread is None:  # nop
+            return
+
         if not self._captureThread.isOpen():
             raise RuntimeError("Cannot close stream, stream is not open.")
         

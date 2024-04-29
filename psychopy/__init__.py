@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # --------------------------------------------------------------------------
@@ -12,7 +12,7 @@
 import os
 import sys
 
-__version__ = '2024.1.0dev1'
+__version__ = '2024.1.4'
 __license__ = 'GPL v3'
 __author__ = 'Open Science Tools Ltd'
 __author_email__ = 'support@opensciencetools.org'
@@ -44,7 +44,15 @@ if 'installing' not in locals():
     from psychopy.preferences import prefs
     for _pathName in prefs.general['paths']:
         sys.path.append(_pathName)
-    # add paths from plugins/packages (installed by plugins manager)
+    
+    # add paths from main plugins/packages (installed by plugins manager)
+    _userPackagePath = prefs.paths['userPackages']
+    _userScripts = prefs.paths['userScripts']
+    if _userPackagePath.is_dir():
+        sys.path.append(str(_userPackagePath))  # user site-packages
+        sys.path.append(str(_userScripts))  # user scripts
+
+    # add paths from individual plugins/packages (installed by plugins manager)
     import pathlib as _pathlib
     for _pathName in _pathlib.Path(prefs.paths['packages']).glob("*"):
         if _pathName.is_dir():

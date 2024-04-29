@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Tools for working with packages within the Python environment.
@@ -53,6 +53,46 @@ if prefs.paths['packages'] not in pkg_resources.working_set.entries:
 # cache list of packages to speed up checks
 _installedPackageCache = []
 _installedPackageNamesCache = []
+
+
+class PluginStub:
+    """
+    Class to handle classes which have moved out to plugins.
+
+    Example
+    -------
+    ```
+    class NoiseStim(PluginStub, plugin="psychopy-visionscience", doclink="https://psychopy.github.io/psychopy-visionscience/builder/components/NoiseStimComponent/):
+    ```
+    """
+
+    def __init_subclass__(cls, plugin, doclink="https://plugins.psychopy.org/directory.html"):
+        """
+        Subclassing PluginStub will create documentation pointing to the new documentation for the replacement class.
+        """
+        # store ref to plugin and docs link
+        cls.plugin = plugin
+        cls.doclink = doclink
+        # create doc string point to new location
+        cls.__doc__ = (
+            "`{mro}` is now located within the `{plugin}` plugin. You can find the documentation for it `here <{doclink}>`_."
+        ).format(
+            mro=cls.__mro__,
+            plugin=plugin,
+            doclink=doclink
+        )
+    
+    def __call__(self, *args, **kwargs):
+        """
+        When initialised, rather than creating an object, will log an error.
+        """
+        raise NameError(
+            "Support for `{mro}` is not available this session. Please install "
+            "`{plugin}` and restart the session to enable support."
+        ).format(
+            mro=type(self).__mro__,
+            plugin=self.plugin,
+        )
 
 
 def refreshPackages():
@@ -574,15 +614,27 @@ def getPypiInfo(packageName, silence=False):
             dlg.ShowModal()
         return
 
-    return {
-        'name': data['info'].get('Name', packageName),
-        'author': data['info'].get('author', 'Unknown'),
-        'authorEmail': data['info'].get('author_email', 'Unknown'),
-        'license': data['info'].get('license', 'Unknown'),
-        'summary': data['info'].get('summary', ''),
-        'desc': data['info'].get('description', ''),
-        'releases': list(data['releases']),
-    }
+    if 'info' not in data:
+        # handle case where the data cannot be retrived
+        return {
+            'name': packageName,
+            'author': 'Unknown',
+            'authorEmail': 'Unknown',
+            'license': 'Unknown',
+            'summary': '',
+            'desc': 'Failed to get package info from PyPI.',
+            'releases': [],
+        }
+    else:
+        return {
+            'name': data['info'].get('Name', packageName),
+            'author': data['info'].get('author', 'Unknown'),
+            'authorEmail': data['info'].get('author_email', 'Unknown'),
+            'license': data['info'].get('license', 'Unknown'),
+            'summary': data['info'].get('summary', ''),
+            'desc': data['info'].get('description', ''),
+            'releases': list(data['releases']),
+        }
 
 
 if __name__ == "__main__":

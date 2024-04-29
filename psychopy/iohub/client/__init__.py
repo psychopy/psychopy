@@ -264,9 +264,10 @@ class ioHubConnection():
                     ioHubConfig)
 
         if ioHubConnection.ACTIVE_CONNECTION is not None:
-            raise RuntimeError('An existing ioHubConnection is already open.'
-                                 ' Use ioHubConnection.getActiveConnection() '
-                                 'to access it; or use ioHubConnection.quit() '
+            raise RuntimeError('An existing ioHubConnection is already open. Use '
+                                 'iohub.client.ioHubConnection.getActiveConnection() '
+                                 'to access it; or use '
+                                 'iohub.ioHubConnection.getActiveConnection().quit() '
                                  'to close it.')
         Computer.psychopy_process = psutil.Process()
 

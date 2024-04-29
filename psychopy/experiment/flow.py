@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Describes the Flow of an experiment
@@ -14,6 +14,7 @@ from psychopy.experiment import getAllStandaloneRoutines
 from psychopy.experiment.routines._base import Routine, BaseStandaloneRoutine
 from psychopy.experiment.loops import LoopTerminator, LoopInitiator
 from psychopy.tools import filetools as ft
+from psychopy.preferences import prefs
 
 
 class Flow(list):
@@ -70,6 +71,20 @@ class Flow(list):
             element.append(sub)
 
         return element
+
+    def getUniqueEntries(self):
+        """
+        Get all entries on the flow, without duplicate entries.
+        """
+        # array to store entries in
+        entries = []
+        # iterate through all entries
+        for entry in self:
+            # append if not present
+            if entry not in entries:
+                entries.append(entry)
+
+        return entries
 
     def addLoop(self, loop, startPos, endPos):
         """Adds initiator and terminator objects for the loop
@@ -241,6 +256,21 @@ class Flow(list):
         script.writeIndentedLines(code)
         script.setIndentLevel(+1, relative=True)
 
+        # start rush mode
+        if self.exp.settings.params['rush']:
+            code = (
+                "# enter 'rush' mode (raise CPU priority)\n"
+            )
+            # put inside an if statement if rush can be overwritten by piloting
+            if prefs.piloting['forceNonRush']:
+                code += (
+                    "if not PILOTING:\n"
+                    "    "
+                )
+            code += (
+                "core.rush(enable=True)\n"
+            )
+            script.writeIndentedLines(code)
         # initialisation
         code = (
             "# mark experiment as started\n"
@@ -332,6 +362,13 @@ class Flow(list):
             "endExperiment(thisExp, win=win)\n"
         )
         script.writeIndentedLines(code)
+        # end rush mode
+        if self.exp.settings.params['rush']:
+            code = (
+                "# end 'rush' mode\n"
+                "core.rush(enable=False)\n"
+            )
+            script.writeIndentedLines(code)
 
         # Exit function def
         script.setIndentLevel(-1, relative=True)

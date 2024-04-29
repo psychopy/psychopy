@@ -84,6 +84,8 @@ class StairHandler(_BaseTrialHandler):
                 reversals to perform, `nReversals`, is less than the
                 length of this list, PsychoPy will automatically increase
                 the minimum number of reversals and emit a warning.
+                This minimum number of reversals is always set to be
+                greater than 0.
 
             stepSizes:
                 The size of steps as a single value or a list (or array).
@@ -718,7 +720,7 @@ class QuestHandler(StairHandler):
                                      pos=[0,0], units='deg')
         ...
         # create staircase object
-        # trying to find out the point where subject's response is 50 / 50
+        # trying to find out the contrast where subject gets 63% correct
         # if wanted to do a 2AFC then the defaults for pThreshold and gamma
         # are good. As start value, we'll use 50% contrast, with SD = 20%
         staircase = data.QuestHandler(0.5, 0.2,

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Conditions-file preview and mini-editor for the Builder
@@ -383,46 +383,45 @@ class DlgConditions(wx.Dialog):
                     thisVal = repr(thisVal)  # handles quoting ', ", ''' etc
                 # convert to requested type:
                 try:
-                    # todo: replace exec() with eval()
                     if self.hasHeader and row == 0:
                         # header always str
                         val = self.inputFields[row][col].GetValue()
                         lastRow.append(str(val))
                     elif thisType in ['float', 'int', 'long']:
-                        exec("lastRow.append(" + thisType +
+                        eval("lastRow.append(" + thisType +
                              '(' + thisVal + "))")
                     elif thisType in ['list']:
                         thisVal = thisVal.lstrip('[').strip(']')
-                        exec("lastRow.append(" + thisType +
+                        eval("lastRow.append(" + thisType +
                              '([' + thisVal + "]))")
                     elif thisType in ['tuple']:
                         thisVal = thisVal.lstrip('(').strip(')')
                         if thisVal:
-                            exec("lastRow.append((" +
+                            eval("lastRow.append((" +
                                  thisVal.strip(',') + ",))")
                         else:
                             lastRow.append(tuple(()))
                     elif thisType in ['array']:
                         thisVal = thisVal.lstrip('[').strip(']')
-                        exec("lastRow.append(numpy.array" +
+                        eval("lastRow.append(numpy.array" +
                              '("[' + thisVal + ']"))')
                     elif thisType in ['utf-8', 'bool']:
                         if thisType == 'utf-8':
                             thisType = 'unicode'
-                        exec("lastRow.append(" + thisType +
+                        eval("lastRow.append(" + thisType +
                              '(' + thisVal + '))')
                     elif thisType in ['str']:
-                        exec("lastRow.append(str(" + thisVal + "))")
+                        eval("lastRow.append(str(" + thisVal + "))")
                     elif thisType in ['file']:
-                        exec("lastRow.append(repr(" + thisVal + "))")
+                        eval("lastRow.append(repr(" + thisVal + "))")
                     else:
-                        exec("lastRow.append(" + str(thisVal) + ')')
+                        eval("lastRow.append(" + str(thisVal) + ')')
                 except ValueError as msg:
                     print('ValueError:', msg, '; using unicode')
-                    exec("lastRow.append(" + str(thisVal) + ')')
+                    eval("lastRow.append(" + str(thisVal) + ')')
                 except NameError as msg:
                     print('NameError:', msg, '; using unicode')
-                    exec("lastRow.append(" + repr(thisVal) + ')')
+                    eval("lastRow.append(" + repr(thisVal) + ')')
             self.data.append(lastRow)
         if self.trim:
             # the corresponding data have already been removed

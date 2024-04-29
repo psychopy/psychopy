@@ -12,6 +12,7 @@ from pathlib import Path
 
 from psychopy import experiment, logging, constants, data, core, __version__
 from psychopy.hardware.manager import DeviceManager, deviceManager
+from psychopy.hardware.listener import loop as listenerLoop
 from psychopy.tools.arraytools import AliasDict
 
 from psychopy.localization import _translate
@@ -289,6 +290,12 @@ class Session:
         elif isinstance(clock, str):
             clock = core.Clock(format=clock)
         self.sessionClock = clock
+        # make sure we have a default keyboard
+        if DeviceManager.getDevice("defaultKeyboard") is None:
+            DeviceManager.addDevice(
+                deviceClass="psychopy.hardware.keyboard.KeyboardDevice",
+                deviceName="defaultKeyboard",
+            )
         # Store params as an aliased dict
         if params is None:
             params = {}
@@ -929,11 +936,11 @@ class Session:
                 Element to process
             """
             # if we have a device name for this element...
-            if "deviceName" in emt.params:
+            if "deviceLabel" in emt.params:
                 # get init value so it lines up with boilerplate code
                 inits = experiment.getInitVals(emt.params)
                 # get value
-                deviceName = inits['deviceName'].val
+                deviceName = inits['deviceLabel'].val
                 # if deviceName exists from other elements, add usage to it
                 if deviceName in usages:
                     usages[deviceName].append(name)
@@ -1011,6 +1018,8 @@ class Session:
         self.win.flip()
         # Hold all autodraw stimuli
         self.win.stashAutoDraw()
+        # Pause the listener loop
+        listenerLoop.pause()
         # Setup logging
         self.experiments[key].run.__globals__['logFile'] = self.logFile
         # Log start
@@ -1028,8 +1037,11 @@ class Session:
             )
         except Exception as _err:
             err = _err
+            err.userdata = key
         # Reinstate autodraw stimuli
         self.win.retrieveAutoDraw()
+        # Restart the listener loop
+        listenerLoop.pause()
         # Restore original chdir
         os.chdir(str(self.root))
         # Store ExperimentHandler

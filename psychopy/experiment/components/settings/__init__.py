@@ -81,7 +81,7 @@ class SettingsComponent:
     tooltip = _translate("Edit settings for this experiment")
 
     def __init__(
-            self, parentName, exp, expName='', fullScr=True,
+            self, parentName, exp, expName='', fullScr=True, runMode=0, rush=False,
             winSize=(1024, 768), screen=1, monitor='testMonitor', winBackend='pyglet',
             showMouse=False, saveLogFile=True, showExpInfo=True,
             expInfo="{'participant':'f\"{randint(0, 999999):06.0f}\"', 'session':'001'}",
@@ -139,17 +139,78 @@ class SettingsComponent:
         # params
         self.params = {}
         self.depends = []
-        self.order = ['expName', 'Use version', 'Enable Escape',  'Show info dlg', 'Experiment info',  # Basic tab
+        self.order = [
                       'Audio lib', 'Audio latency priority', "Force stereo",  # Audio tab
                       'HTML path', 'exportHTML', 'Completed URL', 'Incomplete URL', 'End Message', 'Resources',  # Online tab
                       ]
         self.depends = []
-        # basic params
+
+        # --- Basic params ---
+        self.order += [
+            'expName',
+            'runMode',
+            'Use version',
+            'Enable Escape',
+            'rush',
+            'Show info dlg',
+            'Experiment info',
+        ]
         self.params['expName'] = Param(
-            expName, valType='str',  inputType="single", allowedTypes=[],
-            hint=_translate("Name of the entire experiment (taken by default"
-                            " from the filename on save)"),
-            label=_translate("Experiment name"))
+            expName, valType='str', inputType="single", categ='Basic',
+            hint=_translate(
+                "Name of the entire experiment (taken by default from the filename on save)"
+            ),
+            label=_translate("Experiment name")
+        )
+        self.params['runMode'] = Param(
+            runMode, valType="code", inputType="choice", categ="Basic",
+            allowedVals=[0, 1],
+            allowedLabels=[_translate("Piloting"), _translate("Running")],
+            label=_translate("Run mode"),
+            hint=_translate(
+                "In piloting mode, all of the settings from prefs->piloting are applied. This is "
+                "recommended while the experiment is a work in progress."
+            )
+        )
+
+        def getVersions():
+            """
+            Search for options locally available
+            """
+            import psychopy.tools.versionchooser as versions
+            available = versions._versionFilter(versions.versionOptions(), wx_version)
+            available += ['']
+            available += versions._versionFilter(versions.availableVersions(), wx_version)
+            return available
+
+        self.params['Use version'] = Param(
+            useVersion, valType='str', inputType="choice",
+            allowedVals=getVersions,
+            hint=_translate(
+                "The version of PsychoPy to use when running the experiment."
+            ),
+            label=_translate("Use PsychoPy version"))
+        self.params['Enable Escape'] = Param(
+            enableEscape, valType='bool', inputType="bool", categ="Basic",
+            hint=_translate(
+                "Enable the <esc> key, to allow subjects to quit / break out of the experiment"
+            ),
+            label=_translate("Enable escape key")
+        )
+        self.params['rush'] = Param(
+            rush, valType="bool", inputType="bool", categ="Basic",
+            hint=_translate(
+                "Enable 'rush' mode, which will raise CPU priority while the experiment is running"
+            ),
+            label=_translate("Enable 'rush' mode")
+        )
+        self.params['Show info dlg'] = Param(
+            showExpInfo, valType='bool', inputType="bool", categ='Basic',
+            hint=_translate(
+                "Start the experiment with a dialog to set info (e.g.participant or condition)"
+            ),
+            label=_translate("Show info dialog")
+        )
         self.depends.append(
             {"dependsOn": "Show info dlg",  # must be param name
              "condition": "==True",  # val to check for
@@ -158,37 +219,17 @@ class SettingsComponent:
              "false": "disable",  # permitted: hide, show, enable, disable
              }
         )
-        self.params['Show info dlg'] = Param(
-            showExpInfo, valType='bool', inputType="bool", allowedTypes=[],
-            hint=_translate("Start the experiment with a dialog to set info"
-                            " (e.g.participant or condition)"),
-            label=_translate("Show info dialog"), categ='Basic')
-        self.params['Enable Escape'] = Param(
-            enableEscape, valType='bool', inputType="bool", allowedTypes=[],
-            hint=_translate("Enable the <esc> key, to allow subjects to quit"
-                            " / break out of the experiment"),
-            label=_translate("Enable escape key"))
         self.params['Experiment info'] = Param(
             expInfo, valType='code', inputType="dict", categ='Basic',
             allowedLabels=(_translate("Field"), _translate("Default")),
-            hint=_translate("The info to present in a dialog box. Right-click"
-                            " to check syntax and preview the dialog box."),
-            label=_translate("Experiment info"))
-        def getVersions():
-            import psychopy.tools.versionchooser as versions
-            available = versions._versionFilter(versions.versionOptions(), wx_version)
-            available += ['']
-            available += versions._versionFilter(versions.availableVersions(), wx_version)
-            return available
-        self.params['Use version'] = Param(
-            useVersion, valType='str', inputType="choice",
-            # search for options locally only by default, otherwise sluggish
-            allowedVals=getVersions,
-            hint=_translate("The version of PsychoPy to use when running "
-                            "the experiment."),
-            label=_translate("Use PsychoPy version"), categ='Basic')
+            hint=_translate(
+                "The info to present in a dialog box. Right-click to check syntax and preview "
+                "the dialog box."
+            ),
+            label=_translate("Experiment info")
+        )
 
-        # screen params
+        # --- Screen params ---
         self.order += [
             "Monitor",
             "winBackend",
@@ -952,12 +993,15 @@ class SettingsComponent:
             "PILOTING = core.setPilotModeFromArgs()\n"
             "# start off with values from experiment settings\n"
             "_fullScr = %(Full-screen window)s\n"
+            "_winSize = %(Window size (pixels))s\n"
             "_loggingLevel = logging.getLevel('%(logging level)s')\n"
             "# if in pilot mode, apply overrides according to preferences\n"
             "if PILOTING:\n"
             "    # force windowed mode\n"
             "    if prefs.piloting['forceWindowed']:\n"
             "        _fullScr = False\n"
+            "        # set window size\n"
+            "        _winSize = prefs.piloting['forcedWindowSize']\n"
             "    # override logging level\n"
             "    _loggingLevel = logging.getLevel(\n"
             "        prefs.piloting['pilotLoggingLevel']\n"
@@ -1310,7 +1354,9 @@ class SettingsComponent:
         sorting = "False"  # in Py3 dicts are chrono-sorted so default no sort
         code = (
             f"# show participant info dialog\n"
-            f"dlg = gui.DlgFromDict(dictionary=expInfo, sortKeys={sorting}, title=expName)\n"
+            f"dlg = gui.DlgFromDict(\n"
+            f"    dictionary=expInfo, sortKeys={sorting}, title=expName, alwaysOnTop=True\n"
+            f")\n"
             f"if dlg.OK == False:\n"
             f"    core.quit()  # user pressed cancel\n"
             f"# return expInfo\n"
@@ -1753,7 +1799,7 @@ class SettingsComponent:
             "if win is None:\n"
             "    # if not given a window to setup, make one\n"
             "    win = visual.Window(\n"
-            "        size=%(size)s, fullscr=_fullScr, screen=%(screenNumber)s,\n"
+            "        size=_winSize, fullscr=_fullScr, screen=%(screenNumber)s,\n"
             "        winType=%(winType)s, allowStencil=%(allowStencil)s,\n"
             "        monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s,\n"
             "        backgroundImage=%(backgroundImg)s, backgroundFit=%(backgroundFit)s,\n"
@@ -1799,6 +1845,14 @@ class SettingsComponent:
         )
         buff.writeIndentedLines(code)
 
+        # show/hide pilot indicator
+        code = (
+            "# show a visual indicator if we're in piloting mode\n"
+            "if PILOTING and prefs.piloting['showPilotingIndicator']:\n"
+            "    win.showPilotingIndicator()\n"
+        )
+        buff.writeIndentedLines(code)
+
         # Import here to avoid circular dependency!
         from psychopy.experiment._experiment import RequiredImport
         microphoneImport = RequiredImport(importName='microphone',
@@ -1809,6 +1863,7 @@ class SettingsComponent:
                                     "microphone.switchOn()\n")
         # Exit function def
         code = (
+            "\n"
             "return win\n"
         )
         buff.writeIndentedLines(code)
@@ -2051,8 +2106,10 @@ class SettingsComponent:
                     "    };\n"
                     "}\n")
         buff.writeIndentedLines(recordLoopIterationFunc)
-
-        code = ("\nasync function quitPsychoJS(message, isCompleted) {\n")
+        code = (
+            "\n"
+            "async function quitPsychoJS(message, isCompleted) {\n"
+        )
         buff.writeIndented(code)
         buff.setIndentLevel(1, relative=True)
         code = ("// Check for and save orphaned data\n"
@@ -2065,10 +2122,8 @@ class SettingsComponent:
         for thisRoutine in list(self.exp.routines.values()):
             # a single routine is a list of components:
             for thisComp in thisRoutine:
-                if thisComp.type in ['Code', 'EmotivRecording']:
-                    buff.writeIndented("\n")
+                if hasattr(thisComp, "writeExperimentEndCodeJS"):
                     thisComp.writeExperimentEndCodeJS(buff)
-                    buff.writeIndented("\n")
 
         code = ("psychoJS.window.close();\n"
                 "psychoJS.quit({message: message, isCompleted: isCompleted});\n\n"

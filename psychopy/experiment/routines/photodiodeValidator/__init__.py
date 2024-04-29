@@ -17,7 +17,9 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
 
     categories = ['Validation']
     iconFile = Path(__file__).parent / 'photodiode_validator.png'
-    tooltip = _translate('')
+    tooltip = _translate('Photodiode validator')
+    deviceClasses = []
+    version = "2024.2.0"
 
     def __init__(
             self,
@@ -160,7 +162,8 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             label=_translate("Photodiode type"),
             hint=_translate(
                 "Type of photodiode to use."
-            )
+            ),
+            direct=False
         )
         self.params['channel'] = Param(
             channel, valType="code", inputType="single", categ="Device",
@@ -397,6 +400,7 @@ class ScreenBufferPhotodiodeValidatorBackend(DeviceBackend):
     key = "screenbuffer"
     label = _translate("Screen Buffer (Debug)")
     component = PhotodiodeValidatorRoutine
+    deviceClasses = ["psychopy.hardware.photodiode.ScreenBufferSampler"]
 
     def getParams(self: PhotodiodeValidatorRoutine):
         # define order

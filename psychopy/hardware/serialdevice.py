@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Base class for serial devices. Includes some convenience methods to open
@@ -67,6 +67,24 @@ class SerialDevice(BaseDevice, AttributeGetSetMixin):
     longName = ""
     # list of supported devices (if more than one supports same protocol)
     driverFor = []
+
+    def __new__(cls, *args, **kwargs):
+        import inspect
+        # convert args to kwargs
+        argNames = inspect.getfullargspec(cls.__init__).args
+        for i, arg in enumerate(args):
+            kwargs[argNames[i]] = arg
+        # iterate through existing devices
+        for other in ports.values():
+            # skip None
+            if other is None:
+                continue
+            # if device already represented, use existing object
+            if other.isSameDevice(kwargs):
+                return other
+
+        # if first object to represent this device, make as normal
+        return super(BaseDevice, cls).__new__(cls)
 
     def __init__(self, port=None, baudrate=9600,
                  byteSize=8, stopBits=1,
@@ -233,6 +251,8 @@ class SerialDevice(BaseDevice, AttributeGetSetMixin):
         # default timeout
         if timeout is None:
             timeout = 1
+        # set timeout
+        self.com.timeout = self.pauseDuration
         # get start time
         start = time.time()
         t = time.time() - start
@@ -241,13 +261,8 @@ class SerialDevice(BaseDevice, AttributeGetSetMixin):
         while not resp and t < timeout:
             t = time.time() - start
             resp = self.com.read()
-        # keep getting responses until they stop sending
-        sending = resp
-        while sending and t < timeout:
-            t = time.time() - start
-            sending = self.com.read()
-            # if still sending, append to resp
-            resp += sending
+        # get remaining chars
+        resp += self.com.readall()
         # if we timed out, return None
         if t > timeout:
             return
@@ -274,7 +289,7 @@ class SerialDevice(BaseDevice, AttributeGetSetMixin):
         bool
             True if the two objects represent the same physical device
         """
-        if isinstance(other, type(self)):
+        if isinstance(other, SerialDevice):
             # if given another object, get port
             portString = other.portString
         elif isinstance(other, dict) and "port" in other:

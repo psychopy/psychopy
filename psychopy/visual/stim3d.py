@@ -4,7 +4,7 @@
 """Classes for 3D stimuli."""
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from psychopy import logging
@@ -1812,7 +1812,7 @@ class BaseRigidBodyStim(ColorMixin, WindowMixin):
         super(BaseRigidBodyStim, self).__init__()
 
         self.win = win
-
+        self.autoLog = autoLog
         self.colorSpace = colorSpace
         self.contrast = contrast
         self.opacity = opacity
@@ -1822,8 +1822,6 @@ class BaseRigidBodyStim(ColorMixin, WindowMixin):
         self.material = None
 
         self._vao = None
-
-        self.autoLog = autoLog
 
     @property
     def thePose(self):

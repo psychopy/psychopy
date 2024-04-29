@@ -45,26 +45,28 @@ BOMS = {
     BOM_UTF16_LE: ('utf16_le', 'utf_16'),
     BOM_UTF16: ('utf_16', 'utf_16'),
     }
+
 # All legal variants of the BOM codecs.
-# TODO: the list of aliases is not meant to be exhaustive, is there a
-#   better way ?
 BOM_LIST = {
     'utf_16': 'utf_16',
-    'u16': 'utf_16',
     'utf16': 'utf_16',
     'utf-16': 'utf_16',
-    'utf16_be': 'utf16_be',
     'utf_16_be': 'utf16_be',
     'utf-16be': 'utf16_be',
-    'utf16_le': 'utf16_le',
     'utf_16_le': 'utf16_le',
     'utf-16le': 'utf16_le',
     'utf_8': 'utf_8',
-    'u8': 'utf_8',
-    'utf': 'utf_8',
     'utf8': 'utf_8',
     'utf-8': 'utf_8',
-    }
+    'u16': 'utf_16',  # Add mapping for 'u16'
+    'u8': 'utf_8',    # Add mapping for 'u8'
+}
+
+# Add regular expressions for matching variations
+for encoding in ['utf-16', 'utf-8']:
+    regex = re.compile(fr'{encoding}(?:_|\-)?(?:be|le)?|u16|u8', re.IGNORECASE)
+    for match in filter(regex.fullmatch, BOM_LIST.keys()):
+        BOM_LIST[match] = BOM_LIST[encoding]
 
 # Map of encodings to the BOM to write.
 BOM_SET = {

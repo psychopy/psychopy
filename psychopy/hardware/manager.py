@@ -5,7 +5,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 __all__ = [
@@ -20,11 +20,43 @@ from psychopy.tools import systemtools as st
 from serial.tools import list_ports
 from psychopy import logging
 import atexit
+import traceback
 import importlib
 import json
 from pathlib import Path
 
 __folder__ = Path(__file__).parent
+
+
+class ManagedDeviceError(BaseException):
+    """
+    Exception arising from a managed device, which will include information about the device from
+    DeviceManager.
+    """
+    def __init__(self, msg, deviceName, traceback=None):
+        # create exception
+        BaseException.__init__(self, msg)
+        # store device name
+        self.deviceName = deviceName
+        # store traceback
+        if traceback is not None:
+            self.traceback = traceback
+        else:
+            self.traceback = self.__traceback__
+
+    def getJSON(self, asString=True):
+        tb = traceback.format_exception(type(self), self, self.traceback)
+        message = {
+            'type': "hardware_error",
+            'device': self.deviceName,
+            'msg': "".join(tb),
+            'context': getattr(self, "userdata", None)
+        }
+        # stringify if requested
+        if asString:
+            message = json.dumps(message)
+
+        return message
 
 
 class DeviceManager:
@@ -166,6 +198,26 @@ class DeviceManager:
 
         return cls
 
+    @staticmethod
+    def activatePlugins(which="all"):
+        """
+        Activate plugins, allowing them to be imported from PsychoPy and making device backends
+        from plugins visible to DeviceManager.
+
+        Parameters
+        ----------
+        which : str
+            Which set of plugins to import, the same values as would be passed to
+            `psychopy.plugins.listPlugins`
+
+        Returns
+        -------
+        bool
+            True if completed successfully
+        """
+        from psychopy.plugins import activatePlugins
+        activatePlugins(which=which)
+
     # --- device management ---
     @staticmethod
     def addDevice(deviceClass, deviceName, *args, **kwargs):
@@ -193,8 +245,16 @@ class DeviceManager:
         deviceClass = DeviceManager._resolveAlias(deviceClass)
         # get device class
         cls = DeviceManager._resolveClassString(deviceClass)
-        # initialise device
-        device = cls(*args, **kwargs)
+        try:
+            # initialise device
+            device = cls(*args, **kwargs)
+        except Exception as err:
+            # if initialization fails, generate a more informative ManagedDeviceError and return it
+            raise ManagedDeviceError(
+                msg=err.args[0],
+                deviceName=deviceName,
+                traceback=err.__traceback__,
+            )
         # store device by name
         DeviceManager.devices[deviceName] = device
 
@@ -252,6 +312,47 @@ class DeviceManager:
         # store same device by new handle
         DeviceManager.devices[alias] = DeviceManager.getDevice(deviceName)
         DeviceManager.deviceAliases[alias] = deviceName
+
+        return True
+    
+    @staticmethod
+    def registerPID(pid):
+        """
+        Register a given window with PsychoPy, marking it as safe to e.g. perform keylogging in.
+
+        Parameters
+        ----------
+        pid : str
+            Process ID (PID) of the window to register
+
+        Returns
+        -------
+        bool
+            True if completed successfully
+        """
+        # register PID
+        st.registerPID(pid)
+        
+        return True
+
+    @staticmethod
+    def removeDeviceAlias(alias):
+        """
+        Removes a device alias from DeviceManager, but doesn't delete the object to which the alias
+        corresponds.
+
+        Parameters
+        ----------
+        deviceName : str
+            Key by which the device to alias is currently stored.
+
+        Returns
+        -------
+        bool
+            True if completed successfully
+        """
+        DeviceManager.devices.pop(alias)
+        DeviceManager.deviceAliases.pop(alias)
 
         return True
 
@@ -432,7 +533,6 @@ class DeviceManager:
                 # make sure device name is in usages dict
                 if deviceName not in usages:
                     usages[deviceName] = []
-                print("DEVICE", type(emt).__name__, type(emt).deviceClasses)
                 # add any new usages
                 for cls in getattr(emt, "deviceClasses", []):
                     if cls not in usages[deviceName]:

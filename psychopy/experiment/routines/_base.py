@@ -2,12 +2,13 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Describes the Flow of an experiment
 """
 import copy
+import textwrap
 
 from psychopy.constants import FOREVER
 from xml.etree.ElementTree import Element
@@ -27,6 +28,8 @@ class BaseStandaloneRoutine:
     limit = float('inf')
     # what version was this Routine added in?
     version = "0.0.0"
+    # is it still in beta?
+    beta = False
 
     def __init__(self, exp, name='',
                  stopType='duration (s)', stopVal='',
@@ -144,10 +147,24 @@ class BaseStandaloneRoutine:
         return
 
     def writeRoutineBeginCodeJS(self, buff, modular):
-        return
+        code = (
+            "function %(name)sRoutineBegin(snapshot) {\n"
+            "    return async function () {\n"
+            "        return Scheduler.Event.NEXT;\n"
+            "    }\n"
+            "}\n"
+        )
+        buff.writeIndentedLines(code % self.params)
 
     def writeEachFrameCodeJS(self, buff, modular):
-        return
+        code = (
+            "function %(name)sRoutineEachFrame(snapshot) {\n"
+            "    return async function () {\n"
+            "        return Scheduler.Event.NEXT;\n"
+            "    }\n"
+            "}\n"
+        )
+        buff.writeIndentedLines(code % self.params)
 
     def writeRoutineEndCode(self, buff):
         # what loop are we in (or thisExp)?
@@ -166,7 +183,14 @@ class BaseStandaloneRoutine:
         buff.writeIndentedLines(code % self.name)
 
     def writeRoutineEndCodeJS(self, buff, modular):
-        return
+        code = (
+            "function %(name)sRoutineEnd(snapshot) {\n"
+            "    return async function () {\n"
+            "        return Scheduler.Event.NEXT;\n"
+            "    }\n"
+            "}\n"
+        )
+        buff.writeIndentedLines(code % self.params)
 
     def writeExperimentEndCode(self, buff):
         return
@@ -204,6 +228,125 @@ class BaseStandaloneRoutine:
     def getStatics(self):
         return []
 
+    def getFullDocumentation(self, fmt="rst"):
+        """
+        Automatically generate documentation for this Component. We recommend using this as a
+        starting point, but checking the documentation yourself afterwards and adding any more
+        detail you'd like to include (e.g. usage examples)
+
+        Parameters
+        ----------
+        fmt : str
+            Format to write documentation in. One of:
+            - "rst": Restructured text (numpy style)
+            -"md": Markdown (mkdocs style)
+        """
+
+        # make sure format is correct
+        assert fmt in ("md", "rst"), (
+            f"Unrecognised format {fmt}, allowed formats are 'md' and 'rst'."
+        )
+        # define templates for md and rst
+        h1 = {
+            'md': "# %s",
+            'rst': (
+                "-------------------------------\n"
+                "%s\n"
+                "-------------------------------"
+            )
+        }[fmt]
+        h2 = {
+            'md': "## %s",
+            'rst': (
+                "%s\n"
+                "-------------------------------"
+            )
+        }[fmt]
+        h3 = {
+            'md': "### %s",
+            'rst': (
+                "%s\n"
+                "==============================="
+            )
+        }[fmt]
+        h4 = {
+            'md': "#### `%s`",
+            'rst': "%s"
+        }[fmt]
+
+        # start off with nothing
+        content = ""
+        # header and class docstring
+        content += (
+            f"{h1 % type(self).__name__}\n"
+            f"{textwrap.dedent(self.__doc__ or '')}\n"
+            f"\n"
+        )
+        # attributes
+        content += (
+            f"{h4 % 'Categories:'}\n"
+            f"    {', '.join(self.categories)}\n"
+            f"{h4 % 'Works in:'}\n"
+            f"    {', '.join(self.targets)}\n"
+            f"\n"
+        )
+        # beta warning
+        if self.beta:
+            content += (
+                f"**Note: Since this is still in beta, keep an eye out for bug fixes.**\n"
+                f"\n"
+            )
+        # params heading
+        content += (
+            f"{h2 % 'Parameters'}\n"
+            f"\n"
+        )
+        # sort params by category
+        byCateg = {}
+        for param in self.params.values():
+            if param.categ not in byCateg:
+                byCateg[param.categ] = []
+            byCateg[param.categ].append(param)
+        # iterate through categs
+        for categ, params in byCateg.items():
+            # write a heading for each categ
+            content += (
+                f"{h3 % categ}\n"
+                f"\n"
+            )
+            # add each param...
+            for param in params:
+                # write basics (heading and description)
+                content += (
+                    f"{h4 % param.label}\n"
+                    f"    {param.hint}\n"
+                )
+                # if there are options, display them
+                if bool(param.allowedVals) or bool(param.allowedLabels):
+                    # if no allowed labels, use allowed vals
+                    options = param.allowedLabels or param.allowedVals
+                    # handle callable methods
+                    if callable(options):
+                        content += (
+                            f"\n"
+                            f"    Options are generated live, so will vary according to your setup.\n"
+                        )
+                    else:
+                        # write heading
+                        content += (
+                            f"    \n"
+                            f"    Options:\n"
+                        )
+                        # add list item for each option
+                        for opt in options:
+                            content += (
+                                f"    - {opt}\n"
+                            )
+                # add newline at the end
+                content += "\n"
+
+        return content
+
     @property
     def name(self):
         if hasattr(self, 'params'):
@@ -235,6 +378,9 @@ class BaseValidatorRoutine(BaseStandaloneRoutine):
     of another Component and validates that the component behaved as expected. Any validator Routines should subclass
     this rather than BaseStandaloneRoutine.
     """
+    # list of class strings (readable by DeviceManager) which this component's device could be
+    deviceClasses = []
+
     def writeRoutineStartValidationCode(self, buff, stim):
         """
         Write the routine start code to validate a given stimulus using this validator.
@@ -866,7 +1012,7 @@ class Routine(list):
                 maxTime = max(maxTime, thisT)
         # if max set by routine, override calculated max
         rtDur, numericStop = self.settings.getDuration()
-        if numericStop and rtDur != FOREVER:
+        if rtDur != FOREVER:
             maxTime = rtDur
         # if there are no components, default to 10s
         if maxTime == 0:

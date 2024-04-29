@@ -6,7 +6,7 @@
 #
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 __all__ = [
@@ -40,6 +40,7 @@ import subprocess
 #     # this has to be imported here before anything else
 #     import winrt.windows.devices.enumeration as windows_devices
 import sys
+import os
 import glob
 import subprocess as sp
 import json
@@ -469,50 +470,82 @@ def _getCameraInfoWindows():
     return videoDevices
 
 
-def isPsychopyInFocus():
+# array of registered PIDs which PsychoPy considers to be safe
+_pids = [
+    os.getpid(),
+    os.getppid()
+]
+
+
+def registerPID(pid):
     """
-    Query whether the currently focused window is a PsychoPy Window or not.
+    Register a given window with PsychoPy, marking it as safe to e.g. perform keylogging in.
+
+    Parameters
+    ----------
+    pid : int
+        Process ID (PID) of the window to register
+    """
+    global _pids
+    # add to list of registered IDs
+    if pid not in _pids:
+        _pids.append(pid)
+
+
+def getCurrentPID():
+    """
+    Get the PID of the window which currently has focus.
+    """
+    if sys.platform == "win32":
+        import win32gui
+        import win32process
+        # get ID of top window
+        winID = win32gui.GetForegroundWindow()
+        # get parent PID (in case it's a child of a registered process)
+        winID = win32process.GetWindowThreadProcessId(winID)[-1]
+
+    elif sys.platform == "darwin":
+        from AppKit import NSWorkspace
+        import psutil
+        # get active application info
+        win = NSWorkspace.sharedWorkspace().frontmostApplication()
+        # get ID of active application
+        winID = win.processIdentifier()
+        # get parent PID (in case it's a child of a registered process)
+        winID = psutil.Process(winID).ppid()
+
+    elif sys.platform == "linux":
+        # get window ID
+        proc = subprocess.Popen(
+            ['xprop', '-root', '_NET_ACTIVE_WINDOW'],
+            stdout=subprocess.PIPE
+        )
+        stdout, _ = proc.communicate()
+        winID = str(stdout).split("#")[-1].strip()
+    
+    else:
+        raise OSError(
+            f"Cannot get window PID on system '{sys.platform}'."
+        )
+    
+    return winID
+
+
+def isRegisteredApp():
+    """ 
+    Query whether the PID of the currently focused window is recognised by PsychoPy, i.e. whether 
+    it is safe to perform keylogging in.
+
+    The PsychoPy process is marked as safe by default, any others need to be added as safe via 
+    `registerPID` with the window's PID.
 
     Returns
     -------
     bool
         True if a PsychoPy window is in focus, False otherwise.
     """
-    try:
-        if sys.platform == "win32":
-            import win32gui
-            # get ID of top window
-            winID = win32gui.GetForegroundWindow()
-            # get window name
-            winName = win32gui.GetWindowText(winID)
-
-        if sys.platform == "darwin":
-            from AppKit import NSWorkspace
-            # get active application info
-            win = NSWorkspace.sharedWorkspace().activeApplication()
-            # get window name
-            winName = win['NSApplicationName']
-
-        if sys.platform == "linux":
-            # get window ID
-            proc = subprocess.Popen(
-                ['xprop', '-root', '_NET_ACTIVE_WINDOW'],
-                stdout=subprocess.PIPE
-            )
-            stdout, _ = proc.communicate()
-            winID = str(stdout).split("#")[-1].strip()
-            # get window name
-            proc = subprocess.Popen(
-                ['xprop', '-id', winID, 'WM_NAME'],
-                stdout=subprocess.PIPE
-            )
-            stdout, _ = proc.communicate()
-            winName = str(stdout)
-
-        # does the window name contain PsychoPy?
-        return "PsychoPy" in winName
-    except:
-        return True
+    # is the current PID in the _pids array?
+    return getCurrentPID() in _pids
 
 
 # Mapping for platform specific camera getter functions used by `getCameras`.

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
@@ -162,13 +162,13 @@ class MouseComponent(BaseComponent):
         code = (
             "# check whether click was in correct object\n"
             "if gotValidClick:\n"
-            "    corr = 0\n"
-            "    corrAns = environmenttools.getFromNames(%(correctAns)s, namespace=locals())\n"
-            "    for obj in corrAns:\n"
+            "    _corr = 0\n"
+            "    _corrAns = environmenttools.getFromNames(%(correctAns)s, namespace=locals())\n"
+            "    for obj in _corrAns:\n"
             "        # is this object clicked on?\n"
             "        if obj.contains(%(name)s):\n"
-            "            corr = 1\n"
-            "    %(name)s.corr.append(corr)\n"
+            "            _corr = 1\n"
+            "    %(name)s.corr.append(_corr)\n"
         )
         # Write force end code
         if self.params['forceEndRoutineOnPress'] == 'correct click':
@@ -364,10 +364,22 @@ class MouseComponent(BaseComponent):
             buff.writeIndentedLines(code % self.params)
             buff.setIndentLevel(1, relative=True)
             dedent += 1
+            # keep track of whether something's been written
+            hasContent = False
+            # write code to check clickable stim, if there are any
             if self.params['clickable'].val:
                 self._writeClickableObjectsCode(buff)
+                hasContent = True
+            # write code to check correct stim, if there are any
             if self.params['storeCorrect']:
                 self._writeCorrectAnsCode(buff)
+                hasContent = True
+            # if current if statement has no content, add a pass
+            if not hasContent:
+                buff.writeIndentedLines(
+                    "pass"
+                )
+
             return buff, dedent
 
         # No mouse tracking, end routine on any or valid click

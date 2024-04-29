@@ -30,7 +30,7 @@ After importing sound, the sound lib and driver being used will be stored as::
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import sys
@@ -228,11 +228,15 @@ def setDevice(dev, kind=None):
     if dev is None:
         # if given None, do nothing
         return
+    
+    global backend  # pull from module namespace
     if not hasattr(backend, 'defaultOutput'):
         raise IOError("Attempting to SetDevice (audio) but not supported by "
                       "the current audio library ({!r})".format(audioLib))
+    
     if hasattr(dev, 'name'):
         dev = dev['name']
+
     if kind is None:
         backend.defaultInput = backend.defaultOutput = dev
     elif kind == 'input':

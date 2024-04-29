@@ -125,7 +125,20 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
                 "Microphone audio capture requires package `psychtoolbox` to "
                 "be installed.")
 
-        def _getDefaultDevice():
+        from psychopy.hardware import DeviceManager
+
+        # numericise index if needed
+        if isinstance(index, str):
+            try:
+                index = int(index)
+            except ValueError:
+                pass
+
+        # get information about the selected device
+        if isinstance(index, AudioDeviceInfo):
+            # if already an AudioDeviceInfo object, great!
+            self._device = index
+        elif index in (-1, None):
             # get all devices
             _devices = MicrophoneDevice.getDevices()
             # if there are none, error
@@ -134,61 +147,28 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
                     "Could not choose default recording device as no recording devices are "
                     "connected."
                 ))
-
-            return _devices[0]
-
-        def _getDeviceByIndex(deviceIndex):
-            """Subroutine to get a device by index. Used to handle the case
-            where the user specifies a device by index.
-
-            Parameters
-            ----------
-            deviceIndex : int, float or str
-                Index of the device to get.
-
-            Returns
-            -------
-            AudioDeviceInfo
-                Audio device information object.
-
-            """
-            # convert to `int` first, sometimes strings can specify the enum
-            # value from builder
-            deviceIndex = int(deviceIndex)
-            # get all audio devices
-            devices_ = MicrophoneDevice.getDevices()
-
-            # get information about the selected device
-            devicesByIndex = {d.deviceIndex: d for d in devices_}
-            if deviceIndex in devicesByIndex:
-                useDevice = devicesByIndex[deviceIndex]
+            # use first device
+            self._device = _devices[0]
+        elif isinstance(index, str):
+            # if given a str that's a name from DeviceManager, get info from device
+            device = DeviceManager.getDevice(index)
+            # try to duplicate and fail if not found
+            if isinstance(device, MicrophoneDevice):
+                self._device = device._device
             else:
-                logging.warn(_translate(
-                    "Could not find audio recording device at index {}, using default."
-                ).format(deviceIndex))
-                useDevice = _getDefaultDevice()
-
-            return useDevice
-
-        # get information about the selected device
-        if isinstance(index, AudioDeviceInfo):
-            self._device = index
-        if index in (None, "none", "None", "NONE", -1, "default", "Default", "DEFAULT"):
-            self._device = _getDefaultDevice()
-        elif isinstance(index, (int, float, str)):
-            self._device = _getDeviceByIndex(index)
+                raise KeyError(
+                    f"Could not find MicrophoneDevice named {index}"
+                )
         else:
-            # get default device, first enumerated usually
-            devices = MicrophoneDevice.getDevices()
-            if not devices:
-                raise AudioInvalidCaptureDeviceError(
-                    'No suitable audio recording devices found on this system. '
-                    'Check connections and try again.')
+            # get best match
+            self._device = self.findBestDevice(
+                index=index,
+                sampleRateHz=sampleRateHz,
+                channels=channels
+            )
 
-            self._device = devices[0]  # use first
-
-        logging.info('Using audio device #{} ({}) for audio capture'.format(
-            self._device.deviceIndex, self._device.deviceName))
+        logging.info('Using audio device #{} ({}) for audio capture. Full spec: {}'.format(
+            self._device.deviceIndex, self._device.deviceName, self._device))
 
         # error if specified device is not suitable for capture
         if not self._device.isCapture:
@@ -222,10 +202,6 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         logging.debug('Set recording channels to {} ({})'.format(
             self._channels, 'stereo' if self._channels > 1 else 'mono'))
 
-        if self._channels > self._device.inputChannels:
-            raise AudioInvalidDeviceError(
-                'Invalid number of channels for audio input specified.')
-
         # internal recording buffer size in seconds
         assert isinstance(streamBufferSecs, (float, int))
         self._streamBufferSecs = float(streamBufferSecs)
@@ -242,8 +218,8 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
                 device_id=self._device.deviceIndex,
                 latency_class=self._audioLatencyMode,
                 mode=self._mode,
-                freq=self._sampleRateHz,
-                channels=self._channels)
+                freq=self._device.defaultSampleRate,
+                channels=self._device.inputChannels)
             logging.debug('Stream opened')
         else:
             logging.debug(
@@ -291,6 +267,66 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
 
         logging.debug('Audio capture device #{} ready'.format(
             self._device.deviceIndex))
+
+    def findBestDevice(self, index, sampleRateHz, channels):
+        """
+        Find the closest match among the microphone profiles listed by psychtoolbox as valid.
+
+        Parameters
+        ----------
+        index : int
+            Index of the device
+        sampleRateHz : int
+            Sample rate of the device
+        channels : int
+            Number of audio channels in input stream
+
+        Returns
+        -------
+        AudioDeviceInfo
+            Device info object for the chosen configuration
+
+        Raises
+        ------
+        logging.Warning
+            If an exact match can't be found, will use the first match to the device index and
+            raise a warning.
+        KeyError
+            If no match is found whatsoever, will raise a KeyError
+        """
+        # start off with no chosen device and no fallback
+        fallbackDevice = None
+        chosenDevice = None
+        # iterate through device profiles
+        for profile in self.getDevices():
+            # if same index, keep as fallback
+            if profile.deviceIndex == index:
+                fallbackDevice = profile
+            # if same everything, we got it!
+            if all((
+                profile.deviceIndex == index,
+                profile.defaultSampleRate == sampleRateHz,
+                profile.inputChannels == channels,
+            )):
+                chosenDevice = profile
+
+        if chosenDevice is None and fallbackDevice is not None:
+            # if no exact match found, use fallback and raise warning
+            logging.warning(
+                f"Could not find exact match for specified parameters (index={index}, sampleRateHz="
+                f"{sampleRateHz}, channels={channels}), falling back to best approximation ("
+                f"index={fallbackDevice.deviceIndex}, "
+                f"sampleRateHz={fallbackDevice.defaultSampleRate}, "
+                f"channels={fallbackDevice.inputChannels})"
+            )
+            chosenDevice = fallbackDevice
+        elif chosenDevice is None:
+            # if no index match found, raise error
+            raise KeyError(
+                f"Could not find any device with index {index}"
+            )
+
+        return chosenDevice
 
     def isSameDevice(self, other):
         """
@@ -347,9 +383,8 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         allDevs = [allDevs] if isinstance(allDevs, dict) else allDevs
 
         # create list of descriptors only for capture devices
-        inputDevices = [desc for desc in [
-            AudioDeviceInfo.createFromPTBDesc(dev) for dev in allDevs]
-                     if desc.isCapture]
+        devObjs = [AudioDeviceInfo.createFromPTBDesc(dev) for dev in allDevs]
+        inputDevices = [desc for desc in devObjs if desc.isCapture]
 
         return inputDevices
 

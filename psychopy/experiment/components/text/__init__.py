@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
@@ -22,9 +22,10 @@ class TextComponent(BaseVisualComponent):
     def __init__(self, exp, parentName, name='text',
                  # effectively just a display-value
                  text=_translate('Any text\n\nincluding line breaks'),
-                 font='Open Sans', units='from exp settings',
+                 font='Arial', units='from exp settings',
                  color='white', colorSpace='rgb',
-                 pos=(0, 0), letterHeight=0.05, ori=0,
+                 pos=(0, 0), letterHeight=0.05,
+                 ori=0, draggable=False,
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  flip='None', startEstim='', durationEstim='', wrapWidth='',
@@ -58,6 +59,14 @@ class TextComponent(BaseVisualComponent):
             hint=_translate("The font name (e.g. Comic Sans)"),
             label=_translate("Font"))
         del self.params['size']  # because you can't specify width for text
+        self.params['draggable'] = Param(
+            draggable, valType="code", inputType="bool", categ="Layout",
+            updates="constant",
+            label="Draggable?",
+            hint=_translate(
+                "Should this stimulus be moveble by clicking and dragging?"
+            )
+        )
         self.params['letterHeight'] = Param(
             letterHeight, valType='num', inputType="single", allowedTypes=[], categ='Formatting',
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
@@ -103,7 +112,7 @@ class TextComponent(BaseVisualComponent):
                 "    text=%(text)s,\n"
                 "    font=%(font)s,\n"
                 "    " + unitsStr +
-                "pos=%(pos)s, height=%(letterHeight)s, "
+                "pos=%(pos)s, draggable=%(draggable)s, height=%(letterHeight)s, "
                 "wrapWidth=%(wrapWidth)s, ori=%(ori)s, \n"
                 "    color=%(color)s, colorSpace=%(colorSpace)s, "
                 "opacity=%(opacity)s, \n"
@@ -141,7 +150,7 @@ class TextComponent(BaseVisualComponent):
                 "  name: '%(name)s',\n"
                 "  text: %(text)s,\n"
                 "  font: %(font)s,\n" + unitsStr +
-                "  pos: %(pos)s, height: %(letterHeight)s,"
+                "  pos: %(pos)s, draggable: %(draggable)s, height: %(letterHeight)s,"
                 "  wrapWidth: %(wrapWidth)s, ori: %(ori)s,\n"
                 "  languageStyle: %(languageStyle)s,\n"
                 "  color: new util.Color(%(color)s),"

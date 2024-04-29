@@ -34,6 +34,7 @@ def runInLiaison(server, protocol, obj, method, *args):
         server._processMessage(protocol, json.dumps(cmd))
     )
 
+
 @skip_under_vm
 class TestLiaison:
     def setup_class(self):
@@ -88,6 +89,27 @@ class TestLiaison:
             "exp1"
         )
 
+    def test_experiment_error(self):
+        """
+        Test that an error in an experiment is sent to Liaison properly
+        """
+        # run an experiment with an error in it
+        runInLiaison(
+            self.server, self.protocol, "session", "addExperiment",
+            "error/error.psyexp", "error"
+        )
+        time.sleep(1)
+        try:
+            runInLiaison(
+                self.server, self.protocol, "session", "runExperiment",
+                "error"
+            )
+        except RuntimeError as err:
+            # we expect an error from this experiment, so don't crash the whole process
+            pass
+        # check that the error looks right in Liaison's output
+        assert self.protocol.messages[-1]['context'] == "error"
+
     def test_add_device_with_listener(self):
         # add keyboard
         runInLiaison(
@@ -116,6 +138,23 @@ class TestLiaison:
         assert lastMsg['class'] == "KeyPress"
         assert lastMsg['data']['t'] == 1234
         assert lastMsg['data']['value'] == "a"
+
+    def test_actualize_session_win(self):
+        """
+        Test that attribute strings (e.g. "session.win") are actualized by Liaison to be the
+        object they represent.
+        """
+        # add screen buffer photodiode
+        runInLiaison(
+            self.server, self.protocol, "DeviceManager", "addDevice",
+            "psychopy.hardware.photodiode.ScreenBufferSampler", "screenBuffer",
+            "session.win"
+        )
+        # get screen buffer photodidoe
+        device = DeviceManager.getDevice("screenBuffer")
+        # make sure its window is a window object
+        from psychopy.visual import Window
+        assert isinstance(device.win, Window)
 
     def test_device_by_name(self):
         """
@@ -152,6 +191,8 @@ class TestLiaison:
     def test_device_JSON(self):
         cases = {
             'testMic': "psychopy.hardware.microphone.MicrophoneDevice",
+            'testPhotodiode': "psychopy.hardware.photodiode.ScreenBufferSampler",
+            'testButtonBox': "psychopy.hardware.button.KeyboardButtonBox"
         }
         for deviceName, deviceClass in cases.items():
             # get the first available device
@@ -172,3 +213,16 @@ class TestLiaison:
             result = self.protocol.messages[-1]['result']
             # whatever is returned should be json serializable, load it to confirm that it is
             json.loads(result)
+
+    def test_device_error(self):
+        # add a device in a way which will trigger an error
+        runInLiaison(
+            self.server, self.protocol, "DeviceManager", "addDevice",
+            "psychopy.hardware.keyboard.KeyboardDevice", "testWrongKeyboard",
+            "-1", "wrong", "wrong", "wrong",
+        )
+        time.sleep(1)
+        # make sure error looks correct in JSON format
+        result = self.protocol.messages[-1]
+        assert result['type'] == "hardware_error"
+        assert "psychopy.hardware.manager.ManagedDeviceError" in result['msg']

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Experiment classes:
@@ -165,6 +165,7 @@ class Param():
         self.codeWanted = False
         self.canBePath = canBePath
         self.direct = direct
+        self.plugin = None
         if inputType:
             self.inputType = inputType
         elif valType in inputDefaults:
@@ -311,6 +312,23 @@ class Param():
         # if not a clear alias, use bool method of value
         return bool(self.val)
 
+    def __deepcopy__(self, memo):
+        return Param(
+            val=self.val,
+            valType=self.valType,
+            inputType=self.inputType,
+            allowedVals=self.allowedVals,
+            allowedTypes=self.allowedTypes,
+            hint=self.hint,
+            label=self.label,
+            updates=self.updates,
+            allowedUpdates=self.allowedUpdates,
+            allowedLabels=self.allowedLabels,
+            direct=self.direct,
+            canBePath=self.canBePath,
+            categ=self.categ
+        )
+
     @property
     def _xml(self):
         # Make root element
@@ -322,6 +340,8 @@ class Param():
             element.set('valType', self.valType)
         if hasattr(self, 'updates'):
             element.set('updates', "{}".format(self.updates))
+        if hasattr(self, 'plugin') and self.plugin is not None:
+            element.set('plugin', "{}".format(self.plugin))
 
         return element
 

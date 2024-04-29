@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Experiment classes:
@@ -97,7 +97,7 @@ class TrialHandler(_BaseLoopHandler):
             hint=_translate("Name of this loop"))
         self.params['nReps'] = Param(
             nReps, valType='num', inputType="spin", updates=None, allowedUpdates=None,
-            label=_translate('nReps'),
+            label=_translate('Num. repeats'),
             hint=_translate("Number of repeats (for each condition)"))
         self.params['conditions'] = Param(
             list(conditions), valType='str', inputType="single",

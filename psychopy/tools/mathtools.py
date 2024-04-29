@@ -5,7 +5,7 @@
 #
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 __all__ = ['normalize',
@@ -2525,7 +2525,7 @@ def alignTo(v, t, out=None, dtype=None):
     qr[nonparallel, :3] = cross(v2d[nonparallel], b[nonparallel], dtype=dtype)
     qr[nonparallel, 3] = cosHalfAngle[nonparallel]
 
-    if np.alltrue(nonparallel):  # don't bother handling special cases
+    if np.all(nonparallel):  # don't bother handling special cases
         return toReturn + 0.0
 
     # deal with cases where the vectors are facing exact opposite directions
@@ -2533,13 +2533,13 @@ def alignTo(v, t, out=None, dtype=None):
     rx = np.logical_and(~ry, ~nonparallel)
 
     getLength = lambda x, y: np.sqrt(x * x + y * y)
-    if not np.alltrue(rx):
+    if not np.all(rx):
         invLength = getLength(v2d[ry, 0], v2d[ry, 2])
         invLength = np.where(invLength > 0.0, 1.0 / invLength, invLength)  # avoid x / 0
         qr[ry, 0] = -v2d[ry, 2] * invLength
         qr[ry, 2] = v2d[ry, 0] * invLength
 
-    if not np.alltrue(ry):  # skip if all the same edge case
+    if not np.all(ry):  # skip if all the same edge case
         invLength = getLength(v2d[rx, 1], v2d[rx, 2])
         invLength = np.where(invLength > 0.0, 1.0 / invLength, invLength)
         qr[rx, 1] = v2d[rx, 2] * invLength

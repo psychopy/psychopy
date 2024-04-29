@@ -4,7 +4,7 @@
 # To build simple dialogues etc. (requires pyqt4)
 #
 #  Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 import importlib
 from psychopy import logging, data
@@ -159,7 +159,7 @@ class Dlg(QtWidgets.QDialog):
                  pos=None, size=None, style=None,
                  labelButtonOK=_translate(" OK "),
                  labelButtonCancel=_translate(" Cancel "),
-                 screen=-1):
+                 screen=-1, alwaysOnTop=False):
 
         ensureQtApp()
         QtWidgets.QDialog.__init__(self, None)
@@ -171,6 +171,10 @@ class Dlg(QtWidgets.QDialog):
         self.irow = 0
         self.pos = pos
         # QtWidgets.QToolTip.setFont(QtGui.QFont('SansSerif', 10))
+
+        # set always stay on top
+        if alwaysOnTop:
+            self.setWindowFlags(Qt.WindowType.WindowStaysOnTopHint)
 
         # add buttons for OK and Cancel
         buttons = QtWidgets.QDialogButtonBox.StandardButton.Ok | QtWidgets.QDialogButtonBox.StandardButton.Cancel
@@ -553,10 +557,10 @@ class DlgFromDict(Dlg):
 
     def __init__(self, dictionary, title='', fixed=None, order=None,
                  tip=None, screen=-1, sortKeys=True, copyDict=False,
-                 labels=None, show=True):
+                 labels=None, show=True, alwaysOnTop=False):
         # Note: As of 2023.2.0, we do not allow sort_keys or copy_dict
 
-        Dlg.__init__(self, title, screen=screen)
+        Dlg.__init__(self, title, screen=screen, alwaysOnTop=alwaysOnTop)
 
         if copyDict:
             self.dictionary = dictionary.copy()

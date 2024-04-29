@@ -337,7 +337,7 @@ class PhotodiodeValidationError(BaseException):
 
 
 class ScreenBufferSampler(BasePhotodiodeGroup):
-    def __init__(self, win, threshold=None, pos=None, size=None, units=None):
+    def __init__(self, win, threshold=125, pos=None, size=None, units=None):
         # store win
         self.win = win
         # default rect
@@ -360,6 +360,9 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
         """
         Check the screen for changes and dispatch events as appropriate
         """
+        # if there's no window, skip
+        if self.win is None:
+            return
         # get rect
         left, bottom = self._pos.pix + self.win.size / 2
         w, h = self._size.pix
@@ -396,9 +399,28 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
         """
         return message
 
+    def isSameDevice(self, other):
+        if isinstance(other, type(self)):
+            # if both objects are ScreenBufferSamplers, then compare windows
+            return other.win is self.win
+        elif isinstance(other, dict):
+            # if other is a dict of params and win is "Session.win", it's gotta be the same
+            # window as Session can only currently have one window
+            if other.get('win', None) == "session.win":
+                return True
+            # otherwise, compare window to the win param
+            return other.get('win', None) is self.win
+        else:
+            # if types don't match up, it's not the same device
+            return False
+
     @staticmethod
     def getAvailableDevices():
-        return []
+        return [{
+            'deviceName': "Photodiode Emulator (Screen Buffer)",
+            'deviceClass': "psychopy.hardware.photodiode.ScreenBufferSampler",
+            'win': "session.win"
+        }]
 
     def resetTimer(self, clock=logging.defaultClock):
         self.clock._timeAtLastReset = clock._timeAtLastReset
@@ -413,7 +435,9 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
     def pos(self, value):
         # retain None so value is identifiable as not set
         if value is None:
-            self._pos = None
+            self._pos = layout.Position(
+                (16, 16), "pix", win=self.win
+            )
             return
         # make sure we have a Position object
         if not isinstance(value, layout.Position):
@@ -432,7 +456,9 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
     def size(self, value):
         # retain None so value is identifiable as not set
         if value is None:
-            self._size = None
+            self._size = layout.Size(
+                (16, 16), "pix", win=self.win
+            )
             return
         # make sure we have a Size object
         if not isinstance(value, layout.Size):
@@ -457,6 +483,8 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
     def findPhotodiode(self, win=None, channel=0):
         if win is None:
             win = self.win
+        else:
+            self.win = win
         # there's no physical photodiode, so just pick a reasonable place for it
         self._pos = layout.Position((0.95, -0.95), units="norm", win=win)
         self._size = layout.Size((0.05, 0.05), units="norm", win=win)
@@ -465,6 +493,7 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
         return self._pos, self._size
 
     def findThreshold(self, win=None, channel=0):
+        self.win = win
         # there's no physical photodiode, so just pick a reasonable threshold
         self.setThreshold(127, channel=channel)
 
@@ -522,9 +551,18 @@ class PhotodiodeValidator:
         diode.
         """
         for rect in (self.onRect, self.offRect):
+            # set units from diode
             rect.units = self.diode.units
-            rect.pos = self.diode.pos
-            rect.size = self.diode.size
+            # set pos from diode, or choose default if None
+            if self.diode.pos is not None:
+                rect.pos = self.diode.pos
+            else:
+                rect.pos = layout.Position((0.95, -0.95), units="norm", win=self.win)
+            # set size from diode, or choose default if None
+            if self.diode.size is not None:
+                rect.size = self.diode.size
+            else:
+                rect.size = layout.Size((0.05, 0.05), units="norm", win=self.win)
 
     def validate(self, state, t=None):
         """

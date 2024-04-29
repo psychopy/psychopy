@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Experiment classes:
@@ -120,7 +120,6 @@ class Experiment:
 
     def __init__(self, prefs=None):
         super(Experiment, self).__init__()
-        self.name = ''
         self.filename = ''  # update during load/save xml
         self.flow = Flow(exp=self)  # every exp has exactly one flow
         self.routines = collections.OrderedDict()
@@ -163,6 +162,17 @@ class Experiment:
         self._expHandler = TrialHandler(exp=self, name='thisExp')
         self._expHandler.type = 'ExperimentHandler'  # true at run-time
 
+    def __eq__(self, other):
+        if isinstance(other, Experiment):
+            # if another experiment, compare filenames
+            return other.filename == self.filename
+        elif isinstance(other, (str, Path)):
+            # if a string or path, compare against filename
+            return other == self.filename
+        else:
+            # if neither, it's not the same
+            return False
+
     def requirePsychopyLibs(self, libs=()):
         """Add a list of top-level psychopy libs that the experiment
         will need. e.g. [visual, event]
@@ -176,6 +186,14 @@ class Experiment:
                                importFrom='psychopy')
 
     @property
+    def name(self):
+        return self.settings.params['expName'].val
+
+    @name.setter
+    def name(self, value):
+        self.settings.params['expName'].val = value
+
+    @property
     def eyetracking(self):
         """What kind of eyetracker this experiment is set up for"""
         return self.settings.params['eyetracker']
@@ -186,6 +204,14 @@ class Experiment:
         Variant of this experiment's filename with "_legacy" on the end
         """
         return ft.constructLegacyFilename(self.filename)
+
+    @property
+    def runMode(self):
+        return int(self.settings.params['runMode'].val)
+
+    @runMode.setter
+    def runMode(self, value):
+        self.settings.params['runMode'].val = value
 
     def requireImport(self, importName, importFrom='', importAs=''):
         """Add a top-level import to the experiment.
@@ -695,8 +721,11 @@ class Experiment:
                         # that have been removed
                         pass
                     elif componentNode is not None and componentNode.get("plugin") not in ("None", None):
-                        # don't warn people if param is from a plugin
+                        # don't warn people if comp/routine is from a plugin
                         pass
+                    elif paramNode.get('plugin', False):
+                        # load plugin name if param is from a plugin
+                        params[name].plugin = paramNode.get('plugin')
                     else:
                         # if param not recognised, mark as such
                         recognised = False
@@ -718,6 +747,28 @@ class Experiment:
             params[name].updates = paramNode.get('updates')
 
         return recognised
+
+    @staticmethod
+    def fromFile(filename):
+        """
+        Creates a new Experiment object and loads a Builder Experiment from file.
+
+        Parameters
+        ----------
+        filename : pathlike
+            `.psyexp` file to load.
+
+        Returns
+        -------
+        Experiment
+            Loaded Experiment object
+        """
+        # make new Experiment
+        exp = Experiment()
+        # load file
+        exp.loadFromXML(filename)
+
+        return exp
 
     def loadFromXML(self, filename):
         """Loads an xml file and parses the builder Experiment from it
@@ -767,9 +818,6 @@ class Experiment:
         if self.settings.params['expName'].val in ['', None, 'None']:
             shortName = os.path.splitext(filenameBase)[0]
             self.setExpName(shortName)
-        # load plugins so that plugged in components get any additional params
-        from psychopy.plugins import activatePlugins
-        activatePlugins()
         # fetch routines
         routinesNode = root.find('Routines')
         allCompons = getAllComponents(
@@ -988,15 +1036,43 @@ class Experiment:
         if len(unknownParams):
             # construct message
             msg = _translate(
-                "Parameters which are not known to this version of PsychoPy, have come "
-                "from your experiment file:\n"
-                "%s\n"
-                "This experiment may not run correctly in the "
-                "current version."
+                "Parameters not known to this version of PsychoPy have come from your experiment "
+                "file: %s. This experiment may not run correctly in the current version."
             )
             # log message
-            logging.warn(msg % "\n".join(unknownParams))
+            logging.warn(msg % ", ".join(unknownParams))
             logging.flush()
+
+    @staticmethod
+    def getRunModeFromFile(file):
+        """
+        Get the run mode stored in an experiment file without fully loading the experiment.
+
+        Parameters
+        ----------
+        file : Path or str
+            Path of the file to read
+
+        Returns
+        -------
+        int
+            0 for piloting mode, 1 for running mode
+        """
+        file = str(file)
+        # make and populate xml root element
+        tree = xml.ElementTree()
+        tree.parse(file)
+        # get root
+        root = tree.getroot()
+        # find settings node
+        settings = root.find("Settings")
+        # find param for runMode
+        for child in settings:
+            if child.attrib['name'] == "runMode":
+                # get value
+                return int(child.attrib['val'])
+
+        return 1
 
     def setExpName(self, name):
         self.settings.params['expName'].val = name
@@ -1135,7 +1211,7 @@ class Experiment:
         # Get resources for components
         compResources = []
         handled = False
-        for thisEntry in self.flow:
+        for thisEntry in self.flow.getUniqueEntries():
             if thisEntry.getType() == 'Routine':
                 # find all params of all compons and check if valid filename
                 for thisComp in thisEntry:

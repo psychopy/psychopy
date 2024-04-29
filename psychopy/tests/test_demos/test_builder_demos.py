@@ -33,3 +33,20 @@ def test_plugin_components_indicated():
                 f"Component/Routine `{emt.name}` ({type(emt).__name__}) from `{file.relative_to(demosDir)}` is "
                 f"not known to PsychoPy and experiment file did not indicate that it's from a plugin."
             )
+
+
+def test_pilot_mode():
+    """
+    Checks that all Builder demos are saved in Pilot mode.
+    """
+    # root Builder demos folder
+    demosDir = Path(builder.__file__).parent
+    # for all psyexp files in builder demos folder...
+    for file in demosDir.glob("**/*.psyexp"):
+        # load experiment
+        exp = experiment.Experiment.fromFile(file)
+        # check piloting mode param
+        assert exp.settings.params['runMode'] == "0", (
+            "Builder demos should be saved in Pilot mode, so that they start off piloting when "
+            "users unpack them. Please change run mode on {}".format(file.name)
+        )

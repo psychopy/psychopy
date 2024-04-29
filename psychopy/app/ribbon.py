@@ -1,3 +1,4 @@
+import sys
 import webbrowser
 from pathlib import Path
 
@@ -126,13 +127,13 @@ class FrameRibbon(wx.Panel, handlers.ThemeMixin):
         return btn
 
     def addSwitchCtrl(
-            self, section, name, labels=("", ""), startMode=0, style=wx.HORIZONTAL
+            self, section, name, labels=("", ""), startMode=0, callback=None, style=wx.HORIZONTAL
     ):
         # if section doesn't exist, make it
         if section not in self.sections:
             self.addSection(section, label=section)
         btn = self.sections[section].addSwitchCtrl(
-            name, labels, startMode=startMode, style=style
+            name, labels, startMode=startMode, callback=callback, style=style
         )
 
         return btn
@@ -159,10 +160,14 @@ class FrameRibbon(wx.Panel, handlers.ThemeMixin):
         """
         Add a vertical line.
         """
-        # make separator
-        sep = wx.StaticLine(self, style=wx.LI_VERTICAL)
-        # add separator
-        self.sizer.Add(sep, border=6, flag=wx.EXPAND | wx.ALL)
+        if sys.platform == "win32":
+            # make separator
+            sep = wx.StaticLine(self, style=wx.LI_VERTICAL)
+            # add separator
+            self.sizer.Add(sep, border=6, flag=wx.EXPAND | wx.ALL)
+        else:
+            # on non-Windows, just use a big space
+            self.sizer.AddSpacer(36)
 
     def addSpacer(self, size=6, section=None):
         """
@@ -190,6 +195,7 @@ class FrameRibbon(wx.Panel, handlers.ThemeMixin):
 
     def _applyAppTheme(self):
         self.SetBackgroundColour(colors.app['frame_bg'])
+        self.Refresh()
 
 
 class FrameRibbonSection(wx.Panel, handlers.ThemeMixin):
@@ -212,9 +218,9 @@ class FrameRibbonSection(wx.Panel, handlers.ThemeMixin):
         self.border = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.border)
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.border.Add(
-            self.sizer, proportion=1, border=0, flag=wx.EXPAND | wx.ALL
-        )
+        self.border.Add(self.sizer, proportion=1, border=0, flag=(
+            wx.EXPAND | wx.ALL | wx.RESERVE_SPACE_EVEN_IF_HIDDEN
+        ))
         # add label sizer
         self.labelSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.border.Add(
@@ -276,7 +282,11 @@ class FrameRibbonSection(wx.Panel, handlers.ThemeMixin):
         # store references
         self.buttons[name] = self.ribbon.buttons[name] = btn
         # add button to sizer
-        self.sizer.Add(btn, border=0, flag=wx.EXPAND | wx.ALL)
+        flags = wx.EXPAND
+        if sys.platform == "darwin":
+            # add top padding on Mac
+            flags |= wx.TOP
+        self.sizer.Add(btn, border=12, flag=flags)
 
         return btn
 
@@ -313,10 +323,10 @@ class FrameRibbonSection(wx.Panel, handlers.ThemeMixin):
 
         return btn
 
-    def addSwitchCtrl(self, name, labels=("", ""), startMode=0, style=wx.HORIZONTAL):
+    def addSwitchCtrl(self, name, labels=("", ""), startMode=0, callback=None, style=wx.HORIZONTAL):
         # create button
         btn = FrameRibbonSwitchCtrl(
-            self, labels, startMode=startMode, style=style
+            self, labels, startMode=startMode, callback=callback, style=style
         )
         # store references
         self.buttons[name] = self.ribbon.buttons[name] = btn
@@ -390,7 +400,7 @@ class FrameRibbonButton(wx.Button, handlers.ThemeMixin):
         if tooltip and style | wx.BU_NOTEXT == style:
             # if there's no label, include it in the tooltip
             tooltip = f"{label}: {tooltip}"
-        self.SetToolTipString(tooltip)
+        self.SetToolTip(tooltip)
         # set icon
         bmpStyle = style & (wx.TOP | wx.BOTTOM | wx.LEFT | wx.RIGHT)
         self.SetBitmap(
@@ -472,6 +482,9 @@ class FrameRibbonDropdownButton(wx.Panel, handlers.ThemeMixin):
             evt.EventObject.SetBackgroundColour(colors.app['frame_bg'])
 
 
+EVT_RIBBON_SWITCH = wx.PyEventBinder(wx.IdManager.ReserveId())
+
+
 class FrameRibbonSwitchCtrl(wx.Panel, handlers.ThemeMixin):
     """
     A switch with two modes. Use `addDependency` to make presentation of other buttons
@@ -479,6 +492,7 @@ class FrameRibbonSwitchCtrl(wx.Panel, handlers.ThemeMixin):
     """
     def __init__(
             self, parent, labels=("", ""), startMode=0,
+            callback=None,
             style=wx.HORIZONTAL
     ):
         wx.Panel.__init__(self, parent)
@@ -539,7 +553,10 @@ class FrameRibbonSwitchCtrl(wx.Panel, handlers.ThemeMixin):
             icons.ButtonIcon(stem, size=size) for stem in stems
         ]
         # set starting mode
-        self.setMode(startMode)
+        self.setMode(startMode, silent=True)
+        # bind callback
+        if callback is not None:
+            self.Bind(EVT_RIBBON_SWITCH, callback)
 
         self.Layout()
 
@@ -568,7 +585,7 @@ class FrameRibbonSwitchCtrl(wx.Panel, handlers.ThemeMixin):
         else:
             self.setMode(0)
 
-    def setMode(self, mode):
+    def setMode(self, mode, silent=False):
         # set mode
         self.mode = mode
         # iterate through switch buttons
@@ -591,6 +608,12 @@ class FrameRibbonSwitchCtrl(wx.Panel, handlers.ThemeMixin):
                 ctrl.Show(mode == depend['mode'])
             if depend['action'] == "enable":
                 ctrl.Enable(mode == depend['mode'])
+        # emit event
+        if not silent:
+            evt = wx.CommandEvent(EVT_RIBBON_SWITCH.typeId)
+            evt.SetInt(mode)
+            evt.SetString(self.btns[mode].GetLabel())
+            wx.PostEvent(self, evt)
         # refresh
         self.Refresh()
         self.Update()
@@ -650,7 +673,10 @@ class PavloviaUserCtrl(FrameRibbonDropdownButton):
         # update info once now (in case creation happens after logging in)
         self.updateInfo()
 
-    def __del__(self):
+        # bind deletion behaviour
+        self.Bind(wx.EVT_WINDOW_DESTROY, self.onDelete)
+
+    def onDelete(self, evt=None):
         i = self.frame.app.pavloviaButtons['user'].index(self)
         self.frame.app.pavloviaButtons['user'].pop(i)
 
@@ -774,7 +800,10 @@ class PavloviaProjectCtrl(FrameRibbonDropdownButton):
         # update info once now (in case creation happens after logging in)
         self.updateInfo()
 
-    def __del__(self):
+        # bind deletion behaviour
+        self.Bind(wx.EVT_WINDOW_DESTROY, self.onDelete)
+
+    def onDelete(self, evt=None):
         i = self.frame.app.pavloviaButtons['project'].index(self)
         self.frame.app.pavloviaButtons['project'].pop(i)
 

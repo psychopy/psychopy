@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 import traceback
 from pathlib import Path
@@ -173,6 +173,9 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             profile.enable()
             t0 = time.time()
 
+        from . import setAppInstance
+        setAppInstance(self)
+
         self._appLoaded = False  # set to true when all frames are created
         self.builder = None
         self.coder = None
@@ -206,7 +209,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         # allocated when `OnInit` is called.
         self._sharedMemory = None
         self._singleInstanceChecker = None  # checker for instances
-        self._timer = None
+        self._lastInstanceCheckTime = -1.0
         # Size of the memory map buffer, needs to be large enough to hold UTF-8
         # encoded long file paths.
         self.mmap_sz = 2048
@@ -255,43 +258,6 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             linuxConfDlg.ShowModal()
             linuxConfDlg.Destroy()
 
-    def _loadStartupPlugins(self):
-        """Routine for loading plugins registered to be loaded at startup.
-        """
-        if self._safeMode:  # nop, if running safe mode
-            return
-
-        # load any plugins
-        import psychopy.tools.pkgtools as pkgtools
-        pkgtools.refreshPackages()
-        from psychopy.plugins import scanPlugins, loadPlugin, listPlugins
-
-        # if we find valid plugins, attempt to load them
-        if not scanPlugins():
-            logging.debug("No PsychoPy plugin packages found in environment.")
-            return
-
-        # If we find plugins in the current environment, try loading the ones
-        # specified as startup plugins.
-        for pluginName in listPlugins('startup'):
-            logging.debug(
-                "Loading startup plugin `{}`.".format(pluginName))
-
-            if not loadPlugin(pluginName):
-                logging.error(
-                    ("Failed to load plugin `{}`! It might have been " 
-                     "uninstalled or is now unreachable.").format(pluginName))
-                
-                # remove plugin from list
-                pluginList = list(prefs.general['startUpPlugins'])
-                try:
-                    pluginList.remove(pluginName)
-                except ValueError:
-                    pass
-                else:
-                    prefs.general['startUpPlugins'] = pluginList
-                    prefs.saveUserPrefs()
-                
     def _doSingleInstanceCheck(self):
         """Set up the routines which check for and communicate with other
         PsychoPy GUI processes.
@@ -448,7 +414,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             w, h = splashImage.GetSize()
             splash.SetTextPosition((340, h - 30))
             splash.SetText(
-                _translate("Copyright (C) 2022 OpenScienceTools.org"))
+                _translate("Copyright (C) {year} OpenScienceTools.org").format(year=2024))
         else:
             splash = None
 
@@ -594,7 +560,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                     "Failed to open Runner with requested file list, opening without file list.\n"
                     "Requested: {}\n"
                     "Err: {}"
-                ).format(runlist, traceback.format_exception_only(err)))
+                ).format(runlist, err))
                 logging.debug(
                     "\n".join(traceback.format_exception(err))
                 )
@@ -609,7 +575,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                     "Failed to open Coder with requested scripts, opening with no scripts open.\n"
                     "Requested: {}\n"
                     "Err: {}"
-                ).format(scripts, traceback.format_exception_only(err)))
+                ).format(scripts, err))
                 logging.debug(
                     "\n".join(traceback.format_exception(err))
                 )
@@ -626,10 +592,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                     "Failed to open Builder with requested experiments, opening with no experiments open.\n"
                     "Requested: {}\n"
                     "Err: {}"
-                ).format(exps, traceback.format_exception_only(err)))
-                logging.debug(
-                    "\n".join(traceback.format_exception(err))
-                )
+                ).format(exps, err))
 
         if view.direct:
             self.showRunner()
@@ -690,10 +653,6 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         if self.coder:
             self.coder.setOutputWindow()  # takes control of sys.stdout
 
-        # if the program gets here, there are no other instances running
-        self._timer = wx.PyTimer(self._bgCheckAndLoad)
-        self._timer.Start(250)
-
         # load plugins after the app has been mostly realized
         if splash:
             splash.SetText(_translate("  Loading plugins..."))
@@ -701,7 +660,8 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         # Load plugins here after everything is realized, make sure that we
         # refresh UI elements which are affected by plugins (e.g. the component
         # panel in Builder).
-        self._loadStartupPlugins()
+        from psychopy.plugins import activatePlugins
+        activatePlugins()
         self._refreshComponentPanels()
 
         # flush any errors to the last run log file
@@ -713,15 +673,16 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
 
         return True
 
-    def _bgCheckAndLoad(self):
-        """Check shared memory for messages from other instances. This only is
-        called periodically in the first and only instance of PsychoPy.
+    def _bgCheckAndLoad(self, *args):
+        """Check shared memory for messages from other instances. 
+        
+        This only is called periodically in the first and only instance of 
+        PsychoPy running on the machine. This is called within the app's main
+        idle event method, with a frequency no more that once per second.
 
         """
         if not self._appLoaded:  # only open files if we have a UI
             return
-
-        self._timer.Stop()
 
         self._sharedMemory.seek(0)
         if self._sharedMemory.read(1) == b'+':  # available data
@@ -741,8 +702,6 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                 topWindow.Iconize(False)
             else:
                 topWindow.Raise()
-
-        self._timer.Start(1000)  # 1 second interval
 
     @property
     def appLoaded(self):
@@ -865,8 +824,13 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             self.updateWindowMenu()
             wx.EndBusyCursor()
         else:
-            # Set output window and standard streams
+            # set output window and standard streams
             self.coder.setOutputWindow(True)
+            # open file list
+            if fileList is None:
+                fileList = []
+            for file in fileList:
+                self.coder.fileOpen(filename=file)
         self.coder.Show(True)
         self.SetTopWindow(self.coder)
         self.coder.Raise()
@@ -1103,7 +1067,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         info.SetVersion('v' + psychopy.__version__)
         info.SetDescription(msg)
 
-        info.SetCopyright('(C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.')
+        info.SetCopyright('(C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.')
         info.SetWebSite('https://www.psychopy.org')
         info.SetLicence(license)
         # developers
@@ -1209,8 +1173,23 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                 self._allFrames.remove(entry)
 
     def onIdle(self, evt):
+        """Run idle tasks, including background checks for new instances.
+
+        Some of these run once while others are added as tasks to be run
+        repeatedly.
+
+        """
         from . import idle
-        idle.doIdleTasks(app=self)
+        idle.doIdleTasks(app=self)  # run once
+
+        # do the background check for new instances, check each second
+        tNow = time.time()
+        if tNow - self._lastInstanceCheckTime > 1.0:  # every second
+            if not self.testMode:
+                self._bgCheckAndLoad()
+            
+            self._lastInstanceCheckTime = time.time()
+
         evt.Skip()
 
     @property

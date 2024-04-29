@@ -681,7 +681,7 @@ class ExperimentHandler(_ComparisonMixin):
             'threshold': priorityThreshold,
         }
 
-        return json.dumps(context, indent=True, allow_nan=False, cls=ExperimentDataJSONEncoder)
+        return json.dumps(context, indent=True, allow_nan=False, default=str)
         
     def close(self):
         if self.dataFileName not in ['', None]:
@@ -706,12 +706,3 @@ class ExperimentHandler(_ComparisonMixin):
         """
         self.savePickle = False
         self.saveWideText = False
-
-
-class ExperimentDataJSONEncoder(json.JSONEncoder):
-    def default(self, o):
-        # if value has a json method, use it
-        if hasattr(o, "__json__"):
-            return o.__json__()
-        # otherwise return unchanged
-        return o

@@ -7,10 +7,10 @@ param ($install_pp=1)
 # python setup.py bdist_wininst --install-script=psychopy_post_inst.py
 
 # remove editable installation
-# $pyPaths = @("C:\Python36\", "C:\Python36_64\")
+# $pyPaths = @("C:\Python36", "C:\Python36_64")
 # $names = @("PsychoPy3", "PsychoPy3")
 # $archs = @("win32", "win64")
-$pyPaths = @("py\")
+$pyPaths = @("py")
 $names = @("PsychoPy")
 $archs = @("win64")
 

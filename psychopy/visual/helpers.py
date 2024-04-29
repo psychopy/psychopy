@@ -5,7 +5,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import os
@@ -281,7 +281,7 @@ def findImageFile(filename, checkResources=False):
 
     # try doing the same in the Resources folder
     if checkResources:
-        return findImageFile(Path(prefs.paths['resources'])/orig, checkResources=False)
+        return findImageFile(Path(prefs.paths['assets']) / orig, checkResources=False)
 
 
 def groupFlipVert(flipList, yReflect=0):

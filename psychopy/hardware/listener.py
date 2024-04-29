@@ -22,8 +22,9 @@ class ListenerLoop(threading.Thread):
         self.devices = []
         # placeholder values for function params
         self.refreshRate = self.maxTime = None
-        # set initial alive state
+        # set initial alive and active states
         self._alive = False
+        self._active = False
         # initialise base Thread
         threading.Thread.__init__(self, target=self.dispatchLoop, daemon=True)
 
@@ -63,9 +64,11 @@ class ListenerLoop(threading.Thread):
         """
         # if already started, do nothing
         if self._alive:
+            self._active = True
             return
         # set alive state
         self._alive = True
+        self._active = True
         # start the thread
         threading.Thread.start(self)
         # sleep so it has time to spin up
@@ -87,10 +90,33 @@ class ListenerLoop(threading.Thread):
             return
         # set alive status
         self._alive = False
+        self._active = False
         # sleep for 2 iterations so it has time to spin down
         time.sleep(self.refreshRate * 2)
         # return confirmation of thread's dead status
         return not threading.Thread.is_alive(self)
+
+    def pause(self):
+        """
+        Pause message polling, but continue looping.
+
+        Returns
+        -------
+        bool
+            True if the loop was paused successfully
+        """
+        self._active = False
+
+    def resume(self):
+        """
+        Continue message polling if paused.
+
+        Returns
+        -------
+        bool
+            True if the loop was resumed successfully
+        """
+        self._active = True
 
     def dispatchLoop(self):
         """
@@ -104,9 +130,11 @@ class ListenerLoop(threading.Thread):
             cont = self._alive
             if self.maxTime is not None:
                 cont &= time.time() - startTime < self.maxTime
-            # dispatch messages from devices
-            for device in self.devices:
-                device.dispatchMessages()
+            # only dispatch messages if not paused
+            if self._active:
+                # dispatch messages from devices
+                for device in self.devices:
+                    device.dispatchMessages()
             # sleep for 10ms
             time.sleep(self.refreshRate)
 

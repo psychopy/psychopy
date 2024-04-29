@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 import io
 import sys
@@ -392,8 +392,8 @@ class DetailsPanel(wx.Panel):
             "useful to psychophysicists, you may want to add the keyword 'psychophysics'."
         ))
         # Update button
-        self.updateBtn = wx.Button(self, style=wx.BU_EXACTFIT)
-        self.updateBtn.SetBitmap(icons.ButtonIcon(stem="view-refresh", size=16, theme="light").bitmap)
+        self.updateBtn = wx.Button(self, label=_translate("Save"), style=wx.BU_EXACTFIT)
+        self.updateBtn.SetBitmap(icons.ButtonIcon(stem="savebtn", size=16, theme="light").bitmap)
         self.sizer.Add(self.updateBtn, flag=wx.ALIGN_RIGHT | wx.ALL)
         self.updateBtn.Bind(wx.EVT_BUTTON, self.doUpdate)
         self.updateBtn.Disable()
@@ -842,7 +842,7 @@ def syncProject(parent, project, file="", closeFrameWhenDone=False):
         committed = functions.showCommitDialog(parent, project, initMsg="")
         # Cancel sync if commit cancelled
         if committed == -1:
-            pavlovia.getInfoStream().Write(_translate(
+            pavlovia.getInfoStream().write(_translate(
                 "\n"
                 "Sync cancelled by user."
             ))

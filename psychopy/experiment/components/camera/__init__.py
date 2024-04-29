@@ -27,6 +27,19 @@ micSampleRates = {r[1]: r[0] for r in sampleRateQualityLevels.values()}
 
 
 class CameraComponent(BaseDeviceComponent):
+    """
+    This component provides a way to use the webcam to record participants during an experiment.
+
+    **Note: For online experiments, the browser will notify participants to allow use of webcam before the start of the task.**
+
+    When recording via webcam, specify the starting time relative to the start of the routine (see `start` below) and a stop time (= duration in seconds).
+    A blank duration evaluates to recording for 0.000s.
+
+    The resulting video files are saved in .mp4 format if recorded locally and saved in .webm if recorded online. There will be one file per recording. The files appear in a new folder within the data directory in a folder called data_cam_recorded. The file names include the unix (epoch) time of the onset of the recording with milliseconds, e.g., `recording_cam_2022-06-16_14h32.42.064.mp4`.
+
+    **Note: For online experiments, the recordings can only be downloaded from the "Download results" button from the study's Pavlovia page.**
+    """
+
     categories = ['Responses']
     targets = ["PsychoPy", "PsychoJS"]
     version = "2022.2.0"
@@ -427,7 +440,7 @@ class CameraComponent(BaseDeviceComponent):
         code = (
             "# initialise camera\n"
             "cam = deviceManager.addDevice(\n"
-            "    deviceClass='camera',\n"
+            "    deviceClass='psychopy.hardware.camera.Camera',\n"
             "    deviceName=%(deviceLabel)s,\n"
             "    cameraLib=%(cameraLib)s, \n"
             "    device=%(device)s, \n"
@@ -456,25 +469,11 @@ class CameraComponent(BaseDeviceComponent):
 
     def writeInitCode(self, buff):
         inits = getInitVals(self.params, "PsychoPy")
-        self.setupMicNameInInits(inits)
-        # substitute manual values if backend is opencv
-        if self.params['cameraLib'] == "opencv":
-            inits['device'] = inits['deviceManual']
-            inits['resolution'] = inits['resolutionManual']
-            inits['frameRate'] = inits['frameRateManual']
-        # Substitute sample rate value for numeric equivalent
-        inits['micSampleRate'] = micSampleRates[inits['micSampleRate'].val]
-        # Substitute channel value for numeric equivalent
-        inits['micChannels'] = {'mono': 1, 'stereo': 2, 'auto': None}[
-            self.params['micChannels'].val]
 
         # Create Microphone object
         code = (
-            "# create a camera object\n"
-            "%(name)s = camera.Camera(\n"
-            "    device=%(deviceLabel)s, \n"
-            "    mic=%(micDeviceLabel)s, \n"
-            ")\n"
+            "# get camera object\n"
+            "%(name)s = deviceManager.getDevice(%(deviceLabel)s)\n"
         )
         buff.writeIndentedLines(code % inits)
 

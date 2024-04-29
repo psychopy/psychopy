@@ -3,16 +3,18 @@
 
 """
 Part of the PsychoPy library
-Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 Distributed under the terms of the GNU General Public License (GPL).
 """
 import copy
+import textwrap
 from pathlib import Path
 from xml.etree.ElementTree import Element
 
 from psychopy import prefs
 from psychopy.constants import FOREVER
 from ..params import Param
+from psychopy.experiment.utils import canBeNumeric
 from psychopy.experiment.utils import CodeGenerationException
 from psychopy.experiment.utils import unescapedDollarSign_re
 from psychopy.experiment.params import getCodeFromParamStr
@@ -34,6 +36,8 @@ class BaseComponent:
     tooltip = ""
     # what version was this Component added in?
     version = "0.0.0"
+    # is it still in beta?
+    beta = False
 
     def __init__(self, exp, parentName, name='',
                  startType='time (s)', startVal='',
@@ -250,6 +254,12 @@ class BaseComponent:
         # Note: settings.writeStartCode() is done first, then
         # Routine.writeStartCode() will call this method for each component in
         # each routine
+        pass
+
+    def writePreCode(self, buff):
+        """Write any code that a component needs that should be done before 
+        the session's `run` method is called.
+        """
         pass
 
     def writeFrameCode(self, buff):
@@ -697,16 +707,12 @@ class BaseComponent:
         """
         if paramName == 'advancedParams':
             return  # advancedParams is not really a parameter itself
-        elif paramName == 'letterHeight':
-            paramCaps = 'Height'  # setHeight for TextStim
         elif paramName == 'image' and self.getType() == 'PatchComponent':
             paramCaps = 'Tex'  # setTex for PatchStim
         elif paramName == 'sf':
             paramCaps = 'SF'  # setSF, not SetSf
         elif paramName == 'coherence':
             paramCaps = 'FieldCoherence'
-        elif paramName == 'fieldPos':
-            paramCaps = 'FieldPos'
         else:
             paramCaps = paramName[0].capitalize() + paramName[1:]
 
@@ -1032,6 +1038,125 @@ class BaseComponent:
         # if validation code indented the buffer, dedent
         buff.setIndentLevel(-indent, relative=True)
 
+    def getFullDocumentation(self, fmt="rst"):
+        """
+        Automatically generate documentation for this Component. We recommend using this as a
+        starting point, but checking the documentation yourself afterwards and adding any more
+        detail you'd like to include (e.g. usage examples)
+
+        Parameters
+        ----------
+        fmt : str
+            Format to write documentation in. One of:
+            - "rst": Restructured text (numpy style)
+            -"md": Markdown (mkdocs style)
+        """
+
+        # make sure format is correct
+        assert fmt in ("md", "rst"), (
+            f"Unrecognised format {fmt}, allowed formats are 'md' and 'rst'."
+        )
+        # define templates for md and rst
+        h1 = {
+            'md': "# %s",
+            'rst': (
+                "-------------------------------\n"
+                "%s\n"
+                "-------------------------------"
+            )
+        }[fmt]
+        h2 = {
+            'md': "## %s",
+            'rst': (
+                "%s\n"
+                "-------------------------------"
+            )
+        }[fmt]
+        h3 = {
+            'md': "### %s",
+            'rst': (
+                "%s\n"
+                "==============================="
+            )
+        }[fmt]
+        h4 = {
+            'md': "#### `%s`",
+            'rst': "%s"
+        }[fmt]
+
+        # start off with nothing
+        content = ""
+        # header and class docstring
+        content += (
+            f"{h1 % type(self).__name__}\n"
+            f"{textwrap.dedent(self.__doc__ or '')}\n"
+            f"\n"
+        )
+        # attributes
+        content += (
+            f"{h4 % 'Categories:'}\n"
+            f"    {', '.join(self.categories)}\n"
+            f"{h4 % 'Works in:'}\n"
+            f"    {', '.join(self.targets)}\n"
+            f"\n"
+        )
+        # beta warning
+        if self.beta:
+            content += (
+                f"**Note: Since this is still in beta, keep an eye out for bug fixes.**\n"
+                f"\n"
+            )
+        # params heading
+        content += (
+            f"{h2 % 'Parameters'}\n"
+            f"\n"
+        )
+        # sort params by category
+        byCateg = {}
+        for param in self.params.values():
+            if param.categ not in byCateg:
+                byCateg[param.categ] = []
+            byCateg[param.categ].append(param)
+        # iterate through categs
+        for categ, params in byCateg.items():
+            # write a heading for each categ
+            content += (
+                f"{h3 % categ}\n"
+                f"\n"
+            )
+            # add each param...
+            for param in params:
+                # write basics (heading and description)
+                content += (
+                    f"{h4 % param.label}\n"
+                    f"    {param.hint}\n"
+                )
+                # if there are options, display them
+                if bool(param.allowedVals) or bool(param.allowedLabels):
+                    # if no allowed labels, use allowed vals
+                    options = param.allowedLabels or param.allowedVals
+                    # handle callable methods
+                    if callable(options):
+                        content += (
+                            f"\n"
+                            f"    Options are generated live, so will vary according to your setup.\n"
+                        )
+                    else:
+                        # write heading
+                        content += (
+                            f"    \n"
+                            f"    Options:\n"
+                        )
+                        # add list item for each option
+                        for opt in options:
+                            content += (
+                                f"    - {opt}\n"
+                            )
+                # add newline at the end
+                content += "\n"
+
+        return content
+
     @property
     def name(self):
         return self.params['name'].val
@@ -1346,14 +1471,3 @@ class BaseVisualComponent(BaseComponent):
                     "\n"
                 )
                 indented -= 1
-
-
-def canBeNumeric(inStr):
-    """Determines whether the input can be converted to a float
-    (using a try: float(instr))
-    """
-    try:
-        float(inStr)
-        return True
-    except Exception:
-        return False

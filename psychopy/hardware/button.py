@@ -103,7 +103,7 @@ class KeyboardButtonBox(BaseButtonGroup):
     """
     Use a standard keyboard to immitate the functions of a button box, mostly useful for testing.
     """
-    def __init__(self, buttons=(1, 2, 3, 4)):
+    def __init__(self, buttons=('g', 'h', 'j', 'k', 'a', 's', 'd', 'f'), device=-1, bufferSize=10000):
         # initialise base class
         BaseButtonGroup.__init__(self, channels=len(buttons))
         # store buttons
@@ -111,14 +111,24 @@ class KeyboardButtonBox(BaseButtonGroup):
         # make own clock
         self.clock = core.Clock()
         # initialise keyboard
-        self.kb = keyboard.KeyboardDevice(clock=self.clock)
+        self.kb = keyboard.KeyboardDevice(
+            clock=self.clock,
+            device=device,
+            bufferSize=bufferSize,
+            muteOutsidePsychopy=False
+        )
 
     def resetTimer(self, clock=logging.defaultClock):
         self.clock.reset(clock.getTime())
 
     @staticmethod
     def getAvailableDevices():
-        return keyboard.KeyboardDevice.getAvailableDevices()
+        profiles = []
+        for profile in keyboard.KeyboardDevice.getAvailableDevices():
+            # change device name to keyboard button box
+            profile['deviceName'] = "KeyboardButtonBox"
+            profiles.append(profile)
+        return profiles
 
     def dispatchMessages(self):
         messages = self.kb.getKeys(keyList=self.buttons, waitRelease=False, clear=True)
@@ -131,7 +141,7 @@ class KeyboardButtonBox(BaseButtonGroup):
         # work out time and state state of KeyPress
         state = message.duration is None
         t = message.tDown
-        # if state is a release, add duration to timestam1111111p
+        # if state is a release, add duration to timestamp
         if message.duration:
             t += message.duration
         # get channel
@@ -149,6 +159,10 @@ class KeyboardButtonBox(BaseButtonGroup):
 
         return resp
 
+    def isSameDevice(self, other):
+        # all Keyboards are the same device
+        return True
+
 
 class ButtonBox:
     """
@@ -163,10 +177,11 @@ class ButtonBox:
             if device in DeviceManager.devices:
                 self.device = DeviceManager.getDevice(device)
             else:
+                # don't use formatted string literals in _translate()
                 raise ValueError(_translate(
-                    f"Could not find device named '{device}', make sure it has been set up "
-                    f"in DeviceManager."
-                ))
+                    "Could not find device named '{device}', make sure it has been set up "
+                    "in DeviceManager."
+                ).format(device))
 
         # starting value for status (Builder)
         self.status = constants.NOT_STARTED

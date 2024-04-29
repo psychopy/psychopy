@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Dialog classes for the Builder, including ParamCtrls
@@ -162,8 +162,7 @@ class ParamCtrls():
                 valType=param.valType,
                 choices=param.allowedVals, 
                 labels=param.allowedLabels,
-                fieldName=fieldName, 
-                size=wx.Size(int(self.valueWidth), 24))
+                fieldName=fieldName)
         elif param.inputType == 'multiChoice':
             self.valueCtrl = paramCtrls.MultiChoiceCtrl(
                 parent, 
@@ -490,7 +489,7 @@ class StartStopCtrls(wx.GridBagSizer):
                 localizedChoices = list(map(_translate, param.allowedVals or [param.val]))
                 self.ctrls[name] = wx.Choice(parent,
                                              choices=localizedChoices,
-                                             size=wx.Size(96, 24))
+                                             size=wx.Size(96, -1))
                 self.ctrls[name]._choices = copy.copy(param.allowedVals)
                 self.ctrls[name].SetSelection(param.allowedVals.index(str(param.val)))
                 self.Add(self.ctrls[name], (0, 1), border=6, flag=wx.EXPAND | wx.TOP)
@@ -1603,6 +1602,13 @@ class DlgLoopProperties(_BaseParamsDlg):
                         'category': ", ".join(clashes)
                     })
                 paramStr += (str(param) + ', ')
+                # check for derivables
+                derivable = self.exp.namespace.isPossiblyDerivable(param)
+                if derivable:
+                    alert(4710, strFields={
+                        'param': param,
+                        'msg': derivable
+                    })
             paramStr = paramStr[:-2] + "]"  # remove final comma and add ]
             # generate summary info
             msg = _translate('%(nCondition)i conditions, with %(nParam)i '

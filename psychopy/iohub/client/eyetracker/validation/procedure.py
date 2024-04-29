@@ -623,7 +623,12 @@ class ValidationProcedure:
         unit_type = self.win.units
         if self.results_in_degrees:
             unit_type = 'degree'
-        mean_error = summed_error / point_count
+
+        if point_count >= 1:
+            mean_error = summed_error / point_count
+        else:
+            min_error = max_error = mean_error = 0.0
+
         err_results = dict(reporting_unit_type=unit_type, min_error=min_error, max_error=max_error,
                            mean_error=mean_error, passed=results['positions_failed_processing'] == 0,
                            positions_failed_processing=results['positions_failed_processing'])

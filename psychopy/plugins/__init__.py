@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 """Utilities for extending PsychoPy with plugins."""
 
@@ -706,7 +706,7 @@ def loadPlugin(plugin):
                 except (ModuleNotFoundError, ImportError):
                     importSuccess = False
                     logging.error(
-                        "Plugin `{}` entry point requires module `{}`, but it"
+                        "Plugin `{}` entry point requires module `{}`, but it "
                         "cannot be imported.".format(plugin, ep.module_name))
                 except:
                     importSuccess = False
@@ -1052,7 +1052,7 @@ def pluginEntryPoints(plugin, parse=False):
     return None
 
 
-def activatePlugins():
+def activatePlugins(which='all'):
     """Activate plugins.
 
     Calling this routine will load all startup plugins into the current process.
@@ -1069,11 +1069,9 @@ def activatePlugins():
             'been found in active distributions.')
         return  # nop if no plugins
 
-    # fully load startup plugins
-    for plugin in listPlugins('startup'):
+    # load each plugin and apply any changes to Builder
+    for plugin in listPlugins(which):
         loadPlugin(plugin)
-    # load Builder-relevant classes from all plugins, not just startup
-    for plugin in _installed_plugins_:
         loadPluginBuilderElements(plugin)
 
 

@@ -3,13 +3,14 @@
 
 """
 Part of the PsychoPy library
-Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 Distributed under the terms of the GNU General Public License (GPL).
 """
 
 from pathlib import Path
 from psychopy.experiment.components import BaseDeviceComponent, Param, getInitVals, \
     _translate
+from psychopy.experiment.utils import canBeNumeric
 from psychopy.tools.audiotools import knownNoteNames
 
 
@@ -62,7 +63,7 @@ class SoundComponent(BaseDeviceComponent):
                          " to specify Hz (e.g. 440) or a filename")
         self.params['sound'] = Param(
             sound, valType='str', inputType="file", allowedTypes=[], updates='constant', categ='Basic',
-            allowedUpdates=['constant', 'set every repeat'],
+            allowedUpdates=['set every repeat'],
             hint=hnt,
             label=_translate("Sound"))
         _allowed = ['constant', 'set every repeat', 'set every frame']
@@ -139,7 +140,7 @@ class SoundComponent(BaseDeviceComponent):
     def writeInitCode(self, buff):
         # replaces variable params with sensible defaults
         inits = getInitVals(self.params)
-        if '$' in str(inits['stopVal'].val):
+        if not canBeNumeric(inits['stopVal'].val):
             inits['stopVal'].val = -1
         else:
             if inits['stopVal'].val in ['', None, 'None']:
@@ -177,7 +178,7 @@ class SoundComponent(BaseDeviceComponent):
     def writeInitCodeJS(self, buff):
         # replaces variable params with sensible defaults
         inits = getInitVals(self.params)
-        if '$' in inits['stopVal'].val:
+        if not canBeNumeric(inits['stopVal'].val):
             inits['stopVal'].val = -1
         elif inits['stopVal'].val in ['', None, 'None']:
             inits['stopVal'].val = -1

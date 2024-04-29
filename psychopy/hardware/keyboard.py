@@ -55,7 +55,7 @@ Example usage
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
@@ -63,8 +63,6 @@ from __future__ import absolute_import, division, print_function
 import json
 from collections import deque
 import sys
-import copy
-import psychopy.core
 import psychopy.clock
 from psychopy import logging
 from psychopy.constants import NOT_STARTED
@@ -142,6 +140,7 @@ class KeyPress(BaseResponse):
             self.name = name
             self.rt = tDown
         elif KeyboardDevice._backend == 'ptb':
+            self.rt = tDown
             if code not in keyNames and code in keyNames.values():
                 i = list(keyNames.values()).index(code)
                 code = list(keyNames.keys())[i]
@@ -207,8 +206,13 @@ class Keyboard(AttributeGetSetMixin):
         self.rt = []  # response time(s)
         self.time = []  # Epoch
 
-        # get clock from device
-        self.clock = self.device.clock
+    @property
+    def clock(self):
+        return self.device.clock
+
+    @clock.setter
+    def clock(self, value):
+        self.device.clock = value
 
     def getBackend(self):
         return self.device.getBackend()
@@ -548,10 +552,10 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
         response = None
 
         if KeyboardDevice._backend == 'ptb':
+            message['time'] -= self.clock.getLastResetTime()
             if message['down']:
                 # if message is from a key down event, make a new response
                 response = KeyPress(code=message['keycode'], tDown=message['time'])
-                response.rt = response.tDown - self.clock.getLastResetTime()
                 self._keysStillDown.append(response)
             else:
                 # if message is from a key up event, alter existing response
@@ -569,7 +573,7 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
             if message.type == "KEYBOARD_PRESS":
                 # if message is from a key down event, make a new response
                 response = KeyPress(code=message.char, tDown=message.time, name=message.key)
-                response.rt = response.tDown
+                response.rt = response.tDown - (self.clock.getLastResetTime() - self._iohubKeyboard.clock.getLastResetTime())
                 self._keysStillDown.append(response)
             else:
                 # if message is from a key up event, alter existing response
@@ -593,14 +597,6 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
             response.rt = rt
 
         return response
-
-    def receiveMessage(self, message):
-        # disregard any messages sent while the PsychoPy window wasn't in focus (for security)
-        from psychopy.tools.systemtools import isPsychopyInFocus
-        if self.muteOutsidePsychopy and not isPsychopyInFocus():
-            return
-        # otherwise, receive as normal
-        return BaseResponseDevice.receiveMessage(self, message=message)
 
     def waitKeys(self, maxWait=float('inf'), keyList=None, waitRelease=True,
                  clear=True):
@@ -630,7 +626,7 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
         Returns None if times out.
     
         """
-        timer = psychopy.core.Clock()
+        timer = psychopy.clock.Clock()
 
         if clear:
             self.clearEvents()
@@ -639,6 +635,7 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
             keys = self.getKeys(keyList=keyList, waitRelease=waitRelease, clear=clear)
             if keys:
                 return keys
+            psychopy.clock._dispatchWindowEvents()  # prevent "app is not responding"
             time.sleep(0.00001)
 
         logging.data('No keypress (maxWait exceeded)')
