@@ -1074,18 +1074,30 @@ class Session:
 
         return True
     
-    def getFutureTrial(self, n=1):
+    def getFutureTrial(self, n=1, asDict=False):
         """
         Returns the condition for n trials into the future, without
         advancing the trials. Returns 'None' if attempting to go beyond
         the last trial in the current loop, if there is no current loop 
         or if there is no current experiment.
+
+        Parameters
+        ----------
+        n : int
+            Number of places into the future to look
+        asDict : bool
+            If True, convert Trial object to a dict before returning (useful for Liaison)
         """
         # return None if there's no current experiment
         if self.currentExperiment is None:
             return None
         # get future trial from current experiment
-        return self.currentExperiment.getFutureTrial(n)
+        trial = self.currentExperiment.getFutureTrial(n)
+        # convert to dict if needed
+        if asDict and trial is not None:
+            trial = trial.getDict()
+        
+        return trial
     
         
     def getFutureTrials(self, n=1, start=0):
