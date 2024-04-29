@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import json
 import os
 import sys
 import copy
@@ -771,6 +772,37 @@ class Trial(dict):
         # ... and set each value from the given dict
         for key, val in value.items():
             self[key] = val
+    
+    def getDict(self):
+        """
+        Get this Trial as a dict.
+
+        Returns
+        -------
+        dict
+            Dict containing information for this Trial.
+        """
+        return {
+            'thisN': self.thisN, 
+            'thisRepN': self.thisRepN, 
+            'thisTrialN': self.thisTrialN, 
+            'thisIndex': self.thisIndex, 
+            'data': self.data,
+        }
+
+    
+    def getJSON(self):
+        """
+        Serialize this Trial to a JSON format.
+
+        Returns
+        -------
+        str
+            The results of Trial.getDict expressed as a JSON string
+        """
+        return json.dumps(
+            self.getDict()
+        )
 
 
 class TrialHandler2(_BaseTrialHandler):
