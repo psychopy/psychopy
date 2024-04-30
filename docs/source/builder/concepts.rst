@@ -14,7 +14,7 @@ The way in which these :ref:`routines` are combined and/or repeated is controlle
 
 If it is your first time opening |PsychoPy|, we highly recommend taking a look at the large number of inbuilt demos that come with |PsychoPy|. This can be done through selecting `Demos > unpack demos` within your application. Another good place to get started is to take a look at the many `openly available demos at pavlovia.org <https://pavlovia.org/explore>`_ you can view an `intro to Pavlovia <https://www.youtube.com/watch?v=oYhcBDK2O10&t=42s>`_ at our Youtube channel.
 
-.. image:: /images/builder_concepts.png
+.. image:: /images/builder_conceptsApril24.png
     :width: 100%
     :alt: The Builder view
 *The |PsychoPy| builder, the Routines panel an the Flow are highlighted, if you are new to |PsychoPy|, we recommend starting by unpacking your demos and exploring the example tasks*
@@ -34,7 +34,7 @@ You can add components to an experiment by selecting components from the *Compon
 
 Making experiments to go online
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. image:: /images/builderViewIndexed.png
+.. image:: /images/builderViewIndexedApril24.png
     :width: 100%
     :alt: The Builder view
 *Buttons to interact with pavlovia.org from your experiment builder*

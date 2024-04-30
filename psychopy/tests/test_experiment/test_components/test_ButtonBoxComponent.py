@@ -11,21 +11,14 @@ from psychopy.hardware.button import ButtonResponse
 from psychopy.experiment.routines import Routine
 from psychopy.experiment.components.buttonBox import ButtonBoxComponent
 from psychopy.experiment.components.code import CodeComponent
-from .test_base_components import _TestBaseComponentsMixin
+from psychopy.tests.test_experiment.test_components.test_base_components import BaseComponentTests
+from psychopy.hardware.button import ButtonBox
 
 
-class TestButtonBoxComponent(_TestBaseComponentsMixin):
-    def setup_method(self):
-        self.exp = Experiment()
-        # make blank routine
-        self.routine = Routine(name="testRoutine", exp=self.exp)
-        self.exp.addRoutine("testRoutine", self.routine)
-        self.exp.flow.addRoutine(self.routine, 0)
-        # make component
-        self.comp = ButtonBoxComponent(
-            exp=self.exp, name="testPhotodiodeValidatorRoutine", parentName="testRoutine"
-        )
-
+class TestButtonBoxComponent(BaseComponentTests):
+    comp = ButtonBoxComponent
+    libraryClass = ButtonBox
+    
     def test_values(self):
         """
         Test that a variety of different values work when run from Builder.
@@ -65,9 +58,8 @@ class TestButtonBoxComponent(_TestBaseComponentsMixin):
                 thisCase[keys[i]] = val
             # add case
             cases.append(thisCase)
-
-        # make an experiment
-        exp = Experiment()
+        # make minimal experiment just for this test
+        comp, rt, exp = self.make_minimal_experiment()
         # configure experiment
         exp.requireImport("ButtonResponse", importFrom="psychopy.hardware.button")
         exp.settings.params['Full-screen window'].val = False
@@ -79,18 +71,8 @@ class TestButtonBoxComponent(_TestBaseComponentsMixin):
             resps = case.pop("resps")
             if not isinstance(resps, (list, tuple)):
                 resps = [resps]
-            # make a name
-            name = f"rt{i}"
-            # make a Routine
-            rt = exp.addRoutine(name, Routine(name=name, exp=exp))
-            exp.flow.addRoutine(rt, 0)
             # add timeout
             rt.settings.params['stopVal'].val = 0.2
-            # make a Component
-            comp = ButtonBoxComponent(
-                exp, parentName=name, name=name + "_comp", **case
-            )
-            rt.addComponent(comp)
             # make a Code Component to send responses
             code = (
                 "if frameN > 1:\n"
@@ -104,7 +86,7 @@ class TestButtonBoxComponent(_TestBaseComponentsMixin):
                     name=comp.name, value=resp.value, channel=resp.channel
                 )
             codeComp = CodeComponent(
-                exp, parentName=name + "_code", eachFrame=code
+                exp, parentName=comp.name + "_code", eachFrame=code
             )
             rt.addComponent(codeComp)
         # save exp in temp directory

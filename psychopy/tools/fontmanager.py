@@ -947,7 +947,7 @@ class FontManager():
                 return False
         # If font is found, make glfont
         fontInfo = fontInfos[0]
-        identifier = "{}_{}".format(str(fontInfo), size)
+        identifier = "{}_{}_{}".format(str(fontInfo), size, lineSpacing)
         glFont = self._glFonts.get(identifier)
         if glFont is None:
             glFont = GLFont(fontInfo.path, size, lineSpacing=lineSpacing)

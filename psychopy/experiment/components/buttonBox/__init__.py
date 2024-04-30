@@ -6,12 +6,13 @@ from psychopy.localization import _translate
 
 class ButtonBoxComponent(BaseDeviceComponent, PluginDevicesMixin):
     """
-
+    Component for getting button presses from a button box device.
     """
     categories = ['Responses']  # which section(s) in the components panel
     targets = ['PsychoPy']
     iconFile = Path(__file__).parent / 'buttonBox.png'
     tooltip = _translate('Button Box: Get input from a button box')
+    beta = True
 
     def __init__(
             self, exp, parentName,
@@ -160,6 +161,14 @@ class ButtonBoxComponent(BaseDeviceComponent, PluginDevicesMixin):
             f"%(name)s.resetTimer({clockStr})\n"
         )
         buff.writeIndentedLines(code % self.params)
+        # clear keys
+        code = (
+            "# clear %(name)s button presses\n"
+            "%(name)s.buttons = []\n"
+            "%(name)s.times = []\n"
+            "%(name)s.corr = []\n"
+            )
+        buff.writeIndentedLines(code % self.params)
 
     def writeFrameCode(self, buff):
         params = self.params
@@ -200,7 +209,10 @@ class ButtonBoxComponent(BaseDeviceComponent, PluginDevicesMixin):
                 # include code to get correct
                 if self.params['storeCorrect']:
                     code += (
-                "    %(name)s.corr.append(_thisResp.channel in %(correctAns)s)\n"
+                "    if _thisResp.channel in %(correctAns)s or _thisResp.channel == %(correctAns)s:\n"
+                "        %(name)s.corr.append(1)\n"
+                "    else:\n"
+                "        %(name)s.corr.append(0)\n"
                     )
             elif self.params['store'] == "last":
                 # if storing last, replace
@@ -211,7 +223,10 @@ class ButtonBoxComponent(BaseDeviceComponent, PluginDevicesMixin):
                 # include code to get correct
                 if self.params['storeCorrect']:
                     code += (
-                "    %(name)s.corr = _thisResp.channel in %(correctAns)s\n"
+                "    if _thisResp.channel in %(correctAns)s or _thisResp.channel == %(correctAns)s:\n"
+                "        %(name)s.corr = 1\n"
+                "    else:\n"
+                "        %(name)s.corr = 0\n"
                     )
             elif self.params['store'] == "first":
                 # if storing first, replace but only if empty
@@ -223,7 +238,10 @@ class ButtonBoxComponent(BaseDeviceComponent, PluginDevicesMixin):
                 # include code to get correct
                 if self.params['storeCorrect']:
                     code += (
-                "        %(name)s.corr = _thisResp.channel in %(correctAns)s\n"
+                "        if _thisResp.channel in %(correctAns)s or _thisResp.channel == %(correctAns)s:\n"
+                "            %(name)s.corr = 1\n"
+                "        else:\n"
+                "            %(name)s.corr = 0\n"
                     )
             else:
                 code = "pass\n"
@@ -259,15 +277,7 @@ class ButtonBoxComponent(BaseDeviceComponent, PluginDevicesMixin):
             "thisExp.addData('%(name)s.corr', %(name)s.corr)\n"
         )
         buff.writeIndentedLines(code % params)
-        # clear keys
-        code = (
-            "# clear %(name)s button presses\n"
-            "%(name)s.buttons = []\n"
-            "%(name)s.times = []\n"
-            "%(name)s.corr = []\n"
-        )
-        buff.writeIndentedLines(code % params)
-
+        
 
 class KeyboardButtonBoxBackend(DeviceBackend):
     """

@@ -2239,6 +2239,9 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         # if max came from routine settings, mark as hard stop
         rtMax, rtMaxIsNum = self.routine.settings.getDuration()
         hardStop = rtMaxIsNum and rtMax == maxTime
+        # handle no max
+        if maxTime is None:
+            maxTime = 10
 
         return maxTime, hardStop
 
