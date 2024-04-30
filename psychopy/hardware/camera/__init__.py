@@ -2196,6 +2196,9 @@ class Camera:
     def stop(self):
         """Stop recording frames and audio (if available).
         """
+        if self._captureThread is None:  # do nothing if not open
+            return
+
         if not self._captureThread.isOpen():
             raise RuntimeError("Cannot stop recording, stream is not open.")
 
@@ -2217,6 +2220,9 @@ class Camera:
         to save the frames to disk.
 
         """
+        if self._captureThread is None:  # nop
+            return
+
         if not self._captureThread.isOpen():
             raise RuntimeError("Cannot close stream, stream is not open.")
         
