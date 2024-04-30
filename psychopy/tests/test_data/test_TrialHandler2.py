@@ -138,7 +138,7 @@ class TestTrialHandler2:
 
         for thisTrial in trials:
             resp = 'resp' + str(thisTrial['trialType'])
-            randResp = rng.rand()
+            randResp = np.round(rng.rand(), 9)
             trials.addData('resp', resp)
             trials.addData('rand', randResp)
 
@@ -244,6 +244,38 @@ class TestTrialHandler2:
 
         t_loaded = fromFile(path)
         assert t == t_loaded
+    
+    def test_getFutureTrials(self):
+        """
+        Check that TrialHandler2 can return future trials correctly.
+        """
+        # make a trial handler
+        t = data.TrialHandler2(
+            self.conditions, 
+            nReps=2,
+            method="sequential"
+        )
+        t.__next__()
+        # define array of answers
+        answers = [
+            {'thisN': 5, 'thisRepN': 2, 'thisTrialN': 2, 'thisIndex': 2},
+            {'thisN': 1, 'thisRepN': 1, 'thisTrialN': 1, 'thisIndex': 1},
+            {'thisN': 2, 'thisRepN': 1, 'thisTrialN': 2, 'thisIndex': 2},
+            {'thisN': 3, 'thisRepN': 2, 'thisTrialN': 0, 'thisIndex': 0},
+            {'thisN': 4, 'thisRepN': 2, 'thisTrialN': 1, 'thisIndex': 1},
+            {'thisN': 5, 'thisRepN': 2, 'thisTrialN': 2, 'thisIndex': 2},
+            None,
+        ]
+        # get future trials
+        for n in range(7):
+            trial = t.getFutureTrial(n)
+            if trial is not None:
+                # if we got a trial, make sure each attribute matches expected
+                for key in answers[n]:
+                    assert getattr(trial, key) == answers[n][key]
+            else:
+                # if we got None, make sure we were expecting to
+                assert answers[n] is None
 
 
 class TestTrialHandler2Output():
