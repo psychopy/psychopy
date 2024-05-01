@@ -160,7 +160,7 @@ class TrialHandler(_BaseLoopHandler):
             # just a conditions file with no sub-selection
             inits['trialList'] = (
                 "data.importConditions(%(conditionsFile)s)"
-            )
+            ) % inits
         else:
             # a subset of a conditions file
             inits['trialList'] = (
@@ -168,7 +168,7 @@ class TrialHandler(_BaseLoopHandler):
                  "    %(conditionsFile)s, \n"
                  "    selection=%(Selected rows)s\n"
                  ")\n"
-            )
+            ) % inits
         # also a 'thisName' for use in "for thisTrial in trials:"
         makeLoopIndex = self.exp.namespace.makeLoopIndex
         self.thisName = inits['loopIndex'] = makeLoopIndex(self.params['name'].val)
