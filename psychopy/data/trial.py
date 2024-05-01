@@ -1200,6 +1200,12 @@ class TrialHandler2(_BaseTrialHandler):
             n = len(self.upcomingTrials)
         # iterate n times
         for i in range(n):
+            # before iterating, add "skipped" to data
+            self.addData("skipped", True)
+            # advance row in data file
+            if self.getExp() is not None:
+                self.getExp().nextEntry()
+            # iterate
             self.__next__()
 
     def rewindTrials(self, n=1):
@@ -1619,7 +1625,7 @@ class TrialHandler2(_BaseTrialHandler):
         self.thisTrial[thisType] = value
         if self.getExp() is not None:
             # update the experiment handler too
-            self.getExp().addData(thisType, value)
+            self.getExp().addData(f"{self.name}.{thisType}", value)
 
 
 class TrialHandlerExt(TrialHandler):
