@@ -655,6 +655,15 @@ class Routine(list):
                 '\n# --- Run Routine "{name}" ---\n')
         buff.writeIndentedLines(code.format(name=self.name,
                                             clockName=self._clockName))
+        # check for the trials loop ending this Routine
+        if len(self.exp.flow._loopList):
+            code = (
+                "# if trial has changed, end Routine now\n"
+                "if thisTrial.thisN != {loop}.thisTrial.thisN:\n"
+                "    continueRoutine = False\n"
+            ).format(loop=self.exp.flow._loopList[-1].name)
+            buff.writeIndentedLines(code)
+
         # initial value for forceRoutineEnded (needs to happen now as Code components will have executed
         # their Begin Routine code)
         code = (
