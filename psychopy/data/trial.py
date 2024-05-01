@@ -1181,6 +1181,64 @@ class TrialHandler2(_BaseTrialHandler):
         # clear upcoming trials so they're recalculated on next iteration
         self.upcoming = None
 
+    def skipTrials(self, n=1):
+        """
+        Skip ahead n trials - the trials inbetween will be marked as "skipped". If you try to
+        skip past the last trial, will log a warning and skip *to* the last trial.
+
+        Parameters
+        ----------
+        n : int
+            Number of trials to skip ahead
+        """
+        # if skipping past last trial, print warning and skip to last trial
+        if n > len(self.upcoming):
+            logging.warn(
+                f"Requested skip of {n} trials when only {len(self.elapsed)} trials are upcoming. "
+                f"Skipping to the last upcoming trial."
+            )
+            n = len(self.upcoming)
+        # start with the current trial
+        skipped = [self.thisTrial]
+        # pop the first n values from upcoming trials
+        for i in range(n):
+            skipped.append(
+                self.upcoming.pop(0)
+            )
+        # set thisTrial from last skipped value
+        self.thisTrial = skipped.pop(-1)
+        # append skipped trials to elapsed array
+        self.elapsed += skipped
+
+    def rewindTrials(self, n=1):
+        """
+        Rewind back n trials - previously elapsed trials will return to being upcoming. If you
+        try to rewind before the first trial, will log a warning and rewind *to* the first trial.
+
+        Parameters
+        ----------
+        n : int
+            Number of trials to rewind back
+        """
+        # treat -n as n
+        n = abs(n)
+        # if rewinding past first trial, print warning and rewind to first trial
+        if n > len(self.elapsed):
+            logging.warn(
+                f"Requested rewind of {n} trials when only {len(self.elapsed)} trials have "
+                f"elapsed. Rewinding to the first trial."
+            )
+            n = len(self.elapsed)
+        # start with no trials
+        rewound = [self.thisTrial]
+        # pop the last n values from elapsed trials
+        for i in range(n):
+            rewound = [self.elapsed.pop(-1)] + rewound
+        # set thisTrial from first rewound value
+        self.thisTrial = rewound.pop(0)
+        # prepend rewound trials to upcoming array
+        self.upcoming = rewound + self.upcoming
+
     def getFutureTrial(self, n=1):
         """
         Returns the condition for n trials into the future, without
