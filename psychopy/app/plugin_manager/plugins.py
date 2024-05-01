@@ -1260,7 +1260,7 @@ def getAllPluginDetails():
             return None
         # attempt to parse JSON
         try:
-            with srcFile.open("r", encoding="utf-8") as f:
+            with srcFile.open("r", encoding="utf-8", errors="ignore") as f:
                 return json.load(f)
         except json.decoder.JSONDecodeError:
             # if JSON parse fails, return nothing
