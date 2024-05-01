@@ -15,7 +15,7 @@ For the easiest installation download and install the Standalone package.
 
     let filename;
     let url;
-    let version='2023.2.3';
+    let version='2024.1.4';
 
     let clientInfo = UAParser(navigator.userAgent);
     var osLabel;
@@ -70,10 +70,10 @@ to manually install |PsychoPy| and all it's dependencies to your own installatio
 of Python.
 
 The steps are to fetch Python. This method should work on a range of versions of Python
-but **we strongly recommend you use Python 3.8**. Older Python versions are no longer being tested and
+but **we strongly recommend you use Python 3.10 or 3.8**. Older Python versions are no longer being tested and
 may not work correctly. Newer Python versions may not have wheels for all the necessary
-depedencies even though we believe that PsychoPy's code, itself, is compatible all the way up
-to Python 3.10.
+dependencies even though we believe that PsychoPy's code, itself, is compatible up
+to at least Python 3.10.
 
 You can install |PsychoPy| and its dependencies (more than you'll strictly need, depending on the features you use)
 by::
@@ -81,7 +81,7 @@ by::
   pip install psychopy
 
 If you prefer *not* to install *all* the dependencies (e.g. because the platform or Python version you're
-on doesn't have that depedency easily available) then you could do::
+on doesn't have that dependency easily available) then you could do::
 
   pip install psychopy --no-deps
 
@@ -93,6 +93,8 @@ may want to try the `unofficial packages by Christoph Gohlke <https://www.lfd.uc
 brew install
 ~~~~~~~~~~~~~~~~~
 
+This is a user-contributed option and may or may not work.
+
 On a MacOS machine, `brew` can be used to install |PsychoPy|::
 
   brew install --cask psychopy
@@ -101,6 +103,11 @@ On a MacOS machine, `brew` can be used to install |PsychoPy|::
 
 Linux
 ~~~~~~~~~~~~~~~~~
+
+We are aware that the procedure for installing on Linux is often rather painful. 
+This is not the platform that the core PsychoPy developers currently use so support
+is less good than on some platforms. Feel free to jump in and help improve it as a
+contributor! :-) 
 
 There used to be neurodebian and Gentoo packages for |PsychoPy| but these are both
 badly outdated. We'd recommend you do:
@@ -129,8 +136,6 @@ to fix this (of our own risk):
 sudo add-apt-repository 'deb http://archive.ubuntu.com/ubuntu bionic main universe'
 sudo apt install -t bionic libwebkitgtk-1.0-0
 
-
-
 **Building Python PsychToolbox bindings:**
 
 The PsychToolbox bindings for Python provide superior timing for sounds and
@@ -155,20 +160,15 @@ as needed:
 Anaconda and Miniconda
 ~~~~~~~~~~~~~~~~~~~~~~
 
-We provide an `environment file <https://raw.githubusercontent.com/psychopy/psychopy/master/conda/psychopy-env.yml>`_
-that can be used to install |PsychoPy| and its dependencies. Download the file,
-open your terminal, navigate to the directory you saved the file to, and run::
+Support for conda was contributed and is badly outdated but you may be able to 
+get it working using `pip install` within your conda environment. 
 
-  conda env create -n psychopy -f psychopy-env.yml
+Generally we recommend you use StandalonePsychoPy instead, for experiment creation,
+as an entirely separate app, and use your conda installation for other (e.g. analysis)
+scripts.
 
-This will create an environment named ``psychopy``. On Linux, the ``wxPython`` dependency of |PsychoPy| is linked
-against ``webkitgtk``, which needs to be installed manually, e.g. via ``sudo apt install libwebkitgtk-1.0`` on Debian-based
-systems like Ubuntu.
-
-To activate the newly-created environment and run |PsychoPy|, execute::
-
-  conda activate psychopy
-  psychopy
+Alternatively if someone wants to jump in and get things working here again that 
+would be appreciated by other users I'm sure.
 
 .. _developers_install:
 

@@ -5,7 +5,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # Author: Jeremy Gray, Oct 2012; localization 2014
@@ -26,41 +26,9 @@ else:
 from psychopy.localization import _translate
 from psychopy import (info, data, visual, gui, core, __version__,
                       prefs, event)
-
-# set values, using a form that poedit can discover:
-_localized = {
-    'Benchmark': _translate('Benchmark'),
-    'benchmark version': _translate('benchmark version'),
-    'full-screen': _translate('full-screen'),
-    'dots_circle': _translate('dots_circle'),
-    'dots_square': _translate('dots_square'),
-    'available memory': _translate('available memory'),
-    'python version': _translate('python version'),
-    'locale': _translate('locale'),
-    'Visual': _translate('Visual'),
-    'openGL version': _translate('openGL version'),
-    'openGL vendor': _translate('openGL vendor'),
-    'screen size': _translate('screen size'),
-    'have shaders': _translate('have shaders'),
-    'refresh stability (SD)': _translate('refresh stability (SD)'),
-    'no dropped frames': _translate('no dropped frames'),
-    'pyglet avbin': _translate('pyglet avbin'),
-    'Audio': _translate('Audio'),
-    'microphone latency': _translate('microphone latency'),
-    'microphone': _translate('microphone'),
-    'speakers latency': _translate('speakers latency'),
-    'speakers': _translate('speakers'),
-    'Numeric': _translate('Numeric'),
-    'System': _translate('System'),
-    'platform': _translate('platform'),
-    'internet access': _translate('internet access'),
-    'auto proxy': _translate('auto proxy'),
-    'proxy setting': _translate('proxy setting'),
-    'background processes': _translate('background processes'),
-    'CPU speed test': _translate('CPU speed test'),
-    'visual sync (refresh)': _translate('visual sync (refresh)')}
 # can't just do the following, or messes up poedit autodiscovery:
 # _localized = {k: _translate(k) for k in _loKeys}
+
 
 class BaseWizard():
     """Base class of ConfigWizard and BenchmarkWizard.

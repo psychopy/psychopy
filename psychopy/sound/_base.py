@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import numpy
@@ -13,9 +13,11 @@ from psychopy.constants import (STARTED, PLAYING, PAUSED, FINISHED, STOPPED,
                                 NOT_STARTED, FOREVER)
 from psychopy.tools.filetools import pathToString, defaultStim, defaultStimRoot
 from psychopy.tools.audiotools import knownNoteNames, stepsFromA
+from psychopy.tools.attributetools import AttributeGetSetMixin
 from sys import platform
 from .audioclip import AudioClip
-
+from ..hardware import DeviceManager
+from ..preferences.preferences import prefs
 
 if platform == 'win32':
     mediaLocation = "C:\\Windows\\Media"
@@ -100,7 +102,7 @@ class HammingWindow():
         return block
 
 
-class _SoundBase():
+class _SoundBase(AttributeGetSetMixin):
     """Base class for sound object, from one of many ways.
     """
     # Must be provided by class SoundPygame or SoundPyo:
@@ -112,6 +114,28 @@ class _SoundBase():
     # def setVolume(self, newVol, log=True):
     # def _setSndFromFile(self, fileName):
     # def _setSndFromArray(self, thisArray):
+
+    def _parseSpeaker(self, speaker):
+        if speaker is None:
+            # if no device, populate from prefs
+            pref = prefs.hardware['audioDevice']
+            if isinstance(pref, (list, tuple)):
+                pref = pref[0]
+            speaker = pref
+        # look for device if initialised
+        device = DeviceManager.getDevice(speaker)
+        # if no matching name, try matching index
+        if device is None:
+            device = DeviceManager.getDeviceBy("index", speaker)
+        # if still no match, make a new device
+        if device is None:
+            device = DeviceManager.addDevice(
+                deviceClass="psychopy.hardware.speaker.SpeakerDevice",
+                deviceName=speaker,
+                index=speaker,
+            )
+
+        return device
 
     def setSound(self, value, secs=0.5, octave=4, hamming=True, log=True):
         """Set the sound to be played.

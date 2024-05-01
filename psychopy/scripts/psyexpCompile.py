@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import io
@@ -26,16 +26,16 @@ class LegacyScriptError(ChildProcessError):
     pass
 
 
-def generateScript(experimentPath, exp, target="PsychoPy"):
+def generateScript(exp, outfile, target="PsychoPy"):
     """
     Generate python script from the current builder experiment.
 
     Parameters
     ----------
-    experimentPath: str
-        Experiment path and filename
     exp: experiment.Experiment object
         The current PsychoPy experiment object generated using Builder
+    outfile : str or Path
+        File to write to
     target: str
         PsychoPy or PsychoJS - determines whether Python or JS script is generated.
 
@@ -44,15 +44,11 @@ def generateScript(experimentPath, exp, target="PsychoPy"):
     """
     import logging  # import here not at top of script (or useVersion fails)
     print("Generating {} script...\n".format(target))
-    exp.expPath = os.path.abspath(experimentPath)
-
-    if sys.platform == 'win32':  # get name of executable
+    # get name of executable
+    if sys.platform == 'win32':
         pythonExec = sys.executable
     else:
         pythonExec = sys.executable.replace(' ', r'\ ')
-
-    filename = experimentPath
-
     # compile script from command line using version
     compiler = 'psychopy.scripts.psyexpCompile'
     # if version is not specified then don't touch useVersion at all
@@ -63,12 +59,12 @@ def generateScript(experimentPath, exp, target="PsychoPy"):
         if not Path(exp.legacyFilename).is_file():
             exp.saveToXML(filename=exp.filename)
         # if compiling to JS, js file needs to have legacy filename
-        _stem, _ext = os.path.splitext(experimentPath)
+        _stem, _ext = os.path.splitext(outfile)
         if _ext == ".js":
-            experimentPath = _stem + "_legacy" + _ext
+            outfile = _stem + "_legacy" + _ext
         # generate command to run compile from requested version
         cmd = [
-            pythonExec, '-m', compiler, str(exp.legacyFilename), '-o', experimentPath
+            pythonExec, '-m', compiler, str(exp.legacyFilename), '-o', outfile
         ]
         # run command
         cmd.extend(['-v', version])
@@ -88,9 +84,9 @@ def generateScript(experimentPath, exp, target="PsychoPy"):
                 '{}'.format(output.returncode, stderr))
 
     else:
-        compileScript(infile=exp, version=None, outfile=filename)
+        compileScript(infile=exp, version=None, outfile=outfile)
 
-    return experimentPath
+    return outfile
 
 
 def compileScript(infile=None, version=None, outfile=None):
@@ -204,20 +200,20 @@ def compileScript(infile=None, version=None, outfile=None):
             outfileNoModule = outfile.replace('.js', '-legacy-browsers.js')  # For no JS module script
             scriptNoModule = thisExp.writeScript(outfileNoModule, target=targetOutput, modular=False)
             # Store scripts in list
-            scriptDict = {'outfile': script, 'outfileNoModule': scriptNoModule}
+            scriptDict = [(outfile, script), (outfileNoModule, scriptNoModule)]
         else:
             script = thisExp.writeScript(outfile, target=targetOutput)
-            scriptDict = {'outfile': script}
+            scriptDict = [(outfile, script)]
 
         # Output script to file
-        for scripts in scriptDict:
-            if not type(scriptDict[scripts]) in (str, type(u'')):
+        for outfile, script in scriptDict:
+            if not type(script) in (str, type(u'')):
                 # We have a stringBuffer not plain string/text
-                scriptText = scriptDict[scripts].getvalue()
+                scriptText = script.getvalue()
             else:
                 # We already have the text
-                scriptText = scriptDict[scripts]
-            with io.open(eval(scripts), 'w', encoding='utf-8-sig') as f:
+                scriptText = script
+            with io.open(outfile, 'w', encoding='utf-8-sig') as f:
                 f.write(scriptText)
 
         return 1

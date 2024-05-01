@@ -40,11 +40,13 @@ for i in todo; do
     dmgName="../dist/Standalone${names[$i]}-$version-MacOS.dmg"
 
     ${pythons[$i]} setupApp.py py2app || { echo 'setupApp.py failed' ; exit 1; }
-    # copy over git-core folder
-    cp -R -L /usr/local/git/libexec/git-core dist/${names[$i]}.app/Contents/Resources/git-core
+    # copy over contents of git-core folder
+    mkdir  dist/${names[$i]}.app/Contents/Resources/git-core
+    cp -R -L /usr/local/git/libexec/git-core/* dist/${names[$i]}.app/Contents/Resources/git-core
 
     # remove matplotlib tests (45mb)
-    rm -r dist/${names[$i]}.app/Contents/Resources/lib/python2.7/matplotlib/tests
+    pkg_site=$(ls -d1 dist/${names[$i]}.app/Contents/Resources/lib/python3.*)
+    rm -r ${pkg_site}/matplotlib/tests
     # strip all other architectures from binaries and move both to __fat copy
     mv dist/${names[$i]}.app dist/${names[$i]}__fat.app
     echo "stripping i386 using ditto"
@@ -77,8 +79,8 @@ for i in todo; do
     say -v kate "Finished building for ${pythons[$i]}"
 done
 
-osascript -e "set Volume 0.2"
-say -v Karen "all done"
-osascript -e "set Volume 3"
+# osascript -e "set Volume 0.2"
+# say -v Karen "all done"
+# osascript -e "set Volume 3"
 mv dist/*.dmg ../dist
 mv dist/*.app ../dist

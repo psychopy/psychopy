@@ -2,25 +2,13 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
 
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
 from psychopy import logging
-from psychopy.localization import _localized as __localized
-_localized = __localized.copy()
-
-# only use _localized values for label values, nothing functional:
-_localized = _localized.copy()
-_localized.update({'nVertices': _translate('Num. vertices'),
-                   'fillColor': _translate('Fill color'),
-                   'lineColor': _translate('Line color'),
-                   'lineWidth': _translate('Line width'),
-                   'interpolate': _translate('Interpolate'),
-                   'size': _translate("Size [w,h]"),
-                   'shape': _translate("Shape")})
 
 
 class PolygonComponent(BaseVisualComponent):
@@ -108,8 +96,10 @@ class PolygonComponent(BaseVisualComponent):
                          "polygon...' you can set vertices")
         self.params['shape'] = Param(
             shape, valType='str', inputType="choice", categ='Basic',
-            allowedVals=["line", "triangle", "rectangle", "circle", "cross", "star", "arrow",
+            allowedVals=["line", "triangle", "rectangle", "circle", "cross", "star7", "arrow",
                          "regular polygon...", "custom polygon..."],
+            allowedLabels=["Line", "Triangle", "Rectangle", "Circle", "Cross", "Star", "Arrow",
+                           "Regular polygon...", "Custom polygon..."],
             hint=msg, direct=False,
             label=_translate("Shape"))
 
@@ -178,7 +168,7 @@ class PolygonComponent(BaseVisualComponent):
             code = ("%s = visual.ShapeStim(\n" % inits['name'] +
                     "    win=win, name='%s',%s\n" % (inits['name'], unitsStr) +
                     "    size=%(size)s, vertices='circle',\n" % inits)
-        elif vertices in ['star']:
+        elif vertices in ['star', 'star7']:
             code = ("%s = visual.ShapeStim(\n" % inits['name'] +
                     "    win=win, name='%s', vertices='star7',%s\n" % (inits['name'], unitsStr) +
                     "    size=%(size)s,\n" % inits)
@@ -289,9 +279,20 @@ class PolygonComponent(BaseVisualComponent):
         code += ("  ori: {ori}, pos: {pos},\n"
                  "  anchor: {anchor},\n"
                  "  lineWidth: {lineWidth}, \n"
-                 "  colorSpace: {colorSpace},\n"
-                 "  lineColor: new util.Color({lineColor}),\n"
-                 "  fillColor: new util.Color({fillColor}),\n"
+                 "  colorSpace: {colorSpace},\n")      
+
+        if inits['lineColor'] == 'undefined':
+            code +=  "  lineColor: {lineColor},\n"
+        else:    
+            code +=  "  lineColor: new util.Color({lineColor}),\n"
+
+        if inits['fillColor'] == 'undefined':
+            code +=  "  fillColor: {fillColor},\n"
+        else:    
+            code +=  "  fillColor: new util.Color({fillColor}),\n"
+
+
+        code += (        "  fillColor: {fillColor},\n"
                  "  opacity: {opacity}, depth: {depth}, interpolate: {interpolate},\n"
                  "}});\n\n")
 

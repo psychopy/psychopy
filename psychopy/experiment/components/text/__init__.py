@@ -2,22 +2,12 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
 from psychopy.alerts import alerttools
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
-from psychopy.localization import _localized as __localized
-_localized = __localized.copy()
-
-# only use _localized values for label values, nothing functional:
-_localized.update({'text': _translate('Text'),
-                   'font': _translate('Font'),
-                   'letterHeight': _translate('Letter height'),
-                   'wrapWidth': _translate('Wrap width'),
-                   'flip': _translate('Flip (mirror)'),
-                   'languageStyle': _translate('Language style')})
 
 
 class TextComponent(BaseVisualComponent):
@@ -32,7 +22,7 @@ class TextComponent(BaseVisualComponent):
     def __init__(self, exp, parentName, name='text',
                  # effectively just a display-value
                  text=_translate('Any text\n\nincluding line breaks'),
-                 font='Open Sans', units='from exp settings',
+                 font='Arial', units='from exp settings',
                  color='white', colorSpace='rgb',
                  pos=(0, 0), letterHeight=0.05, ori=0,
                  startType='time (s)', startVal=0.0,

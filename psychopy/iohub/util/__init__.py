@@ -168,7 +168,8 @@ def getSupportedConfigSettings(moduleName, deviceClassName=None):
         yamlFile = yamlRoot / pathlib.Path(moduleName.__file__).parent / fileName
         if not yamlFile.exists():
             raise FileNotFoundError(
-                "No config file found in module dir {0}".format(moduleName))
+                "No config file found in module dir for: {0}".format(
+                    moduleName))
         logging.debug(
             "Found ioHub device configuration file: {0}".format(yamlFile))
 
@@ -622,7 +623,7 @@ class NumPyRingBuffer():
     The getElements() method is used to retrieve the actual numpy array containing
     the elements in the ring buffer. The element in index 0 is the oldest remaining
     element added to the buffer, and index n (which can be up to max_size-1)
-    is the the most recent element added to the buffer.
+    is the most recent element added to the buffer.
 
     Methods that can be called from a standard numpy array can also be called using the
     NumPyRingBuffer instance created. However Numpy module level functions will not accept

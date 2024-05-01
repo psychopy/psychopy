@@ -524,16 +524,18 @@ class Computer():
         return Computer.global_clock.getTime()
 
     @staticmethod
-    def syncClock(lastResetTime):
+    def syncClock(params):
         """
-        Sync times of last reset between Computer.global_clock with given last reset time.
+        Sync parameters between Computer.global_clock and a given dict.
 
         Parameters
         ----------
-        lastResetTime : float
-            Last reset time of clock to sync with
+        params : dict
+            Dict of attributes and values to apply to the computer's global clock. See
+            `psychopy.clock.MonotonicClock` for what attributes to include.
         """
-        Computer.global_clock._timeAtLastReset = lastResetTime
+        for key, value in params.items():
+            setattr(Computer.global_clock, key, value)
 
     @staticmethod
     def getPhysicalSystemMemoryInfo():

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # some code provided by Andrew Schofield
 # Distributed under the terms of the GNU General Public License (GPL).
 
@@ -29,6 +29,15 @@ except (ModuleNotFoundError, ImportError):
     logging.error(
         "Support for `NoiseStim` is not available this session. Please install "
         "`psychopy-visionscience` and restart the session to enable support.")
+
+
+class NoiseStim:
+    """
+    `psychopy.visual.NoiseStim` is now located within the `psychopy-visionscience` plugin. You
+    can find the documentation for it `here
+    <https://psychopy.github.io/psychopy-visionscience/coder/NoiseStim>`_
+    """
+
 
 if __name__ == "__main__":
     pass
