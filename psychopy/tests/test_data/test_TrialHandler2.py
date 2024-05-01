@@ -276,6 +276,10 @@ class TestTrialHandler2:
             else:
                 # if we got None, make sure we were expecting to
                 assert answers[n] is None
+        # test getting all trials
+        trials = t.getFutureTrials(None)
+        for i in range(len(trials)):
+            assert trials[i] == t.upcomingTrials[i]
 
     def test_skipTrials_rewindTrials(self):
         # make trial hancler

@@ -637,7 +637,9 @@ class ExperimentHandler(_ComparisonMixin):
                            encoding=encoding)
 
         names = self._getAllParamNames()
-        names.extend(self.dataNames)
+        for name in self.dataNames:
+            if name not in names:
+                names.append(name)
         # names from the extraInfo dictionary
         names.extend(self._getExtraInfo()[0])
         if len(names) < 1:

@@ -1200,6 +1200,12 @@ class TrialHandler2(_BaseTrialHandler):
             n = len(self.upcomingTrials)
         # iterate n times
         for i in range(n):
+            # before iterating, add "skipped" to data
+            self.addData("skipped", True)
+            # advance row in data file
+            if self.getExp() is not None:
+                self.getExp().nextEntry()
+            # iterate
             self.__next__()
 
     def rewindTrials(self, n=1):
@@ -1251,7 +1257,7 @@ class TrialHandler2(_BaseTrialHandler):
         # return the corresponding trial from upcoming trials array
         return self.upcomingTrials[n-1]
     
-    def getFutureTrials(self, n=1, start=0):
+    def getFutureTrials(self, n=None, start=0):
         """
         Returns Trial objects for a given range in the future. Will start looking at `start` trials 
         in the future and will return n trials from then, so e.g. to get all trials from 2 in the 
@@ -1260,7 +1266,8 @@ class TrialHandler2(_BaseTrialHandler):
         Parameters
         ----------
         n : int, optional
-            How many trials into the future to look, by default 1
+            How many trials into the future to look, by default None. Leave as None to show all
+            future trials
         start : int, optional
             How many trials into the future to start looking at, by default 0
         
@@ -1269,13 +1276,16 @@ class TrialHandler2(_BaseTrialHandler):
         list[Trial or None]
             List of Trial objects n long. Any trials beyond the last trial are None.
         """
+        # if None, get all future trials
+        if n is None:
+            n = len(self.upcomingTrials) - start
         # blank list to store trials in
         trials = []
         # iterate through n trials
         for i in range(n):
             # add each to the list
             trials.append(
-                self.getFutureTrial(start + i)
+                self.getFutureTrial(start + i + 1)
             )
         
         return trials
@@ -1619,7 +1629,7 @@ class TrialHandler2(_BaseTrialHandler):
         self.thisTrial[thisType] = value
         if self.getExp() is not None:
             # update the experiment handler too
-            self.getExp().addData(thisType, value)
+            self.getExp().addData(f"{self.name}.{thisType}", value)
 
 
 class TrialHandlerExt(TrialHandler):
