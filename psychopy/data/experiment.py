@@ -456,6 +456,38 @@ class ExperimentHandler(_ComparisonMixin):
             ))
         # set own status
         self.status = constants.STOPPED
+
+    def skipTrials(self, n=1):
+        """
+        Skip ahead n trials - the trials inbetween will be marked as "skipped". If you try to
+        skip past the last trial, will log a warning and skip *to* the last trial.
+
+        Parameters
+        ----------
+        n : int
+            Number of trials to skip ahead
+        """
+        # return if there isn't a TrialHandler2 active
+        if not isinstance(self.currentLoop, TrialHandler2):
+            return
+        # skip trials in current loop
+        self.currentLoop.skipTrials(n)
+
+    def rewindTrials(self, n=1):
+        """
+        Skip ahead n trials - the trials inbetween will be marked as "skipped". If you try to
+        skip past the last trial, will log a warning and skip *to* the last trial.
+
+        Parameters
+        ----------
+        n : int
+            Number of trials to skip ahead
+        """
+        # return if there isn't a TrialHandler2 active
+        if not isinstance(self.currentLoop, TrialHandler2):
+            return
+        # rewind trials in current loop
+        self.currentLoop.rewindTrials(n)
     
     def getFutureTrial(self, n=1):
         """
@@ -468,8 +500,7 @@ class ExperimentHandler(_ComparisonMixin):
             return None
         # get future trial from current loop
         return self.currentLoop.getFutureTrial(n)
-    
-        
+
     def getFutureTrials(self, n=1, start=0):
         """
         Returns Trial objects for a given range in the future. Will start looking at `start` trials 

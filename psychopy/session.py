@@ -1098,7 +1098,6 @@ class Session:
             trial = trial.getDict()
         
         return trial
-    
         
     def getFutureTrials(self, n=1, start=0, asDict=False):
         """
@@ -1194,8 +1193,42 @@ class Session:
 
         return True
 
-    # def recycleTrial(self, thisExp, trial):
-    #     pass
+    def skipTrials(self, n=1):
+        """
+        Skip ahead n trials - the trials inbetween will be marked as "skipped". If you try to
+        skip past the last trial, will log a warning and skip *to* the last trial.
+
+        Parameters
+        ----------
+        n : int
+            Number of trials to skip ahead
+        """
+        # return if there's no current experiment
+        if self.currentExperiment is None:
+            return
+        # skip trials in current loop
+        self.currentExperiment.skipTrials(n)
+
+    def rewindTrials(self, n=1):
+        """
+        Skip ahead n trials - the trials inbetween will be marked as "skipped". If you try to
+        skip past the last trial, will log a warning and skip *to* the last trial.
+
+        Parameters
+        ----------
+        n : int
+            Number of trials to skip ahead
+
+        Returns
+        -------
+        bool or None
+            True if the operation completed/queued successfully
+        """
+        # return if there's no current experiment
+        if self.currentExperiment is None:
+            return
+        # rewind trials in current loop
+        self.currentExperiment.rewindTrials(n)
 
     def saveExperimentData(self, key, thisExp=None, blocking=True):
         """
