@@ -1198,17 +1198,9 @@ class TrialHandler2(_BaseTrialHandler):
                 f"Skipping to the last upcoming trial."
             )
             n = len(self.upcomingTrials)
-        # start with the current trial
-        skipped = [self.thisTrial]
-        # pop the first n values from upcoming trials
+        # iterate n times
         for i in range(n):
-            skipped.append(
-                self.upcomingTrials.pop(0)
-            )
-        # set thisTrial from last skipped value
-        self.thisTrial = skipped.pop(-1)
-        # append skipped trials to elapsed array
-        self.elapsedTrials += skipped
+            self.__next__()
 
     def rewindTrials(self, n=1):
         """
