@@ -314,13 +314,13 @@ class TestTrialHandler2:
                     f"{t.thisTrial.getDict()} (different {key})"
                 )
             # check that trials are still in the correct order
-            if t.upcoming:
-                assert t.upcoming[0].thisN == t.thisTrial.thisN + 1
+            if t.upcomingTrials:
+                assert t.upcomingTrials[0].thisN == t.thisTrial.thisN + 1
             else:
                 # if there's no upcoming trials, thisN should be 5
                 assert t.thisTrial.thisN == 5
-            if t.elapsed:
-                assert t.elapsed[-1].thisN == t.thisTrial.thisN - 1
+            if t.elapsedTrials:
+                assert t.elapsedTrials[-1].thisN == t.thisTrial.thisN - 1
             else:
                 # if there's no elapsed trials, thisN should be 0
                 assert t.thisTrial.thisN == 0
