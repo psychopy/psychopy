@@ -100,8 +100,49 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
                 matches.append(resp)
 
         return matches
+    
+    def findChannels(self, win):
+        """
+        Flash the entire window white to check which channels are detecting light from the given 
+        window.
 
-    def findPhotodiode(self, win, channel):
+        Parameters
+        ----------
+        win : psychopy.visual.Window
+            Window to flash white.
+        """
+        from psychopy import visual
+        # box to cover screen
+        rect = visual.Rect(
+            win,
+            size=(2, 2), pos=(0, 0), units="norm",
+            autoDraw=False
+        )
+        win.flip()
+        # show black
+        rect.fillColor = "black"
+        rect.draw()
+        win.flip()
+        # dispatch an clear so we're starting fresh
+        self.dispatchMessages()
+        self.clearResponses()
+        # show white
+        rect.fillColor = "white"
+        rect.draw()
+        win.flip()
+        # dispatch messages
+        self.dispatchMessages()
+        # start off with no channels
+        channels = []
+        # iterate through potential channels
+        for i, state in enumerate(self.state):
+            # if any detected the flash, append it
+            if state:
+                channels.append(i)
+        
+        return channels
+    
+    def findPhotodiode(self, win, channel=None):
         """
         Draws rectangles on the screen and records photodiode responses to recursively find the location of the diode.
 
@@ -143,6 +184,17 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
             fillColor="white",
             autoDraw=False
         )
+
+        # if not given a channel, use first one which is responsive to the win
+        if channel is None:
+            # get responsive channels
+            responsiveChannels = self.findChannels(win=win)
+            # use first responsive channel
+            if responsiveChannels:
+                channel = responsiveChannels[0]
+            else:
+                # if no channels are responsive, use 0th channel and let scanQuadrants fail cleanly
+                channel = 0
 
         def scanQuadrants(responsive=False):
             """
