@@ -144,9 +144,16 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
             autoDraw=False
         )
 
-        def scanQuadrants():
+        def scanQuadrants(responsive=False):
             """
-            Recursively shrink the rectangle around the position of the photodiode until it's too small to detect.
+            Recursively shrink the rectangle around the position of the photodiode until it's too 
+            small to detect.
+
+            Parameters
+            ----------
+            responsive : bool
+                When calling manually, this should always be left as False! Will be set to True if 
+                any response was received from the photodiode.
             """
             # work out width and height of area
             w, h = rect.size
@@ -174,20 +181,58 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
                 self.dispatchMessages()
                 # check for escape before entering recursion
                 if kb.getKeys(['escape']):
-                    return
+                    return None
                 # poll photodiode
                 if self.getState(channel):
+                    # mark that we've got a response
+                    responsive = True
                     # if it detected this rectangle, recur
-                    return scanQuadrants()
+                    return scanQuadrants(responsive=responsive)
             # if none of these have returned, rect is too small to cover the whole photodiode, so return
-            return
+            return responsive
 
         # reset state
         self.state = [None] * self.channels
         self.dispatchMessages()
         self.clearResponses()
         # recursively shrink rect around the photodiode
-        scanQuadrants()
+        responsive = scanQuadrants()
+        # if cancelled, warn and continue
+        if responsive is None:
+            logging.warn(
+                "`findPhotodiode` procedure cancelled by user."
+            )
+            return (
+                layout.Position(self.pos, units="norm", win=win),
+                layout.Position(self.size, units="norm", win=win),
+            )
+        # if we didn't get any responses at all, prompt to try again
+        if not responsive:
+            # set label text to alert user
+            label.text = (
+                "Received no responses from photodiode during `findThreshold`. \n"
+                "\n"
+                "Reverting to a sensible default (bottom right corner, 1/20th size of screen). "
+                "Photodiode patch should currently be visible.\n"
+                "\n"
+                "Press any key to continue."
+            )
+            label.foreColor = "red"
+            # revert to defaults
+            self.units = rect.units = "norm"
+            self.size = rect.size =(0.1, 0.1)
+            self.pos = rect.pos =(0.9, -0.9)
+            # show label and square
+            label.draw()
+            rect.draw()
+            win.flip()
+            # wait for a keypress
+            kb.waitKeys()
+            # return defaults
+            return (
+                layout.Position(self.pos, units="norm", win=win),
+                layout.Position(self.size, units="norm", win=win),
+            )
         # clear all the events created by this process
         self.state = [None] * self.channels
         self.dispatchMessages()
