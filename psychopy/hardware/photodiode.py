@@ -210,22 +210,48 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
         if not responsive:
             # set label text to alert user
             label.text = (
-                "Received no responses from photodiode during `findThreshold`. \n"
+                "Received no responses from photodiode during `findThreshold`. Photodiode may not "
+                "be connected or may be configured incorrectly.\n"
                 "\n"
-                "Reverting to a sensible default (bottom right corner, 1/20th size of screen). "
-                "Photodiode patch should currently be visible.\n"
+                "To continue, use the arrow keys to move the photodiode patch and use the "
+                "plus/minus keys to resize it.\n"
                 "\n"
-                "Press any key to continue."
+                "Press ENTER when finished."
             )
             label.foreColor = "red"
             # revert to defaults
             self.units = rect.units = "norm"
-            self.size = rect.size =(0.1, 0.1)
-            self.pos = rect.pos =(0.9, -0.9)
-            # show label and square
-            label.draw()
-            rect.draw()
-            win.flip()
+            self.size = rect.size = (0.1, 0.1)
+            self.pos = rect.pos = (0.9, -0.9)
+            # start a frame loop until they press enter
+            keys = []
+            res = 0.05
+            while "return" not in keys:
+                # get keys
+                keys = kb.getKeys()
+                # move rect according to arrow keys
+                pos = list(rect.pos)
+                if "left" in keys:
+                    pos[0] -= res
+                if "right" in keys:
+                    pos[0] += res
+                if "up" in keys:
+                    pos[1] += res
+                if "down" in keys:
+                    pos[1] -= res
+                rect.pos = self.pos = pos
+                # resize rect according to +- keys
+                size = rect.size
+                if "equal" in keys:
+                    size = [sz + res for sz in size]
+                if "minus" in keys:
+                    size = [sz - res for sz in size]
+                rect.size = self.size = size
+                # show label and square
+                label.draw()
+                rect.draw()
+                # flip
+                win.flip()
             # wait for a keypress
             kb.waitKeys()
             # return defaults
