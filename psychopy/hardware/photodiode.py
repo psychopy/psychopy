@@ -208,13 +208,27 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
             )
         # if we didn't get any responses at all, prompt to try again
         if not responsive:
-            logging.warn(
-                "Received no responses from photodiode during `findThreshold`. Reverting to "
-                "sensible default (bottom right corner, 1/20th size of screen)."
+            # set label text to alert user
+            label.text = (
+                "Received no responses from photodiode during `findThreshold`. \n"
+                "\n"
+                "Reverting to a sensible default (bottom right corner, 1/20th size of screen). "
+                "Photodiode patch should currently be visible.\n"
+                "\n"
+                "Press any key to continue."
             )
-            self.units = "norm"
-            self.size = (0.1, 0.1)
-            self.pos = (0.9, -0.9)
+            label.foreColor = "red"
+            # revert to defaults
+            self.units = rect.units = "norm"
+            self.size = rect.size =(0.1, 0.1)
+            self.pos = rect.pos =(0.9, -0.9)
+            # show label and square
+            label.draw()
+            rect.draw()
+            win.flip()
+            # wait for a keypress
+            kb.waitKeys()
+            # return defaults
             return (
                 layout.Position(self.pos, units="norm", win=win),
                 layout.Position(self.size, units="norm", win=win),
