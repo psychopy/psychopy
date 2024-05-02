@@ -143,11 +143,14 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
             fillColor="white",
             autoDraw=False
         )
+        # variable to track whether any response was received at all
+        responsive = False
 
         def scanQuadrants():
             """
             Recursively shrink the rectangle around the position of the photodiode until it's too small to detect.
             """
+            global responsive
             # work out width and height of area
             w, h = rect.size
             # work out left, right, top and bottom of area
@@ -177,6 +180,8 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
                     return
                 # poll photodiode
                 if self.getState(channel):
+                    # mark that we've got a response
+                    responsive = True
                     # if it detected this rectangle, recur
                     return scanQuadrants()
             # if none of these have returned, rect is too small to cover the whole photodiode, so return
@@ -188,6 +193,19 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
         self.clearResponses()
         # recursively shrink rect around the photodiode
         scanQuadrants()
+        # if we didn't get any responses at all, prompt to try again
+        if not responsive:
+            logging.warn(
+                "Received no responses from photodiode during `findThreshold`. Reverting to "
+                "sensible default (bottom right corner, 1/20th size of screen)."
+            )
+            self.units = "norm"
+            self.size = (0.1, 0.1)
+            self.pos = (0.9, -0.9)
+            return (
+                layout.Position(self.pos, units="norm", win=win),
+                layout.Position(self.size, units="norm", win=win),
+            )
         # clear all the events created by this process
         self.state = [None] * self.channels
         self.dispatchMessages()
