@@ -626,7 +626,7 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
 class PhotodiodeValidator:
 
     def __init__(
-            self, win, diode, channel,
+            self, win, diode, channel=None,
             variability=1/60,
             report="log",
             autoLog=False):
