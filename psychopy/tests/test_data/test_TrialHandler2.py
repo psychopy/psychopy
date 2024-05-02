@@ -329,6 +329,26 @@ class TestTrialHandler2:
                 # if there's no elapsed trials, thisN should be 0
                 assert t.thisTrial.thisN == 0
 
+    def test_finished(self):
+        # make trial hancler
+        t = data.TrialHandler2(
+            self.conditions,
+            nReps=2,
+            method="sequential"
+        )
+        t.__next__()
+        # there are trials remaining, so .finished should be False
+        assert not t.finished
+        # try setting .finished and confirm that subsequent trials are skipped
+        t.finished = True
+        assert not len(t.upcomingTrials)
+        # now rewind and confirm that .finished is False again
+        t.rewindTrials(n=3)
+        assert not t.finished
+        # now skip again and confirm that .finished is True again
+        t.skipTrials(n=3)
+        assert t.finished
+
 
 class TestTrialHandler2Output():
     def setup_class(self):

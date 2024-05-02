@@ -1180,6 +1180,28 @@ class TrialHandler2(_BaseTrialHandler):
         self.thisTrial = None
         # clear upcoming trials so they're recalculated on next iteration
         self.upcomingTrials = None
+    
+    @property
+    def finished(self):
+        """
+        Whether this loop has finished or not. Will be True if there are no upcoming trials and 
+        False if there are any. Set `.finished = True` to skip all remaining trials (equivalent to 
+        calling `.skipTrials()` with a value larger than the number of trials remaining)
+
+        Returns
+        -------
+        bool
+            True if there are no upcoming trials, False otherwise.
+        """
+        return not bool(self.upcomingTrials)
+    
+    @finished.setter
+    def finished(self, value):
+        # when setting finished to True, skip all remaining trials
+        if value:
+            self.skipTrials(
+                len(self.upcomingTrials)
+            )
 
     def skipTrials(self, n=1):
         """
