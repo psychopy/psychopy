@@ -45,28 +45,28 @@ def main():
     if '-h' in sys.argv or '--help' in sys.argv:
         print("""Starts the PsychoPy3 application.
 
-Usage:  python PsychoPy.py [options] [file]
+        Usage:  python PsychoPy.py [options] [file]
 
-Without options or files provided this starts PsychoPy using prefs to
-decide on the view(s) to open.  If optional [file] is provided action
-depends on the type of the [file]:
+        Without options or files provided this starts PsychoPy using prefs to
+        decide on the view(s) to open.  If optional [file] is provided action
+        depends on the type of the [file]:
 
- Python script 'file.py' -- opens coder
+        Python script 'file.py' -- opens coder
 
- Experiment design 'file.psyexp' -- opens builder
+        Experiment design 'file.psyexp' -- opens builder
 
-Options:
-    -c, --coder, coder       opens coder view only
-    -b, --builder, builder   opens builder view only
-    -x script.py             execute script.py using StandAlone python
+        Options:
+            -c, --coder, coder       opens coder view only
+            -b, --builder, builder   opens builder view only
+            -x script.py             execute script.py using StandAlone python
 
-    -v, --version    prints version and exits
-    -h, --help       prints this help and exit
+            -v, --version    prints version and exits
+            -h, --help       prints this help and exit
 
-    --firstrun       launches configuration wizard
-    --no-splash      suppresses splash screen
+            --firstrun       launches configuration wizard
+            --no-splash      suppresses splash screen
 
-""")
+        """)
         sys.exit()
 
     if (sys.platform == 'darwin' and
