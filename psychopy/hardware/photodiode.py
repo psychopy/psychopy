@@ -262,7 +262,7 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
         if not responsive:
             # set label text to alert user
             label.text = (
-                "Received no responses from photodiode during `findThreshold`. Photodiode may not "
+                "Received no responses from photodiode during `findPhotodiode`. Photodiode may not "
                 "be connected or may be configured incorrectly.\n"
                 "\n"
                 "To continue, use the arrow keys to move the photodiode patch and use the "
@@ -330,7 +330,17 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
             layout.Position(self.size, units="norm", win=win),
         )
 
-    def findThreshold(self, win, channel):
+    def findThreshold(self, win, channel=None):
+        # if not given a channel, use first one which is responsive to the win
+        if channel is None:
+            # get responsive channels
+            responsiveChannels = self.findChannels(win=win)
+            # use first responsive channel
+            if responsiveChannels:
+                channel = responsiveChannels[0]
+            else:
+                # if no channels are responsive, use 0th channel and let scanQuadrants fail cleanly
+                channel = 0
         # keyboard to check for escape/continue
         kb = keyboard.Keyboard(deviceName="photodiodeValidatorKeyboard")
         # stash autodraw
