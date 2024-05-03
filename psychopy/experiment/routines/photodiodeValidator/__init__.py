@@ -267,14 +267,14 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             "    report=%(report)s,\n"
             ")\n"
         )
-        buff.writeIndentedLines(code % self.params)
+        buff.writeIndentedLines(code % inits)
         # connect stimuli
         for stim in self.findConnectedStimuli():
             code = (
                 "# connect {stim} to %(name)s\n"
                 "%(name)s.connectStimulus({stim})\n"
             ).format(stim=stim.params['name'])
-            buff.writeIndentedLines(code % self.params)
+            buff.writeIndentedLines(code % inits)
 
     def writeRoutineStartValidationCode(self, buff, stim):
         """
