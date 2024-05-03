@@ -1033,6 +1033,11 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         sys.stdout = sys.__stdout__
         sys.stderr = sys.__stderr__
 
+        # remove the session lock file
+        lockFilePath = os.path.join(prefs.paths['userPrefsDir'], 'session.lock')
+        if os.path.exists(lockFilePath):
+            os.remove(lockFilePath)
+
         if not self.testMode:
             sys.exit()
 
