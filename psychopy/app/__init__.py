@@ -58,6 +58,9 @@ def startApp(showSplash=True, testMode=False, safeMode=False):
 
     if isAppStarted():  # do nothing it the app is already loaded
         return  # NOP
+    
+    # set the session lock
+    setSessionLock(True)
 
     # Make sure logging is started before loading the bulk of the main
     # application UI to catch as many errors as possible. After the app is
@@ -130,6 +133,9 @@ def quitApp():
     else:
         raise AttributeError('Object `_psychopyApp` has no attribute `quit`.')
 
+    # remove the session lock
+    setSessionLock(False)
+
 
 def getAppInstance():
     """Get a reference to the `PsychoPyApp` object.
@@ -177,6 +183,50 @@ def isAppStarted():
 
     """
     return _psychopyAppInstance is not None
+
+
+def getSessionLock():
+    """Check if the session is locked.
+
+    Returns
+    -------
+    bool
+        `True` if the session is locked, `False` otherwise.
+
+    """
+    from psychopy.preferences import prefs
+    lockFilePath = os.path.join(prefs.paths['userPrefsDir'], 'session.lock')
+    return os.path.exists(lockFilePath)
+
+
+def setSessionLock(state):
+    """Set the session lock state.
+
+    This writes a session lock file to the user preferences directory. The
+    presence of this file will indicate that an active PsychoPy session is
+    running. This is used to prevent multiple instances of PsychoPy from running
+    simultaneously, but also to detect if the app was closed unexpectedly.
+
+    Setting the state will either create or remove the lock file. If the file
+    is deleted during a session, the app will restart automatically when the 
+    user quits PsychoPy.
+
+    Parameters
+    ----------
+    state : bool
+        `True` to lock the session, `False` to unlock.
+
+    """
+    from psychopy.preferences import prefs
+    lockFilePath = os.path.join(prefs.paths['userPrefsDir'], 'session.lock')
+
+    if state:
+        if not os.path.exists(lockFilePath):
+            with open(lockFilePath, 'w') as lockFile:
+                lockFile.write('')  # empty file
+    else:
+        if os.path.exists(lockFilePath):
+            os.remove(lockFilePath)
 
 
 def getAppFrame(frameName):
