@@ -169,8 +169,9 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             channel, valType="code", inputType="single", categ="Device",
             label=_translate("Photodiode channel"),
             hint=_translate(
-                "If relevant, a channel number attached to the photodiode, to distinguish it from other photodiodes on "
-                "the same port."
+                "If relevant, a channel number attached to the photodiode, to distinguish it "
+                "from other photodiodes on the same port. Leave blank to use the first photodiode "
+                "which can detect the Window."
             )
         )
 

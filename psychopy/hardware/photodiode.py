@@ -100,8 +100,49 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
                 matches.append(resp)
 
         return matches
+    
+    def findChannels(self, win):
+        """
+        Flash the entire window white to check which channels are detecting light from the given 
+        window.
 
-    def findPhotodiode(self, win, channel):
+        Parameters
+        ----------
+        win : psychopy.visual.Window
+            Window to flash white.
+        """
+        from psychopy import visual
+        # box to cover screen
+        rect = visual.Rect(
+            win,
+            size=(2, 2), pos=(0, 0), units="norm",
+            autoDraw=False
+        )
+        win.flip()
+        # show black
+        rect.fillColor = "black"
+        rect.draw()
+        win.flip()
+        # dispatch an clear so we're starting fresh
+        self.dispatchMessages()
+        self.clearResponses()
+        # show white
+        rect.fillColor = "white"
+        rect.draw()
+        win.flip()
+        # dispatch messages
+        self.dispatchMessages()
+        # start off with no channels
+        channels = []
+        # iterate through potential channels
+        for i, state in enumerate(self.state):
+            # if any detected the flash, append it
+            if state:
+                channels.append(i)
+        
+        return channels
+    
+    def findPhotodiode(self, win, channel=None):
         """
         Draws rectangles on the screen and records photodiode responses to recursively find the location of the diode.
 
@@ -143,6 +184,17 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
             fillColor="white",
             autoDraw=False
         )
+
+        # if not given a channel, use first one which is responsive to the win
+        if channel is None:
+            # get responsive channels
+            responsiveChannels = self.findChannels(win=win)
+            # use first responsive channel
+            if responsiveChannels:
+                channel = responsiveChannels[0]
+            else:
+                # if no channels are responsive, use 0th channel and let scanQuadrants fail cleanly
+                channel = 0
 
         def scanQuadrants(responsive=False):
             """
@@ -210,22 +262,48 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
         if not responsive:
             # set label text to alert user
             label.text = (
-                "Received no responses from photodiode during `findThreshold`. \n"
+                "Received no responses from photodiode during `findPhotodiode`. Photodiode may not "
+                "be connected or may be configured incorrectly.\n"
                 "\n"
-                "Reverting to a sensible default (bottom right corner, 1/20th size of screen). "
-                "Photodiode patch should currently be visible.\n"
+                "To continue, use the arrow keys to move the photodiode patch and use the "
+                "plus/minus keys to resize it.\n"
                 "\n"
-                "Press any key to continue."
+                "Press ENTER when finished."
             )
             label.foreColor = "red"
             # revert to defaults
             self.units = rect.units = "norm"
-            self.size = rect.size =(0.1, 0.1)
-            self.pos = rect.pos =(0.9, -0.9)
-            # show label and square
-            label.draw()
-            rect.draw()
-            win.flip()
+            self.size = rect.size = (0.1, 0.1)
+            self.pos = rect.pos = (0.9, -0.9)
+            # start a frame loop until they press enter
+            keys = []
+            res = 0.05
+            while "return" not in keys:
+                # get keys
+                keys = kb.getKeys()
+                # move rect according to arrow keys
+                pos = list(rect.pos)
+                if "left" in keys:
+                    pos[0] -= res
+                if "right" in keys:
+                    pos[0] += res
+                if "up" in keys:
+                    pos[1] += res
+                if "down" in keys:
+                    pos[1] -= res
+                rect.pos = self.pos = pos
+                # resize rect according to +- keys
+                size = rect.size
+                if "equal" in keys:
+                    size = [sz + res for sz in size]
+                if "minus" in keys:
+                    size = [sz - res for sz in size]
+                rect.size = self.size = size
+                # show label and square
+                label.draw()
+                rect.draw()
+                # flip
+                win.flip()
             # wait for a keypress
             kb.waitKeys()
             # return defaults
@@ -252,7 +330,17 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
             layout.Position(self.size, units="norm", win=win),
         )
 
-    def findThreshold(self, win, channel):
+    def findThreshold(self, win, channel=None):
+        # if not given a channel, use first one which is responsive to the win
+        if channel is None:
+            # get responsive channels
+            responsiveChannels = self.findChannels(win=win)
+            # use first responsive channel
+            if responsiveChannels:
+                channel = responsiveChannels[0]
+            else:
+                # if no channels are responsive, use 0th channel and let scanQuadrants fail cleanly
+                channel = 0
         # keyboard to check for escape/continue
         kb = keyboard.Keyboard(deviceName="photodiodeValidatorKeyboard")
         # stash autodraw
@@ -548,7 +636,7 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
 class PhotodiodeValidator:
 
     def __init__(
-            self, win, diode, channel,
+            self, win, diode, channel=None,
             variability=1/60,
             report="log",
             autoLog=False):
