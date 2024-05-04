@@ -435,7 +435,7 @@ class PreferencesDlg(wx.Dialog):
 
         audioConf = self.prefsCfg['hardware']['audioDevice']
         self.audioDevDefault = audioConf \
-            if type(audioConf) != list else list(audioConf)
+            if type(audioConf) is list else list(audioConf)
         self.audioDevNames = [
             dev.replace('\r\n', '') for dev in devnames
             if dev != self.audioDevDefault]
