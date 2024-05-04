@@ -96,21 +96,25 @@ class MenuFrame(wx.Frame, themes.handlers.ThemeMixin):
 
         self.viewMenu = wx.Menu()
         self.menuBar.Append(self.viewMenu, _translate('&View'))
-        mtxt = _translate("&Open Builder view\t%s")
-        self.app.IDs.openBuilderView = self.viewMenu.Append(wx.ID_ANY,
-                             mtxt,
-                             _translate("Open a new Builder view")).GetId()
+        mtxt = _translate("&Open Builder view\t")
+        self.app.IDs.openBuilderView = self.viewMenu.Append(
+            wx.ID_ANY,
+            mtxt,
+            _translate("Open a new Builder view")).GetId()
         self.Bind(wx.EVT_MENU, self.app.showBuilder,
                   id=self.app.IDs.openBuilderView)
-        mtxt = _translate("&Open Coder view\t%s")
-        self.app.IDs.openCoderView = self.viewMenu.Append(wx.ID_ANY,
-                             mtxt,
-                             _translate("Open a new Coder view")).GetId()
+        mtxt = _translate("&Open Coder view\t")
+        self.app.IDs.openCoderView = self.viewMenu.Append(
+            wx.ID_ANY,
+            mtxt,
+            _translate("Open a new Coder view")).GetId()
         self.Bind(wx.EVT_MENU, self.app.showCoder,
                   id=self.app.IDs.openCoderView)
         mtxt = _translate("&Quit\t%s")
-        item = self.viewMenu.Append(wx.ID_EXIT, mtxt % self.app.keys['quit'],
-                                    _translate("Terminate the program"))
+        item = self.viewMenu.Append(
+            wx.ID_EXIT,
+            mtxt % self.app.keys['quit'],
+            _translate("Terminate the program"))
         self.Bind(wx.EVT_MENU, self.app.quit, id=item.GetId())
         self.SetMenuBar(self.menuBar)
         self.Show()
@@ -149,9 +153,9 @@ class _Showgui_Hack():
         if not os.path.isfile(noopPath):
             code = """from psychopy import gui
                 dlg = gui.Dlg().Show()  # non-blocking
-                try: 
+                try:
                     dlg.Destroy()  # might as well
-                except Exception: 
+                except Exception:
                     pass"""
             with open(noopPath, 'wb') as fd:
                 fd.write(bytes(code))
