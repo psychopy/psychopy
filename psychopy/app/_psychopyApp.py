@@ -364,7 +364,6 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         Since panels are created before loading plugins, calling this method is
         required after loading plugins which contain components to have them
         appear.
-
         """
         if not hasattr(self, 'builder') or self.builder is None:
             return  # nop if we haven't realized the builder UI yet
@@ -457,7 +456,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         self.dpi = int(wx.GetDisplaySize()[0] /
                        float(wx.GetDisplaySizeMM()[0]) * 25.4)
         # detect retina displays
-        self.isRetina = self.dpi>80 and wx.Platform == '__WXMAC__'
+        self.isRetina = self.dpi > 80 and wx.Platform == '__WXMAC__'
         if self.isRetina:
             fontScale = 1.2  # fonts are looking tiny on macos (only retina?) right now
             # mark icons as being retina
@@ -846,8 +845,8 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         from .builder.builder import BuilderFrame
         title = "PsychoPy Builder (v%s)"
         self.builder = BuilderFrame(None, -1,
-                                 title=title % self.version,
-                                 fileName=fileName, app=self)
+                                    title=title % self.version,
+                                    fileName=fileName, app=self)
         self.builder.Show(True)
         self.builder.Raise()
         self.SetTopWindow(self.builder)
@@ -887,9 +886,9 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         title = "PsychoPy Runner (v{})".format(self.version)
         wx.BeginBusyCursor()
         self.runner = RunnerFrame(parent=None,
-                             id=-1,
-                             title=title,
-                             app=self)
+                                  id=-1,
+                                  title=title,
+                                  app=self)
         self.updateWindowMenu()
         wx.EndBusyCursor()
         return self.runner
@@ -1032,7 +1031,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                 pass  # we don't care if this fails - we're quitting anyway
         # must do this before destroying the frame?
         self.prefs.saveAppData()
-        #self.Destroy()
+        # self.Destroy()
 
         # Reset streams back to default
         sys.stdout = sys.__stdout__
