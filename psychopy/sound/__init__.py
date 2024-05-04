@@ -67,9 +67,9 @@ Sound = None
 audioLib = None
 audioDriver = None
 
-# These are the names that can be used in the prefs to specifiy audio libraries. 
-# The available libraries are hard-coded at this point until we can overhaul 
-# the sound library to be more modular. 
+# These are the names that can be used in the prefs to specifiy audio libraries.
+# The available libraries are hard-coded at this point until we can overhaul
+# the sound library to be more modular.
 _audioLibs = ['PTB', 'sounddevice', 'pyo', 'pysoundcard', 'pygame']
 failed = []  # keep track of audio libs that failed to load
 
@@ -90,12 +90,12 @@ for thisLibName in prefs.hardware['audioLib']:
     logging.info(f"Trying to load audio library: {thisLibName}")
 
     # Iterate over the list of audioLibs and try to load the first one that
-    # is supported. If none are supported, load PTB as a fallback. If PTB isn't 
+    # is supported. If none are supported, load PTB as a fallback. If PTB isn't
     # installed, raise an error.
     thisLibName = thisLibName.lower()
 
     # lowercased list of valid audio libraries for safe comparisons
-    validLibs = [libName.lower() for libName in _audioLibs]  
+    validLibs = [libName.lower() for libName in _audioLibs]
 
     # check if `thisLibName` is a valid audio library
     if thisLibName not in validLibs:
@@ -106,7 +106,7 @@ for thisLibName in prefs.hardware['audioLib']:
 
     # select the backend and set the Sound class
     if thisLibName == 'ptb':
-        # The Psychtoolbox backend is perfered, provides the best performance
+        # The Psychtoolbox backend is preferred, provides the best performance
         # and is the only one that supports low-latency scheduling. If no other
         # audio backend can be loaded, we will use PTB.
         if not bits32:
@@ -118,7 +118,7 @@ for thisLibName in prefs.hardware['audioLib']:
                 failed.append(thisLibName)
                 continue
             else:
-                break 
+                break
         else:
             logging.warning("PTB backend is not supported on 32-bit Python. "
                             "Trying another backend...")
@@ -149,7 +149,7 @@ for thisLibName in prefs.hardware['audioLib']:
             break
     elif thisLibName == 'pygame':
         # pygame is a cross-platform audio library. It is no longer supported by
-        # PsychoPy, but we keep it here for backwards compatibility until 
+        # PsychoPy, but we keep it here for backwards compatibility until
         # something breaks.
         try:
             from . import backend_pygame as backend
@@ -173,11 +173,11 @@ for thisLibName in prefs.hardware['audioLib']:
     else:
         # Catch-all for invalid audioLib prefs.
         msg = ("audioLib pref should be one of {!r}, not {!r}"
-                .format(_audioLibs, thisLibName))
+               .format(_audioLibs, thisLibName))
         raise ValueError(msg)
 else:
     # if we get here, there is no audioLib that is supported, try for PTB
-    msg = ("Failed to load any of the audioLibs: {!r}. Falling back to " 
+    msg = ("Failed to load any of the audioLibs: {!r}. Falling back to "
            "PsychToolbox ('ptb') backend for sound. Be sure to add 'ptb' to "
            "preferences to avoid seeing this message again.".format(failed))
     logging.error(msg)
@@ -228,12 +228,12 @@ def setDevice(dev, kind=None):
     if dev is None:
         # if given None, do nothing
         return
-    
+
     global backend  # pull from module namespace
     if not hasattr(backend, 'defaultOutput'):
         raise IOError("Attempting to SetDevice (audio) but not supported by "
                       "the current audio library ({!r})".format(audioLib))
-    
+
     if hasattr(dev, 'name'):
         dev = dev['name']
 
@@ -256,14 +256,14 @@ deviceNames = []
 if hasattr(backend, 'defaultOutput'):
     pref = prefs.hardware['audioDevice']
     # is it a list or a simple string?
-    if type(prefs.hardware['audioDevice'])==list:
+    if type(prefs.hardware['audioDevice']) is list:
         # multiple options so use zeroth
         dev = prefs.hardware['audioDevice'][0]
     else:
         # a single option
         dev = prefs.hardware['audioDevice']
     # is it simply "default" (do nothing)
-    if dev=='default' or systemtools.isVM_CI():
+    if dev == 'default' or systemtools.isVM_CI():
         pass  # do nothing
     elif dev not in backend.getDevices(kind='output'):
         deviceNames = sorted(backend.getDevices(kind='output').keys())
