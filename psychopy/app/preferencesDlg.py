@@ -430,7 +430,7 @@ class PreferencesDlg(wx.Dialog):
         # get sound devices for "audioDevice" property
         try:
             devnames = sorted(sound.getDevices('output'))
-        except (ValueError, OSError, ImportError):
+        except (ValueError, OSError, ImportError, AttributeError):
             devnames = []
 
         audioConf = self.prefsCfg['hardware']['audioDevice']
