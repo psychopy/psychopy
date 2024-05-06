@@ -252,7 +252,7 @@ def setDevice(dev, kind=None):
         if systemtools.isVM_CI():  # no audio device on CI, ignore
             return
         else:
-            raise TypeError("`kind` should be one of [None, 'output', 'input']"
+            raise TypeError("`kind` should be one of [None, 'output', 'input'] "
                             "not {!r}".format(kind))
 
 
