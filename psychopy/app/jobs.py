@@ -243,6 +243,9 @@ class Job:
         # self._process = wx.Process(None, -1)
         # self._process.Redirect()  # redirect streams from subprocess
 
+        if env is None:
+            env = os.environ  # use the same environment as the parent process
+
         # start the sub-process
         command = self._command
 
