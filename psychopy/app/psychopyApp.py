@@ -185,25 +185,44 @@ def main():
     # Setup the environment variables for running the app
     import os
     env = os.environ
-    
+
     # priority flags
     if '--no-pkg-dir' not in sys.argv:
+        # Configure the user site-packages directory to a custom location if 
+        # the flag is not present. This isolates user packages to a separate
+        # directory to avoid conflicts with system packages or other user 
+        # packages.
         userBaseDir = os.path.join(getUserPrefsDir(), 'packages')
         env['PYTHONUSERBASE'] = userBaseDir
         env['PYTHONNOUSERSITE'] = '1'  # isolate user packages for plugins
 
         # package paths for custom user site-packages
         prefixTail = os.path.basename(sys.prefix)
+        pyPath = env.get('PYTHONPATH', '')
         if sys.platform == 'win32':
-            env['PYTHONPATH'] = os.path.join(
+            pkgPath = os.path.join(
                 userBaseDir, prefixTail, "site-packages")
         elif sys.platform == 'darwin' or sys.platform.startswith('linux'):
-            env['PYTHONPATH'] = os.path.join(
+            pkgPath = os.path.join(
                 userBaseDir, "lib", prefixTail, "site-packages")
         else:
             raise NotImplementedError(
                 "Platform '{}' is not supported.".format(sys.platform))
+        
+        # add the custom user site-packages to the PYTHONPATH
+        if pyPath:
+            env['PYTHONPATH'] = pyPath + os.pathsep + pkgPath
+        else:
+            env['PYTHONPATH'] = pkgPath
+
+        print("PsychoPy: Using user site-packages directory: {}".format(
+            userBaseDir))
+    else:
+        print("PsychoPy: Using default user site-packages directory.")
+        
     if '--list-pkgs' in sys.argv:
+        # List installed packages and exit. This calls `pip list` on one of the
+        # specified package list types (base or user) and then exits. 
         try:
             pkgListType = sys.argv[sys.argv.index('--list-pkgs') + 1]
         except (ValueError, IndexError):
@@ -223,7 +242,9 @@ def main():
         
         sys.exit()
     if '--pip' in sys.argv:
-        # run a pip command then exit
+        # Run a PIP command and exit. This calls `pip` with the specified
+        # arguments and then exits. The environment variables are set to the
+        # same as the current environment.
         try:
             pipCmd = sys.argv[sys.argv.index('--pip') + 1:]
             # split the command and remove whitespace
@@ -303,9 +324,7 @@ Options:
 
     # run command in a subprocess and block until it finishes
     psychopyProc = subprocess.Popen(cmd, env=env)
-
     print("PsychoPy: Application started (PID: {})".format(psychopyProc.pid))
-
     output, err = psychopyProc.communicate()  
     exitCode = psychopyProc.wait()
 
