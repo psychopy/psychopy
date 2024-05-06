@@ -15,7 +15,7 @@ a given time in the future.
 By default PsychoPy will try to use the following Libs, in this order, for
 sound reproduction but you can alter the order in
 preferences > hardware > audioLib:
-    ['sounddevice', 'pygame', 'pyo']
+    ['sounddevice', 'pyo', 'pygame']
 For portaudio-based backends (all except for pygame) there is also a
 choice of the underlying sound driver (e.g. ASIO, CoreAudio etc).
 
