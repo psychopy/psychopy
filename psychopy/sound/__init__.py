@@ -163,7 +163,7 @@ for thisLibName in prefs.hardware['audioLib']:
         # pysoundcard is a wrapper around PortAudio, which is a cross-platform
         # audio library.
         try:
-            from . import backend_pysoundcard as backend
+            from . import backend_pysound as backend
             Sound = backend.SoundPySoundCard
         except Exception:
             failed.append(thisLibName)
