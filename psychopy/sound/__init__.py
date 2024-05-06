@@ -128,6 +128,8 @@ for thisLibName in prefs.hardware['audioLib']:
         # pyo is a wrapper around PortAudio, which is a cross-platform audio
         # library. It is the recommended backend for Windows and Linux.
         try:
+            # Caution: even import failed inside, we still get a module object.
+            # This is not the case for other backends and may not be desired.
             from . import backend_pyo as backend
             Sound = backend.SoundPyo
             pyoSndServer = backend.pyoSndServer
@@ -141,6 +143,8 @@ for thisLibName in prefs.hardware['audioLib']:
         # sounddevice is a wrapper around PortAudio, which is a cross-platform
         # audio library. It is the recommended backend for Windows and Linux.
         try:
+            # Caution: even import failed inside, we still get a module object.
+            # This is not the case for other backends and may not be desired.
             from . import backend_sounddevice as backend
             Sound = backend.SoundDeviceSound
         except Exception:
