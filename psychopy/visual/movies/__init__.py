@@ -20,7 +20,7 @@ from psychopy.tools.filetools import pathToString, defaultStim
 from psychopy.visual.basevisual import (
     BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin
 )
-from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED
+from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED, INVALID
 
 from .players import getMoviePlayer
 from .metadata import MovieMetadata, NULL_MOVIE_METADATA
@@ -320,6 +320,17 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
     # --------------------------------------------------------------------------
     # Video playback controls and status
     #
+
+    @property
+    def status(self):
+        if self._player is not None:
+            return self._player.status
+        
+        return INVALID
+    
+    @status.setter
+    def status(self, value):
+        pass
 
     @property
     def isPlaying(self):
@@ -752,12 +763,10 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             GL.GL_PIXEL_UNPACK_BUFFER,
             GL.GL_WRITE_ONLY)
 
-        bufferArray = np.ctypeslib.as_array(
-            ctypes.cast(bufferPtr, ctypes.POINTER(GL.GLubyte)),
-            shape=(nBufferBytes,))
-
         # copy data
-        bufferArray[:] = self._recentFrame.colorData[:]
+        ctypes.memmove(bufferPtr,
+            self._recentFrame.colorData.ctypes.data,
+            nBufferBytes)
 
         # Very important that we unmap the buffer data after copying, but
         # keep the buffer bound for setting the texture.

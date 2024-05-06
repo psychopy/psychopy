@@ -1303,7 +1303,7 @@ class FFPyPlayer(BaseMoviePlayer):
     # --------------------------------------------------------------------------
     # Methods for getting video frames from the encoder
     #
-
+    
     def _enqueueFrame(self):
         """Grab the latest frame from the stream.
 
@@ -1336,7 +1336,7 @@ class FFPyPlayer(BaseMoviePlayer):
         self._streamTime = streamStatus.streamTime  # stream time for the camera
 
         # if we have a new frame, update the frame information
-        videoBuffer = frameImage.to_bytearray()[0]
+        videoBuffer = frameImage.to_memoryview()[0].memview
         videoFrameArray = np.frombuffer(videoBuffer, dtype=np.uint8)
 
         # provide the last frame
@@ -1350,7 +1350,8 @@ class FFPyPlayer(BaseMoviePlayer):
             audioSamples=None,
             metadata=self.metadata,
             movieLib=u'ffpyplayer',
-            userData=None)
+            userData=None,
+            keepAlive=frameImage)
 
         return True
 
