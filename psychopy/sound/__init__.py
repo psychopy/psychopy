@@ -66,6 +66,7 @@ pyoSndServer = None
 Sound = None
 audioLib = None
 audioDriver = None
+backend = None
 
 # These are the names that can be used in the prefs to specifiy audio libraries. 
 # The available libraries are hard-coded at this point until we can overhaul 
@@ -200,7 +201,7 @@ else:
     # if we get here, there is no audioLib that is supported
     logging.error(
         "No audioLib could be loaded. Tried: {}\n Check whether the necessary "
-        "audioLibs are installed".format(prefs.hardware['audioLib']))
+        "audioLibs are installed.".format(prefs.hardware['audioLib']))
 
 # warn the user
 if audioLib is not None:
@@ -253,7 +254,12 @@ def setDevice(dev, kind=None):
 
 # Set the device according to user prefs (if current lib allows it)
 deviceNames = []
-if hasattr(backend, 'defaultOutput'):
+if backend is None:
+    raise ImportError("None of the audio library backends could be imported. "
+                      "Tried: {}\n Check whether the necessary audioLibs are "
+                      "installed and can be imported successfully."
+                      .format(prefs.hardware['audioLib']))
+elif hasattr(backend, 'defaultOutput'):
     pref = prefs.hardware['audioDevice']
     # is it a list or a simple string?
     if type(prefs.hardware['audioDevice'])==list:
