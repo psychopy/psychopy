@@ -12,7 +12,7 @@ import sys
 import subprocess
 
 # fix macOS locale-bug on startup: sets locale to LC_ALL (must be defined!)
-# import psychopy.locale_setup  # noqa
+import psychopy.locale_setup  # noqa
 
 # NB the PsychoPyApp classes moved to _psychopyApp.py as of version 1.78.00
 # to allow for better upgrading possibilities from the mac app bundle. this
@@ -178,13 +178,26 @@ def main():
     handles the command line arguments and starts the application in a
     subprocess.
 
-    It also handles any pre-startup tasks that need to be run before the app
-    starts, but within the same environment.
+    It also handles any pre-startup tasks, running them within the same 
+    environment as the app itself.
 
     """
     # Setup the environment variables for running the app
     import os
-    env = os.environ
+    if '--show-last-log' in sys.argv:
+        # Show the last startup log and exit. This reads the last startup log
+        # file and prints the contents to the console.
+        logFile = os.path.join(getUserPrefsDir(), 'last_app_load.log')
+        if not os.path.exists(logFile):
+            print("No startup log file found.")
+
+        # open the log file in the default method for the system
+        import webbrowser
+        webbrowser.open(logFile)
+
+        sys.exit()
+
+    env = os.environ  # get environment variables for this process
 
     # priority flags
     if '--no-pkg-dir' not in sys.argv:
@@ -239,8 +252,38 @@ def main():
             runPyCommand(cmd, env=env, printOutput=True)
         else:
             print("Error: Invalid package list type '{}'.".format(pkgListType))
-        
         sys.exit()
+
+    if '--install-pkg' in sys.argv:
+        # Install a package and exit. This calls `pip install` with the 
+        # specified arguments and then exits. 
+        try:
+            inputCmd = sys.argv[sys.argv.index('--install-pkg') + 1:]
+            pipCmd = [x.strip() for x in inputCmd]
+            if '--user' not in pipCmd:    # add --user flag if not present
+                pipCmd.append('--user')
+        except (ValueError, IndexError):
+            print("Error: Missing package name.")
+            sys.exit()
+        cmd = ['-m', 'pip', 'install'] + pipCmd
+        runPyCommand(cmd, env=env, printOutput=True)
+        sys.exit()
+
+    if '--uninstall-pkg' in sys.argv:
+        # Uninstall a package and exit. This calls `pip uninstall` with the 
+        # specified arguments and then exits. 
+        try:
+            inputCmd = sys.argv[sys.argv.index('--uninstall-pkg') + 1:]
+            pipCmd = [x.strip() for x in inputCmd]
+            if '--yes' not in pipCmd:    # add --yes flag if not present
+                pipCmd.append('--yes')
+        except (ValueError, IndexError):
+            print("Error: Missing package name.")
+            sys.exit()
+        cmd = ['-m', 'pip', 'uninstall'] + pipCmd
+        runPyCommand(cmd, env=env, printOutput=True)
+        sys.exit()
+
     if '--pip' in sys.argv:
         # Run a PIP command and exit. This calls `pip` with the specified
         # arguments and then exits. The environment variables are set to the
@@ -264,12 +307,15 @@ def main():
             [sys.executable, os.path.abspath(targetScript)], 
             env=env)
         sys.exit()
+
     if '-v' in sys.argv or '--version' in sys.argv:
+        # Print the version string and exit
         from psychopy import __version__
         msg = ('PsychoPy3, version %s (c) Jonathan Peirce 2018, GNU GPL license'
                % __version__)
         print(msg)
         sys.exit()
+
     if '-h' in sys.argv or '--help' in sys.argv:
         print("""Starts the PsychoPy3 application.
 
@@ -295,16 +341,21 @@ Options:
     --no-splash              suppresses splash screen
 
     --no-pkg-dir             use default user site-packages directory
-    --pip                    run pip command then exit
     --list-pkgs <type>       list packages then exit, type: base or user
+    --install-pkg <pkg>      install a user package then exit
+    --uninstall-pkg <pkg>    uninstall a user package then exit
+    --pip <args>             run pip command then exit
     --skip-pkg-tasks         skip pip tasks on startup this session
+
+    --show-last-log          show the last app startup log and exit
 
 """)
         sys.exit()
 
     # special envionment variables for the app
     PYTHONW = None
-    if (('| packaged by conda-forge |' in sys.version or '|Anaconda' in sys.version)
+    sysVer = sys.version
+    if (('| packaged by conda-forge |' in sysVer or '|Anaconda' in sysVer)
             and sys.platform == 'darwin' and sys.version_info >= (3,9)):
         PYTHONW = env.get('PYTHONW', 'False')
         if PYTHONW != 'True':
