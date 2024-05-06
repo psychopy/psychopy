@@ -5,6 +5,9 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
+"""PsychoPy application launcher.
+"""
+
 import sys
 import subprocess
 
@@ -27,6 +30,55 @@ def start_app():
         del sys.argv[sys.argv.index('--no-splash')]
     _ = startApp(showSplash=showSplash)  # main loop
     quitApp()
+
+
+def runPyCommand(command, env=None, printOutput=False):
+    """Run a Python command in a subprocess using the current Python 
+    interpreter and wait for it to complete.
+
+    Parameters
+    ----------
+    command : list
+        The command to run as a list of strings. The first element should be
+        the module name to run, followed by any arguments.
+    env : dict, optional
+        The environment variables to use when running the command. Should be the 
+        same as the enviornment variables used to start the app. These are set
+        to the current environment if not provided. The default is None.
+    printOutput : bool, optional
+        Whether to print the output and error messages from the command. The
+        default is `False`.
+
+    Returns
+    -------
+    tuple
+        A tuple containing the exit status, output, and error messages from the
+        command.
+
+    Examples
+    --------
+    Run a command to list installed packages:
+
+        import os
+        env = os.environ
+        status, output, err = runPyCommand(['pip', 'list', '--user'], env=env)
+
+    """
+    if env is None:
+        env = os.environ  # use default
+
+    cmd = [sys.executable] + command
+    proc = subprocess.Popen(cmd, env=env)
+    output, err = proc.communicate()  
+    status = proc.wait()
+
+    if printOutput:
+        if output is not None:
+            print(output, file=sys.stdout)
+        if err is not None:
+            print(err, file=sys.stderr)
+
+    return status, output, err
 
 
 def getUserPrefsDir():
@@ -103,18 +155,10 @@ def runStartupPackageTasks(env=None):
                         extraCmd = ['--yes']
                 
                 # run the pip command
-                pipCmd = [execPath, '-m', 'pip'] + cmd + extraCmd
+                pipCmd = ['-m', 'pip'] + cmd + extraCmd
 
                 # run command in a subprocess and block until it finishes
-                pipProc = subprocess.Popen(pipCmd, env=env)
-                output, err = pipProc.communicate()  
-                exitCode = pipProc.wait()  # block until done
-
-                if output is not None:
-                    print(output, file=sys.stdout)
-                
-                if err is not None:
-                    print(err, file=sys.stderr)
+                exitCode, _, _ = runPyCommand(pipCmd, env=env, printOutput=True)
                 
         # delete the file after installing all modules
         os.remove(installFile)
@@ -141,11 +185,55 @@ def main():
     # Setup the environment variables for running the app
     import os
     env = os.environ
-
+    
+    # priority flags
     if '--no-pkg-dir' not in sys.argv:
         userBaseDir = os.path.join(getUserPrefsDir(), 'packages')
         env['PYTHONUSERBASE'] = userBaseDir
         env['PYTHONNOUSERSITE'] = '1'  # isolate user packages for plugins
+
+        # package paths for custom user site-packages
+        prefixTail = os.path.basename(sys.prefix)
+        if sys.platform == 'win32':
+            env['PYTHONPATH'] = os.path.join(
+                userBaseDir, prefixTail, "site-packages")
+        elif sys.platform == 'darwin' or sys.platform.startswith('linux'):
+            env['PYTHONPATH'] = os.path.join(
+                userBaseDir, "lib", prefixTail, "site-packages")
+        else:
+            raise NotImplementedError(
+                "Platform '{}' is not supported.".format(sys.platform))
+    if '--list-pkgs' in sys.argv:
+        try:
+            pkgListType = sys.argv[sys.argv.index('--list-pkgs') + 1]
+        except (ValueError, IndexError):
+            print("Error: Missing package list type (base or user).")
+            sys.exit()
+
+        if pkgListType == 'base':
+            # list installed packages and versions
+            cmd = ['-m', 'pip', 'list']
+            runPyCommand(cmd, env=env, printOutput=True)
+        elif pkgListType == 'user':
+            # list installed user packages and versions
+            cmd = ['-m', 'pip', 'list', '--user']
+            runPyCommand(cmd, env=env, printOutput=True)
+        else:
+            print("Error: Invalid package list type '{}'.".format(pkgListType))
+        
+        sys.exit()
+    if '--pip' in sys.argv:
+        # run a pip command then exit
+        try:
+            pipCmd = sys.argv[sys.argv.index('--pip') + 1:]
+            # split the command and remove whitespace
+            pipCmd = ['-m', 'pip'] + [x.strip() for x in pipCmd]
+            
+        except (ValueError, IndexError):
+            print("Error: Malfomed pip command.")
+            sys.exit()
+        runPyCommand(pipCmd, env=env, printOutput=True)
+        sys.exit()
 
     if '-x' in sys.argv:
         # run a .py script from the command line using StandAlone python
@@ -175,7 +263,7 @@ depends on the type of the [file]:
  Experiment design 'file.psyexp' -- opens builder
 
 Options:
-    -c, --coder, coder       pens coder view only
+    -c, --coder, coder       opens coder view only
     -b, --builder, builder   opens builder view only
     -x script.py             execute script.py using StandAlone python
 
@@ -184,8 +272,11 @@ Options:
 
     --firstrun               launches configuration wizard
     --no-splash              suppresses splash screen
-    --skip-pkg-tasks         skip pip tasks on startup this session
+
     --no-pkg-dir             use default user site-packages directory
+    --pip                    run pip command then exit
+    --list-pkgs <type>       list packages then exit, type: base or user
+    --skip-pkg-tasks         skip pip tasks on startup this session
 
 """)
         sys.exit()
