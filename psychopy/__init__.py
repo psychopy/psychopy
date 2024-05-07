@@ -60,8 +60,6 @@ if 'installing' not in locals():
         if _pathName.is_dir():
             sys.path.append(str(_pathName))
 
-    from psychopy.tools.versionchooser import useVersion, ensureMinimal
-
     # Configure the environment to use our custom site-packages location for
     # user-installed packages. In the future, this will be configured outside of
     # the running environment, but for now, we need to do it here.
@@ -95,6 +93,8 @@ if 'installing' not in locals():
         site.USER_SITE = prefs.paths['packages']  # custom user site-packages
         site.ENABLE_USER_SITE = True
         site.main()
+
+    from psychopy.tools.versionchooser import useVersion, ensureMinimal
 
 
 if sys.version_info.major < 3:
