@@ -77,8 +77,9 @@ if 'installing' not in locals():
     if not useDefaultSite:
         env = os.environ.copy()
         if 'PYTHONPATH' in env:  # append to existing PYTHONPATH
-            env['PYTHONPATH'] = os.pathsep.join(
-                [env['PYTHONPATH']] + [prefs.paths['packages']])
+            if prefs.paths['packages'] not in env['PYTHONPATH']:
+                env['PYTHONPATH'] = os.pathsep.join(
+                    [env['PYTHONPATH']] + [prefs.paths['packages']])
         else:
             env['PYTHONPATH'] = prefs.paths['packages']  # set PYTHONPATH
 
