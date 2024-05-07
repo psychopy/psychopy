@@ -52,13 +52,49 @@ if 'installing' not in locals():
         sys.path.append(str(_userPackagePath))  # user site-packages
         sys.path.append(str(_userScripts))  # user scripts
 
-    # add paths from individual plugins/packages (installed by plugins manager)
+    # Add paths from individual plugins/packages (installed by plugins manager),
+    # this is to support legacy plugins that don't use the customized user 
+    # site-packages location. This will be removed in the future.
     import pathlib as _pathlib
     for _pathName in _pathlib.Path(prefs.paths['packages']).glob("*"):
         if _pathName.is_dir():
             sys.path.append(str(_pathName))
 
     from psychopy.tools.versionchooser import useVersion, ensureMinimal
+
+    # Configure the environment to use our custom site-packages location for
+    # user-installed packages. In the future, this will be configured outside of
+    # the running environment, but for now, we need to do it here.
+    useDefaultSite = False
+    if 'PSYCHOPYNOPACKAGES' in os.environ:
+        # Custom environment variable for people using PsychoPy as a library,
+        # who don't want to use the custom site-packages location. If set to 1,
+        # this will disable the custom site-packages location. Packages will be
+        # installed in the default, system dependent user's site-packages 
+        # location.
+        useDefaultSite = os.environ['PSYCHOPYNOPACKAGES'] == '1'
+
+    if not useDefaultSite:
+        env = os.environ.copy()
+        if 'PYTHONPATH' in env:  # append to existing PYTHONPATH
+            env['PYTHONPATH'] = os.pathsep.join(
+                [env['PYTHONPATH']] + [prefs.paths['packages']])
+        else:
+            env['PYTHONPATH'] = prefs.paths['packages']  # set PYTHONPATH
+
+        # set user site packages
+        env['PYTHONUSERBASE'] = prefs.paths['packages']
+        env['PYTHONNOUSERSITE'] = '1'  # isolate user packages
+
+        # update environment, pass this to sub-processes (e.g. pip)
+        os.environ.update(env)
+
+        # make sure site knows about our custom user site-packages
+        import site
+        site.USER_SITE = prefs.paths['packages']  # custom user site-packages
+        site.ENABLE_USER_SITE = True
+        site.main()
+
 
 if sys.version_info.major < 3:
     raise ImportError("psychopy does not support Python2 installations. "
