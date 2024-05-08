@@ -429,7 +429,7 @@ class FrameRibbonPluginSection(FrameRibbonSection):
         self.name = name
         # initialise subclass
         FrameRibbonSection.__init__(
-            self, parent, label=label, icon="starred"
+            self, parent, label=label, icon="plugin"
         )
 
 
