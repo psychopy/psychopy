@@ -42,23 +42,7 @@ if __git_sha__ == 'n/a':
 # update preferences and the user paths
 if 'installing' not in locals():
     from psychopy.preferences import prefs
-    for _pathName in prefs.general['paths']:
-        sys.path.append(_pathName)
-    
-    # add paths from main plugins/packages (installed by plugins manager)
-    _userPackagePath = prefs.paths['userPackages']
-    _userScripts = prefs.paths['userScripts']
-    if _userPackagePath.is_dir():
-        sys.path.append(str(_userPackagePath))  # user site-packages
-        sys.path.append(str(_userScripts))  # user scripts
-
-    # Add paths from individual plugins/packages (installed by plugins manager),
-    # this is to support legacy plugins that don't use the customized user 
-    # site-packages location. This will be removed in the future.
-    import pathlib as _pathlib
-    for _pathName in _pathlib.Path(prefs.paths['packages']).glob("*"):
-        if _pathName.is_dir():
-            sys.path.append(str(_pathName))
+    import site
 
     # Configure the environment to use our custom site-packages location for
     # user-installed packages. In the future, this will be configured outside of
@@ -72,14 +56,22 @@ if 'installing' not in locals():
         # location.
         useDefaultSite = os.environ['PSYCHOPYNOPACKAGES'] == '1'
 
+    # configure environment for custom site-packages location
     if not useDefaultSite:
         env = os.environ.copy()
-        if 'PYTHONPATH' in env:  # append to existing PYTHONPATH
-            if prefs.paths['packages'] not in env['PYTHONPATH']:
-                env['PYTHONPATH'] = os.pathsep.join(
-                    [env['PYTHONPATH']] + [prefs.paths['packages']])
+        if 'PYTHONPATH' in env:  # append entries to existing PYTHONPATH
+            _userSitePackages = str(prefs.paths['userPackages'])
+            if _userSitePackages not in env['PYTHONPATH']:
+                env['PYTHONPATH'] = os.pathsep.join([
+                    env['PYTHONPATH'], _userSitePackages])
+            _userPackages = str(prefs.paths['packages'])
+            if _userPackages not in env['PYTHONPATH']:
+                env['PYTHONPATH'] = os.pathsep.join([
+                    env['PYTHONPATH'], _userPackages]) 
         else:
-            env['PYTHONPATH'] = prefs.paths['packages']  # set PYTHONPATH
+            env['PYTHONPATH'] = os.pathsep.join([
+                str(prefs.paths['userPackages']), 
+                str(prefs.paths['packages'])])
 
         # set user site packages
         env['PYTHONUSERBASE'] = prefs.paths['packages']
@@ -89,10 +81,37 @@ if 'installing' not in locals():
         os.environ.update(env)
 
         # make sure site knows about our custom user site-packages
-        import site
         site.USER_SITE = prefs.paths['packages']  # custom user site-packages
         site.ENABLE_USER_SITE = True
         site.main()
+
+        # add paths from main plugins/packages (installed by plugins manager)
+        site.addsitedir(prefs.paths['userPackages'])  # user site-packages
+        site.addsitedir(prefs.paths['userInclude'])  # user include
+        site.addsitedir(prefs.paths['packages'])  # base package dir
+
+        _envPath = os.environ.get('PATH', None)
+        if _envPath is not None:
+            # add user include path to system PATH (for C extensions)
+            if str(prefs.paths['userInclude']) not in _envPath:
+                os.environ['PATH'] = os.pathsep.join([
+                    os.environ['PATH'], str(prefs.paths['userInclude'])])
+            # add scripts path for user packages to system PATH
+            if str(prefs.paths['userScripts']) not in _envPath:
+                os.environ['PATH'] = os.pathsep.join([
+                    os.environ['PATH'], str(prefs.paths['userScripts'])])
+    
+    # add paths from general preferences
+    for _pathName in prefs.general['paths']:
+        sys.path.append(_pathName)
+    
+    # Add paths from individual plugins/packages (installed by plugins manager),
+    # this is to support legacy plugins that don't use the customized user 
+    # site-packages location. This will be removed in the future.
+    import pathlib as _pathlib
+    for _pathName in _pathlib.Path(prefs.paths['packages']).glob("*"):
+        if _pathName.is_dir():
+            sys.path.append(str(_pathName))
 
     from psychopy.tools.versionchooser import useVersion, ensureMinimal
 
