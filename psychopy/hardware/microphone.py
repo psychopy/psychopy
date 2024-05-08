@@ -6,7 +6,7 @@ from psychtoolbox import audio as audio
 from psychopy import logging as logging, prefs
 from psychopy.localization import _translate
 from psychopy.constants import NOT_STARTED
-from psychopy.hardware import BaseDevice
+from psychopy.hardware import BaseDevice, BaseResponse, BaseResponseDevice
 from psychopy.sound.audiodevice import AudioDeviceInfo, AudioDeviceStatus
 from psychopy.sound.audioclip import AudioClip
 from psychopy.sound.exceptions import AudioInvalidCaptureDeviceError, AudioInvalidDeviceError, \
@@ -25,6 +25,10 @@ except (ImportError, ModuleNotFoundError):
         "recording will be unavailable this session. Note that opening a "
         "microphone stream will raise an error.")
     _hasPTB = False
+
+
+class MicrophoneResponse(BaseResponse):
+    pass
 
 
 class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
@@ -267,6 +271,9 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
 
         logging.debug('Audio capture device #{} ready'.format(
             self._device.deviceIndex))
+
+        # list to store listeners in
+        self.listeners = []
 
     def findBestDevice(self, index, sampleRateHz, channels):
         """
@@ -796,6 +803,51 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
                 "call `Microphone.stop` first.")
 
         return self._recording.getSegment()  # full recording
+
+    def getCurrentVolume(self, timeframe=0.1):
+        """
+        Get the current volume measured by the mic.
+
+        Parameters
+        ----------
+        timeframe : float
+            Time frame (s) over which to take samples from. Default is 0.1s.
+
+        Returns
+        -------
+        float
+            Current volume registered by the mic, will depend on relative volume of the mic but
+            should mostly be between 0 (total silence) and 1 (very loud).
+        """
+        # if mic hasn't started yet, return 0 as it's recorded nothing
+        if not self.isStarted:
+            return 0
+        # poll most recent samples
+        self.poll()
+        # get last 0.1sas a clip
+        clip = self._recording.getSegment(
+            max(self._recording.lastSample / self._sampleRateHz - timeframe, 0)
+        )
+
+        return clip.rms() * 10
+
+    # MicrophoneDevice isn't *really* a ResponseDevice, but it can have listeners - so may as
+    # well use the same functions to add/remove them
+    addListener = BaseResponseDevice.addListener
+    clearListeners = BaseResponseDevice.clearListeners
+
+    def dispatchMessages(self):
+        """
+        Dispatch current volume as a MicrophoneResponse object to any attached listeners.
+        """
+        # create a response object
+        message = MicrophoneResponse(
+            logging.defaultClock.getTime(),
+            self.getCurrentVolume()
+        )
+        # dispatch to listeners
+        for listener in self.listeners:
+            listener.receiveMessage(message)
 
 
 class RecordingBuffer:
