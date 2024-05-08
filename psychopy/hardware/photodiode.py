@@ -221,6 +221,11 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
                 (r - w / 4, t - h / 4),  # top right
                 (l + w / 4, b + h / 4),  # bottom left
                 (r - w / 4, b + h / 4),  # bottom right
+                rect.pos,  # center
+                (l + w / 2, t - h / 4),  # top center
+                (l + w / 2, b + h / 4),  # bottom center
+                (l + w / 4, b + h / 2),  # center left
+                (r - w / 4, b + h / 2),  # center right
             ]:
                 # position rect
                 rect.pos = (x, y)
