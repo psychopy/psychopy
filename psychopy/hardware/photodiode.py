@@ -300,9 +300,9 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
                 # resize rect according to +- keys
                 size = rect.size
                 if "equal" in keys:
-                    size = [sz + res for sz in size]
+                    size = [sz * 2 for sz in size]
                 if "minus" in keys:
-                    size = [sz - res for sz in size]
+                    size = [sz / 2 for sz in size]
                 rect.size = self.size = size
                 # show label and square
                 label.draw()
