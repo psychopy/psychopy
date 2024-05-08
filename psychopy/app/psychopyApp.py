@@ -398,20 +398,37 @@ Options:
         startArgs)
     startCmd = [execPath, '-c', startCmdStr]
 
-    # run command in a subprocess and block until it finishes
-    psychopyProc = subprocess.Popen(startCmd, env=env)
-    print("PsychoPy: Application started (PID: {})".format(psychopyProc.pid))
-    output, err = psychopyProc.communicate()  
-    exitCode = psychopyProc.wait()
+    # if the restart file is found, the app will restart
+    while 1:
+        try:
+            # run command in a subprocess and block until it finishes
+            psychopyProc = subprocess.Popen(startCmd, env=env)
+            print("PsychoPy: Application started (PID: {})".format(
+                psychopyProc.pid))
+            output, err = psychopyProc.communicate()  
+            exitCode = psychopyProc.wait()
 
-    # print output from the subprocess (if any)
-    if output is not None:
-        print(output, file=sys.stdout)
-    if err is not None:
-        print(err, file=sys.stderr)
+            # print output from the subprocess (if any)
+            if output is not None:
+                print(output, file=sys.stdout)
+            if err is not None:
+                print(err, file=sys.stderr)
 
-    print("PsychoPy: Application terminated (exit code {})" .format(exitCode))
+            print("PsychoPy: Application terminated (exit code {})" .format(
+                exitCode))
+            
+        except KeyboardInterrupt:
+            print("PsychoPy: Application interrupted.")
+            break
 
+        # check for the restart file
+        restartFile = os.path.join(getUserPrefsDir(), '.restart')
+        if os.path.exists(restartFile):
+            print("PsychoPy: Restarting the application.")
+            os.remove(restartFile)
+        else:
+            break
+    
     sys.exit(exitCode)  # forwarded exit code from the subprocess
 
 
