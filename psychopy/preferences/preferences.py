@@ -168,8 +168,8 @@ class Preferences:
         # root site-packages directory for user-installed packages and add it
         userBasePath = Path(self.paths['userPrefsDir']) / 'packages'
 
-        # Package paths for custom user site-packages, these should be compiant
-        # with platform specify conventions.
+        # Package paths for custom user site-packages, these should be compliant
+        # with platform specific conventions.
         prefixTail = os.path.basename(sys.prefix)
         if sys.platform == 'win32':
             pyDirName = "Python" + sys.winver.replace(".", "")
