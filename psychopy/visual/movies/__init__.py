@@ -308,7 +308,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         self._selectWindow(self.win if win is None else win)
 
         # handle autoplay
-        if self._autoStart and self.status == NOT_STARTED:
+        if self._autoStart and self.isNotStarted:
             self.play()
 
         # update the video frame and draw it to a quad
