@@ -71,15 +71,15 @@ template = """#!/usr/bin/env python
 import os
 import sys
 
-__version__ = '2024.1.4'
-__license__ = 'GPL v3'
-__author__ = 'Open Science Tools Ltd'
-__author_email__ = 'support@opensciencetools.org'
-__maintainer_email__ = 'support@opensciencetools.org'
-__url__ = 'https://www.psychopy.org/'
-__download_url__ = 'https://github.com/psychopy/psychopy/releases/'
-__git_sha__ = 'n/a'
-__build_platform__ = 'n/a'
+__version__ = '{version}'
+__license__ = '{license}'
+__author__ = '{author}'
+__author_email__ = '{author_email}'
+__maintainer_email__ = '{maintainer_email}'
+__url__ = '{url}'
+__download_url__ = '{download_url}'
+__git_sha__ = '{shaStr}'
+__build_platform__ = '{platform}'
 
 __all__ = ["gui", "misc", "visual", "core",
            "event", "data", "sound", "microphone"]
