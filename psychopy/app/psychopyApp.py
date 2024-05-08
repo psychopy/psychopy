@@ -211,7 +211,6 @@ def main():
 
         # Package paths for custom user site-packages, these should be compiant
         # with platform specify conventions.
-        prefixTail = os.path.basename(sys.prefix)
         if sys.platform == 'win32':  # windows 
             pyDirName = "Python" + sys.winver.replace(".", "")
             userPackagePath = os.path.join(
