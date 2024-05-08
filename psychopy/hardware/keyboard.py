@@ -551,10 +551,13 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
         response = None
 
         if KeyboardDevice._backend == 'ptb':
-            message['time'] -= self.clock.getLastResetTime()
             if message['down']:
                 # if message is from a key down event, make a new response
-                response = KeyPress(code=message['keycode'], tDown=message['time'])
+                response = KeyPress(
+                    code=message['keycode'],
+                    tDown=message['time'] - logging.defaultClock.getLastResetTime()
+                )
+                response.rt = message['time'] - self.clock.getLastResetTime()
                 self._keysStillDown.append(response)
             else:
                 # if message is from a key up event, alter existing response
@@ -562,7 +565,7 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
                     if key.code == message['keycode']:
                         response = key
                         # calculate duration
-                        key.duration = message['time'] - key.tDown
+                        key.duration = message['time'] - key.tDown - logging.defaultClock.getLastResetTime()
                         # remove key from stillDown
                         self._keysStillDown.remove(key)
                         # stop processing keys as we're done
