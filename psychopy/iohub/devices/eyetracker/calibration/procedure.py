@@ -157,10 +157,10 @@ class BaseCalibrationProcedure:
         def setDefaultCalibrationTarget():
             # convert sizes to stimulus units
             radiusPix = self.getCalibSetting(['target_attributes', 'outer_diameter']) / 2
-            radiusObj = layout.Size(radiusPix, units="pix", win=self.window)
+            radiusObj = layout.Size(radiusPix, units=unit_type, win=self.window)
             radius = getattr(radiusObj, unit_type)[1]
             innerRadiusPix = self.getCalibSetting(['target_attributes', 'inner_diameter']) / 2
-            innerRadiusObj = layout.Size(innerRadiusPix, units="pix", win=self.window)
+            innerRadiusObj = layout.Size(innerRadiusPix, units=unit_type, win=self.window)
             innerRadius = getattr(innerRadiusObj, unit_type)[1]
             # make target
             self.targetStim = visual.TargetStim(
