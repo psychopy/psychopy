@@ -96,21 +96,25 @@ class MenuFrame(wx.Frame, themes.handlers.ThemeMixin):
 
         self.viewMenu = wx.Menu()
         self.menuBar.Append(self.viewMenu, _translate('&View'))
-        mtxt = _translate("&Open Builder view\t%s")
-        self.app.IDs.openBuilderView = self.viewMenu.Append(wx.ID_ANY,
-                             mtxt,
-                             _translate("Open a new Builder view")).GetId()
+        mtxt = _translate("&Open Builder view\t")
+        self.app.IDs.openBuilderView = self.viewMenu.Append(
+            wx.ID_ANY,
+            mtxt,
+            _translate("Open a new Builder view")).GetId()
         self.Bind(wx.EVT_MENU, self.app.showBuilder,
                   id=self.app.IDs.openBuilderView)
-        mtxt = _translate("&Open Coder view\t%s")
-        self.app.IDs.openCoderView = self.viewMenu.Append(wx.ID_ANY,
-                             mtxt,
-                             _translate("Open a new Coder view")).GetId()
+        mtxt = _translate("&Open Coder view\t")
+        self.app.IDs.openCoderView = self.viewMenu.Append(
+            wx.ID_ANY,
+            mtxt,
+            _translate("Open a new Coder view")).GetId()
         self.Bind(wx.EVT_MENU, self.app.showCoder,
                   id=self.app.IDs.openCoderView)
         mtxt = _translate("&Quit\t%s")
-        item = self.viewMenu.Append(wx.ID_EXIT, mtxt % self.app.keys['quit'],
-                                    _translate("Terminate the program"))
+        item = self.viewMenu.Append(
+            wx.ID_EXIT,
+            mtxt % self.app.keys['quit'],
+            _translate("Terminate the program"))
         self.Bind(wx.EVT_MENU, self.app.quit, id=item.GetId())
         self.SetMenuBar(self.menuBar)
         self.Show()
@@ -149,9 +153,9 @@ class _Showgui_Hack():
         if not os.path.isfile(noopPath):
             code = """from psychopy import gui
                 dlg = gui.Dlg().Show()  # non-blocking
-                try: 
+                try:
                     dlg.Destroy()  # might as well
-                except Exception: 
+                except Exception:
                     pass"""
             with open(noopPath, 'wb') as fd:
                 fd.write(bytes(code))
@@ -364,7 +368,6 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         Since panels are created before loading plugins, calling this method is
         required after loading plugins which contain components to have them
         appear.
-
         """
         if not hasattr(self, 'builder') or self.builder is None:
             return  # nop if we haven't realized the builder UI yet
@@ -457,7 +460,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         self.dpi = int(wx.GetDisplaySize()[0] /
                        float(wx.GetDisplaySizeMM()[0]) * 25.4)
         # detect retina displays
-        self.isRetina = self.dpi>80 and wx.Platform == '__WXMAC__'
+        self.isRetina = self.dpi > 80 and wx.Platform == '__WXMAC__'
         if self.isRetina:
             fontScale = 1.2  # fonts are looking tiny on macos (only retina?) right now
             # mark icons as being retina
@@ -841,8 +844,8 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         from .builder.builder import BuilderFrame
         title = "PsychoPy Builder (v%s)"
         self.builder = BuilderFrame(None, -1,
-                                 title=title % self.version,
-                                 fileName=fileName, app=self)
+                                    title=title % self.version,
+                                    fileName=fileName, app=self)
         self.builder.Show(True)
         self.builder.Raise()
         self.SetTopWindow(self.builder)
@@ -882,9 +885,9 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         title = "PsychoPy Runner (v{})".format(self.version)
         wx.BeginBusyCursor()
         self.runner = RunnerFrame(parent=None,
-                             id=-1,
-                             title=title,
-                             app=self)
+                                  id=-1,
+                                  title=title,
+                                  app=self)
         self.updateWindowMenu()
         wx.EndBusyCursor()
         return self.runner
@@ -1027,7 +1030,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                 pass  # we don't care if this fails - we're quitting anyway
         # must do this before destroying the frame?
         self.prefs.saveAppData()
-        #self.Destroy()
+        # self.Destroy()
 
         # Reset streams back to default
         sys.stdout = sys.__stdout__

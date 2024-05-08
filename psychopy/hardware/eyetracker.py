@@ -99,7 +99,7 @@ class EyetrackerCalibration:
         if isinstance(textColor, str) and textColor.lower() == 'auto':
             textColor = None
 
-        if tracker == 'eyetracker.hw.sr_research.eyelink.EyeTracker':
+        if tracker.endswith('sr_research.eyelink.EyeTracker'):
             # As EyeLink
             asDict = {
                 'target_attributes': dict(target),
@@ -108,6 +108,8 @@ class EyetrackerCalibration:
                 'pacing_speed': self.targetDelay,
                 'randomize': self.randomisePos,
                 'text_color': textColor,
+                'unit_type': self.units,
+                'color_type': self.colorSpace,
                 'screen_background_color': getattr(self.win._color, self.colorSpace)
             }
         elif tracker == 'eyetracker.hw.tobii.EyeTracker':
