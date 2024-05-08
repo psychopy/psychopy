@@ -737,6 +737,8 @@ class FFPyPlayer(BaseMoviePlayer):
 
         self._lastPlayerOpts = DEFAULT_FF_OPTS.copy()
 
+        self._lastPlayerOpts['out_fmt'] = 'bgra'
+
         # options from the parent
         if self.parent.loop:  # infinite loop
             self._lastPlayerOpts['loop'] = 0
