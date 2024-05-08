@@ -4625,6 +4625,9 @@ class BuilderRibbon(ribbon.FrameRibbon):
 
         self.addSeparator()
 
+        # --- Plugin sections ---
+        self.addPluginSections("psychopy.app.builder")
+
         # --- Views ---
         self.addStretchSpacer()
         self.addSeparator()
@@ -4650,7 +4653,6 @@ class BuilderRibbon(ribbon.FrameRibbon):
             tooltip=_translate("Switch to Runner view"),
             callback=parent.app.showRunner
         )
-
 
 def extractText(stream):
     """Take a byte stream (or any file object of type b?) and return

@@ -1235,6 +1235,9 @@ class RunnerRibbon(ribbon.FrameRibbon):
             section="pavlovia", name="pavuser", frame=parent
         )
 
+        # --- Plugin sections ---
+        self.addPluginSections("psychopy.app.builder")
+
         # --- Views ---
         self.addStretchSpacer()
         self.addSeparator()
