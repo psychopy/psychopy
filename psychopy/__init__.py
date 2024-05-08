@@ -81,7 +81,7 @@ if 'installing' not in locals():
         os.environ.update(env)
 
         # make sure site knows about our custom user site-packages
-        site.USER_SITE = prefs.paths['packages']  # custom user site-packages
+        site.USER_SITE = prefs.paths['userPackages']
         site.ENABLE_USER_SITE = True
         site.main()
 
