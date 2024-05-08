@@ -166,41 +166,41 @@ class Preferences:
                     raise
 
         # root site-packages directory for user-installed packages and add it
-        userBasePath = Path(self.paths['userPrefsDir']) / 'packages'
+        userPkgRoot = Path(self.paths['packages'])
 
         # Package paths for custom user site-packages, these should be compliant
         # with platform specific conventions.
-        prefixTail = os.path.basename(sys.prefix)
         if sys.platform == 'win32':
             pyDirName = "Python" + sys.winver.replace(".", "")
-            userPackagePath = userBasePath / pyDirName / "site-packages"
-            userIncludePath = userBasePath / pyDirName / "Include"
-            userScriptsPath = userBasePath / pyDirName / "Scripts"
+            userPackages = userPkgRoot / pyDirName / "site-packages"
+            userInclude = userPkgRoot / pyDirName / "Include"
+            userScripts = userPkgRoot / pyDirName / "Scripts"
         elif sys.platform == 'darwin' and sys._framework:  # macos + framework
             pyVersion = sys.version_info
             pyDirName = "python{}.{}".format(pyVersion[0], pyVersion[1])
-            userPackagePath = userBasePath / "lib" / "python" / "site-packages"
-            userIncludePath = userBasePath / "include" / pyDirName
-            userScriptsPath = userBasePath / "bin"
+            userPackages = userPkgRoot / "lib" / "python" / "site-packages"
+            userInclude = userPkgRoot / "include" / pyDirName
+            userScripts = userPkgRoot / "bin"
         else:  # posix (including linux and macos without framework)
             pyVersion = sys.version_info
             pyDirName = "python{}.{}".format(pyVersion[0], pyVersion[1])
-            userPackagePath = userBasePath / "lib" / pyDirName / "site-packages"
-            userIncludePath = userBasePath / "include" / pyDirName
-            userScriptsPath = userBasePath / "bin"
+            userPackages = userPkgRoot / "lib" / pyDirName / "site-packages"
+            userInclude = userPkgRoot / "include" / pyDirName
+            userScripts = userPkgRoot / "bin"
 
         # populate directory structure for user-installed packages
-        if not userPackagePath.is_dir():
-            userPackagePath.mkdir(parents=True)
-        if not userIncludePath.is_dir():
-            userIncludePath.mkdir(parents=True)
-        if not userScriptsPath.is_dir():
-            userScriptsPath.mkdir(parents=True)
+        if not userPackages.is_dir():
+            userPackages.mkdir(parents=True)
+        if not userInclude.is_dir():
+            userInclude.mkdir(parents=True)
+        if not userScripts.is_dir():
+            userScripts.mkdir(parents=True)
 
         # add paths from plugins/packages (installed by plugins manager)
-        self.paths['userPackages'] = userBasePath
-        self.paths['userScripts'] = userScriptsPath
-        
+        self.paths['userPackages'] = userPackages
+        self.paths['userInclude'] = userInclude
+        self.paths['userScripts'] = userScripts
+
         # Get dir for base and user themes
         baseThemeDir = Path(self.paths['appDir']) / "themes" / "spec"
         userThemeDir = Path(self.paths['themes'])
