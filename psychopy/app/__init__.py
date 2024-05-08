@@ -11,6 +11,7 @@
 __all__ = [
     'startApp',
     'quitApp',
+    'restartApp',
     'getAppInstance',
     'getAppFrame',
     'isAppStarted']
@@ -153,6 +154,33 @@ def quitApp():
 
     # remove the session lock
     setSessionLock(False)
+
+
+def restartApp():
+    """Restart the PsychoPy application instance.
+
+    This will write a file named '.restart' to the user preferences directory
+    and quit the application. The presence of this file will indicate to the 
+    launcher parent process that the app should restart.
+
+    The app restarts with the same arguments as the original launch. This is
+    useful for updating the application or plugins without requiring the user
+    to manually restart the app.
+
+    The user will be prompted to save any unsaved work before the app restarts.
+
+    """
+    if not isAppStarted():
+        return
+    
+    # write a restart file to the user preferences directory
+    from psychopy.preferences import prefs
+    restartFilePath = os.path.join(prefs.paths['userPrefsDir'], '.restart')
+    
+    with open(restartFilePath, 'w') as restartFile:
+        restartFile.write('')
+
+    quitApp()
 
 
 def getAppInstance():
