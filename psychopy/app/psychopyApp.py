@@ -377,10 +377,6 @@ Options:
         if PYTHONW != 'True':
             env['PYTHONW'] = 'True'
 
-    # run the pre-startup tasks if not ignored
-    if '--skip-pkg-tasks' not in sys.argv:
-        runStartupPackageTasks(env)
-
     # construct executable path depending on the platform
     execPath = sys.executable
     if PYTHONW is not None:
@@ -400,6 +396,10 @@ Options:
 
     # if the restart file is found, the app will restart
     while 1:
+        # run the pre-startup tasks if not ignored
+        if '--skip-pkg-tasks' not in sys.argv:
+            runStartupPackageTasks(env)
+
         try:
             # run command in a subprocess and block until it finishes
             psychopyProc = subprocess.Popen(startCmd, env=env)
