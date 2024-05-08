@@ -9,6 +9,7 @@
 """
 from psychopy import logging
 import sys
+import os.path
 try:
     import ctypes
     import ctypes.util
@@ -33,7 +34,7 @@ warnMax = """Could not raise thread priority with sched_setscheduler.
 
 To enable rush(), if you are using a debian-based Linux, try this:
   'sudo setcap cap_sys_nice=eip %s'  [NB: install 'setcap' first.]
-If you are using the system's python (eg /usr/bin/python2.x), its highly
+If you are using the system's python (eg /usr/bin/python3.x), its highly
 recommended to change cap_sys_nice back to normal afterwards:
   'sudo setcap cap_sys_nice= %s'"""
 
@@ -63,17 +64,18 @@ def rush(value=True, realtime=False):
     if importCtypesFailed:
         return False
 
+    pyPath = os.path.realpath(sys.executable)
     if value:  # set to RR with max priority
         schedParams = _SchedParams()
         schedParams.sched_priority = c.sched_get_priority_max(SCHED_RR)
         err = c.sched_setscheduler(0, SCHED_RR, ctypes.byref(schedParams))
         if err == -1:  # returns 0 if OK
-            logging.warning(warnMax % (sys.executable, sys.executable))
+            logging.warning(warnMax % (pyPath, pyPath))
     else:  # set to RR with normal priority
         schedParams = _SchedParams()
         schedParams.sched_priority = c.sched_get_priority_min(SCHED_NORMAL)
         err = c.sched_setscheduler(0, SCHED_NORMAL, ctypes.byref(schedParams))
         if err == -1:  # returns 0 if OK
-            logging.warning(warnNormal % sys.executable)
+            logging.warning(warnNormal % pyPath)
 
     return True
