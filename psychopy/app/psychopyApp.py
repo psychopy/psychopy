@@ -197,7 +197,7 @@ def main():
 
         sys.exit()
 
-    env = os.environ  # get environment variables for this process
+    env = os.environ.copy()  # get environment variables for this process
 
     # priority flags
     if '--no-pkg-dir' not in sys.argv:
@@ -205,31 +205,35 @@ def main():
         # the flag is not present. This isolates user packages to a separate
         # directory to avoid conflicts with system packages or other user 
         # packages.
-        userBaseDir = os.path.join(getUserPrefsDir(), 'packages')
-        env['PYTHONUSERBASE'] = userBaseDir
+        userBasePath = os.path.join(getUserPrefsDir(), 'packages')
+        env['PYTHONUSERBASE'] = userBasePath
         env['PYTHONNOUSERSITE'] = '1'  # isolate user packages for plugins
 
-        # package paths for custom user site-packages
+        # Package paths for custom user site-packages, these should be compiant
+        # with platform specify conventions.
         prefixTail = os.path.basename(sys.prefix)
-        pyPath = env.get('PYTHONPATH', '')
-        if sys.platform == 'win32':
-            pkgPath = os.path.join(
-                userBaseDir, prefixTail, "site-packages")
-        elif sys.platform == 'darwin' or sys.platform.startswith('linux'):
-            pkgPath = os.path.join(
-                userBaseDir, "lib", prefixTail, "site-packages")
-        else:
-            raise NotImplementedError(
-                "Platform '{}' is not supported.".format(sys.platform))
-        
+        if sys.platform == 'win32':  # windows 
+            pyDirName = "Python" + sys.winver.replace(".", "")
+            userPackagePath = os.path.join(
+                userBasePath, pyDirName, "site-packages")
+        elif sys.platform == 'darwin' and sys._framework:  # macos + framework
+            userPackagePath = os.path.join(
+                userBasePath, "lib", "python", "site-packages")
+        else:  # posix (including linux and macos without framework)
+            pyVersion = sys.version_info
+            pyDirName = "python{}.{}".format(pyVersion[0], pyVersion[1])
+            userPackagePath = os.path.join(
+                userBasePath, "lib", pyDirName, "site-packages")
+
         # add the custom user site-packages to the PYTHONPATH
+        pyPath = env.get('PYTHONPATH', '')
         if pyPath:
-            env['PYTHONPATH'] = pyPath + os.pathsep + pkgPath
+            env['PYTHONPATH'] = pyPath + os.pathsep + userPackagePath
         else:
-            env['PYTHONPATH'] = pkgPath
+            env['PYTHONPATH'] = userPackagePath
 
         print("PsychoPy: Using user site-packages directory: {}".format(
-            userBaseDir))
+            userBasePath))
     else:
         print("PsychoPy: Using default user site-packages directory.")
         
@@ -298,7 +302,7 @@ def main():
             sys.exit()
         runPyCommand(pipCmd, env=env, printOutput=True)
         sys.exit()
-
+    
     if '-x' in sys.argv:
         # run a .py script from the command line using StandAlone python
         targetScript = sys.argv[sys.argv.index('-x') + 1]
@@ -352,6 +356,17 @@ Options:
 """)
         sys.exit()
 
+    # if we get here, then we're starting the app itself
+
+    # show a specific app window if requested
+    startAppView = None
+    if '-b' in sys.argv or '--builder' in sys.argv:
+        startAppView = 'builder'
+    elif '-c' in sys.argv or '--coder' in sys.argv:
+        startAppView = 'coder'
+    elif '-r' in sys.argv or '--runner' in sys.argv:
+        startAppView = 'runner'
+
     # special envionment variables for the app
     PYTHONW = None
     sysVer = sys.version
@@ -370,11 +385,20 @@ Options:
     if PYTHONW is not None:
         execPath = execPath + 'w'  # macOS
 
-    # construct the command to run the app in a subprocess
-    cmd = [execPath, '-c', 'from psychopy.app import startApp;startApp()']
+    # construct the argument string for the `startApp` function
+    startArgs = []
+    startArgs += ['showSplash={}'.format('--no-splash' not in sys.argv)]
+    if startAppView is not None:
+        startArgs += ['startView={}'.format(repr(startAppView))]
+    startArgs = ', '.join(startArgs)
+
+    # construct the command to start the app
+    startCmdStr = 'from psychopy.app import startApp;startApp({})'.format(
+        startArgs)
+    startCmd = [execPath, '-c', startCmdStr]
 
     # run command in a subprocess and block until it finishes
-    psychopyProc = subprocess.Popen(cmd, env=env)
+    psychopyProc = subprocess.Popen(startCmd, env=env)
     print("PsychoPy: Application started (PID: {})".format(psychopyProc.pid))
     output, err = psychopyProc.communicate()  
     exitCode = psychopyProc.wait()
