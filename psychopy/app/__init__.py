@@ -25,7 +25,7 @@ from .frametracker import openFrames
 _psychopyAppInstance = None
 
 
-def startApp(showSplash=True, testMode=False, safeMode=False):
+def startApp(showSplash=True, testMode=False, safeMode=False, startView=None):
     """Start the PsychoPy GUI.
 
     This function is idempotent, where additional calls after the app starts
@@ -52,6 +52,10 @@ def startApp(showSplash=True, testMode=False, safeMode=False):
     safeMode : bool
         Start PsychoPy in safe-mode. If `True`, the GUI application will launch
         with without loading plugins.
+    startView : str, None
+        Name of the view to start the app with. Valid values are 'coder',
+        'builder' or 'runner'. If `None`, the app will start with the default
+        view.
 
     """
     global _psychopyAppInstance
@@ -110,6 +114,20 @@ def startApp(showSplash=True, testMode=False, safeMode=False):
         # After this point, errors will appear in a dialog box. Messages will
         # continue to be written to the dialog.
         sys.excepthook = exceptionCallback
+
+        # open the frames if requested
+        if startView is not None:
+            frame = getAppFrame(startView)  # opens if not yet loaded
+
+            # raise frames to the top
+            if frame is not None:
+                if hasattr(frame, 'Raise'):
+                    frame.Raise()
+                else:
+                    logging.warning(
+                        'Frame has no `Raise()` method. Cannot raise it.')
+            else:
+                logging.error('Frame cannot be opened.')
 
         # Allow the UI to refresh itself. Don't do this during testing where the
         # UI is exercised programmatically.
@@ -266,6 +284,8 @@ def getAppFrame(frameName):
             _psychopyAppInstance.showRunner()
         else:
             raise AttributeError('Cannot load frame. Method not available.')
+        
+        frameRef = getattr(_psychopyAppInstance, frameName, None)
 
     return frameRef
 
