@@ -265,6 +265,8 @@ def main():
             pipCmd = [x.strip() for x in inputCmd]
             if '--user' not in pipCmd:    # add --user flag if not present
                 pipCmd.append('--user')
+            if '--prefer-binary' not in pipCmd:  # usually do
+                pipCmd.append('--prefer-binary')
         except (ValueError, IndexError):
             print("Error: Missing package name.")
             sys.exit()
