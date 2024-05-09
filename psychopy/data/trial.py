@@ -929,7 +929,6 @@ class TrialHandler2(_BaseTrialHandler):
         self.remainingIndices = []
         self.prevIndices = []
         self.method = method
-        self.finished = False
         self.extraInfo = extraInfo
         self.seed = seed
         self._rng = np.random.default_rng(seed=seed)
@@ -1199,9 +1198,9 @@ class TrialHandler2(_BaseTrialHandler):
     def finished(self, value):
         # when setting finished to True, skip all remaining trials
         if value:
-            self.skipTrials(
-                len(self.upcomingTrials)
-            )
+            self.upcomingTrials = []
+        else:
+            self.calculateUpcoming()
 
     def skipTrials(self, n=1):
         """

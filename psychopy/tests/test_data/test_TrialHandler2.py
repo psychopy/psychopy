@@ -342,11 +342,11 @@ class TestTrialHandler2:
         # try setting .finished and confirm that subsequent trials are skipped
         t.finished = True
         assert not len(t.upcomingTrials)
-        # now rewind and confirm that .finished is False again
-        t.rewindTrials(n=3)
-        assert not t.finished
-        # now skip again and confirm that .finished is True again
-        t.skipTrials(n=3)
+        # now set not finished and confirm trials are back
+        t.finished = False
+        assert  len(t.upcomingTrials)
+        # now skip past the end and confirm that .finished is True again
+        t.skipTrials(n=100)
         assert t.finished
 
 
