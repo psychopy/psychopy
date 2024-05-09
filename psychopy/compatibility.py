@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+from pathlib import Path
+from packaging.version import Version
 import psychopy.data
 
 ######### Begin Compatibility Class Definitions #########
@@ -93,3 +94,54 @@ def checkCompatibility(old, new, prefs=None, fix=True):
         msg += "\nNo known compatibility issues"
 
     return (not warning), msg
+
+
+def checkUpdatesInfo(old, new):
+    """
+    Checks whether we need to display information from a new update, e.g. introducing a new feature.
+
+    Parameters
+    ----------
+    old : str or packaging.version.Version
+        Last version which was opened
+    new : str or packaging.version.Version
+        Current version
+    prefs : psychopy.preferences.Preferences
+        Preferences for the app
+
+    Returns
+    -------
+    list[str]
+        List of strings with markdown content for relevant updates
+    """
+    from psychopy.preferences import prefs
+    # make sure both versions are Version objects
+    if isinstance(old, str):
+        old = Version(old)
+    if isinstance(new, str):
+        new = Version(new)
+    # start off with no messages
+    messages = []
+    # if not a new version, no action needed
+    if old >= new:
+        return messages
+    # find changes folder
+    changesDir = Path(prefs.paths['psychopy']) / "changes"
+    # if it is a new version, check for updates
+    for file in changesDir.glob("*.md"):
+        # try to Version-ise target
+        try:
+            target = Version(file.stem)
+        except (TypeError, ValueError):
+            # skip if it fails
+            continue
+        # have we just crossed the target version?
+        if old < target < new:
+            # load the markdown file
+            msg = file.read_text(encoding="utf-8")
+            # add its contents to messages array
+            messages.append(msg)
+    # reverse messages so they go from most-to-least recent
+    messages.reverse()
+
+    return messages

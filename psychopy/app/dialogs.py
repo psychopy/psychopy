@@ -79,6 +79,38 @@ class MessageDialog(wx.Dialog):
 (GBSizerExLayoutEvent, EVT_GBSIZEREX_LAYOUT) = NewEvent()
 
 
+class RichMessageDialog(wx.Dialog):
+    def __init__(
+            self,
+            parent=None,
+            message="",
+            title="",
+            size=(600, 500),
+            style=wx.RESIZE_BORDER
+    ):
+        from psychopy.app.utils import MarkdownCtrl
+        # initialise dialog
+        wx.Dialog.__init__(
+            self, parent,
+            title=title,
+            size=size,
+            style=style
+        )
+        # setup sizer
+        self.border = wx.BoxSizer(wx.VERTICAL)
+        self.SetSizer(self.border)
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.border.Add(self.sizer, proportion=1, border=6, flag=wx.EXPAND | wx.ALL)
+        # add markdown ctrl
+        self.ctrl = MarkdownCtrl(
+            self, value=message, style=wx.TE_READONLY
+        )
+        self.sizer.Add(self.ctrl, border=6, proportion=1, flag=wx.EXPAND | wx.ALL)
+        # add OK button
+        self.btns = self.CreateStdDialogButtonSizer(flags=wx.OK)
+        self.border.Add(self.btns, border=12, flag=wx.EXPAND | wx.ALL)
+
+
 class GlobSizer(wx.GridBagSizer):
     """This is a GridBagSizer that supports adding/removing/inserting rows and
     columns. It was found online, with not clear use license (public domain?).

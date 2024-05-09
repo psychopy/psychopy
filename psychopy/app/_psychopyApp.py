@@ -424,7 +424,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         # SLOW IMPORTS - these need to be imported after splash screen starts
         # but then that they end up being local so keep track in self
 
-        from psychopy.compatibility import checkCompatibility
+        from psychopy.compatibility import checkCompatibility, checkUpdatesInfo
         # import coder and builder here but only use them later
         from psychopy.app import coder, builder, runner, dialogs
 
@@ -614,6 +614,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
 
         prefsConn = self.prefs.connections
 
+        # check for potential compatability issues
         ok, msg = checkCompatibility(last, self.version, self.prefs, fix=True)
         # tell the user what has changed
         if not ok and not self.firstRun and not self.testMode:
@@ -621,6 +622,15 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             dlg = dialogs.MessageDialog(parent=None, message=msg, type='Info',
                                         title=title)
             dlg.ShowModal()
+
+        # check for non-issue updates
+        messages = checkUpdatesInfo(old=last, new=self.version)
+        if messages:
+            dlg = dialogs.RichMessageDialog(
+                parent=None,
+                message="\n\n".join(messages)
+            )
+            dlg.Show()
 
         if self.prefs.app['showStartupTips'] and not self.testMode:
             tipFile = os.path.join(
