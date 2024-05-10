@@ -54,14 +54,6 @@ class EyetrackerRecordComponent(BaseComponent):
               }
          )
 
-        self.depends.append(
-             {"dependsOn": "actionType",  # must be param name
-              "condition": "=='Stop Only'",  # val to check for
-              "param": "start",  # param property to alter
-              "true": "hide",  # what to do with param if condition is True
-              "false": "show",  # permitted: hide, show, enable, disable
-              }
-         )
 
         # TODO: Display actionType control after component name.
         #       Currently, adding params before start / stop time
