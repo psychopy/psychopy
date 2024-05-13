@@ -56,13 +56,20 @@ def startApp(showSplash=True, testMode=False, safeMode=False, startView=None):
     startView : str, None
         Name of the view to start the app with. Valid values are 'coder',
         'builder' or 'runner'. If `None`, the app will start with the default
-        view.
+        view or the view specifed with the `PSYCHOPYSTARTVIEW` environment
+        variable.
 
     """
     global _psychopyAppInstance
 
     if isAppStarted():  # do nothing it the app is already loaded
         return  # NOP
+
+    # process environment variables
+    if os.environ.get('PSYCHOPYSTARTVIEW', None) is not None:
+        startView = str(os.environ['PSYCHOPYSTARTVIEW']).lower()
+        if startView not in ('coder', 'builder', 'runner'):
+            startView = None  # silently drop invalid values and use default 
     
     # set the session lock
     setSessionLock(True)
