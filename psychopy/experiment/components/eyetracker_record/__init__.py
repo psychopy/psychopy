@@ -97,6 +97,12 @@ class EyetrackerRecordComponent(BaseComponent):
         if self.params['actionType'].val in ("Start and Stop", "Start Only"):
             # if we're starting the recording, write usual start code
             indented = self.writeStartTestCode(buff)
+            # start recording
+            code = (
+                "%(name)s.startRecording()\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            # dedent
             buff.setIndentLevel(-indented, relative=True)
         else:
             # otherwise, assume already started
@@ -109,6 +115,12 @@ class EyetrackerRecordComponent(BaseComponent):
         if self.params['actionType'].val in ("Start and Stop", "Stop Only"):
             # if we're stopping the recording, write usual stop code
             indented = self.writeStopTestCode(buff)
+            # stop recording
+            code = (
+                "%(name)s.stopRecording()\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            # dedent
             buff.setIndentLevel(-indented, relative=True)
 
     def writeRoutineEndCode(self, buff):
