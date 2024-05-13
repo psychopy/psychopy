@@ -171,7 +171,7 @@ class KeyboardComponent(BaseDeviceComponent):
 
     def writeRoutineStartCode(self, buff):
         code = (
-            "# create starting attributes for %(name)s"
+            "# create starting attributes for %(name)s\n"
             "%(name)s.keys = []\n"
             "%(name)s.rt = []\n"
             "_%(name)s_allKeys = []\n"
