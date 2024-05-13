@@ -619,6 +619,10 @@ class PavloviaProject(dict):
         try:
             value = dict.__getitem__(self, key)
         except KeyError:
+            # if no project, return None
+            if self.project is None:
+                return None
+            # otherwise, get from attributes
             if key in self.project.attributes:
                 value = self.project.attributes[key]
             elif hasattr(self, "_info") and key in self._info:
