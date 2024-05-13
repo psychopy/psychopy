@@ -90,27 +90,26 @@ class EyetrackerRecordComponent(BaseComponent):
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame
         """
-        # Alert user if eyetracking isn't setup
+        # alert user if eyetracking isn't setup
         if self.exp.eyetracking == "None":
             alert(code=4505)
 
-        inits = self.params
-        buff.writeIndentedLines("# *%s* updates\n" % self.params['name'])
-
-        # test for whether we're just starting to record
-        # writes an if statement to determine whether to draw etc
-        indented = self.writeStartTestCode(buff)
-        buff.setIndentLevel(-indented, relative=True)
-
-        # test for stop (only if there was some setting for duration or stop)
-        org_val = self.params['stopVal'].val
-        if self.params['actionType'].val.find('Start Only') >= 0:
-            self.params['stopVal'].val = 0
-
-        indented = self.writeStopTestCode(buff)
-        buff.setIndentLevel(-indented, relative=True)
-
-        self.params['stopVal'].val = org_val
+        if self.params['actionType'].val in ("Start and Stop", "Start Only"):
+            # if we're starting the recording, write usual start code
+            indented = self.writeStartTestCode(buff)
+            buff.setIndentLevel(-indented, relative=True)
+        else:
+            # otherwise, assume already started
+            code = (
+                "if %(name)s.status == NOT_STARTED:\n"
+                "    %(name)s.status = STARTED\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+        
+        if self.params['actionType'].val in ("Start and Stop", "Stop Only"):
+            # if we're stopping the recording, write usual stop code
+            indented = self.writeStopTestCode(buff)
+            buff.setIndentLevel(-indented, relative=True)
 
     def writeRoutineEndCode(self, buff):
         inits = self.params
