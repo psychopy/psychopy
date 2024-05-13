@@ -112,7 +112,6 @@ class EyetrackerRecordComponent(BaseComponent):
                 "    %(name)s.frameNStart = frameN\n"
                 "    %(name)s.tStart = t\n"
                 "    %(name)s.tStartRefresh = tThisFlipGlobal\n"
-                "    win.timeOnFlip(%(name)s, 'tStartRefresh')\n"
             )
             buff.writeIndentedLines(code % self.params)
         
@@ -126,6 +125,16 @@ class EyetrackerRecordComponent(BaseComponent):
             buff.writeIndentedLines(code % self.params)
             # dedent
             buff.setIndentLevel(-indented, relative=True)
+        else:
+            # otherwise, assume immediately stopped
+            code = (
+                "if %(name)s.status == STARTED:\n"
+                "    %(name)s.status = FINISHED\n"
+                "    %(name)s.tStop = t\n"
+                "    %(name)s.tStopRefresh = tThisFlipGlobal\n"
+                "    %(name)s.frameNStop = frameN\n"
+            )
+            buff.writeIndentedLines(code % self.params)
 
     def writeRoutineEndCode(self, buff):
         inits = self.params
