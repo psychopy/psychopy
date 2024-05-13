@@ -514,10 +514,10 @@ class StartStopCtrls(wx.GridBagSizer):
         return all(ctrl.IsShown() for ctrl in self.ctrls.values())
 
     def setVisible(self, visible=True):
-        # Show/hide controls
+        # show/hide controls
         for ctrl in self.ctrls.values():
             ctrl.Show(visible)
-        # Show/hide labels
+        # show/hide labels
         if hasattr(self, "estimLabel"):
             self.estimLabel.Show(visible)
         if hasattr(self, "label"):
@@ -525,7 +525,7 @@ class StartStopCtrls(wx.GridBagSizer):
         # show/hide dollars
         if hasattr(self, "dollar"):
             self.dollar.Show(visible)
-        # Set value to None if hidden (specific to start/stop)
+        # set value to None if hidden (specific to start/stop)
         if not visible:
             if "startVal" in self.ctrls:
                 self.ctrls["startVal"].Value = ""
