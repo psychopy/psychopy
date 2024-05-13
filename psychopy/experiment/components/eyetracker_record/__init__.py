@@ -109,6 +109,10 @@ class EyetrackerRecordComponent(BaseComponent):
             code = (
                 "if %(name)s.status == NOT_STARTED:\n"
                 "    %(name)s.status = STARTED\n"
+                "    %(name)s.frameNStart = frameN\n"
+                "    %(name)s.tStart = t\n"
+                "    %(name)s.tStartRefresh = tThisFlipGlobal\n"
+                "    win.timeOnFlip(%(name)s, 'tStartRefresh')\n"
             )
             buff.writeIndentedLines(code % self.params)
         
