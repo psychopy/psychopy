@@ -155,21 +155,13 @@ class BaseCalibrationProcedure:
         unit_type = self.getCalibSetting('unit_type')
 
         def setDefaultCalibrationTarget():
-            # convert sizes to stimulus units
-            radiusPix = self.getCalibSetting(['target_attributes', 'outer_diameter']) / 2
-            radiusObj = layout.Size(radiusPix, units=unit_type, win=self.window)
-            radius = getattr(radiusObj, unit_type)[1]
-            innerRadiusPix = self.getCalibSetting(['target_attributes', 'inner_diameter']) / 2
-            innerRadiusObj = layout.Size(innerRadiusPix, units=unit_type, win=self.window)
-            innerRadius = getattr(innerRadiusObj, unit_type)[1]
-            # make target
             self.targetStim = visual.TargetStim(
                 self.window, name="CP", style="circles",
-                radius=radius,
+                radius=self.getCalibSetting(['target_attributes', 'outer_diameter']) / 2,
                 fillColor=self.getCalibSetting(['target_attributes', 'outer_fill_color']),
                 borderColor=self.getCalibSetting(['target_attributes', 'outer_line_color']),
                 lineWidth=self.getCalibSetting(['target_attributes', 'outer_stroke_width']),
-                innerRadius=innerRadius,
+                innerRadius=self.getCalibSetting(['target_attributes', 'inner_diameter']) / 2,
                 innerFillColor=self.getCalibSetting(['target_attributes', 'inner_fill_color']),
                 innerBorderColor=self.getCalibSetting(['target_attributes', 'inner_line_color']),
                 innerLineWidth=self.getCalibSetting(['target_attributes', 'inner_stroke_width']),
