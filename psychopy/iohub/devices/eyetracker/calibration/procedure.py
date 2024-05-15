@@ -57,7 +57,6 @@ class BaseCalibrationProcedure:
             color_type = display.getColorSpace()
             self._calibration_args['color_type'] = color_type
 
-
         cal_type = self.getCalibSetting('type')
 
         if cal_type in target_position_count:
@@ -304,7 +303,8 @@ class BaseCalibrationProcedure:
                     else:
                         # In contract phase
                         t = (elapsed_time-target_duration/2) / (target_duration/2)
-                        new_size = stim_size*animate_expansion_ratio - t * (stim_size*animate_expansion_ratio - min_stim_size)
+                        new_size = stim_size*animate_expansion_ratio - t * (
+                            stim_size*animate_expansion_ratio - min_stim_size)
                 if new_size:
                     self.targetStim.size = new_size, new_size
 
@@ -390,7 +390,6 @@ class BaseCalibrationProcedure:
 
             self.MsgPump()
             gevent.sleep(0.001)
-
 
     def resetTargetProperties(self):
         self.targetStim.size = self.originalTargetSize
