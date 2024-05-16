@@ -1,5 +1,5 @@
 import json
-from psychopy import layout, logging
+from psychopy import core, layout, logging
 from psychopy.hardware import base, DeviceManager
 from psychopy.localization import _translate
 from psychopy.hardware import keyboard
@@ -155,6 +155,7 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
             Size of the area of certainty. Essentially, the size of the last (smallest) rectangle which the photodiode
             was able to detect.
         """
+        clock = core.Clock()
         # keyboard to check for escape
         kb = keyboard.Keyboard(deviceName="photodiodeValidatorKeyboard")
         # stash autodraw
@@ -234,8 +235,10 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
                 label.draw()
                 rect.draw()
                 win.flip()
-                # dispatch parent messages
-                self.dispatchMessages()
+                # dispatch parent messages continuously for 0.1s (make sure diode has time)
+                clock.reset()
+                while clock.getTime() < 0.1:
+                    self.dispatchMessages()
                 # check for escape before entering recursion
                 if kb.getKeys(['escape']):
                     return None
