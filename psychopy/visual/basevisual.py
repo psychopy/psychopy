@@ -1724,7 +1724,7 @@ class DraggingMixin:
         """
         # if we don't have reference to a mouse, make one
         if not isinstance(self.mouse, Mouse):
-            self.mouse = Mouse(win=self.win)
+            self.mouse = Mouse(visible=self.win.mouseVisible, win=self.win)
             # make sure it has an initial pos for rel pos comparisons
             self.mouse.lastPos = self.mouse.getPos()
         # store value
