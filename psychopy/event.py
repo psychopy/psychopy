@@ -563,8 +563,8 @@ class Mouse:
     Create your `visual.Window` before creating a Mouse.
 
     :Parameters:
-        visible : **True** or False
-            makes the mouse invisible if necessary
+        visible : bool or None
+            Show the mouse if True, hide it if False, leave it as is if None (default)
         newPos : **None** or [x,y]
             gives the mouse a particular starting position
             (pygame `Window` only)
@@ -574,7 +574,7 @@ class Mouse:
     """
 
     def __init__(self,
-                 visible=True,
+                 visible=None,
                  newPos=None,
                  win=None):
         super(Mouse, self).__init__()
@@ -609,7 +609,8 @@ class Mouse:
         global usePygame
         if havePygame and not pygame.display.get_init():
             usePygame = False
-        self.setVisible(visible)
+        if visible is not None:
+            self.setVisible(visible)
         if newPos is not None:
             self.setPos(newPos)
 
