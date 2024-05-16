@@ -14,6 +14,7 @@ __all__ = [
 
 import json
 import inspect
+import time
 
 
 class BaseResponse:
@@ -169,6 +170,25 @@ class BaseResponseDevice(BaseDevice):
         Method to dispatch messages from the device to any nodes or listeners attached.
         """
         pass
+
+    def dispatchMessagesFor(self, duration=0.01):
+        """
+        Continuously call `.dispatchMessages` for a set period of time, so that any messages 
+        caught mid-sending are completed by subsequent `.dispatchMessages` calls. In most cases 
+        this is the same as calling `.dispatchMessages`. If running within a frame loop or any 
+        time sensitive scenario, use `.dispatchMessages` instead.
+
+        Parameters
+        ----------
+        duration : float, optional
+            Time (s) to continuously call `.dispatchMessages` for, by default 0.01
+        """
+        # start timing
+        start = time.time()
+        # call continuously until duration is reached
+        while time.time() - start < duration:
+            self.dispatchMessages()
+
 
     def parseMessage(self, message):
         raise NotImplementedError(

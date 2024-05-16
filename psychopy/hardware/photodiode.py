@@ -123,15 +123,15 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
         rect.fillColor = "black"
         rect.draw()
         win.flip()
-        # dispatch an clear so we're starting fresh
-        self.dispatchMessages()
+        # dispatch an clear so we're starting fresh (slowly, so we definitely catch them)
+        self.dispatchMessagesFor(duration=0.1)
         self.clearResponses()
         # show white
         rect.fillColor = "white"
         rect.draw()
         win.flip()
-        # dispatch messages
-        self.dispatchMessages()
+        # dispatch messages (slowly, so we definitely catch them)
+        self.dispatchMessagesFor(duration=0.1)
         # start off with no channels
         channels = []
         # iterate through potential channels
@@ -234,8 +234,8 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
                 label.draw()
                 rect.draw()
                 win.flip()
-                # dispatch parent messages
-                self.dispatchMessages()
+                # dispatch messages (slowly, so we definitely catch them)
+                self.dispatchMessagesFor(duration=0.1)
                 # check for escape before entering recursion
                 if kb.getKeys(['escape']):
                     return None
