@@ -142,7 +142,7 @@ if 'installing' not in locals():
         # make sure site knows about our custom user site-packages
         site.USER_SITE = prefs.paths['userPackages']
         site.ENABLE_USER_SITE = True
-        site.main()
+        # site.main()
 
         # add paths from main plugins/packages (installed by plugins manager)
         site.addsitedir(prefs.paths['userPackages'])  # user site-packages
@@ -159,6 +159,13 @@ if 'installing' not in locals():
             if str(prefs.paths['userScripts']) not in _envPath:
                 os.environ['PATH'] = os.pathsep.join([
                     os.environ['PATH'], str(prefs.paths['userScripts'])])
+
+        if sys.platform == 'darwin' and sys._framework:
+            # add scripts path for user packages to system PATH
+            fwBinPath = os.path.join(sys.prefix, 'bin')
+            if fwBinPath not in os.environ['PATH']:
+                os.environ['PATH'] = os.pathsep.join([
+                    fwBinPath, os.environ['PATH']])
     
     # add paths from general preferences
     for _pathName in prefs.general['paths']:
