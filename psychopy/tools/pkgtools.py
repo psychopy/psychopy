@@ -39,9 +39,17 @@ import site
 # import path. 
 
 # set user site-packages dir
-site.USER_BASE = prefs.paths['packages']
-site.USER_SITE = None  # clear, recompute this value 
-logging.debug('User site-packages dir set to: %s' % site.getusersitepackages())
+if os.environ.get('PSYCHOPYNOPACKAGES', '0') == '1':
+    site.ENABLE_USER_SITE = True
+    site.USER_SITE = prefs.paths['userPackages']
+    site.USER_BASE = None
+    logging.debug(
+        'User site-packages dir set to: %s' % site.getusersitepackages())
+    
+    # add paths from main plugins/packages (installed by plugins manager)
+    site.addsitedir(prefs.paths['userPackages'])  # user site-packages
+    site.addsitedir(prefs.paths['userInclude'])  # user include
+    site.addsitedir(prefs.paths['packages'])  # base package dir
 
 if not site.USER_SITE in sys.path:
     site.addsitedir(site.getusersitepackages()) 
