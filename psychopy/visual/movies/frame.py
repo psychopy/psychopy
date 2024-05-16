@@ -62,7 +62,8 @@ class MovieFrame:
         "_audioSamples",
         "_audioChannels",
         "_movieLib",
-        "_userData"
+        "_userData",
+        '_keepAlive'
     ]
 
     def __init__(self,
@@ -76,7 +77,8 @@ class MovieFrame:
                  audioSamples=None,
                  metadata=None,
                  movieLib=u"",
-                 userData=None):
+                 userData=None,
+                 keepAlive=None):
 
         self.frameIndex = frameIndex
         self.absTime = absTime
@@ -89,6 +91,7 @@ class MovieFrame:
         self._metadata = metadata
         self.movieLib = movieLib
         self.userData = userData
+        self._keepAlive = keepAlive
 
     def __repr__(self):
         return (f"MovieFrame(frameIndex={self.frameIndex}, "

@@ -55,6 +55,52 @@ class FrameRibbon(wx.Panel, handlers.ThemeMixin):
 
         return sct
 
+    def addPluginSections(self, group):
+        """
+        Add any sections to the ribbon which are defined by plugins, targeting the given entry point group.
+
+        Parameters
+        ----------
+        group : str
+            Entry point group to look for plugin sections in.
+
+        Returns
+        -------
+        list[FrameRubbinPluginSection]
+            List of section objects which were added
+        """
+        from importlib import metadata
+        # start off with no entry points or sections
+        entryPoints = []
+        sections = []
+        # iterate through all entry point groups
+        for thisGroup, eps in metadata.entry_points().items():
+            # get entry points for matching group
+            if thisGroup == group:
+                # add to list of all entry points
+                entryPoints += eps
+        # iterate through found entry points
+        for ep in entryPoints:
+            try:
+                # load (import) module
+                cls = ep.load()
+            except:
+                # if failed for any reason, skip it
+                continue
+            # if the target is not a subclass of FrameRibbonPluginSection, discard it
+            if not isinstance(cls, type) or not issubclass(cls, FrameRibbonPluginSection):
+                continue
+            # if it's a section, add it
+            sct = cls(parent=self)
+            self.sections[sct.name] = sct
+            sections.append(sct)
+            # add to sizer
+            self.sizer.Add(sct, border=0, flag=wx.EXPAND | wx.ALL)
+            # add separator
+            self.addSeparator()
+
+        return sections
+
     def addButton(self, section, name, label="", icon=None, tooltip="", callback=None,
                   style=wx.BU_NOTEXT):
         """
@@ -365,6 +411,26 @@ class FrameRibbonSection(wx.Panel, handlers.ThemeMixin):
         self.SetBackgroundColour(colors.app['frame_bg'])
 
         self.icon.SetBitmap(self._icon.bitmap)
+
+
+class FrameRibbonPluginSection(FrameRibbonSection):
+    """
+    Subclass of FrameRibbonSection specifically for adding sections to the ribbon via plugins. To
+    add a section, create a subclass of FrameRibbonPluginSection in your plugin and add any buttons
+    you want it to have in the `__init__` function. Then give it an entry point in either
+    "psychopy.app.builder", "psychopy.app.coder" or "psychopy.app.runner" to tell PsychoPy which
+    frame to add it to.
+    """
+    def __init__(self, parent, name, label=None):
+        # if not given a label, use name
+        if label is None:
+            label = name
+        # store name
+        self.name = name
+        # initialise subclass
+        FrameRibbonSection.__init__(
+            self, parent, label=label, icon="plugin"
+        )
 
 
 class FrameRibbonButton(wx.Button, handlers.ThemeMixin):

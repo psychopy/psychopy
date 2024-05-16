@@ -29,7 +29,7 @@ import sys
 import inspect
 import collections
 import hashlib
-import importlib
+import importlib, importlib.metadata
 import psychopy.tools.pkgtools as pkgtools
 import pkg_resources
 import psychopy.tools.pkgtools as pkgtools
@@ -60,6 +60,40 @@ _failed_plugins_ = []
 # ------------------------------------------------------------------------------
 # Functions
 #
+
+def getEntryPointGroup(group, subgroups=False):
+    """
+    Get all entry points which target a specific group.
+
+    Parameters
+    ----------
+    group : str
+        Group to look for (e.g. "psychopy.experiment.components" for plugin Components)
+    subgroups : bool
+        If True, then will also look for subgroups (e.g. "psychopy.experiment" will also return
+        entry points for "psychopy.experiment.components")
+
+    Returns
+    -------
+    list[importlib.metadata.Entrypoint]
+        List of EntryPoint objects for the given group
+    """
+    # start off with no entry points or sections
+    entryPoints = []
+
+    if subgroups:
+        # if searching subgroups, iterate through entry point groups
+        for thisGroup, eps in importlib.metadata.entry_points().items():
+            # get entry points within matching group
+            if thisGroup.startswith(group):
+                # add to list of all entry points
+                entryPoints += eps
+    else:
+        # otherwise, just get the requested group
+        entryPoints += importlib.metadata.entry_points().get(group, [])
+
+    return entryPoints
+
 
 def resolveObjectFromName(name, basename=None, resolve=True, error=True):
     """Get an object within a module's namespace using a fully-qualified or

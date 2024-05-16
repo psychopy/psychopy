@@ -26,6 +26,7 @@ class PolygonComponent(BaseVisualComponent):
                  fillColor='white', fillColorSpace='rgb',
                  shape='triangle', nVertices=4, vertices="",
                  pos=(0, 0), size=(0.5, 0.5), ori=0,
+                 draggable=False,
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim=''):
@@ -90,6 +91,14 @@ class PolygonComponent(BaseVisualComponent):
             updates='constant',
             hint=_translate("Which point on the stimulus should be anchored to its exact position?"),
             label=_translate("Anchor"))
+        self.params['draggable'] = Param(
+            draggable, valType="code", inputType="bool", categ="Layout",
+            updates="constant",
+            label="Draggable?",
+            hint=_translate(
+                "Should this stimulus be moveble by clicking and dragging?"
+            )
+        )
 
         msg = _translate("What shape is this? With 'regular polygon...' you "
                          "can set number of vertices and with 'custom "
@@ -186,7 +195,7 @@ class PolygonComponent(BaseVisualComponent):
                     "    win=win, name='%s', vertices=%s,%s\n" % (inits['name'], vertices, unitsStr) +
                     "    size=%(size)s,\n" % inits)
 
-        code += ("    ori=%(ori)s, pos=%(pos)s, anchor=%(anchor)s,\n"
+        code += ("    ori=%(ori)s, pos=%(pos)s, draggable=%(draggable)s, anchor=%(anchor)s,\n"
                  "    lineWidth=%(lineWidth)s, "
                  "    colorSpace=%(colorSpace)s,  lineColor=%(lineColor)s, fillColor=%(fillColor)s,\n"
                  "    opacity=%(opacity)s, " % inits)
@@ -276,7 +285,9 @@ class PolygonComponent(BaseVisualComponent):
         if self.params['interpolate'].val != 'linear':
             interpolate = 'false'
 
-        code += ("  ori: {ori}, pos: {pos},\n"
+        code += ("  ori: {ori}, \n"
+                 "  pos: {pos}, \n"
+                 "  draggable: {draggable}, \n"
                  "  anchor: {anchor},\n"
                  "  lineWidth: {lineWidth}, \n"
                  "  colorSpace: {colorSpace},\n")      
@@ -310,5 +321,6 @@ class PolygonComponent(BaseVisualComponent):
                                             depth=depth,
                                             interpolate=interpolate,
                                             nVertices=inits['nVertices'],
-                                            vertices=inits['vertices']
+                                            vertices=inits['vertices'],
+                                            draggable=inits['draggable']
                                             ))

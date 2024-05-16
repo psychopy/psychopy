@@ -308,7 +308,7 @@ class ParamCtrls():
             # set by integer index, not string value
             self.updateCtrl.SetSelection(index)
 
-        if param.allowedUpdates != None and len(param.allowedUpdates) == 1:
+        if self.updateCtrl is not None and len(self.updateCtrl.GetItems()) == 1:
             self.updateCtrl.Disable()  # visible but can't be changed
 
     def _getCtrlValue(self, ctrl):

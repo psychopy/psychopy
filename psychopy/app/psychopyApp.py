@@ -69,9 +69,8 @@ def main():
         """)
         sys.exit()
 
-    if (sys.platform == 'darwin' and
-            ('| packaged by conda-forge |' in sys.version or
-             '|Anaconda' in sys.version)):
+    if (('| packaged by conda-forge |' in sys.version or '|Anaconda' in sys.version)
+        and sys.platform == 'darwin' and sys.version_info >= (3,9)):
 
         # On macOS with Anaconda, GUI applications used to need to be run using
         # `pythonw`. Since we have no way to determine whether this is currently

@@ -281,7 +281,7 @@ def findImageFile(filename, checkResources=False):
 
     # try doing the same in the Resources folder
     if checkResources:
-        return findImageFile(Path(prefs.paths['resources'])/orig, checkResources=False)
+        return findImageFile(Path(prefs.paths['assets']) / orig, checkResources=False)
 
 
 def groupFlipVert(flipList, yReflect=0):

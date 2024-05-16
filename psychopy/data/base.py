@@ -120,7 +120,7 @@ class _BaseTrialHandler(_ComparisonMixin):
         """
         fileName = pathToString(fileName)
 
-        if self.thisTrialN < 1 and self.thisRepN < 1:
+        if self.thisTrialN < 0 and self.thisRepN < 0:
             # if both are < 1 we haven't started
             if self.autoLog:
                 logging.info('.saveAsPickle() called but no trials completed.'
@@ -191,7 +191,7 @@ class _BaseTrialHandler(_ComparisonMixin):
         if stimOut is None:
             stimOut = []
 
-        if self.thisTrialN < 1 and self.thisRepN < 1:
+        if self.thisTrialN < 0 and self.thisRepN < 0:
             # if both are < 1 we haven't started
             if self.autoLog:
                 logging.info('TrialHandler.saveAsText called but no trials'
@@ -306,7 +306,7 @@ class _BaseTrialHandler(_ComparisonMixin):
         if stimOut is None:
             stimOut = []
 
-        if self.thisTrialN < 1 and self.thisRepN < 1:
+        if self.thisTrialN < 0 and self.thisRepN < 0:
             # if both are < 1 we haven't started
             if self.autoLog:
                 logging.info('TrialHandler.saveAsExcel called but no '

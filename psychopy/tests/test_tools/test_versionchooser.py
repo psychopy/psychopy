@@ -2,6 +2,9 @@
 """Tests for psychopy.tools.versionchooser"""
 import os
 import sys
+import unittest
+import subprocess
+import shutil
 from pathlib import Path
 
 import psychopy
@@ -168,11 +171,39 @@ class TestVersionRange:
             )
 
 
-"""
+class TestGitInstallation(unittest.TestCase):
+    def test_git_installed(self):
+        # Test if Git is installed on this system.
+        try:
+            # Attempt to get the Git version
+            result = subprocess.run(["git", "--version"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            # Check if the command was successful
+            self.assertTrue(result.returncode == 0, "Git is not installed or not in the PATH.")
+        except subprocess.CalledProcessError:
+            # If an error occurs, the test should fail
+            self.fail("Git is not installed or not in the PATH.")
 
-TODO: Tests to write:
 
-* Fail if git isn't there
-* Fail if git can't download repo
+class TestGitClone(unittest.TestCase):
+    def test_git_can_clone_repo(self):
+        # Test that Git can clone a repository
+        repo_url = "https://github.com/git/git"  # Using a reliable repo that is always available
+        target_dir = "temp_repo"
 
-"""
+        try:
+            # Ensure the target directory does not exist before cloning
+            if os.path.exists(target_dir):
+                shutil.rmtree(target_dir)
+
+            # Run 'git clone' and capture output
+            subprocess.run(['git', 'clone', repo_url, target_dir], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        except subprocess.CalledProcessError as e:
+            # If Git clone fails for any reason
+            self.fail(f"Git clone command failed: {e}")
+        except FileNotFoundError:
+            # If the 'git' command is not found
+            self.fail("Git is not installed on this system.")
+        finally:
+            # Clean up by removing the cloned directory if it exists
+            if os.path.exists(target_dir):
+                shutil.rmtree(target_dir)

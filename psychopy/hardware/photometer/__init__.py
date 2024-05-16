@@ -18,34 +18,23 @@ __all__ = [
     'getAllPhotometerClasses'
 ]
 
-import sys
+from psychopy.tools.pkgtools import PluginStub
 
 # Special handling for legacy classes which have been offloaded to optional
 # packages. This will change to allow more flexibility in the future to avoid
 # updating this package for additions to these sub-packages. We'll need a
 # photometer type to do that, but for now we're doing it like this.
-try:
-    from ..crs import ColorCAL, OptiCAL
-except Exception:
-    ColorCAL = OptiCAL = None
+from psychopy.hardware.crs.colorcal import ColorCAL
+from psychopy.hardware.crs.optical import OptiCAL
 
 # Photo Resaerch Inc. spectroradiometers
-try:
-    from ..pr import PR655, PR650
-except Exception:
-    PR655 = PR650 = None
+from psychopy.hardware.pr import PR655, PR650
 
 # Konica Minolta light-measuring devices
-try:
-    from ..minolta import LS100, CS100A
-except Exception:
-    LS100 = CS100A = None
+from psychopy.hardware.minolta import LS100, CS100A
 
 # Gamma scientific devices
-try:
-    from ..gammasci import S470
-except Exception:
-    S470 = None
+from psychopy.hardware.gammasci import S470
 
 # photometer interfaces will be stored here after being registered
 photometerInterfaces = {}
@@ -123,8 +112,11 @@ def getAllPhotometers():
         'ColorCAL', 'OptiCAL', 'S470', 'PR650', 'PR655', 'LS100', 'CS100A')
     incPhotomList = []
     for photName in optionalPhotometers:
-        photClass = getattr(sys.modules[__name__], photName)
-        if photClass is None:  # not loaded if `None`
+        try:
+            photClass = globals()[photName]
+        except (ImportError, AttributeError):
+            continue
+        if issubclass(photClass, PluginStub):
             continue
         incPhotomList.append(photClass)
 

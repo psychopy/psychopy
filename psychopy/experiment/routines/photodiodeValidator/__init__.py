@@ -169,8 +169,9 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             channel, valType="code", inputType="single", categ="Device",
             label=_translate("Photodiode channel"),
             hint=_translate(
-                "If relevant, a channel number attached to the photodiode, to distinguish it from other photodiodes on "
-                "the same port."
+                "If relevant, a channel number attached to the photodiode, to distinguish it "
+                "from other photodiodes on the same port. Leave blank to use the first photodiode "
+                "which can detect the Window."
             )
         )
 
@@ -266,14 +267,14 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             "    report=%(report)s,\n"
             ")\n"
         )
-        buff.writeIndentedLines(code % self.params)
+        buff.writeIndentedLines(code % inits)
         # connect stimuli
         for stim in self.findConnectedStimuli():
             code = (
                 "# connect {stim} to %(name)s\n"
                 "%(name)s.connectStimulus({stim})\n"
             ).format(stim=stim.params['name'])
-            buff.writeIndentedLines(code % self.params)
+            buff.writeIndentedLines(code % inits)
 
     def writeRoutineStartValidationCode(self, buff, stim):
         """

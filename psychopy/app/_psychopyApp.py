@@ -213,7 +213,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         # allocated when `OnInit` is called.
         self._sharedMemory = None
         self._singleInstanceChecker = None  # checker for instances
-        self._timer = None
+        self._lastInstanceCheckTime = -1.0
         # Size of the memory map buffer, needs to be large enough to hold UTF-8
         # encoded long file paths.
         self.mmap_sz = 2048
@@ -424,7 +424,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         # SLOW IMPORTS - these need to be imported after splash screen starts
         # but then that they end up being local so keep track in self
 
-        from psychopy.compatibility import checkCompatibility
+        from psychopy.compatibility import checkCompatibility, checkUpdatesInfo
         # import coder and builder here but only use them later
         from psychopy.app import coder, builder, runner, dialogs
 
@@ -614,6 +614,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
 
         prefsConn = self.prefs.connections
 
+        # check for potential compatability issues
         ok, msg = checkCompatibility(last, self.version, self.prefs, fix=True)
         # tell the user what has changed
         if not ok and not self.firstRun and not self.testMode:
@@ -621,6 +622,15 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             dlg = dialogs.MessageDialog(parent=None, message=msg, type='Info',
                                         title=title)
             dlg.ShowModal()
+
+        # check for non-issue updates
+        messages = checkUpdatesInfo(old=last, new=self.version)
+        if messages:
+            dlg = dialogs.RichMessageDialog(
+                parent=None,
+                message="\n\n".join(messages)
+            )
+            dlg.Show()
 
         if self.prefs.app['showStartupTips'] and not self.testMode:
             tipFile = os.path.join(
@@ -656,10 +666,6 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         if self.coder:
             self.coder.setOutputWindow()  # takes control of sys.stdout
 
-        # if the program gets here, there are no other instances running
-        self._timer = wx.PyTimer(self._bgCheckAndLoad)
-        self._timer.Start(250)
-
         # load plugins after the app has been mostly realized
         if splash:
             splash.SetText(_translate("  Loading plugins..."))
@@ -680,15 +686,16 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
 
         return True
 
-    def _bgCheckAndLoad(self):
-        """Check shared memory for messages from other instances. This only is
-        called periodically in the first and only instance of PsychoPy.
+    def _bgCheckAndLoad(self, *args):
+        """Check shared memory for messages from other instances. 
+        
+        This only is called periodically in the first and only instance of 
+        PsychoPy running on the machine. This is called within the app's main
+        idle event method, with a frequency no more that once per second.
 
         """
         if not self._appLoaded:  # only open files if we have a UI
             return
-
-        self._timer.Stop()
 
         self._sharedMemory.seek(0)
         if self._sharedMemory.read(1) == b'+':  # available data
@@ -708,8 +715,6 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                 topWindow.Iconize(False)
             else:
                 topWindow.Raise()
-
-        self._timer.Start(1000)  # 1 second interval
 
     @property
     def appLoaded(self):
@@ -1181,8 +1186,23 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                 self._allFrames.remove(entry)
 
     def onIdle(self, evt):
+        """Run idle tasks, including background checks for new instances.
+
+        Some of these run once while others are added as tasks to be run
+        repeatedly.
+
+        """
         from . import idle
-        idle.doIdleTasks(app=self)
+        idle.doIdleTasks(app=self)  # run once
+
+        # do the background check for new instances, check each second
+        tNow = time.time()
+        if tNow - self._lastInstanceCheckTime > 1.0:  # every second
+            if not self.testMode:
+                self._bgCheckAndLoad()
+            
+            self._lastInstanceCheckTime = time.time()
+
         evt.Skip()
 
     @property

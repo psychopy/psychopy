@@ -162,7 +162,7 @@ class AppSigner:
                   f'--password "{self._pword}"')
         # cmdStr = (f"xcrun altool --notarize-app -t osx -f {fileToNotarize} "
         #           f"--primary-bundle-id {BUNDLE_ID} -u {USERNAME} ")
-        print(cmdStr)
+        # print(cmdStr)
         t0 = time.time()
         exitcode, output = subprocess.getstatusoutput(cmdStr)
         m = re.findall(r"^  id: (.*)$", output, re.M)
