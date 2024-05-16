@@ -1,5 +1,5 @@
 import json
-from psychopy import core, layout, logging
+from psychopy import layout, logging
 from psychopy.hardware import base, DeviceManager
 from psychopy.localization import _translate
 from psychopy.hardware import keyboard
@@ -123,15 +123,15 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
         rect.fillColor = "black"
         rect.draw()
         win.flip()
-        # dispatch an clear so we're starting fresh
-        self.dispatchMessages()
+        # dispatch an clear so we're starting fresh (slowly, so we definitely catch them)
+        self.dispatchMessagesFor(duration=0.1)
         self.clearResponses()
         # show white
         rect.fillColor = "white"
         rect.draw()
         win.flip()
-        # dispatch messages
-        self.dispatchMessages()
+        # dispatch messages (slowly, so we definitely catch them)
+        self.dispatchMessagesFor(duration=0.1)
         # start off with no channels
         channels = []
         # iterate through potential channels
@@ -155,7 +155,6 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
             Size of the area of certainty. Essentially, the size of the last (smallest) rectangle which the photodiode
             was able to detect.
         """
-        clock = core.Clock()
         # keyboard to check for escape
         kb = keyboard.Keyboard(deviceName="photodiodeValidatorKeyboard")
         # stash autodraw
@@ -235,10 +234,8 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
                 label.draw()
                 rect.draw()
                 win.flip()
-                # dispatch parent messages continuously for 0.1s (make sure diode has time)
-                clock.reset()
-                while clock.getTime() < 0.1:
-                    self.dispatchMessages()
+                # dispatch messages (slowly, so we definitely catch them)
+                self.dispatchMessagesFor(duration=0.1)
                 # check for escape before entering recursion
                 if kb.getKeys(['escape']):
                     return None
