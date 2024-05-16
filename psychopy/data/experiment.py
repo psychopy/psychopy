@@ -541,6 +541,9 @@ class ExperimentHandler(_ComparisonMixin):
             names, vals = self._getLoopInfo(thisLoop)
             for n, name in enumerate(names):
                 this[name] = vals[n]
+                # make sure name is in data names
+                if name not in self.dataNames:
+                    self.dataNames.append(name)
         # add the extraInfo dict to the data
         if type(self.extraInfo) == dict:
             this.update(self.extraInfo)
