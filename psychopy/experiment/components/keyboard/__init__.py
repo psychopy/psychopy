@@ -173,6 +173,7 @@ class KeyboardComponent(BaseDeviceComponent):
         code = (
             "# create starting attributes for %(name)s\n"
             "%(name)s.keys = []\n"
+            "%(name)s.getKeys(clear=True)\n"
             "%(name)s.rt = []\n"
             "_%(name)s_allKeys = []\n"
         )
@@ -186,7 +187,6 @@ class KeyboardComponent(BaseDeviceComponent):
                 "%(allowedKeys)s = globals()['%(allowedKeys)s']\n"
             )
             buff.writeIndentedLines(code % self.params)
-
 
     def writeRoutineStartCodeJS(self, buff):
         code = ("%(name)s.keys = undefined;\n"
