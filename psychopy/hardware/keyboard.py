@@ -643,6 +643,7 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
 
     def clearEvents(self, eventType=None):
         """Clear the events from the Keyboard such as previous key presses"""
+        # clear backend buffers
         if KeyboardDevice._backend == 'ptb':
             for buffer in self._buffers.values():
                 buffer.flush()  # flush the device events to the soft buffer
@@ -654,6 +655,9 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
         else:
             global event
             event.clearEvents(eventType)
+        # clear dispatched responses
+        self.responses = []
+
         logging.info("Keyboard events cleared", obj=self)
 
 
