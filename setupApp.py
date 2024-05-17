@@ -138,14 +138,33 @@ if sys.version_info < (3, 9):
 
 # check the includes and packages are all available
 missing_pkgs = []
+pip_install_lines = ''
 for pkg in includes+packages:
     
     try:
         importlib.import_module(pkg)
-    except (ImportError, ModuleNotFoundError):
-        missing_pkgs.append(pkg)
+    except ModuleNotFoundError:
+        if pkg == 'opencv':
+            missing_pkgs.append('opencv-python')
+        elif pkg == 'googleapiclient':
+            missing_pkgs.append('google-api-python-client')
+        elif pkg == 'pylink':
+            pip_install_lines += 'pip install --index-url=https://pypi.sr-support.com sr-research-pylink\n'
+        else:
+            missing_pkgs.append(pkg)
+    except OSError as err:
+        if 'libftd2xx.dylib' in str(err):
+            raise ImportError(f"Missing package: ftd2xx. Please install the FTDI D2XX drivers from "
+                              "https://www.ftdichip.com/Drivers/D2XX.htm")
+    except ImportError as err:
+        if 'eyelink' in str(err):
+            raise ImportError(f"It looks like the Eyelink dev kit is not installed "
+                              "https://www.sr-research.com/support/thread-13.html")
+
 if missing_pkgs:
-    raise ImportError("Missing packages: %s" % missing_pkgs)
+
+    helpStr = 
+    raise ImportError(f"Missing packages: {' '.join(missing_pkgs)}")
 else:
     print("All packages appear to be present. Proceeding to build...")
 
@@ -155,6 +174,7 @@ setup(
             includes=includes,
             packages=packages,
             excludes=['bsddb', 'jinja2', 'IPython','ipython_genutils','nbconvert',
+                      'tkinter', 'Tkinter', 'tcl',
                       'libsz.2.dylib', 'pygame',
                       # 'stringprep',
                       'functools32',
