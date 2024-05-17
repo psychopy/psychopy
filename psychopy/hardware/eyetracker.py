@@ -12,7 +12,10 @@ class EyetrackerControl(AttributeGetSetMixin):
     def __init__(self, tracker, actionType="Start and Stop"):
         self.tracker = tracker
         self.actionType = actionType
-        self._status = NOT_STARTED
+        if actionType.lower() == "stop":
+            self._status = STARTED
+        else:
+            self._status = tracker.isRecordingEnabled()
 
     @property
     def status(self):
