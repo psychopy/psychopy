@@ -127,6 +127,12 @@ class KeyPress(BaseResponse):
                 core.quit()
             else:
                 print(thisKey.name, thisKey.tDown, thisKey.rt)
+
+    When comparing two KeyPress objects, they will only be considered equal if
+    both the name and tDown attributes are the same. This is to prevent
+    multiple keypresses from being considered equal if they are pressed at
+    different times. Conversely for inequality, if either the name or tDown
+    attributes are different, the KeyPress objects will be considered unequal.
     """
 
     fields = ["t", "value", "duration"]
@@ -158,10 +164,16 @@ class KeyPress(BaseResponse):
         BaseResponse.__init__(self, t=tDown, value=value)
 
     def __eq__(self, other):
-        return self.name == other
+        if hasattr(other, 'tDown'):
+            return self.name == other and self.tDown == other.tDown
+        else:
+            return self.name == other
 
     def __ne__(self, other):
-        return self.name != other
+        if hasattr(other, 'tDown'):
+            return self.name != other or self.tDown != other.tDown
+        else:
+            return self.name != other
 
 
 def getKeyboards():
