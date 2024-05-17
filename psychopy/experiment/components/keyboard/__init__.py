@@ -187,7 +187,6 @@ class KeyboardComponent(BaseDeviceComponent):
             )
             buff.writeIndentedLines(code % self.params)
 
-
     def writeRoutineStartCodeJS(self, buff):
         code = ("%(name)s.keys = undefined;\n"
                 "%(name)s.rt = undefined;\n"
