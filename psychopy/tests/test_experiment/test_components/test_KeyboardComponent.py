@@ -24,11 +24,8 @@ class BaseKeyboardComponentTests(BaseComponentTests):
         """
         # add keyboard clear experiment
         self.session.addExperiment("testClearKeyboard/testClearKeyboard.psyexp", "keyboardClear")
-        # run keyboard clear experiment
+        # run keyboard clear experiment (will error if assertion not met)
         self.session.runExperiment("keyboardClear")
-        # make sure `getter` Routine didn't finish on first frame
-        entry = self.session.runs[-1].entries[-1]
-        assert (entry['getter.stopped'] - entry['getter.started']) > 0.5
 
 
 class TestIohubKeyboardComponent(BaseKeyboardComponentTests):
