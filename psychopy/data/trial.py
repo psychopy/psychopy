@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import json
 import os
 import sys
 import copy
@@ -612,7 +613,7 @@ class TrialHandler(_BaseTrialHandler):
                 Defaults to `utf-8-sig`.
 
         """
-        if self.thisTrialN < 1 and self.thisRepN < 1:
+        if self.thisTrialN < 0 and self.thisRepN < 0:
             # if both are < 1 we haven't started
             logging.info('TrialHandler.saveAsWideText called but no '
                          'trials completed. Nothing saved')
@@ -734,6 +735,74 @@ class TrialHandler(_BaseTrialHandler):
         self.data.add(thisType, value, position=None)
         if self.getExp() != None:  # update the experiment handler too
             self.getExp().addData(thisType, value)
+
+
+class Trial(dict):
+    def __init__(self, parent, thisN, thisRepN, thisTrialN, thisIndex, data=None):
+        dict.__init__(self)
+        # TrialHandler containing this trial
+        self.parent = parent
+        # state information about this trial
+        self.thisN = thisN
+        self.thisRepN = thisRepN
+        self.thisTrialN = thisTrialN
+        self.thisIndex = thisIndex
+        # data for this trial
+        if data is None:
+            data = {}
+        else:
+            data = data.copy()
+        self.data = data
+
+    def __repr__(self):
+        return (
+            f"<Trial {self.thisN} ({self.thisTrialN} in rep {self.thisRepN}) "
+            f"data={ {key: val for key,val in self.items()} }>"
+        )
+
+    @property
+    def data(self):
+        # return self when getting data (so it's modified by modifying data)
+        return self
+
+    @data.setter
+    def data(self, value: dict):
+        # when setting data, clear self...
+        self.clear()
+        # ... and set each value from the given dict
+        for key, val in value.items():
+            self[key] = val
+    
+    def getDict(self):
+        """
+        Get this Trial as a dict.
+
+        Returns
+        -------
+        dict
+            Dict containing information for this Trial.
+        """
+        return {
+            'type': "trial_data",
+            'thisN': self.thisN, 
+            'thisRepN': self.thisRepN, 
+            'thisTrialN': self.thisTrialN, 
+            'thisIndex': self.thisIndex, 
+            'data': {key: val for key, val in self.items()},
+        }
+    
+    def getJSON(self):
+        """
+        Serialize this Trial to a JSON format.
+
+        Returns
+        -------
+        str
+            The results of Trial.getDict expressed as a JSON string
+        """
+        return json.dumps(
+            self.getDict()
+        )
 
 
 class TrialHandler2(_BaseTrialHandler):
@@ -860,11 +929,6 @@ class TrialHandler2(_BaseTrialHandler):
         self.remainingIndices = []
         self.prevIndices = []
         self.method = method
-        self.thisRepN = 0  # records which repetition or pass we are on
-        self.thisTrialN = -1  # records trial number within this repetition
-        self.thisN = -1
-        self.thisIndex = None  # index of current trial in the conditions list
-        self.thisTrial = {}
         self.finished = False
         self.extraInfo = extraInfo
         self.seed = seed
@@ -872,7 +936,9 @@ class TrialHandler2(_BaseTrialHandler):
         self._trialAborted = False
 
         # store a list of dicts, convert to pandas DataFrame on access
-        self._data = []
+        self.elapsed = []
+        self.upcoming = None
+        self.thisTrial = None
 
         self.originPath, self.origin = self.getOriginPathAndFile(originPath)
         self._exp = None  # the experiment handler that owns me!
@@ -941,7 +1007,7 @@ class TrialHandler2(_BaseTrialHandler):
         Note that data are stored internally as a list of dictionaries,
         one per trial. These are converted to a DataFrame on access.
         """
-        return pd.DataFrame(self._data)
+        return pd.DataFrame(self.elapsed)
 
     def __next__(self):
         """Advances to next trial and returns it.
@@ -963,51 +1029,22 @@ class TrialHandler2(_BaseTrialHandler):
                     break  # break out of the forever loop
                 # do stuff here for the trial
         """
-        # update pointer for next trials
-        self.thisTrialN += 1  # number of trial this pass
-        self.thisN += 1  # number of trial in total
-        self.nRemaining -= 1
-        if self.thisIndex is not None:
-            self.prevIndices.append(self.thisIndex)
-
-        # thisRepN has exceeded nReps
-        if self.remainingIndices == []:
-            # we've just started, or just starting a new repeat
-            sequence = list(range(len(self.trialList)))
-            if (self.method == 'fullRandom' and
-                        self.thisN < (self.nReps * len(self.trialList))):
-                # we've only just started on a fullRandom sequence
-                sequence *= self.nReps
-                # NB permutation *returns* a shuffled array
-                self.remainingIndices = list(self._rng.permutation(sequence))
-            elif (self.method in ('sequential', 'random') and
-                          self.thisRepN < self.nReps):
-                # start a new repetition
-                self.thisTrialN = 0
-                self.thisRepN += 1
-                if self.method == 'random':
-                    self._rng.shuffle(sequence)  # shuffle (is in-place)
-                self.remainingIndices = list(sequence)
-            else:
-                # we've finished
-                self.finished = True
-                self._terminate()  # raises Stop (code won't go beyond here)
-
-        # fetch the trial info
-        if len(self.trialList) == 0:
-            self.thisIndex = 0
-            self.thisTrial = {}
-        else:
-            self.thisIndex = self.remainingIndices.pop(0)
-            # if None then use empty dict
-            thisTrial = self.trialList[self.thisIndex] or {}
-            self.thisTrial = copy.copy(thisTrial)
-        # for fullRandom check how many times this has come up before
-        if self.method == 'fullRandom':
-            self.thisRepN = self.prevIndices.count(self.thisIndex)
+        # mark previous trial as elapsed
+        if self.thisTrial is not None:
+            self.elapsed.append(self.thisTrial)
+        # if upcoming is None, recaculate
+        if self.upcoming is None:
+            self.calculateUpcoming()
+        # if upcoming is empty, finish
+        if not self.upcoming:
+            self.finished = True
+            self.thisTrial = None
+            self._terminate()
+            raise StopIteration
+        # get first upcoming trial
+        self.thisTrial = self.upcoming.pop(0)
 
         # update data structure with new info
-        self._data.append(self.thisTrial)  # update the data list of dicts
         self.addData('thisN', self.thisN)
         self.addData('thisTrialN', self.thisTrialN)
         self.addData('thisRepN', self.thisRepN)
@@ -1015,22 +1052,110 @@ class TrialHandler2(_BaseTrialHandler):
             msg = 'New trial (rep=%i, index=%i): %s'
             vals = (self.thisRepN, self.thisTrialN, self.thisTrial)
             logging.exp(msg % vals, obj=self.thisTrial)
-
-        # if the trial was aborted, reset the flag
-        self._trialAborted = False
         
         return self.thisTrial
 
     next = __next__  # allows user to call without a loop `val = trials.next()`
 
     @property
-    def trialAborted(self):
-        """`True` if the trial has been aborted an should end.
-        
-        This flag is reset to `False` on the next call to `next()`.
-        
+    def thisN(self):
+        if self.thisTrial is None:
+            if len(self.elapsed):
+                return self.elapsed[-1].thisN
+            else:
+                return -1
+        return self.thisTrial.thisN
+
+    @property
+    def thisTrialN(self):
+        if self.thisTrial is None:
+            if len(self.elapsed):
+                return self.elapsed[-1].thisTrialN
+            else:
+                return -1
+        return self.thisTrial.thisTrialN
+
+    @property
+    def thisRepN(self):
+        if self.thisTrial is None:
+            if len(self.elapsed):
+                return self.elapsed[-1].thisRepN
+            else:
+                return -1
+        return self.thisTrial.thisRepN
+    
+    def calculateUpcoming(self, fromIndex=-1):
+        """Rebuild the sequence of trial/state info as if running the trials
+
+        Args:
+            fromIndex (int, optional): the point in the sequnce from where to rebuild. Defaults to -1.
         """
-        return self._trialAborted 
+        # clear upcoming
+        self.upcoming = []
+        # start off at 0 trial
+        thisTrialN = 0
+        thisN = 0
+        thisRepN = 0
+        # empty array to store indices once taken
+        prevIndices = []
+        # empty array to store remaining indices
+        remainingIndices = []
+        # iterate a while loop until we run out of trials
+        while thisN < (self.nReps * len(self.trialList)):
+            if not remainingIndices:
+                # we've just started, or just starting a new repeat
+                sequence = list(range(len(self.trialList)))
+                if (self.method == 'fullRandom' and
+                        thisN < (self.nReps * len(self.trialList))):
+                    # we've only just started on a fullRandom sequence
+                    sequence *= self.nReps
+                    # NB permutation *returns* a shuffled array
+                    remainingIndices = list(self._rng.permutation(sequence))
+                elif (self.method in ('sequential', 'random') and
+                      thisRepN < self.nReps):
+                    thisTrialN = 0
+                    thisRepN += 1
+                    if self.method == 'random':
+                        self._rng.shuffle(sequence)  # shuffle (is in-place)
+                    remainingIndices = list(sequence)
+                else:
+                    # we've finished
+                    break
+
+            if thisN < len(self.elapsed):
+                # trial has already happened - get its value
+                thisTrial = self.elapsed[thisN]
+                # remove from remaining
+                remainingIndices.pop(remainingIndices.index(thisTrial.thisIndex))
+            else:
+                # fetch the trial info
+                if len(self.trialList) == 0:
+                    thisIndex = 0
+                    thisTrial = {}
+                else:
+                    thisIndex = remainingIndices.pop(0)
+                    # if None then use empty dict
+                    thisTrial = self.trialList[thisIndex] or {}
+                    thisTrial = copy.copy(thisTrial)
+                # make Trial object
+                thisTrial = Trial(
+                    self,
+                    thisN=thisN,
+                    thisRepN=thisRepN,
+                    thisTrialN=thisTrialN,
+                    thisIndex=thisIndex,
+                    data=thisTrial
+                )
+                # otherwise, append trial
+                self.upcoming.append(thisTrial)
+            # for fullRandom check how many times this has come up before
+            if self.method == 'fullRandom':
+                thisTrial.thisRepN = prevIndices.count(thisTrial.thisIndex)
+            # update prev indices
+            prevIndices.append(thisTrial.thisIndex)
+            # update pointer for next trials
+            thisTrialN += 1  # number of trial this pass
+            thisN += 1  # number of trial in total
 
     def abortCurrentTrial(self, action='random'):
         """Abort the current trial.
@@ -1051,39 +1176,59 @@ class TrialHandler2(_BaseTrialHandler):
           not used.
 
         """
-        # check if value for parameter `action` is valid
-        if not isinstance(action, str):  # type checks for params
-            raise TypeError(
-                "Parameter `action` specified incorrect type, must be `str`.")
-        
-        if action not in ('random', 'append'):
-            raise ValueError(
-                "Value for parameter `action` must be either 'random' or "
-                "'append'.")
-
-        # use the appropriate action for the current sampling method
-        if action == 'random':  # insert trial into random index
-            # use numpy RNG to sample a new index
-            newIndex = np.random.randint(0, len(self.remainingIndices))
-            self.remainingIndices.insert(newIndex, self.thisIndex)
-        elif action == 'append':  # insert at end of trial block
-            self.remainingIndices.append(self.thisIndex)
-
-        # flag that the trial has been aborted, user can take approriate action
-        self._trialAborted = True  
+        # clear this trial so it's not appended to elapsed
+        self.thisTrial = None
+        # clear upcoming trials so they're recalculated on next iteration
+        self.upcoming = None
 
     def getFutureTrial(self, n=1):
-        """Returns the condition for n trials into the future, without
+        """
+        Returns the condition for n trials into the future, without
         advancing the trials. Returns 'None' if attempting to go beyond
         the last trial.
+
+        Returns
+        -------
+        Trial or None
+            Trial object for n trials into the future.
         """
-        # check that we don't go out of bounds for either positive or negative
-        # offsets:
-        if n > self.nRemaining or self.thisN + n < 0:
+        # make sure n is an integer
+        if isinstance(n, str) and n.isnumeric():
+            n = int(n)
+        # return None if requesting beyond last trial
+        if n > len(self.upcoming):
             return None
-        seqs = np.array(self.sequenceIndices).transpose().flat
-        condIndex = seqs[self.thisN + n]
-        return self.trialList[condIndex]
+        # return the corresponding trial from upcoming trials array
+        return self.upcoming[n-1]
+    
+    def getFutureTrials(self, n=1, start=0):
+        """
+        Returns Trial objects for a given range in the future. Will start looking at `start` trials 
+        in the future and will return n trials from then, so e.g. to get all trials from 2 in the 
+        future to 5 in the future you would use `start=2` and `n=3`.
+
+        Parameters
+        ----------
+        n : int, optional
+            How many trials into the future to look, by default 1
+        start : int, optional
+            How many trials into the future to start looking at, by default 0
+        
+        Returns
+        -------
+        list[Trial or None]
+            List of Trial objects n long. Any trials beyond the last trial are None.
+        """
+        # blank list to store trials in
+        trials = []
+        # iterate through n trials
+        for i in range(n):
+            # add each to the list
+            trials.append(
+                self.getFutureTrial(start + i)
+            )
+        
+        return trials
 
     def getEarlierTrial(self, n=-1):
         """Returns the condition information from n trials previously.
@@ -1093,7 +1238,188 @@ class TrialHandler2(_BaseTrialHandler):
         # treat positive offset values as equivalent to negative ones:
         if n > 0:
             n = n * -1
-        return self.getFutureTrial(n)
+        # return None if requesting before first trial
+        if abs(n) > len(self.upcoming):
+            return None
+        # return the corresponding trial from elapsed trials array
+        return self.elapsed[n]
+
+    def _createOutputArray(self, stimOut, dataOut, delim=None,
+                           matrixOnly=False):
+        """Does the leg-work for saveAsText and saveAsExcel.
+        Combines stimOut with ._parseDataOutput()
+        """
+        if (stimOut == [] and
+                len(self.trialList) and
+                hasattr(self.trialList[0], 'keys')):
+            stimOut = list(self.trialList[0].keys())
+            # these get added somewhere (by DataHandler?)
+            if 'n' in stimOut:
+                stimOut.remove('n')
+            if 'float' in stimOut:
+                stimOut.remove('float')
+
+        lines = []
+        # parse the dataout section of the output
+        dataOut, dataAnal, dataHead = self._createOutputArrayData(dataOut)
+        if not matrixOnly:
+            thisLine = []
+            lines.append(thisLine)
+            # write a header line
+            for heading in list(stimOut) + dataHead:
+                if heading == 'ran_sum':
+                    heading = 'n'
+                elif heading == 'order_raw':
+                    heading = 'order'
+                thisLine.append(heading)
+
+        # loop through stimuli, writing data
+        for stimN in range(len(self.trialList)):
+            thisLine = []
+            lines.append(thisLine)
+            # first the params for this stim (from self.trialList)
+            for heading in stimOut:
+                thisLine.append(self.trialList[stimN][heading])
+
+            # then the data for this stim (from self.data)
+            for thisDataOut in dataOut:
+                # make a string version of the data and then format it
+                tmpData = dataAnal[thisDataOut][stimN]
+                if hasattr(tmpData, 'tolist'):  # is a numpy array
+                    strVersion = str(tmpData.tolist())
+                    # for numeric data replace None with a blank cell
+                    if tmpData.dtype.kind not in ['SaUV']:
+                        strVersion = strVersion.replace('None', '')
+                elif tmpData in [None, 'None']:
+                    strVersion = ''
+                else:
+                    strVersion = str(tmpData)
+
+                if strVersion == '()':
+                    # 'no data' in masked array should show as "--"
+                    strVersion = "--"
+                # handle list of values (e.g. rt_raw )
+                if (len(strVersion) and
+                            strVersion[0] in '[(' and
+                            strVersion[-1] in '])'):
+                    strVersion = strVersion[1:-1]  # skip first and last chars
+                # handle lists of lists (e.g. raw of multiple key presses)
+                if (len(strVersion) and
+                            strVersion[0] in '[(' and
+                            strVersion[-1] in '])'):
+                    tup = eval(strVersion)  # convert back to a tuple
+                    for entry in tup:
+                        # contents of each entry is a list or tuple so keep in
+                        # quotes to avoid probs with delim
+                        thisLine.append(str(entry))
+                else:
+                    thisLine.extend(strVersion.split(','))
+
+        # add self.extraInfo
+        if (self.extraInfo != None) and not matrixOnly:
+            lines.append([])
+            # give a single line of space and then a heading
+            lines.append(['extraInfo'])
+            for key, value in list(self.extraInfo.items()):
+                lines.append([key, value])
+        return lines
+
+    def _createOutputArrayData(self, dataOut):
+        """This just creates the dataOut part of the output matrix.
+        It is called by _createOutputArray() which creates the header
+        line and adds the stimOut columns
+        """
+        dataHead = []  # will store list of data headers
+        dataAnal = dict([])  # will store data that has been analyzed
+        if type(dataOut) == str:
+            # don't do list convert or we get a list of letters
+            dataOut = [dataOut]
+        elif type(dataOut) != list:
+            dataOut = list(dataOut)
+
+        # expand any 'all' dataTypes to be full list of available dataTypes
+        allDataTypes = list(self.data.keys())
+        # ready to go through standard data types
+        dataOutNew = []
+        for thisDataOut in dataOut:
+            if thisDataOut == 'n':
+                # n is really just the sum of the ran trials
+                dataOutNew.append('ran_sum')
+                continue  # no need to do more with this one
+            # then break into dataType and analysis
+            dataType, analType = thisDataOut.rsplit('_', 1)
+            if dataType == 'all':
+                dataOutNew.extend(
+                    [key + "_" + analType for key in allDataTypes])
+                if 'order_mean' in dataOutNew:
+                    dataOutNew.remove('order_mean')
+                if 'order_std' in dataOutNew:
+                    dataOutNew.remove('order_std')
+            else:
+                dataOutNew.append(thisDataOut)
+        dataOut = dataOutNew
+        # sort so all datatypes come together, rather than all analtypes
+        dataOut.sort()
+
+        # do the various analyses, keeping track of fails (e.g. mean of a
+        # string)
+        dataOutInvalid = []
+        # add back special data types (n and order)
+        if 'ran_sum' in dataOut:
+            # move n to the first column
+            dataOut.remove('ran_sum')
+            dataOut.insert(0, 'ran_sum')
+        if 'order_raw' in dataOut:
+            # move order_raw to the second column
+            dataOut.remove('order_raw')
+            dataOut.append('order_raw')
+        # do the necessary analysis on the data
+        for thisDataOutN, thisDataOut in enumerate(dataOut):
+            dataType, analType = thisDataOut.rsplit('_', 1)
+            if not dataType in self.data:
+                # that analysis can't be done
+                dataOutInvalid.append(thisDataOut)
+                continue
+            thisData = self.data[dataType]
+
+            # set the header
+            dataHead.append(dataType + '_' + analType)
+            # analyse thisData using numpy module
+            if analType in dir(np):
+                try:
+                    # will fail if we try to take mean of a string for example
+                    if analType == 'std':
+                        thisAnal = np.std(thisData, axis=1, ddof=0)
+                        # normalise by N-1 instead. This should work by
+                        # setting ddof=1 but doesn't as of 08/2010 (because
+                        # of using a masked array?)
+                        N = thisData.shape[1]
+                        if N == 1:
+                            thisAnal *= 0  # prevent a divide-by-zero error
+                        else:
+                            sqrt = np.sqrt
+                            thisAnal = thisAnal * sqrt(N) / sqrt(N - 1)
+                    else:
+                        thisAnal = eval("np.%s(thisData,1)" % analType)
+                except Exception:
+                    # that analysis doesn't work
+                    dataHead.remove(dataType + '_' + analType)
+                    dataOutInvalid.append(thisDataOut)
+                    continue  # to next analysis
+            elif analType == 'raw':
+                thisAnal = thisData
+            else:
+                raise AttributeError('You can only use analyses from numpy')
+            # add extra cols to header if necess
+            if len(thisAnal.shape) > 1:
+                for n in range(thisAnal.shape[1] - 1):
+                    dataHead.append("")
+            dataAnal[thisDataOut] = thisAnal
+
+        # remove invalid analyses (e.g. average of a string)
+        for invalidAnal in dataOutInvalid:
+            dataOut.remove(invalidAnal)
+        return dataOut, dataAnal, dataHead
 
     def saveAsWideText(self, fileName,
                        delim=None,
@@ -1150,7 +1476,7 @@ class TrialHandler2(_BaseTrialHandler):
                 Defaults to `utf-8-sig`.
 
         """
-        if self.thisTrialN < 1 and self.thisRepN < 1:
+        if self.thisTrialN < 0 and self.thisRepN < 0:
             # if both are < 1 we haven't started
             logging.info('TrialHandler.saveAsWideText called but no '
                          'trials completed. Nothing saved')
@@ -1226,6 +1552,19 @@ class TrialHandler2(_BaseTrialHandler):
         # store in the columns list to help ordering later
         if thisType not in self.columns:
             self.columns.append(thisType)
+        # make sure we have a thisTrial
+        if self.thisTrial is None:
+            if self.upcoming:
+                self.thisTrial = self.upcoming.pop(0)
+            else:
+                self.thisTrial = Trial(
+                        self,
+                        thisN=0,
+                        thisRepN=0,
+                        thisTrialN=0,
+                        thisIndex=0,
+                        data={}
+                    )
         # save the actual value in a data dict
         self.thisTrial[thisType] = value
         if self.getExp() is not None:
@@ -1868,7 +2207,7 @@ class TrialHandlerExt(TrialHandler):
                 Defaults to `utf-8-sig`.
 
         """
-        if self.thisTrialN < 1 and self.thisRepN < 1:
+        if self.thisTrialN < 0 and self.thisRepN < 0:
             # if both are < 1 we haven't started
             logging.info('TrialHandler.saveAsWideText called but no trials'
                          ' completed. Nothing saved')

@@ -153,34 +153,45 @@ class TrialHandler(_BaseLoopHandler):
         inits = getInitVals(self.params)
         # import conditions from file?
         if self.params['conditionsFile'].val in ['None', None, 'none', '']:
-            condsStr = "[None]"
+            inits['trialList'] = (
+                "[None]"
+            )
         elif self.params['Selected rows'].val in ['None', None, 'none', '']:
             # just a conditions file with no sub-selection
-            _con = "data.importConditions(%s)"
-            condsStr = _con % self.params['conditionsFile']
+            inits['trialList'] = (
+                "data.importConditions(%(conditionsFile)s)"
+            )
         else:
             # a subset of a conditions file
-            condsStr = ("data.importConditions(%(conditionsFile)s, selection="
-                        "%(Selected rows)s)") % self.params
+            inits['trialList'] = (
+                 "data.importConditions(\n"
+                 "    %(conditionsFile)s, \n"
+                 "    selection=%(Selected rows)s\n"
+                 ")\n"
+            )
         # also a 'thisName' for use in "for thisTrial in trials:"
         makeLoopIndex = self.exp.namespace.makeLoopIndex
-        self.thisName = makeLoopIndex(self.params['name'].val)
+        self.thisName = inits['loopIndex'] = makeLoopIndex(self.params['name'].val)
         # write the code
-        code = ("\n# set up handler to look after randomisation of conditions etc\n"
-                "%(name)s = data.TrialHandler(nReps=%(nReps)s, method=%(loopType)s, \n"
-                "    extraInfo=expInfo, originPath=-1,\n")
+        code = (
+            "\n"
+            "# set up handler to look after randomisation of conditions etc\n"
+            "%(name)s = data.TrialHandler2(\n"
+            "    name='%(name)s',\n"
+            "    nReps=%(nReps)s, \n"
+            "    method=%(loopType)s, \n"
+            "    extraInfo=expInfo, \n"
+            "    originPath=-1, \n"
+            "    trialList=%(trialList)s, \n"
+            "    seed=%(random seed)s, \n"
+            ")\n"
+        )
         buff.writeIndentedLines(code % inits)
-        # the next line needs to be kept separate to preserve potential string formatting
-        # by the user in condStr (i.e. it shouldn't be a formatted string itself
-        code = "    trialList=" + condsStr + ",\n"  # conditions go here
-        buff.writeIndented(code)
-        code = "    seed=%(random seed)s, name='%(name)s')\n"
+        code = (
+            "thisExp.addLoop(%(name)s)  # add the loop to the experiment\n" 
+            "%(loopIndex)s = %(name)s.trialList[0]  # so we can initialise stimuli with some values\n"
+        )
         buff.writeIndentedLines(code % inits)
-
-        code = ("thisExp.addLoop(%(name)s)  # add the loop to the experiment\n" +
-                self.thisName + " = %(name)s.trialList[0]  " +
-                "# so we can initialise stimuli with some values\n")
-        buff.writeIndentedLines(code % self.params)
         # unclutter the namespace
         if not self.exp.prefsBuilder['unclutteredNamespace']:
             code = ("# abbreviate parameter names if possible (e.g. rgb = %(name)s.rgb)\n"
