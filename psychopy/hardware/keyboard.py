@@ -572,7 +572,8 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
             if message.type == "KEYBOARD_PRESS":
                 # if message is from a key down event, make a new response
                 response = KeyPress(code=message.char, tDown=message.time, name=message.key)
-                response.rt = response.tDown - (self.clock.getLastResetTime() - self._iohubKeyboard.clock.getLastResetTime())
+                response.rt = response.tDown - (
+                    self.clock.getLastResetTime() - self._iohubKeyboard.clock.getLastResetTime())
                 self._keysStillDown.append(response)
             else:
                 # if message is from a key up event, alter existing response
@@ -599,9 +600,9 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
 
     def waitKeys(self, maxWait=float('inf'), keyList=None, waitRelease=True,
                  clear=True):
-        """Same as `~psychopy.hardware.keyboard.Keyboard.getKeys`, 
+        """Same as `~psychopy.hardware.keyboard.Keyboard.getKeys`,
         but halts everything (including drawing) while awaiting keyboard input.
-    
+
         :Parameters:
             maxWait : any numeric value.
                 Maximum number of seconds period and which keys to wait for.
@@ -621,9 +622,9 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
             clear : **True** or False
                 Whether to clear the keyboard event buffer (and discard preceding
                 keypresses) before starting to monitor for new keypresses.
-    
+
         Returns None if times out.
-    
+
         """
         timer = psychopy.clock.Clock()
 
@@ -748,7 +749,7 @@ class _KeyBuffer(object):
         if not keyList and not waitRelease:
             keyPresses = list(self._keysStillDown)
             for k in list(self._keys):
-                if not any(x.name == k.name and x.tDown == k.tDown  for x in keyPresses):
+                if not any(x.name == k.name and x.tDown == k.tDown for x in keyPresses):
                     keyPresses.append(k)
             if clear:
                 self._keys = deque()
