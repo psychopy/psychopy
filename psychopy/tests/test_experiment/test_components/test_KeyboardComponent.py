@@ -6,11 +6,11 @@ from psychopy.tests.test_experiment.test_components import BaseComponentTests
 from psychopy import session
 
 
-class BaseKeyboardComponentTests(BaseComponentTests):
+class TestKeyboardComponent(BaseComponentTests):
     comp = KeyboardComponent
     libraryClass = Keyboard
 
-    def makeSession(self):
+    def setup_class(self):
         # make a Session
         self.session = session.Session(
             root=Path(utils.TESTS_DATA_PATH) / "test_components",
@@ -26,19 +26,3 @@ class BaseKeyboardComponentTests(BaseComponentTests):
         self.session.addExperiment("testClearKeyboard/testClearKeyboard.psyexp", "keyboardClear")
         # run keyboard clear experiment (will error if assertion not met)
         self.session.runExperiment("keyboardClear")
-
-
-class TestIohubKeyboardComponent(BaseKeyboardComponentTests):
-    def setup_class(self):
-        # setup session
-        self.makeSession(self)
-        # set backend to ioHub
-        KeyboardDevice._backend = "iohub"
-
-
-class TestPtbKeyboardComponent(BaseKeyboardComponentTests):
-    def setup_class(self):
-        # setup session
-        self.makeSession(self)
-        # set backend to ioHub
-        KeyboardDevice._backend = "ptb"
