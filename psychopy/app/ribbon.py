@@ -911,7 +911,7 @@ class PavloviaProjectCtrl(FrameRibbonDropdownButton):
         # get project
         project = self.GetTopLevelParent().project
 
-        if project is None:
+        if project is None or project['path_with_namespace'] is None:
             self.button.SetLabel(_translate("No project"))
         else:
             self.button.SetLabel(project['path_with_namespace'])
