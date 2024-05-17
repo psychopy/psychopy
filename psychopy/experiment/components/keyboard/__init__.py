@@ -173,7 +173,6 @@ class KeyboardComponent(BaseDeviceComponent):
         code = (
             "# create starting attributes for %(name)s\n"
             "%(name)s.keys = []\n"
-            "%(name)s.getKeys(clear=True)\n"
             "%(name)s.rt = []\n"
             "_%(name)s_allKeys = []\n"
         )
