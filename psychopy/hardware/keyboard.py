@@ -493,7 +493,7 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
                 if resp.value in ignoreKeys:
                     wanted = False
             # if we got this far and the key is still wanted and not present, add it to output
-            if wanted and resp not in keys:
+            if wanted and not any(k is resp for k in keys):
                 keys.append(resp)
             # if clear=True, mark wanted responses as toClear
             if wanted and clear:
