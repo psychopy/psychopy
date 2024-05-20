@@ -171,24 +171,16 @@ class BaseResponseDevice(BaseDevice):
         """
         pass
 
-    def dispatchMessagesFor(self, duration=0.01):
+    def hasUnfinishedMessage(self):
         """
-        Continuously call `.dispatchMessages` for a set period of time, so that any messages 
-        caught mid-sending are completed by subsequent `.dispatchMessages` calls. In most cases 
-        this is the same as calling `.dispatchMessages`. If running within a frame loop or any 
-        time sensitive scenario, use `.dispatchMessages` instead.
+        If there is a message which have been partially received but not finished (e.g. 
+        getting the start of a message from a serial device but no end of line character 
+        yet), this will return True.
 
-        Parameters
-        ----------
-        duration : float, optional
-            Time (s) to continuously call `.dispatchMessages` for, by default 0.01
+        If not implemented or not relevant on a given device (e.g. Keyboard, which only 
+        sends full messages), this will always return False.
         """
-        # start timing
-        start = time.time()
-        # call continuously until duration is reached
-        while time.time() - start < duration:
-            self.dispatchMessages()
-
+        return False
 
     def parseMessage(self, message):
         raise NotImplementedError(
