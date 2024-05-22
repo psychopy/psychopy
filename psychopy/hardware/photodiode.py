@@ -125,20 +125,25 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
         rect.fillColor = "black"
         rect.draw()
         win.flip()
-        # dispatch and clear so we're starting fresh
-        self.dispatchMessages()
+        # wait 250ms for flip to happen and photodiode to catch it
         timeoutClock.reset()
-        while self.hasUnfinishedMessage() and timeoutClock.getTime() < 0.1:
+        while timeoutClock.getTime() < 0.25:
             self.dispatchMessages()
+        # finish dispatching any messages which are only partially received               
+        while self.hasUnfinishedMessage():
+            self.dispatchMessages()
+        # clear caught messages so we're starting afresh
         self.clearResponses()
         # show white
         rect.fillColor = "white"
         rect.draw()
         win.flip()
-        # dispatch messages (fully)
-        self.dispatchMessages()
+        # wait 250ms for flip to happen and photodiode to catch it
         timeoutClock.reset()
-        while self.hasUnfinishedMessage() and timeoutClock.getTime() < 0.1:
+        while timeoutClock.getTime() < 0.25:
+            self.dispatchMessages()
+        # finish dispatching any messages which are only partially received               
+        while self.hasUnfinishedMessage():
             self.dispatchMessages()
         # start off with no channels
         channels = []
@@ -181,7 +186,7 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
         # add low opacity label
         label = visual.TextBox2(
             win,
-            text="Finding photodiode...",
+            text="Finding photodiode {channel}...",
             fillColor=(0, 0, 0), color=(80, 80, 80), colorSpace="rgb255",
             pos=(0, 0), size=(2, 2), units="norm",
             alignment="center",
@@ -244,10 +249,13 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
                 label.draw()
                 rect.draw()
                 win.flip()
-                # dispatch messages
-                self.dispatchMessages()
+                # wait for flip to happen and photodiode to catch it (max 250ms)
                 timeoutClock.reset()
-                while self.hasUnfinishedMessage() and timeoutClock.getTime() < 0.1:
+                self.clearResponses()
+                while not self.responses and timeoutClock.getTime() < 0.25:
+                    self.dispatchMessages()
+                # finish dispatching any messages which are only partially received               
+                while self.hasUnfinishedMessage():
                     self.dispatchMessages()
                 # check for escape before entering recursion
                 if kb.getKeys(['escape']):
@@ -299,6 +307,9 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
             while "return" not in keys:
                 # get keys
                 keys = kb.getKeys()
+                # skip if escape pressed
+                if "escape" in keys:
+                    return None
                 # move rect according to arrow keys
                 pos = list(rect.pos)
                 if "left" in keys:
@@ -349,16 +360,16 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
         )
 
     def findThreshold(self, win, channel=None):
-        # if not given a channel, use first one which is responsive to the win
+        # if not given a channel, find for all channels
         if channel is None:
-            # get responsive channels
-            responsiveChannels = self.findChannels(win=win)
-            # use first responsive channel
-            if responsiveChannels:
-                channel = responsiveChannels[0]
-            else:
-                # if no channels are responsive, use 0th channel and let scanQuadrants fail cleanly
-                channel = 0
+            thresholds = []
+            # iterate through channels
+            for channel in range(self.channels):
+                thresholds.append(
+                    self.findThreshold(win, channel=channel)
+                )
+            # return array of thresholds
+            return thresholds
         # keyboard to check for escape/continue
         kb = keyboard.Keyboard(deviceName="photodiodeValidatorKeyboard")
         # stash autodraw
@@ -374,7 +385,7 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
         # add low opacity label
         label = visual.TextBox2(
             win,
-            text="Finding best threshold for photodiode...",
+            text=f"Finding best threshold for photodiode {channel}...",
             fillColor=None, color=(0, 0, 0), colorSpace="rgb",
             pos=(0, 0), size=(2, 2), units="norm",
             alignment="center",
