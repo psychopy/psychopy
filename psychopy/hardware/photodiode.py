@@ -211,7 +211,7 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
                 # if no channels are responsive, use 0th channel and let scanQuadrants fail cleanly
                 channel = 0
         # update label text once we have a channel
-        label.text = f"Finding photodiode {channel}...",
+        label.text = f"Finding photodiode {channel}..."
 
         def scanQuadrants(responsive=False):
             """
