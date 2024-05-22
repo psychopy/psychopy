@@ -352,16 +352,16 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
         )
 
     def findThreshold(self, win, channel=None):
-        # if not given a channel, use first one which is responsive to the win
+        # if not given a channel, find for all channels
         if channel is None:
-            # get responsive channels
-            responsiveChannels = self.findChannels(win=win)
-            # use first responsive channel
-            if responsiveChannels:
-                channel = responsiveChannels[0]
-            else:
-                # if no channels are responsive, use 0th channel and let scanQuadrants fail cleanly
-                channel = 0
+            thresholds = []
+            # iterate through channels
+            for channel in range(self.channels):
+                thresholds.append(
+                    self.findThreshold(win, channel=channel)
+                )
+            # return array of thresholds
+            return thresholds
         # keyboard to check for escape/continue
         kb = keyboard.Keyboard(deviceName="photodiodeValidatorKeyboard")
         # stash autodraw
