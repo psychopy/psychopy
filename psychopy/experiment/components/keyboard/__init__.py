@@ -170,10 +170,22 @@ class KeyboardComponent(BaseDeviceComponent):
         buff.writeIndentedLines(code % self.params)
 
     def writeRoutineStartCode(self, buff):
-        code = ("%(name)s.keys = []\n"
-                "%(name)s.rt = []\n"
-                "_%(name)s_allKeys = []\n")
+        code = (
+            "# create starting attributes for %(name)s\n"
+            "%(name)s.keys = []\n"
+            "%(name)s.rt = []\n"
+            "_%(name)s_allKeys = []\n"
+        )
         buff.writeIndentedLines(code % self.params)
+        # if allowedKeys looks like a variable, load it from global
+        allowedKeys = str(self.params['allowedKeys'])
+        allowedKeysIsVar = valid_var_re.match(str(allowedKeys)) and not allowedKeys == 'None'
+        if allowedKeysIsVar:
+            code = (
+                "# allowedKeys looks like a variable, so make sure it exists locally\n"
+                "%(allowedKeys)s = globals()['%(allowedKeys)s']\n"
+            )
+            buff.writeIndentedLines(code % self.params)
 
     def writeRoutineStartCodeJS(self, buff):
         code = ("%(name)s.keys = undefined;\n"
