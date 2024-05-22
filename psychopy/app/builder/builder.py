@@ -1633,8 +1633,28 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.app.runner.panel.runOnlineDebug(evt=evt)
 
     def setPavloviaUser(self, user):
-        # TODO: update user icon on button to user avatar
-        pass
+        if user is None:
+            # If there is no user, set the button label to "No user" and use the default icon
+            self.button.SetLabel(_translate("No user"))
+            icon = icons.ButtonIcon("user_none", size=32).bitmap
+        else:
+            # If there is a user, set the button label to the username
+            self.button.SetLabel(user['username'])
+            try:
+                # Attempt to get the user's avatar image
+                content = utils.ImageData(user['avatar_url'])
+                content = content.resize(size=(32, 32))
+                icon = wx.Bitmap.FromBufferAndAlpha(
+                    width=content.size[0],
+                    height=content.size[1],
+                    data=content.tobytes("raw", "RGB"),
+                    alpha=content.tobytes("raw", "A")
+                )
+            except requests.exceptions.MissingSchema:
+                # If there's an error with the image URL, use the default icon
+                icon = icons.ButtonIcon("user_none", size=32).bitmap
+        # Set the button icon
+        self.button.SetBitmap(icon)
 
     @property
     def project(self):
