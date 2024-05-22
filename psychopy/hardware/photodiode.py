@@ -186,7 +186,7 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
         # add low opacity label
         label = visual.TextBox2(
             win,
-            text="Finding photodiode {channel}...",
+            text=f"Finding photodiode...",
             fillColor=(0, 0, 0), color=(80, 80, 80), colorSpace="rgb255",
             pos=(0, 0), size=(2, 2), units="norm",
             alignment="center",
@@ -210,6 +210,8 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
             else:
                 # if no channels are responsive, use 0th channel and let scanQuadrants fail cleanly
                 channel = 0
+        # update label text once we have a channel
+        label.text = f"Finding photodiode {channel}...",
 
         def scanQuadrants(responsive=False):
             """
