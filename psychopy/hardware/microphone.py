@@ -804,7 +804,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
 
         return self._recording.getSegment()  # full recording
 
-    def getCurrentVolume(self, timeframe=0.1):
+    def getCurrentVolume(self, timeframe=0.2):
         """
         Get the current volume measured by the mic.
 
@@ -836,15 +836,34 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
     addListener = BaseResponseDevice.addListener
     clearListeners = BaseResponseDevice.clearListeners
 
-    def dispatchMessages(self):
+    def dispatchMessages(self, clear=True):
         """
         Dispatch current volume as a MicrophoneResponse object to any attached listeners.
+
+        Parameters
+        ----------
+        clear : bool
+            If True, will clear the recording up until now after dispatching the volume. This is
+            useful if you're just sampling volume and aren't wanting to store the recording.
         """
         # create a response object
         message = MicrophoneResponse(
             logging.defaultClock.getTime(),
             self.getCurrentVolume()
         )
+        # clear recording if requested (helps with continuous running)
+        if clear and self.isRecBufferFull:
+            # work out how many samples is 0.1s
+            toSave = min(
+                int(0.2 * self._sampleRateHz),
+                int(self.maxRecordingSize / 2)
+            )
+            # get last 0.1s so we still have enough for volume measurement
+            savedSamples = self._recording._samples[-toSave:, :]
+            # clear samples
+            self._recording.clear()
+            # reassign saved samples
+            self._recording.write(savedSamples)
         # dispatch to listeners
         for listener in self.listeners:
             listener.receiveMessage(message)
