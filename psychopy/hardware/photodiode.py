@@ -186,7 +186,7 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
         # add low opacity label
         label = visual.TextBox2(
             win,
-            text="Finding photodiode...",
+            text="Finding photodiode {channel}...",
             fillColor=(0, 0, 0), color=(80, 80, 80), colorSpace="rgb255",
             pos=(0, 0), size=(2, 2), units="norm",
             alignment="center",
@@ -385,7 +385,7 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
         # add low opacity label
         label = visual.TextBox2(
             win,
-            text="Finding best threshold for photodiode...",
+            text=f"Finding best threshold for photodiode {channel}...",
             fillColor=None, color=(0, 0, 0), colorSpace="rgb",
             pos=(0, 0), size=(2, 2), units="norm",
             alignment="center",
