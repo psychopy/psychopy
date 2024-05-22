@@ -5,7 +5,24 @@ Communicating with an Eyetracker
 
 PsychoPy has components that allow you to connect and communicate with eyetrackers directly from Builder - without any code! These steps will guide you through how to set up, calibrate, and record from your eyetracker.
 
-Step one: Know Your Eyetracker
+Step one: Select your plugin
+-------------------------------------------------------------
+`If you are using a version of PsychoPy from 2022 or earlier, skip this step and go straight to step two`
+
+To use your eye tracker, you will need to install a plugin. PsychoPy supports many of the commonly used eye trackers. To find out whether yours is supported, follow these steps:
+
+* Under the `Tools` tab, select `Plugin/packages Manager`
+* Find your eye tracker in the plugins list and select `install`
+
+.. figure:: /images/PluginsAndPackagesManager.png
+
+If you would like to install a plugin from a file (e.g. a .whl file):
+
+* In the Plugin and Packages Manager, select the `Packages` tab
+* At the bottom left of the window, select whether you would like to install from a file or via the PIP terminal
+* Select the relevant file or run a PIP install
+
+Step two: Know Your Eyetracker
 -------------------------------------------------------------
 
 PsychoPy supports many of the commonly used eyetrackers, you can find out if yours is supported by following these steps:
@@ -19,7 +36,7 @@ PsychoPy supports many of the commonly used eyetrackers, you can find out if you
 * When you've found your eyetracker, just select it and click `OK`.
 * If you want to test out your eyetracking experiment but don't have an eyetracker with you, you can select `MouseGaze`. This will allow your mouse cursor to act as a gaze point on your screen, and so allow you to simulate eye movements without using an eyetracker. Then, when you're ready to use your eyetracker, you can just select it from the Experiment Settings and run your experiment in the same way.
 
-Step two: Set up your Eyetracker
+Step three: Set up your Eyetracker
 -------------------------------------------------------------
 When you've selected your eyetracker from the drop-down menu, a set of options that are specific to that device will appear, such as the model and serial number of your device. Here we will follow through with the MouseGaze options:
 
