@@ -831,10 +831,39 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
 
         return clip.rms() * 10
 
-    # MicrophoneDevice isn't *really* a ResponseDevice, but it can have listeners - so may as
-    # well use the same functions to add/remove them
-    addListener = BaseResponseDevice.addListener
-    clearListeners = BaseResponseDevice.clearListeners
+    def addListener(self, listener, startLoop=False):
+        """
+        Add a listener, which will receive all the same messages as this device.
+
+        Parameters
+        ----------
+        listener : str or psychopy.hardware.listener.BaseListener
+            Either a Listener object, or use one of the following strings to create one:
+            - "liaison": Create a LiaisonListener with DeviceManager.liaison as the server
+            - "print": Create a PrintListener with default settings
+            - "log": Create a LoggingListener with default settings
+        startLoop : bool
+            If True, then upon adding the listener, start up an asynchronous loop to dispatch messages.
+        """
+        # add listener as normal
+        BaseResponseDevice.addListener(self, listener, startLoop=startLoop)
+        # if we're starting a listener loop, start recording
+        if startLoop:
+            self.start()
+
+    def clearListeners(self):
+        """
+        Remove any listeners from this device.
+
+        Returns
+        -------
+        bool
+            True if completed successfully
+        """
+        # clear listeners as normal
+        BaseResponseDevice.clearListeners(self)
+        # stop recording
+        self.stop()
 
     def dispatchMessages(self, clear=True):
         """
