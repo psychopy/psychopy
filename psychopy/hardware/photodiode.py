@@ -125,20 +125,25 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
         rect.fillColor = "black"
         rect.draw()
         win.flip()
-        # dispatch and clear so we're starting fresh
-        self.dispatchMessages()
+        # wait 250ms for flip to happen and photodiode to catch it
         timeoutClock.reset()
-        while self.hasUnfinishedMessage() and timeoutClock.getTime() < 0.1:
+        while timeoutClock.getTime() < 0.25:
             self.dispatchMessages()
+        # finish dispatching any messages which are only partially received               
+        while self.hasUnfinishedMessage():
+            self.dispatchMessages()
+        # clear caught messages so we're starting afresh
         self.clearResponses()
         # show white
         rect.fillColor = "white"
         rect.draw()
         win.flip()
-        # dispatch messages (fully)
-        self.dispatchMessages()
+        # wait 250ms for flip to happen and photodiode to catch it
         timeoutClock.reset()
-        while self.hasUnfinishedMessage() and timeoutClock.getTime() < 0.1:
+        while timeoutClock.getTime() < 0.25:
+            self.dispatchMessages()
+        # finish dispatching any messages which are only partially received               
+        while self.hasUnfinishedMessage():
             self.dispatchMessages()
         # start off with no channels
         channels = []
@@ -244,10 +249,13 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
                 label.draw()
                 rect.draw()
                 win.flip()
-                # dispatch messages
-                self.dispatchMessages()
+                # wait for flip to happen and photodiode to catch it (max 250ms)
                 timeoutClock.reset()
-                while self.hasUnfinishedMessage() and timeoutClock.getTime() < 0.1:
+                self.clearResponses()
+                while not self.responses and timeoutClock.getTime() < 0.25:
+                    self.dispatchMessages()
+                # finish dispatching any messages which are only partially received               
+                while self.hasUnfinishedMessage():
                     self.dispatchMessages()
                 # check for escape before entering recursion
                 if kb.getKeys(['escape']):
