@@ -299,6 +299,9 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
             while "return" not in keys:
                 # get keys
                 keys = kb.getKeys()
+                # skip if escape pressed
+                if "escape" in keys:
+                    return None
                 # move rect according to arrow keys
                 pos = list(rect.pos)
                 if "left" in keys:
