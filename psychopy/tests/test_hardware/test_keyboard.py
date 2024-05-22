@@ -26,6 +26,33 @@ class _TestBaseKeyboard:
             assert keys[-1] is evt
             assert keys[-1].value == case['val']
 
+    def testAcceptDuplicateResponses(self):
+        """
+        Test that KeyboardDevice can receive multiple presses of the same key without accepting
+        genuine duplicates (e.g. KeyPress objects added twice, or the same object added for press
+        and release)
+        """
+        # clear
+        self.kb.clearEvents()
+        # press space twice and don't release
+        resp1 = self.kb.makeResponse(tDown=0.1, code="space")
+        resp2 = self.kb.makeResponse(tDown=0.2, code="space")
+        # make sure we only have 2 press objects
+        keys = self.kb.getKeys(waitRelease=False, clear=False)
+        assert len(keys) == 2
+        # simulate a release
+        resp1.duration = 0.2
+        resp2.duration = 0.1
+        self.kb.responses += [resp1, resp2]
+        # we should still only have 2 press objects (as these are duplicates)
+        keys = self.kb.getKeys(waitRelease=True, clear=False)
+        assert len(keys) == 2
+        # add the same objects again for no good reason
+        self.kb.responses += [resp1, resp2]
+        # we should STILL only have 2 press objects
+        keys = self.kb.getKeys(waitRelease=True, clear=False)
+        assert len(keys) == 2
+
     def testMuteOutsidePsychopyNotSlower(self):
         """
         Test that responses aren't worryingly slower when using muteOutsidePsychopy
