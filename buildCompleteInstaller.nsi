@@ -198,6 +198,7 @@ Section Uninstall
   Delete "$INSTDIR\${PRODUCT_NAME}.url"
   Delete "$INSTDIR\uninst.exe"
   RMDir /r "$INSTDIR"
+  RMDir /r "$APPDATA\psychopy3"
   ; NB we don't uninstall avbin - it might be used by another python installation
 
   ;shortcuts
