@@ -324,7 +324,7 @@ def main():
                         action='store', required=False, default=defaultVersion)
     parser.add_argument("--file", help="path for a single file to be signed",
                         action='store', required=False, default=None)
-    parser.add_argument("--skipnotarize", help="path for a single file to be signed",
+    parser.add_argument("--skipNotarize", help="path for a single file to be signed",
                         action='store', required=False, default=None)
     parser.add_argument("--runPreDmgBuild", help="Runs up until dmg is built (and notarised) then exits",
                         action='store', required=False, default='true')
@@ -332,9 +332,9 @@ def main():
                         action='store', required=False, default='true')
     parser.add_argument("--runPostDmgBuild", help="Runs up until dmg is built (and notarised) then exits",
                         action='store', required=False, default='true')
-    parser.add_argument("--teamid", help="ost id from apple for codesigning",
+    parser.add_argument("--teamId", help="ost id from apple for codesigning",
                         action='store', required=False, default=None)
-    parser.add_argument("--appleid", help="apple id for codesigning",
+    parser.add_argument("--appleId", help="apple id for codesigning",
                         action='store', required=False, default=None)
     parser.add_argument("--pwd", help="password for app-specific password",
                         action='store', required=False, default=None)
@@ -343,19 +343,19 @@ def main():
     args.runDmgBuild = args.runDmgBuild.lower() in ['true', 'True', '1', 'y', 'yes']
     args.runPostDmgBuild = args.runPostDmgBuild.lower() in ['true', 'True', '1', 'y', 'yes']
 
-    if args.skipnotarize:
+    if args.skipNotarize:
         NOTARIZE = False
     else:
         NOTARIZE = True
 
     # codesigning TEAM_ID from CLI args?
-    if args.teamid:
-        TEAM_ID = args.teamid
+    if args.teamId:
+        TEAM_ID = args.teamId
     else:
         with Path().home()/ 'keys/apple_ost_id' as p:
             TEAM_ID = p.read_text().strip()
-    if args.appleid:
-        APPLE_ID = args.appleid
+    if args.appleId:
+        APPLE_ID = args.appleId
     else:
         with Path().home()/ 'keys/apple_id' as p:
             APPLE_ID = p.read_text().strip()

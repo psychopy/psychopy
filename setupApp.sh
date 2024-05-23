@@ -59,10 +59,10 @@ for i in todo; do
             ${pythons[$i]} building/apple_sign.py --app "${names[$i]}.app" --runPreDmgBuild 0    
             ;;
         1) 
-            ${pythons[$i]} building/apple_sign.py --app "${names[$i]}.app" --skipnotarize 1
+            ${pythons[$i]} building/apple_sign.py --app "${names[$i]}.app" --skipNotarize 1
             ;;
         2)
-            ${pythons[$i]} building/apple_sign.py --app "${names[$i]}.app" --runPostDmgBuild 0 --skipnotarize 1
+            ${pythons[$i]} building/apple_sign.py --app "${names[$i]}.app" --runPostDmgBuild 0 --skipNotarize 1
             ;;
     esac
 
