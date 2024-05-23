@@ -162,8 +162,6 @@ for pkg in includes+packages:
                               "https://www.sr-research.com/support/thread-13.html")
 
 if missing_pkgs:
-
-    helpStr = 
     raise ImportError(f"Missing packages: {' '.join(missing_pkgs)}")
 else:
     print("All packages appear to be present. Proceeding to build...")
