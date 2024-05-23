@@ -276,6 +276,78 @@ class TestTrialHandler2:
             else:
                 # if we got None, make sure we were expecting to
                 assert answers[n] is None
+        # test getting all trials
+        trials = t.getFutureTrials(None)
+        for i in range(len(trials)):
+            assert trials[i] == t.upcomingTrials[i]
+
+    def test_skipTrials_rewindTrials(self):
+        # make trial hancler
+        t = data.TrialHandler2(
+            self.conditions,
+            nReps=2,
+            method="sequential"
+        )
+        t.__next__()
+        # some values to move forwards/backwards by and the values at that point
+        cases = [
+            # move backwards and forwards and check we land in the right place
+            (+4, {'thisN': 4, 'thisRepN': 2, 'thisTrialN': 1, 'thisIndex': 1}),
+            (-1, {'thisN': 3, 'thisRepN': 2, 'thisTrialN': 0, 'thisIndex': 0}),
+            (-3, {'thisN': 0, 'thisRepN': 1, 'thisTrialN': 0, 'thisIndex': 0}),
+            (+2, {'thisN': 2, 'thisRepN': 1, 'thisTrialN': 2, 'thisIndex': 2}),
+            (-1, {'thisN': 1, 'thisRepN': 1, 'thisTrialN': 1, 'thisIndex': 1}),
+            (+2, {'thisN': 3, 'thisRepN': 2, 'thisTrialN': 0, 'thisIndex': 0}),
+            # move back past the start and check we land at the start
+            (-10, {'thisN': 0, 'thisRepN': 1, 'thisTrialN': 0, 'thisIndex': 0}),
+            # move forwards past the end and check we land at the end
+            (+10, {'thisN': 5, 'thisRepN': 2, 'thisTrialN': 2, 'thisIndex': 2}),
+        ]
+        # iterate through cases
+        for inc, answer in cases:
+            if inc < 0:
+                # if increment is negative, rewind
+                t.rewindTrials(inc)
+            else:
+                # if positive, skip
+                t.skipTrials(inc)
+            # check that new current Trial is correct
+            for key in answer:
+                assert getattr(t.thisTrial, key) == answer[key], (
+                    f"Was expecting current trial to match all fields {answer}, instead was "
+                    f"{t.thisTrial.getDict()} (different {key})"
+                )
+            # check that trials are still in the correct order
+            if t.upcomingTrials:
+                assert t.upcomingTrials[0].thisN == t.thisTrial.thisN + 1
+            else:
+                # if there's no upcoming trials, thisN should be 5
+                assert t.thisTrial.thisN == 5
+            if t.elapsedTrials:
+                assert t.elapsedTrials[-1].thisN == t.thisTrial.thisN - 1
+            else:
+                # if there's no elapsed trials, thisN should be 0
+                assert t.thisTrial.thisN == 0
+
+    def test_finished(self):
+        # make trial hancler
+        t = data.TrialHandler2(
+            self.conditions,
+            nReps=2,
+            method="sequential"
+        )
+        t.__next__()
+        # there are trials remaining, so .finished should be False
+        assert not t.finished
+        # try setting .finished and confirm that subsequent trials are skipped
+        t.finished = True
+        assert not len(t.upcomingTrials)
+        # now set not finished and confirm trials are back
+        t.finished = False
+        assert  len(t.upcomingTrials)
+        # now skip past the end and confirm that .finished is True again
+        t.skipTrials(n=100)
+        assert t.finished
 
 
 class TestTrialHandler2Output():

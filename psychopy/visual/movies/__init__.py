@@ -308,7 +308,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         self._selectWindow(self.win if win is None else win)
 
         # handle autoplay
-        if self._autoStart and self.status == NOT_STARTED:
+        if self._autoStart and self.isNotStarted:
             self.play()
 
         # update the video frame and draw it to a quad
@@ -675,7 +675,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         """
         # get the size of the movie frame and compute the buffer size
         vidWidth, vidHeight = self._player.getMetadata().size
-        nBufferBytes = vidWidth * vidHeight * 3
+        nBufferBytes = vidWidth * vidHeight * 4
 
         # Create the pixel buffer object which will serve as the texture memory
         # store. Pixel data will be copied to this buffer each frame.
@@ -696,14 +696,12 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         GL.glTexImage2D(
             GL.GL_TEXTURE_2D,
             0,
-            GL.GL_RGB8,
+            GL.GL_RGBA8,
             vidWidth, vidHeight,  # frame dims in pixels
             0,
-            GL.GL_RGB,
+            GL.GL_BGRA,
             GL.GL_UNSIGNED_BYTE,
             None)
-
-        GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
 
         # setup texture filtering
         if self.interpolate:
@@ -732,7 +730,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         # get the size of the movie frame and compute the buffer size
         vidWidth, vidHeight = self._player.getMetadata().size
 
-        nBufferBytes = vidWidth * vidHeight * 3
+        nBufferBytes = vidWidth * vidHeight * 4
 
         # bind pixel unpack buffer
         GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, self._pixbuffId)
@@ -769,12 +767,11 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._textureId)
 
         # copy the PBO to the texture
-        GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
         GL.glTexSubImage2D(
             GL.GL_TEXTURE_2D, 0, 0, 0,
             vidWidth, vidHeight,
-            GL.GL_RGB,
-            GL.GL_UNSIGNED_BYTE,
+            GL.GL_BGRA,
+            GL.GL_UNSIGNED_INT_8_8_8_8_REV,
             0)  # point to the presently bound buffer
 
         # update texture filtering only if needed

@@ -456,6 +456,38 @@ class ExperimentHandler(_ComparisonMixin):
             ))
         # set own status
         self.status = constants.STOPPED
+
+    def skipTrials(self, n=1):
+        """
+        Skip ahead n trials - the trials inbetween will be marked as "skipped". If you try to
+        skip past the last trial, will log a warning and skip *to* the last trial.
+
+        Parameters
+        ----------
+        n : int
+            Number of trials to skip ahead
+        """
+        # return if there isn't a TrialHandler2 active
+        if not isinstance(self.currentLoop, TrialHandler2):
+            return
+        # skip trials in current loop
+        self.currentLoop.skipTrials(n)
+
+    def rewindTrials(self, n=1):
+        """
+        Skip ahead n trials - the trials inbetween will be marked as "skipped". If you try to
+        skip past the last trial, will log a warning and skip *to* the last trial.
+
+        Parameters
+        ----------
+        n : int
+            Number of trials to skip ahead
+        """
+        # return if there isn't a TrialHandler2 active
+        if not isinstance(self.currentLoop, TrialHandler2):
+            return
+        # rewind trials in current loop
+        self.currentLoop.rewindTrials(n)
     
     def getFutureTrial(self, n=1):
         """
@@ -468,8 +500,7 @@ class ExperimentHandler(_ComparisonMixin):
             return None
         # get future trial from current loop
         return self.currentLoop.getFutureTrial(n)
-    
-        
+
     def getFutureTrials(self, n=1, start=0):
         """
         Returns Trial objects for a given range in the future. Will start looking at `start` trials 
@@ -510,6 +541,9 @@ class ExperimentHandler(_ComparisonMixin):
             names, vals = self._getLoopInfo(thisLoop)
             for n, name in enumerate(names):
                 this[name] = vals[n]
+                # make sure name is in data names
+                if name not in self.dataNames:
+                    self.dataNames.append(name)
         # add the extraInfo dict to the data
         if type(self.extraInfo) == dict:
             this.update(self.extraInfo)
@@ -606,7 +640,9 @@ class ExperimentHandler(_ComparisonMixin):
                            encoding=encoding)
 
         names = self._getAllParamNames()
-        names.extend(self.dataNames)
+        for name in self.dataNames:
+            if name not in names:
+                names.append(name)
         # names from the extraInfo dictionary
         names.extend(self._getExtraInfo()[0])
         if len(names) < 1:

@@ -39,16 +39,24 @@ import site
 # import path. 
 
 # set user site-packages dir
-site.USER_BASE = prefs.paths['packages']
-site.USER_SITE = None  # clear, recompute this value 
-logging.debug('User site-packages dir set to: %s' % site.getusersitepackages())
+if os.environ.get('PSYCHOPYNOPACKAGES', '0') == '1':
+    site.ENABLE_USER_SITE = True
+    site.USER_SITE = prefs.paths['userPackages']
+    site.USER_BASE = None
+    logging.debug(
+        'User site-packages dir set to: %s' % site.getusersitepackages())
+    
+    # add paths from main plugins/packages (installed by plugins manager)
+    site.addsitedir(prefs.paths['userPackages'])  # user site-packages
+    site.addsitedir(prefs.paths['userInclude'])  # user include
+    site.addsitedir(prefs.paths['packages'])  # base package dir
 
 if not site.USER_SITE in sys.path:
     site.addsitedir(site.getusersitepackages()) 
 
 # add packages dir to import path
-if prefs.paths['packages'] not in pkg_resources.working_set.entries:
-    pkg_resources.working_set.add_entry(prefs.paths['packages'])
+# if prefs.paths['packages'] not in pkg_resources.working_set.entries:
+#     pkg_resources.working_set.add_entry(prefs.paths['packages'])
 
 # cache list of packages to speed up checks
 _installedPackageCache = []
@@ -238,13 +246,17 @@ def installPackage(package, target=None, upgrade=False, forceReinstall=False,
     cmd.append('--no-color')  # no color for console, not supported
     cmd.append('--no-warn-conflicts')  # silence non-fatal errors
 
+    # get the environment for the subprocess
+    env = os.environ.copy()
+
     # run command in subprocess
     output = sp.Popen(
         cmd,
         stdout=sp.PIPE,
         stderr=sp.PIPE,
         shell=False,
-        universal_newlines=True)
+        universal_newlines=True,
+        env=env)
     stdout, stderr = output.communicate()  # blocks until process exits
 
     sys.stdout.write(stdout)
@@ -477,7 +489,6 @@ def uninstallPackage(package):
 
         # setup the environment to use the user's site-packages
         env = os.environ.copy()
-        env["PYTHONUSERBASE"] = site.USER_BASE
 
         # run command in subprocess
         output = sp.Popen(

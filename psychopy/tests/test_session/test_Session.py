@@ -22,7 +22,8 @@ class TestSession:
                 'exp2': "exp2/exp2.psyexp",
                 'testCtrls': "testCtrls/testCtrls.psyexp",
                 'error': "error/error.psyexp",
-                'annotation': "annotation/annotation.psyexp"
+                'annotation': "annotation/annotation.psyexp",
+                'trialNav': "testTrialNav/trialNav.psyexp"
             }
         )
         # setup devices
@@ -44,6 +45,9 @@ class TestSession:
     def test_run_exp(self):
         self.sess.runExperiment("exp2")
         self.sess.runExperiment("exp1")
+
+    def test_trial_navigation(self):
+        self.sess.runExperiment("trialNav")
 
     def test_ctrls(self):
         """

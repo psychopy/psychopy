@@ -236,21 +236,29 @@ class Session:
         file, contained somewhere within the folder supplied for `root`. Paths can be absolute or
         relative to the root folder. Leave as None for a blank dict, experiments can be added
         later on via `addExperiment()`.
+    
+    restMsg : str
+        Message to display inbetween experiments.
     """
 
-    def __init__(self,
-                 root,
-                 dataDir=None,
-                 clock="iso",
-                 win=None,
-                 experiments=None,
-                 loggingLevel="info",
-                 priorityThreshold=constants.priority.EXCLUDE+1,
-                 params=None,
-                 liaison=None):
+    def __init__(
+            self,
+            root,
+            dataDir=None,
+            clock="iso",
+            win=None,
+            experiments=None,
+            loggingLevel="info",
+            priorityThreshold=constants.priority.EXCLUDE+1,
+            params=None,
+            liaison=None,
+            restMsg="Rest..."
+        ):
         # Store root and add to Python path
         self.root = Path(root)
         sys.path.insert(1, str(self.root))
+        # store rest message
+        self.restMsg = restMsg
         # Create data folder
         if dataDir is None:
             dataDir = self.root / "data" / str(core.Clock().getTime(format="%Y-%m-%d_%H-%M-%S-%f"))
@@ -336,9 +344,7 @@ class Session:
         """
         if self.win is not None and not self.win._closed:
             # Show waiting message
-            self.win.showMessage(_translate(
-                "Waiting to start..."
-            ))
+            self.win.showMessage(self.restMsg)
             self.win.color = "grey"
             # Flip the screen
             self.win.flip()
@@ -760,9 +766,7 @@ class Session:
             # If win is None, make a Window
             from psychopy.visual import Window
             self.win = Window(**params)
-            self.win.showMessage(_translate(
-                "Waiting to start..."
-            ))
+            self.win.showMessage(self.restMsg)
         else:
             # otherwise, just set the attributes which are safe to set
             self.win.color = params.get('color', self.win.color)
@@ -1051,9 +1055,7 @@ class Session:
         # Mark ExperimentHandler as no longer current
         self.currentExperiment = None
         # Display waiting text
-        self.win.showMessage(_translate(
-            "Waiting to start..."
-        ))
+        self.win.showMessage(self.restMsg)
         self.win.color = "grey"
         # Raise any errors now
         if err is not None:
@@ -1098,7 +1100,6 @@ class Session:
             trial = trial.getDict()
         
         return trial
-    
         
     def getFutureTrials(self, n=1, start=0, asDict=False):
         """
@@ -1194,8 +1195,42 @@ class Session:
 
         return True
 
-    # def recycleTrial(self, thisExp, trial):
-    #     pass
+    def skipTrials(self, n=1):
+        """
+        Skip ahead n trials - the trials inbetween will be marked as "skipped". If you try to
+        skip past the last trial, will log a warning and skip *to* the last trial.
+
+        Parameters
+        ----------
+        n : int
+            Number of trials to skip ahead
+        """
+        # return if there's no current experiment
+        if self.currentExperiment is None:
+            return
+        # skip trials in current loop
+        self.currentExperiment.skipTrials(n)
+
+    def rewindTrials(self, n=1):
+        """
+        Skip ahead n trials - the trials inbetween will be marked as "skipped". If you try to
+        skip past the last trial, will log a warning and skip *to* the last trial.
+
+        Parameters
+        ----------
+        n : int
+            Number of trials to skip ahead
+
+        Returns
+        -------
+        bool or None
+            True if the operation completed/queued successfully
+        """
+        # return if there's no current experiment
+        if self.currentExperiment is None:
+            return
+        # rewind trials in current loop
+        self.currentExperiment.rewindTrials(n)
 
     def saveExperimentData(self, key, thisExp=None, blocking=True):
         """

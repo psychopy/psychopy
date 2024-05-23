@@ -24,7 +24,7 @@ class ProgressComponent(BaseVisualComponent):
                  progress=0,
                  color="white", fillColor="None", borderColor="white", colorSpace="rgb",
                  opacity=1, lineWidth=4,
-                 pos=(0, 0), size=(0.5, 0.5), anchor="center left", ori=0, units="height",
+                 pos=(0, 0), size=(0.5, 0.5), anchor="center-left", ori=0, units="height",
                  disabled=False):
 
         self.exp = exp  # so we can access the experiment if necess

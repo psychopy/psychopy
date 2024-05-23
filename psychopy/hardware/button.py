@@ -177,10 +177,11 @@ class ButtonBox:
             if device in DeviceManager.devices:
                 self.device = DeviceManager.getDevice(device)
             else:
+                # don't use formatted string literals in _translate()
                 raise ValueError(_translate(
-                    f"Could not find device named '{device}', make sure it has been set up "
-                    f"in DeviceManager."
-                ))
+                    "Could not find device named '{device}', make sure it has been set up "
+                    "in DeviceManager."
+                ).format(device))
 
         # starting value for status (Builder)
         self.status = constants.NOT_STARTED

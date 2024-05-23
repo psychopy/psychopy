@@ -929,15 +929,14 @@ class TrialHandler2(_BaseTrialHandler):
         self.remainingIndices = []
         self.prevIndices = []
         self.method = method
-        self.finished = False
         self.extraInfo = extraInfo
         self.seed = seed
         self._rng = np.random.default_rng(seed=seed)
         self._trialAborted = False
 
         # store a list of dicts, convert to pandas DataFrame on access
-        self.elapsed = []
-        self.upcoming = None
+        self.elapsedTrials = []
+        self.upcomingTrials = None
         self.thisTrial = None
 
         self.originPath, self.origin = self.getOriginPathAndFile(originPath)
@@ -1007,7 +1006,7 @@ class TrialHandler2(_BaseTrialHandler):
         Note that data are stored internally as a list of dictionaries,
         one per trial. These are converted to a DataFrame on access.
         """
-        return pd.DataFrame(self.elapsed)
+        return pd.DataFrame(self.elapsedTrials)
 
     def __next__(self):
         """Advances to next trial and returns it.
@@ -1031,18 +1030,18 @@ class TrialHandler2(_BaseTrialHandler):
         """
         # mark previous trial as elapsed
         if self.thisTrial is not None:
-            self.elapsed.append(self.thisTrial)
+            self.elapsedTrials.append(self.thisTrial)
         # if upcoming is None, recaculate
-        if self.upcoming is None:
+        if self.upcomingTrials is None:
             self.calculateUpcoming()
         # if upcoming is empty, finish
-        if not self.upcoming:
+        if not self.upcomingTrials:
             self.finished = True
             self.thisTrial = None
             self._terminate()
             raise StopIteration
         # get first upcoming trial
-        self.thisTrial = self.upcoming.pop(0)
+        self.thisTrial = self.upcomingTrials.pop(0)
 
         # update data structure with new info
         self.addData('thisN', self.thisN)
@@ -1060,8 +1059,8 @@ class TrialHandler2(_BaseTrialHandler):
     @property
     def thisN(self):
         if self.thisTrial is None:
-            if len(self.elapsed):
-                return self.elapsed[-1].thisN
+            if len(self.elapsedTrials):
+                return self.elapsedTrials[-1].thisN
             else:
                 return -1
         return self.thisTrial.thisN
@@ -1069,8 +1068,8 @@ class TrialHandler2(_BaseTrialHandler):
     @property
     def thisTrialN(self):
         if self.thisTrial is None:
-            if len(self.elapsed):
-                return self.elapsed[-1].thisTrialN
+            if len(self.elapsedTrials):
+                return self.elapsedTrials[-1].thisTrialN
             else:
                 return -1
         return self.thisTrial.thisTrialN
@@ -1078,8 +1077,8 @@ class TrialHandler2(_BaseTrialHandler):
     @property
     def thisRepN(self):
         if self.thisTrial is None:
-            if len(self.elapsed):
-                return self.elapsed[-1].thisRepN
+            if len(self.elapsedTrials):
+                return self.elapsedTrials[-1].thisRepN
             else:
                 return -1
         return self.thisTrial.thisRepN
@@ -1091,7 +1090,7 @@ class TrialHandler2(_BaseTrialHandler):
             fromIndex (int, optional): the point in the sequnce from where to rebuild. Defaults to -1.
         """
         # clear upcoming
-        self.upcoming = []
+        self.upcomingTrials = []
         # start off at 0 trial
         thisTrialN = 0
         thisN = 0
@@ -1122,9 +1121,9 @@ class TrialHandler2(_BaseTrialHandler):
                     # we've finished
                     break
 
-            if thisN < len(self.elapsed):
+            if thisN < len(self.elapsedTrials):
                 # trial has already happened - get its value
-                thisTrial = self.elapsed[thisN]
+                thisTrial = self.elapsedTrials[thisN]
                 # remove from remaining
                 remainingIndices.pop(remainingIndices.index(thisTrial.thisIndex))
             else:
@@ -1147,7 +1146,7 @@ class TrialHandler2(_BaseTrialHandler):
                     data=thisTrial
                 )
                 # otherwise, append trial
-                self.upcoming.append(thisTrial)
+                self.upcomingTrials.append(thisTrial)
             # for fullRandom check how many times this has come up before
             if self.method == 'fullRandom':
                 thisTrial.thisRepN = prevIndices.count(thisTrial.thisIndex)
@@ -1179,7 +1178,85 @@ class TrialHandler2(_BaseTrialHandler):
         # clear this trial so it's not appended to elapsed
         self.thisTrial = None
         # clear upcoming trials so they're recalculated on next iteration
-        self.upcoming = None
+        self.upcomingTrials = None
+    
+    @property
+    def finished(self):
+        """
+        Whether this loop has finished or not. Will be True if there are no upcoming trials and 
+        False if there are any. Set `.finished = True` to skip all remaining trials (equivalent to 
+        calling `.skipTrials()` with a value larger than the number of trials remaining)
+
+        Returns
+        -------
+        bool
+            True if there are no upcoming trials, False otherwise.
+        """
+        return not bool(self.upcomingTrials)
+    
+    @finished.setter
+    def finished(self, value):
+        # when setting finished to True, skip all remaining trials
+        if value:
+            self.upcomingTrials = []
+        else:
+            self.calculateUpcoming()
+
+    def skipTrials(self, n=1):
+        """
+        Skip ahead n trials - the trials inbetween will be marked as "skipped". If you try to
+        skip past the last trial, will log a warning and skip *to* the last trial.
+
+        Parameters
+        ----------
+        n : int
+            Number of trials to skip ahead
+        """
+        # if skipping past last trial, print warning and skip to last trial
+        if n > len(self.upcomingTrials):
+            logging.warn(
+                f"Requested skip of {n} trials when only {len(self.elapsedTrials)} trials are upcoming. "
+                f"Skipping to the last upcoming trial."
+            )
+            n = len(self.upcomingTrials)
+        # iterate n times
+        for i in range(n):
+            # before iterating, add "skipped" to data
+            self.addData("skipped", True)
+            # advance row in data file
+            if self.getExp() is not None:
+                self.getExp().nextEntry()
+            # iterate
+            self.__next__()
+
+    def rewindTrials(self, n=1):
+        """
+        Rewind back n trials - previously elapsed trials will return to being upcoming. If you
+        try to rewind before the first trial, will log a warning and rewind *to* the first trial.
+
+        Parameters
+        ----------
+        n : int
+            Number of trials to rewind back
+        """
+        # treat -n as n
+        n = abs(n)
+        # if rewinding past first trial, print warning and rewind to first trial
+        if n > len(self.elapsedTrials):
+            logging.warn(
+                f"Requested rewind of {n} trials when only {len(self.elapsedTrials)} trials have "
+                f"elapsed. Rewinding to the first trial."
+            )
+            n = len(self.elapsedTrials)
+        # start with no trials
+        rewound = [self.thisTrial]
+        # pop the last n values from elapsed trials
+        for i in range(n):
+            rewound = [self.elapsedTrials.pop(-1)] + rewound
+        # set thisTrial from first rewound value
+        self.thisTrial = rewound.pop(0)
+        # prepend rewound trials to upcoming array
+        self.upcomingTrials = rewound + self.upcomingTrials
 
     def getFutureTrial(self, n=1):
         """
@@ -1196,12 +1273,12 @@ class TrialHandler2(_BaseTrialHandler):
         if isinstance(n, str) and n.isnumeric():
             n = int(n)
         # return None if requesting beyond last trial
-        if n > len(self.upcoming):
+        if n > len(self.upcomingTrials):
             return None
         # return the corresponding trial from upcoming trials array
-        return self.upcoming[n-1]
+        return self.upcomingTrials[n-1]
     
-    def getFutureTrials(self, n=1, start=0):
+    def getFutureTrials(self, n=None, start=0):
         """
         Returns Trial objects for a given range in the future. Will start looking at `start` trials 
         in the future and will return n trials from then, so e.g. to get all trials from 2 in the 
@@ -1210,7 +1287,8 @@ class TrialHandler2(_BaseTrialHandler):
         Parameters
         ----------
         n : int, optional
-            How many trials into the future to look, by default 1
+            How many trials into the future to look, by default None. Leave as None to show all
+            future trials
         start : int, optional
             How many trials into the future to start looking at, by default 0
         
@@ -1219,13 +1297,16 @@ class TrialHandler2(_BaseTrialHandler):
         list[Trial or None]
             List of Trial objects n long. Any trials beyond the last trial are None.
         """
+        # if None, get all future trials
+        if n is None:
+            n = len(self.upcomingTrials) - start
         # blank list to store trials in
         trials = []
         # iterate through n trials
         for i in range(n):
             # add each to the list
             trials.append(
-                self.getFutureTrial(start + i)
+                self.getFutureTrial(start + i + 1)
             )
         
         return trials
@@ -1239,10 +1320,10 @@ class TrialHandler2(_BaseTrialHandler):
         if n > 0:
             n = n * -1
         # return None if requesting before first trial
-        if abs(n) > len(self.upcoming):
+        if abs(n) > len(self.upcomingTrials):
             return None
         # return the corresponding trial from elapsed trials array
-        return self.elapsed[n]
+        return self.elapsedTrials[n]
 
     def _createOutputArray(self, stimOut, dataOut, delim=None,
                            matrixOnly=False):
@@ -1554,8 +1635,8 @@ class TrialHandler2(_BaseTrialHandler):
             self.columns.append(thisType)
         # make sure we have a thisTrial
         if self.thisTrial is None:
-            if self.upcoming:
-                self.thisTrial = self.upcoming.pop(0)
+            if self.upcomingTrials:
+                self.thisTrial = self.upcomingTrials.pop(0)
             else:
                 self.thisTrial = Trial(
                         self,
@@ -1569,7 +1650,7 @@ class TrialHandler2(_BaseTrialHandler):
         self.thisTrial[thisType] = value
         if self.getExp() is not None:
             # update the experiment handler too
-            self.getExp().addData(thisType, value)
+            self.getExp().addData(f"{self.name}.{thisType}", value)
 
 
 class TrialHandlerExt(TrialHandler):

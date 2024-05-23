@@ -37,7 +37,8 @@ SIGN_ALL = True
 
 
 class AppSigner:
-    def __init__(self, appFile, version, identity='', pword='', destination=None, verbose=False):
+    def __init__(self, appFile, version, destination=None, verbose=False,
+                 team_id='', apple_id='', pword=''):
         self.appFile = Path(appFile)
         self.version = version
         self.destination = destination
@@ -46,7 +47,8 @@ class AppSigner:
         self._dmgBuildFile = None
         self._pword = pword
         self.verbose = verbose
-        self._identity = identity
+        self._apple_id = apple_id
+        self._team_id = team_id
 
     def signAll(self, verbose=None):
         if verbose is None:
@@ -96,10 +98,10 @@ class AppSigner:
                        appFile=False):
         if verbose is None:
             verbose = self.verbose
-        if not self._identity:
+        if not self._apple_id:
             raise ValueError('No identity provided for signing')
         cmd = ['codesign', str(filename),
-               '--sign',  self._identity,
+               '--sign',  self._team_id,
                '--entitlements', str(ENTITLEMENTS),
                '--force',
                '--timestamp',
@@ -155,9 +157,9 @@ class AppSigner:
         filename = Path(fileToNotarize).name
         print(f'Sending {filename} to apple for notarizing')
         cmdStr = (f'xcrun notarytool submit {fileToNotarize} '
-                  f'--apple-id "{USERNAME}" '
-                  f'--password {self._pword} '
-                  f'--team-id {self._identity} ')
+                  f'--apple-id "{self._apple_id}" '
+                  f'--team-id "{self._team_id}" '
+                  f'--password "{self._pword}"')
         # cmdStr = (f"xcrun altool --notarize-app -t osx -f {fileToNotarize} "
         #           f"--primary-bundle-id {BUNDLE_ID} -u {USERNAME} ")
         # print(cmdStr)
@@ -205,18 +207,17 @@ class AppSigner:
 
     def awaitNotarized(self):
         # can use 'xcrun notarytool info' to check status or 'xcrun notarytool wait'
-        cmdStr = (f'xcrun notarytool wait {self._appNotarizeUUID} '
-                  f'--apple-id "{USERNAME}" '
-                  f'--password {self._pword} '
-                  f'--team-id {self._identity} ')
-        exitcode, output = subprocess.getstatusoutput(cmdStr)
+        exitcode, output = subprocess.getstatusoutput(f'xcrun notarytool wait {self._appNotarizeUUID} '
+                  f'--apple-id "{self._apple_id}" '
+                  f'--team-id "{self._team_id}" '
+                  f'--password "{self._pword}"')
         print(output)
         # always fetch the log file too
-        cmdStr = (f'xcrun notarytool log {self._appNotarizeUUID} '
-                  f'--apple-id "{USERNAME}" '
-                  f'--password {self._pword}  '
-                  f'--team-id {self._identity} "developer_log.json"')
-        exitcode, output = subprocess.getstatusoutput(cmdStr)
+        exitcode, output = subprocess.getstatusoutput(f'xcrun notarytool log {self._appNotarizeUUID} '
+                  f'--apple-id "{self._apple_id}" '
+                  f'--team-id "{self._team_id}" '
+                  f'--password "{self._pword}" '
+                  f' developer_log.json')
         print(output)
 
     def staple(self, filepath):
@@ -275,31 +276,22 @@ class AppSigner:
         time.sleep(10)
         volName = output.split('\t')[-1]
         self.staple(f"'{volName}/{appName}'")
-        cmdStr = f"hdiutil detach '{volName}' -quiet"
-        print(f'cmdStr was: {cmdStr}')
-        for n in range(5):  # if we do this too fast then it fails. Try 5 times
-            time.sleep(10)
-            exitcode, output = subprocess.getstatusoutput(cmdStr)
-            print(output)
-            if exitcode == 0:
-                break  # succeeded so stop
-        if exitcode != 0:
-            print(f'*********Failed to detach {volName} (wrong name?) *************')
-            time.sleep(10)  # wait for 10s and then try more forcefully
-            import diskutil_parser.cmd
-            import sh
-            disks = diskutil_parser.cmd.diskutil_list()
-            for disk in disks:
-                print(f"checking /dev/{disk.device_id} ({disk.partition_scheme})")
-                for part in disk.partitions:
-                    if "PsychoPy" in part.name:
-                        print("Ejecting - ", part.name, part.mount_point)
-                        try:
-                            sh.diskutil("unmountDisk", "force", f"/dev/{disk.device_id}")
-                            sh.diskutil("eject", f"/dev/{disk.device_id}")
-                        except sh.ErrorReturnCode_1:
-                            print("still can't eject that disk")
-                            exit(1)
+    
+        time.sleep(10)  # wait for 10s and then try more forcefully
+        import diskutil_parser.cmd
+        import sh
+        disks = diskutil_parser.cmd.diskutil_list()
+        for disk in disks:
+            print(f"checking /dev/{disk.device_id} ({disk.partition_scheme})")
+            for part in disk.partitions:
+                if "PsychoPy" in part.name:
+                    print("Ejecting - ", part.name, part.mount_point)
+                    try:
+                        sh.diskutil("unmountDisk", "force", f"/dev/{disk.device_id}")
+                        sh.diskutil("eject", f"/dev/{disk.device_id}")
+                    except sh.ErrorReturnCode_1:
+                        print("Can't eject that disk")
+                        exit(1)
 
 
     def dmgCompress(self):
@@ -358,12 +350,12 @@ def main():
 
     # codesigning TEAM_ID from CLI args?
     if args.teamId:
-        TEAM_ID = args.teamid
+        TEAM_ID = args.teamId
     else:
         with Path().home()/ 'keys/apple_ost_id' as p:
             TEAM_ID = p.read_text().strip()
     if args.appleId:
-        APPLE_ID = args.appleid
+        APPLE_ID = args.appleId
     else:
         with Path().home()/ 'keys/apple_id' as p:
             APPLE_ID = p.read_text().strip()
@@ -375,7 +367,8 @@ def main():
             
     if args.file:  # not the whole app - just sign one file
         distFolder = (thisFolder / '../dist').resolve()
-        signer = AppSigner(appFile='', version=None, pword=PWORD, identity=IDENTITY)
+        signer = AppSigner(appFile='', version=None, 
+                           pword=PWORD, team_id=TEAM_ID, apple_id=APPLE_ID)
         signer.signSingleFile(args.file, removeFailed=False, verbose=True)
         signer.signCheck(args.file, verbose=True)
 
@@ -387,7 +380,8 @@ def main():
 
     else:  # full app signing and notarization
         distFolder = (thisFolder / '../dist').resolve()
-        signer = AppSigner(appFile=distFolder/args.app, version=args.version, pword=PWORD, identity=IDENTITY)
+        signer = AppSigner(appFile=distFolder/args.app, version=args.version, 
+                           pword=PWORD, team_id=TEAM_ID, apple_id=APPLE_ID)
 
         if args.runPreDmgBuild:
             if SIGN_ALL:

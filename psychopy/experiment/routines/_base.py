@@ -8,6 +8,7 @@
 """Describes the Flow of an experiment
 """
 import copy
+import textwrap
 
 from psychopy.constants import FOREVER
 from xml.etree.ElementTree import Element
@@ -27,6 +28,8 @@ class BaseStandaloneRoutine:
     limit = float('inf')
     # what version was this Routine added in?
     version = "0.0.0"
+    # is it still in beta?
+    beta = False
 
     def __init__(self, exp, name='',
                  stopType='duration (s)', stopVal='',
@@ -224,6 +227,125 @@ class BaseStandaloneRoutine:
 
     def getStatics(self):
         return []
+
+    def getFullDocumentation(self, fmt="rst"):
+        """
+        Automatically generate documentation for this Component. We recommend using this as a
+        starting point, but checking the documentation yourself afterwards and adding any more
+        detail you'd like to include (e.g. usage examples)
+
+        Parameters
+        ----------
+        fmt : str
+            Format to write documentation in. One of:
+            - "rst": Restructured text (numpy style)
+            -"md": Markdown (mkdocs style)
+        """
+
+        # make sure format is correct
+        assert fmt in ("md", "rst"), (
+            f"Unrecognised format {fmt}, allowed formats are 'md' and 'rst'."
+        )
+        # define templates for md and rst
+        h1 = {
+            'md': "# %s",
+            'rst': (
+                "-------------------------------\n"
+                "%s\n"
+                "-------------------------------"
+            )
+        }[fmt]
+        h2 = {
+            'md': "## %s",
+            'rst': (
+                "%s\n"
+                "-------------------------------"
+            )
+        }[fmt]
+        h3 = {
+            'md': "### %s",
+            'rst': (
+                "%s\n"
+                "==============================="
+            )
+        }[fmt]
+        h4 = {
+            'md': "#### `%s`",
+            'rst': "%s"
+        }[fmt]
+
+        # start off with nothing
+        content = ""
+        # header and class docstring
+        content += (
+            f"{h1 % type(self).__name__}\n"
+            f"{textwrap.dedent(self.__doc__ or '')}\n"
+            f"\n"
+        )
+        # attributes
+        content += (
+            f"{h4 % 'Categories:'}\n"
+            f"    {', '.join(self.categories)}\n"
+            f"{h4 % 'Works in:'}\n"
+            f"    {', '.join(self.targets)}\n"
+            f"\n"
+        )
+        # beta warning
+        if self.beta:
+            content += (
+                f"**Note: Since this is still in beta, keep an eye out for bug fixes.**\n"
+                f"\n"
+            )
+        # params heading
+        content += (
+            f"{h2 % 'Parameters'}\n"
+            f"\n"
+        )
+        # sort params by category
+        byCateg = {}
+        for param in self.params.values():
+            if param.categ not in byCateg:
+                byCateg[param.categ] = []
+            byCateg[param.categ].append(param)
+        # iterate through categs
+        for categ, params in byCateg.items():
+            # write a heading for each categ
+            content += (
+                f"{h3 % categ}\n"
+                f"\n"
+            )
+            # add each param...
+            for param in params:
+                # write basics (heading and description)
+                content += (
+                    f"{h4 % param.label}\n"
+                    f"    {param.hint}\n"
+                )
+                # if there are options, display them
+                if bool(param.allowedVals) or bool(param.allowedLabels):
+                    # if no allowed labels, use allowed vals
+                    options = param.allowedLabels or param.allowedVals
+                    # handle callable methods
+                    if callable(options):
+                        content += (
+                            f"\n"
+                            f"    Options are generated live, so will vary according to your setup.\n"
+                        )
+                    else:
+                        # write heading
+                        content += (
+                            f"    \n"
+                            f"    Options:\n"
+                        )
+                        # add list item for each option
+                        for opt in options:
+                            content += (
+                                f"    - {opt}\n"
+                            )
+                # add newline at the end
+                content += "\n"
+
+        return content
 
     @property
     def name(self):
@@ -533,6 +655,17 @@ class Routine(list):
                 '\n# --- Run Routine "{name}" ---\n')
         buff.writeIndentedLines(code.format(name=self.name,
                                             clockName=self._clockName))
+        # check for the trials loop ending this Routine
+        if len(self.exp.flow._loopList):
+            loop = self.exp.flow._loopList[-1]
+            code = (
+                "# if trial has changed, end Routine now\n"
+                "if isinstance({name}, data.TrialHandler2) and {thisName}.thisN != {"
+                "name}.thisTrial.thisN:\n"
+                "    continueRoutine = False\n"
+            ).format(name=loop.name, thisName=loop.thisName)
+            buff.writeIndentedLines(code)
+
         # initial value for forceRoutineEnded (needs to happen now as Code components will have executed
         # their Begin Routine code)
         code = (

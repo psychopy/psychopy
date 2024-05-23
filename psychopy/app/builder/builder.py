@@ -2239,6 +2239,9 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         # if max came from routine settings, mark as hard stop
         rtMax, rtMaxIsNum = self.routine.settings.getDuration()
         hardStop = rtMaxIsNum and rtMax == maxTime
+        # handle no max
+        if maxTime is None:
+            maxTime = 10
 
         return maxTime, hardStop
 
@@ -4622,6 +4625,9 @@ class BuilderRibbon(ribbon.FrameRibbon):
 
         self.addSeparator()
 
+        # --- Plugin sections ---
+        self.addPluginSections("psychopy.app.builder")
+
         # --- Views ---
         self.addStretchSpacer()
         self.addSeparator()
@@ -4647,7 +4653,6 @@ class BuilderRibbon(ribbon.FrameRibbon):
             tooltip=_translate("Switch to Runner view"),
             callback=parent.app.showRunner
         )
-
 
 def extractText(stream):
     """Take a byte stream (or any file object of type b?) and return
