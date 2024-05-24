@@ -988,7 +988,8 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
             dlg.ShowModal()
             # get frame
             frame = self.GetParent()
-            while hasattr(frame, "GetParent") and not (hasattr(frame, "routine") or hasattr(frame, "component")):
+            # if this is not a template routine or component (assume it is a loop)
+            if not (hasattr(frame, "routine") or hasattr(frame, "component")):
                 frame = frame.GetParent()
             # get comp type from frame
             if hasattr(frame, "component"):
