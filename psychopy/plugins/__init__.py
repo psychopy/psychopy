@@ -340,6 +340,36 @@ def refreshBundlePaths():
     return foundBundles
 
 
+def getPluginConfigPath(plugin):
+    """Get the path to the configuration file for a plugin.
+
+    This function returns the path to folder alloted to a plugin for storing
+    configuration files. This is useful for plugins that require user settings
+    to be stored in a file.
+
+    Parameters
+    ----------
+    plugin : str
+        Name of the plugin package to get the configuration file for.
+
+    Returns
+    -------
+    str
+        Path to the configuration file for the plugin.
+
+    """
+    # check if the plugin is installed first
+    if plugin not in _installed_plugins_:
+        raise ValueError("Plugin `{}` is not installed.".format(plugin))
+    
+    # get the config directory
+    import pathlib
+    configDir = pathlib.Path(prefs.paths['config']) / 'plugins' / plugin
+    configDir.mkdir(parents=True, exist_ok=True)
+
+    return configDir
+
+
 def installPlugin(package, local=True, upgrade=False, forceReinstall=False,
                   noDeps=False):
     """Install a plugin package.
