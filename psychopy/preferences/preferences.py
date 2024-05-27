@@ -101,6 +101,14 @@ class Preferences:
         self.loadAll()  # reloads, now getting all from .spec
 
     def getPaths(self):
+        """Get the paths to various directories and files used by PsychoPy.
+
+        If the paths are not found, they are created. Usually, this is only
+        necessary on the first run of PsychoPy. However, if the user has
+        deleted or moved the preferences directory, this method will recreate 
+        those directories.
+
+        """
         # on mac __file__ might be a local path, so make it the full path
         thisFileAbsPath = os.path.abspath(__file__)
         prefSpecDir = os.path.split(thisFileAbsPath)[0]
@@ -149,6 +157,7 @@ class Preferences:
             'themes',  # define theme path
             'fonts',  # find / copy fonts
             'packages',  # packages and plugins
+            'config',  # config files for plugins
             'cache',  # cache for downloaded and other temporary files
         )
 
