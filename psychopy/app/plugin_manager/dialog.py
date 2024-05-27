@@ -18,6 +18,10 @@ import psychopy.plugins as plugins
 pkgtools.refreshPackages()  # build initial package cache
 
 
+# flag to indicate if PsychoPy needs to be restarted after installing a package
+NEEDS_RESTART = False
+
+
 class EnvironmentManagerDlg(wx.Dialog):
     def __init__(self, parent):
         wx.Dialog.__init__(
@@ -186,6 +190,9 @@ class EnvironmentManagerDlg(wx.Dialog):
         )
         self.pipProcess.start(env=env)
 
+        global NEEDS_RESTART  # flag as needing a restart
+        NEEDS_RESTART = True
+
     def installPackage(self, packageName, version=None, extra=None):
         """Install a package.
 
@@ -324,12 +331,17 @@ class EnvironmentManagerDlg(wx.Dialog):
             # enable plugin
             try:
                 pluginInfo.activate()
-                plugins.loadPlugin(pluginInfo.pipname)
+                # plugins.loadPlugin(pluginInfo.pipname)
             except RuntimeError:
                 prefs.general['startUpPlugins'].append(pluginInfo.pipname)
                 self.output.writeStdErr(_translate(
                     "[Warning] Could not activate plugin. PsychoPy may need to restart for plugin to take effect."
                 ))
+
+            global NEEDS_RESTART  # flag as needing a restart
+            NEEDS_RESTART = True
+            showNeedsRestartDialog()
+
             # show list of components/routines now available
             emts = []
             for name, emt in getAllElements().items():
@@ -359,22 +371,37 @@ class EnvironmentManagerDlg(wx.Dialog):
 
     def onClose(self, evt=None):
         # Get changes to plugin states
-        pluginChanges = self.pluginMgr.pluginList.getChanges()
+        # pluginChanges = self.pluginMgr.pluginList.getChanges()
 
-        # If any plugins have been uninstalled, prompt user to restart
-        if any(["uninstalled" in changes for changes in pluginChanges.values()]):
-            msg = _translate(
-                "It looks like you've uninstalled some plugins. In order for this to take effect, you will need to "
-                "restart the PsychoPy app."
-            )
-            dlg = wx.MessageDialog(
-                None, msg,
-                style=wx.ICON_WARNING | wx.OK
-            )
-            dlg.ShowModal()
+        # # If any plugins have been uninstalled, prompt user to restart
+        # if any(["uninstalled" in changes for changes in pluginChanges.values()]):
+        #     msg = _translate(
+        #         "It looks like you've uninstalled some plugins. In order for this to take effect, you will need to "
+        #         "restart the PsychoPy app."
+        #     )
+        #     dlg = wx.MessageDialog(
+        #         None, msg,
+        #         style=wx.ICON_WARNING | wx.OK
+        #     )
+        #     dlg.ShowModal()
 
-        # Repopulate component panels
-        for frame in self.app.getAllFrames():
-            if hasattr(frame, "componentButtons") and hasattr(frame.componentButtons, "populate"):
-                frame.componentButtons.populate()
+        # # Repopulate component panels
+        # for frame in self.app.getAllFrames():
+        #     if hasattr(frame, "componentButtons") and hasattr(frame.componentButtons, "populate"):
+        #         frame.componentButtons.populate()
 
+        if evt is not None:
+            evt.Skip()
+
+
+def showNeedsRestartDialog():
+    """Show a dialog asking the user if they would like to restart PsychoPy.
+    """
+    msg = _translate("Please restart PsychoPy to apply changes.")
+
+    # show a simple dialog that asks the user to restart PsychoPy
+    dlg = wx.MessageDialog(
+        None, msg, "Restart Required",
+        style=wx.ICON_INFORMATION | wx.OK
+    )
+    dlg.ShowModal()
