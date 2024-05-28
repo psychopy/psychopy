@@ -85,7 +85,7 @@ dependencies = [
     "python-vlc == 3.0.11115; platform_system == \"Windows\"",
     "python-vlc >= 3.0.12118; platform_system != \"Windows\"",
     "pypiwin32; platform_system == \"Windows\"",
-    "pyobjc; platform_system == \"Darwin\"",
+    "pyobjc-core; platform_system == \"Darwin\"",
     "pyobjc-framework-AVFoundation; platform_system == \"Darwin\"",
     "pyobjc-framework-Cocoa; platform_system == \"Darwin\"",
     "pyobjc-framework-CoreMedia; platform_system == \"Darwin\"",
