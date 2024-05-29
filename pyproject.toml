@@ -89,6 +89,7 @@ dependencies = [
     "pyobjc-framework-AVFoundation; platform_system == \"Darwin\"",
     "pyobjc-framework-Cocoa; platform_system == \"Darwin\"",
     "pyobjc-framework-CoreMedia; platform_system == \"Darwin\"",
+    "pyobjc-framework-GameController; platform_system == \"Darwin\"",
     "pyobjc-framework-Quartz; platform_system == \"Darwin\"",
     "zeroconf; platform_system == \"Darwin\"",
     "python-xlib; platform_system == \"Linux\"",
