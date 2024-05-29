@@ -1051,6 +1051,11 @@ class TrialHandler2(_BaseTrialHandler):
             msg = 'New trial (rep=%i, index=%i): %s'
             vals = (self.thisRepN, self.thisTrialN, self.thisTrial)
             logging.exp(msg % vals, obj=self.thisTrial)
+
+        # update experiment handler entry
+        exp = self.getExp()
+        if exp is not None:
+            exp.updateEntryFromLoop(self)
         
         return self.thisTrial
 
