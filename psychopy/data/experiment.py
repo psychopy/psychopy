@@ -538,18 +538,31 @@ class ExperimentHandler(_ComparisonMixin):
         this = self.thisEntry
         # fetch data from each (potentially-nested) loop
         for thisLoop in self.loopsUnfinished:
-            names, vals = self._getLoopInfo(thisLoop)
-            for n, name in enumerate(names):
-                this[name] = vals[n]
-                # make sure name is in data names
-                if name not in self.dataNames:
-                    self.dataNames.append(name)
+            self.updateEntryFromLoop(thisLoop)
         # add the extraInfo dict to the data
         if type(self.extraInfo) == dict:
             this.update(self.extraInfo)
         self.entries.append(this)
         # add new entry with its
         self.thisEntry = {}
+
+    def updateEntryFromLoop(self, thisLoop):
+        """
+        Add all values from the given loop to the current entry.
+
+        Parameters
+        ----------
+        thisLoop : BaseLoopHandler
+            Loop to get fields from
+        """
+        # for each name and value in the current trial...
+        names, vals = self._getLoopInfo(thisLoop)
+        for n, name in enumerate(names):
+            # add/update value
+            self.thisEntry[name] = vals[n]
+            # make sure name is in data names
+            if name not in self.dataNames:
+                self.dataNames.append(name)
 
     def getAllEntries(self):
         """Fetches a copy of all the entries including a final (orphan) entry
