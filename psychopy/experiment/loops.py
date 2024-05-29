@@ -200,6 +200,14 @@ class TrialHandler(_BaseLoopHandler):
                     "        globals()[paramName] = %(name)s[paramName]\n")
             buff.writeIndentedLines(code % {'name': self.thisName})
 
+        # send data to Liaison before loop starts
+        if self.params['isTrials'].val:
+            buff.writeIndentedLines(
+                "if thisSession is not None:\n"
+                "    # if running in a Session with a Liaison client, send data up to now\n"
+                "    thisSession.sendExperimentData()\n"
+            )
+
         # then run the trials loop
         code = "\nfor %s in %s:\n"
         buff.writeIndentedLines(code % (self.thisName, self.params['name']))
@@ -210,6 +218,14 @@ class TrialHandler(_BaseLoopHandler):
             "thisExp.timestampOnFlip(win, 'thisRow.t', format=globalClock.format)\n"
         )
         buff.writeIndentedLines(code % self.params)
+
+        # send data to Liaison at start of each iteration
+        if self.params['isTrials'].val:
+            buff.writeIndentedLines(
+                "if thisSession is not None:\n"
+                "    # if running in a Session with a Liaison client, send data up to now\n"
+                "    thisSession.sendExperimentData()\n"
+            )
 
         # handle pausing
         code = (
@@ -342,9 +358,6 @@ class TrialHandler(_BaseLoopHandler):
             buff.writeIndentedLines(
                 "thisExp.nextEntry()\n"
                 "\n"
-                "if thisSession is not None:\n"
-                "    # if running in a Session with a Liaison client, send data up to now\n"
-                "    thisSession.sendExperimentData()\n"
             )
         # end of the loop. dedent
         buff.setIndentLevel(-1, relative=True)
@@ -352,7 +365,13 @@ class TrialHandler(_BaseLoopHandler):
                            % (self.params['nReps'], self.params['name']))
         buff.writeIndented("\n")
         # save data
-        if self.params['isTrials'].val == True:
+        if self.params['isTrials'].val:
+            # send final data to Liaison
+            buff.writeIndentedLines(
+                "if thisSession is not None:\n"
+                "    # if running in a Session with a Liaison client, send data up to now\n"
+                "    thisSession.sendExperimentData()\n"
+            )
             # a string to show all the available variables (if the conditions
             # isn't just None or [None])
             saveExcel = self.exp.settings.params['Save excel file'].val
