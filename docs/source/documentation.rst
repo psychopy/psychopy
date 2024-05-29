@@ -21,8 +21,12 @@
     Coder - writing experiments with scripts <coder/index>
     Online - running experiments on the web <online/index>
     Hardware - interacting with external hardware <hardware/index>
-    `Plugins <https://plugins.psychopy.org/>`_
     api/index
+
+.. only:: html
+    
+    `Plugins <https://plugins.psychopy.org/>`_
+
 
 .. only:: html
     
