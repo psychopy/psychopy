@@ -215,7 +215,7 @@ class TextboxComponent(BaseVisualComponent):
         code = (
             "%(name)s = visual.TextBox2(\n"
             "     win, text=%(text)s, placeholder=%(placeholder)s, font=%(font)s,\n"
-            "     pos=%(pos)s, draggable=%(draggable)s, " + unitsStr +
+            "     ori=%(ori)s, pos=%(pos)s, draggable=%(draggable)s, " + unitsStr +
             "     letterHeight=%(letterHeight)s,\n"
             "     size=%(size)s, borderWidth=%(borderWidth)s,\n"
             "     color=%(color)s, colorSpace=%(colorSpace)s,\n"

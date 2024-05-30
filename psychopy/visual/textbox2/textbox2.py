@@ -69,7 +69,10 @@ debug = False
 class TextBox2(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin):
     def __init__(self, win, text,
                  font="Open Sans",
-                 pos=(0, 0), units=None, letterHeight=None,
+                 pos=(0, 0),
+                 units=None,
+                 letterHeight=None,
+                 ori=0,
                  size=None,
                  color=(1.0, 1.0, 1.0), colorSpace='rgb',
                  fillColor=None, fillColorSpace=None,
@@ -220,7 +223,6 @@ class TextBox2(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin):
 
         # standard stimulus params
         self.pos = pos
-        self.ori = 0.0
         # used at render time
         self._lines = None  # np.array the line numbers for each char
         self._colors = None
@@ -247,7 +249,8 @@ class TextBox2(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin):
         self.languageStyle = languageStyle
         self._text = ''
         self.text = self.startText = text if text is not None else ""
-
+        # set orientation
+        self.ori = ori
         # Initialise arabic reshaper
         arabic_config = {'delete_harakat': False,  # if present, retain any diacritics
                          'shift_harakat_position': False}  # shift by 1 to be compatible with the bidi algorithm
@@ -1169,8 +1172,18 @@ class TextBox2(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin):
             # Adjust vertices
             vertices[:, 0] = vertices[:, 0] + adjustX
 
-        # Convert the vertices to be relative to content box and set
-        self.vertices = vertices / self.contentBox._size.pix + (-0.5, 0.5)
+        # make sure we have a rotation matrix (if orientation not set yet)
+        if not hasattr(self, "_rotationMatrix"):
+            self._rotationMatrix = [[1., 0.], [0., 1.]]
+        # shift to center
+        vertices += self.contentBox._size.pix * (-0.5, 0.5)
+        # apply orientation
+        vertices = np.dot(vertices, self._rotationMatrix)
+        # make relative to content box
+        vertices = vertices / self.contentBox._size.pix
+        # set vertices
+        self.vertices = vertices
+
         if len(_lineBottoms):
             if self.flipVert:
                 self._lineBottoms = min(self.contentBox._vertices.pix[:, 1]) - np.array(_lineBottoms)
@@ -1186,6 +1199,20 @@ class TextBox2(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin):
             self.glFont.upload()
             self.glFont._dirty = False
         self._needVertexUpdate = True
+
+    @attributeSetter
+    def ori(self, value):
+        # get previous orientaiton
+        lastOri = self.__dict__.get("ori", 0)
+        # set new value
+        BaseVisualStim.ori.func(self, value)
+        # set on all boxes
+        self.box.ori = value
+        self.boundingBox.ori = value
+        self.contentBox.ori = value
+        # trigger layout if value has changed
+        if lastOri != value:
+            self._layout()
 
     def draw(self):
         """Draw the text to the back buffer"""
