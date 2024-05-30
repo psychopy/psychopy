@@ -898,9 +898,13 @@ class SurveyCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
 
 
 class TableCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
-    def __init__(self, parent, valType,
-                 val="", fieldName="",
+    def __init__(self, parent, param, fieldName="",
                  size=wx.Size(-1, 24)):
+        # get val and val type
+        val = param.val
+        valType = param.valType
+        # store param
+        self.param = param
         # Create self
         wx.TextCtrl.__init__(self)
         self.Create(parent, -1, val, name=fieldName, size=size)
@@ -920,19 +924,6 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
         self.xlBtn.SetToolTip(_translate("Open/create in your default table editor"))
         self.xlBtn.Bind(wx.EVT_BUTTON, self.openExcel)
         self._szr.Add(self.xlBtn)
-        # Link to Excel templates for certain contexts
-        cmpRoot = Path(experiment.components.__file__).parent
-        expRoot = Path(cmpRoot).parent
-        self.templates = {
-            'Form': Path(cmpRoot) / "form" / "formItems.xltx",
-            'CounterBalance': Path(expRoot) / "routines" / "counterbalance" / "counterbalanceItems.xltx",
-            'TrialHandler': Path(expRoot) / "loopTemplate.xltx",
-            'StairHandler': Path(expRoot) / "loopTemplate.xltx",
-            'MultiStairHandler:simple': Path(expRoot) / "staircaseTemplate.xltx",
-            'MultiStairHandler:QUEST': Path(expRoot) / "questTemplate.xltx",
-            'MultiStairHandler:QUESTPLUS': Path() / "questPlugTemplate.xltx",
-            'None': Path(expRoot) / 'blankTemplate.xltx',
-        }
         # Specify valid extensions
         self.validExt = [".csv",".tsv",".txt",
                          ".xl",".xlsx",".xlsm",".xlsb",".xlam",".xltx",".xltm",".xls",".xlt",
@@ -954,28 +945,15 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
         if "$" in self.GetValue():
             self.xlBtn.Disable()
             return
-        # enable Excel button if valid
-        self.xlBtn.Enable(self.valid)
-        # get frame
-        frame = self.GetParent()
-        if frame is None:
-            frame = self.GetTopLevelParent()
-        while hasattr(frame, "GetParent") and not (
-                hasattr(frame, "routine") or hasattr(frame, "component") or hasattr(frame, "type")
-        ):
-            frame = frame.GetParent()
-        # get comp type from frame
-        if hasattr(frame, "component"):
-            thisType = frame.component.type
-        elif hasattr(frame, "routine"):
-            thisType = frame.routine.type
-        elif hasattr(frame, "type"):
-            thisType = frame.type
-        else:
-            thisType = None
-        # does this component have a default template?
-        if thisType in self.templates:
-            self.xlBtn.Enable(True)
+        # disable Excel button if invalid or not known until runtime
+        if any((
+            not self.valid,
+            "$" in self.GetValue(),
+        )):
+            self.xlBtn.Disable()
+        # re-enable Excel button if blank and we have a template
+        if "template" in self.param.ctrlParams and not self.GetValue().strip():
+            self.xlBtn.Enable()
 
     def openExcel(self, event):
         """Either open the specified excel sheet, or make a new one from a template"""
@@ -986,24 +964,17 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
                 "please remember to add it to {name}").format(name=_translate(self.Name)),
                              caption=_translate("Reminder"))
             dlg.ShowModal()
-            # get frame
-            frame = self.GetParent()
-            while hasattr(frame, "GetParent") and not (hasattr(frame, "routine") or hasattr(frame, "component")):
-                frame = frame.GetParent()
-            # get comp type from frame
-            if hasattr(frame, "component"):
-                thisType = frame.component.type
-            elif hasattr(frame, "routine"):
-                thisType = frame.routine.type
-            elif hasattr(frame, "type"):
-                thisType = frame.type
+            # get template
+            if "template" in self.param.ctrlParams:
+                file = self.param.ctrlParams['template']
+                # if template is specified as a method, call it now to get the value live
+                if callable(file):
+                    file = file()
+                # convert to Path
+                file = Path(file)
             else:
-                thisType = "None"
-            # open type specific template, or blank
-            if thisType in self.templates:
-                file = self.templates[thisType]
-            else:
-                file = self.templates['None']
+                # use blank template if none given
+                file = Path(experiment.__file__).parent / 'blankTemplate.xltx',
         # Open whatever file is used
         try:
             os.startfile(file)

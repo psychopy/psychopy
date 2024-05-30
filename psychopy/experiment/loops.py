@@ -17,6 +17,7 @@ The code that writes out a *_lastrun.py experiment file is (in order):
 """
 
 from copy import deepcopy
+from pathlib import Path
 from xml.etree.ElementTree import Element
 
 from psychopy.experiment import getInitVals
@@ -111,7 +112,11 @@ class TrialHandler(_BaseLoopHandler):
             hint=_translate("Name of a file specifying the parameters for "
                             "each condition (.csv, .xlsx, or .pkl). Browse "
                             "to select a file. Right-click to preview file "
-                            "contents, or create a new file."))
+                            "contents, or create a new file."),
+            ctrlParams={
+                'template': Path(__file__).parent / "loopTemplate.xltx"
+            }
+        )
         self.params['endPoints'] = Param(
             list(endPoints), valType='num', inputType="single", updates=None, allowedUpdates=None,
             label=_translate('End points'),
@@ -645,11 +650,37 @@ class MultiStairHandler(_BaseLoopHandler):
             label=_translate('Conditions'),
             hint=_translate("A list of dictionaries describing the "
                             "differences between each staircase"))
+
+        def getTemplate():
+            """
+            Method to get the template for this loop's chosen stair type. This is specified as a
+            method rather than a simple value as the control needs to update its target according
+            to the current value of stairType.
+
+            Returns
+            -------
+            pathlib.Path
+                Path to the appropriate template file
+            """
+            # root folder
+            root = Path(__file__).parent
+            # get file path according to stairType param
+            if self.params['stairType'] == "QUEST":
+                return root / "questTemplate.xltx"
+            elif self.params['stairType'] == "questplus":
+                return root / "questPlusTemplate.xltx"
+            else:
+                return root / "staircaseTemplate.xltx"
+
         self.params['conditionsFile'] = Param(
             conditionsFile, valType='file', inputType='table', updates=None, allowedUpdates=None,
             label=_translate('Conditions'),
             hint=_translate("An xlsx or csv file specifying the parameters "
-                            "for each condition"))
+                            "for each condition"),
+            ctrlParams={
+                'template': getTemplate
+            }
+        )
         self.params['isTrials'] = Param(
             isTrials, valType='bool', inputType='bool', updates=None, allowedUpdates=None,
             label=_translate("Is trials"),

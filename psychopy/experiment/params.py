@@ -116,7 +116,7 @@ class Param():
     def __init__(self, val, valType, inputType=None, allowedVals=None, allowedTypes=None,
                  hint="", label="", updates=None, allowedUpdates=None,
                  allowedLabels=None, direct=True,
-                 canBePath=True,
+                 canBePath=True, ctrlParams=None,
                  categ="Basic"):
         """
 
@@ -174,6 +174,9 @@ class Param():
         canBePath : bool
             Is it possible for this parameter to be a path? Setting to False will disable
             filepath sanitization (e.g. for textbox you may not want to replace \ with /)
+        ctrlParams : dict
+            Extra information to pass to the control, such as the Excel template file to use in a
+            `table` control.
         categ : str
             Category (tab) under which this param appears in Builder.
 
@@ -197,6 +200,7 @@ class Param():
         self.codeWanted = False
         self.canBePath = canBePath
         self.direct = direct
+        self.ctrlParams = ctrlParams or {}
         self.plugin = None
         if inputType:
             self.inputType = inputType
