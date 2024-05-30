@@ -941,19 +941,15 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
     def validate(self, evt=None):
         """Redirect validate calls to global validate method, assigning appropriate valType"""
         validate(self, "file")
-        # Disable Excel button if value is from a variable
-        if "$" in self.GetValue():
-            self.xlBtn.Disable()
-            return
-        # disable Excel button if invalid or not known until runtime
-        if any((
-            not self.valid,
-            "$" in self.GetValue(),
-        )):
-            self.xlBtn.Disable()
-        # re-enable Excel button if blank and we have a template
-        if "template" in self.param.ctrlParams and not self.GetValue().strip():
-            self.xlBtn.Enable()
+        # if field is blank, enable/diable according to whether there's a template
+        if not self.GetValue().strip():
+            self.xlBtn.Enable("template" in self.param.ctrlParams)
+        # otherwise, enable/disable according to validity
+        else:
+            self.xlBtn.Enable(self.valid)
+            # if value isn't known until runtime, always disable Excel button
+            if "$" in self.GetValue():
+                self.xlBtn.Disable()
 
     def openExcel(self, event):
         """Either open the specified excel sheet, or make a new one from a template"""
