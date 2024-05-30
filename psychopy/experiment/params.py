@@ -119,35 +119,67 @@ class Param():
                  canBePath=True,
                  categ="Basic"):
         """
-        @param val: the value for this parameter
-        @type val: any
-        @param valType: the type of this parameter ('num', 'str', 'code')
-        @type valType: string
-        @param allowedVals: possible vals for this param
-            (e.g. units param can only be 'norm','pix',...)
-        @type allowedVals: any
-        @param allowedTypes: if other types are allowed then this is
-            the possible types this parameter can have
-            (e.g. rgb can be 'red' or [1,0,1])
-        @type allowedTypes: list
-        @param hint: describe this parameter for the user
-        @type hint: string
-        @param updates: how often does this parameter update
-            ('experiment', 'routine', 'set every frame')
-        @type updates: string
-        @param allowedUpdates: conceivable updates for this param
-            [None, 'routine', 'set every frame']
-        @type allowedUpdates: list
-        @param categ: category for this parameter
-            will populate tabs in Component Dlg
-        @type allowedUpdates: string
-        @param canBePath: is it possible for this parameter to be
-            a path? If so, writing as str will check for pathlike
-            characters and sanitise if needed.
-        @type canBePath: bool
-        @param direct: purely used in the test suite, marks whether this
-        param's value is expected to appear in the script
-        @type direct: bool
+
+        Parameters
+        ----------
+        val : any
+            The value for this parameter
+        valType : str
+            The type of this parameter, one of:
+            - str: A string, will be compiled with " around it
+            - extendedStr: A long string, will be compiled with " around it and linebreaks will
+              be preserved
+            - code: Some code, will be compiled verbatim or translated to JS (no ")
+            - extendedCode: A block of code, will be compiled verbatim or translated to JS and
+              linebreaks will be preserved
+            - file: A file path, will be compiled like str but will replace unescaped \ with /
+            - list: A list of values, will be compiled like code but if there's no [] or () then
+              these are added
+            Note that, if value begins with a $, it will always be treated as code regardless of
+            valType
+        inputType : str
+            The type of control to make for this parameter in Builder, one of:
+            - single: A single-line text control
+            - multi: A multi-line text control
+            - color: A single-line text control with a button to open the color picker
+            - survey: A single-line text control with a button to open Pavlovia surveys list
+            - file: A single-line text control with a button to open a file browser
+            - fileList: Several file controls with buttons to add/remove
+            - table: A file control with an additional button to open in Excel
+            - choice: A single-choice control (dropdown)
+            - multiChoice: A multi-choice control (tickboxes)
+            - richChoice: A single-choice control (dropdown) with rich text for each option
+            - bool: A single checkbox control
+            - dict: Several key:value pair controls with buttons to add/remove fields
+        allowedVals : list[str]
+            Possible vals for this param (e.g. units param can only be 'norm','pix',...),
+            these are used in the compiled code
+        allowedLabels : list[str] or None
+            Labels corresponding to each value in allowedVals, these are displayed in Builder but
+            not used in the compiled code. Leave as None to simply copy allowedVals.
+        hint : str
+            Tooltip to display when param is hovered over
+        label : str
+            Label to display next to param
+        updates : str
+            How often does this parameter update, usually one of:
+            - constant: Value is set just the once
+            - set every repeat: Value is set at the start of each Routine
+            - set every frame: Value is set each frame
+        allowedUpdates : list[str]
+            List of values to show in the choice control for updates.
+        direct : bool
+            Are we expecting the value of this param to directly appear in the compiled code?
+            Mostly used by the test suite to check that params which should be used are used.
+        canBePath : bool
+            Is it possible for this parameter to be a path? Setting to False will disable
+            filepath sanitization (e.g. for textbox you may not want to replace \ with /)
+        categ : str
+            Category (tab) under which this param appears in Builder.
+
+        Deprecated params
+        -----------------
+        allowedTypes
         """
         super(Param, self).__init__()
         self.label = label
