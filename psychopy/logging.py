@@ -76,6 +76,9 @@ _levelNames = {
     'DEBUG': DEBUG,
     'NOTSET': NOTSET}
 
+# string to search for level names in a log message
+_levelNamesRe = "|".join(key for key in _levelNames if isinstance(key, str))
+
 _prefEncoding = locale.getpreferredencoding()
 
 def getLevel(level):

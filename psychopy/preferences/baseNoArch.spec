@@ -53,6 +53,8 @@
     showStartupTips = boolean(default='True')
     # what windows to display when PsychoPy starts
     defaultView = option('builder', 'coder', 'runner', 'all', default='all')
+    # How much output to display *in the app* ('error' is fewest messages, 'debug' is most). This will not affect how much is displayed in the log file.
+    appLoggingLevel = option('error', 'warning', 'data', 'exp', 'info', 'debug', default='warning')
     # reset preferences to defaults on next restart of PsychoPy
     resetPrefs = boolean(default='False') # default must be False!
     # save any unsaved preferences before closing the window
@@ -145,7 +147,7 @@
     forceWindowed = boolean(default=True)
     # What window size to use when forced to windowed mode
     forcedWindowSize = list(default=list(800, 600))
-    # How much output to include in the log files when piloting ('error' is fewest messages, 'debug' is most)
+    # How much output to include *in the log file* when piloting ('error' is fewest messages, 'debug' is most)
     pilotLoggingLevel = option('error', 'warning', 'data', 'exp', 'info', 'debug', default='debug')
     # Show an orange border around the window when in piloting mode
     showPilotingIndicator = boolean(default=True)

@@ -93,6 +93,18 @@ class StdOutRich(wx.richtext.RichTextCtrl, _BaseErrorHandler, handlers.ThemeMixi
                 font=font.obj,
             )),
         }
+        # connect logging levels to styles
+        from psychopy import logging
+        self.logLevelStyles = {
+            logging.NOTSET: self._styles['base'],
+            logging.DEBUG: self._styles['info'],
+            logging.INFO: self._styles['info'],
+            logging.EXP: self._styles['info'],
+            logging.DATA: self._styles['info'],
+            logging.WARNING: self._styles['warning'],
+            logging.ERROR: self._styles['error'],
+            logging.CRITICAL: self._styles['error'],
+        }
 
     def onURL(self, evt=None):
         wx.BeginBusyCursor()
@@ -119,6 +131,7 @@ class StdOutRich(wx.richtext.RichTextCtrl, _BaseErrorHandler, handlers.ThemeMixi
             class WordFetcher:
         File "C:\\Program Files\\wxPython2.8 Docs and Demos\\samples\\hangman\\hangman.py", line 23, in WordFetcher
         """
+        from psychopy import logging
 
         if type(inStr) == AlertEntry:
             alert = inStr
@@ -155,6 +168,11 @@ class StdOutRich(wx.richtext.RichTextCtrl, _BaseErrorHandler, handlers.ThemeMixi
 
             # sanitize message
             inStr = sanitize(inStr)
+            # get app logging level from prefs
+            targetLvl = logging._levelNames.get(
+                prefs.app['appLoggingLevel'].upper(),
+                logging.ERROR
+            )
 
             for thisLine in inStr.splitlines(True):
                 try:
@@ -174,18 +192,22 @@ class StdOutRich(wx.richtext.RichTextCtrl, _BaseErrorHandler, handlers.ThemeMixi
                     self.BeginURL(thisLine)
                     self.WriteText(thisLine)
                     self.EndURL()
-                elif len(re.findall('CRITICAL|ERROR', thisLine)) > 0:
-                    # this line contains an error
-                    self.BeginStyle(self._styles['error'])
-                    self.WriteText(thisLine)
-                elif len(re.findall('WARNING|DEPRECATION', thisLine)) > 0:
-                    # this line contains a warning
-                    self.BeginStyle(self._styles['warning'])
-                    self.WriteText(thisLine)
-                elif len(re.findall('DATA|EXP|INFO|DEBUG', thisLine)):
-                    # this line contains logging
-                    self.BeginStyle(self._styles['info'])
-                    self.WriteText(thisLine)
+                elif re.findall(logging._levelNamesRe, thisLine):
+                    # this line contains a logging message
+                    lvl = logging.NOTSET
+                    # for each styled level...
+                    for thisLvl, style in self.logLevelStyles.items():
+                        # get its name
+                        name = logging._levelNames[thisLvl]
+                        # look for name in the current line
+                        if len(re.findall(name, thisLine)) > 0:
+                            # if found, set level and stop looking
+                            lvl = thisLvl
+                            break
+                    # if level allowed by prefs, set style and write
+                    if lvl >= targetLvl:
+                        self.BeginStyle(self.logLevelStyles[lvl])
+                        self.WriteText(thisLine)
                 else:
                     # anything else
                     self.BeginStyle(self._styles['base'])
