@@ -768,6 +768,7 @@ class ExperimentHandler(_ComparisonMixin):
         # put in context
         context = {
             'type': "trials_data",
+            'thisTrial': self.thisEntry,
             'trials': trials.to_dict(orient="records"),
             'priority': self.columnPriority,
             'threshold': priorityThreshold,
