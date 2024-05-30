@@ -95,6 +95,22 @@ class TextComponent(BaseVisualComponent):
         del self.params['fillColor']
         del self.params['borderColor']
 
+    def _getParamCaps(self, paramName):
+        """
+        TEMPORARY FIX
+
+        TextStim in JS doesn't accept `letterHeight` as a param. Ideally this needs to be fixed
+        in JS, but in the meantime overloading this function in Python to write `setHeight`
+        rather than `setLetterHeight` means it stops biting users.
+        """
+        # call base function
+        paramName = BaseVisualComponent._getParamCaps(self, paramName)
+        # replace letterHeight
+        if paramName == "LetterHeight":
+            paramName = "Height"
+
+        return paramName
+
     def writeInitCode(self, buff):
         # do we need units code?
         if self.params['units'].val == 'from exp settings':
