@@ -102,6 +102,42 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin):
                 #self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
                 utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / filename, self.win, crit=20)
 
+    def test_ori(self):
+        # setup textbox
+        self.textbox.color = "black"
+        self.textbox.fillColor = "white"
+        self.textbox.units = "pix"
+        self.textbox.size = (100, 100)
+        self.textbox.pos = (0, 0)
+        self.textbox.letterHeight = 5
+        # define params to use
+        orientations = [
+            0, 120, 180, 240,
+        ]
+        anchors = [
+            "top left", "center", "bottom right",
+        ]
+        # try each combination
+        for ori in orientations:
+            for anchor in anchors:
+                # flip
+                self.win.flip()
+                # set params
+                self.textbox.ori = ori
+                self.textbox.anchor = anchor
+                self.textbox._layout()
+                # draw
+                self.textbox.draw()
+                # construct exemplar filename
+                exemplar = f"test_ori_{ori}_{anchor}.png"
+                # check/make exemplar
+                self.win.getMovieFrame(buffer='back').save(
+                    Path(utils.TESTS_DATA_PATH) / "Test_textbox" / exemplar
+                )
+                utils.compareScreenshot(
+                    Path(utils.TESTS_DATA_PATH) / "Test_textbox" / exemplar, self.win, crit=20
+                )
+
     def test_colors(self):
         # Do base tests
         _TestColorMixin.test_colors(self)
