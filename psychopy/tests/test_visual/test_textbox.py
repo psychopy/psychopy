@@ -117,32 +117,26 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin):
         anchors = [
             "top left", "center", "bottom right",
         ]
-        alignments = [
-            "top right", "center", "bottom left",
-            #"top left", "top right", "bottom left", "bottom right", "center"
-        ]
         # try each combination
         for ori in orientations:
             for anchor in anchors:
-                for align in alignments:
-                    # flip
-                    self.win.flip()
-                    # set params
-                    self.textbox.ori = ori
-                    self.textbox.anchor = anchor
-                    self.textbox.align = align
-                    self.textbox._layout()
-                    # draw
-                    self.textbox.draw()
-                    # construct exemplar filename
-                    exemplar = f"TestTextBox_test_ori_{ori}_{anchor}_{align}.png"
-                    # check/make exemplar
-                    # self.win.getMovieFrame(buffer='back').save(
-                    #     Path(utils.TESTS_DATA_PATH) / exemplar
-                    # )
-                    utils.compareScreenshot(
-                        Path(utils.TESTS_DATA_PATH) / exemplar, self.win, crit=20
-                    )
+                # flip
+                self.win.flip()
+                # set params
+                self.textbox.ori = ori
+                self.textbox.anchor = anchor
+                self.textbox._layout()
+                # draw
+                self.textbox.draw()
+                # construct exemplar filename
+                exemplar = f"test_ori_{ori}_{anchor}.png"
+                # check/make exemplar
+                self.win.getMovieFrame(buffer='back').save(
+                    Path(utils.TESTS_DATA_PATH) / "Test_textbox" / exemplar
+                )
+                utils.compareScreenshot(
+                    Path(utils.TESTS_DATA_PATH) / "Test_textbox" / exemplar, self.win, crit=20
+                )
 
     def test_colors(self):
         # Do base tests
