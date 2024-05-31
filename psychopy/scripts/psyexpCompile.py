@@ -61,7 +61,7 @@ def generateScript(exp, outfile, target="PsychoPy"):
         # if compiling to JS, js file needs to have legacy filename
         _stem, _ext = os.path.splitext(outfile)
         if _ext == ".js":
-            outfile = _stem + "_legacy" + _ext
+            outfile = _stem + _ext
         # generate command to run compile from requested version
         cmd = [
             pythonExec, '-m', compiler, str(exp.legacyFilename), '-o', outfile
