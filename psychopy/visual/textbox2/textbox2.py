@@ -223,6 +223,8 @@ class TextBox2(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin):
 
         # standard stimulus params
         self.pos = pos
+        self._rotationMatrix = [[1., 0.], [0., 1.]]
+        self.ori = 0.0
         # used at render time
         self._lines = None  # np.array the line numbers for each char
         self._colors = None
@@ -249,8 +251,7 @@ class TextBox2(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin):
         self.languageStyle = languageStyle
         self._text = ''
         self.text = self.startText = text if text is not None else ""
-        # set orientation
-        self.ori = ori
+
         # Initialise arabic reshaper
         arabic_config = {'delete_harakat': False,  # if present, retain any diacritics
                          'shift_harakat_position': False}  # shift by 1 to be compatible with the bidi algorithm
@@ -475,8 +476,8 @@ class TextBox2(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin):
         if hasattr(self, "box"):
             self.box.size = self._pos
         if hasattr(self, "contentBox"):
-            # Content box should be anchored center relative to box, but its pos needs to be relative to box's vertices, not its pos
-            self.contentBox.pos = self.pos + self.size * self.box._vertices.anchorAdjust
+            # set content box pos with offset for anchor (accounting for orientation)
+            self.contentBox.pos = self.pos + np.dot(self.size * self.box._vertices.anchorAdjust, self._rotationMatrix)
             self.contentBox._needVertexUpdate = True
         if hasattr(self, "_placeholder"):
             self._placeholder.pos = self._pos
@@ -1172,17 +1173,10 @@ class TextBox2(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin):
             # Adjust vertices
             vertices[:, 0] = vertices[:, 0] + adjustX
 
-        # make sure we have a rotation matrix (if orientation not set yet)
-        if not hasattr(self, "_rotationMatrix"):
-            self._rotationMatrix = [[1., 0.], [0., 1.]]
-        # shift to center
-        vertices += self.contentBox._size.pix * (-0.5, 0.5)
+        # convert the vertices to be relative to content box and set
+        vertices = vertices / self.contentBox._size.pix + (-0.5, 0.5)
         # apply orientation
-        vertices = np.dot(vertices, self._rotationMatrix)
-        # make relative to content box
-        vertices = vertices / self.contentBox._size.pix
-        # set vertices
-        self.vertices = vertices
+        self.vertices = (vertices).dot(self._rotationMatrix)
 
         if len(_lineBottoms):
             if self.flipVert:
