@@ -69,7 +69,10 @@ debug = False
 class TextBox2(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin):
     def __init__(self, win, text,
                  font="Open Sans",
-                 pos=(0, 0), units=None, letterHeight=None,
+                 pos=(0, 0),
+                 units=None,
+                 letterHeight=None,
+                 ori=0,
                  size=None,
                  color=(1.0, 1.0, 1.0), colorSpace='rgb',
                  fillColor=None, fillColorSpace=None,
@@ -220,6 +223,7 @@ class TextBox2(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin):
 
         # standard stimulus params
         self.pos = pos
+        self._rotationMatrix = [[1., 0.], [0., 1.]]
         self.ori = 0.0
         # used at render time
         self._lines = None  # np.array the line numbers for each char
@@ -472,8 +476,8 @@ class TextBox2(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin):
         if hasattr(self, "box"):
             self.box.size = self._pos
         if hasattr(self, "contentBox"):
-            # Content box should be anchored center relative to box, but its pos needs to be relative to box's vertices, not its pos
-            self.contentBox.pos = self.pos + self.size * self.box._vertices.anchorAdjust
+            # set content box pos with offset for anchor (accounting for orientation)
+            self.contentBox.pos = self.pos + np.dot(self.size * self.box._vertices.anchorAdjust, self._rotationMatrix)
             self.contentBox._needVertexUpdate = True
         if hasattr(self, "_placeholder"):
             self._placeholder.pos = self._pos
@@ -1169,8 +1173,11 @@ class TextBox2(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin):
             # Adjust vertices
             vertices[:, 0] = vertices[:, 0] + adjustX
 
-        # Convert the vertices to be relative to content box and set
-        self.vertices = vertices / self.contentBox._size.pix + (-0.5, 0.5)
+        # convert the vertices to be relative to content box and set
+        vertices = vertices / self.contentBox._size.pix + (-0.5, 0.5)
+        # apply orientation
+        self.vertices = (vertices).dot(self._rotationMatrix)
+
         if len(_lineBottoms):
             if self.flipVert:
                 self._lineBottoms = min(self.contentBox._vertices.pix[:, 1]) - np.array(_lineBottoms)
@@ -1186,6 +1193,20 @@ class TextBox2(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin):
             self.glFont.upload()
             self.glFont._dirty = False
         self._needVertexUpdate = True
+
+    @attributeSetter
+    def ori(self, value):
+        # get previous orientaiton
+        lastOri = self.__dict__.get("ori", 0)
+        # set new value
+        BaseVisualStim.ori.func(self, value)
+        # set on all boxes
+        self.box.ori = value
+        self.boundingBox.ori = value
+        self.contentBox.ori = value
+        # trigger layout if value has changed
+        if lastOri != value:
+            self._layout()
 
     def draw(self):
         """Draw the text to the back buffer"""
