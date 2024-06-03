@@ -11,11 +11,12 @@ from ..util import win32MessagePump
 from ..devices.keyboard import KeyboardInputEvent
 from ..constants import EventConstants, KeyboardConstants
 
-#pylint: disable=protected-access
+# pylint: disable=protected-access
 
 getTime = Computer.getTime
 kb_cls_attr_names = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES
 kb_mod_codes2labels = KeyboardConstants._modifierCodes2Labels
+
 
 class KeyboardEvent(ioEvent):
     """
@@ -42,13 +43,13 @@ class KeyboardEvent(ioEvent):
     def __init__(self, ioe_array):
         super(KeyboardEvent, self).__init__(ioe_array)
         for aname, aindex, in list(self._attrib_index.items()):
-            setattr(self, '_%s'%aname, ioe_array[aindex])
+            setattr(self, '_%s' % aname, ioe_array[aindex])
         self._modifiers = kb_mod_codes2labels(self._modifiers)
 
     @property
     def key(self):
         return self._key
-        
+
     @property
     def char(self):
         """The unicode value of the keyboard event, if available. This field is
@@ -87,7 +88,7 @@ class KeyboardEvent(ioEvent):
     def __str__(self):
         pstr = ioEvent.__str__(self)
         return '{}, key: {} char: {}, modifiers: {}'.format(pstr, self.key,
-                self.char, self.modifiers)
+                                                            self.char, self.modifiers)
 
     def __eq__(self, v):
         if isinstance(v, KeyboardEvent):
@@ -113,8 +114,8 @@ class KeyboardRelease(KeyboardEvent):
 
     def __init__(self, ioe_array):
         super(KeyboardRelease, self).__init__(ioe_array)
-        #self._duration = ioe_array[self._attrib_index['duration']]
-        #self._press_event_id = ioe_array[self._attrib_index['press_event_id']]
+        # self._duration = ioe_array[self._attrib_index['duration']]
+        # self._press_event_id = ioe_array[self._attrib_index['press_event_id']]
 
     @property
     def duration(self):
@@ -153,47 +154,47 @@ class KeyboardRelease(KeyboardEvent):
 class Keyboard(ioHubDeviceView):
     """The Keyboard device provides access to KeyboardPress and KeyboardRelease
     events as well as the current keyboard state.
-    
+
     Examples:
 
         A. Print all keyboard events received for 5 seconds::
-    
+
             from psychopy.iohub import launchHubServer
             from psychopy.core import getTime
-            
+
             # Start the ioHub process. 'io' can now be used during the
             # experiment to access iohub devices and read iohub device events.
             io = launchHubServer()
-            
+
             keyboard = io.devices.keyboard
-                    
+
             # Check for and print any Keyboard events received for 5 seconds.
             stime = getTime()
             while getTime()-stime < 5.0:
                 for e in keyboard.getEvents():
                     print(e)
-            
+
             # Stop the ioHub Server
             io.quit()
-            
+
         B. Wait for a keyboard press event (max of 5 seconds)::
-    
+
             from psychopy.iohub import launchHubServer
             from psychopy.core import getTime
-            
+
             # Start the ioHub process. 'io' can now be used during the
             # experiment to access iohub devices and read iohub device events.
             io = launchHubServer()
-            
+
             keyboard = io.devices.keyboard
-                    
+
             # Wait for a key keypress event ( max wait of 5 seconds )
             presses = keyboard.waitForPresses(maxWait=5.0)
-            
+
             print(presses)
-            
+
             # Stop the ioHub Server
-            io.quit()         
+            io.quit()
     """
     KEY_PRESS = EventConstants.KEYBOARD_PRESS
     KEY_RELEASE = EventConstants.KEYBOARD_RELEASE
@@ -228,8 +229,8 @@ class Keyboard(ioHubDeviceView):
         """
         kb_state = self.getCurrentDeviceState()
 
-        events = {int(k):v for k,v in list(kb_state.get('events').items())}
-        pressed_keys = {int(k):v for k,v in list(kb_state.get('pressed_keys',{}).items())}
+        events = {int(k): v for k, v in list(kb_state.get('events').items())}
+        pressed_keys = {int(k): v for k, v in list(kb_state.get('pressed_keys', {}).items())}
 
         self._reporting = kb_state.get('reporting_events')
         self._pressed_keys.clear()
@@ -289,11 +290,10 @@ class Keyboard(ioHubDeviceView):
         self._reporting = self.enableEventReporting(r)
         return self._reporting
 
-
     def clearEvents(self, event_type=None, filter_id=None):
         self._clearLocalEvents(event_type)
         return self._clearEventsRPC(event_type=event_type,
-                                      filter_id=filter_id)
+                                    filter_id=filter_id)
 
     def getKeys(self, keys=None, chars=None, ignoreKeys=None, mods=None, duration=None,
                 etype=None, clear=True):
