@@ -150,13 +150,22 @@ class MouseComponent(BaseComponent):
             "        gotValidClick = True\n")
         buff.writeIndentedLines(code % self.params)
 
-        buff.setIndentLevel(+2, relative=True)
-        code = ''
+        # store clicked object if there was one
+        code = ""
         for paramName in self._clickableParamsList:
-            code += "%s.clicked_%s.append(obj.%s)\n" %(self.params['name'],
-                                                     paramName, paramName)
+            code += (
+                    f"        %(name)s.clicked_{paramName}.append(obj.{paramName})\n"
+                )
         buff.writeIndentedLines(code % self.params)
-        buff.setIndentLevel(-2, relative=True)
+
+        # if storing every click and got an invalid click, store None for all params when there was no valid click
+        if self.params['saveMouseState'].val not in ['on valid click', 'never']:
+            code = "if not gotValidClick:\n"
+            for paramName in self._clickableParamsList:
+                code += (
+                    f"    %(name)s.clicked_{paramName}.append(None)\n"
+                )
+        buff.writeIndentedLines(code % self.params)
 
     def _writeCorrectAnsCode(self, buff):
         code = (
