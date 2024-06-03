@@ -312,7 +312,7 @@ class _Logger():
         self.toFlush = []  # a new empty list
 
 root = _Logger()
-console = LogFile()
+console = LogFile(level=WARNING)
 
 
 def flush(logger=root):

@@ -2059,6 +2059,8 @@ class SettingsComponent:
             "    # Flip one final time so any remaining win.callOnFlip() \n"
             "    # and win.timeOnFlip() tasks get executed\n"
             "    win.flip()\n"
+            "# return console logger level to WARNING\n"
+            "logging.console.setLevel(logging.WARNING)\n"
             "# mark experiment handler as finished\n"
             "thisExp.status = FINISHED\n"
             "# shut down eyetracker, if there is one\n"
