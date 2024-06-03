@@ -21,6 +21,9 @@ If you would like to install a plugin from a file (e.g. a .whl file):
 * In the Plugin and Packages Manager, select the `Packages` tab
 * At the bottom left of the window, select whether you would like to install from a file or via the PIP terminal
 * Select the relevant file or run a PIP install
+* Restart PsychoPy to use the newly installed plugin
+
+To find out more about plugins, visit our `plugins website <https://plugins.psychopy.org/basics.html>`_
 
 Step two: Know Your Eyetracker
 -------------------------------------------------------------
@@ -63,7 +66,9 @@ The general protocol you will see is shown below.
 
 .. figure:: /images/eyelink_calibration_flow.png
 
-    The set of screens that will appear on your experiment presentation screen during calibration/validation, and what to press when.
+    The set of screens that will appear on your experiment presentation screen during calibration/validation, and what to press when. If pressing the Escape key does not work, try pressing the 'O' key. 
+
+For further information about EyeLink installation and use, look at `SR Research's learning resources <https://www.sr-research.com/support-options/learning-resources/>`_
 
 Tobii
 -----------
