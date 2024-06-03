@@ -168,11 +168,6 @@ class StdOutRich(wx.richtext.RichTextCtrl, _BaseErrorHandler, handlers.ThemeMixi
 
             # sanitize message
             inStr = sanitize(inStr)
-            # get app logging level from prefs
-            targetLvl = logging._levelNames.get(
-                prefs.app['appLoggingLevel'].upper(),
-                logging.ERROR
-            )
 
             for thisLine in inStr.splitlines(True):
                 try:
@@ -205,9 +200,8 @@ class StdOutRich(wx.richtext.RichTextCtrl, _BaseErrorHandler, handlers.ThemeMixi
                             lvl = thisLvl
                             break
                     # if level allowed by prefs, set style and write
-                    if lvl >= targetLvl:
-                        self.BeginStyle(self.logLevelStyles[lvl])
-                        self.WriteText(thisLine)
+                    self.BeginStyle(self.logLevelStyles[lvl])
+                    self.WriteText(thisLine)
                 else:
                     # anything else
                     self.BeginStyle(self._styles['base'])

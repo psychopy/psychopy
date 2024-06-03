@@ -85,7 +85,9 @@ class SettingsComponent:
             winSize=(1024, 768), screen=1, monitor='testMonitor', winBackend='pyglet',
             showMouse=False, saveLogFile=True, showExpInfo=True,
             expInfo="{'participant':'f\"{randint(0, 999999):06.0f}\"', 'session':'001'}",
-            units='height', logging='warning',
+            units='height', 
+            logging="info", 
+            consoleLoggingLevel="warning",
             color='$[0,0,0]', colorSpace='rgb', enableEscape=True,
             measureFrameRate=True, frameRate="", frameRateMsg=_translate(
                 "Attempting to measure frame rate of screen, please wait..."
@@ -397,6 +399,7 @@ class SettingsComponent:
             "Save psydat file",
             "Save hdf5 file",
             "logging level",
+            "consoleLoggingLevel",
             "clockFormat",
         ]
         self.params['Data filename'] = Param(
@@ -460,11 +463,23 @@ class SettingsComponent:
                             "useful for viewing and analyzing complex data in structures."),
             label=_translate("Save hdf5 file"), categ='Data')
         self.params['logging level'] = Param(
-            logging, valType='code', inputType="choice",
+            logging, valType='code', inputType="choice", categ='Data',
             allowedVals=['error', 'warning', 'data', 'exp', 'info', 'debug'],
-            hint=_translate("How much output do you want in the log files? "
-                            "('error' is fewest messages, 'debug' is most)"),
-            label=_translate("Logging level"), categ='Data')
+            hint=_translate(
+                "How much output do you want in the log files? ('error' is fewest "
+                "messages, 'debug' is most)"
+            ),
+            label=_translate("File logging level")
+        )
+        self.params['consoleLoggingLevel'] = Param(
+            consoleLoggingLevel, valType='code', inputType="choice", categ='Data',
+            allowedVals=['error', 'warning', 'data', 'exp', 'info', 'debug'],
+            hint=_translate(
+                "How much output do you want displayed in the console / app? ('error' "
+                "is fewest messages, 'debug' is most)"
+            ),
+            label=_translate("Console / app logging level")
+        )
         self.params['clockFormat'] = Param(
             clockFormat, valType="str", inputType="choice", categ="Data",
             allowedVals=["iso", "float"],
@@ -994,7 +1009,6 @@ class SettingsComponent:
             "# start off with values from experiment settings\n"
             "_fullScr = %(Full-screen window)s\n"
             "_winSize = %(Window size (pixels))s\n"
-            "_loggingLevel = logging.getLevel('%(logging level)s')\n"
             "# if in pilot mode, apply overrides according to preferences\n"
             "if PILOTING:\n"
             "    # force windowed mode\n"
@@ -1002,10 +1016,6 @@ class SettingsComponent:
             "        _fullScr = False\n"
             "        # set window size\n"
             "        _winSize = prefs.piloting['forcedWindowSize']\n"
-            "    # override logging level\n"
-            "    _loggingLevel = logging.getLevel(\n"
-            "        prefs.piloting['pilotLoggingLevel']\n"
-            "    )\n"
         )
         buff.writeIndented(code % self.params)
 
@@ -1311,17 +1321,30 @@ class SettingsComponent:
         buff.writeIndentedLines(code)
         buff.setIndentLevel(+1, relative=True)
 
-        # set logging level
+        # set app logging level
         code = (
-            "# this outputs to the screen, not a file\n"
-            "logging.console.setLevel(_loggingLevel)\n"
+            "# set how much information should be printed to the console / app\n"
+            "if PILOTING:\n"
+            "    logging.console.setLevel(\n"
+            "        prefs.piloting['pilotConsoleLoggingLevel']\n"
+            "    )\n"
+            "else:\n"
+            "    logging.console.setLevel('%(consoleLoggingLevel)s')\n"
         )
         buff.writeIndentedLines(code % self.params)
-
+        # create log file
         if self.params['Save log file'].val:
             code = (
                 "# save a log file for detail verbose info\n"
-                "logFile = logging.LogFile(filename+'.log', level=_loggingLevel)\n"
+                "logFile = logging.LogFile(filename+'.log')\n"
+                "if PILOTING:\n"
+                "    logFile.setLevel(\n"
+                "        prefs.piloting['pilotLoggingLevel']\n"
+                "    )\n"
+                "else:\n"
+                "    logFile.setLevel(\n"
+                "        logging.getLevel('%(logging level)s')\n"
+                "    )\n"
                 "\n"
                 "return logFile\n"
             )

@@ -191,6 +191,10 @@ class LogFile():
     def setLevel(self, level):
         """Set a new minimal level for the log file/stream
         """
+        # if given a name, get corresponding integer value
+        if isinstance(level, str):
+            level = getLevel(level)
+        # make sure we (now) have an integer
         if type(level) is not int:
             raise TypeError("LogFile.setLevel() should be given an int, which"
                             "is usually one of logging.INFO (not logging.info)")
