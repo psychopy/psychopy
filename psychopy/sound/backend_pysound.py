@@ -25,6 +25,7 @@ def init(rate=44100, stereo=True, buffer=128):
     pass
     # for compatibility with other backends but not needed
 
+
 def getDevices(kind=None):
     """Returns a dict of dict of audio devices of specified `kind`
 
@@ -32,14 +33,15 @@ def getDevices(kind=None):
     """
     devs = {}
     for ii, dev in enumerate(soundcard.device_info()):
-        if (dev['max_output_channels']==0 and kind=='output' or
-                dev['max_input_channels']==0 and kind=='input'):
+        if (dev['max_output_channels'] == 0 and kind == 'output' or
+                dev['max_input_channels'] == 0 and kind == 'input'):
             continue
         # newline characters must be removed
-        devName = dev['name'].replace('\r\n','')
+        devName = dev['name'].replace('\r\n', '')
         devs[devName] = dev
         dev['id'] = ii
     return devs
+
 
 # these will be controlled by sound.__init__.py
 defaultInput = None
