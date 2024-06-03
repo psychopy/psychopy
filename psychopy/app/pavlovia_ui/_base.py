@@ -8,6 +8,7 @@ import sys
 
 import wx
 import wx.html2
+import requests
 
 from psychopy.localization import _translate
 from psychopy.projects import pavlovia
@@ -90,8 +91,9 @@ class PavloviaMiniBrowser(wx.Dialog):
         self._loggingIn = True
         authURL, state = pavlovia.getAuthURL()
         self.browser.Bind(wx.html2.EVT_WEBVIEW_ERROR, self.onConnectionErr)
-        self.browser.Bind(wx.html2.EVT_WEBVIEW_LOADED, self.checkForLoginURL)
+        self.browser.Bind(wx.html2.EVT_WEBVIEW_LOADED, self.getAccessTokenFromURL)
         self.browser.LoadURL(authURL)
+        self.Close()
 
     def setURL(self, url):
         self.browser.LoadURL(url)
@@ -113,10 +115,38 @@ class PavloviaMiniBrowser(wx.Dialog):
         if 'INET_E_DOWNLOAD_FAILURE' in event.GetString():
             self.EndModal(wx.ID_EXIT)
             raise Exception("{}: No internet connection available.".format(event.GetString()))
+    
+    def getAccessTokenFromURL(self, event):
+        """
+        Parse the redirect url from a login request for the parameter `code`, this is 
+        the "Auth code" which is used later to get an access token.
 
-    def checkForLoginURL(self, event):
+        Parameters
+        ----------
+        event : wx.html2.EVT_WEBVIEW_LOADED
+            Load event from the browser window.
+        """
+        # get URL
         url = event.GetURL()
-        if 'access_token=' in url:
+        # get auth code from URL
+        if "code=" in url:
+            # get state from redirect url
+            self.tokenInfo['state'] = self.getParamFromURL('state', url)
+            # if returned an auth code, use it to get a token
+            resp = requests.post(
+                "https://gitlab.pavlovia.org/oauth/token",
+                params={
+                    'client_id': pavlovia.client_id,
+                    'code': self.getParamFromURL("code", url),
+                    'grant_type': "authorization_code",
+                    'redirect_uri': pavlovia.redirect_url,
+                    'code_verifier': pavlovia.code_verifier
+                }
+            ).json()
+            # use the json response from that http request to get access remaining token info
+            self.tokenInfo['token'] = resp['access_token']
+            self.tokenInfo['tokenType'] = resp['token_type']
+        elif "access_token=" in url:
             self.tokenInfo['token'] = self.getParamFromURL(
                 'access_token', url)
             self.tokenInfo['tokenType'] = self.getParamFromURL(
