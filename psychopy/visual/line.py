@@ -173,7 +173,7 @@ class Line(ShapeStim):
             lineColorSpace=None,
             fillColor=None,
             fillColorSpace=lineColorSpace,  # have these set to the same
-            vertices=None,
+            vertices=None,  # vertices will be overwritten by _vertices.setas()
             anchor=anchor,
             closeShape=False,
             pos=pos,
