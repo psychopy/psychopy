@@ -832,19 +832,13 @@ class Vertices:
         value *= self._flip
         # Account for anchor
         value -= self.anchorAdjust * getattr(self.size, units)
+        # Account for pos
+        if self.pos is None:
+            raise ValueError(
+                u"Cannot not calculate absolute positions of vertices without "
+                u"a pos attribute")
 
-        # NOTE: This is commented out because the pos attribute is already used
-        # to calculate the absolute position of the vertices during drawing.
-        # If we subtract the pos attribute again, the vertices will be offset
-        # by the pos attribute twice, and the orientation calculation will be off.
-
-        # # Account for pos
-        # if self.pos is None:
-        #     raise ValueError(
-        #         u"Cannot not calculate absolute positions of vertices without "
-        #         u"a pos attribute")
-        # value -= getattr(self.pos, units)
-
+        value -= getattr(self.pos, units)
         self.base = value  # apply
 
     @property
