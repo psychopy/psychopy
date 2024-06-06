@@ -252,7 +252,7 @@ class TextBox2(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin):
         self._text = ''
         self.text = self.startText = text if text is not None else ""
 
-        # not that we have text, set orientation
+        # now that we have text, set orientation
         self.ori = ori
 
         # Initialise arabic reshaper
