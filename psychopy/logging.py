@@ -76,6 +76,9 @@ _levelNames = {
     'DEBUG': DEBUG,
     'NOTSET': NOTSET}
 
+# string to search for level names in a log message
+_levelNamesRe = "|".join(key for key in _levelNames if isinstance(key, str))
+
 _prefEncoding = locale.getpreferredencoding()
 
 def getLevel(level):
@@ -188,6 +191,10 @@ class LogFile():
     def setLevel(self, level):
         """Set a new minimal level for the log file/stream
         """
+        # if given a name, get corresponding integer value
+        if isinstance(level, str):
+            level = getLevel(level)
+        # make sure we (now) have an integer
         if type(level) is not int:
             raise TypeError("LogFile.setLevel() should be given an int, which"
                             "is usually one of logging.INFO (not logging.info)")
@@ -305,7 +312,7 @@ class _Logger():
         self.toFlush = []  # a new empty list
 
 root = _Logger()
-console = LogFile()
+console = LogFile(level=WARNING)
 
 
 def flush(logger=root):
