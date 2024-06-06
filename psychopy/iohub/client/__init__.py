@@ -1086,8 +1086,12 @@ class ioHubConnection():
                 dev_cls_name = dev_cls_name[cls_name_start + 1:]
             else:
                 dev_mod_pth = '{0}{1}'.format(dev_mod_pth, dev_name)
-
-            dev_import_result = import_device(dev_mod_pth, dev_cls_name)
+            # try to import EyeTracker class from given path
+            try:
+                dev_import_result = import_device(dev_mod_pth, dev_cls_name)
+            except ModuleNotFoundError:
+                # if not found, try importing from root (may have entry point)
+                dev_import_result = import_device("psychopy.iohub.devices", dev_cls_name)
             dev_cls, dev_cls_name, evt_cls_list = dev_import_result
 
             DeviceConstants.addClassMapping(dev_cls)
