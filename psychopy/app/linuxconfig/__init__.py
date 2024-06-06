@@ -19,6 +19,7 @@ import sys
 
 import wx
 from .ui import BaseLinuxConfigDialog
+from ...core import rush
 
 # Text that appears at the top of the dialog with provides instructions to the
 # user.
@@ -142,3 +143,11 @@ def linuxConfigFileExists():
         return True
 
     return os.path.isfile(_confPath)
+
+def linuxRushAllowed():
+    if sys.platform != 'linux':
+        return True
+
+    success = rush(1)
+    rush(0)
+    return success
