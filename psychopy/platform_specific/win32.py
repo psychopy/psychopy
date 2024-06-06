@@ -65,18 +65,22 @@ def rush(enable=True, realtime=False):
     pr = windll.OpenProcess(pr_rights, FALSE, os.getpid())
     thr = windll.GetCurrentThread()
 
-    if enable is True:
-        if realtime is False:
-            windll.SetPriorityClass(pr, HIGH_PRIORITY_CLASS)
-            windll.SetThreadPriority(thr, THREAD_PRIORITY_HIGHEST)
+    # In this context, non-zero is success and zero is error
+    out = 1
+
+    if enable:
+        if not realtime:
+            out = windll.SetPriorityClass(pr, HIGH_PRIORITY_CLASS) != 0
+            out &= windll.SetThreadPriority(thr, THREAD_PRIORITY_HIGHEST) != 0
         else:
-            windll.SetPriorityClass(pr, REALTIME_PRIORITY_CLASS)
-            windll.SetThreadPriority(thr, THREAD_PRIORITY_TIME_CRITICAL)
+            out = windll.SetPriorityClass(pr, REALTIME_PRIORITY_CLASS) != 0
+            out &= windll.SetThreadPriority(thr, THREAD_PRIORITY_TIME_CRITICAL) != 0
 
     else:
-        windll.SetPriorityClass(pr, NORMAL_PRIORITY_CLASS)
-        windll.SetThreadPriority(thr, THREAD_PRIORITY_NORMAL)
-    return True
+        out = windll.SetPriorityClass(pr, NORMAL_PRIORITY_CLASS) != 0
+        out &= windll.SetThreadPriority(thr, THREAD_PRIORITY_NORMAL) != 0
+
+    return out != 0
 
 
 def waitForVBL():
