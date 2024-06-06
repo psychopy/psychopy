@@ -1,6 +1,7 @@
 import webbrowser
 
 import wx
+import os
 import sys
 import subprocess as sp
 from pypi_search import search as pypi
@@ -101,11 +102,15 @@ class PIPTerminalPanel(wx.Panel):
 
     def runCommand(self, cmd):
         """Run the command."""
+
+        env = os.environ.copy()
+
         emts = [self.preface, cmd]
         output = sp.Popen(' '.join(emts),
                           stdout=sp.PIPE,
                           stderr=sp.PIPE,
                           shell=True,
+                          env=env,
                           universal_newlines=True)
         stdout, stderr = output.communicate()
         sys.stdout.write(stdout)

@@ -25,6 +25,11 @@
 
 .. only:: html
     
+    PsychoPy now supports `Plugins <https://plugins.psychopy.org/>`_ , making the application even more flexible and extendable! Check out the range of additional features supported via our `plugins pages <https://plugins.psychopy.org/>`_ . 
+
+
+.. only:: html
+    
     Further information:
 
 .. toctree::

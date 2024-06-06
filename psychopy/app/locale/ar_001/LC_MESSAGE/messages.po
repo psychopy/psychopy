@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PsychoPy v2023.2.3\n"
-"POT-Creation-Date: 2024-02-03 15:47+0000\n"
+"POT-Creation-Date: 2024-05-19 12:59+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jeremy R. Gray <jrgray@gmail.com>\n"
 "Language-Team: \n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=6; plural=(n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && "
 "n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5);\n"
-"X-Generator: Poedit 3.4.2\n"
+"X-Generator: Poedit 3.4.4\n"
 "X-Poedit-Basepath: ../../../../..\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-KeywordsList: _translate\n"
@@ -264,6 +264,7 @@ msgstr ""
 "يتطلب الناسخ الذي تم اختياره '{engine}' مفتاح API، يرجى توفير واحد في "
 "التفضيلات."
 
+# the translation of the word "parameter" might need revision
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:132
 #, fuzzy, python-brace-format
 msgid ""
@@ -272,12 +273,15 @@ msgstr ""
 "لن يتم استخدام معامل الجهاز (device parameter) الخاص بمكوّن الميكروفون "
 "\"{name}\" عبر الإنترنت."
 
+# runner translation
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:136
-#, python-brace-format
+#, fuzzy, python-brace-format
 msgid ""
 "The file you are attempting to run does not seem to exist, the full path "
 "supplied to Runner was {path}"
 msgstr ""
+"يبدو أن الملف الذي تحاول تشغيله غير موجود، يبدو أن المسار الكامل الذي تم "
+"توفيره إلى \"العداء\" كان {path}"
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:140
 #, python-brace-format
@@ -285,6 +289,8 @@ msgid ""
 "Color space attribute `.{colorSpaceAttrib}` is no longer in use, as colors are "
 "no longer tied to one space."
 msgstr ""
+"لم تعد سمة مساحة اللون \". {colorSpaceAttrib}\" قيد الاستخدام، حيث لم تعد "
+"الألوان مرتبطة بمساحة واحدة."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:144
 #, python-brace-format
@@ -292,15 +298,18 @@ msgid ""
 "RGB attribute `.{rgbAttrib}` is no longer in use, as non-RGB colors now handle "
 "their own conversion."
 msgstr ""
+"لم تعد سمة RGB \". {rgbAttrib}\" قيد الاستخدام، حيث أن الألوان غير RGB تتعامل "
+"الآن مع التحويل الخاص بها."
 
 #: psychopy/app/Resources/psychopy.desktop:5
 #: psychopy/app/Resources/psychopy.desktop:6
+#, fuzzy
 msgid "PsychoPy"
-msgstr ""
+msgstr "سايكوباي"
 
 #: psychopy/app/Resources/psychopy.desktop:7
 msgid "Psychology software in Python"
-msgstr ""
+msgstr "برنامج سايكوباي في بايثون"
 
 #: psychopy/app/_psychopyApp.py:98 psychopy/app/builder/builder.py:381
 #: psychopy/app/coder/coder.py:1570 psychopy/app/runner/runner.py:207

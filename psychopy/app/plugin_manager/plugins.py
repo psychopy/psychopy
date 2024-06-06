@@ -1222,6 +1222,13 @@ def getAllPluginDetails():
             return None
         # otherwise get as a string
         value = resp.text
+
+        if value is None or value == "":
+            return None
+
+        # make sure we are using UTF-8 encoding
+        value = value.encode('utf-8', 'ignore').decode('utf-8')
+
         # attempt to parse JSON
         try:
             database = json.loads(value)
