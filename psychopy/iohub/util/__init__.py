@@ -16,6 +16,8 @@ import collections.abc
 import pathlib
 import psychopy.logging as logging
 import psychopy.plugins as plugins
+import importlib.metadata
+from pathlib import Path
 
 ########################
 #
@@ -253,7 +255,35 @@ def getDevicePaths(device_name=""):
     scs_yaml_paths = []  # stores the paths to the device config files
     plugins.refreshBundlePaths()  # make sure eyetracker external plugins are reachable
 
-    # get device paths for extant extensions
+    # find EyeTracker classes by entry points targeting psychopy.iohub.devices.eyetracker
+    for group, points in importlib.metadata.entry_points().items():
+        # skip irrelevant groups
+        if not group.startswith("psychopy.iohub.devices.eyetracker"):
+            continue
+        # process each point
+        for ep in points:
+            # load class the entry point points to
+            try:
+                cls = ep.load()
+            except:
+                logging.error(
+                    f"Failed to load entry point: {ep}"
+                )
+                continue
+            # if class points to yaml file, use it
+            if hasattr(cls, "configFile"):
+                scs_yaml_paths.append(
+                    (cls.configFile.parent, cls.configFile.name)
+                )
+            else:
+                # otherwise, check its local folder
+                import inspect
+                deviceConfig = _getDevicePaths(
+                    os.path.dirname(inspect.getfile(cls))
+                )
+                scs_yaml_paths.extend(deviceConfig)
+    
+    # get device paths for extensions (the old way)
     try:  # tobii eyetrackers
         logging.debug("Looking for Tobii device configuration file...")
         import psychopy_eyetracker_tobii.tobii as tobii
