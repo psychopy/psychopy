@@ -252,6 +252,9 @@ class TextBox2(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin):
         self._text = ''
         self.text = self.startText = text if text is not None else ""
 
+        # not that we have text, set orientation
+        self.ori = ori
+
         # Initialise arabic reshaper
         arabic_config = {'delete_harakat': False,  # if present, retain any diacritics
                          'shift_harakat_position': False}  # shift by 1 to be compatible with the bidi algorithm
