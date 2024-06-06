@@ -804,7 +804,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
 
         return self._recording.getSegment()  # full recording
 
-    def getCurrentVolume(self, timeframe=0.1):
+    def getCurrentVolume(self, timeframe=0.2):
         """
         Get the current volume measured by the mic.
 
@@ -831,20 +831,68 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
 
         return clip.rms() * 10
 
-    # MicrophoneDevice isn't *really* a ResponseDevice, but it can have listeners - so may as
-    # well use the same functions to add/remove them
-    addListener = BaseResponseDevice.addListener
-    clearListeners = BaseResponseDevice.clearListeners
+    def addListener(self, listener, startLoop=False):
+        """
+        Add a listener, which will receive all the same messages as this device.
 
-    def dispatchMessages(self):
+        Parameters
+        ----------
+        listener : str or psychopy.hardware.listener.BaseListener
+            Either a Listener object, or use one of the following strings to create one:
+            - "liaison": Create a LiaisonListener with DeviceManager.liaison as the server
+            - "print": Create a PrintListener with default settings
+            - "log": Create a LoggingListener with default settings
+        startLoop : bool
+            If True, then upon adding the listener, start up an asynchronous loop to dispatch messages.
+        """
+        # add listener as normal
+        BaseResponseDevice.addListener(self, listener, startLoop=startLoop)
+        # if we're starting a listener loop, start recording
+        if startLoop:
+            self.start()
+
+    def clearListeners(self):
+        """
+        Remove any listeners from this device.
+
+        Returns
+        -------
+        bool
+            True if completed successfully
+        """
+        # clear listeners as normal
+        BaseResponseDevice.clearListeners(self)
+        # stop recording
+        self.stop()
+
+    def dispatchMessages(self, clear=True):
         """
         Dispatch current volume as a MicrophoneResponse object to any attached listeners.
+
+        Parameters
+        ----------
+        clear : bool
+            If True, will clear the recording up until now after dispatching the volume. This is
+            useful if you're just sampling volume and aren't wanting to store the recording.
         """
         # create a response object
         message = MicrophoneResponse(
             logging.defaultClock.getTime(),
             self.getCurrentVolume()
         )
+        # clear recording if requested (helps with continuous running)
+        if clear and self.isRecBufferFull:
+            # work out how many samples is 0.1s
+            toSave = min(
+                int(0.2 * self._sampleRateHz),
+                int(self.maxRecordingSize / 2)
+            )
+            # get last 0.1s so we still have enough for volume measurement
+            savedSamples = self._recording._samples[-toSave:, :]
+            # clear samples
+            self._recording.clear()
+            # reassign saved samples
+            self._recording.write(savedSamples)
         # dispatch to listeners
         for listener in self.listeners:
             listener.receiveMessage(message)
