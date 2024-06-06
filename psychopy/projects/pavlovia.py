@@ -114,9 +114,9 @@ def generateCodeChallengePair():
     code_verifier = ""
     for n in range(randint(44, 127)):
         code_verifier += randchoice(validChars)
-    # todo: transform to make code_challenge
+    # transform to make code_challenge
     code_challenge = code_verifier
-      # SHA-256 digest
+    # SHA-256 digest
     code_verifier_hash = hashlib.sha256(code_verifier.encode("utf-8")).digest()
     # Base64 urlsafe encode without padding
     code_challenge = base64.urlsafe_b64encode(code_verifier_hash).decode("utf-8").rstrip("=")
