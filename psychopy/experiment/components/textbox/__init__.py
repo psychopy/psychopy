@@ -261,6 +261,7 @@ class TextboxComponent(BaseVisualComponent):
                 "  letterHeight: %(letterHeight)s,\n"
                 "  lineSpacing: %(lineSpacing)s,\n"
                 "  size: %(size)s," + unitsStr +
+                "  ori: %(ori)s,\n"
                 "  color: %(color)s, colorSpace: %(colorSpace)s,\n"
                 "  fillColor: %(fillColor)s, borderColor: %(borderColor)s,\n"
                 "  languageStyle: %(languageStyle)s,\n"
