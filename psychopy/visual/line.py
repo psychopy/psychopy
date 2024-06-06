@@ -173,7 +173,7 @@ class Line(ShapeStim):
             lineColorSpace=None,
             fillColor=None,
             fillColorSpace=lineColorSpace,  # have these set to the same
-            vertices=None,  # vertices will be overwritten by _vertices.setas()
+            vertices=(start, end),
             anchor=anchor,
             closeShape=False,
             pos=pos,
@@ -192,7 +192,6 @@ class Line(ShapeStim):
             color=color,
             colorSpace=colorSpace)
 
-        self._vertices.setas([start, end], self.units)
         del self._tesselVertices
 
     @property
