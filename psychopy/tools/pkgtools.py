@@ -202,6 +202,17 @@ def installPackage(package, target=None, upgrade=False, forceReinstall=False,
     if noDeps:
         cmd.append('--no-deps')
 
+    # check if we are in a virtual environment, if so, dont use --user
+    if hasattr(sys, 'real_prefix') or (
+            hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix):
+        # we are in a venv
+        cmd.append('--user')
+        logging.warning(
+            "You are installing a package inside a virtual environment. "
+            "The package will be installed in the user site-packages directory."
+        )
+
+    cmd.append('--prefer-binary')  # use binary wheels if available
     cmd.append('--no-input')  # do not prompt, we cannot accept input
     cmd.append('--no-color')  # no color for console, not supported
     cmd.append('--no-warn-conflicts')  # silence non-fatal errors
