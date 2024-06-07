@@ -1632,10 +1632,6 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         # Run debug function from runner
         self.app.runner.panel.runOnlineDebug(evt=evt)
 
-    def setPavloviaUser(self, user):
-        # TODO: update user icon on button to user avatar
-        pass
-
     @property
     def project(self):
         """A PavloviaProject object if one is known for this experiment
