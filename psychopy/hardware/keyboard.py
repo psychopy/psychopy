@@ -67,6 +67,7 @@ import psychopy.clock
 from psychopy import logging
 from psychopy.constants import NOT_STARTED
 import time
+import numpy as np
 
 from psychopy.hardware.base import BaseResponseDevice, BaseResponse
 from psychopy.hardware import DeviceManager
@@ -229,6 +230,25 @@ class Keyboard(AttributeGetSetMixin):
     def getKeys(self, keyList=None, ignoreKeys=None, waitRelease=True, clear=True):
         return self.device.getKeys(
             keyList=keyList, ignoreKeys=ignoreKeys, waitRelease=waitRelease, clear=clear
+        )
+
+    def getState(self, keys):
+        """
+        Get the current state of a key or set of keys
+
+        Parameters
+        ----------
+        keys : str or list[str]
+            Either the code for a single key, or a list of key codes.
+        
+        Returns
+        -------
+        keys : bool or list[bool]
+            True if pressed, False if not. Will be a single value if given a 
+            single key, or a list of bools if given a list of keys.
+        """
+        return self.device.getState(
+            keys=keys
         )
 
     def waitKeys(self, maxWait=float('inf'), keyList=None, waitRelease=True,
@@ -503,6 +523,67 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
             self.responses.pop(i)
 
         return keys
+
+    def getState(self, keys):
+        """
+        Get the current state of a key or set of keys
+
+        Parameters
+        ----------
+        keys : str or list[str]
+            Either the code for a single key, or a list of key codes.
+        
+        Returns
+        -------
+        keys : bool or list[bool]
+            True if pressed, False if not. Will be a single value if given a 
+            single key, or a list of bools if given a list of keys.
+        """
+        # if given a string, convert to a list
+        if isinstance(keys, str):
+            keys = [keys]
+        # start off False
+        state = [False] * len(keys)
+
+        if KeyboardDevice._backend == 'ptb':
+            # use ptb.Keyboard.check if backend is ptb
+            for buffer in self._buffers.values():
+                # get output from ptb
+                anyPressed, t, mat = buffer.dev.check()
+                # if got any key...
+                if mat.any():
+                    # convert each key index to a key name
+                    for i in np.where(mat.flatten())[0]:
+                        # account for ptb's 1-based indexing
+                        i = int(i) + 1
+                        # get key name from index (or None if not applicable)
+                        name = keyNames.get(i, None)
+                        # check if it's on our list
+                        if name in keys:
+                            state[keys.index(name)] = True
+        elif KeyboardDevice._backend == 'iohub':
+            # get current state of ioHub keyboard
+            ioHubState = KeyboardDevice._iohubKeyboard.getCurrentDeviceState()
+            # iterate through pressed keys
+            for i in ioHubState.get("pressed_keys", {}):
+                # iohub returns strings - integerise
+                i = int(i)
+                # get key name from index (or None if not applicable)
+                name = keyNames.get(i, None)
+                # check if it's on our list
+                if name in keys:
+                    state[keys.index(name)] = True
+        else:
+            handler = event.pyglet.window.key.KeyStateHandler()
+            for i, key in enumerate(keys):
+                state[i] = handler[getattr(event.pyglet.window.key, key.upper())]
+
+        # if state is a single value, remove list wrapper
+        if len(state) == 1:
+            state = state[0]
+        
+        return state
+
 
     def dispatchMessages(self):
         if KeyboardDevice._backend == 'ptb':
