@@ -364,7 +364,7 @@ def getPluginConfigPath(plugin):
     
     # get the config directory
     import pathlib
-    configDir = pathlib.Path(prefs.paths['config']) / 'plugins' / plugin
+    configDir = pathlib.Path(prefs.paths['configs']) / 'plugins' / plugin
     configDir.mkdir(parents=True, exist_ok=True)
 
     return configDir

@@ -157,7 +157,7 @@ class Preferences:
             'themes',  # define theme path
             'fonts',  # find / copy fonts
             'packages',  # packages and plugins
-            'config',  # config files for plugins
+            'configs',  # config files for plugins
             'cache',  # cache for downloaded and other temporary files
         )
 
