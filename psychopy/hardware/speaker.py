@@ -12,7 +12,7 @@ class SpeakerDevice(BaseDevice):
             # check if a default device is set and update index
             if hasattr(backend, 'defaultOutput'):
                 defaultDevice = backend.defaultOutput
-                if isinstance(defaultDevice, int):
+                if isinstance(defaultDevice, (int, float)):
                     # if a default device index is set, use it
                     index = defaultDevice
                 elif isinstance(defaultDevice, str):
