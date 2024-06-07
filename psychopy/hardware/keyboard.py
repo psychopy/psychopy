@@ -574,8 +574,11 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
                 if name in keys:
                     state[keys.index(name)] = True
         else:
+            # make a key state handler
             handler = event.pyglet.window.key.KeyStateHandler()
+            # iterate through our list of keys
             for i, key in enumerate(keys):
+                # if handler has an entry for the given key, it's pressed
                 state[i] = handler[getattr(event.pyglet.window.key, key.upper())]
 
         # if state is a single value, remove list wrapper
