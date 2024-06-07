@@ -15,7 +15,7 @@ a given time in the future.
 By default PsychoPy will try to use the following Libs, in this order, for
 sound reproduction but you can alter the order in
 preferences > hardware > audioLib:
-    ['sounddevice', 'pygame', 'pyo']
+    ['sounddevice', 'pyo', 'pygame']
 For portaudio-based backends (all except for pygame) there is also a
 choice of the underlying sound driver (e.g. ASIO, CoreAudio etc).
 
@@ -66,6 +66,7 @@ pyoSndServer = None
 Sound = None
 audioLib = None
 audioDriver = None
+backend = None
 
 # These are the names that can be used in the prefs to specifiy audio libraries. 
 # The available libraries are hard-coded at this point until we can overhaul 
@@ -127,6 +128,8 @@ for thisLibName in prefs.hardware['audioLib']:
         # pyo is a wrapper around PortAudio, which is a cross-platform audio
         # library. It is the recommended backend for Windows and Linux.
         try:
+            # Caution: even import failed inside, we still get a module object.
+            # This is not the case for other backends and may not be desired.
             from . import backend_pyo as backend
             Sound = backend.SoundPyo
             pyoSndServer = backend.pyoSndServer
@@ -140,6 +143,8 @@ for thisLibName in prefs.hardware['audioLib']:
         # sounddevice is a wrapper around PortAudio, which is a cross-platform
         # audio library. It is the recommended backend for Windows and Linux.
         try:
+            # Caution: even import failed inside, we still get a module object.
+            # This is not the case for other backends and may not be desired.
             from . import backend_sounddevice as backend
             Sound = backend.SoundDeviceSound
         except Exception:
@@ -163,7 +168,7 @@ for thisLibName in prefs.hardware['audioLib']:
         # pysoundcard is a wrapper around PortAudio, which is a cross-platform
         # audio library.
         try:
-            from . import backend_pysoundcard as backend
+            from . import backend_pysound as backend
             Sound = backend.SoundPySoundCard
         except Exception:
             failed.append(thisLibName)
@@ -200,7 +205,7 @@ else:
     # if we get here, there is no audioLib that is supported
     logging.error(
         "No audioLib could be loaded. Tried: {}\n Check whether the necessary "
-        "audioLibs are installed".format(prefs.hardware['audioLib']))
+        "audioLibs are installed.".format(prefs.hardware['audioLib']))
 
 # warn the user
 if audioLib is not None:
@@ -253,7 +258,12 @@ def setDevice(dev, kind=None):
 
 # Set the device according to user prefs (if current lib allows it)
 deviceNames = []
-if hasattr(backend, 'defaultOutput'):
+if backend is None:
+    raise ImportError("None of the audio library backends could be imported. "
+                      "Tried: {}\n Check whether the necessary audioLibs are "
+                      "installed and can be imported successfully."
+                      .format(prefs.hardware['audioLib']))
+elif hasattr(backend, 'defaultOutput'):
     pref = prefs.hardware['audioDevice']
     # is it a list or a simple string?
     if type(prefs.hardware['audioDevice'])==list:
