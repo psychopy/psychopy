@@ -52,7 +52,9 @@ urlencode = parse.quote
 
 pavloviaPrefsDir = os.path.join(prefs.paths['userPrefsDir'], 'pavlovia')
 rootURL = "https://gitlab.pavlovia.org"
-client_id = '4bb79f0356a566cd7b49e3130c714d9140f1d3de4ff27c7583fb34fbfac604e0'
+client_id = '944b87ee0e6b4f510881d6f6bc082f64c7bba17d305efdb829e6e0e7ed466b34'
+code_challenge = None
+code_verifier = None
 scopes = []
 redirect_url = 'https://gitlab.pavlovia.org/'
 
@@ -78,11 +80,48 @@ OK = 1
 
 
 def getAuthURL():
+    # starting state
     state = str(uuid4())  # create a private "state" based on uuid
+    # code challenge and verifier need to be global so we can access them later
+    global code_challenge, code_verifier
+    # generate code challenge and corresponding verifier
+    code_verifier, code_challenge = generateCodeChallengePair()
+    # construct auth url
     auth_url = ('https://gitlab.pavlovia.org/oauth/authorize?client_id={}'
-                '&redirect_uri={}&response_type=token&state={}'
-                .format(client_id, redirect_url, state))
+                '&redirect_uri={}&response_type=code&state={}&code_challenge={}&code_challenge_method=S256'
+                .format(client_id, redirect_url, state, code_challenge))
+
     return auth_url, state
+
+
+def generateCodeChallengePair():
+    """
+    Create a unique random string and its corresponding encoded challenge.
+
+    Returns
+    -------
+    str
+        A code verifier - a random collection of characters
+    str
+        A code challenge - the code verifier transformed using a particular algorithm
+    """
+    from numpy.random import randint, choice as randchoice
+    import hashlib
+    import base64
+    # characters valid for a code verifier...
+    validChars = list("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~")
+    # first make the answer - pick random alphanumeric chars
+    code_verifier = ""
+    for n in range(randint(44, 127)):
+        code_verifier += randchoice(validChars)
+    # transform to make code_challenge
+    code_challenge = code_verifier
+    # SHA-256 digest
+    code_verifier_hash = hashlib.sha256(code_verifier.encode("utf-8")).digest()
+    # Base64 urlsafe encode without padding
+    code_challenge = base64.urlsafe_b64encode(code_verifier_hash).decode("utf-8").rstrip("=")
+    
+    return code_verifier, code_challenge
 
 
 def login(tokenOrUsername, rememberMe=True):
