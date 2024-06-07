@@ -223,7 +223,6 @@ class TextBox2(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin):
 
         # standard stimulus params
         self.pos = pos
-        self._rotationMatrix = [[1., 0.], [0., 1.]]
         self.ori = 0.0
         # used at render time
         self._lines = None  # np.array the line numbers for each char
@@ -1179,7 +1178,7 @@ class TextBox2(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin):
         # convert the vertices to be relative to content box and set
         vertices = vertices / self.contentBox._size.pix + (-0.5, 0.5)
         # apply orientation
-        self.vertices = (vertices).dot(self._rotationMatrix)
+        self.vertices = (vertices * self.size).dot(self._rotationMatrix) / self.size
 
         if len(_lineBottoms):
             if self.flipVert:

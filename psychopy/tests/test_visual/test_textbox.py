@@ -107,7 +107,7 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin):
         self.textbox.color = "black"
         self.textbox.fillColor = "white"
         self.textbox.units = "pix"
-        self.textbox.size = (100, 100)
+        self.textbox.size = (100, 50)
         self.textbox.pos = (0, 0)
         self.textbox.letterHeight = 5
         # define params to use
@@ -131,9 +131,9 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin):
                 # construct exemplar filename
                 exemplar = f"test_ori_{ori}_{anchor}.png"
                 # check/make exemplar
-                self.win.getMovieFrame(buffer='back').save(
-                    Path(utils.TESTS_DATA_PATH) / "Test_textbox" / exemplar
-                )
+                # self.win.getMovieFrame(buffer='back').save(
+                #     Path(utils.TESTS_DATA_PATH) / "Test_textbox" / exemplar
+                # )
                 utils.compareScreenshot(
                     Path(utils.TESTS_DATA_PATH) / "Test_textbox" / exemplar, self.win, crit=20
                 )
