@@ -206,11 +206,12 @@ def installPackage(package, target=None, upgrade=False, forceReinstall=False,
     if hasattr(sys, 'real_prefix') or (
             hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix):
         # we are in a venv
-        cmd.append('--user')
         logging.warning(
             "You are installing a package inside a virtual environment. "
             "The package will be installed in the user site-packages directory."
         )
+    else:
+        cmd.append('--user')
 
     cmd.append('--prefer-binary')  # use binary wheels if available
     cmd.append('--no-input')  # do not prompt, we cannot accept input

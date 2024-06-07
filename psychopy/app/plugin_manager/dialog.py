@@ -255,11 +255,12 @@ class EnvironmentManagerDlg(wx.Dialog):
         if hasattr(sys, 'real_prefix') or (
                 hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix):
             # we are in a venv
-            command.append('--user')
             logging.warning(
                 "You are installing a package inside a virtual environment. "
                 "The package will be installed in the user site-packages directory."
             )
+        else:
+            command.append('--user')
         
         # add other options to the command
         command += ['--prefer-binary', '--no-input', '--no-color']
