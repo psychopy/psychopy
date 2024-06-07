@@ -18,10 +18,9 @@
 # define THREAD_PRIORITY_HIGHEST         2
 # define THREAD_PRIORITY_TIME_CRITICAL   15
 
-import os
-
 try:
     from ctypes import windll
+    from ctypes.wintypes import HANDLE, DWORD, BOOL, INT, UINT
     windll = windll.kernel32
     importWindllFailed = False
 except Exception:
@@ -47,6 +46,28 @@ ES_CONTINUOUS = 0x80000000
 ES_DISPLAY_REQUIRED = 0x00000002
 ES_SYSTEM_REQUIRED = 0x00000001
 
+GetCurrentProcessId = windll.GetCurrentProcessId
+GetCurrentProcessId.restype = HANDLE
+
+OpenProcess = windll.OpenProcess
+OpenProcess.restype = HANDLE
+OpenProcess.argtypes = (DWORD, BOOL, DWORD)
+
+GetCurrentThread = windll.GetCurrentThread
+GetCurrentThread.restype = HANDLE
+
+SetPriorityClass = windll.SetPriorityClass
+SetPriorityClass.restype = BOOL
+SetPriorityClass.argtypes = (HANDLE, DWORD)
+
+SetThreadPriority = windll.SetThreadPriority
+SetThreadPriority.restype = BOOL
+SetThreadPriority.argtypes = (HANDLE, INT)
+
+SetThreadExecutionState = windll.SetThreadExecutionState
+SetThreadExecutionState.restype = UINT
+SetThreadExecutionState.argtypes = (UINT,)
+
 
 def rush(enable=True, realtime=False):
     """Raise the priority of the current thread/process.
@@ -62,7 +83,7 @@ def rush(enable=True, realtime=False):
         return False
 
     pr_rights = PROCESS_QUERY_INFORMATION | PROCESS_SET_INFORMATION
-    pr = windll.OpenProcess(pr_rights, FALSE, os.getpid())
+    pr = windll.OpenProcess(pr_rights, FALSE, GetCurrentProcessId())
     thr = windll.GetCurrentThread()
 
     # In this context, non-zero is success and zero is error
@@ -70,15 +91,15 @@ def rush(enable=True, realtime=False):
 
     if enable:
         if not realtime:
-            out = windll.SetPriorityClass(pr, HIGH_PRIORITY_CLASS) != 0
-            out &= windll.SetThreadPriority(thr, THREAD_PRIORITY_HIGHEST) != 0
+            out = SetPriorityClass(pr, HIGH_PRIORITY_CLASS) != 0
+            out &= SetThreadPriority(thr, THREAD_PRIORITY_HIGHEST) != 0
         else:
-            out = windll.SetPriorityClass(pr, REALTIME_PRIORITY_CLASS) != 0
-            out &= windll.SetThreadPriority(thr, THREAD_PRIORITY_TIME_CRITICAL) != 0
+            out = SetPriorityClass(pr, REALTIME_PRIORITY_CLASS) != 0
+            out &= SetThreadPriority(thr, THREAD_PRIORITY_TIME_CRITICAL) != 0
 
     else:
-        out = windll.SetPriorityClass(pr, NORMAL_PRIORITY_CLASS) != 0
-        out &= windll.SetThreadPriority(thr, THREAD_PRIORITY_NORMAL) != 0
+        out = SetPriorityClass(pr, NORMAL_PRIORITY_CLASS) != 0
+        out &= SetThreadPriority(thr, THREAD_PRIORITY_NORMAL) != 0
 
     return out != 0
 
@@ -99,5 +120,5 @@ def sendStayAwake():
     Currently supported on: windows, macOS.
     """
     code = ES_SYSTEM_REQUIRED | ES_DISPLAY_REQUIRED
-    success = windll.SetThreadExecutionState(code)
+    success = SetThreadExecutionState(code)
     return success
