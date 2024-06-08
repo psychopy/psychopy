@@ -757,7 +757,7 @@ def loadPlugin(plugin):
                     _failed_plugins_.append(plugin)
 
                 return False
-            except Exception as e:  # catch everything else
+            except Exception:  # catch everything else
                 logging.error(
                     "Failed to load entry point `{}` of plugin `{}` for unknown"
                     " reasons. Skipping.".format(str(ep), plugin))
