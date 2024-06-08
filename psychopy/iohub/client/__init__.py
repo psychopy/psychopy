@@ -1311,7 +1311,7 @@ class ioHubConnection():
                     self.udp_client.sendTo(('STOP_IOHUB_SERVER',))
                     self.udp_client.close()
                 if Computer.iohub_process:
-                    r = Computer.iohub_process.wait(timeout=5)
+                    r = Computer.iohub_process.wait()  # timeout=5
                     print('ioHub Server Process Completed With Code: ', r)
             except TimeoutError:
                 print('Warning: TimeoutExpired, Killing ioHub Server process.')
