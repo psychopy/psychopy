@@ -1,13 +1,31 @@
 from psychopy.hardware import BaseDevice
-from psychopy.sound import setDevice, getDevices
+from psychopy.sound import setDevice, getDevices, backend
+from psychopy import logging
 
 
 class SpeakerDevice(BaseDevice):
     def __init__(self, index):
+        profiles = self.getAvailableDevices()
+
         # use first device if index is default
         if not isinstance(index, (int, float)) or index < 0:
-            profiles = self.getAvailableDevices()
             index = profiles[0]['index']
+
+            # check if a default device is set and update index
+            if hasattr(backend, 'defaultOutput'):
+                defaultDevice = backend.defaultOutput
+                if isinstance(defaultDevice, (int, float)):
+                    # if a default device index is set, use it
+                    index = defaultDevice
+                elif isinstance(defaultDevice, str):
+                    # if a default device is set by name, find it
+                    for profile in profiles:
+                        if profile['deviceName'] == defaultDevice:
+                            index = profile['index']
+
+        if index < 0 or index >= len(profiles):
+            logging.error("No speaker device found with index %d" % index)
+
         # store index
         self.index = index
         # set global device (best we can do for now)
