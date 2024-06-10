@@ -254,9 +254,9 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
 
         # if we're on linux, check if we have the permissions file setup
         from psychopy.app.linuxconfig import (
-            LinuxConfigDialog, linuxConfigFileExists)
+            LinuxConfigDialog, linuxRushAllowed)
 
-        if not linuxConfigFileExists():
+        if not linuxRushAllowed():
             linuxConfDlg = LinuxConfigDialog(
                 None, timeout=1000 if self.testMode else None)
             linuxConfDlg.ShowModal()

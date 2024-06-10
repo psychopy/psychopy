@@ -44,5 +44,3 @@ elif sys.platform == 'darwin':
     from .darwin import *  # pylint: disable=W0401
 elif sys.platform.startswith('linux'):  # normally 'linux2'
     from .linux import *  # pylint: disable=W0401
-elif sys.platform == 'posix':  # ever?!
-    from .posix import *  # pylint: disable=W0401
