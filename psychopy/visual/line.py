@@ -260,7 +260,11 @@ class Line(ShapeStim):
     
     def _updateVertices(self):
         ShapeStim._updateVertices(self)
-        self.__dict__['start'], self.__dict__['end'] = (self._vertices.getas(self.units) * self._size.pix).dot(self._rotationMatrix) / self._size.pix
+        # use adjusted size to avoid division by zero
+        nonZeroSize = self._size.pix.copy()
+        nonZeroSize[nonZeroSize == 0] = 1
+        # rotate start/end as needed
+        self.__dict__['start'], self.__dict__['end'] = (self._vertices.getas(self.units) * self._size.pix).dot(self._rotationMatrix) / nonZeroSize
 
     def contains(self, *args, **kwargs):
         return False
