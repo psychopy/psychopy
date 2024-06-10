@@ -250,18 +250,43 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
 
     """
 
-    def _attemptImport(fileName, sep=',', dec='.'):
+    def _attemptImport(fileName):
         """Attempts to import file with specified settings and raises
         ConditionsImportError if fails due to invalid format
 
         :param filename: str
-        :param sep: str indicating the separator for cells (',', ';' etc)
-        :param dec: str indicating the decimal point ('.', '.')
         :return: trialList, fieldNames
         """
         if fileName.endswith(('.csv', '.tsv')):
-            trialsArr = pd.read_csv(fileName, encoding='utf-8-sig',
-                                    sep=sep, decimal=dec)
+            trialsArr = None
+            # try a variety of separator / decimal pairs
+            for sep, dec in [
+                # most common in US, EU
+                (',', '.'), 
+                (';', ','),
+                # other possible formats
+                ('\t', '.'), 
+                ('\t', ','), 
+                (';', '.')
+            ]:
+                # try to load
+                try:
+                    trialsArr = pd.read_csv(
+                        fileName, encoding='utf-8-sig', sep=sep, decimal=dec
+                    )
+                except:
+                    continue
+                else:
+                    # if successful, check the variable names
+                    _assertValidVarNames(trialsArr.columns, fileName)
+                    # skip other pairs now we've got it
+                    break
+            # if all options failed, raise error
+            if trialsArr is None:
+                raise ValueError(
+                    _translate("Could not parse file {}.").format(fileName)
+                )
+            # if we made it herre, we successfully loaded the file
             for col in trialsArr.columns:
                 for row, cell in enumerate(trialsArr[col]):
                     if isinstance(cell, str):
@@ -358,17 +383,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
 
     if (fileName.endswith(('.csv', '.tsv'))
             or (fileName.endswith(('.xlsx', '.xls', '.xlsm')) and haveXlrd)):
-        if fileName.endswith(('.csv', '.tsv', '.dlm')):  # delimited text file
-            for sep, dec in [ (',', '.'), (';', ','),  # most common in US, EU
-                              ('\t', '.'), ('\t', ','), (';', '.')]:
-                try:
-                    trialList, fieldNames = _attemptImport(fileName=fileName,
-                                                           sep=sep, dec=dec)
-                    break  # seems to have worked
-                except exceptions.ConditionsImportError as e:
-                    continue  # try a different format
-        else:
-            trialList, fieldNames = _attemptImport(fileName=fileName)
+        trialList, fieldNames = _attemptImport(fileName=fileName)
 
     elif fileName.endswith(('.xlsx','.xlsm')):  # no xlsread so use openpyxl
         if not haveOpenpyxl:
