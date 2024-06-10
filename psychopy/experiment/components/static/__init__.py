@@ -246,7 +246,7 @@ class StaticComponent(BaseComponent):
                                       paramName=fieldName,
                                       val=prms[fieldName],
                                       updateType=prms[fieldName].updates,
-                                      params=prms)
+                                      params=prms, target=target)
             # Comment to mark end of updates
             if target == "PsychoJS":
                 code = "// Component updates done\n"
