@@ -11,7 +11,6 @@ import re
 import time, sys, os
 import argparse
 import shutil
-import dmgbuild
 import argparse
 
 thisFolder = Path(__file__).parent
@@ -23,6 +22,7 @@ BUNDLE_ID = "org.opensciencetools.psychopy"
 USERNAME = "admin@opensciencetools.org"
 
 SIGN_ALL = True
+logFile = open("_lastCodeSign.log", "w")
 
 # handy resources for info:
 #
@@ -79,12 +79,15 @@ class AppSigner:
 
         # ready? Let's do this!
         t0 = time.time()
+        print(f"Signing dylibs...see {logFile.name} for details. key: \n"
+              " . success\n"
+              " o already signed\n"
+              " - failed (deleted)\n"
+              " X failed (couldn't delete)")
         for filename in files:
-            print('.', end='')
-            sys.stdout.flush()
             if filename.exists():  # might have been removed since glob
                 self.signSingleFile(filename, verbose=False, removeFailed=True)
-        print(f'...done signing dylibs in {time.time()-t0:.03f}s')
+        print(f'\n...done signing dylibs in {time.time()-t0:.03f}s')
 
         # then sign the outer app file
         print('Signing app')
@@ -94,14 +97,38 @@ class AppSigner:
         print(f'...done signing app in {time.time()-t0:.03f}s')
         sys.stdout.flush()
 
-    def signSingleFile(self, filename, removeFailed=False, verbose=None,
-                       appFile=False):
+    def signSingleFile(self, filename, removeFailed=False, verbose=None):
+        """Signs a single file (if it isn't already signed)
+
+        Returns:
+            True (success)
+            list of warnings (partial success)
+            False (failed)
+        Params:
+            filename
+            removedFailed (bool): if True then try to remove files that don't sign
+            verbose: increases printing level (although you can see the logs)
+        """
+
+        # " . success\n"
+        # " o already signed\n"
+        # " - failed (deleted)\n"
+        # " X failed (couldn't delete)
+
         if verbose is None:
             verbose = self.verbose
+
+        # is there already a valid signature?
+        if self.signCheck(str(filename)) is True:  # check actual boolean, not list of warnings
+            print('o', end='')
+            sys.stdout.flush()
+            return True
+
+        # try signing it ourselves
         if not self._apple_id:
             raise ValueError('No identity provided for signing')
         cmd = ['codesign', str(filename),
-               '--sign',  self._team_id,
+               '--sign', self._team_id,
                '--entitlements', str(ENTITLEMENTS),
                '--force',
                '--timestamp',
@@ -109,21 +136,41 @@ class AppSigner:
                '--options', 'runtime',
                ]
         cmdStr = ' '.join(cmd)
+        logFile.write(f"{cmdStr}\n")
         if verbose:
             print(cmdStr)
         exitcode, output = subprocess.getstatusoutput(cmdStr)
-        # if failed or verbose then give info
-        if exitcode != 0 or ('failed' in output) or (verbose and output):
+        if verbose and output:
             print(output)
-        # if failed and removing then remove
-        if (exitcode != 0 or 'failed' in output) and removeFailed:
+
+
+        # CODESIGN SUCCESS
+        if exitcode == 0 and not ('failed' in output):
+            # successfully signed
+            print('.', end='')
+            sys.stdout.flush()
+            # do a detailed check and return
+            return self.signCheck(filename, verbose=False, removeFailed=removeFailed)
+        
+        # CODESIGN FAIL. Let's see if we can remove
+        logFile.write(f"{output}\n")
+        try: # remove the file because we couldn't sign it
             Path(filename).unlink()
-            print(f"FILE {filename}: failed to codesign")
-        return self.signCheck(filename, verbose=False, removeFailed=removeFailed)
+            print('-', end='')
+            logFile.write(f"FILE {filename}: failed to codesign and was removed\n")
+        except:
+            print('X', end='')
+            logFile.write(f"\nFILE {filename}: failed to codesign and failed to remove\n")
+        return 
 
     def signCheck(self, filepath=None, verbose=False, strict=True,
                   removeFailed=False):
-        """Checks whether a file is signed and returns a list of warnings"""
+        """Checks whether a file is signed and returns a list of warnings
+        Returns:
+            False if not signed at all
+            A list of warnings if signed but with concerns (and these are printed)
+            True if signed with no warnings found
+            """
         if not filepath:
             filepath = self.appFile
         # just check the details
@@ -135,6 +182,9 @@ class AppSigner:
         exitcode, output = subprocess.getstatusoutput(cmdStr)
         if verbose:
             print(f"Checking that codesign worked: {output}")
+        
+        if exitcode == 1: # indicates no valid signature
+            return False  
 
         # check for warnings
         warnings=[]
@@ -148,7 +198,9 @@ class AppSigner:
             if removeFailed:
                 Path(filepath).unlink()
                 print(f"REMOVED FILE {filepath}: failed to codesign")
-        return warnings
+            return warnings
+        else:
+            return True
 
     def upload(self, fileToNotarize):
         """Uploads a file to Apple for notarizing"""
@@ -232,6 +284,7 @@ class AppSigner:
             print(f"Staple successful. You can verify with\n    xcrun stapler validate {filepath}")
 
     def dmgBuild(self):
+        import dmgbuild
         dmgFilename = str(self.appFile).replace(".app", "_rw.dmg")
         appName = self.appFile.name
         print(f"building dmg file: {dmgFilename}")
