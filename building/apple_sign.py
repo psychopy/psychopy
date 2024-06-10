@@ -111,18 +111,17 @@ class AppSigner:
         """
 
         # " . success\n"
-        # " o already signed\n"
         # " - failed (deleted)\n"
         # " X failed (couldn't delete)
 
         if verbose is None:
             verbose = self.verbose
 
-        # is there already a valid signature?
-        if self.signCheck(str(filename)) is True:  # check actual boolean, not list of warnings
-            print('o', end='')
-            sys.stdout.flush()
-            return True
+        # is there already a valid signature? MUST overwrite or won't notarize
+        # if self.signCheck(str(filename)) is True:  # check actual boolean, not list of warnings
+        #     print('o', end='')
+        #     sys.stdout.flush()
+        #     return True
 
         # try signing it ourselves
         if not self._apple_id:
@@ -377,13 +376,13 @@ def main():
                         action='store', required=False, default=defaultVersion)
     parser.add_argument("--file", help="path for a single file to be signed",
                         action='store', required=False, default=None)
-    parser.add_argument("--skipNotarize", help="path for a single file to be signed",
+    parser.add_argument("--skipNotarize", help="Include this flag only if you want to skip",
                         action='store', required=False, default=None)
-    parser.add_argument("--runPreDmgBuild", help="Runs up until dmg is built (and notarised) then exits",
+    parser.add_argument("--runPreDmgBuild", help="Runs up until dmg is built (and notarized) then exits",
                         action='store', required=False, default='true')
     parser.add_argument("--runDmgBuild", help="Runs the dmg build itself",
                         action='store', required=False, default='true')
-    parser.add_argument("--runPostDmgBuild", help="Runs up until dmg is built (and notarised) then exits",
+    parser.add_argument("--runPostDmgBuild", help="Runs up until dmg is built (and notarized) then exits",
                         action='store', required=False, default='true')
     parser.add_argument("--teamId", help="ost id from apple for codesigning",
                         action='store', required=False, default=None)
@@ -441,15 +440,15 @@ def main():
                 signer.signAll()
             signer.signCheck(verbose=False)
 
-            if NOTARIZE and args.runDmgBuild:
+        if args.runDmgBuild:
+            print(signer.zipFile)
+            if NOTARIZE:
                 signer.upload(signer.zipFile)
-                # build the read/writable dmg file while waiting for notarize
-                signer.dmgBuild()
+            # build the read/writable dmg file (while waiting for notarize)
+            signer.dmgBuild()
+            if NOTARIZE:
                 # notarize and staple
                 signer.awaitNotarized()
-            elif args.runDmgBuild:
-                # just build the dmg
-                signer.dmgBuild()
 
         if args.runPostDmgBuild:
             signer.dmgStapleInside()  # doesn't require UUID
