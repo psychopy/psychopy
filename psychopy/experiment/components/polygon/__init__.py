@@ -164,7 +164,7 @@ class PolygonComponent(BaseVisualComponent):
         if vertices in ['line', '2']:
             code = ("%s = visual.Line(\n" % inits['name'] +
                     "    win=win, name='%s',%s\n" % (inits['name'], unitsStr) +
-                    "    start=(-%(size)s[0]/2.0, 0), end=(+%(size)s[0]/2.0, 0),\n" % inits)
+                    "    size=%(size)s,\n" % inits)
         elif vertices in ['triangle', '3']:
             code = ("%s = visual.ShapeStim(\n" % inits['name'] +
                     "    win=win, name='%s',%s\n" % (inits['name'], unitsStr) +
