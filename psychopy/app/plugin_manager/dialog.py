@@ -8,6 +8,7 @@ from psychopy.app import getAppInstance
 from psychopy.app.plugin_manager import PluginManagerPanel, PackageManagerPanel, InstallStdoutPanel
 from psychopy.experiment import getAllElements
 from psychopy.localization import _translate
+import psychopy.logging as logging
 import psychopy.tools.pkgtools as pkgtools
 import psychopy.app.jobs as jobs
 import sys
@@ -253,9 +254,23 @@ class EnvironmentManagerDlg(wx.Dialog):
         # On MacOS, we need to install to target instead of user since py2app
         # doesn't support user installs correctly, this is a workaround for that
         env = os.environ.copy()
+
         # build the shell command to run the script
-        command = [pyExec, '-m', 'pip', 'install', str(packageName), 
-                    '--user', '--prefer-binary']
+        command = [pyExec, '-m', 'pip', 'install', str(packageName)]
+
+        # check if we are inside a venv, don't use --user if we are
+        if hasattr(sys, 'real_prefix') or (
+                hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix):
+            # we are in a venv
+            logging.warning(
+                "You are installing a package inside a virtual environment. "
+                "The package will be installed in the user site-packages directory."
+            )
+        else:
+            command.append('--user')
+        
+        # add other options to the command
+        command += ['--prefer-binary', '--no-input', '--no-color']
             
         # write command to output panel
         self.output.writeCmd(" ".join(command))

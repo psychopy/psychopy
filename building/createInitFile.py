@@ -134,8 +134,7 @@ if 'installing' not in locals():
 
         # set user site packages
         env['PYTHONUSERBASE'] = prefs.paths['packages']
-        env['PYTHONNOUSERSITE'] = '1'  # isolate user packages
-
+        
         # update environment, pass this to sub-processes (e.g. pip)
         os.environ.update(env)
 
