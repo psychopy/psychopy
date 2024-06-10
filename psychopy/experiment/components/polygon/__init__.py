@@ -138,6 +138,14 @@ class PolygonComponent(BaseVisualComponent):
             "first value is used, for triangle and rect the [w,h] is as "
             "expected,\n but for higher-order polygons it represents the "
             "[w,h] of the ellipse that the polygon sits on!! ")
+        
+        self.depends.append({
+            'dependsOn': "shape",  # if...
+            'condition': "=='line'",  # is...
+            'param': "anchor",  # then...
+            'true': "hide",  # should...
+            'false': "show",  # otherwise...
+        })
 
         del self.params['color']
 
@@ -164,7 +172,7 @@ class PolygonComponent(BaseVisualComponent):
         if vertices in ['line', '2']:
             code = ("%s = visual.Line(\n" % inits['name'] +
                     "    win=win, name='%s',%s\n" % (inits['name'], unitsStr) +
-                    "    start=(-%(size)s[0]/2.0, 0), end=(+%(size)s[0]/2.0, 0),\n" % inits)
+                    "    size=%(size)s,\n" % inits)
         elif vertices in ['triangle', '3']:
             code = ("%s = visual.ShapeStim(\n" % inits['name'] +
                     "    win=win, name='%s',%s\n" % (inits['name'], unitsStr) +
