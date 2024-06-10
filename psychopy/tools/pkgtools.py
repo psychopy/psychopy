@@ -37,11 +37,10 @@ import site
 
 # On import we want to configure the user site-packages dir and add it to the
 # import path. 
-
 # set user site-packages dir
 if os.environ.get('PSYCHOPYNOPACKAGES', '0') == '1':
     site.ENABLE_USER_SITE = True
-    site.USER_SITE = prefs.paths['userPackages']
+    site.USER_SITE = str(prefs.paths['userPackages'])
     site.USER_BASE = None
     logging.debug(
         'User site-packages dir set to: %s' % site.getusersitepackages())
