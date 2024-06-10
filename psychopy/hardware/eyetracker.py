@@ -12,40 +12,28 @@ class EyetrackerControl(AttributeGetSetMixin):
     def __init__(self, tracker, actionType="Start and Stop"):
         self.tracker = tracker
         self.actionType = actionType
-        if actionType.lower() == "stop":
-            self._status = STARTED
-        else:
-            self._status = tracker.isRecordingEnabled()
-
-    @property
-    def status(self):
-        return self._status
-
-    @status.setter
-    def status(self, value):
-        old = self._status
-        new = self._status = value
-        # Skip if there's no change
-        if new == old:
-            return
-        # Start recording if set to STARTED
-        if new in (STARTED,):
-            if old in (NOT_STARTED, STOPPED, FINISHED):
-                # If was previously at a full stop, clear events before starting again
-                if self.actionType.find('Start') >= 0 and EyetrackerControl.currentlyRecording is False:
-                    logging.exp("eyetracker.clearEvents()")
-                    self.tracker.clearEvents()
-            # Start recording
-            if self.actionType.find('Start') >= 0 and not EyetrackerControl.currentlyRecording:
-                self.tracker.setRecordingState(True)
-                logging.exp("eyetracker.setRecordingState(True)")
-                EyetrackerControl.currentlyRecording = True
-        # Stop recording if set to any stop constants
-        if new in (NOT_STARTED, PAUSED, STOPPED, FINISHED):
-            if self.actionType.find('Stop') >= 0 and EyetrackerControl.currentlyRecording:
-                self.tracker.setRecordingState(False)
-                logging.exp("eyetracker.setRecordingState(False)")
-                EyetrackerControl.currentlyRecording = False
+        self.status = NOT_STARTED
+    
+    def start(self):
+        """
+        Start recording
+        """
+        # if previously at a full stop, clear events
+        if not EyetrackerControl.currentlyRecording:
+            logging.exp("eyetracker.clearEvents()")
+            self.tracker.clearEvents()
+        # start recording
+        self.tracker.setRecordingState(True)
+        logging.exp("eyetracker.setRecordingState(True)")
+        EyetrackerControl.currentlyRecording = True
+    
+    def stop(self):
+        """
+        Stop recording
+        """
+        self.tracker.setRecordingState(False)
+        logging.exp("eyetracker.setRecordingState(False)")
+        EyetrackerControl.currentlyRecording = False
 
     @property
     def pos(self):
