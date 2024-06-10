@@ -30,13 +30,14 @@ import inspect
 import collections
 import hashlib
 import importlib
+import pathlib
 import pkg_resources
 from psychopy import logging
 from psychopy.preferences import prefs
 
 # Configure the environment to use our custom site-packages location for
 # user-installed packages (i.e. plugins).
-USER_PACKAGES_PATH = prefs.paths['userPackages']
+USER_PACKAGES_PATH = str(prefs.paths['userPackages'])
 # check if we're in a virtual environment or not
 inVM = hasattr(sys, 'real_prefix') or sys.prefix != sys.base_prefix
 if not inVM and USER_PACKAGES_PATH not in pkg_resources.working_set.entries:
