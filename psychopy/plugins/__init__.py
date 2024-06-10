@@ -54,7 +54,7 @@ if not inVM:
         userPackagesPath = prefs.paths['userPackages']  
 
     # format required for pkg_resources, must be a string with forward slashes
-    USER_PACKAGES_PATH = str(userPackagesPath).replace(os.sep, '/')
+    USER_PACKAGES_PATH = str(userPackagesPath)
 
     # add to working set if not already there
     if USER_PACKAGES_PATH not in pkg_resources.working_set.entries:
@@ -388,7 +388,7 @@ def scanPlugins():
     # Find all distributions in the user packages directory, check for entry
     # points in the metadata, and add them to the installed plugins list.
     for loc in scanLocations:
-        loc = str(loc).replace(os.sep, '/')  # ensure format for pkg_resources
+        loc = str(loc)  # ensure format for pkg_resources
         for dist in pkg_resources.find_distributions(loc):
             if not dist.has_metadata('entry_points.txt'):
                 continue
