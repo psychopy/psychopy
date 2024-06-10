@@ -38,7 +38,8 @@ from psychopy.preferences import prefs
 
 # Configure the environment to use our custom site-packages location for
 # user-installed packages (i.e. plugins). This value remains `None` if the user
-# is in a vitual environment or has disabled the custom site-packages location.
+# is in a vitual environment or has disabled the custom site-packages location
+# via command line.
 USER_PACKAGES_PATH = None
 
 # check if we're in a virtual environment or not
