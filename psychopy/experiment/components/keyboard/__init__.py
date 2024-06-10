@@ -183,7 +183,8 @@ class KeyboardComponent(BaseDeviceComponent):
         if allowedKeysIsVar:
             code = (
                 "# allowedKeys looks like a variable, so make sure it exists locally\n"
-                "%(allowedKeys)s = globals()['%(allowedKeys)s']\n"
+                "if '%(allowedKeys)s' in globals():\n"
+                "    %(allowedKeys)s = globals()['%(allowedKeys)s']\n"
             )
             buff.writeIndentedLines(code % self.params)
 
