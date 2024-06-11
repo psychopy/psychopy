@@ -1635,12 +1635,21 @@ class SettingsComponent:
             code = (
                 "\n"
                 "# Setup iohub keyboard\n"
-                "ioConfig['Keyboard'] = dict(use_keymap='psychopy')\n\n"
+                "ioConfig['Keyboard'] = dict(use_keymap='psychopy')\n"
             )
             buff.writeIndentedLines(code % inits)
 
         if self.needIoHub and self.params['keyboardBackend'] == 'PsychToolbox':
             alert(code=4550)
+
+        # Add experiment handler filename to ioConfig
+        if self.needIoHub:
+            code = (
+                "\n"
+                "# Setup iohub experiment\n"
+                "ioConfig['Experiment'] = dict(filename=thisExp.dataFileName)\n"
+            )
+            buff.writeIndentedLines(code % inits)
 
         # Start ioHub server
         if self.needIoHub:
