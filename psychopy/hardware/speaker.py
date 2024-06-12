@@ -23,7 +23,7 @@ class SpeakerDevice(BaseDevice):
                         if profile['deviceName'] == defaultDevice:
                             index = profile['index']
 
-        if index < 0 or index >= len(profiles):
+        if index < 0 or index not in [profile['index'] for profile in profiles]:
             logging.error("No speaker device found with index %d" % index)
 
         # store index
