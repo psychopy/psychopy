@@ -3,6 +3,7 @@ from psychopy.alerts import alert
 from psychopy import logging
 from psychopy.tools.attributetools import AttributeGetSetMixin
 from copy import copy
+import importlib
 import sys
 
 
@@ -75,96 +76,20 @@ class EyetrackerCalibration:
     def __iter__(self):
         """Overload dict() method to return in ioHub format"""
         tracker = self.eyetracker.getIOHubDeviceClass(full=True)
-
-        # Make sure that target will use the same color space and units as calibration
-        if self.target.colorSpace == self.colorSpace and self.target.units == self.units:
-            target = self.target
-        else:
-            target = copy(self.target)
-            target.colorSpace = self.colorSpace
-            target.units = self.units
-        # Get self as dict
-        asDict = {}
-
-        textColor = self.textColor
-        if isinstance(textColor, str) and textColor.lower() == 'auto':
-            textColor = None
-
-        if tracker.endswith('sr_research.eyelink.EyeTracker'):
-            # As EyeLink
-            asDict = {
-                'target_attributes': dict(target),
-                'type': self.targetLayout,
-                'auto_pace': self.progressMode == "time",
-                'pacing_speed': self.targetDelay,
-                'randomize': self.randomisePos,
-                'text_color': textColor,
-                'unit_type': self.units,
-                'color_type': self.colorSpace,
-                'screen_background_color': getattr(self.win._color, self.colorSpace)
-            }
-        elif tracker == 'eyetracker.hw.tobii.EyeTracker':
-            # As Tobii
-            targetAttrs = dict(target)
-            targetAttrs['animate'] = {
-                'enable': self.movementAnimation,
-                'expansion_ratio': self.expandScale,
-                'contract_only': self.expandScale == 1
-            }
-            asDict = {
-                'target_attributes': targetAttrs,
-                'type': self.targetLayout,
-                'randomize': self.randomisePos,
-                'auto_pace': self.progressMode == "time",
-                'target_delay': self.targetDelay,
-                'target_duration': self.targetDur,
-                'unit_type': self.units,
-                'color_type': self.colorSpace,
-                'text_color': textColor,
-                'screen_background_color': getattr(self.win._color, self.colorSpace),
-            }
-        elif tracker == 'eyetracker.hw.gazepoint.gp3.EyeTracker':
-            # As GazePoint
-            targetAttrs = dict(target)
-            targetAttrs['animate'] = {
-                'enable': self.movementAnimation,
-                'expansion_ratio': self.expandScale,
-                'contract_only': self.expandScale == 1
-            }
-            asDict = {
-                'use_builtin': False,
-                'target_delay': self.targetDelay,
-                'target_duration': self.targetDur,
-                'target_attributes': targetAttrs,
-                'type': self.targetLayout,
-                'randomize': self.randomisePos,
-                'unit_type': self.units,
-                'color_type': self.colorSpace,
-                'text_color': textColor,
-                'screen_background_color': getattr(self.win._color, self.colorSpace),
-            }
-
-        elif tracker == 'eyetracker.hw.mouse.EyeTracker':
-            # As MouseGaze
-            targetAttrs = dict(target)
-            targetAttrs['animate'] = {
-                'enable': self.movementAnimation,
-                'expansion_ratio': self.expandScale,
-                'contract_only': self.expandScale == 1
-            }
-            # Run as MouseGaze
-            asDict = {
-                'target_attributes': targetAttrs,
-                'type': self.targetLayout,
-                'randomize': self.randomisePos,
-                'auto_pace': self.progressMode == "time",
-                'pacing_speed': self.targetDelay,
-                'unit_type': self.units,
-                'color_type': self.colorSpace,
-                'text_color': textColor,
-                'screen_background_color': getattr(self.win._color, self.colorSpace),
-            }
-        # Return
+        # split into package and class name
+        pkgName = ".".join(tracker.split(".")[:-1])
+        clsName = tracker.split(".")[-1]
+        # make sure pkgName is fully qualified
+        if not pkgName.startswith("psychopy.iohub.devices."):
+            pkgName = "psychopy.iohub.devices." + pkgName
+        # import package
+        pkg = importlib.import_module(pkgName)
+        # get tracker class
+        trackerCls = getattr(pkg, clsName)
+        # get self as dict
+        asDict = trackerCls.getCalibrationDict(self)
+        
+        # return
         for key, value in asDict.items():
             yield key, value
 
