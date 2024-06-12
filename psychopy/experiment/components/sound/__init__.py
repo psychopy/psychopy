@@ -293,6 +293,7 @@ class SoundComponent(BaseDeviceComponent):
             # stop at the end of the Routine, if requested
             code = (
                 "%(name)s.pause()  # ensure sound has stopped at end of Routine\n"
+                "%(name)s.status = PAUSED\n"
             )
             buff.writeIndentedLines(code % self.params)
         # get parent to write code too (e.g. store onset/offset times)
