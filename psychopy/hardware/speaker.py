@@ -7,11 +7,11 @@ class SpeakerDevice(BaseDevice):
     def __init__(self, index):
         profiles = self.getAvailableDevices()
 
-        # use first device if index is default
+        # if index is default (-1), setup a default device index
         if not isinstance(index, (int, float)) or index < 0:
-            index = profiles[0]['index']
+            index = profiles[0]['index']  # initialize as the first device
 
-            # check if a default device is set and update index
+            # check if a default device is already set and update index
             if hasattr(backend, 'defaultOutput'):
                 defaultDevice = backend.defaultOutput
                 if isinstance(defaultDevice, (int, float)):
@@ -23,7 +23,8 @@ class SpeakerDevice(BaseDevice):
                         if profile['deviceName'] == defaultDevice:
                             index = profile['index']
 
-        if index < 0 or index not in [profile['index'] for profile in profiles]:
+        available_index = [profile['index'] for profile in profiles]
+        if index < 0 or index not in available_index:
             logging.error("No speaker device found with index %d" % index)
 
         # store index
