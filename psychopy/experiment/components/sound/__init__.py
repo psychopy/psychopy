@@ -228,16 +228,6 @@ class SoundComponent(BaseDeviceComponent):
         # because of the 'if' statement of the time test
         buff.setIndentLevel(-indented, relative=True)
 
-        # Update status
-        code = (
-            "# update %(name)s status according to whether it's playing\n"
-            "if %(name)s.isPlaying:\n"
-            "    %(name)s.status = STARTED\n"
-            "elif %(name)s.isFinished:\n"
-            "    %(name)s.status = FINISHED\n"
-        )
-        buff.writeIndentedLines(code % self.params)
-
     def writeFrameCodeJS(self, buff):
         """Write the code that will be called every frame
         """
