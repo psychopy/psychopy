@@ -223,7 +223,7 @@ class SoundComponent(BaseDeviceComponent):
         # Write stop code
         indented = self.writeStopTestCode(buff)
         if indented:
-            code = ("%(name)s.stop()\n")
+            code = ("%(name)s._EOS()\n")
             buff.writeIndentedLines(code % self.params)
         # because of the 'if' statement of the time test
         buff.setIndentLevel(-indented, relative=True)
