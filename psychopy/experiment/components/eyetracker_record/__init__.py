@@ -28,7 +28,7 @@ class EyetrackerRecordComponent(BaseComponent):
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
                  actionType="Start and Stop",
-                 #legacy
+                 # legacy
                  save='final', configFile='myTracker.yaml'):
         BaseComponent.__init__(self, exp, parentName, name=name,
                                startType=startType, startVal=startVal,
@@ -39,8 +39,8 @@ class EyetrackerRecordComponent(BaseComponent):
         self.exp.requirePsychopyLibs(['iohub', 'hardware'])
 
         self.params['actionType'] = Param(actionType,
-            valType='str', inputType='choice', categ='Basic',
-            allowedVals=["Start and Stop", "Start Only", "Stop Only"],
+            valType='str', inputType='choice', categ='Basic',  # noqa: E128
+            allowedVals=["Start and Stop", "Start Only", "Stop Only"],  # noqa: E128
             hint=_translate("Should this Component start and / or stop eye tracker recording?"),
             label=_translate("Record actions")
         )
@@ -94,7 +94,6 @@ class EyetrackerRecordComponent(BaseComponent):
         if self.exp.eyetracking == "None":
             alert(code=4505)
 
-        inits = self.params
         buff.writeIndentedLines("# *%s* updates\n" % self.params['name'])
 
         if "start" in self.params['actionType'].val.lower():
@@ -118,7 +117,7 @@ class EyetrackerRecordComponent(BaseComponent):
                 "    %(name)s.status = STARTED\n"
             )
             buff.writeIndentedLines(code % self.params)
-        
+
         if "stop" in self.params['actionType'].val.lower():
             # if this Component can stop recording, write stop test code
             indented = self.writeStopTestCode(buff)
