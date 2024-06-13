@@ -13,12 +13,12 @@ import psychopy.experiment.utils
 from psychopy.tools import stringtools
 from psychopy.localization import _translate
 from . import experiment
-from pkg_resources import parse_version
+from packaging.version import Version
 from psychopy.tools.fontmanager import FontManager
 
 fontMGR = FontManager()
 
-if parse_version(wx.__version__) < parse_version('4.0.0a1'):
+if Version(wx.__version__) < Version('4.0.0a1'):
     _ValidatorBase = wx.PyValidator
 else:
     _ValidatorBase = wx.Validator

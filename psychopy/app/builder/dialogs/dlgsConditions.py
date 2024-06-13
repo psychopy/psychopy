@@ -12,7 +12,7 @@ import sys
 import pickle
 import wx
 from wx.lib.expando import ExpandoTextCtrl, EVT_ETC_LAYOUT_NEEDED
-from pkg_resources import parse_version
+from packaging.version import Version
 
 from psychopy import gui
 from psychopy.experiment.utils import valid_var_re
@@ -116,7 +116,7 @@ class DlgConditions(wx.Dialog):
         except wx._core.PyNoAppError:  # only needed during development?
             self.madeApp = True
             global app
-            if parse_version(wx.__version__) < parse_version('2.9'):
+            if Version(wx.__version__) < Version('2.9'):
                 app = wx.PySimpleApp()
             else:
                 app = wx.App(False)

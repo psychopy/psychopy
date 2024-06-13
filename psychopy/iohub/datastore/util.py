@@ -12,10 +12,10 @@ import numpy
 
 from ..errors import print2err
 
-from pkg_resources import parse_version
+from packaging.version import Version
 import tables
 
-if parse_version(tables.__version__) < parse_version('3'):
+if Version(tables.__version__) < Version('3'):
     from tables import openFile as open_file
 
     walk_groups = "walkGroups"
