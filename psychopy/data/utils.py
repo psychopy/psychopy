@@ -259,6 +259,9 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
         """
         if fileName.endswith(('.csv', '.tsv')):
             trialsArr = None
+            errs = []
+            # list of possible delimiters
+            delims = (",", ".", ";", "\t")
             # try a variety of separator / decimal pairs
             for sep, dec in [
                 # most common in US, EU
@@ -271,9 +274,24 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
             ]:
                 # try to load
                 try:
-                    trialsArr = pd.read_csv(
+                    thisAttempt = pd.read_csv(
                         fileName, encoding='utf-8-sig', sep=sep, decimal=dec
                     )
+                    # if there's only one header, check that it doesn't contain delimiters
+                    # (one column with delims probably means it's parsed without error but not
+                    # recognised columns correctly)
+                    if len(thisAttempt.columns) == 1:
+                        for delim in delims:
+                            if delim in thisAttempt.columns[0]:
+                                msg = _translate(
+                                    "Could not load {}. \n"
+                                    "Delimiter in heading: {} in {}."
+                                ).format(fileName, delim, thisAttempt.columns[0])
+                                errs.append(
+                                    exceptions.ConditionsImportError(msg)
+                                )      
+                    # if it's all good, use received array
+                    trialsArr = thisAttempt
                 except:
                     continue
                 else:
@@ -281,8 +299,10 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
                     _assertValidVarNames(trialsArr.columns, fileName)
                     # skip other pairs now we've got it
                     break
-            # if all options failed, raise error
-            if trialsArr is None:
+            # if all options failed, raise last error
+            if errs and trialsArr is None:
+                raise errs[-1]
+            elif trialsArr is None:
                 raise ValueError(
                     _translate("Could not parse file {}.").format(fileName)
                 )
