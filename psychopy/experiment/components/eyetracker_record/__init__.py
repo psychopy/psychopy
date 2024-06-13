@@ -139,18 +139,3 @@ class EyetrackerRecordComponent(BaseComponent):
                 "    %(name)s.status = FINISHED\n"
             )
             buff.writeIndentedLines(code % self.params)
-
-    def writeRoutineEndCode(self, buff):
-        inits = self.params
-
-        code = (
-            "# make sure the eyetracker recording stops\n"
-            "if %(name)s.status != FINISHED:\n"
-        )
-        buff.writeIndentedLines(code % self.params)
-        buff.setIndentLevel(1, relative=True)
-        code = (
-                "%(name)s.status = FINISHED\n"
-        )
-        buff.writeIndentedLines(code % self.params)
-        buff.setIndentLevel(-1, relative=True)
