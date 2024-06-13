@@ -340,11 +340,13 @@ class SoundPTB(_SoundBase):
     @property
     def isPlaying(self):
         """`True` if the audio playback is ongoing."""
+        self._checkPlaybackFinished()
         return self._isPlaying
 
     @property
     def isFinished(self):
         """`True` if the audio playback has completed."""
+        self._checkPlaybackFinished()
         return self._isFinished
 
     def _getDefaultSampleRate(self):
@@ -359,27 +361,6 @@ class SoundPTB(_SoundBase):
         if not self.track:
             return None
         return self.track.status
-
-    @property
-    def status(self):
-        """status gives a simple value from psychopy.constants to indicate
-        NOT_STARTED, STARTED, FINISHED, PAUSED
-
-        Psychtoolbox sounds also have a statusDetailed property with further info"""
-
-        if self.__dict__['status']==STARTED:
-            # check portaudio to see if still playing
-            pa_status = self.statusDetailed
-            if not pa_status['Active'] and pa_status['State']==0:
-                # we were playing and now not so presumably FINISHED
-                self._EOS()
-
-        return self.__dict__['status']
-
-
-    @status.setter
-    def status(self, newStatus):
-        self.__dict__['status'] = newStatus
 
     @property
     def volume(self):

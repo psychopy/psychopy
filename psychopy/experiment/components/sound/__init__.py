@@ -211,32 +211,37 @@ class SoundComponent(BaseDeviceComponent):
         """
         # Write start code
         self.writeParamUpdates(buff, 'set every frame')
+
+        # write code for starting
         indented = self.writeStartTestCode(buff)
         if indented:
             if self.params['syncScreenRefresh'].val:
                 code = ("%(name)s.play(when=win)  # sync with win flip\n") % self.params
             else:
                 code = "%(name)s.play()  # start the sound (it finishes automatically)\n" % self.params
-            buff.writeIndented(code)
+            buff.writeIndentedLines(code % self.params)
         buff.setIndentLevel(-indented, relative=True)
 
-        # Write stop code
+        # write code while active
+        indented = self.writeActiveTestCode(buff)
+        if indented:
+            code = (
+                "# update %(name)s status according to whether it's playing\n"
+                "if %(name)s.isPlaying:\n"
+                "    %(name)s.status = STARTED\n"
+                "elif %(name)s.isFinished:\n"
+                "    %(name)s.status = FINISHED\n" 
+            )
+            buff.writeIndentedLines(code % self.params)
+        buff.setIndentLevel(-indented, relative=True)
+
+        # write code for stopping
         indented = self.writeStopTestCode(buff)
         if indented:
             code = ("%(name)s.stop()\n")
             buff.writeIndentedLines(code % self.params)
         # because of the 'if' statement of the time test
         buff.setIndentLevel(-indented, relative=True)
-
-        # Update status
-        code = (
-            "# update %(name)s status according to whether it's playing\n"
-            "if %(name)s.isPlaying:\n"
-            "    %(name)s.status = STARTED\n"
-            "elif %(name)s.isFinished:\n"
-            "    %(name)s.status = FINISHED\n"
-        )
-        buff.writeIndentedLines(code % self.params)
 
     def writeFrameCodeJS(self, buff):
         """Write the code that will be called every frame
