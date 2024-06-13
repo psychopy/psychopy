@@ -110,6 +110,15 @@ class MicrophoneComponent(BaseDeviceComponent):
                 "local experiments - online experiments ask the participant which mic to use."
             )
         )
+        # grey out device settings when device is default
+        for depParam in ("channels", "sampleRate"):
+            self.depends.append({
+                "dependsOn": "device",  # if...
+                "condition": "== 'None'",  # is...
+                "param": depParam,  # then...
+                "true": "hide",  # should...
+                "false": "show",  # otherwise...
+            })
         if stereo is not None:
             # If using a legacy mic component, work out channels from old bool value of stereo
             channels = ['mono', 'stereo'][stereo]
@@ -291,9 +300,14 @@ class MicrophoneComponent(BaseDeviceComponent):
             "    deviceClass='psychopy.hardware.microphone.MicrophoneDevice',\n"
             "    deviceName=%(deviceLabel)s,\n"
             "    index=%(device)s,\n"
+            "    maxRecordingSize=%(maxSize)s\n"
+        )
+        if self.params['device'].val not in ("None", "", None):
+            code += (
             "    channels=%(channels)s, \n"
             "    sampleRateHz=%(sampleRate)s, \n"
-            "    maxRecordingSize=%(maxSize)s\n"
+            )
+        code += (
             ")\n"
         )
         buff.writeOnceIndentedLines(code % inits)
