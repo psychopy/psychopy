@@ -275,6 +275,7 @@ class ButtonComponent(BaseVisualComponent):
         indented = self.writeStartTestCode(buff)
         if indented:
             code = (
+                "%(name)s.buttonClock.reset()"
                 "%(name)s.setAutoDraw(True)\n"
             )
             buff.writeIndentedLines(code % self.params)
