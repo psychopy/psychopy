@@ -14,7 +14,7 @@ class EyetrackerControl(AttributeGetSetMixin):
         self.tracker = tracker
         self.actionType = actionType
         self.status = NOT_STARTED
-    
+
     def start(self):
         """
         Start recording
@@ -27,7 +27,7 @@ class EyetrackerControl(AttributeGetSetMixin):
         self.tracker.setRecordingState(True)
         logging.exp("eyetracker.setRecordingState(True)")
         EyetrackerControl.currentlyRecording = True
-    
+
     def stop(self):
         """
         Stop recording
@@ -88,7 +88,7 @@ class EyetrackerCalibration:
         trackerCls = getattr(pkg, clsName)
         # get self as dict
         asDict = trackerCls.getCalibrationDict(self)
-        
+
         # return
         for key, value in asDict.items():
             yield key, value
