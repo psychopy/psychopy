@@ -80,7 +80,7 @@ class EyetrackerCalibration:
         pkgName = ".".join(tracker.split(".")[:-1])
         clsName = tracker.split(".")[-1]
         # make sure pkgName is fully qualified
-        if not pkgName.startswith("psychopy.iohub.devices."):
+        if not pkgName.startswith("psychopy.iohub.devices.") and not 'eyetracker' in pkgName:
             pkgName = "psychopy.iohub.devices." + pkgName
         # import package
         pkg = importlib.import_module(pkgName)
