@@ -94,6 +94,7 @@ class EyetrackerRecordComponent(BaseComponent):
         if self.exp.eyetracking == "None":
             alert(code=4505)
 
+        buff.writeIndented("\n")
         buff.writeIndentedLines("# *%s* updates\n" % self.params['name'])
 
         if "start" in self.params['actionType'].val.lower():
