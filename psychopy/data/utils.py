@@ -287,9 +287,9 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
                                     "Could not load {}. \n"
                                     "Delimiter in heading: {} in {}."
                                 ).format(fileName, delim, thisAttempt.columns[0])
-                                errs.append(
-                                    exceptions.ConditionsImportError(msg)
-                                )      
+                                err = exceptions.ConditionsImportError(msg)
+                                errs.append(err)
+                                raise err
                     # if it's all good, use received array
                     trialsArr = thisAttempt
                 except:
