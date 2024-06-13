@@ -8,7 +8,6 @@ import sys
 
 
 class EyetrackerControl(AttributeGetSetMixin):
-    currentlyRecording = False
 
     def __init__(self, tracker, actionType="Start and Stop"):
         self.tracker = tracker
@@ -20,13 +19,12 @@ class EyetrackerControl(AttributeGetSetMixin):
         Start recording
         """
         # if previously at a full stop, clear events
-        if not EyetrackerControl.currentlyRecording:
+        if not self.tracker.isRecordingEnabled():
             logging.exp("eyetracker.clearEvents()")
             self.tracker.clearEvents()
         # start recording
         self.tracker.setRecordingState(True)
         logging.exp("eyetracker.setRecordingState(True)")
-        EyetrackerControl.currentlyRecording = True
 
     def stop(self):
         """
@@ -34,7 +32,6 @@ class EyetrackerControl(AttributeGetSetMixin):
         """
         self.tracker.setRecordingState(False)
         logging.exp("eyetracker.setRecordingState(False)")
-        EyetrackerControl.currentlyRecording = False
 
     @property
     def pos(self):
