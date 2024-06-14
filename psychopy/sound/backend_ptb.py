@@ -345,8 +345,7 @@ class SoundPTB(_SoundBase):
     @property
     def isFinished(self):
         """`True` if the audio playback has completed."""
-        self._checkPlaybackFinished()
-        return self._isFinished
+        return self._checkPlaybackFinished()
 
     def _getDefaultSampleRate(self):
         """Check what streams are open and use one of these"""
