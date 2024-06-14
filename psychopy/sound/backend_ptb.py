@@ -512,8 +512,16 @@ class SoundPTB(_SoundBase):
     def _checkPlaybackFinished(self):
         """Checks whether playback has finished by looking up the status.
         """
+        # get detailed status from backend
         pa_status = self.statusDetailed
-        self._isFinished = not pa_status['Active'] and pa_status['State'] == 0
+        # was the sound already finished?
+        wasFinished = self._isFinished
+        # is it finished now?
+        isFinished = self._isFinished = not pa_status['Active'] and pa_status['State'] == 0
+        # if it wasn't finished but now is, do end of stream behaviour
+        if isFinished and not wasFinished:
+            self._EOS()
+        
         return self._isFinished
 
     def play(self, loops=None, when=None, log=True):
