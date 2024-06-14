@@ -340,7 +340,6 @@ class SoundPTB(_SoundBase):
     @property
     def isPlaying(self):
         """`True` if the audio playback is ongoing."""
-        self._checkPlaybackFinished()
         return self._isPlaying
 
     @property
