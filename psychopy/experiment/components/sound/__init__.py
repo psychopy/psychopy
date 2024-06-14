@@ -232,10 +232,8 @@ class SoundComponent(BaseDeviceComponent):
 
         # update status according to playback
         code = (
-            "# update %(name)s status according to whether it's playing\n"
-            "if %(name)s.isPlaying:\n"
-            "    %(name)s.status = STARTED\n"
-            "elif %(name)s.isFinished:\n"
+            "# if sound is finished but %(name)s has time left, finish it now\n"
+            "if %(name)s.isFinished:\n"
             "    %(name)s.status = FINISHED\n" 
         )
         buff.writeIndentedLines(code % self.params)
