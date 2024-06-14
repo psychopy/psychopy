@@ -144,11 +144,42 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             # if there are none, error
             if not len(_devices):
                 raise AudioInvalidCaptureDeviceError(_translate(
-                    "Could not choose default recording device as no recording devices are "
-                    "connected."
+                    "Could not choose default recording device as no recording "
+                    "devices are connected."
                 ))
-            # use first device
-            self._device = _devices[0]
+
+            # Try and get the best match which are compatible with the user's
+            # specified settings.
+            if sampleRateHz is not None or channels is not None:
+                self._device = self.findBestDevice(
+                    index=_devices[0].deviceIndex,  # use first that shows up
+                    sampleRateHz=sampleRateHz,
+                    channels=channels
+                )
+            else:
+                self._device = _devices[0]
+            
+            # Check if the default device settings are differnt than the ones 
+            # specified by the user, if so, warn them that the default device
+            # settings are overwriting their settings.
+            if channels is None:
+                channels = self._device.inputChannels
+            elif channels != self._device.inputChannels:
+                logging.warning(
+                    "Number of channels specified ({}) does not match the "
+                    "default device's number of input channels ({}).".format(
+                        channels, self._device.inputChannels))
+                channels = self._device.inputChannels
+
+            if sampleRateHz is None:
+                sampleRateHz = self._device.defaultSampleRate
+            elif sampleRateHz != self._device.defaultSampleRate:
+                logging.warning(
+                    "Sample rate specified ({}) does not match the default "
+                    "device's sample rate ({}).".format(
+                        sampleRateHz, self._device.defaultSampleRate))
+                sampleRateHz = self._device.defaultSampleRate
+
         elif isinstance(index, str):
             # if given a str that's a name from DeviceManager, get info from device
             device = DeviceManager.getDevice(index)
@@ -167,8 +198,13 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
                 channels=channels
             )
 
-        logging.info('Using audio device #{} ({}) for audio capture. Full spec: {}'.format(
-            self._device.deviceIndex, self._device.deviceName, self._device))
+        devInfoText = ('Using audio device #{} ({}) for audio capture. '
+            'Full spec: {}').format(
+                self._device.deviceIndex, 
+                self._device.deviceName, 
+                self._device)
+
+        logging.info(devInfoText)
 
         # error if specified device is not suitable for capture
         if not self._device.isCapture:
