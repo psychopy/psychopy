@@ -249,7 +249,7 @@ class ioHubConnection():
         mouse=hub.devices.mouse
         mouse_position = mouse.getPosition()
 
-        print 'mouse position: ', mouse_position
+        print('mouse position: ', mouse_position)
 
         # Returns something like:
         # >> mouse position:  [-211.0, 371.0]
