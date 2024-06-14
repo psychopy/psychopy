@@ -216,9 +216,9 @@ class SoundComponent(BaseDeviceComponent):
         indented = self.writeStartTestCode(buff)
         if indented:
             if self.params['syncScreenRefresh'].val:
-                code = ("%(name)s.play(when=win)  # sync with win flip\n") % self.params
+                code = ("%(name)s.play(when=win)  # sync with win flip\n")
             else:
-                code = "%(name)s.play()  # start the sound (it finishes automatically)\n" % self.params
+                code = "%(name)s.play()  # start the sound (it finishes automatically)\n"
             buff.writeIndentedLines(code % self.params)
         buff.setIndentLevel(-indented, relative=True)
 
