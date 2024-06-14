@@ -558,7 +558,7 @@ class SoundPTB(_SoundBase):
         """Stops the sound without reset, so that play will continue from here if needed
         """
         if self.isPlaying:
-            self.stop(reset=False)
+            self.stop(reset=False, log=False)
             if log and self.autoLog:
                 logging.exp(u"Sound %s paused" % (self.name), obj=self)
 
