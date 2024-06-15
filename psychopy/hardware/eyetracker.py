@@ -34,6 +34,14 @@ class EyetrackerControl(AttributeGetSetMixin):
         logging.exp("eyetracker.setRecordingState(False)")
 
     @property
+    def currentlyRecording(self):
+        """
+        Check if the eyetracker is currently recording
+        added for backwards compatibility, should be removed in future
+        """
+        return self.tracker.isRecordingEnabled()
+
+    @property
     def pos(self):
         """
         Get the current position of the eyetracker
