@@ -38,9 +38,10 @@ class EyetrackerRecordComponent(BaseComponent):
         self.url = "https://www.psychopy.org/builder/components/eyetracker.html"
         self.exp.requirePsychopyLibs(['iohub', 'hardware'])
 
-        self.params['actionType'] = Param(actionType,
-            valType='str', inputType='choice', categ='Basic',  # noqa: E128
-            allowedVals=["Start and Stop", "Start Only", "Stop Only"],  # noqa: E128
+        self.params['actionType'] = Param(
+            actionType,
+            valType='str', inputType='choice', categ='Basic',
+            allowedVals=["Start and Stop", "Start Only", "Stop Only"],
             hint=_translate("Should this Component start and / or stop eye tracker recording?"),
             label=_translate("Record actions")
         )
