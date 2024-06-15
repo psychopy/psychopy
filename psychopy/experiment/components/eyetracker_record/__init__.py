@@ -28,6 +28,7 @@ class EyetrackerRecordComponent(BaseComponent):
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
                  actionType="Start and Stop",
+                 stopWithRoutine=False,
                  # legacy
                  save='final', configFile='myTracker.yaml'):
         BaseComponent.__init__(self, exp, parentName, name=name,
@@ -63,6 +64,24 @@ class EyetrackerRecordComponent(BaseComponent):
               "false": "show",  # permitted: hide, show, enable, disable
               }
          )
+
+        self.params['stopWithRoutine'] = Param(
+            stopWithRoutine,
+            valType='bool', inputType="bool", updates='constant', categ='Basic',
+            hint=_translate(
+                "Should eyetracking stop when the Routine ends? Tick to force stopping "
+                "after the Routine has finished."),
+            label=_translate('Stop with Routine?'))
+
+        self.depends.append(
+            {
+                "dependsOn": "actionType",  # must be param name
+                "condition": "in ('Start and Stop', 'Stop Only')",  # val to check for
+                "param": "stopWithRoutine",  # param property to alter
+                "true": "show",  # what to do with param if condition is True
+                "false": "hide",  # permitted: hide, show, enable, disable
+            }
+        )
 
         # TODO: Display actionType control after component name.
         #       Currently, adding params before start / stop time
@@ -138,5 +157,13 @@ class EyetrackerRecordComponent(BaseComponent):
                 "    %(name)s.tStopRefresh = tThisFlipGlobal  # on global time\n"
                 "    %(name)s.frameNStop = frameN  # exact frame index\n"
                 "    %(name)s.status = FINISHED\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+
+    def writeRoutineEndCode(self, buff):
+        if self.params['stopWithRoutine']:
+            # stop at the end of the Routine, if requested
+            code = (
+                "%(name)s.stop()  # ensure eyetracking has stopped at end of Routine\n"
             )
             buff.writeIndentedLines(code % self.params)
