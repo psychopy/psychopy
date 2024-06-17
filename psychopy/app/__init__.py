@@ -11,6 +11,9 @@
 __all__ = [
     'startApp',
     'quitApp',
+    'restartApp',
+    'checkRestart',
+    'clearRestart',
     'getAppInstance',
     'getAppFrame',
     'isAppStarted']
@@ -25,7 +28,7 @@ from .frametracker import openFrames
 _psychopyAppInstance = None
 
 
-def startApp(showSplash=True, testMode=False, safeMode=False):
+def startApp(showSplash=True, testMode=False, safeMode=False, startView=None):
     """Start the PsychoPy GUI.
 
     This function is idempotent, where additional calls after the app starts
@@ -52,12 +55,32 @@ def startApp(showSplash=True, testMode=False, safeMode=False):
     safeMode : bool
         Start PsychoPy in safe-mode. If `True`, the GUI application will launch
         with without loading plugins.
+    startView : str, None
+        Name of the view to start the app with. Valid values are 'coder',
+        'builder' or 'runner'. If `None`, the app will start with the default
+        view or the view specifed with the `PSYCHOPYSTARTVIEW` environment
+        variable.
 
     """
     global _psychopyAppInstance
 
     if isAppStarted():  # do nothing it the app is already loaded
         return  # NOP
+
+    # process environment variables
+    startViewVal = os.environ.get('PSYCHOPYSTARTVIEW', None)
+    if startViewVal is not None:
+        startView = str(startViewVal).lower()
+        if startView not in ('coder', 'builder', 'runner'):
+            startView = None  # silently drop invalid values and use default
+
+    safeModeVal = os.environ.get('PSYCHOPYSAFEMODE', None)
+    if safeModeVal is not None:
+        safeMode = bool(safeModeVal)
+
+    testModeVal = os.environ.get('PSYCHOPYTESTMODE', None)
+    if testModeVal is not None:
+        testMode = bool(testModeVal)
 
     # Make sure logging is started before loading the bulk of the main
     # application UI to catch as many errors as possible. After the app is
@@ -108,6 +131,19 @@ def startApp(showSplash=True, testMode=False, safeMode=False):
         # continue to be written to the dialog.
         sys.excepthook = exceptionCallback
 
+        # open the frames if requested
+        if startView is not None:
+            frame = getAppFrame(startView)  # opens if not yet loaded
+            # raise frames to the top
+            if frame is not None:
+                if hasattr(frame, 'Raise'):
+                    frame.Raise()
+                else:
+                    logging.warning(
+                        'Frame has no `Raise()` method. Cannot raise it.')
+            else:
+                logging.error('Frame cannot be opened.')
+
         # Allow the UI to refresh itself. Don't do this during testing where the
         # UI is exercised programmatically.
         _psychopyAppInstance.MainLoop()
@@ -129,6 +165,76 @@ def quitApp():
         _psychopyAppInstance = None
     else:
         raise AttributeError('Object `_psychopyApp` has no attribute `quit`.')
+
+
+def restartApp():
+    """Restart the PsychoPy application instance.
+
+    This will write a file named '.restart' to the user preferences directory
+    and quit the application. The presence of this file will indicate to the 
+    launcher parent process that the app should restart.
+
+    The app restarts with the same arguments as the original launch. This is
+    useful for updating the application or plugins without requiring the user
+    to manually restart the app.
+
+    The user will be prompted to save any unsaved work before the app restarts.
+
+    """
+    if not isAppStarted():
+        return
+    
+    # write a restart file to the user preferences directory
+    from psychopy.preferences import prefs
+    restartFilePath = os.path.join(prefs.paths['userPrefsDir'], '.restart')
+    
+    with open(restartFilePath, 'w') as restartFile:
+        restartFile.write('')  # empty file
+
+    quitApp()
+
+
+def checkRestart():
+    """Check if the app should restart.
+
+    This function will check for the presence of a file named '.restart' in the
+    user preferences directory. If the file is present, the function will return
+    `True` and remove the file. Otherwise, it will return `False`.
+
+    Returns
+    -------
+    bool
+        `True` if the app should restart else `False`.
+
+    """
+    from psychopy.preferences import prefs
+    restartFilePath = os.path.join(prefs.paths['userPrefsDir'], '.restart')
+
+    return os.path.exists(restartFilePath)
+
+
+def clearRestart():
+    """Clear the restart flag.
+
+    This function will remove the restart file from the user preferences
+    directory if it exists.
+
+    Returns
+    -------
+    bool
+        `True` if the restart flag was cleared else `False`. If the flag was
+        already cleared, the function will return `False`.
+
+    """
+    from psychopy.preferences import prefs
+    restartFilePath = os.path.join(prefs.paths['userPrefsDir'], '.restart')
+
+    if os.path.exists(restartFilePath):
+        os.remove(restartFilePath)
+
+        return True
+
+    return False
 
 
 def getAppInstance():
@@ -216,6 +322,8 @@ def getAppFrame(frameName):
             _psychopyAppInstance.showRunner()
         else:
             raise AttributeError('Cannot load frame. Method not available.')
+        
+        frameRef = getattr(_psychopyAppInstance, frameName, None)
 
     return frameRef
 
