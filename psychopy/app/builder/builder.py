@@ -23,7 +23,7 @@ import numpy
 import requests
 import io
 
-from pkg_resources import parse_version
+from packaging.version import Version
 import wx.stc
 from wx.lib import scrolledpanel
 from wx.lib import platebtn
@@ -50,7 +50,7 @@ try:
 except ImportError:
     from wx import PseudoDC
 
-if parse_version(wx.__version__) < parse_version('4.0.3'):
+if Version(wx.__version__) < Version('4.0.3'):
     wx.NewIdRef = wx.NewId
 
 from psychopy.localization import _translate
@@ -3535,7 +3535,7 @@ class FlowCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
 
         # create a PseudoDC to record our drawing
         self.pdc = PseudoDC()
-        if parse_version(wx.__version__) < parse_version('4.0.0a1'):
+        if Version(wx.__version__) < Version('4.0.0a1'):
             self.pdc.DrawRoundedRectangle = self.pdc.DrawRoundedRectangleRect
         self.pen_cache = {}
         self.brush_cache = {}

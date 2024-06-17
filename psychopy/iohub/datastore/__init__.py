@@ -7,7 +7,7 @@
 import os
 import atexit
 import numpy as np
-from pkg_resources import parse_version
+from packaging.version import Version
 from ..server import DeviceEvent
 from ..constants import EventConstants
 from ..errors import ioHubError, printExceptionDetailsToStdErr, print2err
@@ -15,7 +15,7 @@ from ..errors import ioHubError, printExceptionDetailsToStdErr, print2err
 import tables
 from tables import parameters, StringCol, UInt32Col, UInt16Col, NoSuchNodeError
 
-if parse_version(tables.__version__) < parse_version('3'):
+if Version(tables.__version__) < Version('3'):
     from tables import openFile as open_file
 
     create_table = "createTable"

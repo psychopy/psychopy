@@ -7,7 +7,7 @@ import pickle
 import copy
 import warnings
 import numpy as np
-from pkg_resources import parse_version
+from packaging.version import Version
 
 import psychopy
 from psychopy import logging
@@ -26,7 +26,7 @@ except ImportError:
 try:
     # import openpyxl
     import openpyxl
-    if parse_version(openpyxl.__version__) >= parse_version('2.4.0'):
+    if Version(openpyxl.__version__) >= Version('2.4.0'):
         # openpyxl moved get_column_letter to utils.cell
         from openpyxl.utils.cell import get_column_letter
     else:

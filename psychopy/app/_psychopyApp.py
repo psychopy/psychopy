@@ -23,7 +23,7 @@ profiling = False  # turning on will save profile files in currDir
 
 import psychopy
 from psychopy import prefs
-from pkg_resources import parse_version
+from packaging.version import Version
 from . import urls
 from . import frametracker
 from . import themes
@@ -636,7 +636,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             tipFile = os.path.join(
                 self.prefs.paths['resources'], _translate("tips.txt"))
             tipIndex = self.prefs.appData['tipIndex']
-            if parse_version(wx.__version__) >= parse_version('4.0.0a1'):
+            if Version(wx.__version__) >= Version('4.0.0a1'):
                 tp = wx.adv.CreateFileTipProvider(tipFile, tipIndex)
                 showTip = wx.adv.ShowTip(None, tp)
             else:
@@ -652,7 +652,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
 
         # doing this once subsequently enables the app to open & switch among
         # wx-windows on some platforms (Mac 10.9.4) with wx-3.0:
-        v = parse_version
+        v = Version
         if sys.platform == 'darwin':
             if v('3.0') <= v(wx.__version__) < v('4.0'):
                 _Showgui_Hack()  # returns ~immediately, no display
@@ -1067,7 +1067,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             "For stimulus generation and experimental control in Python.\n"
             "PsychoPy depends on your feedback. If something doesn't work\n"
             "then let us know at psychopy-users@googlegroups.com")
-        if parse_version(wx.__version__) >= parse_version('4.0a1'):
+        if Version(wx.__version__) >= Version('4.0a1'):
             info = wx.adv.AboutDialogInfo()
             showAbout = wx.adv.AboutBox
         else:

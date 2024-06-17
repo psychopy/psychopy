@@ -17,7 +17,7 @@ import subprocess
 import traceback
 
 import pandas
-from pkg_resources import parse_version
+from packaging.version import Version
 
 from psychopy import logging, prefs, exceptions
 from psychopy.tools.filetools import DictStorage, KnownProjects

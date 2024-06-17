@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 
 from collections import OrderedDict
-from pkg_resources import parse_version
+from packaging.version import Version
 
 from psychopy import logging, exceptions
 from psychopy.tools.filetools import pathToString
@@ -22,7 +22,7 @@ from psychopy.localization import _translate
 
 try:
     import openpyxl
-    if parse_version(openpyxl.__version__) >= parse_version('2.4.0'):
+    if Version(openpyxl.__version__) >= Version('2.4.0'):
         # openpyxl moved get_column_letter to utils.cell
         from openpyxl.utils.cell import get_column_letter
     else:
@@ -413,7 +413,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
             )
 
         # data_only was added in 1.8
-        if parse_version(openpyxl.__version__) < parse_version('1.8'):
+        if Version(openpyxl.__version__) < Version('1.8'):
             wb = load_workbook(filename=fileName)
         else:
             wb = load_workbook(filename=fileName, data_only=True)
@@ -433,7 +433,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
         fieldNames = []
         rangeCols = []
         for colN in range(nCols):
-            if parse_version(openpyxl.__version__) < parse_version('2.0'):
+            if Version(openpyxl.__version__) < Version('2.0'):
                 fieldName = ws.cell(_getExcelCellName(col=colN, row=0)).value
             else:
                 # From 2.0, cells are referenced with 1-indexing: A1 == cell(row=1, column=1)
@@ -449,7 +449,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
         for rowN in range(1, nRows):  # skip header first row
             thisTrial = {}
             for rangeColsIndex, colN in enumerate(rangeCols):
-                if parse_version(openpyxl.__version__) < parse_version('2.0'):
+                if Version(openpyxl.__version__) < Version('2.0'):
                     val = ws.cell(_getExcelCellName(col=colN, row=0)).value
                 else:
                     # From 2.0, cells are referenced with 1-indexing: A1 == cell(row=1, column=1)
