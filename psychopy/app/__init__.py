@@ -12,6 +12,7 @@ __all__ = [
     'startApp',
     'quitApp',
     'restartApp',
+    'setRestart',
     'checkRestart',
     'clearRestart',
     'getAppInstance',
@@ -193,6 +194,43 @@ def restartApp():
 
     quitApp()
 
+
+def setRestart():
+    """Set the restart flag.
+
+    This can be used to enable or disable the restart flag without actually
+    restarting the app. This allows the user to manually close the app at a
+    later time.
+
+    This function will write a file named '.restart' to the user preferences
+    directory. The presence of this file will indicate to the launcher parent
+    process that the app should restart.
+
+    Parameters
+    ----------
+    enable : bool
+        Whether to enable the restart flag. If `False`, the function will remove
+        the restart file (if it exists). Default is `True`.
+
+    Returns
+    -------
+    bool
+        `True` if the restart flag was set else `False`. If the flag was already
+        set, the function will return `False`.
+
+    """
+    # check if the restart file is present
+    from psychopy.preferences import prefs
+    restartFilePath = os.path.join(prefs.paths['userPrefsDir'], '.restart')
+
+    if not os.path.exists(restartFilePath):
+        with open(restartFilePath, 'w') as restartFile:
+            restartFile.write('')
+        
+        return True
+    
+    return False
+        
 
 def checkRestart():
     """Check if the app should restart.
