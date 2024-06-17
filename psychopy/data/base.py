@@ -11,7 +11,7 @@ import codecs
 import numpy as np
 import pandas as pd
 import json_tricks
-from pkg_resources import parse_version
+from packaging.version import Version
 
 import psychopy
 from psychopy import logging
@@ -23,7 +23,7 @@ from .utils import _getExcelCellName
 
 try:
     import openpyxl
-    if parse_version(openpyxl.__version__) >= parse_version('2.4.0'):
+    if Version(openpyxl.__version__) >= Version('2.4.0'):
         # openpyxl moved get_column_letter to utils.cell
         from openpyxl.utils.cell import get_column_letter
     else:
