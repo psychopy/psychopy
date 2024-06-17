@@ -52,15 +52,6 @@ if haveGLFW:
 else:
     useGLFW = False
 
-
-if havePyglet:
-    # get the default display
-    if pyglet.version < '1.4':
-        _default_display_ = pyglet.window.get_platform().get_default_display()
-    else:
-        _default_display_ = pyglet.canvas.get_display()
-
-
 import psychopy.core
 from psychopy.tools.monitorunittools import cm2pix, deg2pix, pix2cm, pix2deg
 from psychopy import logging
@@ -411,7 +402,7 @@ def getKeys(keyList=None, modifiers=False, timeStamped=False):
         # for each (pyglet) window, dispatch its events before checking event
         # buffer
         windowSystem = 'pyglet'
-        for win in _default_display_.get_windows():
+        for win in pyglet.app.windows:
             try:
                 win.dispatch_events()  # pump events on pyglet windows
             except ValueError as e:  # pragma: no cover
@@ -532,7 +523,7 @@ def waitKeys(maxWait=float('inf'), keyList=None, modifiers=False,
     while not got_keypress and timer.getTime() < maxWait:
         # Pump events on pyglet windows if they exist.
         if havePyglet:
-            for win in _default_display_.get_windows():
+            for win in pyglet.app.windows:
                 win.dispatch_events()
 
         # Get keypresses and return if anything is pressed.
@@ -892,7 +883,7 @@ class Mouse:
             # for each (pyglet) window, dispatch its events before checking
             # event buffer
 
-            for win in _default_display_.get_windows():
+            for win in pyglet.app.windows:
                 win.dispatch_events()  # pump events on pyglet windows
 
             # else:
@@ -997,7 +988,7 @@ def clearEvents(eventType=None):
     if not havePygame or not display.get_init():  # pyglet
         # For each window, dispatch its events before
         # checking event buffer.
-        for win in _default_display_.get_windows():
+        for win in pyglet.app.windows:
             win.dispatch_events()  # pump events on pyglet windows
 
         if eventType == 'mouse':
