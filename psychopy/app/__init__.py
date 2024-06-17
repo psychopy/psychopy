@@ -75,14 +75,6 @@ def startApp(showSplash=True, testMode=False, safeMode=False, startView=None):
         if startView not in ('coder', 'builder', 'runner'):
             startView = None  # silently drop invalid values and use default
 
-    safeModeVal = os.environ.get('PSYCHOPYSAFEMODE', None)
-    if safeModeVal is not None:
-        safeMode = bool(safeModeVal)
-
-    testModeVal = os.environ.get('PSYCHOPYTESTMODE', None)
-    if testModeVal is not None:
-        testMode = bool(testModeVal)
-
     # Make sure logging is started before loading the bulk of the main
     # application UI to catch as many errors as possible. After the app is
     # loaded, messages are handled by the `StdStreamDispatcher` instance.
