@@ -1506,8 +1506,8 @@ class SettingsComponent:
                 buff.writeIndentedLines(code % inits)
                 buff.setIndentLevel(1, relative=True)
                 code = (
-                            "'sample_filtering': %(elDataFiltering)s,\n"
-                            "'elLiveFiltering': %(elLiveFiltering)s,\n"
+                            "'FILTER_FILE': %(elDataFiltering)s,\n"
+                            "'FILTER_ONLINE': %(elLiveFiltering)s,\n"
                 )
                 buff.writeIndentedLines(code % inits)
                 buff.setIndentLevel(-1, relative=True)
