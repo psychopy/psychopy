@@ -255,6 +255,10 @@ class TestTrialHandler2:
             nReps=2,
             method="sequential"
         )
+        # check that calling now (before upcoming trials are calculated) doesn't break anything
+        up1 = t.getFutureTrial(1)
+        ups3 = t.getFutureTrials(3)
+        # move on to the first trial, triggering upcoming trials to be calculated
         t.__next__()
         # define array of answers
         answers = [
@@ -280,7 +284,7 @@ class TestTrialHandler2:
         trials = t.getFutureTrials(None)
         for i in range(len(trials)):
             assert trials[i] == t.upcomingTrials[i]
-
+    
     def test_skipTrials_rewindTrials(self):
         # make trial hancler
         t = data.TrialHandler2(
