@@ -12,7 +12,7 @@
 import os
 import sys
 
-__version__ = '2024.2.0dev2'
+__version__ = '2024.2.0dev3'
 __license__ = 'GPL v3'
 __author__ = 'Open Science Tools Ltd'
 __author_email__ = 'support@opensciencetools.org'
@@ -75,7 +75,6 @@ if 'installing' not in locals():
 
         # set user site packages
         env['PYTHONUSERBASE'] = prefs.paths['packages']
-        env['PYTHONNOUSERSITE'] = '1'  # isolate user packages
 
         # update environment, pass this to sub-processes (e.g. pip)
         os.environ.update(env)
