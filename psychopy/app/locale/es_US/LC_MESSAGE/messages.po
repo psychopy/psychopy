@@ -9,12 +9,12 @@ msgstr ""
 "PO-Revision-Date: \n"
 "Last-Translator: Claudio Alfredo de la Rosa Munar <cdelarosa@delarosaresearch.com>\n"
 "Language-Team: psychopy_spanish@opensciencetools.org\n"
-"Language: es_CO\n"
+"Language: es_US\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.4.2\n"
+"X-Generator: Poedit 3.4.4\n"
 "X-Poedit-Basepath: ../../../../..\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-KeywordsList: _translate\n"
@@ -203,7 +203,8 @@ msgstr "El parámetro del dispositivo del componente del micrófono “{name}”
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:136
 #, python-brace-format
 msgid "The file you are attempting to run does not seem to exist, the full path supplied to Runner was {path}"
-msgstr "El archivo que está intentando ejecutar no parece existir, la ruta completa suministrada al corredor (Runner)fue {path}"
+msgstr ""
+"El archivo que está intentando ejecutar no parece existir, la ruta completa suministrada para la ejecución (Runner)fue {path}"
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:140
 #, python-brace-format
@@ -232,7 +233,7 @@ msgstr "&Ver"
 #: psychopy/app/_psychopyApp.py:99
 #, python-format
 msgid "&Open Builder view\t%s"
-msgstr "&Abrir vista Builder\t%s"
+msgstr "&Abrir vista de Builder\t%s"
 
 #: psychopy/app/_psychopyApp.py:102
 msgid "Open a new Builder view"
@@ -272,7 +273,7 @@ msgid ""
 "Requested: {}\n"
 "Err: {}"
 msgstr ""
-"Error al abrir Runner con la lista de archivos solicitados, se abrió sin la lista de archivos.\n"
+"Error al abrir el Runner con la lista de archivos solicitados, se abrió sin la lista de archivos.\n"
 "Solicitado: {}\n"
 "Error: {}"
 
@@ -282,7 +283,7 @@ msgid ""
 "Requested: {}\n"
 "Err: {}"
 msgstr ""
-"Error al abrir Coder con los scripts solicitados, se abrió sin scripts abiertos.\n"
+"Error al abrir el  Coder con los scripts solicitados, se abrió sin scripts abiertos.\n"
 "Solicitado: {}\n"
 "Error: {}"
 
@@ -413,7 +414,7 @@ msgstr "&Abrir...\t%s"
 
 #: psychopy/app/builder/builder.py:317 psychopy/app/coder/coder.py:1396
 msgid "Open &Recent"
-msgstr "Abierto y reciente"
+msgstr "Abrir Recientes"
 
 #: psychopy/app/builder/builder.py:320 psychopy/app/coder/coder.py:1398
 #, python-format
@@ -580,11 +581,11 @@ msgstr "Ejecutar el script actual"
 #: psychopy/app/builder/builder.py:449 psychopy/app/coder/coder.py:1679
 #, python-format
 msgid "Send to runner\t%s"
-msgstr "Enviar al corredor\t%s"
+msgstr "Enviar al runner\t%s"
 
 #: psychopy/app/builder/builder.py:450 psychopy/app/coder/coder.py:1680
 msgid "Send current script to runner"
-msgstr "Enviar script actual al corredor"
+msgstr "Enviar script actual a ejecución (runner)"
 
 #: psychopy/app/builder/builder.py:454 psychopy/app/coder/coder.py:1685
 msgid "PsychoPy updates..."
@@ -604,7 +605,7 @@ msgstr "Administrar paquetes de Python y complementos opcionales para PsychoPy"
 
 #: psychopy/app/builder/builder.py:464 psychopy/app/coder/coder.py:1693
 msgid "Benchmark wizard"
-msgstr "Asistente de evaluación comparativa"
+msgstr "Asistente de Benchmark"
 
 #: psychopy/app/builder/builder.py:465 psychopy/app/coder/coder.py:1694
 msgid "Check software & hardware, generate report"
@@ -1018,11 +1019,11 @@ msgstr "Compilar en script JS"
 
 #: psychopy/app/builder/builder.py:4379 psychopy/app/coder/coder.py:2940
 msgid "Runner"
-msgstr "Corredor"
+msgstr "Runner"
 
 #: psychopy/app/builder/builder.py:4381 psychopy/app/coder/coder.py:2941
 msgid "Send experiment to Runner"
-msgstr "Enviar experimento a Runner"
+msgstr "Enviar experimento a ejecución (Runner)"
 
 #: psychopy/app/builder/builder.py:4387 psychopy/app/coder/coder.py:2945
 msgid "Run"
@@ -2127,7 +2128,7 @@ msgstr "Asistente de fuente"
 
 #: psychopy/app/coder/coder.py:1261
 msgid "Shell"
-msgstr "Concha"
+msgstr "Shell (Caparazón)"
 
 #: psychopy/app/coder/coder.py:1267 psychopy/app/plugin_manager/dialog.py:38
 msgid "Output"
@@ -3843,7 +3844,7 @@ msgstr "ejecutar script"
 
 #: psychopy/app/preferencesDlg.py:118
 msgid "runner script"
-msgstr "script del corredor"
+msgstr "ejecutor(runner) script"
 
 #: psychopy/app/preferencesDlg.py:119
 msgid "stop script"
@@ -3983,7 +3984,7 @@ msgstr "tiempo de espera"
 
 #: psychopy/app/preferencesDlg.py:156
 msgid "Builder, Coder and Runner"
-msgstr "Constructor, codificador y corredor"
+msgstr "Constructor, Codificador y Ejecutor"
 
 #: psychopy/app/preferencesDlg.py:157
 msgid "same as in the file"
@@ -4108,7 +4109,7 @@ msgstr "Cargando tarea"
 
 #: psychopy/app/runner/runner.py:147
 msgid "Closing Runner"
-msgstr "Corredor de cierre"
+msgstr "Cerrando el Runner"
 
 #: psychopy/app/runner/runner.py:150
 msgid "Quitting PsychoPy"
@@ -4266,27 +4267,27 @@ msgstr "&Ventana siguiente\t%s"
 
 #: psychopy/app/utils.py:1466
 msgid "Show &builder"
-msgstr "Mostrar y constructor"
+msgstr "Mostrar builder"
 
 #: psychopy/app/utils.py:1466
 msgid "Show Builder"
-msgstr "Mostrar generador"
+msgstr "Mostrar Builder"
 
 #: psychopy/app/utils.py:1473
 msgid "Show &coder"
-msgstr "Mostrar y codificar"
+msgstr "Mostrar coder"
 
 #: psychopy/app/utils.py:1473
 msgid "Show Coder"
-msgstr "Mostrar codificador"
+msgstr "Mostrar Coder"
 
 #: psychopy/app/utils.py:1480
 msgid "Show &runner"
-msgstr "Mostrar y corredor"
+msgstr "Mostrar ejecutor"
 
 #: psychopy/app/utils.py:1480
 msgid "Show Runner"
-msgstr "Mostrar corredor"
+msgstr "Mostrar Runner"
 
 #: psychopy/data/experiment.py:425
 msgid "Attempted to pause experiment '{}', but it is already paused. Status will remain unchanged."
@@ -8615,11 +8616,11 @@ msgstr "Descargar la biblioteca PsychoPy desde Github (puede tardar un poco)"
 
 #: psychopy/tools/wizard.py:32
 msgid "Benchmark"
-msgstr "Parámetro"
+msgstr "Benchmark"
 
 #: psychopy/tools/wizard.py:33
 msgid "benchmark version"
-msgstr "versión de referencia"
+msgstr "versión del benchmark"
 
 #: psychopy/tools/wizard.py:35
 msgid "dots_circle"
@@ -9074,7 +9075,7 @@ msgstr " Asistente de evaluación comparativa (Benchmark)"
 
 #: psychopy/tools/wizard.py:650
 msgid "Benchmarking takes ~20-30 seconds to gather"
-msgstr "La evaluación comparativa tarda entre 20 y 30 segundos en recopilarse"
+msgstr "La evaluación tipo Benchmark tarda entre 20 y 30 segundos en recopilarse"
 
 #: psychopy/tools/wizard.py:651
 msgid "configuration and performance data. Begin?"
@@ -9090,11 +9091,11 @@ msgstr "ventana visual para dibujar"
 
 #: psychopy/tools/wizard.py:702
 msgid "Benchmark complete! (See the Coder output window.)"
-msgstr "¡Evaluación comparativa completa! (Consulte la ventana de resultados del Coder)\""
+msgstr "¡Evaluación Benchmark completa! (Consulte la ventana de resultados del Coder)\""
 
 #: psychopy/tools/wizard.py:711
 msgid "Click OK to view full configuration and benchmark data."
-msgstr "Haga clic en Aceptar para ver la configuración completa y los datos comparativos."
+msgstr "Haga clic en Aceptar para ver la configuración completa y los datos del benchmark."
 
 #: psychopy/tools/wizard.py:712
 msgid "Click Cancel to stay in PsychoPy."
