@@ -266,12 +266,12 @@ if backend is None:
 elif hasattr(backend, 'defaultOutput'):
     pref = prefs.hardware['audioDevice']
     # is it a list or a simple string?
-    if type(prefs.hardware['audioDevice']) is list:
+    if isinstance(pref, list):
         # multiple options so use zeroth
-        dev = prefs.hardware['audioDevice'][0]
+        dev = pref[0]
     else:
         # a single option
-        dev = prefs.hardware['audioDevice']
+        dev = pref
     # is it simply "default" (do nothing)
     if dev == 'default' or systemtools.isVM_CI():
         pass  # do nothing

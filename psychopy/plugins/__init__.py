@@ -32,17 +32,20 @@ import hashlib
 import importlib, importlib.metadata
 import psychopy.tools.pkgtools as pkgtools
 import pkg_resources
-import psychopy.tools.pkgtools as pkgtools
 from psychopy import logging
 from psychopy.preferences import prefs
 
-# add the plugins folder to as a distribution location
-try:
-    pkgtools.addDistribution(prefs.paths['packages'])
-except KeyError:
-    # this error likely wont happen unless the prefs are missing keys
-    logging.error('Cannot add plugin directory as distribution location. '
-                  'Plugins will be unavailable this session.')
+# Configure the environment to use our custom site-packages location for
+# user-installed packages (i.e. plugins).
+USER_PACKAGES_PATH = str(prefs.paths['userPackages'])
+# check if we're in a virtual environment or not
+inVM = hasattr(sys, 'real_prefix') or sys.prefix != sys.base_prefix
+if not inVM and USER_PACKAGES_PATH not in pkg_resources.working_set.entries:
+    pkg_resources.working_set.add_entry(USER_PACKAGES_PATH)
+
+# add the plugins folder to the path
+if not inVM and USER_PACKAGES_PATH not in sys.path:
+    sys.path.insert(0, USER_PACKAGES_PATH)  # add to path
 
 # Keep track of plugins that have been loaded. Keys are plugin names and values
 # are their entry point mappings.
@@ -335,6 +338,7 @@ def refreshBundlePaths():
         foundBundles.append(pluginDir)
 
     # refresh package index since the working set is now stale
+    import psychopy.tools.pkgtools as pkgtools
     pkgtools.refreshPackages()
 
     return foundBundles
@@ -392,6 +396,7 @@ def installPlugin(package, local=True, upgrade=False, forceReinstall=False,
     """
     # determine where to install the package
     installWhere = getBundleInstallTarget(package) if local else None
+    import psychopy.tools.pkgtools as pkgtools
     pkgtools.installPackage(
         package, 
         target=installWhere,
@@ -418,30 +423,21 @@ def scanPlugins():
 
     """
     global _installed_plugins_
-    _installed_plugins_ = {}  # clear installed plugins
-
-    refreshBundlePaths()  # refresh plugin bundles directory
-
-    # make sure we have the plugin directory in the working set
-    pluginDir = prefs.paths['packages']
-    if pluginDir not in pkg_resources.working_set.entries:
-        pkg_resources.working_set.add_entry(pluginDir)
-
-    # find all packages with entry points defined
-    pluginEnv = pkg_resources.Environment()  # supported by the platform
-    dists, _ = pkg_resources.working_set.find_plugins(pluginEnv)
-
-    for dist in dists:
-        entryMap = dist.get_entry_map()
-        if any([i.startswith('psychopy') for i in entryMap.keys()]):
-            logging.debug('Found plugin `{}` at location `{}`.'.format(
-                dist.project_name, dist.location))
-            _installed_plugins_[dist.project_name] = entryMap
-
-            # try adding the plugin to the working set
-            if dist.location not in pkg_resources.working_set.entries:
-                pkg_resources.working_set.add(dist)
-
+    _installed_plugins_ = {}  # clear the cache
+    for dist in pkg_resources.find_distributions(USER_PACKAGES_PATH):
+        if dist.has_metadata('entry_points.txt'):
+            entryMap = dist.get_entry_map()
+            if entryMap:
+                _installed_plugins_[dist.project_name] = entryMap
+            else:
+                logging.warning(
+                    "Package `{}` has an empty entry points map!".format(
+                        dist.project_name))
+        else:
+            logging.debug(
+                "Package `{}` does not define any entry points.".format(
+                    dist.project_name))
+    
     return len(_installed_plugins_)
 
 
@@ -829,7 +825,7 @@ def loadPlugin(plugin):
             except Exception:  # catch everything else
                 logging.error(
                     "Failed to load entry point `{}` of plugin `{}` for unknown"
-                    "reasons. Skipping.".format(str(ep), plugin))
+                    " reasons. Skipping.".format(str(ep), plugin))
 
                 if plugin not in _failed_plugins_:
                     _failed_plugins_.append(plugin)
@@ -852,6 +848,12 @@ def loadPlugin(plugin):
                     ep.__name__, fqn + '.' + attr))
 
             # --- handle special cases ---
+            # Note - We're going to handle special cases here for now, but
+            # this will eventually be handled by special functions in the 
+            # target modules (e.g. `getAllPhotometers()` in 
+            # `psychopy.hardware.photometer`) which can detect the loaded 
+            # attribute inside the module and add it to a collection.
+
             if fqn == 'psychopy.visual.backends':  # if window backend
                 _registerWindowBackend(attr, ep)
             elif fqn == 'psychopy.experiment.components':  # if component

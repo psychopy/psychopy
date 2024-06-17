@@ -249,7 +249,7 @@ class ioHubConnection():
         mouse=hub.devices.mouse
         mouse_position = mouse.getPosition()
 
-        print 'mouse position: ', mouse_position
+        print('mouse position: ', mouse_position)
 
         # Returns something like:
         # >> mouse position:  [-211.0, 371.0]
@@ -1316,7 +1316,9 @@ class ioHubConnection():
                     self.udp_client.sendTo(('STOP_IOHUB_SERVER',))
                     self.udp_client.close()
                 if Computer.iohub_process:
-                    r = Computer.iohub_process.wait(timeout=5)
+                    # This wait() used to have timeout=5, removing it to allow
+                    # sufficient time for all iohub devices to be closed.
+                    r = Computer.iohub_process.wait()
                     print('ioHub Server Process Completed With Code: ', r)
             except TimeoutError:
                 print('Warning: TimeoutExpired, Killing ioHub Server process.')
