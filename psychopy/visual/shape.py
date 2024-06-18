@@ -31,7 +31,6 @@ from psychopy.visual.basevisual import (
 )
 # from psychopy.visual.helpers import setColor
 import psychopy.visual
-from psychopy.contrib import tesselate
 
 pyglet.options['debug_gl'] = False
 GL = pyglet.gl
@@ -578,6 +577,7 @@ class ShapeStim(BaseShapeStim):
         # TO-DO: handle borders properly for multiloop stim like holes
         # likely requires changes in ContainerMixin to iterate over each
         # border loop
+        from psychopy.contrib import tesselate
 
         self.border = copy.deepcopy(newVertices)
         tessVertices = []  # define to keep the linter happy
