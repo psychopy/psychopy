@@ -204,8 +204,8 @@ class PolygonComponent(BaseVisualComponent):
                     "    size=%(size)s,\n" % inits)
 
         code += ("    ori=%(ori)s, pos=%(pos)s, draggable=%(draggable)s, anchor=%(anchor)s,\n"
-                 "    lineWidth=%(lineWidth)s, "
-                 "    colorSpace=%(colorSpace)s,  lineColor=%(lineColor)s, fillColor=%(fillColor)s,\n"
+                 "    lineWidth=%(lineWidth)s,\n"
+                 "    colorSpace=%(colorSpace)s, lineColor=%(lineColor)s, fillColor=%(fillColor)s,\n"
                  "    opacity=%(opacity)s, " % inits)
 
         depth = -self.getPosInRoutine()

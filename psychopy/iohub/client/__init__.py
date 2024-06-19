@@ -249,7 +249,7 @@ class ioHubConnection():
         mouse=hub.devices.mouse
         mouse_position = mouse.getPosition()
 
-        print 'mouse position: ', mouse_position
+        print('mouse position: ', mouse_position)
 
         # Returns something like:
         # >> mouse position:  [-211.0, 371.0]
@@ -1119,9 +1119,7 @@ class ioHubConnection():
             if local_class:
                 d = local_class(self, dev_cls_name, dev_config)
             else:
-                full_device_class_name = getFullClassName(dev_cls).replace('psychopy.iohub.devices.', "")
-                full_device_class_name = full_device_class_name.replace('eyetracker.EyeTracker', 'EyeTracker')
-                d = ioHubDeviceView(self, full_device_class_name, dev_cls_name, dev_config)
+                d = ioHubDeviceView(self, dev_mod_pth + "." + dev_cls_name, dev_cls_name, dev_config)
 
             self.devices.addDevice(name, d)
             return d
@@ -1316,7 +1314,9 @@ class ioHubConnection():
                     self.udp_client.sendTo(('STOP_IOHUB_SERVER',))
                     self.udp_client.close()
                 if Computer.iohub_process:
-                    r = Computer.iohub_process.wait(timeout=5)
+                    # This wait() used to have timeout=5, removing it to allow
+                    # sufficient time for all iohub devices to be closed.
+                    r = Computer.iohub_process.wait()
                     print('ioHub Server Process Completed With Code: ', r)
             except TimeoutError:
                 print('Warning: TimeoutExpired, Killing ioHub Server process.')

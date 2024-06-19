@@ -28,7 +28,7 @@ from .net import MAX_PACKET_SIZE
 from .util import convertCamelToSnake, win32MessagePump
 from .util import yload, yLoader
 from .constants import DeviceConstants, EventConstants
-from .devices import DeviceEvent, import_device
+from .devices import DeviceEvent, import_device, importDeviceModule
 from .devices import Computer
 from .devices.deviceConfigValidation import validateDeviceConfiguration
 getTime = Computer.getTime
@@ -846,7 +846,7 @@ class ioServer():
         else:
             dev_mod_pth += dev_cls_name.lower()
         # convert subdirectory to path
-        dev_mod = importlib.import_module(dev_mod_pth)
+        dev_mod = importDeviceModule(dev_mod_pth)
         dev_file_pth = os.path.dirname(dev_mod.__file__)
         # get config from path
         dev_conf_pth = os.path.join(dev_file_pth,

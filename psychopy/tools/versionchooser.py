@@ -17,7 +17,7 @@ import psychopy  # for currently loaded version
 from psychopy import prefs
 # the following will all have been imported so import here and reload later
 from psychopy import logging, tools, web, constants, preferences, __version__
-from pkg_resources import parse_version
+from packaging.version import Version
 from importlib import reload
 from packaging.version import Version, InvalidVersion, VERSION_PATTERN
 
@@ -194,7 +194,7 @@ def getPsychoJSVersionStr(currentVersion, preferredVersion=''):
 
     # do we shorten minor versions ('3.4.2' to '3.4')?
     # only from 3.2 onwards
-    if (parse_version('3.2')) <= parse_version(useVerStr) < parse_version('2021') \
+    if (Version('3.2')) <= Version(useVerStr) < Version('2021') \
             and len(useVerStr.split('.')) > 2:
         # e.g. 2020.2 not 2021.2.5
         useVerStr = '.'.join(useVerStr.split('.')[:2])
@@ -385,9 +385,9 @@ def versionOptions(local=True):
     majorMinor = sorted(
         list({'.'.join(v.split('.')[:2])
               for v in availableVersions(local=local)}),
-        key=parse_version, 
+        key=Version, 
         reverse=True)
-    major = sorted(list({v.split('.')[0] for v in majorMinor}), key=parse_version, reverse=True)
+    major = sorted(list({v.split('.')[0] for v in majorMinor}), key=Version, reverse=True)
     special = ['latest']
     return special + major + majorMinor
 
@@ -402,7 +402,7 @@ def _localVersions(forceCheck=False):
             tagInfo = subprocess.check_output(cmd.split(), cwd=VERSIONSDIR,
                                               env=constants.ENVIRON).decode('UTF-8')
             allTags = tagInfo.splitlines()
-            _localVersionsCache = sorted(allTags, key=parse_version, reverse=True)
+            _localVersionsCache = sorted(allTags, key=Version, reverse=True)
     return _localVersionsCache
 
 
@@ -421,7 +421,7 @@ def _remoteVersions(forceCheck=False):
                        for line in tagInfo.decode().splitlines()
                        if '^{}' not in line]
             # ensure most recent (i.e., highest) first
-            _remoteVersionsCache = sorted(allTags, key=parse_version, reverse=True)
+            _remoteVersionsCache = sorted(allTags, key=Version, reverse=True)
     return _remoteVersionsCache
 
 
@@ -443,19 +443,19 @@ def _versionFilter(versions, wxVersion):
     # logging.info(msg)
     versions = [ver for ver in versions
                 if ver == 'latest'
-                or parse_version(ver) >= parse_version('1.90')
+                or Version(ver) >= Version('1.90')
                 and len(ver) > 1]
 
     # Get WX Compatibility
     compatibleWX = '4.0'
-    if wxVersion is not None and parse_version(wxVersion) >= parse_version(compatibleWX):
+    if wxVersion is not None and Version(wxVersion) >= Version(compatibleWX):
         # msg = _translate("wx version: {}. Filtering versions of "
         #                  "PsychoPy only compatible with wx >= version {}".format(wxVersion,
         #                                                                       compatibleWX))
         # logging.info(msg)
         return [ver for ver in versions
                 if ver == 'latest'
-                or parse_version(ver) > parse_version('1.85.04')
+                or Version(ver) > Version('1.85.04')
                 and len(ver) > 1]
     return versions
 
@@ -474,7 +474,7 @@ def availableVersions(local=True, forceCheck=False):
             return sorted(
                 list(set([psychopy.__version__] + _localVersions(forceCheck) + _remoteVersions(
                     forceCheck))),
-                key=parse_version,
+                key=Version,
                 reverse=True)
     except subprocess.CalledProcessError:
         return []

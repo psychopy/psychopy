@@ -6,6 +6,7 @@
 import collections
 import copy
 import os
+import importlib
 from collections import deque
 from operator import itemgetter
 
@@ -926,10 +927,65 @@ class DeviceEvent(ioObject):
 
 
 import sys
+from psychopy.plugins.util import getEntryPoints
+
+
+def importDeviceModule(modulePath):
+    """
+    Resolve an import string to import the module for a particular device. 
+    
+    Will iteratively check plugin entry points too. 
+
+    Parameters
+    ----------
+    modulePath : str
+        Import path for the requested module
+    
+    Return
+    ------
+    types.ModuleType
+        Requested module
+
+    Raises
+    ------
+    ModuleNotFoundError
+        If module doesn't exist, will raise this error.
+    """
+    module = None
+    try:
+        # try importing as is (this was the only way prior to plugins)
+        module = importlib.import_module(modulePath)
+    except ModuleNotFoundError:
+        # get entry point groups targeting iohub.devices
+        entryPoints = getEntryPoints("psychopy.iohub.devices", submodules=True, flatten=False)
+        # iterate through found groups
+        for group in entryPoints:
+            # skip irrelevant groups
+            if not modulePath.startswith(group):
+                continue
+            # get module path relative to entry point group
+            relModPath = modulePath[len(group)+1:]
+            # is the first part importable? if not, progress to next group
+            try:
+                module = importlib.import_module(relModPath, package=group)
+            except ModuleNotFoundError:
+                continue
+            
+    # raise error if all import options failed
+    if module is None:
+        raise ModuleNotFoundError(
+            f"Could not find module `{modulePath}`. Tried importing directly "
+            f"and iteratively using entry points."
+        )
+
+    return module
 
 
 def import_device(module_path, device_class_name):
-    module = __import__(module_path, fromlist=["{}".format(device_class_name)])
+    # get module from module_path
+    module = importDeviceModule(module_path)
+    
+    # get device class from module
     device_class = getattr(module, device_class_name)
 
     setattr(sys.modules[__name__], device_class_name, device_class)
@@ -940,8 +996,7 @@ def import_device(module_path, device_class_name):
         event_constant_string = convertCamelToSnake(
             event_class_name[:-5], False)
 
-        event_module = __import__(module_path, fromlist=[event_class_name])
-        event_class = getattr(event_module, event_class_name)
+        event_class = getattr(module, event_class_name)
 
         event_class.DEVICE_PARENT = device_class
 
