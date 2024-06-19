@@ -299,6 +299,20 @@ class EnvironmentManagerDlg(wx.Dialog):
             }
         )
 
+    def uninstallPlugin(self, pluginInfo):
+        """Uninstall a plugin.
+
+        This deletes any bundles in the user's package directory, or uninstalls
+        packages from `site-packages`.
+
+        Parameters
+        ----------
+        pluginInfo : psychopy.app.plugin_manager.plugins.PluginInfo
+            Info object of the plugin to uninstall.
+
+        """
+        self.uninstallPackage(pluginInfo.pipname)
+
     def onInstallExit(self, pid, exitCode):
         """
         Callback function to handle a pip process exiting. Prints a termination statement

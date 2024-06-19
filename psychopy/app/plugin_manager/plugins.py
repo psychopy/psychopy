@@ -220,7 +220,7 @@ class PluginInfo:
             return
 
         wx.CallAfter(
-            self.parent.GetTopLevelParent().uninstallPackage, self.pipname)
+            self.parent.GetTopLevelParent().uninstallPlugin, self)
 
     @property
     def installed(self):
@@ -431,11 +431,15 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
 
         def onInstall(self, evt=None):
             # Mark as pending
-            self.markInstalled(None)
-            # Do install
-            self.info.install()
-            # Mark according to install success
-            self.markInstalled(self.info.installed)
+            # self.markInstalled(None)
+            # Do install (or uninstall)
+            if not self.info.installed:
+                self.info.install()
+                # Mark according to install success
+                self.markInstalled(self.info.installed)
+            else:
+                self.info.uninstall()
+                self.markInstalled(None)
 
         def onToggleActivate(self, evt=None):
             if self.info.active:
@@ -781,10 +785,13 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         """
         # Mark as pending
         self.markInstalled(None)
-        # Do install
-        self.info.install()
-        # Mark according to install success
-        self.markInstalled(self.info.installed)
+        if not self.info.installed:
+            self.info.install()
+            # Mark according to install success
+            self.markInstalled(self.info.installed)
+        else:
+            self.info.uninstall()
+            self.markInstalled(None)
 
     def onInstall(self, evt=None):
         """Event called when the install button is clicked.
@@ -1079,8 +1086,7 @@ def markInstalled(pluginItem, pluginPanel, installed=True):
         elif installed:
             # If installed, show as installed with tick
             pluginPanel.installBtn.Show()
-            pluginPanel.installBtn.Disable()
-            pluginPanel.installBtn.SetLabelText(_translate("Installed"))
+            pluginPanel.installBtn.SetLabelText(_translate("Uninstall"))
             _setAllBitmaps(pluginPanel.installBtn, icons.ButtonIcon("greytick", 16).bitmap)
             # Show active button when installed
             # pluginPanel.activeBtn.Show()
