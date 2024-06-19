@@ -845,7 +845,6 @@ def loadPlugin(plugin):
             # If we get here, the entry point is valid and we can safely add it
             # to PsychoPy's namespace.
             validEntryPoints[fqn].append((targObj, attr, ep))
-    print(validEntryPoints)
     # Assign entry points that have been successfully loaded. We defer
     # assignment until all entry points are deemed valid to prevent plugins
     # from being partially loaded.
