@@ -424,19 +424,28 @@ def scanPlugins():
     """
     global _installed_plugins_
     _installed_plugins_ = {}  # clear the cache
-    for dist in pkg_resources.find_distributions(USER_PACKAGES_PATH):
-        if dist.has_metadata('entry_points.txt'):
-            entryMap = dist.get_entry_map()
-            if entryMap:
-                _installed_plugins_[dist.project_name] = entryMap
-            else:
-                logging.warning(
-                    "Package `{}` has an empty entry points map!".format(
-                        dist.project_name))
-        else:
-            logging.debug(
-                "Package `{}` does not define any entry points.".format(
-                    dist.project_name))
+    # get list of all packages
+    packages = importlib.metadata.distributions()
+    packages.update(
+        pkg_resources.find_distributions(USER_PACKAGES_PATH)
+    )
+    # iterate through installed packages
+    for name in packages:
+        # get distribution
+        dist = importlib.metadata.distribution(name)
+        # map all entry points
+        for ep in dist.entry_points:
+            # skip entry points which don't target PsychoPy
+            if not ep.group.startswith("psychopy"):
+                continue
+            # make sure we have an entry for this distribution
+            if dist.name not in _installed_plugins_:
+                _installed_plugins_[dist.name] = {}
+            # make sure we have an entry for this group
+            if ep.group not in _installed_plugins_[dist.name]:
+                _installed_plugins_[dist.name][ep.group] = {}
+            # map entry point
+            _installed_plugins_[dist.name][ep.group][ep.name] = ep
     
     return len(_installed_plugins_)
 
@@ -754,26 +763,27 @@ def loadPlugin(plugin):
         # that the entry points are valid. This prevents plugins from being
         # partially loaded which can cause all sorts of undefined behaviour.
         for attr, ep in attrs.items():
+            module_name = ep.module.split(".")[0]
             # Load the module the entry point belongs to, this happens
             # anyways when .load() is called, but we get to access it before
             # we start binding. If the module has already been loaded, don't
             # do this again.
-            if ep.module_name not in sys.modules:
+            if module_name not in sys.modules:
                 # Do stuff before loading entry points here, any executable code
                 # in the module will run to configure it.
                 try:
-                    imp = importlib.import_module(ep.module_name)
+                    imp = importlib.import_module(module_name)
                 except (ModuleNotFoundError, ImportError):
                     importSuccess = False
                     logging.error(
                         "Plugin `{}` entry point requires module `{}`, but it "
-                        "cannot be imported.".format(plugin, ep.module_name))
+                        "cannot be imported.".format(plugin, module_name))
                 except:
                     importSuccess = False
                     logging.error(
                         "Plugin `{}` entry point requires module `{}`, but an "
                         "error occurred while loading it.".format(
-                            plugin, ep.module_name))
+                            plugin, module_name))
                 else:
                     importSuccess = True
 
@@ -835,7 +845,7 @@ def loadPlugin(plugin):
             # If we get here, the entry point is valid and we can safely add it
             # to PsychoPy's namespace.
             validEntryPoints[fqn].append((targObj, attr, ep))
-
+    print(validEntryPoints)
     # Assign entry points that have been successfully loaded. We defer
     # assignment until all entry points are deemed valid to prevent plugins
     # from being partially loaded.
