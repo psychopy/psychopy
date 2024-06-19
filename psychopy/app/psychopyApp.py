@@ -187,6 +187,7 @@ def main():
             # the case, we run this script again -- ensuring we're definitely using
             # pythonw.
             pyw_exe +='w'
+            env.update(PYTHONW='True')
 
         # construct the argument string for the `startApp` function
         startArgs = []
@@ -206,7 +207,7 @@ def main():
         try:
             psychopyProc = subprocess.Popen(
                 startCmd, 
-                env=dict(env, PYTHONW='True'))
+                env=env)
         except KeyboardInterrupt:
             print("PsychoPy: Application interrupted.")
             break
