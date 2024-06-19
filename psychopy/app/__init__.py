@@ -12,9 +12,8 @@ __all__ = [
     'startApp',
     'quitApp',
     'restartApp',
-    'setRestart',
-    'checkRestart',
-    'clearRestart',
+    'setRestartRequired',
+    'isRestartRequired',
     'getAppInstance',
     'getAppFrame',
     'isAppStarted']
@@ -27,6 +26,11 @@ from .frametracker import openFrames
 # Handle to the PsychoPy GUI application instance. We need to have this mainly
 # to allow the plugin system to access GUI to allow for changes after startup.
 _psychopyAppInstance = None
+
+# Flag to indicate if the app requires a restart. This is set by the app when
+# it needs to restart after an update or plugin installation. We can check this
+# flag to determine if the app is in a state that it is recommended to restart.
+REQUIRES_RESTART = False
 
 
 def startApp(showSplash=True, testMode=False, safeMode=False, startView=None):
@@ -187,84 +191,36 @@ def restartApp():
     quitApp()
 
 
-def setRestart():
-    """Set the restart flag.
+def setRestartRequired(state=True):
+    """Set the flag to indicate that the app requires a restart.
 
-    This can be used to enable or disable the restart flag without actually
-    restarting the app. This allows the user to manually close the app at a
-    later time.
-
-    This function will write a file named '.restart' to the user preferences
-    directory. The presence of this file will indicate to the launcher parent
-    process that the app should restart.
+    This function is used by the app to indicate that a restart is required
+    after an update or plugin installation. The flag is checked by the launcher
+    parent process to determine if the app should restart.
 
     Parameters
     ----------
-    enable : bool
-        Whether to enable the restart flag. If `False`, the function will remove
-        the restart file (if it exists). Default is `True`.
+    state : bool
+        Set the restart flag. If `True`, the app will restart after quitting.
+
+    """
+    global REQUIRES_RESTART
+    REQUIRES_RESTART = bool(state)
+
+
+def isRestartRequired():
+    """Check if the app requires a restart.
+
+    Parts of the application may set this flag to indicate that a restart is
+    required after an update or plugin installation.
 
     Returns
     -------
     bool
-        `True` if the restart flag was set else `False`. If the flag was already
-        set, the function will return `False`.
+        `True` if the app requires a restart else `False`.
 
     """
-    # check if the restart file is present
-    from psychopy.preferences import prefs
-    restartFilePath = os.path.join(prefs.paths['userPrefsDir'], '.restart')
-
-    if not os.path.exists(restartFilePath):
-        with open(restartFilePath, 'w') as restartFile:
-            restartFile.write('')
-        
-        return True
-    
-    return False
-        
-
-def checkRestart():
-    """Check if the app should restart.
-
-    This function will check for the presence of a file named '.restart' in the
-    user preferences directory. If the file is present, the function will return
-    `True` and remove the file. Otherwise, it will return `False`.
-
-    Returns
-    -------
-    bool
-        `True` if the app should restart else `False`.
-
-    """
-    from psychopy.preferences import prefs
-    restartFilePath = os.path.join(prefs.paths['userPrefsDir'], '.restart')
-
-    return os.path.exists(restartFilePath)
-
-
-def clearRestart():
-    """Clear the restart flag.
-
-    This function will remove the restart file from the user preferences
-    directory if it exists.
-
-    Returns
-    -------
-    bool
-        `True` if the restart flag was cleared else `False`. If the flag was
-        already cleared, the function will return `False`.
-
-    """
-    from psychopy.preferences import prefs
-    restartFilePath = os.path.join(prefs.paths['userPrefsDir'], '.restart')
-
-    if os.path.exists(restartFilePath):
-        os.remove(restartFilePath)
-
-        return True
-
-    return False
+    return REQUIRES_RESTART
 
 
 def getAppInstance():
