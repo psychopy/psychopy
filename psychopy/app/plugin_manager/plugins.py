@@ -1,4 +1,5 @@
 from pathlib import Path
+import shutil
 
 import wx
 from wx.lib import scrolledpanel
@@ -527,6 +528,14 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         )
         self.sizer.Add(self.errorCtrl, proportion=1, border=3, flag=wx.ALL | wx.EXPAND)
         self.errorCtrl.Hide()
+        # add button to uninstall all
+        self.uninstallAllBtn = wx.Button(self, label=_translate("Uninstall all plugins"))
+        self.uninstallAllBtn.SetBitmap(
+            icons.ButtonIcon("delete", 16).bitmap
+        )
+        self.uninstallAllBtn.SetBitmapMargins(6, 3)
+        self.uninstallAllBtn.Bind(wx.EVT_BUTTON, self.onUninstallAll)
+        self.sizer.Add(self.uninstallAllBtn, border=12, flag=wx.ALL | wx.CENTER)
 
         # Bind deselect
         self.Bind(wx.EVT_LEFT_DOWN, self.onDeselect)
@@ -607,6 +616,31 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
     def onClick(self, evt=None):
         self.SetFocusIgnoringChildren()
         self.viewer.info = None
+    
+    def onUninstallAll(self, evt=None):
+        """
+        Called when the "Uninstall all" button is clicked
+        """
+        # warn user that they'll delete the packages folder
+        dlg = wx.MessageDialog(
+            self,
+            message=_translate("This will uninstall all plugins an additional packages you have installed, are you sure you want to continue?"),
+            style=wx.ICON_WARNING | wx.YES | wx.NO
+        )
+        if dlg.ShowModal() != wx.ID_YES:
+            # cancel if they didn't explicitly say yes
+            return
+        # delete the packages folder
+        shutil.rmtree(prefs.paths['packages'])
+        # print success
+        dlg = wx.MessageDialog(
+            self,
+            message=_translate("All plugins and additional packages have been uninstalled. You will need to restart PsychoPy for this to take effect."),
+            style=wx.ICON_INFORMATION | wx.OK
+        )
+        dlg.ShowModal()
+        # close dialog
+        self.GetTopLevelParent().Close()
 
     def setSelection(self, item):
         """
