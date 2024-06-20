@@ -97,20 +97,48 @@ class EyetrackerRecordComponent(BaseComponent):
         inits = self.params
         buff.writeIndentedLines("# *%s* updates\n" % self.params['name'])
 
-        # test for whether we're just starting to record
-        # writes an if statement to determine whether to draw etc
-        indented = self.writeStartTestCode(buff)
-        buff.setIndentLevel(-indented, relative=True)
-
-        # test for stop (only if there was some setting for duration or stop)
-        org_val = self.params['stopVal'].val
-        if self.params['actionType'].val.find('Start Only') >= 0:
-            self.params['stopVal'].val = 0
-
-        indented = self.writeStopTestCode(buff)
-        buff.setIndentLevel(-indented, relative=True)
-
-        self.params['stopVal'].val = org_val
+        if "start" in self.params['actionType'].val.lower():
+            # if this Component can start recording, write start test code
+            indented = self.writeStartTestCode(buff)
+            # write code to start
+            code = (
+                "%(name)s.start()\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            # dedent
+            buff.setIndentLevel(-indented, relative=True)
+        else:
+            # if this Component can't start recording, make sure it reads as already started
+            code = (
+                "if %(name)s.status == NOT_STARTED:\n"
+                "    %(name)s.frameNStart = frameN  # exact frame index\n"
+                "    %(name)s.tStart = t  # local t and not account for scr refresh\n"
+                "    %(name)s.tStartRefresh = tThisFlipGlobal  # on global time\n"
+                "    win.timeOnFlip(%(name)s, 'tStartRefresh')  # time at next scr refresh\n"
+                "    %(name)s.status = STARTED\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+        
+        if "stop" in self.params['actionType'].val.lower():
+            # if this Component can stop recording, write stop test code
+            indented = self.writeStopTestCode(buff)
+            # write code to stop
+            code = (
+                "%(name)s.stop()\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            # dedent
+            buff.setIndentLevel(-indented, relative=True)
+        else:
+            # if this Component can't stop recording, mark as finished as soon as recording has started
+            code = (
+                "if %(name)s.status == STARTED:\n"
+                "    %(name)s.tStop = t  # not accounting for scr refresh\n"
+                "    %(name)s.tStopRefresh = tThisFlipGlobal  # on global time\n"
+                "    %(name)s.frameNStop = frameN  # exact frame index\n"
+                "    %(name)s.status = FINISHED\n"
+            )
+            buff.writeIndentedLines(code % self.params)
 
     def writeRoutineEndCode(self, buff):
         inits = self.params

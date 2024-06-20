@@ -29,18 +29,27 @@ if not importCtypesFailed:
     class _SchedParams(ctypes.Structure):
         _fields_ = [('sched_priority', ctypes.c_int)]
 
-warnMax = """Could not raise thread priority with sched_setscheduler.
+# Text that appears at the top of the dialog with provides instructions to the
+# user.
+_introStr = (
+    u"Could not set the thread priority with sched_setscheduler.\n"
+    u"For optimal performance on Linux, Psychtoolbox requires additional\n"
+    u"configuration changes to be made to this system by entering the\n"
+    u"following commands into your terminal:\n\n{cmdstr}"
+)
 
-To enable rush(), if you are using a debian-based Linux, try this:
-  'sudo setcap cap_sys_nice=eip %s'  [NB: install 'setcap' first.]
-If you are using the system's python (eg /usr/bin/python2.x), its highly
-recommended to change cap_sys_nice back to normal afterwards:
-  'sudo setcap cap_sys_nice= %s'"""
+# config file path
+_confPath = u"/etc/security/limits.d/99-psychopylimits.conf"
 
-warnNormal = ("Failed to set thread priority to normal with "
-              "sched_setscheduler.\n"
-              "Try:  'sudo setcap cap_sys_nice= %s'")
-
+# these are the commands we want the user to run in their terminal
+_cmdStr = (
+    u"sudo groupadd --force psychopy\n\n"
+    u"sudo usermod -a -G psychopy $USER\n\n"
+    u"sudo gedit {fpath}\n"
+    u"@psychopy - nice -20\n"
+    u"@psychopy - rtprio 50\n"
+    u"@psychopy - memlock unlimited")
+warnMax = _introStr.format(cmdstr=_cmdStr.format(fpath=_confPath))
 
 def rush(value=True, realtime=False):
     """Raise the priority of the current thread/process using
@@ -48,32 +57,21 @@ def rush(value=True, realtime=False):
 
     realtime arg is not used in Linux implementation.
 
-    NB for rush() to work on (debian-based?) Linux requires that the
-    script is run using a copy of python that is allowed to change
-    priority, eg: sudo setcap cap_sys_nice=eip <sys.executable>,
-    and maybe restart PsychoPy. If <sys.executable> is the system python,
-    it's important to restore it back to normal to avoid possible
-    side-effects. Alternatively, use a different python executable,
-    and change its cap_sys_nice.
+    NB for rush() to work on Linux requires that the script is run by
+    a user with sufficient permissions to raise the priority of a process.
+    In PsychoPy, we suggest adding the user to a group with these permissions.
 
-    For RedHat-based systems, 'sudo chrt ...' at run-time might be
-    needed instead, not sure.
-    see http://rt.et.redhat.com/wiki/images/8/8e/Rtprio.pdf
+    If this function returns `False`, see the log for instructions on how
+    to set up such a group.
     """
     if importCtypesFailed:
         return False
 
-    if value:  # set to RR with max priority
-        schedParams = _SchedParams()
-        schedParams.sched_priority = c.sched_get_priority_max(SCHED_RR)
-        err = c.sched_setscheduler(0, SCHED_RR, ctypes.byref(schedParams))
-        if err == -1:  # returns 0 if OK
-            logging.warning(warnMax % (sys.executable, sys.executable))
-    else:  # set to RR with normal priority
-        schedParams = _SchedParams()
-        schedParams.sched_priority = c.sched_get_priority_min(SCHED_NORMAL)
-        err = c.sched_setscheduler(0, SCHED_NORMAL, ctypes.byref(schedParams))
-        if err == -1:  # returns 0 if OK
-            logging.warning(warnNormal % sys.executable)
+    schedParams = _SchedParams()
+    sched = SCHED_RR if value else SCHED_NORMAL
+    schedParams.sched_priority = c.sched_get_priority_min(sched)
+    err = c.sched_setscheduler(0, sched, ctypes.byref(schedParams))
+    if err == -1:
+        logging.warning(warnMax)
 
-    return True
+    return not err

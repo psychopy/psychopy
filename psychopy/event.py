@@ -33,6 +33,8 @@ except ImportError:
     havePyglet = False
 try:
     import glfw
+    if not glfw.init():
+        raise ImportError
     haveGLFW = True
 except ImportError:
     haveGLFW = False
@@ -51,15 +53,6 @@ if haveGLFW:
     useGLFW = True
 else:
     useGLFW = False
-
-
-if havePyglet:
-    # get the default display
-    if pyglet.version < '1.4':
-        _default_display_ = pyglet.window.get_platform().get_default_display()
-    else:
-        _default_display_ = pyglet.canvas.get_display()
-
 
 import psychopy.core
 from psychopy.tools.monitorunittools import cm2pix, deg2pix, pix2cm, pix2deg
@@ -407,11 +400,14 @@ def getKeys(keyList=None, modifiers=False, timeStamped=False):
         for evts in evt.get(locals.KEYDOWN):
             # pygame has no keytimes
             keys.append((pygame.key.name(evts.key), 0))
-    elif havePyglet:
+
+    global _keyBuffer
+
+    if havePyglet:
         # for each (pyglet) window, dispatch its events before checking event
         # buffer
         windowSystem = 'pyglet'
-        for win in _default_display_.get_windows():
+        for win in pyglet.app.windows:
             try:
                 win.dispatch_events()  # pump events on pyglet windows
             except ValueError as e:  # pragma: no cover
@@ -420,16 +416,14 @@ def getKeys(keyList=None, modifiers=False, timeStamped=False):
                 # specific to certain systems and versions of Python.
                 logging.error(u'Failed to handle keypress')
 
-        global _keyBuffer
         if len(_keyBuffer) > 0:
             # then pyglet is running - just use this
             keys = _keyBuffer
             # _keyBuffer = []  # DO /NOT/ CLEAR THE KEY BUFFER ENTIRELY
 
-    elif haveGLFW:
+    if haveGLFW:
         windowSystem = 'glfw'
-        # 'poll_events' is called when a window is flipped, all the callbacks
-        # populate the buffer
+        glfw.poll_events()
         if len(_keyBuffer) > 0:
             keys = _keyBuffer
 
@@ -530,11 +524,6 @@ def waitKeys(maxWait=float('inf'), keyList=None, modifiers=False,
     got_keypress = False
 
     while not got_keypress and timer.getTime() < maxWait:
-        # Pump events on pyglet windows if they exist.
-        if havePyglet:
-            for win in _default_display_.get_windows():
-                win.dispatch_events()
-
         # Get keypresses and return if anything is pressed.
         keys = getKeys(keyList=keyList, modifiers=modifiers,
                        timeStamped=timeStamped)
@@ -888,12 +877,14 @@ class Mouse:
         if usePygame:
             return mouse.get_pressed()
         else:
-            # False:  # havePyglet: # like in getKeys - pump the events
             # for each (pyglet) window, dispatch its events before checking
             # event buffer
+            if havePyglet:
+                for win in pyglet.app.windows:
+                    win.dispatch_events()  # pump events on pyglet windows
 
-            for win in _default_display_.get_windows():
-                win.dispatch_events()  # pump events on pyglet windows
+            if haveGLFW:
+                glfw.poll_events()
 
             # else:
             if not getTime:
@@ -997,8 +988,12 @@ def clearEvents(eventType=None):
     if not havePygame or not display.get_init():  # pyglet
         # For each window, dispatch its events before
         # checking event buffer.
-        for win in _default_display_.get_windows():
-            win.dispatch_events()  # pump events on pyglet windows
+        if havePyglet:
+            for win in pyglet.app.windows:
+                win.dispatch_events()  # pump events on pyglet windows
+
+        if haveGLFW:
+            glfw.poll_events()
 
         if eventType == 'mouse':
             pass
@@ -1224,6 +1219,11 @@ def _onGLFWKey(*args, **kwargs):
 
     # TODO - support for key emulation
     win_ptr, key, scancode, action, modifiers = args
+
+    # only send events for PRESS and REPEAT to match pyglet behavior
+    if action == glfw.RELEASE:
+        return
+
     global useText
     
     if key == glfw.KEY_UNKNOWN:

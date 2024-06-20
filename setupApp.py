@@ -8,7 +8,7 @@ import sys
 from sys import platform
 import setuptools  # noqa: setuptools complains if it isn't implicitly imported before distutils
 from distutils.core import setup
-from pkg_resources import parse_version
+from packaging.version import Version
 import bdist_mpkg  # noqa: needed to build bdist, even though not explicitly used here
 import py2app  # noqa: needed to build app bundle, even though not explicitly used here
 from ctypes.util import find_library
@@ -50,7 +50,7 @@ frameworks.extend(opencvLibs)
 import macholib
 #print("~"*60 + "macholib version: "+macholib.__version__)
 
-if parse_version(macholib.__version__) <= parse_version('1.7'):
+if Version(macholib.__version__) <= Version('1.7'):
     print("Applying macholib patch...")
     import macholib.dyld
     import macholib.MachOGraph

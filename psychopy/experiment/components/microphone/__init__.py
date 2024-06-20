@@ -110,6 +110,15 @@ class MicrophoneComponent(BaseDeviceComponent):
                 "local experiments - online experiments ask the participant which mic to use."
             )
         )
+        # grey out device settings when device is default
+        for depParam in ("channels", "sampleRate"):
+            self.depends.append({
+                "dependsOn": "device",  # if...
+                "condition": "== 'None'",  # is...
+                "param": depParam,  # then...
+                "true": "hide",  # should...
+                "false": "show",  # otherwise...
+            })
         if stereo is not None:
             # If using a legacy mic component, work out channels from old bool value of stereo
             channels = ['mono', 'stereo'][stereo]
@@ -291,9 +300,14 @@ class MicrophoneComponent(BaseDeviceComponent):
             "    deviceClass='psychopy.hardware.microphone.MicrophoneDevice',\n"
             "    deviceName=%(deviceLabel)s,\n"
             "    index=%(device)s,\n"
+            "    maxRecordingSize=%(maxSize)s\n"
+        )
+        if self.params['device'].val not in ("None", "", None):
+            code += (
             "    channels=%(channels)s, \n"
             "    sampleRateHz=%(sampleRate)s, \n"
-            "    maxRecordingSize=%(maxSize)s\n"
+            )
+        code += (
             ")\n"
         )
         buff.writeOnceIndentedLines(code % inits)
@@ -520,25 +534,17 @@ class MicrophoneComponent(BaseDeviceComponent):
             )
             buff.writeIndentedLines(code % inits)
         if inits['speakTimes'] and inits['transcribeBackend'].val == "whisper":
+
             code = (
                 "# save transcription data\n"
                 "with open(os.path.join(%(name)sRecFolder, 'recording_%(name)s_%%s.json' %% tag), 'w') as fp:\n"
                 "    fp.write(%(name)sScript.response)\n"
                 "# save speaking start/stop times\n"
-                "%(name)sWordData = []\n"
-                "%(name)sSegments = %(name)s.lastScript.responseData.get('segments', {})\n"
-                "for thisSegment in %(name)sSegments.values():\n"
-                "    # for each segment...\n"
-                "    for thisWord in thisSegment.get('words', {}).values():\n"
-                "        # append word data\n"
-                "        %(name)sWordData.append(thisWord)\n"
-                "# if there were any words, store the start of first & end of last \n"
-                "if len(%(name)sWordData):\n"
-                "    thisExp.addData('%(name)s.speechStart', %(name)sWordData[0]['start'])\n"
-                "    thisExp.addData('%(name)s.speechEnd', %(name)sWordData[-1]['end'])\n"
-                "else:\n"
-                "    thisExp.addData('%(name)s.speechStart', '')\n"
-                "    thisExp.addData('%(name)s.speechEnd', '')\n"
+                "%(name)sSpeechInterval = %(name)s.lastScript.getSpeechInterval()\n"
+                "%(name)sSpeechOnset = %(name)sSpeechInterval[0]\n"
+                "%(name)sSpeechOffset = %(name)sSpeechInterval[1]\n"
+                "thisExp.addData('%(name)s.speechStart', %(name)sSpeechOnset)\n"
+                "thisExp.addData('%(name)s.speechEnd', %(name)sSpeechOffset)\n"
             )
             buff.writeIndentedLines(code % inits)
         # Write base end routine code

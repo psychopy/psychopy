@@ -79,6 +79,9 @@ def run(rootScriptPathDir, configFilePath):
         else:
             gevent.joinall(glets)
 
+        # Wait for the server to be ready to shutdown
+        gevent.wait()
+
         lrtime = Computer.global_clock.getLastResetTime()
         s.log('Server END Time Offset: {0}'.format(lrtime), 'DEBUG')
         return True

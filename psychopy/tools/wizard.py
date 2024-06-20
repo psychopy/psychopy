@@ -17,9 +17,9 @@ import wx
 import numpy as np
 import platform
 import codecs
-from pkg_resources import parse_version
+from packaging.version import Version
 
-if parse_version(wx.__version__) < parse_version('2.9'):
+if Version(wx.__version__) < Version('2.9'):
     tmpApp = wx.PySimpleApp()
 else:
     tmpApp = wx.App(False)
@@ -88,7 +88,7 @@ class BaseWizard():
             'prefs.html#application-settings-app">Preferences -> App</a>')
         report.append(('locale', items['systemLocale'], msg, False))
         msg = ''
-        v = parse_version
+        v = Version
         thisV = v(items['pythonVersion'])
         if (thisV < v('2.7') or (v('3.0') <= thisV < v('3.6'))
             ):
