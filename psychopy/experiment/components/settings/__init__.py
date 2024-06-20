@@ -119,6 +119,7 @@ class SettingsComponent:
             plCompanionAddress="neon.local",
             plCompanionPort=8080,
             plCompanionRecordingEnabled=True,
+            ecSampleRate='default',
             keyboardBackend="ioHub",
             filename=None, exportHTML='on Sync', endMessage=''
     ):
@@ -541,6 +542,7 @@ class SettingsComponent:
                            "plPupilRemoteAddress", "plPupilRemotePort", "plPupilRemoteTimeoutMs",
                            "plPupilCaptureRecordingEnabled", "plPupilCaptureRecordingLocation"],
             "Pupil Labs (Neon)": ["plCompanionAddress", "plCompanionPort", "plCompanionRecordingEnabled"],
+            "EyeLogic": ["ecSampleRate"],
         }
         for tracker in trackerParams:
             for depParam in trackerParams[tracker]:
@@ -755,6 +757,13 @@ class SettingsComponent:
             plCompanionRecordingEnabled, valType='bool', inputType="bool",
             hint=_translate("Recording enabled"),
             label=_translate("Recording enabled"), categ="Eyetracking"
+        )
+
+        # EyeLogic
+        self.params['ecSampleRate'] = Param(
+            ecSampleRate, valType='str', inputType="single",
+            hint=_translate("Eyetracker sampling rate: 'default' or <integer>[Hz]. Defaults to tracking mode '0'."),
+            label=_translate("Sampling rate"), categ="Eyetracking"
         )
 
         # Input
@@ -1640,6 +1649,22 @@ class SettingsComponent:
                 buff.writeIndentedLines(code % inits)
 
                 # Close runtime_settings dict
+                buff.setIndentLevel(-1, relative=True)
+                code = (
+                    "}\n"
+                )
+                buff.writeIndentedLines(code % inits)
+
+            elif self.params['eyetracker'] == "EyeLogic":
+                code = (
+                    "'runtime_settings': {\n"
+                )
+                buff.writeIndentedLines(code % inits)
+                buff.setIndentLevel(1, relative=True)
+                code = (
+                    "'sampling_rate': %(ecSampleRate)s,\n"
+                )
+                buff.writeIndentedLines(code % inits)
                 buff.setIndentLevel(-1, relative=True)
                 code = (
                     "}\n"
