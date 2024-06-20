@@ -212,11 +212,6 @@ class AppSigner:
                   f'--apple-id "{self._apple_id}" '
                   f'--team-id "{self._team_id}" '
                   f'--password "{self._pword}"')
-        cmdStrTest = (f'xcrun notarytool submit {fileToNotarize} '
-                  f'--apple-id "{self._apple_id[:3]}...{self._apple_id[-3:]}" '
-                  f'--team-id {self._team_id[:3]}...{self._team_id[-3:]} '
-                  f'--password {self._pword[:3]}...{self._pword[-3:]}')
-        print(cmdStrTest)
         # cmdStr = (f"xcrun altool --notarize-app -t osx -f {fileToNotarize} "
         #           f"--primary-bundle-id {BUNDLE_ID} -u {USERNAME} ")
         # print(cmdStr)
