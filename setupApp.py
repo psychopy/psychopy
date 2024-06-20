@@ -115,6 +115,7 @@ packages = ['pydoc',  # needed for help()
             'markdown_it',
             'zeroconf', 'ifaddr',  # for pupillabs plugin (fail to build)
             'websocket', # dependency for emotiv that doesn't install nicely from plugins
+            'google','googleapiclient', # in transcribe
             ]
 
 # Add packages that older PsychoPy (<=2023.1.x) shipped, for useVersion() compatibility
@@ -124,7 +125,6 @@ if sys.version_info < (3, 9):
         [
             'moviepy', 
             'OpenGL', 'glfw',
-            'googleapiclient',
             'badapted', #'darc_toolbox',  # adaptive methods from Ben Vincent
             'egi_pynetstation', 'pylink', 'tobiiresearch',
             'pyxid2', 'ftd2xx',  # ftd2xx is used by cedrus
@@ -180,14 +180,15 @@ setup(
     options=dict(py2app=dict(
             includes=includes,
             packages=packages,
-            excludes=['bsddb', 'jinja2', 'IPython','ipython_genutils','nbconvert',
+            excludes=['torch',
+                      'bsddb', 'jinja2', 'IPython','ipython_genutils','nbconvert',
                       'tkinter', 'Tkinter', 'tcl',
                       'libsz.2.dylib', 'pygame',
                       # 'stringprep',
                       'functools32',
                       'sympy',
                       '/usr/lib/libffi.dylib',
-                      'libwebp.7.dylib'
+                      'libwebp.7.dylib',
                       ],  # anything we need to forcibly exclude?
             resources=resources,
             argv_emulation=False,  # must be False or app bundle pauses (py2app 0.21 and 0.24 tested)
