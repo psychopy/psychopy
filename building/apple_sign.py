@@ -401,7 +401,7 @@ def main():
     args.runDmgBuild = args.runDmgBuild.lower() in ['true', 'True', '1', 'y', 'yes']
     args.runPostDmgBuild = args.runPostDmgBuild.lower() in ['true', 'True', '1', 'y', 'yes']
 
-    if args.skipNotarize:
+    if args.skipNotarize in ['true', 'True', '1', 'y', 'yes']:
         NOTARIZE = False
     else:
         NOTARIZE = True
