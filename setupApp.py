@@ -6,7 +6,7 @@ import glob
 import os
 import sys
 from sys import platform
-import setuptools  # noqa: setuptools complains if it isn't implicitly imported before distutils
+import setuptools  # noqa: setuptools complains if it isn't explicitly imported before distutils
 from distutils.core import setup
 from packaging.version import Version
 import bdist_mpkg  # noqa: needed to build bdist, even though not explicitly used here
@@ -115,7 +115,6 @@ packages = ['pydoc',  # needed for help()
             'markdown_it',
             'zeroconf', 'ifaddr',  # for pupillabs plugin (fail to build)
             'websocket', # dependency for emotiv that doesn't install nicely from plugins
-            'google','googleapiclient', # in transcribe
             ]
 
 # Add packages that older PsychoPy (<=2023.1.x) shipped, for useVersion() compatibility
@@ -131,6 +130,7 @@ if sys.version_info < (3, 9):
             'Phidget22',
             'hid',
             'macropy',
+            'googleapiclient', # in transcribe
         ]
     )
     packages.append('PyQt5')
