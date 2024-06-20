@@ -24,7 +24,8 @@ __all__ = [
 ]
 
 from pathlib import Path
-
+import shutil
+import tempfile
 import numpy as np
 import soundfile as sf
 from psychopy import prefs
@@ -404,6 +405,112 @@ class AudioClip:
         return AudioClip(samples, sampleRateHz=sampleRateHz)
 
     # --------------------------------------------------------------------------
+    # Speech synthesis methods
+    #
+    # These static methods are used to generate audio samples from text using
+    # text-to-speech (TTS) engines.
+    #
+
+    @staticmethod
+    def synthesizeSpeech(text, engine='gtts', synthConfig=None, outFile=None):
+        """Synthesize speech from text using a text-to-speech (TTS) engine.
+
+        This method is used to generate audio samples from text using a
+        text-to-speech (TTS) engine. The synthesized speech can be used for
+        various purposes, such as generating audio cues for experiments or
+        creating audio instructions for participants. 
+
+        This method returns an `AudioClip` object containing the synthesized
+        speech. The quality and format of the retured audio may vary depending 
+        on the TTS engine used.
+
+        Please note that online TTS engines may require an active internet
+        connection to work. This also may send the text to a remote server for
+        processing, so be mindful of privacy concerns.
+
+        Parameters
+        ----------
+        text : str
+            Text to synthesize.
+        engine : str
+            TTS engine to use for speech synthesis. Default is 'gtts'.
+        synthConfig : dict or None
+            Additional configuration options for the specified engine. These
+            are specified using a dictionary (ex. 
+            `synthConfig={'slow': False}`).
+        outFile : str or None
+            File name to save the synthesized speech to. This can be used to 
+            save the audio to a file for later use. If `None`, the audio clip 
+            will be returned in memory. If you plan on using the same audio 
+            clip multiple times, it is recommended to save it to a file and load
+            it later.
+
+        Returns
+        -------
+        AudioClip
+            Audio clip containing the synthesized speech.
+
+        """
+        if engine not in ['gtts']:
+            raise ValueError('Unsupported TTS engine specified.')
+
+        synthConfig = {} if synthConfig is None else synthConfig
+
+        if engine == 'gtts':  # google's text-to-speech engine
+            logging.info('Using Google Text-to-Speech (gTTS) engine.')
+
+            try:
+                import gtts
+            except ImportError:
+                raise ImportError(
+                    'The gTTS package is required for speech synthesis.')
+
+            # inform the user that the timeout is infinite
+            timeout = synthConfig.get('timeout', None)
+            if timeout is None:
+                logging.warning(
+                    'The gTTS speech-to-text engine has been configured with '
+                    'an infinite timeout. The application may stall if the '
+                    'server is unresponsive. To set a timeout, specify the '
+                    '`timeout` key in `synthConfig`.')
+            if 'timeout' in synthConfig: # remove the key so we don't pass it
+                del synthConfig['timeout']
+            
+            # check if the language is supported
+            language = synthConfig.get('lang', 'en')
+            if language not in gtts.lang.tts_langs():
+                raise ValueError('Unsupported language code specified.')
+            if 'lang' in synthConfig:
+                del synthConfig['lang']
+
+            try:
+                handle = gtts.gTTS(
+                    text=text, 
+                    tld=synthConfig.get('tld', 'us'), 
+                    lang=language, 
+                    timeout=timeout,
+                    **synthConfig)
+            except gtts.gTTSError as e:
+                raise AudioSynthesisError(
+                    'Error occurred during speech synthesis: {}'.format(e))
+
+            # this is online and needs a download, so we'll save it to a file
+            with tempfile.TemporaryDirectory() as tmpdir:
+                # always returns an MP3 file
+                tmpfile = str(Path(tmpdir) / 'psychopy_tts_output.mp3')
+                handle.save(tmpfile)
+
+                # load audio clip samples to memory
+                toReturn = AudioClip.load(tmpfile)
+
+                # copy the file if we want to save it
+                import shutil
+                if outFile is not None:
+                    shutil.copy(tmpfile, outFile)
+                    
+        return toReturn
+
+    # --------------------------------------------------------------------------
     # Audio editing methods
     #
     # Methods related to basic editing of audio samples (operations such as
@@ -719,6 +826,34 @@ class AudioClip:
         self._samples = samplesMixed  # overwrite
 
         return self
+    
+    def asStereo(self, copy=True):
+        """Convert the audio clip to stereo (two channel audio).
+
+        Parameters
+        ----------
+        copy : bool
+            If `True` an :class:`~psychopy.sound.AudioClip` containing a copy
+            of the samples will be returned. If `False`, channels will be
+            mixed inplace resulting in the same object being returned. User data
+            is not copied.
+
+        Returns
+        -------
+        :class:`~psychopy.sound.AudioClip`
+            Stereo version of this object.
+
+        """
+        if self.channels == 2:
+            return self
+
+        samples = np.atleast_2d(self._samples)  # enforce 2D
+        samples = np.hstack((samples, samples))
+
+        if copy:
+            return AudioClip(samples, self.sampleRateHz)
+
+        self._samples = samples  # overwrite
 
     def transcribe(self, engine='whisper', language='en-US', expectedWords=None,
                    config=None):
