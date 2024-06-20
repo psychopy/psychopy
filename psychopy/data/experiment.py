@@ -506,6 +506,21 @@ class ExperimentHandler(_ComparisonMixin):
             return [None], 0
         # get all trials from current loop
         return self.currentLoop.getAllTrials()
+
+    def getCurrentTrial(self):
+        """
+        Returns the current trial (`.thisTrial`)
+
+        Returns
+        -------
+        Trial
+            The current trial
+        """
+        # return None if there isn't a TrialHandler2 active
+        if not isinstance(self.currentLoop, TrialHandler2):
+            return None
+        
+        return self.currentLoop.getCurrentTrial()
     
     def getFutureTrial(self, n=1):
         """

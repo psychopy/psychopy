@@ -1263,6 +1263,17 @@ class TrialHandler2(_BaseTrialHandler):
         # prepend rewound trials to upcoming array
         self.upcomingTrials = rewound + self.upcomingTrials
     
+    def getCurrentTrial(self):
+        """
+        Returns the current trial (`.thisTrial`)
+
+        Returns
+        -------
+        Trial
+            The current trial
+        """
+        return self.thisTrial
+    
     def getAllTrials(self):
         """
         Returns all trials (elapsed, current and upcoming) with an index indicating which trial is 
