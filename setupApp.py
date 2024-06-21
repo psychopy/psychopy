@@ -106,7 +106,7 @@ packages = ['pydoc',  # needed for help()
             # handy science tools
             'tables',  # 'cython',
             # these aren't needed, but liked
-            'pylsl', 'pygaze',
+            'pylsl',
             #'smite',  # https://github.com/marcus-nystrom/SMITE (not pypi!)
             'cv2',
             'questplus',
