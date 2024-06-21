@@ -300,7 +300,7 @@ class MicrophoneComponent(BaseDeviceComponent):
             "    deviceClass='psychopy.hardware.microphone.MicrophoneDevice',\n"
             "    deviceName=%(deviceLabel)s,\n"
             "    index=%(device)s,\n"
-            "    maxRecordingSize=%(maxSize)s\n"
+            "    maxRecordingSize=%(maxSize)s,\n"
         )
         if self.params['device'].val not in ("None", "", None):
             code += (
