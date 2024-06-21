@@ -15,7 +15,7 @@ from psychopy.app.themes import icons
 from . import dialogs
 from psychopy import localization, prefs
 from psychopy.localization import _translate
-from pkg_resources import parse_version
+from packaging.version import Version
 from psychopy import sound
 from psychopy.app.utils import getSystemFonts
 import collections
@@ -781,7 +781,7 @@ class PreferencesDlg(wx.Dialog):
 
 if __name__ == '__main__':
     from psychopy import preferences
-    if parse_version(wx.__version__) < parse_version('2.9'):
+    if Version(wx.__version__) < Version('2.9'):
         app = wx.PySimpleApp()
     else:
         app = wx.App(False)

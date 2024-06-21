@@ -22,7 +22,7 @@ import xml.etree.ElementTree as xml
 from xml.dom import minidom
 from copy import deepcopy, copy
 from pathlib import Path
-from pkg_resources import parse_version
+from packaging.version import Version
 
 import psychopy
 from psychopy import data, __version__, logging
@@ -469,13 +469,13 @@ class Experiment:
         # copy self
         exp = deepcopy(self)
         # parse version
-        targetVersion = parse_version(targetVersion)
+        targetVersion = Version(targetVersion)
         # change experiment version
         exp.psychopyVersion = targetVersion
         # iterate through Routines
         for rtName, rt in copy(exp.routines).items():
             # if Routine was added after the target version, remove it
-            if hasattr(type(rt), "version") and parse_version(rt.version) > targetVersion:
+            if hasattr(type(rt), "version") and Version(rt.version) > targetVersion:
                 exp.routines.pop(rtName)
             # if Routine is a standalone, we're done
             if isinstance(rt, BaseStandaloneRoutine):
@@ -483,7 +483,7 @@ class Experiment:
             # iterate through Components
             for comp in copy(rt):
                 # if Component was added after target version, remove it
-                if hasattr(type(comp), "version") and parse_version(comp.version) > targetVersion:
+                if hasattr(type(comp), "version") and Version(comp.version) > targetVersion:
                     i = rt.index(comp)
                     rt.pop(i)
 
@@ -789,10 +789,10 @@ class Experiment:
             return
         self.psychopyVersion = root.get('version')
         # If running an experiment from a future version, send alert to change "Use Version"
-        if parse_version(psychopy.__version__) < parse_version(self.psychopyVersion):
+        if Version(psychopy.__version__) < Version(self.psychopyVersion):
             alert(code=4051, strFields={'version': self.psychopyVersion})
         # If versions are either side of 2021, send alert
-        if parse_version(psychopy.__version__) >= parse_version("2021.1.0") > parse_version(self.psychopyVersion):
+        if Version(psychopy.__version__) >= Version("2021.1.0") > Version(self.psychopyVersion):
             alert(code=4052, strFields={'version': self.psychopyVersion})
 
         # Parse document nodes

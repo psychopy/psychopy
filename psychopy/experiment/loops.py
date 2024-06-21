@@ -231,19 +231,6 @@ class TrialHandler(_BaseLoopHandler):
                 "    # if running in a Session with a Liaison client, send data up to now\n"
                 "    thisSession.sendExperimentData()\n"
             )
-
-        # handle pausing
-        code = (
-            "# pause experiment here if requested\n"
-            "if thisExp.status == PAUSED:\n"
-            "    pauseExperiment(\n"
-            "        thisExp=thisExp, \n"
-            "        win=win, \n"
-            "        timers=[routineTimer], \n"
-            "        playbackComponents=[]\n"
-            ")\n"
-        )
-        buff.writeIndentedLines(code)
         # unclutter the namespace
         if not self.exp.prefsBuilder['unclutteredNamespace']:
             code = ("# abbreviate parameter names if possible (e.g. rgb = %(name)s.rgb)\n"

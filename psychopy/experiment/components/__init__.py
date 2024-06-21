@@ -392,6 +392,12 @@ def getInitVals(params, target="PsychoPy"):
         elif name == 'shape':
             inits[name].val = 'triangle'
             inits[name].valType = 'str'
+        elif name in ('movie', 'latitude', 'longitude', 'elevation', 'azimuth', 'speechPoint'):
+            inits[name].val = 'None'
+            inits[name].valType = 'code'
+        elif name == 'allowedKeys':
+            inits[name].val = "[]"
+            inits[name].valType = 'code'
         else:
             # if not explicitly handled, default to None
             inits[name].val = "None"

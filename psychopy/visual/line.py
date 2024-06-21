@@ -128,8 +128,8 @@ class Line(ShapeStim):
 
     def __init__(self,
                  win,
-                 start=None,
-                 end=None,
+                 start=(-.5, -.5),
+                 end=(.5, .5),
                  units=None,
                  lineWidth=1.5,
                  lineColor=False,
@@ -162,6 +162,9 @@ class Line(ShapeStim):
         self._initParams = dir()
         self._initParams.remove('self')
 
+        self.__dict__['start'] = numpy.array(start)
+        self.__dict__['end'] = numpy.array(end)
+
         super(Line, self).__init__(
             win,
             units=units,
@@ -170,7 +173,7 @@ class Line(ShapeStim):
             lineColorSpace=None,
             fillColor=None,
             fillColorSpace=lineColorSpace,  # have these set to the same
-            vertices=[[-0.5, -0.5], [0.5, 0.5]],
+            vertices=(start, end),
             anchor=anchor,
             closeShape=False,
             pos=pos,
@@ -189,9 +192,7 @@ class Line(ShapeStim):
             color=color,
             colorSpace=colorSpace)
 
-        self.start = start
-        self.end = end
-        self._updateVertices()
+        del self._tesselVertices
 
     @property
     def color(self):
@@ -208,21 +209,8 @@ class Line(ShapeStim):
         Specifies the position of the start of the line.
         :ref:`Operations <attrib-operations>` supported.
         """
-        # do nothing if setting to None
-        if start is None:
-            return
-
         self.__dict__['start'] = numpy.array(start)
-        # get positions of corners
-        currentStart, currentEnd = self._vertices.getas(self.units)
-        # get vector from current stop to desired start
-        vector = currentEnd - start
-        # set pos, size and anchor to keep stop point constant but change start
-        self.anchor = "top right"
-        self.pos = currentEnd
-        self.size = vector
-
-        self._needVertexUpdate = True
+        self.setVertices([self.start, self.end], log=False)
 
     def setStart(self, start, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
@@ -236,35 +224,14 @@ class Line(ShapeStim):
 
         Specifies the position of the end of the line.
         :ref:`Operations <attrib-operations>` supported."""
-        # do nothing if setting to None
-        if end is None:
-            return
-        
         self.__dict__['end'] = numpy.array(end)
-        # get positions of corners
-        currentStart, currentEnd = self._vertices.getas(self.units)
-        # get vector from current start to desired stop
-        vector = end - currentStart
-        # set pos, size and anchor to keep start point constant but change stop
-        self.anchor = "bottom left"
-        self.pos = currentStart
-        self.size = vector
-
-        self._needVertexUpdate = True
+        self.setVertices([self.start, self.end], log=False)
 
     def setEnd(self, end, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message.
         """
         setAttribute(self, 'end', end, log)
-    
-    def _updateVertices(self):
-        ShapeStim._updateVertices(self)
-        # use adjusted size to avoid division by zero
-        nonZeroSize = self._size.pix.copy()
-        nonZeroSize[nonZeroSize == 0] = 1
-        # rotate start/end as needed
-        self.__dict__['start'], self.__dict__['end'] = (self._vertices.getas(self.units) * self._size.pix).dot(self._rotationMatrix) / nonZeroSize
 
     def contains(self, *args, **kwargs):
         return False

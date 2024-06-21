@@ -245,6 +245,43 @@ class TestTrialHandler2:
         t_loaded = fromFile(path)
         assert t == t_loaded
     
+    def test_getAllTrials(self):
+        """
+        Check that TrialHandler2.getAllTrials returns as expected
+        """
+        # make a trial handler
+        t = data.TrialHandler2(
+            self.conditions, 
+            nReps=2,
+            method="sequential"
+        )
+        # check that calling now (before upcoming trials are calculated) doesn't break anything
+        trials, i = t.getAllTrials()
+        assert trials == [None]
+        assert i == 0
+        # move on to the first trial, triggering upcoming trials to be calculated
+        t.__next__()
+        # get an exemplar array of what trials should look like
+        exemplar, _ = t.getAllTrials()
+        # define array of cases to try
+        cases = [
+            {'advance': 2, 'i': 2},
+            {'advance': 1, 'i': 3},
+            {'advance': -2, 'i': 1},
+        ]
+        # try cases
+        for case in cases:
+            # move forwards/backwards according to case values
+            if case['advance'] >= 0:
+                t.skipTrials(case['advance'])
+            else:
+                t.rewindTrials(case['advance'])
+            # get trials
+            trials, i = t.getAllTrials()
+            # make sure array is unchanged and i is as we expect
+            assert trials == exemplar
+            assert i == case['i']
+    
     def test_getFutureTrials(self):
         """
         Check that TrialHandler2 can return future trials correctly.

@@ -70,7 +70,8 @@ class AppSigner:
         files.extend(self.appFile.glob('**/imageio_ffmpeg/binaries/*'))
         files.extend(self.appFile.glob('**/resources/ffmpeg/ffmpeg-osx*'))
         # PyQt
-        files.extend(self.appFile.glob('**/Versions/5/Qt*'))
+        files.extend(self.appFile.glob('**/Versions/5/Qt*'))  # PyQt5
+        files.extend(self.appFile.glob('**/Versions/A/Qt*'))  # PyQt6
         files.extend(self.appFile.glob('**/Contents/MacOS/QtWebEngineProcess'))
         files.extend(self.appFile.glob('**/Resources/lib/python3.8/lib-dynload/*.so'))
         files.extend(self.appFile.glob('**/Frameworks/Python.framework/Versions/3.6/Python'))
@@ -260,15 +261,15 @@ class AppSigner:
         # can use 'xcrun notarytool info' to check status or 'xcrun notarytool wait'
         exitcode, output = subprocess.getstatusoutput(f'xcrun notarytool wait {self._appNotarizeUUID} '
                   f'--apple-id "{self._apple_id}" '
-                  f'--team-id "{self._team_id}" '
-                  f'--password "{self._pword}"')
+                  f'--team-id {self._team_id} '
+                  f'--password {self._pword}')
         print(output)
         # always fetch the log file too
         exitcode, output = subprocess.getstatusoutput(f'xcrun notarytool log {self._appNotarizeUUID} '
                   f'--apple-id "{self._apple_id}" '
-                  f'--team-id "{self._team_id}" '
-                  f'--password "{self._pword}" '
-                  f' developer_log.json')
+                  f'--team-id {self._team_id} '
+                  f'--password {self._pword} '
+                  f'_notarization.json')
         print(output)
 
     def staple(self, filepath):
@@ -395,7 +396,7 @@ def main():
     args.runDmgBuild = args.runDmgBuild.lower() in ['true', 'True', '1', 'y', 'yes']
     args.runPostDmgBuild = args.runPostDmgBuild.lower() in ['true', 'True', '1', 'y', 'yes']
 
-    if args.skipNotarize:
+    if args.skipNotarize in ['true', 'True', '1', 'y', 'yes']:
         NOTARIZE = False
     else:
         NOTARIZE = True

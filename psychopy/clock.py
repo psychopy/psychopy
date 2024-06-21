@@ -23,7 +23,7 @@ import time
 import sys
 from datetime import datetime
 
-from pkg_resources import parse_version
+from packaging.version import Version
 
 try:
     import pyglet
@@ -507,7 +507,7 @@ def _dispatchWindowEvents():
     # let's see if pyglet collected any event in meantime
     try:
         # this takes focus away from command line terminal window:
-        if parse_version(pyglet.version) < parse_version('1.2'):
+        if Version(pyglet.version) < Version('1.2'):
             # events for sounds/video should run independently of wait()
             pyglet.media.dispatch_events()
     except AttributeError:

@@ -6,9 +6,9 @@ import glob
 import os
 import sys
 from sys import platform
-import setuptools  # noqa: setuptools complains if it isn't implicitly imported before distutils
+import setuptools  # noqa: setuptools complains if it isn't explicitly imported before distutils
 from distutils.core import setup
-from pkg_resources import parse_version
+from packaging.version import Version
 import bdist_mpkg  # noqa: needed to build bdist, even though not explicitly used here
 import py2app  # noqa: needed to build app bundle, even though not explicitly used here
 from ctypes.util import find_library
@@ -50,7 +50,7 @@ frameworks.extend(opencvLibs)
 import macholib
 #print("~"*60 + "macholib version: "+macholib.__version__)
 
-if parse_version(macholib.__version__) <= parse_version('1.7'):
+if Version(macholib.__version__) <= Version('1.7'):
     print("Applying macholib patch...")
     import macholib.dyld
     import macholib.MachOGraph
@@ -106,7 +106,7 @@ packages = ['pydoc',  # needed for help()
             # handy science tools
             'tables',  # 'cython',
             # these aren't needed, but liked
-            'pylsl', 'pygaze',
+            'pylsl',
             #'smite',  # https://github.com/marcus-nystrom/SMITE (not pypi!)
             'cv2',
             'questplus',
@@ -124,7 +124,6 @@ if sys.version_info < (3, 9):
         [
             'moviepy', 
             'OpenGL', 'glfw',
-            'googleapiclient',
             'badapted', #'darc_toolbox',  # adaptive methods from Ben Vincent
             'egi_pynetstation', 'pylink', 'tobiiresearch',
             'pyxid2', 'ftd2xx',  # ftd2xx is used by cedrus
@@ -144,8 +143,8 @@ packagePipNames = { # packages that are imported as one thing but installed as a
     'opencv': 'opencv-python',
     'googleapiclient': 'google-api-python-client',
     'macropy': 'macropy3',
-
 }
+
 for pkg in includes+packages:
     
     try:
@@ -180,14 +179,15 @@ setup(
     options=dict(py2app=dict(
             includes=includes,
             packages=packages,
-            excludes=['bsddb', 'jinja2', 'IPython','ipython_genutils','nbconvert',
+            excludes=['torch',
+                      'bsddb', 'jinja2', 'IPython','ipython_genutils','nbconvert',
                       'tkinter', 'Tkinter', 'tcl',
                       'libsz.2.dylib', 'pygame',
                       # 'stringprep',
                       'functools32',
                       'sympy',
                       '/usr/lib/libffi.dylib',
-                      'libwebp.7.dylib'
+                      'libwebp.7.dylib',
                       ],  # anything we need to forcibly exclude?
             resources=resources,
             argv_emulation=False,  # must be False or app bundle pauses (py2app 0.21 and 0.24 tested)

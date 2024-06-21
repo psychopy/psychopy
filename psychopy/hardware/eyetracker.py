@@ -1,6 +1,7 @@
 from psychopy.constants import STARTED, NOT_STARTED, PAUSED, STOPPED, FINISHED
 from psychopy.alerts import alert
 from psychopy import logging
+from psychopy.iohub.devices import importDeviceModule
 from psychopy.tools.attributetools import AttributeGetSetMixin
 from copy import copy
 import importlib
@@ -88,7 +89,7 @@ class EyetrackerCalibration:
         if not pkgName.startswith("psychopy.iohub.devices."):
             pkgName = "psychopy.iohub.devices." + pkgName
         # import package
-        pkg = importlib.import_module(pkgName)
+        pkg = importDeviceModule(pkgName)
         # get tracker class
         trackerCls = getattr(pkg, clsName)
         # get self as dict

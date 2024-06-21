@@ -18,7 +18,7 @@ from wx.lib.newevent import NewEvent
 
 from psychopy import logging
 from psychopy.localization import _translate
-from pkg_resources import parse_version
+from packaging.version import Version
 
 
 class MessageDialog(wx.Dialog):
@@ -652,7 +652,7 @@ class ListWidget(GlobSizer):
 
 
 if __name__ == '__main__':
-    if parse_version(wx.__version__) < parse_version('2.9'):
+    if Version(wx.__version__) < Version('2.9'):
         app = wx.PySimpleApp()
     else:
         app = wx.App(False)
