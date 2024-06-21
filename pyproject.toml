@@ -110,6 +110,7 @@ building = [
     "dmgbuild; platform_system == \"Darwin\"",
 ]
 suggested = [
+    "sounddevice",
     "pylsl>=1.16.1", # lab streaming layer for general connectivity
     "xlwt",  # writing excel files with pandas
     "h5py",  # to read hdf5 files for analysis
