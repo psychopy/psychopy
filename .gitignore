@@ -73,6 +73,7 @@ nonSVN
 # pdm.lock will include platform-specific libs so not portable
 pdm.lock
 
+psychopy/GIT_SHA
 psychopy/demos/coder/misc/frame*
 psychopy/demos/**/data/*.psydat
 psychopy/demos/**/data/*.csv

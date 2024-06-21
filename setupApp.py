@@ -22,12 +22,10 @@ building.compile_po.compilePoFiles()
 
 # regenerate __init__.py only if we're in the source repos (not in a zip file)
 try:
-    from building import createInitFile  # won't exist in a sdist.zip
-    writeNewInit=True
-except:
-    writeNewInit=False
-if writeNewInit:
-    vStr = createInitFile.createInitFile(dist='bdist')
+    from building import createGitShaFile  # won't exist in a sdist.zip
+    createGitShaFile.createGitShaFile()
+except Exception as e:
+    print("Failed to write GIT_SHA file:\n{e}")
 
 #define the extensions to compile if necess
 packageData = []
@@ -232,7 +230,3 @@ for libPath in opencvLibs:
 realPath = "../Frameworks/Python.framework/Python"  # relative to the fake path
 fakePath = os.path.join(rpath, "Python")
 os.symlink(realPath, fakePath)
-
-if writeNewInit:
-    # remove unwanted info about this system post-build
-    createInitFile.createInitFile(dist=None)

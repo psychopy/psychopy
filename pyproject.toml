@@ -1,6 +1,9 @@
 [tool.pdm]
 version = { source = "file", path = "psychopy/__init__.py" }
 
+[packages]
+
+
 [project]
 name = "psychopy"
 dynamic = ["version"]
@@ -126,6 +129,7 @@ legacy = [
     "pygame",
 ]
 
+
 [project.urls]
 Homepage = "https://www.psychopy.org/"
 Download = "https://github.com/psychopy/psychopy/releases/"
@@ -138,8 +142,26 @@ requires = [
     "pdm-backend",
     "distro; platform_system == \"Linux\"",
     "tomlkit",
+    "setuptools>=41", "wheel", "setuptools-git-versioning>=2.0,<3",
     ]
-build-backend = "pdm.backend"
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["psychopy"]
+# this package will read some included files in runtime, avoid installing it as .zip
+zip-safe = false
+
+[tool.setuptools-git-versioning]
+enabled = true
+version_file = "psychopy/VERSION"
+count_commits_from_version_file = true  # <--- enable commits tracking
+dev_template = "{tag}.post{ccount}+git.{sha}"  # suffix for versions will be .dev
+dirty_template = "{tag}.post{ccount}+git.{sha}"  # same thing here
+
+[tool.setuptools.package-data]
+# include VERSION file to a package
+psychopy = ["VERSION"]
+
 
 [tool.pdm.build]
 includes = []

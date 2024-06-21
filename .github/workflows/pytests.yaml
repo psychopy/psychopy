@@ -70,7 +70,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install wheel
         pip install six  # for configobj and wxpython
-        pip install distro  # used by createInitFile
+        pip install distro
         pip install attrdict3  # used by wxpython setup
         python ./building/plat_custom_installs.py
 

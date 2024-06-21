@@ -12,7 +12,7 @@
 """
 import os, sys, shutil, subprocess
 from os.path import join
-from createInitFile import createInitFile
+from createGitShaFile import createGitShaFile
 from pathlib import Path
 
 # MAIN is the root of the psychopy repo
@@ -48,7 +48,7 @@ def getSHA(cwd='.'):
 
 def buildRelease(versionStr, noCommit=False, interactive=True):
     #
-    createInitFile(dist='sdist', version=versionStr, sha=getSHA())
+    createGitShaFile()
     dest = VERSIONS / "psychopy"
     shutil.rmtree(dest)
     ignores = shutil.ignore_patterns("demos", "docs", "tests", "pylink",

@@ -11,16 +11,16 @@
 
 import os
 import sys
+import pathlib
 
-__version__ = '2024.2.0dev4'
+__version__ = (pathlib.Path(__file__)/"VERSION").parent.open('r', encoding='utf-8').read().strip()
+__git_sha__ = (pathlib.Path(__file__)/"GIT_SHA").parent.open('r', encoding='utf-8').read().strip() # added during release
 __license__ = 'GPL v3'
 __author__ = 'Open Science Tools Ltd'
 __author_email__ = 'support@opensciencetools.org'
 __maintainer_email__ = 'support@opensciencetools.org'
 __url__ = 'https://www.psychopy.org/'
 __download_url__ = 'https://github.com/psychopy/psychopy/releases/'
-__git_sha__ = 'n/a'
-__build_platform__ = 'n/a'
 
 __all__ = ["gui", "misc", "visual", "core",
            "event", "data", "sound", "microphone"]
