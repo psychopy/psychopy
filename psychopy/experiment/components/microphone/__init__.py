@@ -34,8 +34,7 @@ onlineTranscribers = {
     "Google": "GOOGLE"
 }
 localTranscribers = {
-    "Google": "google",
-    "Whisper": "whisper", 
+    "Google": "google"
 }
 allTranscribers = {**localTranscribers, **onlineTranscribers}
 
@@ -533,7 +532,7 @@ class MicrophoneComponent(BaseDeviceComponent):
                 "%(loop)s.addData('%(name)s.script', %(name)sScript)\n"
             )
             buff.writeIndentedLines(code % inits)
-        if inits['speakTimes'] and inits['transcribeBackend'].val == "whisper":
+        if inits['speakTimes'] and inits['transcribeBackend'].val == "Whisper":
 
             code = (
                 "# save transcription data\n"
