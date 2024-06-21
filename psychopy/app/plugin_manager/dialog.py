@@ -187,7 +187,7 @@ class EnvironmentManagerDlg(wx.Dialog):
             # flags=execFlags,
             inputCallback=self.output.writeStdOut,  # both treated the same
             errorCallback=self.output.writeStdErr,
-            terminateCallback=self.output.writeTerminus
+            terminateCallback=self.onUninstallExit
         )
         self.pipProcess.start(env=env)
 
@@ -321,6 +321,20 @@ class EnvironmentManagerDlg(wx.Dialog):
             }
         )
 
+    def uninstallPlugin(self, pluginInfo):
+        """Uninstall a plugin.
+
+        This deletes any bundles in the user's package directory, or uninstalls
+        packages from `site-packages`.
+
+        Parameters
+        ----------
+        pluginInfo : psychopy.app.plugin_manager.plugins.PluginInfo
+            Info object of the plugin to uninstall.
+
+        """
+        self.uninstallPackage(pluginInfo.pipname)
+
     def onInstallExit(self, pid, exitCode):
         """
         Callback function to handle a pip process exiting. Prints a termination statement
@@ -381,6 +395,15 @@ class EnvironmentManagerDlg(wx.Dialog):
                 self.output.writeStdOut(msg)
                 self.output.writeLink(pluginInfo.docs, link=pluginInfo.docs)
 
+        # clear pip process
+        self.pipProcess = None
+    
+    def onUninstallExit(self, pid, exitCode):
+        # write installation termination statement
+        msg = "Uninstall complete"
+        if 'pipname' in self.pipProcess.extra:
+            msg = f"Finished uninstalling %(pipname)s" % self.pipProcess.extra
+        self.output.writeTerminus(msg)
         # clear pip process
         self.pipProcess = None
 
