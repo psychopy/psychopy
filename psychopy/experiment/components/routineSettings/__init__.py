@@ -146,17 +146,26 @@ class RoutineSettingsComponent(BaseComponent):
     def writeRoutineStartCode(self, buff):
         # Sanitize
         params = self.params.copy()
-        # Store Routine start time (UTC)
+        # store start times
+        code = (
+            "# store start times for %(name)s\n"
+            "%(name)s.tStartRefresh = win.getFutureFlipTime(clock=globalClock)\n"
+            "%(name)s.tStart = globalClock.getTime(format='float')\n"
+            "%(name)s.status = STARTED\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+        # add to data file if requested
         if self.params['saveStartStop']:
             code = (
-                "thisExp.addData('%(name)s.started', globalClock.getTime(format='float'))\n"
+            "thisExp.addData('%(name)s.started', %(name)s.tStart)\n"
             )
             buff.writeIndentedLines(code % params)
         # Skip Routine if condition is met
         if params['skipIf'].val not in ('', None, -1, 'None'):
             code = (
-                "# skip this Routine if its 'Skip if' condition is True\n"
-                "continueRoutine = continueRoutine and not (%(skipIf)s)\n"
+                "# skip Routine %(name)s if its 'Skip if' condition is True\n"
+                "%(name)s.skipped = continueRoutine and not (%(skipIf)s)\n"
+                "continueRoutine = %(name)s.skipped\n"
             )
             buff.writeIndentedLines(code % params)
         # Change window appearance for this Routine (if requested)
@@ -287,10 +296,17 @@ class RoutineSettingsComponent(BaseComponent):
 
     def writeRoutineEndCode(self, buff):
         params = self.params.copy()
-        # Store Routine start time (UTC)
+        # store stop times
+        code = (
+            "# store stop times for %(name)s\n"
+            "%(name)s.tStop = globalClock.getTime(format='float')\n"
+            "%(name)s.tStopRefresh = tThisFlipGlobal\n"
+        )
+        buff.writeIndentedLines(code % params)
+        # add to data file if requested
         if self.params['saveStartStop']:
             code = (
-                "thisExp.addData('%(name)s.stopped', globalClock.getTime(format='float'))\n"
+                "thisExp.addData('%(name)s.stopped', %(name)s.tStop)\n"
             )
             buff.writeIndentedLines(code % params)
         # Restore window appearance after this Routine (if changed)
