@@ -6,6 +6,7 @@ import sys
 from packaging.version import Version
 
 from .base import DataHandler
+from .routine import Routine
 from .experiment import ExperimentHandler
 from .trial import TrialHandler, TrialHandler2, TrialHandlerExt, TrialType
 from .staircase import (StairHandler, QuestHandler, PsiHandler,
