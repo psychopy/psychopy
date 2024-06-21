@@ -795,7 +795,9 @@ class Routine(list):
         if useNonSlip:
             code = (
                 "# using non-slip timing so subtract the expected duration of this Routine (unless ended on request)\n"
-                "if %(name)s.forceEnded:\n"
+                "if %(name)s.maxDurationReached:\n"
+                "    routineTimer.addTime(-%(name)s.maxDuration)\n" 
+                "elif %(name)s.forceEnded:\n"
                 "    routineTimer.reset()\n"
                 "else:\n"
                 "    routineTimer.addTime(-{:f})\n"
@@ -823,7 +825,14 @@ class Routine(list):
         # can we use non-slip timing?
         maxTime, useNonSlip = self.getMaxTime()
         if useNonSlip:
-            buff.writeIndented('routineTimer.add(%f);\n' % (maxTime))
+            code = (
+                "if (maxDurationReached) {\n"
+                "    routineTimer.add(%(name)sMaxDuration);\n"
+                "} else {\n"
+                "    routineTimer.add(%f);\n"
+                "}\n"
+            )
+            buff.writeIndented('' % (maxTime))
 
         code = "// update component parameters for each repeat\n"
         buff.writeIndentedLines(code)
@@ -1053,7 +1062,7 @@ class Routine(list):
                 if duration == FOREVER:
                     # only the *start* of an unlimited event should contribute
                     # to maxTime
-                    duration = 1  # plus some minimal duration so it's visible
+                    duration = 0  # plus some minimal duration so it's visible
                 # now see if we have a end t value that beats the previous max
                 try:
                     # will fail if either value is not defined:
@@ -1065,6 +1074,9 @@ class Routine(list):
         rtDur, numericStop = self.settings.getDuration()
         if rtDur != FOREVER:
             maxTime = rtDur
+        # if nonslip is actively requested, force it
+        if self.settings.params['forceNonSlip'] and maxTime not in (0, FOREVER):
+            nonSlipSafe  = True
         # if there are no components, default to 10s
         if maxTime == 0:
             maxTime = 10
