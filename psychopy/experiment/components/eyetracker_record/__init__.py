@@ -26,7 +26,7 @@ class EyetrackerRecordComponent(BaseComponent):
     def __init__(self, exp, parentName, name='etRecord',
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
-                 startEstim='', durationEstim=1.0,
+                 startEstim='', durationEstim='',
                  actionType="Start and Stop",
                  stopWithRoutine=False,
                  # legacy
