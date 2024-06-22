@@ -88,6 +88,21 @@ class EyetrackerRecordComponent(BaseComponent):
         #       in .order has no effect
         self.order = self.order[:1]+['actionType']+self.order[1:]
 
+    def getStartAndDuration(self):
+        """
+        Due to the different action types hiding either the start or stop
+        parameter, we need to force the start and stop times to correct types,
+        make sure the component is displayed correctly on the timeline, and
+        ensure correct behavior of nonSlip timing determination."""
+        # Check if the actionType is 'Start Only' or 'Stop Only'
+        if self.params['actionType'].val == 'Start Only':
+            self.params['stopType'].val = 'duration (s)'
+            self.params['stopVal'].val = 0.0
+        elif self.params['actionType'].val == 'Stop Only':
+            self.params['startType'].val = 'time (s)'
+            self.params['startVal'].val = 0.0
+        return super().getStartAndDuration()
+
     def writeInitCode(self, buff):
         inits = self.params
         # Make a controller object
