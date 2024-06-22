@@ -28,7 +28,8 @@ class EyetrackerRecordComponent(BaseComponent):
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim=1.0,
                  actionType="Start and Stop",
-                 #legacy
+                 stopWithRoutine=False,
+                 # legacy
                  save='final', configFile='myTracker.yaml'):
         BaseComponent.__init__(self, exp, parentName, name=name,
                                startType=startType, startVal=startVal,
@@ -38,7 +39,8 @@ class EyetrackerRecordComponent(BaseComponent):
         self.url = "https://www.psychopy.org/builder/components/eyetracker.html"
         self.exp.requirePsychopyLibs(['iohub', 'hardware'])
 
-        self.params['actionType'] = Param(actionType,
+        self.params['actionType'] = Param(
+            actionType,
             valType='str', inputType='choice', categ='Basic',
             allowedVals=["Start and Stop", "Start Only", "Stop Only"],
             hint=_translate("Should this Component start and / or stop eye tracker recording?"),
@@ -62,6 +64,24 @@ class EyetrackerRecordComponent(BaseComponent):
               "false": "show",  # permitted: hide, show, enable, disable
               }
          )
+
+        self.params['stopWithRoutine'] = Param(
+            stopWithRoutine,
+            valType='bool', inputType="bool", updates='constant', categ='Basic',
+            hint=_translate(
+                "Should eyetracking stop when the Routine ends? Tick to force stopping "
+                "after the Routine has finished."),
+            label=_translate('Stop with Routine?'))
+
+        self.depends.append(
+            {
+                "dependsOn": "actionType",  # must be param name
+                "condition": "in ('Start and Stop', 'Stop Only')",  # val to check for
+                "param": "stopWithRoutine",  # param property to alter
+                "true": "show",  # what to do with param if condition is True
+                "false": "hide",  # permitted: hide, show, enable, disable
+            }
+        )
 
         # TODO: Display actionType control after component name.
         #       Currently, adding params before start / stop time
@@ -94,7 +114,7 @@ class EyetrackerRecordComponent(BaseComponent):
         if self.exp.eyetracking == "None":
             alert(code=4505)
 
-        inits = self.params
+        buff.writeIndented("\n")
         buff.writeIndentedLines("# *%s* updates\n" % self.params['name'])
 
         if "start" in self.params['actionType'].val.lower():
@@ -118,7 +138,7 @@ class EyetrackerRecordComponent(BaseComponent):
                 "    %(name)s.status = STARTED\n"
             )
             buff.writeIndentedLines(code % self.params)
-        
+
         if "stop" in self.params['actionType'].val.lower():
             # if this Component can stop recording, write stop test code
             indented = self.writeStopTestCode(buff)
@@ -141,16 +161,9 @@ class EyetrackerRecordComponent(BaseComponent):
             buff.writeIndentedLines(code % self.params)
 
     def writeRoutineEndCode(self, buff):
-        inits = self.params
-
-        code = (
-            "# make sure the eyetracker recording stops\n"
-            "if %(name)s.status != FINISHED:\n"
-        )
-        buff.writeIndentedLines(code % self.params)
-        buff.setIndentLevel(1, relative=True)
-        code = (
-                "%(name)s.status = FINISHED\n"
-        )
-        buff.writeIndentedLines(code % self.params)
-        buff.setIndentLevel(-1, relative=True)
+        if self.params['stopWithRoutine']:
+            # stop at the end of the Routine, if requested
+            code = (
+                "%(name)s.stop()  # ensure eyetracking has stopped at end of Routine\n"
+            )
+            buff.writeIndentedLines(code % self.params)
