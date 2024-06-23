@@ -16,7 +16,7 @@ import collections.abc
 import pathlib
 import psychopy.logging as logging
 import psychopy.plugins as plugins
-import importlib.metadata
+from importlib.metadata import entry_points
 from pathlib import Path
 
 ########################
@@ -255,33 +255,39 @@ def getDevicePaths(device_name=""):
     scs_yaml_paths = []  # stores the paths to the device config files
     plugins.refreshBundlePaths()  # make sure eyetracker external plugins are reachable
 
-    # find EyeTracker classes by entry points targeting psychopy.iohub.devices.eyetracker
-    for group, points in importlib.metadata.entry_points().items():
-        # skip irrelevant groups
-        if not group.startswith("psychopy.iohub.devices.eyetracker"):
+    # NOTE: The “selectable” entry points were introduced in importlib_metadata 3.6 and Python 3.10.
+    # Prior to those changes, entry_points accepted no parameters and always returned a dictionary
+    # of entry points, keyed by group. With importlib_metadata 5.0 and Python 3.12, entry_points
+    # always returns an EntryPoints object.
+
+    # Find entry points targeting psychopy.iohub.devices.eyetracker
+    for ep in entry_points()['psychopy.iohub.devices.eyetracker']:
+        # load the target the entry point points to, it could be a class or a module
+        try:
+            ep_target = ep.load()
+        except:  # noqa: E722
+            logging.error(
+                f"Failed to load entry point: {ep}"
+            )
             continue
-        # process each point
-        for ep in points:
-            # load class the entry point points to
-            try:
-                cls = ep.load()
-            except:
-                logging.error(
-                    f"Failed to load entry point: {ep}"
+        # if entry point target is a class that binds to a yaml file, use it
+        if hasattr(ep_target, "configFile"):
+            scs_yaml_paths.append(
+                (ep_target.configFile.parent, ep_target.configFile.name)
+            )
+        else:
+            # otherwise, check the local folder of the etnry point target
+            import inspect
+            ep_dir = os.path.dirname(inspect.getfile(ep_target))
+            deviceConfig = _getDevicePaths(ep_dir)
+            if '.zip' in ep_dir:
+                # if the entry point is in a zip file, it is likely loading from a precompiled
+                # library instead of a user installed plugin module. Raise warning.
+                logging.warning(
+                    f"Entry point {ep} is pointing to a zip file {ep_dir}, "
+                    "likely loading from a precompiled library."
                 )
-                continue
-            # if class points to yaml file, use it
-            if hasattr(cls, "configFile"):
-                scs_yaml_paths.append(
-                    (cls.configFile.parent, cls.configFile.name)
-                )
-            else:
-                # otherwise, check its local folder
-                import inspect
-                deviceConfig = _getDevicePaths(
-                    os.path.dirname(inspect.getfile(cls))
-                )
-                scs_yaml_paths.extend(deviceConfig)
+            scs_yaml_paths.extend(deviceConfig)
 
     # use this method for built-in devices
     iohub_device_path = module_directory(import_device)
