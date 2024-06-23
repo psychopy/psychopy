@@ -233,8 +233,8 @@ def getDevicePaths(device_name=""):
 
         """
         yaml_paths = []
-        # try to walk both the internal iohub_device_path and user-level packages folder
-        for route in (os.walk(iohub_device_path), os.walk(prefs.paths['packages'])):
+        # search the internal iohub_device_path for device config files
+        for route in os.walk(iohub_device_path):
             for root, _, files in route:
                 # check each file in the route to see if it's a config yaml
                 device_folder = None
