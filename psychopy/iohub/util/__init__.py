@@ -232,9 +232,17 @@ def getDevicePaths(device_name=""):
 
         """
         yaml_paths = []
-        # search the provided iohub_device_path for device config files
-        for route in os.walk(iohub_device_path):
-            for root, _, files in route:
+
+        if '.zip' in iohub_device_path:
+            # if the entry point is in a zip file, it is likely loading from a precompiled
+            # library instead of a user installed plugin module. Raise warning.
+            logging.error(
+                f"Bad entry point loaded: {ep}\n"
+                f"It is pointing into a zip file: {iohub_device_path}"
+            )
+        else:
+            # search the provided iohub_device_path for device config files
+            for root, _, files in os.walk(iohub_device_path):
                 # check each file in the route to see if it's a config yaml
                 device_folder = None
                 for file in files:
@@ -266,40 +274,28 @@ def getDevicePaths(device_name=""):
             try:
                 ep_target = ep.load()
             except:  # noqa: E722
-                logging.error(
-                    f"Failed to load entry point: {ep}"
-                )
+                logging.error(f"Failed to load entry point: {ep}")
                 continue
-            # if entry point target is a class that binds to a yaml file, use it
+
             if hasattr(ep_target, "configFile"):
+                # if entry point target is a class that binds to a yaml file, use it
                 scs_yaml_paths.append(
                     (ep_target.configFile.parent, ep_target.configFile.name)
                 )
-            else:
-                # otherwise, check the local folder of the etnry point target
-                import inspect
-                ep_dir = os.path.dirname(inspect.getfile(ep_target))
-                deviceConfig = _getDevicePaths(ep_dir)
-                if '.zip' in ep_dir:
-                    # if the entry point is in a zip file, it is likely loading from a precompiled
-                    # library instead of a user installed plugin module. Raise warning.
-                    logging.warning(
-                        f"Entry point {ep} is pointing to a zip file {ep_dir}, "
-                        "likely loading from a precompiled library."
-                    )
+            else:  # otherwise, check the local folder of the entry point target
+                deviceConfig = _getDevicePaths(os.path.dirname(ep_target.__file__))
                 scs_yaml_paths.extend(deviceConfig)
 
-    # use this method for built-in devices
+    # Use import_device() method for built-in devices
     iohub_device_path = module_directory(import_device)
     if device_name:
         iohub_device_path = os.path.join(
             iohub_device_path, device_name.replace('.', os.path.sep))
-
     deviceConfigs = _getDevicePaths(iohub_device_path)
-    if deviceConfigs:
-        scs_yaml_paths.extend(deviceConfigs)
+    scs_yaml_paths.extend(deviceConfigs)
 
-    return scs_yaml_paths
+    # Return a unique list of device config paths
+    return list(set(scs_yaml_paths))
 
 
 def getDeviceDefaultConfig(device_name, builder_hides=True):
