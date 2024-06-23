@@ -832,6 +832,11 @@ def loadPlugin(plugin):
 
                 return False
 
+            if '.zip' in ep.__file__:
+                logging.warning(
+                    "Plugin `{}` is being loaded from a zip file. This may "
+                    "cause issues with the plugin's functionality.".format(plugin))
+
             # If we get here, the entry point is valid and we can safely add it
             # to PsychoPy's namespace.
             validEntryPoints[fqn].append((targObj, attr, ep))
@@ -844,7 +849,7 @@ def loadPlugin(plugin):
             # add the object to the module or unbound class
             setattr(targObj, attr, ep)
             logging.debug(
-                "Assigning to entry point `{}` to `{}`.".format(
+                "Assigning the entry point `{}` to `{}`.".format(
                     ep.__name__, fqn + '.' + attr))
 
             # --- handle special cases ---
