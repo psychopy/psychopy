@@ -43,7 +43,7 @@ _numpyRandomImports = ['random', 'randint', 'normal', 'shuffle', 'choice as rand
 
 # this is not a standard component - it will appear on toolbar not in
 # components panel
-ioDeviceMap = dict(ioUtil.getDeviceNames())
+ioDeviceMap = dict(ioUtil.getDeviceNames(device_name="eyetracker.hw"))
 ioDeviceMap['None'] = ""
 
 # Keyboard backend options

@@ -232,7 +232,7 @@ def getDevicePaths(device_name=""):
 
         """
         yaml_paths = []
-        # search the internal iohub_device_path for device config files
+        # search the provided iohub_device_path for device config files
         for route in os.walk(iohub_device_path):
             for root, _, files in route:
                 # check each file in the route to see if it's a config yaml
@@ -259,34 +259,35 @@ def getDevicePaths(device_name=""):
     # of entry points, keyed by group. With importlib_metadata 5.0 and Python 3.12, entry_points
     # always returns an EntryPoints object.
 
-    # Find entry points targeting psychopy.iohub.devices.eyetracker
-    for ep in entry_points()['psychopy.iohub.devices.eyetracker']:
-        # load the target the entry point points to, it could be a class or a module
-        try:
-            ep_target = ep.load()
-        except:  # noqa: E722
-            logging.error(
-                f"Failed to load entry point: {ep}"
-            )
-            continue
-        # if entry point target is a class that binds to a yaml file, use it
-        if hasattr(ep_target, "configFile"):
-            scs_yaml_paths.append(
-                (ep_target.configFile.parent, ep_target.configFile.name)
-            )
-        else:
-            # otherwise, check the local folder of the etnry point target
-            import inspect
-            ep_dir = os.path.dirname(inspect.getfile(ep_target))
-            deviceConfig = _getDevicePaths(ep_dir)
-            if '.zip' in ep_dir:
-                # if the entry point is in a zip file, it is likely loading from a precompiled
-                # library instead of a user installed plugin module. Raise warning.
-                logging.warning(
-                    f"Entry point {ep} is pointing to a zip file {ep_dir}, "
-                    "likely loading from a precompiled library."
+    if 'eyetracker' in device_name.lower():
+        # Find entry points targeting psychopy.iohub.devices.eyetracker
+        for ep in entry_points()['psychopy.iohub.devices.eyetracker']:
+            # load the target the entry point points to, it could be a class or a module
+            try:
+                ep_target = ep.load()
+            except:  # noqa: E722
+                logging.error(
+                    f"Failed to load entry point: {ep}"
                 )
-            scs_yaml_paths.extend(deviceConfig)
+                continue
+            # if entry point target is a class that binds to a yaml file, use it
+            if hasattr(ep_target, "configFile"):
+                scs_yaml_paths.append(
+                    (ep_target.configFile.parent, ep_target.configFile.name)
+                )
+            else:
+                # otherwise, check the local folder of the etnry point target
+                import inspect
+                ep_dir = os.path.dirname(inspect.getfile(ep_target))
+                deviceConfig = _getDevicePaths(ep_dir)
+                if '.zip' in ep_dir:
+                    # if the entry point is in a zip file, it is likely loading from a precompiled
+                    # library instead of a user installed plugin module. Raise warning.
+                    logging.warning(
+                        f"Entry point {ep} is pointing to a zip file {ep_dir}, "
+                        "likely loading from a precompiled library."
+                    )
+                scs_yaml_paths.extend(deviceConfig)
 
     # use this method for built-in devices
     iohub_device_path = module_directory(import_device)
