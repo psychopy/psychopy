@@ -8,14 +8,14 @@ def getEntryPoints(module, submodules=True, flatten=True):
     Parameters
     ----------
     module : str
-        Import string for the target module (e.g. 
+        Import string for the target module (e.g.
         `"psychopy.iohub.devices"`)
     submodules : bool, optional
-        If True, will also get entry points which target a 
+        If True, will also get entry points which target a
         submodule of the given module. By default True.
     flatten : bool, optional
-        If True, will return a flat list of entry points. If 
-        False, will return a dict arranged by target group. By 
+        If True, will return a flat list of entry points. If
+        False, will return a dict arranged by target group. By
         default True.
     """
     # start off with a blank list/dict
