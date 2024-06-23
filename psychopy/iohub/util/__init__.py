@@ -18,6 +18,7 @@ import psychopy.logging as logging
 import psychopy.plugins as plugins
 from importlib.metadata import entry_points
 from pathlib import Path
+from psychopy.preferences import prefs
 
 ########################
 #
@@ -34,8 +35,6 @@ try:
     from collections.abc import Iterable
 except ImportError:
     from collections import Iterable
-
-from psychopy.preferences import prefs
 
 
 def saveConfig(config, dst_path):
@@ -143,7 +142,7 @@ def module_directory(local_function):
 def getSupportedConfigSettings(moduleName, deviceClassName=None):
     """Get the supported configuration settings for a device.
 
-    These are usually stored as YAML files within the module directory that 
+    These are usually stored as YAML files within the module directory that
     defines the device class.
 
     Parameters
@@ -152,10 +151,10 @@ def getSupportedConfigSettings(moduleName, deviceClassName=None):
         The name of the module to get the path for. Must be a package that defines
         `__init__.py`.
     deviceClassName : str, optional
-        The name of the specific device class to get the path for. If not provided, 
-        the default configuration file will be searched for in the module 
+        The name of the specific device class to get the path for. If not provided,
+        the default configuration file will be searched for in the module
         directory.
-    
+
     Returns
     -------
     str
@@ -176,13 +175,13 @@ def getSupportedConfigSettings(moduleName, deviceClassName=None):
             "Found ioHub device configuration file: {0}".format(yamlFile))
 
         return str(yamlFile)
-        
+
     # file name for yaml file name convention for single file
     yamlFile = yamlRoot / pathlib.Path('supported_config_settings.yaml')
     if not yamlFile.exists():  # nothing is found
         raise FileNotFoundError(
             "No config file found in module dir {0}".format(moduleName))
-    
+
     logging.debug(
         "Found ioHub device configuration file: {0}".format(yamlFile))
 
@@ -385,6 +384,7 @@ def getDeviceNames(device_name="eyetracker.hw", get_paths=True):
             names.append((d_config.get('manufacturer_name'), d_path))
     return names
 
+
 def getDeviceFile(device_name, file_name):
     """
     Returns the contents of file_name for the specified device. If file_name does not exist, None is returned.
@@ -396,6 +396,7 @@ def getDeviceFile(device_name, file_name):
     if device_name.endswith(".EyeTracker"):
         device_name = device_name[:-11]
     device_paths = getDevicePaths(device_name)
+
     device_sconfigs = []
     for dpath, _ in device_paths:
         device_sconfigs.append(readConfig(os.path.join(dpath, file_name)))
@@ -403,6 +404,7 @@ def getDeviceFile(device_name, file_name):
         # simplify return value when only one device was requested
         return list(device_sconfigs[0].values())[0]
     return device_sconfigs
+
 
 def getDeviceSupportedConfig(device_name):
     """
@@ -412,6 +414,7 @@ def getDeviceSupportedConfig(device_name):
     :return: dict
     """
     return getDeviceFile(device_name, 'supported_config_settings.yaml')
+
 
 if sys.platform == 'win32':
     import pythoncom
@@ -433,6 +436,7 @@ if sys.platform == 'win32':
 else:
     def win32MessagePump():
         pass
+
 
 # PsychoPy Window Hide / Show functions.
 # Windows 10 and macOS have different code that needs to be called
@@ -456,6 +460,7 @@ def hideWindow(win, force=False):
     else:
         print("Warning: Unhandled sys.platform: ", sys.platform)
 
+
 def showWindow(win, force=False):
     """
     If needed, hide / minimize the in.
@@ -473,6 +478,7 @@ def showWindow(win, force=False):
         pass
     else:
         print("Warning: Unhandled sys.platform: ", sys.platform)
+
 
 def createCustomCalibrationStim(win, cal_settings):
     """
@@ -537,12 +543,12 @@ def updateDict(add_to, add_from):
 
 def updateSettings(d, u):
     for k, v in u.items():
-        if type(k) == bytes:
+        if isinstance(k, bytes):
             k = k.decode('UTF-8')
         if isinstance(v, collections.abc.Mapping):
             d[k] = updateSettings(d.get(k, {}), v)
         else:
-            if type(v) == bytes:
+            if isinstance(v, bytes):
                 v = v.decode('UTF-8')
             d[k] = v
     return d
@@ -563,7 +569,7 @@ def convertCamelToSnake(name, lower_snake=True):
 # A couple date / time related utility functions
 
 getCurrentDateTime = datetime.datetime.now
-getCurrentDateTimeString = lambda: getCurrentDateTime().strftime("%Y-%m-%d %H:%M")
+getCurrentDateTimeString = lambda: getCurrentDateTime().strftime("%Y-%m-%d %H:%M")  # noqa: E731
 
 
 # rgb255 color utils
