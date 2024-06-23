@@ -986,13 +986,21 @@ def importDeviceModule(modulePath):
             # skip irrelevant groups
             if not modulePath.startswith(group):
                 continue
-            # get module path relative to entry point group
-            relModPath = modulePath[len(group)+1:]
-            # is the first part importable? if not, progress to next group
-            try:
-                module = importlib.import_module(relModPath, package=group)
-            except ModuleNotFoundError:
-                continue
+            # get the module of the entry point group
+            module_group = importlib.import_module(group)
+            # get the entry point target module(s)
+            for ep in entryPoints[group]:
+                module_name = ep.name
+                ep_target = ep.load()
+                # bind each entry point module to the existing module tree
+                setattr(module_group, module_name, ep_target)
+                sys.modules[group + '.' + module_name] = ep_target
+
+        # re-try importing the module
+        try:
+            module = importlib.import_module(modulePath)
+        except ModuleNotFoundError:
+            pass
 
     # raise error if all import options failed
     if module is None:
