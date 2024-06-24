@@ -95,14 +95,19 @@ class EyetrackerRecordComponent(BaseComponent):
         timeline reflecting the status of EyetrackerRecordComponent instead of
         the eyetracker device, and ensure proper nonSlip timing determination
         """
-        # Check if the actionType is 'Start Only' or 'Stop Only'
+        # make a copy of params so we can change stuff harmlessly
+        params = self.params.copy()
+        # check if the actionType is 'Start Only' or 'Stop Only'
         if self.params['actionType'].val == 'Start Only':
+            # if only starting, pretend stop is 0
             self.params['stopType'].val = 'duration (s)'
             self.params['stopVal'].val = 0.0
         elif self.params['actionType'].val == 'Stop Only':
+            # if only stopping, pretend start was 0
             self.params['startType'].val = 'time (s)'
             self.params['startVal'].val = 0.0
-        return super().getStartAndDuration()
+        
+        return super().getStartAndDuration(params)
 
     def writeInitCode(self, buff):
         inits = self.params
