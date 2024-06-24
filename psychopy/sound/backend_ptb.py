@@ -589,10 +589,11 @@ class SoundPTB(_SoundBase):
         """Function called on End Of Stream
         """
         self._loopsFinished += 1
-        if self._loopsFinished <= self.loops:
+        if self._loopsFinished >= self._loopsRequested:
+            # if we have finished all requested loops
             self.stop(reset=reset, log=False)
-            self._isFinished = True
         else:
+            # reset _isFinished back to False
             self._isFinished = False
 
         if log and self.autoLog:
