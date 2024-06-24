@@ -65,6 +65,7 @@ class AppSigner:
         files = list(self.appFile.glob('**/*.dylib'))
         files.extend(self.appFile.glob('**/*.so'))
         files.extend(self.appFile.glob('**/git-core/git*'))
+        files.extend(self.appFile.glob('**/git-core/scalar'))  # for some reason it's named differently
         files.extend(self.appFile.glob('**/cv2/.dylibs/*'))
         # ffmpeg
         files.extend(self.appFile.glob('**/imageio_ffmpeg/binaries/*'))
