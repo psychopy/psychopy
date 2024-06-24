@@ -476,7 +476,7 @@ class BaseComponent:
             extra = " " + extra
         code += f"{extra}) {{\n"
         # write if statement and indent
-        buff.writeIndented(code)
+        buff.writeIndentedLines(code % params)
         buff.setIndentLevel(+1, relative=True)
 
         code = (f"// keep track of start time/frame for later\n"
@@ -675,7 +675,7 @@ class BaseComponent:
             extra = " " + extra
         code += f"{extra}) {{\n"
         # write if statement and indent
-        buff.writeIndentedLines(code)
+        buff.writeIndentedLines(code % params)
         buff.setIndentLevel(+1, relative=True)
 
         # Return True if stop test was written
