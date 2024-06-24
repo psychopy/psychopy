@@ -345,7 +345,7 @@ class SoundPTB(_SoundBase):
     @property
     def isFinished(self):
         """`True` if the audio playback has completed."""
-        return self._isFinished
+        return self._checkPlaybackFinished()
 
     def _getDefaultSampleRate(self):
         """Check what streams are open and use one of these"""
@@ -359,27 +359,6 @@ class SoundPTB(_SoundBase):
         if not self.track:
             return None
         return self.track.status
-
-    @property
-    def status(self):
-        """status gives a simple value from psychopy.constants to indicate
-        NOT_STARTED, STARTED, FINISHED, PAUSED
-
-        Psychtoolbox sounds also have a statusDetailed property with further info"""
-
-        if self.__dict__['status']==STARTED:
-            # check portaudio to see if still playing
-            pa_status = self.statusDetailed
-            if not pa_status['Active'] and pa_status['State']==0:
-                # we were playing and now not so presumably FINISHED
-                self._EOS()
-
-        return self.__dict__['status']
-
-
-    @status.setter
-    def status(self, newStatus):
-        self.__dict__['status'] = newStatus
 
     @property
     def volume(self):
@@ -533,8 +512,16 @@ class SoundPTB(_SoundBase):
     def _checkPlaybackFinished(self):
         """Checks whether playback has finished by looking up the status.
         """
+        # get detailed status from backend
         pa_status = self.statusDetailed
-        self._isFinished = not pa_status['Active'] and pa_status['State'] == 0
+        # was the sound already finished?
+        wasFinished = self._isFinished
+        # is it finished now?
+        isFinished = self._isFinished = not pa_status['Active'] and pa_status['State'] == 0
+        # if it wasn't finished but now is, do end of stream behaviour
+        if isFinished and not wasFinished:
+            self._EOS()
+        
         return self._isFinished
 
     def play(self, loops=None, when=None, log=True):
@@ -571,7 +558,7 @@ class SoundPTB(_SoundBase):
         """Stops the sound without reset, so that play will continue from here if needed
         """
         if self.isPlaying:
-            self.stop(reset=False)
+            self.stop(reset=False, log=False)
             if log and self.autoLog:
                 logging.exp(u"Sound %s paused" % (self.name), obj=self)
 
@@ -601,11 +588,11 @@ class SoundPTB(_SoundBase):
         """Function called on End Of Stream
         """
         self._loopsFinished += 1
-        if self.loops == 0:
+        if self._loopsFinished <= self.loops:
             self.stop(reset=reset, log=False)
             self._isFinished = True
-        elif 0 < self.loops <= self._loopsFinished:
-            self.stop(reset=reset, log=False)
+        else:
+            self._isFinished = False
 
         if log and self.autoLog:
             logging.exp(u"Sound %s reached end of file" % self.name, obj=self)
