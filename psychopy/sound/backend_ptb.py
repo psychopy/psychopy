@@ -588,9 +588,11 @@ class SoundPTB(_SoundBase):
         """Function called on End Of Stream
         """
         self._loopsFinished += 1
-        if self.loops - self._loopsFinished <= 0:
+        if self._loopsFinished <= self.loops:
             self.stop(reset=reset, log=False)
             self._isFinished = True
+        else:
+            self._isFinished = False
 
         if log and self.autoLog:
             logging.exp(u"Sound %s reached end of file" % self.name, obj=self)
