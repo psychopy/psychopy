@@ -55,7 +55,7 @@ class MicrophoneComponent(BaseDeviceComponent):
                  startEstim='', durationEstim='',
                  channels='auto', device=None,
                  sampleRate='DVD Audio (48kHz)', maxSize=24000,
-                 outputType='default', speakTimes=True, trimSilent=False,
+                 outputType='default', speakTimes=False, trimSilent=False,
                  transcribe=False, transcribeBackend="Whisper",
                  transcribeLang="en-US", transcribeWords="",
                  transcribeWhisperModel="base",
