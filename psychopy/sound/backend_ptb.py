@@ -86,7 +86,7 @@ def getDevices(kind=None):
     kind can be None, 'input' or 'output'
     The dict keys are names, and items are dicts of properties
     """
-    if sys.platform=='win32':
+    if sys.platform == 'win32':
         deviceTypes = 13  # only WASAPI drivers need apply!
     else:
         deviceTypes = None
@@ -97,7 +97,7 @@ def getDevices(kind=None):
         allDevs = audio.get_devices(device_type=deviceTypes)
 
     # annoyingly query_devices is a DeviceList or a dict depending on number
-    if type(allDevs) == dict:
+    if isinstance(allDevs, dict):
         allDevs = [allDevs]
 
     for ii, dev in enumerate(allDevs):
@@ -180,13 +180,13 @@ class _StreamsDict(dict):
             raise SoundFormatError(
                 "Tried to create audio stream {} but {} already exists "
                 "and {} doesn't support multiple portaudio streams"
-                    .format(label, list(self.keys())[0], sys.platform)
+                .format(label, list(self.keys())[0], sys.platform)
             )
         else:
 
             # create new stream
             self[label] = _MasterStream(sampleRate, channels, blockSize,
-                                       device=defaultOutput)
+                                        device=defaultOutput)
         return label, self[label]
 
 
@@ -209,9 +209,9 @@ class _MasterStream(audio.Stream):
         self.duplex = duplex
         self.blockSize = blockSize
         self.label = getStreamLabel(sampleRate, channels, blockSize)
-        if type(device) == list and len(device):
+        if isinstance(device, list) and len(device):
             device = device[0]
-        if type(device)==str:  # we need to convert name to an ID or make None
+        if isinstance(device, str):  # we need to convert name to an ID or make None
             devs = getDevices('output')
             if device in devs:
                 deviceID = devs[device]['DeviceIndex']
@@ -226,16 +226,16 @@ class _MasterStream(audio.Stream):
         if not systemtools.isVM_CI():  # Github Actions VM does not have a sound device
             try:
                 audio.Stream.__init__(self, device_id=deviceID, mode=mode+8,
-                                    latency_class=audioLatencyClass,
-                                    freq=sampleRate, 
-                                    channels=channels,
-                                    )  # suggested_latency=suggestedLatency
-            except OSError as e:
+                                      latency_class=audioLatencyClass,
+                                      freq=sampleRate,
+                                      channels=channels,
+                                      )  # suggested_latency=suggestedLatency
+            except OSError as e:  # noqa: F841
                 audio.Stream.__init__(self, device_id=deviceID, mode=mode+8,
-                                    latency_class=audioLatencyClass,
-                                    # freq=sampleRate, 
-                                    channels=channels,
-                                    )
+                                      latency_class=audioLatencyClass,
+                                      # freq=sampleRate,
+                                      channels=channels,
+                                      )
                 self.sampleRate = self.status['SampleRate']
                 print("Failed to start PTB.audio with requested rate of "
                       "{} but succeeded with a default rate ({}). "
@@ -244,14 +244,14 @@ class _MasterStream(audio.Stream):
             except TypeError as e:
                 print("device={}, mode={}, latency_class={}, freq={}, channels={}"
                       .format(device, mode+8, audioLatencyClass, sampleRate, channels))
-                raise(e)
+                raise e
             except Exception as e:
                 audio.Stream.__init__(self, mode=mode+8,
-                                    latency_class=audioLatencyClass,
-                                    freq=sampleRate, 
-                                    channels=channels,
-                                    )
-                
+                                      latency_class=audioLatencyClass,
+                                      freq=sampleRate,
+                                      channels=channels,
+                                      )
+
                 if "there isn't any audio output device" in str(e):
                     print("Failed to load audio device:\n"
                           "    '{}'\n"
@@ -329,7 +329,7 @@ class SoundPTB(_SoundBase):
         self.sndArr = None
         self.hamming = hamming
         self._hammingWindow = None  # will be created during setSound
-        self.win=syncToWin
+        self.win = syncToWin
         # setSound (determines sound type)
         self.setSound(value, secs=self.secs, octave=self.octave,
                       hamming=self.hamming)
@@ -382,9 +382,9 @@ class SoundPTB(_SoundBase):
     @stereo.setter
     def stereo(self, val):
         self.__dict__['stereo'] = val
-        if val == True:
+        if val is True:
             self.__dict__['channels'] = 2
-        elif val == False:
+        elif val is False:
             self.__dict__['channels'] = 1
         elif val == -1:
             self.__dict__['channels'] = -1
@@ -458,7 +458,6 @@ class SoundPTB(_SoundBase):
         self._channelCheck(
             self.sndArr)  # Check for fewer channels in stream vs data array
 
-
     def _setSndFromArray(self, thisArray):
 
         self.sndArr = np.asarray(thisArray).astype('float32')
@@ -508,7 +507,7 @@ class SoundPTB(_SoundBase):
                 "experiment settings**".format(self.channels, array.shape[1]))
             logging.error(msg)
             raise ValueError(msg)
-        
+
     def _checkPlaybackFinished(self):
         """Checks whether playback has finished by looking up the status.
         """
@@ -521,7 +520,7 @@ class SoundPTB(_SoundBase):
         # if it wasn't finished but now is, do end of stream behaviour
         if isFinished and not wasFinished:
             self._EOS()
-        
+
         return self._isFinished
 
     def play(self, loops=None, when=None, log=True):
@@ -533,7 +532,7 @@ class SoundPTB(_SoundBase):
         """
         if self._checkPlaybackFinished():
             self.stop(reset=True)
-        
+
         if loops is not None and self.loops != loops:
             self.setLoops(loops)
 
