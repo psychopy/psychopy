@@ -340,6 +340,7 @@ class SoundPTB(_SoundBase):
     @property
     def isPlaying(self):
         """`True` if the audio playback is ongoing."""
+        _ = self._checkPlaybackFinished()  # update _isPlaying if sound has stopped
         return self._isPlaying
 
     @property
@@ -556,7 +557,7 @@ class SoundPTB(_SoundBase):
     def pause(self, log=True):
         """Stops the sound without reset, so that play will continue from here if needed
         """
-        if self.isPlaying:
+        if self._isPlaying:
             self.stop(reset=False, log=False)
             if log and self.autoLog:
                 logging.exp(u"Sound %s paused" % (self.name), obj=self)
@@ -565,7 +566,7 @@ class SoundPTB(_SoundBase):
         """Stop the sound and return to beginning
         """
         # this uses FINISHED for some reason, all others use STOPPED
-        if not self.isPlaying:
+        if not self._isPlaying:
             return
 
         self.track.stop()
