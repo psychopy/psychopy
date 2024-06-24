@@ -991,7 +991,7 @@ class BaseComponent:
 
         return duration, numericStop
 
-    def getStartAndDuration(self):
+    def getStartAndDuration(self, params=None):
         """Determine the start and duration of the stimulus
         purely for Routine rendering purposes in the app (does not affect
         actual drawing during the experiment)
@@ -1000,7 +1000,16 @@ class BaseComponent:
 
         nonSlipSafe indicates that the component's duration is a known fixed
         value and can be used in non-slip global clock timing (e.g for fMRI)
+
+        Parameters
+        ----------
+        params : dict[Param]
+            Dict of params to use. If None, will use the values in `self.params`.
         """
+        # if not given any params, use from self
+        if params is None:
+            params = self.params
+
         # If has a start, calculate it
         if 'startType' in self.params:
             startTime, numericStart = self.getStart()

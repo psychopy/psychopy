@@ -26,7 +26,7 @@ class EyetrackerRecordComponent(BaseComponent):
     def __init__(self, exp, parentName, name='etRecord',
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
-                 startEstim='', durationEstim=1.0,
+                 startEstim='', durationEstim='',
                  actionType="Start and Stop",
                  stopWithRoutine=False,
                  # legacy
@@ -87,6 +87,27 @@ class EyetrackerRecordComponent(BaseComponent):
         #       Currently, adding params before start / stop time
         #       in .order has no effect
         self.order = self.order[:1]+['actionType']+self.order[1:]
+
+    def getStartAndDuration(self):
+        """ Due to the different action types hiding either the start or stop
+        field parameters, we need to force the start and stop criteria to correct
+        types and values, make sure the component is displayed accurately on the
+        timeline reflecting the status of EyetrackerRecordComponent instead of
+        the eyetracker device, and ensure proper nonSlip timing determination
+        """
+        # make a copy of params so we can change stuff harmlessly
+        params = self.params.copy()
+        # check if the actionType is 'Start Only' or 'Stop Only'
+        if self.params['actionType'].val == 'Start Only':
+            # if only starting, pretend stop is 0
+            self.params['stopType'].val = 'duration (s)'
+            self.params['stopVal'].val = 0.0
+        elif self.params['actionType'].val == 'Stop Only':
+            # if only stopping, pretend start was 0
+            self.params['startType'].val = 'time (s)'
+            self.params['startVal'].val = 0.0
+        
+        return super().getStartAndDuration(params)
 
     def writeInitCode(self, buff):
         inits = self.params
