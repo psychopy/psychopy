@@ -826,13 +826,13 @@ class Routine(list):
         maxTime, useNonSlip = self.getMaxTime()
         if useNonSlip:
             code = (
-                "if (maxDurationReached) {\n"
+                "if (maxDurationReached) {{\n"
                 "    routineTimer.add(%(name)sMaxDuration);\n"
-                "} else {\n"
-                "    routineTimer.add(%f);\n"
-                "}\n"
-            )
-            buff.writeIndented('' % (maxTime))
+                "}} else {{\n"
+                "    routineTimer.add(-{:f});\n"
+                "}}\n"
+            ).format(maxTime)
+            buff.writeIndented('' % self.params)
 
         code = "// update component parameters for each repeat\n"
         buff.writeIndentedLines(code)
