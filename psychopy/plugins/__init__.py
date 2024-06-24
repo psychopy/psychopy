@@ -30,23 +30,45 @@ import inspect
 import collections
 import hashlib
 import importlib
-import psychopy.tools.pkgtools as pkgtools
+import pathlib
+import site
 import pkg_resources
-import psychopy.tools.pkgtools as pkgtools
 from psychopy import logging
 from psychopy.preferences import prefs
 
-# add the plugins folder to as a distribution location
-try:
-    pkgtools.addDistribution(prefs.paths['packages'])
-except KeyError:
-    # this error likely wont happen unless the prefs are missing keys
-    logging.error('Cannot add plugin directory as distribution location. '
-                  'Plugins will be unavailable this session.')
+# Configure the environment to use our custom site-packages location for
+# user-installed packages (i.e. plugins). This value remains `None` if the user
+# is in a vitual environment or has disabled the custom site-packages location
+# via command line.
+USER_PACKAGES_PATH = None
+
+# check if we're in a virtual environment or not
+inVM = hasattr(sys, 'real_prefix') or sys.prefix != sys.base_prefix
+if not inVM:
+    # check if user disabled custom site-packages location manually, use
+    # default site-packages location if so
+    if os.environ.get('PSYCHOPYNOPACKAGES', '0') == '1':
+        userPackagesPath = site.getusersitepackages()
+    else:
+        # default location to look for PsychoPy plugin packages
+        userPackagesPath = prefs.paths['userPackages']  
+
+    # format required for pkg_resources, must be a string with forward slashes
+    USER_PACKAGES_PATH = str(userPackagesPath)
+
+    # add to working set if not already there
+    if USER_PACKAGES_PATH not in pkg_resources.working_set.entries:
+        pkg_resources.working_set.add_entry(USER_PACKAGES_PATH)
+
+    # add the plugins folder to the path
+    # if USER_PACKAGES_PATH not in sys.path:
+    #     sys.path.insert(0, USER_PACKAGES_PATH)  # add to path
+    if not site.ENABLE_USER_SITE or USER_PACKAGES_PATH not in sys.path:
+        site.addsitedir(USER_PACKAGES_PATH)
 
 # Keep track of plugins that have been loaded. Keys are plugin names and values
 # are their entry point mappings.
-_loaded_plugins_ = collections.OrderedDict()  # use OrderedDict for Py2 compatibility
+_loaded_plugins_ = collections.OrderedDict()  # Py2 compatibility
 
 # Entry points for all plugins installed on the system, this is populated by
 # calling `scanPlugins`. We are caching entry points to avoid having to rescan
@@ -301,6 +323,7 @@ def refreshBundlePaths():
         foundBundles.append(pluginDir)
 
     # refresh package index since the working set is now stale
+    import psychopy.tools.pkgtools as pkgtools
     pkgtools.refreshPackages()
 
     return foundBundles
@@ -328,6 +351,7 @@ def installPlugin(package, local=True, upgrade=False, forceReinstall=False,
     """
     # determine where to install the package
     installWhere = getBundleInstallTarget(package) if local else None
+    import psychopy.tools.pkgtools as pkgtools
     pkgtools.installPackage(
         package, 
         target=installWhere,
@@ -340,8 +364,8 @@ def scanPlugins():
     """Scan the system for installed plugins.
 
     This function scans installed packages for the current Python environment
-    and looks for ones that specify PsychoPy entry points in their metadata.
-    Afterwards, you can call :func:`listPlugins()` to list them and
+    and looks for ones that specify PsychoPy sub-module entry points in their
+    metadata. Afterwards, you can call :func:`listPlugins()` to list them and
     `loadPlugin()` to load them into the current session. This function is
     called automatically when PsychoPy starts, so you do not need to call this
     unless packages have been added since the session began.
@@ -354,30 +378,43 @@ def scanPlugins():
 
     """
     global _installed_plugins_
-    _installed_plugins_ = {}  # clear installed plugins
+    _installed_plugins_ = {}  # clear the cache
 
-    refreshBundlePaths()  # refresh plugin bundles directory
+    # get all locations where packages are installed
+    scanLocations = site.getsitepackages()
+    if USER_PACKAGES_PATH is not None:
+        scanLocations = [USER_PACKAGES_PATH] + scanLocations
 
-    # make sure we have the plugin directory in the working set
-    pluginDir = prefs.paths['packages']
-    if pluginDir not in pkg_resources.working_set.entries:
-        pkg_resources.working_set.add_entry(pluginDir)
+    # Find all distributions in the user packages directory, check for entry
+    # points in the metadata, and add them to the installed plugins list.
+    for loc in scanLocations:
+        loc = str(loc)  # ensure format for pkg_resources
+        for dist in pkg_resources.find_distributions(loc):
+            if not dist.has_metadata('entry_points.txt'):
+                continue
+            entryMap = dist.get_entry_map()
+            if not entryMap:
+                logging.warning(
+                    "Package `{}` has an empty entry points map!".format(
+                        dist.project_name))
+                continue
+            else:
+                # Check if the entry point is relevant to PsychoPy. We only want 
+                # to load plugins that have entry points into PsychoPy modules. 
+                # Prevents entry points with names starting with `psychopy` 
+                # (e.g. `psychopy_plugin` or `psychopy` itself) from being 
+                # treated as a plugin.
+                validEntryPoints = collections.OrderedDict()
+                for fqn, attrs in entryMap.items():
+                    if not fqn.startswith('psychopy.') or fqn == 'psychopy':
+                        continue
 
-    # find all packages with entry points defined
-    pluginEnv = pkg_resources.Environment()  # supported by the platform
-    dists, _ = pkg_resources.working_set.find_plugins(pluginEnv)
+                    validEntryPoints[fqn] = attrs
 
-    for dist in dists:
-        entryMap = dist.get_entry_map()
-        if any([i.startswith('psychopy') for i in entryMap.keys()]):
-            logging.debug('Found plugin `{}` at location `{}`.'.format(
-                dist.project_name, dist.location))
-            _installed_plugins_[dist.project_name] = entryMap
-
-            # try adding the plugin to the working set
-            if dist.location not in pkg_resources.working_set.entries:
-                pkg_resources.working_set.add(dist)
-
+                # only add if there are PsychoPy entry points to assign
+                if validEntryPoints:
+                    _installed_plugins_[dist.project_name] = validEntryPoints
+    
     return len(_installed_plugins_)
 
 
@@ -417,17 +454,6 @@ def listPlugins(which='all'):
 
         for plugin in plugins.listPlugins():
             plugins.loadPlugin(plugin)
-
-    If certain plugins take arguments, you can do this give specific arguments
-    when loading all plugins::
-
-        pluginArgs = {'some-plugin': (('someArg',), {'setup': True, 'spam': 10})}
-        for plugin in plugins.listPlugins():
-            try:
-                args, kwargs = pluginArgs[plugin]
-                plugins.loadPlugin(plugin, *args, **kwargs)
-            except KeyError:
-                plugins.loadPlugin(plugin)
 
     Check if a plugin package named `plugin-test` is installed on the system and
     has entry points into PsychoPy::
@@ -566,9 +592,7 @@ def loadPlugin(plugin):
     Plugins are simply Python packages,`loadPlugin` will search for them in
     directories specified in `sys.path`. Only packages which define entry points
     in their metadata which pertain to PsychoPy can be loaded with this
-    function. This function also permits passing optional arguments to a
-    callable object in the plugin module to run any initialization routines
-    prior to loading entry points.
+    function.
 
     This function is robust, simply returning `True` or `False` whether a
     plugin has been fully loaded or not. If a plugin fails to load, the reason
@@ -576,10 +600,11 @@ def loadPlugin(plugin):
     will continue running. This may be undesirable in some cases, since features
     the plugin provides may be needed at some point and would lead to undefined
     behavior if not present. If you want to halt the application if a plugin
-    fails to load, consider using :func:`requirePlugin`.
+    fails to load, consider using :func:`requirePlugin` to assert that a plugin
+    is loaded before continuing.
 
     It is advised that you use this function only when using PsychoPy as a
-    library. If using the builder or coder GUI, it is recommended that you use
+    library. If using the Builder or Coder GUI, it is recommended that you use
     the plugin dialog to enable plugins for PsychoPy sessions spawned by the
     experiment runner. However, you can still use this function if you want to
     load additional plugins for a given experiment, having their effects
@@ -598,7 +623,7 @@ def loadPlugin(plugin):
         Also returns `True` if the plugin was already loaded by a previous
         `loadPlugin` call this session, this function will have no effect in
         this case. `False` is returned if the plugin defines no entry points
-        specific to PsychoPy or crashed (an error is logged).
+        specific to PsychoPy or crashed during import (an error is logged).
 
     Warnings
     --------
@@ -617,16 +642,21 @@ def loadPlugin(plugin):
 
         loadPlugin('psychopy-hardware-box')
 
-    You can give arguments to this function which are passed on to the plugin::
-
-        loadPlugin('psychopy-hardware-box', switchOn=True, baudrate=9600)
-
     You can use the value returned from `loadPlugin` to determine if the plugin
     is installed and supported by the platform::
 
         hasPlugin = loadPlugin('psychopy-hardware-box')
         if hasPlugin:
             # initialize objects which require the plugin here ...
+
+    Loading all plugins installed on the system::
+
+        scanPlugins()  # call first to find all plugins
+
+        for plugin in listPlugins('all'):
+            result = loadPlugin(plugin)
+            if not result:
+                print(f"Failed to load plugin {plugin}.")
 
     """
     global _loaded_plugins_, _failed_plugins_
@@ -765,7 +795,7 @@ def loadPlugin(plugin):
             except Exception:  # catch everything else
                 logging.error(
                     "Failed to load entry point `{}` of plugin `{}` for unknown"
-                    "reasons. Skipping.".format(str(ep), plugin))
+                    " reasons. Skipping.".format(str(ep), plugin))
 
                 if plugin not in _failed_plugins_:
                     _failed_plugins_.append(plugin)
@@ -788,6 +818,12 @@ def loadPlugin(plugin):
                     ep.__name__, fqn + '.' + attr))
 
             # --- handle special cases ---
+            # Note - We're going to handle special cases here for now, but
+            # this will eventually be handled by special functions in the 
+            # target modules (e.g. `getAllPhotometers()` in 
+            # `psychopy.hardware.photometer`) which can detect the loaded 
+            # attribute inside the module and add it to a collection.
+
             if fqn == 'psychopy.visual.backends':  # if window backend
                 _registerWindowBackend(attr, ep)
             elif fqn == 'psychopy.experiment.components':  # if component

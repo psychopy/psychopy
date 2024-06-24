@@ -1,20 +1,20 @@
 # Part of the PsychoPy library.
 # Copyright (C) 2015 Jonathan Peirce
-# CLAUDIO DE LA ROSA MUNAR <cdelarosa@delarosaresearch.com>, 2023.
+# CLAUDIO ALFREDO DE LA ROSA MUNAR <cdelarosa@delarosaresearch.com>, 2023.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: PsychoPy 2023.2.3\n"
+"Project-Id-Version: PsychoPy 2023.2.1\n"
 "POT-Creation-Date: 2023-08-31 10:34-0500\n"
 "PO-Revision-Date: \n"
-"Last-Translator: Claudio de la Rosa Munar <cdelarosa@delarosaresearch.com>\n"
+"Last-Translator: Claudio Alfredo de la Rosa Munar <cdelarosa@delarosaresearch.com>\n"
 "Language-Team: psychopy_spanish@opensciencetools.org\n"
 "Language: es_US\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.4.1\n"
+"X-Generator: Poedit 3.4.4\n"
 "X-Poedit-Basepath: ../../../../..\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-KeywordsList: _translate\n"
@@ -203,7 +203,8 @@ msgstr "El parámetro del dispositivo del componente del micrófono “{name}”
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:136
 #, python-brace-format
 msgid "The file you are attempting to run does not seem to exist, the full path supplied to Runner was {path}"
-msgstr "El archivo que está intentando ejecutar no parece existir, la ruta completa suministrada al corredor (Runner)fue {path}"
+msgstr ""
+"El archivo que está intentando ejecutar no parece existir, la ruta completa suministrada para la ejecución (Runner)fue {path}"
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:140
 #, python-brace-format
@@ -232,7 +233,7 @@ msgstr "&Ver"
 #: psychopy/app/_psychopyApp.py:99
 #, python-format
 msgid "&Open Builder view\t%s"
-msgstr "&Abrir vista Builder\t%s"
+msgstr "&Abrir vista de Builder\t%s"
 
 #: psychopy/app/_psychopyApp.py:102
 msgid "Open a new Builder view"
@@ -272,7 +273,7 @@ msgid ""
 "Requested: {}\n"
 "Err: {}"
 msgstr ""
-"Error al abrir Runner con la lista de archivos solicitados, se abrió sin la lista de archivos.\n"
+"Error al abrir el Runner con la lista de archivos solicitados, se abrió sin la lista de archivos.\n"
 "Solicitado: {}\n"
 "Error: {}"
 
@@ -282,7 +283,7 @@ msgid ""
 "Requested: {}\n"
 "Err: {}"
 msgstr ""
-"Error al abrir Coder con los scripts solicitados, se abrió sin scripts abiertos.\n"
+"Error al abrir el  Coder con los scripts solicitados, se abrió sin scripts abiertos.\n"
 "Solicitado: {}\n"
 "Error: {}"
 
@@ -301,9 +302,8 @@ msgid "Compatibility information"
 msgstr "Información de compatibilidad"
 
 #: psychopy/app/_psychopyApp.py:654
-#, fuzzy
 msgid "tips.txt"
-msgstr "consejos.txt"
+msgstr "tips.txt"
 
 #: psychopy/app/_psychopyApp.py:692
 msgid "  Loading plugins..."
@@ -414,7 +414,7 @@ msgstr "&Abrir...\t%s"
 
 #: psychopy/app/builder/builder.py:317 psychopy/app/coder/coder.py:1396
 msgid "Open &Recent"
-msgstr "Abierto y reciente"
+msgstr "Abrir Recientes"
 
 #: psychopy/app/builder/builder.py:320 psychopy/app/coder/coder.py:1398
 #, python-format
@@ -581,11 +581,11 @@ msgstr "Ejecutar el script actual"
 #: psychopy/app/builder/builder.py:449 psychopy/app/coder/coder.py:1679
 #, python-format
 msgid "Send to runner\t%s"
-msgstr "Enviar al corredor\t%s"
+msgstr "Enviar al runner\t%s"
 
 #: psychopy/app/builder/builder.py:450 psychopy/app/coder/coder.py:1680
 msgid "Send current script to runner"
-msgstr "Enviar script actual al corredor"
+msgstr "Enviar script actual a ejecución (runner)"
 
 #: psychopy/app/builder/builder.py:454 psychopy/app/coder/coder.py:1685
 msgid "PsychoPy updates..."
@@ -605,7 +605,7 @@ msgstr "Administrar paquetes de Python y complementos opcionales para PsychoPy"
 
 #: psychopy/app/builder/builder.py:464 psychopy/app/coder/coder.py:1693
 msgid "Benchmark wizard"
-msgstr "Asistente de evaluación comparativa"
+msgstr "Asistente de Benchmark"
 
 #: psychopy/app/builder/builder.py:465 psychopy/app/coder/coder.py:1694
 msgid "Check software & hardware, generate report"
@@ -1019,11 +1019,11 @@ msgstr "Compilar en script JS"
 
 #: psychopy/app/builder/builder.py:4379 psychopy/app/coder/coder.py:2940
 msgid "Runner"
-msgstr "Corredor"
+msgstr "Runner"
 
 #: psychopy/app/builder/builder.py:4381 psychopy/app/coder/coder.py:2941
 msgid "Send experiment to Runner"
-msgstr "Enviar experimento a Runner"
+msgstr "Enviar experimento a ejecución (Runner)"
 
 #: psychopy/app/builder/builder.py:4387 psychopy/app/coder/coder.py:2945
 msgid "Run"
@@ -1981,7 +1981,7 @@ msgstr "Error de sintaxis de Python en el campo `{}`: {}"
 #: psychopy/app/builder/validators.py:528
 #, python-brace-format
 msgid "Looks like your variable '{code}' in '{displayName}' should be set to update."
-msgstr "Parece que su variable {code}’ en ‘{displayName}’ debe ser fijada en actualizar."
+msgstr "Parece que su variable’{code}’ en ‘{displayName}’ debe ser definido para actualizar."
 
 #: psychopy/app/builder/validators.py:548
 msgid "Python var `{}` in `{}` is same as Name"
@@ -2128,7 +2128,7 @@ msgstr "Asistente de fuente"
 
 #: psychopy/app/coder/coder.py:1261
 msgid "Shell"
-msgstr "Concha"
+msgstr "Shell (Caparazón)"
 
 #: psychopy/app/coder/coder.py:1267 psychopy/app/plugin_manager/dialog.py:38
 msgid "Output"
@@ -2605,7 +2605,7 @@ msgstr "Cerrar el shell actual."
 
 #: psychopy/app/coder/repl.py:66
 msgid "Close the current shell and start a new one, this will clear any variables."
-msgstr "Cierre la ventana Shell / Cmd e inicie una nueva, esto borrará cualquier variables."
+msgstr "Cierre el sell actual y comience uno nuevo, esto borrará todas las variables."
 
 #: psychopy/app/coder/repl.py:86 psychopy/app/stdout/stdOutRich.py:223
 msgid "Clear all previous output."
@@ -2670,7 +2670,7 @@ msgstr "Esta versión es una actualización demasiado grande para manejarla auto
 
 #: psychopy/app/connections/updates.py:144
 msgid "Please fetch the latest version from www.psychopy.org and install manually."
-msgstr "Por favor obtenga la versión mas actualizada desde www.psychopy.org e instálela manualmente."
+msgstr "Por favor busque la última versión en www.psychopy.org e instálela de forma manual."
 
 #: psychopy/app/connections/updates.py:149
 msgid "Go to downloads"
@@ -3240,7 +3240,7 @@ msgstr ""
 #: psychopy/app/pavlovia_ui/project.py:676
 #, python-brace-format
 msgid "Could not find folder {directory}, please select a different local root."
-msgstr "No se encuentra la carpeta {directory}, por favor seleccione una nueva raiz."
+msgstr ""
 
 #: psychopy/app/pavlovia_ui/project.py:714
 msgid "Project info has changed, update online before closing?"
@@ -3844,7 +3844,7 @@ msgstr "ejecutar script"
 
 #: psychopy/app/preferencesDlg.py:118
 msgid "runner script"
-msgstr "script del corredor"
+msgstr "ejecutor(runner) script"
 
 #: psychopy/app/preferencesDlg.py:119
 msgid "stop script"
@@ -3984,7 +3984,7 @@ msgstr "tiempo de espera"
 
 #: psychopy/app/preferencesDlg.py:156
 msgid "Builder, Coder and Runner"
-msgstr "Constructor, codificador y corredor"
+msgstr "Constructor, Codificador y Ejecutor"
 
 #: psychopy/app/preferencesDlg.py:157
 msgid "same as in the file"
@@ -4109,7 +4109,7 @@ msgstr "Cargando tarea"
 
 #: psychopy/app/runner/runner.py:147
 msgid "Closing Runner"
-msgstr "Corredor de cierre"
+msgstr "Cerrando el Runner"
 
 #: psychopy/app/runner/runner.py:150
 msgid "Quitting PsychoPy"
@@ -4267,27 +4267,27 @@ msgstr "&Ventana siguiente\t%s"
 
 #: psychopy/app/utils.py:1466
 msgid "Show &builder"
-msgstr "Mostrar y constructor"
+msgstr "Mostrar builder"
 
 #: psychopy/app/utils.py:1466
 msgid "Show Builder"
-msgstr "Mostrar generador"
+msgstr "Mostrar Builder"
 
 #: psychopy/app/utils.py:1473
 msgid "Show &coder"
-msgstr "Mostrar y codificar"
+msgstr "Mostrar coder"
 
 #: psychopy/app/utils.py:1473
 msgid "Show Coder"
-msgstr "Mostrar codificador"
+msgstr "Mostrar Coder"
 
 #: psychopy/app/utils.py:1480
 msgid "Show &runner"
-msgstr "Mostrar y corredor"
+msgstr "Mostrar ejecutor"
 
 #: psychopy/app/utils.py:1480
 msgid "Show Runner"
-msgstr "Mostrar corredor"
+msgstr "Mostrar Runner"
 
 #: psychopy/data/experiment.py:425
 msgid "Attempted to pause experiment '{}', but it is already paused. Status will remain unchanged."
@@ -4339,7 +4339,7 @@ msgstr "Archivo de condiciones no encontrado: %s"
 
 #: psychopy/data/utils.py:377
 msgid "openpyxl or xlrd is required for loading excel files, but neither was found."
-msgstr "openpyxl o xlrd se requiere para cargar archivos de excel, pero ninguno se encontró."
+msgstr "openpyxl o xlrd es requerido para cargar archivos de excel, pero ninguno ha sido encontrado."
 
 #: psychopy/data/utils.py:452
 #, python-format
@@ -4432,7 +4432,7 @@ msgstr "Duración esperada(s)"
 
 #: psychopy/experiment/components/_base.py:106
 msgid "Store the onset/offset times in the data file (as well as in the log file)."
-msgstr "Almacene los tiempos de inicio/compensación en el archivo de datos (así como en el archivo de registro)."
+msgstr "Almacena los tiempos onset/offset en un archivo de datos (así como el archivo tipo log)."
 
 #: psychopy/experiment/components/_base.py:111
 msgid "Save onset/offset times"
@@ -5080,7 +5080,7 @@ msgstr "Velocidad de los puntos (desplazamiento por cuadro en las unidades espec
 
 #: psychopy/experiment/components/dots/__init__.py:92
 msgid "Coherence of the dots (fraction moving in the signal direction on any one frame)"
-msgstr "Coherencia de los puntos (fracción que se mueve en la dirección de la señal en cualquier cuadro)"
+msgstr "Coherencia en los puntos (fracción moviéndose en la dirección de la señal en cualquiera de los cuadros)."
 
 #: psychopy/experiment/components/dots/__init__.py:101
 msgid "Size of the dots IN PIXELS regardless of the set units"
@@ -5293,7 +5293,7 @@ msgstr "Una imagen para definir la máscara alfa (es decir, forma): gauss, círc
 
 #: psychopy/experiment/components/grating/__init__.py:73
 msgid "Spatial frequency of image repeats across the grating in 1 or 2 dimensions, e.g. 4 or [2,3]"
-msgstr "La frecuencia espacial de la imagen se repite a lo largo de la rejilla en 1 o 2 dimensiones, p. 4 o [2,3]"
+msgstr "La frecuencia espacial de la imagen se repite a través del degradado en 1 o 2 dimensiones, p.e. 4 o [2,3]"
 
 #: psychopy/experiment/components/grating/__init__.py:95 psychopy/experiment/components/image/__init__.py:116
 #: psychopy/experiment/components/movie/__init__.py:127 psychopy/experiment/components/polygon/__init__.py:103
@@ -5344,8 +5344,8 @@ msgstr "La imagen que se mostrará: un nombre de archivo, incluida la ruta"
 #: psychopy/experiment/components/image/__init__.py:63
 msgid "An image to define the alpha mask through which the image is seen - gauss, circle, None or a filename (including path)"
 msgstr ""
-"Una imagen para definir la máscara alfa a través de la cual se ve la imagen: gauss, círculo, Ninguno o un nombre de archivo "
-"(incluida la ruta)"
+"Una imagen para definir la mascará alpha a través de la cual la imagen es vista - gausiano, circulo, Ninguno o un nombre de "
+"archivo ( incluyendo su ruta)"
 
 #: psychopy/experiment/components/image/__init__.py:72
 msgid "Resolution of the mask if one is used."
@@ -5962,7 +5962,7 @@ msgstr "Color de la línea alrededor de la barra de progreso."
 
 #: psychopy/experiment/components/progress/__init__.py:65
 msgid "Value between 0 (not started) and 1 (complete) to set the progress bar to."
-msgstr "Valor entre 0 (no iniciado) y 1 (completo) para configurar la barra de progreso."
+msgstr "Valor entre 0 (no iniciado) y 1 ( completo) para definir la barra de progreso."
 
 #: psychopy/experiment/components/progress/__init__.py:67
 msgid "Progress"
@@ -6281,7 +6281,7 @@ msgstr "Ajuste de fondo"
 
 #: psychopy/experiment/components/routineSettings/__init__.py:147
 msgid "Save the start and stop times of this Routine (according to the global clock) to the data file."
-msgstr "Guarde los tiempos de inicio y finalización de esta rutina (según el reloj global) en el archivo de datos."
+msgstr "Guarda los tiempos de inicio y de finalización de esta rutina (de acuerdo al reloj global) del archivo de datos."
 
 #: psychopy/experiment/components/serialOut/__init__.py:29
 msgid "Serial out: send signals from a serial port"
@@ -6626,7 +6626,9 @@ msgstr "Guardar archivo hdf5"
 
 #: psychopy/experiment/components/settings/__init__.py:389
 msgid "How much output do you want in the log files? ('error' is fewest messages, 'debug' is most)"
-msgstr "¿Cuánta salida desea en los archivos de registro? (‘error’ es la menor cantidad de mensajes, ‘debug’ es la mayor parte)"
+msgstr ""
+"Que cantidad de salida usted quiere en el archivo tipo log? (‘error’ significa menos mensajes, ‘debug’ significa la mayor "
+"cantidad)"
 
 #: psychopy/experiment/components/settings/__init__.py:400
 msgid "Place the HTML files will be saved locally "
@@ -7018,7 +7020,7 @@ msgstr "Código personalizado"
 
 #: psychopy/experiment/components/static/__init__.py:32
 msgid "Static: Static screen period (e.g. an ISI). Useful for pre-loading stimuli."
-msgstr "Estático: Período de pantalla estático (por ejemplo, un ISI). Útil para precarga de estímulos."
+msgstr "Estatica: Periodo de tiempo estático (p.e. un ISI). Útil para precargar estímulos."
 
 #: psychopy/experiment/components/static/__init__.py:49
 msgid "Custom code to be run during the static period (after updates)"
@@ -7274,8 +7276,8 @@ msgid ""
 "To have a fixed random sequence provide an integer of your choosing here. Leave blank to have a new random sequence on each run "
 "of the experiment."
 msgstr ""
-"Para tener una secuencia aleatoria fija, proporcione aquí un número entero de su elección. Déjelo en blanco para tener una nueva "
-"secuencia aleatoria en cada ejecución del experimento."
+"Para tener una secuencia aleatoria fija provea un número entero de su preferencia aquí. Deje en blanco para tener una secuencia "
+"aleatoria para cada ejecución de este experimento."
 
 #: psychopy/experiment/loops.py:145 psychopy/experiment/loops.py:490 psychopy/experiment/loops.py:627
 msgid ""
@@ -8071,7 +8073,7 @@ msgstr ""
 
 #: psychopy/preferences/hints.py:67
 msgid "Show an error dialog when PsychoPy encounters an unhandled internal error."
-msgstr "Muestra un cuadro de diálogo de error cuando PsychoPy encuentra un error interno no controlado."
+msgstr "Muestra un dialogo de error cuando PsychoPy encuentra un error interno no manejado."
 
 #: psychopy/preferences/hints.py:70
 msgid "Theme"
@@ -8431,7 +8433,7 @@ msgstr "PavloviaSession.createProject recibió un nombre de espacio ({namespace}
 #: psychopy/projects/pavlovia.py:310
 #, python-brace-format
 msgid "Project `{namespace}/{name}` already exists, please choose another name."
-msgstr "El proyecto `{namespace}/{name}` ya existe, elija otro nombre."
+msgstr "El proyecto `{namespace}/{name}` ya existe, por favor escoja otro nombre."
 
 #: psychopy/projects/pavlovia.py:462
 msgid "Most stars"
@@ -8493,7 +8495,7 @@ msgid ""
 msgstr ""
 "\n"
 "\n"
-"Error de sincronización: no se pudo encontrar el proyecto con id {}"
+"La Sincronización falló - no se ha podido encontrar proyecto con id {}"
 
 #: psychopy/projects/pavlovia.py:1186
 msgid "Avatar is too big, should be at most 200 KB."
@@ -8614,11 +8616,11 @@ msgstr "Descargar la biblioteca PsychoPy desde Github (puede tardar un poco)"
 
 #: psychopy/tools/wizard.py:32
 msgid "Benchmark"
-msgstr "Parámetro"
+msgstr "Benchmark"
 
 #: psychopy/tools/wizard.py:33
 msgid "benchmark version"
-msgstr "versión de referencia"
+msgstr "versión del benchmark"
 
 #: psychopy/tools/wizard.py:35
 msgid "dots_circle"
@@ -8909,9 +8911,9 @@ msgid ""
 "                </p>"
 msgstr ""
 "<p>Recursos:\n"
-" | <a href=\"https://www.psychopy.org/documentation.html\">En-documentación de línea</a>\n"
-" | Descargar <a href=\"https://www.psychopy.org/PsychoPyManual.pdf\">Manual en PDF</a>\n"
-" | <a href=\"https://discourse.psychopy.org\">Buscar usuario-archivos de grupo</a>\n"
+"                |<a href=\"https://www.psychopy.org/documentation.html\">En-documentación de línea</a>\n"
+"                | Descargar <a href=\"https://www.psychopy.org/PsychoPyManual.pdf\">Manual en PDF</a>\n"
+"                |<a href=\"https://discourse.psychopy.org\">Buscar usuario-archivos de grupo</a>\n"
 "</p>"
 
 #: psychopy/tools/wizard.py:455
@@ -9023,7 +9025,7 @@ msgstr "luego vuelve a cambiar. No necesitas hacer nada."
 
 #: psychopy/tools/wizard.py:567
 msgid "Optional: For best results, please quit all email programs, web-browsers, "
-msgstr "Opcional: para obtener mejores resultados, cierre todos los programas de correo electrónico, navegadores web, "
+msgstr "Opcional: Para mejorar resultados, por favor finalice todos los programas de e-mail, navegadores de internet,"
 
 #: psychopy/tools/wizard.py:570
 msgid "Dropbox, backup or sync services, and others."
@@ -9073,7 +9075,7 @@ msgstr " Asistente de evaluación comparativa (Benchmark)"
 
 #: psychopy/tools/wizard.py:650
 msgid "Benchmarking takes ~20-30 seconds to gather"
-msgstr "La evaluación comparativa tarda entre 20 y 30 segundos en recopilarse"
+msgstr "La evaluación tipo Benchmark tarda entre 20 y 30 segundos en recopilarse"
 
 #: psychopy/tools/wizard.py:651
 msgid "configuration and performance data. Begin?"
@@ -9089,11 +9091,11 @@ msgstr "ventana visual para dibujar"
 
 #: psychopy/tools/wizard.py:702
 msgid "Benchmark complete! (See the Coder output window.)"
-msgstr "¡Evaluación comparativa completa! (Consulte la ventana de resultados del Coder)\""
+msgstr "¡Evaluación Benchmark completa! (Consulte la ventana de resultados del Coder)\""
 
 #: psychopy/tools/wizard.py:711
 msgid "Click OK to view full configuration and benchmark data."
-msgstr "Haga clic en Aceptar para ver la configuración completa y los datos comparativos."
+msgstr "Haga clic en Aceptar para ver la configuración completa y los datos del benchmark."
 
 #: psychopy/tools/wizard.py:712
 msgid "Click Cancel to stay in PsychoPy."

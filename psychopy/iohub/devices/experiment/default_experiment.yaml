@@ -6,12 +6,23 @@
 # indicated here.
 #
 Experiment:
-    # name: The unique name to assign to the evice instance created.
+    # name: The unique name to assign to the device instance created.
     #   The device is accessed from within the PsychoPy script 
     #   using the name's value; therefore it must be a valid Python
     #   variable name as well.
     #
     name: experiment
+
+    # filename: The name of files saved by an attached PsychoPy experiment.
+    #   This is usually provided as PsychoPy ExperimentHandler.dataFileName.
+    #   It gives ioHub server awareness of filenames used by PsychoPy when a
+    #   DataStore file is not being saved by the ioHub. This handle is useful
+    #   when the ioHub is being used to monitor the PsychoPy experiment, but
+    #   all data is being saved by the PsychoPy ExperimentHandler, while there
+    #   are external data files transferred through the ioHub server that need
+    #   to be saved in the same naming convention as the PsychoPy data files.
+    #   Default value is Python None type. Valid value is any string.
+    filename:
 
     # monitor_event_types: Specify which of the device's supported event
     #   types you would like the ioHub to monitor for.

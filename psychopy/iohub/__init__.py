@@ -26,7 +26,7 @@ try:
     _DATA_STORE_AVAILABLE = True
 except ImportError:
     print2err('WARNING: pytables package not found. ',
-              'ioHub functionality will be disabled.')
+              'ioHub hdf5 datastore functionality will be disabled.')
 except Exception:
     printExceptionDetailsToStdErr()
 

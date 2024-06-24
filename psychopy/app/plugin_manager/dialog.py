@@ -8,6 +8,7 @@ from psychopy.app import getAppInstance
 from psychopy.app.plugin_manager import PluginManagerPanel, PackageManagerPanel, InstallStdoutPanel
 from psychopy.experiment import getAllElements
 from psychopy.localization import _translate
+import psychopy.logging as logging
 import psychopy.tools.pkgtools as pkgtools
 import psychopy.app.jobs as jobs
 import sys
@@ -16,6 +17,10 @@ import subprocess as sp
 import psychopy.plugins as plugins
 
 pkgtools.refreshPackages()  # build initial package cache
+
+
+# flag to indicate if PsychoPy needs to be restarted after installing a package
+NEEDS_RESTART = False
 
 
 class EnvironmentManagerDlg(wx.Dialog):
@@ -186,6 +191,9 @@ class EnvironmentManagerDlg(wx.Dialog):
         )
         self.pipProcess.start(env=env)
 
+        global NEEDS_RESTART  # flag as needing a restart
+        NEEDS_RESTART = True
+
     def installPackage(self, packageName, version=None, extra=None):
         """Install a package.
 
@@ -246,9 +254,23 @@ class EnvironmentManagerDlg(wx.Dialog):
         # On MacOS, we need to install to target instead of user since py2app
         # doesn't support user installs correctly, this is a workaround for that
         env = os.environ.copy()
+
         # build the shell command to run the script
-        command = [pyExec, '-m', 'pip', 'install', str(packageName), 
-                    '--user', '--prefer-binary']
+        command = [pyExec, '-m', 'pip', 'install', str(packageName)]
+
+        # check if we are inside a venv, don't use --user if we are
+        if hasattr(sys, 'real_prefix') or (
+                hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix):
+            # we are in a venv
+            logging.warning(
+                "You are installing a package inside a virtual environment. "
+                "The package will be installed in the user site-packages directory."
+            )
+        else:
+            command.append('--user')
+        
+        # add other options to the command
+        command += ['--prefer-binary', '--no-input', '--no-color']
             
         # write command to output panel
         self.output.writeCmd(" ".join(command))
@@ -324,12 +346,17 @@ class EnvironmentManagerDlg(wx.Dialog):
             # enable plugin
             try:
                 pluginInfo.activate()
-                plugins.loadPlugin(pluginInfo.pipname)
+                # plugins.loadPlugin(pluginInfo.pipname)
             except RuntimeError:
                 prefs.general['startUpPlugins'].append(pluginInfo.pipname)
                 self.output.writeStdErr(_translate(
                     "[Warning] Could not activate plugin. PsychoPy may need to restart for plugin to take effect."
                 ))
+
+            global NEEDS_RESTART  # flag as needing a restart
+            NEEDS_RESTART = True
+            showNeedsRestartDialog()
+
             # show list of components/routines now available
             emts = []
             for name, emt in getAllElements().items():
@@ -359,22 +386,37 @@ class EnvironmentManagerDlg(wx.Dialog):
 
     def onClose(self, evt=None):
         # Get changes to plugin states
-        pluginChanges = self.pluginMgr.pluginList.getChanges()
+        # pluginChanges = self.pluginMgr.pluginList.getChanges()
 
-        # If any plugins have been uninstalled, prompt user to restart
-        if any(["uninstalled" in changes for changes in pluginChanges.values()]):
-            msg = _translate(
-                "It looks like you've uninstalled some plugins. In order for this to take effect, you will need to "
-                "restart the PsychoPy app."
-            )
-            dlg = wx.MessageDialog(
-                None, msg,
-                style=wx.ICON_WARNING | wx.OK
-            )
-            dlg.ShowModal()
+        # # If any plugins have been uninstalled, prompt user to restart
+        # if any(["uninstalled" in changes for changes in pluginChanges.values()]):
+        #     msg = _translate(
+        #         "It looks like you've uninstalled some plugins. In order for this to take effect, you will need to "
+        #         "restart the PsychoPy app."
+        #     )
+        #     dlg = wx.MessageDialog(
+        #         None, msg,
+        #         style=wx.ICON_WARNING | wx.OK
+        #     )
+        #     dlg.ShowModal()
 
-        # Repopulate component panels
-        for frame in self.app.getAllFrames():
-            if hasattr(frame, "componentButtons") and hasattr(frame.componentButtons, "populate"):
-                frame.componentButtons.populate()
+        # # Repopulate component panels
+        # for frame in self.app.getAllFrames():
+        #     if hasattr(frame, "componentButtons") and hasattr(frame.componentButtons, "populate"):
+        #         frame.componentButtons.populate()
 
+        if evt is not None:
+            evt.Skip()
+
+
+def showNeedsRestartDialog():
+    """Show a dialog asking the user if they would like to restart PsychoPy.
+    """
+    msg = _translate("Please restart PsychoPy to apply changes.")
+
+    # show a simple dialog that asks the user to restart PsychoPy
+    dlg = wx.MessageDialog(
+        None, msg, "Restart Required",
+        style=wx.ICON_INFORMATION | wx.OK
+    )
+    dlg.ShowModal()
