@@ -346,7 +346,7 @@ class AppSigner:
             # Eject the disk image
             for attemptN in range(5):
                 exitcode, output = subprocess.getstatusoutput(f"diskutil eject {volume}")
-                print(f"Attempt {attemptN}:" output)
+                print(f"Attempt {attemptN}: {output}")
                 if exitcode == 0:
                     break
                 # have a rest and try again
