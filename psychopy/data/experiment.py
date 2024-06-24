@@ -489,6 +489,39 @@ class ExperimentHandler(_ComparisonMixin):
         # rewind trials in current loop
         self.currentLoop.rewindTrials(n)
     
+    def getAllTrials(self):
+        """
+        Returns all trials (elapsed, current and upcoming) with an index indicating which trial is 
+        the current trial.
+
+        Returns
+        -------
+        list[Trial]
+            List of trials, in order (oldest to newest)
+        int
+            Index of the current trial in this list
+        """
+        # return None if there isn't a TrialHandler2 active
+        if not isinstance(self.currentLoop, TrialHandler2):
+            return [None], 0
+        # get all trials from current loop
+        return self.currentLoop.getAllTrials()
+
+    def getCurrentTrial(self):
+        """
+        Returns the current trial (`.thisTrial`)
+
+        Returns
+        -------
+        Trial
+            The current trial
+        """
+        # return None if there isn't a TrialHandler2 active
+        if not isinstance(self.currentLoop, TrialHandler2):
+            return None
+        
+        return self.currentLoop.getCurrentTrial()
+    
     def getFutureTrial(self, n=1):
         """
         Returns the condition for n trials into the future, without

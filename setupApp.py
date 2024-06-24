@@ -106,7 +106,7 @@ packages = ['pydoc',  # needed for help()
             # handy science tools
             'tables',  # 'cython',
             # these aren't needed, but liked
-            'pylsl', 'pygaze',
+            'pylsl',
             #'smite',  # https://github.com/marcus-nystrom/SMITE (not pypi!)
             'cv2',
             'questplus',
@@ -130,7 +130,6 @@ if sys.version_info < (3, 9):
             'Phidget22',
             'hid',
             'macropy',
-            'googleapiclient', # in transcribe
         ]
     )
     packages.append('PyQt5')
@@ -144,8 +143,8 @@ packagePipNames = { # packages that are imported as one thing but installed as a
     'opencv': 'opencv-python',
     'googleapiclient': 'google-api-python-client',
     'macropy': 'macropy3',
-
 }
+
 for pkg in includes+packages:
     
     try:

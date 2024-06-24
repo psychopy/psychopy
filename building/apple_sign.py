@@ -270,7 +270,7 @@ class AppSigner:
                   f'--apple-id "{self._apple_id}" '
                   f'--team-id {self._team_id} '
                   f'--password {self._pword} '
-                  f' developer_log.json')
+                  f'_notarization.json')
         print(output)
 
     def staple(self, filepath):
