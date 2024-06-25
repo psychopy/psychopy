@@ -16,6 +16,7 @@ import collections.abc
 import pathlib
 import psychopy.logging as logging
 import psychopy.plugins as plugins
+from psychopy.plugins.util import getEntryPoints
 from importlib.metadata import entry_points
 from pathlib import Path
 from psychopy.preferences import prefs
@@ -269,7 +270,7 @@ def getDevicePaths(device_name=""):
 
     if 'eyetracker' in device_name.lower():
         # Find entry points targeting psychopy.iohub.devices.eyetracker
-        for ep in entry_points()['psychopy.iohub.devices.eyetracker']:
+        for ep in getEntryPoints('psychopy.iohub.devices.eyetracker', submodules=False, flatten=True):
             # load the target the entry point points to, it could be a class or a module
             try:
                 ep_target = ep.load()
