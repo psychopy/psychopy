@@ -431,13 +431,15 @@ class AudioClip:
         Parameters
         ----------
         text : str
-            Text to synthesize.
+            Text to synthesize into speech.
         engine : str
             TTS engine to use for speech synthesis. Default is 'gtts'.
         synthConfig : dict or None
             Additional configuration options for the specified engine. These
             are specified using a dictionary (ex. 
-            `synthConfig={'slow': False}`).
+            `synthConfig={'slow': False}`). These paramters vary depending on 
+            the engine in use. Default is `None` which uses the default
+            configuration for the engine.
         outFile : str or None
             File name to save the synthesized speech to. This can be used to 
             save the audio to a file for later use. If `None`, the audio clip 
@@ -449,6 +451,27 @@ class AudioClip:
         -------
         AudioClip
             Audio clip containing the synthesized speech.
+
+        Examples
+        --------
+        Synthesize speech using the default gTTS engine::
+
+            import psychopy.sound as sound
+            voiceClip = sound.AudioClip.synthesizeSpeech(
+                'How are you doing today?')
+
+        Save the synthesized speech to a file for later use::
+
+            voiceClip = sound.AudioClip.synthesizeSpeech(
+                'How are you doing today?', outFile='/path/to/speech.mp3')
+
+        Synthesize speech using the gTTS engine with a specific language, 
+        timeout, and top-level domain::
+
+            voiceClip = sound.AudioClip.synthesizeSpeech(
+                'How are you doing today?', 
+                engine='gtts', 
+                synthConfig={'lang': 'en', 'timeout': 10, 'tld': 'us'})
 
         """
         if engine not in ['gtts']:
@@ -465,30 +488,40 @@ class AudioClip:
                 raise ImportError(
                     'The gTTS package is required for speech synthesis.')
 
-            # inform the user that the timeout is infinite
-            timeout = synthConfig.get('timeout', None)
-            if timeout is None:
+            # set defaults for parameters if not specified
+            if 'timeout' not in synthConfig:
+                synthConfig['timeout'] = None
                 logging.warning(
                     'The gTTS speech-to-text engine has been configured with '
                     'an infinite timeout. The application may stall if the '
                     'server is unresponsive. To set a timeout, specify the '
                     '`timeout` key in `synthConfig`.')
-            if 'timeout' in synthConfig: # remove the key so we don't pass it
-                del synthConfig['timeout']
             
-            # check if the language is supported
-            language = synthConfig.get('lang', 'en')
-            if language not in gtts.lang.tts_langs():
-                raise ValueError('Unsupported language code specified.')
-            if 'lang' in synthConfig:
-                del synthConfig['lang']
+            if 'lang' not in synthConfig:  # language
+                synthConfig['lang'] = 'en'
+                logging.info(
+                    "Language not specified, defaulting to '{}' for speech "
+                    "synthesis engine.".format(synthConfig['lang']))
+            else:
+                # check if the value is a valid language code
+                if synthConfig['lang'] not in gtts.lang.tts_langs():
+                    raise ValueError('Unsupported language code specified.')
+
+            if 'tld' not in synthConfig:  # top-level domain
+                synthConfig['tld'] = 'us'
+                logging.info(
+                    "Top-level domain (TLD) not specified, defaulting to '{}' "
+                    "for synthesis engine.".format(synthConfig['tld']))
+
+            if 'slow' not in synthConfig:  # slow mode
+                synthConfig['slow'] = False
+                logging.info(
+                    "Slow mode not specified, defaulting to '{}' for synthesis "
+                    "engine.".format(synthConfig['slow']))
 
             try:
                 handle = gtts.gTTS(
                     text=text, 
-                    tld=synthConfig.get('tld', 'us'), 
-                    lang=language, 
-                    timeout=timeout,
                     **synthConfig)
             except gtts.gTTSError as e:
                 raise AudioSynthesisError(
