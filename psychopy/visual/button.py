@@ -57,18 +57,6 @@ class ButtonStim(TextBox2):
         # Return True if pressed in
         return bool(self.listener.isPressedIn(self))
 
-    @property
-    def status(self):
-        if hasattr(self, "_status"):
-            return self._status
-
-    @status.setter
-    def status(self, value):
-        if value == STARTED and self._status not in [STARTED, PAUSED]:
-            self.buttonClock.reset()  # Reset clock
-        # Set status
-        self._status = value
-
     def reset(self):
         """
         Clear previously stored times on / off and check current click state.

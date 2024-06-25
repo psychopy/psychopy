@@ -65,6 +65,7 @@ class AppSigner:
         files = list(self.appFile.glob('**/*.dylib'))
         files.extend(self.appFile.glob('**/*.so'))
         files.extend(self.appFile.glob('**/git-core/git*'))
+        files.extend(self.appFile.glob('**/git-core/scalar'))  # for some reason it's named differently
         files.extend(self.appFile.glob('**/cv2/.dylibs/*'))
         # ffmpeg
         files.extend(self.appFile.glob('**/imageio_ffmpeg/binaries/*'))
@@ -223,6 +224,10 @@ class AppSigner:
             print("[Error] Upload failed: You probably need a new app-specific "
                   "password from https://appleid.apple.com/account/manage")
             exit(1)
+        elif exitcode != 0:
+            print(f"[Error] Upload failed with message: {output}")
+            exit(exitcode)
+
         print(output)
         uuid = m[0].strip()
         self._appNotarizeUUID = uuid
@@ -265,12 +270,16 @@ class AppSigner:
                   f'--password {self._pword}')
         print(output)
         # always fetch the log file too
-        exitcode, output = subprocess.getstatusoutput(f'xcrun notarytool log {self._appNotarizeUUID} '
+        exitcode2, output = subprocess.getstatusoutput(f'xcrun notarytool log {self._appNotarizeUUID} '
                   f'--apple-id "{self._apple_id}" '
                   f'--team-id {self._team_id} '
                   f'--password {self._pword} '
                   f'_notarization.json')
         print(output)
+        if exitcode != 0:
+            print("`xcrun notarytool wait` returned exit code {exitcode}. Exiting immediately.")
+            exit(exitcode)
+
 
     def staple(self, filepath):
         cmdStr = f'xcrun stapler staple {filepath}'
@@ -279,7 +288,7 @@ class AppSigner:
         print(f"exitcode={exitcode}: {output}")
         if exitcode != 0:
             print('*********Staple failed*************')
-            exit(1)
+            exit(exitcode)
         else:
             print(f"Staple successful. You can verify with\n    xcrun stapler validate {filepath}")
 
@@ -331,21 +340,17 @@ class AppSigner:
         self.staple(f"'{volName}/{appName}'")
     
         time.sleep(10)  # wait for 10s and then try more forcefully
-        import diskutil_parser.cmd
-        import sh
-        disks = diskutil_parser.cmd.diskutil_list()
-        for disk in disks:
-            print(f"checking /dev/{disk.device_id} ({disk.partition_scheme})")
-            for part in disk.partitions:
-                if "PsychoPy" in part.name:
-                    print("Ejecting - ", part.name, part.mount_point)
-                    try:
-                        sh.diskutil("unmountDisk", "force", f"/dev/{disk.device_id}")
-                        sh.diskutil("eject", f"/dev/{disk.device_id}")
-                    except sh.ErrorReturnCode_1:
-                        print("Can't eject that disk")
-                        exit(1)
 
+        # try to eject all volumens with PsychoPy in the name
+        for volume in Path("/Volumes").glob("PsychoPy*"):
+            # Eject the disk image
+            for attemptN in range(5):
+                exitcode, output = subprocess.getstatusoutput(f"diskutil eject {volume}")
+                print(f"Attempt {attemptN}: {output}")
+                if exitcode == 0:
+                    break
+                # have a rest and try again
+                time.sleep(5)
 
     def dmgCompress(self):
         dmgFilename = str(self.appFile).replace(".app", "_rw.dmg")
@@ -458,7 +463,9 @@ def main():
             signer.signSingleFile(dmgFile, removeFailed=False, verbose=True)
 
             if NOTARIZE:
-                signer.upload(dmgFile)
+                OK = signer.upload(dmgFile)
+                if not OK: 
+                    return 0
                 # notarize and staple
                 signer.awaitNotarized()
                 signer.staple(dmgFile)
