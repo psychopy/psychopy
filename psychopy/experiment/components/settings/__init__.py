@@ -1870,7 +1870,7 @@ class SettingsComponent:
             "if expInfo is not None:\n"
             "    # get/measure frame rate if not already in expInfo\n"
             "    if win._monitorFrameRate is None:\n"
-            "        win.getActualFrameRate(infoMsg=%(frameRateMsg)s)\n"
+            "        win._monitorFrameRate = win.getActualFrameRate(infoMsg=%(frameRateMsg)s)\n"
             "    expInfo['frameRate'] = win._monitorFrameRate\n"
             )
             buff.writeIndentedLines(code % params)
