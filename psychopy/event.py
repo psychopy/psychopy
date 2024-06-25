@@ -32,9 +32,12 @@ try:
 except ImportError:
     havePyglet = False
 try:
+    import warnings
     import glfw
-    if not glfw.init():
-        raise ImportError
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore')
+        if not glfw.init():
+            raise ImportError
     haveGLFW = True
 except ImportError:
     haveGLFW = False
