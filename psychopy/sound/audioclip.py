@@ -431,13 +431,15 @@ class AudioClip:
         Parameters
         ----------
         text : str
-            Text to synthesize.
+            Text to synthesize into speech.
         engine : str
             TTS engine to use for speech synthesis. Default is 'gtts'.
         synthConfig : dict or None
             Additional configuration options for the specified engine. These
             are specified using a dictionary (ex. 
-            `synthConfig={'slow': False}`).
+            `synthConfig={'slow': False}`). These paramters vary depending on 
+            the engine in use. Default is `None` which uses the default
+            configuration for the engine.
         outFile : str or None
             File name to save the synthesized speech to. This can be used to 
             save the audio to a file for later use. If `None`, the audio clip 
@@ -495,17 +497,27 @@ class AudioClip:
                     'server is unresponsive. To set a timeout, specify the '
                     '`timeout` key in `synthConfig`.')
             
-            if 'lang' not in synthConfig:
+            if 'lang' not in synthConfig:  # language
                 synthConfig['lang'] = 'en'
+                logging.info(
+                    "Language not specified, defaulting to '{}' for speech "
+                    "synthesis engine.".format(synthConfig['lang']))
             else:
                 # check if the value is a valid language code
                 if synthConfig['lang'] not in gtts.lang.tts_langs():
                     raise ValueError('Unsupported language code specified.')
 
-            if 'tld' not in synthConfig:
+            if 'tld' not in synthConfig:  # top-level domain
                 synthConfig['tld'] = 'us'
                 logging.info(
-                    'Using the US top-level domain (TLD) for the gTTS engine.')
+                    "Top-level domain (TLD) not specified, defaulting to '{}' "
+                    "for synthesis engine.".format(synthConfig['tld']))
+
+            if 'slow' not in synthConfig:  # slow mode
+                synthConfig['slow'] = False
+                logging.info(
+                    "Slow mode not specified, defaulting to '{}' for synthesis "
+                    "engine.".format(synthConfig['slow']))
 
             try:
                 handle = gtts.gTTS(
