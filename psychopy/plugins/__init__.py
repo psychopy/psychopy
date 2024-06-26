@@ -399,7 +399,7 @@ def installPlugin(package, local=True, upgrade=False, forceReinstall=False,
     import psychopy.tools.pkgtools as pkgtools
     pkgtools.installPackage(
         package, 
-        target=installWhere,
+        target=USER_PACKAGES_PATH,
         upgrade=upgrade,
         forceReinstall=forceReinstall,
         noDeps=noDeps)
@@ -432,6 +432,8 @@ def scanPlugins():
             if not ep.group.startswith("psychopy"):
                 continue
             # make sure we have an entry for this distribution
+            if sys.version.startswith("3.8"):
+                dist.name = dist.metadata['name']
             if dist.name not in _installed_plugins_:
                 _installed_plugins_[dist.name] = {}
             # make sure we have an entry for this group
@@ -603,12 +605,12 @@ def loadPluginBuilderElements(plugin):
     # import all relevant classes
     for point in relevantPoints:
         try:
-            importlib.import_module(point.module)
+            ep.load()
             return True
         except:
             # if import failed for any reason, log error and mark failure
             logging.error(
-                f"Failed to load {point.module}.{point.name} from plugin {plugin}."
+                f"Failed to load {point.value}.{point.name} from plugin {plugin}."
             )
             _failed_plugins_.append(plugin)
             return False
@@ -756,7 +758,7 @@ def loadPlugin(plugin):
         # that the entry points are valid. This prevents plugins from being
         # partially loaded which can cause all sorts of undefined behaviour.
         for attr, ep in attrs.items():
-            module_name = ep.module.split(".")[0]
+            module_name = ep.value.split(".")[0]
             # Load the module the entry point belongs to, this happens
             # anyways when .load() is called, but we get to access it before
             # we start binding. If the module has already been loaded, don't
