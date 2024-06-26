@@ -263,12 +263,14 @@ class AppSigner:
             return zipFilename
 
     def awaitNotarized(self):
+        print("Waiting for notarization to complete"); sys.stdout.flush()
         # can use 'xcrun notarytool info' to check status or 'xcrun notarytool wait'
         exitcode, output = subprocess.getstatusoutput(f'xcrun notarytool wait {self._appNotarizeUUID} '
                   f'--apple-id "{self._apple_id}" '
                   f'--team-id {self._team_id} '
                   f'--password {self._pword}')
-        print(output)
+        print(output); sys.stdout.flush()
+        print("Fetching notarisation log"); sys.stdout.flush()
         # always fetch the log file too
         exitcode2, output = subprocess.getstatusoutput(f'xcrun notarytool log {self._appNotarizeUUID} '
                   f'--apple-id "{self._apple_id}" '
@@ -282,21 +284,21 @@ class AppSigner:
 
 
     def staple(self, filepath):
-        cmdStr = f'xcrun stapler staple {filepath}'
+        cmdStr = f'xcrun stapler staple {filepath}'; sys.stdout.flush()
         print(cmdStr)
         exitcode, output = subprocess.getstatusoutput(cmdStr)
-        print(f"exitcode={exitcode}: {output}")
+        print(f"exitcode={exitcode}: {output}"); sys.stdout.flush()
         if exitcode != 0:
             print('*********Staple failed*************')
             exit(exitcode)
         else:
-            print(f"Staple successful. You can verify with\n    xcrun stapler validate {filepath}")
+            print(f"Staple successful. You can verify with\n    xcrun stapler validate {filepath}"); sys.stdout.flush()
 
     def dmgBuild(self):
         import dmgbuild
         dmgFilename = str(self.appFile).replace(".app", "_rw.dmg")
         appName = self.appFile.name
-        print(f"building dmg file: {dmgFilename}")
+        print(f"building dmg file: {dmgFilename}..."); sys.stdout.flush()
         # remove previous file if it's there
         if Path(dmgFilename).exists():
             os.remove(dmgFilename)
@@ -323,7 +325,7 @@ class AppSigner:
                     'window_rect': ((600, 600), (500, 400)),
                 },
         )
-        print(f"building dmg file complete")
+        print(f"building dmg file complete"); sys.stdout.flush()
         sys.stdout.flush()
         return dmgFilename
 
@@ -346,7 +348,7 @@ class AppSigner:
             # Eject the disk image
             for attemptN in range(5):
                 exitcode, output = subprocess.getstatusoutput(f"diskutil eject {volume}")
-                print(f"Attempt {attemptN}: {output}")
+                print(f"Attempt {attemptN}: {output}"); sys.stdout.flush()
                 if exitcode == 0:
                     break
                 # have a rest and try again
@@ -447,28 +449,34 @@ def main():
             signer.signCheck(verbose=False)
 
         if args.runDmgBuild:
-            print(signer.zipFile)
             if NOTARIZE:
+                print(f'Signer.upload("{signer.zipFile}")'); sys.stdout.flush()
                 signer.upload(signer.zipFile)
             # build the read/writable dmg file (while waiting for notarize)
             signer.dmgBuild()
             if NOTARIZE:
                 # notarize and staple
+                print(f'Signer.awaitNotarized()'); sys.stdout.flush()
                 signer.awaitNotarized()
 
         if args.runPostDmgBuild:
+            print(f'Signer.dmgStapleInside()'); sys.stdout.flush()
             signer.dmgStapleInside()  # doesn't require UUID
-
+            print(f'Signer.dmgCompress()'); sys.stdout.flush()
             dmgFile = signer.dmgCompress()
+            print(f'Signer.signSingleFile(dmgFile'); sys.stdout.flush()
             signer.signSingleFile(dmgFile, removeFailed=False, verbose=True)
 
             if NOTARIZE:
+                print(f'Signer.upload(dmgFile)'; sys.stdout.flush()
                 OK = signer.upload(dmgFile)
                 if not OK: 
                     return 0
                 # notarize and staple
+                print(f'Signer.awaitNotarized()'); sys.stdout.flush()
                 signer.awaitNotarized()
-                signer.staple(dmgFile)
+                print(f'Signer.staple(dmgFile)'); sys.stdout.flush()
+                signer.staple()
 
 
 if __name__ == "__main__":
