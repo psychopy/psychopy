@@ -424,15 +424,8 @@ def scanPlugins():
     """
     global _installed_plugins_
     _installed_plugins_ = {}  # clear the cache
-    # get list of all packages
-    packages = importlib.metadata.distributions()
-    packages.update(
-        pkg_resources.find_distributions(USER_PACKAGES_PATH)
-    )
     # iterate through installed packages
-    for name in packages:
-        # get distribution
-        dist = importlib.metadata.distribution(name)
+    for dist in importlib.metadata.distributions(path=sys.path + [USER_PACKAGES_PATH]):
         # map all entry points
         for ep in dist.entry_points:
             # skip entry points which don't target PsychoPy
@@ -610,12 +603,12 @@ def loadPluginBuilderElements(plugin):
     # import all relevant classes
     for point in relevantPoints:
         try:
-            importlib.import_module(point.module_name)
+            importlib.import_module(point.module)
             return True
         except:
             # if import failed for any reason, log error and mark failure
             logging.error(
-                f"Failed to load {point.module_name}.{point.name} from plugin {plugin}."
+                f"Failed to load {point.module}.{point.name} from plugin {plugin}."
             )
             _failed_plugins_.append(plugin)
             return False
