@@ -300,16 +300,19 @@ class MicrophoneComponent(BaseDeviceComponent):
             "    deviceClass='psychopy.hardware.microphone.MicrophoneDevice',\n"
             "    deviceName=%(deviceLabel)s,\n"
             "    index=%(device)s,\n"
-            "    maxRecordingSize=%(maxSize)s\n"
+            "    maxRecordingSize=%(maxSize)s"
         )
         if self.params['device'].val not in ("None", "", None):
             code += (
-            "    channels=%(channels)s, \n"
-            "    sampleRateHz=%(sampleRate)s, \n"
+                ",\n"  # continues the arg list
+                "    channels=%(channels)s,\n"
+                "    sampleRateHz=%(sampleRate)s,\n"
+                ")\n"
             )
-        code += (
-            ")\n"
-        )
+        else:
+            code += (
+                ")\n"  # close arg list if there are no other params
+            )
         buff.writeOnceIndentedLines(code % inits)
 
     def writeStartCode(self, buff):
