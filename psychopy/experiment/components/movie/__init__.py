@@ -80,7 +80,7 @@ class MovieComponent(BaseVisualComponent):
 
         msg = _translate("How loud should audio be played?")
         self.params["volume"] = Param(
-            volume, valType='num', inputType="float", categ='Playback',
+            volume, valType='num', inputType="single", categ='Playback',
             hint=msg,
             label=_translate("Volume"))
 
