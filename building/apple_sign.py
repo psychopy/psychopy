@@ -468,7 +468,7 @@ def main():
             signer.signSingleFile(dmgFile, removeFailed=False, verbose=True)
 
             if NOTARIZE:
-                print(f'Signer.upload(dmgFile)'; sys.stdout.flush()
+                print(f'Signer.upload(dmgFile)'); sys.stdout.flush()
                 OK = signer.upload(dmgFile)
                 if not OK: 
                     return 0
