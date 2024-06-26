@@ -399,7 +399,7 @@ def installPlugin(package, local=True, upgrade=False, forceReinstall=False,
     import psychopy.tools.pkgtools as pkgtools
     pkgtools.installPackage(
         package, 
-        target=USER_PACKAGES_PATH,
+        target=installWhere,
         upgrade=upgrade,
         forceReinstall=forceReinstall,
         noDeps=noDeps)
