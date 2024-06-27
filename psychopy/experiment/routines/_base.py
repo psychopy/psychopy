@@ -1078,7 +1078,7 @@ class Routine(list):
         if self.settings.params['forceNonSlip'] and maxTime not in (0, FOREVER):
             nonSlipSafe  = True
         # if there are no components, default to 10s
-        if maxTime == 0:
+        if maxTime in (0, None):
             maxTime = 10
             nonSlipSafe = False
         return maxTime, nonSlipSafe
