@@ -643,12 +643,19 @@ class Routine(list):
         # can we use non-slip timing?
         maxTime, useNonSlip = self.getMaxTime()
 
+        # this is the beginning of the routine, before the loop starts
         code = "# update component parameters for each repeat\n"
         buff.writeIndentedLines(code)
-        # This is the beginning of the routine, before the loop starts
         for event in self:
+            # don't write Routine Settings just yet...
+            if event is self.settings:
+                continue
+            # write the other Components'
             event.writeRoutineStartCode(buff)
             event.writeRoutineStartValidationCode(buff)
+        # write the Routine Settings code last
+        self.settings.writeRoutineStartCode(buff)
+        self.settings.writeRoutineStartValidationCode(buff)
 
         code = '# keep track of which components have finished\n'
         buff.writeIndentedLines(code)
