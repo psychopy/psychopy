@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PsychoPy 2024.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-25 11:31+0900\n"
-"PO-Revision-Date: 2024-04-25 11:32+0900\n"
+"POT-Creation-Date: 2024-06-27 20:17+0900\n"
+"PO-Revision-Date: 2024-06-27 20:46+0900\n"
 "Last-Translator: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language-Team: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language: ja\n"
@@ -335,44 +335,42 @@ msgid "&View"
 msgstr "ビュー(&V)"
 
 #: app/_psychopyApp.py:99
-#, python-format
-msgid "&Open Builder view\t%s"
+msgid "&Open Builder view\t"
 msgstr "Builderを開く(&O)\t%s"
 
-#: app/_psychopyApp.py:102
+#: app/_psychopyApp.py:103
 msgid "Open a new Builder view"
 msgstr "Builderのウィンドウを開きます"
 
-#: app/_psychopyApp.py:105
-#, python-format
-msgid "&Open Coder view\t%s"
+#: app/_psychopyApp.py:106
+msgid "&Open Coder view\t"
 msgstr "Coderを開く(&O)\t%s"
 
-#: app/_psychopyApp.py:108
+#: app/_psychopyApp.py:110
 msgid "Open a new Coder view"
 msgstr "Coderのウィンドウを開きます"
 
-#: app/_psychopyApp.py:111 app/builder/builder.py:355 app/coder/coder.py:335
+#: app/_psychopyApp.py:113 app/builder/builder.py:355 app/coder/coder.py:335
 #: app/coder/coder.py:1442 app/pavlovia_ui/_base.py:39 app/runner/runner.py:173
 #, python-format
 msgid "&Quit\t%s"
 msgstr "終了(&Q)\t%s"
 
-#: app/_psychopyApp.py:113 app/builder/builder.py:356 app/coder/coder.py:1443
+#: app/_psychopyApp.py:117 app/builder/builder.py:356 app/coder/coder.py:1443
 #: app/pavlovia_ui/_base.py:40
 msgid "Terminate the program"
 msgstr "アプリケーションを終了します"
 
-#: app/_psychopyApp.py:417
+#: app/_psychopyApp.py:421
 #, python-brace-format
 msgid "Copyright (C) {year} OpenScienceTools.org"
 msgstr "Copyright (C) {year} OpenScienceTools.org"
 
-#: app/_psychopyApp.py:518
+#: app/_psychopyApp.py:522
 msgid "  Creating frames..."
 msgstr " ウィンドウを準備中..."
 
-#: app/_psychopyApp.py:560
+#: app/_psychopyApp.py:564
 msgid ""
 "Failed to open Runner with requested file list, opening without file list.\n"
 "Requested: {}\n"
@@ -382,7 +380,7 @@ msgstr ""
 "要求されたファイル: {}\n"
 "エラー: {}"
 
-#: app/_psychopyApp.py:575
+#: app/_psychopyApp.py:579
 msgid ""
 "Failed to open Coder with requested scripts, opening with no scripts open.\n"
 "Requested: {}\n"
@@ -392,7 +390,7 @@ msgstr ""
 "要求されたスクリプト: {}\n"
 "エラー: {}"
 
-#: app/_psychopyApp.py:592
+#: app/_psychopyApp.py:596
 msgid ""
 "Failed to open Builder with requested experiments, opening with no "
 "experiments open.\n"
@@ -403,23 +401,23 @@ msgstr ""
 "要求された実験: {}\n"
 "エラー: {}"
 
-#: app/_psychopyApp.py:617
+#: app/_psychopyApp.py:621
 msgid "Compatibility information"
 msgstr "互換性についての情報"
 
-#: app/_psychopyApp.py:624
+#: app/_psychopyApp.py:628
 msgid "tips.txt"
 msgstr "tips_ja_JP.txt"
 
-#: app/_psychopyApp.py:662
+#: app/_psychopyApp.py:666
 msgid "  Loading plugins..."
 msgstr " プラグインをロード中..."
 
-#: app/_psychopyApp.py:746
+#: app/_psychopyApp.py:750
 msgid "Select .psydat file(s) to extract"
 msgstr "変換する.psydatファイルを選択してください"
 
-#: app/_psychopyApp.py:1059
+#: app/_psychopyApp.py:1063
 msgid ""
 "For stimulus generation and experimental control in Python.\n"
 "PsychoPy depends on your feedback. If something doesn't work\n"
@@ -2345,7 +2343,7 @@ msgstr "ソースアシスタント"
 msgid "Shell"
 msgstr "シェル"
 
-#: app/coder/coder.py:1263 app/plugin_manager/dialog.py:41
+#: app/coder/coder.py:1263 app/plugin_manager/dialog.py:46
 msgid "Output"
 msgstr "出力"
 
@@ -3013,8 +3011,8 @@ msgid " Use zip file below (download a PsychoPy release file ending .zip)"
 msgstr ""
 " 以下のZipファイルを使用 (拡張子.zipの配布ファイルをダウンロードしてください)"
 
-#: app/connections/updates.py:305 app/plugin_manager/packages.py:215
-#: app/plugin_manager/packages.py:338 app/plugin_manager/plugins.py:1061
+#: app/connections/updates.py:305 app/plugin_manager/packages.py:220
+#: app/plugin_manager/packages.py:343 app/plugin_manager/plugins.py:1061
 #: app/plugin_manager/plugins.py:1091
 msgid "Install"
 msgstr "インストール"
@@ -3541,7 +3539,7 @@ msgstr "プロジェクトが変更されています. 閉じる前にオンラ�
 msgid "Project info"
 msgstr "プロジェクトの情報"
 
-#: app/pavlovia_ui/project.py:762 projects/pavlovia.py:855
+#: app/pavlovia_ui/project.py:762 projects/pavlovia.py:859
 msgid "You are not logged in to Pavlovia. Please log in to sync project."
 msgstr ""
 "Pavloviaにログインしていません. プロジェクトを同期するにはログインしてくださ"
@@ -3652,19 +3650,19 @@ msgstr "ログイン"
 msgid "Logout"
 msgstr "ログアウト"
 
-#: app/plugin_manager/dialog.py:25
+#: app/plugin_manager/dialog.py:30
 msgid "Plugins & Packages"
 msgstr "プラグインとパッケージ"
 
-#: app/plugin_manager/dialog.py:44
+#: app/plugin_manager/dialog.py:49
 msgid "Plugins"
 msgstr "プラグイン"
 
-#: app/plugin_manager/dialog.py:47
+#: app/plugin_manager/dialog.py:52
 msgid "Packages"
 msgstr "パッケージ"
 
-#: app/plugin_manager/dialog.py:351
+#: app/plugin_manager/dialog.py:353
 msgid ""
 "[Warning] Could not activate plugin. PsychoPy may need to restart for plugin "
 "to take effect."
@@ -3672,7 +3670,7 @@ msgstr ""
 "[警告] プラグインを有効にできません. プラグインを有効にするにはPsychoPyを再起"
 "動する必要があります."
 
-#: app/plugin_manager/dialog.py:361
+#: app/plugin_manager/dialog.py:368
 msgid ""
 "The following components/routines should now be visible in the Components "
 "panel (a restart may be required in some cases):\n"
@@ -3680,20 +3678,16 @@ msgstr ""
 "以下のコンポーネント/ルーチンはComponentsパネルに表示されます(PsychoPyの再起"
 "動が必要な場合があります):\n"
 
-#: app/plugin_manager/dialog.py:372
+#: app/plugin_manager/dialog.py:379
 #, python-format
 msgid "For more information about the %s plugin, read the documentation at:"
 msgstr "%s プラグインについての詳細は以下のドキュメントを参照:"
 
-#: app/plugin_manager/dialog.py:387
-msgid ""
-"It looks like you've uninstalled some plugins. In order for this to take "
-"effect, you will need to restart the PsychoPy app."
-msgstr ""
-"いくつかのプラグインをアンインストールしたようです. この操作を有効にするには"
-"PsychoPyを再起動する必要があります."
+#: app/plugin_manager/dialog.py:415
+msgid "Please restart PsychoPy to apply changes."
+msgstr "変更を有効にするためにPsychoPyを再起動してください."
 
-#: app/plugin_manager/packages.py:70
+#: app/plugin_manager/packages.py:71
 msgid ""
 "Type a PIP command below and press Enter to execute it in the installed "
 "PsychoPy environment, any returned text will appear below.\n"
@@ -3709,15 +3703,15 @@ msgstr ""
 "{}\n"
 "\n"
 
-#: app/plugin_manager/packages.py:159
+#: app/plugin_manager/packages.py:164
 msgid "or..."
 msgstr "または..."
 
-#: app/plugin_manager/packages.py:162
+#: app/plugin_manager/packages.py:167
 msgid "Install from file"
 msgstr "ファイルからインストール"
 
-#: app/plugin_manager/packages.py:164
+#: app/plugin_manager/packages.py:169
 msgid ""
 "Install a package from a local file, such as a .egg or .whl. You can also "
 "point to a pyproject.toml file to add an 'editable install' of an in-"
@@ -3727,35 +3721,35 @@ msgstr ""
 "tomlファイルを選択して開発中のパッケージを'editable install'で追加することも"
 "できます."
 
-#: app/plugin_manager/packages.py:170
+#: app/plugin_manager/packages.py:175
 msgid "Open PIP terminal"
 msgstr "pipターミナルを開く"
 
-#: app/plugin_manager/packages.py:171
+#: app/plugin_manager/packages.py:176
 msgid "Open PIP terminal to manage packages manually"
 msgstr "pipターミナルを開いてパッケージを手作業で管理します"
 
-#: app/plugin_manager/packages.py:208 app/plugin_manager/packages.py:347
+#: app/plugin_manager/packages.py:213 app/plugin_manager/packages.py:352
 msgid "Uninstall"
 msgstr "アンインストール"
 
-#: app/plugin_manager/packages.py:261
+#: app/plugin_manager/packages.py:266
 msgid "Package"
 msgstr "パッケージ"
 
-#: app/plugin_manager/packages.py:262 app/plugin_manager/plugins.py:1083
+#: app/plugin_manager/packages.py:267 app/plugin_manager/plugins.py:1083
 msgid "Installed"
 msgstr "インストール済み"
 
-#: app/plugin_manager/packages.py:273
+#: app/plugin_manager/packages.py:278
 msgid "Latest"
 msgstr "最新"
 
-#: app/plugin_manager/packages.py:324
+#: app/plugin_manager/packages.py:329
 msgid "by "
 msgstr "by "
 
-#: app/plugin_manager/packages.py:334 app/plugin_manager/plugins.py:684
+#: app/plugin_manager/packages.py:339 app/plugin_manager/plugins.py:684
 msgid "Homepage"
 msgstr "ホームページ"
 
@@ -4363,15 +4357,15 @@ msgstr "このコンポーネントを無効にします"
 msgid "Disable Component"
 msgstr "コンポーネントの無効化"
 
-#: experiment/components/_base.py:951
+#: experiment/components/_base.py:953
 msgid "Do not validate"
-msgstr ""
+msgstr "検証しない"
 
-#: experiment/components/_base.py:1231
+#: experiment/components/_base.py:1233
 msgid "Device label"
 msgstr "デバイスラベル"
 
-#: experiment/components/_base.py:1233
+#: experiment/components/_base.py:1235
 msgid ""
 "A label to refer to this Component's associated hardware device by. If using "
 "the same device for multiple components, be sure to use the same label here."
@@ -4380,28 +4374,28 @@ msgstr ""
 "ポーネントで同一のデバイスを使用する場合, 同じラベルがここに入力されているこ"
 "とを確認してください."
 
-#: experiment/components/_base.py:1281
+#: experiment/components/_base.py:1283
 #: experiment/routines/eyetracker_calibrate/__init__.py:119
 #: experiment/routines/eyetracker_validate/__init__.py:162
 msgid "Units of dimensions for this stimulus"
 msgstr "この刺激に適用する単位を指定します"
 
-#: experiment/components/_base.py:1287
+#: experiment/components/_base.py:1289
 #: experiment/routines/eyetracker_calibrate/__init__.py:120
 #: experiment/routines/eyetracker_validate/__init__.py:163
 #: experiment/routines/photodiodeValidator/__init__.py:127
 msgid "Spatial units"
 msgstr "空間の単位"
 
-#: experiment/components/_base.py:1289
+#: experiment/components/_base.py:1291
 msgid "Foreground color of this stimulus (e.g. $[1,1,0], red )"
 msgstr "前景色($[1.0,1.0,0.0],redなど)を指定します"
 
-#: experiment/components/_base.py:1296
+#: experiment/components/_base.py:1298
 msgid "Foreground color"
 msgstr "前景色"
 
-#: experiment/components/_base.py:1298
+#: experiment/components/_base.py:1300
 #: experiment/routines/eyetracker_calibrate/__init__.py:93
 #: experiment/routines/eyetracker_validate/__init__.py:135
 msgid ""
@@ -4409,7 +4403,7 @@ msgid ""
 "hsv)"
 msgstr "色指定に用いる色空間は？ (rgb, dkl, lms, hsv)"
 
-#: experiment/components/_base.py:1305
+#: experiment/components/_base.py:1307
 #: experiment/components/routineSettings/__init__.py:118
 #: experiment/components/settings/__init__.py:285
 #: experiment/routines/eyetracker_calibrate/__init__.py:94
@@ -4417,24 +4411,24 @@ msgstr "色指定に用いる色空間は？ (rgb, dkl, lms, hsv)"
 msgid "Color space"
 msgstr "色空間"
 
-#: experiment/components/_base.py:1307
+#: experiment/components/_base.py:1309
 msgid "Fill color of this stimulus (e.g. $[1,1,0], red )"
 msgstr "塗りつぶし色($[1.0,1.0,0.0],redなど)を指定します"
 
-#: experiment/components/_base.py:1313
+#: experiment/components/_base.py:1315
 msgid "Fill color"
 msgstr "塗りつぶしの色"
 
-#: experiment/components/_base.py:1315
+#: experiment/components/_base.py:1317
 msgid "Border color of this stimulus (e.g. $[1,1,0], red )"
 msgstr "枠線の色($[1.0,1.0,0.0],redなど)を指定します"
 
-#: experiment/components/_base.py:1321
+#: experiment/components/_base.py:1323
 #: experiment/components/progress/__init__.py:55
 msgid "Border color"
 msgstr "枠線の色"
 
-#: experiment/components/_base.py:1323
+#: experiment/components/_base.py:1325
 msgid ""
 "Opacity of the stimulus (1=opaque, 0=fully transparent, 0.5=translucent). "
 "Leave blank for each color to have its own opacity (recommended if any color "
@@ -4444,11 +4438,11 @@ msgstr ""
 "が独自の不透明度を持つ場合は空白のままにしてください(いずれかの色がNoneの場合"
 "に推奨)."
 
-#: experiment/components/_base.py:1330
+#: experiment/components/_base.py:1332
 msgid "Opacity"
 msgstr "不透明度"
 
-#: experiment/components/_base.py:1332
+#: experiment/components/_base.py:1334
 msgid ""
 "Contrast of the stimulus (1.0=unchanged contrast, 0.5=decrease contrast, "
 "0.0=uniform/no contrast, -0.5=slightly inverted, -1.0=totally inverted)"
@@ -4456,49 +4450,51 @@ msgstr ""
 "刺激のコントラスト (1.0=変更なし, 0.5=コントラスト減少, 0.0=コントラスト無"
 "し, -0.5=やや反転, -1.0=完全に反転)"
 
-#: experiment/components/_base.py:1340
+#: experiment/components/_base.py:1342
 msgid "Contrast"
 msgstr "コントラスト"
 
-#: experiment/components/_base.py:1342
+#: experiment/components/_base.py:1344
 #: experiment/components/ratingScale/__init__.py:181
 msgid "Position of this stimulus (e.g. [1,2] )"
 msgstr "刺激の位置を指定します (例:[1,2])"
 
-#: experiment/components/_base.py:1348
+#: experiment/components/_base.py:1350
 #: experiment/components/ratingScale/__init__.py:182
 #: experiment/routines/photodiodeValidator/__init__.py:111
 msgid "Position [x,y]"
 msgstr "位置 [x,y]"
 
-#: experiment/components/_base.py:1350
+#: experiment/components/_base.py:1352
 #: experiment/components/ratingScale/__init__.py:173
 msgid ""
 "Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] "
 msgstr ""
 "刺激の大きさを指定します (単一の値または縦横の値のペア, 例: 2.5, [1,2]) "
 
-#: experiment/components/_base.py:1357
+#: experiment/components/_base.py:1359
 msgid "Size [w,h]"
 msgstr "サイズ [w,h]"
 
-#: experiment/components/_base.py:1363
+#: experiment/components/_base.py:1365
 msgid "Orientation of this stimulus (in deg)"
 msgstr "刺激の回転方向を指定します (単位は度)"
 
-#: experiment/components/_base.py:1364
+#: experiment/components/_base.py:1366
 msgid "Orientation"
 msgstr "回転角度"
 
-#: experiment/components/_base.py:1373
-msgid "Validate with..."
-msgstr ""
-
 #: experiment/components/_base.py:1375
+msgid "Validate with..."
+msgstr "検証..."
+
+#: experiment/components/_base.py:1377
 msgid ""
 "Name of validator Component/Routine to use to check the timing of this "
 "stimulus."
 msgstr ""
+"コンポーネント/ルーチンにおけるタイミングの検証に使用するバリデータを選択しま"
+"す."
 
 #: experiment/components/aperture/__init__.py:30
 msgid "Aperture: restrict the drawing of stimuli to a given region"
@@ -4826,15 +4822,15 @@ msgstr ""
 "ボタンボックスの種類を指定します. どのパッケージ/プラグインをボタンボックスの"
 "制御に使用しますか?"
 
-#: experiment/components/buttonBox/__init__.py:280
+#: experiment/components/buttonBox/__init__.py:289
 msgid "Keyboard"
 msgstr "キーボード"
 
-#: experiment/components/buttonBox/__init__.py:293
+#: experiment/components/buttonBox/__init__.py:302
 msgid "Buttons"
 msgstr "ボタン"
 
-#: experiment/components/buttonBox/__init__.py:295
+#: experiment/components/buttonBox/__init__.py:304
 msgid ""
 "Keys to treat as buttons (in order of what button index you want them to "
 "be). Must be the same length as the number of buttons."
@@ -4930,7 +4926,7 @@ msgid "Microphone"
 msgstr "マイク"
 
 #: experiment/components/camera/__init__.py:364
-#: experiment/components/microphone/__init__.py:122
+#: experiment/components/microphone/__init__.py:131
 msgid ""
 "Record two channels (stereo) or one (mono, smaller file). Select 'auto' to "
 "use as many channels as the selected device allows."
@@ -4939,22 +4935,22 @@ msgstr ""
 "イスでサポートされる最大のチャネル数で録音する場合はautoを指定します."
 
 #: experiment/components/camera/__init__.py:371
-#: experiment/components/microphone/__init__.py:120
+#: experiment/components/microphone/__init__.py:129
 msgid "Channels"
 msgstr "チャネル"
 
 #: experiment/components/camera/__init__.py:374
-#: experiment/components/microphone/__init__.py:131
+#: experiment/components/microphone/__init__.py:140
 msgid "How many samples per second (Hz) to record at"
 msgstr "録音のサンプリングレート(Hz)を指定します"
 
 #: experiment/components/camera/__init__.py:379
-#: experiment/components/microphone/__init__.py:129
+#: experiment/components/microphone/__init__.py:138
 msgid "Sample rate (hz)"
 msgstr "サンプリングレート(Hz)"
 
 #: experiment/components/camera/__init__.py:382
-#: experiment/components/microphone/__init__.py:139
+#: experiment/components/microphone/__init__.py:148
 msgid ""
 "To avoid excessively large output files, what is the biggest file size you "
 "are likely to expect?"
@@ -4963,7 +4959,7 @@ msgstr ""
 "ください."
 
 #: experiment/components/camera/__init__.py:387
-#: experiment/components/microphone/__init__.py:137
+#: experiment/components/microphone/__init__.py:146
 msgid "Max recording size (kb)"
 msgstr "最大録音データサイズ(kb)"
 
@@ -5633,70 +5629,70 @@ msgstr "録音時間を秒で指定します(空白は0秒)"
 msgid "Device"
 msgstr "デバイス"
 
-#: experiment/components/microphone/__init__.py:119
+#: experiment/components/microphone/__init__.py:128
 msgid "Auto"
 msgstr "自動"
 
-#: experiment/components/microphone/__init__.py:119
+#: experiment/components/microphone/__init__.py:128
 msgid "Mono"
 msgstr "モノラル"
 
-#: experiment/components/microphone/__init__.py:119
+#: experiment/components/microphone/__init__.py:128
 msgid "Stereo"
 msgstr "ステレオ"
 
-#: experiment/components/microphone/__init__.py:146
+#: experiment/components/microphone/__init__.py:155
 msgid "What file type should output audio files be saved as?"
 msgstr "録音ファイルの保存形式を指定してください"
 
-#: experiment/components/microphone/__init__.py:151
+#: experiment/components/microphone/__init__.py:160
 msgid "Output file type"
 msgstr "出力ファイル形式"
 
-#: experiment/components/microphone/__init__.py:155
+#: experiment/components/microphone/__init__.py:164
 msgid "Tick this to save times when the participant starts and stops speaking"
 msgstr "参加者の発話開始と発話終了の時刻を記録する場合はチェックします"
 
-#: experiment/components/microphone/__init__.py:159
+#: experiment/components/microphone/__init__.py:168
 msgid "Speaking start / stop times"
 msgstr "発話開始/終了時刻の記録"
 
-#: experiment/components/microphone/__init__.py:163
+#: experiment/components/microphone/__init__.py:172
 msgid "Trim periods of silence from the output file"
 msgstr "出力ファイルから無音の期間をトリムします"
 
-#: experiment/components/microphone/__init__.py:167
+#: experiment/components/microphone/__init__.py:176
 msgid "Trim silent"
 msgstr "無音期間のトリム"
 
-#: experiment/components/microphone/__init__.py:179
+#: experiment/components/microphone/__init__.py:188
 msgid "Whether to transcribe the audio recording and store the transcription"
 msgstr "音声を文字に変換して保存するか指定します"
 
-#: experiment/components/microphone/__init__.py:180
+#: experiment/components/microphone/__init__.py:189
 msgid "Transcribe audio"
 msgstr "音声の文字変換"
 
-#: experiment/components/microphone/__init__.py:205
+#: experiment/components/microphone/__init__.py:214
 msgid "What transcription service to use to transcribe audio?"
 msgstr "音声文字変換サービスを選択します. "
 
-#: experiment/components/microphone/__init__.py:206
+#: experiment/components/microphone/__init__.py:215
 msgid "Transcription backend"
 msgstr "音声文字変換バックエンド"
 
-#: experiment/components/microphone/__init__.py:211
+#: experiment/components/microphone/__init__.py:220
 msgid ""
 "What language you expect the recording to be spoken in, e.g. en-US for "
 "English"
 msgstr ""
 "文字変換する言語を, 英語ならen-USのように言語コードと国コードで指定します"
 
-#: experiment/components/microphone/__init__.py:212
+#: experiment/components/microphone/__init__.py:221
 msgid "Transcription language"
 msgstr "文字変換する言語"
 
-#: experiment/components/microphone/__init__.py:224
+#: experiment/components/microphone/__init__.py:233
 msgid ""
 "Set list of words to listen for - if blank will listen for all words in "
 "chosen language. \n"
@@ -5711,11 +5707,11 @@ msgstr ""
 "バックエンドとしてbuilt-inを選択している場合は、検出信頼度の下限を%で指定でき"
 "ます (例えば 'red:100', 'green:80'). デフォルトの信頼度の下限は80%です."
 
-#: experiment/components/microphone/__init__.py:227
+#: experiment/components/microphone/__init__.py:236
 msgid "Expected words"
 msgstr "検出する語"
 
-#: experiment/components/microphone/__init__.py:241
+#: experiment/components/microphone/__init__.py:250
 msgid ""
 "Which model of Whisper AI should be used for transcription? Details of each "
 "model are available here at github.com/openai/whisper"
@@ -5723,15 +5719,15 @@ msgstr ""
 "音声文字変換に使用するWhisper AIモデルを指定します. 各モデルの詳細はgithub."
 "com/openai/whisper参照"
 
-#: experiment/components/microphone/__init__.py:242
+#: experiment/components/microphone/__init__.py:251
 msgid "Whisper model"
 msgstr "Whisperモデル"
 
-#: experiment/components/microphone/__init__.py:259
+#: experiment/components/microphone/__init__.py:268
 msgid "Which device to use for transcription?"
 msgstr "音声文字変換にどのデバイスを使いますか? "
 
-#: experiment/components/microphone/__init__.py:260
+#: experiment/components/microphone/__init__.py:269
 msgid "Whisper device"
 msgstr "Whisperデバイス"
 
@@ -7237,7 +7233,7 @@ msgstr "キーボードバックエンド"
 msgid "Could not interpret value as dict: {}"
 msgstr "dictオブジェクトとして解釈できません: {}"
 
-#: experiment/components/settings/__init__.py:1789
+#: experiment/components/settings/__init__.py:1821
 msgid "Fullscreen settings ignored as running in pilot mode."
 msgstr "フルスクリーン設定はpilotモードでの実行時には無視されます."
 
@@ -8230,65 +8226,72 @@ msgstr "Photodiode validator"
 
 #: experiment/routines/photodiodeValidator/__init__.py:65
 msgid "Variability (s)"
-msgstr ""
+msgstr "ばらつき (s)"
 
 #: experiment/routines/photodiodeValidator/__init__.py:67
 msgid ""
 "How much variation from intended presentation times (in seconds) is "
 "acceptable?"
-msgstr ""
+msgstr "許容できる提示タイミングのばらつきを(秒単位で)指定します."
 
 #: experiment/routines/photodiodeValidator/__init__.py:73
 msgid "Log warning"
-msgstr ""
+msgstr "ログに警告を出力"
 
 #: experiment/routines/photodiodeValidator/__init__.py:73
 msgid "Raise error"
-msgstr ""
+msgstr "エラーを報告"
 
 #: experiment/routines/photodiodeValidator/__init__.py:74
 msgid "On fail..."
-msgstr ""
+msgstr "問題があった場合..."
 
 #: experiment/routines/photodiodeValidator/__init__.py:76
 msgid ""
 "What to do when the validation fails. Just log, or stop the script and raise "
 "an error?"
 msgstr ""
+"検証結果に問題があった場合の動作. ログに出力するだけか、エラーを報告してスク"
+"リプトの実行を停止するか?"
 
 #: experiment/routines/photodiodeValidator/__init__.py:81
 msgid "Find best threshold?"
-msgstr ""
+msgstr "閾値の決定"
 
 #: experiment/routines/photodiodeValidator/__init__.py:83
 msgid ""
 "Run a brief Routine to find the best threshold for the photodiode at "
 "experiment start?"
 msgstr ""
+"実験開始時に測定用ルーチンを実行してフォトダイオード用のベストな閾値を決定し"
+"ます."
 
 #: experiment/routines/photodiodeValidator/__init__.py:88
 msgid "Threshold"
-msgstr ""
+msgstr "閾値"
 
 #: experiment/routines/photodiodeValidator/__init__.py:90
 msgid ""
 "Light threshold at which the photodiode should register a positive, units go "
 "from 0 (least light) to 255 (most light)."
 msgstr ""
+"フォトダイオードがの出力が正になる閾値を指定します, 値は0(最も暗い)から"
+"255(もっとも明るい)です."
 
 #: experiment/routines/photodiodeValidator/__init__.py:103
 msgid "Find diode?"
-msgstr ""
+msgstr "ダイオードの検出"
 
 #: experiment/routines/photodiodeValidator/__init__.py:105
 msgid ""
 "Run a brief Routine to find the size and position of the photodiode at "
 "experiment start?"
 msgstr ""
+"実験開始時にダイオードの位置と大きさを検出するためのルーチンを実行しますか?"
 
 #: experiment/routines/photodiodeValidator/__init__.py:113
 msgid "Position of the photodiode on the window."
-msgstr ""
+msgstr "ウィンドウ上のフォトダイオードの位置"
 
 #: experiment/routines/photodiodeValidator/__init__.py:119
 msgid "Size [x,y]"
@@ -8297,50 +8300,56 @@ msgstr "サイズ [x,y]"
 #: experiment/routines/photodiodeValidator/__init__.py:121
 msgid "Size of the area covered by the photodiode on the window."
 msgstr ""
+"フォトダイオードによってカバーされるウィンドウ範囲のサイズを指定します."
 
 #: experiment/routines/photodiodeValidator/__init__.py:129
 msgid "Spatial units in which the photodiode size and position are specified."
-msgstr ""
+msgstr "フォトダイオードで測定する位置と範囲の指定の単位を選択します."
 
 #: experiment/routines/photodiodeValidator/__init__.py:152
 msgid "Device name"
-msgstr ""
+msgstr "デバイス名"
 
 #: experiment/routines/photodiodeValidator/__init__.py:154
 msgid ""
 "A name to refer to this Component's associated hardware device by. If using "
 "the same device for multiple components, be sure to use the same name here."
 msgstr ""
+"このコンポーネントに関連付けられるハードウェアデバイスを参照する名前. 服すの"
+"コンポーネントで同一のデバイスを使用する場合は, 同じ名前をここに指定してくだ"
+"さい."
 
 #: experiment/routines/photodiodeValidator/__init__.py:162
 msgid "Photodiode type"
-msgstr ""
+msgstr "フォトダイオードの種類"
 
 #: experiment/routines/photodiodeValidator/__init__.py:164
 msgid "Type of photodiode to use."
-msgstr ""
+msgstr "使用するフォトダイオードの種類."
 
 #: experiment/routines/photodiodeValidator/__init__.py:170
 msgid "Photodiode channel"
-msgstr ""
+msgstr "フォトダイオードのチャネル"
 
 #: experiment/routines/photodiodeValidator/__init__.py:172
 msgid ""
 "If relevant, a channel number attached to the photodiode, to distinguish it "
 "from other photodiodes on the same port."
 msgstr ""
+"同一ポート上に複数のフォトダイオードが接続されている場合、使用するフォトダイ"
+"オードを区別するためのチャネル番号."
 
 #: experiment/routines/photodiodeValidator/__init__.py:180
 msgid "Save validation results"
-msgstr ""
+msgstr "検証結果の保存"
 
 #: experiment/routines/photodiodeValidator/__init__.py:182
 msgid "Save validation results after validating on/offset times for stimuli"
-msgstr ""
+msgstr "刺激のON/OFF時刻の検証結果を保存します"
 
 #: experiment/routines/photodiodeValidator/__init__.py:401
 msgid "Screen Buffer (Debug)"
-msgstr ""
+msgstr "スクリーンバッファ (デバッグ)"
 
 #: gui/qtgui.py:158
 msgid "PsychoPy Dialog"
@@ -9204,7 +9213,7 @@ msgstr "作者 (Z-A)"
 msgid "Author (A-Z)"
 msgstr "作者 (A-Z)"
 
-#: projects/pavlovia.py:848
+#: projects/pavlovia.py:852
 msgid ""
 "Can't sync project without a local root. Please specify a local root then "
 "try again."
@@ -9212,7 +9221,7 @@ msgstr ""
 "PC上のルートフォルダが指定されないとプロジェクトを同期できません. 先にルート"
 "フォルダを指定してください."
 
-#: projects/pavlovia.py:892
+#: projects/pavlovia.py:896
 msgid ""
 "Sync failed - could not find project with id {}\n"
 "\n"
@@ -9220,7 +9229,7 @@ msgstr ""
 "同期失敗 - ID {} のプロジェクトが見つかりません.\n"
 "\n"
 
-#: projects/pavlovia.py:1074
+#: projects/pavlovia.py:1078
 #, python-brace-format
 msgid ""
 "Folder '{localRoot}' is not empty, use '{localRoot}/{projectName}' instead?"
@@ -9228,15 +9237,15 @@ msgstr ""
 "'{localRoot}'フォルダが空ではありません. 代わりに '{localRoot}/"
 "{projectName}'を使いますか？"
 
-#: projects/pavlovia.py:1107
+#: projects/pavlovia.py:1111
 msgid "Push initial project files"
 msgstr "Push initial project files"
 
-#: projects/pavlovia.py:1281
+#: projects/pavlovia.py:1285
 msgid "Avatar is too big, should be at most 200 KB."
 msgstr "アバターが大きすぎます(200KB以下にする必要があります)."
 
-#: projects/pavlovia.py:1508
+#: projects/pavlovia.py:1512
 msgid ""
 "We found a repository pointing to {} but no user is logged in for us to "
 "check it"
@@ -9299,7 +9308,7 @@ msgstr ""
 "このセッションで実験が初期化されていないためliaisonサーバにデータを送信できま"
 "せん."
 
-#: tools/pkgtools.py:569
+#: tools/pkgtools.py:591
 msgid ""
 "Could not get info for package {}. Reason:\n"
 "\n"
@@ -9809,6 +9818,13 @@ msgstr "PsychoPyに戻るにはキャンセルをクリックします."
 #: visual/window.py:3391
 msgid "PILOTING: Switch to run mode before testing."
 msgstr "PILOTING: Switch to run mode before testing."
+
+#~ msgid ""
+#~ "It looks like you've uninstalled some plugins. In order for this to take "
+#~ "effect, you will need to restart the PsychoPy app."
+#~ msgstr ""
+#~ "いくつかのプラグインをアンインストールしたようです. この操作を有効にするに"
+#~ "はPsychoPyを再起動する必要があります."
 
 #~ msgid "Conditions file"
 #~ msgstr "条件ファイル"
