@@ -30,8 +30,6 @@ import inspect
 import collections
 import hashlib
 import importlib, importlib.metadata
-import psychopy.tools.pkgtools as pkgtools
-import pkg_resources
 from psychopy import logging
 from psychopy.preferences import prefs
 
@@ -40,8 +38,6 @@ from psychopy.preferences import prefs
 USER_PACKAGES_PATH = str(prefs.paths['userPackages'])
 # check if we're in a virtual environment or not
 inVM = hasattr(sys, 'real_prefix') or sys.prefix != sys.base_prefix
-if not inVM and USER_PACKAGES_PATH not in pkg_resources.working_set.entries:
-    pkg_resources.working_set.add_entry(USER_PACKAGES_PATH)
 
 # add the plugins folder to the path
 if not inVM and USER_PACKAGES_PATH not in sys.path:
@@ -291,7 +287,7 @@ def getBundleInstallTarget(projectName):
 
     """
     return os.path.join(
-        prefs.paths['packages'], pkg_resources.safe_name(projectName))
+        prefs.paths['packages'], projectName)
 
 
 def refreshBundlePaths():
@@ -322,12 +318,16 @@ def refreshBundlePaths():
     pluginTopLevelDirs = os.listdir(pluginBaseDir)
     for pluginDir in pluginTopLevelDirs:
         fullPath = os.path.join(pluginBaseDir, pluginDir)
-        allDists = pkg_resources.find_distributions(fullPath, only=False)
+        allDists = importlib.metadata.distributions(path=pluginDir)
         if not allDists:  # no packages found, move on
             continue
 
         # does the sud-directory contain an appropriately named distribution?
-        validDist = any([dist.project_name == pluginDir for dist in allDists])
+        validDist = False
+        for dist in allDists:
+            if sys.version.startswith("3.8"):
+                dist.name = dist.metadata['name']
+            validDist = validDist or dist.name == pluginDir
         if not validDist:
             continue
 
@@ -338,8 +338,7 @@ def refreshBundlePaths():
         foundBundles.append(pluginDir)
 
     # refresh package index since the working set is now stale
-    import psychopy.tools.pkgtools as pkgtools
-    pkgtools.refreshPackages()
+    scanPlugins()
 
     return foundBundles
 
@@ -395,7 +394,7 @@ def installPlugin(package, local=True, upgrade=False, forceReinstall=False,
 
     """
     # determine where to install the package
-    installWhere = getBundleInstallTarget(package) if local else None
+    installWhere = USER_PACKAGES_PATH if local else None
     import psychopy.tools.pkgtools as pkgtools
     pkgtools.installPackage(
         package, 
@@ -817,16 +816,6 @@ def loadPlugin(plugin):
                     _failed_plugins_.append(plugin)
 
                 return False
-            except pkg_resources.DistributionNotFound:
-                logging.error(
-                    "Failed to load entry point `{}` of plugin `{}` due to "
-                    "missing distribution required by the application."
-                    "Skipping.".format(str(ep), plugin))
-
-                if plugin not in _failed_plugins_:
-                    _failed_plugins_.append(plugin)
-
-                return False
             except Exception:  # catch everything else
                 logging.error(
                     "Failed to load entry point `{}` of plugin `{}` for unknown"
@@ -1060,18 +1049,8 @@ def pluginMetadata(plugin):
             "Plugin `{}` is not installed or does not have entry points for "
             "PsychoPy.".format(plugin))
 
-    pkg = pkg_resources.get_distribution(plugin)
-    metadata = pkg.get_metadata(pkg.PKG_INFO)
-
-    metadict = {}
-    for line in metadata.split('\n'):
-        if not line:
-            continue
-
-        line = line.strip().split(': ')
-        if len(line) == 2:
-            field, value = line
-            metadict[field] = value
+    pkg = importlib.metadata.distribution(plugin)
+    metadict = dict(pkg.metadata)
 
     return metadict
 

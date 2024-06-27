@@ -90,7 +90,6 @@ packages = ['pydoc',  # needed for help()
             'freetype',
             'objc', 'Quartz', 'AppKit', 'Cocoa',
             'Foundation', 'CoreFoundation',
-            'pkg_resources',  # needed for objc
             'requests', 'certifi', 'cryptography',
             'json_tricks',  # allows saving arrays/dates in json
             'git', 'gitlab',
