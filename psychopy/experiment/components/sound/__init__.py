@@ -52,9 +52,6 @@ class SoundComponent(BaseDeviceComponent):
             "volume", "hammingWindow",  # Playback tab
         ]
         # params
-        self.params['stopType'].allowedVals = ['duration (s)']
-        self.params['stopType'].hint = _translate('The maximum duration of a'
-                                                  ' sound in seconds')
         hnt = _translate("When does the Component end? (blank to use the "
                          "duration of the media)")
         self.params['stopVal'].hint = hnt
