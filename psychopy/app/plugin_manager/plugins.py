@@ -326,14 +326,14 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             self.installBtn.SetBitmapMargins(6, 3)
             self.installBtn.Bind(wx.EVT_BUTTON, self.onInstall)
             self.btnSizer.Add(self.installBtn, border=3, flag=wx.ALL | wx.ALIGN_RIGHT)
-            # add uninstall button
-            self.uninstallBtn = wx.Button(self, label=_translate("Uninstall"))
-            self.uninstallBtn.SetBitmap(
-                icons.ButtonIcon("delete", 16).bitmap
-            )
-            self.uninstallBtn.SetBitmapMargins(6, 3)
-            self.uninstallBtn.Bind(wx.EVT_BUTTON, self.onUninstall)
-            self.btnSizer.Add(self.uninstallBtn, border=3, flag=wx.ALL | wx.EXPAND)
+            # # add uninstall button
+            # self.uninstallBtn = wx.Button(self, label=_translate("Uninstall"))
+            # self.uninstallBtn.SetBitmap(
+            #     icons.ButtonIcon("delete", 16).bitmap
+            # )
+            # self.uninstallBtn.SetBitmapMargins(6, 3)
+            # self.uninstallBtn.Bind(wx.EVT_BUTTON, self.onUninstall)
+            # self.btnSizer.Add(self.uninstallBtn, border=3, flag=wx.ALL | wx.EXPAND)
 
             # Map to onclick function
             self.Bind(wx.EVT_LEFT_DOWN, self.onSelect)
@@ -1131,15 +1131,12 @@ def markInstalled(pluginItem, pluginPanel, installed=True):
         if installed is None:
             # if pending, hide both buttons
             pluginItem.installBtn.Hide()
-            pluginItem.uninstallBtn.Hide()
         elif installed:
             # if installed, hide install button
             pluginItem.installBtn.Hide()
-            pluginItem.uninstallBtn.Show()
         else:
             # if not installed, show "Install" and download icon
             pluginItem.installBtn.Show()
-            pluginItem.uninstallBtn.Hide()
         # refresh buttons
         pluginItem.Update()
         pluginItem.Layout()
