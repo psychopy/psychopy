@@ -311,43 +311,46 @@ msgstr "برنامج سايكوباي في بايثون"
 msgid "&View"
 msgstr "عرض"
 
+# التأكد من ترجمة builder view  تنسيق الكود و
 #: psychopy/app/_psychopyApp.py:99
-#, python-format
+#, fuzzy, python-format
 msgid "&Open Builder view\t%s"
-msgstr ""
+msgstr "وفتح عرض البناء\t%s"
 
 #: psychopy/app/_psychopyApp.py:102
 msgid "Open a new Builder view"
-msgstr ""
+msgstr "إفتح عرض بناء جديد"
 
 #: psychopy/app/_psychopyApp.py:105
 #, python-format
 msgid "&Open Coder view\t%s"
-msgstr ""
+msgstr "&افتح عرض المبرمج %s"
 
+# التوافق على ترجمة Coder
 #: psychopy/app/_psychopyApp.py:108
+#, fuzzy
 msgid "Open a new Coder view"
-msgstr ""
+msgstr "إفتح عرض تشفير جديد "
 
 #: psychopy/app/_psychopyApp.py:111 psychopy/app/builder/builder.py:358
 #: psychopy/app/coder/coder.py:343 psychopy/app/coder/coder.py:1443
 #: psychopy/app/pavlovia_ui/_base.py:39 psychopy/app/runner/runner.py:149
 #, python-format
 msgid "&Quit\t%s"
-msgstr ""
+msgstr "واخرج\t%s"
 
 #: psychopy/app/_psychopyApp.py:113 psychopy/app/builder/builder.py:359
 #: psychopy/app/coder/coder.py:1444 psychopy/app/pavlovia_ui/_base.py:40
 msgid "Terminate the program"
-msgstr ""
+msgstr "إنهاء البرنامج"
 
 #: psychopy/app/_psychopyApp.py:444
 msgid "Copyright (C) 2022 OpenScienceTools.org"
-msgstr ""
+msgstr "حقوق الملكية الفكرية  2022 OpenScienceTools.org"
 
 #: psychopy/app/_psychopyApp.py:545
 msgid "  Creating frames..."
-msgstr ""
+msgstr "تكوين الأطر..."
 
 #: psychopy/app/_psychopyApp.py:587
 msgid ""
