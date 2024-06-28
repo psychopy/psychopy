@@ -326,8 +326,10 @@ def refreshBundlePaths():
         validDist = False
         for dist in allDists:
             if sys.version.startswith("3.8"):
-                dist.name = dist.metadata['name']
-            validDist = validDist or dist.name == pluginDir
+                distName = dist.metadata['name']
+            else:
+                distName = dist.name
+            validDist = validDist or distName == pluginDir
         if not validDist:
             continue
 
@@ -432,14 +434,16 @@ def scanPlugins():
                 continue
             # make sure we have an entry for this distribution
             if sys.version.startswith("3.8"):
-                dist.name = dist.metadata['name']
-            if dist.name not in _installed_plugins_:
-                _installed_plugins_[dist.name] = {}
+                distName = dist.metadata['name']
+            else:
+                distName = dist.name
+            if distName not in _installed_plugins_:
+                _installed_plugins_[distName] = {}
             # make sure we have an entry for this group
-            if ep.group not in _installed_plugins_[dist.name]:
-                _installed_plugins_[dist.name][ep.group] = {}
+            if ep.group not in _installed_plugins_[distName]:
+                _installed_plugins_[distName][ep.group] = {}
             # map entry point
-            _installed_plugins_[dist.name][ep.group][ep.name] = ep
+            _installed_plugins_[distName][ep.group][ep.name] = ep
     
     return len(_installed_plugins_)
 
