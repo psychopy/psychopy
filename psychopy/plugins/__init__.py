@@ -325,9 +325,10 @@ def refreshBundlePaths():
         # does the sud-directory contain an appropriately named distribution?
         validDist = False
         for dist in allDists:
-            distName = dist.name
             if sys.version.startswith("3.8"):
                 distName = dist.metadata['name']
+            else:
+                distName = dist.name
             validDist = validDist or distName == pluginDir
         if not validDist:
             continue
@@ -432,9 +433,10 @@ def scanPlugins():
             if not ep.group.startswith("psychopy"):
                 continue
             # make sure we have an entry for this distribution
-            distName = dist.name
             if sys.version.startswith("3.8"):
                 distName = dist.metadata['name']
+            else:
+                distName = dist.name
             if distName not in _installed_plugins_:
                 _installed_plugins_[distName] = {}
             # make sure we have an entry for this group
