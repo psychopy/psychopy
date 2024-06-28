@@ -210,10 +210,27 @@ class _SoundBase(AttributeGetSetMixin):
         elif isinstance(value, (list, numpy.ndarray,)):
             # create a sound from the input array/list
             self._setSndFromArray(numpy.array(value))
-        elif isinstance(value, AudioClip):
-            # from an audio clip object
-            self.sampleRate = value.sampleRateHz
+        elif isinstance(value, AudioClip):  # from an audio clip object
+            # check if we should resample the audio clip to match the device
+            if self.sampleRate is None:
+                logging.warning(
+                    "Sound output sample rate not set. The provided AudioClip "
+                    "requires a sample rate of {} Hz for playback which may "
+                    "not match the device settings.".format(value.sampleRateHz)) 
+
+                self.sampleRate = value.sampleRateHz
+
+            if self.sampleRate != value.sampleRateHz:
+                logging.warning(
+                    "Resampling to match sound device sample rate (from {} "
+                    "to {} Hz), distortion may occur.".format(
+                        value.sampleRateHz, self.sampleRate))
+
+                # resample with the new sample rate using the AudioClip method
+                value = value.resample(self.sampleRate, copy=True)
+
             self._setSndFromArray(value.samples)
+
         # did we succeed?
         if self._snd is None:
             pass  # raise ValueError, "Could not make a "+value+" sound"
