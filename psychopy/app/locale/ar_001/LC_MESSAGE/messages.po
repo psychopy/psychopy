@@ -43,8 +43,7 @@ msgid ""
 "Your stimulus {type} time of {time} is less than a screen refresh for a {Hz}Hz "
 "monitor."
 msgstr ""
-"وقت المثير {type} الذي يبلغ {time} أقل من زمن تحديث الشاشة لشاشة {Hz} هرتز "
-"(Hz)."
+"وقت المثير {type} الذي يبلغ {time} أقل من زمن تحديث الشاشة لشاشة {Hz} هرتز (Hz)."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:28
 #, python-brace-format
@@ -52,8 +51,8 @@ msgid ""
 "Your stimulus {type} time of {time} seconds cannot be accurately presented for "
 "{time} on a {Hz}Hz monitor."
 msgstr ""
-"لا يمكن عرض وقت التحفيز {type} الذي يبلغ {time} ثانية بدقة لمدة {time} على "
-"شاشة {Hz} هرتز."
+"لا يمكن عرض وقت التحفيز {type} الذي يبلغ {time} ثانية بدقة لمدة {time} على شاشة "
+"{Hz} هرتز."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:32
 #, python-brace-format
@@ -85,22 +84,21 @@ msgstr ""
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:44
 #, python-brace-format
-msgid ""
-"Your stimulus {type} type {frameType} must be expressed as a whole number."
+msgid "Your stimulus {type} type {frameType} must be expressed as a whole number."
 msgstr "يجب التعبير عن نوع التحفيز {type} {frameType} كرقم صحيح."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:48
 #, python-brace-format
 msgid ""
-"Component {component} has stop time set as a duration, but doesn't have a "
-"start time"
+"Component {component} has stop time set as a duration, but doesn't have a start "
+"time"
 msgstr "تم تعيين وقت التوقف للمكوّن {component} كمدة، ولكن ليس له وقت بدء"
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:52
 #, python-brace-format
 msgid ""
-"Python Syntax Error in '{codeTab}' tab. See '{code}' on line number "
-"{lineNumber} of the '{codeTab}' tab."
+"Python Syntax Error in '{codeTab}' tab. See '{code}' on line number {lineNumber} "
+"of the '{codeTab}' tab."
 msgstr ""
 "خطأ في بناء جملة Python في علامة التبويب '{codeTab}'. راجع \"{code}\" في السطر "
 "رقم {lineNumber} من علامة التبويب \"{codeTab}\"."
@@ -111,8 +109,8 @@ msgid ""
 "JavaScript Syntax Error in '{codeTab}' tab. See '{lineNumber}' in the "
 "'{codeTab}' tab."
 msgstr ""
-"خطأ في بناء جملة JavaScript في علامة التبويب '{codeTab}'. راجع "
-"\"{lineNumber}\" في علامة التبويب \"{codeTab}\"."
+"خطأ في بناء جملة JavaScript في علامة التبويب '{codeTab}'. راجع \"{lineNumber}\" "
+"في علامة التبويب \"{codeTab}\"."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:60
 #, python-brace-format
@@ -130,17 +128,16 @@ msgstr "لا يمكن حساب المتغير."
 #, python-brace-format
 msgid ""
 "Builder cannot interpret value \"{param.val}\" of {param.label} for {component."
-"type} component \"{component.params[name].val}\" as a dollar sign has been "
-"used incorrectly."
+"type} component \"{component.params[name].val}\" as a dollar sign has been used "
+"incorrectly."
 msgstr ""
 "لا يمكن للمنشئ تفسير القيمة \"{param.val}\" الخاصة بـ {param.label} للمكون "
-"{component.type} \"{component.params[name].val}\" لأنه تم استخدام علامة "
-"الدولار بشكل غير صحيح."
+"{component.type} \"{component.params[name].val}\" لأنه تم استخدام علامة الدولار "
+"بشكل غير صحيح."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:71
 #, python-brace-format
-msgid ""
-"Font `{param.val}` not found locally, will check Google Fonts on next run."
+msgid "Font `{param.val}` not found locally, will check Google Fonts on next run."
 msgstr ""
 "لم يتم العثور على الخط `{param.val}` محليًا، وسيتم التحقق من خطوط Google عند "
 "التشغيل التالي."
@@ -152,8 +149,8 @@ msgid ""
 "Font `{font} {style}` not available in weight `{weight}`, component `{name}` "
 "will default to Open Sans Regular."
 msgstr ""
-"الخط `{font} {style}` غير متوفر بالوزن `{weight}`، والمكوّن `{name}` سيكون "
-"بالخط الافتراضي Open Sans Regular."
+"الخط `{font} {style}` غير متوفر بالوزن `{weight}`، والمكوّن `{name}` سيكون بالخط "
+"الافتراضي Open Sans Regular."
 
 # "Default" translation might need revising
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:79
@@ -164,8 +161,8 @@ msgstr "جهاز التسجيل '{device}'  غير موجود، استخدام �
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:83
 #, python-brace-format
 msgid ""
-"The component or routine '{comp}' is only implemented online, so will do "
-"nothing when running locally."
+"The component or routine '{comp}' is only implemented online, so will do nothing "
+"when running locally."
 msgstr ""
 "يتم تنفيذ المكوّن أو الروتين '{comp}' عبر الإنترنت online فقط، لذا لن يفعل شيئًا "
 "عند تشغيله محليًا على الجهاز."
@@ -176,8 +173,8 @@ msgid ""
 "The component or routine '{comp}' is only implemented locally, so will do "
 "nothing when running online."
 msgstr ""
-"يتم تنفيذ المكوّن أو الروتين '{comp}' محليًا على الجهاز فقط، لذا لن يفعل شيئًا "
-"عند تشغيله عبر الإنترنت online."
+"يتم تنفيذ المكوّن أو الروتين '{comp}' محليًا على الجهاز فقط، لذا لن يفعل شيئًا عند "
+"تشغيله عبر الإنترنت online."
 
 # This was translated to somthing like "may compete when pressing keys"
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:91
@@ -225,13 +222,13 @@ msgid ""
 "Window mode is set to be windowed, but eyetracking requires the window to be "
 "full screen."
 msgstr ""
-"تم ضبط وضع النافذة على أن تكون كنافذة فقط، لكن تتبع العين يتطلب أن تكون "
-"النافذة في وضع ملء الشاشة."
+"تم ضبط وضع النافذة على أن تكون كنافذة فقط، لكن تتبع العين يتطلب أن تكون النافذة "
+"في وضع ملء الشاشة."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:112
 msgid ""
-"A monitor config is required for accurate eyetracking measurements, but none "
-"was found."
+"A monitor config is required for accurate eyetracking measurements, but none was "
+"found."
 msgstr ""
 "تهيئة الشاشة مطلوبة لإجراء قياسات دقيقة لتتبع العين، ولكن لم يتم العثور على أي "
 "منها."
@@ -241,8 +238,8 @@ msgid ""
 "Eye tracker experiments should use 'ioHub' as the Input -> Keyboard Backend "
 "setting"
 msgstr ""
-"يجب أن تستخدم تجارب تتبع العين \"ioHub\" كإعداد الإدخال -> إعداد الواجهة "
-"الخلفية للوحة المفاتيح"
+"يجب أن تستخدم تجارب تتبع العين \"ioHub\" كإعداد الإدخال -> إعداد الواجهة الخلفية "
+"للوحة المفاتيح"
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:120
 #, python-brace-format
@@ -252,8 +249,7 @@ msgstr "خدمة النسخ الصوتي \"{transcriber}\" غير مدعومة �
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:124
 #, python-brace-format
 msgid "Audio transcription service \"{transcriber}\" is not supported offline."
-msgstr ""
-"خدمة النسخ الصوتي \"{transcriber}\" غير مدعومة في وضع عدم الاتصال offline."
+msgstr "خدمة النسخ الصوتي \"{transcriber}\" غير مدعومة في وضع عدم الاتصال offline."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:128
 #, python-brace-format
@@ -261,8 +257,7 @@ msgid ""
 "Chosen transcriber '{engine}' requires an API key, please supply one in "
 "Preferences."
 msgstr ""
-"يتطلب الناسخ الذي تم اختياره '{engine}' مفتاح API، يرجى توفير واحد في "
-"التفضيلات."
+"يتطلب الناسخ الذي تم اختياره '{engine}' مفتاح API، يرجى توفير واحد في التفضيلات."
 
 # the translation of the word "parameter" might need revision
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:132
@@ -270,8 +265,8 @@ msgstr ""
 msgid ""
 "Device parameter of microphone component \"{name}\" will not be used online."
 msgstr ""
-"لن يتم استخدام معامل الجهاز (device parameter) الخاص بمكوّن الميكروفون "
-"\"{name}\" عبر الإنترنت."
+"لن يتم استخدام معامل الجهاز (device parameter) الخاص بمكوّن الميكروفون \"{name}\" "
+"عبر الإنترنت."
 
 # runner translation
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:136
@@ -280,8 +275,8 @@ msgid ""
 "The file you are attempting to run does not seem to exist, the full path "
 "supplied to Runner was {path}"
 msgstr ""
-"يبدو أن الملف الذي تحاول تشغيله غير موجود، يبدو أن المسار الكامل الذي تم "
-"توفيره إلى \"العداء\" كان {path}"
+"يبدو أن الملف الذي تحاول تشغيله غير موجود، يبدو أن المسار الكامل الذي تم توفيره "
+"إلى \"العداء\" كان {path}"
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:140
 #, python-brace-format
@@ -314,45 +309,48 @@ msgstr "برنامج سايكوباي في بايثون"
 #: psychopy/app/_psychopyApp.py:98 psychopy/app/builder/builder.py:381
 #: psychopy/app/coder/coder.py:1570 psychopy/app/runner/runner.py:207
 msgid "&View"
-msgstr ""
+msgstr "وعرض"
 
+# التأكد من ترجمة builder view  تنسيق الكود و
 #: psychopy/app/_psychopyApp.py:99
-#, python-format
+#, fuzzy, python-format
 msgid "&Open Builder view\t%s"
-msgstr ""
+msgstr "وفتح عرض البناء\t%s"
 
 #: psychopy/app/_psychopyApp.py:102
 msgid "Open a new Builder view"
-msgstr ""
+msgstr "إفتح عرض بناء جديد"
 
 #: psychopy/app/_psychopyApp.py:105
 #, python-format
 msgid "&Open Coder view\t%s"
-msgstr ""
+msgstr "&افتح عرض المبرمج %s"
 
+# التوافق على ترجمة Coder
 #: psychopy/app/_psychopyApp.py:108
+#, fuzzy
 msgid "Open a new Coder view"
-msgstr ""
+msgstr "إفتح عرض تشفير جديد "
 
 #: psychopy/app/_psychopyApp.py:111 psychopy/app/builder/builder.py:358
 #: psychopy/app/coder/coder.py:343 psychopy/app/coder/coder.py:1443
 #: psychopy/app/pavlovia_ui/_base.py:39 psychopy/app/runner/runner.py:149
 #, python-format
 msgid "&Quit\t%s"
-msgstr ""
+msgstr "واخرج\t%s"
 
 #: psychopy/app/_psychopyApp.py:113 psychopy/app/builder/builder.py:359
 #: psychopy/app/coder/coder.py:1444 psychopy/app/pavlovia_ui/_base.py:40
 msgid "Terminate the program"
-msgstr ""
+msgstr "إنهاء البرنامج"
 
 #: psychopy/app/_psychopyApp.py:444
 msgid "Copyright (C) 2022 OpenScienceTools.org"
-msgstr ""
+msgstr "حقوق الملكية الفكرية  2022 OpenScienceTools.org"
 
 #: psychopy/app/_psychopyApp.py:545
 msgid "  Creating frames..."
-msgstr ""
+msgstr "تكوين الأطر..."
 
 #: psychopy/app/_psychopyApp.py:587
 msgid ""
@@ -1066,9 +1064,9 @@ msgstr ""
 msgid "Open an existing experiment file"
 msgstr ""
 
-#: psychopy/app/builder/builder.py:4319
-#: psychopy/app/builder/localizedStrings.py:33 psychopy/app/coder/coder.py:2896
-#: psychopy/app/utils.py:503 psychopy/monitors/MonitorCenter.py:259
+#: psychopy/app/builder/builder.py:4319 psychopy/app/builder/localizedStrings.py:33
+#: psychopy/app/coder/coder.py:2896 psychopy/app/utils.py:503
+#: psychopy/monitors/MonitorCenter.py:259
 msgid "Save"
 msgstr ""
 
@@ -1268,8 +1266,7 @@ msgstr ""
 #: psychopy/app/builder/dialogs/__init__.py:1759
 #, python-format
 msgid ""
-"Bad name in %s: Parameters (column headers) cannot contain dots or be "
-"duplicated."
+"Bad name in %s: Parameters (column headers) cannot contain dots or be duplicated."
 msgstr ""
 
 #: psychopy/app/builder/dialogs/__init__.py:1775
@@ -1374,8 +1371,8 @@ msgstr ""
 
 #: psychopy/app/builder/dialogs/dlgsConditions.py:484
 msgid ""
-"Add a parameter (column); to delete a param, set its type to None, or delete "
-"all of its values."
+"Add a parameter (column); to delete a param, set its type to None, or delete all "
+"of its values."
 msgstr ""
 
 #: psychopy/app/builder/dialogs/dlgsConditions.py:490 psychopy/app/utils.py:499
@@ -1437,9 +1434,9 @@ msgstr ""
 
 #: psychopy/app/builder/dialogs/paramCtrls.py:261
 msgid ""
-"This parameter has come from an older version of PsychoPy. In the latest "
-"version of PsychoPy, it is not used. Click this button to delete it. WARNING: "
-"This may affect how this experiment works in older versions!"
+"This parameter has come from an older version of PsychoPy. In the latest version "
+"of PsychoPy, it is not used. Click this button to delete it. WARNING: This may "
+"affect how this experiment works in older versions!"
 msgstr ""
 
 #: psychopy/app/builder/dialogs/paramCtrls.py:267
@@ -2086,8 +2083,8 @@ msgstr ""
 #: psychopy/app/builder/validators.py:494
 #, python-brace-format
 msgid ""
-"Font `{val}` not found locally, will attempt to retrieve from Google Fonts "
-"when this experiment next runs"
+"Font `{val}` not found locally, will attempt to retrieve from Google Fonts when "
+"this experiment next runs"
 msgstr ""
 
 #: psychopy/app/builder/validators.py:513
@@ -2721,8 +2718,7 @@ msgid "Close the current shell."
 msgstr ""
 
 #: psychopy/app/coder/repl.py:66
-msgid ""
-"Close the current shell and start a new one, this will clear any variables."
+msgid "Close the current shell and start a new one, this will clear any variables."
 msgstr ""
 
 #: psychopy/app/coder/repl.py:86 psychopy/app/stdout/stdOutRich.py:223
@@ -2786,8 +2782,7 @@ msgid "This version is too big an update to be handled automatically.\n"
 msgstr ""
 
 #: psychopy/app/connections/updates.py:144
-msgid ""
-"Please fetch the latest version from www.psychopy.org and install manually."
+msgid "Please fetch the latest version from www.psychopy.org and install manually."
 msgstr ""
 
 #: psychopy/app/connections/updates.py:149
@@ -2957,8 +2952,8 @@ msgstr ""
 
 #: psychopy/app/connections/updates.py:486
 msgid ""
-"To upgrade you need to restart the app as admin (Right-click the app and 'Run "
-"as admin')"
+"To upgrade you need to restart the app as admin (Right-click the app and 'Run as "
+"admin')"
 msgstr ""
 
 #: psychopy/app/connections/updates.py:490
@@ -3015,8 +3010,8 @@ msgstr ""
 #: psychopy/app/errorDlg.py:34
 msgid ""
 "PsychoPy encountered an unhandled internal error! Please send the report under "
-"\"Details\" to the developers with a description of what you were doing with "
-"the software when the error occurred."
+"\"Details\" to the developers with a description of what you were doing with the "
+"software when the error occurred."
 msgstr ""
 
 #: psychopy/app/errorDlg.py:56
@@ -3041,8 +3036,8 @@ msgstr ""
 
 #: psychopy/app/errorDlg.py:125
 msgid ""
-"Are you sure you want to exit PsychoPy? Unsaved work may be lost (but we'll "
-"try to save opened files)."
+"Are you sure you want to exit PsychoPy? Unsaved work may be lost (but we'll try "
+"to save opened files)."
 msgstr ""
 
 #: psychopy/app/errorDlg.py:127
@@ -3070,8 +3065,8 @@ msgstr ""
 msgid ""
 "Could not connect to Pavlovia server. \n"
 "\n"
-"Please check that you are connected to the internet. If you are connected, "
-"then the Pavlovia servers may be down. You can check their status here: \n"
+"Please check that you are connected to the internet. If you are connected, then "
+"the Pavlovia servers may be down. You can check their status here: \n"
 "\n"
 "https://pavlovia.org/status"
 msgstr ""
@@ -3085,8 +3080,7 @@ msgstr ""
 msgid "Close current window"
 msgstr ""
 
-#: psychopy/app/pavlovia_ui/_base.py:164
-#: psychopy/app/pavlovia_ui/functions.py:138
+#: psychopy/app/pavlovia_ui/_base.py:164 psychopy/app/pavlovia_ui/functions.py:138
 msgid "Committing changes"
 msgstr ""
 
@@ -3116,8 +3110,7 @@ msgstr ""
 msgid "You are not logged in to Pavlovia. Please log in to continue."
 msgstr ""
 
-#: psychopy/app/pavlovia_ui/functions.py:74
-#: psychopy/app/pavlovia_ui/project.py:764
+#: psychopy/app/pavlovia_ui/functions.py:74 psychopy/app/pavlovia_ui/project.py:764
 msgid "Login..."
 msgstr ""
 
@@ -3206,8 +3199,8 @@ msgstr ""
 #: psychopy/app/pavlovia_ui/project.py:259
 msgid ""
 "Title of the project. Unlike the project name, this isn't used as a filename "
-"anywhere; so you can add spaces, apostrophes and emojis to your heart's "
-"content! 🦕✨"
+"anywhere; so you can add spaces, apostrophes and emojis to your heart's content! "
+"🦕✨"
 msgstr ""
 
 #: psychopy/app/pavlovia_ui/project.py:273
@@ -3217,8 +3210,8 @@ msgstr ""
 #: psychopy/app/pavlovia_ui/project.py:285
 msgid ""
 "'Star' this project to get back to it easily. Projects you've starred will "
-"appear first in your searches and projects with more stars in total will "
-"appear higher in everyone's searches."
+"appear first in your searches and projects with more stars in total will appear "
+"higher in everyone's searches."
 msgstr ""
 
 #: psychopy/app/pavlovia_ui/project.py:291
@@ -3227,8 +3220,8 @@ msgstr ""
 
 #: psychopy/app/pavlovia_ui/project.py:296
 msgid ""
-"Create a copy of this project on your own Pavlovia account so that you can "
-"make changes without affecting the original project."
+"Create a copy of this project on your own Pavlovia account so that you can make "
+"changes without affecting the original project."
 msgstr ""
 
 #: psychopy/app/pavlovia_ui/project.py:300
@@ -3245,8 +3238,8 @@ msgstr ""
 
 #: psychopy/app/pavlovia_ui/project.py:313
 msgid ""
-"Synchronise this project's local files with their online counterparts. This "
-"will 'pull' changes from Pavlovia and 'push' changes from your local files."
+"Synchronise this project's local files with their online counterparts. This will "
+"'pull' changes from Pavlovia and 'push' changes from your local files."
 msgstr ""
 
 #: psychopy/app/pavlovia_ui/project.py:317
@@ -3266,14 +3259,14 @@ msgstr ""
 #: psychopy/app/pavlovia_ui/project.py:343
 msgid ""
 "Folder in which local files are stored for this project. Changes to files in "
-"this folder will be tracked and applied to the project when you 'sync', so "
-"make sure the only files in this folder are relevant!"
+"this folder will be tracked and applied to the project when you 'sync', so make "
+"sure the only files in this folder are relevant!"
 msgstr ""
 
 #: psychopy/app/pavlovia_ui/project.py:353
 msgid ""
-"Description of the project to be shown on Pavlovia. Note: This is different "
-"than a README file!"
+"Description of the project to be shown on Pavlovia. Note: This is different than "
+"a README file!"
 msgstr ""
 
 #: psychopy/app/pavlovia_ui/project.py:360
@@ -3316,8 +3309,8 @@ msgstr ""
 msgid ""
 "Could not find GitLab project with id {}.\n"
 "\n"
-"Please check that the project exists on Pavlovia, that you are logged in as "
-"the correct user in the PsychoPy app, and that your account has access to the "
+"Please check that the project exists on Pavlovia, that you are logged in as the "
+"correct user in the PsychoPy app, and that your account has access to the "
 "project."
 msgstr ""
 
@@ -3467,14 +3460,14 @@ msgstr ""
 
 #: psychopy/app/plugin_manager/dialog.py:319
 msgid ""
-"[Warning] Could not activate plugin. PsychoPy may need to restart for plugin "
-"to take effect."
+"[Warning] Could not activate plugin. PsychoPy may need to restart for plugin to "
+"take effect."
 msgstr ""
 
 #: psychopy/app/plugin_manager/dialog.py:329
 msgid ""
-"The following components/routines should now be visible in the Components "
-"panel (a restart may be required in some cases):\n"
+"The following components/routines should now be visible in the Components panel "
+"(a restart may be required in some cases):\n"
 msgstr ""
 
 #: psychopy/app/plugin_manager/dialog.py:340
@@ -3484,14 +3477,14 @@ msgstr ""
 
 #: psychopy/app/plugin_manager/dialog.py:355
 msgid ""
-"It looks like you've uninstalled some plugins. In order for this to take "
-"effect, you will need to restart the PsychoPy app."
+"It looks like you've uninstalled some plugins. In order for this to take effect, "
+"you will need to restart the PsychoPy app."
 msgstr ""
 
 #: psychopy/app/plugin_manager/packages.py:71
 msgid ""
-"Type a PIP command below and press Enter to execute it in the installed "
-"PsychoPy environment, any returned text will appear below.\n"
+"Type a PIP command below and press Enter to execute it in the installed PsychoPy "
+"environment, any returned text will appear below.\n"
 "\n"
 "All commands will be automatically prefaced with:\n"
 "{}\n"
@@ -4385,8 +4378,8 @@ msgstr ""
 
 #: psychopy/data/experiment.py:425
 msgid ""
-"Attempted to pause experiment '{}', but it is already paused. Status will "
-"remain unchanged."
+"Attempted to pause experiment '{}', but it is already paused. Status will remain "
+"unchanged."
 msgstr ""
 
 #: psychopy/data/experiment.py:438
@@ -4536,8 +4529,7 @@ msgid "Expected duration (s)"
 msgstr ""
 
 #: psychopy/experiment/components/_base.py:106
-msgid ""
-"Store the onset/offset times in the data file (as well as in the log file)."
+msgid "Store the onset/offset times in the data file (as well as in the log file)."
 msgstr ""
 
 #: psychopy/experiment/components/_base.py:111
@@ -4586,8 +4578,7 @@ msgstr ""
 #: psychopy/experiment/routines/eyetracker_calibrate/__init__.py:93
 #: psychopy/experiment/routines/eyetracker_validate/__init__.py:135
 msgid ""
-"In what format (color space) have you specified the colors? (rgb, dkl, lms, "
-"hsv)"
+"In what format (color space) have you specified the colors? (rgb, dkl, lms, hsv)"
 msgstr ""
 
 #: psychopy/experiment/components/_base.py:1001
@@ -4619,9 +4610,8 @@ msgstr ""
 
 #: psychopy/experiment/components/_base.py:1019
 msgid ""
-"Opacity of the stimulus (1=opaque, 0=fully transparent, 0.5=translucent). "
-"Leave blank for each color to have its own opacity (recommended if any color "
-"is None)."
+"Opacity of the stimulus (1=opaque, 0=fully transparent, 0.5=translucent). Leave "
+"blank for each color to have its own opacity (recommended if any color is None)."
 msgstr ""
 
 #: psychopy/experiment/components/_base.py:1026
@@ -4654,8 +4644,7 @@ msgstr ""
 
 #: psychopy/experiment/components/_base.py:1046
 #: psychopy/experiment/components/ratingScale/__init__.py:196
-msgid ""
-"Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] "
+msgid "Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] "
 msgstr ""
 
 #: psychopy/experiment/components/_base.py:1053
@@ -4737,8 +4726,7 @@ msgid "Brush color"
 msgstr ""
 
 #: psychopy/experiment/components/brush/__init__.py:59
-msgid ""
-"Width of the brush's line (always in pixels and limited to 10px max width)"
+msgid "Width of the brush's line (always in pixels and limited to 10px max width)"
 msgstr ""
 
 #: psychopy/experiment/components/brush/__init__.py:65
@@ -5005,8 +4993,8 @@ msgstr ""
 
 #: psychopy/experiment/components/camera/__init__.py:345
 msgid ""
-" For some cameras, you may need to use `camera.CAMERA_FRAMERATE_NTSC` or "
-"`camera.CAMERA_FRAMERATE_NTSC / 2`."
+" For some cameras, you may need to use `camera.CAMERA_FRAMERATE_NTSC` or `camera."
+"CAMERA_FRAMERATE_NTSC / 2`."
 msgstr ""
 
 #: psychopy/experiment/components/camera/__init__.py:370
@@ -5170,8 +5158,8 @@ msgstr ""
 #: psychopy/experiment/components/code/__init__.py:102
 #: psychopy/experiment/components/code/__init__.py:153
 msgid ""
-"Code at the end of this repeat of the Routine (e.g. getting/storing "
-"responses); right-click checks syntax"
+"Code at the end of this repeat of the Routine (e.g. getting/storing responses); "
+"right-click checks syntax"
 msgstr ""
 
 #: psychopy/experiment/components/code/__init__.py:111
@@ -5278,8 +5266,8 @@ msgstr ""
 
 #: psychopy/experiment/components/dots/__init__.py:67
 msgid ""
-"Number of dots in the field (for circular fields this will be average number "
-"of dots)"
+"Number of dots in the field (for circular fields this will be average number of "
+"dots)"
 msgstr ""
 
 #: psychopy/experiment/components/dots/__init__.py:75
@@ -5292,8 +5280,7 @@ msgstr ""
 
 #: psychopy/experiment/components/dots/__init__.py:92
 msgid ""
-"Coherence of the dots (fraction moving in the signal direction on any one "
-"frame)"
+"Coherence of the dots (fraction moving in the signal direction on any one frame)"
 msgstr ""
 
 #: psychopy/experiment/components/dots/__init__.py:101
@@ -5307,8 +5294,8 @@ msgstr ""
 
 #: psychopy/experiment/components/dots/__init__.py:117
 msgid ""
-"On each frame are the signals dots remaining the same or changing? See Scase "
-"et al."
+"On each frame are the signals dots remaining the same or changing? See Scase et "
+"al."
 msgstr ""
 
 #: psychopy/experiment/components/dots/__init__.py:124
@@ -5535,8 +5522,8 @@ msgstr ""
 
 #: psychopy/experiment/components/grating/__init__.py:73
 msgid ""
-"Spatial frequency of image repeats across the grating in 1 or 2 dimensions, e."
-"g. 4 or [2,3]"
+"Spatial frequency of image repeats across the grating in 1 or 2 dimensions, e.g. "
+"4 or [2,3]"
 msgstr ""
 
 #: psychopy/experiment/components/grating/__init__.py:95
@@ -5555,8 +5542,8 @@ msgstr ""
 #: psychopy/experiment/components/grating/__init__.py:108
 #: psychopy/experiment/components/patch/__init__.py:87
 msgid ""
-"Resolution of the texture for standard ones such as sin, sqr etc. For most "
-"cases a value of 256 pixels will suffice"
+"Resolution of the texture for standard ones such as sin, sqr etc. For most cases "
+"a value of 256 pixels will suffice"
 msgstr ""
 
 #: psychopy/experiment/components/grating/__init__.py:117
@@ -5756,8 +5743,8 @@ msgstr ""
 
 #: psychopy/experiment/components/joystick/__init__.py:99
 msgid ""
-"The params (e.g. name, text), for which you want to store the current value, "
-"for the stimulus that was\"clicked\" by the joystick. Make sure that all the "
+"The params (e.g. name, text), for which you want to store the current value, for "
+"the stimulus that was\"clicked\" by the joystick. Make sure that all the "
 "clickable objects have all these params."
 msgstr ""
 
@@ -5786,8 +5773,7 @@ msgstr ""
 
 #: psychopy/experiment/components/keyboard/__init__.py:63
 msgid ""
-"A comma-separated list of keys (with quotes), such as "
-"'q','right','space','left'"
+"A comma-separated list of keys (with quotes), such as 'q','right','space','left'"
 msgstr ""
 
 #: psychopy/experiment/components/keyboard/__init__.py:74
@@ -5911,8 +5897,8 @@ msgstr ""
 
 #: psychopy/experiment/components/mouse/__init__.py:56
 msgid ""
-"How often should the mouse state (x,y,buttons) be stored? On every video "
-"frame, every click or just at the end of the Routine?"
+"How often should the mouse state (x,y,buttons) be stored? On every video frame, "
+"every click or just at the end of the Routine?"
 msgstr ""
 
 #: psychopy/experiment/components/mouse/__init__.py:87
@@ -5923,15 +5909,15 @@ msgstr ""
 
 #: psychopy/experiment/components/mouse/__init__.py:107
 msgid ""
-"The params (e.g. name, text), for which you want to store the current value, "
-"for the stimulus that was\"clicked\" by the mouse. Make sure that all the "
-"clickable objects have all these params."
+"The params (e.g. name, text), for which you want to store the current value, for "
+"the stimulus that was\"clicked\" by the mouse. Make sure that all the clickable "
+"objects have all these params."
 msgstr ""
 
 #: psychopy/experiment/components/mouse/__init__.py:136
 msgid ""
-"What is the 'correct' object? To specify an area, remember that you can create "
-"a shape Component with 0 opacity."
+"What is the 'correct' object? To specify an area, remember that you can create a "
+"shape Component with 0 opacity."
 msgstr ""
 
 #: psychopy/experiment/components/movie/__init__.py:16
@@ -6232,8 +6218,8 @@ msgstr ""
 
 #: psychopy/experiment/components/polygon/__init__.py:106
 msgid ""
-"What shape is this? With 'regular polygon...' you can set number of vertices "
-"and with 'custom polygon...' you can set vertices"
+"What shape is this? With 'regular polygon...' you can set number of vertices and "
+"with 'custom polygon...' you can set vertices"
 msgstr ""
 
 #: psychopy/experiment/components/polygon/__init__.py:121
@@ -6243,8 +6229,8 @@ msgstr ""
 
 #: psychopy/experiment/components/polygon/__init__.py:140
 msgid ""
-"Size of this stimulus [w,h]. Note that for a line only the first value is "
-"used, for triangle and rect the [w,h] is as expected,\n"
+"Size of this stimulus [w,h]. Note that for a line only the first value is used, "
+"for triangle and rect the [w,h] is as expected,\n"
 " but for higher-order polygons it represents the [w,h] of the ellipse that the "
 "polygon sits on!! "
 msgstr ""
@@ -6274,8 +6260,7 @@ msgid "Color of the line around the progress bar."
 msgstr ""
 
 #: psychopy/experiment/components/progress/__init__.py:65
-msgid ""
-"Value between 0 (not started) and 1 (complete) to set the progress bar to."
+msgid "Value between 0 (not started) and 1 (complete) to set the progress bar to."
 msgstr ""
 
 #: psychopy/experiment/components/progress/__init__.py:67
@@ -6520,8 +6505,8 @@ msgstr ""
 
 #: psychopy/experiment/components/roi/__init__.py:84
 msgid ""
-"In debug mode, the ROI is drawn in red. Use this to see what area of the "
-"screen is in the ROI."
+"In debug mode, the ROI is drawn in red. Use this to see what area of the screen "
+"is in the ROI."
 msgstr ""
 
 #: psychopy/experiment/components/roi/__init__.py:86
@@ -6570,8 +6555,8 @@ msgstr ""
 
 #: psychopy/experiment/components/routineSettings/__init__.py:76
 msgid ""
-"Skip this Routine if the value in this contorl evaluates to True. Leave blank "
-"to not skip."
+"Skip this Routine if the value in this contorl evaluates to True. Leave blank to "
+"not skip."
 msgstr ""
 
 #: psychopy/experiment/components/routineSettings/__init__.py:78
@@ -6580,8 +6565,8 @@ msgstr ""
 
 #: psychopy/experiment/components/routineSettings/__init__.py:85
 msgid ""
-"Some descriptive text to give information about this Routine. This won't "
-"affect how it runs, it's purely for your own reference!"
+"Some descriptive text to give information about this Routine. This won't affect "
+"how it runs, it's purely for your own reference!"
 msgstr ""
 
 #: psychopy/experiment/components/routineSettings/__init__.py:89
@@ -6635,8 +6620,8 @@ msgstr ""
 
 #: psychopy/experiment/components/routineSettings/__init__.py:147
 msgid ""
-"Save the start and stop times of this Routine (according to the global clock) "
-"to the data file."
+"Save the start and stop times of this Routine (according to the global clock) to "
+"the data file."
 msgstr ""
 
 #: psychopy/experiment/components/serialOut/__init__.py:29
@@ -6702,8 +6687,7 @@ msgstr ""
 
 #: psychopy/experiment/components/serialOut/__init__.py:96
 msgid ""
-"After sending a signal, should PsychoPy read and record a response from the "
-"port?"
+"After sending a signal, should PsychoPy read and record a response from the port?"
 msgstr ""
 
 #: psychopy/experiment/components/serialOut/__init__.py:97
@@ -6841,8 +6825,7 @@ msgid "Edit settings for this experiment"
 msgstr ""
 
 #: psychopy/experiment/components/settings/__init__.py:178
-msgid ""
-"Name of the entire experiment (taken by default from the filename on save)"
+msgid "Name of the entire experiment (taken by default from the filename on save)"
 msgstr ""
 
 #: psychopy/experiment/components/settings/__init__.py:191
@@ -6861,8 +6844,8 @@ msgstr ""
 
 #: psychopy/experiment/components/settings/__init__.py:202
 msgid ""
-"The info to present in a dialog box. Right-click to check syntax and preview "
-"the dialog box."
+"The info to present in a dialog box. Right-click to check syntax and preview the "
+"dialog box."
 msgstr ""
 
 #: psychopy/experiment/components/settings/__init__.py:211
@@ -6892,14 +6875,14 @@ msgstr ""
 
 #: psychopy/experiment/components/settings/__init__.py:236
 msgid ""
-"Name of the monitor (from Monitor Center). Right-click to go there, then copy "
-"& paste a monitor name here."
+"Name of the monitor (from Monitor Center). Right-click to go there, then copy & "
+"paste a monitor name here."
 msgstr ""
 
 #: psychopy/experiment/components/settings/__init__.py:242
 msgid ""
-"Color of the screen (e.g. black, $[1.0,1.0,1.0], $variable. Right-click to "
-"bring up a color-picker.)"
+"Color of the screen (e.g. black, $[1.0,1.0,1.0], $variable. Right-click to bring "
+"up a color-picker.)"
 msgstr ""
 
 #: psychopy/experiment/components/settings/__init__.py:267
@@ -6985,8 +6968,8 @@ msgstr ""
 
 #: psychopy/experiment/components/settings/__init__.py:355
 msgid ""
-"Assign priority values to certain columns. To use predefined values, you can "
-"do $priority.HIGH, $priority.MEDIUM, etc."
+"Assign priority values to certain columns. To use predefined values, you can do "
+"$priority.HIGH, $priority.MEDIUM, etc."
 msgstr ""
 
 #: psychopy/experiment/components/settings/__init__.py:361
@@ -7012,8 +6995,8 @@ msgstr ""
 
 #: psychopy/experiment/components/settings/__init__.py:380
 msgid ""
-"Save data from loops in psydat format. This is useful for Python programmers "
-"to generate analysis scripts."
+"Save data from loops in psydat format. This is useful for Python programmers to "
+"generate analysis scripts."
 msgstr ""
 
 #: psychopy/experiment/components/settings/__init__.py:386
@@ -7167,8 +7150,8 @@ msgstr ""
 
 #: psychopy/experiment/components/settings/__init__.py:547
 msgid ""
-"Filter eye sample data when it is saved to the output file. This will not "
-"affect the sampling speed."
+"Filter eye sample data when it is saved to the output file. This will not affect "
+"the sampling speed."
 msgstr ""
 
 #: psychopy/experiment/components/settings/__init__.py:549
@@ -7224,8 +7207,7 @@ msgid "Serial number"
 msgstr ""
 
 #: psychopy/experiment/components/settings/__init__.py:607
-msgid ""
-"Subscribe to pupil data only, does not require calibration or surface setup"
+msgid "Subscribe to pupil data only, does not require calibration or surface setup"
 msgstr ""
 
 #: psychopy/experiment/components/settings/__init__.py:608
@@ -7330,8 +7312,8 @@ msgstr ""
 
 #: psychopy/experiment/components/slider/__init__.py:136
 msgid ""
-"Specifies the minimum step size (0 for a continuous scale, 1 for integer "
-"rating scale)"
+"Specifies the minimum step size (0 for a continuous scale, 1 for integer rating "
+"scale)"
 msgstr ""
 
 #: psychopy/experiment/components/slider/__init__.py:139
@@ -7340,8 +7322,8 @@ msgstr ""
 
 #: psychopy/experiment/components/slider/__init__.py:157
 msgid ""
-"Should setting a rating (releasing the mouse) cause the end of the Routine (e."
-"g. trial)?"
+"Should setting a rating (releasing the mouse) cause the end of the Routine (e.g. "
+"trial)?"
 msgstr ""
 
 #: psychopy/experiment/components/slider/__init__.py:163
@@ -7424,8 +7406,8 @@ msgstr ""
 
 #: psychopy/experiment/components/sound/__init__.py:55
 msgid ""
-"A sound can be a note name (e.g. A or Bf), a number to specify Hz (e.g. 440) "
-"or a filename"
+"A sound can be a note name (e.g. A or Bf), a number to specify Hz (e.g. 440) or "
+"a filename"
 msgstr ""
 
 #: psychopy/experiment/components/sound/__init__.py:66
@@ -7443,8 +7425,8 @@ msgstr ""
 
 #: psychopy/experiment/components/sound/__init__.py:79
 msgid ""
-"For tones we can apply a hamming window to prevent 'clicks' that are caused by "
-"a sudden onset. This delays onset by roughly 1ms."
+"For tones we can apply a hamming window to prevent 'clicks' that are caused by a "
+"sudden onset. This delays onset by roughly 1ms."
 msgstr ""
 
 #: psychopy/experiment/components/sound/__init__.py:81
@@ -7457,8 +7439,7 @@ msgid "Custom code"
 msgstr ""
 
 #: psychopy/experiment/components/static/__init__.py:32
-msgid ""
-"Static: Static screen period (e.g. an ISI). Useful for pre-loading stimuli."
+msgid "Static: Static screen period (e.g. an ISI). Useful for pre-loading stimuli."
 msgstr ""
 
 #: psychopy/experiment/components/static/__init__.py:49
@@ -7608,8 +7589,8 @@ msgstr ""
 
 #: psychopy/experiment/components/unknownPlugin/__init__.py:24
 msgid ""
-"Unknown: A component which comes from a plugin which you do not have installed "
-"& activated."
+"Unknown: A component which comes from a plugin which you do not have installed & "
+"activated."
 msgstr ""
 
 #: psychopy/experiment/components/variable/__init__.py:18
@@ -7710,8 +7691,8 @@ msgstr ""
 #: psychopy/experiment/loops.py:111
 msgid ""
 "Name of a file specifying the parameters for each condition (.csv, .xlsx, or ."
-"pkl). Browse to select a file. Right-click to preview file contents, or create "
-"a new file."
+"pkl). Browse to select a file. Right-click to preview file contents, or create a "
+"new file."
 msgstr ""
 
 #: psychopy/experiment/loops.py:118
@@ -7730,8 +7711,8 @@ msgstr ""
 
 #: psychopy/experiment/loops.py:138
 msgid ""
-"To have a fixed random sequence provide an integer of your choosing here. "
-"Leave blank to have a new random sequence on each run of the experiment."
+"To have a fixed random sequence provide an integer of your choosing here. Leave "
+"blank to have a new random sequence on each run of the experiment."
 msgstr ""
 
 #: psychopy/experiment/loops.py:145 psychopy/experiment/loops.py:490
@@ -7930,8 +7911,8 @@ msgstr ""
 #: psychopy/experiment/routines/eyetracker_calibrate/__init__.py:136
 #: psychopy/experiment/routines/eyetracker_validate/__init__.py:179
 msgid ""
-"Should the target move to the next position after a keypress or after an "
-"amount of time?"
+"Should the target move to the next position after a keypress or after an amount "
+"of time?"
 msgstr ""
 
 #: psychopy/experiment/routines/eyetracker_calibrate/__init__.py:138
@@ -8064,8 +8045,8 @@ msgstr ""
 
 #: psychopy/experiment/routines/pavlovia_survey/__init__.py:52
 msgid ""
-"Inserting a JSON file (exported from Pavlovia Surveys) means that the survey "
-"is embedded within this project and will not change unless you import it again "
+"Inserting a JSON file (exported from Pavlovia Surveys) means that the survey is "
+"embedded within this project and will not change unless you import it again "
 "(better for archiving)"
 msgstr ""
 
@@ -8079,8 +8060,8 @@ msgstr ""
 
 #: psychopy/experiment/routines/pavlovia_survey/__init__.py:71
 msgid ""
-"The ID for your survey on Pavlovia. Tip: Right click to open the survey in "
-"your browser!"
+"The ID for your survey on Pavlovia. Tip: Right click to open the survey in your "
+"browser!"
 msgstr ""
 
 #: psychopy/experiment/routines/pavlovia_survey/__init__.py:86
@@ -8141,8 +8122,8 @@ msgstr ""
 
 #: psychopy/liaison.py:29
 msgid ""
-"`psychopy.liaison` requires the package `websockets`, this can be installed "
-"via command line:\n"
+"`psychopy.liaison` requires the package `websockets`, this can be installed via "
+"command line:\n"
 "`pip install websockets`."
 msgstr ""
 
@@ -8419,8 +8400,8 @@ msgstr ""
 
 #: psychopy/monitors/MonitorCenter.py:997
 msgid ""
-"Your ColorCAL needs to be calibrated first. Please block all light from "
-"getting into the lens and press OK."
+"Your ColorCAL needs to be calibrated first. Please block all light from getting "
+"into the lens and press OK."
 msgstr ""
 
 #: psychopy/monitors/MonitorCenter.py:1014
@@ -8542,8 +8523,7 @@ msgid ""
 msgstr ""
 
 #: psychopy/preferences/hints.py:67
-msgid ""
-"Show an error dialog when PsychoPy encounters an unhandled internal error."
+msgid "Show an error dialog when PsychoPy encounters an unhandled internal error."
 msgstr ""
 
 #: psychopy/preferences/hints.py:70
@@ -8599,8 +8579,7 @@ msgid "Default to when writing code components"
 msgstr ""
 
 #: psychopy/preferences/hints.py:112
-msgid ""
-"if False will create scripts with an 'easier' but more cluttered namespace"
+msgid "if False will create scripts with an 'easier' but more cluttered namespace"
 msgstr ""
 
 #: psychopy/preferences/hints.py:115
@@ -8678,8 +8657,8 @@ msgstr ""
 
 #: psychopy/preferences/hints.py:169
 msgid ""
-"allow PsychoPy to send anonymous usage stats; please allow if possible, it "
-"helps PsychoPy's development"
+"allow PsychoPy to send anonymous usage stats; please allow if possible, it helps "
+"PsychoPy's development"
 msgstr ""
 
 #: psychopy/preferences/hints.py:172
@@ -8904,8 +8883,8 @@ msgstr ""
 #: psychopy/projects/pavlovia.py:285
 #, python-brace-format
 msgid ""
-"PavloviaSession.createProject was given a namespace ({namespace}) that "
-"couldn't be found on gitlab."
+"PavloviaSession.createProject was given a namespace ({namespace}) that couldn't "
+"be found on gitlab."
 msgstr ""
 
 #: psychopy/projects/pavlovia.py:310
@@ -8980,8 +8959,7 @@ msgstr ""
 
 #: psychopy/projects/pavlovia.py:1413
 msgid ""
-"We found a repository pointing to {} but no user is logged in for us to check "
-"it"
+"We found a repository pointing to {} but no user is logged in for us to check it"
 msgstr ""
 
 #: psychopy/session.py:202 psychopy/session.py:513 psychopy/session.py:705
@@ -9044,8 +9022,7 @@ msgid "{} to {}"
 msgstr ""
 
 #: psychopy/tools/versionchooser.py:192
-msgid ""
-"Please request a version before importing any PsychoPy modules. (Found: {})"
+msgid "Please request a version before importing any PsychoPy modules. (Found: {})"
 msgstr ""
 
 #: psychopy/tools/versionchooser.py:204
@@ -9059,9 +9036,8 @@ msgstr ""
 #: psychopy/tools/versionchooser.py:254
 #, python-brace-format
 msgid ""
-"Requested PsychoPy version {requested} does not support installed Python "
-"version {py}. The {mode} version of PsychoPy to support {py} was version "
-"{key}.\n"
+"Requested PsychoPy version {requested} does not support installed Python version "
+"{py}. The {mode} version of PsychoPy to support {py} was version {key}.\n"
 "\n"
 "Try either choosing a different version of PsychoPy or installing a different "
 "version of Python - some standalone PsychoPy releases include installers for "
@@ -9208,8 +9184,7 @@ msgstr ""
 
 #: psychopy/tools/wizard.py:105
 #, python-format
-msgid ""
-"Warning: low available physical RAM for configuration test (of %.1fG total)"
+msgid "Warning: low available physical RAM for configuration test (of %.1fG total)"
 msgstr ""
 
 #: psychopy/tools/wizard.py:116
@@ -9218,8 +9193,8 @@ msgstr ""
 
 #: psychopy/tools/wizard.py:119
 msgid ""
-"can be set in <a href=\"https://www.psychopy.org/general/prefs."
-"html#application-settings-app\">Preferences -> App</a>"
+"can be set in <a href=\"https://www.psychopy.org/general/prefs.html#application-"
+"settings-app\">Preferences -> App</a>"
 msgstr ""
 
 #: psychopy/tools/wizard.py:127
@@ -9270,14 +9245,14 @@ msgstr ""
 
 #: psychopy/tools/wizard.py:216
 msgid ""
-"during <a href=\"https://www.psychopy.org/api/visual/dotstim.html\">DotStim</"
-"a> with 100 random dots"
+"during <a href=\"https://www.psychopy.org/api/visual/dotstim.html\">DotStim</a> "
+"with 100 random dots"
 msgstr ""
 
 #: psychopy/tools/wizard.py:224
 msgid ""
-"Warning: could not keep up during <a href=\"https://www.psychopy.org/api/"
-"visual/dotstim.html\">DotStim</a> with 100 random dots."
+"Warning: could not keep up during <a href=\"https://www.psychopy.org/api/visual/"
+"dotstim.html\">DotStim</a> with 100 random dots."
 msgstr ""
 
 #: psychopy/tools/wizard.py:252
@@ -9311,8 +9286,8 @@ msgstr ""
 #: psychopy/tools/wizard.py:287
 msgid ""
 "try to auto-detect a proxy if needed; see <a href=\"https://www.psychopy.org/"
-"general/prefs.html#connection-settings-connections\">Preferences -> "
-"Connections</a>"
+"general/prefs.html#connection-settings-connections\">Preferences -> Connections</"
+"a>"
 msgstr ""
 
 #: psychopy/tools/wizard.py:297
@@ -9434,10 +9409,10 @@ msgstr ""
 msgid ""
 "<p>Critical issue:\n"
 "</p><p>Your video card (%(card)s) has drivers\n"
-"                that cannot support the high-performance features that "
-"PsychoPy depends on.\n"
-"                Fortunately, it's typically free and straightforward to get "
-"new drivers\n"
+"                that cannot support the high-performance features that PsychoPy "
+"depends on.\n"
+"                Fortunately, it's typically free and straightforward to get new "
+"drivers\n"
 "                directly from the manufacturer.</p>\n"
 "                <p><strong>To update the drivers:</strong>\n"
 "                <li> You'll need administrator privileges.\n"
@@ -9459,8 +9434,8 @@ msgid ""
 "                <p>If you updated the drivers and still get this message, "
 "you'll\n"
 "                  need a different video card to use PsychoPy. Click\n"
-"                <a href=\"https://www.psychopy.org/installation."
-"html#recommended-hardware\">here\n"
+"                <a href=\"https://www.psychopy.org/installation.html#recommended-"
+"hardware\">here\n"
 "                for more information</a> [psychopy.org].</p>\n"
 "            "
 msgstr ""
@@ -9484,8 +9459,7 @@ msgid "then switch back. You don't need to do anything."
 msgstr ""
 
 #: psychopy/tools/wizard.py:567
-msgid ""
-"Optional: For best results, please quit all email programs, web-browsers, "
+msgid "Optional: For best results, please quit all email programs, web-browsers, "
 msgstr ""
 
 #: psychopy/tools/wizard.py:570
