@@ -995,7 +995,7 @@ msgstr ""
 
 #: psychopy/app/builder/builder.py:3227 psychopy/app/utils.py:495
 msgid "Edit"
-msgstr ""
+msgstr "تعديل"
 
 #: psychopy/app/builder/builder.py:3230
 #, python-format
