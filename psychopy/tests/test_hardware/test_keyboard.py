@@ -3,6 +3,7 @@ from psychopy.hardware import keyboard
 import pytest
 import time
 from psychopy import logging
+from psychopy.tests.utils import RUNNING_IN_VM
 
 
 class _TestBaseKeyboard:
@@ -59,6 +60,9 @@ class _TestBaseKeyboard:
         """
         # skip this test on Linux (as MOP *is* slower due to having to use subprocess)
         if sys.platform == "linux":
+            pytest.skip()
+        # skip speed tests under vm
+        if RUNNING_IN_VM:
             pytest.skip()
 
         # array to store times
