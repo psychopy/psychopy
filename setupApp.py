@@ -131,6 +131,7 @@ if sys.version_info < (3, 9):
             'macropy',
         ]
     )
+    packages.append('google')  # otherwise it gets inserted into zip and won't sign
     packages.append('PyQt5')
     packages.remove('PyQt6')  # PyQt6 is not compatible with earlier PsychoPy versions
 
