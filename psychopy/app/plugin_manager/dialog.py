@@ -335,6 +335,9 @@ class EnvironmentManagerDlg(wx.Dialog):
 
         # clear pip process
         self.pipProcess = None
+        # refresh view
+        pkgtools.refreshPackages()
+        self.pluginMgr.updateInfo()
     
     def onUninstallExit(self, pid, exitCode):
         # write installation termination statement
