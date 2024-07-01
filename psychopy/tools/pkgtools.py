@@ -397,7 +397,7 @@ def _uninstallUserPackage(package):
                 absPath.unlink()
             except PermissionError as err:
                 stdout += _translate(
-                    f"Could not remove {absPath}, reason: {err}"
+                    "Could not remove {absPath}, reason: {err}".format(absPath=absPath, err=err)
                 )
         # skip pycache
         if absPath.parent.stem == "__pycache__":
@@ -409,7 +409,7 @@ def _uninstallUserPackage(package):
                 absPath.parent.unlink()
             except PermissionError as err:
                 stdout += _translate(
-                    f"Could not remove {absPath}, reason: {err}"
+                    "Could not remove {absPath}, reason: {err}".format(absPath=absPath, err=err)
                 )
     
     # log success
