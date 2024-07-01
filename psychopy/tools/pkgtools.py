@@ -185,8 +185,17 @@ def addDistribution(distPath):
         sys.path.append(distPath)
 
 
-def installPackage(package, target=None, upgrade=False, forceReinstall=False,
-                   noDeps=False):
+def installPackage(
+    package, 
+    target=None, 
+    upgrade=False, 
+    forceReinstall=False,
+    noDeps=False, 
+    awaited=True,
+    outputCallback=None,
+    terminateCallback=None,
+    extra=None,
+):
     """Install a package using the default package management system.
 
     This is intended to be used only by PsychoPy itself for installing plugins
@@ -221,7 +230,10 @@ def installPackage(package, target=None, upgrade=False, forceReinstall=False,
     """
     if target is None:
         target = prefs.paths['userPackages']
-
+    
+    # convert extra to dict
+    if extra is None:
+        extra = {}
     # check the directory exists before installing
     if not os.path.exists(target):
         raise NotADirectoryError(
@@ -264,25 +276,48 @@ def installPackage(package, target=None, upgrade=False, forceReinstall=False,
     # get the environment for the subprocess
     env = os.environ.copy()
 
-    # run command in subprocess
-    output = sp.Popen(
-        cmd,
-        stdout=sp.PIPE,
-        stderr=sp.PIPE,
-        shell=False,
-        universal_newlines=True,
-        env=env)
-    stdout, stderr = output.communicate()  # blocks until process exits
+    # if unawaited, try to get jobs handler
+    if not awaited:
+        try:
+            from psychopy.app import jobs
+        except ModuleNotFoundError:
+            logging.warn(_translate(
+                "Could not install package {} asynchronously as psychopy.app.jobs is not found. "
+                "Defaulting to synchronous install."
+            ).format(package))
+            awaited = True
+    if awaited:
+        # if synchronous, just use regular command line
+        proc = sp.Popen(
+            cmd,
+            stdout=sp.PIPE,
+            stderr=sp.PIPE,
+            shell=False,
+            universal_newlines=True,
+            env=env
+        )
+        # run
+        stdout, stderr = proc.communicate()
+        # print output
+        sys.stdout.write(stdout)
+        sys.stderr.write(stderr)
+        # refresh packages once done
+        refreshPackages()
 
-    sys.stdout.write(stdout)
-    sys.stderr.write(stderr)
+        return isInstalled(package), {'cmd': cmd, 'stdout': stdout, 'stderr': stderr}
+    else:
+        # otherwise, use a job (which can provide live feedback)
+        proc = jobs.Job(
+            parent=None,
+            command=cmd,
+            inputCallback=outputCallback,
+            errorCallback=outputCallback,
+            terminateCallback=terminateCallback,
+            extra=extra,
+        )
+        proc.start(env=env)
 
-    refreshPackages()
-
-    # Return True if installed, False if not
-    retcode = isInstalled(package)
-    # Return the return code and a dict of information from the console
-    return retcode, {"cmd": cmd, "stdout": stdout, "stderr": stderr}
+        return proc
 
 
 def _getUserPackageTopLevels():
