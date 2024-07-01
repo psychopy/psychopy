@@ -121,7 +121,8 @@ class SettingsComponent:
             plCompanionRecordingEnabled=True,
             ecSampleRate='default',
             keyboardBackend="ioHub",
-            filename=None, exportHTML='on Sync', endMessage=''
+            filename=None, exportHTML='on Sync',
+            endMessage=_translate("Thank you for your patience.")
     ):
         self.type = 'Settings'
         self.exp = exp  # so we can access the experiment if necess
