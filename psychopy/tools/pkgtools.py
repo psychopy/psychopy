@@ -218,15 +218,28 @@ def installPackage(
         they are present in the current distribution.
     noDeps : bool
         Don't install dependencies if `True`.
+    awaited : bool
+        If False, then use an asynchronous install process - this function will return right away 
+        and the plugin install will happen in a different thread.
+    outputCallback : function
+        Function to be called when any output text is received from the process performing the 
+        install. Not used if awaited=True.
+    terminateCallback : function
+        Function to be called when installation is finished. Not used if awaited=True.
+    extra : dict
+        Extra information to be supplied to the install thread when installing asynchronously. 
+        Not used if awaited=True.
 
     Returns
     -------
-    tuple
-        `True` if the package installed without errors. If `False`, check
-        'stderr' for more information. The package may still have installed
-        correctly, but it doesn't work. Second value contains standard output
-        and error from the subprocess.
-
+    tuple or psychopy.app.jobs.Job
+        If `awaited=True`:
+            `True` if the package installed without errors. If `False`, check
+            'stderr' for more information. The package may still have installed
+            correctly, but it doesn't work. Second value contains standard output
+            and error from the subprocess.
+        If `awaited=False`:
+            Returns the job (thread) which is running the install.
     """
     if target is None:
         target = prefs.paths['userPackages']
