@@ -278,6 +278,12 @@ class PluginManagerPanel(wx.Panel, handlers.ThemeMixin):
         self.Layout()
         self.splitter.SetSashPosition(1, True)
         self.theme = theme.app
+    
+    def updateInfo(self):
+        # refresh all list items
+        self.pluginList.updateInfo()
+        # set current plugin again to refresh view
+        self.pluginViewer.info = self.pluginViewer.info
 
     def _applyAppTheme(self):
         # Set colors
@@ -351,6 +357,10 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             Return parent's linked viewer when asked for viewer
             """
             return self.parent.viewer
+
+        def updateInfo(self):
+            # update install state
+            self.markInstalled(self.info.installed)
 
         def _applyAppTheme(self):
             # Set label fonts
@@ -564,6 +574,10 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         # layout
         self.Layout()
         self.SetupScrolling()
+    
+    def updateInfo(self):
+        for item in self.items:
+            item.updateInfo()
 
     def search(self, evt=None):
         searchTerm = self.searchCtrl.GetValue().strip()
