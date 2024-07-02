@@ -71,7 +71,7 @@ nonSVN
 # Things specific to this project #
 ###################################
 # pdm.lock will include platform-specific libs so not portable
-pdm.lock
+# pdm.lock
 
 psychopy/demos/coder/misc/frame*
 psychopy/demos/**/data/*.psydat

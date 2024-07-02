@@ -62,6 +62,18 @@ if Version(macholib.__version__) <= Version('1.7'):
         return dyld_find_1_7(name, **kwargs)
     macholib.MachOGraph.dyld_find = dyld_find
 
+# excludes are often because of codesign difficulties on macos
+excludes=['torch', 'mediapipe',
+          'bsddb', 'jinja2', 'IPython','ipython_genutils','nbconvert',
+          'tkinter', 'Tkinter', 'tcl',
+          'libsz.2.dylib', 'pygame',
+          # 'stringprep',
+          'functools32',
+          'sympy',
+          '/usr/lib/libffi.dylib',
+          'libwebp.7.dylib',
+          'google',
+          ]
 includes = ['_sitebuiltins',  # needed for help()
             'imp', 'subprocess', 'shlex',
             'shelve',  # for scipy.io
