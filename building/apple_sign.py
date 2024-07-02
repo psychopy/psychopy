@@ -13,6 +13,12 @@ import argparse
 import shutil
 import argparse
 
+_orig_print = print
+def print(*args, **kwargs):
+    """print that always flushes"""
+    _orig_print(*args, **kwargs)
+    sys.stdout.flush()
+
 thisFolder = Path(__file__).parent
 finalDistFolder = thisFolder.parent.parent/'dist'
 
@@ -26,7 +32,7 @@ logFile = open("_lastCodeSign.log", "w")
 
 # handy resources for info:
 #
-# to get a new APple app-specific password:
+# to get a new Apple app-specific password:
 #   https://appleid.apple.com/account/manage NOT developer.apple.com
 # why use zip file to notarize as well as dmg:
 #   https://deciphertools.com/blog/notarizing-dmg/
@@ -92,11 +98,9 @@ class AppSigner:
 
         # then sign the outer app file
         print('Signing app')
-        sys.stdout.flush()
         t0 = time.time()
         self.signSingleFile(self.appFile, removeFailed=False)
         print(f'...done signing app in {time.time()-t0:.03f}s')
-        sys.stdout.flush()
 
     def signSingleFile(self, filename, removeFailed=False, verbose=None):
         """Signs a single file (if it isn't already signed)
@@ -121,7 +125,6 @@ class AppSigner:
         # is there already a valid signature? MUST overwrite or won't notarize
         # if self.signCheck(str(filename)) is True:  # check actual boolean, not list of warnings
         #     print('o', end='')
-        #     sys.stdout.flush()
         #     return True
 
         # try signing it ourselves
@@ -148,7 +151,6 @@ class AppSigner:
         if exitcode == 0 and not ('failed' in output):
             # successfully signed
             print('.', end='')
-            sys.stdout.flush()
             # do a detailed check and return
             return self.signCheck(filename, verbose=False, removeFailed=removeFailed)
         
@@ -228,7 +230,6 @@ class AppSigner:
         self._appNotarizeUUID = uuid
         print(f'Uploaded file {filename} in {time.time()-t0:.03f}s: {uuid}')
         print(f'Upload to Apple completed at {time.ctime()}')
-        sys.stdout.flush()
         return uuid
 
     @property
@@ -315,7 +316,6 @@ class AppSigner:
                 },
         )
         print(f"building dmg file complete")
-        sys.stdout.flush()
         return dmgFilename
 
     def dmgStapleInside(self):
