@@ -761,7 +761,20 @@ def loadPlugin(plugin):
         # that the entry points are valid. This prevents plugins from being
         # partially loaded which can cause all sorts of undefined behaviour.
         for attr, ep in attrs.items():
-            module_name = ep.value.split(".")[0]
+            try:
+                # parse the module name from the entry point value
+                module_name, _ = ep.value.split(':', 1)
+                module_name = module_name.split(".")[0]
+            except ValueError:
+                logging.error(
+                    "Plugin `{}` entry point `{}` is not formatted correctly. "
+                    "Skipping.".format(plugin, ep))
+
+                if plugin not in _failed_plugins_:
+                    _failed_plugins_.append(plugin)
+
+                return False
+
             # Load the module the entry point belongs to, this happens
             # anyways when .load() is called, but we get to access it before
             # we start binding. If the module has already been loaded, don't
