@@ -830,7 +830,7 @@ def loadPlugin(plugin):
 
                 return False
 
-            if hasattr(ep, 'file') and '.zip' in ep.__file__:
+            if hasattr(ep, '__file__') and '.zip' in ep.__file__:
                 logging.warning(
                     "Plugin `{}` is being loaded from a zip file. This may "
                     "cause issues with the plugin's functionality.".format(plugin))
