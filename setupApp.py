@@ -142,11 +142,11 @@ if sys.version_info < (3, 9):
             'Phidget22',
             'hid',
             'macropy',
-            'googleapiclient', # in transcribe
         ]
     )
     packages.append('PyQt5')
     packages.remove('PyQt6')  # PyQt6 is not compatible with earlier PsychoPy versions
+    excludes.append('PyQt6')  # and explicitly exclude it
 
 # check the includes and packages are all available
 missingPkgs = []
@@ -154,7 +154,6 @@ pipInstallLines = ''
 packagePipNames = { # packages that are imported as one thing but installed as another
     'OpenGL': 'pyopengl',
     'opencv': 'opencv-python',
-    'googleapiclient': 'google-api-python-client',
     'macropy': 'macropy3',
 
 }
@@ -192,16 +191,7 @@ setup(
     options=dict(py2app=dict(
             includes=includes,
             packages=packages,
-            excludes=['torch',
-                      'bsddb', 'jinja2', 'IPython','ipython_genutils','nbconvert',
-                      'tkinter', 'Tkinter', 'tcl',
-                      'libsz.2.dylib', 'pygame',
-                      # 'stringprep',
-                      'functools32',
-                      'sympy',
-                      '/usr/lib/libffi.dylib',
-                      'libwebp.7.dylib',
-                      ],  # anything we need to forcibly exclude?
+            excludes=excludes,
             resources=resources,
             argv_emulation=False,  # must be False or app bundle pauses (py2app 0.21 and 0.24 tested)
             site_packages=True,
