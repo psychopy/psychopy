@@ -356,7 +356,7 @@ class AppSigner:
 
     def dmgCompress(self):
         dmgFilename = str(self.appFile).replace(".app", "_rw.dmg")
-        dmgFinalFilename = finalDistFolder/(f"StandalonePsychoPy-{self.version}-macOS.dmg")
+        dmgFinalFilename = self.appFile.parent / f"StandalonePsychoPy-{self.version}-macOS.dmg"
         # remove previous file if it's there
         if Path(dmgFinalFilename).exists():
             os.remove(dmgFinalFilename)
