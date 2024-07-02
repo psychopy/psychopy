@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PsychoPy 2024.2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-01 21:46+0900\n"
-"PO-Revision-Date: 2024-07-01 21:47+0900\n"
+"POT-Creation-Date: 2024-07-02 20:36+0900\n"
+"PO-Revision-Date: 2024-07-02 20:37+0900\n"
 "Last-Translator: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language-Team: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language: ja\n"
@@ -1578,12 +1578,12 @@ msgid "Specify color ..."
 msgstr "色を選択..."
 
 #: app/builder/dialogs/paramCtrls.py:1113 app/builder/localizedStrings.py:141
-#: experiment/components/settings/__init__.py:227
+#: experiment/components/settings/__init__.py:228
 msgid "Field"
 msgstr "フィールド"
 
 #: app/builder/dialogs/paramCtrls.py:1113 app/builder/localizedStrings.py:142
-#: experiment/components/settings/__init__.py:227
+#: experiment/components/settings/__init__.py:228
 #: experiment/components/sound/__init__.py:100
 msgid "Default"
 msgstr "既定値"
@@ -1613,7 +1613,7 @@ msgid "Data"
 msgstr "データ"
 
 #: app/builder/localizedStrings.py:24
-#: experiment/components/settings/__init__.py:270
+#: experiment/components/settings/__init__.py:271
 msgid "Screen"
 msgstr "スクリーン"
 
@@ -3846,23 +3846,23 @@ msgstr "インストール成功. 詳細は上記参照.\n"
 msgid "Installation failed. See above for info.\n"
 msgstr "インストール失敗. 詳細は上記参照.\n"
 
-#: app/preferencesDlg.py:24 experiment/components/settings/__init__.py:377
+#: app/preferencesDlg.py:24 experiment/components/settings/__init__.py:378
 msgid "Latency not important"
 msgstr "遅延にはこだわらない"
 
-#: app/preferencesDlg.py:25 experiment/components/settings/__init__.py:378
+#: app/preferencesDlg.py:25 experiment/components/settings/__init__.py:379
 msgid "Share low-latency driver"
 msgstr "共有可能な範囲で遅延が短いデバイスを選択"
 
-#: app/preferencesDlg.py:26 experiment/components/settings/__init__.py:379
+#: app/preferencesDlg.py:26 experiment/components/settings/__init__.py:380
 msgid "Exclusive low-latency"
 msgstr "遅延が短いデバイスを排他利用する"
 
-#: app/preferencesDlg.py:27 experiment/components/settings/__init__.py:380
+#: app/preferencesDlg.py:27 experiment/components/settings/__init__.py:381
 msgid "Aggressive low-latency"
 msgstr "2.に加えて遅延を最も短くする設定を要求"
 
-#: app/preferencesDlg.py:28 experiment/components/settings/__init__.py:381
+#: app/preferencesDlg.py:28 experiment/components/settings/__init__.py:382
 msgid "Latency critical"
 msgstr "3.で厳密に要求が満たされない場合はエラー"
 
@@ -4076,7 +4076,7 @@ msgstr "その他"
 msgid "Path"
 msgstr "パス"
 
-#: app/runner/runner.py:518 experiment/components/settings/__init__.py:172
+#: app/runner/runner.py:518 experiment/components/settings/__init__.py:173
 msgid "Run mode"
 msgstr "実行モード"
 
@@ -4438,7 +4438,7 @@ msgstr "色指定に用いる色空間は？ (rgb, dkl, lms, hsv)"
 
 #: experiment/components/_base.py:1419
 #: experiment/components/routineSettings/__init__.py:130
-#: experiment/components/settings/__init__.py:288
+#: experiment/components/settings/__init__.py:289
 #: experiment/routines/eyetracker_calibrate/__init__.py:94
 #: experiment/routines/eyetracker_validate/__init__.py:136
 msgid "Color space"
@@ -4913,7 +4913,7 @@ msgstr ""
 
 #: experiment/components/camera/__init__.py:284
 #: experiment/components/camera/__init__.py:301
-#: experiment/components/settings/__init__.py:328
+#: experiment/components/settings/__init__.py:329
 msgid "Frame rate"
 msgstr "フレームレート"
 
@@ -6314,7 +6314,7 @@ msgid ""
 msgstr "このルーチンの実行中は背景の設定を変更しますか?"
 
 #: experiment/components/routineSettings/__init__.py:119
-#: experiment/components/settings/__init__.py:282
+#: experiment/components/settings/__init__.py:283
 msgid "Background color"
 msgstr "背景色"
 
@@ -6327,29 +6327,29 @@ msgstr ""
 "ど)を指定します; 右クリックで色選択ダイアログを表示します"
 
 #: experiment/components/routineSettings/__init__.py:127
-#: experiment/components/settings/__init__.py:285
+#: experiment/components/settings/__init__.py:286
 msgid ""
 "Needed if color is defined numerically (see PsychoPy documentation on color "
 "spaces)"
 msgstr "スクリーンの色を数値で指定する場合の色空間を選択します"
 
 #: experiment/components/routineSettings/__init__.py:133
-#: experiment/components/settings/__init__.py:291
+#: experiment/components/settings/__init__.py:292
 msgid "Image file to use as a background (leave blank for no image)"
 msgstr "背景として描画する画像 (背景画像を使わない場合は空白)"
 
 #: experiment/components/routineSettings/__init__.py:134
-#: experiment/components/settings/__init__.py:292
+#: experiment/components/settings/__init__.py:293
 msgid "Background image"
 msgstr "背景画像"
 
 #: experiment/components/routineSettings/__init__.py:139
-#: experiment/components/settings/__init__.py:297
+#: experiment/components/settings/__init__.py:298
 msgid "How should the background image scale to fit the window size?"
 msgstr "背景画像をどのように伸縮してウィンドウサイズに合わせますか?"
 
 #: experiment/components/routineSettings/__init__.py:140
-#: experiment/components/settings/__init__.py:298
+#: experiment/components/settings/__init__.py:299
 msgid "Background fit"
 msgstr "背景画像の伸縮"
 
@@ -6445,24 +6445,28 @@ msgstr "現在編集中の実験の設定を変更します"
 msgid "Attempting to measure frame rate of screen, please wait..."
 msgstr "Attempting to measure frame rate of screen, please wait..."
 
-#: experiment/components/settings/__init__.py:164
+#: experiment/components/settings/__init__.py:125
+msgid "Thank you for your patience."
+msgstr "ご協力ありがとうございました."
+
+#: experiment/components/settings/__init__.py:165
 msgid ""
 "Name of the entire experiment (taken by default from the filename on save)"
 msgstr "この実験の名前を指定します(初期値はこの実験を保存したファイル名です)"
 
-#: experiment/components/settings/__init__.py:166
+#: experiment/components/settings/__init__.py:167
 msgid "Experiment name"
 msgstr "実験の名前"
 
-#: experiment/components/settings/__init__.py:171
+#: experiment/components/settings/__init__.py:172
 msgid "Piloting"
 msgstr "Piloting"
 
-#: experiment/components/settings/__init__.py:171
+#: experiment/components/settings/__init__.py:172
 msgid "Running"
 msgstr "実行"
 
-#: experiment/components/settings/__init__.py:174
+#: experiment/components/settings/__init__.py:175
 msgid ""
 "In piloting mode, all of the settings from prefs->piloting are applied. This "
 "is recommended while the experiment is a work in progress."
@@ -6470,45 +6474,45 @@ msgstr ""
 "Pilotingモードでは, 設定ダイアログのPilotingのすべてが適用されます. 実験の作"
 "成中はこのモードを推奨します."
 
-#: experiment/components/settings/__init__.py:193
+#: experiment/components/settings/__init__.py:194
 msgid "The version of PsychoPy to use when running the experiment."
 msgstr "実験の実行に使用するPsychoPyのバージョン."
 
-#: experiment/components/settings/__init__.py:195
+#: experiment/components/settings/__init__.py:196
 msgid "Use PsychoPy version"
 msgstr "使用するPsychoPyのバージョン"
 
-#: experiment/components/settings/__init__.py:199
+#: experiment/components/settings/__init__.py:200
 msgid ""
 "Enable the <esc> key, to allow subjects to quit / break out of the experiment"
 msgstr "Escapeキーによる実験の中断/終了を許可します"
 
-#: experiment/components/settings/__init__.py:201
+#: experiment/components/settings/__init__.py:202
 msgid "Enable escape key"
 msgstr "ESCキーによる中断"
 
-#: experiment/components/settings/__init__.py:206
+#: experiment/components/settings/__init__.py:207
 msgid ""
 "Enable 'rush' mode, which will raise CPU priority while the experiment is "
 "running"
 msgstr "rushモードを有効にすると, 実験実行中に実験のCPU優先度が高くなります"
 
-#: experiment/components/settings/__init__.py:208
+#: experiment/components/settings/__init__.py:209
 msgid "Enable 'rush' mode"
 msgstr "rushモード"
 
-#: experiment/components/settings/__init__.py:213
+#: experiment/components/settings/__init__.py:214
 msgid ""
 "Start the experiment with a dialog to set info (e.g.participant or condition)"
 msgstr ""
 "実験開始時に実験情報(参加者名や条件名など)を入力するためのダイアログを表示し"
 "ます"
 
-#: experiment/components/settings/__init__.py:215
+#: experiment/components/settings/__init__.py:216
 msgid "Show info dialog"
 msgstr "実験情報ダイアログを表示"
 
-#: experiment/components/settings/__init__.py:229
+#: experiment/components/settings/__init__.py:230
 msgid ""
 "The info to present in a dialog box. Right-click to check syntax and preview "
 "the dialog box."
@@ -6516,44 +6520,44 @@ msgstr ""
 "実験情報ダイアログに表示する情報を指定します 右クリックすると文法の確認とダイ"
 "アログのプレビューを行います."
 
-#: experiment/components/settings/__init__.py:232
+#: experiment/components/settings/__init__.py:233
 msgid "Experiment info"
 msgstr "実験情報ダイアログ"
 
-#: experiment/components/settings/__init__.py:255
+#: experiment/components/settings/__init__.py:256
 msgid "Run the experiment full-screen (recommended)"
 msgstr "実験をフルスクリーンモードで実行します(推奨)"
 
-#: experiment/components/settings/__init__.py:256
+#: experiment/components/settings/__init__.py:257
 msgid "Full-screen window"
 msgstr "フルスクリーンウィンドウ"
 
-#: experiment/components/settings/__init__.py:260
+#: experiment/components/settings/__init__.py:261
 msgid ""
 "What Python package should be used behind the scenes for drawing to the "
 "window?"
 msgstr "ウィンドウ描画にどのPythonパッケージを使いますか?"
 
-#: experiment/components/settings/__init__.py:261
+#: experiment/components/settings/__init__.py:262
 msgid "Window backend"
 msgstr "ウィンドウバックエンド"
 
-#: experiment/components/settings/__init__.py:265
+#: experiment/components/settings/__init__.py:266
 msgid "Size of window (if not fullscreen)"
 msgstr ""
 "フルスクリーンモードを使用しない時の刺激描画ウィンドウのサイズを指定します"
 
-#: experiment/components/settings/__init__.py:266
+#: experiment/components/settings/__init__.py:267
 msgid "Window size (pixels)"
 msgstr "ウィンドウの大きさ(pix)"
 
-#: experiment/components/settings/__init__.py:269
+#: experiment/components/settings/__init__.py:270
 msgid "Which physical screen to run on (1 or 2)"
 msgstr ""
 "2台のモニターが接続されている時にどちらのモニターを使用するかを指定します(1ま"
 "たは2)"
 
-#: experiment/components/settings/__init__.py:273
+#: experiment/components/settings/__init__.py:274
 msgid ""
 "Name of the monitor (from Monitor Center). Right-click to go there, then "
 "copy & paste a monitor name here."
@@ -6561,11 +6565,11 @@ msgstr ""
 "モニターセンターで定義されたモニター名を指定します; 右クリックでモニターセン"
 "ターを開きます."
 
-#: experiment/components/settings/__init__.py:276
+#: experiment/components/settings/__init__.py:277
 msgid "Monitor"
 msgstr "モニター"
 
-#: experiment/components/settings/__init__.py:279
+#: experiment/components/settings/__init__.py:280
 msgid ""
 "Color of the screen (e.g. black, $[1.0,1.0,1.0], $variable. Right-click to "
 "bring up a color-picker.)"
@@ -6573,41 +6577,41 @@ msgstr ""
 "スクリーンを塗りつぶす色($[1.0,1.0,1.0],$variable,blackなど)を指定します; 右"
 "クリックで色選択ダイアログを表示します"
 
-#: experiment/components/settings/__init__.py:304
+#: experiment/components/settings/__init__.py:305
 msgid "Units to use for window/stimulus coordinates (e.g. cm, pix, deg)"
 msgstr ""
 "この実験においてウィンドウや刺激の描画に用いられる標準の単位(cm, pix, degな"
 "ど)を指定します"
 
-#: experiment/components/settings/__init__.py:306
+#: experiment/components/settings/__init__.py:307
 msgid "Units"
 msgstr "単位"
 
-#: experiment/components/settings/__init__.py:311
+#: experiment/components/settings/__init__.py:312
 msgid ""
 "Should new stimuli be added or averaged with the stimuli that have been "
 "drawn already"
 msgstr "描画済みの刺激に新しい刺激をブレンドする時の方法を指定します"
 
-#: experiment/components/settings/__init__.py:313
+#: experiment/components/settings/__init__.py:314
 msgid "Blend mode"
 msgstr "ブレンドモード"
 
-#: experiment/components/settings/__init__.py:316
+#: experiment/components/settings/__init__.py:317
 msgid ""
 "Should the mouse be visible on screen? Only applicable for fullscreen "
 "experiments."
 msgstr "フルスクリーンモード時にマウスカーソルを描画するか否かを指定します."
 
-#: experiment/components/settings/__init__.py:317
+#: experiment/components/settings/__init__.py:318
 msgid "Show mouse"
 msgstr "マウスカーソルを表示"
 
-#: experiment/components/settings/__init__.py:320
+#: experiment/components/settings/__init__.py:321
 msgid "Measure frame rate?"
 msgstr "フレームレートの測定"
 
-#: experiment/components/settings/__init__.py:322
+#: experiment/components/settings/__init__.py:323
 msgid ""
 "Should we measure your frame rate at the start of the experiment? This is "
 "highly recommended for precise timing."
@@ -6615,7 +6619,7 @@ msgstr ""
 "実験開始時にフレームレートの測定を行いますか? 時間精度を高めるために測定して"
 "おくことを強く推奨します."
 
-#: experiment/components/settings/__init__.py:330
+#: experiment/components/settings/__init__.py:331
 msgid ""
 "Frame rate to store instead of measuring at the start of the experiment. "
 "Leave blank to store no frame rate, but be wary: This will lead to errors if "
@@ -6625,34 +6629,34 @@ msgstr ""
 "ト. フレームレートを記録しない場合は空白にしておくこともできますが, 他の手段"
 "でフレームレートが指定されない場合エラーが発生することに注意してください."
 
-#: experiment/components/settings/__init__.py:344
+#: experiment/components/settings/__init__.py:345
 msgid "Frame rate message"
 msgstr "フレームレート測定時のメッセージ"
 
-#: experiment/components/settings/__init__.py:346
+#: experiment/components/settings/__init__.py:347
 msgid ""
 "Message to display while frame rate is measured. Leave blank for no message."
 msgstr ""
 "フレームレート測定中に表示されるメッセージを指定してください. メッセージを表"
 "示しない場合は空白にしてください."
 
-#: experiment/components/settings/__init__.py:368
+#: experiment/components/settings/__init__.py:369
 msgid "Force audio to stereo (2-channel) output"
 msgstr "強制的に音声をステレオ(2ch)出力します"
 
-#: experiment/components/settings/__init__.py:369
+#: experiment/components/settings/__init__.py:370
 msgid "Force stereo"
 msgstr "ステレオを強制"
 
-#: experiment/components/settings/__init__.py:373
+#: experiment/components/settings/__init__.py:374
 msgid "Which Python sound engine do you want to play your sounds?"
 msgstr "どのPythonサウンドエンジンを音声の再生に使用しますか？"
 
-#: experiment/components/settings/__init__.py:374
+#: experiment/components/settings/__init__.py:375
 msgid "Audio library"
 msgstr "オーディオライブラリ"
 
-#: experiment/components/settings/__init__.py:387
+#: experiment/components/settings/__init__.py:388
 msgid ""
 "How important is audio latency for you? If essential then you may need to "
 "get all your sounds in correct formats."
@@ -6660,11 +6664,11 @@ msgstr ""
 "オーディオ遅延の短さを重視しますか？遅延の短さが必須ならすべてのサウンドデー"
 "タを適切なフォーマットにする必要があるでしょう."
 
-#: experiment/components/settings/__init__.py:388
+#: experiment/components/settings/__init__.py:389
 msgid "Audio latency priority"
 msgstr "オーディオ遅延の優先度"
 
-#: experiment/components/settings/__init__.py:408
+#: experiment/components/settings/__init__.py:409
 msgid ""
 "Code to create your custom file name base. Don't give a file extension - "
 "this will be added."
@@ -6672,11 +6676,11 @@ msgstr ""
 "実験記録ファイルの名前をカスタマイズするためのコードを入力します - 拡張子は自"
 "動的に付加されるので指定しないでください."
 
-#: experiment/components/settings/__init__.py:410
+#: experiment/components/settings/__init__.py:411
 msgid "Data filename"
 msgstr "データファイル名"
 
-#: experiment/components/settings/__init__.py:414
+#: experiment/components/settings/__init__.py:415
 msgid ""
 "What symbol should the data file use to separate columns? Auto will select a "
 "delimiter automatically from the filename."
@@ -6684,28 +6688,28 @@ msgstr ""
 "データファイルで列を区切る文字を指定します Autoにするとファイル名から自動的に"
 "区切り文字を判別します."
 
-#: experiment/components/settings/__init__.py:415
+#: experiment/components/settings/__init__.py:416
 msgid "Data file delimiter"
 msgstr "データファイルの区切り文字"
 
-#: experiment/components/settings/__init__.py:419
+#: experiment/components/settings/__init__.py:420
 msgid "Alphabetical"
 msgstr "アルファベット順"
 
-#: experiment/components/settings/__init__.py:419
-#: experiment/components/settings/__init__.py:429
+#: experiment/components/settings/__init__.py:420
+#: experiment/components/settings/__init__.py:430
 msgid "Priority"
 msgstr "優先度"
 
-#: experiment/components/settings/__init__.py:419
+#: experiment/components/settings/__init__.py:420
 msgid "First added"
 msgstr "追加順"
 
-#: experiment/components/settings/__init__.py:421
+#: experiment/components/settings/__init__.py:422
 msgid "Sort columns by..."
 msgstr "列の並び替え..."
 
-#: experiment/components/settings/__init__.py:423
+#: experiment/components/settings/__init__.py:424
 msgid ""
 "How should data file columns be sorted? Alphabetically, by priority, or "
 "simply in the order they were added?"
@@ -6713,15 +6717,15 @@ msgstr ""
 "データファイルにおける列の並びをアルファベット順, 優先度順, または実行時に追"
 "加された順から選びます."
 
-#: experiment/components/settings/__init__.py:429
+#: experiment/components/settings/__init__.py:430
 msgid "Column"
 msgstr "列"
 
-#: experiment/components/settings/__init__.py:430
+#: experiment/components/settings/__init__.py:431
 msgid "Column priority"
 msgstr "列の優先度"
 
-#: experiment/components/settings/__init__.py:432
+#: experiment/components/settings/__init__.py:433
 msgid ""
 "Assign priority values to certain columns. To use predefined values, you can "
 "do $priority.HIGH, $priority.MEDIUM, etc."
@@ -6729,18 +6733,18 @@ msgstr ""
 "優先度を割り当ててください. 定義済みの値として$priority.HIGH, $priority."
 "MEDIUMなどを使用できます."
 
-#: experiment/components/settings/__init__.py:438
+#: experiment/components/settings/__init__.py:439
 msgid ""
 "Save a detailed log (more detailed than the Excel/csv files) of the entire "
 "experiment"
 msgstr "(CSV/Excelファイルに出力されるよりも)詳細な実験のログを出力します"
 
-#: experiment/components/settings/__init__.py:440
+#: experiment/components/settings/__init__.py:441
 msgid "Save log file"
 msgstr "ログの保存"
 
-#: experiment/components/settings/__init__.py:443
-#: experiment/components/settings/__init__.py:448
+#: experiment/components/settings/__init__.py:444
+#: experiment/components/settings/__init__.py:449
 msgid ""
 "Save data from loops in comma-separated-value (.csv) format for maximum "
 "portability"
@@ -6748,23 +6752,23 @@ msgstr ""
 "実験データをカンマ区切りのテキストファイル(.csv)で保存します; さまざまな環境"
 "やソフトウェアから利用できます"
 
-#: experiment/components/settings/__init__.py:445
+#: experiment/components/settings/__init__.py:446
 msgid "Save csv file (trial-by-trial)"
 msgstr "CSV形式のデータを保存(trial-by-trial)"
 
-#: experiment/components/settings/__init__.py:450
+#: experiment/components/settings/__init__.py:451
 msgid "Save csv file (summaries)"
 msgstr "CSV形式のデータを保存(summaries)"
 
-#: experiment/components/settings/__init__.py:453
+#: experiment/components/settings/__init__.py:454
 msgid "Save data from loops in Excel (.xlsx) format"
 msgstr "実験で得られたデータをExcel形式(.xlsx)で保存します"
 
-#: experiment/components/settings/__init__.py:454
+#: experiment/components/settings/__init__.py:455
 msgid "Save Excel file"
 msgstr "xlsx形式のデータを保存"
 
-#: experiment/components/settings/__init__.py:457
+#: experiment/components/settings/__init__.py:458
 msgid ""
 "Save data from loops in psydat format. This is useful for Python programmers "
 "to generate analysis scripts."
@@ -6772,11 +6776,11 @@ msgstr ""
 "実験で得られたデータをpydat形式で保存します; Pythonで独自の解析スクリプトを書"
 "く時に便利です."
 
-#: experiment/components/settings/__init__.py:460
+#: experiment/components/settings/__init__.py:461
 msgid "Save psydat file"
 msgstr "psydat形式のデータを保存"
 
-#: experiment/components/settings/__init__.py:463
+#: experiment/components/settings/__init__.py:464
 msgid ""
 "Save data from eyetrackers in hdf5 format. This is useful for viewing and "
 "analyzing complex data in structures."
@@ -6784,22 +6788,22 @@ msgstr ""
 "アイトラッカーのデータをhdf5フォーマットで保存します. 複雑なデータを構造を"
 "保ったまま閲覧したり分析したりするのに便利です."
 
-#: experiment/components/settings/__init__.py:465
+#: experiment/components/settings/__init__.py:466
 msgid "Save hdf5 file"
 msgstr "hdf5形式のデータを保存"
 
-#: experiment/components/settings/__init__.py:470
+#: experiment/components/settings/__init__.py:471
 msgid ""
 "How much output do you want in the log files? ('error' is fewest messages, "
 "'debug' is most)"
 msgstr ""
 "実験ログの出力レベルを指定します('error'が最も簡潔で'debug'が最も詳細です)"
 
-#: experiment/components/settings/__init__.py:473
+#: experiment/components/settings/__init__.py:474
 msgid "File logging level"
 msgstr "ログレベル (ファイル)"
 
-#: experiment/components/settings/__init__.py:479
+#: experiment/components/settings/__init__.py:480
 msgid ""
 "How much output do you want displayed in the console / app? ('error' is "
 "fewest messages, 'debug' is most)"
@@ -6807,15 +6811,15 @@ msgstr ""
 "コンソールおよびアプリ上に表示される実験ログの出力レベルを指定します"
 "('error'が最も簡潔で'debug'が最も詳細です)"
 
-#: experiment/components/settings/__init__.py:482
+#: experiment/components/settings/__init__.py:483
 msgid "Console / app logging level"
 msgstr "ログレベル (コンソール/アプリ)"
 
-#: experiment/components/settings/__init__.py:488
+#: experiment/components/settings/__init__.py:489
 msgid "Clock format"
 msgstr "時刻のフォーマット"
 
-#: experiment/components/settings/__init__.py:490
+#: experiment/components/settings/__init__.py:491
 msgid ""
 "Format to use for Routine start timestamps; either wall clock time (in ISO "
 "8601 format) or seconds since experiment start (as a float)."
@@ -6823,31 +6827,31 @@ msgstr ""
 "Routine開始時刻のフォーマットを指定します; 実時刻(ISO 8601形式)または実験開始"
 "からの秒(小数)のいずれかです."
 
-#: experiment/components/settings/__init__.py:502
+#: experiment/components/settings/__init__.py:503
 msgid "Place the HTML files will be saved locally "
 msgstr "HTMLファイルがローカルに保存される場所 "
 
-#: experiment/components/settings/__init__.py:503
+#: experiment/components/settings/__init__.py:504
 msgid "Output path"
 msgstr "出力パス"
 
-#: experiment/components/settings/__init__.py:506
+#: experiment/components/settings/__init__.py:507
 msgid "Any additional resources needed"
 msgstr "追加で必要なリソース"
 
-#: experiment/components/settings/__init__.py:507
+#: experiment/components/settings/__init__.py:508
 msgid "Additional resources"
 msgstr "追加リソース"
 
-#: experiment/components/settings/__init__.py:510
+#: experiment/components/settings/__init__.py:511
 msgid "Message to display to participants upon completing the experiment"
 msgstr "実験完了時に実験参加者へ示すメッセージ"
 
-#: experiment/components/settings/__init__.py:511
+#: experiment/components/settings/__init__.py:512
 msgid "End message"
 msgstr "終了メッセージ"
 
-#: experiment/components/settings/__init__.py:514
+#: experiment/components/settings/__init__.py:515
 msgid ""
 "Where should participants be redirected after the experiment on completion, "
 "e.g.\n"
@@ -6856,11 +6860,11 @@ msgstr ""
 "実験終了時にリダイレクトされるページのURLを入力してください.\n"
 "(例: https://pavlovia.org/surveys/XXXXXX-XXXX-XXXXXXX?tab=0)"
 
-#: experiment/components/settings/__init__.py:516
+#: experiment/components/settings/__init__.py:517
 msgid "Completed URL"
 msgstr "正常終了時のURL"
 
-#: experiment/components/settings/__init__.py:519
+#: experiment/components/settings/__init__.py:520
 msgid ""
 "Where participants are redirected if they do not complete the task, e.g.\n"
 "https://pavlovia.org/surveys/XXXXXX-XXXX-XXXXXXX?tab=0"
@@ -6868,19 +6872,19 @@ msgstr ""
 "実験が途中で中断された時にリダイレクトされるページのURLを入力してください.\n"
 "(例: https://pavlovia.org/surveys/XXXXXX-XXXX-XXXXXXX?tab=0)"
 
-#: experiment/components/settings/__init__.py:521
+#: experiment/components/settings/__init__.py:522
 msgid "Incomplete URL"
 msgstr "中断時のURL"
 
-#: experiment/components/settings/__init__.py:525
+#: experiment/components/settings/__init__.py:526
 msgid "When to export experiment to the HTML folder."
 msgstr "実験がHTMLにエクスポートされるタイミングを指定します."
 
-#: experiment/components/settings/__init__.py:526
+#: experiment/components/settings/__init__.py:527
 msgid "Export HTML"
 msgstr "HTML形式でエクスポート"
 
-#: experiment/components/settings/__init__.py:569
+#: experiment/components/settings/__init__.py:570
 msgid ""
 "What kind of eye tracker should PsychoPy use? Select 'MouseGaze' to use the "
 "mouse to simulate eye movement (for debugging without a tracker connected)"
@@ -6889,88 +6893,88 @@ msgstr ""
 "(デバッグのためアイトラッカーを接続していない場合)には'MouseGaze'を選択してく"
 "ださい."
 
-#: experiment/components/settings/__init__.py:571
+#: experiment/components/settings/__init__.py:572
 msgid "Eyetracker device"
 msgstr "アイトラッカーデバイス"
 
-#: experiment/components/settings/__init__.py:578
+#: experiment/components/settings/__init__.py:579
 msgid "Mouse button to press for eye movement."
 msgstr "視線移動をシミュレートするボタン."
 
-#: experiment/components/settings/__init__.py:579
+#: experiment/components/settings/__init__.py:580
 msgid "Move button"
 msgstr "Moveボタン"
 
-#: experiment/components/settings/__init__.py:585
+#: experiment/components/settings/__init__.py:586
 msgid "Mouse button to press for a blink."
 msgstr "瞬目をシミュレートするボタン."
 
-#: experiment/components/settings/__init__.py:586
+#: experiment/components/settings/__init__.py:587
 msgid "Blink button"
 msgstr "Blinkボタン"
 
-#: experiment/components/settings/__init__.py:591
+#: experiment/components/settings/__init__.py:592
 msgid "Visual degree threshold for Saccade event creation."
 msgstr "サッカードイベントの閾値(視角)"
 
-#: experiment/components/settings/__init__.py:592
+#: experiment/components/settings/__init__.py:593
 msgid "Saccade threshold"
 msgstr "サッカード閾値"
 
-#: experiment/components/settings/__init__.py:598
+#: experiment/components/settings/__init__.py:599
 msgid "IP Address of the computer running GazePoint Control."
 msgstr "GazePoint Controlを実行しているPCのIP Address."
 
-#: experiment/components/settings/__init__.py:599
+#: experiment/components/settings/__init__.py:600
 msgid "GazePoint IP address"
 msgstr "GazePoint IPアドレス"
 
-#: experiment/components/settings/__init__.py:604
+#: experiment/components/settings/__init__.py:605
 msgid "Port of the GazePoint Control server. Usually 4242."
 msgstr "GazePoint Control serverのポート番号. 通常は4242."
 
-#: experiment/components/settings/__init__.py:605
+#: experiment/components/settings/__init__.py:606
 msgid "GazePoint port"
 msgstr "GazePoint ポート"
 
-#: experiment/components/settings/__init__.py:612
-#: experiment/components/settings/__init__.py:682
+#: experiment/components/settings/__init__.py:613
+#: experiment/components/settings/__init__.py:683
 msgid "Eye tracker model."
 msgstr "アイトラッカーのモデル名."
 
-#: experiment/components/settings/__init__.py:613
-#: experiment/components/settings/__init__.py:683
+#: experiment/components/settings/__init__.py:614
+#: experiment/components/settings/__init__.py:684
 msgid "Model name"
 msgstr "モデル名"
 
-#: experiment/components/settings/__init__.py:618
+#: experiment/components/settings/__init__.py:619
 msgid "Set the EyeLink to run in mouse simulation mode."
 msgstr "アイトラッカーをマウスシミュレーションモードで実行します."
 
-#: experiment/components/settings/__init__.py:619
+#: experiment/components/settings/__init__.py:620
 msgid "Mouse simulation mode"
 msgstr "マウスシミュレーションモード"
 
-#: experiment/components/settings/__init__.py:625
-#: experiment/components/settings/__init__.py:700
+#: experiment/components/settings/__init__.py:626
+#: experiment/components/settings/__init__.py:701
 msgid "Eye tracker sampling rate."
 msgstr "アイトラッカーのサンプリングレート."
 
-#: experiment/components/settings/__init__.py:626
-#: experiment/components/settings/__init__.py:701
-#: experiment/components/settings/__init__.py:766
+#: experiment/components/settings/__init__.py:627
+#: experiment/components/settings/__init__.py:702
+#: experiment/components/settings/__init__.py:767
 msgid "Sampling rate"
 msgstr "サンプリングレート"
 
-#: experiment/components/settings/__init__.py:632
+#: experiment/components/settings/__init__.py:633
 msgid "Select with eye(s) to track."
 msgstr "測定する眼を選択してください."
 
-#: experiment/components/settings/__init__.py:633
+#: experiment/components/settings/__init__.py:634
 msgid "Track eyes"
 msgstr "計測眼"
 
-#: experiment/components/settings/__init__.py:639
+#: experiment/components/settings/__init__.py:640
 msgid ""
 "Filter eye sample data live, as it is streamed to the driving device. This "
 "may reduce the sampling speed."
@@ -6978,11 +6982,11 @@ msgstr ""
 "ライブデータをフィルタリングします.設定によってサンプリング速度が低下する場合"
 "があります."
 
-#: experiment/components/settings/__init__.py:641
+#: experiment/components/settings/__init__.py:642
 msgid "Live sample filtering"
 msgstr "ライブサンプルフィルタリング"
 
-#: experiment/components/settings/__init__.py:647
+#: experiment/components/settings/__init__.py:648
 msgid ""
 "Filter eye sample data when it is saved to the output file. This will not "
 "affect the sampling speed."
@@ -6990,123 +6994,123 @@ msgstr ""
 "視線データをファイルに保存する際にフィルタリングします. この設定はサンプリン"
 "グ速度に影響しません."
 
-#: experiment/components/settings/__init__.py:649
+#: experiment/components/settings/__init__.py:650
 msgid "Saved sample filtering"
 msgstr "保存時のフィルタリング"
 
-#: experiment/components/settings/__init__.py:655
+#: experiment/components/settings/__init__.py:656
 msgid "Track Pupil-CR or Pupil only."
 msgstr "瞳孔と角膜反射(Pupil-CR)または瞳孔のみ(Pupil-Only)かを選択します."
 
-#: experiment/components/settings/__init__.py:656
+#: experiment/components/settings/__init__.py:657
 msgid "Pupil tracking mode"
 msgstr "瞳孔トラッキングモード"
 
-#: experiment/components/settings/__init__.py:662
+#: experiment/components/settings/__init__.py:663
 msgid "Algorithm used to detect the pupil center."
 msgstr "瞳孔中心の検出アルゴリズムを選択します."
 
-#: experiment/components/settings/__init__.py:663
+#: experiment/components/settings/__init__.py:664
 msgid "Pupil center algorithm"
 msgstr "瞳孔中心の検出方法"
 
-#: experiment/components/settings/__init__.py:669
+#: experiment/components/settings/__init__.py:670
 msgid "Type of pupil data to record."
 msgstr "瞳孔データの種類を選択します."
 
-#: experiment/components/settings/__init__.py:670
+#: experiment/components/settings/__init__.py:671
 msgid "Pupil data type"
 msgstr "瞳孔データ"
 
-#: experiment/components/settings/__init__.py:675
+#: experiment/components/settings/__init__.py:676
 msgid "IP Address of the EyeLink *Host* computer."
 msgstr "EyelinkのHostコンピュータのIPアドレスを指定します."
 
-#: experiment/components/settings/__init__.py:676
+#: experiment/components/settings/__init__.py:677
 msgid "EyeLink IP address"
 msgstr "EyeLink IPアドレス"
 
-#: experiment/components/settings/__init__.py:688
+#: experiment/components/settings/__init__.py:689
 msgid "Eye tracker license file (optional)."
 msgstr "アイトラッカーのライセンスファイルを指定します(オプション)."
 
-#: experiment/components/settings/__init__.py:689
+#: experiment/components/settings/__init__.py:690
 msgid "License file"
 msgstr "ライセンスファイル"
 
-#: experiment/components/settings/__init__.py:694
+#: experiment/components/settings/__init__.py:695
 msgid "Eye tracker serial number (optional)."
 msgstr "アイトラッカーのシリアルナンバーを指定します(オプション)."
 
-#: experiment/components/settings/__init__.py:695
+#: experiment/components/settings/__init__.py:696
 msgid "Serial number"
 msgstr "シリアルナンバー"
 
-#: experiment/components/settings/__init__.py:707
+#: experiment/components/settings/__init__.py:708
 msgid ""
 "Subscribe to pupil data only, does not require calibration or surface setup"
 msgstr ""
 "瞳孔データのみを取得します. Surfaceのセットアップやキャリブレーションを必要と"
 "しません"
 
-#: experiment/components/settings/__init__.py:708
+#: experiment/components/settings/__init__.py:709
 msgid "Pupillometry only"
 msgstr "瞳孔測定のみ"
 
-#: experiment/components/settings/__init__.py:713
+#: experiment/components/settings/__init__.py:714
 msgid "Name of the Pupil Capture surface"
 msgstr "Pupil Capture surfaceの名前"
 
-#: experiment/components/settings/__init__.py:714
+#: experiment/components/settings/__init__.py:715
 msgid "Surface name"
 msgstr "Surface名"
 
-#: experiment/components/settings/__init__.py:718
 #: experiment/components/settings/__init__.py:719
+#: experiment/components/settings/__init__.py:720
 msgid "Gaze confidence threshold"
 msgstr "Gaze Confidence 閾値"
 
-#: experiment/components/settings/__init__.py:723
 #: experiment/components/settings/__init__.py:724
+#: experiment/components/settings/__init__.py:725
 msgid "Pupil remote address"
 msgstr "Pupil Remote アドレス"
 
-#: experiment/components/settings/__init__.py:728
 #: experiment/components/settings/__init__.py:729
+#: experiment/components/settings/__init__.py:730
 msgid "Pupil remote port"
 msgstr "Pupil Remote ポート"
 
-#: experiment/components/settings/__init__.py:733
 #: experiment/components/settings/__init__.py:734
+#: experiment/components/settings/__init__.py:735
 msgid "Pupil remote timeout (ms)"
 msgstr "Pupil Remote タイムアウト (ms)"
 
-#: experiment/components/settings/__init__.py:738
 #: experiment/components/settings/__init__.py:739
+#: experiment/components/settings/__init__.py:740
 msgid "Pupil capture recording enabled"
 msgstr "Pupil Captureによるレコーディング"
 
-#: experiment/components/settings/__init__.py:743
 #: experiment/components/settings/__init__.py:744
+#: experiment/components/settings/__init__.py:745
 msgid "Pupil capture recording location"
 msgstr "Pupil Captureのレコーディングデータの場所"
 
-#: experiment/components/settings/__init__.py:748
 #: experiment/components/settings/__init__.py:749
+#: experiment/components/settings/__init__.py:750
 msgid "Companion address"
 msgstr "Companionのアドレス"
 
-#: experiment/components/settings/__init__.py:753
 #: experiment/components/settings/__init__.py:754
+#: experiment/components/settings/__init__.py:755
 msgid "Companion port"
 msgstr "Companionのポート"
 
-#: experiment/components/settings/__init__.py:758
 #: experiment/components/settings/__init__.py:759
+#: experiment/components/settings/__init__.py:760
 msgid "Recording enabled"
 msgstr "レコーディング有効化"
 
-#: experiment/components/settings/__init__.py:765
+#: experiment/components/settings/__init__.py:766
 msgid ""
 "Eyetracker sampling rate: 'default' or <integer>[Hz]. Defaults to tracking "
 "mode '0'."
@@ -7115,19 +7119,19 @@ msgstr ""
 "'0'を指定するとシステムのフレームモード一覧の最初のもの(通常, 使用可能な最速"
 "のもの)となります."
 
-#: experiment/components/settings/__init__.py:773
+#: experiment/components/settings/__init__.py:774
 msgid "What Python package should PsychoPy use to get keyboard input?"
 msgstr "キーボード入力の検出にどのパッケージを使いますか?"
 
-#: experiment/components/settings/__init__.py:774
+#: experiment/components/settings/__init__.py:775
 msgid "Keyboard backend"
 msgstr "キーボードバックエンド"
 
-#: experiment/components/settings/__init__.py:1293
+#: experiment/components/settings/__init__.py:1294
 msgid "Could not interpret value as dict: {}"
 msgstr "dictオブジェクトとして解釈できません: {}"
 
-#: experiment/components/settings/__init__.py:1837
+#: experiment/components/settings/__init__.py:1838
 msgid "Fullscreen settings ignored as running in pilot mode."
 msgstr "フルスクリーン設定はpilotモードでの実行時には無視されます."
 
@@ -9220,12 +9224,12 @@ msgstr ""
 "このセッションで実験が初期化されていないためliaisonサーバにデータを送信できま"
 "せん."
 
-#: tools/pkgtools.py:400 tools/pkgtools.py:412
+#: tools/pkgtools.py:404 tools/pkgtools.py:416
 #, python-brace-format
 msgid "Could not remove {absPath}, reason: {err}"
 msgstr "{absPath}を削除できません. (エラーメッセージ: {err})"
 
-#: tools/pkgtools.py:586
+#: tools/pkgtools.py:592
 msgid ""
 "Could not get info for package {}. Reason:\n"
 "\n"
