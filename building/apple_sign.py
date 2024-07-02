@@ -12,12 +12,9 @@ import time, sys, os
 import argparse
 import shutil
 import argparse
+import functools
 
-_orig_print = print
-def print(*args, **kwargs):
-    """print that always flushes"""
-    _orig_print(*args, **kwargs)
-    sys.stdout.flush()
+unbuffered_print = functools.partial(print, flush=True)
 
 thisFolder = Path(__file__).parent
 finalDistFolder = thisFolder.parent.parent/'dist'
@@ -67,7 +64,7 @@ class AppSigner:
 
         # this never really worked - probably the files signed in wrong order?
         # find all the included dylibs
-        print('Signing dylibs:', end='')
+        unbuffered_print('Signing dylibs:', end='')
         files = list(self.appFile.glob('**/*.dylib'))
         files.extend(self.appFile.glob('**/*.so'))
         files.extend(self.appFile.glob('**/git-core/git*'))
@@ -87,7 +84,7 @@ class AppSigner:
 
         # ready? Let's do this!
         t0 = time.time()
-        print(f"Signing dylibs...see {logFile.name} for details. key: \n"
+        unbuffered_print(f"Signing dylibs...see {logFile.name} for details. key: \n"
               " . success\n"
               " o already signed\n"
               " - failed (deleted)\n"
@@ -95,13 +92,13 @@ class AppSigner:
         for filename in files:
             if filename.exists():  # might have been removed since glob
                 self.signSingleFile(filename, verbose=False, removeFailed=True)
-        print(f'\n...done signing dylibs in {time.time()-t0:.03f}s')
+        unbuffered_print(f'\n...done signing dylibs in {time.time()-t0:.03f}s')
 
         # then sign the outer app file
-        print('Signing app')
+        unbuffered_print('Signing app')
         t0 = time.time()
         self.signSingleFile(self.appFile, removeFailed=False)
-        print(f'...done signing app in {time.time()-t0:.03f}s')
+        unbuffered_print(f'...done signing app in {time.time()-t0:.03f}s')
 
     def signSingleFile(self, filename, removeFailed=False, verbose=None):
         """Signs a single file (if it isn't already signed)
@@ -125,7 +122,7 @@ class AppSigner:
 
         # is there already a valid signature? MUST overwrite or won't notarize
         # if self.signCheck(str(filename)) is True:  # check actual boolean, not list of warnings
-        #     print('o', end='')
+        #     unbuffered_print('o', end='')
         #     return True
 
         # try signing it ourselves
@@ -142,16 +139,16 @@ class AppSigner:
         cmdStr = ' '.join(cmd)
         logFile.write(f"{cmdStr}\n")
         if verbose:
-            print(cmdStr)
+            unbuffered_print(cmdStr)
         exitcode, output = subprocess.getstatusoutput(cmdStr)
         if verbose and output:
-            print(output)
+            unbuffered_print(output)
 
 
         # CODESIGN SUCCESS
         if exitcode == 0 and not ('failed' in output):
             # successfully signed
-            print('.', end='')
+            unbuffered_print('.', end='')
             # do a detailed check and return
             return self.signCheck(filename, verbose=False, removeFailed=removeFailed)
         
@@ -159,10 +156,10 @@ class AppSigner:
         logFile.write(f"{output}\n")
         try: # remove the file because we couldn't sign it
             Path(filename).unlink()
-            print('-', end='')
+            unbuffered_print('-', end='')
             logFile.write(f"FILE {filename}: failed to codesign and was removed\n")
         except:
-            print('X', end='')
+            unbuffered_print('X', end='')
             logFile.write(f"\nFILE {filename}: failed to codesign and failed to remove\n")
         return 
 
@@ -181,10 +178,10 @@ class AppSigner:
         cmdStr = f'codesign -dvvv {strictFlag} {filepath}'
         # make the call
         if verbose:
-            print(cmdStr)
+            unbuffered_print(cmdStr)
         exitcode, output = subprocess.getstatusoutput(cmdStr)
         if verbose:
-            print(f"Checking that codesign worked: {output}")
+            unbuffered_print(f"Checking that codesign worked: {output}")
         
         if exitcode == 1: # indicates no valid signature
             return False  
@@ -195,12 +192,12 @@ class AppSigner:
             if 'warning' in line.lower():
                 warnings.append(line)
         if warnings:
-            print(filepath)
+            unbuffered_print(filepath)
             for line in warnings:
-                print("  ", line)
+                unbuffered_print("  ", line)
             if removeFailed:
                 Path(filepath).unlink()
-                print(f"REMOVED FILE {filepath}: failed to codesign")
+                unbuffered_print(f"REMOVED FILE {filepath}: failed to codesign")
             return warnings
         else:
             return True
@@ -210,31 +207,31 @@ class AppSigner:
         if not self._pword:
             raise ValueError('No app-specific password provided for notarizing')
         filename = Path(fileToNotarize).name
-        print(f'Sending {filename} to apple for notarizing')
+        unbuffered_print(f'Sending {filename} to apple for notarizing')
         cmdStr = (f'xcrun notarytool submit {fileToNotarize} '
                   f'--apple-id "{self._apple_id}" '
                   f'--team-id "{self._team_id}" '
                   f'--password "{self._pword}"')
         # cmdStr = (f"xcrun altool --notarize-app -t osx -f {fileToNotarize} "
         #           f"--primary-bundle-id {BUNDLE_ID} -u {USERNAME} ")
-        # print(cmdStr)
+        # unbuffered_print(cmdStr)
         t0 = time.time()
         exitcode, output = subprocess.getstatusoutput(cmdStr)
         m = re.findall(r"^  id: (.*)$", output, re.M)
 
         if 'Please sign in with an app-specific password' in output:
-            print("[Error] Upload failed: You probably need a new app-specific "
+            unbuffered_print("[Error] Upload failed: You probably need a new app-specific "
                   "password from https://appleid.apple.com/account/manage")
             exit(1)
         elif exitcode != 0:
-            print(f"[Error] Upload failed with message: {output}")
+            unbuffered_print(f"[Error] Upload failed with message: {output}")
             exit(exitcode)
 
-        print(output)
+        unbuffered_print(output)
         uuid = m[0].strip()
         self._appNotarizeUUID = uuid
-        print(f'Uploaded file {filename} in {time.time()-t0:.03f}s: {uuid}')
-        print(f'Upload to Apple completed at {time.ctime()}')
+        unbuffered_print(f'Uploaded file {filename} in {time.time()-t0:.03f}s: {uuid}')
+        unbuffered_print(f'Upload to Apple completed at {time.ctime()}')
         return uuid
 
     @property
@@ -248,58 +245,58 @@ class AppSigner:
         if self._zipFile:
             return self._zipFile
         else:
-            print("Creating zip archive to send to Apple: ", end='')
+            unbuffered_print("Creating zip archive to send to Apple: ", end='')
             zipFilename = self.appFile.parent / (self.appFile.stem+f'_{self.version}.zip')
             shutil.rmtree(zipFilename, ignore_errors=True)
             # zipFilename.unlink(missing_ok=True)  # remove the file if it exists
             t0 = time.time()
             cmdStr = f'/usr/bin/ditto -c -k --keepParent {self.appFile} {zipFilename}'
-            print(cmdStr)
+            unbuffered_print(cmdStr)
             exitcode, output = subprocess.getstatusoutput(cmdStr)
             if exitcode == 0:
-                print(f"Done creating zip in {time.time()-t0:.03f}s")
+                unbuffered_print(f"Done creating zip in {time.time()-t0:.03f}s")
             else:
-                print(output)
+                unbuffered_print(output)
             self._zipFile = zipFilename
             return zipFilename
 
     def awaitNotarized(self, logFile='_notarization.json'):
-        print("Waiting for notarization to complete"); sys.stdout.flush()
+        unbuffered_print("Waiting for notarization to complete"); sys.stdout.flush()
         # can use 'xcrun notarytool info' to check status or 'xcrun notarytool wait'
         exitcode, output = subprocess.getstatusoutput(f'xcrun notarytool wait {self._appNotarizeUUID} '
                   f'--apple-id "{self._apple_id}" '
                   f'--team-id {self._team_id} '
                   f'--password {self._pword}')
-        print(output); sys.stdout.flush()
-        print("Fetching notarisation log"); sys.stdout.flush()
+        unbuffered_print(output); sys.stdout.flush()
+        unbuffered_print("Fetching notarisation log"); sys.stdout.flush()
         # always fetch the log file too
         exitcode2, output = subprocess.getstatusoutput(f'xcrun notarytool log {self._appNotarizeUUID} '
                   f'--apple-id "{self._apple_id}" '
                   f'--team-id {self._team_id} '
                   f'--password {self._pword} '
                   f'{logFile}')
-        print(output)
+        unbuffered_print(output)
         if exitcode != 0:
-            print("`xcrun notarytool wait` returned exit code {exitcode}. Exiting immediately.")
+            unbuffered_print("`xcrun notarytool wait` returned exit code {exitcode}. Exiting immediately.")
             exit(exitcode)
 
 
     def staple(self, filepath):
         cmdStr = f'xcrun stapler staple {filepath}'; sys.stdout.flush()
-        print(cmdStr)
+        unbuffered_print(cmdStr)
         exitcode, output = subprocess.getstatusoutput(cmdStr)
-        print(f"exitcode={exitcode}: {output}"); sys.stdout.flush()
+        unbuffered_print(f"exitcode={exitcode}: {output}"); sys.stdout.flush()
         if exitcode != 0:
-            print('*********Staple failed*************')
+            unbuffered_print('*********Staple failed*************')
             exit(exitcode)
         else:
-            print(f"Staple successful. You can verify with\n    xcrun stapler validate {filepath}"); sys.stdout.flush()
+            unbuffered_print(f"Staple successful. You can verify with\n    xcrun stapler validate {filepath}"); sys.stdout.flush()
 
     def dmgBuild(self):
         import dmgbuild
         dmgFilename = str(self.appFile).replace(".app", "_rw.dmg")
         appName = self.appFile.name
-        print(f"building dmg file: {dmgFilename}..."); sys.stdout.flush()
+        unbuffered_print(f"building dmg file: {dmgFilename}..."); sys.stdout.flush()
         # remove previous file if it's there
         if Path(dmgFilename).exists():
             os.remove(dmgFilename)
@@ -326,7 +323,7 @@ class AppSigner:
                     'window_rect': ((600, 600), (500, 400)),
                 },
         )
-        print(f"building dmg file complete")
+        unbuffered_print(f"building dmg file complete")
         return dmgFilename
 
     def dmgStapleInside(self):
@@ -348,7 +345,7 @@ class AppSigner:
             # Eject the disk image
             for attemptN in range(5):
                 exitcode, output = subprocess.getstatusoutput(f"diskutil eject {volume}")
-                print(f"Attempt {attemptN}: {output}"); sys.stdout.flush()
+                unbuffered_print(f"Attempt {attemptN}: {output}"); sys.stdout.flush()
                 if exitcode == 0:
                     break
                 # have a rest and try again
@@ -363,9 +360,9 @@ class AppSigner:
 
         cmdStr = f"hdiutil convert {dmgFilename} -format UDZO -o {dmgFinalFilename}"
         for attemptN in range(5):
-            print(f"Attempt {attemptN}: {cmdStr}")
+            unbuffered_print(f"Attempt {attemptN}: {cmdStr}")
             exitcode, output = subprocess.getstatusoutput(cmdStr)
-            print(output)
+            unbuffered_print(output)
             if exitcode == 0:
                 return dmgFinalFilename
         
@@ -450,32 +447,32 @@ def main():
 
         if args.runDmgBuild:
             if NOTARIZE:
-                print(f'Signer.upload("{signer.zipFile}")'); sys.stdout.flush()
+                unbuffered_print(f'Signer.upload("{signer.zipFile}")'); sys.stdout.flush()
                 signer.upload(signer.zipFile)
             # build the read/writable dmg file (while waiting for notarize)
             signer.dmgBuild()
             if NOTARIZE:
                 # notarize and staple
-                print(f'Signer.awaitNotarized()'); sys.stdout.flush()
+                unbuffered_print(f'Signer.awaitNotarized()'); sys.stdout.flush()
                 signer.awaitNotarized()
 
         if args.runPostDmgBuild:
-            print(f'Signer.dmgStapleInside()'); sys.stdout.flush()
+            unbuffered_print(f'Signer.dmgStapleInside()'); sys.stdout.flush()
             signer.dmgStapleInside()  # doesn't require UUID
-            print(f'Signer.dmgCompress()'); sys.stdout.flush()
+            unbuffered_print(f'Signer.dmgCompress()'); sys.stdout.flush()
             dmgFile = signer.dmgCompress()
-            print(f'Signer.signSingleFile(dmgFile'); sys.stdout.flush()
+            unbuffered_print(f'Signer.signSingleFile(dmgFile'); sys.stdout.flush()
             signer.signSingleFile(dmgFile, removeFailed=False, verbose=True)
 
             if NOTARIZE:
-                print(f'Signer.upload(dmgFile)'); sys.stdout.flush()
+                unbuffered_print(f'Signer.upload(dmgFile)'); sys.stdout.flush()
                 OK = signer.upload(dmgFile)
                 if not OK: 
                     return 0
                 # notarize and staple
-                print(f'Signer.awaitNotarized()'); sys.stdout.flush()
+                unbuffered_print(f'Signer.awaitNotarized()'); sys.stdout.flush()
                 signer.awaitNotarized(logFile="")  # don't need the log file for the dmg
-                print(f'Signer.staple(dmgFile)'); sys.stdout.flush()
+                unbuffered_print(f'Signer.staple(dmgFile)'); sys.stdout.flush()
                 signer.staple(dmgFile)
 
 
