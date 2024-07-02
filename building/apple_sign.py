@@ -263,7 +263,7 @@ class AppSigner:
             self._zipFile = zipFilename
             return zipFilename
 
-    def awaitNotarized(self):
+    def awaitNotarized(self, logFile='_notarization.json'):
         print("Waiting for notarization to complete"); sys.stdout.flush()
         # can use 'xcrun notarytool info' to check status or 'xcrun notarytool wait'
         exitcode, output = subprocess.getstatusoutput(f'xcrun notarytool wait {self._appNotarizeUUID} '
@@ -277,7 +277,7 @@ class AppSigner:
                   f'--apple-id "{self._apple_id}" '
                   f'--team-id {self._team_id} '
                   f'--password {self._pword} '
-                  f'_notarization.json')
+                  f'{logFile}')
         print(output)
         if exitcode != 0:
             print("`xcrun notarytool wait` returned exit code {exitcode}. Exiting immediately.")
@@ -356,7 +356,7 @@ class AppSigner:
 
     def dmgCompress(self):
         dmgFilename = str(self.appFile).replace(".app", "_rw.dmg")
-        dmgFinalFilename = finalDistFolder/(f"StandalonePsychoPy-{self.version}-macOS.dmg")
+        dmgFinalFilename = self.appFile.parent / f"StandalonePsychoPy-{self.version}-macOS.dmg"
         # remove previous file if it's there
         if Path(dmgFinalFilename).exists():
             os.remove(dmgFinalFilename)
@@ -474,7 +474,7 @@ def main():
                     return 0
                 # notarize and staple
                 print(f'Signer.awaitNotarized()'); sys.stdout.flush()
-                signer.awaitNotarized()
+                signer.awaitNotarized(logFile="")  # don't need the log file for the dmg
                 print(f'Signer.staple(dmgFile)'); sys.stdout.flush()
                 signer.staple(dmgFile)
 
