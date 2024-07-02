@@ -361,15 +361,15 @@ class AppSigner:
         if Path(dmgFinalFilename).exists():
             os.remove(dmgFinalFilename)
 
-        cmdStr = f"hdiutil convert {dmgFilename} " \
-                 f"-format UDZO " \
-                 f"-o {dmgFinalFilename}"
-        exitcode, output = subprocess.getstatusoutput(cmdStr)
-        print(output)
-        if exitcode != 0:
-            print(f'****Failed to compress {dmgFilename} to {dmgFinalFilename} (is it not ejected?) ****')
-            exit(1)
-        return dmgFinalFilename
+        cmdStr = f"hdiutil convert {dmgFilename} -format UDZO -o {dmgFinalFilename}"
+        for attemptN in range(5):
+            print(f"Attempt {attemptN}: {cmdStr}")
+            exitcode, output = subprocess.getstatusoutput(cmdStr)
+            print(output)
+            if exitcode == 0:
+                return dmgFinalFilename
+        
+        raise RuntimeError(f'****Failed to compress {dmgFilename} to {dmgFinalFilename} (is it not ejected?) ****')
 
 
 def main():
@@ -476,7 +476,7 @@ def main():
                 print(f'Signer.awaitNotarized()'); sys.stdout.flush()
                 signer.awaitNotarized()
                 print(f'Signer.staple(dmgFile)'); sys.stdout.flush()
-                signer.staple()
+                signer.staple(dmgFile)
 
 
 if __name__ == "__main__":
