@@ -9,33 +9,38 @@ import sys
 
 
 class EyetrackerControl(AttributeGetSetMixin):
-    currentlyRecording = False
 
     def __init__(self, tracker, actionType="Start and Stop"):
         self.tracker = tracker
         self.actionType = actionType
         self.status = NOT_STARTED
-    
+
     def start(self):
         """
         Start recording
         """
         # if previously at a full stop, clear events
-        if not EyetrackerControl.currentlyRecording:
+        if not self.tracker.isRecordingEnabled():
             logging.exp("eyetracker.clearEvents()")
             self.tracker.clearEvents()
         # start recording
         self.tracker.setRecordingState(True)
         logging.exp("eyetracker.setRecordingState(True)")
-        EyetrackerControl.currentlyRecording = True
-    
+
     def stop(self):
         """
         Stop recording
         """
         self.tracker.setRecordingState(False)
         logging.exp("eyetracker.setRecordingState(False)")
-        EyetrackerControl.currentlyRecording = False
+
+    @property
+    def currentlyRecording(self):
+        """
+        Check if the eyetracker is currently recording
+        added for backwards compatibility, should be removed in future
+        """
+        return self.tracker.isRecordingEnabled()
 
     @property
     def pos(self):
@@ -89,7 +94,7 @@ class EyetrackerCalibration:
         trackerCls = getattr(pkg, clsName)
         # get self as dict
         asDict = trackerCls.getCalibrationDict(self)
-        
+
         # return
         for key, value in asDict.items():
             yield key, value
