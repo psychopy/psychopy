@@ -278,6 +278,12 @@ class PluginManagerPanel(wx.Panel, handlers.ThemeMixin):
         self.Layout()
         self.splitter.SetSashPosition(1, True)
         self.theme = theme.app
+    
+    def updateInfo(self):
+        # refresh all list items
+        self.pluginList.updateInfo()
+        # set current plugin again to refresh view
+        self.pluginViewer.info = self.pluginViewer.info
 
     def _applyAppTheme(self):
         # Set colors
@@ -326,14 +332,14 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             self.installBtn.SetBitmapMargins(6, 3)
             self.installBtn.Bind(wx.EVT_BUTTON, self.onInstall)
             self.btnSizer.Add(self.installBtn, border=3, flag=wx.ALL | wx.ALIGN_RIGHT)
-            # add uninstall button
-            self.uninstallBtn = wx.Button(self, label=_translate("Uninstall"))
-            self.uninstallBtn.SetBitmap(
-                icons.ButtonIcon("delete", 16).bitmap
-            )
-            self.uninstallBtn.SetBitmapMargins(6, 3)
-            self.uninstallBtn.Bind(wx.EVT_BUTTON, self.onUninstall)
-            self.btnSizer.Add(self.uninstallBtn, border=3, flag=wx.ALL | wx.EXPAND)
+            # # add uninstall button
+            # self.uninstallBtn = wx.Button(self, label=_translate("Uninstall"))
+            # self.uninstallBtn.SetBitmap(
+            #     icons.ButtonIcon("delete", 16).bitmap
+            # )
+            # self.uninstallBtn.SetBitmapMargins(6, 3)
+            # self.uninstallBtn.Bind(wx.EVT_BUTTON, self.onUninstall)
+            # self.btnSizer.Add(self.uninstallBtn, border=3, flag=wx.ALL | wx.EXPAND)
 
             # Map to onclick function
             self.Bind(wx.EVT_LEFT_DOWN, self.onSelect)
@@ -351,6 +357,10 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             Return parent's linked viewer when asked for viewer
             """
             return self.parent.viewer
+
+        def updateInfo(self):
+            # update install state
+            self.markInstalled(self.info.installed)
 
         def _applyAppTheme(self):
             # Set label fonts
@@ -564,6 +574,10 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         # layout
         self.Layout()
         self.SetupScrolling()
+    
+    def updateInfo(self):
+        for item in self.items:
+            item.updateInfo()
 
     def search(self, evt=None):
         searchTerm = self.searchCtrl.GetValue().strip()
@@ -1131,15 +1145,12 @@ def markInstalled(pluginItem, pluginPanel, installed=True):
         if installed is None:
             # if pending, hide both buttons
             pluginItem.installBtn.Hide()
-            pluginItem.uninstallBtn.Hide()
         elif installed:
             # if installed, hide install button
             pluginItem.installBtn.Hide()
-            pluginItem.uninstallBtn.Show()
         else:
             # if not installed, show "Install" and download icon
             pluginItem.installBtn.Show()
-            pluginItem.uninstallBtn.Hide()
         # refresh buttons
         pluginItem.Update()
         pluginItem.Layout()

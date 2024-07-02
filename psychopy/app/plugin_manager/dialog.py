@@ -53,6 +53,15 @@ class EnvironmentManagerDlg(wx.Dialog):
         # Buttons
         self.btns = self.CreateStdDialogButtonSizer(flags=wx.HELP | wx.CLOSE)
         self.border.Add(self.btns, border=12, flag=wx.EXPAND | wx.ALL)
+        # store button handles
+        self.closeBtn = self.helpBtn = None
+        for btn in self.btns.Children:
+            if not btn.Window:
+                continue
+            if btn.Window.GetId() == wx.ID_CLOSE:
+                self.closeBtn = btn.Window
+            if btn.Window.GetId() == wx.ID_HELP:
+                self.helpBtn = btn.Window
 
         self.pipProcess = None  # handle to the current Job
 
@@ -313,6 +322,9 @@ class EnvironmentManagerDlg(wx.Dialog):
             will be installed.
 
         """
+        # disable close buttons
+        self.enableClose(False)
+        # do install
         self.installPackage(
             packageName=pluginInfo.pipname,
             version=version,
@@ -333,6 +345,9 @@ class EnvironmentManagerDlg(wx.Dialog):
             Info object of the plugin to uninstall.
 
         """
+        # disable close buttons
+        self.enableClose(False)
+        # do uninstall
         self.uninstallPackage(pluginInfo.pipname)
 
     def onInstallExit(self, pid, exitCode):
@@ -341,10 +356,11 @@ class EnvironmentManagerDlg(wx.Dialog):
         to the output panel then, if installing a plugin, provides helpful info about that
         plugin.
         """
+        # re-enable close buttons
+        self.enableClose(True)
         if self.pipProcess is None:
             # if pip process is None, this has been called by mistake, do nothing
             return
-
         # write installation termination statement
         msg = "Installation complete"
         if 'pipname' in self.pipProcess.extra:
@@ -397,8 +413,13 @@ class EnvironmentManagerDlg(wx.Dialog):
 
         # clear pip process
         self.pipProcess = None
+        # refresh view
+        pkgtools.refreshPackages()
+        self.pluginMgr.updateInfo()
     
     def onUninstallExit(self, pid, exitCode):
+        # re-enable close buttons
+        self.enableClose(True)
         # write installation termination statement
         msg = "Uninstall complete"
         if 'pipname' in self.pipProcess.extra:
@@ -406,6 +427,20 @@ class EnvironmentManagerDlg(wx.Dialog):
         self.output.writeTerminus(msg)
         # clear pip process
         self.pipProcess = None
+    
+    def enableClose(self, enable):
+        """
+        Enable/disable close buttons.
+
+        Parameters
+        ----------
+        enable : bool
+            True to enable, False to disable
+        """
+        # enable dialog X button
+        self.EnableCloseButton(enable)
+        # enable Cancel button
+        self.closeBtn.Enable(enable)
 
     def onClose(self, evt=None):
         # Get changes to plugin states
