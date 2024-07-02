@@ -432,11 +432,18 @@ class Flow(list):
                     loopStack.remove(thisEntry.loop)
             script.writeIndentedLines(code)
         # quit when all routines are finished
-        script.writeIndented("flowScheduler.add(quitPsychoJS, %(End Message)s, true);\n" % self.exp.settings.params)
+        code = (
+            "flowScheduler.add(quitPsychoJS, %(End Message)s, true);\n"
+        )
+        script.writeIndentedLines(code % self.exp.settings.params)
         # handled all the flow entries
-        code = ("\n// quit if user presses Cancel in dialog box:\n"
-                "dialogCancelScheduler.add(quitPsychoJS, '', false);\n\n")
-        script.writeIndentedLines(code)
+        code = (
+            "\n"
+            "// quit if user presses Cancel in dialog box:\n"
+            "dialogCancelScheduler.add(quitPsychoJS, %(End Message)s, false);\n"
+            "\n"
+        )
+        script.writeIndentedLines(code % self.exp.settings.params)
 
         # Write resource list
         resourceFiles = []

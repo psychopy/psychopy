@@ -3,7 +3,7 @@ import sys
 import numpy
 from pathlib import Path
 
-from ..utils import TESTS_DATA_PATH
+from psychopy.tests.utils import TESTS_DATA_PATH, RUNNING_IN_VM
 
 import shutil
 from tempfile import mkdtemp
@@ -16,6 +16,9 @@ from ... import logging
 class TestSpeed:
     def setup_method(self):
         self.tmp_dir = mkdtemp(prefix='psychopy-tests-app')
+        # skip speed tests under vm
+        if RUNNING_IN_VM:
+            pytest.skip()
 
     def teardown_method(self):
         shutil.rmtree(self.tmp_dir, ignore_errors=True)

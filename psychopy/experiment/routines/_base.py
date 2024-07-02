@@ -832,21 +832,22 @@ class Routine(list):
         # can we use non-slip timing?
         maxTime, useNonSlip = self.getMaxTime()
         if useNonSlip:
-            code = (
-                "if (maxDurationReached) {{\n"
-                "    routineTimer.add(%(name)sMaxDuration);\n"
-                "}} else {{\n"
-                "    routineTimer.add(-{:f});\n"
-                "}}\n"
-            ).format(maxTime)
-            buff.writeIndented('' % self.params)
+            buff.writeIndented('routineTimer.add(%f);\n' % (maxTime))
+        # keep track of whether max duration is reached
+        code = (
+            "%(name)sMaxDurationReached = false;\n"
+        )
+        buff.writeIndentedLines(code % self.params)
 
         code = "// update component parameters for each repeat\n"
         buff.writeIndentedLines(code)
         # This is the beginning of the routine, before the loop starts
         for thisCompon in self:
+            if thisCompon is self.settings:
+                continue
             if "PsychoJS" in thisCompon.targets:
                 thisCompon.writeRoutineStartCodeJS(buff)
+        self.settings.writeRoutineStartCodeJS(buff)
 
         code = ("// keep track of which components have finished\n"
                 "%(name)sComponents = [];\n" % self.params)
@@ -1004,7 +1005,16 @@ class Routine(list):
                 compon.writeRoutineEndCodeJS(buff)
 
         # reset routineTimer at the *very end* of all non-nonSlip routines
-        if not useNonSlip:
+        if useNonSlip:
+            code = (
+                "if (%(name)sMaxDurationReached) {{\n"
+                "    routineTimer.add(%(name)sMaxDuration);\n"
+                "}} else {{\n"
+                "    routineTimer.add(-{:f});\n"
+                "}}\n"
+            ).format(maxTime)
+            buff.writeIndented(code % self.params)
+        else:
             code = ('// the Routine "%s" was not non-slip safe, so reset '
                     'the non-slip timer\n'
                     'routineTimer.reset();\n\n')

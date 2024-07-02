@@ -43,7 +43,7 @@ _numpyRandomImports = ['random', 'randint', 'normal', 'shuffle', 'choice as rand
 
 # this is not a standard component - it will appear on toolbar not in
 # components panel
-ioDeviceMap = dict(ioUtil.getDeviceNames())
+ioDeviceMap = dict(ioUtil.getDeviceNames(device_name="eyetracker.hw"))
 ioDeviceMap['None'] = ""
 
 # Keyboard backend options
@@ -121,7 +121,8 @@ class SettingsComponent:
             plCompanionRecordingEnabled=True,
             ecSampleRate='default',
             keyboardBackend="ioHub",
-            filename=None, exportHTML='on Sync', endMessage=''
+            filename=None, exportHTML='on Sync',
+            endMessage=_translate("Thank you for your patience.")
     ):
         self.type = 'Settings'
         self.exp = exp  # so we can access the experiment if necess

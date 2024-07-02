@@ -117,13 +117,15 @@ def refreshPackages():
     for dist in importlib.metadata.distributions(path=sys.path + [USER_PACKAGES_PATH]):
         # get name if in 3.8
         if sys.version.startswith("3.8"):
-            dist.name = dist.metadata['name']
+            distName = dist.metadata['name']
+        else:
+            distName = dist.name
         # mark as installed
         _installedPackageCache.append(
-            (dist.name, dist.version)
+            (distName, dist.version)
         )
         _installedPackageNamesCache.append(
-            dist.name
+            distName
         )
 
 
@@ -342,9 +344,11 @@ def _isUserPackage(package):
     for dist in importlib.metadata.distributions(path=[USER_PACKAGES_PATH]):
         # substitute name if using 3.8
         if sys.version.startswith("3.8"):
-            dist.name = dist.metadata['name']
+            distName = dist.metadata['name']
+        else:
+            distName = dist.name
         # get name
-        userPackages.append(dist.name)
+        userPackages.append(distName)
     
     return package in userPackages
 
@@ -526,10 +530,12 @@ def getInstalledPackages():
     for dist in importlib.metadata.distributions(path=[USER_PACKAGES_PATH]):
         # substitute name if using 3.8
         if sys.version.startswith("3.8"):
-            dist.name = dist.metadata['name']
+            distName = dist.metadata['name']
+        else:
+            distName = dist.name
         # get name and version
         installedPackages.append(
-            (dist.name, dist.version)
+            (distName, dist.version)
         )
 
     return installedPackages

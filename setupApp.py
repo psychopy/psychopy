@@ -114,6 +114,7 @@ packages = ['pydoc',  # needed for help()
             'markdown_it',
             'zeroconf', 'ifaddr',  # for pupillabs plugin (fail to build)
             'websocket', # dependency for emotiv that doesn't install nicely from plugins
+            'google',  # otherwise it gets included (for some reason) but not code-signed
             ]
 
 # Add packages that older PsychoPy (<=2023.1.x) shipped, for useVersion() compatibility
@@ -141,6 +142,7 @@ packagePipNames = { # packages that are imported as one thing but installed as a
     'OpenGL': 'pyopengl',
     'opencv': 'opencv-python',
     'googleapiclient': 'google-api-python-client',
+    'google': 'google-api-python-client',
     'macropy': 'macropy3',
 }
 
