@@ -19,9 +19,10 @@ class RoutineSettingsComponent(BaseComponent):
             self, exp, parentName,
             # Basic
             name='',
-            skipIf="",
-            # Description
             desc="",
+            # Flow
+            skipIf="",
+            forceNonSlip=False,
             # Window
             useWindowParams=False,
             color="$[0,0,0]",
@@ -65,6 +66,17 @@ class RoutineSettingsComponent(BaseComponent):
         self.params['durationEstim'].categ = "Flow"
 
         # --- Flow params ---
+        self.order += [
+            "forceNonSlip",
+            "skipIf",
+        ]
+        self.params['forceNonSlip'] = Param(
+            forceNonSlip, valType="code", inputType="bool", categ="Flow",
+            hint=_translate(
+                "If this Routine ended by hitting its max duration, reset the timer by subtracting the max duration rather than resetting to 0. Only tick this if you're sure you know how long the Routine is going to take, otherwise you'll get incorrect timestamps in the next Routine!"
+            ),
+            label=_translate("Non-slip timing")
+        )
         self.params['skipIf'] = Param(
             skipIf, valType='code', inputType="single", categ='Flow',
             updates='constant',
@@ -146,17 +158,34 @@ class RoutineSettingsComponent(BaseComponent):
     def writeRoutineStartCode(self, buff):
         # Sanitize
         params = self.params.copy()
-        # Store Routine start time (UTC)
+        if params['stopVal'] in ("None", None, ""):
+            params['stopVal'].val = "None"
+        # store start times
+        code = (
+            "# store start times for %(name)s\n"
+            "%(name)s.tStartRefresh = win.getFutureFlipTime(clock=globalClock)\n"
+            "%(name)s.tStart = globalClock.getTime(format='float')\n"
+            "%(name)s.status = STARTED\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+        # add to data file if requested
         if self.params['saveStartStop']:
             code = (
-                "thisExp.addData('%(name)s.started', globalClock.getTime(format='float'))\n"
+            "thisExp.addData('%(name)s.started', %(name)s.tStart)\n"
+            )
+            buff.writeIndentedLines(code % params)
+        # calculate expected Routine duration
+        if self.params['stopType'] == "duration (s)":
+            code = (
+                "%(name)s.maxDuration = %(stopVal)s\n"
             )
             buff.writeIndentedLines(code % params)
         # Skip Routine if condition is met
         if params['skipIf'].val not in ('', None, -1, 'None'):
             code = (
-                "# skip this Routine if its 'Skip if' condition is True\n"
-                "continueRoutine = continueRoutine and not (%(skipIf)s)\n"
+                "# skip Routine %(name)s if its 'Skip if' condition is True\n"
+                "%(name)s.skipped = continueRoutine and not (%(skipIf)s)\n"
+                "continueRoutine = %(name)s.skipped\n"
             )
             buff.writeIndentedLines(code % params)
         # Change window appearance for this Routine (if requested)
@@ -172,6 +201,8 @@ class RoutineSettingsComponent(BaseComponent):
     def writeRoutineStartCodeJS(self, buff):
         # Sanitize
         params = self.params.copy()
+        if params['stopVal'] in ("None", None, ""):
+            params['stopVal'].val = "None"
         # Store Routine start time (UTC)
         if self.params['saveStartStop']:
             code = (
@@ -183,6 +214,13 @@ class RoutineSettingsComponent(BaseComponent):
             code = (
                 "// skip this Routine if its 'Skip if' condition is True\n"
                 "continueRoutine = continueRoutine && !(%(skipIf)s);\n"
+                "maxDurationReached = False\n"
+            )
+            buff.writeIndentedLines(code % params)
+        # calculate expected Routine duration
+        if self.params['stopType'] == "duration (s)":
+            code = (
+                "%(name)sMaxDuration = %(stopVal)s\n"
             )
             buff.writeIndentedLines(code % params)
         # Change window appearance for this Routine (if requested)
@@ -224,7 +262,8 @@ class RoutineSettingsComponent(BaseComponent):
                 # Stop after given number of seconds
                 code = (
                     f"# is it time to end the Routine? (based on local clock)\n"
-                    f"if tThisFlip > %(stopVal)s-frameTolerance:\n"
+                    f"if tThisFlip > %(name)s.maxDuration-frameTolerance:\n"
+                    f"    %(name)s.maxDurationReached = True\n"
                 )
             elif self.params['stopType'].val == 'frame N':
                 # Stop at given frame num
@@ -261,7 +300,8 @@ class RoutineSettingsComponent(BaseComponent):
                 # Stop after given number of seconds
                 code = (
                     f"// is it time to end the Routine? (based on local clock)\n"
-                    f"if (t > %(stopVal)s) {{\n"
+                    f"if (t > %(name)sMaxDuration) {{\n"
+                    f"    %(name)sMaxDurationReached = true\n"
                 )
             elif self.params['stopType'].val == 'frame N':
                 # Stop at given frame num
@@ -287,10 +327,17 @@ class RoutineSettingsComponent(BaseComponent):
 
     def writeRoutineEndCode(self, buff):
         params = self.params.copy()
-        # Store Routine start time (UTC)
+        # store stop times
+        code = (
+            "# store stop times for %(name)s\n"
+            "%(name)s.tStop = globalClock.getTime(format='float')\n"
+            "%(name)s.tStopRefresh = tThisFlipGlobal\n"
+        )
+        buff.writeIndentedLines(code % params)
+        # add to data file if requested
         if self.params['saveStartStop']:
             code = (
-                "thisExp.addData('%(name)s.stopped', globalClock.getTime(format='float'))\n"
+                "thisExp.addData('%(name)s.stopped', %(name)s.tStop)\n"
             )
             buff.writeIndentedLines(code % params)
         # Restore window appearance after this Routine (if changed)

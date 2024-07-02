@@ -6,6 +6,7 @@ import shutil
 import numpy as np
 import io
 from psychopy import logging, colors
+from psychopy.tools import systemtools
 
 try:
     from PIL import Image
@@ -13,6 +14,9 @@ except ImportError:
     import Image
 
 import pytest
+
+# boolean indicating whether tests are running in a VM
+RUNNING_IN_VM = systemtools.isVM_CI() is not None
 
 # define the path where to find testing data
 # so tests could be ran from any location

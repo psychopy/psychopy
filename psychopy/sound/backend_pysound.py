@@ -290,17 +290,6 @@ class SoundPySoundCard(_SoundBase):
             logging.error(msg % fileName)
             raise ValueError(msg % fileName)
 
-    @property
-    def status(self):
-        # NB this is stored by the _callbacks class for fast access when
-        # data buffer needs filling (_callbacks class does not have a
-        # reference back here)
-        return self.__dict__['status']
-
-    @status.setter
-    def status(self, status):
-        self.__dict__['status'] = status
-
     def _setSndFromArray(self, thisArray):
         """For pysoundcard all sounds are ultimately played as an array so
         other setSound methods are going to call this having created an arr

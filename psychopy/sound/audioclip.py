@@ -431,13 +431,15 @@ class AudioClip:
         Parameters
         ----------
         text : str
-            Text to synthesize.
+            Text to synthesize into speech.
         engine : str
             TTS engine to use for speech synthesis. Default is 'gtts'.
         synthConfig : dict or None
             Additional configuration options for the specified engine. These
             are specified using a dictionary (ex. 
-            `synthConfig={'slow': False}`).
+            `synthConfig={'slow': False}`). These paramters vary depending on 
+            the engine in use. Default is `None` which uses the default
+            configuration for the engine.
         outFile : str or None
             File name to save the synthesized speech to. This can be used to 
             save the audio to a file for later use. If `None`, the audio clip 
@@ -449,6 +451,27 @@ class AudioClip:
         -------
         AudioClip
             Audio clip containing the synthesized speech.
+
+        Examples
+        --------
+        Synthesize speech using the default gTTS engine::
+
+            import psychopy.sound as sound
+            voiceClip = sound.AudioClip.synthesizeSpeech(
+                'How are you doing today?')
+
+        Save the synthesized speech to a file for later use::
+
+            voiceClip = sound.AudioClip.synthesizeSpeech(
+                'How are you doing today?', outFile='/path/to/speech.mp3')
+
+        Synthesize speech using the gTTS engine with a specific language, 
+        timeout, and top-level domain::
+
+            voiceClip = sound.AudioClip.synthesizeSpeech(
+                'How are you doing today?', 
+                engine='gtts', 
+                synthConfig={'lang': 'en', 'timeout': 10, 'tld': 'us'})
 
         """
         if engine not in ['gtts']:
@@ -465,30 +488,40 @@ class AudioClip:
                 raise ImportError(
                     'The gTTS package is required for speech synthesis.')
 
-            # inform the user that the timeout is infinite
-            timeout = synthConfig.get('timeout', None)
-            if timeout is None:
+            # set defaults for parameters if not specified
+            if 'timeout' not in synthConfig:
+                synthConfig['timeout'] = None
                 logging.warning(
                     'The gTTS speech-to-text engine has been configured with '
                     'an infinite timeout. The application may stall if the '
                     'server is unresponsive. To set a timeout, specify the '
                     '`timeout` key in `synthConfig`.')
-            if 'timeout' in synthConfig: # remove the key so we don't pass it
-                del synthConfig['timeout']
             
-            # check if the language is supported
-            language = synthConfig.get('lang', 'en')
-            if language not in gtts.lang.tts_langs():
-                raise ValueError('Unsupported language code specified.')
-            if 'lang' in synthConfig:
-                del synthConfig['lang']
+            if 'lang' not in synthConfig:  # language
+                synthConfig['lang'] = 'en'
+                logging.info(
+                    "Language not specified, defaulting to '{}' for speech "
+                    "synthesis engine.".format(synthConfig['lang']))
+            else:
+                # check if the value is a valid language code
+                if synthConfig['lang'] not in gtts.lang.tts_langs():
+                    raise ValueError('Unsupported language code specified.')
+
+            if 'tld' not in synthConfig:  # top-level domain
+                synthConfig['tld'] = 'us'
+                logging.info(
+                    "Top-level domain (TLD) not specified, defaulting to '{}' "
+                    "for synthesis engine.".format(synthConfig['tld']))
+
+            if 'slow' not in synthConfig:  # slow mode
+                synthConfig['slow'] = False
+                logging.info(
+                    "Slow mode not specified, defaulting to '{}' for synthesis "
+                    "engine.".format(synthConfig['slow']))
 
             try:
                 handle = gtts.gTTS(
                     text=text, 
-                    tld=synthConfig.get('tld', 'us'), 
-                    lang=language, 
-                    timeout=timeout,
                     **synthConfig)
             except gtts.gTTSError as e:
                 raise AudioSynthesisError(
@@ -621,6 +654,154 @@ class AudioClip:
         arrview *= float(factor)
         arrview.clip(-1, 1)
 
+    def resample(self, targetSampleRateHz, resampleType='default', 
+            equalEnergy=False, copy=False):
+        """Resample audio to another sample rate.
+
+        This method will resample the audio clip to a new sample rate. The
+        method used for resampling can be specified using the `method` parameter.
+
+        Parameters
+        ----------
+        targetSampleRateHz : int
+            New sample rate.
+        resampleType : str
+            Fitler (or method) to use for resampling. The methods available
+            depend on the packages installed. The 'default' method uses 
+            `scipy.signal.resample` to resample the audio. Other methods require 
+            the user to install `librosa` or `resampy`. Default is 'default'.
+        equalEnergy : bool
+            Make the output have similar energy to the input. Option not
+            available for the 'default' method. Default is `False`.
+        copy : bool
+            Return a copy of the resampled audio clip at the new sample rate.
+            If `False`, the audio clip will be resampled inplace. Default is
+            `False`.
+        
+        Returns
+        -------
+        AudioClip
+            Resampled audio clip.
+
+        Notes
+        -----
+        * Resampling audio clip may result in distortion which is exacerbated by
+          successive resampling.
+        * When using `librosa` for resampling, the `fix` parameter is set to
+          `False`.
+        * The resampling types 'linear', 'zero_order_hold', 'sinc_best', 
+          'sinc_medium' and 'sinc_fastest' require the `samplerate` package to
+          be installed in addition to `librosa`.
+        * Specifying either the 'fft' or 'scipy' method will use the same
+          resampling method as the 'default' method, howwever it will allow for 
+          the `equalEnergy` option to be used.
+
+        Examples
+        --------
+        Resample an audio clip to 44.1kHz::
+
+            snd.resample(44100)
+
+        Use the 'soxr_vhq' method for resampling::
+
+            snd.resample(44100, resampleType='soxr_vhq')
+
+        Create a copy of the audio clip resampled to 44.1kHz::
+
+            sndResampled = snd.resample(44100, copy=True)
+
+        Resample the audio clip to be playable on a certain device::
+
+            import psychopy.sound as sound
+            from psychopy.sound.audioclip import AudioClip
+
+            audioClip = sound.AudioClip.load('/path/to/audio.wav')
+            
+            deviceSampleRateHz = sound.Sound().sampleRate
+            audioClip.resample(deviceSampleRateHz)
+
+        """
+        targetSampleRateHz = int(targetSampleRateHz)  # ensure it's an integer
+
+        # sample rate is the same, return self
+        if targetSampleRateHz == self._sampleRateHz:
+            if copy:
+                return AudioClip(
+                    self._samples.copy(), 
+                    sampleRateHz=self._sampleRateHz)
+
+            logging.info('No resampling needed, sample rate is the same.')
+
+            return self  # no need to resample
+
+        if resampleType == 'default':  # scipy
+            import scipy.signal  # hard dep, so we'll import here
+
+            # the simplest method to resample audio using the libraries we have
+            # already
+            nSamp = round(
+                len(self._samples) * float(targetSampleRateHz) / 
+                self.sampleRateHz)
+            newSamples = scipy.signal.resample(
+                self._samples, nSamp, axis=0)
+
+            if equalEnergy:
+                logging.warning(
+                    'The `equalEnergy` option is not available for the '
+                    'default resampling method.')
+
+        elif resampleType in ('kaiser_best', 'kaiser_fast'):  # resampy
+            try:
+                import resampy
+            except ImportError:
+                raise ImportError(
+                    'The `resampy` package is required for this resampling '
+                    'method ({}).'.format(resampleType))
+
+            newSamples = resampy.resample(
+                self._samples, 
+                self._sampleRateHz, 
+                targetSampleRateHz,
+                filter=resampleType,
+                scale=equalEnergy,
+                axis=0)
+
+        elif resampleType in ('soxr_vhq', 'soxr_hq', 'soxr_mq', 'soxr_lq', 
+                'soxr_qq', 'polyphase', 'linear', 'zero_order_hold', 'fft',
+                'scipy', 'sinc_best', 'sinc_medium', 'sinc_fastest'):  # librosa
+            try:
+                import librosa
+            except ImportError:
+                raise ImportError(
+                    'The `librosa` package is required for this resampling '
+                    'method ({}).'.format(resampleType))
+
+            newSamples = librosa.resample(
+                self._samples, 
+                orig_sr=self._sampleRateHz, 
+                target_sr=targetSampleRateHz,
+                res_type=resampleType,
+                scale=equalEnergy, 
+                fix=False,
+                axis=0)
+
+        else:
+            raise ValueError('Unsupported resampling method specified.')
+
+        logging.info(
+            "Resampled audio from {}Hz to {}Hz using method '{}'.".format(
+                self._sampleRateHz, targetSampleRateHz, resampleType))
+
+        if copy:  # return a new object
+            return AudioClip(newSamples, sampleRateHz=targetSampleRateHz)
+
+        # inplace resampling, need to clear the old array since the shape may
+        # have changed
+        self._samples = newSamples
+        self._sampleRateHz = targetSampleRateHz
+
+        return self
+
     # --------------------------------------------------------------------------
     # Audio analysis methods
     #
@@ -690,37 +871,6 @@ class AudioClip:
         self._sampleRateHz = int(value)
         # recompute duration after updating sample rate
         self._duration = len(self._samples) / float(self._sampleRateHz)
-    
-    def resample(self, targetSampleRateHz, resampleType='soxr_hq', 
-                 equalEnergy=False):
-        """Resample audio to another sample rate.
-
-        Parameters
-        ----------
-        targetSampleRateHz : int
-            New sample rate.
-        resampleType : str or None
-            Method to use for resampling. 
-        equalEnergy : bool
-            Make the output have similar energy to the input.
-
-        Notes
-        -----
-        * Resampling audio clip may result in distortion which is exacerbated by
-          successive resampling.
-
-        """
-        import librosa
-
-        self.samples = librosa.resample(
-            self.samples, 
-            self._sampleRateHz, 
-            targetSampleRateHz,
-            res_type=resampleType,
-            scale=equalEnergy, 
-            axis=0)
-
-        self.sampleRateHz = targetSampleRateHz  # update
 
     @property
     def duration(self):
@@ -854,6 +1004,8 @@ class AudioClip:
             return AudioClip(samples, self.sampleRateHz)
 
         self._samples = samples  # overwrite
+
+        return self
 
     def transcribe(self, engine='whisper', language='en-US', expectedWords=None,
                    config=None):

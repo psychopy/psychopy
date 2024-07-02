@@ -34,8 +34,7 @@ onlineTranscribers = {
     "Google": "GOOGLE"
 }
 localTranscribers = {
-    "Google": "google",
-    "Whisper": "whisper", 
+    "Google": "google"
 }
 allTranscribers = {**localTranscribers, **onlineTranscribers}
 
@@ -56,7 +55,7 @@ class MicrophoneComponent(BaseDeviceComponent):
                  startEstim='', durationEstim='',
                  channels='auto', device=None,
                  sampleRate='DVD Audio (48kHz)', maxSize=24000,
-                 outputType='default', speakTimes=True, trimSilent=False,
+                 outputType='default', speakTimes=False, trimSilent=False,
                  transcribe=False, transcribeBackend="Whisper",
                  transcribeLang="en-US", transcribeWords="",
                  transcribeWhisperModel="base",
@@ -300,7 +299,7 @@ class MicrophoneComponent(BaseDeviceComponent):
             "    deviceClass='psychopy.hardware.microphone.MicrophoneDevice',\n"
             "    deviceName=%(deviceLabel)s,\n"
             "    index=%(device)s,\n"
-            "    maxRecordingSize=%(maxSize)s\n"
+            "    maxRecordingSize=%(maxSize)s,\n"
         )
         if self.params['device'].val not in ("None", "", None):
             code += (
@@ -533,7 +532,7 @@ class MicrophoneComponent(BaseDeviceComponent):
                 "%(loop)s.addData('%(name)s.script', %(name)sScript)\n"
             )
             buff.writeIndentedLines(code % inits)
-        if inits['speakTimes'] and inits['transcribeBackend'].val == "whisper":
+        if inits['speakTimes'] and inits['transcribeBackend'].val == "Whisper":
 
             code = (
                 "# save transcription data\n"

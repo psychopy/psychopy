@@ -1725,7 +1725,7 @@ class Camera:
 
         # current camera frame since the start of recording
         self._player = None  # media player instance
-        self._status = NOT_STARTED
+        self.status = NOT_STARTED
         self._isRecording = False
         self._bufferSecs = float(bufferSecs)
         self._lastFrame = None  # use None to avoid imports for ImageStim
@@ -1942,20 +1942,6 @@ class Camera:
 
         """
         return getCameraDescriptions(collapse=collapse)
-
-    @property
-    def status(self):
-        """Status flag for the camera (`int`).
-
-        Can be either `RECORDING`, `STOPPED`, `STOPPING`, or `NOT_STARTED`. This 
-        property used in Builder output scripts and does not update on its own.
-
-        """
-        return self._status
-
-    @status.setter
-    def status(self, value):
-        self._status = value
 
     @property
     def device(self):

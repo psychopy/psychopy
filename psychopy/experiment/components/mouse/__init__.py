@@ -220,7 +220,13 @@ class MouseComponent(BaseComponent):
         code = (
             "// check if the mouse was inside our 'clickable' objects\n"
             "gotValidClick = false;\n"
-            "for (const obj of [%(clickable)s]) {\n"
+            "%(name)s.clickableObjects = %(clickable)s\n;"
+            "// make sure the mouse's clickable objects are an array\n"
+            "if (!Array.isArray(%(name)s.clickableObjects)) {\n"
+            "    %(name)s.clickableObjects = [%(name)s.clickableObjects];\n"
+            "}\n"
+            "// iterate through clickable objects and check each\n"
+            "for (const obj of %(name)s.clickableObjects) {\n"
             "    if (obj.contains(%(name)s)) {\n"
             "        gotValidClick = true;\n"
         )

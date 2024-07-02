@@ -71,6 +71,7 @@ class AppSigner:
         files = list(self.appFile.glob('**/*.dylib'))
         files.extend(self.appFile.glob('**/*.so'))
         files.extend(self.appFile.glob('**/git-core/git*'))
+        files.extend(self.appFile.glob('**/git-core/scalar'))  # for some reason it's named differently
         files.extend(self.appFile.glob('**/cv2/.dylibs/*'))
         # ffmpeg
         files.extend(self.appFile.glob('**/imageio_ffmpeg/binaries/*'))
@@ -225,6 +226,10 @@ class AppSigner:
             print("[Error] Upload failed: You probably need a new app-specific "
                   "password from https://appleid.apple.com/account/manage")
             exit(1)
+        elif exitcode != 0:
+            print(f"[Error] Upload failed with message: {output}")
+            exit(exitcode)
+
         print(output)
         uuid = m[0].strip()
         self._appNotarizeUUID = uuid
@@ -259,36 +264,42 @@ class AppSigner:
             return zipFilename
 
     def awaitNotarized(self):
+        print("Waiting for notarization to complete"); sys.stdout.flush()
         # can use 'xcrun notarytool info' to check status or 'xcrun notarytool wait'
         exitcode, output = subprocess.getstatusoutput(f'xcrun notarytool wait {self._appNotarizeUUID} '
                   f'--apple-id "{self._apple_id}" '
                   f'--team-id {self._team_id} '
                   f'--password {self._pword}')
-        print(output)
+        print(output); sys.stdout.flush()
+        print("Fetching notarisation log"); sys.stdout.flush()
         # always fetch the log file too
-        exitcode, output = subprocess.getstatusoutput(f'xcrun notarytool log {self._appNotarizeUUID} '
+        exitcode2, output = subprocess.getstatusoutput(f'xcrun notarytool log {self._appNotarizeUUID} '
                   f'--apple-id "{self._apple_id}" '
                   f'--team-id {self._team_id} '
                   f'--password {self._pword} '
-                  f' developer_log.json')
+                  f'_notarization.json')
         print(output)
+        if exitcode != 0:
+            print("`xcrun notarytool wait` returned exit code {exitcode}. Exiting immediately.")
+            exit(exitcode)
+
 
     def staple(self, filepath):
-        cmdStr = f'xcrun stapler staple {filepath}'
+        cmdStr = f'xcrun stapler staple {filepath}'; sys.stdout.flush()
         print(cmdStr)
         exitcode, output = subprocess.getstatusoutput(cmdStr)
-        print(f"exitcode={exitcode}: {output}")
+        print(f"exitcode={exitcode}: {output}"); sys.stdout.flush()
         if exitcode != 0:
             print('*********Staple failed*************')
-            exit(1)
+            exit(exitcode)
         else:
-            print(f"Staple successful. You can verify with\n    xcrun stapler validate {filepath}")
+            print(f"Staple successful. You can verify with\n    xcrun stapler validate {filepath}"); sys.stdout.flush()
 
     def dmgBuild(self):
         import dmgbuild
         dmgFilename = str(self.appFile).replace(".app", "_rw.dmg")
         appName = self.appFile.name
-        print(f"building dmg file: {dmgFilename}")
+        print(f"building dmg file: {dmgFilename}..."); sys.stdout.flush()
         # remove previous file if it's there
         if Path(dmgFilename).exists():
             os.remove(dmgFilename)
@@ -331,21 +342,17 @@ class AppSigner:
         self.staple(f"'{volName}/{appName}'")
     
         time.sleep(10)  # wait for 10s and then try more forcefully
-        import diskutil_parser.cmd
-        import sh
-        disks = diskutil_parser.cmd.diskutil_list()
-        for disk in disks:
-            print(f"checking /dev/{disk.device_id} ({disk.partition_scheme})")
-            for part in disk.partitions:
-                if "PsychoPy" in part.name:
-                    print("Ejecting - ", part.name, part.mount_point)
-                    try:
-                        sh.diskutil("unmountDisk", "force", f"/dev/{disk.device_id}")
-                        sh.diskutil("eject", f"/dev/{disk.device_id}")
-                    except sh.ErrorReturnCode_1:
-                        print("Can't eject that disk")
-                        exit(1)
 
+        # try to eject all volumens with PsychoPy in the name
+        for volume in Path("/Volumes").glob("PsychoPy*"):
+            # Eject the disk image
+            for attemptN in range(5):
+                exitcode, output = subprocess.getstatusoutput(f"diskutil eject {volume}")
+                print(f"Attempt {attemptN}: {output}"); sys.stdout.flush()
+                if exitcode == 0:
+                    break
+                # have a rest and try again
+                time.sleep(5)
 
     def dmgCompress(self):
         dmgFilename = str(self.appFile).replace(".app", "_rw.dmg")
@@ -442,26 +449,34 @@ def main():
             signer.signCheck(verbose=False)
 
         if args.runDmgBuild:
-            print(signer.zipFile)
             if NOTARIZE:
+                print(f'Signer.upload("{signer.zipFile}")'); sys.stdout.flush()
                 signer.upload(signer.zipFile)
             # build the read/writable dmg file (while waiting for notarize)
             signer.dmgBuild()
             if NOTARIZE:
                 # notarize and staple
+                print(f'Signer.awaitNotarized()'); sys.stdout.flush()
                 signer.awaitNotarized()
 
         if args.runPostDmgBuild:
+            print(f'Signer.dmgStapleInside()'); sys.stdout.flush()
             signer.dmgStapleInside()  # doesn't require UUID
-
+            print(f'Signer.dmgCompress()'); sys.stdout.flush()
             dmgFile = signer.dmgCompress()
+            print(f'Signer.signSingleFile(dmgFile'); sys.stdout.flush()
             signer.signSingleFile(dmgFile, removeFailed=False, verbose=True)
 
             if NOTARIZE:
-                signer.upload(dmgFile)
+                print(f'Signer.upload(dmgFile)'); sys.stdout.flush()
+                OK = signer.upload(dmgFile)
+                if not OK: 
+                    return 0
                 # notarize and staple
+                print(f'Signer.awaitNotarized()'); sys.stdout.flush()
                 signer.awaitNotarized()
-                signer.staple(dmgFile)
+                print(f'Signer.staple(dmgFile)'); sys.stdout.flush()
+                signer.staple()
 
 
 if __name__ == "__main__":
