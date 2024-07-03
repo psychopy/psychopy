@@ -1,5 +1,5 @@
 global_event_buffer: 2048
-udp_port: 9034
+udp_port: 9036
 msgpump_interval: 0.001
 data_store:
     enable: False
