@@ -279,12 +279,12 @@ def getDevicePaths(device_name=""):
                 continue
 
             if hasattr(ep_target, "configFile"):
-                # if entry point target is a class that binds to a yaml file, use it
+                # if entry point target binds to a yaml file, use it
                 scs_yaml_paths.append(
                     (ep_target.configFile.parent, ep_target.configFile.name)
                 )
-            else:  # otherwise, check the local folder of the entry point target
-                deviceConfig = _getDevicePaths(os.path.dirname(ep_target.__file__))
+            else:  # otherwise, check the local folder of the target module or class
+                deviceConfig = _getDevicePaths(os.path.dirname(inspect.getfile(ep_target)))
                 scs_yaml_paths.extend(deviceConfig)
 
     # Use import_device() method for built-in devices
