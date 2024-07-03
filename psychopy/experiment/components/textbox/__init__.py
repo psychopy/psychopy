@@ -110,7 +110,7 @@ class TextboxComponent(BaseVisualComponent):
         self.params['draggable'] = Param(
             draggable, valType="code", inputType="bool", categ="Layout",
             updates="constant",
-            label="Draggable?",
+            label=_translate("Draggable?"),
             hint=_translate(
                 "Should this stimulus be moveble by clicking and dragging?"
             )
