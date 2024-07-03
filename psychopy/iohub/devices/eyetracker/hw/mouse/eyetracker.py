@@ -410,6 +410,8 @@ class EyeTracker(EyeTrackerDevice):
 
         calibration._unregisterEventMonitors()
         calibration.clearAllEventBuffers()
+        del calibration.window
+        del calibration
 
         if cal_run:
             return {"RESULT": "CALIBRATION_OK"}

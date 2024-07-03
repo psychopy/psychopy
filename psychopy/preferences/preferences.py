@@ -41,7 +41,7 @@ class Preferences:
 
         import psychopy
         psychopy.prefs.hardware['audioLib'] = ['ptb', 'pyo','pygame']
-        print(prefs)
+        print(psychopy.prefs)
         # prints the location of the user prefs file and all the current vals
 
     Use the instance of `prefs`, as above, rather than the `Preferences` class
@@ -63,6 +63,7 @@ class Preferences:
         self.appDataCfg = None
 
         self.general = None
+        self.piloting = None
         self.coder = None
         self.builder = None
         self.connections = None
@@ -164,6 +165,42 @@ class Preferences:
                 if err.errno != errno.EEXIST:
                     raise
 
+        # root site-packages directory for user-installed packages and add it
+        userPkgRoot = Path(self.paths['packages'])
+
+        # Package paths for custom user site-packages, these should be compliant
+        # with platform specific conventions.
+        if sys.platform == 'win32':
+            pyDirName = "Python" + sys.winver.replace(".", "")
+            userPackages = userPkgRoot / pyDirName / "site-packages"
+            userInclude = userPkgRoot / pyDirName / "Include"
+            userScripts = userPkgRoot / pyDirName / "Scripts"
+        elif sys.platform == 'darwin' and sys._framework:  # macos + framework
+            pyVersion = sys.version_info
+            pyDirName = "python{}.{}".format(pyVersion[0], pyVersion[1])
+            userPackages = userPkgRoot / "lib" / "python" / "site-packages"
+            userInclude = userPkgRoot / "include" / pyDirName
+            userScripts = userPkgRoot / "bin"
+        else:  # posix (including linux and macos without framework)
+            pyVersion = sys.version_info
+            pyDirName = "python{}.{}".format(pyVersion[0], pyVersion[1])
+            userPackages = userPkgRoot / "lib" / pyDirName / "site-packages"
+            userInclude = userPkgRoot / "include" / pyDirName
+            userScripts = userPkgRoot / "bin"
+
+        # populate directory structure for user-installed packages
+        if not userPackages.is_dir():
+            userPackages.mkdir(parents=True)
+        if not userInclude.is_dir():
+            userInclude.mkdir(parents=True)
+        if not userScripts.is_dir():
+            userScripts.mkdir(parents=True)
+
+        # add paths from plugins/packages (installed by plugins manager)
+        self.paths['userPackages'] = userPackages
+        self.paths['userInclude'] = userInclude
+        self.paths['userScripts'] = userScripts
+
         # Get dir for base and user themes
         baseThemeDir = Path(self.paths['appDir']) / "themes" / "spec"
         userThemeDir = Path(self.paths['themes'])
@@ -212,6 +249,7 @@ class Preferences:
         self.coder = self.userPrefsCfg['coder']
         self.builder = self.userPrefsCfg['builder']
         self.hardware = self.userPrefsCfg['hardware']
+        self.piloting = self.userPrefsCfg['piloting']
         self.connections = self.userPrefsCfg['connections']
         self.appData = self.appDataCfg
 

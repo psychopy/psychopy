@@ -200,7 +200,7 @@ class ioHubDeviceView():
 
 class ioHubDevices():
     """
-    Provides .name access to the the ioHub device's created when the ioHub
+    Provides .name access to the ioHub device's created when the ioHub
     Server is started. Each iohub device is accessible via a dynamically
     created attribute of this class, the name of which is defined by the
     device configuration 'name' setting. Each device attribute is an instance
@@ -249,7 +249,7 @@ class ioHubConnection():
         mouse=hub.devices.mouse
         mouse_position = mouse.getPosition()
 
-        print 'mouse position: ', mouse_position
+        print('mouse position: ', mouse_position)
 
         # Returns something like:
         # >> mouse position:  [-211.0, 371.0]
@@ -717,10 +717,18 @@ class ioHubConnection():
         """
         Synchronise ioHub's internal clock with a given instance of MonotonicClock.
         """
+        params = {
+            '_timeAtLastReset': clock._timeAtLastReset,
+            '_epochTimeAtLastReset': clock._epochTimeAtLastReset,
+            'format': clock.format,
+        }
+        if isinstance(params['format'], type):
+            params['format'] = params['format'].__name__
         # sync clock in this process
-        Computer.global_clock._timeAtLastReset = clock._timeAtLastReset
+        for key, value in params.items():
+            setattr(Computer.global_clock, key, value)
         # sync clock in server process
-        return self._sendToHubServer(('RPC', 'syncClock', (clock._timeAtLastReset,)))
+        return self._sendToHubServer(('RPC', 'syncClock', (params,)))
 
     def setPriority(self, level='normal', disable_gc=False):
         """See Computer.setPriority documentation, where current process will
@@ -1303,7 +1311,9 @@ class ioHubConnection():
                     self.udp_client.sendTo(('STOP_IOHUB_SERVER',))
                     self.udp_client.close()
                 if Computer.iohub_process:
-                    r = Computer.iohub_process.wait(timeout=5)
+                    # This wait() used to have timeout=5, removing it to allow
+                    # sufficient time for all iohub devices to be closed.
+                    r = Computer.iohub_process.wait()
                     print('ioHub Server Process Completed With Code: ', r)
             except TimeoutError:
                 print('Warning: TimeoutExpired, Killing ioHub Server process.')

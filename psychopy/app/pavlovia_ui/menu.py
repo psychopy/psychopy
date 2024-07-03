@@ -2,14 +2,16 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
+import io
 
 import wx
 import requests
 
 from psychopy import logging
 from .. import dialogs
+from ..themes import icons
 from .functions import logInPavlovia
 from psychopy.app.pavlovia_ui.project import syncProject
 from .search import SearchFrame
@@ -98,7 +100,7 @@ class PavloviaMenu(wx.Menu):
         if user in pavlovia.knownUsers:
             token = pavlovia.knownUsers[user]['token']
             try:
-                pavlovia.getCurrentSession().setToken(token)
+                pavlovia.login(token)
             except requests.exceptions.ConnectionError:
                 logging.warning("Tried to log in to Pavlovia but no network "
                                 "connection")

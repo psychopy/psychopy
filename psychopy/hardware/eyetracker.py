@@ -1,17 +1,21 @@
 from psychopy.constants import STARTED, NOT_STARTED, PAUSED, STOPPED, FINISHED
 from psychopy.alerts import alert
 from psychopy import logging
+from psychopy.tools.attributetools import AttributeGetSetMixin
 from copy import copy
 import sys
 
 
-class EyetrackerControl:
+class EyetrackerControl(AttributeGetSetMixin):
     currentlyRecording = False
 
     def __init__(self, tracker, actionType="Start and Stop"):
         self.tracker = tracker
         self.actionType = actionType
-        self._status = NOT_STARTED
+        if actionType.lower() == "stop":
+            self._status = STARTED
+        else:
+            self._status = tracker.isRecordingEnabled()
 
     @property
     def status(self):
@@ -98,7 +102,7 @@ class EyetrackerCalibration:
         if isinstance(textColor, str) and textColor.lower() == 'auto':
             textColor = None
 
-        if tracker == 'eyetracker.hw.sr_research.eyelink.EyeTracker':
+        if tracker.endswith('sr_research.eyelink.EyeTracker'):
             # As EyeLink
             asDict = {
                 'target_attributes': dict(target),
@@ -107,6 +111,8 @@ class EyetrackerCalibration:
                 'pacing_speed': self.targetDelay,
                 'randomize': self.randomisePos,
                 'text_color': textColor,
+                'unit_type': self.units,
+                'color_type': self.colorSpace,
                 'screen_background_color': getattr(self.win._color, self.colorSpace)
             }
         elif tracker == 'eyetracker.hw.tobii.EyeTracker':

@@ -5,7 +5,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
@@ -37,7 +37,7 @@ from psychopy import logging
 # (JWP has no idea why!)
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import (attributeSetter, logAttrib,
-                                           setAttribute)
+                                           setAttribute, AttributeGetSetMixin)
 from psychopy.tools.monitorunittools import (cm2pix, deg2pix, pix2cm,
                                              pix2deg, convertToPix)
 from psychopy.visual.helpers import (pointInPolygon, polygonsOverlap,
@@ -81,7 +81,7 @@ mixin(s) as needed to add functionality.
 """
 
 
-class MinimalStim:
+class MinimalStim(AttributeGetSetMixin):
     """Non-visual methods and attributes for BaseVisualStim and RatingScale.
 
     Includes: name, autoDraw, autoLog, status, __str__
@@ -94,6 +94,7 @@ class MinimalStim:
             self.__dict__['name'] = 'unnamed %s' % self.__class__.__name__
         self.status = NOT_STARTED
         self.autoLog = autoLog
+        self.validator = None
         super(MinimalStim, self).__init__()
         if self.autoLog:
             msg = ("%s is calling MinimalStim.__init__() with autolog=True. "
@@ -1723,7 +1724,7 @@ class DraggingMixin:
         """
         # if we don't have reference to a mouse, make one
         if not isinstance(self.mouse, Mouse):
-            self.mouse = Mouse(win=self.win)
+            self.mouse = Mouse(visible=self.win.mouseVisible, win=self.win)
             # make sure it has an initial pos for rel pos comparisons
             self.mouse.lastPos = self.mouse.getPos()
         # store value
@@ -1941,7 +1942,7 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
         """
         # format the input value as float vectors
         if type(val) in [tuple, list, numpy.ndarray]:
-            val = val2array(val)
+            val = val2array(val, length=len(val))
 
         # Set attribute with operation and log
         setAttribute(self, attrib, val, log, op)

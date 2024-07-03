@@ -4,7 +4,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 
-from psychopy import visual
+from psychopy import visual, layout
 import gevent
 from psychopy.iohub.util import convertCamelToSnake, updateSettings, createCustomCalibrationStim
 from psychopy.iohub.devices import DeviceEvent, Computer
@@ -155,13 +155,21 @@ class BaseCalibrationProcedure:
         unit_type = self.getCalibSetting('unit_type')
 
         def setDefaultCalibrationTarget():
+            # convert sizes to stimulus units
+            radiusPix = self.getCalibSetting(['target_attributes', 'outer_diameter']) / 2
+            radiusObj = layout.Size(radiusPix, units=unit_type, win=self.window)
+            radius = getattr(radiusObj, unit_type)[1]
+            innerRadiusPix = self.getCalibSetting(['target_attributes', 'inner_diameter']) / 2
+            innerRadiusObj = layout.Size(innerRadiusPix, units=unit_type, win=self.window)
+            innerRadius = getattr(innerRadiusObj, unit_type)[1]
+            # make target
             self.targetStim = visual.TargetStim(
                 self.window, name="CP", style="circles",
-                radius=self.getCalibSetting(['target_attributes', 'outer_diameter']) / 2.0,
+                radius=radius,
                 fillColor=self.getCalibSetting(['target_attributes', 'outer_fill_color']),
                 borderColor=self.getCalibSetting(['target_attributes', 'outer_line_color']),
                 lineWidth=self.getCalibSetting(['target_attributes', 'outer_stroke_width']),
-                innerRadius=self.getCalibSetting(['target_attributes', 'inner_diameter']) / 2.0,
+                innerRadius=innerRadius,
                 innerFillColor=self.getCalibSetting(['target_attributes', 'inner_fill_color']),
                 innerBorderColor=self.getCalibSetting(['target_attributes', 'inner_line_color']),
                 innerLineWidth=self.getCalibSetting(['target_attributes', 'inner_stroke_width']),

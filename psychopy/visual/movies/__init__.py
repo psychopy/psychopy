@@ -5,7 +5,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 __all__ = ['MovieStim']
@@ -308,7 +308,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         self._selectWindow(self.win if win is None else win)
 
         # handle autoplay
-        if self._autoStart and self.status == NOT_STARTED:
+        if self._autoStart and self.isNotStarted:
             self.play()
 
         # update the video frame and draw it to a quad

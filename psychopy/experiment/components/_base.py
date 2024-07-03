@@ -3,23 +3,25 @@
 
 """
 Part of the PsychoPy library
-Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 Distributed under the terms of the GNU General Public License (GPL).
 """
 import copy
+import textwrap
 from pathlib import Path
 from xml.etree.ElementTree import Element
 
 from psychopy import prefs
 from psychopy.constants import FOREVER
 from ..params import Param
+from psychopy.experiment.utils import canBeNumeric
 from psychopy.experiment.utils import CodeGenerationException
 from psychopy.experiment.utils import unescapedDollarSign_re
 from psychopy.experiment.params import getCodeFromParamStr
 from psychopy.alerts import alerttools
 from psychopy.colors import nonAlphaSpaces
 
-from psychopy.localization import _translate, _localized
+from psychopy.localization import _translate
 
 
 class BaseComponent:
@@ -34,6 +36,8 @@ class BaseComponent:
     tooltip = ""
     # what version was this Component added in?
     version = "0.0.0"
+    # is it still in beta?
+    beta = False
 
     def __init__(self, exp, parentName, name='',
                  startType='time (s)', startVal='',
@@ -252,6 +256,12 @@ class BaseComponent:
         # each routine
         pass
 
+    def writePreCode(self, buff):
+        """Write any code that a component needs that should be done before 
+        the session's `run` method is called.
+        """
+        pass
+
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame
         """
@@ -289,6 +299,8 @@ class BaseComponent:
 
             loop = currLoop.params['name']
             name = self.params['name']
+
+            # NOTE: this function does not write any code right now!
 
     def writeRoutineEndCodeJS(self, buff):
         """Write the code that will be called at the end of
@@ -382,6 +394,15 @@ class BaseComponent:
                 # use the time ignoring any flips
                 code += f"thisExp.addData('{params['name']}.started', t)\n"
         buff.writeIndentedLines(code)
+        # validate presentation time
+        validator = self.getValidator()
+        if validator:
+            # queue validation
+            code = (
+                "# tell attached validator (%(name)s) to start looking for a start flag\n"
+                "%(name)s.status = STARTED\n"
+            )
+            buff.writeIndentedLines(code % validator.params)
         # Set status
         code = (
             "# update status\n"
@@ -495,6 +516,7 @@ class BaseComponent:
         buff.setIndentLevel(+1, relative=True)
         code = (f"# keep track of stop time/frame for later\n"
                 f"{params['name']}.tStop = t  # not accounting for scr refresh\n"
+                f"{params['name']}.tStopRefresh = tThisFlipGlobal  # on global time\n"
                 f"{params['name']}.frameNStop = frameN  # exact frame index\n"
                 )
         if self.params['saveStartStop']:
@@ -506,6 +528,16 @@ class BaseComponent:
                 # use the time ignoring any flips
                 code += f"thisExp.addData('{params['name']}.stopped', t)\n"
         buff.writeIndentedLines(code)
+
+        # validate presentation time
+        validator = self.getValidator()
+        if validator:
+            # queue validation
+            code = (
+                "# tell attached validator (%(name)s) to start looking for a start flag\n"
+                "%(name)s.status = STARTED\n"
+            )
+            buff.writeIndentedLines(code % validator.params)
 
         # Set status
         code = (
@@ -677,16 +709,12 @@ class BaseComponent:
         """
         if paramName == 'advancedParams':
             return  # advancedParams is not really a parameter itself
-        elif paramName == 'letterHeight':
-            paramCaps = 'Height'  # setHeight for TextStim
         elif paramName == 'image' and self.getType() == 'PatchComponent':
             paramCaps = 'Tex'  # setTex for PatchStim
         elif paramName == 'sf':
             paramCaps = 'SF'  # setSF, not SetSf
         elif paramName == 'coherence':
             paramCaps = 'FieldCoherence'
-        elif paramName == 'fieldPos':
-            paramCaps = 'FieldPos'
         else:
             paramCaps = paramName[0].capitalize() + paramName[1:]
 
@@ -903,6 +931,234 @@ class BaseComponent:
         """Replaces word component with empty string"""
         return self.getType().replace('Component', '')
 
+    def getAllValidatorRoutines(self, attr="vals"):
+        """
+        Return a list of names for all validator Routines in the current experiment. Used to populate
+        allowedVals in the `validator` param.
+
+        Parameters
+        ----------
+        attr : str
+            Attribute to get - either values (for allowedVals) or labels (for allowedLabels)
+
+        Returns
+        -------
+        list[str]
+            List of Routine names/labels
+        """
+        from psychopy.experiment.routines import BaseValidatorRoutine
+
+        # iterate through all Routines in this Experiment
+        names = [""]
+        labels = [_translate("Do not validate")]
+        for rtName, rt in self.exp.routines.items():
+            # if Routine is a validator, include it
+            if isinstance(rt, BaseValidatorRoutine):
+                # add name
+                names.append(rtName)
+                # construct label
+                rtType = type(rt).__name__
+                labels.append(
+                    f"{rtName} ({rtType})"
+                )
+
+        if attr == "labels":
+            return labels
+        else:
+            return names
+
+    def getAllValidatorRoutineVals(self):
+        """
+        Shorthand for calling getAllValidatorRoutines with `attr` as "vals"
+        """
+        return self.getAllValidatorRoutines(attr="vals")
+
+    def getAllValidatorRoutineLabels(self):
+        """
+        Shorthand for calling getAllValidatorRoutines with `attr` as "labels"
+        """
+        return self.getAllValidatorRoutines(attr="labels")
+
+    def getValidator(self):
+        """
+        Get the validator associated with this Component.
+
+        Returns
+        -------
+        BaseStandaloneRoutine or None
+            Validator Routine object
+        """
+        # return None if we have no such param
+        if "validator" not in self.params:
+            return None
+        # return None if no validator is selected
+        if self.params['validator'].val in ("", None, "None", "none"):
+            return None
+        # strip spaces from param
+        name = self.params['validator'].val.strip()
+        # look for Components matching validator name
+        for rt in self.exp.routines.values():
+            for comp in rt:
+                if comp.name == name:
+                    return comp
+
+    def writeRoutineStartValidationCode(self, buff):
+        """
+        WWrite Routine start code to validate this stimulus against the specified validator.
+
+        Parameters
+        ----------
+        buff : StringIO
+            String buffer to write code to.
+        """
+        # get validator
+        validator = self.getValidator()
+        # if there is no validator, don't write any code
+        if validator is None:
+            return
+        # if there is a validator, write its code
+        indent = validator.writeRoutineStartValidationCode(buff, stim=self)
+        # if validation code indented the buffer, dedent
+        buff.setIndentLevel(-indent, relative=True)
+
+    def writeEachFrameValidationCode(self, buff):
+        """
+        Write each frame code to validate this stimulus against the specified validator.
+
+        Parameters
+        ----------
+        buff : StringIO
+            String buffer to write code to.
+        """
+        # get validator
+        validator = self.getValidator()
+        # if there is no validator, don't write any code
+        if validator is None:
+            return
+        # if there is a validator, write its code
+        indent = validator.writeEachFrameValidationCode(buff, stim=self)
+        # if validation code indented the buffer, dedent
+        buff.setIndentLevel(-indent, relative=True)
+
+    def getFullDocumentation(self, fmt="rst"):
+        """
+        Automatically generate documentation for this Component. We recommend using this as a
+        starting point, but checking the documentation yourself afterwards and adding any more
+        detail you'd like to include (e.g. usage examples)
+
+        Parameters
+        ----------
+        fmt : str
+            Format to write documentation in. One of:
+            - "rst": Restructured text (numpy style)
+            -"md": Markdown (mkdocs style)
+        """
+
+        # make sure format is correct
+        assert fmt in ("md", "rst"), (
+            f"Unrecognised format {fmt}, allowed formats are 'md' and 'rst'."
+        )
+        # define templates for md and rst
+        h1 = {
+            'md': "# %s",
+            'rst': (
+                "-------------------------------\n"
+                "%s\n"
+                "-------------------------------"
+            )
+        }[fmt]
+        h2 = {
+            'md': "## %s",
+            'rst': (
+                "%s\n"
+                "-------------------------------"
+            )
+        }[fmt]
+        h3 = {
+            'md': "### %s",
+            'rst': (
+                "%s\n"
+                "==============================="
+            )
+        }[fmt]
+        h4 = {
+            'md': "#### `%s`",
+            'rst': "%s"
+        }[fmt]
+
+        # start off with nothing
+        content = ""
+        # header and class docstring
+        content += (
+            f"{h1 % type(self).__name__}\n"
+            f"{textwrap.dedent(self.__doc__ or '')}\n"
+            f"\n"
+        )
+        # attributes
+        content += (
+            f"{h4 % 'Categories:'}\n"
+            f"    {', '.join(self.categories)}\n"
+            f"{h4 % 'Works in:'}\n"
+            f"    {', '.join(self.targets)}\n"
+            f"\n"
+        )
+        # beta warning
+        if self.beta:
+            content += (
+                f"**Note: Since this is still in beta, keep an eye out for bug fixes.**\n"
+                f"\n"
+            )
+        # params heading
+        content += (
+            f"{h2 % 'Parameters'}\n"
+            f"\n"
+        )
+        # sort params by category
+        byCateg = {}
+        for param in self.params.values():
+            if param.categ not in byCateg:
+                byCateg[param.categ] = []
+            byCateg[param.categ].append(param)
+        # iterate through categs
+        for categ, params in byCateg.items():
+            # write a heading for each categ
+            content += (
+                f"{h3 % categ}\n"
+                f"\n"
+            )
+            # add each param...
+            for param in params:
+                # write basics (heading and description)
+                content += (
+                    f"{h4 % param.label}\n"
+                    f"    {param.hint}\n"
+                )
+                # if there are options, display them
+                if bool(param.allowedVals) or bool(param.allowedLabels):
+                    # if no allowed labels, use allowed vals
+                    options = param.allowedLabels or param.allowedVals
+                    # handle callable methods
+                    if callable(options):
+                        content += (
+                            f"\n"
+                            f"    Options are generated live, so will vary according to your setup.\n"
+                        )
+                    else:
+                        # write heading
+                        content += (
+                            f"    \n"
+                            f"    Options:\n"
+                        )
+                        # add list item for each option
+                        for opt in options:
+                            content += (
+                                f"    - {opt}\n"
+                            )
+                # add newline at the end
+                content += "\n"
+
+        return content
+
     @property
     def name(self):
         return self.params['name'].val
@@ -932,6 +1188,56 @@ class BaseComponent:
             return "thisExp"
 
 
+class BaseDeviceComponent(BaseComponent):
+    """
+    Base class for most components which interface with a hardware device.
+    """
+    # list of class strings (readable by DeviceManager) which this component's device could be
+    deviceClasses = []
+
+    def __init__(
+            self, exp, parentName,
+            # basic
+            name='',
+            startType='time (s)', startVal='',
+            stopType='duration (s)', stopVal='',
+            startEstim='', durationEstim='',
+            # device
+            deviceLabel="",
+            # data
+            saveStartStop=True, syncScreenRefresh=False,
+            # testing
+            disabled=False
+    ):
+        # initialise base component
+        BaseComponent.__init__(
+            self, exp, parentName,
+            name=name,
+            startType=startType, startVal=startVal,
+            stopType=stopType, stopVal=stopVal,
+            startEstim=startEstim, durationEstim=durationEstim,
+            saveStartStop=saveStartStop, syncScreenRefresh=syncScreenRefresh,
+            disabled=disabled
+        )
+        # require hardware
+        self.exp.requirePsychopyLibs(
+            ['hardware']
+        )
+        # --- Device params ---
+        self.order += [
+            "deviceLabel"
+        ]
+        # label to refer to device by
+        self.params['deviceLabel'] = Param(
+            deviceLabel, valType="str", inputType="single", categ="Device",
+            label=_translate("Device label"),
+            hint=_translate(
+                "A label to refer to this Component's associated hardware device by. If using the "
+                "same device for multiple components, be sure to use the same label here."
+            )
+        )
+
+
 class BaseVisualComponent(BaseComponent):
     """Base class for most visual stimuli
     """
@@ -948,7 +1254,7 @@ class BaseVisualComponent(BaseComponent):
                  stopType='duration (s)', stopVal='',
                  startEstim='', durationEstim='',
                  saveStartStop=True, syncScreenRefresh=True,
-                 disabled=False):
+                 validator="", disabled=False):
 
         super(BaseVisualComponent, self).__init__(
             exp, parentName, name,
@@ -1061,6 +1367,17 @@ class BaseVisualComponent(BaseComponent):
 
         self.params['syncScreenRefresh'].readOnly = True
 
+        # --- Testing ---
+        self.params['validator'] = Param(
+            validator, valType="code", inputType="choice", categ="Testing",
+            allowedVals=self.getAllValidatorRoutineVals,
+            allowedLabels=self.getAllValidatorRoutineLabels,
+            label=_translate("Validate with..."),
+            hint=_translate(
+                "Name of validator Component/Routine to use to check the timing of this stimulus."
+            )
+        )
+
     def integrityCheck(self):
         """
         Run component integrity checks.
@@ -1133,28 +1450,26 @@ class BaseVisualComponent(BaseComponent):
 
         buff.writeIndentedLines(f"\n// *{params['name']}* updates\n")
         # writes an if statement to determine whether to draw etc
-        self.writeStartTestCodeJS(buff)
-        buff.writeIndented(f"{params['name']}.setAutoDraw(true);\n")
-        # to get out of the if statement
-        buff.setIndentLevel(-1, relative=True)
-        buff.writeIndented("}\n\n")
-
-        # test for stop (only if there was some setting for duration or stop)
-        if self.params['stopVal'].val not in ('', None, -1, 'None'):
-            # writes an if statement to determine whether to draw etc
-            self.writeStopTestCodeJS(buff)
-            buff.writeIndented(f"{params['name']}.setAutoDraw(false);\n")
+        indented = self.writeStartTestCodeJS(buff)
+        if indented:
+            buff.writeIndentedLines(f"{params['name']}.setAutoDraw(true);\n")
             # to get out of the if statement
-            buff.setIndentLevel(-1, relative=True)
-            buff.writeIndented("}\n")
-
-
-def canBeNumeric(inStr):
-    """Determines whether the input can be converted to a float
-    (using a try: float(instr))
-    """
-    try:
-        float(inStr)
-        return True
-    except Exception:
-        return False
+            while indented > 0:
+                buff.setIndentLevel(-1, relative=True)
+                buff.writeIndentedLines(
+                    "}\n"
+                    "\n"
+                )
+                indented -= 1
+        # writes an if statement to determine whether to draw etc
+        indented = self.writeStopTestCodeJS(buff)
+        if indented:
+            buff.writeIndentedLines(f"{params['name']}.setAutoDraw(false);\n")
+            # to get out of the if statement
+            while indented > 0:
+                buff.setIndentLevel(-1, relative=True)
+                buff.writeIndentedLines(
+                    "}\n"
+                    "\n"
+                )
+                indented -= 1

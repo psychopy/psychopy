@@ -83,7 +83,7 @@ class Progress(shape.ShapeStim):
     def __init__(
             self, win, name="pb",
             progress=0, direction="horizontal",
-            pos=(-.5, 0), size=(1, 0.1), anchor="center left", units=None,
+            pos=(-.5, 0), size=(1, 0.1), anchor="center-left", units=None,
             barColor=False, backColor=False, borderColor=False, colorSpace=None,
             lineWidth=1.5, opacity=1.0, ori=0.0,
             depth=0, autoLog=None, autoDraw=False,
@@ -309,3 +309,5 @@ class Progress(shape.ShapeStim):
     @attributeSetter
     def ori(self, value):
         shape.ShapeStim.ori.func(self, value)
+        if hasattr(self, "bar"):
+            self.bar.ori = value

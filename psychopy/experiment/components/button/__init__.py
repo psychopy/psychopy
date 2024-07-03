@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from os import path
@@ -11,31 +11,16 @@ from pathlib import Path
 from psychopy.alerts import alerttools
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
 from psychopy.experiment.py2js_transpiler import translatePythonToJavaScript
-from psychopy.localization import _localized as __localized
-_localized = __localized.copy()
-
-# only use _localized values for label values, nothing functional:
-_localized.update({'callback': _translate("Callback Function"),
-                   'forceEndRoutine': _translate('Force end of Routine'),
-                   'text': _translate('Button text'),
-                   'font': _translate('Font'),
-                   'letterHeight': _translate('Letter height'),
-                   'bold': _translate('Bold'),
-                   'italic': _translate('Italic'),
-                   'padding': _translate('Padding'),
-                   'anchor': _translate('Anchor'),
-                   'fillColor': _translate('Fill Colour'),
-                   'borderColor': _translate('Border Colour'),
-                   'borderWidth': _translate('Border Width'),
-                   'oncePerClick': _translate('Run once per click'),
-                   'save': _translate("Record clicks"),
-                   'timeRelativeTo': _translate("Time relative to")
-                   })
 
 
 class ButtonComponent(BaseVisualComponent):
     """
-    A component for presenting a clickable textbox with a programmable callback
+    This component allows you to show a static textbox which ends the routine and/or triggers
+    a "callback" (some custom code) when pressed. The nice thing about the button component is
+    that you can allow mouse/touch responses with a single component instead of needing 3 separate
+    components i.e. a textbox component (to display as a "clickable" thing), a mouse component
+    (to click the textbox) and a code component (not essential, but for example to check if a
+    clicked response was correct or incorrect).
     """
     categories = ['Responses']
     targets = ['PsychoPy', 'PsychoJS']
@@ -385,7 +370,6 @@ class ButtonComponent(BaseVisualComponent):
         code = (
                         "// store time of first click\n"
                         "%(name)s.timesOn.push(%(name)s.clock.getTime());\n"
-                        "%(name)s.numClicks += 1;\n"
                         "// store time clicked until\n"
                         "%(name)s.timesOff.push(%(name)s.clock.getTime());\n"
         )

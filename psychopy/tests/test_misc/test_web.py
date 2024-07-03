@@ -12,7 +12,7 @@ class TestWeb():
             web.requireInternetAccess()
         except web.NoInternetAccessError:
             pytest.skip()
-    def teardown(self):
+    def teardown_method(self):
         pass
 
     def test_setupProxy(self):

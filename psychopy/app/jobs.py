@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Classes and functions for creating and managing subprocesses spawned by the
@@ -37,6 +37,7 @@ import os.path
 
 import wx
 import os
+import sys
 from subprocess import Popen, PIPE
 from threading import Thread, Event
 from queue import Queue, Empty
@@ -218,7 +219,7 @@ class Job:
         self._stdoutReader = None
         self._stderrReader = None
 
-    def start(self, cwd=None):
+    def start(self, cwd=None, env=None):
         """Start the subprocess.
 
         Parameters
@@ -226,6 +227,9 @@ class Job:
         cwd : str or None
             Working directory for the subprocess. Leave `None` to use the same
             as the application.
+        env : dict or None
+            Environment variables to pass to the subprocess. Leave `None` to
+            use the same as the application.
 
         Returns
         -------
@@ -243,6 +247,22 @@ class Job:
         # start the sub-process
         command = self._command
 
+        # # subprocess inherits the environment of the parent process
+        if env is None:  
+            scriptEnv = os.environ.copy()
+        else:
+            scriptEnv = env
+
+        # remove some environment variables that can cause issues
+        if 'PYTHONSTARTUP' in scriptEnv:
+            del scriptEnv['PYTHONSTARTUP']
+
+        # Set encoding for text mode pipes, needs to be explicitly set or we 
+        # crash on windows
+        scriptEnv['PYTHONIOENCODING'] = 'utf-8'
+        if sys.platform == 'win32':
+            scriptEnv['PYTHONLEGACYWINDOWSSTDIO'] = 'utf-8'
+
         try:
             self._process = Popen(
                 args=command,
@@ -254,10 +274,11 @@ class Job:
                 preexec_fn=None,
                 shell=False,
                 cwd=cwd,
-                env=None,
-                universal_newlines=True,  # gives us back a string instead of bytes
+                env=scriptEnv,
+                # universal_newlines=True,  # gives us back a string instead of bytes
                 creationflags=0,
-                text=True
+                text=False,
+                encoding='utf-8'
             )
         except FileNotFoundError:
             return -1  # negative PID means failure

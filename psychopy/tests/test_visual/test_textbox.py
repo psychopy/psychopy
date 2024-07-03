@@ -8,7 +8,7 @@ from psychopy.tests.test_visual.test_basevisual import _TestColorMixin, _TestUni
 from psychopy.tests.test_experiment.test_component_compile_python import _TestBoilerplateMixin
 from psychopy.visual import Window
 from psychopy.visual import TextBox2
-from psychopy.visual.textbox2.fontmanager import FontManager
+from psychopy.tools.fontmanager import FontManager
 import pytest
 from psychopy.tests import utils
 
@@ -37,7 +37,7 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin):
         # Textbox foreground is too unreliable due to fonts for pixel analysis
         self.foreUsed = False
 
-    def teardown(self):
+    def teardown_method(self):
         self.win.close()
 
     def test_glyph_rendering(self):

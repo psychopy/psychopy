@@ -196,6 +196,10 @@ htmlhelp_basename = 'PsychoPydoc'
 
 # -- Options for LaTeX output --------------------------------------------------
 latex_engine = 'pdflatex'  # xelatex or pdflatex
+
+latex_elements = {
+  'extraclassoptions': 'openany,oneside'
+}
 # latex_elements = {
 #    'babel': '\\usepackage{babel}',
 #    'inputenc': '\\usepackage[utf8]{inputenc}'

@@ -8,9 +8,13 @@ MovieStim opens a video file and displays it on a window.
 
 """
 from psychopy import visual, core, constants
+from psychopy.hardware import keyboard
 
 # window to present the video
 win = visual.Window((800, 600), fullscr=False)
+
+# keyboard to listen for keys
+kb = keyboard.Keyboard()
 
 # create a new movie stimulus instance
 mov = visual.MovieStim(
@@ -42,13 +46,13 @@ while not mov.isFinished:
     win.flip()
 
     # process keyboard input
-    if event.getKeys('q'):   # quit
+    if kb.getKeys('q'):   # quit
         break
-    elif event.getKeys('r'):  # play/start
+    elif kb.getKeys('r'):  # play/start
         mov.play()
-    elif event.getKeys('p'):  # pause
+    elif kb.getKeys('p'):  # pause
         mov.pause()
-    elif event.getKeys('s'):  # stop the movie
+    elif kb.getKeys('s'):  # stop the movie
         mov.stop()
 
 # stop the movie, this frees resources too

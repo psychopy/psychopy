@@ -4,7 +4,7 @@
 """Create geometric (vector) shapes by defining vertex locations."""
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL)
 
 import copy
@@ -91,10 +91,15 @@ knownShapes = {
     ],
 }
 knownShapes['square'] = knownShapes['rectangle']
+knownShapes['star'] = knownShapes['star7']
 
 
 class BaseShapeStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
     """Create geometric (vector) shapes by defining vertex locations.
+    This is a lazy-imported class, therefore import using full path 
+    `from psychopy.visual.shape import BaseShapeStim` when inheriting
+    from it.
+    
 
     Shapes can be outlines or filled, set lineColor and fillColor to
     a color name, or None. They can also be rotated (stim.setOri(__)),
@@ -379,6 +384,9 @@ class BaseShapeStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
 class ShapeStim(BaseShapeStim):
     """A class for arbitrary shapes defined as lists of vertices (x,y).
+    This is a lazy-imported class, therefore import using full path 
+    `from psychopy.visual.shape import ShapeStim` when inheriting
+    from it.
 
     Shapes can be lines, polygons (concave, convex, self-crossing), or have
     holes or multiple regions.

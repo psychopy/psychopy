@@ -27,7 +27,7 @@ classifiers = [
     ]
     
 dependencies = [
-    "numpy",  # use numpy<1.24 for psychopy<2023.1
+    "numpy<2.0",  # use numpy<1.24 for psychopy<2023.1
     "scipy",
     "matplotlib",
     "pyglet == 1.4.11; platform_system == \"Windows\"",
@@ -88,6 +88,7 @@ dependencies = [
     "pyobjc-core; platform_system == \"Darwin\"",
     "pyobjc-framework-Quartz < 8.0; platform_system == \"Darwin\"",
     "pyobjc; platform_system == \"Darwin\"",
+    "zeroconf; platform_system == \"Darwin\"",
     "python-xlib; platform_system == \"Linux\"",
     'tables<3.9; python_version < "3.9"',
     'tables; python_version >= "3.9"',
@@ -110,9 +111,8 @@ building = [
 ]
 suggested = [
     "pylsl>=1.16.1", # lab streaming layer for general connectivity
-    "xlwt",  # writing excel fiels with pandas
+    "xlwt",  # writing excel files with pandas
     "h5py",  # to read hdf5 files for analysis
-    "SpeechRecognition",
     "google-api-python-client",
     "pygaze>=1.1.2",
     "tobii_research",

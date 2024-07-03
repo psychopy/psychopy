@@ -15,6 +15,212 @@ to run on the same PsychoPy version even where a different version is installed 
 That setting often even allows PsychoPy to run experiments from versions that have not yet
 been installed! If the dependencies haven't changed it will run.
 
+PsychoPy 2024.1
+-----------------
+
+**Highlights:**
+
+* **Counterbalance Routine**: Standalone Routine to handle counterbalancing *between participants*, using the "shelf" to maintain records inbetween
+* **Piloting Mode**: Run experiments in "piloting" mode - adjusts settings to avoid common pitfalls while you're building (e.g. getting stuck in a full screen experiment), then switch to "running" when you're ready to start gathering data
+* **Improved UI**: Toolbars across the app have a clearer layout for buttons and a more intuitive interface for Pavlovia. Runner especially has had a visual overhaul, with a lot more space for reading stdout/alerts and a new output specifically for Pavlovia sync messages.
+* **Fixes to Eye tracker plugins**: Several eye trackers had not been working since being moved out to plugins and these should all now be back in operation
+
+PsychoPy 2024.1.0
+~~~~~~~~~~~~~~~~~
+
+**New features and enhancements:**
+
+* Added plugin support for standalone plugins by @mdcutone in #5866
+* **Button Box Component**: Component for using button boxes, which will always have the same methods and properties but by installing plugins you can add functionality for different devices
+* Allow speech-to-text engine configuration from Builder by @mdcutone in #5905
+* Replace toolbars with a "Ribbon" by @TEParsons in #5920
+* Method for processing device info on Windows by @TEParsons in #5940
+* Added tools for creating and managing hardware interfaces by @mdcutone in #5950
+* Allow expInfo fields to be ordered, required, hidden and deprioritised using a new name syntax by @TEParsons in #5949
+* Added Counterbalance Routine (and Python implementation of Shelf) by @TEParsons in #5967
+* Add component for Button Box, with plugin-able backends by @TEParsons in #6006
+* Option in Builder to skip/customise frame rate check by @TEParsons in #6049
+* Option in Builder to specify globalClock format by @TEParsons in #6048
+* Added method to Window to get value of specific pixels by @mdcutone in #6054
+* Added piloting mode by @TEParsons in #6066
+* Add param to enable "rush" mode by @TEParsons in #6279
+* Speed up plugin dialog by @mdcutone in #5796
+* Better handling when opening e.g. png files in Coder by @TEParsons in #5788
+* Speed up app by using faster string tools for labels and methods by @TEParsons in #5826
+* Improved plugin installation method by @mdcutone in #5872
+* Allow prefs dialog menu to be resized by @TEParsons in #5869
+* Add method to manually create a keypress, photodiode response, etc. by @TEParsons in #6022
+* Add option to ignore keypresses outside of PsychoPy window by @TEParsons in #6039
+* Allow Sound to specify a Speaker rather than using general system audio by @TEParsons in #6079
+* Add method to wait for responses to SerialDevice by @TEParsons in #6092
+* Include link to project in "Successful sync" message by @TEParsons in #6171
+* Silence "Unrecognised Parameter" warnings if params came from a plugin by @TEParsons in #6179
+* Speed up experiment loading by @TEParsons in #6180
+* Catch fails in Packages dialog by @TEParsons in #6193
+* Hide components/routines from future versions by @TEParsons in #6200
+* More intuitive label on Pavlovia project info update button by @TEParsons in #6217
+* Added menu item in Builder to reveal current folder by @TEParsons in #6218
+* Install packages in editable mode via a pyproject.toml file by @TEParsons in #6228
+* Improvements to Code component UI behaviour by @TEParsons in #6265
+* Open news from menu by @peircej in #6205
+* Make expInfo dialog always on top by @TEParsons in #6301
+
+**Bug fixes:**
+
+* Fix matrix questions Survey Routine by @TEParsons in #5797
+* Fix crash which happened if wx wasn't installed by @peircej in #5832
+* Make sure icons & labels in preferences dialog are always visible by @TEParsons in #5868
+* Handle when Component has no start time in JS by @TEParsons in #5864
+* Static component was preventing Movie from starting by @TEParsons in #5928
+* Change default logging level to warning by @suelynnmah in #5941
+* Let experiments run without git installed by @TEParsons in #5939
+* Fix bug whereby Brush wouldn't pick up on mouse clicks by @TEParsons in #6056
+* Fix inconsistent data outside trial loop by @monique2208 in #6004
+* Fix shape setting on Polygon-derived components (e.g. ROI) by @TEParsons in #5971
+* Remove darc toolbox demos (maintainer no longer supporting package) by @RebeccaHirst in #6094
+* Fixed error when `audioLib` is `None` by @mdcutone in #6103
+* Handle unconventional launch methods (e.g. launching from command line with unrecognised args) by @peircej in #6118
+* Fixed error with resizing "sash" in Preferences dialogby @mdcutone in #6146
+* If psychtoolbox can't detect devices, log warning rather than crashing by @TEParsons in #6150
+* Fixed error when using Save in Coder when there is no file open by @nvanhaute in #6158
+* Fixed "missing reference" error with setting Sound device by @mdcutone in #6122
+* Fix _set function for NoiseStim to handle input length by @simonfei123 in #6136
+* Draw expected duration from Routine Settings in Builder by @TEParsons in #6190
+* Fix error when loading window whose size is negative by @mdcutone in #6192
+* Stop Builder from assuming the current folder is .../psychopy/app whenever filename is "untitled.psyexp" by @TEParsons in #6198
+* Catch error when package info is missing by @mdcutone in #6202
+* Experiments weren't working online if experiment name differed from filename by @TEParsons in #6221
+* Fixed iohub eyetracker calibration (keyboard was losing input) by @mdcutone in #6226
+* Handle when Static component has no start time by @TEParsons in #6248
+* Don't scroll to top after opening a Builder component category by @TEParsons in #6251
+* Fixed Mouse.visible attribute not applying requested state by @mdcutone in #6254
+* Fixed freeze when running eyetracker validation by @mdcutone in #6264
+* Fix error when cancelling a commit by @TEParsons in #6271
+* Special code for when Slider is "radio" was missed in JS code by @TEParsons in #6272
+* Fix "iCCP profiles" error with classic icons by @TEParsons in #6276
+* Fix wrong setter name in Textbox/TextStim JS code by @TEParsons in #6277
+* New Pavlovia projects were being created empty until first commit by @TEParsons in #6273
+* Fix UI inconsistencies on Ubuntu by @TEParsons in #6242
+* Fix code for sound component stop values by @zuazo in #6300
+* Fixed selecting audio device in builder and coder by @zuazo in #6299
+* Fix bug where local PsychoJS server kept running after quitting by @TEParsons in #6323
+
+**Documentation and testing improvements** by @alexander-pastukhov @peircej @suelynnmah @patrickabolger @richardnaar @JensBoelte
+@d-scanzi @psych575 @shun2wang @Solveig-Castelli @carosamu @Ahmad-Abudoush @RebeccaHirst @ice-yu @domstoppable @kimDundas 
+@afuetterer @TEParsons
+
+**Translation works:**
+
+* Continued translation into Simplified Chinese (and now Traditional Chinese) and beginnings of translations into Spanish, Hebrew: #5891 #5892 #5893 #5894 #5895 #5897 #5904 #5912 #5915 #5917 #5923 #5903 #5932 #5925
+
+
+### New contributors
+
+* @mscheltienne made their first contribution in #5889
+* @JensBoelte made their first contribution in #5956
+* @d-scanzi made their first contribution in #5952
+* @kshtjkumar made their first contribution in #5955
+* @Solveig-Castelli made their first contribution in #5961
+* @carosamu made their first contribution in #5972
+* @monique2208 made their first contribution in #6004
+* @afuetterer made their first contribution in #6110
+* @bartuatabek made their first contribution in #5942
+* @FS94 made their first contribution in #6121
+* @simonfei123 made their first contribution in #6136
+* @tomdstone made their first contribution in #6261
+* @zuazo made their first contribution in #6299
+
+**Full Changelog**: https://github.com/psychopy/psychopy/compare/2023.2.3...2024.1.0
+
+PsychoPy 2024.1.1
+~~~~~~~~~~~~~~~~~
+
+**Bug fixes** 
+
+* Handle errors when loading list of plugins by @TEParsons in #6334
+* Counterbalance in online studies was still trying to confirm entries after finishing by @TEParsons in #6345
+* Make sure the drawn max time in Builder is never None by @TEParsons in #6347
+* Fixed translation issues by @hsogo in #6348
+* Fixed inability to load plugins list from local with non-utf-8 default encoding by @peircej in #6349
+
+**Full Changelog**: https://github.com/psychopy/psychopy/compare/2024.1.0...2024.1.1
+
+PsychoPy 2024.1.2
+~~~~~~~~~~~~~~~~~
+
+**Enhancements**
+* Default TextStim font set to Arial (TextBox default was already Arial) by @wakecarter in #6378
+
+**Bug fixes** 
+
+* Keyboard clock wasn't being reset properly, so `.rt` values were from exp start by @TEParsons in #6360
+* Safer (and faster) behaviour when copying a param, avoids "infinite recursion" (app hangs) by @TEParsons in #6362
+* Make line spacing specific to just one TextBox2 object by @Catherine9811 in #6356
+* Fixes to the Gazepoint eyetracker plugin by @mdcutone in #6365
+* Fixed error when camera tries to close when it's already closed by @mdcutone in #6364
+* Fixed editable TextBox2 cursor location with line breaks by @Catherine9811 in #6358
+* Remove "constant" updates option from SoundComponent (as it wasn't used) by @TEParsons in #6351
+* Python 3.8 was falsely marked as incompatible with 2024.1.x onwards in "use version" interface by @TEParsons in #6366
+* Form Component wasn't finding the correct table template by @TEParsons in #6381
+* Remove blank rows from form template by @wakecarter in #6382
+* Error saving icons from plugin details by @TEParsons in #6368
+* Transparent colours online by @wakecarter in #6386
+* Button numclicks defined by timesOn.length by @wakecarter in #6385
+
+**Documentation and testing improvements** by... @peircej @TEParsons @kimDundas @suelynnmah
+
+**New contributors: **
+
+* @Catherine9811 made their first contribution in #6356
+
+**Full Changelog**: https://github.com/psychopy/psychopy/compare/2024.1.1...2024.1.2
+
+
+PsychoPy 2024.1.3
+~~~~~~~~~~~~~~~~~
+
+**Bug fixes** 
+
+* Telling Mouse Component to check new clicks without clickable stim raised syntax error by @TEParsons in #6398
+* Keyboard responses in ioHub weren't using relative time by @TEParsons in #6407
+
+PsychoPy 2024.1.4
+~~~~~~~~~~~~~~~~~
+
+**Bug fixes** 
+
+* ioHub keyboard was registering key releases before presses, so duration was always None. We now have a test in place that confirms keyboard RT timing using hardware which will be used on each new release going forwards. By @TEParsons in #6416
+* Fixed some translation issues by @hsogo in #6409
+* Fixed JSON encoding error when opening plugin dialog by @mdcutone in #6411
+
+**Documentation updates**
+
+* updated screenshots by @charlottej3673 in #6392
+
+PsychoPy 2024.1.5
+~~~~~~~~~~~~~~~~~
+
+* Failing to find Eyetracker Components (Eyelink by @KirstenWilliams in #6406 and Gazepoint by @mdcutone in #6424 )
+* Installed plugins were not being found on Linux/MacOS by @mdcutone in #6441
+* Faster MovieStim rendering (don't call `play()` when already playing) by @aforren1 in #6448
+* Fixed eyetracker calibration target units (height -> pix) by @peircej in #6451
+* KeyboardComponent allowed keys from spreadsheet caused namespace errors by @TEParsons in #6458
+* hide that visible mouse, please by @mh105 in #6465
+* Fix an issue with etRecord component for Stop Only (not stopping the eytracker) by @mh105 in #6463
+* Only change Mouse visibility if explicitly asked to by @TEParsons in #6467
+* Fix "Stop only" issue regardless of Component order by @TEParsons in #6468
+* Clear keys to initialize keyboard when starting a routine by @mh105 in #6471
+* Allow getKeys() to return the same key pressed multiple times by @mh105 in #6479
+
+## Documentation fixes and updates
+
+* by @suelynnmah in #6341 #6426 #6427
+* by @KirstenWilliams in #6480 #6481 #6487 #6498 #6506
+* by @RebeccaHirst in #6504 #6505 
+* Arabic app translations by @Ahmad-Abudoush in #6476
+
+
+**Full Changelog**: https://github.com/psychopy/psychopy/compare/2024.1.4...2024.1.5
 
 PsychoPy 2023.2
 ---------------
@@ -403,7 +609,7 @@ Fixed:
 - TypeError in Window.resetViewport() #5135
 - PupilLabs lib was not being found due to missing `__init__` #5180
 - QUESTplus had ben removed from list of loop types #2da0cfa0a
-- Sound.pause() was reseting to start of track #a161e135a
+- Sound.pause() was resetting to start of track #a161e135a
 
 
 PsychoPy 2022.1

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Experiment classes:
@@ -20,7 +20,7 @@ from copy import deepcopy
 from xml.etree.ElementTree import Element
 
 from psychopy.experiment import getInitVals
-from psychopy.localization import _localized, _translate
+from psychopy.localization import _translate
 from psychopy.experiment.params import Param
 from .components import getInitVals, getAllComponents
 
@@ -93,34 +93,34 @@ class TrialHandler(_BaseLoopHandler):
         self.params = {}
         self.params['name'] = Param(
             name, valType='code', inputType="single", updates=None, allowedUpdates=None,
-            label=_localized['Name'],
+            label=_translate('Name'),
             hint=_translate("Name of this loop"))
         self.params['nReps'] = Param(
             nReps, valType='num', inputType="spin", updates=None, allowedUpdates=None,
-            label=_localized['nReps'],
+            label=_translate('Num. repeats'),
             hint=_translate("Number of repeats (for each condition)"))
         self.params['conditions'] = Param(
             list(conditions), valType='str', inputType="single",
             updates=None, allowedUpdates=None,
-            label=_localized['conditions'],
+            label=_translate('Conditions'),
             hint=_translate("A list of dictionaries describing the "
                             "parameters in each condition"))
         self.params['conditionsFile'] = Param(
             conditionsFile, valType='file', inputType="table", updates=None, allowedUpdates=None,
-            label=_localized['conditions'],
+            label=_translate('Conditions'),
             hint=_translate("Name of a file specifying the parameters for "
                             "each condition (.csv, .xlsx, or .pkl). Browse "
                             "to select a file. Right-click to preview file "
                             "contents, or create a new file."))
         self.params['endPoints'] = Param(
             list(endPoints), valType='num', inputType="single", updates=None, allowedUpdates=None,
-            label=_localized['endPoints'],
+            label=_translate('End points'),
             hint=_translate("The start and end of the loop (see flow "
                             "timeline)"))
         self.params['Selected rows'] = Param(
             selectedRows, valType='str', inputType="single",
             updates=None, allowedUpdates=None,
-            label=_localized['Selected rows'],
+            label=_translate('Selected rows'),
             hint=_translate("Select just a subset of rows from your condition"
                             " file (the first is 0 not 1!). Examples: 0, "
                             "0:5, 5:-1"))
@@ -129,19 +129,19 @@ class TrialHandler(_BaseLoopHandler):
             loopType, valType='str', inputType="choice",
             allowedVals=['random', 'sequential', 'fullRandom',
                          'staircase', 'interleaved staircases'],
-            label=_localized['loopType'],
+            label=_translate('Loop type'),
             hint=_translate("How should the next condition value(s) be "
                             "chosen?"))
         self.params['random seed'] = Param(
             randomSeed, valType='code', inputType="single", updates=None, allowedUpdates=None,
-            label=_localized['random seed'],
+            label=_translate('Random seed'),
             hint=_translate("To have a fixed random sequence provide an "
                             "integer of your choosing here. Leave blank to "
                             "have a new random sequence on each run of the "
                             "experiment."))
         self.params['isTrials'] = Param(
             isTrials, valType='bool', inputType="bool", updates=None, allowedUpdates=None,
-            label=_localized["Is trials"],
+            label=_translate("Is trials"),
             hint=_translate("Indicates that this loop generates TRIALS, "
                             "rather than BLOCKS of trials or stimuli within "
                             "a trial. It alters how data files are output"))
@@ -196,7 +196,7 @@ class TrialHandler(_BaseLoopHandler):
         buff.setIndentLevel(1, relative=True)
         code = (
             "currentLoop = %(name)s\n"
-            "thisExp.timestampOnFlip(win, 'thisRow.t')\n"
+            "thisExp.timestampOnFlip(win, 'thisRow.t', format=globalClock.format)\n"
         )
         buff.writeIndentedLines(code % self.params)
 
@@ -206,7 +206,6 @@ class TrialHandler(_BaseLoopHandler):
             "if thisExp.status == PAUSED:\n"
             "    pauseExperiment(\n"
             "        thisExp=thisExp, \n"
-            "        inputs=inputs, \n"
             "        win=win, \n"
             "        timers=[routineTimer], \n"
             "        playbackComponents=[]\n"
@@ -427,47 +426,47 @@ class StairHandler(_BaseLoopHandler):
         self.params['name'] = Param(
             name, valType='code',
             hint=_translate("Name of this loop"),
-            label=_localized['Name'])
+            label=_translate('Name'))
         self.params['nReps'] = Param(
             nReps, valType='num', inputType='spin',
-            label=_localized['nReps'],
+            label=_translate('nReps'),
             hint=_translate("(Minimum) number of trials in the staircase"))
         self.params['start value'] = Param(
             startVal, valType='num', inputType='single',
-            label=_localized['start value'],
+            label=_translate('Start value'),
             hint=_translate("The initial value of the parameter"))
         self.params['max value'] = Param(
             maxVal, valType='num', inputType='single',
-            label=_localized['max value'],
+            label=_translate('Max value'),
             hint=_translate("The maximum value the parameter can take"))
         self.params['min value'] = Param(
             minVal, valType='num', inputType='single',
-            label=_localized['min value'],
+            label=_translate('Min value'),
             hint=_translate("The minimum value the parameter can take"))
         self.params['step sizes'] = Param(
             stepSizes, valType='list', inputType='single',
-            label=_localized['step sizes'],
+            label=_translate('Step sizes'),
             hint=_translate("The size of the jump at each step (can change"
                             " on each 'reversal')"))
         self.params['step type'] = Param(
             stepType, valType='str', inputType='choice', allowedVals=['lin', 'log', 'db'],
-            label=_localized['step type'],
+            label=_translate('Step type'),
             hint=_translate("The units of the step size (e.g. 'linear' will"
                             " add/subtract that value each step, whereas "
                             "'log' will ad that many log units)"))
         self.params['N up'] = Param(
             nUp, valType='num', inputType='spin',
-            label=_localized['N up'],
+            label=_translate('N up'),
             hint=_translate("The number of 'incorrect' answers before the "
                             "value goes up"))
         self.params['N down'] = Param(
             nDown, valType='num', inputType='spin',
-            label=_localized['N down'],
+            label=_translate('N down'),
             hint=_translate("The number of 'correct' answers before the "
                             "value goes down"))
         self.params['N reversals'] = Param(
             nReversals, valType='num', inputType='spin',
-            label=_localized['N reversals'],
+            label=_translate('N reversals'),
             hint=_translate("Minimum number of times the staircase must "
                             "change direction before ending"))
         # these two are really just for making the dialog easier (they won't
@@ -476,17 +475,17 @@ class StairHandler(_BaseLoopHandler):
             'staircase', valType='str', inputType='choice',
             allowedVals=['random', 'sequential', 'fullRandom', 'staircase',
                          'interleaved staircases'],
-            label=_localized['loopType'],
+            label=_translate('Loop type'),
             hint=_translate("How should the next trial value(s) be chosen?"))
         # NB this is added for the sake of the loop properties dialog
         self.params['endPoints'] = Param(
             list(endPoints), valType='num', inputType='spin',
-            label=_localized['endPoints'],
+            label=_translate('End points'),
             hint=_translate('Where to loop from and to (see values currently'
                             ' shown in the flow view)'))
         self.params['isTrials'] = Param(
             isTrials, valType='bool', inputType='bool', updates=None, allowedUpdates=None,
-            label=_localized["Is trials"],
+            label=_translate("Is trials"),
             hint=_translate("Indicates that this loop generates TRIALS, "
                             "rather than BLOCKS of trials or stimuli within"
                             " a trial. It alters how data files are output"))
@@ -526,7 +525,7 @@ class StairHandler(_BaseLoopHandler):
         buff.setIndentLevel(1, relative=True)
         code = (
             "currentLoop = %(name)s\n"
-            "thisExp.timestampOnFlip(win, 'thisRow.t')\n"
+            "thisExp.timestampOnFlip(win, 'thisRow.t', format=globalClock.format)\n"
         )
         buff.writeIndentedLines(code % self.params)
         buff.writeIndented("level = %s\n" % self.thisName)
@@ -581,21 +580,21 @@ class MultiStairHandler(_BaseLoopHandler):
         self.params = {}
         self.params['name'] = Param(
             name, valType='code', inputType='single',
-            label=_localized['Name'],
+            label=_translate('Name'),
             hint=_translate("Name of this loop"))
         self.params['nReps'] = Param(
             nReps, valType='num', inputType='spin',
-            label=_localized['nReps'],
+            label=_translate('nReps'),
             hint=_translate("(Minimum) number of trials in *each* staircase"))
         self.params['stairType'] = Param(
             stairType, valType='str', inputType='choice',
             allowedVals=['simple', 'QUEST', 'questplus'],
-            label=_localized['stairType'],
+            label=_translate('Stair type'),
             hint=_translate("How to select the next staircase to run"))
         self.params['switchMethod'] = Param(
             switchStairs, valType='str', inputType='choice',
             allowedVals=['random', 'sequential', 'fullRandom'],
-            label=_localized['switchMethod'],
+            label=_translate('Switch method'),
             hint=_translate("How to select the next staircase to run"))
         # these two are really just for making the dialog easier (they won't
         # be used to generate code)
@@ -603,27 +602,27 @@ class MultiStairHandler(_BaseLoopHandler):
             'staircase', valType='str', inputType='choice',
             allowedVals=['random', 'sequential', 'fullRandom', 'staircase',
                          'interleaved staircases'],
-            label=_localized['loopType'],
+            label=_translate('Loop type'),
             hint=_translate("How should the next trial value(s) be chosen?"))
         self.params['endPoints'] = Param(
             list(endPoints), valType='num', inputType='spin',
-            label=_localized['endPoints'],
+            label=_translate('End points'),
             hint=_translate('Where to loop from and to (see values currently'
                             ' shown in the flow view)'))
         self.params['conditions'] = Param(
             list(conditions), valType='list', inputType='single',
             updates=None, allowedUpdates=None,
-            label=_localized['conditions'],
+            label=_translate('Conditions'),
             hint=_translate("A list of dictionaries describing the "
                             "differences between each staircase"))
         self.params['conditionsFile'] = Param(
             conditionsFile, valType='file', inputType='table', updates=None, allowedUpdates=None,
-            label=_localized['conditions'],
+            label=_translate('Conditions'),
             hint=_translate("An xlsx or csv file specifying the parameters "
                             "for each condition"))
         self.params['isTrials'] = Param(
             isTrials, valType='bool', inputType='bool', updates=None, allowedUpdates=None,
-            label=_localized["Is trials"],
+            label=_translate("Is trials"),
             hint=_translate("Indicates that this loop generates TRIALS, "
                             "rather than BLOCKS of trials or stimuli within "
                             "a trial. It alters how data files are output"))
@@ -657,7 +656,7 @@ class MultiStairHandler(_BaseLoopHandler):
         buff.setIndentLevel(1, relative=True)
         code = (
             "currentLoop = %(name)s\n"
-            "thisExp.timestampOnFlip(win, 'thisRow.t')\n"
+            "thisExp.timestampOnFlip(win, 'thisRow.t', format=globalClock.format)\n"
         )
         buff.writeIndentedLines(code % self.params)
         # uncluttered namespace

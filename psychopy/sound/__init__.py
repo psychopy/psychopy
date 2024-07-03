@@ -15,7 +15,7 @@ a given time in the future.
 By default PsychoPy will try to use the following Libs, in this order, for
 sound reproduction but you can alter the order in
 preferences > hardware > audioLib:
-    ['sounddevice', 'pygame', 'pyo']
+    ['sounddevice', 'pyo', 'pygame']
 For portaudio-based backends (all except for pygame) there is also a
 choice of the underlying sound driver (e.g. ASIO, CoreAudio etc).
 
@@ -30,10 +30,8 @@ After importing sound, the sound lib and driver being used will be stored as::
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
-
-__all__ = []
 
 import sys
 import os
@@ -43,17 +41,9 @@ from psychopy.tools import systemtools
 from .exceptions import DependencyError, SoundFormatError
 from .audiodevice import *
 from .audioclip import *  # import objects related to AudioClip
+from . import microphone
 
-# import microphone if possible
-try:
-    from .microphone import *  # import objects related to the microphone class
-except ImportError as err:
-    formatted_tb = ''.join(
-        traceback.format_exception(type(err), err, err.__traceback__))
-    logging.error(
-        "Failed to import psychopy.sound.microphone. Mic recordings will not be"
-        "possible on this machine. For details see stack trace below:\n"
-        f"{formatted_tb}")
+__all__ = ["microphone"]
 
 # # import transcription if possible
 # try:
@@ -76,10 +66,11 @@ pyoSndServer = None
 Sound = None
 audioLib = None
 audioDriver = None
+backend = None
 
-# These are the names that can be used in the prefs to specifiy audio libraries. 
-# The available libraries are hard-coded at this point until we can overhaul 
-# the sound library to be more modular. 
+# These are the names that can be used in the prefs to specifiy audio libraries.
+# The available libraries are hard-coded at this point until we can overhaul
+# the sound library to be more modular.
 _audioLibs = ['PTB', 'sounddevice', 'pyo', 'pysoundcard', 'pygame']
 failed = []  # keep track of audio libs that failed to load
 
@@ -92,18 +83,20 @@ if systemtools.isVM_CI():
 if isinstance(prefs.hardware['audioLib'], str):
     prefs.hardware['audioLib'] = [prefs.hardware['audioLib']]
 
+thisLibName = None  # name of the library we are trying to load
+
 # selection and fallback mechanism for audio libraries
 for thisLibName in prefs.hardware['audioLib']:
     # Tell the user we are trying to load the specifeid audio library
     logging.info(f"Trying to load audio library: {thisLibName}")
 
     # Iterate over the list of audioLibs and try to load the first one that
-    # is supported. If none are supported, load PTB as a fallback. If PTB isn't 
+    # is supported. If none are supported, load PTB as a fallback. If PTB isn't
     # installed, raise an error.
     thisLibName = thisLibName.lower()
 
     # lowercased list of valid audio libraries for safe comparisons
-    validLibs = [libName.lower() for libName in _audioLibs]  
+    validLibs = [libName.lower() for libName in _audioLibs]
 
     # check if `thisLibName` is a valid audio library
     if thisLibName not in validLibs:
@@ -126,7 +119,7 @@ for thisLibName in prefs.hardware['audioLib']:
                 failed.append(thisLibName)
                 continue
             else:
-                break 
+                break
         else:
             logging.warning("PTB backend is not supported on 32-bit Python. "
                             "Trying another backend...")
@@ -135,6 +128,8 @@ for thisLibName in prefs.hardware['audioLib']:
         # pyo is a wrapper around PortAudio, which is a cross-platform audio
         # library. It is the recommended backend for Windows and Linux.
         try:
+            # Caution: even import failed inside, we still get a module object.
+            # This is not the case for other backends and may not be desired.
             from . import backend_pyo as backend
             Sound = backend.SoundPyo
             pyoSndServer = backend.pyoSndServer
@@ -148,6 +143,8 @@ for thisLibName in prefs.hardware['audioLib']:
         # sounddevice is a wrapper around PortAudio, which is a cross-platform
         # audio library. It is the recommended backend for Windows and Linux.
         try:
+            # Caution: even import failed inside, we still get a module object.
+            # This is not the case for other backends and may not be desired.
             from . import backend_sounddevice as backend
             Sound = backend.SoundDeviceSound
         except Exception:
@@ -157,7 +154,7 @@ for thisLibName in prefs.hardware['audioLib']:
             break
     elif thisLibName == 'pygame':
         # pygame is a cross-platform audio library. It is no longer supported by
-        # PsychoPy, but we keep it here for backwards compatibility until 
+        # PsychoPy, but we keep it here for backwards compatibility until
         # something breaks.
         try:
             from . import backend_pygame as backend
@@ -171,7 +168,7 @@ for thisLibName in prefs.hardware['audioLib']:
         # pysoundcard is a wrapper around PortAudio, which is a cross-platform
         # audio library.
         try:
-            from . import backend_pysoundcard as backend
+            from . import backend_pysound as backend
             Sound = backend.SoundPySoundCard
         except Exception:
             failed.append(thisLibName)
@@ -181,11 +178,11 @@ for thisLibName in prefs.hardware['audioLib']:
     else:
         # Catch-all for invalid audioLib prefs.
         msg = ("audioLib pref should be one of {!r}, not {!r}"
-                .format(_audioLibs, thisLibName))
+               .format(_audioLibs, thisLibName))
         raise ValueError(msg)
 else:
     # if we get here, there is no audioLib that is supported, try for PTB
-    msg = ("Failed to load any of the audioLibs: {!r}. Falling back to " 
+    msg = ("Failed to load any of the audioLibs: {!r}. Falling back to "
            "PsychToolbox ('ptb') backend for sound. Be sure to add 'ptb' to "
            "preferences to avoid seeing this message again.".format(failed))
     logging.error(msg)
@@ -208,30 +205,43 @@ else:
     # if we get here, there is no audioLib that is supported
     logging.error(
         "No audioLib could be loaded. Tried: {}\n Check whether the necessary "
-        "audioLibs are installed".format(prefs.hardware['audioLib']))
+        "audioLibs are installed.".format(prefs.hardware['audioLib']))
 
-# warn the user 
-if audioLib.lower() != 'ptb':
-    # Could be running PTB, just aren't?
-    logging.warning("We strongly recommend you activate the PTB sound "
-                    "engine in PsychoPy prefs as the preferred audio "
-                    "engine. Its timing is vastly superior. Your prefs "
-                    "are currently set to use {} (in that order)."
-                    .format(prefs.hardware['audioLib']))
+# warn the user
+if audioLib is not None:
+    if audioLib.lower() != 'ptb':
+        # Could be running PTB, just aren't?
+        logging.warning("We strongly recommend you activate the PTB sound "
+                        "engine in PsychoPy prefs as the preferred audio "
+                        "engine. Its timing is vastly superior. Your prefs "
+                        "are currently set to use {} (in that order)."
+                        .format(prefs.hardware['audioLib']))
 
 
 # function to set the device (if current lib allows it)
 def setDevice(dev, kind=None):
     """Sets the device to be used for new streams being created.
 
-    :param dev: the device to be used (name, index or sounddevice.device)
-    :param kind: one of [None, 'output', 'input']
+    Parameters
+    ----------
+    dev: str or dict
+        Name of the device to be used (name, index or sounddevice.device)
+    kind: str
+        One of [None, 'output', 'input']
+
     """
+    if dev is None:
+        # if given None, do nothing
+        return
+
+    global backend  # pull from module namespace
     if not hasattr(backend, 'defaultOutput'):
         raise IOError("Attempting to SetDevice (audio) but not supported by "
                       "the current audio library ({!r})".format(audioLib))
-    if hasattr(dev,'name'):
+
+    if hasattr(dev, 'name'):
         dev = dev['name']
+
     if kind is None:
         backend.defaultInput = backend.defaultOutput = dev
     elif kind == 'input':
@@ -245,19 +255,25 @@ def setDevice(dev, kind=None):
             raise TypeError("`kind` should be one of [None, 'output', 'input']"
                             "not {!r}".format(kind))
 
+
 # Set the device according to user prefs (if current lib allows it)
 deviceNames = []
-if hasattr(backend, 'defaultOutput'):
+if backend is None:
+    raise ImportError("None of the audio library backends could be imported. "
+                      "Tried: {}\n Check whether the necessary audioLibs are "
+                      "installed and can be imported successfully."
+                      .format(prefs.hardware['audioLib']))
+elif hasattr(backend, 'defaultOutput'):
     pref = prefs.hardware['audioDevice']
     # is it a list or a simple string?
-    if type(prefs.hardware['audioDevice'])==list:
+    if isinstance(pref, list):
         # multiple options so use zeroth
-        dev = prefs.hardware['audioDevice'][0]
+        dev = pref[0]
     else:
         # a single option
-        dev = prefs.hardware['audioDevice']
+        dev = pref
     # is it simply "default" (do nothing)
-    if dev=='default' or systemtools.isVM_CI():
+    if dev == 'default' or systemtools.isVM_CI():
         pass  # do nothing
     elif dev not in backend.getDevices(kind='output'):
         deviceNames = sorted(backend.getDevices(kind='output').keys())

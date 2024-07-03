@@ -6,12 +6,142 @@ import shutil
 import threading
 import time
 import json
+import traceback
+from functools import partial
 from pathlib import Path
 
 from psychopy import experiment, logging, constants, data, core, __version__
+from psychopy.hardware.manager import DeviceManager, deviceManager
+from psychopy.hardware.listener import loop as listenerLoop
 from psychopy.tools.arraytools import AliasDict
 
 from psychopy.localization import _translate
+
+
+class SessionQueue:
+    def __init__(self):
+        # start off alive
+        self._alive = True
+        # blank list of partials to run
+        self.queue = []
+        # blank list of outputs
+        self.results = []
+        # blank list of Sessions to maintain
+        self.sessions = []
+
+    def start(self):
+        """
+        Start a while loop which will execute any methods added to this queue via
+        queueTask as well as the onIdle functions of any sessions registered with
+        this queue. This while loop will keep running until `stop` is called, so
+        only use this method if you're running with multiple threads!
+        """
+        self._alive = True
+        # process any calls
+        while self._alive:
+            # empty the queue of any tasks
+            while len(self.queue):
+                # run the task
+                task = self.queue.pop(0)
+                try:
+                    retval = task()
+                except Exception as err:
+                    # send any errors to server
+                    tb = traceback.format_exception(type(err), err, err.__traceback__)
+                    output = json.dumps({
+                        'type': "error",
+                        'msg': "".join(tb)
+                    })
+                else:
+                    # process output
+                    output = {
+                        'method': task.func.__name__,
+                        'args': task.args,
+                        'kwargs': task.keywords,
+                        'returned': retval
+                    }
+                self.results.append(output)
+                # Send to liaisons
+                for session in self.sessions:
+                    session.sendToLiaison(output)
+            # while idle, run idle functions for each session
+            for session in self.sessions:
+                session.onIdle()
+            # take a little time to sleep so tasks on other threads can execute
+            time.sleep(0.1)
+
+    def stop(self):
+        """
+        Stop this queue.
+        """
+        # stop running the queue
+        self._alive = False
+
+    def queueTask(self, method, *args, **kwargs):
+        """
+        Add a task to this queue, to be executed when next possible.
+
+        Parameters
+        ----------
+        method : function
+            Method to execute
+        args : tuple
+            Tuple of positional arguments to call `method` with.
+        kwargs : dict
+            Dict of named arguments to call `method` with.
+
+        Returns
+        -------
+        bool
+            True if added successfully.
+        """
+        # create partial from supplied method, args and kwargs
+        task = partial(method, *args, **kwargs)
+        # add partial to queue
+        self.queue.append(task)
+
+        return True
+
+    def connectSession(self, session):
+        """
+        Associate a Session object with this queue, meaning that its onIdle
+        method will be called whenever the queue is not running anything else.
+
+        Parameters
+        ----------
+        session : Session
+            Session to associate with this queue.
+
+        Returns
+        -------
+        bool
+            True if associated successfully.
+        """
+        # add session to list of sessions whose onIdle function to call
+        self.sessions.append(session)
+
+    def disconnectSession(self, session):
+        """
+        Remove association between a Session object and this queue, meaning
+        that its onIdle method will not be called by the queue.
+
+        Parameters
+        ----------
+        session : Session
+            Session to disconnect from this queue.
+
+        Returns
+        -------
+        bool
+            True if associated successfully.
+        """
+        # remove session from list of linked sessions
+        if session in self.sessions:
+            i = self.sessions.index(session)
+            self.sessions.pop(i)
+
+
+_queue = SessionQueue()
 
 
 class Session:
@@ -108,9 +238,6 @@ class Session:
         later on via `addExperiment()`.
     """
 
-    _queue = []
-    _results = []
-
     def __init__(self,
                  root,
                  dataDir=None,
@@ -119,7 +246,6 @@ class Session:
                  experiments=None,
                  loggingLevel="info",
                  priorityThreshold=constants.priority.EXCLUDE+1,
-                 inputs=None,
                  params=None,
                  liaison=None):
         # Store root and add to Python path
@@ -143,6 +269,7 @@ class Session:
         self.priorityThreshold = priorityThreshold
         # Add experiments
         self.experiments = {}
+        self.experimentObjects = {}
         if experiments is not None:
             for nm, exp in experiments.items():
                 self.addExperiment(exp, key=nm)
@@ -155,16 +282,6 @@ class Session:
             # If win is the name of an experiment, setup from that experiment's method
             self.win = None
             self.setupWindowFromExperiment(win)
-        # Store/create inputs dict
-        self.inputs = {
-            'defaultKeyboard': None,
-            'eyetracker': None
-        }
-        if isinstance(inputs, dict):
-            self.inputs = inputs
-        elif inputs in self.experiments:
-            # If inputs is the name of an experiment, setup from that experiment's method
-            self.setupInputsFromExperiment(inputs)
         # Setup Session clock
         if clock in (None, "float"):
             clock = core.Clock()
@@ -173,6 +290,12 @@ class Session:
         elif isinstance(clock, str):
             clock = core.Clock(format=clock)
         self.sessionClock = clock
+        # make sure we have a default keyboard
+        if DeviceManager.getDevice("defaultKeyboard") is None:
+            DeviceManager.addDevice(
+                deviceClass="psychopy.hardware.keyboard.KeyboardDevice",
+                deviceName="defaultKeyboard",
+            )
         # Store params as an aliased dict
         if params is None:
             params = {}
@@ -192,41 +315,42 @@ class Session:
         Returns
         -------
         bool
+            True if this Session was started safely.
+        """
+        # register self with queue
+        _queue.connectSession(self)
+        # start queue if we're in the main branch and it's not alive yet
+        if threading.current_thread() == threading.main_thread() and not _queue._alive:
+            _queue.start()
+
+        return True
+
+    def onIdle(self):
+        """
+        Function to be called continuously while a SessionQueue is idle.
+
+        Returns
+        -------
+        bool
             True if this Session was stopped safely.
         """
-        # Create attribute to keep self running
-        self._alive = True
-        # Show waiting message
-        if self.win is not None:
+        if self.win is not None and not self.win._closed:
+            # Show waiting message
             self.win.showMessage(_translate(
                 "Waiting to start..."
             ))
             self.win.color = "grey"
-        # Process any calls
-        while self._alive:
-            # Empty the queue of any tasks
-            while len(self._queue):
-                # Run the task
-                method, args, kwargs = self._queue.pop(0)
-                retval = method(*args, **kwargs)
-                # Store its output
-                self._results.append({
-                    'method': method.__name__,
-                    'args': args,
-                    'kwargs': kwargs,
-                    'returned': retval
-                })
-            # Flip the screen and give a little time to sleep
-            if self.win is not None:
-                self.win.flip()
-                time.sleep(0.1)
+            # Flip the screen
+            self.win.flip()
+        # Flush log
+        self.logFile.logger.flush()
 
     def stop(self):
         """
-        Stop this Session running its queue. Not recommended unless running
+        Stop this Session running the queue. Not recommended unless running
         across multiple threads.
         """
-        self._alive = False
+        _queue.disconnectSession(self)
 
     def addExperiment(self, file, key=None, folder=None):
         """
@@ -299,10 +423,19 @@ class Session:
         # Write experiment as Python script
         pyFile = file.parent / (file.stem + ".py")
         if "psyexp" in file.suffix:
+            # Load experiment
             exp = experiment.Experiment()
             exp.loadFromXML(file)
+            # Make sure useVersion is off
+            exp.settings.params['Use version'].val = ""
+            # Write script
             script = exp.writeScript(target="PsychoPy")
             pyFile.write_text(script, encoding="utf8")
+            # Store experiment object
+            self.experimentObjects[key] = exp
+        else:
+            # if no experiment object, store None
+            self.experimentObjects[key] = None
         # Handle if key is None
         if key is None:
             key = str(file.relative_to(self.root))
@@ -420,6 +553,124 @@ class Session:
 
         return expInfo
 
+    def setCurrentExpInfoItem(self, key, value):
+        """
+        Set the value of a key (or set of keys) from the current expInfo dict.
+
+        Parameters
+        ----------
+        key : str or Iterable[str]
+            Key or list of keys whose value or values to set.
+
+        value : object or Iterable[str]
+            Value or values to set the key to. If one value is given along with multiple keys, all
+            keys will be set to that value. Otherwise, the number of values should match the number
+            of keys.
+
+        Returns
+        -------
+        bool
+            True if operation completed successfully
+        """
+        # get expInfo dict
+        expInfo = self.getCurrentExpInfo()
+        # return False if there is none
+        if expInfo is False:
+            return expInfo
+        # wrap key in list
+        if not isinstance(key, (list, tuple)):
+            key = [key]
+        # wrap value in a list and extend it to match length of key
+        if not isinstance(value, (list, tuple)):
+            value = [value] * len(key)
+        # set values
+        for subkey, subval in zip(key, value):
+            expInfo[subkey] = subval
+
+    def getCurrentExpInfoItem(self, key):
+        """
+        Get the value of a key (or set of keys) from the current expInfo dict.
+
+        Parameters
+        ----------
+        key : str or Iterable[str]
+            Key or keys to get values of fro expInfo dict
+
+        Returns
+        -------
+        object, dict{str:object} or False
+            If key was a string, the value of this key in expInfo. If key was a list of strings, a dict of key:value
+            pairs for each key in the list. If no experiment is running or the process can't complete, False.
+        """
+        # get expInfo dict
+        expInfo = self.getCurrentExpInfo()
+        # return False if there is none
+        if expInfo is False:
+            return expInfo
+        # if given a single key, get it
+        if key in expInfo:
+            return expInfo[key]
+        # if given a list of keys, get subset
+        if isinstance(key, (list, tuple)):
+            subset = {}
+            for subkey in key:
+                subset[subkey] = expInfo[subkey]
+            return subset
+        # if we've not returned yet, something is up, so return False
+        return False
+
+    def updateCurrentExpInfo(self, other):
+        """
+        Update key:value pairs in the current expInfo dict from another dict.
+
+        Parameters
+        ----------
+        other : dict
+            key:value pairs to update dict from.
+
+        Returns
+        -------
+        bool
+            True if operation completed successfully
+        """
+        # get expInfo dict
+        expInfo = self.getCurrentExpInfo()
+        # return False if there is none
+        if expInfo is False:
+            return expInfo
+        # set each key
+        for key, value in other.items():
+            expInfo[key] = value
+
+        return True
+
+    def getCurrentExpInfo(self):
+        """
+        Get the `expInfo` dict for the currently running experiment.
+
+        Returns
+        -------
+        dict or False
+            The `expInfo` for the currently running experiment, or False if no experiment is running.
+        """
+        # if no experiment is currently running, return False
+        if self.currentExperiment is None:
+            return False
+        # get expInfo from ExperimentHandler object
+        return self.currentExperiment.extraInfo
+
+    @property
+    def win(self):
+        """
+        Window associated with this Session. Defined as a property so as to be accessible from Liaison
+        if needed.
+        """
+        return self._win
+
+    @win.setter
+    def win(self, value):
+        self._win = value
+
     def setupWindowFromExperiment(self, key, expInfo=None, blocking=True):
         """
         Setup the window for this Session via the 'setupWindow` method from one of this
@@ -452,11 +703,10 @@ class Session:
         # If not in main thread and not requested blocking, use queue and return now
         if threading.current_thread() != threading.main_thread() and not blocking:
             # The queue is emptied each iteration of the while loop in `Session.start`
-            self._queue.append((
+            _queue.queueTask(
                 self.setupWindowFromExperiment,
-                (key,),
-                {'expInfo': expInfo}
-            ))
+                key, expInfo=expInfo
+            )
             return True
 
         if expInfo is None:
@@ -468,7 +718,7 @@ class Session:
 
         return True
 
-    def setupWindowFromParams(self, params, blocking=True):
+    def setupWindowFromParams(self, params, measureFrameRate=False, blocking=True):
         """
         Create/setup a window from a dict of parameters
 
@@ -477,6 +727,8 @@ class Session:
         params : dict
             Dict of parameters to create the window from, keys should be from the
             __init__ signature of psychopy.visual.Window
+        measureFrameRate : bool
+            If True, will measure frame rate upon window creation.
         blocking : bool
             Should calling this method block the current thread?
 
@@ -498,11 +750,10 @@ class Session:
         # If not in main thread and not requested blocking, use queue and return now
         if threading.current_thread() != threading.main_thread() and not blocking:
             # The queue is emptied each iteration of the while loop in `Session.start`
-            self._queue.append((
+            _queue.queueTask(
                 self.setupWindowFromParams,
-                (params,),
-                {}
-            ))
+                params
+            )
             return True
 
         if self.win is None:
@@ -521,10 +772,40 @@ class Session:
             self.win.units = params.get('units', self.win.units)
         # Set window title to signify that we're in a Session
         self.win.title = "PsychoPy Session"
+        # Measure frame rate
+        if measureFrameRate:
+            expInfo = self.getCurrentExpInfo()
+            expInfo['frameRate'] = self.win.getActualFrameRate()
 
         return True
 
+    def getFrameRate(self, retest=False):
+        """
+        Get the frame rate from the window.
+
+        Parameters
+        ----------
+        retest : bool
+            If True, then will always run the frame rate test again, even if measured frame rate is already available.
+
+        Returns
+        -------
+        float
+            Frame rate retrieved from Session window.
+        """
+        # if asked to, or if not yet measured, measure framerate
+        if retest or self.win._monitorFrameRate is None:
+            self.win._monitorFrameRate = self.win.getActualFrameRate()
+        # return from Window object
+        return self.win._monitorFrameRate
+
     def setupInputsFromExperiment(self, key, expInfo=None, thisExp=None, blocking=True):
+        """
+        Deprecated: legacy alias of setupDevicesFromExperiment
+        """
+        self.setupDevicesFromExperiment(key, expInfo=expInfo, thisExp=thisExp, blocking=blocking)
+
+    def setupDevicesFromExperiment(self, key, expInfo=None, thisExp=None, blocking=True):
         """
         Setup inputs for this Session via the 'setupInputs` method from one of this Session's experiments.
 
@@ -557,17 +838,21 @@ class Session:
         # If not in main thread and not requested blocking, use queue and return now
         if threading.current_thread() != threading.main_thread() and not blocking:
             # The queue is emptied each iteration of the while loop in `Session.start`
-            self._queue.append((
-                self.setupInputsFromExperiment,
-                (key,),
-                {'expInfo': expInfo}
-            ))
+            _queue.queueTask(
+                self.setupDevicesFromExperiment,
+                key, expInfo=expInfo
+            )
             return True
 
         if expInfo is None:
             expInfo = self.getExpInfoFromExperiment(key)
-        # Run the setupInputs method
-        self.inputs = self.experiments[key].setupInputs(expInfo=expInfo, thisExp=thisExp, win=self.win)
+        # store current devices dict
+        ogDevices = DeviceManager.devices.copy()
+        # run the setupDevices method
+        self.experiments[key].setupDevices(expInfo=expInfo, thisExp=thisExp, win=self.win)
+        # reinstate any original devices which were overwritten
+        for key, obj in ogDevices.items():
+            DeviceManager.devices[key] = obj
 
         return True
 
@@ -581,7 +866,7 @@ class Session:
             Name of this input, what to store it under in the inputs dict.
         params : dict
             Dict of parameters to create the keyboard from, keys should be from the
-            __init__ signature of psychopy.hardware.keyboard.Keyboard
+            `addKeyboard` function in hardware.DeviceManager
         blocking : bool
             Should calling this method block the current thread?
 
@@ -603,18 +888,76 @@ class Session:
         # If not in main thread and not requested blocking, use queue and return now
         if threading.current_thread() != threading.main_thread() and not blocking:
             # The queue is emptied each iteration of the while loop in `Session.start`
-            self._queue.append((
+            _queue.queueTask(
                 self.addKeyboardFromParams,
-                (name, params),
-                {}
-            ))
+                name, params
+            )
             return True
 
         # Create keyboard
-        from psychopy.hardware.keyboard import Keyboard
-        self.inputs[name] = Keyboard(**params)
+        deviceManager.addKeyboard(*params)
 
         return True
+
+    def getRequiredDeviceNamesFromExperiment(self, key):
+        """
+        Get a list of device names referenced in a given experiment.
+
+        Parameters
+        ----------
+        key : str
+            Key by which the experiment is stored (see `.addExperiment`).
+
+        Returns
+        -------
+        list[str]
+            List of device names
+        """
+        # get an experiment object
+        exp = self.experimentObjects[key]
+        if exp is None:
+            raise ValueError(
+                f"Device names are not available for experiments added to Session directly as a "
+                f".py file."
+            )
+        # get ready to store usages
+        usages = {}
+
+        def _process(name, emt):
+            """
+            Process an element (Component or Routine) for device names and append them to the
+            usages dict.
+
+            Parameters
+            ----------
+            name : str
+                Name of this element in Builder
+            emt : Component or Routine
+                Element to process
+            """
+            # if we have a device name for this element...
+            if "deviceLabel" in emt.params:
+                # get init value so it lines up with boilerplate code
+                inits = experiment.getInitVals(emt.params)
+                # get value
+                deviceName = inits['deviceLabel'].val
+                # if deviceName exists from other elements, add usage to it
+                if deviceName in usages:
+                    usages[deviceName].append(name)
+                else:
+                    usages[deviceName] = [name]
+
+        # iterate through routines
+        for rtName, rt in exp.routines.items():
+            if isinstance(rt, experiment.routines.BaseStandaloneRoutine):
+                # for standalone routines, get device names from params
+                _process(rtName, rt)
+            else:
+                # for regular routines, get device names from each component
+                for comp in rt:
+                    _process(comp.name, comp)
+
+        return list(usages)
 
     def runExperiment(self, key, expInfo=None, blocking=True):
         """
@@ -648,11 +991,10 @@ class Session:
         # If not in main thread and not requested blocking, use queue and return now
         if threading.current_thread() != threading.main_thread() and not blocking:
             # The queue is emptied each iteration of the while loop in `Session.start`
-            self._queue.append((
+            _queue.queueTask(
                 self.runExperiment,
-                (key,),
-                {'expInfo': expInfo}
-            ))
+                key, expInfo=expInfo
+            )
             return True
 
         if expInfo is None:
@@ -662,18 +1004,24 @@ class Session:
         thisExp.name = key
         # Mark ExperimentHandler as current
         self.currentExperiment = thisExp
+        # Make sure we have at least one response device
+        if "defaultKeyboard" not in DeviceManager.devices:
+            DeviceManager.addDevice(
+                deviceClass="psychopy.hardware.keyboard.KeyboardDevice",
+                deviceName="defaultKeyboard"
+            )
         # Hide Window message
         self.win.hideMessage()
         # Setup window for this experiment
-        self.setupWindowFromExperiment(key=key)
+        self.setupWindowFromExperiment(expInfo=expInfo, key=key)
         self.win.flip()
         self.win.flip()
         # Hold all autodraw stimuli
         self.win.stashAutoDraw()
+        # Pause the listener loop
+        listenerLoop.pause()
         # Setup logging
         self.experiments[key].run.__globals__['logFile'] = self.logFile
-        # Setup inputs
-        self.setupInputsFromExperiment(key, expInfo=expInfo, thisExp=thisExp)
         # Log start
         logging.info(_translate(
             "Running experiment via Session: name={key}, expInfo={expInfo}"
@@ -684,14 +1032,16 @@ class Session:
                 expInfo=expInfo,
                 thisExp=thisExp,
                 win=self.win,
-                inputs=self.inputs,
                 globalClock=self.sessionClock,
                 thisSession=self
             )
         except Exception as _err:
             err = _err
+            err.userdata = key
         # Reinstate autodraw stimuli
         self.win.retrieveAutoDraw()
+        # Restart the listener loop
+        listenerLoop.pause()
         # Restore original chdir
         os.chdir(str(self.root))
         # Store ExperimentHandler
@@ -718,7 +1068,8 @@ class Session:
             self.sendToLiaison({
                     'type': "experiment_status",
                     'name': thisExp.name,
-                    'status': thisExp.status
+                    'status': thisExp.status,
+                    'expInfo': expInfo
                 })
 
         return True
@@ -822,11 +1173,10 @@ class Session:
         # If not in main thread and not requested blocking, use queue and return now
         if threading.current_thread() != threading.main_thread() and not blocking:
             # The queue is emptied each iteration of the while loop in `Session.start`
-            self._queue.append((
+            _queue.queueTask(
                 self.saveExperimentData,
-                (key,),
-                {'thisExp': thisExp}
-            ))
+                key, thisExp=thisExp
+            )
             return True
 
         # get last run
@@ -1000,17 +1350,52 @@ class Session:
         # If ExperimentHandler, get its data as a list of dicts
         if isinstance(value, data.ExperimentHandler):
             value = value.getJSON(priorityThreshold=self.priorityThreshold)
-        # Convert to JSON
-        if not isinstance(value, str):
-            value = json.dumps(value)
         # Send
-        asyncio.run(self.liaison.broadcast(message=value))
+        self.liaison.broadcastSync(message=value)
 
-    def close(self):
+    def close(self, blocking=True):
         """
-        Safely close the current session. This will end the Python instance.
+        Safely close and delete the current session.
+
+        Parameters
+        ----------
+        blocking : bool
+            Should calling this method block the current thread?
+
+            If True (default), the method runs as normal and won't return until
+            completed.
+            If False, the method is added to a `queue` and will be run by the
+            while loop within `Session.start`. This will block the main thread,
+            but won't block the thread this method was called from.
+
+            If not using multithreading, this value is ignored. If you don't
+            know what multithreading is, you probably aren't using it - it's
+            difficult to do by accident!
         """
-        sys.exit()
+        # If not in main thread and not requested blocking, use queue and return now
+        if threading.current_thread() != threading.main_thread() and not blocking:
+            # The queue is emptied each iteration of the while loop in `Session.start`
+            _queue.queueTask(
+                self.close
+            )
+            return True
+        # remove self from queue
+        if self in _queue.sessions:
+            self.stop()
+        # if there is a Liaison object, re-register Session class
+        if self.liaison is not None:
+            self.liaison.registerClass(Session, "session")
+        # close any windows
+        if self.win is not None:
+            self.win.close()
+            self.win = None
+        # flush any remaining logs and kill reference to log file
+        self.logFile.logger.flush()
+        self.logFile.logger.removeTarget(self.logFile)
+        # delete self
+        del self
+
+        return True
 
 
 if __name__ == "__main__":
@@ -1043,8 +1428,12 @@ if __name__ == "__main__":
         from psychopy import liaison
         # Create liaison server
         liaisonServer = liaison.WebSocketServer()
+        # Add DeviceManager to liaison server
+        liaisonServer.registerClass(DeviceManager, "DeviceManager")
         # Add session to liaison server
         liaisonServer.registerClass(Session, "session")
+        # Register queue with liaison
+        liaisonServer.registerMethods(_queue, "SessionQueue")
         # Create thread to run liaison server in
         liaisonThread = threading.Thread(
             target=liaisonServer.start,
@@ -1055,5 +1444,7 @@ if __name__ == "__main__":
         )
         # Start liaison server
         liaisonThread.start()
+        # Start processing script queue
+        _queue.start()
     else:
         liaisonServer = None

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Module for the PsychoPy GUI application.
@@ -22,7 +22,7 @@ from .frametracker import openFrames
 
 # Handle to the PsychoPy GUI application instance. We need to have this mainly
 # to allow the plugin system to access GUI to allow for changes after startup.
-_psychopyApp = None
+_psychopyAppInstance = None
 
 
 def startApp(showSplash=True, testMode=False, safeMode=False):
@@ -54,7 +54,7 @@ def startApp(showSplash=True, testMode=False, safeMode=False):
         with without loading plugins.
 
     """
-    global _psychopyApp
+    global _psychopyAppInstance
 
     if isAppStarted():  # do nothing it the app is already loaded
         return  # NOP
@@ -81,7 +81,7 @@ def startApp(showSplash=True, testMode=False, safeMode=False):
     # If `testMode==True`, all messages and errors (i.e. exceptions) will log to
     # console.
     from psychopy.app._psychopyApp import PsychoPyApp
-    _psychopyApp = PsychoPyApp(
+    _psychopyAppInstance = PsychoPyApp(
         0, testMode=testMode, showSplash=showSplash, safeMode=safeMode)
 
     # After the app is loaded, we hand off logging to the stream dispatcher
@@ -95,7 +95,7 @@ def startApp(showSplash=True, testMode=False, safeMode=False):
             '`StdStreamDispatcher` instance initialized outside of `startApp`, '
             'this is not permitted.')
 
-    stdDisp = StdStreamDispatcher(_psychopyApp, prefLogFilePath)
+    stdDisp = StdStreamDispatcher(_psychopyAppInstance, prefLogFilePath)
     stdDisp.redirect()
 
     if not testMode:
@@ -110,7 +110,7 @@ def startApp(showSplash=True, testMode=False, safeMode=False):
 
         # Allow the UI to refresh itself. Don't do this during testing where the
         # UI is exercised programmatically.
-        _psychopyApp.MainLoop()
+        _psychopyAppInstance.MainLoop()
 
 
 def quitApp():
@@ -122,11 +122,11 @@ def quitApp():
     if not isAppStarted():
         return
 
-    global _psychopyApp
-    if hasattr(_psychopyApp, 'quit'):  # type check
-        _psychopyApp.quit()
+    global _psychopyAppInstance
+    if hasattr(_psychopyAppInstance, 'quit'):  # type check
+        _psychopyAppInstance.quit()
         # PsychoPyApp._called_from_test = False  # reset
-        _psychopyApp = None
+        _psychopyAppInstance = None
     else:
         raise AttributeError('Object `_psychopyApp` has no attribute `quit`.')
 
@@ -151,7 +151,20 @@ def getAppInstance():
         coder = app.getAppInstance().coder
 
     """
-    return _psychopyApp  # use a function here to protect the reference
+    return _psychopyAppInstance  # use a function here to protect the reference
+
+
+def setAppInstance(obj):
+    """
+    Define a reference to the current PsychoPyApp object.
+
+    Parameters
+    ----------
+    obj : psychopy.app._psychopyApp.PsychoPyApp
+        Current instance of the PsychoPy app
+    """
+    global _psychopyAppInstance
+    _psychopyAppInstance = obj
 
 
 def isAppStarted():
@@ -163,7 +176,7 @@ def isAppStarted():
         `True` if the GUI is started else `False`.
 
     """
-    return _psychopyApp is not None
+    return _psychopyAppInstance is not None
 
 
 def getAppFrame(frameName):
@@ -193,14 +206,14 @@ def getAppFrame(frameName):
         raise ValueError('Invalid identifier specified as `frameName`.')
 
     # open the requested frame if no yet loaded
-    frameRef = getattr(_psychopyApp, frameName, None)
+    frameRef = getattr(_psychopyAppInstance, frameName, None)
     if frameRef is None:
-        if frameName == 'builder' and hasattr(_psychopyApp, 'showBuilder'):
-            _psychopyApp.showBuilder()
-        elif frameName == 'coder' and hasattr(_psychopyApp, 'showCoder'):
-            _psychopyApp.showCoder()
-        elif frameName == 'runner' and hasattr(_psychopyApp, 'showRunner'):
-            _psychopyApp.showRunner()
+        if frameName == 'builder' and hasattr(_psychopyAppInstance, 'showBuilder'):
+            _psychopyAppInstance.showBuilder()
+        elif frameName == 'coder' and hasattr(_psychopyAppInstance, 'showCoder'):
+            _psychopyAppInstance.showCoder()
+        elif frameName == 'runner' and hasattr(_psychopyAppInstance, 'showRunner'):
+            _psychopyAppInstance.showRunner()
         else:
             raise AttributeError('Cannot load frame. Method not available.')
 

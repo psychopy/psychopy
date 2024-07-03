@@ -1,3 +1,6 @@
+import subprocess
+from pathlib import Path
+
 import wx
 
 from psychopy import prefs
@@ -5,6 +8,7 @@ from psychopy.app import getAppInstance
 from psychopy.app.plugin_manager import PluginManagerPanel, PackageManagerPanel, InstallStdoutPanel
 from psychopy.experiment import getAllElements
 from psychopy.localization import _translate
+import psychopy.logging as logging
 import psychopy.tools.pkgtools as pkgtools
 import psychopy.app.jobs as jobs
 import sys
@@ -13,6 +17,10 @@ import subprocess as sp
 import psychopy.plugins as plugins
 
 pkgtools.refreshPackages()  # build initial package cache
+
+
+# flag to indicate if PsychoPy needs to be restarted after installing a package
+NEEDS_RESTART = False
 
 
 class EnvironmentManagerDlg(wx.Dialog):
@@ -72,12 +80,14 @@ class EnvironmentManagerDlg(wx.Dialog):
         """
         cmd = [sys.executable, "-m", "pip", "index", "versions", packageName,
                '--no-input', '--no-color']
+        env = os.environ.copy()
         # run command in subprocess
         output = sp.Popen(
             cmd,
             stdout=sp.PIPE,
             stderr=sp.PIPE,
             shell=False,
+            env=env,
             universal_newlines=True)
         stdout, stderr = output.communicate()  # blocks until process exits
         nullVersion = {'All': [], 'Installed': '', 'Latest': ''}
@@ -163,6 +173,7 @@ class EnvironmentManagerDlg(wx.Dialog):
 
         # interpreter path
         pyExec = sys.executable
+        env = os.environ.copy()
 
         # build the shell command to run the script
         command = [pyExec, '-m', 'pip', 'uninstall', packageName, '--yes']
@@ -178,7 +189,10 @@ class EnvironmentManagerDlg(wx.Dialog):
             errorCallback=self.output.writeStdErr,
             terminateCallback=self.output.writeTerminus
         )
-        self.pipProcess.start()
+        self.pipProcess.start(env=env)
+
+        global NEEDS_RESTART  # flag as needing a restart
+        NEEDS_RESTART = True
 
     def installPackage(self, packageName, version=None, extra=None):
         """Install a package.
@@ -219,25 +233,45 @@ class EnvironmentManagerDlg(wx.Dialog):
 
         # interpreter path
         pyExec = sys.executable
+        # environment
+        env = os.environ.copy()
+        # if given a pyproject.toml file, do editable install of parent folder
+        if str(packageName).endswith("pyproject.toml"):
+            if sys.platform != "darwin":
+                # on systems which allow it, do an editable install
+                packageName = f'-e "{os.path.dirname(packageName)}"'
+            else:
+                # on Mac, build a wheel
+                subprocess.call(
+                    [pyExec, '-m', 'build'],
+                    cwd=Path(packageName).parent,
+                    env=env
+                )
+                # get wheel path
+                packageName = [
+                    whl for whl in Path(packageName).parent.glob("**/*.whl")][0]
 
-        # determine installation path for bundle, create it if needed
-        bundlePath = plugins.getBundleInstallTarget(packageName)
-        if not os.path.exists(bundlePath):
-            self.output.writeStdOut(
-                "Creating bundle path `{}` for package `{}`.".format(
-                    bundlePath, packageName))
-            os.mkdir(bundlePath)  # make the directory
-        else:
-            self.output.writeStdOut(
-                "Using existing bundle path `{}` for package `{}`.".format(
-                    bundlePath, packageName))
-
-        # add the bundle to path, refresh makes it discoverable after install
-        if bundlePath not in sys.path:
-            sys.path.insert(0, bundlePath)
+        # On MacOS, we need to install to target instead of user since py2app
+        # doesn't support user installs correctly, this is a workaround for that
+        env = os.environ.copy()
 
         # build the shell command to run the script
-        command = [pyExec, '-m', 'pip', 'install', packageName, '--target', bundlePath]
+        command = [pyExec, '-m', 'pip', 'install', str(packageName)]
+
+        # check if we are inside a venv, don't use --user if we are
+        if hasattr(sys, 'real_prefix') or (
+                hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix):
+            # we are in a venv
+            logging.warning(
+                "You are installing a package inside a virtual environment. "
+                "The package will be installed in the user site-packages directory."
+            )
+        else:
+            command.append('--user')
+        
+        # add other options to the command
+        command += ['--prefer-binary', '--no-input', '--no-color']
+            
         # write command to output panel
         self.output.writeCmd(" ".join(command))
         # append own name to extra
@@ -257,7 +291,7 @@ class EnvironmentManagerDlg(wx.Dialog):
             terminateCallback=self.onInstallExit,
             extra=extra
         )
-        self.pipProcess.start()
+        self.pipProcess.start(env=env)
 
     def installPlugin(self, pluginInfo, version=None):
         """Install a package.
@@ -312,12 +346,17 @@ class EnvironmentManagerDlg(wx.Dialog):
             # enable plugin
             try:
                 pluginInfo.activate()
-                plugins.loadPlugin(pluginInfo.pipname)
+                # plugins.loadPlugin(pluginInfo.pipname)
             except RuntimeError:
                 prefs.general['startUpPlugins'].append(pluginInfo.pipname)
                 self.output.writeStdErr(_translate(
                     "[Warning] Could not activate plugin. PsychoPy may need to restart for plugin to take effect."
                 ))
+
+            global NEEDS_RESTART  # flag as needing a restart
+            NEEDS_RESTART = True
+            showNeedsRestartDialog()
+
             # show list of components/routines now available
             emts = []
             for name, emt in getAllElements().items():
@@ -347,22 +386,37 @@ class EnvironmentManagerDlg(wx.Dialog):
 
     def onClose(self, evt=None):
         # Get changes to plugin states
-        pluginChanges = self.pluginMgr.pluginList.getChanges()
+        # pluginChanges = self.pluginMgr.pluginList.getChanges()
 
-        # If any plugins have been uninstalled, prompt user to restart
-        if any(["uninstalled" in changes for changes in pluginChanges.values()]):
-            msg = _translate(
-                "It looks like you've uninstalled some plugins. In order for this to take effect, you will need to "
-                "restart the PsychoPy app."
-            )
-            dlg = wx.MessageDialog(
-                None, msg,
-                style=wx.ICON_WARNING | wx.OK
-            )
-            dlg.ShowModal()
+        # # If any plugins have been uninstalled, prompt user to restart
+        # if any(["uninstalled" in changes for changes in pluginChanges.values()]):
+        #     msg = _translate(
+        #         "It looks like you've uninstalled some plugins. In order for this to take effect, you will need to "
+        #         "restart the PsychoPy app."
+        #     )
+        #     dlg = wx.MessageDialog(
+        #         None, msg,
+        #         style=wx.ICON_WARNING | wx.OK
+        #     )
+        #     dlg.ShowModal()
 
-        # Repopulate component panels
-        for frame in self.app.getAllFrames():
-            if hasattr(frame, "componentButtons") and hasattr(frame.componentButtons, "populate"):
-                frame.componentButtons.populate()
+        # # Repopulate component panels
+        # for frame in self.app.getAllFrames():
+        #     if hasattr(frame, "componentButtons") and hasattr(frame.componentButtons, "populate"):
+        #         frame.componentButtons.populate()
 
+        if evt is not None:
+            evt.Skip()
+
+
+def showNeedsRestartDialog():
+    """Show a dialog asking the user if they would like to restart PsychoPy.
+    """
+    msg = _translate("Please restart PsychoPy to apply changes.")
+
+    # show a simple dialog that asks the user to restart PsychoPy
+    dlg = wx.MessageDialog(
+        None, msg, "Restart Required",
+        style=wx.ICON_INFORMATION | wx.OK
+    )
+    dlg.ShowModal()

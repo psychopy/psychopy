@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Functions and classes related to attribute handling
@@ -10,6 +10,8 @@
 
 import numpy
 from psychopy import logging
+from functools import partialmethod
+from psychopy.tools.stringtools import CaseSwitcher
 
 
 class attributeSetter:
@@ -47,7 +49,7 @@ class attributeSetter:
         return repr(self.__getattribute__)
 
 
-def setAttribute(self, attrib, value, log,
+def setAttribute(self, attrib, value, log=None,
                  operation=False, stealth=False):
     """This function is useful to direct the old set* functions to the
     @attributeSetter.
@@ -72,6 +74,10 @@ def setAttribute(self, attrib, value, log,
     History: introduced in version 1.79 to avoid exec-calls.
     Even though it looks complex, it is very fast :-)
     """
+
+    # if log is None, use autoLog
+    if log is None:
+        log = getattr(self, "autoLog", False)
 
     # Change the value of "value" if there is an operation. Even if it is '',
     # which indicates that this value could potentially be subjected to an
@@ -160,3 +166,40 @@ def logAttrib(obj, log, attrib, value=None):
         except AttributeError:
             # the "win" attribute only exists if sync-to-visual (e.g. stimuli)
             logging.log(message, level=logging.EXP, obj=obj)
+
+
+class AttributeGetSetMixin:
+    """
+    For all attributeSetter and property/setter methods, makes a get and set method whose names are the attribute name,
+    in PascalCase, preceeded by "set" or "get"
+    """
+    def __init_subclass__(cls, **kwargs):
+        # iterate through methods
+        for name in dir(cls):
+            # get function
+            func = getattr(cls, name)
+            # ignore any which aren't attributeSetters
+            if not isinstance(func, (attributeSetter, property)):
+                continue
+            # work out getter method name
+            getterName = "get" + CaseSwitcher.camel2pascal(name)
+            # ignore any which already have a getter method
+            if not hasattr(cls, getterName):
+                # create a pre-populated caller for getattr
+                meth = partialmethod(getattr, name)
+                # assign setter method
+                setattr(cls, getterName, meth)
+            # any non-settable properties are now done
+            if isinstance(func, property) and func.fset is None:
+                continue
+            # work out setter method name
+            setterName = "set" + CaseSwitcher.camel2pascal(name)
+            # ignore any which already have a setter method
+            if not hasattr(cls, setterName):
+                # create a pre-populated caller for setAttribute
+                meth = partialmethod(setAttribute, name)
+                # assign setter method
+                setattr(cls, setterName, meth)
+
+        # return class
+        return cls

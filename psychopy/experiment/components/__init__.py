@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Extensible set of components for the PsychoPy Builder view.
@@ -15,7 +15,7 @@ import copy
 import shutil
 from os.path import join, dirname, abspath, split
 from importlib import import_module  # helps python 2.7 -> 3.x migration
-from ._base import BaseVisualComponent, BaseComponent
+from ._base import BaseVisualComponent, BaseComponent, BaseDeviceComponent
 from ..params import Param
 from psychopy.localization import _translate
 from psychopy.experiment import py2js
@@ -24,6 +24,7 @@ import psychopy.logging as logging
 excludeComponents = [
     'BaseComponent',
     'BaseVisualComponent',
+    'BaseDeviceComponent',
     'BaseStandaloneRoutine'  # templates only
 ]  # this one isn't ready yet
 
@@ -65,8 +66,10 @@ def addComponent(compClass):
     if not issubclass(compClass, (BaseComponent, BaseVisualComponent)):
         logging.warning(
             "Component `{}` does not appear to be a subclass of "
-            "`psychopy.experiment.components._base.BaseComponent`. This may not"
-            " work correcty.".format(compName))
+            "`psychopy.experiment.components._base.BaseComponent`. This will be skipped."
+            .format(compName)
+        )
+        return
     elif not hasattr(compClass, 'categories'):
         logging.warning(
             "Component `{}` does not define a `.categories` attribute.".format(
@@ -163,6 +166,7 @@ def getComponents(folder=None, fetchIcons=True):
     importing from psychopy:
        `from psychopy.experiment.components import BaseComponent, Param`
     """
+
     if folder is None:
         pth = folder = dirname(__file__)
         pkg = 'psychopy.experiment.components'
@@ -238,8 +242,7 @@ def getComponents(folder=None, fetchIcons=True):
         for attrib in dir(module):
             name = None
             # fetch the attribs that end with 'Component'
-            if (attrib.endswith('omponent') and
-                    attrib not in excludeComponents):
+            if attrib.endswith('omponent') and attrib not in excludeComponents:
                 name = attrib
                 components[attrib] = getattr(module, attrib)
 
@@ -289,6 +292,14 @@ def getInitVals(params, target="PsychoPy"):
                     inits[name].val = ("psychoJS.resourceManager.getResource({})"
                                        .format(inits[name]))
                     inits[name].valType = 'code'
+
+        if name == "deviceLabel":
+            if "name" in inits and not params[name]:
+                # if deviceName exists but is blank, use component name
+                inits[name].val = inits['name'].val
+            # make a code version of device name
+            inits['deviceLabelCode'] = copy.copy(inits[name])
+            inits['deviceLabelCode'].valType = "code"
 
         if not hasattr(inits[name], 'updates'):  # might be settings parameter instead
             continue
@@ -383,6 +394,9 @@ def getInitVals(params, target="PsychoPy"):
             inits[name].valType = 'str'
         elif name in ('movie', 'latitude', 'longitude', 'elevation', 'azimuth', 'speechPoint'):
             inits[name].val = 'None'
+            inits[name].valType = 'code'
+        elif name == 'allowedKeys':
+            inits[name].val = "[]"
             inits[name].valType = 'code'
         else:
             print("I don't know the appropriate default value for a '%s' "
