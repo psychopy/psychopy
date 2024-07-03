@@ -6222,7 +6222,7 @@ msgid "When should this Routine end, if not already ended by a Component? Leave 
 msgstr "¿Cuándo debe finalizar esta rutina, si aún no la finalizó un Componente? Dejar en blanco para infinito."
 
 #: psychopy/experiment/components/routineSettings/__init__.py:76
-msgid "Skip this Routine if the value in this contorl evaluates to True. Leave blank to not skip."
+msgid "Skip this Routine if the value in this control evaluates to True. Leave blank to not skip."
 msgstr "Omita esta Rutina si el valor en este control se evalúa como Verdadero. Deje en blanco para no omitir."
 
 #: psychopy/experiment/components/routineSettings/__init__.py:78

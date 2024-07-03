@@ -203,18 +203,23 @@ class RoutineSettingsComponent(BaseComponent):
         params = self.params.copy()
         if params['stopVal'] in ("None", None, ""):
             params['stopVal'].val = "None"
-        # Store Routine start time (UTC)
-        if self.params['saveStartStop']:
-            code = (
-                "psychoJS.experiment.addData('%(name)s.started', globalClock.getTime());\n"
-            )
-            buff.writeIndentedLines(code % params)
-        # Skip Routine if condition is met
+
+        # process skip if logic first
         if params['skipIf'].val not in ('', None, -1, 'None'):
             code = (
                 "// skip this Routine if its 'Skip if' condition is True\n"
                 "continueRoutine = continueRoutine && !(%(skipIf)s);\n"
-                "maxDurationReached = False\n"
+                "maxDurationReached = false\n"
+                "if (%(skipIf)s) {\n"
+                "   return Scheduler.Event.NEXT;\n"
+                "}\n"
+            )
+            buff.writeIndentedLines(code % params)
+        
+        # Store Routine start time (UTC)
+        if self.params['saveStartStop']:
+            code = (
+                "psychoJS.experiment.addData('%(name)s.started', globalClock.getTime());\n"
             )
             buff.writeIndentedLines(code % params)
         # calculate expected Routine duration

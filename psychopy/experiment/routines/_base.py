@@ -634,7 +634,16 @@ class Routine(list):
             "%(name)s.status = NOT_STARTED\n"
         ).format(compStr)
         buff.writeIndentedLines(code % self.params)
-
+        # Skip Routine if condition is met
+        # write skipped status to increment TrialHandlers
+        if self.settings.params['skipIf'].val not in ('', None, -1, 'None'):
+            code = (
+                "# skip Routine %(name)s if its 'Skip if' condition is True\n"
+                "%(name)s.skipped = (%(skipIf)s)\n"
+                "if not (%(skipIf)s):\n"
+            )
+            buff.writeIndentedLines(code % self.settings.params)
+            buff.setIndentLevel(1, relative=True)
         code = (
             'continueRoutine = True\n'
         )
@@ -889,6 +898,17 @@ class Routine(list):
         buff.writeIndentedLines("return async function () {\n")
         buff.setIndentLevel(1, relative=True)
 
+        # process skip if logic first
+        if self.settings.params['skipIf'].val not in ('', None, -1, 'None'):
+            code = (
+                "// skip this Routine if its 'Skip if' condition is True\n"
+                "continueRoutine = continueRoutine && !(%(skipIf)s);\n"
+                "if (%(skipIf)s) {\n"
+                "   return Scheduler.Event.NEXT;\n"
+                "}\n"
+            )
+            buff.writeIndentedLines(code % self.settings.params)
+        
         code = ("//--- Loop for each frame of Routine '%(name)s' ---\n"
                 "// get current time\n"
                 "t = %(name)sClock.getTime();\n"
@@ -972,6 +992,10 @@ class Routine(list):
                     'the non-slip timer\n'
                     'routineTimer.reset()\n')
             buff.writeIndentedLines(code % self.name)
+        
+        # outdent if skip
+        if self.params['skipIf'].val not in ('', None, -1, 'None'):
+            buff.setIndentLevel(-1, relative=True)
 
 
     def writeRoutineEndCodeJS(self, buff, modular):
@@ -983,6 +1007,16 @@ class Routine(list):
         buff.setIndentLevel(1, relative=True)
         buff.writeIndentedLines("return async function () {\n")
         buff.setIndentLevel(1, relative=True)
+
+        # process skip if logic first
+        if self.settings.params['skipIf'].val not in ('', None, -1, 'None'):
+            code = (
+                "// skip this Routine if its 'Skip if' condition is True\n"
+                "if (%(skipIf)s) {\n"
+                "   return Scheduler.Event.NEXT;\n"
+                "}\n"
+            )
+            buff.writeIndentedLines(code % self.settings.params)        
 
         if modular:
             code = ("//--- Ending Routine '%(name)s' ---\n"
