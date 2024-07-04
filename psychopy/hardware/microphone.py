@@ -972,9 +972,6 @@ class RecordingBuffer:
         self._spaceRemaining = None  # set in `_allocRecBuffer`
         self._totalSamples = None  # set in `_allocRecBuffer`
 
-        # warnings
-        self._warnedChannelsMismatch = False
-
         # check if the value is valid
         if policyWhenFull not in ['ignore', 'warn', 'error']:
             raise ValueError("Invalid value for `policyWhenFull`.")
@@ -1156,32 +1153,6 @@ class RecordingBuffer:
         else:
             self._lastSample = self._offset + self._spaceRemaining
             audioData = samples[:self._spaceRemaining, :]
-        
-        # Check if the number of channels in the audio data matches the number
-        # of channels in the recording buffer. Sometimes the number of channels
-        # may not match if the device interface does not allow for the number of
-        # channels to be set.
-        if audioData.shape[1] != self._channels:
-            if not self._warnedChannelsMismatch:  # warn only once
-                logging.warning(
-                    'Number of channels in audio data does not match the '
-                    'number of channels in the recording buffer. Channels will '
-                    'be truncated or padded accordingly.')
-            self._warnedChannelsMismatch = True
-
-            audioData = np.atleast_2d(audioData)
-
-            if audioData.shape[1] > self._channels:
-                # handle if the audio data has more channels than the buffer
-                self._samples[self._offset:self._lastSample, :] = \
-                    audioData[:, :self._channels]
-            else:
-                # handle if the audio data has fewer channels than the buffer
-                self._samples[
-                    self._offset:self._lastSample, :audioData.shape[1]] = \
-                        audioData
-
-            audioData = audioData[:, :self._channels]
 
         self._samples[self._offset:self._lastSample, :] = audioData
         self._offset += nSamples
