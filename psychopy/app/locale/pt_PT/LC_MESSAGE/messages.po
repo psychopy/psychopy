@@ -526,7 +526,6 @@ msgid "&Toggle readme\t%s"
 msgstr "&Alternar readme %s"
 
 #: psychopy/app/builder/builder.py:381 psychopy/app/builder/builder.py:3233
-#, fuzzy
 msgid "Toggle Readme"
 msgstr "Toggle Readme"
 
@@ -2412,12 +2411,11 @@ msgid "Toggle commenting of selected lines"
 msgstr "Alternar comentários das linhas selecionadas"
 
 #: psychopy/app/coder/coder.py:1476
-#, fuzzy, python-format
+#, python-format
 msgid "Toggle fold\t%s"
 msgstr "Toggle fold\t%s"
 
 #: psychopy/app/coder/coder.py:1477
-#, fuzzy
 msgid "Toggle folding of top level"
 msgstr "Toggle folding do nível superior"
 
@@ -2524,7 +2522,7 @@ msgstr "Mostrar caracteres de espaço em branco no código"
 #: psychopy/app/coder/coder.py:1592
 #, python-format
 msgid "&Whitespace\t%s"
-msgstr "&Espaço em branco\t%s "
+msgstr "&Espaço em branco\t%s"
 
 #: psychopy/app/coder/coder.py:1598
 msgid "Show End Of Line markers in the code"
@@ -2707,172 +2705,180 @@ msgstr "Procurar uma pasta para abrir."
 
 #: psychopy/app/coder/fileBrowser.py:173
 msgid "Navigate to PsychoPy library root."
-msgstr ""
+msgstr "Navegar até à raiz da biblioteca PsychoPy."
 
 #: psychopy/app/coder/fileBrowser.py:180
 msgid "Navigate to current open file."
-msgstr ""
+msgstr "Navegar até ao arquivo aberto atual."
 
 #: psychopy/app/coder/fileBrowser.py:270
 msgid ""
 "Cannot change working directory to location of file `{}`. It needs to be "
 "saved first."
 msgstr ""
+"Não é possível alterar o diretório de trabalho para o local do arquivo `{}`. "
+"Ele precisa de ser guardado primeiro."
 
 #: psychopy/app/coder/fileBrowser.py:281
 msgid "Browse ..."
-msgstr ""
+msgstr "Procurar ..."
 
 #: psychopy/app/coder/fileBrowser.py:282
 msgid "Browse the file system for a directory to open"
-msgstr ""
+msgstr "Procurar no sistema de arquivos um diretório para abrir"
 
 #: psychopy/app/coder/fileBrowser.py:286
 msgid "Current working directory"
-msgstr ""
+msgstr "Diretório de trabalho atual"
 
 #: psychopy/app/coder/fileBrowser.py:287
 msgid "Open the current working directory"
-msgstr ""
+msgstr "Abrir o diretório de trabalho atual"
 
 #: psychopy/app/coder/fileBrowser.py:291
 msgid "Open the directory the current editor file is located"
-msgstr ""
+msgstr "Abrir o diretório onde o arquivo do editor atual está localizado"
 
 #: psychopy/app/coder/fileBrowser.py:310
 msgid "Enter folder name:"
-msgstr ""
+msgstr "Introduzir o nome da pasta:"
 
 #: psychopy/app/coder/fileBrowser.py:311
 msgid "New folder"
-msgstr ""
+msgstr "Nova pasta"
 
 #: psychopy/app/coder/fileBrowser.py:322
 msgid "Folder name cannot be empty."
-msgstr ""
+msgstr "O nome da pasta não pode estar vazio."
 
 #: psychopy/app/coder/fileBrowser.py:334
 msgid "Cannot create folder `{}`, already exists."
-msgstr ""
+msgstr "Não pode criar a pasta `{}`, já existe."
 
 #: psychopy/app/coder/fileBrowser.py:347
 msgid "Cannot create folder `{}`, permission denied."
-msgstr ""
+msgstr "Não pode criar a pasta `{}`, permissão negada."
 
 #: psychopy/app/coder/fileBrowser.py:389
 msgid "Rename folder `{}` to:"
-msgstr ""
+msgstr "Renomear pasta  `{}` para:"
 
 #: psychopy/app/coder/fileBrowser.py:390
 msgid "Rename Folder"
-msgstr ""
+msgstr "Renomear pasta"
 
 #: psychopy/app/coder/fileBrowser.py:400 psychopy/app/coder/fileBrowser.py:436
 msgid "Cannot rename `{}` to `{}`."
-msgstr ""
+msgstr "Não pode renomear pasta `{}` para `{}`."
 
 #: psychopy/app/coder/fileBrowser.py:423
 msgid "Rename file `{}` to:"
-msgstr ""
+msgstr "Renomear ficheiro `{}` para:"
 
 #: psychopy/app/coder/fileBrowser.py:424
 msgid "Rename file"
-msgstr ""
+msgstr "Renomear ficheiro"
 
 #: psychopy/app/coder/fileBrowser.py:461
 msgid "Are you sure you want to PERMANENTLY delete folder `{}`?"
-msgstr ""
+msgstr "Tem a certeza de que deseja excluir PERMANENTEMENTE a pasta `{}`?"
 
 #: psychopy/app/coder/fileBrowser.py:471
 msgid "Cannot delete folder `{}`, directory does not exist."
-msgstr ""
+msgstr "Não é possível excluir a pasta `{}`, o diretório não existe."
 
 #: psychopy/app/coder/fileBrowser.py:478
 msgid "Cannot delete folder `{}`, directory is not empty or permission denied."
 msgstr ""
+"Não é possível excluir a pasta `{}`, o diretório não está vazio ou a "
+"permissão negada."
 
 #: psychopy/app/coder/fileBrowser.py:490
 msgid "Are you sure you want to PERMANENTLY delete file `{}`?"
-msgstr ""
+msgstr "Tem a certeza de que deseja excluir PERMANENTEMENTE o arquivo `{}`?"
 
 #: psychopy/app/coder/fileBrowser.py:500
 msgid "Cannot delete folder `{}`, file does not exist."
-msgstr ""
+msgstr "Não é possível excluir a pasta `{}`, o arquivo não existe."
 
 #: psychopy/app/coder/fileBrowser.py:507
 msgid "Cannot delete file `{}`, permission denied."
-msgstr ""
+msgstr "Não é possível excluir o arquivo `{}`, permissão negada."
 
 #: psychopy/app/coder/fileBrowser.py:528
 msgid "Specified path `{}` is not a directory."
-msgstr ""
+msgstr "O caminho especificado `{}` não é um diretório."
 
 #: psychopy/app/coder/fileBrowser.py:598
 msgid "Cannot access directory `{}`, permission denied."
-msgstr ""
+msgstr "Não é possível aceder ao diretório `{}`, permissão negada."
 
 #: psychopy/app/coder/fileBrowser.py:645
 msgid "Cannot access directory `{}`, not a directory."
-msgstr ""
+msgstr "Não é possível aceder ao diretório `{}`, não um diretório."
 
 #: psychopy/app/coder/repl.py:56 psychopy/app/coder/repl.py:76
 msgid "Close the current shell."
-msgstr ""
+msgstr "Feche a consola atual."
 
 #: psychopy/app/coder/repl.py:66
 msgid ""
 "Close the current shell and start a new one, this will clear any variables."
 msgstr ""
+"Feche a consola atual e inicie uma nova, isso limpará todas as variáveis."
 
 #: psychopy/app/coder/repl.py:86 psychopy/app/stdout/stdOutRich.py:223
 msgid "Clear all previous output."
-msgstr ""
+msgstr "Limpar todos os resultados anteriores."
 
 #: psychopy/app/coder/repl.py:180
 msgid "Hit [Return] to start a Python session."
-msgstr ""
+msgstr "Pressione [Return] para iniciar a sessão de Python."
 
 #: psychopy/app/coder/repl.py:199
 msgid "Hit [Return] to start a Python shell."
-msgstr ""
+msgstr "Pressione [Return] para iniciar a consola do Python."
 
 #: psychopy/app/colorpicker/ui.py:33
 msgid " RGB Channels "
-msgstr ""
+msgstr " Canais RGB "
 
 #: psychopy/app/colorpicker/ui.py:84
 msgid "Hex/HTML"
-msgstr ""
+msgstr "Hex/HTML"
 
 #: psychopy/app/colorpicker/ui.py:92
 msgid "RGB Format"
-msgstr ""
+msgstr "Formatar RGB"
 
 #: psychopy/app/colorpicker/ui.py:118
 msgid " HSV Channels "
-msgstr ""
+msgstr " Canais HSV "
 
 #: psychopy/app/colorpicker/ui.py:192
 msgid "Output Space:"
-msgstr ""
+msgstr "Espaço de resultados:"
 
 #: psychopy/app/colorpicker/ui.py:205
 msgid "Insert"
-msgstr ""
+msgstr "Inserir"
 
 #: psychopy/app/connections/updates.py:93
 msgid "Couldn't connect to psychopy.org to check for updates. \n"
 msgstr ""
+"Feche a consola atual e inicie uma nova, isto limpará todas as variáveis. \n"
 
 #: psychopy/app/connections/updates.py:95
 msgid "Check internet settings (and proxy setting in PsychoPy Preferences)."
 msgstr ""
+"Verifique as configurações de Internet (e as configurações de proxy nas "
+"Preferências do PsychoPy)."
 
 #: psychopy/app/connections/updates.py:99
 #: psychopy/app/connections/updates.py:148
 #: psychopy/app/connections/updates.py:167
 msgid "PsychoPy updates"
-msgstr ""
+msgstr "Atualizações do PsychoPy "
 
 #: psychopy/app/connections/updates.py:138
 #, python-format
@@ -2880,32 +2886,37 @@ msgid ""
 "PsychoPy v%(latest)s is available (you are running %(running)s).\n"
 "\n"
 msgstr ""
+"PsychoPy v%(latest)s está disponível (está a executar %(running)s).\n"
+"\n"
 
 #: psychopy/app/connections/updates.py:142
 msgid "This version is too big an update to be handled automatically.\n"
 msgstr ""
+"Esta versão é uma atualização muito grande para ser tratada "
+"automaticamente.\n"
 
 #: psychopy/app/connections/updates.py:144
 msgid ""
 "Please fetch the latest version from www.psychopy.org and install manually."
 msgstr ""
+"Obtenha a versão mais recente em www.psychopy.org e instale manualmente."
 
 #: psychopy/app/connections/updates.py:149
 msgid "Go to downloads"
-msgstr ""
+msgstr "Ir para transferências"
 
 #: psychopy/app/connections/updates.py:151
 msgid "Go to changelog"
-msgstr ""
+msgstr "Ir para changelog"
 
 #: psychopy/app/connections/updates.py:152
 msgid "Later"
-msgstr ""
+msgstr "Mais tarde"
 
 #: psychopy/app/connections/updates.py:163
 #, python-format
 msgid "You are running the latest version of PsychoPy (%s). "
-msgstr ""
+msgstr "Está a executar a versão mais recente do PsychoPy (%s). "
 
 #: psychopy/app/connections/updates.py:189
 #, python-format
@@ -2914,62 +2925,72 @@ msgid ""
 "\n"
 "(To disable this check, see Preferences > connections > checkForUpdates)"
 msgstr ""
+"PsychoPy v%(latest)s está disponível (está a executar %(running)s).\n"
+"\n"
+"(Para desativar esta verificação, consulte Preferências > conexões > "
+"checkForUpdates)"
 
 #: psychopy/app/connections/updates.py:196
 msgid ""
 "This version MAY require you to modify your\n"
 "scripts/exps slightly. Read the changelog carefully."
 msgstr ""
+"Esta versão PODE requerer que modifique ligeiramente \n"
+"os seus scripts/exps. Leia o changelog com atenção."
 
 #: psychopy/app/connections/updates.py:202
 msgid ""
 "There are no known compatibility\n"
 "issues with your current version."
 msgstr ""
+"Não há problemas de compatibilidade \n"
+"conhecidos com a sua versão atual."
 
 #: psychopy/app/connections/updates.py:206
 msgid "View complete Changelog"
-msgstr ""
+msgstr "Veja o changelog completo"
 
 #: psychopy/app/connections/updates.py:210
 msgid "You can update PsychoPy with your package manager"
-msgstr ""
+msgstr "Pode atualizar o PsychoPy com o seu gestor de pacotes"
 
 #: psychopy/app/connections/updates.py:214
 msgid "Should PsychoPy update itself?"
-msgstr ""
+msgstr "O PsychoPy poderá atualizar-se a si mesmo?"
 
 #: psychopy/app/connections/updates.py:228
 msgid "Keep warning me"
-msgstr ""
+msgstr "Continue a avisar-me"
 
 #: psychopy/app/connections/updates.py:231
 msgid "Stop warning me"
-msgstr ""
+msgstr "Para de me avisar"
 
 #: psychopy/app/connections/updates.py:233
 msgid "Yes"
-msgstr ""
+msgstr "Sim"
 
 #: psychopy/app/connections/updates.py:236
 msgid "Not now"
-msgstr ""
+msgstr "Agora não"
 
 #: psychopy/app/connections/updates.py:238
 msgid "Skip this version"
-msgstr ""
+msgstr "Ignorar esta versão"
 
 #: psychopy/app/connections/updates.py:275
 msgid "PsychoPy Updates"
-msgstr ""
+msgstr "Atualizações do PsychoPy "
 
 #: psychopy/app/connections/updates.py:286
 msgid " Auto-update (will fetch latest version)"
-msgstr ""
+msgstr " Atualização automática (procurará a versão mais recente)"
 
 #: psychopy/app/connections/updates.py:295
 msgid " Use zip file below (download a PsychoPy release file ending .zip)"
 msgstr ""
+"Usar o arquivo zip abaixo (transfira um ficheiro do PsychoPy terminando em ."
+"zip)"
 
 #: psychopy/app/connections/updates.py:305
 #: psychopy/app/plugin_manager/packages.py:213
@@ -2977,18 +2998,18 @@ msgstr ""
 #: psychopy/app/plugin_manager/plugins.py:1048
 #: psychopy/app/plugin_manager/plugins.py:1078
 msgid "Install"
-msgstr ""
+msgstr "Instalar"
 
 #: psychopy/app/connections/updates.py:308 psychopy/app/runner/runner.py:147
 msgid "Close"
-msgstr ""
+msgstr "Fechar"
 
 #: psychopy/app/connections/updates.py:335
 #, python-format
 msgid ""
 "You are running PsychoPy v%s.\n"
 " "
-msgstr ""
+msgstr "Está a executar o PsychoPy v%s."
 
 #: psychopy/app/connections/updates.py:336
 msgid ""
@@ -3347,7 +3368,7 @@ msgstr ""
 
 #: psychopy/app/pavlovia_ui/project.py:317
 msgid "Download"
-msgstr ""
+msgstr "Transferência"
 
 #: psychopy/app/pavlovia_ui/project.py:322
 msgid ""
