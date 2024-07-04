@@ -139,13 +139,31 @@ requires = [
     "pdm-backend",
     "distro; platform_system == \"Linux\"",
     "tomlkit",
+    "setuptools>=41", "wheel", "setuptools-git-versioning>=2.0,<3",
     ]
-build-backend = "pdm.backend"
+build-backend = "setuptools.build_meta"
 
 [tool.pdm.build]
 includes = []
 excludes = ["building/"]
 #source-includes = ["tests/"]
+
+[tool.setuptools]
+packages = ["psychopy"]
+# this package will read some included files in runtime, avoid installing it as .zip
+zip-safe = false
+
+[tool.setuptools-git-versioning]
+enabled = true
+version_file = "psychopy/VERSION" 
+count_commits_from_version_file = true  # <--- enable commits tracking
+dev_template = "{tag}.{branch}{ccount}+git.{sha}"  # suffix for versions will be .dev
+dirty_template = "{tag}.{branch}{ccount}+git.{sha}.dirty"  # same thing here
+branch_formatter = "utils:_branchFormatter" 
+
+[tool.setuptools.package-data]
+# include VERSION file to a package
+psychopy = ["VERSION"]
 
 [tool.distutils.bdist_wheel]
 universal = 1
