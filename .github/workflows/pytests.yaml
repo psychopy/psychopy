@@ -142,9 +142,9 @@ jobs:
 
     - name: upload failed app data
       if: always()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: prefs for ${{ matrix.os }}_${{ matrix.python-version }}
+        name: prefs_files_${{ matrix.os }}_${{ matrix.python-version }}
         path: |
           ~/.psychopy3
           !~/.psychopy3/versions
@@ -152,9 +152,9 @@ jobs:
 
     - name: upload failed screenshots
       if: always()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: test artifacts
+        name: failed_test_data_${{ github.run_id }}_${{ matrix.python-version }}_${{ matrix.os }}
         path: |
           psychopy/tests/fails
           !**/*.mp4
