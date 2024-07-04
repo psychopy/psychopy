@@ -11,8 +11,9 @@
 
 import os
 import sys
+import pathlib
 
-__version__ = '2024.2.0dev6'
+__version__ = (pathlib.Path(__file__).parent/"VERSION").read_text(encoding="utf-8").strip()
 __license__ = 'GPL v3'
 __author__ = 'Open Science Tools Ltd'
 __author_email__ = 'support@opensciencetools.org'
