@@ -2878,7 +2878,7 @@ msgstr ""
 #: psychopy/app/connections/updates.py:148
 #: psychopy/app/connections/updates.py:167
 msgid "PsychoPy updates"
-msgstr "Atualizações do PsychoPy "
+msgstr "Atualizações do PsychoPy"
 
 #: psychopy/app/connections/updates.py:138
 #, python-format
@@ -2980,7 +2980,7 @@ msgstr "Ignorar esta versão"
 
 #: psychopy/app/connections/updates.py:275
 msgid "PsychoPy Updates"
-msgstr "Atualizações do PsychoPy "
+msgstr "Atualizações do PsychoPy"
 
 #: psychopy/app/connections/updates.py:286
 msgid " Auto-update (will fetch latest version)"
@@ -2990,7 +2990,7 @@ msgstr " Atualização automática (procurará a versão mais recente)"
 msgid " Use zip file below (download a PsychoPy release file ending .zip)"
 msgstr ""
 "Usar o arquivo zip abaixo (transfira um ficheiro do PsychoPy terminando em ."
-"zip)"
+"zip) "
 
 #: psychopy/app/connections/updates.py:305
 #: psychopy/app/plugin_manager/packages.py:213
@@ -3016,10 +3016,12 @@ msgid ""
 "PsychoPy could not connect to the \n"
 " internet to check for more recent versions.\n"
 msgstr ""
+"O PsychoPy não conseguiu conectar-se à \n"
+" internet para verificar versões mais recentes.\n"
 
 #: psychopy/app/connections/updates.py:338
 msgid "Check proxy settings in preferences."
-msgstr ""
+msgstr "Verificar as configurações de proxy nas preferências."
 
 #: psychopy/app/connections/updates.py:344
 #, python-format
@@ -3027,6 +3029,8 @@ msgid ""
 "You are running PsychoPy (%(running)s), which is ahead of the latest "
 "official version (%(latest)s)"
 msgstr ""
+"Está a executar o PsychoPy (%(running)s), que está à frente da versão "
+"oficial mais recente (%(latest)s)"
 
 #: psychopy/app/connections/updates.py:349
 #, python-format
@@ -3034,12 +3038,16 @@ msgid ""
 "You are running the latest version of PsychoPy (%s)\n"
 " "
 msgstr ""
+"Está a executar a versão mais recente do PsychoPy (%s)\n"
+" "
 
 #: psychopy/app/connections/updates.py:350
 msgid ""
 "You can revert to a previous version by selecting a specific .zip source "
 "installation file"
 msgstr ""
+"Pode reverter para uma versão anterior selecionando um ficheiro de "
+"instalação de origem .zip"
 
 #: psychopy/app/connections/updates.py:354
 #, python-format
@@ -3047,12 +3055,16 @@ msgid ""
 "PsychoPy v%(latest)s is available\n"
 "You are running v%(running)s"
 msgstr ""
+"PsychoPy v%(latest)s está disponivel\n"
+"Está a executar %(running)s"
 
 #: psychopy/app/connections/updates.py:359
 msgid ""
 "\n"
 "You can update to the latest version automatically"
 msgstr ""
+"\n"
+"Pode atualizar para a versão mais recente automaticamente"
 
 #: psychopy/app/connections/updates.py:361
 msgid ""
@@ -3060,31 +3072,38 @@ msgid ""
 "You cannot update to the latest version automatically.\n"
 "Please fetch the latest Standalone package from www.psychopy.org"
 msgstr ""
+"\n"
+"Não pode atualizar para a versão mais recente automaticamente.\n"
+"Obtenha, por favor, o pacote Standalone mais recente em www.psychopy.org"
 
 #: psychopy/app/connections/updates.py:413
 #, python-format
 msgid "Attempting to fetch PsychoPy %s..."
-msgstr ""
+msgstr "A tentar encontrar o PsychoPy %s..."
 
 #: psychopy/app/connections/updates.py:434
 #, python-format
 msgid "Fetched %(done)i of %(total)i kb of PsychoPy-%(version)s.zip"
-msgstr ""
+msgstr "Procura %(done)i de %(total)i kb do PsychoPy-%(version)s.zip"
 
 #: psychopy/app/connections/updates.py:439
 #, python-format
 msgid "Successfully downloaded PsychoPy-%s.zip"
-msgstr ""
+msgstr "Transferência do PsychoPy-%s.zip com sucesso"
 
 #: psychopy/app/connections/updates.py:486
 msgid ""
 "To upgrade you need to restart the app as admin (Right-click the app and "
 "'Run as admin')"
 msgstr ""
+"Para atualizar precisa de reiniciar o programa como administrador (clique "
+"com o botão direito no programa e 'Executar como administrador')"
 
 #: psychopy/app/connections/updates.py:490
 msgid "Could not move existing PsychoPy installation (permissions error?)"
 msgstr ""
+"Não foi possível mover a instalação existente do PsychoPy (erro de "
+"permissão?)"
 
 #: psychopy/app/connections/updates.py:519
 #, python-format
@@ -3092,6 +3111,8 @@ msgid ""
 "Right-click the app and 'Run as admin'):\n"
 "%s"
 msgstr ""
+"Clique com o botão direito no programa e 'Executar como administrador'):\n"
+"%s"
 
 #: psychopy/app/connections/updates.py:521
 #, python-format
@@ -3099,39 +3120,45 @@ msgid ""
 "Failed to create directory for new version (permissions error?):\n"
 "%s"
 msgstr ""
+"Falha ao criar diretório para a nova versão (erro de permissão?):\n"
+"%s"
 
 #: psychopy/app/connections/updates.py:546
 msgid ""
 "Success. \n"
 "Changes to PsychoPy will be completed when the application is next run"
 msgstr ""
+"Successo. \n"
+"As alterações no PsychoPy serão concluídas na próxima execução do programa"
 
 #: psychopy/app/connections/updates.py:555
 #, python-format
 msgid "Downloading PsychoPy v%s"
-msgstr ""
+msgstr "A transferir PsychoPy v%s"
 
 #: psychopy/app/connections/updates.py:560
 msgid ""
 "Failed to fetch PsychoPy release.\n"
 "Check proxy setting in preferences"
 msgstr ""
+"Falha ao procurar a versão do PsychoPy.\n"
+"Verifique a configuração de proxy nas preferências"
 
 #: psychopy/app/dialogs.py:34 psychopy/gui/qtgui.py:656
 msgid "Warning"
-msgstr ""
+msgstr "Aviso"
 
 #: psychopy/app/dialogs.py:35
 msgid "Info"
-msgstr ""
+msgstr "Info"
 
 #: psychopy/app/dialogs.py:36
 msgid "Query"
-msgstr ""
+msgstr "Consultar"
 
 #: psychopy/app/errorDlg.py:27
 msgid "PsychoPy3 Error"
-msgstr ""
+msgstr "Erro PsychoPy3"
 
 #: psychopy/app/errorDlg.py:34
 msgid ""
@@ -3139,53 +3166,58 @@ msgid ""
 "under \"Details\" to the developers with a description of what you were "
 "doing with the software when the error occurred."
 msgstr ""
+"O PsychoPy encontrou um erro interno não tratado! Envie o relatório em "
+"\"Detalhes\" aos desenvolvedores com uma descrição do que estava a fazer com "
+"o software quando o erro ocorreu."
 
 #: psychopy/app/errorDlg.py:56
 msgid "&OK"
-msgstr ""
+msgstr "&OK"
 
 #: psychopy/app/errorDlg.py:59
 msgid "E&xit PsychoPy"
-msgstr ""
+msgstr "S&air PsychoPy"
 
 #: psychopy/app/errorDlg.py:66
 msgid "&Details"
-msgstr ""
+msgstr "&Detalhes"
 
 #: psychopy/app/errorDlg.py:78
 msgid "&Copy"
-msgstr ""
+msgstr "&Copiar"
 
 #: psychopy/app/errorDlg.py:82
 msgid "&Save"
-msgstr ""
+msgstr "&Guardar"
 
 #: psychopy/app/errorDlg.py:125
 msgid ""
 "Are you sure you want to exit PsychoPy? Unsaved work may be lost (but we'll "
 "try to save opened files)."
 msgstr ""
+"Tem a certeza de que deseja sair do PsychoPy? O trabalho não guardado pode "
+"ser perdido (mas tentaremos salvar os arquivos abertos)."
 
 #: psychopy/app/errorDlg.py:127
 msgid "Exit PsychoPy?"
-msgstr ""
+msgstr "Sair do PsychoPy?"
 
 #: psychopy/app/errorDlg.py:163
 msgid "Save error traceback"
-msgstr ""
+msgstr "Guardar o rastreamento de erro"
 
 #: psychopy/app/errorDlg.py:180
 #, python-format
 msgid "Cannot save to file '%s'."
-msgstr ""
+msgstr "Não é possível salvar no ficheiro '%s'."
 
 #: psychopy/app/errorDlg.py:181
 msgid "File save error"
-msgstr ""
+msgstr "Erro ao salvar ficheiro"
 
 #: psychopy/app/errorDlg.py:212
 msgid "Connection Error"
-msgstr ""
+msgstr "Erro de conecção"
 
 #: psychopy/app/errorDlg.py:213
 msgid ""
@@ -3196,133 +3228,145 @@ msgid ""
 "\n"
 "https://pavlovia.org/status"
 msgstr ""
+"Não foi possível conectar-se ao servidor Pavlovia. \n"
+"\n"
+"Por favor, verifique se está conectado à Internet. Se estiver conectado, os "
+"servidores Pavlovia podem estar inativos. Pode verificar o status deles "
+"aqui: \n"
+"\n"
+"https://pavlovia.org/status"
 
 #: psychopy/app/pavlovia_ui/_base.py:33
 #, python-format
 msgid "&Close View\t%s"
-msgstr ""
+msgstr "&Fechar Visualização\t%s"
 
 #: psychopy/app/pavlovia_ui/_base.py:34
 msgid "Close current window"
-msgstr ""
+msgstr "Fechar a janela atual"
 
 #: psychopy/app/pavlovia_ui/_base.py:164
 #: psychopy/app/pavlovia_ui/functions.py:138
 msgid "Committing changes"
-msgstr ""
+msgstr "A implementar alterações"
 
 #: psychopy/app/pavlovia_ui/_base.py:166
 msgid "Summary of changes"
-msgstr ""
+msgstr "Resumo das alterações"
 
 #: psychopy/app/pavlovia_ui/_base.py:168
 msgid ""
 "Details of changes\n"
 " (optional)"
 msgstr ""
+"Detalhes das alterações\n"
+"(opcional)"
 
 #: psychopy/app/pavlovia_ui/_base.py:183
 msgid "Title summarizing the changes you're making in these files"
-msgstr ""
+msgstr "Título resumindo as alterações que estão a ser feitas nestes ficheiros"
 
 #: psychopy/app/pavlovia_ui/_base.py:186
 msgid "Optional details about the changes you're making in these files"
 msgstr ""
+"Detalhes opcionais sobre as alterações que está a fazer nestes ficheiros"
 
 #: psychopy/app/pavlovia_ui/functions.py:43
 msgid "Choose/create the root location for the synced project"
-msgstr ""
+msgstr "Escolher/criar o local raiz para o projeto sincronizado"
 
 #: psychopy/app/pavlovia_ui/functions.py:72
 msgid "You are not logged in to Pavlovia. Please log in to continue."
-msgstr ""
+msgstr "Não está conectado à Pavlovia. Por favor faça o login para continuar."
 
 #: psychopy/app/pavlovia_ui/functions.py:74
 #: psychopy/app/pavlovia_ui/project.py:764
 msgid "Login..."
-msgstr ""
+msgstr "Login..."
 
 #: psychopy/app/pavlovia_ui/functions.py:130
 msgid "Changes to commit:\n"
-msgstr ""
+msgstr "Alterações a implementar:\n"
 
 #: psychopy/app/pavlovia_ui/functions.py:136
 msgid "\t{}: {} files\n"
-msgstr ""
+msgstr "\t{}: {} ficheiros\n"
 
 #: psychopy/app/pavlovia_ui/functions.py:160
 msgid "You need to install git to use Pavlovia projects"
-msgstr ""
+msgstr "Precisa de instalar o git para usar projetos Pavlovia"
 
 #: psychopy/app/pavlovia_ui/menu.py:59
 msgid "Log in to Pavlovia...\t{}"
-msgstr ""
+msgstr "Fazer login na Pavlovia...\t{}"
 
 #: psychopy/app/pavlovia_ui/menu.py:62
 msgid "User"
-msgstr ""
+msgstr "Utilizador"
 
 #: psychopy/app/pavlovia_ui/menu.py:66
 msgid "Search Pavlovia\t{}"
-msgstr ""
+msgstr "Pesquisar na Pavlovia\t{}"
 
 #: psychopy/app/pavlovia_ui/menu.py:72
 msgid "New...\t{}"
-msgstr ""
+msgstr "Novo...\t{}"
 
 #: psychopy/app/pavlovia_ui/menu.py:76
 msgid "Sync\t{}"
-msgstr ""
+msgstr "Sncronizar\t{}"
 
 #: psychopy/app/pavlovia_ui/menu.py:138
 msgid "You need to log in to create a project"
-msgstr ""
+msgstr "Precisa de fazer o login para criar um projeto"
 
 #: psychopy/app/pavlovia_ui/project.py:66
 msgid "Name:"
-msgstr ""
+msgstr "Nome:"
 
 #: psychopy/app/pavlovia_ui/project.py:79
 msgid "Group/owner:"
-msgstr ""
+msgstr "Grupo/proprietário:"
 
 #: psychopy/app/pavlovia_ui/project.py:83
 msgid "Description:"
-msgstr ""
+msgstr "Descrição:"
 
 #: psychopy/app/pavlovia_ui/project.py:87
 msgid "Local folder:"
-msgstr ""
+msgstr "Local da pasta:"
 
 #: psychopy/app/pavlovia_ui/project.py:90
 msgid "Browse..."
-msgstr ""
+msgstr "Procurar..."
 
 #: psychopy/app/pavlovia_ui/project.py:97
 msgid "Tags (comma separated):"
-msgstr ""
+msgstr "Tags (separado por vírgulas):"
 
 #: psychopy/app/pavlovia_ui/project.py:101
 msgid "Public:"
-msgstr ""
+msgstr "Publico:"
 
 #: psychopy/app/pavlovia_ui/project.py:106
 msgid "Create project on Pavlovia"
-msgstr ""
+msgstr "Criar um projeto na Pavlovia"
 
 #: psychopy/app/pavlovia_ui/project.py:108
 msgid "Submit changes to Pavlovia"
-msgstr ""
+msgstr "Enviar alterações para a Pavlovia"
 
 #: psychopy/app/pavlovia_ui/project.py:194
 msgid "Star"
-msgstr ""
+msgstr "Estrela"
 
 #: psychopy/app/pavlovia_ui/project.py:244
 msgid ""
 "An image to represent this project, this helps it stand out when browsing on "
 "Pavlovia."
 msgstr ""
+"Uma imagem para representar este projeto, que ajudará~o projeto a destacar-"
+"se no navegar na Pavlovia."
 
 #: psychopy/app/pavlovia_ui/project.py:259
 msgid ""
@@ -3330,10 +3374,13 @@ msgid ""
 "anywhere; so you can add spaces, apostrophes and emojis to your heart's "
 "content! 🦕✨"
 msgstr ""
+"Título do projeto. Ao contrário do nome do projeto, este não é usado como "
+"nome de ficheiro em lugar nenhum; por isso, pode adicionar espaços, "
+"apóstrofos e emojis conforme desejar! 🦕✨"
 
 #: psychopy/app/pavlovia_ui/project.py:273
 msgid "Click to view the project in Pavlovia."
-msgstr ""
+msgstr "Clicar para ver o projeto em Pavlovia."
 
 #: psychopy/app/pavlovia_ui/project.py:285
 msgid ""
@@ -3341,30 +3388,39 @@ msgid ""
 "appear first in your searches and projects with more stars in total will "
 "appear higher in everyone's searches."
 msgstr ""
+"Dê uma 'estrela' a este projeto para voltar a ele facilmente. Os projetos "
+"marcados com estrela aparecerão em primeiro lugar nas suas pesquisas e os "
+"projetos com mais estrelas no total aparecerão em primeiro lugar nas "
+"pesquisas de todos."
 
 #: psychopy/app/pavlovia_ui/project.py:291
 msgid "Fork"
-msgstr ""
+msgstr "Fork"
 
 #: psychopy/app/pavlovia_ui/project.py:296
 msgid ""
 "Create a copy of this project on your own Pavlovia account so that you can "
 "make changes without affecting the original project."
 msgstr ""
+"Criar uma cópia deste projeto na sua própria conta Pavlovia para poder fazer "
+"alterações sem afetar o projeto original."
 
 #: psychopy/app/pavlovia_ui/project.py:300
 msgid "Create"
-msgstr ""
+msgstr "Criar"
 
 #: psychopy/app/pavlovia_ui/project.py:305
 msgid "Create a Pavlovia project for the current experiment."
-msgstr ""
+msgstr "Criar um projeto Pavlovia para a experiência atual."
 
 #: psychopy/app/pavlovia_ui/project.py:313
 msgid ""
 "Synchronise this project's local files with their online counterparts. This "
 "will 'pull' changes from Pavlovia and 'push' changes from your local files."
 msgstr ""
+"Sincronizar os ficheiros locais deste projeto com seus equivalentes online. "
+"Isso irá 'puxar' as alterações da Pavlovia e 'enviar' as alterações dos seus "
+"ficheiros locais."
 
 #: psychopy/app/pavlovia_ui/project.py:317
 msgid "Download"
@@ -3376,10 +3432,13 @@ msgid ""
 "any changes you make so that they can be applied when you next 'sync' the "
 "project."
 msgstr ""
+"'Clonar' este projeto, criando cópias locais de todos os ficheiros e "
+"rastreando quaisquer alterações feitas para que elas possam ser aplicadas na "
+"próxima 'sincronização' do projeto."
 
 #: psychopy/app/pavlovia_ui/project.py:329
 msgid "Last synced at..."
-msgstr ""
+msgstr "Última sincronização às..."
 
 #: psychopy/app/pavlovia_ui/project.py:343
 msgid ""
@@ -3387,41 +3446,52 @@ msgid ""
 "this folder will be tracked and applied to the project when you 'sync', so "
 "make sure the only files in this folder are relevant!"
 msgstr ""
+"Pasta na qual os arquivos locais são armazenados para este projeto. As "
+"alterações nos arquivos desta pasta serão rastreadas e aplicadas ao projeto "
+"quando 'sincronizar', portanto, certifique-se de que os únicos ficheiros "
+"nesta pasta sejam relevantes!"
 
 #: psychopy/app/pavlovia_ui/project.py:353
 msgid ""
 "Description of the project to be shown on Pavlovia. Note: This is different "
 "than a README file!"
 msgstr ""
+"Descrição do projeto a ser exibido na Pavlovia. Nota: Isso é diferente de um "
+"arquivo README!"
 
 #: psychopy/app/pavlovia_ui/project.py:360
 msgid "Visibility:"
-msgstr ""
+msgstr "Visibilidade:"
 
 #: psychopy/app/pavlovia_ui/project.py:366
 msgid ""
 "Visibility of the current project; whether its visible only to its creator "
 "(Private) or to any user (Public)."
 msgstr ""
+"Visibilidade do projeto atual; seja visível apenas para seu criador "
+"(Privado) ou para qualquer utilizador (Público)"
 
 #: psychopy/app/pavlovia_ui/project.py:372
 msgid "Status:"
-msgstr ""
+msgstr "Status:"
 
 #: psychopy/app/pavlovia_ui/project.py:378
 msgid ""
 "Project status; whether it can be run to collect data (Running), run by its "
 "creator without saving data (Piloting) or cannot be run (Inactive)."
 msgstr ""
+"Status do projeto; seja para ser executado para recolher dados (Running), "
+"executar pelo criador sem guardar os dados (Piloting) ou pode não ser "
+"executado (Inativo)."
 
 #: psychopy/app/pavlovia_ui/project.py:384
 #: psychopy/app/plugin_manager/plugins.py:680
 msgid "Keywords:"
-msgstr ""
+msgstr "Palavras-chave:"
 
 #: psychopy/app/pavlovia_ui/project.py:386
 msgid "tag"
-msgstr ""
+msgstr "tag"
 
 #: psychopy/app/pavlovia_ui/project.py:391
 msgid ""
@@ -3429,6 +3499,9 @@ msgid ""
 "example, if your experiment is useful to psychophysicists, you may want to "
 "add the keyword 'psychophysics'."
 msgstr ""
+"Palavras-chave associadas a este projeto, ajudando outras pessoas a encontrá-"
+"lo. Por exemplo, se a sua experiência for útil para psicofísicos, pode "
+"adicionar a palavra-chave 'psicofísica'."
 
 #: psychopy/app/pavlovia_ui/project.py:473
 msgid ""
@@ -3438,168 +3511,187 @@ msgid ""
 "the correct user in the PsychoPy app, and that your account has access to "
 "the project."
 msgstr ""
+"Não foi possível encontrar o projeto GitLab com o ID {}.\n"
+"\n"
+"Verifique se o projeto existe na Pavlovia, se está conectado como o "
+"utilizador correto no programa PsychoPy e se a sua conta tem acesso ao "
+"projeto."
 
 #: psychopy/app/pavlovia_ui/project.py:676
 #, python-brace-format
 msgid ""
 "Could not find folder {directory}, please select a different local root."
 msgstr ""
+"Não foi possível encontrar a pasta {directory}, selecione por favor uma raiz "
+"local diferente."
 
 #: psychopy/app/pavlovia_ui/project.py:714
 msgid "Project info has changed, update online before closing?"
 msgstr ""
+"As informações do projeto foram alteradas. Atualizar on-line antes de fechar?"
 
 #: psychopy/app/pavlovia_ui/project.py:729
 msgid "Project info"
-msgstr ""
+msgstr "Informação do projeto"
 
 #: psychopy/app/pavlovia_ui/project.py:762 psychopy/projects/pavlovia.py:838
 msgid "You are not logged in to Pavlovia. Please log in to sync project."
-msgstr ""
+msgstr "Não está ligado à Pavlovia. Faça login para sincronizar o projeto."
 
 #: psychopy/app/pavlovia_ui/project.py:786
 msgid "This file doesn't belong to any existing project."
-msgstr ""
+msgstr "Este ficheiro não pertence a nenhum projeto existente."
 
 #: psychopy/app/pavlovia_ui/project.py:788
 msgid "Create a project"
-msgstr ""
+msgstr "Criar um projeto"
 
 #: psychopy/app/pavlovia_ui/project.py:821
 msgid "Project root folder is not yet specified, specify project root now?"
 msgstr ""
+"A pasta raiz do projeto ainda não foi especificada. Especificar a raiz do "
+"projeto agora?"
 
 #: psychopy/app/pavlovia_ui/project.py:824
 msgid "Project root folder does not exist, change project root now?"
-msgstr ""
+msgstr "A pasta raiz do projeto não existe, alterar a raiz do projeto agora?"
 
 #: psychopy/app/pavlovia_ui/project.py:828 psychopy/app/utils.py:1339
 msgid "Specify folder..."
-msgstr ""
+msgstr "Especificar pasta..."
 
 #: psychopy/app/pavlovia_ui/project.py:848
 msgid ""
 "\n"
 "Sync cancelled by user."
 msgstr ""
+"\n"
+"Sincronização cancelada pelo utilizador."
 
 #: psychopy/app/pavlovia_ui/project.py:900
 msgid "points to a remote that doesn't exist (deleted?)."
-msgstr ""
+msgstr "aponta para uma referência que não existe (eliminado?)."
 
 #: psychopy/app/pavlovia_ui/project.py:901
 msgid "What shall we do?"
-msgstr ""
+msgstr "O que devemos fazer?"
 
 #: psychopy/app/pavlovia_ui/project.py:903
 msgid "(Re)create a project"
-msgstr ""
+msgstr "(Re)criar um projeto"
 
 #: psychopy/app/pavlovia_ui/project.py:904
 msgid "Point to an different location"
-msgstr ""
+msgstr "Apontar para um local diferente"
 
 #: psychopy/app/pavlovia_ui/project.py:905
 msgid "not yet supported"
-msgstr ""
+msgstr "ainda não suportado"
 
 #: psychopy/app/pavlovia_ui/project.py:906
 msgid "Forget the local git repository (deletes history keeps files)"
 msgstr ""
+"Esqueça o repositório git local (exclui o histórico e mantém os ficheiros)"
 
 #: psychopy/app/pavlovia_ui/search.py:45
 msgid "Search for projects online"
-msgstr ""
+msgstr "Procurar projetos online"
 
 #: psychopy/app/pavlovia_ui/search.py:130
 msgid "Me"
-msgstr ""
+msgstr "Meu"
 
 #: psychopy/app/pavlovia_ui/search.py:140
 msgid "Sort..."
-msgstr ""
+msgstr "Ordenar..."
 
 #: psychopy/app/pavlovia_ui/search.py:145
 msgid "Filter..."
-msgstr ""
+msgstr "Filtrar..."
 
 #: psychopy/app/pavlovia_ui/search.py:173
 msgid "Author"
-msgstr ""
+msgstr "Autor"
 
 #: psychopy/app/pavlovia_ui/search.py:174
 #: psychopy/experiment/components/_base.py:64 psychopy/experiment/loops.py:96
 #: psychopy/experiment/loops.py:430 psychopy/experiment/loops.py:584
 #: psychopy/experiment/routines/_base.py:47
 msgid "Name"
-msgstr ""
+msgstr "Nome"
 
 #: psychopy/app/pavlovia_ui/sync.py:20
 msgid "Syncing project..."
-msgstr ""
+msgstr "A sincronizar o projeto"
 
 #: psychopy/app/pavlovia_ui/sync.py:27
 msgid "Synchronising..."
-msgstr ""
+msgstr "Sincronizando..."
 
 #: psychopy/app/pavlovia_ui/sync.py:79
 msgid "New project..."
-msgstr ""
+msgstr "Novo projeto..."
 
 #: psychopy/app/pavlovia_ui/sync.py:96
 msgid "Project name:"
-msgstr ""
+msgstr "Nome do projeto:"
 
 #: psychopy/app/pavlovia_ui/sync.py:117
 msgid "Project folder:"
-msgstr ""
+msgstr "Nome da pasta:"
 
 #: psychopy/app/pavlovia_ui/user.py:104
 msgid "Switch User"
-msgstr ""
+msgstr "Alterar Utilizador"
 
 #: psychopy/app/pavlovia_ui/user.py:109
 msgid "Login"
-msgstr ""
+msgstr "Login"
 
 #: psychopy/app/pavlovia_ui/user.py:114
 msgid "Logout"
-msgstr ""
+msgstr "Logout"
 
 #: psychopy/app/plugin_manager/dialog.py:22
 msgid "Plugins & Packages"
-msgstr ""
+msgstr "Plugins & Pacotes"
 
 #: psychopy/app/plugin_manager/dialog.py:41
 msgid "Plugins"
-msgstr ""
+msgstr "Plugins"
 
 #: psychopy/app/plugin_manager/dialog.py:44
 msgid "Packages"
-msgstr ""
+msgstr "Pacotes"
 
 #: psychopy/app/plugin_manager/dialog.py:323
 msgid ""
 "[Warning] Could not activate plugin. PsychoPy may need to restart for plugin "
 "to take effect."
 msgstr ""
+"[Aviso] Não foi possível ativar o plugin. O PsychoPy pode precisar de ser "
+"reiniciado para que o plugin tenha efeito."
 
 #: psychopy/app/plugin_manager/dialog.py:333
 msgid ""
 "The following components/routines should now be visible in the Components "
 "panel (a restart may be required in some cases):\n"
 msgstr ""
+"As seguintes componentes/rotinas agora devem estar visíveis no painel "
+"Componentes (reiniciar pode ser necessário em alguns casos):\n"
 
 #: psychopy/app/plugin_manager/dialog.py:344
 #, python-format
 msgid "For more information about the %s plugin, read the documentation at:"
-msgstr ""
+msgstr "Para mais informações sobre o plugin %s, leia a documentação em:"
 
 #: psychopy/app/plugin_manager/dialog.py:359
 msgid ""
 "It looks like you've uninstalled some plugins. In order for this to take "
 "effect, you will need to restart the PsychoPy app."
 msgstr ""
+"Parece que desinstalou alguns plug-ins. Para que isto tenha efeito, "
+"precisará de reiniciar o programa PsychoPy."
 
 #: psychopy/app/plugin_manager/packages.py:71
 msgid ""
@@ -3610,509 +3702,525 @@ msgid ""
 "{}\n"
 "\n"
 msgstr ""
+"Digite um comando PIP abaixo e pressione Enter para o executar no ambiente "
+"PsychoPy instalado, qualquer texto retornado aparecerá abaixo.\n"
+"\n"
+"Todos os comandos serão automaticamente precedidos por:\n"
+"{}\n"
+"\n"
 
 #: psychopy/app/plugin_manager/packages.py:160
 msgid "or..."
-msgstr ""
+msgstr "ou..."
 
 #: psychopy/app/plugin_manager/packages.py:163
 msgid "Install from file"
-msgstr ""
+msgstr "Instalar a partir do ficheiro"
 
 #: psychopy/app/plugin_manager/packages.py:164
 msgid "Install a package from a local file, such as a .egg or wheel."
-msgstr ""
+msgstr "Instale o programa a partir de um ficheiro local, como .egg ou wheel."
 
 #: psychopy/app/plugin_manager/packages.py:168
 msgid "Open PIP terminal"
-msgstr ""
+msgstr "Abrir o terminal PIP"
 
 #: psychopy/app/plugin_manager/packages.py:169
 msgid "Open PIP terminal to manage packages manually"
-msgstr ""
+msgstr "Abrir o terminal PIP para gerir pacotes manualmente"
 
 #: psychopy/app/plugin_manager/packages.py:206
 #: psychopy/app/plugin_manager/packages.py:342
 msgid "Uninstall"
-msgstr ""
+msgstr "Desinstalar"
 
 #: psychopy/app/plugin_manager/packages.py:259
 msgid "Package"
-msgstr ""
+msgstr "Pacote"
 
 #: psychopy/app/plugin_manager/packages.py:260
 #: psychopy/app/plugin_manager/plugins.py:1070
 msgid "Installed"
-msgstr ""
+msgstr "Instalado"
 
 #: psychopy/app/plugin_manager/packages.py:271
 msgid "Latest"
-msgstr ""
+msgstr "Mais recente"
 
 #: psychopy/app/plugin_manager/packages.py:319
 msgid "by "
-msgstr ""
+msgstr "por"
 
 #: psychopy/app/plugin_manager/packages.py:329
 #: psychopy/app/plugin_manager/plugins.py:670
 msgid "Homepage"
-msgstr ""
+msgstr "Homepage"
 
 #: psychopy/app/plugin_manager/plugins.py:478
 msgid "Not for PsychoPy {}:"
-msgstr ""
+msgstr "Não para PsychoPy {}:"
 
 #: psychopy/app/plugin_manager/plugins.py:656
 msgid "Version:"
-msgstr ""
+msgstr "Versão:"
 
 #: psychopy/app/plugin_manager/plugins.py:685
 msgid "keyword"
-msgstr ""
+msgstr "palavra-chave"
 
 #: psychopy/app/plugin_manager/plugins.py:699
 msgid "Select a plugin to view details."
-msgstr ""
+msgstr "Selecione um plugin para ver os detalhes."
 
 #: psychopy/app/plugin_manager/plugins.py:883
 msgid "Works with versions {}."
-msgstr ""
+msgstr "Funciona com versões {}."
 
 #: psychopy/app/plugin_manager/plugins.py:924
 msgid "Email author"
-msgstr ""
+msgstr "E-mail do autor"
 
 #: psychopy/app/plugin_manager/plugins.py:929
 msgid "Author's GitHub"
-msgstr ""
+msgstr "GitHub do autor"
 
 #: psychopy/app/plugin_manager/plugins.py:993
 msgid "That's us! We make PsychoPy and Pavlovia!"
-msgstr ""
+msgstr "Somos nós! Fazemos o PsychoPy e a Pavlovia!"
 
 #: psychopy/app/plugin_manager/plugins.py:1118
 #: psychopy/app/plugin_manager/plugins.py:1136
 msgid "Enabled"
-msgstr ""
+msgstr "Habilitado"
 
 #: psychopy/app/plugin_manager/plugins.py:1122
 #: psychopy/app/plugin_manager/plugins.py:1140
 msgid "Disabled"
-msgstr ""
+msgstr "Desabilitado"
 
 #: psychopy/app/plugin_manager/utils.py:13
 msgid "PIP error"
-msgstr ""
+msgstr "Erro PIP"
 
 #: psychopy/app/plugin_manager/utils.py:41
 msgid "We tried:"
-msgstr ""
+msgstr "Nós tentamos:"
 
 #: psychopy/app/plugin_manager/utils.py:48
 msgid "We got:"
-msgstr ""
+msgstr "Nós obtivemos:"
 
 #: psychopy/app/plugin_manager/utils.py:83
 msgid "Package {} could not be uninstalled."
-msgstr ""
+msgstr "O pacote {} não pôde ser desinstalado."
 
 #: psychopy/app/plugin_manager/utils.py:89
 msgid "Package installed"
-msgstr ""
+msgstr "Pacote instalado"
 
 #: psychopy/app/plugin_manager/utils.py:90
 msgid "Package {} successfully uninstalled!"
-msgstr ""
+msgstr "Pacote {} desinstalado com sucesso!"
 
 #: psychopy/app/plugin_manager/utils.py:111
 msgid "Installation complete. See above for info.\n"
-msgstr ""
+msgstr "Instalação completa. Veja acima para informações.\n"
 
 #: psychopy/app/plugin_manager/utils.py:113
 msgid "Installation failed. See above for info.\n"
-msgstr ""
+msgstr "A instalação falhou. Veja acima para informações.\n"
 
 #: psychopy/app/preferencesDlg.py:24
 #: psychopy/experiment/components/settings/__init__.py:273
 msgid "Latency not important"
-msgstr ""
+msgstr "Latência não é importante"
 
 #: psychopy/app/preferencesDlg.py:25
 #: psychopy/experiment/components/settings/__init__.py:274
 msgid "Share low-latency driver"
-msgstr ""
+msgstr "Compartilhar baixa latência da driver"
 
 #: psychopy/app/preferencesDlg.py:26
 #: psychopy/experiment/components/settings/__init__.py:275
 msgid "Exclusive low-latency"
-msgstr ""
+msgstr "Exclusivamente baixa latência"
 
 #: psychopy/app/preferencesDlg.py:27
 #: psychopy/experiment/components/settings/__init__.py:276
 msgid "Aggressive low-latency"
-msgstr ""
+msgstr "Agressiva baixa latência"
 
 #: psychopy/app/preferencesDlg.py:28
 #: psychopy/experiment/components/settings/__init__.py:277
 msgid "Latency critical"
-msgstr ""
+msgstr "Latência crítica"
 
 #: psychopy/app/preferencesDlg.py:305
 msgid "PsychoPy Preferences"
-msgstr ""
+msgstr "Preferências do PsychoPy "
 
 #: psychopy/app/preferencesDlg.py:330
 msgid "General"
-msgstr ""
+msgstr "Geral"
 
 #: psychopy/app/preferencesDlg.py:333
 msgid "Application"
-msgstr ""
+msgstr "Aplicação"
 
 #: psychopy/app/preferencesDlg.py:336
 msgid "Key Bindings"
-msgstr ""
+msgstr "Combinação de teclas"
 
 #: psychopy/app/preferencesDlg.py:339
 msgid "Hardware"
-msgstr ""
+msgstr "Hardware"
 
 #: psychopy/app/preferencesDlg.py:341
 msgid "Connections"
-msgstr ""
+msgstr "Conecções"
 
 #: psychopy/app/preferencesDlg.py:360
 msgid " Apply "
-msgstr ""
+msgstr "Aplicar"
 
 #: psychopy/app/preferencesDlg.py:497
 msgid "system locale"
-msgstr ""
+msgstr "local do sistema"
 
 #: psychopy/app/preferencesDlg.py:679
 #, python-format
 msgid "Invalid value in \"%(pref)s\" (\"%(section)s\" Tab)"
-msgstr ""
+msgstr "Valor inválido em \"%(pref)s\" (\"%(section)s\" Tab)"
 
 #: psychopy/app/ribbon.py:447 psychopy/app/ribbon.py:516
 msgid "No user"
-msgstr ""
+msgstr "Nenhum utilizador"
 
 #: psychopy/app/ribbon.py:482
 msgid "Edit user..."
-msgstr ""
+msgstr "Editar utilizador..."
 
 #: psychopy/app/ribbon.py:488
 msgid "Switch user"
-msgstr ""
+msgstr "Alterar utilizador"
 
 #: psychopy/app/ribbon.py:496
 msgid "New user..."
-msgstr ""
+msgstr "Novo utilizador..."
 
 #: psychopy/app/ribbon.py:502
 msgid "Log out"
-msgstr ""
+msgstr "Log out"
 
 #: psychopy/app/ribbon.py:505
 msgid "Log in"
-msgstr ""
+msgstr "Log in"
 
 #: psychopy/app/ribbon.py:573 psychopy/app/ribbon.py:628
 msgid "No project"
-msgstr ""
+msgstr "Nenhum projeto"
 
 #: psychopy/app/ribbon.py:607
 msgid "New project"
-msgstr ""
+msgstr "Novo projeto"
 
 #: psychopy/app/ribbon.py:611
 msgid "Edit project..."
-msgstr ""
+msgstr "Editar projeto..."
 
 #: psychopy/app/ribbon.py:617
 msgid "Search projects..."
-msgstr ""
+msgstr "Procurar projetos..."
 
 #: psychopy/app/runner/runner.py:131
 msgid "Add task"
-msgstr ""
+msgstr "Adicionar tarefa"
 
 #: psychopy/app/runner/runner.py:132
 msgid "Adding task"
-msgstr ""
+msgstr "A adicionar tarefa"
 
 #: psychopy/app/runner/runner.py:134
 msgid "Remove task"
-msgstr ""
+msgstr "Remover tarefa"
 
 #: psychopy/app/runner/runner.py:137
 msgid "Clear all"
-msgstr ""
+msgstr "Apagar tudo"
 
 #: psychopy/app/runner/runner.py:138
 msgid "Clearing tasks"
-msgstr ""
+msgstr "Apagar tarefas"
 
 #: psychopy/app/runner/runner.py:141
 msgid "&Save list"
-msgstr ""
+msgstr "&Guardar a lista"
 
 #: psychopy/app/runner/runner.py:142
 msgid "Saving task"
-msgstr ""
+msgstr "Guardar a tarefa"
 
 #: psychopy/app/runner/runner.py:144
 msgid "&Open list"
-msgstr ""
+msgstr "&Abrir lista"
 
 #: psychopy/app/runner/runner.py:145
 msgid "Loading task"
-msgstr ""
+msgstr "A carregar tarefa"
 
 #: psychopy/app/runner/runner.py:148
 msgid "Closing Runner"
-msgstr ""
+msgstr "Fechar o Runner"
 
 #: psychopy/app/runner/runner.py:151
 msgid "Quitting PsychoPy"
-msgstr ""
+msgstr "A sair do PsychoPy"
 
 #: psychopy/app/runner/runner.py:160
 #, python-format
 msgid "&Run\t%s"
-msgstr ""
+msgstr "&Executar\t%s"
 
 #: psychopy/app/runner/runner.py:161
 msgid "Running experiment"
-msgstr ""
+msgstr "A executar experiência"
 
 #: psychopy/app/runner/runner.py:164
 msgid "Run &JS for local debug"
-msgstr ""
+msgstr "Executar &JS para debug local"
 
 #: psychopy/app/runner/runner.py:165
 msgid "Launching local debug of online study"
-msgstr ""
+msgstr "A lançar debug local do estudo online"
 
 #: psychopy/app/runner/runner.py:168
 msgid "Run JS on &Pavlovia"
-msgstr ""
+msgstr "Execuatr JS na &Pavlovia"
 
 #: psychopy/app/runner/runner.py:169
 msgid "Launching online study at Pavlovia"
-msgstr ""
+msgstr "A lançar o estudo online na Pavlovia"
 
 #: psychopy/app/runner/runner.py:175
 msgid "&Builder Demos"
-msgstr ""
+msgstr "&Demonstrações do Builder"
 
 #: psychopy/app/runner/runner.py:176
 msgid "Loading builder demos"
-msgstr ""
+msgstr "A carregar demonstrações do builder"
 
 #: psychopy/app/runner/runner.py:179
 msgid "&Coder Demos"
-msgstr ""
+msgstr "&Demonstrações do Coder"
 
 #: psychopy/app/runner/runner.py:180
 msgid "Loading coder demos"
-msgstr ""
+msgstr "A carregar demonstrações do coder"
 
 #: psychopy/app/runner/runner.py:209
 msgid "&Run"
-msgstr ""
+msgstr "&Executar"
 
 #: psychopy/app/runner/runner.py:229
 msgid "Save task list as ..."
-msgstr ""
+msgstr "Guardar a lista de tarefas como..."
 
 #: psychopy/app/runner/runner.py:261
 msgid "Open task list ..."
-msgstr ""
+msgstr "Abrir a lista de tarefas..."
 
 #: psychopy/app/runner/runner.py:374
 msgid "basic"
-msgstr ""
+msgstr "básico"
 
 #: psychopy/app/runner/runner.py:375
 msgid "input"
-msgstr ""
+msgstr "input"
 
 #: psychopy/app/runner/runner.py:376
 msgid "stimuli"
-msgstr ""
+msgstr "estímulos"
 
 #: psychopy/app/runner/runner.py:377
 msgid "exp control"
-msgstr ""
+msgstr "exp control"
 
 #: psychopy/app/runner/runner.py:379
 msgid "hardware"
-msgstr ""
+msgstr "hardware"
 
 #: psychopy/app/runner/runner.py:380
 msgid "timing"
-msgstr ""
+msgstr "tempo"
 
 #: psychopy/app/runner/runner.py:381
 msgid "misc"
-msgstr ""
+msgstr "diversos"
 
 #: psychopy/app/runner/runner.py:484
 msgid "Path"
-msgstr ""
+msgstr "Caminho"
 
 #: psychopy/app/runner/runner.py:898
 msgid "Alerts"
-msgstr ""
+msgstr "Alertas"
 
 #: psychopy/app/runner/runner.py:907
 msgid "Stdout"
-msgstr ""
+msgstr "Stdout"
 
 #: psychopy/app/runner/runner.py:920
 msgid "Manage list"
-msgstr ""
+msgstr "Gerir lista"
 
 #: psychopy/app/runner/runner.py:924
 msgid "Add"
-msgstr ""
+msgstr "Adicionar"
 
 #: psychopy/app/runner/runner.py:925
 msgid "Add experiment to list"
-msgstr ""
+msgstr "Adicionar experiência à lista"
 
 #: psychopy/app/runner/runner.py:931
 msgid "Remove experiment from list"
-msgstr ""
+msgstr "Remover experiência da lista"
 
 #: psychopy/app/runner/runner.py:937
 msgid "Save task list to a file"
-msgstr ""
+msgstr "Guardar lista de tarefas num ficheiro"
 
 #: psychopy/app/runner/runner.py:943
 msgid "Load tasks from a file"
-msgstr ""
+msgstr "Carregar tarefas de um ficheiro"
 
 #: psychopy/app/runner/runner.py:956
 msgid "Run the current script in Python"
-msgstr ""
+msgstr "Executar o script atual no Python"
 
 #: psychopy/app/runner/runner.py:962 psychopy/experiment/components/_base.py:90
 #: psychopy/experiment/components/panorama/__init__.py:139
 #: psychopy/experiment/routines/_base.py:53
 msgid "Stop"
-msgstr ""
+msgstr "Parar"
 
 #: psychopy/app/runner/runner.py:963
 msgid "Stop the current (Python) script"
-msgstr ""
+msgstr "Parar o atual script (Python)"
 
 #: psychopy/app/runner/runner.py:976
 msgid "Run the current script locally on your browser"
-msgstr ""
+msgstr "Executar o script local atual no navegador"
 
 #: psychopy/app/stdout/stdOutRich.py:112 psychopy/app/stdout/stdOutRich.py:334
 msgid "For further info see "
-msgstr ""
+msgstr "Para mais informação ver"
 
 #: psychopy/app/themes/ui.py:47
 msgid "&Open theme folder"
-msgstr ""
+msgstr "&Abra a pasta do tema"
 
 #: psychopy/app/utils.py:300
 msgid "Could not get image from: {}, using blank image instead."
 msgstr ""
+"Não foi possível obter a imagem de: {}, usando uma imagem em branco em "
+"alternativa."
 
 #: psychopy/app/utils.py:617
 msgid "View raw code"
-msgstr ""
+msgstr "Ver código bruto"
 
 #: psychopy/app/utils.py:621
 msgid "View styled HTML"
-msgstr ""
+msgstr "Ver HTML estilizado"
 
 #: psychopy/app/utils.py:863
 msgid "item"
-msgstr ""
+msgstr "item"
 
 #: psychopy/app/utils.py:929
 msgid "Add {}..."
-msgstr ""
+msgstr "Addicionar {}..."
 
 #: psychopy/app/utils.py:1215
 msgid "Inavlid image format, could not set image."
-msgstr ""
+msgstr "Formato de imagem inválido, não foi possível definir a imagem."
 
 #: psychopy/app/utils.py:1233
 msgid "Select image..."
-msgstr ""
+msgstr "Selecionar imagem..."
 
 #: psychopy/app/utils.py:1341
 msgid "Specify file..."
-msgstr ""
+msgstr "Especificar ficheiro..."
 
 #: psychopy/app/utils.py:1437 psychopy/app/utils.py:1438
 #, python-format
 msgid "&Next window\t%s"
-msgstr ""
+msgstr "&Próxima janela\t%s"
 
 #: psychopy/app/utils.py:1463
 msgid "Show &builder"
-msgstr ""
+msgstr "Mostrar &builder"
 
 #: psychopy/app/utils.py:1470
 msgid "Show &coder"
-msgstr ""
+msgstr "Mostrar &coder"
 
 #: psychopy/app/utils.py:1477
 msgid "Show &runner"
-msgstr ""
+msgstr "Mostrar &runner"
 
 #: psychopy/data/experiment.py:427
 msgid ""
 "Attempted to pause experiment '{}', but it is already paused. Status will "
 "remain unchanged."
 msgstr ""
+"Tentativa de pausar a experiência '{}', mas já está em pausa. O status "
+"permanecerá inalterado."
 
 #: psychopy/data/experiment.py:440
 msgid ""
 "Attempted to resume experiment '{}', but it is not paused. Status will "
 "remain unchanged."
 msgstr ""
+"Tentativa de retomar a experiência '{}', mas não foi pausado. O status "
+"permanecerá inalterado."
 
 #: psychopy/data/experiment.py:453
 msgid ""
 "Attempted to stop experiment '{}', but it is already stopping. Status will "
 "remain unchanged."
 msgstr ""
+"Tentativa de interromper a experiência '{}', mas já está a parar. O status "
+"permanecerá inalterado."
 
 #: psychopy/data/utils.py:81
 msgid "Variables cannot be missing, None, or ''"
-msgstr ""
+msgstr "As variáveis ​​não podem estar em falta, None ou ''"
 
 #: psychopy/data/utils.py:87
 msgid "Variables must be string-like"
-msgstr ""
+msgstr "As variáveis ​​devem conter letras"
 
 #: psychopy/data/utils.py:95
 #, python-format
 msgid "name %s (type %s) contains non-ASCII characters (e.g. accents)"
-msgstr ""
+msgstr "nome %s (tipo %s) contém caractere não ASCII (p.e. acentos)"
 
 #: psychopy/data/utils.py:100
 #, python-format
 msgid "name %s (type %s) could not be converted to a string"
 msgstr ""
+"nome %s (tipo %s) não pode ser convertido para uma string (conjunto de "
+"letras)"
 
 #: psychopy/data/utils.py:107
 msgid "Variables cannot begin with numeric character"
-msgstr ""
+msgstr "As variáveis ​​não podem começar com caracteres numéricos"
 
 #: psychopy/data/utils.py:113
 msgid "Variables cannot contain punctuation or spaces"
-msgstr ""
+msgstr "As variáveis ​​não podem conter pontuação ou espaços"
 
 #: psychopy/data/utils.py:296
 #, python-format
@@ -4120,41 +4228,52 @@ msgid ""
 "Conditions file %s: Missing parameter name(s); empty cell(s) in the first "
 "row?"
 msgstr ""
+"Ficheiro condições %s: Nomes de parâmetros em falta; célula(s) vazia(s) na "
+"primeira linha?"
 
 #: psychopy/data/utils.py:316
 #, python-format
 msgid "Conditions file not found: %s"
-msgstr ""
+msgstr "Ficheiro de condições não encontrado: %s"
 
 #: psychopy/data/utils.py:377
 msgid ""
 "openpyxl or xlrd is required for loading excel files, but neither was found."
 msgstr ""
+"openpyxl ou xlrd é necessário para carregar ficheiros Excel, mas nenhum "
+"deles foi encontrado."
 
 #: psychopy/data/utils.py:452
 #, python-format
 msgid "Could not open %s as conditions"
-msgstr ""
+msgstr "Não foi possível abrir %s como condições"
 
 #: psychopy/data/utils.py:471
 msgid "Your conditions file should be an xlsx, csv, dlm, tsv or pkl file"
 msgstr ""
+"O seu ficheiro de condições deve ser um ficheiro xlsx, csv, dlm, tsv ou pkl"
 
 #: psychopy/data/utils.py:484
 msgid "importConditions() was given some `indices` but could not parse them"
 msgstr ""
+"importConditions() recebeu alguns `indices` mas não conseguiu analisá-los"
 
 #: psychopy/experiment/_experiment.py:621
 msgid ""
 "Name of the folder in which to save data and log files (blank defaults to "
 "the builder pref)"
 msgstr ""
+"Nome da pasta na qual guardar dados e ficheiros log (branco é o padrão das "
+"preferências do builder)"
 
 #: psychopy/experiment/_experiment.py:680
 msgid ""
 "This parameter is not known by this version of PsychoPy. It might be worth "
 "upgrading, otherwise press the X button to remove this parameter."
 msgstr ""
+"Este parâmetro não é conhecido por esta versão do PsychoPy. Pode valer a "
+"pena atualizar, caso contrário pressione o botão X para remover este "
+"parâmetro."
 
 #: psychopy/experiment/_experiment.py:695
 #, python-format
@@ -4163,61 +4282,69 @@ msgid ""
 "experiment file (saved by a future version of PsychoPy?). This experiment "
 "may not run correctly in the current version."
 msgstr ""
+"O parâmetro %r não é conhecido nesta versão do PsychoPy, mas veio do seu "
+"ficheiro da experiência (guardado por uma versão futura do PsychoPy?). Esta "
+"experiência pode não funcionar corretamente na versão atual."
 
 #: psychopy/experiment/components/_base.py:60
 msgid "Name of this Component (alphanumeric or _, no spaces)"
-msgstr ""
+msgstr "Nome deste Componente (alfanumérico ou _, sem espaços)"
 
 #: psychopy/experiment/components/_base.py:66
 msgid "How do you want to define your start point?"
-msgstr ""
+msgstr "Como deseja definir o seu ponto de início?"
 
 #: psychopy/experiment/components/_base.py:71
 msgid "Start type"
-msgstr ""
+msgstr "Tipo de início"
 
 #: psychopy/experiment/components/_base.py:73
 #: psychopy/experiment/routines/_base.py:55
 msgid "How do you want to define your end point?"
-msgstr ""
+msgstr "Como deseja definir o seu ponto de fim?"
 
 #: psychopy/experiment/components/_base.py:79
 msgid "Stop type"
-msgstr ""
+msgstr "Tipo de parar"
 
 #: psychopy/experiment/components/_base.py:83
 msgid "When does the Component start?"
-msgstr ""
+msgstr "Quando é iniciado o componente?"
 
 #: psychopy/experiment/components/_base.py:84
 msgid "Start"
-msgstr ""
+msgstr "Iniciar"
 
 #: psychopy/experiment/components/_base.py:89
 msgid "When does the Component end? (blank is endless)"
-msgstr ""
+msgstr "Quando o Componente termina? (o espaço em branco é infinito)"
 
 #: psychopy/experiment/components/_base.py:92
 msgid "(Optional) expected start (s), purely for representing in the timeline"
 msgstr ""
+"(Opcional) início(s) esperado(s), apenas para representação na linha do tempo"
 
 #: psychopy/experiment/components/_base.py:97
 msgid "Expected start (s)"
-msgstr ""
+msgstr "Início(s) esperando(s)"
 
 #: psychopy/experiment/components/_base.py:99
 msgid ""
 "(Optional) expected duration (s), purely for representing in the timeline"
 msgstr ""
+"(Opcional) duração(ões) esperada(s), apenas para representação na linha do "
+"tempo"
 
 #: psychopy/experiment/components/_base.py:104
 msgid "Expected duration (s)"
-msgstr ""
+msgstr "Duração(ões) esperada(s)"
 
 #: psychopy/experiment/components/_base.py:106
 msgid ""
 "Store the onset/offset times in the data file (as well as in the log file)."
 msgstr ""
+"Armazenar os tempos de onset/offset no ficheiro de dados (bem como no "
+"ficheiro log)."
 
 #: psychopy/experiment/components/_base.py:111
 msgid "Save onset/offset times"
