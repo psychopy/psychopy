@@ -823,6 +823,13 @@ def loadPlugin(plugin):
                     # return False
             try:
                 ep = ep.load()  # load the entry point
+
+                # Raise a warning if the plugin is being loaded from a zip file.
+                if '.zip' in inspect.getfile(ep):
+                    logging.warning(
+                        "Plugin `{}` is being loaded from a zip file. This may "
+                        "cause issues with the plugin's functionality.".format(plugin))
+
             except ImportError as e:
                 logging.error(
                     "Failed to load entry point `{}` of plugin `{}`. "
@@ -843,14 +850,10 @@ def loadPlugin(plugin):
 
                 return False
 
-            if hasattr(ep, '__file__') and '.zip' in ep.__file__:
-                logging.warning(
-                    "Plugin `{}` is being loaded from a zip file. This may "
-                    "cause issues with the plugin's functionality.".format(plugin))
-
             # If we get here, the entry point is valid and we can safely add it
             # to PsychoPy's namespace.
             validEntryPoints[fqn].append((targObj, attr, ep))
+
     # Assign entry points that have been successfully loaded. We defer
     # assignment until all entry points are deemed valid to prevent plugins
     # from being partially loaded.
