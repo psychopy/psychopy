@@ -220,7 +220,7 @@ class MouseComponent(BaseComponent):
         code = (
             "// check if the mouse was inside our 'clickable' objects\n"
             "gotValidClick = false;\n"
-            "%(name)s.clickableObjects = %(clickable)s\n;"
+            "%(name)s.clickableObjects = eval(%(clickable)s)\n;"
             "// make sure the mouse's clickable objects are an array\n"
             "if (!Array.isArray(%(name)s.clickableObjects)) {\n"
             "    %(name)s.clickableObjects = [%(name)s.clickableObjects];\n"
