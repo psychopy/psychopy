@@ -18,7 +18,7 @@ class BaseIcon:
         self.bitmaps = {}
         self._bitmap = None
         self.size = size
-
+        self.stem = stem
         if theme in (appTheme.icons, None) and stem in iconCache:
             # Duplicate relevant attributes if relevant (depends on subclass)
             self.bitmaps = iconCache[stem].bitmaps
@@ -30,6 +30,19 @@ class BaseIcon:
             # Store ref to self in iconCache if using app theme
             if theme in (appTheme.icons, None):
                 iconCache[stem] = self
+    
+    def reload(self, theme=None):
+        """
+        Get all images associated with this icon again. This is useful when changeing theme to one 
+        with different icons.
+
+        Parameters
+        ----------
+        theme : str, optional
+            Theme to get icons from, by default will use the current theme
+        """
+        self._populate(stem=self.stem, theme=theme)
+
 
     def _populate(self, stem, theme=None):
         raise NotImplementedError(
