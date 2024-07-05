@@ -4,7 +4,11 @@ Experiment:
         IOHUB_STRING:
             min_length: 1
             max_length: 32
-            first_char_alpha: True    
+            first_char_alpha: True
+    filename: 
+        IOHUB_STRING:
+            min_length: 0
+            first_char_alpha: False
     save_events: IOHUB_BOOL
     stream_events: True
     auto_report_events: True    

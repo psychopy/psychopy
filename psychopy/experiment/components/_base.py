@@ -300,6 +300,8 @@ class BaseComponent:
             loop = currLoop.params['name']
             name = self.params['name']
 
+            # NOTE: this function does not write any code right now!
+
     def writeRoutineEndCodeJS(self, buff):
         """Write the code that will be called at the end of
         a routine (e.g. to save data)
