@@ -1,4 +1,5 @@
 include LICENSE
+include psychopy/VERSION
 recursive-include psychopy *.txt
 recursive-include psychopy *.zip
 
@@ -18,12 +19,11 @@ recursive-include psychopy/experiment *.tmpl experiment.xsd
 recursive-include psychopy/monitors *.ico
 
 recursive-include psychopy/iohub *.yaml
-recursive-include psychopy/iohub/devices/eyetracker/hw/sr_research/eyelink/win32 *.pyc *.dll *.pyd
 
 recursive-include psychopy/visual/textbox/fonts *.ttf
 recursive-include psychopy/experiment *.xltx
 
-recursive-include psychopy/demos/coder *.mov *.jpg *.ttf *.yaml *.py *.part *.xlsx *.xls
+recursive-include psychopy/demos/coder *.mov *.jpg *.ttf *.yaml *.py *.part *.xlsx
 recursive-include psychopy/demos/builder *.psyexp *.csv *.xlsx *.wav *.yaml
 
 recursive-include psychopy/preferences *.spec
@@ -37,6 +37,5 @@ recursive-include docs/source/_templates *.html
 prune docs/build
 prune docs/source/nonSphinx
 prune windlls
-include version
 
 recursive-include psychopy/alerts *.yaml
