@@ -468,11 +468,8 @@ class FrameRibbonButton(wx.Button, handlers.ThemeMixin):
             tooltip = f"{label}: {tooltip}"
         self.SetToolTip(tooltip)
         # set icon
+        self.icon = icons.ButtonIcon(icon, size=32)
         bmpStyle = style & (wx.TOP | wx.BOTTOM | wx.LEFT | wx.RIGHT)
-        self.SetBitmap(
-            icons.ButtonIcon(icon, size=32).bitmap,
-            dir=bmpStyle or wx.TOP
-        )
         # if given, bind callback
         if callback is not None:
             self.Bind(wx.EVT_BUTTON, callback)
@@ -480,8 +477,20 @@ class FrameRibbonButton(wx.Button, handlers.ThemeMixin):
         self.Bind(wx.EVT_ENTER_WINDOW, self.onHover)
         self.Bind(wx.EVT_LEAVE_WINDOW, self.onHover)
 
+        self._applyAppTheme()
+
     def _applyAppTheme(self):
+        # set color
         self.SetBackgroundColour(colors.app['frame_bg'])
+        self.SetForegroundColour(colors.app['text'])
+        # set bitmaps again
+        self.icon.reload()
+        self.SetBitmap(self.icon.bitmap)
+        self.SetBitmapCurrent(self.icon.bitmap)
+        self.SetBitmapPressed(self.icon.bitmap)
+        self.SetBitmapFocus(self.icon.bitmap)
+        # refresh
+        self.Refresh()
 
     def onHover(self, evt):
         if evt.EventType == wx.EVT_ENTER_WINDOW.typeId:
