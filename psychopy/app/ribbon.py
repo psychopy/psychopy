@@ -290,12 +290,13 @@ class FrameRibbonSection(wx.Panel, handlers.ThemeMixin):
             self.label, flag=wx.EXPAND
         )
 
-
         # add space
         self.border.AddSpacer(6)
 
         # dict in which to store buttons
         self.buttons = {}
+
+        self._applyAppTheme()
 
     def addButton(self, name, label="", icon=None, tooltip="", callback=None, style=wx.BU_NOTEXT):
         """
@@ -408,9 +409,14 @@ class FrameRibbonSection(wx.Panel, handlers.ThemeMixin):
         return btn
 
     def _applyAppTheme(self):
+        # set color
         self.SetBackgroundColour(colors.app['frame_bg'])
-
+        self.SetForegroundColour(colors.app['text'])
+        # set bitmaps again
+        self._icon.reload()
         self.icon.SetBitmap(self._icon.bitmap)
+        # refresh
+        self.Refresh()
 
 
 class FrameRibbonPluginSection(FrameRibbonSection):
@@ -468,7 +474,7 @@ class FrameRibbonButton(wx.Button, handlers.ThemeMixin):
             tooltip = f"{label}: {tooltip}"
         self.SetToolTip(tooltip)
         # set icon
-        self.icon = icons.ButtonIcon(icon, size=32)
+        self._icon = icons.ButtonIcon(icon, size=32)
         bmpStyle = style & (wx.TOP | wx.BOTTOM | wx.LEFT | wx.RIGHT)
         # if given, bind callback
         if callback is not None:
@@ -484,11 +490,11 @@ class FrameRibbonButton(wx.Button, handlers.ThemeMixin):
         self.SetBackgroundColour(colors.app['frame_bg'])
         self.SetForegroundColour(colors.app['text'])
         # set bitmaps again
-        self.icon.reload()
-        self.SetBitmap(self.icon.bitmap)
-        self.SetBitmapCurrent(self.icon.bitmap)
-        self.SetBitmapPressed(self.icon.bitmap)
-        self.SetBitmapFocus(self.icon.bitmap)
+        self._icon.reload()
+        self.SetBitmap(self._icon.bitmap)
+        self.SetBitmapCurrent(self._icon.bitmap)
+        self.SetBitmapPressed(self._icon.bitmap)
+        self.SetBitmapFocus(self._icon.bitmap)
         # refresh
         self.Refresh()
 
@@ -512,9 +518,7 @@ class FrameRibbonDropdownButton(wx.Panel, handlers.ThemeMixin):
         self.button = wx.Button(self, label=label, style=wx.BORDER_NONE)
         self.sizer.Add(self.button, proportion=1, border=0, flag=wx.EXPAND | wx.ALL)
         # set icon
-        self.button.SetBitmap(
-            icons.ButtonIcon(icon, size=32).bitmap
-        )
+        self._icon = icons.ButtonIcon(icon, size=32)
         # bind button callback
         if callback is not None:
             self.button.Bind(wx.EVT_BUTTON, callback)
@@ -532,6 +536,8 @@ class FrameRibbonDropdownButton(wx.Panel, handlers.ThemeMixin):
         self.drop.Bind(wx.EVT_ENTER_WINDOW, self.onHover)
         self.drop.Bind(wx.EVT_LEAVE_WINDOW, self.onHover)
 
+        self._applyAppTheme()
+
     def onMenu(self, evt):
         menu = self.menu
         # skip if there's no menu
@@ -544,9 +550,18 @@ class FrameRibbonDropdownButton(wx.Panel, handlers.ThemeMixin):
         self.PopupMenu(menu)
 
     def _applyAppTheme(self):
-        self.SetBackgroundColour(colors.app['frame_bg'])
-        self.button.SetBackgroundColour(colors.app['frame_bg'])
-        self.drop.SetBackgroundColour(colors.app['frame_bg'])
+        # set color
+        for obj in (self, self.button, self.drop):
+            obj.SetBackgroundColour(colors.app['frame_bg'])
+            obj.SetForegroundColour(colors.app['text'])
+        # set bitmaps again
+        self._icon.reload()
+        self.button.SetBitmap(self._icon.bitmap)
+        self.button.SetBitmapCurrent(self._icon.bitmap)
+        self.button.SetBitmapPressed(self._icon.bitmap)
+        self.button.SetBitmapFocus(self._icon.bitmap)
+        # refresh
+        self.Refresh()
 
     def onHover(self, evt):
         if evt.EventType == wx.EVT_ENTER_WINDOW.typeId:
@@ -751,6 +766,16 @@ class PavloviaUserCtrl(FrameRibbonDropdownButton):
         # bind deletion behaviour
         self.Bind(wx.EVT_WINDOW_DESTROY, self.onDelete)
 
+        self._applyAppTheme()
+    
+    def _applyAppTheme(self):
+        # set color
+        for obj in (self, self.button, self.drop):
+            obj.SetBackgroundColour(colors.app['frame_bg'])
+            obj.SetForegroundColour(colors.app['text'])
+        # refresh
+        self.Refresh()
+
     def onDelete(self, evt=None):
         i = self.frame.app.pavloviaButtons['user'].index(self)
         self.frame.app.pavloviaButtons['user'].pop(i)
@@ -877,6 +902,16 @@ class PavloviaProjectCtrl(FrameRibbonDropdownButton):
 
         # bind deletion behaviour
         self.Bind(wx.EVT_WINDOW_DESTROY, self.onDelete)
+
+        self._applyAppTheme()
+    
+    def _applyAppTheme(self):
+        # set color
+        for obj in (self, self.button, self.drop):
+            obj.SetBackgroundColour(colors.app['frame_bg'])
+            obj.SetForegroundColour(colors.app['text'])
+        # refresh
+        self.Refresh()
 
     def onDelete(self, evt=None):
         i = self.frame.app.pavloviaButtons['project'].index(self)
