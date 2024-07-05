@@ -34,11 +34,8 @@ from psychopy import logging
 from psychopy.preferences import prefs
 
 # Configure the environment to use our custom site-packages location for
-# user-installed packages (i.e. plugins). This value remains `None` if the user
-# is in a vitual environment or has disabled the custom site-packages location
-# via command line.
-USER_PACKAGES_PATH = None
-
+# user-installed packages (i.e. plugins).
+USER_PACKAGES_PATH = str(prefs.paths['userPackages'])
 # check if we're in a virtual environment or not
 inVenv = hasattr(sys, 'real_prefix') or sys.prefix != sys.base_prefix
 
@@ -48,7 +45,7 @@ if not inVenv and USER_PACKAGES_PATH not in sys.path:
 
 # Keep track of plugins that have been loaded. Keys are plugin names and values
 # are their entry point mappings.
-_loaded_plugins_ = collections.OrderedDict()  # Py2 compatibility
+_loaded_plugins_ = collections.OrderedDict()  # use OrderedDict for Py2 compatibility
 
 # Entry points for all plugins installed on the system, this is populated by
 # calling `scanPlugins`. We are caching entry points to avoid having to rescan
@@ -413,8 +410,8 @@ def scanPlugins():
     """Scan the system for installed plugins.
 
     This function scans installed packages for the current Python environment
-    and looks for ones that specify PsychoPy sub-module entry points in their
-    metadata. Afterwards, you can call :func:`listPlugins()` to list them and
+    and looks for ones that specify PsychoPy entry points in their metadata.
+    Afterwards, you can call :func:`listPlugins()` to list them and
     `loadPlugin()` to load them into the current session. This function is
     called automatically when PsychoPy starts, so you do not need to call this
     unless packages have been added since the session began.
@@ -487,6 +484,17 @@ def listPlugins(which='all'):
 
         for plugin in plugins.listPlugins():
             plugins.loadPlugin(plugin)
+
+    If certain plugins take arguments, you can do this give specific arguments
+    when loading all plugins::
+
+        pluginArgs = {'some-plugin': (('someArg',), {'setup': True, 'spam': 10})}
+        for plugin in plugins.listPlugins():
+            try:
+                args, kwargs = pluginArgs[plugin]
+                plugins.loadPlugin(plugin, *args, **kwargs)
+            except KeyError:
+                plugins.loadPlugin(plugin)
 
     Check if a plugin package named `plugin-test` is installed on the system and
     has entry points into PsychoPy::
@@ -625,7 +633,9 @@ def loadPlugin(plugin):
     Plugins are simply Python packages,`loadPlugin` will search for them in
     directories specified in `sys.path`. Only packages which define entry points
     in their metadata which pertain to PsychoPy can be loaded with this
-    function.
+    function. This function also permits passing optional arguments to a
+    callable object in the plugin module to run any initialization routines
+    prior to loading entry points.
 
     This function is robust, simply returning `True` or `False` whether a
     plugin has been fully loaded or not. If a plugin fails to load, the reason
@@ -656,7 +666,7 @@ def loadPlugin(plugin):
         Also returns `True` if the plugin was already loaded by a previous
         `loadPlugin` call this session, this function will have no effect in
         this case. `False` is returned if the plugin defines no entry points
-        specific to PsychoPy or crashed during import (an error is logged).
+        specific to PsychoPy or crashed (an error is logged).
 
     Warnings
     --------
@@ -675,21 +685,16 @@ def loadPlugin(plugin):
 
         loadPlugin('psychopy-hardware-box')
 
+    You can give arguments to this function which are passed on to the plugin::
+
+        loadPlugin('psychopy-hardware-box', switchOn=True, baudrate=9600)
+
     You can use the value returned from `loadPlugin` to determine if the plugin
     is installed and supported by the platform::
 
         hasPlugin = loadPlugin('psychopy-hardware-box')
         if hasPlugin:
             # initialize objects which require the plugin here ...
-
-    Loading all plugins installed on the system::
-
-        scanPlugins()  # call first to find all plugins
-
-        for plugin in listPlugins('all'):
-            result = loadPlugin(plugin)
-            if not result:
-                print(f"Failed to load plugin {plugin}.")
 
     """
     global _loaded_plugins_, _failed_plugins_
