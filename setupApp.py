@@ -14,20 +14,13 @@ import py2app  # noqa: needed to build app bundle, even though not explicitly us
 from ctypes.util import find_library
 import importlib
 import building.compile_po
+from building import createGitShaFile
 
 import psychopy
 version = psychopy.__version__
 
 building.compile_po.compilePoFiles()
-
-# regenerate __init__.py only if we're in the source repos (not in a zip file)
-try:
-    from building import createInitFile  # won't exist in a sdist.zip
-    writeNewInit=True
-except:
-    writeNewInit=False
-if writeNewInit:
-    vStr = createInitFile.createInitFile(dist='bdist')
+createGitShaFile()
 
 #define the extensions to compile if necess
 packageData = []
@@ -236,6 +229,3 @@ realPath = "../Frameworks/Python.framework/Python"  # relative to the fake path
 fakePath = os.path.join(rpath, "Python")
 os.symlink(realPath, fakePath)
 
-if writeNewInit:
-    # remove unwanted info about this system post-build
-    createInitFile.createInitFile(dist=None)
