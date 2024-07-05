@@ -3285,6 +3285,8 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         self.pluginBtn.SetBitmapPressed(icon)
         self.pluginBtn.SetBitmapFocus(icon)
 
+        self.Refresh()
+
     def addToFavorites(self, comp):
         name = comp.__name__
         # Mark component as a favorite
