@@ -40,13 +40,11 @@ from psychopy.preferences import prefs
 USER_PACKAGES_PATH = None
 
 # check if we're in a virtual environment or not
-inVM = hasattr(sys, 'real_prefix') or sys.prefix != sys.base_prefix
+inVenv = hasattr(sys, 'real_prefix') or sys.prefix != sys.base_prefix
 
-    # add the plugins folder to the path
-    # if USER_PACKAGES_PATH not in sys.path:
-    #     sys.path.insert(0, USER_PACKAGES_PATH)  # add to path
-    if not site.ENABLE_USER_SITE or USER_PACKAGES_PATH not in sys.path:
-        site.addsitedir(USER_PACKAGES_PATH)
+# add the plugins folder to the path
+if not inVenv and USER_PACKAGES_PATH not in sys.path:
+    sys.path.insert(0, USER_PACKAGES_PATH)  # add to path
 
 # Keep track of plugins that have been loaded. Keys are plugin names and values
 # are their entry point mappings.
