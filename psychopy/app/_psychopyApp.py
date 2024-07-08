@@ -521,24 +521,34 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             splash.SetText(_translate("  Creating frames..."))
         
         # get starting windows
-        if startView is None:
+        if startView in (None, []):
             # if no window specified, use default from prefs
             if self.prefs.app['defaultView'] == 'all':
                 startView = ["builder", "coder", "runner"]
             elif self.prefs.app['defaultView'] in ["builder", "coder", "runner"]:
                 startView = self.prefs.app['defaultView']
+            else:
+                startView = ["builder"]
+        # if specified as a single string, convert to list
         if isinstance(startView, str):
-            # if specified as a single string, convert to list
             startView = [startView]
         
-        # check from filetype if any windows need to be open
+        # get files to open from commandline args
         for arg in sys.argv:
-            if "builder" not in startView and arg.endswith(".psyexp"):
-                startView.append("builder")
-            if "coder" not in startView and arg.endswith(".py"):
-                startView.append("coder")
+            if arg.endswith(".psyexp"):
+                exps.append(arg)
+            if arg.endswith(".py"):
+                scripts.append(arg)
             if "runner" not in startView and arg.endswith(".psyrun"):
-                startView.append("runner")
+                runlist.append(arg)
+        
+        # show frames according to files
+        if exps and "builder" not in startView:
+            startView.append("builder")
+        if scripts and "coder" not in startView:
+            startView.append("coder")
+        if runlist and "runner" not in startView:
+            startView.append("runner")
 
         # create windows
         if "runner" in startView:
