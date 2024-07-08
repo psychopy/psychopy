@@ -162,7 +162,7 @@ class MicrophoneComponent(BaseDeviceComponent):
         msg = _translate(
             "Tick this to save times when the participant starts and stops speaking")
         self.params['speakTimes'] = Param(
-            speakTimes, valType='bool', inputType='bool', categ='Data',
+            speakTimes, valType='bool', inputType='bool', categ='Transcription',
             hint=msg,
             label=_translate("Speaking start / stop times")
         )
@@ -194,7 +194,8 @@ class MicrophoneComponent(BaseDeviceComponent):
             'transcribeLang', 
             'transcribeWords', 
             'transcribeWhisperModel',
-            'transcribeWhisperDevice'
+            'transcribeWhisperDevice',
+            'speakTimes'
         ]
 
         for depParam in whisperParams:
@@ -256,7 +257,13 @@ class MicrophoneComponent(BaseDeviceComponent):
             "true": "show",  # what to do with param if condition is True
             "false": "hide",  # permitted: hide, show, enable, disable
         })
-
+        self.depends.append({
+            "dependsOn": "transcribeBackend",
+            "condition": "=='Whisper'",
+            "param": "speakTimes",
+            "true": "show",  # what to do with param if condition is True
+            "false": "hide",  # permitted: hide, show, enable, disable
+        })
         # settings for whisper we might want, we'll need to get these from the
         # plugin itself at some point
         self.params['transcribeWhisperDevice'] = Param(
