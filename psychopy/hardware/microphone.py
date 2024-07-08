@@ -207,7 +207,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
                 self._device.deviceIndex, 
                 self._device.deviceName, 
                 self._device)
-
+        
         logging.info(devInfoText)
 
         # error if specified device is not suitable for capture
@@ -216,11 +216,12 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
                 'Specified audio device not suitable for audio recording. '
                 'Has no input channels.')
 
-        # get the sample rate
-        self._sampleRateHz = \
-            self._device.defaultSampleRate if sampleRateHz is None else int(
-                sampleRateHz)
+        # get these values from the configured device
+        self._channels = self._device.inputChannels
+        logging.debug('Set recording channels to {} ({})'.format(
+            self._channels, 'stereo' if self._channels > 1 else 'mono'))
 
+        self._sampleRateHz = self._device.defaultSampleRate
         logging.debug('Set stream sample rate to {} Hz'.format(
             self._sampleRateHz))
 
@@ -234,13 +235,6 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             self._audioLatencyMode))
 
         assert 0 <= self._audioLatencyMode <= 4  # sanity check for pref
-
-        # set the number of recording channels
-        self._channels = \
-            self._device.inputChannels if channels is None else int(channels)
-
-        logging.debug('Set recording channels to {} ({})'.format(
-            self._channels, 'stereo' if self._channels > 1 else 'mono'))
 
         # internal recording buffer size in seconds
         assert isinstance(streamBufferSecs, (float, int))
