@@ -526,7 +526,6 @@ msgid "&Toggle readme\t%s"
 msgstr "&Alternar readme %s"
 
 #: psychopy/app/builder/builder.py:381 psychopy/app/builder/builder.py:3233
-#, fuzzy
 msgid "Toggle Readme"
 msgstr "Toggle Readme"
 
@@ -646,7 +645,7 @@ msgstr "&Nova Routine\t%s"
 
 #: psychopy/app/builder/builder.py:456
 msgid "Create a new routine (e.g. the trial definition)"
-msgstr "Crie uma nova routine (por exemplo, a definição de teste/ensaio)"
+msgstr "Crie uma nova routine (exemplo, a definição de teste/ensaio)"
 
 #: psychopy/app/builder/builder.py:460
 #, python-format
@@ -891,7 +890,7 @@ msgstr "Renomear"
 #: psychopy/app/builder/builder.py:1581
 #: psychopy/app/builder/dialogs/__init__.py:1990
 msgid "What is the name for the new Routine? (e.g. instr, trial, feedback)"
-msgstr "Qual o nome da nova Routine? (por exemplo, instrução, teste, feedback)"
+msgstr "Qual o nome da nova Routine? (exemplo, instrução, teste, feedback)"
 
 #: psychopy/app/builder/builder.py:1611
 msgid "Do you want to remove routine '{}' from the experiment?"
@@ -2412,12 +2411,11 @@ msgid "Toggle commenting of selected lines"
 msgstr "Alternar comentários das linhas selecionadas"
 
 #: psychopy/app/coder/coder.py:1476
-#, fuzzy, python-format
+#, python-format
 msgid "Toggle fold\t%s"
 msgstr "Toggle fold\t%s"
 
 #: psychopy/app/coder/coder.py:1477
-#, fuzzy
 msgid "Toggle folding of top level"
 msgstr "Toggle folding do nível superior"
 
@@ -2524,7 +2522,7 @@ msgstr "Mostrar caracteres de espaço em branco no código"
 #: psychopy/app/coder/coder.py:1592
 #, python-format
 msgid "&Whitespace\t%s"
-msgstr "&Espaço em branco\t%s "
+msgstr "&Espaço em branco\t%s"
 
 #: psychopy/app/coder/coder.py:1598
 msgid "Show End Of Line markers in the code"
@@ -2707,172 +2705,180 @@ msgstr "Procurar uma pasta para abrir."
 
 #: psychopy/app/coder/fileBrowser.py:173
 msgid "Navigate to PsychoPy library root."
-msgstr ""
+msgstr "Navegar até à raiz da biblioteca PsychoPy."
 
 #: psychopy/app/coder/fileBrowser.py:180
 msgid "Navigate to current open file."
-msgstr ""
+msgstr "Navegar até ao arquivo aberto atual."
 
 #: psychopy/app/coder/fileBrowser.py:270
 msgid ""
 "Cannot change working directory to location of file `{}`. It needs to be "
 "saved first."
 msgstr ""
+"Não é possível alterar o diretório de trabalho para o local do arquivo `{}`. "
+"Ele precisa de ser guardado primeiro."
 
 #: psychopy/app/coder/fileBrowser.py:281
 msgid "Browse ..."
-msgstr ""
+msgstr "Procurar ..."
 
 #: psychopy/app/coder/fileBrowser.py:282
 msgid "Browse the file system for a directory to open"
-msgstr ""
+msgstr "Procurar no sistema de arquivos um diretório para abrir"
 
 #: psychopy/app/coder/fileBrowser.py:286
 msgid "Current working directory"
-msgstr ""
+msgstr "Diretório de trabalho atual"
 
 #: psychopy/app/coder/fileBrowser.py:287
 msgid "Open the current working directory"
-msgstr ""
+msgstr "Abrir o diretório de trabalho atual"
 
 #: psychopy/app/coder/fileBrowser.py:291
 msgid "Open the directory the current editor file is located"
-msgstr ""
+msgstr "Abrir o diretório onde o arquivo do editor atual está localizado"
 
 #: psychopy/app/coder/fileBrowser.py:310
 msgid "Enter folder name:"
-msgstr ""
+msgstr "Introduzir o nome da pasta:"
 
 #: psychopy/app/coder/fileBrowser.py:311
 msgid "New folder"
-msgstr ""
+msgstr "Nova pasta"
 
 #: psychopy/app/coder/fileBrowser.py:322
 msgid "Folder name cannot be empty."
-msgstr ""
+msgstr "O nome da pasta não pode estar vazio."
 
 #: psychopy/app/coder/fileBrowser.py:334
 msgid "Cannot create folder `{}`, already exists."
-msgstr ""
+msgstr "Não pode criar a pasta `{}`, já existe."
 
 #: psychopy/app/coder/fileBrowser.py:347
 msgid "Cannot create folder `{}`, permission denied."
-msgstr ""
+msgstr "Não pode criar a pasta `{}`, permissão negada."
 
 #: psychopy/app/coder/fileBrowser.py:389
 msgid "Rename folder `{}` to:"
-msgstr ""
+msgstr "Renomear pasta  `{}` para:"
 
 #: psychopy/app/coder/fileBrowser.py:390
 msgid "Rename Folder"
-msgstr ""
+msgstr "Renomear pasta"
 
 #: psychopy/app/coder/fileBrowser.py:400 psychopy/app/coder/fileBrowser.py:436
 msgid "Cannot rename `{}` to `{}`."
-msgstr ""
+msgstr "Não pode renomear pasta `{}` para `{}`."
 
 #: psychopy/app/coder/fileBrowser.py:423
 msgid "Rename file `{}` to:"
-msgstr ""
+msgstr "Renomear ficheiro `{}` para:"
 
 #: psychopy/app/coder/fileBrowser.py:424
 msgid "Rename file"
-msgstr ""
+msgstr "Renomear ficheiro"
 
 #: psychopy/app/coder/fileBrowser.py:461
 msgid "Are you sure you want to PERMANENTLY delete folder `{}`?"
-msgstr ""
+msgstr "Tem a certeza de que deseja excluir PERMANENTEMENTE a pasta `{}`?"
 
 #: psychopy/app/coder/fileBrowser.py:471
 msgid "Cannot delete folder `{}`, directory does not exist."
-msgstr ""
+msgstr "Não é possível excluir a pasta `{}`, o diretório não existe."
 
 #: psychopy/app/coder/fileBrowser.py:478
 msgid "Cannot delete folder `{}`, directory is not empty or permission denied."
 msgstr ""
+"Não é possível excluir a pasta `{}`, o diretório não está vazio ou a "
+"permissão negada."
 
 #: psychopy/app/coder/fileBrowser.py:490
 msgid "Are you sure you want to PERMANENTLY delete file `{}`?"
-msgstr ""
+msgstr "Tem a certeza de que deseja excluir PERMANENTEMENTE o arquivo `{}`?"
 
 #: psychopy/app/coder/fileBrowser.py:500
 msgid "Cannot delete folder `{}`, file does not exist."
-msgstr ""
+msgstr "Não é possível excluir a pasta `{}`, o arquivo não existe."
 
 #: psychopy/app/coder/fileBrowser.py:507
 msgid "Cannot delete file `{}`, permission denied."
-msgstr ""
+msgstr "Não é possível excluir o arquivo `{}`, permissão negada."
 
 #: psychopy/app/coder/fileBrowser.py:528
 msgid "Specified path `{}` is not a directory."
-msgstr ""
+msgstr "O caminho especificado `{}` não é um diretório."
 
 #: psychopy/app/coder/fileBrowser.py:598
 msgid "Cannot access directory `{}`, permission denied."
-msgstr ""
+msgstr "Não é possível aceder ao diretório `{}`, permissão negada."
 
 #: psychopy/app/coder/fileBrowser.py:645
 msgid "Cannot access directory `{}`, not a directory."
-msgstr ""
+msgstr "Não é possível aceder ao diretório `{}`, não um diretório."
 
 #: psychopy/app/coder/repl.py:56 psychopy/app/coder/repl.py:76
 msgid "Close the current shell."
-msgstr ""
+msgstr "Feche a consola atual."
 
 #: psychopy/app/coder/repl.py:66
 msgid ""
 "Close the current shell and start a new one, this will clear any variables."
 msgstr ""
+"Feche a consola atual e inicie uma nova, isso limpará todas as variáveis."
 
 #: psychopy/app/coder/repl.py:86 psychopy/app/stdout/stdOutRich.py:223
 msgid "Clear all previous output."
-msgstr ""
+msgstr "Limpar todos os resultados anteriores."
 
 #: psychopy/app/coder/repl.py:180
 msgid "Hit [Return] to start a Python session."
-msgstr ""
+msgstr "Pressione [Return] para iniciar a sessão de Python."
 
 #: psychopy/app/coder/repl.py:199
 msgid "Hit [Return] to start a Python shell."
-msgstr ""
+msgstr "Pressione [Return] para iniciar a consola do Python."
 
 #: psychopy/app/colorpicker/ui.py:33
 msgid " RGB Channels "
-msgstr ""
+msgstr " Canais RGB "
 
 #: psychopy/app/colorpicker/ui.py:84
 msgid "Hex/HTML"
-msgstr ""
+msgstr "Hex/HTML"
 
 #: psychopy/app/colorpicker/ui.py:92
 msgid "RGB Format"
-msgstr ""
+msgstr "Formatar RGB"
 
 #: psychopy/app/colorpicker/ui.py:118
 msgid " HSV Channels "
-msgstr ""
+msgstr " Canais HSV "
 
 #: psychopy/app/colorpicker/ui.py:192
 msgid "Output Space:"
-msgstr ""
+msgstr "Espaço de resultados:"
 
 #: psychopy/app/colorpicker/ui.py:205
 msgid "Insert"
-msgstr ""
+msgstr "Inserir"
 
 #: psychopy/app/connections/updates.py:93
 msgid "Couldn't connect to psychopy.org to check for updates. \n"
 msgstr ""
+"Feche a consola atual e inicie uma nova, isto limpará todas as variáveis. \n"
 
 #: psychopy/app/connections/updates.py:95
 msgid "Check internet settings (and proxy setting in PsychoPy Preferences)."
 msgstr ""
+"Verifique as configurações de Internet (e as configurações de proxy nas "
+"Preferências do PsychoPy)."
 
 #: psychopy/app/connections/updates.py:99
 #: psychopy/app/connections/updates.py:148
 #: psychopy/app/connections/updates.py:167
 msgid "PsychoPy updates"
-msgstr ""
+msgstr "Atualizações do PsychoPy"
 
 #: psychopy/app/connections/updates.py:138
 #, python-format
@@ -2880,32 +2886,37 @@ msgid ""
 "PsychoPy v%(latest)s is available (you are running %(running)s).\n"
 "\n"
 msgstr ""
+"PsychoPy v%(latest)s está disponível (está a executar %(running)s).\n"
+"\n"
 
 #: psychopy/app/connections/updates.py:142
 msgid "This version is too big an update to be handled automatically.\n"
 msgstr ""
+"Esta versão é uma atualização muito grande para ser tratada "
+"automaticamente.\n"
 
 #: psychopy/app/connections/updates.py:144
 msgid ""
 "Please fetch the latest version from www.psychopy.org and install manually."
 msgstr ""
+"Obtenha a versão mais recente em www.psychopy.org e instale manualmente."
 
 #: psychopy/app/connections/updates.py:149
 msgid "Go to downloads"
-msgstr ""
+msgstr "Ir para transferências"
 
 #: psychopy/app/connections/updates.py:151
 msgid "Go to changelog"
-msgstr ""
+msgstr "Ir para changelog"
 
 #: psychopy/app/connections/updates.py:152
 msgid "Later"
-msgstr ""
+msgstr "Mais tarde"
 
 #: psychopy/app/connections/updates.py:163
 #, python-format
 msgid "You are running the latest version of PsychoPy (%s). "
-msgstr ""
+msgstr "Está a executar a versão mais recente do PsychoPy (%s). "
 
 #: psychopy/app/connections/updates.py:189
 #, python-format
@@ -2914,62 +2925,72 @@ msgid ""
 "\n"
 "(To disable this check, see Preferences > connections > checkForUpdates)"
 msgstr ""
+"PsychoPy v%(latest)s está disponível (está a executar %(running)s).\n"
+"\n"
+"(Para desativar esta verificação, consulte Preferências > conexões > "
+"checkForUpdates)"
 
 #: psychopy/app/connections/updates.py:196
 msgid ""
 "This version MAY require you to modify your\n"
 "scripts/exps slightly. Read the changelog carefully."
 msgstr ""
+"Esta versão PODE requerer que modifique ligeiramente \n"
+"os seus scripts/exps. Leia o changelog com atenção."
 
 #: psychopy/app/connections/updates.py:202
 msgid ""
 "There are no known compatibility\n"
 "issues with your current version."
 msgstr ""
+"Não há problemas de compatibilidade \n"
+"conhecidos com a sua versão atual."
 
 #: psychopy/app/connections/updates.py:206
 msgid "View complete Changelog"
-msgstr ""
+msgstr "Veja o changelog completo"
 
 #: psychopy/app/connections/updates.py:210
 msgid "You can update PsychoPy with your package manager"
-msgstr ""
+msgstr "Pode atualizar o PsychoPy com o seu gestor de pacotes"
 
 #: psychopy/app/connections/updates.py:214
 msgid "Should PsychoPy update itself?"
-msgstr ""
+msgstr "O PsychoPy poderá atualizar-se a si mesmo?"
 
 #: psychopy/app/connections/updates.py:228
 msgid "Keep warning me"
-msgstr ""
+msgstr "Continue a avisar-me"
 
 #: psychopy/app/connections/updates.py:231
 msgid "Stop warning me"
-msgstr ""
+msgstr "Para de me avisar"
 
 #: psychopy/app/connections/updates.py:233
 msgid "Yes"
-msgstr ""
+msgstr "Sim"
 
 #: psychopy/app/connections/updates.py:236
 msgid "Not now"
-msgstr ""
+msgstr "Agora não"
 
 #: psychopy/app/connections/updates.py:238
 msgid "Skip this version"
-msgstr ""
+msgstr "Ignorar esta versão"
 
 #: psychopy/app/connections/updates.py:275
 msgid "PsychoPy Updates"
-msgstr ""
+msgstr "Atualizações do PsychoPy"
 
 #: psychopy/app/connections/updates.py:286
 msgid " Auto-update (will fetch latest version)"
-msgstr ""
+msgstr " Atualização automática (procurará a versão mais recente)"
 
 #: psychopy/app/connections/updates.py:295
 msgid " Use zip file below (download a PsychoPy release file ending .zip)"
 msgstr ""
+" Usar o arquivo zip abaixo (transfira um ficheiro do PsychoPy terminando em ."
+"zip)"
 
 #: psychopy/app/connections/updates.py:305
 #: psychopy/app/plugin_manager/packages.py:213
@@ -2977,11 +2998,11 @@ msgstr ""
 #: psychopy/app/plugin_manager/plugins.py:1048
 #: psychopy/app/plugin_manager/plugins.py:1078
 msgid "Install"
-msgstr ""
+msgstr "Instalar"
 
 #: psychopy/app/connections/updates.py:308 psychopy/app/runner/runner.py:147
 msgid "Close"
-msgstr ""
+msgstr "Fechar"
 
 #: psychopy/app/connections/updates.py:335
 #, python-format
@@ -2989,16 +3010,20 @@ msgid ""
 "You are running PsychoPy v%s.\n"
 " "
 msgstr ""
+"Está a executar o PsychoPy v%s.\n"
+" "
 
 #: psychopy/app/connections/updates.py:336
 msgid ""
 "PsychoPy could not connect to the \n"
 " internet to check for more recent versions.\n"
 msgstr ""
+"O PsychoPy não conseguiu conectar-se à \n"
+" internet para verificar versões mais recentes.\n"
 
 #: psychopy/app/connections/updates.py:338
 msgid "Check proxy settings in preferences."
-msgstr ""
+msgstr "Verificar as configurações de proxy nas preferências."
 
 #: psychopy/app/connections/updates.py:344
 #, python-format
@@ -3006,6 +3031,8 @@ msgid ""
 "You are running PsychoPy (%(running)s), which is ahead of the latest "
 "official version (%(latest)s)"
 msgstr ""
+"Está a executar o PsychoPy (%(running)s), que está à frente da versão "
+"oficial mais recente (%(latest)s)"
 
 #: psychopy/app/connections/updates.py:349
 #, python-format
@@ -3013,12 +3040,16 @@ msgid ""
 "You are running the latest version of PsychoPy (%s)\n"
 " "
 msgstr ""
+"Está a executar a versão mais recente do PsychoPy (%s)\n"
+" "
 
 #: psychopy/app/connections/updates.py:350
 msgid ""
 "You can revert to a previous version by selecting a specific .zip source "
 "installation file"
 msgstr ""
+"Pode reverter para uma versão anterior selecionando um ficheiro de "
+"instalação de origem .zip"
 
 #: psychopy/app/connections/updates.py:354
 #, python-format
@@ -3026,12 +3057,16 @@ msgid ""
 "PsychoPy v%(latest)s is available\n"
 "You are running v%(running)s"
 msgstr ""
+"PsychoPy v%(latest)s está disponivel\n"
+"Está a executar %(running)s"
 
 #: psychopy/app/connections/updates.py:359
 msgid ""
 "\n"
 "You can update to the latest version automatically"
 msgstr ""
+"\n"
+"Pode atualizar para a versão mais recente automaticamente"
 
 #: psychopy/app/connections/updates.py:361
 msgid ""
@@ -3039,31 +3074,38 @@ msgid ""
 "You cannot update to the latest version automatically.\n"
 "Please fetch the latest Standalone package from www.psychopy.org"
 msgstr ""
+"\n"
+"Não pode atualizar para a versão mais recente automaticamente.\n"
+"Obtenha, por favor, o pacote Standalone mais recente em www.psychopy.org"
 
 #: psychopy/app/connections/updates.py:413
 #, python-format
 msgid "Attempting to fetch PsychoPy %s..."
-msgstr ""
+msgstr "A tentar encontrar o PsychoPy %s..."
 
 #: psychopy/app/connections/updates.py:434
 #, python-format
 msgid "Fetched %(done)i of %(total)i kb of PsychoPy-%(version)s.zip"
-msgstr ""
+msgstr "Procura %(done)i de %(total)i kb do PsychoPy-%(version)s.zip"
 
 #: psychopy/app/connections/updates.py:439
 #, python-format
 msgid "Successfully downloaded PsychoPy-%s.zip"
-msgstr ""
+msgstr "Transferência do PsychoPy-%s.zip com sucesso"
 
 #: psychopy/app/connections/updates.py:486
 msgid ""
 "To upgrade you need to restart the app as admin (Right-click the app and "
 "'Run as admin')"
 msgstr ""
+"Para atualizar precisa de reiniciar o programa como administrador (clique "
+"com o botão direito no programa e 'Executar como administrador')"
 
 #: psychopy/app/connections/updates.py:490
 msgid "Could not move existing PsychoPy installation (permissions error?)"
 msgstr ""
+"Não foi possível mover a instalação existente do PsychoPy (erro de "
+"permissão?)"
 
 #: psychopy/app/connections/updates.py:519
 #, python-format
@@ -3071,6 +3113,8 @@ msgid ""
 "Right-click the app and 'Run as admin'):\n"
 "%s"
 msgstr ""
+"Clique com o botão direito no programa e 'Executar como administrador'):\n"
+"%s"
 
 #: psychopy/app/connections/updates.py:521
 #, python-format
@@ -3078,39 +3122,45 @@ msgid ""
 "Failed to create directory for new version (permissions error?):\n"
 "%s"
 msgstr ""
+"Falha ao criar diretório para a nova versão (erro de permissão?):\n"
+"%s"
 
 #: psychopy/app/connections/updates.py:546
 msgid ""
 "Success. \n"
 "Changes to PsychoPy will be completed when the application is next run"
 msgstr ""
+"Successo. \n"
+"As alterações no PsychoPy serão concluídas na próxima execução do programa"
 
 #: psychopy/app/connections/updates.py:555
 #, python-format
 msgid "Downloading PsychoPy v%s"
-msgstr ""
+msgstr "A transferir PsychoPy v%s"
 
 #: psychopy/app/connections/updates.py:560
 msgid ""
 "Failed to fetch PsychoPy release.\n"
 "Check proxy setting in preferences"
 msgstr ""
+"Falha ao procurar a versão do PsychoPy.\n"
+"Verifique a configuração de proxy nas preferências"
 
 #: psychopy/app/dialogs.py:34 psychopy/gui/qtgui.py:656
 msgid "Warning"
-msgstr ""
+msgstr "Aviso"
 
 #: psychopy/app/dialogs.py:35
 msgid "Info"
-msgstr ""
+msgstr "Info"
 
 #: psychopy/app/dialogs.py:36
 msgid "Query"
-msgstr ""
+msgstr "Consultar"
 
 #: psychopy/app/errorDlg.py:27
 msgid "PsychoPy3 Error"
-msgstr ""
+msgstr "Erro PsychoPy3"
 
 #: psychopy/app/errorDlg.py:34
 msgid ""
@@ -3118,53 +3168,58 @@ msgid ""
 "under \"Details\" to the developers with a description of what you were "
 "doing with the software when the error occurred."
 msgstr ""
+"O PsychoPy encontrou um erro interno não tratado! Envie o relatório em "
+"\"Detalhes\" aos desenvolvedores com uma descrição do que estava a fazer com "
+"o software quando o erro ocorreu."
 
 #: psychopy/app/errorDlg.py:56
 msgid "&OK"
-msgstr ""
+msgstr "&OK"
 
 #: psychopy/app/errorDlg.py:59
 msgid "E&xit PsychoPy"
-msgstr ""
+msgstr "S&air PsychoPy"
 
 #: psychopy/app/errorDlg.py:66
 msgid "&Details"
-msgstr ""
+msgstr "&Detalhes"
 
 #: psychopy/app/errorDlg.py:78
 msgid "&Copy"
-msgstr ""
+msgstr "&Copiar"
 
 #: psychopy/app/errorDlg.py:82
 msgid "&Save"
-msgstr ""
+msgstr "&Guardar"
 
 #: psychopy/app/errorDlg.py:125
 msgid ""
 "Are you sure you want to exit PsychoPy? Unsaved work may be lost (but we'll "
 "try to save opened files)."
 msgstr ""
+"Tem a certeza de que deseja sair do PsychoPy? O trabalho não guardado pode "
+"ser perdido (mas tentaremos salvar os arquivos abertos)."
 
 #: psychopy/app/errorDlg.py:127
 msgid "Exit PsychoPy?"
-msgstr ""
+msgstr "Sair do PsychoPy?"
 
 #: psychopy/app/errorDlg.py:163
 msgid "Save error traceback"
-msgstr ""
+msgstr "Guardar o rastreamento de erro"
 
 #: psychopy/app/errorDlg.py:180
 #, python-format
 msgid "Cannot save to file '%s'."
-msgstr ""
+msgstr "Não é possível salvar no ficheiro '%s'."
 
 #: psychopy/app/errorDlg.py:181
 msgid "File save error"
-msgstr ""
+msgstr "Erro ao salvar ficheiro"
 
 #: psychopy/app/errorDlg.py:212
 msgid "Connection Error"
-msgstr ""
+msgstr "Erro de conecção"
 
 #: psychopy/app/errorDlg.py:213
 msgid ""
@@ -3175,133 +3230,145 @@ msgid ""
 "\n"
 "https://pavlovia.org/status"
 msgstr ""
+"Não foi possível conectar-se ao servidor Pavlovia. \n"
+"\n"
+"Por favor, verifique se está conectado à Internet. Se estiver conectado, os "
+"servidores Pavlovia podem estar inativos. Pode verificar o status deles "
+"aqui: \n"
+"\n"
+"https://pavlovia.org/status"
 
 #: psychopy/app/pavlovia_ui/_base.py:33
 #, python-format
 msgid "&Close View\t%s"
-msgstr ""
+msgstr "&Fechar Visualização\t%s"
 
 #: psychopy/app/pavlovia_ui/_base.py:34
 msgid "Close current window"
-msgstr ""
+msgstr "Fechar a janela atual"
 
 #: psychopy/app/pavlovia_ui/_base.py:164
 #: psychopy/app/pavlovia_ui/functions.py:138
 msgid "Committing changes"
-msgstr ""
+msgstr "A implementar alterações"
 
 #: psychopy/app/pavlovia_ui/_base.py:166
 msgid "Summary of changes"
-msgstr ""
+msgstr "Resumo das alterações"
 
 #: psychopy/app/pavlovia_ui/_base.py:168
 msgid ""
 "Details of changes\n"
 " (optional)"
 msgstr ""
+"Detalhes das alterações\n"
+"(opcional)"
 
 #: psychopy/app/pavlovia_ui/_base.py:183
 msgid "Title summarizing the changes you're making in these files"
-msgstr ""
+msgstr "Título resumindo as alterações que estão a ser feitas nestes ficheiros"
 
 #: psychopy/app/pavlovia_ui/_base.py:186
 msgid "Optional details about the changes you're making in these files"
 msgstr ""
+"Detalhes opcionais sobre as alterações que está a fazer nestes ficheiros"
 
 #: psychopy/app/pavlovia_ui/functions.py:43
 msgid "Choose/create the root location for the synced project"
-msgstr ""
+msgstr "Escolher/criar o local raiz para o projeto sincronizado"
 
 #: psychopy/app/pavlovia_ui/functions.py:72
 msgid "You are not logged in to Pavlovia. Please log in to continue."
-msgstr ""
+msgstr "Não está conectado à Pavlovia. Por favor faça o login para continuar."
 
 #: psychopy/app/pavlovia_ui/functions.py:74
 #: psychopy/app/pavlovia_ui/project.py:764
 msgid "Login..."
-msgstr ""
+msgstr "Login..."
 
 #: psychopy/app/pavlovia_ui/functions.py:130
 msgid "Changes to commit:\n"
-msgstr ""
+msgstr "Alterações a implementar:\n"
 
 #: psychopy/app/pavlovia_ui/functions.py:136
 msgid "\t{}: {} files\n"
-msgstr ""
+msgstr "\t{}: {} ficheiros\n"
 
 #: psychopy/app/pavlovia_ui/functions.py:160
 msgid "You need to install git to use Pavlovia projects"
-msgstr ""
+msgstr "Precisa de instalar o git para usar projetos Pavlovia"
 
 #: psychopy/app/pavlovia_ui/menu.py:59
 msgid "Log in to Pavlovia...\t{}"
-msgstr ""
+msgstr "Fazer login na Pavlovia...\t{}"
 
 #: psychopy/app/pavlovia_ui/menu.py:62
 msgid "User"
-msgstr ""
+msgstr "Utilizador"
 
 #: psychopy/app/pavlovia_ui/menu.py:66
 msgid "Search Pavlovia\t{}"
-msgstr ""
+msgstr "Pesquisar na Pavlovia\t{}"
 
 #: psychopy/app/pavlovia_ui/menu.py:72
 msgid "New...\t{}"
-msgstr ""
+msgstr "Novo...\t{}"
 
 #: psychopy/app/pavlovia_ui/menu.py:76
 msgid "Sync\t{}"
-msgstr ""
+msgstr "Sncronizar\t{}"
 
 #: psychopy/app/pavlovia_ui/menu.py:138
 msgid "You need to log in to create a project"
-msgstr ""
+msgstr "Precisa de fazer o login para criar um projeto"
 
 #: psychopy/app/pavlovia_ui/project.py:66
 msgid "Name:"
-msgstr ""
+msgstr "Nome:"
 
 #: psychopy/app/pavlovia_ui/project.py:79
 msgid "Group/owner:"
-msgstr ""
+msgstr "Grupo/proprietário:"
 
 #: psychopy/app/pavlovia_ui/project.py:83
 msgid "Description:"
-msgstr ""
+msgstr "Descrição:"
 
 #: psychopy/app/pavlovia_ui/project.py:87
 msgid "Local folder:"
-msgstr ""
+msgstr "Local da pasta:"
 
 #: psychopy/app/pavlovia_ui/project.py:90
 msgid "Browse..."
-msgstr ""
+msgstr "Procurar..."
 
 #: psychopy/app/pavlovia_ui/project.py:97
 msgid "Tags (comma separated):"
-msgstr ""
+msgstr "Tags (separado por vírgulas):"
 
 #: psychopy/app/pavlovia_ui/project.py:101
 msgid "Public:"
-msgstr ""
+msgstr "Publico:"
 
 #: psychopy/app/pavlovia_ui/project.py:106
 msgid "Create project on Pavlovia"
-msgstr ""
+msgstr "Criar um projeto na Pavlovia"
 
 #: psychopy/app/pavlovia_ui/project.py:108
 msgid "Submit changes to Pavlovia"
-msgstr ""
+msgstr "Enviar alterações para a Pavlovia"
 
 #: psychopy/app/pavlovia_ui/project.py:194
 msgid "Star"
-msgstr ""
+msgstr "Estrela"
 
 #: psychopy/app/pavlovia_ui/project.py:244
 msgid ""
 "An image to represent this project, this helps it stand out when browsing on "
 "Pavlovia."
 msgstr ""
+"Uma imagem para representar este projeto, que ajudará~o projeto a destacar-"
+"se no navegar na Pavlovia."
 
 #: psychopy/app/pavlovia_ui/project.py:259
 msgid ""
@@ -3309,10 +3376,13 @@ msgid ""
 "anywhere; so you can add spaces, apostrophes and emojis to your heart's "
 "content! 🦕✨"
 msgstr ""
+"Título do projeto. Ao contrário do nome do projeto, este não é usado como "
+"nome de ficheiro em lugar nenhum; por isso, pode adicionar espaços, "
+"apóstrofos e emojis conforme desejar! 🦕✨"
 
 #: psychopy/app/pavlovia_ui/project.py:273
 msgid "Click to view the project in Pavlovia."
-msgstr ""
+msgstr "Clicar para ver o projeto em Pavlovia."
 
 #: psychopy/app/pavlovia_ui/project.py:285
 msgid ""
@@ -3320,34 +3390,43 @@ msgid ""
 "appear first in your searches and projects with more stars in total will "
 "appear higher in everyone's searches."
 msgstr ""
+"Dê uma 'estrela' a este projeto para voltar a ele facilmente. Os projetos "
+"marcados com estrela aparecerão em primeiro lugar nas suas pesquisas e os "
+"projetos com mais estrelas no total aparecerão em primeiro lugar nas "
+"pesquisas de todos."
 
 #: psychopy/app/pavlovia_ui/project.py:291
 msgid "Fork"
-msgstr ""
+msgstr "Fork"
 
 #: psychopy/app/pavlovia_ui/project.py:296
 msgid ""
 "Create a copy of this project on your own Pavlovia account so that you can "
 "make changes without affecting the original project."
 msgstr ""
+"Criar uma cópia deste projeto na sua própria conta Pavlovia para poder fazer "
+"alterações sem afetar o projeto original."
 
 #: psychopy/app/pavlovia_ui/project.py:300
 msgid "Create"
-msgstr ""
+msgstr "Criar"
 
 #: psychopy/app/pavlovia_ui/project.py:305
 msgid "Create a Pavlovia project for the current experiment."
-msgstr ""
+msgstr "Criar um projeto Pavlovia para a experiência atual."
 
 #: psychopy/app/pavlovia_ui/project.py:313
 msgid ""
 "Synchronise this project's local files with their online counterparts. This "
 "will 'pull' changes from Pavlovia and 'push' changes from your local files."
 msgstr ""
+"Sincronizar os ficheiros locais deste projeto com seus equivalentes online. "
+"Isso irá 'puxar' as alterações da Pavlovia e 'enviar' as alterações dos seus "
+"ficheiros locais."
 
 #: psychopy/app/pavlovia_ui/project.py:317
 msgid "Download"
-msgstr ""
+msgstr "Transferência"
 
 #: psychopy/app/pavlovia_ui/project.py:322
 msgid ""
@@ -3355,10 +3434,13 @@ msgid ""
 "any changes you make so that they can be applied when you next 'sync' the "
 "project."
 msgstr ""
+"'Clonar' este projeto, criando cópias locais de todos os ficheiros e "
+"rastreando quaisquer alterações feitas para que elas possam ser aplicadas na "
+"próxima 'sincronização' do projeto."
 
 #: psychopy/app/pavlovia_ui/project.py:329
 msgid "Last synced at..."
-msgstr ""
+msgstr "Última sincronização às..."
 
 #: psychopy/app/pavlovia_ui/project.py:343
 msgid ""
@@ -3366,41 +3448,52 @@ msgid ""
 "this folder will be tracked and applied to the project when you 'sync', so "
 "make sure the only files in this folder are relevant!"
 msgstr ""
+"Pasta na qual os arquivos locais são armazenados para este projeto. As "
+"alterações nos arquivos desta pasta serão rastreadas e aplicadas ao projeto "
+"quando 'sincronizar', portanto, certifique-se de que os únicos ficheiros "
+"nesta pasta sejam relevantes!"
 
 #: psychopy/app/pavlovia_ui/project.py:353
 msgid ""
 "Description of the project to be shown on Pavlovia. Note: This is different "
 "than a README file!"
 msgstr ""
+"Descrição do projeto a ser exibido na Pavlovia. Nota: Isso é diferente de um "
+"arquivo README!"
 
 #: psychopy/app/pavlovia_ui/project.py:360
 msgid "Visibility:"
-msgstr ""
+msgstr "Visibilidade:"
 
 #: psychopy/app/pavlovia_ui/project.py:366
 msgid ""
 "Visibility of the current project; whether its visible only to its creator "
 "(Private) or to any user (Public)."
 msgstr ""
+"Visibilidade do projeto atual; seja visível apenas para seu criador "
+"(Privado) ou para qualquer utilizador (Público)"
 
 #: psychopy/app/pavlovia_ui/project.py:372
 msgid "Status:"
-msgstr ""
+msgstr "Status:"
 
 #: psychopy/app/pavlovia_ui/project.py:378
 msgid ""
 "Project status; whether it can be run to collect data (Running), run by its "
 "creator without saving data (Piloting) or cannot be run (Inactive)."
 msgstr ""
+"Status do projeto; seja para ser executado para recolher dados (Running), "
+"executar pelo criador sem guardar os dados (Piloting) ou pode não ser "
+"executado (Inativo)."
 
 #: psychopy/app/pavlovia_ui/project.py:384
 #: psychopy/app/plugin_manager/plugins.py:680
 msgid "Keywords:"
-msgstr ""
+msgstr "Palavras-chave:"
 
 #: psychopy/app/pavlovia_ui/project.py:386
 msgid "tag"
-msgstr ""
+msgstr "tag"
 
 #: psychopy/app/pavlovia_ui/project.py:391
 msgid ""
@@ -3408,6 +3501,9 @@ msgid ""
 "example, if your experiment is useful to psychophysicists, you may want to "
 "add the keyword 'psychophysics'."
 msgstr ""
+"Palavras-chave associadas a este projeto, ajudando outras pessoas a encontrá-"
+"lo. Por exemplo, se a sua experiência for útil para psicofísicos, pode "
+"adicionar a palavra-chave 'psicofísica'."
 
 #: psychopy/app/pavlovia_ui/project.py:473
 msgid ""
@@ -3417,168 +3513,187 @@ msgid ""
 "the correct user in the PsychoPy app, and that your account has access to "
 "the project."
 msgstr ""
+"Não foi possível encontrar o projeto GitLab com o ID {}.\n"
+"\n"
+"Verifique se o projeto existe na Pavlovia, se está conectado como o "
+"utilizador correto no programa PsychoPy e se a sua conta tem acesso ao "
+"projeto."
 
 #: psychopy/app/pavlovia_ui/project.py:676
 #, python-brace-format
 msgid ""
 "Could not find folder {directory}, please select a different local root."
 msgstr ""
+"Não foi possível encontrar a pasta {directory}, selecione por favor uma raiz "
+"local diferente."
 
 #: psychopy/app/pavlovia_ui/project.py:714
 msgid "Project info has changed, update online before closing?"
 msgstr ""
+"As informações do projeto foram alteradas. Atualizar on-line antes de fechar?"
 
 #: psychopy/app/pavlovia_ui/project.py:729
 msgid "Project info"
-msgstr ""
+msgstr "Informação do projeto"
 
 #: psychopy/app/pavlovia_ui/project.py:762 psychopy/projects/pavlovia.py:838
 msgid "You are not logged in to Pavlovia. Please log in to sync project."
-msgstr ""
+msgstr "Não está ligado à Pavlovia. Faça login para sincronizar o projeto."
 
 #: psychopy/app/pavlovia_ui/project.py:786
 msgid "This file doesn't belong to any existing project."
-msgstr ""
+msgstr "Este ficheiro não pertence a nenhum projeto existente."
 
 #: psychopy/app/pavlovia_ui/project.py:788
 msgid "Create a project"
-msgstr ""
+msgstr "Criar um projeto"
 
 #: psychopy/app/pavlovia_ui/project.py:821
 msgid "Project root folder is not yet specified, specify project root now?"
 msgstr ""
+"A pasta raiz do projeto ainda não foi especificada. Especificar a raiz do "
+"projeto agora?"
 
 #: psychopy/app/pavlovia_ui/project.py:824
 msgid "Project root folder does not exist, change project root now?"
-msgstr ""
+msgstr "A pasta raiz do projeto não existe, alterar a raiz do projeto agora?"
 
 #: psychopy/app/pavlovia_ui/project.py:828 psychopy/app/utils.py:1339
 msgid "Specify folder..."
-msgstr ""
+msgstr "Especificar pasta..."
 
 #: psychopy/app/pavlovia_ui/project.py:848
 msgid ""
 "\n"
 "Sync cancelled by user."
 msgstr ""
+"\n"
+"Sincronização cancelada pelo utilizador."
 
 #: psychopy/app/pavlovia_ui/project.py:900
 msgid "points to a remote that doesn't exist (deleted?)."
-msgstr ""
+msgstr "aponta para uma referência que não existe (eliminado?)."
 
 #: psychopy/app/pavlovia_ui/project.py:901
 msgid "What shall we do?"
-msgstr ""
+msgstr "O que devemos fazer?"
 
 #: psychopy/app/pavlovia_ui/project.py:903
 msgid "(Re)create a project"
-msgstr ""
+msgstr "(Re)criar um projeto"
 
 #: psychopy/app/pavlovia_ui/project.py:904
 msgid "Point to an different location"
-msgstr ""
+msgstr "Apontar para um local diferente"
 
 #: psychopy/app/pavlovia_ui/project.py:905
 msgid "not yet supported"
-msgstr ""
+msgstr "ainda não suportado"
 
 #: psychopy/app/pavlovia_ui/project.py:906
 msgid "Forget the local git repository (deletes history keeps files)"
 msgstr ""
+"Esqueça o repositório git local (exclui o histórico e mantém os ficheiros)"
 
 #: psychopy/app/pavlovia_ui/search.py:45
 msgid "Search for projects online"
-msgstr ""
+msgstr "Procurar projetos online"
 
 #: psychopy/app/pavlovia_ui/search.py:130
 msgid "Me"
-msgstr ""
+msgstr "Meu"
 
 #: psychopy/app/pavlovia_ui/search.py:140
 msgid "Sort..."
-msgstr ""
+msgstr "Ordenar..."
 
 #: psychopy/app/pavlovia_ui/search.py:145
 msgid "Filter..."
-msgstr ""
+msgstr "Filtrar..."
 
 #: psychopy/app/pavlovia_ui/search.py:173
 msgid "Author"
-msgstr ""
+msgstr "Autor"
 
 #: psychopy/app/pavlovia_ui/search.py:174
 #: psychopy/experiment/components/_base.py:64 psychopy/experiment/loops.py:96
 #: psychopy/experiment/loops.py:430 psychopy/experiment/loops.py:584
 #: psychopy/experiment/routines/_base.py:47
 msgid "Name"
-msgstr ""
+msgstr "Nome"
 
 #: psychopy/app/pavlovia_ui/sync.py:20
 msgid "Syncing project..."
-msgstr ""
+msgstr "A sincronizar o projeto..."
 
 #: psychopy/app/pavlovia_ui/sync.py:27
 msgid "Synchronising..."
-msgstr ""
+msgstr "Sincronizando..."
 
 #: psychopy/app/pavlovia_ui/sync.py:79
 msgid "New project..."
-msgstr ""
+msgstr "Novo projeto..."
 
 #: psychopy/app/pavlovia_ui/sync.py:96
 msgid "Project name:"
-msgstr ""
+msgstr "Nome do projeto:"
 
 #: psychopy/app/pavlovia_ui/sync.py:117
 msgid "Project folder:"
-msgstr ""
+msgstr "Nome da pasta:"
 
 #: psychopy/app/pavlovia_ui/user.py:104
 msgid "Switch User"
-msgstr ""
+msgstr "Alterar Utilizador"
 
 #: psychopy/app/pavlovia_ui/user.py:109
 msgid "Login"
-msgstr ""
+msgstr "Login"
 
 #: psychopy/app/pavlovia_ui/user.py:114
 msgid "Logout"
-msgstr ""
+msgstr "Logout"
 
 #: psychopy/app/plugin_manager/dialog.py:22
 msgid "Plugins & Packages"
-msgstr ""
+msgstr "Plugins & Pacotes"
 
 #: psychopy/app/plugin_manager/dialog.py:41
 msgid "Plugins"
-msgstr ""
+msgstr "Plugins"
 
 #: psychopy/app/plugin_manager/dialog.py:44
 msgid "Packages"
-msgstr ""
+msgstr "Pacotes"
 
 #: psychopy/app/plugin_manager/dialog.py:323
 msgid ""
 "[Warning] Could not activate plugin. PsychoPy may need to restart for plugin "
 "to take effect."
 msgstr ""
+"[Aviso] Não foi possível ativar o plugin. O PsychoPy pode precisar de ser "
+"reiniciado para que o plugin tenha efeito."
 
 #: psychopy/app/plugin_manager/dialog.py:333
 msgid ""
 "The following components/routines should now be visible in the Components "
 "panel (a restart may be required in some cases):\n"
 msgstr ""
+"As seguintes componentes/rotinas agora devem estar visíveis no painel "
+"Componentes (reiniciar pode ser necessário em alguns casos):\n"
 
 #: psychopy/app/plugin_manager/dialog.py:344
 #, python-format
 msgid "For more information about the %s plugin, read the documentation at:"
-msgstr ""
+msgstr "Para mais informações sobre o plugin %s, leia a documentação em:"
 
 #: psychopy/app/plugin_manager/dialog.py:359
 msgid ""
 "It looks like you've uninstalled some plugins. In order for this to take "
 "effect, you will need to restart the PsychoPy app."
 msgstr ""
+"Parece que desinstalou alguns plug-ins. Para que isto tenha efeito, "
+"precisará de reiniciar o programa PsychoPy."
 
 #: psychopy/app/plugin_manager/packages.py:71
 msgid ""
@@ -3589,509 +3704,525 @@ msgid ""
 "{}\n"
 "\n"
 msgstr ""
+"Digite um comando PIP abaixo e pressione Enter para o executar no ambiente "
+"PsychoPy instalado, qualquer texto retornado aparecerá abaixo.\n"
+"\n"
+"Todos os comandos serão automaticamente precedidos por:\n"
+"{}\n"
+"\n"
 
 #: psychopy/app/plugin_manager/packages.py:160
 msgid "or..."
-msgstr ""
+msgstr "ou..."
 
 #: psychopy/app/plugin_manager/packages.py:163
 msgid "Install from file"
-msgstr ""
+msgstr "Instalar a partir do ficheiro"
 
 #: psychopy/app/plugin_manager/packages.py:164
 msgid "Install a package from a local file, such as a .egg or wheel."
-msgstr ""
+msgstr "Instale o programa a partir de um ficheiro local, como .egg ou wheel."
 
 #: psychopy/app/plugin_manager/packages.py:168
 msgid "Open PIP terminal"
-msgstr ""
+msgstr "Abrir o terminal PIP"
 
 #: psychopy/app/plugin_manager/packages.py:169
 msgid "Open PIP terminal to manage packages manually"
-msgstr ""
+msgstr "Abrir o terminal PIP para gerir pacotes manualmente"
 
 #: psychopy/app/plugin_manager/packages.py:206
 #: psychopy/app/plugin_manager/packages.py:342
 msgid "Uninstall"
-msgstr ""
+msgstr "Desinstalar"
 
 #: psychopy/app/plugin_manager/packages.py:259
 msgid "Package"
-msgstr ""
+msgstr "Pacote"
 
 #: psychopy/app/plugin_manager/packages.py:260
 #: psychopy/app/plugin_manager/plugins.py:1070
 msgid "Installed"
-msgstr ""
+msgstr "Instalado"
 
 #: psychopy/app/plugin_manager/packages.py:271
 msgid "Latest"
-msgstr ""
+msgstr "Mais recente"
 
 #: psychopy/app/plugin_manager/packages.py:319
 msgid "by "
-msgstr ""
+msgstr "por "
 
 #: psychopy/app/plugin_manager/packages.py:329
 #: psychopy/app/plugin_manager/plugins.py:670
 msgid "Homepage"
-msgstr ""
+msgstr "Homepage"
 
 #: psychopy/app/plugin_manager/plugins.py:478
 msgid "Not for PsychoPy {}:"
-msgstr ""
+msgstr "Não para PsychoPy {}:"
 
 #: psychopy/app/plugin_manager/plugins.py:656
 msgid "Version:"
-msgstr ""
+msgstr "Versão:"
 
 #: psychopy/app/plugin_manager/plugins.py:685
 msgid "keyword"
-msgstr ""
+msgstr "palavra-chave"
 
 #: psychopy/app/plugin_manager/plugins.py:699
 msgid "Select a plugin to view details."
-msgstr ""
+msgstr "Selecione um plugin para ver os detalhes."
 
 #: psychopy/app/plugin_manager/plugins.py:883
 msgid "Works with versions {}."
-msgstr ""
+msgstr "Funciona com versões {}."
 
 #: psychopy/app/plugin_manager/plugins.py:924
 msgid "Email author"
-msgstr ""
+msgstr "E-mail do autor"
 
 #: psychopy/app/plugin_manager/plugins.py:929
 msgid "Author's GitHub"
-msgstr ""
+msgstr "GitHub do autor"
 
 #: psychopy/app/plugin_manager/plugins.py:993
 msgid "That's us! We make PsychoPy and Pavlovia!"
-msgstr ""
+msgstr "Somos nós! Fazemos o PsychoPy e a Pavlovia!"
 
 #: psychopy/app/plugin_manager/plugins.py:1118
 #: psychopy/app/plugin_manager/plugins.py:1136
 msgid "Enabled"
-msgstr ""
+msgstr "Habilitado"
 
 #: psychopy/app/plugin_manager/plugins.py:1122
 #: psychopy/app/plugin_manager/plugins.py:1140
 msgid "Disabled"
-msgstr ""
+msgstr "Desabilitado"
 
 #: psychopy/app/plugin_manager/utils.py:13
 msgid "PIP error"
-msgstr ""
+msgstr "Erro PIP"
 
 #: psychopy/app/plugin_manager/utils.py:41
 msgid "We tried:"
-msgstr ""
+msgstr "Nós tentamos:"
 
 #: psychopy/app/plugin_manager/utils.py:48
 msgid "We got:"
-msgstr ""
+msgstr "Nós obtivemos:"
 
 #: psychopy/app/plugin_manager/utils.py:83
 msgid "Package {} could not be uninstalled."
-msgstr ""
+msgstr "O pacote {} não pôde ser desinstalado."
 
 #: psychopy/app/plugin_manager/utils.py:89
 msgid "Package installed"
-msgstr ""
+msgstr "Pacote instalado"
 
 #: psychopy/app/plugin_manager/utils.py:90
 msgid "Package {} successfully uninstalled!"
-msgstr ""
+msgstr "Pacote {} desinstalado com sucesso!"
 
 #: psychopy/app/plugin_manager/utils.py:111
 msgid "Installation complete. See above for info.\n"
-msgstr ""
+msgstr "Instalação completa. Veja acima para informações.\n"
 
 #: psychopy/app/plugin_manager/utils.py:113
 msgid "Installation failed. See above for info.\n"
-msgstr ""
+msgstr "A instalação falhou. Veja acima para informações.\n"
 
 #: psychopy/app/preferencesDlg.py:24
 #: psychopy/experiment/components/settings/__init__.py:273
 msgid "Latency not important"
-msgstr ""
+msgstr "Latência não é importante"
 
 #: psychopy/app/preferencesDlg.py:25
 #: psychopy/experiment/components/settings/__init__.py:274
 msgid "Share low-latency driver"
-msgstr ""
+msgstr "Compartilhar baixa latência da driver"
 
 #: psychopy/app/preferencesDlg.py:26
 #: psychopy/experiment/components/settings/__init__.py:275
 msgid "Exclusive low-latency"
-msgstr ""
+msgstr "Exclusivamente baixa latência"
 
 #: psychopy/app/preferencesDlg.py:27
 #: psychopy/experiment/components/settings/__init__.py:276
 msgid "Aggressive low-latency"
-msgstr ""
+msgstr "Agressiva baixa latência"
 
 #: psychopy/app/preferencesDlg.py:28
 #: psychopy/experiment/components/settings/__init__.py:277
 msgid "Latency critical"
-msgstr ""
+msgstr "Latência crítica"
 
 #: psychopy/app/preferencesDlg.py:305
 msgid "PsychoPy Preferences"
-msgstr ""
+msgstr "Preferências do PsychoPy"
 
 #: psychopy/app/preferencesDlg.py:330
 msgid "General"
-msgstr ""
+msgstr "Geral"
 
 #: psychopy/app/preferencesDlg.py:333
 msgid "Application"
-msgstr ""
+msgstr "Aplicação"
 
 #: psychopy/app/preferencesDlg.py:336
 msgid "Key Bindings"
-msgstr ""
+msgstr "Combinação de teclas"
 
 #: psychopy/app/preferencesDlg.py:339
 msgid "Hardware"
-msgstr ""
+msgstr "Hardware"
 
 #: psychopy/app/preferencesDlg.py:341
 msgid "Connections"
-msgstr ""
+msgstr "Conecções"
 
 #: psychopy/app/preferencesDlg.py:360
 msgid " Apply "
-msgstr ""
+msgstr " Aplicar "
 
 #: psychopy/app/preferencesDlg.py:497
 msgid "system locale"
-msgstr ""
+msgstr "local do sistema"
 
 #: psychopy/app/preferencesDlg.py:679
 #, python-format
 msgid "Invalid value in \"%(pref)s\" (\"%(section)s\" Tab)"
-msgstr ""
+msgstr "Valor inválido em \"%(pref)s\" (\"%(section)s\" Tab)"
 
 #: psychopy/app/ribbon.py:447 psychopy/app/ribbon.py:516
 msgid "No user"
-msgstr ""
+msgstr "Nenhum utilizador"
 
 #: psychopy/app/ribbon.py:482
 msgid "Edit user..."
-msgstr ""
+msgstr "Editar utilizador..."
 
 #: psychopy/app/ribbon.py:488
 msgid "Switch user"
-msgstr ""
+msgstr "Alterar utilizador"
 
 #: psychopy/app/ribbon.py:496
 msgid "New user..."
-msgstr ""
+msgstr "Novo utilizador..."
 
 #: psychopy/app/ribbon.py:502
 msgid "Log out"
-msgstr ""
+msgstr "Log out"
 
 #: psychopy/app/ribbon.py:505
 msgid "Log in"
-msgstr ""
+msgstr "Log in"
 
 #: psychopy/app/ribbon.py:573 psychopy/app/ribbon.py:628
 msgid "No project"
-msgstr ""
+msgstr "Nenhum projeto"
 
 #: psychopy/app/ribbon.py:607
 msgid "New project"
-msgstr ""
+msgstr "Novo projeto"
 
 #: psychopy/app/ribbon.py:611
 msgid "Edit project..."
-msgstr ""
+msgstr "Editar projeto..."
 
 #: psychopy/app/ribbon.py:617
 msgid "Search projects..."
-msgstr ""
+msgstr "Procurar projetos..."
 
 #: psychopy/app/runner/runner.py:131
 msgid "Add task"
-msgstr ""
+msgstr "Adicionar tarefa"
 
 #: psychopy/app/runner/runner.py:132
 msgid "Adding task"
-msgstr ""
+msgstr "A adicionar tarefa"
 
 #: psychopy/app/runner/runner.py:134
 msgid "Remove task"
-msgstr ""
+msgstr "Remover tarefa"
 
 #: psychopy/app/runner/runner.py:137
 msgid "Clear all"
-msgstr ""
+msgstr "Apagar tudo"
 
 #: psychopy/app/runner/runner.py:138
 msgid "Clearing tasks"
-msgstr ""
+msgstr "Apagar tarefas"
 
 #: psychopy/app/runner/runner.py:141
 msgid "&Save list"
-msgstr ""
+msgstr "&Guardar a lista"
 
 #: psychopy/app/runner/runner.py:142
 msgid "Saving task"
-msgstr ""
+msgstr "Guardar a tarefa"
 
 #: psychopy/app/runner/runner.py:144
 msgid "&Open list"
-msgstr ""
+msgstr "&Abrir lista"
 
 #: psychopy/app/runner/runner.py:145
 msgid "Loading task"
-msgstr ""
+msgstr "A carregar tarefa"
 
 #: psychopy/app/runner/runner.py:148
 msgid "Closing Runner"
-msgstr ""
+msgstr "Fechar o Runner"
 
 #: psychopy/app/runner/runner.py:151
 msgid "Quitting PsychoPy"
-msgstr ""
+msgstr "A sair do PsychoPy"
 
 #: psychopy/app/runner/runner.py:160
 #, python-format
 msgid "&Run\t%s"
-msgstr ""
+msgstr "&Executar\t%s"
 
 #: psychopy/app/runner/runner.py:161
 msgid "Running experiment"
-msgstr ""
+msgstr "A executar experiência"
 
 #: psychopy/app/runner/runner.py:164
 msgid "Run &JS for local debug"
-msgstr ""
+msgstr "Executar &JS para debug local"
 
 #: psychopy/app/runner/runner.py:165
 msgid "Launching local debug of online study"
-msgstr ""
+msgstr "A lançar debug local do estudo online"
 
 #: psychopy/app/runner/runner.py:168
 msgid "Run JS on &Pavlovia"
-msgstr ""
+msgstr "Execuatr JS na &Pavlovia"
 
 #: psychopy/app/runner/runner.py:169
 msgid "Launching online study at Pavlovia"
-msgstr ""
+msgstr "A lançar o estudo online na Pavlovia"
 
 #: psychopy/app/runner/runner.py:175
 msgid "&Builder Demos"
-msgstr ""
+msgstr "&Demonstrações do Builder"
 
 #: psychopy/app/runner/runner.py:176
 msgid "Loading builder demos"
-msgstr ""
+msgstr "A carregar demonstrações do builder"
 
 #: psychopy/app/runner/runner.py:179
 msgid "&Coder Demos"
-msgstr ""
+msgstr "&Demonstrações do Coder"
 
 #: psychopy/app/runner/runner.py:180
 msgid "Loading coder demos"
-msgstr ""
+msgstr "A carregar demonstrações do coder"
 
 #: psychopy/app/runner/runner.py:209
 msgid "&Run"
-msgstr ""
+msgstr "&Executar"
 
 #: psychopy/app/runner/runner.py:229
 msgid "Save task list as ..."
-msgstr ""
+msgstr "Guardar a lista de tarefas como..."
 
 #: psychopy/app/runner/runner.py:261
 msgid "Open task list ..."
-msgstr ""
+msgstr "Abrir a lista de tarefas..."
 
 #: psychopy/app/runner/runner.py:374
 msgid "basic"
-msgstr ""
+msgstr "básico"
 
 #: psychopy/app/runner/runner.py:375
 msgid "input"
-msgstr ""
+msgstr "input"
 
 #: psychopy/app/runner/runner.py:376
 msgid "stimuli"
-msgstr ""
+msgstr "estímulos"
 
 #: psychopy/app/runner/runner.py:377
 msgid "exp control"
-msgstr ""
+msgstr "exp control"
 
 #: psychopy/app/runner/runner.py:379
 msgid "hardware"
-msgstr ""
+msgstr "hardware"
 
 #: psychopy/app/runner/runner.py:380
 msgid "timing"
-msgstr ""
+msgstr "tempo"
 
 #: psychopy/app/runner/runner.py:381
 msgid "misc"
-msgstr ""
+msgstr "diversos"
 
 #: psychopy/app/runner/runner.py:484
 msgid "Path"
-msgstr ""
+msgstr "Caminho"
 
 #: psychopy/app/runner/runner.py:898
 msgid "Alerts"
-msgstr ""
+msgstr "Alertas"
 
 #: psychopy/app/runner/runner.py:907
 msgid "Stdout"
-msgstr ""
+msgstr "Stdout"
 
 #: psychopy/app/runner/runner.py:920
 msgid "Manage list"
-msgstr ""
+msgstr "Gerir lista"
 
 #: psychopy/app/runner/runner.py:924
 msgid "Add"
-msgstr ""
+msgstr "Adicionar"
 
 #: psychopy/app/runner/runner.py:925
 msgid "Add experiment to list"
-msgstr ""
+msgstr "Adicionar experiência à lista"
 
 #: psychopy/app/runner/runner.py:931
 msgid "Remove experiment from list"
-msgstr ""
+msgstr "Remover experiência da lista"
 
 #: psychopy/app/runner/runner.py:937
 msgid "Save task list to a file"
-msgstr ""
+msgstr "Guardar lista de tarefas num ficheiro"
 
 #: psychopy/app/runner/runner.py:943
 msgid "Load tasks from a file"
-msgstr ""
+msgstr "Carregar tarefas de um ficheiro"
 
 #: psychopy/app/runner/runner.py:956
 msgid "Run the current script in Python"
-msgstr ""
+msgstr "Executar o script atual no Python"
 
 #: psychopy/app/runner/runner.py:962 psychopy/experiment/components/_base.py:90
 #: psychopy/experiment/components/panorama/__init__.py:139
 #: psychopy/experiment/routines/_base.py:53
 msgid "Stop"
-msgstr ""
+msgstr "Parar"
 
 #: psychopy/app/runner/runner.py:963
 msgid "Stop the current (Python) script"
-msgstr ""
+msgstr "Parar o atual script (Python)"
 
 #: psychopy/app/runner/runner.py:976
 msgid "Run the current script locally on your browser"
-msgstr ""
+msgstr "Executar o script local atual no navegador"
 
 #: psychopy/app/stdout/stdOutRich.py:112 psychopy/app/stdout/stdOutRich.py:334
 msgid "For further info see "
-msgstr ""
+msgstr "Para mais informação ver "
 
 #: psychopy/app/themes/ui.py:47
 msgid "&Open theme folder"
-msgstr ""
+msgstr "&Abra a pasta do tema"
 
 #: psychopy/app/utils.py:300
 msgid "Could not get image from: {}, using blank image instead."
 msgstr ""
+"Não foi possível obter a imagem de: {}, usando uma imagem em branco em "
+"alternativa."
 
 #: psychopy/app/utils.py:617
 msgid "View raw code"
-msgstr ""
+msgstr "Ver código bruto"
 
 #: psychopy/app/utils.py:621
 msgid "View styled HTML"
-msgstr ""
+msgstr "Ver HTML estilizado"
 
 #: psychopy/app/utils.py:863
 msgid "item"
-msgstr ""
+msgstr "item"
 
 #: psychopy/app/utils.py:929
 msgid "Add {}..."
-msgstr ""
+msgstr "Addicionar {}..."
 
 #: psychopy/app/utils.py:1215
 msgid "Inavlid image format, could not set image."
-msgstr ""
+msgstr "Formato de imagem inválido, não foi possível definir a imagem."
 
 #: psychopy/app/utils.py:1233
 msgid "Select image..."
-msgstr ""
+msgstr "Selecionar imagem..."
 
 #: psychopy/app/utils.py:1341
 msgid "Specify file..."
-msgstr ""
+msgstr "Especificar ficheiro..."
 
 #: psychopy/app/utils.py:1437 psychopy/app/utils.py:1438
 #, python-format
 msgid "&Next window\t%s"
-msgstr ""
+msgstr "&Próxima janela\t%s"
 
 #: psychopy/app/utils.py:1463
 msgid "Show &builder"
-msgstr ""
+msgstr "Mostrar &builder"
 
 #: psychopy/app/utils.py:1470
 msgid "Show &coder"
-msgstr ""
+msgstr "Mostrar &coder"
 
 #: psychopy/app/utils.py:1477
 msgid "Show &runner"
-msgstr ""
+msgstr "Mostrar &runner"
 
 #: psychopy/data/experiment.py:427
 msgid ""
 "Attempted to pause experiment '{}', but it is already paused. Status will "
 "remain unchanged."
 msgstr ""
+"Tentativa de pausar a experiência '{}', mas já está em pausa. O status "
+"permanecerá inalterado."
 
 #: psychopy/data/experiment.py:440
 msgid ""
 "Attempted to resume experiment '{}', but it is not paused. Status will "
 "remain unchanged."
 msgstr ""
+"Tentativa de retomar a experiência '{}', mas não foi pausado. O status "
+"permanecerá inalterado."
 
 #: psychopy/data/experiment.py:453
 msgid ""
 "Attempted to stop experiment '{}', but it is already stopping. Status will "
 "remain unchanged."
 msgstr ""
+"Tentativa de interromper a experiência '{}', mas já está a parar. O status "
+"permanecerá inalterado."
 
 #: psychopy/data/utils.py:81
 msgid "Variables cannot be missing, None, or ''"
-msgstr ""
+msgstr "As variáveis ​​não podem estar em falta, None ou ''"
 
 #: psychopy/data/utils.py:87
 msgid "Variables must be string-like"
-msgstr ""
+msgstr "As variáveis ​​devem conter letras"
 
 #: psychopy/data/utils.py:95
 #, python-format
 msgid "name %s (type %s) contains non-ASCII characters (e.g. accents)"
-msgstr ""
+msgstr "nome %s (tipo %s) contém caractere não ASCII (exemplo, acentos)"
 
 #: psychopy/data/utils.py:100
 #, python-format
 msgid "name %s (type %s) could not be converted to a string"
 msgstr ""
+"nome %s (tipo %s) não pode ser convertido para uma string (conjunto de "
+"letras)"
 
 #: psychopy/data/utils.py:107
 msgid "Variables cannot begin with numeric character"
-msgstr ""
+msgstr "As variáveis ​​não podem começar com caracteres numéricos"
 
 #: psychopy/data/utils.py:113
 msgid "Variables cannot contain punctuation or spaces"
-msgstr ""
+msgstr "As variáveis ​​não podem conter pontuação ou espaços"
 
 #: psychopy/data/utils.py:296
 #, python-format
@@ -4099,41 +4230,52 @@ msgid ""
 "Conditions file %s: Missing parameter name(s); empty cell(s) in the first "
 "row?"
 msgstr ""
+"Ficheiro condições %s: Nomes de parâmetros em falta; célula(s) vazia(s) na "
+"primeira linha?"
 
 #: psychopy/data/utils.py:316
 #, python-format
 msgid "Conditions file not found: %s"
-msgstr ""
+msgstr "Ficheiro de condições não encontrado: %s"
 
 #: psychopy/data/utils.py:377
 msgid ""
 "openpyxl or xlrd is required for loading excel files, but neither was found."
 msgstr ""
+"openpyxl ou xlrd é necessário para carregar ficheiros Excel, mas nenhum "
+"deles foi encontrado."
 
 #: psychopy/data/utils.py:452
 #, python-format
 msgid "Could not open %s as conditions"
-msgstr ""
+msgstr "Não foi possível abrir %s como condições"
 
 #: psychopy/data/utils.py:471
 msgid "Your conditions file should be an xlsx, csv, dlm, tsv or pkl file"
 msgstr ""
+"O seu ficheiro de condições deve ser um ficheiro xlsx, csv, dlm, tsv ou pkl"
 
 #: psychopy/data/utils.py:484
 msgid "importConditions() was given some `indices` but could not parse them"
 msgstr ""
+"importConditions() recebeu alguns `indices` mas não conseguiu analisá-los"
 
 #: psychopy/experiment/_experiment.py:621
 msgid ""
 "Name of the folder in which to save data and log files (blank defaults to "
 "the builder pref)"
 msgstr ""
+"Nome da pasta na qual guardar dados e ficheiros log (branco é o padrão das "
+"preferências do builder)"
 
 #: psychopy/experiment/_experiment.py:680
 msgid ""
 "This parameter is not known by this version of PsychoPy. It might be worth "
 "upgrading, otherwise press the X button to remove this parameter."
 msgstr ""
+"Este parâmetro não é conhecido por esta versão do PsychoPy. Pode valer a "
+"pena atualizar, caso contrário pressione o botão X para remover este "
+"parâmetro."
 
 #: psychopy/experiment/_experiment.py:695
 #, python-format
@@ -4142,103 +4284,113 @@ msgid ""
 "experiment file (saved by a future version of PsychoPy?). This experiment "
 "may not run correctly in the current version."
 msgstr ""
+"O parâmetro %r não é conhecido nesta versão do PsychoPy, mas veio do seu "
+"ficheiro da experiência (guardado por uma versão futura do PsychoPy?). Esta "
+"experiência pode não funcionar corretamente na versão atual."
 
 #: psychopy/experiment/components/_base.py:60
 msgid "Name of this Component (alphanumeric or _, no spaces)"
-msgstr ""
+msgstr "Nome deste Componente (alfanumérico ou _, sem espaços)"
 
 #: psychopy/experiment/components/_base.py:66
 msgid "How do you want to define your start point?"
-msgstr ""
+msgstr "Como deseja definir o seu ponto de início?"
 
 #: psychopy/experiment/components/_base.py:71
 msgid "Start type"
-msgstr ""
+msgstr "Tipo de início"
 
 #: psychopy/experiment/components/_base.py:73
 #: psychopy/experiment/routines/_base.py:55
 msgid "How do you want to define your end point?"
-msgstr ""
+msgstr "Como deseja definir o seu ponto de fim?"
 
 #: psychopy/experiment/components/_base.py:79
 msgid "Stop type"
-msgstr ""
+msgstr "Tipo de parar"
 
 #: psychopy/experiment/components/_base.py:83
 msgid "When does the Component start?"
-msgstr ""
+msgstr "Quando é iniciado o componente?"
 
 #: psychopy/experiment/components/_base.py:84
 msgid "Start"
-msgstr ""
+msgstr "Iniciar"
 
 #: psychopy/experiment/components/_base.py:89
 msgid "When does the Component end? (blank is endless)"
-msgstr ""
+msgstr "Quando o Componente termina? (o espaço em branco é infinito)"
 
 #: psychopy/experiment/components/_base.py:92
 msgid "(Optional) expected start (s), purely for representing in the timeline"
 msgstr ""
+"(Opcional) início(s) esperado(s), apenas para representação na linha do tempo"
 
 #: psychopy/experiment/components/_base.py:97
 msgid "Expected start (s)"
-msgstr ""
+msgstr "Início(s) esperando(s)"
 
 #: psychopy/experiment/components/_base.py:99
 msgid ""
 "(Optional) expected duration (s), purely for representing in the timeline"
 msgstr ""
+"(Opcional) duração(ões) esperada(s), apenas para representação na linha do "
+"tempo"
 
 #: psychopy/experiment/components/_base.py:104
 msgid "Expected duration (s)"
-msgstr ""
+msgstr "Duração(ões) esperada(s)"
 
 #: psychopy/experiment/components/_base.py:106
 msgid ""
 "Store the onset/offset times in the data file (as well as in the log file)."
 msgstr ""
+"Armazenar os tempos de onset/offset no ficheiro de dados (bem como no "
+"ficheiro log)."
 
 #: psychopy/experiment/components/_base.py:111
 msgid "Save onset/offset times"
-msgstr ""
+msgstr "Guardar tempos de onset/offset"
 
 #: psychopy/experiment/components/_base.py:113
 msgid ""
 "Synchronize times with screen refresh (good for visual stimuli and responses "
 "based on them)"
 msgstr ""
+"Sincronizar tempos com atualização do ecrã (bom para estímulos visuais e "
+"respostas baseadas neles)"
 
 #: psychopy/experiment/components/_base.py:118
 msgid "Sync timing with screen refresh"
-msgstr ""
+msgstr "Sincronizar o tempo com atualização do ecrã"
 
 #: psychopy/experiment/components/_base.py:120
 msgid "Disable this Component"
-msgstr ""
+msgstr "Desabilitar esta Componente"
 
 #: psychopy/experiment/components/_base.py:124
 msgid "Disable Component"
-msgstr ""
+msgstr "Desabilitar Componente"
 
 #: psychopy/experiment/components/_base.py:977
 #: psychopy/experiment/routines/eyetracker_calibrate/__init__.py:119
 #: psychopy/experiment/routines/eyetracker_validate/__init__.py:162
 msgid "Units of dimensions for this stimulus"
-msgstr ""
+msgstr "Unidades de dimensões para este estímulo"
 
 #: psychopy/experiment/components/_base.py:983
 #: psychopy/experiment/routines/eyetracker_calibrate/__init__.py:120
 #: psychopy/experiment/routines/eyetracker_validate/__init__.py:163
 msgid "Spatial units"
-msgstr ""
+msgstr "Unidades espaciais"
 
 #: psychopy/experiment/components/_base.py:985
 msgid "Foreground color of this stimulus (e.g. $[1,1,0], red )"
-msgstr ""
+msgstr "Cor de fundo deste estímulo (exemplo, $[1,1,0], red )"
 
 #: psychopy/experiment/components/_base.py:992
 msgid "Foreground color"
-msgstr ""
+msgstr "Cor de fundo"
 
 #: psychopy/experiment/components/_base.py:994
 #: psychopy/experiment/routines/eyetracker_calibrate/__init__.py:93
@@ -4247,6 +4399,8 @@ msgid ""
 "In what format (color space) have you specified the colors? (rgb, dkl, lms, "
 "hsv)"
 msgstr ""
+"Em que formato (no espaço de cores) especificou as cores? (rgb, dkl, lms, "
+"hsv)"
 
 #: psychopy/experiment/components/_base.py:1001
 #: psychopy/experiment/components/routineSettings/__init__.py:118
@@ -4254,24 +4408,24 @@ msgstr ""
 #: psychopy/experiment/routines/eyetracker_calibrate/__init__.py:94
 #: psychopy/experiment/routines/eyetracker_validate/__init__.py:136
 msgid "Color space"
-msgstr ""
+msgstr "Espaço de cores"
 
 #: psychopy/experiment/components/_base.py:1003
 msgid "Fill color of this stimulus (e.g. $[1,1,0], red )"
-msgstr ""
+msgstr "Cor de preenchimento deste estímulo (exemplo, $[1,1,0], red )"
 
 #: psychopy/experiment/components/_base.py:1009
 msgid "Fill color"
-msgstr ""
+msgstr "Cor de preenchimento"
 
 #: psychopy/experiment/components/_base.py:1011
 msgid "Border color of this stimulus (e.g. $[1,1,0], red )"
-msgstr ""
+msgstr "Cor da linha/fronteira deste estímulo (exemplo, $[1,1,0], red )"
 
 #: psychopy/experiment/components/_base.py:1017
 #: psychopy/experiment/components/progress/__init__.py:55
 msgid "Border color"
-msgstr ""
+msgstr "Cor de linha/fronteira"
 
 #: psychopy/experiment/components/_base.py:1019
 msgid ""
@@ -4279,60 +4433,67 @@ msgid ""
 "Leave blank for each color to have its own opacity (recommended if any color "
 "is None)."
 msgstr ""
+"Opacidade do estímulo (1=opaco, 0=totalmente transparente, 0,5=translúcido). "
+"Deixe em branco para que cada cor tenha a sua própria opacidade (recomendado "
+"se alguma cor for Nenhuma)."
 
 #: psychopy/experiment/components/_base.py:1026
 msgid "Opacity"
-msgstr ""
+msgstr "Opacidade"
 
 #: psychopy/experiment/components/_base.py:1028
 msgid ""
 "Contrast of the stimulus (1.0=unchanged contrast, 0.5=decrease contrast, "
 "0.0=uniform/no contrast, -0.5=slightly inverted, -1.0=totally inverted)"
 msgstr ""
+"Contraste do estímulo (1,0=contraste inalterado, 0,5=diminuir contraste, "
+"0,0=uniforme/sem contraste, -0,5=ligeiramente invertido, -1,0=totalmente "
+"invertido)"
 
 #: psychopy/experiment/components/_base.py:1036
 msgid "Contrast"
-msgstr ""
+msgstr "Contraste"
 
 #: psychopy/experiment/components/_base.py:1038
 #: psychopy/experiment/components/ratingScale/__init__.py:181
 msgid "Position of this stimulus (e.g. [1,2] )"
-msgstr ""
+msgstr "Posição deste estímulo (exemplo, [1,2] )"
 
 #: psychopy/experiment/components/_base.py:1044
 #: psychopy/experiment/components/ratingScale/__init__.py:182
 msgid "Position [x,y]"
-msgstr ""
+msgstr "Posição [x,y]"
 
 #: psychopy/experiment/components/_base.py:1046
 #: psychopy/experiment/components/ratingScale/__init__.py:173
 msgid ""
 "Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] "
 msgstr ""
+"Tamanho deste estímulo (um valor único ou um par x,y, exemplo, 2.5, [1,2] "
 
 #: psychopy/experiment/components/_base.py:1053
 msgid "Size [w,h]"
-msgstr ""
+msgstr "Tamanho [w,h]"
 
 #: psychopy/experiment/components/_base.py:1059
 msgid "Orientation of this stimulus (in deg)"
-msgstr ""
+msgstr "Orientação deste estímulo (em graus)"
 
 #: psychopy/experiment/components/_base.py:1060
 msgid "Orientation"
-msgstr ""
+msgstr "Orientação"
 
 #: psychopy/experiment/components/aperture/__init__.py:26
 msgid "Aperture: restrict the drawing of stimuli to a given region"
-msgstr ""
+msgstr "Abertura: restringe o desenho de estímulos a uma determinada região"
 
 #: psychopy/experiment/components/aperture/__init__.py:49
 msgid "How big is the aperture? (a single number for diameter)"
-msgstr ""
+msgstr "Qual é o tamanho da abertura? (um único número para o diâmetro)"
 
 #: psychopy/experiment/components/aperture/__init__.py:65
 msgid "Which point on the aperture should be anchored to its exact position?"
-msgstr ""
+msgstr "Que ponto da abertura deve ser ancorado na sua posição exata?"
 
 #: psychopy/experiment/components/aperture/__init__.py:66
 #: psychopy/experiment/components/button/__init__.py:134
@@ -4343,70 +4504,74 @@ msgstr ""
 #: psychopy/experiment/components/progress/__init__.py:94
 #: psychopy/experiment/components/textbox/__init__.py:149
 msgid "Anchor"
-msgstr ""
+msgstr "Âncora"
 
 #: psychopy/experiment/components/aperture/__init__.py:69
 #: psychopy/experiment/components/ratingScale/__init__.py:175
 msgid "Size"
-msgstr ""
+msgstr "Tamanho"
 
 #: psychopy/experiment/components/aperture/__init__.py:70
 msgid "Where is the aperture centred?"
-msgstr ""
+msgstr "Onde se centra a abertura?"
 
 #: psychopy/experiment/components/brush/__init__.py:18
 msgid "Brush: a drawing tool"
-msgstr ""
+msgstr "Pincel: uma ferramenta de desenho"
 
 #: psychopy/experiment/components/brush/__init__.py:42
 msgid "Fill color of this brush"
-msgstr ""
+msgstr "Cor de preenchimento deste pincel"
 
 #: psychopy/experiment/components/brush/__init__.py:48
 msgid "Brush color"
-msgstr ""
+msgstr "Cor do pincel"
 
 #: psychopy/experiment/components/brush/__init__.py:50
 msgid ""
 "Width of the brush's line (always in pixels and limited to 10px max width)"
 msgstr ""
+"Largura da linha do pincel (sempre em pixels e limitada a 10px de largura "
+"máxima)"
 
 #: psychopy/experiment/components/brush/__init__.py:56
 msgid "Brush size"
-msgstr ""
+msgstr "Largura do pincel"
 
 #: psychopy/experiment/components/brush/__init__.py:61
 msgid "The line opacity"
-msgstr ""
+msgstr "A opacidade da linha"
 
 #: psychopy/experiment/components/brush/__init__.py:64
 msgid "Whether a button needs to be pressed to draw (True/False)"
 msgstr ""
+"Se um botão precisa de ser pressionado para desenhar (Verdadeiro/Falso)"
 
 #: psychopy/experiment/components/brush/__init__.py:70
 msgid "Press button"
-msgstr ""
+msgstr "Pressionar botão"
 
 #: psychopy/experiment/components/button/__init__.py:24
 msgid "Button: A clickable textbox"
-msgstr ""
+msgstr "Botão: uma caixa de texto clicável"
 
 #: psychopy/experiment/components/button/__init__.py:31
 msgid "Click here"
-msgstr ""
+msgstr "Clique aqui"
 
 #: psychopy/experiment/components/button/__init__.py:58
 #: psychopy/experiment/components/textbox/__init__.py:65
 #: psychopy/experiment/routines/eyetracker_calibrate/__init__.py:54
 #: psychopy/experiment/routines/eyetracker_validate/__init__.py:95
 msgid "Text color"
-msgstr ""
+msgstr "Cor do texto"
 
 #: psychopy/experiment/components/button/__init__.py:63
 #: psychopy/experiment/components/joyButtons/__init__.py:65
 #: psychopy/experiment/components/keyboard/__init__.py:91
 msgid "Should a response force the end of the Routine (e.g end the trial)?"
 msgstr ""
+"Uma resposta deve forçar o fim da Routine (exemplo, terminar o ensaio)?"
 
 #: psychopy/experiment/components/button/__init__.py:65
 #: psychopy/experiment/components/joyButtons/__init__.py:71
@@ -4415,42 +4580,44 @@ msgstr ""
 #: psychopy/experiment/components/ratingScale/__init__.py:151
 #: psychopy/experiment/components/slider/__init__.py:145
 msgid "Force end of Routine"
-msgstr ""
+msgstr "Forçar o fim da Routine"
 
 #: psychopy/experiment/components/button/__init__.py:81
 msgid ""
 "Should the callback run once per click (True), or each frame until click is "
 "released (False)"
 msgstr ""
+"O callback deve ser executado uma vez por clique (Verdadeiro) ou por cada "
+"frame até ao clique (Falso)"
 
 #: psychopy/experiment/components/button/__init__.py:82
 msgid "Run once per click"
-msgstr ""
+msgstr "Executar uma vez por clique"
 
 #: psychopy/experiment/components/button/__init__.py:87
 msgid "Code to run when button is clicked"
-msgstr ""
+msgstr "Codificar para ser executar quando o botão é clicado"
 
 #: psychopy/experiment/components/button/__init__.py:88
 msgid "Callback function"
-msgstr ""
+msgstr "Função calback"
 
 #: psychopy/experiment/components/button/__init__.py:92
 #: psychopy/experiment/components/text/__init__.py:52
 #: psychopy/experiment/components/textbox/__init__.py:70
 msgid "The text to be displayed"
-msgstr ""
+msgstr "Texto a ser apresentado"
 
 #: psychopy/experiment/components/button/__init__.py:93
 msgid "Button text"
-msgstr ""
+msgstr "Botão de texto"
 
 #: psychopy/experiment/components/button/__init__.py:97
 #: psychopy/experiment/components/form/__init__.py:90
 #: psychopy/experiment/components/text/__init__.py:58
 #: psychopy/experiment/components/textbox/__init__.py:90
 msgid "The font name (e.g. Comic Sans)"
-msgstr ""
+msgstr "Nome da fonte (exemplo, Comic Sans)"
 
 #: psychopy/experiment/components/button/__init__.py:98
 #: psychopy/experiment/components/form/__init__.py:91
@@ -4458,97 +4625,98 @@ msgstr ""
 #: psychopy/experiment/components/text/__init__.py:59
 #: psychopy/experiment/components/textbox/__init__.py:91
 msgid "Font"
-msgstr ""
+msgstr "Fonte"
 
 #: psychopy/experiment/components/button/__init__.py:102
 #: psychopy/experiment/components/text/__init__.py:64
 #: psychopy/experiment/components/textbox/__init__.py:95
 msgid ""
 "Specifies the height of the letter (the width is then determined by the font)"
-msgstr ""
+msgstr "Especifica a altura da letra (a largura é determinada pela fonte)"
 
 #: psychopy/experiment/components/button/__init__.py:104
 #: psychopy/experiment/components/slider/__init__.py:182
 #: psychopy/experiment/components/text/__init__.py:66
 #: psychopy/experiment/components/textbox/__init__.py:97
 msgid "Letter height"
-msgstr ""
+msgstr "Altura da letra"
 
 #: psychopy/experiment/components/button/__init__.py:108
 #: psychopy/experiment/components/textbox/__init__.py:118
 msgid "Should text be italic?"
-msgstr ""
+msgstr "O texto deve estar em itálico?"
 
 #: psychopy/experiment/components/button/__init__.py:109
 #: psychopy/experiment/components/textbox/__init__.py:119
 msgid "Italic"
-msgstr ""
+msgstr "Itálico"
 
 #: psychopy/experiment/components/button/__init__.py:113
 #: psychopy/experiment/components/textbox/__init__.py:123
 msgid "Should text be bold?"
-msgstr ""
+msgstr "O texto deve estar a negrito?"
 
 #: psychopy/experiment/components/button/__init__.py:114
 #: psychopy/experiment/components/textbox/__init__.py:124
 msgid "Bold"
-msgstr ""
+msgstr "Negrito"
 
 #: psychopy/experiment/components/button/__init__.py:118
 #: psychopy/experiment/components/textbox/__init__.py:133
 msgid "Defines the space between text and the textbox border"
-msgstr ""
+msgstr "Define o espaço entre o texto e o limite da caixa de texto"
 
 #: psychopy/experiment/components/button/__init__.py:119
 #: psychopy/experiment/components/textbox/__init__.py:134
 msgid "Padding"
-msgstr ""
+msgstr "Preenchimento"
 
 #: psychopy/experiment/components/button/__init__.py:133
 msgid "Should text anchor to the top, center or bottom of the box?"
 msgstr ""
+"O texto deve ser ancorado na parte superior, central ou inferior da caixa?"
 
 #: psychopy/experiment/components/button/__init__.py:138
 #: psychopy/experiment/components/textbox/__init__.py:183
 msgid "Textbox border width"
-msgstr ""
+msgstr "Largura do limite da caixa de texto"
 
 #: psychopy/experiment/components/button/__init__.py:139
 #: psychopy/experiment/components/textbox/__init__.py:184
 msgid "Border width"
-msgstr ""
+msgstr "Largura do limite"
 
 #: psychopy/experiment/components/button/__init__.py:144
 msgid "What clicks on this button should be saved to the data output?"
-msgstr ""
+msgstr "Que cliques neste botão devem ser salvos no output dos dados?"
 
 #: psychopy/experiment/components/button/__init__.py:146
 msgid "Record clicks"
-msgstr ""
+msgstr "Guardar cliques"
 
 #: psychopy/experiment/components/button/__init__.py:153
 #: psychopy/experiment/components/mouse/__init__.py:68
 msgid "What should the values of mouse.time should be relative to?"
-msgstr ""
+msgstr "Os valores de mouse.time devem ser relativos ao quê?"
 
 #: psychopy/experiment/components/button/__init__.py:155
 #: psychopy/experiment/components/joystick/__init__.py:76
 #: psychopy/experiment/components/mouse/__init__.py:75
 msgid "Time relative to"
-msgstr ""
+msgstr "Tempo relativo a"
 
 #: psychopy/experiment/components/camera/__init__.py:46
 msgid "Webcam: Record video from a webcam."
-msgstr ""
+msgstr "Webcam: gravar vídeo de uma webcam."
 
 #: psychopy/experiment/components/camera/__init__.py:228
 msgid "Python package to use behind the scenes."
-msgstr ""
+msgstr "Pacote Python para usar nos bastidores."
 
 #: psychopy/experiment/components/camera/__init__.py:233
 #: psychopy/experiment/components/movie/__init__.py:63
 msgid "Backend"
-msgstr ""
+msgstr "Processo interno"
 
 #: psychopy/experiment/components/camera/__init__.py:236
 msgid ""
@@ -4556,11 +4724,14 @@ msgid ""
 "local experiments - online experiments ask the participant which device to "
 "use."
 msgstr ""
+"Que dispositivo gostaria de usar para gravar vídeo? Isto afetará apenas as "
+"experiências locais - as experiências online perguntam ao participante qual "
+"dispositivo a usar."
 
 #: psychopy/experiment/components/camera/__init__.py:243
 #: psychopy/experiment/components/camera/__init__.py:255
 msgid "Video device"
-msgstr ""
+msgstr "Dispositivo de vídeo"
 
 #: psychopy/experiment/components/camera/__init__.py:272
 msgid ""
@@ -4568,36 +4739,45 @@ msgid ""
 "local experiments - online experiments ask the participant which device to "
 "use."
 msgstr ""
+"Que dispositivo gostaria de usar para gravar áudio? Isto afetará apenas as "
+"experiências locais - as experiências online perguntam ao participante qual "
+"dispositivo a usar."
 
 #: psychopy/experiment/components/camera/__init__.py:279
 msgid "Audio device"
-msgstr ""
+msgstr "Dispositivo de áudio"
 
 #: psychopy/experiment/components/camera/__init__.py:282
 msgid "Resolution (w x h) to record to, leave blank to use device default."
 msgstr ""
+"Resolução (w x h) de gravação, deixe em branco para usar as definições "
+"padrão do dispositivo."
 
 #: psychopy/experiment/components/camera/__init__.py:288
 #: psychopy/experiment/components/camera/__init__.py:300
 msgid "Resolution"
-msgstr ""
+msgstr "Resolução"
 
 #: psychopy/experiment/components/camera/__init__.py:317
 msgid ""
 "Frame rate (frames per second) to record at, leave blank to use device "
 "default."
 msgstr ""
+"Taxa de frames/ensaios (frames por segundo) para gravar, deixe em branco "
+"para usar as definições padrão do dispositivo."
 
 #: psychopy/experiment/components/camera/__init__.py:328
 #: psychopy/experiment/components/camera/__init__.py:351
 msgid "Frame rate"
-msgstr ""
+msgstr "Taxa de frames/ensaios"
 
 #: psychopy/experiment/components/camera/__init__.py:345
 msgid ""
 " For some cameras, you may need to use `camera.CAMERA_FRAMERATE_NTSC` or "
 "`camera.CAMERA_FRAMERATE_NTSC / 2`."
 msgstr ""
+" Para algumas câmaras, poderá precisar de usar `camera."
+"CAMERA_FRAMERATE_NTSC` ou `camera.CAMERA_FRAMERATE_NTSC / 2`."
 
 #: psychopy/experiment/components/camera/__init__.py:370
 #: psychopy/experiment/components/microphone/__init__.py:93
@@ -4606,11 +4786,14 @@ msgid ""
 "affect local experiments - online experiments ask the participant which mic "
 "to use."
 msgstr ""
+"Que dispositivo de microfone gostaria de usar para gravar? Isto afetará "
+"apenas as experiências locais - as experiências online perguntam ao "
+"participante qual o microfone a usar."
 
 #: psychopy/experiment/components/camera/__init__.py:378
 #: psychopy/experiment/components/microphone/__init__.py:100
 msgid "Device"
-msgstr ""
+msgstr "Dispositivo"
 
 #: psychopy/experiment/components/camera/__init__.py:382
 #: psychopy/experiment/components/microphone/__init__.py:104
@@ -4618,21 +4801,23 @@ msgid ""
 "Record two channels (stereo) or one (mono, smaller file). Select 'auto' to "
 "use as many channels as the selected device allows."
 msgstr ""
+"Gravar dois canais (estéreo) ou um (mono, ficheiro menor). Selecione 'auto' "
+"para usar tantos canais quanto o dispositivo selecionado permitir."
 
 #: psychopy/experiment/components/camera/__init__.py:389
 #: psychopy/experiment/components/microphone/__init__.py:113
 msgid "Channels"
-msgstr ""
+msgstr "Canais"
 
 #: psychopy/experiment/components/camera/__init__.py:392
 #: psychopy/experiment/components/microphone/__init__.py:116
 msgid "How many samples per second (Hz) to record at"
-msgstr ""
+msgstr "Quantas samples por segundo (Hz) para gravar em"
 
 #: psychopy/experiment/components/camera/__init__.py:397
 #: psychopy/experiment/components/microphone/__init__.py:121
 msgid "Sample rate (hz)"
-msgstr ""
+msgstr "Taxa de samples (hz)"
 
 #: psychopy/experiment/components/camera/__init__.py:400
 #: psychopy/experiment/components/microphone/__init__.py:124
@@ -4640,49 +4825,55 @@ msgid ""
 "To avoid excessively large output files, what is the biggest file size you "
 "are likely to expect?"
 msgstr ""
+"Para evitar ficheiros de resultados excessivamente grandes, qual é o maior "
+"tamanho do ficheiro que espera?"
 
 #: psychopy/experiment/components/camera/__init__.py:405
 #: psychopy/experiment/components/microphone/__init__.py:128
 msgid "Max recording size (kb)"
-msgstr ""
+msgstr "Tamanho máximo da gravação (kb)"
 
 #: psychopy/experiment/components/camera/__init__.py:408
 msgid "Save webcam output to a file?"
-msgstr ""
+msgstr "Guardar o ficheiro de resultados da webcam?"
 
 #: psychopy/experiment/components/camera/__init__.py:412
 msgid "Save file?"
-msgstr ""
+msgstr "Guardar ficheiro?"
 
 #: psychopy/experiment/components/code/__init__.py:20
 msgid "Code: insert python commands into an experiment"
-msgstr ""
+msgstr "Código: insira comandos python numa experiência"
 
 #: psychopy/experiment/components/code/__init__.py:44
 msgid "Display Python or JS Code"
-msgstr ""
+msgstr "Apresentar código em Python ou JS"
 
 #: psychopy/experiment/components/code/__init__.py:49
 msgid "Code type"
-msgstr ""
+msgstr "Copiar código"
 
 #: psychopy/experiment/components/code/__init__.py:51
 msgid ""
 "Code to run before the experiment starts (initialization); right-click "
 "checks syntax"
 msgstr ""
+"Código a ser executado antes do início da experiência (inicialização); "
+"clicar com o botão direito para verificar a sintaxe"
 
 #: psychopy/experiment/components/code/__init__.py:57
 msgid "Before experiment"
-msgstr ""
+msgstr "Antes da experiência"
 
 #: psychopy/experiment/components/code/__init__.py:59
 msgid "Code at the start of the experiment ; right-click checks syntax"
 msgstr ""
+"Código no início da experiência; clicar com o botão direito para verificar a "
+"sintaxe"
 
 #: psychopy/experiment/components/code/__init__.py:65
 msgid "Begin experiment"
-msgstr ""
+msgstr "Começar experiência"
 
 #: psychopy/experiment/components/code/__init__.py:67
 #: psychopy/experiment/components/code/__init__.py:118
@@ -4690,10 +4881,12 @@ msgid ""
 "Code to be run at the start of each repeat of the Routine (e.g. each trial); "
 "right-click checks syntax"
 msgstr ""
+"Código a ser executado no início de cada repetição da Routine (exemplo, cada "
+"ensaio); clicar com o botão direito para verificar a sintaxe"
 
 #: psychopy/experiment/components/code/__init__.py:74
 msgid "Begin Routine"
-msgstr ""
+msgstr "Começar a Routine"
 
 #: psychopy/experiment/components/code/__init__.py:76
 #: psychopy/experiment/components/code/__init__.py:127
@@ -4701,10 +4894,12 @@ msgid ""
 "Code to be run on every video frame during for the duration of this Routine; "
 "right-click checks syntax"
 msgstr ""
+"Código a ser executado em cada frame do vídeo durante esta Routine; clicar "
+"com o botão direito para verificar a sintaxe"
 
 #: psychopy/experiment/components/code/__init__.py:83
 msgid "Each frame"
-msgstr ""
+msgstr "Cada frame"
 
 #: psychopy/experiment/components/code/__init__.py:85
 #: psychopy/experiment/components/code/__init__.py:136
@@ -4712,10 +4907,12 @@ msgid ""
 "Code at the end of this repeat of the Routine (e.g. getting/storing "
 "responses); right-click checks syntax"
 msgstr ""
+"Código no final desta repetição da Routine (exemplo, obter/armazenar "
+"respostas); clicar com o botão direito para verificar a sintaxe"
 
 #: psychopy/experiment/components/code/__init__.py:92
 msgid "End Routine"
-msgstr ""
+msgstr "Terminar a Routine"
 
 #: psychopy/experiment/components/code/__init__.py:94
 #: psychopy/experiment/components/code/__init__.py:145
@@ -4723,284 +4920,305 @@ msgid ""
 "Code at the end of the entire experiment (e.g. saving files, resetting "
 "computer); right-click checks syntax"
 msgstr ""
+"Código no final de toda a experiência (exemplo, guardar cheiros, reiniciar o "
+"computador); clicar com o botão direito para verificar a sintaxe"
 
 #: psychopy/experiment/components/code/__init__.py:101
 msgid "End experiment"
-msgstr ""
+msgstr "Terminar a experiência"
 
 #: psychopy/experiment/components/code/__init__.py:103
 msgid ""
 "Code before the start of the experiment (initialization); right-click checks "
 "syntax"
 msgstr ""
+"Código antes do início da experiência (inicialização); clicar com o botão "
+"direito para verificar a sintaxe"
 
 #: psychopy/experiment/components/code/__init__.py:109
 msgid "Before JS experiment"
-msgstr ""
+msgstr "JS antes da experiência"
 
 #: psychopy/experiment/components/code/__init__.py:110
 msgid ""
 "Code at the start of the experiment (initialization); right-click checks "
 "syntax"
 msgstr ""
+"Código no início da experiência (inicialização); clicar com o botão direito "
+"para verificar a sintaxe"
 
 #: psychopy/experiment/components/code/__init__.py:116
 msgid "Begin JS experiment"
-msgstr ""
+msgstr "JS para começar a experiência"
 
 #: psychopy/experiment/components/code/__init__.py:125
 msgid "Begin JS Routine"
-msgstr ""
+msgstr "JS para começar a Routine"
 
 #: psychopy/experiment/components/code/__init__.py:134
 msgid "Each JS frame"
-msgstr ""
+msgstr "Cada frame de JS"
 
 #: psychopy/experiment/components/code/__init__.py:143
 msgid "End JS Routine"
-msgstr ""
+msgstr "Terminar JS da Routine"
 
 #: psychopy/experiment/components/code/__init__.py:152
 msgid "End JS experiment"
-msgstr ""
+msgstr "Terminar JS da experiência"
 
 #: psychopy/experiment/components/dots/__init__.py:19
 msgid "Dots: Random Dot Kinematogram"
-msgstr ""
+msgstr "Pontos: Cinematograma de pontos aleatórios"
 
 #: psychopy/experiment/components/dots/__init__.py:51
 msgid ""
 "Number of dots in the field (for circular fields this will be average number "
 "of dots)"
 msgstr ""
+"Número de pontos no campo (para campos circulares este será o número médio "
+"de pontos)"
 
 #: psychopy/experiment/components/dots/__init__.py:57
 msgid "Number of dots"
-msgstr ""
+msgstr "Número de pontos"
 
 #: psychopy/experiment/components/dots/__init__.py:59
 msgid "Direction of motion for the signal dots (degrees)"
-msgstr ""
+msgstr "Direção do movimento do sinal dos pontos (graus)"
 
 #: psychopy/experiment/components/dots/__init__.py:65
 msgid "Direction"
-msgstr ""
+msgstr "Direção"
 
 #: psychopy/experiment/components/dots/__init__.py:67
 msgid "Speed of the dots (displacement per frame in the specified units)"
 msgstr ""
+"Velocidade dos pontos (deslocação por frame nas unidades especificadas)"
 
 #: psychopy/experiment/components/dots/__init__.py:74
 msgid "Speed"
-msgstr ""
+msgstr "Velocidade"
 
 #: psychopy/experiment/components/dots/__init__.py:76
 msgid ""
 "Coherence of the dots (fraction moving in the signal direction on any one "
 "frame)"
 msgstr ""
+"Coerência dos pontos (fração de movimento na direção do sinal em qualquer "
+"frame)"
 
 #: psychopy/experiment/components/dots/__init__.py:83
 msgid "Coherence"
-msgstr ""
+msgstr "Coerência"
 
 #: psychopy/experiment/components/dots/__init__.py:85
 msgid "Size of the dots IN PIXELS regardless of the set units"
-msgstr ""
+msgstr "Tamanho dos pontos EM PIXELS independente das unidades configuradas"
 
 #: psychopy/experiment/components/dots/__init__.py:92
 msgid "Dot size"
-msgstr ""
+msgstr "Tamanho dos pontos"
 
 #: psychopy/experiment/components/dots/__init__.py:94
 msgid ""
 "Number of frames before each dot is killed and randomly assigned a new "
 "position"
 msgstr ""
+"Número de frames antes de cada ponto ser eliminado e atribuído "
+"aleatoriamente a uma nova posição"
 
 #: psychopy/experiment/components/dots/__init__.py:99
 msgid "Dot life-time"
-msgstr ""
+msgstr "Tempo do ponto"
 
 #: psychopy/experiment/components/dots/__init__.py:101
 msgid ""
 "On each frame are the signals dots remaining the same or changing? See Scase "
 "et al."
 msgstr ""
+"Em cada ensaio os pontos de sinalização permanecem iguais ou mudam? Veja "
+"Scase et al."
 
 #: psychopy/experiment/components/dots/__init__.py:106
 msgid "Signal dots"
-msgstr ""
+msgstr "Pontos de sinalização"
 
 #: psychopy/experiment/components/dots/__init__.py:108
 msgid "When should the whole sample of dots be refreshed"
-msgstr ""
+msgstr "Quando é que toda a amostra de pontos deve ser atualizada"
 
 #: psychopy/experiment/components/dots/__init__.py:113
 msgid "Dot refresh rule"
-msgstr ""
+msgstr "Regra de atualização de pontos"
 
 #: psychopy/experiment/components/dots/__init__.py:116
 msgid "What governs the behaviour of the noise dots? See Scase et al."
-msgstr ""
+msgstr "O que rege o comportamento dos pontos de ruído? Veja Scase et al."
 
 #: psychopy/experiment/components/dots/__init__.py:122
 msgid "Noise dots"
-msgstr ""
+msgstr "Ruído dos pontos"
 
 #: psychopy/experiment/components/dots/__init__.py:128
 msgid "What is the shape of the field?"
-msgstr ""
+msgstr "Qual é a forma do campo?"
 
 #: psychopy/experiment/components/dots/__init__.py:129
 msgid "Field shape"
-msgstr ""
+msgstr "Forma do campo"
 
 #: psychopy/experiment/components/dots/__init__.py:131
 msgid "What is the size of the field (in the specified units)?"
-msgstr ""
+msgstr "Qual é o tamanho do campo (nas unidades especificadas)?"
 
 #: psychopy/experiment/components/dots/__init__.py:138
 msgid "Field size"
-msgstr ""
+msgstr "Tamanho do campo"
 
 #: psychopy/experiment/components/dots/__init__.py:141
 msgid "Where is the field centred (in the specified units)?"
-msgstr ""
+msgstr "Onde é que o campo está centrado (nas unidades especificadas)?"
 
 #: psychopy/experiment/components/dots/__init__.py:147
 msgid "Field position"
-msgstr ""
+msgstr "Posição do campo"
 
 #: psychopy/experiment/components/dots/__init__.py:162
 msgid "Which point on the field should be anchored to its exact position?"
-msgstr ""
+msgstr "Que ponto no campo deve ser ancorado na sua posição exata?"
 
 #: psychopy/experiment/components/dots/__init__.py:163
 msgid "Field anchor"
-msgstr ""
+msgstr "Campo âncora"
 
 #: psychopy/experiment/components/dots/__init__.py:166
 msgid "Dot color"
-msgstr ""
+msgstr "Cor do ponto"
 
 #: psychopy/experiment/components/dots/__init__.py:167
 msgid "Dot color space"
-msgstr ""
+msgstr "Cor do espaço do ponto"
 
 #: psychopy/experiment/components/eyetracker_record/__init__.py:23
 msgid "Start and / or Stop recording data from the eye tracker"
-msgstr ""
+msgstr "Começar e / ou parar de gravar dados do rastreador ocular"
 
 #: psychopy/experiment/components/eyetracker_record/__init__.py:44
 msgid "Should this Component start and / or stop eye tracker recording?"
 msgstr ""
+"Este componente deve iniciar e / ou parar a gravação do rastreador ocular?"
 
 #: psychopy/experiment/components/eyetracker_record/__init__.py:45
 msgid "Record actions"
-msgstr ""
+msgstr "Gravar ações"
 
 #: psychopy/experiment/components/form/__init__.py:25
 msgid "Form: a Psychopy survey tool"
-msgstr ""
+msgstr "Formulário: uma ferramenta de questionário Psychopy"
 
 #: psychopy/experiment/components/form/__init__.py:78
 msgid "The csv filename containing the items for your survey."
-msgstr ""
+msgstr "Nome do arquivo csv que contém os itens do seu questionário."
 
 #: psychopy/experiment/components/form/__init__.py:79
 msgid "Items"
-msgstr ""
+msgstr "Itens"
 
 #: psychopy/experiment/components/form/__init__.py:84
 msgid "The size of the item text for Form"
-msgstr ""
+msgstr "Tamanho do item de texto no Formulário"
 
 #: psychopy/experiment/components/form/__init__.py:85
 msgid "Text height"
-msgstr ""
+msgstr "Altura do texto"
 
 #: psychopy/experiment/components/form/__init__.py:96
 msgid "Do you want to randomize the order of your questions?"
-msgstr ""
+msgstr "Quer aleatorizar a ordem das perguntas?"
 
 #: psychopy/experiment/components/form/__init__.py:97
 msgid "Randomize"
-msgstr ""
+msgstr "Aleatorizar"
 
 #: psychopy/experiment/components/form/__init__.py:102
 msgid "The padding or space between items."
-msgstr ""
+msgstr "O preenchimento ou espaço entre os itens."
 
 #: psychopy/experiment/components/form/__init__.py:103
 msgid "Item padding"
-msgstr ""
+msgstr "Preenchimento de item"
 
 #: psychopy/experiment/components/form/__init__.py:109
 msgid "Store item data by columns, or rows"
-msgstr ""
+msgstr "Armazenar dados de itens por colunas ou linhas"
 
 #: psychopy/experiment/components/form/__init__.py:110
 msgid "Data format"
-msgstr ""
+msgstr "Formado dos dados"
 
 #: psychopy/experiment/components/form/__init__.py:125
 msgid "Styles determine the appearance of the form"
-msgstr ""
+msgstr "Os estilos determinam a aparência do formulário"
 
 #: psychopy/experiment/components/form/__init__.py:126
 #: psychopy/experiment/components/slider/__init__.py:189
 msgid "Styles"
-msgstr ""
+msgstr "Estilos"
 
 #: psychopy/experiment/components/form/__init__.py:137
 msgid "Color of the form's background"
-msgstr ""
+msgstr "Cor de fundo do formulário"
 
 #: psychopy/experiment/components/form/__init__.py:139
 msgid "Color of the outline around the form"
-msgstr ""
+msgstr "Cor da linha em torno do formulário"
 
 #: psychopy/experiment/components/form/__init__.py:145
 msgid "Base text color for questions"
-msgstr ""
+msgstr "Cor de base do texto das perguntas"
 
 #: psychopy/experiment/components/form/__init__.py:146
 msgid "Item color"
-msgstr ""
+msgstr "Cor do item"
 
 #: psychopy/experiment/components/form/__init__.py:152
 msgid ""
 "Base text color for responses, also sets color of lines in sliders and "
 "borders of textboxes"
 msgstr ""
+"Cor de base do texto para as respostas, também define a cor das linhas nos "
+"sliders e nas linhas das caixas de texto"
 
 #: psychopy/experiment/components/form/__init__.py:153
 msgid "Response color"
-msgstr ""
+msgstr "Cor da resposta"
 
 #: psychopy/experiment/components/form/__init__.py:159
 msgid "Color of markers and the scrollbar"
-msgstr ""
+msgstr "Cor dos marcadores e da scrollbar"
 
 #: psychopy/experiment/components/form/__init__.py:160
 #: psychopy/experiment/components/slider/__init__.py:165
 msgid "Marker color"
-msgstr ""
+msgstr "Cor do marcador"
 
 #: psychopy/experiment/components/grating/__init__.py:19
 msgid "Grating: present cyclic textures, prebuilt or from a file"
 msgstr ""
+"Grating: apresenta texturas cíclicas, pré-construídas ou de um ficheiro"
 
 #: psychopy/experiment/components/grating/__init__.py:44
 msgid ""
 "The (2D) texture of the grating - can be sin, sqr, sinXsin... or a filename "
 "(including path)"
 msgstr ""
+"A textura (2D) da grating - pode ser sin, sqr, sinXsin... ou o nome de um "
+"ficheiro (incluindo caminho)"
 
 #: psychopy/experiment/components/grating/__init__.py:51
 msgid "Texture"
-msgstr ""
+msgstr "Textura"
 
 #: psychopy/experiment/components/grating/__init__.py:53
 #: psychopy/experiment/components/patch/__init__.py:49
@@ -5008,23 +5226,27 @@ msgid ""
 "An image to define the alpha mask (ie shape)- gauss, circle... or a filename "
 "(including path)"
 msgstr ""
+"Uma imagem para definir a máscara alfa (ou seja, forma) - gauss, círculo... "
+"ou o nome de um arquivo (incluindo caminho)"
 
 #: psychopy/experiment/components/grating/__init__.py:60
 #: psychopy/experiment/components/image/__init__.py:61
 #: psychopy/experiment/components/patch/__init__.py:56
 msgid "Mask"
-msgstr ""
+msgstr "Máscara"
 
 #: psychopy/experiment/components/grating/__init__.py:62
 msgid ""
 "Spatial frequency of image repeats across the grating in 1 or 2 dimensions, "
 "e.g. 4 or [2,3]"
 msgstr ""
+"Frequência espacial da imagem que se repete na grating em 1 ou 2 dimensões, "
+"exemplo, 4 ou [2,3]"
 
 #: psychopy/experiment/components/grating/__init__.py:69
 #: psychopy/experiment/components/patch/__init__.py:65
 msgid "Spatial frequency"
-msgstr ""
+msgstr "Frequência espacial"
 
 #: psychopy/experiment/components/grating/__init__.py:84
 #: psychopy/experiment/components/image/__init__.py:107
@@ -5033,16 +5255,17 @@ msgstr ""
 #: psychopy/experiment/components/progress/__init__.py:93
 #: psychopy/experiment/components/textbox/__init__.py:148
 msgid "Which point on the stimulus should be anchored to its exact position?"
-msgstr ""
+msgstr "Qual o ponto do estímulo que deve ser ancorado na sua posição exata?"
 
 #: psychopy/experiment/components/grating/__init__.py:87
 msgid "Spatial positioning of the image on the grating (wraps in range 0-1.0)"
 msgstr ""
+"Posicionamento espacial da imagem na grating (wraps no intervalo 0-1,0)"
 
 #: psychopy/experiment/components/grating/__init__.py:94
 #: psychopy/experiment/components/patch/__init__.py:74
 msgid "Phase (in cycles)"
-msgstr ""
+msgstr "Fase (em ciclos)"
 
 #: psychopy/experiment/components/grating/__init__.py:97
 #: psychopy/experiment/components/patch/__init__.py:77
@@ -5050,12 +5273,14 @@ msgid ""
 "Resolution of the texture for standard ones such as sin, sqr etc. For most "
 "cases a value of 256 pixels will suffice"
 msgstr ""
+"Resolução da textura para texturas padrão, como sin, sqr etc. Na maioria dos "
+"casos, um valor de 256 pixels será suficiente"
 
 #: psychopy/experiment/components/grating/__init__.py:104
 #: psychopy/experiment/components/image/__init__.py:69
 #: psychopy/experiment/components/patch/__init__.py:84
 msgid "Texture resolution"
-msgstr ""
+msgstr "Resolução da textura"
 
 #: psychopy/experiment/components/grating/__init__.py:106
 #: psychopy/experiment/components/image/__init__.py:72
@@ -5063,7 +5288,7 @@ msgstr ""
 #: psychopy/experiment/components/patch/__init__.py:87
 #: psychopy/experiment/components/polygon/__init__.py:117
 msgid "How should the image be interpolated if/when rescaled"
-msgstr ""
+msgstr "Como a imagem deve ser interpolada se/quando for redimensionada?"
 
 #: psychopy/experiment/components/grating/__init__.py:112
 #: psychopy/experiment/components/image/__init__.py:77
@@ -5071,92 +5296,101 @@ msgstr ""
 #: psychopy/experiment/components/patch/__init__.py:92
 #: psychopy/experiment/components/polygon/__init__.py:122
 msgid "Interpolate"
-msgstr ""
+msgstr "Interpolar"
 
 #: psychopy/experiment/components/grating/__init__.py:114
 msgid ""
 "OpenGL Blendmode: avg gives traditional transparency, add is important to "
 "combine gratings)]"
 msgstr ""
+"OpenGL Blendmode: avg oferece a transparência tradicional, add é importante "
+"para combinar gratings)]"
 
 #: psychopy/experiment/components/grating/__init__.py:121
 msgid "OpenGL blend mode"
-msgstr ""
+msgstr "Modo de OpenGL blend"
 
 #: psychopy/experiment/components/image/__init__.py:19
 msgid "Image: present images (bmp, jpg, tif...)"
-msgstr ""
+msgstr "Imagem: apresentar imagens (bmp, jpg, tif...)"
 
 #: psychopy/experiment/components/image/__init__.py:45
 #: psychopy/experiment/components/panorama/__init__.py:64
 msgid "The image to be displayed - a filename, including path"
 msgstr ""
+"A imagem a ser apresentada - o nome de um ficheiro, incluindo o caminho"
 
 #: psychopy/experiment/components/image/__init__.py:51
 #: psychopy/experiment/components/panorama/__init__.py:71
 msgid "Image"
-msgstr ""
+msgstr "Imagem"
 
 #: psychopy/experiment/components/image/__init__.py:54
 msgid ""
 "An image to define the alpha mask through which the image is seen - gauss, "
 "circle, None or a filename (including path)"
 msgstr ""
+"Uma imagem para definir a máscara alfa através da qual a imagem é vista - "
+"gauss, círculo, Nenhum ou o nome de um ficheiro (incluindo caminho)"
 
 #: psychopy/experiment/components/image/__init__.py:63
 msgid "Resolution of the mask if one is used."
-msgstr ""
+msgstr "Resolução da máscara, se for usada."
 
 #: psychopy/experiment/components/image/__init__.py:80
 msgid "Should the image be flipped vertically (top to bottom)?"
-msgstr ""
+msgstr "A imagem deve ser invertida verticalmente (de cima para baixo)?"
 
 #: psychopy/experiment/components/image/__init__.py:85
 msgid "Flip vertically"
-msgstr ""
+msgstr "Inverter verticalmente"
 
 #: psychopy/experiment/components/image/__init__.py:88
 msgid "Should the image be flipped horizontally (left to right)?"
 msgstr ""
+"A imagem deve ser invertida horizontalmente (da esquerda para a direita)?"
 
 #: psychopy/experiment/components/image/__init__.py:93
 msgid "Flip horizontally"
-msgstr ""
+msgstr "Inverter horizontalmente"
 
 #: psychopy/experiment/components/joyButtons/__init__.py:20
 msgid "JoyButtons: check and record joystick/gamepad button presses"
 msgstr ""
+"JoyButtons: verificar e guardar quando o botão do joystick/gamepad é "
+"pressionado"
 
 #: psychopy/experiment/components/joyButtons/__init__.py:47
 msgid "A comma-separated list of button numbers, such as 0,1,2,3,4"
-msgstr ""
+msgstr "Uma lista separada por vírgulas de números de botões, como 0,1,2,3,4"
 
 #: psychopy/experiment/components/joyButtons/__init__.py:54
 #: psychopy/experiment/components/joystick/__init__.py:115
 msgid "Allowed buttons"
-msgstr ""
+msgstr "Botões permitidos"
 
 #: psychopy/experiment/components/joyButtons/__init__.py:56
 #: psychopy/experiment/components/keyboard/__init__.py:82
 msgid "Choose which (if any) responses to store at the end of a trial"
 msgstr ""
+"Escolher que respostas (se houver) serão guardadas no final de um ensaio"
 
 #: psychopy/experiment/components/joyButtons/__init__.py:63
 #: psychopy/experiment/components/keyboard/__init__.py:89
 msgid "Store"
-msgstr ""
+msgstr "Guardar"
 
 #: psychopy/experiment/components/joyButtons/__init__.py:73
 #: psychopy/experiment/components/keyboard/__init__.py:99
 #: psychopy/experiment/components/mouse/__init__.py:108
 msgid "Do you want to save the response as correct/incorrect?"
-msgstr ""
+msgstr "Deseja guardar a resposta como correta/incorreta?"
 
 #: psychopy/experiment/components/joyButtons/__init__.py:79
 #: psychopy/experiment/components/keyboard/__init__.py:105
 #: psychopy/experiment/components/mouse/__init__.py:114
 msgid "Store correct"
-msgstr ""
+msgstr "Guardar correta"
 
 #: psychopy/experiment/components/joyButtons/__init__.py:91
 #: psychopy/experiment/components/keyboard/__init__.py:117
@@ -5164,12 +5398,14 @@ msgid ""
 "What is the 'correct' key? Might be helpful to add a correctAns column and "
 "use $correctAns to compare to the key press."
 msgstr ""
+"Qual é a tecla 'correta'? Pode ser útil adicionar uma coluna correctAns e "
+"usar $correctAns para comparar com a tecla pressionada."
 
 #: psychopy/experiment/components/joyButtons/__init__.py:98
 #: psychopy/experiment/components/keyboard/__init__.py:124
 #: psychopy/experiment/components/mouse/__init__.py:132
 msgid "Correct answer"
-msgstr ""
+msgstr "Resposta correta"
 
 #: psychopy/experiment/components/joyButtons/__init__.py:101
 #: psychopy/experiment/components/keyboard/__init__.py:127
@@ -5177,10 +5413,12 @@ msgid ""
 "A reaction time to a visual stimulus should be based on when the screen "
 "flipped"
 msgstr ""
+"O tempo de reação a um estímulo visual deve ser baseado no momento em que o "
+"ecrã virou"
 
 #: psychopy/experiment/components/joyButtons/__init__.py:107
 msgid "Sync RT with screen"
-msgstr ""
+msgstr "Sincronizar RT com o ecrã"
 
 #: psychopy/experiment/components/joyButtons/__init__.py:110
 #: psychopy/experiment/components/joystick/__init__.py:99
@@ -5188,39 +5426,44 @@ msgid ""
 "Device number, if you have multiple devices which one do you want (0, 1, "
 "2...)"
 msgstr ""
+"Número do dispositivo, se tiver vários dispositivos, qual deles deseja (0, "
+"1, 2...)"
 
 #: psychopy/experiment/components/joyButtons/__init__.py:116
 #: psychopy/experiment/components/joystick/__init__.py:106
 msgid "Device number"
-msgstr ""
+msgstr "Número do dispositivo"
 
 #: psychopy/experiment/components/joystick/__init__.py:22
 msgid "Joystick: query joystick position and buttons"
-msgstr ""
+msgstr "Joystick: consultar a posição e botões do joystick"
 
 #: psychopy/experiment/components/joystick/__init__.py:47
 msgid ""
 "How often should the joystick state (x,y,buttons) be stored? On every video "
 "frame, every click or just at the end of the Routine?"
 msgstr ""
+"Com que frequência o estado do joystick (x,y,botões) deve ser guardado? Em "
+"cada frame do vídeo, em cada clique ou apenas no final da Routine?"
 
 #: psychopy/experiment/components/joystick/__init__.py:54
 msgid "Save joystick state"
-msgstr ""
+msgstr "Guardar o estado do joystick "
 
 #: psychopy/experiment/components/joystick/__init__.py:56
 #: psychopy/experiment/components/mouse/__init__.py:55
 msgid "Should a button press force the end of the Routine (e.g end the trial)?"
 msgstr ""
+"Pressionar um botão deve forçar o fim da Routine (exemplo, encerrar o teste)?"
 
 #: psychopy/experiment/components/joystick/__init__.py:67
 #: psychopy/experiment/components/mouse/__init__.py:66
 msgid "End Routine on press"
-msgstr ""
+msgstr "Terminar Routine ao pressionar"
 
 #: psychopy/experiment/components/joystick/__init__.py:69
 msgid "What should the values of joystick.time should be relative to?"
-msgstr ""
+msgstr "Os valores do joystick.time devem ser relativos ao quê?"
 
 #: psychopy/experiment/components/joystick/__init__.py:78
 #: psychopy/experiment/components/mouse/__init__.py:87
@@ -5228,11 +5471,13 @@ msgid ""
 "A comma-separated list of your stimulus names that can be \"clicked\" by the "
 "participant. e.g. target, foil"
 msgstr ""
+"Uma lista separada por vírgulas dos nomes dos seus estímulos que podem ser "
+"\"clicados\" pelo participante. exemplo, alvo, foil."
 
 #: psychopy/experiment/components/joystick/__init__.py:86
 #: psychopy/experiment/components/mouse/__init__.py:95
 msgid "Clickable stimuli"
-msgstr ""
+msgstr "Estímulo onde se clica"
 
 #: psychopy/experiment/components/joystick/__init__.py:88
 msgid ""
@@ -5240,112 +5485,130 @@ msgid ""
 "for the stimulus that was\"clicked\" by the joystick. Make sure that all the "
 "clickable objects have all these params."
 msgstr ""
+"Os params (exemplo, nome, texto), para os quais deseja armazenar o valor "
+"atual, para o estímulo que foi “clicado” no joystick. Certifique-se de que "
+"todos os objetos clicáveis ​​tenham todos estes parâmetros."
 
 #: psychopy/experiment/components/joystick/__init__.py:97
 #: psychopy/experiment/components/mouse/__init__.py:106
 msgid "Store params for clicked"
-msgstr ""
+msgstr "Armazenar params para cliques"
 
 #: psychopy/experiment/components/joystick/__init__.py:108
 msgid "Buttons to be read (blank for any) numbers separated by commas"
 msgstr ""
+"Botões para serem lidos (deixar em branco para qualquer um) números "
+"separados por vírgulas"
 
 #: psychopy/experiment/components/keyboard/__init__.py:24
 msgid "Keyboard: check and record keypresses"
-msgstr ""
+msgstr "Teclado: verificar e guardar teclas clicadas"
 
 #: psychopy/experiment/components/keyboard/__init__.py:52
 msgid ""
 "A comma-separated list of keys (with quotes), such as "
 "'q','right','space','left'"
 msgstr ""
+"Uma lista separadas por vírgula de teclas (com aspas), como "
+"'q','right','space','left'"
 
 #: psychopy/experiment/components/keyboard/__init__.py:60
 msgid "Allowed keys"
-msgstr ""
+msgstr "Teclas permitidas"
 
 #: psychopy/experiment/components/keyboard/__init__.py:63
 msgid ""
 "When should the keypress be registered? As soon as pressed, or when released?"
 msgstr ""
+"Quando é que as teclas pressionadas devem ser registadas? Assim que "
+"pressionadas ou quando a tecla deixa de ser pressionada?"
 
 #: psychopy/experiment/components/keyboard/__init__.py:69
 msgid "Register keypress on..."
-msgstr ""
+msgstr "Registrar tecla pressionada em..."
 
 #: psychopy/experiment/components/keyboard/__init__.py:74
 msgid ""
 "Do you want to discard all responses occurring before the onset of this "
 "Component?"
 msgstr ""
+"Deseja descartar todas as respostas que ocorreram antes do início desta "
+"Componente?"
 
 #: psychopy/experiment/components/keyboard/__init__.py:80
 msgid "Discard previous"
-msgstr ""
+msgstr "Descartar anteriores"
 
 #: psychopy/experiment/components/keyboard/__init__.py:133
 msgid "Sync timing with screen"
-msgstr ""
+msgstr "Sincronizar tempo com o ecrã"
 
 #: psychopy/experiment/components/microphone/__init__.py:59
 msgid ""
 "Microphone: basic sound capture (fixed onset & duration), okay for spoken "
 "words"
 msgstr ""
+"Microphone: captura de som básica (início e duração fixos), adequado para "
+"palavras faladas"
 
 #: psychopy/experiment/components/microphone/__init__.py:89
 msgid "The duration of the recording in seconds; blank = 0 sec"
-msgstr ""
+msgstr "A duração da gravação em segundos; em branco = 0 seg."
 
 #: psychopy/experiment/components/microphone/__init__.py:131
 msgid "What file type should output audio files be saved as?"
 msgstr ""
+"Em que tipo de ficheiro devem ser gravados os resultado dos ficheiros de "
+"áudio?"
 
 #: psychopy/experiment/components/microphone/__init__.py:136
 msgid "Output file type"
-msgstr ""
+msgstr "Tipo de ficheiro de resultados"
 
 #: psychopy/experiment/components/microphone/__init__.py:140
 msgid "Tick this to save times when the participant starts and stops speaking"
 msgstr ""
+"Marque esta opção para guardar os tempos em que o participante começa e "
+"termina de falar"
 
 #: psychopy/experiment/components/microphone/__init__.py:144
 msgid "Speaking start / stop times"
-msgstr ""
+msgstr "Tempo de início / fim de fala"
 
 #: psychopy/experiment/components/microphone/__init__.py:148
 msgid "Trim periods of silence from the output file"
-msgstr ""
+msgstr "Cortar períodos de silêncio do ficheiro de resultados"
 
 #: psychopy/experiment/components/microphone/__init__.py:152
 msgid "Trim silent"
-msgstr ""
+msgstr "Cortar silêncios"
 
 #: psychopy/experiment/components/microphone/__init__.py:164
 msgid "Whether to transcribe the audio recording and store the transcription"
-msgstr ""
+msgstr "Se deve transcrever a gravação de áudio e armazenar a transcrição"
 
 #: psychopy/experiment/components/microphone/__init__.py:165
 msgid "Transcribe audio"
-msgstr ""
+msgstr "Transcrever o áudio"
 
 #: psychopy/experiment/components/microphone/__init__.py:189
 msgid "What transcription service to use to transcribe audio?"
-msgstr ""
+msgstr "Que serviço de transcrição deve ser usado para transcrever o áudio?"
 
 #: psychopy/experiment/components/microphone/__init__.py:190
 msgid "Transcription backend"
-msgstr ""
+msgstr "Transcrição backend"
 
 #: psychopy/experiment/components/microphone/__init__.py:195
 msgid ""
 "What language you expect the recording to be spoken in, e.g. en-US for "
 "English"
 msgstr ""
+"Em que idioma espera que a gravação seja falada, exemplo. en-US para inglês"
 
 #: psychopy/experiment/components/microphone/__init__.py:196
 msgid "Transcription language"
-msgstr ""
+msgstr "Idioma de transcrição"
 
 #: psychopy/experiment/components/microphone/__init__.py:208
 msgid ""
@@ -5356,52 +5619,64 @@ msgid ""
 "using a colon after the word, e.g. 'red:100', 'green:80'. Otherwise, default "
 "confidence level is 80%."
 msgstr ""
+"Definir lista de palavras para ouvir - se estiver em branco, ouvirá todas as "
+"palavras no idioma escolhido. \n"
+"\n"
+"Se estiver a utilizar o transcritor integrado, pode definir uma % mínima do "
+"nível de confiança usando dois pontos após a palavra, exemplo. 'red:100', "
+"'green:80'. Caso contrário, o nível de confiança padrão é de 80%."
 
 #: psychopy/experiment/components/microphone/__init__.py:211
 msgid "Expected words"
-msgstr ""
+msgstr "Palavras esperadas"
 
 #: psychopy/experiment/components/microphone/__init__.py:225
 msgid ""
 "Which model of Whisper AI should be used for transcription? Details of each "
 "model are available here at github.com/openai/whisper"
 msgstr ""
+"Que modelo de Whisper AI deve ser usado para a transcrição? Detalhes de cada "
+"modelo estão disponíveis aqui em github.com/openai/whisper"
 
 #: psychopy/experiment/components/microphone/__init__.py:226
 msgid "Whisper model"
-msgstr ""
+msgstr "Modelo de Whisper"
 
 #: psychopy/experiment/components/microphone/__init__.py:243
 msgid "Which device to use for transcription?"
-msgstr ""
+msgstr "Que dispositivo usar para a transcrição?"
 
 #: psychopy/experiment/components/microphone/__init__.py:244
 msgid "Whisper device"
-msgstr ""
+msgstr "Dispositivo Whisper"
 
 #: psychopy/experiment/components/mouse/__init__.py:20
 msgid "Mouse: query mouse position and buttons"
-msgstr ""
+msgstr "Rato: consultar a posição e os botões do rato"
 
 #: psychopy/experiment/components/mouse/__init__.py:46
 msgid ""
 "How often should the mouse state (x,y,buttons) be stored? On every video "
 "frame, every click or just at the end of the Routine?"
 msgstr ""
+"Com que frequência o estado do rato (x, y, botões) deve ser armazenado? Em "
+"cada frame do vídeo, em cada clique ou apenas no fim da Routine?"
 
 #: psychopy/experiment/components/mouse/__init__.py:53
 msgid "Save mouse state"
-msgstr ""
+msgstr "Guardar o estado o rato"
 
 #: psychopy/experiment/components/mouse/__init__.py:77
 msgid ""
 "If the mouse button is already down when we start checking then wait for it "
 "to be released before recording as a new click."
 msgstr ""
+"Se o botão do rato já estiver a ser pressionado quando iniciarmos a "
+"verificação, espere que ele seja liberto antes de gravar como um novo clique."
 
 #: psychopy/experiment/components/mouse/__init__.py:85
 msgid "New clicks only"
-msgstr ""
+msgstr "Apenas novos cliques"
 
 #: psychopy/experiment/components/mouse/__init__.py:97
 msgid ""
@@ -5409,64 +5684,69 @@ msgid ""
 "for the stimulus that was\"clicked\" by the mouse. Make sure that all the "
 "clickable objects have all these params."
 msgstr ""
+"Os params (exemplo, nome, texto), para os quais deseja armazenar o valor "
+"atual, para o estímulo que foi “clicado” pelo rato. Certifique-se de que "
+"todos os objetos clicáveis ​​tenham todos estes parâmetros."
 
 #: psychopy/experiment/components/mouse/__init__.py:126
 msgid ""
 "What is the 'correct' object? To specify an area, remember that you can "
 "create a shape Component with 0 opacity."
 msgstr ""
+"Qual é o objeto 'correto'? Para especificar uma área, lembre-se de que pode "
+"criar uma Componente de forma com opacidade 0."
 
 #: psychopy/experiment/components/movie/__init__.py:20
 msgid "Movie: play movie files"
-msgstr ""
+msgstr "Filme: reproduz ficheiros de vídeo"
 
 #: psychopy/experiment/components/movie/__init__.py:48
 #: psychopy/experiment/components/sound/__init__.py:44
 msgid "When does the Component end? (blank to use the duration of the media)"
-msgstr ""
+msgstr "Quando termina a Componente? (em branco para usar a duração do vídeo)"
 
 #: psychopy/experiment/components/movie/__init__.py:51
 msgid "A filename for the movie (including path)"
-msgstr ""
+msgstr "O nome do ficheiro para o vídeo (incluindo o caminho)"
 
 #: psychopy/experiment/components/movie/__init__.py:56
 msgid "Movie file"
-msgstr ""
+msgstr "Ficheiro de vídeo"
 
 #: psychopy/experiment/components/movie/__init__.py:58
 msgid "What underlying lib to use for loading movies"
-msgstr ""
+msgstr "Qual a biblioteca subjacente a usar para carregar vídeos"
 
 #: psychopy/experiment/components/movie/__init__.py:65
 msgid ""
 "Prevent the audio stream from being loaded/processed (moviepy and opencv "
 "only)"
-msgstr ""
+msgstr "Impedir que o áudio seja carregado/processado (só moviepy e opencv)"
 
 #: psychopy/experiment/components/movie/__init__.py:70
 msgid "No audio"
-msgstr ""
+msgstr "Sem som"
 
 #: psychopy/experiment/components/movie/__init__.py:81
 msgid "How loud should audio be played?"
-msgstr ""
+msgstr "Quão alto o áudio deve ser reproduzido?"
 
 #: psychopy/experiment/components/movie/__init__.py:85
 #: psychopy/experiment/components/sound/__init__.py:60
 msgid "Volume"
-msgstr ""
+msgstr "Volume"
 
 #: psychopy/experiment/components/movie/__init__.py:87
 msgid "Should the end of the movie cause the end of the Routine (e.g. trial)?"
-msgstr ""
+msgstr "O fim do vídeo deve causar o fim da Routine (exemplo, ensaio)?"
 
 #: psychopy/experiment/components/movie/__init__.py:95
 msgid "Whether the movie should loop back to the beginning on completion."
-msgstr ""
+msgstr "Se o vídeo deve voltar ao início após a conclusão."
 
 #: psychopy/experiment/components/movie/__init__.py:100
 msgid "Loop playback"
-msgstr ""
+msgstr "Reprodução em loop"
 
 #: psychopy/experiment/components/movie/__init__.py:104
 #: psychopy/experiment/components/sound/__init__.py:78
@@ -5474,73 +5754,83 @@ msgid ""
 "Should playback cease when the Routine ends? Untick to continue playing "
 "after the Routine has finished."
 msgstr ""
+"A reprodução deve parar quando a Routine terminar? Desmarque para continuar "
+"após o fim da Routine."
 
 #: psychopy/experiment/components/movie/__init__.py:106
 #: psychopy/experiment/components/sound/__init__.py:80
 msgid "Stop with Routine?"
-msgstr ""
+msgstr "Parar com a Routine?"
 
 #: psychopy/experiment/components/panorama/__init__.py:19
 msgid ""
 "Panorama: Present a panoramic image (such as from a phone camera in Panorama "
 "mode) on screen."
 msgstr ""
+"Panorama: apresentar uma imagem panorâmica (como a da câmera de um telefone "
+"no modo Panorâmico) no ecrã."
 
 #: psychopy/experiment/components/panorama/__init__.py:85
 msgid "How to control looking around the panorama scene"
-msgstr ""
+msgstr "Como controlar a visão ao redor da cena panorâmica"
 
 #: psychopy/experiment/components/panorama/__init__.py:95
 msgid "Position control"
-msgstr ""
+msgstr "Controlar posição"
 
 #: psychopy/experiment/components/panorama/__init__.py:108
 msgid ""
 "Horizontal look position, ranging from -1 (fully left) to 1 (fully right)"
 msgstr ""
+"Posição de visualização horizontal, varia de -1 (totalmente à esquerda) a 1 "
+"(totalmente à direita)"
 
 #: psychopy/experiment/components/panorama/__init__.py:115
 msgid "Azimuth"
-msgstr ""
+msgstr "Azimuth (angular)"
 
 #: psychopy/experiment/components/panorama/__init__.py:128
 msgid "Vertical look position, ranging from -1 (fully down) to 1 (fully up)"
 msgstr ""
+"Posição de visualização vertical, varia de -1 (totalmente para baixo) a 1 "
+"(totalmente para cima)"
 
 #: psychopy/experiment/components/panorama/__init__.py:135
 msgid "Elevation"
-msgstr ""
+msgstr "Elevação"
 
 #: psychopy/experiment/components/panorama/__init__.py:138
 msgid "Up"
-msgstr ""
+msgstr "Acima"
 
 #: psychopy/experiment/components/panorama/__init__.py:138
 msgid "Left"
-msgstr ""
+msgstr "Esquerda"
 
 #: psychopy/experiment/components/panorama/__init__.py:138
 msgid "Down"
-msgstr ""
+msgstr "Abaixo"
 
 #: psychopy/experiment/components/panorama/__init__.py:139
 msgid "Right"
-msgstr ""
+msgstr "Direita"
 
 #: psychopy/experiment/components/panorama/__init__.py:152
 #: psychopy/experiment/components/panorama/__init__.py:227
 msgid "What key corresponds to the view action '{}'?"
-msgstr ""
+msgstr "Que tecla corresponde à ação de visualização '{}'?"
 
 #: psychopy/experiment/components/panorama/__init__.py:170
 msgid ""
 "Should movement be smoothed, so the view keeps moving a little after a "
 "change?"
 msgstr ""
+"O movimento deve ser suavizado, para que a visualização continue a mover-se "
+"um pouco após uma alteração?"
 
 #: psychopy/experiment/components/panorama/__init__.py:176
 msgid "Smooth?"
-msgstr ""
+msgstr "Suavizar?"
 
 #: psychopy/experiment/components/panorama/__init__.py:188
 msgid ""
@@ -5548,158 +5838,176 @@ msgid ""
 "center of the screen to the edge or holding down a key for 2s will rotate "
 "180°."
 msgstr ""
+"Multiplicador a ser aplicado para visualizar as alterações. 1 significa que "
+"mover o rato do centro do ecrã para a extremidade ou manter uma tecla "
+"pressionada por 2s irá girar 180°."
 
 #: psychopy/experiment/components/panorama/__init__.py:194
 msgid "Movement sensitivity"
-msgstr ""
+msgstr "Sensibilidade do movimento"
 
 #: psychopy/experiment/components/panorama/__init__.py:200
 msgid "How to control zooming in and out of the panorama scene"
-msgstr ""
+msgstr "Como controlar o zoom (ampliar e reduzir) da cena panorâmica"
 
 #: psychopy/experiment/components/panorama/__init__.py:210
 msgid "Zoom control"
-msgstr ""
+msgstr "Controlar zoom"
 
 #: psychopy/experiment/components/panorama/__init__.py:214
 msgid "Zoom in"
-msgstr ""
+msgstr "Ampliar"
 
 #: psychopy/experiment/components/panorama/__init__.py:214
 msgid "Zoom out"
-msgstr ""
+msgstr "Reduzir"
 
 #: psychopy/experiment/components/panorama/__init__.py:245
 msgid "How zoomed in the scene is, with 1 being no adjustment."
-msgstr ""
+msgstr "Quão ampliada está a cena, sendo 1 sem ajustes."
 
 #: psychopy/experiment/components/panorama/__init__.py:252
 msgid "Zoom"
-msgstr ""
+msgstr "Zoom"
 
 #: psychopy/experiment/components/panorama/__init__.py:265
 msgid ""
 "Multiplier to apply to zoom changes. 1 means that pressing the zoom in key "
 "for 1s or scrolling the mouse wheel 100% zooms in 100%."
 msgstr ""
+"Multiplicador a ser aplicado às alterações de zoom. 1 significa que "
+"pressionar a tecla de zoom por 1s ou rodar a roda do rato 100% amplia em "
+"100%."
 
 #: psychopy/experiment/components/panorama/__init__.py:271
 msgid "Zoom sensitivity"
-msgstr ""
+msgstr "Sensibilidade do zoom"
 
 #: psychopy/experiment/components/parallelOut/__init__.py:19
 msgid "Parallel out: send signals from the parallel port"
-msgstr ""
+msgstr "Saída paralela: enviar sinais da porta paralela"
 
 #: psychopy/experiment/components/parallelOut/__init__.py:48
 msgid ""
 "Parallel port to be used (you can change these options in "
 "preferences>general)"
 msgstr ""
+"Porta paralela a ser usada (pode alterar estas opções em preferências>geral)"
 
 #: psychopy/experiment/components/parallelOut/__init__.py:52
 msgid "Port address"
-msgstr ""
+msgstr "Endereço da porta"
 
 #: psychopy/experiment/components/parallelOut/__init__.py:63
 msgid "U3 Register to write byte to"
-msgstr ""
+msgstr "Registar U3 para gravar byte em"
 
 #: psychopy/experiment/components/parallelOut/__init__.py:66
 msgid "U3 register"
-msgstr ""
+msgstr "Registar U3"
 
 #: psychopy/experiment/components/parallelOut/__init__.py:70
 msgid "Data to be sent at 'start'"
-msgstr ""
+msgstr "Dados a serem enviados no 'início'"
 
 #: psychopy/experiment/components/parallelOut/__init__.py:71
 #: psychopy/experiment/components/serialOut/__init__.py:79
 msgid "Start data"
-msgstr ""
+msgstr "Dados iniciais"
 
 #: psychopy/experiment/components/parallelOut/__init__.py:75
 msgid "Data to be sent at 'end'"
-msgstr ""
+msgstr "Dados a serem enviados no 'final'"
 
 #: psychopy/experiment/components/parallelOut/__init__.py:76
 #: psychopy/experiment/components/serialOut/__init__.py:84
 msgid "Stop data"
-msgstr ""
+msgstr "Parar dados"
 
 #: psychopy/experiment/components/parallelOut/__init__.py:78
 msgid ""
 "If the parallel port data relates to visual stimuli then sync its pulse to "
 "the screen refresh"
 msgstr ""
+"Se os dados da porta paralela estiverem relacionados a estímulos visuais, "
+"então sincronize-os a atualização do ecrã"
 
 #: psychopy/experiment/components/parallelOut/__init__.py:85
 msgid "Sync to screen"
-msgstr ""
+msgstr "Sincronizar com o ecrã"
 
 #: psychopy/experiment/components/patch/__init__.py:18
 msgid "Patch: present images (bmp, jpg, tif...) or textures like gratings"
-msgstr ""
+msgstr "Patch: apresentar imagens (bmp, jpg, tif...) ou texturas como gratings"
 
 #: psychopy/experiment/components/patch/__init__.py:40
 msgid ""
 "The image to be displayed - 'sin','sqr'... or a filename (including path)"
 msgstr ""
+"A imagem a ser exibida - 'sin','sqr'... ou um nome do ficheiro (incluindo "
+"caminho)"
 
 #: psychopy/experiment/components/patch/__init__.py:47
 msgid "Image/tex"
-msgstr ""
+msgstr "Imagem/texto"
 
 #: psychopy/experiment/components/patch/__init__.py:58
 msgid "Spatial frequency of image repeats across the patch, e.g. 4 or [2,3]"
 msgstr ""
+"Frequência espacial das repetições da imagem ao longo do patch, exemplo. 4 "
+"ou [2,3]"
 
 #: psychopy/experiment/components/patch/__init__.py:68
 msgid "Spatial positioning of the image on the patch (in range 0-1.0)"
-msgstr ""
+msgstr "Posicionamento espacial da imagem no patch (no intervalo 0-1,0)"
 
 #: psychopy/experiment/components/polygon/__init__.py:20
 msgid "Polygon: any regular polygon (line, triangle, square...circle)"
 msgstr ""
+"Polígono: qualquer polígono regular (linha, triângulo, quadrado...círculo)"
 
 #: psychopy/experiment/components/polygon/__init__.py:62
 msgid "How many vertices in your regular polygon?"
-msgstr ""
+msgstr "Quantos vértices no polígono regular?"
 
 #: psychopy/experiment/components/polygon/__init__.py:68
 msgid "Num. vertices"
-msgstr ""
+msgstr "Número de vértices"
 
 #: psychopy/experiment/components/polygon/__init__.py:70
 msgid ""
 "What are the vertices of your polygon? Should be an nx2 array or a list of "
 "[x, y] lists"
 msgstr ""
+"Quais são os vértices do polígono? Deve ser uma matriz nx2 ou uma lista de "
+"listas [x, y]"
 
 #: psychopy/experiment/components/polygon/__init__.py:76
 msgid "Vertices"
-msgstr ""
+msgstr "Vértices"
 
 #: psychopy/experiment/components/polygon/__init__.py:94
 msgid ""
 "What shape is this? With 'regular polygon...' you can set number of vertices "
 "and with 'custom polygon...' you can set vertices"
 msgstr ""
+"Que forma é esta? Com 'polígono regular...' pode definir o número de "
+"vértices e com 'polígono personalizado...' pode definir os vértices"
 
 #: psychopy/experiment/components/polygon/__init__.py:102
 msgid "Shape"
-msgstr ""
+msgstr "Forma"
 
 #: psychopy/experiment/components/polygon/__init__.py:107
 #: psychopy/experiment/components/progress/__init__.py:70
 msgid ""
 "Width of the shape's line (always in pixels - this does NOT use 'units')"
-msgstr ""
+msgstr "Largura da linha da forma (sempre em pixels - NÃO usa 'unidades')"
 
 #: psychopy/experiment/components/polygon/__init__.py:114
 #: psychopy/experiment/components/progress/__init__.py:77
 msgid "Line width"
-msgstr ""
+msgstr "Largura da linha"
 
 #: psychopy/experiment/components/polygon/__init__.py:126
 msgid ""
@@ -5708,182 +6016,206 @@ msgid ""
 " but for higher-order polygons it represents the [w,h] of the ellipse that "
 "the polygon sits on!! "
 msgstr ""
+"Tamanho deste estímulo [w,h]. Observe que para uma linha apenas, é usado o "
+"primeiro valor, para o triângulo e retângulo o [w,h] é o esperado,\n"
+" mas para polígonos de ordem superior representam-se por [w,h] da elipse "
+"onde o polígono está!! "
 
 #: psychopy/experiment/components/progress/__init__.py:16
 msgid "Progress: Present a progress bar, with values ranging from 0 to 1."
 msgstr ""
+"Progresso: Apresenta uma barra de progresso, com valores que variam de 0 a 1."
 
 #: psychopy/experiment/components/progress/__init__.py:47
 msgid "Bar color"
-msgstr ""
+msgstr "Cor da barra"
 
 #: psychopy/experiment/components/progress/__init__.py:49
 msgid "Color of the filled part of the progress bar."
-msgstr ""
+msgstr "Cor da parte preenchida da barra de progresso."
 
 #: psychopy/experiment/components/progress/__init__.py:51
 msgid "Back color"
-msgstr ""
+msgstr "Cor de fundo"
 
 #: psychopy/experiment/components/progress/__init__.py:53
 msgid "Color of the empty part of the progress bar."
-msgstr ""
+msgstr "Cor da parte vazia da barra de progresso."
 
 #: psychopy/experiment/components/progress/__init__.py:57
 msgid "Color of the line around the progress bar."
-msgstr ""
+msgstr "Cor da linha ao redor da barra de progresso."
 
 #: psychopy/experiment/components/progress/__init__.py:65
 msgid ""
 "Value between 0 (not started) and 1 (complete) to set the progress bar to."
 msgstr ""
+"Valor entre 0 (não iniciado) e 1 (concluído) para definir a barra de "
+"progresso."
 
 #: psychopy/experiment/components/progress/__init__.py:67
 msgid "Progress"
-msgstr ""
+msgstr "Progresso"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:21
 msgid "Rating scale: obtain numerical or categorical responses"
-msgstr ""
+msgstr "Escala de avaliação: obtenha respostas numéricas ou categóricas"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:64
 msgid ""
 "Show a continuous visual analog scale; returns 0.00 to 1.00; takes "
 "precedence over numeric scale or categorical choices"
 msgstr ""
+"Mostrar uma escala visual analógica contínua; retorna 0,00 a 1,00; tem "
+"precedência sobre a escala numérica ou escolhas categóricas"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:67
 msgid "Visual analog scale"
-msgstr ""
+msgstr "Escala visual analógica"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:71
 msgid ""
 "A list of categories (non-numeric alternatives) to present, space or comma-"
 "separated; these take precedence over a numeric scale"
 msgstr ""
+"Uma lista de categorias (alternativas não numéricas) para apresentar, "
+"separadas por espaço ou vírgula; estes têm precedência sobre uma escala "
+"numérica"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:74
 msgid "Category choices"
-msgstr ""
+msgstr "Opções das categorias"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:78
 msgid ""
 "Brief instructions, such as a description of the scale numbers as seen by "
 "the subject."
 msgstr ""
+"Instruções breves, como uma descrição dos números da escala observados pelo "
+"participante."
 
 #: psychopy/experiment/components/ratingScale/__init__.py:80
 msgid "Scale description"
-msgstr ""
+msgstr "Descrição da escala"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:84
 msgid "Lowest rating (low end of the scale); not used for categories."
 msgstr ""
+"Classificação mais baixa (extremidade inferior da escala); não é usado em "
+"categorias."
 
 #: psychopy/experiment/components/ratingScale/__init__.py:86
 msgid "Lowest value"
-msgstr ""
+msgstr "Valor mais baixo"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:90
 msgid "Highest rating (top end of the scale); not used for categories."
 msgstr ""
+"Classificação mais alta (extremidade superior da escala); não é usado em "
+"categorias."
 
 #: psychopy/experiment/components/ratingScale/__init__.py:92
 msgid "Highest value"
-msgstr ""
+msgstr "Valor mais alto"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:96
 msgid "Labels for the ends of the scale, separated by commas"
-msgstr ""
+msgstr "Etiquetas para os extremos da escala, separadas por vírgulas"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:98
 #: psychopy/experiment/components/slider/__init__.py:113
 msgid "Labels"
-msgstr ""
+msgstr "Etiquetas"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:103
 msgid "Style for the marker: triangle, circle, glow, slider, hover"
-msgstr ""
+msgstr "Estilo do marcador: triângulo, círculo, brilho, slider, foco"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:105
 msgid "Marker type"
-msgstr ""
+msgstr "Tipo de marcador"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:109
 msgid "initial position for the marker"
-msgstr ""
+msgstr "posição inicial do marcador"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:110
 msgid "Marker start"
-msgstr ""
+msgstr "Início do marcador"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:116
 msgid ""
 "Should clicking the line accept that rating (without needing to confirm via "
 "'accept')?"
 msgstr ""
+"Aceitar a avaliação ao clicar na linha (sem precisar de confirmar através de "
+"'aceitar')?"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:118
 msgid "Single click"
-msgstr ""
+msgstr "Clique único"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:122
 msgid ""
 "Hide the scale when a rating has been accepted; False to remain on-screen"
 msgstr ""
+"Ocultar a escala quando uma avaliação for aceite; Falso para permanecer no "
+"ecrã"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:124
 msgid "Disappear"
-msgstr ""
+msgstr "Desaparecer"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:128
 msgid "Should the accept button by visible?"
-msgstr ""
+msgstr "O botão aceitar deve ficar visível?"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:129
 msgid "Show accept"
-msgstr ""
+msgstr "Mostrar aceitar"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:133
 #: psychopy/experiment/components/slider/__init__.py:202
 msgid "store the rating"
-msgstr ""
+msgstr "guardar a avaliação"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:134
 #: psychopy/experiment/components/slider/__init__.py:203
 msgid "Store rating"
-msgstr ""
+msgstr "Guardar avaliação"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:138
 msgid "store the time taken to make the choice (in seconds)"
-msgstr ""
+msgstr "guardar o tempo necessário para fazer a escolha (em segundos)"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:140
 #: psychopy/experiment/components/slider/__init__.py:209
 msgid "Store rating time"
-msgstr ""
+msgstr "Guardar tempo de avaliação"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:144
 #: psychopy/experiment/components/slider/__init__.py:213
 msgid "store the history of (selection, time)"
-msgstr ""
+msgstr "guardar a história de (seleção, tempo)"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:145
 #: psychopy/experiment/components/slider/__init__.py:214
 msgid "Store history"
-msgstr ""
+msgstr "Guardar história"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:149
 msgid "Should accepting a rating cause the end of the Routine (e.g. trial)?"
-msgstr ""
+msgstr "Aceitar uma avaliação deve causar o fim da Routine (exemplo, ensaio)?"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:155
 msgid "height of tick marks (1 is upward, 0 is hidden, -1 is downward)"
 msgstr ""
+"altura das marcas da escala (1 está para cima, 0 está oculto, -1 está para "
+"baixo)"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:157
 msgid "Tick height"
-msgstr ""
+msgstr "Altura da marca da escala"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:163
 msgid ""
@@ -5891,163 +6223,188 @@ msgid ""
 "overrides all dialog settings except time parameters, forceEndRoutine, "
 "storeRatingTime, storeRating"
 msgstr ""
+"Usar este texto para criar a escala de avaliação como faria numa componente "
+"de código; substitui todas as configurações da caixa de diálogo, exceto os "
+"parâmetros de tempo, forceEndRoutine, storeRatingTime, storeRating"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:167
 msgid "Customize everything :"
-msgstr ""
+msgstr "Personalizar tudo :"
 
 #: psychopy/experiment/components/resourceManager/__init__.py:14
 msgid ""
 "Pre-load some resources into memory so that components using them can start "
 "without having to load first"
 msgstr ""
+"Pré-carregar alguns recursos na memória para que os componentes que os "
+"utilizam possam iniciar sem precisar de carregar primeiro"
 
 #: psychopy/experiment/components/resourceManager/__init__.py:41
 msgid "Resources to download/check"
-msgstr ""
+msgstr "Recursos para transferir/verificar"
 
 #: psychopy/experiment/components/resourceManager/__init__.py:42
 msgid "Resources"
-msgstr ""
+msgstr "Recursos"
 
 #: psychopy/experiment/components/resourceManager/__init__.py:46
 msgid ""
 "When checking these resources, also check for all currently downloading?"
 msgstr ""
+"Ao verificar estes recursos, verificar também todos as transferências atuais?"
 
 #: psychopy/experiment/components/resourceManager/__init__.py:47
 msgid "Check all"
-msgstr ""
+msgstr "Verificar todos"
 
 #: psychopy/experiment/components/resourceManager/__init__.py:52
 msgid "Should this Component start an / or check resource preloading?"
 msgstr ""
+"Esta componente deve iniciar/ou verificar o pré-carregamento de recursos?"
 
 #: psychopy/experiment/components/resourceManager/__init__.py:53
 msgid "Preload actions"
-msgstr ""
+msgstr "Ações de pré-carregamento"
 
 #: psychopy/experiment/components/resourceManager/__init__.py:56
 msgid "Should we end the Routine when the resource download is complete?"
 msgstr ""
+"Devemos terminar a Routine quando a transferência do recurso for concluído?"
 
 #: psychopy/experiment/components/resourceManager/__init__.py:61
 msgid "Force end Routine"
-msgstr ""
+msgstr "Forçar o fim da Routine"
 
 #: psychopy/experiment/components/resourceManager/__init__.py:63
 msgid "Check"
-msgstr ""
+msgstr "Verificar"
 
 #: psychopy/experiment/components/roi/__init__.py:20
 msgid ""
 "Region Of Interest: Define a region of interest for use with eyetrackers"
 msgstr ""
+"Região de interesse: defina uma região de interesse para usar com "
+"rastreadores oculares"
 
 #: psychopy/experiment/components/roi/__init__.py:59
 msgid "Under what condition should this ROI end the Routine?"
-msgstr ""
+msgstr "Em que condições esta ROI deve terminar a Routine?"
 
 #: psychopy/experiment/components/roi/__init__.py:60
 msgid "End Routine on..."
-msgstr ""
+msgstr "Terminar a rotina em..."
 
 #: psychopy/experiment/components/roi/__init__.py:74
 msgid "Minimum dwell time within roi (look at) or outside roi (look away)."
 msgstr ""
+"Tempo mínimo de permanência dentro da roi (olhar para) ou fora da roi "
+"(desviar o olhar)."
 
 #: psychopy/experiment/components/roi/__init__.py:75
 msgid "Min. look time"
-msgstr ""
+msgstr "Tempo min. a olhar"
 
 #: psychopy/experiment/components/roi/__init__.py:80
 msgid ""
 "In debug mode, the ROI is drawn in red. Use this to see what area of the "
 "screen is in the ROI."
 msgstr ""
+"No modo de debug, a ROI é desenhada a vermelho. Usar isto para ver que área "
+"do ecrã está na ROI."
 
 #: psychopy/experiment/components/roi/__init__.py:82
 msgid "Debug mode"
-msgstr ""
+msgstr "Modo debug"
 
 #: psychopy/experiment/components/roi/__init__.py:90
 msgid "What looks on this ROI should be saved to the data output?"
-msgstr ""
+msgstr "O que parece nesta ROI deve ser guardado nos resultados dos dados?"
 
 #: psychopy/experiment/components/roi/__init__.py:91
 msgid "Save..."
-msgstr ""
+msgstr "Guardar..."
 
 #: psychopy/experiment/components/roi/__init__.py:98
 msgid "What should the values of roi.time should be relative to?"
-msgstr ""
+msgstr "Os valores da roi.time devem ser relativos a quê?"
 
 #: psychopy/experiment/components/roi/__init__.py:100
 msgid "Time relative to..."
-msgstr ""
+msgstr "Tempo relativo a..."
 
 #: psychopy/experiment/components/routineSettings/__init__.py:15
 msgid "Settings for this Routine."
-msgstr ""
+msgstr "Configurações para esta routine."
 
 #: psychopy/experiment/components/routineSettings/__init__.py:51
 #: psychopy/experiment/routines/_base.py:67
 msgid "Disable Routine"
-msgstr ""
+msgstr "Desativar Routine"
 
 #: psychopy/experiment/components/routineSettings/__init__.py:56
 msgid "When should this Routine end, if not already ended by a Component?"
 msgstr ""
+"Quando deve esta Routine terminar, se ainda não tiver sido terminada por uma "
+"Componente?"
 
 #: psychopy/experiment/components/routineSettings/__init__.py:60
 #: psychopy/experiment/components/serialOut/__init__.py:73
 msgid "Timeout"
-msgstr ""
+msgstr "Tempo esgotado"
 
 #: psychopy/experiment/components/routineSettings/__init__.py:62
 msgid ""
 "When should this Routine end, if not already ended by a Component? Leave "
 "blank for endless."
 msgstr ""
+"Quando deve esta Routine terminar, se ainda não tiver sido terminada por uma "
+"Componente? Deixe em branco para infinito."
 
 #: psychopy/experiment/components/routineSettings/__init__.py:72
 msgid ""
 "Skip this Routine if the value in this contorl evaluates to True. Leave "
 "blank to not skip."
 msgstr ""
+"Ignorar esta rotina se o valor neste contorl for avaliado como True. Deixar "
+"em branco para não ignorar."
 
 #: psychopy/experiment/components/routineSettings/__init__.py:74
 msgid "Skip if..."
-msgstr ""
+msgstr "Ignorar se..."
 
 #: psychopy/experiment/components/routineSettings/__init__.py:81
 msgid ""
 "Some descriptive text to give information about this Routine. This won't "
 "affect how it runs, it's purely for your own reference!"
 msgstr ""
+"Algum texto descritivo para dar informações sobre esta Routine. Isso não "
+"afetará o funcionamento, é apenas para sua referência!"
 
 #: psychopy/experiment/components/routineSettings/__init__.py:85
 msgid "Description"
-msgstr ""
+msgstr "Descrição"
 
 #: psychopy/experiment/components/routineSettings/__init__.py:100
 msgid "Different window settings?"
-msgstr ""
+msgstr "Configurações de janela diferentes?"
 
 #: psychopy/experiment/components/routineSettings/__init__.py:102
 msgid ""
 "Should the appearance of the window change while this Routine is running?"
 msgstr ""
+"A aparência da janela deve mudar enquanto esta Routine estiver em execução?"
 
 #: psychopy/experiment/components/routineSettings/__init__.py:107
 msgid "Background color"
-msgstr ""
+msgstr "Cor de fundo"
 
 #: psychopy/experiment/components/routineSettings/__init__.py:109
 msgid ""
 "Color of the screen this Routine (e.g. black, $[1.0,1.0,1.0], $variable. "
 "Right-click to bring up a color-picker.)"
 msgstr ""
+"Cor do ecrã desta rotina (exemplo, preto, $[1.0,1.0,1.0], $variable. Clique "
+"com o botão direito para abrir um seletor de cores.)"
 
 #: psychopy/experiment/components/routineSettings/__init__.py:115
 #: psychopy/experiment/components/settings/__init__.py:219
@@ -6055,319 +6412,367 @@ msgid ""
 "Needed if color is defined numerically (see PsychoPy documentation on color "
 "spaces)"
 msgstr ""
+"Necessário se a cor for definida numericamente (consulte a documentação do "
+"PsychoPy sobre espaços de cores)"
 
 #: psychopy/experiment/components/routineSettings/__init__.py:121
 #: psychopy/experiment/components/settings/__init__.py:225
 msgid "Image file to use as a background (leave blank for no image)"
 msgstr ""
+"Ficheiro de imagem para usar como plano de fundo (deixe em branco se não "
+"houver imagem)"
 
 #: psychopy/experiment/components/routineSettings/__init__.py:122
 #: psychopy/experiment/components/settings/__init__.py:226
 msgid "Background image"
-msgstr ""
+msgstr "Imagem de fundo"
 
 #: psychopy/experiment/components/routineSettings/__init__.py:127
 #: psychopy/experiment/components/settings/__init__.py:231
 msgid "How should the background image scale to fit the window size?"
 msgstr ""
+"Como a imagem de fundo deve ser dimensionada para caber no tamanho da janela?"
 
 #: psychopy/experiment/components/routineSettings/__init__.py:128
 #: psychopy/experiment/components/settings/__init__.py:232
 msgid "Background fit"
-msgstr ""
+msgstr "Ajustamento ao fundo"
 
 #: psychopy/experiment/components/routineSettings/__init__.py:143
 msgid ""
 "Save the start and stop times of this Routine (according to the global "
 "clock) to the data file."
 msgstr ""
+"Guardar os tempos início e fim desta Routine (de acordo com o relógio "
+"global) no ficheiro de dados."
 
 #: psychopy/experiment/components/serialOut/__init__.py:20
 msgid "Serial out: send signals from a serial port"
-msgstr ""
+msgstr "Serial out: envia sinais de uma serial port"
 
 #: psychopy/experiment/components/serialOut/__init__.py:44
 msgid "Serial port to connect to"
-msgstr ""
+msgstr "Serial port para se conectar a"
 
 #: psychopy/experiment/components/serialOut/__init__.py:45
 msgid "Port"
-msgstr ""
+msgstr "Porta"
 
 #: psychopy/experiment/components/serialOut/__init__.py:49
 msgid "The baud rate, or speed, of the connection."
-msgstr ""
+msgstr "A taxa de transmissão, ou de velocidade, da conexão."
 
 #: psychopy/experiment/components/serialOut/__init__.py:50
 msgid "Baud rate"
-msgstr ""
+msgstr "Taxa de transmissão"
 
 #: psychopy/experiment/components/serialOut/__init__.py:54
 msgid "Size of bits to be sent."
-msgstr ""
+msgstr "Tamanho dos bits a serem enviados."
 
 #: psychopy/experiment/components/serialOut/__init__.py:55
 msgid "Data bits"
-msgstr ""
+msgstr "Bits de dados"
 
 #: psychopy/experiment/components/serialOut/__init__.py:59
 msgid "Size of bits to be sent on stop."
-msgstr ""
+msgstr "Tamanho dos bits a serem enviados no fim."
 
 #: psychopy/experiment/components/serialOut/__init__.py:60
 msgid "Stop bits"
-msgstr ""
+msgstr "Parar bits"
 
 #: psychopy/experiment/components/serialOut/__init__.py:66
 msgid "Parity mode."
-msgstr ""
+msgstr "Modo de paridade."
 
 #: psychopy/experiment/components/serialOut/__init__.py:67
 msgid "Parity"
-msgstr ""
+msgstr "Paridade"
 
 #: psychopy/experiment/components/serialOut/__init__.py:72
 msgid ""
 "Time at which to give up listening for a response (leave blank for no limit)"
 msgstr ""
+"Momento para desistir de ouvir uma resposta (deixe em branco se não houver "
+"limite)"
 
 #: psychopy/experiment/components/serialOut/__init__.py:77
 msgid ""
 "Data to be sent at start of pulse. Data will be converted to bytes, so to "
 "specify anumeric value directly use $chr(...)."
 msgstr ""
+"Dados a serem enviados no início do pulso. Os dados serão convertidos em "
+"bytes, portanto, para especificar um valor numérico diretamente, use "
+"$chr(...)."
 
 #: psychopy/experiment/components/serialOut/__init__.py:82
 msgid ""
 "String data to be sent at end of pulse. Data will be converted to bytes, so "
 "to specify anumeric value directly use $chr(...)."
 msgstr ""
+"Dados de string a serem enviados no final do pulso. Os dados serão "
+"convertidos em bytes, portanto, para especificar um valor numérico "
+"diretamente, use $chr(...)."
 
 #: psychopy/experiment/components/serialOut/__init__.py:87
 msgid ""
 "After sending a signal, should PsychoPy read and record a response from the "
 "port?"
 msgstr ""
+"Depois de enviar um sinal, o PsychoPy deve ler e registar uma resposta da "
+"porta?"
 
 #: psychopy/experiment/components/serialOut/__init__.py:88
 msgid "Get response?"
-msgstr ""
+msgstr "Obter resposta?"
 
 #: psychopy/experiment/components/settings/__init__.py:79
 msgid "Edit settings for this experiment"
-msgstr ""
+msgstr "Editar as configurações desta experiência"
 
 #: psychopy/experiment/components/settings/__init__.py:145
 msgid ""
 "Name of the entire experiment (taken by default from the filename on save)"
 msgstr ""
+"Nome de toda a experiência (obtido por defeito a partir do nome do ficheiro "
+"ao guardar)"
 
 #: psychopy/experiment/components/settings/__init__.py:147
 msgid "Experiment name"
-msgstr ""
+msgstr "Nome da experiência"
 
 #: psychopy/experiment/components/settings/__init__.py:158
 msgid ""
 "Start the experiment with a dialog to set info (e.g.participant or condition)"
 msgstr ""
+"Iniciar a experiência com uma caixa de diálogo para definir informações "
+"(exemplo, participante ou condição)"
 
 #: psychopy/experiment/components/settings/__init__.py:160
 msgid "Show info dialog"
-msgstr ""
+msgstr "Mostrar caixa de diálogo de informações"
 
 #: psychopy/experiment/components/settings/__init__.py:163
 msgid ""
 "Enable the <esc> key, to allow subjects to quit / break out of the experiment"
 msgstr ""
+"Ativar a tecla <esc> para permitir que os participantes saiam da experiência"
 
 #: psychopy/experiment/components/settings/__init__.py:165
 msgid "Enable escape key"
-msgstr ""
+msgstr "Ativar tecla de escape"
 
 #: psychopy/experiment/components/settings/__init__.py:169
 msgid ""
 "The info to present in a dialog box. Right-click to check syntax and preview "
 "the dialog box."
 msgstr ""
+"As informações a serem apresentadas numa caixa de diálogo. Clique com o "
+"botão direito para verificar a sintaxe e visualizar a caixa de diálogo."
 
 #: psychopy/experiment/components/settings/__init__.py:171
 msgid "Experiment info"
-msgstr ""
+msgstr "Informações da experiência"
 
 #: psychopy/experiment/components/settings/__init__.py:182
 msgid "The version of PsychoPy to use when running the experiment."
-msgstr ""
+msgstr "A versão do PsychoPy a ser usada ao executar a experiência."
 
 #: psychopy/experiment/components/settings/__init__.py:184
 msgid "Use PsychoPy version"
-msgstr ""
+msgstr "Usar a versão PsychoPy"
 
 #: psychopy/experiment/components/settings/__init__.py:189
 msgid "Run the experiment full-screen (recommended)"
-msgstr ""
+msgstr "Execute a experiência em ecrã inteiro (recomendado)"
 
 #: psychopy/experiment/components/settings/__init__.py:190
 msgid "Full-screen window"
-msgstr ""
+msgstr "Janela de ecrã inteiro"
 
 #: psychopy/experiment/components/settings/__init__.py:194
 msgid ""
 "What Python package should be used behind the scenes for drawing to the "
 "window?"
 msgstr ""
+"Que pacote Python deve ser usado nos bastidores para desenhar na janela?"
 
 #: psychopy/experiment/components/settings/__init__.py:195
 msgid "Window backend"
-msgstr ""
+msgstr "Janela backend"
 
 #: psychopy/experiment/components/settings/__init__.py:199
 msgid "Size of window (if not fullscreen)"
-msgstr ""
+msgstr "Tamanho da janela (se não for inteiro)"
 
 #: psychopy/experiment/components/settings/__init__.py:200
 msgid "Window size (pixels)"
-msgstr ""
+msgstr "Tamanho da janela (pixels)"
 
 #: psychopy/experiment/components/settings/__init__.py:203
 msgid "Which physical screen to run on (1 or 2)"
-msgstr ""
+msgstr "Em que ecrã físico executar (1 ou 2)"
 
 #: psychopy/experiment/components/settings/__init__.py:207
 msgid ""
 "Name of the monitor (from Monitor Center). Right-click to go there, then "
 "copy & paste a monitor name here."
 msgstr ""
+"Nome do monitor (do Monitor Center). Clique com o botão direito para ir até "
+"lá, e copie e cole o nome do monitor aqui."
 
 #: psychopy/experiment/components/settings/__init__.py:210
 msgid "Monitor"
-msgstr ""
+msgstr "Monitor"
 
 #: psychopy/experiment/components/settings/__init__.py:213
 msgid ""
 "Color of the screen (e.g. black, $[1.0,1.0,1.0], $variable. Right-click to "
 "bring up a color-picker.)"
 msgstr ""
+"Cor do ecrã (exemplo, black, $[1.0,1.0,1.0], $variable. Clique com o botão "
+"direito para abrir um seletor de cores.)"
 
 #: psychopy/experiment/components/settings/__init__.py:238
 msgid "Units to use for window/stimulus coordinates (e.g. cm, pix, deg)"
 msgstr ""
+"Unidades a serem usadas para coordenadas de janela/estímulo (exemplo, cm, "
+"pix, deg)"
 
 #: psychopy/experiment/components/settings/__init__.py:240
 msgid "Units"
-msgstr ""
+msgstr "Unidades"
 
 #: psychopy/experiment/components/settings/__init__.py:245
 msgid ""
 "Should new stimuli be added or averaged with the stimuli that have been "
 "drawn already"
 msgstr ""
+"Novos estímulos devem ser adicionados ou calculados em média com os "
+"estímulos que já foram sorteados"
 
 #: psychopy/experiment/components/settings/__init__.py:247
 msgid "Blend mode"
-msgstr ""
+msgstr "Modo de mistura"
 
 #: psychopy/experiment/components/settings/__init__.py:250
 msgid ""
 "Should the mouse be visible on screen? Only applicable for fullscreen "
 "experiments."
 msgstr ""
+"O rato deve ficar visível no ecrã? Aplicável apenas para experiência em ecrã "
+"inteiro."
 
 #: psychopy/experiment/components/settings/__init__.py:251
 msgid "Show mouse"
-msgstr ""
+msgstr "Mostrar o rato"
 
 #: psychopy/experiment/components/settings/__init__.py:264
 msgid "Force audio to stereo (2-channel) output"
-msgstr ""
+msgstr "Forçar saída do áudio para estéreo (2 canais)"
 
 #: psychopy/experiment/components/settings/__init__.py:265
 msgid "Force stereo"
-msgstr ""
+msgstr "Forçar estéreo"
 
 #: psychopy/experiment/components/settings/__init__.py:269
 msgid "Which Python sound engine do you want to play your sounds?"
-msgstr ""
+msgstr "Que mecanismo de som Python deseja que reproduza os seus sons?"
 
 #: psychopy/experiment/components/settings/__init__.py:270
 msgid "Audio library"
-msgstr ""
+msgstr "Biblioteca de áudio"
 
 #: psychopy/experiment/components/settings/__init__.py:283
 msgid ""
 "How important is audio latency for you? If essential then you may need to "
 "get all your sounds in correct formats."
 msgstr ""
+"Quão importante é a latência de áudio para si? Se for essencial, pode "
+"precisar de obter todos os seus sons nos formatos corretos."
 
 #: psychopy/experiment/components/settings/__init__.py:284
 msgid "Audio latency priority"
-msgstr ""
+msgstr "Prioridade de latência de áudio"
 
 #: psychopy/experiment/components/settings/__init__.py:302
 msgid ""
 "Code to create your custom file name base. Don't give a file extension - "
 "this will be added."
 msgstr ""
+"Código para criar o seu nome de ficheiro base persnoalizado. Não forneça a "
+"extensão do ficheiro - ela será adicionada."
 
 #: psychopy/experiment/components/settings/__init__.py:304
 msgid "Data filename"
-msgstr ""
+msgstr "Nome do ficheiro de dados"
 
 #: psychopy/experiment/components/settings/__init__.py:308
 msgid ""
 "What symbol should the data file use to separate columns? Auto will select a "
 "delimiter automatically from the filename."
 msgstr ""
+"Que símbolo deverá usar o ficheiro de dados para separar as colunas? Auto "
+"selecionará um delimitador automaticamente do nome do ficheiro."
 
 #: psychopy/experiment/components/settings/__init__.py:309
 msgid "Data file delimiter"
-msgstr ""
+msgstr "Delimitador do ficheiro de dados"
 
 #: psychopy/experiment/components/settings/__init__.py:313
 msgid "Alphabetical"
-msgstr ""
+msgstr "Alfabeticamente"
 
 #: psychopy/experiment/components/settings/__init__.py:313
 #: psychopy/experiment/components/settings/__init__.py:323
 msgid "Priority"
-msgstr ""
+msgstr "Prioridade"
 
 #: psychopy/experiment/components/settings/__init__.py:313
 msgid "First added"
-msgstr ""
+msgstr "Adicionado pela primeira vez"
 
 #: psychopy/experiment/components/settings/__init__.py:315
 msgid "Sort columns by..."
-msgstr ""
+msgstr "Ordenar colunas por..."
 
 #: psychopy/experiment/components/settings/__init__.py:317
 msgid ""
 "How should data file columns be sorted? Alphabetically, by priority, or "
 "simply in the order they were added?"
 msgstr ""
+"Como é que as colunas do ficheiro de dados devem ser ordenadas? "
+"Alfabeticamente, por prioridade ou simplesmente pela ordem em que foram "
+"adicionadas?"
 
 #: psychopy/experiment/components/settings/__init__.py:323
 msgid "Column"
-msgstr ""
+msgstr "Coluna"
 
 #: psychopy/experiment/components/settings/__init__.py:324
 msgid "Column priority"
-msgstr ""
+msgstr "Prioridade da coluna"
 
 #: psychopy/experiment/components/settings/__init__.py:326
 msgid ""
 "Assign priority values to certain columns. To use predefined values, you can "
 "do $priority.HIGH, $priority.MEDIUM, etc."
 msgstr ""
+"Atribuir valores de prioridade a determinadas colunas. Para usar valores "
+"predefinidos, pode fazer $priority.HIGH, $priority.MEDIUM, etc."
 
 #: psychopy/experiment/components/settings/__init__.py:332
 msgid ""
 "Save a detailed log (more detailed than the Excel/csv files) of the entire "
 "experiment"
 msgstr ""
+"Guardar um registro detalhado (mais detalhado do que os ficheiros Excel/csv) "
+"de toda a experiência"
 
 #: psychopy/experiment/components/settings/__init__.py:334
 msgid "Save log file"
-msgstr ""
+msgstr "Guardar ficheiro de registro"
 
 #: psychopy/experiment/components/settings/__init__.py:337
 #: psychopy/experiment/components/settings/__init__.py:342
@@ -6375,76 +6780,85 @@ msgid ""
 "Save data from loops in comma-separated-value (.csv) format for maximum "
 "portability"
 msgstr ""
+"Guardar dados de loops no formato de valores separados por vírgula (.csv) "
+"para portabilidade máxima"
 
 #: psychopy/experiment/components/settings/__init__.py:339
 msgid "Save csv file (trial-by-trial)"
-msgstr ""
+msgstr "Guardar ficheiro csv (ensaio a ensaio)"
 
 #: psychopy/experiment/components/settings/__init__.py:344
 msgid "Save csv file (summaries)"
-msgstr ""
+msgstr "Guardar ficheiro csv (resumos)"
 
 #: psychopy/experiment/components/settings/__init__.py:347
 msgid "Save data from loops in Excel (.xlsx) format"
-msgstr ""
+msgstr "Guardar dados de loops em formato Excel (.xlsx)"
 
 #: psychopy/experiment/components/settings/__init__.py:348
 msgid "Save Excel file"
-msgstr ""
+msgstr "Guardar ficheiro Excel"
 
 #: psychopy/experiment/components/settings/__init__.py:351
 msgid ""
 "Save data from loops in psydat format. This is useful for Python programmers "
 "to generate analysis scripts."
 msgstr ""
+"Guardar dados dos loops em formato psydat. Isto é útil para programadores "
+"Python gerarem scripts de análise."
 
 #: psychopy/experiment/components/settings/__init__.py:354
 msgid "Save psydat file"
-msgstr ""
+msgstr "Guardar ficheiro psydat"
 
 #: psychopy/experiment/components/settings/__init__.py:357
 msgid ""
 "Save data from eyetrackers in hdf5 format. This is useful for viewing and "
 "analyzing complex data in structures."
 msgstr ""
+"Guardar dados dos rastreadores oculares em formato hdf5. Isto é útil para "
+"visualizar e analisar dados complexos em estruturas."
 
 #: psychopy/experiment/components/settings/__init__.py:359
 msgid "Save hdf5 file"
-msgstr ""
+msgstr "Guardar ficheiro hdf5"
 
 #: psychopy/experiment/components/settings/__init__.py:363
 msgid ""
 "How much output do you want in the log files? ('error' is fewest messages, "
 "'debug' is most)"
 msgstr ""
+"Quantos resultados deseja nos ficheiros detalhados? ('error' é o menor "
+"número de mensagens, 'debug' é o maior número)"
 
 #: psychopy/experiment/components/settings/__init__.py:365
 msgid "Logging level"
-msgstr ""
+msgstr "Nível de registro"
 
 #: psychopy/experiment/components/settings/__init__.py:374
 msgid "Place the HTML files will be saved locally "
-msgstr ""
+msgstr "Colocar os ficheiros HTML que serão salvos localmente "
 
 #: psychopy/experiment/components/settings/__init__.py:375
 msgid "Output path"
-msgstr ""
+msgstr "Caminho para os resultados"
 
 #: psychopy/experiment/components/settings/__init__.py:378
 msgid "Any additional resources needed"
-msgstr ""
+msgstr "Quaisquer recursos adicionais necessários"
 
 #: psychopy/experiment/components/settings/__init__.py:379
 msgid "Additional resources"
-msgstr ""
+msgstr "Recursos adicionais"
 
 #: psychopy/experiment/components/settings/__init__.py:382
 msgid "Message to display to participants upon completing the experiment"
 msgstr ""
+"Mensagem a ser apresentada aos participantes após a conclusão da experiência"
 
 #: psychopy/experiment/components/settings/__init__.py:383
 msgid "End message"
-msgstr ""
+msgstr "Mensagem final"
 
 #: psychopy/experiment/components/settings/__init__.py:386
 msgid ""
@@ -6452,427 +6866,468 @@ msgid ""
 "e.g.\n"
 "https://pavlovia.org/surveys/XXXXXX-XXXX-XXXXXXX?tab=0"
 msgstr ""
+"Para onde os participantes devem ser redirecionados após a conclusão da "
+"experiência, exemplo.\n"
+"https://pavlovia.org/surveys/XXXXXX-XXXX-XXXXXXX?tab=0"
 
 #: psychopy/experiment/components/settings/__init__.py:388
 msgid "Completed URL"
-msgstr ""
+msgstr "URL preenchido"
 
 #: psychopy/experiment/components/settings/__init__.py:391
 msgid ""
 "Where participants are redirected if they do not complete the task, e.g.\n"
 "https://pavlovia.org/surveys/XXXXXX-XXXX-XXXXXXX?tab=0"
 msgstr ""
+"Para onde os participantes são redirecionados se não concluírem a tarefa, "
+"exemplo\n"
+"https://pavlovia.org/surveys/XXXXXX-XXXX-XXXXXXX?tab=0"
 
 #: psychopy/experiment/components/settings/__init__.py:393
 msgid "Incomplete URL"
-msgstr ""
+msgstr "URL incompleto"
 
 #: psychopy/experiment/components/settings/__init__.py:397
 msgid "When to export experiment to the HTML folder."
-msgstr ""
+msgstr "Quando exportar a experiência para a pasta HTML."
 
 #: psychopy/experiment/components/settings/__init__.py:398
 msgid "Export HTML"
-msgstr ""
+msgstr "Exportar HTML"
 
 #: psychopy/experiment/components/settings/__init__.py:441
 msgid ""
 "What kind of eye tracker should PsychoPy use? Select 'MouseGaze' to use the "
 "mouse to simulate eye movement (for debugging without a tracker connected)"
 msgstr ""
+"Que tipo de rastreador ocular o PsychoPy deve usar? Selecione 'MouseGaze' "
+"para usar o rato para simular o movimento dos olhos (para debugging sem um "
+"rastreador conectado)"
 
 #: psychopy/experiment/components/settings/__init__.py:443
 msgid "Eyetracker device"
-msgstr ""
+msgstr "Dispositivo rastreador ocular"
 
 #: psychopy/experiment/components/settings/__init__.py:450
 msgid "Mouse button to press for eye movement."
-msgstr ""
+msgstr "Botão do rato a pressionar para movimento dos olhos."
 
 #: psychopy/experiment/components/settings/__init__.py:451
 msgid "Move button"
-msgstr ""
+msgstr "Botão Mover"
 
 #: psychopy/experiment/components/settings/__init__.py:457
 msgid "Mouse button to press for a blink."
-msgstr ""
+msgstr "Botão do rato a pressionar para um piscar."
 
 #: psychopy/experiment/components/settings/__init__.py:458
 msgid "Blink button"
-msgstr ""
+msgstr "Botão Piscar"
 
 #: psychopy/experiment/components/settings/__init__.py:463
 msgid "Visual degree threshold for Saccade event creation."
-msgstr ""
+msgstr "Limite de grau visual para criação de eventos de sacada."
 
 #: psychopy/experiment/components/settings/__init__.py:464
 msgid "Saccade threshold"
-msgstr ""
+msgstr "Limite da sacada"
 
 #: psychopy/experiment/components/settings/__init__.py:470
 msgid "IP Address of the computer running GazePoint Control."
-msgstr ""
+msgstr "Endereço IP do computador a executar o GazePoint Control."
 
 #: psychopy/experiment/components/settings/__init__.py:471
 msgid "GazePoint IP address"
-msgstr ""
+msgstr "Endereço IP do GazePoint"
 
 #: psychopy/experiment/components/settings/__init__.py:476
 msgid "Port of the GazePoint Control server. Usually 4242."
-msgstr ""
+msgstr "Porta do servidor GazePoint Control. Geralmente 4242."
 
 #: psychopy/experiment/components/settings/__init__.py:477
 msgid "GazePoint port"
-msgstr ""
+msgstr "Porta GazePoint"
 
 #: psychopy/experiment/components/settings/__init__.py:484
 #: psychopy/experiment/components/settings/__init__.py:554
 msgid "Eye tracker model."
-msgstr ""
+msgstr "Modelo de rastreador ocular."
 
 #: psychopy/experiment/components/settings/__init__.py:485
 #: psychopy/experiment/components/settings/__init__.py:555
 msgid "Model name"
-msgstr ""
+msgstr "Nome do modelo"
 
 #: psychopy/experiment/components/settings/__init__.py:490
 msgid "Set the EyeLink to run in mouse simulation mode."
-msgstr ""
+msgstr "Configure o EyeLink para ser executado no modo de simulação do rato."
 
 #: psychopy/experiment/components/settings/__init__.py:491
 msgid "Mouse simulation mode"
-msgstr ""
+msgstr "Modo de simulação do rato"
 
 #: psychopy/experiment/components/settings/__init__.py:497
 #: psychopy/experiment/components/settings/__init__.py:572
 msgid "Eye tracker sampling rate."
-msgstr ""
+msgstr "Taxa de amostragem do rastreador ocular."
 
 #: psychopy/experiment/components/settings/__init__.py:498
 #: psychopy/experiment/components/settings/__init__.py:573
 msgid "Sampling rate"
-msgstr ""
+msgstr "Taxa de amostragem"
 
 #: psychopy/experiment/components/settings/__init__.py:504
 msgid "Select with eye(s) to track."
-msgstr ""
+msgstr "Selecionar que olho(s) para rastrear."
 
 #: psychopy/experiment/components/settings/__init__.py:505
 msgid "Track eyes"
-msgstr ""
+msgstr "Rastrear olhos"
 
 #: psychopy/experiment/components/settings/__init__.py:511
 msgid ""
 "Filter eye sample data live, as it is streamed to the driving device. This "
 "may reduce the sampling speed."
 msgstr ""
+"Filtrar dados de amostras oculares ao vivo, à medida que são transmitidos "
+"para o dispositivo de condução. Isso pode reduzir a velocidade de amostragem."
 
 #: psychopy/experiment/components/settings/__init__.py:513
 msgid "Live sample filtering"
-msgstr ""
+msgstr "Filtragem de amostras ao vivo"
 
 #: psychopy/experiment/components/settings/__init__.py:519
 msgid ""
 "Filter eye sample data when it is saved to the output file. This will not "
 "affect the sampling speed."
 msgstr ""
+"Filtrar os dados da amostra do olho quando eles forem salvos no ficheiro de "
+"resultados. Isso não afetará a velocidade de amostragem."
 
 #: psychopy/experiment/components/settings/__init__.py:521
 msgid "Saved sample filtering"
-msgstr ""
+msgstr "Filtragem de amostra guardada"
 
 #: psychopy/experiment/components/settings/__init__.py:527
 msgid "Track Pupil-CR or Pupil only."
-msgstr ""
+msgstr "Rastrear Pupil-CR ou apenas Pupil."
 
 #: psychopy/experiment/components/settings/__init__.py:528
 msgid "Pupil tracking mode"
-msgstr ""
+msgstr "Modo de rastreamento da pupila"
 
 #: psychopy/experiment/components/settings/__init__.py:534
 msgid "Algorithm used to detect the pupil center."
-msgstr ""
+msgstr "Algoritmo usado para detectar o centro da pupila."
 
 #: psychopy/experiment/components/settings/__init__.py:535
 msgid "Pupil center algorithm"
-msgstr ""
+msgstr "Algoritmo do centro da pupila"
 
 #: psychopy/experiment/components/settings/__init__.py:541
 msgid "Type of pupil data to record."
-msgstr ""
+msgstr "Tipo de dados de pupila a serem registados."
 
 #: psychopy/experiment/components/settings/__init__.py:542
 msgid "Pupil data type"
-msgstr ""
+msgstr "Tipo de dados da pupila"
 
 #: psychopy/experiment/components/settings/__init__.py:547
 msgid "IP Address of the EyeLink *Host* computer."
-msgstr ""
+msgstr "Endereço IP do computador EyeLink *Host*."
 
 #: psychopy/experiment/components/settings/__init__.py:548
 msgid "EyeLink IP address"
-msgstr ""
+msgstr "Endereço de IP do EyeLink"
 
 #: psychopy/experiment/components/settings/__init__.py:560
 msgid "Eye tracker license file (optional)."
-msgstr ""
+msgstr "Ficheiro de licença do rastreador ocular (opcional)."
 
 #: psychopy/experiment/components/settings/__init__.py:561
 msgid "License file"
-msgstr ""
+msgstr "Ficheiro de licença"
 
 #: psychopy/experiment/components/settings/__init__.py:566
 msgid "Eye tracker serial number (optional)."
-msgstr ""
+msgstr "Número de série do rastreador ocular (opcional)."
 
 #: psychopy/experiment/components/settings/__init__.py:567
 msgid "Serial number"
-msgstr ""
+msgstr "Número de série"
 
 #: psychopy/experiment/components/settings/__init__.py:579
 msgid ""
 "Subscribe to pupil data only, does not require calibration or surface setup"
 msgstr ""
+"Subscrever apenas os dados da pupila, não requer calibração ou configuração "
+"de superfície"
 
 #: psychopy/experiment/components/settings/__init__.py:580
 msgid "Pupillometry only"
-msgstr ""
+msgstr "Apenas pupilometria"
 
 #: psychopy/experiment/components/settings/__init__.py:585
 msgid "Name of the Pupil Capture surface"
-msgstr ""
+msgstr "Nome da área de interesse da Pupil Capture."
 
 #: psychopy/experiment/components/settings/__init__.py:586
 msgid "Surface name"
-msgstr ""
+msgstr "Nome da área de interesse"
 
 #: psychopy/experiment/components/settings/__init__.py:590
 #: psychopy/experiment/components/settings/__init__.py:591
 msgid "Gaze confidence threshold"
-msgstr ""
+msgstr "Limite de confiança do olhar"
 
 #: psychopy/experiment/components/settings/__init__.py:595
 #: psychopy/experiment/components/settings/__init__.py:596
 msgid "Pupil remote address"
-msgstr ""
+msgstr "Endereço remoto da pupila"
 
 #: psychopy/experiment/components/settings/__init__.py:600
 #: psychopy/experiment/components/settings/__init__.py:601
 msgid "Pupil remote port"
-msgstr ""
+msgstr "Porta remota da pupila"
 
 #: psychopy/experiment/components/settings/__init__.py:605
 #: psychopy/experiment/components/settings/__init__.py:606
 msgid "Pupil remote timeout (ms)"
-msgstr ""
+msgstr "Tempo remoto da pupila (ms)"
 
 #: psychopy/experiment/components/settings/__init__.py:610
 #: psychopy/experiment/components/settings/__init__.py:611
 msgid "Pupil capture recording enabled"
-msgstr ""
+msgstr "Gravação de captura de pupila ativada"
 
 #: psychopy/experiment/components/settings/__init__.py:615
 #: psychopy/experiment/components/settings/__init__.py:616
 msgid "Pupil capture recording location"
-msgstr ""
+msgstr "Local de gravação da captura da pupila"
 
 #: psychopy/experiment/components/settings/__init__.py:620
 #: psychopy/experiment/components/settings/__init__.py:621
 msgid "Companion address"
-msgstr ""
+msgstr "Endereço complementar"
 
 #: psychopy/experiment/components/settings/__init__.py:625
 #: psychopy/experiment/components/settings/__init__.py:626
 msgid "Companion port"
-msgstr ""
+msgstr "Endereço complementar"
 
 #: psychopy/experiment/components/settings/__init__.py:630
 #: psychopy/experiment/components/settings/__init__.py:631
 msgid "Recording enabled"
-msgstr ""
+msgstr "Gravação ativada"
 
 #: psychopy/experiment/components/settings/__init__.py:635
 #: psychopy/experiment/components/settings/__init__.py:636
 msgid "Camera calibration path"
-msgstr ""
+msgstr "Caminho de calibração da câmera"
 
 #: psychopy/experiment/components/settings/__init__.py:643
 msgid "What Python package should PsychoPy use to get keyboard input?"
 msgstr ""
+"Que pacote Python deve usar o PsychoPy para obter a entrada do teclado?"
 
 #: psychopy/experiment/components/settings/__init__.py:644
 msgid "Keyboard backend"
-msgstr ""
+msgstr "Backend do teclado"
 
 #: psychopy/experiment/components/settings/__init__.py:1109
 msgid "Could not interpret value as dict: {}"
-msgstr ""
+msgstr "Não foi possível interpretar o valor como ditado: {}"
 
 #: psychopy/experiment/components/slider/__init__.py:43
 msgid "Slider: A simple, flexible object for getting ratings"
-msgstr ""
+msgstr "Slider: um objeto simples e flexível para obter avaliações"
 
 #: psychopy/experiment/components/slider/__init__.py:91
 msgid "Tick positions (numerical) on the scale, separated by commas"
-msgstr ""
+msgstr "Marcar posições (numéricas) na escala, separadas por vírgulas"
 
 #: psychopy/experiment/components/slider/__init__.py:93
 msgid "Ticks"
-msgstr ""
+msgstr "Marcar posições"
 
 #: psychopy/experiment/components/slider/__init__.py:111
 msgid "Labels for the tick marks on the scale, separated by commas"
-msgstr ""
+msgstr "Etiquetas para marcar posições na escala, separadas por vírgulas"
 
 #: psychopy/experiment/components/slider/__init__.py:116
 msgid ""
 "Value of the slider befre any response, leave blank to hide the marker until "
 "clicked on"
 msgstr ""
+"Valor do slider antes de qualquer resposta, deixe em branco para ocultar o "
+"marcador até clicar"
 
 #: psychopy/experiment/components/slider/__init__.py:117
 msgid "Starting value"
-msgstr ""
+msgstr "Valor inicial"
 
 #: psychopy/experiment/components/slider/__init__.py:122
 msgid ""
 "Specifies the minimum step size (0 for a continuous scale, 1 for integer "
 "rating scale)"
 msgstr ""
+"Especifica o tamanho mínimo do salto (0 para uma escala contínua, 1 para uma "
+"escala de avaliação de integrais)"
 
 #: psychopy/experiment/components/slider/__init__.py:125
 msgid "Granularity"
-msgstr ""
+msgstr "Granularidade"
 
 #: psychopy/experiment/components/slider/__init__.py:143
 msgid ""
 "Should setting a rating (releasing the mouse) cause the end of the Routine "
 "(e.g. trial)?"
 msgstr ""
+"Definir uma avaliação (soltar o rato) deve provocar o fim da Routine "
+"(exemplo, ensaio)?"
 
 #: psychopy/experiment/components/slider/__init__.py:149
 msgid "Should participant be able to change the rating on the Slider?"
-msgstr ""
+msgstr "O participante deve poder alterar a avaliação no Slider?"
 
 #: psychopy/experiment/components/slider/__init__.py:150
 msgid "Read only"
-msgstr ""
+msgstr "Somente leitura"
 
 #: psychopy/experiment/components/slider/__init__.py:157
 msgid ""
 "By default the labels will be on the bottom or left of the scale, but this "
 "can be flipped to the other side."
 msgstr ""
+"Por defeito, as etiquetas estarão na parte inferior ou esquerda da escala, "
+"mas isto pode ser virado para o outro lado."
 
 #: psychopy/experiment/components/slider/__init__.py:160
 msgid "Flip"
-msgstr ""
+msgstr "Virar"
 
 #: psychopy/experiment/components/slider/__init__.py:163
 msgid "Label color"
-msgstr ""
+msgstr "Cor da etiqueta"
 
 #: psychopy/experiment/components/slider/__init__.py:164
 msgid ""
 "Color of all labels on this slider (might be overridden by the style setting)"
 msgstr ""
+"Cor de todas as etiquetas neste slider (pode ser substituída pela "
+"configuração de estilo)"
 
 #: psychopy/experiment/components/slider/__init__.py:166
 msgid ""
 "Color of the marker on this slider (might be overridden by the style setting)"
 msgstr ""
+"Cor do marcador neste slider (pode ser substituída pela configuração de "
+"estilo)"
 
 #: psychopy/experiment/components/slider/__init__.py:167
 msgid "Line color"
-msgstr ""
+msgstr "Cor da linha"
 
 #: psychopy/experiment/components/slider/__init__.py:168
 msgid ""
 "Color of all lines on this slider (might be overridden by the style setting)"
 msgstr ""
+"Cor de todas as linhas neste slider (pode ser substituída pela configuração "
+"de estilo)"
 
 #: psychopy/experiment/components/slider/__init__.py:174
 msgid "Font for the labels"
-msgstr ""
+msgstr "Tipo de letra das etiquetas"
 
 #: psychopy/experiment/components/slider/__init__.py:181
 msgid "Letter height for text in labels"
-msgstr ""
+msgstr "Altura da letra para texto nas etiquetas"
 
 #: psychopy/experiment/components/slider/__init__.py:188
 msgid "Discrete styles to control the overall appearance of the slider."
-msgstr ""
+msgstr "Estilos discretos para controlar a aparência geral do slider."
 
 #: psychopy/experiment/components/slider/__init__.py:195
 msgid "Tweaks to change the appearance of the slider beyond its style."
-msgstr ""
+msgstr "Ajustes para alterar a aparência do slider além do seu estilo."
 
 #: psychopy/experiment/components/slider/__init__.py:196
 msgid "Style tweaks"
-msgstr ""
+msgstr "Ajustes de estilo"
 
 #: psychopy/experiment/components/slider/__init__.py:207
 msgid "Store the time taken to make the choice (in seconds)"
-msgstr ""
+msgstr "Guardar o tempo necessário para fazer a escolha (em segundos)"
 
 #: psychopy/experiment/components/sound/__init__.py:20
 msgid "Sound: play recorded files or generated sounds"
-msgstr ""
+msgstr "Som: reproduzir ficheiros gravados ou sons gerados"
 
 #: psychopy/experiment/components/sound/__init__.py:42
 msgid "The maximum duration of a sound in seconds"
-msgstr ""
+msgstr "A duração máxima de um som em segundos"
 
 #: psychopy/experiment/components/sound/__init__.py:48
 msgid ""
 "A sound can be a note name (e.g. A or Bf), a number to specify Hz (e.g. 440) "
 "or a filename"
 msgstr ""
+"Um som pode ser o nome de uma nota (exemplo, A ou Bf), um número para "
+"especificar Hz (exemplo, 440) ou o nome de um ficheiro"
 
 #: psychopy/experiment/components/sound/__init__.py:54
 msgid "Sound"
-msgstr ""
+msgstr "Som"
 
 #: psychopy/experiment/components/sound/__init__.py:59
 msgid "The volume (in range 0 to 1)"
-msgstr ""
+msgstr "O volume (no intervalo de 0 a 1)"
 
 #: psychopy/experiment/components/sound/__init__.py:62
 msgid ""
 "A reaction time to a sound stimulus should be based on when the screen "
 "flipped"
 msgstr ""
+"O tempo de reação a um estímulo sonoro deve ser baseado em quando o ecrã "
+"virou"
 
 #: psychopy/experiment/components/sound/__init__.py:68
 msgid "Sync start with screen"
-msgstr ""
+msgstr "Sincronização início com o ecrã"
 
 #: psychopy/experiment/components/sound/__init__.py:72
 msgid ""
 "For tones we can apply a hamming window to prevent 'clicks' that are caused "
 "by a sudden onset. This delays onset by roughly 1ms."
 msgstr ""
+"Para tons, podemos aplicar uma janela de hamming para evitar 'cliques' "
+"causados ​​por um início repentino. Isto atrasa o início em aproximadamente 1 "
+"ms."
 
 #: psychopy/experiment/components/sound/__init__.py:74
 msgid "Hamming window"
-msgstr ""
+msgstr "Janela Hamming"
 
 #: psychopy/experiment/components/static/__init__.py:26
 msgid ""
 "Static: Static screen period (e.g. an ISI). Useful for pre-loading stimuli."
 msgstr ""
+"Estático: período de ecrã estático (exemplo, um ISI). Útil para pré-carregar "
+"estímulos."
 
 #: psychopy/experiment/components/static/__init__.py:43
 msgid "Custom code to be run during the static period (after updates)"
 msgstr ""
+"Código personalizado a ser executado durante o período estático (após "
+"atualizações)"
 
 #: psychopy/experiment/components/static/__init__.py:46
 msgid "Custom code"
-msgstr ""
+msgstr "Personalizar código"
 
 #: psychopy/experiment/components/text/__init__.py:20
 msgid "Text: present text stimuli"
-msgstr ""
+msgstr "Texto: apresentar estímulos de texto"
 
 #: psychopy/experiment/components/text/__init__.py:24
 #: psychopy/experiment/components/textbox/__init__.py:26
@@ -6881,111 +7336,121 @@ msgid ""
 "\n"
 "including line breaks"
 msgstr ""
+"Qualquer texto\n"
+"\n"
+"incluindo quebras de linha"
 
 #: psychopy/experiment/components/text/__init__.py:54
 #: psychopy/experiment/components/textbox/__init__.py:72
 msgid "Text"
-msgstr ""
+msgstr "Texto"
 
 #: psychopy/experiment/components/text/__init__.py:71
 msgid "How wide should the text get when it wraps? (in the specified units)"
 msgstr ""
+"Quão largo deve o texto ficar até à quebra de linha? (nas unidades "
+"especificadas)"
 
 #: psychopy/experiment/components/text/__init__.py:73
 msgid "Wrap width"
-msgstr ""
+msgstr "Largura da quebra de linha"
 
 #: psychopy/experiment/components/text/__init__.py:77
 #: psychopy/experiment/components/textbox/__init__.py:101
 #: psychopy/experiment/components/textbox/__init__.py:107
 msgid "horiz = left-right reversed; vert = up-down reversed; $var = variable"
 msgstr ""
+"horiz = esquerda-direita invertida; vert = cima-baixo invertido; $var = "
+"variable"
 
 #: psychopy/experiment/components/text/__init__.py:79
 msgid "Flip (mirror)"
-msgstr ""
+msgstr "Virar (espelho)"
 
 #: psychopy/experiment/components/text/__init__.py:83
 #: psychopy/experiment/components/textbox/__init__.py:113
 msgid "Handle right-to-left (RTL) languages and Arabic reshaping"
 msgstr ""
+"Lidar com idiomas da direita para a esquerda (RTL) e remodelagem do árabe"
 
 #: psychopy/experiment/components/text/__init__.py:84
 #: psychopy/experiment/components/textbox/__init__.py:114
 msgid "Language style"
-msgstr ""
+msgstr "Estilo de linguagem"
 
 #: psychopy/experiment/components/textbox/__init__.py:21
 msgid "Textbox: present text stimuli but cooler"
-msgstr ""
+msgstr "Caixa de texto: apresentar estímulos de texto, mas mais fixes"
 
 #: psychopy/experiment/components/textbox/__init__.py:27
 msgid "Type here..."
-msgstr ""
+msgstr "Digite aqui..."
 
 #: psychopy/experiment/components/textbox/__init__.py:85
 msgid "Placeholder text to show when there is no text contents."
 msgstr ""
+"Texto de espaço reservado para mostrar quando não há conteúdo de texto."
 
 #: psychopy/experiment/components/textbox/__init__.py:86
 msgid "Placeholder text"
-msgstr ""
+msgstr "Texto de espaço reservado"
 
 #: psychopy/experiment/components/textbox/__init__.py:103
 msgid "Flip horizontal"
-msgstr ""
+msgstr "Virar horizontalmente"
 
 #: psychopy/experiment/components/textbox/__init__.py:109
 msgid "Flip vertical"
-msgstr ""
+msgstr "Virar verticalmente"
 
 #: psychopy/experiment/components/textbox/__init__.py:128
 msgid "Defines the space between lines"
-msgstr ""
+msgstr "Definir o espaço entre as linhas"
 
 #: psychopy/experiment/components/textbox/__init__.py:129
 msgid "Line spacing"
-msgstr ""
+msgstr "Espaçamento entre linhas"
 
 #: psychopy/experiment/components/textbox/__init__.py:163
 msgid "How should text be laid out within the box?"
-msgstr ""
+msgstr "Como dispor o texto dentro da caixa?"
 
 #: psychopy/experiment/components/textbox/__init__.py:164
 msgid "Alignment"
-msgstr ""
+msgstr "Alinhamento"
 
 #: psychopy/experiment/components/textbox/__init__.py:172
 msgid "If the text is bigger than the textbox, how should it behave?"
-msgstr ""
+msgstr "Se o texto for maior que a caixa de texto, como se deverá comportar?"
 
 #: psychopy/experiment/components/textbox/__init__.py:173
 msgid "Overflow"
-msgstr ""
+msgstr "Transbordar"
 
 #: psychopy/experiment/components/textbox/__init__.py:177
 msgid "If specified, adds a speech bubble tail going to that point on screen."
 msgstr ""
+"Se especificado, adiciona um balão de fala indo até a esse ponto no ecrã."
 
 #: psychopy/experiment/components/textbox/__init__.py:178
 msgid "Speech point [x,y]"
-msgstr ""
+msgstr "Ponto de fala [x,y]"
 
 #: psychopy/experiment/components/textbox/__init__.py:188
 msgid "Should textbox be editable?"
-msgstr ""
+msgstr "A caixa de texto deve ser editável?"
 
 #: psychopy/experiment/components/textbox/__init__.py:189
 msgid "Editable?"
-msgstr ""
+msgstr "Editável?"
 
 #: psychopy/experiment/components/textbox/__init__.py:194
 msgid "Automatically record all changes to this in the log file"
-msgstr ""
+msgstr "Registar automaticamente todas as alterações no ficheiro detalhado"
 
 #: psychopy/experiment/components/textbox/__init__.py:195
 msgid "Auto log"
-msgstr ""
+msgstr "Registro automático"
 
 #: psychopy/experiment/components/unknown/__init__.py:20
 msgid ""
@@ -6993,103 +7458,107 @@ msgid ""
 "PsychoPy\n"
 "(most likely from the future)"
 msgstr ""
+"Desconhecido: um componente que não é conhecido pela versão atual instalada "
+"do PsychoPy\n"
+"(mais provavelmente do futuro)"
 
 #: psychopy/experiment/components/unknownPlugin/__init__.py:20
 msgid ""
 "Unknown: A component which comes from a plugin which you do not have "
 "installed & activated."
 msgstr ""
+"Desconhecido: um componente que vem de um plugin que não instalou e ativou."
 
 #: psychopy/experiment/components/variable/__init__.py:21
 msgid "Variable: create a new variable"
-msgstr ""
+msgstr "Variável: criar uma nova variável"
 
 #: psychopy/experiment/components/variable/__init__.py:38
 msgid "The start value. A variable can be set to any value."
-msgstr ""
+msgstr "O valor de início. Uma variável pode ser definida com qualquer valor."
 
 #: psychopy/experiment/components/variable/__init__.py:42
 msgid "Experiment start value"
-msgstr ""
+msgstr "Valor do início da experiência"
 
 #: psychopy/experiment/components/variable/__init__.py:43
 msgid "Set the value for the beginning of each Routine."
-msgstr ""
+msgstr "Definir o valor para o início de cada Routine."
 
 #: psychopy/experiment/components/variable/__init__.py:47
 msgid "Routine start value"
-msgstr ""
+msgstr "Valor de início da Routine"
 
 #: psychopy/experiment/components/variable/__init__.py:48
 msgid "Set the value for the beginning of every screen refresh."
-msgstr ""
+msgstr "Definir o valor para o início de cada atualização do ecrã."
 
 #: psychopy/experiment/components/variable/__init__.py:52
 msgid "Frame start value"
-msgstr ""
+msgstr "Valor do início do frame"
 
 #: psychopy/experiment/components/variable/__init__.py:54
 msgid "Save the experiment start value in data file."
-msgstr ""
+msgstr "Guardar o valor de início da experiência no ficheiro de dados."
 
 #: psychopy/experiment/components/variable/__init__.py:59
 msgid "Save exp start value"
-msgstr ""
+msgstr "Guardar o valor de início da exp"
 
 #: psychopy/experiment/components/variable/__init__.py:60
 msgid "Save the experiment end value in data file."
-msgstr ""
+msgstr "Guardar o valor final da experiência no ficheiro de dados."
 
 #: psychopy/experiment/components/variable/__init__.py:65
 msgid "Save exp end value"
-msgstr ""
+msgstr "Guardar o valor final da exp"
 
 #: psychopy/experiment/components/variable/__init__.py:66
 msgid "Save the Routine start value in data file."
-msgstr ""
+msgstr "Guardar o valor inicial da routine no ficheiro de dados."
 
 #: psychopy/experiment/components/variable/__init__.py:71
 msgid "Save Routine start value"
-msgstr ""
+msgstr "Guardar o valor de início da Routine"
 
 #: psychopy/experiment/components/variable/__init__.py:72
 msgid "Save the Routine end value in data file."
-msgstr ""
+msgstr "Guardar o valor de fim da Routine no ficheiro de dados"
 
 #: psychopy/experiment/components/variable/__init__.py:77
 msgid "Save Routine end value"
-msgstr ""
+msgstr "Guardar o valor final da routine"
 
 #: psychopy/experiment/components/variable/__init__.py:78
 msgid "Save choice of frame value in data file."
-msgstr ""
+msgstr "Guardar a escolha do valor do frame no ficheiro de dados."
 
 #: psychopy/experiment/components/variable/__init__.py:84
 msgid "Save frame value"
-msgstr ""
+msgstr "Guardar valor do frame"
 
 #: psychopy/experiment/loops.py:97 psychopy/experiment/loops.py:429
 #: psychopy/experiment/loops.py:585
 msgid "Name of this loop"
-msgstr ""
+msgstr "Nome deste loop"
 
 #: psychopy/experiment/loops.py:100 psychopy/experiment/loops.py:433
 #: psychopy/experiment/loops.py:588
 msgid "nReps"
-msgstr ""
+msgstr "nReps"
 
 #: psychopy/experiment/loops.py:101
 msgid "Number of repeats (for each condition)"
-msgstr ""
+msgstr "Número de repetições (para cada condição)"
 
 #: psychopy/experiment/loops.py:105 psychopy/experiment/loops.py:110
 #: psychopy/experiment/loops.py:616 psychopy/experiment/loops.py:621
 msgid "Conditions"
-msgstr ""
+msgstr "Condições"
 
 #: psychopy/experiment/loops.py:106
 msgid "A list of dictionaries describing the parameters in each condition"
-msgstr ""
+msgstr "Uma lista de dicionários que descrevem os parâmetros em cada condição"
 
 #: psychopy/experiment/loops.py:111
 msgid ""
@@ -7097,49 +7566,57 @@ msgid ""
 "or .pkl). Browse to select a file. Right-click to preview file contents, or "
 "create a new file."
 msgstr ""
+"Nome de um ficheiro que especifica os parâmetros para cada condição (.csv, ."
+"xlsx ou .pkl). Procure para selecionar um ficheiro. Clique com o botão "
+"direito para visualizar o conteúdo do ficheiro ou criar um novo ficheiro."
 
 #: psychopy/experiment/loops.py:117 psychopy/experiment/loops.py:484
 #: psychopy/experiment/loops.py:610
 msgid "End points"
-msgstr ""
+msgstr "Pontos finais"
 
 #: psychopy/experiment/loops.py:118
 msgid "The start and end of the loop (see flow timeline)"
-msgstr ""
+msgstr "O início e o fim do loop (veja o cronograma do fluxo)"
 
 #: psychopy/experiment/loops.py:123
 msgid "Selected rows"
-msgstr ""
+msgstr "Selecionar linhas"
 
 #: psychopy/experiment/loops.py:124
 msgid ""
 "Select just a subset of rows from your condition file (the first is 0 not "
 "1!). Examples: 0, 0:5, 5:-1"
 msgstr ""
+"Selecionar apenas um subconjunto de linhas do seu ficheiro de condição (o "
+"primeiro é 0 e não 1!). Exemplos: 0, 0:5, 5:-1"
 
 #: psychopy/experiment/loops.py:132 psychopy/experiment/loops.py:479
 #: psychopy/experiment/loops.py:606
 msgid "Loop type"
-msgstr ""
+msgstr "Tipo de loop"
 
 #: psychopy/experiment/loops.py:133
 msgid "How should the next condition value(s) be chosen?"
-msgstr ""
+msgstr "Como devem ser escolhidos o(s) próximo(s) valor(es) da condição?"
 
 #: psychopy/experiment/loops.py:137
 msgid "Random seed"
-msgstr ""
+msgstr "Seed aleatória"
 
 #: psychopy/experiment/loops.py:138
 msgid ""
 "To have a fixed random sequence provide an integer of your choosing here. "
 "Leave blank to have a new random sequence on each run of the experiment."
 msgstr ""
+"Para ter uma sequência aleatória fixa, forneça um número inteiro à sua "
+"escolha aqui. Deixe em branco para ter uma nova sequência aleatória em cada "
+"execução da experiência."
 
 #: psychopy/experiment/loops.py:144 psychopy/experiment/loops.py:489
 #: psychopy/experiment/loops.py:626
 msgid "Is trials"
-msgstr ""
+msgstr "São ensaios"
 
 #: psychopy/experiment/loops.py:145 psychopy/experiment/loops.py:490
 #: psychopy/experiment/loops.py:627
@@ -7147,234 +7624,243 @@ msgid ""
 "Indicates that this loop generates TRIALS, rather than BLOCKS of trials or "
 "stimuli within a trial. It alters how data files are output"
 msgstr ""
+"Indica que este loop gera ENSAIOS, em vez de BLOCOS de ensaios ou estímulos "
+"dentro de um ensaio. Altera a forma como os ficheiros de dados são gerados"
 
 #: psychopy/experiment/loops.py:434
 msgid "(Minimum) number of trials in the staircase"
-msgstr ""
+msgstr "Número (mínimo) de ensaios em cada staircase"
 
 #: psychopy/experiment/loops.py:437
 msgid "Start value"
-msgstr ""
+msgstr "Valor inicial"
 
 #: psychopy/experiment/loops.py:438
 msgid "The initial value of the parameter"
-msgstr ""
+msgstr "O valor inicial do parâmetro"
 
 #: psychopy/experiment/loops.py:441
 msgid "Max value"
-msgstr ""
+msgstr "Valor max"
 
 #: psychopy/experiment/loops.py:442
 msgid "The maximum value the parameter can take"
-msgstr ""
+msgstr "O valor máximo que o parâmetro pode assumir"
 
 #: psychopy/experiment/loops.py:445
 msgid "Min value"
-msgstr ""
+msgstr "Valor min"
 
 #: psychopy/experiment/loops.py:446
 msgid "The minimum value the parameter can take"
-msgstr ""
+msgstr "O valor mínimo que o parâmetro pode assumir"
 
 #: psychopy/experiment/loops.py:449
 msgid "Step sizes"
-msgstr ""
+msgstr "Tamanhos de passos"
 
 #: psychopy/experiment/loops.py:450
 msgid "The size of the jump at each step (can change on each 'reversal')"
-msgstr ""
+msgstr "O tamanho do salto em cada passo (pode mudar a cada 'reversão')"
 
 #: psychopy/experiment/loops.py:454
 msgid "Step type"
-msgstr ""
+msgstr "Tipo de passo"
 
 #: psychopy/experiment/loops.py:455
 msgid ""
 "The units of the step size (e.g. 'linear' will add/subtract that value each "
 "step, whereas 'log' will ad that many log units)"
 msgstr ""
+"As unidades do tamanho do passo (exemplo, 'linear' adicionará/subtrairá esse "
+"valor a cada passo, enquanto 'log' adicionará esse número de unidades de log)"
 
 #: psychopy/experiment/loops.py:460
 msgid "N up"
-msgstr ""
+msgstr "N acima"
 
 #: psychopy/experiment/loops.py:461
 msgid "The number of 'incorrect' answers before the value goes up"
-msgstr ""
+msgstr "O número de respostas 'incorretas' antes do valor subir"
 
 #: psychopy/experiment/loops.py:465
 msgid "N down"
-msgstr ""
+msgstr "N abaixo"
 
 #: psychopy/experiment/loops.py:466
 msgid "The number of 'correct' answers before the value goes down"
-msgstr ""
+msgstr "O número de respostas 'corretas' antes que o valor diminua"
 
 #: psychopy/experiment/loops.py:470
 msgid "N reversals"
-msgstr ""
+msgstr "N reversões"
 
 #: psychopy/experiment/loops.py:471
 msgid ""
 "Minimum number of times the staircase must change direction before ending"
 msgstr ""
+"Número mínimo de vezes que a staircase deve mudar de direção antes de "
+"terminar"
 
 #: psychopy/experiment/loops.py:480 psychopy/experiment/loops.py:607
 msgid "How should the next trial value(s) be chosen?"
-msgstr ""
+msgstr "Como devem ser escolhidos os próximos valores experimentais?"
 
 #: psychopy/experiment/loops.py:485 psychopy/experiment/loops.py:611
 msgid "Where to loop from and to (see values currently shown in the flow view)"
 msgstr ""
+"De onde e para onde fazer o loop (veja os valores apresentados atualmente na "
+"visualização do fluxo)"
 
 #: psychopy/experiment/loops.py:589
 msgid "(Minimum) number of trials in *each* staircase"
-msgstr ""
+msgstr "Número (mínimo) de tentativas em *cada* staircase"
 
 #: psychopy/experiment/loops.py:593
 msgid "Stair type"
-msgstr ""
+msgstr "Tipo de stair"
 
 #: psychopy/experiment/loops.py:594 psychopy/experiment/loops.py:599
 msgid "How to select the next staircase to run"
-msgstr ""
+msgstr "Como selecionar a próxima staircase a ser executada"
 
 #: psychopy/experiment/loops.py:598
 msgid "Switch method"
-msgstr ""
+msgstr "Método de troca"
 
 #: psychopy/experiment/loops.py:617
 msgid ""
 "A list of dictionaries describing the differences between each staircase"
 msgstr ""
+"Uma lista de dicionários que descrevem as diferenças entre cada staircase"
 
 #: psychopy/experiment/loops.py:622
 msgid "An xlsx or csv file specifying the parameters for each condition"
-msgstr ""
+msgstr "Um ficheiro xlsx ou csv a especificar os parâmetros para cada condição"
 
 #: psychopy/experiment/routines/_base.py:43
 msgid "Name of this Routine (alphanumeric or _, no spaces)"
-msgstr ""
+msgstr "Nome desta Routine (alfanumérico ou _, sem espaços)"
 
 #: psychopy/experiment/routines/_base.py:52
 msgid "When does the Routine end? (blank is endless)"
-msgstr ""
+msgstr "Quando termina a Routine ? (o espaço em branco é infinito)"
 
 #: psychopy/experiment/routines/_base.py:60
 msgid "Stop type..."
-msgstr ""
+msgstr "Tipo de stop..."
 
 #: psychopy/experiment/routines/_base.py:63
 msgid "Disable this Routine"
-msgstr ""
+msgstr "Desativar esta Routine"
 
 #: psychopy/experiment/routines/eyetracker_calibrate/__init__.py:13
 msgid "Calibration routine for eyetrackers"
-msgstr ""
+msgstr "Rotina de calibração para rastreadores oculares"
 
 #: psychopy/experiment/routines/eyetracker_calibrate/__init__.py:44
 #: psychopy/experiment/routines/eyetracker_validate/__init__.py:64
 msgid "Pre-defined target layouts"
-msgstr ""
+msgstr "Layouts do alvo predefinidos"
 
 #: psychopy/experiment/routines/eyetracker_calibrate/__init__.py:45
 #: psychopy/experiment/routines/eyetracker_validate/__init__.py:65
 msgid "Target layout"
-msgstr ""
+msgstr "Layout do alvo"
 
 #: psychopy/experiment/routines/eyetracker_calibrate/__init__.py:49
 #: psychopy/experiment/routines/eyetracker_validate/__init__.py:84
 msgid "Should the order of target positions be randomised?"
-msgstr ""
+msgstr "A ordem das posições-alvo deve ser aleatória?"
 
 #: psychopy/experiment/routines/eyetracker_calibrate/__init__.py:50
 #: psychopy/experiment/routines/eyetracker_validate/__init__.py:85
 msgid "Randomise target positions"
-msgstr ""
+msgstr "Aleatorizar posições dos alvos"
 
 #: psychopy/experiment/routines/eyetracker_calibrate/__init__.py:53
 msgid "Text foreground color"
-msgstr ""
+msgstr "Cor do texto do primeiro fundo"
 
 #: psychopy/experiment/routines/eyetracker_calibrate/__init__.py:71
 #: psychopy/experiment/routines/eyetracker_validate/__init__.py:113
 msgid "Fill color of the inner part of the target"
-msgstr ""
+msgstr "Cor de preenchimento da parte interna do alvo"
 
 #: psychopy/experiment/routines/eyetracker_calibrate/__init__.py:72
 #: psychopy/experiment/routines/eyetracker_validate/__init__.py:114
 msgid "Inner fill color"
-msgstr ""
+msgstr "Cor de preenchimento interno"
 
 #: psychopy/experiment/routines/eyetracker_calibrate/__init__.py:76
 #: psychopy/experiment/routines/eyetracker_validate/__init__.py:118
 msgid "Border color of the inner part of the target"
-msgstr ""
+msgstr "Cor do limite da parte interna do alvo"
 
 #: psychopy/experiment/routines/eyetracker_calibrate/__init__.py:77
 #: psychopy/experiment/routines/eyetracker_validate/__init__.py:119
 msgid "Inner border color"
-msgstr ""
+msgstr "Cor do limite interno"
 
 #: psychopy/experiment/routines/eyetracker_calibrate/__init__.py:81
 #: psychopy/experiment/routines/eyetracker_validate/__init__.py:123
 msgid "Fill color of the outer part of the target"
-msgstr ""
+msgstr "Cor de preenchimento da parte externa do alvo"
 
 #: psychopy/experiment/routines/eyetracker_calibrate/__init__.py:82
 #: psychopy/experiment/routines/eyetracker_validate/__init__.py:124
 msgid "Outer fill color"
-msgstr ""
+msgstr "Cor de preenchimento externo"
 
 #: psychopy/experiment/routines/eyetracker_calibrate/__init__.py:86
 #: psychopy/experiment/routines/eyetracker_validate/__init__.py:128
 msgid "Border color of the outer part of the target"
-msgstr ""
+msgstr "Cor do limite da parte externa do alvo"
 
 #: psychopy/experiment/routines/eyetracker_calibrate/__init__.py:87
 #: psychopy/experiment/routines/eyetracker_validate/__init__.py:129
 msgid "Outer border color"
-msgstr ""
+msgstr "Cor do limite externo"
 
 #: psychopy/experiment/routines/eyetracker_calibrate/__init__.py:98
 #: psychopy/experiment/routines/eyetracker_validate/__init__.py:140
 msgid "Width of the line around the outer part of the target"
-msgstr ""
+msgstr "Largura da linha à volta da parte externa do alvo"
 
 #: psychopy/experiment/routines/eyetracker_calibrate/__init__.py:99
 #: psychopy/experiment/routines/eyetracker_validate/__init__.py:141
 msgid "Outer border width"
-msgstr ""
+msgstr "Largura do limite externo"
 
 #: psychopy/experiment/routines/eyetracker_calibrate/__init__.py:103
 #: psychopy/experiment/routines/eyetracker_validate/__init__.py:146
 msgid "Width of the line around the inner part of the target"
-msgstr ""
+msgstr "Largura da à volta da parte interna do alvo"
 
 #: psychopy/experiment/routines/eyetracker_calibrate/__init__.py:104
 #: psychopy/experiment/routines/eyetracker_validate/__init__.py:147
 msgid "Inner border width"
-msgstr ""
+msgstr "Largura do limite interno"
 
 #: psychopy/experiment/routines/eyetracker_calibrate/__init__.py:108
 #: psychopy/experiment/routines/eyetracker_validate/__init__.py:151
 msgid "Size (radius) of the outer part of the target"
-msgstr ""
+msgstr "Tamanho (raio) da parte externa do alvo"
 
 #: psychopy/experiment/routines/eyetracker_calibrate/__init__.py:109
 #: psychopy/experiment/routines/eyetracker_validate/__init__.py:152
 msgid "Outer radius"
-msgstr ""
+msgstr "Raio externo"
 
 #: psychopy/experiment/routines/eyetracker_calibrate/__init__.py:113
 #: psychopy/experiment/routines/eyetracker_validate/__init__.py:156
 msgid "Size (radius) of the inner part of the target"
-msgstr ""
+msgstr "Tamanho (raio) da parte interna do alvo"
 
 #: psychopy/experiment/routines/eyetracker_calibrate/__init__.py:114
 #: psychopy/experiment/routines/eyetracker_validate/__init__.py:157
 msgid "Inner radius"
-msgstr ""
+msgstr "Raio interno"
 
 #: psychopy/experiment/routines/eyetracker_calibrate/__init__.py:136
 #: psychopy/experiment/routines/eyetracker_validate/__init__.py:179
@@ -7382,11 +7868,13 @@ msgid ""
 "Should the target move to the next position after a keypress or after an "
 "amount of time?"
 msgstr ""
+"O alvo deve passar para a próxima posição após pressionar uma tecla ou após "
+"um determinado período de tempo?"
 
 #: psychopy/experiment/routines/eyetracker_calibrate/__init__.py:138
 #: psychopy/experiment/routines/eyetracker_validate/__init__.py:181
 msgid "Progress mode"
-msgstr ""
+msgstr "Modo de progresso"
 
 #: psychopy/experiment/routines/eyetracker_calibrate/__init__.py:152
 #: psychopy/experiment/routines/eyetracker_validate/__init__.py:195
