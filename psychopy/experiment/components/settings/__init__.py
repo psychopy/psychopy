@@ -1441,6 +1441,7 @@ class SettingsComponent:
             "ioConfig = {}\n"
         )
         buff.writeIndentedLines(code % inits)
+
         # Add eyetracker config
         if self.params['eyetracker'] != "None":
             # Alert user if window is not fullscreen
@@ -1539,8 +1540,8 @@ class SettingsComponent:
                 buff.writeIndentedLines(code % inits)
                 buff.setIndentLevel(1, relative=True)
                 code = (
-                            "'sample_filtering': %(elDataFiltering)s,\n"
-                            "'elLiveFiltering': %(elLiveFiltering)s,\n"
+                            "'FILTER_FILE': %(elDataFiltering)s,\n"
+                            "'FILTER_ONLINE': %(elLiveFiltering)s,\n"
                 )
                 buff.writeIndentedLines(code % inits)
                 buff.setIndentLevel(-1, relative=True)
@@ -1684,36 +1685,66 @@ class SettingsComponent:
             code = (
                 "\n"
                 "# Setup iohub keyboard\n"
-                "ioConfig['Keyboard'] = dict(use_keymap='psychopy')\n\n"
+                "ioConfig['Keyboard'] = dict(use_keymap='psychopy')\n"
             )
             buff.writeIndentedLines(code % inits)
 
         if self.needIoHub and self.params['keyboardBackend'] == 'PsychToolbox':
             alert(code=4550)
 
-        # Start ioHub server
+        # Add experiment handler filename to ioConfig
         if self.needIoHub:
+            code = (
+                "\n"
+                "# Setup iohub experiment\n"
+                "ioConfig['Experiment'] = dict(filename=thisExp.dataFileName)\n"
+            )
+            buff.writeIndentedLines(code % inits)
+
+        # Make ioDataStoreConfig dict
+        if self.params['Save hdf5 file'].val:
+            code = (
+                "\n"
+                "# --- Setup iohub hdf5 datastore ---\n"
+            )
+            buff.writeIndentedLines(code % inits)
             # Specify session
             code = (
-                "ioSession = '1'\n"
-                "if 'session' in expInfo:\n"
+                "ioSession = str(expInfo.get('session', '1'))\n"
+            )
+            buff.writeIndentedLines(code % inits)
+            # Create ioDataStoreConfig dict
+            code = (
+                "ioDataStoreConfig = {"
             )
             buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(1, relative=True)
             code = (
-                    "ioSession = str(expInfo['session'])\n"
+                f"'experiment_code': %(expName)s,\n"  # noqa: F541
+                "'session_code': ioSession,\n"
+                "'datastore_name': thisExp.dataFileName,\n"
             )
             buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(-1, relative=True)
-            # Start server
+            code = (
+                "}\n"
+            )
+            buff.writeIndentedLines(code % inits)
+
+        # Start ioHub server
+        if self.needIoHub:
+            code = (
+                "\n"
+                "# Start ioHub server\n"
+            )
+            buff.writeIndentedLines(code % inits)
             if self.params['Save hdf5 file'].val:
                 code = (
-                    f"ioServer = io.launchHubServer(window=win, experiment_code=%(expName)s, session_code=ioSession, "
-                    f"datastore_name=thisExp.dataFileName, **ioConfig)\n"
+                    "ioServer = io.launchHubServer(window=win, **ioDataStoreConfig, **ioConfig)\n"
                 )
             else:
                 code = (
-                    f"ioServer = io.launchHubServer(window=win, **ioConfig)\n"
+                    "ioServer = io.launchHubServer(window=win, **ioConfig)\n"
                 )
             buff.writeIndentedLines(code % inits)
         else:
@@ -1724,6 +1755,7 @@ class SettingsComponent:
 
         # store ioServer
         code = (
+            "\n"
             "# store ioServer object in the device manager\n"
             "deviceManager.ioServer = ioServer\n"
         )

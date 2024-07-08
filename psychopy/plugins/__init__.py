@@ -37,10 +37,10 @@ from psychopy.preferences import prefs
 # user-installed packages (i.e. plugins).
 USER_PACKAGES_PATH = str(prefs.paths['userPackages'])
 # check if we're in a virtual environment or not
-inVM = hasattr(sys, 'real_prefix') or sys.prefix != sys.base_prefix
+inVenv = hasattr(sys, 'real_prefix') or sys.prefix != sys.base_prefix
 
 # add the plugins folder to the path
-if not inVM and USER_PACKAGES_PATH not in sys.path:
+if not inVenv and USER_PACKAGES_PATH not in sys.path:
     sys.path.insert(0, USER_PACKAGES_PATH)  # add to path
 
 # Keep track of plugins that have been loaded. Keys are plugin names and values
@@ -643,10 +643,11 @@ def loadPlugin(plugin):
     will continue running. This may be undesirable in some cases, since features
     the plugin provides may be needed at some point and would lead to undefined
     behavior if not present. If you want to halt the application if a plugin
-    fails to load, consider using :func:`requirePlugin`.
+    fails to load, consider using :func:`requirePlugin` to assert that a plugin
+    is loaded before continuing.
 
     It is advised that you use this function only when using PsychoPy as a
-    library. If using the builder or coder GUI, it is recommended that you use
+    library. If using the Builder or Coder GUI, it is recommended that you use
     the plugin dialog to enable plugins for PsychoPy sessions spawned by the
     experiment runner. However, you can still use this function if you want to
     load additional plugins for a given experiment, having their effects
