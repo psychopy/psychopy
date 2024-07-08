@@ -2070,6 +2070,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         #     self.OnFindClose(None)
 
     def OnFindClose(self, event):
+        self.findDlg.Destroy()
         self.findDlg = None
 
     def OnFileHistory(self, evt=None):
