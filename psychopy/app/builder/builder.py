@@ -863,6 +863,10 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             self.filename = newPath
             self.fileExists = True
             self.fileSave(event=None, filename=newPath)
+            # enable/disable reveal button
+            if hasattr(self, "menuIDs"):
+                self.fileMenu.Enable(self.menuIDs.ID_REVEAL, True)
+            # update pavlovia project
             self.project = pavlovia.getProject(filename)
             returnVal = 1
         dlg.Destroy()
