@@ -72,13 +72,6 @@ def startApp(showSplash=True, testMode=False, safeMode=False, startView=None):
     if isAppStarted():  # do nothing it the app is already loaded
         return  # NOP
 
-    # process environment variables
-    startViewVal = os.environ.get('PSYCHOPYSTARTVIEW', None)
-    if startViewVal is not None:
-        startView = str(startViewVal).lower()
-        if startView not in ('coder', 'builder', 'runner'):
-            startView = None  # silently drop invalid values and use default
-
     # Make sure logging is started before loading the bulk of the main
     # application UI to catch as many errors as possible. After the app is
     # loaded, messages are handled by the `StdStreamDispatcher` instance.
@@ -102,7 +95,7 @@ def startApp(showSplash=True, testMode=False, safeMode=False, startView=None):
     # console.
     from psychopy.app._psychopyApp import PsychoPyApp
     _psychopyAppInstance = PsychoPyApp(
-        0, testMode=testMode, showSplash=showSplash, safeMode=safeMode)
+        0, testMode=testMode, showSplash=showSplash, safeMode=safeMode, startView=startView)
 
     # After the app is loaded, we hand off logging to the stream dispatcher
     # using the provided log file path. The dispatcher will write out any log
@@ -127,19 +120,6 @@ def startApp(showSplash=True, testMode=False, safeMode=False, startView=None):
         # After this point, errors will appear in a dialog box. Messages will
         # continue to be written to the dialog.
         sys.excepthook = exceptionCallback
-
-        # open the frames if requested
-        if startView is not None:
-            frame = getAppFrame(startView)  # opens if not yet loaded
-            # raise frames to the top
-            if frame is not None:
-                if hasattr(frame, 'Raise'):
-                    frame.Raise()
-                else:
-                    logging.warning(
-                        'Frame has no `Raise()` method. Cannot raise it.')
-            else:
-                logging.error('Frame cannot be opened.')
 
         # Allow the UI to refresh itself. Don't do this during testing where the
         # UI is exercised programmatically.
