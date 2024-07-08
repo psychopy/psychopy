@@ -369,7 +369,12 @@ class BaseShapeStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         if self._borderColor != None and self.lineWidth != 0.0:
             # then draw
             GL.glLineWidth(self.lineWidth)
-            GL.glColor4f(*self._borderColor.render('rgba1'))
+            if self.opacity is not None:
+                borderRGBA = self._borderColor.render('rgba1')
+                borderRGBA[-1] = 2. * self.opacity - 1.  # override opacity
+                GL.glColor4f(*borderRGBA)
+            else:
+                GL.glColor4f(*self._borderColor.render('rgba1'))
             if self.closeShape:
                 GL.glDrawArrays(GL.GL_LINE_LOOP, 0, nVerts)
             else:
