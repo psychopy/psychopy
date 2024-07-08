@@ -216,13 +216,12 @@ class KeyboardComponent(BaseDeviceComponent):
                 # if it looks like a variable, check that the variable is suitable
                 # to eval at run-time
                 stringType = 'str'
-                code = ("# AllowedKeys looks like a variable named `{0}`\n"
-                        "if not type({0}) in [list, tuple, np.ndarray]:\n"
-                        "    if not isinstance({0}, {1}):\n"
-                        "        logging.error('AllowedKeys variable `{0}` is "
-                        "not string- or list-like.')\n"
-                        "        core.quit()\n"
-                        .format(allowedKeys, stringType))
+                code = (
+                    "# allowed keys looks like a variable named `{0}`\n"
+                    "if not type({0}) in [list, tuple, np.ndarray]:\n"
+                    "    if not isinstance({0}, {1}):\n"
+                    "        {0} = str({0})\n"
+                ).format(allowedKeys, stringType)
 
                 code += (
                     "    elif not ',' in {0}:\n"
