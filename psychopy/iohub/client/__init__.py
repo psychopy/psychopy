@@ -418,13 +418,19 @@ class ioHubConnection():
             None
 
         """
-        if device_label.lower() == 'all':
-            self.allEvents = []
-            self._sendToHubServer(('RPC', 'clearEventBuffer', [True, ]))
-            try:
-                self.getDevice('keyboard')._clearLocalEvents()
-            except:
-                pass
+        if device_label and isinstance(device_label, str):
+            device_label = device_label.lower()
+            if device_label == 'all':
+                self.allEvents = []
+                self._sendToHubServer(('RPC', 'clearEventBuffer', [True, ]))
+                try:
+                    self.getDevice('keyboard')._clearLocalEvents()
+                except:
+                    pass
+            else:
+                d = self.devices.getDevice(device_label)
+                if d:
+                    d.clearEvents()
         elif device_label in [None, '', False]:
             self.allEvents = []
             self._sendToHubServer(('RPC', 'clearEventBuffer', [False, ]))
@@ -433,9 +439,8 @@ class ioHubConnection():
             except:
                 pass
         else:
-            d = self.devices.getDevice(device_label)
-            if d:
-                d.clearEvents()
+            raise ValueError(
+                'Invalid device_label value: {}'.format(device_label))
 
     def sendMessageEvent(self, text, category='', offset=0.0, sec_time=None):
         """
