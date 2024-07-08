@@ -520,7 +520,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         if splash:
             splash.SetText(_translate("  Creating frames..."))
         
-        # open starting windows
+        # get starting windows
         if startView is None:
             # if no window specified, use default from prefs
             if self.prefs.app['defaultView'] == 'all':
@@ -540,9 +540,9 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             if "runner" not in startView and arg.endswith(".psyrun"):
                 startView.append("runner")
 
-        # Create windows
+        # create windows
         if "runner" in startView:
-            # open Runner is requested
+            # open Runner if requested
             try:
                 self.showRunner(fileList=runlist)
             except Exception as err:
@@ -587,6 +587,12 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                     "Requested: {}\n"
                     "Err: {}"
                 ).format(exps, err))
+        
+        if "direct" in startView:
+            self.showRunner()
+            for exp in [file for file in sys.argv if file.endswith('.psyexp') or file.endswith('.py')]:
+                self.runner.panel.runFile(exp)
+
         # if we started a busy cursor which never finished, finish it now
         if wx.IsBusy():
             wx.EndBusyCursor()

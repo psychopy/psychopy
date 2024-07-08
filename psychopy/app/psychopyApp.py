@@ -196,7 +196,7 @@ def main():
         startArgs = []
         startArgs += ['showSplash={}'.format('--no-splash' not in sys.argv)]
         startAppView = []
-        for key in ("builder", "coder", "runner"):
+        for key in ("builder", "coder", "runner", "direct"):
             if getattr(view, key):
                 startAppView.append(key)
         startArgs += ['startView={}'.format(repr(startAppView))]
