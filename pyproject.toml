@@ -148,8 +148,8 @@ zip-safe = false
 enabled = true
 version_file = "psychopy/VERSION" 
 count_commits_from_version_file = true  # <--- enable commits tracking
-dev_template = "{tag}.{branch}{ccount}+git.{sha}"  # suffix for versions will be .dev
-dirty_template = "{tag}.{branch}{ccount}+git.{sha}.dirty"  # same thing here
+dev_template = "{tag}.{branch}{ccount}"  # e.g. or "{tag}.{branch}{ccount}+git.{sha}.dirty"
+dirty_template = "{tag}.{branch}{ccount}"  # 
 branch_formatter = "utils:_branchFormatter" 
 
 [tool.setuptools.packages.find]
