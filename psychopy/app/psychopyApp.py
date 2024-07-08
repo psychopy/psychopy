@@ -5,6 +5,7 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
+import argparse
 import os
 import sys
 import subprocess
@@ -160,15 +161,17 @@ def main():
 
         """)
         sys.exit()
-
-    # show a specific app window if requested
-    startAppView = None
-    if '-b' in sys.argv or '--builder' in sys.argv:
-        startAppView = 'builder'
-    elif '-c' in sys.argv or '--coder' in sys.argv:
-        startAppView = 'coder'
-    elif '-r' in sys.argv or '--runner' in sys.argv:
-        startAppView = 'runner'
+    
+    # parse args
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--builder', dest='builder', action="store_true")
+    parser.add_argument('-b', dest='builder', action="store_true")
+    parser.add_argument('--coder', dest='coder', action="store_true")
+    parser.add_argument('-c', dest='coder', action="store_true")
+    parser.add_argument('--runner', dest='runner', action="store_true")
+    parser.add_argument('-r', dest='runner', action="store_true")
+    parser.add_argument('-x', dest='direct', action='store_true')
+    view = parser.parse_args()
 
     while True:  # loop if we exit and want to restart
         # Updated 2024.1.6: as of Python 3, `pythonw` and `python` can be used
@@ -192,8 +195,11 @@ def main():
         # construct the argument string for the `startApp` function
         startArgs = []
         startArgs += ['showSplash={}'.format('--no-splash' not in sys.argv)]
-        if startAppView is not None:
-            startArgs += ['startView={}'.format(repr(startAppView))]
+        startAppView = []
+        for key in ("builder", "coder", "runner"):
+            if getattr(view, key):
+                startAppView.append(key)
+        startArgs += ['startView={}'.format(repr(startAppView))]
         startArgs = ', '.join(startArgs)
 
         # Start command for the PsychoPy application, can't call this file 
