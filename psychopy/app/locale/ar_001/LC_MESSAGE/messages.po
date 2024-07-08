@@ -40,29 +40,27 @@ msgstr "يتجاوز موضع المثير الخاص بك بُعد {dimension} 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:24
 #, python-brace-format
 msgid ""
-"Your stimulus {type} time of {time} is less than a screen refresh for a {Hz}Hz "
-"monitor."
-msgstr ""
-"وقت المثير {type} الذي يبلغ {time} أقل من زمن تحديث الشاشة لشاشة {Hz} هرتز (Hz)."
+"Your stimulus {type} time of {time} is less than a screen refresh for a {Hz}Hz monitor."
+msgstr "وقت المثير {type} الذي يبلغ {time} أقل من زمن تحديث الشاشة لشاشة {Hz} هرتز (Hz)."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:28
 #, python-brace-format
 msgid ""
-"Your stimulus {type} time of {time} seconds cannot be accurately presented for "
-"{time} on a {Hz}Hz monitor."
+"Your stimulus {type} time of {time} seconds cannot be accurately presented for {time} "
+"on a {Hz}Hz monitor."
 msgstr ""
-"لا يمكن عرض وقت التحفيز {type} الذي يبلغ {time} ثانية بدقة لمدة {time} على شاشة "
-"{Hz} هرتز."
+"لا يمكن عرض وقت التحفيز {type} الذي يبلغ {time} ثانية بدقة لمدة {time} على شاشة {Hz} "
+"هرتز."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:32
 #, python-brace-format
 msgid ""
-"Experiment was built in a future version of PsychoPy ({version}), we recommend "
-"either updating PsychoPy or changing the \"Use Version\" setting in Experiment "
-"Settings to this version."
+"Experiment was built in a future version of PsychoPy ({version}), we recommend either "
+"updating PsychoPy or changing the \"Use Version\" setting in Experiment Settings to "
+"this version."
 msgstr ""
-"تم إنشاء التجربة في إصدار مستقبلي من PsychoPy ({version})، نوصي إما بتحديث "
-"PsychoPy أو تغيير إعداد \"استخدام الإصدار\" في إعدادات التجربة إلى هذا الإصدار."
+"تم إنشاء التجربة في إصدار مستقبلي من PsychoPy ({version})، نوصي إما بتحديث PsychoPy أو "
+"تغيير إعداد \"استخدام الإصدار\" في إعدادات التجربة إلى هذا الإصدار."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:36
 #, python-brace-format
@@ -70,17 +68,15 @@ msgid ""
 "Experiment was built in a past version of PsychoPy ({version}), saving it in this "
 "version may add parameters which cannot be parsed."
 msgstr ""
-"تم إنشاء التجربة في إصدار سابق من PsychoPy ({version})، وقد يؤدي حفظها في هذا "
-"الإصدار إلى إضافة معلمات لا يمكن تحليلها."
+"تم إنشاء التجربة في إصدار سابق من PsychoPy ({version})، وقد يؤدي حفظها في هذا الإصدار "
+"إلى إضافة معلمات لا يمكن تحليلها."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:40
 #, python-brace-format
 msgid ""
-"Your stimulus start {type} exceeds the stop {type}. Consider using a {type} "
-"duration."
+"Your stimulus start {type} exceeds the stop {type}. Consider using a {type} duration."
 msgstr ""
-"بداية التحفيز الخاصة بك {type} تتجاوز نقطة التوقف {type}. فكر في استخدام مدة "
-"{type}."
+"بداية التحفيز الخاصة بك {type} تتجاوز نقطة التوقف {type}. فكر في استخدام مدة {type}."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:44
 #, python-brace-format
@@ -90,15 +86,14 @@ msgstr "يجب التعبير عن نوع التحفيز {type} {frameType} كر
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:48
 #, python-brace-format
 msgid ""
-"Component {component} has stop time set as a duration, but doesn't have a start "
-"time"
+"Component {component} has stop time set as a duration, but doesn't have a start time"
 msgstr "تم تعيين وقت التوقف للمكوّن {component} كمدة، ولكن ليس له وقت بدء"
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:52
 #, python-brace-format
 msgid ""
-"Python Syntax Error in '{codeTab}' tab. See '{code}' on line number {lineNumber} "
-"of the '{codeTab}' tab."
+"Python Syntax Error in '{codeTab}' tab. See '{code}' on line number {lineNumber} of "
+"the '{codeTab}' tab."
 msgstr ""
 "خطأ في بناء جملة Python في علامة التبويب '{codeTab}'. راجع \"{code}\" في السطر رقم "
 "{lineNumber} من علامة التبويب \"{codeTab}\"."
@@ -106,8 +101,7 @@ msgstr ""
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:56
 #, python-brace-format
 msgid ""
-"JavaScript Syntax Error in '{codeTab}' tab. See '{lineNumber}' in the '{codeTab}' "
-"tab."
+"JavaScript Syntax Error in '{codeTab}' tab. See '{lineNumber}' in the '{codeTab}' tab."
 msgstr ""
 "خطأ في بناء جملة JavaScript في علامة التبويب '{codeTab}'. راجع \"{lineNumber}\" في "
 "علامة التبويب \"{codeTab}\"."
@@ -115,8 +109,8 @@ msgstr ""
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:60
 #, python-brace-format
 msgid ""
-"The component {name} is currently disabled and will not be written to your "
-"experiment script."
+"The component {name} is currently disabled and will not be written to your experiment "
+"script."
 msgstr "المكوّن {name} معطل حالياً ولن تتم كتابته في البرنامج النصي للتجربة."
 
 # "parameter" needs to be checked
@@ -127,20 +121,18 @@ msgstr "لا يمكن حساب المتغير."
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:67
 #, python-brace-format
 msgid ""
-"Builder cannot interpret value \"{param.val}\" of {param.label} for {component."
-"type} component \"{component.params[name].val}\" as a dollar sign has been used "
-"incorrectly."
+"Builder cannot interpret value \"{param.val}\" of {param.label} for {component.type} "
+"component \"{component.params[name].val}\" as a dollar sign has been used incorrectly."
 msgstr ""
-"لا يمكن للمنشئ تفسير القيمة \"{param.val}\" الخاصة بـ {param.label} للمكون "
-"{component.type} \"{component.params[name].val}\" لأنه تم استخدام علامة الدولار "
-"بشكل غير صحيح."
+"لا يمكن للمنشئ تفسير القيمة \"{param.val}\" الخاصة بـ {param.label} للمكون {component."
+"type} \"{component.params[name].val}\" لأنه تم استخدام علامة الدولار بشكل غير صحيح."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:71
 #, python-brace-format
 msgid "Font `{param.val}` not found locally, will check Google Fonts on next run."
 msgstr ""
-"لم يتم العثور على الخط `{param.val}` محليًا، وسيتم التحقق من خطوط Google عند "
-"التشغيل التالي."
+"لم يتم العثور على الخط `{param.val}` محليًا، وسيتم التحقق من خطوط Google عند التشغيل "
+"التالي."
 
 # I changed the paraphrasing to clarify that the font to be in the default font OSR
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:75
@@ -161,8 +153,8 @@ msgstr "جهاز التسجيل '{device}'  غير موجود، استخدام �
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:83
 #, python-brace-format
 msgid ""
-"The component or routine '{comp}' is only implemented online, so will do nothing "
-"when running locally."
+"The component or routine '{comp}' is only implemented online, so will do nothing when "
+"running locally."
 msgstr ""
 "يتم تنفيذ المكوّن أو الروتين '{comp}' عبر الإنترنت online فقط، لذا لن يفعل شيئًا عند "
 "تشغيله محليًا على الجهاز."
@@ -170,11 +162,11 @@ msgstr ""
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:87
 #, python-brace-format
 msgid ""
-"The component or routine '{comp}' is only implemented locally, so will do nothing "
-"when running online."
+"The component or routine '{comp}' is only implemented locally, so will do nothing when "
+"running online."
 msgstr ""
-"يتم تنفيذ المكوّن أو الروتين '{comp}' محليًا على الجهاز فقط، لذا لن يفعل شيئًا عند "
-"تشغيله عبر الإنترنت online."
+"يتم تنفيذ المكوّن أو الروتين '{comp}' محليًا على الجهاز فقط، لذا لن يفعل شيئًا عند تشغيله "
+"عبر الإنترنت online."
 
 # This was translated to somthing like "may compete when pressing keys"
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:91
@@ -183,23 +175,21 @@ msgid ""
 "Editable textbox component {textbox} and keyboard component {keyboard} in the same "
 "routine may compete for keypresses"
 msgstr ""
-"مكوّن مربع النص القابل للتحرير {textbox} ومكون لوحة المفاتيح {keyboard} في نفس "
-"الروتين قد يتنافسان عند ضغط المفاتيح"
+"مكوّن مربع النص القابل للتحرير {textbox} ومكون لوحة المفاتيح {keyboard} في نفس الروتين "
+"قد يتنافسان عند ضغط المفاتيح"
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:94
 msgid ""
-"Experiment includes components or routines which use eyetracking, but no eye "
-"tracker is configured."
+"Experiment includes components or routines which use eyetracking, but no eye tracker "
+"is configured."
 msgstr ""
-"تتضمن التجربة مكونات أو إجراءات تستخدم تتبع العين، ولكن لم يتم تهيئة أي متتبع "
-"للعين."
+"تتضمن التجربة مكونات أو إجراءات تستخدم تتبع العين، ولكن لم يتم تهيئة أي متتبع للعين."
 
 # maybe the word "routine" has other translation
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:98
 #, fuzzy, python-brace-format
 msgid ""
-"A {eyetracker} eye tracker has been configured, but no calibration routine is "
-"present."
+"A {eyetracker} eye tracker has been configured, but no calibration routine is present."
 msgstr "تم تهيئة جهاز تتبع العين {eyetracker}، ولكن لا يوجد روتين معايرة."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:101
@@ -208,8 +198,8 @@ msgid ""
 "As {brand} eyetrackers do not support animations in their calibration routine, "
 "animation values have not been used in your calibration routine."
 msgstr ""
-"نظرًا لأن أجهزة تتبع العين {brand} لا تدعم الرسوم المتحركة في روتين المعايرة الخاص "
-"بها، لم يتم استخدام قيم الرسوم المتحركة في روتين المعايرة الخاص بك."
+"نظرًا لأن أجهزة تتبع العين {brand} لا تدعم الرسوم المتحركة في روتين المعايرة الخاص بها، "
+"لم يتم استخدام قيم الرسوم المتحركة في روتين المعايرة الخاص بك."
 
 # Translation of the word "pacing" might need revision
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:104
@@ -222,23 +212,21 @@ msgid ""
 "Window mode is set to be windowed, but eyetracking requires the window to be full "
 "screen."
 msgstr ""
-"تم ضبط وضع النافذة على أن تكون كنافذة فقط، لكن تتبع العين يتطلب أن تكون النافذة في "
-"وضع ملء الشاشة."
+"تم ضبط وضع النافذة على أن تكون كنافذة فقط، لكن تتبع العين يتطلب أن تكون النافذة في وضع "
+"ملء الشاشة."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:112
 msgid ""
-"A monitor config is required for accurate eyetracking measurements, but none was "
-"found."
+"A monitor config is required for accurate eyetracking measurements, but none was found."
 msgstr ""
-"تهيئة الشاشة مطلوبة لإجراء قياسات دقيقة لتتبع العين، ولكن لم يتم العثور على أي "
-"منها."
+"تهيئة الشاشة مطلوبة لإجراء قياسات دقيقة لتتبع العين، ولكن لم يتم العثور على أي منها."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:116
 msgid ""
 "Eye tracker experiments should use 'ioHub' as the Input -> Keyboard Backend setting"
 msgstr ""
-"يجب أن تستخدم تجارب تتبع العين \"ioHub\" كإعداد الإدخال -> إعداد الواجهة الخلفية "
-"للوحة المفاتيح"
+"يجب أن تستخدم تجارب تتبع العين \"ioHub\" كإعداد الإدخال -> إعداد الواجهة الخلفية للوحة "
+"المفاتيح"
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:120
 #, python-brace-format
@@ -253,28 +241,26 @@ msgstr "خدمة النسخ الصوتي \"{transcriber}\" غير مدعومة �
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:128
 #, python-brace-format
 msgid ""
-"Chosen transcriber '{engine}' requires an API key, please supply one in "
-"Preferences."
-msgstr ""
-"يتطلب الناسخ الذي تم اختياره '{engine}' مفتاح API، يرجى توفير واحد في التفضيلات."
+"Chosen transcriber '{engine}' requires an API key, please supply one in Preferences."
+msgstr "يتطلب الناسخ الذي تم اختياره '{engine}' مفتاح API، يرجى توفير واحد في التفضيلات."
 
 # the translation of the word "parameter" might need revision
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:132
 #, fuzzy, python-brace-format
 msgid "Device parameter of microphone component \"{name}\" will not be used online."
 msgstr ""
-"لن يتم استخدام معامل الجهاز (device parameter) الخاص بمكوّن الميكروفون \"{name}\" "
-"عبر الإنترنت."
+"لن يتم استخدام معامل الجهاز (device parameter) الخاص بمكوّن الميكروفون \"{name}\" عبر "
+"الإنترنت."
 
 # runner translation
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:136
 #, fuzzy, python-brace-format
 msgid ""
-"The file you are attempting to run does not seem to exist, the full path supplied "
-"to Runner was {path}"
+"The file you are attempting to run does not seem to exist, the full path supplied to "
+"Runner was {path}"
 msgstr ""
-"يبدو أن الملف الذي تحاول تشغيله غير موجود، يبدو أن المسار الكامل الذي تم توفيره "
-"إلى \"العداء\" كان {path}"
+"يبدو أن الملف الذي تحاول تشغيله غير موجود، يبدو أن المسار الكامل الذي تم توفيره إلى "
+"\"العداء\" كان {path}"
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:140
 #, python-brace-format
@@ -288,14 +274,13 @@ msgstr ""
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:144
 #, python-brace-format
 msgid ""
-"RGB attribute `.{rgbAttrib}` is no longer in use, as non-RGB colors now handle "
-"their own conversion."
+"RGB attribute `.{rgbAttrib}` is no longer in use, as non-RGB colors now handle their "
+"own conversion."
 msgstr ""
-"لم تعد سمة RGB \". {rgbAttrib}\" قيد الاستخدام، حيث أن الألوان غير RGB تتعامل الآن "
-"مع التحويل الخاص بها."
+"لم تعد سمة RGB \". {rgbAttrib}\" قيد الاستخدام، حيث أن الألوان غير RGB تتعامل الآن مع "
+"التحويل الخاص بها."
 
-#: psychopy/app/Resources/psychopy.desktop:5
-#: psychopy/app/Resources/psychopy.desktop:6
+#: psychopy/app/Resources/psychopy.desktop:5 psychopy/app/Resources/psychopy.desktop:6
 #, fuzzy
 msgid "PsychoPy"
 msgstr "سايكوباي"
@@ -326,9 +311,8 @@ msgstr "&افتح عرض المبرمج %s"
 
 # التوافق على ترجمة Coder
 #: psychopy/app/_psychopyApp.py:108
-#, fuzzy
 msgid "Open a new Coder view"
-msgstr "إفتح عرض تشفير جديد "
+msgstr "إفتح عرض مبرمج  جديد"
 
 #: psychopy/app/_psychopyApp.py:111 psychopy/app/builder/builder.py:358
 #: psychopy/app/coder/coder.py:343 psychopy/app/coder/coder.py:1443
@@ -348,35 +332,32 @@ msgstr "حقوق الملكية الفكرية  2022 OpenScienceTools.org"
 
 #: psychopy/app/_psychopyApp.py:545
 msgid "  Creating frames..."
-msgstr "تكوين الأطر..."
+msgstr " تكوين الأطر..."
 
 #: psychopy/app/_psychopyApp.py:587
-#, fuzzy
 msgid ""
 "Failed to open Runner with requested file list, opening without file list.\n"
 "Requested: {}\n"
 "Err: {}"
 msgstr ""
-"فشل فتح العداء بقائمة الملفات المطلوبة، فتح بدون قائمة الملفات.\n"
+"فشل فتح المشغل بقائمة الملفات المطلوبة، فتح بدون قائمة الملفات.\n"
 "مطلوب: {}\n"
 "خطأ: {}"
 
 #: psychopy/app/_psychopyApp.py:602
-#, fuzzy
 msgid ""
 "Failed to open Coder with requested scripts, opening with no scripts open.\n"
 "Requested: {}\n"
 "Err: {}"
 msgstr ""
-"فشل في فتح المبرمج مع البرامج النصية المطلوبة، تم الفتح بدون فتح أي برامج نصية.\n"
+"فشل في فتح المبرمج مع النصوص المطلوبة، تم الفتح بدون فتح أي نصوص.\n"
 "مطلوب: {}\n"
 "خطأ: {}"
 
 #: psychopy/app/_psychopyApp.py:619
 #, fuzzy
 msgid ""
-"Failed to open Builder with requested experiments, opening with no experiments "
-"open.\n"
+"Failed to open Builder with requested experiments, opening with no experiments open.\n"
 "Requested: {}\n"
 "Err: {}"
 msgstr ""
@@ -385,7 +366,6 @@ msgstr ""
 "خطأ: {}"
 
 #: psychopy/app/_psychopyApp.py:647
-#, fuzzy
 msgid "Compatibility information"
 msgstr "معلومات التوافق"
 
@@ -394,7 +374,6 @@ msgid "tips.txt"
 msgstr "tips_ar_001.txt"
 
 #: psychopy/app/_psychopyApp.py:692
-#, fuzzy
 msgid "  Loading plugins..."
 msgstr "  تحميل المكونات الإضافية..."
 
@@ -404,20 +383,18 @@ msgid "Select .psydat file(s) to extract"
 msgstr "حدد ملف (ملفات) .psydat لاستخراجها"
 
 #: psychopy/app/_psychopyApp.py:1083
-#, fuzzy
 msgid ""
 "For stimulus generation and experimental control in Python.\n"
 "PsychoPy depends on your feedback. If something doesn't work\n"
 "then let us know at psychopy-users@googlegroups.com"
 msgstr ""
-"لتوليد المحفزات والتحكم التجريبي في Python.\n"
+"لتوليد المثيرات والتحكم التجريبي في Python.\n"
 "يعتمد PsychoPy على ملاحظاتك. إذا كان هناك شيء لا يعمل\n"
 "فأخبرنا بذلك على psychopy-users@googlegroups.com"
 
 #: psychopy/app/builder/builder.py:75 psychopy/app/builder/dialogs/paramCtrls.py:1121
 #: psychopy/app/builder/localizedStrings.py:127
 #: psychopy/experiment/components/settings/__init__.py:201
-#, fuzzy
 msgid "Field"
 msgstr "الحقل"
 
@@ -428,7 +405,6 @@ msgid "Default"
 msgstr "الافتراضي"
 
 #: psychopy/app/builder/builder.py:77
-#, fuzzy
 msgid "Favorites"
 msgstr "المفضلة"
 
@@ -437,454 +413,398 @@ msgid "Stimuli"
 msgstr "مثير"
 
 #: psychopy/app/builder/builder.py:79
-#, fuzzy
 msgid "Responses"
 msgstr "الردود"
 
 #: psychopy/app/builder/builder.py:80 psychopy/app/builder/localizedStrings.py:29
 #: psychopy/app/builder/localizedStrings.py:197
-#, fuzzy
 msgid "Custom"
 msgstr "مخصص"
 
 #: psychopy/app/builder/builder.py:81
-#, fuzzy
 msgid "I/O"
 msgstr "الإدخال/الإخراج"
 
 #: psychopy/app/builder/builder.py:82
-#, fuzzy
 msgid "Add to favorites"
 msgstr "إضافة إلى المفضلة"
 
 #: psychopy/app/builder/builder.py:83
-#, fuzzy
 msgid "Remove from favorites"
 msgstr "إزالة من المفضلة"
 
 #: psychopy/app/builder/builder.py:85
-#, fuzzy
 msgid "edit"
 msgstr "تعديل"
 
 #: psychopy/app/builder/builder.py:86 psychopy/app/builder/builder.py:3394
-#, fuzzy
 msgid "remove"
 msgstr "إزالة"
 
 #: psychopy/app/builder/builder.py:87 psychopy/app/preferencesDlg.py:99
-#, fuzzy
 msgid "copy"
 msgstr "نسخ"
 
 #: psychopy/app/builder/builder.py:88
-#, fuzzy
 msgid "paste above"
 msgstr "الصق أعلاه"
 
 #: psychopy/app/builder/builder.py:89
-#, fuzzy
 msgid "paste below"
 msgstr "الصق أدناه"
 
 #: psychopy/app/builder/builder.py:90
-#, fuzzy
 msgid "move to top"
 msgstr "الانتقال إلى الأعلى"
 
 #: psychopy/app/builder/builder.py:91
-#, fuzzy
 msgid "move up"
 msgstr "تحرك لأعلى"
 
 #: psychopy/app/builder/builder.py:92
-#, fuzzy
 msgid "move down"
 msgstr "تحرك لأسفل"
 
 #: psychopy/app/builder/builder.py:93
-#, fuzzy
 msgid "move to bottom"
 msgstr "الانتقال إلى الأسفل"
 
 #: psychopy/app/builder/builder.py:295 psychopy/app/builder/builder.py:3224
 #: psychopy/app/coder/coder.py:1385 psychopy/app/pavlovia_ui/_base.py:24
 #: psychopy/app/runner/runner.py:206 psychopy/monitors/MonitorCenter.py:227
-#, fuzzy
 msgid "&File"
-msgstr "&ملف"
+msgstr "ملف"
 
 #: psychopy/app/builder/builder.py:311 psychopy/app/coder/coder.py:1399
-#, fuzzy, python-format
+#, python-format
 msgid "&New\t%s"
-msgstr "وجديد %s"
+msgstr "جديد %s"
 
+# Error!
 #: psychopy/app/builder/builder.py:314 psychopy/app/coder/coder.py:1400
 #, fuzzy, python-format
 msgid "&Open...\t%s"
-msgstr "&افتح... %s %s"
+msgstr "افتح... %s %s"
 
 #: psychopy/app/builder/builder.py:317 psychopy/app/coder/coder.py:1401
-#, fuzzy
 msgid "Open &Recent"
-msgstr "فتح &حديثاً"
+msgstr "فتح حديثاً"
 
 #: psychopy/app/builder/builder.py:320 psychopy/app/coder/coder.py:1403
-#, fuzzy, python-format
+#, python-format
 msgid "&Save\t%s"
-msgstr "&حفظ %s"
+msgstr "حفظ %s"
 
 #: psychopy/app/builder/builder.py:321 psychopy/app/builder/builder.py:4321
 #: psychopy/app/coder/coder.py:2898
-#, fuzzy
 msgid "Save current experiment file"
 msgstr "حفظ ملف التجربة الحالية"
 
 #: psychopy/app/builder/builder.py:324 psychopy/app/coder/coder.py:1406
-#, fuzzy, python-format
+#, python-format
 msgid "Save &as...\t%s"
-msgstr "حفظ &كما... %s"
+msgstr "حفظ بإسم... %s"
 
 #: psychopy/app/builder/builder.py:325 psychopy/app/builder/builder.py:4329
 #: psychopy/app/coder/coder.py:2906
-#, fuzzy
 msgid "Save current experiment file as..."
-msgstr "حفظ ملف التجربة الحالية كـ..."
+msgstr "حفظ ملف التجربة الحالية باسم ـ..."
 
 #: psychopy/app/builder/builder.py:328
-#, fuzzy, python-format
+#, python-format
 msgid "Export HTML...\t%s"
 msgstr "تصدير HTML... %s"
 
+# Double check
 #: psychopy/app/builder/builder.py:329
 #, fuzzy
 msgid "Export experiment to html/javascript file"
 msgstr "تصدير التجربة إلى ملف html/جافا سكريبت"
 
 #: psychopy/app/builder/builder.py:332 psychopy/app/coder/coder.py:1409
-#, fuzzy, python-format
+#, python-format
 msgid "&Close file\t%s"
-msgstr "&إغلاق الملف %s"
+msgstr "إغلاق الملف %s"
 
 #: psychopy/app/builder/builder.py:333
-#, fuzzy
 msgid "Close current experiment"
 msgstr "إغلاق التجربة الحالية"
 
 #: psychopy/app/builder/builder.py:344 psychopy/app/coder/coder.py:1425
-#, fuzzy, python-format
+#, python-format
 msgid "&Preferences\t%s"
-msgstr "&التفضيلات %s"
+msgstr "التفضيلات %s"
 
 #: psychopy/app/builder/builder.py:347 psychopy/app/coder/coder.py:1430
-#, fuzzy
 msgid "Reset preferences..."
 msgstr "إعادة تعيين التفضيلات..."
 
 #: psychopy/app/builder/builder.py:353
-#, fuzzy
 msgid "Close PsychoPy Builder"
-msgstr "إغلاق المنشئ النفسي"
+msgstr "إغلاق باني سيكوباي"
 
 #: psychopy/app/builder/builder.py:364 psychopy/app/coder/coder.py:1450
 #: psychopy/monitors/MonitorCenter.py:235
-#, fuzzy
 msgid "&Edit"
-msgstr "&تحرير"
+msgstr "تحرير"
 
 #: psychopy/app/builder/builder.py:367 psychopy/app/builder/builder.py:1185
 #: psychopy/app/coder/coder.py:1516
-#, fuzzy, python-format
+#, python-format
 msgid "Undo\t%s"
-msgstr "التراجع %s"
+msgstr "تراجع %s"
 
 #: psychopy/app/builder/builder.py:368 psychopy/app/builder/builder.py:4336
 #: psychopy/app/coder/coder.py:1517 psychopy/app/coder/coder.py:2913
-#, fuzzy
 msgid "Undo last action"
-msgstr "التراجع عن الإجراء الأخير"
+msgstr "تراجع عن الإجراء الأخير"
 
 #: psychopy/app/builder/builder.py:372 psychopy/app/builder/builder.py:1200
 #: psychopy/app/coder/coder.py:1521
-#, fuzzy, python-format
+#, python-format
 msgid "Redo\t%s"
-msgstr "الإعادة %s"
+msgstr "إعادة %s"
 
 #: psychopy/app/builder/builder.py:373 psychopy/app/builder/builder.py:4344
 #: psychopy/app/coder/coder.py:1522 psychopy/app/coder/coder.py:2921
-#, fuzzy
 msgid "Redo last action"
 msgstr "إعادة الإجراء الأخير"
 
 #: psychopy/app/builder/builder.py:376 psychopy/app/coder/coder.py:1455
-#, fuzzy, python-format
+#, python-format
 msgid "&Paste\t%s"
-msgstr "ولصق %s"
+msgstr "لصق %s"
 
 #: psychopy/app/builder/builder.py:396 psychopy/app/builder/builder.py:3233
-#, fuzzy, python-format
+#, python-format
 msgid "&Toggle readme\t%s"
-msgstr "وتبديل القراءة %s"
+msgstr "تبديل القراءة %s"
 
+# What is the context meaning of "toggle"?
 #: psychopy/app/builder/builder.py:398 psychopy/app/builder/builder.py:3235
 #, fuzzy
 msgid "Toggle Readme"
 msgstr "تبديل القراءة"
 
 #: psychopy/app/builder/builder.py:401
-#, fuzzy, python-format
+#, python-format
 msgid "&Flow Larger\t%s"
-msgstr "&تدفق أكبر %s"
+msgstr "سير التجربة أكبر %s"
 
 #: psychopy/app/builder/builder.py:403
-#, fuzzy
 msgid "Larger flow items"
-msgstr "عناصر التدفق الأكبر حجماً"
+msgstr "عناصر سير التجربة أكبر حجماً"
 
 #: psychopy/app/builder/builder.py:406
-#, fuzzy, python-format
+#, python-format
 msgid "&Flow Smaller\t%s"
-msgstr "&تدفق أصغر %s"
+msgstr "سير التجربة أصغر %s"
 
 #: psychopy/app/builder/builder.py:408
-#, fuzzy
 msgid "Smaller flow items"
-msgstr "عناصر التدفق الأصغر حجماً"
+msgstr "عناصر سير التجربة أصغر حجماً"
 
 #: psychopy/app/builder/builder.py:411
-#, fuzzy, python-format
+#, python-format
 msgid "&Routine Larger\t%s"
-msgstr "&روتين أكبر %s"
+msgstr "روتين أكبر %s"
 
 #: psychopy/app/builder/builder.py:413
-#, fuzzy
 msgid "Larger routine items"
-msgstr "العناصر الروتينية الأكبر حجماً"
+msgstr "العناصر الروتينية أكبر حجماً"
 
 #: psychopy/app/builder/builder.py:416
-#, fuzzy, python-format
+#, python-format
 msgid "&Routine Smaller\t%s"
-msgstr "&روتين أصغر %s"
+msgstr "روتين أصغر %s"
 
 #: psychopy/app/builder/builder.py:418
-#, fuzzy
 msgid "Smaller routine items"
-msgstr "العناصر الروتينية الأصغر حجماً"
+msgstr "العناصر الروتينية أصغر حجماً"
 
 #: psychopy/app/builder/builder.py:427 psychopy/app/coder/coder.py:1631
 #: psychopy/app/runner/runner.py:200
-#, fuzzy
 msgid "&Themes"
-msgstr "&المواضيع"
+msgstr "المواضيع"
 
 #: psychopy/app/builder/builder.py:431 psychopy/app/coder/coder.py:1661
-#, fuzzy
 msgid "&Tools"
-msgstr "&أدوات"
+msgstr "أدوات"
 
 #: psychopy/app/builder/builder.py:434 psychopy/app/builder/builder.py:4353
 #: psychopy/app/coder/coder.py:1663 psychopy/app/coder/coder.py:2930
-#, fuzzy
 msgid "Monitor Center"
 msgstr "مركز المراقبة"
 
 #: psychopy/app/builder/builder.py:435 psychopy/app/coder/coder.py:1664
-#, fuzzy
 msgid "To set information about your monitor"
 msgstr "لتعيين معلومات حول شاشتك"
 
 #: psychopy/app/builder/builder.py:439
-#, fuzzy, python-format
+#, python-format
 msgid "Compile\t%s"
 msgstr "تجميع %s"
 
 #: psychopy/app/builder/builder.py:440
-#, fuzzy
 msgid "Compile the exp to a script"
-msgstr "تجميع exp إلى برنامج نصي"
+msgstr "تجميع التجربة exp إلى برنامج نصي"
 
 #: psychopy/app/builder/builder.py:443 psychopy/app/coder/coder.py:1678
-#, fuzzy, python-format
+#, python-format
 msgid "Run\t%s"
 msgstr "تشغيل %s"
 
 #: psychopy/app/builder/builder.py:444 psychopy/app/coder/coder.py:1679
-#, fuzzy
 msgid "Run the current script"
 msgstr "تشغيل البرنامج النصي الحالي"
 
 #: psychopy/app/builder/builder.py:447 psychopy/app/coder/coder.py:1682
-#, fuzzy, python-format
+#, python-format
 msgid "Send to runner\t%s"
-msgstr "الإرسال إلى العداء %s"
+msgstr "الإرسال إلى المشغل %s"
 
 #: psychopy/app/builder/builder.py:448 psychopy/app/coder/coder.py:1683
-#, fuzzy
 msgid "Send current script to runner"
-msgstr "إرسال البرنامج النصي الحالي إلى العداء"
+msgstr "إرسال البرنامج النصي الحالي إلى المشغل"
 
 #: psychopy/app/builder/builder.py:452 psychopy/app/coder/coder.py:1688
-#, fuzzy
 msgid "PsychoPy updates..."
 msgstr "تحديثات سايكوبي..."
 
 #: psychopy/app/builder/builder.py:453 psychopy/app/coder/coder.py:1689
-#, fuzzy
 msgid "Update PsychoPy to the latest, or a specific, version"
-msgstr "قم بتحديث PsychoPy إلى أحدث إصدار أو إصدار معين"
+msgstr "قم بتحديث سيكوباي إلى أحدث إصدار أو إصدار معين"
 
 #: psychopy/app/builder/builder.py:457 psychopy/app/coder/coder.py:1692
-#, fuzzy
 msgid "Plugin/packages manager..."
-msgstr "مدير المكونات الإضافية/مدير الحزم..."
+msgstr "مدير المكونات الإضافية/ الحزم..."
 
 #: psychopy/app/builder/builder.py:458 psychopy/app/coder/coder.py:1693
-#, fuzzy
 msgid "Manage Python packages and optional plugins for PsychoPy"
-msgstr "إدارة حزم Python والمكونات الإضافية الاختيارية لـ PsychoPy"
+msgstr "إدارة حزم بايثون والمكونات الإضافية الاختيارية لـسيكوباي"
 
+# Check wizard translation
 #: psychopy/app/builder/builder.py:462 psychopy/app/coder/coder.py:1696
 #, fuzzy
 msgid "Benchmark wizard"
 msgstr "معالج المعايير"
 
 #: psychopy/app/builder/builder.py:463 psychopy/app/coder/coder.py:1697
-#, fuzzy
 msgid "Check software & hardware, generate report"
 msgstr "التحقق من البرامج والأجهزة، وإنشاء تقرير"
 
 #: psychopy/app/builder/builder.py:469
-#, fuzzy
 msgid "E&xperiment"
-msgstr "ه&التجربة"
+msgstr "التجربة"
 
 #: psychopy/app/builder/builder.py:472
-#, fuzzy, python-format
+#, python-format
 msgid "&New Routine\t%s"
-msgstr "&روتين جديد %s"
+msgstr "روتين جديد %s"
 
 #: psychopy/app/builder/builder.py:473
-#, fuzzy
 msgid "Create a new routine (e.g. the trial definition)"
-msgstr "إنشاء روتين جديد (مثل تعريف التجربة)"
+msgstr "إنشاء روتين جديد (مثل: تعريف التجربة)"
 
 #: psychopy/app/builder/builder.py:477
-#, fuzzy, python-format
+#, python-format
 msgid "&Copy Routine\t%s"
-msgstr "&روتين النسخ %s"
+msgstr "روتين النسخ %s"
 
 #: psychopy/app/builder/builder.py:479
-#, fuzzy
 msgid "Copy the current routine so it can be used in another exp"
-msgstr "انسخ الروتين الحالي حتى يمكن استخدامه في exp آخر"
+msgstr "انسخ الروتين الحالي حتى يمكن استخدامه في تجربة آخرى"
 
 #: psychopy/app/builder/builder.py:484
-#, fuzzy, python-format
+#, python-format
 msgid "&Paste Routine\t%s"
-msgstr "&لصق الروتين %s"
+msgstr "لصق الروتين %s"
 
 #: psychopy/app/builder/builder.py:486
-#, fuzzy
 msgid "Paste the Routine into the current experiment"
-msgstr "الصق الروتين في التجربة الحالية"
+msgstr "ألصق الروتين في التجربة الحالية"
 
 #: psychopy/app/builder/builder.py:491
-#, fuzzy, python-format
+#, python-format
 msgid "&Rename Routine\t%s"
-msgstr "&Rename روتين %s"
+msgstr "إعادة تسمية روتين %s"
 
 #: psychopy/app/builder/builder.py:493
-#, fuzzy
 msgid "Change the name of this routine"
 msgstr "تغيير اسم هذا الروتين"
 
 #: psychopy/app/builder/builder.py:496
-#, fuzzy, python-format
+#, python-format
 msgid "Paste Component\t%s"
 msgstr "لصق المكون %s"
 
 #: psychopy/app/builder/builder.py:499
-#, fuzzy
 msgid "Paste the Component at bottom of the current Routine"
-msgstr "الصق المكون في أسفل الروتين الحالي"
+msgstr "ألصق المكون في أسفل الروتين الحالي"
 
 #: psychopy/app/builder/builder.py:506
-#, fuzzy
 msgid "Insert Routine in Flow"
-msgstr "إدراج الروتين في التدفق"
+msgstr "إدراج الروتين في سير التجربة"
 
 #: psychopy/app/builder/builder.py:508
-#, fuzzy
 msgid "Select one of your routines to be inserted into the experiment flow"
-msgstr "حدد أحد إجراءاتك الروتينية لإدراجها في سير التجربة"
+msgstr "حدد أحد الروتينات لإدراجها في سير التجربة"
 
 #: psychopy/app/builder/builder.py:512
-#, fuzzy
 msgid "Insert Loop in Flow"
-msgstr "إدراج حلقة في التدفق"
+msgstr "إدراج حلقة في سير التجربة"
 
 #: psychopy/app/builder/builder.py:513
-#, fuzzy
 msgid "Create a new loop in your flow window"
-msgstr "أنشئ حلقة جديدة في نافذة التدفق"
+msgstr "أنشئ حلقة جديدة في نافذة سير التجربة"
 
 #: psychopy/app/builder/builder.py:518
-#, fuzzy, python-format
+#, python-format
 msgid "&Find in experiment...\t%s"
-msgstr "&ابحث في التجربة... %s"
+msgstr "ابحث في التجربة... %s"
 
 #: psychopy/app/builder/builder.py:519
-#, fuzzy
 msgid "Search the whole experiment for a specific term"
 msgstr "ابحث في التجربة بأكملها عن مصطلح معين"
 
 #: psychopy/app/builder/builder.py:523
-#, fuzzy
 msgid "README..."
-msgstr "README..."
+msgstr "إقرأني..."
 
 #: psychopy/app/builder/builder.py:524
-#, fuzzy
 msgid "Add or edit the text shown when your experiment is opened"
 msgstr "إضافة أو تعديل النص الذي يظهر عند فتح تجربتك"
 
 #: psychopy/app/builder/builder.py:535
-#, fuzzy
 msgid "&Unpack Demos..."
-msgstr "&Unpack Demos..."
+msgstr "فك ضغط العروض التوضيحية..."
 
 #: psychopy/app/builder/builder.py:537
-#, fuzzy
 msgid "Unpack demos to a writable location (so that they can be run)"
 msgstr "فك ضغط العروض التوضيحية إلى موقع قابل للكتابة (بحيث يمكن تشغيلها)"
 
 #: psychopy/app/builder/builder.py:541
-#, fuzzy
 msgid "Browse on Pavlovia"
 msgstr "تصفح على بافلوفيا"
 
 #: psychopy/app/builder/builder.py:542
-#, fuzzy
 msgid "Get more demos from the online demos repository on Pavlovia"
 msgstr ""
 "احصل على المزيد من العروض التوضيحية من مستودع العروض التوضيحية على الإنترنت على "
 "بافلوفيا"
 
 #: psychopy/app/builder/builder.py:547
-#, fuzzy
 msgid "Open demos folder"
 msgstr "فتح مجلد العروض التوضيحية"
 
 #: psychopy/app/builder/builder.py:548
-#, fuzzy
 msgid "Open the local folder where demos are stored"
 msgstr "افتح المجلد المحلي حيث يتم تخزين العروض التوضيحية"
 
 #: psychopy/app/builder/builder.py:554 psychopy/app/coder/coder.py:1712
 #: psychopy/app/runner/runner.py:209
-#, fuzzy
 msgid "&Demos"
-msgstr "والعروض"
+msgstr "العروض التوضيحية"
 
 #: psychopy/app/builder/builder.py:558 psychopy/app/coder/coder.py:1740
 msgid "&Pavlovia.org"
@@ -892,12 +812,10 @@ msgstr "‫&Pavlovia.org"
 
 #: psychopy/app/builder/builder.py:562 psychopy/app/coder/coder.py:1745
 #: psychopy/app/runner/runner.py:213
-#, fuzzy
 msgid "&Window"
 msgstr "النافذة"
 
 #: psychopy/app/builder/builder.py:566 psychopy/app/coder/coder.py:1749
-#, fuzzy
 msgid "&Help"
 msgstr "مساعدة"
 
@@ -906,244 +824,203 @@ msgid "&PsychoPy Homepage"
 msgstr "الصفحة الرئيسية لـ PsychoPy"
 
 #: psychopy/app/builder/builder.py:571 psychopy/app/coder/coder.py:1752
-#, fuzzy
 msgid "Go to the PsychoPy homepage"
-msgstr "انتقل إلى الصفحة الرئيسية لـ PsychoPy"
+msgstr "انتقل إلى الصفحة الرئيسية لـسيكوباني"
 
 #: psychopy/app/builder/builder.py:575
-#, fuzzy
 msgid "&PsychoPy Builder Help"
-msgstr "&مساعدة منشئ نفسي بيه"
+msgstr "مساعدة الباني في سيكوباي"
 
 #: psychopy/app/builder/builder.py:577
-#, fuzzy
 msgid "Go to the online documentation for PsychoPy Builder"
-msgstr "انتقل إلى التوثيق عبر الإنترنت لمنشئ PsychoPy Builder"
+msgstr "انتقل إلى التوثيق عبر الإنترنت لباني سيكوباي"
 
 #: psychopy/app/builder/builder.py:584 psychopy/app/coder/coder.py:1767
-#, fuzzy
 msgid "&System Info..."
-msgstr "&معلومات النظام..."
+msgstr "معلومات النظام..."
 
 #: psychopy/app/builder/builder.py:585 psychopy/app/coder/coder.py:1768
-#, fuzzy
 msgid "Get system information."
 msgstr "الحصول على معلومات النظام."
 
 #: psychopy/app/builder/builder.py:590 psychopy/app/coder/coder.py:1773
-#, fuzzy
 msgid "&About..."
 msgstr "حول..."
 
 #: psychopy/app/builder/builder.py:590 psychopy/app/coder/coder.py:1774
-#, fuzzy
-#| msgid "Welcome to PsychoPy2!"
 msgid "About PsychoPy"
-msgstr "مرحبا بكم في PsychoPy2!"
+msgstr "حول سيكوباي"
 
 #: psychopy/app/builder/builder.py:593 psychopy/app/coder/coder.py:1778
-#, fuzzy
 msgid "&News..."
-msgstr "&News..."
+msgstr "الأخبار..."
 
 #: psychopy/app/builder/builder.py:594 psychopy/app/coder/coder.py:1779
-#, fuzzy
 msgid "News"
 msgstr "الأخبار"
 
 #: psychopy/app/builder/builder.py:707 psychopy/app/builder/builder.py:801
-#, fuzzy
 msgid "PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*.*"
 msgstr "تجارب PsychoPy (*.psyexp) |*.psyexp|أي ملف (*.*) |.*"
 
 #: psychopy/app/builder/builder.py:709 psychopy/app/builder/builder.py:803
-#, fuzzy
 msgid "PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*"
 msgstr "تجارب PsychoPy (*.psyexp) |*.psyexp|أي ملف (*.*) |"
 
 #: psychopy/app/builder/builder.py:716 psychopy/app/builder/dialogs/__init__.py:1701
 #: psychopy/app/coder/coder.py:2355
-#, fuzzy
 msgid "Open file ..."
 msgstr "افتح الملف ..."
 
 #: psychopy/app/builder/builder.py:806 psychopy/app/coder/coder.py:2497
-#, fuzzy
 msgid "Save file as ..."
 msgstr "حفظ الملف باسم ..."
 
 #: psychopy/app/builder/builder.py:859
-#, fuzzy
 msgid "Please save experiment before editing the README file"
-msgstr "يرجى حفظ التجربة قبل تحرير ملف README"
+msgstr "يرجى حفظ التجربة قبل تحرير ملف إقرأني README"
 
 #: psychopy/app/builder/builder.py:860
-#, fuzzy
 msgid "No readme file"
-msgstr "لا يوجد ملف تمهيدي"
+msgstr "لا يوجد ملف إقرأني التمهيدي"
 
 #: psychopy/app/builder/builder.py:952
-#, fuzzy, python-format
+#, python-format
 msgid "Experiment %s has changed. Save before quitting?"
 msgstr "تم تغيير التجربة %s. حفظ قبل الإنهاء؟"
 
 #: psychopy/app/builder/builder.py:1055 psychopy/app/coder/coder.py:2845
-#, fuzzy
 msgid "Are you sure you want to reset your preferences? This cannot be undone."
 msgstr "هل أنت متأكد من أنك تريد إعادة تعيين تفضيلاتك؟ لا يمكن التراجع عن ذلك."
 
 #: psychopy/app/builder/builder.py:1060 psychopy/app/coder/coder.py:2849
-#, fuzzy
 msgid "I'm sure"
 msgstr "أنا متأكد"
 
 #: psychopy/app/builder/builder.py:1061 psychopy/app/coder/coder.py:2850
-#, fuzzy
 msgid "Wait, go back!"
-msgstr "انتظر، عد إلى الوراء"
+msgstr "انتظر، عد إلى الوراء!"
 
 #: psychopy/app/builder/builder.py:1070 psychopy/app/coder/coder.py:2859
-#, fuzzy
 msgid ""
 "Done! Your preferences have been reset. Changes will be applied when you next open "
 "PsychoPy."
 msgstr ""
-"تم! تمت إعادة تعيين تفضيلاتك. سيتم تطبيق التغييرات عند فتح PsychoPy في المرة "
-"القادمة."
+"تم! تمت إعادة تعيين تفضيلاتك. سيتم تطبيق التغييرات عند فتح سيكوباي في المرة القادمة."
 
 #: psychopy/app/builder/builder.py:1189
-#, fuzzy, python-format
+#, python-format
 msgid "Undo %(action)s\t%(key)s"
-msgstr "التراجع %(action)s %(key)s %(key)s"
+msgstr "تراجع %(action)s %(key)s %(key)s"
 
 #: psychopy/app/builder/builder.py:1204
-#, fuzzy, python-format
+#, python-format
 msgid "Redo %(action)s\t%(key)s"
-msgstr "الإعادة %(action)s %(key)s"
+msgstr "إعادة %(action)s %(key)s"
 
 #: psychopy/app/builder/builder.py:1217
-#, fuzzy
 msgid "Location to unpack demos"
-msgstr "موقع تفريغ العروض التوضيحية"
+msgstr "موقع فك ضغط العروض التوضيحية"
 
 #: psychopy/app/builder/builder.py:1295 psychopy/app/builder/builder.py:2465
-#, fuzzy, python-format
+#, python-format
 msgid "New name for copy of \"%(copied)s\"?  [%(default)s]"
 msgstr "اسم جديد لنسخة \"%(copied)s\"؟  [%(default)s]"
 
 #: psychopy/app/builder/builder.py:1299
-#, fuzzy
 msgid "Paste Routine"
 msgstr "لصق الروتين"
 
 #: psychopy/app/builder/builder.py:1371
-#, fuzzy
 msgid "What is the new name for the Routine?"
 msgstr "ما هو الاسم الجديد للروتين؟"
 
 #: psychopy/app/builder/builder.py:1373 psychopy/app/coder/fileBrowser.py:97
-#, fuzzy
 msgid "Rename"
 msgstr "إعادة التسمية"
 
 #: psychopy/app/builder/builder.py:1600 psychopy/app/builder/dialogs/__init__.py:1988
-#, fuzzy
 msgid "What is the name for the new Routine? (e.g. instr, trial, feedback)"
-msgstr "ما هو اسم الروتين الجديد؟ (على سبيل المثال instr، التجربة، الملاحظات)"
+msgstr ""
+"ما هو اسم الروتين الجديد؟ (على سبيل المثال تعليمات، المحاولة التجريبية، التغذية "
+"الراجعة)"
 
 #: psychopy/app/builder/builder.py:1630
-#, fuzzy
 msgid "Do you want to remove routine '{}' from the experiment?"
 msgstr "هل تريد إزالة الروتين \"{}\" من التجربة؟"
 
 #: psychopy/app/builder/builder.py:1636
-#, fuzzy
 msgid "Remove routine?"
 msgstr "إزالة الروتين؟"
 
 #: psychopy/app/builder/builder.py:1876 psychopy/app/preferencesDlg.py:100
-#, fuzzy
 msgid "paste"
-msgstr "معجون"
+msgstr "ألصق"
 
 #: psychopy/app/builder/builder.py:2415
-#, fuzzy
 msgid "Routine settings"
-msgstr "الإعدادات الروتينية"
+msgstr "إعدادات الروتين"
 
 #: psychopy/app/builder/builder.py:2469
-#, fuzzy
 msgid "Paste Component"
 msgstr "مكون اللصق"
 
 #: psychopy/app/builder/builder.py:2580
-#, fuzzy
 msgid "Help"
 msgstr "المساعدة"
 
 #: psychopy/app/builder/builder.py:2713
-#, fuzzy
 msgid "Cannot add component, experiment has no routines."
-msgstr "لا يمكن إضافة مكون، التجربة ليس لها إجراءات روتينية."
+msgstr "لا يمكن إضافة مكون، التجربة ليس لها روتينات"
 
 #: psychopy/app/builder/builder.py:2714 psychopy/app/preferencesDlg.py:844
-#, fuzzy
 msgid "Error"
 msgstr "خطأ"
 
 #: psychopy/app/builder/builder.py:2898 psychopy/app/pavlovia_ui/project.py:914
 #: psychopy/app/pavlovia_ui/search.py:413 psychopy/app/pavlovia_ui/sync.py:35
 #: psychopy/app/pavlovia_ui/sync.py:130
-#, fuzzy
 msgid "OK"
 msgstr "حسناً"
 
 #: psychopy/app/builder/builder.py:2941
-#, fuzzy
 msgid "Get more..."
 msgstr "احصل على المزيد..."
 
 #: psychopy/app/builder/builder.py:2942
-#, fuzzy
 msgid "Add new components and features via plugins."
 msgstr "أضف مكونات وميزات جديدة عبر الإضافات."
 
 #: psychopy/app/builder/builder.py:2948
-#, fuzzy
 msgid "Filter components by whether they work with PsychoJS, PsychoPy or both."
-msgstr "صنف المكونات حسب ما إذا كانت تعمل مع PsychoJS أو PsychoPy أو كليهما."
+msgstr "صنف المكونات حسب ما إذا كانت تعمل مع PsychoJS أو سيكوباي PsychoPy أو كليهما."
 
 #: psychopy/app/builder/builder.py:3227 psychopy/app/utils.py:495
 msgid "Edit"
 msgstr "تعديل"
 
 #: psychopy/app/builder/builder.py:3230
-#, fuzzy, python-format
+#, python-format
 msgid "&Close readme\t%s"
-msgstr "&إغلاق اقرأني %s"
+msgstr "أغلق ملف إقرأني %s"
 
 #: psychopy/app/builder/builder.py:3324 psychopy/app/builder/builder.py:3447
-#, fuzzy
 msgid "Insert Routine"
-msgstr "إدراج الروتين"
+msgstr "إدراج روتين"
 
 #: psychopy/app/builder/builder.py:3331 psychopy/app/builder/builder.py:3449
-#, fuzzy
 msgid "Insert Loop"
-msgstr "حلقة الإدراج"
+msgstr "إدراج حلقة "
 
 #: psychopy/app/builder/builder.py:3395
-#, fuzzy
 msgid "rename"
 msgstr "إعادة التسمية"
 
 #: psychopy/app/builder/builder.py:3478
-#, fuzzy
 msgid "Select a Routine to insert (Esc to exit)"
-msgstr "حدد إجراء روتيني لإدراجه (اسك للخروج)"
+msgstr "حدد روتين لإدراجه (Esc للخروج)"
 
 #: psychopy/app/builder/builder.py:3518
-#, fuzzy
 msgid "CANCEL Insert"
 msgstr "إلغاء الإدراج"
 
@@ -1169,8 +1046,7 @@ msgstr "انقر فوق الطرف الآخر للحلقة"
 
 #: psychopy/app/builder/builder.py:3815
 #, fuzzy, python-format
-msgid ""
-"The \"%s\" Loop is about to be deleted as well (by collapsing). OK to proceed?"
+msgid "The \"%s\" Loop is about to be deleted as well (by collapsing). OK to proceed?"
 msgstr ""
 "حلقة \"%s\" حلقة على وشك الحذف أيضًا (عن طريق الانهيار). هل أنت موافق على المتابعة؟"
 
@@ -1185,7 +1061,6 @@ msgid "New"
 msgstr "جديد"
 
 #: psychopy/app/builder/builder.py:4306 psychopy/app/coder/coder.py:2884
-#, fuzzy
 msgid "Create new experiment file"
 msgstr "إنشاء ملف تجربة جديد"
 
@@ -1194,7 +1069,6 @@ msgid "Open"
 msgstr "مفتوح"
 
 #: psychopy/app/builder/builder.py:4314 psychopy/app/coder/coder.py:2891
-#, fuzzy
 msgid "Open an existing experiment file"
 msgstr "فتح ملف تجربة موجود"
 
@@ -1352,8 +1226,7 @@ msgstr " الخصائص"
 
 #: psychopy/app/builder/dialogs/__init__.py:987
 #: psychopy/app/builder/dialogs/dlgsCode.py:142
-#: psychopy/app/builder/dialogs/dlgsConditions.py:508
-#: psychopy/app/preferencesDlg.py:506
+#: psychopy/app/builder/dialogs/dlgsConditions.py:508 psychopy/app/preferencesDlg.py:506
 #, fuzzy
 msgid " Help "
 msgstr " المساعدة"
@@ -1366,26 +1239,23 @@ msgstr "انتقل إلى المساعدة عبر الإنترنت حول هذا
 
 #: psychopy/app/builder/dialogs/__init__.py:994
 #: psychopy/app/builder/dialogs/dlgsCode.py:145
-#: psychopy/app/builder/dialogs/dlgsConditions.py:514
-#: psychopy/app/preferencesDlg.py:513 psychopy/gui/qtgui.py:88
-#: psychopy/gui/wxgui.py:68 psychopy/monitors/MonitorCenter.py:1121
-#: psychopy/monitors/MonitorCenter.py:1229
+#: psychopy/app/builder/dialogs/dlgsConditions.py:514 psychopy/app/preferencesDlg.py:513
+#: psychopy/gui/qtgui.py:88 psychopy/gui/wxgui.py:68
+#: psychopy/monitors/MonitorCenter.py:1121 psychopy/monitors/MonitorCenter.py:1229
 #, fuzzy
 msgid " OK "
 msgstr " حسناً"
 
 #: psychopy/app/builder/dialogs/__init__.py:999
 #: psychopy/app/builder/dialogs/dlgsCode.py:148
-#: psychopy/app/builder/dialogs/dlgsConditions.py:521
-#: psychopy/app/preferencesDlg.py:514 psychopy/gui/qtgui.py:89
-#: psychopy/gui/wxgui.py:69 psychopy/monitors/MonitorCenter.py:1123
-#: psychopy/monitors/MonitorCenter.py:1232
+#: psychopy/app/builder/dialogs/dlgsConditions.py:521 psychopy/app/preferencesDlg.py:514
+#: psychopy/gui/qtgui.py:89 psychopy/gui/wxgui.py:69
+#: psychopy/monitors/MonitorCenter.py:1123 psychopy/monitors/MonitorCenter.py:1232
 #, fuzzy
 msgid " Cancel "
 msgstr " إلغاء"
 
-#: psychopy/app/builder/dialogs/__init__.py:1178
-#: psychopy/app/builder/validators.py:379
+#: psychopy/app/builder/dialogs/__init__.py:1178 psychopy/app/builder/validators.py:379
 #, fuzzy
 msgid "Missing name"
 msgstr "الاسم المفقود"
@@ -1439,11 +1309,9 @@ msgstr "تعذر قراءة الشروط من: %s\n"
 
 #: psychopy/app/builder/dialogs/__init__.py:1759
 #, fuzzy, python-format
-msgid ""
-"Bad name in %s: Parameters (column headers) cannot contain dots or be duplicated."
+msgid "Bad name in %s: Parameters (column headers) cannot contain dots or be duplicated."
 msgstr ""
-"اسم غير صحيح في %s: لا يمكن أن تحتوي المعلمات (رؤوس الأعمدة) على نقاط أو أن تكون "
-"مكررة."
+"اسم غير صحيح في %s: لا يمكن أن تحتوي المعلمات (رؤوس الأعمدة) على نقاط أو أن تكون مكررة."
 
 #: psychopy/app/builder/dialogs/__init__.py:1775
 #, fuzzy
@@ -1575,8 +1443,8 @@ msgstr "+البارام"
 #: psychopy/app/builder/dialogs/dlgsConditions.py:484
 #, fuzzy
 msgid ""
-"Add a parameter (column); to delete a param, set its type to None, or delete all "
-"of its values."
+"Add a parameter (column); to delete a param, set its type to None, or delete all of "
+"its values."
 msgstr "إضافة معلمة (عمود)؛ لحذف معلمة أو تعيين نوعها إلى لا شيء، أو حذف جميع قيمها."
 
 #: psychopy/app/builder/dialogs/dlgsConditions.py:490 psychopy/app/utils.py:499
@@ -1587,8 +1455,8 @@ msgstr "معاينة"
 #: psychopy/app/builder/dialogs/dlgsConditions.py:491
 #, fuzzy
 msgid ""
-"Show all values as they would appear after saving to a file, without actually "
-"saving anything."
+"Show all values as they would appear after saving to a file, without actually saving "
+"anything."
 msgstr "إظهار جميع القيم كما ستظهر بعد الحفظ في ملف، دون حفظ أي شيء فعليًا."
 
 #: psychopy/app/builder/dialogs/dlgsConditions.py:497
@@ -1645,17 +1513,16 @@ msgstr "القيمة"
 #: psychopy/app/builder/dialogs/paramCtrls.py:1012
 #, fuzzy
 msgid ""
-"This parameter will be treated as code - we have already put in the $, so you "
-"don't have to."
-msgstr ""
-"سيتم التعامل مع هذه المعلمة على أنها رمز - لقد وضعنا بالفعل $، لذا لا داعي لذلك."
+"This parameter will be treated as code - we have already put in the $, so you don't "
+"have to."
+msgstr "سيتم التعامل مع هذه المعلمة على أنها رمز - لقد وضعنا بالفعل $، لذا لا داعي لذلك."
 
 #: psychopy/app/builder/dialogs/paramCtrls.py:261
 #, fuzzy
 msgid ""
-"This parameter has come from an older version of PsychoPy. In the latest version "
-"of PsychoPy, it is not used. Click this button to delete it. WARNING: This may "
-"affect how this experiment works in older versions!"
+"This parameter has come from an older version of PsychoPy. In the latest version of "
+"PsychoPy, it is not used. Click this button to delete it. WARNING: This may affect how "
+"this experiment works in older versions!"
 msgstr ""
 "جاءت هذه المعلمة من إصدار أقدم من PsychoPy. في أحدث إصدار من PsychoPy، لا يتم "
 "استخدامه. انقر فوق هذا الزر لحذفه. تحذير: قد يؤثر هذا على كيفية عمل هذه التجربة في "
@@ -1669,11 +1536,11 @@ msgstr "تم الحذف"
 #: psychopy/app/builder/dialogs/paramCtrls.py:274
 #, fuzzy
 msgid ""
-"This parameter will not be deleted until you click Okay. Click this button to "
-"revert the deletion and keep the parameter."
+"This parameter will not be deleted until you click Okay. Click this button to revert "
+"the deletion and keep the parameter."
 msgstr ""
-"لن يتم حذف هذه المعلمة حتى تنقر على موافق. انقر فوق هذا الزر لإعادة الحذف "
-"والاحتفاظ بالمعلمة."
+"لن يتم حذف هذه المعلمة حتى تنقر على موافق. انقر فوق هذا الزر لإعادة الحذف والاحتفاظ "
+"بالمعلمة."
 
 #: psychopy/app/builder/dialogs/paramCtrls.py:638
 #: psychopy/app/builder/dialogs/paramCtrls.py:920
@@ -1689,11 +1556,11 @@ msgstr "إضافة عنصر مخصص"
 #: psychopy/app/builder/dialogs/paramCtrls.py:737
 #, fuzzy
 msgid ""
-"Below are all of the surveys linked to your Pavlovia account - select the one you "
-"want and press OK to add its ID."
+"Below are all of the surveys linked to your Pavlovia account - select the one you want "
+"and press OK to add its ID."
 msgstr ""
-"فيما يلي جميع الاستطلاعات المرتبطة بحساب بافلوفيا الخاص بك - اختر الاستطلاع الذي "
-"تريده واضغط على موافق لإضافة معرفه."
+"فيما يلي جميع الاستطلاعات المرتبطة بحساب بافلوفيا الخاص بك - اختر الاستطلاع الذي تريده "
+"واضغط على موافق لإضافة معرفه."
 
 #: psychopy/app/builder/dialogs/paramCtrls.py:746
 #, fuzzy
@@ -1727,8 +1594,7 @@ msgstr "فتح/إنشاء في محرر الجدول الافتراضي الخا
 
 #: psychopy/app/builder/dialogs/paramCtrls.py:975
 #, fuzzy, python-brace-format
-msgid ""
-"Once you have created and saved your table,please remember to add it to {name}"
+msgid "Once you have created and saved your table,please remember to add it to {name}"
 msgstr "بمجرد إنشاء جدولك وحفظه، يرجى تذكر إضافته إلى {name}"
 
 #: psychopy/app/builder/dialogs/paramCtrls.py:977
@@ -2458,20 +2324,18 @@ msgstr "هذا الاسم قيد الاستخدام (بواسطة {used}). جر�
 #: psychopy/app/builder/validators.py:393
 #, fuzzy
 msgid ""
-"Name can only contain letters, numbers and underscores (_), no spaces or other "
-"symbols"
+"Name can only contain letters, numbers and underscores (_), no spaces or other symbols"
 msgstr ""
-"يمكن أن يحتوي الاسم فقط على أحرف وأرقام وشرطات سفلية (_)، ولا توجد مسافات أو رموز "
-"أخرى"
+"يمكن أن يحتوي الاسم فقط على أحرف وأرقام وشرطات سفلية (_)، ولا توجد مسافات أو رموز أخرى"
 
 #: psychopy/app/builder/validators.py:494
 #, fuzzy, python-brace-format
 msgid ""
-"Font `{val}` not found locally, will attempt to retrieve from Google Fonts when "
-"this experiment next runs"
+"Font `{val}` not found locally, will attempt to retrieve from Google Fonts when this "
+"experiment next runs"
 msgstr ""
-"الخط \"{val}\" غير موجود محليًا، سيحاول استرجاعه من خطوط Google عند تشغيل هذه "
-"التجربة في المرة القادمة"
+"الخط \"{val}\" غير موجود محليًا، سيحاول استرجاعه من خطوط Google عند تشغيل هذه التجربة "
+"في المرة القادمة"
 
 #: psychopy/app/builder/validators.py:513
 #, fuzzy
@@ -2631,8 +2495,7 @@ msgstr "كل شيء stdout"
 #: psychopy/app/coder/coder.py:390
 #, fuzzy
 msgid "Report all printed output & show any new rms-test images"
-msgstr ""
-"الإبلاغ عن كل المخرجات المطبوعة وإظهار أي صور جديدة لاختبار جذر متوسط التربيع"
+msgstr "الإبلاغ عن كل المخرجات المطبوعة وإظهار أي صور جديدة لاختبار جذر متوسط التربيع"
 
 #: psychopy/app/coder/coder.py:986
 #, fuzzy
@@ -3020,20 +2883,20 @@ msgstr "حفظ الملف"
 #: psychopy/app/coder/coder.py:2486
 #, fuzzy
 msgid ""
-"Python script (*.py)|*.py|JavaScript file (*.js)|*.js|Text file (*.txt)|*.txt|Any "
-"file (*.*)|*.*"
+"Python script (*.py)|*.py|JavaScript file (*.js)|*.js|Text file (*.txt)|*.txt|Any file "
+"(*.*)|*.*"
 msgstr ""
-"نص برمجي بايثون (*.py)|*.py|ملف جافا سكريبت (*.js)|.js|ملف نصي (*.txt)|.txt|أي ملف "
-"(*.*)|.*"
+"نص برمجي بايثون (*.py)|*.py|ملف جافا سكريبت (*.js)|.js|ملف نصي (*.txt)|.txt|أي ملف (*."
+"*)|.*"
 
 #: psychopy/app/coder/coder.py:2491
 #, fuzzy
 msgid ""
-"Python script (*.py)|*.py|JavaScript file (*.js)|*.js|Text file (*.txt)|*.txt|Any "
-"file (*.*)|*"
+"Python script (*.py)|*.py|JavaScript file (*.js)|*.js|Text file (*.txt)|*.txt|Any file "
+"(*.*)|*"
 msgstr ""
-"نص برمجي بايثون (*.py)|*.py|ملف جافا سكريبت (*.js)|.js|ملف نصي (*.txt)|.txt|أي ملف "
-"(*.*)|"
+"نص برمجي بايثون (*.py)|*.py|ملف جافا سكريبت (*.js)|.js|ملف نصي (*.txt)|.txt|أي ملف (*."
+"*)|"
 
 #: psychopy/app/coder/coder.py:2588
 #, fuzzy, python-format
@@ -3098,8 +2961,7 @@ msgstr "انتقل إلى الملف المفتوح الحالي."
 #: psychopy/app/coder/fileBrowser.py:270
 #, fuzzy
 msgid ""
-"Cannot change working directory to location of file `{}`. It needs to be saved "
-"first."
+"Cannot change working directory to location of file `{}`. It needs to be saved first."
 msgstr "لا يمكن تغيير دليل العمل إلى موقع الملف \"{}\". يجب حفظه أولاً."
 
 #: psychopy/app/coder/fileBrowser.py:281
@@ -3413,11 +3275,9 @@ msgstr " التحديث التلقائي (سيجلب أحدث إصدار)"
 #: psychopy/app/connections/updates.py:295
 #, fuzzy
 msgid " Use zip file below (download a PsychoPy release file ending .zip)"
-msgstr ""
-" استخدم الملف المضغوط أدناه (قم بتنزيل ملف الإصدار النفسي الذي ينتهي بـ .zip)"
+msgstr " استخدم الملف المضغوط أدناه (قم بتنزيل ملف الإصدار النفسي الذي ينتهي بـ .zip)"
 
-#: psychopy/app/connections/updates.py:305
-#: psychopy/app/plugin_manager/packages.py:213
+#: psychopy/app/connections/updates.py:305 psychopy/app/plugin_manager/packages.py:213
 #: psychopy/app/plugin_manager/packages.py:333
 #: psychopy/app/plugin_manager/plugins.py:1001
 #: psychopy/app/plugin_manager/plugins.py:1031
@@ -3456,8 +3316,8 @@ msgstr "تحقق من إعدادات الوكيل في التفضيلات."
 #: psychopy/app/connections/updates.py:344
 #, fuzzy, python-format
 msgid ""
-"You are running PsychoPy (%(running)s), which is ahead of the latest official "
-"version (%(latest)s)"
+"You are running PsychoPy (%(running)s), which is ahead of the latest official version "
+"(%(latest)s)"
 msgstr ""
 "أنت تقوم بتشغيل PsychoPy (%(running)s)، وهو متقدم على أحدث إصدار رسمي (%(latest)s)"
 
@@ -3473,8 +3333,8 @@ msgstr ""
 #: psychopy/app/connections/updates.py:350
 #, fuzzy
 msgid ""
-"You can revert to a previous version by selecting a specific .zip source "
-"installation file"
+"You can revert to a previous version by selecting a specific .zip source installation "
+"file"
 msgstr "يمكنك العودة إلى إصدار سابق من خلال تحديد ملف تثبيت مصدر .zip معين"
 
 #: psychopy/app/connections/updates.py:354
@@ -3603,8 +3463,8 @@ msgid ""
 "\"Details\" to the developers with a description of what you were doing with the "
 "software when the error occurred."
 msgstr ""
-"واجه PsychoPy خطأ داخلي لم تتم معالجته! يرجى إرسال التقرير تحت عنوان \"التفاصيل\" "
-"إلى المطورين مع وصف لما كنت تفعله بالبرنامج عند حدوث الخطأ."
+"واجه PsychoPy خطأ داخلي لم تتم معالجته! يرجى إرسال التقرير تحت عنوان \"التفاصيل\" إلى "
+"المطورين مع وصف لما كنت تفعله بالبرنامج عند حدوث الخطأ."
 
 #: psychopy/app/errorDlg.py:56
 #, fuzzy
@@ -3637,8 +3497,8 @@ msgid ""
 "Are you sure you want to exit PsychoPy? Unsaved work may be lost (but we'll try to "
 "save opened files)."
 msgstr ""
-"هل أنت متأكد من رغبتك في الخروج من PsychoPy؟ قد يضيع العمل غير المحفوظ (لكننا "
-"سنحاول حفظ الملفات المفتوحة)."
+"هل أنت متأكد من رغبتك في الخروج من PsychoPy؟ قد يضيع العمل غير المحفوظ (لكننا سنحاول "
+"حفظ الملفات المفتوحة)."
 
 #: psychopy/app/errorDlg.py:127
 #, fuzzy
@@ -3670,15 +3530,15 @@ msgstr "خطأ في الاتصال"
 msgid ""
 "Could not connect to Pavlovia server. \n"
 "\n"
-"Please check that you are connected to the internet. If you are connected, then "
-"the Pavlovia servers may be down. You can check their status here: \n"
+"Please check that you are connected to the internet. If you are connected, then the "
+"Pavlovia servers may be down. You can check their status here: \n"
 "\n"
 "https://pavlovia.org/status"
 msgstr ""
 "تعذر الاتصال بخادم بافلوفيا.\n"
 "\n"
-"يرجى التحقق من أنك متصل بالإنترنت. إذا كنت متصلاً، فقد تكون خوادم بافلوفيا معطلة. "
-"يمكنك التحقق من حالتها هنا:\n"
+"يرجى التحقق من أنك متصل بالإنترنت. إذا كنت متصلاً، فقد تكون خوادم بافلوفيا معطلة. يمكنك "
+"التحقق من حالتها هنا:\n"
 "\n"
 "https://pavlovia.org/status"
 
@@ -3832,16 +3692,14 @@ msgstr "نجمة"
 #: psychopy/app/pavlovia_ui/project.py:244
 #, fuzzy
 msgid ""
-"An image to represent this project, this helps it stand out when browsing on "
-"Pavlovia."
+"An image to represent this project, this helps it stand out when browsing on Pavlovia."
 msgstr "صورة لتمثيل هذا المشروع، وهذا يساعد على إبرازه عند التصفح على بافلوفيا."
 
 #: psychopy/app/pavlovia_ui/project.py:259
 #, fuzzy
 msgid ""
-"Title of the project. Unlike the project name, this isn't used as a filename "
-"anywhere; so you can add spaces, apostrophes and emojis to your heart's content! 🦕"
-"✨"
+"Title of the project. Unlike the project name, this isn't used as a filename anywhere; "
+"so you can add spaces, apostrophes and emojis to your heart's content! 🦕✨"
 msgstr ""
 "عنوان المشروع. على عكس اسم المشروع، لا يُستخدم هذا العنوان كاسم ملف في أي مكان؛ لذا "
 "يمكنك إضافة مسافات وفواصل عليا ورموز تعبيرية كما يحلو لك! 🦕✨"
@@ -3859,8 +3717,8 @@ msgid ""
 "everyone's searches."
 msgstr ""
 "\"ضع نجمة\" على هذا المشروع للعودة إليه بسهولة. ستظهر المشاريع التي قمت بوضع نجمة "
-"عليها أولاً في عمليات البحث الخاصة بك وستظهر المشاريع التي تحتوي على عدد أكبر من "
-"النجوم في عمليات بحث الجميع."
+"عليها أولاً في عمليات البحث الخاصة بك وستظهر المشاريع التي تحتوي على عدد أكبر من النجوم "
+"في عمليات بحث الجميع."
 
 #: psychopy/app/pavlovia_ui/project.py:291
 #, fuzzy
@@ -3873,8 +3731,8 @@ msgid ""
 "Create a copy of this project on your own Pavlovia account so that you can make "
 "changes without affecting the original project."
 msgstr ""
-"قم بإنشاء نسخة من هذا المشروع على حساب بافلوفيا الخاص بك حتى تتمكن من إجراء "
-"تغييرات دون التأثير على المشروع الأصلي."
+"قم بإنشاء نسخة من هذا المشروع على حساب بافلوفيا الخاص بك حتى تتمكن من إجراء تغييرات "
+"دون التأثير على المشروع الأصلي."
 
 #: psychopy/app/pavlovia_ui/project.py:300
 #, fuzzy
@@ -3897,8 +3755,8 @@ msgid ""
 "Synchronise this project's local files with their online counterparts. This will "
 "'pull' changes from Pavlovia and 'push' changes from your local files."
 msgstr ""
-"مزامنة الملفات المحلية لهذا المشروع مع نظيراتها على الإنترنت. سيؤدي ذلك إلى "
-"\"سحب\" التغييرات من بافلوفيا و\"دفع\" التغييرات من ملفاتك المحلية."
+"مزامنة الملفات المحلية لهذا المشروع مع نظيراتها على الإنترنت. سيؤدي ذلك إلى \"سحب\" "
+"التغييرات من بافلوفيا و\"دفع\" التغييرات من ملفاتك المحلية."
 
 #: psychopy/app/pavlovia_ui/project.py:317
 #, fuzzy
@@ -3908,11 +3766,11 @@ msgstr "تنزيل"
 #: psychopy/app/pavlovia_ui/project.py:322
 #, fuzzy
 msgid ""
-"'Clone' this project, creating local copies of all its files and tracking any "
-"changes you make so that they can be applied when you next 'sync' the project."
+"'Clone' this project, creating local copies of all its files and tracking any changes "
+"you make so that they can be applied when you next 'sync' the project."
 msgstr ""
-"\"استنساخ\" هذا المشروع، وإنشاء نسخ محلية من جميع ملفاته وتتبع أي تغييرات تجريها "
-"بحيث يمكن تطبيقها عند \"مزامنة\" المشروع في المرة القادمة."
+"\"استنساخ\" هذا المشروع، وإنشاء نسخ محلية من جميع ملفاته وتتبع أي تغييرات تجريها بحيث "
+"يمكن تطبيقها عند \"مزامنة\" المشروع في المرة القادمة."
 
 #: psychopy/app/pavlovia_ui/project.py:329
 #, fuzzy
@@ -3923,12 +3781,12 @@ msgstr "آخر مزامنة في..."
 #, fuzzy
 msgid ""
 "Folder in which local files are stored for this project. Changes to files in this "
-"folder will be tracked and applied to the project when you 'sync', so make sure "
-"the only files in this folder are relevant!"
+"folder will be tracked and applied to the project when you 'sync', so make sure the "
+"only files in this folder are relevant!"
 msgstr ""
 "المجلد الذي يتم فيه تخزين الملفات المحلية لهذا المشروع. سيتم تعقب التغييرات على "
-"الملفات الموجودة في هذا المجلد وتطبيقها على المشروع عند \"المزامنة\"، لذا تأكد من "
-"أن الملفات الموجودة في هذا المجلد هي الوحيدة ذات الصلة!"
+"الملفات الموجودة في هذا المجلد وتطبيقها على المشروع عند \"المزامنة\"، لذا تأكد من أن "
+"الملفات الموجودة في هذا المجلد هي الوحيدة ذات الصلة!"
 
 #: psychopy/app/pavlovia_ui/project.py:353
 #, fuzzy
@@ -3945,8 +3803,8 @@ msgstr "الرؤية:"
 #: psychopy/app/pavlovia_ui/project.py:366
 #, fuzzy
 msgid ""
-"Visibility of the current project; whether its visible only to its creator "
-"(Private) or to any user (Public)."
+"Visibility of the current project; whether its visible only to its creator (Private) "
+"or to any user (Public)."
 msgstr "رؤية المشروع الحالي؛ سواء كان مرئيًا لمنشئه فقط (خاص) أو لأي مستخدم (عام)."
 
 #: psychopy/app/pavlovia_ui/project.py:372
@@ -3957,8 +3815,8 @@ msgstr "الحالة:"
 #: psychopy/app/pavlovia_ui/project.py:378
 #, fuzzy
 msgid ""
-"Project status; whether it can be run to collect data (Running), run by its "
-"creator without saving data (Piloting) or cannot be run (Inactive)."
+"Project status; whether it can be run to collect data (Running), run by its creator "
+"without saving data (Piloting) or cannot be run (Inactive)."
 msgstr ""
 "حالة المشروع؛ ما إذا كان يمكن تشغيله لجمع البيانات (قيد التشغيل)، أو تشغيله من قبل "
 "منشئه دون حفظ البيانات (تجريبي) أو لا يمكن تشغيله (غير نشط)."
@@ -3976,13 +3834,13 @@ msgstr "العلامة"
 #: psychopy/app/pavlovia_ui/project.py:391
 #, fuzzy
 msgid ""
-"Keywords associated with this project, helping others to find it. For example, if "
-"your experiment is useful to psychophysicists, you may want to add the keyword "
+"Keywords associated with this project, helping others to find it. For example, if your "
+"experiment is useful to psychophysicists, you may want to add the keyword "
 "'psychophysics'."
 msgstr ""
 "الكلمات الرئيسية المرتبطة بهذا المشروع، مما يساعد الآخرين في العثور عليه. على سبيل "
-"المثال، إذا كانت تجربتك مفيدة للفيزيائيين النفسيين، فقد ترغب في إضافة الكلمة "
-"المفتاحية \"فيزياء نفسية\"."
+"المثال، إذا كانت تجربتك مفيدة للفيزيائيين النفسيين، فقد ترغب في إضافة الكلمة المفتاحية "
+"\"فيزياء نفسية\"."
 
 #: psychopy/app/pavlovia_ui/project.py:473
 #, fuzzy
@@ -3994,8 +3852,8 @@ msgid ""
 msgstr ""
 "تعذر العثور على مشروع GitLab بمعرف {}.\n"
 "\n"
-"يرجى التحقق من أن المشروع موجود على بافلوفيا، وأنك قمت بتسجيل الدخول كمستخدم صحيح "
-"في تطبيق PsychoPy، وأن حسابك لديه حق الوصول إلى المشروع."
+"يرجى التحقق من أن المشروع موجود على بافلوفيا، وأنك قمت بتسجيل الدخول كمستخدم صحيح في "
+"تطبيق PsychoPy، وأن حسابك لديه حق الوصول إلى المشروع."
 
 #: psychopy/app/pavlovia_ui/project.py:676
 #, fuzzy, python-brace-format
@@ -4112,8 +3970,7 @@ msgstr "المؤلف"
 #: psychopy/experiment/components/unknown/__init__.py:9
 #: psychopy/experiment/components/unknownPlugin/__init__.py:9
 #: psychopy/experiment/components/variable/__init__.py:17
-#: psychopy/experiment/routines/_base.py:47
-#: psychopy/localization/_localization.py:155
+#: psychopy/experiment/routines/_base.py:47 psychopy/localization/_localization.py:155
 #: psychopy/localization/_localization.py:178
 msgid "Name"
 msgstr "اسم"
@@ -4175,11 +4032,11 @@ msgstr "الحزم"
 #: psychopy/app/plugin_manager/dialog.py:319
 #, fuzzy
 msgid ""
-"[Warning] Could not activate plugin. PsychoPy may need to restart for plugin to "
-"take effect."
+"[Warning] Could not activate plugin. PsychoPy may need to restart for plugin to take "
+"effect."
 msgstr ""
-"[تحذير] تعذر تنشيط الإضافة. قد يحتاج PsychoPy إلى إعادة التشغيل حتى تدخل الإضافة "
-"حيز التنفيذ."
+"[تحذير] تعذر تنشيط الإضافة. قد يحتاج PsychoPy إلى إعادة التشغيل حتى تدخل الإضافة حيز "
+"التنفيذ."
 
 #: psychopy/app/plugin_manager/dialog.py:329
 #, fuzzy
@@ -4198,8 +4055,8 @@ msgstr "لمزيد من المعلومات حول المكون الإضافي %s
 #: psychopy/app/plugin_manager/dialog.py:355
 #, fuzzy
 msgid ""
-"It looks like you've uninstalled some plugins. In order for this to take effect, "
-"you will need to restart the PsychoPy app."
+"It looks like you've uninstalled some plugins. In order for this to take effect, you "
+"will need to restart the PsychoPy app."
 msgstr ""
 "يبدو أنك قمت بإلغاء تثبيت بعض الإضافات. لكي يسري مفعول ذلك، ستحتاج إلى إعادة تشغيل "
 "تطبيق PsychoPy."
@@ -4214,8 +4071,8 @@ msgid ""
 "{}\n"
 "\n"
 msgstr ""
-"اكتب أمر PIP أدناه واضغط على Enter لتنفيذه في بيئة PsychoPy المثبتة، سيظهر أي نص "
-"مرتجع أدناه.\n"
+"اكتب أمر PIP أدناه واضغط على Enter لتنفيذه في بيئة PsychoPy المثبتة، سيظهر أي نص مرتجع "
+"أدناه.\n"
 "\n"
 "ستتم تهيئة جميع الأوامر تلقائيًا بـ\n"
 "{}\n"
@@ -4273,8 +4130,7 @@ msgstr "الأحدث"
 msgid "by "
 msgstr "بواسطة"
 
-#: psychopy/app/plugin_manager/packages.py:329
-#: psychopy/app/plugin_manager/plugins.py:623
+#: psychopy/app/plugin_manager/packages.py:329 psychopy/app/plugin_manager/plugins.py:623
 #, fuzzy
 msgid "Homepage"
 msgstr "الصفحة الرئيسية"
@@ -5326,16 +5182,14 @@ msgstr "عرض العداء"
 msgid ""
 "Attempted to pause experiment '{}', but it is already paused. Status will remain "
 "unchanged."
-msgstr ""
-"محاولة إيقاف التجربة \"{}\" مؤقتًا، لكنها متوقفة بالفعل. ستبقى الحالة دون تغيير."
+msgstr "محاولة إيقاف التجربة \"{}\" مؤقتًا، لكنها متوقفة بالفعل. ستبقى الحالة دون تغيير."
 
 #: psychopy/data/experiment.py:438
 #, fuzzy
 msgid ""
 "Attempted to resume experiment '{}', but it is not paused. Status will remain "
 "unchanged."
-msgstr ""
-"تمت محاولة استئناف التجربة \"{}\"، لكنها لم تتوقف مؤقتًا. ستبقى الحالة دون تغيير."
+msgstr "تمت محاولة استئناف التجربة \"{}\"، لكنها لم تتوقف مؤقتًا. ستبقى الحالة دون تغيير."
 
 #: psychopy/data/experiment.py:451
 #, fuzzy
@@ -5376,8 +5230,7 @@ msgstr "لا يمكن أن تحتوي المتغيرات على علامات ت�
 
 #: psychopy/data/utils.py:296
 #, fuzzy, python-format
-msgid ""
-"Conditions file %s: Missing parameter name(s); empty cell(s) in the first row?"
+msgid "Conditions file %s: Missing parameter name(s); empty cell(s) in the first row?"
 msgstr "ملف الشروط %s: اسم (أسماء) معلمات مفقودة؛ خلية (خلايا) فارغة في الصف الأول؟"
 
 #: psychopy/data/utils.py:316
@@ -5408,17 +5261,17 @@ msgstr "تم إعطاء شروط الاستيراد() بعض \"المؤشرات\
 #: psychopy/experiment/_experiment.py:621
 #, fuzzy
 msgid ""
-"Name of the folder in which to save data and log files (blank defaults to the "
-"builder pref)"
+"Name of the folder in which to save data and log files (blank defaults to the builder "
+"pref)"
 msgstr ""
-"اسم المجلد الذي سيتم حفظ البيانات وملفات السجل فيه (افتراضي فارغ إلى المجلد المفضل "
-"لدى المنشئ)"
+"اسم المجلد الذي سيتم حفظ البيانات وملفات السجل فيه (افتراضي فارغ إلى المجلد المفضل لدى "
+"المنشئ)"
 
 #: psychopy/experiment/_experiment.py:680
 #, fuzzy
 msgid ""
-"This parameter is not known by this version of PsychoPy. It might be worth "
-"upgrading, otherwise press the X button to remove this parameter."
+"This parameter is not known by this version of PsychoPy. It might be worth upgrading, "
+"otherwise press the X button to remove this parameter."
 msgstr ""
 "هذه المعلمة غير معروفة بهذا الإصدار من PsychoPy. قد يكون الأمر يستحق الترقية، وإلا "
 "فاضغط على الزر X لإزالة هذه المعلمة."
@@ -5427,12 +5280,11 @@ msgstr ""
 #, fuzzy, python-format
 msgid ""
 "Parameter %r is not known to this version of PsychoPy but has come from your "
-"experiment file (saved by a future version of PsychoPy?). This experiment may not "
-"run correctly in the current version."
+"experiment file (saved by a future version of PsychoPy?). This experiment may not run "
+"correctly in the current version."
 msgstr ""
-"المعلمة %r غير معروفة في هذا الإصدار من PsychoPy ولكنها أتت من ملف التجربة (تم "
-"حفظها بواسطة إصدار مستقبلي من PsychoPy؟). قد لا تعمل هذه التجربة بشكل صحيح في "
-"الإصدار الحالي."
+"المعلمة %r غير معروفة في هذا الإصدار من PsychoPy ولكنها أتت من ملف التجربة (تم حفظها "
+"بواسطة إصدار مستقبلي من PsychoPy؟). قد لا تعمل هذه التجربة بشكل صحيح في الإصدار الحالي."
 
 #: psychopy/experiment/components/_base.py:60
 #, fuzzy
@@ -5449,8 +5301,7 @@ msgstr "كيف تريد تحديد نقطة البداية؟"
 msgid "Start type"
 msgstr "نوع البدء"
 
-#: psychopy/experiment/components/_base.py:73
-#: psychopy/experiment/routines/_base.py:55
+#: psychopy/experiment/components/_base.py:73 psychopy/experiment/routines/_base.py:55
 #, fuzzy
 msgid "How do you want to define your end point?"
 msgstr "كيف تريد تحديد نقطة النهاية؟"
@@ -5465,8 +5316,7 @@ msgstr "نوع التوقف"
 msgid "When does the Component start?"
 msgstr "متى يبدأ المكون؟"
 
-#: psychopy/experiment/components/_base.py:84
-#: psychopy/localization/_localization.py:158
+#: psychopy/experiment/components/_base.py:84 psychopy/localization/_localization.py:158
 #, fuzzy
 msgid "Start"
 msgstr "ابدأ"
@@ -5478,8 +5328,7 @@ msgstr "متى ينتهي المكون؟ (الفراغ لا نهاية له)"
 
 #: psychopy/experiment/components/_base.py:90
 #: psychopy/experiment/components/panorama/__init__.py:143
-#: psychopy/experiment/routines/_base.py:53
-#: psychopy/localization/_localization.py:159
+#: psychopy/experiment/routines/_base.py:53 psychopy/localization/_localization.py:159
 #, fuzzy
 msgid "Stop"
 msgstr "توقف"
@@ -5489,8 +5338,7 @@ msgstr "توقف"
 msgid "(Optional) expected start (s), purely for representing in the timeline"
 msgstr "(اختياري) البداية (البدايات) المتوقعة، فقط للتمثيل في الجدول الزمني"
 
-#: psychopy/experiment/components/_base.py:97
-#: psychopy/localization/_localization.py:160
+#: psychopy/experiment/components/_base.py:97 psychopy/localization/_localization.py:160
 #, fuzzy
 msgid "Expected start (s)"
 msgstr "البداية (البدايات) المتوقعة"
@@ -5500,8 +5348,7 @@ msgstr "البداية (البدايات) المتوقعة"
 msgid "(Optional) expected duration (s), purely for representing in the timeline"
 msgstr "(اختياري) المدة (المدد) المتوقعة، فقط للتمثيل في الجدول الزمني"
 
-#: psychopy/experiment/components/_base.py:104
-#: psychopy/localization/_localization.py:161
+#: psychopy/experiment/components/_base.py:104 psychopy/localization/_localization.py:161
 #, fuzzy
 msgid "Expected duration (s)"
 msgstr "المدة المتوقعة (بالثواني)"
@@ -5519,8 +5366,8 @@ msgstr "حفظ أوقات البدء/الإزاحة"
 #: psychopy/experiment/components/_base.py:113
 #, fuzzy
 msgid ""
-"Synchronize times with screen refresh (good for visual stimuli and responses based "
-"on them)"
+"Synchronize times with screen refresh (good for visual stimuli and responses based on "
+"them)"
 msgstr "مزامنة الأوقات مع تحديث الشاشة (جيد للمحفزات البصرية والاستجابات بناءً عليها)"
 
 #: psychopy/experiment/components/_base.py:118
@@ -5566,8 +5413,7 @@ msgstr "لون المقدمة"
 #: psychopy/experiment/routines/eyetracker_calibrate/__init__.py:93
 #: psychopy/experiment/routines/eyetracker_validate/__init__.py:135
 #, fuzzy
-msgid ""
-"In what format (color space) have you specified the colors? (rgb, dkl, lms, hsv)"
+msgid "In what format (color space) have you specified the colors? (rgb, dkl, lms, hsv)"
 msgstr "بأي تنسيق (مساحة لونية) حددت الألوان؟ (rgb، dkl، lms، hsv)"
 
 #: psychopy/experiment/components/_base.py:1001
@@ -5605,11 +5451,11 @@ msgstr "لون الحدود"
 #: psychopy/experiment/components/_base.py:1019
 #, fuzzy
 msgid ""
-"Opacity of the stimulus (1=opaque, 0=fully transparent, 0.5=translucent). Leave "
-"blank for each color to have its own opacity (recommended if any color is None)."
+"Opacity of the stimulus (1=opaque, 0=fully transparent, 0.5=translucent). Leave blank "
+"for each color to have its own opacity (recommended if any color is None)."
 msgstr ""
-"عتامة المحفز (1= شفاف، 0= شفاف تمامًا، 0.5= شفاف، 0.5= شفاف). اتركه فارغًا ليكون لكل "
-"لون عتامة خاصة به (موصى به إذا كان أي لون لا يوجد)."
+"عتامة المحفز (1= شفاف، 0= شفاف تمامًا، 0.5= شفاف، 0.5= شفاف). اتركه فارغًا ليكون لكل لون "
+"عتامة خاصة به (موصى به إذا كان أي لون لا يوجد)."
 
 #: psychopy/experiment/components/_base.py:1026
 #: psychopy/localization/_localization.py:172
@@ -5620,11 +5466,11 @@ msgstr "التعتيم"
 #: psychopy/experiment/components/_base.py:1028
 #, fuzzy
 msgid ""
-"Contrast of the stimulus (1.0=unchanged contrast, 0.5=decrease contrast, "
-"0.0=uniform/no contrast, -0.5=slightly inverted, -1.0=totally inverted)"
+"Contrast of the stimulus (1.0=unchanged contrast, 0.5=decrease contrast, 0.0=uniform/"
+"no contrast, -0.5=slightly inverted, -1.0=totally inverted)"
 msgstr ""
-"تباين المثير (1.0= تباين غير منتظم، 0.5= تباين أقل، 0.0= تباين غير منتظم/بدون "
-"تباين، -0.5= مقلوب قليلاً، -1.0= مقلوب تماماً)"
+"تباين المثير (1.0= تباين غير منتظم، 0.5= تباين أقل، 0.0= تباين غير منتظم/بدون تباين، "
+"-0.5= مقلوب قليلاً، -1.0= مقلوب تماماً)"
 
 #: psychopy/experiment/components/_base.py:1036
 #: psychopy/localization/_localization.py:171
@@ -5913,11 +5759,10 @@ msgstr "هل يجب أن تفرض الاستجابة نهاية الروتين (
 #: psychopy/experiment/components/button/__init__.py:101
 #, fuzzy
 msgid ""
-"Should the callback run once per click (True), or each frame until click is "
-"released (False)"
+"Should the callback run once per click (True), or each frame until click is released "
+"(False)"
 msgstr ""
-"هل يجب تشغيل رد النداء مرة واحدة لكل نقرة (صواب)، أو كل إطار حتى يتم تحرير النقرة "
-"(خطأ)"
+"هل يجب تشغيل رد النداء مرة واحدة لكل نقرة (صواب)، أو كل إطار حتى يتم تحرير النقرة (خطأ)"
 
 #: psychopy/experiment/components/button/__init__.py:107
 #, fuzzy
@@ -6019,8 +5864,8 @@ msgid ""
 "What device would you like to use to record video? This will only affect local "
 "experiments - online experiments ask the participant which device to use."
 msgstr ""
-"ما الجهاز الذي ترغب في استخدامه لتسجيل الفيديو؟ سيؤثر هذا على التجارب المحلية فقط "
-"- فالتجارب عبر الإنترنت تسأل المشارك عن الجهاز الذي سيستخدمه."
+"ما الجهاز الذي ترغب في استخدامه لتسجيل الفيديو؟ سيؤثر هذا على التجارب المحلية فقط - "
+"فالتجارب عبر الإنترنت تسأل المشارك عن الجهاز الذي سيستخدمه."
 
 #: psychopy/experiment/components/camera/__init__.py:243
 #: psychopy/experiment/components/camera/__init__.py:255
@@ -6056,8 +5901,7 @@ msgstr "القرار"
 
 #: psychopy/experiment/components/camera/__init__.py:317
 #, fuzzy
-msgid ""
-"Frame rate (frames per second) to record at, leave blank to use device default."
+msgid "Frame rate (frames per second) to record at, leave blank to use device default."
 msgstr ""
 "معدل الإطارات (إطارات في الثانية) للتسجيل، اتركه فارغًا لاستخدام المعدل الافتراضي "
 "للجهاز."
@@ -6081,11 +5925,11 @@ msgstr ""
 #: psychopy/experiment/components/microphone/__init__.py:97
 #, fuzzy
 msgid ""
-"What microphone device would you like the use to record? This will only affect "
-"local experiments - online experiments ask the participant which mic to use."
+"What microphone device would you like the use to record? This will only affect local "
+"experiments - online experiments ask the participant which mic to use."
 msgstr ""
-"ما هو جهاز الميكروفون الذي ترغب في استخدامه للتسجيل؟ سيؤثر هذا على التجارب المحلية "
-"فقط - التجارب عبر الإنترنت تسأل المشارك عن الميكروفون الذي سيستخدمه."
+"ما هو جهاز الميكروفون الذي ترغب في استخدامه للتسجيل؟ سيؤثر هذا على التجارب المحلية فقط "
+"- التجارب عبر الإنترنت تسأل المشارك عن الميكروفون الذي سيستخدمه."
 
 #: psychopy/experiment/components/camera/__init__.py:378
 #: psychopy/experiment/components/microphone/__init__.py:104
@@ -6097,11 +5941,11 @@ msgstr "الجهاز"
 #: psychopy/experiment/components/microphone/__init__.py:108
 #, fuzzy
 msgid ""
-"Record two channels (stereo) or one (mono, smaller file). Select 'auto' to use as "
-"many channels as the selected device allows."
+"Record two channels (stereo) or one (mono, smaller file). Select 'auto' to use as many "
+"channels as the selected device allows."
 msgstr ""
-"تسجيل قناتين (ستيريو) أو قناة واحدة (أحادية، ملف أصغر). حدد \"تلقائي\" لاستخدام "
-"أكبر عدد من القنوات يسمح به الجهاز المحدد."
+"تسجيل قناتين (ستيريو) أو قناة واحدة (أحادية، ملف أصغر). حدد \"تلقائي\" لاستخدام أكبر "
+"عدد من القنوات يسمح به الجهاز المحدد."
 
 #: psychopy/experiment/components/camera/__init__.py:389
 #: psychopy/experiment/components/microphone/__init__.py:117
@@ -6125,10 +5969,9 @@ msgstr "معدل العينة (هرتز)"
 #: psychopy/experiment/components/microphone/__init__.py:128
 #, fuzzy
 msgid ""
-"To avoid excessively large output files, what is the biggest file size you are "
-"likely to expect?"
-msgstr ""
-"لتجنب ملفات الإخراج الكبيرة بشكل مفرط، ما هو أكبر حجم ملف من المحتمل أن تتوقعه؟"
+"To avoid excessively large output files, what is the biggest file size you are likely "
+"to expect?"
+msgstr "لتجنب ملفات الإخراج الكبيرة بشكل مفرط، ما هو أكبر حجم ملف من المحتمل أن تتوقعه؟"
 
 #: psychopy/experiment/components/camera/__init__.py:405
 #: psychopy/experiment/components/microphone/__init__.py:132
@@ -6233,11 +6076,10 @@ msgstr "نوع الرمز"
 #: psychopy/experiment/components/code/__init__.py:68
 #, fuzzy
 msgid ""
-"Code to run before the experiment starts (initialization); right-click checks "
-"syntax"
+"Code to run before the experiment starts (initialization); right-click checks syntax"
 msgstr ""
-"الرمز المراد تشغيله قبل بدء التجربة (التهيئة)؛ يتحقق النقر بزر الماوس الأيمن من "
-"بناء الجملة"
+"الرمز المراد تشغيله قبل بدء التجربة (التهيئة)؛ يتحقق النقر بزر الماوس الأيمن من بناء "
+"الجملة"
 
 #: psychopy/experiment/components/code/__init__.py:74
 #, fuzzy
@@ -6261,8 +6103,8 @@ msgid ""
 "Code to be run at the start of each repeat of the Routine (e.g. each trial); right-"
 "click checks syntax"
 msgstr ""
-"الرمز الذي سيتم تشغيله في بداية كل تكرار للروتين (على سبيل المثال كل تجربة)؛ انقر "
-"بزر الماوس الأيمن للتحقق من بناء الجملة"
+"الرمز الذي سيتم تشغيله في بداية كل تكرار للروتين (على سبيل المثال كل تجربة)؛ انقر بزر "
+"الماوس الأيمن للتحقق من بناء الجملة"
 
 #: psychopy/experiment/components/code/__init__.py:93
 #: psychopy/experiment/components/code/__init__.py:144
@@ -6271,8 +6113,8 @@ msgid ""
 "Code to be run on every video frame during for the duration of this Routine; right-"
 "click checks syntax"
 msgstr ""
-"الرمز الذي سيتم تشغيله على كل إطار فيديو خلال مدة هذا الروتين؛ يتحقق النقر بزر "
-"الماوس الأيمن من بناء الجملة"
+"الرمز الذي سيتم تشغيله على كل إطار فيديو خلال مدة هذا الروتين؛ يتحقق النقر بزر الماوس "
+"الأيمن من بناء الجملة"
 
 #: psychopy/experiment/components/code/__init__.py:100
 #, fuzzy
@@ -6283,8 +6125,8 @@ msgstr "كل إطار"
 #: psychopy/experiment/components/code/__init__.py:153
 #, fuzzy
 msgid ""
-"Code at the end of this repeat of the Routine (e.g. getting/storing responses); "
-"right-click checks syntax"
+"Code at the end of this repeat of the Routine (e.g. getting/storing responses); right-"
+"click checks syntax"
 msgstr ""
 "الرمز في نهاية هذا التكرار للروتين (على سبيل المثال الحصول على/تخزين الاستجابات)؛ "
 "يتحقق النقر بزر الماوس الأيمن من بناء الجملة"
@@ -6296,8 +6138,8 @@ msgid ""
 "Code at the end of the entire experiment (e.g. saving files, resetting computer); "
 "right-click checks syntax"
 msgstr ""
-"الرمز في نهاية التجربة بأكملها (مثل حفظ الملفات، وإعادة ضبط الكمبيوتر)؛ يتحقق "
-"النقر بزر الماوس الأيمن من بناء الجملة"
+"الرمز في نهاية التجربة بأكملها (مثل حفظ الملفات، وإعادة ضبط الكمبيوتر)؛ يتحقق النقر "
+"بزر الماوس الأيمن من بناء الجملة"
 
 #: psychopy/experiment/components/code/__init__.py:118
 #, fuzzy
@@ -6308,8 +6150,7 @@ msgstr "إنهاء التجربة"
 #, fuzzy
 msgid ""
 "Code before the start of the experiment (initialization); right-click checks syntax"
-msgstr ""
-"الرمز قبل بدء التجربة (التهيئة)؛ يتحقق النقر بزر الماوس الأيمن من بناء الجملة"
+msgstr "الرمز قبل بدء التجربة (التهيئة)؛ يتحقق النقر بزر الماوس الأيمن من بناء الجملة"
 
 #: psychopy/experiment/components/code/__init__.py:126
 #, fuzzy
@@ -6318,10 +6159,8 @@ msgstr "قبل تجربة JS"
 
 #: psychopy/experiment/components/code/__init__.py:127
 #, fuzzy
-msgid ""
-"Code at the start of the experiment (initialization); right-click checks syntax"
-msgstr ""
-"الرمز في بداية التجربة (التهيئة)؛ يتحقق النقر بزر الماوس الأيمن من بناء الجملة"
+msgid "Code at the start of the experiment (initialization); right-click checks syntax"
+msgstr "الرمز في بداية التجربة (التهيئة)؛ يتحقق النقر بزر الماوس الأيمن من بناء الجملة"
 
 #: psychopy/experiment/components/code/__init__.py:133
 #, fuzzy
@@ -6418,8 +6257,7 @@ msgstr "النقاط: مخطط حركي نقطي عشوائي نقطي عشوا�
 #: psychopy/experiment/components/dots/__init__.py:67
 #, fuzzy
 msgid ""
-"Number of dots in the field (for circular fields this will be average number of "
-"dots)"
+"Number of dots in the field (for circular fields this will be average number of dots)"
 msgstr "عدد النقاط في الحقل (بالنسبة للحقول الدائرية سيكون متوسط عدد النقاط)"
 
 #: psychopy/experiment/components/dots/__init__.py:75
@@ -6434,8 +6272,7 @@ msgstr "سرعة النقاط (الإزاحة لكل إطار بالوحدات �
 
 #: psychopy/experiment/components/dots/__init__.py:92
 #, fuzzy
-msgid ""
-"Coherence of the dots (fraction moving in the signal direction on any one frame)"
+msgid "Coherence of the dots (fraction moving in the signal direction on any one frame)"
 msgstr "ترابط النقاط (الجزء المتحرك في اتجاه الإشارة في أي إطار واحد)"
 
 #: psychopy/experiment/components/dots/__init__.py:101
@@ -6445,8 +6282,7 @@ msgstr "حجم النقاط بالبيكسل بغض النظر عن الوحدا
 
 #: psychopy/experiment/components/dots/__init__.py:110
 #, fuzzy
-msgid ""
-"Number of frames before each dot is killed and randomly assigned a new position"
+msgid "Number of frames before each dot is killed and randomly assigned a new position"
 msgstr "عدد الإطارات قبل أن يتم قتل كل نقطة وتعيين موضع جديد لها عشوائيًا"
 
 #: psychopy/experiment/components/dots/__init__.py:117
@@ -6624,8 +6460,7 @@ msgstr "لون الصنف"
 msgid ""
 "Base text color for responses, also sets color of lines in sliders and borders of "
 "textboxes"
-msgstr ""
-"لون النص الأساسي للردود، كما يحدد لون الخطوط في أشرطة التمرير وحدود مربعات النص"
+msgstr "لون النص الأساسي للردود، كما يحدد لون الخطوط في أشرطة التمرير وحدود مربعات النص"
 
 #: psychopy/experiment/components/form/__init__.py:162
 #, fuzzy
@@ -6712,11 +6547,11 @@ msgstr "الشبك: تقديم نسيج دوري، مدمج مسبقًا أو م
 #: psychopy/experiment/components/grating/__init__.py:55
 #, fuzzy
 msgid ""
-"The (2D) texture of the grating - can be sin, sqr, sinXsin... or a filename "
-"(including path)"
+"The (2D) texture of the grating - can be sin, sqr, sinXsin... or a filename (including "
+"path)"
 msgstr ""
-"نسيج (ثنائي الأبعاد) للشبكة - يمكن أن يكون sin أو sqr أو sinXsin... أو اسم ملف "
-"(بما في ذلك المسار)"
+"نسيج (ثنائي الأبعاد) للشبكة - يمكن أن يكون sin أو sqr أو sinXsin... أو اسم ملف (بما في "
+"ذلك المسار)"
 
 #: psychopy/experiment/components/grating/__init__.py:64
 #: psychopy/experiment/components/patch/__init__.py:59
@@ -6724,14 +6559,13 @@ msgstr ""
 msgid ""
 "An image to define the alpha mask (ie shape)- gauss, circle... or a filename "
 "(including path)"
-msgstr ""
-"صورة لتحديد قناع ألفا (أي الشكل) - غاوس، دائرة... أو اسم ملف (بما في ذلك المسار)"
+msgstr "صورة لتحديد قناع ألفا (أي الشكل) - غاوس، دائرة... أو اسم ملف (بما في ذلك المسار)"
 
 #: psychopy/experiment/components/grating/__init__.py:73
 #, fuzzy
 msgid ""
-"Spatial frequency of image repeats across the grating in 1 or 2 dimensions, e.g. 4 "
-"or [2,3]"
+"Spatial frequency of image repeats across the grating in 1 or 2 dimensions, e.g. 4 or "
+"[2,3]"
 msgstr ""
 "التردد المكاني لتكرار الصورة عبر الشبكة في بُعد واحد أو بُعدين، على سبيل المثال 4 أو "
 "[2،3]"
@@ -6758,8 +6592,8 @@ msgid ""
 "Resolution of the texture for standard ones such as sin, sqr etc. For most cases a "
 "value of 256 pixels will suffice"
 msgstr ""
-"دقة النسيج بالنسبة للأنسجة القياسية مثل sin و sqr وما إلى ذلك. بالنسبة لمعظم "
-"الحالات تكفي قيمة 256 بكسل"
+"دقة النسيج بالنسبة للأنسجة القياسية مثل sin و sqr وما إلى ذلك. بالنسبة لمعظم الحالات "
+"تكفي قيمة 256 بكسل"
 
 #: psychopy/experiment/components/grating/__init__.py:117
 #: psychopy/experiment/components/image/__init__.py:81
@@ -6776,8 +6610,7 @@ msgid ""
 "OpenGL Blendmode: avg gives traditional transparency, add is important to combine "
 "gratings)]"
 msgstr ""
-"وضع Blendmode OpenGL Blendmode: يعطي avg شفافية تقليدية، والإضافة مهمة لدمج "
-"الشبكات)]"
+"وضع Blendmode OpenGL Blendmode: يعطي avg شفافية تقليدية، والإضافة مهمة لدمج الشبكات)]"
 
 #: psychopy/experiment/components/image/__init__.py:14
 #: psychopy/experiment/components/image/__init__.py:60
@@ -6815,8 +6648,8 @@ msgid ""
 "An image to define the alpha mask through which the image is seen - gauss, circle, "
 "None or a filename (including path)"
 msgstr ""
-"صورة لتحديد قناع ألفا الذي تظهر الصورة من خلاله - غاوس، أو دائرة، أو لا شيء أو اسم "
-"ملف (بما في ذلك المسار)"
+"صورة لتحديد قناع ألفا الذي تظهر الصورة من خلاله - غاوس، أو دائرة، أو لا شيء أو اسم ملف "
+"(بما في ذلك المسار)"
 
 #: psychopy/experiment/components/image/__init__.py:72
 #, fuzzy
@@ -6909,14 +6742,13 @@ msgid ""
 "What is the 'correct' key? Might be helpful to add a correctAns column and use "
 "$correctAns to compare to the key press."
 msgstr ""
-"ما هو المفتاح \"الصحيح\"؟ قد يكون من المفيد إضافة عمود correctAns واستخدام "
-"$correctAns للمقارنة مع الضغط على المفتاح."
+"ما هو المفتاح \"الصحيح\"؟ قد يكون من المفيد إضافة عمود correctAns واستخدام $correctAns "
+"للمقارنة مع الضغط على المفتاح."
 
 #: psychopy/experiment/components/joyButtons/__init__.py:112
 #: psychopy/experiment/components/keyboard/__init__.py:138
 #, fuzzy
-msgid ""
-"A reaction time to a visual stimulus should be based on when the screen flipped"
+msgid "A reaction time to a visual stimulus should be based on when the screen flipped"
 msgstr "يجب أن يعتمد زمن رد الفعل على المثير المرئي على وقت انقلاب الشاشة"
 
 #: psychopy/experiment/components/joyButtons/__init__.py:118
@@ -6927,8 +6759,7 @@ msgstr "مزامنة RT مع الشاشة"
 #: psychopy/experiment/components/joyButtons/__init__.py:121
 #: psychopy/experiment/components/joystick/__init__.py:110
 #, fuzzy
-msgid ""
-"Device number, if you have multiple devices which one do you want (0, 1, 2...)"
+msgid "Device number, if you have multiple devices which one do you want (0, 1, 2...)"
 msgstr "رقم الجهاز، إذا كان لديك عدة أجهزة، فأي جهاز تريده (0، 1، 2...)"
 
 #: psychopy/experiment/components/joystick/__init__.py:17
@@ -6977,8 +6808,8 @@ msgid ""
 "How often should the joystick state (x,y,buttons) be stored? On every video frame, "
 "every click or just at the end of the Routine?"
 msgstr ""
-"كم مرة يجب تخزين حالة عصا التحكم (س، ص، أزرار) ؟ في كل إطار فيديو أو كل نقرة أو "
-"فقط في نهاية الروتين؟"
+"كم مرة يجب تخزين حالة عصا التحكم (س، ص، أزرار) ؟ في كل إطار فيديو أو كل نقرة أو فقط في "
+"نهاية الروتين؟"
 
 #: psychopy/experiment/components/joystick/__init__.py:67
 #: psychopy/experiment/components/mouse/__init__.py:65
@@ -7005,13 +6836,13 @@ msgstr ""
 #: psychopy/experiment/components/joystick/__init__.py:99
 #, fuzzy
 msgid ""
-"The params (e.g. name, text), for which you want to store the current value, for "
-"the stimulus that was\"clicked\" by the joystick. Make sure that all the clickable "
-"objects have all these params."
+"The params (e.g. name, text), for which you want to store the current value, for the "
+"stimulus that was\"clicked\" by the joystick. Make sure that all the clickable objects "
+"have all these params."
 msgstr ""
-"البارامترات (مثل الاسم، النص)، التي تريد تخزين القيمة الحالية للمحفز الذي تم "
-"\"النقر عليه\" بواسطة عصا التحكم. تأكّد من أن جميع الكائنات القابلة للنقر تحتوي على "
-"جميع هذه البارامترات."
+"البارامترات (مثل الاسم، النص)، التي تريد تخزين القيمة الحالية للمحفز الذي تم \"النقر "
+"عليه\" بواسطة عصا التحكم. تأكّد من أن جميع الكائنات القابلة للنقر تحتوي على جميع هذه "
+"البارامترات."
 
 #: psychopy/experiment/components/joystick/__init__.py:119
 #, fuzzy
@@ -7043,8 +6874,7 @@ msgstr "لوحة المفاتيح: التحقق من ضغطات المفاتيح
 
 #: psychopy/experiment/components/keyboard/__init__.py:63
 #, fuzzy
-msgid ""
-"A comma-separated list of keys (with quotes), such as 'q','right','space','left'"
+msgid "A comma-separated list of keys (with quotes), such as 'q','right','space','left'"
 msgstr ""
 "قائمة مفصولة بفاصلة من المفاتيح (بعلامات اقتباس)، مثل \"q\"، \"يمين\"، \"مسافة\"، "
 "\"يسار"
@@ -7077,10 +6907,8 @@ msgstr "القناة"
 
 #: psychopy/experiment/components/microphone/__init__.py:64
 #, fuzzy
-msgid ""
-"Microphone: basic sound capture (fixed onset & duration), okay for spoken words"
-msgstr ""
-"الميكروفون: التقاط الصوت الأساسي (بداية ومدة ثابتة)، لا بأس به للكلمات المنطوقة"
+msgid "Microphone: basic sound capture (fixed onset & duration), okay for spoken words"
+msgstr "الميكروفون: التقاط الصوت الأساسي (بداية ومدة ثابتة)، لا بأس به للكلمات المنطوقة"
 
 #: psychopy/experiment/components/microphone/__init__.py:93
 #, fuzzy
@@ -7100,8 +6928,7 @@ msgstr "نوع ملف الإخراج"
 #: psychopy/experiment/components/microphone/__init__.py:144
 #, fuzzy
 msgid "Tick this to save times when the participant starts and stops speaking"
-msgstr ""
-"ضع علامة على هذا لحفظ الأوقات التي يبدأ فيها المشارك في التحدث ويتوقف عن التحدث"
+msgstr "ضع علامة على هذا لحفظ الأوقات التي يبدأ فيها المشارك في التحدث ويتوقف عن التحدث"
 
 #: psychopy/experiment/components/microphone/__init__.py:148
 #, fuzzy
@@ -7140,10 +6967,8 @@ msgstr "الواجهة الخلفية للنسخ"
 
 #: psychopy/experiment/components/microphone/__init__.py:190
 #, fuzzy
-msgid ""
-"What language you expect the recording to be spoken in, e.g. en-US for English"
-msgstr ""
-"ما هي اللغة التي تتوقع أن يتم التسجيل بها، على سبيل المثال en-US للغة الإنجليزية"
+msgid "What language you expect the recording to be spoken in, e.g. en-US for English"
+msgstr "ما هي اللغة التي تتوقع أن يتم التسجيل بها، على سبيل المثال en-US للغة الإنجليزية"
 
 #: psychopy/experiment/components/microphone/__init__.py:191
 #, fuzzy
@@ -7156,16 +6981,16 @@ msgid ""
 "Set list of words to listen for - if blank will listen for all words in chosen "
 "language. \n"
 "\n"
-"If using the built-in transcriber, you can set a minimum % confidence level using "
-"a colon after the word, e.g. 'red:100', 'green:80'. Otherwise, default confidence "
-"level is 80%."
+"If using the built-in transcriber, you can set a minimum % confidence level using a "
+"colon after the word, e.g. 'red:100', 'green:80'. Otherwise, default confidence level "
+"is 80%."
 msgstr ""
 "تعيين قائمة بالكلمات المراد الاستماع إليها - إذا كانت فارغة سيتم الاستماع إلى جميع "
 "الكلمات باللغة المختارة.\n"
 "\n"
-"إذا كنت تستخدم أداة النسخ المدمجة، يمكنك تعيين الحد الأدنى % c لمستوى الثقة "
-"باستخدام نقطتين بعد الكلمة، على سبيل المثال \"أحمر: 100\"، \"أخضر: 80\". خلاف ذلك، "
-"مستوى الثقة الافتراضي هو 80٪."
+"إذا كنت تستخدم أداة النسخ المدمجة، يمكنك تعيين الحد الأدنى % c لمستوى الثقة باستخدام "
+"نقطتين بعد الكلمة، على سبيل المثال \"أحمر: 100\"، \"أخضر: 80\". خلاف ذلك، مستوى الثقة "
+"الافتراضي هو 80٪."
 
 #: psychopy/experiment/components/microphone/__init__.py:206
 #, fuzzy
@@ -7175,11 +7000,11 @@ msgstr "الكلمات المتوقعة"
 #: psychopy/experiment/components/microphone/__init__.py:220
 #, fuzzy
 msgid ""
-"Which model of Whisper AI should be used for transcription? Details of each model "
-"are available here at github.com/openai/whisper"
+"Which model of Whisper AI should be used for transcription? Details of each model are "
+"available here at github.com/openai/whisper"
 msgstr ""
-"ما هو نموذج Whisper AI الذي يجب استخدامه للنسخ؟ تفاصيل كل نموذج متاحة هنا على "
-"github.com/openai/whisper"
+"ما هو نموذج Whisper AI الذي يجب استخدامه للنسخ؟ تفاصيل كل نموذج متاحة هنا على github."
+"com/openai/whisper"
 
 #: psychopy/experiment/components/microphone/__init__.py:221
 #, fuzzy
@@ -7206,8 +7031,8 @@ msgstr "الماوس: الاستعلام عن موضع الماوس والأزر
 #: psychopy/experiment/components/mouse/__init__.py:56
 #, fuzzy
 msgid ""
-"How often should the mouse state (x,y,buttons) be stored? On every video frame, "
-"every click or just at the end of the Routine?"
+"How often should the mouse state (x,y,buttons) be stored? On every video frame, every "
+"click or just at the end of the Routine?"
 msgstr ""
 "كم مرة يجب تخزين حالة الماوس (س، ص، أزرار) ؟ في كل إطار فيديو أو كل نقرة أو فقط في "
 "نهاية الروتين؟"
@@ -7218,27 +7043,26 @@ msgid ""
 "If the mouse button is already down when we start checking then wait for it to be "
 "released before recording as a new click."
 msgstr ""
-"إذا كان زر الفأرة معطلاً بالفعل عندما نبدأ في التحقق، فانتظر حتى يتم تحريره قبل "
-"التسجيل كنقرة جديدة."
+"إذا كان زر الفأرة معطلاً بالفعل عندما نبدأ في التحقق، فانتظر حتى يتم تحريره قبل التسجيل "
+"كنقرة جديدة."
 
 #: psychopy/experiment/components/mouse/__init__.py:107
 #, fuzzy
 msgid ""
-"The params (e.g. name, text), for which you want to store the current value, for "
-"the stimulus that was\"clicked\" by the mouse. Make sure that all the clickable "
-"objects have all these params."
+"The params (e.g. name, text), for which you want to store the current value, for the "
+"stimulus that was\"clicked\" by the mouse. Make sure that all the clickable objects "
+"have all these params."
 msgstr ""
 "البارامترات (مثل الاسم، والنص)، التي تريد تخزين القيمة الحالية للمحفز الذي تم "
-"\"النقر\" عليه بواسطة الفأرة. تأكد من أن جميع الكائنات القابلة للنقر تحتوي على "
-"جميع هذه البارامترات."
+"\"النقر\" عليه بواسطة الفأرة. تأكد من أن جميع الكائنات القابلة للنقر تحتوي على جميع "
+"هذه البارامترات."
 
 #: psychopy/experiment/components/mouse/__init__.py:136
 #, fuzzy
 msgid ""
-"What is the 'correct' object? To specify an area, remember that you can create a "
-"shape Component with 0 opacity."
-msgstr ""
-"ما هو الكائن \"الصحيح\"؟ لتحديد مساحة، تذكر أنه يمكنك إنشاء مكون شكل بعتامة 0."
+"What is the 'correct' object? To specify an area, remember that you can create a shape "
+"Component with 0 opacity."
+msgstr "ما هو الكائن \"الصحيح\"؟ لتحديد مساحة، تذكر أنه يمكنك إنشاء مكون شكل بعتامة 0."
 
 #: psychopy/experiment/components/movie/__init__.py:16
 #: psychopy/experiment/components/movie/__init__.py:63
@@ -7280,8 +7104,7 @@ msgstr "ما هو المرجع الأساسي الذي يجب استخدامه �
 
 #: psychopy/experiment/components/movie/__init__.py:72
 #, fuzzy
-msgid ""
-"Prevent the audio stream from being loaded/processed (moviepy and opencv only)"
+msgid "Prevent the audio stream from being loaded/processed (moviepy and opencv only)"
 msgstr "منع تحميل/معالجة الدفق الصوتي (moviepy و opencv فقط)"
 
 #: psychopy/experiment/components/movie/__init__.py:88
@@ -7330,11 +7153,10 @@ msgstr "التوقف مع الروتين؟"
 #: psychopy/experiment/components/panorama/__init__.py:23
 #, fuzzy
 msgid ""
-"Panorama: Present a panoramic image (such as from a phone camera in Panorama mode) "
-"on screen."
+"Panorama: Present a panoramic image (such as from a phone camera in Panorama mode) on "
+"screen."
 msgstr ""
-"بانوراما: عرض صورة بانورامية (مثل صورة من كاميرا الهاتف في وضع البانوراما) على "
-"الشاشة."
+"بانوراما: عرض صورة بانورامية (مثل صورة من كاميرا الهاتف في وضع البانوراما) على الشاشة."
 
 #: psychopy/experiment/components/panorama/__init__.py:89
 #, fuzzy
@@ -7382,7 +7204,7 @@ msgstr "أسفل"
 
 #: psychopy/experiment/components/panorama/__init__.py:143
 msgid "Right"
-msgstr "يمين "
+msgstr "يمين"
 
 #: psychopy/experiment/components/panorama/__init__.py:156
 #: psychopy/experiment/components/panorama/__init__.py:231
@@ -7392,8 +7214,7 @@ msgstr "ما المفتاح الذي يتوافق مع إجراء العرض \"{
 
 #: psychopy/experiment/components/panorama/__init__.py:174
 #, fuzzy
-msgid ""
-"Should movement be smoothed, so the view keeps moving a little after a change?"
+msgid "Should movement be smoothed, so the view keeps moving a little after a change?"
 msgstr "هل يجب أن تكون الحركة سلسة، بحيث يستمر العرض في التحرك قليلاً بعد التغيير؟"
 
 #: psychopy/experiment/components/panorama/__init__.py:180
@@ -7404,11 +7225,11 @@ msgstr "سلس؟"
 #: psychopy/experiment/components/panorama/__init__.py:192
 #, fuzzy
 msgid ""
-"Multiplier to apply to view changes. 1 means that moving the mouse from the center "
-"of the screen to the edge or holding down a key for 2s will rotate 180°."
+"Multiplier to apply to view changes. 1 means that moving the mouse from the center of "
+"the screen to the edge or holding down a key for 2s will rotate 180°."
 msgstr ""
-"مضاعف لتطبيقه على تغييرات العرض. 1 يعني أن تحريك الفأرة من منتصف الشاشة إلى الحافة "
-"أو الضغط باستمرار على أحد المفاتيح لمدة 2 ثانية سيؤدي إلى تدوير 180 درجة."
+"مضاعف لتطبيقه على تغييرات العرض. 1 يعني أن تحريك الفأرة من منتصف الشاشة إلى الحافة أو "
+"الضغط باستمرار على أحد المفاتيح لمدة 2 ثانية سيؤدي إلى تدوير 180 درجة."
 
 #: psychopy/experiment/components/panorama/__init__.py:198
 #, fuzzy
@@ -7448,12 +7269,12 @@ msgstr "تكبير/تصغير"
 #: psychopy/experiment/components/panorama/__init__.py:269
 #, fuzzy
 msgid ""
-"Multiplier to apply to zoom changes. 1 means that pressing the zoom in key for 1s "
-"or scrolling the mouse wheel 100% zooms in 100%."
+"Multiplier to apply to zoom changes. 1 means that pressing the zoom in key for 1s or "
+"scrolling the mouse wheel 100% zooms in 100%."
 msgstr ""
-"مضاعف لتطبيقه على تغييرات التكبير. 1 يعني أن الضغط على مفتاح التكبير/التصغير لمدة "
-"1 ثانية أو تمرير عجلة الفأرة 100% zo يعني أن الضغط على مفتاح التكبير/التصغير لمدة "
-"1 ثانية أو تمرير عجلة الفأرة 100% zo يعني 100%."
+"مضاعف لتطبيقه على تغييرات التكبير. 1 يعني أن الضغط على مفتاح التكبير/التصغير لمدة 1 "
+"ثانية أو تمرير عجلة الفأرة 100% zo يعني أن الضغط على مفتاح التكبير/التصغير لمدة 1 "
+"ثانية أو تمرير عجلة الفأرة 100% zo يعني 100%."
 
 #: psychopy/experiment/components/panorama/__init__.py:275
 #, fuzzy
@@ -7503,8 +7324,7 @@ msgstr "مخرج متوازي: إرسال إشارات من المنفذ الم�
 
 #: psychopy/experiment/components/parallelOut/__init__.py:57
 #, fuzzy
-msgid ""
-"Parallel port to be used (you can change these options in preferences>general)"
+msgid "Parallel port to be used (you can change these options in preferences>general)"
 msgstr "المنفذ المتوازي المراد استخدامه (يمكنك تغيير هذه الخيارات في التفضيلات> عام)"
 
 #: psychopy/experiment/components/parallelOut/__init__.py:72
@@ -7530,11 +7350,10 @@ msgstr "البيانات التي سيتم إرسالها في \"النهاية"
 #: psychopy/experiment/components/parallelOut/__init__.py:87
 #, fuzzy
 msgid ""
-"If the parallel port data relates to visual stimuli then sync its pulse to the "
-"screen refresh"
+"If the parallel port data relates to visual stimuli then sync its pulse to the screen "
+"refresh"
 msgstr ""
-"إذا كانت بيانات المنفذ المتوازي تتعلق بمحفزات بصرية، فقم بمزامنة نبضها مع تحديث "
-"الشاشة"
+"إذا كانت بيانات المنفذ المتوازي تتعلق بمحفزات بصرية، فقم بمزامنة نبضها مع تحديث الشاشة"
 
 #: psychopy/experiment/components/patch/__init__.py:14
 #: psychopy/experiment/components/patch/__init__.py:57
@@ -7600,8 +7419,7 @@ msgstr "كم عدد الرءوس في المضلع المنتظم؟"
 #: psychopy/experiment/components/polygon/__init__.py:82
 #, fuzzy
 msgid ""
-"What are the vertices of your polygon? Should be an nx2 array or a list of [x, y] "
-"lists"
+"What are the vertices of your polygon? Should be an nx2 array or a list of [x, y] lists"
 msgstr "ما هي رؤوس المضلع الخاص بك؟ يجب أن تكون مصفوفة nx2 أو قائمة من قوائم [x، y]"
 
 #: psychopy/experiment/components/polygon/__init__.py:88
@@ -7612,8 +7430,8 @@ msgstr "الرؤوس"
 #: psychopy/experiment/components/polygon/__init__.py:106
 #, fuzzy
 msgid ""
-"What shape is this? With 'regular polygon...' you can set number of vertices and "
-"with 'custom polygon...' you can set vertices"
+"What shape is this? With 'regular polygon...' you can set number of vertices and with "
+"'custom polygon...' you can set vertices"
 msgstr ""
 "ما هو هذا الشكل؟ باستخدام \"مضلع عادي...\" يمكنك تعيين عدد الرؤوس وباستخدام \"مضلع "
 "مخصص...\" يمكنك تعيين الرؤوس"
@@ -7627,15 +7445,15 @@ msgstr "عرض خط الشكل (دائمًا بالبكسل - لا يستخدم 
 #: psychopy/experiment/components/polygon/__init__.py:140
 #, fuzzy
 msgid ""
-"Size of this stimulus [w,h]. Note that for a line only the first value is used, "
-"for triangle and rect the [w,h] is as expected,\n"
-" but for higher-order polygons it represents the [w,h] of the ellipse that the "
-"polygon sits on!! "
+"Size of this stimulus [w,h]. Note that for a line only the first value is used, for "
+"triangle and rect the [w,h] is as expected,\n"
+" but for higher-order polygons it represents the [w,h] of the ellipse that the polygon "
+"sits on!! "
 msgstr ""
-"حجم هذا المنبه [w، h]. لاحظ أنه بالنسبة للخط المستقيم يتم استخدام القيمة الأولى "
-"فقط، أما بالنسبة للمثلث والمستطيل فإن [w، h] كما هو متوقع,\n"
-" أما بالنسبة للمضلعات ذات الرتب الأعلى، فهي تمثل [w، h] للمقطع الناقص الذي يقع "
-"عليه المضلع"
+"حجم هذا المنبه [w، h]. لاحظ أنه بالنسبة للخط المستقيم يتم استخدام القيمة الأولى فقط، "
+"أما بالنسبة للمثلث والمستطيل فإن [w، h] كما هو متوقع,\n"
+" أما بالنسبة للمضلعات ذات الرتب الأعلى، فهي تمثل [w، h] للمقطع الناقص الذي يقع عليه "
+"المضلع"
 
 #: psychopy/experiment/components/progress/__init__.py:16
 #, fuzzy
@@ -7793,23 +7611,22 @@ msgid ""
 "Show a continuous visual analog scale; returns 0.00 to 1.00; takes precedence over "
 "numeric scale or categorical choices"
 msgstr ""
-"عرض مقياس تناظري مرئي متواصل؛ إرجاع من 0.00 إلى 1.00؛ له الأسبقية على المقياس "
-"الرقمي أو الخيارات الفئوية"
+"عرض مقياس تناظري مرئي متواصل؛ إرجاع من 0.00 إلى 1.00؛ له الأسبقية على المقياس الرقمي "
+"أو الخيارات الفئوية"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:94
 #, fuzzy
 msgid ""
-"A list of categories (non-numeric alternatives) to present, space or comma-"
-"separated; these take precedence over a numeric scale"
+"A list of categories (non-numeric alternatives) to present, space or comma-separated; "
+"these take precedence over a numeric scale"
 msgstr ""
-"قائمة بالفئات (بدائل غير رقمية) لتقديمها، مفصولة بمسافة أو فاصلة؛ وهذه لها "
-"الأسبقية على المقياس الرقمي"
+"قائمة بالفئات (بدائل غير رقمية) لتقديمها، مفصولة بمسافة أو فاصلة؛ وهذه لها الأسبقية "
+"على المقياس الرقمي"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:101
 #, fuzzy
 msgid ""
-"Brief instructions, such as a description of the scale numbers as seen by the "
-"subject."
+"Brief instructions, such as a description of the scale numbers as seen by the subject."
 msgstr "إرشادات موجزة، مثل وصف أرقام المقياس كما يراها الموضوع."
 
 #: psychopy/experiment/components/ratingScale/__init__.py:107
@@ -7840,10 +7657,8 @@ msgstr "الموضع الأولي للعلامة"
 #: psychopy/experiment/components/ratingScale/__init__.py:139
 #, fuzzy
 msgid ""
-"Should clicking the line accept that rating (without needing to confirm via "
-"'accept')?"
-msgstr ""
-"هل يجب النقر على السطر قبول هذا التصنيف (دون الحاجة إلى التأكيد عبر \"قبول\")؟"
+"Should clicking the line accept that rating (without needing to confirm via 'accept')?"
+msgstr "هل يجب النقر على السطر قبول هذا التصنيف (دون الحاجة إلى التأكيد عبر \"قبول\")؟"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:145
 #, fuzzy
@@ -7885,19 +7700,19 @@ msgstr "ارتفاع علامات التجزئة (1 لأعلى، 0 مخفي، -1
 #: psychopy/experiment/components/ratingScale/__init__.py:186
 #, fuzzy
 msgid ""
-"Use this text to create the rating scale as you would in a code Component; "
-"overrides all dialog settings except time parameters, forceEndRoutine, "
-"storeRatingTime, storeRating"
+"Use this text to create the rating scale as you would in a code Component; overrides "
+"all dialog settings except time parameters, forceEndRoutine, storeRatingTime, "
+"storeRating"
 msgstr ""
-"استخدم هذا النص لإنشاء مقياس التصنيف كما تفعل في مكون التعليمات البرمجية؛ يتجاوز "
-"جميع إعدادات مربع الحوار باستثناء معلمات الوقت و forceEndRoutine و "
-"storageRatingTime و storageRating"
+"استخدم هذا النص لإنشاء مقياس التصنيف كما تفعل في مكون التعليمات البرمجية؛ يتجاوز جميع "
+"إعدادات مربع الحوار باستثناء معلمات الوقت و forceEndRoutine و storageRatingTime و "
+"storageRating"
 
 #: psychopy/experiment/components/resourceManager/__init__.py:14
 #, fuzzy
 msgid ""
-"Pre-load some resources into memory so that components using them can start "
-"without having to load first"
+"Pre-load some resources into memory so that components using them can start without "
+"having to load first"
 msgstr ""
 "تحميل بعض الموارد مسبقًا في الذاكرة بحيث يمكن بدء تشغيل المكونات التي تستخدمها دون "
 "الحاجة إلى تحميلها أولاً"
@@ -7975,8 +7790,8 @@ msgstr "الحد الأدنى لوقت النظر"
 #: psychopy/experiment/components/roi/__init__.py:84
 #, fuzzy
 msgid ""
-"In debug mode, the ROI is drawn in red. Use this to see what area of the screen is "
-"in the ROI."
+"In debug mode, the ROI is drawn in red. Use this to see what area of the screen is in "
+"the ROI."
 msgstr ""
 "في وضع التصحيح، يتم رسم عائد الاستثمار باللون الأحمر. استخدم هذا لرؤية أي منطقة من "
 "الشاشة موجودة في عائد الاستثمار."
@@ -8020,8 +7835,7 @@ msgstr "تعطيل الروتين"
 #: psychopy/experiment/components/routineSettings/__init__.py:60
 #, fuzzy
 msgid "When should this Routine end, if not already ended by a Component?"
-msgstr ""
-"متى يجب أن ينتهي هذا الروتين، إذا لم يكن قد انتهى بالفعل بواسطة أحد المكونات؟"
+msgstr "متى يجب أن ينتهي هذا الروتين، إذا لم يكن قد انتهى بالفعل بواسطة أحد المكونات؟"
 
 #: psychopy/experiment/components/routineSettings/__init__.py:64
 #: psychopy/experiment/components/serialOut/__init__.py:82
@@ -8035,17 +7849,17 @@ msgid ""
 "When should this Routine end, if not already ended by a Component? Leave blank for "
 "endless."
 msgstr ""
-"متى يجب أن ينتهي هذا الروتين، إذا لم يكن قد انتهى بالفعل بواسطة أحد المكونات؟ "
-"اتركه فارغًا إلى ما لا نهاية."
+"متى يجب أن ينتهي هذا الروتين، إذا لم يكن قد انتهى بالفعل بواسطة أحد المكونات؟ اتركه "
+"فارغًا إلى ما لا نهاية."
 
 #: psychopy/experiment/components/routineSettings/__init__.py:76
 #, fuzzy
 msgid ""
-"Skip this Routine if the value in this contorl evaluates to True. Leave blank to "
-"not skip."
+"Skip this Routine if the value in this contorl evaluates to True. Leave blank to not "
+"skip."
 msgstr ""
-"تخطي هذا الإجراء الروتيني إذا كانت القيمة في هذا الكونتورل تساوي True. اتركها "
-"فارغة لعدم التخطي."
+"تخطي هذا الإجراء الروتيني إذا كانت القيمة في هذا الكونتورل تساوي True. اتركها فارغة "
+"لعدم التخطي."
 
 #: psychopy/experiment/components/routineSettings/__init__.py:78
 #, fuzzy
@@ -8055,11 +7869,11 @@ msgstr "تخطي إذا..."
 #: psychopy/experiment/components/routineSettings/__init__.py:85
 #, fuzzy
 msgid ""
-"Some descriptive text to give information about this Routine. This won't affect "
-"how it runs, it's purely for your own reference!"
+"Some descriptive text to give information about this Routine. This won't affect how it "
+"runs, it's purely for your own reference!"
 msgstr ""
-"بعض النصوص الوصفية لإعطاء معلومات عن هذا الروتين. لن يؤثر هذا على كيفية تشغيله، "
-"إنه فقط للرجوع إليه!"
+"بعض النصوص الوصفية لإعطاء معلومات عن هذا الروتين. لن يؤثر هذا على كيفية تشغيله، إنه "
+"فقط للرجوع إليه!"
 
 #: psychopy/experiment/components/routineSettings/__init__.py:89
 msgid "Description"
@@ -8083,11 +7897,11 @@ msgstr "لون الخلفية"
 #: psychopy/experiment/components/routineSettings/__init__.py:113
 #, fuzzy
 msgid ""
-"Color of the screen this Routine (e.g. black, $[1.0,1.0,1.0], $variable. Right-"
-"click to bring up a color-picker.)"
+"Color of the screen this Routine (e.g. black, $[1.0,1.0,1.0], $variable. Right-click "
+"to bring up a color-picker.)"
 msgstr ""
-"لون الشاشة هذا الروتين (على سبيل المثال أسود، $[1.0,1.0,1.0,1.0]، $ المتغير. انقر "
-"بزر الماوس الأيمن لإظهار منتقي الألوان)"
+"لون الشاشة هذا الروتين (على سبيل المثال أسود، $[1.0,1.0,1.0,1.0]، $ المتغير. انقر بزر "
+"الماوس الأيمن لإظهار منتقي الألوان)"
 
 #: psychopy/experiment/components/routineSettings/__init__.py:119
 #: psychopy/experiment/components/settings/__init__.py:248
@@ -8123,8 +7937,8 @@ msgstr "تناسب الخلفية"
 #: psychopy/experiment/components/routineSettings/__init__.py:147
 #, fuzzy
 msgid ""
-"Save the start and stop times of this Routine (according to the global clock) to "
-"the data file."
+"Save the start and stop times of this Routine (according to the global clock) to the "
+"data file."
 msgstr "احفظ أوقات بدء وإيقاف هذا الروتين (وفقًا للساعة العامة) في ملف البيانات."
 
 #: psychopy/experiment/components/serialOut/__init__.py:29
@@ -8193,22 +8007,21 @@ msgid ""
 "Data to be sent at start of pulse. Data will be converted to bytes, so to specify "
 "anumeric value directly use $chr(...)."
 msgstr ""
-"البيانات التي سيتم إرسالها في بداية النبضة. سيتم تحويل البيانات إلى وحدات بايت، "
-"لذا لتحديد قيمة رقمية مباشرةً استخدم $ chr(...)."
+"البيانات التي سيتم إرسالها في بداية النبضة. سيتم تحويل البيانات إلى وحدات بايت، لذا "
+"لتحديد قيمة رقمية مباشرةً استخدم $ chr(...)."
 
 #: psychopy/experiment/components/serialOut/__init__.py:91
 #, fuzzy
 msgid ""
-"String data to be sent at end of pulse. Data will be converted to bytes, so to "
-"specify anumeric value directly use $chr(...)."
+"String data to be sent at end of pulse. Data will be converted to bytes, so to specify "
+"anumeric value directly use $chr(...)."
 msgstr ""
-"بيانات السلسلة التي سيتم إرسالها في نهاية النبضة. سيتم تحويل البيانات إلى بايت، "
-"لذا لتحديد قيمة رقمية مباشرةً استخدم $ chr(...)."
+"بيانات السلسلة التي سيتم إرسالها في نهاية النبضة. سيتم تحويل البيانات إلى بايت، لذا "
+"لتحديد قيمة رقمية مباشرةً استخدم $ chr(...)."
 
 #: psychopy/experiment/components/serialOut/__init__.py:96
 #, fuzzy
-msgid ""
-"After sending a signal, should PsychoPy read and record a response from the port?"
+msgid "After sending a signal, should PsychoPy read and record a response from the port?"
 msgstr "بعد إرسال إشارة، هل يجب على PsychoPy قراءة استجابة من المنفذ وتسجيلها؟"
 
 #: psychopy/experiment/components/serialOut/__init__.py:97
@@ -8399,8 +8212,8 @@ msgid ""
 "The info to present in a dialog box. Right-click to check syntax and preview the "
 "dialog box."
 msgstr ""
-"المعلومات المراد تقديمها في مربع حوار. انقر بزر الماوس الأيمن للتحقق من بناء "
-"الجملة ومعاينة مربع الحوار."
+"المعلومات المراد تقديمها في مربع حوار. انقر بزر الماوس الأيمن للتحقق من بناء الجملة "
+"ومعاينة مربع الحوار."
 
 #: psychopy/experiment/components/settings/__init__.py:211
 #, fuzzy
@@ -8414,8 +8227,7 @@ msgstr "تشغيل التجربة بملء الشاشة الكاملة (موصى
 
 #: psychopy/experiment/components/settings/__init__.py:223
 #, fuzzy
-msgid ""
-"What Python package should be used behind the scenes for drawing to the window?"
+msgid "What Python package should be used behind the scenes for drawing to the window?"
 msgstr "ما هي حزمة Python التي يجب استخدامها خلف الكواليس للرسم إلى النافذة؟"
 
 #: psychopy/experiment/components/settings/__init__.py:224
@@ -8436,8 +8248,8 @@ msgstr "الشاشة الفعلية التي سيتم تشغيلها (1 أو 2)"
 #: psychopy/experiment/components/settings/__init__.py:236
 #, fuzzy
 msgid ""
-"Name of the monitor (from Monitor Center). Right-click to go there, then copy & "
-"paste a monitor name here."
+"Name of the monitor (from Monitor Center). Right-click to go there, then copy & paste "
+"a monitor name here."
 msgstr ""
 "اسم الشاشة (من مركز الشاشة). انقر بالزر الأيمن للذهاب إلى هناك، ثم انسخ اسم الشاشة "
 "والصقه هنا."
@@ -8445,8 +8257,8 @@ msgstr ""
 #: psychopy/experiment/components/settings/__init__.py:242
 #, fuzzy
 msgid ""
-"Color of the screen (e.g. black, $[1.0,1.0,1.0], $variable. Right-click to bring "
-"up a color-picker.)"
+"Color of the screen (e.g. black, $[1.0,1.0,1.0], $variable. Right-click to bring up a "
+"color-picker.)"
 msgstr ""
 "لون الشاشة (على سبيل المثال أسود، $[1.0,1.0,1.0,1.0]، $ المتغير. انقر بزر الماوس "
 "الأيمن لإظهار منتقي الألوان)"
@@ -8455,14 +8267,12 @@ msgstr ""
 #, fuzzy
 msgid "Units to use for window/stimulus coordinates (e.g. cm, pix, deg)"
 msgstr ""
-"الوحدات التي يجب استخدامها لإحداثيات النافذة/المحفز (على سبيل المثال: سم، بكسل، "
-"درجة)"
+"الوحدات التي يجب استخدامها لإحداثيات النافذة/المحفز (على سبيل المثال: سم، بكسل، درجة)"
 
 #: psychopy/experiment/components/settings/__init__.py:274
 #, fuzzy
 msgid ""
-"Should new stimuli be added or averaged with the stimuli that have been drawn "
-"already"
+"Should new stimuli be added or averaged with the stimuli that have been drawn already"
 msgstr "هل يجب إضافة محفزات جديدة أو حساب متوسطها مع المحفزات التي تم رسمها بالفعل"
 
 #: psychopy/experiment/components/settings/__init__.py:279
@@ -8489,8 +8299,8 @@ msgstr "مكتبة الصوت"
 #: psychopy/experiment/components/settings/__init__.py:312
 #, fuzzy
 msgid ""
-"How important is audio latency for you? If essential then you may need to get all "
-"your sounds in correct formats."
+"How important is audio latency for you? If essential then you may need to get all your "
+"sounds in correct formats."
 msgstr ""
 "ما مدى أهمية زمن انتقال الصوت بالنسبة لك؟ إذا كان ضروريًا، فقد تحتاج إلى الحصول على "
 "جميع الأصوات بتنسيقات صحيحة."
@@ -8503,16 +8313,15 @@ msgstr "أولوية زمن انتقال الصوت"
 #: psychopy/experiment/components/settings/__init__.py:331
 #, fuzzy
 msgid ""
-"Code to create your custom file name base. Don't give a file extension - this will "
-"be added."
-msgstr ""
-"رمز لإنشاء قاعدة اسم الملف المخصص الخاص بك. لا تعطي امتدادًا للملف - ستتم إضافته."
+"Code to create your custom file name base. Don't give a file extension - this will be "
+"added."
+msgstr "رمز لإنشاء قاعدة اسم الملف المخصص الخاص بك. لا تعطي امتدادًا للملف - ستتم إضافته."
 
 #: psychopy/experiment/components/settings/__init__.py:337
 #, fuzzy
 msgid ""
-"What symbol should the data file use to separate columns? Auto will select a "
-"delimiter automatically from the filename."
+"What symbol should the data file use to separate columns? Auto will select a delimiter "
+"automatically from the filename."
 msgstr ""
 "ما الرمز الذي يجب أن يستخدمه ملف البيانات للفصل بين الأعمدة؟ سيحدد تلقائي محدداً "
 "تلقائياً من اسم الملف."
@@ -8541,11 +8350,10 @@ msgstr "فرز الأعمدة حسب..."
 #: psychopy/experiment/components/settings/__init__.py:346
 #, fuzzy
 msgid ""
-"How should data file columns be sorted? Alphabetically, by priority, or simply in "
-"the order they were added?"
+"How should data file columns be sorted? Alphabetically, by priority, or simply in the "
+"order they were added?"
 msgstr ""
-"كيف يجب فرز أعمدة ملف البيانات؟ أبجدياً، أم حسب الأولوية، أم ببساطة حسب ترتيب "
-"إضافتها؟"
+"كيف يجب فرز أعمدة ملف البيانات؟ أبجدياً، أم حسب الأولوية، أم ببساطة حسب ترتيب إضافتها؟"
 
 #: psychopy/experiment/components/settings/__init__.py:352
 #, fuzzy
@@ -8569,8 +8377,7 @@ msgstr ""
 #: psychopy/experiment/components/settings/__init__.py:361
 #, fuzzy
 msgid ""
-"Save a detailed log (more detailed than the Excel/csv files) of the entire "
-"experiment"
+"Save a detailed log (more detailed than the Excel/csv files) of the entire experiment"
 msgstr "حفظ سجل مفصل (أكثر تفصيلاً من ملفات Excel/csv) للتجربة بأكملها"
 
 #: psychopy/experiment/components/settings/__init__.py:366
@@ -8579,8 +8386,8 @@ msgstr "حفظ سجل مفصل (أكثر تفصيلاً من ملفات Excel/cs
 msgid ""
 "Save data from loops in comma-separated-value (.csv) format for maximum portability"
 msgstr ""
-"احفظ البيانات من الحلقات بتنسيق قيمة مفصولة بفاصلة (.csv) لتحقيق أقصى قدر من "
-"قابلية النقل"
+"احفظ البيانات من الحلقات بتنسيق قيمة مفصولة بفاصلة (.csv) لتحقيق أقصى قدر من قابلية "
+"النقل"
 
 #: psychopy/experiment/components/settings/__init__.py:376
 #, fuzzy
@@ -8598,14 +8405,14 @@ msgid ""
 "Save data from loops in psydat format. This is useful for Python programmers to "
 "generate analysis scripts."
 msgstr ""
-"حفظ البيانات من الحلقات بتنسيق psydat. هذا مفيد لمبرمجي Python لإنشاء البرامج "
-"النصية للتحليل."
+"حفظ البيانات من الحلقات بتنسيق psydat. هذا مفيد لمبرمجي Python لإنشاء البرامج النصية "
+"للتحليل."
 
 #: psychopy/experiment/components/settings/__init__.py:386
 #, fuzzy
 msgid ""
-"Save data from eyetrackers in hdf5 format. This is useful for viewing and "
-"analyzing complex data in structures."
+"Save data from eyetrackers in hdf5 format. This is useful for viewing and analyzing "
+"complex data in structures."
 msgstr ""
 "حفظ البيانات من eyetrackers بتنسيق hdf5. هذا مفيد لعرض وتحليل البيانات المعقدة في "
 "الهياكل."
@@ -8618,11 +8425,11 @@ msgstr "حفظ ملف hdf5"
 #: psychopy/experiment/components/settings/__init__.py:392
 #, fuzzy
 msgid ""
-"How much output do you want in the log files? ('error' is fewest messages, 'debug' "
-"is most)"
+"How much output do you want in the log files? ('error' is fewest messages, 'debug' is "
+"most)"
 msgstr ""
-"ما هو مقدار الإخراج الذي تريده في ملفات السجل؟ (الخطأ هو أقل عدد من الرسائل، "
-"والتصحيح هو الأكثر)"
+"ما هو مقدار الإخراج الذي تريده في ملفات السجل؟ (الخطأ هو أقل عدد من الرسائل، والتصحيح "
+"هو الأكثر)"
 
 #: psychopy/experiment/components/settings/__init__.py:403
 #, fuzzy
@@ -8675,8 +8482,8 @@ msgstr "متى يتم تصدير التجربة إلى مجلد HTML."
 #: psychopy/experiment/components/settings/__init__.py:469
 #, fuzzy
 msgid ""
-"What kind of eye tracker should PsychoPy use? Select 'MouseGaze' to use the mouse "
-"to simulate eye movement (for debugging without a tracker connected)"
+"What kind of eye tracker should PsychoPy use? Select 'MouseGaze' to use the mouse to "
+"simulate eye movement (for debugging without a tracker connected)"
 msgstr ""
 "ما نوع متعقب العين الذي يجب أن يستخدمه PsychoPy؟ حدد \"MouseGaze\" لاستخدام الفأرة "
 "لمحاكاة حركة العين (لتصحيح الأخطاء دون توصيل متعقب)"
@@ -8783,11 +8590,11 @@ msgstr "تتبع العيون"
 #: psychopy/experiment/components/settings/__init__.py:539
 #, fuzzy
 msgid ""
-"Filter eye sample data live, as it is streamed to the driving device. This may "
-"reduce the sampling speed."
+"Filter eye sample data live, as it is streamed to the driving device. This may reduce "
+"the sampling speed."
 msgstr ""
-"تصفية بيانات عينة العينات مباشرةً، حيث يتم بثها إلى جهاز القيادة. قد يقلل ذلك من "
-"سرعة أخذ العينات."
+"تصفية بيانات عينة العينات مباشرةً، حيث يتم بثها إلى جهاز القيادة. قد يقلل ذلك من سرعة "
+"أخذ العينات."
 
 #: psychopy/experiment/components/settings/__init__.py:541
 #, fuzzy
@@ -8797,11 +8604,10 @@ msgstr "تصفية العينات الحية"
 #: psychopy/experiment/components/settings/__init__.py:547
 #, fuzzy
 msgid ""
-"Filter eye sample data when it is saved to the output file. This will not affect "
-"the sampling speed."
+"Filter eye sample data when it is saved to the output file. This will not affect the "
+"sampling speed."
 msgstr ""
-"تصفية بيانات عينة العينات عند حفظها في ملف الإخراج. لن يؤثر ذلك على سرعة أخذ "
-"العينات."
+"تصفية بيانات عينة العينات عند حفظها في ملف الإخراج. لن يؤثر ذلك على سرعة أخذ العينات."
 
 #: psychopy/experiment/components/settings/__init__.py:549
 #, fuzzy
@@ -8945,8 +8751,7 @@ msgstr "تم تمكين التسجيل"
 #: psychopy/experiment/components/settings/__init__.py:666
 #, fuzzy
 msgid "What Python package should PsychoPy use to get keyboard input?"
-msgstr ""
-"ما هي حزمة Python التي يجب أن يستخدمها PsychoPy للحصول على مدخلات لوحة المفاتيح؟"
+msgstr "ما هي حزمة Python التي يجب أن يستخدمها PsychoPy للحصول على مدخلات لوحة المفاتيح؟"
 
 #: psychopy/experiment/components/settings/__init__.py:667
 #, fuzzy
@@ -8987,8 +8792,7 @@ msgstr "تسميات لعلامات التجزئة على المقياس، مف�
 #: psychopy/experiment/components/slider/__init__.py:130
 #, fuzzy
 msgid ""
-"Value of the slider befre any response, leave blank to hide the marker until "
-"clicked on"
+"Value of the slider befre any response, leave blank to hide the marker until clicked on"
 msgstr ""
 "قيمة شريط التمرير قبل أي استجابة، اتركها فارغة لإخفاء العلامة حتى يتم النقر عليها"
 
@@ -9000,8 +8804,7 @@ msgstr "القيمة المبدئية"
 #: psychopy/experiment/components/slider/__init__.py:136
 #, fuzzy
 msgid ""
-"Specifies the minimum step size (0 for a continuous scale, 1 for integer rating "
-"scale)"
+"Specifies the minimum step size (0 for a continuous scale, 1 for integer rating scale)"
 msgstr "تحديد الحد الأدنى لحجم الخطوة (0 للمقياس المستمر، 1 لمقياس التصنيف الصحيح)"
 
 #: psychopy/experiment/components/slider/__init__.py:139
@@ -9015,8 +8818,7 @@ msgid ""
 "Should setting a rating (releasing the mouse) cause the end of the Routine (e.g. "
 "trial)?"
 msgstr ""
-"هل يجب أن يؤدي تعيين تصنيف (تحرير الفأرة) إلى نهاية الروتين (على سبيل المثال "
-"التجربة)؟"
+"هل يجب أن يؤدي تعيين تصنيف (تحرير الفأرة) إلى نهاية الروتين (على سبيل المثال التجربة)؟"
 
 #: psychopy/experiment/components/slider/__init__.py:163
 #, fuzzy
@@ -9034,8 +8836,8 @@ msgid ""
 "By default the labels will be on the bottom or left of the scale, but this can be "
 "flipped to the other side."
 msgstr ""
-"بشكل افتراضي ستكون التسميات في الجزء السفلي أو الأيسر من المقياس، ولكن يمكن قلب "
-"ذلك إلى الجانب الآخر."
+"بشكل افتراضي ستكون التسميات في الجزء السفلي أو الأيسر من المقياس، ولكن يمكن قلب ذلك "
+"إلى الجانب الآخر."
 
 #: psychopy/experiment/components/slider/__init__.py:174
 #, fuzzy
@@ -9128,8 +8930,7 @@ msgstr "الحجم (في النطاق من 0 إلى 1)"
 
 #: psychopy/experiment/components/sound/__init__.py:69
 #, fuzzy
-msgid ""
-"A reaction time to a sound stimulus should be based on when the screen flipped"
+msgid "A reaction time to a sound stimulus should be based on when the screen flipped"
 msgstr "يجب أن يستند وقت رد الفعل على المثير الصوتي إلى وقت قلب الشاشة"
 
 #: psychopy/experiment/components/sound/__init__.py:75
@@ -9337,8 +9138,7 @@ msgstr "السجل التلقائي"
 #: psychopy/experiment/components/unknown/__init__.py:24
 #, fuzzy
 msgid ""
-"Unknown: A component that is not known by the current installed version of "
-"PsychoPy\n"
+"Unknown: A component that is not known by the current installed version of PsychoPy\n"
 "(most likely from the future)"
 msgstr ""
 "غير معروف: مكون غير معروف من قبل الإصدار المثبت الحالي من PsychoPy\n"
@@ -9471,12 +9271,11 @@ msgstr "قائمة من القواميس التي تصف المعلمات في �
 #: psychopy/experiment/loops.py:111
 #, fuzzy
 msgid ""
-"Name of a file specifying the parameters for each condition (.csv, .xlsx, or ."
-"pkl). Browse to select a file. Right-click to preview file contents, or create a "
-"new file."
+"Name of a file specifying the parameters for each condition (.csv, .xlsx, or .pkl). "
+"Browse to select a file. Right-click to preview file contents, or create a new file."
 msgstr ""
-"اسم ملف يحدد معلمات كل شرط (.csv أو .xlsx أو .pkl). تصفح لتحديد ملف. انقر بزر "
-"الماوس الأيمن لمعاينة محتويات الملف، أو إنشاء ملف جديد."
+"اسم ملف يحدد معلمات كل شرط (.csv أو .xlsx أو .pkl). تصفح لتحديد ملف. انقر بزر الماوس "
+"الأيمن لمعاينة محتويات الملف، أو إنشاء ملف جديد."
 
 #: psychopy/experiment/loops.py:118
 #, fuzzy
@@ -9489,8 +9288,8 @@ msgid ""
 "Select just a subset of rows from your condition file (the first is 0 not 1!). "
 "Examples: 0, 0:5, 5:-1"
 msgstr ""
-"حدد فقط مجموعة فرعية من الصفوف من ملف الشرط الخاص بك (الأول هو 0 وليس 1!). أمثلة "
-"0, 0:5, 5:-1"
+"حدد فقط مجموعة فرعية من الصفوف من ملف الشرط الخاص بك (الأول هو 0 وليس 1!). أمثلة 0, "
+"0:5, 5:-1"
 
 #: psychopy/experiment/loops.py:133
 #, fuzzy
@@ -9500,8 +9299,8 @@ msgstr "كيف ينبغي اختيار قيمة (قيم) الشرط (الشرو�
 #: psychopy/experiment/loops.py:138
 #, fuzzy
 msgid ""
-"To have a fixed random sequence provide an integer of your choosing here. Leave "
-"blank to have a new random sequence on each run of the experiment."
+"To have a fixed random sequence provide an integer of your choosing here. Leave blank "
+"to have a new random sequence on each run of the experiment."
 msgstr ""
 "للحصول على تسلسل عشوائي ثابت قدم عددًا صحيحًا من اختيارك هنا. اتركه فارغًا للحصول على "
 "تسلسل عشوائي جديد في كل مرة من التجربة."
@@ -9513,8 +9312,8 @@ msgid ""
 "Indicates that this loop generates TRIALS, rather than BLOCKS of trials or stimuli "
 "within a trial. It alters how data files are output"
 msgstr ""
-"يشير إلى أن هذه الحلقة تقوم بإنشاء تجارب بدلاً من مجموعات من التجارب أو المحفزات "
-"داخل التجربة. يغير كيفية إخراج ملفات البيانات"
+"يشير إلى أن هذه الحلقة تقوم بإنشاء تجارب بدلاً من مجموعات من التجارب أو المحفزات داخل "
+"التجربة. يغير كيفية إخراج ملفات البيانات"
 
 #: psychopy/experiment/loops.py:434
 #, fuzzy
@@ -9547,8 +9346,8 @@ msgid ""
 "The units of the step size (e.g. 'linear' will add/subtract that value each step, "
 "whereas 'log' will ad that many log units)"
 msgstr ""
-"وحدات حجم الخطوة (على سبيل المثال \"خطي\" سيضيف/يخصم تلك القيمة في كل خطوة، في حين "
-"أن \"لوغاريتم\" سيضيف العديد من وحدات اللوغاريتم)"
+"وحدات حجم الخطوة (على سبيل المثال \"خطي\" سيضيف/يخصم تلك القيمة في كل خطوة، في حين أن "
+"\"لوغاريتم\" سيضيف العديد من وحدات اللوغاريتم)"
 
 #: psychopy/experiment/loops.py:461
 #, fuzzy
@@ -9752,8 +9551,7 @@ msgid ""
 "Should the target move to the next position after a keypress or after an amount of "
 "time?"
 msgstr ""
-"هل يجب أن ينتقل الهدف إلى الموضع التالي بعد الضغط على المفتاح أم بعد فترة زمنية "
-"معينة؟"
+"هل يجب أن ينتقل الهدف إلى الموضع التالي بعد الضغط على المفتاح أم بعد فترة زمنية معينة؟"
 
 #: psychopy/experiment/routines/eyetracker_calibrate/__init__.py:138
 #: psychopy/experiment/routines/eyetracker_validate/__init__.py:181
@@ -9897,11 +9695,11 @@ msgstr "معرّف الاستطلاع"
 #: psychopy/experiment/routines/pavlovia_survey/__init__.py:44
 #, fuzzy
 msgid ""
-"Linking to a survey ID from Pavlovia Surveys means that the content will "
-"automatically update if that survey changes (better for dynamic use)"
+"Linking to a survey ID from Pavlovia Surveys means that the content will automatically "
+"update if that survey changes (better for dynamic use)"
 msgstr ""
-"الارتباط بمعرف استطلاع رأي من استبيانات بافلوفيا يعني أن المحتوى سيتم تحديثه "
-"تلقائيًا إذا تغير هذا الاستبيان (أفضل للاستخدام الديناميكي)"
+"الارتباط بمعرف استطلاع رأي من استبيانات بافلوفيا يعني أن المحتوى سيتم تحديثه تلقائيًا "
+"إذا تغير هذا الاستبيان (أفضل للاستخدام الديناميكي)"
 
 #: psychopy/experiment/routines/pavlovia_survey/__init__.py:46
 #, fuzzy
@@ -9917,11 +9715,11 @@ msgstr "ملف نموذج المسح"
 #, fuzzy
 msgid ""
 "Inserting a JSON file (exported from Pavlovia Surveys) means that the survey is "
-"embedded within this project and will not change unless you import it again "
-"(better for archiving)"
+"embedded within this project and will not change unless you import it again (better "
+"for archiving)"
 msgstr ""
-"يعني إدراج ملف JSON (تم تصديره من Pavlovia Surveys) أن الاستطلاع مضمن في هذا "
-"المشروع ولن يتغير إلا إذا قمت باستيراده مرة أخرى (أفضل للأرشفة)"
+"يعني إدراج ملف JSON (تم تصديره من Pavlovia Surveys) أن الاستطلاع مضمن في هذا المشروع "
+"ولن يتغير إلا إذا قمت باستيراده مرة أخرى (أفضل للأرشفة)"
 
 #: psychopy/experiment/routines/pavlovia_survey/__init__.py:54
 #, fuzzy
@@ -9939,8 +9737,8 @@ msgid ""
 "The ID for your survey on Pavlovia. Tip: Right click to open the survey in your "
 "browser!"
 msgstr ""
-"معرف الاستطلاع الخاص بك على بافلوفيا. نصيحة: انقر بزر الماوس الأيمن لفتح الاستطلاع "
-"في متصفحك!"
+"معرف الاستطلاع الخاص بك على بافلوفيا. نصيحة: انقر بزر الماوس الأيمن لفتح الاستطلاع في "
+"متصفحك!"
 
 #: psychopy/experiment/routines/pavlovia_survey/__init__.py:86
 #, fuzzy
@@ -10009,8 +9807,8 @@ msgid ""
 "Device {device} does not support frame rate of {frameRate} and frame size of "
 "{frameSize}, using closest supported format: {desc}"
 msgstr ""
-"الجهاز {device} لا يدعم معدل الإطارات {frameRate} وحجم الإطار {frameSize}، "
-"باستخدام أقرب تنسيق مدعوم: {desc}"
+"الجهاز {device} لا يدعم معدل الإطارات {frameRate} وحجم الإطار {frameSize}، باستخدام "
+"أقرب تنسيق مدعوم: {desc}"
 
 #: psychopy/liaison.py:29
 #, fuzzy
@@ -10360,8 +10158,8 @@ msgstr "المعايرة الداكنة لـ ColorCAL"
 #: psychopy/monitors/MonitorCenter.py:997
 #, fuzzy
 msgid ""
-"Your ColorCAL needs to be calibrated first. Please block all light from getting "
-"into the lens and press OK."
+"Your ColorCAL needs to be calibrated first. Please block all light from getting into "
+"the lens and press OK."
 msgstr ""
 "يجب معايرة ColorCAL أولاً. يرجى حجب كل الضوء من الدخول إلى العدسة والضغط على موافق."
 
@@ -10473,11 +10271,11 @@ msgstr "أضف أسماء المكونات الإضافية هنا لتحميل�
 #: psychopy/preferences/hints.py:45
 #, fuzzy
 msgid ""
-"Google Cloud Platform key, required for the audio transcription using Google "
-"Speech Recognition. Specified as a path to a JSON file containing the key data."
+"Google Cloud Platform key, required for the audio transcription using Google Speech "
+"Recognition. Specified as a path to a JSON file containing the key data."
 msgstr ""
-"مفتاح Google Cloud Platform، المطلوب لنسخ الصوت باستخدام Google Speech "
-"Recognition. يتم تحديده كمسار إلى ملف JSON يحتوي على بيانات المفتاح."
+"مفتاح Google Cloud Platform، المطلوب لنسخ الصوت باستخدام Google Speech Recognition. "
+"يتم تحديده كمسار إلى ملف JSON يحتوي على بيانات المفتاح."
 
 #: psychopy/preferences/hints.py:48
 #, fuzzy
@@ -10509,11 +10307,11 @@ msgstr "تمكين ميزات لتصحيح أخطاء PsychoPy نفسها، بم
 #: psychopy/preferences/hints.py:63
 #, fuzzy
 msgid ""
-"language to use in menus etc; not all translations are available. Select a value, "
-"then restart the app."
+"language to use in menus etc; not all translations are available. Select a value, then "
+"restart the app."
 msgstr ""
-"لغة لاستخدامها في القوائم وما إلى ذلك؛ لا تتوفر جميع الترجمات. حدد قيمة، ثم أعد "
-"تشغيل التطبيق."
+"لغة لاستخدامها في القوائم وما إلى ذلك؛ لا تتوفر جميع الترجمات. حدد قيمة، ثم أعد تشغيل "
+"التطبيق."
 
 #: psychopy/preferences/hints.py:67
 #, fuzzy
@@ -10588,8 +10386,7 @@ msgstr "افتراضي عند كتابة مكونات التعليمات الب�
 #: psychopy/preferences/hints.py:112
 #, fuzzy
 msgid "if False will create scripts with an 'easier' but more cluttered namespace"
-msgstr ""
-"إذا كان خطأ سيؤدي إلى إنشاء نصوص برمجية ذات مساحة أسماء \"أسهل\" ولكن أكثر تشوشًا"
+msgstr "إذا كان خطأ سيؤدي إلى إنشاء نصوص برمجية ذات مساحة أسماء \"أسهل\" ولكن أكثر تشوشًا"
 
 #: psychopy/preferences/hints.py:115
 #, fuzzy
@@ -10613,18 +10410,17 @@ msgstr "حيث توجد العروض التوضيحية ل Builder على هذا
 
 #: psychopy/preferences/hints.py:128
 #, fuzzy
-msgid ""
-"name of the folder where subject data should be saved (relative to the script)"
+msgid "name of the folder where subject data should be saved (relative to the script)"
 msgstr "اسم المجلد الذي يجب حفظ بيانات الموضوع فيه (بالنسبة للبرنامج النصي)"
 
 #: psychopy/preferences/hints.py:131
 #, fuzzy
 msgid ""
-"Panels arrangement: Should Flow be on the top or bottom, and should Components be "
-"on the left or right?"
+"Panels arrangement: Should Flow be on the top or bottom, and should Components be on "
+"the left or right?"
 msgstr ""
-"ترتيب الألواح: هل يجب أن يكون التدفق في الأعلى أم الأسفل، وهل يجب أن تكون المكونات "
-"على اليسار أم اليمين؟"
+"ترتيب الألواح: هل يجب أن يكون التدفق في الأعلى أم الأسفل، وهل يجب أن تكون المكونات على "
+"اليسار أم اليمين؟"
 
 #: psychopy/preferences/hints.py:134
 #, fuzzy
@@ -10679,8 +10475,7 @@ msgstr "وكيل http لإحصاءات الاستخدام والتحديث ال�
 #: psychopy/preferences/hints.py:166
 #, fuzzy
 msgid ""
-"override the above proxy settings with values found in the environment (if "
-"possible)"
+"override the above proxy settings with values found in the environment (if possible)"
 msgstr "تجاوز إعدادات الوكيل المذكورة أعلاه بالقيم الموجودة في البيئة (إن أمكن)"
 
 #: psychopy/preferences/hints.py:169
@@ -10839,8 +10634,7 @@ msgstr "المبرمج: تحقق من الأخطاء النحوية الأساس
 
 #: psychopy/preferences/hints.py:260
 #, fuzzy
-msgid ""
-"convert a Builder .psyexp script into a python script and open it in the Coder"
+msgid "convert a Builder .psyexp script into a python script and open it in the Coder"
 msgstr ""
 "تحويل النص البرمجة البرمجية .psyexp الخاصة بـ Builder إلى نص برمجي بايثون وفتحه في "
 "المبرمج"
@@ -10975,8 +10769,8 @@ msgid ""
 "PavloviaSession.createProject was given a namespace ({namespace}) that couldn't be "
 "found on gitlab."
 msgstr ""
-"تم إعطاء PavloviaSession.createProject مساحة اسم ({namespace}) لا يمكن العثور "
-"عليها في gitlab."
+"تم إعطاء PavloviaSession.createProject مساحة اسم ({namespace}) لا يمكن العثور عليها في "
+"gitlab."
 
 #: psychopy/projects/pavlovia.py:310
 #, fuzzy, python-brace-format
@@ -11046,8 +10840,7 @@ msgstr "المؤلف (من ألف إلى ياء)"
 #: psychopy/projects/pavlovia.py:826
 #, fuzzy
 msgid ""
-"Can't sync project without a local root. Please specify a local root then try "
-"again."
+"Can't sync project without a local root. Please specify a local root then try again."
 msgstr ""
 "لا يمكن مزامنة المشروع بدون جذر محلي. الرجاء تحديد جذر محلي ثم المحاولة مرة أخرى."
 
@@ -11069,11 +10862,9 @@ msgstr "الصورة الرمزية كبيرة جداً، يجب أن تكون 2
 
 #: psychopy/projects/pavlovia.py:1413
 #, fuzzy
-msgid ""
-"We found a repository pointing to {} but no user is logged in for us to check it"
+msgid "We found a repository pointing to {} but no user is logged in for us to check it"
 msgstr ""
-"لقد وجدنا مستودعاً يشير إلى {} ولكن لم يتم تسجيل دخول أي مستخدم حتى نتمكن من التحقق "
-"منه"
+"لقد وجدنا مستودعاً يشير إلى {} ولكن لم يتم تسجيل دخول أي مستخدم حتى نتمكن من التحقق منه"
 
 #: psychopy/session.py:202 psychopy/session.py:513 psychopy/session.py:705
 #, fuzzy
@@ -11083,12 +10874,12 @@ msgstr "في انتظار البدء..."
 #: psychopy/session.py:266
 #, fuzzy
 msgid ""
-"Experiment '{}' is located outside of the root folder for this Session. All files "
-"from its experiment folder ('{}') will be copied to the root folder and the "
-"experiment will run from there."
+"Experiment '{}' is located outside of the root folder for this Session. All files from "
+"its experiment folder ('{}') will be copied to the root folder and the experiment will "
+"run from there."
 msgstr ""
-"تقع التجربة '{}' خارج المجلد الجذر لهذه الجلسة. سيتم نسخ جميع الملفات من مجلد "
-"التجربة الخاص بها ('{}') إلى المجلد الجذر وسيتم تشغيل التجربة من هناك."
+"تقع التجربة '{}' خارج المجلد الجذر لهذه الجلسة. سيتم نسخ جميع الملفات من مجلد التجربة "
+"الخاص بها ('{}') إلى المجلد الجذر وسيتم تشغيل التجربة من هناك."
 
 #: psychopy/session.py:283
 #, fuzzy
@@ -11098,11 +10889,10 @@ msgstr "تم نسخ التجربة \"{}\" ومجلد التجربة الخاص �
 #: psychopy/session.py:315
 #, fuzzy
 msgid ""
-"Experiment could not be loaded as name of folder {} is also the name of an "
-"installed Python package. Please rename."
+"Experiment could not be loaded as name of folder {} is also the name of an installed "
+"Python package. Please rename."
 msgstr ""
-"تعذر تحميل التجربة لأن اسم المجلد {} هو أيضًا اسم حزمة Python مثبتة. يرجى إعادة "
-"التسمية."
+"تعذر تحميل التجربة لأن اسم المجلد {} هو أيضًا اسم حزمة Python مثبتة. يرجى إعادة التسمية."
 
 #: psychopy/session.py:679
 #, fuzzy, python-brace-format
@@ -11131,8 +10921,7 @@ msgstr "لا يمكن إيقاف التجربة حيث لا يوجد شيء يع
 
 #: psychopy/session.py:997
 #, fuzzy
-msgid ""
-"Could not send data to liaison server as none is initialised for this Session."
+msgid "Could not send data to liaison server as none is initialised for this Session."
 msgstr ""
 "تعذر إرسال البيانات إلى خادم الاتصال لأنه لم تتم تهيئة أي بيانات لجلسة العمل هذه."
 
@@ -11170,15 +10959,14 @@ msgstr "يرجى تثبيت git؛ مطلوب بواسطة useVersion()"
 #: psychopy/tools/versionchooser.py:254
 #, fuzzy, python-brace-format
 msgid ""
-"Requested PsychoPy version {requested} does not support installed Python version "
-"{py}. The {mode} version of PsychoPy to support {py} was version {key}.\n"
+"Requested PsychoPy version {requested} does not support installed Python version {py}. "
+"The {mode} version of PsychoPy to support {py} was version {key}.\n"
 "\n"
-"Try either choosing a different version of PsychoPy or installing a different "
-"version of Python - some standalone PsychoPy releases include installers for "
-"multiple versions."
+"Try either choosing a different version of PsychoPy or installing a different version "
+"of Python - some standalone PsychoPy releases include installers for multiple versions."
 msgstr ""
-"إصدار PsychoPy المطلوب {requested} لا يدعم إصدار Python المثبت {py}. الإصدار "
-"{mode} من PsychoPy لدعم {py} هو الإصدار {key}.\n"
+"إصدار PsychoPy المطلوب {requested} لا يدعم إصدار Python المثبت {py}. الإصدار {mode} من "
+"PsychoPy لدعم {py} هو الإصدار {key}.\n"
 "\n"
 "جرب إما اختيار إصدار مختلف من PsychoPy أو تثبيت إصدار مختلف من Python - تتضمن بعض "
 "إصدارات PsychoPy المستقلة مثبتات لإصدارات متعددة."
@@ -11377,10 +11165,9 @@ msgstr ""
 #: psychopy/tools/wizard.py:127
 #, fuzzy
 msgid ""
-"Warning: python 2.7 or 3.6 are recommended; 2.6 and 3.5 might work. Others "
-"probably won't."
-msgstr ""
-"تحذير: يوصى باستخدام بايثون 2.7 أو 3.6؛ قد يعمل 2.6 و3.5. ربما لن يعمل الآخرون."
+"Warning: python 2.7 or 3.6 are recommended; 2.6 and 3.5 might work. Others probably "
+"won't."
+msgstr "تحذير: يوصى باستخدام بايثون 2.7 أو 3.6؛ قد يعمل 2.6 و3.5. ربما لن يعمل الآخرون."
 
 #: psychopy/tools/wizard.py:145
 #, fuzzy
@@ -11422,8 +11209,7 @@ msgstr ""
 #: psychopy/tools/wizard.py:188
 #, fuzzy
 msgid "Warning: too fast? visual sync'ing with the monitor seems unlikely at 300+ Hz"
-msgstr ""
-"تحذير: سريع جدًا؟ المزامنة البصرية مع الشاشة تبدو غير محتملة عند أكثر من 300 هرتز"
+msgstr "تحذير: سريع جدًا؟ المزامنة البصرية مع الشاشة تبدو غير محتملة عند أكثر من 300 هرتز"
 
 #: psychopy/tools/wizard.py:193
 #, fuzzy
@@ -11432,19 +11218,17 @@ msgstr "SD &lt؛ 0.5 مللي ثانية مثالي (تريد تباينًا م�
 
 #: psychopy/tools/wizard.py:197
 #, fuzzy
-msgid ""
-"Warning: the refresh rate has high frame-to-frame variability (SD &gt; 0.5 ms)"
-msgstr ""
-"تحذير: يتميز معدل التحديث بتغير كبير من إطار إلى إطار (SD &gt؛ 0.5 مللي ثانية)"
+msgid "Warning: the refresh rate has high frame-to-frame variability (SD &gt; 0.5 ms)"
+msgstr "تحذير: يتميز معدل التحديث بتغير كبير من إطار إلى إطار (SD &gt؛ 0.5 مللي ثانية)"
 
 #: psychopy/tools/wizard.py:216
 #, fuzzy
 msgid ""
-"during <a href=\"https://www.psychopy.org/api/visual/dotstim.html\">DotStim</a> "
-"with 100 random dots"
+"during <a href=\"https://www.psychopy.org/api/visual/dotstim.html\">DotStim</a> with "
+"100 random dots"
 msgstr ""
-"خلال <a href=\"https://www.psychopy.org/api/visual/dotstim.html\">DotStim</a> مع "
-"100 نقطة عشوائية"
+"خلال <a href=\"https://www.psychopy.org/api/visual/dotstim.html\">DotStim</a> مع 100 "
+"نقطة عشوائية"
 
 #: psychopy/tools/wizard.py:224
 #, fuzzy
@@ -11452,8 +11236,8 @@ msgid ""
 "Warning: could not keep up during <a href=\"https://www.psychopy.org/api/visual/"
 "dotstim.html\">DotStim</a> with 100 random dots."
 msgstr ""
-"تحذير: لا يمكن المواكبة أثناء <a href=\"https://www.psychopy.org/api/visual/"
-"dotstim.html\">DotStim</a> مع 100 نقطة عشوائية."
+"تحذير: لا يمكن المواكبة أثناء <a href=\"https://www.psychopy.org/api/visual/dotstim."
+"html\">DotStim</a> مع 100 نقطة عشوائية."
 
 #: psychopy/tools/wizard.py:252
 #, fuzzy
@@ -11495,8 +11279,8 @@ msgstr "تحذير: تعذر الاتصال (لم تتم محاولة الاتص
 #: psychopy/tools/wizard.py:287
 #, fuzzy
 msgid ""
-"try to auto-detect a proxy if needed; see <a href=\"https://www.psychopy.org/"
-"general/prefs.html#connection-settings-connections\">Preferences -> Connections</a>"
+"try to auto-detect a proxy if needed; see <a href=\"https://www.psychopy.org/general/"
+"prefs.html#connection-settings-connections\">Preferences -> Connections</a>"
 msgstr ""
 "حاول اكتشاف الوكيل تلقائيًا إذا لزم الأمر؛ انظر <a href=\"https://www.psychopy.org/"
 "general/prefs.html#connection-settings-connections\">التفضيلات -&gt; الاتصالات</a>"
@@ -11568,8 +11352,7 @@ msgstr "تم اكتشاف 1 قيمة دون المستوى الأمثل</font> �
 msgid ""
 "%(num)i suboptimal values were detected</font>, see details below (%(warn)s).</p>\n"
 msgstr ""
-"%(num)i تم اكتشاف قيم دون المستوى الأمثل</font> ، انظر التفاصيل أدناه (%(warn)s).</"
-"p>\n"
+"%(num)i تم اكتشاف قيم دون المستوى الأمثل</font> ، انظر التفاصيل أدناه (%(warn)s).</p>\n"
 
 #: psychopy/tools/wizard.py:444
 #, fuzzy
@@ -11587,17 +11370,17 @@ msgid ""
 "<p>Resources:\n"
 "                | <a href=\"https://www.psychopy.org/documentation.html\">On-line "
 "documentation</a>\n"
-"                | Download <a href=\"https://www.psychopy.org/PsychoPyManual."
-"pdf\">PDF manual</a>\n"
+"                | Download <a href=\"https://www.psychopy.org/PsychoPyManual.pdf\">PDF "
+"manual</a>\n"
 "                | <a href=\"https://discourse.psychopy.org\">Search the user-group "
 "archives</a>\n"
 "                </p>"
 msgstr ""
 "<p>الموارد:\n"
-"                | <a href=\"https://www.psychopy.org/documentation.html\">وثائق "
-"على الإنترنت</a>\n"
-"                | تنزيل <a href=\"https://www.psychopy.org/PsychoPyManual."
-"pdf\">دليل PDF</a>\n"
+"                | <a href=\"https://www.psychopy.org/documentation.html\">وثائق على "
+"الإنترنت</a>\n"
+"                | تنزيل <a href=\"https://www.psychopy.org/PsychoPyManual.pdf\">دليل "
+"PDF</a>\n"
 "                | <a href=\"https://discourse.psychopy.org\">البحث في أرشيف مجموعة "
 "المستخدمين</a>\n"
 "                </p>"
@@ -11641,8 +11424,8 @@ msgstr "مرحباً بك في معالج التكوين."
 #, fuzzy
 msgid "The first configuration check is your video card's drivers. The current"
 msgstr ""
-"التحقق الأول من التكوين الأول هو برامج تشغيل بطاقة الفيديو الخاصة بك. برامج "
-"التشغيل الحالية"
+"التحقق الأول من التكوين الأول هو برامج تشغيل بطاقة الفيديو الخاصة بك. برامج التشغيل "
+"الحالية"
 
 #: psychopy/tools/wizard.py:526
 #, fuzzy
@@ -11661,15 +11444,14 @@ msgid ""
 "                directly from the manufacturer.</p>\n"
 "                <p><strong>To update the drivers:</strong>\n"
 "                <li> You'll need administrator privileges.\n"
-"                <li> On Windows, don't use the windows option to check for "
-"updates\n"
+"                <li> On Windows, don't use the windows option to check for updates\n"
 "                  - it can report that there are no updates available.\n"
 "                <li> If your card is made by NVIDIA, go to\n"
-"                  <a href=\"https://www.nvidia.com/download/index.aspx\">the "
-"NVIDIA website</a>\n"
+"                  <a href=\"https://www.nvidia.com/download/index.aspx\">the NVIDIA "
+"website</a>\n"
 "                  and use the 'auto detect' option. Try here for\n"
-"                  <a href=\"https://www.amd.com/fr/support\">ATI / Radeon drivers</"
-"a>. Or try\n"
+"                  <a href=\"https://www.amd.com/fr/support\">ATI / Radeon drivers</a>. "
+"Or try\n"
 "                  <a href=\"https://www.google.com/search?q=download+drivers+"
 "%(card2)s\">\n"
 "                  this google search</a> [google.com].\n"
@@ -11686,28 +11468,26 @@ msgstr ""
 "<p>مشكلة حرجة:\n"
 "</p><p>تحتوي بطاقة الفيديو الخاصة بك (%(card)s) على برامج تشغيل\n"
 "                لا يمكنها دعم الميزات عالية الأداء التي يعتمد عليها PsychoPy.\n"
-"                لحسن الحظ، عادةً ما يكون الحصول على برامج تشغيل جديدة مجانية "
-"ومباشرة\n"
+"                لحسن الحظ، عادةً ما يكون الحصول على برامج تشغيل جديدة مجانية ومباشرة\n"
 "                مباشرة من الشركة المصنعة.</p>\n"
 "                <p><strong>لتحديث برامج التشغيل:</strong>\n"
 "                <li> ستحتاج إلى امتيازات المسؤول.\n"
-"                <li> على نظام ويندوز، لا تستخدم خيار windows للتحقق من وجود "
-"تحديثات\n"
+"                <li> على نظام ويندوز، لا تستخدم خيار windows للتحقق من وجود تحديثات\n"
 "                  - فيمكنه الإبلاغ عن عدم وجود تحديثات متاحة.\n"
 "                <li> إذا كانت بطاقتك من صنع NVIDIA، فانتقل إلى\n"
-"                 <a href=\"https://www.nvidia.com/download/index.aspx\">موقع "
-"NVIDIA على الويب</a>\n"
+"                 <a href=\"https://www.nvidia.com/download/index.aspx\">موقع NVIDIA "
+"على الويب</a>\n"
 "                  واستخدم خيار \"الاكتشاف التلقائي\". جرب هنا من أجل\n"
-"                 <a href=\"https://www.amd.com/fr/support\">برامج تشغيل ATI / "
-"Radeon</a>. أو جرب\n"
+"                 <a href=\"https://www.amd.com/fr/support\">برامج تشغيل ATI / Radeon</"
+"a>. أو جرب\n"
 "                  \n"
 "                 <a href=\"https://www.google.com/search?q=download+drivers+"
 "%(card2)s\">بحث جوجل هذا</a> [google.com].\n"
 "                <li> قم بتنزيل برنامج التشغيل وتثبيته.\n"
 "                <li> أعد تشغيل الكمبيوتر.\n"
 "                <li> أعد تشغيل PsychoPy.</p>\n"
-"                <p>إذا قمت بتحديث برامج التشغيل ولا تزال تظهر لك هذه الرسالة، "
-"فستحتاج إلى\n"
+"                <p>إذا قمت بتحديث برامج التشغيل ولا تزال تظهر لك هذه الرسالة، فستحتاج "
+"إلى\n"
 "                  ستحتاج إلى بطاقة فيديو مختلفة لاستخدام PsychoPy. انقر\n"
 "               <a href=\"https://www.psychopy.org/installation.html#recommended-"
 "hardware\">هنا\n"
