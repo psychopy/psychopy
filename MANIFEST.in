@@ -1,5 +1,6 @@
 include LICENSE
 include psychopy/VERSION
+include psychopy/GIT_SHA
 recursive-include psychopy *.txt
 recursive-include psychopy *.zip
 
