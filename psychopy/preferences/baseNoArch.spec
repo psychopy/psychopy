@@ -52,7 +52,7 @@
     # display tips when starting PsychoPy
     showStartupTips = boolean(default='True')
     # what windows to display when PsychoPy starts
-    defaultView = option('builder', 'coder', 'runner', 'all', default='all')
+    defaultView = option('last', 'builder', 'coder', 'runner', 'all', default='last')
     # reset preferences to defaults on next restart of PsychoPy
     resetPrefs = boolean(default='False') # default must be False!
     # save any unsaved preferences before closing the window

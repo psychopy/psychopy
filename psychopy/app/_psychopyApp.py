@@ -525,6 +525,8 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             # if no window specified, use default from prefs
             if self.prefs.app['defaultView'] == 'all':
                 startView = ["builder", "coder", "runner"]
+            elif self.prefs.app['defaultView'] == "last":
+                startView = self.prefs.appData['lastFrame']
             elif self.prefs.app['defaultView'] in ["builder", "coder", "runner"]:
                 startView = self.prefs.app['defaultView']
             else:
