@@ -902,7 +902,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         # disable stop
         self.ribbon.buttons['pystop'].Disable()
         # switch mode
-        self.ribbon.buttons['pyswitch'].setMode(runMode == "run")
+        self.ribbon.buttons['pyswitch'].setMode(runMode == "run", silent=True)
         # update
         self.updateAlerts()
         self.app.updateWindowMenu()
