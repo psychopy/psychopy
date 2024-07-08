@@ -20,7 +20,7 @@ import psychopy
 version = psychopy.__version__
 
 building.compile_po.compilePoFiles()
-createGitShaFile()
+createGitShaFile.createGitShaFile()
 
 #define the extensions to compile if necess
 packageData = []
