@@ -337,7 +337,14 @@ class pythonTransformer(ast.NodeTransformer):
         # The default first argument for pop is -1 (remove the last item).
         elif func.attr == 'pop':
             func.attr = 'splice'
-            args = args if args else [ast.Constant(value=-1, kind=None)]
+            # if no args, construct an index that's `<name>.length-1`
+            if not args:
+                args = ast.BinOp(
+                    ast.Attribute(value=func.value, attr="length"), 
+                    ast.Sub(),
+                    ast.Constant(1, kind="int")
+                )
+            # add 1 as a second argument so the last item is deleted
             args = [args, [ast.Constant(value=1, kind=None)]]
 
             return ast.Call(
