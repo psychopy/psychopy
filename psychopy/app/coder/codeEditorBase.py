@@ -106,14 +106,6 @@ class BaseCodeEditor(wx.stc.StyledTextCtrl, handlers.ThemeMixin):
         deleteItem = wx.MenuItem(menu, self.DeleteID, _translate("Delete"))
         selectItem = wx.MenuItem(menu, self.SelectAllID, _translate("Select All"))
 
-        # Check whether items should be enabled
-        undoItem.Enable(self.CanUndo())
-        redoItem.Enable(self.CanRedo())
-        cutItem.Enable(self.CanCut())
-        copyItem.Enable(self.CanCopy())
-        pasteItem.Enable(self.CanPaste())
-        deleteItem.Enable(self.CanCopy())
-
         # Append items to menu
         menu.Append(undoItem)
         menu.Append(redoItem)
@@ -124,6 +116,14 @@ class BaseCodeEditor(wx.stc.StyledTextCtrl, handlers.ThemeMixin):
         menu.AppendSeparator()
         menu.Append(deleteItem)
         menu.Append(selectItem)
+
+        # Check whether items should be enabled
+        undoItem.Enable(self.CanUndo())
+        redoItem.Enable(self.CanRedo())
+        cutItem.Enable(self.CanCut())
+        copyItem.Enable(self.CanCopy())
+        pasteItem.Enable(self.CanPaste())
+        deleteItem.Enable(self.CanCopy())
 
         self.PopupMenu(menu)
         menu.Destroy()
