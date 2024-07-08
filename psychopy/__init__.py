@@ -10,7 +10,7 @@ import sys
 import pathlib
 
 __version__ = (pathlib.Path(__file__).parent/"VERSION").read_text(encoding="utf-8").strip()
-__version__ = (pathlib.Path(__file__).parent/"GIT_SHA").read_text(encoding="utf-8").strip()
+__git_sha__ = (pathlib.Path(__file__).parent/"GIT_SHA").read_text(encoding="utf-8").strip()
 __license__ = 'GPL v3'
 __author__ = 'Open Science Tools Ltd'
 __author_email__ = 'support@opensciencetools.org'
