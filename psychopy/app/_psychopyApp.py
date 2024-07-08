@@ -526,7 +526,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             if self.prefs.app['defaultView'] == 'all':
                 startView = ["builder", "coder", "runner"]
             elif self.prefs.app['defaultView'] == "last":
-                startView = self.prefs.appData['lastFrame']
+                startView = self.prefs.appData['lastFrame'].split("-")
             elif self.prefs.app['defaultView'] in ["builder", "coder", "runner"]:
                 startView = self.prefs.app['defaultView']
             else:
@@ -1021,13 +1021,16 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                 return  # user cancelled quit
 
         # save info about current frames for next run
-        if self.coder and len(self.getAllFrames("builder")) == 0:
-            self.prefs.appData['lastFrame'] = 'coder'
-        elif self.coder is None:
-            self.prefs.appData['lastFrame'] = 'builder'
-        else:
-            self.prefs.appData['lastFrame'] = 'both'
-
+        openFrames = []
+        for frame in self.getAllFrames():
+            if type(frame).__name__ == "BuilderFrame" and "builder" not in openFrames:
+                openFrames.append("builder")
+            if type(frame).__name__ == "CoderFrame" and "coder" not in openFrames:
+                openFrames.append("coder")
+            if type(frame).__name__ == "RunnerFrame" and "runner" not in openFrames:
+                openFrames.append("runner")
+        self.prefs.appData['lastFrame'] = "-".join(openFrames)
+        # save current version for next run
         self.prefs.appData['lastVersion'] = self.version
         # update app data while closing each frame
         # start with an empty list to be appended by each frame
