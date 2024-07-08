@@ -88,6 +88,7 @@ dependencies = [
     "pyobjc; platform_system == \"Darwin\"",
     "zeroconf; platform_system == \"Darwin\"",
     "python-xlib; platform_system == \"Linux\"",
+    "distro; platform_system == \"Linux\"",
     'tables<3.9; python_version < "3.9"',
     'tables; python_version >= "3.9"',
     'blosc2<2.2.8; python_version < "3.9"',  # dependency of tables
