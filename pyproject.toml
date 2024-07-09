@@ -107,6 +107,7 @@ building = [
     "bdist-mpkg>=0.5.0; platform_system == \"Darwin\"",
     "py2app; platform_system == \"Darwin\"",
     "dmgbuild; platform_system == \"Darwin\"",
+    "setuptools_git_versioning", 
 ]
 suggested = [
     "sounddevice",
