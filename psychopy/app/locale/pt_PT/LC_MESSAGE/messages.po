@@ -170,7 +170,7 @@ msgid ""
 "The component or routine '{comp}' is only implemented online, so will do "
 "nothing when running locally."
 msgstr ""
-"O componente ou a rotina '{comp}' só é implementado online, pelo que não fará "
+"O component ou a routine '{comp}' só é implementado online, pelo que não fará "
 "nada quando executado localmente."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:87
@@ -179,7 +179,7 @@ msgid ""
 "The component or routine '{comp}' is only implemented locally, so will do "
 "nothing when running online."
 msgstr ""
-"O componente ou a rotina '{comp}' é apenas implementado localmente, pelo que "
+"O component ou a routine '{comp}' é apenas implementado localmente, pelo que "
 "não fará nada quando for executado online."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:91
@@ -189,14 +189,14 @@ msgid ""
 "same routine may compete for keypresses"
 msgstr ""
 "O componente de caixa de texto editável {textbox} e o componente de teclado "
-"{keyboard} na mesma rotina podem competir pelas mesmas teclas"
+"{keyboard} na mesma routine podem competir pelas mesmas teclas"
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:94
 msgid ""
 "Experiment includes components or routines which use eyetracking, but no eye "
 "tracker is configured."
 msgstr ""
-"A experiência inclui componentes ou rotinas que utilizam rastreador ocular "
+"A experiência inclui componentes ou routines que utilizam rastreador ocular "
 "(eyetracking), mas nenhum rastreador ocular (eye tracker) está configurado."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:98
@@ -206,7 +206,7 @@ msgid ""
 "present."
 msgstr ""
 "Um rastreador ocular (eye tracker) {eyetracker} foi configurado, mas não está "
-"presente nenhuma rotina de calibração."
+"presente nenhuma routine de calibração."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:101
 #, python-brace-format
@@ -215,8 +215,8 @@ msgid ""
 "routine, animation values have not been used in your calibration routine."
 msgstr ""
 "Uma vez que os rastreadores oculares (eyetrackers) da {brand} não suportam "
-"animações na sua rotina de calibração, os valores de animação não foram "
-"utilizados na sua rotina de calibração."
+"animações na sua routine de calibração, os valores de animação não foram "
+"utilizados na sua routine de calibração."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:104
 #, python-brace-format
@@ -275,7 +275,7 @@ msgstr ""
 msgid ""
 "Device parameter of microphone component \"{name}\" will not be used online."
 msgstr ""
-"O parâmetro do dispositivo do componente do microfone \"{name}\" não será "
+"O parâmetro do dispositivo do componente do microphone \"{name}\" não será "
 "utilizado online."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:136
@@ -397,7 +397,7 @@ msgstr "Informações de compatibilidade"
 
 #: psychopy/app/_psychopyApp.py:661
 msgid "tips.txt"
-msgstr "dicas.txt"
+msgstr "tips_pt_PT.txt"
 
 #: psychopy/app/_psychopyApp.py:699
 msgid "  Loading plugins..."
@@ -552,7 +552,7 @@ msgstr "&Routine Maior\t%s"
 
 #: psychopy/app/builder/builder.py:396
 msgid "Larger routine items"
-msgstr "Itens de rotina maiores"
+msgstr "Itens de routine maiores"
 
 #: psychopy/app/builder/builder.py:399
 #, python-format
@@ -561,7 +561,7 @@ msgstr "&Routine Menor\t%s"
 
 #: psychopy/app/builder/builder.py:401
 msgid "Smaller routine items"
-msgstr "Itens de rotina menores"
+msgstr "Itens de routine menores"
 
 #: psychopy/app/builder/builder.py:410 psychopy/app/coder/coder.py:1617
 #: psychopy/app/runner/runner.py:201
@@ -651,7 +651,7 @@ msgstr "&Copiar Routine\t%s"
 
 #: psychopy/app/builder/builder.py:462
 msgid "Copy the current routine so it can be used in another exp"
-msgstr "Copie a rotina atual para que possa ser utilizada noutra experiência"
+msgstr "Copie a routine atual para que possa ser utilizada noutra experiência"
 
 #: psychopy/app/builder/builder.py:467
 #, python-format
@@ -678,7 +678,7 @@ msgstr "Colar Componente\t%s"
 
 #: psychopy/app/builder/builder.py:482
 msgid "Paste the Component at bottom of the current Routine"
-msgstr "Cole o Componente na parte inferior da rotina atual"
+msgstr "Cole o Componente na parte inferior da routine atual"
 
 #: psychopy/app/builder/builder.py:489
 msgid "Insert Routine in Flow"
@@ -1348,7 +1348,7 @@ msgstr "Modelo de Routine:"
 
 #: psychopy/app/builder/dialogs/__init__.py:1998
 msgid "Select a template to base your new Routine on"
-msgstr "Selecione um modelo para basear a sua nova rotina"
+msgstr "Selecione um modelo para basear a sua nova routine"
 
 #: psychopy/app/builder/dialogs/dlgsCode.py:110
 msgid "disabled"
@@ -1958,7 +1958,7 @@ msgstr "início do rato"
 
 #: psychopy/app/builder/localizedStrings.py:138
 msgid "Routine"
-msgstr "Rotina"
+msgstr "Routine"
 
 #: psychopy/app/builder/localizedStrings.py:140
 msgid "joystick onset"
@@ -2034,7 +2034,7 @@ msgstr "todos/as"
 
 #: psychopy/app/builder/localizedStrings.py:165
 msgid "one of your Components, Routines, or condition parameters"
-msgstr "um dos seus componentes, rotinas ou parâmetros de condição"
+msgstr "um dos seus componentes, routines ou parâmetros de condição"
 
 #: psychopy/app/builder/localizedStrings.py:167
 msgid " Avoid `this`, `these`, `continue`, `Clock`, or `component` in name"
@@ -3669,7 +3669,7 @@ msgid ""
 "The following components/routines should now be visible in the Components "
 "panel (a restart may be required in some cases):\n"
 msgstr ""
-"As seguintes componentes/rotinas agora devem estar visíveis no painel "
+"As seguintes componentes/routines agora devem estar visíveis no painel "
 "Componentes (reiniciar pode ser necessário em alguns casos):\n"
 
 #: psychopy/app/plugin_manager/dialog.py:344
@@ -6263,7 +6263,7 @@ msgstr "Em que condições esta ROI deve terminar a Routine?"
 
 #: psychopy/experiment/components/roi/__init__.py:60
 msgid "End Routine on..."
-msgstr "Terminar a rotina em..."
+msgstr "Terminar a routine em..."
 
 #: psychopy/experiment/components/roi/__init__.py:74
 msgid "Minimum dwell time within roi (look at) or outside roi (look away)."
@@ -6336,7 +6336,7 @@ msgid ""
 "Skip this Routine if the value in this contorl evaluates to True. Leave blank "
 "to not skip."
 msgstr ""
-"Ignorar esta rotina se o valor neste contorl for avaliado como True. Deixar "
+"Ignorar esta routine se o valor neste contorl for avaliado como True. Deixar "
 "em branco para não ignorar."
 
 #: psychopy/experiment/components/routineSettings/__init__.py:74
@@ -6374,7 +6374,7 @@ msgid ""
 "Color of the screen this Routine (e.g. black, $[1.0,1.0,1.0], $variable. "
 "Right-click to bring up a color-picker.)"
 msgstr ""
-"Cor do ecrã desta rotina (exemplo, preto, $[1.0,1.0,1.0], $variable. Clique "
+"Cor do ecrã desta routine (exemplo, preto, $[1.0,1.0,1.0], $variable. Clique "
 "com o botão direito para abrir um seletor de cores.)"
 
 #: psychopy/experiment/components/routineSettings/__init__.py:115
@@ -7433,8 +7433,7 @@ msgstr ""
 msgid ""
 "Unknown: A component which comes from a plugin which you do not have "
 "installed & activated."
-msgstr ""
-"Desconhecido: um componente que vem de um plugin que não instalou e ativou."
+msgstr "Unknown: um componente que vem de um plugin que não instalou e ativou."
 
 #: psychopy/experiment/components/variable/__init__.py:21
 msgid "Variable: create a new variable"
@@ -7721,7 +7720,7 @@ msgstr "Desativar esta Routine"
 
 #: psychopy/experiment/routines/eyetracker_calibrate/__init__.py:13
 msgid "Calibration routine for eyetrackers"
-msgstr "Rotina de calibração para rastreadores oculares"
+msgstr "Routine de calibração para rastreadores oculares"
 
 #: psychopy/experiment/routines/eyetracker_calibrate/__init__.py:44
 #: psychopy/experiment/routines/eyetracker_validate/__init__.py:64
@@ -8992,7 +8991,7 @@ msgstr "não foi possível avaliar a RAM física disponível; total %s"
 #: psychopy/tools/wizard.py:68
 #, python-format
 msgid "physical RAM available for configuration test (of %.1fG total)"
-msgstr "RAM física disponível para teste de configuração (de %.1fG total)"
+msgstr "the RAM física disponível para teste de configuração (de %.1fG total)"
 
 #: psychopy/tools/wizard.py:73
 #, python-format
@@ -9341,7 +9340,7 @@ msgstr ""
 #: psychopy/tools/wizard.py:527
 msgid "We'll go through a series of configuration checks in about 10 seconds. "
 msgstr ""
-"Faremos uma série de verificações de configuração em cerca de 10 segundos."
+"Faremos uma série de verificações de configuração em cerca de 10 segundos. "
 
 #: psychopy/tools/wizard.py:531
 msgid "Note: The display will switch to full-screen mode and will "
