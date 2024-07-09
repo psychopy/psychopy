@@ -14,13 +14,14 @@ import py2app  # noqa: needed to build app bundle, even though not explicitly us
 from ctypes.util import find_library
 import importlib
 import building.compile_po
-from building import createGitShaFile
+from building import writeVersionFiles
 
 import psychopy
 version = psychopy.__version__
 
 building.compile_po.compilePoFiles()
-createGitShaFile.createGitShaFile()
+writeVersionFiles.updateVersionFile()
+writeVersionFiles.updateGitShaFile()
 
 #define the extensions to compile if necess
 packageData = []

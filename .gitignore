@@ -1,5 +1,10 @@
 
 #########################################
+# keep version files in and manually update if needed
+GIT_SHA
+VERSION
+
+#########################################
 # Editor temporary/working/backup files #
 .#*
 [#]*#
@@ -20,7 +25,6 @@
 /.idea
 /.untitled.py
 scratch.py
-GIT_SHA
 
 # Compiled source #
 ###################
