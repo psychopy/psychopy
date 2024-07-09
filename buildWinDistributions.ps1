@@ -15,7 +15,7 @@ $names = @("PsychoPy")
 $archs = @("win64")
 
 # read from the version file
-$versionfile = Join-Path $pwd "version"
+$versionfile = Join-Path $pwd "psychopy\VERSION"
 $v = [Io.File]::ReadAllText($versionfile).Trim()
 
 for ($i=0; $i -lt $pyPaths.Length; $i++) {
