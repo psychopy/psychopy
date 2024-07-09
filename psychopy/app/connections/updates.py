@@ -620,10 +620,10 @@ def sendUsageStats():
         OSXver, junk, architecture = platform.mac_ver()
         systemInfo = "OSX_%s_%s" % (OSXver, architecture)
     elif sys.platform.startswith('linux'):
-        from distro import linux_distribution
+        import distro
         systemInfo = '%s_%s_%s' % (
             'Linux',
-            ':'.join([x for x in linux_distribution() if x != '']),
+            ':'.join([x for x in [distro.name(), distro.version(), distro.codename()] if x != '']),
             platform.release())
         if len(systemInfo) > 30:  # if it's too long PHP/SQL fails to store!?
             systemInfo = systemInfo[0:30]
