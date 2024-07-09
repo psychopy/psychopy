@@ -9,7 +9,11 @@ import os
 import sys
 import pathlib
 
-__version__ = (pathlib.Path(__file__).parent/"VERSION").read_text(encoding="utf-8").strip()
+
+def getVersion():
+    return (pathlib.Path(__file__).parent/"VERSION").read_text(encoding="utf-8").strip()
+
+__version__ = getVersion()
 __git_sha__ = (pathlib.Path(__file__).parent/"GIT_SHA").read_text(encoding="utf-8").strip()
 __license__ = 'GPL v3'
 __author__ = 'Open Science Tools Ltd'
@@ -130,4 +134,3 @@ try:
     import readline
 except ImportError:
     pass  # all that will happen is the stderr/stdout might get redirected
-

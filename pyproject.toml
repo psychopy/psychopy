@@ -91,6 +91,7 @@ dependencies = [
     'tables<3.9; python_version < "3.9"',
     'tables; python_version >= "3.9"',
     'blosc2<2.2.8; python_version < "3.9"',  # dependency of tables
+    "packaging>=24.1",
 ]
 
 [project.optional-dependencies]  # This is optional dependencies
@@ -137,6 +138,8 @@ requires = [
     "pdm-backend",
     "distro; platform_system == \"Linux\"",
     "tomlkit",
+    "packaging",
+    "six", 
     ]
 build-backend = "pdm.backend"
 
@@ -144,6 +147,10 @@ build-backend = "pdm.backend"
 includes = []
 excludes = ["building/"]
 #source-includes = ["tests/"]
+
+[tool.pdm.version]
+source = "call"
+getter = "psychopy.__init__:getVersion"
 
 [tool.distutils.bdist_wheel]
 universal = 1
