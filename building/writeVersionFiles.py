@@ -79,12 +79,13 @@ def makeVersionSuffix(base):
     else:
         return f'dev{nCommits}'
     
-def updateVersionFile(dist=None, version=None, sha=None):
+def updateVersionFile():
     """Take psychopy/VERSION, append the branch and distance to commit
     and update the VERSION file accordingly"""
     raw = (root/'psychopy/VERSION').read_text().strip()
     if not _checkValidVersion(raw):
-        raise version.InvalidVersion("Can't create valid version from invalid starting point")
+        raise version.InvalidVersion("Can't create valid version from invalid starting point:\n"
+                                     "  {raw}")
     base = raw.split(['dev', 'post', 'rc', 'a', 'b'])[0]
     suffix = makeVersionSuffix(base)
     final = base + suffix
