@@ -94,7 +94,7 @@ def updateVersionFile():
             f.write(final)
         print(f"Updated version file to {final}")
 
-def updateGitShaFile():
+def updateGitShaFile(sha=None):
     """Create psychopy/GIT_SHA
 
     :param:`dist` can be:
