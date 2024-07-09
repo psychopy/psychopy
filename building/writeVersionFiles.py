@@ -18,12 +18,12 @@ def _call(cmd):
     else:
         return result.stdout.strip()
 
-def _checkValidVersion(version):
+def _checkValidVersion(v):
     """Check if version string is valid and return True/False"""
     try:
-        version.Version(version)
+        version.Version(v)
     except version.InvalidVersion:
-        print(f"Invalid version: {version}")
+        print(f"Invalid version: {v}")
         return False
     return True
 
@@ -94,7 +94,7 @@ def updateVersionFile():
             f.write(final)
         print(f"Updated version file to {final}")
 
-def updateGitShaFile(dist=None, version=None, sha=None):
+def updateGitShaFile():
     """Create psychopy/GIT_SHA
 
     :param:`dist` can be:
