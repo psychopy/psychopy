@@ -78,7 +78,6 @@ class AppSigner:
         files.extend(self.appFile.glob('**/Versions/A/Qt*'))  # PyQt6
         files.extend(self.appFile.glob('**/Contents/MacOS/QtWebEngineProcess'))
         files.extend(self.appFile.glob('**/Resources/lib/python3.8/lib-dynload/*.so'))
-        files.extend(self.appFile.glob('**/Frameworks/Python.framework/Versions/3.6/Python'))
         files.extend(self.appFile.glob('**/Frameworks/Python.framework'))
         files.extend(self.appFile.glob('**/Contents/MacOS/python'))
 
@@ -370,9 +369,8 @@ class AppSigner:
 
 
 def main():
-
-    with open(thisFolder.parent / "version") as f:
-        defaultVersion = f.read().strip()
+    import setuptools_git_versioning as gv
+    defaultVersion = gv.get_version()
     parser = argparse.ArgumentParser(description="Codesigning PsychoPy.app")
     parser.add_argument("--app", help=("Path to the app bundle, "
                                        "assumed to be in dist/"),
