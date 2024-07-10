@@ -9,11 +9,11 @@ from packaging import version
 
 root = pathlib.Path(__file__).parent.parent  # root of the repo
 
-def _call(cmd):
+def _call(cmd, verbose=False):
     result = run(cmd, capture_output=True, text=True)
-    if result.returncode or result.stderr:
+    if verbose or result.returncode or result.stderr:
         print(f"Call:\n  {' '.join(cmd)}")
-        print(f"Resulted in:\n  {result.stderr}")
+        print(f"Resulted in:\n  {result.stdout + result.stderr}")
         return None
     else:
         return result.stdout.strip()
@@ -83,10 +83,12 @@ def updateVersionFile():
     """Take psychopy/VERSION, append the branch and distance to commit
     and update the VERSION file accordingly"""
     raw = (root/'psychopy/VERSION').read_text().strip()
-    if not _checkValidVersion(raw):
+    try:
+      origVersion = version.Version(raw)
+    except version.InvalidVersion:
         raise version.InvalidVersion("Can't create valid version from invalid starting point:\n"
                                      "  {raw}")
-    base = raw.split(['dev', 'post', 'rc', 'a', 'b'])[0]
+    base = origVersion.base_version  # removing things like the dev21 or post3
     suffix = makeVersionSuffix(base)
     final = base + suffix
     if final != raw:
