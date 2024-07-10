@@ -139,7 +139,7 @@ requires = [
     "distro; platform_system == \"Linux\"",
     "tomlkit",
     "packaging",
-    "six", 
+    "six",  # for configobj
     ]
 build-backend = "pdm.backend"
 
