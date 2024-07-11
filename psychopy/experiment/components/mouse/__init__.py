@@ -192,7 +192,7 @@ class MouseComponent(BaseComponent):
             "// check whether click was in correct object\n"
             "if (gotValidClick) {\n"
             "    corr = 0;\n"
-            "    corrAns = %(correctAns)s;\n"
+            "    corrAns = eval( %(correctAns)s);\n"
             "    for (let obj of [corrAns]) {\n"
             "        if (obj.contains(%(name)s)) {\n"
             "            corr = 1;\n"
