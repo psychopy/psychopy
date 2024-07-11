@@ -764,7 +764,10 @@ def loadPlugin(plugin):
         for attr, ep in attrs.items():
             try:
                 # parse the module name from the entry point value
-                module_name, _ = ep.value.split(':', 1)
+                if ':' in ep.value:
+                    module_name, _ = ep.value.split(':', 1)
+                else:
+                    module_name = ep.value
                 module_name = module_name.split(".")[0]
             except ValueError:
                 logging.error(
