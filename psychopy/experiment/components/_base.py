@@ -339,7 +339,7 @@ class BaseComponent:
             string.
         """
         # create copy of params dict so we can change stuff without harm
-        params = self.params.copy()
+        params = {key: param.copy() for key, param in self.params.items()}
 
         # Get starting indent level
         startIndent = buff.indentLevel
@@ -451,7 +451,7 @@ class BaseComponent:
             string.
         """
         # create copy of params dict so we can change stuff without harm
-        params = self.params.copy()
+        params = {key: param.copy() for key, param in self.params.items()}
 
         # Get starting indent level
         startIndent = buff.indentLevel
@@ -527,7 +527,7 @@ class BaseComponent:
             string.
         """
         # create copy of params dict so we can change stuff without harm
-        params = self.params.copy()
+        params = {key: param.copy() for key, param in self.params.items()}
 
         # Get starting indent level
         startIndent = buff.indentLevel
@@ -642,7 +642,7 @@ class BaseComponent:
             string.
         """
         # create copy of params dict so we can change stuff without harm
-        params = self.params.copy()
+        params = {key: param.copy() for key, param in self.params.items()}
 
         # Get starting indent level
         startIndent = buff.indentLevel
@@ -734,7 +734,7 @@ class BaseComponent:
             string.
         """
         # create copy of params dict so we can change stuff without harm
-        params = self.params.copy()
+        params = {key: param.copy() for key, param in self.params.items()}
 
         # Newline
         buff.writeIndentedLines("\n")
