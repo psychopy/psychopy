@@ -339,7 +339,7 @@ class BaseComponent:
             string.
         """
         # create copy of params dict so we can change stuff without harm
-        params = {key: param.copy() for key, param in self.params.items()}
+        params = self.params.copy()
 
         # Get starting indent level
         startIndent = buff.indentLevel
@@ -347,6 +347,8 @@ class BaseComponent:
         if params['startVal'].val in ('', None, -1, 'None'):
             if extra:
                 # if we have extra and no stop condition, extra is the only stop condition
+                params['startType'] = params['startType'].copy()
+                params['startVal'] = params['startVal'].copy()
                 params['startType'].val = "condition"
                 params['startVal'].val = "False"
             else:
@@ -451,7 +453,7 @@ class BaseComponent:
             string.
         """
         # create copy of params dict so we can change stuff without harm
-        params = {key: param.copy() for key, param in self.params.items()}
+        params = self.params.copy()
 
         # Get starting indent level
         startIndent = buff.indentLevel
@@ -459,6 +461,8 @@ class BaseComponent:
         if params['startVal'].val in ('', None, -1, 'None'):
             if extra:
                 # if we have extra and no stop condition, extra is the only stop condition
+                params['startType'] = params['startType'].copy()
+                params['startVal'] = params['startVal'].copy()
                 params['startType'].val = "condition"
                 params['startVal'].val = "False"
             else:
@@ -527,7 +531,7 @@ class BaseComponent:
             string.
         """
         # create copy of params dict so we can change stuff without harm
-        params = {key: param.copy() for key, param in self.params.items()}
+        params = self.params.copy()
 
         # Get starting indent level
         startIndent = buff.indentLevel
@@ -535,6 +539,8 @@ class BaseComponent:
         if params['stopVal'].val in ('', None, -1, 'None'):
             if extra:
                 # if we have extra and no stop condition, extra is the only stop condition
+                params['stopType'] = params['stopType'].copy()
+                params['stopVal'] = params['stopVal'].copy()
                 params['stopType'].val = "condition"
                 params['stopVal'].val = "False"
             else:
@@ -642,7 +648,7 @@ class BaseComponent:
             string.
         """
         # create copy of params dict so we can change stuff without harm
-        params = {key: param.copy() for key, param in self.params.items()}
+        params = self.params.copy()
 
         # Get starting indent level
         startIndent = buff.indentLevel
@@ -650,6 +656,8 @@ class BaseComponent:
         if params['stopVal'].val in ('', None, -1, 'None'):
             if extra:
                 # if we have extra and no stop time, extra is only stop condition
+                params['stopType'] = params['stopType'].copy()
+                params['stopVal'] = params['stopVal'].copy()
                 params['stopType'].val = "condition"
                 params['stopVal'].val = "false"
             else:
@@ -734,7 +742,7 @@ class BaseComponent:
             string.
         """
         # create copy of params dict so we can change stuff without harm
-        params = {key: param.copy() for key, param in self.params.items()}
+        params = self.params.copy()
 
         # Newline
         buff.writeIndentedLines("\n")
