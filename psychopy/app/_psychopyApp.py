@@ -516,6 +516,12 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         #     self._codeFont.SetPointSize(
         #         self._mainFont.GetPointSize())  # unify font size
 
+        # load plugins so they're available before frames are created
+        if splash:
+            splash.SetText(_translate("  Loading plugins..."))
+        from psychopy.plugins import activatePlugins
+        activatePlugins()
+        
         # create both frame for coder/builder as necess
         if splash:
             splash.SetText(_translate("  Creating frames..."))
@@ -669,17 +675,6 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         self._appLoaded = True
         if self.coder:
             self.coder.setOutputWindow()  # takes control of sys.stdout
-
-        # load plugins after the app has been mostly realized
-        if splash:
-            splash.SetText(_translate("  Loading plugins..."))
-
-        # Load plugins here after everything is realized, make sure that we
-        # refresh UI elements which are affected by plugins (e.g. the component
-        # panel in Builder).
-        from psychopy.plugins import activatePlugins
-        activatePlugins()
-        self._refreshComponentPanels()
 
         # flush any errors to the last run log file
         logging.flush()
