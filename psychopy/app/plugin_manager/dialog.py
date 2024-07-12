@@ -52,6 +52,7 @@ class EnvironmentManagerDlg(wx.Dialog):
         self.notebook.InsertPage(1, self.packageMgr, text=_translate("Packages"))
         # Buttons
         self.btns = self.CreateStdDialogButtonSizer(flags=wx.HELP | wx.CLOSE)
+        self.Bind(wx.EVT_CLOSE, self.onClose)
         self.border.Add(self.btns, border=12, flag=wx.EXPAND | wx.ALL)
         # store button handles
         self.closeBtn = self.helpBtn = None
@@ -322,8 +323,6 @@ class EnvironmentManagerDlg(wx.Dialog):
             will be installed.
 
         """
-        # disable close buttons
-        self.enableClose(False)
         # do install
         self.installPackage(
             packageName=pluginInfo.pipname,
@@ -345,8 +344,6 @@ class EnvironmentManagerDlg(wx.Dialog):
             Info object of the plugin to uninstall.
 
         """
-        # disable close buttons
-        self.enableClose(False)
         # do uninstall
         self.uninstallPackage(pluginInfo.pipname)
 
@@ -356,8 +353,6 @@ class EnvironmentManagerDlg(wx.Dialog):
         to the output panel then, if installing a plugin, provides helpful info about that
         plugin.
         """
-        # re-enable close buttons
-        self.enableClose(True)
         if self.pipProcess is None:
             # if pip process is None, this has been called by mistake, do nothing
             return
@@ -418,8 +413,6 @@ class EnvironmentManagerDlg(wx.Dialog):
         self.pluginMgr.updateInfo()
     
     def onUninstallExit(self, pid, exitCode):
-        # re-enable close buttons
-        self.enableClose(True)
         # write installation termination statement
         msg = "Uninstall complete"
         if 'pipname' in self.pipProcess.extra:
@@ -427,42 +420,22 @@ class EnvironmentManagerDlg(wx.Dialog):
         self.output.writeTerminus(msg)
         # clear pip process
         self.pipProcess = None
-    
-    def enableClose(self, enable):
-        """
-        Enable/disable close buttons.
-
-        Parameters
-        ----------
-        enable : bool
-            True to enable, False to disable
-        """
-        # enable dialog X button
-        self.EnableCloseButton(enable)
-        # enable Cancel button
-        self.closeBtn.Enable(enable)
 
     def onClose(self, evt=None):
-        # Get changes to plugin states
-        # pluginChanges = self.pluginMgr.pluginList.getChanges()
-
-        # # If any plugins have been uninstalled, prompt user to restart
-        # if any(["uninstalled" in changes for changes in pluginChanges.values()]):
-        #     msg = _translate(
-        #         "It looks like you've uninstalled some plugins. In order for this to take effect, you will need to "
-        #         "restart the PsychoPy app."
-        #     )
-        #     dlg = wx.MessageDialog(
-        #         None, msg,
-        #         style=wx.ICON_WARNING | wx.OK
-        #     )
-        #     dlg.ShowModal()
-
-        # # Repopulate component panels
-        # for frame in self.app.getAllFrames():
-        #     if hasattr(frame, "componentButtons") and hasattr(frame.componentButtons, "populate"):
-        #         frame.componentButtons.populate()
-
+        if self.isBusy:
+            # if closing during an install, prompt user to reconsider
+            dlg = wx.MessageDialog(
+                self,
+                _translate(
+                    "There is currently an installation/uninstallation in progress, are you sure "
+                    "you want to close?"
+                ),
+                style=wx.YES | wx.NO
+            )
+            # if they change their mind, cancel closing
+            if dlg.ShowModal() == wx.ID_NO:
+                return
+        
         if evt is not None:
             evt.Skip()
 
