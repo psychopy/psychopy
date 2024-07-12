@@ -1005,7 +1005,7 @@ class PavloviaProjectCtrl(FrameRibbonDropdownButton):
         else:
             name = path = ""
         # open dlg to create new project
-        createDlg = sync.CreateDlg(self,
+        createDlg = sync.CreateDlg(self.frame,
                                    user=pavlovia.getCurrentSession().user,
                                    name=name,
                                    path=path)
