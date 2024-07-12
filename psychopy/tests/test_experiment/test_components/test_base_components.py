@@ -9,6 +9,8 @@ from psychopy import experiment
 from psychopy.experiment.loops import TrialHandler
 from psychopy.experiment.components import BaseComponent
 from psychopy.experiment.exports import IndentingBuffer
+from psychopy.constants import FOREVER
+from psychopy.tests import utils
 
 
 def _find_global_resource_in_js_experiment(script, resource):
@@ -147,6 +149,62 @@ class BaseComponentTests:
             assert buff.indentLevel == 0, errMsg.format(
                 "experiment end", buff.indentLevel
             )
+    
+    def test_blank_timing(self):
+        """
+        Check that this Component can handle blank start/stop values.
+        """
+        # make minimal experiment just for this test
+        comp, rt, exp = self.make_minimal_experiment()
+        # skip if Component doesn't have the relevant params (e.g. Code Component)
+        for key in ("startVal", "startType", "stopVal", "stopType"):
+            if key not in comp.params:
+                pytest.skip()
+        # StaticComponent has entirely bespoke start/stop tests so skip it here
+        if type(comp).__name__ == "StaticComponent":
+            pytest.skip()
+        # make sure start and stop are as times
+        comp.params['startType'].val = "time (s)"
+        comp.params['stopType'].val = "duration (s)"
+        # define cases and expected start/dur
+        cases = [
+            # blank start
+            {'startVal': "", 'stopVal': "1", 'startTime': None, 'duration': 1},
+            # blank stop
+            {'startVal': "0", 'stopVal': "", 'startTime': 0, 'duration': FOREVER},
+            # blank both
+            {'startVal': "", 'stopVal': "", 'startTime': None, 'duration': FOREVER},
+        ]
+        # run all cases
+        for case in cases:
+            # apply values from case
+            comp.params['startVal'].val = case['startVal']
+            comp.params['stopVal'].val = case['stopVal']
+            # get values from start and duration method
+            startTime, duration, nonSlipSafe = comp.getStartAndDuration()
+            # check against expected
+            assert startTime == case['startTime']
+            assert duration == case['duration']
+            # check that it's never non-slip safe
+            assert not nonSlipSafe
+            # temp file to save scripts to for flake
+            import tempfile
+            file = Path(tempfile.gettempdir()) / "test_blank_timing_script.py"
+            # write the script
+            script = exp.writeScript(target="PsychoPy")
+            file.write_text(script, encoding="utf-8")
+            # check for syntax errors
+            try:
+                compile(script, str(file), "exec")
+            except Exception as err:
+                # save script
+                case['fail'] = Path(utils.TESTS_FAILS_PATH) / "test_blank_timing_script.py"
+                case['fail'].write_text(script, encoding="utf-8")
+                # raise error
+                raise AssertionError(
+                    "Syntax error in compiled Builder code when startVal was '%(startVal)s' and "
+                    "stopVal was '%(stopVal)s'. Failed script saved in '%(fail)s'" % case
+                )
 
     def test_disabled_default_val(self):
         """
