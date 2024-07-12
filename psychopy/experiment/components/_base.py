@@ -398,7 +398,6 @@ class BaseComponent:
         buff.writeIndentedLines(code % params)
         buff.setIndentLevel(+1, relative=True)
 
-        params = params
         code = (f"# keep track of start time/frame for later\n"
                 f"{params['name']}.frameNStart = frameN  # exact frame index\n"
                 f"{params['name']}.tStart = t  # local t and not account for scr refresh\n"
