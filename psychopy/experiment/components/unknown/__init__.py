@@ -22,13 +22,12 @@ class UnknownComponent(BaseComponent):
                          'future)')
 
     def __init__(self, exp, parentName, name='', compType="UnknownComponent"):
-        self.type = compType
         self.exp = exp  # so we can access the experiment if necess
         self.parentName = parentName  # to access the routine too if needed
         self.params = {}
         self.depends = []
         super(UnknownComponent, self).__init__(exp, parentName, name=name)
-        self.order += []
+        self.type = compType
 
     @property
     def _xml(self):
