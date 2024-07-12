@@ -371,7 +371,7 @@ class BaseShapeStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             GL.glLineWidth(self.lineWidth)
             if self.opacity is not None:
                 borderRGBA = self._borderColor.render('rgba1')
-                borderRGBA[-1] = 2. * self.opacity - 1.  # override opacity
+                borderRGBA[-1] = self.opacity  # override opacity
                 GL.glColor4f(*borderRGBA)
             else:
                 GL.glColor4f(*self._borderColor.render('rgba1'))
