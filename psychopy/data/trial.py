@@ -423,7 +423,7 @@ class TrialHandler(_BaseTrialHandler):
                 if hasattr(tmpData, 'tolist'):  # is a numpy array
                     strVersion = str(tmpData.tolist())
                     # for numeric data replace None with a blank cell
-                    if tmpData.dtype.kind not in ['SaUV']:
+                    if tmpData.dtype.kind not in 'SaUV':
                         strVersion = strVersion.replace('None', '')
                 elif tmpData in [None, 'None']:
                     strVersion = ''
