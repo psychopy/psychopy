@@ -608,12 +608,13 @@ def loadPluginBuilderElements(plugin):
     # import all relevant classes
     for point in relevantPoints:
         try:
-            ep.load()
+            point.load()
             return True
-        except:
+        except Exception as err:
             # if import failed for any reason, log error and mark failure
             logging.error(
-                f"Failed to load {point.value}.{point.name} from plugin {plugin}."
+                f"Failed to load {point.value}.{point.name} from plugin {plugin}. Original error: "
+                f"{err}"
             )
             _failed_plugins_.append(plugin)
             return False
