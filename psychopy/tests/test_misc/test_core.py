@@ -25,6 +25,7 @@ import pytest
 
 import psychopy
 import psychopy.logging as logging
+from psychopy.tests.utils import RUNNING_IN_VM
 from psychopy.visual import Window
 from psychopy.core import (getTime, MonotonicClock, Clock, CountdownTimer, wait,
                            StaticPeriod, shellCall)
@@ -346,6 +347,10 @@ def test_LoggingDefaultClock():
 
 @pytest.mark.staticperiod
 def test_StaticPeriod():
+    # this test is speed sensitive, so skip under VM
+    if RUNNING_IN_VM:
+        pytest.skip()
+
     static = StaticPeriod()
     static.start(0.1)
     wait(0.05)
