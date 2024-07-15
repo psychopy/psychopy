@@ -347,8 +347,11 @@ class Param():
             return False
         # if not a clear alias, use bool method of value
         return bool(self.val)
-
-    def __deepcopy__(self, memo):
+    
+    def copy(self):
+        """
+        Create a copy of this Param object
+        """
         return Param(
             val=self.val,
             valType=self.valType,
@@ -364,6 +367,9 @@ class Param():
             canBePath=self.canBePath,
             categ=self.categ
         )
+
+    def __deepcopy__(self, memo):
+        return self.copy()
 
     @property
     def _xml(self):
