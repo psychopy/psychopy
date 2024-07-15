@@ -974,7 +974,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             import socket
             sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             sock.settimeout(1.0)
-            iohubAddress = '127.0.0.1', 9034
+            iohubAddress = '127.0.0.1', 9036
             import msgpack
             txData = msgpack.Packer().pack(('STOP_IOHUB_SERVER',))
             return sock.sendto(txData, iohubAddress)
