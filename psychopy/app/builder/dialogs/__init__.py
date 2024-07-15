@@ -478,6 +478,7 @@ class StartStopCtrls(wx.GridBagSizer):
                 # Add ctrl
                 self.ctrls[name] = wx.TextCtrl(parent,
                                                value=str(param.val), size=wx.Size(-1, 24))
+                self.ctrls[name].SetToolTip(param.hint)
                 self.ctrls[name].Bind(wx.EVT_TEXT, self.updateCodeFont)
                 self.updateCodeFont(self.ctrls[name])
                 self.label = wx.StaticText(parent, label=param.label)
