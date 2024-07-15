@@ -437,13 +437,13 @@ class TrialHandler(_BaseTrialHandler):
                     strVersion = "--"
                 # handle list of values (e.g. rt_raw )
                 if (len(strVersion) and
-                            strVersion[0] in '[(' and
-                            strVersion[-1] in '])'):
+                        strVersion[0] in '[(' and
+                        strVersion[-1] in '])'):
                     strVersion = strVersion[1:-1]  # skip first and last chars
                 # handle lists of lists (e.g. raw of multiple key presses)
                 if (len(strVersion) and
-                            strVersion[0] in '[(' and
-                            strVersion[-1] in '])'):
+                        strVersion[0] in '[(' and
+                        strVersion[-1] in '])'):
                     if replaceNone:
                         # Add None back so that the str is valid for eval
                         strVersion = strVersion.replace('[,', '[None,')
