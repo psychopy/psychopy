@@ -423,7 +423,9 @@ class TrialHandler(_BaseTrialHandler):
                 if hasattr(tmpData, 'tolist'):  # is a numpy array
                     strVersion = str(tmpData.tolist())
                     # for numeric data replace None with a blank cell
+                    replaceNone = False
                     if tmpData.dtype.kind not in 'SaUV':
+                        replaceNone = True
                         strVersion = strVersion.replace('None', '')
                 elif tmpData in [None, 'None']:
                     strVersion = ''
@@ -442,11 +444,18 @@ class TrialHandler(_BaseTrialHandler):
                 if (len(strVersion) and
                             strVersion[0] in '[(' and
                             strVersion[-1] in '])'):
+                    if replaceNone:
+                        # Add None back so that the str is valid for eval
+                        strVersion = strVersion.replace('[,', '[None,')
+                        strVersion = strVersion.replace(', ,', ', None,')
                     tup = eval(strVersion)  # convert back to a tuple
                     for entry in tup:
                         # contents of each entry is a list or tuple so keep in
                         # quotes to avoid probs with delim
-                        thisLine.append(str(entry))
+                        currentEntry = str(entry)
+                        if replaceNone:
+                            currentEntry = currentEntry.replace('None', '')
+                        thisLine.append(currentEntry)
                 else:
                     thisLine.extend(strVersion.split(','))
 
