@@ -420,10 +420,10 @@ class TrialHandler(_BaseTrialHandler):
             for thisDataOut in dataOut:
                 # make a string version of the data and then format it
                 tmpData = dataAnal[thisDataOut][stimN]
+                replaceNone = False
                 if hasattr(tmpData, 'tolist'):  # is a numpy array
                     strVersion = str(tmpData.tolist())
                     # for numeric data replace None with a blank cell
-                    replaceNone = False
                     if tmpData.dtype.kind not in 'SaUV':
                         replaceNone = True
                         strVersion = strVersion.replace('None', '')
