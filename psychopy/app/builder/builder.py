@@ -64,7 +64,7 @@ from psychopy.tools.filetools import mergeFolder
 from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
                       DlgCodeComponentProperties, DlgLoopProperties,
                       ParamNotebook, DlgNewRoutine, BuilderFindDlg)
-from ..utils import (BasePsychopyToolbar, HoverButton, WindowFrozen,
+from ..utils import (BasePsychopyToolbar, HoverButton, ThemedPanel, WindowFrozen,
                      FileDropTarget, FrameSwitcher, updateDemosMenu,
                      ToggleButtonArray, HoverMixin)
 
@@ -3480,7 +3480,7 @@ class FlowPanel(wx.Panel, handlers.ThemeMixin):
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.SetSizer(self.sizer)
         # buttons panel
-        self.btnPanel = wx.Panel(self)
+        self.btnPanel = ThemedPanel(self)
         self.btnPanel.sizer = wx.BoxSizer(wx.VERTICAL)
         self.btnPanel.SetSizer(self.btnPanel.sizer)
         self.sizer.Add(self.btnPanel, border=6, flag=wx.EXPAND | wx.ALL)
