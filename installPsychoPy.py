@@ -128,15 +128,18 @@ def getWxUrl(distroNames=None):
             print("Invalid choice, please try again.")
 
     def fetchWhlFiles(htmlContent, pythonVersions):
-        whl_files = []
+        all = []
+        recommended = []
         lines = htmlContent.split('\n')
         for line in lines:
-            if '<a href="' in line and '.whl"' in line and pythonVersions in line:
+            if '<a href="' in line and '.whl"' in line:
                 start_index = line.find('<a href="') + len('<a href="')
                 end_index = line.find('"', start_index)
                 whl_file = line[start_index:end_index]
-                whl_files.append(whl_file)
-        return whl_files
+                all.append(whl_file)
+                if pythonVersions in line:
+                    recommended.append(whl_file)
+        return recommended, all
 
     organizedDistros = organizeDistributions(distroNames)
 
@@ -160,13 +163,17 @@ def getWxUrl(distroNames=None):
         response.raise_for_status()
         htmlThisDistro = response.text
 
-        whlFiles = fetchWhlFiles(htmlThisDistro, pythonVersions=python_cp)
+        recommended, all = fetchWhlFiles(htmlThisDistro, pythonVersions=python_cp)
 
-        if whlFiles:
-            return distroUrl + whlFiles[-1]
+        if recommended:
+            return distroUrl + recommended[-1]
         else:
-            print(f"No .whl files at {distroUrl} for the python {python_cp}")
-            print("Maybe wxPython is not compiled for this distro/python combination?")
+            if all:
+                print(f"No .whl files for python {python_cp}")
+                allPretty = '\n- '+('\n- '.join(all))
+                print(f"Found the following .whl files at {distroUrl}:{allPretty}")
+            else:
+                print(f"No .whl files found at {distroUrl}")
 
 
 if __name__ == "__main__":
