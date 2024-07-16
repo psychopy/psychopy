@@ -389,7 +389,8 @@ class Color:
         adj = np.clip(self.rgb * contrast, -1, 1)
         buffer = self.copy()
         buffer.rgb = adj
-        return getattr(buffer, space)
+        self._renderCache[space] = getattr(buffer, space)
+        return self._renderCache[space]
 
     def __repr__(self):
         """If colour is printed, it will display its class and value.
