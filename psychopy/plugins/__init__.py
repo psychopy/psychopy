@@ -574,51 +574,6 @@ def isStartUpPlugin(plugin):
     return plugin in listPlugins(which='startup')
 
 
-def loadPluginBuilderElements(plugin):
-    """
-    Load entry points from plugin which are relevant to Builder, e.g.
-    Component/Routine extensions for listing available hardware backends.
-
-    Parameters
-    ----------
-    plugin : str
-        Name of the plugin package to load. This usually refers to the package
-        or project name.
-
-    Returns
-    -------
-    bool
-        `True` if successful, `False` if failed.
-    """
-    # if plugin has already failed to load once, don't try again
-    if plugin in _failed_plugins_:
-        return False
-    # get entry points for plugin
-    ep = pluginEntryPoints(plugin)
-    # define modules in which entry points are relevant to Builder
-    modules = (
-        "psychopy.experiment.routines",
-        "psychopy.experiment.components",
-    )
-    # get any points pointing to these modules
-    relevantPoints = []
-    for mod in modules:
-        pts = ep.get(mod, {})
-        relevantPoints += list(pts.values())
-    # import all relevant classes
-    for point in relevantPoints:
-        try:
-            ep.load()
-            return True
-        except:
-            # if import failed for any reason, log error and mark failure
-            logging.error(
-                f"Failed to load {point.value}.{point.name} from plugin {plugin}."
-            )
-            _failed_plugins_.append(plugin)
-            return False
-
-
 def loadPlugin(plugin):
     """Load a plugin to extend PsychoPy.
 
@@ -1150,7 +1105,6 @@ def activatePlugins(which='all'):
     # load each plugin and apply any changes to Builder
     for plugin in listPlugins(which):
         loadPlugin(plugin)
-        loadPluginBuilderElements(plugin)
 
 
 # Keep track of currently installed window backends. When a window is loaded,
