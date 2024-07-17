@@ -69,6 +69,55 @@ def getFailFilenames(fileName, tag=""):
     return localFileName, exemplarFileName
 
 
+def checkSyntax(exp, targets=("PsychoPy", "PsychoJS")):
+    """
+    Check that a given Experiment object writes valid syntax.
+
+    Parameters
+    ----------
+    exp : psychopy.experiment
+        Experiment to check syntax for
+    targets : list[str] or tuple[str]
+        Languages to check syntax in ("PsychoPy" and/or "PsychoJS")
+
+    Raises
+    ------
+    SyntaxError
+        Will raise a SyntaxError if there's invalid syntax, and will store the broken script in 
+        tests/fails
+    """
+    # only test Python if Component is supposed to work locally
+    if "PsychoPy" in targets:
+        # temp file to save scripts to
+        file = Path(TESTS_FAILS_PATH) / f"test_{exp.name}_syntax_errors_script.py"
+        # write script
+        script = exp.writeScript(target="PsychoPy")
+        # compile (will error if there's syntax errors)
+        try:
+            compile(script, str(file), "exec")
+        except SyntaxError as err:
+            # save script to fails folder
+            file.write_text(script, encoding="utf-8")
+            # raise error
+            raise err
+    
+    # only test JS if Component is supposed to work online
+    if "PsychoJS" in targets:
+        # temp file to save scripts to
+        file = Path(TESTS_FAILS_PATH) / f"test_{exp.name}_syntax_errors_script.js"
+        # write script
+        script = exp.writeScript(target="PsychoJS")
+        # parse in esprima and raise any errors
+        import esprima
+        try:
+            esprima.parseModule(script)
+        except esprima.Error as err:
+            # save script to fails folder
+            file.write_text(script, encoding="utf-8")
+            # raise error
+            raise SyntaxError(err.message)
+
+
 def compareScreenshot(fileName, win, tag="", crit=5.0):
     """Compare the current back buffer of the given window with the file
 

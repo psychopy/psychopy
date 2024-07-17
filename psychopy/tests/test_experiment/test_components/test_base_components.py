@@ -3,7 +3,9 @@ import esprima
 import re
 from pathlib import Path
 
+import esprima.error_handler
 import pytest
+import tempfile
 
 from psychopy import experiment
 from psychopy.experiment.loops import TrialHandler
@@ -43,6 +45,7 @@ class BaseComponentTests:
         """
         # make blank experiment
         exp = experiment.Experiment()
+        exp.name = "Test" + self.comp.__name__ + "MinimalExp"
         # add a Routine
         rt = exp.addRoutine(routineName='TestRoutine')
         exp.flow.addRoutine(rt, 0)
@@ -67,6 +70,16 @@ class BaseComponentTests:
         yield
     
     # --- Heritable tests ---
+
+    def test_syntax_errors(self):
+        """
+        Create a basic implementation of this Component with everything set to defaults and check 
+        whether the resulting code has syntax errors
+        """
+        # create minimal experiment
+        comp, rt, exp = self.make_minimal_experiment()
+        # check syntax
+        utils.checkSyntax(exp, targets=self.comp.targets)
 
     def test_icons(self):
         """
@@ -169,11 +182,11 @@ class BaseComponentTests:
         # define cases and expected start/dur
         cases = [
             # blank start
-            {'startVal': "", 'stopVal': "1", 'startTime': None, 'duration': 1},
+            {'name': "NoStart", 'startVal': "", 'stopVal': "1", 'startTime': None, 'duration': 1},
             # blank stop
-            {'startVal': "0", 'stopVal': "", 'startTime': 0, 'duration': FOREVER},
+            {'name': "NoStop", 'startVal': "0", 'stopVal': "", 'startTime': 0, 'duration': FOREVER},
             # blank both
-            {'startVal': "", 'stopVal': "", 'startTime': None, 'duration': FOREVER},
+            {'name': "NoStartStop", 'startVal': "", 'stopVal': "", 'startTime': None, 'duration': FOREVER},
         ]
         # run all cases
         for case in cases:
@@ -187,23 +200,18 @@ class BaseComponentTests:
             assert duration == case['duration']
             # check that it's never non-slip safe
             assert not nonSlipSafe
-            # temp file to save scripts to for flake
-            import tempfile
-            file = Path(tempfile.gettempdir()) / "test_blank_timing_script.py"
-            # write the script
-            script = exp.writeScript(target="PsychoPy")
-            file.write_text(script, encoding="utf-8")
-            # check for syntax errors
+            # update experiment name to indicate what case we're in
+            exp.name = "Test%(name)sExp" % case
+            # check that it still writes syntactially valid code
             try:
-                compile(script, str(file), "exec")
-            except Exception as err:
-                # save script
-                case['fail'] = Path(utils.TESTS_FAILS_PATH) / "test_blank_timing_script.py"
-                case['fail'].write_text(script, encoding="utf-8")
+                utils.checkSyntax(exp, targets=self.comp.targets)
+            except SyntaxError as err:
                 # raise error
+                case['err'] = err
                 raise AssertionError(
                     "Syntax error in compiled Builder code when startVal was '%(startVal)s' and "
-                    "stopVal was '%(stopVal)s'. Failed script saved in '%(fail)s'" % case
+                    "stopVal was '%(stopVal)s'. Failed script saved in psychopy/tests/fails. "
+                    "Original error: %(err)s" % case
                 )
 
     def test_disabled_default_val(self):
