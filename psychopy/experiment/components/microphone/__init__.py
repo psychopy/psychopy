@@ -497,7 +497,7 @@ class MicrophoneComponent(BaseDeviceComponent):
             inits['transcribeBackend'].val = None
         # Warn user if their transcriber won't work locally
         if inits['transcribe'].val:
-            if  inits['transcribeBackend'].val in self.localTranscribers:
+            if  self.params['transcribeBackend'].val in self.localTranscribers:
                 inits['transcribeBackend'].val = self.localTranscribers[self.params['transcribeBackend'].val]
             else:
                 default = list(self.localTranscribers.values())[0]
@@ -567,7 +567,7 @@ class MicrophoneComponent(BaseDeviceComponent):
     def writeRoutineEndCodeJS(self, buff):
         inits = getInitVals(self.params)
         inits['routine'] = self.parentName
-        if inits['transcribeBackend'].val in self.allTranscribers:
+        if self.params['transcribeBackend'].val in self.allTranscribers:
             inits['transcribeBackend'].val = self.allTranscribers[self.params['transcribeBackend'].val]
         # Warn user if their transcriber won't work online
         if inits['transcribe'].val and inits['transcribeBackend'].val not in self.onlineTranscribers.values():
