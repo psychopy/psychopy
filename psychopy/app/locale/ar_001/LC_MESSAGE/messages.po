@@ -8041,7 +8041,7 @@ msgstr ""
 #: psychopy/experiment/components/routineSettings/__init__.py:76
 #, fuzzy
 msgid ""
-"Skip this Routine if the value in this contorl evaluates to True. Leave blank to "
+"Skip this Routine if the value in this control evaluates to True. Leave blank to "
 "not skip."
 msgstr ""
 "تخطي هذا الإجراء الروتيني إذا كانت القيمة في هذا الكونتورل تساوي True. اتركها "
