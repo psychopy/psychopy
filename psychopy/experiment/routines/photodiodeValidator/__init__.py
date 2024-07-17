@@ -19,7 +19,7 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
     iconFile = Path(__file__).parent / 'photodiode_validator.png'
     tooltip = _translate('Photodiode validator')
     deviceClasses = []
-    version = "2024.2.0"
+    version = "2025.1.0"
 
     def __init__(
             self,
