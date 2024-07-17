@@ -214,7 +214,7 @@ class RoutineSettingsComponent(BaseComponent):
             code = (
                 "// skip this Routine if its 'Skip if' condition is True\n"
                 "continueRoutine = continueRoutine && !(%(skipIf)s);\n"
-                "maxDurationReached = False\n"
+                "maxDurationReached = false\n"
             )
             buff.writeIndentedLines(code % params)
         # calculate expected Routine duration
