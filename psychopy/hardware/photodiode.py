@@ -458,8 +458,10 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
         win.retrieveAutoDraw()
         # flip
         win.flip()
+        # set to found threshold
+        self._setThreshold(int(threshold), channel=channel)
 
-        return threshold
+        return int(threshold)
 
     def setThreshold(self, threshold, channel):
         if isinstance(channel, (list, tuple)):
