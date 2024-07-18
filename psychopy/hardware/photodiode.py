@@ -459,7 +459,7 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
         # flip
         win.flip()
         # set to found threshold
-        self._setThreshold(int(threshold))
+        self._setThreshold(int(threshold), channel=channel)
 
         return int(threshold)
 
