@@ -1,11 +1,13 @@
-Pricing
-=======
+Consultancy Services
+======================
 
-PsychoPy is free and always will be, but you can choose to take advantage of other services, like hosting your experiment online on `pavlovia.org <https://pavlovia.org>`_, or hiring us to build your experiment for you!
+Short on time but have spare funds? Our team of Scientists can help to:
 
-Workshops
----------
-We offer a range of workshops as well as creating bespoke workshops. Just use the "more" links for more information!
+* Create a task given a brief. 
+* Debug existing tasks.
+* Create one-to-one tutorials and training. 
+* Organise departmental workshops and training.
+
 
 .. raw:: html
 
@@ -100,75 +102,10 @@ We offer a range of workshops as well as creating bespoke workshops. Just use th
         }
     </style>
     
-    <table>
-        <!-- Consultancy services section -->
-        <tr class="service-row">
-            <td colspan="8">Workshops</td>
-        </tr>
-        <tr class="service-sub-row">
-            <th> </th>
-            <th colspan="2">Location</th>
-            <th colspan="2">Duration</th>
-            <th colspan="2">Cost</th>
-            <th colspan="2">Info</th>
-        </tr>
-        <tr>
-            <td>Official Three Day PsychoPy workshop</td>
-            <td colspan="2">University of Nottingham, UK</td>
-            <td colspan="2">3 days</td>
-            <td colspan="2"><li>Student: £400</li><li>Academic staff: £450</li><li>Industry: £600</li></td>
-            <td colspan="2"><a href = "https://workshops.psychopy.org/#nottingham_workshop"> More</a></td>
-        </tr>
-        <tr>
-            <td>PsychoPy + Tobii eye tracking workshop</td>
-            <td colspan="2">University of Nottingham, UK</td>
-            <td colspan="2">Half day</td>
-            <td colspan="2"><li>Student: £75</li><li>Academic staff: £100</li><li>Industry: £150</li></td>
-            <td colspan="2"><a href = "https://workshops.psychopy.org/#tobii_workshop"> More</a></td>
-        </tr>
-        <tr>
-            <td>Pavlovia Survey Feature Showcase</td>
-            <td colspan="2">Virtual</td>
-            <td colspan="2">1 hour</td>
-            <td colspan="2">Free</td>
-            <td colspan="2"><a href = "https://workshops.psychopy.org/#feature_showcase"> More</a></td>
-        </tr>
-        <tr>
-            <td>Getting Started with PsychoPy</td>
-            <td colspan="2">Virtual</td>
-            <td colspan="2">1.5 hours</td>
-            <td colspan="2">£20 (waiver available)</td>
-            <td colspan="2"><a href = "https://workshops.psychopy.org/topics.html"> More</a></td>
-        </tr>
-        <tr>
-            <td>Running Experiments Online with Pavlovia</td>
-            <td colspan="2">Virtual</td>
-            <td colspan="2">1.5 hours</td>
-            <td colspan="2">£20 (waiver available)</td>
-            <td colspan="2"><a href = "https://workshops.psychopy.org/topics.html"> More</a></td>
-        </tr>
-        <tr>
-            <td>Extending Experiments with Python Code</td>
-            <td colspan="2">Virtual</td>
-            <td colspan="2">1.5 hours</td>
-            <td colspan="2">£20 (waiver available)</td>
-            <td colspan="2"><a href = "https://workshops.psychopy.org/topics.html"> More</a></td>
-        </tr>
-        <tr>
-            <td>Coding an experiment from scratch using Python</td>
-            <td colspan="2">Virtual</td>
-            <td colspan="2">1.5 hours</td>
-            <td colspan="2">£20 (waiver available)</td>
-            <td colspan="2"><a href = "https://workshops.psychopy.org/topics.html"> More</a></td>
-        </tr>
-    </table>
-    <br>
-    <br>
 
-Consultancy services
---------------------
 
 We've helped many researchers to create and debug experiments, as well as delivered bespoke tutorials. 
+
 If there's something you'd like us to do for you, just get in touch!
 
 .. raw:: html
@@ -200,9 +137,11 @@ If there's something you'd like us to do for you, just get in touch!
         <a href="https://forms.clickup.com/4570406/f/4bf96-7552/ZN8URSTDTWDENY6RP9" style="background-color: #02A9EA; color: white; padding: 10px 20px; text-decoration: none; display: inline-block; border-radius: 5px;">Click here to make a request for support!</a>
     </div>
 
-Our packages
+Support packages
 ----------------
-*Please note that if you are from a VAT paying country, you will need to add VAT to the prices below*
+
+If you would like to purchase a package for support from our team for your department, then you can do so as part of your Pavlovia licence. If you would like something similar that is not listed then get in touch!
+
 
 .. raw:: html
 
@@ -312,3 +251,4 @@ Our packages
         </div>
 
 
+*Please note that if you are from a VAT paying country, you will need to add VAT to the prices listed*
