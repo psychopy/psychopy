@@ -1,0 +1,23 @@
+
+# https://docs.github.com/en/repositories/releasing-projects-on-github/automatically-generated-release-notes
+
+changelog:
+  exclude:
+    labels:
+      - ignore-for-release
+      - "📦 packaging" 
+    authors:
+      - octocat
+  categories:
+    - title: New and Improved 🎉
+      labels:
+        - "🌟 enhancement" 
+    - title: 🐛 Bug Fixes
+      labels:
+        - "🐞 bug"
+    - title: "📓 docs & demos" 
+      labels:
+        - "📓 docs & demos" 
+    - title: Other Changes
+      labels:
+        - "*"
