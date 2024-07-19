@@ -15,7 +15,7 @@ changelog:
     - title: 🐛 Bug Fixes
       labels:
         - "🐞 bug"
-    - title: "📓 docs & demos" 
+    - title: "📓 Docs & Demos" 
       labels:
         - "📓 docs & demos" 
     - title: Other Changes
