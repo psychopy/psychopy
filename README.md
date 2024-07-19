@@ -38,9 +38,9 @@ and the developers documentation at [https://www.psychopy.org/developers](https:
 
 ## Code Status
 
-[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/psychopy/psychopy.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/psychopy/psychopy/context:python)  
-Dev branch tests: [![GH tests](https://github.com/psychopy/psychopy/actions/workflows/pytests.yaml/badge.svg?branch=dev)](https://github.com/psychopy/psychopy/actions/workflows/pytests.yaml?query=branch%3Adev)  
-Release tests: [![GH tests](https://github.com/psychopy/psychopy/actions/workflows/pytests.yaml/badge.svg?branch=release)](https://github.com/psychopy/psychopy/actions/workflows/pytests.yaml?query=branch%3Arelease)
+Test suite: [![GH tests dev](https://github.com/psychopy/psychopy/actions/workflows/pytests.yaml/badge.svg?branch=dev)](https://github.com/psychopy/psychopy/actions/workflows/pytests.yaml?query=branch%3Adev)  [![GH tests release](https://github.com/psychopy/psychopy/actions/workflows/pytests.yaml/badge.svg?branch=release)](https://github.com/psychopy/psychopy/actions/workflows/pytests.yaml?query=branch%3Arelease)
+
+CodeQL scan: [![CodeQL (dev)](https://github.com/psychopy/psychopy/actions/workflows/CodeQL.yaml/badge.svg?branch=dev)](https://github.com/psychopy/psychopy/actions/workflows/CodeQL.yaml?query=branch%3Adev) [![CodeQL (release)](https://github.com/psychopy/psychopy/actions/workflows/CodeQL.yaml/badge.svg?branch=release)](https://github.com/psychopy/psychopy/actions/workflows/CodeQL.yaml?query=branch%3Arelease)
 
 ## More information
 
