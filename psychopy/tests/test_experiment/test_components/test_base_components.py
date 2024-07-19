@@ -201,6 +201,7 @@ class BaseComponentTests:
             # check that it's never non-slip safe
             assert not nonSlipSafe
             # update experiment name to indicate what case we're in
+            case['name'] = self.comp.__name__ + case['name']
             exp.name = "Test%(name)sExp" % case
             # check that it still writes syntactially valid code
             try:
