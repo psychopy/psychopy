@@ -150,13 +150,22 @@ class MouseComponent(BaseComponent):
             "        gotValidClick = True\n")
         buff.writeIndentedLines(code % self.params)
 
-        buff.setIndentLevel(+2, relative=True)
-        code = ''
+        # store clicked object if there was one
+        code = ""
         for paramName in self._clickableParamsList:
-            code += "%s.clicked_%s.append(obj.%s)\n" %(self.params['name'],
-                                                     paramName, paramName)
+            code += (
+                    f"        %(name)s.clicked_{paramName}.append(obj.{paramName})\n"
+                )
         buff.writeIndentedLines(code % self.params)
-        buff.setIndentLevel(-2, relative=True)
+
+        # if storing every click and got an invalid click, store None for all params when there was no valid click
+        if self.params['saveMouseState'].val not in ['on valid click', 'never']:
+            code = "if not gotValidClick:\n"
+            for paramName in self._clickableParamsList:
+                code += (
+                    f"    %(name)s.clicked_{paramName}.append(None)\n"
+                )
+        buff.writeIndentedLines(code % self.params)
 
     def _writeCorrectAnsCode(self, buff):
         code = (
@@ -183,7 +192,7 @@ class MouseComponent(BaseComponent):
             "// check whether click was in correct object\n"
             "if (gotValidClick) {\n"
             "    corr = 0;\n"
-            "    corrAns = %(correctAns)s;\n"
+            "    corrAns = eval( %(correctAns)s);\n"
             "    for (let obj of [corrAns]) {\n"
             "        if (obj.contains(%(name)s)) {\n"
             "            corr = 1;\n"
@@ -211,22 +220,35 @@ class MouseComponent(BaseComponent):
         code = (
             "// check if the mouse was inside our 'clickable' objects\n"
             "gotValidClick = false;\n"
-            "for (const obj of [{clickable}]) {{\n"
-            "  if (obj.contains({name})) {{\n"
-            "    gotValidClick = true;\n")
-        buff.writeIndentedLines(code.format(name=self.params['name'],
-                                            clickable=self.params['clickable'].val))
-        buff.setIndentLevel(+2, relative=True)
-        dedent = 2
-        code = ''
+            "%(name)s.clickableObjects = eval(%(clickable)s)\n;"
+            "// make sure the mouse's clickable objects are an array\n"
+            "if (!Array.isArray(%(name)s.clickableObjects)) {\n"
+            "    %(name)s.clickableObjects = [%(name)s.clickableObjects];\n"
+            "}\n"
+            "// iterate through clickable objects and check each\n"
+            "for (const obj of %(name)s.clickableObjects) {\n"
+            "    if (obj.contains(%(name)s)) {\n"
+            "        gotValidClick = true;\n"
+        )
         for paramName in self._clickableParamsList:
-            code += "%s.clicked_%s.push(obj.%s)\n" % (self.params['name'],
-                                                        paramName, paramName)
-
+            code += (
+                f"        %(name)s.clicked_{paramName}.push(obj.{paramName});\n"
+            )
+        code += (
+            "    }\n"
+            "}\n"
+        )
         buff.writeIndentedLines(code % self.params)
-        for dents in range(dedent):
-            buff.setIndentLevel(-1, relative=True)
-            buff.writeIndented('}\n')
+
+        # if storing every click and got an invalid click, store None for all params when there was no valid click
+        if self.params['saveMouseState'].val not in ['on valid click', 'never']:
+            code = "if (!gotValidClick) {\n"
+            for paramName in self._clickableParamsList:
+                code += (
+                    f"    %(name)s.clicked_{paramName}.push(null);\n"
+                )
+            code += "}\n"
+        buff.writeIndentedLines(code % self.params)
 
     def writeInitCode(self, buff):
         code = ("%(name)s = event.Mouse(win=win)\n"
@@ -746,14 +768,7 @@ class MouseComponent(BaseComponent):
                     mouseDataProps.append("clicked_{}".format(paramName))
             # use that set of properties to create set of addData commands
             for property in mouseDataProps:
-                if store == 'every frame' or forceEnd in ["never", "correct click"]:
-                    code = ("psychoJS.experiment.addData('%s.%s', %s.%s);\n" %
-                            (name, property, name, property))
-                    buff.writeIndented(code)
-                else:
-                    # we only had one click so don't return a list
-                    code = ("if (%s.%s) {"
-                            "  psychoJS.experiment.addData('%s.%s', %s.%s[0])};\n"
-                            % (name, property, name, property, name, property))
-                    buff.writeIndented(code)
+                code = ("psychoJS.experiment.addData('%s.%s', %s.%s);\n" %
+                        (name, property, name, property))
+                buff.writeIndented(code)
             buff.writeIndentedLines("\n")

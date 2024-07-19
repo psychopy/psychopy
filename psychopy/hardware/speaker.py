@@ -59,6 +59,22 @@ class SpeakerDevice(BaseDevice):
 
         return self.index == index
 
+    def testDevice(self):
+        """
+        Play a simple sound to check whether this device is working.
+        """
+        from psychopy.sound import Sound
+        import time
+        # create a basic sound
+        snd = Sound(
+            speaker=self.index,
+            value="A"
+        )
+        # play the sound for 1s
+        snd.play()
+        time.sleep(1)
+        snd.stop()
+
     @staticmethod
     def getAvailableDevices():
         devices = []

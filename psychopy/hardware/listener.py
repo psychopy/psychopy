@@ -135,6 +135,9 @@ class ListenerLoop(threading.Thread):
                 # dispatch messages from devices
                 for device in self.devices:
                     device.dispatchMessages()
+            # if there are no more devices attached, stop
+            if not len(self.devices):
+                self._active = False
             # sleep for 10ms
             time.sleep(self.refreshRate)
 

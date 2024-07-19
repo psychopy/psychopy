@@ -27,7 +27,7 @@ class FormComponent(BaseVisualComponent):
 
     def __init__(self, exp, parentName,
                  name='form',
-                 items='.csv',
+                 items='',
                  textHeight=0.03,
                  font="Open Sans",
                  randomize=False,
@@ -76,7 +76,11 @@ class FormComponent(BaseVisualComponent):
             items, valType='file', inputType="table", allowedTypes=[], categ='Basic',
             updates='constant',
             hint=_translate("The csv filename containing the items for your survey."),
-            label=_translate("Items"))
+            label=_translate("Items"),
+            ctrlParams={
+                'template': Path(__file__).parent / "formItems.xltx"
+            }
+        )
 
         self.params['Text Height'] = Param(
             textHeight, valType='num', inputType="single", allowedTypes=[], categ='Formatting',

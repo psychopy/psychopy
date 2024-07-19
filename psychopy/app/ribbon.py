@@ -55,6 +55,52 @@ class FrameRibbon(wx.Panel, handlers.ThemeMixin):
 
         return sct
 
+    def addPluginSections(self, group):
+        """
+        Add any sections to the ribbon which are defined by plugins, targeting the given entry point group.
+
+        Parameters
+        ----------
+        group : str
+            Entry point group to look for plugin sections in.
+
+        Returns
+        -------
+        list[FrameRubbinPluginSection]
+            List of section objects which were added
+        """
+        from importlib import metadata
+        # start off with no entry points or sections
+        entryPoints = []
+        sections = []
+        # iterate through all entry point groups
+        for thisGroup, eps in metadata.entry_points().items():
+            # get entry points for matching group
+            if thisGroup == group:
+                # add to list of all entry points
+                entryPoints += eps
+        # iterate through found entry points
+        for ep in entryPoints:
+            try:
+                # load (import) module
+                cls = ep.load()
+            except:
+                # if failed for any reason, skip it
+                continue
+            # if the target is not a subclass of FrameRibbonPluginSection, discard it
+            if not isinstance(cls, type) or not issubclass(cls, FrameRibbonPluginSection):
+                continue
+            # if it's a section, add it
+            sct = cls(parent=self)
+            self.sections[sct.name] = sct
+            sections.append(sct)
+            # add to sizer
+            self.sizer.Add(sct, border=0, flag=wx.EXPAND | wx.ALL)
+            # add separator
+            self.addSeparator()
+
+        return sections
+
     def addButton(self, section, name, label="", icon=None, tooltip="", callback=None,
                   style=wx.BU_NOTEXT):
         """
@@ -244,12 +290,13 @@ class FrameRibbonSection(wx.Panel, handlers.ThemeMixin):
             self.label, flag=wx.EXPAND
         )
 
-
         # add space
         self.border.AddSpacer(6)
 
         # dict in which to store buttons
         self.buttons = {}
+
+        self._applyAppTheme()
 
     def addButton(self, name, label="", icon=None, tooltip="", callback=None, style=wx.BU_NOTEXT):
         """
@@ -362,9 +409,34 @@ class FrameRibbonSection(wx.Panel, handlers.ThemeMixin):
         return btn
 
     def _applyAppTheme(self):
+        # set color
         self.SetBackgroundColour(colors.app['frame_bg'])
-
+        self.SetForegroundColour(colors.app['text'])
+        # set bitmaps again
+        self._icon.reload()
         self.icon.SetBitmap(self._icon.bitmap)
+        # refresh
+        self.Refresh()
+
+
+class FrameRibbonPluginSection(FrameRibbonSection):
+    """
+    Subclass of FrameRibbonSection specifically for adding sections to the ribbon via plugins. To
+    add a section, create a subclass of FrameRibbonPluginSection in your plugin and add any buttons
+    you want it to have in the `__init__` function. Then give it an entry point in either
+    "psychopy.app.builder", "psychopy.app.coder" or "psychopy.app.runner" to tell PsychoPy which
+    frame to add it to.
+    """
+    def __init__(self, parent, name, label=None):
+        # if not given a label, use name
+        if label is None:
+            label = name
+        # store name
+        self.name = name
+        # initialise subclass
+        FrameRibbonSection.__init__(
+            self, parent, label=label, icon="plugin"
+        )
 
 
 class FrameRibbonButton(wx.Button, handlers.ThemeMixin):
@@ -402,11 +474,8 @@ class FrameRibbonButton(wx.Button, handlers.ThemeMixin):
             tooltip = f"{label}: {tooltip}"
         self.SetToolTip(tooltip)
         # set icon
+        self._icon = icons.ButtonIcon(icon, size=32)
         bmpStyle = style & (wx.TOP | wx.BOTTOM | wx.LEFT | wx.RIGHT)
-        self.SetBitmap(
-            icons.ButtonIcon(icon, size=32).bitmap,
-            dir=bmpStyle or wx.TOP
-        )
         # if given, bind callback
         if callback is not None:
             self.Bind(wx.EVT_BUTTON, callback)
@@ -414,8 +483,20 @@ class FrameRibbonButton(wx.Button, handlers.ThemeMixin):
         self.Bind(wx.EVT_ENTER_WINDOW, self.onHover)
         self.Bind(wx.EVT_LEAVE_WINDOW, self.onHover)
 
+        self._applyAppTheme()
+
     def _applyAppTheme(self):
+        # set color
         self.SetBackgroundColour(colors.app['frame_bg'])
+        self.SetForegroundColour(colors.app['text'])
+        # set bitmaps again
+        self._icon.reload()
+        self.SetBitmap(self._icon.bitmap)
+        self.SetBitmapCurrent(self._icon.bitmap)
+        self.SetBitmapPressed(self._icon.bitmap)
+        self.SetBitmapFocus(self._icon.bitmap)
+        # refresh
+        self.Refresh()
 
     def onHover(self, evt):
         if evt.EventType == wx.EVT_ENTER_WINDOW.typeId:
@@ -437,9 +518,7 @@ class FrameRibbonDropdownButton(wx.Panel, handlers.ThemeMixin):
         self.button = wx.Button(self, label=label, style=wx.BORDER_NONE)
         self.sizer.Add(self.button, proportion=1, border=0, flag=wx.EXPAND | wx.ALL)
         # set icon
-        self.button.SetBitmap(
-            icons.ButtonIcon(icon, size=32).bitmap
-        )
+        self._icon = icons.ButtonIcon(icon, size=32)
         # bind button callback
         if callback is not None:
             self.button.Bind(wx.EVT_BUTTON, callback)
@@ -457,6 +536,8 @@ class FrameRibbonDropdownButton(wx.Panel, handlers.ThemeMixin):
         self.drop.Bind(wx.EVT_ENTER_WINDOW, self.onHover)
         self.drop.Bind(wx.EVT_LEAVE_WINDOW, self.onHover)
 
+        self._applyAppTheme()
+
     def onMenu(self, evt):
         menu = self.menu
         # skip if there's no menu
@@ -469,9 +550,18 @@ class FrameRibbonDropdownButton(wx.Panel, handlers.ThemeMixin):
         self.PopupMenu(menu)
 
     def _applyAppTheme(self):
-        self.SetBackgroundColour(colors.app['frame_bg'])
-        self.button.SetBackgroundColour(colors.app['frame_bg'])
-        self.drop.SetBackgroundColour(colors.app['frame_bg'])
+        # set color
+        for obj in (self, self.button, self.drop):
+            obj.SetBackgroundColour(colors.app['frame_bg'])
+            obj.SetForegroundColour(colors.app['text'])
+        # set bitmaps again
+        self._icon.reload()
+        self.button.SetBitmap(self._icon.bitmap)
+        self.button.SetBitmapCurrent(self._icon.bitmap)
+        self.button.SetBitmapPressed(self._icon.bitmap)
+        self.button.SetBitmapFocus(self._icon.bitmap)
+        # refresh
+        self.Refresh()
 
     def onHover(self, evt):
         if evt.EventType == wx.EVT_ENTER_WINDOW.typeId:
@@ -676,6 +766,16 @@ class PavloviaUserCtrl(FrameRibbonDropdownButton):
         # bind deletion behaviour
         self.Bind(wx.EVT_WINDOW_DESTROY, self.onDelete)
 
+        self._applyAppTheme()
+    
+    def _applyAppTheme(self):
+        # set color
+        for obj in (self, self.button, self.drop):
+            obj.SetBackgroundColour(colors.app['frame_bg'])
+            obj.SetForegroundColour(colors.app['text'])
+        # refresh
+        self.Refresh()
+
     def onDelete(self, evt=None):
         i = self.frame.app.pavloviaButtons['user'].index(self)
         self.frame.app.pavloviaButtons['user'].pop(i)
@@ -803,6 +903,16 @@ class PavloviaProjectCtrl(FrameRibbonDropdownButton):
         # bind deletion behaviour
         self.Bind(wx.EVT_WINDOW_DESTROY, self.onDelete)
 
+        self._applyAppTheme()
+    
+    def _applyAppTheme(self):
+        # set color
+        for obj in (self, self.button, self.drop):
+            obj.SetBackgroundColour(colors.app['frame_bg'])
+            obj.SetForegroundColour(colors.app['text'])
+        # refresh
+        self.Refresh()
+
     def onDelete(self, evt=None):
         i = self.frame.app.pavloviaButtons['project'].index(self)
         self.frame.app.pavloviaButtons['project'].pop(i)
@@ -895,7 +1005,7 @@ class PavloviaProjectCtrl(FrameRibbonDropdownButton):
         else:
             name = path = ""
         # open dlg to create new project
-        createDlg = sync.CreateDlg(self,
+        createDlg = sync.CreateDlg(self.frame,
                                    user=pavlovia.getCurrentSession().user,
                                    name=name,
                                    path=path)

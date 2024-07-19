@@ -11,6 +11,9 @@
 __all__ = [
     'startApp',
     'quitApp',
+    'restartApp',
+    'setRestartRequired',
+    'isRestartRequired',
     'getAppInstance',
     'getAppFrame',
     'isAppStarted']
@@ -24,8 +27,13 @@ from .frametracker import openFrames
 # to allow the plugin system to access GUI to allow for changes after startup.
 _psychopyAppInstance = None
 
+# Flag to indicate if the app requires a restart. This is set by the app when
+# it needs to restart after an update or plugin installation. We can check this
+# flag to determine if the app is in a state that it is recommended to restart.
+REQUIRES_RESTART = False
 
-def startApp(showSplash=True, testMode=False, safeMode=False):
+
+def startApp(showSplash=True, testMode=False, safeMode=False, startView=None):
     """Start the PsychoPy GUI.
 
     This function is idempotent, where additional calls after the app starts
@@ -52,6 +60,11 @@ def startApp(showSplash=True, testMode=False, safeMode=False):
     safeMode : bool
         Start PsychoPy in safe-mode. If `True`, the GUI application will launch
         with without loading plugins.
+    startView : str, None
+        Name of the view to start the app with. Valid values are 'coder',
+        'builder' or 'runner'. If `None`, the app will start with the default
+        view or the view specifed with the `PSYCHOPYSTARTVIEW` environment
+        variable.
 
     """
     global _psychopyAppInstance
@@ -82,7 +95,7 @@ def startApp(showSplash=True, testMode=False, safeMode=False):
     # console.
     from psychopy.app._psychopyApp import PsychoPyApp
     _psychopyAppInstance = PsychoPyApp(
-        0, testMode=testMode, showSplash=showSplash, safeMode=safeMode)
+        0, testMode=testMode, showSplash=showSplash, safeMode=safeMode, startView=startView)
 
     # After the app is loaded, we hand off logging to the stream dispatcher
     # using the provided log file path. The dispatcher will write out any log
@@ -129,6 +142,65 @@ def quitApp():
         _psychopyAppInstance = None
     else:
         raise AttributeError('Object `_psychopyApp` has no attribute `quit`.')
+
+
+def restartApp():
+    """Restart the PsychoPy application instance.
+
+    This will write a file named '.restart' to the user preferences directory
+    and quit the application. The presence of this file will indicate to the 
+    launcher parent process that the app should restart.
+
+    The app restarts with the same arguments as the original launch. This is
+    useful for updating the application or plugins without requiring the user
+    to manually restart the app.
+
+    The user will be prompted to save any unsaved work before the app restarts.
+
+    """
+    if not isAppStarted():
+        return
+    
+    # write a restart file to the user preferences directory
+    from psychopy.preferences import prefs
+    restartFilePath = os.path.join(prefs.paths['userPrefsDir'], '.restart')
+    
+    with open(restartFilePath, 'w') as restartFile:
+        restartFile.write('')  # empty file
+
+    quitApp()
+
+
+def setRestartRequired(state=True):
+    """Set the flag to indicate that the app requires a restart.
+
+    This function is used by the app to indicate that a restart is required
+    after an update or plugin installation. The flag is checked by the launcher
+    parent process to determine if the app should restart.
+
+    Parameters
+    ----------
+    state : bool
+        Set the restart flag. If `True`, the app will restart after quitting.
+
+    """
+    global REQUIRES_RESTART
+    REQUIRES_RESTART = bool(state)
+
+
+def isRestartRequired():
+    """Check if the app requires a restart.
+
+    Parts of the application may set this flag to indicate that a restart is
+    required after an update or plugin installation.
+
+    Returns
+    -------
+    bool
+        `True` if the app requires a restart else `False`.
+
+    """
+    return REQUIRES_RESTART
 
 
 def getAppInstance():
@@ -216,6 +288,8 @@ def getAppFrame(frameName):
             _psychopyAppInstance.showRunner()
         else:
             raise AttributeError('Cannot load frame. Method not available.')
+        
+        frameRef = getattr(_psychopyAppInstance, frameName, None)
 
     return frameRef
 

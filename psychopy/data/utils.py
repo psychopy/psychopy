@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 
 from collections import OrderedDict
-from pkg_resources import parse_version
+from packaging.version import Version
 
 from psychopy import logging, exceptions
 from psychopy.tools.filetools import pathToString
@@ -22,7 +22,7 @@ from psychopy.localization import _translate
 
 try:
     import openpyxl
-    if parse_version(openpyxl.__version__) >= parse_version('2.4.0'):
+    if Version(openpyxl.__version__) >= Version('2.4.0'):
         # openpyxl moved get_column_letter to utils.cell
         from openpyxl.utils.cell import get_column_letter
     else:
@@ -250,18 +250,63 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
 
     """
 
-    def _attemptImport(fileName, sep=',', dec='.'):
+    def _attemptImport(fileName):
         """Attempts to import file with specified settings and raises
         ConditionsImportError if fails due to invalid format
 
         :param filename: str
-        :param sep: str indicating the separator for cells (',', ';' etc)
-        :param dec: str indicating the decimal point ('.', '.')
         :return: trialList, fieldNames
         """
         if fileName.endswith(('.csv', '.tsv')):
-            trialsArr = pd.read_csv(fileName, encoding='utf-8-sig',
-                                    sep=sep, decimal=dec)
+            trialsArr = None
+            errs = []
+            # list of possible delimiters
+            delims = (",", ".", ";", "\t")
+            # try a variety of separator / decimal pairs
+            for sep, dec in [
+                # most common in US, EU
+                (',', '.'), 
+                (';', ','),
+                # other possible formats
+                ('\t', '.'), 
+                ('\t', ','), 
+                (';', '.')
+            ]:
+                # try to load
+                try:
+                    thisAttempt = pd.read_csv(
+                        fileName, encoding='utf-8-sig', sep=sep, decimal=dec
+                    )
+                    # if there's only one header, check that it doesn't contain delimiters
+                    # (one column with delims probably means it's parsed without error but not
+                    # recognised columns correctly)
+                    if len(thisAttempt.columns) == 1:
+                        for delim in delims:
+                            if delim in thisAttempt.columns[0]:
+                                msg = _translate(
+                                    "Could not load {}. \n"
+                                    "Delimiter in heading: {} in {}."
+                                ).format(fileName, delim, thisAttempt.columns[0])
+                                err = exceptions.ConditionsImportError(msg)
+                                errs.append(err)
+                                raise err
+                    # if it's all good, use received array
+                    trialsArr = thisAttempt
+                except:
+                    continue
+                else:
+                    # if successful, check the variable names
+                    _assertValidVarNames(trialsArr.columns, fileName)
+                    # skip other pairs now we've got it
+                    break
+            # if all options failed, raise last error
+            if errs and trialsArr is None:
+                raise errs[-1]
+            elif trialsArr is None:
+                raise ValueError(
+                    _translate("Could not parse file {}.").format(fileName)
+                )
+            # if we made it herre, we successfully loaded the file
             for col in trialsArr.columns:
                 for row, cell in enumerate(trialsArr[col]):
                     if isinstance(cell, str):
@@ -358,17 +403,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
 
     if (fileName.endswith(('.csv', '.tsv'))
             or (fileName.endswith(('.xlsx', '.xls', '.xlsm')) and haveXlrd)):
-        if fileName.endswith(('.csv', '.tsv', '.dlm')):  # delimited text file
-            for sep, dec in [ (',', '.'), (';', ','),  # most common in US, EU
-                              ('\t', '.'), ('\t', ','), (';', '.')]:
-                try:
-                    trialList, fieldNames = _attemptImport(fileName=fileName,
-                                                           sep=sep, dec=dec)
-                    break  # seems to have worked
-                except exceptions.ConditionsImportError as e:
-                    continue  # try a different format
-        else:
-            trialList, fieldNames = _attemptImport(fileName=fileName)
+        trialList, fieldNames = _attemptImport(fileName=fileName)
 
     elif fileName.endswith(('.xlsx','.xlsm')):  # no xlsread so use openpyxl
         if not haveOpenpyxl:
@@ -378,7 +413,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
             )
 
         # data_only was added in 1.8
-        if parse_version(openpyxl.__version__) < parse_version('1.8'):
+        if Version(openpyxl.__version__) < Version('1.8'):
             wb = load_workbook(filename=fileName)
         else:
             wb = load_workbook(filename=fileName, data_only=True)
@@ -398,7 +433,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
         fieldNames = []
         rangeCols = []
         for colN in range(nCols):
-            if parse_version(openpyxl.__version__) < parse_version('2.0'):
+            if Version(openpyxl.__version__) < Version('2.0'):
                 fieldName = ws.cell(_getExcelCellName(col=colN, row=0)).value
             else:
                 # From 2.0, cells are referenced with 1-indexing: A1 == cell(row=1, column=1)
@@ -414,7 +449,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
         for rowN in range(1, nRows):  # skip header first row
             thisTrial = {}
             for rangeColsIndex, colN in enumerate(rangeCols):
-                if parse_version(openpyxl.__version__) < parse_version('2.0'):
+                if Version(openpyxl.__version__) < Version('2.0'):
                     val = ws.cell(_getExcelCellName(col=colN, row=0)).value
                 else:
                     # From 2.0, cells are referenced with 1-indexing: A1 == cell(row=1, column=1)

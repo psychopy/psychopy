@@ -212,8 +212,7 @@ class ParamCtrls():
         elif param.inputType == 'table':
             self.valueCtrl = paramCtrls.TableCtrl(
                 parent, 
-                val=param.val, 
-                valType=param.valType,
+                param=param,
                 fieldName=fieldName, 
                 size=wx.Size(int(self.valueWidth), 24))
         elif param.inputType == 'color':
@@ -308,7 +307,7 @@ class ParamCtrls():
             # set by integer index, not string value
             self.updateCtrl.SetSelection(index)
 
-        if param.allowedUpdates != None and len(param.allowedUpdates) == 1:
+        if self.updateCtrl is not None and len(self.updateCtrl.GetItems()) == 1:
             self.updateCtrl.Disable()  # visible but can't be changed
 
     def _getCtrlValue(self, ctrl):
@@ -479,6 +478,7 @@ class StartStopCtrls(wx.GridBagSizer):
                 # Add ctrl
                 self.ctrls[name] = wx.TextCtrl(parent,
                                                value=str(param.val), size=wx.Size(-1, 24))
+                self.ctrls[name].SetToolTip(param.hint)
                 self.ctrls[name].Bind(wx.EVT_TEXT, self.updateCodeFont)
                 self.updateCodeFont(self.ctrls[name])
                 self.label = wx.StaticText(parent, label=param.label)
@@ -522,6 +522,9 @@ class StartStopCtrls(wx.GridBagSizer):
             self.estimLabel.Show(visible)
         if hasattr(self, "label"):
             self.label.Show(visible)
+        # show/hide dollars
+        if hasattr(self, "dollar"):
+            self.dollar.Show(visible)
         # Set value to None if hidden (specific to start/stop)
         if not visible:
             if "startVal" in self.ctrls:
@@ -1675,7 +1678,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                             style=wx.FD_OPEN, defaultDir=str(self.expPath))
         if dlg.ShowModal() == wx.ID_OK:
             self.conditionsFile = dlg.GetPath()
-            self.constantsCtrls['conditionsFile'].valueCtrl.SetValue(
+            self.currentCtrls['conditionsFile'].valueCtrl.SetValue(
                 self.conditionsFile
             )
             self.updateSummary()
@@ -1692,10 +1695,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         or message, as appropriate. Upon completion this will disable the update button as
         we are now up to date.
         """
-        if "MultiStairHandler" in self.type:
-            self.conditionsFile = self.multiStairCtrls['conditionsFile'].valueCtrl.GetValue()
-        else:
-            self.conditionsFile = self.constantsCtrls['conditionsFile'].valueCtrl.GetValue()
+        self.conditionsFile = self.currentCtrls['conditionsFile'].valueCtrl.GetValue()
         # Check whether the file and path are the same as previously
         isSameFilePathAndName = self.conditionsFileAbs == self.conditionsFileOrig
         # Start off with no message and assumed valid

@@ -15,7 +15,7 @@ from psychopy.app.themes import icons
 from . import dialogs
 from psychopy import localization, prefs
 from psychopy.localization import _translate
-from pkg_resources import parse_version
+from packaging.version import Version
 from psychopy import sound
 from psychopy.app.utils import getSystemFonts
 import collections
@@ -190,7 +190,7 @@ class PrefPropGrid(wx.Panel):
         self.helpText[name] = helpText
 
     def addDirItem(self, section, label=wx.propgrid.PG_LABEL,
-                    name=wx.propgrid.PG_LABEL, value='', helpText=""):
+                   name=wx.propgrid.PG_LABEL, value='', helpText=""):
         if section not in self.sections.keys():
             self.sections[section] = dict()
 
@@ -479,7 +479,7 @@ class PreferencesDlg(wx.Dialog):
                     hint = hints[-1].lstrip().lstrip('#').lstrip()
                     helpText = _translate(hint)
 
-                if type(thisPref) == bool:
+                if type(thisPref) is bool:
                     # only True or False - use a checkbox
                     self.proPrefs.addBoolItem(
                         sectionName, pLabel, prefName, thisPref,
@@ -695,7 +695,7 @@ class PreferencesDlg(wx.Dialog):
                     try:
                         # if thisPref is not a null string, do eval() to get a
                         # list.
-                        if thisPref == '' or type(thisPref) == list:
+                        if thisPref == '' or type(thisPref) is list:
                             newVal = thisPref
                         else:
                             newVal = eval(thisPref)
@@ -713,7 +713,7 @@ class PreferencesDlg(wx.Dialog):
                                                         title=title)
                         warnDlg.ShowModal()
                         return
-                    if type(newVal) != list:
+                    if type(newVal) is not list:
                         self.prefsCfg[sectionName][prefName] = [newVal]
                     else:
                         self.prefsCfg[sectionName][prefName] = newVal
@@ -781,7 +781,7 @@ class PreferencesDlg(wx.Dialog):
 
 if __name__ == '__main__':
     from psychopy import preferences
-    if parse_version(wx.__version__) < parse_version('2.9'):
+    if Version(wx.__version__) < Version('2.9'):
         app = wx.PySimpleApp()
     else:
         app = wx.App(False)

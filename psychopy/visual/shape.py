@@ -31,7 +31,6 @@ from psychopy.visual.basevisual import (
 )
 # from psychopy.visual.helpers import setColor
 import psychopy.visual
-from psychopy.contrib import tesselate
 
 pyglet.options['debug_gl'] = False
 GL = pyglet.gl
@@ -370,7 +369,12 @@ class BaseShapeStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         if self._borderColor != None and self.lineWidth != 0.0:
             # then draw
             GL.glLineWidth(self.lineWidth)
-            GL.glColor4f(*self._borderColor.render('rgba1'))
+            if self.opacity is not None:
+                borderRGBA = self._borderColor.render('rgba1')
+                borderRGBA[-1] = self.opacity  # override opacity
+                GL.glColor4f(*borderRGBA)
+            else:
+                GL.glColor4f(*self._borderColor.render('rgba1'))
             if self.closeShape:
                 GL.glDrawArrays(GL.GL_LINE_LOOP, 0, nVerts)
             else:
@@ -578,6 +582,7 @@ class ShapeStim(BaseShapeStim):
         # TO-DO: handle borders properly for multiloop stim like holes
         # likely requires changes in ContainerMixin to iterate over each
         # border loop
+        from psychopy.contrib import tesselate
 
         self.border = copy.deepcopy(newVertices)
         tessVertices = []  # define to keep the linter happy

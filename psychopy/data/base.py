@@ -11,7 +11,7 @@ import codecs
 import numpy as np
 import pandas as pd
 import json_tricks
-from pkg_resources import parse_version
+from packaging.version import Version
 
 import psychopy
 from psychopy import logging
@@ -23,7 +23,7 @@ from .utils import _getExcelCellName
 
 try:
     import openpyxl
-    if parse_version(openpyxl.__version__) >= parse_version('2.4.0'):
+    if Version(openpyxl.__version__) >= Version('2.4.0'):
         # openpyxl moved get_column_letter to utils.cell
         from openpyxl.utils.cell import get_column_letter
     else:
@@ -120,7 +120,7 @@ class _BaseTrialHandler(_ComparisonMixin):
         """
         fileName = pathToString(fileName)
 
-        if self.thisTrialN < 1 and self.thisRepN < 1:
+        if self.thisTrialN < 0 and self.thisRepN < 0:
             # if both are < 1 we haven't started
             if self.autoLog:
                 logging.info('.saveAsPickle() called but no trials completed.'
@@ -191,7 +191,7 @@ class _BaseTrialHandler(_ComparisonMixin):
         if stimOut is None:
             stimOut = []
 
-        if self.thisTrialN < 1 and self.thisRepN < 1:
+        if self.thisTrialN < 0 and self.thisRepN < 0:
             # if both are < 1 we haven't started
             if self.autoLog:
                 logging.info('TrialHandler.saveAsText called but no trials'
@@ -306,7 +306,7 @@ class _BaseTrialHandler(_ComparisonMixin):
         if stimOut is None:
             stimOut = []
 
-        if self.thisTrialN < 1 and self.thisRepN < 1:
+        if self.thisTrialN < 0 and self.thisRepN < 0:
             # if both are < 1 we haven't started
             if self.autoLog:
                 logging.info('TrialHandler.saveAsExcel called but no '

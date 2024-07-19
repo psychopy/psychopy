@@ -12,7 +12,7 @@ import time
 import zipfile
 import platform
 import os
-from pkg_resources import parse_version
+from packaging.version import Version
 import wx
 import wx.lib.filebrowsebutton
 try:
@@ -116,8 +116,8 @@ class Updater():
             raise(err)
         skip = self.app.prefs.appData['skipVersion'] == self.latest['version']
         if newer and not skip:
-            if (parse_version(self.latest['lastUpdatable'])
-                    <= parse_version(self.runningVersion)):
+            if (Version(self.latest['lastUpdatable'])
+                    <= Version(self.runningVersion)):
                 # go to the updating window
                 confirmDlg = SuggestUpdateDialog(
                     self.latest, self.runningVersion)
@@ -338,8 +338,8 @@ class InstallUpdateDialog(wx.Dialog):
             msg += _translate("Check proxy settings in preferences.")
             self.statusMessage.SetLabel(msg)
             return
-        elif (parse_version(self.latest['version'])
-                  < parse_version(self.runningVersion)):
+        elif (Version(self.latest['version'])
+                  < Version(self.runningVersion)):
             msg = _translate(
                 "You are running PsychoPy (%(running)s), which is ahead of "
                 "the latest official version (%(latest)s)") % {
@@ -354,8 +354,8 @@ class InstallUpdateDialog(wx.Dialog):
                 "PsychoPy v%(latest)s is available\nYou are running v%(running)s")
             msg = txt % {'latest': self.latest['version'],
                          'running': self.runningVersion}
-            if (parse_version(self.latest['lastUpdatable'])
-                                  <= parse_version(self.runningVersion)):
+            if (Version(self.latest['lastUpdatable'])
+                                  <= Version(self.runningVersion)):
                 msg += _translate("\nYou can update to the latest version automatically")
             else:
                 msg += _translate("\nYou cannot update to the latest version "
@@ -620,10 +620,10 @@ def sendUsageStats():
         OSXver, junk, architecture = platform.mac_ver()
         systemInfo = "OSX_%s_%s" % (OSXver, architecture)
     elif sys.platform.startswith('linux'):
-        from distro import linux_distribution
+        import distro
         systemInfo = '%s_%s_%s' % (
             'Linux',
-            ':'.join([x for x in linux_distribution() if x != '']),
+            ':'.join([x for x in [distro.name(), distro.version(), distro.codename()] if x != '']),
             platform.release())
         if len(systemInfo) > 30:  # if it's too long PHP/SQL fails to store!?
             systemInfo = systemInfo[0:30]

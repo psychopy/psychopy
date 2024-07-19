@@ -1,5 +1,3 @@
-[tool.pdm]
-version = { source = "file", path = "psychopy/__init__.py" }
 
 [project]
 name = "psychopy"
@@ -90,9 +88,11 @@ dependencies = [
     "pyobjc; platform_system == \"Darwin\"",
     "zeroconf; platform_system == \"Darwin\"",
     "python-xlib; platform_system == \"Linux\"",
+    "distro; platform_system == \"Linux\"",
     'tables<3.9; python_version < "3.9"',
     'tables; python_version >= "3.9"',
     'blosc2<2.2.8; python_version < "3.9"',  # dependency of tables
+    "packaging>=24.1",
 ]
 
 [project.optional-dependencies]  # This is optional dependencies
@@ -110,11 +110,10 @@ building = [
     "dmgbuild; platform_system == \"Darwin\"",
 ]
 suggested = [
+    "sounddevice",
     "pylsl>=1.16.1", # lab streaming layer for general connectivity
     "xlwt",  # writing excel files with pandas
     "h5py",  # to read hdf5 files for analysis
-    "google-api-python-client",
-    "pygaze>=1.1.2",
     "tobii_research",
     "badapted>=0.0.3",
     "egi-pynetstation>=0.0.0rc1",
@@ -140,6 +139,8 @@ requires = [
     "pdm-backend",
     "distro; platform_system == \"Linux\"",
     "tomlkit",
+    "packaging",
+    "six",  # for configobj
     ]
 build-backend = "pdm.backend"
 
@@ -147,6 +148,10 @@ build-backend = "pdm.backend"
 includes = []
 excludes = ["building/"]
 #source-includes = ["tests/"]
+
+[tool.pdm.version]
+source = "call"
+getter = "psychopy.__init__:getVersion"
 
 [tool.distutils.bdist_wheel]
 universal = 1

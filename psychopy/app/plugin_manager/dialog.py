@@ -52,7 +52,17 @@ class EnvironmentManagerDlg(wx.Dialog):
         self.notebook.InsertPage(1, self.packageMgr, text=_translate("Packages"))
         # Buttons
         self.btns = self.CreateStdDialogButtonSizer(flags=wx.HELP | wx.CLOSE)
+        self.Bind(wx.EVT_CLOSE, self.onClose)
         self.border.Add(self.btns, border=12, flag=wx.EXPAND | wx.ALL)
+        # store button handles
+        self.closeBtn = self.helpBtn = None
+        for btn in self.btns.Children:
+            if not btn.Window:
+                continue
+            if btn.Window.GetId() == wx.ID_CLOSE:
+                self.closeBtn = btn.Window
+            if btn.Window.GetId() == wx.ID_HELP:
+                self.helpBtn = btn.Window
 
         self.pipProcess = None  # handle to the current Job
 
@@ -187,7 +197,7 @@ class EnvironmentManagerDlg(wx.Dialog):
             # flags=execFlags,
             inputCallback=self.output.writeStdOut,  # both treated the same
             errorCallback=self.output.writeStdErr,
-            terminateCallback=self.output.writeTerminus
+            terminateCallback=self.onUninstallExit
         )
         self.pipProcess.start(env=env)
 
@@ -313,6 +323,7 @@ class EnvironmentManagerDlg(wx.Dialog):
             will be installed.
 
         """
+        # do install
         self.installPackage(
             packageName=pluginInfo.pipname,
             version=version,
@@ -320,6 +331,21 @@ class EnvironmentManagerDlg(wx.Dialog):
                 'pluginInfo': pluginInfo
             }
         )
+
+    def uninstallPlugin(self, pluginInfo):
+        """Uninstall a plugin.
+
+        This deletes any bundles in the user's package directory, or uninstalls
+        packages from `site-packages`.
+
+        Parameters
+        ----------
+        pluginInfo : psychopy.app.plugin_manager.plugins.PluginInfo
+            Info object of the plugin to uninstall.
+
+        """
+        # do uninstall
+        self.uninstallPackage(pluginInfo.pipname)
 
     def onInstallExit(self, pid, exitCode):
         """
@@ -330,7 +356,6 @@ class EnvironmentManagerDlg(wx.Dialog):
         if self.pipProcess is None:
             # if pip process is None, this has been called by mistake, do nothing
             return
-
         # write installation termination statement
         msg = "Installation complete"
         if 'pipname' in self.pipProcess.extra:
@@ -383,28 +408,34 @@ class EnvironmentManagerDlg(wx.Dialog):
 
         # clear pip process
         self.pipProcess = None
+        # refresh view
+        pkgtools.refreshPackages()
+        self.pluginMgr.updateInfo()
+    
+    def onUninstallExit(self, pid, exitCode):
+        # write installation termination statement
+        msg = "Uninstall complete"
+        if 'pipname' in self.pipProcess.extra:
+            msg = f"Finished uninstalling %(pipname)s" % self.pipProcess.extra
+        self.output.writeTerminus(msg)
+        # clear pip process
+        self.pipProcess = None
 
     def onClose(self, evt=None):
-        # Get changes to plugin states
-        # pluginChanges = self.pluginMgr.pluginList.getChanges()
-
-        # # If any plugins have been uninstalled, prompt user to restart
-        # if any(["uninstalled" in changes for changes in pluginChanges.values()]):
-        #     msg = _translate(
-        #         "It looks like you've uninstalled some plugins. In order for this to take effect, you will need to "
-        #         "restart the PsychoPy app."
-        #     )
-        #     dlg = wx.MessageDialog(
-        #         None, msg,
-        #         style=wx.ICON_WARNING | wx.OK
-        #     )
-        #     dlg.ShowModal()
-
-        # # Repopulate component panels
-        # for frame in self.app.getAllFrames():
-        #     if hasattr(frame, "componentButtons") and hasattr(frame.componentButtons, "populate"):
-        #         frame.componentButtons.populate()
-
+        if self.isBusy:
+            # if closing during an install, prompt user to reconsider
+            dlg = wx.MessageDialog(
+                self,
+                _translate(
+                    "There is currently an installation/uninstallation in progress, are you sure "
+                    "you want to close?"
+                ),
+                style=wx.YES | wx.NO
+            )
+            # if they change their mind, cancel closing
+            if dlg.ShowModal() == wx.ID_NO:
+                return
+        
         if evt is not None:
             evt.Skip()
 

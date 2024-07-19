@@ -40,9 +40,6 @@ for i in todo; do
     dmgName="../dist/Standalone${names[$i]}-$version-MacOS.dmg"
 
     ${pythons[$i]} setupApp.py py2app || { echo 'setupApp.py failed' ; exit 1; }
-    # copy over contents of git-core folder
-    mkdir  dist/${names[$i]}.app/Contents/Resources/git-core
-    cp -R -L /usr/local/git/libexec/git-core/* dist/${names[$i]}.app/Contents/Resources/git-core
 
     # remove matplotlib tests (45mb)
     pkg_site=$(ls -d1 dist/${names[$i]}.app/Contents/Resources/lib/python3.*)
@@ -52,6 +49,10 @@ for i in todo; do
     echo "stripping i386 using ditto"
     ditto --arch x86_64 dist/${names[$i]}__fat.app dist/${names[$i]}.app
 
+    # copy over contents of git-core folder (needs to be universal2 not stripped)
+    mkdir  dist/${names[$i]}.app/Contents/Resources/git-core
+    cp -R /Users/Shared/git-core  dist/${names[$i]}.app/Contents/Resources/git-core
+
     # built and stripped. Now mac codesign. Running in 2 steps to allow the detach step to work
     case $TEST_ONLY in
         0)  
@@ -59,10 +60,10 @@ for i in todo; do
             ${pythons[$i]} building/apple_sign.py --app "${names[$i]}.app" --runPreDmgBuild 0    
             ;;
         1) 
-            ${pythons[$i]} building/apple_sign.py --app "${names[$i]}.app" --skipnotarize 1
+            ${pythons[$i]} building/apple_sign.py --app "${names[$i]}.app" --skipNotarize 1
             ;;
         2)
-            ${pythons[$i]} building/apple_sign.py --app "${names[$i]}.app" --runPostDmgBuild 0 --skipnotarize 1
+            ${pythons[$i]} building/apple_sign.py --app "${names[$i]}.app" --runPostDmgBuild 0 --skipNotarize 1
             ;;
     esac
 

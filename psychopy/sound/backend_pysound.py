@@ -270,7 +270,7 @@ class SoundPySoundCard(_SoundBase):
     def _setSndFromFile(self, fileName):
         # alias default names (so it always points to default.png)
         if fileName in ft.defaultStim:
-            fileName = Path(prefs.paths['resources']) / ft.defaultStim[fileName]
+            fileName = Path(prefs.paths['assets']) / ft.defaultStim[fileName]
         # load the file
         if not path.isfile(fileName):
             msg = "Sound file %s could not be found." % fileName
@@ -289,17 +289,6 @@ class SoundPySoundCard(_SoundBase):
             msg = "Sound file %s could not be opened using pysoundcard for sound."
             logging.error(msg % fileName)
             raise ValueError(msg % fileName)
-
-    @property
-    def status(self):
-        # NB this is stored by the _callbacks class for fast access when
-        # data buffer needs filling (_callbacks class does not have a
-        # reference back here)
-        return self.__dict__['status']
-
-    @status.setter
-    def status(self, status):
-        self.__dict__['status'] = status
 
     def _setSndFromArray(self, thisArray):
         """For pysoundcard all sounds are ultimately played as an array so

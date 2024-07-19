@@ -737,6 +737,8 @@ class FFPyPlayer(BaseMoviePlayer):
 
         self._lastPlayerOpts = DEFAULT_FF_OPTS.copy()
 
+        self._lastPlayerOpts['out_fmt'] = 'bgra'
+
         # options from the parent
         if self.parent.loop:  # infinite loop
             self._lastPlayerOpts['loop'] = 0
@@ -1336,7 +1338,7 @@ class FFPyPlayer(BaseMoviePlayer):
         self._streamTime = streamStatus.streamTime  # stream time for the camera
 
         # if we have a new frame, update the frame information
-        videoBuffer = frameImage.to_bytearray()[0]
+        videoBuffer = frameImage.to_memoryview()[0].memview
         videoFrameArray = np.frombuffer(videoBuffer, dtype=np.uint8)
 
         # provide the last frame
@@ -1350,7 +1352,8 @@ class FFPyPlayer(BaseMoviePlayer):
             audioSamples=None,
             metadata=self.metadata,
             movieLib=u'ffpyplayer',
-            userData=None)
+            userData=None,
+            keepAlive=frameImage)
 
         return True
 

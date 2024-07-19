@@ -43,7 +43,7 @@ _numpyRandomImports = ['random', 'randint', 'normal', 'shuffle', 'choice as rand
 
 # this is not a standard component - it will appear on toolbar not in
 # components panel
-ioDeviceMap = dict(ioUtil.getDeviceNames())
+ioDeviceMap = dict(ioUtil.getDeviceNames(device_name="eyetracker.hw"))
 ioDeviceMap['None'] = ""
 
 # Keyboard backend options
@@ -85,7 +85,9 @@ class SettingsComponent:
             winSize=(1024, 768), screen=1, monitor='testMonitor', winBackend='pyglet',
             showMouse=False, saveLogFile=True, showExpInfo=True,
             expInfo="{'participant':'f\"{randint(0, 999999):06.0f}\"', 'session':'001'}",
-            units='height', logging='warning',
+            units='height', 
+            logging="info", 
+            consoleLoggingLevel="warning",
             color='$[0,0,0]', colorSpace='rgb', enableEscape=True,
             measureFrameRate=True, frameRate="", frameRateMsg=_translate(
                 "Attempting to measure frame rate of screen, please wait..."
@@ -117,8 +119,10 @@ class SettingsComponent:
             plCompanionAddress="neon.local",
             plCompanionPort=8080,
             plCompanionRecordingEnabled=True,
+            ecSampleRate='default',
             keyboardBackend="ioHub",
-            filename=None, exportHTML='on Sync', endMessage=''
+            filename=None, exportHTML='on Sync',
+            endMessage=_translate("Thank you for your patience.")
     ):
         self.type = 'Settings'
         self.exp = exp  # so we can access the experiment if necess
@@ -397,6 +401,7 @@ class SettingsComponent:
             "Save psydat file",
             "Save hdf5 file",
             "logging level",
+            "consoleLoggingLevel",
             "clockFormat",
         ]
         self.params['Data filename'] = Param(
@@ -460,11 +465,23 @@ class SettingsComponent:
                             "useful for viewing and analyzing complex data in structures."),
             label=_translate("Save hdf5 file"), categ='Data')
         self.params['logging level'] = Param(
-            logging, valType='code', inputType="choice",
+            logging, valType='code', inputType="choice", categ='Data',
             allowedVals=['error', 'warning', 'data', 'exp', 'info', 'debug'],
-            hint=_translate("How much output do you want in the log files? "
-                            "('error' is fewest messages, 'debug' is most)"),
-            label=_translate("Logging level"), categ='Data')
+            hint=_translate(
+                "How much output do you want in the log files? ('error' is fewest "
+                "messages, 'debug' is most)"
+            ),
+            label=_translate("File logging level")
+        )
+        self.params['consoleLoggingLevel'] = Param(
+            consoleLoggingLevel, valType='code', inputType="choice", categ='Data',
+            allowedVals=['error', 'warning', 'data', 'exp', 'info', 'debug'],
+            hint=_translate(
+                "How much output do you want displayed in the console / app? ('error' "
+                "is fewest messages, 'debug' is most)"
+            ),
+            label=_translate("Console / app logging level")
+        )
         self.params['clockFormat'] = Param(
             clockFormat, valType="str", inputType="choice", categ="Data",
             allowedVals=["iso", "float"],
@@ -526,6 +543,7 @@ class SettingsComponent:
                            "plPupilRemoteAddress", "plPupilRemotePort", "plPupilRemoteTimeoutMs",
                            "plPupilCaptureRecordingEnabled", "plPupilCaptureRecordingLocation"],
             "Pupil Labs (Neon)": ["plCompanionAddress", "plCompanionPort", "plCompanionRecordingEnabled"],
+            "EyeLogic": ["ecSampleRate"],
         }
         for tracker in trackerParams:
             for depParam in trackerParams[tracker]:
@@ -740,6 +758,13 @@ class SettingsComponent:
             plCompanionRecordingEnabled, valType='bool', inputType="bool",
             hint=_translate("Recording enabled"),
             label=_translate("Recording enabled"), categ="Eyetracking"
+        )
+
+        # EyeLogic
+        self.params['ecSampleRate'] = Param(
+            ecSampleRate, valType='str', inputType="single",
+            hint=_translate("Eyetracker sampling rate: 'default' or <integer>[Hz]. Defaults to tracking mode '0'."),
+            label=_translate("Sampling rate"), categ="Eyetracking"
         )
 
         # Input
@@ -994,7 +1019,6 @@ class SettingsComponent:
             "# start off with values from experiment settings\n"
             "_fullScr = %(Full-screen window)s\n"
             "_winSize = %(Window size (pixels))s\n"
-            "_loggingLevel = logging.getLevel('%(logging level)s')\n"
             "# if in pilot mode, apply overrides according to preferences\n"
             "if PILOTING:\n"
             "    # force windowed mode\n"
@@ -1002,10 +1026,6 @@ class SettingsComponent:
             "        _fullScr = False\n"
             "        # set window size\n"
             "        _winSize = prefs.piloting['forcedWindowSize']\n"
-            "    # override logging level\n"
-            "    _loggingLevel = logging.getLevel(\n"
-            "        prefs.piloting['pilotLoggingLevel']\n"
-            "    )\n"
         )
         buff.writeIndented(code % self.params)
 
@@ -1311,17 +1331,30 @@ class SettingsComponent:
         buff.writeIndentedLines(code)
         buff.setIndentLevel(+1, relative=True)
 
-        # set logging level
+        # set app logging level
         code = (
-            "# this outputs to the screen, not a file\n"
-            "logging.console.setLevel(_loggingLevel)\n"
+            "# set how much information should be printed to the console / app\n"
+            "if PILOTING:\n"
+            "    logging.console.setLevel(\n"
+            "        prefs.piloting['pilotConsoleLoggingLevel']\n"
+            "    )\n"
+            "else:\n"
+            "    logging.console.setLevel('%(consoleLoggingLevel)s')\n"
         )
         buff.writeIndentedLines(code % self.params)
-
+        # create log file
         if self.params['Save log file'].val:
             code = (
                 "# save a log file for detail verbose info\n"
-                "logFile = logging.LogFile(filename+'.log', level=_loggingLevel)\n"
+                "logFile = logging.LogFile(filename+'.log')\n"
+                "if PILOTING:\n"
+                "    logFile.setLevel(\n"
+                "        prefs.piloting['pilotLoggingLevel']\n"
+                "    )\n"
+                "else:\n"
+                "    logFile.setLevel(\n"
+                "        logging.getLevel('%(logging level)s')\n"
+                "    )\n"
                 "\n"
                 "return logFile\n"
             )
@@ -1624,6 +1657,22 @@ class SettingsComponent:
                 )
                 buff.writeIndentedLines(code % inits)
 
+            elif self.params['eyetracker'] == "EyeLogic":
+                code = (
+                    "'runtime_settings': {\n"
+                )
+                buff.writeIndentedLines(code % inits)
+                buff.setIndentLevel(1, relative=True)
+                code = (
+                    "'sampling_rate': %(ecSampleRate)s,\n"
+                )
+                buff.writeIndentedLines(code % inits)
+                buff.setIndentLevel(-1, relative=True)
+                code = (
+                    "}\n"
+                )
+                buff.writeIndentedLines(code % inits)
+
             # Close ioDevice dict
             buff.setIndentLevel(-1, relative=True)
             code = (
@@ -1854,7 +1903,7 @@ class SettingsComponent:
             "if expInfo is not None:\n"
             "    # get/measure frame rate if not already in expInfo\n"
             "    if win._monitorFrameRate is None:\n"
-            "        win.getActualFrameRate(infoMsg=%(frameRateMsg)s)\n"
+            "        win._monitorFrameRate = win.getActualFrameRate(infoMsg=%(frameRateMsg)s)\n"
             "    expInfo['frameRate'] = win._monitorFrameRate\n"
             )
             buff.writeIndentedLines(code % params)
@@ -1994,11 +2043,11 @@ class SettingsComponent:
             "if thisExp.status != PAUSED:\n"
             "    return\n"
             "\n"
+            "# start a timer to figure out how long we're paused for\n"
+            "pauseTimer = core.Clock()\n"
             "# pause any playback components\n"
             "for comp in playbackComponents:\n"
             "    comp.pause()\n"
-            "# prevent components from auto-drawing\n"
-            "win.stashAutoDraw()\n"
             "# make sure we have a keyboard\n"
             "defaultKeyboard = deviceManager.getDevice('defaultKeyboard')\n"
             "if defaultKeyboard is None:\n"
@@ -2017,19 +2066,17 @@ class SettingsComponent:
             "        endExperiment(thisExp, win=win)\n"
             )
         code += (
-            "    # flip the screen\n"
-            "    win.flip()\n"
+            "    # sleep 1ms so other threads can execute\n"
+            "    clock.time.sleep(0.001)\n"
             "# if stop was requested while paused, quit\n"
             "if thisExp.status == FINISHED:\n"
             "    endExperiment(thisExp, win=win)\n"
             "# resume any playback components\n"
             "for comp in playbackComponents:\n"
             "    comp.play()\n"
-            "# restore auto-drawn components\n"
-            "win.retrieveAutoDraw()\n"
             "# reset any timers\n"
             "for timer in timers:\n"
-            "    timer.reset()\n"
+            "    timer.addTime(-pauseTimer.getTime())\n"
         )
         buff.writeIndentedLines(code % self.params)
 
@@ -2068,6 +2115,8 @@ class SettingsComponent:
             "    # Flip one final time so any remaining win.callOnFlip() \n"
             "    # and win.timeOnFlip() tasks get executed\n"
             "    win.flip()\n"
+            "# return console logger level to WARNING\n"
+            "logging.console.setLevel(logging.WARNING)\n"
             "# mark experiment handler as finished\n"
             "thisExp.status = FINISHED\n"
         )

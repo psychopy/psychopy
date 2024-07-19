@@ -24,7 +24,8 @@ class TextComponent(BaseVisualComponent):
                  text=_translate('Any text\n\nincluding line breaks'),
                  font='Arial', units='from exp settings',
                  color='white', colorSpace='rgb',
-                 pos=(0, 0), letterHeight=0.05, ori=0,
+                 pos=(0, 0), letterHeight=0.05,
+                 ori=0, draggable=False,
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  flip='None', startEstim='', durationEstim='', wrapWidth='',
@@ -58,6 +59,14 @@ class TextComponent(BaseVisualComponent):
             hint=_translate("The font name (e.g. Comic Sans)"),
             label=_translate("Font"))
         del self.params['size']  # because you can't specify width for text
+        self.params['draggable'] = Param(
+            draggable, valType="code", inputType="bool", categ="Layout",
+            updates="constant",
+            label=_translate("Draggable?"),
+            hint=_translate(
+                "Should this stimulus be moveble by clicking and dragging?"
+            )
+        )
         self.params['letterHeight'] = Param(
             letterHeight, valType='num', inputType="single", allowedTypes=[], categ='Formatting',
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
@@ -86,6 +95,22 @@ class TextComponent(BaseVisualComponent):
         del self.params['fillColor']
         del self.params['borderColor']
 
+    def _getParamCaps(self, paramName):
+        """
+        TEMPORARY FIX
+
+        TextStim in JS doesn't accept `letterHeight` as a param. Ideally this needs to be fixed
+        in JS, but in the meantime overloading this function in Python to write `setHeight`
+        rather than `setLetterHeight` means it stops biting users.
+        """
+        # call base function
+        paramName = BaseVisualComponent._getParamCaps(self, paramName)
+        # replace letterHeight
+        if paramName == "LetterHeight":
+            paramName = "Height"
+
+        return paramName
+
     def writeInitCode(self, buff):
         # do we need units code?
         if self.params['units'].val == 'from exp settings':
@@ -103,7 +128,7 @@ class TextComponent(BaseVisualComponent):
                 "    text=%(text)s,\n"
                 "    font=%(font)s,\n"
                 "    " + unitsStr +
-                "pos=%(pos)s, height=%(letterHeight)s, "
+                "pos=%(pos)s, draggable=%(draggable)s, height=%(letterHeight)s, "
                 "wrapWidth=%(wrapWidth)s, ori=%(ori)s, \n"
                 "    color=%(color)s, colorSpace=%(colorSpace)s, "
                 "opacity=%(opacity)s, \n"
@@ -141,7 +166,7 @@ class TextComponent(BaseVisualComponent):
                 "  name: '%(name)s',\n"
                 "  text: %(text)s,\n"
                 "  font: %(font)s,\n" + unitsStr +
-                "  pos: %(pos)s, height: %(letterHeight)s,"
+                "  pos: %(pos)s, draggable: %(draggable)s, height: %(letterHeight)s,"
                 "  wrapWidth: %(wrapWidth)s, ori: %(ori)s,\n"
                 "  languageStyle: %(languageStyle)s,\n"
                 "  color: new util.Color(%(color)s),"

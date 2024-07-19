@@ -179,20 +179,27 @@ class PygletBackend(BaseBackend):
                     'integer greater than two. Disabling.')
                 win.multiSample = False
 
+        skip_screen_warn = False
         if platform.system() == 'Linux':
-            display = pyglet.canvas.Display()
+            from pyglet.canvas.xlib import NoSuchDisplayException
+            try:
+                display = pyglet.canvas.Display(x_screen=win.screen)
+                # in this case, we'll only get a single x-screen back
+                skip_screen_warn = True
+            except NoSuchDisplayException:
+                # Maybe xinerama? Try again and get the specified screen later
+                display = pyglet.canvas.Display(x_screen=0)
+
             allScrs = display.get_screens()
         else:
-            if pyglet.version < '1.4':
-                allScrs = _default_display_.get_screens()
-            else:
-                allScrs = _default_display_.get_screens()
+            allScrs = _default_display_.get_screens()
 
-        # Screen (from Exp Settings) is 1-indexed,
+        # Screen (from Exp Settings) is 0-indexed,
         # so the second screen is Screen 1
         if len(allScrs) < int(win.screen) + 1:
-            logging.warn("Requested an unavailable screen number - "
-                         "using first available.")
+            if not skip_screen_warn:
+                logging.warn("Requested an unavailable screen number - "
+                             "using first available.")
             thisScreen = allScrs[0]
         else:
             thisScreen = allScrs[win.screen]
@@ -247,7 +254,7 @@ class PygletBackend(BaseBackend):
             self.winHandle = pyglet.window.Window(
                 width=w, height=h,
                 caption="PsychoPy",
-                fullscreen=self._isFullScr,
+                fullscreen=win._isFullScr,
                 config=config,
                 screen=thisScreen,
                 style=style)
@@ -258,8 +265,12 @@ class PygletBackend(BaseBackend):
                 "graphics card and/or graphics drivers.")
         try:
             icns = [
-                pyglet.image.load(prefs.paths['resources'] + os.sep + "Psychopy Window Favicon@16w.png"),
-                pyglet.image.load(prefs.paths['resources'] + os.sep + "Psychopy Window Favicon@32w.png"),
+                pyglet.image.load(
+                    prefs.paths['assets'] + os.sep + "Psychopy Window Favicon@16w.png"
+                ),
+                pyglet.image.load(
+                    prefs.paths['assets'] + os.sep + "Psychopy Window Favicon@32w.png"
+                ),
             ]
             self.winHandle.set_icon(*icns)
         except BaseException:
@@ -347,8 +358,8 @@ class PygletBackend(BaseBackend):
                                         int(win.pos[1] + thisScreen.y))
 
         try:  # to load an icon for the window
-            iconFile = os.path.join(psychopy.prefs.paths['resources'],
-                                    'psychopy.ico')
+            iconFile = os.path.join(psychopy.prefs.paths['assets'],
+                                    'window.ico')
             icon = pyglet.image.load(filename=iconFile)
             self.winHandle.set_icon(icon)
         except Exception:

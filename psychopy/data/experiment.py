@@ -9,6 +9,7 @@ import pandas as pd
 
 from psychopy import constants, clock
 from psychopy import logging
+from psychopy.data.trial import TrialHandler2
 from psychopy.tools.filetools import (openOutputFile, genDelimiter,
                                       genFilenameFromDelimiter)
 from psychopy.localization import _translate
@@ -456,6 +457,112 @@ class ExperimentHandler(_ComparisonMixin):
         # set own status
         self.status = constants.STOPPED
 
+    def skipTrials(self, n=1):
+        """
+        Skip ahead n trials - the trials inbetween will be marked as "skipped". If you try to
+        skip past the last trial, will log a warning and skip *to* the last trial.
+
+        Parameters
+        ----------
+        n : int
+            Number of trials to skip ahead
+        """
+        # return if there isn't a TrialHandler2 active
+        if not isinstance(self.currentLoop, TrialHandler2):
+            return
+        # skip trials in current loop
+        self.currentLoop.skipTrials(n)
+
+    def rewindTrials(self, n=1):
+        """
+        Skip ahead n trials - the trials inbetween will be marked as "skipped". If you try to
+        skip past the last trial, will log a warning and skip *to* the last trial.
+
+        Parameters
+        ----------
+        n : int
+            Number of trials to skip ahead
+        """
+        # return if there isn't a TrialHandler2 active
+        if not isinstance(self.currentLoop, TrialHandler2):
+            return
+        # rewind trials in current loop
+        self.currentLoop.rewindTrials(n)
+    
+    def getAllTrials(self):
+        """
+        Returns all trials (elapsed, current and upcoming) with an index indicating which trial is 
+        the current trial.
+
+        Returns
+        -------
+        list[Trial]
+            List of trials, in order (oldest to newest)
+        int
+            Index of the current trial in this list
+        """
+        # return None if there isn't a TrialHandler2 active
+        if not isinstance(self.currentLoop, TrialHandler2):
+            return [None], 0
+        # get all trials from current loop
+        return self.currentLoop.getAllTrials()
+
+    def getCurrentTrial(self):
+        """
+        Returns the current trial (`.thisTrial`)
+
+        Returns
+        -------
+        Trial
+            The current trial
+        """
+        # return None if there isn't a TrialHandler2 active
+        if not isinstance(self.currentLoop, TrialHandler2):
+            return None
+        
+        return self.currentLoop.getCurrentTrial()
+    
+    def getFutureTrial(self, n=1):
+        """
+        Returns the condition for n trials into the future, without
+        advancing the trials. Returns 'None' if attempting to go beyond
+        the last trial in the current loop, or if there is no current loop.
+        """
+        # return None if there isn't a TrialHandler2 active
+        if not isinstance(self.currentLoop, TrialHandler2):
+            return None
+        # get future trial from current loop
+        return self.currentLoop.getFutureTrial(n)
+
+    def getFutureTrials(self, n=1, start=0):
+        """
+        Returns Trial objects for a given range in the future. Will start looking at `start` trials 
+        in the future and will return n trials from then, so e.g. to get all trials from 2 in the 
+        future to 5 in the future you would use `start=2` and `n=3`.
+
+        Parameters
+        ----------
+        n : int, optional
+            How many trials into the future to look, by default 1
+        start : int, optional
+            How many trials into the future to start looking at, by default 0
+        
+        Returns
+        -------
+        list[Trial or None]
+            List of Trial objects n long. Any trials beyond the last trial are None.
+        """
+        # blank list to store trials in
+        trials = []
+        # iterate through n trials
+        for i in range(n):
+            # add each to the list
+            trials.append(
+                self.getFutureTrial(start + i)
+            )
+        
+        return trials
+
     def nextEntry(self):
         """Calling nextEntry indicates to the ExperimentHandler that the
         current trial has ended and so further addData() calls correspond
@@ -464,15 +571,31 @@ class ExperimentHandler(_ComparisonMixin):
         this = self.thisEntry
         # fetch data from each (potentially-nested) loop
         for thisLoop in self.loopsUnfinished:
-            names, vals = self._getLoopInfo(thisLoop)
-            for n, name in enumerate(names):
-                this[name] = vals[n]
+            self.updateEntryFromLoop(thisLoop)
         # add the extraInfo dict to the data
         if type(self.extraInfo) == dict:
             this.update(self.extraInfo)
         self.entries.append(this)
         # add new entry with its
         self.thisEntry = {}
+
+    def updateEntryFromLoop(self, thisLoop):
+        """
+        Add all values from the given loop to the current entry.
+
+        Parameters
+        ----------
+        thisLoop : BaseLoopHandler
+            Loop to get fields from
+        """
+        # for each name and value in the current trial...
+        names, vals = self._getLoopInfo(thisLoop)
+        for n, name in enumerate(names):
+            # add/update value
+            self.thisEntry[name] = vals[n]
+            # make sure name is in data names
+            if name not in self.dataNames:
+                self.dataNames.append(name)
 
     def getAllEntries(self):
         """Fetches a copy of all the entries including a final (orphan) entry
@@ -563,7 +686,9 @@ class ExperimentHandler(_ComparisonMixin):
                            encoding=encoding)
 
         names = self._getAllParamNames()
-        names.extend(self.dataNames)
+        for name in self.dataNames:
+            if name not in names:
+                names.append(name)
         # names from the extraInfo dictionary
         names.extend(self._getExtraInfo()[0])
         if len(names) < 1:
@@ -676,6 +801,7 @@ class ExperimentHandler(_ComparisonMixin):
         # put in context
         context = {
             'type': "trials_data",
+            'thisTrial': self.thisEntry,
             'trials': trials.to_dict(orient="records"),
             'priority': self.columnPriority,
             'threshold': priorityThreshold,

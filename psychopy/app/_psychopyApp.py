@@ -23,7 +23,7 @@ profiling = False  # turning on will save profile files in currDir
 
 import psychopy
 from psychopy import prefs
-from pkg_resources import parse_version
+from packaging.version import Version
 from . import urls
 from . import frametracker
 from . import themes
@@ -166,7 +166,7 @@ class _Showgui_Hack():
 class PsychoPyApp(wx.App, handlers.ThemeMixin):
     _called_from_test = False  # pytest needs to change this
 
-    def __init__(self, arg=0, testMode=False, **kwargs):
+    def __init__(self, arg=0, testMode=False, startView=None, **kwargs):
         """With a wx.App some things get done here, before App.__init__
         then some further code is launched in OnInit() which occurs after
         """
@@ -213,7 +213,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         # allocated when `OnInit` is called.
         self._sharedMemory = None
         self._singleInstanceChecker = None  # checker for instances
-        self._timer = None
+        self._lastInstanceCheckTime = -1.0
         # Size of the memory map buffer, needs to be large enough to hold UTF-8
         # encoded long file paths.
         self.mmap_sz = 2048
@@ -245,7 +245,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         self.locale.AddCatalog(self.GetAppName())
 
         logging.flush()
-        self.onInit(testMode=testMode, **kwargs)
+        self.onInit(testMode=testMode, startView=startView, **kwargs)
         if profiling:
             profile.disable()
             print("time to load app = {:.2f}".format(time.time()-t0))
@@ -254,9 +254,9 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
 
         # if we're on linux, check if we have the permissions file setup
         from psychopy.app.linuxconfig import (
-            LinuxConfigDialog, linuxConfigFileExists)
+            LinuxConfigDialog, linuxRushAllowed)
 
-        if not linuxConfigFileExists():
+        if not linuxRushAllowed():
             linuxConfDlg = LinuxConfigDialog(
                 None, timeout=1000 if self.testMode else None)
             linuxConfDlg.ShowModal()
@@ -368,7 +368,6 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         Since panels are created before loading plugins, calling this method is
         required after loading plugins which contain components to have them
         appear.
-
         """
         if not hasattr(self, 'builder') or self.builder is None:
             return  # nop if we haven't realized the builder UI yet
@@ -379,7 +378,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             for builderFrame in self.builder:
                 builderFrame.componentButtons.populate()
 
-    def onInit(self, showSplash=True, testMode=False, safeMode=False):
+    def onInit(self, showSplash=True, testMode=False, safeMode=False, startView=None):
         """This is launched immediately *after* the app initialises with
         wxPython.
 
@@ -425,7 +424,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         # SLOW IMPORTS - these need to be imported after splash screen starts
         # but then that they end up being local so keep track in self
 
-        from psychopy.compatibility import checkCompatibility
+        from psychopy.compatibility import checkCompatibility, checkUpdatesInfo
         # import coder and builder here but only use them later
         from psychopy.app import coder, builder, runner, dialogs
 
@@ -461,7 +460,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         self.dpi = int(wx.GetDisplaySize()[0] /
                        float(wx.GetDisplaySizeMM()[0]) * 25.4)
         # detect retina displays
-        self.isRetina = self.dpi>80 and wx.Platform == '__WXMAC__'
+        self.isRetina = self.dpi > 80 and wx.Platform == '__WXMAC__'
         if self.isRetina:
             fontScale = 1.2  # fonts are looking tiny on macos (only retina?) right now
             # mark icons as being retina
@@ -517,43 +516,51 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         #     self._codeFont.SetPointSize(
         #         self._mainFont.GetPointSize())  # unify font size
 
+        # load plugins so they're available before frames are created
+        if splash:
+            splash.SetText(_translate("  Loading plugins..."))
+        from psychopy.plugins import activatePlugins
+        activatePlugins()
+        
         # create both frame for coder/builder as necess
         if splash:
             splash.SetText(_translate("  Creating frames..."))
+        
+        # get starting windows
+        if startView in (None, []):
+            # if no window specified, use default from prefs
+            if self.prefs.app['defaultView'] == 'all':
+                startView = ["builder", "coder", "runner"]
+            elif self.prefs.app['defaultView'] == "last":
+                startView = self.prefs.appData['lastFrame'].split("-")
+            elif self.prefs.app['defaultView'] in ["builder", "coder", "runner"]:
+                startView = self.prefs.app['defaultView']
+            else:
+                startView = ["builder"]
+        # if specified as a single string, convert to list
+        if isinstance(startView, str):
+            startView = [startView]
+        
+        # get files to open from commandline args
+        for arg in sys.argv:
+            if arg.endswith(".psyexp"):
+                exps.append(arg)
+            if arg.endswith(".py"):
+                scripts.append(arg)
+            if "runner" not in startView and arg.endswith(".psyrun"):
+                runlist.append(arg)
+        
+        # show frames according to files
+        if exps and "builder" not in startView:
+            startView.append("builder")
+        if scripts and "coder" not in startView:
+            startView.append("coder")
+        if runlist and "runner" not in startView:
+            startView.append("runner")
 
-        # Parse incoming call
-        parser = argparse.ArgumentParser(prog=self)
-        parser.add_argument('--builder', dest='builder', action="store_true")
-        parser.add_argument('-b', dest='builder', action="store_true")
-        parser.add_argument('--coder', dest='coder', action="store_true")
-        parser.add_argument('-c', dest='coder', action="store_true")
-        parser.add_argument('--runner', dest='runner', action="store_true")
-        parser.add_argument('-r', dest='runner', action="store_true")
-        parser.add_argument('-x', dest='direct', action='store_true')
-        view, args = parser.parse_known_args(sys.argv)
-        # Check from filetype if any windows need to be open
-        if any(arg.endswith('.psyexp') for arg in args):
-            view.builder = True
-            exps = [file for file in args if file.endswith('.psyexp')]
-        if any(arg.endswith('.psyrun') for arg in args):
-            view.runner = True
-            runlist = [file for file in args if file.endswith('.psyrun')]
-        # If still no window specified, use default from prefs
-        if not any(getattr(view, key) for key in ['builder', 'coder', 'runner']):
-            if self.prefs.app['defaultView'] in view:
-                setattr(view, self.prefs.app['defaultView'], True)
-            elif self.prefs.app['defaultView'] == 'all':
-                view.builder = True
-                view.coder = True
-                view.runner = True
-
-        # set the dispatcher for standard output
-        # self.stdStreamDispatcher = console.StdStreamDispatcher(self)
-        # self.stdStreamDispatcher.redirect()
-
-        # Create windows
-        if view.runner:
-            # open Runner is requested
+        # create windows
+        if "runner" in startView:
+            # open Runner if requested
             try:
                 self.showRunner(fileList=runlist)
             except Exception as err:
@@ -569,7 +576,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                     "\n".join(traceback.format_exception(err))
                 )
 
-        if view.coder:
+        if "coder" in startView:
             # open Coder if requested
             try:
                 self.showCoder(fileList=scripts)
@@ -584,7 +591,8 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                     "\n".join(traceback.format_exception(err))
                 )
                 self.showCoder()
-        if view.builder:
+        
+        if "builder" in startView:
             # open Builder if requested
             try:
                 self.showBuilder(fileList=exps)
@@ -597,11 +605,12 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                     "Requested: {}\n"
                     "Err: {}"
                 ).format(exps, err))
-
-        if view.direct:
+        
+        if "direct" in startView:
             self.showRunner()
-            for exp in [file for file in args if file.endswith('.psyexp') or file.endswith('.py')]:
+            for exp in [file for file in sys.argv if file.endswith('.psyexp') or file.endswith('.py')]:
                 self.runner.panel.runFile(exp)
+
         # if we started a busy cursor which never finished, finish it now
         if wx.IsBusy():
             wx.EndBusyCursor()
@@ -615,6 +624,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
 
         prefsConn = self.prefs.connections
 
+        # check for potential compatability issues
         ok, msg = checkCompatibility(last, self.version, self.prefs, fix=True)
         # tell the user what has changed
         if not ok and not self.firstRun and not self.testMode:
@@ -623,11 +633,20 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                                         title=title)
             dlg.ShowModal()
 
+        # check for non-issue updates
+        messages = checkUpdatesInfo(old=last, new=self.version)
+        if messages:
+            dlg = dialogs.RichMessageDialog(
+                parent=None,
+                message="\n\n".join(messages)
+            )
+            dlg.Show()
+
         if self.prefs.app['showStartupTips'] and not self.testMode:
             tipFile = os.path.join(
                 self.prefs.paths['resources'], _translate("tips.txt"))
             tipIndex = self.prefs.appData['tipIndex']
-            if parse_version(wx.__version__) >= parse_version('4.0.0a1'):
+            if Version(wx.__version__) >= Version('4.0.0a1'):
                 tp = wx.adv.CreateFileTipProvider(tipFile, tipIndex)
                 showTip = wx.adv.ShowTip(None, tp)
             else:
@@ -643,7 +662,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
 
         # doing this once subsequently enables the app to open & switch among
         # wx-windows on some platforms (Mac 10.9.4) with wx-3.0:
-        v = parse_version
+        v = Version
         if sys.platform == 'darwin':
             if v('3.0') <= v(wx.__version__) < v('4.0'):
                 _Showgui_Hack()  # returns ~immediately, no display
@@ -657,21 +676,6 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         if self.coder:
             self.coder.setOutputWindow()  # takes control of sys.stdout
 
-        # if the program gets here, there are no other instances running
-        self._timer = wx.PyTimer(self._bgCheckAndLoad)
-        self._timer.Start(250)
-
-        # load plugins after the app has been mostly realized
-        if splash:
-            splash.SetText(_translate("  Loading plugins..."))
-
-        # Load plugins here after everything is realized, make sure that we
-        # refresh UI elements which are affected by plugins (e.g. the component
-        # panel in Builder).
-        from psychopy.plugins import activatePlugins
-        activatePlugins()
-        self._refreshComponentPanels()
-
         # flush any errors to the last run log file
         logging.flush()
         sys.stdout.flush()
@@ -681,15 +685,16 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
 
         return True
 
-    def _bgCheckAndLoad(self):
-        """Check shared memory for messages from other instances. This only is
-        called periodically in the first and only instance of PsychoPy.
+    def _bgCheckAndLoad(self, *args):
+        """Check shared memory for messages from other instances. 
+        
+        This only is called periodically in the first and only instance of 
+        PsychoPy running on the machine. This is called within the app's main
+        idle event method, with a frequency no more that once per second.
 
         """
         if not self._appLoaded:  # only open files if we have a UI
             return
-
-        self._timer.Stop()
 
         self._sharedMemory.seek(0)
         if self._sharedMemory.read(1) == b'+':  # available data
@@ -709,8 +714,6 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                 topWindow.Iconize(False)
             else:
                 topWindow.Raise()
-
-        self._timer.Start(1000)  # 1 second interval
 
     @property
     def appLoaded(self):
@@ -850,8 +853,8 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         from .builder.builder import BuilderFrame
         title = "PsychoPy Builder (v%s)"
         self.builder = BuilderFrame(None, -1,
-                                 title=title % self.version,
-                                 fileName=fileName, app=self)
+                                    title=title % self.version,
+                                    fileName=fileName, app=self)
         self.builder.Show(True)
         self.builder.Raise()
         self.SetTopWindow(self.builder)
@@ -891,9 +894,9 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         title = "PsychoPy Runner (v{})".format(self.version)
         wx.BeginBusyCursor()
         self.runner = RunnerFrame(parent=None,
-                             id=-1,
-                             title=title,
-                             app=self)
+                                  id=-1,
+                                  title=title,
+                                  app=self)
         self.updateWindowMenu()
         wx.EndBusyCursor()
         return self.runner
@@ -971,7 +974,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             import socket
             sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             sock.settimeout(1.0)
-            iohubAddress = '127.0.0.1', 9034
+            iohubAddress = '127.0.0.1', 9036
             import msgpack
             txData = msgpack.Packer().pack(('STOP_IOHUB_SERVER',))
             return sock.sendto(txData, iohubAddress)
@@ -1013,13 +1016,16 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                 return  # user cancelled quit
 
         # save info about current frames for next run
-        if self.coder and len(self.getAllFrames("builder")) == 0:
-            self.prefs.appData['lastFrame'] = 'coder'
-        elif self.coder is None:
-            self.prefs.appData['lastFrame'] = 'builder'
-        else:
-            self.prefs.appData['lastFrame'] = 'both'
-
+        openFrames = []
+        for frame in self.getAllFrames():
+            if type(frame).__name__ == "BuilderFrame" and "builder" not in openFrames:
+                openFrames.append("builder")
+            if type(frame).__name__ == "CoderFrame" and "coder" not in openFrames:
+                openFrames.append("coder")
+            if type(frame).__name__ == "RunnerFrame" and "runner" not in openFrames:
+                openFrames.append("runner")
+        self.prefs.appData['lastFrame'] = "-".join(openFrames)
+        # save current version for next run
         self.prefs.appData['lastVersion'] = self.version
         # update app data while closing each frame
         # start with an empty list to be appended by each frame
@@ -1036,7 +1042,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                 pass  # we don't care if this fails - we're quitting anyway
         # must do this before destroying the frame?
         self.prefs.saveAppData()
-        #self.Destroy()
+        # self.Destroy()
 
         # Reset streams back to default
         sys.stdout = sys.__stdout__
@@ -1063,7 +1069,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             "For stimulus generation and experimental control in Python.\n"
             "PsychoPy depends on your feedback. If something doesn't work\n"
             "then let us know at psychopy-users@googlegroups.com")
-        if parse_version(wx.__version__) >= parse_version('4.0a1'):
+        if Version(wx.__version__) >= Version('4.0a1'):
             info = wx.adv.AboutDialogInfo()
             showAbout = wx.adv.AboutBox
         else:
@@ -1182,8 +1188,23 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                 self._allFrames.remove(entry)
 
     def onIdle(self, evt):
+        """Run idle tasks, including background checks for new instances.
+
+        Some of these run once while others are added as tasks to be run
+        repeatedly.
+
+        """
         from . import idle
-        idle.doIdleTasks(app=self)
+        idle.doIdleTasks(app=self)  # run once
+
+        # do the background check for new instances, check each second
+        tNow = time.time()
+        if tNow - self._lastInstanceCheckTime > 1.0:  # every second
+            if not self.testMode:
+                self._bgCheckAndLoad()
+            
+            self._lastInstanceCheckTime = time.time()
+
         evt.Skip()
 
     @property

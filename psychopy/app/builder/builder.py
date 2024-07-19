@@ -23,7 +23,7 @@ import numpy
 import requests
 import io
 
-from pkg_resources import parse_version
+from packaging.version import Version
 import wx.stc
 from wx.lib import scrolledpanel
 from wx.lib import platebtn
@@ -50,7 +50,7 @@ try:
 except ImportError:
     from wx import PseudoDC
 
-if parse_version(wx.__version__) < parse_version('4.0.3'):
+if Version(wx.__version__) < Version('4.0.3'):
     wx.NewIdRef = wx.NewId
 
 from psychopy.localization import _translate
@@ -64,7 +64,7 @@ from psychopy.tools.filetools import mergeFolder
 from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
                       DlgCodeComponentProperties, DlgLoopProperties,
                       ParamNotebook, DlgNewRoutine, BuilderFindDlg)
-from ..utils import (BasePsychopyToolbar, HoverButton, WindowFrozen,
+from ..utils import (BasePsychopyToolbar, HoverButton, ThemedPanel, WindowFrozen,
                      FileDropTarget, FrameSwitcher, updateDemosMenu,
                      ToggleButtonArray, HoverMixin)
 
@@ -863,6 +863,10 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             self.filename = newPath
             self.fileExists = True
             self.fileSave(event=None, filename=newPath)
+            # enable/disable reveal button
+            if hasattr(self, "menuIDs"):
+                self.fileMenu.Enable(self.menuIDs.ID_REVEAL, True)
+            # update pavlovia project
             self.project = pavlovia.getProject(filename)
             returnVal = 1
         dlg.Destroy()
@@ -1631,10 +1635,6 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         runner.addTask(fileName=self.filename)
         # Run debug function from runner
         self.app.runner.panel.runOnlineDebug(evt=evt)
-
-    def setPavloviaUser(self, user):
-        # TODO: update user icon on button to user avatar
-        pass
 
     @property
     def project(self):
@@ -3289,6 +3289,8 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         self.pluginBtn.SetBitmapPressed(icon)
         self.pluginBtn.SetBitmapFocus(icon)
 
+        self.Refresh()
+
     def addToFavorites(self, comp):
         name = comp.__name__
         # Mark component as a favorite
@@ -3478,7 +3480,7 @@ class FlowPanel(wx.Panel, handlers.ThemeMixin):
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.SetSizer(self.sizer)
         # buttons panel
-        self.btnPanel = wx.Panel(self)
+        self.btnPanel = ThemedPanel(self)
         self.btnPanel.sizer = wx.BoxSizer(wx.VERTICAL)
         self.btnPanel.SetSizer(self.btnPanel.sizer)
         self.sizer.Add(self.btnPanel, border=6, flag=wx.EXPAND | wx.ALL)
@@ -3539,7 +3541,7 @@ class FlowCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
 
         # create a PseudoDC to record our drawing
         self.pdc = PseudoDC()
-        if parse_version(wx.__version__) < parse_version('4.0.0a1'):
+        if Version(wx.__version__) < Version('4.0.0a1'):
             self.pdc.DrawRoundedRectangle = self.pdc.DrawRoundedRectangleRect
         self.pen_cache = {}
         self.brush_cache = {}
@@ -4625,6 +4627,9 @@ class BuilderRibbon(ribbon.FrameRibbon):
 
         self.addSeparator()
 
+        # --- Plugin sections ---
+        self.addPluginSections("psychopy.app.builder")
+
         # --- Views ---
         self.addStretchSpacer()
         self.addSeparator()
@@ -4650,7 +4655,6 @@ class BuilderRibbon(ribbon.FrameRibbon):
             tooltip=_translate("Switch to Runner view"),
             callback=parent.app.showRunner
         )
-
 
 def extractText(stream):
     """Take a byte stream (or any file object of type b?) and return

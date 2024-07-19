@@ -26,8 +26,7 @@ import subprocess as sp
 from psychopy.preferences import prefs
 from psychopy.localization import _translate
 import psychopy.logging as logging
-import importlib
-import pkg_resources
+import importlib, importlib.metadata, importlib.resources
 import sys
 import os
 import os.path
@@ -53,13 +52,52 @@ if os.environ.get('PSYCHOPYNOPACKAGES', '0') == '1':
 if not site.USER_SITE in sys.path:
     site.addsitedir(site.getusersitepackages()) 
 
-# add packages dir to import path
-# if prefs.paths['packages'] not in pkg_resources.working_set.entries:
-#     pkg_resources.working_set.add_entry(prefs.paths['packages'])
-
 # cache list of packages to speed up checks
 _installedPackageCache = []
 _installedPackageNamesCache = []
+
+# reference the user packages path
+USER_PACKAGES_PATH = str(prefs.paths['userPackages'])
+
+
+class PluginStub:
+    """
+    Class to handle classes which have moved out to plugins.
+
+    Example
+    -------
+    ```
+    class NoiseStim(PluginStub, plugin="psychopy-visionscience", doclink="https://psychopy.github.io/psychopy-visionscience/builder/components/NoiseStimComponent/):
+    ```
+    """
+
+    def __init_subclass__(cls, plugin, doclink="https://plugins.psychopy.org/directory.html"):
+        """
+        Subclassing PluginStub will create documentation pointing to the new documentation for the replacement class.
+        """
+        # store ref to plugin and docs link
+        cls.plugin = plugin
+        cls.doclink = doclink
+        # create doc string point to new location
+        cls.__doc__ = (
+            "`{mro}` is now located within the `{plugin}` plugin. You can find the documentation for it `here <{doclink}>`_."
+        ).format(
+            mro=cls.__mro__,
+            plugin=plugin,
+            doclink=doclink
+        )
+    
+    def __call__(self, *args, **kwargs):
+        """
+        When initialised, rather than creating an object, will log an error.
+        """
+        raise NameError(
+            "Support for `{mro}` is not available this session. Please install "
+            "`{plugin}` and restart the session to enable support."
+        ).format(
+            mro=type(self).__mro__,
+            plugin=self.plugin,
+        )
 
 
 def refreshPackages():
@@ -68,28 +106,27 @@ def refreshPackages():
     This needs to be called after adding and removing packages, or making any
     changes to `sys.path`. Functions `installPackages` and `uninstallPackages`
     calls this everytime.
-
-    Warnings
-    --------
-    Calling this forces a reload of `pkg_resources`. This can cause side-effects
-    for other modules using it!
-
     """
     global _installedPackageCache
     global _installedPackageNamesCache
 
     _installedPackageCache.clear()
     _installedPackageNamesCache.clear()
-
-    importlib.reload(pkg_resources)  # reload since package paths might be stale
-
-    # this is like calling `pip freeze` and parsing the output, but faster!
-    for pkg in pkg_resources.working_set:
-        thisPkg = pkg_resources.get_distribution(pkg.key)
+    
+    # iterate through installed packages in the user folder
+    for dist in importlib.metadata.distributions(path=sys.path + [USER_PACKAGES_PATH]):
+        # get name if in 3.8
+        if sys.version.startswith("3.8"):
+            distName = dist.metadata['name']
+        else:
+            distName = dist.name
+        # mark as installed
         _installedPackageCache.append(
-            (thisPkg.project_name, thisPkg.version))
-        _installedPackageNamesCache.append(pkg_resources.safe_name(
-            thisPkg.project_name))  # names only
+            (distName, dist.version)
+        )
+        _installedPackageNamesCache.append(
+            distName
+        )
 
 
 def getUserPackagesPath():
@@ -118,10 +155,12 @@ def getDistributions():
         plugins can be found.
 
     """
-    toReturn = list()
-    toReturn.extend(pkg_resources.working_set.entries)  # copy
-
-    return toReturn
+    logging.error(
+        "`pkgtools.getDistributions` is now deprecated as packages are detected via "
+        "`importlib.metadata`, which doesn't need a separate working set from the system path. "
+        "Please use `sys.path` instead."
+    )
+    return sys.path
 
 
 def addDistribution(distPath):
@@ -137,8 +176,13 @@ def addDistribution(distPath):
         file (e.g. ZIP).
 
     """
-    if distPath not in pkg_resources.working_set.entries:
-        pkg_resources.working_set.add_entry(distPath)
+    logging.error(
+        "`pkgtools.addDistribution` is now deprecated as packages are detected via "
+        "`importlib.metadata`, which doesn't need a separate working set from the system path. "
+        "Please use `sys.path.append` instead."
+    )
+    if distPath not in sys.path:
+        sys.path.append(distPath)
 
 
 def installPackage(package, target=None, upgrade=False, forceReinstall=False,
@@ -176,7 +220,7 @@ def installPackage(package, target=None, upgrade=False, forceReinstall=False,
 
     """
     if target is None:
-        target = prefs.paths['packages']
+        target = prefs.paths['userPackages']
 
     # check the directory exists before installing
     if not os.path.exists(target):
@@ -295,14 +339,18 @@ def _isUserPackage(package):
         `True` if the package is present in the user's PsychoPy directory.
 
     """
-    userPackagePath = getUserPackagesPath()
-    for pkg in pkg_resources.working_set:
-        if pkg_resources.safe_name(package) == pkg.key:
-            thisPkg = pkg_resources.get_distribution(pkg.key)
-            if thisPkg.location == userPackagePath:
-                return True
-
-    return False
+    # get packages in the user path
+    userPackages = []
+    for dist in importlib.metadata.distributions(path=[USER_PACKAGES_PATH]):
+        # substitute name if using 3.8
+        if sys.version.startswith("3.8"):
+            distName = dist.metadata['name']
+        else:
+            distName = dist.name
+        # get name
+        userPackages.append(distName)
+    
+    return package in userPackages
 
 
 def _uninstallUserPackage(package):
@@ -338,95 +386,47 @@ def _uninstallUserPackage(package):
     logging.info(msg)
     stdout += msg + "\n"
 
-    # figure out he name of the metadata directory
-    pkgName = pkg_resources.safe_name(package)
-    thisPkg = pkg_resources.get_distribution(pkgName)
-
-    # build path to metadata based on project name
-    pathHead = pkg_resources.to_filename(thisPkg.project_name) + '-'
-    metaDir = pathHead + thisPkg.version
-    metaDir += '' if thisPkg.py_version is None else '.' + thisPkg.py_version
-    metaDir += '.dist-info'
-
-    # check if that directory exists
-    metaPath = os.path.join(userPackagePath, metaDir)
-    if not os.path.isdir(metaPath):
-        return False, {
-            "cmd": cmd,
-            "stdout": stdout,
-            "stderr": "No package metadata found at {metaPath}"}
-
-    # Get the top-levels for all packages in the user's PsychoPy directory, this
-    # is intended to safely remove packages without deleting common directories
-    # like `bin` which some packages insist on putting in there.
-    allTopLevelPackages = _getUserPackageTopLevels()
-
-    # get the top-levels associated with the package we want to uninstall
-    pkgTopLevelDirs = allTopLevelPackages[metaDir].copy()
-    del allTopLevelPackages[metaDir]  # remove from mapping
-
-    # Check which top-level directories are safe to remove if they are not used
-    # by other packages.
-    toRemove = []
-    for pkgTopLevel in pkgTopLevelDirs:
-        safeToRemove = True
-        for otherPkg, otherTopLevels in allTopLevelPackages.items():
-            if pkgTopLevel in otherTopLevels:
-                # check if another version of this package is sharing the dir
-                if otherPkg.startswith(pathHead):
-                    msg = (
-                        'Found metadata for an older version of package `{}` in '
-                        '`{}`. This will also be removed.'
-                    ).format(pkgName, otherPkg)
-                    logging.warning(msg)
-                    stdout += msg + "\n"
-                    toRemove.append(otherPkg)
-                else:
-                    # unrelated package
-                    msg = (
-                        'Found matching top-level directory `{}` in metadata '
-                        'for `{}`. Can not safely remove this directory since '
-                        'another package appears to use it.'
-                    ).format(pkgTopLevel, otherPkg)
-                    logging.warning(msg)
-                    stdout += msg + "\n"
-                    safeToRemove = False
-                    break
-
-        if safeToRemove:
-            toRemove.append(pkgTopLevel)
-
-    # delete modules from the paths we found
-    for rmDir in toRemove:
-        if os.path.isfile(rmDir):
-            msg = (
-                'Removing file `{}` from user package directory.'
-            ).format(rmDir)
-            logging.info(msg)
-            stdout += msg + "\n"
-            os.remove(rmDir)
-        elif os.path.isdir(rmDir):
-            msg = (
-                'Removing directory `{}` from user package '
-                'directory.'
-            ).format(rmDir)
-            logging.info(msg)
-            stdout += msg + "\n"
-            shutil.rmtree(rmDir)
-
-    # cleanup by also deleting the metadata path
-    shutil.rmtree(metaPath)
-
+    # get distribution object
+    thisPkg = importlib.metadata.distribution(package)
+    # iterate through its files
+    for file in thisPkg.files:
+        # get absolute path (not relative to package dir)
+        absPath = thisPkg.locate_file(file)
+        # skip pycache
+        if absPath.stem == "__pycache__":
+            continue
+        # delete file
+        if absPath.is_file():
+            try:
+                absPath.unlink()
+            except PermissionError as err:
+                stdout += _translate(
+                    "Could not remove {absPath}, reason: {err}".format(absPath=absPath, err=err)
+                )
+        # skip pycache
+        if absPath.parent.stem == "__pycache__":
+            continue
+        # delete folder if empty
+        if absPath.parent.is_dir() and not [f for f in absPath.parent.glob("*")]:
+            # delete file
+            try:
+                absPath.parent.unlink()
+            except PermissionError as err:
+                stdout += _translate(
+                    "Could not remove {absPath}, reason: {err}".format(absPath=absPath, err=err)
+                )
+    
+    # log success
     msg = 'Uninstalled package `{}`.'.format(package)
     logging.info(msg)
     stdout += msg + "\n"
-
-    # Return the return code and a dict of information from the console
+    
+    # return the return code and a dict of information from the console
     return True, {
         "cmd": cmd,
         "stdout": stdout,
-        "stderr": ""}
-
+        "stderr": ""
+    }
 
 def uninstallPackage(package):
     """Uninstall a package from the current distribution.
@@ -527,10 +527,16 @@ def getInstalledPackages():
     """
     # this is like calling `pip freeze` and parsing the output, but faster!
     installedPackages = []
-    for pkg in pkg_resources.working_set:
-        thisPkg = pkg_resources.get_distribution(pkg.key)
+    for dist in importlib.metadata.distributions(path=[USER_PACKAGES_PATH]):
+        # substitute name if using 3.8
+        if sys.version.startswith("3.8"):
+            distName = dist.metadata['name']
+        else:
+            distName = dist.name
+        # get name and version
         installedPackages.append(
-            (thisPkg.project_name, thisPkg.version))
+            (distName, dist.version)
+        )
 
     return installedPackages
 
@@ -545,7 +551,7 @@ def isInstalled(packageName):
 
     """
     # installed packages are given as keys in the resulting dicts
-    return pkg_resources.safe_name(packageName) in _installedPackageNamesCache
+    return packageName in _installedPackageNamesCache
 
 
 def getPackageMetadata(packageName):
@@ -566,16 +572,11 @@ def getPackageMetadata(packageName):
     import email.parser
 
     try:
-        dist = pkg_resources.get_distribution(packageName)
-    except pkg_resources.DistributionNotFound:
+        dist = importlib.metadata.distribution(packageName)
+    except importlib.metadata.PackageNotFoundError:
         return  # do nothing
 
-    metadata = dist.get_metadata(dist.PKG_INFO)
-
-    # parse the metadata using
-    metadict = dict()
-    for key, val in email.message_from_string(metadata).raw_items():
-        metadict[key] = val
+    metadict = dict(dist.metadata)
 
     return metadict
 

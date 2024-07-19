@@ -1,5 +1,5 @@
 import json
-from psychopy import layout, logging
+from psychopy import core, layout, logging
 from psychopy.hardware import base, DeviceManager
 from psychopy.localization import _translate
 from psychopy.hardware import keyboard
@@ -100,8 +100,62 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
                 matches.append(resp)
 
         return matches
+    
+    def findChannels(self, win):
+        """
+        Flash the entire window white to check which channels are detecting light from the given 
+        window.
 
-    def findPhotodiode(self, win, channel):
+        Parameters
+        ----------
+        win : psychopy.visual.Window
+            Window to flash white.
+        """
+        from psychopy import visual
+        # clock for timeouts
+        timeoutClock = core.Clock()
+        # box to cover screen
+        rect = visual.Rect(
+            win,
+            size=(2, 2), pos=(0, 0), units="norm",
+            autoDraw=False
+        )
+        win.flip()
+        # show black
+        rect.fillColor = "black"
+        rect.draw()
+        win.flip()
+        # wait 250ms for flip to happen and photodiode to catch it
+        timeoutClock.reset()
+        while timeoutClock.getTime() < 0.25:
+            self.dispatchMessages()
+        # finish dispatching any messages which are only partially received               
+        while self.hasUnfinishedMessage():
+            self.dispatchMessages()
+        # clear caught messages so we're starting afresh
+        self.clearResponses()
+        # show white
+        rect.fillColor = "white"
+        rect.draw()
+        win.flip()
+        # wait 250ms for flip to happen and photodiode to catch it
+        timeoutClock.reset()
+        while timeoutClock.getTime() < 0.25:
+            self.dispatchMessages()
+        # finish dispatching any messages which are only partially received               
+        while self.hasUnfinishedMessage():
+            self.dispatchMessages()
+        # start off with no channels
+        channels = []
+        # iterate through potential channels
+        for i, state in enumerate(self.state):
+            # if any detected the flash, append it
+            if state:
+                channels.append(i)
+        
+        return channels
+    
+    def findPhotodiode(self, win, channel=None):
         """
         Draws rectangles on the screen and records photodiode responses to recursively find the location of the diode.
 
@@ -114,6 +168,8 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
             Size of the area of certainty. Essentially, the size of the last (smallest) rectangle which the photodiode
             was able to detect.
         """
+        # timeout clock
+        timeoutClock = core.Clock()
         # keyboard to check for escape
         kb = keyboard.Keyboard(deviceName="photodiodeValidatorKeyboard")
         # stash autodraw
@@ -130,7 +186,7 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
         # add low opacity label
         label = visual.TextBox2(
             win,
-            text="Finding photodiode...",
+            text=f"Finding photodiode...",
             fillColor=(0, 0, 0), color=(80, 80, 80), colorSpace="rgb255",
             pos=(0, 0), size=(2, 2), units="norm",
             alignment="center",
@@ -144,9 +200,29 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
             autoDraw=False
         )
 
-        def scanQuadrants():
+        # if not given a channel, use first one which is responsive to the win
+        if channel is None:
+            # get responsive channels
+            responsiveChannels = self.findChannels(win=win)
+            # use first responsive channel
+            if responsiveChannels:
+                channel = responsiveChannels[0]
+            else:
+                # if no channels are responsive, use 0th channel and let scanQuadrants fail cleanly
+                channel = 0
+        # update label text once we have a channel
+        label.text = f"Finding photodiode {channel}..."
+
+        def scanQuadrants(responsive=False):
             """
-            Recursively shrink the rectangle around the position of the photodiode until it's too small to detect.
+            Recursively shrink the rectangle around the position of the photodiode until it's too 
+            small to detect.
+
+            Parameters
+            ----------
+            responsive : bool
+                When calling manually, this should always be left as False! Will be set to True if 
+                any response was received from the photodiode.
             """
             # work out width and height of area
             w, h = rect.size
@@ -162,6 +238,11 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
                 (r - w / 4, t - h / 4),  # top right
                 (l + w / 4, b + h / 4),  # bottom left
                 (r - w / 4, b + h / 4),  # bottom right
+                rect.pos,  # center
+                (l + w / 2, t - h / 4),  # top center
+                (l + w / 2, b + h / 4),  # bottom center
+                (l + w / 4, b + h / 2),  # center left
+                (r - w / 4, b + h / 2),  # center right
             ]:
                 # position rect
                 rect.pos = (x, y)
@@ -170,24 +251,97 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
                 label.draw()
                 rect.draw()
                 win.flip()
-                # dispatch parent messages
-                self.dispatchMessages()
+                # wait for flip to happen and photodiode to catch it (max 250ms)
+                timeoutClock.reset()
+                self.clearResponses()
+                while not self.responses and timeoutClock.getTime() < 0.25:
+                    self.dispatchMessages()
+                # finish dispatching any messages which are only partially received               
+                while self.hasUnfinishedMessage():
+                    self.dispatchMessages()
                 # check for escape before entering recursion
                 if kb.getKeys(['escape']):
-                    return
+                    return None
                 # poll photodiode
                 if self.getState(channel):
+                    # mark that we've got a response
+                    responsive = True
                     # if it detected this rectangle, recur
-                    return scanQuadrants()
+                    return scanQuadrants(responsive=responsive)
             # if none of these have returned, rect is too small to cover the whole photodiode, so return
-            return
+            return responsive
 
         # reset state
         self.state = [None] * self.channels
         self.dispatchMessages()
         self.clearResponses()
         # recursively shrink rect around the photodiode
-        scanQuadrants()
+        responsive = scanQuadrants()
+        # if cancelled, warn and continue
+        if responsive is None:
+            logging.warn(
+                "`findPhotodiode` procedure cancelled by user."
+            )
+            return (
+                layout.Position(self.pos, units="norm", win=win),
+                layout.Position(self.size, units="norm", win=win),
+            )
+        # if we didn't get any responses at all, prompt to try again
+        if not responsive:
+            # set label text to alert user
+            label.text = (
+                "Received no responses from photodiode during `findPhotodiode`. Photodiode may not "
+                "be connected or may be configured incorrectly.\n"
+                "\n"
+                "To continue, use the arrow keys to move the photodiode patch and use the "
+                "plus/minus keys to resize it.\n"
+                "\n"
+                "Press ENTER when finished."
+            )
+            label.foreColor = "red"
+            # revert to defaults
+            self.units = rect.units = "norm"
+            self.size = rect.size = (0.1, 0.1)
+            self.pos = rect.pos = (0.9, -0.9)
+            # start a frame loop until they press enter
+            keys = []
+            res = 0.05
+            while "return" not in keys:
+                # get keys
+                keys = kb.getKeys()
+                # skip if escape pressed
+                if "escape" in keys:
+                    return None
+                # move rect according to arrow keys
+                pos = list(rect.pos)
+                if "left" in keys:
+                    pos[0] -= res
+                if "right" in keys:
+                    pos[0] += res
+                if "up" in keys:
+                    pos[1] += res
+                if "down" in keys:
+                    pos[1] -= res
+                rect.pos = self.pos = pos
+                # resize rect according to +- keys
+                size = rect.size
+                if "equal" in keys:
+                    size = [sz * 2 for sz in size]
+                if "minus" in keys:
+                    size = [sz / 2 for sz in size]
+                rect.size = self.size = size
+                # show label and square
+                label.draw()
+                rect.draw()
+                # flip
+                win.flip()
+            # wait for a keypress
+            kb.waitKeys()
+            # return defaults
+            return (
+                layout.Position(self.pos, units="norm", win=win),
+                layout.Position(self.size, units="norm", win=win),
+            )
         # clear all the events created by this process
         self.state = [None] * self.channels
         self.dispatchMessages()
@@ -207,7 +361,17 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
             layout.Position(self.size, units="norm", win=win),
         )
 
-    def findThreshold(self, win, channel):
+    def findThreshold(self, win, channel=None):
+        # if not given a channel, find for all channels
+        if channel is None:
+            thresholds = []
+            # iterate through channels
+            for channel in range(self.channels):
+                thresholds.append(
+                    self.findThreshold(win, channel=channel)
+                )
+            # return array of thresholds
+            return thresholds
         # keyboard to check for escape/continue
         kb = keyboard.Keyboard(deviceName="photodiodeValidatorKeyboard")
         # stash autodraw
@@ -223,7 +387,7 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
         # add low opacity label
         label = visual.TextBox2(
             win,
-            text="Finding best threshold for photodiode...",
+            text=f"Finding best threshold for photodiode {channel}...",
             fillColor=None, color=(0, 0, 0), colorSpace="rgb",
             pos=(0, 0), size=(2, 2), units="norm",
             alignment="center",
@@ -294,8 +458,10 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
         win.retrieveAutoDraw()
         # flip
         win.flip()
+        # set to found threshold
+        self._setThreshold(int(threshold), channel=channel)
 
-        return threshold
+        return int(threshold)
 
     def setThreshold(self, threshold, channel):
         if isinstance(channel, (list, tuple)):
@@ -485,6 +651,9 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
             win = self.win
         else:
             self.win = win
+        # handle None
+        if channel is None:
+            channel = 0
         # there's no physical photodiode, so just pick a reasonable place for it
         self._pos = layout.Position((0.95, -0.95), units="norm", win=win)
         self._size = layout.Size((0.05, 0.05), units="norm", win=win)
@@ -493,7 +662,13 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
         return self._pos, self._size
 
     def findThreshold(self, win=None, channel=0):
-        self.win = win
+        if win is None:
+            win = self.win
+        else:
+            self.win = win
+        # handle None
+        if channel is None:
+            channel = 0
         # there's no physical photodiode, so just pick a reasonable threshold
         self.setThreshold(127, channel=channel)
 
@@ -503,7 +678,7 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
 class PhotodiodeValidator:
 
     def __init__(
-            self, win, diode, channel,
+            self, win, diode, channel=None,
             variability=1/60,
             report="log",
             autoLog=False):

@@ -1,4 +1,5 @@
 from pathlib import Path
+import shutil
 
 import wx
 from wx.lib import scrolledpanel
@@ -220,7 +221,7 @@ class PluginInfo:
             return
 
         wx.CallAfter(
-            self.parent.GetTopLevelParent().uninstallPackage, self.pipname)
+            self.parent.GetTopLevelParent().uninstallPlugin, self)
 
     @property
     def installed(self):
@@ -277,6 +278,12 @@ class PluginManagerPanel(wx.Panel, handlers.ThemeMixin):
         self.Layout()
         self.splitter.SetSashPosition(1, True)
         self.theme = theme.app
+    
+    def updateInfo(self):
+        # refresh all list items
+        self.pluginList.updateInfo()
+        # set current plugin again to refresh view
+        self.pluginViewer.info = self.pluginViewer.info
 
     def _applyAppTheme(self):
         # Set colors
@@ -318,9 +325,21 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             # self.activeBtn.Bind(wx.EVT_BUTTON, self.onToggleActivate)
             # self.btnSizer.Add(self.activeBtn, border=3, flag=wx.ALL | wx.ALIGN_RIGHT)
             # Add install button
-            self.installBtn = wx.Button(self)
+            self.installBtn = wx.Button(self, label=_translate("Install"))
+            self.installBtn.SetBitmap(
+                icons.ButtonIcon("download", 16).bitmap
+            )
+            self.installBtn.SetBitmapMargins(6, 3)
             self.installBtn.Bind(wx.EVT_BUTTON, self.onInstall)
             self.btnSizer.Add(self.installBtn, border=3, flag=wx.ALL | wx.ALIGN_RIGHT)
+            # # add uninstall button
+            # self.uninstallBtn = wx.Button(self, label=_translate("Uninstall"))
+            # self.uninstallBtn.SetBitmap(
+            #     icons.ButtonIcon("delete", 16).bitmap
+            # )
+            # self.uninstallBtn.SetBitmapMargins(6, 3)
+            # self.uninstallBtn.Bind(wx.EVT_BUTTON, self.onUninstall)
+            # self.btnSizer.Add(self.uninstallBtn, border=3, flag=wx.ALL | wx.EXPAND)
 
             # Map to onclick function
             self.Bind(wx.EVT_LEFT_DOWN, self.onSelect)
@@ -329,10 +348,8 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             # Bind navigation
             self.Bind(wx.EVT_NAVIGATION_KEY, self.onNavigation)
 
-            # Handle version mismatch
-            self.installBtn.Enable(__version__ in self.info.version)
-
             self._applyAppTheme()
+            self.markInstalled(self.info.installed)
 
         @property
         def viewer(self):
@@ -340,6 +357,10 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             Return parent's linked viewer when asked for viewer
             """
             return self.parent.viewer
+
+        def updateInfo(self):
+            # update install state
+            self.markInstalled(self.info.installed)
 
         def _applyAppTheme(self):
             # Set label fonts
@@ -429,14 +450,40 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
                 active=active
             )
 
-        def onInstall(self, evt=None):
-            # Mark as pending
+        def _doInstall(self):
+            """Routine to run the installation of a package after the `onInstall`
+            event is processed.
+            """
+            # mark as pending
             self.markInstalled(None)
-            # Do install
+            # install
             self.info.install()
-            # Mark according to install success
+            # mark according to install success
+            self.markInstalled(self.info.installed)
+        
+        def _doUninstall(self):
+            # mark as pending
+            self.markInstalled(None)
+            # uninstall
+            self.info.uninstall()
+            # mark according to uninstall success
             self.markInstalled(self.info.installed)
 
+        def onInstall(self, evt=None):
+            """Event called when the install button is clicked.
+            """
+            wx.CallAfter(self._doInstall)  # call after processing button events
+            if evt is not None and hasattr(evt, 'Skip'):
+                evt.Skip()
+        
+        def onUninstall(self, evt=None):
+            """
+            Event called when the uninstall button is clicked.
+            """
+            wx.CallAfter(self._doUninstall)  # call after processing button events
+            if evt is not None and hasattr(evt, 'Skip'):
+                evt.Skip()
+        
         def onToggleActivate(self, evt=None):
             if self.info.active:
                 self.onDeactivate(evt=evt)
@@ -491,6 +538,14 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         )
         self.sizer.Add(self.errorCtrl, proportion=1, border=3, flag=wx.ALL | wx.EXPAND)
         self.errorCtrl.Hide()
+        # add button to uninstall all
+        self.uninstallAllBtn = wx.Button(self, label=_translate("Uninstall all plugins"))
+        self.uninstallAllBtn.SetBitmap(
+            icons.ButtonIcon("delete", 16).bitmap
+        )
+        self.uninstallAllBtn.SetBitmapMargins(6, 3)
+        self.uninstallAllBtn.Bind(wx.EVT_BUTTON, self.onUninstallAll)
+        self.sizer.Add(self.uninstallAllBtn, border=12, flag=wx.ALL | wx.CENTER)
 
         # Bind deselect
         self.Bind(wx.EVT_LEFT_DOWN, self.onDeselect)
@@ -519,6 +574,10 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         # layout
         self.Layout()
         self.SetupScrolling()
+    
+    def updateInfo(self):
+        for item in self.items:
+            item.updateInfo()
 
     def search(self, evt=None):
         searchTerm = self.searchCtrl.GetValue().strip()
@@ -571,6 +630,31 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
     def onClick(self, evt=None):
         self.SetFocusIgnoringChildren()
         self.viewer.info = None
+    
+    def onUninstallAll(self, evt=None):
+        """
+        Called when the "Uninstall all" button is clicked
+        """
+        # warn user that they'll delete the packages folder
+        dlg = wx.MessageDialog(
+            self,
+            message=_translate("This will uninstall all plugins an additional packages you have installed, are you sure you want to continue?"),
+            style=wx.ICON_WARNING | wx.YES | wx.NO
+        )
+        if dlg.ShowModal() != wx.ID_YES:
+            # cancel if they didn't explicitly say yes
+            return
+        # delete the packages folder
+        shutil.rmtree(prefs.paths['packages'])
+        # print success
+        dlg = wx.MessageDialog(
+            self,
+            message=_translate("All plugins and additional packages have been uninstalled. You will need to restart PsychoPy for this to take effect."),
+            style=wx.ICON_INFORMATION | wx.OK
+        )
+        dlg.ShowModal()
+        # close dialog
+        self.GetTopLevelParent().Close()
 
     def setSelection(self, item):
         """
@@ -672,14 +756,22 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         # Buttons
         self.buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.titleSizer.Add(self.buttonSizer, flag=wx.EXPAND)
-        # Install btn
-        self.installBtn = wx.Button(self)
+        # install btn
+        self.installBtn = wx.Button(self, label=_translate("Install"))
+        self.installBtn.SetBitmap(
+            icons.ButtonIcon("download", 16).bitmap
+        )
+        self.installBtn.SetBitmapMargins(6, 3)
         self.installBtn.Bind(wx.EVT_BUTTON, self.onInstall)
         self.buttonSizer.Add(self.installBtn, border=3, flag=wx.ALL | wx.EXPAND)
-        # Active btn
-        # self.activeBtn = wx.Button(self)
-        # self.activeBtn.Bind(wx.EVT_BUTTON, self.onToggleActivate)
-        # self.buttonSizer.Add(self.activeBtn, border=3, flag=wx.ALL | wx.EXPAND)
+        # uninstall btn
+        self.uninstallBtn = wx.Button(self, label=_translate("Uninstall"))
+        self.uninstallBtn.SetBitmap(
+            icons.ButtonIcon("delete", 16).bitmap
+        )
+        self.uninstallBtn.SetBitmapMargins(6, 3)
+        self.uninstallBtn.Bind(wx.EVT_BUTTON, self.onUninstall)
+        self.buttonSizer.Add(self.uninstallBtn, border=3, flag=wx.ALL | wx.EXPAND)
         # Homepage btn
         self.homepageBtn = wx.Button(self, label=_translate("Homepage"))
         self.homepageBtn.Bind(wx.EVT_BUTTON, self.onHomepage)
@@ -779,11 +871,19 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         """Routine to run the installation of a package after the `onInstall`
         event is processed.
         """
-        # Mark as pending
+        # mark as pending
         self.markInstalled(None)
-        # Do install
+        # install
         self.info.install()
-        # Mark according to install success
+        # mark according to install success
+        self.markInstalled(self.info.installed)
+    
+    def _doUninstall(self):
+        # mark as pending
+        self.markInstalled(None)
+        # uninstall
+        self.info.uninstall()
+        # mark according to uninstall success
         self.markInstalled(self.info.installed)
 
     def onInstall(self, evt=None):
@@ -792,7 +892,15 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         wx.CallAfter(self._doInstall)  # call after processing button events
         if evt is not None and hasattr(evt, 'Skip'):
             evt.Skip()
-
+    
+    def onUninstall(self, evt=None):
+        """
+        Event called when the uninstall button is clicked.
+        """
+        wx.CallAfter(self._doUninstall)  # call after processing button events
+        if evt is not None and hasattr(evt, 'Skip'):
+            evt.Skip()
+    
     def _doActivate(self, state=True):
         """Activate a plugin or package after the `onActivate` event.
 
@@ -1031,69 +1139,39 @@ def markInstalled(pluginItem, pluginPanel, installed=True):
     installed : bool or None
         True if installed, False if not installed, None if pending/unclear
     """
-    def _setAllBitmaps(btn, bmp):
-        """
-        Set all bitmaps (enabled, disabled, focus, unfocus, etc.) for a button
-        """
-        btn.SetBitmap(bmp)
-        btn.SetBitmapDisabled(bmp)
-        btn.SetBitmapPressed(bmp)
-        btn.SetBitmapCurrent(bmp)
-        btn.SetBitmapMargins(6, 3)
 
-    # Update plugin item
+    # update plugin item
     if pluginItem:
         if installed is None:
-            # If pending, show elipsis and refresh icon
-            pluginItem.installBtn.Show()
-            pluginItem.installBtn.SetLabel("...")
-            _setAllBitmaps(pluginItem.installBtn, icons.ButtonIcon("view-refresh", 16).bitmap)
-            # Hide active button while pending
-            # pluginItem.activeBtn.Hide()
-        elif installed:
-            # If installed, hide install button
+            # if pending, hide both buttons
             pluginItem.installBtn.Hide()
-            # Show active button when installed
-            # pluginItem.activeBtn.Show()
+        elif installed:
+            # if installed, hide install button
+            pluginItem.installBtn.Hide()
         else:
-            # If not installed, show "Install" and download icon
+            # if not installed, show "Install" and download icon
             pluginItem.installBtn.Show()
-            pluginItem.installBtn.SetLabel(_translate("Install"))
-            _setAllBitmaps(pluginItem.installBtn, icons.ButtonIcon("download", 16).bitmap)
-            # Hide active button when not installed
-            # pluginItem.activeBtn.Hide()
-        # Refresh buttons
+        # refresh buttons
         pluginItem.Update()
         pluginItem.Layout()
 
-    # Update panel (if applicable)
+    # update panel (if applicable)
     if pluginPanel and pluginItem and pluginPanel.info == pluginItem.info:
         if installed is None:
-            # If pending, show elipsis and refresh icon
-            pluginPanel.installBtn.Show()
-            pluginPanel.installBtn.Enable(__version__ in pluginItem.info.version)
-            pluginPanel.installBtn.SetLabel("...")
-            _setAllBitmaps(pluginPanel.installBtn, icons.ButtonIcon("view-refresh", 16).bitmap)
-            # Hide active button while pending
-            # pluginPanel.activeBtn.Hide()
+            # if pending, show elipsis and refresh icon
+            pluginPanel.installBtn.Hide()
+            pluginPanel.uninstallBtn.Hide()
         elif installed:
-            # If installed, show as installed with tick
-            pluginPanel.installBtn.Show()
-            pluginPanel.installBtn.Disable()
-            pluginPanel.installBtn.SetLabelText(_translate("Installed"))
-            _setAllBitmaps(pluginPanel.installBtn, icons.ButtonIcon("greytick", 16).bitmap)
-            # Show active button when installed
-            # pluginPanel.activeBtn.Show()
+            # if installed, show as installed with tick
+            pluginPanel.installBtn.Hide()
+            pluginPanel.uninstallBtn.Show()
         else:
-            # If not installed, show "Install" and download icon
+            # if not installed, show "Install" and download icon
             pluginPanel.installBtn.Show()
-            pluginPanel.installBtn.Enable(__version__ in pluginItem.info.version)
-            pluginPanel.installBtn.SetLabel(_translate("Install"))
-            _setAllBitmaps(pluginPanel.installBtn, icons.ButtonIcon("download", 16).bitmap)
-            # Hide active button when not installed
-            # pluginPanel.activeBtn.Hide()
-        # Refresh buttons
+            pluginPanel.uninstallBtn.Hide()
+        # refresh buttons
         pluginPanel.Update()
+        pluginPanel.Layout()
 
 
 def markActive(pluginItem, pluginPanel, active=True):
@@ -1260,7 +1338,7 @@ def getAllPluginDetails():
             return None
         # attempt to parse JSON
         try:
-            with srcFile.open("r", encoding="utf-8") as f:
+            with srcFile.open("r", encoding="utf-8", errors="ignore") as f:
                 return json.load(f)
         except json.decoder.JSONDecodeError:
             # if JSON parse fails, return nothing

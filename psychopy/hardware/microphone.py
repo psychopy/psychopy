@@ -6,7 +6,7 @@ from psychtoolbox import audio as audio
 from psychopy import logging as logging, prefs
 from psychopy.localization import _translate
 from psychopy.constants import NOT_STARTED
-from psychopy.hardware import BaseDevice
+from psychopy.hardware import BaseDevice, BaseResponse, BaseResponseDevice
 from psychopy.sound.audiodevice import AudioDeviceInfo, AudioDeviceStatus
 from psychopy.sound.audioclip import AudioClip
 from psychopy.sound.exceptions import AudioInvalidCaptureDeviceError, AudioInvalidDeviceError, \
@@ -25,6 +25,10 @@ except (ImportError, ModuleNotFoundError):
         "recording will be unavailable this session. Note that opening a "
         "microphone stream will raise an error.")
     _hasPTB = False
+
+
+class MicrophoneResponse(BaseResponse):
+    pass
 
 
 class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
@@ -203,7 +207,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
                 self._device.deviceIndex, 
                 self._device.deviceName, 
                 self._device)
-
+        
         logging.info(devInfoText)
 
         # error if specified device is not suitable for capture
@@ -212,11 +216,12 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
                 'Specified audio device not suitable for audio recording. '
                 'Has no input channels.')
 
-        # get the sample rate
-        self._sampleRateHz = \
-            self._device.defaultSampleRate if sampleRateHz is None else int(
-                sampleRateHz)
+        # get these values from the configured device
+        self._channels = self._device.inputChannels
+        logging.debug('Set recording channels to {} ({})'.format(
+            self._channels, 'stereo' if self._channels > 1 else 'mono'))
 
+        self._sampleRateHz = self._device.defaultSampleRate
         logging.debug('Set stream sample rate to {} Hz'.format(
             self._sampleRateHz))
 
@@ -230,13 +235,6 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             self._audioLatencyMode))
 
         assert 0 <= self._audioLatencyMode <= 4  # sanity check for pref
-
-        # set the number of recording channels
-        self._channels = \
-            self._device.inputChannels if channels is None else int(channels)
-
-        logging.debug('Set recording channels to {} ({})'.format(
-            self._channels, 'stereo' if self._channels > 1 else 'mono'))
 
         # internal recording buffer size in seconds
         assert isinstance(streamBufferSecs, (float, int))
@@ -303,6 +301,9 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
 
         logging.debug('Audio capture device #{} ready'.format(
             self._device.deviceIndex))
+
+        # list to store listeners in
+        self.listeners = []
 
     def findBestDevice(self, index, sampleRateHz, channels):
         """
@@ -832,6 +833,99 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
                 "call `Microphone.stop` first.")
 
         return self._recording.getSegment()  # full recording
+
+    def getCurrentVolume(self, timeframe=0.2):
+        """
+        Get the current volume measured by the mic.
+
+        Parameters
+        ----------
+        timeframe : float
+            Time frame (s) over which to take samples from. Default is 0.1s.
+
+        Returns
+        -------
+        float
+            Current volume registered by the mic, will depend on relative volume of the mic but
+            should mostly be between 0 (total silence) and 1 (very loud).
+        """
+        # if mic hasn't started yet, return 0 as it's recorded nothing
+        if not self.isStarted:
+            return 0
+        # poll most recent samples
+        self.poll()
+        # get last 0.1sas a clip
+        clip = self._recording.getSegment(
+            max(self._recording.lastSample / self._sampleRateHz - timeframe, 0)
+        )
+
+        return clip.rms() * 10
+
+    def addListener(self, listener, startLoop=False):
+        """
+        Add a listener, which will receive all the same messages as this device.
+
+        Parameters
+        ----------
+        listener : str or psychopy.hardware.listener.BaseListener
+            Either a Listener object, or use one of the following strings to create one:
+            - "liaison": Create a LiaisonListener with DeviceManager.liaison as the server
+            - "print": Create a PrintListener with default settings
+            - "log": Create a LoggingListener with default settings
+        startLoop : bool
+            If True, then upon adding the listener, start up an asynchronous loop to dispatch messages.
+        """
+        # add listener as normal
+        BaseResponseDevice.addListener(self, listener, startLoop=startLoop)
+        # if we're starting a listener loop, start recording
+        if startLoop:
+            self.start()
+
+    def clearListeners(self):
+        """
+        Remove any listeners from this device.
+
+        Returns
+        -------
+        bool
+            True if completed successfully
+        """
+        # clear listeners as normal
+        BaseResponseDevice.clearListeners(self)
+        # stop recording
+        self.stop()
+
+    def dispatchMessages(self, clear=True):
+        """
+        Dispatch current volume as a MicrophoneResponse object to any attached listeners.
+
+        Parameters
+        ----------
+        clear : bool
+            If True, will clear the recording up until now after dispatching the volume. This is
+            useful if you're just sampling volume and aren't wanting to store the recording.
+        """
+        # create a response object
+        message = MicrophoneResponse(
+            logging.defaultClock.getTime(),
+            self.getCurrentVolume()
+        )
+        # clear recording if requested (helps with continuous running)
+        if clear and self.isRecBufferFull:
+            # work out how many samples is 0.1s
+            toSave = min(
+                int(0.2 * self._sampleRateHz),
+                int(self.maxRecordingSize / 2)
+            )
+            # get last 0.1s so we still have enough for volume measurement
+            savedSamples = self._recording._samples[-toSave:, :]
+            # clear samples
+            self._recording.clear()
+            # reassign saved samples
+            self._recording.write(savedSamples)
+        # dispatch to listeners
+        for listener in self.listeners:
+            listener.receiveMessage(message)
 
 
 class RecordingBuffer:

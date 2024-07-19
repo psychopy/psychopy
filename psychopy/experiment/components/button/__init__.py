@@ -178,7 +178,9 @@ class ButtonComponent(BaseVisualComponent):
                     "text=%(text)s, font=%(font)s,\n"
                     "pos=%(pos)s," + unitsStr + "\n"
                     "letterHeight=%(letterHeight)s,\n"
-                    "size=%(size)s, borderWidth=%(borderWidth)s,\n"
+                    "size=%(size)s, \n"
+                    "ori=%(ori)s\n,"
+                    "borderWidth=%(borderWidth)s,\n"
                     "fillColor=%(fillColor)s, borderColor=%(borderColor)s,\n"
                     "color=%(color)s, colorSpace=%(colorSpace)s,\n"
                     "opacity=%(opacity)s,\n"
@@ -216,6 +218,7 @@ class ButtonComponent(BaseVisualComponent):
                 "pos: %(pos)s,\n"
                 "letterHeight: %(letterHeight)s,\n"
                 "size: %(size)s,\n"
+                "ori: %(ori)s\n,\n"
                 "depth: %(depth)s\n"
         )
         buff.writeIndentedLines(code % inits)
@@ -272,6 +275,7 @@ class ButtonComponent(BaseVisualComponent):
         indented = self.writeStartTestCode(buff)
         if indented:
             code = (
+                "win.callOnFlip(%(name)s.buttonClock.reset)\n"
                 "%(name)s.setAutoDraw(True)\n"
             )
             buff.writeIndentedLines(code % self.params)

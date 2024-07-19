@@ -17,6 +17,7 @@ The code that writes out a *_lastrun.py experiment file is (in order):
 """
 
 from copy import deepcopy
+from pathlib import Path
 from xml.etree.ElementTree import Element
 
 from psychopy.experiment import getInitVals
@@ -111,7 +112,11 @@ class TrialHandler(_BaseLoopHandler):
             hint=_translate("Name of a file specifying the parameters for "
                             "each condition (.csv, .xlsx, or .pkl). Browse "
                             "to select a file. Right-click to preview file "
-                            "contents, or create a new file."))
+                            "contents, or create a new file."),
+            ctrlParams={
+                'template': Path(__file__).parent / "loopTemplate.xltx"
+            }
+        )
         self.params['endPoints'] = Param(
             list(endPoints), valType='num', inputType="single", updates=None, allowedUpdates=None,
             label=_translate('End points'),
@@ -153,34 +158,45 @@ class TrialHandler(_BaseLoopHandler):
         inits = getInitVals(self.params)
         # import conditions from file?
         if self.params['conditionsFile'].val in ['None', None, 'none', '']:
-            condsStr = "[None]"
+            inits['trialList'] = (
+                "[None]"
+            )
         elif self.params['Selected rows'].val in ['None', None, 'none', '']:
             # just a conditions file with no sub-selection
-            _con = "data.importConditions(%s)"
-            condsStr = _con % self.params['conditionsFile']
+            inits['trialList'] = (
+                "data.importConditions(%(conditionsFile)s)"
+            ) % inits
         else:
             # a subset of a conditions file
-            condsStr = ("data.importConditions(%(conditionsFile)s, selection="
-                        "%(Selected rows)s)") % self.params
+            inits['trialList'] = (
+                 "data.importConditions(\n"
+                 "    %(conditionsFile)s, \n"
+                 "    selection=%(Selected rows)s\n"
+                 ")\n"
+            ) % inits
         # also a 'thisName' for use in "for thisTrial in trials:"
         makeLoopIndex = self.exp.namespace.makeLoopIndex
-        self.thisName = makeLoopIndex(self.params['name'].val)
+        self.thisName = inits['loopIndex'] = makeLoopIndex(self.params['name'].val)
         # write the code
-        code = ("\n# set up handler to look after randomisation of conditions etc\n"
-                "%(name)s = data.TrialHandler(nReps=%(nReps)s, method=%(loopType)s, \n"
-                "    extraInfo=expInfo, originPath=-1,\n")
+        code = (
+            "\n"
+            "# set up handler to look after randomisation of conditions etc\n"
+            "%(name)s = data.TrialHandler2(\n"
+            "    name='%(name)s',\n"
+            "    nReps=%(nReps)s, \n"
+            "    method=%(loopType)s, \n"
+            "    extraInfo=expInfo, \n"
+            "    originPath=-1, \n"
+            "    trialList=%(trialList)s, \n"
+            "    seed=%(random seed)s, \n"
+            ")\n"
+        )
         buff.writeIndentedLines(code % inits)
-        # the next line needs to be kept separate to preserve potential string formatting
-        # by the user in condStr (i.e. it shouldn't be a formatted string itself
-        code = "    trialList=" + condsStr + ",\n"  # conditions go here
-        buff.writeIndented(code)
-        code = "    seed=%(random seed)s, name='%(name)s')\n"
+        code = (
+            "thisExp.addLoop(%(name)s)  # add the loop to the experiment\n" 
+            "%(loopIndex)s = %(name)s.trialList[0]  # so we can initialise stimuli with some values\n"
+        )
         buff.writeIndentedLines(code % inits)
-
-        code = ("thisExp.addLoop(%(name)s)  # add the loop to the experiment\n" +
-                self.thisName + " = %(name)s.trialList[0]  " +
-                "# so we can initialise stimuli with some values\n")
-        buff.writeIndentedLines(code % self.params)
         # unclutter the namespace
         if not self.exp.prefsBuilder['unclutteredNamespace']:
             code = ("# abbreviate parameter names if possible (e.g. rgb = %(name)s.rgb)\n"
@@ -188,6 +204,14 @@ class TrialHandler(_BaseLoopHandler):
                     "    for paramName in %(name)s:\n"
                     "        globals()[paramName] = %(name)s[paramName]\n")
             buff.writeIndentedLines(code % {'name': self.thisName})
+
+        # send data to Liaison before loop starts
+        if self.params['isTrials'].val:
+            buff.writeIndentedLines(
+                "if thisSession is not None:\n"
+                "    # if running in a Session with a Liaison client, send data up to now\n"
+                "    thisSession.sendExperimentData()\n"
+            )
 
         # then run the trials loop
         code = "\nfor %s in %s:\n"
@@ -200,18 +224,13 @@ class TrialHandler(_BaseLoopHandler):
         )
         buff.writeIndentedLines(code % self.params)
 
-        # handle pausing
-        code = (
-            "# pause experiment here if requested\n"
-            "if thisExp.status == PAUSED:\n"
-            "    pauseExperiment(\n"
-            "        thisExp=thisExp, \n"
-            "        win=win, \n"
-            "        timers=[routineTimer], \n"
-            "        playbackComponents=[]\n"
-            ")\n"
-        )
-        buff.writeIndentedLines(code)
+        # send data to Liaison at start of each iteration
+        if self.params['isTrials'].val:
+            buff.writeIndentedLines(
+                "if thisSession is not None:\n"
+                "    # if running in a Session with a Liaison client, send data up to now\n"
+                "    thisSession.sendExperimentData()\n"
+            )
         # unclutter the namespace
         if not self.exp.prefsBuilder['unclutteredNamespace']:
             code = ("# abbreviate parameter names if possible (e.g. rgb = %(name)s.rgb)\n"
@@ -331,9 +350,6 @@ class TrialHandler(_BaseLoopHandler):
             buff.writeIndentedLines(
                 "thisExp.nextEntry()\n"
                 "\n"
-                "if thisSession is not None:\n"
-                "    # if running in a Session with a Liaison client, send data up to now\n"
-                "    thisSession.sendExperimentData()\n"
             )
         # end of the loop. dedent
         buff.setIndentLevel(-1, relative=True)
@@ -341,7 +357,13 @@ class TrialHandler(_BaseLoopHandler):
                            % (self.params['nReps'], self.params['name']))
         buff.writeIndented("\n")
         # save data
-        if self.params['isTrials'].val == True:
+        if self.params['isTrials'].val:
+            # send final data to Liaison
+            buff.writeIndentedLines(
+                "if thisSession is not None:\n"
+                "    # if running in a Session with a Liaison client, send data up to now\n"
+                "    thisSession.sendExperimentData()\n"
+            )
             # a string to show all the available variables (if the conditions
             # isn't just None or [None])
             saveExcel = self.exp.settings.params['Save excel file'].val
@@ -615,11 +637,37 @@ class MultiStairHandler(_BaseLoopHandler):
             label=_translate('Conditions'),
             hint=_translate("A list of dictionaries describing the "
                             "differences between each staircase"))
+
+        def getTemplate():
+            """
+            Method to get the template for this loop's chosen stair type. This is specified as a
+            method rather than a simple value as the control needs to update its target according
+            to the current value of stairType.
+
+            Returns
+            -------
+            pathlib.Path
+                Path to the appropriate template file
+            """
+            # root folder
+            root = Path(__file__).parent
+            # get file path according to stairType param
+            if self.params['stairType'] == "QUEST":
+                return root / "questTemplate.xltx"
+            elif self.params['stairType'] == "questplus":
+                return root / "questPlusTemplate.xltx"
+            else:
+                return root / "staircaseTemplate.xltx"
+
         self.params['conditionsFile'] = Param(
             conditionsFile, valType='file', inputType='table', updates=None, allowedUpdates=None,
             label=_translate('Conditions'),
             hint=_translate("An xlsx or csv file specifying the parameters "
-                            "for each condition"))
+                            "for each condition"),
+            ctrlParams={
+                'template': getTemplate
+            }
+        )
         self.params['isTrials'] = Param(
             isTrials, valType='bool', inputType='bool', updates=None, allowedUpdates=None,
             label=_translate("Is trials"),

@@ -28,7 +28,7 @@ class TextboxComponent(BaseVisualComponent):
                  font='Arial', units='from exp settings', bold=False, italic=False,
                  color='white', colorSpace='rgb', opacity="",
                  pos=(0, 0), size=(0.5, 0.5), letterHeight=0.05, ori=0,
-                 speechPoint="",
+                 speechPoint="", draggable=False,
                  anchor='center', alignment='center',
                  lineSpacing=1.0, padding=0,  # gap between box and text
                  startType='time (s)', startVal=0.0,
@@ -107,6 +107,14 @@ class TextboxComponent(BaseVisualComponent):
             hint=_translate("horiz = left-right reversed; vert = up-down"
                             " reversed; $var = variable"),
             label=_translate("Flip vertical"))
+        self.params['draggable'] = Param(
+            draggable, valType="code", inputType="bool", categ="Layout",
+            updates="constant",
+            label=_translate("Draggable?"),
+            hint=_translate(
+                "Should this stimulus be moveble by clicking and dragging?"
+            )
+        )
         self.params['languageStyle'] = Param(
             languageStyle, valType='str', inputType="choice", categ='Formatting',
             allowedVals=['LTR', 'RTL', 'Arabic'],
@@ -207,7 +215,7 @@ class TextboxComponent(BaseVisualComponent):
         code = (
             "%(name)s = visual.TextBox2(\n"
             "     win, text=%(text)s, placeholder=%(placeholder)s, font=%(font)s,\n"
-            "     pos=%(pos)s," + unitsStr +
+            "     ori=%(ori)s, pos=%(pos)s, draggable=%(draggable)s, " + unitsStr +
             "     letterHeight=%(letterHeight)s,\n"
             "     size=%(size)s, borderWidth=%(borderWidth)s,\n"
             "     color=%(color)s, colorSpace=%(colorSpace)s,\n"
@@ -249,9 +257,11 @@ class TextboxComponent(BaseVisualComponent):
                 "  placeholder: %(placeholder)s,\n"
                 "  font: %(font)s,\n" 
                 "  pos: %(pos)s, \n"
+                "  draggable: %(draggable)s,\n"
                 "  letterHeight: %(letterHeight)s,\n"
                 "  lineSpacing: %(lineSpacing)s,\n"
                 "  size: %(size)s," + unitsStr +
+                "  ori: %(ori)s,\n"
                 "  color: %(color)s, colorSpace: %(colorSpace)s,\n"
                 "  fillColor: %(fillColor)s, borderColor: %(borderColor)s,\n"
                 "  languageStyle: %(languageStyle)s,\n"

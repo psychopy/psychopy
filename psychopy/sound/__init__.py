@@ -107,7 +107,7 @@ for thisLibName in prefs.hardware['audioLib']:
 
     # select the backend and set the Sound class
     if thisLibName == 'ptb':
-        # The Psychtoolbox backend is perfered, provides the best performance
+        # The Psychtoolbox backend is preferred, provides the best performance
         # and is the only one that supports low-latency scheduling. If no other
         # audio backend can be loaded, we will use PTB.
         if not bits32:
@@ -252,7 +252,7 @@ def setDevice(dev, kind=None):
         if systemtools.isVM_CI():  # no audio device on CI, ignore
             return
         else:
-            raise TypeError("`kind` should be one of [None, 'output', 'input']"
+            raise TypeError("`kind` should be one of [None, 'output', 'input'] "
                             "not {!r}".format(kind))
 
 

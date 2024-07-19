@@ -399,9 +399,9 @@ def getInitVals(params, target="PsychoPy"):
             inits[name].val = "[]"
             inits[name].valType = 'code'
         else:
-            print("I don't know the appropriate default value for a '%s' "
-                  "parameter. Please email the mailing list about this error" %
-                  name)
+            # if not explicitly handled, default to None
+            inits[name].val = "None"
+            inits[name].valType = "code"
 
     return inits
 

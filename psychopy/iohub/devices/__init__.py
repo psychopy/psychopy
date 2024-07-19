@@ -6,8 +6,12 @@
 import collections
 import copy
 import os
+import importlib
 from collections import deque
 from operator import itemgetter
+
+import sys
+from psychopy.plugins.util import getEntryPoints
 
 import numpy as np
 
@@ -137,7 +141,8 @@ class ioObject(metaclass=ioObjectMetaClass):
                     rpcList.append(d)
         return rpcList
 
-########### Base Abstract Device that all other Devices inherit from ##########
+
+# ########## Base Abstract Device that all other Devices inherit from ##########
 
 
 class Device(ioObject):
@@ -264,7 +269,7 @@ class Device(ioObject):
             None
 
         Returns:
-            (dict): The dictionary of the device configuration settings used 
+            (dict): The dictionary of the device configuration settings used
             to create the device.
 
         """
@@ -278,14 +283,23 @@ class Device(ioObject):
         contents.
 
         Args:
-            event_type_id (int): If specified, provides the ioHub DeviceEvent ID for which events should be returned for.  Events that have occurred but do not match the event ID specified are ignored. Event type ID's can be accessed via the EventConstants class; all available event types are class attributes of EventConstants.
+            event_type_id (int): If specified, provides the ioHub DeviceEvent ID for which events
+            should be returned for.  Events that have occurred but do not match the event ID
+            specified are ignored. Event type ID's can be accessed via the EventConstants class;
+            all available event types are class attributes of EventConstants.
 
-            clearEvents (int): Can be used to indicate if the events being returned should also be removed from the device event buffer. True (the default) indicates to remove events being returned. False results in events being left in the device event buffer.
+            clearEvents (int): Can be used to indicate if the events being returned should also be
+            removed from the device event buffer. True (the default) indicates to remove events
+            being returned. False results in events being left in the device event buffer.
 
-            asType (str): Optional kwarg giving the object type to return events as. Valid values are 'namedtuple' (the default), 'dict', 'list', or 'object'.
+            asType (str): Optional kwarg giving the object type to return events as. Valid values
+            are 'namedtuple' (the default), 'dict', 'list', or 'object'.
 
         Returns:
-            (list): New events that the ioHub has received since the last getEvents() or clearEvents() call to the device. Events are ordered by the ioHub time of each event, older event at index 0. The event object type is determined by the asType parameter passed to the method. By default a namedtuple object is returned for each event.
+            (list): New events that the ioHub has received since the last getEvents() or clearEvents()
+            call to the device. Events are ordered by the ioHub time of each event, older event at
+            index 0. The event object type is determined by the asType parameter passed to the method.
+            By default a namedtuple object is returned for each event.
 
         """
         self._iohub_server.processDeviceEvents()
@@ -321,11 +335,13 @@ class Device(ioObject):
                     call_proc_events=False)
         else:
             if filter_id:
-                [currentEvents.extend([fe for fe in l if fe[
-                                      DeviceEvent.EVENT_FILTER_ID_INDEX] == filter_id]) for l in list(self._iohub_event_buffer.values())]
+                [currentEvents.extend(
+                    [fe for fe in event if fe[
+                                      DeviceEvent.EVENT_FILTER_ID_INDEX] == filter_id]
+                                      ) for event in list(self._iohub_event_buffer.values())]
             else:
-                [currentEvents.extend(l)
-                 for l in list(self._iohub_event_buffer.values())]
+                [currentEvents.extend(event)
+                 for event in list(self._iohub_event_buffer.values())]
 
             if clearEvents is True and len(currentEvents) > 0:
                 self.clearEvents(filter_id=filter_id, call_proc_events=False)
@@ -384,7 +400,10 @@ class Device(ioObject):
 
 
         Args:
-            enabled (bool):  True (default) == Start to report device events to the ioHub Process. False == Stop Reporting Events to the ioHub Process. Most Device types automatically start sending events to the ioHUb Process, however some devices like the EyeTracker and AnlogInput device's do not. The setting to control this behavior is 'auto_report_events'
+            enabled (bool):  True (default) == Start to report device events to the ioHub Process.
+            False == Stop Reporting Events to the ioHub Process. Most Device types automatically
+            start sending events to the ioHUb Process, however some devices like the EyeTracker and
+            AnlogInput device's do not. The setting to control this behavior is 'auto_report_events'
 
         Returns:
             bool: The current reporting state.
@@ -516,14 +535,14 @@ class Device(ioObject):
         if self.isReportingEvents():
             self._native_event_buffer.append(e)
 
-    def _addEventListener(self, l, eventTypeIDs):
+    def _addEventListener(self, event, eventTypeIDs):
         for ei in eventTypeIDs:
-            self._event_listeners.setdefault(ei, []).append(l)
+            self._event_listeners.setdefault(ei, []).append(event)
 
-    def _removeEventListener(self, l):
+    def _removeEventListener(self, event):
         for etypelisteners in list(self._event_listeners.values()):
-            if l in etypelisteners:
-                etypelisteners.remove(l)
+            if event in etypelisteners:
+                etypelisteners.remove(event)
 
     def _getEventListeners(self, forEventType):
         return self._event_listeners.get(forEventType, [])
@@ -652,10 +671,16 @@ class Device(ioObject):
         Since any callbacks should take as little time to process as possible,
         a two stage approach is used to turn a native device event into an ioHub
         Device event representation:
-            #. This method is called by the native device interface as a callback, providing the necessary information to be able to create an ioHub event. As little processing should be done in this method as possible.
-            #. The data passed to this method, along with the time the callback was called, are passed as a tuple to the Device classes _addNativeEventToBuffer method.
-            #. During the ioHub Servers event processing routine, any new native events that have been added to the ioHub Server using the _addNativeEventToBuffer method are passed individually to the _getIOHubEventObject method, which must also be implemented by the given Device subclass.
-            #. The _getIOHubEventObject method is responsible for the actual conversion of the native event representation to the required ioHub Event representation for the accociated event type.
+            #. This method is called by the native device interface as a callback, providing the necessary
+            # information to be able to create an ioHub event. As little processing should be done in this
+            # method as possible.
+            #. The data passed to this method, along with the time the callback was called, are passed as a
+            # tuple to the Device classes _addNativeEventToBuffer method.
+            #. During the ioHub Servers event processing routine, any new native events that have been added
+            # to the ioHub Server using the _addNativeEventToBuffer method are passed individually to the
+            # _getIOHubEventObject method, which must also be implemented by the given Device subclass.
+            #. The _getIOHubEventObject method is responsible for the actual conversion of the native event
+            # representation to the required ioHub Event representation for the accociated event type.
 
         Args:
             args(tuple): tuple of non keyword arguments passed to the callback.
@@ -703,7 +728,8 @@ class Device(ioObject):
     def __del__(self):
         self._close()
 
-########### Base Device Event that all other Device Events inherit from ##
+
+# ########## Base Device Event that all other Device Events inherit from ##
 
 
 class DeviceEvent(ioObject):
@@ -920,16 +946,77 @@ class DeviceEvent(ioObject):
     @classmethod
     def createEventAsNamedTuple(cls, valueList):
         return cls.namedTupleClass(*valueList)
+
+
 #
 # Import Devices and DeviceEvents
 #
 
 
-import sys
+def importDeviceModule(modulePath):
+    """
+    Resolve an import string to import the module for a particular device.
+
+    Will iteratively check plugin entry points too.
+
+    Parameters
+    ----------
+    modulePath : str
+        Import path for the requested module
+
+    Return
+    ------
+    types.ModuleType
+        Requested module
+
+    Raises
+    ------
+    ModuleNotFoundError
+        If module doesn't exist, will raise this error.
+    """
+    module = None
+    try:
+        # try importing as is (this was the only way prior to plugins)
+        module = importlib.import_module(modulePath)
+    except ModuleNotFoundError:
+        # get entry point groups targeting iohub.devices
+        entryPoints = getEntryPoints("psychopy.iohub.devices", submodules=True, flatten=False)
+        # iterate through found groups
+        for group in entryPoints:
+            # skip irrelevant groups
+            if not modulePath.startswith(group):
+                continue
+            # get the module of the entry point group
+            module_group = importlib.import_module(group)
+            # get the entry point target module(s)
+            for ep in entryPoints[group]:
+                module_name = ep.name
+                ep_target = ep.load()
+                # bind each entry point module to the existing module tree
+                setattr(module_group, module_name, ep_target)
+                sys.modules[group + '.' + module_name] = ep_target
+
+        # re-try importing the module
+        try:
+            module = importlib.import_module(modulePath)
+        except ModuleNotFoundError:
+            pass
+
+    # raise error if all import options failed
+    if module is None:
+        raise ModuleNotFoundError(
+            f"Could not find module `{modulePath}`. Tried importing directly "
+            f"and iteratively using entry points."
+        )
+
+    return module
 
 
 def import_device(module_path, device_class_name):
-    module = __import__(module_path, fromlist=["{}".format(device_class_name)])
+    # get module from module_path
+    module = importDeviceModule(module_path)
+
+    # get device class from module
     device_class = getattr(module, device_class_name)
 
     setattr(sys.modules[__name__], device_class_name, device_class)
@@ -940,8 +1027,7 @@ def import_device(module_path, device_class_name):
         event_constant_string = convertCamelToSnake(
             event_class_name[:-5], False)
 
-        event_module = __import__(module_path, fromlist=[event_class_name])
-        event_class = getattr(event_module, event_class_name)
+        event_class = getattr(module, event_class_name)
 
         event_class.DEVICE_PARENT = device_class
 
@@ -950,6 +1036,7 @@ def import_device(module_path, device_class_name):
         setattr(sys.modules[__name__], event_class_name, event_class)
 
     return device_class, device_class_name, event_classes
+
 
 try:
     if getattr(sys.modules[__name__], 'Display', None) is None:

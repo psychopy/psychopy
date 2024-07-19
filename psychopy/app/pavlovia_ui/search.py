@@ -14,7 +14,6 @@ from psychopy.projects import pavlovia
 
 import copy
 import wx
-from pkg_resources import parse_version
 from wx.lib import scrolledpanel as scrlpanel
 import wx.lib.mixins.listctrl as listmixin
 

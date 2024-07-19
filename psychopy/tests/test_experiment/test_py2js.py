@@ -67,7 +67,7 @@ class TestTranspiler:
             {'py': "a.upper()", 'js': "a.toUpperCase();\n"},
             {'py': "a.extend([4, 5, 6])", 'js': "a.concat([4, 5, 6]);\n"},
             {'py': "a.pop(0)", 'js': "a.splice(0, 1);\n"},
-            {'py': "a.pop()", 'js': "a.splice((- 1), 1);\n"},
+            {'py': "a.pop()", 'js': "a.splice((a.length - 1), 1);\n"},
         ]
         # Try each case
         for case in cases:

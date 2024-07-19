@@ -30,15 +30,6 @@ except (ImportError, ModuleNotFoundError):
 # Get list of sample rates
 sampleRates = {r[1]: r[0] for r in sampleRateQualityLevels.values()}
 
-onlineTranscribers = {
-    "Google": "GOOGLE"
-}
-localTranscribers = {
-    "Google": "google",
-    "Whisper": "whisper", 
-}
-allTranscribers = {**localTranscribers, **onlineTranscribers}
-
 
 class MicrophoneComponent(BaseDeviceComponent):
     """An event class for capturing short sound stimuli"""
@@ -50,14 +41,22 @@ class MicrophoneComponent(BaseDeviceComponent):
                          'duration), okay for spoken words')
     deviceClasses = ['psychopy.hardware.microphone.MicrophoneDevice']
 
+    # dict of available transcribers (plugins can add entries to this)
+    localTranscribers = {
+        "Google": "google",
+    }
+    onlineTranscribers = {
+        "Google": "google",
+    }
+
     def __init__(self, exp, parentName, name='mic',
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=2.0,
                  startEstim='', durationEstim='',
                  channels='auto', device=None,
                  sampleRate='DVD Audio (48kHz)', maxSize=24000,
-                 outputType='default', speakTimes=True, trimSilent=False,
-                 transcribe=False, transcribeBackend="Whisper",
+                 outputType='default', speakTimes=False, trimSilent=False,
+                 transcribe=False, transcribeBackend="none",
                  transcribeLang="en-US", transcribeWords="",
                  transcribeWhisperModel="base",
                  transcribeWhisperDevice="auto",
@@ -163,7 +162,7 @@ class MicrophoneComponent(BaseDeviceComponent):
         msg = _translate(
             "Tick this to save times when the participant starts and stops speaking")
         self.params['speakTimes'] = Param(
-            speakTimes, valType='bool', inputType='bool', categ='Data',
+            speakTimes, valType='bool', inputType='bool', categ='Transcription',
             hint=msg,
             label=_translate("Speaking start / stop times")
         )
@@ -195,7 +194,8 @@ class MicrophoneComponent(BaseDeviceComponent):
             'transcribeLang', 
             'transcribeWords', 
             'transcribeWhisperModel',
-            'transcribeWhisperDevice'
+            'transcribeWhisperDevice',
+            'speakTimes'
         ]
 
         for depParam in whisperParams:
@@ -209,7 +209,8 @@ class MicrophoneComponent(BaseDeviceComponent):
 
         self.params['transcribeBackend'] = Param(
             transcribeBackend, valType='code', inputType='choice', categ='Transcription',
-            allowedLabels=list(allTranscribers), allowedVals=list(allTranscribers.values()),
+            allowedVals=list(self.allTranscribers.values()),
+            allowedLabels=list(self.allTranscribers),
             direct=False,
             hint=_translate("What transcription service to use to transcribe audio?"),
             label=_translate("Transcription backend")
@@ -257,7 +258,13 @@ class MicrophoneComponent(BaseDeviceComponent):
             "true": "show",  # what to do with param if condition is True
             "false": "hide",  # permitted: hide, show, enable, disable
         })
-
+        self.depends.append({
+            "dependsOn": "transcribeBackend",
+            "condition": "=='Whisper'",
+            "param": "speakTimes",
+            "true": "show",  # what to do with param if condition is True
+            "false": "hide",  # permitted: hide, show, enable, disable
+        })
         # settings for whisper we might want, we'll need to get these from the
         # plugin itself at some point
         self.params['transcribeWhisperDevice'] = Param(
@@ -275,7 +282,14 @@ class MicrophoneComponent(BaseDeviceComponent):
             "true": "show",  # what to do with param if condition is True
             "false": "hide",  # permitted: hide, show, enable, disable
         })
-
+    
+    @property
+    def allTranscribers(self):
+        """
+        Dict of all available transcribers (combines MicrophoneComponent.localTranscribers and 
+        MicrophoneComponent.onlineTranscribers)
+        """
+        return {'None': "none", **self.localTranscribers, **self.onlineTranscribers}
 
     def writeDeviceCode(self, buff):
         """
@@ -300,7 +314,7 @@ class MicrophoneComponent(BaseDeviceComponent):
             "    deviceClass='psychopy.hardware.microphone.MicrophoneDevice',\n"
             "    deviceName=%(deviceLabel)s,\n"
             "    index=%(device)s,\n"
-            "    maxRecordingSize=%(maxSize)s\n"
+            "    maxRecordingSize=%(maxSize)s,\n"
         )
         if self.params['device'].val not in ("None", "", None):
             code += (
@@ -483,10 +497,10 @@ class MicrophoneComponent(BaseDeviceComponent):
             inits['transcribeBackend'].val = None
         # Warn user if their transcriber won't work locally
         if inits['transcribe'].val:
-            if  inits['transcribeBackend'].val in localTranscribers:
-                inits['transcribeBackend'].val = localTranscribers[self.params['transcribeBackend'].val]
+            if  self.params['transcribeBackend'].val in self.localTranscribers:
+                inits['transcribeBackend'].val = self.localTranscribers[self.params['transcribeBackend'].val]
             else:
-                default = list(localTranscribers.values())[0]
+                default = list(self.localTranscribers.values())[0]
                 alert(4610, strFields={"transcriber": inits['transcribeBackend'].val, "default": default})
         # Store recordings from this routine
         code = (
@@ -533,7 +547,7 @@ class MicrophoneComponent(BaseDeviceComponent):
                 "%(loop)s.addData('%(name)s.script', %(name)sScript)\n"
             )
             buff.writeIndentedLines(code % inits)
-        if inits['speakTimes'] and inits['transcribeBackend'].val == "whisper":
+        if inits['speakTimes'] and inits['transcribeBackend'].val == "Whisper":
 
             code = (
                 "# save transcription data\n"
@@ -553,11 +567,11 @@ class MicrophoneComponent(BaseDeviceComponent):
     def writeRoutineEndCodeJS(self, buff):
         inits = getInitVals(self.params)
         inits['routine'] = self.parentName
-        if inits['transcribeBackend'].val in allTranscribers:
-            inits['transcribeBackend'].val = allTranscribers[self.params['transcribeBackend'].val]
+        if self.params['transcribeBackend'].val in self.allTranscribers:
+            inits['transcribeBackend'].val = self.allTranscribers[self.params['transcribeBackend'].val]
         # Warn user if their transcriber won't work online
-        if inits['transcribe'].val and inits['transcribeBackend'].val not in onlineTranscribers.values():
-            default = list(onlineTranscribers.values())[0]
+        if inits['transcribe'].val and inits['transcribeBackend'].val not in self.onlineTranscribers.values():
+            default = list(self.onlineTranscribers.values())[0]
             alert(4605, strFields={"transcriber": inits['transcribeBackend'].val, "default": default})
 
         # Write base end routine code

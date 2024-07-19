@@ -14,6 +14,7 @@ __all__ = [
 
 import json
 import inspect
+import time
 
 
 class BaseResponse:
@@ -169,6 +170,17 @@ class BaseResponseDevice(BaseDevice):
         Method to dispatch messages from the device to any nodes or listeners attached.
         """
         pass
+
+    def hasUnfinishedMessage(self):
+        """
+        If there is a message which have been partially received but not finished (e.g. 
+        getting the start of a message from a serial device but no end of line character 
+        yet), this will return True.
+
+        If not implemented or not relevant on a given device (e.g. Keyboard, which only 
+        sends full messages), this will always return False.
+        """
+        return False
 
     def parseMessage(self, message):
         raise NotImplementedError(

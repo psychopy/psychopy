@@ -2070,6 +2070,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         #     self.OnFindClose(None)
 
     def OnFindClose(self, event):
+        self.findDlg.Destroy()
         self.findDlg = None
 
     def OnFileHistory(self, evt=None):
@@ -2873,10 +2874,6 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         # TODO: Allow user to run project from coder
         pass
 
-    def setPavloviaUser(self, user):
-        # TODO: update user icon on button to user avatar
-        pass
-
     def resetPrefs(self, event):
         """Reset preferences to default"""
         # Present "are you sure" dialog
@@ -3055,6 +3052,9 @@ class CoderRibbon(ribbon.FrameRibbon):
         )
 
         self.addSeparator()
+
+        # --- Plugin sections ---
+        self.addPluginSections("psychopy.app.builder")
 
         # --- Views ---
         self.addStretchSpacer()

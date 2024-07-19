@@ -20,13 +20,13 @@ class UnknownPluginComponent(BaseComponent):
     tooltip = _translate('Unknown: A component which comes from a plugin which you do not have installed & activated.')
 
     def __init__(self, exp, parentName, name='', compType="UnknownPluginComponent"):
-        self.type = compType
         self.exp = exp  # so we can access the experiment if necess
         self.parentName = parentName  # to access the routine too if needed
         self.params = {}
         self.depends = []
         super(UnknownPluginComponent, self).__init__(exp, parentName, name=name)
-        self.order += []
+        # replace default type with the type given
+        self.type = compType
 
     @property
     def _xml(self):

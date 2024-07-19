@@ -14,8 +14,9 @@ jobs:
 
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        os: [macos-11, ubuntu-latest]
+        os: [macos-13, ubuntu-latest]
         python-version: ['3.8', '3.10']
 
     steps:
@@ -69,7 +70,6 @@ jobs:
         python -m pip install --upgrade pip
         pip install wheel
         pip install six  # for configobj and wxpython
-        pip install distro  # used by createInitFile
         pip install attrdict3  # used by wxpython setup
         python ./building/plat_custom_installs.py
 
@@ -141,9 +141,9 @@ jobs:
 
     - name: upload failed app data
       if: always()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: prefs for ${{ matrix.os }}_${{ matrix.python-version }}
+        name: prefs_files_${{ matrix.os }}_${{ matrix.python-version }}
         path: |
           ~/.psychopy3
           !~/.psychopy3/versions
@@ -151,9 +151,9 @@ jobs:
 
     - name: upload failed screenshots
       if: always()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: test artifacts
+        name: failed_test_data_${{ github.run_id }}_${{ matrix.python-version }}_${{ matrix.os }}
         path: |
           psychopy/tests/fails
           !**/*.mp4

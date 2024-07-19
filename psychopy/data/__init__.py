@@ -3,9 +3,10 @@
 
 import sys
 
-from pkg_resources import parse_version
+from packaging.version import Version
 
 from .base import DataHandler
+from .routine import Routine
 from .experiment import ExperimentHandler
 from .trial import TrialHandler, TrialHandler2, TrialHandlerExt, TrialType
 from .staircase import (StairHandler, QuestHandler, PsiHandler,
@@ -27,7 +28,7 @@ from .fit import (FitFunction, FitCumNormal, FitLogistic, FitNakaRushton,
 try:
     # import openpyxl
     import openpyxl
-    if parse_version(openpyxl.__version__) >= parse_version('2.4.0'):
+    if Version(openpyxl.__version__) >= Version('2.4.0'):
         # openpyxl moved get_column_letter to utils.cell
         from openpyxl.utils.cell import get_column_letter
     else:

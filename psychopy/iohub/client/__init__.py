@@ -264,9 +264,10 @@ class ioHubConnection():
                     ioHubConfig)
 
         if ioHubConnection.ACTIVE_CONNECTION is not None:
-            raise RuntimeError('An existing ioHubConnection is already open.'
-                                 ' Use ioHubConnection.getActiveConnection() '
-                                 'to access it; or use ioHubConnection.quit() '
+            raise RuntimeError('An existing ioHubConnection is already open. Use '
+                                 'iohub.client.ioHubConnection.getActiveConnection() '
+                                 'to access it; or use '
+                                 'iohub.ioHubConnection.getActiveConnection().quit() '
                                  'to close it.')
         Computer.psychopy_process = psutil.Process()
 
@@ -417,13 +418,19 @@ class ioHubConnection():
             None
 
         """
-        if device_label.lower() == 'all':
-            self.allEvents = []
-            self._sendToHubServer(('RPC', 'clearEventBuffer', [True, ]))
-            try:
-                self.getDevice('keyboard')._clearLocalEvents()
-            except:
-                pass
+        if device_label and isinstance(device_label, str):
+            device_label = device_label.lower()
+            if device_label == 'all':
+                self.allEvents = []
+                self._sendToHubServer(('RPC', 'clearEventBuffer', [True, ]))
+                try:
+                    self.getDevice('keyboard')._clearLocalEvents()
+                except:
+                    pass
+            else:
+                d = self.devices.getDevice(device_label)
+                if d:
+                    d.clearEvents()
         elif device_label in [None, '', False]:
             self.allEvents = []
             self._sendToHubServer(('RPC', 'clearEventBuffer', [False, ]))
@@ -432,9 +439,8 @@ class ioHubConnection():
             except:
                 pass
         else:
-            d = self.devices.getDevice(device_label)
-            if d:
-                d.clearEvents()
+            raise ValueError(
+                'Invalid device_label value: {}'.format(device_label))
 
     def sendMessageEvent(self, text, category='', offset=0.0, sec_time=None):
         """
@@ -1085,8 +1091,12 @@ class ioHubConnection():
                 dev_cls_name = dev_cls_name[cls_name_start + 1:]
             else:
                 dev_mod_pth = '{0}{1}'.format(dev_mod_pth, dev_name)
-
-            dev_import_result = import_device(dev_mod_pth, dev_cls_name)
+            # try to import EyeTracker class from given path
+            try:
+                dev_import_result = import_device(dev_mod_pth, dev_cls_name)
+            except ModuleNotFoundError:
+                # if not found, try importing from root (may have entry point)
+                dev_import_result = import_device("psychopy.iohub.devices", dev_cls_name)
             dev_cls, dev_cls_name, evt_cls_list = dev_import_result
 
             DeviceConstants.addClassMapping(dev_cls)
@@ -1114,9 +1124,7 @@ class ioHubConnection():
             if local_class:
                 d = local_class(self, dev_cls_name, dev_config)
             else:
-                full_device_class_name = getFullClassName(dev_cls)[len('psychopy.iohub.devices.'):]
-                full_device_class_name = full_device_class_name.replace('eyetracker.EyeTracker', 'EyeTracker')
-                d = ioHubDeviceView(self, full_device_class_name, dev_cls_name, dev_config)
+                d = ioHubDeviceView(self, dev_mod_pth + "." + dev_cls_name, dev_cls_name, dev_config)
 
             self.devices.addDevice(name, d)
             return d

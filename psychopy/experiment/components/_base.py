@@ -314,7 +314,7 @@ class BaseComponent:
         """
         pass
 
-    def writeStartTestCode(self, buff):
+    def writeStartTestCode(self, buff, extra=""):
         """
         Test whether we need to start (if there is a start time at all)
 
@@ -328,50 +328,76 @@ class BaseComponent:
             buff.writeIndentedLines(code % self.params)
             buff.setIndentLevel(-indented, relative=True)
         ```
+
+        Parameters
+        ----------
+        buff : io.StringIO
+            Text buffer to write code to.
+        extra : str
+            Additional conditions to check, including any boolean operators (and, or, etc.). Use 
+            `%(key)s` syntax to insert the values of any necessary params. Default is an empty 
+            string.
         """
+        # create copy of params dict so we can change stuff without harm
+        params = self.params.copy()
 
         # Get starting indent level
         startIndent = buff.indentLevel
 
-        if self.params['startVal'].val in ('', None, -1, 'None'):
-            # If we have no start time, don't write start code
-            return buff.indentLevel - startIndent
+        if params['startVal'].val in ('', None, -1, 'None'):
+            if extra:
+                # if we have extra and no stop condition, extra is the only stop condition
+                params['startType'] = params['startType'].copy()
+                params['startVal'] = params['startVal'].copy()
+                params['startType'].val = "condition"
+                params['startVal'].val = "False"
+            else:
+                # if we just have no stop time, don't write stop code
+                return buff.indentLevel - startIndent
 
         # Newline
         buff.writeIndentedLines("\n")
 
-        if self.params['syncScreenRefresh']:
+        if params['syncScreenRefresh']:
             tCompare = 'tThisFlip'
         else:
             tCompare = 't'
-        params = self.params
         t = tCompare
         # add handy comment
         code = (
             "# if %(name)s is starting this frame...\n"
         )
         buff.writeIndentedLines(code % params)
-        if self.params['startType'].val == 'time (s)':
+        # add starting if statement
+        if params['startType'].val == 'time (s)':
             # if startVal is an empty string then set to be 0.0
-            if (isinstance(self.params['startVal'].val, str) and
-                    not self.params['startVal'].val.strip()):
-                self.params['startVal'].val = '0.0'
-            code = (f"if {params['name']}.status == NOT_STARTED and "
-                    f"{t} >= {params['startVal']}-frameTolerance:\n")
-        elif self.params['startType'].val == 'frame N':
-            code = (f"if {params['name']}.status == NOT_STARTED and "
-                    f"frameN >= {params['startVal']}:\n")
-        elif self.params['startType'].val == 'condition':
-            code = (f"if {params['name']}.status == NOT_STARTED and "
-                    f"{params['startVal']}:\n")
+            if (
+                isinstance(params['startVal'].val, str) 
+                and not params['startVal'].val.strip()
+            ):
+                params['startVal'].val = '0.0'
+            code = (
+                "if %(name)s.status == NOT_STARTED and {} >= %(startVal)s-frameTolerance"
+            ).format(t)
+        elif params['startType'].val == 'frame N':
+            code = (
+                "if %(name)s.status == NOT_STARTED and frameN >= %(startVal)s"
+            )
+        elif params['startType'].val == 'condition':
+            code = (
+                "if %(name)s.status == NOT_STARTED and %(startVal)s"
+            )
         else:
-            msg = f"Not a known startType ({params['startVal']}) for {params['name']}"
-            raise CodeGenerationException(msg % self.params)
-
-        buff.writeIndented(code)
-
+            msg = f"Not a known startType (%(startVal)s) for %(name)s"
+            raise CodeGenerationException(msg % params)
+        # add any other conditions and finish the statement
+        if extra and not extra.startswith(" "):
+            extra = " " + extra
+        code += f"{extra}:\n"
+        # write if statement and indent
+        buff.writeIndentedLines(code % params)
         buff.setIndentLevel(+1, relative=True)
-        params = self.params
+
         code = (f"# keep track of start time/frame for later\n"
                 f"{params['name']}.frameNStart = frameN  # exact frame index\n"
                 f"{params['name']}.tStart = t  # local t and not account for scr refresh\n"
@@ -382,12 +408,12 @@ class BaseComponent:
             # on the *expected* time of the flip
             code += (f"win.timeOnFlip({params['name']}, 'tStartRefresh')"
                      f"  # time at next scr refresh\n")
-        if self.params['saveStartStop']:
+        if params['saveStartStop']:
             code += f"# add timestamp to datafile\n"
-            if self.type=='Sound' and self.params['syncScreenRefresh']:
+            if self.type=='Sound' and params['syncScreenRefresh']:
                 # use the time we *expect* the flip
                 code += f"thisExp.addData('{params['name']}.started', tThisFlipGlobal)\n"
-            elif 'syncScreenRefresh' in self.params and self.params['syncScreenRefresh']:
+            elif 'syncScreenRefresh' in params and params['syncScreenRefresh']:
                 # use the time we *detect* the flip (in the future)
                 code += f"thisExp.timestampOnFlip(win, '{params['name']}.started')\n"
             else:
@@ -408,42 +434,69 @@ class BaseComponent:
             "# update status\n"
             "%(name)s.status = STARTED\n"
         )
-        buff.writeIndentedLines(code % self.params)
+        buff.writeIndentedLines(code % params)
 
         # Return True if start test was written
         return buff.indentLevel - startIndent
 
-    def writeStartTestCodeJS(self, buff):
+    def writeStartTestCodeJS(self, buff, extra=""):
         """Test whether we need to start
+                           
+        Parameters
+        ----------
+        buff : io.StringIO
+            Text buffer to write code to.
+        extra : str
+            Additional conditions to check, including any boolean operators (and, or, etc.). Use 
+            `%(key)s` syntax to insert the values of any necessary params. Default is an empty 
+            string.
         """
+        # create copy of params dict so we can change stuff without harm
+        params = self.params.copy()
+
         # Get starting indent level
         startIndent = buff.indentLevel
 
-        if self.params['startVal'].val in ('', None, -1, 'None'):
-            # If we have no start time, don't write start code
-            return buff.indentLevel - startIndent
+        if params['startVal'].val in ('', None, -1, 'None'):
+            if extra:
+                # if we have extra and no stop condition, extra is the only stop condition
+                params['startType'] = params['startType'].copy()
+                params['startVal'] = params['startVal'].copy()
+                params['startType'].val = "condition"
+                params['startVal'].val = "False"
+            else:
+                # if we just have no stop time, don't write stop code
+                return buff.indentLevel - startIndent
 
-        params = self.params
-        if self.params['startType'].val == 'time (s)':
+        if params['startType'].val == 'time (s)':
             # if startVal is an empty string then set to be 0.0
-            if (isinstance(self.params['startVal'].val, str) and
-                    not self.params['startVal'].val.strip()):
-                self.params['startVal'].val = '0.0'
-            code = (f"if (t >= {params['startVal']} "
-                    f"&& {params['name']}.status === PsychoJS.Status.NOT_STARTED) {{\n")
-        elif self.params['startType'].val == 'frame N':
-            code = (f"if (frameN >= {params['startVal']} "
-                    f"&& {params['name']}.status === PsychoJS.Status.NOT_STARTED) {{\n")
-        elif self.params['startType'].val == 'condition':
-            code = (f"if (({params['startVal']}) "
-                    f"&& {params['name']}.status === PsychoJS.Status.NOT_STARTED) {{\n")
+            if (
+                isinstance(params['startVal'].val, str) 
+                and not params['startVal'].val.strip()
+            ):
+                params['startVal'].val = '0.0'
+            code = (
+                "if (t >= %(startVal)s && %(name)s.status === PsychoJS.Status.NOT_STARTED"
+            )
+        elif params['startType'].val == 'frame N':
+            code = (
+                "if (frameN >= %(startVal)s && %(name)s.status === PsychoJS.Status.NOT_STARTED"
+            )
+        elif params['startType'].val == 'condition':
+            code = (
+                "if ((%(startVal)s) && %(name)s.status === PsychoJS.Status.NOT_STARTED"
+            )
         else:
-            msg = f"Not a known startType ({params['startVal']}) for {params['name']}"
+            msg = f"Not a known startType (%(startVal)s) for %(name)s"
             raise CodeGenerationException(msg)
-
-        buff.writeIndented(code)
-
+        # add any other conditions and finish the statement
+        if extra and not extra.startswith(" "):
+            extra = " " + extra
+        code += f"{extra}) {{\n"
+        # write if statement and indent
+        buff.writeIndentedLines(code % params)
         buff.setIndentLevel(+1, relative=True)
+
         code = (f"// keep track of start time/frame for later\n"
                 f"{params['name']}.tStart = t;  // (not accounting for frame time here)\n"
                 f"{params['name']}.frameNStart = frameN;  // exact frame index\n\n")
@@ -452,7 +505,7 @@ class BaseComponent:
         # Return True if start test was written
         return buff.indentLevel - startIndent
 
-    def writeStopTestCode(self, buff):
+    def writeStopTestCode(self, buff, extra=""):
         """
         Test whether we need to stop (if there is a stop time at all)
 
@@ -463,22 +516,39 @@ class BaseComponent:
             code = (
                 "%(name)s.attribute = value\n"
             )
-            buff.writeIndentedLines(code % self.params)
+            buff.writeIndentedLines(code % params)
             buff.setIndentLevel(-indented, relative=True)
         ```
+             
+        Parameters
+        ----------
+        buff : io.StringIO
+            Text buffer to write code to.
+        extra : str
+            Additional conditions to check, including any boolean operators (and, or, etc.). Use 
+            `%(key)s` syntax to insert the values of any necessary params. Default is an empty 
+            string.
         """
+        # create copy of params dict so we can change stuff without harm
+        params = self.params.copy()
 
         # Get starting indent level
         startIndent = buff.indentLevel
 
-        if self.params['stopVal'].val in ('', None, -1, 'None'):
-            # If we have no stop time, don't write stop code
-            return buff.indentLevel - startIndent
+        if params['stopVal'].val in ('', None, -1, 'None'):
+            if extra:
+                # if we have extra and no stop condition, extra is the only stop condition
+                params['stopType'] = params['stopType'].copy()
+                params['stopVal'] = params['stopVal'].copy()
+                params['stopType'].val = "condition"
+                params['stopVal'].val = "False"
+            else:
+                # if we just have no stop time, don't write stop code
+                return buff.indentLevel - startIndent
 
         # Newline
         buff.writeIndentedLines("\n")
 
-        params = self.params
         # add handy comment
         code = (
             "# if %(name)s is stopping this frame...\n"
@@ -489,39 +559,54 @@ class BaseComponent:
         buff.setIndentLevel(+1, relative=True)
 
         # If start time is blank ad stop is a duration, raise alert
-        if self.params['stopType'] in ('duration (s)', 'duration (frames)'):
-            if ('startVal' not in self.params) or (self.params['startVal'] in ("", "None", None)):
-                alerttools.alert(4120, strFields={'component': self.params['name']})
+        if params['stopType'] in ('duration (s)', 'duration (frames)'):
+            if ('startVal' not in params) or (params['startVal'] in ("", "None", None)):
+                alerttools.alert(4120, strFields={'component': params['name']})
 
-        if self.params['stopType'].val == 'time (s)':
-            code = (f"# is it time to stop? (based on local clock)\n"
-                    f"if tThisFlip > {params['stopVal']}-frameTolerance:\n"
-                    )
+        if params['stopType'].val == 'time (s)':
+            code = (
+                "# is it time to stop? (based on local clock)\n"
+                "if tThisFlip > %(stopVal)s-frameTolerance"
+            )
         # duration in time (s)
-        elif (self.params['stopType'].val == 'duration (s)'):
-            code = (f"# is it time to stop? (based on global clock, using actual start)\n"
-                    f"if tThisFlipGlobal > {params['name']}.tStartRefresh + {params['stopVal']}-frameTolerance:\n")
-        elif self.params['stopType'].val == 'duration (frames)':
-            code = (f"if frameN >= ({params['name']}.frameNStart + {params['stopVal']}):\n")
-        elif self.params['stopType'].val == 'frame N':
-            code = f"if frameN >= {params['stopVal']}:\n"
-        elif self.params['stopType'].val == 'condition':
-            code = f"if bool({params['stopVal']}):\n"
+        elif (params['stopType'].val == 'duration (s)'):
+            code = (
+                "# is it time to stop? (based on global clock, using actual start)\n"
+                "if tThisFlipGlobal > %(name)s.tStartRefresh + %(stopVal)s-frameTolerance"
+            )
+        elif params['stopType'].val == 'duration (frames)':
+            code = (
+                "if frameN >= (%(name)s.frameNStart + %(stopVal)s)"
+            )
+        elif params['stopType'].val == 'frame N':
+            code = (
+                "if frameN >= %(stopVal)s"
+            )
+        elif params['stopType'].val == 'condition':
+            code = (
+                "if bool(%(stopVal)s)"
+            )
         else:
-            msg = (f"Didn't write any stop line for startType={params['startType']}, "
-                   f"stopType={params['stopType']}")
+            msg = (
+                "Didn't write any stop line for startType=%(startType)s, stopType=%(stopType)s"
+            )
             raise CodeGenerationException(msg)
-
-        buff.writeIndentedLines(code)
+        # add any other conditions and finish the statement
+        if extra and not extra.startswith(" "):
+            extra = " " + extra
+        code += f"{extra}:\n"
+        # write if statement and indent
+        buff.writeIndentedLines(code % params)
         buff.setIndentLevel(+1, relative=True)
+
         code = (f"# keep track of stop time/frame for later\n"
                 f"{params['name']}.tStop = t  # not accounting for scr refresh\n"
                 f"{params['name']}.tStopRefresh = tThisFlipGlobal  # on global time\n"
                 f"{params['name']}.frameNStop = frameN  # exact frame index\n"
                 )
-        if self.params['saveStartStop']:
+        if params['saveStartStop']:
             code += f"# add timestamp to datafile\n"
-            if 'syncScreenRefresh' in self.params and self.params['syncScreenRefresh']:
+            if 'syncScreenRefresh' in params and params['syncScreenRefresh']:
                 # use the time we *detect* the flip (in the future)
                 code += f"thisExp.timestampOnFlip(win, '{params['name']}.stopped')\n"
             else:
@@ -544,62 +629,94 @@ class BaseComponent:
             "# update status\n"
             "%(name)s.status = FINISHED\n"
         )
-        buff.writeIndentedLines(code % self.params)
+        buff.writeIndentedLines(code % params)
 
         # Return True if stop test was written
         return buff.indentLevel - startIndent
 
-    def writeStopTestCodeJS(self, buff):
+    def writeStopTestCodeJS(self, buff, extra=""):
         """Test whether we need to stop
+                           
+        Parameters
+        ----------
+        buff : io.StringIO
+            Text buffer to write code to.
+        extra : str
+            Additional conditions to check, including any boolean operators (and, or, etc.). Use 
+            `%(key)s` syntax to insert the values of any necessary params. Default is an empty 
+            string.
         """
+        # create copy of params dict so we can change stuff without harm
+        params = self.params.copy()
+
         # Get starting indent level
         startIndent = buff.indentLevel
 
-        if self.params['stopVal'].val in ('', None, -1, 'None'):
-            # If we have no stop time, don't write stop code
-            return buff.indentLevel - startIndent
+        if params['stopVal'].val in ('', None, -1, 'None'):
+            if extra:
+                # if we have extra and no stop time, extra is only stop condition
+                params['stopType'] = params['stopType'].copy()
+                params['stopVal'] = params['stopVal'].copy()
+                params['stopType'].val = "condition"
+                params['stopVal'].val = "false"
+            else:
+                # if we just have no stop time, don't write stop code
+                return buff.indentLevel - startIndent
 
-        params = self.params
-        if self.params['stopType'].val == 'time (s)':
-            code = (f"frameRemains = {params['stopVal']} "
-                    f" - psychoJS.window.monitorFramePeriod * 0.75;"
-                    f"  // most of one frame period left\n"
-                    f"if (({params['name']}.status === PsychoJS.Status.STARTED || {params['name']}.status === PsychoJS.Status.FINISHED) "
-                    f"&& t >= frameRemains) {{\n")
+        if params['stopType'].val == 'time (s)':
+            code = (
+                "frameRemains = %(stopVal)s - psychoJS.window.monitorFramePeriod * 0.75;"
+                "// most of one frame period left\n"
+                "if ((%(name)s.status === PsychoJS.Status.STARTED || %(name)s.status === "
+                "PsychoJS.Status.FINISHED) && t >= frameRemains"
+            )
         # duration in time (s)
-        elif (self.params['stopType'].val == 'duration (s)' and
-              self.params['startType'].val == 'time (s)'):
-            code = (f"frameRemains = {params['startVal']} + {params['stopVal']}"
-                    f" - psychoJS.window.monitorFramePeriod * 0.75;"
-                    f"  // most of one frame period left\n"
-                    f"if ({params['name']}.status === PsychoJS.Status.STARTED "
-                    f"&& t >= frameRemains) {{\n")
+        elif (
+            params['stopType'].val == 'duration (s)'
+            and params['startType'].val == 'time (s)'
+        ):
+            code = (
+                "frameRemains = %(startVal)s + %(stopVal)s - psychoJS.window.monitorFramePeriod "
+                "* 0.75;"
+                "// most of one frame period left\n"
+                "if (%(name)s.status === PsychoJS.Status.STARTED && t >= frameRemains"
+            )
         # start at frame and end with duratio (need to use approximate)
-        elif self.params['stopType'].val == 'duration (s)':
-            code = (f"if ({params['name']}.status === PsychoJS.Status.STARTED "
-                    f"&& t >= ({params['name']}.tStart + {params['stopVal']})) {{\n")
-        elif self.params['stopType'].val == 'duration (frames)':
-            code = (f"if ({params['name']}.status === PsychoJS.Status.STARTED "
-                    f"&& frameN >= ({params['name']}.frameNStart + {params['stopVal']})) {{\n")
-        elif self.params['stopType'].val == 'frame N':
-            code = (f"if ({params['name']}.status === PsychoJS.Status.STARTED "
-                    f"&& frameN >= {params['stopVal']}) {{\n")
-        elif self.params['stopType'].val == 'condition':
-            code = (f"if ({params['name']}.status === PsychoJS.Status.STARTED "
-                    f"&& Boolean({params['stopVal']})) {{\n")
+        elif params['stopType'].val == 'duration (s)':
+            code = (
+                "if (%(name)s.status === PsychoJS.Status.STARTED && t >= (%(name)s.tStart + "
+                "%(stopVal)s)"
+            )
+        elif params['stopType'].val == 'duration (frames)':
+            code = (
+                "if (%(name)s.status === PsychoJS.Status.STARTED && frameN >= "
+                "(%(name)s.frameNStart + %(stopVal)s)"
+            )
+        elif params['stopType'].val == 'frame N':
+            code = (
+                "if (%(name)s.status === PsychoJS.Status.STARTED && frameN >= %(stopVal)s"
+            )
+        elif params['stopType'].val == 'condition':
+            code = (
+                "if (%(name)s.status === PsychoJS.Status.STARTED && Boolean(%(stopVal)s)"
+            )
         else:
-            msg = (f"Didn't write any stop line for startType="
-                   f"{params['startType']}, "
-                   f"stopType={params['stopType']}")
+            msg = (
+                "Didn't write any stop line for startType=%(startType)s, stopType=%(stopType)s"
+            )
             raise CodeGenerationException(msg)
-
-        buff.writeIndentedLines(code)
+        # add any other conditions and finish the statement
+        if extra and not extra.startswith(" "):
+            extra = " " + extra
+        code += f"{extra}) {{\n"
+        # write if statement and indent
+        buff.writeIndentedLines(code % params)
         buff.setIndentLevel(+1, relative=True)
 
         # Return True if stop test was written
         return buff.indentLevel - startIndent
 
-    def writeActiveTestCode(self, buff):
+    def writeActiveTestCode(self, buff, extra=""):
         """
         Test whether component is started and has not finished.
 
@@ -613,25 +730,41 @@ class BaseComponent:
         buff.writeIndentedLines(code % self.params)
         self.exitActiveTest(buff)
         ```
+           
+        Parameters
+        ----------
+        buff : io.StringIO
+            Text buffer to write code to.
+        extra : str
+            Additional conditions to check, including any boolean operators (and, or, etc.). Use 
+            `%(key)s` syntax to insert the values of any necessary params. Default is an empty 
+            string.
         """
+        # create copy of params dict so we can change stuff without harm
+        params = self.params.copy()
+
         # Newline
         buff.writeIndentedLines("\n")
         # Get starting indent level
         startIndent = buff.indentLevel
 
-        # Write if statement
+        # construct if statement
         code = (
             "# if %(name)s is active this frame...\n"
-            "if %(name)s.status == STARTED:\n"
+            "if %(name)s.status == STARTED"
         )
-        buff.writeIndentedLines(code % self.params)
+        # add any other conditions and finish the statement
+        if extra and not extra.startswith(" "):
+            extra = " " + extra
+        code += f"{extra}:\n"
+        buff.writeIndentedLines(code % params)
         # Indent
         buff.setIndentLevel(+1, relative=True)
         # Write param updates (if needed)
         code = (
             "# update params\n"
         )
-        buff.writeIndentedLines(code % self.params)
+        buff.writeIndentedLines(code % params)
         if self.checkNeedToUpdate('set every frame'):
             self.writeParamUpdates(buff, 'set every frame')
         else:
@@ -641,7 +774,7 @@ class BaseComponent:
             buff.writeIndentedLines(code)
         return buff.indentLevel - startIndent
 
-    def writeActiveTestCodeJS(self, buff):
+    def writeActiveTestCodeJS(self, buff, extra=""):
         """
         Test whether component is started and has not finished.
 
@@ -654,20 +787,36 @@ class BaseComponent:
         )
         self.exitActiveTestJS(buff)
         ```
+                   
+        Parameters
+        ----------
+        buff : io.StringIO
+            Text buffer to write code to.
+        extra : str
+            Additional conditions to check, including any boolean operators (and, or, etc.). Use 
+            `%(key)s` syntax to insert the values of any necessary params. Default is an empty 
+            string.
         """
+        # create copy of params dict so we can change stuff without harm
+        params = self.params.copy()
+
         # Get starting indent level
         startIndent = buff.indentLevel
 
         # Newline
         buff.writeIndentedLines("\n")
 
-        # Write if statement
+        # construct if statement
         code = (
             "// if %(name)s is active this frame...\n"
-            "if (%(name)s.status == STARTED) {\n"
+            "if (%(name)s.status == STARTED"
         )
-        buff.writeIndentedLines(code % self.params)
-        # Indent
+        # add any other conditions and finish the statement
+        if extra and not extra.startswith(" "):
+            extra = " " + extra
+        code += f"{extra}) {{\n"
+        # write if statement and indent
+        buff.writeIndentedLines(code % params)
         buff.setIndentLevel(+1, relative=True)
 
         if self.checkNeedToUpdate('set every frame'):
@@ -675,7 +824,7 @@ class BaseComponent:
             code = (
                 "// update params\n"
             )
-            buff.writeIndentedLines(code % self.params)
+            buff.writeIndentedLines(code % params)
             self.writeParamUpdates(buff, 'set every frame')
 
         return buff.indentLevel - startIndent
@@ -823,11 +972,6 @@ class BaseComponent:
             elif paramName == 'lineColor':
                 buff.writeIndented(f"{compName}.setLineColor(new util.Color({params['lineColor']})")
                 buff.write(f"{loggingStr}){endStr}\n")
-            elif paramName == 'sound':
-                stopVal = params['stopVal']
-                if stopVal in ['', None, -1, 'None']:
-                    stopVal = '-1'
-                buff.writeIndented(f"{compName}.setSound({params['sound']}, secs={stopVal}){endStr}\n")
             elif paramName == 'emotiv_marker_label' or paramName == "emotiv_marker_value" or paramName == "emotiv_stop_marker":
                 # This allows the eeg_marker to be updated by a code component or a conditions file
                 # There is no setMarker_label or setMarker_value function in the eeg_marker object
@@ -888,7 +1032,7 @@ class BaseComponent:
 
         return duration, numericStop
 
-    def getStartAndDuration(self):
+    def getStartAndDuration(self, params=None):
         """Determine the start and duration of the stimulus
         purely for Routine rendering purposes in the app (does not affect
         actual drawing during the experiment)
@@ -897,7 +1041,16 @@ class BaseComponent:
 
         nonSlipSafe indicates that the component's duration is a known fixed
         value and can be used in non-slip global clock timing (e.g for fMRI)
+
+        Parameters
+        ----------
+        params : dict[Param]
+            Dict of params to use. If None, will use the values in `self.params`.
         """
+        # if not given any params, use from self
+        if params is None:
+            params = self.params
+
         # If has a start, calculate it
         if 'startType' in self.params:
             startTime, numericStart = self.getStart()

@@ -8,13 +8,13 @@ import platform
 from pathlib import Path
 from .. import __version__
 
-from pkg_resources import parse_version
+from packaging.version import Version
 import shutil
 
 try:
     import configobj
     if (sys.version_info.minor >= 7 and
-            parse_version(configobj.__version__) < parse_version('5.1.0')):
+            Version(configobj.__version__) < Version('5.1.0')):
         raise ImportError('Installed configobj does not support Python 3.7+')
     _haveConfigobj = True
 except ImportError:
@@ -101,6 +101,14 @@ class Preferences:
         self.loadAll()  # reloads, now getting all from .spec
 
     def getPaths(self):
+        """Get the paths to various directories and files used by PsychoPy.
+
+        If the paths are not found, they are created. Usually, this is only
+        necessary on the first run of PsychoPy. However, if the user has
+        deleted or moved the preferences directory, this method will recreate 
+        those directories.
+
+        """
         # on mac __file__ might be a local path, so make it the full path
         thisFileAbsPath = os.path.abspath(__file__)
         prefSpecDir = os.path.split(thisFileAbsPath)[0]
@@ -119,6 +127,7 @@ class Preferences:
         self.paths['appFile'] = join(dirApp, 'PsychoPy.py')
         self.paths['demos'] = join(dirPsychoPy, 'demos')
         self.paths['resources'] = dirResources
+        self.paths['assets'] = join(dirPsychoPy, "assets")
         self.paths['tests'] = join(dirPsychoPy, 'tests')
         # path to libs/frameworks
         if 'PsychoPy.app/Contents' in exePath:
@@ -148,6 +157,7 @@ class Preferences:
             'themes',  # define theme path
             'fonts',  # find / copy fonts
             'packages',  # packages and plugins
+            'configs',  # config files for plugins
             'cache',  # cache for downloaded and other temporary files
         )
 
@@ -207,12 +217,12 @@ class Preferences:
         # Check what version user themes were last updated in
         if (userThemeDir / "last.ver").is_file():
             with open(userThemeDir / "last.ver", "r") as f:
-                lastVer = parse_version(f.read())
+                lastVer = Version(f.read())
         else:
             # if no version available, assume it was the first version to have themes
-            lastVer = parse_version("2020.2.0")
+            lastVer = Version("2020.2.0")
         # If version has changed since base themes last copied, they need updating
-        updateThemes = lastVer < parse_version(__version__)
+        updateThemes = lastVer < Version(__version__)
         # Copy base themes to user themes folder if missing or need update
         for file in baseThemeDir.glob("*.json"):
             if updateThemes or not (Path(self.paths['themes']) / file.name).is_file():
