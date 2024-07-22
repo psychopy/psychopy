@@ -5455,7 +5455,7 @@ msgstr "Joystick: consultar posición y botones del joystick"
 msgid ""
 "How often should the joystick state (x,y,buttons) be stored? On every video frame, every click or just at the end of the Routine?"
 msgstr ""
-"¿Con qué frecuencia se debe almacenar el estado del joystick (botones x,y)? En cada vídeocuadro, ¿cada clic o simplemente al "
+"¿Con qué frecuencia se debe almacenar el estado del joystick (botones x,y)? En cada cuadro del video, ¿cada clic o simplemente al "
 "final de la rutina?"
 
 #: psychopy/experiment/components/joystick/__init__.py:67 psychopy/experiment/components/mouse/__init__.py:65
