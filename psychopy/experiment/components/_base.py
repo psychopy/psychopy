@@ -1052,18 +1052,18 @@ class BaseComponent:
             params = self.params
 
         # If has a start, calculate it
-        if 'startType' in self.params:
+        if 'startType' in params:
             startTime, numericStart = self.getStart()
         else:
             startTime, numericStart = None, False
 
         # If has a stop, calculate it
-        if 'stopType' in self.params:
+        if 'stopType' in params:
             duration, numericStop = self.getDuration(startTime=startTime)
         else:
             duration, numericStop = 0, False
 
-        nonSlipSafe = numericStop and (numericStart or self.params['stopType'].val == 'time (s)')
+        nonSlipSafe = numericStop and (numericStart or params['stopType'].val == 'time (s)')
         return startTime, duration, nonSlipSafe
 
     def getPosInRoutine(self):
