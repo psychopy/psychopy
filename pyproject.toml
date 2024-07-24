@@ -29,7 +29,7 @@ dependencies = [
     "scipy",
     "matplotlib",
     "pyglet == 1.4.11; platform_system == \"Windows\"",
-    "pyglet == 1.5.27; platform_system != \"Windows\"",
+    "pyglet == 1.5.29; platform_system != \"Windows\"",
     "pillow>=9.4.0",
     "pyqt6",
     "pandas>=1.5.3",
