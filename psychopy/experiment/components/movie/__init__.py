@@ -275,6 +275,16 @@ class MovieComponent(BaseVisualComponent):
         buff.writeIndented("\n")
         buff.writeIndented("# *%s* updates\n" % self.params['name'])
 
+        # set parameters that need updating every frame
+        # do any params need updating? (this method inherited from _base)
+        if self.checkNeedToUpdate('set every frame'):
+            code = "if %(name)s.status == STARTED:  # only update if being drawn\n" % self.params
+            buff.writeIndented(code)
+
+            buff.setIndentLevel(+1, relative=True)  # to enter the if block
+            self.writeParamUpdates(buff, 'set every frame')
+            buff.setIndentLevel(-1, relative=True)  # to exit the if block
+
         # writes an if statement to determine whether to draw etc
         indented = self.writeStartTestCode(buff)
         if indented:
@@ -299,15 +309,6 @@ class MovieComponent(BaseVisualComponent):
         # to get out of the if statement
         buff.setIndentLevel(-indented, relative=True)
 
-        # set parameters that need updating every frame
-        # do any params need updating? (this method inherited from _base)
-        if self.checkNeedToUpdate('set every frame'):
-            code = "if %(name)s.status == STARTED:  # only update if being drawn\n" % self.params
-            buff.writeIndented(code)
-
-            buff.setIndentLevel(+1, relative=True)  # to enter the if block
-            self.writeParamUpdates(buff, 'set every frame')
-            buff.setIndentLevel(-1, relative=True)  # to exit the if block
         # do force end of trial code
         if self.params['forceEndRoutine'].val is True:
             code = ("if %s.isFinished:  # force-end the Routine\n"
