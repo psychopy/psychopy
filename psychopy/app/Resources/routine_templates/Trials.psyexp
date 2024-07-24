@@ -482,7 +482,7 @@
         <Param val="" valType="code" updates="None" name="durationEstim"/>
         <Param val="False" valType="bool" updates="constant" name="flipHoriz"/>
         <Param val="False" valType="bool" updates="constant" name="flipVert"/>
-        <Param val="default.png" valType="file" updates="set during: Images_2AFC.ISI_load_images" name="image"/>
+        <Param val="default.png" valType="file" updates="set during: images_2afc.ISI_load_images" name="image"/>
         <Param val="linear" valType="str" updates="constant" name="interpolate"/>
         <Param val="" valType="str" updates="constant" name="mask"/>
         <Param val="left_img" valType="code" updates="None" name="name"/>
@@ -522,7 +522,7 @@
         <Param val="" valType="code" updates="None" name="durationEstim"/>
         <Param val="False" valType="bool" updates="constant" name="flipHoriz"/>
         <Param val="False" valType="bool" updates="constant" name="flipVert"/>
-        <Param val="default.png" valType="file" updates="set during: Images_2AFC.ISI_load_images" name="image"/>
+        <Param val="default.png" valType="file" updates="set during: images_2afc.ISI_load_images" name="image"/>
         <Param val="linear" valType="str" updates="constant" name="interpolate"/>
         <Param val="" valType="str" updates="constant" name="mask"/>
         <Param val="right_img" valType="code" updates="None" name="name"/>
@@ -598,7 +598,7 @@
         <Param val="" valType="code" updates="None" name="durationEstim"/>
         <Param val="False" valType="bool" updates="constant" name="flipHoriz"/>
         <Param val="False" valType="bool" updates="constant" name="flipVert"/>
-        <Param val="default.png" valType="file" updates="set during: Images_2AFC.ISI_load_images" name="image"/>
+        <Param val="default.png" valType="file" updates="set during: images_2afc.ISI_load_images" name="image"/>
         <Param val="linear" valType="str" updates="constant" name="interpolate"/>
         <Param val="" valType="str" updates="constant" name="mask"/>
         <Param val="top_left_img" valType="code" updates="None" name="name"/>
@@ -638,7 +638,7 @@
         <Param val="" valType="code" updates="None" name="durationEstim"/>
         <Param val="False" valType="bool" updates="constant" name="flipHoriz"/>
         <Param val="False" valType="bool" updates="constant" name="flipVert"/>
-        <Param val="default.png" valType="file" updates="set during: Images_2AFC.ISI_load_images" name="image"/>
+        <Param val="default.png" valType="file" updates="set during: images_2afc.ISI_load_images" name="image"/>
         <Param val="linear" valType="str" updates="constant" name="interpolate"/>
         <Param val="" valType="str" updates="constant" name="mask"/>
         <Param val="top_right_img" valType="code" updates="None" name="name"/>
@@ -665,7 +665,7 @@
         <Param val="" valType="code" updates="None" name="durationEstim"/>
         <Param val="False" valType="bool" updates="constant" name="flipHoriz"/>
         <Param val="False" valType="bool" updates="constant" name="flipVert"/>
-        <Param val="default.png" valType="file" updates="set during: Images_2AFC.ISI_load_images" name="image"/>
+        <Param val="default.png" valType="file" updates="set during: images_2afc.ISI_load_images" name="image"/>
         <Param val="linear" valType="str" updates="constant" name="interpolate"/>
         <Param val="" valType="str" updates="constant" name="mask"/>
         <Param val="bott_left_img" valType="code" updates="None" name="name"/>
