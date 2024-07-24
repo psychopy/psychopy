@@ -120,7 +120,7 @@ def generateCodeChallengePair():
     code_verifier_hash = hashlib.sha256(code_verifier.encode("utf-8")).digest()
     # Base64 urlsafe encode without padding
     code_challenge = base64.urlsafe_b64encode(code_verifier_hash).decode("utf-8").rstrip("=")
-    
+
     return code_verifier, code_challenge
 
 
@@ -485,7 +485,7 @@ class PavloviaSession:
                     "not setting the proxy setting in PsychoPy preferences. If that "
                     "isn't the case for you, then please get in touch so we can work out "
                     "what the cause was in your case! support@opensciencetools.org")
-            
+
             self.username = self.gitlab.user.username
             self.userID = self.gitlab.user.id  # populate when token property is set
             self.userFullName = self.gitlab.user.name
@@ -1439,14 +1439,14 @@ def getNameWithNamespace(p):
                             universal_newlines=True)  # newlines forces stdout to unicode
     stdout, stderr = proc.communicate()
     # Find a gitlab url in the response
-    url = re.match("https:\/\/gitlab\.pavlovia\.org\/\w*\/\w*\.git", stdout)
+    url = re.match(r"https:\/\/gitlab\.pavlovia\.org\/\w*\/\w*\.git", stdout)
     if url:
         # Get contents of url from response
         url = url.string[url.pos:url.endpos]
         # Get namespace/name string from url
         path = url
-        path = re.sub("\.git[.\n]*", "", path)
-        path = re.sub("[.\n]*https:\/\/gitlab\.pavlovia\.org\/", "", path)
+        path = re.sub(r"\.git[.\n]*", "", path)
+        path = re.sub(r"[.\n]*https:\/\/gitlab\.pavlovia\.org\/", "", path)
         return path
     else:
         return None
@@ -1606,4 +1606,3 @@ def getInfoStream():
     # get ctrl from runner
     if frame is not None:
         return frame.getOutputPanel("git").ctrl
-
