@@ -28,6 +28,26 @@ class TestTrialHandler2:
 
     def teardown_class(self):
         shutil.rmtree(self.temp_dir)
+    
+    def test_th1_indexing_unchanged(self):
+        """
+        Checks that indexing style is the same for TrialHandler2 as TrialHandler
+        """
+        # make both trial handlers
+        th1 = data.trial.TrialHandler(self.conditions, nReps=3, method="sequential")
+        th2 = data.trial.TrialHandler2(self.conditions, nReps=3, method="sequential")
+        # start a trials loop
+        for n in range(9):
+            # iterate trial
+            th1.next()
+            th2.next()
+            # make sure thisN is the same
+            for attr in ("thisN", "thisIndex", "thisRepN", "thisTrialN"):
+                assert getattr(th1, attr) == getattr(th2, attr), (
+                    f"Expected `.{attr}` to be the same between TrialHandler and TrialHandler2, "
+                    f"but on iteration {n} got {getattr(th1, attr)} for TrialHandler and "
+                    f"{getattr(th2, attr)} for TrialHandler2."
+                )
 
     def test_underscores_in_datatype_names2(self):
         trials = data.TrialHandler2([], 1, autoLog=False)
