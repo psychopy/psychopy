@@ -118,7 +118,7 @@ class Param():
                  allowedLabels=None, direct=True,
                  canBePath=True, ctrlParams=None,
                  categ="Basic"):
-        """
+        r"""
 
         Parameters
         ----------
@@ -347,7 +347,7 @@ class Param():
             return False
         # if not a clear alias, use bool method of value
         return bool(self.val)
-    
+
     def copy(self):
         """
         Create a copy of this Param object
