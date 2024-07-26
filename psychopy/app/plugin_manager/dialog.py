@@ -227,81 +227,19 @@ class EnvironmentManagerDlg(wx.Dialog):
             Dict of extra variables to be accessed by callback functions, use None
             for a blank dict.
         """
-        # alert if busy
-        if self.isBusy:
-            msg = wx.MessageDialog(
-                self,
-                ("Cannot install package. Wait for the installation already in "
-                 "progress to complete first."),
-                "Installation Failed", wx.OK | wx.ICON_WARNING
-            )
-            msg.ShowModal()
-            return
-
-        # tab to output
-        self.output.open()
-
-        # interpreter path
-        pyExec = sys.executable
-        # environment
-        env = os.environ.copy()
-        # if given a pyproject.toml file, do editable install of parent folder
-        if str(packageName).endswith("pyproject.toml"):
-            if sys.platform != "darwin":
-                # on systems which allow it, do an editable install
-                packageName = f'-e "{os.path.dirname(packageName)}"'
-            else:
-                # on Mac, build a wheel
-                subprocess.call(
-                    [pyExec, '-m', 'build'],
-                    cwd=Path(packageName).parent,
-                    env=env
-                )
-                # get wheel path
-                packageName = [
-                    whl for whl in Path(packageName).parent.glob("**/*.whl")][0]
-
-        # On MacOS, we need to install to target instead of user since py2app
-        # doesn't support user installs correctly, this is a workaround for that
-        env = os.environ.copy()
-
-        # build the shell command to run the script
-        command = [pyExec, '-m', 'pip', 'install', str(packageName)]
-
-        # check if we are inside a venv, don't use --user if we are
-        if hasattr(sys, 'real_prefix') or (
-                hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix):
-            # we are in a venv
-            logging.warning(
-                "You are installing a package inside a virtual environment. "
-                "The package will be installed in the user site-packages directory."
-            )
-        else:
-            command.append('--user')
-        
-        # add other options to the command
-        command += ['--prefer-binary', '--no-input', '--no-color']
-            
-        # write command to output panel
-        self.output.writeCmd(" ".join(command))
-        # append own name to extra
-        if extra is None:
-            extra = {}
-        extra.update(
-            {'pipname': packageName}
-        )
-
-        # create a new job with the user script
-        self.pipProcess = jobs.Job(
-            self,
-            command=command,
-            # flags=execFlags,
-            inputCallback=self.output.writeStdOut,  # both treated the same
-            errorCallback=self.output.writeStdErr,
+        # add version if given
+        if version is not None:
+            packageName += f"=={version}"
+        # use package tools to install
+        self.pipProcess = pkgtools.installPackage(
+            packageName,
+            upgrade=version is None,
+            forceReinstall=version is not None,
+            awaited=False,
+            outputCallback=self.output.writeStdOut,
             terminateCallback=self.onInstallExit,
-            extra=extra
+            extra=extra,
         )
-        self.pipProcess.start(env=env)
 
     def installPlugin(self, pluginInfo, version=None):
         """Install a package.
