@@ -319,12 +319,12 @@ class TestTrialHandler2:
         t.__next__()
         # define array of answers
         answers = [
-            {'thisN': 5, 'thisRepN': 2, 'thisTrialN': 2, 'thisIndex': 2},
-            {'thisN': 1, 'thisRepN': 1, 'thisTrialN': 1, 'thisIndex': 1},
-            {'thisN': 2, 'thisRepN': 1, 'thisTrialN': 2, 'thisIndex': 2},
-            {'thisN': 3, 'thisRepN': 2, 'thisTrialN': 0, 'thisIndex': 0},
-            {'thisN': 4, 'thisRepN': 2, 'thisTrialN': 1, 'thisIndex': 1},
-            {'thisN': 5, 'thisRepN': 2, 'thisTrialN': 2, 'thisIndex': 2},
+            {'thisN': 5, 'thisRepN': 1, 'thisTrialN': 2, 'thisIndex': 2},
+            {'thisN': 1, 'thisRepN': 0, 'thisTrialN': 1, 'thisIndex': 1},
+            {'thisN': 2, 'thisRepN': 0, 'thisTrialN': 2, 'thisIndex': 2},
+            {'thisN': 3, 'thisRepN': 1, 'thisTrialN': 0, 'thisIndex': 0},
+            {'thisN': 4, 'thisRepN': 1, 'thisTrialN': 1, 'thisIndex': 1},
+            {'thisN': 5, 'thisRepN': 1, 'thisTrialN': 2, 'thisIndex': 2},
             None,
         ]
         # get future trials
@@ -353,16 +353,16 @@ class TestTrialHandler2:
         # some values to move forwards/backwards by and the values at that point
         cases = [
             # move backwards and forwards and check we land in the right place
-            (+4, {'thisN': 4, 'thisRepN': 2, 'thisTrialN': 1, 'thisIndex': 1}),
-            (-1, {'thisN': 3, 'thisRepN': 2, 'thisTrialN': 0, 'thisIndex': 0}),
-            (-3, {'thisN': 0, 'thisRepN': 1, 'thisTrialN': 0, 'thisIndex': 0}),
-            (+2, {'thisN': 2, 'thisRepN': 1, 'thisTrialN': 2, 'thisIndex': 2}),
-            (-1, {'thisN': 1, 'thisRepN': 1, 'thisTrialN': 1, 'thisIndex': 1}),
-            (+2, {'thisN': 3, 'thisRepN': 2, 'thisTrialN': 0, 'thisIndex': 0}),
+            (+4, {'thisN': 4, 'thisRepN': 1, 'thisTrialN': 1, 'thisIndex': 1}),
+            (-1, {'thisN': 3, 'thisRepN': 1, 'thisTrialN': 0, 'thisIndex': 0}),
+            (-3, {'thisN': 0, 'thisRepN': 0, 'thisTrialN': 0, 'thisIndex': 0}),
+            (+2, {'thisN': 2, 'thisRepN': 0, 'thisTrialN': 2, 'thisIndex': 2}),
+            (-1, {'thisN': 1, 'thisRepN': 0, 'thisTrialN': 1, 'thisIndex': 1}),
+            (+2, {'thisN': 3, 'thisRepN': 1, 'thisTrialN': 0, 'thisIndex': 0}),
             # move back past the start and check we land at the start
-            (-10, {'thisN': 0, 'thisRepN': 1, 'thisTrialN': 0, 'thisIndex': 0}),
+            (-10, {'thisN': 0, 'thisRepN': 0, 'thisTrialN': 0, 'thisIndex': 0}),
             # move forwards past the end and check we land at the end
-            (+10, {'thisN': 5, 'thisRepN': 2, 'thisTrialN': 2, 'thisIndex': 2}),
+            (+10, {'thisN': 5, 'thisRepN': 1, 'thisTrialN': 2, 'thisIndex': 2}),
         ]
         # iterate through cases
         for inc, answer in cases:
