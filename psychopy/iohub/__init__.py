@@ -41,7 +41,7 @@ def _haveTables():
     """Check if tables is available (if safe to try)"""
     # if running rosetta (i386 python on arm64 mac) then don't *try* to import tables
     # anything else we can *try* to import tables and see if it fails
-    if sys.platform == 'darwin' and platform.processor == 'i386':
+    if _usingRosetta():
             # if we try to load the tables module on arm64 we get a seg fault
             # we don't want to even try until we can work out how to detect
             # in advance whether the library is arm64 or not
