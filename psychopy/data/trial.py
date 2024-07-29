@@ -1071,6 +1071,15 @@ class TrialHandler2(_BaseTrialHandler):
     next = __next__  # allows user to call without a loop `val = trials.next()`
 
     @property
+    def thisIndex(self):
+        if self.thisTrial is None:
+            if len(self.elapsedTrials):
+                return self.elapsedTrials[-1].thisIndex
+            else:
+                return -1
+        return self.thisTrial.thisIndex
+
+    @property
     def thisN(self):
         if self.thisTrial is None:
             if len(self.elapsedTrials):
@@ -1108,7 +1117,7 @@ class TrialHandler2(_BaseTrialHandler):
         # start off at 0 trial
         thisTrialN = 0
         thisN = 0
-        thisRepN = 0
+        thisRepN = -1
         # empty array to store indices once taken
         prevIndices = []
         # empty array to store remaining indices
