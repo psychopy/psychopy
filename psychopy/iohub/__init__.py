@@ -20,15 +20,30 @@ def _localFunc():
 
 IOHUB_DIRECTORY = module_directory(_localFunc)
 
-_DATA_STORE_AVAILABLE = False
-try:
-    import tables
-    _DATA_STORE_AVAILABLE = True
-except ImportError:
-    print2err('WARNING: pytables package not found. ',
-              'ioHub hdf5 datastore functionality will be disabled.')
-except Exception:
-    printExceptionDetailsToStdErr()
+def _haveTables():
+    if sys.platform == 'darwin':
+        # on macos check if this is arm64
+        import platform
+        if platform.processor == 'arm64':
+            # if we try to load the tables module on arm64 we get a seg fault
+            # we don't want to even try until we can work out how to detect
+            # in advance whether the library is arm64 or not
+            print2err('WARNING: running on arm64 mac which may crash loading pytables. ',
+                    'ioHub hdf5 datastore functionality will be disabled for now.')
+            return False
+    try:
+        import tables
+        return True
+    except ImportError:
+        print2err('WARNING: pytables package not found. ',
+                'ioHub hdf5 datastore functionality will be disabled.')
+        return False
+    except Exception:
+        printExceptionDetailsToStdErr()
+
+_DATA_STORE_AVAILABLE = _haveTables()
+if _DATA_STORE_AVAILABLE:
+    import tables  # not sure if any part of iohub needed this in the namespace
 
 from psychopy.iohub.constants import EventConstants, KeyboardConstants, MouseConstants
 
