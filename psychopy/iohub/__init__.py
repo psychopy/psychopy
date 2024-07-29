@@ -23,7 +23,7 @@ IOHUB_DIRECTORY = module_directory(_localFunc)
 
 def _usingRosetta():
     """Check whether we are running under rosetta on a mac"""
-    if sys.platform != 'darwin' or platform.processor != 'i386':
+    if sys.platform != 'darwin' or platform.processor() != 'i386':
         # platform.processor is actually the arch of binary not processor
         return False
     # running i386 python on mac needs more investigation
@@ -42,12 +42,12 @@ def _haveTables():
     # if running rosetta (i386 python on arm64 mac) then don't *try* to import tables
     # anything else we can *try* to import tables and see if it fails
     if _usingRosetta():
-            # if we try to load the tables module on arm64 we get a seg fault
-            # we don't want to even try until we can work out how to detect
-            # in advance whether the library is arm64 or not
-            print2err('WARNING: running on arm64 mac which may crash loading pytables. ',
-                    'ioHub hdf5 datastore functionality will be disabled for now.')
-            return False
+        # if we try to load the tables module on arm64 we get a seg fault
+        # we don't want to even try until we can work out how to detect
+        # in advance whether the library is arm64 or not
+        print2err('WARNING: running on arm64 mac which may crash loading pytables. ',
+                'ioHub hdf5 datastore functionality will be disabled for now.')
+        return False
     try:
         import tables
         return True
