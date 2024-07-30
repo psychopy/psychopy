@@ -241,26 +241,45 @@ def installPackage(
         If `awaited=False`:
             Returns the job (thread) which is running the install.
     """
-    if target is None:
-        target = prefs.paths['userPackages']
-    
     # convert extra to dict
     if extra is None:
         extra = {}
-    # check the directory exists before installing
-    if not os.path.exists(target):
-        raise NotADirectoryError(
-            'Cannot install package "{}" to "{}", directory does not '
-            'exist.'.format(package, target))
 
     # construct the pip command and execute as a subprocess
     cmd = [sys.executable, "-m", "pip", "install", package]
 
     # optional args
-    if target is None:  # default to user packages dir
-        cmd.append('--prefix')
-        cmd.append(prefs.paths['packages'])
+    # priorty of install args: --target > --prefix > --user
+    if target is None:  # default to user site-packages dir
+        target = prefs.paths['userPackages']
+    if target is None:  # if still None, use user packages dir
+        if prefs.paths['packages']:
+            cmd.append('--prefix')
+            cmd.append(prefs.paths['packages'])
+        else:  # if still None, use OS platform user install directory
+            # check if we are in a virtual environment, if so, dont use --user
+            if hasattr(sys, 'real_prefix') or (
+                    hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix):
+                # we are in a venv
+                logging.warning(
+                    "You are installing a package inside a virtual environment. "
+                    "The package will be installed in the user site-packages directory."
+                )
+            else:
+                logging.warning(
+                    "pip install invoked with the --user. "
+                    "The package will be installed in the user site-packages directory. "
+                    "Use 'python -m site --user-site' or 'import site; site.USER_SITE' to find the directory."
+                )
+                # Typically ~/.local/, or %APPDATA%Python on Windows.
+                # (See the Python documentation for site.USER_BASE for full details.)
+                cmd.append('--user')
     else:
+        # check the directory exists before installing
+        if not os.path.exists(target):
+            raise NotADirectoryError(
+                'Cannot install package "{}" to "{}", directory does not '
+                'exist.'.format(package, target))
         cmd.append('--target')
         cmd.append(target)
     if upgrade:
@@ -269,17 +288,6 @@ def installPackage(
         cmd.append('--force-reinstall')
     if noDeps:
         cmd.append('--no-deps')
-
-    # check if we are in a virtual environment, if so, dont use --user
-    if hasattr(sys, 'real_prefix') or (
-            hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix):
-        # we are in a venv
-        logging.warning(
-            "You are installing a package inside a virtual environment. "
-            "The package will be installed in the user site-packages directory."
-        )
-    else:
-        cmd.append('--user')
 
     cmd.append('--prefer-binary')  # use binary wheels if available
     cmd.append('--no-input')  # do not prompt, we cannot accept input
