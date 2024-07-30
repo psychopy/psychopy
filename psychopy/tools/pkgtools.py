@@ -240,27 +240,24 @@ def installPackage(
             and error from the subprocess.
         If `awaited=False`:
             Returns the job (thread) which is running the install.
-    """
-    if target is None:
-        target = prefs.paths['userPackages']
-    
+    """   
     # convert extra to dict
     if extra is None:
         extra = {}
-    # check the directory exists before installing
-    if not os.path.exists(target):
-        raise NotADirectoryError(
-            'Cannot install package "{}" to "{}", directory does not '
-            'exist.'.format(package, target))
+
 
     # construct the pip command and execute as a subprocess
     cmd = [sys.executable, "-m", "pip", "install", package]
 
     # optional args
     if target is None:  # default to user packages dir
-        cmd.append('--prefix')
-        cmd.append(prefs.paths['packages'])
+        cmd.append('--user')
     else:
+        # check the directory exists before installing
+        if not os.path.exists(target):
+            raise NotADirectoryError(
+                'Cannot install package "{}" to "{}", directory does not '
+                'exist.'.format(package, target))
         cmd.append('--target')
         cmd.append(target)
     if upgrade:
