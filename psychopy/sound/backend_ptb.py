@@ -127,6 +127,9 @@ class _StreamsDict(dict):
 
     use the instance `streams` rather than creating a new instance of this
     """
+    def __init__(self, index):
+        # store device index
+        self.index = index
 
     def getStream(self, sampleRate, channels, blockSize):
         """Gets a stream of exact match or returns a new one
@@ -186,11 +189,11 @@ class _StreamsDict(dict):
 
             # create new stream
             self[label] = _MasterStream(sampleRate, channels, blockSize,
-                                        device=defaultOutput)
+                                        device=self.index)
         return label, self[label]
 
 
-streams = _StreamsDict()
+devices = {}
 
 
 class _MasterStream(audio.Stream):
@@ -351,8 +354,8 @@ class SoundPTB(_SoundBase):
 
     def _getDefaultSampleRate(self):
         """Check what streams are open and use one of these"""
-        if len(streams):
-            return list(streams.values())[0].sampleRate
+        if len(devices.get(self.speaker.index, [])):
+            return list(devices[self.speaker.index].values())[0].sampleRate
         else:
             return 48000  # seems most widely supported
 
@@ -604,17 +607,26 @@ class SoundPTB(_SoundBase):
         """Read-only property returns the stream on which the sound
         will be played
         """
+        # if no stream yet, make one
         if not self.streamLabel:
+            # if no streams for current device yet, make a StreamsDict for it
+            if self.speaker.index not in devices:
+                devices[self.speaker.index] = _StreamsDict(index=self.speaker.index)
+            # make stream
             try:
-                label, s = streams.getStream(sampleRate=self.sampleRate,
-                                             channels=self.channels,
-                                             blockSize=self.blockSize)
+                label, s = devices[self.speaker.index].getStream(
+                    sampleRate=self.sampleRate,
+                    channels=self.channels,
+                    blockSize=self.blockSize
+                )
             except SoundFormatError as err:
                 # try to use something similar (e.g. mono->stereo)
                 # then check we have an appropriate stream open
-                altern = streams._getSimilar(sampleRate=self.sampleRate,
-                                             channels=-1,
-                                             blockSize=-1)
+                altern = devices[self.speaker.index]._getSimilar(
+                    sampleRate=self.sampleRate,
+                    channels=-1,
+                    blockSize=-1
+                )
                 if altern is None:
                     raise SoundFormatError(err)
                 else:  # safe to extract data
@@ -625,7 +637,7 @@ class SoundPTB(_SoundBase):
                 self.blockSize = s.blockSize
             self.streamLabel = label
 
-        return streams[self.streamLabel]
+        return devices[self.speaker.index][self.streamLabel]
 
     def __del__(self):
         if self.track:

@@ -39,14 +39,11 @@ class SpeakerDevice(BaseDevice):
         # find profile which matches index
         for profile in profiles.values():
             if index in (profile['index'], profile['name']):
-                self.index = profile['index']
+                self.index = int(profile['index'])
                 self.deviceName = profile['name']
 
         if self.index is None:
             logging.error("No speaker device found with index %d" % index)
-        else:
-            # set global device (best we can do for now)
-            setDevice(index)
 
     def isSameDevice(self, other):
         """
