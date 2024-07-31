@@ -191,8 +191,11 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             if isinstance(device, MicrophoneDevice):
                 self._device = device._device
             else:
-                raise KeyError(
-                    f"Could not find MicrophoneDevice named {index}"
+                # if not found, find best match
+                self._device = self.findBestDevice(
+                    index=index,
+                    sampleRateHz=sampleRateHz,
+                    channels=channels
                 )
         else:
             # get best match
@@ -337,11 +340,11 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         # iterate through device profiles
         for profile in self.getDevices():
             # if same index, keep as fallback
-            if profile.deviceIndex == index:
+            if index in (profile.deviceIndex, profile.deviceName):
                 fallbackDevice = profile
             # if same everything, we got it!
             if all((
-                profile.deviceIndex == index,
+                index in (profile.deviceIndex, profile.deviceName),
                 profile.defaultSampleRate == sampleRateHz,
                 profile.inputChannels == channels,
             )):
@@ -353,6 +356,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
                 f"Could not find exact match for specified parameters (index={index}, sampleRateHz="
                 f"{sampleRateHz}, channels={channels}), falling back to best approximation ("
                 f"index={fallbackDevice.deviceIndex}, "
+                f"name={fallbackDevice.deviceName},"
                 f"sampleRateHz={fallbackDevice.defaultSampleRate}, "
                 f"channels={fallbackDevice.inputChannels})"
             )
@@ -391,7 +395,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             # if the other object is the wrong type or doesn't have an index, it's not this
             return False
 
-        return self.index == index
+        return index in (self.index, self._device.deviceName)
 
     @staticmethod
     def getDevices():
@@ -429,9 +433,13 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
     def getAvailableDevices():
         devices = []
         for profile in st.getAudioCaptureDevices():
+            # get index as a name if possible
+            index = profile.get('device_name', None)
+            if index is None:
+                index = profile.get('index', None)
             device = {
                 'deviceName': profile.get('device_name', "Unknown Microphone"),
-                'index': profile.get('index', None),
+                'index': index,
                 'sampleRateHz': profile.get('defaultSampleRate', None),
                 'channels': profile.get('inputChannels', None),
             }
