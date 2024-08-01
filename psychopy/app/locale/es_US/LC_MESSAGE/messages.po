@@ -23,7 +23,7 @@ msgstr ""
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:12
 #, python-brace-format
 msgid "Your stimulus size exceeds the {dimension} dimension of your window."
-msgstr "El tamaño de su estímulo excede la dimensión{dimension} de su ventana."
+msgstr "El tamaño de su estímulo excede la dimensión {dimension} de su ventana."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:16
 #, python-brace-format
@@ -145,8 +145,7 @@ msgstr ""
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:94
 msgid "Experiment includes components or routines which use eyetracking, but no eye tracker is configured."
-msgstr ""
-"El experimento incluye componentes o rutinas que utilizan seguimiento ocular, pero ningún rastreador ocular se ha configurado."
+msgstr "El experimento incluye componentes o rutinas que utilizan rastreo ocular, pero ningún rastreador ocular se ha configurado."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:98
 #, python-brace-format
@@ -170,15 +169,15 @@ msgstr "Los Eyetrackers de {brand} no admiten ritmo manual"
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:108
 msgid "Window mode is set to be windowed, but eyetracking requires the window to be full screen."
 msgstr ""
-"El modo de ventana está configurado para ser en ventana, pero el seguimiento ocular requiere que la ventana sea pantalla completa."
+"El modo de ventana está configurado para ser en ventana, pero el rastreo ocular requiere que la ventana sea pantalla completa."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:112
 msgid "A monitor config is required for accurate eyetracking measurements, but none was found."
-msgstr "Se requiere una configuración de monitor para mediciones precisas de seguimiento ocular, pero ninguna ha sido encontrada."
+msgstr "Se requiere una configuración de monitor para mediciones precisas de rastreo ocular, pero ninguna ha sido encontrada."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:116
 msgid "Eye tracker experiments should use 'ioHub' as the Input -> Keyboard Backend setting"
-msgstr "Los experimentos de seguimiento ocular deben usar 'ioHub' como entrada -> Backend del tecladoconfiguración"
+msgstr "Los experimentos de rastreo ocular deben usar 'ioHub' como entrada -> Configuración del Backend del teclado"
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:120
 #, python-brace-format
@@ -1472,7 +1471,7 @@ msgstr "Formateando"
 
 #: psychopy/app/builder/localizedStrings.py:39
 msgid "Eyetracking"
-msgstr "Seguimiento ocular"
+msgstr "Rastreo ocular"
 
 #: psychopy/app/builder/localizedStrings.py:40
 msgid "Target"
@@ -5367,7 +5366,7 @@ msgstr "Botones permitidos"
 #: psychopy/experiment/components/joyButtons/__init__.py:17 psychopy/experiment/components/joyButtons/__init__.py:74
 #: psychopy/experiment/components/keyboard/__init__.py:22 psychopy/experiment/components/keyboard/__init__.py:100
 msgid "Store"
-msgstr "Tienda"
+msgstr "Almacenar"
 
 #: psychopy/experiment/components/joyButtons/__init__.py:19 psychopy/experiment/components/joyButtons/__init__.py:90
 #: psychopy/experiment/components/keyboard/__init__.py:24 psychopy/experiment/components/keyboard/__init__.py:116
@@ -5456,7 +5455,7 @@ msgstr "Joystick: consultar posición y botones del joystick"
 msgid ""
 "How often should the joystick state (x,y,buttons) be stored? On every video frame, every click or just at the end of the Routine?"
 msgstr ""
-"¿Con qué frecuencia se debe almacenar el estado del joystick (botones x,y)? En cada vídeocuadro, ¿cada clic o simplemente al "
+"¿Con qué frecuencia se debe almacenar el estado del joystick (botones x,y)? En cada cuadro del video, ¿cada clic o simplemente al "
 "final de la rutina?"
 
 #: psychopy/experiment/components/joystick/__init__.py:67 psychopy/experiment/components/mouse/__init__.py:65
@@ -6724,7 +6723,7 @@ msgstr "Puerto GazePoint"
 
 #: psychopy/experiment/components/settings/__init__.py:508 psychopy/experiment/components/settings/__init__.py:578
 msgid "Eye tracker model."
-msgstr "Modelo de seguimiento ocular."
+msgstr "Modelo de Rastreador Ocular."
 
 #: psychopy/experiment/components/settings/__init__.py:509 psychopy/experiment/components/settings/__init__.py:579
 msgid "Model name"
@@ -6752,7 +6751,7 @@ msgstr "Seleccione con ojo(s) para rastrear."
 
 #: psychopy/experiment/components/settings/__init__.py:529
 msgid "Track eyes"
-msgstr "Ojos de seguimiento"
+msgstr "Rastrear ojos"
 
 #: psychopy/experiment/components/settings/__init__.py:535
 msgid "Filter eye sample data live, as it is streamed to the driving device. This may reduce the sampling speed."
@@ -6774,11 +6773,11 @@ msgstr "Filtrado de muestra guardada"
 
 #: psychopy/experiment/components/settings/__init__.py:551
 msgid "Track Pupil-CR or Pupil only."
-msgstr "Seguimiento de Pupil-CR o Pupil solamente."
+msgstr "Rastreo de Pupila-CR o Pupila solamente."
 
 #: psychopy/experiment/components/settings/__init__.py:552
 msgid "Pupil tracking mode"
-msgstr "Modo de seguimiento de pupila"
+msgstr "Modo de rastreo de pupila"
 
 #: psychopy/experiment/components/settings/__init__.py:558
 msgid "Algorithm used to detect the pupil center."
