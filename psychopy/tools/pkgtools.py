@@ -249,31 +249,27 @@ def installPackage(
     cmd = [sys.executable, "-m", "pip", "install", package]
 
     # optional args
-    # priorty of install args: --target > --prefix > --user
+    # priorty of install args: --target > --user
     if target is None:  # default to user site-packages dir
         target = prefs.paths['userPackages']
-    if target is None:  # if still None, use user packages dir
-        if prefs.paths['packages']:
-            cmd.append('--prefix')
-            cmd.append(prefs.paths['packages'])
-        else:  # if still None, use OS platform user install directory
-            # check if we are in a virtual environment, if so, dont use --user
-            if hasattr(sys, 'real_prefix') or (
-                    hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix):
-                # we are in a venv
-                logging.warning(
-                    "You are installing a package inside a virtual environment. "
-                    "The package will be installed in the user site-packages directory."
-                )
-            else:
-                logging.warning(
-                    "pip install invoked with the --user. "
-                    "The package will be installed in the user site-packages directory. "
-                    "Use 'python -m site --user-site' or 'import site; site.USER_SITE' to find the directory."
-                )
-                # Typically ~/.local/, or %APPDATA%Python on Windows.
-                # (See the Python documentation for site.USER_BASE for full details.)
-                cmd.append('--user')
+    if target is None:  # if still None, use OS platform user install directory
+        # check if we are in a virtual environment, if so, dont use --user
+        if hasattr(sys, 'real_prefix') or (
+                hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix):
+            # we are in a venv
+            logging.warning(
+                "You are installing a package inside a virtual environment. "
+                "The package will be installed in the user site-packages directory."
+            )
+        else:
+            logging.warning(
+                "pip install invoked with the --user. "
+                "The package will be installed in the user site-packages directory. "
+                "Use 'python -m site --user-site' or 'import site; site.USER_SITE' to find the directory."
+            )
+            # Typically ~/.local/, or %APPDATA%Python on Windows.
+            # (See the Python documentation for site.USER_BASE for full details.)
+            cmd.append('--user')
     else:
         # check the directory exists before installing
         if not os.path.exists(target):
