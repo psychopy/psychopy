@@ -43,17 +43,24 @@ def getLastCommit(filepath=None):
 def getBranch():
     """Get current branch name"""
     cmd = ['git', 'rev-parse', '--abbrev-ref', 'HEAD']
-    return _call(cmd)
+    resp = _call(cmd)
+    if resp is None:
+        return ''
+    return resp
 
 def getTags():
     """Get list of tags"""
     cmd = ['git', 'tag', '--sort=-v:refname']
-    return _call(cmd).split()
+    resp = _call(cmd)
+    if resp is None:
+        return []
+    return resp.split()
 
 def isShallowRepo():
-    """Check if git repo is shallow"""
+    """Check if git repo is shallow (or not a repo)"""
     cmd = ['git', 'rev-parse', '--is-shallow-repository']
-    return _call(cmd)=='true'
+    resp = _call(cmd)
+    return resp is None or resp=='true'
 
 def makeVersionSuffix(base):
     """Makes version suffix like post3 or dev8 given base version number
