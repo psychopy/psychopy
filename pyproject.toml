@@ -89,7 +89,7 @@ dependencies = [
     "zeroconf; platform_system == \"Darwin\"",
     "python-xlib; platform_system == \"Linux\"",
     "distro; platform_system == \"Linux\"",
-    'tables==3.8.0',  # pin to 3.8.0 until Rosetta crash fixed
+    'tables!=3.9.2',  # 3.9.2 crashes on Rosetta
     "packaging>=24.1",
 ]
 
