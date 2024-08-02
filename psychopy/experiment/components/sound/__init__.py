@@ -36,7 +36,8 @@ class SoundComponent(BaseDeviceComponent):
                  speakerIndex=-1,
                  # playback
                  volume=1,
-                 stopWithRoutine=True):
+                 stopWithRoutine=True,
+                 forceEndRoutine=False):
         super(SoundComponent, self).__init__(
             exp, parentName, name,
             startType=startType, startVal=startVal,
@@ -77,6 +78,12 @@ class SoundComponent(BaseDeviceComponent):
             updates='constant',
             hint=msg,
             label=_translate("Sync start with screen"))
+        # --- Playback params ---
+        self.order += [
+            "hamming",
+            "stopWithRoutine",
+            "forceEndRoutine"
+        ]
         self.params['hamming'] = Param(
             True, valType='bool', inputType="bool", updates='constant', categ='Playback',
             hint=_translate(
@@ -89,6 +96,13 @@ class SoundComponent(BaseDeviceComponent):
                 "Should playback cease when the Routine ends? Untick to continue playing "
                 "after the Routine has finished."),
             label=_translate('Stop with Routine?'))
+        self.params['forceEndRoutine'] = Param(
+            forceEndRoutine, valType="bool", inputType="bool", updates="constant", categ="Playback",
+            hint=_translate(
+                "Should the end of the sound cause the end of the Routine (e.g. trial)?"
+            ),
+            label=_translate("Force end of Routine")
+        )
 
         # --- Device params ---
         self.order += [
@@ -189,6 +203,12 @@ class SoundComponent(BaseDeviceComponent):
                                           inits['sound'],
                                           inits['stopVal']))
         buff.writeIndented("%(name)s.setVolume(%(volume)s);\n" % (inits))
+        # until isFinished and isPlaying are added in JS, we can immitate them here
+        code = (
+            "%(name)s.isPlaying = false;\n"
+            "%(name)s.isFinished = false;\n"
+        )
+        buff.writeIndentedLines(code % self.params)
 
     def writeRoutineStartCodeJS(self, buff):
         stopVal = self.params['stopVal']
@@ -228,7 +248,16 @@ class SoundComponent(BaseDeviceComponent):
         # write code for stopping
         indented = self.writeStopTestCode(buff, extra=" or %(name)s.isFinished")
         if indented:
-            code = ("%(name)s.stop()\n")
+            # stop playback
+            code = (
+                "%(name)s.stop()\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            # force end of Routine
+            code = (
+                "# %(name)s has finished playback, so force end Routine\n"
+                "continueRoutine = False\n"
+            )
             buff.writeIndentedLines(code % self.params)
         # because of the 'if' statement of the time test
         buff.setIndentLevel(-indented, relative=True)
@@ -236,6 +265,17 @@ class SoundComponent(BaseDeviceComponent):
     def writeFrameCodeJS(self, buff):
         """Write the code that will be called every frame
         """
+        # until isFinished and isPlaying are added in JS, we can immitate them here
+        code = (
+            "if (%(name)s.status === STARTED) {\n"
+            "    %(name)s.isPlaying = true;\n"
+            "    if (t >= (%(name)s.getDuration() + %(name)s.tStart)) {\n"
+            "        %(name)s.isFinished = true;\n"
+            "    }\n"
+            "}\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
         # the sound object is unusual, because it is
         buff.writeIndented("// start/stop %(name)s\n" % (self.params))
         # do this EVERY frame, even before/after playing?
@@ -250,38 +290,34 @@ class SoundComponent(BaseDeviceComponent):
         # because of the 'if' statement of the time test
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines('}\n')
-        knownNote = (self.params['sound'] in knownNoteNames) or (self.params['sound'].val.isdigit())
-        if self.params['stopVal'].val in [None, 'None', '']:
-            if not knownNote:  # Known notes have no getDuration function because duration is infinite or not None
-                # infinite sounds
-                code = ('if (t >= (%(name)s.getDuration() + %(name)s.tStart) '
-                        '    && %(name)s.status === PsychoJS.Status.STARTED) {\n'
-                        '  %(name)s.stop();  // stop the sound (if longer than duration)\n'
-                        '  %(name)s.status = PsychoJS.Status.FINISHED;\n'
-                        '}\n')
-                buff.writeIndentedLines(code % self.params)
-        else:
-            # sounds with stop values
-            self.writeStopTestCodeJS(buff)
-            code = ("if (t >= %(name)s.tStart + 0.5) {\n"
-                    "  %(name)s.stop();  // stop the sound (if longer than duration)\n"
-                    "  %(name)s.status = PsychoJS.Status.FINISHED;\n"
-                    "}\n")
+        
+        # are we stopping this frame?
+        indented = self.writeStopTestCodeJS(buff, extra=" || %(name)s.isFinished")
+        if indented:
+            # stop playback
+            code = (
+                "// stop playback\n"
+            )
+            if self.params['syncScreenRefresh'].val:
+                code += (
+                    "psychoJS.window.callOnFlip(function(){ %(name)s.stop(); });\n"
+                )
+            else:
+                code += (
+                    "%(name)s.play();\n"
+                )
             buff.writeIndentedLines(code % self.params)
-            # because of the 'if' statement of the time test
-            buff.setIndentLevel(-1, relative=True)
-            buff.writeIndented('}\n')
-
-            # # Update status
-            # code = (
-            #     "// update %(name)s status according to whether it's playing\n"
-            #     "if (%(name)s.isPlaying) {\n"
-            #     "  %(name)s.status = PsychoJS.Status.STARTED;\n"
-            #     "} else if (%(name)s.isFinished) {\n"
-            #     "  %(name)s.status = PsychoJS.Status.FINISHED;\n"
-            #     "}\n"
-            # )
-            # buff.writeIndentedLines(code % self.params)
+            # end Routine if asked
+            if self.params['forceEndRoutine']:
+                code = (
+                    "// %(name)s has finished playback, so force end Routine\n"
+                    "continueRoutine = false;\n"
+                )
+                buff.writeIndentedLines(code % self.params)
+            # exit if statement(s)
+            for n in range(indented):
+                buff.setIndentLevel(-1, relative=True)
+                buff.writeIndentedLines("}\n")
 
     def writeRoutineEndCode(self, buff):
         if self.params['stopWithRoutine']:
