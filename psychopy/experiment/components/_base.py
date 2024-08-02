@@ -712,6 +712,19 @@ class BaseComponent:
         # write if statement and indent
         buff.writeIndentedLines(code % params)
         buff.setIndentLevel(+1, relative=True)
+        # store stop
+        code = (
+            "// keep track of stop time/frame for later\n"
+            "%(name)s.tStop = t;  // not accounting for scr refresh\n"
+            "%(name)s.frameNStop = frameN;  // exact frame index\n"
+        )
+        buff.writeIndentedLines(code % params)
+        # set status
+        code = (
+            "// update status\n"
+            "%(name)s.status = PsychoJS.Status.FINISHED;\n"
+        )
+        buff.writeIndentedLines(code % params)
 
         # Return True if stop test was written
         return buff.indentLevel - startIndent
