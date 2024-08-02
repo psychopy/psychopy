@@ -253,12 +253,13 @@ class SoundComponent(BaseDeviceComponent):
                 "%(name)s.stop()\n"
             )
             buff.writeIndentedLines(code % self.params)
-            # force end of Routine
-            code = (
-                "# %(name)s has finished playback, so force end Routine\n"
-                "continueRoutine = False\n"
-            )
-            buff.writeIndentedLines(code % self.params)
+            # force end of Routine if asked
+            if self.params['forceEndRoutine']:
+                code = (
+                    "# %(name)s has finished playback, so force end Routine\n"
+                    "continueRoutine = False\n"
+                )
+                buff.writeIndentedLines(code % self.params)
         # because of the 'if' statement of the time test
         buff.setIndentLevel(-indented, relative=True)
 
