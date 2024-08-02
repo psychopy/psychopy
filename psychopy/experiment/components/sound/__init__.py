@@ -304,7 +304,7 @@ class SoundComponent(BaseDeviceComponent):
                 )
             else:
                 code += (
-                    "%(name)s.play();\n"
+                    "%(name)s.stop();\n"
                 )
             buff.writeIndentedLines(code % self.params)
             # end Routine if asked
