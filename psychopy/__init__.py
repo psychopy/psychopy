@@ -61,18 +61,18 @@ if 'installing' not in locals():
     if not useDefaultSite:
         env = os.environ.copy()
         if 'PYTHONPATH' in env:  # append entries to existing PYTHONPATH
+            _userPackages = str(prefs.paths['packages'])
+            if _userPackages not in env['PYTHONPATH']:
+                env['PYTHONPATH'] = os.pathsep.join([
+                    env['PYTHONPATH'], _userPackages])
             _userSitePackages = str(prefs.paths['userPackages'])
             if _userSitePackages not in env['PYTHONPATH']:
                 env['PYTHONPATH'] = os.pathsep.join([
                     env['PYTHONPATH'], _userSitePackages])
-            _userPackages = str(prefs.paths['packages'])
-            if _userPackages not in env['PYTHONPATH']:
-                env['PYTHONPATH'] = os.pathsep.join([
-                    env['PYTHONPATH'], _userPackages]) 
         else:
             env['PYTHONPATH'] = os.pathsep.join([
-                str(prefs.paths['userPackages']), 
-                str(prefs.paths['packages'])])
+                str(prefs.paths['packages']),
+                str(prefs.paths['userPackages'])])
 
         # set user site packages
         env['PYTHONUSERBASE'] = prefs.paths['packages']
