@@ -175,7 +175,7 @@ class Preferences:
                 if err.errno != errno.EEXIST:
                     raise
 
-        # root site-packages directory for user-installed packages and add it
+        # site-packages root directory for user-installed packages
         userPkgRoot = Path(self.paths['packages'])
 
         # Package paths for custom user site-packages, these should be compliant
@@ -188,6 +188,19 @@ class Preferences:
         elif sys.platform == 'darwin' and sys._framework:  # macos + framework
             pyVersion = sys.version_info
             pyDirName = "python{}.{}".format(pyVersion[0], pyVersion[1])
+            # Standard scheme of lib directories for OSX framework does not
+            # distinguish between python versions. We must modify the
+            # site-packages root directory to provide a unique path for
+            # each python version.
+            self.paths['packages'] = join(self.paths['packages'], pyDirName)
+            try:
+                os.makedirs(self.paths[userPrefPath])
+            except OSError as err:
+                if err.errno != errno.EEXIST:
+                    raise
+            userPkgRoot = Path(self.paths['packages'])  # reload userPkgRoot
+            # See the ox_framework_user scheme standard:
+            # https://docs.python.org/3/library/sysconfig.html#osx-framework-user
             userPackages = userPkgRoot / "lib" / "python" / "site-packages"
             userInclude = userPkgRoot / "include" / pyDirName
             userScripts = userPkgRoot / "bin"
