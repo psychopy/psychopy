@@ -285,6 +285,7 @@ def installPackage(
     cmd.append('--no-input')  # do not prompt, we cannot accept input
     cmd.append('--no-color')  # no color for console, not supported
     cmd.append('--no-warn-conflicts')  # silence non-fatal errors
+    cmd.append('--disable-pip-version-check')  # do not check for pip updates
 
     # get the environment for the subprocess
     env = os.environ.copy()
