@@ -36,5 +36,12 @@ class ResponseEmulator(
     pass
 
 
+class launchScan(
+    PluginStub,
+    plugin="psychopy-mri-emulator"
+):
+    pass
+
+
 if __name__ == "__main__":
     pass
