@@ -9,13 +9,9 @@
 from psychopy.tools.pkgtools import PluginStub
 
 
-class ColorCAL(PluginStub, plugin="psychopy-crs", doclink="https://psychopy.github.io/psychopy-crs/coder/ColorCAL"):
+class ColorCAL(
+    PluginStub, 
+    plugin="psychopy-crs", 
+    doclink="https://psychopy.github.io/psychopy-crs/coder/ColorCAL"
+):
     pass
-
-
-# Monkey-patch our metadata into CRS class if missing required attributes
-if not hasattr(ColorCAL, "longName"):
-    setattr(ColorCAL, "longName", "CRS ColorCAL")
-
-if not hasattr(ColorCAL, "driverFor"):
-    setattr(ColorCAL, "driverFor", ["colorcal"])
