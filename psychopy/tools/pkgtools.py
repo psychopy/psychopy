@@ -60,6 +60,10 @@ _installedPackageNamesCache = []
 USER_PACKAGES_PATH = str(prefs.paths['userPackages'])
 
 
+class PluginRequiredError(Exception):
+    pass
+
+
 class PluginStub:
     """
     Class to handle classes which have moved out to plugins.
@@ -82,22 +86,23 @@ class PluginStub:
         cls.__doc__ = (
             "`{mro}` is now located within the `{plugin}` plugin. You can find the documentation for it `here <{doclink}>`_."
         ).format(
-            mro=cls.__mro__,
+            mro=cls.__module__,
             plugin=plugin,
             doclink=doclink
         )
 
-    def __call__(self, *args, **kwargs):
+
+    def __init__(self, *args, **kwargs):
         """
         When initialised, rather than creating an object, will log an error.
         """
-        raise NameError(
+        raise PluginRequiredError((
             "Support for `{mro}` is not available this session. Please install "
             "`{plugin}` and restart the session to enable support."
         ).format(
-            mro=type(self).__mro__,
+            mro=type(self).__module__,
             plugin=self.plugin,
-        )
+        ))
 
 
 def refreshPackages():
