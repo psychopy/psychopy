@@ -12,10 +12,21 @@
 #    (Mario Kleiner) but does not use that code directly
 #    It is, for example, Mario's idea to add the 0.01 to avoid rounding issues
 
-try:
-    from psychopy_crs.shaders import bitsMonoModeFrag, bitsColorModeFrag
-except Exception:
+
+from psychopy.tools.pkgtools import PluginStub
+
+
+class bitsMonoModeFrag(
+    PluginStub, 
+    plugin="psychopy-crs", 
+    doclink="https://psychopy.github.io/psychopy-crs/coder/shaders"
+):
     pass
 
-if __name__ == "__main__":
+
+class bitsColorModeFrag(
+    PluginStub, 
+    plugin="psychopy-crs", 
+    doclink="https://psychopy.github.io/psychopy-crs/coder/shaders"
+):
     pass

@@ -24,13 +24,9 @@
 from psychopy.tools.pkgtools import PluginStub
 
 
-class OptiCAL(PluginStub, plugin="psychopy-crs", doclink="https://psychopy.github.io/psychopy-crs/coder/OptiCAL"):
+class OptiCAL(
+    PluginStub, 
+    plugin="psychopy-crs", 
+    doclink="https://psychopy.github.io/psychopy-crs/coder/OptiCAL"
+):
     pass
-
-
-# Monkey-patch our metadata into CRS class if missing required attributes
-if not hasattr(OptiCAL, "longName"):
-    setattr(OptiCAL, "longName", "CRS OptiCal")
-
-if not hasattr(OptiCAL, "driverFor"):
-    setattr(OptiCAL, "driverFor", ["optical"])
