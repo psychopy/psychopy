@@ -28,18 +28,17 @@ from ..constants import FINISHED, STARTED, NOT_STARTED
 # Set to True to make borders visible for debugging
 debug = False
 
-
 class Slider(MinimalStim, WindowMixin, ColorMixin):
     """A class for obtaining ratings, e.g., on a 1-to-7 or categorical scale.
 
     A simpler alternative to RatingScale, to be customised with code rather
     than with arguments.
 
-    A RatingScale instance is a re-usable visual object having a ``draw()``
+    A Slider instance is a re-usable visual object having a ``draw()``
     method, with customizable appearance and response options. ``draw()``
     displays the rating scale, handles the subject's mouse or key responses,
-    and updates the display. When the subject accepts a selection,
-    ``.noResponse`` goes ``False`` (i.e., there is a response).
+    and updates the display. As soon as a rating is supplied, ``.rating``
+	will go from ``None`` to selected item
 
     You can call the ``getRating()`` method anytime to get a rating,
     ``getRT()`` to get the decision time, or ``getHistory()`` to obtain
@@ -87,56 +86,110 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         win : psychopy.visual.Window
             Into which the scale will be rendered
 
-        ticks : list or tuple
+        ticks : list or tuple, optional
             A set of values for tick locations. If given a list of numbers then
             these determine the locations of the ticks (the first and last
             determine the endpoints and the rest are spaced according to
             their values between these endpoints.
 
-        labels : a list or tuple
+        labels : a list or tuple, optional
             The text to go with each tick (or spaced evenly across the ticks).
             If you give 3 labels but 5 tick locations then the end and middle
             ticks will be given labels. If the labels can't be distributed
             across the ticks then an error will be raised. If you want an
             uneven distribution you should include a list matching the length
             of ticks but with some values set to None
-
-        pos : XY pair (tuple, array or list)
+			
+        startValue : int or float, optional
+            The initial position of the marker on the slider. If not specified,
+            the marker will start at the mid-point of the scale.
+			
+        pos : tuple, list, or array, optional
+            The (x, y) position of the slider on the screen.
 
         size : w,h pair (tuple, array or list)
             The size for the scale defines the area taken up by the line and
             the ticks.
             This also controls whether the scale is horizontal or vertical.
 
-        units : the units to interpret the pos and size
+        units : str, optional
+            The units to interpret the `pos` and `size` parameters. Can be any
+            of the standard PsychoPy units (e.g., 'pix', 'cm', 'norm').
 
-        flip : bool
-            By default the labels will be below or left of the line. This
-            puts them above (or right)
-
+        flip : bool, optional
+            If `True`, the labels will be placed above (for horizontal sliders)
+            or to the right (for vertical sliders) of the slider line. Default
+            is `False`.
+			
+        ori : int or float, optional
+            The orientation of the slider in degrees. A value of 0 means no
+            rotation, positive values rotate the slider clockwise.
+			
+		style : str or list of str, optional
+            The style of the slider, e.g., 'rating', 'slider', 'radio'. Multiple
+            styles can be combined in a list.
+			
+		styleTweaks : list of str, optional
+            Additional styling tweaks, e.g., 'triangleMarker', 'labels45'.	
+			
         granularity : int or float
             The smallest valid increments for the scale. 0 gives a continuous
             (e.g. "VAS") scale. 1 gives a traditional likert scale. Something
             like 0.1 gives a limited fine-grained scale.
 
-        labelColor / color :
-            Color of the labels according to the color space
+        readOnly : bool, optional
+            If `True`, the slider is displayed but does not accept input.
 
-        markerColor / fillColor :
-            Color of the marker according to the color space
+        labelColor : color, optional
+            The color of the labels in the specified color space.
 
-        lineColor / borderColor :
-            Color of the line and ticks according to the color space
+        markerColor : color, optional
+            The color of the marker in the specified color space.
 
-        font : font name
+        lineColor : color, optional
+            The color of the slider line and ticks in the specified color space.
 
-        autodraw :
+        colorSpace : str, optional
+            The color space for defining `labelColor`, `markerColor`, and
+            `lineColor` (e.g., 'rgb', 'rgb255', 'hex').
 
-        depth :
+        opacity : float, optional
+            The opacity of the slider, ranging from 0 (completely transparent)
+            to 1 (completely opaque).
 
-        name :
+        font : str, optional
+            The font used for the labels.
 
-        autoLog :
+        depth : int, optional
+            The depth layer for rendering. Layers with lower numbers are rendered
+            first (behind).
+
+        name : str, optional
+            An optional name for the slider, useful for logging.
+
+        labelHeight : float, optional
+            The height of the label text. If `None`, a default value based on
+            the slider size is used.
+
+        labelWrapWidth : float, optional
+            The maximum width for text labels before wrapping. If `None`, labels
+            are not wrapped.
+
+        autoDraw : bool, optional
+            If `True`, the slider will be automatically drawn every frame.
+
+        autoLog : bool, optional
+            If `True`, a log message is automatically generated each time the
+            slider is updated. This can be useful for debugging or analysis.
+
+        color : color, optional
+            Synonym for `labelColor`.
+
+        fillColor : color, optional
+            Synonym for `markerColor`.
+
+        borderColor : color, optional
+            Synonym for `lineColor`.
         """
         # what local vars are defined (these are the init params) for use by
         # __repr__
