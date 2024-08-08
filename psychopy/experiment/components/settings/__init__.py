@@ -8,11 +8,11 @@ from xml.etree.ElementTree import Element
 import re
 from psychopy import logging, plugins
 from psychopy.experiment.components import Param, _translate
+from psychopy.experiment.components.settings.eyetracking import knownEyetrackerBackends
 from psychopy.experiment.routines import Routine, BaseStandaloneRoutine
 from psychopy.experiment.routines.eyetracker_calibrate import EyetrackerCalibrationRoutine
 from psychopy.experiment import utils as exputils
 from psychopy.monitors import Monitor
-from psychopy.iohub import util as ioUtil
 from psychopy.alerts import alert
 from psychopy.tools.filetools import genDelimiter
 from psychopy.data.utils import parsePipeSyntax
@@ -40,11 +40,6 @@ def readTextFile(relPath):
 _numpyImports = ['sin', 'cos', 'tan', 'log', 'log10', 'pi', 'average',
                  'sqrt', 'std', 'deg2rad', 'rad2deg', 'linspace', 'asarray']
 _numpyRandomImports = ['random', 'randint', 'normal', 'shuffle', 'choice as randchoice']
-
-# this is not a standard component - it will appear on toolbar not in
-# components panel
-ioDeviceMap = dict(ioUtil.getDeviceNames(device_name="eyetracker.hw"))
-ioDeviceMap['None'] = ""
 
 # Keyboard backend options
 keyboardBackendMap = {
@@ -561,35 +556,54 @@ class SettingsComponent:
              "false": "disable",  # permitted: hide, show, enable, disable
              }
         )
+        # arrays for eyetracker backends
+        backendValues = ["None"]
+        backendLabels = ["None"]
+        # add known backends from plugins
+        for key, cls in knownEyetrackerBackends.items():
+            backendValues.append(key)
+            backendLabels.append(cls.label or key)
+        # add backends via legacy detection method
+        try:
+            from psychopy.iohub import util as ioUtil
+            for legLbl, legKey in ioUtil.getDeviceNames(device_name="eyetracker.hw"):
+                if legKey not in backendValues:
+                    backendValues.append(legKey)
+                    backendLabels.append(legLbl)
+        except:
+            # if it doesn't work, just stick with the known backends from plugins
+            pass
 
         self.params['eyetracker'] = Param(
             eyetracker, valType='str', inputType="choice",
-            allowedVals=list(ioDeviceMap),
+            allowedVals=backendValues,
+            allowedLabels=backendLabels,
             hint=_translate("What kind of eye tracker should PsychoPy use? Select 'MouseGaze' to use "
                             "the mouse to simulate eye movement (for debugging without a tracker connected)"),
             label=_translate("Eyetracker device"), categ="Eyetracking"
         )
 
-        #mousegaze
-        self.params['mgMove'] = Param(
-            mgMove, valType='str', inputType="choice",
-            allowedVals=['CONTINUOUS', 'LEFT_BUTTON', 'MIDDLE_BUTTON', 'RIGHT_BUTTON'],
-            hint=_translate("Mouse button to press for eye movement."),
-            label=_translate("Move button"), categ="Eyetracking"
-        )
+        # add params from backends
+        for backend in knownEyetrackerBackends.values():
+            # get params from backend
+            params, order = backend.getParams()
+            # append order
+            self.order += order
+            # iterate through params from this backend
+            for paramName, param in params.items():
+                # add param
+                self.params[paramName] = param
+                # add dependency on eyetracker param
+                self.depends.append({
+                    'dependsOn': "eyetracker",  # if...
+                    'condition': f"== '{backend.key}'",  # meets...
+                    'param': paramName,  # then...
+                    'true': "show",  # should...
+                    'false': "hide",  # otherwise...
+                })
 
-        self.params['mgBlink'] = Param(
-            mgBlink, valType='list', inputType="multiChoice",
-            allowedVals=['LEFT_BUTTON', 'MIDDLE_BUTTON', 'RIGHT_BUTTON'],
-            hint=_translate("Mouse button to press for a blink."),
-            label=_translate("Blink button"), categ="Eyetracking"
-        )
-
-        self.params['mgSaccade'] = Param(
-            mgSaccade, valType='num', inputType="single",
-            hint=_translate("Visual degree threshold for Saccade event creation."),
-            label=_translate("Saccade threshold"), categ="Eyetracking"
-        )
+        # as users with old versions of the plugin won't have params added dynamically, add legacy 
+        # params here manually
 
         # gazepoint
         self.params['gpAddress'] = Param(
@@ -611,27 +625,23 @@ class SettingsComponent:
             hint=_translate("Eye tracker model."),
             label=_translate("Model name"), categ="Eyetracking"
         )
-
         self.params['elSimMode'] = Param(
             elSimMode, valType='bool', inputType="bool",
             hint=_translate("Set the EyeLink to run in mouse simulation mode."),
             label=_translate("Mouse simulation mode"), categ="Eyetracking"
         )
-
         self.params['elSampleRate'] = Param(
             elSampleRate, valType='num', inputType="choice",
             allowedVals=['250', '500', '1000', '2000'],
             hint=_translate("Eye tracker sampling rate."),
             label=_translate("Sampling rate"), categ="Eyetracking"
         )
-
         self.params['elTrackEyes'] = Param(
             elTrackEyes, valType='str', inputType="choice",
             allowedVals=['LEFT_EYE', 'RIGHT_EYE', 'BOTH'],
             hint=_translate("Select with eye(s) to track."),
             label=_translate("Track eyes"), categ="Eyetracking"
         )
-
         self.params['elLiveFiltering'] = Param(
             elLiveFiltering, valType='str', inputType="choice",
             allowedVals=['FILTER_LEVEL_OFF', 'FILTER_LEVEL_1', 'FILTER_LEVEL_2'],
@@ -639,7 +649,6 @@ class SettingsComponent:
                             "This may reduce the sampling speed."),
             label=_translate("Live sample filtering"), categ="Eyetracking"
         )
-
         self.params['elDataFiltering'] = Param(
             elDataFiltering, valType='str', inputType="choice",
             allowedVals=['FILTER_LEVEL_OFF', 'FILTER_LEVEL_1', 'FILTER_LEVEL_2'],
@@ -647,28 +656,24 @@ class SettingsComponent:
                             "not affect the sampling speed."),
             label=_translate("Saved sample filtering"), categ="Eyetracking"
         )
-
         self.params['elTrackingMode'] = Param(
             elTrackingMode, valType='str', inputType="choice",
             allowedVals=['PUPIL_CR_TRACKING', 'PUPIL_ONLY_TRACKING'],
             hint=_translate("Track Pupil-CR or Pupil only."),
             label=_translate("Pupil tracking mode"), categ="Eyetracking"
         )
-
         self.params['elPupilAlgorithm'] = Param(
             elPupilAlgorithm, valType='str', inputType="choice",
             allowedVals=['ELLIPSE_FIT', 'CENTROID_FIT'],
             hint=_translate("Algorithm used to detect the pupil center."),
             label=_translate("Pupil center algorithm"), categ="Eyetracking"
         )
-
         self.params['elPupilMeasure'] = Param(
             elPupilMeasure, valType='str', inputType="choice",
             allowedVals=['PUPIL_AREA', 'PUPIL_DIAMETER', 'NEITHER'],
             hint=_translate("Type of pupil data to record."),
             label=_translate("Pupil data type"), categ="Eyetracking"
         )
-
         self.params['elAddress'] = Param(
             elAddress, valType='str', inputType="single",
             hint=_translate("IP Address of the EyeLink *Host* computer."),
@@ -681,19 +686,16 @@ class SettingsComponent:
             hint=_translate("Eye tracker model."),
             label=_translate("Model name"), categ="Eyetracking"
         )
-
         self.params['tbLicenseFile'] = Param(
             tbLicenseFile, valType='str', inputType="file",
             hint=_translate("Eye tracker license file (optional)."),
             label=_translate("License file"), categ="Eyetracking"
         )
-
         self.params['tbSerialNo'] = Param(
             tbSerialNo, valType='str', inputType="single",
             hint=_translate("Eye tracker serial number (optional)."),
             label=_translate("Serial number"), categ="Eyetracking"
         )
-
         self.params['tbSampleRate'] = Param(
             tbSampleRate, valType='num', inputType="single",
             hint=_translate("Eye tracker sampling rate."),
@@ -1421,7 +1423,6 @@ class SettingsComponent:
         if inits['mgMove'].val == "CONTINUOUS":
             inits['mgMove'].val = "$"
         inits['keyboardBackend'].val = keyboardBackendMap[inits['keyboardBackend'].val]
-        inits['eyetracker'].val = ioDeviceMap[inits['eyetracker'].val]
 
         # Make ioConfig dict
         code = (
@@ -1430,241 +1431,233 @@ class SettingsComponent:
         )
         buff.writeIndentedLines(code % inits)
 
-        # Add eyetracker config
+        # add eyetracker config
         if self.params['eyetracker'] != "None":
-            # Alert user if window is not fullscreen
-            if not self.params['Full-screen window'].val:
-                alert(code=4540)
-            # Alert user if no monitor config
+            # alert user if there's no monitor config
             if self.params['Monitor'].val in ["", None, "None"]:
                 alert(code=4545)
-            # Alert user if they need calibration and don't have it
-            if not self.params['eyetracker'].val in ["MouseGaze", "Pupil Labs (Neon)"]:
-                if not any(isinstance(rt, EyetrackerCalibrationRoutine)
-                           for rt in self.exp.flow):
-                    alert(code=4510, strFields={"eyetracker": self.params['eyetracker'].val})
-
-            # Write code
+            # write opening comment
             code = (
-                "\n"
-                "# Setup eyetracking\n"
-                "ioConfig[%(eyetracker)s] = {\n"
+                "# setup eyetracking\n"
             )
-            buff.writeIndentedLines(code % inits)
-            buff.setIndentLevel(1, relative=True)
-            code = (
-                    "'name': 'tracker',\n"
-            )
-            buff.writeIndentedLines(code % inits)
-            # Initialise for MouseGaze
-            if self.params['eyetracker'] == "MouseGaze":
+            buff.writeIndentedLines(code)
+            # if backend is known and has an associated class, use its methods
+            if self.params['eyetracker'].val in knownEyetrackerBackends:
+                # get backend class
+                backend = knownEyetrackerBackends[self.params['eyetracker'].val]
+                # alert user if they need fullscreen and don't have it
+                if backend.needsFullscreen and not self.params['Full-screen window'].val:
+                    alert(code=4540)
+                # alert user if they need calibration and don't have it
+                if backend.needsCalibration and not any(
+                    isinstance(rt, EyetrackerCalibrationRoutine) for rt in self.exp.flow
+                ):
+                    alert(code=4510, strFields={'eyetracker': self.params['eyetracker'].val})
+                # write code
+                backend.writeDeviceCode(inits, buff)
+            # otherwise, do it the old fashioned way
+            else:
                 code = (
-                        "'controls': {\n"
+                    "ioConfig[%(eyetracker)s] = {\n"
                 )
                 buff.writeIndentedLines(code % inits)
                 buff.setIndentLevel(1, relative=True)
                 code = (
-                            "'move': [%(mgMove)s],\n"
-                            "'blink':%(mgBlink)s,\n"
-                            "'saccade_threshold': %(mgSaccade)s,\n"
+                        "'name': 'tracker',\n"
                 )
                 buff.writeIndentedLines(code % inits)
-                buff.setIndentLevel(-1, relative=True)
-                code = (
-                    "}\n"
-                )
-                buff.writeIndentedLines(code % inits)
+                # Initialise for MouseGaze
+                if self.params['eyetracker'] == "GazePoint":
+                    code = (
+                            "'network_settings': {\n"
+                    )
+                    buff.writeIndentedLines(code % inits)
+                    buff.setIndentLevel(1, relative=True)
+                    code = (
+                                "'ip_address': %(gpAddress)s,\n"
+                                "'port': %(gpPort)s\n"
+                    )
+                    buff.writeIndentedLines(code % inits)
+                    buff.setIndentLevel(-1, relative=True)
+                    code = (
+                        "}\n"
+                    )
+                    buff.writeIndentedLines(code % inits)
 
-            elif self.params['eyetracker'] == "GazePoint":
-                code = (
-                        "'network_settings': {\n"
-                )
-                buff.writeIndentedLines(code % inits)
-                buff.setIndentLevel(1, relative=True)
-                code = (
-                            "'ip_address': %(gpAddress)s,\n"
-                            "'port': %(gpPort)s\n"
-                )
-                buff.writeIndentedLines(code % inits)
-                buff.setIndentLevel(-1, relative=True)
-                code = (
-                    "}\n"
-                )
-                buff.writeIndentedLines(code % inits)
+                elif self.params['eyetracker'] == "Tobii Technology":
+                    code = (
+                            "'model_name': %(tbModel)s,\n"
+                            "'serial_number': %(tbSerialNo)s,\n"
+                            "'runtime_settings': {\n"
+                    )
+                    buff.writeIndentedLines(code % inits)
+                    buff.setIndentLevel(1, relative=True)
+                    code = (
+                                "'sampling_rate': %(tbSampleRate)s,\n"
+                    )
+                    buff.writeIndentedLines(code % inits)
+                    buff.setIndentLevel(-1, relative=True)
+                    code = (
+                        "}\n"
+                    )
+                    buff.writeIndentedLines(code % inits)
 
-            elif self.params['eyetracker'] == "Tobii Technology":
-                code = (
-                        "'model_name': %(tbModel)s,\n"
-                        "'serial_number': %(tbSerialNo)s,\n"
+                elif self.params['eyetracker'] == "SR Research Ltd":
+                    code = (
+                        "'model_name': %(elModel)s,\n"
+                        "'simulation_mode': %(elSimMode)s,\n"
+                        "'network_settings': %(elAddress)s,\n"
+                        "'default_native_data_file_name': 'EXPFILE',\n"
                         "'runtime_settings': {\n"
-                )
-                buff.writeIndentedLines(code % inits)
-                buff.setIndentLevel(1, relative=True)
-                code = (
-                            "'sampling_rate': %(tbSampleRate)s,\n"
-                )
-                buff.writeIndentedLines(code % inits)
-                buff.setIndentLevel(-1, relative=True)
-                code = (
-                    "}\n"
-                )
-                buff.writeIndentedLines(code % inits)
+                    )
+                    buff.writeIndentedLines(code % inits)
+                    buff.setIndentLevel(1, relative=True)
+                    code = (
+                            "'sampling_rate': %(elSampleRate)s,\n"
+                            "'track_eyes': %(elTrackEyes)s,\n"
+                            "'sample_filtering': {\n"
+                    )
+                    buff.writeIndentedLines(code % inits)
+                    buff.setIndentLevel(1, relative=True)
+                    code = (
+                                "'FILTER_FILE': %(elDataFiltering)s,\n"
+                                "'FILTER_ONLINE': %(elLiveFiltering)s,\n"
+                    )
+                    buff.writeIndentedLines(code % inits)
+                    buff.setIndentLevel(-1, relative=True)
+                    code = (
+                            "},\n"
+                            "'vog_settings': {\n"
+                    )
+                    buff.writeIndentedLines(code % inits)
+                    buff.setIndentLevel(1, relative=True)
+                    code = (
+                                "'pupil_measure_types': %(elPupilMeasure)s,\n"
+                                "'tracking_mode': %(elTrackingMode)s,\n"
+                                "'pupil_center_algorithm': %(elPupilAlgorithm)s,\n"
+                    )
+                    buff.writeIndentedLines(code % inits)
+                    buff.setIndentLevel(-1, relative=True)
+                    code = (
+                        "}\n"
+                    )
+                    buff.writeIndentedLines(code % inits)
+                    buff.setIndentLevel(-1, relative=True)
+                    code = (
+                        "}\n"
+                    )
+                    buff.writeIndentedLines(code % inits)
 
-            elif self.params['eyetracker'] == "SR Research Ltd":
-                code = (
-                    "'model_name': %(elModel)s,\n"
-                    "'simulation_mode': %(elSimMode)s,\n"
-                    "'network_settings': %(elAddress)s,\n"
-                    "'default_native_data_file_name': 'EXPFILE',\n"
-                    "'runtime_settings': {\n"
-                )
-                buff.writeIndentedLines(code % inits)
-                buff.setIndentLevel(1, relative=True)
-                code = (
-                        "'sampling_rate': %(elSampleRate)s,\n"
-                        "'track_eyes': %(elTrackEyes)s,\n"
-                        "'sample_filtering': {\n"
-                )
-                buff.writeIndentedLines(code % inits)
-                buff.setIndentLevel(1, relative=True)
-                code = (
-                            "'FILTER_FILE': %(elDataFiltering)s,\n"
-                            "'FILTER_ONLINE': %(elLiveFiltering)s,\n"
-                )
-                buff.writeIndentedLines(code % inits)
-                buff.setIndentLevel(-1, relative=True)
-                code = (
+                elif self.params['eyetracker'] == "Pupil Labs":
+                    # Open runtime_settings dict
+                    code = (
+                        "'runtime_settings': {\n"
+                    )
+                    buff.writeIndentedLines(code % inits)
+                    buff.setIndentLevel(1, relative=True)
+
+                    # Define runtime_settings dict
+                    code = (
+                        "'pupillometry_only': %(plPupillometryOnly)s,\n"
+                        "'surface_name': %(plSurfaceName)s,\n"
+                        "'confidence_threshold': %(plConfidenceThreshold)s,\n"
+                    )
+                    buff.writeIndentedLines(code % inits)
+
+                    # Open runtime_settings > pupil_remote dict
+                    code = (
+                        "'pupil_remote': {\n"
+                    )
+                    buff.writeIndentedLines(code % inits)
+                    buff.setIndentLevel(1, relative=True)
+
+                    # Define runtime_settings > pupil_remote dict
+                    code = (
+                        "'ip_address': %(plPupilRemoteAddress)s,\n"
+                        "'port': %(plPupilRemotePort)s,\n"
+                        "'timeout_ms': %(plPupilRemoteTimeoutMs)s,\n"
+                    )
+                    buff.writeIndentedLines(code % inits)
+
+                    # Close runtime_settings > pupil_remote dict
+                    buff.setIndentLevel(-1, relative=True)
+                    code = (
                         "},\n"
-                        "'vog_settings': {\n"
-                )
-                buff.writeIndentedLines(code % inits)
-                buff.setIndentLevel(1, relative=True)
-                code = (
-                            "'pupil_measure_types': %(elPupilMeasure)s,\n"
-                            "'tracking_mode': %(elTrackingMode)s,\n"
-                            "'pupil_center_algorithm': %(elPupilAlgorithm)s,\n"
-                )
-                buff.writeIndentedLines(code % inits)
+                    )
+                    buff.writeIndentedLines(code % inits)
+
+                    # Open runtime_settings > pupil_capture_recording dict
+                    code = (
+                        "'pupil_capture_recording': {\n"
+                    )
+                    buff.writeIndentedLines(code % inits)
+                    buff.setIndentLevel(1, relative=True)
+
+                    # Define runtime_settings > pupil_capture_recording dict
+                    code = (
+                        "'enabled': %(plPupilCaptureRecordingEnabled)s,\n"
+                        "'location': %(plPupilCaptureRecordingLocation)s,\n"
+                    )
+                    buff.writeIndentedLines(code % inits)
+
+                    # Close runtime_settings > pupil_capture_recording dict
+                    buff.setIndentLevel(-1, relative=True)
+                    code = (
+                        "}\n"
+                    )
+                    buff.writeIndentedLines(code % inits)
+
+                    # Close runtime_settings dict
+                    buff.setIndentLevel(-1, relative=True)
+                    code = (
+                        "}\n"
+                    )
+                    buff.writeIndentedLines(code % inits)
+
+                elif self.params['eyetracker'] == "Pupil Labs (Neon)":
+                    # Open runtime_settings dict
+                    code = (
+                        "'runtime_settings': {\n"
+                    )
+                    buff.writeIndentedLines(code % inits)
+                    buff.setIndentLevel(1, relative=True)
+                    # Define runtime_settings dict
+                    code = (
+                        "'companion_address': %(plCompanionAddress)s,\n"
+                        "'companion_port': %(plCompanionPort)s,\n"
+                        "'recording_enabled': %(plCompanionRecordingEnabled)s,\n"
+                    )
+                    buff.writeIndentedLines(code % inits)
+
+                    # Close runtime_settings dict
+                    buff.setIndentLevel(-1, relative=True)
+                    code = (
+                        "}\n"
+                    )
+                    buff.writeIndentedLines(code % inits)
+
+                elif self.params['eyetracker'] == "EyeLogic":
+                    code = (
+                        "'runtime_settings': {\n"
+                    )
+                    buff.writeIndentedLines(code % inits)
+                    buff.setIndentLevel(1, relative=True)
+                    code = (
+                        "'sampling_rate': %(ecSampleRate)s,\n"
+                    )
+                    buff.writeIndentedLines(code % inits)
+                    buff.setIndentLevel(-1, relative=True)
+                    code = (
+                        "}\n"
+                    )
+                    buff.writeIndentedLines(code % inits)
+
+                # Close ioDevice dict
                 buff.setIndentLevel(-1, relative=True)
                 code = (
                     "}\n"
                 )
                 buff.writeIndentedLines(code % inits)
-                buff.setIndentLevel(-1, relative=True)
-                code = (
-                    "}\n"
-                )
-                buff.writeIndentedLines(code % inits)
-
-            elif self.params['eyetracker'] == "Pupil Labs":
-                # Open runtime_settings dict
-                code = (
-                    "'runtime_settings': {\n"
-                )
-                buff.writeIndentedLines(code % inits)
-                buff.setIndentLevel(1, relative=True)
-
-                # Define runtime_settings dict
-                code = (
-                    "'pupillometry_only': %(plPupillometryOnly)s,\n"
-                    "'surface_name': %(plSurfaceName)s,\n"
-                    "'confidence_threshold': %(plConfidenceThreshold)s,\n"
-                )
-                buff.writeIndentedLines(code % inits)
-
-                # Open runtime_settings > pupil_remote dict
-                code = (
-                    "'pupil_remote': {\n"
-                )
-                buff.writeIndentedLines(code % inits)
-                buff.setIndentLevel(1, relative=True)
-
-                # Define runtime_settings > pupil_remote dict
-                code = (
-                    "'ip_address': %(plPupilRemoteAddress)s,\n"
-                    "'port': %(plPupilRemotePort)s,\n"
-                    "'timeout_ms': %(plPupilRemoteTimeoutMs)s,\n"
-                )
-                buff.writeIndentedLines(code % inits)
-
-                # Close runtime_settings > pupil_remote dict
-                buff.setIndentLevel(-1, relative=True)
-                code = (
-                    "},\n"
-                )
-                buff.writeIndentedLines(code % inits)
-
-                # Open runtime_settings > pupil_capture_recording dict
-                code = (
-                    "'pupil_capture_recording': {\n"
-                )
-                buff.writeIndentedLines(code % inits)
-                buff.setIndentLevel(1, relative=True)
-
-                # Define runtime_settings > pupil_capture_recording dict
-                code = (
-                    "'location': %(plPupilCaptureRecordingLocation)s,\n"
-                )
-                buff.writeIndentedLines(code % inits)
-
-                # Close runtime_settings > pupil_capture_recording dict
-                buff.setIndentLevel(-1, relative=True)
-                code = (
-                    "}\n"
-                )
-                buff.writeIndentedLines(code % inits)
-
-                # Close runtime_settings dict
-                buff.setIndentLevel(-1, relative=True)
-                code = (
-                    "}\n"
-                )
-                buff.writeIndentedLines(code % inits)
-
-            elif self.params['eyetracker'] == "Pupil Labs (Neon)":
-                # Open runtime_settings dict
-                code = (
-                    "'runtime_settings': {\n"
-                )
-                buff.writeIndentedLines(code % inits)
-                buff.setIndentLevel(1, relative=True)
-
-                # Define runtime_settings dict
-                code = (
-                    "'companion_address': %(plCompanionAddress)s,\n"
-                    "'companion_port': %(plCompanionPort)s,\n"
-                )
-                buff.writeIndentedLines(code % inits)
-
-                # Close runtime_settings dict
-                buff.setIndentLevel(-1, relative=True)
-                code = (
-                    "}\n"
-                )
-                buff.writeIndentedLines(code % inits)
-
-            elif self.params['eyetracker'] == "EyeLogic":
-                code = (
-                    "'runtime_settings': {\n"
-                )
-                buff.writeIndentedLines(code % inits)
-                buff.setIndentLevel(1, relative=True)
-                code = (
-                    "'sampling_rate': %(ecSampleRate)s,\n"
-                )
-                buff.writeIndentedLines(code % inits)
-                buff.setIndentLevel(-1, relative=True)
-                code = (
-                    "}\n"
-                )
-                buff.writeIndentedLines(code % inits)
-
-            # Close ioDevice dict
-            buff.setIndentLevel(-1, relative=True)
-            code = (
-                "}\n"
-            )
-            buff.writeIndentedLines(code % inits)
 
         # Add keyboard to ioConfig
         if self.params['keyboardBackend'] == 'ioHub':
