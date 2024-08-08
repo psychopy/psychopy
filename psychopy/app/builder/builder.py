@@ -1359,7 +1359,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         # update icons
         self.updateRunModeIcons()
         # update experiment mode
-        if self.exp is not None:
+        if self.exp is not None and self.exp.runMode != mode:
             self.exp.runMode = mode
             # mark as modified
             self.setIsModified(True)
