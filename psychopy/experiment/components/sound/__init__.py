@@ -49,10 +49,12 @@ class SoundComponent(BaseDeviceComponent):
         self.url = "https://www.psychopy.org/builder/components/sound.html"
         self.exp.requirePsychopyLibs(['sound'])
         self.order += [
-            "sound",  # Basic tab
-            "volume", "hammingWindow",  # Playback tab
+            "sound",  "syncScreenRefresh",  # Basic tab
+            "speakerIndex",  # Device tab
+            "volume", "hamming", "stopWithRoutine", "forceEndRoutine"  # Playback tab
         ]
-        # params
+
+        # --- Basic params ---
         hnt = _translate("When does the Component end? (blank to use the "
                          "duration of the media)")
         self.params['stopVal'].hint = hnt
@@ -78,12 +80,8 @@ class SoundComponent(BaseDeviceComponent):
             updates='constant',
             hint=msg,
             label=_translate("Sync start with screen"))
+
         # --- Playback params ---
-        self.order += [
-            "hamming",
-            "stopWithRoutine",
-            "forceEndRoutine"
-        ]
         self.params['hamming'] = Param(
             True, valType='bool', inputType="bool", updates='constant', categ='Playback',
             hint=_translate(
@@ -101,14 +99,9 @@ class SoundComponent(BaseDeviceComponent):
             hint=_translate(
                 "Should the end of the sound cause the end of the Routine (e.g. trial)?"
             ),
-            label=_translate("Force end of Routine")
-        )
+            label=_translate("Force end of Routine"))
 
         # --- Device params ---
-        self.order += [
-            "speaker"
-        ]
-
         def getSpeakerLabels():
             from psychopy.hardware.speaker import SpeakerDevice
             labels = [_translate("Default")]
@@ -132,8 +125,7 @@ class SoundComponent(BaseDeviceComponent):
             hint=_translate(
                 "What speaker to play this sound on"
             ),
-            label=_translate("Speaker")
-        )
+            label=_translate("Speaker"))
 
     def writeDeviceCode(self, buff):
         inits = getInitVals(self.params)
