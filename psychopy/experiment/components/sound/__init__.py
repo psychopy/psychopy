@@ -269,7 +269,7 @@ class SoundComponent(BaseDeviceComponent):
         )
         buff.writeIndentedLines(code % self.params)
 
-        # the sound object is unusual, because it is
+        # the sound object is unusual, because it is controlling the playback stream
         buff.writeIndented("// start/stop %(name)s\n" % (self.params))
         # do this EVERY frame, even before/after playing?
         self.writeParamUpdates(buff, 'set every frame', target="PsychoJS")
@@ -283,7 +283,7 @@ class SoundComponent(BaseDeviceComponent):
         # because of the 'if' statement of the time test
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines('}\n')
-        
+
         # are we stopping this frame?
         indented = self.writeStopTestCodeJS(buff, extra=" || %(name)s.isFinished")
         if indented:
@@ -331,20 +331,20 @@ class SoundComponent(BaseDeviceComponent):
             buff.writeIndentedLines(code % self.params)
 
     def writeParamUpdate(
-            self, 
-            buff, 
-            compName, 
-            paramName, 
-            val, 
+            self,
+            buff,
+            compName,
+            paramName,
+            val,
             updateType,
-            params=None, 
+            params=None,
             target="PsychoPy",
     ):
         """
         Overload BaseComponent.writeParamUpdate to handle special case for SoundComponent
         """
         # when writing param updates for Sound.sound, needs to be `setValue` in JS
-        # (this is intended as a temporary patch - please delete when `setSound` in JS can accept 
+        # (this is intended as a temporary patch - please delete when `setSound` in JS can accept
         # the same range of values as in Py)
         if target == 'PsychoJS' and paramName == "sound":
             # get logging string
@@ -360,12 +360,12 @@ class SoundComponent(BaseDeviceComponent):
         else:
             # do normal stuff for every other param
             BaseDeviceComponent.writeParamUpdate(
-                self, 
-                buff, 
-                compName, 
-                paramName, 
-                val, 
+                self,
+                buff,
+                compName,
+                paramName,
+                val,
                 updateType,
-                params=params, 
+                params=params,
                 target=target,
             )
