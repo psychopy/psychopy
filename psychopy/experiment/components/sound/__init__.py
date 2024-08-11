@@ -290,15 +290,8 @@ class SoundComponent(BaseDeviceComponent):
             # stop playback
             code = (
                 "// stop playback\n"
+                "%(name)s.stop();\n"
             )
-            if self.params['syncScreenRefresh'].val:
-                code += (
-                    "psychoJS.window.callOnFlip(function(){ %(name)s.stop(); });\n"
-                )
-            else:
-                code += (
-                    "%(name)s.stop();\n"
-                )
             buff.writeIndentedLines(code % self.params)
             # end Routine if asked
             if self.params['forceEndRoutine']:
