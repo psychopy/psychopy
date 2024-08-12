@@ -782,6 +782,13 @@ class Trial(dict):
         for key, val in value.items():
             self[key] = val
     
+    @property
+    def skipped(self):
+        """
+        Has this Trial been skipped?
+        """
+        return self.data.get('skipped', False)
+    
     def getDict(self):
         """
         Get this Trial as a dict.
@@ -1233,15 +1240,16 @@ class TrialHandler2(_BaseTrialHandler):
                 f"Skipping to the last upcoming trial."
             )
             n = len(self.upcomingTrials)
-        # iterate n times
-        for i in range(n):
+        # before iterating, add "skipped" to data
+        self.addData("skipped", True)
+        # iterate n times (-1 to account for current trial)
+        for i in range(n-1):
+            self.__next__()
             # before iterating, add "skipped" to data
             self.addData("skipped", True)
             # advance row in data file
             if self.getExp() is not None:
-                self.getExp().nextEntry()
-            # iterate
-            self.__next__()
+                self.getExp().nextEntry()                
 
     def rewindTrials(self, n=1):
         """
