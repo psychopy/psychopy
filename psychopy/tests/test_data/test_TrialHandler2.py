@@ -274,6 +274,8 @@ class TestTrialHandler2:
             # move forwards/backwards according to case values
             if case['advance'] >= 0:
                 t.skipTrials(case['advance'])
+                # account for current iteration ending (as if in experiment)
+                t.__next__()
             else:
                 t.rewindTrials(case['advance'])
             # get trials
@@ -352,6 +354,8 @@ class TestTrialHandler2:
             else:
                 # if positive, skip
                 t.skipTrials(inc)
+                # account for current iteration ending (as if in experiment)
+                t.__next__()
             # check that new current Trial is correct
             for key in answer:
                 assert getattr(t.thisTrial, key) == answer[key], (
