@@ -35,7 +35,7 @@ import shutil
 import site
 
 # On import we want to configure the user site-packages dir and add it to the
-# import path. 
+# import path.
 # set user site-packages dir
 if os.environ.get('PSYCHOPYNOPACKAGES', '0') == '1':
     site.ENABLE_USER_SITE = True
@@ -43,14 +43,14 @@ if os.environ.get('PSYCHOPYNOPACKAGES', '0') == '1':
     site.USER_BASE = None
     logging.debug(
         'User site-packages dir set to: %s' % site.getusersitepackages())
-    
+
     # add paths from main plugins/packages (installed by plugins manager)
     site.addsitedir(prefs.paths['userPackages'])  # user site-packages
     site.addsitedir(prefs.paths['userInclude'])  # user include
     site.addsitedir(prefs.paths['packages'])  # base package dir
 
-if not site.USER_SITE in sys.path:
-    site.addsitedir(site.getusersitepackages()) 
+if site.USER_SITE not in sys.path:
+    site.addsitedir(site.getusersitepackages())
 
 # cache list of packages to speed up checks
 _installedPackageCache = []
@@ -58,6 +58,10 @@ _installedPackageNamesCache = []
 
 # reference the user packages path
 USER_PACKAGES_PATH = str(prefs.paths['userPackages'])
+
+
+class PluginRequiredError(Exception):
+    pass
 
 
 class PluginStub:
@@ -82,22 +86,23 @@ class PluginStub:
         cls.__doc__ = (
             "`{mro}` is now located within the `{plugin}` plugin. You can find the documentation for it `here <{doclink}>`_."
         ).format(
-            mro=cls.__mro__,
+            mro=cls.__module__,
             plugin=plugin,
             doclink=doclink
         )
-    
-    def __call__(self, *args, **kwargs):
+
+
+    def __init__(self, *args, **kwargs):
         """
         When initialised, rather than creating an object, will log an error.
         """
-        raise NameError(
+        raise PluginRequiredError((
             "Support for `{mro}` is not available this session. Please install "
             "`{plugin}` and restart the session to enable support."
         ).format(
-            mro=type(self).__mro__,
+            mro=type(self).__module__,
             plugin=self.plugin,
-        )
+        ))
 
 
 def refreshPackages():
@@ -112,7 +117,7 @@ def refreshPackages():
 
     _installedPackageCache.clear()
     _installedPackageNamesCache.clear()
-    
+
     # iterate through installed packages in the user folder
     for dist in importlib.metadata.distributions(path=sys.path + [USER_PACKAGES_PATH]):
         # get name if in 3.8
@@ -186,11 +191,11 @@ def addDistribution(distPath):
 
 
 def installPackage(
-    package, 
-    target=None, 
-    upgrade=False, 
+    package,
+    target=None,
+    upgrade=False,
     forceReinstall=False,
-    noDeps=False, 
+    noDeps=False,
     awaited=True,
     outputCallback=None,
     terminateCallback=None,
@@ -219,15 +224,15 @@ def installPackage(
     noDeps : bool
         Don't install dependencies if `True`.
     awaited : bool
-        If False, then use an asynchronous install process - this function will return right away 
+        If False, then use an asynchronous install process - this function will return right away
         and the plugin install will happen in a different thread.
     outputCallback : function
-        Function to be called when any output text is received from the process performing the 
+        Function to be called when any output text is received from the process performing the
         install. Not used if awaited=True.
     terminateCallback : function
         Function to be called when installation is finished. Not used if awaited=True.
     extra : dict
-        Extra information to be supplied to the install thread when installing asynchronously. 
+        Extra information to be supplied to the install thread when installing asynchronously.
         Not used if awaited=True.
 
     Returns
@@ -243,7 +248,7 @@ def installPackage(
     """
     if target is None:
         target = prefs.paths['userPackages']
-    
+
     # convert extra to dict
     if extra is None:
         extra = {}
@@ -285,6 +290,7 @@ def installPackage(
     cmd.append('--no-input')  # do not prompt, we cannot accept input
     cmd.append('--no-color')  # no color for console, not supported
     cmd.append('--no-warn-conflicts')  # silence non-fatal errors
+    cmd.append('--disable-pip-version-check')  # do not check for pip updates
 
     # get the environment for the subprocess
     env = os.environ.copy()
@@ -350,7 +356,7 @@ def _getUserPackageTopLevels():
 
     foundTopLevelDirs = dict()
     for foundDir in userPackageDirs:
-        if not  foundDir.endswith('.dist-info'):
+        if not foundDir.endswith('.dist-info'):
             continue
 
         topLevelPath = os.path.join(userPackageDir, foundDir, 'top_level.txt')
@@ -397,7 +403,7 @@ def _isUserPackage(package):
             distName = dist.name
         # get name
         userPackages.append(distName)
-    
+
     return package in userPackages
 
 
@@ -425,7 +431,7 @@ def _uninstallUserPackage(package):
     # string to use as stdout
     stdout = ""
     # take note of this function being run as if it was a command
-    cmd = f"python psychopy.tools.pkgtools._uninstallUserPackage(package)"
+    cmd = "python psychopy.tools.pkgtools._uninstallUserPackage(package)"
 
     userPackagePath = getUserPackagesPath()
 
@@ -463,18 +469,19 @@ def _uninstallUserPackage(package):
                 stdout += _translate(
                     "Could not remove {absPath}, reason: {err}".format(absPath=absPath, err=err)
                 )
-    
+
     # log success
     msg = 'Uninstalled package `{}`.'.format(package)
     logging.info(msg)
     stdout += msg + "\n"
-    
+
     # return the return code and a dict of information from the console
     return True, {
         "cmd": cmd,
         "stdout": stdout,
         "stderr": ""
     }
+
 
 def uninstallPackage(package):
     """Uninstall a package from the current distribution.
@@ -640,7 +647,7 @@ def getPypiInfo(packageName, silence=False):
             "Could not get info for package {}. Reason:\n"
             "\n"
             "{}"
-        ).format(packageName,err), style=wx.ICON_ERROR)
+        ).format(packageName, err), style=wx.ICON_ERROR)
         if not silence:
             dlg.ShowModal()
         return

@@ -112,7 +112,7 @@ class SoundComponent(BaseDeviceComponent):
             return vals
 
         self.params['speakerIndex'] = Param(
-            speakerIndex, valType="code", inputType="choice", categ="Device",
+            speakerIndex, valType="str", inputType="choice", categ="Device",
             allowedVals=getSpeakerValues,
             allowedLabels=getSpeakerLabels,
             hint=_translate(

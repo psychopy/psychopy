@@ -114,11 +114,9 @@ class SettingsComponent:
             plPupilRemoteAddress="127.0.0.1",
             plPupilRemotePort=50020,
             plPupilRemoteTimeoutMs=1000,
-            plPupilCaptureRecordingEnabled=True,
             plPupilCaptureRecordingLocation="",
             plCompanionAddress="neon.local",
             plCompanionPort=8080,
-            plCompanionRecordingEnabled=True,
             ecSampleRate='default',
             keyboardBackend="ioHub",
             filename=None, exportHTML='on Sync',
@@ -541,8 +539,8 @@ class SettingsComponent:
             "Tobii Technology": ["tbModel", "tbLicenseFile", "tbSerialNo", "tbSampleRate"],
             "Pupil Labs": ["plPupillometryOnly", "plSurfaceName", "plConfidenceThreshold",
                            "plPupilRemoteAddress", "plPupilRemotePort", "plPupilRemoteTimeoutMs",
-                           "plPupilCaptureRecordingEnabled", "plPupilCaptureRecordingLocation"],
-            "Pupil Labs (Neon)": ["plCompanionAddress", "plCompanionPort", "plCompanionRecordingEnabled"],
+                           "plPupilCaptureRecordingLocation"],
+            "Pupil Labs (Neon)": ["plCompanionAddress", "plCompanionPort"],
             "EyeLogic": ["ecSampleRate"],
         }
         for tracker in trackerParams:
@@ -734,11 +732,6 @@ class SettingsComponent:
             hint=_translate("Pupil remote timeout (ms)"),
             label=_translate("Pupil remote timeout (ms)"), categ="Eyetracking"
         )
-        self.params['plPupilCaptureRecordingEnabled'] = Param(
-            plPupilCaptureRecordingEnabled, valType='bool', inputType="bool",
-            hint=_translate("Pupil capture recording enabled"),
-            label=_translate("Pupil capture recording enabled"), categ="Eyetracking"
-        )
         self.params['plPupilCaptureRecordingLocation'] = Param(
             plPupilCaptureRecordingLocation, valType='str', inputType="single",
             hint=_translate("Pupil capture recording location"),
@@ -753,11 +746,6 @@ class SettingsComponent:
             plCompanionPort, valType='num', inputType="single",
             hint=_translate("Companion port"),
             label=_translate("Companion port"), categ="Eyetracking"
-        )
-        self.params['plCompanionRecordingEnabled'] = Param(
-            plCompanionRecordingEnabled, valType='bool', inputType="bool",
-            hint=_translate("Recording enabled"),
-            label=_translate("Recording enabled"), categ="Eyetracking"
         )
 
         # EyeLogic
@@ -1615,7 +1603,6 @@ class SettingsComponent:
 
                 # Define runtime_settings > pupil_capture_recording dict
                 code = (
-                    "'enabled': %(plPupilCaptureRecordingEnabled)s,\n"
                     "'location': %(plPupilCaptureRecordingLocation)s,\n"
                 )
                 buff.writeIndentedLines(code % inits)
@@ -1646,7 +1633,6 @@ class SettingsComponent:
                 code = (
                     "'companion_address': %(plCompanionAddress)s,\n"
                     "'companion_port': %(plCompanionPort)s,\n"
-                    "'recording_enabled': %(plCompanionRecordingEnabled)s,\n"
                 )
                 buff.writeIndentedLines(code % inits)
 

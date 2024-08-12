@@ -56,7 +56,6 @@ eyetracker.hw.pupil_labs.pupil_core.EyeTracker:
             port: 50020
             timeout_ms: 1000
         pupil_capture_recording:
-            enabled: True
             location: Null # Use Pupil Capture default recording location
         # Subscribe to pupil data only, does not require calibration or surface setup
         pupillometry_only: False

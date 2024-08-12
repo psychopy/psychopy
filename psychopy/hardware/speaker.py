@@ -1,36 +1,49 @@
-from psychopy.hardware import BaseDevice
+from psychopy.hardware import BaseDevice, DeviceManager
 from psychopy.sound import setDevice, getDevices, backend
+from psychopy.tools import systemtools as st
 from psychopy import logging
 
 
 class SpeakerDevice(BaseDevice):
     def __init__(self, index):
-        profiles = self.getAvailableDevices()
+        # placeholder values, in case none set later
+        self.deviceName = None
+        self.index = None
 
-        # if index is default (-1), setup a default device index
-        if not isinstance(index, (int, float)) or index < 0:
-            index = profiles[0]['index']  # initialize as the first device
+        # try simple integerisation of index
+        if isinstance(index, str):
+            try:
+                index = int(index)
+            except ValueError:
+                pass
+        
+        # get all playback devices
+        profiles = st.getAudioPlaybackDevices()
 
-            # check if a default device is already set and update index
+        # if index is default, get default
+        if index in (-1, None):
             if hasattr(backend, 'defaultOutput'):
+                # check if a default device is already set and update index
                 defaultDevice = backend.defaultOutput
                 if isinstance(defaultDevice, (int, float)):
                     # if a default device index is set, use it
                     index = defaultDevice
                 elif isinstance(defaultDevice, str):
                     # if a default device is set by name, find it
-                    for profile in profiles:
-                        if profile['deviceName'] == defaultDevice:
+                    for profile in profiles.values():
+                        if profile['name'] == defaultDevice:
                             index = profile['index']
+            else:
+                index = profiles[0]['index']
+        
+        # find profile which matches index
+        for profile in profiles.values():
+            if index in (profile['index'], profile['name']):
+                self.index = int(profile['index'])
+                self.deviceName = profile['name']
 
-        available_index = [profile['index'] for profile in profiles]
-        if index < 0 or index not in available_index:
+        if self.index is None:
             logging.error("No speaker device found with index %d" % index)
-
-        # store index
-        self.index = index
-        # set global device (best we can do for now)
-        setDevice(index)
 
     def isSameDevice(self, other):
         """
@@ -57,7 +70,7 @@ class SpeakerDevice(BaseDevice):
             # if the other object is the wrong type or doesn't have an index, it's not this
             return False
 
-        return self.index == index
+        return index in (self.index, self.deviceName)
 
     def testDevice(self):
         """
@@ -78,11 +91,14 @@ class SpeakerDevice(BaseDevice):
     @staticmethod
     def getAvailableDevices():
         devices = []
-
         for profile in getDevices(kind="output").values():
+            # get index as a name if possible
+            index = profile.get('DeviceName', None)
+            if index is None:
+                index = profile.get('DeviceIndex', None)
             device = {
                 'deviceName': profile.get('DeviceName', "Unknown Microphone"),
-                'index': profile.get('DeviceIndex', None),
+                'index': index,
             }
             devices.append(device)
 
