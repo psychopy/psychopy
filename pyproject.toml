@@ -40,7 +40,7 @@ dependencies = [
     "soundfile",
     "imageio",
     "imageio-ffmpeg",
-    "psychtoolbox",
+    "psychtoolbox; platform_machine!='arm64'",
     # for iohub
     "pywinhook; platform_system == \"Windows\"",
     "gevent",
