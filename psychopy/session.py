@@ -724,7 +724,7 @@ class Session:
 
         return True
 
-    def setupWindowFromParams(self, params, measureFrameRate=False, blocking=True):
+    def setupWindowFromParams(self, params, measureFrameRate=False, recreate=True, blocking=True):
         """
         Create/setup a window from a dict of parameters
 
@@ -735,6 +735,8 @@ class Session:
             __init__ signature of psychopy.visual.Window
         measureFrameRate : bool
             If True, will measure frame rate upon window creation.
+        recreate : bool
+            If True, will close and recreate the window as needed
         blocking : bool
             Should calling this method block the current thread?
 
@@ -761,6 +763,23 @@ class Session:
                 params
             )
             return True
+        
+        # figure out whether we need to recreate the window
+        needsRecreate = False
+        for param in ("fullscr", "size", "pos", "screen"):
+            # skip params not specified
+            if param not in params:
+                continue
+            # skip all if there's no window
+            if self.win is None:
+                continue
+            # if param has changed, we'll need to recreate the window to apply it
+            if getattr(self.win, param) != params[param]:
+                needsRecreate = True
+        # if recreating, close window so we make a new one
+        if recreate and needsRecreate:
+            self.win.close()
+            self.win = None
 
         if self.win is None:
             # If win is None, make a Window
