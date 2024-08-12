@@ -776,6 +776,12 @@ class Session:
             # if param has changed, we'll need to recreate the window to apply it
             if getattr(self.win, param) != params[param]:
                 needsRecreate = True
+                # if not allowed to recreate, warn
+                if not recreate:
+                    logging.warn(
+                        f"Changing Window.{param} requires the Window to be recreated, but "
+                        "`Session.setupWindowFromParams` was called with `recreate=False`."
+                    )
         # if recreating, close window so we make a new one
         if recreate and needsRecreate:
             self.win.close()
