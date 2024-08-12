@@ -1233,6 +1233,8 @@ class TrialHandler2(_BaseTrialHandler):
         n : int
             Number of trials to skip ahead
         """
+        # account for the fact current trial will end once skipped
+        n -= 1
         # if skipping past last trial, print warning and skip to last trial
         if n > len(self.upcomingTrials):
             logging.warn(
@@ -1243,7 +1245,7 @@ class TrialHandler2(_BaseTrialHandler):
         # before iterating, add "skipped" to data
         self.addData("skipped", True)
         # iterate n times (-1 to account for current trial)
-        for i in range(n-1):
+        for i in range(n):
             self.__next__()
             # before iterating, add "skipped" to data
             self.addData("skipped", True)
