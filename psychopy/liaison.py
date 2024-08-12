@@ -329,6 +329,10 @@ class WebSocketServer:
 		message : string
 			the message sent by the client to the server, as a JSON string
 		"""
+		# log message
+		self._logger.debug(
+			f"Liaison received message: {message}"
+		)
 		# decode the message:
 		try:
 			decodedMessage = json.loads(message)
