@@ -48,13 +48,13 @@ class SoundComponent(BaseDeviceComponent):
         self.type = 'Sound'
         self.url = "https://www.psychopy.org/builder/components/sound.html"
         self.exp.requirePsychopyLibs(['sound'])
-        self.order += [
-            "sound",  "syncScreenRefresh",  # Basic tab
-            "speakerIndex",  # Device tab
-            "volume", "hamming", "stopWithRoutine", "forceEndRoutine"  # Playback tab
-        ]
 
         # --- Basic params ---
+        self.order += [
+            "sound",  
+            "syncScreenRefresh",
+        ]
+
         hnt = _translate("When does the Component end? (blank to use the "
                          "duration of the media)")
         self.params['stopVal'].hint = hnt
@@ -67,11 +67,6 @@ class SoundComponent(BaseDeviceComponent):
             hint=hnt,
             label=_translate("Sound"))
         _allowed = ['constant', 'set every repeat', 'set every frame']
-        self.params['volume'] = Param(
-            volume, valType='num', inputType="single", allowedTypes=[], updates='constant', categ='Playback',
-            allowedUpdates=_allowed[:],  # use a copy
-            hint=_translate("The volume (in range 0 to 1)"),
-            label=_translate("Volume"))
         msg = _translate(
             "A reaction time to a sound stimulus should be based on when "
             "the screen flipped")
@@ -82,6 +77,18 @@ class SoundComponent(BaseDeviceComponent):
             label=_translate("Sync start with screen"))
 
         # --- Playback params ---
+        self.order += [
+            "volume", 
+            "hamming", 
+            "stopWithRoutine", 
+            "forceEndRoutine",
+        ]
+        self.params['volume'] = Param(
+            volume, valType='num', inputType="single", allowedTypes=[], updates='constant', categ='Playback',
+            allowedUpdates=_allowed[:],  # use a copy
+            hint=_translate("The volume (in range 0 to 1)"),
+            label=_translate("Volume")
+        )
         self.params['hamming'] = Param(
             True, valType='bool', inputType="bool", updates='constant', categ='Playback',
             hint=_translate(
@@ -102,6 +109,9 @@ class SoundComponent(BaseDeviceComponent):
             label=_translate("Force end of Routine"))
 
         # --- Device params ---
+        self.order += [
+            "speakerIndex"
+        ]
         def getSpeakerLabels():
             from psychopy.hardware.speaker import SpeakerDevice
             labels = [_translate("Default")]
