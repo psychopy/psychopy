@@ -49,10 +49,12 @@ class SoundComponent(BaseDeviceComponent):
         self.url = "https://www.psychopy.org/builder/components/sound.html"
         self.exp.requirePsychopyLibs(['sound'])
         self.order += [
-            "sound",  # Basic tab
-            "volume", "hammingWindow",  # Playback tab
+            "sound",  "syncScreenRefresh",  # Basic tab
+            "speakerIndex",  # Device tab
+            "volume", "hamming", "stopWithRoutine", "forceEndRoutine"  # Playback tab
         ]
-        # params
+
+        # --- Basic params ---
         hnt = _translate("When does the Component end? (blank to use the "
                          "duration of the media)")
         self.params['stopVal'].hint = hnt
@@ -78,12 +80,8 @@ class SoundComponent(BaseDeviceComponent):
             updates='constant',
             hint=msg,
             label=_translate("Sync start with screen"))
+
         # --- Playback params ---
-        self.order += [
-            "hamming",
-            "stopWithRoutine",
-            "forceEndRoutine"
-        ]
         self.params['hamming'] = Param(
             True, valType='bool', inputType="bool", updates='constant', categ='Playback',
             hint=_translate(
@@ -101,14 +99,9 @@ class SoundComponent(BaseDeviceComponent):
             hint=_translate(
                 "Should the end of the sound cause the end of the Routine (e.g. trial)?"
             ),
-            label=_translate("Force end of Routine")
-        )
+            label=_translate("Force end of Routine"))
 
         # --- Device params ---
-        self.order += [
-            "speaker"
-        ]
-
         def getSpeakerLabels():
             from psychopy.hardware.speaker import SpeakerDevice
             labels = [_translate("Default")]
@@ -132,8 +125,7 @@ class SoundComponent(BaseDeviceComponent):
             hint=_translate(
                 "What speaker to play this sound on"
             ),
-            label=_translate("Speaker")
-        )
+            label=_translate("Speaker"))
 
     def writeDeviceCode(self, buff):
         inits = getInitVals(self.params)
@@ -277,7 +269,7 @@ class SoundComponent(BaseDeviceComponent):
         )
         buff.writeIndentedLines(code % self.params)
 
-        # the sound object is unusual, because it is
+        # the sound object is unusual, because it is controlling the playback stream
         buff.writeIndented("// start/stop %(name)s\n" % (self.params))
         # do this EVERY frame, even before/after playing?
         self.writeParamUpdates(buff, 'set every frame', target="PsychoJS")
@@ -291,22 +283,15 @@ class SoundComponent(BaseDeviceComponent):
         # because of the 'if' statement of the time test
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines('}\n')
-        
+
         # are we stopping this frame?
         indented = self.writeStopTestCodeJS(buff, extra=" || %(name)s.isFinished")
         if indented:
             # stop playback
             code = (
                 "// stop playback\n"
+                "%(name)s.stop();\n"
             )
-            if self.params['syncScreenRefresh'].val:
-                code += (
-                    "psychoJS.window.callOnFlip(function(){ %(name)s.stop(); });\n"
-                )
-            else:
-                code += (
-                    "%(name)s.stop();\n"
-                )
             buff.writeIndentedLines(code % self.params)
             # end Routine if asked
             if self.params['forceEndRoutine']:
@@ -339,20 +324,20 @@ class SoundComponent(BaseDeviceComponent):
             buff.writeIndentedLines(code % self.params)
 
     def writeParamUpdate(
-            self, 
-            buff, 
-            compName, 
-            paramName, 
-            val, 
+            self,
+            buff,
+            compName,
+            paramName,
+            val,
             updateType,
-            params=None, 
+            params=None,
             target="PsychoPy",
     ):
         """
         Overload BaseComponent.writeParamUpdate to handle special case for SoundComponent
         """
         # when writing param updates for Sound.sound, needs to be `setValue` in JS
-        # (this is intended as a temporary patch - please delete when `setSound` in JS can accept 
+        # (this is intended as a temporary patch - please delete when `setSound` in JS can accept
         # the same range of values as in Py)
         if target == 'PsychoJS' and paramName == "sound":
             # get logging string
@@ -368,12 +353,12 @@ class SoundComponent(BaseDeviceComponent):
         else:
             # do normal stuff for every other param
             BaseDeviceComponent.writeParamUpdate(
-                self, 
-                buff, 
-                compName, 
-                paramName, 
-                val, 
+                self,
+                buff,
+                compName,
+                paramName,
+                val,
                 updateType,
-                params=params, 
+                params=params,
                 target=target,
             )
