@@ -348,12 +348,13 @@ class TestTrialHandler2:
         ]
         # iterate through cases
         for inc, answer in cases:
+            # account for current iteration ending (as if in experiment)
+            t.__next__()
+            
             if inc < 0:
                 # if increment is negative, rewind
                 t.rewindTrials(inc)
             else:
-                # account for current iteration ending (as if in experiment)
-                t.__next__()
                 # if positive, skip
                 t.skipTrials(inc)
             # check that new current Trial is correct

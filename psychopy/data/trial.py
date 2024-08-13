@@ -1265,6 +1265,8 @@ class TrialHandler2(_BaseTrialHandler):
         """
         # treat -n as n
         n = abs(n)
+        # account for the fact current trial will end once skipped
+        n += 1
         # if rewinding past first trial, print warning and rewind to first trial
         if n > len(self.elapsedTrials):
             logging.warn(
@@ -1272,6 +1274,8 @@ class TrialHandler2(_BaseTrialHandler):
                 f"elapsed. Rewinding to the first trial."
             )
             n = len(self.elapsedTrials)
+        # mark current trial as skipped so it ends
+        self.addData("skipped", True)
         # start with no trials
         rewound = [self.thisTrial]
         # pop the last n values from elapsed trials
