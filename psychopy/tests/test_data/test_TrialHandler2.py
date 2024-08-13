@@ -352,10 +352,10 @@ class TestTrialHandler2:
                 # if increment is negative, rewind
                 t.rewindTrials(inc)
             else:
-                # if positive, skip
-                t.skipTrials(inc)
                 # account for current iteration ending (as if in experiment)
                 t.__next__()
+                # if positive, skip
+                t.skipTrials(inc)
             # check that new current Trial is correct
             for key in answer:
                 assert getattr(t.thisTrial, key) == answer[key], (
