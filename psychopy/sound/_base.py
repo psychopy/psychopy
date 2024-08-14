@@ -169,10 +169,12 @@ class _SoundBase(AttributeGetSetMixin):
         """
         # Re-init sound to ensure bad values will raise error during setting:
         self._snd = None
-
+        # make references to default stim into absolute paths
         if isinstance(value, str) and value in defaultStim:
             value = defaultStimRoot / defaultStim[value]
-
+        # if directly given a Microphone, get its last recording
+        if hasattr(value, "lastClip"):
+            value = value.lastClip
         # Coerces pathlib obj to string, else returns inputted value
         value = pathToString(value)
         try:
