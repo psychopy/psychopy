@@ -7,7 +7,7 @@ from tempfile import mkdtemp
 import numpy as np
 
 from ..utils import TESTS_DATA_PATH
-from psychopy import experiment, core
+from psychopy import experiment, core, logging
 
 from psychopy import prefs, core
 prefs.hardware['audioLib'] = ['ptb', 'sounddevice']
@@ -54,8 +54,12 @@ class TestLoops:
 
             # Run Python script to generate data file
             stdout, stderr = core.shellCall([sys.executable, str(pyScriptFile)], stderr=True)
+            # print stdout so the test suite can see it
             print(stdout)
-            print(stderr)
+            # log any errors so the test suite can see them
+            if stderr:
+                logging.error(stderr)
+            # error if data didn't save
             if not datafile.is_file():
                 raise RuntimeError("Data file wasn't saved. PsychoPy StdErr below:\n" + stderr)
             # Load data file

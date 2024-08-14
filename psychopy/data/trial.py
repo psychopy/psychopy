@@ -782,6 +782,13 @@ class Trial(dict):
         for key, val in value.items():
             self[key] = val
     
+    @property
+    def skipped(self):
+        """
+        Has this Trial been skipped?
+        """
+        return self.data.get('skipped', False)
+    
     def getDict(self):
         """
         Get this Trial as a dict.
@@ -1226,6 +1233,8 @@ class TrialHandler2(_BaseTrialHandler):
         n : int
             Number of trials to skip ahead
         """
+        # account for the fact current trial will end once skipped
+        n -= 1
         # if skipping past last trial, print warning and skip to last trial
         if n > len(self.upcomingTrials):
             logging.warn(
@@ -1233,15 +1242,16 @@ class TrialHandler2(_BaseTrialHandler):
                 f"Skipping to the last upcoming trial."
             )
             n = len(self.upcomingTrials)
-        # iterate n times
+        # before iterating, add "skipped" to data
+        self.addData("skipped", True)
+        # iterate n times (-1 to account for current trial)
         for i in range(n):
+            self.__next__()
             # before iterating, add "skipped" to data
             self.addData("skipped", True)
             # advance row in data file
             if self.getExp() is not None:
-                self.getExp().nextEntry()
-            # iterate
-            self.__next__()
+                self.getExp().nextEntry()                
 
     def rewindTrials(self, n=1):
         """
@@ -1255,6 +1265,8 @@ class TrialHandler2(_BaseTrialHandler):
         """
         # treat -n as n
         n = abs(n)
+        # account for the fact current trial will end once skipped
+        n += 1
         # if rewinding past first trial, print warning and rewind to first trial
         if n > len(self.elapsedTrials):
             logging.warn(
@@ -1262,6 +1274,8 @@ class TrialHandler2(_BaseTrialHandler):
                 f"elapsed. Rewinding to the first trial."
             )
             n = len(self.elapsedTrials)
+        # mark current trial as skipped so it ends
+        self.addData("skipped", True)
         # start with no trials
         rewound = [self.thisTrial]
         # pop the last n values from elapsed trials

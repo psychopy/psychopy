@@ -271,6 +271,8 @@ class TestTrialHandler2:
         ]
         # try cases
         for case in cases:
+            # account for current iteration ending (as if in experiment)
+            t.__next__()
             # move forwards/backwards according to case values
             if case['advance'] >= 0:
                 t.skipTrials(case['advance'])
@@ -346,6 +348,9 @@ class TestTrialHandler2:
         ]
         # iterate through cases
         for inc, answer in cases:
+            # account for current iteration ending (as if in experiment)
+            t.__next__()
+            
             if inc < 0:
                 # if increment is negative, rewind
                 t.rewindTrials(inc)
