@@ -155,7 +155,7 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
         
         return channels
     
-    def findPhotodiode(self, win, channel=None):
+    def findPhotodiode(self, win, channel=None, retryLimit=5):
         """
         Draws rectangles on the screen and records photodiode responses to recursively find the location of the diode.
 
@@ -271,32 +271,46 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
             # if none of these have returned, rect is too small to cover the whole photodiode, so return
             return responsive
 
-        # reset state
-        self.state = [None] * self.channels
-        self.dispatchMessages()
-        self.clearResponses()
-        # recursively shrink rect around the photodiode
-        responsive = scanQuadrants()
-        # if cancelled, warn and continue
-        if responsive is None:
-            logging.warn(
-                "`findPhotodiode` procedure cancelled by user."
-            )
-            return (
-                layout.Position(self.pos, units="norm", win=win),
-                layout.Position(self.size, units="norm", win=win),
-            )
-        # if we didn't get any responses at all, prompt to try again
-        if not responsive:
+        def handleNonResponse(label, rect, timeout=5):
+            # skip if retry limit hit
+            if retryLimit <= 0:
+                return None
+            # start a countdown
+            timer = core.CountdownTimer(start=timeout)
             # set label text to alert user
-            label.text = (
+            msg = (
                 "Received no responses from photodiode during `findPhotodiode`. Photodiode may not "
                 "be connected or may be configured incorrectly.\n"
                 "\n"
-                "To continue, use the arrow keys to move the photodiode patch and use the "
-                "plus/minus keys to resize it.\n"
-                "\n"
-                "Press ENTER when finished."
+                "To manually specify the photodiode's position, press ENTER. To quit, press "
+                "ESCAPE. Otherwise, will retry in {:.0f}s\n"
+            )
+            label.foreColor = "red"
+            # start a frame loop until they press enter
+            keys = []
+            while timer.getTime() > 0 and not keys:
+                # get keys
+                keys = kb.getKeys()
+                # skip if escape pressed
+                if "escape" in keys:
+                    return None
+                # specify manually if return pressed
+                if "return" in keys:
+                    return specifyManually(label=label, rect=rect)
+                # format label
+                label.text = msg.format(timer.getTime())
+                # show label and square
+                label.draw()
+                # flip
+                win.flip()
+            # if we timed out, retry whole find procedure
+            return self.findPhotodiode(win, channel=channel, retryLimit=retryLimit-1)
+        
+        def specifyManually(label, rect):
+            # set label text to alert user
+            label.text = (
+                "Use the arrow keys to move the photodiode patch and use the plus/minus keys to "
+                "resize it. Press ENTER when finished, or press ESCAPE to quit.\n"
             )
             label.foreColor = "red"
             # revert to defaults
@@ -306,12 +320,18 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
             # start a frame loop until they press enter
             keys = []
             res = 0.05
-            while "return" not in keys:
+            while "return" not in keys and "escape" not in keys:
                 # get keys
                 keys = kb.getKeys()
                 # skip if escape pressed
                 if "escape" in keys:
                     return None
+                # finish if return pressed
+                if "return" in keys:
+                    return (
+                        layout.Position(self.pos, units="norm", win=win),
+                        layout.Position(self.size, units="norm", win=win),
+                    )
                 # move rect according to arrow keys
                 pos = list(rect.pos)
                 if "left" in keys:
@@ -335,13 +355,25 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
                 rect.draw()
                 # flip
                 win.flip()
-            # wait for a keypress
-            kb.waitKeys()
-            # return defaults
+
+        # reset state
+        self.state = [None] * self.channels
+        self.dispatchMessages()
+        self.clearResponses()
+        # recursively shrink rect around the photodiode
+        responsive = scanQuadrants()
+        # if cancelled, warn and continue
+        if responsive is None:
+            logging.warn(
+                "`findPhotodiode` procedure cancelled by user."
+            )
             return (
                 layout.Position(self.pos, units="norm", win=win),
                 layout.Position(self.size, units="norm", win=win),
             )
+        # if we didn't get any responses at all, prompt to try again
+        if not responsive:
+            handleNonResponse(label=label, rect=rect)
         # clear all the events created by this process
         self.state = [None] * self.channels
         self.dispatchMessages()
