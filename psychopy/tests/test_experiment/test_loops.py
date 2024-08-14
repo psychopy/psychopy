@@ -71,8 +71,10 @@ class TestLoops:
                 'stdout': stdout,
                 'stderr': stderr,
             }
-            # delete temp folder
-            shutil.rmtree(cls.tempDir)
+    
+    def teardown_class(cls):
+        # delete temp folder
+        shutil.rmtree(cls.tempDir)
 
     def test_output_length(self):
         """
