@@ -5,6 +5,7 @@ from pathlib import Path
 from tempfile import mkdtemp
 
 import numpy as np
+import pandas as pd
 
 from ..utils import TESTS_DATA_PATH
 from psychopy import experiment, core
@@ -59,8 +60,7 @@ class TestLoops:
             if not datafile.is_file():
                 raise RuntimeError("Data file wasn't saved. PsychoPy StdErr below:\n" + stderr)
             # Load data file
-            with open(datafile, "rb") as f:
-                data = np.recfromcsv(f, case_sensitive=True)
+            data = pd.read_csv(str(datafile)).values.tolist()
 
             # Store
             cls.cases[filename] = {
@@ -71,6 +71,8 @@ class TestLoops:
                 'stdout': stdout,
                 'stderr': stderr,
             }
+            # delete temp folder
+            shutil.rmtree(cls.tempDir)
 
     def test_output_length(self):
         """
