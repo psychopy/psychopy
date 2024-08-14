@@ -1340,9 +1340,9 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
         Provides menu items to clear all, select all and copy selected text."""
         if not hasattr(self, "outputMenuID1"):
-            self.outputMenuID1 = wx.NewId()
-            self.outputMenuID2 = wx.NewId()
-            self.outputMenuID3 = wx.NewId()
+            self.outputMenuID1 = wx.NewIdRef(count=1)
+            self.outputMenuID2 = wx.NewIdRef(count=1)
+            self.outputMenuID3 = wx.NewIdRef(count=1)
 
             self.Bind(wx.EVT_MENU, self.outputClear, id=self.outputMenuID1)
             self.Bind(wx.EVT_MENU, self.outputSelectAll, id=self.outputMenuID2)
@@ -1429,7 +1429,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
             wx.ID_ANY, _translate("Reset preferences...")
         )
         self.Bind(wx.EVT_MENU, self.resetPrefs, item)
-        # item = menu.Append(wx.NewId(), "Plug&ins")
+        # item = menu.Append(wx.NewIdRef(count=1), "Plug&ins")
         # self.Bind(wx.EVT_MENU, self.pluginManager, id=item.GetId())
         # -------------Close coder frame
         menu.AppendSeparator()

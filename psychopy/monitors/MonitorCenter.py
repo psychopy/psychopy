@@ -42,7 +42,7 @@ if not hasattr(wx.grid, 'EVT_GRID_CELL_CHANGED'):
 
 # wx IDs for menu items
 def newIds(n):
-    return [wx.NewId() for i in range(n)]
+    return [wx.NewIdRef(count=1) for i in range(n)]
 
 [idMenuSave] = newIds(1)
 # wx IDs for controllers (admin panel)
@@ -228,7 +228,7 @@ class MainFrame(wx.Frame):
 
         # Edit
         editMenu = wx.Menu()
-        id = wx.NewId()
+        id = wx.NewIdRef(count=1)
         _hint = _translate("Copy the current monitor's name to clipboard")
         editMenu.Append(id, _translate('Copy\tCtrl+C'), _hint)
         self.Bind(wx.EVT_MENU, self.onCopyMon, id=id)

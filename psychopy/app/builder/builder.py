@@ -314,7 +314,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             _translate("Save &as...\t%s") % keys['saveAs'],
             _translate("Save current experiment file as..."))
         # export html
-        self.menuIDs.ID_EXPORT_HTML = wx.NewId()
+        self.menuIDs.ID_EXPORT_HTML = wx.NewIdRef(count=1)
         menu.Append(
             self.menuIDs.ID_EXPORT_HTML,
             _translate("Export HTML...\t%s") % keys['exportHTML'],
@@ -322,7 +322,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         )
         self.Bind(wx.EVT_MENU, self.fileExport, id=self.menuIDs.ID_EXPORT_HTML)
         # reveal folder
-        self.menuIDs.ID_REVEAL = wx.NewId()
+        self.menuIDs.ID_REVEAL = wx.NewIdRef(count=1)
         menu.Append(
             self.menuIDs.ID_REVEAL,
             _translate("Reveal in file explorer..."),
@@ -348,7 +348,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             wx.ID_ANY, _translate("Reset preferences...")
         )
         self.Bind(wx.EVT_MENU, self.resetPrefs, item)
-        # item = menu.Append(wx.NewId(), "Plug&ins")
+        # item = menu.Append(wx.NewIdRef(count=1), "Plug&ins")
         # self.Bind(wx.EVT_MENU, self.pluginManager, item)
         self.fileMenu.AppendSeparator()
         self.fileMenu.Append(wx.ID_EXIT,
@@ -4215,7 +4215,7 @@ class FlowCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
 
     def drawLineStart(self, dc, pos):
         # draw bar at start of timeline; circle looked bad, offset vertically
-        tmpId = wx.NewId()
+        tmpId = wx.NewIdRef(count=1)
         dc.SetId(tmpId)
         ptSize = (9, 9, 12)[self.appData['flowSize']]
         thic = (1, 1, 2)[self.appData['flowSize']]
@@ -4229,7 +4229,7 @@ class FlowCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
 
     def drawLineEnd(self, dc, pos):
         # draws arrow at end of timeline
-        tmpId = wx.NewId()
+        tmpId = wx.NewIdRef(count=1)
         dc.SetId(tmpId)
         dc.SetBrush(wx.Brush(colors.app['fl_flowline_bg']))
         dc.SetPen(wx.Pen(colors.app['fl_flowline_bg']))

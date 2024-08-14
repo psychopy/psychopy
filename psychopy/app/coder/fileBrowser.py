@@ -28,9 +28,9 @@ FOLDER_TYPE_NAV = 1
 FOLDER_TYPE_NO_ACCESS = 2
 
 # IDs for menu events
-ID_GOTO_BROWSE = wx.NewId()
-ID_GOTO_CWD = wx.NewId()
-ID_GOTO_FILE = wx.NewId()
+ID_GOTO_BROWSE = wx.NewIdRef(count=1)
+ID_GOTO_CWD = wx.NewIdRef(count=1)
+ID_GOTO_FILE = wx.NewIdRef(count=1)
 
 
 def convertBytes(nbytes):
