@@ -1555,7 +1555,7 @@ def sanitize(inStr):
     """
     # Key-value pairs of patterns with what to replace them with
     patterns = {
-        "https\:\/\/oauth2\:[\d\w]{64}@gitlab\.pavlovia\.org\/.*\.git": "[[OAUTH key hidden]]" # Remove any oauth keys
+        r"https\:\/\/oauth2\:[\d\w]{64}@gitlab\.pavlovia\.org\/.*\.git": "[[OAUTH key hidden]]" # Remove any oauth keys
     }
     # Replace each pattern
     for pattern, repl in patterns.items():
@@ -1671,7 +1671,7 @@ def sanitize(inStr):
     """
     # Key-value pairs of patterns with what to replace them with
     patterns = {
-        "https\:\/\/oauth2\:[\d\w]{64}@gitlab\.pavlovia\.org\/.*\.git": "[[OAUTH key hidden]]" # Remove any oauth keys
+        r"https\:\/\/oauth2\:[\d\w]{64}@gitlab\.pavlovia\.org\/.*\.git": "[[OAUTH key hidden]]" # Remove any oauth keys
     }
     # Replace each pattern
     for pattern, repl in patterns.items():

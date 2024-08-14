@@ -17,7 +17,11 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-13, ubuntu-latest]
-        python-version: ['3.8', '3.10']
+        # 3.12 needs PTB, so something like:
+        # https://github.com/aforren1/Psychtoolbox-3/pull/1
+        # https://github.com/Psychtoolbox-3/Psychtoolbox-3/pull/843
+        # https://github.com/aforren1/ptb-wheels/pull/10
+        python-version: ['3.8', '3.10']  # , '3.12']
 
     steps:
     - uses: actions/checkout@v3
@@ -31,14 +35,14 @@ jobs:
       if: runner.os=='Linux'
       id: month
       run: echo "::set-output name=month::$(date +'%Y-%m')"
-  
+
     - name: cache wxPython for linux
       if: runner.os=='Linux'
       uses: actions/cache@v3
       with:
         path: ~/.cache/pip
         key: ${{ matrix.os }}-py${{ matrix.python-version }}-${{ steps.get_month.outputs.month }}
-        
+
     - name: Install Linux system dependencies
       if: runner.os=='Linux'
       run: |

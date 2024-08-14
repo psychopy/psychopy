@@ -30,10 +30,10 @@ class BaseIcon:
             # Store ref to self in iconCache if using app theme
             if theme in (appTheme.icons, None):
                 iconCache[stem] = self
-    
+
     def reload(self, theme=None):
         """
-        Get all images associated with this icon again. This is useful when changeing theme to one 
+        Get all images associated with this icon again. This is useful when changeing theme to one
         with different icons.
 
         Parameters
@@ -280,11 +280,12 @@ def findPluginIcons(stem):
     list[Path]
         List of file paths for found icons
     """
-    from psychopy.plugins import getEntryPointGroup
+    from psychopy.plugins.util import getEntryPoints
+
     # start off with no files
     files = []
     # iterate through found entry points
-    for ep in getEntryPointGroup("psychopy.app.themes.icons"):
+    for ep in getEntryPoints("psychopy.app.themes.icons", submodules=False):
         try:
             # try to load module
             mod = ep.load()

@@ -22,7 +22,10 @@ def getEntryPoints(module, submodules=True, flatten=True):
     entryPointsList = []
     entryPointsDict = {}
     # iterate through groups
-    for group, points in importlib.metadata.entry_points().items():
+    eps = importlib.metadata.entry_points()
+    if not hasattr(eps, "items"):  # Newer python
+        eps = dict(zip(eps.groups, eps.names))
+    for group, points in eps.items():
         # does this group correspond to the requested module?
         if submodules:
             targeted = group.startswith(module)

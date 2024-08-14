@@ -2,7 +2,7 @@
 [project]
 name = "psychopy"
 dynamic = ["version"]
-requires-python = ">=3.8, <3.11"
+requires-python = ">=3.8, <3.13"
 description = "PsychoPy provides easy, precise, flexible experiments in behavioural sciences"
 readme ={file = "README.md", content-type = "text/markdown"}
 authors = [
@@ -23,8 +23,9 @@ classifiers = [
     "Topic :: Scientific/Engineering",
     "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
     ]
-    
+
 dependencies = [
+    # TODO: Set to <3 once psychtoolbox wheels are updated
     "numpy<2.0",  # use numpy<1.24 for psychopy<2023.1
     "scipy",
     "matplotlib",

@@ -60,40 +60,6 @@ _failed_plugins_ = []
 # Functions
 #
 
-def getEntryPointGroup(group, subgroups=False):
-    """
-    Get all entry points which target a specific group.
-
-    Parameters
-    ----------
-    group : str
-        Group to look for (e.g. "psychopy.experiment.components" for plugin Components)
-    subgroups : bool
-        If True, then will also look for subgroups (e.g. "psychopy.experiment" will also return
-        entry points for "psychopy.experiment.components")
-
-    Returns
-    -------
-    list[importlib.metadata.Entrypoint]
-        List of EntryPoint objects for the given group
-    """
-    # start off with no entry points or sections
-    entryPoints = []
-
-    if subgroups:
-        # if searching subgroups, iterate through entry point groups
-        for thisGroup, eps in importlib.metadata.entry_points().items():
-            # get entry points within matching group
-            if thisGroup.startswith(group):
-                # add to list of all entry points
-                entryPoints += eps
-    else:
-        # otherwise, just get the requested group
-        entryPoints += importlib.metadata.entry_points().get(group, [])
-
-    return entryPoints
-
-
 def resolveObjectFromName(name, basename=None, resolve=True, error=True):
     """Get an object within a module's namespace using a fully-qualified or
     relative dotted name.
@@ -366,7 +332,7 @@ def getPluginConfigPath(plugin):
     # check if the plugin is installed first
     if plugin not in _installed_plugins_:
         raise ValueError("Plugin `{}` is not installed.".format(plugin))
-    
+
     # get the config directory
     import pathlib
     configDir = pathlib.Path(prefs.paths['configs']) / 'plugins' / plugin
@@ -384,7 +350,7 @@ def installPlugin(package, local=True, upgrade=False, forceReinstall=False,
     package : str
         Name or path to distribution of the plugin package to install.
     local : bool
-        If `True`, install the package locally to the PsychoPy user plugin 
+        If `True`, install the package locally to the PsychoPy user plugin
         directory.
     upgrade : bool
         Upgrade the specified package to the newest available version.
@@ -399,7 +365,7 @@ def installPlugin(package, local=True, upgrade=False, forceReinstall=False,
     installWhere = USER_PACKAGES_PATH if local else None
     import psychopy.tools.pkgtools as pkgtools
     pkgtools.installPackage(
-        package, 
+        package,
         target=installWhere,
         upgrade=upgrade,
         forceReinstall=forceReinstall,
@@ -444,7 +410,7 @@ def scanPlugins():
                 _installed_plugins_[distName][ep.group] = {}
             # map entry point
             _installed_plugins_[distName][ep.group][ep.name] = ep
-    
+
     return len(_installed_plugins_)
 
 
@@ -826,9 +792,9 @@ def loadPlugin(plugin):
 
             # --- handle special cases ---
             # Note - We're going to handle special cases here for now, but
-            # this will eventually be handled by special functions in the 
-            # target modules (e.g. `getAllPhotometers()` in 
-            # `psychopy.hardware.photometer`) which can detect the loaded 
+            # this will eventually be handled by special functions in the
+            # target modules (e.g. `getAllPhotometers()` in
+            # `psychopy.hardware.photometer`) which can detect the loaded
             # attribute inside the module and add it to a collection.
 
             if fqn == 'psychopy.visual.backends':  # if window backend
