@@ -123,7 +123,7 @@ class MenuFrame(wx.Frame, themes.handlers.ThemeMixin):
 class IDStore(dict):
     """A simpe class that works like a dict but you can access attributes
     like standard python attrs. Useful to replace the previous pre-made
-    app.IDs (wx.NewID() is no longer recommended or safe)
+    app.IDs (wx.NewIdRef(count=1) is no longer recommended or safe)
     """
     def __getattr__(self, attr):
         return self[attr]

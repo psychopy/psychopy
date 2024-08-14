@@ -568,7 +568,7 @@ def extractFaceNames(val):
     # Make sure val is a list
     if isinstance(val, str):
         # Get rid of any perentheses
-        val = re.sub("[\(\)\[\]]", "", val)
+        val = re.sub(r"[\(\)\[\]]", "", val)
         # Split by comma
         val = val.split(",")
     # Clear style markers
