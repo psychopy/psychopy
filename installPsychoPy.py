@@ -4,183 +4,120 @@
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
-
-import subprocess
-import os
-import sys
-import requests
-
-"""This script will install PsychoPy to the current Python environment. 
-
-For Linux installations, the script will fetch the supported linux distros for wxPython 
-and interactively select the distro and version to download the appropriate .whl file.
-
-After that the script will install PsychoPy using pip.
+"""
+Python script to install psychopy including dependencies
 
 NB: At present, for windows and MacOS you may as well just use `pip install psychopy` but
 in the future we may add some additional functionality here, like adding application 
 shortcuts, checking/recommending virtual envs etc.
 """
 
-# Author: Florian Osmani
-# Author: Jonathan Peirce
+# Author: Jonathan Peirce, based on work of Flavio Bastos and Florian Osmani
 
-wxLinuxUrl = "https://extras.wxpython.org/wxPython4/extras/linux/gtk3/"
+import os, sys
+import pathlib
+import subprocess
+import platform
 
-def installWhlFile(whlUrl):
-    """Installs a single specified wheel file using pip"""
-    wheel_path = os.path.basename(whlUrl)
-    subprocess.run([sys.exectuable, '-m', 'pip', 'install', '-U', '-f', wheel_path, 'wxPython'], check=True)
+_linux_installer = None  # will be apt-get or yum depending on system
 
-def installPsychoPy():
-    """Runs pip install psychopy"""
-    subprocess.run([sys.exectuable, '-m', 'pip', 'install', 'psychopy'], check=True)
+print(
+    "This `install_psychopy.py` script is EXPERIMENTAL and may not work!"
+    " PsychoPy users have many different systems and it's hard to maintain them all. "
+    " Let us know how you get on!\n"
+)
+if sys.version_info[:2] != (3,10):
+    print(
+        "PsychoPy is designed for Python 3.10.x "
+        f"You are running Python {sys.version_info[0]}.{sys.version_info[1]}.{sys.version_info[2]}. "
+        "PsychoPy may not work and may not even install!\n"
+    )
 
-def getWxUrl(distroNames=None):
-    """Fetch the supported linux distros for wx and interactively select the 
-    distro and version to download the appropriate .whl file.
+print(
+    "This `install_psychopy.py` script is EXPERIMENTAL and may not work!"
+    " PsychoPy users have many different systems and it's hard to maintain them all. "
+    " Let us know how you get on!\n"
+)
 
-    Args:
-        distroNames (_type_, optional): _description_. Defaults to None.
+def pip_install(*packages):
+    """Install packages using pip."""
+    print('Installing packages:', packages)
+    subprocess.run([sys.executable, '-m', 'pip', 'install', '--upgrade'] + list(packages))
 
-    Returns:
-        list: URL of the wheel for the selected distro/version
-    """    
-    def extractDistroNames(url):
-        """Extract the names of the linux distributions from the html content"""
+def check_venv():
+    """Check if this is a virtual environment. If not, recommend quitting and creating one.
+    """
+    # If this is not a venv then recommend quitting to create one
+    if not hasattr(sys, 'real_prefix'):
+        print(
+            'You should install PsychoPy in a virtual environment,'
+            ' to avoid conflicts with other packages, or damaging your system.'
+            ' To create a virtual environment in the current directory, run:')
+        print('  python3 -m venv .')
+        print('Then activate the virtual environment with:')
+        print('  source bin/activate')
+        print('Then run this script again.')
+        response = input('Shall we QUIT now? [y]/n: ')
+        if response.lower() != 'n':
+            sys.exit(1)
 
-        response = requests.get(url)
-        response.raise_for_status()
-
-        distro_names = []
-        lines = response.text.split('\n')
-        for line in lines:
-            if '<a href="' in line and '/"' in line:
-                start_index = line.find('<a href="') + len('<a href="')
-                end_index = line.find('/"', start_index)
-                distro_name = line[start_index:end_index]
-                distro_names.append(distro_name)
-        return distro_names
-    
-    def saveDistroData(distro_names, filename):
-        """Saves text file with distro names if needed for future use"""
-        with open(filename, 'w') as file:
-            for distro_name in distro_names:
-                file.write(distro_name + '\n')
-                
-    def getWxSupportedDistros(outfile=None):
-        """Find all the linux distributions tha twxPython has wheels for"""
-        distro_names = extractDistroNames(wxLinuxUrl)
-        if outfile:
-            saveDistroData(distro_names, outfile)
-            print(f"Distro data saved to {outfile}")
-        return distro_names
-
-    if distroNames is None:
-        distroNames = getWxSupportedDistros()
-    version_info = sys.version_info
-    if version_info.minor < 8 or version_info.minor > 10:
-        print("Sorry, please use Python 3.8, 3.9, or 3.10 to install Psychopy")
-        return None
-
-    python_cp = f"cp{version_info.major}{version_info.minor}"
-
-    def selectDistro(distroNames):
-        print("Please select your Linux distribution:")
-        for i, distro in enumerate(distroNames):
-            print(f"{i + 1}. {distro}")
-
-        while True:
-            choice = input("Enter your choice (number): ")
-            if choice.isdigit() and 1 <= int(choice) <= len(distroNames):
-                return distroNames[int(choice) - 1]
+def apt_install(*packages):
+    """Install packages using apt, yum, or similar"""
+    global _linux_installer
+    # check if using this system has apt-get or yum
+    if _linux_installer is None:
+        for installer in ['apt', 'yum', 'dnf', 'zypper', 'apt-cyg']:
+            out = subprocess.run(['which', installer], stdout=subprocess.PIPE)
+            if out.returncode == 0:
+                _linux_installer = installer
+                break
+        if _linux_installer is None:
+            print('On Linux systems, this script requires either apt-get or yum.')
+            sys.exit(1)
+            
+    def find_package(package):
+        # check pacakage name according to apt/yum
+        packages_lookup = {
+            'python3-dev': {'apt':'libgtk-3-dev', 'yum':'gtk3-devel'},
+            'libgtk-3-dev': {'apt':'libgtk-3-dev', 'yum':'gtk3-devel'},
+            'libwebkit2gtk-4.0-dev': {'apt':'libwebkit2gtk-4.0-dev', 'yum':'webkit2gtk3-devel'},
+            'libxcb-xinerama0': {'apt':'libxcb-xinerama0', 'yum':'libxcb-xinerama'},
+            'libegl1-mesa-dev': {'apt':'libegl1-mesa-dev', 'yum':'mesa-libEGL-devel'},
+        }
+        if package in packages_lookup:
+            if _linux_installer in packages_lookup[package]:
+                return packages_lookup[package][_linux_installer]
             else:
-                print("Invalid choice, please try again.")
-
-    def organizeDistributions(distroNames):
-        distroDict = {}
-        for distro in distroNames:
-            nameParts = distro.split('-')
-            distroName = '-'.join(nameParts[:-1])
-            version = nameParts[-1] if len(nameParts) > 1 else 'default'
-
-            if distroName in distroDict:
-                distroDict[distroName].append(version)
-            else:
-                distroDict[distroName] = [version]
-
-        return distroDict
-
-    def selectVersion(selectedDistro, versions):
-        while True:
-            print("Please select the version:")
-            for i, version in enumerate(versions):
-                print(f"{i + 1}. {selectedDistro}-{version}")
-            print("0. Go back")
-
-            choice = input("Enter your choice (number): ")
-            if choice.isdigit():
-                choice = int(choice)
-                if 1 <= choice <= len(versions):
-                    return versions[choice - 1]
-                elif choice == 0:
-                    return None
-            print("Invalid choice, please try again.")
-
-    def fetchWhlFiles(htmlContent, pythonVersions):
-        all = []
-        recommended = []
-        lines = htmlContent.split('\n')
-        for line in lines:
-            if '<a href="' in line and '.whl"' in line:
-                start_index = line.find('<a href="') + len('<a href="')
-                end_index = line.find('"', start_index)
-                whl_file = line[start_index:end_index]
-                all.append(whl_file)
-                if pythonVersions in line:
-                    recommended.append(whl_file)
-        return recommended, all
-
-    organizedDistros = organizeDistributions(distroNames)
-
-    # go through the process of selecting the distro and version and
-    # return the url of the .whl file when the user has decided
-    while True:
-        selectedDistro = selectDistro(list(organizedDistros.keys()))
-        print(f"You have selected the distribution: {selectedDistro}")
-
-        selectedVersion = selectVersion(selectedDistro, organizedDistros[selectedDistro])
-        if selectedVersion is None:
-            print("Going back to distro selection...")
-            continue
-
-        print(f"You have selected version: {selectedDistro}-{selectedVersion}")
-
-        distroUrl = f"{wxLinuxUrl}{selectedDistro}-{selectedVersion}/"
-        print(f"Found valid .whl files at: {distroUrl}")
-
-        response = requests.get(distroUrl)
-        response.raise_for_status()
-        htmlThisDistro = response.text
-
-        recommended, all = fetchWhlFiles(htmlThisDistro, pythonVersions=python_cp)
-
-        if recommended:
-            return distroUrl + recommended[-1]
+                return packages_lookup[package]['yum']  # default to yum for dnf, zypper, apt-cyg
         else:
-            if all:
-                print(f"No .whl files for python {python_cp}")
-                allPretty = '\n- '+('\n- '.join(all))
-                print(f"Found the following .whl files at {distroUrl}:{allPretty}")
-            else:
-                print(f"No .whl files found at {distroUrl}")
+            return package
+    packages = [find_package(p) for p in packages]
 
+    print('Installing packages (will require sudo):', packages)
+    subprocess.run(['sudo', _linux_installer, 'update'])
+    subprocess.run(['sudo', _linux_installer, 'install', '-y'] + list(packages))
 
 if __name__ == "__main__":
-    # install wxPython
-    wxWhl = getWxUrl()  # for linux fetches the supported distros and interactively selects the distro and version
-    if wxWhl:
-        installWhlFile(wxWhl)
+    # Check/install builds requirements
+    if platform.system() == 'Linux':
+        # Install system dependencies
+        apt_install(
+            'python3-dev',  # need dev in case of compiling C extensions
+            'libgtk-3-dev', 'libwebkit2gtk-4.0-dev', # for wxPython
+            'libxcb-xinerama0', 'libegl1-mesa-dev', # for OpenGL needs
+            'git',  # for push/pull to Pavlovia
+            )
+        pip_install('-U', 'pip', 'setuptools', 'attrdict')
+        print("Next we build wxPython (from source) which takes the longest time."
+              " The rest of the installation will automatically continue after and be"
+              " much faster.")
+        pip_install('wxPython')
 
-    # then install the rest of psychopy
-    installPsychoPy()
+    # Install PsychoPy using pip
+    pip_install('psychopy')
+
+    print("\nPsychoPy has been installed (or at least attempted). You can now try run it by typing:")
+    print("  psychopy")
+    print("or:")
+    print("  python -m psychopy.app.psychopyApp")
+    print("You may need to activate the virtual environment first though.")
