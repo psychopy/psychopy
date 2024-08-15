@@ -1,4 +1,18 @@
-## python script to install psychopy including dependencies
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Part of the PsychoPy library
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
+"""
+Python script to install psychopy including dependencies
+
+NB: At present, for windows and MacOS you may as well just use `pip install psychopy` but
+in the future we may add some additional functionality here, like adding application 
+shortcuts, checking/recommending virtual envs etc.
+"""
+
+# Author: Jonathan Peirce, based on work of Flavio Bastos and Florian Osmani
 
 import os, sys
 import pathlib
