@@ -345,13 +345,9 @@ class PygletBackend(BaseBackend):
             # (but need to alter x,y handling then)
             self.winHandle.set_mouse_visible(False)
         if not win.pos:
-            # work out where the centre should be
-            if win.useRetina:
-                win.pos = [(thisScreen.width - win.clientSize[0]/2) / 2,
-                           (thisScreen.height - win.clientSize[1]/2) / 2]
-            else:
-                win.pos = [(thisScreen.width - win.clientSize[0]) / 2,
-                           (thisScreen.height - win.clientSize[1]) / 2]
+            # work out the location of the top-left corner to place at the screen center
+            win.pos = [(thisScreen.width - win.clientSize[0]) / 2,
+                       (thisScreen.height - win.clientSize[1]) / 2]
         if not win._isFullScr:
             # add the necessary amount for second screen
             self.winHandle.set_location(int(win.pos[0] + thisScreen.x),
