@@ -8,39 +8,72 @@ Download
 
 For the easiest installation download and install the Standalone package.
 
+.. tab-set::
+
+    .. tab-item:: Windows
+
+      For the easiest installation download and install the Standalone package.
+
+      .. button-link:: https://github.com/psychopy/psychopy/releases/download/2024.2.1/StandalonePsychoPy-2024.2.1post4-win64-py310.exe 
+          :color: primary
+
+          PsychoPy |version| modern (py3.10)
+
+      .. button-link:: https://github.com/psychopy/psychopy/releases/download/2024.2.1/StandalonePsychoPy-2024.2.1-win64-py3.8.exe
+          :color: primary
+
+          PsychoPy |version| compatibility+ (py3.8)
+
+      The *Compatibility+* version is for users who need to run older scripts that are not compatible with the newer versions of Python (PsychoPy has supported Python 3.10 since 2022.2.0).
+
+    .. tab-item:: MacOS
+
+      For the easiest installation download and install the Standalone package.
+    
+      .. button-link:: https://github.com/psychopy/psychopy/releases/download/2024.2.1/StandalonePsychoPy-2024.2.1-macOS-py3.10.dmg
+          :color: primary
+
+          PsychoPy |version| modern (py3.10)
+
+      .. button-link:: https://github.com/psychopy/psychopy/releases/download/2024.2.1/StandalonePsychoPy-2024.2.1-macOS-py3.8.dmg
+          :color: primary
+
+          PsychoPy |version| compatibility+ (py3.8)
+
+      The *Compatibility+* version is for users who need to run older scripts that are not compatible with the newer versions of Python (PsychoPy has supported Python 3.10 since 2022.2.0).
+
+      The *modern* version uses a more recent version of Python and cannot run experiments that use PsychoPy<2023.2.0
+
+    .. tab-item:: Linux
+
+        The following will install PsychoPy into 
+
+        .. code-block:: bash
+
+            # create a virtual environment and activate it
+            python3.10 -m venv ~/.psychopy_py310  
+            source ~/.psychopy_py310/bin/activate  
+            
+            # fetch and run install script
+            python -c "$(curl -fsSL https://raw.githubusercontent.com/psychopy/psychopy/dev/installPsychoPy.py)"
+
 .. raw:: html
 
    <script src="https://cdn.jsdelivr.net/npm/ua-parser-js@1/dist/ua-parser.min.js"></script>
    <script>
-
-    let filename;
-    let url;
-    let version='2024.1.5';
-
-    let clientInfo = UAParser(navigator.userAgent);
-    var osLabel;
-    var arch = clientInfo.cpu.architecture;
-    // create the platform dependent strings
-    if (navigator.platform == 'Win32' && clientInfo.cpu.architecture == 'amd64') {
-      osLabel = clientInfo.os.name+" "+clientInfo.cpu.architecture;
-      filename = '  Standalone PsychoPy<sup>®</sup> '+version+' for 64bit Windows (using Python3.8)';
-      url = 'https://github.com/psychopy/psychopy/releases/download/'+version+'/StandalonePsychoPy-'+version+'-win64.exe';
-    }
-    else if (clientInfo.os.name == 'Mac OS') {
-      osLabel = 'macOS';
-      filename = '  Standalone PsychoPy '+version+' for macOS';
-      url = 'https://github.com/psychopy/psychopy/releases/download/'+version+'/StandalonePsychoPy-'+version+'-macOS.dmg';
-    }
-    else {
-      osLabel = clientInfo.os.name+" ("+clientInfo.cpu.architecture+")";
-      filename = 'installing using pip';
-      url = '#linux';
-    }
-
-    document.write( "<br><center>To install PsychoPy on <strong>"+osLabel+"</strong> we recommend<br>");
-    document.write( "<button class='btn-primary btn-lg' onclick='window.location.href=url'>" +
-        "<i class='fa fa-download'></i>" + filename + "</button></center><br>" );
-
+      let clientInfo = UAParser(navigator.userAgent);
+      var osLabel;
+      var arch = clientInfo.cpu.architecture;
+      // create the platform dependent strings
+      if (navigator.platform == 'Win32' && clientInfo.cpu.architecture == 'amd64') {
+         document.getElementById("sd-tab-item-0").checked = true; // Windows
+      }
+      else if (clientInfo.os.name == 'Mac OS') {
+         document.getElementById("sd-tab-item-1").checked = true; // MacOS
+      }
+      else {
+         document.getElementById("sd-tab-item-2").checked = true; // Linux
+      }
    </script>
 
 **For all versions** see the `PsychoPy releases on github <https://github.com/psychopy/psychopy/releases>`_

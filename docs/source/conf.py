@@ -33,7 +33,8 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.mathjax',
               'sphinx.ext.napoleon',
               'sphinx.ext.intersphinx',
-              'sphinx.ext.viewcode']
+              'sphinx.ext.viewcode',
+              'sphinx_design', 'sphinx_copybutton']
 
 autoclass_content = 'both'
 autosummary_generate = True
