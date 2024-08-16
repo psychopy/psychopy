@@ -304,6 +304,23 @@ class PygletBackend(BaseBackend):
             except Exception:
                 # pyglet 1.2 with 64bit python?
                 win._hw_handle = self.winHandle._nswindow.windowNumber()
+            # Here we temporarily set the window to the bottom right corner of the
+            # requested screen so the correct screen is always detected for NSWindow.
+            # The actual location is then set below using the pyglet set_location()
+            # method on the CocoaWindow object that wraps the NSWindow as _nswindow.
+            # This is necessary because NSScreen origin is the bottom left corner of
+            # the unshifted main screen and positive up, while pyglet origin is the top
+            # left corner of the shifted main screen and positive down. If thisScreen is
+            # not the main screen, we need to prevent self.winHandle._nswindow.screen()
+            # from returning None, which can happen when the c binding returns nil if the
+            # window is offscreen as a result of flipped y values of origins beween pyglet
+            # and NSWindow coordinate systems.
+            from pyglet.libs.darwin import cocoapy
+            mainScreen_y_from_NSOrigin = allScrs[0].y + allScrs[0].height
+            thisScreen_y_from_NSOrigin = thisScreen.y + thisScreen.height
+            thisScreen_y = mainScreen_y_from_NSOrigin - thisScreen_y_from_NSOrigin
+            temp_origin = cocoapy.NSPoint(thisScreen.x, thisScreen_y)
+            self.winHandle._nswindow.setFrameOrigin_(temp_origin)
         elif sys.platform.startswith('linux'):
             win._hw_handle = self.winHandle._window
             self._frameBufferSize = win.clientSize
@@ -348,7 +365,12 @@ class PygletBackend(BaseBackend):
             # work out the location of the top-left corner to place at the screen center
             win.pos = [(thisScreen.width - win.clientSize[0]) / 2,
                        (thisScreen.height - win.clientSize[1]) / 2]
-        if not win._isFullScr:
+        if sys.platform == 'darwin':
+            # always need to set the cocoa window location due to origin changes
+            screenHeight_offset = thisScreen.height - allScrs[0].height
+            self.winHandle.set_location(int(win.pos[0] + thisScreen.x),
+                                        int(win.pos[1] + thisScreen.y + screenHeight_offset))
+        elif not win._isFullScr:
             # add the necessary amount for second screen
             self.winHandle.set_location(int(win.pos[0] + thisScreen.x),
                                         int(win.pos[1] + thisScreen.y))
