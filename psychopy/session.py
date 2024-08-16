@@ -803,8 +803,10 @@ class Session:
         self.win.title = "PsychoPy Session"
         # Measure frame rate
         if measureFrameRate:
+            frameRate = self.getFrameRate(retest=True)
             expInfo = self.getCurrentExpInfo()
-            expInfo['frameRate'] = self.win.getActualFrameRate()
+            if expInfo is not False:
+                expInfo['frameRate'] = frameRate
 
         return True
 
