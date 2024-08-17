@@ -891,7 +891,7 @@ class DeviceManager:
                 win, text=str(n + 1),
                 size=1, pos=0,
                 alignment="center", anchor="center",
-                letterHeight=0.5, bold=True,
+                letterHeight=0.25, bold=True,
                 fillColor=None, color="white"
             )
             lbls.append(lbl)
