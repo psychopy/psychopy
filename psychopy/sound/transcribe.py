@@ -24,6 +24,7 @@ __all__ = [
     'submit'
 ]
 
+import importlib
 import json
 import sys
 import os
@@ -827,13 +828,12 @@ def setupTranscriber(engine, config=None):
     Parameters
     ----------
     engine : str
-        Name of the transcriber interface to setup.
+        Name of the transcriber interface to setup, or a path to the backend class (e.g. 
+        `psychopy_whisper.transcribe:WhisperTranscriber`).
     config : dict or None
         Options to configure the speech-to-text engine during initialization.
     
     """
-    engine = engine.lower()  # make lower case
-
     global _activeTranscriber
     if _activeTranscriber is not None:
         oldInterface = _activeTranscriber.engine
@@ -846,9 +846,29 @@ def setupTranscriber(engine, config=None):
             _activeTranscriber.unload()
 
         _activeTranscriber = None
+    # get all named transcribers
+    allTranscribers = getAllTranscriberInterfaces(engineKeys=True)
+    if engine in allTranscribers:
+        # if engine is included by name, get it
+        transcriber = allTranscribers[engine]
+    elif engine.lower() in allTranscribers:
+        # try lowercase
+        transcriber = allTranscribers[engine.lower()]
+    else:
+        # try to import it
+        try:
+            if ":" in engine:
+                group, name = engine.split(":")
+            else:
+                group, name = str.rsplit(".")
+            mod = importlib.import_module(group)
+            transcriber = getattr(mod, name)
+        except ModuleNotFoundError:
+            raise KeyError(
+                f"Could not find transcriber engine from '{engine}'"
+            )
 
     logging.debug(f"Setting up transcriber `{engine}` with options `{config}`.")
-    transcriber = getTranscriberInterface(engine)
     _activeTranscriber = transcriber(config)  # init the transcriber
 
 
