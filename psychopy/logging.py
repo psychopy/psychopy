@@ -127,12 +127,14 @@ def setDefaultClock(clock):
 
 class _LogEntry():
 
-    def __init__(self, level, message, t=None, obj=None):
+    def __init__(self, level, message, t=None, obj=None, levelname=None):
         super(_LogEntry, self).__init__()
         self.t = t
         self.t_ms = t * 1000
         self.level = level
-        self.levelname = getLevel(level)
+        if levelname is None:
+            levelname = getLevel(level)
+        self.levelname = levelname
         self.message = message
         self.obj = obj
 
@@ -275,7 +277,7 @@ class _Logger():
         for target in self.targets:
             self.lowestTarget = min(self.lowestTarget, target.level)
 
-    def log(self, message, level, t=None, obj=None):
+    def log(self, message, level, t=None, obj=None, levelname=None):
         """Add the `message` to the log stack at the appropriate `level`
 
         If no relevant targets (files or console) exist then the message is
@@ -290,7 +292,7 @@ class _Logger():
             t = defaultClock.getTime()
         # add message to list
         self.toFlush.append(
-            _LogEntry(t=t, level=level, message=message, obj=obj))
+            _LogEntry(t=t, level=level, levelname=levelname, message=message, obj=obj))
 
     def flush(self):
         """Process all current messages to each target

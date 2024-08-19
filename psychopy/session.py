@@ -273,6 +273,8 @@ class Session:
             dataDir / f"session_{wallTime}.log",
             level=getattr(logging, loggingLevel.upper())
         )
+        if liaison is not None:
+            liaison.logger.addTarget(self.logFile)
         # Store priority threshold
         self.priorityThreshold = priorityThreshold
         # Add experiments
