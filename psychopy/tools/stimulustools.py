@@ -42,7 +42,7 @@ class SerializationError(Exception):
     pass
 
 
-def serialize(obj):
+def serialize(obj, includeClass=True):
     """
     Get a JSON string representation of this stimulus, useful for recreating it in a different 
     process. Will attempt to create a dict based on the object's `__init__` method, so that this 
@@ -53,6 +53,9 @@ def serialize(obj):
     ----------
     obj : object
         Object to serialize.
+    includeClass : bool
+        If True, serialized output will include a field `__class__` with the full path of the 
+        object's class.
     
     Raises
     ------
@@ -61,8 +64,8 @@ def serialize(obj):
     
     Returns
     -------
-    str
-        Either a dict, or a JSON string of a dict, representing the object.
+    dict
+        Dict representing the, if not already serializable.
     """
     # handle numpy types
     if isinstance(obj, np.integer):
@@ -108,7 +111,7 @@ def serialize(obj):
         if not got:
             raise SerializationError(f"Could not get value for {type(obj).__name__}.{param}")
 
-        return serialize(value)
+        return serialize(value, includeClass=False)
     
     # start off with an empty dict
     arr = {}
@@ -133,6 +136,11 @@ def serialize(obj):
             arr[param] = _getAttr(obj, param)
         except SerializationError:
             pass
+    
+    # add class
+    if includeClass:
+        arr['__class__'] = type(obj).__name__
+        arr['__module__'] = type(obj).__module__
     
     return arr
 
