@@ -1,5 +1,6 @@
 import json
 import pytest
+import importlib
 from copy import copy
 from pathlib import Path
 from psychopy import visual, layout, event, colors
@@ -23,11 +24,16 @@ class _TestSerializationMixin:
         # start by flipping the window
         self.win.flip()
         # serialize object
-        params = serialize(self.obj)
+        params = serialize(self.obj, includeClass=True)
         # replace ref to window
         params['win'] = self.win
+        # get class
+        mod = importlib.import_module(params.pop('__module__'))
+        cls = getattr(mod, params.pop('__class__'))
+        # check class is the same as obj
+        assert isinstance(self.obj, cls)
         # recreate object from params
-        dupe = type(self.obj)(**params)
+        dupe = cls(**params)
         # delete duplicate
         del dupe
 
