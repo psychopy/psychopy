@@ -1,11 +1,11 @@
 from psychopy import visual
-from .test_basevisual import _TestColorMixin, _TestUnitsMixin
+from .test_basevisual import _TestColorMixin, _TestUnitsMixin, _TestSerializationMixin
 from psychopy.tests.test_experiment.test_component_compile_python import _TestBoilerplateMixin
 from psychopy.tests import utils
 from pathlib import Path
 
 
-class TestProgress(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin):
+class TestProgress(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin, _TestSerializationMixin):
 
     @classmethod
     def setup_class(cls):
