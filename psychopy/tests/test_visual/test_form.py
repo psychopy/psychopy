@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 from pandas import DataFrame
 
-from psychopy.tests.test_visual.test_basevisual import _TestColorMixin
+from psychopy.tests.test_visual.test_basevisual import _TestColorMixin, _TestSerializationMixin
 from psychopy.tests.test_experiment.test_component_compile_python import _TestBoilerplateMixin
 from psychopy.visual.window import Window
 from psychopy.visual.form import Form
@@ -19,7 +19,7 @@ from tempfile import mkdtemp
 import numpy as np
 
 
-class Test_Form(_TestColorMixin, _TestBoilerplateMixin):
+class Test_Form(_TestColorMixin, _TestBoilerplateMixin, _TestSerializationMixin):
     """Test suite for Form component"""
 
     def setup_class(self):

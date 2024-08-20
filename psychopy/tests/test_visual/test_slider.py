@@ -3,7 +3,7 @@
 from pathlib import Path
 
 from psychopy.tests import utils
-from psychopy.tests.test_visual.test_basevisual import _TestColorMixin
+from psychopy.tests.test_visual.test_basevisual import _TestColorMixin, _TestSerializationMixin
 from psychopy.tests.test_experiment.test_component_compile_python import _TestBoilerplateMixin
 from psychopy.visual.window import Window
 from psychopy.visual.slider import Slider
@@ -15,7 +15,7 @@ from numpy import array_equal
 import random
 
 
-class Test_Slider(_TestColorMixin, _TestBoilerplateMixin):
+class Test_Slider(_TestColorMixin, _TestBoilerplateMixin, _TestSerializationMixin):
     def setup_class(self):
 
         # Make a Window
