@@ -4,7 +4,7 @@ import importlib
 from copy import copy
 from pathlib import Path
 from psychopy import visual, layout, event, colors
-from psychopy.tools.stimulustools import serialize
+from psychopy.tools.stimulustools import serialize, actualize
 from psychopy.monitors import Monitor
 from psychopy.tests import utils
 
@@ -25,15 +25,12 @@ class _TestSerializationMixin:
         self.win.flip()
         # serialize object
         params = serialize(self.obj, includeClass=True)
-        # replace ref to window
+        # substitute win
         params['win'] = self.win
-        # get class
-        mod = importlib.import_module(params.pop('__module__'))
-        cls = getattr(mod, params.pop('__class__'))
-        # check class is the same as obj
-        assert isinstance(self.obj, cls)
         # recreate object from params
-        dupe = cls(**params)
+        dupe = actualize(params)
+        # check object is same class
+        assert isinstance(dupe, type(self.obj))
         # delete duplicate
         del dupe
 
