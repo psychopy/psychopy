@@ -1,12 +1,29 @@
+import importlib
 from copy import copy
 from pathlib import Path
 
 from psychopy import visual, colors
 from psychopy.tests import utils
 from psychopy.tests.test_visual.test_basevisual import _TestColorMixin
+from psychopy.tools.stimulustools import serialize
 from psychopy import colors
 
 class TestWindow:
+    def test_serialization(self):
+        # make window
+        win = visual.Window()
+        # serialize window
+        params = serialize(win, includeClass=True)
+        # get class
+        mod = importlib.import_module(params.pop('__module__'))
+        cls = getattr(mod, params.pop('__class__'))
+        # check class is Window
+        assert isinstance(win, cls)
+        # recreate win from params
+        dupe = cls(**params)
+        # delete duplicate
+        dupe.close()
+
     def test_background_image_fit(self):
         _baseCases = [
             # no fitting
