@@ -7,6 +7,7 @@ can be quickly imported from here rather than importing `psychopy.visual` (which
 
 import inspect
 import json
+import importlib
 import numpy as np
 from psychopy import logging
 from psychopy.tools.attributetools import attributeSetter
@@ -44,10 +45,10 @@ class SerializationError(Exception):
 
 def serialize(obj, includeClass=True):
     """
-    Get a JSON string representation of this stimulus, useful for recreating it in a different 
-    process. Will attempt to create a dict based on the object's `__init__` method, so that this 
-    can be used to create a new copy of the object. Attributes which are themselves serializable 
-    will be recursively serialized.
+    Get a JSON serializable dict representation of this stimulus, useful for recreating it in a 
+    different process. Will attempt to create a dict based on the object's `__init__` method, so 
+    that this can be used to create a new copy of the object. Attributes which are themselves 
+    serializable will be recursively serialized.
 
     Parameters
     ----------
@@ -143,4 +144,43 @@ def serialize(obj, includeClass=True):
         arr['__module__'] = type(obj).__module__
     
     return arr
+
+
+class ActualizationError(Exception):
+    """
+    Error raised when attempting to actualize from a dict which doesn't have the necessary info to 
+    actualize.
+    """
+    pass
+
+
+def actualize(params):
+    """
+    Create an object from a serializable dict, the kind created by `serialize`. The dict won't be 
+    serialized, so it's okay for it to have live object handles included (for example, replacing 
+    'win' with the handle of an extant Window object).
+
+    Parameters
+    ----------
+    params : dict
+        Dict describing the init parameters of an object. Should include the keys:
+        - '__class__': The name of the object's class
+        - '__module__': Import path of the module containing the object's class
+    """
+    # shallow copy dict so we can safely pop from it
+    params = params.copy()
+    # make sure we have the necessary keys
+    for key in ("__module__", "__class__"):
+        if key not in params:
+            raise ActualizationError(
+                f"Cannot actualise from dict which does not contain '{key}', dict was: {params}"
+            )
+    # get class
+    mod = importlib.import_module(params.pop('__module__'))
+    cls = getattr(mod, params.pop('__class__'))
+    # initialise
+    obj = cls(**params)
+
+    return obj
+
 
