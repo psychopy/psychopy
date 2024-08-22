@@ -782,6 +782,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         session.
 
         """
+        self.clearListeners()
         self._stream.close()
         logging.debug('Stream closed')
 
