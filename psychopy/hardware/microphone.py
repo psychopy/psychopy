@@ -778,7 +778,8 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         """Close the stream.
         """
         self.clearListeners()
-        MicrophoneDevice._streams.pop(self._device.deviceIndex)
+        if self._device.deviceIndex in MicrophoneDevice._streams:
+            MicrophoneDevice._streams.pop(self._device.deviceIndex)
         self._stream.close()
         logging.debug('Stream closed')
 
