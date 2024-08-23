@@ -240,9 +240,11 @@ class Dlg(QtWidgets.QDialog):
 
         Returns a handle to the field (but not to the label).
         """
-        # if not given a label, use key (sans-pipe syntax)
+        # if not given a label, mimics old Dlg behavior by creating a numeric key corresponding to order added, and
+        # uses whatever string was entered as key (sans-pipe syntax)
         if label is None:
             label, _ = util.parsePipeSyntax(key)
+            key = len(self.inputFieldNames) # current length before new entry added
 
         self.inputFieldNames.append(label)
         if choices:
