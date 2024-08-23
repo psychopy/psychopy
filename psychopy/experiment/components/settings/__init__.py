@@ -913,10 +913,10 @@ class SettingsComponent:
         buff.write(
             "from psychopy import %s\n" % ', '.join(psychopyImports) +
             "from psychopy.tools import environmenttools\n"
-            "from psychopy.constants import (NOT_STARTED, STARTED, PLAYING,"
-            " PAUSED,\n"
-            "                                STOPPED, FINISHED, PRESSED, "
-            "RELEASED, FOREVER, priority)\n\n"
+            "from psychopy.constants import (\n"
+            "    NOT_STARTED, STARTED, PLAYING, PAUSED, STOPPED, STOPPING, FINISHED, PRESSED, \n"
+            "    RELEASED, FOREVER, priority\n"
+            ")\n\n"
             "import numpy as np  # whole numpy lib is available, "
             "prepend 'np.'\n"
             "from numpy import (%s,\n" % ', '.join(_numpyImports[:7]) +

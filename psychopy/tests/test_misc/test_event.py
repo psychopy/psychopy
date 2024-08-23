@@ -95,6 +95,7 @@ class _baseTest():
         event._onPygletMouseRelease(0, 0, LEFT | MIDDLE | RIGHT, None, emulated=True)
         assert not any(event.mouseButtons)
 
+    @skip_under_vm
     def test_mouse_clock(self):
         x, y = 0, 0
         scroll_x, scroll_y = 1, 1
