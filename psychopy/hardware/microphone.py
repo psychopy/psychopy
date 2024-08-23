@@ -776,13 +776,9 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
 
     def close(self):
         """Close the stream.
-
-        Should not be called until you are certain you're done with it. Ideally,
-        you should never close and reopen the same stream within a single
-        session.
-
         """
         self.clearListeners()
+        MicrophoneDevice._streams.pop(self._device.deviceIndex)
         self._stream.close()
         logging.debug('Stream closed')
 
