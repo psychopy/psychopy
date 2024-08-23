@@ -6,6 +6,7 @@ import numpy as np
 from psychopy.clock import wait, StaticPeriod, CountdownTimer
 from psychopy.visual import Window
 from psychopy.tools import systemtools
+from psychopy.tests import skip_under_vm
 
 
 def test_StaticPeriod_finish_on_time():
@@ -36,6 +37,7 @@ def test_StaticPeriod_recordFrameIntervals():
     win.close()
 
 
+@skip_under_vm
 def test_StaticPeriod_screenHz():
     """Test if screenHz parameter is respected, i.e., if after completion of the
     StaticPeriod, 1/screenHz seconds are still remaining, so the period will
