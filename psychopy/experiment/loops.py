@@ -216,8 +216,14 @@ class TrialHandler(_BaseLoopHandler):
         # then run the trials loop
         code = "\nfor %s in %s:\n"
         buff.writeIndentedLines(code % (self.thisName, self.params['name']))
-        # fetch parameter info from conditions
         buff.setIndentLevel(1, relative=True)
+        # mark current trial as started
+        code = (
+            "if hasattr(%(thisName)s, 'status'):\n"
+            "    %(thisName)s.status = STARTED\n"
+        )
+        buff.writeIndentedLines(code % {'thisName': self.thisName})
+        # fetch parameter info from conditions
         code = (
             "currentLoop = %(name)s\n"
             "thisExp.timestampOnFlip(win, 'thisRow.t', format=globalClock.format)\n"
@@ -345,6 +351,12 @@ class TrialHandler(_BaseLoopHandler):
         )
 
     def writeLoopEndCode(self, buff):
+        # mark current trial as finished at end of each iteration
+        code = (
+            "if hasattr(%(thisName)s, 'status'):\n"
+            "    %(thisName)s.status = FINISHED\n"
+        )
+        buff.writeIndentedLines(code % {'thisName': self.thisName})
         # Just within the loop advance data line if loop is whole trials
         if self.params['isTrials'].val == True:
             buff.writeIndentedLines(

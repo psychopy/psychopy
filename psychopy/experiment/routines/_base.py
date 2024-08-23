@@ -700,7 +700,7 @@ class Routine(list):
             loop = self.exp.flow._loopList[-1]
             code = (
                 "# if trial has changed, end Routine now\n"
-                "if hasattr({thisName}, 'skipped') and {thisName}.skipped:\n"
+                "if hasattr({thisName}, 'status') and {thisName}.status == STOPPING:\n"
                 "    continueRoutine = False\n"
             ).format(thisName=loop.thisName)
             buff.writeIndentedLines(code)

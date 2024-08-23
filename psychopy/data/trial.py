@@ -8,7 +8,7 @@ import copy
 import numpy as np
 import pandas as pd
 
-from psychopy import logging
+from psychopy import logging, constants
 from psychopy.tools.filetools import (openOutputFile, genDelimiter,
                                       genFilenameFromDelimiter)
 from .utils import importConditions
@@ -756,6 +756,8 @@ class Trial(dict):
         self.thisRepN = thisRepN
         self.thisTrialN = thisTrialN
         self.thisIndex = thisIndex
+        # add status
+        self.status = constants.NOT_STARTED
         # data for this trial
         if data is None:
             data = {}
@@ -1242,6 +1244,8 @@ class TrialHandler2(_BaseTrialHandler):
                 f"Skipping to the last upcoming trial."
             )
             n = len(self.upcomingTrials)
+        # mark as skipping so routines end
+        self.thisTrial.status = constants.STOPPING
         # before iterating, add "skipped" to data
         self.addData("skipped", True)
         # iterate n times (-1 to account for current trial)
@@ -1274,8 +1278,8 @@ class TrialHandler2(_BaseTrialHandler):
                 f"elapsed. Rewinding to the first trial."
             )
             n = len(self.elapsedTrials)
-        # mark current trial as skipped so it ends
-        self.addData("skipped", True)
+        # mark current trial as skipping so it ends
+        self.thisTrial.status = constants.STOPPING
         # start with no trials
         rewound = [self.thisTrial]
         # pop the last n values from elapsed trials
