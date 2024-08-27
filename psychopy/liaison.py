@@ -451,6 +451,6 @@ class WebSocketServer:
 			# JSONify any errors
 			err = json.dumps(err, cls=LiaisonJSONEncoder)
 			# send to server
-			self.logger.sent(response)
+			self.logger.sent(err)
 			await websocket.send(err)
 			
