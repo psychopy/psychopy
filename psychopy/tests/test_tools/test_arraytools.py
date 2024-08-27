@@ -199,10 +199,10 @@ class TestIndexDict:
             {'set': (1, "pqr"), 'get': ('someOtherKey', "def")},
             {'set': (1, "pqr"), 'get': (1, "pqr")},
             # set by explicit key not yet in array
-            {'set': ('newKey', "stu"), 'get': ('newKey', "stu")}
-            {'set': ('newKey', "stu"), 'get': (5, "stu")}
+            {'set': ('newKey', "stu"), 'get': ('newKey', "stu")},
+            {'set': ('newKey', "stu"), 'get': (5, "stu")},
             # set by positional index not yet in array (should treat as explicit key)
-            {'set': (6, "stu"), 'get': (6, "stu")}
+            {'set': (6, "stu"), 'get': (6, "stu")},
         ]
         # iterate through cases
         for case in cases:
