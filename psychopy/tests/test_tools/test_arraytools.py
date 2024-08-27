@@ -220,7 +220,7 @@ class TestIndexDict:
                 f"{repr(self.data[geti])}"
             )
     
-    def check_key_error(self):
+    def test_key_error(self):
         """
         Check that supplying an invalid key/index to an IndexDict still errors like a normal 
         dict/list
