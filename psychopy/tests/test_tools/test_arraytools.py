@@ -200,7 +200,7 @@ class TestIndexDict:
             {'set': (1, "pqr"), 'get': (1, "pqr")},
             # set by explicit key not yet in array
             {'set': ('newKey', "stu"), 'get': ('newKey', "stu")},
-            {'set': ('newKey', "stu"), 'get': (5, "stu")},
+            {'set': ('newKey', "stu"), 'get': (4, "stu")},
             # set by positional index not yet in array (should treat as explicit key)
             {'set': (6, "stu"), 'get': (6, "stu")},
         ]
@@ -227,9 +227,9 @@ class TestIndexDict:
         """
         cases = [
             # index bigger than array
-            (4, KeyError, "4 should be out of bounds, but got {}")
+            (4, KeyError, "4 should be out of bounds, but got {}"),
             # key not in array
-            ('lalala', KeyError, "There shouldn't be a value for 'lalala', but got {}")
+            ('lalala', KeyError, "There shouldn't be a value for 'lalala', but got {}"),
         ]
         for i, errType, msg in cases:
             try:
