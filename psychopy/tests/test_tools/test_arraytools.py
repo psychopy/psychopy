@@ -128,3 +128,115 @@ def test_AliasDict():
     params2.alias("1", alias="one")
     assert "one" not in params.aliases
     assert "1" not in params.aliases
+
+
+class TestIndexDict:
+    def setup_method(self):
+        self.recreateData()
+    
+    def recreateData(self):
+        """
+        Recreate the test index dict from scratch, in case it changed over the course of a test.
+        """
+        self.data = at.IndexDict({
+            'someKey': "abc",
+            'someOtherKey': "def",
+            'anotherOne': "ghi",
+            1: "jkl",
+        })
+    
+    def test_isinstance(self):
+        """
+        Check that an IndexDict is an instance of dict
+        """
+        assert isinstance(self.data, dict)
+    
+    def test_length(self):
+        """
+        Check that an IndexDict reports its length as the number of explicit keys, ignoring 
+        positional indices.
+        """
+        assert len(self.data) == 4
+    
+    def test_get_item(self):
+        """
+        Check that items in an IndexDict can be got as expected, explicit keys should always take 
+        precedence over positional indices.
+        """
+        cases = [
+            # positional indices
+            (0, "abc"),
+            (2, "ghi"),
+            (3, "jkl"),
+            # explicit indices
+            ('someKey', "abc"),
+            ('someOtherKey', "def"),
+            ('anotherOne', "ghi"),
+            # conflicting indices (should favour explicit)
+            (1, "jkl"),
+        ]
+        # iterate through cases
+        for key, value in cases:
+            # check that each key returns the correct value
+            assert self.data[key] == value
+    
+    def test_set_item(self):
+        """
+        Check that items in an IndexDict can be set as expected, should set by position only if the 
+        positional index is not already defined as an explicit key.
+        """
+        cases = [
+            # set by positional index (no conflict)
+            {'set': (0, "mno"), 'get': (0, "mno")},
+            {'set': (0, "mno"), 'get': ('someKey', "mno")},
+            # set by explicit key (no conflict)
+            {'set': ('someKey', "mno"), 'get': (0, "mno")},
+            {'set': ('someKey', "mno"), 'get': ('someKey', "mno")},
+            # set by explicit string (when its positional index is also a key)
+            {'set': ('someOtherKey', "pqr"), 'get': ('someOtherKey', "pqr")},
+            {'set': ('someOtherKey', "mno"), 'get': (1, "jkl")},
+            # set by positional index (when it's also a key)
+            {'set': (1, "pqr"), 'get': ('someOtherKey', "def")},
+            {'set': (1, "pqr"), 'get': (1, "pqr")},
+            # set by explicit key not yet in array
+            {'set': ('newKey', "stu"), 'get': ('newKey', "stu")}
+            {'set': ('newKey', "stu"), 'get': (5, "stu")}
+            # set by positional index not yet in array (should treat as explicit key)
+            {'set': (6, "stu"), 'get': (6, "stu")}
+        ]
+        # iterate through cases
+        for case in cases:
+            # recreate data to clear last changes
+            self.recreateData()
+            # get values to set and expected values to return
+            seti, setval = case['set']
+            geti, getval = case['get']
+            # set value
+            self.data[seti] = setval
+            # check value
+            assert self.data[geti] == getval, (
+                f"After setting data[{repr(seti)}] = {repr(setval)} expected to get data["
+                f"{repr(geti)}] == {repr(getval)}, but instead got data[{repr(geti)}] == "
+                f"{repr(self.data[geti])}"
+            )
+    
+    def check_key_error(self):
+        """
+        Check that supplying an invalid key/index to an IndexDict still errors like a normal 
+        dict/list
+        """
+        cases = [
+            # index bigger than array
+            (4, KeyError, "4 should be out of bounds, but got {}")
+            # key not in array
+            ('lalala', KeyError, "There shouldn't be a value for 'lalala', but got {}")
+        ]
+        for i, errType, msg in cases:
+            try:
+                val = self.data[i]
+            except errType as err:
+                # if it errors as expected, good!
+                pass
+            else:
+                # if no error, raise an assertion error with message
+                raise AssertionError(msg.format(val))
