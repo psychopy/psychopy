@@ -122,6 +122,16 @@ class _SoundBase(AttributeGetSetMixin):
             if isinstance(pref, (list, tuple)):
                 pref = pref[0]
             speaker = pref
+        # if first pref is defualt, use first device
+        if speaker in ("default", "", None):
+            for profile in DeviceManager.getAvailableDevices("psychopy.hardware.speaker.SpeakerDevice"):
+                # log
+                logging.debug("Using speaker %(deviceName)s as defaultSpeaker" % profile)
+                # initialise as defaultSpeaker
+                profile['deviceName'] = "defaultSpeaker"
+                device = DeviceManager.addDevice(**profile)
+                
+                return device
         # look for device if initialised
         device = DeviceManager.getDevice(speaker)
         # if no matching name, try matching index
