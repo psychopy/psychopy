@@ -1320,10 +1320,12 @@ class Window():
         self._frameTime = now = logging.defaultClock.getTime()
         self._frameTimes.append(self._frameTime)
 
-        # run other functions immediately after flip completes
-        for callEntry in self._toCall:
-            callEntry['function'](*callEntry['args'], **callEntry['kwargs'])
-        del self._toCall[:]
+        # run scheduled functions immediately after flip completes
+        n_items = len(self._toCall)
+        for i in range(n_items):
+            self._toCall[i]['function'](*self._toCall[i]['args'], **self._toCall[i]['kwargs'])
+        # leave newly scheduled functions for next flip
+        del self._toCall[:n_items]
 
         # do bookkeeping
         if self.recordFrameIntervals:
