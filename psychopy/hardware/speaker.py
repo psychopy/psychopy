@@ -43,7 +43,7 @@ class SpeakerDevice(BaseDevice):
                 self.deviceName = profile['name']
 
         if self.index is None:
-            logging.error("No speaker device found with index %d" % index)
+            logging.error("No speaker device found with index {}".format(index))
 
     def isSameDevice(self, other):
         """

@@ -556,7 +556,7 @@ class SoundPTB(_SoundBase):
         self._isFinished = False
         # time.sleep(0.)
         if log and self.autoLog:
-            logging.exp(u"Sound %s started" % (self.name), obj=self, t=logTime)
+            logging.exp(u"Playing sound %s on speaker %s" % (self.name, self.speaker.deviceName), obj=self, t=logTime)
 
     def pause(self, log=True):
         """Stops the sound without reset, so that play will continue from here if needed
