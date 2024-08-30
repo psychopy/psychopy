@@ -36,8 +36,8 @@ def makeDisplayParams(expInfo, sortKeys=True, labels=None, tooltips=None, fixed=
         # work out index from flags
         i = None
         for flag in flags:
-                if flag.isnumeric():
-                    i = int(flag)
+            if flag.isnumeric():
+                i = int(flag)
         # if given, manually set order should override flags
         if order is not None and key in order:
             i = order.index(key)
