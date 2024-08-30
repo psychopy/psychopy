@@ -753,7 +753,7 @@ class Routine(list):
             "    pauseExperiment(\n"
             "        thisExp=thisExp, \n"
             "        win=win, \n"
-            "        timers=[routineTimer], \n"
+            "        timers=[routineTimer, globalClock], \n"
             "        playbackComponents=[{playbackComponentsStr}]\n"
             "    )\n"
             "    # skip the frame we paused on\n"
