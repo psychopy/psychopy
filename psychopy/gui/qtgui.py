@@ -371,8 +371,10 @@ class Dlg(QtWidgets.QDialog):
         """Adds a field to the dialog box (like addField) but the field cannot
         be edited. e.g. Display experiment version.
         """
-        return self.addField(key, label, initial, color, choices, tip,
-                             enabled=False)
+        return self.addField(
+            key=key, label=label, initial=initial, color=color, choices=choices, tip=tip, 
+            enabled=False
+        )
 
     def addReadmoreCtrl(self):
         line = ReadmoreCtrl(self, label=_translate("Configuration fields..."))
