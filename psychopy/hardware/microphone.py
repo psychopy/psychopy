@@ -882,10 +882,12 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             If True, then upon adding the listener, start up an asynchronous loop to dispatch messages.
         """
         # add listener as normal
-        BaseResponseDevice.addListener(self, listener, startLoop=startLoop)
+        listener = BaseResponseDevice.addListener(self, listener, startLoop=startLoop)
         # if we're starting a listener loop, start recording
         if startLoop:
             self.start()
+        
+        return listener
 
     def clearListeners(self):
         """
@@ -897,9 +899,11 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             True if completed successfully
         """
         # clear listeners as normal
-        BaseResponseDevice.clearListeners(self)
+        resp = BaseResponseDevice.clearListeners(self)
         # stop recording
         self.stop()
+
+        return resp
 
     def dispatchMessages(self, clear=True):
         """
