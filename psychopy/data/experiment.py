@@ -471,7 +471,7 @@ class ExperimentHandler(_ComparisonMixin):
         if not isinstance(self.currentLoop, TrialHandler2):
             return
         # skip trials in current loop
-        self.currentLoop.skipTrials(n)
+        return self.currentLoop.skipTrials(n)
 
     def rewindTrials(self, n=1):
         """
@@ -487,7 +487,7 @@ class ExperimentHandler(_ComparisonMixin):
         if not isinstance(self.currentLoop, TrialHandler2):
             return
         # rewind trials in current loop
-        self.currentLoop.rewindTrials(n)
+        return self.currentLoop.rewindTrials(n)
     
     def getAllTrials(self):
         """

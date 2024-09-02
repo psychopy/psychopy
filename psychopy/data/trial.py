@@ -1255,7 +1255,9 @@ class TrialHandler2(_BaseTrialHandler):
             self.addData("skipped", True)
             # advance row in data file
             if self.getExp() is not None:
-                self.getExp().nextEntry()                
+                self.getExp().nextEntry()
+
+        return self.thisTrial   
 
     def rewindTrials(self, n=1):
         """
@@ -1289,6 +1291,8 @@ class TrialHandler2(_BaseTrialHandler):
         self.thisTrial = rewound.pop(0)
         # prepend rewound trials to upcoming array
         self.upcomingTrials = rewound + self.upcomingTrials
+
+        return self.thisTrial
     
     def getCurrentTrial(self):
         """
