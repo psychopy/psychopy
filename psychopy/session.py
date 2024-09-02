@@ -1059,6 +1059,8 @@ class Session:
         logging.info(_translate(
             "Running experiment via Session: name={key}, expInfo={expInfo}"
         ).format(key=key, expInfo=expInfo))
+        # reset session clock
+        self.sessionClock.reset()
         # Run this experiment
         try:
             self.experiments[key].run(
