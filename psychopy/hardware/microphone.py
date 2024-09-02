@@ -817,6 +817,9 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         # figure out what to do with this other information
         audioData, absRecPosition, overflow, cStartTime = \
             self._stream.get_audio_data()
+        # log how many samples we got if debugging
+        if not len(audioData):
+            logging.debug(f"Polled samples from microphone {self.index} and none were returned")
 
         if overflow:
             logging.warning(
@@ -1222,6 +1225,11 @@ class RecordingBuffer:
         idxStart = int(start * self._sampleRateHz)
         idxEnd = self._lastSample if end is None else int(
             end * self._sampleRateHz)
+        
+        if not len(self._samples):
+            raise AudioStreamError(
+                "Could not access recording as microphone has sent no samples."
+            )
 
         return AudioClip(
             np.array(self._samples[idxStart:idxEnd, :],
