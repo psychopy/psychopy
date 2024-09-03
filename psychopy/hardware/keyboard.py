@@ -405,7 +405,7 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
             True if the two objects represent the same physical device
         """
         # all Keyboards are the same device
-        return isinstance(other, KeyboardDevice)
+        return isinstance(other, (KeyboardDevice, dict))
 
     @classmethod
     def getBackend(self):
