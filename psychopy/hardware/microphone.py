@@ -730,7 +730,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         """
         # This function must be idempotent since it can be invoked at any time
         # whether a stream is started or not.
-        if not self.isStarted:
+        if not self.isStarted or self._stream._closed:
             return
 
         # poll remaining samples, if any
@@ -778,6 +778,8 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         """Close the stream.
         """
         self.clearListeners()
+        if self._stream._closed:
+            return
         if self._device.deviceIndex in MicrophoneDevice._streams:
             MicrophoneDevice._streams.pop(self._device.deviceIndex)
         self._stream.close()
@@ -802,8 +804,15 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
 
         """
         if not self.isStarted:
-            raise AudioStreamError(
-                "Cannot poll samples from audio device, not started.")
+            logging.warning(
+                "Attempted to poll samples from mic which hasn't started."
+            )
+            return
+        if self._stream._closed:
+            logging.warning(
+                "Attempted to poll samples from mic which has been closed."
+            )
+            return
 
         # figure out what to do with this other information
         audioData, absRecPosition, overflow, cStartTime = \
@@ -859,7 +868,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             should mostly be between 0 (total silence) and 1 (very loud).
         """
         # if mic hasn't started yet, return 0 as it's recorded nothing
-        if not self.isStarted:
+        if not self.isStarted or self._stream._closed:
             return 0
         # poll most recent samples
         self.poll()
@@ -867,8 +876,12 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         clip = self._recording.getSegment(
             max(self._recording.lastSample / self._sampleRateHz - timeframe, 0)
         )
+        # get average volume
+        rms = clip.rms() * 10
+        # adjust and round
+        rms = np.round(rms, decimals=3)
 
-        return clip.rms() * 10
+        return rms
 
     def addListener(self, listener, startLoop=False):
         """
@@ -918,6 +931,8 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             If True, will clear the recording up until now after dispatching the volume. This is
             useful if you're just sampling volume and aren't wanting to store the recording.
         """
+        # poll the mic now
+        self.poll()
         # create a response object
         message = MicrophoneResponse(
             logging.defaultClock.getTime(),

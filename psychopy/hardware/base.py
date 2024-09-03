@@ -14,7 +14,7 @@ __all__ = [
 
 import json
 import inspect
-import time
+import numpy as np
 
 
 class BaseResponse:
@@ -48,6 +48,10 @@ class BaseResponse:
         # add all fields to "data"
         for key in self.fields:
             message['data'][key] = getattr(self, key)
+            # sanitize numpy arrays
+            if isinstance(message['data'][key], np.ndarray):
+                message['data'][key] = message['data'][key].tolist()
+
 
         return json.dumps(message)
 

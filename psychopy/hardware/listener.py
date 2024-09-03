@@ -124,12 +124,15 @@ class ListenerLoop(threading.Thread):
         """
         cont = self._alive
         startTime = time.time()
+        logging.info("Starting listener loop.")
         # until something says otherwise, continue
         while cont:
             # work out whether to continue
             cont = self._alive
             if self.maxTime is not None:
                 cont &= time.time() - startTime < self.maxTime
+                if not cont:
+                    logging.info("Ending listener loop as max time has been reached")
             # only dispatch messages if not paused
             if self._active:
                 # dispatch messages from devices
@@ -137,9 +140,11 @@ class ListenerLoop(threading.Thread):
                     device.dispatchMessages()
             # if there are no more devices attached, stop
             if not len(self.devices):
+                logging.info("Ending listener loop as there are no devices")
                 self._active = False
             # sleep for 10ms
             time.sleep(self.refreshRate)
+        logging.info("Finished listener loop")
 
 
 # make a global instance of ListenerLoop so all listeners can share the same loop
@@ -160,7 +165,7 @@ class BaseListener:
         global loop
         self.loop = loop
 
-    def startLoop(self, device, refreshRate=0.01, maxTime=None):
+    def startLoop(self, device, refreshRate=0.1, maxTime=None):
         """
         Start a threaded loop listening for responses
 
