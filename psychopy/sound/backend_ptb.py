@@ -496,6 +496,13 @@ class SoundPTB(_SoundBase):
         self.seek(0)
         self.sourceType = "array"
 
+        # catch when array is empty
+        if not len(self.sndArr):
+            logging.warning(
+                "Received a blank array for sound, playing nothing instead."
+            )
+            self.sndArr = np.zeros(shape=(self.blockSize, self.channels))
+
         if not self.track:  # do we have one already?
             self.track = audio.Slave(self.stream.handle, data=self.sndArr,
                                      volume=self.volume)
