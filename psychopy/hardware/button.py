@@ -161,7 +161,7 @@ class KeyboardButtonBox(BaseButtonGroup):
 
     def isSameDevice(self, other):
         # all Keyboards are the same device
-        return True
+        return isinstance(other, (KeyboardButtonBox, dict))
 
 
 class ButtonBox:

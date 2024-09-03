@@ -327,9 +327,10 @@ class BaseResponseDevice(BaseDevice):
         bool
             True if completed successfully
         """
-        # remove listeners from loop
+        # remove self from listener loop
         for listener in self.listeners:
-            listener.loop.removeDevice(listener)
+            if self in listener.loop.devices:
+                listener.loop.removeDevice(self)
         # clear list
         self.listeners = []
 
