@@ -878,8 +878,8 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         )
         # get average volume
         rms = clip.rms() * 10
-        # adjust and round
-        rms = np.round(rms, decimals=3)
+        # round
+        rms = np.round(rms.astype(np.float64), decimals=3)
 
         return rms
 
@@ -954,6 +954,8 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         # dispatch to listeners
         for listener in self.listeners:
             listener.receiveMessage(message)
+        
+        return message
 
 
 class RecordingBuffer:

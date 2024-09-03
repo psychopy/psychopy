@@ -50,8 +50,11 @@ class ListenerLoop(threading.Thread):
             Device to remove
         """
         if device in self.devices:
+            logging.info(f"Removed from listener loop: {device}")
             i = self.devices.index(device)
             self.devices.pop(i)
+        else:
+            logging.error(f"Could not remove from listener loop: {device} not in {self.devices}")
 
     def start(self):
         """
@@ -211,12 +214,6 @@ class BaseListener:
             Message received.
         """
         raise NotImplementedError()
-
-    def __del__(self):
-        """
-        On deletion, remove self from loop.
-        """
-        loop.removeDevice(self)
 
 
 class PrintListener(BaseListener):
