@@ -830,9 +830,10 @@ class AudioClip:
         """
         if channel is not None:
             assert 0 < channel < self.channels
-
+        # get samples
         arr = self._samples if channel is None else self._samples[:, channel]
-        rms = np.sqrt(np.mean(np.square(arr), axis=0))
+        # calculate rms
+        rms = np.nan_to_num(np.sqrt(np.nanmean(np.square(arr), axis=0)), nan=0)
 
         return rms if len(rms) > 1 else rms[0]
 
