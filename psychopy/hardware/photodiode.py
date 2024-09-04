@@ -272,6 +272,8 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
             return responsive
 
         def handleNonResponse(label, rect, timeout=5):
+            # log error
+            logging.error("Failed to find Photodiode")
             # skip if retry limit hit
             if retryLimit <= 0:
                 return None
@@ -303,7 +305,11 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
                 label.draw()
                 # flip
                 win.flip()
-            # if we timed out, retry whole find procedure
+            # if we timed out...
+            logging.error("Trying to find photodiode again after failing")
+            # re-detect threshold
+            self.findThreshold(win, channel=channel)
+            # re-find photodiode
             return self.findPhotodiode(win, channel=channel, retryLimit=retryLimit-1)
         
         def specifyManually(label, rect):
