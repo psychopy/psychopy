@@ -91,7 +91,7 @@ class WebSocketServer:
 	A simple Liaison server, using WebSockets as communication protocol.
 	"""
 
-	def __init__(self):
+	def __init__(self, logFile=None):
 		"""
 		Create an instance of a Liaison WebSocket server, to which clients can connect to run the methods of class instances.
 		"""
@@ -110,8 +110,15 @@ class WebSocketServer:
 
 		# register the Liaison methods available to clients:
 		self._methods = {
-			'liaison': (self, ['listRegisteredMethods', 'pingPong'])
+			'liaison': (self, ['listRegisteredMethods', 'addLogFile', 'pingPong'])
 		}
+	
+	def addLogFile(self, file):
+		# if given a log file, add it
+		logFile = logging.LogFile(
+			file, level=logging.DEBUG
+		)
+		self._logger.addTarget(logFile)
 
 	def registerObject(self, targetObject, referenceName):
 		"""
