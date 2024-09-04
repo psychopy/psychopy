@@ -176,7 +176,7 @@ class SerialDevice(BaseDevice, AttributeGetSetMixin):
             ports[port] = self
         else:
             raise ConnectionError(
-                f"Failed to connect to device on {self.portString}, this device is likely to have "
+                f"Failed to connect to device on {port}, this device is likely to have "
                 f"been disconnected, or the port is in use by another application."
             )
         # we aren't in a time-critical period so flush messages
