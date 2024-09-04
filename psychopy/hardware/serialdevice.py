@@ -174,6 +174,11 @@ class SerialDevice(BaseDevice, AttributeGetSetMixin):
             # store device in ports dict
             global ports
             ports[port] = self
+        else:
+            raise ConnectionError(
+                f"Failed to connect to device on {port}, this device is likely to have "
+                f"been disconnected, or the port is in use by another application."
+            )
         # we aren't in a time-critical period so flush messages
         logging.flush()
 
@@ -190,7 +195,16 @@ class SerialDevice(BaseDevice, AttributeGetSetMixin):
         time.sleep(self.pauseDuration)
 
     def sendMessage(self, message, autoLog=True):
-        """Send a command to the device (does not wait for a reply or sleep())
+        """
+        Send a command to the device (does not wait for a reply or sleep())
+
+        Parameters
+        ----------
+        message : str or bytes
+            Message to send to the device - if given as a string, SerialDevice will encode it 
+            into bytes for you
+        autoLog : bool
+            If True, then the message sent will be logged at level DEBUG
         """
         if self.com.inWaiting():
             inStr = self.com.read(self.com.inWaiting())
@@ -202,22 +216,29 @@ class SerialDevice(BaseDevice, AttributeGetSetMixin):
             message += self.eol  # append a newline if necess
         self.com.write(message)
         self.com.flush()
+        # log
         if autoLog:
-            msg = b'Sent %s message:' % (self.name)
-            logging.debug(msg + message.replace(self.eol, b''))  # complete msg
-            # we aren't in a time-critical period so flush msg
+            logging.debug(
+                f"Sent {self.name} message: " + repr(message)
+            )
+            # sending isn't as time-critical as receiving, so we can flush now
             logging.flush()
 
-    def getResponse(self, length=1, timeout=0.1):
-        """Read the latest response from the serial port
+    def getResponse(self, length=1, timeout=0.1, autoLog=True):
+        """
+        Read the latest response from the serial port
 
-        Parameters:
-
-        `length` determines whether we expect:
+        Parameters
+        ----------
+        length : int
+           One of:
            - 1: a single-line reply (use readline())
            - 2: a multiline reply (use readlines() which *requires* timeout)
-           - -1: may not be any EOL character; just read whatever chars are
-                there
+           - -1: may not be any EOL character; just read whatever chars are there
+        timeout : float
+            How long to wait for a response before giving up
+        autoLog : bool
+            If True, then the message sent will be logged at level DEBUG
         """
         # get reply (within timeout limit)
         self.com.timeout = timeout
@@ -230,6 +251,10 @@ class SerialDevice(BaseDevice, AttributeGetSetMixin):
             retVal = self.com.read(self.com.inWaiting())
         if type(retVal) is bytes:
             retVal = retVal.decode('utf-8')
+        # log
+        if retVal and autoLog:
+            logging.debug(f"Received {self.name} message: " + repr(retVal))
+        
         return retVal
 
     def awaitResponse(self, multiline=False, timeout=None):
