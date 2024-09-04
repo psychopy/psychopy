@@ -175,7 +175,7 @@ class SerialDevice(BaseDevice, AttributeGetSetMixin):
             global ports
             ports[port] = self
         else:
-            raise serial.serialutil.ConnectionError(
+            raise ConnectionError(
                 f"Failed to connect to device on {self.portString}, this device is likely to have "
                 f"been disconnected, or the port is in use by another application."
             )
