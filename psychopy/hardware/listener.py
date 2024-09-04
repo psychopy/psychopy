@@ -73,7 +73,8 @@ class ListenerLoop(threading.Thread):
         self._alive = True
         self._active = True
         # start the thread
-        threading.Thread.start(self)
+        if not threading.Thread.is_alive(self):
+            threading.Thread.start(self)
         # sleep so it has time to spin up
         time.sleep(self.refreshRate)
         # return confirmation of thread's alive status
@@ -143,7 +144,6 @@ class ListenerLoop(threading.Thread):
                     device.dispatchMessages()
             # if there are no more devices attached, stop
             if not len(self.devices):
-                logging.info("Ending listener loop as there are no devices")
                 self._active = False
             # sleep for 10ms
             time.sleep(self.refreshRate)

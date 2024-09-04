@@ -1051,8 +1051,8 @@ class Session:
         self.win.flip()
         # Hold all autodraw stimuli
         self.win.stashAutoDraw()
-        # Pause the listener loop
-        listenerLoop.pause()
+        # fully stop the listener loop
+        listenerLoop.stop()
         # Setup logging
         self.experiments[key].run.__globals__['logFile'] = self.logFile
         # Log start
@@ -1075,8 +1075,8 @@ class Session:
             err.userdata = key
         # Reinstate autodraw stimuli
         self.win.retrieveAutoDraw()
-        # Restart the listener loop
-        listenerLoop.pause()
+        # restart the listener loop
+        listenerLoop.start()
         # Restore original chdir
         os.chdir(str(self.root))
         # Store ExperimentHandler
