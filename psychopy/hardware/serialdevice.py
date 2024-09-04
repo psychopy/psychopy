@@ -174,6 +174,11 @@ class SerialDevice(BaseDevice, AttributeGetSetMixin):
             # store device in ports dict
             global ports
             ports[port] = self
+        else:
+            raise serial.serialutil.ConnectionError(
+                f"Failed to connect to device on {self.portString}, this device is likely to have "
+                f"been disconnected, or the port is in use by another application."
+            )
         # we aren't in a time-critical period so flush messages
         logging.flush()
 
