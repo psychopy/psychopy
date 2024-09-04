@@ -113,7 +113,10 @@ class WebSocketServer:
 			'liaison': (self, ['listRegisteredMethods', 'addLogFile', 'pingPong'])
 		}
 	
-	def addLogFile(self, file):
+	def addLogFile(self, file, loggingLevel=logging.INFO):
+		# actualize logging level
+		if isinstance(loggingLevel, str):
+			loggingLevel = getattr(logging, loggingLevel.upper())
 		# if given a log file, add it
 		logFile = logging.LogFile(
 			file, level=logging.DEBUG
