@@ -91,7 +91,7 @@ class WebSocketServer:
 	A simple Liaison server, using WebSockets as communication protocol.
 	"""
 
-	def __init__(self, logFile=None):
+	def __init__(self):
 		"""
 		Create an instance of a Liaison WebSocket server, to which clients can connect to run the methods of class instances.
 		"""
