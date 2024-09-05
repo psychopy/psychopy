@@ -166,7 +166,7 @@ class SettingsComponent:
             label=_translate("Experiment name")
         )
         self.params['expVersion'] = Param(
-            expName, valType='str', inputType="single", categ='Basic',
+            expVersion, valType='str', inputType="single", categ='Basic',
             hint=_translate(
                 "Version number of the experiment (a string). Just for your records if it's useful to store"
             ),
@@ -979,7 +979,7 @@ class SettingsComponent:
             "# store info about the experiment session\n"
             "psychopyVersion = '%(version)s'\n"
             "expName = %(expName)s  # from the Builder filename that created this script\n"
-            "expVersion = '%(expVersion)s'\n"
+            "expVersion = %(expVersion)s\n"
         )
         buff.writeIndentedLines(code % params)
         # get info for this experiment
