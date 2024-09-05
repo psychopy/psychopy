@@ -433,16 +433,26 @@ class DeviceManager:
         bool
             True if completed successfully
         """
+        # get device object
         device = DeviceManager.devices[deviceName]
+        # clear any listeners on it
         DeviceManager.clearListeners(deviceName)
+        # close it
         if hasattr(device, "close"):
             device.close()
-        del DeviceManager.devices[deviceName]
-
-        # Claenup deviceAliases as well
+        # remove any child devices
+        _toRemove = []
+        for name, poss in DeviceManager.devices.items():
+            if hasattr(poss, "parent") and poss.parent is device:
+                _toRemove.append(name)
+        for name in _toRemove:
+            DeviceManager.removeDevice(name)
+        # remove device aliases
         for alias in list(DeviceManager.deviceAliases.keys()):
             if deviceName == DeviceManager.deviceAliases[alias]:
                 del DeviceManager.deviceAliases[alias]
+        # delete object
+        del DeviceManager.devices[deviceName]
 
         return True
 
