@@ -101,7 +101,14 @@ class PipeReader(Thread):
     @property
     def isAvailable(self):
         """Are there bytes available to be read (`bool`)?"""
-        return self._queue.full()
+        if self._queue.full():
+            return True
+        elif self._overflowBuffer:  # have leftover bytes
+            self._queue.put("".join(self._overflowBuffer))
+            self._overflowBuffer = []  # clear the overflow buffer
+            return True
+        else:
+            return False
 
     def read(self):
         """Read all bytes enqueued by the thread coming off the pipe. This is
