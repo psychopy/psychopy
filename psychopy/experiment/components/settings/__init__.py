@@ -100,6 +100,7 @@ class SettingsComponent:
             savedDataFolder='', savedDataDelim='auto',
             clockFormat="float",
             useVersion='',
+            expVersion='',
             eyetracker="None",
             mgMove='CONTINUOUS', mgBlink='MIDDLE_BUTTON', mgSaccade=0.5,
             gpAddress='127.0.0.1', gpPort=4242,
@@ -163,6 +164,13 @@ class SettingsComponent:
                 "Name of the entire experiment (taken by default from the filename on save)"
             ),
             label=_translate("Experiment name")
+        )
+        self.params['expVersion'] = Param(
+            expVersion, valType='str', inputType="single", categ='Basic',
+            hint=_translate(
+                "Version number of the experiment (a string). Just for your records if it's useful to store"
+            ),
+            label=_translate("Experiment version")
         )
         self.params['runMode'] = Param(
             runMode, valType="code", inputType="choice", categ="Basic",
@@ -971,6 +979,7 @@ class SettingsComponent:
             "# store info about the experiment session\n"
             "psychopyVersion = '%(version)s'\n"
             "expName = %(expName)s  # from the Builder filename that created this script\n"
+            "expVersion = %(expVersion)s\n"
         )
         buff.writeIndentedLines(code % params)
         # get info for this experiment
@@ -978,6 +987,7 @@ class SettingsComponent:
         # add internal expInfo keys
         expInfo['date|hid'] = "data.getDateStr()"
         expInfo['expName|hid'] = "expName"
+        expInfo['expVersion|hid'] = "expVersion"
         expInfo['psychopyVersion|hid'] = "psychopyVersion"
         # construct exp info dict
         code = (
@@ -1264,7 +1274,7 @@ class SettingsComponent:
         # set up the ExperimentHandler
         code = ("\n# an ExperimentHandler isn't essential but helps with data saving\n"
                 "thisExp = data.ExperimentHandler(\n"
-                "    name=expName, version='',\n"
+                "    name=expName, version=expVersion,\n"
                 "    extraInfo=expInfo, runtimeInfo=None,\n"
                 "    originPath=%(originPath)s,\n"
                 "    savePickle=%(Save psydat file)s, saveWideText=%(Save wide csv file)s,\n"
