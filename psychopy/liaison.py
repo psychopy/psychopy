@@ -401,7 +401,7 @@ class WebSocketServer:
 					# try to parse json string
 					try:
 						arg = json.loads(arg)
-					except json.decoder.JSONDecodeError:
+					except (json.decoder.JSONDecodeError, TypeError):
 						pass
 					# if arg is a known property, get its value
 					arg = self.actualizeAttributes(arg)
