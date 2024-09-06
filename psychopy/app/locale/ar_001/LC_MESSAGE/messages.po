@@ -14,7 +14,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=6; plural=(n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5);\n"
-"X-Generator: Poedit 3.4.4\n"
+"X-Generator: Poedit 3.5\n"
 "X-Poedit-Basepath: ../../../../..\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-KeywordsList: _translate\n"
@@ -110,7 +110,7 @@ msgstr "خطأ في بناء جملة JavaScript في علامة التبويب 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:60
 #, python-brace-format
 msgid "JavaScript Syntax Error in '{codeTab}' tab. See '{lineNumber}' in the '{codeTab}' tab."
-msgstr "خطأ تركيب جافا JS في '{codeTab}' تبويب. انظر '{lineNumber}'في '{codeTab}' تبويب."
+msgstr "خطأ تركيب Java JS في '{codeTab}' تبويب. انظر '{lineNumber}'في '{codeTab}' تبويب."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:64
 #, python-brace-format
@@ -301,7 +301,7 @@ msgstr "سايكوباي"
 
 #: psychopy/app/Resources/psychopy.desktop:7
 msgid "Psychology software in Python"
-msgstr "برنامج سايكوباي في بايثون"
+msgstr "برنامج سايكوباي في Python"
 
 #: psychopy/app/_psychopyApp.py:98 psychopy/app/builder/builder.py:381
 #: psychopy/app/coder/coder.py:1570 psychopy/app/runner/runner.py:207
@@ -538,9 +538,8 @@ msgstr "تصدير HTML... %s"
 
 # Double check
 #: psychopy/app/builder/builder.py:329
-#, fuzzy
 msgid "Export experiment to html/javascript file"
-msgstr "تصدير التجربة إلى ملف html/جافا سكريبت"
+msgstr "تصدير التجربة إلى ملف html/Java Script "
 
 #: psychopy/app/builder/builder.py:332 psychopy/app/coder/coder.py:1409
 #, python-format
@@ -562,7 +561,7 @@ msgstr "إعادة تعيين التفضيلات..."
 
 #: psychopy/app/builder/builder.py:353
 msgid "Close PsychoPy Builder"
-msgstr "إغلاق باني سيكوباي"
+msgstr "إغلاق باني Psychopy"
 
 #: psychopy/app/builder/builder.py:364 psychopy/app/coder/coder.py:1450
 #: psychopy/monitors/MonitorCenter.py:235
@@ -694,7 +693,7 @@ msgstr "تحديثات سايكوبي..."
 
 #: psychopy/app/builder/builder.py:453 psychopy/app/coder/coder.py:1689
 msgid "Update PsychoPy to the latest, or a specific, version"
-msgstr "قم بتحديث سيكوباي إلى أحدث إصدار أو إصدار معين"
+msgstr "قم بتحديث Psychopy إلى أحدث إصدار أو إصدار معين"
 
 #: psychopy/app/builder/builder.py:457 psychopy/app/coder/coder.py:1692
 msgid "Plugin/packages manager..."
@@ -702,7 +701,7 @@ msgstr "مدير المكونات الإضافية/ الحزم..."
 
 #: psychopy/app/builder/builder.py:458 psychopy/app/coder/coder.py:1693
 msgid "Manage Python packages and optional plugins for PsychoPy"
-msgstr "إدارة حزم بايثون والمكونات الإضافية الاختيارية لـسيكوباي"
+msgstr "إدارة حزم Python والمكونات الإضافية الاختيارية في Psychopy"
 
 # Check wizard translation
 #: psychopy/app/builder/builder.py:462 psychopy/app/coder/coder.py:1696
@@ -790,7 +789,7 @@ msgstr "ابحث في التجربة بأكملها عن مصطلح معين"
 
 #: psychopy/app/builder/builder.py:523
 msgid "README..."
-msgstr "إقرأني..."
+msgstr "README..."
 
 #: psychopy/app/builder/builder.py:524
 msgid "Add or edit the text shown when your experiment is opened"
@@ -806,11 +805,11 @@ msgstr "فك ضغط العروض التوضيحية إلى موقع قابل ل�
 
 #: psychopy/app/builder/builder.py:541
 msgid "Browse on Pavlovia"
-msgstr "تصفح على بافلوفيا"
+msgstr "تصفح على Pavlovia"
 
 #: psychopy/app/builder/builder.py:542
 msgid "Get more demos from the online demos repository on Pavlovia"
-msgstr "احصل على المزيد من العروض التوضيحية من مستودع العروض التوضيحية على الإنترنت على بافلوفيا"
+msgstr "احصل على المزيد من العروض التوضيحية من مستودع العروض التوضيحية على الإنترنت على Pavlovia"
 
 #: psychopy/app/builder/builder.py:547
 msgid "Open demos folder"
@@ -848,11 +847,11 @@ msgstr "انتقل إلى الصفحة الرئيسية لـسيكوباني"
 
 #: psychopy/app/builder/builder.py:575
 msgid "&PsychoPy Builder Help"
-msgstr "مساعدة الباني في سيكوباي"
+msgstr "مساعدة المنشئ في Psychopy"
 
 #: psychopy/app/builder/builder.py:577
 msgid "Go to the online documentation for PsychoPy Builder"
-msgstr "انتقل إلى التوثيق عبر الإنترنت لباني سيكوباي"
+msgstr "انتقل إلى التوثيق عبر الإنترنت لبناء  Psychopy"
 
 #: psychopy/app/builder/builder.py:584 psychopy/app/coder/coder.py:1767
 msgid "&System Info..."
@@ -868,7 +867,7 @@ msgstr "حول..."
 
 #: psychopy/app/builder/builder.py:590 psychopy/app/coder/coder.py:1774
 msgid "About PsychoPy"
-msgstr "حول سيكوباي"
+msgstr "حول Psychopy"
 
 #: psychopy/app/builder/builder.py:593 psychopy/app/coder/coder.py:1778
 msgid "&News..."
@@ -884,7 +883,7 @@ msgstr "تجارب PsychoPy (*.psyexp) |*.psyexp|أي ملف (*.*) |.*"
 
 #: psychopy/app/builder/builder.py:709 psychopy/app/builder/builder.py:803
 msgid "PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*"
-msgstr "تجارب سيكوباي (*.psyexp)|*.psyexp|أي ملف (*.*)|*"
+msgstr "تجاربPsychopy (*.psyexp)|*.psyexp|أي ملف (*.*)|*"
 
 #: psychopy/app/builder/builder.py:721 psychopy/app/builder/builder.py:726
 #: psychopy/app/builder/dialogs/__init__.py:1677 psychopy/app/coder/coder.py:2362
@@ -899,11 +898,11 @@ msgstr "حفظ الملف باسم ..."
 
 #: psychopy/app/builder/builder.py:859
 msgid "Please save experiment before editing the README file"
-msgstr "يرجى حفظ التجربة قبل تحرير ملف إقرأني README"
+msgstr "يرجى حفظ التجربة قبل تحرير ملف README"
 
 #: psychopy/app/builder/builder.py:860
 msgid "No readme file"
-msgstr "لا يوجد ملف إقرأني التمهيدي"
+msgstr "لا يوجد ملف README التمهيدي"
 
 #: psychopy/app/builder/builder.py:952
 #, python-format
@@ -924,11 +923,11 @@ msgstr "انتظر، عد إلى الوراء!"
 
 #: psychopy/app/builder/builder.py:1070 psychopy/app/coder/coder.py:2859
 msgid "Done! Your preferences have been reset. Changes will be applied when you next open PsychoPy."
-msgstr "تم! تمت إعادة تعيين تفضيلاتك. سيتم تطبيق التغييرات عند فتح سيكوباي في المرة القادمة."
+msgstr "تم! تمت إعادة تعيين تفضيلاتك. سيتم تطبيق التغييرات عند فتح Psychopy في المرة القادمة."
 
 #: psychopy/app/builder/builder.py:1131 psychopy/app/coder/coder.py:2896
 msgid "Done! Your preferences have been reset. Changes will be applied when you next open PsychoPy."
-msgstr "تم! تمت إعادة تعيين تفضيلاتك. سيتم تطبيق التغييرات عند فتح سيكوباي في المرة القادمة."
+msgstr "تم! تمت إعادة تعيين تفضيلاتك. سيتم تطبيق التغييرات عند فتح Psychopy في المرة القادمة."
 
 #: psychopy/app/builder/builder.py:1189
 #, python-format
@@ -1019,7 +1018,7 @@ msgstr "أضف مكونات وميزات جديدة عبر الإضافات."
 
 #: psychopy/app/builder/builder.py:2948
 msgid "Filter components by whether they work with PsychoJS, PsychoPy or both."
-msgstr "صنف المكونات حسب ما إذا كانت تعمل مع PsychoJS أو سيكوباي PsychoPy أو كليهما."
+msgstr "صنف المكونات حسب ما إذا كانت تعمل مع PsychoJS أو PsychoPy أو كليهما."
 
 #: psychopy/app/builder/builder.py:3227 psychopy/app/utils.py:495
 msgid "Edit"
@@ -1028,7 +1027,7 @@ msgstr "تعديل"
 #: psychopy/app/builder/builder.py:3230
 #, python-format
 msgid "&Close readme\t%s"
-msgstr "أغلق ملف إقرأني %s"
+msgstr "أغلق ملف README %s"
 
 #: psychopy/app/builder/builder.py:3324 psychopy/app/builder/builder.py:3447
 msgid "Insert Routine"
@@ -1141,14 +1140,12 @@ msgid "Edit experiment settings"
 msgstr "تحرير إعدادات التجربة"
 
 #: psychopy/app/builder/builder.py:4370
-#, fuzzy
 msgid "Compile Python Script"
-msgstr "تجميع نص برمجي بايثون"
+msgstr "تجميع نص برمجي Python"
 
 #: psychopy/app/builder/builder.py:4372
-#, fuzzy
 msgid "Compile to Python script"
-msgstr "التحويل البرمجي إلى نص برمجي بايثون"
+msgstr "التحويل البرمجي إلى نص برمجي Python"
 
 #: psychopy/app/builder/builder.py:4377
 #, fuzzy
@@ -1226,9 +1223,8 @@ msgid "Find existing studies online (at pavlovia.org)"
 msgstr "ابحث عن الدراسات الموجودة على الإنترنت (على pavlovia.org)"
 
 #: psychopy/app/builder/builder.py:4427 psychopy/app/coder/coder.py:2973
-#, fuzzy
 msgid "Current Pavlovia user"
-msgstr "مستخدم بافلوفيا الحالي"
+msgstr "مستخدم Pavlovia الحالي"
 
 #: psychopy/app/builder/builder.py:4428 psychopy/app/coder/coder.py:2974
 #, fuzzy
@@ -1406,7 +1402,7 @@ msgstr "لا يعمل"
 msgid "\n"
 msgstr "\n"
 "تتطلب الترجمة التلقائية من Py إلى JS مكتبة metapensiero.\n"
-"متوفر لبايثون 3.5+.\n"
+"متوفر Python 3.5+.\n"
 
 #: psychopy/app/builder/dialogs/dlgsCode.py:240
 #, fuzzy
@@ -1421,9 +1417,8 @@ msgstr "\n"
 "اضغط على موافق للمتابعة، أو إلغاء.\n"
 
 #: psychopy/app/builder/dialogs/dlgsCode.py:274
-#, fuzzy
 msgid "Warning: Python to JavaScript Translation"
-msgstr "تحذير: ترجمة بايثون إلى جافا سكريبت"
+msgstr "تحذير: ترجمة Python إلى Java Script"
 
 #: psychopy/app/builder/dialogs/dlgsConditions.py:79
 #, fuzzy
@@ -1595,23 +1590,20 @@ msgid "Add custom item"
 msgstr "إضافة عنصر مخصص"
 
 #: psychopy/app/builder/dialogs/paramCtrls.py:737
-#, fuzzy
 msgid "Below are all of the surveys linked to your Pavlovia account - select the one you want and press OK to add its ID."
-msgstr "فيما يلي جميع الاستطلاعات المرتبطة بحساب بافلوفيا الخاص بك - اختر الاستطلاع الذي تريده واضغط على موافق لإضافة معرفه."
+msgstr "فيما يلي جميع الاستطلاعات المرتبطة بحساب Pavlovia الخاص بك - اختر الاستطلاع الذي تريده واضغط على موافق لإضافة معرفه."
 
 #: psychopy/app/builder/dialogs/paramCtrls.py:731
 msgid "Below are all of the surveys linked to your Pavlovia account - select the one you want and press OK to add its ID."
 msgstr "فيما يلي جميع الاستطلاعات المرتبطة بحساب بافلوفيا الخاص بك - اختر الاستطلاع الذي تريده واضغط على موافق لإضافة المعرف الخاص به ID."
 
 #: psychopy/app/builder/dialogs/paramCtrls.py:746
-#, fuzzy
 msgid "There are no surveys linked to your Pavlovia account."
-msgstr "لا توجد استطلاعات مرتبطة بحساب بافلوفيا الخاص بك."
+msgstr "لا توجد استطلاعات مرتبطة بحساب Pavlovia الخاص بك."
 
 #: psychopy/app/builder/dialogs/paramCtrls.py:757
-#, fuzzy
 msgid "Click here to manage surveys on Pavlovia."
-msgstr "انقر هنا لإدارة الاستطلاعات على بافلوفيا."
+msgstr "انقر هنا لإدارة الاستطلاعات على Pavlovia."
 
 #: psychopy/app/builder/dialogs/paramCtrls.py:764
 #, fuzzy
@@ -1624,9 +1616,8 @@ msgid "Find online..."
 msgstr "ابحث على الإنترنت..."
 
 #: psychopy/app/builder/dialogs/paramCtrls.py:839
-#, fuzzy
 msgid "Get survey ID from a list of your surveys on Pavlovia"
-msgstr "احصل على معرف الاستطلاع من قائمة استطلاعاتك على بافلوفيا"
+msgstr "احصل على معرف الاستطلاع من قائمة استطلاعاتك على Pavlovia"
 
 #: psychopy/app/builder/dialogs/paramCtrls.py:926
 #, fuzzy
@@ -2382,9 +2373,8 @@ msgid "all"
 msgstr "كل شيء"
 
 #: psychopy/app/builder/localizedStrings.py:165
-#, fuzzy
 msgid "one of your Components, Routines, or condition parameters"
-msgstr "أحد مكوناتك أو إجراءاتك الروتينية أو باراميترات المثيرات"
+msgstr "أحد مكوناتك أو إجراءاتك الروتينية أو بارامترات المثيرات"
 
 #: psychopy/app/builder/localizedStrings.py:167
 msgid " Avoid `this`, `these`, `continue`, `Clock`, or `component` in name"
@@ -2396,7 +2386,7 @@ msgstr "متغير البناء"
 
 #: psychopy/app/builder/localizedStrings.py:169
 msgid "Psychopy module"
-msgstr "وحدة سيكوباي"
+msgstr "وحدة Psychopy"
 
 #: psychopy/app/builder/localizedStrings.py:170
 msgid "numpy function"
@@ -2404,7 +2394,7 @@ msgstr "دالة numpy"
 
 #: psychopy/app/builder/localizedStrings.py:171
 msgid "python keyword"
-msgstr "كلمة بايثون الرئيسية"
+msgstr "كلمة Python الرئيسية"
 
 #: psychopy/app/builder/localizedStrings.py:173
 msgid "look at"
@@ -2524,7 +2514,7 @@ msgstr "الخط \"{val}\" غير موجود محليًا، سيحاول است�
 
 #: psychopy/app/builder/validators.py:513
 msgid "Python syntax error in field `{}`:  {}"
-msgstr "خطأ في بناء جملة بايثون في الحقل \"{}\":  {}"
+msgstr "خطأ في بناء جملة Python في الحقل \"{}\":  {}"
 
 #: psychopy/app/builder/validators.py:524
 #, python-brace-format
@@ -2538,7 +2528,7 @@ msgstr "يبدو أنه يجب ضبط المتغير \"{code}\" في \"{displayN
 
 #: psychopy/app/builder/validators.py:548
 msgid "Python var `{}` in `{}` is same as Name"
-msgstr "متغير بايثون \"{}\" في \"{}\" مشابه للاسم"
+msgstr "متغير Python \"{}\" في \"{}\" مشابه للاسم"
 
 #: psychopy/app/builder/validators.py:571
 #, python-brace-format
@@ -2596,7 +2586,7 @@ msgstr "متفرقات"
 
 #: psychopy/app/coder/coder.py:297
 msgid "PsychoPy unit testing"
-msgstr "اختبار وحدة سيكوباي"
+msgstr "اختبار وحدة Psychopy"
 
 #: psychopy/app/coder/coder.py:325
 msgid "&Tests"
@@ -2623,7 +2613,7 @@ msgstr "انتقل إلى عرض المبرمج"
 
 #: psychopy/app/coder/coder.py:344
 msgid "Terminate PsychoPy"
-msgstr "إنهاء سيكوباي"
+msgstr "إنهاء Psychopy"
 
 #: psychopy/app/coder/coder.py:347
 msgid "&Preferences"
@@ -2633,7 +2623,7 @@ msgstr "التفضيلات"
 msgid "Select the test(s) to run, from:\n"
 "psychopy/tests/test*"
 msgstr "حدد الاختبار (الاختبارات) المراد تشغيله، من:\n"
-"سيكوباي/اختبارات/اختبار*"
+"Psychopy/اختبارات/اختبار*"
 
 #: psychopy/app/coder/coder.py:375
 msgid "Run tests"
@@ -2722,7 +2712,7 @@ msgstr "طباعة %s"
 
 #: psychopy/app/coder/coder.py:1437
 msgid "Close PsychoPy Coder"
-msgstr "إغلاق مبرمج سيكوباي"
+msgstr "إغلاق مبرمج Psychopy"
 
 #: psychopy/app/coder/coder.py:1451
 #, python-format
@@ -2897,7 +2887,7 @@ msgstr "مسافة بيضاء %s"
 
 #: psychopy/app/coder/coder.py:1612
 msgid "Show End Of Line markers in the code"
-msgstr "إظهار علامات نهاية السطر في الكود"
+msgstr "إظهار مؤشرات نهاية السطر في الكود"
 
 #: psychopy/app/coder/coder.py:1615
 #, python-format
@@ -2930,7 +2920,7 @@ msgstr "إظهار مربع الحوار لتشغيل اختبارات الوح�
 
 #: psychopy/app/coder/coder.py:1756
 msgid "&PsychoPy Coder Tutorial"
-msgstr "برنامج تعليمي لمبرمج سيكوباي"
+msgstr "برنامج تعليمي لمبرمج Psychopy"
 
 #: psychopy/app/coder/coder.py:1757
 msgid "Go to the online PsychoPy tutorial"
@@ -2942,7 +2932,7 @@ msgstr "PsychoPy API (مرجع)"
 
 #: psychopy/app/coder/coder.py:1762
 msgid "Go to the online PsychoPy reference manual"
-msgstr "انتقل إلى الدليل المرجعي لسيكوباي على الإنترنت"
+msgstr "انتقل إلى الدليل المرجعي في Psychopy على الإنترنت"
 
 #: psychopy/app/coder/coder.py:1973 psychopy/app/coder/coder.py:2029
 #, python-format
@@ -2991,20 +2981,18 @@ msgid "Saving file"
 msgstr "حفظ الملف"
 
 #: psychopy/app/coder/coder.py:2486
-#, fuzzy
 msgid "Python script (*.py)|*.py|JavaScript file (*.js)|*.js|Text file (*.txt)|*.txt|Any file (*.*)|*.*"
-msgstr "نص برمجي بايثون (*.py)|*.py|ملف جافا سكريبت (*.js)|.js|ملف نصي (*.txt)|.txt|أي ملف (*.*)|.*"
+msgstr "نص برمجي Python (*.py)|*.py|ملف Java Script (*.js)|.js|ملف نصي (*.txt)|.txt|أي ملف (*.*)|.*"
 
 msgid "Python script (*.py)|*.py|JavaScript file (*.js)|*.js|Text file (*.txt)|*.txt|Any file (*.*)|*.*"
-msgstr "نص برمجي بايثون (*.py)|*.py|ملف جافا سكريبت (*.js)|.js|ملف نصي (*.txt)|.txt|أي ملف (*.*)|.*"
+msgstr "نص برمجي Python (*.py)|*.py|ملف Java Script (*.js)|.js|ملف نصي (*.txt)|.txt|أي ملف (*.*)|.*"
 
 #: psychopy/app/coder/coder.py:2491
-#, fuzzy
 msgid "Python script (*.py)|*.py|JavaScript file (*.js)|*.js|Text file (*.txt)|*.txt|Any file (*.*)|*"
-msgstr "نص برمجي بايثون (*.py)|*.py|ملف جافا سكريبت (*.js)|.js|ملف نصي (*.txt)|.txt|أي ملف (*.*)|"
+msgstr "نص برمجي Python (*.py)|*.py|ملف Java Script  (*.js)|.js|ملف نصي (*.txt)|.txt|أي ملف (*.*)|"
 
 msgid "Python script (*.py)|*.py|JavaScript file (*.js)|*.js|Text file (*.txt)|*.txt|Any file (*.*)|*"
-msgstr "نص برمجي بايثون (*.py)|*.py|ملف جافا سكريبت (*.js)|.js|ملف نصي (*.txt)|.txt|أي ملف (*.*)|"
+msgstr "نص برمجي Python (*.py)|*.py|ملف Java Script  (*.js)|.js|ملف نصي (*.txt)|.txt|أي ملف (*.*)|"
 
 #: psychopy/app/coder/coder.py:2588
 #, python-format
@@ -3171,9 +3159,8 @@ msgid "Clear all previous output."
 msgstr "امسح كل المخرجات السابقة."
 
 #: psychopy/app/coder/repl.py:180
-#, fuzzy
 msgid "Hit [Return] to start a Python session."
-msgstr "اضغط على [رجوع] لبدء جلسة بايثون."
+msgstr "اضغط على [رجوع] لبدء جلسة Python."
 
 #: psychopy/app/coder/repl.py:199
 #, fuzzy
@@ -3560,10 +3547,9 @@ msgid "Connection Error"
 msgstr "خطأ في الاتصال"
 
 #: psychopy/app/errorDlg.py:213
-#, fuzzy
 msgid "Could not connect to Pavlovia server. \n"
 "\n"
-msgstr "تعذر الاتصال بخادم بافلوفيا.\n"
+msgstr "تعذر الاتصال بخادم Pavlovia.\n"
 "\n"
 
 #: psychopy/app/pavlovia_ui/_base.py:33
@@ -3609,9 +3595,8 @@ msgid "Choose/create the root location for the synced project"
 msgstr "اختيار/إنشاء الموقع الجذر للمشروع الذي تمت مزامنته"
 
 #: psychopy/app/pavlovia_ui/functions.py:72
-#, fuzzy
 msgid "You are not logged in to Pavlovia. Please log in to continue."
-msgstr "لم تقم بتسجيل الدخول إلى بافلوفيا. يرجى تسجيل الدخول للمتابعة."
+msgstr "لم تقم بتسجيل الدخول إلى Pavlovia. يرجى تسجيل الدخول للمتابعة."
 
 #: psychopy/app/pavlovia_ui/functions.py:74 psychopy/app/pavlovia_ui/project.py:764
 #, fuzzy
@@ -5053,9 +5038,8 @@ msgid "Load tasks from a file"
 msgstr "تحميل المهام من ملف"
 
 #: psychopy/app/runner/runner.py:539
-#, fuzzy
 msgid "Run the current script in Python"
-msgstr "تشغيل البرنامج النصي الحالي في بايثون"
+msgstr "تشغيل البرنامج النصي الحالي في Python"
 
 #: psychopy/app/runner/runner.py:547
 #, fuzzy
@@ -6050,9 +6034,8 @@ msgid "Webcam: Record video from a webcam."
 msgstr "كاميرا ويب: تسجيل الفيديو من كاميرا الويب."
 
 #: psychopy/experiment/components/camera/__init__.py:228
-#, fuzzy
 msgid "Python package to use behind the scenes."
-msgstr "حزمة بايثون لاستخدامها خلف الكواليس."
+msgstr "حزمة Python لاستخدامها خلف الكواليس."
 
 #: psychopy/experiment/components/camera/__init__.py:233
 #: psychopy/experiment/components/movie/__init__.py:70
@@ -6709,15 +6692,13 @@ msgid "Response color"
 msgstr "لون الاستجابة"
 
 #: psychopy/experiment/components/form/__init__.py:168
-#, fuzzy
 msgid "Color of markers and the scrollbar"
-msgstr "لون العلامات وشريط التمرير"
+msgstr "لون المؤشرات وشريط التمرير"
 
 #: psychopy/experiment/components/form/__init__.py:169
 #: psychopy/experiment/components/slider/__init__.py:179
-#, fuzzy
 msgid "Marker color"
-msgstr "لون العلامة"
+msgstr "لون المؤشر"
 
 #: psychopy/experiment/components/grating/__init__.py:15
 #: psychopy/experiment/components/grating/__init__.py:62
@@ -7849,15 +7830,13 @@ msgstr "الملصقات"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:23
 #: psychopy/experiment/components/ratingScale/__init__.py:128
-#, fuzzy
 msgid "Marker type"
-msgstr "نوع العلامة"
+msgstr "نوع المؤشر"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:24
 #: psychopy/experiment/components/ratingScale/__init__.py:133
-#, fuzzy
 msgid "Marker start"
-msgstr "بدء العلامة"
+msgstr "بدء المؤشر"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:27
 #: psychopy/experiment/components/ratingScale/__init__.py:180
@@ -10581,10 +10560,9 @@ msgid "Device {device} does not support frame rate of {frameRate} and frame size
 msgstr "الجهاز {device} لا يدعم معدل الإطارات {frameRate} وحجم الإطار {frameSize}، باستخدام أقرب تنسيق مدعوم: {desc}"
 
 #: psychopy/liaison.py:29
-#, fuzzy
 msgid "`psychopy.liaison` requires the package `websockets`, this can be installed via command line:\n"
 "`pip install websockets`."
-msgstr "يتطلب برنامج 'psychopy.liaison' حزمة 'websockets'، ويمكن تثبيتها عبر سطر الأوامر:\n"
+msgstr "يتطلب برنامج 'psychopy.liaison' حزمة 'websockets'، ويمكن تثبيتها عبر سطر الأوامر:"
 
 #: psychopy/hardware/button.py:182
 #, python-brace-format
