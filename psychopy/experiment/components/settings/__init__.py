@@ -143,6 +143,7 @@ class SettingsComponent:
         self.params = {}
         self.depends = []
         self.order = [
+                      'expName', 'expVersion',
                       'Audio lib', 'Audio latency priority', "Force stereo",  # Audio tab
                       'HTML path', 'exportHTML', 'Completed URL', 'Incomplete URL', 'End Message', 'Resources',  # Online tab
                       ]
