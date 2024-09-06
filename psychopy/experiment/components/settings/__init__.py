@@ -2194,12 +2194,17 @@ class SettingsComponent:
         buff.writeIndentedLines(code)
 
         # Write End Experiment code component
-        for thisRoutine in list(self.exp.routines.values()):
-            # a single routine is a list of components:
-            for thisComp in thisRoutine:
-                if hasattr(thisComp, "writeExperimentEndCodeJS"):
-                    thisComp.writeExperimentEndCodeJS(buff)
-
+        for thisRoutine in self.exp.flow:
+            # write for regular Routines
+            if isinstance(thisRoutine, Routine):
+                for thisComp in thisRoutine:
+                    if hasattr(thisComp, "writeExperimentEndCodeJS"):
+                        thisComp.writeExperimentEndCodeJS(buff)
+            # write for standalone Routines
+            if isinstance(thisRoutine, BaseStandaloneRoutine):
+                if hasattr(thisRoutine, "writeExperimentEndCodeJS"):
+                        thisRoutine.writeExperimentEndCodeJS(buff)
+        
         code = ("psychoJS.window.close();\n"
                 "psychoJS.quit({message: message, isCompleted: isCompleted});\n\n"
                 "return Scheduler.Event.QUIT;\n")

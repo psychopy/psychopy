@@ -497,7 +497,7 @@ class Window():
 
         # parameters for transforming the overall view
         self.viewScale = val2array(viewScale)
-        if self.viewPos is not None and self.units is None:
+        if viewPos is not None and self.units is None:
             raise ValueError('You must define the window units to use viewPos')
         self.viewPos = val2array(viewPos, withScalar=False)
         self.viewOri = float(viewOri)

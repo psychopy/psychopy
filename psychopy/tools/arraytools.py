@@ -21,6 +21,53 @@ import numpy
 import ctypes
 
 
+class IndexDict(dict):
+    """
+    A dict which allows for keys to be accessed by index as well as by key. Can be initialised 
+    from a dict, or from a set of keyword arguments.
+
+    Example
+    -------
+    ```
+    data = IndexDict({
+        'someKey': "abc",
+        'someOtherKey': "def",
+        'anotherOne': "ghi",
+        1: "jkl",
+    })
+    # using a numeric index will return the value for the key at that position
+    print(data[0])  # prints: abc
+    # ...unless that number is already a key
+    print(data[1])  # prints: jkl
+    ```
+    """
+    def __init__(self, arr=None, **kwargs):
+        # initialise dict
+        dict.__init__(self)
+        # if given no dict, use a blank one
+        if arr is None:
+            arr = {}
+        # if given a dict, update kwargs with it
+        kwargs.update(arr)
+        # set every key
+        for key, value in kwargs.items():
+            dict.__setitem__(self, key, value)
+    
+    def __getitem__(self, key):
+        # if key is a valid numeric index not present as a normal key, get matching key
+        if isinstance(key, int) and key < len(self) and key not in self:
+            return list(self.values())[key]
+        # index like normal
+        return dict.__getitem__(self, key)
+    
+    def __setitem__(self, key, value):
+        # if key is a valid numeric index not present as a normal key, get matching key
+        if isinstance(key, int) and key < len(self) and key not in self:
+            key = list(self.keys())[key]
+        # set like normal
+        return dict.__setitem__(self, key, value)
+
+
 def createXYs(x, y=None):
     """Create an Nx2 array of XY values including all combinations of the
     x and y values provided.

@@ -48,6 +48,10 @@ class MicrophoneComponent(BaseDeviceComponent):
     onlineTranscribers = {
         "Google": "google",
     }
+    # dict mapping transcriber names to importable paths
+    transcriberPaths = {
+        'google': "psychopy.sound.transcribe:GoogleCloudTranscriber"
+    }
 
     def __init__(self, exp, parentName, name='mic',
                  startType='time (s)', startVal=0.0,
@@ -352,13 +356,18 @@ class MicrophoneComponent(BaseDeviceComponent):
 
     def writeRunOnceInitCode(self, buff):
         inits = getInitVals(self.params)
+        # get transcriber path
+        if inits['transcribeBackend'].val in MicrophoneComponent.transcriberPaths:
+            inits['transcriberPath'] = MicrophoneComponent.transcriberPaths[inits['transcribeBackend'].val]
+        else:
+            inits['transcriberPath'] = inits['transcribeBackend'].val
         # check if the user wants to do transcription
         if inits['transcribe'].val:
             code = (
                 "# Setup speech-to-text transcriber for audio recordings\n"
                 "from psychopy.sound.transcribe import setupTranscriber\n"
                 "setupTranscriber(\n"
-                "    '%(transcribeBackend)s'")
+                "    '%(transcriberPath)s'")
         
             # handle advanced config options
             if inits['transcribeBackend'].val == 'Whisper':
