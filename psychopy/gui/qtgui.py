@@ -8,6 +8,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 import importlib
 from psychopy import logging, data
+from psychopy.tools.arraytools import IndexDict
 from . import util
 
 haveQt = False  # until we confirm otherwise
@@ -167,7 +168,7 @@ class Dlg(QtWidgets.QDialog):
         self.inputFields = []
         self.inputFieldTypes = {}
         self.inputFieldNames = []
-        self.data = {}
+        self.data = IndexDict()
         self.irow = 0
         self.pos = pos
         # QtWidgets.QToolTip.setFont(QtGui.QFont('SansSerif', 10))
