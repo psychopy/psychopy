@@ -5,10 +5,10 @@
  */
 @import url("./bootswatch-3.3.7/readable/bootstrap.min.css");
 @import url("./bootstrap-sphinx.css");
-@import url("https://use.fontawesome.com/releases/v5.6.3/css/all.css");
-@import url("https://use.fontawesome.com/releases/v5.6.3/css/brands.css");
-@import url("https://use.fontawesome.com/releases/v5.6.3/css/fontawesome.css");
-@import url("https://use.fontawesome.com/releases/v5.6.3/css/fontawesome.css");
+@import url("https://use.fontawesome.com/releases/v6.6.0/css/all.css");
+@import url("https://use.fontawesome.com/releases/v6.6.0/css/brands.css");
+@import url("https://use.fontawesome.com/releases/v6.6.0/css/fontawesome.css");
+@import url("https://use.fontawesome.com/releases/v6.6.0/css/fontawesome.css");
 @import url("https://fonts.googleapis.com/css?family=Indie+Flower");
 @import url("https://fonts.googleapis.com/css?family=Arvo");
 
@@ -292,9 +292,19 @@ blockquote {
     color: #3B5998;
 }
 
+.bluesky {
+    /* background: white; */
+    color: #1185FE;
+}
+
+.linkedin {
+    /* background: white; */
+    color: #0a66c2;
+}
+
 .twitter {
     /* background: white; */
-    color: #55ACEE;
+    color: #000000;
 }
 
 .google {
