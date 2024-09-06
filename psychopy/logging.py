@@ -331,7 +331,7 @@ def critical(msg, t=None, obj=None):
     Send the message to any receiver of logging info (e.g. a LogFile)
     of level `log.CRITICAL` or higher
     """
-    root.log(msg, level=CRITICAL, t=t, obj=obj)
+    root.log(msg, level=CRITICAL, t=t, obj=obj, levelname="CRITICAL")
 fatal = critical
 
 
@@ -341,7 +341,7 @@ def error(msg, t=None, obj=None):
     Send the message to any receiver of logging info (e.g. a LogFile)
     of level `log.ERROR` or higher
     """
-    root.log(msg, level=ERROR, t=t, obj=obj)
+    root.log(msg, level=ERROR, t=t, obj=obj, levelname="ERROR")
 
 
 def warning(msg, t=None, obj=None):
@@ -350,7 +350,7 @@ def warning(msg, t=None, obj=None):
     Sends the message to any receiver of logging info (e.g. a LogFile)
     of level `log.WARNING` or higher
     """
-    root.log(msg, level=WARNING, t=t, obj=obj)
+    root.log(msg, level=WARNING, t=t, obj=obj, levelname="WARNING")
 warn = warning
 
 
@@ -363,7 +363,7 @@ def data(msg, t=None, obj=None):
     Sends the message to any receiver of logging info (e.g. a LogFile)
     of level `log.DATA` or higher
     """
-    root.log(msg, level=DATA, t=t, obj=obj)
+    root.log(msg, level=DATA, t=t, obj=obj, levelname="DATA")
 
 
 def exp(msg, t=None, obj=None):
@@ -376,7 +376,7 @@ def exp(msg, t=None, obj=None):
     Sends the message to any receiver of logging info (e.g. a LogFile)
     of level `log.EXP` or higher
     """
-    root.log(msg, level=EXP, t=t, obj=obj)
+    root.log(msg, level=EXP, t=t, obj=obj, levelname="EXP")
 
 
 def info(msg, t=None, obj=None):
@@ -388,7 +388,7 @@ def info(msg, t=None, obj=None):
     Sends the message to any receiver of logging info (e.g. a LogFile)
     of level `log.INFO` or higher
     """
-    root.log(msg, level=INFO, t=t, obj=obj)
+    root.log(msg, level=INFO, t=t, obj=obj, levelname="INFO")
 
 
 def debug(msg, t=None, obj=None):
@@ -401,7 +401,7 @@ def debug(msg, t=None, obj=None):
     Sends the message to any receiver of logging info (e.g. a LogFile)
     of level `log.DEBUG` or higher
     """
-    root.log(msg, level=DEBUG, t=t, obj=obj)
+    root.log(msg, level=DEBUG, t=t, obj=obj, levelname="DEBUG")
 
 
 def log(msg, level, t=None, obj=None):
