@@ -143,7 +143,6 @@ class ListenerLoop(threading.Thread):
                     device.dispatchMessages()
             # if there are no more devices attached, stop
             if not len(self.devices):
-                logging.info("Ending listener loop as there are no devices")
                 self._active = False
             # sleep for 10ms
             time.sleep(self.refreshRate)
