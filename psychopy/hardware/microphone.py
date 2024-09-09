@@ -937,7 +937,8 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         # create a response object
         message = MicrophoneResponse(
             logging.defaultClock.getTime(),
-            self.getCurrentVolume()
+            self.getCurrentVolume(),
+            device=self,
         )
         # clear recording if requested (helps with continuous running)
         if clear and self.isRecBufferFull:
