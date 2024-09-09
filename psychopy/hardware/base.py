@@ -53,11 +53,15 @@ class BaseResponse:
 
     def getJSON(self):
         import json
+        # get device profile
+        deviceProfile = None
+        if hasattr(self.device, "getDeviceProfile"):
+            deviceProfile = self.device.getDeviceProfile()
         # construct message as dict
         message = {
             'type': "hardware_response",
             'class': type(self).__name__,
-            'device': self.getDeviceName(),
+            'device': deviceProfile,
             'data': {}
         }
         # add all fields to "data"
