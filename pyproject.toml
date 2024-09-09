@@ -90,7 +90,7 @@ dependencies = [
     "python-xlib; platform_system == \"Linux\"",
     "distro; platform_system == \"Linux\"",
     'tables!=3.9.2',  # 3.9.2 crashes on Rosetta
-    "packaging>=24.1",
+    "packaging>=24.0",
 ]
 
 [project.optional-dependencies]  # This is optional dependencies
