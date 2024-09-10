@@ -1180,15 +1180,17 @@ class RecordingBuffer:
                     "Cannot write samples, recording buffer is full.")
             elif self._policyWhenFull == ('rolling', 'roll'):
                 # if policy is rolling, we clear the first half of the buffer
-                toSave = int(self._totalSamples / 2)
+                toSave = self._totalSamples - len(samples)
                 # get last 0.1s so we still have enough for volume measurement
                 savedSamples = self._recording._samples[-toSave:, :]
                 # log
-                logging.debug(
-                    f"Microphone buffer reached, as policy when full is 'roll'/'rolling' all but "
-                    f"the most recent {toSave} samples will be cleared to make room for new "
-                    f"samples."
-                )
+                if not self._warnedRecBufferFull:
+                    logging.warning(
+                        f"Microphone buffer reached, as policy when full is 'roll'/'rolling' the "
+                        f"oldest samples will be cleared to make room for new samples."
+                    )
+                    logging.flush()
+                self._warnedRecBufferFull = True
                 # clear samples
                 self._recording.clear()
                 # reassign saved samples
