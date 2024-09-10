@@ -120,7 +120,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
                  channels=None,
                  streamBufferSecs=2.0,
                  maxRecordingSize=24000,
-                 policyWhenFull='warn',
+                 policyWhenFull='roll',
                  audioLatencyMode=None,
                  audioRunMode=0):
 
@@ -307,6 +307,28 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
 
         # list to store listeners in
         self.listeners = []
+    
+    @property
+    def policyWhenFull(self):
+        """
+        Until a file is saved, the audio data from a Microphone needs to be stored in RAM. To avoid 
+        a memory leak, we limit the amount which can be stored by a single Microphone object. The 
+        `policyWhenFull` parameter tells the Microphone what to do when it's reached that limit.
+
+        Parameters
+        ----------
+        value : str
+            One of:
+            - "ignore": When full, just don't record any new samples
+            - "warn"/"warning": Same as ignore, but will log a warning
+            - "error": When full, will raise an error
+            - "roll"/"rolling": When full, clears the start of the buffer to make room for new samples
+        """
+        return self._recording._policyWhenFull
+    
+    @policyWhenFull.setter
+    def policyWhenFull(self, value):
+        self._recording._policyWhenFull = value
 
     def findBestDevice(self, index, sampleRateHz, channels):
         """
@@ -940,19 +962,6 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             self.getCurrentVolume(),
             device=self,
         )
-        # clear recording if requested (helps with continuous running)
-        if clear and self.isRecBufferFull:
-            # work out how many samples is 0.1s
-            toSave = min(
-                int(0.2 * self._sampleRateHz),
-                int(self.maxRecordingSize / 2)
-            )
-            # get last 0.1s so we still have enough for volume measurement
-            savedSamples = self._recording._samples[-toSave:, :]
-            # clear samples
-            self._recording.clear()
-            # reassign saved samples
-            self._recording.write(savedSamples)
         # dispatch to listeners
         for listener in self.listeners:
             listener.receiveMessage(message)
@@ -1003,10 +1012,6 @@ class RecordingBuffer:
         self._lastSample = 0  # offset of the last sample from stream
         self._spaceRemaining = None  # set in `_allocRecBuffer`
         self._totalSamples = None  # set in `_allocRecBuffer`
-
-        # check if the value is valid
-        if policyWhenFull not in ['ignore', 'warn', 'error']:
-            raise ValueError("Invalid value for `policyWhenFull`.")
 
         self._policyWhenFull = policyWhenFull
         self._warnedRecBufferFull = False
@@ -1158,9 +1163,8 @@ class RecordingBuffer:
         """
         nSamples = len(samples)
         if self.isFull:
-            if self._policyWhenFull == 'ignore':
-                return nSamples  # samples lost
-            elif self._policyWhenFull == 'warn':
+            if self._policyWhenFull in ('warn', 'warning'):
+                # if policy is warn, we log a warning then proceed as if ignored
                 if not self._warnedRecBufferFull:
                     logging.warning(
                         f"Audio recording buffer filled! This means that no "
@@ -1171,10 +1175,27 @@ class RecordingBuffer:
                     self._warnedRecBufferFull = True
                 return nSamples
             elif self._policyWhenFull == 'error':
+                # if policy is error, we fully error
                 raise AudioRecordingBufferFullError(
                     "Cannot write samples, recording buffer is full.")
+            elif self._policyWhenFull == ('rolling', 'roll'):
+                # if policy is rolling, we clear the first half of the buffer
+                toSave = int(self._totalSamples / 2)
+                # get last 0.1s so we still have enough for volume measurement
+                savedSamples = self._recording._samples[-toSave:, :]
+                # log
+                logging.debug(
+                    f"Microphone buffer reached, as policy when full is 'roll'/'rolling' all but "
+                    f"the most recent {toSave} samples will be cleared to make room for new "
+                    f"samples."
+                )
+                # clear samples
+                self._recording.clear()
+                # reassign saved samples
+                self._recording.write(savedSamples)
             else:
-                return nSamples  # whatever
+                # if policy is to ignore, we simply don't write new samples
+                return nSamples
 
         if not nSamples:  # no samples came out of the stream, just return
             return
