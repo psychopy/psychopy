@@ -246,48 +246,14 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         # PTB specific stuff
         self._mode = 2  # open a stream in capture mode
 
-        # Handle for the recording stream, should only be opened once per
-        # session
-        logging.debug('Opening audio stream for device #{}'.format(
-            self._device.deviceIndex))
-        if self._device.deviceIndex not in MicrophoneDevice._streams:
-            MicrophoneDevice._streams[self._device.deviceIndex] = audio.Stream(
-                device_id=self._device.deviceIndex,
-                latency_class=self._audioLatencyMode,
-                mode=self._mode,
-                freq=self._device.defaultSampleRate,
-                channels=self._device.inputChannels)
-            logging.debug('Stream opened')
-        else:
-            logging.debug(
-                "Stream already created for device at index {}, using created stream.".format(
-                    self._device.deviceIndex
-                )
-            )
-
-        # store reference to stream in this instance
-        self._stream = MicrophoneDevice._streams[self._device.deviceIndex]
-
+        # get audio run mode
         assert isinstance(audioRunMode, (float, int)) and \
                (audioRunMode == 0 or audioRunMode == 1)
         self._audioRunMode = int(audioRunMode)
-        self._stream.run_mode = self._audioRunMode
 
-        logging.debug('Set run mode to `{}`'.format(
-            self._audioRunMode))
-
-        # set latency bias
-        self._stream.latency_bias = 0.0
-
-        logging.debug('Set stream latency bias to {} ms'.format(
-            self._stream.latency_bias))
-
-        # pre-allocate recording buffer, called once
-        self._stream.get_audio_data(self._streamBufferSecs)
-
-        logging.debug(
-            'Allocated stream buffer to hold {} seconds of data'.format(
-                self._streamBufferSecs))
+        # open stream
+        self._stream = None
+        self.open()
 
         # status flag for Builder
         self._statusFlag = NOT_STARTED
@@ -817,8 +783,51 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         """
         return self.stop(blockUntilStopped=blockUntilStopped, stopTime=stopTime)
 
+    def open(self):
+        """
+        Open the audio stream.
+        """
+        # do nothing if stream is already open
+        if self._stream is not None and not self._stream._closed:
+            return
+        
+        # search for open streams and if there is one, use it
+        if self._device.deviceIndex in MicrophoneDevice._streams:
+            logging.debug(
+                f"Assigning audio stream for device #{self._device.deviceIndex} to a new "
+                f"MicrophoneDevice object."
+            )
+            self._stream = MicrophoneDevice._streams[self._device.deviceIndex]
+            return
+        
+        # if no open streams, make one
+        logging.debug(
+            f"Opening new audio stream for device #{self._device.deviceIndex}."
+        )
+        self._stream = MicrophoneDevice._streams[self._device.deviceIndex] = audio.Stream(
+            device_id=self._device.deviceIndex,
+            latency_class=self._audioLatencyMode,
+            mode=self._mode,
+            freq=self._device.defaultSampleRate,
+            channels=self._device.inputChannels
+        )
+        # set run mode
+        self._stream.run_mode = self._audioRunMode
+        logging.debug('Set run mode to `{}`'.format(
+            self._audioRunMode))
+        # set latency bias
+        self._stream.latency_bias = 0.0
+        logging.debug('Set stream latency bias to {} ms'.format(
+            self._stream.latency_bias))
+        # pre-allocate recording buffer, called once
+        self._stream.get_audio_data(self._streamBufferSecs)
+        logging.debug(
+            'Allocated stream buffer to hold {} seconds of data'.format(
+                self._streamBufferSecs))
+        
     def close(self):
-        """Close the stream.
+        """
+        Close the audio stream.
         """
         self.clearListeners()
         if self._stream._closed:
@@ -827,6 +836,20 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             MicrophoneDevice._streams.pop(self._device.deviceIndex)
         self._stream.close()
         logging.debug('Stream closed')
+    
+    def reopen(self):
+        """
+        Calls self.close() then self.open() to reopen the stream.
+        """
+        # start timer
+        start = time.time()
+        # close then open
+        self.close()
+        self.open()
+        # log time it took
+        logging.info(
+            f"Reopened microphone #{self.index}, took {time.time() - start:.3f}s"
+        )
 
     def poll(self):
         """Poll audio samples.
