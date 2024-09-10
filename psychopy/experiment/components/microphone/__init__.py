@@ -143,6 +143,7 @@ class MicrophoneComponent(BaseDeviceComponent):
         )
         self.params['maxSize'] = Param(
             maxSize, valType='num', inputType="single", categ='Device',
+            updates="set every repeat",
             label=_translate("Max recording size (kb)"),
             hint=_translate(
                 "To avoid excessively large output files, what is the biggest file size you are "

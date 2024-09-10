@@ -71,6 +71,33 @@ class Microphone:
         self.saveClips()
     
     @property
+    def maxRecordingSize(self):
+        """
+        Until a file is saved, the audio data from a Microphone needs to be stored in RAM. To avoid 
+        a memory leak, we limit the amount which can be stored by a single Microphone object. The 
+        `maxRecordingSize` parameter defines what this limit is.
+
+        Parameters
+        ----------
+        value : int
+            How much data (in kb) to allow, default is 24mb (so 24,000kb)
+        """
+        return self.device.maxRecordingSize
+    
+    @maxRecordingSize.setter
+    def maxRecordingSize(self, value):
+        # set size
+        self.device.maxRecordingSize = value
+    
+    def setMaxRecordingSize(self, value):
+        self.maxRecordingSize = value
+        # log
+        logAttrib(
+            obj=self, log=True, attrib="maxRecordingSize", value=value
+        )
+    setMaxRecordingSize.__doc__ == maxRecordingSize.__doc__
+    
+    @property
     def policyWhenFull(self):
         """
         Until a file is saved, the audio data from a Microphone needs to be stored in RAM. To avoid 
