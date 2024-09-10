@@ -899,6 +899,8 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             self._isStarted = False
             # reopen
             self.reopen()
+            # start again
+            self.start()
 
         if overflow:
             logging.warning(
