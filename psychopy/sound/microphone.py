@@ -96,6 +96,9 @@ class Microphone:
             obj=self, log=True, attrib="maxRecordingSize", value=value
         )
     setMaxRecordingSize.__doc__ == maxRecordingSize.__doc__
+
+    # the Builder param has a different name
+    setMaxSize = setMaxRecordingSize
     
     @property
     def policyWhenFull(self):
