@@ -265,7 +265,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             maxRecordingSize=maxRecordingSize,
             policyWhenFull=policyWhenFull
         )
-
+        self._possiblyAsleep = False
         self._isStarted = False  # internal state
 
         logging.debug('Audio capture device #{} ready'.format(
@@ -883,6 +883,24 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         # figure out what to do with this other information
         audioData, absRecPosition, overflow, cStartTime = \
             self._stream.get_audio_data()
+        
+        audioData = []
+        
+        if len(audioData):
+            # if we got samples, the device is awake, so stop figuring out if it's asleep
+            self._possiblyAsleep = False
+        elif self._possiblyAsleep is False:
+            # if it was awake and now we've got no samples, store the time
+            self._possiblyAsleep = time.time()
+        elif self._possiblyAsleep + 1 < time.time():
+            # if we've not had any evidence of it being awake for 1s, reopen
+            logging.error(
+                f"Microphone device appears to have gone to sleep, reopening to wake it up."
+            )
+            # mark as stopped so we don't recursively poll forever when stopping
+            self._isStarted = False
+            # reopen
+            self.reopen()
 
         if overflow:
             logging.warning(
