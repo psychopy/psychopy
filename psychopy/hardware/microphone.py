@@ -884,8 +884,6 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         audioData, absRecPosition, overflow, cStartTime = \
             self._stream.get_audio_data()
         
-        audioData = []
-        
         if len(audioData):
             # if we got samples, the device is awake, so stop figuring out if it's asleep
             self._possiblyAsleep = False
