@@ -24,7 +24,8 @@ class BaseResponse:
     # list of fields known to be a part of this response type
     fields = ["t", "value"]
 
-    def __init__(self, t, value):
+    def __init__(self, t, value, device=None):
+        self.device = device
         self.t = t
         self.value = value
 
@@ -35,14 +36,32 @@ class BaseResponse:
             attrs.append(f"{key}={getattr(self, key)}")
         attrs = ", ".join(attrs)
         # construct
-        return f"<{type(self).__name__}: {attrs}>"
+        return f"<{type(self).__name__} from {self.getDeviceName()}: {attrs}>"
+    
+    def getDeviceName(self):
+        # if device isn't a device, and this method isn't overloaded, return None
+        if not hasattr(self.device, "getDeviceProfile"):
+            return None
+        # get profile
+        deviceProfile = self.device.getDeviceProfile()
+        # get name from profile
+        if "deviceName" in deviceProfile:
+            return deviceProfile['deviceName']
+        else:
+            # if profile doesn't include name, use class name
+            return type(self.device).__name__
 
     def getJSON(self):
         import json
+        # get device profile
+        deviceProfile = None
+        if hasattr(self.device, "getDeviceProfile"):
+            deviceProfile = self.device.getDeviceProfile()
         # construct message as dict
         message = {
             'type': "hardware_response",
             'class': type(self).__name__,
+            'device': deviceProfile,
             'data': {}
         }
         # add all fields to "data"
@@ -60,6 +79,9 @@ class BaseDevice:
     """
     Base class for device interfaces, includes support for DeviceManager and adding listeners.
     """
+    # start off with no cached profile
+    _profile = None
+    
     def __init_subclass__(cls, aliases=None):
         from psychopy.hardware.manager import DeviceManager
         # handle no aliases
@@ -91,15 +113,20 @@ class BaseDevice:
         dict
             Dictionary representing this device
         """
-        # get class string
-        cls = type(self)
-        mro = inspect.getmodule(cls).__name__ + "." + cls.__name__
-        # iterate through available devices for this class
-        for profile in self.getAvailableDevices():
-            if self.isSameDevice(profile):
-                # if current profile is this device, add deviceClass and return it
-                profile['deviceClass'] = mro
-                return profile
+        # only iteratively find it if we haven't done so already
+        if self._profile is None:
+            # get class string
+            cls = type(self)
+            mro = inspect.getmodule(cls).__name__ + "." + cls.__name__
+            # iterate through available devices for this class
+            for profile in self.getAvailableDevices():
+                if self.isSameDevice(profile):
+                    # if current profile is this device, add deviceClass and return it
+                    profile['deviceClass'] = mro
+                    self._profile = profile
+                    break
+        
+        return self._profile
 
     def getJSON(self, asString=True):
         """

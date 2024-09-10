@@ -817,9 +817,6 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         # figure out what to do with this other information
         audioData, absRecPosition, overflow, cStartTime = \
             self._stream.get_audio_data()
-        # log how many samples we got if debugging
-        if not len(audioData):
-            logging.debug(f"Polled samples from microphone {self.index} and none were returned")
 
         if overflow:
             logging.warning(
@@ -931,12 +928,17 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             If True, will clear the recording up until now after dispatching the volume. This is
             useful if you're just sampling volume and aren't wanting to store the recording.
         """
+        # if mic is not recording, there's nothing to dispatch
+        if not self.isStarted:
+            return
+        
         # poll the mic now
         self.poll()
         # create a response object
         message = MicrophoneResponse(
             logging.defaultClock.getTime(),
-            self.getCurrentVolume()
+            self.getCurrentVolume(),
+            device=self,
         )
         # clear recording if requested (helps with continuous running)
         if clear and self.isRecBufferFull:
