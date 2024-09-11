@@ -658,7 +658,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
 
             raise err
 
-    def start(self, when=None, waitForStart=0, stopTime=None):
+    def start(self, when=None, waitForStart=True, stopTime=None):
         """Start an audio recording.
 
         Calling this method will begin capturing samples from the microphone and
@@ -672,7 +672,8 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             at that time. If `None` or zero, the system will try to start
             recording as soon as possible.
         waitForStart : bool
-            Wait for sound onset if `True`.
+            Wait for the device to be fully opened and ready to record. If
+            `True`, the function will block until the stream is ready to record.
         stopTime : float, int or None
             Number of seconds to record. If `None` or `-1`, recording will
             continue forever until `stop` is called.
@@ -696,14 +697,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         # reset warnings
         # self._warnedRecBufferFull = False
 
-        startTime = self._stream.start(
-            repetitions=0,
-            when=when,
-            wait_for_start=int(waitForStart),
-            stop_time=stopTime)
-
-        # recording has begun or is scheduled to do so
-        self._isStarted = True
+        initBarrier = threading.Barrier(2)  # for polling thread
 
         # create polling thread
         if self._autoPolling:
@@ -716,20 +710,34 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
                 
                 """
                 pollInterval = self._pollInterval
+                initBarrier.wait()  # wait for stream to start
                 while not self._pollStopEvent.is_set():
                     with self._pollDataLock:
-                        audioData, absRecPosition, overflow, cStartTime = \
-                            self._stream.get_audio_data()
-
                         # put data into the sample queue, this will be 
-                        self._sampleQueue.put(
-                            (audioData, absRecPosition, overflow, cStartTime))
+                        self._sampleQueue.put_nowait(
+                            (self._stream.get_audio_data()))
 
-                    time.sleep(pollInterval)  # less the stream buffer size will suffice
+                    time.sleep(pollInterval)
+                
+                # final poll to flush the stream fully
+                with self._pollDataLock:
+                    self._sampleQueue.put_nowait(
+                        (self._stream.get_audio_data()))
 
             self._pollStopEvent.clear()  # reset
             self._pollThread = threading.Thread(target=pollThread)
             self._pollThread.start()
+
+        startTime = self._stream.start(
+            repetitions=0,
+            when=when,
+            wait_for_start=int(waitForStart),
+            stop_time=stopTime)
+
+        initBarrier.wait()
+
+        # recording has begun or is scheduled to do so
+        self._isStarted = True
 
         logging.debug(
             'Scheduled start of audio capture for device #{} at t={}.'.format(
@@ -804,6 +812,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             self._pollStopEvent.set()
             self._pollThread.join()
             self._pollThread = None  # reset thread
+            self._pollStopEvent.clear()
     
         # poll remaining samples, if any
         if not self.isRecBufferFull:
@@ -917,8 +926,8 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         Calling this method adds audio samples collected from the stream buffer
         to the recording buffer that have been captured since the last `poll`
         call. Time between calls of this function should be less than
-        `bufferSecs`. You do not need to call this if you call `stop` before
-        the time specified by `bufferSecs` elapses since the `start` call.
+        `streamBufferSecs`. You do not need to call this if you call `stop` before
+        the time specified by `streamBufferSecs` elapses since the `start` call.
 
         Can only be called between called of `start` (or `record`) and `stop`
         (or `pause`).
@@ -941,53 +950,54 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             return
 
         # figure out what to do with this other information
+        overruns = 0  # recording buffer
+        overflow = False  # stream buffer
         if not self._autoPolling:
             audioData, absRecPosition, overflow, cStartTime = \
                 self._stream.get_audio_data()
+            overruns = self._recording.write(audioData)
         else:
             # get all audio data from the queue
             audioData = []
             with self._pollDataLock:
                 while not self._sampleQueue.empty():
-                    audioData.append(self._sampleQueue.get())
-
-            # write to recording buffer
-            overflow = False
-            for data in audioData:
-                self._recording.write(data[0])
-                overflow = data[2]  # only need to know if there was an overflow
-
-        if len(audioData):
-            # if we got samples, the device is awake, so stop figuring out if it's asleep
-            self._possiblyAsleep = False
-        elif self._possiblyAsleep is False:
-            # if it was awake and now we've got no samples, store the time
-            self._possiblyAsleep = time.time()
-        elif self._possiblyAsleep + 1 < time.time():
-            # if we've not had any evidence of it being awake for 1s, reopen
-            logging.error(
-                f"Microphone device appears to have gone to sleep, reopening to wake it up."
-            )
-            # mark as stopped so we don't recursively poll forever when stopping
-            self._isStarted = False
-            # reopen
-            self.reopen()
-            # start again
-            self.start()
-
+                    audioData, absRecPosition, overflow, cStartTime = \
+                        self._sampleQueue.get_nowait()
+                    overruns = self._recording.write(audioData)
+        
         if overflow:
             logging.warning(
-                "Audio stream buffer overflow, some audio samples have been "
-                "lost! To prevent this, ensure `Microphone.poll()` is being "
-                "called often enough, or increase the size of the audio buffer "
-                "with `bufferSecs`.")
+                "Audio stream buffer overflow, some audio samples have been lost! "
+                "To prevent this, ensure `Microphone.poll()` is being called "
+                "often enough, or increase the size of the audio buffer with "
+                "`streamBufferSecs`."
+            )
 
-        overruns = False
-        if self._autoPolling:
-            for data in audioData:
-                overruns = self._recording.write(data[0])
-        else:
-            overruns = self._recording.write(audioData)
+        if overruns:
+            logging.warning(
+                "Audio recording buffer full, some audio samples have been lost! "
+                "To prevent this, ensure `Microphone.poll()` is being called "
+                "often enough, or increase the size of the audio buffer with "
+                "`streamBufferSecs`."
+            )
+
+        # if len(audioData):
+        #     # if we got samples, the device is awake, so stop figuring out if it's asleep
+        #     self._possiblyAsleep = False
+        # elif self._possiblyAsleep is False:
+        #     # if it was awake and now we've got no samples, store the time
+        #     self._possiblyAsleep = time.time()
+        # elif self._possiblyAsleep + 1 < time.time():
+        #     # if we've not had any evidence of it being awake for 1s, reopen
+        #     logging.error(
+        #         f"Microphone device appears to have gone to sleep, reopening to wake it up."
+        #     )
+        #     # mark as stopped so we don't recursively poll forever when stopping
+        #     self._isStarted = False
+        #     # reopen
+        #     self.reopen()
+        #     # start again
+        #     self.start()
 
         return overruns
 
