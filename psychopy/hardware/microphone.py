@@ -713,9 +713,17 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
                 initBarrier.wait()  # wait for stream to start
                 while not self._pollStopEvent.is_set():
                     with self._pollDataLock:
-                        # put data into the sample queue, this will be 
-                        self._sampleQueue.put_nowait(
-                            (self._stream.get_audio_data()))
+                        audioData, absRecPosition, overflow, cStartTime = \
+                            self._stream.get_audio_data()
+                        
+                        # Note - In cases where there is no audio data, it is 
+                        # likely that the mic is not fully started yet. This 
+                        # can happen if the `start` command is called with
+                        # `waitForStart=False`.
+                        if audioData:
+                            # put data into the sample queue, this will be 
+                            self._sampleQueue.put_nowait(
+                                (self._stream.get_audio_data()))
 
                     time.sleep(pollInterval)
                 
