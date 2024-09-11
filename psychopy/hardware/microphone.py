@@ -715,6 +715,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
                 microphone object will then retrieve the data from the queue.types
                 
                 """
+                pollInterval = self._pollInterval
                 while not self._pollStopEvent.is_set():
                     with self._pollDataLock:
                         audioData, absRecPosition, overflow, cStartTime = \
@@ -724,7 +725,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
                         self._sampleQueue.put(
                             (audioData, absRecPosition, overflow, cStartTime))
 
-                    time.sleep(0.5)  # less the stream buffer size will suffice
+                    time.sleep(pollInterval)  # less the stream buffer size will suffice
 
             self._pollStopEvent.clear()  # reset
             self._pollThread = threading.Thread(target=pollThread)
