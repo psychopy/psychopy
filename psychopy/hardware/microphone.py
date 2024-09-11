@@ -120,7 +120,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
                  channels=None,
                  streamBufferSecs=2.0,
                  maxRecordingSize=24000,
-                 policyWhenFull='warn',
+                 policyWhenFull='roll',
                  audioLatencyMode=None,
                  audioRunMode=0):
 
@@ -246,48 +246,14 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         # PTB specific stuff
         self._mode = 2  # open a stream in capture mode
 
-        # Handle for the recording stream, should only be opened once per
-        # session
-        logging.debug('Opening audio stream for device #{}'.format(
-            self._device.deviceIndex))
-        if self._device.deviceIndex not in MicrophoneDevice._streams:
-            MicrophoneDevice._streams[self._device.deviceIndex] = audio.Stream(
-                device_id=self._device.deviceIndex,
-                latency_class=self._audioLatencyMode,
-                mode=self._mode,
-                freq=self._device.defaultSampleRate,
-                channels=self._device.inputChannels)
-            logging.debug('Stream opened')
-        else:
-            logging.debug(
-                "Stream already created for device at index {}, using created stream.".format(
-                    self._device.deviceIndex
-                )
-            )
-
-        # store reference to stream in this instance
-        self._stream = MicrophoneDevice._streams[self._device.deviceIndex]
-
+        # get audio run mode
         assert isinstance(audioRunMode, (float, int)) and \
                (audioRunMode == 0 or audioRunMode == 1)
         self._audioRunMode = int(audioRunMode)
-        self._stream.run_mode = self._audioRunMode
 
-        logging.debug('Set run mode to `{}`'.format(
-            self._audioRunMode))
-
-        # set latency bias
-        self._stream.latency_bias = 0.0
-
-        logging.debug('Set stream latency bias to {} ms'.format(
-            self._stream.latency_bias))
-
-        # pre-allocate recording buffer, called once
-        self._stream.get_audio_data(self._streamBufferSecs)
-
-        logging.debug(
-            'Allocated stream buffer to hold {} seconds of data'.format(
-                self._streamBufferSecs))
+        # open stream
+        self._stream = None
+        self.open()
 
         # status flag for Builder
         self._statusFlag = NOT_STARTED
@@ -299,7 +265,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             maxRecordingSize=maxRecordingSize,
             policyWhenFull=policyWhenFull
         )
-
+        self._possiblyAsleep = False
         self._isStarted = False  # internal state
 
         logging.debug('Audio capture device #{} ready'.format(
@@ -307,6 +273,49 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
 
         # list to store listeners in
         self.listeners = []
+    
+    @property
+    def maxRecordingSize(self):
+        """
+        Until a file is saved, the audio data from a Microphone needs to be stored in RAM. To avoid 
+        a memory leak, we limit the amount which can be stored by a single Microphone object. The 
+        `maxRecordingSize` parameter defines what this limit is.
+
+        Parameters
+        ----------
+        value : int
+            How much data (in kb) to allow, default is 24mb (so 24,000kb)
+        """
+        return self._recording.maxRecordingSize
+    
+    @maxRecordingSize.setter
+    def maxRecordingSize(self, value):
+        # set size
+        self._recording.maxRecordingSize = value
+        # re-allocate
+        self._recording._allocRecBuffer()
+    
+    @property
+    def policyWhenFull(self):
+        """
+        Until a file is saved, the audio data from a Microphone needs to be stored in RAM. To avoid 
+        a memory leak, we limit the amount which can be stored by a single Microphone object. The 
+        `policyWhenFull` parameter tells the Microphone what to do when it's reached that limit.
+
+        Parameters
+        ----------
+        value : str
+            One of:
+            - "ignore": When full, just don't record any new samples
+            - "warn"/"warning": Same as ignore, but will log a warning
+            - "error": When full, will raise an error
+            - "roll"/"rolling": When full, clears the start of the buffer to make room for new samples
+        """
+        return self._recording._policyWhenFull
+    
+    @policyWhenFull.setter
+    def policyWhenFull(self, value):
+        self._recording._policyWhenFull = value
 
     def findBestDevice(self, index, sampleRateHz, channels):
         """
@@ -774,8 +783,51 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         """
         return self.stop(blockUntilStopped=blockUntilStopped, stopTime=stopTime)
 
+    def open(self):
+        """
+        Open the audio stream.
+        """
+        # do nothing if stream is already open
+        if self._stream is not None and not self._stream._closed:
+            return
+        
+        # search for open streams and if there is one, use it
+        if self._device.deviceIndex in MicrophoneDevice._streams:
+            logging.debug(
+                f"Assigning audio stream for device #{self._device.deviceIndex} to a new "
+                f"MicrophoneDevice object."
+            )
+            self._stream = MicrophoneDevice._streams[self._device.deviceIndex]
+            return
+        
+        # if no open streams, make one
+        logging.debug(
+            f"Opening new audio stream for device #{self._device.deviceIndex}."
+        )
+        self._stream = MicrophoneDevice._streams[self._device.deviceIndex] = audio.Stream(
+            device_id=self._device.deviceIndex,
+            latency_class=self._audioLatencyMode,
+            mode=self._mode,
+            freq=self._device.defaultSampleRate,
+            channels=self._device.inputChannels
+        )
+        # set run mode
+        self._stream.run_mode = self._audioRunMode
+        logging.debug('Set run mode to `{}`'.format(
+            self._audioRunMode))
+        # set latency bias
+        self._stream.latency_bias = 0.0
+        logging.debug('Set stream latency bias to {} ms'.format(
+            self._stream.latency_bias))
+        # pre-allocate recording buffer, called once
+        self._stream.get_audio_data(self._streamBufferSecs)
+        logging.debug(
+            'Allocated stream buffer to hold {} seconds of data'.format(
+                self._streamBufferSecs))
+        
     def close(self):
-        """Close the stream.
+        """
+        Close the audio stream.
         """
         self.clearListeners()
         if self._stream._closed:
@@ -784,6 +836,20 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             MicrophoneDevice._streams.pop(self._device.deviceIndex)
         self._stream.close()
         logging.debug('Stream closed')
+    
+    def reopen(self):
+        """
+        Calls self.close() then self.open() to reopen the stream.
+        """
+        # start timer
+        start = time.time()
+        # close then open
+        self.close()
+        self.open()
+        # log time it took
+        logging.info(
+            f"Reopened microphone #{self.index}, took {time.time() - start:.3f}s"
+        )
 
     def poll(self):
         """Poll audio samples.
@@ -817,6 +883,24 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         # figure out what to do with this other information
         audioData, absRecPosition, overflow, cStartTime = \
             self._stream.get_audio_data()
+        
+        if len(audioData):
+            # if we got samples, the device is awake, so stop figuring out if it's asleep
+            self._possiblyAsleep = False
+        elif self._possiblyAsleep is False:
+            # if it was awake and now we've got no samples, store the time
+            self._possiblyAsleep = time.time()
+        elif self._possiblyAsleep + 1 < time.time():
+            # if we've not had any evidence of it being awake for 1s, reopen
+            logging.error(
+                f"Microphone device appears to have gone to sleep, reopening to wake it up."
+            )
+            # mark as stopped so we don't recursively poll forever when stopping
+            self._isStarted = False
+            # reopen
+            self.reopen()
+            # start again
+            self.start()
 
         if overflow:
             logging.warning(
@@ -940,19 +1024,6 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             self.getCurrentVolume(),
             device=self,
         )
-        # clear recording if requested (helps with continuous running)
-        if clear and self.isRecBufferFull:
-            # work out how many samples is 0.1s
-            toSave = min(
-                int(0.2 * self._sampleRateHz),
-                int(self.maxRecordingSize / 2)
-            )
-            # get last 0.1s so we still have enough for volume measurement
-            savedSamples = self._recording._samples[-toSave:, :]
-            # clear samples
-            self._recording.clear()
-            # reassign saved samples
-            self._recording.write(savedSamples)
         # dispatch to listeners
         for listener in self.listeners:
             listener.receiveMessage(message)
@@ -1003,10 +1074,6 @@ class RecordingBuffer:
         self._lastSample = 0  # offset of the last sample from stream
         self._spaceRemaining = None  # set in `_allocRecBuffer`
         self._totalSamples = None  # set in `_allocRecBuffer`
-
-        # check if the value is valid
-        if policyWhenFull not in ['ignore', 'warn', 'error']:
-            raise ValueError("Invalid value for `policyWhenFull`.")
 
         self._policyWhenFull = policyWhenFull
         self._warnedRecBufferFull = False
@@ -1158,9 +1225,8 @@ class RecordingBuffer:
         """
         nSamples = len(samples)
         if self.isFull:
-            if self._policyWhenFull == 'ignore':
-                return nSamples  # samples lost
-            elif self._policyWhenFull == 'warn':
+            if self._policyWhenFull in ('warn', 'warning'):
+                # if policy is warn, we log a warning then proceed as if ignored
                 if not self._warnedRecBufferFull:
                     logging.warning(
                         f"Audio recording buffer filled! This means that no "
@@ -1171,10 +1237,29 @@ class RecordingBuffer:
                     self._warnedRecBufferFull = True
                 return nSamples
             elif self._policyWhenFull == 'error':
+                # if policy is error, we fully error
                 raise AudioRecordingBufferFullError(
                     "Cannot write samples, recording buffer is full.")
+            elif self._policyWhenFull == ('rolling', 'roll'):
+                # if policy is rolling, we clear the first half of the buffer
+                toSave = self._totalSamples - len(samples)
+                # get last 0.1s so we still have enough for volume measurement
+                savedSamples = self._recording._samples[-toSave:, :]
+                # log
+                if not self._warnedRecBufferFull:
+                    logging.warning(
+                        f"Microphone buffer reached, as policy when full is 'roll'/'rolling' the "
+                        f"oldest samples will be cleared to make room for new samples."
+                    )
+                    logging.flush()
+                self._warnedRecBufferFull = True
+                # clear samples
+                self._recording.clear()
+                # reassign saved samples
+                self._recording.write(savedSamples)
             else:
-                return nSamples  # whatever
+                # if policy is to ignore, we simply don't write new samples
+                return nSamples
 
         if not nSamples:  # no samples came out of the stream, just return
             return

@@ -13,6 +13,7 @@ __all__ = ['Microphone']
 from pathlib import Path
 from psychopy.constants import NOT_STARTED
 from psychopy.hardware import DeviceManager
+from psychopy.tools.attributetools import logAttrib
 
 
 class Microphone:
@@ -56,6 +57,8 @@ class Microphone:
                 audioLatencyMode=audioLatencyMode,
                 audioRunMode=audioRunMode
             )
+        # set policy when full (in case device already existed)
+        self.device.policyWhenFull = policyWhenFull
         # setup clips and transcripts dicts
         self.clips = {}
         self.lastClip = None
@@ -66,6 +69,66 @@ class Microphone:
 
     def __del__(self):
         self.saveClips()
+    
+    @property
+    def maxRecordingSize(self):
+        """
+        Until a file is saved, the audio data from a Microphone needs to be stored in RAM. To avoid 
+        a memory leak, we limit the amount which can be stored by a single Microphone object. The 
+        `maxRecordingSize` parameter defines what this limit is.
+
+        Parameters
+        ----------
+        value : int
+            How much data (in kb) to allow, default is 24mb (so 24,000kb)
+        """
+        return self.device.maxRecordingSize
+    
+    @maxRecordingSize.setter
+    def maxRecordingSize(self, value):
+        # set size
+        self.device.maxRecordingSize = value
+    
+    def setMaxRecordingSize(self, value):
+        self.maxRecordingSize = value
+        # log
+        logAttrib(
+            obj=self, log=True, attrib="maxRecordingSize", value=value
+        )
+    setMaxRecordingSize.__doc__ == maxRecordingSize.__doc__
+
+    # the Builder param has a different name
+    setMaxSize = setMaxRecordingSize
+    
+    @property
+    def policyWhenFull(self):
+        """
+        Until a file is saved, the audio data from a Microphone needs to be stored in RAM. To avoid 
+        a memory leak, we limit the amount which can be stored by a single Microphone object. The 
+        `policyWhenFull` parameter tells the Microphone what to do when it's reached that limit.
+
+        Parameters
+        ----------
+        value : str
+            One of:
+            - "ignore": When full, just don't record any new samples
+            - "warn": Same as ignore, but will log a warning
+            - "error": When full, will raise an error
+            - "rolling": When full, clears the start of the buffer to make room for new samples
+        """
+        return self.device.policyWhenFull
+    
+    @policyWhenFull.setter
+    def policyWhenFull(self, value):
+        return self.device.policyWhenFull
+    
+    def setPolicyWhenFull(self, value):
+        self.policyWhenFull = value
+        # log
+        logAttrib(
+            obj=self, log=True, attrib="policyWhenFull", value=value
+        )
+    setPolicyWhenFull.__doc__ = policyWhenFull.__doc__
 
     @property
     def recording(self):
