@@ -901,6 +901,8 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             self.reopen()
             # start again
             self.start()
+            # mark as not asleep so we don't restart again if the first poll is empty
+            self._possiblyAsleep = False
 
         if overflow:
             logging.warning(
