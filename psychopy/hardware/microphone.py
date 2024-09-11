@@ -697,16 +697,15 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         # reset warnings
         # self._warnedRecBufferFull = False
 
-        initBarrier = threading.Barrier(2)  # for polling thread
-
         # create polling thread
         if self._autoPolling:
+            initBarrier = threading.Barrier(2)  # for polling thread
             def pollThread():
                 """Polling thread subroutine.
                 
                 This will call `self._stream.get_audio_data()` periodically and
                 put the data into the sample queue. Calling `poll()` on the 
-                microphone object will then retrieve the data from the queue.types
+                microphone object will then retrieve the data from the queue.
                 
                 """
                 pollInterval = self._pollInterval
@@ -720,10 +719,13 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
                         # likely that the mic is not fully started yet. This 
                         # can happen if the `start` command is called with
                         # `waitForStart=False`.
-                        if audioData:
+                        if len(audioData) > 0:
                             # put data into the sample queue, this will be 
                             self._sampleQueue.put_nowait(
-                                (self._stream.get_audio_data()))
+                                (audioData, 
+                                absRecPosition, 
+                                overflow, 
+                                cStartTime))
 
                     time.sleep(pollInterval)
                 
@@ -742,7 +744,8 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             wait_for_start=int(waitForStart),
             stop_time=stopTime)
 
-        initBarrier.wait()
+        if self._autoPolling:
+            initBarrier.wait()
 
         # recording has begun or is scheduled to do so
         self._isStarted = True
@@ -819,8 +822,6 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             # stop the polling thread
             self._pollStopEvent.set()
             self._pollThread.join()
-            self._pollThread = None  # reset thread
-            self._pollStopEvent.clear()
     
         # poll remaining samples, if any
         if not self.isRecBufferFull:
