@@ -253,6 +253,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
 
         # open stream
         self._stream = None
+        self._opening = self._closing = False
         self.open()
 
         # status flag for Builder
@@ -790,7 +791,8 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         # do nothing if stream is already open
         if self._stream is not None and not self._stream._closed:
             return
-        
+        # set flag that it's mid-open
+        self._opening = True
         # search for open streams and if there is one, use it
         if self._device.deviceIndex in MicrophoneDevice._streams:
             logging.debug(
@@ -824,18 +826,28 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         logging.debug(
             'Allocated stream buffer to hold {} seconds of data'.format(
                 self._streamBufferSecs))
+        # set flag that it's done opening
+        self._opening = False
         
     def close(self):
         """
         Close the audio stream.
         """
+        # clear any attached listeners
         self.clearListeners()
+        # do nothing further if already closed
         if self._stream._closed:
             return
+        # set flag that it's mid-close
+        self._closing = True
+        # remove ref to stream
         if self._device.deviceIndex in MicrophoneDevice._streams:
             MicrophoneDevice._streams.pop(self._device.deviceIndex)
+        # close stream
         self._stream.close()
         logging.debug('Stream closed')
+        # set flag that it's done closing
+        self._closing = False
     
     def reopen(self):
         """
@@ -882,6 +894,13 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         if self._stream._closed:
             logging.warning(
                 "Attempted to poll samples from mic which has been closed."
+            )
+            return
+        if self._opening or self._closing:
+            action = "opening" if self._opening else "closing"
+            logging.warning(
+                f"Attempted to poll microphone while the stream was still {action}. Samples will be "
+                f"lost."
             )
             return
 
