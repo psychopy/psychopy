@@ -841,6 +841,8 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         """
         Calls self.close() then self.open() to reopen the stream.
         """
+        # get status at close
+        status = self.isStarted
         # start timer
         start = time.time()
         # close then open
@@ -850,6 +852,9 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         logging.info(
             f"Reopened microphone #{self.index}, took {time.time() - start:.3f}s"
         )
+        # if mic was running beforehand, start it back up again now
+        if status:
+            self.start()
 
     def poll(self):
         """Poll audio samples.
