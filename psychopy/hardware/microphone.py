@@ -1,5 +1,16 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""Class for recording audio from a microphones.
+"""
+
+# Part of the PsychoPy library
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
+
 import sys
 import time
+import threading
+import queue
 
 import numpy as np
 from psychtoolbox import audio as audio
@@ -13,10 +24,6 @@ from psychopy.sound.exceptions import AudioInvalidCaptureDeviceError, AudioInval
     AudioStreamError, AudioRecordingBufferFullError
 from psychopy.tools import systemtools as st
 from psychopy.tools.audiotools import SAMPLE_RATE_48kHz
-
-import threading
-import queue
-
 
 _hasPTB = True
 try:
@@ -76,13 +83,14 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         allows the system to put the device to sleep. However, when the device
         is needed, waking the device results in some latency. Using a run mode
         of `1` will keep the microphone running (or 'hot') with reduces latency
-        when th recording is started. Cannot be set when after initialization at
+        when the recording is started. Cannot be set when after initialization at
         this time.
     autoPolling : bool
         Allow for automatic polling of the stream. If `True`, data will be 
         polled from the stream in a background thread. If `False`, you will need
-        to call `poll()` manually. Default is `True`. Calling `poll()` manually
-        when `autoPolling` is `True` will have no effect.
+        to preiodically call `poll()` manually. Default is `True`. Calling 
+        `poll()` manually when `autoPolling` is `True` will still work, updating
+        the recording buffer with the latest samples.
     pollInterval : float
         Interval at which to poll the stream. Should be less than than 
         `streamBufferSecs`. Default is 0.5 seconds.
@@ -94,7 +102,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         import psychopy.core as core
         import psychopy.sound.Microphone as Microphone
 
-        mic = Microphone(bufferSecs=10.0)  # open the microphone
+        mic = Microphone(streamBufferSecs=10.0)  # open the microphone
         mic.start()  # start recording
         core.wait(10.0)  # wait 10 seconds
         mic.stop()  # stop recording
@@ -107,7 +115,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
     The prescribed method for making long recordings is to poll the stream once
     per frame (or every n-th frame)::
 
-        mic = Microphone(bufferSecs=2.0)
+        mic = Microphone(streamBufferSecs=2.0)
         mic.start()  # start recording
 
         # main trial drawing loop
@@ -116,6 +124,13 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
 
         mic.stop()  # stop recording
         audioClip = mic.getRecording()
+
+    Enable automatic polling of the stream::
+
+        mic = Microphone(streamBufferSecs=2.0, autoPolling=True, pollInterval=0.5)
+        mic.start()  # start recording
+        time.sleep(10.0)  # wait 10 seconds
+        mic.stop()  # stop recording
 
     """
     # Force the use of WASAPI for audio capture on Windows. If `True`, only
@@ -264,6 +279,14 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
                (audioRunMode == 0 or audioRunMode == 1)
         self._audioRunMode = int(audioRunMode)
 
+        # polling thread
+        self._autoPolling = autoPolling
+        self._pollInterval = pollInterval
+        self._pollThread = None
+        self._pollStopEvent = threading.Event()
+        self._pollDataLock = threading.Lock()
+        self._sampleQueue = queue.Queue()
+
         # open stream
         self._stream = None
         self.open()
@@ -295,12 +318,6 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
                 "This may cause the recording buffer to overflow. Please "
                 "reduce the polling interval.")
             
-        self._pollInterval = pollInterval
-        self._pollThread = None
-        self._pollStopEvent = threading.Event()
-        self._pollDataLock = threading.Lock()
-        self._sampleQueue = queue.Queue()
-
     @property
     def maxRecordingSize(self):
         """
@@ -467,6 +484,15 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
 
     @staticmethod
     def getAvailableDevices():
+        """Get a list of available audio capture devices.
+
+        Returns
+        -------
+        list
+            List of available audio capture devices. If empty, no capture
+            devices have been found.
+
+        """
         devices = []
         for profile in st.getAudioCaptureDevices():
             # get index as a name if possible
@@ -620,8 +646,9 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         duration : float, int
             How long to record for? In seconds.
         testSound : str, AudioClip, None
-            Sound to play to test mic. Use "sine", "square" or "sawtooth" to generate a sound of correct
-            duration using AudioClip. Use None to not play a test sound.
+            Sound to play to test mic. Use "sine", "square" or "sawtooth" to 
+            generate a sound of correct duration using AudioClip. Use None to 
+            not play a test sound.
 
         Returns
         -------
@@ -697,49 +724,8 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         # reset warnings
         # self._warnedRecBufferFull = False
 
-        # create polling thread
         if self._autoPolling:
-            initBarrier = threading.Barrier(2)  # for polling thread
-            def pollThread():
-                """Polling thread subroutine.
-                
-                This will call `self._stream.get_audio_data()` periodically and
-                put the data into the sample queue. Calling `poll()` on the 
-                microphone object will then retrieve the data from the queue.
-                
-                """
-                pollInterval = self._pollInterval
-                initBarrier.wait()  # wait for stream to start
-                while True:
-                    with self._pollDataLock:
-                        audioData, absRecPosition, overflow, cStartTime = \
-                            self._stream.get_audio_data()
-                        
-                        # Note - In cases where there is no audio data, it is 
-                        # likely that the mic is not fully started yet. This 
-                        # can happen if the `start` command is called with
-                        # `waitForStart=False`.
-                        if audioData.size:
-                            # put data into the sample queue, this will be 
-                            self._sampleQueue.put_nowait(
-                                (audioData, 
-                                absRecPosition, 
-                                overflow, 
-                                cStartTime))
-
-                    if not self._pollStopEvent.is_set():
-                        time.sleep(pollInterval)  # sleep a bit before next poll
-                    else:
-                        break
-                
-                # final poll to flush the stream fully
-                with self._pollDataLock:
-                    self._sampleQueue.put_nowait(
-                        (self._stream.get_audio_data()))
-
-            self._pollStopEvent.clear()  # reset
-            self._pollThread = threading.Thread(target=pollThread)
-            self._pollThread.start()
+            self._pollDataLock.acquire()
 
         startTime = self._stream.start(
             repetitions=0,
@@ -748,13 +734,13 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             stop_time=stopTime)
 
         if self._autoPolling:
-            initBarrier.wait()
+            self._pollDataLock.release()
 
         # recording has begun or is scheduled to do so
         self._isStarted = True
 
         logging.debug(
-            'Scheduled start of audio capture for device #{} at t={}.'.format(
+            'Scheduled start of audio capture for device #{} at t={}'.format(
                 self._device.deviceIndex, startTime))
 
         return startTime
@@ -789,6 +775,75 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             waitForStart=waitForStart,
             stopTime=stopTime)
 
+    def _flushThreadQueue(self):
+        """Flush samples from the polling thread queue to the recording buffer.
+
+        Do not call this method directly. This is called internally by `stop()`,
+        `pause()` and `poll()` methods. This method will block until the polling
+        thread has finished flushing all samples to the recording buffer. 
+        Requires the polling thread to be locked before calling or else it will 
+        block indefinitely.
+
+        """
+        # get all remaining samples and write them to the recording buffer
+        devIdx = self._device.deviceIndex
+        logging.debug(
+            'Flushing remaining samples from thread queue to recording '
+            'buffer for device #{}...'.format(devIdx))
+
+        while not self.isRecBufferFull and self._sampleQueue.qsize():
+            try:
+                audioData, absRecPosition, overflow, cStartTime = \
+                    self._sampleQueue.get_nowait()
+            except queue.Empty:
+                break
+
+            if overflow > 0.0:
+                logging.warning(
+                    'Overflow detected in the polling thread, samples lost! '
+                    'Ensure that `pollInterval < streamBufferSecs` to avoid '
+                    'this in the future')
+
+            self._recording.write(audioData)
+
+        logging.debug('Thread queue for device #{} fully flushed. No '
+            'more samples returned'.format(devIdx))
+
+    def _flushStreamBuffer(self):
+        """Flush remaining samples from the stream to the recording buffer.
+
+        This will execute until the stream is fully flushed i.e. returning no
+        more samples. Requires the thread to be locked before calling or else
+        it will block indefinitely or samples will be aquired out of order.
+
+        Do not call this method directly. This is called internally by `stop()`,
+        `pause()` and `poll()` methods.
+
+        """
+        # now we manually poll the stream to get the remaining samples until
+        # the stream is fully flushed, the polling thread is halted by the
+        # data lock
+        devIdx = self._device.deviceIndex
+        logging.debug('Flushing remaining samples to recording buffer for '
+            'device #{}...'.format(devIdx))
+
+        while not self.isRecBufferFull:
+            audioData, absRecPosition, overflow, cStartTime = \
+                self._stream.get_audio_data()
+
+            if audioData.size:
+                self._recording.write(audioData)
+            else:
+                break
+
+            if overflow > 0.0:
+                logging.warning(
+                    'Overflow detected when polling stream buffer, samples '
+                    'lost!')
+        
+        logging.debug('Stream buffer for device #{} fully flushed. No '
+            'more samples returned'.format(self._device.deviceIndex))
+
     def stop(self, blockUntilStopped=True, stopTime=None):
         """Stop recording audio.
 
@@ -816,19 +871,25 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         # whether a stream is started or not.
         if not self.isStarted or self._stream._closed:
             return
+        
+        logging.debug('Stopping audio capture for device #{}...'.format(
+            self._device.deviceIndex))
+
+        if self._autoPolling:
+            self._pollDataLock.acquire()
 
         startTime, endPositionSecs, xruns, estStopTime = self._stream.stop(
             block_until_stopped=int(blockUntilStopped),
             stopTime=stopTime)
 
+        # flush all buffers to the recording buffer
         if self._autoPolling:
-            # stop the polling thread
-            self._pollStopEvent.set()
-            self._pollThread.join()
-    
-        # poll remaining samples, if any
-        if not self.isRecBufferFull:
-            self.poll()  # clears the sample queue too
+            self._flushThreadQueue()
+
+        self._flushStreamBuffer()
+        
+        if self._autoPolling:
+            self._pollDataLock.release()
 
         self._isStarted = False
 
@@ -883,7 +944,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         
         # if no open streams, make one
         logging.debug(
-            f"Opening new audio stream for device #{self._device.deviceIndex}."
+            f"Opening new audio stream for device #{self._device.deviceIndex}"
         )
         self._stream = MicrophoneDevice._streams[self._device.deviceIndex] = audio.Stream(
             device_id=self._device.deviceIndex,
@@ -905,18 +966,96 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         logging.debug(
             'Allocated stream buffer to hold {} seconds of data'.format(
                 self._streamBufferSecs))
+
+        # create polling thread
+        if self._autoPolling:
+            intiBarrier = threading.Barrier(2)
+            def pollThread():
+                """Polling thread subroutine.
+                
+                This will call `self._stream.get_audio_data()` periodically and
+                put the data into the sample queue. Calling `poll()` on the 
+                microphone object will then retrieve the data from the queue.
+                
+                """
+                pollInterval = self._pollInterval
+                intiBarrier.wait()  # wait for stream to be ready
+                while True:
+                    with self._pollDataLock:
+                        audioData, absRecPosition, overflow, cStartTime = \
+                            self._stream.get_audio_data()
+                        
+                        # Note - In cases where there is no audio data, it is 
+                        # likely that the mic is not fully started yet. This 
+                        # can happen if the `start` command is called with
+                        # `waitForStart=False`. PTB returns an empty array in
+                        # this case.
+                        if audioData.size:
+                            # put data into the sample queue, this will be 
+                            self._sampleQueue.put_nowait((
+                                audioData, 
+                                absRecPosition, 
+                                overflow, 
+                                cStartTime))
+
+                    if not self._pollStopEvent.is_set():
+                        time.sleep(pollInterval)  # sleep a bit before next poll
+                    else:
+                        break
+            
+            logging.info('Automatic polling enabled for microphone device #{} '
+                'with interval of {} second(s)'.format(
+                    self._device.deviceIndex, self._pollInterval))
+            logging.debug('Starting background polling thread for microphone '
+                'device #{}...'.format(
+                self._device.deviceIndex, self._pollInterval))
+
+            self._pollStopEvent.clear()  # reset
+            self._pollThread = threading.Thread(target=pollThread)
+            self._pollThread.start()
+
+            intiBarrier.wait()  # wait for stream to be ready
+
+            logging.debug('Microphone polling thread started for device #{}'.format(
+                self._device.deviceIndex))
+        else:
+            logging.info('Automatic polling disabled from microphone device '
+                '#{}, `poll()` must be called manually every {} second(s) to '
+                'avoid stream buffer overflow'.format(
+                    self._device.deviceIndex, self._streamBufferSecs))
         
-    def close(self):
-        """
-        Close the audio stream.
+    def close(self, force=False):
+        """Close the audio stream.
+
+        Parameters
+        ----------
+        force : bool
+            Force the stream to close even if it is still recording. Any samples
+            that have not been written to the recording buffer will be lost.
+
         """
         self.clearListeners()
         if self._stream._closed:
             return
+
+        logging.debug('Closing audio stream for device #{}...'.format(
+            self._device.deviceIndex))
+
+        if not force:
+            self.stop()  # get remaining samples before closing
+
+        if self._autoPolling:
+            # stop the polling thread
+            self._pollStopEvent.set()
+            self._pollThread.join()
+            self._pollThread = None
+
         if self._device.deviceIndex in MicrophoneDevice._streams:
             MicrophoneDevice._streams.pop(self._device.deviceIndex)
         self._stream.close()
-        logging.debug('Stream closed')
+
+        logging.debug('Stream for device #{} closed'.format(
+            self._device.deviceIndex))
     
     def reopen(self):
         """
@@ -961,37 +1100,30 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             )
             return
 
-        # figure out what to do with this other information
-        overruns = 0  # recording buffer
-        overflow = False  # stream buffer
-        if not self._autoPolling:
-            audioData, absRecPosition, overflow, cStartTime = \
+        if self._autoPolling:  # need data lock for thread safety
+            self._pollDataLock.acquire()
+            self._flushThreadQueue()
+
+        audioData, absRecPosition, overflow, cStartTime = \
                 self._stream.get_audio_data()
-            overruns = self._recording.write(audioData)
-        else:
-            # get all audio data from the queue
-            audioData = []
-            with self._pollDataLock:
-                while not self._sampleQueue.empty():
-                    audioData, absRecPosition, overflow, cStartTime = \
-                        self._sampleQueue.get_nowait()
-                    overruns = self._recording.write(audioData)
+
+        if self._autoPolling:
+            self._pollDataLock.release()
+
+        overruns = self._recording.write(audioData)
         
         if overflow:
             logging.warning(
-                "Audio stream buffer overflow, some audio samples have been lost! "
-                "To prevent this, ensure `Microphone.poll()` is being called "
-                "often enough, or increase the size of the audio buffer with "
-                "`streamBufferSecs`."
-            )
+                "Audio stream buffer overflow, some audio samples have been "
+                "lost! To prevent this, ensure `Microphone.poll()` is being "
+                "called often enough, or increase the size of the audio buffer "
+                "with `streamBufferSecs`.")
 
-        if overruns:
+        if overruns or self.isRecBufferFull:
             logging.warning(
-                "Audio recording buffer full, some audio samples have been lost! "
-                "To prevent this, ensure `Microphone.poll()` is being called "
-                "often enough, or increase the size of the audio buffer with "
-                "`streamBufferSecs`."
-            )
+                "Audio recording buffer full, some audio samples have been "
+                "lost! To prevent this, increase the size of the audio "
+                "recording buffer with `maxRecordingSize`.")
 
         # if len(audioData):
         #     # if we got samples, the device is awake, so stop figuring out if it's asleep
@@ -1030,6 +1162,9 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             raise AudioStreamError(
                 "Cannot get audio clip, recording was in progress. Be sure to "
                 "call `Microphone.stop` first.")
+
+        # flush most recent samples from audio stream to recording buffer
+        self.poll()
 
         return self._recording.getSegment()  # full recording
 
@@ -1129,6 +1264,12 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             listener.receiveMessage(message)
         
         return message
+
+    def __del__(self):
+        """Close the audio stream when the object is deleted.
+        """
+        if hasattr(self, "_stream") and self._stream is not None:
+            self.close()
 
 
 class RecordingBuffer:
@@ -1424,3 +1565,7 @@ class RecordingBuffer:
             np.array(self._samples[idxStart:idxEnd, :],
                      dtype=np.float32, order='C'),
             sampleRateHz=self._sampleRateHz)
+
+
+if __name__ == "__main__":
+    pass
