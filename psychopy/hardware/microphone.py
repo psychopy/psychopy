@@ -92,7 +92,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         `poll()` manually when `autoPolling` is `True` will still work, updating
         the recording buffer with the latest samples.
     pollInterval : float or None
-        Interval at which to poll the stream. Should be less than than 
+        Interval at which to poll the stream. Should be less than 
         `streamBufferSecs`. If `None`, the interval will be set to half the
         stream buffer size (`streamBufferSecs`). Default is `None`.
 
