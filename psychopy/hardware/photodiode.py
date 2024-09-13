@@ -793,6 +793,10 @@ class PhotodiodeValidator:
         bool
             True if photodiode state matched requested state, False otherwise.
         """
+        # if there's no time to validate, return empty handed
+        if t is None:
+            return None, None
+
         # get and clear responses
         messages = self.diode.getResponses(state=state, channel=self.channel, clear=True)
         # if there have been no responses yet, return empty handed
@@ -801,6 +805,9 @@ class PhotodiodeValidator:
 
         # if there are responses, get most recent timestamp
         lastTime = messages[-1].t
+        # if there's no time on the last message, return empty handed
+        if lastTime is None:
+            return None, None
         # validate
         valid = abs(lastTime - t) < self.variability
 
