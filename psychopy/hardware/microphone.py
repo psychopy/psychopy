@@ -91,9 +91,10 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         to preiodically call `poll()` manually. Default is `True`. Calling 
         `poll()` manually when `autoPolling` is `True` will still work, updating
         the recording buffer with the latest samples.
-    pollInterval : float
+    pollInterval : float or None
         Interval at which to poll the stream. Should be less than than 
-        `streamBufferSecs`. Default is 0.5 seconds.
+        `streamBufferSecs`. If `None`, the interval will be set to half the
+        stream buffer size (`streamBufferSecs`). Default is `None`.
 
     Examples
     --------
@@ -150,7 +151,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
                  audioLatencyMode=None,
                  audioRunMode=0,
                  autoPolling=True,
-                 pollInterval=0.5):
+                 pollInterval=None):
 
         if not _hasPTB:  # fail if PTB is not installed
             raise ModuleNotFoundError(
@@ -281,6 +282,17 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
 
         # polling thread
         self._autoPolling = autoPolling
+
+        if pollInterval is None:
+            pollInterval = max(0.001, self._streamBufferSecs / 2.0)
+            logging.debug(
+                'Polling interval not specified, using {} second(s)'.format(
+                    pollInterval))
+        else:
+            pollInterval = max(0.001, float(pollInterval))
+            logging.debug(
+                'Polling interval set to {} second(s)'.format(pollInterval))
+        
         self._pollInterval = pollInterval
         self._pollThread = None
         self._pollStopEvent = threading.Event()
