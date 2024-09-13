@@ -11,6 +11,7 @@
 __all__ = ['Microphone']
 
 from pathlib import Path
+from psychopy import logging
 from psychopy.constants import NOT_STARTED
 from psychopy.hardware import DeviceManager
 from psychopy.tools.attributetools import logAttrib
@@ -215,6 +216,7 @@ class Microphone:
         """
         # iterate through all clips
         for tag in self.clips:
+            logging.info(f"Saving {len(self.clips[tag])} audio clips with tag {tag}")
             for i, clip in enumerate(self.clips[tag]):
                 # construct filename
                 filename = self.getClipFilename(tag, i)
