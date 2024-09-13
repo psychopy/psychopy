@@ -398,6 +398,9 @@ class MicrophoneComponent(BaseDeviceComponent):
             "    recordingFolder=%(name)sRecFolder,\n"
             "    recordingExt='%(outputType)s'\n"
             ")\n"
+            "# tell the experiment handler to save this Microphone's clips if the experiment is "
+            "force ended\n"
+            "runAtExit.append(%(name)s.saveClips)\n"
         )
         buff.writeIndentedLines(code % inits)
 

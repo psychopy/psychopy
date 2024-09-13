@@ -981,6 +981,8 @@ class SettingsComponent:
             "psychopyVersion = '%(version)s'\n"
             "expName = %(expName)s  # from the Builder filename that created this script\n"
             "expVersion = %(expVersion)s\n"
+            "# a list of functions to run when the experiment ends (starts off blank)\n"
+            "runAtExit = []\n"
         )
         buff.writeIndentedLines(code % params)
         # get info for this experiment
@@ -2116,6 +2118,9 @@ class SettingsComponent:
             "logging.console.setLevel(logging.WARNING)\n"
             "# mark experiment handler as finished\n"
             "thisExp.status = FINISHED\n"
+            "# run any 'at exit' functions\n"
+            "for fcn in runAtExit:\n"
+            "    fcn()\n"
         )
         if self.params['Save log file'].val:
             code += (

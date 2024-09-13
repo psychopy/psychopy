@@ -204,12 +204,16 @@ class AudioClip:
         """
         if codec is not None:
             AudioClip._checkCodecSupported(codec, raiseError=True)
-
+        # write file
         sf.write(
             filename,
             data=self._samples,
             samplerate=self._sampleRateHz,
             format=codec)
+        # log
+        logging.info(
+            f"Saved audio data to {filename}"
+        )
 
     # --------------------------------------------------------------------------
     # Tone and noise generation methods
