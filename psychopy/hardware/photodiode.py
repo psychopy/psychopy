@@ -564,8 +564,9 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
         """
         Check the screen for changes and dispatch events as appropriate
         """
+        from psychopy.visual import Window
         # if there's no window, skip
-        if self.win is None:
+        if not isinstance(self.win, Window):
             return
         # get rect
         left, bottom = self._pos.pix + self.win.size / 2
