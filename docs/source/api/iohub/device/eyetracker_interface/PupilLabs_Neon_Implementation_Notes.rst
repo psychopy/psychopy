@@ -67,12 +67,12 @@ Setting Up |PsychoPy|
 
         <video controls src="https://raw.githubusercontent.com/wiki/pupil-labs/psychopy-eyetracker-pupil-labs/images/companion-stream-info.mp4" width="240" height="536"/>
 
-   -  ``Recording enabled`` - Enable this option to create a recording on the Companion device.
-
 5. Add AprilTag components to the routines that require eyetracking.
-   -  Three tags is generally considered a bare minimum, but more tags will yield more robust detection and more accurate mapping.
-   -  All the tags which are visible together must each have a unique ID.
-   -  Tags can be placed anywhere on the screen as long as they are fully visible and do not overlap.
+   -  The ``April Tag Frame`` component provides an easy way to add an array of AprilTag markers around the edges of the display.
+   -  If the ``April Tag Frame`` is not workable (for example, you need to render a stimulus in the corner of the display), advanced marker placement is possible using individual ``April Tag`` components.
+      -  Three markers is generally considered a bare minimum, but more markers will yield more robust detection and more accurate mapping.
+      -  All markers which are displayed simultaneously must each use a unique marker ID.
+      -  Markers can be placed anywhere on the screen as long as they are fully visible and do not overlap.
 
 A `sample experiment <https://github.com/pupil-labs/psychopy-gaze-contingent-demo>`_ is available for reference.
 
