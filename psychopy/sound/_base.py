@@ -116,6 +116,10 @@ class _SoundBase(AttributeGetSetMixin):
     # def _setSndFromArray(self, thisArray):
 
     def _parseSpeaker(self, speaker):
+        # if already a speaker, return as is
+        from psychopy.hardware.speaker import SpeakerDevice
+        if isinstance(speaker, SpeakerDevice):
+            return speaker
         if speaker is None:
             # if no device, populate from prefs
             pref = prefs.hardware['audioDevice']
