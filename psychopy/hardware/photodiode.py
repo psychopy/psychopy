@@ -9,9 +9,9 @@ class PhotodiodeResponse(base.BaseResponse):
     # list of fields known to be a part of this response type
     fields = ["t", "value", "channel", "threshold"]
 
-    def __init__(self, t, value, channel, threshold=None):
+    def __init__(self, t, value, channel, device=None, threshold=None):
         # initialise base response class
-        base.BaseResponse.__init__(self, t=t, value=value)
+        base.BaseResponse.__init__(self, t=t, value=value, device=device)
         # store channel and threshold
         self.channel = channel
         self.threshold = threshold
@@ -593,7 +593,8 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
                 t=self.clock.getTime() - frameT,
                 value=state,
                 channel=0,
-                threshold=self._threshold
+                threshold=self._threshold,
+                device=self
             )
             self.receiveMessage(resp)
 
