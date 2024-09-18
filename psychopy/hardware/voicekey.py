@@ -99,13 +99,16 @@ class MicrophoneVoiceKeyEmulator(BaseVoiceKeyGroup):
     Parameters
     ----------
     device : psychopy.hardware.MicrophoneDevice
-        _description_
+        Microphone to sample from
     threshold : int, optional
-        _description_, by default 125
+        Threshold (0-255) at which to register a response, by default 125
     dbRange : tuple, optional
-        _description_, by default (0, 1)
+        Range of possible decibels to expect mic responses to be in, by default (0, 1)
+    samplingWindow : float
+        How long (s) to average samples from the microphone across? Larger sampling windows reduce 
+        the chance of random spikes, but also reduce sensitivity.
     """
-    def __init__(self, device, threshold=125, dbRange=(0, 1)):
+    def __init__(self, device, threshold=125, dbRange=(0, 1), samplingWindow=0.03):
         # if device is given by name, get it from DeviceManager
         if isinstance(device, str):
             deviceName = device
@@ -122,6 +125,8 @@ class MicrophoneVoiceKeyEmulator(BaseVoiceKeyGroup):
         self.device = device
         # store decibel range
         self.dbRange = dbRange
+        # store sampling window
+        self.samplingWindow = samplingWindow
         # make clock
         from psychopy.core import Clock
         self.clock = Clock()
@@ -129,6 +134,42 @@ class MicrophoneVoiceKeyEmulator(BaseVoiceKeyGroup):
         BaseVoiceKeyGroup.__init__(
             self, channels=1, threshold=threshold
         )
+    
+    def getResponses(self, state=None, channel=None, clear=True):
+        """
+        Get responses which match a given on/off state.
+
+        Parameters
+        ----------
+        state : bool or None
+            True to get voicekey "on" responses, False to get voicekey "off" responses, None to 
+            get all responses.
+        channel : int
+            Which voicekey to get responses from?
+        clear : bool
+            Whether or not to remove responses matching `state` after retrieval.
+
+        Returns
+        -------
+        list[PhotodiodeResponse]
+            List of matching responses.
+        """
+        # make sure parent dispatches messages
+        self.dispatchMessages()
+        # array to store matching responses
+        matches = []
+        # check messages in chronological order
+        for resp in self.responses.copy():
+            # does this message meet the criterion?
+            if (state is None or resp.value == state) and (channel is None or resp.channel == channel):
+                # if clear, remove the response
+                if clear:
+                    i = self.responses.index(resp)
+                    resp = self.responses.pop(i)
+                # append the response to responses array
+                matches.append(resp)
+
+        return matches
     
     def getThreshold(self, channel=None):
         return BaseVoiceKeyGroup.getThreshold(self, channel=channel or 0)
@@ -154,7 +195,7 @@ class MicrophoneVoiceKeyEmulator(BaseVoiceKeyGroup):
         Check the Microphone volume and deliver appropriate response.
         """
         # get current volume
-        vol = self.device.getCurrentVolume()
+        vol = self.device.getCurrentVolume(timeframe=self.samplingWindow)
         # if device is multi-channel, take max
         if not isinstance(vol, (int, float)):
             vol = max(vol)
