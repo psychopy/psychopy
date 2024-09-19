@@ -1,5 +1,5 @@
 import json
-from psychopy import core, layout, logging
+from psychopy import core, sound, logging
 from psychopy.hardware import base, DeviceManager
 from psychopy.localization import _translate
 from psychopy.hardware import keyboard
@@ -90,6 +90,65 @@ class BaseVoiceKeyGroup(base.BaseResponseDevice):
         self.dispatchMessages()
         # return state after update
         return self.state[channel]
+    
+    def findSpeakers(self, channel, allowedSpeakers=None, beepDur=1):
+        """
+        Play a sound on different speakers and return a list of all those which this VoiceKey was 
+        able to detect.
+
+        Parameters
+        ----------
+        channel : int
+            Channel to listen for responses on.
+        allowedSpeakers : list[SpeakerDevice or dict] or None
+            List of speakers to test, or leave as None to test all speakers. If speakers are given 
+            as a dict, SpeakerDevice objects will be created via DeviceManager. 
+        beepDur : float
+            How long (s) to play a beep for on each speaker?
+        """
+        # if no allowed speakers given, use all
+        if allowedSpeakers is None:
+            allowedSpeakers = DeviceManager.getAvailableDevices(
+                "psychopy.hardware.speaker.SpeakerDevice"
+            )
+        # list of found speakers
+        foundSpeakers = []
+        # iterate through allowed speakers
+        for speaker in allowedSpeakers:
+            # if given a dict, actualise it
+            if isinstance(speaker, dict):
+                speakerProfile = speaker
+                speaker = DeviceManager.getDevice(speakerProfile['deviceName'])
+                if speaker is None:
+                    speaker = DeviceManager.addDevice(**speakerProfile)
+            # generate a sound for this speaker
+            try:
+                snd = sound.Sound("A", stereo=True, speaker=speaker)
+            except:
+                # silently skip on error
+                continue
+            # reset current state and clear responses
+            self.state[channel] = False
+            self.responses = []
+            # start a countdown for beep duration
+            countdown = core.CountdownTimer(beepDur)
+            # start playing sound
+            snd.play()
+            # wait for a response
+            while countdown.getTime() > 0:
+                self.dispatchMessages()
+            # stop playing sound
+            snd.stop()
+            # wait again for the off message, to a max of the beep duration
+            countdown.reset(beepDur)
+            while countdown.getTime() > 0 and len(self.responses) <= 1:
+                self.dispatchMessages()
+            # if we got messages, the speaker is good
+            if len(self.responses) == 2:
+                foundSpeakers.append(speaker)
+        
+        return foundSpeakers
+
 
 
 class MicrophoneVoiceKeyEmulator(BaseVoiceKeyGroup):
@@ -194,6 +253,9 @@ class MicrophoneVoiceKeyEmulator(BaseVoiceKeyGroup):
         """
         Check the Microphone volume and deliver appropriate response.
         """
+        # make sure mic is recording
+        if not self.device.isStarted:
+            self.device.start()
         # get current volume
         vol = self.device.getCurrentVolume(timeframe=self.samplingWindow)
         # if device is multi-channel, take max
@@ -250,5 +312,3 @@ class MicrophoneVoiceKeyEmulator(BaseVoiceKeyGroup):
     def resetTimer(self, clock=logging.defaultClock):
         self.clock._timeAtLastReset = clock._timeAtLastReset
         self.clock._epochTimeAtLastReset = clock._epochTimeAtLastReset
-    
-
