@@ -3,7 +3,7 @@ import time
 
 import numpy as np
 from psychtoolbox import audio as audio
-from psychopy import logging as logging, prefs
+from psychopy import logging as logging, prefs, core
 from psychopy.localization import _translate
 from psychopy.constants import NOT_STARTED
 from psychopy.hardware import BaseDevice, BaseResponse, BaseResponseDevice
@@ -1055,6 +1055,95 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             listener.receiveMessage(message)
         
         return message
+    
+    def findSpeakers(self, allowedSpeakers=None, threshold=0.01):
+        """
+        Find speakers which this microphone can hear.
+
+        Parameters
+        ----------
+        allowedSpeakers : list[SpeakerDevice or dict] or None
+            List of speakers to test, or leave as None to test all speakers. If speakers are given 
+            as a dict, SpeakerDevice objects will be created via DeviceManager. 
+        threshold : float
+            Necessary difference in volume (dB) between sound playing and not playing to conclude 
+            that this mic can hear the given speaker.
+
+        Returns
+        -------
+        list[SpeakerDevice]
+            List of speakers which this MicrophoneDevice can hear
+        """
+        from psychopy import sound
+        from psychopy.hardware import DeviceManager
+
+        def _takeReading(dur):
+            """
+            Take a reading from this MicrophoneDevice and return the average volume.
+
+            Parameters
+            ----------
+            dur : float
+                Time (s) to read for
+
+            Returns
+            -------
+            float
+                Average volume across samples and channels during the reading
+            """
+            # countdown for the duration
+            countdown = core.CountdownTimer(dur)
+            # start recording
+            self.start()
+            # poll while active
+            while countdown.getTime() > 0:
+                self.poll()
+            # get volume
+            vol = self.getCurrentVolume(timeframe=dur)
+            # if multi-channel, take the max
+            try:
+                vol = max(vol)
+            except TypeError:
+                pass
+            # stop recording
+            self.stop()
+
+            return vol
+        
+        # if no allowed speakers given, use all
+        if allowedSpeakers is None:
+            allowedSpeakers = DeviceManager.getAvailableDevices(
+                "psychopy.hardware.speaker.SpeakerDevice"
+            )
+        # list of found speakers
+        foundSpeakers = []
+        # iterate through allowed speakers
+        for speaker in allowedSpeakers:
+            # if given a dict, actualise it
+            if isinstance(speaker, dict):
+                speakerProfile = speaker
+                speaker = DeviceManager.getDevice(speakerProfile['deviceName'])
+                if speaker is None:
+                    speaker = DeviceManager.addDevice(**speakerProfile)
+            # generate a sound for this speaker
+            try:
+                snd = sound.Sound("A", stereo=True, speaker=speaker)
+            except:
+                # silently skip on error
+                continue
+            # get a baseline volume
+            baseline = _takeReading(1)
+            # start playing a beep
+            snd.play()
+            # get an active volume
+            active = _takeReading(1)
+            # stop the beep
+            snd.stop()
+            # if the difference is above the threshold, speaker is good
+            if active - baseline > threshold:
+                foundSpeakers.append(speaker)
+        
+        return foundSpeakers
 
 
 class RecordingBuffer:
