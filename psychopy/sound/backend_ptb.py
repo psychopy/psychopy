@@ -246,11 +246,28 @@ class _MasterStream(audio.Stream):
                       .format(device, mode+8, audioLatencyClass, sampleRate, channels))
                 raise e
             except Exception as e:
-                audio.Stream.__init__(self, mode=mode+8,
-                                      latency_class=audioLatencyClass,
-                                      freq=sampleRate,
-                                      channels=channels,
-                                      )
+                if deviceID == -1:
+                    # if default device doesn't setup from ptb, pick first device
+                    for device in audio.get_devices(device_type=13):
+                        logging.error(
+                            f"System default audio device failed to connect, so using first found "
+                            f"device: {device['DeviceName']}"
+                        )
+                        audio.Stream.__init__(
+                            self,mode=mode+8,
+                            device_id=device['DeviceIndex'],
+                            freq=device['DefaultSampleRate'],
+                            channels=device['NrOutputChannels']
+                        )
+                        break
+                else:
+                    # any other problem, try with no device ID
+                    audio.Stream.__init__(
+                        self, mode=mode+8,
+                        latency_class=audioLatencyClass,
+                        freq=sampleRate,
+                        channels=channels,
+                    )
 
                 if "there isn't any audio output device" in str(e):
                     print("Failed to load audio device:\n"

@@ -8,7 +8,7 @@ class SpeakerDevice(BaseDevice):
         profiles = self.getAvailableDevices()
 
         # if index is default (-1), setup a default device index
-        if not isinstance(index, (int, float)) or index < 0:
+        if not isinstance(index, (int, float)):
             index = profiles[0]['index']  # initialize as the first device
 
             # check if a default device is already set and update index
@@ -23,8 +23,8 @@ class SpeakerDevice(BaseDevice):
                         if profile['deviceName'] == defaultDevice:
                             index = profile['index']
 
-        available_index = [profile['index'] for profile in profiles]
-        if index < 0 or index not in available_index:
+        available_index = [profile['index'] for profile in profiles] + [-1]
+        if index not in available_index:
             logging.error("No speaker device found with index %d" % index)
 
         # store index
@@ -87,3 +87,21 @@ class SpeakerDevice(BaseDevice):
             devices.append(device)
 
         return devices
+
+    @staticmethod
+    def getSystemSpeaker():
+        """
+        Use psychtoolbox to work out what the operating system's default audio device is.
+        
+        Returns
+        -------
+        dict
+            Information about the found speaker.
+        """
+        import win32api
+        import win32con
+        import win32gui
+        import win32com.client
+        # make a media manager object
+        mgr = win32com.client.Dispatch("Windows.MediaDeviceManager")
+        return mgr.GetDefaultAudioCaptureDevice()
