@@ -87,21 +87,3 @@ class SpeakerDevice(BaseDevice):
             devices.append(device)
 
         return devices
-
-    @staticmethod
-    def getSystemSpeaker():
-        """
-        Use psychtoolbox to work out what the operating system's default audio device is.
-        
-        Returns
-        -------
-        dict
-            Information about the found speaker.
-        """
-        import win32api
-        import win32con
-        import win32gui
-        import win32com.client
-        # make a media manager object
-        mgr = win32com.client.Dispatch("Windows.MediaDeviceManager")
-        return mgr.GetDefaultAudioCaptureDevice()
