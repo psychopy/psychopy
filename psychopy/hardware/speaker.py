@@ -5,7 +5,10 @@ from psychopy import logging
 
 
 class SpeakerDevice(BaseDevice):
-    def __init__(self, index):
+    def __init__(self, index, channels=2, sampleRateHz=48000):
+        # store channels and sample rate
+        self.channels = channels
+        self.sampleRateHz = sampleRateHz
         # placeholder values, in case none set later
         self.deviceName = None
         self.index = None
@@ -41,6 +44,20 @@ class SpeakerDevice(BaseDevice):
             if index in (profile['index'], profile['name']):
                 self.index = int(profile['index'])
                 self.deviceName = profile['name']
+                # warn if channels / sample rate don't match
+                if profile['outputChannels'] != self.channels:
+                    logging.warn(
+                        f"Initialised speaker %(name)s with {self.channels} channels, but device "
+                        f"reports having %(outputChannels)s channels. Sounds may fail to play." 
+                        % profile
+                    )
+                if profile['defaultSampleRate'] != self.sampleRateHz:
+                    logging.warn(
+                        f"Initialised speaker %(name)s with sample rate of {self.sampleRateHz}Hz, "
+                        f"but device reports sample rate of %(defaultSampleRate)sHz. Sounds may "
+                        f"fail to play." 
+                        % profile
+                    )
 
         if self.index is None:
             logging.error("No speaker device found with index {}".format(index))
@@ -80,8 +97,10 @@ class SpeakerDevice(BaseDevice):
         import time
         # create a basic sound
         snd = Sound(
-            speaker=self.index,
-            value="A"
+            speaker=self,
+            value="A",
+            stereo=self.channels > 1,
+            sampleRate=self.sampleRateHz
         )
         # play the sound for 1s
         snd.play()
@@ -99,6 +118,8 @@ class SpeakerDevice(BaseDevice):
             device = {
                 'deviceName': profile.get('DeviceName', "Unknown Microphone"),
                 'index': index,
+                'channels': int(profile.get('NrOutputChannels', 2)),
+                'sampleRateHz': int(profile.get('DefaultSampleRate', 48000))
             }
             devices.append(device)
 
