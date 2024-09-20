@@ -139,11 +139,13 @@ class PygletBackend(BaseBackend):
             win.stereo = False
 
         if sys.platform == 'darwin' and not win.useRetina and pyglet.version >= "1.3":
-            raise ValueError(
+            logging.warn(
                 "As of PsychoPy 1.85.3 OSX windows should all be set to "
                 "`useRetina=True` (or remove the argument). Pyglet 1.3 appears "
                 "to be forcing us to use retina on any retina-capable screen "
-                "so setting to False has no effect.")
+                "so setting to False has no effect."
+            )
+            win.useRetina = True
 
         # window framebuffer configuration
         bpc = backendConf.get('bpc', (8, 8, 8))

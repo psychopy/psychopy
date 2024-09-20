@@ -1,9 +1,9 @@
 from psychopy import visual
-from psychopy.tests.test_visual.test_basevisual import _TestColorMixin
+from psychopy.tests.test_visual.test_basevisual import _TestColorMixin, _TestSerializationMixin
 from psychopy.tests.test_experiment.test_component_compile_python import _TestBoilerplateMixin
 
 
-class TestButton(_TestColorMixin, _TestBoilerplateMixin):
+class TestButton(_TestColorMixin, _TestBoilerplateMixin, _TestSerializationMixin):
 
     @classmethod
     def setup_class(self):

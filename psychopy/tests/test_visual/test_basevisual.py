@@ -1,12 +1,38 @@
 import json
-from pathlib import Path
-
 import pytest
-from psychopy import visual, layout, event
-from psychopy import colors
-from psychopy.monitors import Monitor
+import importlib
 from copy import copy
+from pathlib import Path
+from psychopy import visual, layout, event, colors
+from psychopy.tools.stimulustools import serialize, actualize
+from psychopy.monitors import Monitor
 from psychopy.tests import utils
+
+
+class _TestSerializationMixin:
+    """
+    Tests that stimuli can be serialized and recreated from serialized form.
+    """
+    # placeholders for object and window
+    obj = None
+    win = None
+
+    def test_serialization(self):
+        # skip if we don't have an object
+        if self.obj is None or self.win is None:
+            pytest.skip()
+        # start by flipping the window
+        self.win.flip()
+        # serialize object
+        params = serialize(self.obj, includeClass=True)
+        # substitute win
+        params['win'] = self.win
+        # recreate object from params
+        dupe = actualize(params)
+        # check object is same class
+        assert isinstance(dupe, type(self.obj))
+        # delete duplicate
+        del dupe
 
 
 class _TestColorMixin:

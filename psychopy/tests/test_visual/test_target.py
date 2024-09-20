@@ -1,7 +1,7 @@
 from psychopy import visual, layout
-from .test_basevisual import _TestColorMixin, _TestUnitsMixin
+from .test_basevisual import _TestColorMixin, _TestUnitsMixin, _TestSerializationMixin
 
-class TestTarget(_TestUnitsMixin):
+class TestTarget(_TestUnitsMixin, _TestSerializationMixin):
     # Pixel which is the border color
     borderPoint = (0, 55)
     borderUsed = True

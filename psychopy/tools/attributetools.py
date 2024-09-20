@@ -9,6 +9,7 @@
 """
 
 import numpy
+import inspect
 from psychopy import logging
 from functools import partialmethod
 from psychopy.tools.stringtools import CaseSwitcher
@@ -44,6 +45,17 @@ class attributeSetter:
         #        origin[1], origin[3].__repr__())))  # long
         '''
         return newValue
+    
+    def serialize(self):
+        """
+        If an attributeSetter is received by serializer as an attribute, return the default value or 
+        None
+        """
+        defaults = inspect.getargspec(self.func).defaults
+        if defaults:
+            return defaults[0]
+        else:
+            return None
 
     def __repr__(self):
         return repr(self.__getattribute__)
