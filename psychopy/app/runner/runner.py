@@ -539,7 +539,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         self.splitter.SplitVertically(
             window1=self.topPanel,
             window2=self.bottomPanel,
-            sashPosition=480
+            sashPosition=360
         )
         self.splitter.SetMinimumPaneSize(360)
 
@@ -1079,8 +1079,11 @@ class RunnerOutputNotebook(aui.AuiNotebook, handlers.ThemeMixin):
         # bind function when page receives focus
         self._readCache = {}
         self.Bind(aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.onFocus)
-
-        self.SetMinSize(wx.Size(100, 100))  # smaller than window min size
+        # min size is 80 chars / 40 lines
+        self.SetMinSize(wx.Size(
+            self.stdoutPnl.GetCharWidth() * 80, 
+            self.stdoutPnl.GetCharHeight() * 40, 
+        ))
 
     def setRead(self, i, state):
         """

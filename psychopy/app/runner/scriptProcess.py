@@ -297,11 +297,16 @@ class ScriptProcess:
             Program exit code.
 
         """
-        # write a close message, shows the exit code
-        closeMsg = \
-            " Experiment ended with exit code {} [pid:{}] ".format(
-                exitCode, pid)
-        closeMsg = closeMsg.center(80, '#') + '\n'
+        # write a close message, shows the exit code if there is one
+        if exitCode:
+            closeMsg = (
+                " Experiment ended with exit code {ec} [pid:{pid}] "
+            )
+        else:
+            closeMsg = (
+                " Experiment completed [pid:{pid}] "
+            )
+        closeMsg = closeMsg.format(ec=exitCode, pid=pid).center(64, '#') + '\n'
         self._writeOutput(closeMsg)
 
         self.scriptProcess = None  # reset
