@@ -386,7 +386,12 @@ class SoundPTB(_SoundBase):
 
     @stereo.setter
     def stereo(self, val):
+        # if auto, get from speaker
+        if val == -1:
+            val = self.speaker.channels > 1
+        # store value
         self.__dict__['stereo'] = val
+        # convert to n channels
         if val is True:
             self.__dict__['channels'] = 2
         elif val is False:
