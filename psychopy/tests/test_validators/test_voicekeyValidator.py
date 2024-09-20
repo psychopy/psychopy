@@ -3,6 +3,7 @@ from psychopy import core, constants, sound, validation
 from psychopy.hardware import microphone, voicekey, DeviceManager
 
 
+@pytest.mark.needs_sound
 class TestVoiceKeyValidator:
     def setup_class(cls):
         cls.vk = cls.speaker = None
