@@ -293,28 +293,27 @@ class PolygonComponent(BaseVisualComponent):
         if self.params['interpolate'].val != 'linear':
             interpolate = 'false'
 
-        code += ("  ori: {ori}, \n"
-                 "  pos: {pos}, \n"
-                 "  draggable: {draggable}, \n"
-                 "  anchor: {anchor},\n"
-                 "  lineWidth: {lineWidth}, \n"
-                 "  colorSpace: {colorSpace},\n")      
-
-        if inits['lineColor'] == 'undefined':
-            code +=  "  lineColor: {lineColor},\n"
-        else:    
-            code +=  "  lineColor: new util.Color({lineColor}),\n"
-
-        if inits['fillColor'] == 'undefined':
-            code +=  "  fillColor: {fillColor},\n"
-        else:    
-            code +=  "  fillColor: new util.Color({fillColor}),\n"
-
-
-        code += (        "  fillColor: {fillColor},\n"
-                 "  opacity: {opacity}, depth: {depth}, interpolate: {interpolate},\n"
-                 "}});\n\n")
-
+        # make a util.Color object for non-transparent
+        for key in ("fillColor", "lineColor"):
+            if inits[key].val != "undefined":
+                inits[key].val = "new util.Color(%s)" % inits[key]
+                inits[key].valType = "code"
+        # add other params
+        code += (
+            "  ori: {ori}, \n"
+            "  pos: {pos}, \n"
+            "  draggable: {draggable}, \n"
+            "  anchor: {anchor}, \n"
+            "  lineWidth: {lineWidth}, \n"
+            "  lineColor: {lineColor}, \n"
+            "  fillColor: {fillColor}, \n"
+            "  colorSpace: {colorSpace}, \n"
+            "  opacity: {opacity}, \n"
+            "  depth: {depth}, \n"
+            "  interpolate: {interpolate}, \n"
+            "}});\n"
+            "\n"
+        )
         buff.writeIndentedLines(code.format(name=inits['name'],
                                             unitsStr=unitsStr,
                                             anchor=inits['anchor'],
