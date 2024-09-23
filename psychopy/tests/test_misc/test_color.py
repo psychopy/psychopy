@@ -6,6 +6,7 @@ tests in a setting where you can view the output if you have photosensitive
 epilepsy.
 
 """
+from psychopy.alerts import addAlertHandler
 from psychopy.alerts._errorHandler import _BaseErrorHandler
 from psychopy.tests import utils
 from psychopy import visual, colors
@@ -44,6 +45,7 @@ class Test_Window:
     def setup_class(self):
         self.win = visual.Window([128,128], pos=[50,50], allowGUI=False, autoLog=False)
         self.error = _BaseErrorHandler()
+        addAlertHandler(self.error)
 
     @classmethod
     def teardown_class(self):
