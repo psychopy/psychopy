@@ -24,7 +24,7 @@ import webbrowser
 from pathlib import Path
 from subprocess import Popen, PIPE
 
-from psychopy import experiment, logging
+from psychopy import experiment, logging, alerts
 from psychopy.app.utils import FrameSwitcher, FileDropTarget
 from psychopy.localization import _translate
 from psychopy.projects.pavlovia import getProject
@@ -1053,6 +1053,7 @@ class RunnerOutputNotebook(aui.AuiNotebook, handlers.ThemeMixin):
             self.alertsPnl, caption=_translate("Alerts")
         )
         self.panels['alerts'] = self.alertsPnl
+        alerts.addAlertHandler(self.alertsPnl.ctrl)
 
         # StdOut
         self.stdoutPnl = ScriptOutputPanel(
