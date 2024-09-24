@@ -750,13 +750,17 @@ class Window():
     def setViewPos(self, value, log=True):
         setAttribute(self, 'viewPos', value, log=log)
 
-    @attributeSetter
+    @property
+    def fullscr(self):
+        """Return whether the window is in fullscreen mode."""
+        return self._isFullScr
+
+    @fullscr.setter
     def fullscr(self, value):
         """Set whether fullscreen mode is `True` or `False` (not all backends
         can toggle an open window).
         """
         self.backend.setFullScr(value)
-        self.__dict__['fullscr'] = value
         self._isFullScr = value
 
     @attributeSetter
