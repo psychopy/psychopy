@@ -1885,7 +1885,7 @@ class SettingsComponent:
             "        monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s,\n"
             "        backgroundImage=%(backgroundImg)s, backgroundFit=%(backgroundFit)s,\n"
             "        blendMode=%(blendMode)s, useFBO=%(useFBO)s,\n"
-            "        units=%(Units)s, \n"
+            "        units=%(Units)s,\n"
             "        checkTiming=False  # we're going to do this ourselves in a moment\n"
             "    )\n"
             "else:\n"
