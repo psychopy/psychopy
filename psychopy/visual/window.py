@@ -3331,7 +3331,12 @@ class Window():
         GL.glClear(GL.GL_DEPTH_BUFFER_BIT)
         return True
 
-    @attributeSetter
+    @property
+    def mouseVisible(self):
+        """Returns the visibility of the mouse cursor."""
+        return self.backend.mouseVisible
+
+    @mouseVisible.setter
     def mouseVisible(self, visibility):
         """Sets the visibility of the mouse cursor.
 
@@ -3345,7 +3350,6 @@ class Window():
 
         """
         self.backend.setMouseVisibility(visibility)
-        self.__dict__['mouseVisible'] = visibility
 
     def setMouseVisible(self, visibility, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
