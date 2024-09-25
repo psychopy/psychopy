@@ -7,7 +7,7 @@ import re
 import wx.richtext
 import locale
 
-from psychopy import prefs
+from psychopy import prefs, alerts
 from psychopy.localization import _translate
 from psychopy.app.utils import sanitize
 #!/usr/bin/env python
@@ -390,6 +390,13 @@ class ScriptOutputCtrl(StdOutRich, handlers.ThemeMixin):
 
         self.errors = []
         self.alerts = []
+    
+    def __del__(self):
+        """
+        If setup as an alert handler, remove self on deletion.
+        """
+        if alerts.isAlertHandler(self):
+            alerts.removeAlertHandler(self)
 
 
 if __name__ == "__main__":

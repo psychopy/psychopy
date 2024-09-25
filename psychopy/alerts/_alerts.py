@@ -161,26 +161,62 @@ def alert(code=None, obj=object, strFields=None, trace=None):
                         cat=msg.cat,
                         msg=msg.msg,
                         trace=msg.trace))
-    # msgAsStr = ("Component Type: {type} | "
-    #             "Component Name: {name} | "
-    #             "Code: {code} | "
-    #             "Category: {cat} | "
-    #             "Message: {msg} | "
-    #             "Traceback: {trace}".format(type=msg.type,
-    #                                         name=msg.name,
-    #                                         code=msg.code,
-    #                                         cat=msg.cat,
-    #                                         msg=msg.msg,
-    #                                         trace=msg.trace))
-
-    # if a psychopy warning instead of a file-like stderr then pass a raw str
-    if hasattr(sys.stderr, 'receiveAlert'):
+    if len(_activeAlertHandlers):
+        # if we have any active handlers, send to them
+        for handler in _activeAlertHandlers:
+            # send alert
+            handler.receiveAlert(msg)
+    elif hasattr(sys.stderr, 'receiveAlert'):
+        # if there aren't any, but stdout can receive alerts, send to stdout
         sys.stderr.receiveAlert(msg)
     else:
-        # For tests detecting output - change when error handler set up
+        # otherwise, just write as a string to stdout
         sys.stderr.write(msgAsStr)
-        for handler in _activeAlertHandlers:
-            handler.receiveAlert(msg)
+
+
+def isAlertHandler(handler):
+    """
+    Is the given handler an alert handler?
+
+    Parameters
+    ----------
+    handler : ScriptOutputCtrl
+        Handler to query.
+    
+    Returns
+    -------
+    bool
+        True if the given handler is an alert handler.
+    """
+    return handler in _activeAlertHandlers
+
+
+def addAlertHandler(handler):
+    """
+    Add a handler to the list of active alert handlers.
+
+    Parameters
+    ----------
+    handler : ScriptOutputCtrl
+        Handler to add.
+    """
+    if not isAlertHandler(handler):
+        _activeAlertHandlers.append(handler)
+
+
+def removeAlertHandler(handler):
+    """
+    Remove a handler from the list of active alert handlers.
+
+    Parameters
+    ----------
+    handler : ScriptOutputCtrl
+        Handler to remove.
+    """
+    if isAlertHandler(handler):
+        _activeAlertHandlers.pop(
+            _activeAlertHandlers.index(handler)
+        )
 
 
 # Create catalog
