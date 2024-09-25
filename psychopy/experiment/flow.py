@@ -274,6 +274,8 @@ class Flow(list):
         code = (
             "# mark experiment as started\n"
             "thisExp.status = STARTED\n"
+            "# make sure window is set to foreground to prevent losing focus\n"
+            "win.winHandle.activate()\n"
             "# make sure variables created by exec are available globally\n"
             "exec = environmenttools.setExecEnvironment(globals())\n"
             "# get device handles from dict of input devices\n"
@@ -336,7 +338,6 @@ class Flow(list):
                 "logging.setDefaultClock(globalClock)\n"
                 "# routine timer to track time remaining of each (possibly non-slip) routine\n"
                 "routineTimer = core.Clock()\n"
-                "win.winHandle.activate()  # set window to foreground to prevent losing focus\n"
                 "win.flip()  # flip window to reset last flip timer\n"
                 "# store the exact time the global clock started\n"
                 "expInfo['expStart'] = data.getDateStr(\n"
