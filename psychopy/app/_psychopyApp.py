@@ -542,7 +542,11 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             startView = [startView]
         
         # get files to open from commandline args
-        for arg in sys.argv:
+        for argn, arg in enumerate(sys.argv):
+            # first argument is calling script, ignore it
+            if argn < 1:
+                continue
+            # subsequent arguments are files to open
             if arg.endswith(".psyexp"):
                 exps.append(arg)
             if arg.endswith(".py"):
