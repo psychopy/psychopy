@@ -1237,7 +1237,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         # take files from arguments and append the previously opened files
         filename = ""
         if files not in [None, [], ()]:
-            for filename in files:
+            for filename in set(files):
                 if not os.path.isfile(filename):
                     continue
                 self.setCurrentDoc(filename, keepHidden=True)
