@@ -41,7 +41,7 @@ class Flow(list):
         loopStack = [currentList]
         for thisEntry in self:
             if thisEntry.getType() == 'LoopInitiator':
-                currentList.append(thisEntry.loop) # this loop is child of current
+                currentList.append(thisEntry.loop)  # this loop is child of current
                 loopDict[thisEntry.loop] = []  # and is (current) empty list awaiting children
                 currentList = loopDict[thisEntry.loop]
                 loopStack.append(loopDict[thisEntry.loop])  # update the list of loops (for depth)
@@ -140,7 +140,6 @@ class Flow(list):
                 # right-click in GUI)
                 del self[id]
 
-
     def integrityCheck(self):
         """Check that the flow makes sense together and check each component"""
 
@@ -168,7 +167,7 @@ class Flow(list):
                     if not hasattr(field, 'label'):
                         continue  # no problem, no warning
                     if (field.label.lower() in ['text', 'customize'] or
-                            not field.valType in ('str', 'code')):
+                            field.valType not in ('str', 'code')):
                         continue
                     if (isinstance(field.val, str) and
                             field.val != field.val.strip()):
@@ -204,7 +203,7 @@ class Flow(list):
             # non-redundant, order unknown
             print('\n  '.join(list(set(warnings))))
 
-    def writePreCode(self,script):
+    def writePreCode(self, script):
         """Write the code that comes before the Window is created
         """
         script.writeIndentedLines("\n# Start Code - component code to be "
@@ -337,12 +336,13 @@ class Flow(list):
                 "logging.setDefaultClock(globalClock)\n"
                 "# routine timer to track time remaining of each (possibly non-slip) routine\n"
                 "routineTimer = core.Clock()\n"
+                "win.winHandle.activate()  # set window to foreground to prevent losing focus\n"
                 "win.flip()  # flip window to reset last flip timer\n"
                 "# store the exact time the global clock started\n"
                 "expInfo['expStart'] = data.getDateStr(\n"
                 "    format='%Y-%m-%d %Hh%M.%S.%f %z', fractionalSecondDigits=6\n"
                 ")\n"
-        )
+                )
         script.writeIndentedLines(code)
         # run-time code
         for entry in self:
@@ -401,13 +401,14 @@ class Flow(list):
                 "\n"
                 "const flowScheduler = new Scheduler(psychoJS);\n"
                 "const dialogCancelScheduler = new Scheduler(psychoJS);\n"
-                "psychoJS.scheduleCondition(function() { return (psychoJS.gui.dialogComponent.button === 'OK'); }, flowScheduler, dialogCancelScheduler);\n"
+                "psychoJS.scheduleCondition(function() { return (psychoJS.gui.dialogComponent.button === 'OK'); },"
+                "flowScheduler, dialogCancelScheduler);\n"
                 "\n")
         script.writeIndentedLines(code)
 
         code = ("// flowScheduler gets run if the participants presses OK\n"
-               "flowScheduler.add(updateInfo); // add timeStamp\n"
-               "flowScheduler.add(experimentInit);\n")
+                "flowScheduler.add(updateInfo); // add timeStamp\n"
+                "flowScheduler.add(experimentInit);\n")
         script.writeIndentedLines(code)
         loopStack = []
         for thisEntry in self:
