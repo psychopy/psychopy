@@ -546,8 +546,8 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             if arg.endswith(".psyexp"):
                 exps.append(arg)
             if arg.endswith(".py"):
-                if sys.platform == 'darwin' and arg.endswith("psychopyApp.py"):
-                    # in wx4 on mac this is called erroneously by App.__init__
+                if arg.endswith("psychopyApp.py"):
+                    # this is called erroneously when starting standalone app
                     continue
                 else:
                     scripts.append(arg)
