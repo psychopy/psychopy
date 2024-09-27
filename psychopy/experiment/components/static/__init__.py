@@ -48,6 +48,10 @@ class StaticComponent(BaseComponent):
         self.type = 'Static'
         self.url = "https://www.psychopy.org/builder/components/static.html"
         # --- Custom params ---
+        self.order += [
+            "code",
+            "saveData",
+        ]
         self.params['code'] = Param(
             code, valType='code', inputType="multi", categ='Custom',
             label=_translate("Custom code"),
