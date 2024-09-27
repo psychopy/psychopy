@@ -34,10 +34,16 @@ class BaseResponse:
         # make key=val strings
         attrs = []
         for key in self.fields:
-            attrs.append(f"{key}={getattr(self, key)}")
+            try:
+                attrs.append(f"{key}={getattr(self, key)}")
+            except:
+                continue
         attrs = ", ".join(attrs)
         # construct
-        return f"<{type(self).__name__} from {self.getDeviceName()}: {attrs}>"
+        try:
+            return f"<{type(self).__name__} from {self.getDeviceName()}: {attrs}>"
+        except:
+            return f"<{type(self).__name__}: {attrs}>"
     
     def getDeviceName(self):
         # if device isn't a device, and this method isn't overloaded, return None
