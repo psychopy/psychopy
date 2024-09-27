@@ -15,6 +15,7 @@ __all__ = [
 import json
 import inspect
 import numpy as np
+from psychopy import logging
 
 
 class BaseResponse:
@@ -246,6 +247,15 @@ class BaseResponseDevice(BaseDevice):
         # relay message to listener
         for listener in self.listeners:
             listener.receiveMessage(message)
+        # relay to log file
+        try:
+            logging.exp(
+                f"Device response: {message}"
+            )
+        except Exception as err:
+            logging.error(
+                f"Received a response from a {type(self).__name__} but couldn't print it: {err}"
+            )
 
         return True
 
