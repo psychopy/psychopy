@@ -610,6 +610,24 @@ class ExperimentHandler(_ComparisonMixin):
             entries.append(self.thisEntry)
         return entries
 
+    def save(self):
+        """
+        Work out from own settings how to save, then use the appropriate method (saveAsWideText, 
+        saveAsPickle, etc.)
+        """
+        if self.dataFileName not in ['', None]:
+            if self.autoLog:
+                msg = 'Saving data for %s ExperimentHandler' % self.name
+                logging.debug(msg)
+            if self.savePickle:
+                self.saveAsPickle(self.dataFileName)
+            if self.saveWideText:
+                self.saveAsWideText(self.dataFileName + '.csv')
+        else:
+            logging.warn(
+                "ExperimentHandler.save was called on an ExperimentHandler with no dataFileName set."
+            )
+
     def saveAsWideText(self,
                        fileName,
                        delim='auto',
@@ -810,14 +828,7 @@ class ExperimentHandler(_ComparisonMixin):
         return json.dumps(context, indent=True, allow_nan=False, default=str)
         
     def close(self):
-        if self.dataFileName not in ['', None]:
-            if self.autoLog:
-                msg = 'Saving data for %s ExperimentHandler' % self.name
-                logging.debug(msg)
-            if self.savePickle:
-                self.saveAsPickle(self.dataFileName)
-            if self.saveWideText:
-                self.saveAsWideText(self.dataFileName + '.csv')
+        self.save()
         self.abort()
         self.autoLog = False
 
