@@ -202,7 +202,7 @@ def getPsychoJSVersionStr(currentVersion, preferredVersion=''):
         # e.g. 2021.1.0 not 2021.1.0.dev3
         useVerStr = '.'.join(useVerStr.split('.')[:3])
     # PsychoJS doesn't have additional rc1 or dev1 releases
-    for versionSuffix in ["rc", "dev", "a", "b"]:
+    for versionSuffix in ["rc", "dev", "post", "a", "b"]:
         if versionSuffix in useVerStr:
             useVerStr = useVerStr.split(versionSuffix)[0]
 
