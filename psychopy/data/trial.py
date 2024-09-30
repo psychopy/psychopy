@@ -172,6 +172,8 @@ class TrialHandler(_BaseTrialHandler):
 
         self.originPath, self.origin = self.getOriginPathAndFile(originPath)
         self._exp = None  # the experiment handler that owns me!
+        # starting status
+        self.status = constants.NOT_STARTED
 
     def __iter__(self):
         return self
