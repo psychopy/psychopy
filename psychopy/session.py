@@ -1202,6 +1202,31 @@ class Session:
             )
         
         return trials
+    
+    def pauseLoop(self):
+        """
+        Pause the current loop of the current experiment. Note that this will not take effect until 
+        the loop would next iterate.
+
+        Returns
+        -------
+        bool or None
+            True if the operation completed successfully
+        """
+        # warn and return failed if no experiment is running
+        if self.currentExperiment is None:
+            logging.warn(_translate(
+                "Could not pause loop as there is no experiment running."
+            ))
+            return False
+        # warn and return failed if not in a loop
+        if self.currentExperiment.currentLoop is self.currentExperiment:
+            logging.warn(_translate(
+                "Could not pause loop as the current experiment is not in a loop."
+            ))
+            return False
+        # pause loop
+        self.currentExperiment.currentLoop.status = constants.PAUSED
 
     def pauseExperiment(self):
         """
