@@ -638,6 +638,7 @@ class ExperimentHandler(_ComparisonMixin):
         Work out from own settings how to save, then use the appropriate method (saveAsWideText, 
         saveAsPickle, etc.)
         """
+        savedName = None
         if self.dataFileName not in ['', None]:
             if self.autoLog:
                 msg = 'Saving data for %s ExperimentHandler' % self.name
