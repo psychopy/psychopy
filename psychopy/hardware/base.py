@@ -15,6 +15,7 @@ __all__ = [
 import json
 import inspect
 import numpy as np
+from psychopy import logging
 
 
 class BaseResponse:
@@ -33,10 +34,16 @@ class BaseResponse:
         # make key=val strings
         attrs = []
         for key in self.fields:
-            attrs.append(f"{key}={getattr(self, key)}")
+            try:
+                attrs.append(f"{key}={getattr(self, key)}")
+            except:
+                continue
         attrs = ", ".join(attrs)
         # construct
-        return f"<{type(self).__name__} from {self.getDeviceName()}: {attrs}>"
+        try:
+            return f"<{type(self).__name__} from {self.getDeviceName()}: {attrs}>"
+        except:
+            return f"<{type(self).__name__}: {attrs}>"
     
     def getDeviceName(self):
         # if device isn't a device, and this method isn't overloaded, return None
@@ -246,6 +253,15 @@ class BaseResponseDevice(BaseDevice):
         # relay message to listener
         for listener in self.listeners:
             listener.receiveMessage(message)
+        # relay to log file
+        try:
+            logging.exp(
+                f"Device response: {message}"
+            )
+        except Exception as err:
+            logging.error(
+                f"Received a response from a {type(self).__name__} but couldn't print it: {err}"
+            )
 
         return True
 
