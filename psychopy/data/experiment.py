@@ -108,6 +108,8 @@ class ExperimentHandler(_ComparisonMixin):
         self.autoLog = autoLog
         self.appendFiles = appendFiles
         self.status = constants.NOT_STARTED
+        # dict of filenames to collision method to be used next time it's saved
+        self._nextSaveCollision = {}
 
         if dataFileName in ['', None]:
             logging.warning('ExperimentHandler created with no dataFileName'
@@ -610,13 +612,54 @@ class ExperimentHandler(_ComparisonMixin):
             entries.append(self.thisEntry)
         return entries
 
+    def queueNextCollision(self, fileCollisionMethod, fileName=None):
+        """
+        Tell this ExperimentHandler than, next time the named file is saved, it should handle 
+        collisions a certain way. This is useful if you want to save multiple times within an 
+        experiment.
+
+        Parameters
+        ----------
+        fileCollisionMethod : str
+            File collision method to use, see `saveAsWideText` or `saveAsPickle` for 
+            details.
+        fileName : str
+            Filename to queue collision on, if None (default) will use this ExperimentHandler's 
+            `dataFileName`
+        """
+        # handle default
+        if fileName is None:
+            fileName = self.dataFileName
+        # queue collision
+        self._nextSaveCollision[fileName] = fileCollisionMethod
+    
+    def save(self):
+        """
+        Work out from own settings how to save, then use the appropriate method (saveAsWideText, 
+        saveAsPickle, etc.)
+        """
+        if self.dataFileName not in ['', None]:
+            if self.autoLog:
+                msg = 'Saving data for %s ExperimentHandler' % self.name
+                logging.debug(msg)
+            if self.savePickle:
+                savedName = self.saveAsPickle(self.dataFileName)
+            if self.saveWideText:
+                savedName = self.saveAsWideText(self.dataFileName + '.csv')
+        else:
+            logging.warn(
+                "ExperimentHandler.save was called on an ExperimentHandler with no dataFileName set."
+            )
+        
+        return savedName
+
     def saveAsWideText(self,
                        fileName,
                        delim='auto',
                        matrixOnly=False,
                        appendFile=None,
                        encoding='utf-8-sig',
-                       fileCollisionMethod='rename',
+                       fileCollisionMethod=None,
                        sortColumns=None):
         """Saves a long, wide-format text file, with one line representing
         the attributes and data for a single trial. Suitable for analysis
@@ -632,38 +675,43 @@ class ExperimentHandler(_ComparisonMixin):
         which can be handy if you want to append data to an existing file
         of the same format.
 
-        :Parameters:
+        Parameters
+        ----------
 
-            fileName:
-                if extension is not specified, '.csv' will be appended if
-                the delimiter is ',', else '.tsv' will be appended.
-                Can include path info.
+        fileName:
+            if extension is not specified, '.csv' will be appended if
+            the delimiter is ',', else '.tsv' will be appended.
+            Can include path info.
 
-            delim:
-                allows the user to use a delimiter other than the default
-                tab ("," is popular with file extension ".csv")
+        delim:
+            allows the user to use a delimiter other than the default
+            tab ("," is popular with file extension ".csv")
 
-            matrixOnly:
-                outputs the data with no header row.
+        matrixOnly:
+            outputs the data with no header row.
 
-            appendFile:
-                will add this output to the end of the specified file if
-                it already exists.
+        appendFile:
+            will add this output to the end of the specified file if
+            it already exists.
 
-            encoding:
-                The encoding to use when saving a the file.
-                Defaults to `utf-8-sig`.
+        encoding:
+            The encoding to use when saving a the file.
+            Defaults to `utf-8-sig`.
 
-            fileCollisionMethod:
-                Collision method passed to
-                :func:`~psychopy.tools.fileerrortools.handleFileCollision`
+        fileCollisionMethod:
+            Collision method passed to
+            :func:`~psychopy.tools.fileerrortools.handleFileCollision`
 
-            sortColumns : str or bool
-                How (if at all) to sort columns in the data file. Can be:
-                - "alphabetical", "alpha", "a" or True: Sort alphabetically by header name
-                - "priority", "pr" or "p": Sort according to priority
-                - other: Do not sort, columns remain in order they were added
-
+        sortColumns : str or bool
+            How (if at all) to sort columns in the data file. Can be:
+            - "alphabetical", "alpha", "a" or True: Sort alphabetically by header name
+            - "priority", "pr" or "p": Sort according to priority
+            - other: Do not sort, columns remain in order they were added
+        
+        Returns
+        -------
+        str
+            Final filename (including _1, _2, etc. and file extension) which data was saved as
         """
         # set default delimiter if none given
         delimOptions = {
@@ -678,6 +726,11 @@ class ExperimentHandler(_ComparisonMixin):
 
         if appendFile is None:
             appendFile = self.appendFiles
+        # check for queued collision methods if using default, fallback to rename
+        if fileCollisionMethod is None and fileName in self._nextSaveCollision:
+            fileCollisionMethod = self._nextSaveCollision.pop(fileName)
+        elif fileCollisionMethod is None:
+            fileCollisionMethod = "rename"
 
         # create the file or send to stdout
         fileName = genFilenameFromDelimiter(fileName, delim)
@@ -730,15 +783,23 @@ class ExperimentHandler(_ComparisonMixin):
             f.close()
         logging.info('saved data to %r' % f.name)
 
-    def saveAsPickle(self, fileName, fileCollisionMethod='rename'):
+        return fileName
+
+    def saveAsPickle(self, fileName, fileCollisionMethod=None):
         """Basically just saves a copy of self (with data) to a pickle file.
 
         This can be reloaded if necessary and further analyses carried out.
 
-        :Parameters:
+        Parameters
+        ----------
 
-            fileCollisionMethod: Collision method passed to
-            :func:`~psychopy.tools.fileerrortools.handleFileCollision`
+        fileCollisionMethod : str
+            Collision method passed to :func:`~psychopy.tools.fileerrortools.handleFileCollision`
+        
+        Returns
+        -------
+        str
+            Final filename (including _1, _2, etc. and file extension) which data was saved as
         """
         # Store the current state of self.savePickle and self.saveWideText
         # for later use:
@@ -753,6 +814,13 @@ class ExperimentHandler(_ComparisonMixin):
         # https://groups.google.com/d/msg/psychopy-dev/Z4m_UX88q8U/UGuh1eeyjMEJ
         savePickle = self.savePickle
         saveWideText = self.saveWideText
+
+        # check for queued collision methods if using default, fallback to rename
+        if fileCollisionMethod is None:
+            if fileCollisionMethod is None and fileName in self._nextSaveCollision:
+                fileCollisionMethod = self._nextSaveCollision.pop(fileName)
+            elif fileCollisionMethod is None:
+                fileCollisionMethod = "rename"
 
         self.savePickle = False
         self.saveWideText = False
@@ -774,6 +842,8 @@ class ExperimentHandler(_ComparisonMixin):
         self.entries = origEntries  # revert list of completed entries post-save
         self.savePickle = savePickle
         self.saveWideText = saveWideText
+
+        return fileName
 
     def getJSON(self, priorityThreshold=constants.priority.EXCLUDE+1):
         """
@@ -810,14 +880,7 @@ class ExperimentHandler(_ComparisonMixin):
         return json.dumps(context, indent=True, allow_nan=False, default=str)
         
     def close(self):
-        if self.dataFileName not in ['', None]:
-            if self.autoLog:
-                msg = 'Saving data for %s ExperimentHandler' % self.name
-                logging.debug(msg)
-            if self.savePickle:
-                self.saveAsPickle(self.dataFileName)
-            if self.saveWideText:
-                self.saveAsWideText(self.dataFileName + '.csv')
+        self.save()
         self.abort()
         self.autoLog = False
 
