@@ -14,12 +14,12 @@ For the easiest installation download and install the Standalone package.
 
       For the easiest installation download and install the Standalone package.
 
-      .. button-link:: https://github.com/psychopy/psychopy/releases/download/2024.2.1/StandalonePsychoPy-2024.2.1post4-win64-py310.exe 
+      .. button-link:: https://github.com/psychopy/psychopy/releases/download/2024.2.2/StandalonePsychoPy-2024.2.2-win64-py3.10.exe
           :color: primary
 
           PsychoPy |version| modern (py3.10)
 
-      .. button-link:: https://github.com/psychopy/psychopy/releases/download/2024.2.1/StandalonePsychoPy-2024.2.1-win64-py3.8.exe
+      .. button-link:: https://github.com/psychopy/psychopy/releases/download/2024.2.2/StandalonePsychoPy-2024.2.2-win64-py3.8.exe
           :color: primary
 
           PsychoPy |version| compatibility+ (py3.8)
@@ -30,12 +30,12 @@ For the easiest installation download and install the Standalone package.
 
       For the easiest installation download and install the Standalone package.
     
-      .. button-link:: https://github.com/psychopy/psychopy/releases/download/2024.2.1/StandalonePsychoPy-2024.2.1-macOS-py3.10.dmg
+      .. button-link:: https://github.com/psychopy/psychopy/releases/download/2024.2.2/StandalonePsychoPy-2024.2.2-macOS-py3.10.dmg
           :color: primary
 
           PsychoPy |version| modern (py3.10)
 
-      .. button-link:: https://github.com/psychopy/psychopy/releases/download/2024.2.1/StandalonePsychoPy-2024.2.1-macOS-py3.8.dmg
+      .. button-link:: https://github.com/psychopy/psychopy/releases/download/2024.2.2/StandalonePsychoPy-2024.2.2-macOS-py3.8.dmg
           :color: primary
 
           PsychoPy |version| compatibility+ (py3.8)
