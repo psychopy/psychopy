@@ -532,6 +532,8 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             if self.prefs.app['defaultView'] == 'all':
                 startView = ["builder", "coder", "runner"]
             elif self.prefs.app['defaultView'] == "last":
+                if self.prefs.appData['lastFrame'] == "both":
+                    self.prefs.appData['lastFrame'] = "builder-coder-runner"
                 startView = self.prefs.appData['lastFrame'].split("-")
             elif self.prefs.app['defaultView'] in ["builder", "coder", "runner"]:
                 startView = self.prefs.app['defaultView']
@@ -550,7 +552,11 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             if arg.endswith(".psyexp"):
                 exps.append(arg)
             if arg.endswith(".py"):
-                scripts.append(arg)
+                if arg.endswith("psychopyApp.py"):
+                    # this is called erroneously when starting standalone app
+                    continue
+                else:
+                    scripts.append(arg)
             if "runner" not in startView and arg.endswith(".psyrun"):
                 runlist.append(arg)
         

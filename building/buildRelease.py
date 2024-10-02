@@ -93,12 +93,6 @@ def buildRelease(versionStr, noCommit=False, interactive=True):
     output = subprocess.check_output(["git", "push", "origin", "%s" % versionStr],
                          cwd=VERSIONS)
     print(output)
-
-    # revert the __init__ file to non-ditribution state
-    print('reverting the main master branch: git checkout HEAD psychopy/__init__.py ')
-    print(subprocess.check_output(
-         ["git", "checkout", "HEAD", "psychopy/__init__.py"],
-         cwd=MAIN))
     return True  # success
 
 

@@ -68,7 +68,6 @@ class EnvironmentManagerDlg(wx.Dialog):
 
         self.notebook.ChangeSelection(0)
 
-
     @staticmethod
     def getPackageVersionInfo(packageName):
         """Query packages for available versions.
@@ -297,7 +296,7 @@ class EnvironmentManagerDlg(wx.Dialog):
         # write installation termination statement
         msg = "Installation complete"
         if 'pipname' in self.pipProcess.extra:
-            msg = f"Finished installing %(pipname)s" % self.pipProcess.extra
+            msg = "Finished installing %(pipname)s" % self.pipProcess.extra
         self.output.writeTerminus(msg)
 
         # if we have a plugin, write additional plugin information post-install
@@ -349,12 +348,12 @@ class EnvironmentManagerDlg(wx.Dialog):
         # refresh view
         pkgtools.refreshPackages()
         self.pluginMgr.updateInfo()
-    
+
     def onUninstallExit(self, pid, exitCode):
         # write installation termination statement
         msg = "Uninstall complete"
         if 'pipname' in self.pipProcess.extra:
-            msg = f"Finished uninstalling %(pipname)s" % self.pipProcess.extra
+            msg = "Finished uninstalling %(pipname)s" % self.pipProcess.extra
         self.output.writeTerminus(msg)
         # clear pip process
         self.pipProcess = None
@@ -373,7 +372,7 @@ class EnvironmentManagerDlg(wx.Dialog):
             # if they change their mind, cancel closing
             if dlg.ShowModal() == wx.ID_NO:
                 return
-        
+
         if evt is not None:
             evt.Skip()
 

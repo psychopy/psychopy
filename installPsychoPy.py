@@ -17,7 +17,9 @@ shortcuts, checking/recommending virtual envs etc.
 import os, sys
 import pathlib
 import subprocess
-import platform
+import os
+import sys
+import requests
 
 _linux_installer = None  # will be apt-get or yum depending on system
 

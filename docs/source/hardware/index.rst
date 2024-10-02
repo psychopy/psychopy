@@ -15,6 +15,7 @@ Before getting started with an EEG study in PsychoPy, we **highly** recommend re
 - :ref:`parallel`
 - :ref:`serial`
 - :ref:`egi`
+- :ref:`brain_products`
 -  `Communicating with Emotiv <https://www.psychopy.org/builder/components/emotiv_record.html>`_ please also see `this video tutorial <https://www.youtube.com/watch?v=rRoqGa4PoN8>`_.
 
 .. note::
