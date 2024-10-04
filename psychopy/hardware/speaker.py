@@ -1,4 +1,5 @@
 from psychopy.hardware import BaseDevice, DeviceManager
+from psychopy.hardware.base import DeviceNotConnectedError
 from psychopy.sound import setDevice, getDevices, backend
 from psychopy.tools import systemtools as st
 from psychopy import logging
@@ -22,6 +23,10 @@ class SpeakerDevice(BaseDevice):
         
         # get all playback devices
         profiles = st.getAudioPlaybackDevices()
+        if not len(profiles):
+            raise DeviceNotConnectedError(
+                "No audio output devices connected."
+            )
 
         # if index is default, get default
         if index in (-1, None):
