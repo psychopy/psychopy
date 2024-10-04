@@ -1,5 +1,5 @@
 from psychopy.hardware import BaseDevice, DeviceManager
-from psychopy.hardware.base import DeviceNotConnectedError
+from psychopy.hardware.exceptions import DeviceNotConnectedError
 from psychopy.sound import setDevice, getDevices, backend
 from psychopy.tools import systemtools as st
 from psychopy import logging

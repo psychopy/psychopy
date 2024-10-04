@@ -7,6 +7,7 @@ from itertools import chain
 from psychopy import logging
 from .manager import DeviceManager, deviceManager
 from .base import BaseDevice, BaseResponse, BaseResponseDevice
+from .exceptions import DeviceNotConnectedError
 
 try:
     from collections.abc import Iterable

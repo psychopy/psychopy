@@ -17,7 +17,8 @@ import serial
 from psychopy.localization import _translate
 from psychopy.tools import systemtools as st
 from psychopy.tools.attributetools import AttributeGetSetMixin
-from .base import BaseDevice, DeviceNotConnectedError
+from .base import BaseDevice
+from psychopy.hardware.exceptions import DeviceNotConnectedError
 
 
 def _findPossiblePorts():
