@@ -1,4 +1,5 @@
 import json
+import traceback
 
 
 class DeviceNotConnectedError(Exception):
@@ -40,6 +41,37 @@ class DeviceNotConnectedError(Exception):
             'device_type': self.deviceClass.__name__,
             'msg': str(self),
             'context': self.context
+        }
+        # stringify if requested
+        if asString:
+            message = json.dumps(message)
+
+        return message
+
+
+class ManagedDeviceError(BaseException):
+    """
+    Exception arising from a managed device, which will include information about the device from
+    DeviceManager.
+    """
+    def __init__(self, msg, deviceName, traceback=None):
+        # create exception
+        BaseException.__init__(self, msg)
+        # store device name
+        self.deviceName = deviceName
+        # store traceback
+        if traceback is not None:
+            self.traceback = traceback
+        else:
+            self.traceback = self.__traceback__
+
+    def getJSON(self, asString=True):
+        tb = traceback.format_exception(type(self), self, self.traceback)
+        message = {
+            'type': "hardware_error",
+            'device': self.deviceName,
+            'msg': "".join(tb),
+            'context': getattr(self, "userdata", None)
         }
         # stringify if requested
         if asString:
