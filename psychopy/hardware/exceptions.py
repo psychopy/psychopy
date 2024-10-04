@@ -2,7 +2,7 @@ import json
 import traceback
 
 
-class DeviceNotConnectedError(Exception):
+class DeviceNotConnectedError(BaseException):
     """
     Raised when a subclass of BaseDevice is initialised but the physical device it represents can't 
     be found.
@@ -18,7 +18,7 @@ class DeviceNotConnectedError(Exception):
     """
     def __init__(self, msg, deviceClass=None, context=None, *args):
         # make exception
-        Exception.__init__(self, msg, *args)
+        BaseException.__init__(self, msg, *args)
         # store device class
         if deviceClass is not None and not isinstance(deviceClass, type):
             deviceClass = type(deviceClass)
@@ -40,6 +40,7 @@ class DeviceNotConnectedError(Exception):
             'type': "device_not_connected_error",
             'device_type': self.deviceClass.__name__,
             'msg': str(self),
+            'traceback': traceback.format_exception(type(self), self, self.__traceback__),
             'context': self.context
         }
         # stringify if requested
@@ -66,11 +67,11 @@ class ManagedDeviceError(BaseException):
             self.traceback = self.__traceback__
 
     def getJSON(self, asString=True):
-        tb = traceback.format_exception(type(self), self, self.traceback)
         message = {
             'type': "hardware_error",
             'device': self.deviceName,
-            'msg': "".join(tb),
+            'msg': str(self),
+            'traceback': traceback.format_exception(type(self), self, self.traceback),
             'context': getattr(self, "userdata", None)
         }
         # stringify if requested
