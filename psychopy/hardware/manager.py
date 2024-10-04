@@ -16,7 +16,6 @@ __all__ = [
 ]
 
 
-from psychopy.hardware.base import DeviceNotConnectedError
 from psychopy.tools import systemtools as st
 from serial.tools import list_ports
 from psychopy import logging
@@ -242,6 +241,8 @@ class DeviceManager:
         BaseDevice
             Device created by the linked class init
         """
+        from psychopy.hardware.base import DeviceNotConnectedError
+        
         # if device class is an already registered alias, get the actual class str
         deviceClass = DeviceManager._resolveAlias(deviceClass)
         # get device class
