@@ -74,6 +74,9 @@ class SettingsComponent:
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'settings.png'
     tooltip = _translate("Edit settings for this experiment")
+    plugin = None
+    version = "0.0.0"
+    beta = False
 
     def __init__(
             self, parentName, exp, expName='', fullScr=True, runMode=0, rush=False,
