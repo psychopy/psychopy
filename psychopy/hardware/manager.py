@@ -16,6 +16,7 @@ __all__ = [
 ]
 
 
+from psychopy.hardware.base import DeviceNotConnectedError
 from psychopy.tools import systemtools as st
 from serial.tools import list_ports
 from psychopy import logging
@@ -248,6 +249,9 @@ class DeviceManager:
         try:
             # initialise device
             device = cls(*args, **kwargs)
+        except DeviceNotConnectedError as err:
+            # raise "not connected" errors as normal
+            raise err
         except Exception as err:
             # if initialization fails, generate a more informative ManagedDeviceError and return it
             raise ManagedDeviceError(

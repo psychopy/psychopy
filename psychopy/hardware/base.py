@@ -82,6 +82,14 @@ class BaseResponse:
         return json.dumps(message)
 
 
+class DeviceNotConnectedError(Exception):
+    """
+    Raised when a subclass of BaseDevice is initialised but the physical device it represents can't 
+    be found.
+    """
+    pass
+
+
 class BaseDevice:
     """
     Base class for device interfaces, includes support for DeviceManager and adding listeners.
