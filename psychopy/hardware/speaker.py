@@ -25,7 +25,7 @@ class SpeakerDevice(BaseDevice):
         profiles = st.getAudioPlaybackDevices()
         if not len(profiles):
             raise DeviceNotConnectedError(
-                "No audio output devices connected."
+                "No audio output devices connected.", deviceClass=SpeakerDevice
             )
 
         # if index is default, get default

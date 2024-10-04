@@ -149,9 +149,10 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             # if there are none, error
             if not len(_devices):
                 raise DeviceNotConnectedError(_translate(
-                    "Could not choose default recording device as no recording "
-                    "devices are connected."
-                ))
+                        "Could not choose default recording device as no recording "
+                        "devices are connected."
+                    ), deviceClass=MicrophoneDevice
+                )
 
             # Try and get the best match which are compatible with the user's
             # specified settings.
@@ -375,7 +376,9 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         elif chosenDevice is None:
             # if no index match found, raise error
             raise DeviceNotConnectedError(
-                f"Could not find any audio recording device with index {index}"
+                f"Could not find any audio recording device with index {index}",
+                deviceClass=MicrophoneDevice,
+                context={'index': index, 'sampleRateHz': sampleRateHz, 'channels': channels}
             )
 
         return chosenDevice

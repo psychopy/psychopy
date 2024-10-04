@@ -318,7 +318,8 @@ class Rift(window.Window):
 
         if not libovr.isHmdConnected():
             raise DeviceNotConnectedError(
-                "Cannot find any connected HMD, check connections and try again."
+                "Cannot find any connected HMD, check connections and try again.",
+                deviceClass=Rift
             )
 
         # create a VR session, do some initial configuration
