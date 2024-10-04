@@ -4,7 +4,7 @@ import time
 import numpy as np
 from psychtoolbox import audio as audio
 from psychopy import logging as logging, prefs
-from psychopy.hardware.base import DeviceNotConnectedError
+from psychopy.hardware.exceptions import DeviceNotConnectedError
 from psychopy.localization import _translate
 from psychopy.constants import NOT_STARTED
 from psychopy.hardware import BaseDevice, BaseResponse, BaseResponseDevice

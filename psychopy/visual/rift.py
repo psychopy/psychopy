@@ -42,7 +42,7 @@ import ctypes
 import numpy as np
 import pyglet.gl as GL
 from psychopy.visual import window
-from psychopy.hardware.base import DeviceNotConnectedError
+from psychopy.hardware.exceptions import DeviceNotConnectedError
 from psychopy import platform_specific, logging, core
 from psychopy.tools.attributetools import setAttribute
 
