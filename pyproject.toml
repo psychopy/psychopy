@@ -63,7 +63,7 @@ dependencies = [
     "future",  # only to support legacy versions in useVersion
     # supporting plugins
     "pypi-search>=1.2.1",
-    "setuptools<=66.1.1",
+    "setuptools==70.3.0",  # py2app issues https://github.com/ronaldoussoren/py2app/issues/531
     # pavlovia connections
     "python-gitlab",
     "gitpython",
