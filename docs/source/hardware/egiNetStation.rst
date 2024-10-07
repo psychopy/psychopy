@@ -5,7 +5,7 @@ Sending triggers via EGI NetStation
 
 Communicating via EGI NetStation is very similar to communicating via a serial port, in that you'll need to add some code components into your experiment. 
 
-The egi-pynetstation package allows communication using an NTP protocol. It is important to first verify your hardware setup. The code is compatible with EGI (also known as Philips EGI and most recently MagStimEGI) amplifiers 300 and 400 series. 
+The egi-pynetstation package allows communication using an NTP protocol. It is important to first verify your hardware setup. The code is compatible with EGI (also known as Philips EGI and most recently MagStim-EGI) amplifiers 300 and 400 series. 
 While 400 series amplifiers serve as their own NTP server so are able to work with newer macOS versions (10.14.x as of April 2023).  If you are using a 300-series amplifier you must be using macOS 10.12. 
 This is because EGI has configured its own NTP server for use with 300-series amps; users who wish to alter this configuration with a 300-series amp should continue to use PsychoPy2's EGI package or
 investigate ports of the old package to Python3.
@@ -24,7 +24,7 @@ Users of 400 series amplifiers may input the IP of your amplifier (usually 10.10
 
 Notice that this page gives information about your amplifier address (10.10.10.51) and the Net Station computer (10.10.10.42).
 
-Step two: Install EGI NetStation Python Library
+Step two: Install EGI NetStation Python Library on older versions of PsychoPy
 -------------------------------------------------------------
 
 If you're using PsychoPy version 2022.1.3 or older, you'll need to install the EGI NetStation library using the Command Prompt in Windows. You will only need to do this once.
@@ -40,7 +40,18 @@ If you're using PsychoPy version 2022.1.3 or older, you'll need to install the E
 
 You're now ready to go!
 
-Step three: Add code components into your Builder experiment
+Step three: Verify / Update the egi-pynetstation package to 1.0.1
+-------------------------------------------------------------
+
+If you are using Psychopy versions from 2023 or later, please verify that you are using version 1.0.1 of the package the PsychoPy package manager update the package.
+
+* From the menu system, select Tools, Plugin/Package manager
+* Select the "Packages" tab
+* Search for "egi_pynetstation"
+* Verify the installed version is 1.0.1
+* If necessary, click the "Install" button
+
+Step four: Add code components into your Builder experiment
 -------------------------------------------------------------
 To communicate with your NetStation EEG hardware, you'll need to add in some Python code components to your experiment.
 
@@ -76,6 +87,7 @@ To communicate with your NetStation EEG hardware, you'll need to add in some Pyt
 * Now, copy and paste the following code component to your trials routine in the `Begin Routine` tab, this just (re)sets a value at the start of the routine to indicate that no trigger has yet been sent::
 
     triggerSent = False
+    eci_client.resync()
 
 * Now, in the `Each Frame` tab of that same code component, add the following code to send a trigger OF NO MORE THAN FOUR CHARACTERS when your stimulus is presented. The :code:`.status` attribute here is checking whether the our stimulus has started, and if it has, PsychoPy sends the trigger to EGI NetStation. Note that most components in PsychoPy have the :code:`.status` attribute, so you could easily adapt this code to, for example, send a trigger when a response key is pressed::
 
@@ -94,18 +106,29 @@ To communicate with your NetStation EEG hardware, you'll need to add in some Pyt
     eci_client.disconnect()
 
 
-Step four: Test your triggers
+Step five: Test your triggers
 -------------------------------------------------------------
 
 * To check that everything works, we recommend that you set up a very basic experiment that looks similar to this:
 
 .. figure:: /images/serialExp.png
 
-
-
 * Turn on your EEG recording device and start recording as you would in your actual experiment, and just check that you see triggers coming through.
 * It's a good idea at this point to also check the timing of your stimulus presentation and your triggers using, for example, a photodiode for visual stimuli.
 * Doing these checks with a very basic experiment just means that you don't accidentally change something on your real experiment file that you don't want to, and also means you don't have to disable components or sit through lots of instructions etc!
+
+See Built-in Example: Stroop Task
+-------------------------------------------------------------
+
+There is a complete experiment built into PsychoPy demonstrating EEG triggers to the EGI amplifier. 
+
+.. figure:: /images/egi-netstationDemo.png
+
+To access the demo:
+* Select "Demos" menu
+* If not previously done, select "Unpack Demos"
+* Select the "Demos" menu again, click "Hardware", select "EGI_netstation"
+* This built-in demo should run and send appropriate triggers to the EGI amplifier/computer
 
 
 If there is a problem - We want to know!
