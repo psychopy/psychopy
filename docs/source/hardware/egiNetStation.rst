@@ -117,6 +117,7 @@ Step five: Test your triggers
 * It's a good idea at this point to also check the timing of your stimulus presentation and your triggers using, for example, a photodiode for visual stimuli.
 * Doing these checks with a very basic experiment just means that you don't accidentally change something on your real experiment file that you don't want to, and also means you don't have to disable components or sit through lots of instructions etc!
 
+
 See Built-in Example: Stroop Task
 -------------------------------------------------------------
 
