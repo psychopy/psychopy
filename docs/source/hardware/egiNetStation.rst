@@ -126,6 +126,7 @@ There is a complete experiment built into PsychoPy demonstrating EEG triggers to
 .. figure:: /images/egi-netstationDemo.png
 
 To access the demo:
+
 * Select "Demos" menu
 * If not previously done, select "Unpack Demos"
 * Select the "Demos" menu again, click "Hardware", select "EGI_netstation"
