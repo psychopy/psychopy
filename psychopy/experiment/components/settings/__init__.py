@@ -1873,11 +1873,11 @@ class SettingsComponent:
             "    # if not given a window to setup, make one\n"
             "    win = visual.Window(\n"
             "        size=_winSize, fullscr=_fullScr, screen=%(screenNumber)s,\n"
-            "        winType=%(winType)s, allowStencil=%(allowStencil)s,\n"
+            "        winType=%(winType)s, allowGUI=%(allowGUI)s, allowStencil=%(allowStencil)s,\n"
             "        monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s,\n"
             "        backgroundImage=%(backgroundImg)s, backgroundFit=%(backgroundFit)s,\n"
             "        blendMode=%(blendMode)s, useFBO=%(useFBO)s,\n"
-            "        units=%(Units)s, \n"
+            "        units=%(Units)s,\n"
             "        checkTiming=False  # we're going to do this ourselves in a moment\n"
             "    )\n"
             "else:\n"
@@ -1905,12 +1905,6 @@ class SettingsComponent:
             "    expInfo['frameRate'] = %(frameRate)s\n"
             )
             buff.writeIndentedLines(code % params)
-
-        # Show/hide mouse according to param
-        code = (
-            "win.mouseVisible = %s\n"
-        )
-        buff.writeIndentedLines(code % allowGUI)
 
         # Reset splash message
         code = (
@@ -2189,12 +2183,17 @@ class SettingsComponent:
         buff.writeIndentedLines(code)
 
         # Write End Experiment code component
-        for thisRoutine in list(self.exp.routines.values()):
-            # a single routine is a list of components:
-            for thisComp in thisRoutine:
-                if hasattr(thisComp, "writeExperimentEndCodeJS"):
-                    thisComp.writeExperimentEndCodeJS(buff)
-
+        for thisRoutine in self.exp.flow:
+            # write for regular Routines
+            if isinstance(thisRoutine, Routine):
+                for thisComp in thisRoutine:
+                    if hasattr(thisComp, "writeExperimentEndCodeJS"):
+                        thisComp.writeExperimentEndCodeJS(buff)
+            # write for standalone Routines
+            if isinstance(thisRoutine, BaseStandaloneRoutine):
+                if hasattr(thisRoutine, "writeExperimentEndCodeJS"):
+                        thisRoutine.writeExperimentEndCodeJS(buff)
+        
         code = ("psychoJS.window.close();\n"
                 "psychoJS.quit({message: message, isCompleted: isCompleted});\n\n"
                 "return Scheduler.Event.QUIT;\n")

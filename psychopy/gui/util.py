@@ -9,19 +9,9 @@ def makeDisplayParams(expInfo, sortKeys=True, labels=None, tooltips=None, fixed=
         labels = {}
     if tooltips is None:
         tooltips = {}
-    # convert fixed list to pipe syntax
-    if fixed is not None:
-        if isinstance(fixed, str):
-            fixed = [fixed]
-        for key in fixed:
-            if key in expInfo:
-                expInfo[f"{key}|fix"] = expInfo.pop(key)
-    # convert order list to pipe syntax
-    if order is not None:
-        for key in order:
-            i = order.index(key)
-            if key in expInfo:
-                expInfo[f"{key}|{i}"] = expInfo.pop(key)
+    # make sure fixed is a list
+    if isinstance(fixed, str):
+        fixed = [fixed]    
     # get keys as a list
     keys = list(expInfo)
     # sort alphabetically if requested
@@ -43,11 +33,17 @@ def makeDisplayParams(expInfo, sortKeys=True, labels=None, tooltips=None, fixed=
         tip = ""
         if key in tooltips:
             tip = tooltips[key]
-        # work out index
+        # work out index from flags
         i = None
         for flag in flags:
             if flag.isnumeric():
                 i = int(flag)
+        # if given, manually set order should override flags
+        if order is not None and key in order:
+            i = order.index(key)
+        # work out fixed
+        if "fix" not in flags and fixed is not None and key in fixed:
+            flags.append("fix")
         # construct display param
         param = {
             'key': key,
