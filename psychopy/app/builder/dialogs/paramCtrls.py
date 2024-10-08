@@ -982,7 +982,7 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
         _wld = f"All Table Files({'*'+';*'.join(self.validExt)})|{'*'+';*'.join(self.validExt)}|All Files (*.*)|*.*"
         file = self.getFile(msg="Specify table file ...", wildcard=_wld)
         if file:
-            self.SetValue(file)
+            FileCtrl.setFile(self, file)
             self.validate(event)
 
 
