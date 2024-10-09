@@ -91,6 +91,7 @@ dependencies = [
     "distro; platform_system == \"Linux\"",
     'tables!=3.9.2',  # 3.9.2 crashes on Rosetta
     "packaging>=24.0",
+    "moviepy",
 ]
 
 [project.optional-dependencies]  # This is optional dependencies
@@ -114,14 +115,13 @@ suggested = [
     "h5py",  # to read hdf5 files for analysis
     "tobii_research",
     "badapted>=0.0.3",
-    "egi-pynetstation>=0.0.0rc1",
+    "egi-pynetstation>=1.0.0",
     "pyxid2>=1.0.5",
     "Phidget22",
 ]
 legacy = [
     "pyo>=1.0.3",
     "pyglfw",
-    "moviepy",
     "pygame",
 ]
 
