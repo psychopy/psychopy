@@ -410,6 +410,8 @@ class MicrophoneComponent(BaseDeviceComponent):
             "# tell the experiment handler to save this Microphone's clips if the experiment is "
             "force ended\n"
             "runAtExit.append(%(name)s.saveClips)\n"
+            "# connect camera save method to experiment handler so it's called when data saves\n"
+            "thisExp.connectSaveMethod(%(name)s.saveClips)\n"
         )
         buff.writeIndentedLines(code % inits)
 
