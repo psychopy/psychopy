@@ -121,10 +121,17 @@ def refreshPackages():
     # iterate through installed packages in the user folder
     for dist in importlib.metadata.distributions(path=sys.path + [USER_PACKAGES_PATH]):
         # get name if in 3.8
-        if sys.version.startswith("3.8"):
-            distName = dist.metadata['name']
+
+        if sys.version_info.major == 3:
+            if sys.version_info.minor <= 9:
+                distName = dist.metadata['name']
+            else:
+                distName = dist.name
         else:
-            distName = dist.name
+            raise VersionError(
+                "PsychoPy only supports Python 3.8 and above. "
+                "Please upgrade your Python installation.")
+
         # mark as installed
         _installedPackageCache.append(
             (distName, dist.version)
