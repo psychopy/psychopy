@@ -953,9 +953,10 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
 
         """
         if self.isStarted:
-            raise AudioStreamError(
-                "Cannot get audio clip, recording was in progress. Be sure to "
-                "call `Microphone.stop` first.")
+            logging.warn(
+                "Cannot get audio clip while recording is in progress, so stopping recording now."
+            )
+            self.stop()
 
         return self._recording.getSegment()  # full recording
 
