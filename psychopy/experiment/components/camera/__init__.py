@@ -474,6 +474,8 @@ class CameraComponent(BaseDeviceComponent):
         code = (
             "# get camera object\n"
             "%(name)s = deviceManager.getDevice(%(deviceLabel)s)\n"
+            "# connect camera save method to experiment handler so it's called when data saves\n"
+            "thisExp.connectSaveMethod(%(name)s.save)\n"
         )
         buff.writeIndentedLines(code % inits)
 

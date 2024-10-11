@@ -110,6 +110,8 @@ class ExperimentHandler(_ComparisonMixin):
         self.status = constants.NOT_STARTED
         # dict of filenames to collision method to be used next time it's saved
         self._nextSaveCollision = {}
+        # list of call profiles for connected save methods
+        self.connectedSaveMethods = []
 
         if dataFileName in ['', None]:
             logging.warning('ExperimentHandler created with no dataFileName'
@@ -633,6 +635,29 @@ class ExperimentHandler(_ComparisonMixin):
         # queue collision
         self._nextSaveCollision[fileName] = fileCollisionMethod
     
+    def connectSaveMethod(self, fcn, *args, **kwargs):
+        """
+        Tell this experiment handler to call the given function with the given arguments and 
+        keyword arguments whenever it saves its own data.
+
+        Parameters
+        ----------
+        fcn : function
+            Function to call
+        *args
+            Positional arguments to be given to the function when it's called
+        **kwargs
+            Keyword arguments to be given to the function when it's called
+        """
+        # create a call profile for the given function
+        profile = {
+            'fcn': fcn,
+            'args': args,
+            'kwargs': kwargs
+        }
+        # connect it
+        self.connectedSaveMethods.append(profile)
+    
     def save(self):
         """
         Work out from own settings how to save, then use the appropriate method (saveAsWideText, 
@@ -651,6 +676,9 @@ class ExperimentHandler(_ComparisonMixin):
             logging.warn(
                 "ExperimentHandler.save was called on an ExperimentHandler with no dataFileName set."
             )
+        # call connected save functions
+        for profile in self.connectedSaveMethods:
+            profile['fcn'](*profile['args'], **profile['kwargs'])
         
         return savedName
 
