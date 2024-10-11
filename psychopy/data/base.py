@@ -540,7 +540,7 @@ class DataHandler(_ComparisonMixin, dict):
         # check whether data falls within bounds
         posArr = np.asarray(position)
         shapeArr = np.asarray(self.dataShape)
-        if not np.alltrue(posArr < shapeArr):
+        if not np.all(posArr < shapeArr):
             # array isn't big enough
             logging.warning('need a bigger array for: ' + thisType)
             # not implemented yet!
