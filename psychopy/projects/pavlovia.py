@@ -1217,7 +1217,7 @@ class PavloviaProject(dict):
             config.set_value("user", "name", self.session.user['name'])
         if config.get_value("pull", "rebase", default=-100) == -100:
             config.set_value("pull", "rebase", False)
-        if config.get_value("pull", "rebase", default=-100) == -100:
+        if config.get_value("http", "postBuffer", default=-100) == -100:
             config.set_value("http", "postBuffer", 524288000)
         config.release()  # saves the changes (not needed if using `with config_writer() as config`)
 
