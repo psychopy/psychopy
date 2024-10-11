@@ -1211,7 +1211,8 @@ class PavloviaProject(dict):
         # set the local config
         config = self.repo.config_writer()
         # set config values if the user hasn't set them already
-        # the -100 hack is because ConfigParser.get_value allows setting 
+        # the -100 hack is because ConfigParser.get_value allows setting a default
+        # but doing try...except on its custom errors is annoying!
         if config.get_value("user", "email", default=-100) == -100:
             config.set_value("user", "email", self.session.user['email'])
             config.set_value("user", "name", self.session.user['name'])
