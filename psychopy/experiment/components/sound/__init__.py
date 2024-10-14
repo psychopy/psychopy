@@ -21,29 +21,36 @@ class SoundComponent(BaseDeviceComponent):
     iconFile = Path(__file__).parent / 'sound.png'
     tooltip = _translate('Sound: play recorded files or generated sounds', )
     deviceClasses = ["psychopy.hardware.speaker.SpeakerDevice"]
+    validatorClasses = ["AudioValidatorRoutine"]
 
-    def __init__(self,
-                 exp, parentName,
-                 # basic
-                 name='sound_1',
-                 sound='A',
-                 startType='time (s)', startVal='0.0',
-                 stopType='duration (s)', stopVal='1.0',
-                 startEstim='', durationEstim='',
-                 syncScreenRefresh=True,
-                 # device
-                 deviceLabel="",
-                 speakerIndex=-1,
-                 # playback
-                 volume=1,
-                 stopWithRoutine=True,
-                 forceEndRoutine=False):
+    def __init__(
+            self,
+            exp, parentName,
+            # basic
+            name='sound_1',
+            sound='A',
+            startType='time (s)', startVal='0.0',
+            stopType='duration (s)', stopVal='1.0',
+            startEstim='', durationEstim='',
+            syncScreenRefresh=True,
+            # device
+            deviceLabel="",
+            speakerIndex=-1,
+            # playback
+            volume=1,
+            stopWithRoutine=True,
+            forceEndRoutine=False,
+            # testing
+            validator="",
+            disabled=False,
+        ):
         super(SoundComponent, self).__init__(
             exp, parentName, name,
             startType=startType, startVal=startVal,
             stopType=stopType, stopVal=stopVal,
             startEstim=startEstim, durationEstim=durationEstim,
-            deviceLabel=deviceLabel
+            deviceLabel=deviceLabel,
+            disabled=disabled
         )
         self.type = 'Sound'
         self.url = "https://www.psychopy.org/builder/components/sound.html"
@@ -136,6 +143,17 @@ class SoundComponent(BaseDeviceComponent):
                 "What speaker to play this sound on"
             ),
             label=_translate("Speaker"))
+
+        # --- Testing ---
+        self.params['validator'] = Param(
+            validator, valType="code", inputType="choice", categ="Testing",
+            allowedVals=self.getAllValidatorRoutineVals,
+            allowedLabels=self.getAllValidatorRoutineLabels,
+            label=_translate("Validate with..."),
+            hint=_translate(
+                "Name of validator Component/Routine to use to check the timing of this stimulus."
+            )
+        )
 
     def writeDeviceCode(self, buff):
         inits = getInitVals(self.params)
