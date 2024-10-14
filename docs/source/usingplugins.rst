@@ -111,7 +111,7 @@ From Builder, all plugins are loaded by the compiled Python code when you run an
 experiment - you don't need to do anything!
 
 From Coder, an individual plugin can be loaded by calling the 
-``psychopy.plugins.loadPlugin()``function, or you can call 
+``psychopy.plugins.loadPlugin()`` function, or you can call 
 ``psychopy.plugins.activatePlugins()`` to load all installed plugins at once. 
 The name of the plugin to load is provided as a string, which should reflect 
 the project name of the package. Note that a plugin can override the effects of 
