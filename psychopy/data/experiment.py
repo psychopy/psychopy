@@ -852,22 +852,21 @@ class ExperimentHandler(_ComparisonMixin):
         savePickle = self.savePickle
         saveWideText = self.saveWideText
 
+        # append extension
+        if not fileName.endswith('.psydat'):
+            fileName += '.psydat'
+
         # check for queued collision methods if using default, fallback to rename
-        if fileCollisionMethod is None:
-            if fileCollisionMethod is None and fileName in self._nextSaveCollision:
-                fileCollisionMethod = self._nextSaveCollision.pop(fileName)
-            elif fileCollisionMethod is None:
-                fileCollisionMethod = "rename"
+        if fileCollisionMethod is None and fileName in self._nextSaveCollision:
+            fileCollisionMethod = self._nextSaveCollision.pop(fileName)
+        elif fileCollisionMethod is None:
+            fileCollisionMethod = "rename"
 
         self.savePickle = False
         self.saveWideText = False
 
         origEntries = self.entries
         self.entries = self.getAllEntries()
-
-        # otherwise use default location
-        if not fileName.endswith('.psydat'):
-            fileName += '.psydat'
 
         with openOutputFile(fileName=fileName, append=False,
                            fileCollisionMethod=fileCollisionMethod) as f:
