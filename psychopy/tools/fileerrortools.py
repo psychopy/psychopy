@@ -33,13 +33,26 @@ def handleFileCollision(fileName, fileCollisionMethod):
         raise IOError(msg % fileName)
     elif fileCollisionMethod == 'rename':
         rootName, extension = os.path.splitext(fileName)
-        matchingFiles = glob.glob("%s*%s" % (rootName, extension))
+        
+        # make extension iterable
+        if extension:
+            allowedExt = [extension]
+        else:
+            allowedExt = [
+                os.path.splitext(match)[1] for match in 
+                glob.glob("%s*" % rootName)
+            ]
+        # get extension (from options) with most files
+        nFiles = 0
+        for ext in allowedExt:
+            matchingFiles = glob.glob("%s*%s" % (rootName, ext))
+            nFiles = max(nFiles, len(matchingFiles))
 
         # Build the renamed string.
-        if not matchingFiles:
+        if not nFiles:
             fileName = "%s%s" % (rootName, extension)
         else:
-            fileName = "%s_%d%s" % (rootName, len(matchingFiles), extension)
+            fileName = "%s_%d%s" % (rootName, nFiles, extension)
 
         # Check to make sure the new fileName hasn't been taken too.
         if os.path.exists(fileName):
