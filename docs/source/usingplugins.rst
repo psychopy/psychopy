@@ -107,19 +107,30 @@ but substituting `psychopy-plugin` for the file name::
 How do I use a plugin?
 ----------------------
 
-A plugin can be loaded by calling the ``psychopy.plugins.loadPlugin()``
-function. The name of the plugin to load is provided as a string, which should
-reflect the project name of the package. Note that a plugin can override the
-effects of other plugins loaded before it. Once a plugin is loaded, it cannot be
-unloaded until the Python session is restarted.
+From Builder, all plugins are loaded by the compiled Python code when you run an 
+experiment - you don't need to do anything!
+
+From Coder, an individual plugin can be loaded by calling the 
+``psychopy.plugins.loadPlugin()`` function, or you can call 
+``psychopy.plugins.activatePlugins()`` to load all installed plugins at once. 
+The name of the plugin to load is provided as a string, which should reflect 
+the project name of the package. Note that a plugin can override the effects of 
+other plugins loaded before it. Once a plugin is loaded, it cannot be unloaded 
+until the Python session is restarted.
 
 Calling ``loadPlugin()`` should preferably happen *after* importing `psychopy`
 and all other ``import`` statements for |PsychoPy| modules. An example of loading
 a plugin called `psychopy-plugin` looks like this::
 
     import psychopy
-    import psychopy.plugins as plugins
+    from psychopy import plugins
     plugins.loadPlugin('psychopy-plugin')
+
+Or, to load all at once::
+
+    import psychopy
+    from psychopy import plugins
+    plugins.activatePlugins()
 
 Some plugins may accept arguments for setup prior to attaching objects to
 |PsychoPy|. You can pass positional and keyword arguments to ``loadPlugin()`` if
@@ -135,16 +146,6 @@ by calling::
     from psychopy.preferences import prefs
     prefs.general['startUpPlugins'].append('plugin-name')
     prefs.saveUserPrefs()
-
-Or by adding the name to "File" > "Preferences" > "General" > "startUpPlugins"
-in Builder or Coder. After restarting a |PsychoPy| session, the specified plugins
-will be loaded automatically, and the user does not need to call
-``loadPlugin()`` to enable them.
-
-.. note::
-
-    Plugins which contain Builder components need to be loaded on startup for
-    the components to appear in Builder.
 
 How do I find installed plugins?
 --------------------------------
