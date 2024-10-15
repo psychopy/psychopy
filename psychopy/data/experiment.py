@@ -11,7 +11,7 @@ from psychopy import constants, clock
 from psychopy import logging
 from psychopy.data.trial import TrialHandler2
 from psychopy.tools.filetools import (openOutputFile, genDelimiter,
-                                      genFilenameFromDelimiter)
+                                      genFilenameFromDelimiter, handleFileCollision)
 from psychopy.localization import _translate
 from .utils import checkValidFilePath
 from .base import _ComparisonMixin
@@ -95,7 +95,7 @@ class ExperimentHandler(_ComparisonMixin):
         self.originPath = originPath
         self.savePickle = savePickle
         self.saveWideText = saveWideText
-        self.dataFileName = dataFileName
+        self.dataFileName = handleFileCollision(dataFileName, "rename")
         self.sortColumns = sortColumns
         self.thisEntry = {}
         self.entries = []  # chronological list of entries
