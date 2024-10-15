@@ -346,7 +346,7 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
         if type(value) != numpy.ndarray and value in (None, "None", "none"):
             self.isLumImage = True
         else:
-            self.isLumImage = self._createTexture(
+            self.isLumImage, self._img_data = self._createTexture(
                 value, id=self._texID,
                 stim=self,
                 pixFormat=GL.GL_RGB,
@@ -372,6 +372,9 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
         but use this method if you need to suppress the log message.
         """
         setAttribute(self, 'image', value, log)
+
+    def getImageData(self):
+        return self._img_data
 
     @property
     def aspectRatio(self):
