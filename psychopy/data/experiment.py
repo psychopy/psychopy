@@ -632,8 +632,12 @@ class ExperimentHandler(_ComparisonMixin):
         # handle default
         if fileName is None:
             fileName = self.dataFileName
+        # make filename iterable
+        if not isinstance(fileName, (list, tuple)):
+            fileName = [fileName]
         # queue collision
-        self._nextSaveCollision[fileName] = fileCollisionMethod
+        for thisFileName in fileName:
+            self._nextSaveCollision[thisFileName] = fileCollisionMethod
     
     def connectSaveMethod(self, fcn, *args, **kwargs):
         """
@@ -663,15 +667,19 @@ class ExperimentHandler(_ComparisonMixin):
         Work out from own settings how to save, then use the appropriate method (saveAsWideText, 
         saveAsPickle, etc.)
         """
-        savedName = None
+        savedNames = []
         if self.dataFileName not in ['', None]:
             if self.autoLog:
                 msg = 'Saving data for %s ExperimentHandler' % self.name
                 logging.debug(msg)
             if self.savePickle:
-                savedName = self.saveAsPickle(self.dataFileName)
+                savedNames.append(
+                    self.saveAsPickle(self.dataFileName)
+                )
             if self.saveWideText:
-                savedName = self.saveAsWideText(self.dataFileName + '.csv')
+                savedNames.append(
+                    self.saveAsWideText(self.dataFileName + '.csv')
+                )
         else:
             logging.warn(
                 "ExperimentHandler.save was called on an ExperimentHandler with no dataFileName set."
@@ -680,7 +688,7 @@ class ExperimentHandler(_ComparisonMixin):
         for profile in self.connectedSaveMethods:
             profile['fcn'](*profile['args'], **profile['kwargs'])
         
-        return savedName
+        return savedNames
 
     def saveAsWideText(self,
                        fileName,
