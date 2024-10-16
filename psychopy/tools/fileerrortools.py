@@ -9,6 +9,7 @@
 """
 import os
 import glob
+from pathlib import Path
 
 from psychopy import logging
 
@@ -32,28 +33,25 @@ def handleFileCollision(fileName, fileCollisionMethod):
                "fileCollisionMethod to overwrite.")
         raise IOError(msg % fileName)
     elif fileCollisionMethod == 'rename':
-        rootName, extension = os.path.splitext(fileName)
-        
-        # make extension iterable
-        if extension:
-            allowedExt = [extension]
-        else:
-            allowedExt = []
-            for match in glob.glob("%s*" % rootName):
-                ext = os.path.splitext(match)[1]
-                if ext and ext not in allowedExt:
-                    allowedExt.append(ext)
-        # get extension (from options) with most files
-        nFiles = 0
-        for ext in allowedExt:
-            matchingFiles = glob.glob("%s*%s" % (rootName, ext))
-            nFiles = max(nFiles, len(matchingFiles))
-
-        # Build the renamed string.
-        if not nFiles:
-            fileName = "%s%s" % (rootName, extension)
-        else:
-            fileName = "%s_%d%s" % (rootName, nFiles, extension)
+        # convert to a Path object
+        fileObj = Path(fileName)
+        # use a glob star if we don't have an ext
+        if not fileObj.suffix:
+            fileObj = fileObj.with_suffix(".*")
+        # get original file name
+        rootName = fileObj.stem
+        # get total number of sibling files to use as maximum for iteration
+        nSiblings = len(list(fileObj.parent.glob("*")))
+        # iteratively add numbers to the end until filename isn't taken
+        i = 0
+        while list(fileObj.parent.glob(fileObj.name)) and i < nSiblings:
+            i += 1
+            fileObj = fileObj.with_stem(f"{rootName}_{i}")
+        # remove glob star from suffix if needed
+        if fileObj.suffix == ".*":
+            fileObj = fileObj.with_suffix("")
+        # convert back to a string
+        fileName = str(fileObj)
 
         # Check to make sure the new fileName hasn't been taken too.
         if os.path.exists(fileName):
