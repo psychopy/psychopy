@@ -241,7 +241,7 @@ def wrap(value, chars, delim=r"\s|\-"):
     chars : int
         Number of characters to split at
     delim : str
-        Regex string delimeter to split words at, default is a space or a hyphen (r"\s|\-")
+        Regex string delimeter to split words at, default is a space or a hyphen (r"\\s|\-")
 
     Returns
     -------
