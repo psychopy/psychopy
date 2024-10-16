@@ -37,7 +37,7 @@ def handleFileCollision(fileName, fileCollisionMethod):
         fileObj = Path(fileName)
         # use a glob star if we don't have an ext
         if not fileObj.suffix:
-            fileObj = fileObj.with_suffix(".*")
+            fileObj = fileObj.parent / (fileObj.stem + ".*")
         # get original file name
         rootName = fileObj.stem
         # get total number of sibling files to use as maximum for iteration
@@ -46,10 +46,10 @@ def handleFileCollision(fileName, fileCollisionMethod):
         i = 0
         while list(fileObj.parent.glob(fileObj.name)) and i < nSiblings:
             i += 1
-            fileObj = fileObj.with_stem(f"{rootName}_{i}")
+            fileObj = fileObj.parent / (f"{rootName}_{i}" + fileObj.suffix)
         # remove glob star from suffix if needed
         if fileObj.suffix == ".*":
-            fileObj = fileObj.with_suffix("")
+            fileObj = fileObj.parent / fileObj.stem
         # convert back to a string
         fileName = str(fileObj)
 
