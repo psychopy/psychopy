@@ -196,8 +196,8 @@ class StaticComponent(BaseComponent):
             if self.params['saveData']:
                 code = (
                     "# take the opportunity to save data file now (to be updated later)\n"
-                    "_%(name)sLastFileName = thisExp.save()\n"
-                    "thisExp.queueNextCollision('overwrite', fileName=_%(name)sLastFileName)\n"
+                    "_%(name)sLastFileNames = thisExp.save()\n"
+                    "thisExp.queueNextCollision('overwrite', fileName=_%(name)sLastFileNames)\n"
                 )
                 buff.writeIndentedLines(code % self.params)
             # start static
