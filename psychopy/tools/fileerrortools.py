@@ -38,10 +38,11 @@ def handleFileCollision(fileName, fileCollisionMethod):
         if extension:
             allowedExt = [extension]
         else:
-            allowedExt = [
-                os.path.splitext(match)[1] for match in 
-                glob.glob("%s*" % rootName)
-            ]
+            allowedExt = []
+            for match in glob.glob("%s*" % rootName):
+                ext = os.path.splitext(match)[1]
+                if ext and ext not in allowedExt:
+                    allowedExt.append(ext)
         # get extension (from options) with most files
         nFiles = 0
         for ext in allowedExt:
