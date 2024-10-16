@@ -173,7 +173,7 @@ class Param():
             Mostly used by the test suite to check that params which should be used are used.
         canBePath : bool
             Is it possible for this parameter to be a path? Setting to False will disable
-            filepath sanitization (e.g. for textbox you may not want to replace \ with /)
+            filepath sanitization (e.g. for textbox you may not want to replace \\ with /)
         ctrlParams : dict
             Extra information to pass to the control, such as the Excel template file to use in a
             `table` control.
