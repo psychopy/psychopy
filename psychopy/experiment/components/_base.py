@@ -38,6 +38,8 @@ class BaseComponent:
     version = "0.0.0"
     # is it still in beta?
     beta = False
+    # what classes can validate this Component? Specify by name
+    validatorClasses = []
 
     def __init__(self, exp, parentName, name='',
                  startType='time (s)', startVal='',
@@ -1121,14 +1123,12 @@ class BaseComponent:
         list[str]
             List of Routine names/labels
         """
-        from psychopy.experiment.routines import BaseValidatorRoutine
-
         # iterate through all Routines in this Experiment
         names = [""]
         labels = [_translate("Do not validate")]
         for rtName, rt in self.exp.routines.items():
-            # if Routine is a validator, include it
-            if isinstance(rt, BaseValidatorRoutine):
+            # if Routine is the relevant validator type, include it
+            if type(rt).__name__ in self.validatorClasses:
                 # add name
                 names.append(rtName)
                 # construct label
@@ -1421,6 +1421,7 @@ class BaseVisualComponent(BaseComponent):
     targets = []
     iconFile = Path(__file__).parent / "unknown" / "unknown.png"
     tooltip = ""
+    validatorClasses = ["PhotodiodeValidatorRoutine"]
 
     def __init__(self, exp, parentName, name='',
                  units='from exp settings', color='white', fillColor="", borderColor="",

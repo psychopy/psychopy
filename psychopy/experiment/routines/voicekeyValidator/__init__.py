@@ -9,30 +9,29 @@ from psychopy.experiment.routines import Routine, BaseValidatorRoutine
 from psychopy.localization import _translate
 
 
-class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
+class AudioValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
     """
-    Use a photodiode to confirm that visual stimuli are presented when they should be.
+    Use a voicekey or microphone to confirm that audio stimuli are presented when they should be.
     """
     targets = ['PsychoPy']
 
     categories = ['Validation']
-    iconFile = Path(__file__).parent / 'photodiode_validator.png'
+    iconFile = Path(__file__).parent / 'audio_validator.png'
     tooltip = _translate(
-        "Use a photodiode to confirm that visual stimuli are presented when they should be."
+        "Use a voicekey or microphone to confirm that audio stimuli are presented when they should "
+        "be."
     )
-    deviceClasses = []
+    deviceClasses = ["psychopy.validation.voicekey.VoiceKeyValidator"]
     version = "2025.1.0"
 
     def __init__(
             self,
             # basic
-            exp, name='visualVal',
+            exp, name='audioVal',
             variability="1/60", report="log",
             findThreshold=True, threshold=127,
-            # layout
-            findDiode=True, diodePos="(1, 1)", diodeSize="(0.1, 0.1)", diodeUnits="norm",
             # device
-            deviceLabel="", deviceBackend="screenbuffer", port="", channel="0",
+            deviceLabel="", deviceBackend="microphone", channel="0",
             # data
             saveValid=True,
     ):
@@ -40,14 +39,13 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
         self.exp = exp  # so we can access the experiment if necess
         self.params = {}
         self.depends = []
-        super(PhotodiodeValidatorRoutine, self).__init__(exp, name=name)
+        super(AudioValidatorRoutine, self).__init__(exp, name=name)
         self.order += []
         self.type = 'PhotodiodeValidator'
 
         exp.requireImport(
-            importName="photodiode",
-            importFrom="psychopy.hardware",
-            importAs="phd"
+            importName="validation",
+            importFrom="psychopy"
         )
 
         # --- Basic ---
@@ -56,10 +54,6 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             "report",
             "findThreshold",
             "threshold",
-            "findDiode",
-            "diodePos",
-            "diodeSize",
-            "diodeUnits",
         ]
 
         self.params['variability'] = Param(
@@ -100,46 +94,6 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             "true": "hide",  # should...
             "false": "show",  # otherwise...
         })
-        self.params['findDiode'] = Param(
-            findDiode, valType="code", inputType="bool", categ="Basic",
-            label=_translate("Find diode?"),
-            hint=_translate(
-                "Run a brief Routine to find the size and position of the photodiode at experiment start?"
-            )
-        )
-        self.params['diodePos'] = Param(
-            diodePos, valType="list", inputType="single", categ="Basic",
-            updates="constant", allowedUpdates=['constant', 'set every repeat', 'set every frame'],
-            label=_translate("Position [x,y]"),
-            hint=_translate(
-                "Position of the photodiode on the window."
-            )
-        )
-        self.params['diodeSize'] = Param(
-            diodeSize, valType="list", inputType="single", categ="Basic",
-            updates="constant", allowedUpdates=['constant', 'set every repeat', 'set every frame'],
-            label=_translate("Size [x,y]"),
-            hint=_translate(
-                "Size of the area covered by the photodiode on the window."
-            )
-        )
-        self.params['diodeUnits'] = Param(
-            diodeUnits, valType="str", inputType="choice", categ="Basic",
-            allowedVals=['from exp settings', 'deg', 'cm', 'pix', 'norm', 'height', 'degFlatPos', 'degFlat'],
-            label=_translate("Spatial units"),
-            hint=_translate(
-                "Spatial units in which the photodiode size and position are specified."
-            )
-        )
-        for param in ("diodePos", "diodeSize", "diodeUnits"):
-            self.depends.append({
-                "dependsOn": "findDiode",  # if...
-                "condition": "==True",  # is...
-                "param": param,  # then...
-                "true": "hide",  # should...
-                "false": "show",  # otherwise...
-            })
-
         del self.params['stopType']
         del self.params['stopVal']
 
@@ -169,7 +123,7 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
         )
         self.params['channel'] = Param(
             channel, valType="code", inputType="single", categ="Device",
-            label=_translate("Photodiode channel"),
+            label=_translate("Voicekey channel"),
             hint=_translate(
                 "If relevant, a channel number attached to the photodiode, to distinguish it "
                 "from other photodiodes on the same port. Leave blank to use the first photodiode "
@@ -218,53 +172,26 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
                 "%(deviceLabelCode)s.setThreshold(%(threshold)s, channel=%(channel)s)"
             )
         buff.writeOnceIndentedLines(code % inits)
-        # find pos if indicated
-        if self.params['findDiode']:
-            code = (
-                "# find position and size of photodiode\n"
-                "if %(deviceLabelCode)s.pos is None and %(deviceLabelCode)s.size is None and %(deviceLabelCode)s.units is None:\n"
-                "    %(deviceLabelCode)s.findPhotodiode(win, channel=%(channel)s)\n"
-            )
-            buff.writeOnceIndentedLines(code % inits)
 
     def writeMainCode(self, buff):
         inits = getInitVals(self.params)
         # get diode
         code = (
             "# diode object for %(name)s\n"
-            "%(name)sDiode = deviceManager.getDevice(%(deviceLabel)s)\n"
+            "%(name)sDevice = deviceManager.getDevice(%(deviceLabel)s)\n"
         )
         buff.writeIndentedLines(code % inits)
 
         if self.params['threshold'] and not self.params['findThreshold']:
             code = (
-                "%(name)sDiode.setThreshold(%(threshold)s, channel=%(channel)s)\n"
+                "%(name)sDevice.setThreshold(%(threshold)s, channel=%(channel)s)\n"
             )
-            buff.writeIndentedLines(code % inits)
-        # find/set diode position
-        if not self.params['findDiode']:
-            code = ""
-            # set units (unless None)
-            if self.params['diodeUnits']:
-                code += (
-                    "%(name)sDiode.units = %(diodeUnits)s\n"
-                )
-            # set pos (unless None)
-            if self.params['diodePos']:
-                code += (
-                    "%(name)sDiode.pos = %(diodePos)s\n"
-                )
-            # set size (unless None)
-            if self.params['diodeSize']:
-                code += (
-                    "%(name)sDiode.size = %(diodeSize)s\n"
-                )
             buff.writeIndentedLines(code % inits)
         # create validator object
         code = (
             "# validator object for %(name)s\n"
-            "%(name)s = phd.PhotodiodeValidator(\n"
-            "    win, %(name)sDiode, %(channel)s,\n"
+            "%(name)s = validation.VoiceKeyValidator(\n"
+            "    %(name)sDevice, %(channel)s,\n"
             "    variability=%(variability)s,\n"
             "    report=%(report)s,\n"
             ")\n"
@@ -394,39 +321,86 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
         return stims
 
 
-class ScreenBufferPhotodiodeValidatorBackend(DeviceBackend):
+class MicrophoneVoiceKeyValidatorBackend(DeviceBackend):
     """
-    Adds a basic screen buffer emulation backend for PhotodiodeValidator, as well as acting as an
-    example for implementing other photodiode device backends.
+    Adds a microphone voicekey emulation backend for AudioValidator, as well as acting as an
+    example for implementing other voicekey device backends.
     """
 
-    key = "screenbuffer"
-    label = _translate("Screen Buffer (Debug)")
-    component = PhotodiodeValidatorRoutine
-    deviceClasses = ["psychopy.hardware.photodiode.ScreenBufferSampler"]
+    key = "microphone"
+    label = _translate("Microphone VoiceKey Emulator")
+    component = AudioValidatorRoutine
+    deviceClasses = ["psychopy.hardware.voicekey.MicrophoneVoiceKeyEmulator"]
 
-    def getParams(self: PhotodiodeValidatorRoutine):
+    def getParams(self: AudioValidatorRoutine):
         # define order
         order = [
+            'microphone',
+            'dbRange',
+            'samplingWindow'
         ]
         # define params
         params = {}
+        def getDeviceIndices():
+            from psychopy.hardware.microphone import MicrophoneDevice
+            profiles = MicrophoneDevice.getAvailableDevices()
+
+            return [None] + [profile['index'] for profile in profiles]
+
+        def getDeviceNames():
+            from psychopy.hardware.microphone import MicrophoneDevice
+            profiles = MicrophoneDevice.getAvailableDevices()
+
+            return ["default"] + [profile['deviceName'] for profile in profiles]
+
+        self.params['microphone'] = Param(
+            None, valType='str', inputType="choice", categ="Device",
+            allowedVals=getDeviceIndices,
+            allowedLabels=getDeviceNames,
+            label=_translate("Microphone"),
+            hint=_translate(
+                "What microphone device to use?"
+            )
+        )
+        params['dbRange'] = Param(
+            (0, 1), valType="list", inputType="single", categ="Device",
+            label=_translate("Decibel range"),
+            hint=_translate(
+                "Range of possible decibels to expect mic responses to be in, by default (0, 1)"
+            )
+        )
+        params['samplingWindow'] = Param(
+            0.03, valType="code", inputType="single", categ="Device",
+            label=_translate("Sampling window"),
+            hint=_translate(
+                "How long (s) to average samples from the microphone across? Larger sampling "
+                "windows reduce the chance of random spikes, but also reduce sensitivity."
+            )
+        )
 
         return params, order
 
     def addRequirements(self):
-        # no requirements needed - so just return
-        return
+        # needs microphone
+        self.exp.requireImport(
+            importName="MicrophoneDevice",
+            importFrom="psychopy.hardware.microphone"
+        )
 
-    def writeDeviceCode(self: PhotodiodeValidatorRoutine, buff):
+    def writeDeviceCode(self: AudioValidatorRoutine, buff):
         # get inits
         inits = getInitVals(self.params)
-        # make ButtonGroup object
+        # make MicrophoneVoiceKey object
         code = (
+            "%(name)sDevice = MicrophoneDevice(\n"
+            "    index=%(microphone)s\n"
+            ")\n"
             "deviceManager.addDevice(\n"
-            "    deviceClass='psychopy.hardware.photodiode.ScreenBufferSampler',\n"
+            "    deviceClass='psychopy.hardware.voicekey.MicrophoneVoiceKeyEmulator',\n"
             "    deviceName=%(deviceLabel)s,\n"
-            "    win=win,\n"
+            "    device=%(name)sDevice, \n"
+            "    dbRange=%(dbRange)s, \n"
+            "    samplingWindow=%(samplingWindow)s, \n"
             ")\n"
         )
         buff.writeOnceIndentedLines(code % inits)
