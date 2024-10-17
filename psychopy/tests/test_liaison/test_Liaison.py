@@ -272,4 +272,4 @@ class TestLiaison:
         # make sure error looks correct in JSON format
         result = self.protocol.messages[-1]
         assert result['type'] == "hardware_error"
-        assert "psychopy.hardware.manager.ManagedDeviceError" in result['msg']
+        assert "psychopy.hardware.exceptions.ManagedDeviceError" in result['msg']
