@@ -203,7 +203,7 @@ class EnvironmentManagerDlg(wx.Dialog):
         global NEEDS_RESTART  # flag as needing a restart
         NEEDS_RESTART = True
 
-    def installPackage(self, packageName, version=None, extra=None):
+    def installPackage(self, packageName, version=None, extra=None, forceReinstall=None):
         """Install a package.
 
         Calling this will invoke a `pip` command which will install the
@@ -229,18 +229,21 @@ class EnvironmentManagerDlg(wx.Dialog):
         # add version if given
         if version is not None:
             packageName += f"=={version}"
+        # if forceReinstall is None, work out from version
+        if forceReinstall is None:
+            forceReinstall = version is not None
         # use package tools to install
         self.pipProcess = pkgtools.installPackage(
             packageName,
             upgrade=version is None,
-            forceReinstall=version is not None,
+            forceReinstall=forceReinstall,
             awaited=False,
             outputCallback=self.output.writeStdOut,
             terminateCallback=self.onInstallExit,
             extra=extra,
         )
 
-    def installPlugin(self, pluginInfo, version=None):
+    def installPlugin(self, pluginInfo, version=None, forceReinstall=None):
         """Install a package.
 
         Calling this will invoke a `pip` command which will install the
@@ -266,7 +269,8 @@ class EnvironmentManagerDlg(wx.Dialog):
             version=version,
             extra={
                 'pluginInfo': pluginInfo
-            }
+            },
+            forceReinstall=forceReinstall
         )
 
     def uninstallPlugin(self, pluginInfo):
