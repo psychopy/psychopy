@@ -1012,6 +1012,87 @@ class AudioClip:
 
         return self
 
+    def getOnsetTimes(self, channel=0, backtrack=True, method='default'):
+        """Get onset times of events in this audio clip.
+
+        Onsets are points in time where the amplitude of the audio signal 
+        changes rapidly. This can be used to detect the start of a sound (e.g. 
+        voice responses) in the audio clip. The onset times are returned in 
+        seconds from the beginning of the clip.
+
+        This method provides basic onset detection capabilities. For more
+        advanced onset detection, consider using audio processing packages such
+        as `librosa` directly.
+
+        Parameters
+        ----------
+        channel : int or None
+            Channel to detect onsets for. If `None`, onsets will be detected for
+            all channels. Default is `0` which is usually the left channel for 
+            stereo audio. Value is ignored if the clip is mono.
+        backtrack : bool
+            If `True`, the onset times will be adjusted to the nearest zero-
+            crossing before the onset. Default is `True`.
+        method : str
+            Method to use for onset detection. The methods available depend on
+            the packages installed. The 'default' or 'librosa' method uses 
+            `librosa.onset.onset_detect`. Default is 'default'.
+
+        Returns
+        -------
+        ndarray or list
+            Onset times in seconds from the beginning of the clip. A list of 
+            arrays is returned if `channel` is `None`, where each index 
+            references a channel. Otherwise an array is returned if a single
+            channel is specified or if the clip is mono.
+    
+        Examples
+        --------
+        Detect onsets in an audio clip::
+
+            onsetTimes = audioClip.getOnsetTimes()
+
+        For stereo clips, onsets are returned as a list of arrays, one for each
+        channel::
+
+            leftVOT, rightVOT = stereoAudioClip.getOnsetTimes(channel=None)
+
+        """
+        # note - we default to the first channel if the clip is stereo since 
+        # users may not know they're using a stereo mic
+        channel = 0 if self.isMono else channel  # ignore if mono
+        if channel is not None:
+            assert 0 <= channel < self.channels, 'Invalid channel specified.'
+
+        if method in ('default', 'librosa'):  # librosa method
+            try:
+                import librosa
+            except ImportError:
+                raise ImportError(
+                    'The `librosa` package is required for this method.')
+
+            toReturn = []
+            if channel is None:
+                for channel in range(self.channels):  # return for all channels
+                    # detect onsets
+                    onsetTimes = librosa.onset.onset_detect(
+                        y=self._samples[:, channel],
+                        sr=self.sampleRateHz,
+                        units='time',
+                        backtrack=backtrack)
+
+                    toReturn.append(onsetTimes)
+
+                return toReturn[0] if len(toReturn) == 1 else toReturn
+            else:
+                return librosa.onset.onset_detect(  # channel selected or mono
+                    y=self._samples[:, channel],
+                    sr=self.sampleRateHz,
+                    units='time',
+                    backtrack=backtrack)
+        else:
+            raise ValueError('Unsupported onset detection method specified.')
+
     def transcribe(self, engine='whisper', language='en-US', expectedWords=None,
                    config=None):
         """Convert speech in audio to text.
