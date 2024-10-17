@@ -780,6 +780,10 @@ def loadPlugin(plugin):
                     #     _failed_plugins_.append(plugin)
                     #
                     # return False
+            # log that we're loading the entry point
+            logging.debug(
+                f"Registering entry point {ep.value} (from {plugin}) to {ep.group}:{ep.name}"
+            )
             try:
                 ep = ep.load()  # load the entry point
 
@@ -788,26 +792,21 @@ def loadPlugin(plugin):
                     logging.warning(
                         "Plugin `{}` is being loaded from a zip file. This may "
                         "cause issues with the plugin's functionality.".format(plugin))
-
-            except ImportError as e:
-                logging.error(
-                    "Failed to load entry point `{}` of plugin `{}`. "
-                    "(`{}: {}`) "
-                    "Skipping.".format(str(ep), plugin, e.name, e.msg))
-
-                if plugin not in _failed_plugins_:
-                    _failed_plugins_.append(plugin)
-
-                return False
-            except Exception:  # catch everything else
-                logging.error(
-                    "Failed to load entry point `{}` of plugin `{}` for unknown"
-                    " reasons. Skipping.".format(str(ep), plugin))
+            except Exception as err:
+                # generic start of message
+                msg = f"Skipping entry point {ep.value} (from {plugin}) to {ep.group}:{ep.name}"
+                # append reason
+                if isinstance(err, ImportError):
+                    msg += f" as {ep.value} cannot be imported."
+                else:
+                    msg += f", reason: {err}"
+                # log message
+                logging.error(msg)
 
                 if plugin not in _failed_plugins_:
                     _failed_plugins_.append(plugin)
 
-                return False
+                continue
 
             # If we get here, the entry point is valid and we can safely add it
             # to PsychoPy's namespace.

@@ -1,3 +1,6 @@
+from psychopy import logging
+
+
 class PluginDevicesMixin:
     """
     Mixin for Components and Routines which adds behaviour to get parameters and values from
@@ -78,6 +81,10 @@ class DeviceBackend:
     deviceClasses = []
 
     def __init_subclass__(cls):
+        logging.debug(
+            f"Registered backend for {cls.component.__name__}: {cls.label} ({cls.key}) from "
+            f"{cls.__module__}:{cls.__name__}"
+        )
         # add class to list of backends for ButtonBoxComponent
         cls.component.backends = cls.component.backends.copy()
         cls.component.backends.append(cls)
