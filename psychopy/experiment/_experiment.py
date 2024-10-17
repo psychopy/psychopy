@@ -720,9 +720,10 @@ class Experiment:
                         # don't warn people if we know it's OK (e.g. for params
                         # that have been removed
                         pass
-                    elif componentNode is not None and componentNode.get("plugin") not in ("None", None):
-                        # don't warn people if comp/routine is from a plugin
-                        pass
+                    elif componentNode is not None and componentNode.get("plugin", False):
+                        # is param unrecognised because it's from a plugin?
+                        params[name].categ = "Plugin"
+                        params[name].plugin = componentNode.get("plugin", False)
                     elif paramNode.get('plugin', False):
                         # load plugin name if param is from a plugin
                         params[name].plugin = paramNode.get('plugin')

@@ -1564,8 +1564,8 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
     def openPluginManager(self, evt=None):
         dlg = psychopy.app.plugin_manager.dialog.EnvironmentManagerDlg(self)
         dlg.Show()
-        # Do post-close checks
-        dlg.onClose()
+        
+        return dlg
 
     def onPavloviaCreate(self, evt=None):
         if Path(self.filename).is_file():

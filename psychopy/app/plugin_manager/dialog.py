@@ -136,6 +136,22 @@ class EnvironmentManagerDlg(wx.Dialog):
         """
         return self.pipProcess is not None
 
+    def jumpToPlugin(self, name):
+        """
+        Jump to viewing a particular plugin.
+
+        Parameters
+        ----------
+        name : str
+            Package name for the plugin
+        """
+        # open the plugins panel
+        i = self.notebook.FindPage(self.pluginMgr)
+        self.notebook.ChangeSelection(i)
+        # search for plugin name
+        self.pluginMgr.pluginList.searchCtrl.SetValue(name)
+        self.pluginMgr.pluginList.search()
+
     def uninstallPackage(self, packageName):
         """Uninstall a package.
 
