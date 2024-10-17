@@ -91,9 +91,9 @@ class TestStyle:
             phrase = re.sub(pattern=(
                 f"(?<= )({pattern})(?= )"  # space before and after
                 f"|(?<= )({pattern})$"  # space before and line end after
-                f"|(?<= )({pattern})(?=[^\w\s]+)"  # space before and punctuation after
+                f"|(?<= )({pattern})(?=[^\\w\\s]+)"  # space before and punctuation after
                 f"|^({pattern})(?= )"  # line start before and space after
-                f"|^({pattern})(?=[^\w\s]+)"  # line start before and punctuation after
+                f"|^({pattern})(?=[^\\w\\s]+)"  # line start before and punctuation after
                 f"|^({pattern})$"  # line start before and line end after
             ), string=phrase, repl=repl)
 
@@ -174,8 +174,8 @@ def test_param_str():
          "js": f"{_q}Hello there{_q}"},
         # Enforced string
         {"obj": Param("\\, | or /", "str", canBePath=False),
-         "py": f"{_q}{_sl}, \| or /{_q}",
-         "js": f"{_q}{_sl}, \| or /{_q}"},
+         "py": f"{_q}{_sl}, \\| or /{_q}",
+         "js": f"{_q}{_sl}, \\| or /{_q}"},
         # Dollar string
         {"obj": Param("$win.color", "str"),
          "py": f"win.color",

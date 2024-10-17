@@ -185,7 +185,7 @@ def normalize(v, out=None, dtype=None):
 
     v2d = np.atleast_2d(toReturn)  # 2d view of array
     norm = np.linalg.norm(v2d, axis=1)
-    norm[norm == 0.0] = np.NaN  # make sure if length==0 division succeeds
+    norm[norm == 0.0] = np.nan  # make sure if length==0 division succeeds
     v2d /= norm[:, np.newaxis]
     np.nan_to_num(v2d, copy=False)  # fix NaNs
 

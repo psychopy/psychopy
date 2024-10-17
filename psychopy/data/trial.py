@@ -284,7 +284,7 @@ class TrialHandler(_BaseTrialHandler):
         inputArray = np.asarray(inputArray, 'O')
         # get some simple variables for later
         dims = inputArray.shape
-        dimsProd = np.product(dims)
+        dimsProd = np.prod(dims)
         dimsN = len(dims)
         dimsList = list(range(dimsN))
         listOfLists = []
@@ -293,7 +293,7 @@ class TrialHandler(_BaseTrialHandler):
 
         # for each dimension create list of its indices (using modulo)
         for thisDim in dimsList:
-            prevDimsProd = np.product(dims[:thisDim])
+            prevDimsProd = np.prod(dims[:thisDim])
             # NB this means modulus in python
             thisDimVals = np.arange(dimsProd) / prevDimsProd % dims[thisDim]
             listOfLists.append(thisDimVals)
