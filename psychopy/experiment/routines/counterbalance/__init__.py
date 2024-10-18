@@ -262,7 +262,19 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
                 "}\n"
             )
         buff.writeIndentedLines(code % self.params)
-
+        # if ending experiment on depletion, write the code to do so
+        if self.params['endExperimentOnDepletion']:
+            code = (
+                "// if slots and repeats are fully depleted, end the experiment now\n"
+                "const %(name)sStatus = await psychoJS.shelf.counterbalanceStatus(\n"
+                "  ['%(name)s', '@designer', '@experiment']\n"
+                ");\n"
+                "if (%(name)sStatus.finished) {\n"
+                "    quitPsychoJS('No more slots remaining for this study.', true)\n"
+                "}\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+        # do actual counterbalancing
         code = (
             "\n"
             "// get counterbalancing group \n"
@@ -273,15 +285,6 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
             "});\n"
         )
         buff.writeIndentedLines(code % self.params)
-        # if ending experiment on depletion, write the code to do so
-        if self.params['endExperimentOnDepletion']:
-            code = (
-                "// if slots and repeats are fully depleted, end the experiment now\n"
-                "if (%(name)s.finished) {\n"
-                "    quitPsychoJS('No more slots remaining for this study.', true)\n"
-                "}\n"
-            )
-            buff.writeIndentedLines(code % self.params)
         # save data
         if self.params['saveData']:
             code = (
