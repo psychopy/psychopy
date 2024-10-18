@@ -988,6 +988,12 @@ class TextureMixin:
         wrapping : bool
             Enable wrapping of the texture. A texture will be set to repeat (or
             tile).
+        
+        Returns
+        -------
+        tuple :  
+            A tuple of bool indicating whether data includes luminosity (True) or 
+            RGB (False) values, and a numpy.ndarray of shape (Height, Width, 3). 
         """
 
         # transform all variants of `None` to that, simplifies conditions below
@@ -1274,7 +1280,7 @@ class TextureMixin:
         # unbind our texture so that it doesn't affect other rendering
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 
-        return wasLum
+        return wasLum, data
 
     def clearTextures(self):
         """Clear all textures associated with the stimulus.
