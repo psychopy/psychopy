@@ -56,6 +56,11 @@ if prefs.hardware['audioDevice']=='auto':
 else:
     audioDevice = prefs.hardware['audioDevice']
 
+# check if we should only use WAS host API (default is True on Windows)
+audioWASAPIOnly = False
+if sys.platform == 'win32' and prefs.hardware['audioWASAPIOnly']:
+    audioWASAPIOnly = True
+
 # these will be used by sound.__init__.py
 defaultInput = None
 defaultOutput = audioDevice
@@ -86,7 +91,7 @@ def getDevices(kind=None):
     kind can be None, 'input' or 'output'
     The dict keys are names, and items are dicts of properties
     """
-    if sys.platform == 'win32':
+    if audioWASAPIOnly:
         deviceTypes = 13  # only WASAPI drivers need apply!
     else:
         deviceTypes = None
