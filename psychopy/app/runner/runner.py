@@ -685,9 +685,10 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         htmlPath = str(self.currentFile.parent / self.outputPath)
         jsFile = self.currentFile.parent / (self.currentFile.stem + ".js")
         # regenerate JS file
-        generateScript(outfile=str(jsFile),
-                        exp=self.loadExperiment(),
-                        target="PsychoJS")
+        if self.currentFile.suffix == ".psyexp":
+            generateScript(outfile=str(jsFile),
+                            exp=self.loadExperiment(),
+                            target="PsychoJS")
         # start server
         self.startServer(htmlPath, port=port)
         # open experiment
