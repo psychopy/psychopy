@@ -527,18 +527,22 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             splash.SetText(_translate("  Creating frames..."))
         
         # get starting windows
+        print (repr(startView), repr(self.prefs.appData['lastFrame']), self.prefs.app['defaultView'])
+        sys.stdout.flush()
         if startView in (None, []):
             # if no window specified, use default from prefs
             if self.prefs.app['defaultView'] == 'all':
                 startView = ["builder", "coder", "runner"]
             elif self.prefs.app['defaultView'] == "last":
-                if self.prefs.appData['lastFrame'] == "both":
+                if self.prefs.appData['lastFrame'] == "both" or not self.prefs.appData['lastFrame']:
                     self.prefs.appData['lastFrame'] = "builder-coder-runner"
                 startView = self.prefs.appData['lastFrame'].split("-")
             elif self.prefs.app['defaultView'] in ["builder", "coder", "runner"]:
                 startView = self.prefs.app['defaultView']
-            else:
-                startView = ["builder"]
+                
+        if not startView:  # if we still don't have a startView then load Builder
+            startView = ["builder"]
+        
         # if specified as a single string, convert to list
         if isinstance(startView, str):
             startView = [startView]
