@@ -527,8 +527,6 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             splash.SetText(_translate("  Creating frames..."))
         
         # get starting windows
-        print (repr(startView), repr(self.prefs.appData['lastFrame']), self.prefs.app['defaultView'])
-        sys.stdout.flush()
         if startView in (None, []):
             # if no window specified, use default from prefs
             if self.prefs.app['defaultView'] == 'all':
@@ -539,7 +537,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                 startView = self.prefs.appData['lastFrame'].split("-")
             elif self.prefs.app['defaultView'] in ["builder", "coder", "runner"]:
                 startView = self.prefs.app['defaultView']
-                
+
         if not startView:  # if we still don't have a startView then load Builder
             startView = ["builder"]
         
