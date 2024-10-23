@@ -61,7 +61,8 @@ def startApp(
         safeMode=False, 
         startView=None,
         startFiles=None,
-        firstRun=False
+        firstRun=False,
+        profiling=False,
     ):
     """Start the PsychoPy GUI.
 
@@ -130,7 +131,8 @@ def startApp(
         safeMode=safeMode, 
         startView=startView,
         startFiles=startFiles,
-        firstRun=firstRun
+        firstRun=firstRun,
+        profiling=profiling,
     )
 
     # After the app is loaded, we hand off logging to the stream dispatcher

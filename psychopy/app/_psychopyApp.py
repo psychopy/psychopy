@@ -19,8 +19,6 @@ import argparse
 
 from psychopy.app.themes import icons, colors, handlers
 
-profiling = False  # turning on will save profile files in currDir
-
 import psychopy
 from psychopy import prefs
 from packaging.version import Version
@@ -166,7 +164,7 @@ class _Showgui_Hack():
 class PsychoPyApp(wx.App, handlers.ThemeMixin):
     _called_from_test = False  # pytest needs to change this
 
-    def __init__(self, arg=0, testMode=False, startView=None, **kwargs):
+    def __init__(self, arg=0, testMode=False, startView=None, profiling=False, **kwargs):
         """With a wx.App some things get done here, before App.__init__
         then some further code is launched in OnInit() which occurs after
         """

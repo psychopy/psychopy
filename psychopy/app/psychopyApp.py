@@ -83,6 +83,12 @@ depends on the type of the [file]:
             "Suppresses splash screen"
         )
     )
+    # add option to include app profiling
+    argParser.add_argument(
+        "--profiling", dest="profiling", action="store_true", help=(
+            "Launches app with profiling to see what specific processes are taking up resources."
+        )
+    )
     # treat any other args as filepaths
     argParser.add_argument(dest="startFiles", nargs="*", type=Path)
 
@@ -141,7 +147,8 @@ depends on the type of the [file]:
                 startView=args.startView, 
                 showSplash=args.showSplash, 
                 startFiles=args.startFiles,
-                firstRun=args.firstRun
+                firstRun=args.firstRun,
+                profiling=args.profiling
             )
     else:
         # start app
@@ -149,7 +156,8 @@ depends on the type of the [file]:
             startView=args.startView, 
             showSplash=args.showSplash, 
             startFiles=args.startFiles,
-            firstRun=args.firstRun
+            firstRun=args.firstRun,
+            profiling=args.profiling
         )
         quitApp()
 
