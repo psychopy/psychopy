@@ -25,6 +25,7 @@ __all__ = [
 ]
 
 import os
+from pathlib import Path
 import sys
 import inspect
 import collections
@@ -839,6 +840,12 @@ def loadPlugin(plugin):
                 _registerBuilderStandaloneRoutine(ep)
             elif fqn == 'psychopy.hardware.photometer':  # photometer
                 _registerPhotometer(ep)
+            elif fqn == "psychopy.app.themes.icons":
+                # get module folder
+                folder = Path(ep.__file__).parent
+                # add all matching .png files from that folder
+                for file in folder.glob(f"**/*.png"):
+                    targObj.pluginIconFiles.append(file)
 
     # Retain information about the plugin's entry points, we will use this for
     # conflict resolution.
