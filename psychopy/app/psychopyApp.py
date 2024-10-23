@@ -5,6 +5,8 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
+import argparse
+from pathlib import Path
 import sys
 
 # fix macOS locale-bug on startup: sets locale to LC_ALL (must be defined!)
@@ -16,34 +18,14 @@ import psychopy.locale_setup  # noqa
 # file now used solely as a launcher for the app, not as the app itself.
 
 
-def start_app():
+def main():
     from psychopy.app import startApp, quitApp
     from psychopy.preferences import prefs
 
-    showSplash = prefs.app['showSplash']
-    if '--no-splash' in sys.argv:
-        showSplash = False
-        del sys.argv[sys.argv.index('--no-splash')]
-    _ = startApp(showSplash=showSplash)  # main loop
-    quitApp()
-
-
-def main():
-    if '-x' in sys.argv:
-        # run a .py script from the command line using StandAlone python
-        targetScript = sys.argv[sys.argv.index('-x') + 1]
-        from psychopy import core
-        import os
-        core.shellCall([sys.executable, os.path.abspath(targetScript)])
-        sys.exit()
-    if '-v' in sys.argv or '--version' in sys.argv:
-        from psychopy import __version__
-        msg = ('PsychoPy3, version %s (c)Jonathan Peirce 2018, GNU GPL license'
-               % __version__)
-        print(msg)
-        sys.exit()
-    if '-h' in sys.argv or '--help' in sys.argv:
-        print("""Starts the PsychoPy3 application.
+    # parser to process input arguments
+    argParser = argparse.ArgumentParser(
+        prog="PsychoPyApp", description=(
+"""Starts the PsychoPy3 application.
 
 Usage:  python PsychoPy.py [options] [file]
 
@@ -54,19 +36,76 @@ depends on the type of the [file]:
  Python script 'file.py' -- opens coder
 
  Experiment design 'file.psyexp' -- opens builder
+ """
+        )
+    )
+    # first argument is always the calling script
+    argParser.add_argument("callscript")
+    # recognise version query
+    argParser.add_argument(
+        "--version", "-v", dest="version", action="store_true", help=(
+        "Print the current PsychoPy version."
+    ))
+    # add option to directly run a script
+    argParser.add_argument(
+        "-x", "--direct", dest="direct", action="store_true", help=(
+            "Execute a script using StandAlone python"
+        )
+    )
+    # add options for starting view
+    argParser.add_argument(
+        "--builder", "-b", dest="startView", const="builder", action="append_const", help=(
+            "Open PsychoPy with a Builder window open. Combine with --coder/-c and --runner/-r "
+            "to open a specific set of frames."
+        )
+    )
+    argParser.add_argument(
+        "--coder", "-c", dest="startView", const="coder", action="append_const", help=(
+            "Open PsychoPy with the Coder window open. Combine with --builder/-b and --runner/-r "
+            "to open a specific set of frames."
+        )
+    )
+    argParser.add_argument(
+        "--runner", "-r", dest="startView", const="runner", action="append_const", help=(
+            "Open PsychoPy with the Runner window open. Combine with --coder/-c and --builder/-b "
+            "to open a specific set of frames."
+        )
+    )
+    # add option to show config wizard
+    argParser.add_argument(
+        "--firstrun", dest="firstRun", action="store_true", help=(
+            "Launches configuration wizard"
+        )
+    )
+    # add option to hide splash
+    argParser.add_argument(
+        "--no-splash", dest="showSplash", action="store_false", default=prefs.app['showSplash'], help=(
+            "Suppresses splash screen"
+        )
+    )
+    # treat any other args as filepaths
+    argParser.add_argument(dest="startFiles", nargs='+', type=Path)
 
-Options:
-    -c, --coder, coder       opens coder view only
-    -b, --builder, builder   opens builder view only
-    -x script.py             execute script.py using StandAlone python
+    args = argParser.parse_args(sys.argv)
 
-    -v, --version    prints version and exits
-    -h, --help       prints this help and exit
-
-    --firstrun       launches configuration wizard
-    --no-splash      suppresses splash screen
-
-""")
+    # run files directly if requested
+    if args.direct:
+        from psychopy import core
+        import os
+        # run all .py scripts from the command line using StandAlone python
+        for targetScript in args.startFiles:
+            # skip non-py files
+            if not targetScript.suffix == ".py":
+                continue
+            # run file
+            core.shellCall([sys.executable, targetScript.absolute()])
+        sys.exit()
+    # print version info if requested
+    if '-v' in sys.argv or '--version' in sys.argv:
+        from psychopy import __version__
+        msg = ('PsychoPy3, version %s (c)Jonathan Peirce 2018, GNU GPL license'
+               % __version__)
+        print(msg)
         sys.exit()
 
     if (sys.platform == 'darwin' and
@@ -102,7 +141,14 @@ Options:
         else:
             start_app()
     else:
-        start_app()
+        # start app
+        _ = startApp(
+            startView=args.startView, 
+            showSplash=args.showSplash, 
+            startFiles=args.startFiles,
+            firstRun=args.firstRun
+        )
+        quitApp()
 
 
 if __name__ == '__main__':

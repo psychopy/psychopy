@@ -208,6 +208,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
 
         # set as false to disable loading plugins on startup
         self._safeMode = kwargs.get('safeMode', True)
+        self.firstRun = kwargs.get('firstRun', False)
 
         # Shared memory used for messaging between app instances, this gets
         # allocated when `OnInit` is called.
@@ -245,7 +246,11 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         self.locale.AddCatalog(self.GetAppName())
 
         logging.flush()
-        self.onInit(testMode=testMode, startView=startView, **kwargs)
+        self.onInit(
+            testMode=testMode, 
+            startView=startView, 
+            **kwargs
+        )
         if profiling:
             profile.disable()
             print("time to load app = {:.2f}".format(time.time()-t0))
@@ -378,7 +383,15 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             for builderFrame in self.builder:
                 builderFrame.componentButtons.populate()
 
-    def onInit(self, showSplash=True, testMode=False, safeMode=False, startView=None):
+    def onInit(
+            self, 
+            showSplash=True, 
+            testMode=False, 
+            safeMode=False, 
+            startView=None,
+            startFiles=None,
+            firstRun=False,
+        ):
         """This is launched immediately *after* the app initialises with
         wxPython.
 
@@ -428,9 +441,6 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         # import coder and builder here but only use them later
         from psychopy.app import coder, builder, runner, dialogs
 
-        if '--firstrun' in sys.argv:
-            del sys.argv[sys.argv.index('--firstrun')]
-            self.firstRun = True
         if 'lastVersion' not in self.prefs.appData:
             # must be before 1.74.00
             last = self.prefs.appData['lastVersion'] = '1.73.04'
@@ -505,22 +515,23 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         if splash:
             splash.SetText(_translate("  Loading requested files..."))
         # get starting files
-        startFiles = []
-        # get last coder files
-        if self.prefs.coder['reloadPrevFiles']:
-            for thisFile in self.prefs.appData['coder']['prevFiles']:
+        if startFiles is None:
+            startFiles = []
+            # get last coder files
+            if self.prefs.coder['reloadPrevFiles']:
+                for thisFile in self.prefs.appData['coder']['prevFiles']:
+                    startFiles.append(thisFile)
+            # get last builder files
+            if self.prefs.builder['reloadPrevExp'] and ('prevFiles' in self.prefs.appData['builder']):
+                for thisFile in self.prefs.appData['builder']['prevFiles']:
+                    startFiles.append(thisFile)
+            # get starting files from commandline args
+            for arg in sys.argv:
+                # skip calling script
+                if arg.endswith("psychopyApp.py"):
+                    continue
+                # add to start files
                 startFiles.append(thisFile)
-        # get last builder files
-        if self.prefs.builder['reloadPrevExp'] and ('prevFiles' in self.prefs.appData['builder']):
-            for thisFile in self.prefs.appData['builder']['prevFiles']:
-                startFiles.append(thisFile)
-        # get starting files from commandline args
-        for arg in sys.argv:
-            # skip calling script
-            if arg.endswith("psychopyApp.py"):
-                continue
-            # add to start files
-            startFiles.append(thisFile)
         # open start files
         for thisFile in startFiles:
             # convert to file object & skip any which aren't paths
