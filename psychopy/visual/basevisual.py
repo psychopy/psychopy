@@ -1661,6 +1661,69 @@ class WindowMixin:
         self._updateListShaders()
 
 
+class PointerMixin:
+    """Mixin class to handle mouse/pointer interaction with an object.
+
+    Attributes
+    ==========
+    clickable : bool
+        This attribute determines whether the stimulus can be clicked on and 
+        trigger the `onMouse` method. 
+
+    Methods
+    =======
+    containsPointer
+        Check if the mouse is within the stimulus boundaries.
+    doClickActions
+        Handle mouse interaction with the stimulus. This is called by the 
+        `Window` object each frame to update the stimulus based on mouse
+        interactions.
+
+    """ 
+    def containsPointer(self):
+        """Check if the mouse is within the stimulus boundaries.
+
+        Returns
+        -------
+        bool
+            Whether the mouse is within the stimulus.
+
+        """
+        if not isinstance(self.mouse, Mouse):
+            self.mouse = Mouse(visible=self.win.mouseVisible, win=self.win)
+
+        # Check if mouse is within vertices
+        return self.mouse.isPressedIn(self, buttons=[0])
+    
+    def doPointerActions(self):
+        """Handle mouse interaction with the stimulus.
+
+        This method should be called each frame to update the stimulus based
+        on mouse interactions.
+
+        """
+        # If the stimulus is clickable and the mouse is within the stimulus
+        if self.clickable and self.containsPointer():
+            if not hasattr(self, '_onMouse'):
+                return  
+                
+            self._onMouse()
+             
+    @attributeSetter
+    def clickable(self, value):
+        """Whether the stimulus can be clicked on.
+
+        If set to `True`, the stimulus will be checked for mouse clicks
+        and the `_onMouse` method will be called if the stimulus is clicked.
+
+        """
+        # if we don't have reference to a mouse, make one
+        if not isinstance(self.mouse, Mouse):
+            self.mouse = Mouse(visible=self.win.mouseVisible, win=self.win)
+
+        self.__dict__['clickable'] = value
+
+
 class DraggingMixin:
     """
     Mixin to give an object innate dragging behaviour.

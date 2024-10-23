@@ -1190,6 +1190,10 @@ class Window():
                 # handle dragging
                 if getattr(thisStim, "draggable", False):
                     thisStim.doDragging()
+                    
+                if getattr(thisStim, "clickable", False):
+                    thisStim.doPointerActions()
+
         else:
             self.backend.setCurrent()
 
