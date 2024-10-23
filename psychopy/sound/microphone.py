@@ -202,6 +202,9 @@ class Microphone:
     def close(self):
         return self.device.close()
 
+    def reopen(self):
+        return self.device.reopen()
+
     def poll(self):
         return self.device.poll()
 
