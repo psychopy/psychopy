@@ -84,7 +84,7 @@ depends on the type of the [file]:
         )
     )
     # treat any other args as filepaths
-    argParser.add_argument(dest="startFiles", nargs='+', type=Path)
+    argParser.add_argument(dest="startFiles", nargs="*", type=Path)
 
     args = argParser.parse_args(sys.argv)
 
