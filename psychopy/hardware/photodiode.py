@@ -379,7 +379,7 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
             )
         # if we didn't get any responses at all, prompt to try again
         if not responsive:
-            handleNonResponse(label=label, rect=rect)
+            return handleNonResponse(label=label, rect=rect)
         # clear all the events created by this process
         self.state = [None] * self.channels
         self.dispatchMessages()
