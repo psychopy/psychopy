@@ -128,9 +128,7 @@ depends on the type of the [file]:
         # Therefore `pythonw` often doesn't exist, and we can just use `python`.
         if PYTHONW != 'True' and os.path.isfile(pyw_exe):
             from psychopy import core
-            cmd = [pyw_exe, __file__]
-            if '--no-splash' in sys.argv:
-                cmd.append('--no-splash')
+            cmd = [pyw_exe] + sys.argv
 
             stdout, stderr = core.shellCall(cmd,
                                             env=dict(env, PYTHONW='True'),
@@ -139,7 +137,12 @@ depends on the type of the [file]:
             print(stderr, file=sys.stderr)
             sys.exit()
         else:
-            start_app()
+            startApp(
+                startView=args.startView, 
+                showSplash=args.showSplash, 
+                startFiles=args.startFiles,
+                firstRun=args.firstRun
+            )
     else:
         # start app
         _ = startApp(
