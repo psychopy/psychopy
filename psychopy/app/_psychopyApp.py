@@ -588,6 +588,9 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         # if specified as a single string, convert to list
         if isinstance(startView, str):
             startView = [startView]
+        # if last open frame was no frame, use all instead
+        if not startView:
+            startView = ["builder", "coder", "runner"]
         # create windows
         if "runner" in startView:
             self.showRunner()
