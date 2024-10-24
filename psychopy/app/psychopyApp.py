@@ -48,8 +48,9 @@ depends on the type of the [file]:
     ))
     # add option to directly run a script
     argParser.add_argument(
-        "-x", "--direct", dest="direct", action="store_true", help=(
-            "Execute a script using StandAlone python"
+        "--direct", "-x", dest="direct", action="store_true", help=(
+            "Use PsychoPy to run a Python script (.py) or a PsychoPy experiment (.psyexp), without "
+            "opening the app."
         )
     )
     # add options for starting view
@@ -106,13 +107,31 @@ depends on the type of the [file]:
     if args.direct:
         from psychopy import core
         import os
+        # make sure there's a file to run
+        assert startFiles, (
+            "Argument -x was used to directly run a script or experiment, but no script or "
+            "experiment path was given."
+        )
         # run all .py scripts from the command line using StandAlone python
-        for targetScript in args.startFiles:
-            # skip non-py files
-            if not targetScript.suffix == ".py":
+        for targetScript in startFiles:
+            # skip non-runnable files
+            if targetScript.suffix not in (".psyexp", ".py"):
+                print(
+                    "Could not run file '{}' as it is not a Python script or PsychoPy experiment."
+                    .format(targetScript)
+                )
                 continue
+            # compile Python code if given a psyexp
+            if targetScript.suffix == ".psyexp":
+                from psychopy import experiment
+                exp = experiment.Experiment.fromFile(targetScript)
+                script = exp.writeScript()
+                targetScript = targetScript.parent / (targetScript.stem + ".py")
+                targetScript.write_text(script, encoding="utf-8")
             # run file
-            core.shellCall([sys.executable, targetScript.absolute()])
+            stderr = core.shellCall([sys.executable, targetScript.absolute()], stderr=True)
+            for line in stderr:
+                print(line)
         sys.exit()
     # print version info if requested
     if '-v' in sys.argv or '--version' in sys.argv:
