@@ -54,7 +54,7 @@ def test_monitorGetGamma():
     mon.setGamma(gammaVal)
     #create window using that monitor
     win = visual.Window([100,100], monitor=mon, autoLog=False)
-    assert numpy.alltrue(win.gamma==gammaVal)
+    assert numpy.all(win.gamma==gammaVal)
     win.close()
 
 
@@ -69,7 +69,7 @@ def test_monitorGetGammaGrid():
     mon = monitors.Monitor('test')
     mon.setGammaGrid(newGrid)
     win = visual.Window([100,100], monitor=mon, autoLog=False)
-    assert numpy.alltrue(win.gamma==numpy.array([2.0, 2.0, 2.0]))
+    assert numpy.all(win.gamma==numpy.array([2.0, 2.0, 2.0]))
     win.close()
 
 
@@ -87,7 +87,7 @@ def test_monitorGetGammaAndGrid():
     mon.setGamma([3,3,3])
     #create window using that monitor
     win = visual.Window([100,100], monitor=mon, autoLog=False)
-    assert numpy.alltrue(win.gamma==numpy.array([2.0, 2.0, 2.0]))
+    assert numpy.all(win.gamma==numpy.array([2.0, 2.0, 2.0]))
     win.close()
 
 
