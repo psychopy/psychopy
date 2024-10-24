@@ -89,10 +89,18 @@ depends on the type of the [file]:
             "Launches app with profiling to see what specific processes are taking up resources."
         )
     )
-    # treat any other args as filepaths
-    argParser.add_argument(dest="startFiles", nargs="*", type=Path)
-
-    args = argParser.parse_args(sys.argv)
+    # parse args
+    args, startFilesRaw = argParser.parse_known_args(sys.argv)
+    # pathify startFiles
+    startFiles = []
+    for thisFile in startFilesRaw:
+        try:
+            startFiles.append(Path(thisFile))
+        except:
+            print(
+                "Could not interpret {} as a path.".format(thisFile)
+            )
+            continue
 
     # run files directly if requested
     if args.direct:
@@ -146,7 +154,7 @@ depends on the type of the [file]:
             startApp(
                 startView=args.startView, 
                 showSplash=args.showSplash, 
-                startFiles=args.startFiles,
+                startFiles=startFiles,
                 firstRun=args.firstRun,
                 profiling=args.profiling
             )
@@ -155,7 +163,7 @@ depends on the type of the [file]:
         _ = startApp(
             startView=args.startView, 
             showSplash=args.showSplash, 
-            startFiles=args.startFiles,
+            startFiles=startFiles,
             firstRun=args.firstRun,
             profiling=args.profiling
         )
