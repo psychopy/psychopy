@@ -523,13 +523,6 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             if self.prefs.builder['reloadPrevExp'] and ('prevFiles' in self.prefs.appData['builder']):
                 for thisFile in self.prefs.appData['builder']['prevFiles']:
                     startFiles.append(thisFile)
-            # get starting files from commandline args
-            for arg in sys.argv:
-                # skip calling script
-                if arg.endswith("psychopyApp.py"):
-                    continue
-                # add to start files
-                startFiles.append(thisFile)
         # open start files
         for thisFile in startFiles:
             # convert to file object & skip any which aren't paths
