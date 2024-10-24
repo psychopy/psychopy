@@ -292,14 +292,23 @@ class Session:
             # If win is the name of an experiment, setup from that experiment's method
             self.win = None
             self.setupWindowFromExperiment(win)
-        # Setup Session clock
+        # setup experiment clock
         if clock in (None, "float"):
             clock = core.Clock()
         elif clock == "iso":
             clock = core.Clock(format=str)
         elif isinstance(clock, str):
             clock = core.Clock(format=clock)
-        self.sessionClock = clock
+        self.experimentClock = clock
+        # setup session clock (same format as experiment clock)
+        if clock in (None, "float"):
+            self.sessionClock = core.Clock()
+        elif clock == "iso":
+            self.sessionClock = core.Clock(format=str)
+        elif isinstance(clock, str):
+            self.sessionClock = core.Clock(format=clock)
+        else:
+            self.sessionClock = core.Clock()
         # make sure we have a default keyboard
         if DeviceManager.getDevice("defaultKeyboard") is None:
             DeviceManager.addDevice(
@@ -1060,14 +1069,14 @@ class Session:
             "Running experiment via Session: name={key}, expInfo={expInfo}"
         ).format(key=key, expInfo=expInfo))
         # reset session clock
-        self.sessionClock.reset()
+        self.experimentClock.reset()
         # Run this experiment
         try:
             self.experiments[key].run(
                 expInfo=expInfo,
                 thisExp=thisExp,
                 win=self.win,
-                globalClock=self.sessionClock,
+                globalClock=self.experimentClock,
                 thisSession=self
             )
         except Exception as _err:
