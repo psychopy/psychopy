@@ -27,6 +27,10 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
         self.url = "https://psychopy.org/builder/components/eyetracker_calibration.html"
 
         self.exp.requirePsychopyLibs(['iohub', 'hardware'])
+        self.exp.requireImport(
+            importName="EyetrackerControl",
+            importFrom="psychopy.hardware.eyetracker"
+        )
 
         # Basic params
         self.order += [
@@ -252,7 +256,7 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
         # Make config object
         code = (
             "# define parameters for %(name)s\n"
-            "%(name)s = hardware.eyetracker.EyetrackerCalibration(win, \n"
+            "%(name)s = EyetrackerCalibration(win, \n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
