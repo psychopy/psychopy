@@ -4,6 +4,7 @@ import time
 import numpy as np
 from psychtoolbox import audio as audio
 from psychopy import logging as logging, prefs
+from psychopy.hardware.exceptions import DeviceNotConnectedError
 from psychopy.localization import _translate
 from psychopy.constants import NOT_STARTED
 from psychopy.hardware import BaseDevice, BaseResponse, BaseResponseDevice
@@ -147,10 +148,11 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             _devices = MicrophoneDevice.getDevices()
             # if there are none, error
             if not len(_devices):
-                raise AudioInvalidCaptureDeviceError(_translate(
-                    "Could not choose default recording device as no recording "
-                    "devices are connected."
-                ))
+                raise DeviceNotConnectedError(_translate(
+                        "Could not choose default recording device as no recording "
+                        "devices are connected."
+                    ), deviceClass=MicrophoneDevice
+                )
 
             # Try and get the best match which are compatible with the user's
             # specified settings.
@@ -373,8 +375,10 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             chosenDevice = fallbackDevice
         elif chosenDevice is None:
             # if no index match found, raise error
-            raise KeyError(
-                f"Could not find any device with index {index}"
+            raise DeviceNotConnectedError(
+                f"Could not find any audio recording device with index {index}",
+                deviceClass=MicrophoneDevice,
+                context={'index': index, 'sampleRateHz': sampleRateHz, 'channels': channels}
             )
 
         return chosenDevice

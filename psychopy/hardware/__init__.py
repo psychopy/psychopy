@@ -8,6 +8,7 @@ from psychopy import logging
 from . import eyetracker, listener
 from .manager import DeviceManager, deviceManager
 from .base import BaseDevice, BaseResponse, BaseResponseDevice
+from .exceptions import DeviceNotConnectedError
 
 try:
     from collections.abc import Iterable
