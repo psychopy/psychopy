@@ -25,13 +25,13 @@ def main():
     # parser to process input arguments
     argParser = argparse.ArgumentParser(
         prog="PsychoPyApp", description=(
-"""Starts the PsychoPy3 application.
+"""Starts the PsychoPy application.
 
-Usage:  python PsychoPy.py [options] [file]
+Usage:  python psychopy.app [options] [files]
 
 Without options or files provided this starts PsychoPy using prefs to
-decide on the view(s) to open.  If optional [file] is provided action
-depends on the type of the [file]:
+decide on the view(s) to open.  If optional [files] is provided action
+depends on the type of the [files]:
 
  Python script 'file.py' -- opens coder
 
