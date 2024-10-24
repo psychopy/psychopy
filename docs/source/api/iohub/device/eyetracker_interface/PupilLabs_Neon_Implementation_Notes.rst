@@ -83,8 +83,8 @@ Implementation and API Overview
 EyeTracker Class
 ================
 
-.. autoclass:: psychopy.iohub.devices.eyetracker.hw.pupil_labs.pupil_core.EyeTracker
-    :members: surface_topic, trackerTime, trackerSec, setConnectionState, isConnected,
+.. autoclass:: psychopy.iohub.devices.eyetracker.hw.pupil_labs.neon.EyeTracker
+    :members: trackerTime, trackerSec, setConnectionState, isConnected,
         setRecordingState, isRecordingEnabled, getLastSample, getLastGazePosition
     :undoc-members:
     :show-inheritance:
@@ -92,11 +92,9 @@ EyeTracker Class
 Supported Event Types
 =====================
 
-The Neon–|PsychoPy| integration provides real-time access to
-:py:class:`BinocularEyeSampleEvents <psychopy.iohub.devices.eyetracker.BinocularEyeSampleEvent>`
-events. The supported fields are described below.
+The Neon–|PsychoPy| integration provides real-time access to :py:class:`MonocularEyeSampleEvent <psychopy.iohub.devices.eyetracker.MonocularEyeSampleEvent>` events for gaze data.
 
-.. autoclass:: psychopy.iohub.devices.eyetracker.BinocularEyeSampleEvent
+.. autoclass:: psychopy.iohub.devices.eyetracker.MonocularEyeSampleEvent
 
     .. attribute:: device_time
         :type: float
@@ -122,14 +120,91 @@ events. The supported fields are described below.
     .. attribute:: gaze_x
         :type: float
 
-        x component of gaze location in display coordinates. Set to ``float("nan")`` in
-        pupillometry-only mode.
+        - x component of gaze location in display coordinates.
 
     .. attribute:: gaze_y
         :type: float
 
-        y component of gaze location in display coordinates. Set to ``float("nan")`` in
-        pupillometry-only mode.
+        y component of gaze location in display coordinates.
+
+Eye state data, if enabled, is provided through :py:class:`BinocularEyeSampleEvent <psychopy.iohub.devices.eyetracker.BinocularEyeSampleEvent>` events.
+
+.. autoclass:: psychopy.iohub.devices.eyetracker.BinocularEyeSampleEvent
+
+    .. attribute:: device_time
+        :type: float
+
+        time of eye state measurement, in sec.msec format, using Pupil Capture clock
+
+    .. attribute:: logged_time
+        :type: float
+
+        time at which the sample was received in PsychoPy, in sec.msec format, using PsychoPy clock
+
+    .. attribute:: time
+        :type: float
+
+        time of eye state measurement, in sec.msec format, using PsychoPy clock
+
+    .. attribute:: delay
+        :type: float
+
+        The difference between ``logged_time`` and ``time``, in sec.msec format
+
+    .. attribute:: left_eye_cam_x
+        :type: float
+
+        - x component of left eye's position relative to the scene camera
+
+    .. attribute:: left_eye_cam_y
+        :type: float
+
+        - y component of left eye's position relative to the scene camera
+
+    .. attribute:: left_eye_cam_z
+        :type: float
+
+        - z component of left eye's position relative to the scene camera
+
+    .. attribute:: left_gaze_x
+        :type: float
+
+        - x component of left eye's optical axis vector
+
+    .. attribute:: left_gaze_y
+        :type: float
+
+        - y component of left eye's optical axis vector
+
+    .. attribute:: left_gaze_z
+        :type: float
+
+        - z component of left eye's optical axis vector
+
+    .. attribute:: left_pupil_measure1
+        :type: float
+
+        - left eye pupil diameter in mm
+
+    .. attribute:: right_gaze_x
+        :type: float
+
+        - x component of right eye's optical axis vector
+
+    .. attribute:: right_gaze_y
+        :type: float
+
+        - y component of right eye's optical axis vector
+
+    .. attribute:: right_gaze_z
+        :type: float
+
+        - z component of right eye's optical axis vector
+
+    .. attribute:: right_pupil_measure1
+        :type: float
+
+        - right eye pupil diameter in mm
 
 
 Default Device Settings
@@ -139,4 +214,4 @@ Default Device Settings
     :language: yaml
 
 
-**Last Updated:** September, 2023
+**Last Updated:** October, 2024
