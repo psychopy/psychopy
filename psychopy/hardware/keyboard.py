@@ -151,6 +151,8 @@ class KeyPress(BaseResponse):
             else:
                 self.name = keyNames[code]
         elif KeyboardDevice._backend == 'iohub':
+            if name is None:
+                name = code
             self.name = name
         # get value
         value = self.name
