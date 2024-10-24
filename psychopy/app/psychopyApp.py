@@ -93,8 +93,10 @@ depends on the type of the [files]:
     # parse args
     args, startFilesRaw = argParser.parse_known_args(sys.argv)
     # pathify startFiles
-    startFiles = []
+    startFiles = None
     for thisFile in startFilesRaw:
+        if startFiles is None:
+            startFiles = []
         try:
             startFiles.append(Path(thisFile))
         except:
