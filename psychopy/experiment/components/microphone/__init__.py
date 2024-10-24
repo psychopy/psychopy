@@ -14,21 +14,6 @@ from psychopy.tools import stringtools as st, systemtools as syst, audiotools as
 from psychopy.experiment.components import (
     BaseComponent, BaseDeviceComponent, Param, getInitVals, _translate
 )
-from psychopy.tools.audiotools import sampleRateQualityLevels
-
-_hasPTB = True
-try:
-    import psychtoolbox.audio as audio
-except (ImportError, ModuleNotFoundError):
-    logging.warning(
-        "The 'psychtoolbox' library cannot be loaded but is required for audio "
-        "capture (use `pip install psychtoolbox` to get it). Microphone "
-        "recording will be unavailable this session. Note that opening a "
-        "microphone stream will raise an error.")
-    _hasPTB = False
-
-# Get list of sample rates
-sampleRates = {r[1]: r[0] for r in sampleRateQualityLevels.values()}
 
 
 class MicrophoneComponent(BaseDeviceComponent):
@@ -136,9 +121,15 @@ class MicrophoneComponent(BaseDeviceComponent):
                 "many channels as the selected device allows."
             )
         )
+
+        def getSampleRates():
+            return [r[0] for r in at.sampleRateQualityLevels.values()]
+        def getSampleRateLabels():
+            return [r[1] for r in at.sampleRateQualityLevels.values()]
         self.params['sampleRate'] = Param(
             sampleRate, valType='num', inputType="choice", categ='Device',
-            allowedVals=list(sampleRates),
+            allowedVals=getSampleRates,
+            allowedLabels=getSampleRateLabels,
             label=_translate("Sample rate (hz)"),
             hint=_translate(
                 "How many samples per second (Hz) to record at"
@@ -323,8 +314,9 @@ class MicrophoneComponent(BaseDeviceComponent):
         inits = getInitVals(self.params)
 
         # --- setup mic ---
-        # Substitute sample rate value for numeric equivalent
-        inits['sampleRate'] = sampleRates[inits['sampleRate'].val]
+        # make sure sample rate is numeric
+        if inits['sampleRate'].val in at.sampleRateLabels:
+            inits['sampleRate'].val = at.sampleRateLabels[inits['sampleRate'].val]
         # Substitute channel value for numeric equivalent
         inits['channels'] = {'mono': 1, 'stereo': 2, 'auto': None}[self.params['channels'].val]
         # initialise mic device

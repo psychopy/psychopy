@@ -98,6 +98,9 @@ sampleRateQualityLevels = {
     4: (SAMPLE_RATE_96kHz, 'High-Def (96kHz)'),
     5: (SAMPLE_RATE_192kHz, 'Ultra High-Def (192kHz)')
 }
+sampleRateLabels = {
+    r[1]: r[0] for r in sampleRateQualityLevels.values()
+}
 
 # supported formats for loading and saving audio samples to file
 try:

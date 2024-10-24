@@ -38,6 +38,10 @@ class EyetrackerRecordComponent(BaseComponent):
         self.type = 'EyetrackerRecord'
         self.url = "https://www.psychopy.org/builder/components/eyetracker.html"
         self.exp.requirePsychopyLibs(['iohub', 'hardware'])
+        self.exp.requireImport(
+            importName="EyetrackerControl",
+            importFrom="psychopy.hardware.eyetracker"
+        )
 
         self.params['actionType'] = Param(
             actionType,
@@ -113,7 +117,7 @@ class EyetrackerRecordComponent(BaseComponent):
         inits = self.params
         # Make a controller object
         code = (
-            "%(name)s = hardware.eyetracker.EyetrackerControl(\n"
+            "%(name)s = EyetrackerControl(\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
