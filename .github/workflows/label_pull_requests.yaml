@@ -18,11 +18,21 @@ jobs:
       if: ${{ startsWith(github.event.pull_request.title, 'enh') }}
       with:
         labels: "✨ enhancement"
-    - name: "Enhancement"
+    - name: "Bug fix"
       uses: actions-ecosystem/action-add-labels@v1
       if: ${{ startsWith(github.event.pull_request.title, 'bf') }}
       with:
         labels: "🐞 bug"
+    - name: "Feature fix"
+      uses: actions-ecosystem/action-add-labels@v1
+      if: ${{ startsWith(github.event.pull_request.title, 'ff') }}
+      with:
+        labels: "ignore-for-release"
+    - name: "Refactor"
+      uses: actions-ecosystem/action-add-labels@v1
+      if: ${{ startsWith(github.event.pull_request.title, 'rf') }}
+      with:
+        labels: "🔀 refactor"
     - name: "Docs & demos"
       uses: actions-ecosystem/action-add-labels@v1
       if: ${{ startsWith(github.event.pull_request.title, 'doc') }}
@@ -38,3 +48,8 @@ jobs:
       if: ${{ startsWith(github.event.pull_request.title, 'pkg') }}
       with:
         labels: "📦 packaging"
+    - name: "Systems admin"
+      uses: actions-ecosystem/action-add-labels@v1
+      if: ${{ startsWith(github.event.pull_request.title, 'sys') }}
+      with:
+        labels: "🤖 sys admin"

@@ -6,6 +6,8 @@ changelog:
     labels:
       - ignore-for-release
       - "📦 packaging" 
+      - "🔀 refactor"
+      - "🤖 sys admin"
     authors:
       - octocat
   categories:
