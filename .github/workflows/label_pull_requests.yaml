@@ -4,11 +4,13 @@ name: "Apply labels to PR based on tags (BF, ENH, NF, etc.)"
 
 on:
   pull_request:
-   types: [opened]
+   types: [opened, reopened]
 
 jobs:
   set-label:
     runs-on: "ubuntu-latest"
+    permissions:
+      pull-requests: write
     steps:
     - name: "New feature"
       uses: actions-ecosystem/action-add-labels@v1
