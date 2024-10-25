@@ -22,3 +22,6 @@ changelog:
       labels:
         - "📓 docs & demos" 
         - "🔨 tests"
+    - title: "Other Changes"
+      labels:
+        - "*"
