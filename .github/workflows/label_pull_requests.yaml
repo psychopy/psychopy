@@ -1,0 +1,40 @@
+name: "Apply labels to PR based on tags (BF, ENH, NF, etc.)"
+
+on:
+  pull_request:
+   types: [opened]
+
+jobs:
+  set-label:
+    runs-on: "ubuntu-latest"
+    steps:
+    - name: "New feature"
+      uses: actions-ecosystem/action-add-labels@v1
+      if: ${{ startsWith(github.event.pull_request.title, 'nf') }}
+      with:
+        labels: "🌟 feature"
+    - name: "Enhancement"
+      uses: actions-ecosystem/action-add-labels@v1
+      if: ${{ startsWith(github.event.pull_request.title, 'enh') }}
+      with:
+        labels: "✨ enhancement"
+    - name: "Enhancement"
+      uses: actions-ecosystem/action-add-labels@v1
+      if: ${{ startsWith(github.event.pull_request.title, 'bf') }}
+      with:
+        labels: "🐞 bug"
+    - name: "Docs & demos"
+      uses: actions-ecosystem/action-add-labels@v1
+      if: ${{ startsWith(github.event.pull_request.title, 'doc') }}
+      with:
+        labels: "📓 docs & demos"
+    - name: "Tests"
+      uses: actions-ecosystem/action-add-labels@v1
+      if: ${{ startsWith(github.event.pull_request.title, 'test') }}
+      with:
+        labels: "🔨 tests"
+    - name: "Packaging"
+      uses: actions-ecosystem/action-add-labels@v1
+      if: ${{ startsWith(github.event.pull_request.title, 'pkg') }}
+      with:
+        labels: "📦 packaging"

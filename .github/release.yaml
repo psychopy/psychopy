@@ -9,15 +9,14 @@ changelog:
     authors:
       - octocat
   categories:
-    - title: New and Improved 🎉
+    - title: 🎉 New and improved
       labels:
-        - "🌟 enhancement" 
-    - title: 🐛 Bug Fixes
+        - "🌟 feature"
+        - "✨ enhancement"
+    - title: 🐛 Bug fixes
       labels:
         - "🐞 bug"
-    - title: "📓 Docs & Demos" 
+    - title: "📓 Docs, demos and testing" 
       labels:
         - "📓 docs & demos" 
-    - title: Other Changes
-      labels:
-        - "*"
+        - "🔨 tests"
