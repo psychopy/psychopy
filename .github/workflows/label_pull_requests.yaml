@@ -1,3 +1,5 @@
+# Commit tags are documented here: https://psychopy.org/developers/repository.html#psychopy-commit-messages
+
 name: "Apply labels to PR based on tags (BF, ENH, NF, etc.)"
 
 on:
