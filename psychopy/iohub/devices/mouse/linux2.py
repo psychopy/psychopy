@@ -90,6 +90,10 @@ class Mouse(MouseDevice):
                 logged_time = currentSec()
                 event_array = event[0]
 
+                if self._iohub_server._psychopy_windows is None:
+                    # Do not report event to iohub if no psychopy window is open
+                    return True
+
                 psychowins = self._iohub_server._psychopy_windows.keys()
                 report_all = self.getConfiguration().get('report_system_wide_events', True)
                 if report_all is False and psychowins and event_array[-1] not in psychowins:
