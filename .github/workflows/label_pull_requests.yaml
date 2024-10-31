@@ -9,8 +9,7 @@ on:
 jobs:
   set-label:
     runs-on: "ubuntu-latest"
-    permissions:
-      pull-requests: write
+    permissions: write-all
     steps:
     - name: "New feature"
       uses: actions-ecosystem/action-add-labels@v1
