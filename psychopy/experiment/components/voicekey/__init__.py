@@ -310,9 +310,9 @@ class MicrophoneVoiceKeyBackend(DeviceBackend):
             )
         )
         params['meThreshold'] = Param(
-            125, valType="code", inputType="single", categ="Device",
+            0.5, valType="code", inputType="single", categ="Device",
             updates="constant", allowedUpdates=None,
-            label=_translate("Threshold (0-255)"),
+            label=_translate("Threshold (0-1)"),
             hint=_translate(
                 "Threshold volume (0 for min value in dB range, 255 for max value) above which to "
                 "register a voicekey response"
