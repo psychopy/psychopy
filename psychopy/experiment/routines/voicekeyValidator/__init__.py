@@ -29,7 +29,7 @@ class AudioValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             # basic
             exp, name='audioVal',
             variability="1/60", report="log",
-            findThreshold=True, threshold=127,
+            findThreshold=True, threshold=0.5,
             # device
             deviceLabel="", deviceBackend="microphone", channel="0",
             # data
@@ -84,7 +84,7 @@ class AudioValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             label=_translate("Threshold"),
             hint=_translate(
                 "Light threshold at which the photodiode should register a positive, units go from 0 (least light) to "
-                "255 (most light)."
+                "1 (most light)."
             )
         )
         self.depends.append({

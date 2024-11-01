@@ -70,7 +70,7 @@ class BaseVoiceKeyGroup(base.BaseResponseDevice):
                 sum(threshRange) / 2
             )
             # set threshold
-            self._setThreshold(int(current), channel=channel)
+            self._setThreshold(current, channel=channel)
             # reset current state and clear responses
             self.state[channel] = None
             self.responses = []
@@ -109,11 +109,11 @@ class BaseVoiceKeyGroup(base.BaseResponseDevice):
         # make sure sound isn't playing
         snd.stop()
         # get threshold with no sound
-        offThreshold = _bisectThreshold([0, 255], recursionLimit=16)
+        offThreshold = _bisectThreshold([0, 1], recursionLimit=16)
         # play sound
         snd.play()
         # get threshold with sound
-        onThreshold = _bisectThreshold([0, 255], recursionLimit=16)
+        onThreshold = _bisectThreshold([0, 1], recursionLimit=16)
         # stop sound once done
         snd.stop()
         # pick a threshold between white and black (i.e. one that's safe)
@@ -258,14 +258,14 @@ class MicrophoneVoiceKeyEmulator(BaseVoiceKeyGroup):
     device : psychopy.hardware.MicrophoneDevice
         Microphone to sample from
     threshold : int, optional
-        Threshold (0-255) at which to register a response, by default 125
+        Threshold (0-1) at which to register a response, by default 0.5
     dbRange : tuple, optional
         Range of possible decibels to expect mic responses to be in, by default (0, 1)
     samplingWindow : float
         How long (s) to average samples from the microphone across? Larger sampling windows reduce 
         the chance of random spikes, but also reduce sensitivity.
     """
-    def __init__(self, device, threshold=125, dbRange=(0, 1), samplingWindow=0.03):
+    def __init__(self, device, threshold=0.5, dbRange=(0, 1), samplingWindow=0.03):
         # if device is given by name, get it from DeviceManager
         if isinstance(device, str):
             deviceName = device
@@ -348,7 +348,7 @@ class MicrophoneVoiceKeyEmulator(BaseVoiceKeyGroup):
         """
         return (
             min(self.dbRange) + 
-            (self.getThreshold(channel=channel) / 255) * (max(self.dbRange) - min(self.dbRange))
+            self.getThreshold(channel=channel) * (max(self.dbRange) - min(self.dbRange))
         )
     
     def _setThreshold(self, threshold, channel=None):

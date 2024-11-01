@@ -442,11 +442,9 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
                 f"Trying threshold range: {threshRange}"
             )
             # work out current
-            current = int(
-                sum(threshRange) / 2
-            )
+            current = sum(threshRange) / 2
             # set threshold and get value
-            value = self._setThreshold(int(current), channel=channel)
+            value = self._setThreshold(current, channel=channel)
 
             if value:
                 # if expecting light and got light, we have an upper bound
@@ -461,7 +459,7 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
             if recursionLimit <= 0:
                 return current
             # return if threshold is small enough
-            if abs(threshRange[1] - threshRange[0]) < 4:
+            if abs(threshRange[1] - threshRange[0]) < 0.01:
                 return current
             # recur with new range
             return _bisectThreshold(threshRange, recursionLimit=recursionLimit-1)
@@ -484,7 +482,7 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
             label.draw()
             win.flip()
             # get threshold
-            thresholds[col] = _bisectThreshold([0, 255], recursionLimit=16)
+            thresholds[col] = _bisectThreshold([0, 1], recursionLimit=16)
         # pick a threshold between white and black (i.e. one that's safe)
         threshold = (thresholds['white'] + thresholds['black']) / 2
         # clear bg rect
@@ -538,7 +536,7 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
 
 
 class ScreenBufferSampler(BasePhotodiodeGroup):
-    def __init__(self, win, threshold=125, pos=None, size=None, units=None):
+    def __init__(self, win, threshold=0.5, pos=None, size=None, units=None):
         # store win
         self.win = win
         # default rect
@@ -579,7 +577,7 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
             makeLum=True
         )
         # work out whether it's brighter than threshold
-        state = pixels.mean() > (255 - self.getThreshold())
+        state = pixels.mean() > (255 - self.getThreshold() * 255)
         # if state has changed, make an event
         if state != self.state[0]:
             if self.win._frameTimes:

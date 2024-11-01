@@ -28,7 +28,7 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             # basic
             exp, name='visualVal',
             variability="0.03", report="log",
-            findThreshold=True, threshold=127,
+            findThreshold=True, threshold=0.5,
             # layout
             findDiode=True, diodePos="(1, 1)", diodeSize="(0.1, 0.1)", diodeUnits="norm",
             # device
@@ -90,7 +90,7 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             label=_translate("Threshold"),
             hint=_translate(
                 "Light threshold at which the photodiode should register a positive, units go from 0 (least light) to "
-                "255 (most light)."
+                "1 (most light)."
             )
         )
         self.depends.append({
