@@ -373,8 +373,8 @@ def cielch2rgb(lch,
     # convert values to L*a*b*
     lab = numpy.empty(lch.shape, dtype=lch.dtype)
     lab[:, 0] = lch[:, 0]
-    lab[:, 1] = lch[:, 1] * numpy.math.cos(numpy.math.radians(lch[:, 2]))
-    lab[:, 2] = lch[:, 1] * numpy.math.sin(numpy.math.radians(lch[:, 2]))
+    lab[:, 1] = lch[:, 1] * numpy.cos(numpy.radians(lch[:, 2]))
+    lab[:, 2] = lch[:, 1] * numpy.sin(numpy.radians(lch[:, 2]))
 
     # convert to RGB using the CIE L*a*b* function
     rgb_out = cielab2rgb(lab,
