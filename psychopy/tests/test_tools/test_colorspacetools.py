@@ -114,34 +114,35 @@ def test_srgbTF():
 
 
 @pytest.mark.colorspacetools
-def test_cielab2rgb():
-    """Test the CIE-Lab to RGB function using the sRGB transfer function.
-
+def test_cielch2rgb():
+    """Test the CIE-LCh to linear RGB function.
     """
-    # preset CIE-Lab colors using a D65 white-point and expected RGB values
-    cielabD65 = np.array([
-        [0.0, 0.0, 0.0],   # black
-        [100.0,  0.0,  0.0],    # white
-        [53.24, 80.09, 67.20],  # red
-        [87.73, -86.18, 83.18],   # green
-        [32.30, 79.19, -107.86],  # blue
-        [97.14, -21.55, 94.48],  # yellow
-        [91.11, -48.09, -14.13],   # cyan
-        [60.32, 98.23, -60.82]  # magenta
-    ])
-    rgbExpected = np.array([
-        [-1., -1., -1.],
-        [1., 1., 1.],
-        [1., -1., -1.],
-        [-1., 1., -1.],
-        [-1., -1., 1.],
-        [1., 1., -1.],
-        [-1., 1., 1.],
-        [1., -1., 1.]
+    # preset CIE-LCh colors
+    cielchColors = np.array([
+        [0.0,    0.0,     0.0],      # black
+        [100.0,  0.0,     0.0],      # white
+        [53.241, 104.552, 39.999],   # red
+        [97.139, 96.905,  102.851],  # yellow
+        [87.735, 119.776, 136.016],  # green
+        [91.113, 50.121,  196.376],  # cyan
+        [32.297, 133.808, 306.285],  # blue
+        [60.324, 115.541, 328.235]   # magenta
     ])
 
-    # test conversion with D65 white point
-    rgbOutD65 = cielab2rgb(cielabD65, transferFunc=srgbTF)
+    # test conversion using PsyhoPy RGB [-1:1] values
+    rgbExpected = np.array([
+        [-1.0, -1.0, -1.0],  # black
+        [ 1.0,  1.0,  1.0],  # white
+        [ 1.0, -1.0, -1.0],  # red
+        [ 1.0,  1.0, -1.0],  # yellow
+        [-1.0,  1.0, -1.0],  # green
+        [-1.0,  1.0,  1.0],  # cyan
+        [-1.0, -1.0,  1.0],  # blue
+        [ 1.0, -1.0,  1.0]   # magenta
+    ])
+
+    # do the conversion
+    rgbOutD65 = cielch2rgb(cielchColors)
     assert np.allclose(rgbOutD65, rgbExpected, atol=0.01)
 
 
