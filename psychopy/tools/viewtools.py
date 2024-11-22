@@ -17,7 +17,7 @@ __all__ = ['Frustum',
            'generalizedPerspectiveProjection',
            'orthoProjectionMatrix',
            'perspectiveProjectionMatrix',
-           'lookAt',
+           # 'lookAt',
            'pointToNdc',
            'cursorToRay',
            'visible',
@@ -29,9 +29,6 @@ import psychopy.tools.mathtools as mt
 
 DEG_TO_RAD = np.pi / 360.0
 VEC_FWD_AND_UP = np.array(((0., 0., -1.), (0., 1., 0.)), dtype=np.float32)
-
-
-lookAt = mt.lookAt  # moved to mathtools, but keep here for legacy reasons
 
 
 def visualAngle(size, distance, degrees=True, out=None, dtype=None):
@@ -864,6 +861,48 @@ def cursorToRay(cursorX, cursorY, winSize, viewport, projectionMatrix,
         mt.normalize(toReturn, out=toReturn)
 
     return toReturn
+
+
+def lookAt(eyePos, centerPos, upVec=(0.0, 1.0, 0.0), out=None, dtype=None):
+    """Create a transformation matrix to orient a view towards some point. 
+    
+    Based on the same algorithm as 'gluLookAt'. This does not generate a 
+    projection matrix, but rather the matrix to transform the observer's view in 
+    the scene.
+
+    For more information see:
+    https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/gluLookAt.xml
+
+    Parameters
+    ----------
+    eyePos : list of float or ndarray
+        Eye position in the scene.
+    centerPos : list of float or ndarray
+        Position of the object center in the scene.
+    upVec : list of float or ndarray, optional
+        Vector defining the up vector. Default is +Y is up.
+    out : ndarray, optional
+        Optional output array. Must be same `shape` and `dtype` as the expected
+        output if `out` was not specified.
+    dtype : dtype or str, optional
+        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
+        specified, the data type is inferred by `out`. If `out` is not provided,
+        the default is 'float64'.
+
+    Returns
+    -------
+    ndarray
+        4x4 view matrix
+
+    Notes
+    -----
+    * This function is an alias of `mathtools.lookAt`, it is not imported when
+      importing all.
+    * The returned matrix is row-major. Values are floats with 32-bits of
+      precision stored as a contiguous (C-order) array.
+
+    """
+    return mt.lookAt(eyePos, centerPos, upVec, out=out, dtype=dtype)
 
 
 def visibleBBox(extents, mvp, dtype=None):
