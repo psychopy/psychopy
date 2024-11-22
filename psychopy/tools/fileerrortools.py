@@ -9,6 +9,7 @@
 """
 import os
 import glob
+import re
 
 from psychopy import logging
 
@@ -34,6 +35,10 @@ def handleFileCollision(fileName, fileCollisionMethod):
     elif fileCollisionMethod == 'rename':
         rootName, extension = os.path.splitext(fileName)
         matchingFiles = glob.glob("%s*%s" % (rootName, extension))
+
+        # Keep only files matching the specific pattern used in renaming
+        pattern = rf"{re.escape(rootName)}(_\d+)?{re.escape(extension)}$"
+        matchingFiles = [f for f in matchingFiles if re.match(pattern, f)]
 
         # Build the renamed string.
         if not matchingFiles:
