@@ -2658,6 +2658,42 @@ def matrixToQuat(m, out=None, dtype=None):
 # Matrix Operations
 #
 
+def identityMatrix(size=4, out=None, dtype=None):
+    """Create an identity matrix.
+
+    Parameters
+    ----------
+    size : int, optional
+        Size of the matrix. Default is 4x4.
+    out : ndarray, optional
+        Optional output array. Must be same `shape` and `dtype` as the expected
+        output if `out` was not specified.
+    dtype : dtype or str, optional
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
+
+    Returns
+    -------
+    ndarray
+        Identity matrix.
+
+    """
+    # this might seem overkill for creating an identity matrix, but it is
+    
+    if out is None:
+        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+        ident = np.zeros((size, size), dtype=dtype)
+    else:
+        dtype = np.dtype(out.dtype).type
+        ident = out
+        ident.fill(0.0)
+
+    np.fill_diagonal(ident, 1.0)
+
+    return ident
+    
+
 def quatToMatrix(q, out=None, dtype=None):
     """Create a 4x4 rotation matrix from a quaternion.
 
