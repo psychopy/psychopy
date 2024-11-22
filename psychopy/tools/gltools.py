@@ -14,6 +14,8 @@ __all__ = [
     'compileShader',
     'compileShaderObjectARB',
     'embedShaderSourceDefs',
+    'deleteShader',
+    'deleteProgram',
     'deleteObject',
     'deleteObjectARB',
     'attachShader',
@@ -475,6 +477,32 @@ def embedShaderSourceDefs(shaderSrc, defs):
         srcOut = glslDefSrc + shaderSrc
 
     return srcOut
+
+
+def deleteShader(shader):
+    """Delete a shader object.
+
+    Parameters
+    ----------
+    shader : int
+        Shader object handle to delete. Must have originated from a
+        :func:`compileShader` or `glCreateShader` call.
+
+    """
+    GL.glDeleteShader(shader)
+
+
+def deleteProgram(program):
+    """Delete a shader program object.
+
+    Parameters
+    ----------
+    program : int
+        Program object handle to delete. Must have originated from a
+        :func:`createProgram` or `glCreateProgram` call.
+
+    """
+    GL.glDeleteProgram(program)
 
 
 def deleteObject(obj):
