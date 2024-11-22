@@ -19,17 +19,18 @@ class Shader:
         def compileShader(source, shaderType):
             """Compile shader source of given type (only needed by compileProgram)
             """
-            shader = GL.glCreateShaderObjectARB(shaderType)
+            shader = GL.glCreateShader(shaderType)
             # if Py3 then we need to convert our (unicode) str into bytes for C
             if type(source) != bytes:
                 source = source.encode()
             prog = c_char_p(source)
             length = c_int(-1)
-            GL.glShaderSourceARB(shader,
-                                 1,
-                                 cast(byref(prog), POINTER(POINTER(c_char))),
-                                 byref(length))
-            GL.glCompileShaderARB(shader)
+            GL.glShaderSource(
+                shader, 
+                1,
+                cast(byref(prog), POINTER(POINTER(c_char))),
+                byref(length))
+            GL.glCompileShader(shader)
 
             # check for errors
             status = c_int()
@@ -39,26 +40,26 @@ class Shader:
                 raise ValueError('Shader compilation failed')
             return shader
 
-        self.handle = GL.glCreateProgramObjectARB()
+        self.handle = GL.glCreateProgram()
 
         if vertexSource:
             vertexShader = compileShader(
-                vertexSource, GL.GL_VERTEX_SHADER_ARB
+                vertexSource, GL.GL_VERTEX_SHADER
             )
-            GL.glAttachObjectARB(self.handle, vertexShader)
+            GL.glAttachShader(self.handle, vertexShader)
         if fragmentSource:
             fragmentShader = compileShader(
-                fragmentSource, GL.GL_FRAGMENT_SHADER_ARB
+                fragmentSource, GL.GL_FRAGMENT_SHADER
             )
-            GL.glAttachObjectARB(self.handle, fragmentShader)
+            GL.glAttachShader(self.handle, fragmentShader)
 
-        GL.glValidateProgramARB(self.handle)
-        GL.glLinkProgramARB(self.handle)
+        GL.glValidateProgram(self.handle)
+        GL.glLinkProgram(self.handle)
 
         if vertexShader:
-            GL.glDeleteObjectARB(vertexShader)
+            GL.glDeleteShader(vertexShader)
         if fragmentShader:
-            GL.glDeleteObjectARB(fragmentShader)
+            GL.glDeleteShader(fragmentShader)
 
     def bind(self):
         GL.glUseProgram(self.handle)
@@ -117,27 +118,27 @@ def compileProgram(vertexSource=None, fragmentSource=None):
         Program object handle.
 
     """
-    program = gltools.createProgramObjectARB()
+    program = gltools.createProgram()
 
     vertexShader = fragmentShader = None
     if vertexSource:
-        vertexShader = gltools.compileShaderObjectARB(
-            vertexSource, GL.GL_VERTEX_SHADER_ARB)
-        gltools.attachObjectARB(program, vertexShader)
+        vertexShader = gltools.compileShader(
+            vertexSource, GL.GL_VERTEX_SHADER)
+        gltools.attachShader(program, vertexShader)
     if fragmentSource:
-        fragmentShader = gltools.compileShaderObjectARB(
-            fragmentSource, GL.GL_FRAGMENT_SHADER_ARB)
-        gltools.attachObjectARB(program, fragmentShader)
+        fragmentShader = gltools.compileShader(
+            fragmentSource, GL.GL_FRAGMENT_SHADER)
+        gltools.attachShader(program, fragmentShader)
 
-    gltools.linkProgramObjectARB(program)
+    gltools.linkProgram(program)
     # gltools.validateProgramARB(program)
 
     if vertexShader:
-        gltools.detachObjectARB(program, vertexShader)
-        gltools.deleteObjectARB(vertexShader)
+        gltools.detachShader(program, vertexShader)
+        gltools.deleteObject(vertexShader)
     if fragmentShader:
-        gltools.detachObjectARB(program, fragmentShader)
-        gltools.deleteObjectARB(fragmentShader)
+        gltools.detachShader(program, fragmentShader)
+        gltools.deleteObject(fragmentShader)
 
     return program
 
