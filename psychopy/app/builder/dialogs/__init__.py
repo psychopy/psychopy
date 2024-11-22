@@ -28,9 +28,10 @@ from .dlgsConditions import DlgConditions
 from .dlgsCode import DlgCodeComponentProperties, CodeBox
 from .findDlg import BuilderFindDlg
 from . import paramCtrls
+from psychopy.app.utils import HyperLinkCtrl
 from psychopy import data, logging, exceptions
 from psychopy.localization import _translate
-from psychopy.tools import versionchooser as vc
+from psychopy.tools import versionchooser as vc, pkgtools
 from psychopy.alerts import alert
 from ...colorpicker import PsychoColorPicker
 from pathlib import Path
@@ -879,6 +880,7 @@ class _BaseParamsDlg(wx.Dialog):
         self.showAdvanced = showAdvanced
         self.order = element.order
         self.depends = element.depends
+        self.plugin = element.plugin
         self.data = []
         # max( len(str(self.params[x])) for x in keys )
         self.maxFieldLength = 10
@@ -907,11 +909,25 @@ class _BaseParamsDlg(wx.Dialog):
 
         self.mainSizer.Add(self.ctrls,  # ctrls is the notebook of params
                            proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
+        # if element came from a plugin that's not installed, add button to open plugins dlg
+        self.pluginBtn = HyperLinkCtrl(
+            self, label=_translate("Requires plugin {}, click here to install.").format(self.plugin)
+        )
+        self.pluginBtn.Bind(wx.EVT_BUTTON, self.jumpToPlugin)
+        self.mainSizer.Add(self.pluginBtn, border=6, flag=wx.CENTER | wx.ALL)
+        # show/hide button according to whether the plugin is installed or not
+        self.pluginBtn.Show(
+            self.plugin not in (None, "None", "") and self.plugin not in dict(pkgtools.getInstalledPackages())
+        )
 
         self.SetSizerAndFit(self.mainSizer)
 
     def getParams(self):
         return self.ctrls.getParams()
+
+    def jumpToPlugin(self, evt):
+        dlg = self.frame.openPluginManager()
+        dlg.jumpToPlugin(self.plugin)
 
     def openMonitorCenter(self, event):
         self.app.openMonitorCenter(event)

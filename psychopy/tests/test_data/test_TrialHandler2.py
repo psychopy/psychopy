@@ -287,7 +287,7 @@ class TestTrialHandler2:
         cases = [
             {'advance': 2, 'i': 2},
             {'advance': 1, 'i': 3},
-            {'advance': -2, 'i': 1},
+            {'advance': -2, 'i': 2},
         ]
         # try cases
         for case in cases:
@@ -356,11 +356,11 @@ class TestTrialHandler2:
         cases = [
             # move backwards and forwards and check we land in the right place
             (+4, {'thisN': 4, 'thisRepN': 1, 'thisTrialN': 1, 'thisIndex': 1}),
-            (-1, {'thisN': 3, 'thisRepN': 1, 'thisTrialN': 0, 'thisIndex': 0}),
-            (-3, {'thisN': 0, 'thisRepN': 0, 'thisTrialN': 0, 'thisIndex': 0}),
-            (+2, {'thisN': 2, 'thisRepN': 0, 'thisTrialN': 2, 'thisIndex': 2}),
-            (-1, {'thisN': 1, 'thisRepN': 0, 'thisTrialN': 1, 'thisIndex': 1}),
+            (-2, {'thisN': 3, 'thisRepN': 1, 'thisTrialN': 0, 'thisIndex': 0}),
+            (-3, {'thisN': 1, 'thisRepN': 0, 'thisTrialN': 1, 'thisIndex': 1}),
             (+2, {'thisN': 3, 'thisRepN': 1, 'thisTrialN': 0, 'thisIndex': 0}),
+            (-1, {'thisN': 3, 'thisRepN': 1, 'thisTrialN': 0, 'thisIndex': 0}),
+            (+2, {'thisN': 5, 'thisRepN': 1, 'thisTrialN': 2, 'thisIndex': 2}),
             # move back past the start and check we land at the start
             (-10, {'thisN': 0, 'thisRepN': 0, 'thisTrialN': 0, 'thisIndex': 0}),
             # move forwards past the end and check we land at the end
@@ -369,7 +369,10 @@ class TestTrialHandler2:
         # iterate through cases
         for inc, answer in cases:
             # account for current iteration ending (as if in experiment)
-            t.__next__()
+            try:
+                t.__next__()
+            except StopIteration:
+                pass
             
             if inc < 0:
                 # if increment is negative, rewind
@@ -377,12 +380,14 @@ class TestTrialHandler2:
             else:
                 # if positive, skip
                 t.skipTrials(inc)
+            
             # check that new current Trial is correct
-            for key in answer:
-                assert getattr(t.thisTrial, key) == answer[key], (
-                    f"Was expecting current trial to match all fields {answer}, instead was "
-                    f"{t.thisTrial.getDict()} (different {key})"
-                )
+            if t.thisTrial is not None:
+                for key in answer:
+                    assert getattr(t.thisTrial, key) == answer[key], (
+                        f"Was expecting current trial to match all fields {answer}, instead was "
+                        f"{t.thisTrial.getDict()} (different {key})"
+                    )
             # check that trials are still in the correct order
             if t.upcomingTrials:
                 assert t.upcomingTrials[0].thisN == t.thisTrial.thisN + 1

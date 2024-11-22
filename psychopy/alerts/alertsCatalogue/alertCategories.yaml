@@ -25,7 +25,10 @@
     cat: Visual
     3110: Component duration less than 1 screen refresh
     3115: Component start/stop times cannot sync with screen refresh
-  3200: Audio
+  3200:
+    cat: Audio
+    3210: Exclusive latency mode
+
   3400: Response
 
 4000:

@@ -54,8 +54,6 @@ Multiple stimuli:
 * :class:`.LightSource` to define a light source in a scene
 * :class:`.SceneSkybox` to render a background skybox for VR and 3D scenes
 * :class:`.BlinnPhongMaterial` to specify a material using the Blinn-Phong lighting model
-* :class:`.RigidBodyPose` to define poses of objects in 3D space
-* :class:`.BoundingBox` to define bounding boxes around 3D objects
 * :class:`.SphereStim` to show a 3D sphere
 * :class:`.BoxStim` to show 3D boxes and cubes
 * :class:`.PlaneStim` to show 3D plane

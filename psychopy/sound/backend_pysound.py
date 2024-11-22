@@ -174,7 +174,7 @@ class SoundPySoundCard(_SoundBase):
         self.name = name  # only needed for autoLogging
         self.autoLog = autoLog
 
-        self.speaker = self._parseSpeaker(speaker)
+        self.speaker = speaker
 
         self.sampleRate = sampleRate
         self.bufferSize = bufferSize

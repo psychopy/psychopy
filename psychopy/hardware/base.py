@@ -200,6 +200,8 @@ class BaseResponseDevice(BaseDevice):
         self.listeners = []
         # list to store responses in
         self.responses = []
+        # list to store callbacks against their triggering event
+        self.callbacks = []
         # indicator to mute outside of registered apps
         self.muteOutsidePsychopy = False 
 
@@ -224,6 +226,79 @@ class BaseResponseDevice(BaseDevice):
         raise NotImplementedError(
             "All subclasses of BaseDevice must implement the method `parseMessage`"
         )
+       
+    def registerCallback(self, response, func, args=None, kwargs=None):
+        """
+        Register a function to be executed automatically when this device receives a response with 
+        the matching value.
+
+        Parameters
+        ----------
+        response : *
+            Can be either:
+                - A value which will return True when compared via `==` to the desired response 
+                object, e.g. "q" to register a callback with KeyboardDevice when the q key is 
+                pressed
+                - A method which takes an incoming BaseResponse object as its input and returns 
+                True/False. Keep in mind this will be executed every time a response is received -
+                this function should be fast, otherwise you could significantly damage your timing!
+        func : function
+            Function to call when a matching response is received.
+        args : tuple, optional
+            List of positional arguments to call the function with, leave blank to give no 
+            positional arguments.
+        kwargs : dict, optional
+            Dict of keyword arguments to call the function with, leave blank to give no keyword 
+            arguments.
+        desc : str, optional
+            A helpful string describing what the callback does (e.g. "End the experiment")
+        """
+        
+        if callable(response):
+            # if response is callable, use it for query
+            query = response
+        else:
+            # otherwise, make a callable to check against incoming value
+            if self.responseClass.__eq__ is object.__eq__:
+                # warn if this device's responses aren't comparable via ==
+                logging.warn(
+                    "{clsName} received {respName} objects, which cannot be compared via `==`. "
+                    "This callback is likely to error when executed."
+                    .format(clsName=type(self).__name__, respName=self.responseClass.__name__)
+                )
+            # define a basic query and use it for the response query
+            def _callbackQuery(message: BaseResponse):
+                return message == response
+            query = _callbackQuery
+        # handle no args and no kwargs
+        if args is None:
+            args = []
+        if kwargs is None:
+            kwargs = {}
+        # store a dict profile for this callback
+        self.callbacks.append({
+            'query': query,
+            'func': func,
+            'args': args,
+            'kwargs': kwargs
+        })
+    
+    def checkCallbacks(self, message):
+        """
+        Check whether a received message should trigger any registered callback functions (see 
+        `.registerCallback`) and, if so, execute them.
+
+        Parameters
+        ----------
+        message : BaseResponse
+            Received response to query callbacks for
+        """
+        # check all registered callbacks
+        for callback in self.callbacks:
+            # call query function
+            if callback['query'](message):
+                # if True, execute callback
+                return callback['func'](*callback['args'], **callback['kwargs'])
 
     def receiveMessage(self, message):
         """
@@ -250,6 +325,8 @@ class BaseResponseDevice(BaseDevice):
         ).format(ownType=type(self).__name__, targetType=self.responseClass.__name__, msgType=type(message).__name__)
         # add message to responses
         self.responses.append(message)
+        # execute relevant callbacks
+        self.checkCallbacks(message)
         # relay message to listener
         for listener in self.listeners:
             listener.receiveMessage(message)

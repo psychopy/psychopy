@@ -55,7 +55,15 @@ class _Tee(object):
         sys.__stdout__.flush()
 
 
-def startApp(showSplash=True, testMode=False, safeMode=False, startView=None):
+def startApp(
+        showSplash=True, 
+        testMode=False, 
+        safeMode=False, 
+        startView=None,
+        startFiles=None,
+        firstRun=False,
+        profiling=False,
+    ):
     """Start the PsychoPy GUI.
 
     This function is idempotent, where additional calls after the app starts
@@ -117,7 +125,15 @@ def startApp(showSplash=True, testMode=False, safeMode=False, startView=None):
     # console.
     from psychopy.app._psychopyApp import PsychoPyApp
     _psychopyAppInstance = PsychoPyApp(
-        0, testMode=testMode, showSplash=showSplash, safeMode=safeMode, startView=startView)
+        0, 
+        testMode=testMode, 
+        showSplash=showSplash, 
+        safeMode=safeMode, 
+        startView=startView,
+        startFiles=startFiles,
+        firstRun=firstRun,
+        profiling=profiling,
+    )
 
     # After the app is loaded, we hand off logging to the stream dispatcher
     # using the provided log file path. The dispatcher will write out any log

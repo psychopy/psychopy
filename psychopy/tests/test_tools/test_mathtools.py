@@ -570,7 +570,7 @@ def test_invertMatrix():
     # check homogeneous inverse
     ident = np.identity(4)
     for i in range(N):
-        r = rotationMatrix(angles[i], axes[i, :])
+        r = rotationMatrix(angles[i].item(), axes[i, :])
 
         assert isOrthogonal(r)
 
@@ -593,7 +593,7 @@ def test_invertMatrix():
     inv = np.zeros((4, 4))
     ident = np.identity(4)
     for i in range(N):
-        rotationMatrix(angles[i], axes[i, :], out=rout)
+        rotationMatrix(angles[i].item(), axes[i, :], out=rout)
 
         assert isOrthogonal(rout)
 
@@ -615,23 +615,23 @@ def test_invertMatrix():
     eyeOffsets = np.random.uniform(-0.1, 0.1, (N,))
 
     for i in range(N):
-        scrWidth = scrDims[i, 0]
-        scrAspect = scrDims[i, 0] / scrDims[i, 1]
-        viewDist = viewDists[i]
+        scrWidth = scrDims[i, 0].item()
+        scrAspect = scrWidth / scrDims[i, 1].item()
+        viewDist = viewDists[i].item()
 
         # nearClip some distance between screen and eye
-        nearClip = np.random.uniform(0.1, viewDist, (1,))
+        nearClip = np.random.uniform(0.1, viewDist, (1,)).item()
 
         # nearClip some distance beyond screen
         fcMin = viewDist + nearClip
-        farClip = np.random.uniform(fcMin, 1000.0, (1,))
+        farClip = np.random.uniform(fcMin, 1000.0, (1,)).item()
 
         # get projection matrix
         frustum = computeFrustum(
             scrWidth,
             scrAspect,
             viewDist,
-            eyeOffset=eyeOffsets[i],
+            eyeOffset=eyeOffsets[i].item(),
             nearClip=nearClip,
             farClip=farClip)
 
@@ -639,7 +639,7 @@ def test_invertMatrix():
         assert not isAffine(proj)
 
         # create affine view matrix
-        r = rotationMatrix(angles[i], axes[i, :])
+        r = rotationMatrix(angles[i].item(), axes[i, :])
         assert isOrthogonal(r)
 
         t = translationMatrix(trans[i, :])

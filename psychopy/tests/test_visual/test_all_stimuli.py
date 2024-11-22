@@ -395,7 +395,7 @@ class _baseVisualTest():
             "dots._dotsDir failed to change after dots.setDir()"
         assert prevSignals.sum()!=dots._signalDots.sum(), \
             "dots._signalDots failed to change after dots.setCoherence()"
-        assert not numpy.alltrue(prevVerticesPix==dots.verticesPix), \
+        assert not numpy.all(prevVerticesPix==dots.verticesPix), \
             "dots.verticesPix failed to change after dots.setPos()"
 
     def test_element_array(self):

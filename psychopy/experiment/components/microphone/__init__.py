@@ -14,21 +14,6 @@ from psychopy.tools import stringtools as st, systemtools as syst, audiotools as
 from psychopy.experiment.components import (
     BaseComponent, BaseDeviceComponent, Param, getInitVals, _translate
 )
-from psychopy.tools.audiotools import sampleRateQualityLevels
-
-_hasPTB = True
-try:
-    import psychtoolbox.audio as audio
-except (ImportError, ModuleNotFoundError):
-    logging.warning(
-        "The 'psychtoolbox' library cannot be loaded but is required for audio "
-        "capture (use `pip install psychtoolbox` to get it). Microphone "
-        "recording will be unavailable this session. Note that opening a "
-        "microphone stream will raise an error.")
-    _hasPTB = False
-
-# Get list of sample rates
-sampleRates = {r[1]: r[0] for r in sampleRateQualityLevels.values()}
 
 
 class MicrophoneComponent(BaseDeviceComponent):
@@ -58,6 +43,7 @@ class MicrophoneComponent(BaseDeviceComponent):
                  stopType='duration (s)', stopVal=2.0,
                  startEstim='', durationEstim='',
                  channels='auto', device=None,
+                 exclusive=False,
                  sampleRate='DVD Audio (48kHz)', maxSize=24000,
                  outputType='default', speakTimes=False, trimSilent=False,
                  policyWhenFull='warn',
@@ -89,6 +75,7 @@ class MicrophoneComponent(BaseDeviceComponent):
             "device",
             "channels",
             "sampleRate",
+            "exclusive",
             "maxSize",
         ]
 
@@ -136,14 +123,28 @@ class MicrophoneComponent(BaseDeviceComponent):
                 "many channels as the selected device allows."
             )
         )
+
+        def getSampleRates():
+            return [r[0] for r in at.sampleRateQualityLevels.values()]
+        def getSampleRateLabels():
+            return [r[1] for r in at.sampleRateQualityLevels.values()]
         self.params['sampleRate'] = Param(
             sampleRate, valType='num', inputType="choice", categ='Device',
-            allowedVals=list(sampleRates),
+            allowedVals=getSampleRates,
+            allowedLabels=getSampleRateLabels,
             label=_translate("Sample rate (hz)"),
             hint=_translate(
                 "How many samples per second (Hz) to record at"
             ),
             direct=False
+        )
+        self.params['exclusive'] = Param(
+            exclusive, valType="code", inputType="bool", categ="Device",
+            label=_translate("Exclusive control"),
+            hint=_translate(
+                "Take exclusive control of the microphone, so other apps can't use it during your "
+                "experiment."
+            )
         )
         self.params['maxSize'] = Param(
             maxSize, valType='num', inputType="single", categ='Device',
@@ -323,8 +324,9 @@ class MicrophoneComponent(BaseDeviceComponent):
         inits = getInitVals(self.params)
 
         # --- setup mic ---
-        # Substitute sample rate value for numeric equivalent
-        inits['sampleRate'] = sampleRates[inits['sampleRate'].val]
+        # make sure sample rate is numeric
+        if inits['sampleRate'].val in at.sampleRateLabels:
+            inits['sampleRate'].val = at.sampleRateLabels[inits['sampleRate'].val]
         # Substitute channel value for numeric equivalent
         inits['channels'] = {'mono': 1, 'stereo': 2, 'auto': None}[self.params['channels'].val]
         # initialise mic device
@@ -335,6 +337,7 @@ class MicrophoneComponent(BaseDeviceComponent):
             "    deviceName=%(deviceLabel)s,\n"
             "    index=%(device)s,\n"
             "    maxRecordingSize=%(maxSize)s,\n"
+            "    exclusive=%(exclusive)s,\n"
         )
         if self.params['device'].val not in ("None", "", None):
             code += (
@@ -410,12 +413,16 @@ class MicrophoneComponent(BaseDeviceComponent):
             "# tell the experiment handler to save this Microphone's clips if the experiment is "
             "force ended\n"
             "runAtExit.append(%(name)s.saveClips)\n"
+            "# connect camera save method to experiment handler so it's called when data saves\n"
+            "thisExp.connectSaveMethod(%(name)s.saveClips)\n"
         )
         buff.writeIndentedLines(code % inits)
 
     def writeInitCodeJS(self, buff):
         inits = getInitVals(self.params)
-        inits['sampleRate'] = sampleRates[inits['sampleRate'].val]
+        # make sure sample rate is numeric
+        if inits['sampleRate'].val in at.sampleRateLabels:
+            inits['sampleRate'].val = at.sampleRateLabels[inits['sampleRate'].val]
         # Alert user if non-default value is selected for device
         if inits['device'].val != 'default':
             alert(5055, strFields={'name': inits['name'].val})

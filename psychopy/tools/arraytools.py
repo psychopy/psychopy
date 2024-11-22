@@ -222,7 +222,7 @@ def val2array(value, withNone=True, withScalar=True, length=2):
             raise ValueError('Invalid parameter. None is not accepted as '
                              'value.')
     value = numpy.array(value, float)
-    if numpy.product(value.shape) == 1:
+    if numpy.prod(value.shape) == 1:
         if withScalar:
             # e.g. 5 becomes array([5.0, 5.0, 5.0]) for length=3
             return numpy.repeat(value, length)

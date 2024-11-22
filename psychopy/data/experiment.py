@@ -11,7 +11,7 @@ from psychopy import constants, clock
 from psychopy import logging
 from psychopy.data.trial import TrialHandler2
 from psychopy.tools.filetools import (openOutputFile, genDelimiter,
-                                      genFilenameFromDelimiter)
+                                      genFilenameFromDelimiter, handleFileCollision)
 from psychopy.localization import _translate
 from .utils import checkValidFilePath
 from .base import _ComparisonMixin
@@ -95,7 +95,7 @@ class ExperimentHandler(_ComparisonMixin):
         self.originPath = originPath
         self.savePickle = savePickle
         self.saveWideText = saveWideText
-        self.dataFileName = dataFileName
+        self.dataFileName = handleFileCollision(dataFileName, "rename")
         self.sortColumns = sortColumns
         self.thisEntry = {}
         self.entries = []  # chronological list of entries
@@ -110,6 +110,8 @@ class ExperimentHandler(_ComparisonMixin):
         self.status = constants.NOT_STARTED
         # dict of filenames to collision method to be used next time it's saved
         self._nextSaveCollision = {}
+        # list of call profiles for connected save methods
+        self.connectedSaveMethods = []
 
         if dataFileName in ['', None]:
             logging.warning('ExperimentHandler created with no dataFileName'
@@ -630,29 +632,63 @@ class ExperimentHandler(_ComparisonMixin):
         # handle default
         if fileName is None:
             fileName = self.dataFileName
+        # make filename iterable
+        if not isinstance(fileName, (list, tuple)):
+            fileName = [fileName]
         # queue collision
-        self._nextSaveCollision[fileName] = fileCollisionMethod
+        for thisFileName in fileName:
+            self._nextSaveCollision[thisFileName] = fileCollisionMethod
+    
+    def connectSaveMethod(self, fcn, *args, **kwargs):
+        """
+        Tell this experiment handler to call the given function with the given arguments and 
+        keyword arguments whenever it saves its own data.
+
+        Parameters
+        ----------
+        fcn : function
+            Function to call
+        *args
+            Positional arguments to be given to the function when it's called
+        **kwargs
+            Keyword arguments to be given to the function when it's called
+        """
+        # create a call profile for the given function
+        profile = {
+            'fcn': fcn,
+            'args': args,
+            'kwargs': kwargs
+        }
+        # connect it
+        self.connectedSaveMethods.append(profile)
     
     def save(self):
         """
         Work out from own settings how to save, then use the appropriate method (saveAsWideText, 
         saveAsPickle, etc.)
         """
-        savedName = None
+        savedNames = []
         if self.dataFileName not in ['', None]:
             if self.autoLog:
                 msg = 'Saving data for %s ExperimentHandler' % self.name
                 logging.debug(msg)
             if self.savePickle:
-                savedName = self.saveAsPickle(self.dataFileName)
+                savedNames.append(
+                    self.saveAsPickle(self.dataFileName)
+                )
             if self.saveWideText:
-                savedName = self.saveAsWideText(self.dataFileName + '.csv')
+                savedNames.append(
+                    self.saveAsWideText(self.dataFileName + '.csv')
+                )
         else:
             logging.warn(
                 "ExperimentHandler.save was called on an ExperimentHandler with no dataFileName set."
             )
+        # call connected save functions
+        for profile in self.connectedSaveMethods:
+            profile['fcn'](*profile['args'], **profile['kwargs'])
         
-        return savedName
+        return savedNames
 
     def saveAsWideText(self,
                        fileName,
@@ -816,22 +852,21 @@ class ExperimentHandler(_ComparisonMixin):
         savePickle = self.savePickle
         saveWideText = self.saveWideText
 
+        # append extension
+        if not fileName.endswith('.psydat'):
+            fileName += '.psydat'
+
         # check for queued collision methods if using default, fallback to rename
-        if fileCollisionMethod is None:
-            if fileCollisionMethod is None and fileName in self._nextSaveCollision:
-                fileCollisionMethod = self._nextSaveCollision.pop(fileName)
-            elif fileCollisionMethod is None:
-                fileCollisionMethod = "rename"
+        if fileCollisionMethod is None and fileName in self._nextSaveCollision:
+            fileCollisionMethod = self._nextSaveCollision.pop(fileName)
+        elif fileCollisionMethod is None:
+            fileCollisionMethod = "rename"
 
         self.savePickle = False
         self.saveWideText = False
 
         origEntries = self.entries
         self.entries = self.getAllEntries()
-
-        # otherwise use default location
-        if not fileName.endswith('.psydat'):
-            fileName += '.psydat'
 
         with openOutputFile(fileName=fileName, append=False,
                            fileCollisionMethod=fileCollisionMethod) as f:

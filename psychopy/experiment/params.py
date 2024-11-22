@@ -55,6 +55,7 @@ inputDefaults = {
 # version" warnings
 legacyParams = [
     'lineColorSpace', 'borderColorSpace', 'fillColorSpace', 'foreColorSpace',  # 2021.1, we standardised colorSpace to be object-wide rather than param-specific
+    'Audio latency priority',  # from 2025.1, latency priority is handled by a combination of exclusivity and resampling settings
 ]
 
 class Param():
@@ -132,7 +133,7 @@ class Param():
             - code: Some code, will be compiled verbatim or translated to JS (no ")
             - extendedCode: A block of code, will be compiled verbatim or translated to JS and
               linebreaks will be preserved
-            - file: A file path, will be compiled like str but will replace unescaped \ with /
+            - file: A file path, will be compiled like str but will replace unescaped \\ with /
             - list: A list of values, will be compiled like code but if there's no [] or () then
               these are added
             Note that, if value begins with a $, it will always be treated as code regardless of
@@ -173,7 +174,7 @@ class Param():
             Mostly used by the test suite to check that params which should be used are used.
         canBePath : bool
             Is it possible for this parameter to be a path? Setting to False will disable
-            filepath sanitization (e.g. for textbox you may not want to replace \ with /)
+            filepath sanitization (e.g. for textbox you may not want to replace \\ with /)
         ctrlParams : dict
             Extra information to pass to the control, such as the Excel template file to use in a
             `table` control.

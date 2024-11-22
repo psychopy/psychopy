@@ -14,6 +14,7 @@ from pathlib import Path
 from psychopy import prefs, logging, exceptions
 from psychopy.constants import (STARTED, PAUSED, FINISHED, STOPPING,
                                 NOT_STARTED)
+from psychopy.hardware.speaker import SpeakerDevice
 from psychopy.tools import systemtools
 from psychopy.tools import filetools as ft
 from .exceptions import SoundFormatError, DependencyError
@@ -32,18 +33,8 @@ except Exception:
 
 import numpy as np
 
-try:
-    defaultLatencyClass = int(prefs.hardware['audioLatencyMode'][0])
-except (TypeError, IndexError):  # maybe we were given a number instead
-    defaultLatencyClass = prefs.hardware['audioLatencyMode']
-"""vals in prefs.hardware['audioLatencyMode'] are:
-     {0:_translate('Latency not important'),
-      1:_translate('Share low-latency driver'),
-      2:_translate('Exclusive low-latency'),
-      3:_translate('Aggressive low-latency'),
-      4:_translate('Latency critical')}
-Based on help at http://psychtoolbox.org/docs/PsychPortAudio-Open
-"""
+
+defaultLatencyClass = 1
 # suggestedLatency = 0.005  ## Not currently used. Keep < 1 scr refresh
 
 if prefs.hardware['audioDriver']=='auto':
@@ -55,6 +46,11 @@ if prefs.hardware['audioDevice']=='auto':
     audioDevice = None
 else:
     audioDevice = prefs.hardware['audioDevice']
+
+# check if we should only use WAS host API (default is True on Windows)
+audioWASAPIOnly = False
+if sys.platform == 'win32' and prefs.hardware['audioWASAPIOnly']:
+    audioWASAPIOnly = True
 
 # these will be used by sound.__init__.py
 defaultInput = None
@@ -78,211 +74,6 @@ for _logLevel, _verbos in _verbosities:
 
 def init(rate=48000, stereo=True, buffer=128):
     pass  # for compatibility with other backends
-
-
-def getDevices(kind=None):
-    """Returns a dict of dict of audio devices of specified `kind`
-
-    kind can be None, 'input' or 'output'
-    The dict keys are names, and items are dicts of properties
-    """
-    if sys.platform == 'win32':
-        deviceTypes = 13  # only WASAPI drivers need apply!
-    else:
-        deviceTypes = None
-    devs = {}
-    if systemtools.isVM_CI():  # GitHub actions VM does not have a sound device
-        return devs
-    else:
-        allDevs = audio.get_devices(device_type=deviceTypes)
-
-    # annoyingly query_devices is a DeviceList or a dict depending on number
-    if isinstance(allDevs, dict):
-        allDevs = [allDevs]
-
-    for ii, dev in enumerate(allDevs):
-        if kind and kind.startswith('in'):
-            if dev['NrInputChannels'] < 1:
-                continue
-        elif kind and kind.startswith('out'):
-            if dev['NrOutputChannels'] < 1:
-                continue
-        # we have a valid device so get its name
-        # newline characters must be removed
-        devName = dev['DeviceName'].replace('\r\n', '')
-        devs[devName] = dev
-        dev['id'] = ii
-    return devs
-
-
-def getStreamLabel(sampleRate, channels, blockSize):
-    """Returns the string repr of the stream label
-    """
-    return "{}_{}_{}".format(sampleRate, channels, blockSize)
-
-
-class _StreamsDict(dict):
-    """Keeps track of what streams have been created. On macOS we can have
-    multiple streams under portaudio but under windows we can only have one.
-
-    use the instance `streams` rather than creating a new instance of this
-    """
-    def __init__(self, index):
-        # store device index
-        self.index = index
-
-    def getStream(self, sampleRate, channels, blockSize):
-        """Gets a stream of exact match or returns a new one
-        (if possible for the current operating system)
-        """
-        # if the query looks flexible then try getSimilar
-        if channels == -1 or blockSize == -1:
-            return self._getSimilar(sampleRate,
-                                    channels=channels,
-                                    blockSize=blockSize)
-        else:
-            return self._getStream(sampleRate,
-                                   channels=channels,
-                                   blockSize=blockSize)
-
-    def _getSimilar(self, sampleRate, channels=-1, blockSize=-1):
-        """Do we already have a compatible stream?
-
-        Many sounds can allow channels and blocksize to change but samplerate
-        is generally fixed. Any values set to -1 above will be flexible. Any
-        values set to an alternative number will be fixed
-
-        usage:
-
-            label, stream = streams._getSimilar(sampleRate=44100,  # must match
-                                               channels=-1,  # any
-                                               blockSize=-1)  # wildcard
-        """
-        label = getStreamLabel(sampleRate, channels, blockSize)
-        # replace -1 with any regex integer
-        simil = re.compile(label.replace("-1", r"[-+]?(\d+)"))  # I hate REGEX!
-        for thisFormat in self:
-            if simil.match(thisFormat):  # we found a close-enough match
-                return thisFormat, self[thisFormat]
-        # if we've been given values in each place then create stream
-        if (sampleRate not in [None, -1, 0] and
-                channels not in [None, -1] and
-                blockSize not in [None, -1]):
-            return self._getStream(sampleRate, channels, blockSize)
-
-    def _getStream(self, sampleRate, channels, blockSize):
-        """Strict check for this format or create new
-        """
-        label = getStreamLabel(sampleRate, channels, blockSize)
-        # try to retrieve existing stream of that name
-        if label in self:
-            pass
-        # todo: check if this is still needed on win32
-        # on some systems more than one stream isn't supported so check
-        elif sys.platform == 'win32' and len(self):
-            raise SoundFormatError(
-                "Tried to create audio stream {} but {} already exists "
-                "and {} doesn't support multiple portaudio streams"
-                .format(label, list(self.keys())[0], sys.platform)
-            )
-        else:
-
-            # create new stream
-            self[label] = _MasterStream(sampleRate, channels, blockSize,
-                                        device=self.index)
-        return label, self[label]
-
-
-devices = {}
-
-
-class _MasterStream(audio.Stream):
-    def __init__(self, sampleRate, channels, blockSize,
-                 device=None, duplex=False, mode=1,
-                 audioLatencyClass=None):
-        # initialise thread
-        if audioLatencyClass is None:
-            audioLatencyClass = defaultLatencyClass
-        self.streamLabel = None
-        self.streams = []
-        self.list = []
-        # sound stream info
-        self.sampleRate = sampleRate
-        self.channels = channels
-        self.duplex = duplex
-        self.blockSize = blockSize
-        self.label = getStreamLabel(sampleRate, channels, blockSize)
-        if isinstance(device, list) and len(device):
-            device = device[0]
-        if isinstance(device, str):  # we need to convert name to an ID or make None
-            devs = getDevices('output')
-            if device in devs:
-                deviceID = devs[device]['DeviceIndex']
-            else:
-                deviceID = None
-        else:
-            deviceID = device
-        self.sounds = []  # list of dicts for sounds currently playing
-        self.takeTimeStamp = False
-        self.frameN = 1
-        # self.frameTimes = range(5)  # DEBUGGING: store the last 5 callbacks
-        if not systemtools.isVM_CI():  # Github Actions VM does not have a sound device
-            try:
-                audio.Stream.__init__(self, device_id=deviceID, mode=mode+8,
-                                      latency_class=audioLatencyClass,
-                                      freq=sampleRate,
-                                      channels=channels,
-                                      )  # suggested_latency=suggestedLatency
-            except OSError as e:  # noqa: F841
-                audio.Stream.__init__(self, device_id=deviceID, mode=mode+8,
-                                      latency_class=audioLatencyClass,
-                                      # freq=sampleRate,
-                                      channels=channels,
-                                      )
-                self.sampleRate = self.status['SampleRate']
-                print("Failed to start PTB.audio with requested rate of "
-                      "{} but succeeded with a default rate ({}). "
-                      "This is depends on the selected latency class and device."
-                      .format(sampleRate, self.sampleRate))
-            except TypeError as e:
-                print("device={}, mode={}, latency_class={}, freq={}, channels={}"
-                      .format(device, mode+8, audioLatencyClass, sampleRate, channels))
-                raise e
-            except Exception as e:
-                if deviceID == -1:
-                    # if default device doesn't setup from ptb, pick first device
-                    for device in audio.get_devices(device_type=13):
-                        logging.error(
-                            f"System default audio device failed to connect, so using first found "
-                            f"device: {device['DeviceName']}"
-                        )
-                        audio.Stream.__init__(
-                            self,mode=mode+8,
-                            device_id=device['DeviceIndex'],
-                            freq=device['DefaultSampleRate'],
-                            channels=device['NrOutputChannels']
-                        )
-                        break
-                else:
-                    # any other problem, try with no device ID
-                    audio.Stream.__init__(
-                        self, mode=mode+8,
-                        latency_class=audioLatencyClass,
-                        freq=sampleRate,
-                        channels=channels,
-                    )
-
-                if "there isn't any audio output device" in str(e):
-                    print("Failed to load audio device:\n"
-                          "    '{}'\n"
-                          "so fetching default audio device instead: \n"
-                          "    '{}'"
-                          .format(device, 'test'))
-            self.start(0, 0, 1)
-            # self.device = self._sdStream.device
-            # self.latency = self._sdStream.latency
-            # self.cpu_load = self._sdStream.cpu_load
-        self._tSoundRequestPlay = 0
 
 
 class SoundPTB(_SoundBase):
@@ -324,7 +115,14 @@ class SoundPTB(_SoundBase):
         :param autoLog: whether to automatically log every change
         :param syncToWin: if you want start/stop to sync with win flips add this
         """
-        self.speaker = self._parseSpeaker(speaker)
+        # if given the name of a managed speaker, get it
+        if isinstance(speaker, str) and DeviceManager.getDevice(speaker):
+            speaker = DeviceManager.getDevice(speaker)
+        # make sure speaker is a SpeakerDevice
+        if not isinstance(speaker, SpeakerDevice):
+            speaker = SpeakerDevice(speaker)
+        self.speaker = speaker
+        
         self.sound = value
         self.name = name
         self.secs = secs  # for any synthesised sounds (notesand freqs)
@@ -343,7 +141,6 @@ class SoundPTB(_SoundBase):
         self.stereo = stereo
         self.duplex = None
         self.autoLog = autoLog
-        self.streamLabel = ""
         self.sourceType = 'unknown'  # set to be file, array or freq
         self.sndFile = None
         self.sndArr = None
@@ -368,13 +165,6 @@ class SoundPTB(_SoundBase):
     def isFinished(self):
         """`True` if the audio playback has completed."""
         return self._checkPlaybackFinished()
-
-    def _getDefaultSampleRate(self):
-        """Check what streams are open and use one of these"""
-        if len(devices.get(self.speaker.index, [])):
-            return list(devices[self.speaker.index].values())[0].sampleRate
-        else:
-            return 48000  # seems most widely supported
 
     @property
     def statusDetailed(self):
@@ -585,7 +375,7 @@ class SoundPTB(_SoundBase):
         self._isFinished = False
         # time.sleep(0.)
         if log and self.autoLog:
-            logging.exp(u"Playing sound %s on speaker %s" % (self.name, self.speaker.deviceName), obj=self, t=logTime)
+            logging.exp(u"Playing sound %s on speaker %s" % (self.name, self.speaker.name), obj=self, t=logTime)
 
     def pause(self, log=True):
         """Stops the sound without reset, so that play will continue from here if needed
@@ -636,37 +426,7 @@ class SoundPTB(_SoundBase):
         """Read-only property returns the stream on which the sound
         will be played
         """
-        # if no stream yet, make one
-        if not self.streamLabel:
-            # if no streams for current device yet, make a StreamsDict for it
-            if self.speaker.index not in devices:
-                devices[self.speaker.index] = _StreamsDict(index=self.speaker.index)
-            # make stream
-            try:
-                label, s = devices[self.speaker.index].getStream(
-                    sampleRate=self.sampleRate,
-                    channels=self.channels,
-                    blockSize=self.blockSize
-                )
-            except SoundFormatError as err:
-                # try to use something similar (e.g. mono->stereo)
-                # then check we have an appropriate stream open
-                altern = devices[self.speaker.index]._getSimilar(
-                    sampleRate=self.sampleRate,
-                    channels=-1,
-                    blockSize=-1
-                )
-                if altern is None:
-                    raise SoundFormatError(err)
-                else:  # safe to extract data
-                    label, s = altern
-                # update self in case it changed to fit the stream
-                self.sampleRate = s.sampleRate
-                self.channels = s.channels
-                self.blockSize = s.blockSize
-            self.streamLabel = label
-
-        return devices[self.speaker.index][self.streamLabel]
+        return self.speaker.stream
 
     def __del__(self):
         if self.track:

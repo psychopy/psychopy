@@ -38,7 +38,6 @@ Details
 .. autofunction:: generalizedPerspectiveProjection
 .. autofunction:: orthoProjectionMatrix
 .. autofunction:: perspectiveProjectionMatrix
-.. autofunction:: lookAt
 .. autofunction:: pointToNdc
 .. autofunction:: cursorToRay
 .. autofunction:: visible

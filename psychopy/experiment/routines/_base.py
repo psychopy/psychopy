@@ -830,7 +830,17 @@ class Routine(list):
         # can we use non-slip timing?
         maxTime, useNonSlip = self.getMaxTime()
         if useNonSlip:
-            buff.writeIndented('routineTimer.add(%f);\n' % (maxTime))
+            code = (
+                "%(name)sClock.reset(routineTimer.getTime());\n"
+                "routineTimer.add({maxTime:f});\n"
+            ).format(maxTime=maxTime)
+            buff.writeIndentedLines(code % self.params)
+        else:
+            code = (
+                "%(name)sClock.reset();\n"
+                "routineTimer.reset();\n"
+            )
+            buff.writeIndentedLines(code % self.params)
         # keep track of whether max duration is reached
         code = (
             "%(name)sMaxDurationReached = false;\n"

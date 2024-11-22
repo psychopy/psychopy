@@ -140,7 +140,7 @@ class KeyboardButtonBox(BaseButtonGroup):
     def parseMessage(self, message):
         # work out time and state state of KeyPress
         state = message.duration is None
-        t = message.tDown
+        t = message.rt
         # if state is a release, add duration to timestamp
         if message.duration:
             t += message.duration
