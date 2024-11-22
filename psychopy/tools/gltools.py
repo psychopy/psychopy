@@ -75,8 +75,14 @@ __all__ = [
     'createMeshGridFromArrays',
     'createMeshGrid',
     'createBox',
+    'createDisc',
+    'createAnnulus',
+    'createCylinder',
     'transformMeshPosOri',
     'calculateVertexNormals',
+    'mergeVerticies',
+    'smoothCreases',
+    'flipFaces',
     'getIntegerv',
     'getFloatv',
     'getString',
@@ -4561,6 +4567,224 @@ def createBox(size=(1., 1., 1.), flipFaces=False):
     return vertices, texCoords, normals, faces
 
 
+def createDisc(radius=1.0, edges=16):
+    """Create a disc (filled circle) mesh.
+
+    Generates a flat disc mesh with the specified radius and number of `edges`.
+    The origin of the disc is located at the center. Textures coordinates will
+    be mapped to a square which bounds the circle. Normals are perpendicular to
+    the face of the circle.
+
+    Parameters
+    ----------
+    radius : float
+        Radius of the disc in scene units.
+    edges : int
+        Number of segments to use to define the outer rim of the disc. Higher
+        numbers will result in a smoother circle but will use more triangles.
+
+    Returns
+    -------
+    tuple
+        Vertex attribute arrays (position, texture coordinates, and normals) and
+        triangle indices.
+
+    Examples
+    --------
+    Create a vertex array object to draw a disc::
+
+        vertices, textureCoords, normals, faces = gltools.createDisc(edges=128)
+        vertexVBO = gltools.createVBO(vertices)
+        texCoordVBO = gltools.createVBO(textureCoords)
+        normalsVBO = gltools.createVBO(normals)
+        indexBuffer = gltools.createVBO(
+            faces.flatten(),
+            target=GL.GL_ELEMENT_ARRAY_BUFFER,
+            dataType=GL.GL_UNSIGNED_INT)
+
+        vao = gltools.createVAO(
+            {gltools.gl_Vertex: vertexVBO,
+             gltools.gl_MultiTexCoord0: texCoordVBO,
+             gltools.gl_Normal: normalsVBO},
+            indexBuffer=indexBuffer)
+
+    """
+    # get number of steps for vertices to get the number of edges we want
+    nVerts = edges + 1
+    steps = np.linspace(0, 2 * np.pi, num=nVerts, dtype=np.float32)
+
+    # offset since the first vertex is the centre
+    vertices = np.zeros((nVerts + 1, 3), dtype=np.float32)
+    vertices[1:, 0] = np.sin(steps)
+    vertices[1:, 1] = np.cos(steps)
+
+    # compute the face indices
+    faces = []
+    for i in range(nVerts):
+        faces.append([0, i + 1, i])
+
+    faces = np.ascontiguousarray(faces, dtype=np.uint32)
+
+    # compute the texture coordinates for each vertex
+    normals = np.zeros_like(vertices, dtype=np.float32)
+    normals[:, 2] = 1.
+
+    # compute texture coordinates
+    texCoords = vertices.copy()
+    texCoords[:, :] += 1.0
+    texCoords[:, :] *= 0.5
+
+    # scale to specified radius
+    vertices *= radius
+
+    return vertices, texCoords, normals, faces
+
+
+def createAnnulus(innerRadius=0.5, outerRadius=1.0, edges=16):
+    """Create an annulus (ring) mesh.
+
+    Generates a flat ring mesh with the specified inner/outer radii and number
+    of `edges`. The origin of the ring is located at the center. Textures
+    coordinates will be mapped to a square which bounds the ring. Normals are
+    perpendicular to the plane of the ring.
+
+    Parameters
+    ----------
+    innerRadius, outerRadius : float
+        Radius of the inner and outer rims of the ring in scene units.
+    edges : int
+        Number of segments to use to define the band of the ring. The higher the
+        value, the rounder the ring will look.
+
+    Returns
+    -------
+    tuple
+        Vertex attribute arrays (position, texture coordinates, and normals) and
+        triangle indices.
+
+    """
+    # error checks
+    if innerRadius >= outerRadius:
+        raise ValueError("Inner radius must be less than outer.")
+    elif outerRadius <= 0.:
+        raise ValueError("Outer radius must be >0.")
+    elif innerRadius < 0.:
+        raise ValueError("Inner radius must be positive.")
+    elif edges <= 2:
+        raise ValueError("Number of edges must be >2.")
+
+    # generate inner and outer vertices
+    nVerts = edges + 1
+    steps = np.linspace(0, 2 * np.pi, num=nVerts, dtype=np.float32)
+
+    innerVerts = np.zeros((nVerts, 3), dtype=np.float32)
+    outerVerts = np.zeros((nVerts, 3), dtype=np.float32)
+    innerVerts[:, 0] = outerVerts[:, 0] = np.sin(steps)
+    innerVerts[:, 1] = outerVerts[:, 1] = np.cos(steps)
+
+    # Keep the ring size between -1 and 1 to simplify computing texture
+    # coordinates. We'll scale the vertices to the correct dimensions
+    # afterwards.
+    frac = innerRadius / float(outerRadius)
+    innerVerts[:, :2] *= frac
+
+    # combine inner and outer vertex rings
+    vertPos = np.vstack((innerVerts, outerVerts))
+
+    # generate faces
+    faces = []
+    for i in range(nVerts):
+        faces.append([i, edges + i + 1, edges + i])
+        faces.append([i, i + 1, edges + i + 1])
+
+    vertPos = np.ascontiguousarray(vertPos, dtype=np.float32)
+    normals = np.zeros_like(vertPos, dtype=np.float32)
+    normals[:, 2] = 1.0
+    faces = np.ascontiguousarray(faces, dtype=np.uint32)
+
+    # compute texture coordinates
+    texCoords = vertPos.copy()
+    texCoords[:, :] += 1.0
+    texCoords[:, :] *= 0.5
+
+    # scale to specified outer radius
+    vertPos[:, :2] *= outerRadius
+
+    return vertPos, texCoords, normals, faces
+
+
+def createCylinder(radius=1.0, height=1.0, edges=16, stacks=1):
+    """Create a cylinder mesh.
+
+    Generate a cylinder mesh with a given `height` and `radius`. The origin of
+    the mesh will centered on it and offset to the base. Texture coordinates
+    will be generated allowing a texture to wrap around it.
+
+    Parameters
+    ----------
+    radius : float
+        Radius of the cylinder in scene units.
+    height : float
+        Height in scene units.
+    edges : int
+        Number of edges, the greater the number, the smoother the cylinder will
+        appear when drawn.
+    stacks : int
+        Number of subdivisions along the height of cylinder to make. Setting to
+        1 will result in vertex data only being generated for the base and end
+        of the cylinder.
+
+    Returns
+    -------
+    tuple
+        Vertex attribute arrays (position, texture coordinates, and normals) and
+        triangle indices.
+
+    """
+    # generate vertex positions
+    nEdgeVerts = edges + 1
+    rings = stacks + 1
+    steps = np.linspace(0, 2 * np.pi, num=nEdgeVerts)
+    vertPos = np.zeros((nEdgeVerts, 3))
+    vertPos[:, 0] = np.sin(steps)
+    vertPos[:, 1] = np.cos(steps)
+    vertPos = np.tile(vertPos, (rings, 1))
+
+    # apply offset in height for each stack
+    stackHeight = np.linspace(0, height, num=rings)
+    vertPos[:, 2] = np.repeat(stackHeight, nEdgeVerts)
+
+    # generate texture coordinates to they wrap around the cylinder
+    u = np.linspace(0.0, 1.0, nEdgeVerts)
+    v = np.linspace(1.0, 0.0, rings)
+    uu, vv = np.meshgrid(u, v)
+    texCoords = np.vstack([uu.ravel(), vv.ravel()]).T
+
+    # generate vertex normals, since our vertices all on a unit circle, we can
+    # do a trick here
+    normals = vertPos.copy()
+    normals[:, 2] = 0.0
+
+    # create face indices
+    faces = []
+    for i in range(0, stacks):
+        stackOffset = nEdgeVerts * i
+        for j in range(nEdgeVerts):
+            j = stackOffset + j
+            faces.append([j, edges + j, edges + j + 1])
+            faces.append([j, edges + j + 1, j + 1])
+
+    vertPos, texCoords, normals = [
+        np.ascontiguousarray(i, dtype=np.float32) for i in (
+            vertPos, texCoords, normals)]
+    faces = np.ascontiguousarray(faces, dtype=np.uint32)
+
+    # scale the cylinder's radius and height to what the user specified
+    vertPos[:, :2] *= radius
+
+    return vertPos, texCoords, normals, faces
+
+
 def transformMeshPosOri(vertices, normals, pos=(0., 0., 0.), ori=(0., 0., 0., 1.)):
     """Transform a mesh.
 
@@ -4609,31 +4833,39 @@ def transformMeshPosOri(vertices, normals, pos=(0., 0., 0.), ori=(0., 0., 0., 1.
     normals = np.ascontiguousarray(normals)
 
     if not np.allclose(pos, [0., 0., 0.]):
-        vertices = mt.transform(pos, ori, vertices)
+        vertices = mt.transform(pos, ori, vertices, dtype=np.float32)
 
     if not np.allclose(ori, [0., 0., 0., 1.]):
-        normals = mt.applyQuat(ori, normals)
+        normals = mt.applyQuat(ori, normals, dtype=np.float32)
 
     return vertices, normals
 
+
+# ------------------------------
+# Mesh editing and cleanup tools
+# ------------------------------
+#
 
 def calculateVertexNormals(vertices, faces, shading='smooth'):
     """Calculate vertex normals given vertices and triangle faces.
 
     Finds all faces sharing a vertex index and sets its normal to either
     the face normal if `shading='flat'` or the average normals of adjacent
-    faces if `shading='smooth'`. Flat shading only works correctly if each
+    faces if `shading='smooth'`. Note, this function does not convert between
+    flat and smooth shading. Flat shading only works correctly if each
     vertex belongs to exactly one face.
 
     The direction of the normals are determined by the winding order of
-    triangles, assumed counter clock-wise (OpenGL default). Most model
+    triangles, assumed counter clock-wise (OpenGL default). Most 3D model
     editing software exports using this convention. If not, winding orders
     can be reversed by calling::
 
-        faces = np.fliplr(faces)
+        faces = numpy.fliplr(faces)
 
-    In some case, creases may appear if vertices are at the same location,
-    but do not share the same index.
+    In some case when using 'smooth', creases may appear if vertices are at the
+    same location, but do not share the same index. This may be desired in some
+    cases, however one may use the :func:`smoothCreases` function computing
+    normals to smooth out creases.
 
     Parameters
     ----------
@@ -4643,7 +4875,8 @@ def calculateVertexNormals(vertices, faces, shading='smooth'):
         Nx3 vertex indices.
     shading : str, optional
         Shading mode. Options are 'smooth' and 'flat'. Flat only works with
-        meshes where no vertex index is shared across faces.
+        meshes where no vertex index is shared across faces, if not, the
+        returned normals will be invalid.
 
     Returns
     -------
@@ -4663,7 +4896,7 @@ def calculateVertexNormals(vertices, faces, shading='smooth'):
     # compute surface normals for all faces
     faceNormals = mt.surfaceNormal(vertices[faces])
 
-    normals = []
+    normals = []  # new list of normals to return
     if shading == 'flat':
         for vertexIdx in np.unique(faces):
             match, _ = np.where(faces == vertexIdx)
@@ -4674,7 +4907,255 @@ def calculateVertexNormals(vertices, faces, shading='smooth'):
             match, _ = np.where(faces == vertexIdx)
             normals.append(mt.vertexNormal(faceNormals[match, :]))
 
-    return np.ascontiguousarray(normals) + 0.0
+    return np.ascontiguousarray(np.vstack(normals), np.float32) + 0.0
+
+
+def mergeVertices(vertices, faces, textureCoords=None, vertDist=0.0001,
+                  texDist=0.0001):
+    """Simplify a mesh by removing redundant vertices.
+
+    This function simplifies a mesh by merging overlapping (doubled) vertices,
+    welding together adjacent faces and removing sharp creases that appear when
+    rendering. This is useful in cases where a mesh's triangles do not share
+    vertices and one wishes to have it appear smoothly shaded when rendered. One
+    can also use this function reduce the detail of a mesh, however the quality
+    of the results may vary.
+
+    The position of the new vertex after merging will be the average position
+    of the adjacent vertices. Re-indexed faces and recalculated normals are also
+    returned with the cleaned-up vertex data. If texture coordinates are
+    supplied, adjacent vertices will not be removed if their is a distance in
+    texel space is greater than `texDist`. This avoids discontinuities in the
+    texture of the simplified mesh.
+
+    Parameters
+    ----------
+    vertices : ndarray
+        Nx3 array of vertex positions.
+    faces : ndarray
+        Nx3 integer array of face vertex indices.
+    textureCoords : ndarray
+        Nx2 array of texture coordinates.
+    vertDist : float
+        Maximum distance between two adjacent vertices to merge in scene units.
+    texDist : float
+        Maximum distance between texels to permit merging of vertices. If a
+        vertex is within merging distance, it will be moved instead of merged.
+
+    Returns
+    -------
+    tuple
+        Tuple containing newly computed vertices, normals and face indices. If
+        `textureCoords` was specified, a new array of texture coordinates will
+        be returned too at the second index.
+
+    Notes
+    -----
+    * This function only work on meshes consisting of triangle faces.
+
+    Examples
+    --------
+    Remove redundant vertices from a sphere::
+
+        vertices, textureCoords, normals, faces = gltools.createUVSphere()
+        vertices, textureCoords, normals, faces = gltools.removeDoubles(
+            vertices, faces, textureCoords)
+
+    Same but no texture coordinates are specified::
+
+        vertices, normals, faces = gltools.removeDoubles(vertices, faces)
+
+    """
+    # keep track of vertices that we merged
+    vertsProcessed = np.zeros((vertices.shape[0],), dtype=np.bool)
+
+    faces = faces.flatten()  # existing faces but flattened
+    # new array of faces that will get updated
+    newFaces = np.zeros_like(faces, dtype=np.uint32)
+
+    # loop over all vertices in the original mesh
+    newVerts = []
+    newTexCoords = []
+    lastProcIdx = 0  # last index processed, used to reindex
+    for i, vertex in enumerate(vertices):
+        if vertsProcessed[i]:  # don't do merge check if already processed
+            continue
+
+        # get the distance to all other vertices in mesh
+        vertDists = mt.distance(vertex, vertices)
+
+        # get vertices that fall with the threshold distance
+        toProcess = np.where(vertDists <= vertDist)[0]
+
+        # if all adjacent vertices were processed, move on to the next
+        if np.all(vertsProcessed[toProcess]):
+            continue
+
+        # if we have close verts and they have not been processed, merge them
+        if len(toProcess) > 1:
+            # If we have texture coords, merge those whose texture coords are
+            # close. Move the vertex to the new location for any that are not.
+            if textureCoords is not None:
+                # create a new vertex by averaging out positions
+                texCoordDists = mt.distance(textureCoords[i, :],
+                                            textureCoords[toProcess, :])
+
+                # get the vertices to merge or move
+                toMerge = toProcess[texCoordDists <= texDist]
+                toMove = toProcess[texCoordDists > texDist]
+
+                # compute mean positions
+                newPos = np.mean(vertices[toMerge, :], axis=0)
+                newTexCoord = np.mean(textureCoords[toMerge, :], axis=0)
+
+                newVerts.append(newPos)
+                newTexCoords.append(newTexCoord)
+                newFaces[np.in1d(faces, toMerge).nonzero()[0]] = lastProcIdx
+
+                # handle vertices that were moved
+                for j, idx in enumerate(toMove):
+                    newVerts.append(newPos)
+                    newTexCoords.append(textureCoords[idx, :])
+                    newFaces[np.argwhere(faces == idx)] = lastProcIdx + j
+
+                lastProcIdx += len(toMove)
+
+                vertsProcessed[toProcess] = 1  # update verts we processed
+
+            else:
+                newPos = np.mean(vertices[toProcess, :], axis=0)
+                newVerts.append(newPos)
+                newFaces[np.in1d(faces, toProcess).nonzero()[0]] = lastProcIdx
+                vertsProcessed[toProcess] = 1  # update verts we processed
+
+        else:
+            # single vertices need to be added too
+            newVerts.append(vertex)
+            if textureCoords is not None:
+                newTexCoords.append(textureCoords[i, :])
+            vertsProcessed[i] = 1  # update merged list
+            newFaces[np.argwhere(faces == i)] = lastProcIdx
+
+        lastProcIdx += 1
+
+        # all vertices have been processed, exit loop early
+        if np.all(vertsProcessed):
+            break
+
+    # create new output arrays
+    newVerts = np.ascontiguousarray(np.vstack(newVerts), dtype=np.float32)
+    newFaces = np.ascontiguousarray(newFaces.reshape((-1, 3)), dtype=np.uint32)
+    newNormals = calculateVertexNormals(newVerts, newFaces, 'smooth')
+
+    if textureCoords is not None:
+        newTexCoords = np.ascontiguousarray(
+            np.vstack(newTexCoords), dtype=np.float32)
+        toReturn = (newVerts, newTexCoords, newNormals, newFaces)
+    else:
+        toReturn = (newVerts, newNormals, newFaces)
+
+    return toReturn
+
+
+def smoothCreases(vertices, normals, vertDist=0.0001):
+    """Remove creases caused my misaligned surface normals.
+
+    A problem arises where surface normals are not correctly interpolated across
+    the edge where two faces meet, resulting in a visible 'crease' or sharp
+    discontinuity in shading. This is usually caused by the normals of the
+    overlapping vertices forming the edge being mis-aligned (not pointing in the
+    same direction).
+
+    If you notice these crease artifacts are present in your mesh *after*
+    computing surface normals, you can use this function to smooth them out.
+
+    Parameters
+    ----------
+    vertices : ndarray
+        Nx3 array of vertex coordinates.
+    normals : ndarray
+        Nx3 array of vertex normals.
+    vertDist : float
+        Maximum distance between vertices to average. Avoid using large numbers
+        here, vertices to be smoothed should be overlapping. This distance
+        should be as small as possible, just enough to account for numeric
+        rounding errors between vertices intended which would otherwise be at
+        the exact same location.
+
+    Returns
+    -------
+    ndarray
+        Array of smoothed surface normals with the same shape as `normals`.
+
+    """
+    newNormals = normals.copy()
+
+    # keep track of vertices that we processed
+    vertsProcessed = np.zeros((vertices.shape[0],), dtype=np.bool)
+
+    for i, vertex in enumerate(vertices):
+        if vertsProcessed[i]:  # don't do merge check if already processed
+            continue
+
+        # get the distance to all other vertices in mesh
+        dist = mt.distance(vertex, vertices)
+
+        # get vertices that fall with the threshold distance
+        adjacentIdx = list(np.where(dist <= vertDist)[0])
+
+        if np.all(vertsProcessed[adjacentIdx]):
+            continue
+
+        # now get their normals and average them
+        if len(adjacentIdx) > 1:
+            toAverage = vertices[adjacentIdx, :]
+            newNormal = np.mean(toAverage, axis=0)
+
+            # normalize
+            newNormal = mt.normalize(newNormal, out=newNormal)
+
+            # overwrite the normals we used to compute this one
+            newNormals[adjacentIdx, :] = newNormal
+
+            # flag these normals as used
+            vertsProcessed[adjacentIdx] = 1
+
+    return newNormals
+
+
+def flipFaces(normals, faces):
+    """Change the winding order of face indices.
+
+    OpenGL uses the winding order of face vertices to determine which side of
+    the face is either the front and back. This function reverses the winding
+    order of face indices and flips vertex normals so faces can be correctly
+    shaded.
+
+    Parameters
+    ----------
+    normals : ndarray
+        Nx3 array of surface normals.
+    faces : ndarray
+        Nx3 array of face indices.
+
+    Returns
+    -------
+    ndarray
+        Face indices with winding order reversed.
+
+    Examples
+    --------
+    Flip faces and normals of a box mesh so it can be viewed and lit from the
+    inside::
+
+        vertices, texCoords, normals, faces = createBox((5, 5, 5))
+        faces = flipFaces(faces)
+
+    """
+    normals = -normals  # invert normal vectors
+    faces = np.fliplr(faces)
+
+    return normals, faces
 
 
 # -----------------------------
