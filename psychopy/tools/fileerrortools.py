@@ -33,7 +33,7 @@ def handleFileCollision(fileName, fileCollisionMethod):
                "fileCollisionMethod to overwrite.")
         raise IOError(msg % fileName)
     elif fileCollisionMethod == 'rename':
-        rootName, extension = os.path.splitext(fileName)
+        rootName, extension = os.path.splitext(os.path.normpath(fileName))
         matchingFiles = glob.glob("%s*%s" % (rootName, extension))
 
         # Keep only files matching the specific pattern used in renaming
