@@ -83,6 +83,7 @@ __all__ = [
     'mergeVerticies',
     'smoothCreases',
     'flipFaces',
+    'interleaveAttributes',
     'getIntegerv',
     'getFloatv',
     'getString',
@@ -4951,7 +4952,7 @@ def mergeVertices(vertices, faces, textureCoords=None, vertDist=0.0001,
 
     Notes
     -----
-    * This function only work on meshes consisting of triangle faces.
+    * This function only works on meshes consisting of triangle faces.
 
     Examples
     --------
@@ -5058,7 +5059,7 @@ def mergeVertices(vertices, faces, textureCoords=None, vertDist=0.0001,
 
 
 def smoothCreases(vertices, normals, vertDist=0.0001):
-    """Remove creases caused my misaligned surface normals.
+    """Remove creases caused by misaligned surface normals.
 
     A problem arises where surface normals are not correctly interpolated across
     the edge where two faces meet, resulting in a visible 'crease' or sharp
@@ -5156,6 +5157,60 @@ def flipFaces(normals, faces):
     faces = np.fliplr(faces)
 
     return normals, faces
+
+
+def interleaveAttributes(attribArrays):
+    """Interleave vertex attributes into a single array.
+
+    Interleave vertex attributes into a single array for use with OpenGL's
+    vertex array objects. This function is useful when creating a VBO from
+    separate arrays of vertex positions, normals, and texture coordinates.
+
+    Parameters
+    ----------
+    attribArrays : list of array_like
+        List of arrays containing vertex attributes. Each array must have the
+        same number of rows.
+
+    Returns
+    -------
+    tuple
+        A tuple containing the interleaved vertex attribute array, a list of
+        attribute sizes, and a list of attribute offsets.
+    
+    Examples
+    --------
+    Interleave vertex attributes for use with a VAO::
+
+        vertices, textureCoords, normals, faces = createBox()
+        interleaved, sizes, offsets = interleaveAttributes(
+            [vertices, textureCoords, normals])
+        
+        # create a VBO with interleaved attributes
+        vboInterleaved = createVBO(interleaved)
+
+        # ... before rendering, set the attribute pointers
+        GL.glBindBuffer(vboInterleaved.target, vboInterleaved.name)
+        for i, attrib in enumerate([0, 8, 3]):
+            gltools.setVertexAttribPointer(
+                0, vboInterleaved, size=sizes[i], offset=offsets[i])
+
+    """
+    # get the number of rows in the first array
+    nRows = attribArrays[0].shape[0]
+
+    # check if all arrays have the same number of rows
+    if  any([i.shape[0] != nRows for i in attribArrays]):
+        raise ValueError("All arrays must have the same number of rows.")
+
+    # get a list of attribute widths
+    sizes = [i.shape[1] for i in attribArrays]
+    offsets = [0] + [sum(sizes[:i]) for i in range(1, len(sizes))]
+
+    # combine all arrays horizontally
+    toReturn = np.hstack(attribArrays)
+
+    return np.ascontiguousarray(toReturn, dtype=np.float32), sizes, offsets
 
 
 # -----------------------------
