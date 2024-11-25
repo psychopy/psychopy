@@ -5193,7 +5193,7 @@ def interleaveAttributes(attribArrays):
         GL.glBindBuffer(vboInterleaved.target, vboInterleaved.name)
         for i, attrib in enumerate([0, 8, 3]):
             gltools.setVertexAttribPointer(
-                i, vboInterleaved, size=sizes[i], offset=offsets[i])
+                attrib, vboInterleaved, size=sizes[i], offset=offsets[i])
 
     """
     # get the number of rows in the first array
