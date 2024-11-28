@@ -98,6 +98,7 @@ __all__ = [
     'smoothCreases',
     'flipFaces',
     'interleaveAttributes',
+    'generateTexCoords',
     'tesselate',
     'getIntegerv',
     'getFloatv',
@@ -5241,6 +5242,36 @@ def interleaveAttributes(attribArrays):
     return np.ascontiguousarray(toReturn, dtype=np.float32), sizes, offsets
 
 
+def generateTexCoords(vertices):
+    """Generate texture coordinates for a mesh.
+
+    Generate texture coordinates for a mesh by normalizing the vertex positions
+    to the bounding box of the mesh.
+
+    Parameters
+    ----------
+    vertices : ndarray
+        Nx2 or Nx3 array of vertex positions.
+
+    Returns
+    -------
+    ndarray
+        Nx2 array of normalized texture coordinates.
+
+    Examples
+    --------
+    Generate texture coordinates for a box mesh::
+
+        vertices, textureCoords, normals, faces = createBox()
+        texCoords = generateTexCoords(vertices)
+
+    """
+    # normalize the vertex positions to the bounding box
+    texCoords = (vertices - np.min(vertices, axis=0)) / np.ptp(vertices, axis=0)
+
+    return np.ascontiguousarray(texCoords, dtype=np.float32)
+
+
 def tesselate(points, mode='triangle', config=None):
     """Tesselate (or fill) a 2D polygon edge loop.
 
@@ -5339,9 +5370,7 @@ def tesselate(points, mode='triangle', config=None):
         dtype=np.float32)
 
     # generate texture coordinates which are normalized vertex positions
-    texCoords = np.ascontiguousarray(
-        (vertices - np.min(vertices, axis=0)) / np.ptp(vertices, axis=0), 
-        dtype=np.float32)
+    texCoords = generateTexCoords(vertices)
 
     return vertices, normals, texCoords, faces
 
