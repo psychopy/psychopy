@@ -180,53 +180,6 @@ class MovieComponent(BaseVisualComponent):
                 "    )\n")
         buff.writeIndentedLines(code % depth)
 
-    def _writeCreationCodeJS(self, buff, useInits):
-
-        # If we're in writeInitCode then we need to convert params to initVals
-        # because some (variable) params haven't been created yet.
-        if useInits:
-            inits = getInitVals(self.params)
-        else:
-            inits = copy.deepcopy(self.params)
-        inits['depth'] = -self.getPosInRoutine()
-
-        noAudio = '{}'.format(inits['No audio'].val).lower()
-        loop = '{}'.format(inits['loop'].val).lower()
-
-        for param in inits:
-            if inits[param] in ['', None, 'None', 'none', 'from exp settings']:
-                inits[param].val = 'undefined'
-                inits[param].valType = 'code'
-
-        code = "{name}Clock = new util.Clock();\n".format(**inits)
-        buff.writeIndented(code)
-
-        code = ("{name} = new visual.MovieStim({{\n"
-                "  win: psychoJS.window,\n"
-                "  name: '{name}',\n"
-                "  units: {units},\n"
-                "  movie: {movie},\n"
-                "  pos: {pos},\n"
-                "  anchor: {anchor},\n"
-                "  size: {size},\n"
-                "  ori: {ori},\n"
-                "  opacity: {opacity},\n"
-                "  loop: {loop},\n"
-                "  noAudio: {noAudio},\n"
-                "  depth: {depth}\n"
-                "  }});\n").format(name=inits['name'],
-                                   movie=inits['movie'],
-                                   units=inits['units'],
-                                   pos=inits['pos'],
-                                   anchor=inits['anchor'],
-                                   size=inits['size'],
-                                   ori=inits['ori'],
-                                   loop=loop,
-                                   opacity=inits['opacity'],
-                                   noAudio=noAudio,
-                                   depth=inits['depth'])
-        buff.writeIndentedLines(code)
-
     def writeInitCode(self, buff):
         # Get init values
         params = getInitVals(self.params)
@@ -266,8 +219,42 @@ class MovieComponent(BaseVisualComponent):
         buff.writeIndentedLines(code % params)
 
     def writeInitCodeJS(self, buff):
-        # create the code using init vals
-        self._writeCreationCodeJS(buff, useInits=True)
+        # get init values
+        inits = getInitVals(self.params)
+        inits['depth'] = -self.getPosInRoutine()
+        # create a clock
+        code = (
+            "%(name)sClock = new util.Clock();\n"
+        )
+        buff.writeIndented(code % inits)
+        # create a movie stim
+        code = (
+            "%(name)s = new visual.MovieStim({\n"
+            "  win: psychoJS.window,\n"
+        )
+        if "youtube.com/watch" in str(inits['movie'].val):
+            # if given a YouTube url, use it
+            code += (
+                "  youtubeUrl: %(movie)s,\n"
+            )
+        else:
+            code += (
+                "  movie: %(movie)s,\n"
+            )
+        code += (
+            "  name: '%(name)s',\n"
+            "  units: %(units)s,\n"
+            "  pos: %(pos)s,\n"
+            "  anchor: %(anchor)s,\n"
+            "  size: %(size)s,\n"
+            "  ori: %(ori)s,\n"
+            "  opacity: %(opacity)s,\n"
+            "  loop: %(loop)s,\n"
+            "  noAudio: %(No audio)s,\n"
+            "  depth: %(depth)s\n"
+            "})\n"
+        )
+        buff.writeIndentedLines(code % inits)
 
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame
