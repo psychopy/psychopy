@@ -2437,17 +2437,8 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         thisStyle = wx.BRUSHSTYLE_SOLID
 
         # check True/False on ForceEndRoutine
-        if 'forceEndRoutine' in component.params:
-            if component.params['forceEndRoutine'].val:
-                thisColor = colors.app['rt_comp_force']
-        # check True/False on ForceEndRoutineOnPress
-        if 'forceEndRoutineOnPress' in component.params:
-            if component.params['forceEndRoutineOnPress'].val in ['any click', 'correct click', 'valid click']:
-                thisColor = colors.app['rt_comp_force']
-        # check True aliases on EndRoutineOn
-        if 'endRoutineOn' in component.params:
-            if component.params['endRoutineOn'].val in ['look at', 'look away']:
-                thisColor = colors.app['rt_comp_force']
+        if component.canForceEndRoutine():
+            thisColor = colors.app['rt_comp_force']
         # grey bar if comp is disabled
         if component.params['disabled'].val:
             thisIcon = thisIcon.ConvertToDisabled()

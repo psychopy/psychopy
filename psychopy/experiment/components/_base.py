@@ -1047,6 +1047,26 @@ class BaseComponent:
 
         return duration, numericStop
 
+    def canForceEndRoutine(self):
+        """
+        Can this Component force the end of a Routine?
+        """
+        # check True on ForceEndRoutine
+        if 'forceEndRoutine' in self.params:
+            if self.params['forceEndRoutine'].val:
+                return True
+        # check positives on ForceEndRoutineOnPress
+        if 'forceEndRoutineOnPress' in self.params:
+            if self.params['forceEndRoutineOnPress'].val in ['any click', 'correct click', 'valid click']:
+                return True
+        # check positives on EndRoutineOn
+        if 'endRoutineOn' in self.params:
+            if self.params['endRoutineOn'].val in ['look at', 'look away']:
+                return True
+        # if still here, then the answer is no
+        return False
+
+
     def getStartAndDuration(self, params=None):
         """Determine the start and duration of the stimulus
 
@@ -1087,7 +1107,11 @@ class BaseComponent:
         else:
             duration, numericStop = 0, False
 
-        nonSlipSafe = numericStop and (numericStart or params['stopType'].val == 'time (s)')
+        nonSlipSafe = all((
+            numericStop, 
+            numericStart or params['stopType'].val == 'time (s)',
+            not self.canForceEndRoutine()
+        ))
         return startTime, duration, nonSlipSafe
 
     def getPosInRoutine(self):
