@@ -9,7 +9,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 __all__ = [
-    'VERTEX_ATTRIB_POS',
+    'VERTEX_ATTRIB_POSITION',
     'VERTEX_ATTRIB_NORMAL',
     'VERTEX_ATTRIB_COLOR',
     'VERTEX_ATTRIB_SECONADRY_COLOR',
@@ -72,6 +72,7 @@ __all__ = [
     'unbindVBO',
     'mapBuffer',
     'unmapBuffer',
+    'mappedBuffer',
     'deleteVBO',
     'setVertexAttribPointer',
     'enableVertexAttribArray',
@@ -134,7 +135,7 @@ _thisPlatform = platform.system()
 QUERY_COUNTER = None  # prevent genQueries from being called
 
 # vertex attribute locations
-VERTEX_ATTRIB_POS = 0   # gl_Vertex
+VERTEX_ATTRIB_POSITION = 0   # gl_Vertex
 VERTEX_ATTRIB_NORMAL = 2  # gl_Normal
 VERTEX_ATTRIB_COLOR = 3  # gl_Color
 VERTEX_ATTRIB_SECONADRY_COLOR = VERTEX_ATTRIB_COLOR2 = 4  # gl_SecondaryColor
@@ -148,26 +149,118 @@ VERTEX_ATTRIB_TEXCOORD5 = 13  # gl_MultiTexCoord5
 VERTEX_ATTRIB_TEXCOORD6 = 14  # gl_MultiTexCoord6 
 VERTEX_ATTRIB_TEXCOORD7 = 15  # gl_MultiTexCoord7
 
-# compatible Numpy and OpenGL types for common GL type enums
-GL_COMPAT_TYPES = {
-    GL.GL_FLOAT: (np.float32, GL.GLfloat),
-    GL.GL_DOUBLE: (np.float64, GL.GLdouble),
-    GL.GL_UNSIGNED_SHORT: (np.uint16, GL.GLushort),
-    GL.GL_UNSIGNED_INT: (np.uint32, GL.GLuint),
-    GL.GL_INT: (np.int32, GL.GLint),
-    GL.GL_SHORT: (np.int16, GL.GLshort),
-    # GL.GL_HALF_FLOAT: (np.float16, GL.GLhalfARB),
-    GL.GL_UNSIGNED_BYTE: (np.uint8, GL.GLubyte),
-    GL.GL_BYTE: (np.int8, GL.GLbyte),
-    np.float32: (GL.GL_FLOAT, GL.GLfloat),
-    np.float64: (GL.GL_DOUBLE, GL.GLdouble),
-    np.uint16: (GL.GL_UNSIGNED_SHORT, GL.GLushort),
-    np.uint32: (GL.GL_UNSIGNED_INT, GL.GLuint),
-    np.int32: (GL.GL_INT, GL.GLint),
-    np.int16: (GL.GL_SHORT, GL.GLshort),
-    # np.float16: (GL.GL_HALF_FLOAT, GL.GLhalfARB),
-    np.uint8: (GL.GL_UNSIGNED_BYTE, GL.GLubyte),
-    np.int8: (GL.GL_BYTE, GL.GLbyte)
+VERTEX_ATTRIBS = {
+    'gl_Vertex': VERTEX_ATTRIB_POSITION,
+    'gl_Normal': VERTEX_ATTRIB_NORMAL,
+    'gl_Color': VERTEX_ATTRIB_COLOR,
+    'gl_SecondaryColor': VERTEX_ATTRIB_COLOR2,
+    'gl_FogCoord': VERTEX_ATTRIB_FOG_COORD,
+    'gl_MultiTexCoord0': VERTEX_ATTRIB_TEXCOORD0,
+    'gl_MultiTexCoord1': VERTEX_ATTRIB_TEXCOORD1,
+    'gl_MultiTexCoord2': VERTEX_ATTRIB_TEXCOORD2,
+    'gl_MultiTexCoord3': VERTEX_ATTRIB_TEXCOORD3,
+    'gl_MultiTexCoord4': VERTEX_ATTRIB_TEXCOORD4,
+    'gl_MultiTexCoord5': VERTEX_ATTRIB_TEXCOORD5,
+    'gl_MultiTexCoord6': VERTEX_ATTRIB_TEXCOORD6,
+    'gl_MultiTexCoord7': VERTEX_ATTRIB_TEXCOORD7
+}
+
+# String mapping for GLenums, this allows for users to work with this library 
+# without needing to import `pyglet.gl` in cases where they need to specify
+# OpenGL constants.
+
+GL_ENUMS = {
+    'stream_draw': GL.GL_STREAM_DRAW,  # draw modes for primitives
+    'static_draw': GL.GL_STATIC_DRAW,
+    'dynamic_draw': GL.GL_DYNAMIC_DRAW,
+    'stream_read': GL.GL_STREAM_READ,
+    'stream_copy': GL.GL_STREAM_COPY,
+    'static_read': GL.GL_STATIC_READ,
+    'static_copy': GL.GL_STATIC_COPY,
+    'dynamic_read': GL.GL_DYNAMIC_READ,
+    'dynamic_copy': GL.GL_DYNAMIC_COPY,
+    'array_buffer': GL.GL_ARRAY_BUFFER,  # buffer types
+    'element_array_buffer': GL.GL_ELEMENT_ARRAY_BUFFER,
+    'pixel_pack_buffer': GL.GL_PIXEL_PACK_BUFFER,
+    'pixel_unpack_buffer': GL.GL_PIXEL_UNPACK_BUFFER,
+    'copy_read_buffer': GL.GL_COPY_READ_BUFFER,
+    'copy_write_buffer': GL.GL_COPY_WRITE_BUFFER,
+    'transform_feedback_buffer': GL.GL_TRANSFORM_FEEDBACK_BUFFER,
+    'uniform_buffer': GL.GL_UNIFORM_BUFFER,
+    'texture_buffer': GL.GL_TEXTURE_BUFFER,
+    'draw_indirect_buffer': GL.GL_DRAW_INDIRECT_BUFFER,
+    'atomic_counter_buffer': GL.GL_ATOMIC_COUNTER_BUFFER,
+    'dispatch_indirect_buffer': GL.GL_DISPATCH_INDIRECT_BUFFER,
+    'shader_storage_buffer': GL.GL_SHADER_STORAGE_BUFFER,
+    'points': GL.GL_POINTS,  # primative types
+    'lines': GL.GL_LINES,
+    'line_strip': GL.GL_LINE_STRIP,
+    'line_loop': GL.GL_LINE_LOOP,
+    'lines_adjacency': GL.GL_LINES_ADJACENCY,
+    'line_strip_adjacency': GL.GL_LINE_STRIP_ADJACENCY,
+    'triangles': GL.GL_TRIANGLES,
+    'triangle_strip': GL.GL_TRIANGLE_STRIP,
+    'triangle_fan': GL.GL_TRIANGLE_FAN,
+    'triangles_adjacency': GL.GL_TRIANGLES_ADJACENCY,
+    'triangle_strip_adjacency': GL.GL_TRIANGLE_STRIP_ADJACENCY,
+    'patches': GL.GL_PATCHES,
+    'front': GL.GL_FRONT,  # face culling/polymodes
+    'back': GL.GL_BACK,
+    'front_and_back': GL.GL_FRONT_AND_BACK,
+    'cw': GL.GL_CW,
+    'ccw': GL.GL_CCW,
+    'point': GL.GL_POINT,
+    'line': GL.GL_LINE,
+    'fill': GL.GL_FILL,
+    'rgb': GL.GL_RGB,   # pixel/internal formats for textures
+    'rgba': GL.GL_RGBA,
+    'bgr': GL.GL_BGR,
+    'bgra': GL.GL_BGRA,
+    'red': GL.GL_RED,
+    'rg': GL.GL_RG,
+    'depth': GL.GL_DEPTH_COMPONENT,
+    'depth_stencil': GL.GL_DEPTH_STENCIL,
+    'stencil': GL.GL_STENCIL_INDEX
+}
+
+# Mappings between Python/Numpy and OpenGL data types for arrays. Duplication
+# simplifies the lookup process when used in functions. Some types are not 
+# supported by OpenGL, so they are remapped to the closest compatible type.
+ARRAY_TYPES = {
+    'float32': (GL.GL_FLOAT, GL.GLfloat, np.float32),
+    'float': (GL.GL_DOUBLE, GL.GLdouble, float),
+    'double': (GL.GL_DOUBLE, GL.GLdouble, float),
+    'float64': (GL.GL_DOUBLE, GL.GLdouble, float),
+    'uint16': (GL.GL_UNSIGNED_SHORT, GL.GLushort, np.uint16),
+    'unsigned_short': (GL.GL_UNSIGNED_SHORT, GL.GLushort, np.uint16),
+    'uint32': (GL.GL_UNSIGNED_INT, GL.GLuint, np.uint32),
+    'unsigned_int': (GL.GL_UNSIGNED_INT, GL.GLuint, np.uint32),
+    'int': (GL.GL_INT, GL.GLint, np.int32),  # remapped to int32 from int64
+    'int32': (GL.GL_INT, GL.GLint, np.int32), 
+    'int16': (GL.GL_SHORT, GL.GLshort, np.int16),
+    'short': (GL.GL_SHORT, GL.GLshort, np.int16),
+    'uint8': (GL.GL_UNSIGNED_BYTE, GL.GLubyte, np.uint8),
+    'unsigned_byte': (GL.GL_UNSIGNED_BYTE, GL.GLubyte, np.uint8),
+    'int8': (GL.GL_BYTE, GL.GLbyte, np.int8),
+    'byte': (GL.GL_BYTE, GL.GLbyte, np.int8),
+    np.float32: (GL.GL_FLOAT, GL.GLfloat, np.float32),
+    float: (GL.GL_DOUBLE, GL.GLdouble, float),
+    np.float64: (GL.GL_DOUBLE, GL.GLdouble, np.float64),
+    np.uint16: (GL.GL_UNSIGNED_SHORT, GL.GLushort, np.uint16),
+    np.uint32: (GL.GL_UNSIGNED_INT, GL.GLuint, np.uint32),
+    int: (GL.GL_INT, GL.GLint, np.int32),  # remapped to int32
+    np.int32: (GL.GL_INT, GL.GLint, np.int32),
+    np.int16: (GL.GL_SHORT, GL.GLshort, np.int16),
+    np.uint8: (GL.GL_UNSIGNED_BYTE, GL.GLubyte, np.uint8),
+    np.int8: (GL.GL_BYTE, GL.GLbyte, np.int8),
+    GL.GL_FLOAT: (GL.GL_FLOAT, GL.GLfloat, np.float32),
+    GL.GL_DOUBLE: (GL.GL_DOUBLE, GL.GLdouble, float),
+    GL.GL_UNSIGNED_SHORT: (GL.GL_UNSIGNED_SHORT, GL.GLushort, np.uint16),
+    GL.GL_UNSIGNED_INT: (GL.GL_UNSIGNED_INT, GL.GLuint, np.uint32),
+    GL.GL_INT: (GL.GL_INT, GL.GLint, np.int32),
+    GL.GL_SHORT: (GL.GL_SHORT, GL.GLshort, np.int16),
+    GL.GL_UNSIGNED_BYTE: (GL.GL_UNSIGNED_BYTE, GL.GLubyte, np.uint8),
+    GL.GL_BYTE: (GL.GL_BYTE, GL.GLbyte, np.int8),
 }
 
 
@@ -2364,6 +2457,11 @@ def createVAO(attribBuffers, indexBuffer=None, attribDivisors=None, legacy=False
     activeAttribs = {}
     bufferIndices = []
     for i, buffer in attribBuffers.items():
+        if isinstance(i, str):
+            i = VERTEX_ATTRIBS.get(i, None)
+            if i is None:
+                raise ValueError('Invalid attribute name specified.')
+
         if isinstance(buffer, (list, tuple,)):
             if len(buffer) == 1:
                 buffer = buffer[0]  # size 1 tuple or list eg. (buffer,)
@@ -2445,7 +2543,9 @@ def drawVAO(vao, mode=GL.GL_TRIANGLES, start=0, count=None, instanceCount=None,
     vao : VertexArrayObject
         Vertex Array Object (VAO) to draw.
     mode : int, optional
-        Drawing mode to use (e.g. GL_TRIANGLES, GL_QUADS, GL_POINTS, etc.)
+        Drawing mode to use (e.g. GL_TRIANGLES, GL_QUADS, GL_POINTS, etc.) for
+        rasterization. Default is `GL_TRIANGLES`. Strings can be used for
+        convenience (e.g. 'triangles', 'quads', 'points').
     start : int, optional
         Starting index for array elements. Default is `0` which is the beginning
         of the array.
@@ -2466,6 +2566,11 @@ def drawVAO(vao, mode=GL.GL_TRIANGLES, start=0, count=None, instanceCount=None,
         drawVAO(vaoDesc, GL.GL_TRIANGLES)
 
     """
+    if isinstance(mode, str):
+        mode = GL_ENUMS.get(mode, None)
+        if mode is None:
+            raise ValueError('Invalid drawing mode specified.')
+
     # draw the array
     if _thisPlatform != 'Darwin':
         GL.glBindVertexArray(vao.name)
@@ -2673,7 +2778,7 @@ class VertexBufferInfo:
 
 def createVBO(data,
               target=GL.GL_ARRAY_BUFFER,
-              dataType=GL.GL_FLOAT,
+              dataType=None,
               usage=GL.GL_STATIC_DRAW):
     """Create an array buffer object (VBO).
 
@@ -2685,15 +2790,21 @@ def createVBO(data,
     data : array_like
         A 2D array of values to write to the array buffer. The data type of the
         VBO is inferred by the type of the array. If the input is a Python
-        `list` or `tuple` type, the data type of the array will be `GL_FLOAT`.
-    target : :obj:`int`
+        `list` or `tuple` type, the data type of the array will be `GL_DOUBLE`.
+    target : :obj:`int` or :obj:`str`, optional
         Target used when binding the buffer (e.g. `GL_VERTEX_ARRAY` or
-        `GL_ELEMENT_ARRAY_BUFFER`). Default is `GL_VERTEX_ARRAY`.
-    dataType : Glenum, optional
+        `GL_ELEMENT_ARRAY_BUFFER`). Default is `GL_VERTEX_ARRAY`. Strings may 
+        also be used to specify the target, where the following are valid:
+        'array' (for `GL_VERTEX_ARRAY`) or 'element_array' (for 
+        `GL_ELEMENT_ARRAY_BUFFER`).
+    dataType : Glenum or None, optional
         Data type of array. Input data will be recast to an appropriate type if
-        necessary. Default is `GL_FLOAT`.
+        necessary. Default is `None`. If `None`, the data type will be
+        inferred from the input data.
     usage : GLenum or int, optional
-        Usage type for the array (i.e. `GL_STATIC_DRAW`).
+        Usage hint for the array (i.e. `GL_STATIC_DRAW`). This will hint to the
+        GL driver how the buffer will be used so it can optimize memory
+        allocation and access. Default is `GL_STATIC_DRAW`.
 
     Returns
     -------
@@ -2746,10 +2857,36 @@ def createVBO(data,
         glFlush()
 
     """
-    # build input array
-    npType, glType = GL_COMPAT_TYPES[dataType]
-    data = np.asarray(data, dtype=npType)
+    if isinstance(target, str):
+        target = GL_ENUMS.get(target, None)
+        if target is None:
+            raise ValueError('Invalid target type string.')
 
+    # try and infer the data type if not specified
+    if dataType is None:  # get data type from input
+        if isinstance(data, (list, tuple)):  # default for Python array types
+            dataType = GL.GL_DOUBLE
+        elif isinstance(data, np.ndarray):  # numpy arrays
+            dataType = data.dtype.type
+        else:
+            raise ValueError('Could not infer data type from input.')
+    
+    # get the OpenGL data type and numpy type
+    typeVals = ARRAY_TYPES.get(dataType, None)
+    if typeVals is None:
+        raise ValueError('Invalid data type specified.')
+
+    glEnum, glType, npType = typeVals
+
+    # get the usage hint if a string was passed
+    if isinstance(usage, str):
+        usage = GL_ENUMS.get(usage, None)
+        if usage is None:
+            raise ValueError('Invalid `usage` hint string.')
+    
+    # create the input data array
+    data = np.ascontiguousarray(data, dtype=npType)
+    
     # get buffer size and pointer
     bufferSize = data.size * ctypes.sizeof(glType)
     if data.ndim > 1:
@@ -2772,7 +2909,7 @@ def createVBO(data,
         bufferName,
         target,
         usage,
-        dataType,
+        glEnum,
         bufferSize,
         bufferStride,
         data.shape)  # leave userData empty
@@ -2877,7 +3014,7 @@ def mapBuffer(vbo, start=0, length=None, read=True, write=True, noSync=False):
         unmapBuffer(vbo)
 
     """
-    npType, glType = GL_COMPAT_TYPES[vbo.dataType]
+    _, glType, npType = ARRAY_TYPES[vbo.dataType]
     start *= ctypes.sizeof(glType)
 
     if length is None:
@@ -2931,6 +3068,51 @@ def unmapBuffer(vbo):
     return GL.glUnmapBuffer(vbo.target) == GL.GL_TRUE
 
 
+@contextmanager
+def mappedBuffer(vbo, start=0, length=None, read=True, write=True, noSync=False):
+    """Context manager for mapping and unmapping a buffer. This is a convenience
+    function for using :func:`mapBuffer` and :func:`unmapBuffer` together.
+
+    Parameters
+    ----------
+    vbo : VertexBufferInfo
+        Vertex buffer to map to client memory.
+    start : int
+        Initial index of the sub-range of the buffer to modify.
+    length : int or None
+        Number of elements of the sub-array to map from `offset`. If `None`, all
+        elements to from `offset` to the end of the array are mapped.
+    read : bool, optional
+        Allow data to be read from the buffer (sets `GL_MAP_READ_BIT`). This is
+        ignored if `noSync` is `True`.
+    write : bool, optional
+        Allow data to be written to the buffer (sets `GL_MAP_WRITE_BIT`).
+    noSync : bool, optional
+        If `True`, GL will not wait until the buffer is free (i.e. not being
+        processed by the GPU) to map it (sets `GL_MAP_UNSYNCHRONIZED_BIT`). The
+        contents of the previous storage buffer are discarded and the driver
+        returns a new one. This prevents the CPU from stalling until the buffer
+        is available
+
+    Yields
+    ------
+    ndarray
+        View of the data. The type of the returned array is one which best
+        matches the data type of the buffer.
+
+    Examples
+    --------
+    Using the context manager to map and unmap a buffer::
+
+        with mappedBuffer(vbo) as arr:
+            arr[:, :] += 2.0
+    
+    """
+    arr = mapBuffer(vbo, start, length, read, write, noSync)
+    yield arr
+    unmapBuffer(vbo)
+
+
 def deleteVBO(vbo):
     """Delete a vertex buffer object (VBO).
 
@@ -2975,7 +3157,7 @@ def setVertexAttribPointer(index,
     versions.
 
     On nVidia graphics drivers (and maybe others), the following attribute
-    pointers indices are aliased with reserved GLSL names:
+    pointer indices are aliased with reserved GLSL names:
 
         * gl_Vertex - 0
         * gl_Normal - 2
@@ -3075,7 +3257,7 @@ def setVertexAttribPointer(index,
     if vbo.target != GL.GL_ARRAY_BUFFER:
         raise ValueError('VBO must have `target` type `GL_ARRAY_BUFFER`.')
 
-    _, glType = GL_COMPAT_TYPES[vbo.dataType]
+    _, glType, _ = ARRAY_TYPES[vbo.dataType]
 
     if size is None:
         size = vbo.shape[1]
@@ -3156,6 +3338,71 @@ def disableVertexAttribArray(index, legacy=False):
         GL.glDisableVertexAttribArray(index)
     else:
         GL.glDisableClientState(index)
+
+
+def setPolygonMode(face, mode):
+    """Set the polygon rasterization mode for a face.
+
+    Parameters
+    ----------
+    face : GLenum or str
+        Face to set the polygon mode for. Values can be `GL_FRONT`, `GL_BACK`,
+        or `GL_FRONT_AND_BACK`. Strings may also be used to specify the face,
+        where the following are valid: 'front' (for `GL_FRONT`), 'back' (for
+        `GL_BACK`), and 'front_and_back' (for `GL_FRONT_AND_BACK`).
+    mode : GLenum or str
+        Polygon rasterization mode. Values can be `GL_POINT`, `GL_LINE`, or
+        `GL_FILL`. Strings may also be used to specify the mode, where the
+        following are valid: 'point' (for `GL_POINT`), 'line' (for `GL_LINE`),
+        and 'fill' (for `GL_FILL`).
+
+    """
+    if isinstance(face, str):
+        face = GL_ENUMS.get(face, None)
+        if face is None:
+            raise ValueError('Invalid face mode string specified.')
+    if isinstance(mode, str):
+        mode = GL_ENUMS.get(mode, None)
+        if mode is None:
+            raise ValueError('Invalid polygon mode string specified.')
+
+    GL.glPolygonMode(face, mode)
+
+
+def setWireframeDraw(face=GL.GL_FRONT_AND_BACK):
+    """Set the rasterization mode to wireframe.
+
+    Successive draw operations will render wireframe polygons (i.e. outlines).
+
+    Parameters
+    ----------
+    face : GLenum or int, optional
+        Faces to apply wireframe to. Values can be `GL_FRONT_AND_BACK`,
+        `GL_FRONT` and `GL_BACK`. The default is `GL_FRONT_AND_BACK`. Strings
+        may also be used to specify the face, where the following are valid:
+        'front' (for `GL_FRONT`), 'back' (for `GL_BACK`), and 'front_and_back'
+        (for `GL_FRONT_AND_BACK`).
+
+    """
+    setPolygonMode(face, GL.GL_LINE)
+
+
+def setFillDraw(face=GL.GL_FRONT_AND_BACK):
+    """Set the rasterization mode to fill polygons.
+
+    Successive draw operations will render filled polygons.
+    
+    Parameters
+    ----------
+    face : GLenum or int, optional
+        Faces to apply fill to. Values can be `GL_FRONT_AND_BACK`, `GL_FRONT`
+        and `GL_BACK`. The default is `GL_FRONT_AND_BACK`. Strings may also be
+        used to specify the face, where the following are valid: 'front' (for
+        `GL_FRONT`), 'back' (for `GL_BACK`), and 'front_and_back' (for
+        `GL_FRONT_AND_BACK`).
+
+    """
+    setPolygonMode(face, GL.GL_FILL)
 
 
 # -------------------------
@@ -5319,7 +5566,7 @@ def tesselate(points, mode='triangle', config=None):
     """
     config = config or dict()  # ensure we have a config dictionary
 
-    if mode == 'triangle':
+    if mode == 'triangle' or mode == 'meshpy':
         # trinagulation using meshpy (triangle)
         from meshpy.triangle import MeshInfo, build
 
@@ -5339,7 +5586,7 @@ def tesselate(points, mode='triangle', config=None):
         vertices = mesh.points
         faces = mesh.elements
 
-    elif mode == 'delaunay':
+    elif mode == 'delaunay' or mode == 'scipy':
         # do a delaunay triangulation
         from scipy.spatial import Delaunay
 
@@ -5350,7 +5597,7 @@ def tesselate(points, mode='triangle', config=None):
         vertices = result.points
         faces = result.simplices
 
-    elif mode == 'fan':
+    elif mode == 'fan' or mode == 'simple':
         # create a fan tesselation
         vertices = np.vstack(
             (points, points[0]))
