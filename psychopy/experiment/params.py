@@ -55,7 +55,7 @@ inputDefaults = {
 # version" warnings
 legacyParams = [
     'lineColorSpace', 'borderColorSpace', 'fillColorSpace', 'foreColorSpace',  # 2021.1, we standardised colorSpace to be object-wide rather than param-specific
-    'Audio latency priority',  # from 2025.1, latency priority is handled by a combination of exclusivity and resampling settings
+    'Audio latency priority',  # from 2025.1, latency priority is handled by SpeakerDevice
 ]
 
 class Param():

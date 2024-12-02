@@ -76,9 +76,7 @@ from psychopy.scripts.psyexpCompile import generateScript
 
 # Components which are always hidden
 alwaysHidden = [
-    'SettingsComponent', 'RoutineSettingsComponent', 'UnknownComponent', 'UnknownRoutine',
-    'UnknownStandaloneRoutine', 'UnknownPluginComponent', 'BaseComponent', 'BaseStandaloneRoutine',
-    'BaseValidatorRoutine'
+    'BaseComponent', 'BaseStandaloneRoutine', 'BaseValidatorRoutine'
 ]
 
 
@@ -1032,10 +1030,8 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             ok = self.checkSave()
             if not ok:
                 return False  # user cancelled
-        if self.filename is None:
-            frameData = self.appData['defaultFrame']
-        else:
-            frameData = dict(self.appData['defaultFrame'])
+        frameData = self.appData['defaultFrame']
+        if self.fileExists:
             self.appData['prevFiles'].append(self.filename)
 
             # get size and window layout info
@@ -3248,6 +3244,9 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
                         shown = False
                 # Check whether button is hidden by prefs
                 if name in prefs.builder['hiddenComponents'] + alwaysHidden:
+                    shown = False
+                # check whether comp/rt indicates itsef as hidden
+                if emt.hidden:
                     shown = False
                 # Check whether button refers to a future comp/rt
                 if hasattr(emt, "version"):

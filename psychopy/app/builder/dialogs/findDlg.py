@@ -42,7 +42,7 @@ class BuilderFindDlg(wx.Dialog):
         self.caseSensitiveToggle.SetBitmap(
             icons.ButtonIcon("case", size=16, theme="light").bitmap
         )
-        self.caseSensitiveToggle.SetToolTipString(_translate("Match case?"))
+        self.caseSensitiveToggle.SetToolTip(_translate("Match case?"))
         self.caseSensitiveToggle.Bind(wx.EVT_TOGGLEBUTTON, self.onSearchTyping)
         self.searchPnl.sizer.Add(self.caseSensitiveToggle, flag=wx.EXPAND | wx.LEFT, border=6)
 
@@ -51,7 +51,7 @@ class BuilderFindDlg(wx.Dialog):
         self.regexToggle.SetBitmap(
             icons.ButtonIcon("regex", size=16, theme="light").bitmap
         )
-        self.regexToggle.SetToolTipString(_translate("Match regex?"))
+        self.regexToggle.SetToolTip(_translate("Match regex?"))
         self.regexToggle.Bind(wx.EVT_TOGGLEBUTTON, self.onSearchTyping)
         self.searchPnl.sizer.Add(self.regexToggle, flag=wx.EXPAND | wx.LEFT, border=6)
 

@@ -106,7 +106,7 @@ class DeviceBackend:
         """
         Add any required module/package imports for this backend
         """
-        raise NotImplementedError()
+        return
 
     def writeDeviceCode(self, buff):
         """

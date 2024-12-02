@@ -12,6 +12,7 @@ from psychopy.iohub.constants import EventConstants as EC
 from psychopy.iohub.devices.keyboard import KeyboardInputEvent
 from psychopy.iohub.errors import print2err
 from psychopy.constants import PLAYING
+from psychopy.tools.stimulustools import serialize, actualize
 
 currentTime = Computer.getTime
 
@@ -46,7 +47,11 @@ class BaseCalibrationProcedure:
         self._lastCalibrationOK = False
         self._device_config = self._eyetracker.getConfiguration()
         display = self._eyetracker._display_device
-        updateSettings(self._device_config.get('calibration'), calibration_args)
+        # apply calibration args to defaults
+        self._device_config['calibration'].update(calibration_args)
+        # get target attributes (ignore default keys as args can vary)
+        self._device_config['calibration']['target_attributes'] = calibration_args['target_attributes']
+        # use modified default config for calibration args
         self._calibration_args = self._device_config.get('calibration')
         unit_type = self.getCalibSetting('unit_type')
         if unit_type is None:
@@ -154,38 +159,15 @@ class BaseCalibrationProcedure:
         color_type = self.getCalibSetting('color_type')
         unit_type = self.getCalibSetting('unit_type')
 
-        def setDefaultCalibrationTarget():
-            # convert sizes to stimulus units
-            radiusPix = self.getCalibSetting(['target_attributes', 'outer_diameter']) / 2
-            radiusObj = layout.Size(radiusPix, units=unit_type, win=self.window)
-            radius = getattr(radiusObj, unit_type)[1]
-            innerRadiusPix = self.getCalibSetting(['target_attributes', 'inner_diameter']) / 2
-            innerRadiusObj = layout.Size(innerRadiusPix, units=unit_type, win=self.window)
-            innerRadius = getattr(innerRadiusObj, unit_type)[1]
-            # make target
-            self.targetStim = visual.TargetStim(
-                self.window, name="CP", style="circles",
-                radius=radius,
-                fillColor=self.getCalibSetting(['target_attributes', 'outer_fill_color']),
-                borderColor=self.getCalibSetting(['target_attributes', 'outer_line_color']),
-                lineWidth=self.getCalibSetting(['target_attributes', 'outer_stroke_width']),
-                innerRadius=innerRadius,
-                innerFillColor=self.getCalibSetting(['target_attributes', 'inner_fill_color']),
-                innerBorderColor=self.getCalibSetting(['target_attributes', 'inner_line_color']),
-                innerLineWidth=self.getCalibSetting(['target_attributes', 'inner_stroke_width']),
-                pos=(0, 0),
-                units=unit_type,
-                colorSpace=color_type,
-                autoLog=False
-            )
-
-        if self._calibration_args.get('target_type') == 'CIRCLE_TARGET':
-            setDefaultCalibrationTarget()
-        else:
-            self.targetStim = createCustomCalibrationStim(self.window, self._calibration_args)
-            if self.targetStim is None:
-                # Error creating custom stim, so use default target stim type
-                setDefaultCalibrationTarget()
+        # get attributes to create target
+        targetAttrs = self._calibration_args.get('target_attributes').copy()
+        # sanitize for creating
+        if "animate" in targetAttrs:
+            targetAttrs.pop("animate")
+        if "win" in targetAttrs:
+            targetAttrs['win'] = self.window
+        
+        self.targetStim = actualize(targetAttrs)
 
         self.originalTargetSize = self.targetStim.size
         self.targetClassHasPlayPause = hasattr(self.targetStim, 'play') and hasattr(self.targetStim, 'pause')

@@ -139,18 +139,6 @@ class SpeakerDevice(BaseDevice):
             object was initialised with, as this will be the system-reported name of the actual 
             physical speaker best matching what was requested.
         """
-        # work out latency class from exclusive / resampling modes
-        if self.resampling == "play":
-            if self.exclusive:
-                logging.warn(
-                    "Cannot use speaker exclusive mode with 'play' resampling - defaulting to "
-                    "nonexclusive mode."
-                )
-            latencyClass = 0
-        elif self.exclusive:
-            latencyClass = 2
-        else:
-            latencyClass = 1
 
         # get the devices from psychtoolbox
         try:

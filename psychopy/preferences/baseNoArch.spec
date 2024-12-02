@@ -151,6 +151,8 @@
     showPilotingIndicator = boolean(default=True)
     # Prevent experiment from enabling rush mode when piloting
     forceNonRush = boolean(default=True)
+    # Replace default participant ID with "pilot" when piloting
+    replaceParticipantID = boolean(default=True)
 
 # Settings for connections
 [connections]

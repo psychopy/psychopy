@@ -180,6 +180,8 @@ class SoundPySoundCard(_SoundBase):
         self.bufferSize = bufferSize
         self.volume = volume
 
+        self.channels = 2
+
         # try to create sound
         self._snd = None
         # distinguish the loops requested from loops actual because of
@@ -267,33 +269,13 @@ class SoundPySoundCard(_SoundBase):
         attributetools.setAttribute(self, 'volume', value, log, operation)
         return value  # this is returned for historical reasons
 
-    def _setSndFromFile(self, fileName):
-        # alias default names (so it always points to default.png)
-        if fileName in ft.defaultStim:
-            fileName = Path(prefs.paths['assets']) / ft.defaultStim[fileName]
-        # load the file
-        if not path.isfile(fileName):
-            msg = "Sound file %s could not be found." % fileName
-            logging.error(msg)
-            raise ValueError(msg)
-        self.fileName = fileName
-        # in case a tone with inf loops had been used before
-        self.loops = self.requestedLoops
-        try:
-            self.sndFile = sndfile.SoundFile(fileName)
-            sndArr = self.sndFile.read()
-            self.sndFile.close()
-            self._setSndFromArray(sndArr)
-
-        except Exception:
-            msg = "Sound file %s could not be opened using pysoundcard for sound."
-            logging.error(msg % fileName)
-            raise ValueError(msg % fileName)
-
-    def _setSndFromArray(self, thisArray):
+    def _setSndFromClip(self, clip):
         """For pysoundcard all sounds are ultimately played as an array so
         other setSound methods are going to call this having created an arr
         """
+        self.clip = clip
+        thisArray = self.clip.samples
+
         self._callbacks = _PySoundCallbackClass(sndInstance=self)
         if defaultOutput is not None and type(defaultOutput) != int:
             devs = getDevices()
@@ -307,7 +289,7 @@ class SoundPySoundCard(_SoundBase):
         self._stream = soundcard.Stream(samplerate=self.sampleRate,
                                         device=device,
                                         blocksize=self.bufferSize,
-                                        channels=1,
+                                        channels=self.channels,
                                         callback=self._callbacks.fillBuffer)
         self._snd = self._stream
         chansIn, chansOut = self._stream.channels
@@ -329,4 +311,5 @@ class SoundPySoundCard(_SoundBase):
         self._isPlaying = False
 
     def __del__(self):
-        self._stream.close()
+        if hasattr(self, "_stream"):
+            self._stream.close()

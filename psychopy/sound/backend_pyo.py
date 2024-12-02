@@ -18,7 +18,10 @@ try:
         get_input_devices,
         get_output_devices,
         getDevices,
-        SoundPyo)
+        SoundPyo,
+        pyoSndServer,
+        audioDriver,
+    )
 except (ModuleNotFoundError, ImportError):
     logging.error(
         "Support for the `pyo` audio backend is not available this session. "

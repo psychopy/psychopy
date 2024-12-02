@@ -7,6 +7,7 @@ from pathlib import Path
 from xml.etree.ElementTree import Element
 import re
 from psychopy import logging, plugins
+from psychopy.preferences import prefs
 from psychopy.experiment.components import Param, _translate
 from psychopy.experiment.components.settings.eyetracking import knownEyetrackerBackends
 from psychopy.experiment.routines import Routine, BaseStandaloneRoutine
@@ -48,6 +49,9 @@ keyboardBackendMap = {
     "Pyglet": "event"
 }
 
+# possible expInfo keys for participant ID
+participantIdAliases = ('participant', 'Participant', 'Subject', 'Observer')
+
 
 # # customize the Proj ID Param class to
 # class ProjIDParam(Param):
@@ -77,6 +81,8 @@ class SettingsComponent:
     plugin = None
     version = "0.0.0"
     beta = False
+    # an experiment only has one SettingsComponent, so hide it from the Components panel
+    hidden = True
 
     def __init__(
             self, parentName, exp, expName='', fullScr=True, runMode=0, rush=False,
@@ -1016,6 +1022,14 @@ class SettingsComponent:
             "        _winSize = prefs.piloting['forcedWindowSize']\n"
         )
         buff.writeIndented(code % self.params)
+        for key, value in expInfo.items():
+            if key in participantIdAliases:
+                code = (
+            f"    # replace default participant ID\n"
+            f"    if prefs.piloting['replaceParticipantID']:\n"
+            f"        expInfo['{key}'] = 'pilot'\n"
+                )
+                buff.writeIndented(code % self.params)
 
     def prepareResourcesJS(self):
         """Sets up the resources folder and writes the info.php file for PsychoJS
@@ -1228,7 +1242,7 @@ class SettingsComponent:
 
         # figure out participant id field (if any)
         participantVal = ''
-        for target in ('participant', 'Participant', 'Subject', 'Observer'):
+        for target in participantIdAliases:
             if target in self.getInfo(removePipeSyntax=True):
                 participantVal = " + expInfo['%s']" % target
                 break

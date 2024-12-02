@@ -539,11 +539,13 @@ class FileBrowserPanel(wx.Panel, handlers.ThemeMixin):
             elif isinstance(self.selectedItem, FileItemData):
                 # add some mimetypes which aren't recognised by default
                 mimetypes.add_type("text/xml", ".psyexp")
-                mimetypes.add_type("text/json", ".psyrun")
                 mimetypes.add_type("text/markdown", ".md")
                 mimetypes.add_type("text/config", ".cfg")
                 mimetypes.add_type("text/plain", ".log")
                 mimetypes.add_type("text/plain", ".yaml")
+                # add mimetypes which are falsely mapped
+                mimetypes.add_type("text/javascript", ".js")
+                mimetypes.add_type("text/json", ".psyrun")
                 # try to guess data type
                 dataType = mimetypes.guess_type(self.selectedItem.abspath)[0]
 
@@ -630,7 +632,7 @@ class FileBrowserPanel(wx.Panel, handlers.ThemeMixin):
                 #self.fileList.SetItem(index, 1, obj.fsize)
                 #self.fileList.SetItem(index, 2, obj.mod)
         # Enable/disable "go to current file" button based on current file
-        self.currentFileBtn.Enable(self.GetTopLevelParent().filename is not None)
+        self.currentFileBtn.Enable(self.coder.filename is not None)
 
     def addItem(self, name, absPath):
         """Add an item to the directory browser."""
