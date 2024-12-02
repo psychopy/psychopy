@@ -109,7 +109,7 @@ VEC_AXIS_LEFT = VEC_AXIS_NEG_X = VEC_AXES['-x']
 DEFAULT_DTYPE = float
 
 
-def setDefaultPrecision(dtype):
+def setDefaultPrecision(dtype='float64'):
     """Set the default precision for math functions.
 
     Once set, all math functions in this module will use the specified data type 
@@ -744,6 +744,7 @@ class RigidBodyPose:
             self._ori, alignTo(fwd, invPos, dtype=self.dtype))
 
 
+
 class BoundingBox:
     """Class for representing object bounding boxes.
 
@@ -759,7 +760,9 @@ class BoundingBox:
     visible to the viewer.
 
     """
-    def __init__(self, extents=None):
+    def __init__(self, extents=None, dtype=None):
+        self._dtype = np.dtype(dtype).type if dtype is not None else DEFAULT_DTYPE
+
         self._extents = np.zeros((2, 3), self.dtype)
         self._posCorners = np.zeros((8, 4), self.dtype)
 
@@ -793,7 +796,7 @@ class BoundingBox:
         """
         # we use 32-bit float precision for all computations, this will be 
         # settable in the future
-        return np.float32
+        return self._dtype
 
     @property
     def isValid(self):
@@ -1608,7 +1611,7 @@ def surfaceNormal(tri, norm=True, out=None, dtype=None):
 
         vertices = [[[-1., 0., 0.], [0., 1., 0.], [1, 0, 0]],  # 2x3x3
                     [[1., 0., 0.], [0., 1., 0.], [-1, 0, 0]]]
-        normals = np.zeros((2, 3))  # normals from two triangles triangles
+        normals = np.zeros((2, 3))  # normals for two triangles
         surfaceNormal(vertices, out=normals)
 
     """
@@ -4582,9 +4585,11 @@ def reverseProject(winPos, modelView, proj, viewport=None, out=None, dtype=None)
 
 
 def lookAt(eyePos, centerPos, upVec=(0.0, 1.0, 0.0), out=None, dtype=None):
-    """Create a transformation matrix to orient a view towards some point. Based
-    on the same algorithm as 'gluLookAt'. This does not generate a projection
-    matrix, but rather the matrix to transform the observer's view in the scene.
+    """Create a transformation matrix to orient a view towards some point. 
+    
+    Based on the same algorithm as 'gluLookAt'. This does not generate a 
+    projection matrix, but rather the matrix to transform the observer's view in 
+    the scene.
 
     For more information see:
     https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/gluLookAt.xml
@@ -4612,7 +4617,7 @@ def lookAt(eyePos, centerPos, upVec=(0.0, 1.0, 0.0), out=None, dtype=None):
 
     Notes
     -----
-
+    * This function was moved from `viewtools` in version 2025.1.0.
     * The returned matrix is row-major. Values are floats with 32-bits of
       precision stored as a contiguous (C-order) array.
 
@@ -4642,7 +4647,7 @@ def lookAt(eyePos, centerPos, upVec=(0.0, 1.0, 0.0), out=None, dtype=None):
     rotMat[1, :3] = u
     rotMat[2, :3] = -f
     rotMat[3, 3] = 1.0
-
+ 
     transMat = np.identity(4, dtype=dtype)
     transMat[:3, 3] = -eyePos
 
