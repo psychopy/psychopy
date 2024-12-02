@@ -43,6 +43,9 @@ __all__ = [
     'useProgram',
     'useProgramObjectARB',
     'getInfoLog',
+    'setUniformValue',
+    'setUniformMatrix',
+    'getUniformLocation',
     'getUniformLocations',
     'getAttribLocations',
     'createQueryObject',
@@ -73,6 +76,7 @@ __all__ = [
     'mapBuffer',
     'unmapBuffer',
     'mappedBuffer',
+    'updateVBO',
     'deleteVBO',
     'setVertexAttribPointer',
     'enableVertexAttribArray',
@@ -170,6 +174,18 @@ VERTEX_ATTRIBS = {
 # OpenGL constants.
 
 GL_ENUMS = {
+    'unsigned_int': GL.GL_UNSIGNED_INT,  # data types
+    'unsigned_short': GL.GL_UNSIGNED_SHORT,
+    'unsigned_byte': GL.GL_UNSIGNED_BYTE,
+    'int': GL.GL_INT,
+    'short': GL.GL_SHORT,
+    'byte': GL.GL_BYTE,
+    'float': GL.GL_FLOAT,
+    'double': GL.GL_DOUBLE,
+    True: GL.GL_TRUE,  # boolean values
+    False: GL.GL_FALSE,
+    'true': GL.GL_TRUE,
+    'false': GL.GL_FALSE,
     'stream_draw': GL.GL_STREAM_DRAW,  # draw modes for primitives
     'static_draw': GL.GL_STATIC_DRAW,
     'dynamic_draw': GL.GL_DYNAMIC_DRAW,
@@ -213,14 +229,64 @@ GL_ENUMS = {
     'line': GL.GL_LINE,
     'fill': GL.GL_FILL,
     'rgb': GL.GL_RGB,   # pixel/internal formats for textures
+    'rgb8': GL.GL_RGB8,
     'rgba': GL.GL_RGBA,
+    'rgba8': GL.GL_RGBA8,
     'bgr': GL.GL_BGR,
     'bgra': GL.GL_BGRA,
     'red': GL.GL_RED,
     'rg': GL.GL_RG,
     'depth': GL.GL_DEPTH_COMPONENT,
     'depth_stencil': GL.GL_DEPTH_STENCIL,
-    'stencil': GL.GL_STENCIL_INDEX
+    'stencil': GL.GL_STENCIL_INDEX,
+    'alpha': GL.GL_ALPHA,
+    'luminance': GL.GL_LUMINANCE,
+    'texture_3d': GL.GL_TEXTURE_3D,  # texture targets
+    'texture_2d': GL.GL_TEXTURE_2D,  
+    'texture_1d': GL.GL_TEXTURE_1D,
+    'texture_cube_map': GL.GL_TEXTURE_CUBE_MAP,
+    'texture_1d_array': GL.GL_TEXTURE_1D_ARRAY,
+    'texture_2d_array': GL.GL_TEXTURE_2D_ARRAY,
+    'texture_rectangle': GL.GL_TEXTURE_RECTANGLE,
+    'texture_cube_map_positive_x': GL.GL_TEXTURE_CUBE_MAP_POSITIVE_X,
+    'texture_cube_map_negative_x': GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
+    'texture_cube_map_positive_y': GL.GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
+    'texture_cube_map_negative_y': GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
+    'texture_cube_map_positive_z': GL.GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
+    'texture_cube_map_negative_z': GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
+    'texture_min_filter': GL.GL_TEXTURE_MIN_FILTER,  # texture filtering/params
+    'texture_mag_filter': GL.GL_TEXTURE_MAG_FILTER,
+    'texture_wrap_s': GL.GL_TEXTURE_WRAP_S,
+    'texture_wrap_t': GL.GL_TEXTURE_WRAP_T,
+    'texture_wrap_r': GL.GL_TEXTURE_WRAP_R,
+    'nearest': GL.GL_NEAREST,
+    'linear': GL.GL_LINEAR,
+    'nearest_mipmap_nearest': GL.GL_NEAREST_MIPMAP_NEAREST,
+    'linear_mipmap_nearest': GL.GL_LINEAR_MIPMAP_NEAREST,
+    'nearest_mipmap_linear': GL.GL_NEAREST_MIPMAP_LINEAR,
+    'linear_mipmap_linear': GL.GL_LINEAR_MIPMAP_LINEAR,
+    'clamp_to_edge': GL.GL_CLAMP_TO_EDGE,
+    'clamp_to_border': GL.GL_CLAMP_TO_BORDER,
+    'mirrored_repeat': GL.GL_MIRRORED_REPEAT,
+    'repeat': GL.GL_REPEAT,
+    'unpack_alignment': GL.GL_UNPACK_ALIGNMENT,  # pixel store parameters
+    'pack_alignment': GL.GL_PACK_ALIGNMENT,
+    'line_smooth': GL.GL_LINE_SMOOTH,  # rasterization modes
+    'multisample': GL.GL_MULTISAMPLE,
+    'fragment_shader': GL.GL_FRAGMENT_SHADER,  # shader types
+    'vertex_shader': GL.GL_VERTEX_SHADER,
+    'geometry_shader': GL.GL_GEOMETRY_SHADER,
+    'tess_control_shader': GL.GL_TESS_CONTROL_SHADER,
+    'tess_evaluation_shader': GL.GL_TESS_EVALUATION_SHADER,
+    'compute_shader': GL.GL_COMPUTE_SHADER,
+    'compile_status': GL.GL_COMPILE_STATUS,  # shader status
+    'link_status': GL.GL_LINK_STATUS,
+    'validate_status': GL.GL_VALIDATE_STATUS,
+    'delete_status': GL.GL_DELETE_STATUS,
+    'info_log_length': GL.GL_INFO_LOG_LENGTH,
+    'shader_type': GL.GL_SHADER_TYPE,
+    'shader_source_length': GL.GL_SHADER_SOURCE_LENGTH,
+    'shader_compiler': GL.GL_SHADER_COMPILER
 }
 
 # Mappings between Python/Numpy and OpenGL data types for arrays. Duplication
@@ -228,7 +294,7 @@ GL_ENUMS = {
 # supported by OpenGL, so they are remapped to the closest compatible type.
 ARRAY_TYPES = {
     'float32': (GL.GL_FLOAT, GL.GLfloat, np.float32),
-    'float': (GL.GL_DOUBLE, GL.GLdouble, float),
+    'float': (GL.GL_FLOAT, GL.GLfloat, np.float32),   
     'double': (GL.GL_DOUBLE, GL.GLdouble, float),
     'float64': (GL.GL_DOUBLE, GL.GLdouble, float),
     'uint16': (GL.GL_UNSIGNED_SHORT, GL.GLushort, np.uint16),
@@ -254,7 +320,7 @@ ARRAY_TYPES = {
     np.uint8: (GL.GL_UNSIGNED_BYTE, GL.GLubyte, np.uint8),
     np.int8: (GL.GL_BYTE, GL.GLbyte, np.int8),
     GL.GL_FLOAT: (GL.GL_FLOAT, GL.GLfloat, np.float32),
-    GL.GL_DOUBLE: (GL.GL_DOUBLE, GL.GLdouble, float),
+    GL.GL_DOUBLE: (GL.GL_DOUBLE, GL.GLdouble, float),  # python float is 64-bit
     GL.GL_UNSIGNED_SHORT: (GL.GL_UNSIGNED_SHORT, GL.GLushort, np.uint16),
     GL.GL_UNSIGNED_INT: (GL.GL_UNSIGNED_INT, GL.GLuint, np.uint32),
     GL.GL_INT: (GL.GL_INT, GL.GLint, np.int32),
@@ -262,6 +328,34 @@ ARRAY_TYPES = {
     GL.GL_UNSIGNED_BYTE: (GL.GL_UNSIGNED_BYTE, GL.GLubyte, np.uint8),
     GL.GL_BYTE: (GL.GL_BYTE, GL.GLbyte, np.int8),
 }
+
+
+def _getGLEnum(*args):
+    """Get the OpenGL enum value from a string or GLEnum.
+
+    Parameters
+    ----------
+    args : str, GLEnum, int or None
+        OpenGL enum value(s) to retrieve. If `None`, `None` is returned.
+
+    Returns
+    -------
+    int or list
+        OpenGL enum value(s) in the order they were passed.
+
+    Examples
+    --------
+    Get the OpenGL enum value for a single string::
+
+        _getGLEnum('points')  # returns GL.GL_POINTS
+
+    """
+    if args is None:
+        return None
+    elif len(args) == 1:
+        return GL_ENUMS.get(args[0], args[0])
+    else:
+        return [GL_ENUMS.get(i, i) for i in args]
 
 
 # -------------------------------
@@ -983,6 +1077,164 @@ def getInfoLog(obj):
     GL.glGetShaderInfoLog(obj, logLength, None, logBuffer)
 
     return logBuffer.value.decode('UTF-8')
+
+
+def getUniformLocation(program, name, error=True):
+    """Get the location of a uniform variable in a shader program.
+
+    Parameters
+    ----------
+    program : int
+        Handle of program to retrieve uniform location. Must have originated
+        from a :func:`createProgram`, :func:`createProgramObjectARB`,
+        `glCreateProgram` or `glCreateProgramObjectARB` call.
+    name : str
+        Name of the uniform variable to retrieve the location of.
+    error : bool, optional
+        Raise an error if the uniform is not found. Default is `True`.
+
+    Returns
+    -------
+    int
+        Location of the uniform variable in the program. If the uniform is not
+        found, `-1` is returned.
+
+    """
+    if not GL.glIsProgram(program):
+        raise ValueError(
+            "Specified value of `program` is not a program object handle.")
+
+    if type(name) is not bytes:
+        name = bytes(name, 'utf-8')
+
+    loc = GL.glGetUniformLocation(program, name)
+
+    if error and loc == -1:
+        raise ValueError("Uniform '{}' not found in program.".format(name))
+    
+    return loc
+
+
+def setUniformValue(program, loc, value):
+    """Set the value of a uniform variable in a shader program from a scalar or
+    1d array of values.
+
+    Parameters
+    ----------
+    program : int
+        Handle of program to set the uniform value. Must have originated from a
+        :func:`createProgram`, :func:`createProgramObjectARB`, `glCreateProgram`
+        or `glCreateProgramObjectARB` call.
+    loc : str or int
+        Location of the uniform variable in the program obtained from a
+        :func:`getUniformLocation` call. You may also specify the name of the
+        uniform variable as a string to look-up the location before setting.
+    value : int, float, list, tuple, numpy.ndarray
+        Value to set the uniform to. The type of the value must match the type
+        of the uniform variable in the shader program.
+
+    """
+    if not GL.glIsProgram(program):
+        raise ValueError(
+            "Specified value of `program` is not a program object handle.")
+    
+    if isinstance(loc, bytes):
+        loc = GL.glGetUniformLocation(program, loc)
+    elif isinstance(loc, str):
+        loc = GL.glGetUniformLocation(program, bytes(loc, 'utf-8'))
+    else:
+        if not isinstance(loc, int):
+            raise ValueError("Invalid type for uniform location.")
+
+    if loc == -1:
+        raise ValueError("Uniform '{}' not found in program.".format(loc))
+
+    # handle scalar values
+    if isinstance(value, (float, int)):
+        GL.glUniform1f(loc, float(value))
+
+    # handle arrays
+    unifData = np.ascontiguousarray(value, dtype=np.float32)  # re-cast
+    unifLen = unifData.size
+
+    if unifLen == 1:
+        GL.glUniform1f(loc, unifData[0])
+    elif unifLen == 2:
+        GL.glUniform2f(loc, *unifData)
+    elif unifLen == 3:
+        GL.glUniform3f(loc, *unifData)
+    elif unifLen == 4:
+        GL.glUniform4f(loc, *unifData)
+    else:
+        raise ValueError("Invalid uniform data length.")
+
+
+# lookup table for matrix uniform setter functions, the keys are hashable 
+# tuples of the matrix dimensions
+_unifMatrixFuncs = {
+        (2, 2): GL.glUniformMatrix2fv,
+        (3, 3): GL.glUniformMatrix3fv,
+        (4, 4): GL.glUniformMatrix4fv,
+        (2, 3): GL.glUniformMatrix2x3fv,
+        (3, 2): GL.glUniformMatrix3x2fv,
+        (2, 4): GL.glUniformMatrix2x4fv,
+        (4, 2): GL.glUniformMatrix4x2fv,
+        (3, 4): GL.glUniformMatrix3x4fv,
+        (4, 3): GL.glUniformMatrix4x3fv
+}
+
+
+def setUniformMatrix(program, loc, value, transpose=False):
+    """Set the value of a matrix uniform variable in a shader program.
+
+    Arrays are converted to contiguous arrays with 'float32' data type before
+    setting.
+
+    Parameters
+    ----------
+    program : int
+        Handle of program to set the uniform value. Must have originated from a
+        :func:`createProgram`, :func:`createProgramObjectARB`, `glCreateProgram`
+        or `glCreateProgramObjectARB` call.
+    loc : str or int
+        Location of the uniform variable in the program obtained from a
+        :func:`getUniformLocation` call. You may also specify the name of the
+        uniform variable as a string to look-up the location before setting.
+    value : numpy.ndarray
+        Matrix value to set the uniform to. The shape of the matrix must match
+        the dimensions of the uniform variable in the shader program. The data
+        type of the matrix must be `float32` or else it will be cast to 
+        `float32`.
+    transpose : bool, optional
+        Transpose the matrix before setting. Default is `False`.
+
+    """
+    if not GL.glIsProgram(program):
+        raise ValueError(
+            "Specified value of `program` is not a program object handle.")
+    
+    if isinstance(loc, bytes):
+        loc = GL.glGetUniformLocation(program, loc)
+    elif isinstance(loc, str):
+        loc = GL.glGetUniformLocation(program, bytes(loc, 'utf-8'))
+    else:
+        if not isinstance(loc, int):
+            raise ValueError("Invalid type for uniform location.")
+
+    if loc == -1:
+        raise ValueError("Uniform '{}' not found in program.".format(loc))
+
+    # convert to contiguous array
+    value = np.ascontiguousarray(value, dtype=np.float32)
+
+    # handle scalar values
+    matrixFunc = _unifMatrixFuncs.get(value.shape, None)
+    if matrixFunc is None:
+        raise ValueError("Invalid matrix dimensions")
+
+    # recast as pointer
+    matrixFunc(loc, 1, transpose, value.ctypes.data_as(
+        ctypes.POINTER(GL.GLfloat)))
 
 
 def getUniformLocations(program, builtins=False):
@@ -1856,6 +2108,9 @@ def createTexImage2D(width, height, target=GL.GL_TEXTURE_2D, level=0,
         GL.glBindTexture(GL.GL_TEXTURE_2D, textureDesc.id)
 
     """
+    target, internalFormat, pixelFormat, dataType = _getGLEnum( 
+        target, internalFormat, pixelFormat, dataType)
+
     width = int(width)
     height = int(height)
 
@@ -2857,10 +3112,7 @@ def createVBO(data,
         glFlush()
 
     """
-    if isinstance(target, str):
-        target = GL_ENUMS.get(target, None)
-        if target is None:
-            raise ValueError('Invalid target type string.')
+    target, dataType, usage = _getGLEnum(target, dataType, usage)
 
     # try and infer the data type if not specified
     if dataType is None:  # get data type from input
@@ -3113,6 +3365,58 @@ def mappedBuffer(vbo, start=0, length=None, read=True, write=True, noSync=False)
     unmapBuffer(vbo)
 
 
+def updateVBO(vbo, data, noSync=False):
+    """Update the contents of a VBO with new data. 
+    
+    This is a convenience function for mapping a buffer, updating the data, and 
+    then unmapping it if the data shape matches the buffer shape.
+
+    Parameters
+    ----------
+    vbo : VertexBufferInfo
+        Vertex buffer to update.
+    data : array_like
+        New data to write to the buffer. The shape of the data must match the
+        shape of the buffer.
+    noSync : bool, optional
+        If `True`, GL will not wait until the buffer is free (i.e. not being
+        processed by the GPU) to map it (sets `GL_MAP_UNSYNCHRONIZED_BIT`). The
+        contents of the previous storage buffer are discarded and the driver
+        returns a new one. This prevents the CPU from stalling until the buffer
+        is available.
+
+    Returns
+    -------
+    bool
+        `True` if the buffer has been successfully modified. If `False`, the
+        data was corrupted for some reason and needs to be resubmitted.
+
+    Examples
+    --------
+    Update a VBO with new data::
+
+        # new vertices
+        verts = [[ 1.0,  1.0, 0.0],   # v0
+                 [ 0.0, -1.0, 0.0],   # v1
+                 [-1.0,  1.0, 0.0]]   # v2
+
+        # update the VBO
+        updateVBO(vboDesc, verts)
+
+    """
+    if not isinstance(data, np.ndarray):  # allow lists, tuples, etc.
+        data = np.ascontiguousarray(data)
+
+    if data.shape != vbo.shape:
+        raise ValueError('Data shape does not match VBO shape, expected {} '
+                         'but got {}.'.format(vbo.shape, data.shape))
+
+    mappedArray = mapBuffer(vbo, noSync=noSync)
+    mappedArray[:, :] = data[:, :]  # transfer data to GPU buffer array
+
+    return unmapBuffer(vbo)
+
+
 def deleteVBO(vbo):
     """Delete a vertex buffer object (VBO).
 
@@ -3124,7 +3428,7 @@ def deleteVBO(vbo):
     """
     if GL.glIsBuffer(vbo.name):
         GL.glDeleteBuffers(1, vbo.name)
-        vbo.name = GL.GLuint(0)
+        vbo.name = GL.GLuint(0)  # reset the object to invalidate it
 
 
 def setVertexAttribPointer(index,
@@ -3357,6 +3661,8 @@ def setPolygonMode(face, mode):
         and 'fill' (for `GL_FILL`).
 
     """
+    face, mode = _getGLEnum(face, mode)
+
     if isinstance(face, str):
         face = GL_ENUMS.get(face, None)
         if face is None:
@@ -3384,6 +3690,7 @@ def setWireframeDraw(face=GL.GL_FRONT_AND_BACK):
         (for `GL_FRONT_AND_BACK`).
 
     """
+    face = _getGLEnum(face)
     setPolygonMode(face, GL.GL_LINE)
 
 
@@ -3402,6 +3709,7 @@ def setFillDraw(face=GL.GL_FRONT_AND_BACK):
         `GL_FRONT_AND_BACK`).
 
     """
+    face = _getGLEnum(face)
     setPolygonMode(face, GL.GL_FILL)
 
 
