@@ -85,6 +85,7 @@ from psychopy.tools.arraytools import val2array
 from psychopy.tools.monitorunittools import convertToPix
 import psychopy.tools.viewtools as viewtools
 import psychopy.tools.gltools as gltools
+import psychopy.tools.mathtools as mathtools
 from .text import TextStim
 from .grating import GratingStim
 from .helpers import setColor
@@ -1204,11 +1205,12 @@ class Window():
                 self.scissorTest = True
 
             # clear the projection and modelview matrix for FBO blit
-            GL.glMatrixMode(GL.GL_PROJECTION)
-            GL.glLoadIdentity()
-            GL.glOrtho(-1, 1, -1, 1, -1, 1)
-            GL.glMatrixMode(GL.GL_MODELVIEW)
-            GL.glLoadIdentity()
+            # DEPRECATED: these are all removed from OpenGL 3.1
+            # GL.glMatrixMode(GL.GL_PROJECTION)
+            # GL.glLoadIdentity()
+            # GL.glOrtho(-1, 1, -1, 1, -1, 1)
+            # GL.glMatrixMode(GL.GL_MODELVIEW)
+            # GL.glLoadIdentity()
 
         # disable lighting
         self.useLights = False
@@ -1282,10 +1284,12 @@ class Window():
                 self.stencilTest = True
 
         # rescale, reposition, & rotate
-        GL.glMatrixMode(GL.GL_MODELVIEW)
-        GL.glLoadIdentity()
+        # DEPRECATED: these are all removed from OpenGL 3.1
+        # GL.glMatrixMode(GL.GL_MODELVIEW)
+        # GL.glLoadIdentity()
         if self.viewScale is not None:
-            GL.glScalef(self.viewScale[0], self.viewScale[1], 1)
+            # DEPRECATED: these are all removed from OpenGL 3.1
+            # GL.glScalef(self.viewScale[0], self.viewScale[1], 1)
             absScaleX = abs(self.viewScale[0])
             absScaleY = abs(self.viewScale[1])
         else:
@@ -1297,7 +1301,8 @@ class Window():
             normRfPosX = self._viewPosNorm[0] / absScaleX
             normRfPosY = self._viewPosNorm[1] / absScaleY
 
-            GL.glTranslatef(normRfPosX, normRfPosY, 0.0)
+            # DEPRECATED: these are all removed from OpenGL 3.1
+            # GL.glTranslatef(normRfPosX, normRfPosY, 0.0)
 
         if self.viewOri:  # float
             # the logic below for flip is partially correct, but does not
@@ -1307,21 +1312,24 @@ class Window():
                 _f = self.viewScale[0] * self.viewScale[1]
                 if _f < 0:
                     flip = -1
-            GL.glRotatef(flip * self.viewOri, 0.0, 0.0, -1.0)
+            # DEPERECATED: these are all removed from OpenGL 3.1
+            # GL.glRotatef(flip * self.viewOri, 0.0, 0.0, -1.0)
 
         # reset returned buffer for next frame
         self._endOfFlip(clearBuffer)
 
         # waitBlanking
         if self.waitBlanking and flipThisFrame:
-            GL.glBegin(GL.GL_POINTS)
-            GL.glColor4f(0, 0, 0, 0)
+            # DEPRECATED: these are all removed from OpenGL 3.1
+            # GL.glBegin(GL.GL_POINTS)
+            # GL.glColor4f(0, 0, 0, 0)
             if sys.platform == 'win32' and self.glVendor.startswith('ati'):
                 pass
             else:
                 # this corrupts text rendering on win with some ATI cards :-(
-                GL.glVertex2i(10, 10)
-            GL.glEnd()
+                # GL.glVertex2i(10, 10)
+                pass
+            # GL.glEnd()
             GL.glFinish()
 
         # get timestamp
@@ -1759,22 +1767,24 @@ class Window():
     def useLights(self, value):
         self._useLights = value
 
-        # Setup legacy lights, new spec shader programs should access the
-        # `lights` attribute directly to setup lighting uniforms.
-        if self._useLights and self._lights:
-            GL.glEnable(GL.GL_LIGHTING)
-            # make sure specular lights are computed relative to eye position,
-            # this is more realistic than the default. Does not affect shaders.
-            GL.glLightModeli(GL.GL_LIGHT_MODEL_LOCAL_VIEWER, GL.GL_TRUE)
+        # DEPRECATED: this is not needed in modern OpenGL
 
-            # update light positions for current model matrix
-            for index, light in enumerate(self._lights):
-                enumLight = GL.GL_LIGHT0 + index
-                pos = numpy.ctypeslib.as_ctypes(light.pos)
-                GL.glLightfv(enumLight, GL.GL_POSITION, pos)
-        else:
-            # disable lights
-            GL.glDisable(GL.GL_LIGHTING)
+        # # Setup legacy lights, new spec shader programs should access the
+        # # `lights` attribute directly to setup lighting uniforms.
+        # if self._useLights and self._lights:
+        #     GL.glEnable(GL.GL_LIGHTING)
+        #     # make sure specular lights are computed relative to eye position,
+        #     # this is more realistic than the default. Does not affect shaders.
+        #     GL.glLightModeli(GL.GL_LIGHT_MODEL_LOCAL_VIEWER, GL.GL_TRUE)
+
+        #     # update light positions for current model matrix
+        #     for index, light in enumerate(self._lights):
+        #         enumLight = GL.GL_LIGHT0 + index
+        #         pos = numpy.ctypeslib.as_ctypes(light.pos)
+        #         GL.glLightfv(enumLight, GL.GL_POSITION, pos)
+        # else:
+        #     # disable lights
+        #     GL.glDisable(GL.GL_LIGHTING)
 
     def updateLights(self, index=None):
         """Explicitly update scene lights if they were modified.
@@ -2005,7 +2015,17 @@ class Window():
     def convergeOffset(self, value):
         self._convergeOffset = value / 100.0
 
-    def setOffAxisView(self, applyTransform=True, clearDepth=True):
+    def _clearDepthBuffer(self):
+        """Clear the depth buffer.
+        """
+        oldDepthMask = self.depthMask
+        GL.glDepthMask(GL.GL_TRUE)
+        GL.glClear(GL.GL_DEPTH_BUFFER_BIT)
+
+        if oldDepthMask is False:   # return to old state if needed
+            GL.glDepthMask(GL.GL_FALSE)
+
+    def setOffAxisView(self, clearDepth=True):
         """Set an off-axis projection.
 
         Create an off-axis projection for subsequent rendering calls. Sets the
@@ -2052,10 +2072,10 @@ class Window():
         self._viewMatrix[0, 3] = -self._eyeOffset  # apply eye offset
         self._viewMatrix[2, 3] = -scrDistM  # displace scene away from viewer
 
-        if applyTransform:
-            self.applyEyeTransform(clearDepth=clearDepth)
+        if clearDepth:
+            self._clearDepthBuffer()
 
-    def setToeInView(self, applyTransform=True, clearDepth=True):
+    def setToeInView(self, clearDepth=True):
         """Set toe-in projection.
 
         Create a toe-in projection for subsequent rendering calls. Sets the
@@ -2105,10 +2125,10 @@ class Window():
         convergePoint = (0.0, 0.0, self.convergeOffset)
         self._viewMatrix = viewtools.lookAt(eyePos, convergePoint)
 
-        if applyTransform:
-            self.applyEyeTransform(clearDepth=clearDepth)
+        if clearDepth:
+            self._clearDepthBuffer()
 
-    def setPerspectiveView(self, applyTransform=True, clearDepth=True):
+    def setPerspectiveView(self, clearDepth=True):
         """Set the projection and view matrix to render with perspective.
 
         Matrices are computed using values specified in the monitor
@@ -2158,8 +2178,48 @@ class Window():
         self._viewMatrix[0, 3] = -self._eyeOffset  # apply eye offset
         self._viewMatrix[2, 3] = -scrDistM  # displace scene away from viewer
 
-        if applyTransform:
-            self.applyEyeTransform(clearDepth=clearDepth)
+        if clearDepth:
+            self._clearDepthBuffer()
+
+    def setOrthographicView(self, clearDepth=True):
+        """Set the projection and view matrix to render with orthographic view.
+
+        Orthographic projection is used to render 3D objects without perspective
+        distortion. The scene origin is centered on the screen plane. The
+        frustum is defined by the size of the window in pixels, with the origin
+        at the center of the window. 2D stimuli are typically drawn using this
+        projection.
+
+        Note that the values of :py:attr:`~Window.projectionMatrix` and
+        :py:attr:`~Window.viewMatrix` will be replaced when calling this
+        function.
+
+        Parameters
+        ----------
+        applyTransform : bool
+            Apply transformations after computing them in immediate mode. Same
+            as calling :py:attr:`~Window.applyEyeTransform()` afterwards if
+            `False`.
+        clearDepth : bool, optional
+            Clear the depth buffer.
+
+        """
+        widthOver2 = self.size[0] / 2.0
+        heightOver2 = self.size[1] / 2.0
+
+        self._projectionMatrix = viewtools.orthoProjectionMatrix(
+            -widthOver2, widthOver2,    # -X, +X
+            -heightOver2, heightOver2,  # -Y, +Y
+            -1.0, 1.0,                  # -Z, +Z
+            dtype=numpy.float32)
+
+        # reset view matrix to identity
+        self._viewMatrix = mathtools.identityMatrix(4, dtype=numpy.float32)
+        # TODO - figure out how to handle eye offsets in orthographic view
+        # self._viewMatrix[0, 3] = -self._eyeOffset  
+
+        if clearDepth:
+            self._clearDepthBuffer()
 
     def applyEyeTransform(self, clearDepth=True):
         """Apply the current view and projection matrices.
@@ -2190,34 +2250,16 @@ class Window():
             # draw 3D objects here ...
 
         """
-        # apply the projection and view transformations
-        if hasattr(self, '_projectionMatrix'):
-            GL.glMatrixMode(GL.GL_PROJECTION)
-            GL.glLoadIdentity()
-            projMat = self._projectionMatrix.ctypes.data_as(
-                ctypes.POINTER(ctypes.c_float))
-            GL.glMultTransposeMatrixf(projMat)
-
-        if hasattr(self, '_viewMatrix'):
-            GL.glMatrixMode(GL.GL_MODELVIEW)
-            GL.glLoadIdentity()
-            viewMat = self._viewMatrix.ctypes.data_as(
-                ctypes.POINTER(ctypes.c_float))
-            GL.glMultTransposeMatrixf(viewMat)
-
-        oldDepthMask = self.depthMask
-        if clearDepth:
-            GL.glDepthMask(GL.GL_TRUE)
-            GL.glClear(GL.GL_DEPTH_BUFFER_BIT)
-
-            if oldDepthMask is False:   # return to old state if needed
-                GL.glDepthMask(GL.GL_FALSE)
+        pass  # to remove
 
     def resetEyeTransform(self, clearDepth=True):
         """Restore the default projection and view settings to PsychoPy
         defaults. Call this prior to drawing 2D stimuli objects (i.e.
         GratingStim, ImageStim, Rect, etc.) if any eye transformations were
         applied for the stimuli to be drawn correctly.
+
+        **DEPRECATED**: This function will be removed in future versions, use 
+        `setOrthographicView` instead.
 
         Parameters
         ----------
@@ -2246,14 +2288,7 @@ class Window():
         """
         # should eventually have the same effect as calling _onResize(), so we
         # need to add the retina mode stuff eventually
-        if hasattr(self, '_viewMatrix'):
-            self._viewMatrix = numpy.identity(4, dtype=numpy.float32)
-
-        if hasattr(self, '_projectionMatrix'):
-            self._projectionMatrix = viewtools.orthoProjectionMatrix(
-                -1, 1, -1, 1, -1, 1, dtype=numpy.float32)
-
-        self.applyEyeTransform(clearDepth)
+        self.setOrthographicView(clearDepth)
 
     def coordToRay(self, screenXY):
         """Convert a screen coordinate to a direction vector.
@@ -3148,7 +3183,7 @@ class Window():
         # actually set the scale as appropriate
         # allows undoing of a previous scaling procedure
         thisScale = thisScale / numpy.asarray(prevScale)
-        GL.glScalef(thisScale[0], thisScale[1], 1.0)
+        # GL.glScalef(thisScale[0], thisScale[1], 1.0)
         return thisScale
 
     def _checkMatchingSizes(self, requested, actual):
@@ -3174,20 +3209,20 @@ class Window():
         self.scissorTest = True
         self.stencilTest = False
 
-        GL.glMatrixMode(GL.GL_PROJECTION)  # Reset the projection matrix
-        GL.glLoadIdentity()
-        GL.gluOrtho2D(-1, 1, -1, 1)
+        # GL.glMatrixMode(GL.GL_PROJECTION)  # Reset the projection matrix
+        # GL.glLoadIdentity()
+        # GL.gluOrtho2D(-1, 1, -1, 1)
 
-        GL.glMatrixMode(GL.GL_MODELVIEW)  # Reset the modelview matrix
-        GL.glLoadIdentity()
+        # GL.glMatrixMode(GL.GL_MODELVIEW)  # Reset the modelview matrix
+        # GL.glLoadIdentity()
 
         self.depthTest = False
         # GL.glEnable(GL.GL_DEPTH_TEST)  # Enables Depth Testing
         # GL.glDepthFunc(GL.GL_LESS)  # The Type Of Depth Test To Do
         GL.glEnable(GL.GL_BLEND)
 
-        GL.glShadeModel(GL.GL_SMOOTH)  # Color Shading (FLAT or SMOOTH)
-        GL.glEnable(GL.GL_POINT_SMOOTH)
+        # GL.glShadeModel(GL.GL_SMOOTH)  # Color Shading (FLAT or SMOOTH)
+        # GL.glEnable(GL.GL_POINT_SMOOTH)
 
         # check for GL_ARB_texture_float
         # (which is needed for shaders to be useful)
@@ -3268,19 +3303,19 @@ class Window():
                 _shaders.fragPhongLighting, srcDefs)
 
             # build a shader program
-            prog = gltools.createProgramObjectARB()
-            vertexShader = gltools.compileShaderObjectARB(
-                vertSrc, GL.GL_VERTEX_SHADER_ARB)
-            fragmentShader = gltools.compileShaderObjectARB(
-                fragSrc, GL.GL_FRAGMENT_SHADER_ARB)
+            prog = gltools.createProgram()
+            vertexShader = gltools.compileShader(
+                vertSrc, GL.GL_VERTEX_SHADER)
+            fragmentShader = gltools.compileShader(
+                fragSrc, GL.GL_FRAGMENT_SHADER)
 
-            gltools.attachObjectARB(prog, vertexShader)
-            gltools.attachObjectARB(prog, fragmentShader)
-            gltools.linkProgramObjectARB(prog)
-            gltools.detachObjectARB(prog, vertexShader)
-            gltools.detachObjectARB(prog, fragmentShader)
-            gltools.deleteObjectARB(vertexShader)
-            gltools.deleteObjectARB(fragmentShader)
+            gltools.attachShader(prog, vertexShader)
+            gltools.attachShader(prog, fragmentShader)
+            gltools.linkProgram(prog)
+            gltools.detachShader(prog, vertexShader)
+            gltools.detachShader(prog, fragmentShader)
+            gltools.deleteShader(vertexShader)
+            gltools.deleteShader(fragmentShader)
 
             # set the flag
             self._shaders['stim3d_phong'][flag] = prog
