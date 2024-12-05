@@ -1155,12 +1155,12 @@ class TextureMixin:
                     stim.win.glVendor.startswith('nvidia')):
                 # nvidia under win/linux might not support 32bit float
                 # could use GL_LUMINANCE32F_ARB here but check shader code?
-                internalFormat = GL.GL_RGB16F_ARB
+                internalFormat = GL.GL_RGB16F
             else:
                 # we've got a mac or an ATI card and can handle
                 # 32bit float textures
                 # could use GL_LUMINANCE32F_ARB here but check shader code?
-                internalFormat = GL.GL_RGB32F_ARB
+                internalFormat = GL.GL_RGB32F
             # initialise data array as a float
             data = numpy.ones((intensity.shape[0], intensity.shape[1], 3),
                               numpy.float32)
@@ -1180,7 +1180,7 @@ class TextureMixin:
             data[:, :, 2] = intensity  # B
         elif pixFormat == GL.GL_RGB and dataType == GL.GL_FLOAT:
             # probably a custom rgb array or rgb image
-            internalFormat = GL.GL_RGB32F_ARB
+            internalFormat = GL.GL_RGB32F
             data = intensity
         elif pixFormat == GL.GL_RGB:
             # not wasLum, not useShaders  - an RGB bitmap with no shader
@@ -1203,8 +1203,8 @@ class TextureMixin:
                 pixFormat = GL.GL_RGBA
             if internalFormat == GL.GL_RGB:
                 internalFormat = GL.GL_RGBA
-            elif internalFormat == GL.GL_RGB32F_ARB:
-                internalFormat = GL.GL_RGBA32F_ARB
+            elif internalFormat == GL.GL_RGB32F:
+                internalFormat = GL.GL_RGBA32F
         texture = data.ctypes  # serialise
 
         # Create the pixel buffer object which will serve as the texture memory
