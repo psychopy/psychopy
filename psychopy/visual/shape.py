@@ -499,6 +499,7 @@ class ShapeStim(BaseShapeStim):
 
     """
     # Author: Jeremy Gray, November 2015, using psychopy.contrib.tesselate
+    _tesselMode = 'triangle'  # best for most shapes
 
     def __init__(self,
                  win,
@@ -581,7 +582,10 @@ class ShapeStim(BaseShapeStim):
             Nx2 array of points (eg., `[[-0.5, 0], [0, 0.5], [0.5, 0]`).
 
         """
-        vertices, _, _, faces = gt.tesselate(newVertices, mode='triangle')
+        if not hasattr(self, '_tesselMode'):
+            self._tesselMode = 'triangle'
+        
+        vertices, _, _, faces = gt.tesselate(newVertices, mode=self._tesselMode)
 
         # unpack the vertices into a numpy array
         initVertices = numpy.ascontiguousarray(vertices)[faces.flatten()]
