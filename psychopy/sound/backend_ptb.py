@@ -50,7 +50,11 @@ else:
 
 # check if we should only use WAS host API (default is True on Windows)
 audioWASAPIOnly = False
-if sys.platform == 'win32' and prefs.hardware['audioWASAPIOnly']:
+try:
+    wasapiPref = prefs.hardware['audioWASAPIOnly']
+except KeyError:
+    wasapiPref = False
+if sys.platform == 'win32' and wasapiPref:
     audioWASAPIOnly = True
 
 # these will be used by sound.__init__.py
@@ -248,6 +252,11 @@ class SoundPTB(_SoundBase):
         # work out stop time
         if self.stopTime == -1:
             self.duration = clip.samples.shape[0] / clip.sampleRateHz
+        # handle stereo/mono
+        if self.speaker.channels > 1:
+            clip = clip.asStereo()
+        else:
+            clip = clip.asMono()
         # create/update track
         if  self.track:
             self.track.stop()

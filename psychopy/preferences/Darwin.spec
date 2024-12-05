@@ -131,7 +131,9 @@
 # Settings for hardware
 [hardware]
     # LEGACY: choice of audio library
-    audioLib = list(default=list('PTB', 'sounddevice', 'pyo', 'pygame'))
+    audioLib = list(default=list('ptb', 'sounddevice', 'pyo', 'pygame'))
+    # exclude non-WASAPI audio devices
+    audioWASAPIOnly = boolean(default=True)
     # audio driver to use
     audioDriver = list(default=list('coreaudio', 'portaudio'))
     # audio device to use (if audioLib allows control)

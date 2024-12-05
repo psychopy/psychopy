@@ -102,6 +102,10 @@ tests = [
     "flake8",
     "xmlschema",
 ]
+docs = [
+    "sphinx",
+    "jinja2",
+]
 building = [
     "bdist-mpkg>=0.5.0; platform_system == \"Darwin\"",
     "py2app; platform_system == \"Darwin\"",

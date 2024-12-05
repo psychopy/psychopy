@@ -308,17 +308,6 @@ class _SoundBase(AttributeGetSetMixin):
         self.sndArr = numpy.asarray(thisArray).astype('float32')
         if thisArray.ndim == 1:
             self.sndArr.shape = [len(thisArray), 1]  # make 2D for broadcasting
-        if self.channels == 2 and self.sndArr.shape[1] == 1:  # mono -> stereo
-            self.sndArr = self.sndArr.repeat(2, axis=1)
-        elif self.sndArr.shape[1] == 1:  # if channels in [-1,1] then pass
-            pass
-        else:
-            try:
-                self.sndArr.shape = [len(thisArray), 2]
-            except ValueError:
-                raise ValueError("Failed to format sound with shape {} "
-                                 "into sound with channels={}"
-                                 .format(self.sndArr.shape, self.channels))
 
         # is this stereo?
         if self.stereo == -1:  # auto stereo. Try to detect

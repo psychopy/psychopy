@@ -968,18 +968,25 @@ class AudioClip:
             Mono version of this object.
 
         """
-        samples = np.atleast_2d(self._samples)  # enforce 2D
+        if self.channels == 1:
+            return self
+        # log
+        logging.debug(
+            "Converted audio clip from stereo to mono"
+        )
+        # enforce 2D
+        samples = np.atleast_2d(self._samples)
+        # reduce to mono
         if samples.shape[1] > 1:
             samplesMixed = np.atleast_2d(
                 np.sum(samples, axis=1, dtype=np.float32) / np.float32(2.)).T
         else:
             samplesMixed = samples.copy()
-
+        # create copy if requested
         if copy:
             return AudioClip(samplesMixed, self.sampleRateHz)
-
-        self._samples = samplesMixed  # overwrite
-
+        # otherwise change self
+        self._samples = samplesMixed
         return self
     
     def asStereo(self, copy=True):
@@ -1001,15 +1008,19 @@ class AudioClip:
         """
         if self.channels == 2:
             return self
-
-        samples = np.atleast_2d(self._samples)  # enforce 2D
+        # log
+        logging.debug(
+            "Converted audio clip from mono to stereo"
+        )
+        # enforce 2D
+        samples = np.atleast_2d(self._samples) 
+        # expand to stereo
         samples = np.hstack((samples, samples))
-
+        # create copy if requested
         if copy:
             return AudioClip(samples, self.sampleRateHz)
-
-        self._samples = samples  # overwrite
-
+        # otherwise change self
+        self._samples = samples
         return self
 
     def transcribe(self, engine='whisper', language='en-US', expectedWords=None,
