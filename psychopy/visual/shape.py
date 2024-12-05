@@ -330,6 +330,7 @@ class BaseShapeStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         if win is None:
             win = self.win
         self._selectWindow(win)
+        win.setOrthographicView()
 
         # will check if it needs updating (check just once)
         vertsPix = self.verticesPix
@@ -360,7 +361,7 @@ class BaseShapeStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
                 self.win._projectionMatrix)
             gt.drawClientArrays(
                 {'gl_Vertex': self.verticesPix},
-                'triangles')
+                'quads')
 
         # draw the border
         if self._borderColor != None and self.lineWidth != 0.0:
