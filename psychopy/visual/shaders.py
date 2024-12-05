@@ -172,32 +172,36 @@ fragFBOtoFrame = '''
 
 # for stimuli with no texture (e.g. shapes)
 fragSignedColor = '''
+    uniform vec4 uColor;
     void main() {
-        gl_FragColor.rgb = ((gl_Color.rgb*2.0-1.0)+1.0)/2.0;
-        gl_FragColor.a = gl_Color.a;
+        gl_FragColor.rgb = ((uColor.rgb*2.0-1.0)+1.0)/2.0;
+        gl_FragColor.a = uColor.a;
     }
     '''
 fragSignedColor_adding = '''
+    uniform vec4 uColor;
     void main() {
-        gl_FragColor.rgb = (gl_Color.rgb*2.0-1.0)/2.0;
-        gl_FragColor.a = gl_Color.a;
+        gl_FragColor.rgb = (uColor.rgb*2.0-1.0)/2.0;
+        gl_FragColor.a = uColor.a;
     }
     '''
 # for stimuli with just a colored texture
 fragSignedColorTex = '''
+    uniform vec4 uColor;
     uniform sampler2D texture;
     void main() {
         vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);
-        gl_FragColor.rgb = (textureFrag.rgb* (gl_Color.rgb*2.0-1.0)+1.0)/2.0;
-        gl_FragColor.a = gl_Color.a*textureFrag.a;
+        gl_FragColor.rgb = (textureFrag.rgb*(uColor.rgb*2.0-1.0)+1.0)/2.0;
+        gl_FragColor.a = uColor.a*textureFrag.a;
     }
     '''
 fragSignedColorTex_adding = '''
+    uniform vec4 uColor;
     uniform sampler2D texture;
     void main() {
         vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);
-        gl_FragColor.rgb = textureFrag.rgb * (gl_Color.rgb*2.0-1.0)/2.0;
-        gl_FragColor.a = gl_Color.a * textureFrag.a;
+        gl_FragColor.rgb = textureFrag.rgb * (uColor.rgb*2.0-1.0)/2.0;
+        gl_FragColor.a = uColor.a * textureFrag.a;
     }
     '''
 # the shader for pyglet fonts doesn't use multitextures - just one texture
@@ -274,12 +278,14 @@ fragImageStim_adding = '''
     '''
 # in every case our vertex shader is simple (we don't transform coords)
 vertSimple = """
+    uniform vec4 uColor;
+    uniform mat4 uProjectionMatrix;
     void main() {
-            gl_FrontColor = gl_Color;
+            gl_FrontColor = uColor;
             gl_TexCoord[0] = gl_MultiTexCoord0;
             gl_TexCoord[1] = gl_MultiTexCoord1;
             gl_TexCoord[2] = gl_MultiTexCoord2;
-            gl_Position =  ftransform();
+            gl_Position = uProjectionMatrix * gl_Vertex;
     }
     """
 
@@ -433,22 +439,26 @@ void main (void)
 """
 
 fragTextBox2 = '''
-    uniform sampler2D texture;
-    void main() {
-        vec2 uv      = gl_TexCoord[0].xy;
-        vec4 current = texture2D(texture, uv);
+uniform sampler2D uTexture;
+uniform vec4 uColor;
+void main() 
+{
+    vec2 uv      = gl_TexCoord[0].xy;
+    vec4 current = texture2D(uTexture, uv);
 
-        float r = current.r;
-        float g = current.g;
-        float b = current.b;
-        float a = current.a;
-        gl_FragColor = vec4( gl_Color.rgb, (r+g+b)/2.);
-    }
-    '''
+    float r = current.r;
+    float g = current.g;
+    float b = current.b;
+    float a = current.a;
+    gl_FragColor = vec4(uColor.rgb, (r + g + b) / 2.);
+}
+'''
 fragTextBox2alpha = '''
-    uniform sampler2D texture;
-    void main() {
-        vec4 current = texture2D(texture,gl_TexCoord[0].st);
-        gl_FragColor = vec4( gl_Color.rgb, current.a);
-    }
-    '''
+uniform sampler2D uTexture;
+uniform vec4 uColor;
+void main() 
+{
+    vec4 current = texture2D(uTexture, gl_TexCoord[0].st);
+    gl_FragColor = vec4(uColor.rgb, current.a);
+}
+'''
