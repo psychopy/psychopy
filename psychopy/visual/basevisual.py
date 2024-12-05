@@ -1242,9 +1242,9 @@ class TextureMixin:
                 GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_REPEAT)
         else:
             GL.glTexParameteri(
-                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP)
+                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP_TO_BORDER)
             GL.glTexParameteri(
-                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP)
+                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP_TO_BORDER)
         # data from PIL/numpy is packed, but default for GL is 4 bytes
         GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
         # important if using bits++ because GL_LINEAR
@@ -1252,11 +1252,8 @@ class TextureMixin:
         if interpolate:
             GL.glTexParameteri(
                 GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR)
-            # GL_GENERATE_MIPMAP was only available from OpenGL 1.4
             GL.glTexParameteri(
                 GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
-            GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_GENERATE_MIPMAP,
-                               GL.GL_TRUE)
             GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
                             data.shape[1], data.shape[0], 0,
                             pixFormat, dataType, texture)
@@ -1268,9 +1265,10 @@ class TextureMixin:
             GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
                             data.shape[1], data.shape[0], 0,
                             pixFormat, dataType, texture)
+        GL.glGenerateMipmap(GL.GL_TEXTURE_2D)
 
-        GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE,
-                     GL.GL_MODULATE)  # ?? do we need this - think not!
+        # GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE,
+        #              GL.GL_MODULATE)  # ?? do we need this - think not!
         # unbind our texture so that it doesn't affect other rendering
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 
