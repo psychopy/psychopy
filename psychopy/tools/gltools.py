@@ -14,15 +14,15 @@ __all__ = [
     'VERTEX_ATTRIB_COLOR',
     'VERTEX_ATTRIB_SECONADRY_COLOR',
     'VERTEX_ATTRIB_COLOR2',
-    'VERTEX_ATTRIB_FOG_COORD',
-    'VERTEX_ATTRIB_TEXCOORD0',
-    'VERTEX_ATTRIB_TEXCOORD1',
-    'VERTEX_ATTRIB_TEXCOORD2',
-    'VERTEX_ATTRIB_TEXCOORD3',
-    'VERTEX_ATTRIB_TEXCOORD4',
-    'VERTEX_ATTRIB_TEXCOORD5',
-    'VERTEX_ATTRIB_TEXCOORD6',
-    'VERTEX_ATTRIB_TEXCOORD7',
+    'VERTEX_ATTRIB_FOGCOORD',
+    'VERTEX_ATTRIB_MULTITEXCOORD0',
+    'VERTEX_ATTRIB_MULTITEXCOORD1',
+    'VERTEX_ATTRIB_MULTITEXCOORD2',
+    'VERTEX_ATTRIB_MULTITEXCOORD3',
+    'VERTEX_ATTRIB_MULTITEXCOORD4',
+    'VERTEX_ATTRIB_MULTITEXCOORD5',
+    'VERTEX_ATTRIB_MULTITEXCOORD6',
+    'VERTEX_ATTRIB_MULTITEXCOORD7',
     'createProgram',
     'createProgramObjectARB',
     'compileShader',
@@ -69,6 +69,7 @@ __all__ = [
     'createVAO',
     'drawVAO',
     'deleteVAO',
+    'drawClientArrays',
     'VertexBufferInfo',
     'createVBO',
     'bindVBO',
@@ -143,36 +144,36 @@ VERTEX_ATTRIB_POSITION = 0   # gl_Vertex
 VERTEX_ATTRIB_NORMAL = 2  # gl_Normal
 VERTEX_ATTRIB_COLOR = 3  # gl_Color
 VERTEX_ATTRIB_SECONADRY_COLOR = VERTEX_ATTRIB_COLOR2 = 4  # gl_SecondaryColor
-VERTEX_ATTRIB_FOG_COORD = 5  # gl_FogCoord
-VERTEX_ATTRIB_TEXCOORD0 = 8  # gl_MultiTexCoord0
-VERTEX_ATTRIB_TEXCOORD1 = 9  # gl_MultiTexCoord1
-VERTEX_ATTRIB_TEXCOORD2 = 10  # gl_MultiTexCoord2
-VERTEX_ATTRIB_TEXCOORD3 = 11  # gl_MultiTexCoord3
-VERTEX_ATTRIB_TEXCOORD4 = 12  # gl_MultiTexCoord4
-VERTEX_ATTRIB_TEXCOORD5 = 13  # gl_MultiTexCoord5 
-VERTEX_ATTRIB_TEXCOORD6 = 14  # gl_MultiTexCoord6 
-VERTEX_ATTRIB_TEXCOORD7 = 15  # gl_MultiTexCoord7
+VERTEX_ATTRIB_FOGCOORD = 5  # gl_FogCoord
+VERTEX_ATTRIB_MULTITEXCOORD0 = 8  # gl_MultiTexCoord0
+VERTEX_ATTRIB_MULTITEXCOORD1 = 9  # gl_MultiTexCoord1
+VERTEX_ATTRIB_MULTITEXCOORD2 = 10  # gl_MultiTexCoord2
+VERTEX_ATTRIB_MULTITEXCOORD3 = 11  # gl_MultiTexCoord3
+VERTEX_ATTRIB_MULTITEXCOORD4 = 12  # gl_MultiTexCoord4
+VERTEX_ATTRIB_MULTITEXCOORD5 = 13  # gl_MultiTexCoord5 
+VERTEX_ATTRIB_MULTITEXCOORD6 = 14  # gl_MultiTexCoord6 
+VERTEX_ATTRIB_MULTITEXCOORD7 = 15  # gl_MultiTexCoord7
 
+# mapping human-readable names to the typical attribute locations
 VERTEX_ATTRIBS = {
     'gl_Vertex': VERTEX_ATTRIB_POSITION,
     'gl_Normal': VERTEX_ATTRIB_NORMAL,
     'gl_Color': VERTEX_ATTRIB_COLOR,
     'gl_SecondaryColor': VERTEX_ATTRIB_COLOR2,
-    'gl_FogCoord': VERTEX_ATTRIB_FOG_COORD,
-    'gl_MultiTexCoord0': VERTEX_ATTRIB_TEXCOORD0,
-    'gl_MultiTexCoord1': VERTEX_ATTRIB_TEXCOORD1,
-    'gl_MultiTexCoord2': VERTEX_ATTRIB_TEXCOORD2,
-    'gl_MultiTexCoord3': VERTEX_ATTRIB_TEXCOORD3,
-    'gl_MultiTexCoord4': VERTEX_ATTRIB_TEXCOORD4,
-    'gl_MultiTexCoord5': VERTEX_ATTRIB_TEXCOORD5,
-    'gl_MultiTexCoord6': VERTEX_ATTRIB_TEXCOORD6,
-    'gl_MultiTexCoord7': VERTEX_ATTRIB_TEXCOORD7
+    'gl_FogCoord': VERTEX_ATTRIB_FOGCOORD,
+    'gl_MultiTexCoord0': VERTEX_ATTRIB_MULTITEXCOORD0,
+    'gl_MultiTexCoord1': VERTEX_ATTRIB_MULTITEXCOORD1,
+    'gl_MultiTexCoord2': VERTEX_ATTRIB_MULTITEXCOORD2,
+    'gl_MultiTexCoord3': VERTEX_ATTRIB_MULTITEXCOORD3,
+    'gl_MultiTexCoord4': VERTEX_ATTRIB_MULTITEXCOORD4,
+    'gl_MultiTexCoord5': VERTEX_ATTRIB_MULTITEXCOORD5,
+    'gl_MultiTexCoord6': VERTEX_ATTRIB_MULTITEXCOORD6,
+    'gl_MultiTexCoord7': VERTEX_ATTRIB_MULTITEXCOORD7
 }
 
 # String mapping for GLenums, this allows for users to work with this library 
 # without needing to import `pyglet.gl` in cases where they need to specify
-# OpenGL constants.
-
+# OpenGL constants. Most of the commonly used enums are included here.
 GL_ENUMS = {
     'unsigned_int': GL.GL_UNSIGNED_INT,  # data types
     'unsigned_short': GL.GL_UNSIGNED_SHORT,
@@ -219,6 +220,7 @@ GL_ENUMS = {
     'triangle_fan': GL.GL_TRIANGLE_FAN,
     'triangles_adjacency': GL.GL_TRIANGLES_ADJACENCY,
     'triangle_strip_adjacency': GL.GL_TRIANGLE_STRIP_ADJACENCY,
+    'quads': GL.GL_QUADS,
     'patches': GL.GL_PATCHES,
     'front': GL.GL_FRONT,  # face culling/polymodes
     'back': GL.GL_BACK,
@@ -286,7 +288,34 @@ GL_ENUMS = {
     'info_log_length': GL.GL_INFO_LOG_LENGTH,
     'shader_type': GL.GL_SHADER_TYPE,
     'shader_source_length': GL.GL_SHADER_SOURCE_LENGTH,
-    'shader_compiler': GL.GL_SHADER_COMPILER
+    'shader_compiler': GL.GL_SHADER_COMPILER,
+    'src_alpha': GL.GL_SRC_ALPHA,  # blending factors
+    'one_minus_src_alpha': GL.GL_ONE_MINUS_SRC_ALPHA,
+    'dst_alpha': GL.GL_DST_ALPHA,
+    'one_minus_dst_alpha': GL.GL_ONE_MINUS_DST_ALPHA,
+    'src_color': GL.GL_SRC_COLOR,
+    'one_minus_src_color': GL.GL_ONE_MINUS_SRC_COLOR,
+    'dst_color': GL.GL_DST_COLOR,
+    'one_minus_dst_color': GL.GL_ONE_MINUS_DST_COLOR,
+    'zero': GL.GL_ZERO,
+    'one': GL.GL_ONE,
+    'src_alpha_saturate': GL.GL_SRC_ALPHA_SATURATE,
+    'constant_color': GL.GL_CONSTANT_COLOR,
+    'one_minus_constant_color': GL.GL_ONE_MINUS_CONSTANT_COLOR,
+    'constant_alpha': GL.GL_CONSTANT_ALPHA,
+    'one_minus_constant_alpha': GL.GL_ONE_MINUS_CONSTANT_ALPHA,
+    'blend_color': GL.GL_BLEND_COLOR,
+    'blend_equation': GL.GL_BLEND_EQUATION,  # blending equations
+    'blend_equation_rgb': GL.GL_BLEND_EQUATION_RGB,
+    'blend_equation_alpha': GL.GL_BLEND_EQUATION_ALPHA,
+    'blend_dst_rgb': GL.GL_BLEND_DST_RGB,  # blend destination factors
+    'blend_src_rgb': GL.GL_BLEND_SRC_RGB,  # blend source factors
+    'blend_dst_alpha': GL.GL_BLEND_DST_ALPHA,
+    'blend_src_alpha': GL.GL_BLEND_SRC_ALPHA,
+    'blend': GL.GL_BLEND,  # blending modes
+    'blend_color': GL.GL_BLEND_COLOR,
+    'blend_dst': GL.GL_BLEND_DST,
+    'blend_src': GL.GL_BLEND_SRC
 }
 
 # Mappings between Python/Numpy and OpenGL data types for arrays. Duplication
@@ -1109,13 +1138,40 @@ def getUniformLocation(program, name, error=True):
 
     loc = GL.glGetUniformLocation(program, name)
 
-    if error and loc == -1:
+    if error:
+        if loc == -1:
+            raise ValueError(
+                "Uniform not found in program, it may not be defined or has "
+                "been optimized out by the GLSL compiler.")
         raise ValueError("Uniform '{}' not found in program.".format(name))
     
     return loc
 
 
-def setUniformValue(program, loc, value):
+# functions for setting uniform values
+_unifValueFuncs = {
+    'float': {
+        1: GL.glUniform1f,
+        2: GL.glUniform2f,
+        3: GL.glUniform3f,
+        4: GL.glUniform4f
+    },
+    'int': {
+        1: GL.glUniform1i,
+        2: GL.glUniform2i,
+        3: GL.glUniform3i,
+        4: GL.glUniform4i
+    },
+    'uint': {
+        1: GL.glUniform1ui,
+        2: GL.glUniform2ui,
+        3: GL.glUniform3ui,
+        4: GL.glUniform4ui
+    }
+}
+    
+
+def setUniformValue(program, loc, value, unifType='float'):
     """Set the value of a uniform variable in a shader program from a scalar or
     1d array of values.
 
@@ -1132,6 +1188,9 @@ def setUniformValue(program, loc, value):
     value : int, float, list, tuple, numpy.ndarray
         Value to set the uniform to. The type of the value must match the type
         of the uniform variable in the shader program.
+    unifType : str, optional
+        Type of the uniform value elements. This is used to determine the 
+        appropritate setter function. Must be one of 'float', 'int' or 'uint'.
 
     """
     if not GL.glIsProgram(program):
@@ -1148,25 +1207,32 @@ def setUniformValue(program, loc, value):
 
     if loc == -1:
         raise ValueError("Uniform '{}' not found in program.".format(loc))
-
+    
     # handle scalar values
     if isinstance(value, (float, int)):
-        GL.glUniform1f(loc, float(value))
+        if unifType == 'float':
+            GL.glUniform1f(loc, float(value))
+        elif unifType == 'int':
+            GL.glUniform1i(loc, int(value))
+        elif unifType == 'uint':
+            if value < 0:
+                raise ValueError(
+                    "Invalid unsigned integer value, must be >= 0.")
+            GL.glUniform1ui(loc, int(value))
+        else:
+            raise ValueError("Invalid uniform value type.")
+        return
+    
+    # passed as list, tuple or numpy array
+    unifLen = len(value)
+    if unifLen > 4:
+        raise ValueError("Invalid uniform data length, must be 1-4 elements.")
 
-    # handle arrays
-    unifData = np.ascontiguousarray(value, dtype=np.float32)  # re-cast
-    unifLen = unifData.size
-
-    if unifLen == 1:
-        GL.glUniform1f(loc, unifData[0])
-    elif unifLen == 2:
-        GL.glUniform2f(loc, *unifData)
-    elif unifLen == 3:
-        GL.glUniform3f(loc, *unifData)
-    elif unifLen == 4:
-        GL.glUniform4f(loc, *unifData)
-    else:
+    unifSetFunc = _unifValueFuncs[unifType].get(unifLen, None)
+    if unifSetFunc is None:
         raise ValueError("Invalid uniform data length.")
+
+    unifSetFunc(loc, *value)
 
 
 # lookup table for matrix uniform setter functions, the keys are hashable 
@@ -1213,6 +1279,7 @@ def setUniformMatrix(program, loc, value, transpose=False):
         raise ValueError(
             "Specified value of `program` is not a program object handle.")
     
+    locInput = loc  # for error message
     if isinstance(loc, bytes):
         loc = GL.glGetUniformLocation(program, loc)
     elif isinstance(loc, str):
@@ -1222,7 +1289,9 @@ def setUniformMatrix(program, loc, value, transpose=False):
             raise ValueError("Invalid type for uniform location.")
 
     if loc == -1:
-        raise ValueError("Uniform '{}' not found in program.".format(loc))
+        raise ValueError((
+            "Uniform '{}' not found in program. It is either not defined or it "
+            "is unused.").format(locInput))
 
     # convert to contiguous array
     value = np.ascontiguousarray(value, dtype=np.float32)
@@ -2883,6 +2952,164 @@ def deleteVAO(vao):
             vao.count = 0
 
 
+def drawClientArrays(attribBuffers, mode=GL.GL_TRIANGLES, indexBuffer=None):
+    """Draw vertex arrays using client-side arrays. 
+    
+    This is a convenience function for drawing vertex arrays by passing 
+    client-side (resident in CPU memory space) arrays to the driver directly. 
+    Performance may be suboptimal compared to using VBOs and VAOs, as data
+    must be transferred to the GPU each time this function is called. This may
+    also stall the rendering pipeline, preventing the GPU from processing
+    commands in parallel.
+
+    For best performance, use interleaved arrays for vertex attributes and an
+    index buffer. Using an index buffer is optional, but it greatly reduces 
+    the amount of data that must be transferred to the GPU.
+
+    Parameters
+    ----------
+    attribBuffers : dict
+        Attributes and associated buffers to draw. Keys are vertex attribute
+        pointer indices, values are buffer arrays. Values can be `tuples` where
+        the first value is the buffer array, the second is the number of
+        attribute components (`int`, either 2, 3 or 4), the third is the offset
+        (`int`), and the last is whether to normalize the array (`bool`). Buffer
+        arrays may be `numpy` arrays or lists. If lists, the arrays will be
+        converted to `numpy` arrays with `float` (`GL_DOUBLE`) data type.
+    mode : int
+        Drawing mode to use (e.g. GL_TRIANGLES, GL_QUADS, GL_POINTS, etc.) for
+        rasterization.
+    indexBuffer : VertexBufferInfo
+        Optional index buffer. If `None`, `glDrawArrays` is used, else
+        `glDrawElements` is used. The index buffer must be a 2D array that is
+        appropriately sized for the drawing mode. For example, if `mode` is
+        `GL_TRIANGLES`, the index buffer must be a 2D array with 3 columns. The
+        index array is always assumed to be of type `GL_UNSIGNED_INT`, it will
+        be converted if necessary.
+
+    Examples
+    --------
+    Drawing vertex arrays using client-side arrays::
+
+        attribArrays = {
+            'gl_Vertex': vertexPos,  # vertex positions
+            'gl_Color': vertexColors}  # per vertex colors
+
+        drawClientArrays('triangles', attribArrays)
+
+    Drawing using index buffers::
+
+        vertex, normal, texCoord, faces = createAnnulus()  # ring geometry
+
+        # bind and setup shader uniforms here...
+
+        attribs = {
+            'gl_Vertex': vertex,
+            'gl_Normal': normal,
+            'gl_MultiTexCoord0': texCoord}
+        
+        drawClientArrays('triangles', attribs, indexBuffer=faces)
+
+    Using interleaved arrays is recommended for greater performance, all
+    attributes are stored in a single array which reduces the number of 
+    binding calls::
+
+        vertex, normal, texCoord, faces = createPlane()  # square
+        interleaved, sizes, offsets = interleaveArrays(
+            [vertex, normal, texCoord])
+
+        # interleaved array layout: 000111222
+        attribs = {}
+        for i, attrib in enumerate('gl_Vertex', 'gl_Normal', 'gl_TexCoord'):
+            attribs[attrib] = (interleaved, sizes[i], offsets[i])
+
+        drawClientArrays('triangles', attribs, indexBuffer=faces)
+
+    """
+    mode = _getGLEnum(mode)
+    if mode is None:
+        raise ValueError('Invalid drawing mode specified.')
+
+    GL.glEnable(GL.GL_VERTEX_ARRAY)
+    GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
+    GL.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, 0)
+    GL.glBindVertexArray(0)
+
+    useIndexBuffer = indexBuffer is not None
+    if useIndexBuffer:
+        # always use unsigned int for index buffer
+        indexBuffer = np.ascontiguousarray(indexBuffer, dtype=np.uint32)
+        if indexBuffer.ndim != 2:
+            raise ValueError('Index buffer must be 2D array.')
+
+    boundArrays = []
+    for arrIdx, buffer in attribBuffers.items():
+        if isinstance(arrIdx, str):
+            arrIdx= VERTEX_ATTRIBS.get(arrIdx, None)
+            if arrIdx is None:
+                raise ValueError('Invalid attribute name specified.')
+
+        if isinstance(buffer, (list, tuple,)):
+            normalize = False
+            nVals = len(buffer)
+            if nVals == 1:
+                buffer = buffer[0]  # size 1 tuple or list eg. (buffer,)
+                size = buffer.shape[1]
+                offset = 0
+            elif nVals == 2:
+                buffer, size = buffer
+                offset = 0
+            elif nVals == 3:
+                buffer, size, offset = buffer
+            elif nVals == 4:
+                buffer, size, offset, normalize = buffer
+            else:
+                raise ValueError('Invalid attribute values.')
+        else:
+            size = buffer.shape[1]
+            offset = 0
+            normalize = False
+
+        # make sure the buffer is contiguous array
+        if not isinstance(buffer, np.ndarray): 
+            buffer = np.ascontiguousarray(buffer, dtype=float)
+
+        if buffer.ndim != 2:
+            raise ValueError(
+                'Buffer {} must be 2D array.'.format(i))
+        
+        numVertices = buffer.shape[0]
+        
+        # enable and set attribute pointers
+        GL.glEnableVertexAttribArray(arrIdx)
+        
+        arrayTypes = ARRAY_TYPES.get(buffer.dtype.type, None)
+        if arrayTypes is None:
+            raise ValueError('Unable to determine data type from buffer.')
+
+        GL.glVertexAttribPointer(
+            arrIdx,
+            size,
+            arrayTypes[0],
+            GL.GL_TRUE if normalize else GL.GL_FALSE,
+            offset,
+            buffer.ctypes)
+
+        boundArrays.append(arrIdx)
+
+    # use the appropriate draw function
+    if useIndexBuffer:
+        GL.glDrawElements(
+            mode, indexBuffer.size, GL.GL_UNSIGNED_INT, indexBuffer.ctypes)
+    else:
+        GL.glDrawArrays(mode, 0, numVertices)
+
+    for arrIdx in boundArrays:  # unbind arrays
+        GL.glDisableVertexAttribArray(arrIdx)
+    
+    GL.glDisable(GL.GL_VERTEX_ARRAY)
+
+
 # ---------------------------
 # Vertex Buffer Objects (VBO)
 #
@@ -3712,6 +3939,220 @@ def setFillDraw(face=GL.GL_FRONT_AND_BACK):
     face = _getGLEnum(face)
     setPolygonMode(face, GL.GL_FILL)
 
+
+def setDepthTest(enable=True):
+    """Enable or disable depth testing.
+
+    Parameters
+    ----------
+    enable : bool, optional
+        Enable or disable depth testing. Default is `True`.
+
+    """
+    if enable:
+        GL.glEnable(GL.GL_DEPTH_TEST)
+    else:
+        GL.glDisable(GL.GL_DEPTH_TEST)
+
+
+def setDepthFunc(func):
+    """Set the depth comparison function.
+
+    Parameters
+    ----------
+    func : GLenum or str
+        Depth comparison function. Values can be `GL_NEVER`, `GL_LESS`,
+        `GL_EQUAL`, `GL_LEQUAL`, `GL_GREATER`, `GL_NOTEQUAL`, `GL_GEQUAL`, or
+        `GL_ALWAYS`. Strings may also be used to specify the function, where
+        the following are valid: 'never' (for `GL_NEVER`), 'less' (for `GL_LESS`),
+        'equal' (for `GL_EQUAL`), 'lequal' (for `GL_LEQUAL`), 'greater' (for
+        `GL_GREATER`), 'notequal' (for `GL_NOTEQUAL`), 'gequal' (for `GL_GEQUAL`),
+        and 'always' (for `GL_ALWAYS`).
+
+    """
+    func = _getGLEnum(func)
+    GL.glDepthFunc(func)
+
+
+def setDepthMask(enable=True):
+    """Enable or disable writing to the depth buffer.
+
+    Parameters
+    ----------
+    enable : bool, optional
+        Enable or disable writing to the depth buffer. Default is `True`.
+
+    """
+    if enable:
+        GL.glDepthMask(GL.GL_TRUE)
+    else:
+        GL.glDepthMask(GL.GL_FALSE)
+
+
+def setDepthRange(near, far):
+    """Set the range of depth values.
+
+    Parameters
+    ----------
+    near : float
+        Near clipping plane.
+    far : float
+        Far clipping plane.
+
+    """
+    GL.glDepthRange(near, far)
+
+
+def setClearColor(color):
+    """Set the clear color for the color buffer.
+
+    Parameters
+    ----------
+    color : array_like
+        Color to clear the color buffer with. The color should be in RGBA
+        format, where each component is in the range [0, 1].
+
+    """
+    GL.glClearColor(*color)
+
+
+def setClearDepth(depth):
+    """Set the clear value for the depth buffer.
+
+    Parameters
+    ----------
+    depth : float
+        Value to clear the depth buffer with.
+
+    """
+    GL.glClearDepth(depth)
+
+
+def enable(enum):
+    """Enable a GL capability.
+
+    Parameters
+    ----------
+    enum : GLenum, int or str
+        Capability to enable.
+
+    """
+    if isinstance(enum, str):
+        enum = GL_ENUMS.get(enum, None)
+        if enum is None:
+            raise ValueError('Invalid capability string specified.')
+        
+    GL.glEnable(enum)
+
+
+def disable(enum):
+    """Disable a GL capability.
+
+    Parameters
+    ----------
+    enum : GLenum, int or str
+        Capability to disable.
+
+    """
+    if isinstance(enum, str):
+        enum = GL_ENUMS.get(enum, None)
+        if enum is None:
+            raise ValueError('Invalid capability string specified.')
+        
+    GL.glDisable(enum)
+
+
+def setLineWidth(width):
+    """Set the width of rasterized lines.
+
+    Parameters
+    ----------
+    width : float
+        Width of rasterized lines.
+
+    """
+    GL.glLineWidth(width)
+
+
+def setLineSmooth(enable=True):
+    """Enable or disable line antialiasing.
+
+    Parameters
+    ----------
+    enable : bool, optional
+        Enable or disable line antialiasing. Default is `True`.
+
+    """
+    if enable:
+        GL.glEnable(GL.GL_LINE_SMOOTH)
+    else:
+        GL.glDisable(GL.GL_LINE_SMOOTH)
+
+
+def setPointSmooth(enable=True):
+    """Enable or disable point antialiasing.
+
+    Parameters
+    ----------
+    enable : bool, optional
+        Enable or disable point antialiasing. Default is `True`.
+
+    """
+    if enable:
+        GL.glEnable(GL.GL_POINT_SMOOTH)
+    else:
+        GL.glDisable(GL.GL_POINT_SMOOTH)
+
+
+def setMultiSample(enable=True):
+    """Enable or disable multisample antialiasing.
+
+    Parameters
+    ----------
+    enable : bool, optional
+        Enable or disable multisample antialiasing. Default is `True`.
+
+    """
+    if enable:
+        GL.glEnable(GL.GL_MULTISAMPLE)
+    else:
+        GL.glDisable(GL.GL_MULTISAMPLE)
+
+
+def setBlend(enable=True):
+    """Enable or disable blending.
+
+    Parameters
+    ----------
+    enable : bool, optional
+        Enable or disable blending. Default is `True`.
+
+    """
+    if enable:
+        GL.glEnable(GL.GL_BLEND)
+    else:
+        GL.glDisable(GL.GL_BLEND)
+
+
+def setBlendFunc(srcFactor, dstFactor):
+    """Set the blending function for source and destination factors.
+
+    Parameters
+    ----------
+    srcFactor : GLenum or str
+        Source blending factor.
+    dstFactor : GLenum or str
+        Destination blending factor.
+
+    Examples
+    --------
+    Set the blending function to use source alpha and one minus source alpha::
+
+        setBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+    """
+    srcFactor, dstFactor = _getGLEnum(srcFactor, dstFactor)
+    GL.glBlendFunc(srcFactor, dstFactor)
 
 # -------------------------
 # Material Helper Functions
