@@ -3076,7 +3076,7 @@ def drawClientArrays(attribBuffers, mode=GL.GL_TRIANGLES, indexBuffer=None):
 
         if buffer.ndim != 2:
             raise ValueError(
-                'Buffer {} must be 2D array.'.format(i))
+                'Buffer {} must be 2D array.'.format(arrIdx))
         
         numVertices = buffer.shape[0]
         
