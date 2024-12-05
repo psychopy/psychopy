@@ -208,7 +208,7 @@ GL_ENUMS = {
     'draw_indirect_buffer': GL.GL_DRAW_INDIRECT_BUFFER,
     'atomic_counter_buffer': GL.GL_ATOMIC_COUNTER_BUFFER,
     # 'dispatch_indirect_buffer': GL.GL_DISPATCH_INDIRECT_BUFFER,
-    'shader_storage_buffer': GL.GL_SHADER_STORAGE_BUFFER,
+    # 'shader_storage_buffer': GL.GL_SHADER_STORAGE_BUFFER,
     'points': GL.GL_POINTS,  # primative types
     'lines': GL.GL_LINES,
     'line_strip': GL.GL_LINE_STRIP,
