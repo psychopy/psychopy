@@ -422,7 +422,8 @@ class PygletBackend(BaseBackend):
             self.winHandle.switch_to()
             globalVars.currWindow = self
 
-        GL.glTranslatef(0.0, 0.0, -5.0)
+        # DEPRECATED: this is now done in the Window class
+        # GL.glTranslatef(0.0, 0.0, -5.0)
 
         for dispatcher in self.win._eventDispatchers:
             try:
@@ -954,9 +955,11 @@ def _onResize(width, height):
         back_width, back_height = width, height
 
     GL.glViewport(0, 0, back_width, back_height)
-    GL.glMatrixMode(GL.GL_PROJECTION)
-    GL.glLoadIdentity()
-    GL.glOrtho(-1, 1, -1, 1, -1, 1)
-    # GL.gluPerspective(90, 1.0 * width / height, 0.1, 100.0)
-    GL.glMatrixMode(GL.GL_MODELVIEW)
-    GL.glLoadIdentity()
+
+    # DEPRECATED - this is now done with matrices we compute
+    # GL.glMatrixMode(GL.GL_PROJECTION)
+    # GL.glLoadIdentity()
+    # GL.glOrtho(-1, 1, -1, 1, -1, 1)
+    # # GL.gluPerspective(90, 1.0 * width / height, 0.1, 100.0)
+    # GL.glMatrixMode(GL.GL_MODELVIEW)
+    # GL.glLoadIdentity()
