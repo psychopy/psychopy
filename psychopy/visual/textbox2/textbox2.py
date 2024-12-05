@@ -32,6 +32,7 @@ from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.tools import mathtools as mt
 from psychopy.colors import Color
 from psychopy.tools.fontmanager import FontManager, GLFont
+from psychopy.tools import gltools as gt
 from .. import shaders
 from ..rect import Rect
 from ... import core, alerts, layout
@@ -1219,13 +1220,10 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
         """Draw the text to the back buffer"""
         # Border width
         self.box.setLineWidth(self.palette['lineWidth']) # Use 1 as base if border width is none
-        #self.borderWidth = self.box.lineWidth
         # Border colour
         self.box.setLineColor(self.palette['lineColor'], colorSpace='rgb')
-        #self.borderColor = self.box.lineColor
         # Background
         self.box.setFillColor(self.palette['fillColor'], colorSpace='rgb')
-        #self.fillColor = self.box.fillColor
 
         # Inherit win
         self.box.win = self.win
@@ -1271,7 +1269,8 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
             # Activate aperture
             self.container.enable()
 
-        gl.glPushMatrix()
+        self._selectWindow(self.win)
+        self.win.setOrthographicView()
         self.win.setScale('pix')
 
         gl.glActiveTexture(gl.GL_TEXTURE0)
@@ -1279,28 +1278,19 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
         gl.glEnable(gl.GL_TEXTURE_2D)
         gl.glDisable(gl.GL_DEPTH_TEST)
 
-        gl.glEnableClientState(gl.GL_VERTEX_ARRAY)
-        gl.glEnableClientState(gl.GL_COLOR_ARRAY)
-        gl.glEnableClientState(gl.GL_TEXTURE_COORD_ARRAY)
-        gl.glEnableClientState(gl.GL_VERTEX_ARRAY)
+        prog = self.shader.handle
+        gt.useProgram(prog)
+        gt.setUniformValue(prog, 'uTexture', 0, 'int')
+        gt.setUniformValue(prog, 'uColor', self._foreColor.render('rgba1'))
+        gt.setUniformMatrix(
+            prog, 'uProjectionMatrix', self.win.projectionMatrix)
+        gt.drawClientArrays({
+            'gl_Vertex': self.verticesPix,
+            'gl_Color': self._colors,
+            'gl_MultiTexCoord0': self._texcoords}, 
+            'quads')
 
-        gl.glVertexPointer(2, gl.GL_DOUBLE, 0, self.verticesPix.ctypes)
-        gl.glColorPointer(4, gl.GL_DOUBLE, 0, self._colors.ctypes)
-        gl.glTexCoordPointer(2, gl.GL_DOUBLE, 0, self._texcoords.ctypes)
-
-        self.shader.bind()
-        self.shader.setInt('texture', 0)
-        self.shader.setFloat('pixel', [1.0 / 512, 1.0 / 512])
-        nVerts = (len(self._text) + len(self._renderChars)) * 4
-
-        gl.glDrawArrays(gl.GL_QUADS, 0, nVerts)
-        self.shader.unbind()
-
-        # removed the colors and font texture
-        gl.glDisableClientState(gl.GL_COLOR_ARRAY)
-        gl.glDisableClientState(gl.GL_TEXTURE_COORD_ARRAY)
-        gl.glDisableVertexAttribArray(1)
-        gl.glDisableClientState(gl.GL_VERTEX_ARRAY)
+        gt.useProgram(None)
 
         gl.glActiveTexture(gl.GL_TEXTURE0)
         gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
@@ -1308,8 +1298,6 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
 
         if self.hasFocus:  # draw caret line
             self.caret.draw()
-
-        gl.glPopMatrix()
 
         # Draw placeholder if blank
         if self.editable and len(self.text) == 0:
@@ -1679,14 +1667,20 @@ class Caret(ColorMixin):
             return
 
         # If no override and conditions are met, or override is True, draw
-        gl.glLineWidth(self.width)
-        gl.glColor4f(
-            *self._foreColor.rgba1
-        )
-        gl.glBegin(gl.GL_LINES)
-        gl.glVertex2f(self.vertices[0, 0], self.vertices[0, 1])
-        gl.glVertex2f(self.vertices[1, 0], self.vertices[1, 1])
-        gl.glEnd()
+        prog = self.win._progSignedFrag
+        gt.useProgram(prog)
+        gt.setLineWidth(self.width)
+        gt.setUniformValue(prog, 'uColor', self._foreColor.rgba1)
+        gt.setUniformMatrix(
+            prog, 'uProjectionMatrix', self.win.projectionMatrix)
+        gt.drawClientArrays({
+            'gl_Vertex': self.vertices}, 'lines')
+        gt.useProgram(None)
+
+        # gl.glBegin(gl.GL_LINES)
+        # gl.glVertex2f(self.vertices[0, 0], self.vertices[0, 1])
+        # gl.glVertex2f(self.vertices[1, 0], self.vertices[1, 1])
+        # gl.glEnd()
 
     @property
     def visible(self):
