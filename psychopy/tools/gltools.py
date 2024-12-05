@@ -207,7 +207,7 @@ GL_ENUMS = {
     'texture_buffer': GL.GL_TEXTURE_BUFFER,
     'draw_indirect_buffer': GL.GL_DRAW_INDIRECT_BUFFER,
     'atomic_counter_buffer': GL.GL_ATOMIC_COUNTER_BUFFER,
-    'dispatch_indirect_buffer': GL.GL_DISPATCH_INDIRECT_BUFFER,
+    # 'dispatch_indirect_buffer': GL.GL_DISPATCH_INDIRECT_BUFFER,
     'shader_storage_buffer': GL.GL_SHADER_STORAGE_BUFFER,
     'points': GL.GL_POINTS,  # primative types
     'lines': GL.GL_LINES,
@@ -6282,8 +6282,10 @@ def tesselate(points, mode='triangle', config=None):
     points : ndarray
         Nx2 array of vertex positions of the outer boundary.
     mode : str, optional
-        Tesselation mode. Options are 'triangle', 'delaunay' or 'fan'. Default 
-        is 'triangle' (recommended).
+        Tesselation mode (algorithm) to use. Options are 'triangle', 'delaunay', 
+        'fan' or 'simple'. Default is 'triangle' (recommended) which is the most 
+        robust method that can handle concave polygons and holes. Use 'fan' for
+        equilateral polygons.
     config : dict, optional
         Configuration options for the tesselation. This can be used to specify
         additional options for the tesselation algorithm.
@@ -6299,7 +6301,7 @@ def tesselate(points, mode='triangle', config=None):
     Tesselate a simple square::
 
         vertices = np.array([[0, 0], [1, 0], [1, 1], [0, 1]])
-        vertices, normals, texCoords, faces = tesselateMesh2d(points)
+        vertices, normals, texCoords, faces = tesselate(points)
 
     Notes
     -----
@@ -6315,6 +6317,21 @@ def tesselate(points, mode='triangle', config=None):
     """
     config = config or dict()  # ensure we have a config dictionary
 
+    nPoints = len(points)
+    if nPoints < 3:
+        raise ValueError(
+            "At least 3 points are required to tesselate a polygon.")
+    elif nPoints == 3:
+        # if we only have 3 points, we can't tesselate the polygon
+        vertices = np.array(points, dtype=np.float32)
+        faces = np.array([[0, 1, 2]], dtype=np.uint32)
+        normals = np.ascontiguousarray(
+            np.tile([0., 0., -1.], (faces.shape[0], 1)), dtype=np.float32)
+        texCoords = generateTexCoords(vertices)
+
+        return vertices, normals, texCoords, faces
+
+    # perform tesselation based on the mode
     if mode == 'triangle' or mode == 'meshpy':
         # trinagulation using meshpy (triangle)
         from meshpy.triangle import MeshInfo, build
@@ -6335,7 +6352,30 @@ def tesselate(points, mode='triangle', config=None):
         vertices = mesh.points
         faces = mesh.elements
 
+    elif mode == 'fan' or mode == 'equilateral':
+        # This mode creates a fan tesselation where the first vertex is the
+        # centroid of the polygon and the rest are the outer boundary. Works 
+        # well for equilateral polygons that have not concavities. This is 
+        # probably the fastest method to tesselate an equilateral polygon with
+        # good results.        
+
+        # find the centroid of the polygon
+        centroid = np.mean(points, axis=0)
+
+        # add the centroid to the list of vertices
+        vertices = np.vstack((centroid, points))
+
+        # generate faces
+        faces = np.zeros((len(points), 3), dtype=np.uint32)
+        faces[:, 0] = 0
+        faces[:, 1] = np.arange(1, len(points) + 1)
+        faces[:, 2] = np.roll(faces[:, 1], 1)
+
     elif mode == 'delaunay' or mode == 'scipy':
+        # Delaunay triangulation using scipy. This triangulates the polygon
+        # using the Qhull library. This method is reasonably fast however it
+        # outputs the convex hull of the polygon which may not be desired.
+
         # do a delaunay triangulation
         from scipy.spatial import Delaunay
 
@@ -6346,10 +6386,11 @@ def tesselate(points, mode='triangle', config=None):
         vertices = result.points
         faces = result.simplices
 
-    elif mode == 'fan' or mode == 'simple':
-        # create a fan tesselation
-        vertices = np.vstack(
-            (points, points[0]))
+    elif mode == 'simple':
+        # Simple tesselation mode where the vertices are connected in a simple
+        # fan pattern from the first vertex in the provided array. This is
+        # useful for simple shapes like circles or squares.
+        vertices = np.vstack((points, points[0]))
         faces = np.array(
             [[0, i + 1, i + 2] for i in range(len(points) - 1)])
 
@@ -6357,8 +6398,8 @@ def tesselate(points, mode='triangle', config=None):
         raise ValueError("Invalid mode '{}' specified.".format(mode))
 
     # compute surface normals for all faces
-    vertices = np.array(vertices, dtype=np.float32)
-    faces = np.array(faces, dtype=np.uint32)
+    vertices = np.ascontiguousarray(vertices, dtype=np.float32)
+    faces = np.ascontiguousarray(faces, dtype=np.uint32)
 
     # generate normals for each vertex, facing outwards
     normals = np.ascontiguousarray(
