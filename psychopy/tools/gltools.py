@@ -280,7 +280,7 @@ GL_ENUMS = {
     'geometry_shader': GL.GL_GEOMETRY_SHADER,
     'tess_control_shader': GL.GL_TESS_CONTROL_SHADER,
     'tess_evaluation_shader': GL.GL_TESS_EVALUATION_SHADER,
-    'compute_shader': GL.GL_COMPUTE_SHADER,
+    # 'compute_shader': GL.GL_COMPUTE_SHADER,
     'compile_status': GL.GL_COMPILE_STATUS,  # shader status
     'link_status': GL.GL_LINK_STATUS,
     'validate_status': GL.GL_VALIDATE_STATUS,
