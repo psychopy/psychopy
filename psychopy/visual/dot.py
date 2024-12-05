@@ -35,6 +35,7 @@ from psychopy import logging
 # (JWP has no idea why!)
 from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.tools.arraytools import val2array
+from psychopy.tools import gltools as gt
 from psychopy.visual.basevisual import (BaseVisualStim, ColorMixin,
                                         ContainerMixin, WindowMixin)
 from psychopy.layout import Size
@@ -505,29 +506,24 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         self._update_dotsXY()
 
-        GL.glPushMatrix()  # push before drawing, pop after
-
         # draw the dots
         if self.element is None:
             win.setScale('pix')
+            win.setOrthographicView()
+
+            _prog = win._shaders['signedColor']
+            gt.useProgram(_prog)
+            
             GL.glPointSize(self.dotSize)
+            gt.setUniformValue(_prog, 'uColor', self._foreColor.render('rgba1'))
+            gt.setUniformMatrix(
+                _prog, 'uProjectionMatrix', win._projectionMatrix)
+            gt.drawClientArrays(
+                {'gl_Vertex': self.verticesPix},
+                'points')
 
-            # load Null textures into multitexteureARB - they modulate with
-            # glColor
-            GL.glActiveTexture(GL.GL_TEXTURE0)
-            GL.glEnable(GL.GL_TEXTURE_2D)
-            GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-            GL.glActiveTexture(GL.GL_TEXTURE1)
-            GL.glEnable(GL.GL_TEXTURE_2D)
-            GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+            gt.useProgram(None)
 
-            CPCD = ctypes.POINTER(ctypes.c_double)
-            GL.glVertexPointer(2, GL.GL_DOUBLE, 0,
-                               self.verticesPix.ctypes.data_as(CPCD))
-            GL.glColor4f(*self._foreColor.render('rgba1'))
-            GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
-            GL.glDrawArrays(GL.GL_POINTS, 0, self.nDots)
-            GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
         else:
             # we don't want to do the screen scaling twice so for each dot
             # subtract the screen centre
@@ -536,9 +532,9 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
                 _p = self.verticesPix[pointN, :] + self.fieldPos
                 self.element.setPos(_p)
                 self.element.draw()
+
             # reset depth before going to next frame
             self.element.setDepth(initialDepth)
-        GL.glPopMatrix()
 
     def _newDotsXY(self, nDots):
         """Returns a uniform spread of dots, according to the `fieldShape` and
