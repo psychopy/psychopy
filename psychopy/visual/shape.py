@@ -7,7 +7,6 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL)
 
-import copy
 import numpy
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
@@ -18,14 +17,13 @@ import pyglet
 
 import psychopy  # so we can get the __path__
 from psychopy import logging
-from psychopy.colors import Color
 
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 # from psychopy.tools.monitorunittools import cm2pix, deg2pix
 from psychopy.tools.attributetools import (attributeSetter,  # logAttrib,
                                            setAttribute)
-from psychopy.tools.arraytools import val2array
+from psychopy.tools import gltools as gt
 from psychopy.visual.basevisual import (
     BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin, WindowMixin
 )
@@ -333,23 +331,11 @@ class BaseShapeStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             win = self.win
         self._selectWindow(win)
 
-        if win._haveShaders:
-            _prog = self.win._progSignedFrag
-            GL.glUseProgram(_prog)
         # will check if it needs updating (check just once)
         vertsPix = self.verticesPix
-        nVerts = vertsPix.shape[0]
-        # scale the drawing frame etc...
-        if not keepMatrix:
-            GL.glPushMatrix()  # push before drawing, pop after
-            win.setScale('pix')
-        # load Null textures into multitexteureARB - or they modulate glColor
-        GL.glActiveTexture(GL.GL_TEXTURE0)
-        GL.glEnable(GL.GL_TEXTURE_2D)
-        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-        GL.glActiveTexture(GL.GL_TEXTURE1)
-        GL.glEnable(GL.GL_TEXTURE_2D)
-        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+
+        if vertsPix is None or vertsPix.shape[0] < 2:  # nothing to draw
+            return
 
         if self.interpolate:
             GL.glEnable(GL.GL_LINE_SMOOTH)
@@ -357,33 +343,41 @@ class BaseShapeStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         else:
             GL.glDisable(GL.GL_LINE_SMOOTH)
             GL.glDisable(GL.GL_MULTISAMPLE)
-        # .data_as(ctypes.POINTER(ctypes.c_float)))
-        GL.glVertexPointer(2, GL.GL_DOUBLE, 0, vertsPix.ctypes)
 
-        GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
-        if nVerts > 2:  # draw a filled polygon first
-            if self._fillColor != None:
-                # then draw
-                GL.glColor4f(*self._fillColor.render('rgba1'))
-                GL.glDrawArrays(GL.GL_POLYGON, 0, nVerts)
+        # bind shader program
+        _prog = self.win._progSignedFrag
+        gt.useProgram(_prog)
+
+        # if vertsPix.shape[0] > 2:  # draw a filled polygon first
+        if self._fillColor != None:
+            gt.setUniformValue(
+                _prog, 
+                'uColor', 
+                self._fillColor.render('rgba1'))
+            gt.setUniformMatrix(
+                _prog, 
+                'uProjectionMatrix',
+                self.win._projectionMatrix)
+            gt.drawClientArrays(
+                {'gl_Vertex': self.verticesPix},
+                'triangles')
+
+        # draw the border
         if self._borderColor != None and self.lineWidth != 0.0:
-            # then draw
-            GL.glLineWidth(self.lineWidth)
+            gt.setLineWidth(self.lineWidth)
+            borderRGBA = self._borderColor.render('rgba1')
             if self.opacity is not None:
-                borderRGBA = self._borderColor.render('rgba1')
                 borderRGBA[-1] = self.opacity  # override opacity
-                GL.glColor4f(*borderRGBA)
-            else:
-                GL.glColor4f(*self._borderColor.render('rgba1'))
-            if self.closeShape:
-                GL.glDrawArrays(GL.GL_LINE_LOOP, 0, nVerts)
-            else:
-                GL.glDrawArrays(GL.GL_LINE_STRIP, 0, nVerts)
-        GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
-        if win._haveShaders:
-            GL.glUseProgram(0)
-        if not keepMatrix:
-            GL.glPopMatrix()
+            gt.setUniformValue(_prog, 'uColor', borderRGBA)
+            gt.setUniformMatrix(
+                _prog, 
+                'uProjectionMatrix',
+                self.win._projectionMatrix)
+            gt.drawClientArrays(
+                {'gl_Vertex': self.verticesPix},
+                'line_loop' if self.closeShape else 'line_strip')
+
+        gt.useProgram(None)
 
 
 class ShapeStim(BaseShapeStim):
@@ -565,6 +559,7 @@ class ShapeStim(BaseShapeStim):
         self.closeShape = closeShape
         self.windingRule = windingRule
         self.vertices = vertices
+        self.border = vertices
 
         # remove deprecated params (from ShapeStim.__init__):
         self._initParams = self._initParamsOrig
@@ -578,39 +573,18 @@ class ShapeStim(BaseShapeStim):
     def _tesselate(self, newVertices):
         """Set the `.vertices` and `.border` to new values, invoking
         tessellation.
+
+        Parameters
+        ----------
+        newVertices : array_like
+            Nx2 array of points (eg., `[[-0.5, 0], [0, 0.5], [0.5, 0]`).
+
         """
-        # TO-DO: handle borders properly for multiloop stim like holes
-        # likely requires changes in ContainerMixin to iterate over each
-        # border loop
-        from psychopy.contrib import tesselate
+        vertices, _, _, faces = gt.tesselate(newVertices, mode='triangle')
 
-        self.border = copy.deepcopy(newVertices)
-        tessVertices = []  # define to keep the linter happy
-        if self.closeShape:
-            # convert original vertices to triangles (= tesselation) if
-            # possible. (not possible if closeShape is False, don't even try)
-            GL.glPushMatrix()  # seemed to help at one point, superfluous?
-            if getattr(self, "windingRule", False):
-                GL.gluTessProperty(tesselate.tess, GL.GLU_TESS_WINDING_RULE,
-                                   self.windingRule)
-            if hasattr(newVertices[0][0], '__iter__'):
-                loops = newVertices
-            else:
-                loops = [newVertices]
-            tessVertices = tesselate.tesselate(loops)
-            GL.glPopMatrix()
-            if getattr(self, "windingRule", False):
-                GL.gluTessProperty(tesselate.tess, GL.GLU_TESS_WINDING_RULE,
-                                   tesselate.default_winding_rule)
+        # unpack the vertices into a numpy array
+        initVertices = numpy.ascontiguousarray(vertices)[faces.flatten()]
 
-        if not self.closeShape or tessVertices == []:
-            # probably got a line if tesselate returned []
-            initVertices = newVertices
-            self.closeShape = False
-        elif len(tessVertices) % 3:
-            raise tesselate.TesselateError("Could not properly tesselate")
-        else:
-            initVertices = tessVertices
         self.__dict__['_tesselVertices'] = numpy.array(initVertices, float)
 
     @property
@@ -644,63 +618,59 @@ class ShapeStim(BaseShapeStim):
 
         You must call this method after every `win.flip()` if you want the
         stimulus to appear on that frame and then update the screen again.
-        """
-        # mostly copied from BaseShapeStim. Uses GL_TRIANGLES and depends on
-        # two arrays of vertices: tesselated (for fill) & original (for
-        # border) keepMatrix is needed by Aperture, although Aperture
-        # currently relies on BaseShapeStim instead
 
+        Parameters
+        ----------
+        win : :class:`~psychopy.visual.Window`, optional
+            Window to draw the stimulus in. If not specified, the stimulus
+            will be drawn in the window specified at initialization.
+        keepMatrix : bool, optional
+            *DEPRECATED* If `True`, the current transformation matrix will be 
+            preserved. This is useful when drawing multiple stimuli with the 
+            same transformation matrix. Default is `False`. 
+            
+        """
         if win is None:
             win = self.win
         self._selectWindow(win)
 
         # scale the drawing frame etc...
-        if not keepMatrix:
-            GL.glPushMatrix()
-            win.setScale('pix')
+        win.setScale('pix')
+        win.setOrthographicView()
 
-        # setup the shaderprogram
-        if win._haveShaders:
-            _prog = self.win._progSignedFrag
-            GL.glUseProgram(_prog)
-
-        # load Null textures into multitexteureARB - or they modulate glColor
-        GL.glActiveTexture(GL.GL_TEXTURE0)
-        GL.glEnable(GL.GL_TEXTURE_2D)
-        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-        GL.glActiveTexture(GL.GL_TEXTURE1)
-        GL.glEnable(GL.GL_TEXTURE_2D)
-        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        _prog = self.win._progSignedFrag  # shader program handle
+        gt.useProgram(_prog)
 
         if self.interpolate:
-            GL.glEnable(GL.GL_LINE_SMOOTH)
-            GL.glEnable(GL.GL_MULTISAMPLE)
+            gt.enable('line_smooth')
+            gt.enable('multisample')
         else:
-            GL.glDisable(GL.GL_LINE_SMOOTH)
-            GL.glDisable(GL.GL_MULTISAMPLE)
-        GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
+            gt.disable('line_smooth')
+            gt.disable('multisample')
 
         # fill interior triangles if there are any
         if (self.closeShape and
                 self.verticesPix.shape[0] > 2 and
                 self._fillColor != None):
-            GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self.verticesPix.ctypes)
-            GL.glColor4f(*self._fillColor.render('rgba1'))
-            GL.glDrawArrays(GL.GL_TRIANGLES, 0, self.verticesPix.shape[0])
+            gt.setUniformValue(
+                _prog, 'uColor', self._fillColor.render('rgba1'))
+            gt.setUniformMatrix(
+                _prog, 'uProjectionMatrix',
+                self.win._projectionMatrix)
+            gt.drawClientArrays(
+                {'gl_Vertex': self.verticesPix},
+                'triangles')
 
         # draw the border (= a line connecting the non-tesselated vertices)
         if self._borderColor != None and self.lineWidth:
-            GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self._borderPix.ctypes)
             GL.glLineWidth(self.lineWidth)
-            GL.glColor4f(*self._borderColor.render('rgba1'))
-            if self.closeShape:
-                gl_line = GL.GL_LINE_LOOP
-            else:
-                gl_line = GL.GL_LINE_STRIP
-            GL.glDrawArrays(gl_line, 0, self._borderPix.shape[0])
+            gt.setUniformValue(
+                _prog, 'uColor', self._borderColor.render('rgba1'))
+            gt.setUniformMatrix(
+                _prog, 'uProjectionMatrix',
+                self.win._projectionMatrix)
+            gt.drawClientArrays(
+                {'gl_Vertex': self._borderPix},
+                'line_loop' if self.closeShape else 'line_strip')
 
-        GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
-        if win._haveShaders:
-            GL.glUseProgram(0)
-        if not keepMatrix:
-            GL.glPopMatrix()
+        gt.useProgram(None)
