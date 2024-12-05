@@ -24,6 +24,7 @@ from fractions import Fraction
 
 import psychopy  # so we can get the __path__
 from psychopy import logging, colors, layout
+from psychopy.tools import gltools as gt
 
 from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.visual.basevisual import (
@@ -109,88 +110,16 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
         self.texRes = texRes  # rebuilds the mask
         self.size = size
 
-        # generate a displaylist ID
-        self._listID = GL.glGenLists(1)
-        self._updateList()  # ie refresh display list
+        # normalized texture coordinates
+        self._texCoords = numpy.array(
+            [[1, 0], [0, 0], [0, 1], [1, 1]], dtype=float)
+        self._maskCoords = self._texCoords.copy()
 
         # set autoLog now that params have been initialised
         wantLog = autoLog is None and self.win.autoLog
         self.__dict__['autoLog'] = autoLog or wantLog
         if self.autoLog:
             logging.exp("Created %s = %s" % (self.name, str(self)))
-
-    def _updateListShaders(self):
-        """
-        The user shouldn't need this method since it gets called
-        after every call to .set() Basically it updates the OpenGL
-        representation of your stimulus if some parameter of the
-        stimulus changes. Call it if you change a property manually
-        rather than using the .set() command
-        """
-        self._needUpdate = False
-        GL.glNewList(self._listID, GL.GL_COMPILE)
-
-        # setup the shaderprogram
-        if self.isLumImage:
-            # for a luminance image do recoloring
-            _prog = self.win._progSignedTexMask
-            GL.glUseProgram(_prog)
-            # set the texture to be texture unit 0
-            GL.glUniform1i(GL.glGetUniformLocation(_prog, b"texture"), 0)
-            # mask is texture unit 1
-            GL.glUniform1i(GL.glGetUniformLocation(_prog, b"mask"), 1)
-        else:
-            # for an rgb image there is no recoloring
-            _prog = self.win._progImageStim
-            GL.glUseProgram(_prog)
-            # set the texture to be texture unit 0
-            GL.glUniform1i(GL.glGetUniformLocation(_prog, b"texture"), 0)
-            # mask is texture unit 1
-            GL.glUniform1i(GL.glGetUniformLocation(_prog, b"mask"), 1)
-
-        # mask
-        GL.glActiveTexture(GL.GL_TEXTURE1)
-        GL.glBindTexture(GL.GL_TEXTURE_2D, self._maskID)
-        GL.glEnable(GL.GL_TEXTURE_2D)  # implicitly disables 1D
-
-        # main texture
-        GL.glActiveTexture(GL.GL_TEXTURE0)
-        GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
-        GL.glEnable(GL.GL_TEXTURE_2D)
-
-        # access just once because it's slower than basic property
-        vertsPix = self.verticesPix
-        GL.glBegin(GL.GL_QUADS)  # draw a 4 sided polygon
-        # right bottom
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE0, 1, 0)
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE1, 1, 0)
-        GL.glVertex2f(vertsPix[0, 0], vertsPix[0, 1])
-        # left bottom
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE0, 0, 0)
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE1, 0, 0)
-        GL.glVertex2f(vertsPix[1, 0], vertsPix[1, 1])
-        # left top
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE0, 0, 1)
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE1, 0, 1)
-        GL.glVertex2f(vertsPix[2, 0], vertsPix[2, 1])
-        # right top
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE0, 1, 1)
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE1, 1, 1)
-        GL.glVertex2f(vertsPix[3, 0], vertsPix[3, 1])
-        GL.glEnd()
-
-        # unbind the textures
-        GL.glActiveTexture(GL.GL_TEXTURE1)
-        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-        GL.glDisable(GL.GL_TEXTURE_2D)  # implicitly disables 1D
-        # main texture
-        GL.glActiveTexture(GL.GL_TEXTURE0)
-        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-        GL.glDisable(GL.GL_TEXTURE_2D)
-
-        GL.glUseProgram(0)
-
-        GL.glEndList()
 
     def __del__(self):
         """Remove textures from graphics card to prevent crash
@@ -203,7 +132,14 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
             pass  # has probably been garbage-collected already
 
     def draw(self, win=None):
-        """Draw.
+        """Draw the stimulus on the window.
+
+        Parameters
+        ----------
+        win : `~psychopy.visual.Window`, optional
+            The window to draw the stimulus on. If None, the stimulus will be
+            drawn on the window that was passed to the constructor.
+
         """
         # check the type of image we're dealing with
         if (type(self.image) != numpy.ndarray and
@@ -222,18 +158,50 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
             if videoFrame is not None:
                 self._movieFrameToTexture(videoFrame)
 
-        GL.glPushMatrix()  # push before the list, pop after
+        # GL.glPushMatrix()  # push before the list, pop after
         win.setScale('pix')
-        GL.glColor4f(*self._foreColor.render('rgba1'))
+        # GL.glColor4f(*self._foreColor.render('rgba1'))
 
         if self._needTextureUpdate:
             self.setImage(value=self._imName, log=False)
-        if self._needUpdate:
-            self._updateList()
-        GL.glCallList(self._listID)
 
-        # return the view to previous state
-        GL.glPopMatrix()
+        if self.isLumImage:  # select the appropriate shader
+            # for a luminance image do recoloring
+            _prog = self.win._progSignedTexMask
+        else:
+            # for an rgb image there is no recoloring
+            _prog = self.win._progImageStim
+
+        gt.useProgram(_prog)
+
+        # bind textures
+        GL.glEnable(GL.GL_TEXTURE_2D)
+        GL.glActiveTexture(GL.GL_TEXTURE1)  # mask
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self._maskID)
+        GL.glActiveTexture(GL.GL_TEXTURE0)  # color/lum image
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
+
+        # set the shader uniforms
+        gt.setUniformValue(_prog, b'uTexture', 0, 'int')  # is texture unit 0
+        gt.setUniformValue(_prog, b'uMask', 1, 'int')  # mask is texture unit 1
+        gt.setUniformValue(_prog, b'uColor', self._foreColor.render('rgba1'))
+        gt.setUniformMatrix(_prog, b'uProjectionMatrix', win._projectionMatrix)
+
+        # draw the image
+        gt.drawClientArrays({
+            'gl_Vertex': self.verticesPix,
+            'gl_MultiTexCoord0': self._texCoords,
+            'gl_MultiTexCoord1': self._maskCoords}, 
+            'quads')
+        
+        gt.useProgram(None)
+
+        # unbind the textures
+        GL.glActiveTexture(GL.GL_TEXTURE1)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        GL.glActiveTexture(GL.GL_TEXTURE0)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        GL.glDisable(GL.GL_TEXTURE_2D)
 
     def _movieFrameToTexture(self, movieSrc):
         """Convert a movie frame to a texture and use it.
