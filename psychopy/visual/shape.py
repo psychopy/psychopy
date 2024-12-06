@@ -361,7 +361,7 @@ class BaseShapeStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
                 self.win._projectionMatrix)
             gt.drawClientArrays(
                 {'gl_Vertex': self.verticesPix},
-                'quads')
+                'GL_QUADS')
 
         # draw the border
         if self._borderColor != None and self.lineWidth != 0.0:
@@ -376,7 +376,7 @@ class BaseShapeStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
                 self.win._projectionMatrix)
             gt.drawClientArrays(
                 {'gl_Vertex': self.verticesPix},
-                'line_loop' if self.closeShape else 'line_strip')
+                'GL_LINE_LOOP' if self.closeShape else 'GL_LINE_STRIP')
 
         gt.useProgram(None)
 
@@ -647,11 +647,11 @@ class ShapeStim(BaseShapeStim):
         gt.useProgram(_prog)
 
         if self.interpolate:
-            gt.enable('line_smooth')
-            gt.enable('multisample')
+            gt.enable('GL_LINE_SMOOTH')
+            gt.enable('GL_MULTISAMPLE')
         else:
-            gt.disable('line_smooth')
-            gt.disable('multisample')
+            gt.disable('GL_LINE_SMOOTH')
+            gt.disable('GL_MULTISAMPLE')
 
         # fill interior triangles if there are any
         if (self.closeShape and
@@ -664,7 +664,7 @@ class ShapeStim(BaseShapeStim):
                 self.win._projectionMatrix)
             gt.drawClientArrays(
                 {'gl_Vertex': self.verticesPix},
-                'triangles')
+                'GL_TRIANGLES')
 
         # draw the border (= a line connecting the non-tesselated vertices)
         if self._borderColor != None and self.lineWidth:
@@ -676,6 +676,6 @@ class ShapeStim(BaseShapeStim):
                 self.win._projectionMatrix)
             gt.drawClientArrays(
                 {'gl_Vertex': self._borderPix},
-                'line_loop' if self.closeShape else 'line_strip')
+                'GL_LINE_LOOP' if self.closeShape else 'GL_LINE_STRIP')
 
         gt.useProgram(None)

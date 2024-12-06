@@ -1288,7 +1288,7 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
             'gl_Vertex': self.verticesPix,
             'gl_Color': self._colors,
             'gl_MultiTexCoord0': self._texcoords}, 
-            'quads')
+            'GL_QUADS')
 
         gt.useProgram(None)
 

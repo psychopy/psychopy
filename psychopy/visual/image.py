@@ -192,7 +192,7 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
             'gl_Vertex': self.verticesPix,
             'gl_MultiTexCoord0': self._texCoords,
             'gl_MultiTexCoord1': self._maskCoords}, 
-            'quads')
+            'GL_QUADS')
         
         gt.useProgram(None)
 

@@ -520,7 +520,7 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
                 _prog, 'uProjectionMatrix', win._projectionMatrix)
             gt.drawClientArrays(
                 {'gl_Vertex': self.verticesPix},
-                'points')
+                'GL_POINTS')
 
             gt.useProgram(None)
 
