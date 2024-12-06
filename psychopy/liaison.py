@@ -19,6 +19,7 @@ import json
 import sys
 import traceback
 import logging as _logging
+import importlib.metadata
 from psychopy import logging
 from psychopy.localization import _translate
 
@@ -112,6 +113,9 @@ class WebSocketServer:
 		self._methods = {
 			'liaison': (self, ['listRegisteredMethods', 'addLogFile', 'pingPong'])
 		}
+		# register the Liaison-compatible classes defined in plugins
+		for ep in importlib.metadata.entry_points(group="psychopy.liaison"):
+			self.registerClass(ep.load(), ep.name)
 	
 	def addLogFile(self, file, loggingLevel=logging.INFO):
 		# actualize logging level
