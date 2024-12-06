@@ -130,8 +130,8 @@ class WebSocketServer:
 		# create reference key
 		key = f"{host}:{port}"
 		# if there's a server running, return it
-		if key in host.servers:
-			return host.servers[key]
+		if key in cls.servers:
+			return cls.servers[key]
 		# otherwise create one
 		server = cls()
 		server.start(host=host, port=port)
