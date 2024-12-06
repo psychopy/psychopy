@@ -90,6 +90,8 @@ class WebSocketServer:
 	"""
 	A simple Liaison server, using WebSockets as communication protocol.
 	"""
+	# attribute to keep track of active servers
+	servers = {}
 
 	def __init__(self):
 		"""
@@ -267,6 +269,8 @@ class WebSocketServer:
 		port : int
 			the port number, e.g. 8001
 		"""
+		# store ref to self
+		WebSocketServer.servers[f"host:port"] = self
 		# set the loop future on SIGTERM or SIGINT for clean interruptions:
 		loop = asyncio.get_running_loop()
 		loopFuture = loop.create_future()
