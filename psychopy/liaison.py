@@ -270,7 +270,7 @@ class WebSocketServer:
 			the port number, e.g. 8001
 		"""
 		# store ref to self
-		WebSocketServer.servers[f"host:port"] = self
+		WebSocketServer.servers[f"{host}:{port}"] = self
 		# set the loop future on SIGTERM or SIGINT for clean interruptions:
 		loop = asyncio.get_running_loop()
 		loopFuture = loop.create_future()
