@@ -661,6 +661,11 @@ class Window():
         if hasattr(self.backgroundImage, "draw"):
             self.backgroundImage.draw()
 
+        self._projectionMatrix = None  # set later
+        self._viewMatrix = None  # set later
+
+        self.setOrthographicView()
+
     def __del__(self):
         if self._closed is False:
             self.close()
@@ -2216,7 +2221,7 @@ class Window():
         # reset view matrix to identity
         self._viewMatrix = mathtools.identityMatrix(4, dtype=numpy.float32)
         # TODO - figure out how to handle eye offsets in orthographic view
-        # self._viewMatrix[0, 3] = -self._eyeOffset  
+        # self._viewMatrix[0, 3] = -self._eyeOffset
 
         if clearDepth:
             self._clearDepthBuffer()
