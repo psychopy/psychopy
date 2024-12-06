@@ -44,6 +44,7 @@ dependencies = [
     # for iohub
     "pywinhook; platform_system == \"Windows\"",
     "gevent",
+    "MeshPy",
     "psutil",
     "pyzmq>=22.2.1",
     "ujson",
