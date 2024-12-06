@@ -64,6 +64,7 @@ __all__ = [
     'bindFBO',
     'unbindFBO',
     'deleteFBO',
+    'clearFramebuffer',
     'setDrawBuffer',
     'setReadBuffer',
     'RenderbufferInfo',
@@ -1579,23 +1580,18 @@ def createFBO(attachments=(), sizeHint=None):
 
     Create a render target with multiple color texture attachments::
 
-        colorTex = createTexImage2D(1024, 1024)  # empty texture
-        depthRb = createRenderbuffer(
-            800, 600, internalFormat=GL.GL_DEPTH24_STENCIL8)
-
-        # attach images
-        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, fbo.id)
-        attach(GL.GL_COLOR_ATTACHMENT0, colorTex)
-        attach(GL.GL_DEPTH_ATTACHMENT, depthRb)
-        attach(GL.GL_STENCIL_ATTACHMENT, depthRb)
-        # or attach(GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRb)
-        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
-
-        # above is the same as
-        with useFBO(fbo):
-            attach(GL.GL_COLOR_ATTACHMENT0, colorTex)
-            attach(GL.GL_DEPTH_ATTACHMENT, depthRb)
-            attach(GL.GL_STENCIL_ATTACHMENT, depthRb)
+        fbo = gt.createFBO(sizeHint=(512, 512))
+        gt.bindFBO(fbo)
+        gt.attachImage(  # color 
+            fbo, GL.GL_COLOR_ATTACHMENT0, gt.createTexImage2D(512, 512))
+        gt.attachImage(  # normal map
+            fbo, GL.GL_COLOR_ATTACHMENT1, gt.createTexImage2D(512, 512))
+        gt.attachImage(  # depth/stencil
+            fbo, 
+            GL.GL_DEPTH_STENCIL_ATTACHMENT, 
+            gt.createRenderbuffer(512, 512, GL.GL_DEPTH24_STENCIL8))
+        print(gt.isFramebufferComplete(fbo))  # True
+        gt.unbindFBO(None)
 
     Examples of userData some custom function might access::
 
@@ -1775,7 +1771,7 @@ def deleteFBO(fbo, deleteAttachments=True):
     fbo.attachments.clear()
 
 
-def blitFBO(srcRect, dstRect=None, filter=GL.GL_LINEAR):
+def blitFBO(srcRect, dstRect=None, filter=GL.GL_LINEAR, mask=GL.GL_COLOR_BUFFER_BIT):
     """Copy a block of pixels between framebuffers via blitting. Read and draw
     framebuffers must be bound prior to calling this function. Beware, the
     scissor box and viewport are changed when this is called to dstRect.
@@ -1789,13 +1785,11 @@ def blitFBO(srcRect, dstRect=None, filter=GL.GL_LINEAR):
         List specifying the top-left and bottom-right coordinates of the region
         to copy to (<X0>, <Y0>, <X1>, <Y1>). If None, srcRect is used for
         dstRect.
-    filter : :obj:`int`
+    filter : :obj:`int` or :obj:`str`
         Interpolation method to use if the image is stretched, default is
         GL_LINEAR, but can also be GL_NEAREST.
-
-    Returns
-    -------
-    None
+    mask : :obj:`int` or :obj:`str`
+        Bitmask specifying which buffers to copy. Default is GL_COLOR_BUFFER_BIT.
 
     Examples
     --------
@@ -1807,20 +1801,21 @@ def blitFBO(srcRect, dstRect=None, filter=GL.GL_LINEAR):
         gt.blitFBO((0 ,0, 512, 512), (0, 0, 512, 512))
     
     """
+    if isinstance(mask, str):
+        mask = getattr(GL, mask)
+
+    if isinstance(filter, str):
+        filter = getattr(GL, filter)
+
     # in most cases srcRect and dstRect will be the same.
     if dstRect is None:
         dstRect = srcRect
 
-    # GL.glViewport(*dstRect)
-    # GL.glEnable(GL.GL_SCISSOR_TEST)
-    # GL.glScissor(*dstRect)
     GL.glBlitFramebuffer(srcRect[0], srcRect[1], srcRect[2], srcRect[3],
                          dstRect[0], dstRect[1], dstRect[2], dstRect[3],
-                         GL.GL_COLOR_BUFFER_BIT,  # colors only for now
+                         mask,  # colors only for now
                          filter)
-
-    # GL.glDisable(GL.GL_SCISSOR_TEST)
-
+    
 
 def setReadBuffer(fbo, mode):
     """Set the read buffer for the framebuffer.
@@ -1890,6 +1885,81 @@ def setDrawBuffer(fbo, mode):
 
     GL.glBindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, fbo.name)
     GL.glDrawBuffer(mode)
+
+
+def clearFramebuffer(color=(0.0, 0.0, 0.0, 1.0), depth=None, stencil=None):
+    """Clear the presently bound draw buffer.
+
+    Parameters
+    ----------
+    color : :obj:`tuple`, optional
+        Color to clear the framebuffer to. Default is (0.0, 0.0, 0.0, 1.0).
+    depth : :obj:`float`, optional
+        Depth value to clear the framebuffer to. Default is 1.0.
+    stencil : :obj:`int`, optional
+        Stencil value to clear the framebuffer to. Default is 0.
+
+    Examples
+    --------
+    Clear the framebuffer to green::
+
+        setDrawBuffer(fbo, GL_COLOR_ATTACHMENT0)
+        clearFramebuffer(color=(0.0, 1.0, 0.0, 1.0))
+    
+    Clear the window back buffer to black::
+
+        setDrawBuffer(None, GL_BACK)
+        clearFramebuffer()
+
+    """
+    clearFlags = 0
+    if color is not None:
+        GL.glClearColor(*color)
+        clearFlags |= GL.GL_COLOR_BUFFER_BIT
+    if depth is not None:
+        GL.glClearDepth(depth)
+        clearFlags |= GL.GL_DEPTH_BUFFER_BIT
+    if stencil is not None:
+        GL.glClearStencil(stencil)
+        clearFlags |= GL.GL_STENCIL_BUFFER_BIT
+
+    GL.glClear(clearFlags)
+
+
+def setViewport(x, y, width, height):
+    """Set the viewport for the current render target.
+
+    Parameters
+    ----------
+    x : :obj:`int`
+        X-coordinate of the lower-left corner of the viewport.
+    y : :obj:`int`
+        Y-coordinate of the lower-left corner of the viewport.
+    width : :obj:`int`
+        Width of the viewport.
+    height : :obj:`int`
+        Height of the viewport.
+
+    """
+    GL.glViewport(x, y, width, height)
+
+
+def setScissor(x, y, width, height):
+    """Set the scissor box for the current render target.
+
+    Parameters
+    ----------
+    x : :obj:`int`
+        X-coordinate of the lower-left corner of the scissor box.
+    y : :obj:`int`
+        Y-coordinate of the lower-left corner of the scissor box.
+    width : :obj:`int`
+        Width of the scissor box.
+    height : :obj:`int`
+        Height of the scissor box.
+
+    """
+    GL.glScissor(x, y, width, height)
 
 
 @contextmanager
