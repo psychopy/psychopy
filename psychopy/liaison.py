@@ -115,6 +115,27 @@ class WebSocketServer:
 			'liaison': (self, ['listRegisteredMethods', 'addLogFile', 'pingPong'])
 		}
 	
+	@classmethod
+	def fromPort(cls, host, port):
+		"""
+		Get/create a Liaison server from the given host:port strings.
+
+		Parameters
+		----------
+		host : string
+			the hostname, e.g. 'localhost'
+		port : int
+			the port number, e.g. 8001
+		"""
+		# create reference key
+		key = f"{host}:{port}"
+		# if there's a server running, return it
+		if key in host.servers:
+			return host.servers[key]
+		# otherwise create one
+		server = cls()
+		server.start(host=host, port=port)
+	
 	def addLogFile(self, file, loggingLevel=logging.INFO):
 		# actualize logging level
 		if isinstance(loggingLevel, str):
