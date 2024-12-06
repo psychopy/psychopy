@@ -394,7 +394,7 @@ class PygletBackend(BaseBackend):
         logging.info("OpenGL version supported by driver is {}.{}".format(
             glVersion[0], glVersion[1]))
 
-        if glVersion[0] < 2:
+        if int(glVersion[0]) < 2:
             raise RuntimeError(
                 "OpenGL version 2.0 or higher is required! Please update your "
                 "graphics drivers or use a different backend.")
