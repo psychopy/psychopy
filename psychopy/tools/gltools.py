@@ -54,12 +54,19 @@ __all__ = [
     'endQuery',
     'getQuery',
     'getAbsTimeGPU',
+    'FramebufferInfo',
     'createFBO',
-    'attach',
-    'isComplete',
+    'attachImage',
+    'isFramebufferComplete',
     'deleteFBO',
     'blitFBO',
     'useFBO',
+    'bindFBO',
+    'unbindFBO',
+    'deleteFBO',
+    'setDrawBuffer',
+    'setReadBuffer',
+    'RenderbufferInfo',
     'createRenderbuffer',
     'deleteRenderbuffer',
     'createTexImage2D',
@@ -171,153 +178,6 @@ VERTEX_ATTRIBS = {
     'gl_MultiTexCoord7': VERTEX_ATTRIB_MULTITEXCOORD7
 }
 
-# String mapping for GLenums, this allows for users to work with this library 
-# without needing to import `pyglet.gl` in cases where they need to specify
-# OpenGL constants. Most of the commonly used enums are included here.
-GL_ENUMS = {
-    'unsigned_int': GL.GL_UNSIGNED_INT,  # data types
-    'unsigned_short': GL.GL_UNSIGNED_SHORT,
-    'unsigned_byte': GL.GL_UNSIGNED_BYTE,
-    'int': GL.GL_INT,
-    'short': GL.GL_SHORT,
-    'byte': GL.GL_BYTE,
-    'float': GL.GL_FLOAT,
-    'double': GL.GL_DOUBLE,
-    True: GL.GL_TRUE,  # boolean values
-    False: GL.GL_FALSE,
-    'true': GL.GL_TRUE,
-    'false': GL.GL_FALSE,
-    'stream_draw': GL.GL_STREAM_DRAW,  # draw modes for primitives
-    'static_draw': GL.GL_STATIC_DRAW,
-    'dynamic_draw': GL.GL_DYNAMIC_DRAW,
-    'stream_read': GL.GL_STREAM_READ,
-    'stream_copy': GL.GL_STREAM_COPY,
-    'static_read': GL.GL_STATIC_READ,
-    'static_copy': GL.GL_STATIC_COPY,
-    'dynamic_read': GL.GL_DYNAMIC_READ,
-    'dynamic_copy': GL.GL_DYNAMIC_COPY,
-    'array_buffer': GL.GL_ARRAY_BUFFER,  # buffer types
-    'element_array_buffer': GL.GL_ELEMENT_ARRAY_BUFFER,
-    'pixel_pack_buffer': GL.GL_PIXEL_PACK_BUFFER,
-    'pixel_unpack_buffer': GL.GL_PIXEL_UNPACK_BUFFER,
-    'copy_read_buffer': GL.GL_COPY_READ_BUFFER,
-    'copy_write_buffer': GL.GL_COPY_WRITE_BUFFER,
-    'transform_feedback_buffer': GL.GL_TRANSFORM_FEEDBACK_BUFFER,
-    'uniform_buffer': GL.GL_UNIFORM_BUFFER,
-    'texture_buffer': GL.GL_TEXTURE_BUFFER,
-    'draw_indirect_buffer': GL.GL_DRAW_INDIRECT_BUFFER,
-    'atomic_counter_buffer': GL.GL_ATOMIC_COUNTER_BUFFER,
-    # 'dispatch_indirect_buffer': GL.GL_DISPATCH_INDIRECT_BUFFER,
-    # 'shader_storage_buffer': GL.GL_SHADER_STORAGE_BUFFER,
-    'points': GL.GL_POINTS,  # primative types
-    'lines': GL.GL_LINES,
-    'line_strip': GL.GL_LINE_STRIP,
-    'line_loop': GL.GL_LINE_LOOP,
-    'lines_adjacency': GL.GL_LINES_ADJACENCY,
-    'line_strip_adjacency': GL.GL_LINE_STRIP_ADJACENCY,
-    'triangles': GL.GL_TRIANGLES,
-    'triangle_strip': GL.GL_TRIANGLE_STRIP,
-    'triangle_fan': GL.GL_TRIANGLE_FAN,
-    'triangles_adjacency': GL.GL_TRIANGLES_ADJACENCY,
-    'triangle_strip_adjacency': GL.GL_TRIANGLE_STRIP_ADJACENCY,
-    'quads': GL.GL_QUADS,
-    'patches': GL.GL_PATCHES,
-    'front': GL.GL_FRONT,  # face culling/polymodes
-    'back': GL.GL_BACK,
-    'front_and_back': GL.GL_FRONT_AND_BACK,
-    'cw': GL.GL_CW,
-    'ccw': GL.GL_CCW,
-    'point': GL.GL_POINT,
-    'line': GL.GL_LINE,
-    'fill': GL.GL_FILL,
-    'rgb': GL.GL_RGB,   # pixel/internal formats for textures
-    'rgb8': GL.GL_RGB8,
-    'rgba': GL.GL_RGBA,
-    'rgba8': GL.GL_RGBA8,
-    'bgr': GL.GL_BGR,
-    'bgra': GL.GL_BGRA,
-    'red': GL.GL_RED,
-    'rg': GL.GL_RG,
-    'depth': GL.GL_DEPTH_COMPONENT,
-    'depth_stencil': GL.GL_DEPTH_STENCIL,
-    'stencil': GL.GL_STENCIL_INDEX,
-    'alpha': GL.GL_ALPHA,
-    'luminance': GL.GL_LUMINANCE,
-    'texture_3d': GL.GL_TEXTURE_3D,  # texture targets
-    'texture_2d': GL.GL_TEXTURE_2D,  
-    'texture_1d': GL.GL_TEXTURE_1D,
-    'texture_cube_map': GL.GL_TEXTURE_CUBE_MAP,
-    'texture_1d_array': GL.GL_TEXTURE_1D_ARRAY,
-    'texture_2d_array': GL.GL_TEXTURE_2D_ARRAY,
-    'texture_rectangle': GL.GL_TEXTURE_RECTANGLE,
-    'texture_cube_map_positive_x': GL.GL_TEXTURE_CUBE_MAP_POSITIVE_X,
-    'texture_cube_map_negative_x': GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
-    'texture_cube_map_positive_y': GL.GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
-    'texture_cube_map_negative_y': GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
-    'texture_cube_map_positive_z': GL.GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
-    'texture_cube_map_negative_z': GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
-    'texture_min_filter': GL.GL_TEXTURE_MIN_FILTER,  # texture filtering/params
-    'texture_mag_filter': GL.GL_TEXTURE_MAG_FILTER,
-    'texture_wrap_s': GL.GL_TEXTURE_WRAP_S,
-    'texture_wrap_t': GL.GL_TEXTURE_WRAP_T,
-    'texture_wrap_r': GL.GL_TEXTURE_WRAP_R,
-    'nearest': GL.GL_NEAREST,
-    'linear': GL.GL_LINEAR,
-    'nearest_mipmap_nearest': GL.GL_NEAREST_MIPMAP_NEAREST,
-    'linear_mipmap_nearest': GL.GL_LINEAR_MIPMAP_NEAREST,
-    'nearest_mipmap_linear': GL.GL_NEAREST_MIPMAP_LINEAR,
-    'linear_mipmap_linear': GL.GL_LINEAR_MIPMAP_LINEAR,
-    'clamp_to_edge': GL.GL_CLAMP_TO_EDGE,
-    'clamp_to_border': GL.GL_CLAMP_TO_BORDER,
-    'mirrored_repeat': GL.GL_MIRRORED_REPEAT,
-    'repeat': GL.GL_REPEAT,
-    'unpack_alignment': GL.GL_UNPACK_ALIGNMENT,  # pixel store parameters
-    'pack_alignment': GL.GL_PACK_ALIGNMENT,
-    'line_smooth': GL.GL_LINE_SMOOTH,  # rasterization modes
-    'multisample': GL.GL_MULTISAMPLE,
-    'fragment_shader': GL.GL_FRAGMENT_SHADER,  # shader types
-    'vertex_shader': GL.GL_VERTEX_SHADER,
-    'geometry_shader': GL.GL_GEOMETRY_SHADER,
-    'tess_control_shader': GL.GL_TESS_CONTROL_SHADER,
-    'tess_evaluation_shader': GL.GL_TESS_EVALUATION_SHADER,
-    # 'compute_shader': GL.GL_COMPUTE_SHADER,
-    'compile_status': GL.GL_COMPILE_STATUS,  # shader status
-    'link_status': GL.GL_LINK_STATUS,
-    'validate_status': GL.GL_VALIDATE_STATUS,
-    'delete_status': GL.GL_DELETE_STATUS,
-    'info_log_length': GL.GL_INFO_LOG_LENGTH,
-    'shader_type': GL.GL_SHADER_TYPE,
-    'shader_source_length': GL.GL_SHADER_SOURCE_LENGTH,
-    'shader_compiler': GL.GL_SHADER_COMPILER,
-    'src_alpha': GL.GL_SRC_ALPHA,  # blending factors
-    'one_minus_src_alpha': GL.GL_ONE_MINUS_SRC_ALPHA,
-    'dst_alpha': GL.GL_DST_ALPHA,
-    'one_minus_dst_alpha': GL.GL_ONE_MINUS_DST_ALPHA,
-    'src_color': GL.GL_SRC_COLOR,
-    'one_minus_src_color': GL.GL_ONE_MINUS_SRC_COLOR,
-    'dst_color': GL.GL_DST_COLOR,
-    'one_minus_dst_color': GL.GL_ONE_MINUS_DST_COLOR,
-    'zero': GL.GL_ZERO,
-    'one': GL.GL_ONE,
-    'src_alpha_saturate': GL.GL_SRC_ALPHA_SATURATE,
-    'constant_color': GL.GL_CONSTANT_COLOR,
-    'one_minus_constant_color': GL.GL_ONE_MINUS_CONSTANT_COLOR,
-    'constant_alpha': GL.GL_CONSTANT_ALPHA,
-    'one_minus_constant_alpha': GL.GL_ONE_MINUS_CONSTANT_ALPHA,
-    'blend_color': GL.GL_BLEND_COLOR,
-    'blend_equation': GL.GL_BLEND_EQUATION,  # blending equations
-    'blend_equation_rgb': GL.GL_BLEND_EQUATION_RGB,
-    'blend_equation_alpha': GL.GL_BLEND_EQUATION_ALPHA,
-    'blend_dst_rgb': GL.GL_BLEND_DST_RGB,  # blend destination factors
-    'blend_src_rgb': GL.GL_BLEND_SRC_RGB,  # blend source factors
-    'blend_dst_alpha': GL.GL_BLEND_DST_ALPHA,
-    'blend_src_alpha': GL.GL_BLEND_SRC_ALPHA,
-    'blend': GL.GL_BLEND,  # blending modes
-    'blend_color': GL.GL_BLEND_COLOR,
-    'blend_dst': GL.GL_BLEND_DST,
-    'blend_src': GL.GL_BLEND_SRC
-}
-
 # Mappings between Python/Numpy and OpenGL data types for arrays. Duplication
 # simplifies the lookup process when used in functions. Some types are not 
 # supported by OpenGL, so they are remapped to the closest compatible type.
@@ -382,9 +242,9 @@ def _getGLEnum(*args):
     if args is None:
         return None
     elif len(args) == 1:
-        return GL_ENUMS.get(args[0], args[0])
+        return getattr(GL, args[0]) if isinstance(args[0], str) else args[0]
     else:
-        return [GL_ENUMS.get(i, i) for i in args]
+        return [getattr(GL, i) if isinstance(i, str) else i for i in args]
 
 
 # -------------------------------
@@ -1617,7 +1477,67 @@ Framebuffer = namedtuple(
 )
 
 
-def createFBO(attachments=()):
+class FramebufferInfo:
+    """Framebuffer object (VBO) descriptor.
+
+    This class only stores information about the FBO it refers to, it does not
+    contain any actual array data associated with the FBO. Calling
+    :func:`createFBO` returns instances of this class.
+
+    It is recommended to use `gltools` functions :func:`bindFBO`, 
+    :func:`unbindFBO` and :func:`deleteFBO` to manage FBOs.
+
+    Parameters
+    ----------
+    name : int
+        Handle of the FBO.
+    target : int
+        Target of the FBO.
+    attachments : dict, optional
+        Dictionary of attachments associated with the FBO. The keys are
+        attachment points (e.g. GL_COLOR_ATTACHMENT0, GL_DEPTH_ATTACHMENT, etc.)
+        and the values are buffer descriptors (`RenderbufferInfo` or 
+        `TexImage2DInfo`).
+    sizeHint : tuple, optional
+        Size hint for the FBO. This is used to specify the dimensions of logical
+        buffers attached to the FBO. The size hint is a tuple of two integers
+        (width, height).
+    userData : dict, optional
+        User-defined data associated with the FBO.  
+    
+    """
+    __slots__ = [
+        'name', 'target', '_attachments', 'sizeHint', 'userData', '_lastBound']
+
+    def __init__(self, name, target=GL.GL_FRAMEBUFFER, attachments=None, 
+                 sizeHint=None, userData=None):
+        self.name = name
+        self.target = target
+        self._attachments = {} if attachments is None else attachments
+        self.sizeHint = sizeHint
+        self.userData = userData
+
+        self._lastBound = GL.GLint()
+
+    def __enter__(self):
+        GL.glGetIntegerv(GL.GL_FRAMEBUFFER_BINDING, ctypes.byref(self.lastBound))
+        GL.glBindFramebuffer(self.fbo.target, self.fbo.id)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        GL.glBindFramebuffer(self.fbo.target, self.lastBound.value)
+
+    @property
+    def attachments(self):
+        """Image buffer attachments associated with the FBO (`dict`).
+
+        Do not modify this dictionary directly. Use :func:`attachImage` to
+        attach images to the FBO.
+
+        """
+        return self._attachments
+
+
+def createFBO(attachments=(), sizeHint=None):
     """Create a Framebuffer Object.
 
     Parameters
@@ -1626,18 +1546,22 @@ def createFBO(attachments=()):
         Optional attachments to initialize the Framebuffer with. Attachments are
         specified as a list of tuples. Each tuple must contain an attachment
         point (e.g. GL_COLOR_ATTACHMENT0, GL_DEPTH_ATTACHMENT, etc.) and a
-        buffer descriptor type (Renderbuffer or TexImage2D). If using a combined
-        depth/stencil format such as GL_DEPTH24_STENCIL8, GL_DEPTH_ATTACHMENT
-        and GL_STENCIL_ATTACHMENT must be passed the same buffer. Alternatively,
-        one can use GL_DEPTH_STENCIL_ATTACHMENT instead. If using multisample
-        buffers, all attachment images must use the same number of samples!. As
-        an example, one may specify attachments as 'attachments=((
-        GL.GL_COLOR_ATTACHMENT0, frameTexture), (GL.GL_DEPTH_STENCIL_ATTACHMENT,
-        depthRenderBuffer))'.
+        buffer descriptor type (RenderbufferInfo or TexImage2DInfo). If using a 
+        combined depth/stencil format such as GL_DEPTH24_STENCIL8, 
+        GL_DEPTH_ATTACHMENT and GL_STENCIL_ATTACHMENT must be passed the same 
+        buffer. Alternatively, one can use GL_DEPTH_STENCIL_ATTACHMENT instead. 
+        If using multisample buffers, all attachment images must use the same 
+        number of samples!. As an example, one may specify attachments as 
+        'attachments=((GL.GL_COLOR_ATTACHMENT0, frameTexture), 
+        (GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRenderBuffer))'.
+    sizeHint : :obj:`tuple`, optional
+        Size hint for the FBO. This is used to specify the dimensions of logical
+        buffers attached to the FBO. The size hint is a tuple of two integers
+        (width, height).
 
     Returns
     -------
-    Framebuffer
+    FramebufferInfo
         Framebuffer descriptor.
 
     Notes
@@ -1655,8 +1579,9 @@ def createFBO(attachments=()):
 
     Create a render target with multiple color texture attachments::
 
-        colorTex = createTexImage2D(1024,1024)  # empty texture
-        depthRb = createRenderbuffer(800,600,internalFormat=GL.GL_DEPTH24_STENCIL8)
+        colorTex = createTexImage2D(1024, 1024)  # empty texture
+        depthRb = createRenderbuffer(
+            800, 600, internalFormat=GL.GL_DEPTH24_STENCIL8)
 
         # attach images
         GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, fbo.id)
@@ -1691,26 +1616,34 @@ def createFBO(attachments=()):
     GL.glGenFramebuffers(1, ctypes.byref(fboId))
 
     # create a framebuffer descriptor
-    fboDesc = Framebuffer(fboId, GL.GL_FRAMEBUFFER, dict())
+    fboDesc = FramebufferInfo(
+        fboId, 
+        GL.GL_FRAMEBUFFER, 
+        attachments=None,  # set later 
+        sizeHint=sizeHint,
+        userData=dict())
 
     # initial attachments for this framebuffer
     if attachments:
-        with useFBO(fboDesc):
-            for attachPoint, imageBuffer in attachments:
-                attach(attachPoint, imageBuffer)
+        bindFBO(fboDesc)
+        for attachPoint, imageBuffer in attachments:
+            attachImage(fboDesc, attachPoint, imageBuffer)
+        unbindFBO()
 
     return fboDesc
 
 
-def attach(attachPoint, imageBuffer):
+def attachImage(fbo, attachPoint, imageBuffer):
     """Attach an image to a specified attachment point on the presently bound
     FBO.
 
     Parameters
     ----------
+    fbo : :obj:`FramebufferInfo`
+        Framebuffer descriptor to attach buffer to.
     attachPoint :obj:`int`
         Attachment point for 'imageBuffer' (e.g. GL.GL_COLOR_ATTACHMENT0).
-    imageBuffer : :obj:`TexImage2D` or :obj:`Renderbuffer`
+    imageBuffer : :obj:`TexImage2D` or :obj:`RenderbufferInfo`
         Framebuffer-attachable buffer descriptor.
 
     Examples
@@ -1718,35 +1651,74 @@ def attach(attachPoint, imageBuffer):
     Attach an image to attachment points on the framebuffer::
 
         GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, fbo)
-        attach(GL.GL_COLOR_ATTACHMENT0, colorTex)
-        attach(GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRb)
+        attachImage(GL.GL_COLOR_ATTACHMENT0, colorTex)
+        attachImage(GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRb)
         GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, lastBoundFbo)
 
         # same as above, but using a context manager
         with useFBO(fbo):
-            attach(GL.GL_COLOR_ATTACHMENT0, colorTex)
-            attach(GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRb)
+            attachImage(GL.GL_COLOR_ATTACHMENT0, colorTex)
+            attachImage(GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRb)
 
     """
+    if not isinstance(fbo, FramebufferInfo):
+        raise ValueError("Invalid type for `fbo`, must be `FramebufferInfo`.")
+
+    if isinstance(attachPoint, str):
+        attachPoint = getattr(GL, attachPoint)
+
+    # get the last framebuffer bound
+    lastBound = GL.GLint()
+    GL.glGetIntegerv(GL.GL_FRAMEBUFFER_BINDING, ctypes.byref(lastBound))
+
+    # bind the framebuffer
+    changeBinding = fbo.name != lastBound.value
+    if changeBinding:
+        bindFBO(fbo)
+
+    if fbo.sizeHint is not None:
+        if (fbo.sizeHint[0] != imageBuffer.width or 
+            fbo.sizeHint[1] != imageBuffer.height):
+            raise ValueError(
+                "Imagebuffer dimensions do not match FBO size hint. Expected "
+                "({}, {}), got ({}, {}).".format(
+                    fbo.sizeHint[0], fbo.sizeHint[1], 
+                    imageBuffer.width, imageBuffer.height))
+
     # We should also support binding GL names specified as integers. Right now
     # you need as descriptor which contains the target and name for the buffer.
     #
-    if isinstance(imageBuffer, (TexImage2D, TexImage2DMultisample)):
+    if isinstance(imageBuffer, (TexImage2DInfo, TexImage2DMultisampleInfo)):
         GL.glFramebufferTexture2D(
-            GL.GL_FRAMEBUFFER,
+            fbo.target,
             attachPoint,
             imageBuffer.target,
-            imageBuffer.id, 0)
-    elif isinstance(imageBuffer, Renderbuffer):
+            imageBuffer.name, 0)
+    elif isinstance(imageBuffer, RenderbufferInfo):
         GL.glFramebufferRenderbuffer(
-            GL.GL_FRAMEBUFFER,
+            fbo.target,
             attachPoint,
             imageBuffer.target,
-            imageBuffer.id)
+            imageBuffer.name)
+        
+    fbo.attachments[attachPoint] = imageBuffer
+
+    # restore the last framebuffer
+    if changeBinding:
+        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, lastBound.value)
+        
+
+# legacy
+attach = attachImage
 
 
-def isComplete():
+def isFramebufferComplete(fbo):
     """Check if the currently bound framebuffer is complete.
+
+    Parameters
+    ----------
+    fbo : :obj:`FramebufferInfo`
+        Framebuffer descriptor to check for completeness.
 
     Returns
     -------
@@ -1754,16 +1726,53 @@ def isComplete():
         `True` if the presently bound FBO is complete.
 
     """
-    return GL.glCheckFramebufferStatus(GL.GL_FRAMEBUFFER) == \
+    # get the last framebuffer bound
+    lastBound = GL.GLint()
+    GL.glGetIntegerv(GL.GL_FRAMEBUFFER_BINDING, ctypes.byref(lastBound))
+
+    # bind the framebuffer
+    changeBinding = fbo.name != lastBound.value
+    if changeBinding:
+        bindFBO(fbo)
+
+    status = GL.glCheckFramebufferStatus(fbo.target) == \
            GL.GL_FRAMEBUFFER_COMPLETE
+    
+    # restore the last framebuffer
+    if changeBinding:
+        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, lastBound.value)
+    
+    return status
 
 
-def deleteFBO(fbo):
+def deleteFBO(fbo, deleteAttachments=True):
     """Delete a framebuffer.
 
+    Parameters
+    ----------
+    fbo : :obj:`FramebufferInfo` or :obj:`int`
+        Framebuffer descriptor or name to delete.
+    deleteAttachments : bool, optional
+        Delete attachments associated with the framebuffer. Default is `True`.
+
     """
-    GL.glDeleteFramebuffers(
-        1, fbo.id if isinstance(fbo, Framebuffer) else int(fbo))
+    if not isinstance(fbo, FramebufferInfo):
+        raise ValueError("Invalid type for `fbo`, must be `FramebufferInfo`.")
+    
+    if deleteAttachments:
+        for attachment in fbo.attachments.values():
+            if isinstance(attachment, RenderbufferInfo):
+                deleteRenderbuffer(attachment)
+            elif isinstance(attachment, 
+                            (TexImage2DInfo, TexImage2DMultisampleInfo)):
+                deleteTexture(attachment)
+
+    GL.glDeleteFramebuffers(1, fbo.name)
+
+    # invalidate the descriptor
+    fbo.name = 0
+    fbo.target = 0
+    fbo.attachments.clear()
 
 
 def blitFBO(srcRect, dstRect=None, filter=GL.GL_LINEAR):
@@ -1792,17 +1801,11 @@ def blitFBO(srcRect, dstRect=None, filter=GL.GL_LINEAR):
     --------
     Blitting pixels from on FBO to another::
 
-        # bind framebuffer to read pixels from
-        GL.glBindFramebuffer(GL.GL_READ_FRAMEBUFFER, srcFbo)
-
-        # bind framebuffer to draw pixels to
-        GL.glBindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, dstFbo)
-
-        gltools.blitFBO((0,0,800,600), (0,0,800,600))
-
-        # unbind both read and draw buffers
-        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
-
+        # set buffers for reading and drawing
+        gt.setReadBuffer(fbo, 'GL_COLOR_ATTACHMENT0')  
+        gt.setDrawBuffer(None, 'GL_BACK')  # default back buffer for window
+        gt.blitFBO((0 ,0, 512, 512), (0, 0, 512, 512))
+    
     """
     # in most cases srcRect and dstRect will be the same.
     if dstRect is None:
@@ -1817,6 +1820,76 @@ def blitFBO(srcRect, dstRect=None, filter=GL.GL_LINEAR):
                          filter)
 
     # GL.glDisable(GL.GL_SCISSOR_TEST)
+
+
+def setReadBuffer(fbo, mode):
+    """Set the read buffer for the framebuffer.
+
+    Parameters
+    ----------
+    fbo : :obj:`FramebufferInfo` or `None`
+        Framebuffer descriptor. If `None`, the framebuffer with target
+        `GL_FRAMEBUFFER` is bound to `0` (default framebuffer).
+    mode : :obj:`int`, :obj:`GLenum` or :obj:`str`
+        Buffer mode to set as the read buffer. If `fbo` is not `None`, this
+        value may be `GL_COLOR_ATTACHMENT(i)` where `i` is the color attachment
+        index. If `fbo` is `None`, this value may be one of `GL_FRONT_LEFT`,
+        `GL_FRONT_RIGHT`, `GL_BACK_LEFT`, `GL_BACK_RIGHT`, `GL_FRONT`,
+        `GL_BACK`, `GL_LEFT`, `GL_RIGHT`.
+
+    Examples
+    --------
+    Set the read buffer for a framebuffer::
+
+        setReadBuffer(fbo, GL_COLOR_ATTACHMENT0)
+
+    """
+    if isinstance(mode, str):
+        mode = getattr(GL, mode)
+
+    if fbo is None:
+        GL.glBindFramebuffer(GL.GL_READ_FRAMEBUFFER, 0)
+        GL.glReadBuffer(mode)
+        return
+
+    if not isinstance(fbo, FramebufferInfo):
+        raise ValueError(
+            "Invalid type for `fbo`, must be `FramebufferInfo`.")
+
+    GL.glBindFramebuffer(GL.GL_READ_FRAMEBUFFER, fbo.name)
+    GL.glReadBuffer(mode)
+
+
+def setDrawBuffer(fbo, mode):
+    """Set the draw buffer for the framebuffer.
+
+    Parameters
+    ----------
+    fbo : :obj:`FramebufferInfo` or `None`
+        Framebuffer descriptor. If `None`, the framebuffer with target
+        `GL_FRAMEBUFFER` is bound to `0` (default framebuffer).
+    mode : :obj:`int`, :obj:`GLenum` or :obj:`str`
+        Buffer mode to set as the draw buffer. If `fbo` is not `None`, this
+        value may be `GL_COLOR_ATTACHMENT(i)` where `i` is the color attachment
+        index. If `fbo` is `None`, this value may be one of `GL_FRONT_LEFT`,
+        `GL_FRONT_RIGHT`, `GL_BACK_LEFT`, `GL_BACK_RIGHT`, `GL_FRONT`,
+        `GL_BACK`, `GL_LEFT`, `GL_RIGHT`.
+
+    """
+    if isinstance(mode, str):
+        mode = getattr(GL, mode)
+
+    if fbo is None:
+        GL.glBindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, 0)
+        GL.glDrawBuffer(mode)
+        return
+
+    if not isinstance(fbo, FramebufferInfo):
+        raise ValueError(
+            "Invalid type for `fbo`, must be `FramebufferInfo`.")
+
+    GL.glBindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, fbo.name)
+    GL.glDrawBuffer(mode)
 
 
 @contextmanager
@@ -1858,12 +1931,86 @@ def useFBO(fbo):
     """
     prevFBO = GL.GLint()
     GL.glGetIntegerv(GL.GL_FRAMEBUFFER_BINDING, ctypes.byref(prevFBO))
-    toBind = fbo.id if isinstance(fbo, Framebuffer) else int(fbo)
+    toBind = fbo.id if isinstance(fbo, FramebufferInfo) else int(fbo)
     GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, toBind)
     try:
         yield toBind
     finally:
         GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, prevFBO.value)
+
+
+def bindFBO(fbo, target=None):
+    """Bind a Framebuffer Object (FBO).
+
+    Parameters
+    ----------
+    fbo :obj:`FramebufferInfo`
+        OpenGL Framebuffer Object name/ID or descriptor.
+    target :obj:`int`, :obj:`GLenum`, :obj:`str` or `None`
+        Target to bind the framebuffer to. If `None`, the target of the
+        framebuffer descriptor is used. Valid targets are `GL_FRAMEBUFFER`,
+        `GL_DRAW_FRAMEBUFFER` and `GL_READ_FRAMEBUFFER`.
+
+    Examples
+    --------
+    Bind a framebuffer::
+
+        bindFBO(fbo)
+
+    """
+    if target is None:
+        target = fbo.target if isinstance(fbo, FramebufferInfo) else GL.GL_FRAMEBUFFER
+
+    if isinstance(target, str):
+        target = getattr(GL, target)
+
+    if fbo is None:
+        GL.glBindFramebuffer(target, 0)
+        return
+
+    if not isinstance(fbo, FramebufferInfo):
+        raise ValueError("Invalid type for `fbo`, must be `FramebufferInfo`.")
+
+    GL.glBindFramebuffer(fbo.target, fbo.name)
+
+
+def unbindFBO(fbo, target=None):
+    """Unbind a Framebuffer Object (FBO).
+
+    While the last FBO does not have to be unbound explicitly, passing the 
+    descriptor of the FBO to this function will ensure the target is unbound.
+
+    Parameters
+    ----------
+    fbo :obj:`FramebufferInfo` or `None`
+        OpenGL Framebuffer Object name/ID or descriptor. If `None`, the 
+        frambuffer with target `GL_FRAMEBUFFER` is bound to `0`. Values are
+        `GL_FRAMEBUFFER`, `GL_DRAW_FRAMEBUFFER` and `GL_READ_FRAMEBUFFER`.
+    target :obj:`int`, :obj:`GLenum`, :obj:`str` or `None`
+        Target to unbind the framebuffer from. If `None`, the target of the
+        framebuffer descriptor is used.
+
+    Examples
+    --------
+    Unbind a framebuffer::
+
+        unbindFBO(fbo)
+
+    """
+    if target is None:
+        target = fbo.target if isinstance(fbo, FramebufferInfo) else GL.GL_FRAMEBUFFER
+
+    if isinstance(target, str):
+        target = getattr(GL, target)
+
+    if fbo is None:
+        GL.glBindFramebuffer(target, 0)
+        return
+
+    if not isinstance(fbo, FramebufferInfo):
+        raise ValueError("Invalid type for `fbo`, must be `FramebufferInfo`.")
+
+    GL.glBindFramebuffer(fbo.target, 0)
 
 
 # ------------------------------
@@ -1886,6 +2033,52 @@ Renderbuffer = namedtuple(
      'multiSample',  # boolean, check if a texture is multisample
      'userData']  # dictionary for user defined data
 )
+
+
+class RenderbufferInfo:
+    """Renderbuffer object descriptor.
+
+    This class only stores information about the Renderbuffer it refers to, it
+    does not contain any actual array data associated with the Renderbuffer.
+    Calling :func:`createRenderbuffer` returns instances of this class.
+
+    It is recommended to use `gltools` functions :func:`bindRenderbuffer`,
+    :func:`unbindRenderbuffer` and :func:`deleteRenderbuffer` to manage
+    Renderbuffers.
+
+    Parameters
+    ----------
+    name : int
+        Handle of the Renderbuffer.
+    target : int
+        Target of the Renderbuffer.
+    width : int
+        Width of the Renderbuffer.
+    height : int
+        Height of the Renderbuffer.
+    internalFormat : int
+        Internal format of the Renderbuffer.
+    samples : int
+        Number of samples for multi-sampling.
+    multiSample : bool
+        True if the Renderbuffer is multi-sampled.
+    userData : dict, optional
+        User-defined data associated with the Renderbuffer.
+
+    """
+    __slots__ = ['name', 'target', 'width', 'height', 'internalFormat',
+                 'samples', 'multiSample', 'userData']
+
+    def __init__(self, name, target, width, height, internalFormat, samples,
+                 multiSample, userData=None):
+        self.name = name
+        self.target = target
+        self.width = width
+        self.height = height
+        self.internalFormat = internalFormat
+        self.samples = samples
+        self.multiSample = multiSample
+        self.userData = userData
 
 
 def createRenderbuffer(width, height, internalFormat=GL.GL_RGBA8, samples=1):
@@ -1954,14 +2147,14 @@ def createRenderbuffer(width, height, internalFormat=GL.GL_RGBA8, samples=1):
     # done, unbind it
     GL.glBindRenderbuffer(GL.GL_RENDERBUFFER, 0)
 
-    return Renderbuffer(rbId,
-                        GL.GL_RENDERBUFFER,
-                        width,
-                        height,
-                        internalFormat,
-                        samples,
-                        samples > 1,
-                        dict())
+    return RenderbufferInfo(rbId,
+                            GL.GL_RENDERBUFFER,
+                            width,
+                            height,
+                            internalFormat,
+                            samples,
+                            samples > 1,
+                            dict())
 
 
 def deleteRenderbuffer(renderBuffer):
@@ -1969,7 +2162,10 @@ def deleteRenderbuffer(renderBuffer):
     renderbuffer's ID.
 
     """
-    GL.glDeleteRenderbuffers(1, renderBuffer.id)
+    GL.glDeleteRenderbuffers(1, renderBuffer.name)
+
+    # invalidate the descriptor
+    renderBuffer.name = 0
 
 
 # -----------------
@@ -1980,7 +2176,7 @@ def deleteRenderbuffer(renderBuffer):
 # use them with functions that require that type as input.
 #
 
-class TexImage2D:
+class TexImage2DInfo:
     """Descriptor for a 2D texture.
 
     This class is used for bookkeeping 2D textures stored in video memory.
@@ -2134,8 +2330,8 @@ def createTexImage2D(width, height, target=GL.GL_TEXTURE_2D, level=0,
 
     Returns
     -------
-    TexImage2D
-        A `TexImage2D` descriptor.
+    TexImage2DInfo
+        A `TexImage2DInfo` descriptor.
 
     Notes
     -----
@@ -2196,7 +2392,7 @@ def createTexImage2D(width, height, target=GL.GL_TEXTURE_2D, level=0,
     texId = GL.GLuint()
     GL.glGenTextures(1, ctypes.byref(texId))
 
-    GL.glBindTexture(target, texId)
+    GL.glBindTexture(target, texId.value)
     GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, int(unpackAlignment))
     GL.glTexImage2D(target, level, internalFormat,
                     width, height, 0,
@@ -2208,16 +2404,17 @@ def createTexImage2D(width, height, target=GL.GL_TEXTURE_2D, level=0,
             GL.glTexParameteri(target, pname, param)
 
     # new texture descriptor
-    tex = TexImage2D(name=texId,
-                     target=target,
-                     width=width,
-                     height=height,
-                     internalFormat=internalFormat,
-                     level=level,
-                     pixelFormat=pixelFormat,
-                     dataType=dataType,
-                     unpackAlignment=unpackAlignment,
-                     texParams=texParams)
+    tex = TexImage2DInfo(
+        name=texId.value,
+        target=target,
+        width=width,
+        height=height,
+        internalFormat=internalFormat,
+        level=level,
+        pixelFormat=pixelFormat,
+        dataType=dataType,
+        unpackAlignment=unpackAlignment,
+        texParams=texParams)
 
     tex._texParamsNeedUpdate = False
 
@@ -2243,7 +2440,7 @@ def createTexImage2dFromFile(imgFile, transpose=True):
 
     Returns
     -------
-    TexImage2D
+    TexImage2DInfo
         Texture descriptor.
 
     """
@@ -2467,7 +2664,7 @@ def bindTexture(texture, unit=None, enable=True):
 
     Parameters
     ----------
-    texture : TexImage2D
+    texture : TexImage2DInfo
         Texture descriptor to bind.
     unit : int, optional
         Texture unit to associated the texture with.
@@ -2498,7 +2695,7 @@ def unbindTexture(texture=None):
 
     Parameters
     ----------
-    texture : TexImage2D
+    texture : TexImage2DInfo
         Texture descriptor to unbind.
 
     """
@@ -2530,6 +2727,72 @@ TexImage2DMultisample = namedtuple(
      'userData'])
 
 
+class TexImage2DMultisampleInfo:
+    """Descriptor for a 2D multisampled texture.
+
+    This class is used for bookkeeping 2D multisampled textures stored in video
+    memory. Information about the texture (eg. `width` and `height`) is
+    available via class attributes. Attributes should never be modified
+    directly.
+
+    """
+    __slots__ = ['width',
+                 'height',
+                 'target',
+                 '_name',
+                 'internalFormat',
+                 'samples',
+                 'multisample',
+                 'userData']
+
+    def __init__(self,
+                 name=0,
+                 target=GL.GL_TEXTURE_2D_MULTISAMPLE,
+                 width=64,
+                 height=64,
+                 internalFormat=GL.GL_RGBA8,
+                 samples=1,
+                 multisample=True,
+                 userData=None):
+        """
+        Parameters
+        ----------
+        name : `int` or `GLuint`
+            OpenGL handle for texture. Is `0` if uninitialized.
+        target : :obj:`int`
+            The target texture should only be `GL_TEXTURE_2D_MULTISAMPLE`.
+        width : :obj:`int`
+            Texture width in pixels.
+        height : :obj:`int`
+            Texture height in pixels.
+        internalFormat : :obj:`int`
+            Internal format for texture data (e.g. GL_RGBA8, GL_R11F_G11F_B10F).
+        samples : :obj:`int`
+            Number of samples for multi-sampling, should be >1 and power-of-two.
+            Work with one sample, but will raise a warning.
+        multisample : :obj:`bool`
+            True if the texture is multi-sampled.
+        userData : :obj:`dict`
+            User-defined data associated with the texture.
+
+        """
+        self.name = name
+        self.width = width
+        self.height = height
+        self.target = target
+        self.internalFormat = internalFormat
+        self.samples = samples
+        self.multisample = multisample
+
+        if userData is None:
+            self.userData = {}
+        elif isinstance(userData, dict):
+            self.userData = userData
+        else:
+            raise TypeError('Invalid type for `userData`.')
+
+
+
 def createTexImage2DMultisample(width, height,
                                 target=GL.GL_TEXTURE_2D_MULTISAMPLE, samples=1,
                                 internalFormat=GL.GL_RGBA8, texParameters=()):
@@ -2556,8 +2819,8 @@ def createTexImage2DMultisample(width, height,
 
     Returns
     -------
-    TexImage2DMultisample
-        A TexImage2DMultisample descriptor.
+    TexImage2DMultisampleInfo
+        A TexImage2DMultisampleInfo descriptor.
 
     """
     width = int(width)
@@ -2588,14 +2851,15 @@ def createTexImage2DMultisample(width, height,
 
     GL.glBindTexture(target, 0)
 
-    return TexImage2DMultisample(colorTexId,
-                                 target,
-                                 width,
-                                 height,
-                                 internalFormat,
-                                 samples,
-                                 True,
-                                 dict())
+    return TexImage2DMultisampleInfo(
+        colorTexId,
+        target,
+        width,
+        height,
+        internalFormat,
+        samples,
+        True,
+        dict())
 
 
 def deleteTexture(texture):
@@ -2942,14 +3206,16 @@ def deleteVAO(vao):
         reset.
 
     """
-    if isinstance(vao, VertexArrayInfo):
-        if vao.name:
-            GL.glDeleteVertexArrays(1, GL.GLuint(vao.name))
-            vao.name = 0
-            vao.isLegacy = False
-            vao.indexBuffer = None
-            vao.activeAttribs = {}
-            vao.count = 0
+    if not isinstance(vao, VertexArrayInfo):
+        raise TypeError('Invalid type for `vao`, must be `VertexArrayInfo`.')
+    
+    if vao.name:
+        GL.glDeleteVertexArrays(1, GL.GLuint(vao.name))
+        vao.name = 0
+        vao.isLegacy = False
+        vao.indexBuffer = None
+        vao.activeAttribs = {}
+        vao.count = 0
 
 
 def drawClientArrays(attribBuffers, mode=GL.GL_TRIANGLES, indexBuffer=None):
@@ -3653,6 +3919,9 @@ def deleteVBO(vbo):
         Descriptor of VBO to delete.
 
     """
+    if not isinstance(vbo, VertexBufferInfo):
+        raise TypeError('Invalid type for `vbo`, must be `VertexBufferInfo`.')
+    
     if GL.glIsBuffer(vbo.name):
         GL.glDeleteBuffers(1, vbo.name)
         vbo.name = GL.GLuint(0)  # reset the object to invalidate it
@@ -4038,9 +4307,10 @@ def enable(enum):
 
     """
     if isinstance(enum, str):
-        enum = GL_ENUMS.get(enum, None)
-        if enum is None:
-            raise ValueError('Invalid capability string specified.')
+        enum = getattr(GL, enum, None)
+
+    if enum is None:
+        raise ValueError('Invalid capability string specified.')
         
     GL.glEnable(enum)
 
@@ -4055,9 +4325,10 @@ def disable(enum):
 
     """
     if isinstance(enum, str):
-        enum = GL_ENUMS.get(enum, None)
-        if enum is None:
-            raise ValueError('Invalid capability string specified.')
+        enum = getattr(GL, enum, None)
+        
+    if enum is None:
+        raise ValueError('Invalid capability string specified.')
         
     GL.glDisable(enum)
 
@@ -4299,8 +4570,8 @@ class SimpleMaterial:
         colorSpace : float
             Color space for `diffuseColor`, `specularColor`, `ambientColor`, and
             `emissionColor`.
-        diffuseTexture : TexImage2D
-        specularTexture : TexImage2D
+        diffuseTexture : TexImage2DInfo
+        specularTexture : TexImage2DInfo
         opacity : float
             Opacity of the material. Ranges from 0.0 to 1.0 where 1.0 is fully
             opaque.
