@@ -3224,7 +3224,7 @@ class VertexBufferInfo:
             return False
 
         if self.target == GL.GL_ARRAY_BUFFER:
-            bindTarget = GL.GL_VERTEX_ARRAY_BUFFER_BINDING
+            bindTarget = GL.GL_VERTEX_ARRAY_BINDING
         elif self.target == GL.GL_ELEMENT_ARRAY_BUFFER:
             bindTarget = GL.GL_ELEMENT_ARRAY_BUFFER_BINDING
         else:
