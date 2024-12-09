@@ -288,13 +288,14 @@ fragImageStim_adding = """
 # in every case our vertex shader is simple (we don't transform coords)
 vertSimple = """
     uniform vec4 uColor;
+    uniform mat4 uModelViewMatrix;
     uniform mat4 uProjectionMatrix;
     void main() {
             gl_FrontColor = uColor;
             gl_TexCoord[0] = gl_MultiTexCoord0;
             gl_TexCoord[1] = gl_MultiTexCoord1;
             gl_TexCoord[2] = gl_MultiTexCoord2;
-            gl_Position = uProjectionMatrix * gl_Vertex;
+            gl_Position = uProjectionMatrix * uModelViewMatrix * gl_Vertex;
     }
     """
 
