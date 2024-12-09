@@ -2169,7 +2169,7 @@ def createRenderbuffer(width, height, internalFormat=GL.GL_RGBA8, samples=1):
         Format for renderbuffer data (e.g. GL_RGBA8, GL_DEPTH24_STENCIL8).
     samples : :obj:`int`
         Number of samples for multi-sampling, should be >1 and power-of-two.
-        Work with one sample, but will raise a warning.
+        If samples == 1, a single sample buffer is created.
 
     Returns
     -------
@@ -2182,6 +2182,8 @@ def createRenderbuffer(width, height, internalFormat=GL.GL_RGBA8, samples=1):
     be used to store arbitrary data associated with the buffer.
 
     """
+    internalFormat = _getGLEnum(internalFormat)
+
     width = int(width)
     height = int(height)
 
