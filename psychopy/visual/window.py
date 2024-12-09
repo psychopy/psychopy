@@ -549,6 +549,9 @@ class Window():
         # gl viewport and scissor
         self._viewport = self._scissor = None  # set later
 
+        self._fboVerts = numpy.array([[-1, -1], [-1, 1], [1, 1], [1, -1]])
+        self._fboTexCoords = numpy.array([[0, 0], [0, 1], [1, 1], [1, 0]])
+
         # scene light sources
         self._lights = []
         self._useLights = False
@@ -854,10 +857,10 @@ class Window():
 
         # if we are using an FBO, bind it
         if hasattr(self, 'frameBuffer'):
-            GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT,
+            GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER,
                                     self.frameBuffer)
-            GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
-            GL.glDrawBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
+            GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0)
+            GL.glDrawBuffer(GL.GL_COLOR_ATTACHMENT0)
 
             # NB - check if we need these
             GL.glActiveTexture(GL.GL_TEXTURE0)
@@ -1250,7 +1253,7 @@ class Window():
             # need blit the framebuffer object to the actual back buffer
 
             # unbind the framebuffer as the render target
-            GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0)
+            GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
             GL.glDisable(GL.GL_BLEND)
             stencilOn = self.stencilTest
             self.stencilTest = False
@@ -1263,7 +1266,7 @@ class Window():
             GL.glActiveTexture(GL.GL_TEXTURE0)
             GL.glEnable(GL.GL_TEXTURE_2D)
             GL.glBindTexture(GL.GL_TEXTURE_2D, self.frameTexture)
-            GL.glColor3f(1.0, 1.0, 1.0)  # glColor multiplies with texture
+            # GL.glColor3f(1.0, 1.0, 1.0)  # glColor multiplies with texture
             GL.glColorMask(True, True, True, True)
 
             self._renderFBO()
@@ -1278,10 +1281,10 @@ class Window():
 
         if self.useFBO and flipThisFrame:
             # set rendering back to the framebuffer object
-            GL.glBindFramebufferEXT(
-                GL.GL_FRAMEBUFFER_EXT, self.frameBuffer)
-            GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
-            GL.glDrawBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
+            GL.glBindFramebuffer(
+                GL.GL_FRAMEBUFFER, self.frameBuffer)
+            GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0)
+            GL.glDrawBuffer(GL.GL_COLOR_ATTACHMENT0)
             # set to no active rendering texture
             GL.glActiveTexture(GL.GL_TEXTURE0)
             GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
@@ -2477,12 +2480,12 @@ class Window():
         """
         # do the reading of the pixels
         if buffer == 'back' and self.useFBO:
-            GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
+            GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0)
         elif buffer == 'back':
             GL.glReadBuffer(GL.GL_BACK)
         elif buffer == 'front':
             if self.useFBO:
-                GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0)
+                GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
             GL.glReadBuffer(GL.GL_FRONT)
         else:
             raise ValueError("Requested read from buffer '{}' but should be "
@@ -2509,7 +2512,7 @@ class Window():
 
         # rebind front buffer if needed
         if buffer == 'front' and self.useFBO:
-            GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, self.frameBuffer)
+            GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, self.frameBuffer)
 
         # if we want the color data without an alpha channel, we need to
         # convert the data to a numpy array and remove the alpha channel
@@ -2530,12 +2533,12 @@ class Window():
         # GL.glLoadIdentity()
         # do the reading of the pixels
         if buffer == 'back' and self.useFBO:
-            GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
+            GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0)
         elif buffer == 'back':
             GL.glReadBuffer(GL.GL_BACK)
         elif buffer == 'front':
             if self.useFBO:
-                GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0)
+                GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
             GL.glReadBuffer(GL.GL_FRONT)
         else:
             raise ValueError("Requested read from buffer '{}' but should be "
@@ -2569,7 +2572,7 @@ class Window():
         im = im.convert('RGB')
 
         if self.useFBO and buffer == 'front':
-            GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, self.frameBuffer)
+            GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, self.frameBuffer)
         return im
 
     @property
@@ -3329,8 +3332,8 @@ class Window():
 
         # Setup framebuffer
         self.frameBuffer = GL.GLuint()
-        GL.glGenFramebuffersEXT(1, ctypes.byref(self.frameBuffer))
-        GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, self.frameBuffer)
+        GL.glGenFramebuffers(1, ctypes.byref(self.frameBuffer))
+        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, self.frameBuffer)
 
         # Create texture to render to
         self.frameTexture = GL.GLuint()
@@ -3342,36 +3345,36 @@ class Window():
         GL.glTexParameteri(GL.GL_TEXTURE_2D,
                            GL.GL_TEXTURE_MIN_FILTER,
                            GL.GL_LINEAR)
-        GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA32F_ARB,
+        GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA32F,
                         int(self.size[0]), int(self.size[1]), 0,
                         GL.GL_RGBA, GL.GL_FLOAT, None)
         # attach texture to the frame buffer
-        GL.glFramebufferTexture2DEXT(GL.GL_FRAMEBUFFER_EXT,
-                                     GL.GL_COLOR_ATTACHMENT0_EXT,
+        GL.glFramebufferTexture2D(GL.GL_FRAMEBUFFER,
+                                     GL.GL_COLOR_ATTACHMENT0,
                                      GL.GL_TEXTURE_2D, self.frameTexture, 0)
 
         # add a stencil buffer
         self._stencilTexture = GL.GLuint()
-        GL.glGenRenderbuffersEXT(1, ctypes.byref(
+        GL.glGenRenderbuffers(1, ctypes.byref(
             self._stencilTexture))  # like glGenTextures
-        GL.glBindRenderbufferEXT(GL.GL_RENDERBUFFER_EXT, self._stencilTexture)
-        GL.glRenderbufferStorageEXT(GL.GL_RENDERBUFFER_EXT,
-                                    GL.GL_DEPTH24_STENCIL8_EXT,
-                                    int(self.size[0]), int(self.size[1]))
-        GL.glFramebufferRenderbufferEXT(GL.GL_FRAMEBUFFER_EXT,
-                                        GL.GL_DEPTH_ATTACHMENT_EXT,
-                                        GL.GL_RENDERBUFFER_EXT,
-                                        self._stencilTexture)
-        GL.glFramebufferRenderbufferEXT(GL.GL_FRAMEBUFFER_EXT,
-                                        GL.GL_STENCIL_ATTACHMENT_EXT,
-                                        GL.GL_RENDERBUFFER_EXT,
-                                        self._stencilTexture)
+        GL.glBindRenderbuffer(GL.GL_RENDERBUFFER, self._stencilTexture)
+        GL.glRenderbufferStorage(GL.GL_RENDERBUFFER,
+                                 GL.GL_DEPTH24_STENCIL8,
+                                 int(self.size[0]), int(self.size[1]))
+        GL.glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER,
+                                     GL.GL_DEPTH_ATTACHMENT,
+                                     GL.GL_RENDERBUFFER,
+                                     self._stencilTexture)
+        GL.glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER,
+                                     GL.GL_STENCIL_ATTACHMENT,
+                                     GL.GL_RENDERBUFFER,
+                                     self._stencilTexture)
 
-        status = GL.glCheckFramebufferStatusEXT(GL.GL_FRAMEBUFFER_EXT)
-        if status != GL.GL_FRAMEBUFFER_COMPLETE_EXT:
+        status = GL.glCheckFramebufferStatus(GL.GL_FRAMEBUFFER)
+        if status != GL.GL_FRAMEBUFFER_COMPLETE:
             logging.error("Error in framebuffer activation")
             # UNBIND THE FRAME BUFFER OBJECT THAT WE HAD CREATED
-            GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0)
+            GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
             return False
         GL.glDisable(GL.GL_TEXTURE_2D)
         # clear the buffers (otherwise the texture memory can contain
@@ -3702,22 +3705,16 @@ class Window():
 
         (in this case a copy operation without any warping)
         """
-        GL.glBegin(GL.GL_QUADS)
-        GL.glTexCoord2f(0.0, 0.0)
-        GL.glVertex2f(-1.0, -1.0)
-        GL.glTexCoord2f(0.0, 1.0)
-        GL.glVertex2f(-1.0, 1.0)
-        GL.glTexCoord2f(1.0, 1.0)
-        GL.glVertex2f(1.0, 1.0)
-        GL.glTexCoord2f(1.0, 0.0)
-        GL.glVertex2f(1.0, -1.0)
-        GL.glEnd()
+        gltools.drawClientArrays({
+            'gl_Vertex': self._fboVerts, 
+            'gl_MultiTexCoord0': self._fboTexCoords}, 
+            'GL_QUADS')
 
     def _prepareFBOrender(self):
-        GL.glUseProgram(self._progFBOtoFrame)
+        gltools.useProgram(self._progFBOtoFrame)
 
     def _finishFBOrender(self):
-        GL.glUseProgram(0)
+        gltools.useProgram(None)
 
     def _afterFBOrender(self):
         pass
