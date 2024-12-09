@@ -353,12 +353,13 @@ class BaseShapeStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         if self._fillColor != None:
             gt.setUniformValue(
                 _prog, 
-                'uColor', 
+                b'uColor', 
                 self._fillColor.render('rgba1'))
             gt.setUniformMatrix(
                 _prog, 
-                'uProjectionMatrix',
+                b'uProjectionMatrix',
                 self.win._projectionMatrix)
+            gt.setUniformMatrix(_prog, b'uModelViewMatrix', self.win.viewMatrix)
             gt.drawClientArrays(
                 {'gl_Vertex': self.verticesPix},
                 'GL_QUADS')
@@ -369,11 +370,12 @@ class BaseShapeStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             borderRGBA = self._borderColor.render('rgba1')
             if self.opacity is not None:
                 borderRGBA[-1] = self.opacity  # override opacity
-            gt.setUniformValue(_prog, 'uColor', borderRGBA)
+            gt.setUniformValue(_prog, b'uColor', borderRGBA)
             gt.setUniformMatrix(
                 _prog, 
-                'uProjectionMatrix',
+                b'uProjectionMatrix',
                 self.win._projectionMatrix)
+            gt.setUniformMatrix(_prog, b'uModelViewMatrix', self.win.viewMatrix)
             gt.drawClientArrays(
                 {'gl_Vertex': self.verticesPix},
                 'GL_LINE_LOOP' if self.closeShape else 'GL_LINE_STRIP')
@@ -662,10 +664,11 @@ class ShapeStim(BaseShapeStim):
                 self.verticesPix.shape[0] > 2 and
                 self._fillColor != None):
             gt.setUniformValue(
-                _prog, 'uColor', self._fillColor.render('rgba1'))
+                _prog, b'uColor', self._fillColor.render('rgba1'))
             gt.setUniformMatrix(
-                _prog, 'uProjectionMatrix',
+                _prog, b'uProjectionMatrix',
                 self.win._projectionMatrix)
+            gt.setUniformMatrix(_prog, b'uModelViewMatrix', self.win.viewMatrix)
             gt.drawClientArrays(
                 {'gl_Vertex': self.verticesPix},
                 'GL_TRIANGLES')
@@ -674,10 +677,11 @@ class ShapeStim(BaseShapeStim):
         if self._borderColor != None and self.lineWidth:
             GL.glLineWidth(self.lineWidth)
             gt.setUniformValue(
-                _prog, 'uColor', self._borderColor.render('rgba1'))
+                _prog, b'uColor', self._borderColor.render('rgba1'))
             gt.setUniformMatrix(
-                _prog, 'uProjectionMatrix',
+                _prog, b'uProjectionMatrix',
                 self.win._projectionMatrix)
+            gt.setUniformMatrix(_prog, b'uModelViewMatrix', self.win.viewMatrix)
             gt.drawClientArrays(
                 {'gl_Vertex': self._borderPix},
                 'GL_LINE_LOOP' if self.closeShape else 'GL_LINE_STRIP')

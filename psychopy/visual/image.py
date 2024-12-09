@@ -185,7 +185,9 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
         gt.setUniformValue(_prog, b'uTexture', 0, 'int')  # is texture unit 0
         gt.setUniformValue(_prog, b'uMask', 1, 'int')  # mask is texture unit 1
         gt.setUniformValue(_prog, b'uColor', self._foreColor.render('rgba1'))
+        # gt.setUniformValue(_prog, b'uAlphaThreshold', self.alphaThreshold)
         gt.setUniformMatrix(_prog, b'uProjectionMatrix', win._projectionMatrix)
+        gt.setUniformMatrix(_prog, b'uModelViewMatrix', win.viewMatrix)
 
         # draw the image
         gt.drawClientArrays({

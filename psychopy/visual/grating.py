@@ -434,6 +434,7 @@ class GratingStim(BaseVisualStim, DraggingMixin, TextureMixin, ColorMixin,
         gt.setUniformValue(_prog, b'uMask', 1, 'int')
         gt.setUniformValue(_prog, b'uColor', self._foreColor.render('rgba1'))
         gt.setUniformMatrix(_prog, b'uProjectionMatrix', win._projectionMatrix)
+        gt.setUniformMatrix(_prog, b'uModelViewMatrix', win.viewMatrix)
 
         gt.drawClientArrays({
             'gl_Vertex': self.verticesPix,

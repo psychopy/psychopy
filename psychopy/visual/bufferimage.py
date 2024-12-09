@@ -252,13 +252,14 @@ class BufferImageStim(ImageStim):
              self.thisScale[1] * (1, -1)[self.flipVert],
              1.0)
         )
-        projMat = mt.multMatrix((win._projectionMatrix, scaleMat))
+        modelViewMatrix = mt.multMatrix((win.viewMatrix, scaleMat))
 
         # set the shader uniforms
         gt.setUniformValue(_prog, b'uTexture', 0, 'int')  # is texture unit 0
         gt.setUniformValue(_prog, b'uMask', 1, 'int')  # mask is texture unit 1
         gt.setUniformValue(_prog, b'uColor', self._foreColor.render('rgba1'))
-        gt.setUniformMatrix(_prog, b'uProjectionMatrix', projMat)
+        gt.setUniformMatrix(_prog, 'uModelViewMatrix', modelViewMatrix)
+        gt.setUniformMatrix(_prog, b'uProjectionMatrix', win.projectionMatrix)
 
         # draw the image
         gt.drawClientArrays({

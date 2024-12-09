@@ -1284,6 +1284,7 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
         gt.setUniformValue(prog, 'uColor', self._foreColor.render('rgba1'))
         gt.setUniformMatrix(
             prog, 'uProjectionMatrix', self.win.projectionMatrix)
+        gt.setUniformMatrix(prog, 'uModelViewMatrix', self.win.viewMatrix)
         gt.drawClientArrays({
             'gl_Vertex': self.verticesPix,
             'gl_Color': self._colors,
@@ -1673,6 +1674,7 @@ class Caret(ColorMixin):
         gt.setUniformValue(prog, 'uColor', self._foreColor.rgba1)
         gt.setUniformMatrix(
             prog, 'uProjectionMatrix', self.win.projectionMatrix)
+        gt.setUniformMatrix(prog, 'uModelViewMatrix', self.win.viewMatrix)
         gt.drawClientArrays({
             'gl_Vertex': self.vertices}, 'lines')
         gt.useProgram(None)

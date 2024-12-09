@@ -532,10 +532,11 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
         GL.glEnable(GL.GL_TEXTURE_2D)
 
-        gt.setUniformValue(_prog, 'uTexture', 0, 'int')
-        gt.setUniformValue(_prog, 'uMask', 1, 'int')
-        gt.setUniformValue(_prog, 'uColor', [1., 1., 1., 1.])
-        gt.setUniformMatrix(_prog, 'uProjectionMatrix', win.projectionMatrix)
+        gt.setUniformValue(_prog, b'uTexture', 0, 'int')
+        gt.setUniformValue(_prog, b'uMask', 1, 'int')
+        gt.setUniformValue(_prog, b'uColor', [1., 1., 1., 1.])
+        gt.setUniformMatrix(_prog, b'uProjectionMatrix', win.projectionMatrix)
+        gt.setUniformMatrix(_prog, b'uModelViewMatrix', win.viewMatrix)
 
         verticesPix = self.verticesPix.reshape(-1, 3)
         RGBAs = self._RGBAs.reshape(-1, 4)

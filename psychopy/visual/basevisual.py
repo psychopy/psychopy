@@ -1357,6 +1357,18 @@ class TextureMixin:
         """
         self.__dict__['interpolate'] = value
 
+    @attributeSetter
+    def alphaThreshold(self, value):
+        """Threshold for alpha values.
+
+        If the alpha value of a pixel is below this threshold, the pixel will
+        be rejected (not drawn). This can be useful for creating a mask from
+        an image with an alpha channel. The default value is -1.0, which means
+        that no thresholding will be applied.
+
+        """
+        self.__dict__['alphaThreshold'] = value
+
 
 class WindowMixin:
     """Window-related attributes and methods.
