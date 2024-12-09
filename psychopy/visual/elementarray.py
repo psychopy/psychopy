@@ -30,6 +30,7 @@ from psychopy.visual import Window
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import attributeSetter, logAttrib, setAttribute
 from psychopy.tools.monitorunittools import convertToPix
+from psychopy.tools import gltools as gt
 from psychopy.visual.helpers import setColor
 from psychopy.visual.basevisual import MinimalStim, TextureMixin, ColorMixin
 from . import globalVars
@@ -517,28 +518,13 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
             self.updateTextureCoords()
 
         # scale the drawing frame and get to centre of field
-        GL.glPushMatrix()  # push before drawing, pop after
-        # push the data for client attributes
-        GL.glPushClientAttrib(GL.GL_CLIENT_ALL_ATTRIB_BITS)
-
-        # GL.glLoadIdentity()
-        self.win.setScale('pix')
-
-        cpcd = ctypes.POINTER(ctypes.c_double)
-        GL.glColorPointer(4, GL.GL_DOUBLE, 0,
-                          self._RGBAs.ctypes.data_as(cpcd))
-        GL.glVertexPointer(3, GL.GL_DOUBLE, 0,
-                           self.verticesPix.ctypes.data_as(cpcd))
+        win.setOrthographicView()
+        win.setScale('pix')
 
         # setup the shaderprogram
         _prog = self.win._progSignedTexMask
-        GL.glUseProgram(_prog)
-        # set the texture to be texture unit 0
-        GL.glUniform1i(GL.glGetUniformLocation(_prog, b"texture"), 0)
-        # mask is texture unit 1
-        GL.glUniform1i(GL.glGetUniformLocation(_prog, b"mask"), 1)
+        gt.useProgram(_prog)
 
-        # bind textures
         GL.glActiveTexture(GL.GL_TEXTURE1)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._maskID)
         GL.glEnable(GL.GL_TEXTURE_2D)
@@ -546,34 +532,31 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
         GL.glEnable(GL.GL_TEXTURE_2D)
 
-        # setup client texture coordinates first
-        GL.glClientActiveTexture(GL.GL_TEXTURE0)
-        GL.glTexCoordPointer(2, GL.GL_DOUBLE, 0, self._texCoords.ctypes)
-        GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
-        GL.glClientActiveTexture(GL.GL_TEXTURE1)
-        GL.glTexCoordPointer(2, GL.GL_DOUBLE, 0, self._maskCoords.ctypes)
-        GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
+        gt.setUniformValue(_prog, 'uTexture', 0, 'int')
+        gt.setUniformValue(_prog, 'uMask', 1, 'int')
+        gt.setUniformValue(_prog, 'uColor', [1., 1., 1., 1.])
+        gt.setUniformMatrix(_prog, 'uProjectionMatrix', win.projectionMatrix)
 
-        GL.glEnableClientState(GL.GL_COLOR_ARRAY)
-        GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
-        GL.glDrawArrays(GL.GL_QUADS, 0, self.verticesPix.shape[0] * 4)
+        verticesPix = self.verticesPix.reshape(-1, 3)
+        RGBAs = self._RGBAs.reshape(-1, 4)
+        texCoords = self._texCoords.reshape(-1, 2)
+        maskCoords = self._maskCoords.reshape(-1, 2)
 
-        # unbind the textures
+        gt.drawClientArrays({
+            'gl_Vertex': verticesPix,
+            'gl_Color': RGBAs,
+            'gl_MultiTexCoord0': texCoords,
+            'gl_MultiTexCoord1': maskCoords}, 
+            'GL_QUADS')
+        
+        gt.useProgram(None)
+
         GL.glActiveTexture(GL.GL_TEXTURE1)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
         GL.glDisable(GL.GL_TEXTURE_2D)
-        # main texture
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
         GL.glDisable(GL.GL_TEXTURE_2D)
-        # disable states
-        GL.glDisableClientState(GL.GL_COLOR_ARRAY)
-        GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
-        GL.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY)
-
-        GL.glUseProgram(0)
-        GL.glPopClientAttrib()
-        GL.glPopMatrix()
 
     def _updateVertices(self):
         """Sets Stim.verticesPix from fieldPos.
