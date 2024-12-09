@@ -582,6 +582,10 @@ class ShapeStim(BaseShapeStim):
             Nx2 array of points (eg., `[[-0.5, 0], [0, 0.5], [0.5, 0]`).
 
         """
+        if len(newVertices) < 3:
+            # not enough vertices to draw anything
+            return
+
         if not hasattr(self, '_tesselMode'):
             self._tesselMode = 'triangle'
         
