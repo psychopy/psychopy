@@ -4092,7 +4092,9 @@ def applyMatrix(m, points, out=None, dtype=None):
         Matrix with dimensions 2x2, 3x3, 3x4 or 4x4.
     points : array_like
         2D array of points/coordinates to transform. Each row should have length
-        appropriate for the matrix being used.
+        appropriate for the matrix being used. If not, a square submatrix will 
+        be taken from the input matrix with dimensions equal to the number of 
+        columns in `points`.
     out : ndarray, optional
         Optional output array. Must be same `shape` and `dtype` as the expected
         output if `out` was not specified.
@@ -4167,9 +4169,12 @@ def applyMatrix(m, points, out=None, dtype=None):
 
     nCols = p.shape[1]
     if m.shape[0] > nCols:
+        if m.shape[1] < nCols:
+            raise ValueError(
+                'Input matrix dimensions are not compatible with input array.')
         m = m[:nCols, :nCols]  # take sub matrix
 
-    if m.shape[0] == m.shape[1] == 4:  # 4x4 matrix
+    if m.shape == (4, 4):  # 4x4 matrix
         if pout.shape[1] == 3:  # Nx3
             pout[:, :] = p.dot(m[:3, :3].T)
             pout += m[:3, 3]
@@ -4187,7 +4192,7 @@ def applyMatrix(m, points, out=None, dtype=None):
             raise ValueError(
                 'Input array dimensions invalid. Should be Nx3 or Nx4 when '
                 'input matrix is 4x4.')
-    elif m.shape[0] == 3 and m.shape[1] == 4:  # 3x4 matrix
+    elif m.shape == (3, 4):  # 3x4 matrix
         if pout.shape[1] == 3:  # Nx3
             pout[:, :] = p.dot(m[:3, :3].T)
             pout += m[:3, 3]
@@ -4195,14 +4200,14 @@ def applyMatrix(m, points, out=None, dtype=None):
             raise ValueError(
                 'Input array dimensions invalid. Should be Nx3 when input '
                 'matrix is 3x4.')
-    elif m.shape[0] == m.shape[1] == 3:  # 3x3 matrix, e.g colors
+    elif m.shape == (3, 3):  # 3x3 matrix, e.g colors
         if pout.shape[1] == 3:  # Nx3
             pout[:, :] = p.dot(m.T)
         else:
             raise ValueError(
                 'Input array dimensions invalid. Should be Nx3 when '
                 'input matrix is 3x3.')
-    elif m.shape[0] == m.shape[1] == pout.shape[1] == 2:  # 2x2 matrix
+    elif m.shape == (2, 2):  # 2x2 matrix
         if pout.shape[1] == 2:  # Nx2
             pout[:, :] = p.dot(m.T)
         else:
