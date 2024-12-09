@@ -27,6 +27,8 @@ from psychopy import core, logging
 from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.tools.typetools import float_uint8
 from psychopy.visual.image import ImageStim
+from psychopy.tools import mathtools as mt
+from psychopy.tools import gltools as gt
 
 try:
     from PIL import Image
@@ -143,7 +145,7 @@ class BufferImageStim(ImageStim):
 
         # take a screenshot of the buffer using win._getRegionOfFrame():
         glversion = pyglet.gl.gl_info.get_version()
-        if glversion >= '2.1' and not sqPower2:
+        if not sqPower2:
             region = win._getRegionOfFrame(buffer=buffer, rect=rect)
         else:
             if not sqPower2:
@@ -217,15 +219,62 @@ class BufferImageStim(ImageStim):
             win = self.win
         self._selectWindow(win)
 
-        GL.glPushMatrix()  # preserve state
-        # GL.glLoadIdentity()
+        win.setScale('pix')
+        win.setOrthographicView()
 
         # dynamic flip
-        GL.glScalef(self.thisScale[0] * (1, -1)[self.flipHoriz],
-                    self.thisScale[1] * (1, -1)[self.flipVert], 1.0)
-
+        # GL.glScalef(self.thisScale[0] * (1, -1)[self.flipHoriz],
+        #             self.thisScale[1] * (1, -1)[self.flipVert], 1.0)
         # enable dynamic position, orientation, opacity; depth not working?
-        GL.glColor4f(*self._foreColor.render('rgba1'))
+        # GL.glColor4f(*self._foreColor.render('rgba1'))
 
-        GL.glCallList(self._listID)  # make it happen
-        GL.glPopMatrix()  # return the view to previous state
+        if self._needTextureUpdate:
+            self.setImage(value=self._imName, log=False)
+
+        if self.isLumImage:  # select the appropriate shader
+            # for a luminance image do recoloring
+            _prog = self.win._progSignedTexMask
+        else:
+            # for an rgb image there is no recoloring
+            _prog = self.win._progImageStim
+
+        gt.useProgram(_prog)
+
+        # bind textures
+        GL.glEnable(GL.GL_TEXTURE_2D)
+        GL.glActiveTexture(GL.GL_TEXTURE1)  # mask
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self._maskID)
+        GL.glActiveTexture(GL.GL_TEXTURE0)  # color/lum image
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
+
+        scaleMat = mt.scaleMatrix(
+            (self.thisScale[0] * (1, -1)[self.flipHoriz], 
+             self.thisScale[1] * (1, -1)[self.flipVert],
+             1.0)
+        )
+        projMat = mt.multMatrix((win._projectionMatrix, scaleMat))
+
+        # set the shader uniforms
+        gt.setUniformValue(_prog, b'uTexture', 0, 'int')  # is texture unit 0
+        gt.setUniformValue(_prog, b'uMask', 1, 'int')  # mask is texture unit 1
+        gt.setUniformValue(_prog, b'uColor', self._foreColor.render('rgba1'))
+        gt.setUniformMatrix(_prog, b'uProjectionMatrix', projMat)
+
+        # draw the image
+        gt.drawClientArrays({
+            'gl_Vertex': self.verticesPix,
+            'gl_MultiTexCoord0': self._texCoords,
+            'gl_MultiTexCoord1': self._maskCoords}, 
+            'GL_QUADS')
+        
+        gt.useProgram(None)
+
+        # unbind the textures
+        GL.glActiveTexture(GL.GL_TEXTURE1)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        GL.glActiveTexture(GL.GL_TEXTURE0)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        GL.glDisable(GL.GL_TEXTURE_2D)
+
+        # GL.glCallList(self._listID)  # make it happen
+        # GL.glPopMatrix()  # return the view to previous state
