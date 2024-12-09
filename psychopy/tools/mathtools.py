@@ -4165,6 +4165,10 @@ def applyMatrix(m, points, out=None, dtype=None):
 
     pout, p = np.atleast_2d(toReturn, points)
 
+    nCols = p.shape[1]
+    if m.shape[0] > nCols:
+        m = m[:nCols, :nCols]  # take sub matrix
+
     if m.shape[0] == m.shape[1] == 4:  # 4x4 matrix
         if pout.shape[1] == 3:  # Nx3
             pout[:, :] = p.dot(m[:3, :3].T)
