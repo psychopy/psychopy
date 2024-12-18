@@ -48,6 +48,9 @@ _piOver180 = np.pi / 180.
 _2pi = 2 * np.pi
 
 
+USE_LEGACY_GL = pyglet.version < '2.0'
+
+
 class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
     """This stimulus class defines a field of dots with an update rule that
     determines how they change on every call to the .draw() method. This is
@@ -506,24 +509,44 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         self._update_dotsXY()
 
+        if USE_LEGACY_GL:
+            GL.glPushMatrix()
+
         # draw the dots
         if self.element is None:
             win.setScale('pix')
             win.setOrthographicView()
 
+            GL.glActiveTexture(GL.GL_TEXTURE0)
+            GL.glEnable(GL.GL_TEXTURE_2D)
+            GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+            GL.glActiveTexture(GL.GL_TEXTURE1)
+            GL.glEnable(GL.GL_TEXTURE_2D)
+            GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+
             _prog = win._shaders['signedColor']
             gt.useProgram(_prog)
             
             GL.glPointSize(self.dotSize)
+            if USE_LEGACY_GL:
+                GL.glPushMatrix()  # push before the list, pop after
+                projectionMatrix = gt.getProjectionMatrix()
+                modelViewMatrix = gt.getModelViewMatrix()
+                # GL.glColor4f(*self._foreColor.render('rgba1'))
+            else:
+                projectionMatrix = win._projectionMatrix
+                modelViewMatrix = win._viewMatrix
+
             gt.setUniformValue(_prog, 'uColor', self._foreColor.render('rgba1'))
             gt.setUniformMatrix(
-                _prog, 'uProjectionMatrix', win._projectionMatrix)
+                _prog, 'uModelViewMatrix', modelViewMatrix)
+            gt.setUniformMatrix(
+                _prog, 'uProjectionMatrix', projectionMatrix)
             gt.drawClientArrays(
                 {'gl_Vertex': self.verticesPix},
                 'GL_POINTS')
 
             gt.useProgram(None)
-
         else:
             # we don't want to do the screen scaling twice so for each dot
             # subtract the screen centre
@@ -535,6 +558,9 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
             # reset depth before going to next frame
             self.element.setDepth(initialDepth)
+        
+        if USE_LEGACY_GL:
+            GL.glPopMatrix()
 
     def _newDotsXY(self, nDots):
         """Returns a uniform spread of dots, according to the `fieldShape` and
