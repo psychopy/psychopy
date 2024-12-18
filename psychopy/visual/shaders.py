@@ -8,9 +8,12 @@
 """shaders programs for either pyglet or pygame
 """
 
+import pyglet
 import pyglet.gl as GL
 import psychopy.tools.gltools as gltools
 from ctypes import c_int, c_char_p, c_char, cast, POINTER, byref
+
+USE_LEGACY_GL = pyglet.version < '2.0'
 
 
 class Shader:
@@ -208,13 +211,13 @@ fragSignedColorTex_adding = """
 fragSignedColorTexFont = """
     uniform vec4 uColor;
     uniform sampler2D uTexture;
-    uniform vec3 rgb;
     void main() {
         vec4 textureFrag = texture2D(uTexture, gl_TexCoord[0].st);
-        gl_FragColor.rgb = rgb;
-        gl_FragColor.a = uColor.a * textureFrag.a;
+        gl_FragColor.rgb = uColor.rgb * gl_Color.rgb;
+        gl_FragColor.a = textureFrag.a * gl_Color.a;
     }
-    """
+"""
+
 # for stimuli with a colored texture and a mask (gratings, etc.)
 fragSignedColorTexMask = """
     uniform vec4 uColor;
@@ -286,9 +289,19 @@ fragImageStim_adding = """
     }
     """
 # in every case our vertex shader is simple (we don't transform coords)
+# vertSimple = """
+#     void main() {
+#             gl_FrontColor = gl_Color;
+#             gl_TexCoord[0] = gl_MultiTexCoord0;
+#             gl_TexCoord[1] = gl_MultiTexCoord1;
+#             gl_TexCoord[2] = gl_MultiTexCoord2;
+#             gl_Position =  ftransform();
+#     }
+#     """
+
 vertSimple = """
     uniform vec4 uColor;
-    uniform mat4 uModelViewMatrix;
+    uniform mat4 uModelViewMatrix;  // combined for 2D rendering
     uniform mat4 uProjectionMatrix;
     void main() {
             gl_FrontColor = uColor;
@@ -297,7 +310,7 @@ vertSimple = """
             gl_TexCoord[2] = gl_MultiTexCoord2;
             gl_Position = uProjectionMatrix * uModelViewMatrix * gl_Vertex;
     }
-    """
+"""
 
 vertPhongLighting = """
 // Vertex shader for the Phong Shading Model
@@ -309,18 +322,21 @@ vertPhongLighting = """
 // added later on.
 //
 #version 110
+uniform mat4 uModelViewMatrix;
+uniform mat4 uProjectionMatrix;
+uniform mat4 uNormalMatrix;
 varying vec3 N;
 varying vec3 v;
 varying vec4 frontColor;
 
 void main(void)  
 {     
-    v = vec3(gl_ModelViewMatrix * gl_Vertex);       
-    N = normalize(gl_NormalMatrix * gl_Normal);
+    v = vec3(uModelViewMatrix * gl_Vertex.xyz);       
+    N = normalize(uNormalMatrix * gl_Normal);
     
     gl_TexCoord[0] = gl_MultiTexCoord0;
     gl_TexCoord[1] = gl_MultiTexCoord1;
-    gl_Position = ftransform();
+    gl_Position = uProjectionMatrix * uModelViewMatrix * gl_Vertex;
     frontColor = gl_Color;
 }
           
@@ -463,6 +479,7 @@ void main()
     gl_FragColor = vec4(uColor.rgb, (r + g + b) / 2.);
 }
 '''
+
 fragTextBox2alpha = '''
 uniform sampler2D uTexture;
 uniform vec4 uColor;
