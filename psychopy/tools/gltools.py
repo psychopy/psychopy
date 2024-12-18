@@ -248,6 +248,166 @@ def _getGLEnum(*args):
         return [getattr(GL, i) if isinstance(i, str) else i for i in args]
 
 
+def getIntegerv(parName):
+    """Get a single integer parameter value, return it as a Python integer.
+
+    Parameters
+    ----------
+    pName : int
+        OpenGL property enum to query (e.g. GL_MAJOR_VERSION).
+
+    Returns
+    -------
+    int
+
+    """
+    val = GL.GLint()
+    GL.glGetIntegerv(parName, val)
+
+    return int(val.value)
+
+
+def getFloatv(parName):
+    """Get a single float parameter value, return it as a Python float.
+
+    Parameters
+    ----------
+    pName : float
+        OpenGL property enum to query.
+
+    Returns
+    -------
+    float
+
+    """
+    val = GL.GLfloat()
+    GL.glGetFloatv(parName, val)
+
+    return float(val.value)
+
+
+def getString(parName):
+    """Get a single string parameter value, return it as a Python UTF-8 string.
+
+    Parameters
+    ----------
+    pName : int
+        OpenGL property enum to query (e.g. GL_VENDOR).
+
+    Returns
+    -------
+    str
+
+    """
+    val = ctypes.cast(GL.glGetString(parName), ctypes.c_char_p).value
+    return val.decode('UTF-8')
+
+    
+class OpenGLInfo:
+    """OpenGL information class.
+
+    This class is used to store information about the OpenGL implementation on
+    the current machine. It provides a consistent means of querying the OpenGL
+    implementation regardless of the OpenGL interface being used.
+
+    Attributes
+    ----------
+    vendor : str
+        The name of the company responsible for the OpenGL implementation.
+    renderer : str
+        The name of the renderer.
+    version : str
+        The version of the OpenGL implementation.
+    majorVersion : int
+        The major version number of the OpenGL implementation.
+    minorVersion : int
+        The minor version number of the OpenGL implementation.
+    shaderVersion : str
+        The version of the GLSL implementation.
+    doubleBuffer : int
+        Indicates if the OpenGL implementation is double buffered.
+    maxTextureSize : int
+        The maximum texture size supported by the OpenGL implementation.
+    stereo : int
+        Indicates if the OpenGL implementation supports stereo rendering.
+    maxSamples : int
+        The maximum number of samples supported by the OpenGL implementation.
+    extensions : list
+        A list of supported OpenGL extensions.
+
+    """
+    __slots__ = [
+        'vendor', 'renderer', 'version', 'majorVersion', 'minorVersion',
+        'shaderVersion', 'doubleBuffer', 'maxTextureSize', 'maxTextureUnits', 
+        'stereo', 'maxSamples', 'extensions']
+
+    # singleton
+    _instance = None
+
+    def __init__(self):
+        self.vendor = getString(GL.GL_VENDOR)
+        self.renderer = getString(GL.GL_RENDERER)
+        self.version = getString(GL.GL_VERSION)
+        self.shaderVersion = getString(GL.GL_SHADING_LANGUAGE_VERSION)
+        self.majorVersion = getIntegerv(GL.GL_MAJOR_VERSION)
+        self.minorVersion = getIntegerv(GL.GL_MINOR_VERSION)
+        self.doubleBuffer = getIntegerv(GL.GL_DOUBLEBUFFER)
+        self.maxTextureSize = getIntegerv(GL.GL_MAX_TEXTURE_SIZE)
+        self.maxTextureUnits = getIntegerv(GL.GL_MAX_TEXTURE_IMAGE_UNITS)
+        self.stereo = getIntegerv(GL.GL_STEREO)
+        self.maxSamples = getIntegerv(GL.GL_MAX_SAMPLES)
+        self.extensions = \
+            [i for i in getString(GL.GL_EXTENSIONS).split(' ') if i not in ('', ' ')]
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(OpenGLInfo, cls).__new__(cls)
+
+        return cls._instance
+
+    def hasExtension(self, extName):
+        """Check if the OpenGL implementation supports an extension.
+
+        Parameters
+        ----------
+        extName : str
+            The name of the extension to check for.
+
+        Returns
+        -------
+        bool
+            True if the extension is supported, False otherwise.
+
+        """
+        return extName in self.extensions
+
+
+def getOpenGLInfo():
+    """Get general information about the OpenGL implementation on this machine.
+    This should provide a consistent means of doing so regardless of the OpenGL
+    interface we are using.
+
+    Returns are dictionary with the following fields::
+
+        vendor, renderer, version, majorVersion, minorVersion, doubleBuffer,
+        maxTextureSize, stereo, maxSamples, extensions
+
+    Supported extensions are returned as a list in the 'extensions' field. You
+    can check if a platform supports an extension by checking the membership of
+    the extension name in that list.
+
+    Returns
+    -------
+    OpenGLInfo
+
+    """
+    return OpenGLInfo()
+
+
+# OpenGL limits for this system
+MAX_TEXTURE_UNITS = getOpenGLInfo().maxTextureUnits
+
+
 # -------------------------------
 # Shader Program Helper Functions
 # -------------------------------
@@ -417,7 +577,7 @@ def compileShader(shaderSrc, shaderType):
         shaderId, GL.GL_COMPILE_STATUS, ctypes.byref(result))
 
     if result.value == GL.GL_FALSE:  # failed to compile for whatever reason
-        sys.stderr.write(getInfoLog(shaderId) + '\n')
+        print(getInfoLog(shaderId) + '\n')
         deleteObject(shaderId)
         raise RuntimeError("Shader compilation failed, check log output.")
 
@@ -1032,9 +1192,15 @@ _unifValueFuncs = {
 }
     
 
-def setUniformValue(program, loc, value, unifType='float'):
-    """Set the value of a uniform variable in a shader program from a scalar or
-    1d array of values.
+def setUniformValue(program, loc, value, unifType='float', 
+                    ignoreNotDefined=False):
+    """Set a uniform variable value in a shader program.
+
+    This function sets the value of a uniform variable in a shader program to 
+    the specified value. The type of the value must match the type of the 
+    uniform variable in the shader program. The location of the uniform variable 
+    can be specified as an integer or string name. If the uniform variable is 
+    not found in the program, a `ValueError` is raised.
 
     Parameters
     ----------
@@ -1052,7 +1218,35 @@ def setUniformValue(program, loc, value, unifType='float'):
     unifType : str, optional
         Type of the uniform value elements. This is used to determine the 
         appropritate setter function. Must be one of 'float', 'int' or 'uint'.
+    ignoreNotDefined : bool, optional
+        Do not raise an error if the uniform is not found in the program.
+        Default is `False`.
 
+    Notes
+    -----
+    * If you get a "Invalid operation. The specified operation is not allowed in 
+      the current state" error, it is likely that the shader program is not 
+      currently in use or the data is not the correct type or length. Make sure
+      the `unifType` matches the type of the uniform variable in the shader and 
+      the length of the data matches the dimensions of the uniform variable.
+
+    Examples
+    --------
+    Set a single float uniform value::
+
+        # define uniform in shader as `uniform float myFloat;`
+        setUniformValue(myProgram, 'myFloat', 0.5)
+
+    Set a 3-element float vector uniform value::
+
+        # define uniform in shader as `uniform vec3 myVec3;`
+        setUniformValue(myProgram, 'myVec3', [0.5, 0.2, 0.8])
+
+    Set an integer uniform value (eg. texture unit index)::
+
+        # define uniform in shader as `uniform sampler2d colorTexture;`
+        setUniformValue(myProgram, 'colorTexture', 0, unifType='int')
+    
     """
     if not GL.glIsProgram(program):
         raise ValueError(
@@ -1067,6 +1261,8 @@ def setUniformValue(program, loc, value, unifType='float'):
             raise ValueError("Invalid type for uniform location.")
 
     if loc == -1:
+        if ignoreNotDefined:
+            return  # ignore if not found
         raise ValueError("Uniform '{}' not found in program.".format(loc))
     
     # handle scalar values
@@ -1096,6 +1292,65 @@ def setUniformValue(program, loc, value, unifType='float'):
     unifSetFunc(loc, *value)
 
 
+def setUniformSampler2D(program, loc, unit, ignoreNotDefined=False):
+    """Set a 2D texture sampler uniform value in a shader program.
+
+    Parameters
+    ----------
+    program : int
+        Handle of program to set the uniform value. Must have originated from a
+        :func:`createProgram`, :func:`createProgramObjectARB`, `glCreateProgram`
+        or `glCreateProgramObjectARB` call.
+    loc : str or int
+        Location of the uniform variable in the program obtained from a
+        :func:`getUniformLocation` call. You may also specify the name of the
+        uniform variable as a string to look-up the location before setting.
+    unit : int
+        Texture unit index to bind to the sampler uniform.
+    ignoreNotDefined : bool, optional
+        Do not raise an error if the uniform is not found in the program.
+        Default is `False`.
+
+    Examples
+    --------
+    Set a 2D texture sampler uniform value::
+
+        # define uniform in shader as `uniform sampler2D colorTexture;`
+        setUniformSampler2D(myProgram, 'colorTexture', 0)
+    
+    Use the enum value for the texture unit::
+
+        setUniformSampler2D(myProgram, 'colorTexture', GL.GL_TEXTURE0)
+        # or ...
+        setUniformSampler2D(myProgram, 'colorTexture', 'GL_TEXTURE0')
+
+    """
+    if not GL.glIsProgram(program):
+        raise ValueError(
+            "Specified value of `program` is not a program object handle.")
+    
+    if isinstance(loc, bytes):
+        loc = GL.glGetUniformLocation(program, loc)
+    elif isinstance(loc, str):
+        loc = GL.glGetUniformLocation(program, bytes(loc, 'utf-8'))
+    else:
+        if not isinstance(loc, int):
+            raise ValueError("Invalid type for uniform location.")
+
+    if loc == -1:
+        if ignoreNotDefined:
+            return  # ignore if not found
+        raise ValueError("Uniform '{}' not found in program.".format(loc))
+    
+    if isinstance(unit, str):
+        unit = getattr(GL, unit)
+
+    if unit >= GL.GL_TEXTURE0:  # got enum value
+        unit = unit - GL.GL_TEXTURE0
+    
+    GL.glUniform1i(loc, unit)
+
+
 # lookup table for matrix uniform setter functions, the keys are hashable 
 # tuples of the matrix dimensions
 _unifMatrixFuncs = {
@@ -1111,7 +1366,8 @@ _unifMatrixFuncs = {
 }
 
 
-def setUniformMatrix(program, loc, value, transpose=False):
+def setUniformMatrix(program, loc, value, transpose=False, 
+                     ignoreNotDefined=False):
     """Set the value of a matrix uniform variable in a shader program.
 
     Arrays are converted to contiguous arrays with 'float32' data type before
@@ -1134,6 +1390,24 @@ def setUniformMatrix(program, loc, value, transpose=False):
         `float32`.
     transpose : bool, optional
         Transpose the matrix before setting. Default is `False`.
+    ignoreNotDefined : bool, optional
+        Do not raise an error if the uniform is not found in the program.
+        Default is `False`.
+
+    Notes
+    -----
+    * If you get a "Invalid operation. The specified operation is not allowed in 
+      the current state" error, it is likely that the shader program is not 
+      currently in use or the data is not the correct type or length. Make sure
+      the `unifType` matches the type of the uniform variable in the shader and 
+      the length of the data matches the dimensions of the uniform variable.
+
+    Examples
+    --------
+    Set a 4x4 matrix uniform value::
+
+        # define uniform in shader as `uniform mat4 projectionMatrix;`
+        setUniformMatrix(myProgram, 'projectionMatrix', np.eye(4))
 
     """
     if not GL.glIsProgram(program):
@@ -1150,9 +1424,11 @@ def setUniformMatrix(program, loc, value, transpose=False):
             raise ValueError("Invalid type for uniform location.")
 
     if loc == -1:
+        if ignoreNotDefined:
+            return  # ignore if not found
         raise ValueError((
-            "Uniform '{}' not found in program. It is either not defined or it "
-            "is unused.").format(locInput))
+            "Uniform '{}' not found in program. It is either not defined "
+            "or it is unused.").format(locInput))
 
     # convert to contiguous array
     value = np.ascontiguousarray(value, dtype=np.float32)
@@ -1161,6 +1437,8 @@ def setUniformMatrix(program, loc, value, transpose=False):
     matrixFunc = _unifMatrixFuncs.get(value.shape, None)
     if matrixFunc is None:
         raise ValueError("Invalid matrix dimensions")
+    
+    transpose = GL.GL_TRUE if transpose else GL.GL_FALSE
 
     # recast as pointer
     matrixFunc(loc, 1, transpose, value.ctypes.data_as(
@@ -1941,7 +2219,7 @@ def setViewport(x, y, width, height):
         Height of the viewport.
 
     """
-    GL.glViewport(x, y, width, height)
+    GL.glViewport(int(x), int(y), int(width), int(height))
 
 
 def setScissor(x, y, width, height):
@@ -1959,7 +2237,7 @@ def setScissor(x, y, width, height):
         Height of the scissor box.
 
     """
-    GL.glScissor(x, y, width, height)
+    GL.glScissor(int(x), int(y), int(width), int(height))
 
 
 @contextmanager
@@ -2469,6 +2747,7 @@ def createTexImage2D(width, height, target=GL.GL_TEXTURE_2D, level=0,
     GL.glTexImage2D(target, level, internalFormat,
                     width, height, 0,
                     pixelFormat, dataType, data)
+    GL.glGenerateMipmap(target)
 
     # apply texture parameters
     if texParams is not None:
@@ -2728,62 +3007,62 @@ def createCubeMap(width, height, target=GL.GL_TEXTURE_CUBE_MAP, level=0,
     return tex
 
 
-def bindTexture(texture, unit=None, enable=True):
-    """Bind a texture.
+# def bindTexture(texture, unit=None, enable=True):
+#     """Bind a texture.
 
-    Function binds `texture` to `unit` (if specified). If `unit` is `None`, the
-    texture will be bound but not assigned to a texture unit.
+#     Function binds `texture` to `unit` (if specified). If `unit` is `None`, the
+#     texture will be bound but not assigned to a texture unit.
 
-    Parameters
-    ----------
-    texture : TexImage2DInfo
-        Texture descriptor to bind.
-    unit : int, optional
-        Texture unit to associated the texture with.
-    enable : bool
-        Enable textures upon binding.
+#     Parameters
+#     ----------
+#     texture : TexImage2DInfo
+#         Texture descriptor to bind.
+#     unit : int, optional
+#         Texture unit to associated the texture with.
+#     enable : bool
+#         Enable textures upon binding.
 
-    """
-    if not texture._isBound:
-        if enable:
-            GL.glEnable(texture.target)
+#     """
+#     if not texture._isBound:
+#         if enable:
+#             GL.glEnable(texture.target)
 
-        GL.glBindTexture(texture.target, texture.name)
-        texture._isBound = True
+#         GL.glBindTexture(texture.target, texture.name)
+#         texture._isBound = True
 
-        if unit is not None:
-            texture._unit = unit
-            GL.glActiveTexture(GL.GL_TEXTURE0 + unit)
+#         if unit is not None:
+#             texture._unit = unit
+#             GL.glActiveTexture(GL.GL_TEXTURE0 + unit)
 
-        # update texture parameters if they have been accessed (changed?)
-        if texture._texParamsNeedUpdate:
-            for pname, param in texture._texParams.items():
-                GL.glTexParameteri(texture.target, pname, param)
-                texture._texParamsNeedUpdate = False
+#         # update texture parameters if they have been accessed (changed?)
+#         if texture._texParamsNeedUpdate:
+#             for pname, param in texture._texParams.items():
+#                 GL.glTexParameteri(texture.target, pname, param)
+#                 texture._texParamsNeedUpdate = False
 
 
-def unbindTexture(texture=None):
-    """Unbind a texture.
+# def unbindTexture(texture=None):
+#     """Unbind a texture.
 
-    Parameters
-    ----------
-    texture : TexImage2DInfo
-        Texture descriptor to unbind.
+#     Parameters
+#     ----------
+#     texture : TexImage2DInfo
+#         Texture descriptor to unbind.
 
-    """
-    if texture._isBound:
-        # set the texture unit
-        if texture._unit is not None:
-            GL.glActiveTexture(GL.GL_TEXTURE0 + texture._unit)
-            texture._unit = None
+#     """
+#     if texture._isBound:
+#         # set the texture unit
+#         if texture._unit is not None:
+#             GL.glActiveTexture(GL.GL_TEXTURE0 + texture._unit)
+#             texture._unit = None
 
-        GL.glBindTexture(texture.target, 0)
-        texture._isBound = False
+#         GL.glBindTexture(texture.target, 0)
+#         texture._isBound = False
 
-        GL.glDisable(texture.target)
-    else:
-        raise RuntimeError('Trying to unbind a texture that was not previously'
-                           'bound.')
+#         GL.glDisable(texture.target)
+#     else:
+#         raise RuntimeError('Trying to unbind a texture that was not previously'
+#                            'bound.')
 
 
 # Descriptor for 2D mutlisampled texture
@@ -4212,6 +4491,72 @@ def disableVertexAttribArray(index, legacy=False):
         GL.glDisableClientState(index)
 
 
+# ---------------------------
+# Draw settings
+#
+
+
+def activeTexture(unit):
+    """Set the active texture unit.
+
+    Parameters
+    ----------
+    unit : GLenum, int or str
+        Texture unit to activate. Values can be `GL_TEXTURE0`, `GL_TEXTURE1`,
+        `GL_TEXTURE2`, etc.
+
+    """
+    if isinstance(unit, str):
+        unit = _getGLEnum(unit)
+    else:
+        if unit < MAX_TEXTURE_UNITS: 
+            unit = GL.GL_TEXTURE0 + unit
+
+    GL.glActiveTexture(unit)
+
+
+def bindTexture(texture, target=None, unit=None):
+    """Bind a texture to a target.
+
+    Parameters
+    ----------
+    texture : GLuint, int, None, TexImage2DInfo or TexImage2DMultisampleInfo
+        Texture to bind. If `None`, the texture will be unbound.
+    target : GLenum, int or str, optional
+        Target to bind the texture to. Default is `None`. If `None`, and the
+        texture is a `TexImage2DInfo` or `TexImage2DMultisampleInfo` object,
+        the target will be inferred from the texture object. If specified, the
+        value will override the target inferred from the texture. If `None` and
+        the texture is an integer, the target will default to `GL_TEXTURE_2D`.
+    unit : GLenum, int or None, optional
+        Texture unit to bind the texture to, this will also set the active
+        texture unit. Default is `None`. If `None`, the texture will be bound to 
+        the currently active texture unit.
+
+    """
+    if isinstance(target, str):
+        target = getattr(GL, target, None)
+        if target is None:
+            raise ValueError('Invalid target string specified.')
+        
+    if texture is None:
+        texture = 0
+    else:
+        if isinstance(texture, (TexImage2DInfo, TexImage2DMultisampleInfo)):
+            texture = texture.name
+            if target is None:
+                target = texture.target
+        else:
+            texture = int(texture)
+            if target is None:
+                target = GL.GL_TEXTURE_2D
+
+    if unit is not None:     # bind the texture to a specific unit
+        activeTexture(unit)
+    
+    GL.glBindTexture(target, texture)
+
+
 def setPolygonMode(face, mode):
     """Set the polygon rasterization mode for a face.
 
@@ -4229,17 +4574,17 @@ def setPolygonMode(face, mode):
         and 'fill' (for `GL_FILL`).
 
     """
-    face, mode = _getGLEnum(face, mode)
-
     if isinstance(face, str):
-        face = GL_ENUMS.get(face, None)
+        face = getattr(GL, face, None)
         if face is None:
-            raise ValueError('Invalid face mode string specified.')
+            raise ValueError(
+                'Invalid face string specified, got {}.'.format(face))
     if isinstance(mode, str):
-        mode = GL_ENUMS.get(mode, None)
+        mode = getattr(GL, mode, None)
         if mode is None:
-            raise ValueError('Invalid polygon mode string specified.')
-
+            raise ValueError(
+                'Invalid mode string specified, got {}.'.format(mode))
+    
     GL.glPolygonMode(face, mode)
 
 
@@ -4258,7 +4603,12 @@ def setWireframeDraw(face=GL.GL_FRONT_AND_BACK):
         (for `GL_FRONT_AND_BACK`).
 
     """
-    face = _getGLEnum(face)
+    if isinstance(face, str):
+        face = getattr(GL, face, None)
+        if face is None:
+            raise ValueError(
+                'Invalid face string specified, got {}.'.format(face))
+        
     setPolygonMode(face, GL.GL_LINE)
 
 
@@ -4277,7 +4627,12 @@ def setFillDraw(face=GL.GL_FRONT_AND_BACK):
         `GL_FRONT_AND_BACK`).
 
     """
-    face = _getGLEnum(face)
+    if isinstance(face, str):
+        face = getattr(GL, face, None)
+        if face is None:
+            raise ValueError(
+                'Invalid face string specified, got {}.'.format(face))
+        
     setPolygonMode(face, GL.GL_FILL)
 
 
@@ -4432,6 +4787,18 @@ def setLineSmooth(enable=True):
         GL.glDisable(GL.GL_LINE_SMOOTH)
 
 
+def setPointSize(size):
+    """Set the size of rasterized points.
+
+    Parameters
+    ----------
+    size : float
+        Size of rasterized points.
+
+    """
+    GL.glPointSize(size)
+
+
 def setPointSmooth(enable=True):
     """Enable or disable point antialiasing.
 
@@ -4483,19 +4850,32 @@ def setBlendFunc(srcFactor, dstFactor):
     Parameters
     ----------
     srcFactor : GLenum or str
-        Source blending factor.
+        Source blending factor. Eg. `GL_SRC_ALPHA`.
     dstFactor : GLenum or str
-        Destination blending factor.
+        Destination blending factor. Eg. `GL_ONE_MINUS_SRC_ALPHA`.
 
     Examples
     --------
     Set the blending function to use source alpha and one minus source alpha::
 
-        setBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        setBlendFunc('GL_SRC_ALPHA', 'GL_ONE_MINUS_SRC_ALPHA')
 
     """
-    srcFactor, dstFactor = _getGLEnum(srcFactor, dstFactor)
+    if isinstance(srcFactor, str):
+        srcFactor = getattr(GL, srcFactor, None)
+        if srcFactor is None:
+            raise ValueError(
+                'Invalid enum specified for source factor. Got {}.'.format(
+                    srcFactor))
+    if isinstance(dstFactor, str):
+        dstFactor = getattr(GL, dstFactor, None)
+        if dstFactor is None:
+            raise ValueError(
+                'Invalid enum specified for destination factor. Got {}.'.format(
+                    dstFactor))
+        
     GL.glBlendFunc(srcFactor, dstFactor)
+
 
 # -------------------------
 # Material Helper Functions
@@ -6755,6 +7135,64 @@ def tesselate(points, mode='triangle', config=None):
     return vertices, normals, texCoords, faces
 
 
+def nextPowerOfTwo(value):
+    """Compute the next power of two for a given value.
+
+    Parameters
+    ----------
+    value : int
+        The value to compute the next power of two for.
+
+    Returns
+    -------
+    int
+        The next power of two for the given value.
+
+    """
+    return 2 ** int(np.ceil(np.log2(value)))
+
+
+def fitTextureToPowerOfTwo(width, height, square=False):
+    """Determine the horizontal and vertical dimensions of a image buffer that
+    can contain the specified width and height, fitted to the next power of two.
+
+    Parameters
+    ----------
+    width : int
+        The width of the texture in pixels.
+    height : int
+        The height of the texture in pixels.
+    square : bool, optional
+        If True, the texture will be fitted to the next power of two in both
+        dimensions. Default is False.
+
+    Returns
+    -------
+    tuple
+        A tuple containing the width and height of the texture fitted to the
+        next power of two.
+
+    Raises
+    ------
+    ValueError
+        If the texture dimensions exceed the maximum texture size
+        supported by the OpenGL implementation.
+
+    """
+    maxTexSize = getOpenGLInfo().maxTextureSize
+
+    newWidth = nextPowerOfTwo(width)
+    newHeight = nextPowerOfTwo(height)
+
+    if newWidth > maxTexSize or newHeight > maxTexSize:
+        raise ValueError("Texture dimensions exceed maximum texture size.")
+    
+    if square:
+        newWidth = newHeight = max(newWidth, newHeight)
+    
+    return newWidth, newHeight
+
+
 # -----------------------------
 # Misc. OpenGL Helper Functions
 # -----------------------------
@@ -6824,7 +7262,7 @@ def getModelViewMatrix():
 
     """
     modelview = np.zeros((4, 4), dtype=np.float32)
-
+    
     GL.glGetFloatv(GL.GL_MODELVIEW_MATRIX, modelview.ctypes.data_as(
         ctypes.POINTER(ctypes.c_float)))
 
@@ -6851,53 +7289,6 @@ def getProjectionMatrix():
 
     return proj
 
-
-# OpenGL information type
-OpenGLInfo = namedtuple(
-    'OpenGLInfo',
-    ['vendor',
-     'renderer',
-     'version',
-     'majorVersion',
-     'minorVersion',
-     'doubleBuffer',
-     'maxTextureSize',
-     'stereo',
-     'maxSamples',
-     'extensions',
-     'userData'])
-
-
-def getOpenGLInfo():
-    """Get general information about the OpenGL implementation on this machine.
-    This should provide a consistent means of doing so regardless of the OpenGL
-    interface we are using.
-
-    Returns are dictionary with the following fields::
-
-        vendor, renderer, version, majorVersion, minorVersion, doubleBuffer,
-        maxTextureSize, stereo, maxSamples, extensions
-
-    Supported extensions are returned as a list in the 'extensions' field. You
-    can check if a platform supports an extension by checking the membership of
-    the extension name in that list.
-
-    Returns
-    -------
-    OpenGLInfo
-
-    """
-    return OpenGLInfo(getString(GL.GL_VENDOR),
-                      getString(GL.GL_RENDERER),
-                      getString(GL.GL_VERSION),
-                      getIntegerv(GL.GL_MAJOR_VERSION),
-                      getIntegerv(GL.GL_MINOR_VERSION),
-                      getIntegerv(GL.GL_DOUBLEBUFFER),
-                      getIntegerv(GL.GL_MAX_TEXTURE_SIZE),
-                      getIntegerv(GL.GL_STEREO),
-                      getIntegerv(GL.GL_MAX_SAMPLES),
-                      [i for i in getString(GL.GL_EXTENSIONS).split(' ')],
-                      dict())
 
 if __name__ == "__main__":
     pass
