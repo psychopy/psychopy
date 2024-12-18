@@ -31,6 +31,8 @@ from psychopy.visual.basevisual import (
     BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin, TextureMixin
 )
 
+USE_LEGACY_GL = pyglet.version < '2.0'
+
 
 class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
                 TextureMixin):
@@ -125,8 +127,8 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
         """Remove textures from graphics card to prevent crash
         """
         try:
-            if hasattr(self, '_listID'):
-                GL.glDeleteLists(self._listID, 1)
+            #if hasattr(self, '_listID'):
+                # GL.glDeleteLists(self._listID, 1)
             self.clearTextures()
         except (ImportError, ModuleNotFoundError, TypeError):
             pass  # has probably been garbage-collected already
@@ -150,6 +152,8 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
         if win is None:
             win = self.win
         self._selectWindow(win)
+        win.setOrthographicView()
+        win.setScale('pix')
 
         # If our image is a movie stim object, pull pixel data from the most
         # recent frame and write it to the memory
@@ -158,8 +162,6 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
             if videoFrame is not None:
                 self._movieFrameToTexture(videoFrame)
 
-        # GL.glPushMatrix()  # push before the list, pop after
-        win.setScale('pix')
         # GL.glColor4f(*self._foreColor.render('rgba1'))
 
         if self._needTextureUpdate:
@@ -181,13 +183,21 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
         GL.glActiveTexture(GL.GL_TEXTURE0)  # color/lum image
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
 
+        if USE_LEGACY_GL:
+            GL.glPushMatrix()  
+            # projectionMatrix = gt.getProjectionMatrix()
+            # modelViewMatrix = gt.getModelViewMatrix()
+            GL.glColor4f(*self._foreColor.render('rgba1'))
+        # else:
+        #     projectionMatrix = win._projectionMatrix
+        #     modelViewMatrix = win._viewMatrix
+
         # set the shader uniforms
-        gt.setUniformValue(_prog, b'uTexture', 0, 'int')  # is texture unit 0
-        gt.setUniformValue(_prog, b'uMask', 1, 'int')  # mask is texture unit 1
+        gt.setUniformSampler2D(_prog, b'uTexture', 0)  # is texture unit 0
+        gt.setUniformSampler2D(_prog, b'uMask', 1)  # mask is texture unit 1
         gt.setUniformValue(_prog, b'uColor', self._foreColor.render('rgba1'))
-        # gt.setUniformValue(_prog, b'uAlphaThreshold', self.alphaThreshold)
         gt.setUniformMatrix(_prog, b'uProjectionMatrix', win._projectionMatrix)
-        gt.setUniformMatrix(_prog, b'uModelViewMatrix', win.viewMatrix)
+        gt.setUniformMatrix(_prog, b'uModelViewMatrix', win._viewMatrix)
 
         # draw the image
         gt.drawClientArrays({
@@ -204,6 +214,9 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
         GL.glDisable(GL.GL_TEXTURE_2D)
+
+        if USE_LEGACY_GL:
+            GL.glPopMatrix()
 
     def _movieFrameToTexture(self, movieSrc):
         """Convert a movie frame to a texture and use it.
