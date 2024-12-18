@@ -1297,21 +1297,21 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
 
         prog = self.shader.handle
         gt.useProgram(prog)
-        gt.setUniformValue(prog, 'uTexture', 0, 'int')
-        gt.setUniformValue(prog, 'uColor', self._foreColor.render('rgba1'))
+        gt.setUniformSampler2D(prog, b'uTexture', 0)
+        gt.setUniformValue(prog, b'uColor', self._foreColor.render('rgba1'))
         gt.setUniformMatrix(
             prog, 
-            'uModelViewMatrix', 
+            b'uModelViewMatrix', 
             modelViewMatrix)
         gt.setUniformMatrix(
             prog, 
-            'uProjectionMatrix', 
+            b'uProjectionMatrix', 
             projectionMatrix)
 
         gt.drawClientArrays({
-            'gl_Vertex': self.verticesPix,
-            'gl_Color': self._colors,
-            'gl_MultiTexCoord0': self._texcoords}, 
+            b'gl_Vertex': self.verticesPix,
+            b'gl_Color': self._colors,
+            b'gl_MultiTexCoord0': self._texcoords}, 
             'GL_QUADS')
     
         gt.useProgram(None)
