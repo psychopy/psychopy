@@ -32,6 +32,8 @@ from psychopy.visual.basevisual import (
 )
 import numpy
 
+USE_LEGACY_GL = pyglet.version < '2.0'
+
 
 class GratingStim(BaseVisualStim, DraggingMixin, TextureMixin, ColorMixin,
                   ContainerMixin):
@@ -429,19 +431,36 @@ class GratingStim(BaseVisualStim, DraggingMixin, TextureMixin, ColorMixin,
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
         GL.glEnable(GL.GL_TEXTURE_2D)
 
+        if USE_LEGACY_GL:
+            GL.glPushMatrix()  # push before the list, pop after
+            projectionMatrix = gt.getProjectionMatrix()
+            modelViewMatrix = gt.getModelViewMatrix()
+            GL.glColor4f(*self._foreColor.render('rgba1'))
+        else:
+            projectionMatrix = win._projectionMatrix
+            modelViewMatrix = win._viewMatrix
+        
         # the list just does the texture mapping
         gt.setUniformValue(_prog, b'uTexture', 0, 'int')
         gt.setUniformValue(_prog, b'uMask', 1, 'int')
         gt.setUniformValue(_prog, b'uColor', self._foreColor.render('rgba1'))
-        gt.setUniformMatrix(_prog, b'uProjectionMatrix', win._projectionMatrix)
-        gt.setUniformMatrix(_prog, b'uModelViewMatrix', win.viewMatrix)
+        gt.setUniformMatrix(
+            _prog, 
+            b'uProjectionMatrix', 
+            projectionMatrix,
+            ignoreNotDefined=True)
+        gt.setUniformMatrix(
+            _prog, 
+            b'uModelViewMatrix', 
+            modelViewMatrix,
+            ignoreNotDefined=True)
 
         gt.drawClientArrays({
             'gl_Vertex': self.verticesPix,
             'gl_MultiTexCoord0': self._texCoords,
             'gl_MultiTexCoord1': self._maskCoords}, 
             'GL_QUADS')
-
+        
         gt.useProgram(None)
 
         # unbind the textures
@@ -450,6 +469,9 @@ class GratingStim(BaseVisualStim, DraggingMixin, TextureMixin, ColorMixin,
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
         GL.glDisable(GL.GL_TEXTURE_2D)
+
+        if USE_LEGACY_GL:
+            GL.glPopMatrix()
 
         # return the view to previous state
         win.setBlendMode(saveBlendMode, log=False)

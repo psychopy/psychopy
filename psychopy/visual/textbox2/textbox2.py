@@ -39,6 +39,10 @@ from ... import core, alerts, layout
 
 from psychopy.tools.linebreak import get_breakable_points, break_units
 
+import pyglet
+USE_LEGACY_GL = pyglet.version < '2.0'
+import pyglet.gl as gl
+
 allFonts = FontManager()
 
 # compile global shader programs later (when we're certain a GL context exists)
@@ -1270,27 +1274,46 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
             self.container.enable()
 
         self._selectWindow(self.win)
-        self.win.setOrthographicView()
+
         self.win.setScale('pix')
+        self.win.setOrthographicView()
+
+        if USE_LEGACY_GL:
+            gl.glPushMatrix()
 
         gl.glActiveTexture(gl.GL_TEXTURE0)
         gl.glBindTexture(gl.GL_TEXTURE_2D, self.glFont.textureID)
         gl.glEnable(gl.GL_TEXTURE_2D)
         gl.glDisable(gl.GL_DEPTH_TEST)
 
+        if USE_LEGACY_GL:
+            gl.glPushMatrix()  # push before the list, pop after
+            projectionMatrix = gt.getProjectionMatrix()
+            modelViewMatrix = gt.getModelViewMatrix()
+            gl.glColor4f(*self._foreColor.render('rgba1'))
+        else:
+            modelViewMatrix = self.win._viewMatrix
+            projectionMatrix = self.win._projectionMatrix
+
         prog = self.shader.handle
         gt.useProgram(prog)
         gt.setUniformValue(prog, 'uTexture', 0, 'int')
         gt.setUniformValue(prog, 'uColor', self._foreColor.render('rgba1'))
         gt.setUniformMatrix(
-            prog, 'uProjectionMatrix', self.win.projectionMatrix)
-        gt.setUniformMatrix(prog, 'uModelViewMatrix', self.win.viewMatrix)
+            prog, 
+            'uModelViewMatrix', 
+            modelViewMatrix)
+        gt.setUniformMatrix(
+            prog, 
+            'uProjectionMatrix', 
+            projectionMatrix)
+
         gt.drawClientArrays({
             'gl_Vertex': self.verticesPix,
             'gl_Color': self._colors,
             'gl_MultiTexCoord0': self._texcoords}, 
             'GL_QUADS')
-
+    
         gt.useProgram(None)
 
         gl.glActiveTexture(gl.GL_TEXTURE0)
@@ -1299,6 +1322,9 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
 
         if self.hasFocus:  # draw caret line
             self.caret.draw()
+
+        if USE_LEGACY_GL:
+            gl.glPopMatrix()
 
         # Draw placeholder if blank
         if self.editable and len(self.text) == 0:
