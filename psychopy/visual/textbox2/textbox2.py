@@ -1287,7 +1287,7 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
         gl.glDisable(gl.GL_DEPTH_TEST)
 
         if USE_LEGACY_GL:
-            gl.glPushMatrix()  # push before the list, pop after
+            # gl.glPushMatrix()  # push before the list, pop after
             projectionMatrix = gt.getProjectionMatrix()
             modelViewMatrix = gt.getModelViewMatrix()
             gl.glColor4f(*self._foreColor.render('rgba1'))
@@ -1309,9 +1309,9 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
             projectionMatrix)
 
         gt.drawClientArrays({
-            b'gl_Vertex': self.verticesPix,
-            b'gl_Color': self._colors,
-            b'gl_MultiTexCoord0': self._texcoords}, 
+            'gl_Vertex': self.verticesPix,
+            'gl_Color': self._colors,
+            'gl_MultiTexCoord0': self._texcoords}, 
             'GL_QUADS')
     
         gt.useProgram(None)
