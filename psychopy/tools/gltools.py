@@ -7136,6 +7136,76 @@ def tesselate(points, mode='triangle', config=None):
     return vertices, normals, texCoords, faces
 
 
+def mergeMeshes(meshData):
+    """Merge multiple meshes into a single mesh.
+    
+    Merge multiple meshes into a single mesh by combining their vertex positions,
+    normals, texture coordinates, and face indices. 
+
+    Parameters
+    ----------
+    meshData : list of tuple
+        List of tuples containing vertex positions, normals, texture coordinates,
+        and face indices for each mesh to merge. Each tuple must contain the
+        vertex positions, and may optionally contain the normals and texture
+        coordinates. The face indices must be provided.
+
+    Returns
+    -------
+    tuple
+        A tuple containing the merged vertex positions, normals, texture 
+        coordinates, and face indices. If `normals` or `texCoords` are not
+        provided, they will be set to `None`.
+    
+    Examples
+    --------
+    Merge two meshes into a single mesh::
+
+        vertices1, normals1, texCoords1, faces1 = createBox()
+        vertices2, normals2, texCoords2, faces2 = createUVSphere()
+
+        # merge the two meshes
+        vertices, normals, texCoords, faces = mergeMeshes([
+            (vertices1, normals1, texCoords1, faces1),
+            (vertices2, normals2, texCoords2, faces2)])
+    
+    Create a tube using primatives::
+
+        tubeOuter = createCylinder(1.0, 1.0, 16, 1)
+        tubeInner = createCylinder(0.5, 1.0, 16, 1)
+
+        # merge the tube parts
+        vertices, normals, texCoords, faces = mergeMeshes(
+            tubeOuter, tubeInner])
+
+    """
+    vertices = np.ascontiguousarray(
+        np.vstack([i[0] for i in meshData]), dtype=np.float32)
+    
+    newFaces = []
+    offset = 0
+    for i in meshData:
+        newFaces.append(i[3] + offset)
+        offset += np.max(i[3]) + 1
+
+    faces = np.ascontiguousarray(np.vstack(newFaces), dtype=np.uint32)
+
+    # check if normals and texture coordinates are provided
+    if all([i[1] is not None for i in meshData]):
+        normals = np.ascontiguousarray(
+            np.vstack([i[1] for i in meshData]), dtype=np.float32)
+    else:
+        normals = None
+
+    if all([i[2] is not None for i in meshData]):
+        texCoords = np.ascontiguousarray(
+            np.vstack([i[2] for i in meshData]), dtype=np.float32)
+    else:
+        texCoords = None
+
+    return vertices, normals, texCoords, faces
+
+
 def nextPowerOfTwo(value):
     """Compute the next power of two for a given value.
 
