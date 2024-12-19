@@ -1,0 +1,1 @@
+How should this stimulus handle text? Font, spacing, orientation, etc.

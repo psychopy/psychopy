@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from pathlib import Path
+from psychopy.alerts._alerts import alert
 from psychopy.experiment import Param
 from psychopy.experiment.plugins import PluginDevicesMixin, DeviceBackend
 from psychopy.experiment.components import getInitVals
@@ -28,12 +29,9 @@ class AudioValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             self,
             # basic
             exp, name='audioVal',
-            variability="1/60", report="log",
             findThreshold=True, threshold=127,
             # device
             deviceLabel="", deviceBackend="microphone", channel="0",
-            # data
-            saveValid=True,
     ):
 
         self.exp = exp  # so we can access the experiment if necess
@@ -50,28 +48,9 @@ class AudioValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
 
         # --- Basic ---
         self.order += [
-            "variability",
-            "report",
             "findThreshold",
             "threshold",
         ]
-
-        self.params['variability'] = Param(
-            variability, valType="code", inputType="single", categ="Basic",
-            label=_translate("Variability (s)"),
-            hint=_translate(
-                "How much variation from intended presentation times (in seconds) is acceptable?"
-            )
-        )
-        self.params['report'] = Param(
-            report, valType="str", inputType="choice", categ="Basic",
-            allowedVals=["log", "err"],
-            allowedLabels=[_translate("Log warning"), _translate("Raise error")],
-            label=_translate("On fail..."),
-            hint=_translate(
-                "What to do when the validation fails. Just log, or stop the script and raise an error?"
-            )
-        )
         self.params['findThreshold'] = Param(
             findThreshold, valType="bool", inputType="bool", categ="Basic",
             label=_translate("Find best threshold?"),
@@ -131,15 +110,6 @@ class AudioValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             )
         )
 
-        # --- Data ---
-        self.params['saveValid'] = Param(
-            saveValid, valType="code", inputType="bool", categ="Data",
-            label=_translate('Save validation results'),
-            hint=_translate(
-                "Save validation results after validating on/offset times for stimuli"
-            )
-        )
-
         self.loadBackends()
 
     def writeDeviceCode(self, buff):
@@ -192,8 +162,6 @@ class AudioValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             "# validator object for %(name)s\n"
             "%(name)s = validation.VoiceKeyValidator(\n"
             "    %(name)sDevice, %(channel)s,\n"
-            "    variability=%(variability)s,\n"
-            "    report=%(report)s,\n"
             ")\n"
         )
         buff.writeIndentedLines(code % inits)
@@ -262,7 +230,7 @@ class AudioValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
         code = (
             "# validate {name} start time\n"
             "if {name}.status == STARTED and %(name)s.status == STARTED:\n"
-            "    %(name)s.tStart, %(name)s.tStartValid = %(name)s.validate(state=True, t={name}.tStartRefresh)\n"
+            "    %(name)s.tStart, %(name)s.tStartDelay = %(name)s.validate(state=True, t={name}.tStartRefresh)\n"
             "    if %(name)s.tStart is not None:\n"
             "        %(name)s.status = FINISHED\n"
         )
@@ -270,11 +238,7 @@ class AudioValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             # save validated start time if stim requested
             code += (
             "        thisExp.addData('{name}.%(name)s.started', %(name)s.tStart)\n"
-            )
-        if self.params['saveValid']:
-            # save validation result if params requested
-            code += (
-            "        thisExp.addData('{name}.started.valid', %(name)s.tStartValid)\n"
+            "        thisExp.addData('{name}.%(name)s.startDelay', %(name)s.tStartDelay)\n"
             )
         buff.writeIndentedLines(code.format(**stim.params) % self.params)
 
@@ -282,7 +246,7 @@ class AudioValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
         code = (
             "# validate {name} stop time\n"
             "if {name}.status == FINISHED and %(name)s.status == STARTED:\n"
-            "    %(name)s.tStop, %(name)s.tStopValid = %(name)s.validate(state=False, t={name}.tStopRefresh)\n"
+            "    %(name)s.tStop, %(name)s.tStopDelay = %(name)s.validate(state=False, t={name}.tStopRefresh)\n"
             "    if %(name)s.tStop is not None:\n"
             "        %(name)s.status = FINISHED\n"
         )
@@ -290,11 +254,7 @@ class AudioValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             # save validated start time if stim requested
             code += (
             "        thisExp.addData('{name}.%(name)s.stopped', %(name)s.tStop)\n"
-            )
-        if self.params['saveValid']:
-            # save validation result if params requested
-            code += (
-            "        thisExp.addData('{name}.stopped.valid', %(name)s.tStopValid)\n"
+            "        thisExp.addData('{name}.%(name)s.stopDelay', %(name)s.tStopDelay)\n"
             )
         buff.writeIndentedLines(code.format(**stim.params) % self.params)
 
@@ -304,6 +264,7 @@ class AudioValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
     def findConnectedStimuli(self):
         # list of linked components
         stims = []
+        routines = []
         # inspect each Routine
         for emt in self.exp.flow:
             # skip non-standard Routines
@@ -317,6 +278,12 @@ class AudioValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
                 if compValidator == self:
                     # if found, add the comp to the list
                     stims.append(comp)
+                    # add to list of Routines containing comps
+                    if emt not in routines:
+                        routines.append(emt)
+        # if any rt has two validated comps, warn
+        if len(routines) < len(stims):
+            alert(3610, obj=self, strFields={'validator': self.name})
 
         return stims
 

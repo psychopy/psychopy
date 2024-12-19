@@ -21,7 +21,7 @@ class EyetrackerRecordComponent(BaseComponent):
     version = "2021.2.0"
     iconFile = Path(__file__).parent / 'eyetracker_record.png'
     tooltip = _translate('Start and / or Stop recording data from the eye tracker')
-    beta = True
+    beta = False
 
     def __init__(self, exp, parentName, name='etRecord',
                  startType='time (s)', startVal=0.0,

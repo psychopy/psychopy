@@ -1,9 +1,8 @@
-.. _static:
+.. _staticcomponent:
 
+-------------------------------
 Static Component
-=================
-
-(Added in Version 1.78.00. Made compatible for online use version 2022.1)
+-------------------------------
 
 The Static Component allows you to have a period where you can preload images or perform other time-consuming operations
 that not be possible while the screen is being updated. Static periods are also particularly useful for *online* studies to decrease the time taken to load resources at the start (see also :ref:`resourceManager`).
@@ -20,24 +19,107 @@ Any stimulus updates can be made to occur during any static period defined in th
 
 If the updates that have been requested were not completed by the end of the static period (i.e. there was a timing overshoot) then you will receive a warning to that effect. In this case you either need a longer static period to perform the actions or you need to reduce the time required for the action (e.g. use an image with fewer pixels).
 
+Categories:
+    Custom
+Works in:
+    PsychoPy, PsychoJS
+
+
 Parameters
-~~~~~~~~~~~~
+-------------------------------
 
-name :
+Basic
+===============================
+
+The required attributes of the stimulus, controlling its basic function and behaviour
+
+
+.. _staticcomponent-name:
+Name 
     Everything in a |PsychoPy| experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
+    
+.. _staticcomponent-startVal:
+Start 
+    When the Static Component should start, see :ref:`startStop`.
+    
+.. _staticcomponent-startEstim:
+Expected start (s) 
+    If you are using frames to control timing of your stimuli, you can add an expected start time to display the component timeline in the routine.
+    
+.. _staticcomponent-startType:
+Start type 
+    How do you want to define your start point?
+    
+    Options:
+    
+    * time (s)
+    
+    * frame N
+    
+    * condition
+    
+.. _staticcomponent-stopVal:
+Stop 
+    When the Static Component should stop, see :ref:`startStop`.
+    
+.. _staticcomponent-durationEstim:
+Expected duration (s) 
+    If you are using frames to control timing of your stimuli, you can add an expected duration to display the component timeline in the routine.
+    
+.. _staticcomponent-stopType:
+Stop type 
+    How do you want to define your end point?
+    
+    Options:
+    
+    * duration (s)
+    
+    * duration (frames)
+    
+    * time (s)
+    
+    * frame N
+    
+    * condition
+    
+Data
+===============================
 
-start :
-    The time that the static period begins. See :ref:`startStop` for details.
+What information about this Component should be saved?
 
-stop :
-    The time that the static period ends. See :ref:`startStop` for details.
 
+.. _staticcomponent-saveStartStop:
+Save onset/offset times 
+    Store the onset/offset times in the data file (as well as in the log file).
+    
+.. _staticcomponent-syncScreenRefresh:
+Sync timing with screen refresh 
+    Synchronize times with screen refresh (good for visual stimuli and responses based on them)
+    
 Custom
-======
+===============================
+
 Parameters for injecting custom code
 
-custom code :
+
+.. _staticcomponent-code:
+Custom code 
     After running the component updates (which are defined in each component, not here) any code inserted here will also be run
+    
+.. _staticcomponent-saveData:
+Save data during 
+    While the frame loop is paused, should we take the opportunity to save data now? This is only relevant locally, online data saving is either periodic or on close.
+    
+Testing
+===============================
+
+Tools for testing, debugging and checking the performance of this Component.
+
+
+.. _staticcomponent-disabled:
+Disable Component 
+    Disable this Component
+
 
 .. seealso::
 

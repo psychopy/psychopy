@@ -18,7 +18,7 @@ class SerialOutComponent(BaseComponent):
     version = "2022.2.0"
     iconFile = Path(__file__).parent / 'serial.png'
     tooltip = _translate('Serial out: send signals from a serial port')
-    beta = True
+    beta = False
 
     def __init__(self, exp, parentName, name='serialPort',
                  startType='time (s)', startVal=0.0,
@@ -45,22 +45,22 @@ class SerialOutComponent(BaseComponent):
             label=_translate("Port")
         )
         self.params['baudrate'] = Param(
-            baudrate, valType='int', inputType="single", categ='Hardware',
+            baudrate, valType='int', inputType="single", categ="Device",
             hint=_translate("The baud rate, or speed, of the connection."),
             label=_translate("Baud rate")
         )
         self.params['bytesize'] = Param(
-            bytesize, valType='int', inputType="single", categ='Hardware',
+            bytesize, valType='int', inputType="single", categ="Device",
             hint=_translate("Size of bits to be sent."),
             label=_translate("Data bits")
         )
         self.params['stopbits'] = Param(
-            stopbits, valType='int', inputType="single", categ='Hardware',
+            stopbits, valType='int', inputType="single", categ="Device",
             hint=_translate("Size of bits to be sent on stop."),
             label=_translate("Stop bits")
         )
         self.params['parity'] = Param(
-            parity, valType='str', inputType="choice", categ='Hardware',
+            parity, valType='str', inputType="choice", categ="Device",
             allowedVals=('N', 'E', 'O', 'M', 'S'),
             allowedLabels=("None", "Even", "Off", "Mark", "Space"),
             hint=_translate("Parity mode."),
@@ -68,7 +68,7 @@ class SerialOutComponent(BaseComponent):
         )
 
         self.params['timeout'] = Param(
-            timeout, valType='int', inputType="single", allowedTypes=[], categ='Hardware',
+            timeout, valType='int', inputType="single", allowedTypes=[], categ="Device",
             hint=_translate("Time at which to give up listening for a response (leave blank for no limit)"),
             label=_translate("Timeout"))
 

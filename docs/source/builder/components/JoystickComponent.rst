@@ -1,4 +1,4 @@
-.. _joystickComponent:
+.. _joystickcomponent:
 
 -------------------------------
 Joystick Component
@@ -19,7 +19,7 @@ Joystick Emulation
     Other buttons can be simulated with key chords: 'ctrl' + 'alt' + digit(0..9).
 
 Categories:
-    Inputs
+    Responses
 Works in:
     PsychoPy
 
@@ -45,62 +45,141 @@ Parameters
 Basic
 ===============================
 
+The required attributes of the stimulus, controlling its basic function and behaviour
 
+
+.. _joystickcomponent-name:
 Name
     Everything in a |PsychoPy| experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
-
+    
+.. _joystickcomponent-startVal:
 Start
-    The time that the joystick should first be checked. See :ref:`startStop` for details.
-
+    When the Joystick Component should start, see :ref:`startStop`.
+    
+.. _joystickcomponent-startEstim:
+Expected start (s)
+    If you are using frames to control timing of your stimuli, you can add an expected start time to display the component timeline in the routine.
+    
+.. _joystickcomponent-startType:
+Start type
+    How do you want to define your start point?
+    
+    Options:
+    
+    * time (s)
+    
+    * frame N
+    
+    * condition
+    
+.. _joystickcomponent-stopVal:
 Stop
-    When the joystick is no longer checked. See :ref:`startStop` for details.
-
+    When the Joystick Component should stop, see :ref:`startStop`.
+    
+.. _joystickcomponent-durationEstim:
+Expected duration (s)
+    If you are using frames to control timing of your stimuli, you can add an expected duration to display the component timeline in the routine.
+    
+.. _joystickcomponent-stopType:
+Stop type
+    How do you want to define your end point?
+    
+    Options:
+    
+    * duration (s)
+    
+    * duration (frames)
+    
+    * time (s)
+    
+    * frame N
+    
+    * condition
+    
+.. _joystickcomponent-forceEndRoutineOnPress:
 End Routine on press
-    If this box is checked then the :ref:`Routine <Routines>` will end as soon as one of the joystick buttons is pressed.
+    Should a button press force the end of the Routine (e.g end the trial)?
+    
+    Options:
+    
+    * never
+    
+    * any click
+    
+    * valid click
+    
+Device
+===============================
 
+Information about the device associated with this Component. Keyboards, speakers, microphones, etc.
+
+
+.. _joystickcomponent-deviceNumber:
+Device number
+    Device number, if you have multiple devices which one do you want (0, 1, 2...)
+    
 Data
 ===============================
-What information to save, how to lay it out and when to save it.
 
-Save Joystick State
-    How often do you need to save the state of the joystick? Every time the subject presses a joystick button, at the end of the trial, or every single frame?
-    Note that the text output for cases where you store the joystick data repeatedly per trial
-    (e.g. every press or every frame) is likely to be very hard to interpret, so you may then need to analyse your data using the psydat file (with python code) instead.
-    Hopefully in future releases the output of the text file will be improved.
+What information about this Component should be saved?
 
-Time Relative To
-    Whenever the joystick state is saved (e.g. on button press or at end of trial) a time is saved too.
-    Do you want this time to be relative to start of the :ref:`Routine <Routines>`, or the start of the whole experiment?
 
-Clickable Stimulus
-    A comma-separated list of your stimulus names that 'can be "clicked" by the participant. e.g. target, foil.
-
+.. _joystickcomponent-saveJoystickState:
+Save joystick state
+    How often should the joystick state (x,y,buttons) be stored? On every video frame, every click or just at the end of the Routine?
+    
+    Options:
+    
+    * final
+    
+    * on click
+    
+    * every frame
+    
+    * never
+    
+.. _joystickcomponent-timeRelativeTo:
+Time relative to
+    What should the values of joystick.time be relative to?
+    
+    Options:
+    
+    * joystick onset
+    
+    * experiment
+    
+    * routine
+    
+.. _joystickcomponent-clickable:
+Clickable stimuli
+    A comma-separated list of your stimulus names that can be "clicked" by the participant. e.g. target, foil
+    
+.. _joystickcomponent-saveParamsClickable:
 Store params for clicked
-    The params (e.g. name, text), for which you want to store the current value, for the stimulus that was "clicked" by the joystick.
-    Make sure that all the clickable objects have all these params.
-
-Allowed Buttons
-    Joystick buttons accepted for input (blank for any) numbers separated by 'commas'.
-
+    The params (e.g. name, text), for which you want to store the current value, for the stimulus that was"clicked" by the joystick. Make sure that all the clickable objects have all these params.
+    
+.. _joystickcomponent-allowedButtons:
+Allowed buttons
+    Buttons to be read (blank for any) numbers separated by commas
+    
+.. _joystickcomponent-saveStartStop:
 Save onset/offset times
     Store the onset/offset times in the data file (as well as in the log file).
-
+    
+.. _joystickcomponent-syncScreenRefresh:
 Sync timing with screen refresh
     Synchronize times with screen refresh (good for visual stimuli and responses based on them)
-
-Hardware
-========
-Parameters for controlling hardware.
-
-Device Number
-    If you have multiple joystick/gamepad devices which one do you want (0, 1, 2, ...).
-
+    
 Testing
 ===============================
 
+Tools for testing, debugging and checking the performance of this Component.
+
+
+.. _joystickcomponent-disabled:
 Disable Component
     Disable this Component
-
+    
 .. seealso::
 
     API reference for :mod:`~psychopy.hardware.Joystick`

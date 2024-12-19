@@ -14,15 +14,15 @@ For the easiest installation download and install the Standalone package.
 
       For the easiest installation download and install the Standalone package.
 
-      .. button-link:: https://github.com/psychopy/psychopy/releases/download/2024.2.2/StandalonePsychoPy-2024.2.2-win64-py3.10.exe
+      .. button-link:: https://github.com/psychopy/psychopy/releases/download/2024.2.4/StandalonePsychoPy-2024.2.4-win64-3.10.exe
           :color: primary
 
-          PsychoPy |release| modern (py3.10)
+          PsychoPy 2024.2.4 modern (py3.10)
 
-      .. button-link:: https://github.com/psychopy/psychopy/releases/download/2024.2.2/StandalonePsychoPy-2024.2.2-win64-py3.8.exe
+      .. button-link:: https://github.com/psychopy/psychopy/releases/download/2024.2.4/StandalonePsychoPy-2024.2.4-win64-3.8.exe
           :color: primary
 
-          PsychoPy |release| compatibility+ (py3.8)
+          PsychoPy 2024.2.4 compatibility+ (py3.8)
 
       The *Compatibility+* version is for users who need to run older scripts that are not compatible with the newer versions of Python (PsychoPy has supported Python 3.10 since 2022.2.0).
 
@@ -30,12 +30,12 @@ For the easiest installation download and install the Standalone package.
 
       For the easiest installation download and install the Standalone package.
     
-      .. button-link:: https://github.com/psychopy/psychopy/releases/download/2024.2.2/StandalonePsychoPy-2024.2.2-macOS-py3.10.dmg
+      .. button-link:: https://github.com/psychopy/psychopy/releases/download/2024.2.4/StandalonePsychoPy-2024.2.4-macOS-3.10.dmg
           :color: primary
 
-          PsychoPy |release| modern (py3.10)
+          PsychoPy 2024.2.4 modern (py3.10)
 
-      .. button-link:: https://github.com/psychopy/psychopy/releases/download/2024.2.2/StandalonePsychoPy-2024.2.2-macOS-py3.8.dmg
+      .. button-link:: https://github.com/psychopy/psychopy/releases/download/2024.2.4/StandalonePsychoPy-2024.2.4-macOS-3.8.dmg
           :color: primary
 
           PsychoPy |release| compatibility+ (py3.8)

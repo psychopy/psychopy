@@ -11,7 +11,7 @@ To do this you need a :ref:`code` inserted into your :ref:`routine <routines>`. 
 	
 Of course you need to check the condition for that with some form of `if` statement. 
 
-**Example 1**: You have a change-blindness study in which a pair of images flashes on and off, with intervening blanks, in a loop called `presentationLoop`. You record the key press of the subject with a :ref:`keyboard` called `resp1`. Using the 'ForceEndTrial' parameter of `resp1` you can end the current cycle of the loop but to end the loop itself you would need a :ref:`code`. Insert the following two lines in the `End Routine` parameter for the Code Component, which will test whether more than zero keys have been pressed::
+**Example 1**: You have a change-blindness study in which a pair of images flashes on and off, with intervening blanks, in a loop called `presentationLoop`. You record the key press of the subject with a :ref:`keyboardcomponent` called `resp1`. Using the 'ForceEndTrial' parameter of `resp1` you can end the current cycle of the loop but to end the loop itself you would need a :ref:`code`. Insert the following two lines in the `End Routine` parameter for the Code Component, which will test whether more than zero keys have been pressed::
 
 	if resp1.keys is not None and len(resp1.keys)>0 :
     		trials.finished=1

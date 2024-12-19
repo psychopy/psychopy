@@ -1,37 +1,87 @@
-.. _counterbalanceStandaloneRoutine:
+.. _counterbalanceroutine:
 
-Counterbalance Standalone Routine
+-------------------------------
+Counterbalance Routine
 -------------------------------
 
-**Available from PsychoPy version 2024.1.0**
+Use the Shelf (via either Pavlovia, or a local file) to choose a value, taking into account previous runs of this experiment.
 
-The counterbalance standalone routine is available to use locally and online.
+Categories:
+    Custom
+Works in:
+    PsychoPy, PsychoJS
+
 
 Parameters
-~~~~~~~~~~~~
+-------------------------------
 
 Basic
-====================
+===============================
 
-Name : string
+The required attributes of the stimulus, controlling its basic function and behaviour
+
+
+.. _counterbalanceroutine-name:
+Name
     Everything in a |PsychoPy| experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
     
-Groups from... : Specify how many groups you want in your experiment
-    Choosing from ``Num. groups`` allows you to specify the number of groups and what their caps are. However, this cap is the same as for every group. The groups and caps you use here are only *reflected for local use*. For **Pavlovia**, you would need to set the number of groups and their caps via Shelf. Click `here <https://www.psychopy.org/online/shelf.html#counterbalanceshelf>`_ for an example on how to that.
+.. _counterbalanceroutine-specMode:
+Groups from...
+    Specify groups using an Excel file (for fine tuned control), specify as a variable name, or specify a number of groups to create equally likely groups with a uniform cap.
+    
+    Options:
+    
+    * Num. groups: Specify the number of groups and what their caps are. However, this cap is the same as for every group. The groups and caps you use here are only *reflected for local use*. For **Pavlovia**, you would need to set the number of groups and their caps via Shelf. Click `here <https://www.psychopy.org/online/shelf.html#counterbalanceshelf>`_ for an example on how to do that.
+    
+    * Conditions file (local only): Allows maximum flexibility in setting up groups. By using an excel spreadsheet, the probability of each group occuring, slots per group and any other additional parameters can be speficied. *Note: This is currently not supported for online studies*
 
-    Choosing from ``Condition file`` allows maximum flexibility in setting up groups. By using an excel spreadsheet, the probability of each group occuring, slots per group and any other additional parameters can be speficied. *Note: This is currently not support for online studies*
-
-Num.repeats : integer
-    How many times you want the sampling to repeat. For example, if you put 2, the experiment will finish collecting all the required participant based on the counterbalance groups and then repeat the same procedure the second time.   
-
-End experiment on depletion : boolean
-    If checked, this ends the experiment when all participants have filled all the counterbalance groups.
-
-
+    * Variable (local only): Similar to "Conditions file", but using a variable name rather than a file name (the variable should contain the same kind of information as would come from reading a conditions file via e.g. `pandas.read_csv <https://pandas.pydata.org/docs/reference/api/pandas.read_csv.html>_`)
+    
+.. _counterbalanceroutine-conditionsFile:
+Conditions (*if :ref:`_counterbalanceroutine-specMode` is "Conditions file"*)
+    Name of a file specifying the parameters for each group (.csv, .xlsx, or .pkl). Browse to select a file. Right-click to preview file contents, or create a new file.
+    
+.. _counterbalanceroutine-nGroups:
+Num. groups (*if :ref:`_counterbalanceroutine-specMode` is "Num. groups"*)
+    Number of groups to use.
+    
+.. _counterbalanceroutine-nSlots:
+Slots per group (*if :ref:`_counterbalanceroutine-specMode` is "Num. groups"*)
+    Max number of participants in each group for each repeat.
+    
+.. _counterbalanceroutine-nReps:
+Num. repeats (*if :ref:`_counterbalanceroutine-specMode` is "Num. groups"*)
+    How many times to run slots down to depletion?
+    
+.. _counterbalanceroutine-endExperimentOnDepletion:
+End experiment on depletion
+    When all slots and repetitions are depleted, should the experiment end or continue with .finished on this Routine as True?
+    
+.. _counterbalanceroutine-conditionsVariable:
+Conditions (*if :ref:`_counterbalanceroutine-specMode` is "Variable"*)
+    Name of a variable specifying the parameters for each group. Should be a list of dicts, like the output of data.conditionsFromFile
+    
 Data
-====================
-Save data 
-    Save the group and associated parameters to the csv output
+===============================
 
-Save remaining cap 
-    Save how many more participants are left to be tested for the group that was selected.
+What information about this Component should be saved?
+
+
+.. _counterbalanceroutine-saveData:
+Save data
+    Save chosen group and associated params this repeat to the data file
+    
+.. _counterbalanceroutine-saveRemaining:
+Save remaining cap
+    Save the remaining cap for the chosen group this repeat to the data file
+    
+Testing
+===============================
+
+Tools for testing, debugging and checking the performance of this Component.
+
+
+.. _counterbalanceroutine-disabled:
+Disable Routine
+    Disable this Routine
+    

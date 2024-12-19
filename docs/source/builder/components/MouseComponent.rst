@@ -1,13 +1,19 @@
-.. _mouse:
+.. _mousecomponent:
 
+-------------------------------
 Mouse Component
 -------------------------------
 
 The Mouse component can be used to collect responses from a participant. The coordinates of the mouse location are 
 given in the same coordinates as the Window, with (0,0) in the centre.
 
+Categories:
+    Responses
+Works in:
+    PsychoPy, PsychoJS
+
 Scenarios
-~~~~~~~~~~~~~~~~~
+-------------------------------
 
 This can be used in various ways. Here are some scenarios (email the list if you have other uses for your mouse):
 
@@ -15,49 +21,152 @@ Use the mouse to record the location of a button press
 
 Use the mouse to control stimulus parameters
     Imagine you want to use your mouse to make your 'patch'_ bigger or smaller and save the final size.
-    Call your `mouse`_ 'mouse', set it to save its state at the end of the trial and set the button press to
+    Call your :ref:`mousecomponent` 'mouse', set it to save its state at the end of the trial and set the button press to
     end the Routine. Then for the size setting of your Patch stimulus insert `$mouse.getPos()[0]` to use the 
     x position of the mouse to control the size or `$mouse.getPos()[1]` to use the y position.
     
 Tracking the entire path of the mouse during a period
 
 Parameters
-~~~~~~~~~~~~~~
+-------------------------------
 
-name : string
+Basic
+===============================
+
+The required attributes of the stimulus, controlling its basic function and behaviour
+
+
+.. _mousecomponent-name:
+Name
     Everything in a |PsychoPy| experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
-
-start : 
-    The time that the mouse should first be checked. See :ref:`startStop` for details.
-
-stop : 
-    When the mouse is no longer checked. See :ref:`startStop` for details.
     
-Force End Routine on Press
-    If this box is checked then the :ref:`Routine <Routines>` will end as soon as one of the mouse buttons is pressed.
-
+.. _mousecomponent-startVal:
+Start
+    When the Mouse Component should start, see :ref:`startStop`.
+    
+.. _mousecomponent-startEstim:
+Expected start (s)
+    If you are using frames to control timing of your stimuli, you can add an expected start time to display the component timeline in the routine.
+    
+.. _mousecomponent-startType:
+Start type
+    How do you want to define your start point?
+    
+    Options:
+    
+    * time (s)
+    
+    * frame N
+    
+    * condition
+    
+.. _mousecomponent-stopVal:
+Stop
+    When the Mouse Component should stop, see :ref:`startStop`.
+    
+.. _mousecomponent-durationEstim:
+Expected duration (s)
+    If you are using frames to control timing of your stimuli, you can add an expected duration to display the component timeline in the routine.
+    
+.. _mousecomponent-stopType:
+Stop type
+    How do you want to define your end point?
+    
+    Options:
+    
+    * duration (s)
+    
+    * duration (frames)
+    
+    * time (s)
+    
+    * frame N
+    
+    * condition
+    
+.. _mousecomponent-forceEndRoutineOnPress:
+End Routine on press
+    Should a button press force the end of the Routine (e.g end the trial)?
+    
+    Options:
+    
+    * never
+    
+    * any click
+    
+    * valid click
+    
+    * correct click
+    
+.. _mousecomponent-newClicksOnly:
+New clicks only
+    If the mouse button is already down when we start checking then wait for it to be released before recording as a new click.
+    
+.. _mousecomponent-clickable:
+Clickable stimuli
+    A comma-separated list of your stimulus names that can be "clicked" by the participant. e.g. target, foil
+    
 Data
-====
-What information to save, how to lay it out and when to save it.
+===============================
 
-save mouse state
-    How often do you need to save the state of the mouse? Every time the subject presses a mouse button, at the end of the trial, or every single frame?
-    Note that the text output for cases where you store the mouse data repeatedly per trial (e.g. every press or every frame) is likely to be very hard to interpret, so you may then need to analyse your data using the psydat file (with python code) instead.
-    Hopefully in future releases the output of the text file will be improved.
+What information about this Component should be saved?
 
-time relative to
-    Whenever the mouse state is saved (e.g. on button press or at end of trial) a time is saved too. Do you want this time to be relative to start of the :ref:`Routine <Routines>`, or the start of the whole experiment?
 
-new clicks only : bool
-    Store only new clicks
-
-clickable stimuli : list
-    List of stimulus names within the same routine which can be clicked on
-
-store params for clicked : list
-    List of parameter names to store from stimuli which are clicked on
-
-.. seealso::
+.. _mousecomponent-saveMouseState:
+Save mouse state
+    How often should the mouse state (x,y,buttons) be stored? On every video frame, every click or just at the end of the Routine?
     
-    API reference for :mod:`~psychopy.event.Mouse`
-     
+    Options:
+    
+    * final
+    
+    * on click
+    
+    * on valid click
+    
+    * every frame
+    
+    * never
+    
+.. _mousecomponent-timeRelativeTo:
+Time relative to
+    What should the values of mouse.time should be relative to?
+    
+    Options:
+    
+    * mouse onset
+    
+    * experiment
+    
+    * routine
+    
+.. _mousecomponent-saveParamsClickable:
+Store params for clicked
+    The params (e.g. name, text), for which you want to store the current value, for the stimulus that was"clicked" by the mouse. Make sure that all the clickable objects have all these params.
+    
+.. _mousecomponent-saveStartStop:
+Save onset/offset times
+    Store the onset/offset times in the data file (as well as in the log file).
+    
+.. _mousecomponent-syncScreenRefresh:
+Sync timing with screen refresh
+    Synchronize times with screen refresh (good for visual stimuli and responses based on them)
+    
+.. _mousecomponent-storeCorrect:
+Store correct
+    Do you want to save the response as correct/incorrect?
+    
+.. _mousecomponent-correctAns:
+Correct answer
+    What is the 'correct' object? To specify an area, remember that you can create a shape Component with 0 opacity.
+    
+Testing
+===============================
+
+Tools for testing, debugging and checking the performance of this Component.
+
+
+.. _mousecomponent-disabled:
+Disable Component
+    Disable this Component
+    

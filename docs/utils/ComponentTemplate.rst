@@ -1,4 +1,4 @@
-.. {{ cls.__name__ }}:
+.. _{{ cls.__name__ | lower }}:
 
 -------------------------------
 {{ cls.title }}
@@ -10,19 +10,23 @@ Categories:
     {{ ", ".join(cls.categories) }}
 Works in:
     {{ ", ".join(cls.targets) }}
+{% if cls.beta %}
+**Note: Since this is still in beta, keep an eye out for bug fixes.**{% endif %}
 
 Parameters
 -------------------------------
 {% for categ in params %}
 {{ categ }}
 ===============================
+
+{{ categs[categ] }}
+
 {% for param in params[categ] %}
-{{ param.label }}
+.. _{{ cls.__name__ | lower }}-{{ param.ref }}:
+{{ param.label }} {{ param.depends }}
     {{ param.hint }}
-{% endfor %}
-{% endfor %}
-
-
-.. seealso::
-	
-	API reference for :class:`~{{ cls.__module__ }}`
+    {% if param.allowedLabels %}
+    Options:
+    {% for choice in param.allowedLabels %}
+    * {{ choice }}
+    {% endfor %}{% endif%}{% endfor %}{% endfor %}

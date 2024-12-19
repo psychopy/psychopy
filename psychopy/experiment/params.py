@@ -51,12 +51,18 @@ inputDefaults = {
     'color': 'color',
 }
 
-# These are parameters which once existed but are no longer needed, so inclusion in this list will silence any "future
-# version" warnings
+
+# these are parameters which once existed but are no longer needed, so inclusion in this list will 
+# silence any "future version" warnings
 legacyParams = [
-    'lineColorSpace', 'borderColorSpace', 'fillColorSpace', 'foreColorSpace',  # 2021.1, we standardised colorSpace to be object-wide rather than param-specific
-    'Audio latency priority',  # from 2025.1, latency priority is handled by SpeakerDevice
+    # in 2021.1, we standardised colorSpace to be object-wide rather than param-specific
+    "lineColorSpace", "borderColorSpace", "fillColorSpace", "foreColorSpace", 
+    # in 2024.2.0, we removed some superfluous params from the pupil labs backend
+    "plCompanionRecordingEnabled", "plPupilCaptureRecordingEnabled",
+    # from 2025.1, latency priority is handled by SpeakerDevice
+    "Audio latency priority",
 ]
+
 
 class Param():
     r"""Defines parameters for Experiment Components

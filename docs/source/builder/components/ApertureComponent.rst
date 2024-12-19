@@ -1,4 +1,4 @@
-.. _aperture:
+.. _aperturecomponent:
 
 -------------------------------
 Aperture Component
@@ -16,113 +16,199 @@ Categories:
 Works in:
     PsychoPy
 
+
 Parameters
 -------------------------------
 
 Basic
 ===============================
 
+The required attributes of the stimulus, controlling its basic function and behaviour
+
+
+.. _aperturecomponent-name:
 Name
     Everything in a |PsychoPy| experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
     
+.. _aperturecomponent-startVal:
 Start
-    The time that the aperture should start having its effect. See :ref:`startStop` for details.
-
+    When the Aperture Component should start, see :ref:`startStop`.
+    
+.. _aperturecomponent-startEstim:
 Expected start (s)
     If you are using frames to control timing of your stimuli, you can add an expected start time to display the component timeline in the routine.
-
+    
+.. _aperturecomponent-startType:
+Start type
+    How do you want to define your start point?
+    
+    Options:
+    
+    * time (s)
+    
+    * frame N
+    
+    * condition
+    
+.. _aperturecomponent-stopVal:
 Stop
-    When the aperture stops having its effect. See :ref:`startStop` for details.
-
+    When the Aperture Component should stop, see :ref:`startStop`.
+    
+.. _aperturecomponent-durationEstim:
 Expected duration (s)
     If you are using frames to control timing of your stimuli, you can add an expected duration to display the component timeline in the routine.
-
+    
+.. _aperturecomponent-stopType:
+Stop type
+    How do you want to define your end point?
+    
+    Options:
+    
+    * duration (s)
+    
+    * duration (frames)
+    
+    * time (s)
+    
+    * frame N
+    
+    * condition
+    
+.. _aperturecomponent-shape:
 Shape
     What shape is this? With 'regular polygon...' you can set number of vertices and with 'custom polygon...' you can set vertices
     
     Options:
-    - Line
-    - Triangle
-    - Rectangle
-    - Circle
-    - Cross
-    - Star
-    - Arrow
-    - Regular polygon...
-    - Custom polygon...
-
+    
+    * Line
+    
+    * Triangle
+    
+    * Rectangle
+    
+    * Circle
+    
+    * Cross
+    
+    * Star
+    
+    * Arrow
+    
+    * Regular polygon...
+    
+    * Custom polygon...
+    
+.. _aperturecomponent-nVertices:
 Num. vertices
     How many vertices in your regular polygon?
-
+    
+.. _aperturecomponent-vertices:
 Vertices
-    What are the vertices of your custom polygon? Should be an nx2 array or a list of [x, y] lists
-
+    What are the vertices of your polygon? Should be an nx2 array or a list of [x, y] lists
+    
 Layout
 ===============================
 
-How should the stimulus be laid out? Padding, margins, size, position, etc.
+How should the stimulus be laid out on screen? Padding, margins, size, position, etc.
 
-Spatial units
-    Units of dimensions for this stimulus
-    
-    Options:
-    - from exp settings
-    - deg
-    - cm
-    - pix
-    - norm
-    - height
-    - degFlatPos
-    - degFlat
 
-Position [x,y]
-    Where is the aperture centred?
-
+.. _aperturecomponent-size:
 Size
     How big is the aperture? (a single number for diameter)
-
+    
+.. _aperturecomponent-pos:
+Position [x,y]
+    Where is the aperture centred?
+    
+.. _aperturecomponent-units:
+Spatial units
+    Spatial units for this stimulus (e.g. for its :ref:`position <aperturecomponent-pos>` and :ref:`size <aperturecomponent-size>`), see :ref:`units` for more info.
+    
+    Options:
+    
+    * from exp settings
+    
+    * deg
+    
+    * cm
+    
+    * pix
+    
+    * norm
+    
+    * height
+    
+    * degFlatPos
+    
+    * degFlat
+    
+.. _aperturecomponent-anchor:
+Anchor
+    Which point in this stimulus should be anchored to the point specified by :ref:`aperturecomponent-pos`? 
+    
+    Options:
+    
+    * center
+    
+    * top-center
+    
+    * bottom-center
+    
+    * center-left
+    
+    * center-right
+    
+    * top-left
+    
+    * top-right
+    
+    * bottom-left
+    
+    * bottom-right
+    
+.. _aperturecomponent-ori:
 Orientation
     Orientation of this stimulus (in deg)
     
     Options:
-    - -360
-    - 360
-
-Anchor
-    Which point on the aperture should be anchored to its exact position?
     
-    Options:
-    - center
-    - top-center
-    - bottom-center
-    - center-left
-    - center-right
-    - top-left
-    - top-right
-    - bottom-left
-    - bottom-right
-
+    * -360
+    
+    * 360
+    
+.. _aperturecomponent-draggable:
+Draggable?
+    Should this stimulus be moveble by clicking and dragging?
+    
 Data
 ===============================
 
+What information about this Component should be saved?
+
+
+.. _aperturecomponent-saveStartStop:
 Save onset/offset times
     Store the onset/offset times in the data file (as well as in the log file).
-
+    
+.. _aperturecomponent-syncScreenRefresh:
 Sync timing with screen refresh
     Synchronize times with screen refresh (good for visual stimuli and responses based on them)
-
+    
 Testing
 ===============================
 
+Tools for testing, debugging and checking the performance of this Component.
+
+
+.. _aperturecomponent-disabled:
 Disable Component
     Disable this Component
-
+    
+.. _aperturecomponent-validator:
 Validate with...
-    Name of validator Component/Routine to use to check the timing of this stimulus.
-
-    Options are generated live, so will vary according to your setup.
+    Name of the Validator Routine to use to check the timing of this stimulus. Options are generated live, so will vary according to your setup.
 
 
 .. seealso::
 	
-	API reference for :class:`~psychopy.visual.Aperture`
+	API reference for :class:`~psychopy.visual.Aperture`    

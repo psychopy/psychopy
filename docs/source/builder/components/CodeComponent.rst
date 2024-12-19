@@ -63,7 +63,7 @@ Example code uses
 1. Set a random location for your target stimulus
 ====================================================
 
-There are many ways to do this, but you could add the following to the `Begin Routine` section of a `Code Component` at the top of your :ref:`Routine <routines>`. Then set your stimulus position to be `$(targetX, 0)` and set the correct answer field of a :ref:`keyboard` to be `$corrAns` (set both of these to update on every repeat of the Routine).::
+There are many ways to do this, but you could add the following to the `Begin Routine` section of a `Code Component` at the top of your :ref:`Routine <routines>`. Then set your stimulus position to be `$(targetX, 0)` and set the correct answer field of a :ref:`keyboardcomponent` to be `$corrAns` (set both of these to update on every repeat of the Routine).::
     
     if random()>0.5:
         targetX=-0.5 #on the left

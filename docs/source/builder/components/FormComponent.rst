@@ -1,7 +1,7 @@
-.. _formComponent:
+.. _formcomponent:
 
 -------------------------------
-FormComponent
+Form Component
 -------------------------------
 
 The Form component enables Psychopy to be used as a questionnaire tool, where
@@ -11,6 +11,11 @@ simultaneously onscreen with a scrollable viewing window.
 
 *Note*: We have now introduced `Pavlovia Surveys <https://pavlovia.org/docs/surveys/overview>`_ which allow you to create online questionnaires. You can either use them by themselves or in conjunction with your experiments. Click here to watch our `Pavlovia Surveys Launch Webinar <https://youtu.be/1fs8CVKBPGk>`_ to find out more. 
 
+Categories:
+    Responses
+Works in:
+    PsychoPy, PsychoJS
+
 **Note: Since this is still in beta, keep an eye out for bug fixes.**
 
 Parameters
@@ -19,16 +24,60 @@ Parameters
 Basic
 ===============================
 
+The required attributes of the stimulus, controlling its basic function and behaviour
+
+
+.. _formcomponent-name:
 Name
     Everything in a |PsychoPy| experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
-
+    
+.. _formcomponent-startVal:
 Start
-    The time that the stimulus should first appear.
-
+    When the Form Component should start, see :ref:`startStop`.
+    
+.. _formcomponent-startEstim:
+Expected start (s)
+    If you are using frames to control timing of your stimuli, you can add an expected start time to display the component timeline in the routine.
+    
+.. _formcomponent-startType:
+Start type
+    How do you want to define your start point?
+    
+    Options:
+    
+    * time (s)
+    
+    * frame N
+    
+    * condition
+    
+.. _formcomponent-stopVal:
 Stop
-    Governs the duration for which the stimulus is presented.
-
-Items : A csv / xlsx file **To get started, we recommend selecting the "Open/Create Icon" which will open up a template forms spreadsheet** A csv/xlsx file should have the following key, value pairs / column headers:
+    When the Form Component should stop, see :ref:`startStop`.
+    
+.. _formcomponent-durationEstim:
+Expected duration (s)
+    If you are using frames to control timing of your stimuli, you can add an expected duration to display the component timeline in the routine.
+    
+.. _formcomponent-stopType:
+Stop type
+    How do you want to define your end point?
+    
+    Options:
+    
+    * duration (s)
+    
+    * duration (frames)
+    
+    * time (s)
+    
+    * frame N
+    
+    * condition
+    
+.. _formcomponent-Items:
+Items
+    A csv / xlsx file **To get started, we recommend selecting the "Open/Create Icon" which will open up a template forms spreadsheet** A csv/xlsx file should have the following key, value pairs / column headers:
     *index*
         The item index as a number
     *itemText*
@@ -49,8 +98,8 @@ Items : A csv / xlsx file **To get started, we recommend selecting the "Open/Cre
         The response object color
     *granularity*
         If you are using a slider, what do you want the granularity of the slider to be?
-
-Missing column headers will be replaced by default entries, with the exception of `itemText` and `type`, which are required. The default entries are:
+    
+    Missing column headers will be replaced by default entries, with the exception of `itemText` and `type`, which are required. The default entries are:
     *index*
         0 (increments for each item)
     *itemWidth*
@@ -65,79 +114,144 @@ Missing column headers will be replaced by default entries, with the exception o
         from style
     *responseColor*
         from style
-
-Data format
-    Choose whether to store items data by column or row in your datafile.
-
+    
+.. _formcomponent-Randomize:
 Randomize
-        Randomize order of Form elements
-
+    Do you want to randomize the order of your questions?
+    
+.. _formcomponent-Data Format:
+Data format
+    Store item data by columns, or rows
+    
+    Options:
+    
+    * columns
+    
+    * rows
+    
 Layout
 ===============================
-How should the stimulus be laid out? Padding, margins, size, position, etc.
 
+How should the stimulus be laid out on screen? Padding, margins, size, position, etc.
+
+
+.. _formcomponent-size:
 Size [w,h]
-    Size of the stimulus, to be specified in 'height' units.
-
+    Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] 
+    
+.. _formcomponent-pos:
 Position [x,y]
-    The position of the centre of the stimulus, to be specified in 'height' units.
-
+    Position of this stimulus (e.g. [1,2] )
+    
+.. _formcomponent-Item Padding:
 Item padding
-    Space or padding between Form elements (i.e., question and response text), to be specified in 'height' units.
-
+    The padding or space between items.
+    
 Appearance
 ===============================
-How should the stimulus look? Color, borders, etc. Many of these read-only parameters become editable when *Styles* is set to *custom*.
 
-Styles
-    Whether to style items in your form for a light or a dark background
+How should the stimulus look? Colors, borders, styles, etc.
 
-Fill color
+
+.. _formcomponent-fillColor:
+Fill color (*if :ref:`formcomponent-Style` is "Custom..."*)
     Color of the form's background
-    See :ref:`colorspaces`
-
-Border color
+    
+.. _formcomponent-borderColor:
+Border color (*if :ref:`formcomponent-Style` is "Custom..."*)
     Color of the outline around the form
-    See :ref:`colorspaces`
-
-
-Item color
+    
+.. _formcomponent-itemColor:
+Item color (*if :ref:`formcomponent-Style` is "Custom..."*)
     Base text color for questions
-    See :ref:`colorspaces`
-
-Response color
+    
+.. _formcomponent-responseColor:
+Response color (*if :ref:`formcomponent-Style` is "Custom..."*)
     Base text color for responses, also sets color of lines in sliders and borders of textboxes
-    See :ref:`colorspaces`
-
-Marker color
+    
+.. _formcomponent-markerColor:
+Marker color (*if :ref:`formcomponent-Style` is "Custom..."*)
     Color of markers and the scrollbar
-    See :ref:`colorspaces`
-
-Color space
-    In what format (color space) have you specified the colors? (rgb, dkl, lms, hsv)
-    See :ref:`colorspaces`
-
+    
+.. _formcomponent-Style:
+Styles
+    Styles determine the appearance of the form
+    
     Options:
-    - rgb
-    - dkl
-    - lms
-    - hsv
-
+    
+    * light
+    
+    * dark
+    
+    * custom...
+    
+.. _formcomponent-colorSpace:
+Color space
+    In what format (color space) have you specified the colors? See :ref:`colorspaces` for more info.
+    
+    Options:
+    
+    * rgb
+    
+    * dkl
+    
+    * lms
+    
+    * hsv
+    
+.. _formcomponent-opacity:
 Opacity
-    Vary the transparency, from 0.0 = invisible to 1.0 = opaque
-
+    Vary the transparency, from 0.0 (invisible) to 1.0 (opaque)
+    
+.. _formcomponent-contrast:
+Contrast
+    Contrast of the stimulus (1.0=unchanged contrast, 0.5=decrease contrast, 0.0=uniform/no contrast, -0.5=slightly inverted, -1.0=totally inverted)
+    
 Formatting
 ===============================
-Formatting text
 
+How should this stimulus handle text? Font, spacing, orientation, etc.
+
+
+.. _formcomponent-Text Height:
 Text height
-    Text height of the Form elements (i.e., question and response text).
-
+    The size of the item text for Form
+    
+.. _formcomponent-Font:
 Font
-    Font to use in text.
+    What font should the text be displayed in? Locally, can be a font installed on your computer, saved to the "fonts" folder in your |PsychoPy| user folder, or the name of a `Google Font <https://fonts.google.com>`_. Online, can be any `web safe font <https://www.w3schools.com/cssref/css_websafe_fonts.php>`_ or a font file added to your resources list in :ref:`expSettings`.
+    
+Data
+===============================
+
+What information about this Component should be saved?
+
+
+.. _formcomponent-saveStartStop:
+Save onset/offset times
+    Store the onset/offset times in the data file (as well as in the log file).
+    
+.. _formcomponent-syncScreenRefresh:
+Sync timing with screen refresh
+    Synchronize times with screen refresh (good for visual stimuli and responses based on them)
+    
+Testing
+===============================
+
+Tools for testing, debugging and checking the performance of this Component.
+
+
+.. _formcomponent-disabled:
+Disable Component
+    Disable this Component
+    
+.. _formcomponent-validator:
+Validate with...
+    Name of the Validator Routine to use to check the timing of this stimulus. Options are generated live, so will vary according to your setup.
 
 .. note::
     Top tip: Form has an attribute to check if all questions have been answered :code:`form.complete`. You could use this to make a "submit" button appear only when the form is completed!
 .. seealso::
 
 	API reference for :class:`~psychopy.visual.Form`
+    

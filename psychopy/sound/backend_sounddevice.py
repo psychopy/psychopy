@@ -8,25 +8,37 @@ These are optional components that can be obtained by installing the
 
 """
 
-import psychopy.logging as logging
-from .exceptions import DependencyError
 
-try:
-    from psychopy_sounddevice import (
-        SoundDeviceSound,
-        init,
-        getDevices,
-        getStreamLabel
-    )
-except (ModuleNotFoundError, ImportError):
-    logging.error(
-        "Support for the `sounddevice` audio backend is not available this "
-        "session. Please install `psychopy-sounddevice` and restart the "
-        "session to enable support.")
-except (NameError, DependencyError):
-    logging.error(
-        "Error encountered while loading `psychopy-sounddevice`. Check logs "
-        "for more information.")
+from psychopy.plugins import PluginStub
 
-if __name__ == "__main__":
+
+class SoundDeviceSound(
+    PluginStub,
+    plugin="psychopy-sounddevice",
+    docsHome="https://github.com/psychopy/psychopy-sounddevice",
+):
+    pass
+
+
+class init(
+    PluginStub,
+    plugin="psychopy-sounddevice",
+    docsHome="https://github.com/psychopy/psychopy-sounddevice",
+):
+    pass
+
+
+class getDevices(
+    PluginStub,
+    plugin="psychopy-sounddevice",
+    docsHome="https://github.com/psychopy/psychopy-sounddevice",
+):
+    pass
+
+
+class getStreamLabel(
+    PluginStub,
+    plugin="psychopy-sounddevice",
+    docsHome="https://github.com/psychopy/psychopy-sounddevice",
+):
     pass

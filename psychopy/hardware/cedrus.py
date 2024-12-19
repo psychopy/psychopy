@@ -9,27 +9,16 @@
 
 These are optional components that can be obtained by installing the
 `psychopy-cedrus` extension into the current environment.
-
-DEPRECATED:
-This sub-package is out of date. Please use the cedrus-written `pyxid2` package
-instead (bundled with Standalone PsychoPy)::
-
-    import pyxid2
-
 """
 
-import psychopy.logging as logging
-from psychopy.tools.pkgtools import PluginStub
+
+from psychopy.plugins import PluginStub
 
 
 class RB730(
     PluginStub, 
     plugin="psychopy-cedrus", 
-    doclink="https://psychopy.github.io/psychopy-cedrus/coder/RB730"
+    docsHome="https://psychopy.github.io/psychopy-cedrus",
+    docsRef="/coder/RB730"
 ):
-    pass
-
-
-
-if __name__ == "__main__":
     pass

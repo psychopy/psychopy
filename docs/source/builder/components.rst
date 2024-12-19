@@ -1,11 +1,10 @@
 .. _components:
 
+------------------------------------------
 Components
--------------------------------
+------------------------------------------
 
-Routines in the Builder contain any number of components, which typically define the parameters of a stimulus or an input/output device.
-
-The following components are available, as at version 1.65, but further components will be added in the future including Parallel/Serial ports and other visual stimuli (e.g. GeometricStim).
+The following Components are available from Builder:
 
 .. toctree::
    :maxdepth: 1   
@@ -13,8 +12,13 @@ The following components are available, as at version 1.65, but further componen
 
    components/*
 
+About Components
+------------------------------------------
+
+Routines in the Builder contain any number of components, which typically define the parameters of a stimulus or an input/output device.
+
 Entering parameters
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+==========================================
 
 Most of the entry boxes for Component parameters simply receive text or numeric values or lists (sequences of values surrounded by square brackets) as input. In addition, the user can insert variables and code into most of these, which will be interpreted either at the beginning of the experiment or at regular intervals within it.
 
@@ -31,7 +35,7 @@ For example:
 
 
 How often to evaluate the variable/code
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+==========================================
 
 If you do want the parameters of a stimulus to be evaluated by code in this way you need also to decide how often it should be updated. By default, the parameters of Components are set to be `constant`; the parameter will be set at the beginning of the experiment and will remain that way for the duration. Alternatively, they can be set to change either on `every repeat` in which case the parameter will be set at the beginning of the Routine on each repeat of it. Lastly many parameters can even be set `on every frame`, allowing them to change constantly on every refresh of the screen.
 

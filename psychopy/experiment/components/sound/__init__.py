@@ -268,6 +268,12 @@ class SoundComponent(BaseDeviceComponent):
         stopVal = self.params['stopVal']
         if stopVal in ['', None, 'None']:
             stopVal = -1
+        
+        # never start a Routine marked as finished
+        code = (
+            "%(name)s.isFinished = false;"
+        )
+        buff.writeIndentedLines(code % self.params)
 
         if self.params['sound'].updates == 'set every repeat':
             buff.writeIndented("%(name)s.setValue(%(sound)s);\n" % self.params)

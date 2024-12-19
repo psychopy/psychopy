@@ -1,71 +1,173 @@
-.. _eyetrackerCalibrationComponent:
+.. _eyetrackercalibrationroutine:
 
-Eye Tracker Calibration Component (Standalone Routine)
--------------------------------------------------------
+-------------------------------
+Eyetracker Calibration Routine
+-------------------------------
 
-Please note: This is a new component, and is subject to change.
+Calibration routine for eyetrackers
 
-Note that the Eye tracking calibration component is a "standalone routine", this means that rather than generating a
-component that is added to an existing routine, it is a routine in itself, that is then placed along your flow. The reason
-for this implementation is that calibration represents a series of events that will be relatively uniform across studies,
-and often we would not want to add any additional info to this phase of the study (i.e. images, text etc.)
+Categories:
+    Eyetracking
+Works in:
+    PsychoPy
+
+**Note: Since this is still in beta, keep an eye out for bug fixes.**
 
 Parameters
-~~~~~~~~~~~~
+-------------------------------
 
 Basic
-============
-Name : string
+===============================
+
+The required attributes of the stimulus, controlling its basic function and behaviour
+
+
+.. _eyetrackercalibrationroutine-name:
+Name
     Everything in a |PsychoPy| experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
     
-Target Layout:
-    How many targets do you want to be presented for calibration? Points will be displayed in a grid.
-
-Randomise Target Positions: bool
-    If :code:`True` the point positions will be presented in a random order.
-
+.. _eyetrackercalibrationroutine-targetLayout:
+Target layout
+    Pre-defined target layouts
+    
+    Options:
+    
+    * THREE_POINTS
+    
+    * FIVE_POINTS
+    
+    * NINE_POINTS
+    
+    * THIRTEEN_POINTS
+    
+.. _eyetrackercalibrationroutine-randomisePos:
+Randomise target positions
+    Should the order of target positions be randomised?
+    
+.. _eyetrackercalibrationroutine-textColor:
+Text color
+    Text foreground color
+    
 Target
-============
-Aesthetic features of the calibration target.
+===============================
 
-Outer Fill Color : string
-    The color of the outer circle of the target. None/Blank will be transparent.
+Parameters of the calibration target.
 
-Outer Border Color : string
-    The color of the border of the outer circle of the target.
 
-Inner Fill Color : string
-    The color of the inner circle of the target. None/Blank will be transparent.
-
-Inner Border Color : string
-    The color of the border of the inner circle of the target.
-
-Color Space :
-    The color space in which to read the defined colors.
-
-Outer Border Width : int
-    The width of the line around the outer target.
-
+.. _eyetrackercalibrationroutine-useCustom:
+Use custom?
+    Check this box to use a custom stimulus as a calibration target, rather than creating one from params.
+    
+.. _eyetrackercalibrationroutine-customTarget:
+Custom target (*if :ref:`_eyetrackercalibrationroutine-useCustom` is  not checked*)
+    Give the name of any visual Component to use it as a calibration target.
+    
+.. _eyetrackercalibrationroutine-fillColor:
+Outer fill color (*if :ref:`_eyetrackercalibrationroutine-useCustom` is  not checked*)
+    Fill color of the outer part of the target
+    
+.. _eyetrackercalibrationroutine-borderColor:
+Outer border color (*if :ref:`_eyetrackercalibrationroutine-useCustom` is  not checked*)
+    Border color of the outer part of the target
+    
+.. _eyetrackercalibrationroutine-innerFillColor:
+Inner fill color (*if :ref:`_eyetrackercalibrationroutine-useCustom` is  not checked*)
+    Fill color of the inner part of the target
+    
+.. _eyetrackercalibrationroutine-innerBorderColor:
+Inner border color (*if :ref:`_eyetrackercalibrationroutine-useCustom` is  not checked*)
+    Border color of the inner part of the target
+    
+.. _eyetrackercalibrationroutine-colorSpace:
+Color space (*if :ref:`_eyetrackercalibrationroutine-useCustom` is  not checked*)
+    In what format (color space) have you specified the colors? See :ref:`colorspaces` for more info.
+    
+    Options:
+    
+    * rgb
+    
+    * dkl
+    
+    * lms
+    
+    * hsv
+    
+.. _eyetrackercalibrationroutine-borderWidth:
+Outer border width (*if :ref:`_eyetrackercalibrationroutine-useCustom` is  not checked*)
+    Width of the line around the outer part of the target
+    
+.. _eyetrackercalibrationroutine-innerBorderWidth:
+Inner border width (*if :ref:`_eyetrackercalibrationroutine-useCustom` is  not checked*)
+    Width of the line around the inner part of the target
+    
+.. _eyetrackercalibrationroutine-outerRadius:
+Outer radius (*if :ref:`_eyetrackercalibrationroutine-useCustom` is  not checked*)
+    Size (radius) of the outer part of the target
+    
+.. _eyetrackercalibrationroutine-innerRadius:
+Inner radius (*if :ref:`_eyetrackercalibrationroutine-useCustom` is  not checked*)
+    Size (radius) of the inner part of the target
+    
+.. _eyetrackercalibrationroutine-units:
+Spatial units (*if :ref:`_eyetrackercalibrationroutine-useCustom` is  not checked*)
+    Spatial units for the target (e.g. for its :ref:`position <eyetrackercalibrationroutine-pos>` and :ref:`size <eyetrackercalibrationroutine-size>`), see :ref:`units` for more info.
+    
+    Options:
+    
+    * from exp settings
+    
 Animation
-============
-How should the animation of the calibration routine appear?
+===============================
 
-Progress Mode :
-    Should each target appear one after the other and progress based on time? Or should the next target be presented
-    once the space key has been pressed.
+Control animations within the calibration routine.
 
-Target Duration : int or float
-    The duration of the pulse of the outer circle (i.e. time or expand + contract)
 
-Expand Scale:
-    How much larger should the outer circle get?
+.. _eyetrackercalibrationroutine-progressMode:
+Progress mode
+    Should the target move to the next position after a keypress or after an amount of time?
+    
+    Options:
+    
+    * space key
+    
+    * time
+    
+.. _eyetrackercalibrationroutine-targetDur:
+Target duration
+    Time limit (s) after which progress to next position
+    
+.. _eyetrackercalibrationroutine-expandDur:
+Expand / contract duration
+    Duration of the target expand/contract animation
+    
+.. _eyetrackercalibrationroutine-expandScale:
+Expand scale
+    How many times bigger than its size the target grows
+    
+.. _eyetrackercalibrationroutine-movementAnimation:
+Animate position changes
+    Enable / disable animations as target stim changes position
+    
+.. _eyetrackercalibrationroutine-movementDur:
+Movement duration
+    Duration of the animation during position changes.
+    
+.. _eyetrackercalibrationroutine-targetDelay:
+Target delay
+    Duration of the delay between positions.
+    
+Testing
+===============================
 
-Animate Position Changes: bool
-    Should the target appear as though it is moving across the screen from one location to the next?
+Tools for testing, debugging and checking the performance of this Component.
 
-Movement Duration: int or float
-    The duration of the movement from one point to the next. 
+
+.. _eyetrackercalibrationroutine-disabled:
+Disable Routine
+    Disable this Routine
+
 
 .. seealso::
 	
 	API reference for :class:`~psychopy.hardware.eyetracker.EyetrackerCalibration`
+    

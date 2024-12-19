@@ -1,82 +1,189 @@
-.. _eyetrackerValidationComponent:
+.. _eyetrackervalidationroutine:
 
-Eye Tracker Validation Component (Standalone Routine)
--------------------------------------------------------
+-------------------------------
+Eyetracker Validation Routine
+-------------------------------
 
-Please note: This is a new component, and is subject to change.
+Validation routine for eyetrackers
 
-The Eye tracking validation component is also a "standalone routine", this means that rather than generating a
-component that is added to an existing routine, it is a routine in itself, that is then placed along your flow. The reason
-for this implementation is that calibration/validation represent a series of events that will be relatively uniform across studies,
-and often we would not want to add any additional info to this phase of the study (i.e. images, text etc.)
+Categories:
+    Eyetracking
+Works in:
+    PsychoPy
+
+**Note: Since this is still in beta, keep an eye out for bug fixes.**
 
 Parameters
-~~~~~~~~~~~~
+-------------------------------
 
 Basic
-============
-Name : string
+===============================
+
+The required attributes of the stimulus, controlling its basic function and behaviour
+
+
+.. _eyetrackervalidationroutine-name:
+Name
     Everything in a |PsychoPy| experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
     
-Target Layout:
+.. _eyetrackervalidationroutine-targetLayout:
+Target layout
     How many targets do you want to be presented for calibration? Points will be displayed in a grid.
-
-Randomise Target Positions: bool
-    If :code:`True` the point positions will be presented in a random order.
-
-Gaze Cursor Color: 
-	The color of the gaze cursor.
-
+    
+    Options:
+    
+    * THREE_POINTS
+    
+    * FIVE_POINTS
+    
+    * NINE_POINTS
+    
+    * THIRTEEN_POINTS
+    
+    * SEVENTEEN_POINTS
+    
+    * CUSTOM...
+    
+.. _eyetrackervalidationroutine-targetPositions:
+Target positions
+    List of positions (x, y) at which the target can appear
+    
+.. _eyetrackervalidationroutine-randomisePos:
+Randomise target positions
+    Should the order of target positions be randomised?
+    
+.. _eyetrackervalidationroutine-cursorFillColor:
+Gaze cursor color
+    Fill color of the gaze cursor
+    
+.. _eyetrackervalidationroutine-textColor:
+Text color
+    Color of text used in validation procedure.
+    
 Target
-============
-Aesthetic features of the target.
+===============================
 
-Outer Fill Color : string
-    The color of the outer circle of the target. None/Blank will be transparent.
+Parameters of the validation target.
 
-Outer Border Color : string
-    The color of the border of the outer circle of the target.
 
-Inner Fill Color : string
-    The color of the inner circle of the target. None/Blank will be transparent.
-
-Inner Border Color : string
-    The color of the border of the inner circle of the target.
-
-Color Space :
-    The color space in which to read the defined colors.
-
-Outer Border Width : int
-    The width of the line around the outer target.
-
+.. _eyetrackervalidationroutine-fillColor:
+Outer fill color
+    Fill color of the outer part of the target
+    
+.. _eyetrackervalidationroutine-borderColor:
+Outer border color
+    Border color of the outer part of the target
+    
+.. _eyetrackervalidationroutine-innerFillColor:
+Inner fill color
+    Fill color of the inner part of the target
+    
+.. _eyetrackervalidationroutine-innerBorderColor:
+Inner border color
+    Border color of the inner part of the target
+    
+.. _eyetrackervalidationroutine-colorSpace:
+Color space
+    In what format (color space) have you specified the colors? See :ref:`colorspaces` for more info.
+    
+    Options:
+    
+    * rgb
+    
+    * dkl
+    
+    * lms
+    
+    * hsv
+    
+.. _eyetrackervalidationroutine-borderWidth:
+Outer border width
+    Width of the line around the outer part of the target
+    
+.. _eyetrackervalidationroutine-innerBorderWidth:
+Inner border width
+    Width of the line around the inner part of the target
+    
+.. _eyetrackervalidationroutine-outerRadius:
+Outer radius
+    Size (radius) of the outer part of the target
+    
+.. _eyetrackervalidationroutine-innerRadius:
+Inner radius
+    Size (radius) of the inner part of the target
+    
+.. _eyetrackervalidationroutine-units:
+Spatial units
+    Spatial units for the target (e.g. for its :ref:`position <eyetrackervalidationroutine-pos>` and :ref:`size <eyetrackervalidationroutine-size>`), see :ref:`units` for more info.
+    
+    Options:
+    
+    * from exp settings
+    
 Animation
-============
-How should the animation of the validation routine appear?
+===============================
 
-Progress Mode :
-    Should each target appear one after the other and progress based on time? Or should the next target be presented
-    once the space key has been pressed.
 
-Target Duration: int or float
-    The duration of the pulse of the outer circle (i.e. time or expand + contract)
 
-Expand Scale:
-    How much larger should the outer circle get?
 
-Animate Position Changes: bool
-    Should the target appear as though it is moving across the screen from one location to the next?
-
-Movement Duration: int or float
-    The duration of the movement from one point to the next. 
-
+.. _eyetrackervalidationroutine-progressMode:
+Progress mode
+    Should the target move to the next position after a keypress or after an amount of time?
+    
+    Options:
+    
+    * space key
+    
+    * time
+    
+.. _eyetrackervalidationroutine-targetDur:
+Target duration
+    Time limit (s) after which progress to next position
+    
+.. _eyetrackervalidationroutine-expandDur:
+Expand / contract duration
+    Duration of the target expand/contract animation
+    
+.. _eyetrackervalidationroutine-expandScale:
+Expand scale
+    How many times bigger than its size the target grows
+    
+.. _eyetrackervalidationroutine-movementAnimation:
+Animate position changes
+    Enable / disable animations as target stim changes position
+    
+.. _eyetrackervalidationroutine-movementDur:
+Movement duration
+    Duration of the animation during position changes.
+    
+.. _eyetrackervalidationroutine-targetDelay:
+Target delay
+    Duration of the delay between positions.
+    
 Data
-============
+===============================
 
-Save As Image
-	Save the results as an image
+What information about this Component should be saved?
 
-Show Results Screen
-	Show a screen with the results after completion
+
+.. _eyetrackervalidationroutine-saveAsImg:
+Save as image
+    Save results as an image
+    
+.. _eyetrackervalidationroutine-showResults:
+Show results screen
+    Show a screen with results after completion?
+    
+Testing
+===============================
+
+Tools for testing, debugging and checking the performance of this Component.
+
+
+.. _eyetrackervalidationroutine-disabled:
+Disable Routine
+    Disable this Routine
+
 
 .. seealso::
 	

@@ -21,12 +21,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-from psychopy.tools.pkgtools import PluginStub
+from psychopy.plugins import PluginStub
 
 
 class OptiCAL(
     PluginStub, 
     plugin="psychopy-crs", 
-    doclink="https://psychopy.github.io/psychopy-crs/coder/OptiCAL"
+    docsHome="https://psychopy.github.io/psychopy-crs",
+    docsRef="/coder/optical"
 ):
     pass

@@ -10,6 +10,7 @@ import time
 import subprocess
 import json
 import signal
+import atexit
 from weakref import proxy
 
 import psutil
@@ -30,6 +31,8 @@ from ..constants import DeviceConstants, EventConstants
 from psychopy import constants
 
 getTime = Computer.getTime
+
+SHUTDOWN_FUNCS = []
 
 _currentSessionInfo = None
 
@@ -1000,6 +1003,9 @@ class ioHubConnection():
         Computer.iohub_process_id = self._server_process.pid
         Computer.iohub_process = psutil.Process(self._server_process.pid)
 
+        global SHUTDOWN_FUNCS
+        SHUTDOWN_FUNCS.append(self._shutDownServer)
+
         # >>>>> Create open UDP port to ioHub Server
         server_udp_port = self._iohub_server_config.get('udp_port', 9000)
         from ..net import UDPClientConnection
@@ -1450,6 +1456,17 @@ class ioEvent():
         return 'time: %.3f, type: %s, id: %d' % (self.time,
                                                  self.type,
                                                  self.id)
+
+
+def shutdownActiveConnections():
+    """Shutdown any active ioHub connections that are currently running.
+    """
+    activeConnection = ioHubConnection.getActiveConnection()
+    if activeConnection is not None and hasattr(activeConnection, 'shutdown'):
+        activeConnection.shutdown()
+    
+
+atexit.register(shutdownActiveConnections)
 
 _lazyImports = """
 from psychopy.iohub.client.connect import launchHubServer

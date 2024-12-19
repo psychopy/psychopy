@@ -6,12 +6,13 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 
-from psychopy.tools.pkgtools import PluginStub
+from psychopy.plugins import PluginStub
 
 
 class ColorCAL(
     PluginStub, 
     plugin="psychopy-crs", 
-    doclink="https://psychopy.github.io/psychopy-crs/coder/ColorCAL"
+    docsHome="https://psychopy.github.io/psychopy-crs",
+    docsRef="/coder/colorcal"
 ):
     pass

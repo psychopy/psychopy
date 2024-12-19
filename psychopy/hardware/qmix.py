@@ -12,30 +12,21 @@ These are optional components that can be obtained by installing the
 
 """
 
-import psychopy.logging as logging
 
-try:
-    from psychopy_qmix import (
-        Pump,
-        _init_all_pumps,
-        _init_bus,
-        _checkSyringeTypes,
-        _PumpWrapperForBuilderComponent,
-        volumeUnits,  # don't use module level constants in plugins
-        flowRateUnits,
-        configName,
-        bus,
-        pumps,
-        syringeTypes)
-except (ModuleNotFoundError, ImportError):
-    logging.error(
-        "Support for the Cetoni neMESYS syringe pump system is not available "
-        "this session. Please install `psychopy-qmix` and restart the session "
-        "to enable support.")
-except Exception as e:
-    logging.error(
-        "Error encountered while loading `psychopy-qmix`. Check logs for more "
-        "information.")
+from psychopy.plugins import PluginStub
 
-if __name__ == "__main__":
+
+class Pump(
+    PluginStub,
+    plugin="psychopy-labjack",
+    docsHome="http://github.com/psychopy/psychopy-qmix",
+):
     pass
+
+
+volumeUnits: list
+flowRateUnits: list
+configName: dict
+bus: object
+pumps: list
+syringeTypes: list

@@ -1,50 +1,138 @@
-.. _vairableComponent:
+.. _variablecomponent:
 
+-------------------------------
 Variable Component
 -------------------------------
 
-A variable can hold quantities or values in memory that can be referenced using a variable name.
-You can store values in a variable to use in your experiments.
+A variable holds a value which you can refer to by name later in the experiment.
+
+Categories:
+    Custom
+Works in:
+    PsychoPy
+
 
 Parameters
-~~~~~~~~~~~~
+-------------------------------
 
-Name : string
-    Everything in a |PsychoPy| experiment needs a unique name.
-    The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
-    The variable name references the value stored in memory, so that your stored values can be used in your experiments.
+Basic
+===============================
 
-Start : int, float or bool
-    The time or condition from when you want your variable to be defined. The default value is None, and so will be defined at the beginning of the experiment, trial or frame.
-    See :ref:`startStop` for details.
+The required attributes of the stimulus, controlling its basic function and behaviour
 
-Stop : int, float or bool
-    The duration for which the variable is defined/updated. See :ref:`startStop` for details.
 
-Experiment start value: any
-    The variable can take any value at the beginning of the experiment, so long as you define you variables using literals or existing variables.
-
-Routine start value : any
-    The variable can take any value at the beginning of a routine/trial, and can remain a constant, or be defined/updated on every routine.
-
-Frame start value : any
-    The variable can take any value at the beginning of a frame, or during a condition bases on Start and/or Stop.
+.. _variablecomponent-name:
+Name 
+    Everything in a |PsychoPy| experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces). The name of the Component will be the name of the variable!
+    
+.. _variablecomponent-startVal:
+Start 
+    The time or condition from when you want your variable to be defined. The default value is None, and so will be defined at the beginning of the experiment, trial or frame., see :ref:`startStop`.
+    
+.. _variablecomponent-startEstim:
+Expected start (s) 
+    If you are using frames to control timing of your stimuli, you can add an expected start time to display the component timeline in the routine.
+    
+.. _variablecomponent-startType:
+Start type 
+    How do you want to define your start point?
+    
+    Options:
+    
+    * time (s)
+    
+    * frame N
+    
+    * condition
+    
+.. _variablecomponent-stopVal:
+Stop 
+    The duration for which the variable is defined/updated, see :ref:`startStop`.
+    
+.. _variablecomponent-durationEstim:
+Expected duration (s) 
+    If you are using frames to control timing of your stimuli, you can add an expected duration to display the component timeline in the routine.
+    
+.. _variablecomponent-stopType:
+Stop type 
+    How do you want to define your end point?
+    
+    Options:
+    
+    * duration (s)
+    
+    * duration (frames)
+    
+    * time (s)
+    
+    * frame N
+    
+    * condition
+    
+.. _variablecomponent-startExpValue:
+Experiment start value 
+    The start value. A variable can be set to any value.
+    
+.. _variablecomponent-startRoutineValue:
+Routine start value 
+    Set the value for the beginning of each Routine.
+    
+.. _variablecomponent-startFrameValue:
+Frame start value 
+    Set the value for the beginning of every screen refresh.
+    
 Data
-====
-What information to save, how to lay it out and when to save it.
+===============================
 
-Save exp start value : bool
+What information about this Component should be saved?
+
+
+.. _variablecomponent-saveStartExp:
+Save exp start value 
+    Save the experiment start value in data file.
+    
+.. _variablecomponent-saveStartRoutine:
+Save Routine start value 
     Choose whether or not to save the experiment start value to your data file.
-
-Save routine start value : bool
-    Choose whether or not to save the routine start value to your data file.
-
-Save frame value : bool and drop=down menu
+    
+.. _variablecomponent-saveFrameValue:
+Save frame value 
     Frame values are contained within a list for each trial, and discarded at the end of each trial.
     Choose whether or not to take the first, last or average variable values from the frame container, and save to your data file.
-
-Save routine end value : bool
+    
+    Options:
+    
+    * first
+    
+    * last
+    
+    * all
+    
+    * never
+    
+.. _variablecomponent-saveEndRoutine:
+Save Routine end value 
     Choose whether or not to save the routine end value to your data file.
-
-Save exp end value : bool
+    
+.. _variablecomponent-saveEndExp:
+Save exp end value 
     Choose whether or not to save the experiment end value to your data file.
+    
+.. _variablecomponent-saveStartStop:
+Save onset/offset times 
+    Store the onset/offset times in the data file (as well as in the log file).
+    
+.. _variablecomponent-syncScreenRefresh:
+Sync timing with screen refresh 
+    Synchronize times with screen refresh (good for visual stimuli and responses based on them)
+    
+Testing
+===============================
+
+Tools for testing, debugging and checking the performance of this Component.
+
+
+.. _variablecomponent-disabled:
+Disable Component 
+    Disable this Component
+    

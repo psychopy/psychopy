@@ -15,7 +15,7 @@ These are optional components that can be obtained by installing the
 
 """
 
-from psychopy.tools.pkgtools import PluginStub
+from psychopy.plugins import PluginStub
 
 # Requires shaders if you don't have them it will just throw and error.
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
@@ -26,19 +26,7 @@ from psychopy.tools.pkgtools import PluginStub
 class NoiseStim(
     PluginStub,
     plugin="psychopy-visionscience",
-    doclink="https://psychopy.github.io/psychopy-visionscience/coder/NoiseStim/"
+    docsHome="https://psychopy.github.io/psychopy-visionscience",
+    docsRef="/coder/NoiseStim/"
 ):
-    pass
-
-
-
-class NoiseStim:
-    """
-    `psychopy.visual.NoiseStim` is now located within the `psychopy-visionscience` plugin. You
-    can find the documentation for it `here
-    <https://psychopy.github.io/psychopy-visionscience/coder/NoiseStim>`_
-    """
-
-
-if __name__ == "__main__":
     pass

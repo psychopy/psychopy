@@ -12,12 +12,22 @@ These are optional components that can be obtained by installing the
 
 """
 
-from psychopy.tools.pkgtools import PluginStub
+from psychopy.plugins import PluginStub
 
 
-class PR650(PluginStub, plugin="psychopy-photoresearch", doclink="https://psychopy.github.io/psychopy-photoresearch/coder/PR650"):
+class PR650(
+    PluginStub, 
+    plugin="psychopy-photoresearch", 
+    docsHome="https://psychopy.github.io/psychopy-photoresearch",
+    docsRef="/coder/PR650"
+):
     pass
 
 
-class PR655(PluginStub, plugin="psychopy-photoresearch", doclink="https://psychopy.github.io/psychopy-photoresearch/coder/PR655"):
+class PR655(
+    PluginStub, 
+    plugin="psychopy-photoresearch", 
+    docsHome="https://psychopy.github.io/psychopy-photoresearch",
+    docsRef="/coder/PR655"
+):
     pass

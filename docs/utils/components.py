@@ -70,16 +70,48 @@ def createFromTemplate(cls):
         comp = cls(exp=exp)
     else:
         raise TypeError(
-            "Component class must be either a Component or a StandaloneRoutine"
+            f"Component class must be either a Component or a StandaloneRoutine, not {cls}"
         )
     # get clean component title
     cls.title = stringtools.CaseSwitcher.pascal2title(cls.__name__)
-    # sort params by category
+    # get all params
     params = OrderedDict()
-    for param in comp.params.values():
+    categs = OrderedDict()
+    for ref, param in comp.params.items():
+        # make sure categ exists
         if param.categ not in params:
             params[param.categ] = []
+            # give categ a description if available
+            categs[param.categ] = ""
+            for srcFile in (__folder__ / "categHints").glob(param.categ + ".rst"):
+                categs[param.categ] = srcFile.read_text(encoding="utf-8")
+        # sort by category
         params[param.categ].append(param)
+        # store ref
+        param.ref = ref
+        # make sure allowedLabels/Vals is a list of strings
+        if callable(param.allowedLabels):
+            param.allowedLabels = []
+        if callable(param.allowedVals):
+            param.allowedVals = []
+        if not param.allowedLabels:
+            param.allowedLabels = param.allowedVals
+        # add dependency information
+        param.depends = ""
+        for depend in comp.depends:
+            if depend['param'] == param.ref and depend['true'] in ("enable", "show"):
+                param.depends = f"(*if :ref:`{cls.__name__.lower()}-{depend['dependsOn'].lower()}` {depend['condition']}*)"
+            if depend['param'] == param.ref and depend['true'] in ("disable", "hide"):
+                param.depends = f"(*if :ref:`{cls.__name__.lower()}-{depend['dependsOn'].lower()}` isn't {depend['condition']}*)"
+        # use templated hint if available
+        for srcFile in (__folder__ / "paramTemplates").glob(param.ref + ".rst"):
+            src = srcFile.read_text(encoding="utf-8")
+            paramTemplate = jinja2.Template(source=src)
+            param.hint = paramTemplate.render(
+                cls=cls,
+                comp=comp,
+                param=param
+            )
     # sort categories
     for categ in reversed(['Basic', 'Layout', 'Appearance', 'Formatting', 'Texture']):
         if categ in params:
@@ -87,12 +119,17 @@ def createFromTemplate(cls):
     for categ in ['Data', 'Custom', 'Hardware', 'Testing']:
         if categ in params:
             params.move_to_end(categ, last=True)
+    # sort params 
+    for categ in params:
+        params[categ].sort(key=lambda param : comp.order.index(param.ref) if param.ref in comp.order else 1000)
     # populate jinja template
     src = (__folder__ / "ComponentTemplate.rst").read_text(encoding="utf-8")
     template = jinja2.Template(source=src)
     content = template.render(
         cls=cls,
-        params=params
+        comp=comp,
+        params=params,
+        categs=categs
     )
     # save
     target = docsDir / f"{cls.__name__}.rst"

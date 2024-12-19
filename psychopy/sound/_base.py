@@ -227,6 +227,14 @@ class _SoundBase(AttributeGetSetMixin):
                 logging.exp("Set %s sound=%s" % (self.name, value), obj=self)
             self.status = NOT_STARTED
     
+    @attributeSetter
+    def sampleRate(self, sampleRate):
+        # if given None, use sample rate from speaker
+        if sampleRate is None and hasattr(self.speaker, "sampleRateHz"):
+            sampleRate = self.speaker.sampleRateHz
+        # set as normal
+        self.__dict__['sampleRate'] = sampleRate
+    
     # alias channels, stereo and isStereo for the sake of the different backends
 
     @attributeSetter

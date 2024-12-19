@@ -1,6 +1,7 @@
 """Test PsychoPy sound.py using pygame backend; will fail if have already used pyo
 """
 
+from pathlib import Path
 from psychopy import prefs, core, plugins
 prefs.hardware['audioLib'] = ['ptb', 'sounddevice']
 
@@ -8,6 +9,7 @@ import pytest
 import shutil
 from tempfile import mkdtemp
 from psychopy import sound #, microphone
+from psychopy.hardware import DeviceManager, speaker
 
 import numpy
 
@@ -16,52 +18,121 @@ import numpy
 from psychopy.tests.utils import TESTS_PATH, TESTS_DATA_PATH
 
 @pytest.mark.needs_sound
-class TesSounds:
-    @classmethod
+class TestSounds:
     def setup_class(self):
         self.contextName='ptb'
         self.tmp = mkdtemp(prefix='psychopy-tests-sound')
+        # create just one instance for each speaker
+        self.speakers = {}
+        for profile in DeviceManager.getAvailableDevices(
+            "psychopy.hardware.speaker.SpeakerDevice"
+        ):
+            self.speakers[profile['index']] = speaker.SpeakerDevice(profile['index'])
+        # if there's no devices, skip everything
+        if not len(self.speakers):
+            pytest.skip()
 
-    @classmethod
     def teardown_class(self):
+        for i, spk in self.speakers.items():
+            spk.close()
+        # delete temp dir
         if hasattr(self, 'tmp'):
             shutil.rmtree(self.tmp, ignore_errors=True)
 
-    def test_init(self):
-        for note in ['A', 440, '440', [1,2,3,4], numpy.array([1,2,3,4])]:
-            sound.Sound(note, secs=.1)
-        with pytest.raises(ValueError):
-            sound.Sound('this is not a file name')
-        with pytest.raises(ValueError):
-            sound.Sound(-1)
-        with pytest.raises(ValueError):
-            sound.Sound(440, secs=-1)
-        with pytest.raises(ValueError):
-            sound.Sound(440, secs=0)
-        with pytest.raises(DeprecationWarning):
-            sound.setaudioLib('foo')
+    def test_playback(self):
+        """
+        Check that Sound can be initialised with a variety of values
+        """
+        # check values which should work
+        cases = [
+            # default stim
+            "default.mp3",
+            "default.wav",
+            # extant file
+            Path(TESTS_DATA_PATH) / "Electronic_Chime-KevanGC-495939803.wav",
+            # notes
+            "A",
+            440,
+            '440', 
+            [1,2,3,4], 
+            numpy.array([1,2,3,4]),
+        ]
+        # try on every speaker
+        for i, spk in self.speakers.items():
+            for case in cases:
+                snd = sound.Sound(
+                    value=case,
+                    secs=0.1,
+                    speaker=spk,
+                )
+                snd.play()
+                snd.stop()
+    
+    def test_error(self):
+        """
+        Check that various invalid values raise the correct error
+        """
+        # check values which should error
+        cases = [
+            {'val': "'this is not a file name'", 'secs': .1, 'err': ValueError},
+            {'val': "-1", 'secs': .1, 'err': ValueError},
+        ]
+        # try on every speaker
+        for i, spk in self.speakers.items():
+            for case in cases:
+                with pytest.raises(case['err']):
+                    snd = sound.Sound(
+                        value=case['val'],
+                        secs=0.1,
+                        speaker=spk,
+                    )
+    
+    def test_sample_rate_mismatch(self):
+        """
+        Check that Sound can handle a mismatch of sample rates between a file and a speaker
+        """
+        # specify some common sample rates
+        sampleRates = (
+            8000,
+            16000,
+            22050,
+            32000,
+            44100,
+            48000,
+            96000,
+            192000,
+        )
+        # iterate through speakers
+        for i, spk in self.speakers.items():
+            for sr in sampleRates:
+                # try to play sound on speaker
+                try:
+                    snd = sound.Sound(
+                        value=Path(TESTS_DATA_PATH) / "test_sounds" / f"default_{sr}.wav",
+                        speaker=spk,
+                        secs=-1,
+                    )
+                    snd.play()
+                except Exception as err:
+                    # include sample rate of sound and speaker in error message
+                    raise ValueError(
+                        f"Failed to play sound at sample rate {sr} on speaker {i} (sample rate "
+                        f"{spk.sampleRateHz}), original error: {err}"
+                    )
+                # doesn't need to *actually* play, just check that it doesn't error
+                snd.stop()
 
-        points = 100
-        snd = numpy.ones(points) / 20
-
-        #testFile = os.path.join(self.tmp, 'green_48000.wav')
-        #r, d = wavfile.read(testFile)
-        #assert r == 48000
-        #assert len(d) == 92160
-        #s = sound.Sound(testFile)
-
-    def test_play(self):
-        s = sound.Sound(secs=0.1)
-        s.play()
-        core.wait(s.getDuration()+.1)  # allows coverage of _onEOS
-        s.play(loops=1)
-        core.wait(s.getDuration()*2+.1)
-        s.play(loops=-1)
-        s.stop()
-
-    def test_methods(self):
-        s = sound.Sound(secs=0.1)
-        v = s.getVolume()
-        assert v == 1
-        assert s.setVolume(0.5) == 0.5
-        #assert s.setLoops(2) == 2
+    def test_volume(self):
+        """
+        Test that Sound can handle setting/getting its volume
+        """
+        # make a basic sound
+        s = sound.Sound(value="A", secs=0.1)
+        # set volume
+        s.setVolume(1)
+        # check it
+        assert s.getVolume() == 1
+        # set to a different value
+        s.setVolume(0.5)
+        # check it
+        assert s.getVolume() == 0.5

@@ -1,0 +1,1 @@
+If you are using frames to control timing of your stimuli, you can add an expected start time to display the component timeline in the routine.
