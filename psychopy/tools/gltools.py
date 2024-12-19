@@ -337,9 +337,9 @@ class OpenGLInfo:
 
     """
     __slots__ = [
-        'vendor', 'renderer', 'version', 'majorVersion', 'minorVersion',
-        'shaderVersion', 'doubleBuffer', 'maxTextureSize', 'maxTextureUnits', 
-        'stereo', 'maxSamples', 'extensions']
+        'vendor', 'renderer', 'version', 'shaderVersion', 'doubleBuffer', 
+        'maxTextureSize', 'maxTextureUnits', 'stereo', 'maxSamples', 
+        'extensions']
 
     # singleton
     _instance = None
