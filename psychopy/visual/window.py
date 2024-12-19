@@ -7,9 +7,6 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-
-
-
 import ctypes
 import os
 import sys
@@ -31,7 +28,7 @@ from ..colors import Color, colorSpaces
 from .textbox2 import TextBox2
 
 import pyglet
-USE_LEGACY_GL = pyglet.version < '2.0'
+
 
 haveAvbin = False
 
@@ -157,6 +154,7 @@ class Window():
     project (we won't be fixing pygame-specific bugs).
 
     """
+    USE_LEGACY_GL = pyglet.version < '2.0'
     def __init__(self,
                  size=(800, 600),
                  pos=None,
@@ -406,16 +404,6 @@ class Window():
         self.dkl_rgb = self.monitor.getDKL_RGB()
         self.lms_rgb = self.monitor.getLMS_RGB()
 
-        # Projection and view matrices, these can be lists if multiple views are
-        # being used.
-        # NB - attribute checks needed for Rift compatibility
-        if not hasattr(self, '_viewMatrix'):
-            self._viewMatrix = numpy.identity(4, dtype=numpy.float32)
-
-        if not hasattr(self, '_projectionMatrix'):
-            self._projectionMatrix = viewtools.orthoProjectionMatrix(
-                -1, 1, -1, 1, -1, 1, dtype=numpy.float32)
-
         # set screen color
         self.__dict__['colorSpace'] = colorSpace
         if rgb is not None:
@@ -628,6 +616,15 @@ class Window():
         self._showSplash = False
         self.resetViewport()  # set viewport to full window size
 
+        # transformation 
+        self._projectionMatrix = numpy.identity(4, dtype=numpy.float32)
+        self._viewMatrix = numpy.identity(4, dtype=numpy.float32) 
+
+        self._projectionMatrixNeedsUpdate = True
+        self._viewMatrixNeedsUpdate = True
+
+        self.setOrthographicView()
+
         # piloting indicator
         self._pilotingIndicator = None
         self._showPilotingIndicator = False
@@ -665,11 +662,6 @@ class Window():
         self.backgroundFit = backgroundFit
         if hasattr(self.backgroundImage, "draw"):
             self.backgroundImage.draw()
-
-        self._projectionMatrix = None  # set later
-        self._viewMatrix = None  # set later
-
-        self.setOrthographicView()
 
     def __del__(self):
         if self._closed is False:
@@ -756,10 +748,86 @@ class Window():
         viewPos_norm = viewPos_pix / (self.size / 2.0)
         # Clip to +/- 1; should going out-of-window raise an exception?
         viewPos_norm = numpy.clip(viewPos_norm, a_min=-1., a_max=1.)
+        self._viewMatrixNeedsUpdate = True
         self.__dict__['_viewPosNorm'] = viewPos_norm
 
     def setViewPos(self, value, log=True):
         setAttribute(self, 'viewPos', value, log=log)
+
+    @attributeSetter
+    def viewOri(self, value):
+        """Set the rotation of the view in degrees.
+
+        The rotation is applied around the origin of the window, which is
+        defined by the viewPos attribute. The rotation is applied after scaling
+        but before translation.
+
+        """
+        self.__dict__['viewOri'] = value
+        self._viewMatrixNeedsUpdate = True
+
+    def setViewOri(self, value, log=True):
+        setAttribute(self, 'viewOri', value, log=log)
+
+    @attributeSetter
+    def viewScale(self, value):
+        """Set the scale factors for the view.
+
+        The scaling is applied around the origin of the window, which is defined
+        by the viewPos attribute. The scaling is applied before translation and
+        rotation.
+
+        """
+        self.__dict__['viewScale'] = value
+        self._viewMatrixNeedsUpdate = True
+
+    def setViewScale(self, value, log=True):
+        setAttribute(self, 'viewScale', value, log=log)
+
+    def _updateViewMatrix(self):
+        """Update the default orthographic view matrix based on the current 
+        window settings.
+        """
+        if self._viewMatrixNeedsUpdate:
+            if self.viewScale is None:
+                sx, sy = [1.0, 1.0]
+            else:
+                sx, sy = self.viewScale
+
+            if self.viewOri is None:
+                viewOri = 0.0
+            else:
+                viewOri = self.viewOri
+
+            if self.viewPos is None:
+                tx, ty = [0.0, 0.0]
+            else:
+                tx, ty = self.viewPos
+
+            scaleMatrix = mathtools.scaleMatrix([sx, sy, 1.0])
+            rotateMatrix = mathtools.rotationMatrix(viewOri, axis='-z')
+            translateMatrix = mathtools.translationMatrix([tx, ty, 0.0])
+
+            # compute SRT matrix
+            self._viewMatrix[:, :] = mathtools.multMatrix([
+                translateMatrix, 
+                rotateMatrix, 
+                scaleMatrix])
+            self._viewMatrixNeedsUpdate = False
+
+    def _updateProjectionMatrix(self):
+        """Update the default projection matrix based on the current window 
+        settings.
+        """
+        if self._projectionMatrixNeedsUpdate:
+            widthOver2 = self.size[0] / 2.0
+            heightOver2 = self.size[1] / 2.0
+            self._projectionMatrix[:, :] = viewtools.orthoProjectionMatrix(
+                -widthOver2, widthOver2,    # -X, +X
+                -heightOver2, heightOver2,  # -Y, +Y
+                -1.0, 1.0,                  # -Z, +Z
+                dtype=numpy.float32)
+            self._projectionMatrixNeedsUpdate = False
 
     @property
     def fullscr(self):
@@ -1216,7 +1284,7 @@ class Window():
 
             # clear the projection and modelview matrix for FBO blit
             # DEPRECATED: these are all removed from OpenGL 3.1
-            if USE_LEGACY_GL:
+            if self.USE_LEGACY_GL:
                 GL.glMatrixMode(GL.GL_PROJECTION)
                 GL.glLoadIdentity()
                 GL.glOrtho(-1, 1, -1, 1, -1, 1)
@@ -1269,7 +1337,7 @@ class Window():
             GL.glActiveTexture(GL.GL_TEXTURE0)
             GL.glEnable(GL.GL_TEXTURE_2D)
             GL.glBindTexture(GL.GL_TEXTURE_2D, self.frameTexture)
-            if USE_LEGACY_GL:
+            if self.USE_LEGACY_GL:
                 GL.glColor3f(1.0, 1.0, 1.0)  # glColor multiplies with texture
 
             GL.glColorMask(True, True, True, True)
@@ -1298,13 +1366,13 @@ class Window():
 
         # rescale, reposition, & rotate
         # DEPRECATED: these are all removed from OpenGL 3.1
-        if USE_LEGACY_GL:
+        if self.USE_LEGACY_GL:
             GL.glMatrixMode(GL.GL_MODELVIEW)
             GL.glLoadIdentity()
 
         if self.viewScale is not None:
             # DEPRECATED: these are all removed from OpenGL 3.1
-            if USE_LEGACY_GL:
+            if self.USE_LEGACY_GL:
                 GL.glScalef(self.viewScale[0], self.viewScale[1], 1)
 
             absScaleX = abs(self.viewScale[0])
@@ -1319,7 +1387,7 @@ class Window():
             normRfPosY = self._viewPosNorm[1] / absScaleY
 
             # DEPRECATED: these are all removed from OpenGL 3.1
-            if USE_LEGACY_GL:
+            if self.USE_LEGACY_GL:
                 GL.glTranslatef(normRfPosX, normRfPosY, 0.0)
 
         if self.viewOri:  # float
@@ -1331,7 +1399,7 @@ class Window():
                 if _f < 0:
                     flip = -1
             # DEPERECATED: these are all removed from OpenGL 3.1
-            if USE_LEGACY_GL:
+            if self.USE_LEGACY_GL:
                 GL.glRotatef(flip * self.viewOri, 0.0, 0.0, -1.0)
 
         # reset returned buffer for next frame
@@ -1340,7 +1408,7 @@ class Window():
         # waitBlanking
         if self.waitBlanking and flipThisFrame:
             # DEPRECATED: these are all removed from OpenGL 3.1
-            if USE_LEGACY_GL:
+            if self.USE_LEGACY_GL:
                 GL.glBegin(GL.GL_POINTS)
                 GL.glColor4f(0, 0, 0, 0)
                 if sys.platform == 'win32' and self.glVendor.startswith('ati'):
@@ -2224,18 +2292,8 @@ class Window():
             Clear the depth buffer.
 
         """
-        widthOver2 = self.size[0] / 2.0
-        heightOver2 = self.size[1] / 2.0
-
-        self._projectionMatrix = viewtools.orthoProjectionMatrix(
-            -widthOver2, widthOver2,    # -X, +X
-            -heightOver2, heightOver2,  # -Y, +Y
-            -1.0, 1.0,                  # -Z, +Z
-            dtype=numpy.float32)
-
-        # reset view matrix to identity
-        self._viewMatrix = mathtools.identityMatrix(4, dtype=numpy.float32)
-        self._viewMatrix[0, 3] = -self._eyeOffset
+        self._updateProjectionMatrix()
+        self._updateViewMatrix()
 
         if applyTransform:
             self.applyEyeTransform(clearDepth=clearDepth)
@@ -2270,7 +2328,7 @@ class Window():
             # draw 3D objects here ...
 
         """
-        if USE_LEGACY_GL:
+        if self.USE_LEGACY_GL:
             # apply the projection and view transformations
             GL.glMatrixMode(GL.GL_PROJECTION)
             GL.glLoadIdentity()
@@ -2325,7 +2383,7 @@ class Window():
         """
         self.setOrthographicView(clearDepth)
 
-        if USE_LEGACY_GL:
+        if self.USE_LEGACY_GL:
             self.applyEyeTransform(clearDepth)
 
     def coordToRay(self, screenXY):
@@ -3220,7 +3278,7 @@ class Window():
             thisScale = numpy.array([lw, lw] / self.size * retinaScale / 38.0)
         # actually set the scale as appropriate
         # allows undoing of a previous scaling procedure
-        if USE_LEGACY_GL:
+        if self.USE_LEGACY_GL:
             thisScale = thisScale / numpy.asarray(prevScale)
             GL.glScalef(thisScale[0], thisScale[1], 1.0)
 
@@ -3250,7 +3308,7 @@ class Window():
         self.stencilTest = False
         self.depthTest = False
 
-        if USE_LEGACY_GL:
+        if self.USE_LEGACY_GL:
             GL.glMatrixMode(GL.GL_PROJECTION)  # Reset the projection matrix
             GL.glLoadIdentity()
             GL.gluOrtho2D(-1, 1, -1, 1)

@@ -185,19 +185,22 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
 
         if USE_LEGACY_GL:
             GL.glPushMatrix()  
-            # projectionMatrix = gt.getProjectionMatrix()
-            # modelViewMatrix = gt.getModelViewMatrix()
             GL.glColor4f(*self._foreColor.render('rgba1'))
-        # else:
-        #     projectionMatrix = win._projectionMatrix
-        #     modelViewMatrix = win._viewMatrix
 
         # set the shader uniforms
         gt.setUniformSampler2D(_prog, b'uTexture', 0)  # is texture unit 0
         gt.setUniformSampler2D(_prog, b'uMask', 1)  # mask is texture unit 1
         gt.setUniformValue(_prog, b'uColor', self._foreColor.render('rgba1'))
-        gt.setUniformMatrix(_prog, b'uProjectionMatrix', win._projectionMatrix)
-        gt.setUniformMatrix(_prog, b'uModelViewMatrix', win._viewMatrix)
+        gt.setUniformMatrix(
+            _prog, 
+            b'uProjectionMatrix', 
+            win._projectionMatrix,
+            transpose=True)
+        gt.setUniformMatrix(
+            _prog, 
+            b'uModelViewMatrix', 
+            win._viewMatrix,
+            transpose=True)
 
         # draw the image
         gt.drawClientArrays({

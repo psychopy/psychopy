@@ -539,9 +539,15 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
             gt.setUniformValue(_prog, 'uColor', self._foreColor.render('rgba1'))
             gt.setUniformMatrix(
-                _prog, 'uModelViewMatrix', modelViewMatrix)
+                _prog, 
+                b'uModelViewMatrix', 
+                modelViewMatrix,
+                transpose=True)
             gt.setUniformMatrix(
-                _prog, 'uProjectionMatrix', projectionMatrix)
+                _prog, 
+                b'uProjectionMatrix', 
+                projectionMatrix,
+                transpose=True)
             gt.drawClientArrays(
                 {'gl_Vertex': self.verticesPix},
                 'GL_POINTS')

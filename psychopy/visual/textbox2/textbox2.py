@@ -1278,22 +1278,10 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
         self.win.setScale('pix')
         self.win.setOrthographicView()
 
-        if USE_LEGACY_GL:
-            gl.glPushMatrix()
-
         gl.glActiveTexture(gl.GL_TEXTURE0)
         gl.glBindTexture(gl.GL_TEXTURE_2D, self.glFont.textureID)
         gl.glEnable(gl.GL_TEXTURE_2D)
         gl.glDisable(gl.GL_DEPTH_TEST)
-
-        if USE_LEGACY_GL:
-            # gl.glPushMatrix()  # push before the list, pop after
-            projectionMatrix = gt.getProjectionMatrix()
-            modelViewMatrix = gt.getModelViewMatrix()
-            gl.glColor4f(*self._foreColor.render('rgba1'))
-        else:
-            modelViewMatrix = self.win._viewMatrix
-            projectionMatrix = self.win._projectionMatrix
 
         prog = self.shader.handle
         gt.useProgram(prog)
@@ -1302,11 +1290,13 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
         gt.setUniformMatrix(
             prog, 
             b'uModelViewMatrix', 
-            modelViewMatrix)
+            self.win._viewMatrix,
+            transpose=True)
         gt.setUniformMatrix(
             prog, 
             b'uProjectionMatrix', 
-            projectionMatrix)
+            self.win._projectionMatrix,
+            transpose=True)
 
         gt.drawClientArrays({
             'gl_Vertex': self.verticesPix,
@@ -1322,9 +1312,6 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
 
         if self.hasFocus:  # draw caret line
             self.caret.draw()
-
-        if USE_LEGACY_GL:
-            gl.glPopMatrix()
 
         # Draw placeholder if blank
         if self.editable and len(self.text) == 0:
@@ -1699,8 +1686,15 @@ class Caret(ColorMixin):
         gt.setLineWidth(self.width)
         gt.setUniformValue(prog, 'uColor', self._foreColor.rgba1)
         gt.setUniformMatrix(
-            prog, 'uProjectionMatrix', self.win.projectionMatrix)
-        gt.setUniformMatrix(prog, 'uModelViewMatrix', self.win.viewMatrix)
+            prog, 
+            b'uProjectionMatrix', 
+            self.win.projectionMatrix,
+            transpose=True)
+        gt.setUniformMatrix(
+            prog, 
+            b'uModelViewMatrix', 
+            self.win.viewMatrix,
+            transpose=True)
         gt.drawClientArrays({
             'gl_Vertex': self.vertices}, 'lines')
         gt.useProgram(None)

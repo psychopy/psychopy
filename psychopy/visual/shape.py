@@ -349,12 +349,6 @@ class BaseShapeStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
         if USE_LEGACY_GL:
             GL.glPushMatrix()  # push before the list, pop after
-            projectionMatrix = gt.getProjectionMatrix()
-            modelViewMatrix = gt.getModelViewMatrix()
-            # GL.glColor4f(*self._fillColor.render('rgba1'))
-        else:
-            projectionMatrix = win._projectionMatrix
-            modelViewMatrix = win._viewMatrix
 
         # bind shader program
         _prog = self.win._progSignedFrag
@@ -369,8 +363,13 @@ class BaseShapeStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             gt.setUniformMatrix(
                 _prog, 
                 b'uProjectionMatrix',
-                projectionMatrix)
-            gt.setUniformMatrix(_prog, b'uModelViewMatrix', modelViewMatrix)
+                win._projectionMatrix,
+                transpose=True)
+            gt.setUniformMatrix(
+                _prog, 
+                b'uModelViewMatrix',
+                win._viewMatrix,
+                transpose=True)
             gt.drawClientArrays(
                 {'gl_Vertex': self.verticesPix},
                 'GL_QUADS')
@@ -382,8 +381,16 @@ class BaseShapeStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             if self.opacity is not None:
                 borderRGBA[-1] = self.opacity  # override opacity
             gt.setUniformValue(_prog, b'uColor', borderRGBA)
-            gt.setUniformMatrix(_prog, b'uProjectionMatrix', projectionMatrix)
-            gt.setUniformMatrix(_prog, b'uModelViewMatrix', modelViewMatrix)
+            gt.setUniformMatrix(
+                _prog, 
+                b'uProjectionMatrix', 
+                win._projectionMatrix,
+                transpose=True)
+            gt.setUniformMatrix(
+                _prog, 
+                b'uModelViewMatrix', 
+                win._viewMatrix,
+                transpose=True)
             gt.drawClientArrays(
                 {'gl_Vertex': self.verticesPix},
                 'GL_LINE_LOOP' if self.closeShape else 'GL_LINE_STRIP')
@@ -667,23 +674,22 @@ class ShapeStim(BaseShapeStim):
             gt.disable('GL_LINE_SMOOTH')
             gt.disable('GL_MULTISAMPLE')
 
-        if USE_LEGACY_GL:
-            GL.glPushMatrix()  # push before the list, pop after
-            projectionMatrix = gt.getProjectionMatrix()
-            modelViewMatrix = gt.getModelViewMatrix()
-            # GL.glColor4f(*self._fillColor.render('rgba1'))
-        else:
-            projectionMatrix = win._projectionMatrix
-            modelViewMatrix = win._viewMatrix
-
         # fill interior triangles if there are any
         if (self.closeShape and
                 self.verticesPix.shape[0] > 2 and
                 self._fillColor != None):
             gt.setUniformValue(
                 _prog, b'uColor', self._fillColor.render('rgba1'))
-            gt.setUniformMatrix(_prog, b'uProjectionMatrix', projectionMatrix)
-            gt.setUniformMatrix(_prog, b'uModelViewMatrix', modelViewMatrix)
+            gt.setUniformMatrix(
+                _prog, 
+                b'uProjectionMatrix', 
+                win._projectionMatrix, 
+                transpose=True)
+            gt.setUniformMatrix(
+                _prog, 
+                b'uModelViewMatrix', 
+                win._viewMatrix, 
+                transpose=True)
             gt.drawClientArrays(
                 {'gl_Vertex': self.verticesPix},
                 'GL_TRIANGLES')
@@ -693,13 +699,18 @@ class ShapeStim(BaseShapeStim):
             GL.glLineWidth(self.lineWidth)
             gt.setUniformValue(
                 _prog, b'uColor', self._borderColor.render('rgba1'))
-            gt.setUniformMatrix(_prog, b'uProjectionMatrix',projectionMatrix)
-            gt.setUniformMatrix(_prog, b'uModelViewMatrix', modelViewMatrix)
+            gt.setUniformMatrix(
+                _prog, 
+                b'uProjectionMatrix', 
+                win._projectionMatrix, 
+                transpose=True)
+            gt.setUniformMatrix(
+                _prog, 
+                b'uModelViewMatrix', 
+                win._viewMatrix, 
+                transpose=True)
             gt.drawClientArrays(
                 {'gl_Vertex': self._borderPix},
                 'GL_LINE_LOOP' if self.closeShape else 'GL_LINE_STRIP')
 
         gt.useProgram(None)
-
-        if USE_LEGACY_GL:
-            GL.glPopMatrix()

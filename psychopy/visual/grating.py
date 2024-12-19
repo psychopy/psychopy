@@ -448,12 +448,12 @@ class GratingStim(BaseVisualStim, DraggingMixin, TextureMixin, ColorMixin,
             _prog, 
             b'uProjectionMatrix', 
             projectionMatrix,
-            ignoreNotDefined=True)
+            transpose=True)
         gt.setUniformMatrix(
             _prog, 
             b'uModelViewMatrix', 
             modelViewMatrix,
-            ignoreNotDefined=True)
+            transpose=True)
 
         gt.drawClientArrays({
             'gl_Vertex': self.verticesPix,

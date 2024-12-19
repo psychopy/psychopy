@@ -37,6 +37,8 @@ from . import globalVars
 
 import numpy
 
+USE_LEGACY_GL = pyglet.version < '2.0'
+
 
 class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
     """This stimulus class defines a field of elements whose behaviour can
@@ -510,6 +512,10 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
             win = self.win
         self._selectWindow(win)
 
+        # scale the drawing frame and get to centre of field
+        win.setOrthographicView()
+        win.setScale('pix')
+
         if self._needVertexUpdate:
             self._updateVertices()
         if self._needColorUpdate:
@@ -517,9 +523,13 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
         if self._needTexCoordUpdate:
             self.updateTextureCoords()
 
-        # scale the drawing frame and get to centre of field
-        win.setOrthographicView()
-        win.setScale('pix')
+        if USE_LEGACY_GL:
+            # scale the drawing frame and get to centre of field
+            GL.glPushMatrix()  # push before drawing, pop after
+            # push the data for client attributes
+            GL.glPushClientAttrib(GL.GL_CLIENT_ALL_ATTRIB_BITS)
+
+        GL.glEnable(GL.GL_BLEND)
 
         # setup the shaderprogram
         _prog = self.win._progSignedTexMask
@@ -532,11 +542,23 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
         GL.glEnable(GL.GL_TEXTURE_2D)
 
-        gt.setUniformValue(_prog, b'uTexture', 0, 'int')
-        gt.setUniformValue(_prog, b'uMask', 1, 'int')
+        gt.setUniformSampler2D(_prog, b'uTexture', 0)
+        gt.setUniformSampler2D(_prog, b'uMask', 1)
         gt.setUniformValue(_prog, b'uColor', [1., 1., 1., 1.])
-        gt.setUniformMatrix(_prog, b'uProjectionMatrix', win.projectionMatrix)
-        gt.setUniformMatrix(_prog, b'uModelViewMatrix', win.viewMatrix)
+
+        if USE_LEGACY_GL:
+            GL.glPushMatrix()  # push before the list, pop after
+
+        gt.setUniformMatrix(
+            _prog, 
+            b'uProjectionMatrix', 
+            win._projectionMatrix,
+            transpose=True)
+        gt.setUniformMatrix(
+            _prog, 
+            b'uModelViewMatrix', 
+            win._viewMatrix,
+            transpose=True)
 
         verticesPix = self.verticesPix.reshape(-1, 3)
         RGBAs = self._RGBAs.reshape(-1, 4)
@@ -558,6 +580,12 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
         GL.glDisable(GL.GL_TEXTURE_2D)
+
+        GL.glDisable(GL.GL_BLEND)
+
+        if USE_LEGACY_GL:
+            GL.glPopClientAttrib()
+            GL.glPopMatrix()
 
     def _updateVertices(self):
         """Sets Stim.verticesPix from fieldPos.
