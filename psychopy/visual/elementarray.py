@@ -545,6 +545,9 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
         gt.setUniformSampler2D(_prog, b'uTexture', 0)
         gt.setUniformSampler2D(_prog, b'uMask', 1)
         gt.setUniformValue(_prog, b'uColor', [1., 1., 1., 1.])
+        alphaThreshold = getattr(self, 'alphaThreshold', 1.0)
+        gt.setUniformValue(
+            _prog, b'uAlphaThreshold', alphaThreshold, ignoreNotDefined=True)
 
         if USE_LEGACY_GL:
             GL.glPushMatrix()  # push before the list, pop after

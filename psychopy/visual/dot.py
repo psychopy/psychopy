@@ -537,7 +537,13 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
                 projectionMatrix = win._projectionMatrix
                 modelViewMatrix = win._viewMatrix
 
-            gt.setUniformValue(_prog, 'uColor', self._foreColor.render('rgba1'))
+            gt.setUniformValue(
+                _prog, 
+                b'uColor', 
+                self._foreColor.render('rgba1'))
+            alphaThreshold = getattr(self, 'alphaThreshold', 1.0)
+            gt.setUniformValue(
+                _prog, b'uAlphaThreshold', alphaThreshold, ignoreNotDefined=True)
             gt.setUniformMatrix(
                 _prog, 
                 b'uModelViewMatrix', 

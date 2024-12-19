@@ -539,8 +539,10 @@ class Window():
         # gl viewport and scissor
         self._viewport = self._scissor = None  # set later
 
-        self._fboVerts = numpy.array([[-1, -1], [-1, 1], [1, 1], [1, -1]])
-        self._fboTexCoords = numpy.array([[0, 0], [0, 1], [1, 1], [1, 0]])
+        self._fboVerts = numpy.ascontiguousarray(
+            [[-1, -1], [-1, 1], [1, 1], [1, -1]], dtype=numpy.float32)
+        self._fboTexCoords = numpy.ascontiguousarray(
+            [[0, 0], [0, 1], [1, 1], [1, 0]], dtype=numpy.float32)
 
         # scene light sources
         self._lights = []
@@ -1369,37 +1371,33 @@ class Window():
         if self.USE_LEGACY_GL:
             GL.glMatrixMode(GL.GL_MODELVIEW)
             GL.glLoadIdentity()
-
-        if self.viewScale is not None:
-            # DEPRECATED: these are all removed from OpenGL 3.1
-            if self.USE_LEGACY_GL:
+            if self.viewScale is not None:
+                # DEPRECATED: these are all removed from OpenGL 3.1
                 GL.glScalef(self.viewScale[0], self.viewScale[1], 1)
 
-            absScaleX = abs(self.viewScale[0])
-            absScaleY = abs(self.viewScale[1])
-        else:
-            absScaleX, absScaleY = 1, 1
+                absScaleX = abs(self.viewScale[0])
+                absScaleY = abs(self.viewScale[1])
+            else:
+                absScaleX, absScaleY = 1, 1
 
-        if self.viewPos is not None:
-            # here we must use normalised units in _viewPosNorm,
-            # see the corresponding attributeSetter above
-            normRfPosX = self._viewPosNorm[0] / absScaleX
-            normRfPosY = self._viewPosNorm[1] / absScaleY
+            if self.viewPos is not None:
+                # here we must use normalised units in _viewPosNorm,
+                # see the corresponding attributeSetter above
+                normRfPosX = self._viewPosNorm[0] / absScaleX
+                normRfPosY = self._viewPosNorm[1] / absScaleY
 
-            # DEPRECATED: these are all removed from OpenGL 3.1
-            if self.USE_LEGACY_GL:
+                # DEPRECATED: these are all removed from OpenGL 3.1
                 GL.glTranslatef(normRfPosX, normRfPosY, 0.0)
 
-        if self.viewOri:  # float
-            # the logic below for flip is partially correct, but does not
-            # handle a nonzero viewPos
-            flip = 1
-            if self.viewScale is not None:
-                _f = self.viewScale[0] * self.viewScale[1]
-                if _f < 0:
-                    flip = -1
-            # DEPERECATED: these are all removed from OpenGL 3.1
-            if self.USE_LEGACY_GL:
+            if self.viewOri:  # float
+                # the logic below for flip is partially correct, but does not
+                # handle a nonzero viewPos
+                flip = 1
+                if self.viewScale is not None:
+                    _f = self.viewScale[0] * self.viewScale[1]
+                    if _f < 0:
+                        flip = -1
+                # DEPERECATED: these are all removed from OpenGL 3.1
                 GL.glRotatef(flip * self.viewOri, 0.0, 0.0, -1.0)
 
         # reset returned buffer for next frame
@@ -3354,9 +3352,9 @@ class Window():
 
     def _setupShaders(self):
         self._progSignedTexFont = _shaders.compileProgram(
-            _shaders.vertSimple, _shaders.fragSignedColorTexFont)
+            _shaders.vertSimpleText, _shaders.fragSignedColorTexFont)
         self._progFBOtoFrame = _shaders.compileProgram(
-            _shaders.vertSimple, _shaders.fragFBOtoFrame)
+            _shaders.vertSimpleFBO, _shaders.fragFBOtoFrame)
         self._shaders = {}
         self._shaders['signedColor'] = _shaders.compileProgram(
             _shaders.vertSimple, _shaders.fragSignedColor)
@@ -3819,6 +3817,7 @@ class Window():
 
         (in this case a copy operation without any warping)
         """
+        gltools.setUniformSampler2D(self._progFBOtoFrame, b'texture', 0)
         gltools.drawClientArrays({
             'gl_Vertex': self._fboVerts, 
             'gl_MultiTexCoord0': self._fboTexCoords}, 

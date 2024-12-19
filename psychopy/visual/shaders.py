@@ -208,13 +208,23 @@ fragSignedColorTex_adding = """
     }
     """
 # the shader for pyglet fonts doesn't use multitextures - just one texture
+# fragSignedColorTexFont = """
+#     uniform vec4 uColor;
+#     uniform sampler2D uTexture;
+#     void main() {
+#         vec4 textureFrag = texture2D(uTexture, gl_TexCoord[0].st);
+#         gl_FragColor.rgb = uColor.rgb * gl_Color.rgb;
+#         gl_FragColor.a = textureFrag.a * gl_Color.a;
+#     }
+# """
+
 fragSignedColorTexFont = """
-    uniform vec4 uColor;
-    uniform sampler2D uTexture;
+    uniform sampler2D texture;
+    uniform vec3 rgb;
     void main() {
-        vec4 textureFrag = texture2D(uTexture, gl_TexCoord[0].st);
-        gl_FragColor.rgb = uColor.rgb * gl_Color.rgb;
-        gl_FragColor.a = textureFrag.a * gl_Color.a;
+        vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);
+        gl_FragColor.rgb=rgb;
+        gl_FragColor.a = gl_Color.a*textureFrag.a;
     }
 """
 
@@ -288,16 +298,17 @@ fragImageStim_adding = """
         gl_FragColor.rgb = (textureFrag.rgb * 2.0 - 1.0) * (uColor.rgb * 2.0 - 1.0) / 2.0;
     }
     """
-# in every case our vertex shader is simple (we don't transform coords)
-# vertSimple = """
-#     void main() {
-#             gl_FrontColor = gl_Color;
-#             gl_TexCoord[0] = gl_MultiTexCoord0;
-#             gl_TexCoord[1] = gl_MultiTexCoord1;
-#             gl_TexCoord[2] = gl_MultiTexCoord2;
-#             gl_Position =  ftransform();
-#     }
-#     """
+
+# legacy vertex shader for pyglet text rendering and FBO blit
+vertSimpleText = vertSimpleFBO = """
+    void main() {
+            gl_FrontColor = gl_Color;
+            gl_TexCoord[0] = gl_MultiTexCoord0;
+            gl_TexCoord[1] = gl_MultiTexCoord1;
+            gl_TexCoord[2] = gl_MultiTexCoord2;
+            gl_Position =  ftransform();
+    }
+    """
 
 vertSimple = """
     uniform vec4 uColor;

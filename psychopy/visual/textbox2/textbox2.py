@@ -1287,6 +1287,9 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
         gt.useProgram(prog)
         gt.setUniformSampler2D(prog, b'uTexture', 0)
         gt.setUniformValue(prog, b'uColor', self._foreColor.render('rgba1'))
+        alphaThreshold = getattr(self, 'alphaThreshold', 1.0)
+        gt.setUniformValue(
+            prog, b'uAlphaThreshold', alphaThreshold, ignoreNotDefined=True)
         gt.setUniformMatrix(
             prog, 
             b'uModelViewMatrix', 

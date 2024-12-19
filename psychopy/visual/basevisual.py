@@ -1357,18 +1357,6 @@ class TextureMixin:
         """
         self.__dict__['interpolate'] = value
 
-    @attributeSetter
-    def alphaThreshold(self, value):
-        """Threshold for alpha values.
-
-        If the alpha value of a pixel is below this threshold, the pixel will
-        be rejected (not drawn). This can be useful for creating a mask from
-        an image with an alpha channel. The default value is -1.0, which means
-        that no thresholding will be applied.
-
-        """
-        self.__dict__['alphaThreshold'] = value
-
 
 class WindowMixin:
     """Window-related attributes and methods.
@@ -2017,3 +2005,22 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
         # For DotStim
         if attrib in ('nDots', 'coherence'):
             self.coherence = round(self.coherence * self.nDots) / self.nDots
+
+    @attributeSetter
+    def alphaThreshold(self, value):
+        """Threshold for alpha values.
+
+        If the alpha value of a pixel is below this threshold, the pixel will
+        be rejected (not drawn). This can be useful for creating a mask from
+        an image with an alpha channel. The default value is 0.0, which means
+        that no thresholding will be applied.
+
+        """
+        self.__dict__['alphaThreshold'] = value
+    
+    def setAlphaThreshold(self, value, log=None):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message.
+        """
+        setAttribute(self, 'alphaThreshold', value, log)
+

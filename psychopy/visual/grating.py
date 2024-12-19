@@ -431,28 +431,22 @@ class GratingStim(BaseVisualStim, DraggingMixin, TextureMixin, ColorMixin,
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
         GL.glEnable(GL.GL_TEXTURE_2D)
 
-        if USE_LEGACY_GL:
-            GL.glPushMatrix()  # push before the list, pop after
-            projectionMatrix = gt.getProjectionMatrix()
-            modelViewMatrix = gt.getModelViewMatrix()
-            GL.glColor4f(*self._foreColor.render('rgba1'))
-        else:
-            projectionMatrix = win._projectionMatrix
-            modelViewMatrix = win._viewMatrix
-        
         # the list just does the texture mapping
         gt.setUniformValue(_prog, b'uTexture', 0, 'int')
         gt.setUniformValue(_prog, b'uMask', 1, 'int')
         gt.setUniformValue(_prog, b'uColor', self._foreColor.render('rgba1'))
+        alphaThreshold = getattr(self, 'alphaThreshold', 1.0)
+        gt.setUniformValue(
+            _prog, b'uAlphaThreshold', alphaThreshold, ignoreNotDefined=True)
         gt.setUniformMatrix(
             _prog, 
             b'uProjectionMatrix', 
-            projectionMatrix,
+            win._projectionMatrix,
             transpose=True)
         gt.setUniformMatrix(
             _prog, 
             b'uModelViewMatrix', 
-            modelViewMatrix,
+            win._viewMatrix,
             transpose=True)
 
         gt.drawClientArrays({
@@ -469,9 +463,6 @@ class GratingStim(BaseVisualStim, DraggingMixin, TextureMixin, ColorMixin,
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
         GL.glDisable(GL.GL_TEXTURE_2D)
-
-        if USE_LEGACY_GL:
-            GL.glPopMatrix()
 
         # return the view to previous state
         win.setBlendMode(saveBlendMode, log=False)

@@ -485,7 +485,6 @@ class TextStim(BaseVisualStim, DraggingMixin, ForeColorMixin, ContainerMixin):
         if self.win.winType in ["pyglet", "glfw"]:
             # unbind the main texture
             GL.glActiveTexture(GL.GL_TEXTURE0)
-#            GL.glActiveTextureARB(GL.GL_TEXTURE0_ARB)
             # the texture is specified by pyglet.font.GlyphString.draw()
             GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
             GL.glEnable(GL.GL_TEXTURE_2D)

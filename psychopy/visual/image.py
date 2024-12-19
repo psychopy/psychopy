@@ -183,14 +183,11 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
         GL.glActiveTexture(GL.GL_TEXTURE0)  # color/lum image
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
 
-        if USE_LEGACY_GL:
-            GL.glPushMatrix()  
-            GL.glColor4f(*self._foreColor.render('rgba1'))
-
         # set the shader uniforms
         gt.setUniformSampler2D(_prog, b'uTexture', 0)  # is texture unit 0
         gt.setUniformSampler2D(_prog, b'uMask', 1)  # mask is texture unit 1
         gt.setUniformValue(_prog, b'uColor', self._foreColor.render('rgba1'))
+        gt.setUniformValue(_prog, b'uAlphaThreshold', 1.0, ignoreNotDefined=True)
         gt.setUniformMatrix(
             _prog, 
             b'uProjectionMatrix', 
@@ -217,9 +214,6 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
         GL.glDisable(GL.GL_TEXTURE_2D)
-
-        if USE_LEGACY_GL:
-            GL.glPopMatrix()
 
     def _movieFrameToTexture(self, movieSrc):
         """Convert a movie frame to a texture and use it.
