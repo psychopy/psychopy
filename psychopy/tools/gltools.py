@@ -3471,6 +3471,13 @@ def createVAO(attribBuffers, indexBuffer=None, attribDivisors=None, legacy=False
                            legacy)
 
 
+# use the appropriate VAO binding function for the platform
+if _thisPlatform != 'Darwin':
+    _glBindVertexArray = GL.glBindVertexArray
+else:
+    _glBindVertexArray = GL.glBindVertexArrayAPPLE
+
+
 def drawVAO(vao, mode=GL.GL_TRIANGLES, start=0, count=None, instanceCount=None,
             flush=False):
     """Draw a vertex array object. Uses `glDrawArrays` or `glDrawElements` if
@@ -3484,7 +3491,7 @@ def drawVAO(vao, mode=GL.GL_TRIANGLES, start=0, count=None, instanceCount=None,
     mode : int, optional
         Drawing mode to use (e.g. GL_TRIANGLES, GL_QUADS, GL_POINTS, etc.) for
         rasterization. Default is `GL_TRIANGLES`. Strings can be used for
-        convenience (e.g. 'triangles', 'quads', 'points').
+        convenience (e.g. 'GL_TRIANGLES', 'GL_QUADS', 'GL_POINTS').
     start : int, optional
         Starting index for array elements. Default is `0` which is the beginning
         of the array.
@@ -3506,15 +3513,12 @@ def drawVAO(vao, mode=GL.GL_TRIANGLES, start=0, count=None, instanceCount=None,
 
     """
     if isinstance(mode, str):
-        mode = GL_ENUMS.get(mode, None)
+        mode = getattr(GL, mode, None)
         if mode is None:
             raise ValueError('Invalid drawing mode specified.')
 
     # draw the array
-    if _thisPlatform != 'Darwin':
-        GL.glBindVertexArray(vao.name)
-    else:
-        GL.glBindVertexArrayAPPLE(vao.name)
+    _glBindVertexArray(vao.name)
 
     if count is None:
         count = vao.count
@@ -3540,10 +3544,7 @@ def drawVAO(vao, mode=GL.GL_TRIANGLES, start=0, count=None, instanceCount=None,
         GL.glFlush()
 
     # reset
-    if _thisPlatform != 'Darwin':
-        GL.glBindVertexArray(0)
-    else:
-        GL.glBindVertexArrayAPPLE(0)
+    _glBindVertexArray(0)
 
 
 def deleteVAO(vao):
