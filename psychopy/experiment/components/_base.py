@@ -40,6 +40,8 @@ class BaseComponent:
     beta = False
     # what classes can validate this Component? Specify by name
     validatorClasses = []
+    # hide this Component in Builder view?
+    hidden = False
 
     def __init__(self, exp, parentName, name='',
                  startType='time (s)', startVal='',

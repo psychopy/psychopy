@@ -110,7 +110,7 @@ class JoyButtonsComponent(BaseComponent):
             "Device number, if you have multiple devices which"
             " one do you want (0, 1, 2...)")
         self.params['deviceNumber'] = Param(
-            deviceNumber, valType='int', inputType="int", allowedTypes=[], categ='Hardware',
+            deviceNumber, valType='int', inputType="int", allowedTypes=[], categ="Device",
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_translate("Device number"))

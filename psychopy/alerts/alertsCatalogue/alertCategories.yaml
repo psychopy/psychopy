@@ -25,8 +25,14 @@
     cat: Visual
     3110: Component duration less than 1 screen refresh
     3115: Component start/stop times cannot sync with screen refresh
-  3200: Audio
+  3200:
+    cat: Audio
+    3210: Exclusive latency mode
+
   3400: Response
+  3600:
+    cat: Validation
+    3610: Multiple Components in same Routine validated by same validator
 
 4000:
   cat: Builder experiments

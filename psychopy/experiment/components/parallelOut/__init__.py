@@ -49,7 +49,7 @@ class ParallelOutComponent(BaseComponent):
                          "options in preferences>general)")
         self.params['address'] = Param(
             address, valType='str', inputType="choice", allowedVals=addressOptions,
-            categ='Hardware', hint=msg, label=_translate("Port address"))
+            categ="Device", hint=msg, label=_translate("Port address"))
 
         self.depends.append(
             {"dependsOn": "address",  # must be param name
@@ -63,7 +63,7 @@ class ParallelOutComponent(BaseComponent):
         msg = _translate("U3 Register to write byte to")
         self.params['register'] = Param(register, valType='str',
                                         inputType="choice", allowedVals=['EIO', 'FIO'],
-                                        categ='Hardware', hint=msg, label=_translate("U3 register"))
+                                        categ="Device", hint=msg, label=_translate("U3 register"))
 
         self.params['startData'] = Param(
             startData, valType='code', inputType="single", allowedTypes=[], categ='Data',

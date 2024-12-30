@@ -43,6 +43,7 @@ class MicrophoneComponent(BaseDeviceComponent):
                  stopType='duration (s)', stopVal=2.0,
                  startEstim='', durationEstim='',
                  channels='auto', device=None,
+                 exclusive=False,
                  sampleRate='DVD Audio (48kHz)', maxSize=24000,
                  outputType='default', speakTimes=False, trimSilent=False,
                  policyWhenFull='warn',
@@ -74,6 +75,7 @@ class MicrophoneComponent(BaseDeviceComponent):
             "device",
             "channels",
             "sampleRate",
+            "exclusive",
             "maxSize",
         ]
 
@@ -135,6 +137,14 @@ class MicrophoneComponent(BaseDeviceComponent):
                 "How many samples per second (Hz) to record at"
             ),
             direct=False
+        )
+        self.params['exclusive'] = Param(
+            exclusive, valType="code", inputType="bool", categ="Device",
+            label=_translate("Exclusive control"),
+            hint=_translate(
+                "Take exclusive control of the microphone, so other apps can't use it during your "
+                "experiment."
+            )
         )
         self.params['maxSize'] = Param(
             maxSize, valType='num', inputType="single", categ='Device',
@@ -327,6 +337,7 @@ class MicrophoneComponent(BaseDeviceComponent):
             "    deviceName=%(deviceLabel)s,\n"
             "    index=%(device)s,\n"
             "    maxRecordingSize=%(maxSize)s,\n"
+            "    exclusive=%(exclusive)s,\n"
         )
         if self.params['device'].val not in ("None", "", None):
             code += (

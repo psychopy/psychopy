@@ -1,0 +1,27 @@
+# The first key-value pair is used for the alerts package
+
+code: 3210
+cat: Audio
+msg: Speaker {deviceName} is set to "Exclusive low latency" mode. As resampling is enabled, this mode has little benefit over "Shared low latency" mode, with some drawbacks.
+
+# The following are typically used for online help pages, and support reStructured Text.
+
+label: Exclusive latency mode
+
+synopsis: |
+  Speaker is set to "Exclusive low latency" mode. As resampling is enabled, this mode has little benefit over "Shared low latency" mode, with some drawbacks.
+
+details: |
+  "Exclusive low latency" mode differs from "Shared low latency" mode in two ways:
+  - PsychoPy will take exclusive control of the speaker, meaning that other apps won't be able to access it while your experiment is running, and may crash.
+  - Because of this exclusive control, we have more flexibility in the range of sample rates which we can play on the speaker.
+
+  However, if "resampling" is ticked, then audio is automatically resampled to match the speaker's sample rate anyway, so "Exclusive low latency" offers little benefit over "Shared low latency".
+
+solutions: |
+  If you actively want to prevent the speaker from being used by other applications (for example, you want to make sure the participant isn't playing music in the background), then no action is required and you can ignore this alert.
+
+  If you don't want this, then you most likely want "Shared low latency" mode instead.
+
+versions: |
+  >2025.1.0

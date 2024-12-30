@@ -8,73 +8,785 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-__all__ = ['normalize',
-           'lerp',
-           'slerp',
-           'multQuat',
-           'quatFromAxisAngle',
-           'quatToMatrix',
-           'scaleMatrix',
-           'rotationMatrix',
-           'transform',
-           'translationMatrix',
-           'concatenate',
-           'applyMatrix',
-           'invertQuat',
-           'quatToAxisAngle',
-           'posOriToMatrix',
-           'applyQuat',
-           'orthogonalize',
-           'reflect',
-           'cross',
-           'distance',
-           'dot',
-           'quatMagnitude',
-           'length',
-           'project',
-           'bisector',
-           'surfaceNormal',
-           'invertMatrix',
-           'angleTo',
-           'surfaceBitangent',
-           'surfaceTangent',
-           'vertexNormal',
-           'isOrthogonal',
-           'isAffine',
-           'perp',
-           'ortho3Dto2D',
-           'intersectRayPlane',
-           'matrixToQuat',
-           'lensCorrection',
-           'matrixFromEulerAngles',
-           'alignTo',
-           'quatYawPitchRoll',
-           'intersectRaySphere',
-           'intersectRayAABB',
-           'intersectRayOBB',
-           'intersectRayTriangle',
-           'scale',
-           'multMatrix',
-           'normalMatrix',
-           'fitBBox',
-           'computeBBoxCorners',
-           'zeroFix',
-           'accumQuat',
-           'fixTangentHandedness',
-           'articulate',
-           'forwardProject',
-           'reverseProject',
-           'lensCorrectionSpherical']
+__all__ = [
+    'VEC_AXES',
+    'VEC_AXIS_FORWARD',
+    'VEC_AXIS_BACKWARD',
+    'VEC_AXIS_UP',
+    'VEC_AXIS_DOWN',
+    'VEC_AXIS_RIGHT',
+    'VEC_AXIS_LEFT',
+    'VEC_AXIS_POS_X',
+    'VEC_AXIS_NEG_X',
+    'VEC_AXIS_POS_Y',
+    'VEC_AXIS_NEG_Y',
+    'VEC_AXIS_POS_Z',
+    'VEC_AXIS_NEG_Z',
+    'RigidBodyPose',
+    'BoundingBox',
+    'normalize',
+    'lerp',
+    'slerp',
+    'multQuat',
+    'quatFromAxisAngle',
+    'quatToMatrix',
+    'scaleMatrix',
+    'rotationMatrix',
+    'transform',
+    'translationMatrix',
+    'concatenate',
+    'applyMatrix',
+    'invertQuat',
+    'quatToAxisAngle',
+    'posOriToMatrix',
+    'applyQuat',
+    'orthogonalize',
+    'reflect',
+    'cross',
+    'distance',
+    'dot',
+    'quatMagnitude',
+    'length',
+    'project',
+    'bisector',
+    'surfaceNormal',
+    'invertMatrix',
+    'angleTo',
+    'surfaceBitangent',
+    'surfaceTangent',
+    'vertexNormal',
+    'isOrthogonal',
+    'isAffine',
+    'perp',
+    'ortho3Dto2D',
+    'intersectRayPlane',
+    'matrixToQuat',
+    'lensCorrection',
+    'matrixFromEulerAngles',
+    'alignTo',
+    'quatYawPitchRoll',
+    'intersectRaySphere',
+    'intersectRayAABB',
+    'intersectRayOBB',
+    'intersectRayTriangle',
+    'scale',
+    'multMatrix',
+    'normalMatrix',
+    'fitBBox',
+    'computeBBoxCorners',
+    'zeroFix',
+    'accumQuat',
+    'fixTangentHandedness',
+    'articulate',
+    'forwardProject',
+    'reverseProject',
+    'lookAt',
+    'lensCorrectionSpherical']
 
 
 import numpy as np
 import functools
 import itertools
 
+VEC_AXES = {  # mapping of axis names to vectors
+    '+x': (1, 0, 0), '-x': (-1, 0, 0),
+    '+y': (0, 1, 0), '-y': (0, -1, 0),
+    '+z': (0, 0, 1), '-z': (0, 0, -1)}
 
-VEC_AXES = {'+x': (1, 0, 0), '-x': (-1, 0, 0),
-            '+y': (0, 1, 0), '-y': (0, -1, 0),
-            '+z': (0, 0, 1), '-z': (0, 0, -1)}
+# vectors for common axes
+VEC_AXIS_BACKWARD = VEC_AXIS_POS_Z = VEC_AXES['+z']
+VEC_AXIS_FORWARD = VEC_AXIS_NEG_Z = VEC_AXES['-z']
+VEC_AXIS_UP = VEC_AXIS_POS_Y = VEC_AXES['+y']
+VEC_AXIS_DOWN = VEC_AXIS_NEG_Y = VEC_AXES['-y']
+VEC_AXIS_RIGHT = VEC_AXIS_POS_X = VEC_AXES['+x']
+VEC_AXIS_LEFT = VEC_AXIS_NEG_X = VEC_AXES['-x']
+
+
+# ------------------------------------------------------------------------------
+# Classes for working with rigid body poses
+#
+
+class RigidBodyPose:
+    """Class for representing rigid body poses.
+
+    This class is an abstract representation of a rigid body pose, where the
+    position of the body in a scene is represented by a vector/coordinate and
+    the orientation with a quaternion. Pose can be manipulated and interacted
+    with using class methods and attributes. Rigid body poses assume a
+    right-handed coordinate system (-Z is forward and +Y is up).
+
+    Poses can be converted to 4x4 transformation matrices with `getModelMatrix`.
+    One can use these matrices when rendering to transform the vertices of a
+    model associated with the pose by passing them to OpenGL. Matrices are
+    cached internally to avoid recomputing them if `pos` and `ori` attributes
+    have not been updated.
+
+    Operators `*` and `~` can be used on `RigidBodyPose` objects to combine and
+    invert poses. For instance, you can multiply (`*`) poses to get a new pose
+    which is the combination of both orientations and translations by::
+
+        newPose = rb1 * rb2
+
+    Likewise, a pose can be inverted by using the `~` operator::
+
+        invPose = ~rb
+
+    Multiplying a pose by its inverse will result in an identity pose with no
+    translation and default orientation where `pos=[0, 0, 0]` and
+    `ori=[0, 0, 0, 1]`::
+
+        identityPose = ~rb * rb
+
+    Warnings
+    --------
+    This class is experimental and may result in undefined behavior.
+
+    """
+    def __init__(self, pos=(0., 0., 0.), ori=(0., 0., 0., 1.)):
+        """
+        Parameters
+        ----------
+        pos : array_like
+            Position vector `[x, y, z]` for the origin of the rigid body.
+        ori : array_like
+            Orientation quaternion `[x, y, z, w]` where `x`, `y`, `z` are
+            imaginary and `w` is real.
+
+        """
+        self._pos = np.ascontiguousarray(pos, dtype=self.dtype)
+        self._ori = np.ascontiguousarray(ori, dtype=self.dtype)
+
+        self._modelMatrix = posOriToMatrix(
+            self._pos, self._ori, dtype=self.dtype)
+
+        # computed only if needed
+        self._normalMatrix = np.zeros((4, 4), dtype=self.dtype, order='C')
+        self._invModelMatrix = np.zeros((4, 4), dtype=self.dtype, order='C')
+        self._viewMatrix = np.zeros((4, 4), dtype=self.dtype, order='C')
+        self._invViewMatrix = np.zeros((4, 4), dtype=self.dtype, order='C')
+
+        # additional useful vectors
+        self._at = np.zeros((3,), dtype=self.dtype, order='C')
+        self._up = np.zeros((3,), dtype=self.dtype, order='C')
+        self._viewAxes = np.array(  # cache for view matrix calculations
+            [VEC_AXIS_FORWARD, VEC_AXIS_UP], dtype=self.dtype, order='C')
+
+        # compute matrices only if `pos` and `ori` attributes have been updated,
+        # we track the state of the matrices with these flags
+        self._cacheFlags = {
+            'model': True,
+            'imodel': False,
+            'normal': False,
+            'view': False,
+            'iview': False
+        }
+
+        self.pos = pos
+        self.ori = ori
+
+        self._bounds = None
+
+    def __repr__(self):
+        return 'RigidBodyPose(pos={}, ori={})'.format(self.pos, self.ori)
+
+    @property
+    def dtype(self):
+        """Data type used for computations and arrays (`numpy.dtype`).
+        """
+        # we use 32-bit float precision for all computations, this will be 
+        # settable in the future
+        return np.float32
+
+    @property
+    def bounds(self):
+        """Bounding box associated with this pose.
+        """
+        return self._bounds
+
+    @bounds.setter
+    def bounds(self, value):
+        self._bounds = value
+
+    @property
+    def pos(self):
+        """Position vector (X, Y, Z).
+        """
+        return self._pos
+
+    @pos.setter
+    def pos(self, value):
+        self._pos = np.ascontiguousarray(value, dtype=self.dtype)
+        self._cacheFlags = dict.fromkeys(self._cacheFlags.keys(), True)
+
+    @property
+    def ori(self):
+        """Orientation quaternion (X, Y, Z, W).
+        """
+        return self._ori
+
+    @ori.setter
+    def ori(self, value):
+        self._ori = np.ascontiguousarray(value, dtype=self.dtype)
+        self._cacheFlags = dict.fromkeys(self._cacheFlags.keys(), True)
+
+    @property
+    def posOri(self):
+        """The position (x, y, z) and orientation (x, y, z, w).
+        """
+        return self._pos, self._ori
+
+    @posOri.setter
+    def posOri(self, value):
+        self._pos = np.ascontiguousarray(value[0], dtype=self.dtype)
+        self._ori = np.ascontiguousarray(value[1], dtype=self.dtype)
+        self._cacheFlags = dict.fromkeys(self._cacheFlags.keys(), True)
+
+    @property
+    def at(self):
+        """Vector defining the forward direction (-Z) of this pose.
+        """
+        # matrix needs update, this need to be too
+        if self._cacheFlags['model']:  
+            self._at = applyQuat(
+                self.ori, self._viewAxes[0, :], out=self._at, dtype=self.dtype)
+
+        return self._at
+
+    @property
+    def up(self):
+        """Vector defining the up direction (+Y) of this pose.
+        """
+        if self._cacheFlags['model']:
+            self._up = applyQuat(
+                self.ori, self._viewAxes[1, :], out=self._up, dtype=self.dtype)
+
+        return self._up
+
+    def __mul__(self, other):
+        """Multiply two poses, combining them to get a new pose.
+        """
+        newOri = multQuat(self._ori, other.ori)
+        return RigidBodyPose(transform(other.pos, newOri, self._pos), newOri)
+
+    def __imul__(self, other):
+        """Inplace multiplication. Transforms this pose by another.
+        """
+        self._ori = multQuat(self._ori, other.ori)
+        self._pos = transform(other.pos, self._ori, self._pos)
+
+    def copy(self):
+        """Get a new `RigidBodyPose` object which copies the position and
+        orientation of this one. Copies are independent and do not reference
+        each others data.
+
+        Returns
+        -------
+        RigidBodyPose
+            Copy of this pose.
+
+        """
+        return RigidBodyPose(self._pos, self._ori)
+
+    def isEqual(self, other):
+        """Check if poses have similar orientation and position.
+
+        Parameters
+        ----------
+        other : `RigidBodyPose`
+            Other pose to compare.
+
+        Returns
+        -------
+        bool
+            Returns `True` is poses are effectively equal.
+
+        """
+        return np.isclose(self._pos, other.pos) and \
+            np.isclose(self._ori, other.ori)
+
+    def clear(self):
+        """Clear the pose, setting position and orientation to zero.
+        """
+        self._pos.fill(0.0)
+        self._ori[:3] = 0.0
+        self._ori[3] = 1.0
+        self._cacheFlags = dict.fromkeys(a.keys(), True)
+
+    def setIdentity(self):
+        """Clear rigid body transformations (alias for `clear`).
+        """
+        self.clear()
+
+    def getOriAxisAngle(self, degrees=True):
+        """Get the axis and angle of rotation for the rigid body. Converts the
+        orientation defined by the `ori` quaternion to and axis-angle
+        representation.
+
+        Parameters
+        ----------
+        degrees : bool, optional
+            Specify ``True`` if `angle` is in degrees, or else it will be
+            treated as radians. Default is ``True``.
+
+        Returns
+        -------
+        tuple
+            Axis [rx, ry, rz] and angle.
+
+        """
+        return quatToAxisAngle(self._ori, degrees, dtype=self.dtype)
+
+    def setOriAxisAngle(self, axis, angle, degrees=True):
+        """Set the orientation of the rigid body using an `axis` and
+        `angle`. This sets the quaternion at `ori`.
+
+        Parameters
+        ----------
+        axis : array_like
+            Axis of rotation [rx, ry, rz].
+        angle : float
+            Angle of rotation.
+        degrees : bool, optional
+            Specify ``True`` if `angle` is in degrees, or else it will be
+            treated as radians. Default is ``True``.
+
+        """
+        self.ori = quatFromAxisAngle(axis, angle, degrees, dtype=self.dtype)
+
+    def getYawPitchRoll(self, degrees=True):
+        """Get the yaw, pitch and roll angles for this pose relative to the -Z
+        world axis.
+
+        Parameters
+        ----------
+        degrees : bool, optional
+            Specify ``True`` if `angle` is in degrees, or else it will be
+            treated as radians. Default is ``True``.
+
+        """
+        return quatYawPitchRoll(self._ori, degrees, dtype=self.dtype)
+
+    @property
+    def modelMatrix(self):
+        """Pose as a 4x4 model matrix (read-only)."""
+        if not self._cacheFlags['model']:
+            return self._modelMatrix
+        else:
+            return self.getModelMatrix()
+
+    @property
+    def inverseModelMatrix(self):
+        """Inverse of the pose as a 4x4 model matrix (read-only)."""
+        if not self._cacheFlags['imodel']:
+            return self._invModelMatrix
+        else:
+            return self.getModelMatrix(inverse=True)
+
+    @property
+    def normalMatrix(self):
+        """The 4x4 normal transformation matrix (read-only)."""
+        if not self._cacheFlags['normal']:
+            return self._normalMatrix
+        else:
+            return self.getNormalMatrix()
+
+    @property
+    def viewMatrix(self):
+        """The 4x4 view matrix for this pose (read-only)."""
+        if not self._cacheFlags['view']:
+            return self._viewMatrix
+        else:
+            return self.getViewMatrix()
+
+    @property
+    def inverseViewMatrix(self):
+        """The inverse of the 4x4 view matrix for this pose (read-only)."""
+        if not self._cacheFlags['iview']:
+            return self._invViewMatrix
+        else:
+            return self.getViewMatrix(inverse=True)
+
+    def getNormalMatrix(self, out=None):
+        """Get the present normal matrix.
+
+        Parameters
+        ----------
+        out : ndarray or None
+            Optional 4x4 array to write values to. Values written are computed
+            using 32-bit float precision regardless of the data type of `out`.
+
+        Returns
+        -------
+        ndarray
+            4x4 normal transformation matrix.
+
+        """
+        if not self._cacheFlags['normal']:
+            return self._normalMatrix
+
+        self._normalMatrix[:, :] = np.linalg.inv(self.modelMatrix).T
+        self._cacheFlags['normal'] = False
+
+        if out is not None:
+            out[:, :] = self._normalMatrix[:, :]
+            return out
+
+        return self._normalMatrix
+
+    def getModelMatrix(self, inverse=False, out=None):
+        """Get the present rigid body transformation as a 4x4 matrix.
+
+        Matrices are computed only if the `pos` and `ori` attributes have been
+        updated since the last call to `getModelMatrix`. The returned matrix is
+        an `ndarray` and row-major.
+
+        Parameters
+        ----------
+        inverse : bool, optional
+            Return the inverse of the model matrix.
+        out : ndarray or None
+            Optional 4x4 array to write values to. Values written are computed
+            using 32-bit float precision regardless of the data type of `out`.
+
+        Returns
+        -------
+        ndarray
+            4x4 transformation matrix.
+
+        Examples
+        --------
+        Using a rigid body pose to transform something in OpenGL::
+
+            rb = RigidBodyPose((0, 0, -2))  # 2 meters away from origin
+
+            # Use `array2pointer` from `psychopy.tools.arraytools` to convert
+            # array to something OpenGL accepts.
+            mv = array2pointer(rb.modelMatrix)
+
+            # use the matrix to transform the scene
+            glMatrixMode(GL_MODELVIEW)
+            glPushMatrix()
+            glLoadIdentity()
+            glMultTransposeMatrixf(mv)
+
+            # draw the thing here ...
+
+            glPopMatrix()
+
+        """
+        if self._cacheFlags['model']:
+            self._modelMatrix = posOriToMatrix(
+                self._pos, self._ori, 
+                out=self._modelMatrix,
+                dtype=self.dtype)
+
+            # all other matrices need update when next accessed
+            self._cacheFlags['model'] = False
+            self._cacheFlags['imodel'] = True
+            self._cacheFlags['normal'] = True
+            self._cacheFlags['view'] = True
+            self._cacheFlags['iview'] = True
+
+        if not inverse:
+            toReturn = self._modelMatrix
+        else:
+            if self._cacheFlags['imodel']:
+                self._invModelMatrix = invertMatrix(
+                    self._modelMatrix, out=self._invModelMatrix, 
+                    dtype=self.dtype)
+                self._cacheFlags['imodel'] = False
+            
+            toReturn = self._invModelMatrix
+
+        if out is not None:
+            out[:, :] = toReturn[:, :]
+            return out
+
+        return toReturn
+
+    def getViewMatrix(self, inverse=False, out=None):
+        """Convert this pose into a view matrix.
+
+        Creates a view matrix which transforms points into eye space using the
+        current pose as the eye position in the scene. Furthermore, you can use
+        view matrices for rendering shadows if light positions are defined
+        as `RigidBodyPose` objects.
+
+        Parameters
+        ----------
+        inverse : bool
+            Return the inverse of the view matrix. Default is `False`.
+        out : ndarray or None
+            Optional 4x4 array to write values to. Values written are computed
+            using 32-bit float precision regardless of the data type of `out`.
+
+        Returns
+        -------
+        ndarray
+            4x4 transformation matrix.
+
+        """
+        if self._cacheFlags['view']:  # needs update?
+            # compute the view matrix
+            rotMatrix = quatToMatrix(self._ori, dtype=self.dtype)
+            transformedAxes = applyMatrix(
+                rotMatrix, self._viewAxes, 
+                dtype=self.dtype)
+
+            fwdVec = transformedAxes[0, :] + self._pos
+            upVec = transformedAxes[1, :]
+
+            self._viewMatrix = lookAt(
+                self._pos, fwdVec, upVec, 
+                out=self._viewMatrix,
+                dtype=self.dtype)
+
+            self._cacheFlags['view'] = False
+            self._cacheFlags['iview'] = True  # inverse needs update
+
+        if not inverse:
+            toReturn = self._viewMatrix
+        else:
+            if self._cacheFlags['iview']:
+                self._invViewMatrix = invertMatrix(
+                    self._viewMatrix, 
+                    out=self._invViewMatrix, 
+                    dtype=self.dtype)
+                self._cacheFlags['iview'] = False
+            
+            toReturn = self._invViewMatrix
+
+        if out is not None:
+            out[:, :] = toReturn[:, :]
+            return out
+
+        return toReturn
+
+    def transform(self, v, out=None):
+        """Transform a vector using this pose.
+
+        Parameters
+        ----------
+        v : array_like
+            Vector to transform [x, y, z].
+        out : ndarray or None, optional
+            Optional array to write values to. Must have the same shape as
+            `v`.
+
+        Returns
+        -------
+        ndarray
+            Transformed points.
+
+        """
+        return transform(
+            self._pos, self._ori, points=v, out=out, dtype=self.dtype)
+
+    def transformNormal(self, n):
+        """Rotate a normal vector with respect to this pose.
+
+        Rotates a normal vector `n` using the orientation quaternion at `ori`.
+
+        Parameters
+        ----------
+        n : array_like
+            Normal to rotate (1-D with length 3).
+
+        Returns
+        -------
+        ndarray
+            Rotated normal `n`.
+
+        """
+        pout = np.zeros((3,), dtype=self.dtype)
+        pout[:] = n
+        t = np.cross(self._ori[:3], n[:3]) * 2.0
+        u = np.cross(self._ori[:3], t)
+        t *= self._ori[3]
+        pout[:3] += t
+        pout[:3] += u
+
+        return pout
+
+    def __invert__(self):
+        """Operator `~` to invert the pose. Returns a `RigidBodyPose` object.
+        """
+        return RigidBodyPose(
+            -self._pos, invertQuat(self._ori, dtype=self.dtype))
+
+    def invert(self):
+        """Invert this pose.
+        """
+        self._ori = invertQuat(self._ori, dtype=self.dtype)
+        self._pos *= -1.0
+
+    def inverted(self):
+        """Get a pose which is the inverse of this one.
+
+        Returns
+        -------
+        RigidBodyPose
+            This pose inverted.
+
+        """
+        return RigidBodyPose(
+            -self._pos, invertQuat(self._ori, dtype=self.dtype))
+
+    def distanceTo(self, v):
+        """Get the distance to a pose or point in scene units.
+
+        Parameters
+        ----------
+        v : RigidBodyPose or array_like
+            Pose or point [x, y, z] to compute distance to.
+
+        Returns
+        -------
+        float
+            Distance to `v` from this pose's origin.
+
+        """
+        if hasattr(v, 'pos'):  # v is pose-like object
+            targetPos = v.pos
+        else:
+            targetPos = np.asarray(v[:3])
+
+        return np.sqrt(np.sum(np.square(targetPos - self.pos)))
+
+    def interp(self, end, s):
+        """Interpolate between poses.
+
+        Linear interpolation is used on position (Lerp) while the orientation
+        has spherical linear interpolation (Slerp) applied taking the shortest
+        arc on the hypersphere.
+
+        Parameters
+        ----------
+        end : RigidBodyPose
+            End pose.
+        s : float
+            Interpolation factor between interval 0.0 and 1.0.
+
+        Returns
+        -------
+        RigidBodyPose
+            Rigid body pose whose position and orientation is at `s` between
+            this pose and `end`.
+
+        """
+        if not (hasattr(end, 'pos') and hasattr(end, 'ori')):
+            raise TypeError("Object for `end` does not have attributes "
+                            "`pos` and `ori`.")
+
+        interpPos = lerp(self._pos, end.pos, s, dtype=self.dtype)
+        interpOri = slerp(self._ori, end.ori, s, dtype=self.dtype)
+
+        return RigidBodyPose(interpPos, interpOri)
+
+    def alignTo(self, alignTo):
+        """Align this pose to another point or pose.
+
+        This sets the orientation of this pose to one which orients the forward
+        axis towards `alignTo`.
+
+        Parameters
+        ----------
+        alignTo : array_like or RigidBodyPose
+            Position vector [x, y, z] or pose to align to.
+
+        """
+        if hasattr(alignTo, 'pos'):  # v is pose-like object
+            targetPos = alignTo.pos
+        else:
+            targetPos = np.asarray(alignTo[:3]) # handle array_like
+
+        fwd = np.asarray([0, 0, -1], dtype=self.dtype)
+        toTarget = targetPos - self._pos
+        invOri = invertQuat(self._ori, dtype=self.dtype)
+        invPos = applyQuat(invOri, toTarget, dtype=self.dtype)
+        invPos = normalize(invPos, dtype=self.dtype)
+
+        self.ori = multQuat(
+            self._ori, alignTo(fwd, invPos, dtype=self.dtype))
+
+
+class BoundingBox:
+    """Class for representing object bounding boxes.
+
+    A bounding box is a construct which represents a 3D rectangular volume about
+    some pose, defined by its minimum and maximum extents in the reference frame
+    of the pose. The axes of the bounding box are aligned to the axes of the
+    world or the associated pose.
+
+    Bounding boxes are primarily used for visibility testing; to determine if
+    the extents of an object associated with a pose (eg. the vertices of a
+    model) falls completely outside of the viewing frustum. If so, the model can
+    be culled during rendering to avoid wasting CPU/GPU resources on objects not
+    visible to the viewer.
+
+    """
+    def __init__(self, extents=None):
+        self._extents = np.zeros((2, 3), self.dtype)
+        self._posCorners = np.zeros((8, 4), self.dtype)
+
+        if extents is not None:
+            self._extents[0, :] = extents[0]
+            self._extents[1, :] = extents[1]
+        else:
+            self.clear()
+
+        self._computeCorners()
+
+    def _computeCorners(self):
+        """Compute the corners of the bounding box.
+
+        These values are cached to speed up computations if extents hasn't been
+        updated.
+
+        """
+        for i in range(8):
+            self._posCorners[i, 0] = \
+                self._extents[1, 0] if (i & 1) else self._extents[0, 0]
+            self._posCorners[i, 1] = \
+                self._extents[1, 1] if (i & 2) else self._extents[0, 1]
+            self._posCorners[i, 2] = \
+                self._extents[1, 2] if (i & 4) else self._extents[0, 2]
+            self._posCorners[i, 3] = 1.0
+
+    @property
+    def dtype(self):
+        """Data type used for computations and arrays (`numpy.dtype`).
+        """
+        # we use 32-bit float precision for all computations, this will be 
+        # settable in the future
+        return np.float32
+
+    @property
+    def isValid(self):
+        """`True` if the bounding box is valid."""
+        return np.all(self._extents[0, :] <= self._extents[1, :])
+
+    @property
+    def extents(self):
+        return self._extents
+
+    @extents.setter
+    def extents(self, value):
+        self._extents[0, :] = value[0]
+        self._extents[1, :] = value[1]
+        self._computeCorners()
+
+    def fit(self, verts):
+        """Fit the bounding box to vertices."""
+        np.amin(verts, axis=0, out=self._extents[0])
+        np.amax(verts, axis=0, out=self._extents[1])
+        self._computeCorners()
+
+    def clear(self):
+        """Clear a bounding box, invalidating it."""
+        self._extents[0, :] = np.finfo(self.dtype).max
+        self._extents[1, :] = np.finfo(self.dtype).min
+        self._computeCorners()
 
 
 # ------------------------------------------------------------------------------
@@ -3791,6 +4503,74 @@ def reverseProject(winPos, modelView, proj, viewport=None, out=None, dtype=None)
         objCoord[:, :] = applyMatrix(invMVP, winPos, dtype=dtype)
 
     return toReturn  # ref to objCoord
+
+
+def lookAt(eyePos, centerPos, upVec=(0.0, 1.0, 0.0), out=None, dtype=None):
+    """Create a transformation matrix to orient a view towards some point. Based
+    on the same algorithm as 'gluLookAt'. This does not generate a projection
+    matrix, but rather the matrix to transform the observer's view in the scene.
+
+    For more information see:
+    https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/gluLookAt.xml
+
+    Parameters
+    ----------
+    eyePos : list of float or ndarray
+        Eye position in the scene.
+    centerPos : list of float or ndarray
+        Position of the object center in the scene.
+    upVec : list of float or ndarray, optional
+        Vector defining the up vector. Default is +Y is up.
+    out : ndarray, optional
+        Optional output array. Must be same `shape` and `dtype` as the expected
+        output if `out` was not specified.
+    dtype : dtype or str, optional
+        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
+        specified, the data type is inferred by `out`. If `out` is not provided,
+        the default is 'float64'.
+
+    Returns
+    -------
+    ndarray
+        4x4 view matrix
+
+    Notes
+    -----
+
+    * The returned matrix is row-major. Values are floats with 32-bits of
+      precision stored as a contiguous (C-order) array.
+
+    """
+    if out is None:
+        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+    else:
+        dtype = np.dtype(out.dtype).type
+
+    toReturn = np.zeros((4, 4,), dtype=dtype) if out is None else out
+    if out is not None:
+        toReturn.fill(0.0)
+
+    eyePos = np.asarray(eyePos, dtype=dtype)
+    centerPos = np.asarray(centerPos, dtype=dtype)
+    upVec = np.asarray(upVec, dtype=dtype)
+
+    f = centerPos - eyePos
+    f /= np.linalg.norm(f)
+    upVec /= np.linalg.norm(upVec)
+
+    s = np.cross(f, upVec)
+    u = np.cross(s / np.linalg.norm(s), f)
+
+    rotMat = np.zeros((4, 4), dtype=dtype)
+    rotMat[0, :3] = s
+    rotMat[1, :3] = u
+    rotMat[2, :3] = -f
+    rotMat[3, 3] = 1.0
+
+    transMat = np.identity(4, dtype=dtype)
+    transMat[:3, 3] = -eyePos
+
+    return np.matmul(rotMat, transMat, out=toReturn)
 
 
 # ------------------------------------------------------------------------------

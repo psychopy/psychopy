@@ -6,12 +6,13 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 
-from psychopy.tools.pkgtools import PluginStub
+from psychopy.plugins import PluginStub
 
 
 class MovieStim3(
     PluginStub,
     plugin="psychopy-legacy",
-    doclink="https://psychopy.github.io/psychopy-legacy/coder/visual/MovieStim3"
+    docsHome="https://psychopy.github.io/psychopy-legacy",
+    docsRef="/coder/MovieStim3"
 ):
     pass

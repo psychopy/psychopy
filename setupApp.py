@@ -120,6 +120,8 @@ packages = ['pydoc',  # needed for help()
             'markdown_it',
             'zeroconf', 'ifaddr',  # for pupillabs plugin (fail to build)
             'websocket', # dependency for emotiv that doesn't install nicely from plugins
+            'moviepy',  # used for a range of of movie-based backends
+            'egi_pynetstation',  # to be removed in future
             ]
 
 # Add packages that older PsychoPy (<=2023.1.x) shipped, for useVersion() compatibility
@@ -127,10 +129,9 @@ packages = ['pydoc',  # needed for help()
 if sys.version_info < (3, 9):
     packages.extend(
         [
-            'moviepy', 
             'OpenGL', 'glfw',
             'badapted', #'darc_toolbox',  # adaptive methods from Ben Vincent
-            'egi_pynetstation', 'pylink', 'tobiiresearch',
+            'pylink', 'tobiiresearch',
             'pyxid2', 'ftd2xx',  # ftd2xx is used by cedrus
             'Phidget22',
             'hid',

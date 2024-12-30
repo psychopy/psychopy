@@ -26,11 +26,13 @@ class Microphone:
             streamBufferSecs=2.0,
             maxRecordingSize=24000,
             policyWhenFull='warn',
-            audioLatencyMode=None,
+            exclusive=False,
             audioRunMode=0,
             name="mic",
             recordingFolder=Path.home(),
             recordingExt="wav",
+            # legacy
+            audioLatencyMode=None,
     ):
         # store name
         self.name = name
@@ -55,7 +57,7 @@ class Microphone:
                 streamBufferSecs=streamBufferSecs,
                 maxRecordingSize=maxRecordingSize,
                 policyWhenFull=policyWhenFull,
-                audioLatencyMode=audioLatencyMode,
+                exclusive=exclusive,
                 audioRunMode=audioRunMode
             )
         # set policy when full (in case device already existed)

@@ -167,7 +167,10 @@ Your resulting Shelf record should look like this:
     :width: 75%
 
 |
-To find out more about the Counterbalance Routine, click `here <https://www.psychopy.org/builder/components/counterbalanceStandaloneRoutine.html>`_
+
+.. seealso::
+	
+	:ref:`counterbalanceroutine`
 
 
 .. _leaderboardShelf:

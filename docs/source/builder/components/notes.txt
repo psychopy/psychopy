@@ -1,7 +1,0 @@
-1) When the Vector class is implemented, all stimuli with a position param will also have an "anchor" param - this is essentially "where on the stimulus is the position set from" - you can see how this will work in Textbox which already has an "anchor"
-2) When the Color class is implemented, there will be a lot more colour spaces. You can see what these will be in:
-    psychopy.colors.colorSpaces
-3) Should we add in things like "Save onset/offset times"? They're not in the docs currently but it might be good for users to know what they are, especially now that there's a clear structure to it
-4) What are we doing about case? Currently the labels in Builder are inconsistent, should we unify it and make it all title case?
-5) With param types, should we avoid using words like "boolean" which may not be understandable to non-programmers?
-6) Should we automate bits which are in everything, like Name or Start/Stop?

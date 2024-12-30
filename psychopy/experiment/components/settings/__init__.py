@@ -7,6 +7,7 @@ from pathlib import Path
 from xml.etree.ElementTree import Element
 import re
 from psychopy import logging, plugins
+from psychopy.preferences import prefs
 from psychopy.experiment.components import Param, _translate
 from psychopy.experiment.components.settings.eyetracking import knownEyetrackerBackends
 from psychopy.experiment.routines import Routine, BaseStandaloneRoutine
@@ -48,6 +49,9 @@ keyboardBackendMap = {
     "Pyglet": "event"
 }
 
+# possible expInfo keys for participant ID
+participantIdAliases = ('participant', 'Participant', 'Subject', 'Observer')
+
 
 # # customize the Proj ID Param class to
 # class ProjIDParam(Param):
@@ -77,6 +81,8 @@ class SettingsComponent:
     plugin = None
     version = "0.0.0"
     beta = False
+    # an experiment only has one SettingsComponent, so hide it from the Components panel
+    hidden = True
 
     def __init__(
             self, parentName, exp, expName='', fullScr=True, runMode=0, rush=False,
@@ -142,7 +148,7 @@ class SettingsComponent:
         self.depends = []
         self.order = [
                       'expName', 'expVersion',
-                      'Audio lib', 'Audio latency priority', "Force stereo",  # Audio tab
+                      'Audio lib', "Force stereo",  # Audio tab
                       'HTML path', 'exportHTML', 'Completed URL', 'Incomplete URL', 'End Message', 'Resources',  # Online tab
                       ]
         self.depends = []
@@ -378,20 +384,6 @@ class SettingsComponent:
             allowedVals=['ptb', 'pyo', 'sounddevice', 'pygame'],
             hint=_translate("Which Python sound engine do you want to play your sounds?"),
             label=_translate("Audio library"), categ='Audio')
-
-        audioLatencyLabels = [
-            '0: ' + _translate('Latency not important'),
-            '1: ' + _translate('Share low-latency driver'),
-            '2: ' + _translate('Exclusive low-latency'),
-            '3: ' + _translate('Aggressive low-latency'),
-            '4: ' + _translate('Latency critical'),
-        ]
-        self.params['Audio latency priority'] = Param(
-            '3', valType='str', inputType="choice",
-            allowedVals=['0', '1', '2', '3', '4'],
-            allowedLabels=audioLatencyLabels,
-            hint=_translate("How important is audio latency for you? If essential then you may need to get all your sounds in correct formats."),
-            label=_translate("Audio latency priority"), categ='Audio')
 
         # --- Data params ---
         self.order += [
@@ -920,10 +912,6 @@ class SettingsComponent:
             buff.writelines(
                 "prefs.hardware['audioLib'] = {}\n".format(self.params['Audio lib'])
             )
-        if self.params['Audio latency priority'].val.lower() != 'use prefs':
-            buff.writelines(
-                "prefs.hardware['audioLatencyMode'] = {}\n".format(self.params['Audio latency priority'])
-            )
         buff.write(
             "from psychopy import %s\n" % ', '.join(psychopyImports) +
             "from psychopy.tools import environmenttools\n"
@@ -1034,6 +1022,14 @@ class SettingsComponent:
             "        _winSize = prefs.piloting['forcedWindowSize']\n"
         )
         buff.writeIndented(code % self.params)
+        for key, value in expInfo.items():
+            if key in participantIdAliases:
+                code = (
+            f"    # replace default participant ID\n"
+            f"    if prefs.piloting['replaceParticipantID']:\n"
+            f"        expInfo['{key}'] = 'pilot'\n"
+                )
+                buff.writeIndented(code % self.params)
 
     def prepareResourcesJS(self):
         """Sets up the resources folder and writes the info.php file for PsychoJS
@@ -1246,7 +1242,7 @@ class SettingsComponent:
 
         # figure out participant id field (if any)
         participantVal = ''
-        for target in ('participant', 'Participant', 'Subject', 'Observer'):
+        for target in participantIdAliases:
             if target in self.getInfo(removePipeSyntax=True):
                 participantVal = " + expInfo['%s']" % target
                 break

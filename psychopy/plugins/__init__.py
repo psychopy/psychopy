@@ -7,6 +7,8 @@
 """Utilities for extending PsychoPy with plugins."""
 
 __all__ = [
+    'PluginStub',
+    'PluginRequiredError',
     'loadPlugin',
     'listPlugins',
     'installPlugin',
@@ -33,6 +35,7 @@ import hashlib
 import importlib, importlib.metadata
 from psychopy import logging
 from psychopy.preferences import prefs
+from .util import PluginStub, PluginRequiredError
 
 # Configure the environment to use our custom site-packages location for
 # user-installed packages (i.e. plugins).

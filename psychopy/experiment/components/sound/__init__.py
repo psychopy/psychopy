@@ -8,6 +8,7 @@ Distributed under the terms of the GNU General Public License (GPL).
 """
 
 from pathlib import Path
+from psychopy.alerts._alerts import alert
 from psychopy.experiment.components import BaseDeviceComponent, Param, getInitVals, \
     _translate
 from psychopy.experiment.utils import canBeNumeric
@@ -24,26 +25,28 @@ class SoundComponent(BaseDeviceComponent):
     validatorClasses = ["AudioValidatorRoutine"]
 
     def __init__(
-            self,
-            exp, parentName,
-            # basic
-            name='sound_1',
-            sound='A',
-            startType='time (s)', startVal='0.0',
-            stopType='duration (s)', stopVal='1.0',
-            startEstim='', durationEstim='',
-            syncScreenRefresh=True,
-            # device
-            deviceLabel="",
-            speakerIndex=-1,
-            # playback
-            volume=1,
-            stopWithRoutine=True,
-            forceEndRoutine=False,
-            # testing
-            validator="",
-            disabled=False,
-        ):
+        self,
+        exp, parentName,
+        # basic
+        name='sound_1',
+        sound='A',
+        startType='time (s)', startVal='0.0',
+        stopType='duration (s)', stopVal='1.0',
+        startEstim='', durationEstim='',
+        syncScreenRefresh=True,
+        # device
+        deviceLabel="",
+        speakerIndex=-1,
+        resample=True,
+        latencyClass=1,
+        # playback
+        volume=1,
+        stopWithRoutine=True,
+        forceEndRoutine=False,
+        # testing
+        validator="",
+        disabled=False,
+    ):
         super(SoundComponent, self).__init__(
             exp, parentName, name,
             startType=startType, startVal=startVal,
@@ -117,7 +120,9 @@ class SoundComponent(BaseDeviceComponent):
 
         # --- Device params ---
         self.order += [
-            "speakerIndex"
+            "speakerIndex",
+            "resample",
+            "latencyClass",
         ]
         def getSpeakerLabels():
             from psychopy.hardware.speaker import SpeakerDevice
@@ -143,6 +148,30 @@ class SoundComponent(BaseDeviceComponent):
                 "What speaker to play this sound on"
             ),
             label=_translate("Speaker"))
+        self.params['resample'] = Param(
+            resample, valType="str", inputType="bool", categ="Device",
+            label=_translate("Resample"),
+            hint=_translate(
+                "If the sample rate of a clip doesn't match the sample rate of the speaker, should "
+                "we resample it to match?"
+            )
+        )
+        self.params['latencyClass'] = Param(
+            latencyClass, valType="code", inputType="choice", categ="Device",
+            allowedVals=[0, 1, 2, 3, 4],
+            allowedLabels=[
+                _translate("Shared"), 
+                _translate("Shared low-latency (recommended)"), 
+                _translate("Exclusive low-latency"),
+                _translate("Exclusive aggressive low-latency (with fallback)"),
+                _translate("Exclusive aggressive low-latency (no fallback)"),
+            ],
+            label=_translate("Latency/exclusivity mode"),
+            hint=_translate(
+                "How should PsychoPy handle latency? Some options will result in other apps being "
+                "denied access to the speaker while your experiment is running."
+            )
+        )
 
         # --- Testing ---
         self.params['validator'] = Param(
@@ -157,13 +186,18 @@ class SoundComponent(BaseDeviceComponent):
 
     def writeDeviceCode(self, buff):
         inits = getInitVals(self.params)
+        # alert user to inefficient configuration
+        if self.params['resample'] and self.params['latencyClass'] == 2:
+            alert(3210, strFields={'deviceName': inits['deviceLabel']})
         # initialise speaker
         code = (
             "# create speaker %(deviceLabel)s\n"
             "deviceManager.addDevice(\n"
             "    deviceName=%(deviceLabel)s,\n"
             "    deviceClass='psychopy.hardware.speaker.SpeakerDevice',\n"
-            "    index=%(speakerIndex)s\n"
+            "    index=%(speakerIndex)s,\n"
+            "    resample=%(resample)s,\n"
+            "    latencyClass=%(latencyClass)s,\n"
             ")\n"
         )
         buff.writeOnceIndentedLines(code % inits)
@@ -234,6 +268,12 @@ class SoundComponent(BaseDeviceComponent):
         stopVal = self.params['stopVal']
         if stopVal in ['', None, 'None']:
             stopVal = -1
+        
+        # never start a Routine marked as finished
+        code = (
+            "%(name)s.isFinished = false;"
+        )
+        buff.writeIndentedLines(code % self.params)
 
         if self.params['sound'].updates == 'set every repeat':
             buff.writeIndented("%(name)s.setValue(%(sound)s);\n" % self.params)

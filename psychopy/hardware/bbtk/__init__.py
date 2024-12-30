@@ -12,19 +12,13 @@ These are optional components that can be obtained by installing the
 
 """
 
-import psychopy.logging as logging
 
-try:
-    from psychopy_bbtk import BlackBoxToolkit
-except (ModuleNotFoundError, ImportError):
-    logging.error(
-        "Support for Black Box Toolkit hardware is not available this session. "
-        "Please install `psychopy-bbtk` and restart the session to enable "
-        "support.")
-except Exception as e:  # misc errors during module loading
-    logging.error(
-        "Error encountered while loading `psychopy-bbtk`. Check logs for more "
-        "information.")
+from psychopy.plugins import PluginStub
 
-if __name__ == "__main__":
+
+class BlackBoxToolkit(
+    PluginStub,
+    plugin="psychopy-iolabs",
+    docsHome="http://psychopy.github.io/psychopy-bbtk",
+):
     pass

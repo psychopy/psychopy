@@ -1,0 +1,19 @@
+
+code: 3610
+cat: Validation
+msg: Multiple Components in the same Routine are validated by {validator}, please ensure that the timing of these Components do not overlap.
+
+# The following are typically used for online help pages, and support reStructured Text.
+label: Multiple Components in same Routine validated by same validator
+
+synopsis: |
+  A validator can only validate one stimulus at a time, but it looks like you have multiple stimuli in the same Routine which are validated by the same validator. This may be fine, but you will need to be sure that they don't overlap in their timing.
+
+details: |
+  A validator can only validate one stimulus at a time, as they only respond True/False for whether there's light/sound, not distinguishing between different sources. If you have two stimuli at the same time, then they will obscure the start/stop times of one another, meaning your validator will give the wrong results. 
+
+solutions: |
+  This may be fine! You just need to make sure that the multiple Components in the same Routine which are validated by the same validator aren't overlapping in their timing. If they're not, you can ignore this!
+
+versions: |
+  >2025.1.0

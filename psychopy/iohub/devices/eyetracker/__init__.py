@@ -6,6 +6,7 @@ from .. import Device, ioDeviceError
 from ...constants import DeviceConstants, EyeTrackerConstants
 from . import hw
 from ...errors import print2err
+from psychopy.tools.stimulustools import serialize, actualize
 
 
 class EyeTrackerDevice(Device):
@@ -268,25 +269,16 @@ class EyeTrackerDevice(Device):
         dict
             Dict describing the given Calibration object
         """
+        targetAttributes = serialize(calib.target, includeClass=True)
+        # target animation
+        targetAttributes['animate'] = {
+            'enable': calib.movementAnimation,
+            'expansion_ratio': calib.expandScale,
+            'contract_only': calib.expandScale == 1,
+        }
+        
         return {
-            'target_attributes': {
-                # target outer circle
-                'outer_diameter': calib.target.radius * 2,
-                'outer_stroke_width': calib.target.outer.lineWidth,
-                'outer_fill_color': getattr(calib.target.outer._fillColor, calib.colorSpace) if calib.target.outer._fillColor else getattr(calib.target.win._color, calib.colorSpace),
-                'outer_line_color': getattr(calib.target.outer._borderColor, calib.colorSpace) if calib.target.outer._borderColor else getattr(calib.target.win._color, calib.colorSpace),
-                # target inner circle
-                'inner_diameter': calib.target.innerRadius * 2,
-                'inner_stroke_width': calib.target.inner.lineWidth,
-                'inner_fill_color': getattr(calib.target.inner._borderColor, calib.colorSpace) if calib.target.inner._borderColor else getattr(calib.target.win._color, calib.colorSpace),
-                'inner_line_color': getattr(calib.target.inner._borderColor, calib.colorSpace) if calib.target.inner._borderColor else getattr(calib.target.win._color, calib.colorSpace),
-                # target animation
-                'animate':{
-                    'enable': calib.movementAnimation,
-                    'expansion_ratio': calib.expandScale,
-                    'contract_only': calib.expandScale == 1,
-                },
-            },
+            'target_attributes': targetAttributes,
             'type': calib.targetLayout,
             'randomize': calib.randomisePos,
             'auto_pace': calib.progressMode == "time",

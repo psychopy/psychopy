@@ -14,6 +14,8 @@ class RoutineSettingsComponent(BaseComponent):
     iconFile = Path(__file__).parent / 'routineSettings.png'
     tooltip = _translate('Settings for this Routine.')
     version = "2023.2.0"
+    # a Routine only has one RoutineSettingsComponent, so hide it from the Components panel
+    hidden = True
 
     def __init__(
             self, exp, parentName,

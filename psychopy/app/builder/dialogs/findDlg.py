@@ -3,6 +3,7 @@ from psychopy import experiment
 from psychopy.app import utils
 from psychopy.app.themes import icons
 from psychopy.localization import _translate
+from psychopy.tools import stringtools
 
 
 class BuilderFindDlg(wx.Dialog):
@@ -25,21 +26,34 @@ class BuilderFindDlg(wx.Dialog):
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.border.Add(self.sizer, border=12, proportion=1, flag=wx.EXPAND | wx.ALL)
 
-        # create search box and checkbox sizer
-        searchSizer = wx.BoxSizer(wx.VERTICAL)
+        # create search box and controls
+        self.searchPnl = wx.Panel(self)
+        self.searchPnl.sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.searchPnl.SetSizer(self.searchPnl.sizer)
+        self.sizer.Add(self.searchPnl, flag=wx.EXPAND | wx.ALL, border=6)
 
         # create search box
-        self.termCtrl = wx.SearchCtrl(self)
+        self.termCtrl = wx.SearchCtrl(self.searchPnl)
         self.termCtrl.Bind(wx.EVT_TEXT, self.onSearchTyping)
-        searchSizer.Add(self.termCtrl, flag=wx.EXPAND | wx.BOTTOM, border=6)
+        self.searchPnl.sizer.Add(self.termCtrl, proportion=1, flag=wx.EXPAND, border=6)
 
-        # Add checkbox for case sensitivity
-        self.caseSensitiveCheckbox = wx.CheckBox(self, label=_translate("Case sensitive"))
-        self.caseSensitiveCheckbox.Bind(wx.EVT_CHECKBOX, self.onSearchTyping)
-        searchSizer.Add(self.caseSensitiveCheckbox, flag=wx.BOTTOM, border=6)
+        # add toggle for case sensitivity
+        self.caseSensitiveToggle = wx.ToggleButton(self.searchPnl, style=wx.BU_EXACTFIT)
+        self.caseSensitiveToggle.SetBitmap(
+            icons.ButtonIcon("case", size=16, theme="light").bitmap
+        )
+        self.caseSensitiveToggle.SetToolTip(_translate("Match case?"))
+        self.caseSensitiveToggle.Bind(wx.EVT_TOGGLEBUTTON, self.onSearchTyping)
+        self.searchPnl.sizer.Add(self.caseSensitiveToggle, flag=wx.EXPAND | wx.LEFT, border=6)
 
-        # Add the search sizer to the main sizer
-        self.sizer.Add(searchSizer, flag=wx.EXPAND | wx.ALL, border=6)
+        # add toggle for regex
+        self.regexToggle = wx.ToggleButton(self.searchPnl, style=wx.BU_EXACTFIT)
+        self.regexToggle.SetBitmap(
+            icons.ButtonIcon("regex", size=16, theme="light").bitmap
+        )
+        self.regexToggle.SetToolTip(_translate("Match regex?"))
+        self.regexToggle.Bind(wx.EVT_TOGGLEBUTTON, self.onSearchTyping)
+        self.searchPnl.sizer.Add(self.regexToggle, flag=wx.EXPAND | wx.LEFT, border=6)
 
         # create results box
         self.resultsCtrl = utils.ListCtrl(self, style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
@@ -85,11 +99,12 @@ class BuilderFindDlg(wx.Dialog):
 
     def onSearchTyping(self, evt):
         term = self.termCtrl.GetValue()
-        case_sensitive = self.caseSensitiveCheckbox.GetValue()
+        caseSensitive = self.caseSensitiveToggle.GetValue()
+        regex = self.regexToggle.GetValue()
         
         if term:
             # get locations of term in experiment
-            self.results = getParamLocations(self.exp, term=term, case_sensitive=case_sensitive)
+            self.results = getParamLocations(self.exp, term=term, caseSensitive=caseSensitive, regex=regex)
         else:
             # return nothing for blank string
             self.results = []
@@ -106,7 +121,7 @@ class BuilderFindDlg(wx.Dialog):
             if "\n" in val:
                 # if multiline, show first line with match
                 for line in val.split("\n"):
-                    if (term in line) if case_sensitive else (term.lower() in line.lower()):
+                    if compareStrings(line, term, caseSensitive, regex):
                         val = line
                         break
             # construct entry
@@ -165,7 +180,26 @@ class BuilderFindDlg(wx.Dialog):
             i = page.ctrls.getCategoryIndex(param.categ)
             page.ctrls.ChangeSelection(i)
 
-def getParamLocations(exp, term, case_sensitive=False):
+
+def compareStrings(text, term, caseSensitive, regex):
+    # lowercase everything if doing a non-case-sensitive check
+    if not caseSensitive:
+        term = term.lower()
+        text = text.lower()
+    # convert to regex object if using regex
+    if regex:
+        # if term isn't valid regex, assume no match
+        try:
+            stringtools.re.compile(term)
+        except stringtools.re.error:
+            return False
+        # convert to a regex searchable
+        text = stringtools.RegexSearchable(text)
+    
+    return term in text
+
+
+def getParamLocations(exp, term, caseSensitive=False, regex=False):
     """
     Get locations of params containing the given term.
 
@@ -184,18 +218,12 @@ def getParamLocations(exp, term, case_sensitive=False):
     # array to store results in
     found = []
 
-    def compareStrings(text, term, case_sensitive):
-        if case_sensitive:
-            return term in text
-        else:
-            return term.lower() in text.lower()
-
     # go through all routines
     for rt in exp.routines.values():
         if isinstance(rt, experiment.routines.BaseStandaloneRoutine):
             # find in standalone routine
             for paramName, param in rt.params.items():
-                if compareStrings(str(param.val), term, case_sensitive):
+                if compareStrings(str(param.val), term, caseSensitive, regex):
                     # append path (routine -> param)
                     found.append(
                         (rt, rt, paramName, param)
@@ -204,7 +232,7 @@ def getParamLocations(exp, term, case_sensitive=False):
             # find in regular routine
             for comp in rt:
                 for paramName, param in comp.params.items():
-                    if compareStrings(str(param.val), term, case_sensitive):
+                    if compareStrings(str(param.val), term, caseSensitive, regex):
                         # append path (routine -> component -> param)
                         found.append(
                             (rt, comp, paramName, param)

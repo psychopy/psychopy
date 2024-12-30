@@ -11,6 +11,17 @@ For tools related to view transformations, see :mod:`~psychopy.tools.viewtools`.
 .. automodule:: psychopy.tools.mathtools
 .. currentmodule:: psychopy.tools.mathtools
 
+Rigid Body
+==========
+
+Classes for working with rigid body transformations.
+
+.. autosummary::
+    :toctree: ../generated/
+
+    RigidBodyPose
+    BoundingBox
+
 Vectors
 =======
 
@@ -83,6 +94,7 @@ Tools to creating and using affine transformation matrices.
     normalMatrix
     forwardProject
     reverseProject
+    lookAt
     applyMatrix
     posOriToMatrix
 

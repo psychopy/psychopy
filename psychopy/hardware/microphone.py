@@ -4,6 +4,7 @@ import time
 import numpy as np
 from psychtoolbox import audio as audio
 from psychopy import logging as logging, prefs, core
+from psychopy.hardware.exceptions import DeviceNotConnectedError
 from psychopy.localization import _translate
 from psychopy.constants import NOT_STARTED
 from psychopy.hardware import BaseDevice, BaseResponse, BaseResponseDevice
@@ -114,15 +115,19 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
     # other instances of MicrophoneDevice, stored by index
     _streams = {}
 
-    def __init__(self,
-                 index=None,
-                 sampleRateHz=None,
-                 channels=None,
-                 streamBufferSecs=2.0,
-                 maxRecordingSize=24000,
-                 policyWhenFull='roll',
-                 audioLatencyMode=None,
-                 audioRunMode=0):
+    def __init__(
+            self,
+            index=None,
+            sampleRateHz=None,
+            channels=None,
+            streamBufferSecs=2.0,
+            maxRecordingSize=24000,
+            policyWhenFull='roll',
+            exclusive=False,
+            audioRunMode=0,
+            # legacy
+            audioLatencyMode=None,
+        ):
 
         if not _hasPTB:  # fail if PTB is not installed
             raise ModuleNotFoundError(
@@ -147,7 +152,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             _devices = MicrophoneDevice.getDevices()
             # if there are none, error
             if not len(_devices):
-                raise AudioInvalidCaptureDeviceError(_translate(
+                raise DeviceNotConnectedError(_translate(
                     "Could not choose default recording device as no recording "
                     "devices are connected."
                 ))
@@ -229,15 +234,13 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             self._sampleRateHz))
 
         # set the audio latency mode
-        if audioLatencyMode is None:
-            self._audioLatencyMode = int(prefs.hardware["audioLatencyMode"])
+        if exclusive:
+            self._audioLatencyMode = 2
         else:
-            self._audioLatencyMode = audioLatencyMode
-
-        logging.debug('Set audio latency mode to {}'.format(
-            self._audioLatencyMode))
-
-        assert 0 <= self._audioLatencyMode <= 4  # sanity check for pref
+            self._audioLatencyMode = 1
+        logging.debug(
+            'Set audio latency mode to {}'.format(self._audioLatencyMode)
+        )
 
         # internal recording buffer size in seconds
         assert isinstance(streamBufferSecs, (float, int))
@@ -373,8 +376,8 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             chosenDevice = fallbackDevice
         elif chosenDevice is None:
             # if no index match found, raise error
-            raise KeyError(
-                f"Could not find any device with index {index}"
+            raise DeviceNotConnectedError(
+                f"Could not find any audio recording device with index {index}"
             )
 
         return chosenDevice
@@ -1184,7 +1187,7 @@ class RecordingBuffer:
                  maxRecordingSize=24000, policyWhenFull='ignore'):
         self._channels = channels
         self._sampleRateHz = sampleRateHz
-        self._maxRecordingSize = maxRecordingSize
+        self._maxRecordingSize = maxRecordingSize or 24000
         self._samples = None  # `ndarray` created in _allocRecBuffer`
         self._offset = 0  # recording offset
         self._lastSample = 0  # offset of the last sample from stream

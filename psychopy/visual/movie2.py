@@ -9,12 +9,13 @@
 # of avbin
 
 
-from psychopy.tools.pkgtools import PluginStub
+from psychopy.plugins import PluginStub
 
 
 class MovieStim2(
     PluginStub,
     plugin="psychopy-legacy",
-    doclink="https://psychopy.github.io/psychopy-legacy/coder/visual/MovieStim2"
+    docsHome="https://psychopy.github.io/psychopy-legacy",
+    docsRef="/coder/MovieStim2"
 ):
     pass

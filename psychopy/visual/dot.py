@@ -66,7 +66,7 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
     identical velocity but random direction and signal dots remain the 'same'
     (once a signal dot, always a signal dot).
 
-    For further detail about the different configurations see :ref:`dots` in the
+    For further detail about the different configurations see :ref:`dotscomponent` in the
     Builder Components section of the documentation.
 
     If further customisation is required, then the DotStim should be subclassed

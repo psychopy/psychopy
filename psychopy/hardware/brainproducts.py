@@ -14,18 +14,12 @@ which allows you to control recordings, send annotations etc. all from Python.
 """
 
 import psychopy.logging as logging
+from psychopy.plugins import PluginStub
 
-try:
-    from psychopy_brainproducts import RemoteControlServer
-except (ModuleNotFoundError, ImportError):
-    logging.error(
-        "Support for Brain Products GMBH hardware is not available this "
-        "session. Please install `psychopy-brainproducts` and restart the "
-        "session to enable support.")
-except Exception as e:
-    logging.error(
-        "Error encountered while loading `psychopy-brainproducts`. Check logs "
-        "for more information.")
 
-if __name__ == "__main__":
+class RemoteControlServer(
+    PluginStub,
+    plugin="psychopy-brainproducts",
+    docsHome="https://psychopy.github.io/psychopy-brainproducts"
+):
     pass

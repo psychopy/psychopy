@@ -18,6 +18,8 @@ class UnknownPluginComponent(BaseComponent):
     targets = ['PsychoPy']
     iconFile = Path(__file__).parent / 'unknownPlugin.png'
     tooltip = _translate('Unknown: A component which comes from a plugin which you do not have installed & activated.')
+    # hide from the Components panel
+    hidden = True
 
     def __init__(self, exp, parentName, name='', compType="UnknownPluginComponent"):
         self.exp = exp  # so we can access the experiment if necess

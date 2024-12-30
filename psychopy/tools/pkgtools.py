@@ -60,51 +60,6 @@ _installedPackageNamesCache = []
 USER_PACKAGES_PATH = str(prefs.paths['userPackages'])
 
 
-class PluginRequiredError(Exception):
-    pass
-
-
-class PluginStub:
-    """
-    Class to handle classes which have moved out to plugins.
-
-    Example
-    -------
-    ```
-    class NoiseStim(PluginStub, plugin="psychopy-visionscience", doclink="https://psychopy.github.io/psychopy-visionscience/builder/components/NoiseStimComponent/):
-    ```
-    """
-
-    def __init_subclass__(cls, plugin, doclink="https://plugins.psychopy.org/directory.html"):
-        """
-        Subclassing PluginStub will create documentation pointing to the new documentation for the replacement class.
-        """
-        # store ref to plugin and docs link
-        cls.plugin = plugin
-        cls.doclink = doclink
-        # create doc string point to new location
-        cls.__doc__ = (
-            "`{mro}` is now located within the `{plugin}` plugin. You can find the documentation for it `here <{doclink}>`_."
-        ).format(
-            mro=cls.__module__,
-            plugin=plugin,
-            doclink=doclink
-        )
-
-
-    def __init__(self, *args, **kwargs):
-        """
-        When initialised, rather than creating an object, will log an error.
-        """
-        raise PluginRequiredError((
-            "Support for `{mro}` is not available this session. Please install "
-            "`{plugin}` and restart the session to enable support."
-        ).format(
-            mro=type(self).__module__,
-            plugin=self.plugin,
-        ))
-
-
 def refreshPackages():
     """Refresh the packaging system.
 

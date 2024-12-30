@@ -30,6 +30,8 @@ class BaseStandaloneRoutine:
     version = "0.0.0"
     # is it still in beta?
     beta = False
+    # hide this Component in Builder view?
+    hidden = False
 
     def __init__(self, exp, name='',
                  stopType='duration (s)', stopVal='',

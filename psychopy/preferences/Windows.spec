@@ -131,15 +131,13 @@
 # Settings for hardware
 [hardware]
     # LEGACY: choice of audio library
-    audioLib = list(default=list('PTB', 'sounddevice', 'pyo', 'pygame'))
-    # LEGACY: latency mode for PsychToolbox audio (3 is good for most applications. See
-    audioLatencyMode = option(0, 1, 2, 3, 4, default=3)
+    audioLib = list(default=list('ptb', 'sounddevice', 'pyo', 'pygame'))
+    # exclude non-WASAPI audio devices
+    audioWASAPIOnly = boolean(default=True)
     # audio driver to use
     audioDriver = list(default=list('Primary Sound','ASIO','Audigy'))
     # audio device to use (if audioLib allows control)
     audioDevice = list(default=list('default'))
-    # exclude non-WASAPI audio devices
-    audioWASAPIOnly = boolean(default=True)
     # a list of parallel ports
     parallelPorts = list(default=list('0x0378', '0x03BC'))
     # The name of the Qmix pump configuration to use
@@ -159,6 +157,8 @@
     showPilotingIndicator = boolean(default=True)
     # Prevent experiment from enabling rush mode when piloting
     forceNonRush = boolean(default=True)
+    # Replace default participant ID with "pilot" when piloting
+    replaceParticipantID = boolean(default=True)
 
 # Settings for connections
 [connections]

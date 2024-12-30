@@ -76,9 +76,7 @@ from psychopy.scripts.psyexpCompile import generateScript
 
 # Components which are always hidden
 alwaysHidden = [
-    'SettingsComponent', 'RoutineSettingsComponent', 'UnknownComponent', 'UnknownRoutine',
-    'UnknownStandaloneRoutine', 'UnknownPluginComponent', 'BaseComponent', 'BaseStandaloneRoutine',
-    'BaseValidatorRoutine'
+    'BaseComponent', 'BaseStandaloneRoutine', 'BaseValidatorRoutine'
 ]
 
 
@@ -373,6 +371,13 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         menu.Append(wx.ID_PASTE, _translate("&Paste\t%s") % keys['paste'])
         self.Bind(wx.EVT_MENU, self.paste, id=wx.ID_PASTE)
 
+        item = menu.Append(
+            wx.ID_ANY,
+            _translate("&Find in experiment...\t%s") % keys['builderFind'],
+            _translate("Search the whole experiment for a specific term")
+        )
+        self.Bind(wx.EVT_MENU, self.onFindInExperiment, item)
+
         # ---_view---#000000#FFFFFF-------------------------------------------
         self.viewMenu = wx.Menu()
         menuBar.Append(self.viewMenu, _translate('&View'))
@@ -510,11 +515,6 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
                            _translate("Create a new loop in your flow window"))
         self.Bind(wx.EVT_MENU, self.flowPanel.canvas.insertLoop, item)
         menu.AppendSeparator()
-
-        item = menu.Append(wx.ID_ANY,
-                           _translate("&Find in experiment...\t%s") % keys['builderFind'],
-                           _translate("Search the whole experiment for a specific term"))
-        self.Bind(wx.EVT_MENU, self.onFindInExperiment, item)
 
         item = menu.Append(wx.ID_ANY,
                            _translate("README..."),
@@ -1030,10 +1030,8 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             ok = self.checkSave()
             if not ok:
                 return False  # user cancelled
-        if self.filename is None:
-            frameData = self.appData['defaultFrame']
-        else:
-            frameData = dict(self.appData['defaultFrame'])
+        frameData = self.appData['defaultFrame']
+        if self.fileExists:
             self.appData['prevFiles'].append(self.filename)
 
             # get size and window layout info
@@ -3247,6 +3245,9 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
                 # Check whether button is hidden by prefs
                 if name in prefs.builder['hiddenComponents'] + alwaysHidden:
                     shown = False
+                # check whether comp/rt indicates itsef as hidden
+                if emt.hidden:
+                    shown = False
                 # Check whether button refers to a future comp/rt
                 if hasattr(emt, "version"):
                     ver = parseVersionSafely(emt.version)
@@ -4511,6 +4512,12 @@ class BuilderRibbon(ribbon.FrameRibbon):
             section="edit", name="redo", label=_translate("Redo"), icon="redo",
             tooltip=_translate("Redo last action"),
             callback=parent.redo
+        )
+        # find
+        self.addButton(
+            section="edit", name="find", label=_translate("Find"), icon="find",
+            tooltip=_translate("Search the whole experiment for a specific term"),
+            callback=parent.onFindInExperiment
         )
 
         self.addSeparator()

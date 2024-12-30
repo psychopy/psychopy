@@ -71,7 +71,7 @@ backend = None
 # These are the names that can be used in the prefs to specifiy audio libraries.
 # The available libraries are hard-coded at this point until we can overhaul
 # the sound library to be more modular.
-_audioLibs = ['PTB', 'sounddevice', 'pyo', 'pysoundcard', 'pygame']
+_audioLibs = ['ptb', 'sounddevice', 'pyo', 'pysoundcard', 'pygame']
 failed = []  # keep track of audio libs that failed to load
 
 # check if this is being imported on Travis/Github (has no audio card)
@@ -115,7 +115,7 @@ for thisLibName in prefs.hardware['audioLib']:
                 from . import backend_ptb as backend
                 Sound = backend.SoundPTB
                 audioDriver = backend.audioDriver
-            except Exception:
+            except Exception as err:
                 failed.append(thisLibName)
                 continue
             else:
@@ -198,8 +198,18 @@ else:
 if Sound is not None:
     audioLib = thisLibName
     init = backend.init
-    if hasattr(backend, 'getDevices'):
+    getDevices = None
+    if audioLib != 'ptb' and hasattr(backend, 'getDevices'):
         getDevices = backend.getDevices
+    else:
+        import psychopy.hardware.speaker as speaker
+
+        def _getDevices(*args, **kwargs):  # for matching function signiture
+            allDevices = speaker.SpeakerDevice.getAvailableDevices()
+            return [dev['name'] for dev in allDevices]
+
+        getDevices = _getDevices
+
     logging.info('sound is using audioLib: %s' % audioLib)
 else:
     # if we get here, there is no audioLib that is supported
@@ -275,12 +285,13 @@ elif hasattr(backend, 'defaultOutput'):
     # is it simply "default" (do nothing)
     if dev == 'default' or systemtools.isVM_CI():
         pass  # do nothing
-    elif dev not in backend.getDevices(kind='output'):
-        deviceNames = sorted(backend.getDevices(kind='output').keys())
-        logging.warn(
-            u"Requested audio device '{}' that is not available on "
-            "this hardware. The 'audioDevice' preference should be one of "
-            "{}".format(dev, deviceNames))
+    elif getDevices is not None:
+        if dev not in getDevices(kind='output'):
+            deviceNames = sorted(getDevices(kind='output').keys())
+            logging.warn(
+                u"Requested audio device '{}' that is not available on "
+                "this hardware. The 'audioDevice' preference should be one of "
+                "{}".format(dev, deviceNames))
     else:
         setDevice(dev, kind='output')
 

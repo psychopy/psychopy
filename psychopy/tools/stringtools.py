@@ -55,6 +55,26 @@ def is_file(source):
     return isFile
 
 
+class RegexSearchable(str):
+    """
+    Like a string, but uses `re.search` for `in` comparisons
+
+    Example
+    -------
+    ```
+    r".*" in RegexSearchable("any text!")
+    ```
+    is the same as 
+    ```
+    bool(re.search(r".*", "any text!"))
+    ```
+    """
+    def __contains__(self, item):
+        return bool(
+            re.search(pattern=item, string=self)
+        )
+
+
 class CaseSwitcher:
     """
     Collection of static methods for switching case in strings. Can currently convert between:

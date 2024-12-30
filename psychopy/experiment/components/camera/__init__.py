@@ -30,7 +30,7 @@ class CameraComponent(BaseDeviceComponent):
     version = "2022.2.0"
     iconFile = Path(__file__).parent / 'webcam.png'
     tooltip = _translate('Webcam: Record video from a webcam.')
-    beta = True
+    beta = False
     deviceClasses = ["psychopy.hardware.camera.Camera"]
 
     def __init__(

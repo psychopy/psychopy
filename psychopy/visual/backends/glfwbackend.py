@@ -12,17 +12,13 @@ used by backends.getBackend(winType) which will locate the appropriate class
 and initialize an instance using the attributes of the Window.
 """
 
-import psychopy.logging as logging
 
-try:
-    from psychopy_glfw import GLFWBackend
-except (ModuleNotFoundError, ImportError):
-    logging.warning(
-        "GLFW window backend support is not installed. To get support, install "
-        "the `psychopy-glfw` package and restart your session."
-    )
-    logging.flush()
+from psychopy.plugins import PluginStub
 
 
-if __name__ == "__main__":
+class GLFWBackend(
+    PluginStub,
+    plugin="psychopy-glfw",
+    docsHome="https://github.com/psychopy/psychopy-glfw",
+):
     pass

@@ -13,13 +13,14 @@
 #    It is, for example, Mario's idea to add the 0.01 to avoid rounding issues
 
 
-from psychopy.tools.pkgtools import PluginStub
+from psychopy.plugins import PluginStub
 
 
 class bitsMonoModeFrag(
     PluginStub, 
     plugin="psychopy-crs", 
-    doclink="https://psychopy.github.io/psychopy-crs/coder/shaders"
+    docsHome="https://psychopy.github.io/psychopy-crs",
+    docsRef="/coder/shaders"
 ):
     pass
 
@@ -27,6 +28,7 @@ class bitsMonoModeFrag(
 class bitsColorModeFrag(
     PluginStub, 
     plugin="psychopy-crs", 
-    doclink="https://psychopy.github.io/psychopy-crs/coder/shaders"
+    docsHome="https://psychopy.github.io/psychopy-crs",
+    docsRef="/coder/shaders"
 ):
     pass

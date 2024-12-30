@@ -1,10 +1,11 @@
-from psychopy.tools.pkgtools import PluginStub
+from psychopy.plugins import PluginStub
 
 
 class BitsSharp(
     PluginStub, 
     plugin="psychopy-crs", 
-    doclink="https://psychopy.github.io/psychopy-crs/coder/bits/#psychopy_crs.bits.BitsSharp"
+    docsHome="https://psychopy.github.io/psychopy-crs",
+    docsRef="/coder/bits/#psychopy_crs.bits.BitsSharp"
 ):
     pass
 
@@ -12,7 +13,8 @@ class BitsSharp(
 class BitsPlusPlus(
     PluginStub, 
     plugin="psychopy-crs", 
-    doclink="https://psychopy.github.io/psychopy-crs/coder/bits/#psychopy_crs.bits.BitsPlusPlus"
+    docsHome="https://psychopy.github.io/psychopy-crs",
+    docsRef="/coder/bits/#psychopy_crs.bits.BitsPlusPlus"
 ):
     pass
 
@@ -20,7 +22,8 @@ class BitsPlusPlus(
 class DisplayPlusPlus(
     PluginStub, 
     plugin="psychopy-crs", 
-    doclink="https://psychopy.github.io/psychopy-crs/coder/bits/#psychopy_crs.bits.DisplayPlusPlus"
+    docsHome="https://psychopy.github.io/psychopy-crs",
+    docsRef="/coder/bits/#psychopy_crs.bits.DisplayPlusPlus"
 ):
     pass
 
@@ -28,6 +31,7 @@ class DisplayPlusPlus(
 class DisplayPlusPlusTouch(
     PluginStub, 
     plugin="psychopy-crs", 
-    doclink="https://psychopy.github.io/psychopy-crs/coder/bits/#psychopy_crs.bits.DisplayPlusPlusTouch"
+    docsHome="https://psychopy.github.io/psychopy-crs",
+    docsRef="/coder/bits/#psychopy_crs.bits.DisplayPlusPlusTouch"
 ):
     pass
