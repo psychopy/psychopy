@@ -85,7 +85,7 @@ Items
     *itemWidth*
         The question width between 0 : 1
     *type*
-        The type of rating e.g., 'choice', 'rating', 'slider', 'free-text'
+        The type of rating e.g., 'choice', 'rating', 'slider', 'free text'
     *responseWidth*
         The question width between 0 : 1
     *options*

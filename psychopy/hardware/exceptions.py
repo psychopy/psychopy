@@ -35,10 +35,15 @@ class DeviceNotConnectedError(BaseException):
         asString : bool, optional
             Convert to a string or leave as a serializable dict? By default True
         """
+        # get name of device class
+        if self.deviceClass is not None:
+            deviceType = self.deviceClass.__name__
+        else:
+            deviceType = "None"
         # construct message
         message = {
             'type': "device_not_connected_error",
-            'device_type': self.deviceClass.__name__,
+            'device_type': deviceType,
             'msg': str(self),
             'traceback': traceback.format_exception(type(self), self, self.__traceback__),
             'context': self.context

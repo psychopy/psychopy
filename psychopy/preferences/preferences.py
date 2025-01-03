@@ -175,7 +175,7 @@ class Preferences:
                 if err.errno != errno.EEXIST:
                     raise
 
-        # root site-packages directory for user-installed packages and add it
+        # site-packages root directory for user-installed packages
         userPkgRoot = Path(self.paths['packages'])
 
         # Package paths for custom user site-packages, these should be compliant
@@ -188,6 +188,42 @@ class Preferences:
         elif sys.platform == 'darwin' and sys._framework:  # macos + framework
             pyVersion = sys.version_info
             pyDirName = "python{}.{}".format(pyVersion[0], pyVersion[1])
+
+            # determine if we should use symlinks for the package folders if the
+            # user already has package installed
+            useSymlinks = (
+                Path(self.paths['packages']) / 'include' / pyDirName).exists()
+
+            # Standard scheme of lib directories for OSX framework does not
+            # distinguish between python versions. We must modify the
+            # site-packages root directory to provide a unique path for
+            # each python version.
+            userPkgRoot = Path(self.paths['packages']) / pyDirName
+            try:
+                os.makedirs(userPkgRoot)
+            except OSError as err:
+                if err.errno != errno.EEXIST:
+                    raise
+            
+            if useSymlinks:
+                # create symlinks to refer to the old package directories
+                oldUserPackageRoot = Path(self.paths['packages'])
+                userPackages = userPkgRoot / "lib"
+                userInclude = userPkgRoot / "include"
+                userScripts = userPkgRoot / "bin"
+
+                # create symlinks to the python version agnostic directories
+                if not userPackages.is_symlink():
+                    userPackages.symlink_to(oldUserPackageRoot / "lib")
+                if not userInclude.is_symlink():
+                    userInclude.symlink_to(oldUserPackageRoot / "include")
+                if not userScripts.is_symlink():
+                    userScripts.symlink_to(oldUserPackageRoot / "bin")
+
+            # reload userPkgRoot
+            self.paths['packages'] = userPkgRoot = Path(self.paths['packages'])  
+            # See the ox_framework_user scheme standard:
+            # https://docs.python.org/3/library/sysconfig.html#osx-framework-user
             userPackages = userPkgRoot / "lib" / "python" / "site-packages"
             userInclude = userPkgRoot / "include" / pyDirName
             userScripts = userPkgRoot / "bin"

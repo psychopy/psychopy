@@ -45,6 +45,7 @@ from psychopy.visual import window
 from psychopy.hardware.exceptions import DeviceNotConnectedError
 from psychopy import platform_specific, logging, core
 from psychopy.tools.attributetools import setAttribute
+from psychopy.localization import _translate
 
 try:
     from PIL import Image
@@ -318,7 +319,10 @@ class Rift(window.Window):
 
         if not libovr.isHmdConnected():
             raise DeviceNotConnectedError(
-                "Cannot find any connected HMD, check connections and try again."
+                _translate(
+                    "Cannot find any connected HMD, check connections and try again."
+                ),
+                deviceClass=Rift
             )
 
         # create a VR session, do some initial configuration

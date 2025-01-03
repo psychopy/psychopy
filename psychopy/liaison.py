@@ -37,9 +37,13 @@ class LiaisonJSONEncoder(json.JSONEncoder):
 	string before JSONifying.
 	"""
 	def default(self, o):
-		# if object has a getJSON method, use it
-		if hasattr(o, "getJSON"):
-			return o.getJSON(asString=False)
+		try:
+			# if object has a getJSON method, use it
+			if hasattr(o, "getJSON"):
+				return o.getJSON(asString=False)
+		except:
+			# if there's an error in the getJSON method, continue so we can try regular encoding
+			pass
 		# if object is an error, transform in standardised form
 		if isinstance(o, BaseException):
 			tb = traceback.format_exception(type(o), o, o.__traceback__)

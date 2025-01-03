@@ -13,7 +13,7 @@ The `Shelf <https://psychopy.github.io/psychojs/module-data.Shelf.html>`_ is a f
 
 * :ref:`Multi-session testing <multi_session_testing>`
 * :ref:`Counterbalancing <counterbalanceShelf>`
-* Multi-player games
+* :ref:`Multi-player games <multiplayerShelf>`
 * :ref:`Leaderboards <leaderboardShelf>`
 
 Here we will walk through some of the use cases and how to implement them. At the moment, we must interact with the Shelf through :ref:`Code Components <code>`. In the longer term, once we better understand the ways in which scientists are using the Shelf, we hope to make this more accessible by making a :ref:`Builder <builder>` component.
@@ -146,7 +146,7 @@ We now have a Counterbalance Routine where you can set up your counterbalance gr
     :figclass: align-center
 
 |
-To set up your Counterbalance Shelf, you would need to first upload your task to Pavlovia and set it to Pilot/Running Mode. 
+To set up your Counterbalance Shelf, you would need to first upload your task to Pavlovia and set it to Pilot/Running Mode.
 
 In your Shelf view of your Dashboard, click on Add Record. In Key, add the name of your Counterbalance Routine as in your Builder task. For Scope, choose Experiment and select the name of your Builder task. For Type, select Counterbalance (*you might need to scroll down*).
 
@@ -172,6 +172,105 @@ Your resulting Shelf record should look like this:
 	
 	:ref:`counterbalanceroutine`
 
+.. _multiplayerShelf:
+
+Multiplayer experiments
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Demo link:** `here <https://run.pavlovia.org/jfkominsky/multiplayer_demo>`_ (Note: Requires multiple browser windows or multiple people accessing the link at once!)
+
+**Demo experiment files:** `here <https://gitlab.pavlovia.org/jfkominsky/multiplayer_demo>`_
+
+Using the shelf, you can create synchronous multi-participant experiments, i.e., multiplayer activities. First, two important notes:
+
+* The shelf is **slow**. It can take up to 60 seconds for an update from one participant to be received by another participant via updating and checking the shelf.
+* If you are planning to copy the demo, you will need to set up your own lists and dictionaries (described below) in your own account's shelf.
+
+Multiplayer activities first require a matchmaking routine to pair a participant with another participant (or, in principle, multiple other participants), and once the other player has been found, whatever communication is required by the task itself. This demo uses a very simple coordination game in which each player must select a red or green card, and both players win if they choose the same color.
+
+The demo requires three entries on the shelf (which you will need to re-create on your own shelf if you want to create your own copy of the demo):
+
+.. figure:: /images/multiplayer_images/multiplayerShelf.png
+    :name: multiplayerShelf
+    :align: center
+    :figclass: align-center
+
+
+|
+
+1. :code:`player_pairs`: A **dictionary** consisting of key:value pairs where one player ID is the key and the partnered player is the value. This contains one key per player, so each pair has two entries in this dictionary. This keeps track of the matches once they have been made.
+2. :code:`unpaired_players`: A **list** of Pavlovia IDs for players who have not yet been matched up.
+3. :code:`player_clicked`: A **dictionary** consisting of key:value pairs where one player ID is the key and the color that player clicked (red or green) is the value.
+
+The experiment starts with a matchmaking routine. This routine displays a message to the participant to let them know that matchmaking is happening, a timer to show them that the experiment is not frozen, and a code component that conducts matchmaking in three repeating steps:
+
+1. Check if the current player's Pavlovia ID is already present as a key in the :code:`player_pairs` dictionary. If so, record the value of that entry as the partner ID.
+
+.. figure:: /images/multiplayer_images/matchmakingStep1.png
+    :name: matchmakingStep1
+    :align: center
+    :figclass: align-center
+
+
+|
+
+2. If the current player's Pavlovia ID is not a key in the :code:`player_pairs` dictionary, check the :code:`unpaired_players` list. If there is already an unpaired player listed, record them as the partner ID, remove them from the :code:`unpaired_players` list, and add two matched entries to :code:`player_pairs`, one for the current player and one for the partner.
+
+.. figure:: /images/multiplayer_images/matchmakingStep2.png
+    :name: matchmakingStep2
+    :align: center
+    :figclass: align-center
+
+
+|
+
+3. If the :code:`unpaired_players` list is empty, add the current player's ID to the :code:`unpaired_players` list, and repeat from step 1.
+
+.. figure:: /images/multiplayer_images/matchmakingStep3.png
+    :name: matchmakingStep3
+    :align: center
+    :figclass: align-center
+
+
+|
+
+To prevent the code from freezing every time it checks the shelf, this code uses :code:`.then(function(result){})` asynchronous code. The difference between this and the :code:`await` keyword used with other shelf demos is that :code:`await` freezes the rest of the experiment until the communication with the shelf is complete, whereas :code:`.then(function(result){})` executes when the communication is complete while letting the frame loop continue uninterrupted in the meantime. Note that in step 3, it uses neither of these, which means that the code **does not know when the shelf has finished updating with the current player's ID added to the unpaired player list**. In this case that's fine because nothing in this code depends on that completing, and there is a boolean that makes sure that the player's ID is only added to the list once regardless of whether or not the update has finished from one frame to the next.
+
+As a safety measure to ensure that the unpaired player list is cleared, the code component also includes an "end routine" step that makes sure the current player ID is removed from the list. Because it does not use :code:`await`, this can happen while the experiment proceeds to the next routine.
+
+.. figure:: /images/multiplayer_images/matchmakingEnd.png
+    :name: matchmakingEnd
+    :align: center
+    :figclass: align-center
+
+
+|
+
+After a partner has been found, the participant moves on to the coordination game, where they can click either the red or green card. Two black cards on the other side of the screen represent the partner's cards. The code component in this routine does three things:
+
+1. When the current player clicks a card, add an entry to the :code:`player_clicked`: dictionary with the current player's ID as a key and the value equal to the color that the current player clicked.
+
+.. figure:: /images/multiplayer_images/coordinationUpdate.png
+    :name: coordinationUpdate
+    :align: center
+    :figclass: align-center
+
+
+|
+
+2. Check whether the partner ID has appeared as a key in the :code:`player_clicked` dictionary, and if so, animate one of the partner's cards (always the left one) as moving toward the center (and record what color they actually chose in a separate variable).
+
+.. figure:: /images/multiplayer_images/coordinationCheck.png
+    :name: coordinationCheck
+    :align: center
+    :figclass: align-center
+
+
+|
+
+3. When both (1) and (2) have occurred, end routine and go to the routine that presents the outcome.
+
+The logic here once again uses :code:`.then(function(result){})` to make sure each player can make their own choice without the code freezing waiting for the other player's choice.
 
 .. _leaderboardShelf:
 
@@ -190,7 +289,7 @@ You would not need to add any fields within the shelf record on Pavlovia as they
     :name: leaderboardShelf
     :align: center
     :figclass: align-center
-    
+
 
 |
 

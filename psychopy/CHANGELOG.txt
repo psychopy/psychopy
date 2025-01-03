@@ -208,6 +208,17 @@ PsychoPy 2024.2.4
 
 **Full Changelog**: https://github.com/psychopy/psychopy/compare/2024.2.3...2024.2.4
 
+PsychoPy 2024.2.5
+~~~~~~~~~~~~~~~~~
+
+**🐛 Bug Fixes:**
+
+* ioHub process was not cleanly exiting and then causing a crash on subsequent attempts to run @mh105 and @mdcutone in #6949 and #6938
+* Sending experiment to Runner was sometimes (incorrectly) toggling pilot/run mode by @TEParsons in #6945
+* Arabic Translation_update by @Ahmad-Abudoush in #6959
+
+**Full Changelog**: https://github.com/psychopy/psychopy/compare/2024.2.4...2024.2.5
+
 PsychoPy 2024.1
 -----------------
 

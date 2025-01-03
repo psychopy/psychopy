@@ -77,6 +77,8 @@ def parseVersionSafely(version, fallback=Version("0")):
     # if version is already valid, do normal parsing
     if re.fullmatch(version, VERSION_PATTERN):
         return Version(version)
+    # if dev number, use value up to it
+    version = version[:version.find("dev")]
     # try stripping all but numbers, dots and keywords
     version = "".join(
         re.findall(r"\d|\.|a|b|c|rc|alpha|beta|pre|preview|post|rev|r|dev", version)

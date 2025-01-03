@@ -17,7 +17,8 @@ __all__ = ['Frustum',
            'generalizedPerspectiveProjection',
            'orthoProjectionMatrix',
            'perspectiveProjectionMatrix',
-           # 'lookAt',
+           'viewMatrix',
+           'lookAt',
            'pointToNdc',
            'cursorToRay',
            'visible',
@@ -91,6 +92,9 @@ def visualAngle(size, distance, degrees=True, out=None, dtype=None):
         toReturn = 2 * np.arctan(size / (2 * distance), dtype=dtype)
         if degrees:
             toReturn[:] = np.degrees(toReturn, dtype=dtype)
+
+    if toReturn.size == 1:
+        return toReturn.item()  # return scalar
 
     return toReturn
 
@@ -487,7 +491,13 @@ def generalizedPerspectiveProjection(posBottomLeft,
 
     # projection matrix to return
     projMat = perspectiveProjectionMatrix(
-        left, right, bottom, top, nearClip, farClip, dtype=dtype)
+        left.item(), 
+        right.item(), 
+        bottom.item(), 
+        top.item(), 
+        nearClip.item(), 
+        farClip.item(), 
+        dtype=dtype)
 
     # view matrix to return, first compute the rotation component
     rotMat = np.zeros((4, 4), dtype=dtype)

@@ -87,6 +87,9 @@ if 'installing' not in locals():
                 env['_PIP_USE_IMPORTLIB_METADATA'] = 'True'
 
         # update environment, pass this to sub-processes (e.g. pip)
+        # make sure all environment variables are strings, sometimes these are
+        # pass as Path() objects
+        env = {k: str(v) for k, v in env.items()}
         os.environ.update(env)
 
         # make sure site knows about our custom user site-packages

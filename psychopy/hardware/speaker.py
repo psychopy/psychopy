@@ -13,6 +13,7 @@ import contextlib
 from types import SimpleNamespace
 import psychtoolbox.audio as ptb
 from psychopy.hardware.exceptions import DeviceNotConnectedError
+from psychopy.localization import _translate
 from psychopy.preferences import prefs
 from psychopy.hardware import BaseDevice
 from psychopy import logging
@@ -153,7 +154,10 @@ class SpeakerDevice(BaseDevice):
             allFoundDevices = ptb.get_devices()
 
         if not allFoundDevices:
-            raise DeviceNotConnectedError("No audio devices found!")
+            raise DeviceNotConnectedError(
+                _translate("No audio devices found!"),
+                deviceClass=SpeakerDevice
+            )
         
         # find ptb profile for this device
         findByName = self.index is None and self.name is not None
@@ -173,14 +177,12 @@ class SpeakerDevice(BaseDevice):
 
         # raise error if device not found
         if self.profile is None:
-            if findByName:
-                raise DeviceNotConnectedError(
-                    "No speaker device found with name '{}'".format(self.name)
-                )
-            else:
-                raise DeviceNotConnectedError(
-                    "No speaker device found with index '{}'".format(self.index)
-                    )
+            raise DeviceNotConnectedError(
+                _translate(
+                    "No speaker device found with {key} '{name}'"
+                ).format(name=self.name, key="name" if findByName else "index"),
+                deviceClass=SpeakerDevice
+            )
         
         logging.debug(
             f"Found speaker device: {self.profile['DeviceName']} ({self.profile['DeviceIndex']})"

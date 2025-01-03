@@ -14,6 +14,8 @@ import time
 
 from psychopy import logging
 import serial
+
+from psychopy.localization import _translate
 from .exceptions import DeviceNotConnectedError
 from psychopy.tools import systemtools as st
 from psychopy.tools.attributetools import AttributeGetSetMixin
@@ -177,8 +179,11 @@ class SerialDevice(BaseDevice, AttributeGetSetMixin):
             ports[port] = self
         else:
             raise DeviceNotConnectedError(
-                f"Failed to connect to device on {port}, this device is likely to have "
-                f"been disconnected, or the port is in use by another application."
+                _translate(
+                    "Failed to connect to device on {port}, this device is likely to have "
+                    "been disconnected, or the port is in use by another application."
+                ).format(port=port), 
+                deviceClass=SerialDevice
             )
         # we aren't in a time-critical period so flush messages
         logging.flush()
