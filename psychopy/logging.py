@@ -295,7 +295,7 @@ class _Logger():
         if level < self.lowestTarget:
             return
         # get size (bytes) of message
-		sz = sys.getsizeof(message)
+        sz = sys.getsizeof(message)
         # if message is huge, log a preview and the total size
         if self.maxSize is not None and sz > self.maxSize:
             message = (
