@@ -103,7 +103,7 @@ class WebSocketServer:
 		self._connections = set()
 
 		# setup a dedicated logger for messages
-		self.logger = LiaisonLogger()
+		self.logger = LiaisonLogger(maxSize=2048)
 		# setup a base Python logger
 		self._logger = _logging.getLogger('liaison.WebSocketServer')
 		self._logger.setLevel(logging.DEBUG)
@@ -457,9 +457,10 @@ class WebSocketServer:
 					# if there is a messageId in the message, add it to the response:
 					if 'messageId' in decodedMessage:
 						response['messageId'] = decodedMessage['messageId']
-
+					
+					response = json.dumps(response, cls=LiaisonJSONEncoder)
 					self.logger.sent(response)
-					await websocket.send(json.dumps(response))
+					await websocket.send(response)
 
 		except BaseException as err:
 			# JSONify any errors
