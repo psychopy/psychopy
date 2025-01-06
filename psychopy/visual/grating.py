@@ -417,6 +417,7 @@ class GratingStim(BaseVisualStim, DraggingMixin, TextureMixin, ColorMixin,
         # retain the current blendmode and change it to the one for this stim
         saveBlendMode = win.blendMode
         win.setBlendMode(self.blendmode, log=False)
+        GL.glEnable(GL.GL_BLEND)
 
         # draw the stimulus
         _prog = self.win._progSignedTexMask
@@ -432,12 +433,9 @@ class GratingStim(BaseVisualStim, DraggingMixin, TextureMixin, ColorMixin,
         GL.glEnable(GL.GL_TEXTURE_2D)
 
         # the list just does the texture mapping
-        gt.setUniformValue(_prog, b'uTexture', 0, 'int')
-        gt.setUniformValue(_prog, b'uMask', 1, 'int')
+        gt.setUniformSampler2D(_prog, b'uTexture', 0)
+        gt.setUniformSampler2D(_prog, b'uMask', 1)
         gt.setUniformValue(_prog, b'uColor', self._foreColor.render('rgba1'))
-        alphaThreshold = getattr(self, 'alphaThreshold', 1.0)
-        gt.setUniformValue(
-            _prog, b'uAlphaThreshold', alphaThreshold, ignoreNotDefined=True)
         gt.setUniformMatrix(
             _prog, 
             b'uProjectionMatrix', 

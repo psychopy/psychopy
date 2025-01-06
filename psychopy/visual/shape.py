@@ -357,9 +357,6 @@ class BaseShapeStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
                 _prog, 
                 b'uColor', 
                 self._fillColor.render('rgba1'))
-            alphaThreshold = getattr(self, 'alphaThreshold', 1.0)
-            gt.setUniformValue(
-                _prog, b'uAlphaThreshold', alphaThreshold, ignoreNotDefined=True)
             gt.setUniformMatrix(
                 _prog, 
                 b'uProjectionMatrix',
@@ -372,7 +369,7 @@ class BaseShapeStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
                 transpose=True)
             gt.drawClientArrays(
                 {'gl_Vertex': self.verticesPix},
-                'GL_QUADS')
+                'GL_TRIANGLES')
 
         # draw the border
         if self._borderColor != None and self.lineWidth != 0.0:
@@ -680,9 +677,6 @@ class ShapeStim(BaseShapeStim):
                 self._fillColor != None):
             gt.setUniformValue(
                 _prog, b'uColor', self._fillColor.render('rgba1'))
-            alphaThreshold = getattr(self, 'alphaThreshold', 1.0)
-            gt.setUniformValue(
-                _prog, b'uAlphaThreshold', alphaThreshold, ignoreNotDefined=True)
             gt.setUniformMatrix(
                 _prog, 
                 b'uProjectionMatrix', 

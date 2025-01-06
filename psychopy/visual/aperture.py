@@ -26,7 +26,7 @@ import psychopy.event
 # (JWP has no idea why!)
 from psychopy.tools.monitorunittools import cm2pix, deg2pix, convertToPix
 from psychopy.tools.attributetools import attributeSetter, setAttribute
-from psychopy.visual.shape import BaseShapeStim, knownShapes
+from psychopy.visual.shape import ShapeStim, knownShapes
 from psychopy.visual.image import ImageStim
 from psychopy.visual.basevisual import MinimalStim, ContainerMixin, WindowMixin
 
@@ -102,7 +102,7 @@ class Aperture(MinimalStim, ContainerMixin):
                 win=self.win, image=self.__dict__['filename'],
                 pos=pos, size=size, autoLog=False, units=self.units)
         else:
-            self._shape = BaseShapeStim(
+            self._shape = ShapeStim(
                 win=self.win, vertices=vertices, fillColor=1, lineColor=None, colorSpace='rgb',
                 interpolate=False, pos=pos, size=size, anchor=anchor, autoLog=False, units=self.units)
             self.vertices = self._shape.vertices
