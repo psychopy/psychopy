@@ -238,9 +238,16 @@ class _Logger():
 
     self.targets is a list of dicts {'stream':stream, 'level':level}
 
+    Parameters
+    ----------
+    format : str
+        Format string to use when constructing the logging message
+    maxSize : int
+        Maximum size (bytes) a message can be before it's abbreviated, leave as None to never 
+        abbreviate
     """
 
-    def __init__(self, format="{t:.4f} \t{levelname} \t{message}"):
+    def __init__(self, format="{t:.4f} \t{levelname} \t{message}", maxSize=None):
         """The string-formatted elements {xxxx} can be used, where
         each xxxx is an attribute of the LogEntry.
         e.g. t, t_ms, level, levelname, message
@@ -251,6 +258,7 @@ class _Logger():
         self.toFlush = []
         self.format = format
         self.lowestTarget = 50
+        self.maxSize = maxSize
 
     def __del__(self):
         self.flush()
@@ -286,6 +294,13 @@ class _Logger():
         # check for at least one relevant logger
         if level < self.lowestTarget:
             return
+        # get size (bytes) of message
+		sz = sys.getsizeof(message)
+        # if message is huge, log a preview and the total size
+        if self.maxSize is not None and sz > self.maxSize:
+            message = (
+                    f"{str(message)[:256]}... ({sz / 1000:.1f}kB)"
+                )
         # check time
         if t is None:
             global defaultClock
