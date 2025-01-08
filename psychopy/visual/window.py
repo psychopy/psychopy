@@ -3822,11 +3822,23 @@ class Window():
 
         (in this case a copy operation without any warping)
         """
-        gltools.setUniformSampler2D(self._progFBOtoFrame, b'texture', 0)
-        gltools.drawClientArrays({
-            'gl_Vertex': self._fboVerts, 
-            'gl_MultiTexCoord0': self._fboTexCoords}, 
-            'GL_QUADS')
+        if self.USE_LEGACY_GL:
+            GL.glBegin(GL.GL_QUADS)
+            GL.glTexCoord2f(0.0, 0.0)
+            GL.glVertex2f(-1.0, -1.0)
+            GL.glTexCoord2f(0.0, 1.0)
+            GL.glVertex2f(-1.0, 1.0)
+            GL.glTexCoord2f(1.0, 1.0)
+            GL.glVertex2f(1.0, 1.0)
+            GL.glTexCoord2f(1.0, 0.0)
+            GL.glVertex2f(1.0, -1.0)
+            GL.glEnd()
+        else:
+            gltools.setUniformSampler2D(self._progFBOtoFrame, b'texture', 0)
+            gltools.drawClientArrays({
+                'gl_Vertex': self._fboVerts, 
+                'gl_MultiTexCoord0': self._fboTexCoords}, 
+                'GL_QUADS')
 
     def _prepareFBOrender(self):
         gltools.useProgram(self._progFBOtoFrame)
