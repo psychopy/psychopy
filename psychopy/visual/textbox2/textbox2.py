@@ -1740,7 +1740,7 @@ class Caret(ColorMixin):
             return
         
         if USE_LEGACY_GL:
-            self._drawLegacyGL(override)
+            self._drawLegacyGL()
             return
 
         # If no override and conditions are met, or override is True, draw
