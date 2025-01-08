@@ -445,21 +445,18 @@ class WebSocketServer:
 							rawResult = await method(*args)
 						else:
 							rawResult = method(*args)
-
-					# convert result to a string
-					result = json.dumps(rawResult, cls=LiaisonJSONEncoder)
-
-					# send a response back to the client:
-					response = {
-						"result": result
+					# prepare a response to send back to the client
+					rawResponse = {
+						"result": rawResult
 					}
-
 					# if there is a messageId in the message, add it to the response:
 					if 'messageId' in decodedMessage:
-						response['messageId'] = decodedMessage['messageId']
-
+						rawResponse['messageId'] = decodedMessage['messageId']
+					# convert to a string before sending
+					response = json.dumps(rawResponse, cls=LiaisonJSONEncoder)
+					# send
 					self.logger.sent(response)
-					await websocket.send(json.dumps(response))
+					await websocket.send(response)
 
 		except BaseException as err:
 			# JSONify any errors

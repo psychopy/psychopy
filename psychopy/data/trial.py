@@ -811,18 +811,27 @@ class Trial(dict):
             'data': {key: val for key, val in self.items()},
         }
     
-    def getJSON(self):
+    def getJSON(self, asString=False):
         """
         Serialize this Trial to a JSON format.
+
+        Parameters
+        ----------
+        asString : bool
+            If True, convert the returned object to a string. If False, keep as a dict.
 
         Returns
         -------
         str
             The results of Trial.getDict expressed as a JSON string
         """
-        return json.dumps(
-            self.getDict()
-        )
+        # get self as a dict
+        data = self.getDict()
+        # convert to string if requested
+        if asString:
+            data = json.dumps(data)
+        
+        return data
 
 
 class TrialHandler2(_BaseTrialHandler):

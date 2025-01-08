@@ -1198,10 +1198,6 @@ class Experiment:
             else:
                 thisFile['rel'] = filePath
                 thisFile['abs'] = os.path.normpath(join(srcRoot, filePath))
-                if "/" in filePath:
-                    thisFile['name'] = filePath.split("/")[-1]
-                else:
-                    thisFile['name'] = filePath
                 if len(thisFile['abs']) <= 256 and os.path.isfile(thisFile['abs']):
                     return thisFile
 
