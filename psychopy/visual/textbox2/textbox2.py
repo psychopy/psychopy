@@ -1704,6 +1704,19 @@ class Caret(ColorMixin):
         self.colorSpace = colorSpace
         self.color = color
 
+    def _drawLegacyGL(self):
+        """Legacy drawing code for older GL versions.
+        """
+        # If no override and conditions are met, or override is True, draw
+        gl.glLineWidth(self.width)
+        gl.glColor4f(
+            *self._foreColor.rgba1
+        )
+        gl.glBegin(gl.GL_LINES)
+        gl.glVertex2f(self.vertices[0, 0], self.vertices[0, 1])
+        gl.glVertex2f(self.vertices[1, 0], self.vertices[1, 1])
+        gl.glEnd()
+
     def draw(self, override=None):
         """
         Draw the caret
@@ -1725,6 +1738,10 @@ class Caret(ColorMixin):
         elif not override:
             # If override is False, never draw
             return
+        
+        if USE_LEGACY_GL:
+            self._drawLegacyGL(override)
+            return
 
         # If no override and conditions are met, or override is True, draw
         prog = self.win._progSignedFrag
@@ -1744,11 +1761,6 @@ class Caret(ColorMixin):
         gt.drawClientArrays({
             'gl_Vertex': self.vertices}, 'lines')
         gt.useProgram(None)
-
-        # gl.glBegin(gl.GL_LINES)
-        # gl.glVertex2f(self.vertices[0, 0], self.vertices[0, 1])
-        # gl.glVertex2f(self.vertices[1, 0], self.vertices[1, 1])
-        # gl.glEnd()
 
     @property
     def visible(self):
