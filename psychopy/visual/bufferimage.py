@@ -208,6 +208,21 @@ class BufferImageStim(ImageStim):
         """
         setAttribute(self, 'flipVert', newVal, log)  # call attributeSetter
 
+    def _drawLegacyGL(self, win):
+        """Legacy draw method for OpenGL 2.x."""
+        GL.glPushMatrix()  # preserve state
+        # GL.glLoadIdentity()
+
+        # dynamic flip
+        GL.glScalef(self.thisScale[0] * (1, -1)[self.flipHoriz],
+                    self.thisScale[1] * (1, -1)[self.flipVert], 1.0)
+
+        # enable dynamic position, orientation, opacity; depth not working?
+        GL.glColor4f(*self._foreColor.render('rgba1'))
+
+        GL.glCallList(self._listID)  # make it happen
+        GL.glPopMatrix()  # return the view to previous state
+
     def draw(self, win=None):
         """Draws the BufferImage on the screen, similar to
         :class:`~psychopy.visual.ImageStim` `.draw()`.
@@ -218,6 +233,10 @@ class BufferImageStim(ImageStim):
         if win is None:
             win = self.win
         self._selectWindow(win)
+
+        if win.USE_LEGACY_GL:
+            self._drawLegacyGL(win)
+            return
 
         win.setScale('pix')
         win.setOrthographicView()

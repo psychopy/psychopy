@@ -258,10 +258,14 @@ class GratingStim(BaseVisualStim, DraggingMixin, TextureMixin, ColorMixin,
 
         self._needUpdate = True
 
-        # cache texture and mask coords here
-        self._texCoords = numpy.array(
-            [[1, 0], [0, 0], [0, 1], [1, 1]], dtype=float)
-        self._maskCoords = self._texCoords.copy()
+        if USE_LEGACY_GL:
+            # generate a displaylist ID
+            self._listID = GL.glGenLists(1)
+        else:
+            # cache texture and mask coords here
+            self._texCoords = numpy.array(
+                [[1, 0], [0, 0], [0, 1], [1, 1]], dtype=float)
+            self._maskCoords = self._texCoords.copy()
 
         # set autoLog now that params have been initialised
         wantLog = autoLog is None and self.win.autoLog
@@ -374,6 +378,28 @@ class GratingStim(BaseVisualStim, DraggingMixin, TextureMixin, ColorMixin,
         """
         self._set('blendmode', value, log=log)
 
+    def _drawLegacyGL(self, win):
+        """Legacy draw function for older OpenGL versions.
+        """
+        saveBlendMode = win.blendMode
+        win.setBlendMode(self.blendmode, log=False)
+
+        # do scaling
+        GL.glPushMatrix()  # push before the list, pop after
+        win.setScale('pix')
+        # the list just does the texture mapping
+        GL.glColor4f(*self._foreColor.render('rgba1'))
+
+        if self._needTextureUpdate:
+            self.setTex(value=self.tex, log=False)
+        if self._needUpdate:
+            self._updateList()
+        GL.glCallList(self._listID)
+
+        # return the view to previous state
+        GL.glPopMatrix()
+        win.setBlendMode(saveBlendMode, log=False)
+
     def draw(self, win=None):
         """Draw the stimulus in its relevant window.
 
@@ -392,6 +418,10 @@ class GratingStim(BaseVisualStim, DraggingMixin, TextureMixin, ColorMixin,
             win = self.win
 
         self._selectWindow(win)
+
+        if win.USE_LEGACY_GL:
+            self._drawLegacyGL(win)
+            return
 
         win.setScale('pix')
         win.setOrthographicView()
@@ -472,7 +502,68 @@ class GratingStim(BaseVisualStim, DraggingMixin, TextureMixin, ColorMixin,
         stimulus changes. Call it if you change a property manually
         rather than using the .set() command
         """
-        pass
+        if not self.win.USE_LEGACY_GL:  # not needed for newer GL
+            return
+
+        self._needUpdate = False
+        GL.glNewList(self._listID, GL.GL_COMPILE)
+        # setup the shaderprogram
+        _prog = self.win._progSignedTexMask
+        GL.glUseProgram(_prog)
+        # set the texture to be texture unit 0
+        GL.glUniform1i(GL.glGetUniformLocation(_prog, b"texture"), 0)
+        # mask is texture unit 1
+        GL.glUniform1i(GL.glGetUniformLocation(_prog, b"mask"), 1)
+        # mask
+        GL.glActiveTexture(GL.GL_TEXTURE1)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self._maskID)
+        GL.glEnable(GL.GL_TEXTURE_2D)  # implicitly disables 1D
+
+        # main texture
+        GL.glActiveTexture(GL.GL_TEXTURE0)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
+        GL.glEnable(GL.GL_TEXTURE_2D)
+
+        Ltex = (-self._cycles[0] / 2) - self.phase[0] + 0.5
+        Rtex = (+self._cycles[0] / 2) - self.phase[0] + 0.5
+        Ttex = (+self._cycles[1] / 2) - self.phase[1] + 0.5
+        Btex = (-self._cycles[1] / 2) - self.phase[1] + 0.5
+        Lmask = Bmask = 0.0
+        Tmask = Rmask = 1.0  # mask
+
+        # access just once because it's slower than basic property
+        vertsPix = self.verticesPix
+        GL.glBegin(GL.GL_QUADS)  # draw a 4 sided polygon
+        # right bottom
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE0, Rtex, Btex)
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE1, Rmask, Bmask)
+        GL.glVertex2f(vertsPix[0, 0], vertsPix[0, 1])
+        # left bottom
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE0, Ltex, Btex)
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE1, Lmask, Bmask)
+        GL.glVertex2f(vertsPix[1, 0], vertsPix[1, 1])
+        # left top
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE0, Ltex, Ttex)
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE1, Lmask, Tmask)
+        GL.glVertex2f(vertsPix[2, 0], vertsPix[2, 1])
+        # right top
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE0, Rtex, Ttex)
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE1, Rmask, Tmask)
+        GL.glVertex2f(vertsPix[3, 0], vertsPix[3, 1])
+        GL.glEnd()
+
+        # unbind the textures
+        GL.glActiveTexture(GL.GL_TEXTURE1)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        GL.glDisable(GL.GL_TEXTURE_2D)  # implicitly disables 1D
+        # main texture
+        GL.glActiveTexture(GL.GL_TEXTURE0)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        GL.glDisable(GL.GL_TEXTURE_2D)
+
+        GL.glUseProgram(0)
+
+        GL.glEndList()
 
     def __del__(self):
         try:

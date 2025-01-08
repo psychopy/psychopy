@@ -112,10 +112,15 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
         self.texRes = texRes  # rebuilds the mask
         self.size = size
 
-        # normalized texture coordinates
-        self._texCoords = numpy.array(
-            [[1, 0], [0, 0], [0, 1], [1, 1]], dtype=float)
-        self._maskCoords = self._texCoords.copy()
+        if self.win.USE_LEGACY_GL:
+            # generate a displaylist ID
+            self._listID = GL.glGenLists(1)
+            self._updateList()  # ie refresh display list
+        else:
+            # normalized texture coordinates
+            self._texCoords = numpy.array(
+                [[1, 0], [0, 0], [0, 1], [1, 1]], dtype=float)
+            self._maskCoords = self._texCoords.copy()
 
         # set autoLog now that params have been initialised
         wantLog = autoLog is None and self.win.autoLog
@@ -132,6 +137,95 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
             self.clearTextures()
         except (ImportError, ModuleNotFoundError, TypeError):
             pass  # has probably been garbage-collected already
+
+    def _updateListShaders(self):
+        """
+        The user shouldn't need this method since it gets called
+        after every call to .set() Basically it updates the OpenGL
+        representation of your stimulus if some parameter of the
+        stimulus changes. Call it if you change a property manually
+        rather than using the .set() command
+        """
+        self._needUpdate = False
+        GL.glNewList(self._listID, GL.GL_COMPILE)
+
+        # setup the shaderprogram
+        if self.isLumImage:
+            # for a luminance image do recoloring
+            _prog = self.win._progSignedTexMask
+            GL.glUseProgram(_prog)
+            # set the texture to be texture unit 0
+            GL.glUniform1i(GL.glGetUniformLocation(_prog, b"texture"), 0)
+            # mask is texture unit 1
+            GL.glUniform1i(GL.glGetUniformLocation(_prog, b"mask"), 1)
+        else:
+            # for an rgb image there is no recoloring
+            _prog = self.win._progImageStim
+            GL.glUseProgram(_prog)
+            # set the texture to be texture unit 0
+            GL.glUniform1i(GL.glGetUniformLocation(_prog, b"texture"), 0)
+            # mask is texture unit 1
+            GL.glUniform1i(GL.glGetUniformLocation(_prog, b"mask"), 1)
+
+        # mask
+        GL.glActiveTexture(GL.GL_TEXTURE1)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self._maskID)
+        GL.glEnable(GL.GL_TEXTURE_2D)  # implicitly disables 1D
+
+        # main texture
+        GL.glActiveTexture(GL.GL_TEXTURE0)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
+        GL.glEnable(GL.GL_TEXTURE_2D)
+
+        # access just once because it's slower than basic property
+        vertsPix = self.verticesPix
+        GL.glBegin(GL.GL_QUADS)  # draw a 4 sided polygon
+        # right bottom
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE0, 1, 0)
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE1, 1, 0)
+        GL.glVertex2f(vertsPix[0, 0], vertsPix[0, 1])
+        # left bottom
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE0, 0, 0)
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE1, 0, 0)
+        GL.glVertex2f(vertsPix[1, 0], vertsPix[1, 1])
+        # left top
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE0, 0, 1)
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE1, 0, 1)
+        GL.glVertex2f(vertsPix[2, 0], vertsPix[2, 1])
+        # right top
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE0, 1, 1)
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE1, 1, 1)
+        GL.glVertex2f(vertsPix[3, 0], vertsPix[3, 1])
+        GL.glEnd()
+
+        # unbind the textures
+        GL.glActiveTexture(GL.GL_TEXTURE1)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        GL.glDisable(GL.GL_TEXTURE_2D)  # implicitly disables 1D
+        # main texture
+        GL.glActiveTexture(GL.GL_TEXTURE0)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        GL.glDisable(GL.GL_TEXTURE_2D)
+
+        GL.glUseProgram(0)
+
+        GL.glEndList()
+
+    def _drawLegacyGL(self, win):
+        """Legacy draw routine.
+        """
+        GL.glPushMatrix()  # push before the list, pop after
+        win.setScale('pix')
+        GL.glColor4f(*self._foreColor.render('rgba1'))
+
+        if self._needTextureUpdate:
+            self.setImage(value=self._imName, log=False)
+        if self._needUpdate:
+            self._updateList()
+        GL.glCallList(self._listID)
+
+        # return the view to previous state
+        GL.glPopMatrix()
 
     def draw(self, win=None):
         """Draw the stimulus on the window.
@@ -152,8 +246,6 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
         if win is None:
             win = self.win
         self._selectWindow(win)
-        win.setOrthographicView()
-        win.setScale('pix')
 
         # If our image is a movie stim object, pull pixel data from the most
         # recent frame and write it to the memory
@@ -161,6 +253,13 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
             videoFrame = self.image.getVideoFrame()
             if videoFrame is not None:
                 self._movieFrameToTexture(videoFrame)
+
+        if win.USE_LEGACY_GL:
+            self._drawLegacyGL(win)
+            return
+
+        win.setOrthographicView()
+        win.setScale('pix')
 
         # GL.glColor4f(*self._foreColor.render('rgba1'))
 
@@ -187,7 +286,6 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
         gt.setUniformSampler2D(_prog, b'uTexture', 0)  # is texture unit 0
         gt.setUniformSampler2D(_prog, b'uMask', 1)  # mask is texture unit 1
         gt.setUniformValue(_prog, b'uColor', self._foreColor.render('rgba1'))
-        gt.setUniformValue(_prog, b'uAlphaThreshold', 1.0, ignoreNotDefined=True)
         gt.setUniformMatrix(
             _prog, 
             b'uProjectionMatrix', 

@@ -322,6 +322,76 @@ class BaseShapeStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         # Angles in a shape add up to 360, so theta is 360/2n, solve for n
         return int((360 / theta) / 2)
 
+    def _drawLegacyGL(self, win, keepMatrix):
+        """Legacy draw the stimulus in its relevant window.
+
+        You must call this method after every MyWin.flip() if you want the
+        stimulus to appear on that frame and then update the screen again.
+        """
+        # The keepMatrix option is needed by Aperture
+        if win is None:
+            win = self.win
+        self._selectWindow(win)
+
+        if win._haveShaders:
+            _prog = self.win._progSignedFrag
+            GL.glUseProgram(_prog)
+
+        # will check if it needs updating (check just once)
+        vertsPix = self.verticesPix
+        nVerts = vertsPix.shape[0]
+
+        # scale the drawing frame etc...
+        if not keepMatrix:
+            GL.glPushMatrix()  # push before drawing, pop after
+            win.setScale('pix')
+
+        # load Null textures into multitexteureARB - or they modulate glColor
+        GL.glActiveTexture(GL.GL_TEXTURE0)
+        GL.glEnable(GL.GL_TEXTURE_2D)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        GL.glActiveTexture(GL.GL_TEXTURE1)
+        GL.glEnable(GL.GL_TEXTURE_2D)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+
+        if self.interpolate:
+            GL.glEnable(GL.GL_LINE_SMOOTH)
+            GL.glEnable(GL.GL_MULTISAMPLE)
+        else:
+            GL.glDisable(GL.GL_LINE_SMOOTH)
+            GL.glDisable(GL.GL_MULTISAMPLE)
+
+        GL.glVertexPointer(2, GL.GL_DOUBLE, 0, vertsPix.ctypes)
+
+        GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
+        if nVerts > 2:  # draw a filled polygon first
+            if self._fillColor != None:
+                # then draw
+                GL.glColor4f(*self._fillColor.render('rgba1'))
+                GL.glDrawArrays(GL.GL_POLYGON, 0, nVerts)
+
+        if self._borderColor != None and self.lineWidth != 0.0:
+            # then draw
+            GL.glLineWidth(self.lineWidth)
+            if self.opacity is not None:
+                borderRGBA = self._borderColor.render('rgba1')
+                borderRGBA[-1] = self.opacity  # override opacity
+                GL.glColor4f(*borderRGBA)
+            else:
+                GL.glColor4f(*self._borderColor.render('rgba1'))
+            if self.closeShape:
+                GL.glDrawArrays(GL.GL_LINE_LOOP, 0, nVerts)
+            else:
+                GL.glDrawArrays(GL.GL_LINE_STRIP, 0, nVerts)
+
+        GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
+
+        if win._haveShaders:
+            GL.glUseProgram(0)
+
+        if not keepMatrix:
+            GL.glPopMatrix()
+
     def draw(self, win=None, keepMatrix=False):
         """Draw the stimulus in its relevant window.
 
@@ -332,6 +402,11 @@ class BaseShapeStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         if win is None:
             win = self.win
         self._selectWindow(win)
+
+        if USE_LEGACY_GL:
+            self._drawLegacyGL(win, keepMatrix)
+            return
+
         win.setOrthographicView()
 
         # will check if it needs updating (check just once)
@@ -586,6 +661,44 @@ class ShapeStim(BaseShapeStim):
         if self.autoLog:
             logging.exp("Created %s = %s" % (self.name, str(self)))
 
+    def _legacyTesselate(self, newVertices):
+        """Legacy tessellation method for ShapeStim.
+        """
+        # TO-DO: handle borders properly for multiloop stim like holes
+        # likely requires changes in ContainerMixin to iterate over each
+        # border loop
+        from psychopy.contrib import tesselate
+        import copy
+
+        self.border = copy.deepcopy(newVertices)
+        tessVertices = []  # define to keep the linter happy
+        if self.closeShape:
+            # convert original vertices to triangles (= tesselation) if
+            # possible. (not possible if closeShape is False, don't even try)
+            GL.glPushMatrix()  # seemed to help at one point, superfluous?
+            if getattr(self, "windingRule", False):
+                GL.gluTessProperty(tesselate.tess, GL.GLU_TESS_WINDING_RULE,
+                                   self.windingRule)
+            if hasattr(newVertices[0][0], '__iter__'):
+                loops = newVertices
+            else:
+                loops = [newVertices]
+            tessVertices = tesselate.tesselate(loops)
+            GL.glPopMatrix()
+            if getattr(self, "windingRule", False):
+                GL.gluTessProperty(tesselate.tess, GL.GLU_TESS_WINDING_RULE,
+                                   tesselate.default_winding_rule)
+
+        if not self.closeShape or tessVertices == []:
+            # probably got a line if tesselate returned []
+            initVertices = newVertices
+            self.closeShape = False
+        elif len(tessVertices) % 3:
+            raise tesselate.TesselateError("Could not properly tesselate")
+        else:
+            initVertices = tessVertices
+        self.__dict__['_tesselVertices'] = numpy.array(initVertices, float)
+
     def _tesselate(self, newVertices):
         """Set the `.vertices` and `.border` to new values, invoking
         tessellation.
@@ -596,6 +709,10 @@ class ShapeStim(BaseShapeStim):
             Nx2 array of points (eg., `[[-0.5, 0], [0, 0.5], [0.5, 0]`).
 
         """
+        if USE_LEGACY_GL:
+            self._legacyTesselate(newVertices)
+            return
+
         if len(newVertices) < 3:
             # not enough vertices to draw anything
             return
@@ -636,6 +753,71 @@ class ShapeStim(BaseShapeStim):
         self._needVertexUpdate = True
         self._tesselate(self.vertices)
 
+    def _drawLegacyGL(self, win, keepMatrix):
+        """Legacy draw the stimulus in the relevant window.
+
+        You must call this method after every `win.flip()` if you want the
+        stimulus to appear on that frame and then update the screen again.
+        """
+        # mostly copied from BaseShapeStim. Uses GL_TRIANGLES and depends on
+        # two arrays of vertices: tesselated (for fill) & original (for
+        # border) keepMatrix is needed by Aperture, although Aperture
+        # currently relies on BaseShapeStim instead
+
+        # scale the drawing frame etc...
+        if not keepMatrix:
+            GL.glPushMatrix()
+            win.setScale('pix')
+
+        # setup the shaderprogram
+        if win._haveShaders:
+            _prog = self.win._progSignedFrag
+            GL.glUseProgram(_prog)
+
+        # load Null textures into multitexteureARB - or they modulate glColor
+        GL.glActiveTexture(GL.GL_TEXTURE0)
+        GL.glEnable(GL.GL_TEXTURE_2D)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        GL.glActiveTexture(GL.GL_TEXTURE1)
+        GL.glEnable(GL.GL_TEXTURE_2D)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+
+        if self.interpolate:
+            GL.glEnable(GL.GL_LINE_SMOOTH)
+            GL.glEnable(GL.GL_MULTISAMPLE)
+        else:
+            GL.glDisable(GL.GL_LINE_SMOOTH)
+            GL.glDisable(GL.GL_MULTISAMPLE)
+
+        GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
+
+        # fill interior triangles if there are any
+        if (self.closeShape and
+                self.verticesPix.shape[0] > 2 and
+                self._fillColor != None):
+            GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self.verticesPix.ctypes)
+            GL.glColor4f(*self._fillColor.render('rgba1'))
+            GL.glDrawArrays(GL.GL_TRIANGLES, 0, self.verticesPix.shape[0])
+
+        # draw the border (= a line connecting the non-tesselated vertices)
+        if self._borderColor != None and self.lineWidth:
+            GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self._borderPix.ctypes)
+            GL.glLineWidth(self.lineWidth)
+            GL.glColor4f(*self._borderColor.render('rgba1'))
+            if self.closeShape:
+                gl_line = GL.GL_LINE_LOOP
+            else:
+                gl_line = GL.GL_LINE_STRIP
+            GL.glDrawArrays(gl_line, 0, self._borderPix.shape[0])
+
+        GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
+
+        if win._haveShaders:
+            GL.glUseProgram(0)
+
+        if not keepMatrix:
+            GL.glPopMatrix()
+
     def draw(self, win=None, keepMatrix=False):
         """Draw the stimulus in the relevant window.
 
@@ -656,6 +838,11 @@ class ShapeStim(BaseShapeStim):
         if win is None:
             win = self.win
         self._selectWindow(win)
+
+        # legacy pipeline
+        if USE_LEGACY_GL:
+            self._drawLegacyGL(win, keepMatrix)
+            return
 
         # scale the drawing frame etc...
         win.setScale('pix')

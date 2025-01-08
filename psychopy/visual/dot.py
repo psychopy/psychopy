@@ -491,6 +491,46 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         """
         setAttribute(self, 'speed', val, log, op)
 
+    def _drawLegacyGL(self, win):
+        """Legacy draw method for DotStim.
+        """
+        self._update_dotsXY()
+
+        GL.glPushMatrix()  # push before drawing, pop after
+
+        # draw the dots
+        if self.element is None:
+            win.setScale('pix')
+            GL.glPointSize(self.dotSize)
+
+            # load Null textures into multitexteureARB - they modulate with
+            # glColor
+            GL.glActiveTexture(GL.GL_TEXTURE0)
+            GL.glEnable(GL.GL_TEXTURE_2D)
+            GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+            GL.glActiveTexture(GL.GL_TEXTURE1)
+            GL.glEnable(GL.GL_TEXTURE_2D)
+            GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+
+            CPCD = ctypes.POINTER(ctypes.c_double)
+            GL.glVertexPointer(2, GL.GL_DOUBLE, 0,
+                               self.verticesPix.ctypes.data_as(CPCD))
+            GL.glColor4f(*self._foreColor.render('rgba1'))
+            GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
+            GL.glDrawArrays(GL.GL_POINTS, 0, self.nDots)
+            GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
+        else:
+            # we don't want to do the screen scaling twice so for each dot
+            # subtract the screen centre
+            initialDepth = self.element.depth
+            for pointN in range(0, self.nDots):
+                _p = self.verticesPix[pointN, :] + self.fieldPos
+                self.element.setPos(_p)
+                self.element.draw()
+            # reset depth before going to next frame
+            self.element.setDepth(initialDepth)
+        GL.glPopMatrix()
+
     def draw(self, win=None):
         """Draw the stimulus in its relevant window. You must call this method
         after every MyWin.flip() if you want the stimulus to appear on that
@@ -509,8 +549,9 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         self._update_dotsXY()
 
-        if USE_LEGACY_GL:
-            GL.glPushMatrix()
+        if win.USE_LEGACY_GL:
+            self._drawLegacyGL(win)
+            return
 
         # draw the dots
         if self.element is None:
@@ -528,14 +569,8 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
             gt.useProgram(_prog)
             
             GL.glPointSize(self.dotSize)
-            if USE_LEGACY_GL:
-                GL.glPushMatrix()  # push before the list, pop after
-                projectionMatrix = gt.getProjectionMatrix()
-                modelViewMatrix = gt.getModelViewMatrix()
-                # GL.glColor4f(*self._foreColor.render('rgba1'))
-            else:
-                projectionMatrix = win._projectionMatrix
-                modelViewMatrix = win._viewMatrix
+            projectionMatrix = win._projectionMatrix
+            modelViewMatrix = win._viewMatrix
 
             gt.setUniformValue(
                 _prog, 
@@ -570,9 +605,6 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
             # reset depth before going to next frame
             self.element.setDepth(initialDepth)
-        
-        if USE_LEGACY_GL:
-            GL.glPopMatrix()
 
     def _newDotsXY(self, nDots):
         """Returns a uniform spread of dots, according to the `fieldShape` and

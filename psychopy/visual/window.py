@@ -3351,10 +3351,15 @@ class Window():
             self.blendMode = 'avg'
 
     def _setupShaders(self):
-        self._progSignedTexFont = _shaders.compileProgram(
-            _shaders.vertSimpleText, _shaders.fragSignedColorTexFont)
+        if self.USE_LEGACY_GL:
+            self._progSignedTexFont = _shaders.compileProgram(
+                _shaders.vertSimple, _shaders.fragSignedColorTexFont)
+        else:
+            self._progSignedTexFont = _shaders.compileProgram(
+                _shaders.vertSimpleText, _shaders.fragSignedColorTexFont)
+            
         self._progFBOtoFrame = _shaders.compileProgram(
-            _shaders.vertSimpleFBO, _shaders.fragFBOtoFrame)
+            _shaders.vertSimple, _shaders.fragFBOtoFrame)
         self._shaders = {}
         self._shaders['signedColor'] = _shaders.compileProgram(
             _shaders.vertSimple, _shaders.fragSignedColor)

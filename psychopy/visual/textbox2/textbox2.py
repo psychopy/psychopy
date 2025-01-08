@@ -1220,6 +1220,49 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
         if lastOri != value:
             self._layout()
 
+    def _drawLegacyGL(self):
+        """Legacy draw routine for older GL versions.
+        """
+        gl.glPushMatrix()
+        self.win.setScale('pix')
+
+        gl.glActiveTexture(gl.GL_TEXTURE0)
+        gl.glBindTexture(gl.GL_TEXTURE_2D, self.glFont.textureID)
+        gl.glEnable(gl.GL_TEXTURE_2D)
+        gl.glDisable(gl.GL_DEPTH_TEST)
+
+        gl.glEnableClientState(gl.GL_VERTEX_ARRAY)
+        gl.glEnableClientState(gl.GL_COLOR_ARRAY)
+        gl.glEnableClientState(gl.GL_TEXTURE_COORD_ARRAY)
+        gl.glEnableClientState(gl.GL_VERTEX_ARRAY)
+
+        gl.glVertexPointer(2, gl.GL_DOUBLE, 0, self.verticesPix.ctypes)
+        gl.glColorPointer(4, gl.GL_DOUBLE, 0, self._colors.ctypes)
+        gl.glTexCoordPointer(2, gl.GL_DOUBLE, 0, self._texcoords.ctypes)
+
+        self.shader.bind()
+        self.shader.setInt('texture', 0)
+        self.shader.setFloat('pixel', [1.0 / 512, 1.0 / 512])
+        nVerts = (len(self._text) + len(self._renderChars)) * 4
+
+        gl.glDrawArrays(gl.GL_QUADS, 0, nVerts)
+        self.shader.unbind()
+
+        # removed the colors and font texture
+        gl.glDisableClientState(gl.GL_COLOR_ARRAY)
+        gl.glDisableClientState(gl.GL_TEXTURE_COORD_ARRAY)
+        gl.glDisableVertexAttribArray(1)
+        gl.glDisableClientState(gl.GL_VERTEX_ARRAY)
+
+        gl.glActiveTexture(gl.GL_TEXTURE0)
+        gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
+        gl.glDisable(gl.GL_TEXTURE_2D)
+
+        if self.hasFocus:  # draw caret line
+            self.caret.draw()
+
+        gl.glPopMatrix()
+
     def draw(self):
         """Draw the text to the back buffer"""
         # Border width
@@ -1273,48 +1316,48 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
             # Activate aperture
             self.container.enable()
 
-        self._selectWindow(self.win)
+        if self.win.USE_LEGACY_GL:
+            self._drawLegacyGL()
+        else:
+            self._selectWindow(self.win)
 
-        self.win.setScale('pix')
-        self.win.setOrthographicView()
+            self.win.setScale('pix')
+            self.win.setOrthographicView()
 
-        gl.glActiveTexture(gl.GL_TEXTURE0)
-        gl.glBindTexture(gl.GL_TEXTURE_2D, self.glFont.textureID)
-        gl.glEnable(gl.GL_TEXTURE_2D)
-        gl.glDisable(gl.GL_DEPTH_TEST)
+            gl.glActiveTexture(gl.GL_TEXTURE0)
+            gl.glBindTexture(gl.GL_TEXTURE_2D, self.glFont.textureID)
+            gl.glEnable(gl.GL_TEXTURE_2D)
+            gl.glDisable(gl.GL_DEPTH_TEST)
 
-        prog = self.shader.handle
-        gt.useProgram(prog)
-        gt.setUniformSampler2D(prog, b'uTexture', 0)
-        gt.setUniformValue(prog, b'uColor', self._foreColor.render('rgba1'))
-        alphaThreshold = getattr(self, 'alphaThreshold', 1.0)
-        gt.setUniformValue(
-            prog, b'uAlphaThreshold', alphaThreshold, ignoreNotDefined=True)
-        gt.setUniformMatrix(
-            prog, 
-            b'uModelViewMatrix', 
-            self.win._viewMatrix,
-            transpose=True)
-        gt.setUniformMatrix(
-            prog, 
-            b'uProjectionMatrix', 
-            self.win._projectionMatrix,
-            transpose=True)
+            prog = self.shader.handle
+            gt.useProgram(prog)
+            gt.setUniformSampler2D(prog, b'uTexture', 0)
+            gt.setUniformValue(prog, b'uColor', self._foreColor.render('rgba1'))
+            gt.setUniformMatrix(
+                prog, 
+                b'uModelViewMatrix', 
+                self.win._viewMatrix,
+                transpose=True)
+            gt.setUniformMatrix(
+                prog, 
+                b'uProjectionMatrix', 
+                self.win._projectionMatrix,
+                transpose=True)
 
-        gt.drawClientArrays({
-            'gl_Vertex': self.verticesPix,
-            'gl_Color': self._colors,
-            'gl_MultiTexCoord0': self._texcoords}, 
-            'GL_QUADS')
-    
-        gt.useProgram(None)
+            gt.drawClientArrays({
+                'gl_Vertex': self.verticesPix,
+                'gl_Color': self._colors,
+                'gl_MultiTexCoord0': self._texcoords}, 
+                'GL_QUADS')
+        
+            gt.useProgram(None)
 
-        gl.glActiveTexture(gl.GL_TEXTURE0)
-        gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
-        gl.glDisable(gl.GL_TEXTURE_2D)
+            gl.glActiveTexture(gl.GL_TEXTURE0)
+            gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
+            gl.glDisable(gl.GL_TEXTURE_2D)
 
-        if self.hasFocus:  # draw caret line
-            self.caret.draw()
+            if self.hasFocus:  # draw caret line
+                self.caret.draw()
 
         # Draw placeholder if blank
         if self.editable and len(self.text) == 0:

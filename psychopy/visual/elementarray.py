@@ -502,6 +502,75 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
         """
         setAttribute(self, 'fieldSize', value, log, operation)
 
+    def _drawLegacyGL(self, win):
+        """Legacy OpenGL drawing method for ElementArrayStim.
+        """
+        if self._needVertexUpdate:
+            self._updateVertices()
+        if self._needColorUpdate:
+            self.updateElementColors()
+        if self._needTexCoordUpdate:
+            self.updateTextureCoords()
+
+        # scale the drawing frame and get to centre of field
+        GL.glPushMatrix()  # push before drawing, pop after
+        # push the data for client attributes
+        GL.glPushClientAttrib(GL.GL_CLIENT_ALL_ATTRIB_BITS)
+
+        # GL.glLoadIdentity()
+        self.win.setScale('pix')
+
+        cpcd = ctypes.POINTER(ctypes.c_double)
+        GL.glColorPointer(4, GL.GL_DOUBLE, 0,
+                          self._RGBAs.ctypes.data_as(cpcd))
+        GL.glVertexPointer(3, GL.GL_DOUBLE, 0,
+                           self.verticesPix.ctypes.data_as(cpcd))
+
+        # setup the shaderprogram
+        _prog = self.win._progSignedTexMask
+        GL.glUseProgram(_prog)
+        # set the texture to be texture unit 0
+        GL.glUniform1i(GL.glGetUniformLocation(_prog, b"texture"), 0)
+        # mask is texture unit 1
+        GL.glUniform1i(GL.glGetUniformLocation(_prog, b"mask"), 1)
+
+        # bind textures
+        GL.glActiveTexture(GL.GL_TEXTURE1)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self._maskID)
+        GL.glEnable(GL.GL_TEXTURE_2D)
+        GL.glActiveTexture(GL.GL_TEXTURE0)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
+        GL.glEnable(GL.GL_TEXTURE_2D)
+
+        # setup client texture coordinates first
+        GL.glClientActiveTexture(GL.GL_TEXTURE0)
+        GL.glTexCoordPointer(2, GL.GL_DOUBLE, 0, self._texCoords.ctypes)
+        GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
+        GL.glClientActiveTexture(GL.GL_TEXTURE1)
+        GL.glTexCoordPointer(2, GL.GL_DOUBLE, 0, self._maskCoords.ctypes)
+        GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
+
+        GL.glEnableClientState(GL.GL_COLOR_ARRAY)
+        GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
+        GL.glDrawArrays(GL.GL_QUADS, 0, self.verticesPix.shape[0] * 4)
+
+        # unbind the textures
+        GL.glActiveTexture(GL.GL_TEXTURE1)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        GL.glDisable(GL.GL_TEXTURE_2D)
+        # main texture
+        GL.glActiveTexture(GL.GL_TEXTURE0)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        GL.glDisable(GL.GL_TEXTURE_2D)
+        # disable states
+        GL.glDisableClientState(GL.GL_COLOR_ARRAY)
+        GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
+        GL.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY)
+
+        GL.glUseProgram(0)
+        GL.glPopClientAttrib()
+        GL.glPopMatrix()
+
     def draw(self, win=None):
         """Draw the stimulus in its relevant window. You must call
         this method after every MyWin.update() if you want the
@@ -511,6 +580,10 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
         if win is None:
             win = self.win
         self._selectWindow(win)
+
+        if win.USE_LEGACY_GL:  # use legacy draw functions
+            self._drawLegacyGL(win)
+            return
 
         # scale the drawing frame and get to centre of field
         win.setOrthographicView()
@@ -522,12 +595,6 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
             self.updateElementColors()
         if self._needTexCoordUpdate:
             self.updateTextureCoords()
-
-        if USE_LEGACY_GL:
-            # scale the drawing frame and get to centre of field
-            GL.glPushMatrix()  # push before drawing, pop after
-            # push the data for client attributes
-            GL.glPushClientAttrib(GL.GL_CLIENT_ALL_ATTRIB_BITS)
 
         GL.glEnable(GL.GL_BLEND)
 
@@ -548,10 +615,6 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
         alphaThreshold = getattr(self, 'alphaThreshold', 1.0)
         gt.setUniformValue(
             _prog, b'uAlphaThreshold', alphaThreshold, ignoreNotDefined=True)
-
-        if USE_LEGACY_GL:
-            GL.glPushMatrix()  # push before the list, pop after
-
         gt.setUniformMatrix(
             _prog, 
             b'uProjectionMatrix', 
@@ -585,10 +648,6 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
         GL.glDisable(GL.GL_TEXTURE_2D)
 
         GL.glDisable(GL.GL_BLEND)
-
-        if USE_LEGACY_GL:
-            GL.glPopClientAttrib()
-            GL.glPopMatrix()
 
     def _updateVertices(self):
         """Sets Stim.verticesPix from fieldPos.

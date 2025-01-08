@@ -134,7 +134,9 @@ class Aperture(MinimalStim, ContainerMixin):
             GL.glClearStencil(0)
             GL.glClear(GL.GL_STENCIL_BUFFER_BIT)
 
-            GL.glPushMatrix()
+            if self.win.USE_LEGACY_GL:
+                GL.glPushMatrix()
+
             if self.__dict__['filename'] == False:
                 self.win.setScale('pix')
 
@@ -159,7 +161,8 @@ class Aperture(MinimalStim, ContainerMixin):
                 GL.glStencilFunc(GL.GL_EQUAL, 1, 1)
             GL.glStencilOp(GL.GL_KEEP, GL.GL_KEEP, GL.GL_KEEP)
 
-            GL.glPopMatrix()
+            if self.win.USE_LEGACY_GL:
+                GL.glPopMatrix()
 
     @property
     def size(self):
