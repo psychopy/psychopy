@@ -28,13 +28,14 @@ class Test_Win_Scale_Pos_Ori:
 
         Non-zero viewOri would not currently pass with a nonzero viewPos
         """
-        with pytest.raises(ValueError):
-            # units must be define for viewPos!
-            _, = visual.Window(size=(200, 200), viewPos=(1, 1), viewOri=1)
+        # units if none defaults to user prefs, this condition is never met
+        # with pytest.raises(ValueError):
+        #     # units must be define for viewPos!
+        #     _ = visual.Window(size=(200, 200), viewPos=(1, 1), units=None)
         with pytest.raises(NotImplementedError):
             # simultaneous viewPos and viewOri prohibited at present
-            _, = visual.Window(size=(200, 200), units='pix',
-                               viewPos=(1, 1), viewOri=1)
+            _ = visual.Window(size=(200, 200), units='pix',
+                              viewPos=(1, 1), viewOri=1)
 
         for ori in [0, 45]:
             self.win.viewOri = ori
