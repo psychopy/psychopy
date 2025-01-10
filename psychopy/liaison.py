@@ -277,7 +277,7 @@ class WebSocketServer:
 		if sys.platform in ("linux", "linux2"):
 			loop.add_signal_handler(signal.SIGINT, loopFuture.set_result, None)
 
-		async with websockets.serve(self._connectionHandler, host, port):
+		async with websockets.serve(self._connectionHandler, host, port, compression=None):
 			self._logger.info(f"Liaison Server started on: {host}:{port}")
 			await loopFuture
 			# await asyncio.Future()  # run forever

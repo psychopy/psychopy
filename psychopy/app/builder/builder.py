@@ -1063,7 +1063,11 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.appData['fileHistory'] = copy.copy(tmp[-fhMax:])
 
         # assign the data to this filename
-        self.appData['frames'][str(self.filename)] = frameData
+        if (
+            str(self.filename) not in self.appData['frames']
+            and str(self.filename) not in self.appData
+        ):
+            self.appData['frames'][str(self.filename)] = frameData
         # save the display data only for those frames in the history:
         tmp2 = {}
         for f in self.appData['frames']:
