@@ -714,8 +714,7 @@ class ShapeStim(BaseShapeStim):
             return
 
         if len(newVertices) < 3:
-            # not enough vertices to draw anything
-            return
+            self.closeShape = False
 
         if not hasattr(self, '_tesselMode'):
             self._tesselMode = 'triangle'
@@ -773,6 +772,9 @@ class ShapeStim(BaseShapeStim):
         if win._haveShaders:
             _prog = self.win._progSignedFrag
             GL.glUseProgram(_prog)
+
+        # will check if it needs updating (check just once)
+        vertsPix = self.verticesPix
 
         # load Null textures into multitexteureARB - or they modulate glColor
         GL.glActiveTexture(GL.GL_TEXTURE0)
