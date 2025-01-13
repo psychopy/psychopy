@@ -25,7 +25,7 @@ class TestCircle(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin, _TestS
         # Shape has no foreground color
         self.foreUsed = False
 
-    def _resetObj(self):
+    def resetObj(self):
         """Reset the stimulus to its initial state.
         """
         self.obj = visual.Circle(

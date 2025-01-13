@@ -88,8 +88,8 @@ class _TestColorMixin:
         if not self.obj:
             return
         
-        if hasattr(self, '_resetObj'):
-            self._resetObj()  # reset the stimulus object before this test
+        if hasattr(self, 'resetObj'):
+            self.resetObj()  # reset the stimulus object before this test
         
         # Test each case
         for case in self.colorTykes + self.colorExemplars:
