@@ -1609,7 +1609,8 @@ class QuestPlusHandler(StairHandler):
 
         # if needed replace the existing intensity with this custom one
         if intensity is not None:
-            self.intensities.pop()
+            if len(self.intensities) != 0: # avoid error during the first trial where self.intensities will be of length 0, so pop does not work
+                self.intensities.pop()  # remove the auto-generated one
             self.intensities.append(intensity)
         # add the current data to experiment if possible
         if self.getExp() is not None:
