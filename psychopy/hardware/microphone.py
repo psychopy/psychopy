@@ -578,7 +578,13 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         is no longer writing them to anything, causing stream samples to be
         lost.
 
+        **Deprecated**: This property is deprecated and will be removed in a
+        future release. Use `recordingFull` instead.
+
         """
+        if self._maxRecordingSize == -1:
+            return False
+        
         return self._totalSamples >= self._maxRecordingSize
 
     @property
@@ -676,8 +682,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             raise AudioStreamError("Stream not ready.")
 
         # reset the recording buffer
-        self._recording = []
-        self._totalSamples = 0
+        self.clearRecording()
 
         # reset warnings
         # self._warnedRecBufferFull = False
@@ -875,9 +880,9 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         logging.info(
             f"Reopened microphone #{self.index}, took {time.time() - start:.3f}s"
         )
-        # if mic was running beforehand, start it back up again now
-        if status:
-            self.start()
+        # # if mic was running beforehand, start it back up again now
+        # if status:
+        #     self.start()
 
     @property
     def recordingEmpty(self):
@@ -891,6 +896,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         """
         if self._maxRecordingSize < 0:
             return False
+        
         return self._totalSamples >= self._maxRecordingSize
 
     def poll(self):
@@ -949,7 +955,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             # reopen
             self.reopen()
             # start again
-            self.start()
+            # self.start()
             # mark as not asleep so we don't restart again if the first poll is empty
             self._possiblyAsleep = False
 
@@ -1035,13 +1041,10 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             buffer is empty.
 
         """
-        if self.recordingEmpty:
-            return None
-        
         self._mergeAudioFragments()  # merge audio fragments
 
-        if not len(self._recording[0].samples):
-            raise AudioStreamError(
+        if not self._recording:  # empty list
+            raise AudioStreamError( 
                 "Could not access recording as microphone has sent no samples."
             )
         
@@ -1065,9 +1068,9 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
 
         Returns
         -------
-        AudioClip
+        AudioClip or None
             Recorded data between the last calls to `start` (or `record`) and
-            `stop`.
+            `stop`. Retruns `None` if no recording has been made yet.
 
         """
         if self.isStarted:
@@ -1079,6 +1082,16 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
 
         # get the segment
         return self._getSegment()  # full recording
+    
+    def clearRecording(self):
+        """Clear the recording buffer.
+
+        This method clears the recording buffer, removing all samples that have
+        been collected so far.
+
+        """
+        self._recording.clear()
+        self._totalSamples = 0
     
     def getCurrentVolume(self, timeframe=0.2):
         """
@@ -1106,7 +1119,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
 
         if self.recordingEmpty:
             return 0.0
-
+        
         # merge last few recording fragments into a single segment
         requiredSamples = int(timeframe * self._sampleRateHz)
         sampleBuffers = []
