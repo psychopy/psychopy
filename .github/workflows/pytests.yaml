@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-13, ubuntu-latest]
+        os: [macos-13, ubuntu-22.04]
         python-version: ['3.8', '3.10']
 
     steps:
@@ -91,7 +91,6 @@ jobs:
           brew install swig vlc portaudio portmidi liblo sdl2
         fi
         # install optional components
-        pip install psychopy-sounddevice psychopy-pyo psychopy-legacy-mic psychopy-connect psychopy-crs psychopy-emotiv psychopy-gammasci psychopy-mri-emulator
         pip install moviepy
 
 #    - name: test docs to pdf

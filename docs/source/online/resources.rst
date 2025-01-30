@@ -41,7 +41,7 @@ Specifying "Additional Resources"
 
 This is the only method of manually controlling resource loading that has been made easily available to users of PsychoPy prior to PsychoPy version 2022.1. If you don't have that many resources (e.g. <200 pictures), but you encounter an "Unknown Resource" error, this is probably the easiest fix (but we recommend you consider Methods 2 and 3 below). The reason the "Unknown Resource" error occurs is probably because you have a resource specified through code somewhere in your experiment (take for example the `"stim{N}.png".format(thisNumber)` case).
 
-You can manually specify what resources your experiment will need when you :ref:`configureOnline`. However, if you have a large number of files, we recommend you either :ref:`specifyOnlineResources` using the :ref:`resourceManager` or :ref:`specifyResourcesEachTrial` using :ref:`static`.
+You can manually specify what resources your experiment will need when you :ref:`configureOnline`. However, if you have a large number of files, we recommend you either :ref:`specifyOnlineResources` using the :ref:`resourceManager` or :ref:`specifyResourcesEachTrial` using :ref:`staticcomponent`.
 
 .. _specifyOnlineResources:
 
@@ -67,7 +67,7 @@ Specify the files to download each trial
 
 If each resource can be retrieved relatively quickly (e.g. an imagefile over a broadband connection) then you might want to fetch the stimulus on each trial. This has the advantage that you don't need to prespecify anything and you could even choose the stimulus to download dynamically, based on the previous response!
 
-The other nice thing about this method is that it can be used either using a :ref:`resourceManager` Component, or by simply setting the stmulus to update using a :ref:`static` where that Static Component lasts during your fixation period.
+The other nice thing about this method is that it can be used either using a :ref:`resourceManager` Component, or by simply setting the stmulus to update using a :ref:`staticcomponent` where that Static Component lasts during your fixation period.
 
 .. warning::
 

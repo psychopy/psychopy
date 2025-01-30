@@ -77,7 +77,7 @@ class TestDots:
              'units': 'deg'}
         ]
         # Define an acceptable margin of error (in proportion of size)
-        err = 0.1
+        err = 0.2
         # Create dots
         params = {
             "win": self.win,

@@ -24,11 +24,14 @@ from fractions import Fraction
 
 import psychopy  # so we can get the __path__
 from psychopy import logging, colors, layout
+from psychopy.tools import gltools as gt
 
 from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.visual.basevisual import (
     BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin, TextureMixin
 )
+
+USE_LEGACY_GL = pyglet.version < '2.0'
 
 
 class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
@@ -109,15 +112,31 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
         self.texRes = texRes  # rebuilds the mask
         self.size = size
 
-        # generate a displaylist ID
-        self._listID = GL.glGenLists(1)
-        self._updateList()  # ie refresh display list
+        if self.win.USE_LEGACY_GL:
+            # generate a displaylist ID
+            self._listID = GL.glGenLists(1)
+            self._updateList()  # ie refresh display list
+        else:
+            # normalized texture coordinates
+            self._texCoords = numpy.array(
+                [[1, 0], [0, 0], [0, 1], [1, 1]], dtype=float)
+            self._maskCoords = self._texCoords.copy()
 
         # set autoLog now that params have been initialised
         wantLog = autoLog is None and self.win.autoLog
         self.__dict__['autoLog'] = autoLog or wantLog
         if self.autoLog:
             logging.exp("Created %s = %s" % (self.name, str(self)))
+
+    def __del__(self):
+        """Remove textures from graphics card to prevent crash
+        """
+        try:
+            #if hasattr(self, '_listID'):
+                # GL.glDeleteLists(self._listID, 1)
+            self.clearTextures()
+        except (ImportError, ModuleNotFoundError, TypeError):
+            pass  # has probably been garbage-collected already
 
     def _updateListShaders(self):
         """
@@ -192,18 +211,31 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
 
         GL.glEndList()
 
-    def __del__(self):
-        """Remove textures from graphics card to prevent crash
+    def _drawLegacyGL(self, win):
+        """Legacy draw routine.
         """
-        try:
-            if hasattr(self, '_listID'):
-                GL.glDeleteLists(self._listID, 1)
-            self.clearTextures()
-        except (ImportError, ModuleNotFoundError, TypeError):
-            pass  # has probably been garbage-collected already
+        GL.glPushMatrix()  # push before the list, pop after
+        win.setScale('pix')
+        GL.glColor4f(*self._foreColor.render('rgba1'))
+
+        if self._needTextureUpdate:
+            self.setImage(value=self._imName, log=False)
+        if self._needUpdate:
+            self._updateList()
+        GL.glCallList(self._listID)
+
+        # return the view to previous state
+        GL.glPopMatrix()
 
     def draw(self, win=None):
-        """Draw.
+        """Draw the stimulus on the window.
+
+        Parameters
+        ----------
+        win : `~psychopy.visual.Window`, optional
+            The window to draw the stimulus on. If None, the stimulus will be
+            drawn on the window that was passed to the constructor.
+
         """
         # check the type of image we're dealing with
         if (type(self.image) != numpy.ndarray and
@@ -222,18 +254,64 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
             if videoFrame is not None:
                 self._movieFrameToTexture(videoFrame)
 
-        GL.glPushMatrix()  # push before the list, pop after
+        if win.USE_LEGACY_GL:
+            self._drawLegacyGL(win)
+            return
+
+        win.setOrthographicView()
         win.setScale('pix')
-        GL.glColor4f(*self._foreColor.render('rgba1'))
+
+        # GL.glColor4f(*self._foreColor.render('rgba1'))
 
         if self._needTextureUpdate:
             self.setImage(value=self._imName, log=False)
-        if self._needUpdate:
-            self._updateList()
-        GL.glCallList(self._listID)
 
-        # return the view to previous state
-        GL.glPopMatrix()
+        if self.isLumImage:  # select the appropriate shader
+            # for a luminance image do recoloring
+            _prog = self.win._progSignedTexMask
+        else:
+            # for an rgb image there is no recoloring
+            _prog = self.win._progImageStim
+
+        gt.useProgram(_prog)
+
+        # bind textures
+        GL.glEnable(GL.GL_TEXTURE_2D)
+        GL.glActiveTexture(GL.GL_TEXTURE1)  # mask
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self._maskID)
+        GL.glActiveTexture(GL.GL_TEXTURE0)  # color/lum image
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
+
+        # set the shader uniforms
+        gt.setUniformSampler2D(_prog, b'uTexture', 0)  # is texture unit 0
+        gt.setUniformSampler2D(_prog, b'uMask', 1)  # mask is texture unit 1
+        gt.setUniformValue(_prog, b'uColor', self._foreColor.render('rgba1'))
+        gt.setUniformMatrix(
+            _prog, 
+            b'uProjectionMatrix', 
+            win._projectionMatrix,
+            transpose=True)
+        gt.setUniformMatrix(
+            _prog, 
+            b'uModelViewMatrix', 
+            win._viewMatrix,
+            transpose=True)
+
+        # draw the image
+        gt.drawClientArrays({
+            'gl_Vertex': self.verticesPix,
+            'gl_MultiTexCoord0': self._texCoords,
+            'gl_MultiTexCoord1': self._maskCoords}, 
+            'GL_QUADS')
+        
+        gt.useProgram(None)
+
+        # unbind the textures
+        GL.glActiveTexture(GL.GL_TEXTURE1)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        GL.glActiveTexture(GL.GL_TEXTURE0)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        GL.glDisable(GL.GL_TEXTURE_2D)
 
     def _movieFrameToTexture(self, movieSrc):
         """Convert a movie frame to a texture and use it.

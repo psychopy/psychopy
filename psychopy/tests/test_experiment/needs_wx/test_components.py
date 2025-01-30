@@ -63,7 +63,7 @@ class TestComponents():
         pass
 
     def test_component_attribs(self):
-        with io.open(self.baselineProfile, 'r', encoding='utf-8-sig') as f:
+        with io.open(self.baselineProfile, 'r', encoding='utf-8-sig', errors='ignore') as f:
             target = f.read()
         targetLines = target.splitlines()
         targetTag = {}

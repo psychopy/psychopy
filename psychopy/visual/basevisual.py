@@ -1155,12 +1155,12 @@ class TextureMixin:
                     stim.win.glVendor.startswith('nvidia')):
                 # nvidia under win/linux might not support 32bit float
                 # could use GL_LUMINANCE32F_ARB here but check shader code?
-                internalFormat = GL.GL_RGB16F_ARB
+                internalFormat = GL.GL_RGB16F
             else:
                 # we've got a mac or an ATI card and can handle
                 # 32bit float textures
                 # could use GL_LUMINANCE32F_ARB here but check shader code?
-                internalFormat = GL.GL_RGB32F_ARB
+                internalFormat = GL.GL_RGB32F
             # initialise data array as a float
             data = numpy.ones((intensity.shape[0], intensity.shape[1], 3),
                               numpy.float32)
@@ -1180,7 +1180,7 @@ class TextureMixin:
             data[:, :, 2] = intensity  # B
         elif pixFormat == GL.GL_RGB and dataType == GL.GL_FLOAT:
             # probably a custom rgb array or rgb image
-            internalFormat = GL.GL_RGB32F_ARB
+            internalFormat = GL.GL_RGB32F
             data = intensity
         elif pixFormat == GL.GL_RGB:
             # not wasLum, not useShaders  - an RGB bitmap with no shader
@@ -1203,8 +1203,8 @@ class TextureMixin:
                 pixFormat = GL.GL_RGBA
             if internalFormat == GL.GL_RGB:
                 internalFormat = GL.GL_RGBA
-            elif internalFormat == GL.GL_RGB32F_ARB:
-                internalFormat = GL.GL_RGBA32F_ARB
+            elif internalFormat == GL.GL_RGB32F:
+                internalFormat = GL.GL_RGBA32F
         texture = data.ctypes  # serialise
 
         # Create the pixel buffer object which will serve as the texture memory
@@ -1242,9 +1242,9 @@ class TextureMixin:
                 GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_REPEAT)
         else:
             GL.glTexParameteri(
-                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP)
+                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP_TO_BORDER)
             GL.glTexParameteri(
-                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP)
+                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP_TO_BORDER)
         # data from PIL/numpy is packed, but default for GL is 4 bytes
         GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
         # important if using bits++ because GL_LINEAR
@@ -1252,11 +1252,8 @@ class TextureMixin:
         if interpolate:
             GL.glTexParameteri(
                 GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR)
-            # GL_GENERATE_MIPMAP was only available from OpenGL 1.4
             GL.glTexParameteri(
                 GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
-            GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_GENERATE_MIPMAP,
-                               GL.GL_TRUE)
             GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
                             data.shape[1], data.shape[0], 0,
                             pixFormat, dataType, texture)
@@ -1268,9 +1265,10 @@ class TextureMixin:
             GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
                             data.shape[1], data.shape[0], 0,
                             pixFormat, dataType, texture)
+        GL.glGenerateMipmap(GL.GL_TEXTURE_2D)
 
-        GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE,
-                     GL.GL_MODULATE)  # ?? do we need this - think not!
+        # GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE,
+        #              GL.GL_MODULATE)  # ?? do we need this - think not!
         # unbind our texture so that it doesn't affect other rendering
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 
@@ -1661,6 +1659,69 @@ class WindowMixin:
         self._updateListShaders()
 
 
+class PointerMixin:
+    """Mixin class to handle mouse/pointer interaction with an object.
+
+    Attributes
+    ==========
+    clickable : bool
+        This attribute determines whether the stimulus can be clicked on and 
+        trigger the `onMouse` method. 
+
+    Methods
+    =======
+    containsPointer
+        Check if the mouse is within the stimulus boundaries.
+    doClickActions
+        Handle mouse interaction with the stimulus. This is called by the 
+        `Window` object each frame to update the stimulus based on mouse
+        interactions.
+
+    """ 
+    def containsPointer(self):
+        """Check if the mouse is within the stimulus boundaries.
+
+        Returns
+        -------
+        bool
+            Whether the mouse is within the stimulus.
+
+        """
+        if not isinstance(self.mouse, Mouse):
+            self.mouse = Mouse(visible=self.win.mouseVisible, win=self.win)
+
+        # Check if mouse is within vertices
+        return self.mouse.isPressedIn(self, buttons=[0])
+    
+    def doPointerActions(self):
+        """Handle mouse interaction with the stimulus.
+
+        This method should be called each frame to update the stimulus based
+        on mouse interactions.
+
+        """
+        # If the stimulus is clickable and the mouse is within the stimulus
+        if self.clickable and self.containsPointer():
+            if not hasattr(self, '_onMouse'):
+                return  
+                
+            self._onMouse()
+             
+    @attributeSetter
+    def clickable(self, value):
+        """Whether the stimulus can be clicked on.
+
+        If set to `True`, the stimulus will be checked for mouse clicks
+        and the `_onMouse` method will be called if the stimulus is clicked.
+
+        """
+        # if we don't have reference to a mouse, make one
+        if not isinstance(self.mouse, Mouse):
+            self.mouse = Mouse(visible=self.win.mouseVisible, win=self.win)
+
+        self.__dict__['clickable'] = value
+
+
 class DraggingMixin:
     """
     Mixin to give an object innate dragging behaviour.
@@ -1944,3 +2005,22 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
         # For DotStim
         if attrib in ('nDots', 'coherence'):
             self.coherence = round(self.coherence * self.nDots) / self.nDots
+
+    @attributeSetter
+    def alphaThreshold(self, value):
+        """Threshold for alpha values.
+
+        If the alpha value of a pixel is below this threshold, the pixel will
+        be rejected (not drawn). This can be useful for creating a mask from
+        an image with an alpha channel. The default value is 0.0, which means
+        that no thresholding will be applied.
+
+        """
+        self.__dict__['alphaThreshold'] = value
+    
+    def setAlphaThreshold(self, value, log=None):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message.
+        """
+        setAttribute(self, 'alphaThreshold', value, log)
+

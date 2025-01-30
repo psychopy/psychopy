@@ -9,13 +9,14 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import psychopy  # so we can get the __path__
-from psychopy.visual.shape import BaseShapeStim
+from psychopy.visual.shape import ShapeStim
 from psychopy.tools.attributetools import attributeSetter, setAttribute
+from psychopy.tools import gltools as gt
 
 import numpy as np
 
 
-class Polygon(BaseShapeStim):
+class Polygon(ShapeStim):
     """Creates a regular polygon (triangles, pentagons, ...). This is
     a lazy-imported class, therefore import using full path 
     `from psychopy.visual.polygon import Polygon` when inheriting from it.
@@ -109,6 +110,7 @@ class Polygon(BaseShapeStim):
 
     _defaultFillColor = "white"
     _defaultLineColor = "white"
+    _tesselMode = 'fan'  # fastest for regular/equilateral polygons
 
     def __init__(self,
                  win,
@@ -184,7 +186,7 @@ class Polygon(BaseShapeStim):
         else:
             edges = self.edges
         self.vertices = self._calcEquilateralVertices(edges, self.radius)
-
+        
     @attributeSetter
     def edges(self, edges):
         """Number of edges of the polygon. Floats are rounded to int.

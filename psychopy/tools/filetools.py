@@ -246,7 +246,7 @@ def openOutputFile(fileName=None, append=False, fileCollisionMethod='rename',
         encoding = None
 
     if os.path.exists(fileName) and mode in ['w', 'wb']:
-        logging.warning('Data file %s will be overwritten!' % fileName)
+        logging.info('Data file %s will be overwritten' % fileName)
 
     # The file will always be opened in binary writing mode,
     # see https://docs.python.org/2/library/codecs.html#codecs.open

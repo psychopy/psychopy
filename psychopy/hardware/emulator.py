@@ -19,29 +19,28 @@ These are optional components that can be obtained by installing the
 """
 
 
-from psychopy.tools.pkgtools import PluginStub
+from psychopy.plugins import PluginStub
 
 
 class SyncGenerator(
     PluginStub,
-    plugin="psychopy-mri-emulator"
+    plugin="psychopy-mri-emulator",
+    docsHome="https://github.com/psychopy/psychopy-mri-emulator"
 ):
     pass
 
 
 class ResponseEmulator(
     PluginStub,
-    plugin="psychopy-mri-emulator"
+    plugin="psychopy-mri-emulator",
+    docsHome="https://github.com/psychopy/psychopy-mri-emulator"
 ):
     pass
 
 
 class launchScan(
     PluginStub,
-    plugin="psychopy-mri-emulator"
+    plugin="psychopy-mri-emulator",
+    docsHome="https://github.com/psychopy/psychopy-mri-emulator"
 ):
-    pass
-
-
-if __name__ == "__main__":
     pass

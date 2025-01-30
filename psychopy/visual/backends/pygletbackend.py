@@ -46,6 +46,9 @@ if pyglet.version < '1.4':
 else:
     _default_display_ = pyglet.canvas.get_display()
 
+USE_LEGACY_GL = pyglet.version < '2.0'
+
+
 # Cursors available to pyglet. These are used to map string names to symbolic
 # constants used to specify which cursor to use.
 _PYGLET_CURSORS_ = {
@@ -306,6 +309,23 @@ class PygletBackend(BaseBackend):
             except Exception:
                 # pyglet 1.2 with 64bit python?
                 win._hw_handle = self.winHandle._nswindow.windowNumber()
+            # Here we temporarily set the window to the bottom right corner of the
+            # requested screen so the correct screen is always detected for NSWindow.
+            # The actual location is then set below using the pyglet set_location()
+            # method on the CocoaWindow object that wraps the NSWindow as _nswindow.
+            # This is necessary because NSScreen origin is the bottom left corner of
+            # the unshifted main screen and positive up, while pyglet origin is the top
+            # left corner of the shifted main screen and positive down. If thisScreen is
+            # not the main screen, we need to prevent self.winHandle._nswindow.screen()
+            # from returning None, which can happen when the c binding returns nil if the
+            # window is offscreen as a result of flipped y values of origins beween pyglet
+            # and NSWindow coordinate systems.
+            from pyglet.libs.darwin import cocoapy
+            mainScreen_y_from_NSOrigin = allScrs[0].y + allScrs[0].height
+            thisScreen_y_from_NSOrigin = thisScreen.y + thisScreen.height
+            thisScreen_y = mainScreen_y_from_NSOrigin - thisScreen_y_from_NSOrigin
+            temp_origin = cocoapy.NSPoint(thisScreen.x, thisScreen_y)
+            self.winHandle._nswindow.setFrameOrigin_(temp_origin)
         elif sys.platform.startswith('linux'):
             win._hw_handle = self.winHandle._window
             self._frameBufferSize = win.clientSize
@@ -347,14 +367,15 @@ class PygletBackend(BaseBackend):
             # (but need to alter x,y handling then)
             self.winHandle.set_mouse_visible(False)
         if not win.pos:
-            # work out where the centre should be
-            if win.useRetina:
-                win.pos = [(thisScreen.width - win.clientSize[0]/2) / 2,
-                           (thisScreen.height - win.clientSize[1]/2) / 2]
-            else:
-                win.pos = [(thisScreen.width - win.clientSize[0]) / 2,
-                           (thisScreen.height - win.clientSize[1]) / 2]
-        if not win._isFullScr:
+            # work out the location of the top-left corner to place at the screen center
+            win.pos = [(thisScreen.width - win.clientSize[0]) / 2,
+                       (thisScreen.height - win.clientSize[1]) / 2]
+        if sys.platform == 'darwin':
+            # always need to set the cocoa window location due to origin changes
+            screenHeight_offset = thisScreen.height - allScrs[0].height
+            self.winHandle.set_location(int(win.pos[0] + thisScreen.x),
+                                        int(win.pos[1] + thisScreen.y + screenHeight_offset))
+        elif not win._isFullScr:
             # add the necessary amount for second screen
             self.winHandle.set_location(int(win.pos[0] + thisScreen.x),
                                         int(win.pos[1] + thisScreen.y))
@@ -369,6 +390,17 @@ class PygletBackend(BaseBackend):
 
         # store properties of the system
         self._driver = pyglet.gl.gl_info.get_renderer()
+        logging.info("Using renderer '{}' for graphics".format(self._driver))
+
+        # report the OpenGL version
+        glVersion = pyglet.gl.gl_info.get_version()
+        logging.info("OpenGL version supported by driver is {}.{}".format(
+            glVersion[0], glVersion[1]))
+
+        if int(glVersion[0]) < 2:
+            raise RuntimeError(
+                "OpenGL version 2.0 or higher is required! Please update your "
+                "graphics drivers or use a different backend.")
 
     @property
     def frameBufferSize(self):
@@ -378,7 +410,7 @@ class PygletBackend(BaseBackend):
     @property
     def shadersSupported(self):
         # on pyglet shaders are fine so just check GL>2.0
-        return pyglet.gl.gl_info.get_version() >= '2.0'
+        return int(pyglet.gl.gl_info.get_version()[0]) >= 2
 
     def swapBuffers(self, flipThisFrame=True):
         """Performs various hardware events around the window flip and then
@@ -393,7 +425,9 @@ class PygletBackend(BaseBackend):
             self.winHandle.switch_to()
             globalVars.currWindow = self
 
-        GL.glTranslatef(0.0, 0.0, -5.0)
+        # DEPRECATED: this is now done in the Window class
+        if USE_LEGACY_GL:
+            GL.glTranslatef(0.0, 0.0, -5.0)
 
         for dispatcher in self.win._eventDispatchers:
             try:
@@ -925,9 +959,12 @@ def _onResize(width, height):
         back_width, back_height = width, height
 
     GL.glViewport(0, 0, back_width, back_height)
-    GL.glMatrixMode(GL.GL_PROJECTION)
-    GL.glLoadIdentity()
-    GL.glOrtho(-1, 1, -1, 1, -1, 1)
-    # GL.gluPerspective(90, 1.0 * width / height, 0.1, 100.0)
-    GL.glMatrixMode(GL.GL_MODELVIEW)
-    GL.glLoadIdentity()
+
+    # DEPRECATED - this is now done with matrices we compute
+    if USE_LEGACY_GL:
+        GL.glMatrixMode(GL.GL_PROJECTION)
+        GL.glLoadIdentity()
+        GL.glOrtho(-1, 1, -1, 1, -1, 1)
+        # GL.gluPerspective(90, 1.0 * width / height, 0.1, 100.0)
+        GL.glMatrixMode(GL.GL_MODELVIEW)
+        GL.glLoadIdentity()

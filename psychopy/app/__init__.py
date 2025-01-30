@@ -55,7 +55,15 @@ class _Tee(object):
         sys.__stdout__.flush()
 
 
-def startApp(showSplash=True, testMode=False, safeMode=False, startView=None):
+def startApp(
+        showSplash=True, 
+        testMode=False, 
+        safeMode=False, 
+        startView=None,
+        startFiles=None,
+        firstRun=False,
+        profiling=False,
+    ):
     """Start the PsychoPy GUI.
 
     This function is idempotent, where additional calls after the app starts
@@ -110,14 +118,25 @@ def startApp(showSplash=True, testMode=False, safeMode=False, startView=None):
 
         # NOTE - messages and errors cropping up before this point will go to
         # console, afterwards to 'last_app_load.log'.
-        sys.stderr = sys.stdout = _Tee(lastRunLog)  # redirect output to file
+        if sys.platform == 'win32' and sys.executable.endswith('pythonw.exe'):
+            sys.stderr = sys.stdout = lastRunLog
+        else:
+            sys.stderr = sys.stdout = _Tee(lastRunLog)  # redirect output to file
 
     # Create the application instance which starts loading it.
     # If `testMode==True`, all messages and errors (i.e. exceptions) will log to
     # console.
     from psychopy.app._psychopyApp import PsychoPyApp
     _psychopyAppInstance = PsychoPyApp(
-        0, testMode=testMode, showSplash=showSplash, safeMode=safeMode, startView=startView)
+        0, 
+        testMode=testMode, 
+        showSplash=showSplash, 
+        safeMode=safeMode, 
+        startView=startView,
+        startFiles=startFiles,
+        firstRun=firstRun,
+        profiling=profiling,
+    )
 
     # After the app is loaded, we hand off logging to the stream dispatcher
     # using the provided log file path. The dispatcher will write out any log

@@ -252,7 +252,7 @@ class Session:
             priorityThreshold=constants.priority.EXCLUDE+1,
             params=None,
             liaison=None,
-            restMsg="Rest..."
+            restMsg="Rest"
         ):
         # Store root and add to Python path
         self.root = Path(root)
@@ -292,14 +292,23 @@ class Session:
             # If win is the name of an experiment, setup from that experiment's method
             self.win = None
             self.setupWindowFromExperiment(win)
-        # Setup Session clock
+        # setup experiment clock
         if clock in (None, "float"):
             clock = core.Clock()
         elif clock == "iso":
             clock = core.Clock(format=str)
         elif isinstance(clock, str):
             clock = core.Clock(format=clock)
-        self.sessionClock = clock
+        self.experimentClock = clock
+        # setup session clock (same format as experiment clock)
+        if clock in (None, "float"):
+            self.sessionClock = core.Clock()
+        elif clock == "iso":
+            self.sessionClock = core.Clock(format=str)
+        elif isinstance(clock, str):
+            self.sessionClock = core.Clock(format=clock)
+        else:
+            self.sessionClock = core.Clock()
         # make sure we have a default keyboard
         if DeviceManager.getDevice("defaultKeyboard") is None:
             DeviceManager.addDevice(
@@ -1060,14 +1069,22 @@ class Session:
             "Running experiment via Session: name={key}, expInfo={expInfo}"
         ).format(key=key, expInfo=expInfo))
         # reset session clock
-        self.sessionClock.reset()
+        self.experimentClock.reset()
+        # send start event to liaison
+        if self.liaison is not None:
+            self.sendToLiaison({
+                    'type': "experiment_status",
+                    'name': thisExp.name,
+                    'status': constants.STARTED,
+                    'expInfo': expInfo
+                })
         # Run this experiment
         try:
             self.experiments[key].run(
                 expInfo=expInfo,
                 thisExp=thisExp,
                 win=self.win,
-                globalClock=self.sessionClock,
+                globalClock=self.experimentClock,
                 thisSession=self
             )
         except Exception as _err:
@@ -1202,6 +1219,31 @@ class Session:
             )
         
         return trials
+    
+    def pauseLoop(self):
+        """
+        Pause the current loop of the current experiment. Note that this will not take effect until 
+        the loop would next iterate.
+
+        Returns
+        -------
+        bool or None
+            True if the operation completed successfully
+        """
+        # warn and return failed if no experiment is running
+        if self.currentExperiment is None:
+            logging.warn(_translate(
+                "Could not pause loop as there is no experiment running."
+            ))
+            return False
+        # warn and return failed if not in a loop
+        if self.currentExperiment.currentLoop is self.currentExperiment:
+            logging.warn(_translate(
+                "Could not pause loop as the current experiment is not in a loop."
+            ))
+            return False
+        # pause loop
+        self.currentExperiment.currentLoop.status = constants.PAUSED
 
     def pauseExperiment(self):
         """

@@ -30,11 +30,14 @@ from psychopy.visual import Window
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import attributeSetter, logAttrib, setAttribute
 from psychopy.tools.monitorunittools import convertToPix
+from psychopy.tools import gltools as gt
 from psychopy.visual.helpers import setColor
 from psychopy.visual.basevisual import MinimalStim, TextureMixin, ColorMixin
 from . import globalVars
 
 import numpy
+
+USE_LEGACY_GL = pyglet.version < '2.0'
 
 
 class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
@@ -499,16 +502,9 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
         """
         setAttribute(self, 'fieldSize', value, log, operation)
 
-    def draw(self, win=None):
-        """Draw the stimulus in its relevant window. You must call
-        this method after every MyWin.update() if you want the
-        stimulus to appear on that frame and then update the screen
-        again.
+    def _drawLegacyGL(self, win):
+        """Legacy OpenGL drawing method for ElementArrayStim.
         """
-        if win is None:
-            win = self.win
-        self._selectWindow(win)
-
         if self._needVertexUpdate:
             self._updateVertices()
         if self._needColorUpdate:
@@ -574,6 +570,84 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
         GL.glUseProgram(0)
         GL.glPopClientAttrib()
         GL.glPopMatrix()
+
+    def draw(self, win=None):
+        """Draw the stimulus in its relevant window. You must call
+        this method after every MyWin.update() if you want the
+        stimulus to appear on that frame and then update the screen
+        again.
+        """
+        if win is None:
+            win = self.win
+        self._selectWindow(win)
+
+        if win.USE_LEGACY_GL:  # use legacy draw functions
+            self._drawLegacyGL(win)
+            return
+
+        # scale the drawing frame and get to centre of field
+        win.setOrthographicView()
+        win.setScale('pix')
+
+        if self._needVertexUpdate:
+            self._updateVertices()
+        if self._needColorUpdate:
+            self.updateElementColors()
+        if self._needTexCoordUpdate:
+            self.updateTextureCoords()
+
+        GL.glEnable(GL.GL_BLEND)
+
+        # setup the shaderprogram
+        _prog = self.win._progSignedTexMask
+        gt.useProgram(_prog)
+
+        GL.glActiveTexture(GL.GL_TEXTURE1)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self._maskID)
+        GL.glEnable(GL.GL_TEXTURE_2D)
+        GL.glActiveTexture(GL.GL_TEXTURE0)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
+        GL.glEnable(GL.GL_TEXTURE_2D)
+
+        gt.setUniformSampler2D(_prog, b'uTexture', 0)
+        gt.setUniformSampler2D(_prog, b'uMask', 1)
+        gt.setUniformValue(_prog, b'uColor', [1., 1., 1., 1.])
+        alphaThreshold = getattr(self, 'alphaThreshold', 1.0)
+        gt.setUniformValue(
+            _prog, b'uAlphaThreshold', alphaThreshold, ignoreNotDefined=True)
+        gt.setUniformMatrix(
+            _prog, 
+            b'uProjectionMatrix', 
+            win._projectionMatrix,
+            transpose=True)
+        gt.setUniformMatrix(
+            _prog, 
+            b'uModelViewMatrix', 
+            win._viewMatrix,
+            transpose=True)
+
+        verticesPix = self.verticesPix.reshape(-1, 3)
+        RGBAs = self._RGBAs.reshape(-1, 4)
+        texCoords = self._texCoords.reshape(-1, 2)
+        maskCoords = self._maskCoords.reshape(-1, 2)
+
+        gt.drawClientArrays({
+            'gl_Vertex': verticesPix,
+            'gl_Color': RGBAs,
+            'gl_MultiTexCoord0': texCoords,
+            'gl_MultiTexCoord1': maskCoords}, 
+            'GL_QUADS')
+        
+        gt.useProgram(None)
+
+        GL.glActiveTexture(GL.GL_TEXTURE1)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        GL.glDisable(GL.GL_TEXTURE_2D)
+        GL.glActiveTexture(GL.GL_TEXTURE0)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        GL.glDisable(GL.GL_TEXTURE_2D)
+
+        GL.glDisable(GL.GL_BLEND)
 
     def _updateVertices(self):
         """Sets Stim.verticesPix from fieldPos.

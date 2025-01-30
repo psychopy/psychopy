@@ -87,6 +87,10 @@ class _TestColorMixin:
         # If this test object has no obj, skip
         if not self.obj:
             return
+        
+        if hasattr(self, 'resetObj'):
+            self.resetObj()  # reset the stimulus object before this test
+        
         # Test each case
         for case in self.colorTykes + self.colorExemplars:
             for space, color in case.items():

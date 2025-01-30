@@ -1,17 +1,18 @@
-import json
 from psychopy import core, layout, logging
 from psychopy.hardware import base, DeviceManager
 from psychopy.localization import _translate
 from psychopy.hardware import keyboard
+# for legacy compatability, import PhotodiodeValidator and PhotodiodeValidationError here
+from psychopy.validation.photodiode import PhotodiodeValidator, PhotodiodeValidationError
 
 
 class PhotodiodeResponse(base.BaseResponse):
     # list of fields known to be a part of this response type
     fields = ["t", "value", "channel", "threshold"]
 
-    def __init__(self, t, value, channel, threshold=None):
+    def __init__(self, t, value, channel, device=None, threshold=None):
         # initialise base response class
-        base.BaseResponse.__init__(self, t=t, value=value)
+        base.BaseResponse.__init__(self, t=t, value=value, device=device)
         # store channel and threshold
         self.channel = channel
         self.threshold = threshold
@@ -28,6 +29,8 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
         self.state = [False] * channels
         # set initial threshold
         self.threshold = [None] * channels
+        if threshold is None:
+            threshold = 125
         self.setThreshold(threshold, channel=list(range(channels)))
         # store position params
         self.units = units
@@ -146,14 +149,40 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
         while self.hasUnfinishedMessage():
             self.dispatchMessages()
         # start off with no channels
-        channels = []
+        channelsOn = set()
         # iterate through potential channels
         for i, state in enumerate(self.state):
-            # if any detected the flash, append it
+            # skip if we got more than 1 message
+            if len(self.getResponses(channel=i, clear=False)) > 1:
+                continue
+            # if any detected the flash, append it (test for false negative)
             if state:
-                channels.append(i)
+                channelsOn.add(i)
+        # clear caught messages so we're starting afresh
+        self.clearResponses()
+        # show black
+        rect.fillColor = "black"
+        rect.draw()
+        win.flip()
+        # wait 250ms for flip to happen and photodiode to catch it
+        timeoutClock.reset()
+        while timeoutClock.getTime() < 0.25:
+            self.dispatchMessages()
+        # finish dispatching any messages which are only partially received               
+        while self.hasUnfinishedMessage():
+            self.dispatchMessages()
+        # start off with no channels
+        channelsOff = set()
+        # iterate through potential channels
+        for i, state in enumerate(self.state):
+            # skip if we got more than 1 message
+            if len(self.getResponses(channel=i, clear=False)) > 1:
+                continue
+            # if any detected the lack of flash, append it (test for false positive)
+            if not state:
+                channelsOff.add(i)
         
-        return channels
+        return tuple(channelsOn & channelsOff)
     
     def findPhotodiode(self, win, channel=None, retryLimit=5):
         """
@@ -379,7 +408,7 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
             )
         # if we didn't get any responses at all, prompt to try again
         if not responsive:
-            handleNonResponse(label=label, rect=rect)
+            return handleNonResponse(label=label, rect=rect)
         # clear all the events created by this process
         self.state = [None] * self.channels
         self.dispatchMessages()
@@ -392,7 +421,7 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
         # set size/pos/units
         self.units = "norm"
         self.size = rect.size * 2
-        self.pos = rect.pos + rect.size / (-2, 2)
+        self.pos = rect.pos
 
         return (
             layout.Position(self.pos, units="norm", win=win),
@@ -484,6 +513,17 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
             win.flip()
             # get threshold
             thresholds[col] = _bisectThreshold([0, 255], recursionLimit=16)
+        # report thresholds
+        logging.debug(f"Channel {channel} responded 'on' for a black screen at threshold {thresholds['black']}")
+        logging.debug(f"Channel {channel} responded 'on' for a white screen at threshold {thresholds['white']}")
+        # if black is detected at the same or lower threshold as white, the photodiode isn't working
+        if thresholds['black'] <= thresholds['white']:
+            logging.debug(
+                f"Could not detect a reasonable threshold for channel {channel}, photodiode may be "
+                f"unplugged."
+            )
+            self._setThreshold(0, channel=channel)
+            return None
         # pick a threshold between white and black (i.e. one that's safe)
         threshold = (thresholds['white'] + thresholds['black']) / 2
         # clear bg rect
@@ -500,6 +540,46 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
         self._setThreshold(int(threshold), channel=channel)
 
         return int(threshold)
+
+    def checkPhotodiode(self, win, channels=None, reps=1):
+        """
+        Check that the photodiode is responsive on a given channel by alternating the full window 
+        between white and black, then checking that the channel state is True when white and False 
+        when black.
+
+        Parameters
+        ----------
+        win : psychopy.visual.Window
+            Window to use for checking.
+        channels : list[int] or tuple[int] or int or None, optional
+            Channel or channels to check, use None (default) to check all channels.
+        reps : int, optional
+            How many times to repeat the test - if the photodiode has a habit of randomly 
+            flickering, there's a chance of it passing tests by random chance, so you may wish to 
+            repeat it several times. Default is 1 (aka do not repeat)
+
+        Returns
+        -------
+        bool
+            True
+        """
+        # if given just one channel, wrap it in a list
+        if isinstance(channels, int):
+            channels = [channels]
+        # if None, check all channels
+        if channels is None:
+            channels = list(range(self.channels))
+        # for each specified channel...
+        for channel in channels:
+            # the following is repeated for good measure, as many times as specified
+            for rep in range(reps):
+                # run findChannels
+                found = self.findChannels(win)
+                # if the given channel isn't found, test fails
+                if channel not in found:
+                    return False
+        
+        return True
 
     def setThreshold(self, threshold, channel):
         if isinstance(channel, (list, tuple)):
@@ -534,10 +614,6 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
         self.dispatchMessages()
         # return state after update
         return self.state[channel]
-
-
-class PhotodiodeValidationError(BaseException):
-    pass
 
 
 class ScreenBufferSampler(BasePhotodiodeGroup):
@@ -593,7 +669,8 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
                 t=self.clock.getTime() - frameT,
                 value=state,
                 channel=0,
-                threshold=self._threshold
+                threshold=self._threshold,
+                device=self
             )
             self.receiveMessage(resp)
 
@@ -712,149 +789,3 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
         self.setThreshold(127, channel=channel)
 
         return self.getThreshold(channel=channel)
-
-
-class PhotodiodeValidator:
-
-    def __init__(
-            self, win, diode, channel=None,
-            variability=1/60,
-            report="log",
-            autoLog=False):
-        # set autolog
-        self.autoLog = autoLog
-        # store window handle
-        self.win = win
-        # store diode handle
-        self.diode = diode
-        self.channel = channel
-        # store method of reporting
-        self.report = report
-        # set acceptable variability
-        self.variability = variability
-
-        from psychopy import visual
-        # black rect which is always drawn on win flip
-        self.offRect = visual.Rect(
-            win,
-            fillColor="black",
-            depth=1, autoDraw=True,
-            autoLog=False
-        )
-        # white rect which is only drawn when target stim is, and covers black rect
-        self.onRect = visual.Rect(
-            win,
-            fillColor="white",
-            depth=0, autoDraw=False,
-            autoLog=False
-        )
-        # update rects to match diode
-        self.updateRects()
-
-    def connectStimulus(self, stim):
-        # store mapping of stimulus to self in window
-        self.win.validators[stim] = self
-        stim.validator = self
-
-    def draw(self):
-        self.onRect.draw()
-
-    def updateRects(self):
-        """
-        Update the size and position of this validator's rectangles to match the size and position of the associated
-        diode.
-        """
-        for rect in (self.onRect, self.offRect):
-            # set units from diode
-            rect.units = self.diode.units
-            # set pos from diode, or choose default if None
-            if self.diode.pos is not None:
-                rect.pos = self.diode.pos
-            else:
-                rect.pos = layout.Position((0.95, -0.95), units="norm", win=self.win)
-            # set size from diode, or choose default if None
-            if self.diode.size is not None:
-                rect.size = self.diode.size
-            else:
-                rect.size = layout.Size((0.05, 0.05), units="norm", win=self.win)
-
-    def validate(self, state, t=None):
-        """
-        Confirm that stimulus was shown/hidden at the correct time, to within an acceptable margin of variability.
-
-        Parameters
-        ----------
-        state : bool
-            State which the photodiode is expected to have been in
-        t : clock.Timestamp, visual.Window or None
-            Time at which the photodiode should have read the given state.
-
-        Returns
-        -------
-        bool
-            True if photodiode state matched requested state, False otherwise.
-        """
-        # if there's no time to validate, return empty handed
-        if t is None:
-            return None, None
-
-        # get and clear responses
-        messages = self.diode.getResponses(state=state, channel=self.channel, clear=True)
-        # if there have been no responses yet, return empty handed
-        if not messages:
-            return None, None
-
-        # if there are responses, get most recent timestamp
-        lastTime = messages[-1].t
-        # if there's no time on the last message, return empty handed
-        if lastTime is None:
-            return None, None
-        # validate
-        valid = abs(lastTime - t) < self.variability
-
-        # construct message to report
-        validStr = "within acceptable variability"
-        if not valid:
-            validStr = "not " + validStr
-        logMsg = (
-            "Photodiode expected to receive {state} within {variability}s of {t}s. Actually received {state} at "
-            "{lastTime}. This is {validStr}."
-        ).format(
-            state=state, variability=self.variability, t=t, lastTime=lastTime, validStr=validStr
-        )
-
-        # report as requested
-        if self.report in ("log",):
-            # if report mode is log or error, log result
-            logging.debug(logMsg)
-        if self.report in ("err", "error") and not valid:
-            # if report mode is error, raise error for invalid
-            err = PhotodiodeValidationError(logMsg)
-            logging.error(err)
-            raise err
-        if callable(self.report):
-            # if self.report is a method, call it with args state, t, valid and logMsg
-            self.report(state, t, valid, logMsg)
-
-        # return timestamp and validity
-        return lastTime, valid
-
-    def resetTimer(self, clock=logging.defaultClock):
-        self.diode.resetTimer(clock=clock)
-
-    def getDiodeState(self):
-        return self.diode.getState()
-
-    @staticmethod
-    def onValid(isWhite):
-        pass
-
-    @staticmethod
-    def onInvalid(isWhite):
-        msg = "Stimulus validation failed. "
-        if isWhite:
-            msg += "Stimulus drawn when not expected."
-        else:
-            msg += "Stimulus not drawn when expected."
-
-        raise AssertionError(msg)

@@ -5,6 +5,7 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
+from pathlib import Path
 import numpy
 import copy
 from os import path
@@ -13,11 +14,16 @@ from psychopy.constants import (STARTED, PLAYING, PAUSED, FINISHED, STOPPED,
                                 NOT_STARTED, FOREVER)
 from psychopy.tools.filetools import pathToString, defaultStim, defaultStimRoot
 from psychopy.tools.audiotools import knownNoteNames, stepsFromA
-from psychopy.tools.attributetools import AttributeGetSetMixin
+from psychopy.tools.attributetools import AttributeGetSetMixin, attributeSetter
+from .exceptions import SoundFormatError, DependencyError
 from sys import platform
 from .audioclip import AudioClip
 from ..hardware import DeviceManager
 from ..preferences.preferences import prefs
+try:
+    import soundfile as sf
+except Exception:
+    raise DependencyError("soundfile not working")
 
 if platform == 'win32':
     mediaLocation = "C:\\Windows\\Media"
@@ -115,42 +121,8 @@ class _SoundBase(AttributeGetSetMixin):
     # def _setSndFromFile(self, fileName):
     # def _setSndFromArray(self, thisArray):
 
-    def _parseSpeaker(self, speaker):
-        from psychopy.hardware.speaker import SpeakerDevice
-        # if already a SpeakerDevice, great!
-        if isinstance(speaker, SpeakerDevice):
-            return speaker
-        # if no device, populate from prefs
-        if speaker is None:
-            pref = prefs.hardware['audioDevice']
-            if isinstance(pref, (list, tuple)):
-                pref = pref[0]
-            speaker = pref
-        # if first pref is defualt, use first device
-        if speaker in ("default", "", None):
-            for profile in DeviceManager.getAvailableDevices("psychopy.hardware.speaker.SpeakerDevice"):
-                # log
-                logging.debug("Using speaker %(deviceName)s as defaultSpeaker" % profile)
-                # initialise as defaultSpeaker
-                profile['deviceName'] = "defaultSpeaker"
-                device = DeviceManager.addDevice(**profile)
-                
-                return device
-        # look for device if initialised
-        device = DeviceManager.getDevice(speaker)
-        # if no matching name, try matching index
-        if device is None:
-            device = DeviceManager.getDeviceBy("index", speaker)
-        # if still no match, make a new device
-        if device is None:
-            device = DeviceManager.addDevice(
-                deviceClass="psychopy.hardware.speaker.SpeakerDevice",
-                deviceName=speaker,
-                index=speaker,
-            )
-
-        return device
-
+    autoLog = True
+    
     def setSound(self, value, secs=0.5, octave=4, hamming=True, log=True):
         """Set the sound to be played.
 
@@ -254,7 +226,30 @@ class _SoundBase(AttributeGetSetMixin):
             if log and self.autoLog:
                 logging.exp("Set %s sound=%s" % (self.name, value), obj=self)
             self.status = NOT_STARTED
+    
+    @attributeSetter
+    def sampleRate(self, sampleRate):
+        # if given None, use sample rate from speaker
+        if sampleRate is None and hasattr(self.speaker, "sampleRateHz"):
+            sampleRate = self.speaker.sampleRateHz
+        # set as normal
+        self.__dict__['sampleRate'] = sampleRate
+    
+    # alias channels, stereo and isStereo for the sake of the different backends
 
+    @attributeSetter
+    def channels(self, channels):
+        self.__dict__['channels'] = channels
+        self.__dict__['stereo'] = self.__dict__['isStereo'] = channels is None or channels > 1
+    
+    @attributeSetter
+    def stereo(self, stereo):
+        self.channels = 2 if stereo else 1
+    
+    @attributeSetter
+    def isStereo(self, stereo):
+        self.stereo = stereo
+        
     def _setSndFromNote(self, thisNote, secs, octave, hamming=True):
         # note name -> freq -> sound
         freqA = 440.0
@@ -278,6 +273,93 @@ class _SoundBase(AttributeGetSetMixin):
         if hamming and nSamples > 30:
             outArr = apodize(outArr, self.sampleRate)
         self._setSndFromArray(outArr)
+    
+    def _setSndFromFile(self, filename):
+        # alias default names (so it always points to default.png)
+        if filename in defaultStim:
+            filename = Path(prefs.paths['assets']) / defaultStim[filename]
+        self.sndFile = f = sf.SoundFile(filename)
+        self.sourceType = 'file'
+        self.sampleRate = f.samplerate
+        if self.channels == -1:  # if channels was auto then set to file val
+            self.channels = f.channels
+        fileDuration = float(len(f)) / f.samplerate  # needed for duration?
+        # process start time
+        if self.startTime and self.startTime > 0:
+            startFrame = self.startTime * self.sampleRate
+            self.sndFile.seek(int(startFrame))
+            self.t = self.startTime
+        else:
+            self.t = 0
+        # process stop time
+        if self.stopTime and self.stopTime > 0:
+            requestedDur = self.stopTime - self.t
+            self.duration = min(requestedDur, fileDuration)
+        else:
+            self.duration = fileDuration - self.t
+        # can now calculate duration in frames
+        self.durationFrames = int(round(self.duration * self.sampleRate))
+        # are we preloading or streaming?
+        if self.preBuffer == 0:
+            # no buffer - stream from disk on each call to nextBlock
+            pass
+        elif self.preBuffer == -1:
+            # full pre-buffer. Load requested duration to memory
+            sndArr = self.sndFile.read(
+                frames=int(self.sampleRate * self.duration))
+            self.sndFile.close()
+            self._setSndFromArray(sndArr)
+        self._channelCheck(
+            self.sndArr)  # Check for fewer channels in stream vs data array
+    
+    def _setSndFromArray(self, thisArray):
+        self.sndArr = numpy.asarray(thisArray).astype('float32')
+        if thisArray.ndim == 1:
+            self.sndArr.shape = [len(thisArray), 1]  # make 2D for broadcasting
+
+        # is this stereo?
+        if self.stereo == -1:  # auto stereo. Try to detect
+            if self.sndArr.shape[1] == 1:
+                self.stereo = 0
+            elif self.sndArr.shape[1] == 2:
+                self.stereo = 1
+            else:
+                raise IOError("Couldn't determine whether array is "
+                              "stereo. Shape={}".format(self.sndArr.shape))
+        # store details about array
+        self._nSamples = thisArray.shape[0]
+        self.sourceType = "array"
+
+        # catch when array is empty
+        if not len(self.sndArr):
+            logging.warning(
+                "Received a blank array for sound, playing nothing instead."
+            )
+            self.sndArr = numpy.zeros(shape=(self.blockSize, self.channels))
+
+        # create audio clip
+        clip = AudioClip(
+            samples=self.sndArr, 
+            sampleRateHz=self.sampleRate
+        )
+        # set from clip
+        self._setSndFromClip(clip)
+    
+    def _setSndFromClip(self, clip: AudioClip):
+        """
+        Set current sound from an AudioClip object. All other setSound methods eventually lead to 
+        this - they just transform the given sound (be it an array, file, note, etc.) to an 
+        AudioClip first.
+
+        Each subclass of _SoundBase (so each sound backend; ptb, pygame, etc.) will implement this 
+        method in their own way.
+
+        Parameters
+        ----------
+        clip : AudioClip
+            AudioClip object to set.
+        """
+        raise NotImplementedError()
 
     def _getDefaultSampleRate(self):
         """For backends this might depend on what streams are open"""

@@ -12,12 +12,22 @@ These are optional components that can be obtained by installing the
 
 """
 
-from psychopy.tools.pkgtools import PluginStub
+from psychopy.plugins import PluginStub
 
 
-class CS100A(PluginStub, plugin="psychopy-minolta", doclink="https://psychopy.github.io/psychopy-minolta/coder/CS100A"):
+class CS100A(
+    PluginStub, 
+    plugin="psychopy-minolta", 
+    docsHome="https://psychopy.github.io/psychopy-minolta",
+    docsRef="/coder/CS100A"
+):
     pass
 
 
-class LS100(PluginStub, plugin="psychopy-minolta", doclink="https://psychopy.github.io/psychopy-minolta/coder/LS100"):
+class LS100(
+    PluginStub, 
+    plugin="psychopy-minolta", 
+    docsHome="https://psychopy.github.io/psychopy-minolta",
+    docsRef="/coder/LS100"
+):
     pass

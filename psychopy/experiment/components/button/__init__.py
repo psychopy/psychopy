@@ -350,7 +350,7 @@ class ButtonComponent(BaseVisualComponent):
         # Get callback from params
         callback = inits['callback']
         if inits['callback'].val not in [None, "None", "none", "undefined"]:
-            callback = translatePythonToJavaScript(str(callback))
+            callback = translatePythonToJavaScript(str(callback), namespace=None)
         else:
             callback = ""
 

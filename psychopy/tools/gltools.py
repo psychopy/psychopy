@@ -9,11 +9,27 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 __all__ = [
+    'VERTEX_ATTRIB_POSITION',
+    'VERTEX_ATTRIB_NORMAL',
+    'VERTEX_ATTRIB_COLOR',
+    'VERTEX_ATTRIB_SECONADRY_COLOR',
+    'VERTEX_ATTRIB_COLOR2',
+    'VERTEX_ATTRIB_FOGCOORD',
+    'VERTEX_ATTRIB_MULTITEXCOORD0',
+    'VERTEX_ATTRIB_MULTITEXCOORD1',
+    'VERTEX_ATTRIB_MULTITEXCOORD2',
+    'VERTEX_ATTRIB_MULTITEXCOORD3',
+    'VERTEX_ATTRIB_MULTITEXCOORD4',
+    'VERTEX_ATTRIB_MULTITEXCOORD5',
+    'VERTEX_ATTRIB_MULTITEXCOORD6',
+    'VERTEX_ATTRIB_MULTITEXCOORD7',
     'createProgram',
     'createProgramObjectARB',
     'compileShader',
     'compileShaderObjectARB',
     'embedShaderSourceDefs',
+    'deleteShader',
+    'deleteProgram',
     'deleteObject',
     'deleteObjectARB',
     'attachShader',
@@ -27,6 +43,9 @@ __all__ = [
     'useProgram',
     'useProgramObjectARB',
     'getInfoLog',
+    'setUniformValue',
+    'setUniformMatrix',
+    'getUniformLocation',
     'getUniformLocations',
     'getAttribLocations',
     'createQueryObject',
@@ -35,12 +54,20 @@ __all__ = [
     'endQuery',
     'getQuery',
     'getAbsTimeGPU',
+    'FramebufferInfo',
     'createFBO',
-    'attach',
-    'isComplete',
+    'attachImage',
+    'isFramebufferComplete',
     'deleteFBO',
     'blitFBO',
     'useFBO',
+    'bindFBO',
+    'unbindFBO',
+    'deleteFBO',
+    'clearFramebuffer',
+    'setDrawBuffer',
+    'setReadBuffer',
+    'RenderbufferInfo',
     'createRenderbuffer',
     'deleteRenderbuffer',
     'createTexImage2D',
@@ -50,12 +77,15 @@ __all__ = [
     'createVAO',
     'drawVAO',
     'deleteVAO',
+    'drawClientArrays',
     'VertexBufferInfo',
     'createVBO',
     'bindVBO',
     'unbindVBO',
     'mapBuffer',
     'unmapBuffer',
+    'mappedBuffer',
+    'updateVBO',
     'deleteVBO',
     'setVertexAttribPointer',
     'enableVertexAttribArray',
@@ -73,8 +103,17 @@ __all__ = [
     'createMeshGridFromArrays',
     'createMeshGrid',
     'createBox',
+    'createDisc',
+    'createAnnulus',
+    'createCylinder',
     'transformMeshPosOri',
     'calculateVertexNormals',
+    'mergeVerticies',
+    'smoothCreases',
+    'flipFaces',
+    'interleaveAttributes',
+    'generateTexCoords',
+    'tesselate',
     'getIntegerv',
     'getFloatv',
     'getString',
@@ -106,31 +145,267 @@ from psychopy.visual.helpers import setColor, findImageFile
 _thisPlatform = platform.system()
 
 # create a query counter to get absolute GPU time
-
 QUERY_COUNTER = None  # prevent genQueries from being called
 
+# vertex attribute locations
+VERTEX_ATTRIB_POSITION = 0   # gl_Vertex
+VERTEX_ATTRIB_NORMAL = 2  # gl_Normal
+VERTEX_ATTRIB_COLOR = 3  # gl_Color
+VERTEX_ATTRIB_SECONADRY_COLOR = VERTEX_ATTRIB_COLOR2 = 4  # gl_SecondaryColor
+VERTEX_ATTRIB_FOGCOORD = 5  # gl_FogCoord
+VERTEX_ATTRIB_MULTITEXCOORD0 = 8  # gl_MultiTexCoord0
+VERTEX_ATTRIB_MULTITEXCOORD1 = 9  # gl_MultiTexCoord1
+VERTEX_ATTRIB_MULTITEXCOORD2 = 10  # gl_MultiTexCoord2
+VERTEX_ATTRIB_MULTITEXCOORD3 = 11  # gl_MultiTexCoord3
+VERTEX_ATTRIB_MULTITEXCOORD4 = 12  # gl_MultiTexCoord4
+VERTEX_ATTRIB_MULTITEXCOORD5 = 13  # gl_MultiTexCoord5 
+VERTEX_ATTRIB_MULTITEXCOORD6 = 14  # gl_MultiTexCoord6 
+VERTEX_ATTRIB_MULTITEXCOORD7 = 15  # gl_MultiTexCoord7
 
-# compatible Numpy and OpenGL types for common GL type enums
-GL_COMPAT_TYPES = {
-    GL.GL_FLOAT: (np.float32, GL.GLfloat),
-    GL.GL_DOUBLE: (np.float64, GL.GLdouble),
-    GL.GL_UNSIGNED_SHORT: (np.uint16, GL.GLushort),
-    GL.GL_UNSIGNED_INT: (np.uint32, GL.GLuint),
-    GL.GL_INT: (np.int32, GL.GLint),
-    GL.GL_SHORT: (np.int16, GL.GLshort),
-    GL.GL_HALF_FLOAT: (np.float16, GL.GLhalfARB),
-    GL.GL_UNSIGNED_BYTE: (np.uint8, GL.GLubyte),
-    GL.GL_BYTE: (np.int8, GL.GLbyte),
-    np.float32: (GL.GL_FLOAT, GL.GLfloat),
-    np.float64: (GL.GL_DOUBLE, GL.GLdouble),
-    np.uint16: (GL.GL_UNSIGNED_SHORT, GL.GLushort),
-    np.uint32: (GL.GL_UNSIGNED_INT, GL.GLuint),
-    np.int32: (GL.GL_INT, GL.GLint),
-    np.int16: (GL.GL_SHORT, GL.GLshort),
-    np.float16: (GL.GL_HALF_FLOAT, GL.GLhalfARB),
-    np.uint8: (GL.GL_UNSIGNED_BYTE, GL.GLubyte),
-    np.int8: (GL.GL_BYTE, GL.GLbyte)
+# mapping human-readable names to the typical attribute locations
+VERTEX_ATTRIBS = {
+    'gl_Vertex': VERTEX_ATTRIB_POSITION,
+    'gl_Normal': VERTEX_ATTRIB_NORMAL,
+    'gl_Color': VERTEX_ATTRIB_COLOR,
+    'gl_SecondaryColor': VERTEX_ATTRIB_COLOR2,
+    'gl_FogCoord': VERTEX_ATTRIB_FOGCOORD,
+    'gl_MultiTexCoord0': VERTEX_ATTRIB_MULTITEXCOORD0,
+    'gl_MultiTexCoord1': VERTEX_ATTRIB_MULTITEXCOORD1,
+    'gl_MultiTexCoord2': VERTEX_ATTRIB_MULTITEXCOORD2,
+    'gl_MultiTexCoord3': VERTEX_ATTRIB_MULTITEXCOORD3,
+    'gl_MultiTexCoord4': VERTEX_ATTRIB_MULTITEXCOORD4,
+    'gl_MultiTexCoord5': VERTEX_ATTRIB_MULTITEXCOORD5,
+    'gl_MultiTexCoord6': VERTEX_ATTRIB_MULTITEXCOORD6,
+    'gl_MultiTexCoord7': VERTEX_ATTRIB_MULTITEXCOORD7
 }
+
+# Mappings between Python/Numpy and OpenGL data types for arrays. Duplication
+# simplifies the lookup process when used in functions. Some types are not 
+# supported by OpenGL, so they are remapped to the closest compatible type.
+ARRAY_TYPES = {
+    'float32': (GL.GL_FLOAT, GL.GLfloat, np.float32),
+    'float': (GL.GL_FLOAT, GL.GLfloat, np.float32),   
+    'double': (GL.GL_DOUBLE, GL.GLdouble, float),
+    'float64': (GL.GL_DOUBLE, GL.GLdouble, float),
+    'uint16': (GL.GL_UNSIGNED_SHORT, GL.GLushort, np.uint16),
+    'unsigned_short': (GL.GL_UNSIGNED_SHORT, GL.GLushort, np.uint16),
+    'uint32': (GL.GL_UNSIGNED_INT, GL.GLuint, np.uint32),
+    'unsigned_int': (GL.GL_UNSIGNED_INT, GL.GLuint, np.uint32),
+    'int': (GL.GL_INT, GL.GLint, np.int32),  # remapped to int32 from int64
+    'int32': (GL.GL_INT, GL.GLint, np.int32), 
+    'int16': (GL.GL_SHORT, GL.GLshort, np.int16),
+    'short': (GL.GL_SHORT, GL.GLshort, np.int16),
+    'uint8': (GL.GL_UNSIGNED_BYTE, GL.GLubyte, np.uint8),
+    'unsigned_byte': (GL.GL_UNSIGNED_BYTE, GL.GLubyte, np.uint8),
+    'int8': (GL.GL_BYTE, GL.GLbyte, np.int8),
+    'byte': (GL.GL_BYTE, GL.GLbyte, np.int8),
+    np.float32: (GL.GL_FLOAT, GL.GLfloat, np.float32),
+    float: (GL.GL_DOUBLE, GL.GLdouble, float),
+    np.float64: (GL.GL_DOUBLE, GL.GLdouble, np.float64),
+    np.uint16: (GL.GL_UNSIGNED_SHORT, GL.GLushort, np.uint16),
+    np.uint32: (GL.GL_UNSIGNED_INT, GL.GLuint, np.uint32),
+    int: (GL.GL_INT, GL.GLint, np.int32),  # remapped to int32
+    np.int32: (GL.GL_INT, GL.GLint, np.int32),
+    np.int16: (GL.GL_SHORT, GL.GLshort, np.int16),
+    np.uint8: (GL.GL_UNSIGNED_BYTE, GL.GLubyte, np.uint8),
+    np.int8: (GL.GL_BYTE, GL.GLbyte, np.int8),
+    GL.GL_FLOAT: (GL.GL_FLOAT, GL.GLfloat, np.float32),
+    GL.GL_DOUBLE: (GL.GL_DOUBLE, GL.GLdouble, float),  # python float is 64-bit
+    GL.GL_UNSIGNED_SHORT: (GL.GL_UNSIGNED_SHORT, GL.GLushort, np.uint16),
+    GL.GL_UNSIGNED_INT: (GL.GL_UNSIGNED_INT, GL.GLuint, np.uint32),
+    GL.GL_INT: (GL.GL_INT, GL.GLint, np.int32),
+    GL.GL_SHORT: (GL.GL_SHORT, GL.GLshort, np.int16),
+    GL.GL_UNSIGNED_BYTE: (GL.GL_UNSIGNED_BYTE, GL.GLubyte, np.uint8),
+    GL.GL_BYTE: (GL.GL_BYTE, GL.GLbyte, np.int8),
+}
+
+
+def _getGLEnum(*args):
+    """Get the OpenGL enum value from a string or GLEnum.
+
+    Parameters
+    ----------
+    args : str, GLEnum, int or None
+        OpenGL enum value(s) to retrieve. If `None`, `None` is returned.
+
+    Returns
+    -------
+    int or list
+        OpenGL enum value(s) in the order they were passed.
+
+    Examples
+    --------
+    Get the OpenGL enum value for a single string::
+
+        _getGLEnum('points')  # returns GL.GL_POINTS
+
+    """
+    if args is None:
+        return None
+    elif len(args) == 1:
+        return getattr(GL, args[0]) if isinstance(args[0], str) else args[0]
+    else:
+        return [getattr(GL, i) if isinstance(i, str) else i for i in args]
+
+
+def getIntegerv(parName):
+    """Get a single integer parameter value, return it as a Python integer.
+
+    Parameters
+    ----------
+    pName : int
+        OpenGL property enum to query (e.g. GL_MAJOR_VERSION).
+
+    Returns
+    -------
+    int
+
+    """
+    val = GL.GLint()
+    GL.glGetIntegerv(parName, val)
+
+    return int(val.value)
+
+
+def getFloatv(parName):
+    """Get a single float parameter value, return it as a Python float.
+
+    Parameters
+    ----------
+    pName : float
+        OpenGL property enum to query.
+
+    Returns
+    -------
+    float
+
+    """
+    val = GL.GLfloat()
+    GL.glGetFloatv(parName, val)
+
+    return float(val.value)
+
+
+def getString(parName):
+    """Get a single string parameter value, return it as a Python UTF-8 string.
+
+    Parameters
+    ----------
+    pName : int
+        OpenGL property enum to query (e.g. GL_VENDOR).
+
+    Returns
+    -------
+    str
+
+    """
+    val = ctypes.cast(GL.glGetString(parName), ctypes.c_char_p).value
+    return val.decode('UTF-8')
+
+    
+class OpenGLInfo:
+    """OpenGL information class.
+
+    This class is used to store information about the OpenGL implementation on
+    the current machine. It provides a consistent means of querying the OpenGL
+    implementation regardless of the OpenGL interface being used.
+
+    Attributes
+    ----------
+    vendor : str
+        The name of the company responsible for the OpenGL implementation.
+    renderer : str
+        The name of the renderer.
+    version : str
+        The version of the OpenGL implementation.
+    majorVersion : int
+        The major version number of the OpenGL implementation.
+    minorVersion : int
+        The minor version number of the OpenGL implementation.
+    shaderVersion : str
+        The version of the GLSL implementation.
+    doubleBuffer : int
+        Indicates if the OpenGL implementation is double buffered.
+    maxTextureSize : int
+        The maximum texture size supported by the OpenGL implementation.
+    stereo : int
+        Indicates if the OpenGL implementation supports stereo rendering.
+    maxSamples : int
+        The maximum number of samples supported by the OpenGL implementation.
+    extensions : list
+        A list of supported OpenGL extensions.
+
+    """
+    __slots__ = [
+        'vendor', 'renderer', 'version', 'shaderVersion', 'doubleBuffer', 
+        'maxTextureSize', 'maxTextureUnits', 'stereo', 'maxSamples', 
+        'extensions']
+
+    # singleton
+    _instance = None
+
+    def __init__(self):
+        self.vendor = getString(GL.GL_VENDOR)
+        self.renderer = getString(GL.GL_RENDERER)
+        self.version = getString(GL.GL_VERSION)
+        self.shaderVersion = getString(GL.GL_SHADING_LANGUAGE_VERSION)
+        # self.majorVersion = getIntegerv(GL.GL_MAJOR_VERSION)
+        # self.minorVersion = getIntegerv(GL.GL_MINOR_VERSION)
+        self.doubleBuffer = getIntegerv(GL.GL_DOUBLEBUFFER)
+        self.maxTextureSize = getIntegerv(GL.GL_MAX_TEXTURE_SIZE)
+        self.maxTextureUnits = getIntegerv(GL.GL_MAX_TEXTURE_IMAGE_UNITS)
+        self.stereo = getIntegerv(GL.GL_STEREO)
+        self.maxSamples = getIntegerv(GL.GL_MAX_SAMPLES)
+        self.extensions = \
+            [i for i in getString(GL.GL_EXTENSIONS).split(' ') if i not in ('', ' ')]
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(OpenGLInfo, cls).__new__(cls)
+
+        return cls._instance
+
+    def hasExtension(self, extName):
+        """Check if the OpenGL implementation supports an extension.
+
+        Parameters
+        ----------
+        extName : str
+            The name of the extension to check for.
+
+        Returns
+        -------
+        bool
+            True if the extension is supported, False otherwise.
+
+        """
+        return extName in self.extensions
+
+
+def getOpenGLInfo():
+    """Get general information about the OpenGL implementation on this machine.
+    This should provide a consistent means of doing so regardless of the OpenGL
+    interface we are using.
+
+    Returns are dictionary with the following fields::
+
+        vendor, renderer, version, majorVersion, minorVersion, doubleBuffer,
+        maxTextureSize, stereo, maxSamples, extensions
+
+    Supported extensions are returned as a list in the 'extensions' field. You
+    can check if a platform supports an extension by checking the membership of
+    the extension name in that list.
+
+    Returns
+    -------
+    OpenGLInfo
+
+    """
+    return OpenGLInfo()
+
+
+# OpenGL limits for this system
+MAX_TEXTURE_UNITS = getOpenGLInfo().maxTextureUnits
 
 
 # -------------------------------
@@ -302,7 +577,7 @@ def compileShader(shaderSrc, shaderType):
         shaderId, GL.GL_COMPILE_STATUS, ctypes.byref(result))
 
     if result.value == GL.GL_FALSE:  # failed to compile for whatever reason
-        sys.stderr.write(getInfoLog(shaderId) + '\n')
+        print(getInfoLog(shaderId) + '\n')
         deleteObject(shaderId)
         raise RuntimeError("Shader compilation failed, check log output.")
 
@@ -475,6 +750,32 @@ def embedShaderSourceDefs(shaderSrc, defs):
         srcOut = glslDefSrc + shaderSrc
 
     return srcOut
+
+
+def deleteShader(shader):
+    """Delete a shader object.
+
+    Parameters
+    ----------
+    shader : int
+        Shader object handle to delete. Must have originated from a
+        :func:`compileShader` or `glCreateShader` call.
+
+    """
+    GL.glDeleteShader(shader)
+
+
+def deleteProgram(program):
+    """Delete a shader program object.
+
+    Parameters
+    ----------
+    program : int
+        Program object handle to delete. Must have originated from a
+        :func:`createProgram` or `glCreateProgram` call.
+
+    """
+    GL.glDeleteProgram(program)
 
 
 def deleteObject(obj):
@@ -828,6 +1129,322 @@ def getInfoLog(obj):
     return logBuffer.value.decode('UTF-8')
 
 
+def getUniformLocation(program, name, error=True):
+    """Get the location of a uniform variable in a shader program.
+
+    Parameters
+    ----------
+    program : int
+        Handle of program to retrieve uniform location. Must have originated
+        from a :func:`createProgram`, :func:`createProgramObjectARB`,
+        `glCreateProgram` or `glCreateProgramObjectARB` call.
+    name : str
+        Name of the uniform variable to retrieve the location of.
+    error : bool, optional
+        Raise an error if the uniform is not found. Default is `True`.
+
+    Returns
+    -------
+    int
+        Location of the uniform variable in the program. If the uniform is not
+        found, `-1` is returned.
+
+    """
+    if not GL.glIsProgram(program):
+        raise ValueError(
+            "Specified value of `program` is not a program object handle.")
+
+    if type(name) is not bytes:
+        name = bytes(name, 'utf-8')
+
+    loc = GL.glGetUniformLocation(program, name)
+
+    if error:
+        if loc == -1:
+            raise ValueError(
+                "Uniform not found in program, it may not be defined or has "
+                "been optimized out by the GLSL compiler.")
+        raise ValueError("Uniform '{}' not found in program.".format(name))
+    
+    return loc
+
+
+# functions for setting uniform values
+_unifValueFuncs = {
+    'float': {
+        1: GL.glUniform1f,
+        2: GL.glUniform2f,
+        3: GL.glUniform3f,
+        4: GL.glUniform4f
+    },
+    'int': {
+        1: GL.glUniform1i,
+        2: GL.glUniform2i,
+        3: GL.glUniform3i,
+        4: GL.glUniform4i
+    },
+    'uint': {
+        1: GL.glUniform1ui,
+        2: GL.glUniform2ui,
+        3: GL.glUniform3ui,
+        4: GL.glUniform4ui
+    }
+}
+    
+
+def setUniformValue(program, loc, value, unifType='float', 
+                    ignoreNotDefined=False):
+    """Set a uniform variable value in a shader program.
+
+    This function sets the value of a uniform variable in a shader program to 
+    the specified value. The type of the value must match the type of the 
+    uniform variable in the shader program. The location of the uniform variable 
+    can be specified as an integer or string name. If the uniform variable is 
+    not found in the program, a `ValueError` is raised.
+
+    Parameters
+    ----------
+    program : int
+        Handle of program to set the uniform value. Must have originated from a
+        :func:`createProgram`, :func:`createProgramObjectARB`, `glCreateProgram`
+        or `glCreateProgramObjectARB` call.
+    loc : str or int
+        Location of the uniform variable in the program obtained from a
+        :func:`getUniformLocation` call. You may also specify the name of the
+        uniform variable as a string to look-up the location before setting.
+    value : int, float, list, tuple, numpy.ndarray
+        Value to set the uniform to. The type of the value must match the type
+        of the uniform variable in the shader program.
+    unifType : str, optional
+        Type of the uniform value elements. This is used to determine the 
+        appropritate setter function. Must be one of 'float', 'int' or 'uint'.
+    ignoreNotDefined : bool, optional
+        Do not raise an error if the uniform is not found in the program.
+        Default is `False`.
+
+    Notes
+    -----
+    * If you get a "Invalid operation. The specified operation is not allowed in 
+      the current state" error, it is likely that the shader program is not 
+      currently in use or the data is not the correct type or length. Make sure
+      the `unifType` matches the type of the uniform variable in the shader and 
+      the length of the data matches the dimensions of the uniform variable.
+
+    Examples
+    --------
+    Set a single float uniform value::
+
+        # define uniform in shader as `uniform float myFloat;`
+        setUniformValue(myProgram, 'myFloat', 0.5)
+
+    Set a 3-element float vector uniform value::
+
+        # define uniform in shader as `uniform vec3 myVec3;`
+        setUniformValue(myProgram, 'myVec3', [0.5, 0.2, 0.8])
+
+    Set an integer uniform value (eg. texture unit index)::
+
+        # define uniform in shader as `uniform sampler2d colorTexture;`
+        setUniformValue(myProgram, 'colorTexture', 0, unifType='int')
+    
+    """
+    if not GL.glIsProgram(program):
+        raise ValueError(
+            "Specified value of `program` is not a program object handle.")
+    
+    if isinstance(loc, bytes):
+        loc = GL.glGetUniformLocation(program, loc)
+    elif isinstance(loc, str):
+        loc = GL.glGetUniformLocation(program, bytes(loc, 'utf-8'))
+    else:
+        if not isinstance(loc, int):
+            raise ValueError("Invalid type for uniform location.")
+
+    if loc == -1:
+        if ignoreNotDefined:
+            return  # ignore if not found
+        raise ValueError("Uniform '{}' not found in program.".format(loc))
+    
+    # handle scalar values
+    if isinstance(value, (float, int)):
+        if unifType == 'float':
+            GL.glUniform1f(loc, float(value))
+        elif unifType == 'int':
+            GL.glUniform1i(loc, int(value))
+        elif unifType == 'uint':
+            if value < 0:
+                raise ValueError(
+                    "Invalid unsigned integer value, must be >= 0.")
+            GL.glUniform1ui(loc, int(value))
+        else:
+            raise ValueError("Invalid uniform value type.")
+        return
+    
+    # passed as list, tuple or numpy array
+    unifLen = len(value)
+    if unifLen > 4:
+        raise ValueError("Invalid uniform data length, must be 1-4 elements.")
+
+    unifSetFunc = _unifValueFuncs[unifType].get(unifLen, None)
+    if unifSetFunc is None:
+        raise ValueError("Invalid uniform data length.")
+
+    unifSetFunc(loc, *value)
+
+
+def setUniformSampler2D(program, loc, unit, ignoreNotDefined=False):
+    """Set a 2D texture sampler uniform value in a shader program.
+
+    Parameters
+    ----------
+    program : int
+        Handle of program to set the uniform value. Must have originated from a
+        :func:`createProgram`, :func:`createProgramObjectARB`, `glCreateProgram`
+        or `glCreateProgramObjectARB` call.
+    loc : str or int
+        Location of the uniform variable in the program obtained from a
+        :func:`getUniformLocation` call. You may also specify the name of the
+        uniform variable as a string to look-up the location before setting.
+    unit : int
+        Texture unit index to bind to the sampler uniform.
+    ignoreNotDefined : bool, optional
+        Do not raise an error if the uniform is not found in the program.
+        Default is `False`.
+
+    Examples
+    --------
+    Set a 2D texture sampler uniform value::
+
+        # define uniform in shader as `uniform sampler2D colorTexture;`
+        setUniformSampler2D(myProgram, 'colorTexture', 0)
+    
+    Use the enum value for the texture unit::
+
+        setUniformSampler2D(myProgram, 'colorTexture', GL.GL_TEXTURE0)
+        # or ...
+        setUniformSampler2D(myProgram, 'colorTexture', 'GL_TEXTURE0')
+
+    """
+    if not GL.glIsProgram(program):
+        raise ValueError(
+            "Specified value of `program` is not a program object handle.")
+    
+    if isinstance(loc, bytes):
+        loc = GL.glGetUniformLocation(program, loc)
+    elif isinstance(loc, str):
+        loc = GL.glGetUniformLocation(program, bytes(loc, 'utf-8'))
+    else:
+        if not isinstance(loc, int):
+            raise ValueError("Invalid type for uniform location.")
+
+    if loc == -1:
+        if ignoreNotDefined:
+            return  # ignore if not found
+        raise ValueError("Uniform '{}' not found in program.".format(loc))
+    
+    if isinstance(unit, str):
+        unit = getattr(GL, unit)
+
+    if unit >= GL.GL_TEXTURE0:  # got enum value
+        unit = unit - GL.GL_TEXTURE0
+    
+    GL.glUniform1i(loc, unit)
+
+
+# lookup table for matrix uniform setter functions, the keys are hashable 
+# tuples of the matrix dimensions
+_unifMatrixFuncs = {
+        (2, 2): GL.glUniformMatrix2fv,
+        (3, 3): GL.glUniformMatrix3fv,
+        (4, 4): GL.glUniformMatrix4fv,
+        (2, 3): GL.glUniformMatrix2x3fv,
+        (3, 2): GL.glUniformMatrix3x2fv,
+        (2, 4): GL.glUniformMatrix2x4fv,
+        (4, 2): GL.glUniformMatrix4x2fv,
+        (3, 4): GL.glUniformMatrix3x4fv,
+        (4, 3): GL.glUniformMatrix4x3fv
+}
+
+
+def setUniformMatrix(program, loc, value, transpose=False, 
+                     ignoreNotDefined=False):
+    """Set the value of a matrix uniform variable in a shader program.
+
+    Arrays are converted to contiguous arrays with 'float32' data type before
+    setting.
+
+    Parameters
+    ----------
+    program : int
+        Handle of program to set the uniform value. Must have originated from a
+        :func:`createProgram`, :func:`createProgramObjectARB`, `glCreateProgram`
+        or `glCreateProgramObjectARB` call.
+    loc : str or int
+        Location of the uniform variable in the program obtained from a
+        :func:`getUniformLocation` call. You may also specify the name of the
+        uniform variable as a string to look-up the location before setting.
+    value : numpy.ndarray
+        Matrix value to set the uniform to. The shape of the matrix must match
+        the dimensions of the uniform variable in the shader program. The data
+        type of the matrix must be `float32` or else it will be cast to 
+        `float32`.
+    transpose : bool, optional
+        Transpose the matrix before setting. Default is `False`.
+    ignoreNotDefined : bool, optional
+        Do not raise an error if the uniform is not found in the program.
+        Default is `False`.
+
+    Notes
+    -----
+    * If you get a "Invalid operation. The specified operation is not allowed in 
+      the current state" error, it is likely that the shader program is not 
+      currently in use or the data is not the correct type or length. Make sure
+      the `unifType` matches the type of the uniform variable in the shader and 
+      the length of the data matches the dimensions of the uniform variable.
+
+    Examples
+    --------
+    Set a 4x4 matrix uniform value::
+
+        # define uniform in shader as `uniform mat4 projectionMatrix;`
+        setUniformMatrix(myProgram, 'projectionMatrix', np.eye(4))
+
+    """
+    if not GL.glIsProgram(program):
+        raise ValueError(
+            "Specified value of `program` is not a program object handle.")
+    
+    locInput = loc  # for error message
+    if isinstance(loc, bytes):
+        loc = GL.glGetUniformLocation(program, loc)
+    elif isinstance(loc, str):
+        loc = GL.glGetUniformLocation(program, bytes(loc, 'utf-8'))
+    else:
+        if not isinstance(loc, int):
+            raise ValueError("Invalid type for uniform location.")
+
+    if loc == -1:
+        if ignoreNotDefined:
+            return  # ignore if not found
+        raise ValueError((
+            "Uniform '{}' not found in program. It is either not defined "
+            "or it is unused.").format(locInput))
+
+    # convert to contiguous array
+    value = np.ascontiguousarray(value, dtype=np.float32)
+
+    # handle scalar values
+    matrixFunc = _unifMatrixFuncs.get(value.shape, None)
+    if matrixFunc is None:
+        raise ValueError("Invalid matrix dimensions")
+    
+    transpose = GL.GL_TRUE if transpose else GL.GL_FALSE
+
+    # recast as pointer
+    matrixFunc(loc, 1, transpose, value.ctypes.data_as(
+        ctypes.POINTER(GL.GLfloat)))
+
+
 def getUniformLocations(program, builtins=False):
     """Get uniform names and locations from a given shader program object.
 
@@ -1139,7 +1756,67 @@ Framebuffer = namedtuple(
 )
 
 
-def createFBO(attachments=()):
+class FramebufferInfo:
+    """Framebuffer object (VBO) descriptor.
+
+    This class only stores information about the FBO it refers to, it does not
+    contain any actual array data associated with the FBO. Calling
+    :func:`createFBO` returns instances of this class.
+
+    It is recommended to use `gltools` functions :func:`bindFBO`, 
+    :func:`unbindFBO` and :func:`deleteFBO` to manage FBOs.
+
+    Parameters
+    ----------
+    name : int
+        Handle of the FBO.
+    target : int
+        Target of the FBO.
+    attachments : dict, optional
+        Dictionary of attachments associated with the FBO. The keys are
+        attachment points (e.g. GL_COLOR_ATTACHMENT0, GL_DEPTH_ATTACHMENT, etc.)
+        and the values are buffer descriptors (`RenderbufferInfo` or 
+        `TexImage2DInfo`).
+    sizeHint : tuple, optional
+        Size hint for the FBO. This is used to specify the dimensions of logical
+        buffers attached to the FBO. The size hint is a tuple of two integers
+        (width, height).
+    userData : dict, optional
+        User-defined data associated with the FBO.  
+    
+    """
+    __slots__ = [
+        'name', 'target', '_attachments', 'sizeHint', 'userData', '_lastBound']
+
+    def __init__(self, name, target=GL.GL_FRAMEBUFFER, attachments=None, 
+                 sizeHint=None, userData=None):
+        self.name = name
+        self.target = target
+        self._attachments = {} if attachments is None else attachments
+        self.sizeHint = sizeHint
+        self.userData = userData
+
+        self._lastBound = GL.GLint()
+
+    def __enter__(self):
+        GL.glGetIntegerv(GL.GL_FRAMEBUFFER_BINDING, ctypes.byref(self.lastBound))
+        GL.glBindFramebuffer(self.fbo.target, self.fbo.id)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        GL.glBindFramebuffer(self.fbo.target, self.lastBound.value)
+
+    @property
+    def attachments(self):
+        """Image buffer attachments associated with the FBO (`dict`).
+
+        Do not modify this dictionary directly. Use :func:`attachImage` to
+        attach images to the FBO.
+
+        """
+        return self._attachments
+
+
+def createFBO(attachments=(), sizeHint=None):
     """Create a Framebuffer Object.
 
     Parameters
@@ -1148,18 +1825,22 @@ def createFBO(attachments=()):
         Optional attachments to initialize the Framebuffer with. Attachments are
         specified as a list of tuples. Each tuple must contain an attachment
         point (e.g. GL_COLOR_ATTACHMENT0, GL_DEPTH_ATTACHMENT, etc.) and a
-        buffer descriptor type (Renderbuffer or TexImage2D). If using a combined
-        depth/stencil format such as GL_DEPTH24_STENCIL8, GL_DEPTH_ATTACHMENT
-        and GL_STENCIL_ATTACHMENT must be passed the same buffer. Alternatively,
-        one can use GL_DEPTH_STENCIL_ATTACHMENT instead. If using multisample
-        buffers, all attachment images must use the same number of samples!. As
-        an example, one may specify attachments as 'attachments=((
-        GL.GL_COLOR_ATTACHMENT0, frameTexture), (GL.GL_DEPTH_STENCIL_ATTACHMENT,
-        depthRenderBuffer))'.
+        buffer descriptor type (RenderbufferInfo or TexImage2DInfo). If using a 
+        combined depth/stencil format such as GL_DEPTH24_STENCIL8, 
+        GL_DEPTH_ATTACHMENT and GL_STENCIL_ATTACHMENT must be passed the same 
+        buffer. Alternatively, one can use GL_DEPTH_STENCIL_ATTACHMENT instead. 
+        If using multisample buffers, all attachment images must use the same 
+        number of samples!. As an example, one may specify attachments as 
+        'attachments=((GL.GL_COLOR_ATTACHMENT0, frameTexture), 
+        (GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRenderBuffer))'.
+    sizeHint : :obj:`tuple`, optional
+        Size hint for the FBO. This is used to specify the dimensions of logical
+        buffers attached to the FBO. The size hint is a tuple of two integers
+        (width, height).
 
     Returns
     -------
-    Framebuffer
+    FramebufferInfo
         Framebuffer descriptor.
 
     Notes
@@ -1177,22 +1858,18 @@ def createFBO(attachments=()):
 
     Create a render target with multiple color texture attachments::
 
-        colorTex = createTexImage2D(1024,1024)  # empty texture
-        depthRb = createRenderbuffer(800,600,internalFormat=GL.GL_DEPTH24_STENCIL8)
-
-        # attach images
-        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, fbo.id)
-        attach(GL.GL_COLOR_ATTACHMENT0, colorTex)
-        attach(GL.GL_DEPTH_ATTACHMENT, depthRb)
-        attach(GL.GL_STENCIL_ATTACHMENT, depthRb)
-        # or attach(GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRb)
-        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
-
-        # above is the same as
-        with useFBO(fbo):
-            attach(GL.GL_COLOR_ATTACHMENT0, colorTex)
-            attach(GL.GL_DEPTH_ATTACHMENT, depthRb)
-            attach(GL.GL_STENCIL_ATTACHMENT, depthRb)
+        fbo = gt.createFBO(sizeHint=(512, 512))
+        gt.bindFBO(fbo)
+        gt.attachImage(  # color 
+            fbo, GL.GL_COLOR_ATTACHMENT0, gt.createTexImage2D(512, 512))
+        gt.attachImage(  # normal map
+            fbo, GL.GL_COLOR_ATTACHMENT1, gt.createTexImage2D(512, 512))
+        gt.attachImage(  # depth/stencil
+            fbo, 
+            GL.GL_DEPTH_STENCIL_ATTACHMENT, 
+            gt.createRenderbuffer(512, 512, GL.GL_DEPTH24_STENCIL8))
+        print(gt.isFramebufferComplete(fbo))  # True
+        gt.unbindFBO(None)
 
     Examples of userData some custom function might access::
 
@@ -1213,26 +1890,34 @@ def createFBO(attachments=()):
     GL.glGenFramebuffers(1, ctypes.byref(fboId))
 
     # create a framebuffer descriptor
-    fboDesc = Framebuffer(fboId, GL.GL_FRAMEBUFFER, dict())
+    fboDesc = FramebufferInfo(
+        fboId, 
+        GL.GL_FRAMEBUFFER, 
+        attachments=None,  # set later 
+        sizeHint=sizeHint,
+        userData=dict())
 
     # initial attachments for this framebuffer
     if attachments:
-        with useFBO(fboDesc):
-            for attachPoint, imageBuffer in attachments:
-                attach(attachPoint, imageBuffer)
+        bindFBO(fboDesc)
+        for attachPoint, imageBuffer in attachments:
+            attachImage(fboDesc, attachPoint, imageBuffer)
+        unbindFBO()
 
     return fboDesc
 
 
-def attach(attachPoint, imageBuffer):
+def attachImage(fbo, attachPoint, imageBuffer):
     """Attach an image to a specified attachment point on the presently bound
     FBO.
 
     Parameters
     ----------
+    fbo : :obj:`FramebufferInfo`
+        Framebuffer descriptor to attach buffer to.
     attachPoint :obj:`int`
         Attachment point for 'imageBuffer' (e.g. GL.GL_COLOR_ATTACHMENT0).
-    imageBuffer : :obj:`TexImage2D` or :obj:`Renderbuffer`
+    imageBuffer : :obj:`TexImage2D` or :obj:`RenderbufferInfo`
         Framebuffer-attachable buffer descriptor.
 
     Examples
@@ -1240,35 +1925,74 @@ def attach(attachPoint, imageBuffer):
     Attach an image to attachment points on the framebuffer::
 
         GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, fbo)
-        attach(GL.GL_COLOR_ATTACHMENT0, colorTex)
-        attach(GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRb)
+        attachImage(GL.GL_COLOR_ATTACHMENT0, colorTex)
+        attachImage(GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRb)
         GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, lastBoundFbo)
 
         # same as above, but using a context manager
         with useFBO(fbo):
-            attach(GL.GL_COLOR_ATTACHMENT0, colorTex)
-            attach(GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRb)
+            attachImage(GL.GL_COLOR_ATTACHMENT0, colorTex)
+            attachImage(GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRb)
 
     """
+    if not isinstance(fbo, FramebufferInfo):
+        raise ValueError("Invalid type for `fbo`, must be `FramebufferInfo`.")
+
+    if isinstance(attachPoint, str):
+        attachPoint = getattr(GL, attachPoint)
+
+    # get the last framebuffer bound
+    lastBound = GL.GLint()
+    GL.glGetIntegerv(GL.GL_FRAMEBUFFER_BINDING, ctypes.byref(lastBound))
+
+    # bind the framebuffer
+    changeBinding = fbo.name != lastBound.value
+    if changeBinding:
+        bindFBO(fbo)
+
+    if fbo.sizeHint is not None:
+        if (fbo.sizeHint[0] != imageBuffer.width or 
+            fbo.sizeHint[1] != imageBuffer.height):
+            raise ValueError(
+                "Imagebuffer dimensions do not match FBO size hint. Expected "
+                "({}, {}), got ({}, {}).".format(
+                    fbo.sizeHint[0], fbo.sizeHint[1], 
+                    imageBuffer.width, imageBuffer.height))
+
     # We should also support binding GL names specified as integers. Right now
     # you need as descriptor which contains the target and name for the buffer.
     #
-    if isinstance(imageBuffer, (TexImage2D, TexImage2DMultisample)):
+    if isinstance(imageBuffer, (TexImage2DInfo, TexImage2DMultisampleInfo)):
         GL.glFramebufferTexture2D(
-            GL.GL_FRAMEBUFFER,
+            fbo.target,
             attachPoint,
             imageBuffer.target,
-            imageBuffer.id, 0)
-    elif isinstance(imageBuffer, Renderbuffer):
+            imageBuffer.name, 0)
+    elif isinstance(imageBuffer, RenderbufferInfo):
         GL.glFramebufferRenderbuffer(
-            GL.GL_FRAMEBUFFER,
+            fbo.target,
             attachPoint,
             imageBuffer.target,
-            imageBuffer.id)
+            imageBuffer.name)
+        
+    fbo.attachments[attachPoint] = imageBuffer
+
+    # restore the last framebuffer
+    if changeBinding:
+        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, lastBound.value)
+        
+
+# legacy
+attach = attachImage
 
 
-def isComplete():
+def isFramebufferComplete(fbo):
     """Check if the currently bound framebuffer is complete.
+
+    Parameters
+    ----------
+    fbo : :obj:`FramebufferInfo`
+        Framebuffer descriptor to check for completeness.
 
     Returns
     -------
@@ -1276,19 +2000,56 @@ def isComplete():
         `True` if the presently bound FBO is complete.
 
     """
-    return GL.glCheckFramebufferStatus(GL.GL_FRAMEBUFFER) == \
+    # get the last framebuffer bound
+    lastBound = GL.GLint()
+    GL.glGetIntegerv(GL.GL_FRAMEBUFFER_BINDING, ctypes.byref(lastBound))
+
+    # bind the framebuffer
+    changeBinding = fbo.name != lastBound.value
+    if changeBinding:
+        bindFBO(fbo)
+
+    status = GL.glCheckFramebufferStatus(fbo.target) == \
            GL.GL_FRAMEBUFFER_COMPLETE
+    
+    # restore the last framebuffer
+    if changeBinding:
+        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, lastBound.value)
+    
+    return status
 
 
-def deleteFBO(fbo):
+def deleteFBO(fbo, deleteAttachments=True):
     """Delete a framebuffer.
 
+    Parameters
+    ----------
+    fbo : :obj:`FramebufferInfo` or :obj:`int`
+        Framebuffer descriptor or name to delete.
+    deleteAttachments : bool, optional
+        Delete attachments associated with the framebuffer. Default is `True`.
+
     """
-    GL.glDeleteFramebuffers(
-        1, fbo.id if isinstance(fbo, Framebuffer) else int(fbo))
+    if not isinstance(fbo, FramebufferInfo):
+        raise ValueError("Invalid type for `fbo`, must be `FramebufferInfo`.")
+    
+    if deleteAttachments:
+        for attachment in fbo.attachments.values():
+            if isinstance(attachment, RenderbufferInfo):
+                deleteRenderbuffer(attachment)
+            elif isinstance(attachment, 
+                            (TexImage2DInfo, TexImage2DMultisampleInfo)):
+                deleteTexture(attachment)
+
+    GL.glDeleteFramebuffers(1, fbo.name)
+
+    # invalidate the descriptor
+    fbo.name = 0
+    fbo.target = 0
+    fbo.attachments.clear()
 
 
-def blitFBO(srcRect, dstRect=None, filter=GL.GL_LINEAR):
+def blitFBO(srcRect, dstRect=None, filter=GL.GL_LINEAR, mask=GL.GL_COLOR_BUFFER_BIT):
     """Copy a block of pixels between framebuffers via blitting. Read and draw
     framebuffers must be bound prior to calling this function. Beware, the
     scissor box and viewport are changed when this is called to dstRect.
@@ -1302,43 +2063,181 @@ def blitFBO(srcRect, dstRect=None, filter=GL.GL_LINEAR):
         List specifying the top-left and bottom-right coordinates of the region
         to copy to (<X0>, <Y0>, <X1>, <Y1>). If None, srcRect is used for
         dstRect.
-    filter : :obj:`int`
+    filter : :obj:`int` or :obj:`str`
         Interpolation method to use if the image is stretched, default is
         GL_LINEAR, but can also be GL_NEAREST.
-
-    Returns
-    -------
-    None
+    mask : :obj:`int` or :obj:`str`
+        Bitmask specifying which buffers to copy. Default is GL_COLOR_BUFFER_BIT.
 
     Examples
     --------
     Blitting pixels from on FBO to another::
 
-        # bind framebuffer to read pixels from
-        GL.glBindFramebuffer(GL.GL_READ_FRAMEBUFFER, srcFbo)
-
-        # bind framebuffer to draw pixels to
-        GL.glBindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, dstFbo)
-
-        gltools.blitFBO((0,0,800,600), (0,0,800,600))
-
-        # unbind both read and draw buffers
-        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
-
+        # set buffers for reading and drawing
+        gt.setReadBuffer(fbo, 'GL_COLOR_ATTACHMENT0')  
+        gt.setDrawBuffer(None, 'GL_BACK')  # default back buffer for window
+        gt.blitFBO((0 ,0, 512, 512), (0, 0, 512, 512))
+    
     """
+    if isinstance(mask, str):
+        mask = getattr(GL, mask)
+
+    if isinstance(filter, str):
+        filter = getattr(GL, filter)
+
     # in most cases srcRect and dstRect will be the same.
     if dstRect is None:
         dstRect = srcRect
 
-    # GL.glViewport(*dstRect)
-    # GL.glEnable(GL.GL_SCISSOR_TEST)
-    # GL.glScissor(*dstRect)
     GL.glBlitFramebuffer(srcRect[0], srcRect[1], srcRect[2], srcRect[3],
                          dstRect[0], dstRect[1], dstRect[2], dstRect[3],
-                         GL.GL_COLOR_BUFFER_BIT,  # colors only for now
+                         mask,  # colors only for now
                          filter)
+    
 
-    # GL.glDisable(GL.GL_SCISSOR_TEST)
+def setReadBuffer(fbo, mode):
+    """Set the read buffer for the framebuffer.
+
+    Parameters
+    ----------
+    fbo : :obj:`FramebufferInfo` or `None`
+        Framebuffer descriptor. If `None`, the framebuffer with target
+        `GL_FRAMEBUFFER` is bound to `0` (default framebuffer).
+    mode : :obj:`int`, :obj:`GLenum` or :obj:`str`
+        Buffer mode to set as the read buffer. If `fbo` is not `None`, this
+        value may be `GL_COLOR_ATTACHMENT(i)` where `i` is the color attachment
+        index. If `fbo` is `None`, this value may be one of `GL_FRONT_LEFT`,
+        `GL_FRONT_RIGHT`, `GL_BACK_LEFT`, `GL_BACK_RIGHT`, `GL_FRONT`,
+        `GL_BACK`, `GL_LEFT`, `GL_RIGHT`.
+
+    Examples
+    --------
+    Set the read buffer for a framebuffer::
+
+        setReadBuffer(fbo, GL_COLOR_ATTACHMENT0)
+
+    """
+    if isinstance(mode, str):
+        mode = getattr(GL, mode)
+
+    if fbo is None:
+        GL.glBindFramebuffer(GL.GL_READ_FRAMEBUFFER, 0)
+        GL.glReadBuffer(mode)
+        return
+
+    if not isinstance(fbo, FramebufferInfo):
+        raise ValueError(
+            "Invalid type for `fbo`, must be `FramebufferInfo`.")
+
+    GL.glBindFramebuffer(GL.GL_READ_FRAMEBUFFER, fbo.name)
+    GL.glReadBuffer(mode)
+
+
+def setDrawBuffer(fbo, mode):
+    """Set the draw buffer for the framebuffer.
+
+    Parameters
+    ----------
+    fbo : :obj:`FramebufferInfo` or `None`
+        Framebuffer descriptor. If `None`, the framebuffer with target
+        `GL_FRAMEBUFFER` is bound to `0` (default framebuffer).
+    mode : :obj:`int`, :obj:`GLenum` or :obj:`str`
+        Buffer mode to set as the draw buffer. If `fbo` is not `None`, this
+        value may be `GL_COLOR_ATTACHMENT(i)` where `i` is the color attachment
+        index. If `fbo` is `None`, this value may be one of `GL_FRONT_LEFT`,
+        `GL_FRONT_RIGHT`, `GL_BACK_LEFT`, `GL_BACK_RIGHT`, `GL_FRONT`,
+        `GL_BACK`, `GL_LEFT`, `GL_RIGHT`.
+
+    """
+    if isinstance(mode, str):
+        mode = getattr(GL, mode)
+
+    if fbo is None:
+        GL.glBindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, 0)
+        GL.glDrawBuffer(mode)
+        return
+
+    if not isinstance(fbo, FramebufferInfo):
+        raise ValueError(
+            "Invalid type for `fbo`, must be `FramebufferInfo`.")
+
+    GL.glBindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, fbo.name)
+    GL.glDrawBuffer(mode)
+
+
+def clearFramebuffer(color=(0.0, 0.0, 0.0, 1.0), depth=None, stencil=None):
+    """Clear the presently bound draw buffer.
+
+    Parameters
+    ----------
+    color : :obj:`tuple`, optional
+        Color to clear the framebuffer to. Default is (0.0, 0.0, 0.0, 1.0).
+    depth : :obj:`float`, optional
+        Depth value to clear the framebuffer to. Default is 1.0.
+    stencil : :obj:`int`, optional
+        Stencil value to clear the framebuffer to. Default is 0.
+
+    Examples
+    --------
+    Clear the framebuffer to green::
+
+        setDrawBuffer(fbo, GL_COLOR_ATTACHMENT0)
+        clearFramebuffer(color=(0.0, 1.0, 0.0, 1.0))
+    
+    Clear the window back buffer to black::
+
+        setDrawBuffer(None, GL_BACK)
+        clearFramebuffer()
+
+    """
+    clearFlags = 0
+    if color is not None:
+        GL.glClearColor(*color)
+        clearFlags |= GL.GL_COLOR_BUFFER_BIT
+    if depth is not None:
+        GL.glClearDepth(depth)
+        clearFlags |= GL.GL_DEPTH_BUFFER_BIT
+    if stencil is not None:
+        GL.glClearStencil(stencil)
+        clearFlags |= GL.GL_STENCIL_BUFFER_BIT
+
+    GL.glClear(clearFlags)
+
+
+def setViewport(x, y, width, height):
+    """Set the viewport for the current render target.
+
+    Parameters
+    ----------
+    x : :obj:`int`
+        X-coordinate of the lower-left corner of the viewport.
+    y : :obj:`int`
+        Y-coordinate of the lower-left corner of the viewport.
+    width : :obj:`int`
+        Width of the viewport.
+    height : :obj:`int`
+        Height of the viewport.
+
+    """
+    GL.glViewport(int(x), int(y), int(width), int(height))
+
+
+def setScissor(x, y, width, height):
+    """Set the scissor box for the current render target.
+
+    Parameters
+    ----------
+    x : :obj:`int`
+        X-coordinate of the lower-left corner of the scissor box.
+    y : :obj:`int`
+        Y-coordinate of the lower-left corner of the scissor box.
+    width : :obj:`int`
+        Width of the scissor box.
+    height : :obj:`int`
+        Height of the scissor box.
+
+    """
+    GL.glScissor(int(x), int(y), int(width), int(height))
 
 
 @contextmanager
@@ -1380,12 +2279,86 @@ def useFBO(fbo):
     """
     prevFBO = GL.GLint()
     GL.glGetIntegerv(GL.GL_FRAMEBUFFER_BINDING, ctypes.byref(prevFBO))
-    toBind = fbo.id if isinstance(fbo, Framebuffer) else int(fbo)
+    toBind = fbo.id if isinstance(fbo, FramebufferInfo) else int(fbo)
     GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, toBind)
     try:
         yield toBind
     finally:
         GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, prevFBO.value)
+
+
+def bindFBO(fbo, target=None):
+    """Bind a Framebuffer Object (FBO).
+
+    Parameters
+    ----------
+    fbo :obj:`FramebufferInfo`
+        OpenGL Framebuffer Object name/ID or descriptor.
+    target :obj:`int`, :obj:`GLenum`, :obj:`str` or `None`
+        Target to bind the framebuffer to. If `None`, the target of the
+        framebuffer descriptor is used. Valid targets are `GL_FRAMEBUFFER`,
+        `GL_DRAW_FRAMEBUFFER` and `GL_READ_FRAMEBUFFER`.
+
+    Examples
+    --------
+    Bind a framebuffer::
+
+        bindFBO(fbo)
+
+    """
+    if target is None:
+        target = fbo.target if isinstance(fbo, FramebufferInfo) else GL.GL_FRAMEBUFFER
+
+    if isinstance(target, str):
+        target = getattr(GL, target)
+
+    if fbo is None:
+        GL.glBindFramebuffer(target, 0)
+        return
+
+    if not isinstance(fbo, FramebufferInfo):
+        raise ValueError("Invalid type for `fbo`, must be `FramebufferInfo`.")
+
+    GL.glBindFramebuffer(fbo.target, fbo.name)
+
+
+def unbindFBO(fbo, target=None):
+    """Unbind a Framebuffer Object (FBO).
+
+    While the last FBO does not have to be unbound explicitly, passing the 
+    descriptor of the FBO to this function will ensure the target is unbound.
+
+    Parameters
+    ----------
+    fbo :obj:`FramebufferInfo` or `None`
+        OpenGL Framebuffer Object name/ID or descriptor. If `None`, the 
+        frambuffer with target `GL_FRAMEBUFFER` is bound to `0`. Values are
+        `GL_FRAMEBUFFER`, `GL_DRAW_FRAMEBUFFER` and `GL_READ_FRAMEBUFFER`.
+    target :obj:`int`, :obj:`GLenum`, :obj:`str` or `None`
+        Target to unbind the framebuffer from. If `None`, the target of the
+        framebuffer descriptor is used.
+
+    Examples
+    --------
+    Unbind a framebuffer::
+
+        unbindFBO(fbo)
+
+    """
+    if target is None:
+        target = fbo.target if isinstance(fbo, FramebufferInfo) else GL.GL_FRAMEBUFFER
+
+    if isinstance(target, str):
+        target = getattr(GL, target)
+
+    if fbo is None:
+        GL.glBindFramebuffer(target, 0)
+        return
+
+    if not isinstance(fbo, FramebufferInfo):
+        raise ValueError("Invalid type for `fbo`, must be `FramebufferInfo`.")
+
+    GL.glBindFramebuffer(fbo.target, 0)
 
 
 # ------------------------------
@@ -1410,6 +2383,52 @@ Renderbuffer = namedtuple(
 )
 
 
+class RenderbufferInfo:
+    """Renderbuffer object descriptor.
+
+    This class only stores information about the Renderbuffer it refers to, it
+    does not contain any actual array data associated with the Renderbuffer.
+    Calling :func:`createRenderbuffer` returns instances of this class.
+
+    It is recommended to use `gltools` functions :func:`bindRenderbuffer`,
+    :func:`unbindRenderbuffer` and :func:`deleteRenderbuffer` to manage
+    Renderbuffers.
+
+    Parameters
+    ----------
+    name : int
+        Handle of the Renderbuffer.
+    target : int
+        Target of the Renderbuffer.
+    width : int
+        Width of the Renderbuffer.
+    height : int
+        Height of the Renderbuffer.
+    internalFormat : int
+        Internal format of the Renderbuffer.
+    samples : int
+        Number of samples for multi-sampling.
+    multiSample : bool
+        True if the Renderbuffer is multi-sampled.
+    userData : dict, optional
+        User-defined data associated with the Renderbuffer.
+
+    """
+    __slots__ = ['name', 'target', 'width', 'height', 'internalFormat',
+                 'samples', 'multiSample', 'userData']
+
+    def __init__(self, name, target, width, height, internalFormat, samples,
+                 multiSample, userData=None):
+        self.name = name
+        self.target = target
+        self.width = width
+        self.height = height
+        self.internalFormat = internalFormat
+        self.samples = samples
+        self.multiSample = multiSample
+        self.userData = userData
+
+
 def createRenderbuffer(width, height, internalFormat=GL.GL_RGBA8, samples=1):
     """Create a new Renderbuffer Object with a specified internal format. A
     multisample storage buffer is created if samples > 1.
@@ -1428,7 +2447,7 @@ def createRenderbuffer(width, height, internalFormat=GL.GL_RGBA8, samples=1):
         Format for renderbuffer data (e.g. GL_RGBA8, GL_DEPTH24_STENCIL8).
     samples : :obj:`int`
         Number of samples for multi-sampling, should be >1 and power-of-two.
-        Work with one sample, but will raise a warning.
+        If samples == 1, a single sample buffer is created.
 
     Returns
     -------
@@ -1441,6 +2460,8 @@ def createRenderbuffer(width, height, internalFormat=GL.GL_RGBA8, samples=1):
     be used to store arbitrary data associated with the buffer.
 
     """
+    internalFormat = _getGLEnum(internalFormat)
+
     width = int(width)
     height = int(height)
 
@@ -1476,14 +2497,14 @@ def createRenderbuffer(width, height, internalFormat=GL.GL_RGBA8, samples=1):
     # done, unbind it
     GL.glBindRenderbuffer(GL.GL_RENDERBUFFER, 0)
 
-    return Renderbuffer(rbId,
-                        GL.GL_RENDERBUFFER,
-                        width,
-                        height,
-                        internalFormat,
-                        samples,
-                        samples > 1,
-                        dict())
+    return RenderbufferInfo(rbId,
+                            GL.GL_RENDERBUFFER,
+                            width,
+                            height,
+                            internalFormat,
+                            samples,
+                            samples > 1,
+                            dict())
 
 
 def deleteRenderbuffer(renderBuffer):
@@ -1491,7 +2512,10 @@ def deleteRenderbuffer(renderBuffer):
     renderbuffer's ID.
 
     """
-    GL.glDeleteRenderbuffers(1, renderBuffer.id)
+    GL.glDeleteRenderbuffers(1, renderBuffer.name)
+
+    # invalidate the descriptor
+    renderBuffer.name = 0
 
 
 # -----------------
@@ -1502,7 +2526,7 @@ def deleteRenderbuffer(renderBuffer):
 # use them with functions that require that type as input.
 #
 
-class TexImage2D:
+class TexImage2DInfo:
     """Descriptor for a 2D texture.
 
     This class is used for bookkeeping 2D textures stored in video memory.
@@ -1656,8 +2680,8 @@ def createTexImage2D(width, height, target=GL.GL_TEXTURE_2D, level=0,
 
     Returns
     -------
-    TexImage2D
-        A `TexImage2D` descriptor.
+    TexImage2DInfo
+        A `TexImage2DInfo` descriptor.
 
     Notes
     -----
@@ -1699,6 +2723,9 @@ def createTexImage2D(width, height, target=GL.GL_TEXTURE_2D, level=0,
         GL.glBindTexture(GL.GL_TEXTURE_2D, textureDesc.id)
 
     """
+    target, internalFormat, pixelFormat, dataType = _getGLEnum( 
+        target, internalFormat, pixelFormat, dataType)
+
     width = int(width)
     height = int(height)
 
@@ -1715,11 +2742,12 @@ def createTexImage2D(width, height, target=GL.GL_TEXTURE_2D, level=0,
     texId = GL.GLuint()
     GL.glGenTextures(1, ctypes.byref(texId))
 
-    GL.glBindTexture(target, texId)
+    GL.glBindTexture(target, texId.value)
     GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, int(unpackAlignment))
     GL.glTexImage2D(target, level, internalFormat,
                     width, height, 0,
                     pixelFormat, dataType, data)
+    GL.glGenerateMipmap(target)
 
     # apply texture parameters
     if texParams is not None:
@@ -1727,16 +2755,17 @@ def createTexImage2D(width, height, target=GL.GL_TEXTURE_2D, level=0,
             GL.glTexParameteri(target, pname, param)
 
     # new texture descriptor
-    tex = TexImage2D(name=texId,
-                     target=target,
-                     width=width,
-                     height=height,
-                     internalFormat=internalFormat,
-                     level=level,
-                     pixelFormat=pixelFormat,
-                     dataType=dataType,
-                     unpackAlignment=unpackAlignment,
-                     texParams=texParams)
+    tex = TexImage2DInfo(
+        name=texId.value,
+        target=target,
+        width=width,
+        height=height,
+        internalFormat=internalFormat,
+        level=level,
+        pixelFormat=pixelFormat,
+        dataType=dataType,
+        unpackAlignment=unpackAlignment,
+        texParams=texParams)
 
     tex._texParamsNeedUpdate = False
 
@@ -1762,7 +2791,7 @@ def createTexImage2dFromFile(imgFile, transpose=True):
 
     Returns
     -------
-    TexImage2D
+    TexImage2DInfo
         Texture descriptor.
 
     """
@@ -1978,62 +3007,62 @@ def createCubeMap(width, height, target=GL.GL_TEXTURE_CUBE_MAP, level=0,
     return tex
 
 
-def bindTexture(texture, unit=None, enable=True):
-    """Bind a texture.
+# def bindTexture(texture, unit=None, enable=True):
+#     """Bind a texture.
 
-    Function binds `texture` to `unit` (if specified). If `unit` is `None`, the
-    texture will be bound but not assigned to a texture unit.
+#     Function binds `texture` to `unit` (if specified). If `unit` is `None`, the
+#     texture will be bound but not assigned to a texture unit.
 
-    Parameters
-    ----------
-    texture : TexImage2D
-        Texture descriptor to bind.
-    unit : int, optional
-        Texture unit to associated the texture with.
-    enable : bool
-        Enable textures upon binding.
+#     Parameters
+#     ----------
+#     texture : TexImage2DInfo
+#         Texture descriptor to bind.
+#     unit : int, optional
+#         Texture unit to associated the texture with.
+#     enable : bool
+#         Enable textures upon binding.
 
-    """
-    if not texture._isBound:
-        if enable:
-            GL.glEnable(texture.target)
+#     """
+#     if not texture._isBound:
+#         if enable:
+#             GL.glEnable(texture.target)
 
-        GL.glBindTexture(texture.target, texture.name)
-        texture._isBound = True
+#         GL.glBindTexture(texture.target, texture.name)
+#         texture._isBound = True
 
-        if unit is not None:
-            texture._unit = unit
-            GL.glActiveTexture(GL.GL_TEXTURE0 + unit)
+#         if unit is not None:
+#             texture._unit = unit
+#             GL.glActiveTexture(GL.GL_TEXTURE0 + unit)
 
-        # update texture parameters if they have been accessed (changed?)
-        if texture._texParamsNeedUpdate:
-            for pname, param in texture._texParams.items():
-                GL.glTexParameteri(texture.target, pname, param)
-                texture._texParamsNeedUpdate = False
+#         # update texture parameters if they have been accessed (changed?)
+#         if texture._texParamsNeedUpdate:
+#             for pname, param in texture._texParams.items():
+#                 GL.glTexParameteri(texture.target, pname, param)
+#                 texture._texParamsNeedUpdate = False
 
 
-def unbindTexture(texture=None):
-    """Unbind a texture.
+# def unbindTexture(texture=None):
+#     """Unbind a texture.
 
-    Parameters
-    ----------
-    texture : TexImage2D
-        Texture descriptor to unbind.
+#     Parameters
+#     ----------
+#     texture : TexImage2DInfo
+#         Texture descriptor to unbind.
 
-    """
-    if texture._isBound:
-        # set the texture unit
-        if texture._unit is not None:
-            GL.glActiveTexture(GL.GL_TEXTURE0 + texture._unit)
-            texture._unit = None
+#     """
+#     if texture._isBound:
+#         # set the texture unit
+#         if texture._unit is not None:
+#             GL.glActiveTexture(GL.GL_TEXTURE0 + texture._unit)
+#             texture._unit = None
 
-        GL.glBindTexture(texture.target, 0)
-        texture._isBound = False
+#         GL.glBindTexture(texture.target, 0)
+#         texture._isBound = False
 
-        GL.glDisable(texture.target)
-    else:
-        raise RuntimeError('Trying to unbind a texture that was not previously'
-                           'bound.')
+#         GL.glDisable(texture.target)
+#     else:
+#         raise RuntimeError('Trying to unbind a texture that was not previously'
+#                            'bound.')
 
 
 # Descriptor for 2D mutlisampled texture
@@ -2047,6 +3076,72 @@ TexImage2DMultisample = namedtuple(
      'samples',
      'multisample',
      'userData'])
+
+
+class TexImage2DMultisampleInfo:
+    """Descriptor for a 2D multisampled texture.
+
+    This class is used for bookkeeping 2D multisampled textures stored in video
+    memory. Information about the texture (eg. `width` and `height`) is
+    available via class attributes. Attributes should never be modified
+    directly.
+
+    """
+    __slots__ = ['width',
+                 'height',
+                 'target',
+                 '_name',
+                 'internalFormat',
+                 'samples',
+                 'multisample',
+                 'userData']
+
+    def __init__(self,
+                 name=0,
+                 target=GL.GL_TEXTURE_2D_MULTISAMPLE,
+                 width=64,
+                 height=64,
+                 internalFormat=GL.GL_RGBA8,
+                 samples=1,
+                 multisample=True,
+                 userData=None):
+        """
+        Parameters
+        ----------
+        name : `int` or `GLuint`
+            OpenGL handle for texture. Is `0` if uninitialized.
+        target : :obj:`int`
+            The target texture should only be `GL_TEXTURE_2D_MULTISAMPLE`.
+        width : :obj:`int`
+            Texture width in pixels.
+        height : :obj:`int`
+            Texture height in pixels.
+        internalFormat : :obj:`int`
+            Internal format for texture data (e.g. GL_RGBA8, GL_R11F_G11F_B10F).
+        samples : :obj:`int`
+            Number of samples for multi-sampling, should be >1 and power-of-two.
+            Work with one sample, but will raise a warning.
+        multisample : :obj:`bool`
+            True if the texture is multi-sampled.
+        userData : :obj:`dict`
+            User-defined data associated with the texture.
+
+        """
+        self.name = name
+        self.width = width
+        self.height = height
+        self.target = target
+        self.internalFormat = internalFormat
+        self.samples = samples
+        self.multisample = multisample
+
+        if userData is None:
+            self.userData = {}
+        elif isinstance(userData, dict):
+            self.userData = userData
+        else:
+            raise TypeError('Invalid type for `userData`.')
+
 
 
 def createTexImage2DMultisample(width, height,
@@ -2075,8 +3170,8 @@ def createTexImage2DMultisample(width, height,
 
     Returns
     -------
-    TexImage2DMultisample
-        A TexImage2DMultisample descriptor.
+    TexImage2DMultisampleInfo
+        A TexImage2DMultisampleInfo descriptor.
 
     """
     width = int(width)
@@ -2107,14 +3202,15 @@ def createTexImage2DMultisample(width, height,
 
     GL.glBindTexture(target, 0)
 
-    return TexImage2DMultisample(colorTexId,
-                                 target,
-                                 width,
-                                 height,
-                                 internalFormat,
-                                 samples,
-                                 True,
-                                 dict())
+    return TexImage2DMultisampleInfo(
+        colorTexId,
+        target,
+        width,
+        height,
+        internalFormat,
+        samples,
+        True,
+        dict())
 
 
 def deleteTexture(texture):
@@ -2300,6 +3396,11 @@ def createVAO(attribBuffers, indexBuffer=None, attribDivisors=None, legacy=False
     activeAttribs = {}
     bufferIndices = []
     for i, buffer in attribBuffers.items():
+        if isinstance(i, str):
+            i = VERTEX_ATTRIBS.get(i, None)
+            if i is None:
+                raise ValueError('Invalid attribute name specified.')
+
         if isinstance(buffer, (list, tuple,)):
             if len(buffer) == 1:
                 buffer = buffer[0]  # size 1 tuple or list eg. (buffer,)
@@ -2370,6 +3471,13 @@ def createVAO(attribBuffers, indexBuffer=None, attribDivisors=None, legacy=False
                            legacy)
 
 
+# use the appropriate VAO binding function for the platform
+if _thisPlatform != 'Darwin':
+    _glBindVertexArray = GL.glBindVertexArray
+else:
+    _glBindVertexArray = GL.glBindVertexArrayAPPLE
+
+
 def drawVAO(vao, mode=GL.GL_TRIANGLES, start=0, count=None, instanceCount=None,
             flush=False):
     """Draw a vertex array object. Uses `glDrawArrays` or `glDrawElements` if
@@ -2381,7 +3489,9 @@ def drawVAO(vao, mode=GL.GL_TRIANGLES, start=0, count=None, instanceCount=None,
     vao : VertexArrayObject
         Vertex Array Object (VAO) to draw.
     mode : int, optional
-        Drawing mode to use (e.g. GL_TRIANGLES, GL_QUADS, GL_POINTS, etc.)
+        Drawing mode to use (e.g. GL_TRIANGLES, GL_QUADS, GL_POINTS, etc.) for
+        rasterization. Default is `GL_TRIANGLES`. Strings can be used for
+        convenience (e.g. 'GL_TRIANGLES', 'GL_QUADS', 'GL_POINTS').
     start : int, optional
         Starting index for array elements. Default is `0` which is the beginning
         of the array.
@@ -2402,11 +3512,13 @@ def drawVAO(vao, mode=GL.GL_TRIANGLES, start=0, count=None, instanceCount=None,
         drawVAO(vaoDesc, GL.GL_TRIANGLES)
 
     """
+    if isinstance(mode, str):
+        mode = getattr(GL, mode, None)
+        if mode is None:
+            raise ValueError('Invalid drawing mode specified.')
+
     # draw the array
-    if _thisPlatform != 'Darwin':
-        GL.glBindVertexArray(vao.name)
-    else:
-        GL.glBindVertexArrayAPPLE(vao.name)
+    _glBindVertexArray(vao.name)
 
     if count is None:
         count = vao.count
@@ -2432,10 +3544,7 @@ def drawVAO(vao, mode=GL.GL_TRIANGLES, start=0, count=None, instanceCount=None,
         GL.glFlush()
 
     # reset
-    if _thisPlatform != 'Darwin':
-        GL.glBindVertexArray(0)
-    else:
-        GL.glBindVertexArrayAPPLE(0)
+    _glBindVertexArray(0)
 
 
 def deleteVAO(vao):
@@ -2449,14 +3558,174 @@ def deleteVAO(vao):
         reset.
 
     """
-    if isinstance(vao, VertexArrayInfo):
-        if vao.name:
-            GL.glDeleteVertexArrays(1, GL.GLuint(vao.name))
-            vao.name = 0
-            vao.isLegacy = False
-            vao.indexBuffer = None
-            vao.activeAttribs = {}
-            vao.count = 0
+    if not isinstance(vao, VertexArrayInfo):
+        raise TypeError('Invalid type for `vao`, must be `VertexArrayInfo`.')
+    
+    if vao.name:
+        GL.glDeleteVertexArrays(1, GL.GLuint(vao.name))
+        vao.name = 0
+        vao.isLegacy = False
+        vao.indexBuffer = None
+        vao.activeAttribs = {}
+        vao.count = 0
+
+
+def drawClientArrays(attribBuffers, mode=GL.GL_TRIANGLES, indexBuffer=None):
+    """Draw vertex arrays using client-side arrays. 
+    
+    This is a convenience function for drawing vertex arrays by passing 
+    client-side (resident in CPU memory space) arrays to the driver directly. 
+    Performance may be suboptimal compared to using VBOs and VAOs, as data
+    must be transferred to the GPU each time this function is called. This may
+    also stall the rendering pipeline, preventing the GPU from processing
+    commands in parallel.
+
+    For best performance, use interleaved arrays for vertex attributes and an
+    index buffer. Using an index buffer is optional, but it greatly reduces 
+    the amount of data that must be transferred to the GPU.
+
+    Parameters
+    ----------
+    attribBuffers : dict
+        Attributes and associated buffers to draw. Keys are vertex attribute
+        pointer indices, values are buffer arrays. Values can be `tuples` where
+        the first value is the buffer array, the second is the number of
+        attribute components (`int`, either 2, 3 or 4), the third is the offset
+        (`int`), and the last is whether to normalize the array (`bool`). Buffer
+        arrays may be `numpy` arrays or lists. If lists, the arrays will be
+        converted to `numpy` arrays with `float` (`GL_DOUBLE`) data type.
+    mode : int
+        Drawing mode to use (e.g. GL_TRIANGLES, GL_QUADS, GL_POINTS, etc.) for
+        rasterization.
+    indexBuffer : VertexBufferInfo
+        Optional index buffer. If `None`, `glDrawArrays` is used, else
+        `glDrawElements` is used. The index buffer must be a 2D array that is
+        appropriately sized for the drawing mode. For example, if `mode` is
+        `GL_TRIANGLES`, the index buffer must be a 2D array with 3 columns. The
+        index array is always assumed to be of type `GL_UNSIGNED_INT`, it will
+        be converted if necessary.
+
+    Examples
+    --------
+    Drawing vertex arrays using client-side arrays::
+
+        attribArrays = {
+            'gl_Vertex': vertexPos,  # vertex positions
+            'gl_Color': vertexColors}  # per vertex colors
+
+        drawClientArrays('triangles', attribArrays)
+
+    Drawing using index buffers::
+
+        vertex, normal, texCoord, faces = createAnnulus()  # ring geometry
+
+        # bind and setup shader uniforms here...
+
+        attribs = {
+            'gl_Vertex': vertex,
+            'gl_Normal': normal,
+            'gl_MultiTexCoord0': texCoord}
+        
+        drawClientArrays('triangles', attribs, indexBuffer=faces)
+
+    Using interleaved arrays is recommended for greater performance, all
+    attributes are stored in a single array which reduces the number of 
+    binding calls::
+
+        vertex, normal, texCoord, faces = createPlane()  # square
+        interleaved, sizes, offsets = interleaveArrays(
+            [vertex, normal, texCoord])
+
+        # interleaved array layout: 000111222
+        attribs = {}
+        for i, attrib in enumerate('gl_Vertex', 'gl_Normal', 'gl_TexCoord'):
+            attribs[attrib] = (interleaved, sizes[i], offsets[i])
+
+        drawClientArrays('triangles', attribs, indexBuffer=faces)
+
+    """
+    mode = _getGLEnum(mode)
+    if mode is None:
+        raise ValueError('Invalid drawing mode specified.')
+
+    GL.glEnable(GL.GL_VERTEX_ARRAY)
+    GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
+    GL.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, 0)
+    GL.glBindVertexArray(0)
+
+    useIndexBuffer = indexBuffer is not None
+    if useIndexBuffer:
+        # always use unsigned int for index buffer
+        indexBuffer = np.ascontiguousarray(indexBuffer, dtype=np.uint32)
+        if indexBuffer.ndim != 2:
+            raise ValueError('Index buffer must be 2D array.')
+
+    boundArrays = []
+    for arrIdx, buffer in attribBuffers.items():
+        if isinstance(arrIdx, str):
+            arrIdx= VERTEX_ATTRIBS.get(arrIdx, None)
+            if arrIdx is None:
+                raise ValueError('Invalid attribute name specified.')
+
+        if isinstance(buffer, (list, tuple,)):
+            normalize = False
+            nVals = len(buffer)
+            if nVals == 1:
+                buffer = buffer[0]  # size 1 tuple or list eg. (buffer,)
+                size = buffer.shape[1]
+                offset = 0
+            elif nVals == 2:
+                buffer, size = buffer
+                offset = 0
+            elif nVals == 3:
+                buffer, size, offset = buffer
+            elif nVals == 4:
+                buffer, size, offset, normalize = buffer
+            else:
+                raise ValueError('Invalid attribute values.')
+        else:
+            size = buffer.shape[1]
+            offset = 0
+            normalize = False
+
+        # make sure the buffer is contiguous array
+        if not isinstance(buffer, np.ndarray): 
+            buffer = np.ascontiguousarray(buffer, dtype=float)
+
+        if buffer.ndim != 2:
+            raise ValueError(
+                'Buffer {} must be 2D array.'.format(arrIdx))
+        
+        numVertices = buffer.shape[0]
+        
+        # enable and set attribute pointers
+        GL.glEnableVertexAttribArray(arrIdx)
+        
+        arrayTypes = ARRAY_TYPES.get(buffer.dtype.type, None)
+        if arrayTypes is None:
+            raise ValueError('Unable to determine data type from buffer.')
+
+        GL.glVertexAttribPointer(
+            arrIdx,
+            size,
+            arrayTypes[0],
+            GL.GL_TRUE if normalize else GL.GL_FALSE,
+            offset,
+            buffer.ctypes)
+
+        boundArrays.append(arrIdx)
+
+    # use the appropriate draw function
+    if useIndexBuffer:
+        GL.glDrawElements(
+            mode, indexBuffer.size, GL.GL_UNSIGNED_INT, indexBuffer.ctypes)
+    else:
+        GL.glDrawArrays(mode, 0, numVertices)
+
+    for arrIdx in boundArrays:  # unbind arrays
+        GL.glDisableVertexAttribArray(arrIdx)
+    
+    GL.glDisable(GL.GL_VERTEX_ARRAY)
 
 
 # ---------------------------
@@ -2573,7 +3842,7 @@ class VertexBufferInfo:
             return False
 
         if self.target == GL.GL_ARRAY_BUFFER:
-            bindTarget = GL.GL_VERTEX_ARRAY_BUFFER_BINDING
+            bindTarget = GL.GL_VERTEX_ARRAY_BINDING
         elif self.target == GL.GL_ELEMENT_ARRAY_BUFFER:
             bindTarget = GL.GL_ELEMENT_ARRAY_BUFFER_BINDING
         else:
@@ -2609,7 +3878,7 @@ class VertexBufferInfo:
 
 def createVBO(data,
               target=GL.GL_ARRAY_BUFFER,
-              dataType=GL.GL_FLOAT,
+              dataType=None,
               usage=GL.GL_STATIC_DRAW):
     """Create an array buffer object (VBO).
 
@@ -2621,15 +3890,21 @@ def createVBO(data,
     data : array_like
         A 2D array of values to write to the array buffer. The data type of the
         VBO is inferred by the type of the array. If the input is a Python
-        `list` or `tuple` type, the data type of the array will be `GL_FLOAT`.
-    target : :obj:`int`
+        `list` or `tuple` type, the data type of the array will be `GL_DOUBLE`.
+    target : :obj:`int` or :obj:`str`, optional
         Target used when binding the buffer (e.g. `GL_VERTEX_ARRAY` or
-        `GL_ELEMENT_ARRAY_BUFFER`). Default is `GL_VERTEX_ARRAY`.
-    dataType : Glenum, optional
+        `GL_ELEMENT_ARRAY_BUFFER`). Default is `GL_VERTEX_ARRAY`. Strings may 
+        also be used to specify the target, where the following are valid:
+        'array' (for `GL_VERTEX_ARRAY`) or 'element_array' (for 
+        `GL_ELEMENT_ARRAY_BUFFER`).
+    dataType : Glenum or None, optional
         Data type of array. Input data will be recast to an appropriate type if
-        necessary. Default is `GL_FLOAT`.
+        necessary. Default is `None`. If `None`, the data type will be
+        inferred from the input data.
     usage : GLenum or int, optional
-        Usage type for the array (i.e. `GL_STATIC_DRAW`).
+        Usage hint for the array (i.e. `GL_STATIC_DRAW`). This will hint to the
+        GL driver how the buffer will be used so it can optimize memory
+        allocation and access. Default is `GL_STATIC_DRAW`.
 
     Returns
     -------
@@ -2682,10 +3957,33 @@ def createVBO(data,
         glFlush()
 
     """
-    # build input array
-    npType, glType = GL_COMPAT_TYPES[dataType]
-    data = np.asarray(data, dtype=npType)
+    target, dataType, usage = _getGLEnum(target, dataType, usage)
 
+    # try and infer the data type if not specified
+    if dataType is None:  # get data type from input
+        if isinstance(data, (list, tuple)):  # default for Python array types
+            dataType = GL.GL_DOUBLE
+        elif isinstance(data, np.ndarray):  # numpy arrays
+            dataType = data.dtype.type
+        else:
+            raise ValueError('Could not infer data type from input.')
+    
+    # get the OpenGL data type and numpy type
+    typeVals = ARRAY_TYPES.get(dataType, None)
+    if typeVals is None:
+        raise ValueError('Invalid data type specified.')
+
+    glEnum, glType, npType = typeVals
+
+    # get the usage hint if a string was passed
+    if isinstance(usage, str):
+        usage = GL_ENUMS.get(usage, None)
+        if usage is None:
+            raise ValueError('Invalid `usage` hint string.')
+    
+    # create the input data array
+    data = np.ascontiguousarray(data, dtype=npType)
+    
     # get buffer size and pointer
     bufferSize = data.size * ctypes.sizeof(glType)
     if data.ndim > 1:
@@ -2708,7 +4006,7 @@ def createVBO(data,
         bufferName,
         target,
         usage,
-        dataType,
+        glEnum,
         bufferSize,
         bufferStride,
         data.shape)  # leave userData empty
@@ -2734,7 +4032,7 @@ def bindVBO(vbo):
     if isinstance(vbo, VertexBufferInfo):
         GL.glBindBuffer(vbo.target, vbo.name)
     else:
-        raise TypeError('Specified `vbo` is not at `VertexBufferInfo`.')
+        raise TypeError('Specified `vbo` is not a `VertexBufferInfo`.')
 
 
 def unbindVBO(vbo):
@@ -2749,7 +4047,7 @@ def unbindVBO(vbo):
     if isinstance(vbo, VertexBufferInfo):
         GL.glBindBuffer(vbo.target, 0)
     else:
-        raise TypeError('Specified `vbo` is not at `VertexBufferInfo`.')
+        raise TypeError('Specified `vbo` is not a `VertexBufferInfo`.')
 
 
 def mapBuffer(vbo, start=0, length=None, read=True, write=True, noSync=False):
@@ -2813,7 +4111,7 @@ def mapBuffer(vbo, start=0, length=None, read=True, write=True, noSync=False):
         unmapBuffer(vbo)
 
     """
-    npType, glType = GL_COMPAT_TYPES[vbo.dataType]
+    _, glType, npType = ARRAY_TYPES[vbo.dataType]
     start *= ctypes.sizeof(glType)
 
     if length is None:
@@ -2867,6 +4165,103 @@ def unmapBuffer(vbo):
     return GL.glUnmapBuffer(vbo.target) == GL.GL_TRUE
 
 
+@contextmanager
+def mappedBuffer(vbo, start=0, length=None, read=True, write=True, noSync=False):
+    """Context manager for mapping and unmapping a buffer. This is a convenience
+    function for using :func:`mapBuffer` and :func:`unmapBuffer` together.
+
+    Parameters
+    ----------
+    vbo : VertexBufferInfo
+        Vertex buffer to map to client memory.
+    start : int
+        Initial index of the sub-range of the buffer to modify.
+    length : int or None
+        Number of elements of the sub-array to map from `offset`. If `None`, all
+        elements to from `offset` to the end of the array are mapped.
+    read : bool, optional
+        Allow data to be read from the buffer (sets `GL_MAP_READ_BIT`). This is
+        ignored if `noSync` is `True`.
+    write : bool, optional
+        Allow data to be written to the buffer (sets `GL_MAP_WRITE_BIT`).
+    noSync : bool, optional
+        If `True`, GL will not wait until the buffer is free (i.e. not being
+        processed by the GPU) to map it (sets `GL_MAP_UNSYNCHRONIZED_BIT`). The
+        contents of the previous storage buffer are discarded and the driver
+        returns a new one. This prevents the CPU from stalling until the buffer
+        is available
+
+    Yields
+    ------
+    ndarray
+        View of the data. The type of the returned array is one which best
+        matches the data type of the buffer.
+
+    Examples
+    --------
+    Using the context manager to map and unmap a buffer::
+
+        with mappedBuffer(vbo) as arr:
+            arr[:, :] += 2.0
+    
+    """
+    arr = mapBuffer(vbo, start, length, read, write, noSync)
+    yield arr
+    unmapBuffer(vbo)
+
+
+def updateVBO(vbo, data, noSync=False):
+    """Update the contents of a VBO with new data. 
+    
+    This is a convenience function for mapping a buffer, updating the data, and 
+    then unmapping it if the data shape matches the buffer shape.
+
+    Parameters
+    ----------
+    vbo : VertexBufferInfo
+        Vertex buffer to update.
+    data : array_like
+        New data to write to the buffer. The shape of the data must match the
+        shape of the buffer.
+    noSync : bool, optional
+        If `True`, GL will not wait until the buffer is free (i.e. not being
+        processed by the GPU) to map it (sets `GL_MAP_UNSYNCHRONIZED_BIT`). The
+        contents of the previous storage buffer are discarded and the driver
+        returns a new one. This prevents the CPU from stalling until the buffer
+        is available.
+
+    Returns
+    -------
+    bool
+        `True` if the buffer has been successfully modified. If `False`, the
+        data was corrupted for some reason and needs to be resubmitted.
+
+    Examples
+    --------
+    Update a VBO with new data::
+
+        # new vertices
+        verts = [[ 1.0,  1.0, 0.0],   # v0
+                 [ 0.0, -1.0, 0.0],   # v1
+                 [-1.0,  1.0, 0.0]]   # v2
+
+        # update the VBO
+        updateVBO(vboDesc, verts)
+
+    """
+    if not isinstance(data, np.ndarray):  # allow lists, tuples, etc.
+        data = np.ascontiguousarray(data)
+
+    if data.shape != vbo.shape:
+        raise ValueError('Data shape does not match VBO shape, expected {} '
+                         'but got {}.'.format(vbo.shape, data.shape))
+
+    mappedArray = mapBuffer(vbo, noSync=noSync)
+    mappedArray[:, :] = data[:, :]  # transfer data to GPU buffer array
+
+    return unmapBuffer(vbo)
+
+
 def deleteVBO(vbo):
     """Delete a vertex buffer object (VBO).
 
@@ -2876,9 +4271,12 @@ def deleteVBO(vbo):
         Descriptor of VBO to delete.
 
     """
+    if not isinstance(vbo, VertexBufferInfo):
+        raise TypeError('Invalid type for `vbo`, must be `VertexBufferInfo`.')
+    
     if GL.glIsBuffer(vbo.name):
         GL.glDeleteBuffers(1, vbo.name)
-        vbo.name = GL.GLuint(0)
+        vbo.name = GL.GLuint(0)  # reset the object to invalidate it
 
 
 def setVertexAttribPointer(index,
@@ -2911,7 +4309,7 @@ def setVertexAttribPointer(index,
     versions.
 
     On nVidia graphics drivers (and maybe others), the following attribute
-    pointers indices are aliased with reserved GLSL names:
+    pointer indices are aliased with reserved GLSL names:
 
         * gl_Vertex - 0
         * gl_Normal - 2
@@ -3011,7 +4409,7 @@ def setVertexAttribPointer(index,
     if vbo.target != GL.GL_ARRAY_BUFFER:
         raise ValueError('VBO must have `target` type `GL_ARRAY_BUFFER`.')
 
-    _, glType = GL_COMPAT_TYPES[vbo.dataType]
+    _, glType, _ = ARRAY_TYPES[vbo.dataType]
 
     if size is None:
         size = vbo.shape[1]
@@ -3092,6 +4490,392 @@ def disableVertexAttribArray(index, legacy=False):
         GL.glDisableVertexAttribArray(index)
     else:
         GL.glDisableClientState(index)
+
+
+# ---------------------------
+# Draw settings
+#
+
+
+def activeTexture(unit):
+    """Set the active texture unit.
+
+    Parameters
+    ----------
+    unit : GLenum, int or str
+        Texture unit to activate. Values can be `GL_TEXTURE0`, `GL_TEXTURE1`,
+        `GL_TEXTURE2`, etc.
+
+    """
+    if isinstance(unit, str):
+        unit = _getGLEnum(unit)
+    else:
+        if unit < MAX_TEXTURE_UNITS: 
+            unit = GL.GL_TEXTURE0 + unit
+
+    GL.glActiveTexture(unit)
+
+
+def bindTexture(texture, target=None, unit=None):
+    """Bind a texture to a target.
+
+    Parameters
+    ----------
+    texture : GLuint, int, None, TexImage2DInfo or TexImage2DMultisampleInfo
+        Texture to bind. If `None`, the texture will be unbound.
+    target : GLenum, int or str, optional
+        Target to bind the texture to. Default is `None`. If `None`, and the
+        texture is a `TexImage2DInfo` or `TexImage2DMultisampleInfo` object,
+        the target will be inferred from the texture object. If specified, the
+        value will override the target inferred from the texture. If `None` and
+        the texture is an integer, the target will default to `GL_TEXTURE_2D`.
+    unit : GLenum, int or None, optional
+        Texture unit to bind the texture to, this will also set the active
+        texture unit. Default is `None`. If `None`, the texture will be bound to 
+        the currently active texture unit.
+
+    """
+    if isinstance(target, str):
+        target = getattr(GL, target, None)
+        if target is None:
+            raise ValueError('Invalid target string specified.')
+        
+    if texture is None:
+        texture = 0
+    else:
+        if isinstance(texture, (TexImage2DInfo, TexImage2DMultisampleInfo)):
+            texture = texture.name
+            if target is None:
+                target = texture.target
+        else:
+            texture = int(texture)
+            if target is None:
+                target = GL.GL_TEXTURE_2D
+
+    if unit is not None:     # bind the texture to a specific unit
+        activeTexture(unit)
+    
+    GL.glBindTexture(target, texture)
+
+
+def setPolygonMode(face, mode):
+    """Set the polygon rasterization mode for a face.
+
+    Parameters
+    ----------
+    face : GLenum or str
+        Face to set the polygon mode for. Values can be `GL_FRONT`, `GL_BACK`,
+        or `GL_FRONT_AND_BACK`. Strings may also be used to specify the face,
+        where the following are valid: 'front' (for `GL_FRONT`), 'back' (for
+        `GL_BACK`), and 'front_and_back' (for `GL_FRONT_AND_BACK`).
+    mode : GLenum or str
+        Polygon rasterization mode. Values can be `GL_POINT`, `GL_LINE`, or
+        `GL_FILL`. Strings may also be used to specify the mode, where the
+        following are valid: 'point' (for `GL_POINT`), 'line' (for `GL_LINE`),
+        and 'fill' (for `GL_FILL`).
+
+    """
+    if isinstance(face, str):
+        face = getattr(GL, face, None)
+        if face is None:
+            raise ValueError(
+                'Invalid face string specified, got {}.'.format(face))
+    if isinstance(mode, str):
+        mode = getattr(GL, mode, None)
+        if mode is None:
+            raise ValueError(
+                'Invalid mode string specified, got {}.'.format(mode))
+    
+    GL.glPolygonMode(face, mode)
+
+
+def setWireframeDraw(face=GL.GL_FRONT_AND_BACK):
+    """Set the rasterization mode to wireframe.
+
+    Successive draw operations will render wireframe polygons (i.e. outlines).
+
+    Parameters
+    ----------
+    face : GLenum or int, optional
+        Faces to apply wireframe to. Values can be `GL_FRONT_AND_BACK`,
+        `GL_FRONT` and `GL_BACK`. The default is `GL_FRONT_AND_BACK`. Strings
+        may also be used to specify the face, where the following are valid:
+        'front' (for `GL_FRONT`), 'back' (for `GL_BACK`), and 'front_and_back'
+        (for `GL_FRONT_AND_BACK`).
+
+    """
+    if isinstance(face, str):
+        face = getattr(GL, face, None)
+        if face is None:
+            raise ValueError(
+                'Invalid face string specified, got {}.'.format(face))
+        
+    setPolygonMode(face, GL.GL_LINE)
+
+
+def setFillDraw(face=GL.GL_FRONT_AND_BACK):
+    """Set the rasterization mode to fill polygons.
+
+    Successive draw operations will render filled polygons.
+    
+    Parameters
+    ----------
+    face : GLenum or int, optional
+        Faces to apply fill to. Values can be `GL_FRONT_AND_BACK`, `GL_FRONT`
+        and `GL_BACK`. The default is `GL_FRONT_AND_BACK`. Strings may also be
+        used to specify the face, where the following are valid: 'front' (for
+        `GL_FRONT`), 'back' (for `GL_BACK`), and 'front_and_back' (for
+        `GL_FRONT_AND_BACK`).
+
+    """
+    if isinstance(face, str):
+        face = getattr(GL, face, None)
+        if face is None:
+            raise ValueError(
+                'Invalid face string specified, got {}.'.format(face))
+        
+    setPolygonMode(face, GL.GL_FILL)
+
+
+def setDepthTest(enable=True):
+    """Enable or disable depth testing.
+
+    Parameters
+    ----------
+    enable : bool, optional
+        Enable or disable depth testing. Default is `True`.
+
+    """
+    if enable:
+        GL.glEnable(GL.GL_DEPTH_TEST)
+    else:
+        GL.glDisable(GL.GL_DEPTH_TEST)
+
+
+def setDepthFunc(func):
+    """Set the depth comparison function.
+
+    Parameters
+    ----------
+    func : GLenum or str
+        Depth comparison function. Values can be `GL_NEVER`, `GL_LESS`,
+        `GL_EQUAL`, `GL_LEQUAL`, `GL_GREATER`, `GL_NOTEQUAL`, `GL_GEQUAL`, or
+        `GL_ALWAYS`. Strings may also be used to specify the function, where
+        the following are valid: 'never' (for `GL_NEVER`), 'less' (for `GL_LESS`),
+        'equal' (for `GL_EQUAL`), 'lequal' (for `GL_LEQUAL`), 'greater' (for
+        `GL_GREATER`), 'notequal' (for `GL_NOTEQUAL`), 'gequal' (for `GL_GEQUAL`),
+        and 'always' (for `GL_ALWAYS`).
+
+    """
+    func = _getGLEnum(func)
+    GL.glDepthFunc(func)
+
+
+def setDepthMask(enable=True):
+    """Enable or disable writing to the depth buffer.
+
+    Parameters
+    ----------
+    enable : bool, optional
+        Enable or disable writing to the depth buffer. Default is `True`.
+
+    """
+    if enable:
+        GL.glDepthMask(GL.GL_TRUE)
+    else:
+        GL.glDepthMask(GL.GL_FALSE)
+
+
+def setDepthRange(near, far):
+    """Set the range of depth values.
+
+    Parameters
+    ----------
+    near : float
+        Near clipping plane.
+    far : float
+        Far clipping plane.
+
+    """
+    GL.glDepthRange(near, far)
+
+
+def setClearColor(color):
+    """Set the clear color for the color buffer.
+
+    Parameters
+    ----------
+    color : array_like
+        Color to clear the color buffer with. The color should be in RGBA
+        format, where each component is in the range [0, 1].
+
+    """
+    GL.glClearColor(*color)
+
+
+def setClearDepth(depth):
+    """Set the clear value for the depth buffer.
+
+    Parameters
+    ----------
+    depth : float
+        Value to clear the depth buffer with.
+
+    """
+    GL.glClearDepth(depth)
+
+
+def enable(enum):
+    """Enable a GL capability.
+
+    Parameters
+    ----------
+    enum : GLenum, int or str
+        Capability to enable.
+
+    """
+    if isinstance(enum, str):
+        enum = getattr(GL, enum, None)
+
+    if enum is None:
+        raise ValueError('Invalid capability string specified.')
+        
+    GL.glEnable(enum)
+
+
+def disable(enum):
+    """Disable a GL capability.
+
+    Parameters
+    ----------
+    enum : GLenum, int or str
+        Capability to disable.
+
+    """
+    if isinstance(enum, str):
+        enum = getattr(GL, enum, None)
+        
+    if enum is None:
+        raise ValueError('Invalid capability string specified.')
+        
+    GL.glDisable(enum)
+
+
+def setLineWidth(width):
+    """Set the width of rasterized lines.
+
+    Parameters
+    ----------
+    width : float
+        Width of rasterized lines.
+
+    """
+    GL.glLineWidth(width)
+
+
+def setLineSmooth(enable=True):
+    """Enable or disable line antialiasing.
+
+    Parameters
+    ----------
+    enable : bool, optional
+        Enable or disable line antialiasing. Default is `True`.
+
+    """
+    if enable:
+        GL.glEnable(GL.GL_LINE_SMOOTH)
+    else:
+        GL.glDisable(GL.GL_LINE_SMOOTH)
+
+
+def setPointSize(size):
+    """Set the size of rasterized points.
+
+    Parameters
+    ----------
+    size : float
+        Size of rasterized points.
+
+    """
+    GL.glPointSize(size)
+
+
+def setPointSmooth(enable=True):
+    """Enable or disable point antialiasing.
+
+    Parameters
+    ----------
+    enable : bool, optional
+        Enable or disable point antialiasing. Default is `True`.
+
+    """
+    if enable:
+        GL.glEnable(GL.GL_POINT_SMOOTH)
+    else:
+        GL.glDisable(GL.GL_POINT_SMOOTH)
+
+
+def setMultiSample(enable=True):
+    """Enable or disable multisample antialiasing.
+
+    Parameters
+    ----------
+    enable : bool, optional
+        Enable or disable multisample antialiasing. Default is `True`.
+
+    """
+    if enable:
+        GL.glEnable(GL.GL_MULTISAMPLE)
+    else:
+        GL.glDisable(GL.GL_MULTISAMPLE)
+
+
+def setBlend(enable=True):
+    """Enable or disable blending.
+
+    Parameters
+    ----------
+    enable : bool, optional
+        Enable or disable blending. Default is `True`.
+
+    """
+    if enable:
+        GL.glEnable(GL.GL_BLEND)
+    else:
+        GL.glDisable(GL.GL_BLEND)
+
+
+def setBlendFunc(srcFactor, dstFactor):
+    """Set the blending function for source and destination factors.
+
+    Parameters
+    ----------
+    srcFactor : GLenum or str
+        Source blending factor. Eg. `GL_SRC_ALPHA`.
+    dstFactor : GLenum or str
+        Destination blending factor. Eg. `GL_ONE_MINUS_SRC_ALPHA`.
+
+    Examples
+    --------
+    Set the blending function to use source alpha and one minus source alpha::
+
+        setBlendFunc('GL_SRC_ALPHA', 'GL_ONE_MINUS_SRC_ALPHA')
+
+    """
+    if isinstance(srcFactor, str):
+        srcFactor = getattr(GL, srcFactor, None)
+        if srcFactor is None:
+            raise ValueError(
+                'Invalid enum specified for source factor. Got {}.'.format(
+                    srcFactor))
+    if isinstance(dstFactor, str):
+        dstFactor = getattr(GL, dstFactor, None)
+        if dstFactor is None:
+            raise ValueError(
+                'Invalid enum specified for destination factor. Got {}.'.format(
+                    dstFactor))
+        
+    GL.glBlendFunc(srcFactor, dstFactor)
 
 
 # -------------------------
@@ -3239,8 +5023,8 @@ class SimpleMaterial:
         colorSpace : float
             Color space for `diffuseColor`, `specularColor`, `ambientColor`, and
             `emissionColor`.
-        diffuseTexture : TexImage2D
-        specularTexture : TexImage2D
+        diffuseTexture : TexImage2DInfo
+        specularTexture : TexImage2DInfo
         opacity : float
             Opacity of the material. Ranges from 0.0 to 1.0 where 1.0 is fully
             opaque.
@@ -4533,6 +6317,224 @@ def createBox(size=(1., 1., 1.), flipFaces=False):
     return vertices, texCoords, normals, faces
 
 
+def createDisc(radius=1.0, edges=16):
+    """Create a disc (filled circle) mesh.
+
+    Generates a flat disc mesh with the specified radius and number of `edges`.
+    The origin of the disc is located at the center. Textures coordinates will
+    be mapped to a square which bounds the circle. Normals are perpendicular to
+    the face of the circle.
+
+    Parameters
+    ----------
+    radius : float
+        Radius of the disc in scene units.
+    edges : int
+        Number of segments to use to define the outer rim of the disc. Higher
+        numbers will result in a smoother circle but will use more triangles.
+
+    Returns
+    -------
+    tuple
+        Vertex attribute arrays (position, texture coordinates, and normals) and
+        triangle indices.
+
+    Examples
+    --------
+    Create a vertex array object to draw a disc::
+
+        vertices, textureCoords, normals, faces = gltools.createDisc(edges=128)
+        vertexVBO = gltools.createVBO(vertices)
+        texCoordVBO = gltools.createVBO(textureCoords)
+        normalsVBO = gltools.createVBO(normals)
+        indexBuffer = gltools.createVBO(
+            faces.flatten(),
+            target=GL.GL_ELEMENT_ARRAY_BUFFER,
+            dataType=GL.GL_UNSIGNED_INT)
+
+        vao = gltools.createVAO(
+            {gltools.gl_Vertex: vertexVBO,
+             gltools.gl_MultiTexCoord0: texCoordVBO,
+             gltools.gl_Normal: normalsVBO},
+            indexBuffer=indexBuffer)
+
+    """
+    # get number of steps for vertices to get the number of edges we want
+    nVerts = edges + 1
+    steps = np.linspace(0, 2 * np.pi, num=nVerts, dtype=np.float32)
+
+    # offset since the first vertex is the centre
+    vertices = np.zeros((nVerts + 1, 3), dtype=np.float32)
+    vertices[1:, 0] = np.sin(steps)
+    vertices[1:, 1] = np.cos(steps)
+
+    # compute the face indices
+    faces = []
+    for i in range(nVerts):
+        faces.append([0, i + 1, i])
+
+    faces = np.ascontiguousarray(faces, dtype=np.uint32)
+
+    # compute the texture coordinates for each vertex
+    normals = np.zeros_like(vertices, dtype=np.float32)
+    normals[:, 2] = 1.
+
+    # compute texture coordinates
+    texCoords = vertices.copy()
+    texCoords[:, :] += 1.0
+    texCoords[:, :] *= 0.5
+
+    # scale to specified radius
+    vertices *= radius
+
+    return vertices, texCoords, normals, faces
+
+
+def createAnnulus(innerRadius=0.5, outerRadius=1.0, edges=16):
+    """Create an annulus (ring) mesh.
+
+    Generates a flat ring mesh with the specified inner/outer radii and number
+    of `edges`. The origin of the ring is located at the center. Textures
+    coordinates will be mapped to a square which bounds the ring. Normals are
+    perpendicular to the plane of the ring.
+
+    Parameters
+    ----------
+    innerRadius, outerRadius : float
+        Radius of the inner and outer rims of the ring in scene units.
+    edges : int
+        Number of segments to use to define the band of the ring. The higher the
+        value, the rounder the ring will look.
+
+    Returns
+    -------
+    tuple
+        Vertex attribute arrays (position, texture coordinates, and normals) and
+        triangle indices.
+
+    """
+    # error checks
+    if innerRadius >= outerRadius:
+        raise ValueError("Inner radius must be less than outer.")
+    elif outerRadius <= 0.:
+        raise ValueError("Outer radius must be >0.")
+    elif innerRadius < 0.:
+        raise ValueError("Inner radius must be positive.")
+    elif edges <= 2:
+        raise ValueError("Number of edges must be >2.")
+
+    # generate inner and outer vertices
+    nVerts = edges + 1
+    steps = np.linspace(0, 2 * np.pi, num=nVerts, dtype=np.float32)
+
+    innerVerts = np.zeros((nVerts, 3), dtype=np.float32)
+    outerVerts = np.zeros((nVerts, 3), dtype=np.float32)
+    innerVerts[:, 0] = outerVerts[:, 0] = np.sin(steps)
+    innerVerts[:, 1] = outerVerts[:, 1] = np.cos(steps)
+
+    # Keep the ring size between -1 and 1 to simplify computing texture
+    # coordinates. We'll scale the vertices to the correct dimensions
+    # afterwards.
+    frac = innerRadius / float(outerRadius)
+    innerVerts[:, :2] *= frac
+
+    # combine inner and outer vertex rings
+    vertPos = np.vstack((innerVerts, outerVerts))
+
+    # generate faces
+    faces = []
+    for i in range(nVerts):
+        faces.append([i, edges + i + 1, edges + i])
+        faces.append([i, i + 1, edges + i + 1])
+
+    vertPos = np.ascontiguousarray(vertPos, dtype=np.float32)
+    normals = np.zeros_like(vertPos, dtype=np.float32)
+    normals[:, 2] = 1.0
+    faces = np.ascontiguousarray(faces, dtype=np.uint32)
+
+    # compute texture coordinates
+    texCoords = vertPos.copy()
+    texCoords[:, :] += 1.0
+    texCoords[:, :] *= 0.5
+
+    # scale to specified outer radius
+    vertPos[:, :2] *= outerRadius
+
+    return vertPos, texCoords, normals, faces
+
+
+def createCylinder(radius=1.0, height=1.0, edges=16, stacks=1):
+    """Create a cylinder mesh.
+
+    Generate a cylinder mesh with a given `height` and `radius`. The origin of
+    the mesh will centered on it and offset to the base. Texture coordinates
+    will be generated allowing a texture to wrap around it.
+
+    Parameters
+    ----------
+    radius : float
+        Radius of the cylinder in scene units.
+    height : float
+        Height in scene units.
+    edges : int
+        Number of edges, the greater the number, the smoother the cylinder will
+        appear when drawn.
+    stacks : int
+        Number of subdivisions along the height of cylinder to make. Setting to
+        1 will result in vertex data only being generated for the base and end
+        of the cylinder.
+
+    Returns
+    -------
+    tuple
+        Vertex attribute arrays (position, texture coordinates, and normals) and
+        triangle indices.
+
+    """
+    # generate vertex positions
+    nEdgeVerts = edges + 1
+    rings = stacks + 1
+    steps = np.linspace(0, 2 * np.pi, num=nEdgeVerts)
+    vertPos = np.zeros((nEdgeVerts, 3))
+    vertPos[:, 0] = np.sin(steps)
+    vertPos[:, 1] = np.cos(steps)
+    vertPos = np.tile(vertPos, (rings, 1))
+
+    # apply offset in height for each stack
+    stackHeight = np.linspace(0, height, num=rings)
+    vertPos[:, 2] = np.repeat(stackHeight, nEdgeVerts)
+
+    # generate texture coordinates to they wrap around the cylinder
+    u = np.linspace(0.0, 1.0, nEdgeVerts)
+    v = np.linspace(1.0, 0.0, rings)
+    uu, vv = np.meshgrid(u, v)
+    texCoords = np.vstack([uu.ravel(), vv.ravel()]).T
+
+    # generate vertex normals, since our vertices all on a unit circle, we can
+    # do a trick here
+    normals = vertPos.copy()
+    normals[:, 2] = 0.0
+
+    # create face indices
+    faces = []
+    for i in range(0, stacks):
+        stackOffset = nEdgeVerts * i
+        for j in range(nEdgeVerts):
+            j = stackOffset + j
+            faces.append([j, edges + j, edges + j + 1])
+            faces.append([j, edges + j + 1, j + 1])
+
+    vertPos, texCoords, normals = [
+        np.ascontiguousarray(i, dtype=np.float32) for i in (
+            vertPos, texCoords, normals)]
+    faces = np.ascontiguousarray(faces, dtype=np.uint32)
+
+    # scale the cylinder's radius and height to what the user specified
+    vertPos[:, :2] *= radius
+
+    return vertPos, texCoords, normals, faces
+
+
 def transformMeshPosOri(vertices, normals, pos=(0., 0., 0.), ori=(0., 0., 0., 1.)):
     """Transform a mesh.
 
@@ -4581,31 +6583,39 @@ def transformMeshPosOri(vertices, normals, pos=(0., 0., 0.), ori=(0., 0., 0., 1.
     normals = np.ascontiguousarray(normals)
 
     if not np.allclose(pos, [0., 0., 0.]):
-        vertices = mt.transform(pos, ori, vertices)
+        vertices = mt.transform(pos, ori, vertices, dtype=np.float32)
 
     if not np.allclose(ori, [0., 0., 0., 1.]):
-        normals = mt.applyQuat(ori, normals)
+        normals = mt.applyQuat(ori, normals, dtype=np.float32)
 
     return vertices, normals
 
+
+# ------------------------------
+# Mesh editing and cleanup tools
+# ------------------------------
+#
 
 def calculateVertexNormals(vertices, faces, shading='smooth'):
     """Calculate vertex normals given vertices and triangle faces.
 
     Finds all faces sharing a vertex index and sets its normal to either
     the face normal if `shading='flat'` or the average normals of adjacent
-    faces if `shading='smooth'`. Flat shading only works correctly if each
+    faces if `shading='smooth'`. Note, this function does not convert between
+    flat and smooth shading. Flat shading only works correctly if each
     vertex belongs to exactly one face.
 
     The direction of the normals are determined by the winding order of
-    triangles, assumed counter clock-wise (OpenGL default). Most model
+    triangles, assumed counter clock-wise (OpenGL default). Most 3D model
     editing software exports using this convention. If not, winding orders
     can be reversed by calling::
 
-        faces = np.fliplr(faces)
+        faces = numpy.fliplr(faces)
 
-    In some case, creases may appear if vertices are at the same location,
-    but do not share the same index.
+    In some case when using 'smooth', creases may appear if vertices are at the
+    same location, but do not share the same index. This may be desired in some
+    cases, however one may use the :func:`smoothCreases` function computing
+    normals to smooth out creases.
 
     Parameters
     ----------
@@ -4615,7 +6625,8 @@ def calculateVertexNormals(vertices, faces, shading='smooth'):
         Nx3 vertex indices.
     shading : str, optional
         Shading mode. Options are 'smooth' and 'flat'. Flat only works with
-        meshes where no vertex index is shared across faces.
+        meshes where no vertex index is shared across faces, if not, the
+        returned normals will be invalid.
 
     Returns
     -------
@@ -4635,7 +6646,7 @@ def calculateVertexNormals(vertices, faces, shading='smooth'):
     # compute surface normals for all faces
     faceNormals = mt.surfaceNormal(vertices[faces])
 
-    normals = []
+    normals = []  # new list of normals to return
     if shading == 'flat':
         for vertexIdx in np.unique(faces):
             match, _ = np.where(faces == vertexIdx)
@@ -4646,7 +6657,611 @@ def calculateVertexNormals(vertices, faces, shading='smooth'):
             match, _ = np.where(faces == vertexIdx)
             normals.append(mt.vertexNormal(faceNormals[match, :]))
 
-    return np.ascontiguousarray(normals) + 0.0
+    return np.ascontiguousarray(np.vstack(normals), np.float32) + 0.0
+
+
+def mergeVertices(vertices, faces, textureCoords=None, vertDist=0.0001,
+                  texDist=0.0001):
+    """Simplify a mesh by removing redundant vertices.
+
+    This function simplifies a mesh by merging overlapping (doubled) vertices,
+    welding together adjacent faces and removing sharp creases that appear when
+    rendering. This is useful in cases where a mesh's triangles do not share
+    vertices and one wishes to have it appear smoothly shaded when rendered. One
+    can also use this function reduce the detail of a mesh, however the quality
+    of the results may vary.
+
+    The position of the new vertex after merging will be the average position
+    of the adjacent vertices. Re-indexed faces and recalculated normals are also
+    returned with the cleaned-up vertex data. If texture coordinates are
+    supplied, adjacent vertices will not be removed if their is a distance in
+    texel space is greater than `texDist`. This avoids discontinuities in the
+    texture of the simplified mesh.
+
+    Parameters
+    ----------
+    vertices : ndarray
+        Nx3 array of vertex positions.
+    faces : ndarray
+        Nx3 integer array of face vertex indices.
+    textureCoords : ndarray
+        Nx2 array of texture coordinates.
+    vertDist : float
+        Maximum distance between two adjacent vertices to merge in scene units.
+    texDist : float
+        Maximum distance between texels to permit merging of vertices. If a
+        vertex is within merging distance, it will be moved instead of merged.
+
+    Returns
+    -------
+    tuple
+        Tuple containing newly computed vertices, normals and face indices. If
+        `textureCoords` was specified, a new array of texture coordinates will
+        be returned too at the second index.
+
+    Notes
+    -----
+    * This function only works on meshes consisting of triangle faces.
+
+    Examples
+    --------
+    Remove redundant vertices from a sphere::
+
+        vertices, textureCoords, normals, faces = gltools.createUVSphere()
+        vertices, textureCoords, normals, faces = gltools.removeDoubles(
+            vertices, faces, textureCoords)
+
+    Same but no texture coordinates are specified::
+
+        vertices, normals, faces = gltools.removeDoubles(vertices, faces)
+
+    """
+    # keep track of vertices that we merged
+    vertsProcessed = np.zeros((vertices.shape[0],), dtype=np.bool)
+
+    faces = faces.flatten()  # existing faces but flattened
+    # new array of faces that will get updated
+    newFaces = np.zeros_like(faces, dtype=np.uint32)
+
+    # loop over all vertices in the original mesh
+    newVerts = []
+    newTexCoords = []
+    lastProcIdx = 0  # last index processed, used to reindex
+    for i, vertex in enumerate(vertices):
+        if vertsProcessed[i]:  # don't do merge check if already processed
+            continue
+
+        # get the distance to all other vertices in mesh
+        vertDists = mt.distance(vertex, vertices)
+
+        # get vertices that fall with the threshold distance
+        toProcess = np.where(vertDists <= vertDist)[0]
+
+        # if all adjacent vertices were processed, move on to the next
+        if np.all(vertsProcessed[toProcess]):
+            continue
+
+        # if we have close verts and they have not been processed, merge them
+        if len(toProcess) > 1:
+            # If we have texture coords, merge those whose texture coords are
+            # close. Move the vertex to the new location for any that are not.
+            if textureCoords is not None:
+                # create a new vertex by averaging out positions
+                texCoordDists = mt.distance(textureCoords[i, :],
+                                            textureCoords[toProcess, :])
+
+                # get the vertices to merge or move
+                toMerge = toProcess[texCoordDists <= texDist]
+                toMove = toProcess[texCoordDists > texDist]
+
+                # compute mean positions
+                newPos = np.mean(vertices[toMerge, :], axis=0)
+                newTexCoord = np.mean(textureCoords[toMerge, :], axis=0)
+
+                newVerts.append(newPos)
+                newTexCoords.append(newTexCoord)
+                newFaces[np.in1d(faces, toMerge).nonzero()[0]] = lastProcIdx
+
+                # handle vertices that were moved
+                for j, idx in enumerate(toMove):
+                    newVerts.append(newPos)
+                    newTexCoords.append(textureCoords[idx, :])
+                    newFaces[np.argwhere(faces == idx)] = lastProcIdx + j
+
+                lastProcIdx += len(toMove)
+
+                vertsProcessed[toProcess] = 1  # update verts we processed
+
+            else:
+                newPos = np.mean(vertices[toProcess, :], axis=0)
+                newVerts.append(newPos)
+                newFaces[np.in1d(faces, toProcess).nonzero()[0]] = lastProcIdx
+                vertsProcessed[toProcess] = 1  # update verts we processed
+
+        else:
+            # single vertices need to be added too
+            newVerts.append(vertex)
+            if textureCoords is not None:
+                newTexCoords.append(textureCoords[i, :])
+            vertsProcessed[i] = 1  # update merged list
+            newFaces[np.argwhere(faces == i)] = lastProcIdx
+
+        lastProcIdx += 1
+
+        # all vertices have been processed, exit loop early
+        if np.all(vertsProcessed):
+            break
+
+    # create new output arrays
+    newVerts = np.ascontiguousarray(np.vstack(newVerts), dtype=np.float32)
+    newFaces = np.ascontiguousarray(newFaces.reshape((-1, 3)), dtype=np.uint32)
+    newNormals = calculateVertexNormals(newVerts, newFaces, 'smooth')
+
+    if textureCoords is not None:
+        newTexCoords = np.ascontiguousarray(
+            np.vstack(newTexCoords), dtype=np.float32)
+        toReturn = (newVerts, newTexCoords, newNormals, newFaces)
+    else:
+        toReturn = (newVerts, newNormals, newFaces)
+
+    return toReturn
+
+
+def smoothCreases(vertices, normals, vertDist=0.0001):
+    """Remove creases caused by misaligned surface normals.
+
+    A problem arises where surface normals are not correctly interpolated across
+    the edge where two faces meet, resulting in a visible 'crease' or sharp
+    discontinuity in shading. This is usually caused by the normals of the
+    overlapping vertices forming the edge being mis-aligned (not pointing in the
+    same direction).
+
+    If you notice these crease artifacts are present in your mesh *after*
+    computing surface normals, you can use this function to smooth them out.
+
+    Parameters
+    ----------
+    vertices : ndarray
+        Nx3 array of vertex coordinates.
+    normals : ndarray
+        Nx3 array of vertex normals.
+    vertDist : float
+        Maximum distance between vertices to average. Avoid using large numbers
+        here, vertices to be smoothed should be overlapping. This distance
+        should be as small as possible, just enough to account for numeric
+        rounding errors between vertices intended which would otherwise be at
+        the exact same location.
+
+    Returns
+    -------
+    ndarray
+        Array of smoothed surface normals with the same shape as `normals`.
+
+    """
+    newNormals = normals.copy()
+
+    # keep track of vertices that we processed
+    vertsProcessed = np.zeros((vertices.shape[0],), dtype=np.bool)
+
+    for i, vertex in enumerate(vertices):
+        if vertsProcessed[i]:  # don't do merge check if already processed
+            continue
+
+        # get the distance to all other vertices in mesh
+        dist = mt.distance(vertex, vertices)
+
+        # get vertices that fall with the threshold distance
+        adjacentIdx = list(np.where(dist <= vertDist)[0])
+
+        if np.all(vertsProcessed[adjacentIdx]):
+            continue
+
+        # now get their normals and average them
+        if len(adjacentIdx) > 1:
+            toAverage = vertices[adjacentIdx, :]
+            newNormal = np.mean(toAverage, axis=0)
+
+            # normalize
+            newNormal = mt.normalize(newNormal, out=newNormal)
+
+            # overwrite the normals we used to compute this one
+            newNormals[adjacentIdx, :] = newNormal
+
+            # flag these normals as used
+            vertsProcessed[adjacentIdx] = 1
+
+    return newNormals
+
+
+def flipFaces(normals, faces):
+    """Change the winding order of face indices.
+
+    OpenGL uses the winding order of face vertices to determine which side of
+    the face is either the front and back. This function reverses the winding
+    order of face indices and flips vertex normals so faces can be correctly
+    shaded.
+
+    Parameters
+    ----------
+    normals : ndarray
+        Nx3 array of surface normals.
+    faces : ndarray
+        Nx3 array of face indices.
+
+    Returns
+    -------
+    ndarray
+        Face indices with winding order reversed.
+
+    Examples
+    --------
+    Flip faces and normals of a box mesh so it can be viewed and lit from the
+    inside::
+
+        vertices, texCoords, normals, faces = createBox((5, 5, 5))
+        faces = flipFaces(faces)
+
+    """
+    normals = -normals  # invert normal vectors
+    faces = np.fliplr(faces)
+
+    return normals, faces
+
+
+def interleaveAttributes(attribArrays):
+    """Interleave vertex attributes into a single array.
+
+    Interleave vertex attributes into a single array for use with OpenGL's
+    vertex array objects. This function is useful when creating a VBO from
+    separate arrays of vertex positions, normals, and texture coordinates.
+
+    Parameters
+    ----------
+    attribArrays : list of array_like
+        List of arrays containing vertex attributes. Each array must have the
+        same number of rows.
+
+    Returns
+    -------
+    tuple
+        A tuple containing the interleaved vertex attribute array, a list of
+        attribute sizes, and a list of attribute offsets.
+    
+    Examples
+    --------
+    Interleave vertex attributes for use with a VAO::
+
+        vertices, textureCoords, normals, faces = createBox()
+        interleaved, sizes, offsets = interleaveAttributes(
+            [vertices, textureCoords, normals])
+        
+        # create a VBO with interleaved attributes
+        vboInterleaved = createVBO(interleaved)
+
+        # ... before rendering, set the attribute pointers
+        GL.glBindBuffer(vboInterleaved.target, vboInterleaved.name)
+        for i, attrib in enumerate([0, 8, 3]):
+            gltools.setVertexAttribPointer(
+                attrib, vboInterleaved, size=sizes[i], offset=offsets[i])
+
+    """
+    # get the number of rows in the first array
+    nRows = attribArrays[0].shape[0]
+
+    # check if all arrays have the same number of rows
+    if  any([i.shape[0] != nRows for i in attribArrays]):
+        raise ValueError("All arrays must have the same number of rows.")
+
+    # get a list of attribute widths
+    sizes = [i.shape[1] for i in attribArrays]
+    offsets = [0] + [sum(sizes[:i]) for i in range(1, len(sizes))]
+
+    # combine all arrays horizontally
+    toReturn = np.hstack(attribArrays)
+
+    return np.ascontiguousarray(toReturn, dtype=np.float32), sizes, offsets
+
+
+def generateTexCoords(vertices):
+    """Generate texture coordinates for a mesh.
+
+    Generate texture coordinates for a mesh by normalizing the vertex positions
+    to the bounding box of the mesh.
+
+    Parameters
+    ----------
+    vertices : ndarray
+        Nx2 or Nx3 array of vertex positions.
+
+    Returns
+    -------
+    ndarray
+        Nx2 array of normalized texture coordinates.
+
+    Examples
+    --------
+    Generate texture coordinates for a box mesh::
+
+        vertices, textureCoords, normals, faces = createBox()
+        texCoords = generateTexCoords(vertices)
+
+    """
+    # normalize the vertex positions to the bounding box
+    texCoords = (vertices - np.min(vertices, axis=0)) / np.ptp(vertices, axis=0)
+
+    return np.ascontiguousarray(texCoords, dtype=np.float32)
+
+
+def tesselate(points, mode='triangle', config=None):
+    """Tesselate (or fill) a 2D polygon edge loop.
+
+    Tesselate a 2D polygon defined by a set of vertices. This creates a 'filled'
+    polygon where the vertices are connected by a set of triangles. The function 
+    will return a tesselated mesh with vertex positions, surface normals, and 
+    face indices. Texture coordinates are generated by normalizing the vertex 
+    positions.
+    
+    Parameters
+    ----------
+    points : ndarray
+        Nx2 array of vertex positions of the outer boundary.
+    mode : str, optional
+        Tesselation mode (algorithm) to use. Options are 'triangle', 'delaunay', 
+        'fan' or 'simple'. Default is 'triangle' (recommended) which is the most 
+        robust method that can handle concave polygons and holes. Use 'fan' for
+        equilateral polygons.
+    config : dict, optional
+        Configuration options for the tesselation. This can be used to specify
+        additional options for the tesselation algorithm.
+    
+    Returns
+    -------
+    tuple
+        A tuple containing the vertex positions, surface normals, texture 
+        coordinates, and face indices of the tesselated mesh.
+
+    Examples
+    --------
+    Tesselate a simple square::
+
+        vertices = np.array([[0, 0], [1, 0], [1, 1], [0, 1]])
+        vertices, normals, texCoords, faces = tesselate(points)
+
+    Notes
+    -----
+    * The 'triangle' mode uses the Triangle library (via MeshPy) to tesselate
+      the polygon, see: https://www.cs.cmu.edu/~quake/triangle.html
+    * The 'delaunay' mode uses the `scipy.spatial.Delaunay` for tesselation
+      (using the Qhull library). However, it cannot handle holes or concave 
+      polygons.
+    * The 'fan' mode creates a fan tesselation where the first vertex is the
+      center of the fan and the rest are the outer boundary. This is useful for
+      creating simple, nonconcave shapes like circles.
+
+    """
+    config = config or dict()  # ensure we have a config dictionary
+
+    nPoints = len(points)
+    if nPoints < 3:
+        raise ValueError(
+            "At least 3 points are required to tesselate a polygon.")
+    elif nPoints == 3:
+        # if we only have 3 points, we can't tesselate the polygon
+        vertices = np.array(points, dtype=np.float32)
+        faces = np.array([[0, 1, 2]], dtype=np.uint32)
+        normals = np.ascontiguousarray(
+            np.tile([0., 0., -1.], (faces.shape[0], 1)), dtype=np.float32)
+        texCoords = generateTexCoords(vertices)
+
+        return vertices, normals, texCoords, faces
+
+    # perform tesselation based on the mode
+    if mode == 'triangle' or mode == 'meshpy':
+        # trinagulation using meshpy (triangle)
+        from meshpy.triangle import MeshInfo, build
+
+        # create a mesh info object
+        meshInfo = MeshInfo()
+        meshInfo.set_points(points)
+
+        # compute facets
+        facetEnd = len(points) - 1
+        facets = [(i, i + 1) for i in range(0, facetEnd)] + [(facetEnd, 0)]
+        meshInfo.set_facets(facets)
+
+        # build the mesh
+        mesh = build(meshInfo, **config)
+
+        # get the vertices and faces
+        vertices = mesh.points
+        faces = mesh.elements
+
+    elif mode == 'fan' or mode == 'equilateral':
+        # This mode creates a fan tesselation where the first vertex is the
+        # centroid of the polygon and the rest are the outer boundary. Works 
+        # well for equilateral polygons that have not concavities. This is 
+        # probably the fastest method to tesselate an equilateral polygon with
+        # good results.        
+
+        # find the centroid of the polygon
+        centroid = np.mean(points, axis=0)
+
+        # add the centroid to the list of vertices
+        vertices = np.vstack((centroid, points))
+
+        # generate faces
+        faces = np.zeros((len(points), 3), dtype=np.uint32)
+        faces[:, 0] = 0
+        faces[:, 1] = np.arange(1, len(points) + 1)
+        faces[:, 2] = np.roll(faces[:, 1], 1)
+
+    elif mode == 'delaunay' or mode == 'scipy':
+        # Delaunay triangulation using scipy. This triangulates the polygon
+        # using the Qhull library. This method is reasonably fast however it
+        # outputs the convex hull of the polygon which may not be desired.
+
+        # do a delaunay triangulation
+        from scipy.spatial import Delaunay
+
+        # create a delaunay triangulation
+        result = Delaunay(points, **config)
+
+        # get the face indices
+        vertices = result.points
+        faces = result.simplices
+
+    elif mode == 'simple':
+        # Simple tesselation mode where the vertices are connected in a simple
+        # fan pattern from the first vertex in the provided array. This is
+        # useful for simple shapes like circles or squares.
+        vertices = np.vstack((points, points[0]))
+        faces = np.array(
+            [[0, i + 1, i + 2] for i in range(len(points) - 1)])
+
+    else:
+        raise ValueError("Invalid mode '{}' specified.".format(mode))
+
+    # compute surface normals for all faces
+    vertices = np.ascontiguousarray(vertices, dtype=np.float32)
+    faces = np.ascontiguousarray(faces, dtype=np.uint32)
+
+    # generate normals for each vertex, facing outwards
+    normals = np.ascontiguousarray(
+        np.tile([0., 0., -1.], (faces.shape[0], 1)), 
+        dtype=np.float32)
+
+    # generate texture coordinates which are normalized vertex positions
+    texCoords = generateTexCoords(vertices)
+
+    return vertices, normals, texCoords, faces
+
+
+def mergeMeshes(meshData):
+    """Merge multiple meshes into a single mesh.
+    
+    Merge multiple meshes into a single mesh by combining their vertex positions,
+    normals, texture coordinates, and face indices. 
+
+    Parameters
+    ----------
+    meshData : list of tuple
+        List of tuples containing vertex positions, normals, texture coordinates,
+        and face indices for each mesh to merge. Each tuple must contain the
+        vertex positions, and may optionally contain the normals and texture
+        coordinates. The face indices must be provided.
+
+    Returns
+    -------
+    tuple
+        A tuple containing the merged vertex positions, normals, texture 
+        coordinates, and face indices. If `normals` or `texCoords` are not
+        provided, they will be set to `None`.
+    
+    Examples
+    --------
+    Merge two meshes into a single mesh::
+
+        vertices1, normals1, texCoords1, faces1 = createBox()
+        vertices2, normals2, texCoords2, faces2 = createUVSphere()
+
+        # merge the two meshes
+        vertices, normals, texCoords, faces = mergeMeshes([
+            (vertices1, normals1, texCoords1, faces1),
+            (vertices2, normals2, texCoords2, faces2)])
+    
+    Create a tube using primatives::
+
+        tubeOuter = createCylinder(1.0, 1.0, 16, 1)
+        tubeInner = createCylinder(0.5, 1.0, 16, 1)
+
+        # merge the tube parts
+        vertices, normals, texCoords, faces = mergeMeshes(
+            tubeOuter, tubeInner])
+
+    """
+    vertices = np.ascontiguousarray(
+        np.vstack([i[0] for i in meshData]), dtype=np.float32)
+    
+    newFaces = []
+    offset = 0
+    for i in meshData:
+        newFaces.append(i[3] + offset)
+        offset += np.max(i[3]) + 1
+
+    faces = np.ascontiguousarray(np.vstack(newFaces), dtype=np.uint32)
+
+    # check if normals and texture coordinates are provided
+    if all([i[1] is not None for i in meshData]):
+        normals = np.ascontiguousarray(
+            np.vstack([i[1] for i in meshData]), dtype=np.float32)
+    else:
+        normals = None
+
+    if all([i[2] is not None for i in meshData]):
+        texCoords = np.ascontiguousarray(
+            np.vstack([i[2] for i in meshData]), dtype=np.float32)
+    else:
+        texCoords = None
+
+    return vertices, normals, texCoords, faces
+
+
+def nextPowerOfTwo(value):
+    """Compute the next power of two for a given value.
+
+    Parameters
+    ----------
+    value : int
+        The value to compute the next power of two for.
+
+    Returns
+    -------
+    int
+        The next power of two for the given value.
+
+    """
+    return 2 ** int(np.ceil(np.log2(value)))
+
+
+def fitTextureToPowerOfTwo(width, height, square=False):
+    """Determine the horizontal and vertical dimensions of a image buffer that
+    can contain the specified width and height, fitted to the next power of two.
+
+    Parameters
+    ----------
+    width : int
+        The width of the texture in pixels.
+    height : int
+        The height of the texture in pixels.
+    square : bool, optional
+        If True, the texture will be fitted to the next power of two in both
+        dimensions. Default is False.
+
+    Returns
+    -------
+    tuple
+        A tuple containing the width and height of the texture fitted to the
+        next power of two.
+
+    Raises
+    ------
+    ValueError
+        If the texture dimensions exceed the maximum texture size
+        supported by the OpenGL implementation.
+
+    """
+    maxTexSize = getOpenGLInfo().maxTextureSize
+
+    newWidth = nextPowerOfTwo(width)
+    newHeight = nextPowerOfTwo(height)
+
+    if newWidth > maxTexSize or newHeight > maxTexSize:
+        raise ValueError("Texture dimensions exceed maximum texture size.")
+    
+    if square:
+        newWidth = newHeight = max(newWidth, newHeight)
+    
+    return newWidth, newHeight
 
 
 # -----------------------------
@@ -4718,7 +7333,7 @@ def getModelViewMatrix():
 
     """
     modelview = np.zeros((4, 4), dtype=np.float32)
-
+    
     GL.glGetFloatv(GL.GL_MODELVIEW_MATRIX, modelview.ctypes.data_as(
         ctypes.POINTER(ctypes.c_float)))
 
@@ -4746,214 +7361,5 @@ def getProjectionMatrix():
     return proj
 
 
-# OpenGL information type
-OpenGLInfo = namedtuple(
-    'OpenGLInfo',
-    ['vendor',
-     'renderer',
-     'version',
-     'majorVersion',
-     'minorVersion',
-     'doubleBuffer',
-     'maxTextureSize',
-     'stereo',
-     'maxSamples',
-     'extensions',
-     'userData'])
-
-
-def getOpenGLInfo():
-    """Get general information about the OpenGL implementation on this machine.
-    This should provide a consistent means of doing so regardless of the OpenGL
-    interface we are using.
-
-    Returns are dictionary with the following fields::
-
-        vendor, renderer, version, majorVersion, minorVersion, doubleBuffer,
-        maxTextureSize, stereo, maxSamples, extensions
-
-    Supported extensions are returned as a list in the 'extensions' field. You
-    can check if a platform supports an extension by checking the membership of
-    the extension name in that list.
-
-    Returns
-    -------
-    OpenGLInfo
-
-    """
-    return OpenGLInfo(getString(GL.GL_VENDOR),
-                      getString(GL.GL_RENDERER),
-                      getString(GL.GL_VERSION),
-                      getIntegerv(GL.GL_MAJOR_VERSION),
-                      getIntegerv(GL.GL_MINOR_VERSION),
-                      getIntegerv(GL.GL_DOUBLEBUFFER),
-                      getIntegerv(GL.GL_MAX_TEXTURE_SIZE),
-                      getIntegerv(GL.GL_STEREO),
-                      getIntegerv(GL.GL_MAX_SAMPLES),
-                      [i for i in getString(GL.GL_EXTENSIONS).split(' ')],
-                      dict())
-
-
-# ---------------------
-# OpenGL/VRML Materials
-# ---------------------
-#
-# A collection of pre-defined materials for stimuli. Keep in mind that these
-# materials only approximate real-world equivalents. Values were obtained from
-# http://devernay.free.fr/cours/opengl/materials.html (08/24/18). There are four
-# material libraries to use, where individual material descriptors are accessed
-# via property names.
-#
-# Usage:
-#
-#   useMaterial(metalMaterials.gold)
-#   drawVAO(myObject)
-#   ...
-#
-mineralMaterials = namedtuple(
-    'mineralMaterials',
-    ['emerald', 'jade', 'obsidian', 'pearl', 'ruby', 'turquoise'])(
-    createMaterial(
-        [(GL.GL_AMBIENT, (0.0215, 0.1745, 0.0215, 1.0)),
-         (GL.GL_DIFFUSE, (0.07568, 0.61424, 0.07568, 1.0)),
-         (GL.GL_SPECULAR, (0.633, 0.727811, 0.633, 1.0)),
-         (GL.GL_SHININESS, 0.6 * 128.0)]),
-    createMaterial(
-        [(GL.GL_AMBIENT, (0.135, 0.2225, 0.1575, 1.0)),
-         (GL.GL_DIFFUSE, (0.54, 0.89, 0.63, 1.0)),
-         (GL.GL_SPECULAR, (0.316228, 0.316228, 0.316228, 1.0)),
-         (GL.GL_SHININESS, 0.1 * 128.0)]),
-    createMaterial(
-        [(GL.GL_AMBIENT, (0.05375, 0.05, 0.06625, 1.0)),
-         (GL.GL_DIFFUSE, (0.18275, 0.17, 0.22525, 1.0)),
-         (GL.GL_SPECULAR, (0.332741, 0.328634, 0.346435, 1.0)),
-         (GL.GL_SHININESS, 0.3 * 128.0)]),
-    createMaterial(
-        [(GL.GL_AMBIENT, (0.25, 0.20725, 0.20725, 1.0)),
-         (GL.GL_DIFFUSE, (1, 0.829, 0.829, 1.0)),
-         (GL.GL_SPECULAR, (0.296648, 0.296648, 0.296648, 1.0)),
-         (GL.GL_SHININESS, 0.088 * 128.0)]),
-    createMaterial(
-        [(GL.GL_AMBIENT, (0.1745, 0.01175, 0.01175, 1.0)),
-         (GL.GL_DIFFUSE, (0.61424, 0.04136, 0.04136, 1.0)),
-         (GL.GL_SPECULAR, (0.727811, 0.626959, 0.626959, 1.0)),
-         (GL.GL_SHININESS, 0.6 * 128.0)]),
-    createMaterial(
-        [(GL.GL_AMBIENT, (0.1, 0.18725, 0.1745, 1.0)),
-         (GL.GL_DIFFUSE, (0.396, 0.74151, 0.69102, 1.0)),
-         (GL.GL_SPECULAR, (0.297254, 0.30829, 0.306678, 1.0)),
-         (GL.GL_SHININESS, 0.1 * 128.0)])
-)
-
-metalMaterials = namedtuple(
-    'metalMaterials',
-    ['brass', 'bronze', 'chrome', 'copper', 'gold', 'silver'])(
-    createMaterial(
-        [(GL.GL_AMBIENT, (0.329412, 0.223529, 0.027451, 1.0)),
-         (GL.GL_DIFFUSE, (0.780392, 0.568627, 0.113725, 1.0)),
-         (GL.GL_SPECULAR, (0.992157, 0.941176, 0.807843, 1.0)),
-         (GL.GL_SHININESS, 0.21794872 * 128.0)]),
-    createMaterial(
-        [(GL.GL_AMBIENT, (0.2125, 0.1275, 0.054, 1.0)),
-         (GL.GL_DIFFUSE, (0.714, 0.4284, 0.18144, 1.0)),
-         (GL.GL_SPECULAR, (0.393548, 0.271906, 0.166721, 1.0)),
-         (GL.GL_SHININESS, 0.2 * 128.0)]),
-    createMaterial(
-        [(GL.GL_AMBIENT, (0.25, 0.25, 0.25, 1.0)),
-         (GL.GL_DIFFUSE, (0.4, 0.4, 0.4, 1.0)),
-         (GL.GL_SPECULAR, (0.774597, 0.774597, 0.774597, 1.0)),
-         (GL.GL_SHININESS, 0.6 * 128.0)]),
-    createMaterial(
-        [(GL.GL_AMBIENT, (0.19125, 0.0735, 0.0225, 1.0)),
-         (GL.GL_DIFFUSE, (0.7038, 0.27048, 0.0828, 1.0)),
-         (GL.GL_SPECULAR, (0.256777, 0.137622, 0.086014, 1.0)),
-         (GL.GL_SHININESS, 0.1 * 128.0)]),
-    createMaterial(
-        [(GL.GL_AMBIENT, (0.24725, 0.1995, 0.0745, 1.0)),
-         (GL.GL_DIFFUSE, (0.75164, 0.60648, 0.22648, 1.0)),
-         (GL.GL_SPECULAR, (0.628281, 0.555802, 0.366065, 1.0)),
-         (GL.GL_SHININESS, 0.4 * 128.0)]),
-    createMaterial(
-        [(GL.GL_AMBIENT, (0.19225, 0.19225, 0.19225, 1.0)),
-         (GL.GL_DIFFUSE, (0.50754, 0.50754, 0.50754, 1.0)),
-         (GL.GL_SPECULAR, (0.508273, 0.508273, 0.508273, 1.0)),
-         (GL.GL_SHININESS, 0.4 * 128.0)])
-)
-
-plasticMaterials = namedtuple(
-    'plasticMaterials',
-    ['black', 'cyan', 'green', 'red', 'white', 'yellow'])(
-    createMaterial(
-        [(GL.GL_AMBIENT, (0, 0, 0, 1.0)),
-         (GL.GL_DIFFUSE, (0.01, 0.01, 0.01, 1.0)),
-         (GL.GL_SPECULAR, (0.5, 0.5, 0.5, 1.0)),
-         (GL.GL_SHININESS, 0.25 * 128.0)]),
-    createMaterial(
-        [(GL.GL_AMBIENT, (0, 0.1, 0.06, 1.0)),
-         (GL.GL_DIFFUSE, (0.06, 0, 0.50980392, 1.0)),
-         (GL.GL_SPECULAR, (0.50196078, 0.50196078, 0.50196078, 1.0)),
-         (GL.GL_SHININESS, 0.25 * 128.0)]),
-    createMaterial(
-        [(GL.GL_AMBIENT, (0, 0, 0, 1.0)),
-         (GL.GL_DIFFUSE, (0.1, 0.35, 0.1, 1.0)),
-         (GL.GL_SPECULAR, (0.45, 0.55, 0.45, 1.0)),
-         (GL.GL_SHININESS, 0.25 * 128.0)]),
-    createMaterial(
-        [(GL.GL_AMBIENT, (0, 0, 0, 1.0)),
-         (GL.GL_DIFFUSE, (0.5, 0, 0, 1.0)),
-         (GL.GL_SPECULAR, (0.7, 0.6, 0.6, 1.0)),
-         (GL.GL_SHININESS, 0.25 * 128.0)]),
-    createMaterial(
-        [(GL.GL_AMBIENT, (0, 0, 0, 1.0)),
-         (GL.GL_DIFFUSE, (0.55, 0.55, 0.55, 1.0)),
-         (GL.GL_SPECULAR, (0.7, 0.7, 0.7, 1.0)),
-         (GL.GL_SHININESS, 0.25 * 128.0)]),
-    createMaterial(
-        [(GL.GL_AMBIENT, (0, 0, 0, 1.0)),
-         (GL.GL_DIFFUSE, (0.5, 0.5, 0, 1.0)),
-         (GL.GL_SPECULAR, (0.6, 0.6, 0.5, 1.0)),
-         (GL.GL_SHININESS, 0.25 * 128.0)])
-)
-
-rubberMaterials = namedtuple(
-    'rubberMaterials',
-    ['black', 'cyan', 'green', 'red', 'white', 'yellow'])(
-    createMaterial(
-        [(GL.GL_AMBIENT, (0.02, 0.02, 0.02, 1.0)),
-         (GL.GL_DIFFUSE, (0.01, 0.01, 0.01, 1.0)),
-         (GL.GL_SPECULAR, (0.4, 0.4, 0.4, 1.0)),
-         (GL.GL_SHININESS, 0.078125 * 128.0)]),
-    createMaterial(
-        [(GL.GL_AMBIENT, (0, 0.05, 0.05, 1.0)),
-         (GL.GL_DIFFUSE, (0.4, 0.5, 0.5, 1.0)),
-         (GL.GL_SPECULAR, (0.04, 0.7, 0.7, 1.0)),
-         (GL.GL_SHININESS, 0.078125 * 128.0)]),
-    createMaterial(
-        [(GL.GL_AMBIENT, (0, 0.05, 0, 1.0)),
-         (GL.GL_DIFFUSE, (0.4, 0.5, 0.4, 1.0)),
-         (GL.GL_SPECULAR, (0.04, 0.7, 0.04, 1.0)),
-         (GL.GL_SHININESS, 0.078125 * 128.0)]),
-    createMaterial(
-        [(GL.GL_AMBIENT, (0.05, 0, 0, 1.0)),
-         (GL.GL_DIFFUSE, (0.5, 0.4, 0.4, 1.0)),
-         (GL.GL_SPECULAR, (0.7, 0.04, 0.04, 1.0)),
-         (GL.GL_SHININESS, 0.078125 * 128.0)]),
-    createMaterial(
-        [(GL.GL_AMBIENT, (0.05, 0.05, 0.05, 1.0)),
-         (GL.GL_DIFFUSE, (0.5, 0.5, 0.5, 1.0)),
-         (GL.GL_SPECULAR, (0.7, 0.7, 0.7, 1.0)),
-         (GL.GL_SHININESS, 0.078125 * 128.0)]),
-    createMaterial(
-        [(GL.GL_AMBIENT, (0.05, 0.05, 0, 1.0)),
-         (GL.GL_DIFFUSE, (0.5, 0.5, 0.4, 1.0)),
-         (GL.GL_SPECULAR, (0.7, 0.7, 0.04, 1.0)),
-         (GL.GL_SHININESS, 0.078125 * 128.0)])
-)
-
-# default material according to the OpenGL spec.
-defaultMaterial = createMaterial(
-    [(GL.GL_AMBIENT, (0.2, 0.2, 0.2, 1.0)),
-     (GL.GL_DIFFUSE, (0.8, 0.8, 0.8, 1.0)),
-     (GL.GL_SPECULAR, (0.0, 0.0, 0.0, 1.0)),
-     (GL.GL_EMISSION, (0.0, 0.0, 0.0, 1.0)),
-     (GL.GL_SHININESS, 0)])
+if __name__ == "__main__":
+    pass

@@ -1,0 +1,1 @@
+When the {{ cls.title }} should stop, see :ref:`startStop`.

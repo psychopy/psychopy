@@ -63,7 +63,7 @@ class BrushComponent(BaseVisualComponent):
         msg = _translate("The line opacity")
         self.params['opacity'].hint=msg
 
-        msg = _translate("Whether a button needs to be pressed to draw (True/False)")
+        msg = _translate("Should the participant have to press a button to paint (True), or should it be always on (False)?")
         self.params['buttonRequired'] = Param(
             buttonRequired, valType='bool', inputType="bool", allowedTypes=[], categ='Basic',
             updates='constant',

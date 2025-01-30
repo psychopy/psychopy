@@ -14,21 +14,6 @@ from psychopy.tools import stringtools as st, systemtools as syst, audiotools as
 from psychopy.experiment.components import (
     BaseComponent, BaseDeviceComponent, Param, getInitVals, _translate
 )
-from psychopy.tools.audiotools import sampleRateQualityLevels
-
-_hasPTB = True
-try:
-    import psychtoolbox.audio as audio
-except (ImportError, ModuleNotFoundError):
-    logging.warning(
-        "The 'psychtoolbox' library cannot be loaded but is required for audio "
-        "capture (use `pip install psychtoolbox` to get it). Microphone "
-        "recording will be unavailable this session. Note that opening a "
-        "microphone stream will raise an error.")
-    _hasPTB = False
-
-# Get list of sample rates
-sampleRates = {r[1]: r[0] for r in sampleRateQualityLevels.values()}
 
 
 class MicrophoneComponent(BaseDeviceComponent):
@@ -48,13 +33,18 @@ class MicrophoneComponent(BaseDeviceComponent):
     onlineTranscribers = {
         "Google": "google",
     }
+    # dict mapping transcriber names to importable paths
+    transcriberPaths = {
+        'google': "psychopy.sound.transcribe:GoogleCloudTranscriber"
+    }
 
     def __init__(self, exp, parentName, name='mic',
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=2.0,
                  startEstim='', durationEstim='',
                  channels='auto', device=None,
-                 sampleRate='DVD Audio (48kHz)', maxSize=24000,
+                 exclusive=False,
+                 sampleRate='DVD Audio (48kHz)',
                  outputType='default', speakTimes=False, trimSilent=False,
                  policyWhenFull='warn',
                  transcribe=False, transcribeBackend="none",
@@ -85,6 +75,7 @@ class MicrophoneComponent(BaseDeviceComponent):
             "device",
             "channels",
             "sampleRate",
+            "exclusive",
             "maxSize",
         ]
 
@@ -101,7 +92,7 @@ class MicrophoneComponent(BaseDeviceComponent):
             return ["default"] + [profile['deviceName'] for profile in profiles]
 
         self.params['device'] = Param(
-            device, valType='code', inputType="choice", categ="Device",
+            device, valType='str', inputType="choice", categ="Device",
             allowedVals=getDeviceIndices,
             allowedLabels=getDeviceNames,
             label=_translate("Device"),
@@ -132,22 +123,27 @@ class MicrophoneComponent(BaseDeviceComponent):
                 "many channels as the selected device allows."
             )
         )
+
+        def getSampleRates():
+            return [r[0] for r in at.sampleRateQualityLevels.values()]
+        def getSampleRateLabels():
+            return [r[1] for r in at.sampleRateQualityLevels.values()]
         self.params['sampleRate'] = Param(
             sampleRate, valType='num', inputType="choice", categ='Device',
-            allowedVals=list(sampleRates),
+            allowedVals=getSampleRates,
+            allowedLabels=getSampleRateLabels,
             label=_translate("Sample rate (hz)"),
             hint=_translate(
                 "How many samples per second (Hz) to record at"
             ),
             direct=False
         )
-        self.params['maxSize'] = Param(
-            maxSize, valType='num', inputType="single", categ='Device',
-            updates="set every repeat",
-            label=_translate("Max recording size (kb)"),
+        self.params['exclusive'] = Param(
+            exclusive, valType="code", inputType="bool", categ="Device",
+            label=_translate("Exclusive control"),
             hint=_translate(
-                "To avoid excessively large output files, what is the biggest file size you are "
-                "likely to expect?"
+                "Take exclusive control of the microphone, so other apps can't use it during your "
+                "experiment."
             )
         )
 
@@ -239,7 +235,7 @@ class MicrophoneComponent(BaseDeviceComponent):
         )
         self.depends.append({
             "dependsOn": "transcribeBackend",
-            "condition": "=='Google'",
+            "condition": "=='google'",
             "param": "transcribeLang",
             "true": "show",  # what to do with param if condition is True
             "false": "hide",  # permitted: hide, show, enable, disable
@@ -254,7 +250,7 @@ class MicrophoneComponent(BaseDeviceComponent):
         )
         self.depends.append({
             "dependsOn": "transcribeBackend",
-            "condition": "=='Google'",
+            "condition": "=='google'",
             "param": "transcribeWords",
             "true": "show",  # what to do with param if condition is True
             "false": "hide",  # permitted: hide, show, enable, disable
@@ -319,10 +315,13 @@ class MicrophoneComponent(BaseDeviceComponent):
         inits = getInitVals(self.params)
 
         # --- setup mic ---
-        # Substitute sample rate value for numeric equivalent
-        inits['sampleRate'] = sampleRates[inits['sampleRate'].val]
+        # make sure sample rate is numeric
+        if inits['sampleRate'].val in at.sampleRateLabels:
+            inits['sampleRate'].val = at.sampleRateLabels[inits['sampleRate'].val]
         # Substitute channel value for numeric equivalent
         inits['channels'] = {'mono': 1, 'stereo': 2, 'auto': None}[self.params['channels'].val]
+        # force index to str type (holdover from when we used numeric indices)
+        inits['device'].valType = "str"
         # initialise mic device
         code = (
             "# initialise microphone\n"
@@ -330,7 +329,7 @@ class MicrophoneComponent(BaseDeviceComponent):
             "    deviceClass='psychopy.hardware.microphone.MicrophoneDevice',\n"
             "    deviceName=%(deviceLabel)s,\n"
             "    index=%(device)s,\n"
-            "    maxRecordingSize=%(maxSize)s,\n"
+            "    exclusive=%(exclusive)s,\n"
         )
         if self.params['device'].val not in ("None", "", None):
             code += (
@@ -368,13 +367,18 @@ class MicrophoneComponent(BaseDeviceComponent):
 
     def writeRunOnceInitCode(self, buff):
         inits = getInitVals(self.params)
+        # get transcriber path
+        if inits['transcribeBackend'].val in MicrophoneComponent.transcriberPaths:
+            inits['transcriberPath'] = MicrophoneComponent.transcriberPaths[inits['transcribeBackend'].val]
+        else:
+            inits['transcriberPath'] = inits['transcribeBackend'].val
         # check if the user wants to do transcription
         if inits['transcribe'].val:
             code = (
                 "# Setup speech-to-text transcriber for audio recordings\n"
                 "from psychopy.sound.transcribe import setupTranscriber\n"
                 "setupTranscriber(\n"
-                "    '%(transcribeBackend)s'")
+                "    '%(transcriberPath)s'")
         
             # handle advanced config options
             if inits['transcribeBackend'].val == 'Whisper':
@@ -401,12 +405,16 @@ class MicrophoneComponent(BaseDeviceComponent):
             "# tell the experiment handler to save this Microphone's clips if the experiment is "
             "force ended\n"
             "runAtExit.append(%(name)s.saveClips)\n"
+            "# connect camera save method to experiment handler so it's called when data saves\n"
+            "thisExp.connectSaveMethod(%(name)s.saveClips)\n"
         )
         buff.writeIndentedLines(code % inits)
 
     def writeInitCodeJS(self, buff):
         inits = getInitVals(self.params)
-        inits['sampleRate'] = sampleRates[inits['sampleRate'].val]
+        # make sure sample rate is numeric
+        if inits['sampleRate'].val in at.sampleRateLabels:
+            inits['sampleRate'].val = at.sampleRateLabels[inits['sampleRate'].val]
         # Alert user if non-default value is selected for device
         if inits['device'].val != 'default':
             alert(5055, strFields={'name': inits['name'].val})
@@ -421,7 +429,6 @@ class MicrophoneComponent(BaseDeviceComponent):
                 "name:'%(name)s',\n"
                 "sampleRateHz : %(sampleRate)s,\n"
                 "channels : %(channels)s,\n"
-                "maxRecordingSize : %(maxSize)s,\n"
                 "loopback : true,\n"
                 "policyWhenFull : 'ignore',\n"
         )

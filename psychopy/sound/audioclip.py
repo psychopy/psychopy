@@ -45,6 +45,11 @@ AUDIO_CHANNEL_RIGHT = AUDIO_EAR_RIGHT = 1
 AUDIO_CHANNEL_COUNT = AUDIO_EAR_COUNT = 2
 
 
+class AudioSynthesisError(Exception):
+    """Error raised when an issue occurs during audio synthesis."""
+    pass
+
+
 class AudioClip:
     """Class for storing audio clip data.
 
@@ -577,6 +582,8 @@ class AudioClip:
         self._samples = np.ascontiguousarray(
             np.vstack((self._samples, other.samples)),
             dtype=np.float32)
+        
+        self._duration = len(self.samples) / float(self.sampleRateHz)
 
         return self
 
@@ -968,18 +975,25 @@ class AudioClip:
             Mono version of this object.
 
         """
-        samples = np.atleast_2d(self._samples)  # enforce 2D
+        if self.channels == 1:
+            return self
+        # log
+        logging.debug(
+            "Converted audio clip from stereo to mono"
+        )
+        # enforce 2D
+        samples = np.atleast_2d(self._samples)
+        # reduce to mono
         if samples.shape[1] > 1:
             samplesMixed = np.atleast_2d(
                 np.sum(samples, axis=1, dtype=np.float32) / np.float32(2.)).T
         else:
             samplesMixed = samples.copy()
-
+        # create copy if requested
         if copy:
             return AudioClip(samplesMixed, self.sampleRateHz)
-
-        self._samples = samplesMixed  # overwrite
-
+        # otherwise change self
+        self._samples = samplesMixed
         return self
     
     def asStereo(self, copy=True):
@@ -1001,15 +1015,19 @@ class AudioClip:
         """
         if self.channels == 2:
             return self
-
-        samples = np.atleast_2d(self._samples)  # enforce 2D
+        # log
+        logging.debug(
+            "Converted audio clip from mono to stereo"
+        )
+        # enforce 2D
+        samples = np.atleast_2d(self._samples) 
+        # expand to stereo
         samples = np.hstack((samples, samples))
-
+        # create copy if requested
         if copy:
             return AudioClip(samples, self.sampleRateHz)
-
-        self._samples = samples  # overwrite
-
+        # otherwise change self
+        self._samples = samples
         return self
 
     def transcribe(self, engine='whisper', language='en-US', expectedWords=None,

@@ -91,9 +91,9 @@ class TestStyle:
             phrase = re.sub(pattern=(
                 f"(?<= )({pattern})(?= )"  # space before and after
                 f"|(?<= )({pattern})$"  # space before and line end after
-                f"|(?<= )({pattern})(?=[^\w\s]+)"  # space before and punctuation after
+                f"|(?<= )({pattern})(?=[^\\w\\s]+)"  # space before and punctuation after
                 f"|^({pattern})(?= )"  # line start before and space after
-                f"|^({pattern})(?=[^\w\s]+)"  # line start before and punctuation after
+                f"|^({pattern})(?=[^\\w\\s]+)"  # line start before and punctuation after
                 f"|^({pattern})$"  # line start before and line end after
             ), string=phrase, repl=repl)
 
@@ -174,8 +174,8 @@ def test_param_str():
          "js": f"{_q}Hello there{_q}"},
         # Enforced string
         {"obj": Param("\\, | or /", "str", canBePath=False),
-         "py": f"{_q}{_sl}, \| or /{_q}",
-         "js": f"{_q}{_sl}, \| or /{_q}"},
+         "py": f"{_q}{_sl}, \\| or /{_q}",
+         "js": f"{_q}{_sl}, \\| or /{_q}"},
         # Dollar string
         {"obj": Param("$win.color", "str"),
          "py": f"win.color",
@@ -270,6 +270,19 @@ def test_param_str():
         {'obj': Param("$left", "list"),
          'py': r"left",
          'js': r"left"},
+        # f strings as code with a newline (GitHub issue #3476)
+        # (uncomment when JS resolves as described below)
+        # {'obj': Param("$f\"I would like a \\n line break here\"", "str"), 
+        #  'py': r"f\"I would like a \\n line break here\"",
+        #  'js': r"`I would like a \\n line break here`"},
+        # backslash in file path (GitHub issue #3734)
+        {'obj': Param("path\\to\\resource", "str", canBePath=True),
+         'py': r"'path/to/resource'",
+         'js': r"'path/to/resource'"},
+        # dollar sign in string (GitHub issue #4259)
+        {'obj': Param("$Math.E+'$'", "str"),
+         'py': r"Math\.E\+'\$'",
+         'js': r"\(Math.E \+ \"\$\"\)"},
     ]
 
     # Take note of what the script target started as

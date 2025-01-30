@@ -12,7 +12,7 @@ These are optional components that can be obtained by installing the
 
 """
 
-from psychopy.tools.pkgtools import PluginStub
+from psychopy.plugins import PluginStub
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked
@@ -23,21 +23,7 @@ from psychopy.tools.pkgtools import PluginStub
 class RadialStim(
     PluginStub,
     plugin="psychopy-visionscience",
-    doclink="https://psychopy.github.io/psychopy-visionscience/coder/RadialStim/"
+    docsHome="https://psychopy.github.io/psychopy-visionscience",
+    docsRef="/coder/RadialStim/"
 ):
     pass
-
-
-
-class RadialStim:
-    """
-    `psychopy.visual.RadialStim` is now located within the `psychopy-visionscience` plugin. You
-    can find the documentation for it `here <https://psychopy.github.io/psychopy-visionscience/coder/RadialStim>`_
-    """
-
-
-if __name__ == "__main__":
-    pass
-
-
-

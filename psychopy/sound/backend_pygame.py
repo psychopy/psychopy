@@ -153,7 +153,7 @@ class SoundPygame(_SoundBase):
                  hamming=False, speaker=None):
         self.name = name  # only needed for autoLogging
         self.autoLog = autoLog
-        self.speaker = self._parseSpeaker(speaker)
+        self.speaker = speaker
 
         if stereo == True:
             stereoChans = 2
@@ -172,6 +172,8 @@ class SoundPygame(_SoundBase):
             init()
             inits = mixer.get_init()
         self.sampleRate, self.format, self.isStereo = inits
+        self.startTime = 0
+        self.stopTime = secs
 
         if hamming:
             logging.warning("Hamming was requested using the 'pygame' sound "
@@ -285,9 +287,11 @@ class SoundPygame(_SoundBase):
             logging.error(msg % fileName)
             raise ValueError(msg % fileName)
 
-    def _setSndFromArray(self, thisArray):
-        # get a mixer.Sound object from an array of floats (-1:1)
+    def _setSndFromClip(self, clip):
+        self.clip = clip
+        thisArray = self.clip.samples
 
+        # get a mixer.Sound object from an array of floats (-1:1)
         # make stereo if mono
         if (self.isStereo == 2 and
                 (len(thisArray.shape) == 1 or

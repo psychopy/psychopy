@@ -18,7 +18,7 @@ __all__ = [
     'getAllPhotometerClasses'
 ]
 
-from psychopy.tools.pkgtools import PluginStub
+from psychopy.plugins import PluginStub
 
 # Special handling for legacy classes which have been offloaded to optional
 # packages. This will change to allow more flexibility in the future to avoid

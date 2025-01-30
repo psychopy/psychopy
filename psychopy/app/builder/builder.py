@@ -76,9 +76,7 @@ from psychopy.scripts.psyexpCompile import generateScript
 
 # Components which are always hidden
 alwaysHidden = [
-    'SettingsComponent', 'RoutineSettingsComponent', 'UnknownComponent', 'UnknownRoutine',
-    'UnknownStandaloneRoutine', 'UnknownPluginComponent', 'BaseComponent', 'BaseStandaloneRoutine',
-    'BaseValidatorRoutine'
+    'BaseComponent', 'BaseStandaloneRoutine', 'BaseValidatorRoutine'
 ]
 
 
@@ -373,6 +371,13 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         menu.Append(wx.ID_PASTE, _translate("&Paste\t%s") % keys['paste'])
         self.Bind(wx.EVT_MENU, self.paste, id=wx.ID_PASTE)
 
+        item = menu.Append(
+            wx.ID_ANY,
+            _translate("&Find in experiment...\t%s") % keys['builderFind'],
+            _translate("Search the whole experiment for a specific term")
+        )
+        self.Bind(wx.EVT_MENU, self.onFindInExperiment, item)
+
         # ---_view---#000000#FFFFFF-------------------------------------------
         self.viewMenu = wx.Menu()
         menuBar.Append(self.viewMenu, _translate('&View'))
@@ -465,6 +470,13 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.expMenu = wx.Menu()
         menuBar.Append(self.expMenu, _translate('E&xperiment'))
         menu = self.expMenu
+
+        item = menu.Append(wx.ID_ANY,
+                           _translate("Experiment &Settings\t%s") % keys['expSettings'],
+                           _translate("Edit experiment settings"))
+        self.Bind(wx.EVT_MENU, self.setExperimentSettings, item)
+        menu.AppendSeparator()
+        
         item = menu.Append(wx.ID_ANY,
                            _translate("&New Routine\t%s") % keys['newRoutine'],
                            _translate("Create a new routine (e.g. the trial "
@@ -510,11 +522,6 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
                            _translate("Create a new loop in your flow window"))
         self.Bind(wx.EVT_MENU, self.flowPanel.canvas.insertLoop, item)
         menu.AppendSeparator()
-
-        item = menu.Append(wx.ID_ANY,
-                           _translate("&Find in experiment...\t%s") % keys['builderFind'],
-                           _translate("Search the whole experiment for a specific term"))
-        self.Bind(wx.EVT_MENU, self.onFindInExperiment, item)
 
         item = menu.Append(wx.ID_ANY,
                            _translate("README..."),
@@ -1030,10 +1037,8 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             ok = self.checkSave()
             if not ok:
                 return False  # user cancelled
-        if self.filename is None:
-            frameData = self.appData['defaultFrame']
-        else:
-            frameData = dict(self.appData['defaultFrame'])
+        frameData = self.appData['defaultFrame']
+        if self.fileExists:
             self.appData['prevFiles'].append(self.filename)
 
             # get size and window layout info
@@ -1065,7 +1070,11 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.appData['fileHistory'] = copy.copy(tmp[-fhMax:])
 
         # assign the data to this filename
-        self.appData['frames'][str(self.filename)] = frameData
+        if (
+            str(self.filename) not in self.appData['frames']
+            and str(self.filename) not in self.appData
+        ):
+            self.appData['frames'][str(self.filename)] = frameData
         # save the display data only for those frames in the history:
         tmp2 = {}
         for f in self.appData['frames']:
@@ -1359,7 +1368,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         # update icons
         self.updateRunModeIcons()
         # update experiment mode
-        if self.exp is not None:
+        if self.exp is not None and self.exp.runMode != mode:
             self.exp.runMode = mode
             # mark as modified
             self.setIsModified(True)
@@ -1564,8 +1573,8 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
     def openPluginManager(self, evt=None):
         dlg = psychopy.app.plugin_manager.dialog.EnvironmentManagerDlg(self)
         dlg.Show()
-        # Do post-close checks
-        dlg.onClose()
+        
+        return dlg
 
     def onPavloviaCreate(self, evt=None):
         if Path(self.filename).is_file():
@@ -2496,6 +2505,8 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
             maxDur, useMax = self.routine.settings.getDuration()
             overspill = 0
             if useMax:
+                if maxDur is None:
+                    maxDur = duration
                 overspill = max(duration - maxDur, 0)
                 duration = min(maxDur, duration)
             # If there's a fixed end time and no start time, start 20px before 0
@@ -3246,6 +3257,9 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
                         shown = False
                 # Check whether button is hidden by prefs
                 if name in prefs.builder['hiddenComponents'] + alwaysHidden:
+                    shown = False
+                # check whether comp/rt indicates itsef as hidden
+                if emt.hidden:
                     shown = False
                 # Check whether button refers to a future comp/rt
                 if hasattr(emt, "version"):
@@ -4511,6 +4525,12 @@ class BuilderRibbon(ribbon.FrameRibbon):
             section="edit", name="redo", label=_translate("Redo"), icon="redo",
             tooltip=_translate("Redo last action"),
             callback=parent.redo
+        )
+        # find
+        self.addButton(
+            section="edit", name="find", label=_translate("Find"), icon="find",
+            tooltip=_translate("Search the whole experiment for a specific term"),
+            callback=parent.onFindInExperiment
         )
 
         self.addSeparator()

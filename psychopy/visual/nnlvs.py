@@ -735,11 +735,12 @@ class VisualSystemHD(window.Window):
         offset = 0 if eye == 'left' else frameW
         self.viewport = self.scissor = (offset, 0, frameW, frameH)
 
-        GL.glMatrixMode(GL.GL_PROJECTION)
-        GL.glLoadIdentity()
-        GL.glOrtho(-1, 1, -1, 1, -1, 1)
-        GL.glMatrixMode(GL.GL_MODELVIEW)
-        GL.glLoadIdentity()
+        if self.USE_LEGACY_GL:
+            GL.glMatrixMode(GL.GL_PROJECTION)
+            GL.glLoadIdentity()
+            GL.glOrtho(-1, 1, -1, 1, -1, 1)
+            GL.glMatrixMode(GL.GL_MODELVIEW)
+            GL.glLoadIdentity()
 
         # anti-aliasing the edges of the polygon
         GL.glEnable(GL.GL_MULTISAMPLE)
@@ -795,7 +796,9 @@ class VisualSystemHD(window.Window):
         # frameBuffer
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glEnable(GL.GL_TEXTURE_2D)
-        GL.glColor3f(1.0, 1.0, 1.0)  # glColor multiplies with texture
+        if self.USE_LEGACY_GL:
+            GL.glColor3f(1.0, 1.0, 1.0)  # glColor multiplies with texture
+
         GL.glColorMask(True, True, True, True)
 
         # blit the textures to the back buffer

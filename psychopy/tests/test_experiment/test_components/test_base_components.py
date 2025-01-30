@@ -29,7 +29,7 @@ def _find_global_resource_in_js_experiment(script, resource):
         return present
 
     # Extract resources def at start of experiment
-    resourcesStr = re.search("(?<=resources: \[)[^\]]*", script).group(0)
+    resourcesStr = re.search(r"(?<=resources: \[)[^\]]*", script).group(0)
     # Return bool for whether specified resource is present
     return resource in resourcesStr
 

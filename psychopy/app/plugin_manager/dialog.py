@@ -68,7 +68,6 @@ class EnvironmentManagerDlg(wx.Dialog):
 
         self.notebook.ChangeSelection(0)
 
-
     @staticmethod
     def getPackageVersionInfo(packageName):
         """Query packages for available versions.
@@ -137,6 +136,22 @@ class EnvironmentManagerDlg(wx.Dialog):
         """
         return self.pipProcess is not None
 
+    def jumpToPlugin(self, name):
+        """
+        Jump to viewing a particular plugin.
+
+        Parameters
+        ----------
+        name : str
+            Package name for the plugin
+        """
+        # open the plugins panel
+        i = self.notebook.FindPage(self.pluginMgr)
+        self.notebook.ChangeSelection(i)
+        # search for plugin name
+        self.pluginMgr.pluginList.searchCtrl.SetValue(name)
+        self.pluginMgr.pluginList.search()
+
     def uninstallPackage(self, packageName):
         """Uninstall a package.
 
@@ -204,7 +219,7 @@ class EnvironmentManagerDlg(wx.Dialog):
         global NEEDS_RESTART  # flag as needing a restart
         NEEDS_RESTART = True
 
-    def installPackage(self, packageName, version=None, extra=None):
+    def installPackage(self, packageName, version=None, extra=None, forceReinstall=None):
         """Install a package.
 
         Calling this will invoke a `pip` command which will install the
@@ -230,18 +245,21 @@ class EnvironmentManagerDlg(wx.Dialog):
         # add version if given
         if version is not None:
             packageName += f"=={version}"
+        # if forceReinstall is None, work out from version
+        if forceReinstall is None:
+            forceReinstall = version is not None
         # use package tools to install
         self.pipProcess = pkgtools.installPackage(
             packageName,
             upgrade=version is None,
-            forceReinstall=version is not None,
+            forceReinstall=forceReinstall,
             awaited=False,
             outputCallback=self.output.writeStdOut,
             terminateCallback=self.onInstallExit,
             extra=extra,
         )
 
-    def installPlugin(self, pluginInfo, version=None):
+    def installPlugin(self, pluginInfo, version=None, forceReinstall=None):
         """Install a package.
 
         Calling this will invoke a `pip` command which will install the
@@ -267,7 +285,8 @@ class EnvironmentManagerDlg(wx.Dialog):
             version=version,
             extra={
                 'pluginInfo': pluginInfo
-            }
+            },
+            forceReinstall=forceReinstall
         )
 
     def uninstallPlugin(self, pluginInfo):
@@ -297,7 +316,7 @@ class EnvironmentManagerDlg(wx.Dialog):
         # write installation termination statement
         msg = "Installation complete"
         if 'pipname' in self.pipProcess.extra:
-            msg = f"Finished installing %(pipname)s" % self.pipProcess.extra
+            msg = "Finished installing %(pipname)s" % self.pipProcess.extra
         self.output.writeTerminus(msg)
 
         # if we have a plugin, write additional plugin information post-install
@@ -349,12 +368,12 @@ class EnvironmentManagerDlg(wx.Dialog):
         # refresh view
         pkgtools.refreshPackages()
         self.pluginMgr.updateInfo()
-    
+
     def onUninstallExit(self, pid, exitCode):
         # write installation termination statement
         msg = "Uninstall complete"
         if 'pipname' in self.pipProcess.extra:
-            msg = f"Finished uninstalling %(pipname)s" % self.pipProcess.extra
+            msg = "Finished uninstalling %(pipname)s" % self.pipProcess.extra
         self.output.writeTerminus(msg)
         # clear pip process
         self.pipProcess = None
@@ -373,7 +392,7 @@ class EnvironmentManagerDlg(wx.Dialog):
             # if they change their mind, cancel closing
             if dlg.ShowModal() == wx.ID_NO:
                 return
-        
+
         if evt is not None:
             evt.Skip()
 
