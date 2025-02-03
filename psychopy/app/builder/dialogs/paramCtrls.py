@@ -1180,3 +1180,44 @@ class DictCtrl(ListWidget, _ValidatorMixin, _HideMixin):
         Hide all items in the dict ctrl
         """
         self.Show(False)
+
+
+class FontCtrl(SingleLineCtrl):
+    def onOK(self):
+        # get a font manager
+        from psychopy.tools.fontmanager import FontManager, MissingFontError
+        fm = FontManager()
+        # check whether the font is installed
+        installed = fm.getFontsMatching(self.GetValue(), fallback=False)
+        # if not installed, ask the user whether to download from Google Fonts
+        if not installed:
+            # create dialog
+            dlg = wx.MessageDialog(
+                self.GetTopLevelParent(),
+                _translate(
+                    "Font {} is not installed, would you like to download it from Google Fonts?"
+                ).format(self.GetValue()),
+                style=wx.YES|wx.NO|wx.ICON_QUESTION
+            )
+            # download if yes
+            if dlg.ShowModal() == wx.ID_YES:
+                try:
+                    fm.addGoogleFont(self.GetValue().strip())
+                except MissingFontError as err:
+                    dlg = wx.MessageDialog(
+                        self.GetTopLevelParent(),
+                        _translate(
+                            "Could not download font {} from Google Fonts, reason: {}"
+                        ).format(self.GetValue(), err),
+                        style=wx.OK|wx.ICON_ERROR
+                    )
+                    dlg.ShowModal()
+                else:
+                    dlg = wx.MessageDialog(
+                        self.GetTopLevelParent(),
+                        _translate(
+                            "Font download successfully"
+                        ),
+                        style=wx.OK|wx.ICON_INFORMATION
+                    )
+                    dlg.ShowModal()

@@ -85,7 +85,7 @@ class TextboxComponent(BaseVisualComponent):
             hint=_translate("Placeholder text to show when there is no text contents."),
             label=_translate("Placeholder text"))
         self.params['font'] = Param(
-            font, valType='str', inputType="single", allowedTypes=[], categ='Formatting',
+            font, valType='str', inputType="font", allowedTypes=[], categ='Formatting',
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("The font name (e.g. Comic Sans)"),
             label=_translate("Font"))

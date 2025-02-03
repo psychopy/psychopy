@@ -936,12 +936,7 @@ class FontManager():
         """
         fontInfos = self.getFontsMatching(name, bold, italic, fallback=False)
         if not fontInfos:
-            # If font not found, try to retrieve it from Google
-            try:
-                self.addGoogleFont(name)
-            except (MissingFontError, ValueError):
-                pass
-            # Then try again with fallback
+            # If font not found, try again with fallback
             fontInfos = self.getFontsMatching(name, bold, italic, fallback=True)
             if not fontInfos:
                 return False

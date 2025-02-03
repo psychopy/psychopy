@@ -195,6 +195,13 @@ class ParamCtrls():
                 fieldName=fieldName, 
                 size=wx.Size(int(self.valueWidth), 24))
             self.valueCtrl.allowedVals = param.allowedVals
+        elif param.inputType == 'font':
+            self.valueCtrl = paramCtrls.FontCtrl(
+                parent, 
+                val=str(param.val), 
+                valType=param.valType,
+                fieldName=fieldName, 
+                size=wx.Size(int(self.valueWidth), 24))
         elif param.inputType == 'survey':
             self.valueCtrl = paramCtrls.SurveyCtrl(
                 parent, 
@@ -978,8 +985,7 @@ class _BaseParamsDlg(wx.Dialog):
                         border=3)
         self.OKbtn = wx.Button(self, wx.ID_OK, _translate(" OK "))
         # intercept OK button if a loop dialog, in case file name was edited:
-        if type(self) == DlgLoopProperties:
-            self.OKbtn.Bind(wx.EVT_BUTTON, self.onOK)
+        self.OKbtn.Bind(wx.EVT_BUTTON, self.onOK)
         self.OKbtn.SetDefault()
         CANCEL = wx.Button(self, wx.ID_CANCEL, _translate(" Cancel "))
 
@@ -1041,9 +1047,11 @@ class _BaseParamsDlg(wx.Dialog):
     def onOK(self, event=None):
         """Handler for OK button which should validate dialog contents.
         """
-        valid = self.Validate()
-        if not valid:
-            return
+        # run "on ok" validation for each ctrl
+        for ctrl in self.paramCtrls.values():
+            if hasattr(ctrl, "valueCtrl") and hasattr(ctrl.valueCtrl, "onOK"):
+                ctrl.valueCtrl.onOK()
+        
         event.Skip()
 
     def onTextEventCode(self, event=None):
