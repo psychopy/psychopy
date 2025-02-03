@@ -168,7 +168,7 @@ class SliderComponent(BaseVisualComponent):
         self.params['borderColor'].hint = _translate("Color of all lines on this slider (might be overridden by the style setting)")
 
         self.params['font'] = Param(
-                font, valType='str', inputType="single", categ='Formatting',
+                font, valType='str', inputType="font", categ='Formatting',
                 updates='constant',
                 hint=_translate(
                         "Font for the labels"),
