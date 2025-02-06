@@ -744,7 +744,7 @@ class Experiment:
                         # don't warn people if we know it's OK (e.g. for params
                         # that have been removed
                         pass
-                    elif componentNode is not None and componentNode.get("plugin", False):
+                    elif componentNode is not None and componentNode.get("plugin", False) not in (False, "", "None", None):
                         # is param unrecognised because it's from a plugin?
                         params[name].categ = "Plugin"
                         params[name].plugin = componentNode.get("plugin", False)
