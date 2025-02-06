@@ -33,6 +33,10 @@ try:
     haveGit = True
 except ImportError:
     haveGit = False
+# message to show when git is needed and not installed (format with action that failed)
+noGitMsg = _translate(
+    "Failed to {} as Pavlovia works via git, which is not installed on this machine. You can install git from here: https://git-scm.com/downloads"
+)
 
 import requests
 import gitlab
@@ -1403,8 +1407,10 @@ class PavloviaProject(dict):
 def getGitRoot(p):
     """Return None or the root path of the repository"""
     if not haveGit:
-        raise exceptions.DependencyError(
-                "gitpython and a git installation required for getGitRoot()")
+        logging.warn(
+            noGitMsg.format(_translate("get git root"))
+        )
+        return None
 
     p = pathlib.Path(p).absolute()
     if not p.is_dir():
@@ -1434,8 +1440,10 @@ def getNameWithNamespace(p):
     """
     # Work out cwd
     if not haveGit:
-        raise exceptions.DependencyError(
-                "gitpython and a git installation required for getGitRoot()")
+        logging.warn(
+            noGitMsg.format(_translate("get project name"))
+        )
+        return None
 
     p = pathlib.Path(p).absolute()
     if not p.is_dir():
@@ -1466,8 +1474,10 @@ def getProject(filename):
     """
     # Check that we have Git
     if not haveGit:
-        raise exceptions.DependencyError(
-                "gitpython and a git installation required for getProject()")
+        logging.warn(
+            noGitMsg.format(_translate("get Pavlovia project"))
+        )
+        return None
     # Get git root
     gitRoot = getGitRoot(filename)
     # Get name with namespace
