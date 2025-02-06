@@ -55,7 +55,7 @@ class SliderComponent(BaseVisualComponent):
                  color="LightGray",
                  fillColor='Red',
                  borderColor='White',
-                 font="Open Sans",
+                 font="Noto Sans",
                  letterHeight=0.05,
                  startType='time (s)', startVal='0.0',
                  stopType='condition', stopVal='',

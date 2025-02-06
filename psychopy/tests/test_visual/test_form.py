@@ -129,7 +129,7 @@ class Test_Form(_TestColorMixin, _TestBoilerplateMixin, _TestSerializationMixin)
                     'itemWidth': 0.3,
                     'responseColor': 'darkred',
                     'responseWidth': 0.7,
-                    'font': 'Open Sans',
+                    'font': 'Noto Sans',
                 },
                 {
                     'index': 0,
@@ -141,7 +141,7 @@ class Test_Form(_TestColorMixin, _TestBoilerplateMixin, _TestSerializationMixin)
                     'itemWidth': 0.3,
                     'responseColor': 'darkslateblue',
                     'responseWidth': 0.7,
-                    'font': 'Open Sans',
+                    'font': 'Noto Sans',
                 },
             ],
             'bigItem': [  # Item is bigger than resp
@@ -155,7 +155,7 @@ class Test_Form(_TestColorMixin, _TestBoilerplateMixin, _TestSerializationMixin)
                     'itemWidth': 0.7,
                     'responseColor': 'darkred',
                     'responseWidth': 0.3,
-                    'font': 'Open Sans',
+                    'font': 'Noto Sans',
                 },
                 {
                     'index': 0,
@@ -167,7 +167,7 @@ class Test_Form(_TestColorMixin, _TestBoilerplateMixin, _TestSerializationMixin)
                     'itemWidth': 0.7,
                     'responseColor': 'darkslateblue',
                     'responseWidth': 0.3,
-                    'font': 'Open Sans',
+                    'font': 'Noto Sans',
                 },
             ],
         }
@@ -183,7 +183,7 @@ class Test_Form(_TestColorMixin, _TestBoilerplateMixin, _TestSerializationMixin)
                     'itemWidth': 0.4,
                     'responseColor': 'darkred',
                     'responseWidth': 0.8,
-                    'font': 'Open Sans',
+                    'font': 'Noto Sans',
                 },
                 {
                     'index': 0,
@@ -195,7 +195,7 @@ class Test_Form(_TestColorMixin, _TestBoilerplateMixin, _TestSerializationMixin)
                     'itemWidth': 0.4,
                     'responseColor': 'darkslateblue',
                     'responseWidth': 0.8,
-                    'font': 'Open Sans',
+                    'font': 'Noto Sans',
                 },
             ],
             'bigItemOverflow': [  # Item is bigger than resp, both together flow over form edge
@@ -209,7 +209,7 @@ class Test_Form(_TestColorMixin, _TestBoilerplateMixin, _TestSerializationMixin)
                     'itemWidth': 0.8,
                     'responseColor': 'darkred',
                     'responseWidth': 0.4,
-                    'font': 'Open Sans',
+                    'font': 'Noto Sans',
                 },
                 {
                     'index': 0,
@@ -221,7 +221,7 @@ class Test_Form(_TestColorMixin, _TestBoilerplateMixin, _TestSerializationMixin)
                     'itemWidth': 0.8,
                     'responseColor': 'darkslateblue',
                     'responseWidth': 0.4,
-                    'font': 'Open Sans',
+                    'font': 'Noto Sans',
                 },
             ],
         }
@@ -262,7 +262,7 @@ class Test_Form(_TestColorMixin, _TestBoilerplateMixin, _TestSerializationMixin)
                 'itemWidth': 0.7,
                 'responseColor': 'darkred',
                 'responseWidth': 0.3,
-                'font': 'Open Sans',
+                'font': 'Noto Sans',
             })
         # Create form
         survey = Form(self.win, units="height", size=(1, 1), fillColor="white", items=items)
@@ -281,7 +281,7 @@ class Test_Form(_TestColorMixin, _TestBoilerplateMixin, _TestSerializationMixin)
             'itemWidth': 0.7,
             'responseColor': 'darkred',
             'responseWidth': 0.3,
-            'font': 'Open Sans',
+            'font': 'Noto Sans',
         }]
         # Typical points on slider to test
         exemplars = [
@@ -360,7 +360,7 @@ class Test_Form(_TestColorMixin, _TestBoilerplateMixin, _TestSerializationMixin)
 
     def test_font(self):
         exemplars = [
-            {"file": "form_font_demographics.xlsx", "font": "Open Sans",
+            {"file": "form_font_demographics.xlsx", "font": "Noto Sans",
              "screenshot": "form_font_demographics.png"},
         ]
         tykes = [

@@ -153,7 +153,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         if foreColor:
             self.foreColor = color
 
-        self.font = font or "Open Sans"
+        self.font = font or "Noto Sans"
 
         self.textHeight = textHeight
         self._baseYpositions = []

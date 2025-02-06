@@ -29,7 +29,7 @@ class FormComponent(BaseVisualComponent):
                  name='form',
                  items='',
                  textHeight=0.03,
-                 font="Open Sans",
+                 font="Noto Sans",
                  randomize=False,
                  fillColor='',
                  borderColor='',

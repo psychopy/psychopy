@@ -752,7 +752,7 @@ class FontManager():
 
     def getDefaultSansFont(self):
         """Load and return the FontInfo for the first found default font"""
-        for name in ['Verdana', 'DejaVu Sans', 'Bitstream Vera Sans', 'Tahoma', 'Open Sans']:
+        for name in ['Verdana', 'DejaVu Sans', 'Bitstream Vera Sans', 'Tahoma', 'Noto Sans']:
             these = self.getFontsMatching(name, fallback=False)
             if not these:
                 continue
@@ -1027,6 +1027,9 @@ class FontInfo():
         self.monospace = face.is_fixed_width
         self.charmap_id = face.charmap.index
         self.label = "%s_%s" % (face.family_name, face.style_name)
+    
+    def __repr__(self):
+        return f"<FontInfo '{self.family}': style={self.style}, monospace={self.monospace}, file={self.path}>"
 
     def __str__(self):
         """Generate a string identifier for this font name_style
