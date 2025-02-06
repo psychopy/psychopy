@@ -792,6 +792,8 @@ class FontManager():
         fontName and style information. If no matching fonts are
         found, None is returned.
         """
+        if not self._fontInfos:
+            self.updateFontInfo()
         if type(fontName) != bytes:
             fontName = bytes(fontName, sys.getfilesystemencoding())
         # Convert value of "bold" to a numeric font weight
