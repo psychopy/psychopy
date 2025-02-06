@@ -7,6 +7,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 import copy
 import psychopy
+from psychopy.localization import _translate
 from .text import TextStim
 from .rect import Rect
 from psychopy.data.utils import importConditions, listFromString
@@ -229,27 +230,41 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                                      .format(hdr, self.name, fieldNames))
 
 
-        def _checkTypes(types, itemText):
-            """A nested function for testing the number of options given
-
-            Raises ValueError if n Options not > 1
+        def _checkType(thisType):
             """
-            itemDiff = set([types]) - set(_knownRespTypes)
+            Check that the "type" field of an item is known to PsychoPy.
 
-            for incorrItemType in itemDiff:
-                if incorrItemType == _REQUIRED:
-                    if self._itemsFile:
-                        itemsFileStr =  ("in items file '{}'"
-                                         .format(self._itemsFile))
-                    else:
-                        itemsFileStr = ""
-                    msg = ("Item {}{} is missing a required "
-                           "value for its response type. Permitted types are "
-                           "{}.".format(itemText, itemsFileStr,
-                                        _knownRespTypes))
-                if self.autoLog:
-                    logging.error(msg)
-                raise ValueError(msg)
+            Parameters
+            ----------
+            thisType : str
+                Type name to check - 
+            
+            Returns
+            -------
+            str
+                If `thisType` is a close match (e.g. "Choice" rather than "choice"), it will be 
+                replaced by the correct value. Otherwise will simply return `thisType`.
+            
+            Raises
+            ------
+            ValueError
+                If type is not an exact or close match for any known types.
+            """
+            # sanitize the names of expected types
+            sanitizedTypes = [t.lower() for t in _knownRespTypes]
+            # sanitize thisType
+            thisTypeSanit = thisType.lower().strip()
+            # compare to list of types
+            if thisTypeSanit in sanitizedTypes:
+                # if sanitized match, substitute in the expected name
+                return list(_knownRespTypes)[sanitizedTypes.index(thisTypeSanit)]
+            else:
+                # otherwise, raise an error
+                raise ValueError(
+                    _translate(
+                        "Incorrect item type '{}' in Form '{}', allowed types are: {}"
+                    ).format(thisType, self.name, ", ".join(_knownRespTypes))
+                )
 
         def _addDefaultItems(items):
             """
@@ -319,9 +334,8 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 item['tickLabels'] = listFromString(item['tickLabels'])
             if 'options' in item and item['options']:
                 item['options'] = listFromString(item['options'])
-
-        # Check types
-        [_checkTypes(item['type'], item['itemText']) for item in items]
+            # validate item type
+            item['type'] = _checkType(item['type'])
         # Check N options > 1
         # Randomise items if requested
         if self.randomize:
