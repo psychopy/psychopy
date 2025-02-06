@@ -85,7 +85,7 @@ class MicrophoneComponent(BaseDeviceComponent):
             from psychopy.hardware.microphone import MicrophoneDevice
             profiles = MicrophoneDevice.getAvailableDevices()
 
-            return [None] + [profile['index'] for profile in profiles]
+            return ["$None"] + [profile['index'] for profile in profiles]
 
         def getDeviceNames():
             from psychopy.hardware.microphone import MicrophoneDevice
@@ -366,7 +366,7 @@ class MicrophoneComponent(BaseDeviceComponent):
     def writeInitCodeJS(self, buff):
         inits = getInitVals(self.params)
         # Alert user if non-default value is selected for device
-        if inits['device'].val != 'default':
+        if inits['device'].val != '$None':
             alert(5055, strFields={'name': inits['name'].val})
         # Write code
         code = (
