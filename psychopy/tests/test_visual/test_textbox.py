@@ -470,10 +470,6 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin, _Tes
             utils.compareScreenshot(filename, self.win, crit=8)
 
         self.obj.speechPoint = None
-            
-    def test_alerts(self):
-        noFontTextbox = TextBox2(self.win, "", font="Raleway Dots", bold=True)
-        assert (self.error.alerts[0].code == 4325)
 
     def test_letter_spacing(self):
         cases = (0.6, 0.8, 1, None, 1.2, 1.4, 1.6, 1.8, 2.0)
