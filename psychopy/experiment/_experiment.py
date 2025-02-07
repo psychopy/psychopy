@@ -26,7 +26,7 @@ from packaging.version import Version
 
 import psychopy
 from psychopy import data, __version__, logging
-from psychopy.tools import filetools as ft
+from psychopy.tools import filetools as ft, stringtools as st
 from .components.resourceManager import ResourceManagerComponent
 from .components.static import StaticComponent
 from .exports import IndentingBuffer, NameSpace
@@ -215,7 +215,7 @@ class Experiment:
 
     @name.setter
     def name(self, value):
-        self.settings.params['expName'].val = value
+        self.settings.params['expName'].val = st.makeValidVarName(value)
 
     @property
     def eyetracking(self):

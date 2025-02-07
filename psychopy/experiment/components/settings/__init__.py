@@ -164,7 +164,7 @@ class SettingsComponent:
             'Experiment info',
         ]
         self.params['expName'] = Param(
-            expName, valType='str', inputType="single", categ='Basic',
+            expName, valType='str', inputType="name", categ='Basic',
             hint=_translate(
                 "Name of the entire experiment (taken by default from the filename on save)"
             ),

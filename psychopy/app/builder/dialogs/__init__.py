@@ -115,7 +115,7 @@ class ParamCtrls():
                     vc.availableVersions(local=False), wx.__version__)
                 param.allowedVals = (options + [''] + versions)
 
-        if param.inputType == "single":
+        if param.inputType in ("single", "name"):
             # Create single line string control
             self.valueCtrl = paramCtrls.SingleLineCtrl(
                 parent, 
@@ -258,7 +258,7 @@ class ParamCtrls():
             self.valueCtrl.Disable()  # visible but can't be changed
 
         # add a Validator to the valueCtrl
-        if fieldName == "name":
+        if param.inputType == "name":
             self.valueCtrl.SetValidator(NameValidator())
         elif param.inputType in ("single", "multi"):
             # only want anything that is valType code, or can be with $

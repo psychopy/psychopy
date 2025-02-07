@@ -380,7 +380,12 @@ class NameValidator(BaseValidator):
         else:
             namespace = parent.frame.exp.namespace
             used = namespace.exists(newName)
-            sameAsOldName = bool(newName == parent.params['name'].val)
+            # get fieldName
+            if control.Name:
+                fieldName = control.Name
+            else:
+                fieldName = "name"
+            sameAsOldName = bool(newName == parent.params[fieldName].val)
             if used and not sameAsOldName:
                 # NOTE: formatted string literal doesn't work with _translate().
                 # So, we have to call format() after _translate() is applied.
