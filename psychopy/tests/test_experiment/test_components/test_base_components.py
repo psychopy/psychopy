@@ -237,8 +237,11 @@ class BaseComponentTests:
             pytest.skip()
         # Make minimal experiment just for this test
         comp, rt, exp = self.make_minimal_experiment()
-        # Write experiment and check that component is written
+        # write experiment
         pyScript = exp.writeScript(target="PsychoPy")
+        # delete references to exp name (as it will contain the Component name)
+        pyScript = pyScript.replace(exp.name, "EXPERIMENT_NAME")
+        # check that Component is present only when it should be
         if "PsychoPy" in type(comp).targets:
             assert comp.name in pyScript, (
                 f"{type(comp).__name__} not found in compiled Python script when enabled and PsychoPy in targets."
@@ -260,8 +263,11 @@ class BaseComponentTests:
 
         # disable component then do same tests but assert not present
         comp.params['disabled'].val = True
-
+        # write experiment
         pyScript = exp.writeScript(target="PsychoPy")
+        # delete references to exp name (as it will contain the Component name)
+        pyScript = pyScript.replace(exp.name, "EXPERIMENT_NAME")
+        # check that Component is present only when it should be
         if "PsychoPy" in type(comp).targets:
             assert comp.name not in pyScript, (
                 f"{type(comp).__name__} found in compiled Python script when disabled but PsychoPy in targets."
