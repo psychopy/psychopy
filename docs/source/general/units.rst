@@ -1,6 +1,4 @@
 .. _units:
-.. role:: darkgreen
-.. role:: darkorange
 
 Units for the window and stimuli
 ====================================

@@ -42,8 +42,10 @@ import ctypes
 import numpy as np
 import pyglet.gl as GL
 from psychopy.visual import window
+from psychopy.hardware.exceptions import DeviceNotConnectedError
 from psychopy import platform_specific, logging, core
 from psychopy.tools.attributetools import setAttribute
+from psychopy.localization import _translate
 
 try:
     from PIL import Image
@@ -316,8 +318,12 @@ class Rift(window.Window):
                                "exiting.")
 
         if not libovr.isHmdConnected():
-            raise RuntimeError("Cannot find any connected HMD, check " +
-                               "connections and try again.")
+            raise DeviceNotConnectedError(
+                _translate(
+                    "Cannot find any connected HMD, check connections and try again."
+                ),
+                deviceClass=Rift
+            )
 
         # create a VR session, do some initial configuration
         initResult = libovr.initialize()  # removed logging callback

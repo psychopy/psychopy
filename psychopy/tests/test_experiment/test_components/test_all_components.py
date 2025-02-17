@@ -29,7 +29,7 @@ def test_all_components():
 
 def test_all_have_depth():
     # Define components which shouldn't have depth
-    exceptions = ("PanoramaComponent",)
+    exceptions = ("PanoramaComponent", "FaceAPIComponent")
     # Create experiment
     exp = experiment.Experiment()
     rt = experiment.routines.Routine(exp=exp, name="testRoutine")

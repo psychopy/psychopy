@@ -77,6 +77,8 @@ def parseVersionSafely(version, fallback=Version("0")):
     # if version is already valid, do normal parsing
     if re.fullmatch(version, VERSION_PATTERN):
         return Version(version)
+    # if dev number, use value up to it
+    version = version[:version.find("dev")]
     # try stripping all but numbers, dots and keywords
     version = "".join(
         re.findall(r"\d|\.|a|b|c|rc|alpha|beta|pre|preview|post|rev|r|dev", version)
@@ -202,7 +204,7 @@ def getPsychoJSVersionStr(currentVersion, preferredVersion=''):
         # e.g. 2021.1.0 not 2021.1.0.dev3
         useVerStr = '.'.join(useVerStr.split('.')[:3])
     # PsychoJS doesn't have additional rc1 or dev1 releases
-    for versionSuffix in ["rc", "dev", "a", "b"]:
+    for versionSuffix in ["rc", "dev", "post", "a", "b"]:
         if versionSuffix in useVerStr:
             useVerStr = useVerStr.split(versionSuffix)[0]
 

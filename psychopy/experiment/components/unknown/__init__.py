@@ -20,6 +20,8 @@ class UnknownComponent(BaseComponent):
     tooltip = _translate('Unknown: A component that is not known by the current '
                          'installed version of PsychoPy\n(most likely from the '
                          'future)')
+    # hide from the Components panel
+    hidden = True
 
     def __init__(self, exp, parentName, name='', compType="UnknownComponent"):
         self.exp = exp  # so we can access the experiment if necess

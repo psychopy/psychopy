@@ -15,25 +15,13 @@ These are optional components that can be obtained by installing the
 
 """
 
-from psychopy.tools.pkgtools import PluginStub
+from psychopy.plugins import PluginStub
 
 
 class EnvelopeGrating(
     PluginStub,
     plugin="psychopy-visionscience",
-    doclink="https://psychopy.github.io/psychopy-visionscience/coder/EnvelopeGrating"
+    docsHome="https://psychopy.github.io/psychopy-visionscience",
+    docsRef="/coder/EnvelopeGrating"
 ):
-    pass
-
-
-
-class EnvelopeGrating:
-    """
-    `psychopy.visual.EnvelopeGrating` is now located within the `psychopy-visionscience` plugin. You
-    can find the documentation for it
-    `here <https://psychopy.github.io/psychopy-visionscience/coder/EnvelopeGrating>`_
-    """
-
-
-if __name__ == "__main__":
     pass

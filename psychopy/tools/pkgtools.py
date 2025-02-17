@@ -22,6 +22,7 @@ __all__ = [
 ]
 
 
+from pathlib import Path
 import subprocess as sp
 from psychopy.preferences import prefs
 from psychopy.localization import _translate
@@ -60,51 +61,6 @@ _installedPackageNamesCache = []
 USER_PACKAGES_PATH = str(prefs.paths['userPackages'])
 
 
-class PluginRequiredError(Exception):
-    pass
-
-
-class PluginStub:
-    """
-    Class to handle classes which have moved out to plugins.
-
-    Example
-    -------
-    ```
-    class NoiseStim(PluginStub, plugin="psychopy-visionscience", doclink="https://psychopy.github.io/psychopy-visionscience/builder/components/NoiseStimComponent/):
-    ```
-    """
-
-    def __init_subclass__(cls, plugin, doclink="https://plugins.psychopy.org/directory.html"):
-        """
-        Subclassing PluginStub will create documentation pointing to the new documentation for the replacement class.
-        """
-        # store ref to plugin and docs link
-        cls.plugin = plugin
-        cls.doclink = doclink
-        # create doc string point to new location
-        cls.__doc__ = (
-            "`{mro}` is now located within the `{plugin}` plugin. You can find the documentation for it `here <{doclink}>`_."
-        ).format(
-            mro=cls.__module__,
-            plugin=plugin,
-            doclink=doclink
-        )
-
-
-    def __init__(self, *args, **kwargs):
-        """
-        When initialised, rather than creating an object, will log an error.
-        """
-        raise PluginRequiredError((
-            "Support for `{mro}` is not available this session. Please install "
-            "`{plugin}` and restart the session to enable support."
-        ).format(
-            mro=type(self).__module__,
-            plugin=self.plugin,
-        ))
-
-
 def refreshPackages():
     """Refresh the packaging system.
 
@@ -121,10 +77,17 @@ def refreshPackages():
     # iterate through installed packages in the user folder
     for dist in importlib.metadata.distributions(path=sys.path + [USER_PACKAGES_PATH]):
         # get name if in 3.8
-        if sys.version.startswith("3.8"):
-            distName = dist.metadata['name']
+
+        if sys.version_info.major == 3:
+            if sys.version_info.minor <= 9:
+                distName = dist.metadata['name']
+            else:
+                distName = dist.name
         else:
-            distName = dist.name
+            raise VersionError(
+                "PsychoPy only supports Python 3.8 and above. "
+                "Please upgrade your Python installation.")
+
         # mark as installed
         _installedPackageCache.append(
             (distName, dist.version)
@@ -249,9 +212,24 @@ def installPackage(
     # convert extra to dict
     if extra is None:
         extra = {}
-
+    # assume non-editable
+    editable = []
+    # handle install from file
+    try:
+        packagePath = Path(package)
+    except:
+        pass
+    else:
+        if packagePath.is_file():
+            # if file is a pyproject.toml, use the containing folder
+            if packagePath.name == "pyproject.toml":
+                packagePath = packagePath.parent
+                package = str(packagePath)
+        if packagePath.is_dir():
+            # if given a folder, add quotation marks and an editable flag
+            editable.append("-e")
     # construct the pip command and execute as a subprocess
-    cmd = [sys.executable, "-m", "pip", "install", package]
+    cmd = [sys.executable, "-m", "pip", "install", *editable, package]
 
     # optional args
     if target is None:  # default to user packages dir

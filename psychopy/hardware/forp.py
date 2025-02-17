@@ -17,26 +17,21 @@ These are optional components that can be obtained by installing the
 
 """
 
-import psychopy.logging as logging
 
-try:
-    from psychopy_curdes import (
-        ButtonBox,
-        BUTTON_RED,
-        BUTTON_BLUE,
-        BUTTON_GREEN,
-        BUTTON_YELLOW,
-        BUTTON_TRIGGER,
-        BUTTON_MAP)
-except (ModuleNotFoundError, ImportError):
-    logging.error(
-        "Support for Current Designs Inc. hardware is not available this "
-        "session. Please install `psychopy-curdes` and restart the session "
-        "to enable support.")
-except Exception as e:
-    logging.error(
-        "Error encountered while loading `psychopy-curdes`. Check logs for "
-        "more information.")
+from psychopy.plugins import PluginStub
 
-if __name__ == "__main__":
+
+class ButtonBox(
+    PluginStub,
+    plugin="psychopy-curdes",
+    docsHome="https://github.com/psychopy/psychopy-curdes"
+):
     pass
+
+
+BUTTON_RED: int
+BUTTON_BLUE: int
+BUTTON_GREEN: int
+BUTTON_YELLOW: int
+BUTTON_TRIGGER: int
+BUTTON_MAP: dict

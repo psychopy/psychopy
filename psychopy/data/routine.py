@@ -53,4 +53,30 @@ class Routine:
         # starting status
         self.status = constants.NOT_STARTED
     
+    def getPlaybackComponents(self):
+        """
+        Get a list of all Components within this Routine which have a concept of playing and 
+        pausing (Sound, Movie, etc.)
+        """
+        playbackComps = []
+        # iterate through all Components
+        for comp in self.components:
+            # if it has play and pause methods, append it
+            if hasattr(comp, 'play') and hasattr(comp, 'pause'):
+                playbackComps.append(comp)
+        
+        return playbackComps
     
+    def getDispatchComponents(self):
+        """
+        Get a list of all Components within this Routine which have a method for dispatching 
+        messages from a response device.
+        """
+        dispatchComps = []
+        # iterate through all Components
+        for comp in self.components:
+            # if it has a device which has a dispatch method, append it
+            if hasattr(comp, 'device') and hasattr(comp.device, 'dispatchMessages'):
+                dispatchComps.append(comp)
+        
+        return dispatchComps

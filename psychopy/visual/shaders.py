@@ -8,9 +8,13 @@
 """shaders programs for either pyglet or pygame
 """
 
+import pyglet
 import pyglet.gl as GL
 import psychopy.tools.gltools as gltools
 from ctypes import c_int, c_char_p, c_char, cast, POINTER, byref
+
+# for backwards compatibilit with older pyglet and GL versions
+USE_LEGACY_GL = pyglet.version < '2.0'
 
 
 class Shader:
@@ -19,17 +23,18 @@ class Shader:
         def compileShader(source, shaderType):
             """Compile shader source of given type (only needed by compileProgram)
             """
-            shader = GL.glCreateShaderObjectARB(shaderType)
+            shader = GL.glCreateShader(shaderType)
             # if Py3 then we need to convert our (unicode) str into bytes for C
             if type(source) != bytes:
                 source = source.encode()
             prog = c_char_p(source)
             length = c_int(-1)
-            GL.glShaderSourceARB(shader,
-                                 1,
-                                 cast(byref(prog), POINTER(POINTER(c_char))),
-                                 byref(length))
-            GL.glCompileShaderARB(shader)
+            GL.glShaderSource(
+                shader, 
+                1,
+                cast(byref(prog), POINTER(POINTER(c_char))),
+                byref(length))
+            GL.glCompileShader(shader)
 
             # check for errors
             status = c_int()
@@ -39,26 +44,26 @@ class Shader:
                 raise ValueError('Shader compilation failed')
             return shader
 
-        self.handle = GL.glCreateProgramObjectARB()
+        self.handle = GL.glCreateProgram()
 
         if vertexSource:
             vertexShader = compileShader(
-                vertexSource, GL.GL_VERTEX_SHADER_ARB
+                vertexSource, GL.GL_VERTEX_SHADER
             )
-            GL.glAttachObjectARB(self.handle, vertexShader)
+            GL.glAttachShader(self.handle, vertexShader)
         if fragmentSource:
             fragmentShader = compileShader(
-                fragmentSource, GL.GL_FRAGMENT_SHADER_ARB
+                fragmentSource, GL.GL_FRAGMENT_SHADER
             )
-            GL.glAttachObjectARB(self.handle, fragmentShader)
+            GL.glAttachShader(self.handle, fragmentShader)
 
-        GL.glValidateProgramARB(self.handle)
-        GL.glLinkProgramARB(self.handle)
+        GL.glValidateProgram(self.handle)
+        GL.glLinkProgram(self.handle)
 
         if vertexShader:
-            GL.glDeleteObjectARB(vertexShader)
+            GL.glDeleteShader(vertexShader)
         if fragmentShader:
-            GL.glDeleteObjectARB(fragmentShader)
+            GL.glDeleteShader(fragmentShader)
 
     def bind(self):
         GL.glUseProgram(self.handle)
@@ -117,27 +122,27 @@ def compileProgram(vertexSource=None, fragmentSource=None):
         Program object handle.
 
     """
-    program = gltools.createProgramObjectARB()
+    program = gltools.createProgram()
 
     vertexShader = fragmentShader = None
     if vertexSource:
-        vertexShader = gltools.compileShaderObjectARB(
-            vertexSource, GL.GL_VERTEX_SHADER_ARB)
-        gltools.attachObjectARB(program, vertexShader)
+        vertexShader = gltools.compileShader(
+            vertexSource, GL.GL_VERTEX_SHADER)
+        gltools.attachShader(program, vertexShader)
     if fragmentSource:
-        fragmentShader = gltools.compileShaderObjectARB(
-            fragmentSource, GL.GL_FRAGMENT_SHADER_ARB)
-        gltools.attachObjectARB(program, fragmentShader)
+        fragmentShader = gltools.compileShader(
+            fragmentSource, GL.GL_FRAGMENT_SHADER)
+        gltools.attachShader(program, fragmentShader)
 
-    gltools.linkProgramObjectARB(program)
+    gltools.linkProgram(program)
     # gltools.validateProgramARB(program)
 
     if vertexShader:
-        gltools.detachObjectARB(program, vertexShader)
-        gltools.deleteObjectARB(vertexShader)
+        gltools.detachShader(program, vertexShader)
+        gltools.deleteObject(vertexShader)
     if fragmentShader:
-        gltools.detachObjectARB(program, fragmentShader)
-        gltools.deleteObjectARB(fragmentShader)
+        gltools.detachShader(program, fragmentShader)
+        gltools.deleteObject(fragmentShader)
 
     return program
 
@@ -148,7 +153,7 @@ during frag shader. Otherwise we need to convert to 0:1. This means that
 some shaders differ for FBO use if they're performing any signed math.
 """
 
-fragFBOtoFrame = '''
+fragFBOtoFrame = """
     uniform sampler2D texture;
 
     float rand(vec2 seed){
@@ -167,287 +172,616 @@ fragFBOtoFrame = '''
             gl_FragColor.rgb = vec3 (0, 0, rand(gl_TexCoord[0].st));
         }
     }
-    '''
+    """
 
-# for stimuli with no texture (e.g. shapes)
-fragSignedColor = '''
-    void main() {
-        gl_FragColor.rgb = ((gl_Color.rgb*2.0-1.0)+1.0)/2.0;
-        gl_FragColor.a = gl_Color.a;
-    }
+if USE_LEGACY_GL:
+    # for stimuli with no texture (e.g. shapes)
+    fragSignedColor = '''
+        void main() {
+            gl_FragColor.rgb = ((gl_Color.rgb*2.0-1.0)+1.0)/2.0;
+            gl_FragColor.a = gl_Color.a;
+        }
     '''
-fragSignedColor_adding = '''
-    void main() {
-        gl_FragColor.rgb = (gl_Color.rgb*2.0-1.0)/2.0;
-        gl_FragColor.a = gl_Color.a;
+    fragSignedColor_adding = '''
+        void main() {
+            gl_FragColor.rgb = (gl_Color.rgb*2.0-1.0)/2.0;
+            gl_FragColor.a = gl_Color.a;
+        }
+        '''
+    # for stimuli with just a colored texture
+    fragSignedColorTex = '''
+        uniform sampler2D texture;
+        void main() {
+            vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);
+            gl_FragColor.rgb = (textureFrag.rgb* (gl_Color.rgb*2.0-1.0)+1.0)/2.0;
+            gl_FragColor.a = gl_Color.a*textureFrag.a;
+        }
+        '''
+    fragSignedColorTex_adding = '''
+        uniform sampler2D texture;
+        void main() {
+            vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);
+            gl_FragColor.rgb = textureFrag.rgb * (gl_Color.rgb*2.0-1.0)/2.0;
+            gl_FragColor.a = gl_Color.a * textureFrag.a;
+        }
+        '''
+    # the shader for pyglet fonts doesn't use multitextures - just one texture
+    fragSignedColorTexFont = '''
+        uniform sampler2D texture;
+        uniform vec3 rgb;
+        void main() {
+            vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);
+            gl_FragColor.rgb=rgb;
+            gl_FragColor.a = gl_Color.a*textureFrag.a;
+        }
+        '''
+    # for stimuli with a colored texture and a mask (gratings, etc.)
+    fragSignedColorTexMask = '''
+        uniform sampler2D texture, mask;
+        void main() {
+            vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);
+            vec4 maskFrag = texture2D(mask,gl_TexCoord[1].st);
+            gl_FragColor.a = gl_Color.a*maskFrag.a*textureFrag.a;
+            gl_FragColor.rgb = (textureFrag.rgb* (gl_Color.rgb*2.0-1.0)+1.0)/2.0;
+        }
+        '''
+    fragSignedColorTexMask_adding = '''
+        uniform sampler2D texture, mask;
+        void main() {
+            vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);
+            vec4 maskFrag = texture2D(mask,gl_TexCoord[1].st);
+            gl_FragColor.a = gl_Color.a * maskFrag.a * textureFrag.a;
+            gl_FragColor.rgb = textureFrag.rgb * (gl_Color.rgb*2.0-1.0)/2.0;
+        }
+        '''
+    # RadialStim uses a 1D mask with a 2D texture
+    fragSignedColorTexMask1D = '''
+        uniform sampler2D texture;
+        uniform sampler1D mask;
+        void main() {
+            vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);
+            vec4 maskFrag = texture1D(mask,gl_TexCoord[1].s);
+            gl_FragColor.a = gl_Color.a*maskFrag.a*textureFrag.a;
+            gl_FragColor.rgb = (textureFrag.rgb* (gl_Color.rgb*2.0-1.0)+1.0)/2.0;
+        }
+        '''
+    fragSignedColorTexMask1D_adding = '''
+        uniform sampler2D texture;
+        uniform sampler1D mask;
+        void main() {
+            vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);
+            vec4 maskFrag = texture1D(mask,gl_TexCoord[1].s);
+            gl_FragColor.a = gl_Color.a * maskFrag.a*textureFrag.a;
+            gl_FragColor.rgb = textureFrag.rgb * (gl_Color.rgb*2.0-1.0)/2.0;
+        }
+        '''
+    # imageStim is providing its texture unsigned
+    fragImageStim = '''
+        uniform sampler2D texture;
+        uniform sampler2D mask;
+        void main() {
+            vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);
+            vec4 maskFrag = texture2D(mask,gl_TexCoord[1].st);
+            gl_FragColor.a = gl_Color.a*maskFrag.a*textureFrag.a;
+            gl_FragColor.rgb = ((textureFrag.rgb*2.0-1.0)*(gl_Color.rgb*2.0-1.0)+1.0)/2.0;
+        }
+        '''
+    # imageStim is providing its texture unsigned
+    fragImageStim_adding = '''
+        uniform sampler2D texture;
+        uniform sampler2D mask;
+        void main() {
+            vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);
+            vec4 maskFrag = texture2D(mask,gl_TexCoord[1].st);
+            gl_FragColor.a = gl_Color.a*maskFrag.a*textureFrag.a;
+            gl_FragColor.rgb = (textureFrag.rgb*2.0-1.0)*(gl_Color.rgb*2.0-1.0)/2.0;
+        }
+        '''
+    # in every case our vertex shader is simple (we don't transform coords)
+    vertSimple = """
+        void main() {
+                gl_FrontColor = gl_Color;
+                gl_TexCoord[0] = gl_MultiTexCoord0;
+                gl_TexCoord[1] = gl_MultiTexCoord1;
+                gl_TexCoord[2] = gl_MultiTexCoord2;
+                gl_Position =  ftransform();
+        }
+        """
+
+    vertPhongLighting = """
+    // Vertex shader for the Phong Shading Model
+    // 
+    // This code is based of the tutorial here:
+    //     https://www.opengl.org/sdk/docs/tutorials/ClockworkCoders/lighting.php
+    //
+    // Only supports directional and point light sources for now. Spotlights will be
+    // added later on.
+    //
+    #version 110
+    varying vec3 N;
+    varying vec3 v;
+    varying vec4 frontColor;
+
+    void main(void)  
+    {     
+        v = vec3(gl_ModelViewMatrix * gl_Vertex);       
+        N = normalize(gl_NormalMatrix * gl_Normal);
+        
+        gl_TexCoord[0] = gl_MultiTexCoord0;
+        gl_TexCoord[1] = gl_MultiTexCoord1;
+        gl_Position = ftransform();
+        frontColor = gl_Color;
     }
-    '''
-# for stimuli with just a colored texture
-fragSignedColorTex = '''
-    uniform sampler2D texture;
-    void main() {
-        vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);
-        gl_FragColor.rgb = (textureFrag.rgb* (gl_Color.rgb*2.0-1.0)+1.0)/2.0;
-        gl_FragColor.a = gl_Color.a*textureFrag.a;
+            
+    """
+
+    fragPhongLighting = """
+    // Fragment shader for the Phong Shading Model
+    // 
+    // This code is based of the tutorial here:
+    //     https://www.opengl.org/sdk/docs/tutorials/ClockworkCoders/lighting.php
+    //
+    // Use `embedShaderSourceDefs` from gltools to enable the code path for diffuse 
+    // texture maps by setting DIFFUSE to 1. The number of lights can be specified 
+    // by setting MAX_LIGHTS, by default, the maximum should be 8. However, build
+    // your shader for the exact number of lights required. 
+    //
+    // Only supports directional and point light sources for now. Spotlights will be
+    // added later on.
+    //
+    #version 110
+    varying vec3 N;
+    varying vec3 v; 
+    varying vec4 frontColor;
+
+    #ifdef DIFFUSE_TEXTURE
+        uniform sampler2D diffTexture;
+    #endif
+
+    // Calculate lighting attenuation using the same formula OpenGL uses
+    float calcAttenuation(float kConst, float kLinear, float kQuad, float dist) {
+        return 1.0 / (kConst + kLinear * dist + kQuad * dist * dist);
     }
-    '''
-fragSignedColorTex_adding = '''
-    uniform sampler2D texture;
-    void main() {
-        vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);
-        gl_FragColor.rgb = textureFrag.rgb * (gl_Color.rgb*2.0-1.0)/2.0;
-        gl_FragColor.a = gl_Color.a * textureFrag.a;
-    }
-    '''
-# the shader for pyglet fonts doesn't use multitextures - just one texture
-fragSignedColorTexFont = '''
-    uniform sampler2D texture;
-    uniform vec3 rgb;
-    void main() {
-        vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);
-        gl_FragColor.rgb=rgb;
-        gl_FragColor.a = gl_Color.a*textureFrag.a;
-    }
-    '''
-# for stimuli with a colored texture and a mask (gratings, etc.)
-fragSignedColorTexMask = '''
-    uniform sampler2D texture, mask;
-    void main() {
-        vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);
-        vec4 maskFrag = texture2D(mask,gl_TexCoord[1].st);
-        gl_FragColor.a = gl_Color.a*maskFrag.a*textureFrag.a;
-        gl_FragColor.rgb = (textureFrag.rgb* (gl_Color.rgb*2.0-1.0)+1.0)/2.0;
-    }
-    '''
-fragSignedColorTexMask_adding = '''
-    uniform sampler2D texture, mask;
-    void main() {
-        vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);
-        vec4 maskFrag = texture2D(mask,gl_TexCoord[1].st);
-        gl_FragColor.a = gl_Color.a * maskFrag.a * textureFrag.a;
-        gl_FragColor.rgb = textureFrag.rgb * (gl_Color.rgb*2.0-1.0)/2.0;
-    }
-    '''
-# RadialStim uses a 1D mask with a 2D texture
-fragSignedColorTexMask1D = '''
-    uniform sampler2D texture;
-    uniform sampler1D mask;
-    void main() {
-        vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);
-        vec4 maskFrag = texture1D(mask,gl_TexCoord[1].s);
-        gl_FragColor.a = gl_Color.a*maskFrag.a*textureFrag.a;
-        gl_FragColor.rgb = (textureFrag.rgb* (gl_Color.rgb*2.0-1.0)+1.0)/2.0;
-    }
-    '''
-fragSignedColorTexMask1D_adding = '''
-    uniform sampler2D texture;
-    uniform sampler1D mask;
-    void main() {
-        vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);
-        vec4 maskFrag = texture1D(mask,gl_TexCoord[1].s);
-        gl_FragColor.a = gl_Color.a * maskFrag.a*textureFrag.a;
-        gl_FragColor.rgb = textureFrag.rgb * (gl_Color.rgb*2.0-1.0)/2.0;
-    }
-    '''
-# imageStim is providing its texture unsigned
-fragImageStim = '''
-    uniform sampler2D texture;
-    uniform sampler2D mask;
-    void main() {
-        vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);
-        vec4 maskFrag = texture2D(mask,gl_TexCoord[1].st);
-        gl_FragColor.a = gl_Color.a*maskFrag.a*textureFrag.a;
-        gl_FragColor.rgb = ((textureFrag.rgb*2.0-1.0)*(gl_Color.rgb*2.0-1.0)+1.0)/2.0;
-    }
-    '''
-# imageStim is providing its texture unsigned
-fragImageStim_adding = '''
-    uniform sampler2D texture;
-    uniform sampler2D mask;
-    void main() {
-        vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);
-        vec4 maskFrag = texture2D(mask,gl_TexCoord[1].st);
-        gl_FragColor.a = gl_Color.a*maskFrag.a*textureFrag.a;
-        gl_FragColor.rgb = (textureFrag.rgb*2.0-1.0)*(gl_Color.rgb*2.0-1.0)/2.0;
-    }
-    '''
-# in every case our vertex shader is simple (we don't transform coords)
-vertSimple = """
-    void main() {
-            gl_FrontColor = gl_Color;
-            gl_TexCoord[0] = gl_MultiTexCoord0;
-            gl_TexCoord[1] = gl_MultiTexCoord1;
-            gl_TexCoord[2] = gl_MultiTexCoord2;
-            gl_Position =  ftransform();
+
+    void main (void)  
+    {  
+    #ifdef DIFFUSE_TEXTURE
+        vec4 diffTexColor = texture2D(diffTexture, gl_TexCoord[0].st);
+    #endif 
+
+    #if MAX_LIGHTS > 0
+        vec3 N = normalize(N);
+        vec4 finalColor = vec4(0.0);
+        // loop over available lights
+        for (int i=0; i < MAX_LIGHTS; i++)
+        {
+            vec3 L;
+            float attenuation = 1.0;  // default factor, no attenuation
+            
+            // check if directional, compute attenuation if a point source
+            if (gl_LightSource[i].position.w == 0.0) 
+            {
+                // off at infinity, only use direction
+                L = normalize(gl_LightSource[i].position.xyz);
+                // attenuation is 1.0 (no attenuation for directional sources)
+            } 
+            else 
+            {
+                L = normalize(gl_LightSource[i].position.xyz - v);
+                attenuation = calcAttenuation(
+                    gl_LightSource[i].constantAttenuation,
+                    gl_LightSource[i].linearAttenuation,
+                    gl_LightSource[i].quadraticAttenuation,
+                    length(gl_LightSource[i].position.xyz - v));
+            }
+            
+            vec3 E = normalize(-v);
+            vec3 R = normalize(-reflect(L, N)); 
+            
+            // combine scene ambient with object
+            vec4 ambient = gl_FrontMaterial.diffuse * 
+                (gl_FrontLightProduct[i].ambient + gl_LightModel.ambient); 
+            
+            // calculate diffuse component
+            vec4 diffuse = gl_FrontLightProduct[i].diffuse * max(dot(N, L), 0.0);
+    #ifdef DIFFUSE_TEXTURE
+            // multiply in material texture colors if specified
+            diffuse *= diffTexColor;
+            ambient *= diffTexColor;  // ambient should be modulated by diffuse color
+    #endif
+            vec3 halfwayVec = normalize(L + E);
+            vec4 specular = gl_FrontLightProduct[i].specular *
+                pow(max(dot(N, halfwayVec), 0.0), gl_FrontMaterial.shininess);
+
+            // clamp color values for specular and diffuse
+            ambient = clamp(ambient, 0.0, 1.0); 
+            diffuse = clamp(diffuse, 0.0, 1.0); 
+            specular = clamp(specular, 0.0, 1.0); 
+            
+            // falloff with distance from eye? might be something to consider for 
+            // realism
+            vec4 emission = clamp(gl_FrontMaterial.emission, 0.0, 1.0);
+            
+            finalColor += (ambient + emission) + attenuation * (diffuse + specular);
+        }
+        gl_FragColor = finalColor;  // use texture alpha
+    #else
+        // no lights, only track ambient and emission component
+        vec4 emission = clamp(gl_FrontMaterial.emission, 0.0, 1.0);
+        vec4 ambient = gl_FrontLightProduct[0].ambient * gl_LightModel.ambient; 
+        ambient = clamp(ambient, 0.0, 1.0); 
+    #ifdef DIFFUSE_TEXTURE
+        gl_FragColor = (ambient + emission) * texture2D(diffTexture, gl_TexCoord[0].st);
+    #else
+        gl_FragColor = ambient + emission;
+    #endif
+    #endif
     }
     """
 
-vertPhongLighting = """
-// Vertex shader for the Phong Shading Model
-// 
-// This code is based of the tutorial here:
-//     https://www.opengl.org/sdk/docs/tutorials/ClockworkCoders/lighting.php
-//
-// Only supports directional and point light sources for now. Spotlights will be
-// added later on.
-//
-#version 110
-varying vec3 N;
-varying vec3 v;
-varying vec4 frontColor;
+    vertSkyBox = """
+    varying vec3 texCoord;
+    void main(void)  
+    {   
+        texCoord = gl_Vertex;
+        gl_Position = ftransform().xyww;
+    }      
+    """
 
-void main(void)  
-{     
-    v = vec3(gl_ModelViewMatrix * gl_Vertex);       
-    N = normalize(gl_NormalMatrix * gl_Normal);
-    
-    gl_TexCoord[0] = gl_MultiTexCoord0;
-    gl_TexCoord[1] = gl_MultiTexCoord1;
-    gl_Position = ftransform();
-    frontColor = gl_Color;
-}
-          
-"""
-
-fragPhongLighting = """
-// Fragment shader for the Phong Shading Model
-// 
-// This code is based of the tutorial here:
-//     https://www.opengl.org/sdk/docs/tutorials/ClockworkCoders/lighting.php
-//
-// Use `embedShaderSourceDefs` from gltools to enable the code path for diffuse 
-// texture maps by setting DIFFUSE to 1. The number of lights can be specified 
-// by setting MAX_LIGHTS, by default, the maximum should be 8. However, build
-// your shader for the exact number of lights required. 
-//
-// Only supports directional and point light sources for now. Spotlights will be
-// added later on.
-//
-#version 110
-varying vec3 N;
-varying vec3 v; 
-varying vec4 frontColor;
-
-#ifdef DIFFUSE_TEXTURE
-    uniform sampler2D diffTexture;
-#endif
-
-// Calculate lighting attenuation using the same formula OpenGL uses
-float calcAttenuation(float kConst, float kLinear, float kQuad, float dist) {
-    return 1.0 / (kConst + kLinear * dist + kQuad * dist * dist);
-}
-
-void main (void)  
-{  
-#ifdef DIFFUSE_TEXTURE
-    vec4 diffTexColor = texture2D(diffTexture, gl_TexCoord[0].st);
-#endif 
-
-#if MAX_LIGHTS > 0
-    vec3 N = normalize(N);
-    vec4 finalColor = vec4(0.0);
-    // loop over available lights
-    for (int i=0; i < MAX_LIGHTS; i++)
-    {
-        vec3 L;
-        float attenuation = 1.0;  // default factor, no attenuation
-        
-        // check if directional, compute attenuation if a point source
-        if (gl_LightSource[i].position.w == 0.0) 
-        {
-            // off at infinity, only use direction
-            L = normalize(gl_LightSource[i].position.xyz);
-            // attenuation is 1.0 (no attenuation for directional sources)
-        } 
-        else 
-        {
-            L = normalize(gl_LightSource[i].position.xyz - v);
-            attenuation = calcAttenuation(
-                gl_LightSource[i].constantAttenuation,
-                gl_LightSource[i].linearAttenuation,
-                gl_LightSource[i].quadraticAttenuation,
-                length(gl_LightSource[i].position.xyz - v));
-        }
-        
-        vec3 E = normalize(-v);
-        vec3 R = normalize(-reflect(L, N)); 
-        
-        // combine scene ambient with object
-        vec4 ambient = gl_FrontMaterial.diffuse * 
-            (gl_FrontLightProduct[i].ambient + gl_LightModel.ambient); 
-        
-        // calculate diffuse component
-        vec4 diffuse = gl_FrontLightProduct[i].diffuse * max(dot(N, L), 0.0);
-#ifdef DIFFUSE_TEXTURE
-        // multiply in material texture colors if specified
-        diffuse *= diffTexColor;
-        ambient *= diffTexColor;  // ambient should be modulated by diffuse color
-#endif
-        vec3 halfwayVec = normalize(L + E);
-        vec4 specular = gl_FrontLightProduct[i].specular *
-            pow(max(dot(N, halfwayVec), 0.0), gl_FrontMaterial.shininess);
-
-        // clamp color values for specular and diffuse
-        ambient = clamp(ambient, 0.0, 1.0); 
-        diffuse = clamp(diffuse, 0.0, 1.0); 
-        specular = clamp(specular, 0.0, 1.0); 
-        
-        // falloff with distance from eye? might be something to consider for 
-        // realism
-        vec4 emission = clamp(gl_FrontMaterial.emission, 0.0, 1.0);
-        
-        finalColor += (ambient + emission) + attenuation * (diffuse + specular);
+    fragSkyBox = """
+    varying vec3 texCoord;
+    uniform samplerCube SkyTexture;
+    void main (void)  
+    {  
+        gl_FragColor = texture(SkyTexture, texCoord);
     }
-    gl_FragColor = finalColor;  // use texture alpha
-#else
-    // no lights, only track ambient and emission component
-    vec4 emission = clamp(gl_FrontMaterial.emission, 0.0, 1.0);
-    vec4 ambient = gl_FrontLightProduct[0].ambient * gl_LightModel.ambient; 
-    ambient = clamp(ambient, 0.0, 1.0); 
-#ifdef DIFFUSE_TEXTURE
-    gl_FragColor = (ambient + emission) * texture2D(diffTexture, gl_TexCoord[0].st);
-#else
-    gl_FragColor = ambient + emission;
-#endif
-#endif
-}
-"""
+    """
 
-vertSkyBox = """
-varying vec3 texCoord;
-void main(void)  
-{   
-    texCoord = gl_Vertex;
-    gl_Position = ftransform().xyww;
-}      
-"""
+    fragTextBox2 = '''
+        uniform sampler2D texture;
+        void main() {
+            vec2 uv      = gl_TexCoord[0].xy;
+            vec4 current = texture2D(texture, uv);
 
-fragSkyBox = """
-varying vec3 texCoord;
-uniform samplerCube SkyTexture;
-void main (void)  
-{  
-    gl_FragColor = texture(SkyTexture, texCoord);
-}
-"""
+            float r = current.r;
+            float g = current.g;
+            float b = current.b;
+            float a = current.a;
+            gl_FragColor = vec4( gl_Color.rgb, (r+g+b)/2.);
+        }
+        '''
+    fragTextBox2alpha = '''
+        uniform sampler2D texture;
+        void main() {
+            vec4 current = texture2D(texture,gl_TexCoord[0].st);
+            gl_FragColor = vec4( gl_Color.rgb, current.a);
+        }
+        '''
+else:
+    # for stimuli with no texture (e.g. shapes)
+    fragSignedColor = """
+        uniform vec4 uColor;
+        void main() {
+            gl_FragColor.rgb = ((uColor.rgb * 2.0 - 1.0) + 1.0) / 2.0;
+            gl_FragColor.a = uColor.a;
+        }
+        """
+    fragSignedColor_adding = """
+        uniform vec4 uColor;
+        void main() {
+            gl_FragColor.rgb = (uColor.rgb * 2.0 - 1.0) / 2.0;
+            gl_FragColor.a = uColor.a;
+        }
+        """
+    # for stimuli with just a colored texture
+    fragSignedColorTex = """
+        uniform vec4 uColor;
+        uniform sampler2D uTexture;
+        void main() {
+            vec4 textureFrag = texture2D(uTexture, gl_TexCoord[0].st);
+            gl_FragColor.rgb = (textureFrag.rgb * (uColor.rgb * 2.0 - 1.0) + 1.0) / 2.0;
+            gl_FragColor.a = uColor.a * textureFrag.a;
+        }
+        """
+    fragSignedColorTex_adding = """
+        uniform vec4 uColor;
+        uniform sampler2D uTexture;
+        void main() {
+            vec4 textureFrag = texture2D(uTexture, gl_TexCoord[0].st);
+            gl_FragColor.rgb = textureFrag.rgb * (uColor.rgb * 2.0 - 1.0) / 2.0;
+            gl_FragColor.a = uColor.a * textureFrag.a;
+        }
+        """
+    # the shader for pyglet fonts doesn't use multitextures - just one texture
+    # fragSignedColorTexFont = """
+    #     uniform vec4 uColor;
+    #     uniform sampler2D uTexture;
+    #     void main() {
+    #         vec4 textureFrag = texture2D(uTexture, gl_TexCoord[0].st);
+    #         gl_FragColor.rgb = uColor.rgb * gl_Color.rgb;
+    #         gl_FragColor.a = textureFrag.a * gl_Color.a;
+    #     }
+    # """
 
-fragTextBox2 = '''
-    uniform sampler2D texture;
-    void main() {
+    fragSignedColorTexFont = """
+        uniform sampler2D texture;
+        uniform vec3 rgb;
+        void main() {
+            vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);
+            gl_FragColor.rgb=rgb;
+            gl_FragColor.a = gl_Color.a*textureFrag.a;
+        }
+    """
+
+    # for stimuli with a colored texture and a mask (gratings, etc.)
+    fragSignedColorTexMask = """
+        uniform vec4 uColor;
+        uniform sampler2D uTexture, uMask;
+        void main() {
+            vec4 textureFrag = texture2D(uTexture, gl_TexCoord[0].st);
+            vec4 maskFrag = texture2D(uMask, gl_TexCoord[1].st);
+            gl_FragColor.a = uColor.a * maskFrag.a * textureFrag.a;
+            gl_FragColor.rgb = (textureFrag.rgb * (uColor.rgb * 2.0 - 1.0) + 1.0) / 2.0;
+        }
+        """
+    fragSignedColorTexMask_adding = """
+        uniform vec4 uColor;
+        uniform sampler2D uTexture, uMask;
+        void main() {
+            vec4 textureFrag = texture2D(uTexture, gl_TexCoord[0].st);
+            vec4 maskFrag = texture2D(uMask, gl_TexCoord[1].st);
+            gl_FragColor.a = uColor.a * maskFrag.a * textureFrag.a;
+            gl_FragColor.rgb = textureFrag.rgb * (uColor.rgb * 2.0 - 1.0) / 2.0;
+        }
+        """
+    # RadialStim uses a 1D mask with a 2D texture
+    fragSignedColorTexMask1D = """
+        uniform vec4 uColor;
+        uniform sampler2D uTexture;
+        uniform sampler1D uMask;
+        void main() {
+            vec4 textureFrag = texture2D(uTexture, gl_TexCoord[0].st);
+            vec4 maskFrag = texture1D(uMask, gl_TexCoord[1].s);
+            gl_FragColor.a = uColor.a * maskFrag.a * textureFrag.a;
+            gl_FragColor.rgb = (textureFrag.rgb * (uColor.rgb * 2.0 - 1.0) + 1.0) / 2.0;
+        }
+        """
+    fragSignedColorTexMask1D_adding = """
+        uniform vec4 uColor;
+        uniform sampler2D uTexture;
+        uniform sampler1D uMask;
+        void main() {
+            vec4 textureFrag = texture2D(uTexture, gl_TexCoord[0].st);
+            vec4 maskFrag = texture1D(uMask, gl_TexCoord[1].s);
+            gl_FragColor.a = uColor.a * maskFrag.a * textureFrag.a;
+            gl_FragColor.rgb = textureFrag.rgb * (uColor.rgb * 2.0 - 1.0) / 2.0;
+        }
+        """
+    # imageStim is providing its texture unsigned
+    fragImageStim = """
+        uniform vec4 uColor;
+        uniform sampler2D uTexture;
+        uniform sampler2D uMask;
+
+        void main() {
+            vec4 textureFrag = texture2D(uTexture, gl_TexCoord[0].st);
+            vec4 maskFrag = texture2D(uMask, gl_TexCoord[1].st);
+            gl_FragColor.a = uColor.a * maskFrag.a * textureFrag.a;
+            gl_FragColor.rgb = ((textureFrag.rgb * 2.0 - 1.0) * (uColor.rgb * 2.0 - 1.0) + 1.0) / 2.0;
+        }
+        """
+    # imageStim is providing its texture unsigned
+    fragImageStim_adding = """
+        uniform vec4 uColor;
+        uniform sampler2D uTexture;
+        uniform sampler2D uMask;
+
+        void main() {
+            vec4 textureFrag = texture2D(uTexture, gl_TexCoord[0].st);
+            vec4 maskFrag = texture2D(uMask, gl_TexCoord[1].st);
+            gl_FragColor.a = uColor.a * maskFrag.a * textureFrag.a;
+            gl_FragColor.rgb = (textureFrag.rgb * 2.0 - 1.0) * (uColor.rgb * 2.0 - 1.0) / 2.0;
+        }
+        """
+
+    # legacy vertex shader for pyglet text rendering and FBO blit
+    vertSimpleText = """
+        void main() {
+                gl_FrontColor = gl_Color;
+                gl_TexCoord[0] = gl_MultiTexCoord0;
+                gl_TexCoord[1] = gl_MultiTexCoord1;
+                gl_TexCoord[2] = gl_MultiTexCoord2;
+                gl_Position =  ftransform();
+        }
+        """
+
+    vertSimple = """
+        uniform vec4 uColor;
+        uniform mat4 uModelViewMatrix;  // combined for 2D rendering
+        uniform mat4 uProjectionMatrix;
+        void main() {
+                gl_FrontColor = uColor;
+                gl_TexCoord[0] = gl_MultiTexCoord0;
+                gl_TexCoord[1] = gl_MultiTexCoord1;
+                gl_TexCoord[2] = gl_MultiTexCoord2;
+                gl_Position = uProjectionMatrix * uModelViewMatrix * gl_Vertex;
+        }
+    """
+
+    vertPhongLighting = """
+    // Vertex shader for the Phong Shading Model
+    // 
+    // This code is based of the tutorial here:
+    //     https://www.opengl.org/sdk/docs/tutorials/ClockworkCoders/lighting.php
+    //
+    // Only supports directional and point light sources for now. Spotlights will be
+    // added later on.
+    //
+    #version 110
+    uniform mat4 uModelViewMatrix;
+    uniform mat4 uProjectionMatrix;
+    uniform mat4 uNormalMatrix;
+    varying vec3 N;
+    varying vec3 v;
+    varying vec4 frontColor;
+
+    void main(void)  
+    {     
+        v = vec3(uModelViewMatrix * gl_Vertex.xyz);       
+        N = normalize(uNormalMatrix * gl_Normal);
+        
+        gl_TexCoord[0] = gl_MultiTexCoord0;
+        gl_TexCoord[1] = gl_MultiTexCoord1;
+        gl_Position = uProjectionMatrix * uModelViewMatrix * gl_Vertex;
+        frontColor = gl_Color;
+    }
+            
+    """
+
+    fragPhongLighting = """
+    // Fragment shader for the Phong Shading Model
+    // 
+    // This code is based of the tutorial here:
+    //     https://www.opengl.org/sdk/docs/tutorials/ClockworkCoders/lighting.php
+    //
+    // Use `embedShaderSourceDefs` from gltools to enable the code path for diffuse 
+    // texture maps by setting DIFFUSE to 1. The number of lights can be specified 
+    // by setting MAX_LIGHTS, by default, the maximum should be 8. However, build
+    // your shader for the exact number of lights required. 
+    //
+    // Only supports directional and point light sources for now. Spotlights will be
+    // added later on.
+    //
+    #version 110
+    varying vec3 N;
+    varying vec3 v; 
+    varying vec4 frontColor;
+
+    #ifdef DIFFUSE_TEXTURE
+        uniform sampler2D diffTexture;
+    #endif
+
+    // Calculate lighting attenuation using the same formula OpenGL uses
+    float calcAttenuation(float kConst, float kLinear, float kQuad, float dist) {
+        return 1.0 / (kConst + kLinear * dist + kQuad * dist * dist);
+    }
+
+    void main (void)  
+    {  
+    #ifdef DIFFUSE_TEXTURE
+        vec4 diffTexColor = texture2D(diffTexture, gl_TexCoord[0].st);
+    #endif 
+
+    #if MAX_LIGHTS > 0
+        vec3 N = normalize(N);
+        vec4 finalColor = vec4(0.0);
+        // loop over available lights
+        for (int i=0; i < MAX_LIGHTS; i++)
+        {
+            vec3 L;
+            float attenuation = 1.0;  // default factor, no attenuation
+            
+            // check if directional, compute attenuation if a point source
+            if (gl_LightSource[i].position.w == 0.0) 
+            {
+                // off at infinity, only use direction
+                L = normalize(gl_LightSource[i].position.xyz);
+                // attenuation is 1.0 (no attenuation for directional sources)
+            } 
+            else 
+            {
+                L = normalize(gl_LightSource[i].position.xyz - v);
+                attenuation = calcAttenuation(
+                    gl_LightSource[i].constantAttenuation,
+                    gl_LightSource[i].linearAttenuation,
+                    gl_LightSource[i].quadraticAttenuation,
+                    length(gl_LightSource[i].position.xyz - v));
+            }
+            
+            vec3 E = normalize(-v);
+            vec3 R = normalize(-reflect(L, N)); 
+            
+            // combine scene ambient with object
+            vec4 ambient = gl_FrontMaterial.diffuse * 
+                (gl_FrontLightProduct[i].ambient + gl_LightModel.ambient); 
+            
+            // calculate diffuse component
+            vec4 diffuse = gl_FrontLightProduct[i].diffuse * max(dot(N, L), 0.0);
+    #ifdef DIFFUSE_TEXTURE
+            // multiply in material texture colors if specified
+            diffuse *= diffTexColor;
+            ambient *= diffTexColor;  // ambient should be modulated by diffuse color
+    #endif
+            vec3 halfwayVec = normalize(L + E);
+            vec4 specular = gl_FrontLightProduct[i].specular *
+                pow(max(dot(N, halfwayVec), 0.0), gl_FrontMaterial.shininess);
+
+            // clamp color values for specular and diffuse
+            ambient = clamp(ambient, 0.0, 1.0); 
+            diffuse = clamp(diffuse, 0.0, 1.0); 
+            specular = clamp(specular, 0.0, 1.0); 
+            
+            // falloff with distance from eye? might be something to consider for 
+            // realism
+            vec4 emission = clamp(gl_FrontMaterial.emission, 0.0, 1.0);
+            
+            finalColor += (ambient + emission) + attenuation * (diffuse + specular);
+        }
+        gl_FragColor = finalColor;  // use texture alpha
+    #else
+        // no lights, only track ambient and emission component
+        vec4 emission = clamp(gl_FrontMaterial.emission, 0.0, 1.0);
+        vec4 ambient = gl_FrontLightProduct[0].ambient * gl_LightModel.ambient; 
+        ambient = clamp(ambient, 0.0, 1.0); 
+    #ifdef DIFFUSE_TEXTURE
+        gl_FragColor = (ambient + emission) * texture2D(diffTexture, gl_TexCoord[0].st);
+    #else
+        gl_FragColor = ambient + emission;
+    #endif
+    #endif
+    }
+    """
+
+    vertSkyBox = """
+    varying vec3 texCoord;
+    void main(void)  
+    {   
+        texCoord = gl_Vertex;
+        gl_Position = ftransform().xyww;
+    }      
+    """
+
+    fragSkyBox = """
+    varying vec3 texCoord;
+    uniform samplerCube SkyTexture;
+    void main (void)  
+    {  
+        gl_FragColor = texture(SkyTexture, texCoord);
+    }
+    """
+
+    fragTextBox2 = '''
+    uniform sampler2D uTexture;
+    uniform vec4 uColor;
+    void main() 
+    {
         vec2 uv      = gl_TexCoord[0].xy;
-        vec4 current = texture2D(texture, uv);
+        vec4 current = texture2D(uTexture, uv);
 
         float r = current.r;
         float g = current.g;
         float b = current.b;
         float a = current.a;
-        gl_FragColor = vec4( gl_Color.rgb, (r+g+b)/2.);
+        gl_FragColor = vec4(uColor.rgb, (r + g + b) / 2.);
     }
     '''
-fragTextBox2alpha = '''
-    uniform sampler2D texture;
-    void main() {
-        vec4 current = texture2D(texture,gl_TexCoord[0].st);
-        gl_FragColor = vec4( gl_Color.rgb, current.a);
+
+    fragTextBox2alpha = '''
+    uniform sampler2D uTexture;
+    uniform vec4 uColor;
+    void main() 
+    {
+        vec4 current = texture2D(uTexture, gl_TexCoord[0].st);
+        gl_FragColor = vec4(uColor.rgb, current.a);
     }
     '''

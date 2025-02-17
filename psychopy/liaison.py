@@ -37,9 +37,13 @@ class LiaisonJSONEncoder(json.JSONEncoder):
 	string before JSONifying.
 	"""
 	def default(self, o):
-		# if object has a getJSON method, use it
-		if hasattr(o, "getJSON"):
-			return o.getJSON(asString=False)
+		try:
+			# if object has a getJSON method, use it
+			if hasattr(o, "getJSON"):
+				return o.getJSON(asString=False)
+		except:
+			# if there's an error in the getJSON method, continue so we can try regular encoding
+			pass
 		# if object is an error, transform in standardised form
 		if isinstance(o, BaseException):
 			tb = traceback.format_exception(type(o), o, o.__traceback__)
@@ -97,6 +101,7 @@ class WebSocketServer:
 		"""
 		# the set of currently established connections:
 		self._connections = set()
+		self.loop = None
 
 		# setup a dedicated logger for messages
 		self.logger = LiaisonLogger()
@@ -247,7 +252,12 @@ class WebSocketServer:
 		port : int
 			the port number, e.g. 8001
 		"""
-		asyncio.run(self.run(host, port))
+		# create a loop
+		self.loop = asyncio.new_event_loop()
+		# run loop until complete
+		self.loop.run_until_complete(
+			self.run(host, port)
+		)
 
 	def pingPong(self):
 		"""
@@ -263,20 +273,20 @@ class WebSocketServer:
 		Parameters
 		----------
 		host : string
-			the hostname, e.g. 'localhost'
+			The hostname, e.g. 'localhost'
 		port : int
-			the port number, e.g. 8001
+			The port number, e.g. 8001
 		"""
+		# create future for the current loop
+		loopFuture = self.loop.create_future()
 		# set the loop future on SIGTERM or SIGINT for clean interruptions:
-		loop = asyncio.get_running_loop()
-		loopFuture = loop.create_future()
 		if sys.platform in ("linux", "linux2"):
-			loop.add_signal_handler(signal.SIGINT, loopFuture.set_result, None)
-
-		async with websockets.serve(self._connectionHandler, host, port):
+			self.loop.add_signal_handler(signal.SIGINT, loopFuture.set_result, None)
+		# await loop's future to continuously serve
+		async with websockets.serve(self._connectionHandler, host, port, compression=None):
 			self._logger.info(f"Liaison Server started on: {host}:{port}")
+			# run forever
 			await loopFuture
-			# await asyncio.Future()  # run forever
 
 		self._logger.info('Liaison Server terminated.')
 
@@ -304,13 +314,11 @@ class WebSocketServer:
 		message : string
 			the message to be sent to all clients
 		"""
-		try:
-			# try to run in new loop
-			asyncio.run(self.broadcast(message))
-		except RuntimeError:
-			# use existing if there's already a loop
-			loop = asyncio.get_event_loop()
-			loop.create_task(self.broadcast(message))
+		# run task
+		asyncio.run_coroutine_threadsafe(
+			self.broadcast(message),
+			loop=self.loop
+		)
 
 	async def _connectionHandler(self, websocket):
 		"""
@@ -441,21 +449,18 @@ class WebSocketServer:
 							rawResult = await method(*args)
 						else:
 							rawResult = method(*args)
-
-					# convert result to a string
-					result = json.dumps(rawResult, cls=LiaisonJSONEncoder)
-
-					# send a response back to the client:
-					response = {
-						"result": result
+					# prepare a response to send back to the client
+					rawResponse = {
+						"result": rawResult
 					}
-
 					# if there is a messageId in the message, add it to the response:
 					if 'messageId' in decodedMessage:
-						response['messageId'] = decodedMessage['messageId']
-
+						rawResponse['messageId'] = decodedMessage['messageId']
+					# convert to a string before sending
+					response = json.dumps(rawResponse, cls=LiaisonJSONEncoder)
+					# send
 					self.logger.sent(response)
-					await websocket.send(json.dumps(response))
+					await websocket.send(response)
 
 		except BaseException as err:
 			# JSONify any errors

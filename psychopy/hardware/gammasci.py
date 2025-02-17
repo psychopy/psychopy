@@ -14,8 +14,13 @@ These are optional components that can be obtained by installing the
 
 """
 
-from psychopy.tools.pkgtools import PluginStub
+from psychopy.plugins import PluginStub
 
 
-class S470(PluginStub, plugin="psychopy-gammasci", doclink="https://psychopy.github.io/psychopy-gammasci/coder/S470"):
+class S470(
+    PluginStub, 
+    plugin="psychopy-gammasci", 
+    docsHome="https://psychopy.github.io/psychopy-gammasci",
+    docsRef="/coder/S470"
+):
     pass

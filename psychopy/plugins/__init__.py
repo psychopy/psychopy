@@ -7,6 +7,8 @@
 """Utilities for extending PsychoPy with plugins."""
 
 __all__ = [
+    'PluginStub',
+    'PluginRequiredError',
     'loadPlugin',
     'listPlugins',
     'installPlugin',
@@ -25,6 +27,7 @@ __all__ = [
 ]
 
 import os
+from pathlib import Path
 import sys
 import inspect
 import collections
@@ -32,6 +35,7 @@ import hashlib
 import importlib, importlib.metadata
 from psychopy import logging
 from psychopy.preferences import prefs
+from .util import PluginStub, PluginRequiredError
 
 # Configure the environment to use our custom site-packages location for
 # user-installed packages (i.e. plugins).
@@ -780,6 +784,10 @@ def loadPlugin(plugin):
                     #     _failed_plugins_.append(plugin)
                     #
                     # return False
+            # log that we're loading the entry point
+            logging.debug(
+                f"Registering entry point {ep.value} (from {plugin}) to {ep.group}:{ep.name}"
+            )
             try:
                 ep = ep.load()  # load the entry point
 
@@ -788,26 +796,21 @@ def loadPlugin(plugin):
                     logging.warning(
                         "Plugin `{}` is being loaded from a zip file. This may "
                         "cause issues with the plugin's functionality.".format(plugin))
-
-            except ImportError as e:
-                logging.error(
-                    "Failed to load entry point `{}` of plugin `{}`. "
-                    "(`{}: {}`) "
-                    "Skipping.".format(str(ep), plugin, e.name, e.msg))
-
-                if plugin not in _failed_plugins_:
-                    _failed_plugins_.append(plugin)
-
-                return False
-            except Exception:  # catch everything else
-                logging.error(
-                    "Failed to load entry point `{}` of plugin `{}` for unknown"
-                    " reasons. Skipping.".format(str(ep), plugin))
+            except Exception as err:
+                # generic start of message
+                msg = f"Skipping entry point {ep.value} (from {plugin}) to {ep.group}:{ep.name}"
+                # append reason
+                if isinstance(err, ImportError):
+                    msg += f" as {ep.value} cannot be imported."
+                else:
+                    msg += f", reason: {err}"
+                # log message
+                logging.error(msg)
 
                 if plugin not in _failed_plugins_:
                     _failed_plugins_.append(plugin)
 
-                return False
+                continue
 
             # If we get here, the entry point is valid and we can safely add it
             # to PsychoPy's namespace.
@@ -839,6 +842,12 @@ def loadPlugin(plugin):
                 _registerBuilderStandaloneRoutine(ep)
             elif fqn == 'psychopy.hardware.photometer':  # photometer
                 _registerPhotometer(ep)
+            elif fqn == "psychopy.app.themes.icons":
+                # get module folder
+                folder = Path(ep.__file__).parent
+                # add all matching .png files from that folder
+                for file in folder.glob(f"**/*.png"):
+                    targObj.pluginIconFiles.append(file)
 
     # Retain information about the plugin's entry points, we will use this for
     # conflict resolution.

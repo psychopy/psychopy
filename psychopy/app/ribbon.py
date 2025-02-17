@@ -467,7 +467,8 @@ class FrameRibbonButton(wx.Button, handlers.ThemeMixin):
         wx.Button.__init__(self, parent, style=wx.BORDER_NONE | style, size=(w, 44))
         self.SetMinSize((40, 44))
         # set label
-        self.SetLabelText(label)
+        if label and style | wx.BU_NOTEXT != style:
+            self.SetLabelText(label)
         # set tooltip
         if tooltip and style | wx.BU_NOTEXT == style:
             # if there's no label, include it in the tooltip

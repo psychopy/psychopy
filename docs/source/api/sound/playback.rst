@@ -133,7 +133,7 @@ PTB Audio Latency Modes
 
 When using the PTB backend you get the option to choose the Latency Mode,
 referred to in PsychToolBox as the `reqlatencyclass`, and can be set in
-PsychoPy using :ref:`prefs.hardware['audioLatencyMode'] <hardwareSettings>`.
+:class:`psychopy.hardware.speaker.SpeakerDevice`
 
 |PsychoPy| uses Mode 3 in as a default, assuming that you want low latency and you
 don't care if other applications can't play sound at the same time (don't listen

@@ -33,6 +33,10 @@ try:
     haveGit = True
 except ImportError:
     haveGit = False
+# message to show when git is needed and not installed (format with action that failed)
+noGitMsg = _translate(
+    "Failed to {} as Pavlovia works via git, which is not installed on this machine. You can install git from here: https://git-scm.com/downloads"
+)
 
 import requests
 import gitlab
@@ -1109,9 +1113,11 @@ class PavloviaProject(dict):
         elif localFiles:
             # get project name
             if "/" in self.stringId:
-                _, projectName = self.stringId.split("/")
+                _, projectName = self.stringId.split("/", maxsplit=1)
             else:
                 projectName = self.stringId
+            # remove extra / from project name
+            projectName = projectName.replace("/", "")
             # ask user if they want to clone to a subfolder
             msg = _translate(
                     "Folder '{localRoot}' is not empty, use '{localRoot}/{projectName}' instead?"
@@ -1208,12 +1214,19 @@ class PavloviaProject(dict):
         None
         """
         localConfig = self.repo.git.config(l=True, local=True)  # list local
-        if self.session.user['email'] in localConfig:
-            return  # we already have it set up so can return
         # set the local config
-        with self.repo.config_writer() as config:
+        config = self.repo.config_writer()
+        # set config values if the user hasn't set them already
+        # the -100 hack is because ConfigParser.get_value allows setting a default
+        # but doing try...except on its custom errors is annoying!
+        if config.get_value("user", "email", default=-100) == -100:
             config.set_value("user", "email", self.session.user['email'])
             config.set_value("user", "name", self.session.user['name'])
+        if config.get_value("pull", "rebase", default=-100) == -100:
+            config.set_value("pull", "rebase", False)
+        if config.get_value("http", "postBuffer", default=-100) == -100:
+            config.set_value("http", "postBuffer", 524288000)
+        config.release()  # saves the changes (not needed if using `with config_writer() as config`)
 
     def fork(self, to=None):
         # Sub in current user if none given
@@ -1394,8 +1407,10 @@ class PavloviaProject(dict):
 def getGitRoot(p):
     """Return None or the root path of the repository"""
     if not haveGit:
-        raise exceptions.DependencyError(
-                "gitpython and a git installation required for getGitRoot()")
+        logging.warn(
+            noGitMsg.format(_translate("get git root"))
+        )
+        return None
 
     p = pathlib.Path(p).absolute()
     if not p.is_dir():
@@ -1425,8 +1440,10 @@ def getNameWithNamespace(p):
     """
     # Work out cwd
     if not haveGit:
-        raise exceptions.DependencyError(
-                "gitpython and a git installation required for getGitRoot()")
+        logging.warn(
+            noGitMsg.format(_translate("get project name"))
+        )
+        return None
 
     p = pathlib.Path(p).absolute()
     if not p.is_dir():
@@ -1457,8 +1474,10 @@ def getProject(filename):
     """
     # Check that we have Git
     if not haveGit:
-        raise exceptions.DependencyError(
-                "gitpython and a git installation required for getProject()")
+        logging.warn(
+            noGitMsg.format(_translate("get Pavlovia project"))
+        )
+        return None
     # Get git root
     gitRoot = getGitRoot(filename)
     # Get name with namespace
@@ -1470,7 +1489,9 @@ def getProject(filename):
     # If already found, return
     if (knownProjects is not None) and (path in knownProjects) and ('idNumber' in knownProjects[path]):
         # Make sure we are logged in
-        nameSpace, projectName = path.split("/")
+        nameSpace, projectName = path.split("/", maxsplit=1)
+        # remove extra slashes from project name
+        projectName = projectName.replace("/", "")
         # Try to log in if not logged in
         if not session.user:
             if nameSpace in knownUsers:
@@ -1516,7 +1537,9 @@ def getProject(filename):
                     # Remove .git
                     namespaceName = namespaceName.replace(".git", "")
                     # Split to get namespace
-                    nameSpace, projectName = namespaceName.split('/')
+                    nameSpace, projectName = namespaceName.split("/", maxsplit=1)
+                    # remove extra slashes from project name
+                    projectName = projectName.replace("/", "")
                     # Get current session
                     pavSession = getCurrentSession()
                     # Try to log in if not logged in

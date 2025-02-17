@@ -2959,6 +2959,12 @@ class CoderRibbon(ribbon.FrameRibbon):
             tooltip=_translate("Redo last action"),
             callback=parent.redo
         )
+        # find
+        self.addButton(
+            section="edit", name="find", label=_translate("Find"), icon="find",
+            tooltip=_translate("Search the current file for a specific term"),
+            callback=parent.OnFindNext
+        )
 
         self.addSeparator()
 

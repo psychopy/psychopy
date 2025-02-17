@@ -70,6 +70,7 @@ Completed URL
 Incomplete URL
     The URL to direct participants to if they exit the task early (e.g. by pressing the escape key).
 
+.. _Resources:
 Additional resources
     Resources that your task will require (e.g. image files, excel sheets). Note that |PsychoPy| will attempt to populate this automatically, though if you encounter an "Unknown resource" error online, it is possible that you need to add resources to this list.
 
@@ -107,6 +108,9 @@ Save Excel file
 
 Save csv file (summaries)
     If this box is checked a summary file will be created with one row corresponding to the entire loop. If a keyboard response is used the mean and dtandard deviations of responses across trials will also be stored.
+
+.. note::
+   Up to 2024.2.4, the summary file naming convention is ``rf"{filename}{loop_name}.csv"``. From 2025.1.0 onwards, the new naming convention is ``rf"{filename}_{loop_name}.csv"`` to be consistent with uses of suffix throughout PsychoPy. If you are using analysis scripts based on versions prior to 2025.1.0, please be aware of this change and adjust file paths accordingly.
 
 Save csv file (trial-by-trial)
 	If this box is checked a comma separated variable (.csv) will be stored. Each trial will be stored as a new row.

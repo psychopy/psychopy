@@ -298,9 +298,9 @@ class _TextureAtlas:
                       .format(self.name))
         gl.glBindTexture(gl.GL_TEXTURE_2D, self.textureID)
         gl.glTexParameteri(gl.GL_TEXTURE_2D,
-                           gl.GL_TEXTURE_WRAP_S, gl.GL_CLAMP)
+                           gl.GL_TEXTURE_WRAP_S, gl.GL_CLAMP_TO_BORDER)
         gl.glTexParameteri(gl.GL_TEXTURE_2D,
-                           gl.GL_TEXTURE_WRAP_T, gl.GL_CLAMP)
+                           gl.GL_TEXTURE_WRAP_T, gl.GL_CLAMP_TO_BORDER)
         gl.glTexParameteri(gl.GL_TEXTURE_2D,
                            gl.GL_TEXTURE_MAG_FILTER, gl.GL_LINEAR)
         gl.glTexParameteri(gl.GL_TEXTURE_2D,
@@ -662,32 +662,40 @@ def findFontFiles(folders=(), recursive=True):
             searchPaths = _OSXFontDirectories
         elif sys.platform.startswith('linux'):
             searchPaths = _X11FontDirectories
+    # always look inside the app
+    searchPaths.append(Path(prefs.paths['assets']) / "fonts")
+    # always look in the user folder
+    searchPaths.append(prefs.paths['fonts'])
     # search those folders
     fontPaths = []
     for thisFolder in searchPaths:
         thisFolder = Path(thisFolder)
-        try:
-            for thisExt in supportedExtensions:
-                if recursive:
-                    fontPaths.extend(thisFolder.rglob("*.{}".format(thisExt)))
-                else:
-                    fontPaths.extend(thisFolder.glob("*.{}".format(thisExt)))
-        except PermissionError:
-            logging.warning(f"The fonts folder '{thisFolder}' exists but the current user doesn't have read "
-                            "access to it. Fonts from that folder won't be available to TextBox")
-
-    # if we failed let matplotlib have a go
-    if not fontPaths:
-        from matplotlib import font_manager
-        fontPaths = font_manager.findSystemFonts()
-
-    # search resources folder and user's own fonts folder
-    for thisFolder in [Path(prefs.paths['fonts']), Path(prefs.paths['resources']) / "fonts"]:
         for thisExt in supportedExtensions:
-            if recursive:
-                fontPaths.extend(thisFolder.rglob("*.{}".format(thisExt)))
-            else:
-                fontPaths.extend(thisFolder.glob("*.{}".format(thisExt)))
+            try:
+                # search (recursively or flatly)
+                if recursive:
+                    matches = thisFolder.rglob("**/*.{}".format(thisExt))
+                else:
+                    matches = thisFolder.glob("*.{}".format(thisExt))
+            except PermissionError:
+                logging.warning(f"The fonts folder '{thisFolder}' exists but the current user doesn't have read "
+                                "access to it. Fonts from that folder won't be available to TextBox")
+                continue
+            # stringify and append matches
+            for match in matches:
+                match = str(match)
+                if match not in fontPaths:
+                    fontPaths.append(match)
+
+    # let matplotlib have a go
+    try:
+        from matplotlib import font_manager
+        for thisPath in font_manager.findSystemFonts():
+            if thisPath not in fontPaths:
+                fontPaths.append(thisPath)
+    except:
+        pass
+    
     return fontPaths
 
 
@@ -744,7 +752,7 @@ class FontManager():
 
     def getDefaultSansFont(self):
         """Load and return the FontInfo for the first found default font"""
-        for name in ['Verdana', 'DejaVu Sans', 'Bitstream Vera Sans', 'Tahoma']:
+        for name in ['Verdana', 'DejaVu Sans', 'Bitstream Vera Sans', 'Tahoma', 'Noto Sans']:
             these = self.getFontsMatching(name, fallback=False)
             if not these:
                 continue
@@ -784,6 +792,8 @@ class FontManager():
         fontName and style information. If no matching fonts are
         found, None is returned.
         """
+        if not self._fontInfos:
+            self.updateFontInfo()
         if type(fontName) != bytes:
             fontName = bytes(fontName, sys.getfilesystemencoding())
         # Convert value of "bold" to a numeric font weight
@@ -936,12 +946,7 @@ class FontManager():
         """
         fontInfos = self.getFontsMatching(name, bold, italic, fallback=False)
         if not fontInfos:
-            # If font not found, try to retrieve it from Google
-            try:
-                self.addGoogleFont(name)
-            except (MissingFontError, ValueError):
-                pass
-            # Then try again with fallback
+            # If font not found, try again with fallback
             fontInfos = self.getFontsMatching(name, bold, italic, fallback=True)
             if not fontInfos:
                 return False
@@ -1024,6 +1029,9 @@ class FontInfo():
         self.monospace = face.is_fixed_width
         self.charmap_id = face.charmap.index
         self.label = "%s_%s" % (face.family_name, face.style_name)
+    
+    def __repr__(self):
+        return f"<FontInfo '{self.family}': style={self.style}, monospace={self.monospace}, file={self.path}>"
 
     def __str__(self):
         """Generate a string identifier for this font name_style

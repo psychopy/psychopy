@@ -13,18 +13,14 @@ These are optional components that can be obtained by installing the
 
 """
 
-import psychopy.logging as logging
 
-try:
-    from psychopy_labjack import U3
-except (ModuleNotFoundError, ImportError):
-    logging.error(
-        "Support for LabJack hardware is not available this session. Please "
-        "install `psychopy-labjack` and restart the session to enable support.")
-except Exception as e:
-    logging.error(
-        "Error encountered while loading `psychopy-labjack`. Check logs for "
-        "more information.")
+from psychopy.plugins import PluginStub
 
-if __name__ == "__main__":
+
+class U3(
+    PluginStub,
+    plugin="psychopy-labjack",
+    docsHome="http://psychopy.github.io/psychopy-labjack",
+    docsRef="/labjacks.html#psychopy_labjack.labjacks.U3"
+):
     pass

@@ -101,3 +101,99 @@ class TestExperiment:
             else:
                 assert case['value'] not in unhandledResources
 
+    def test_loaded_namespace(self):
+
+        exp = experiment.Experiment()
+        allRoutines = experiment.getAllStandaloneRoutines(fetchIcons=False) 
+
+        """
+        Case structure
+        ==============
+        file : str
+            Experiment file to load
+        expectedSet : Set[str]
+            The expected names in the user namespace after routines are loaded and added
+        names : List[str]
+            Name of each routine to be added after experiment is loaded, paired with tags
+        tags : List[str]
+            Type of each routine to be added after experiment is loaded, paired with names
+            Can be 'CounterbalanceRoutine', 'EyetrackerCalibrationRoutine', 'EyetrackerValidationRoutine'
+        """
+
+        cases = [
+            {"file": "test_counterbalance.psyexp",
+             "expectedSet": {'trial', 'counterbalance', 'counterbalance_2', 'counterbalance_3',
+                             'counterbalance_4', 'counterbalance_5', 'calibration', 'calibration_2'},
+             "names": ['counterbalance', 'counterbalance', 'calibration', 'calibration'],
+             "tags": ['CounterbalanceRoutine', 'CounterbalanceRoutine', 'EyetrackerCalibrationRoutine',
+                      'EyetrackerCalibrationRoutine']},
+            
+            {"file": "test_counterbalance.psyexp",
+             "expectedSet": {'trial', 'counterbalance', 'counterbalance_2', 'counterbalance_3',
+                             'calibration', 'counterbalance_4', 'calibration_2'},
+             "names": ['calibration', 'counterbalance', 'calibration'],
+             "tags": ['EyetrackerCalibrationRoutine', 'EyetrackerCalibrationRoutine', 'EyetrackerCalibrationRoutine']},
+            
+            {"file": "test_custom_missing.psyexp",
+             "expectedSet": {'trial', 'custom_2', 'counterbalance_2', 'counterbalance',
+                             'counterbalance_3', 'calibration', 'calibration_2'},
+             "names": ['counterbalance', 'counterbalance', 'calibration', 'calibration'],
+             "tags": ['CounterbalanceRoutine', 'CounterbalanceRoutine', 'EyetrackerCalibrationRoutine',
+                      'EyetrackerCalibrationRoutine']},
+            
+            {"file": "test_missing_counterbalance.psyexp",
+             "expectedSet": {'trial', 'counterbalance_2', 'counterbalance', 'counterbalance_3'},
+             "names": ['counterbalance', 'counterbalance'],
+             "tags": ['CounterbalanceRoutine', 'EyetrackerCalibrationRoutine']},
+            
+            {"file": "test_mix_exp.psyexp",
+             "expectedSet": {'trial', 'counterbalance', 'calibration', 'counterbalance_2',
+                             'validation', 'counterbalance_3', 'calibration_2', 'validation_2'},
+             "names": ['counterbalance', 'calibration', 'validation'],
+             "tags": ['CounterbalanceRoutine', 'EyetrackerCalibrationRoutine', 'EyetrackerValidationRoutine']},
+            
+            {"file": "test_mix_missing.psyexp",
+             "expectedSet": {'trial', 'calibration_2', 'counterbalance_2', 'calibration',
+                             'counterbalance', 'calibration_3', 'counterbalance_3'},
+             "names": ['calibration_2', 'counterbalance_2', 'calibration', 'counterbalance'],
+             "tags": ['EyetrackerCalibrationRoutine', 'CounterbalanceRoutine', 'EyetrackerCalibrationRoutine',
+                      'CounterbalanceRoutine']},
+            
+            {"file": "test_mix_name_calibration.psyexp",
+             "expectedSet": {'trial', 'calibration_2', 'custom_2', 'counterbalance_2',
+                             'calibration', 'calibration_3', 'custom_3', 'custom'},
+             "names": ['calibration', 'calibration', 'custom_2', 'custom'],
+             "tags": ['EyetrackerCalibrationRoutine', 'CounterbalanceRoutine', 'CounterbalanceRoutine',
+                      'EyetrackerCalibrationRoutine']},
+        ]
+
+        for case in cases:
+            exp.loadFromXML(Path(TESTS_DATA_PATH) / "test_loaded_namespace" / case['file'])
+
+            # add new routines to the experiment and their names to namespace
+            namespace = exp.namespace
+            for (name, tag) in zip(case["names"], case["tags"]):   
+                routine = allRoutines[tag](exp=exp, name=name)
+                rtGoodName = routine.params['name'].val = namespace.makeValid(
+                    routine.params['name'].val)
+                namespace.add(rtGoodName)
+                exp.addStandaloneRoutine(routineName=rtGoodName, routine=routine)
+
+            actualSet = set(namespace.user)
+            expectedSet = case["expectedSet"]
+            print()
+            print(case['file'])
+            print(actualSet)
+            print(expectedSet)
+            print()
+
+            # check for no duplicate names in the namespace.user list
+            assert len(actualSet) == len(expectedSet)
+
+            # check that expected names in namespace.user list is 
+            # equivalent to the actual names in namespace.user
+            assert len(actualSet) == len(actualSet.intersection(expectedSet))
+
+
+
+

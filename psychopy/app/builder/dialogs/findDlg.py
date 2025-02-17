@@ -1,8 +1,10 @@
 import wx
 from psychopy import experiment
+from psychopy.experiment.components.routineSettings import RoutineSettingsComponent
 from psychopy.app import utils
 from psychopy.app.themes import icons
 from psychopy.localization import _translate
+from psychopy.tools import stringtools
 
 
 class BuilderFindDlg(wx.Dialog):
@@ -25,10 +27,34 @@ class BuilderFindDlg(wx.Dialog):
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.border.Add(self.sizer, border=12, proportion=1, flag=wx.EXPAND | wx.ALL)
 
+        # create search box and controls
+        self.searchPnl = wx.Panel(self)
+        self.searchPnl.sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.searchPnl.SetSizer(self.searchPnl.sizer)
+        self.sizer.Add(self.searchPnl, flag=wx.EXPAND | wx.ALL, border=6)
+
         # create search box
-        self.termCtrl = wx.SearchCtrl(self)
-        self.termCtrl.Bind(wx.EVT_SEARCH, self.onSearch)
-        self.sizer.Add(self.termCtrl, border=6, flag=wx.EXPAND | wx.ALL)
+        self.termCtrl = wx.SearchCtrl(self.searchPnl)
+        self.termCtrl.Bind(wx.EVT_TEXT, self.onSearchTyping)
+        self.searchPnl.sizer.Add(self.termCtrl, proportion=1, flag=wx.EXPAND, border=6)
+
+        # add toggle for case sensitivity
+        self.caseSensitiveToggle = wx.ToggleButton(self.searchPnl, style=wx.BU_EXACTFIT)
+        self.caseSensitiveToggle.SetBitmap(
+            icons.ButtonIcon("case", size=16, theme="light").bitmap
+        )
+        self.caseSensitiveToggle.SetToolTip(_translate("Match case?"))
+        self.caseSensitiveToggle.Bind(wx.EVT_TOGGLEBUTTON, self.onSearchTyping)
+        self.searchPnl.sizer.Add(self.caseSensitiveToggle, flag=wx.EXPAND | wx.LEFT, border=6)
+
+        # add toggle for regex
+        self.regexToggle = wx.ToggleButton(self.searchPnl, style=wx.BU_EXACTFIT)
+        self.regexToggle.SetBitmap(
+            icons.ButtonIcon("regex", size=16, theme="light").bitmap
+        )
+        self.regexToggle.SetToolTip(_translate("Match regex?"))
+        self.regexToggle.Bind(wx.EVT_TOGGLEBUTTON, self.onSearchTyping)
+        self.searchPnl.sizer.Add(self.regexToggle, flag=wx.EXPAND | wx.LEFT, border=6)
 
         # create results box
         self.resultsCtrl = utils.ListCtrl(self, style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
@@ -41,11 +67,18 @@ class BuilderFindDlg(wx.Dialog):
         # setup component icons
         self.imageList = wx.ImageList(16, 16)
         self.imageMap = {}
+        # icon for each Component/Routine
         for cls in experiment.getAllElements().values():
             i = self.imageList.Add(
                 icons.ComponentIcon(cls, theme="light", size=16).bitmap
             )
             self.imageMap[cls] = i
+        # icon for loop
+        i = self.imageList.Add(
+                icons.ButtonIcon("loop", theme="light", size=16).bitmap
+            )
+        self.imageMap[experiment.loops.LoopInitiator] = i
+        # set icons
         self.resultsCtrl.SetImageList(self.imageList, wx.IMAGE_LIST_SMALL)
 
         # add buttons
@@ -65,48 +98,61 @@ class BuilderFindDlg(wx.Dialog):
 
     def resetListCtrl(self):
         self.resultsCtrl.ClearAll()
-        self.resultsCtrl.AppendColumn(_translate("Component"), width=120)
+        self.resultsCtrl.AppendColumn(_translate("Location"), width=120)
         self.resultsCtrl.AppendColumn(_translate("Parameter"), width=120)
         self.resultsCtrl.AppendColumn(_translate("Value"), width=-1)
         self.resultsCtrl.resizeLastColumn(minWidth=120)
         self.selectedResult = None
 
-    def onSearch(self, evt):
-        # get term to search
-        term = evt.GetString()
+    def onSearchTyping(self, evt):
+        term = self.termCtrl.GetValue()
+        caseSensitive = self.caseSensitiveToggle.GetValue()
+        regex = self.regexToggle.GetValue()
+        
         if term:
             # get locations of term in experiment
-            self.results = getParamLocations(self.exp, term=term)
+            self.results = getParamLocations(self.exp, term=term, caseSensitive=caseSensitive, regex=regex)
         else:
             # return nothing for blank string
             self.results = []
+
         # clear old output
         self.resetListCtrl()
+
         # show new output
         for result in self.results:
             # unpack result
-            rt, comp, paramName, param = result
+            parent, comp, paramName, param = result
             # sanitize val for display
             val = str(param.val)
             if "\n" in val:
                 # if multiline, show first line with match
                 for line in val.split("\n"):
-                    if self.termCtrl.GetValue() in line:
+                    if compareStrings(line, term, caseSensitive, regex):
                         val = line
                         break
+            # construct location string
+            if parent is None:
+                location = comp.name
+            else:
+                location = f"{comp.name} ({parent.name})"
             # construct entry
-            entry = [comp.name, param.label, val]
+            entry = [location, param.label, val]
             # add entry
             self.resultsCtrl.Append(entry)
             # set image for comp
+            fallbackImg = icons.ButtonIcon("experiment", theme="light", size=16).bitmap
             self.resultsCtrl.SetItemImage(
                 item=self.resultsCtrl.GetItemCount()-1,
-                image=self.imageMap[type(comp)]
+                image=self.imageMap.get(type(comp), fallbackImg)
             )
+        
         # size
         self.resultsCtrl.Layout()
         # disable Go button until item selected
         self.okBtn.Disable()
+
+        evt.Skip()
 
     def onSelectResult(self, evt):
         if evt.GetEventType() == wx.EVT_LIST_ITEM_SELECTED.typeId:
@@ -127,7 +173,7 @@ class BuilderFindDlg(wx.Dialog):
         if self.selectedResult is None:
             return
         # do usual OK button stuff
-        self.Close()
+        # self.Close()
         # unpack
         rt, comp, paramName, param = self.selectedResult
         # navigate to routine
@@ -137,17 +183,39 @@ class BuilderFindDlg(wx.Dialog):
         if isinstance(comp, experiment.components.BaseComponent):
             # if we have a component, open its dialog and navigate to categ page
             if hasattr(comp, 'type') and comp.type.lower() == 'code':
-                openToPage = paramName
+                # For code components, we need to find the index of the page
+                openToPage = list(comp.params.keys()).index(paramName)
             else:
                 openToPage = param.categ
             page.editComponentProperties(component=comp, openToPage=openToPage)
-        else:
+        elif isinstance(comp, experiment.routines.BaseStandaloneRoutine):
             # if we're in a standalone routine, just navigate to categ page
             i = page.ctrls.getCategoryIndex(param.categ)
             page.ctrls.ChangeSelection(i)
+        elif isinstance(comp, experiment.loops.LoopInitiator):
+            # if we're in a loop, open the loop dialog
+            self.frame.flowPanel.canvas.editLoopProperties(loop=comp.loop)
 
 
-def getParamLocations(exp, term):
+def compareStrings(text, term, caseSensitive, regex):
+    # lowercase everything if doing a non-case-sensitive check
+    if not caseSensitive:
+        term = term.lower()
+        text = text.lower()
+    # convert to regex object if using regex
+    if regex:
+        # if term isn't valid regex, assume no match
+        try:
+            stringtools.re.compile(term)
+        except stringtools.re.error:
+            return False
+        # convert to a regex searchable
+        text = stringtools.RegexSearchable(text)
+    
+    return term in text
+
+
+def getParamLocations(exp, term, caseSensitive=False, regex=False):
     """
     Get locations of params containing the given term.
 
@@ -162,6 +230,7 @@ def getParamLocations(exp, term):
         List of tuples, with each tuple functioning as a path to the found
         param
     """
+
     # array to store results in
     found = []
 
@@ -170,20 +239,37 @@ def getParamLocations(exp, term):
         if isinstance(rt, experiment.routines.BaseStandaloneRoutine):
             # find in standalone routine
             for paramName, param in rt.params.items():
-                if term in str(param.val):
+                if compareStrings(str(param.val), term, caseSensitive, regex):
                     # append path (routine -> param)
                     found.append(
-                        (rt, rt, paramName, param)
+                        (None, rt, paramName, param)
                     )
         if isinstance(rt, experiment.routines.Routine):
             # find in regular routine
             for comp in rt:
                 for paramName, param in comp.params.items():
-                    if term in str(param.val):
+                    if compareStrings(str(param.val), term, caseSensitive, regex):
+                        # treat RoutineSettings as synonymous with the Routine
+                        if isinstance(comp, RoutineSettingsComponent):
+                            parent = None
+                        else:
+                            parent = rt
                         # append path (routine -> component -> param)
                         found.append(
-                            (rt, comp, paramName, param)
+                            (parent, comp, paramName, param)
                         )
+    for obj in exp.flow:
+        # find in loop
+        if isinstance(obj, experiment.loops.LoopInitiator):
+            loop = obj.loop
+            for paramName, param in loop.params.items():
+                if compareStrings(str(param.val), term, caseSensitive, regex):
+                    # append path (loop -> param)
+                    found.append(
+                        (None, obj, paramName, param)
+                    )
 
     return found
+
+
 

@@ -1,0 +1,1 @@
+How should the stimulus be laid out on screen? Padding, margins, size, position, etc.

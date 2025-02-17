@@ -178,6 +178,11 @@ class Mouse(MouseDevice):
         if self.isReportingEvents():
             logged_time = currentSec()
             report_system_wide_events = self.getConfiguration().get('report_system_wide_events', True)
+
+            if self._iohub_server is None or self._iohub_server._psychopy_windows is None:
+                # Do not report event if no ioHub server is running or no psychopy window is open
+                return True
+
             pyglet_window_hnds = self._iohub_server._psychopy_windows.keys()
             if event.Window in pyglet_window_hnds:
                 pass

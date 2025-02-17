@@ -14,6 +14,7 @@ try:
     import psychopy_eyetracker_pupil_labs.pupil_labs.pupil_core as __plugin__
     from psychopy_eyetracker_pupil_labs.pupil_labs.neon import (
         __file__,
+        MonocularEyeSampleEvent,
         BinocularEyeSampleEvent,
         EyeTracker)
 except (ModuleNotFoundError, ImportError, NameError):

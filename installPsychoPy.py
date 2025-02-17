@@ -14,10 +14,11 @@ shortcuts, checking/recommending virtual envs etc.
 
 # Author: Jonathan Peirce, based on work of Flavio Bastos and Florian Osmani
 
-import os, sys
+import os
 import pathlib
-import subprocess
 import platform
+import subprocess
+import sys
 
 _linux_installer = None  # will be apt-get or yum depending on system
 
@@ -78,9 +79,9 @@ def apt_install(*packages):
     def find_package(package):
         # check pacakage name according to apt/yum
         packages_lookup = {
-            'python3-dev': {'apt':'libgtk-3-dev', 'yum':'gtk3-devel'},
+            'python3-dev': {'apt':'python3.' + str(sys.version_info[1]) + '-dev', 'yum':'gtk3-devel'},
             'libgtk-3-dev': {'apt':'libgtk-3-dev', 'yum':'gtk3-devel'},
-            'libwebkit2gtk-4.0-dev': {'apt':'libwebkit2gtk-4.0-dev', 'yum':'webkit2gtk3-devel'},
+            'libwebkit2gtk-4.0-dev': {'apt':'libwebkit2gtk-4.*-dev', 'yum':'webkit2gtk3-devel'},
             'libxcb-xinerama0': {'apt':'libxcb-xinerama0', 'yum':'libxcb-xinerama'},
             'libegl1-mesa-dev': {'apt':'libegl1-mesa-dev', 'yum':'mesa-libEGL-devel'},
         }

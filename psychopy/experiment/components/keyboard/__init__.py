@@ -410,18 +410,13 @@ class KeyboardComponent(BaseDeviceComponent):
             if allowedKeys in [None, "none", "None", "", "[]", "()"]:
                 keyListStr = "[]"
             elif not allowedKeysIsVar:
-                try:
-                    keyList = eval(allowedKeys)
-                except Exception:
-                    raise CodeGenerationException(
-                        self.params["name"], "Allowed keys list is invalid.")
-                # this means the user typed "left","right" not ["left","right"]
-                if type(keyList) == tuple:
-                    keyList = list(keyList)
-                elif isinstance(keyList, str):  # a single string/key
-                    keyList = [keyList]
-                keyListStr = "%s" % repr(keyList)
-
+                if isinstance(allowedKeys, str) and "," in allowedKeys:
+                    # it might be a list without [], if so split and recombine
+                    keyList = [item.strip() for item in allowedKeys.split(",")]
+                    keyListStr = f"[{','.join(keyList)}]"
+                else:
+                    # otherwise just use the value as is
+                    keyListStr = str(allowedKeys)
             # check for keypresses
             waitRelease = "false"
             if self.params['registerOn'] == "release":

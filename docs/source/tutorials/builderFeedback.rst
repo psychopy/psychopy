@@ -5,7 +5,7 @@ Builder - providing feedback
 
 If you're using the Builder then the way to provide feedback is with a :ref:`code` to generate an appropriate message (and then a :ref:`text` to present that message). PsychoPy will be keeping track of various aspects of the stimuli and responses for you throughout the experiment and the key is knowing where to find those.
 
-The following examples assume you have a :ref:`Loop <loops>` called `trials`, containing a :ref:`Routine <routines>` with a :ref:`keyboard` called `key_resp`. Obviously these need to be adapted in the code below to fit your experiment.
+The following examples assume you have a :ref:`Loop <loops>` called `trials`, containing a :ref:`Routine <routines>` with a :ref:`keyboardcomponent` called `key_resp`. Obviously these need to be adapted in the code below to fit your experiment.
 
 .. note::
 

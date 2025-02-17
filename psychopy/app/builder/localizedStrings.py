@@ -31,6 +31,7 @@ _localizedCategories = {
     'Responses': _translate('Responses'),
     'I/O': _translate('I/O'),
     'Custom': _translate('Custom'),
+    'Validation': _translate('Validation'),
     'Carrier': _translate('Carrier'),
     'Envelope': _translate('Envelope'),
     'Appearance': _translate('Appearance'),

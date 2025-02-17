@@ -7,9 +7,6 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-
-
-
 import ctypes
 import os
 import sys
@@ -26,9 +23,11 @@ import math
 # from psychopy.clock import monotonicClock
 
 # try to find avbin (we'll overload pyglet's load_library tool and then
-# add some paths)
+# add some paths
 from ..colors import Color, colorSpaces
 from .textbox2 import TextBox2
+
+import pyglet
 
 
 haveAvbin = False
@@ -85,6 +84,7 @@ from psychopy.tools.arraytools import val2array
 from psychopy.tools.monitorunittools import convertToPix
 import psychopy.tools.viewtools as viewtools
 import psychopy.tools.gltools as gltools
+import psychopy.tools.mathtools as mathtools
 from .text import TextStim
 from .grating import GratingStim
 from .helpers import setColor
@@ -154,6 +154,7 @@ class Window():
     project (we won't be fixing pygame-specific bugs).
 
     """
+    USE_LEGACY_GL = pyglet.version < '2.0'
     def __init__(self,
                  size=(800, 600),
                  pos=None,
@@ -403,16 +404,6 @@ class Window():
         self.dkl_rgb = self.monitor.getDKL_RGB()
         self.lms_rgb = self.monitor.getLMS_RGB()
 
-        # Projection and view matrices, these can be lists if multiple views are
-        # being used.
-        # NB - attribute checks needed for Rift compatibility
-        if not hasattr(self, '_viewMatrix'):
-            self._viewMatrix = numpy.identity(4, dtype=numpy.float32)
-
-        if not hasattr(self, '_projectionMatrix'):
-            self._projectionMatrix = viewtools.orthoProjectionMatrix(
-                -1, 1, -1, 1, -1, 1, dtype=numpy.float32)
-
         # set screen color
         self.__dict__['colorSpace'] = colorSpace
         if rgb is not None:
@@ -497,7 +488,7 @@ class Window():
 
         # parameters for transforming the overall view
         self.viewScale = val2array(viewScale)
-        if self.viewPos is not None and self.units is None:
+        if viewPos is not None and self.units is None:
             raise ValueError('You must define the window units to use viewPos')
         self.viewPos = val2array(viewPos, withScalar=False)
         self.viewOri = float(viewOri)
@@ -547,6 +538,11 @@ class Window():
 
         # gl viewport and scissor
         self._viewport = self._scissor = None  # set later
+
+        self._fboVerts = numpy.ascontiguousarray(
+            [[-1, -1], [-1, 1], [1, 1], [1, -1]], dtype=numpy.float32)
+        self._fboTexCoords = numpy.ascontiguousarray(
+            [[0, 0], [0, 1], [1, 1], [1, 0]], dtype=numpy.float32)
 
         # scene light sources
         self._lights = []
@@ -621,6 +617,15 @@ class Window():
         self._splashTextbox = None  # created on first use
         self._showSplash = False
         self.resetViewport()  # set viewport to full window size
+
+        # transformation 
+        self._projectionMatrix = numpy.identity(4, dtype=numpy.float32)
+        self._viewMatrix = numpy.identity(4, dtype=numpy.float32) 
+
+        self._projectionMatrixNeedsUpdate = True
+        self._viewMatrixNeedsUpdate = True
+
+        self.setOrthographicView()
 
         # piloting indicator
         self._pilotingIndicator = None
@@ -745,18 +750,98 @@ class Window():
         viewPos_norm = viewPos_pix / (self.size / 2.0)
         # Clip to +/- 1; should going out-of-window raise an exception?
         viewPos_norm = numpy.clip(viewPos_norm, a_min=-1., a_max=1.)
+        self._viewMatrixNeedsUpdate = True
         self.__dict__['_viewPosNorm'] = viewPos_norm
 
     def setViewPos(self, value, log=True):
         setAttribute(self, 'viewPos', value, log=log)
 
     @attributeSetter
+    def viewOri(self, value):
+        """Set the rotation of the view in degrees.
+
+        The rotation is applied around the origin of the window, which is
+        defined by the viewPos attribute. The rotation is applied after scaling
+        but before translation.
+
+        """
+        self.__dict__['viewOri'] = value
+        self._viewMatrixNeedsUpdate = True
+
+    def setViewOri(self, value, log=True):
+        setAttribute(self, 'viewOri', value, log=log)
+
+    @attributeSetter
+    def viewScale(self, value):
+        """Set the scale factors for the view.
+
+        The scaling is applied around the origin of the window, which is defined
+        by the viewPos attribute. The scaling is applied before translation and
+        rotation.
+
+        """
+        self.__dict__['viewScale'] = value
+        self._viewMatrixNeedsUpdate = True
+
+    def setViewScale(self, value, log=True):
+        setAttribute(self, 'viewScale', value, log=log)
+
+    def _updateViewMatrix(self):
+        """Update the default orthographic view matrix based on the current 
+        window settings.
+        """
+        if self._viewMatrixNeedsUpdate:
+            if self.viewScale is None:
+                sx, sy = [1.0, 1.0]
+            else:
+                sx, sy = self.viewScale
+
+            if self.viewOri is None:
+                viewOri = 0.0
+            else:
+                viewOri = self.viewOri
+
+            if self.viewPos is None:
+                tx, ty = [0.0, 0.0]
+            else:
+                tx, ty = self.viewPos
+
+            scaleMatrix = mathtools.scaleMatrix([sx, sy, 1.0])
+            rotateMatrix = mathtools.rotationMatrix(viewOri, axis='-z')
+            translateMatrix = mathtools.translationMatrix([tx, ty, 0.0])
+
+            # compute SRT matrix
+            self._viewMatrix[:, :] = mathtools.multMatrix([
+                translateMatrix, 
+                rotateMatrix, 
+                scaleMatrix])
+            self._viewMatrixNeedsUpdate = False
+
+    def _updateProjectionMatrix(self):
+        """Update the default projection matrix based on the current window 
+        settings.
+        """
+        if self._projectionMatrixNeedsUpdate:
+            widthOver2 = self.size[0] / 2.0
+            heightOver2 = self.size[1] / 2.0
+            self._projectionMatrix[:, :] = viewtools.orthoProjectionMatrix(
+                -widthOver2, widthOver2,    # -X, +X
+                -heightOver2, heightOver2,  # -Y, +Y
+                -1.0, 1.0,                  # -Z, +Z
+                dtype=numpy.float32)
+            self._projectionMatrixNeedsUpdate = False
+
+    @property
+    def fullscr(self):
+        """Return whether the window is in fullscreen mode."""
+        return self._isFullScr
+
+    @fullscr.setter
     def fullscr(self, value):
         """Set whether fullscreen mode is `True` or `False` (not all backends
         can toggle an open window).
         """
         self.backend.setFullScr(value)
-        self.__dict__['fullscr'] = value
         self._isFullScr = value
 
     @attributeSetter
@@ -844,10 +929,10 @@ class Window():
 
         # if we are using an FBO, bind it
         if hasattr(self, 'frameBuffer'):
-            GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT,
+            GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER,
                                     self.frameBuffer)
-            GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
-            GL.glDrawBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
+            GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0)
+            GL.glDrawBuffer(GL.GL_COLOR_ATTACHMENT0)
 
             # NB - check if we need these
             GL.glActiveTexture(GL.GL_TEXTURE0)
@@ -1186,6 +1271,10 @@ class Window():
                 # handle dragging
                 if getattr(thisStim, "draggable", False):
                     thisStim.doDragging()
+                    
+                if getattr(thisStim, "clickable", False):
+                    thisStim.doPointerActions()
+
         else:
             self.backend.setCurrent()
 
@@ -1196,11 +1285,13 @@ class Window():
                 self.scissorTest = True
 
             # clear the projection and modelview matrix for FBO blit
-            GL.glMatrixMode(GL.GL_PROJECTION)
-            GL.glLoadIdentity()
-            GL.glOrtho(-1, 1, -1, 1, -1, 1)
-            GL.glMatrixMode(GL.GL_MODELVIEW)
-            GL.glLoadIdentity()
+            # DEPRECATED: these are all removed from OpenGL 3.1
+            if self.USE_LEGACY_GL:
+                GL.glMatrixMode(GL.GL_PROJECTION)
+                GL.glLoadIdentity()
+                GL.glOrtho(-1, 1, -1, 1, -1, 1)
+                GL.glMatrixMode(GL.GL_MODELVIEW)
+                GL.glLoadIdentity()
 
         # disable lighting
         self.useLights = False
@@ -1235,7 +1326,7 @@ class Window():
             # need blit the framebuffer object to the actual back buffer
 
             # unbind the framebuffer as the render target
-            GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0)
+            GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
             GL.glDisable(GL.GL_BLEND)
             stencilOn = self.stencilTest
             self.stencilTest = False
@@ -1248,7 +1339,9 @@ class Window():
             GL.glActiveTexture(GL.GL_TEXTURE0)
             GL.glEnable(GL.GL_TEXTURE_2D)
             GL.glBindTexture(GL.GL_TEXTURE_2D, self.frameTexture)
-            GL.glColor3f(1.0, 1.0, 1.0)  # glColor multiplies with texture
+            if self.USE_LEGACY_GL:
+                GL.glColor3f(1.0, 1.0, 1.0)  # glColor multiplies with texture
+
             GL.glColorMask(True, True, True, True)
 
             self._renderFBO()
@@ -1263,10 +1356,10 @@ class Window():
 
         if self.useFBO and flipThisFrame:
             # set rendering back to the framebuffer object
-            GL.glBindFramebufferEXT(
-                GL.GL_FRAMEBUFFER_EXT, self.frameBuffer)
-            GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
-            GL.glDrawBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
+            GL.glBindFramebuffer(
+                GL.GL_FRAMEBUFFER, self.frameBuffer)
+            GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0)
+            GL.glDrawBuffer(GL.GL_COLOR_ATTACHMENT0)
             # set to no active rendering texture
             GL.glActiveTexture(GL.GL_TEXTURE0)
             GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
@@ -1274,46 +1367,55 @@ class Window():
                 self.stencilTest = True
 
         # rescale, reposition, & rotate
-        GL.glMatrixMode(GL.GL_MODELVIEW)
-        GL.glLoadIdentity()
-        if self.viewScale is not None:
-            GL.glScalef(self.viewScale[0], self.viewScale[1], 1)
-            absScaleX = abs(self.viewScale[0])
-            absScaleY = abs(self.viewScale[1])
-        else:
-            absScaleX, absScaleY = 1, 1
-
-        if self.viewPos is not None:
-            # here we must use normalised units in _viewPosNorm,
-            # see the corresponding attributeSetter above
-            normRfPosX = self._viewPosNorm[0] / absScaleX
-            normRfPosY = self._viewPosNorm[1] / absScaleY
-
-            GL.glTranslatef(normRfPosX, normRfPosY, 0.0)
-
-        if self.viewOri:  # float
-            # the logic below for flip is partially correct, but does not
-            # handle a nonzero viewPos
-            flip = 1
+        # DEPRECATED: these are all removed from OpenGL 3.1
+        if self.USE_LEGACY_GL:
+            GL.glMatrixMode(GL.GL_MODELVIEW)
+            GL.glLoadIdentity()
             if self.viewScale is not None:
-                _f = self.viewScale[0] * self.viewScale[1]
-                if _f < 0:
-                    flip = -1
-            GL.glRotatef(flip * self.viewOri, 0.0, 0.0, -1.0)
+                # DEPRECATED: these are all removed from OpenGL 3.1
+                GL.glScalef(self.viewScale[0], self.viewScale[1], 1)
+
+                absScaleX = abs(self.viewScale[0])
+                absScaleY = abs(self.viewScale[1])
+            else:
+                absScaleX, absScaleY = 1, 1
+
+            if self.viewPos is not None:
+                # here we must use normalised units in _viewPosNorm,
+                # see the corresponding attributeSetter above
+                normRfPosX = self._viewPosNorm[0] / absScaleX
+                normRfPosY = self._viewPosNorm[1] / absScaleY
+
+                # DEPRECATED: these are all removed from OpenGL 3.1
+                GL.glTranslatef(normRfPosX, normRfPosY, 0.0)
+
+            if self.viewOri:  # float
+                # the logic below for flip is partially correct, but does not
+                # handle a nonzero viewPos
+                flip = 1
+                if self.viewScale is not None:
+                    _f = self.viewScale[0] * self.viewScale[1]
+                    if _f < 0:
+                        flip = -1
+                # DEPERECATED: these are all removed from OpenGL 3.1
+                GL.glRotatef(flip * self.viewOri, 0.0, 0.0, -1.0)
 
         # reset returned buffer for next frame
         self._endOfFlip(clearBuffer)
 
         # waitBlanking
         if self.waitBlanking and flipThisFrame:
-            GL.glBegin(GL.GL_POINTS)
-            GL.glColor4f(0, 0, 0, 0)
-            if sys.platform == 'win32' and self.glVendor.startswith('ati'):
-                pass
-            else:
-                # this corrupts text rendering on win with some ATI cards :-(
-                GL.glVertex2i(10, 10)
-            GL.glEnd()
+            # DEPRECATED: these are all removed from OpenGL 3.1
+            if self.USE_LEGACY_GL:
+                GL.glBegin(GL.GL_POINTS)
+                GL.glColor4f(0, 0, 0, 0)
+                if sys.platform == 'win32' and self.glVendor.startswith('ati'):
+                    pass
+                else:
+                    # this corrupts text rendering on win with some ATI cards :-(
+                    GL.glVertex2i(10, 10)
+                    pass
+                GL.glEnd()
             GL.glFinish()
 
         # get timestamp
@@ -1751,22 +1853,24 @@ class Window():
     def useLights(self, value):
         self._useLights = value
 
-        # Setup legacy lights, new spec shader programs should access the
-        # `lights` attribute directly to setup lighting uniforms.
-        if self._useLights and self._lights:
-            GL.glEnable(GL.GL_LIGHTING)
-            # make sure specular lights are computed relative to eye position,
-            # this is more realistic than the default. Does not affect shaders.
-            GL.glLightModeli(GL.GL_LIGHT_MODEL_LOCAL_VIEWER, GL.GL_TRUE)
+        # DEPRECATED: this is not needed in modern OpenGL
 
-            # update light positions for current model matrix
-            for index, light in enumerate(self._lights):
-                enumLight = GL.GL_LIGHT0 + index
-                pos = numpy.ctypeslib.as_ctypes(light.pos)
-                GL.glLightfv(enumLight, GL.GL_POSITION, pos)
-        else:
-            # disable lights
-            GL.glDisable(GL.GL_LIGHTING)
+        # # Setup legacy lights, new spec shader programs should access the
+        # # `lights` attribute directly to setup lighting uniforms.
+        # if self._useLights and self._lights:
+        #     GL.glEnable(GL.GL_LIGHTING)
+        #     # make sure specular lights are computed relative to eye position,
+        #     # this is more realistic than the default. Does not affect shaders.
+        #     GL.glLightModeli(GL.GL_LIGHT_MODEL_LOCAL_VIEWER, GL.GL_TRUE)
+
+        #     # update light positions for current model matrix
+        #     for index, light in enumerate(self._lights):
+        #         enumLight = GL.GL_LIGHT0 + index
+        #         pos = numpy.ctypeslib.as_ctypes(light.pos)
+        #         GL.glLightfv(enumLight, GL.GL_POSITION, pos)
+        # else:
+        #     # disable lights
+        #     GL.glDisable(GL.GL_LIGHTING)
 
     def updateLights(self, index=None):
         """Explicitly update scene lights if they were modified.
@@ -1997,6 +2101,16 @@ class Window():
     def convergeOffset(self, value):
         self._convergeOffset = value / 100.0
 
+    def _clearDepthBuffer(self):
+        """Clear the depth buffer.
+        """
+        oldDepthMask = self.depthMask
+        GL.glDepthMask(GL.GL_TRUE)
+        GL.glClear(GL.GL_DEPTH_BUFFER_BIT)
+
+        if oldDepthMask is False:   # return to old state if needed
+            GL.glDepthMask(GL.GL_FALSE)
+
     def setOffAxisView(self, applyTransform=True, clearDepth=True):
         """Set an off-axis projection.
 
@@ -2153,6 +2267,35 @@ class Window():
         if applyTransform:
             self.applyEyeTransform(clearDepth=clearDepth)
 
+    def setOrthographicView(self, applyTransform=True, clearDepth=True):
+        """Set the projection and view matrix to render with orthographic view.
+
+        Orthographic projection is used to render 3D objects without perspective
+        distortion. The scene origin is centered on the screen plane. The
+        frustum is defined by the size of the window in pixels, with the origin
+        at the center of the window. 2D stimuli are typically drawn using this
+        projection.
+
+        Note that the values of :py:attr:`~Window.projectionMatrix` and
+        :py:attr:`~Window.viewMatrix` will be replaced when calling this
+        function.
+
+        Parameters
+        ----------
+        applyTransform : bool
+            Apply transformations after computing them in immediate mode. Same
+            as calling :py:attr:`~Window.applyEyeTransform()` afterwards if
+            `False`.
+        clearDepth : bool, optional
+            Clear the depth buffer.
+
+        """
+        self._updateProjectionMatrix()
+        self._updateViewMatrix()
+
+        if applyTransform:
+            self.applyEyeTransform(clearDepth=clearDepth)
+
     def applyEyeTransform(self, clearDepth=True):
         """Apply the current view and projection matrices.
 
@@ -2162,7 +2305,8 @@ class Window():
         :py:attr:`~Window.flip()` is called.
 
         All transformations in ``GL_PROJECTION`` and ``GL_MODELVIEW`` matrix
-        stacks will be cleared (set to identity) prior to applying.
+        stacks will be cleared (set to identity) prior to applying. After this 
+        is called, the current matrix mode will be set to ``GL_MODELVIEW``.
 
         Parameters
         ----------
@@ -2182,15 +2326,14 @@ class Window():
             # draw 3D objects here ...
 
         """
-        # apply the projection and view transformations
-        if hasattr(self, '_projectionMatrix'):
+        if self.USE_LEGACY_GL:
+            # apply the projection and view transformations
             GL.glMatrixMode(GL.GL_PROJECTION)
             GL.glLoadIdentity()
             projMat = self._projectionMatrix.ctypes.data_as(
                 ctypes.POINTER(ctypes.c_float))
             GL.glMultTransposeMatrixf(projMat)
 
-        if hasattr(self, '_viewMatrix'):
             GL.glMatrixMode(GL.GL_MODELVIEW)
             GL.glLoadIdentity()
             viewMat = self._viewMatrix.ctypes.data_as(
@@ -2236,16 +2379,10 @@ class Window():
             win.flip()
 
         """
-        # should eventually have the same effect as calling _onResize(), so we
-        # need to add the retina mode stuff eventually
-        if hasattr(self, '_viewMatrix'):
-            self._viewMatrix = numpy.identity(4, dtype=numpy.float32)
+        self.setOrthographicView(clearDepth)
 
-        if hasattr(self, '_projectionMatrix'):
-            self._projectionMatrix = viewtools.orthoProjectionMatrix(
-                -1, 1, -1, 1, -1, 1, dtype=numpy.float32)
-
-        self.applyEyeTransform(clearDepth)
+        if self.USE_LEGACY_GL:
+            self.applyEyeTransform(clearDepth)
 
     def coordToRay(self, screenXY):
         """Convert a screen coordinate to a direction vector.
@@ -2429,12 +2566,12 @@ class Window():
         """
         # do the reading of the pixels
         if buffer == 'back' and self.useFBO:
-            GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
+            GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0)
         elif buffer == 'back':
             GL.glReadBuffer(GL.GL_BACK)
         elif buffer == 'front':
             if self.useFBO:
-                GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0)
+                GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
             GL.glReadBuffer(GL.GL_FRONT)
         else:
             raise ValueError("Requested read from buffer '{}' but should be "
@@ -2461,7 +2598,7 @@ class Window():
 
         # rebind front buffer if needed
         if buffer == 'front' and self.useFBO:
-            GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, self.frameBuffer)
+            GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, self.frameBuffer)
 
         # if we want the color data without an alpha channel, we need to
         # convert the data to a numpy array and remove the alpha channel
@@ -2482,12 +2619,12 @@ class Window():
         # GL.glLoadIdentity()
         # do the reading of the pixels
         if buffer == 'back' and self.useFBO:
-            GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
+            GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0)
         elif buffer == 'back':
             GL.glReadBuffer(GL.GL_BACK)
         elif buffer == 'front':
             if self.useFBO:
-                GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0)
+                GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
             GL.glReadBuffer(GL.GL_FRONT)
         else:
             raise ValueError("Requested read from buffer '{}' but should be "
@@ -2521,7 +2658,7 @@ class Window():
         im = im.convert('RGB')
 
         if self.useFBO and buffer == 'front':
-            GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, self.frameBuffer)
+            GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, self.frameBuffer)
         return im
 
     @property
@@ -3139,8 +3276,10 @@ class Window():
             thisScale = numpy.array([lw, lw] / self.size * retinaScale / 38.0)
         # actually set the scale as appropriate
         # allows undoing of a previous scaling procedure
-        thisScale = thisScale / numpy.asarray(prevScale)
-        GL.glScalef(thisScale[0], thisScale[1], 1.0)
+        if self.USE_LEGACY_GL:
+            thisScale = thisScale / numpy.asarray(prevScale)
+            GL.glScalef(thisScale[0], thisScale[1], 1.0)
+
         return thisScale
 
     def _checkMatchingSizes(self, requested, actual):
@@ -3165,21 +3304,23 @@ class Window():
             (0, 0, self.frameBufferSize[0], self.frameBufferSize[1])
         self.scissorTest = True
         self.stencilTest = False
-
-        GL.glMatrixMode(GL.GL_PROJECTION)  # Reset the projection matrix
-        GL.glLoadIdentity()
-        GL.gluOrtho2D(-1, 1, -1, 1)
-
-        GL.glMatrixMode(GL.GL_MODELVIEW)  # Reset the modelview matrix
-        GL.glLoadIdentity()
-
         self.depthTest = False
-        # GL.glEnable(GL.GL_DEPTH_TEST)  # Enables Depth Testing
-        # GL.glDepthFunc(GL.GL_LESS)  # The Type Of Depth Test To Do
-        GL.glEnable(GL.GL_BLEND)
 
-        GL.glShadeModel(GL.GL_SMOOTH)  # Color Shading (FLAT or SMOOTH)
-        GL.glEnable(GL.GL_POINT_SMOOTH)
+        if self.USE_LEGACY_GL:
+            GL.glMatrixMode(GL.GL_PROJECTION)  # Reset the projection matrix
+            GL.glLoadIdentity()
+            GL.gluOrtho2D(-1, 1, -1, 1)
+
+            GL.glMatrixMode(GL.GL_MODELVIEW)  # Reset the modelview matrix
+            GL.glLoadIdentity()
+
+            GL.glEnable(GL.GL_DEPTH_TEST)  # Enables Depth Testing
+            GL.glDepthFunc(GL.GL_LESS)  # The Type Of Depth Test To Do
+
+            GL.glShadeModel(GL.GL_SMOOTH)  # Color Shading (FLAT or SMOOTH)
+            GL.glEnable(GL.GL_POINT_SMOOTH)  # Enable Point Smoothing
+
+        GL.glEnable(GL.GL_BLEND)
 
         # check for GL_ARB_texture_float
         # (which is needed for shaders to be useful)
@@ -3210,8 +3351,13 @@ class Window():
             self.blendMode = 'avg'
 
     def _setupShaders(self):
-        self._progSignedTexFont = _shaders.compileProgram(
-            _shaders.vertSimple, _shaders.fragSignedColorTexFont)
+        if self.USE_LEGACY_GL:
+            self._progSignedTexFont = _shaders.compileProgram(
+                _shaders.vertSimple, _shaders.fragSignedColorTexFont)
+        else:
+            self._progSignedTexFont = _shaders.compileProgram(
+                _shaders.vertSimpleText, _shaders.fragSignedColorTexFont)
+            
         self._progFBOtoFrame = _shaders.compileProgram(
             _shaders.vertSimple, _shaders.fragFBOtoFrame)
         self._shaders = {}
@@ -3235,105 +3381,132 @@ class Window():
             _shaders.vertSimple, _shaders.fragImageStim)
         self._shaders['imageStim_adding'] = _shaders.compileProgram(
             _shaders.vertSimple, _shaders.fragImageStim_adding)
-        self._shaders['stim3d_phong'] = {}
+        # self._shaders['stim3d_phong'] = {}
 
-        # Create shader flags, these are used as keys to pick the appropriate
-        # shader for the given material and lighting configuration.
-        shaderFlags = []
-        for i in range(0, 8 + 1):
-            for j in product((True, False), repeat=1):
-                shaderFlags.append((i, j[0]))
+        # # Create shader flags, these are used as keys to pick the appropriate
+        # # shader for the given material and lighting configuration.
+        # shaderFlags = []
+        # for i in range(0, 8 + 1):
+        #     for j in product((True, False), repeat=1):
+        #         shaderFlags.append((i, j[0]))
 
-        # Compile shaders based on generated flags.
-        for flag in shaderFlags:
-            # Define GLSL preprocessor values to enable code paths for specific
-            # material properties.
-            srcDefs = {'MAX_LIGHTS': flag[0]}
+        # # Compile shaders based on generated flags.
+        # for flag in shaderFlags:
+        #     # Define GLSL preprocessor values to enable code paths for specific
+        #     # material properties.
+        #     srcDefs = {'MAX_LIGHTS': flag[0]}
 
-            if flag[1]:  # has diffuse texture map
-                srcDefs['DIFFUSE_TEXTURE'] = 1
+        #     if flag[1]:  # has diffuse texture map
+        #         srcDefs['DIFFUSE_TEXTURE'] = 1
 
-            # embed #DEFINE statements in GLSL source code
-            vertSrc = gltools.embedShaderSourceDefs(
-                _shaders.vertPhongLighting, srcDefs)
-            fragSrc = gltools.embedShaderSourceDefs(
-                _shaders.fragPhongLighting, srcDefs)
+        #     # embed #DEFINE statements in GLSL source code
+        #     vertSrc = gltools.embedShaderSourceDefs(
+        #         _shaders.vertPhongLighting, srcDefs)
+        #     fragSrc = gltools.embedShaderSourceDefs(
+        #         _shaders.fragPhongLighting, srcDefs)
 
-            # build a shader program
-            prog = gltools.createProgramObjectARB()
-            vertexShader = gltools.compileShaderObjectARB(
-                vertSrc, GL.GL_VERTEX_SHADER_ARB)
-            fragmentShader = gltools.compileShaderObjectARB(
-                fragSrc, GL.GL_FRAGMENT_SHADER_ARB)
+        #     # build a shader program
+        #     prog = gltools.createProgram()
+        #     vertexShader = gltools.compileShader(
+        #         vertSrc, GL.GL_VERTEX_SHADER)
+        #     fragmentShader = gltools.compileShader(
+        #         fragSrc, GL.GL_FRAGMENT_SHADER)
 
-            gltools.attachObjectARB(prog, vertexShader)
-            gltools.attachObjectARB(prog, fragmentShader)
-            gltools.linkProgramObjectARB(prog)
-            gltools.detachObjectARB(prog, vertexShader)
-            gltools.detachObjectARB(prog, fragmentShader)
-            gltools.deleteObjectARB(vertexShader)
-            gltools.deleteObjectARB(fragmentShader)
+        #     gltools.attachShader(prog, vertexShader)
+        #     gltools.attachShader(prog, fragmentShader)
+        #     gltools.linkProgram(prog)
+        #     gltools.detachShader(prog, vertexShader)
+        #     gltools.detachShader(prog, fragmentShader)
+        #     gltools.deleteShader(vertexShader)
+        #     gltools.deleteShader(fragmentShader)
 
-            # set the flag
-            self._shaders['stim3d_phong'][flag] = prog
+        #     # set the flag
+        #     self._shaders['stim3d_phong'][flag] = prog
 
     def _setupFrameBuffer(self):
+        """Setup the framebuffer object for this window.
 
+        Returns
+        -------
+        bool
+            `True` if the framebuffer was successfully setup, `False` otherwise.
+            If `False`, the framebuffer was not complete. Make sure that your
+            driver supports the necessary formats.
+
+        """
         # Setup framebuffer
         self.frameBuffer = GL.GLuint()
-        GL.glGenFramebuffersEXT(1, ctypes.byref(self.frameBuffer))
-        GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, self.frameBuffer)
+        GL.glGenFramebuffers(1, ctypes.byref(self.frameBuffer))
+        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, self.frameBuffer)
 
         # Create texture to render to
         self.frameTexture = GL.GLuint()
         GL.glGenTextures(1, ctypes.byref(self.frameTexture))
         GL.glBindTexture(GL.GL_TEXTURE_2D, self.frameTexture)
-        GL.glTexParameteri(GL.GL_TEXTURE_2D,
-                           GL.GL_TEXTURE_MAG_FILTER,
-                           GL.GL_LINEAR)
-        GL.glTexParameteri(GL.GL_TEXTURE_2D,
-                           GL.GL_TEXTURE_MIN_FILTER,
-                           GL.GL_LINEAR)
-        GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA32F_ARB,
-                        int(self.size[0]), int(self.size[1]), 0,
-                        GL.GL_RGBA, GL.GL_FLOAT, None)
+        GL.glTexParameteri(
+            GL.GL_TEXTURE_2D,
+            GL.GL_TEXTURE_MAG_FILTER,
+            GL.GL_LINEAR)
+        GL.glTexParameteri(
+            GL.GL_TEXTURE_2D,
+            GL.GL_TEXTURE_MIN_FILTER,
+            GL.GL_LINEAR)
+        GL.glTexImage2D(
+            GL.GL_TEXTURE_2D, 0, GL.GL_RGBA32F,
+            int(self.size[0]), int(self.size[1]), 0,
+            GL.GL_RGBA, GL.GL_FLOAT, None)
         # attach texture to the frame buffer
-        GL.glFramebufferTexture2DEXT(GL.GL_FRAMEBUFFER_EXT,
-                                     GL.GL_COLOR_ATTACHMENT0_EXT,
-                                     GL.GL_TEXTURE_2D, self.frameTexture, 0)
+        GL.glFramebufferTexture2D(
+            GL.GL_FRAMEBUFFER,
+            GL.GL_COLOR_ATTACHMENT0,
+            GL.GL_TEXTURE_2D, 
+            self.frameTexture, 0)
 
         # add a stencil buffer
         self._stencilTexture = GL.GLuint()
-        GL.glGenRenderbuffersEXT(1, ctypes.byref(
+        GL.glGenRenderbuffers(1, ctypes.byref(
             self._stencilTexture))  # like glGenTextures
-        GL.glBindRenderbufferEXT(GL.GL_RENDERBUFFER_EXT, self._stencilTexture)
-        GL.glRenderbufferStorageEXT(GL.GL_RENDERBUFFER_EXT,
-                                    GL.GL_DEPTH24_STENCIL8_EXT,
-                                    int(self.size[0]), int(self.size[1]))
-        GL.glFramebufferRenderbufferEXT(GL.GL_FRAMEBUFFER_EXT,
-                                        GL.GL_DEPTH_ATTACHMENT_EXT,
-                                        GL.GL_RENDERBUFFER_EXT,
-                                        self._stencilTexture)
-        GL.glFramebufferRenderbufferEXT(GL.GL_FRAMEBUFFER_EXT,
-                                        GL.GL_STENCIL_ATTACHMENT_EXT,
-                                        GL.GL_RENDERBUFFER_EXT,
-                                        self._stencilTexture)
+        GL.glBindRenderbuffer(GL.GL_RENDERBUFFER, self._stencilTexture)
+        GL.glRenderbufferStorage(
+            GL.GL_RENDERBUFFER,
+            GL.GL_DEPTH24_STENCIL8,
+            int(self.size[0]), int(self.size[1]))
+        GL.glFramebufferRenderbuffer(
+            GL.GL_FRAMEBUFFER,
+            GL.GL_DEPTH_ATTACHMENT,
+            GL.GL_RENDERBUFFER,
+            self._stencilTexture)
+        GL.glFramebufferRenderbuffer(
+            GL.GL_FRAMEBUFFER,
+            GL.GL_STENCIL_ATTACHMENT,
+            GL.GL_RENDERBUFFER,
+            self._stencilTexture)
 
-        status = GL.glCheckFramebufferStatusEXT(GL.GL_FRAMEBUFFER_EXT)
-        if status != GL.GL_FRAMEBUFFER_COMPLETE_EXT:
+        # check the framebuffer status
+        status = GL.glCheckFramebufferStatus(GL.GL_FRAMEBUFFER)
+        if status != GL.GL_FRAMEBUFFER_COMPLETE:
             logging.error("Error in framebuffer activation")
             # UNBIND THE FRAME BUFFER OBJECT THAT WE HAD CREATED
-            GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0)
+            GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
+
             return False
+        
         GL.glDisable(GL.GL_TEXTURE_2D)
+
         # clear the buffers (otherwise the texture memory can contain
         # junk from other app)
         GL.glClear(GL.GL_COLOR_BUFFER_BIT)
         GL.glClear(GL.GL_STENCIL_BUFFER_BIT)
         GL.glClear(GL.GL_DEPTH_BUFFER_BIT)
+
         return True
 
-    @attributeSetter
+    @property
+    def mouseVisible(self):
+        """Returns the visibility of the mouse cursor."""
+        return self.backend.mouseVisible
+
+    @mouseVisible.setter
     def mouseVisible(self, visibility):
         """Sets the visibility of the mouse cursor.
 
@@ -3347,7 +3520,6 @@ class Window():
 
         """
         self.backend.setMouseVisibility(visibility)
-        self.__dict__['mouseVisible'] = visibility
 
     def setMouseVisible(self, visibility, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
@@ -3650,22 +3822,29 @@ class Window():
 
         (in this case a copy operation without any warping)
         """
-        GL.glBegin(GL.GL_QUADS)
-        GL.glTexCoord2f(0.0, 0.0)
-        GL.glVertex2f(-1.0, -1.0)
-        GL.glTexCoord2f(0.0, 1.0)
-        GL.glVertex2f(-1.0, 1.0)
-        GL.glTexCoord2f(1.0, 1.0)
-        GL.glVertex2f(1.0, 1.0)
-        GL.glTexCoord2f(1.0, 0.0)
-        GL.glVertex2f(1.0, -1.0)
-        GL.glEnd()
+        if self.USE_LEGACY_GL:
+            GL.glBegin(GL.GL_QUADS)
+            GL.glTexCoord2f(0.0, 0.0)
+            GL.glVertex2f(-1.0, -1.0)
+            GL.glTexCoord2f(0.0, 1.0)
+            GL.glVertex2f(-1.0, 1.0)
+            GL.glTexCoord2f(1.0, 1.0)
+            GL.glVertex2f(1.0, 1.0)
+            GL.glTexCoord2f(1.0, 0.0)
+            GL.glVertex2f(1.0, -1.0)
+            GL.glEnd()
+        else:
+            gltools.setUniformSampler2D(self._progFBOtoFrame, b'texture', 0)
+            gltools.drawClientArrays({
+                'gl_Vertex': self._fboVerts, 
+                'gl_MultiTexCoord0': self._fboTexCoords}, 
+                'GL_QUADS')
 
     def _prepareFBOrender(self):
-        GL.glUseProgram(self._progFBOtoFrame)
+        gltools.useProgram(self._progFBOtoFrame)
 
     def _finishFBOrender(self):
-        GL.glUseProgram(0)
+        gltools.useProgram(None)
 
     def _afterFBOrender(self):
         pass

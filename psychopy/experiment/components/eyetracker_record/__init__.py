@@ -21,7 +21,7 @@ class EyetrackerRecordComponent(BaseComponent):
     version = "2021.2.0"
     iconFile = Path(__file__).parent / 'eyetracker_record.png'
     tooltip = _translate('Start and / or Stop recording data from the eye tracker')
-    beta = True
+    beta = False
 
     def __init__(self, exp, parentName, name='etRecord',
                  startType='time (s)', startVal=0.0,
@@ -38,6 +38,10 @@ class EyetrackerRecordComponent(BaseComponent):
         self.type = 'EyetrackerRecord'
         self.url = "https://www.psychopy.org/builder/components/eyetracker.html"
         self.exp.requirePsychopyLibs(['iohub', 'hardware'])
+        self.exp.requireImport(
+            importName="EyetrackerControl",
+            importFrom="psychopy.hardware.eyetracker"
+        )
 
         self.params['actionType'] = Param(
             actionType,
@@ -113,7 +117,7 @@ class EyetrackerRecordComponent(BaseComponent):
         inits = self.params
         # Make a controller object
         code = (
-            "%(name)s = hardware.eyetracker.EyetrackerControl(\n"
+            "%(name)s = EyetrackerControl(\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)

@@ -229,6 +229,11 @@ class Keyboard(ioHubDeviceView):
         """
         kb_state = self.getCurrentDeviceState()
 
+        # catch anything that is not a dictionary, usually indicates an error
+        if type(kb_state) is not dict:
+            raise RuntimeError(
+                'Keyboard device state request failed, got: %s' % kb_state)
+
         events = {int(k): v for k, v in list(kb_state.get('events').items())}
         pressed_keys = {int(k): v for k, v in list(kb_state.get('pressed_keys', {}).items())}
 

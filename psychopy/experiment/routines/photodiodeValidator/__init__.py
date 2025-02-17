@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from pathlib import Path
+from psychopy.alerts._alerts import alert
 from psychopy.experiment import Param
 from psychopy.experiment.plugins import PluginDevicesMixin, DeviceBackend
 from psychopy.experiment.components import getInitVals
@@ -11,28 +12,27 @@ from psychopy.localization import _translate
 
 class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
     """
-    Use a photodiode to confirm that stimuli are presented when they should be.
+    Use a photodiode to confirm that visual stimuli are presented when they should be.
     """
     targets = ['PsychoPy']
 
     categories = ['Validation']
     iconFile = Path(__file__).parent / 'photodiode_validator.png'
-    tooltip = _translate('Photodiode validator')
+    tooltip = _translate(
+        "Use a photodiode to confirm that visual stimuli are presented when they should be."
+    )
     deviceClasses = []
     version = "2025.1.0"
 
     def __init__(
             self,
             # basic
-            exp, name='photodiode',
-            variability="1/60", report="log",
+            exp, name='visualVal',
             findThreshold=True, threshold=127,
             # layout
             findDiode=True, diodePos="(1, 1)", diodeSize="(0.1, 0.1)", diodeUnits="norm",
             # device
             deviceLabel="", deviceBackend="screenbuffer", port="", channel="0",
-            # data
-            saveValid=True,
     ):
 
         self.exp = exp  # so we can access the experiment if necess
@@ -50,8 +50,6 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
 
         # --- Basic ---
         self.order += [
-            "variability",
-            "report",
             "findThreshold",
             "threshold",
             "findDiode",
@@ -59,23 +57,6 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             "diodeSize",
             "diodeUnits",
         ]
-
-        self.params['variability'] = Param(
-            variability, valType="code", inputType="single", categ="Basic",
-            label=_translate("Variability (s)"),
-            hint=_translate(
-                "How much variation from intended presentation times (in seconds) is acceptable?"
-            )
-        )
-        self.params['report'] = Param(
-            report, valType="str", inputType="choice", categ="Basic",
-            allowedVals=["log", "err"],
-            allowedLabels=[_translate("Log warning"), _translate("Raise error")],
-            label=_translate("On fail..."),
-            hint=_translate(
-                "What to do when the validation fails. Just log, or stop the script and raise an error?"
-            )
-        )
         self.params['findThreshold'] = Param(
             findThreshold, valType="bool", inputType="bool", categ="Basic",
             label=_translate("Find best threshold?"),
@@ -175,15 +156,6 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             )
         )
 
-        # --- Data ---
-        self.params['saveValid'] = Param(
-            saveValid, valType="code", inputType="bool", categ="Data",
-            label=_translate('Save validation results'),
-            hint=_translate(
-                "Save validation results after validating on/offset times for stimuli"
-            )
-        )
-
         self.loadBackends()
 
     def writeDeviceCode(self, buff):
@@ -208,8 +180,7 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
         if self.params['findThreshold']:
             code = (
                 "# find threshold for photodiode\n"
-                "if %(deviceLabelCode)s.getThreshold(channel=%(channel)s) is None:\n"
-                "    %(deviceLabelCode)s.findThreshold(win, channel=%(channel)s)\n"
+                "%(deviceLabelCode)s.findThreshold(win, channel=%(channel)s)\n"
             )
         else:
             code = (
@@ -220,8 +191,7 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
         if self.params['findDiode']:
             code = (
                 "# find position and size of photodiode\n"
-                "if %(deviceLabelCode)s.pos is None and %(deviceLabelCode)s.size is None and %(deviceLabelCode)s.units is None:\n"
-                "    %(deviceLabelCode)s.findPhotodiode(win, channel=%(channel)s)\n"
+                "%(deviceLabelCode)s.findPhotodiode(win, channel=%(channel)s)\n"
             )
             buff.writeOnceIndentedLines(code % inits)
 
@@ -263,8 +233,6 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             "# validator object for %(name)s\n"
             "%(name)s = phd.PhotodiodeValidator(\n"
             "    win, %(name)sDiode, %(channel)s,\n"
-            "    variability=%(variability)s,\n"
-            "    report=%(report)s,\n"
             ")\n"
         )
         buff.writeIndentedLines(code % inits)
@@ -297,7 +265,7 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
 
         # choose a clock to sync to according to component's params
         if "syncScreenRefresh" in stim.params and stim.params['syncScreenRefresh']:
-            clockStr = ""
+            clockStr = "clock=globalClock"
         else:
             clockStr = "clock=routineTimer"
         # sync component start/stop timers with validator clocks
@@ -328,12 +296,11 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
         """
         # get starting indent level
         startIndent = buff.indentLevel
-
         # validate start time
         code = (
             "# validate {name} start time\n"
             "if {name}.status == STARTED and %(name)s.status == STARTED:\n"
-            "    %(name)s.tStart, %(name)s.tStartValid = %(name)s.validate(state=True, t={name}.tStartRefresh)\n"
+            "    %(name)s.tStart, %(name)s.tStartDelay = %(name)s.validate(state=True, t={name}.tStartRefresh)\n"
             "    if %(name)s.tStart is not None:\n"
             "        %(name)s.status = FINISHED\n"
         )
@@ -341,11 +308,7 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             # save validated start time if stim requested
             code += (
             "        thisExp.addData('{name}.%(name)s.started', %(name)s.tStart)\n"
-            )
-        if self.params['saveValid']:
-            # save validation result if params requested
-            code += (
-            "        thisExp.addData('{name}.started.valid', %(name)s.tStartValid)\n"
+            "        thisExp.addData('%(name)s.startDelay', %(name)s.tStartDelay)\n"
             )
         buff.writeIndentedLines(code.format(**stim.params) % self.params)
 
@@ -353,7 +316,7 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
         code = (
             "# validate {name} stop time\n"
             "if {name}.status == FINISHED and %(name)s.status == STARTED:\n"
-            "    %(name)s.tStop, %(name)s.tStopValid = %(name)s.validate(state=False, t={name}.tStopRefresh)\n"
+            "    %(name)s.tStop, %(name)s.tStopDelay = %(name)s.validate(state=False, t={name}.tStopRefresh)\n"
             "    if %(name)s.tStop is not None:\n"
             "        %(name)s.status = FINISHED\n"
         )
@@ -361,11 +324,7 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             # save validated start time if stim requested
             code += (
             "        thisExp.addData('{name}.%(name)s.stopped', %(name)s.tStop)\n"
-            )
-        if self.params['saveValid']:
-            # save validation result if params requested
-            code += (
-            "        thisExp.addData('{name}.stopped.valid', %(name)s.tStopValid)\n"
+            "        thisExp.addData('{name}.%(name)s.stopDelay', %(name)s.tStopDelay)\n"
             )
         buff.writeIndentedLines(code.format(**stim.params) % self.params)
 
@@ -375,6 +334,7 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
     def findConnectedStimuli(self):
         # list of linked components
         stims = []
+        routines = []
         # inspect each Routine
         for emt in self.exp.flow:
             # skip non-standard Routines
@@ -388,6 +348,12 @@ class PhotodiodeValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
                 if compValidator == self:
                     # if found, add the comp to the list
                     stims.append(comp)
+                    # add to list of Routines containing comps
+                    if emt not in routines:
+                        routines.append(emt)
+        # if any rt has two validated comps, warn
+        if len(routines) < len(stims):
+            alert(3610, obj=self, strFields={'validator': self.name})
 
         return stims
 

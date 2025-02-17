@@ -131,9 +131,9 @@
 # Settings for hardware
 [hardware]
     # LEGACY: choice of audio library
-    audioLib = list(default=list('PTB', 'sounddevice', 'pyo', 'pygame'))
-    # LEGACY: latency mode for PsychToolbox audio (3 is good for most applications. See
-    audioLatencyMode = option(0, 1, 2, 3, 4, default=3)
+    audioLib = list(default=list('ptb', 'sounddevice', 'pyo', 'pygame'))
+    # exclude non-WASAPI audio devices
+    audioWASAPIOnly = boolean(default=True)
     # audio driver to use
     audioDriver = list(default=list('coreaudio', 'portaudio'))
     # audio device to use (if audioLib allows control)
@@ -157,6 +157,8 @@
     showPilotingIndicator = boolean(default=True)
     # Prevent experiment from enabling rush mode when piloting
     forceNonRush = boolean(default=True)
+    # Replace default participant ID with "pilot" when piloting
+    replaceParticipantID = boolean(default=True)
 
 # Settings for connections
 [connections]
@@ -181,6 +183,8 @@
     save = string(default='Ctrl+S')
     # save a Builder or Coder file under a new name
     saveAs = string(default='Ctrl+Shift+S')
+    # reveal the folder containing the current Builder file
+    revealFolder = string(default='Alt+Shift+R')
     # Coder: print the file
     print = string(default='Ctrl+P')
     # close the Builder or Coder window
@@ -245,6 +249,8 @@
     # Coder: show / hide indentation level lines
     toggleIndentGuides = string(default='Ctrl+Shift+I')
 
+    # Builder: edit experiment settings
+    expSettings = string(default='Ctrl+Shift+X')
     # Builder: create a new routine
     newRoutine = string(default='Ctrl+Shift+N')
     # Builder: copy an existing routine

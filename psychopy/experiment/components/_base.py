@@ -38,6 +38,10 @@ class BaseComponent:
     version = "0.0.0"
     # is it still in beta?
     beta = False
+    # what classes can validate this Component? Specify by name
+    validatorClasses = []
+    # hide this Component in Builder view?
+    hidden = False
 
     def __init__(self, exp, parentName, name='',
                  startType='time (s)', startVal='',
@@ -1047,8 +1051,17 @@ class BaseComponent:
 
     def getStartAndDuration(self, params=None):
         """Determine the start and duration of the stimulus
+
+        When nonSlipSafe is False, the outputs of this function are used
         purely for Routine rendering purposes in the app (does not affect
-        actual drawing during the experiment)
+        actual drawing during the experiment).
+
+        When nonSlipSafe is True or when `forceNonSlip` is True, the outputs
+        of this function are used to determine maxTime of routine, which is
+        written into the generated script during writeMainCode() to as a part
+        of the stopping criteria of the routine while loop. In these two cases,
+        the outputs of this function does affect actual during during the
+        experiment (not only for Routine rendering purposes in the app).
 
         start, duration, nonSlipSafe = component.getStartAndDuration()
 
@@ -1065,18 +1078,18 @@ class BaseComponent:
             params = self.params
 
         # If has a start, calculate it
-        if 'startType' in self.params:
+        if 'startType' in params:
             startTime, numericStart = self.getStart()
         else:
             startTime, numericStart = None, False
 
         # If has a stop, calculate it
-        if 'stopType' in self.params:
+        if 'stopType' in params:
             duration, numericStop = self.getDuration(startTime=startTime)
         else:
             duration, numericStop = 0, False
 
-        nonSlipSafe = numericStop and (numericStart or self.params['stopType'].val == 'time (s)')
+        nonSlipSafe = numericStop and (numericStart or params['stopType'].val == 'time (s)')
         return startTime, duration, nonSlipSafe
 
     def getPosInRoutine(self):
@@ -1112,14 +1125,12 @@ class BaseComponent:
         list[str]
             List of Routine names/labels
         """
-        from psychopy.experiment.routines import BaseValidatorRoutine
-
         # iterate through all Routines in this Experiment
         names = [""]
         labels = [_translate("Do not validate")]
         for rtName, rt in self.exp.routines.items():
-            # if Routine is a validator, include it
-            if isinstance(rt, BaseValidatorRoutine):
+            # if Routine is the relevant validator type, include it
+            if type(rt).__name__ in self.validatorClasses:
                 # add name
                 names.append(rtName)
                 # construct label
@@ -1412,6 +1423,7 @@ class BaseVisualComponent(BaseComponent):
     targets = []
     iconFile = Path(__file__).parent / "unknown" / "unknown.png"
     tooltip = ""
+    validatorClasses = ["PhotodiodeValidatorRoutine"]
 
     def __init__(self, exp, parentName, name='',
                  units='from exp settings', color='white', fillColor="", borderColor="",

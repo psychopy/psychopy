@@ -333,7 +333,7 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin, _Tes
             # },  # https://discourse.psychopy.org/t/textbox2-crashes-when-korean-input-exceed-certain-length/22717/6
             {
                 "text": "i need a word which will go off the page, antidisestablishmentarianism is a very long word",
-                "font": "Open Sans",
+                "font": "Noto Sans",
                 "screenshot": "textbox_typing_longWord.png"
             },  # Check that lines wrap correctly when there's a very long word, rather than as described in https://github.com/psychopy/psychopy/issues/3892
         ]
@@ -470,10 +470,6 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin, _Tes
             utils.compareScreenshot(filename, self.win, crit=8)
 
         self.obj.speechPoint = None
-            
-    def test_alerts(self):
-        noFontTextbox = TextBox2(self.win, "", font="Raleway Dots", bold=True)
-        assert (self.error.alerts[0].code == 4325)
 
     def test_letter_spacing(self):
         cases = (0.6, 0.8, 1, None, 1.2, 1.4, 1.6, 1.8, 2.0)
@@ -495,7 +491,7 @@ def test_font_manager():
         # Create a font manager
         mgr = FontManager()
         # Check that it finds fonts which should be pre-packaged with PsychoPy in the resources folder
-        assert bool(mgr.getFontNamesSimilar("Open Sans"))
+        assert bool(mgr.getFontNamesSimilar("Noto Sans"))
         # Check that it doesn't find fonts which aren't installed as default
         assert not bool(mgr.getFontNamesSimilar("Dancing Script"))
         # Check that it can install fonts from Google

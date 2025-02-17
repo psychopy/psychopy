@@ -26,10 +26,13 @@ from psychopy import logging
 
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import attributeSetter
+from psychopy.tools import gltools as gt
 from psychopy.visual.basevisual import (
     BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin, TextureMixin
 )
 import numpy
+
+USE_LEGACY_GL = pyglet.version < '2.0'
 
 
 class GratingStim(BaseVisualStim, DraggingMixin, TextureMixin, ColorMixin,
@@ -253,19 +256,16 @@ class GratingStim(BaseVisualStim, DraggingMixin, TextureMixin, ColorMixin,
         # fix scaling to window coords
         self._calcCyclesPerStim()
 
-        # generate a displaylist ID
-        self._listID = GL.glGenLists(1)
-
-        # JRG: doing self._updateList() here means MRO issues for RadialStim,
-        # which inherits from GratingStim but has its own _updateList code.
-        # So don't want to do the update here (= ALSO the init of RadialStim).
-        # Could potentially define a BaseGrating class without
-        # updateListShaders code, and have GratingStim and RadialStim
-        # inherit from it and add their own _updateList stuff.
-        # Seems unnecessary. Instead, simply defer the update to the
-        # first .draw(), should be fast:
-        # self._updateList()  # ie refresh display list
         self._needUpdate = True
+
+        if USE_LEGACY_GL:
+            # generate a displaylist ID
+            self._listID = GL.glGenLists(1)
+        else:
+            # cache texture and mask coords here
+            self._texCoords = numpy.array(
+                [[1, 0], [0, 0], [0, 1], [1, 1]], dtype=float)
+            self._maskCoords = self._texCoords.copy()
 
         # set autoLog now that params have been initialised
         wantLog = autoLog is None and self.win.autoLog
@@ -378,24 +378,9 @@ class GratingStim(BaseVisualStim, DraggingMixin, TextureMixin, ColorMixin,
         """
         self._set('blendmode', value, log=log)
 
-    def draw(self, win=None):
-        """Draw the stimulus in its relevant window.
-
-        You must call this method after every `MyWin.flip()` if you want the
-        stimulus to appear on that frame and then update the screen again.
-
-        Parameters
-        ----------
-        win : `~psychopy.visual.Window` or `None`
-            Window to draw the stimulus to. Context sharing must be enabled if
-            any other window beside the one specified during creation of this
-            stimulus is specified.
-
+    def _drawLegacyGL(self, win):
+        """Legacy draw function for older OpenGL versions.
         """
-        if win is None:
-            win = self.win
-
-        self._selectWindow(win)
         saveBlendMode = win.blendMode
         win.setBlendMode(self.blendmode, log=False)
 
@@ -415,6 +400,101 @@ class GratingStim(BaseVisualStim, DraggingMixin, TextureMixin, ColorMixin,
         GL.glPopMatrix()
         win.setBlendMode(saveBlendMode, log=False)
 
+    def draw(self, win=None):
+        """Draw the stimulus in its relevant window.
+
+        You must call this method after every `MyWin.flip()` if you want the
+        stimulus to appear on that frame and then update the screen again.
+
+        Parameters
+        ----------
+        win : `~psychopy.visual.Window` or `None`
+            Window to draw the stimulus to. Context sharing must be enabled if
+            any other window beside the one specified during creation of this
+            stimulus is specified.
+
+        """
+        if win is None:
+            win = self.win
+
+        self._selectWindow(win)
+
+        if win.USE_LEGACY_GL:
+            self._drawLegacyGL(win)
+            return
+
+        win.setScale('pix')
+        win.setOrthographicView()
+
+        if self._needTextureUpdate:
+            self.setTex(value=self.tex, log=False)
+        if self._needUpdate:
+            Ltex = (-self._cycles[0] / 2) - self.phase[0] + 0.5
+            Rtex = (+self._cycles[0] / 2) - self.phase[0] + 0.5
+            Ttex = (+self._cycles[1] / 2) - self.phase[1] + 0.5
+            Btex = (-self._cycles[1] / 2) - self.phase[1] + 0.5
+            Lmask = Bmask = 0.0
+            Tmask = Rmask = 1.0  # mask
+
+            self._texCoords = numpy.ascontiguousarray(
+                [[Rtex, Btex], [Ltex, Btex], [Ltex, Ttex], [Rtex, Ttex]],
+                dtype=float)
+            self._maskCoords = numpy.ascontiguousarray(
+                [[Rmask, Bmask], [Lmask, Bmask], [Lmask, Tmask], [Rmask, Tmask]],
+                dtype=float)
+            self._needUpdate = False
+
+        # retain the current blendmode and change it to the one for this stim
+        saveBlendMode = win.blendMode
+        win.setBlendMode(self.blendmode, log=False)
+        GL.glEnable(GL.GL_BLEND)
+
+        # draw the stimulus
+        _prog = self.win._progSignedTexMask
+        gt.useProgram(_prog)
+
+        GL.glActiveTexture(GL.GL_TEXTURE1)  # mask
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self._maskID)
+        GL.glEnable(GL.GL_TEXTURE_2D)  # implicitly disables 1D
+
+        # main texture
+        GL.glActiveTexture(GL.GL_TEXTURE0)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
+        GL.glEnable(GL.GL_TEXTURE_2D)
+
+        # the list just does the texture mapping
+        gt.setUniformSampler2D(_prog, b'uTexture', 0)
+        gt.setUniformSampler2D(_prog, b'uMask', 1)
+        gt.setUniformValue(_prog, b'uColor', self._foreColor.render('rgba1'))
+        gt.setUniformMatrix(
+            _prog, 
+            b'uProjectionMatrix', 
+            win._projectionMatrix,
+            transpose=True)
+        gt.setUniformMatrix(
+            _prog, 
+            b'uModelViewMatrix', 
+            win._viewMatrix,
+            transpose=True)
+
+        gt.drawClientArrays({
+            'gl_Vertex': self.verticesPix,
+            'gl_MultiTexCoord0': self._texCoords,
+            'gl_MultiTexCoord1': self._maskCoords}, 
+            'GL_QUADS')
+        
+        gt.useProgram(None)
+
+        # unbind the textures
+        GL.glActiveTexture(GL.GL_TEXTURE1)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        GL.glActiveTexture(GL.GL_TEXTURE0)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        GL.glDisable(GL.GL_TEXTURE_2D)
+
+        # return the view to previous state
+        win.setBlendMode(saveBlendMode, log=False)
+
     def _updateListShaders(self):
         """The user shouldn't need this method since it gets called
         after every call to .set() Basically it updates the OpenGL
@@ -422,6 +502,9 @@ class GratingStim(BaseVisualStim, DraggingMixin, TextureMixin, ColorMixin,
         stimulus changes. Call it if you change a property manually
         rather than using the .set() command
         """
+        if not self.win.USE_LEGACY_GL:  # not needed for newer GL
+            return
+
         self._needUpdate = False
         GL.glNewList(self._listID, GL.GL_COMPILE)
         # setup the shaderprogram

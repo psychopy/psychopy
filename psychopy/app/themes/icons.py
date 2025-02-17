@@ -10,6 +10,7 @@ from . import theme as appTheme
 retStr = ""
 resources = Path(prefs.paths['resources'])
 iconCache = {}
+pluginIconFiles = []
 
 
 class BaseIcon:
@@ -144,9 +145,7 @@ class ButtonIcon(BaseIcon):
         if theme is None:
             theme = appTheme.icons
         # Get all files in the resource folder containing the given stem
-        matches = [f for f in resources.glob(f"**/{stem}*.png")]
-        # get all icons from plugins
-        matches += findPluginIcons(stem)
+        matches = [f for f in resources.glob(f"**/{stem}*.png")] + pluginIconFiles
         # Create blank arrays to store retina and non-retina files
         ret = {}
         nret = {}
@@ -263,38 +262,3 @@ class ComponentIcon(BaseIcon):
             self._beta = wx.Bitmap(combined)
 
         return self._beta
-
-
-def findPluginIcons(stem):
-    """
-    Search icons added by plugins for any matching the given file stem.
-
-    Parameters
-    ----------
-    stem : str
-        The file stem (aka the filename without `.png` on the end) to search for - will also find
-        files beginning with the given stem (e.g. "globe" will also find "globe@2x.png")
-
-    Returns
-    -------
-    list[Path]
-        List of file paths for found icons
-    """
-    from psychopy.plugins import getEntryPointGroup
-    # start off with no files
-    files = []
-    # iterate through found entry points
-    for ep in getEntryPointGroup("psychopy.app.themes.icons"):
-        try:
-            # try to load module
-            mod = ep.load()
-            # get module folder
-            folder = Path(mod.__file__).parent
-            # add all matching .png files from that folder
-            for file in folder.glob(f"**/{stem}*.png"):
-                files.append(file)
-        except:
-            # if it fails for any reason, skip it
-            logging.warn(f"Failed to load {ep.value}")
-
-    return files

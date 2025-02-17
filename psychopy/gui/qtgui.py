@@ -8,6 +8,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 import importlib
 from psychopy import logging, data
+from psychopy.tools.arraytools import IndexDict
 from . import util
 
 haveQt = False  # until we confirm otherwise
@@ -167,23 +168,32 @@ class Dlg(QtWidgets.QDialog):
         self.inputFields = []
         self.inputFieldTypes = {}
         self.inputFieldNames = []
-        self.data = {}
+        self.data = IndexDict()
         self.irow = 0
         self.pos = pos
         # QtWidgets.QToolTip.setFont(QtGui.QFont('SansSerif', 10))
 
         # set always stay on top
         if alwaysOnTop:
-            self.setWindowFlags(Qt.WindowType.WindowStaysOnTopHint)
+            if hasattr(Qt.WindowType, 'WindowStaysOnTopHint'):
+                self.setWindowFlags(Qt.WindowType.WindowStaysOnTopHint)
 
         # add buttons for OK and Cancel
-        buttons = QtWidgets.QDialogButtonBox.StandardButton.Ok | QtWidgets.QDialogButtonBox.StandardButton.Cancel
-        self.buttonBox = QtWidgets.QDialogButtonBox(buttons, parent=self)
+        if hasattr(QtWidgets.QDialogButtonBox.StandardButton, 'Ok'):
+            # PyQt6 upwards?
+            okBtn = QtWidgets.QDialogButtonBox.StandardButton.Ok
+            cancelBtn = QtWidgets.QDialogButtonBox.StandardButton.Cancel
+        else:
+            # e.g. PyQt5
+            okBtn = QtWidgets.QDialogButtonBox.Ok
+            cancelBtn = QtWidgets.QDialogButtonBox.Cancel
+            
+        self.buttonBox = QtWidgets.QDialogButtonBox(okBtn | cancelBtn, parent=self)
         self.buttonBox.accepted.connect(self.accept)
         self.buttonBox.rejected.connect(self.reject)
         # store references to OK and CANCEL buttons
-        self.okBtn = self.buttonBox.button(QtWidgets.QDialogButtonBox.StandardButton.Ok)
-        self.cancelBtn = self.buttonBox.button(QtWidgets.QDialogButtonBox.StandardButton.Cancel)
+        self.okBtn = self.buttonBox.button(okBtn)
+        self.cancelBtn = self.buttonBox.button(cancelBtn)
 
         if style:
             raise RuntimeWarning("Dlg does not currently support the "
@@ -229,8 +239,8 @@ class Dlg(QtWidgets.QDialog):
 
         return textLabel
 
-    def addField(self, key, label='', initial='', color='', choices=None, tip='',
-                 required=False, enabled=True):
+    def addField(self, key, initial='', color='', choices=None, tip='',
+                 required=False, enabled=True, label=None):
         """Adds a (labelled) input field to the dialogue box,
         optional text color and tooltip.
 
@@ -240,6 +250,10 @@ class Dlg(QtWidgets.QDialog):
 
         Returns a handle to the field (but not to the label).
         """
+        # if not given a label, use key (sans-pipe syntax)
+        if label is None:
+            label, _ = util.parsePipeSyntax(key)
+
         self.inputFieldNames.append(label)
         if choices:
             self.inputFieldTypes[label] = str
@@ -345,9 +359,9 @@ class Dlg(QtWidgets.QDialog):
         # set required (attribute is checked later by validate fcn)
         inputBox.required = required
 
-        if len(color):
+        if color is not None and len(color):
             inputBox.setPalette(inputLabel.palette())
-        if len(tip):
+        if tip is not None and len(tip):
             inputBox.setToolTip(tip)
         inputBox.setEnabled(enabled)
         self.layout.addWidget(inputBox, self.irow, 1)
@@ -367,8 +381,10 @@ class Dlg(QtWidgets.QDialog):
         """Adds a field to the dialog box (like addField) but the field cannot
         be edited. e.g. Display experiment version.
         """
-        return self.addField(key, label, initial, color, choices, tip,
-                             enabled=False)
+        return self.addField(
+            key=key, label=label, initial=initial, color=color, choices=choices, tip=tip, 
+            enabled=False
+        )
 
     def addReadmoreCtrl(self):
         line = ReadmoreCtrl(self, label=_translate("Configuration fields..."))

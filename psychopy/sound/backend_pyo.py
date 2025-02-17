@@ -8,26 +8,57 @@ These are optional components that can be obtained by installing the
 
 """
 
-import psychopy.logging as logging
-from .exceptions import DependencyError
 
-try:
-    from psychopy_pyo import (
-        init,
-        get_devices_infos,
-        get_input_devices,
-        get_output_devices,
-        getDevices,
-        SoundPyo)
-except (ModuleNotFoundError, ImportError):
-    logging.error(
-        "Support for the `pyo` audio backend is not available this session. "
-        "Please install `psychopy-pyo` and restart the session to enable "
-        "support.")
-except (NameError, DependencyError):
-    logging.error(
-        "Error encountered while loading `psychopy-pyo`. Check logs for more "
-        "information.")
+from psychopy.plugins import PluginStub
 
-if __name__ == "__main__":
+
+class SoundPyo(
+    PluginStub,
+    plugin="psychopy-pyo",
+    docsHome="https://github.com/psychopy/psychopy-pyo",
+):
     pass
+
+
+class init(
+    PluginStub,
+    plugin="psychopy-pyo",
+    docsHome="https://github.com/psychopy/psychopy-pyo",
+):
+    pass
+
+
+class get_devices_infos(
+    PluginStub,
+    plugin="psychopy-pyo",
+    docsHome="https://github.com/psychopy/psychopy-pyo",
+):
+    pass
+
+
+class get_input_devices(
+    PluginStub,
+    plugin="psychopy-pyo",
+    docsHome="https://github.com/psychopy/psychopy-pyo",
+):
+    pass
+
+
+class get_output_devices(
+    PluginStub,
+    plugin="psychopy-pyo",
+    docsHome="https://github.com/psychopy/psychopy-pyo",
+):
+    pass
+
+
+class getDevices(
+    PluginStub,
+    plugin="psychopy-pyo",
+    docsHome="https://github.com/psychopy/psychopy-pyo",
+):
+    pass
+
+
+pyoSndServer: SoundPyo
+audioDriver: str
