@@ -297,7 +297,7 @@ def _onPygletMouseRelease(x, y, button, modifiers, emulated=False):
 
 def _onPygletMouseWheel(x, y, scroll_x, scroll_y):
     global mouseWheelRel
-    mouseWheelRel = mouseWheelRel + numpy.array([scroll_x, scroll_y])
+    mouseWheelRel +=  numpy.array([scroll_x, scroll_y])
     msg = "Mouse: wheel shift=(%i,%i), pos=(%i,%i)"
     logging.data(msg % (scroll_x, scroll_y, x, y))
 
