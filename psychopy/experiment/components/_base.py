@@ -1002,6 +1002,8 @@ class BaseComponent:
                 # There is no setMarker_label or setMarker_value function in the eeg_marker object
                 # The marker label and value are set by the variables set in the dialogue
                 pass
+            elif paramName == "sound":
+                buff.writeIndented(f"{compName}.setValue({val}{loggingStr}){endStr}")
             else:
                 buff.writeIndented(f"{compName}.set{paramCaps}({val}{loggingStr}){endStr}\n")
 
