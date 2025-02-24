@@ -358,8 +358,8 @@ class MovieFileReader:
         # default options
         defaultFFOpts = {
             'paused': True,
-            'sync': 'video',
-            'an': False,
+            # 'sync': 'video',
+            'an': True,
             'volume': 0.0,
             'loop': 1,
             'infbuf': True
@@ -793,6 +793,47 @@ class MovieFileReader:
             Video data.
 
         """
+
+        def _doSeek(pts):
+            """Seek to the specified presentation timestamp (PTS).
+
+            This function seeks to the specified presentation timestamp (PTS) in
+            the movie file. The decoder will begin decoding frames from the
+            specified PTS. If the PTS is outside the range of the movie, the
+            decoder will seek to the end of the movie.
+
+            Parameters
+            ----------
+            pts : float
+                The presentation timestamp (PTS) to seek to in seconds.
+
+            """
+            with self._readLock:
+                self._player.set_pause(True)
+                self._player.seek(pts, relative=False, accurate=True)
+                self._videoSegments.clear()
+                self._player.set_pause(False)
+
+                # wait for a frame to be available
+                while 1:
+                    with self._readLock:
+                        frame, status = self._player.get_frame(show=True)
+
+                    if status == 'eof':
+                        break
+                    elif frame is None or status == 'paused':
+                        time.sleep(0.001)
+                        continue
+
+                    img, curPts = frame
+                    curPts = round(curPts, 6)
+
+                    if curPts < pts:
+                        continue
+
+                    self._videoSegments.append((img, curPts, status))
+                    break
+
         # round and constrain the PTS to the duration of the movie
         pts = min(max(0.0, round(pts, 6)), self.duration)
         # print('Requested PTS:', pts)
@@ -816,38 +857,39 @@ class MovieFileReader:
         # print('Video segments:', self._videoSegments)
 
         # check if we need to seek first
+        print('video segments:', self._videoSegments)
         if self._videoSegments:
-            if pts < self._videoSegments[0][1]:
-                return self._videoSegments[0]
-
             # we have a segment, but wee need to check if the frame is in the
             # segment buffer. If not, we'll need to seek to the frame
             segmentStart = self._videoSegments[0][1]
             segmentEnd = self._videoSegments[-1][1] + self._frameInterval
 
-            if pts < segmentStart:
-                print('Frame too early...')
-                return self._videoSegments[0]  
-            elif pts > segmentEnd + self._frameInterval:
-                print('Frame too late...')
-                return self._videoSegments[-1] # last frame
+            needsSeek = False
+            if pts < segmentStart or pts > (segmentEnd + self._frameInterval):
+                needsSeek = True
 
-            # check if we have the frame in the segment buffer
-            for idx, segment in enumerate(self._videoSegments):
-                frameStartTime = segment[1]
-                if idx < len(self._videoSegments) - 1:
-                    nextFrameTime = self._videoSegments[idx + 1][1]
-                else:
-                    nextFrameTime = min(
-                        frameStartTime + self._frameInterval, self.duration)
+            if needsSeek:
+                _doSeek(pts)
 
-                if frameStartTime <= pts < nextFrameTime:
-                    # cache the frame for faster access
-                    self._lastFrame = segment
-                    self._lastFrameInterval = (frameStartTime, nextFrameTime)
-                    self._videoSegments = self._videoSegments[idx:]
-                    return segment
+            if self._videoSegments:
+                # check if we have the frame in the segment buffer
+                for idx, segment in enumerate(self._videoSegments):
+                    frameStartTime = segment[1]
+                    if idx < len(self._videoSegments) - 1:
+                        nextFrameTime = self._videoSegments[idx + 1][1]
+                    else:
+                        nextFrameTime = min(
+                            frameStartTime + self._frameInterval, self.duration)
+
+                    if frameStartTime <= pts < nextFrameTime:
+                        # cache the frame for faster access
+                        self._lastFrame = segment
+                        self._lastFrameInterval = (frameStartTime, nextFrameTime)
+                        self._videoSegments = self._videoSegments[idx:]
+                        return segment
         else:
+            _doSeek(pts)
+
             if dropFrame:
                 return self._lastFrame
         
