@@ -188,7 +188,3 @@ class TextComponent(BaseVisualComponent):
         code = ("  %sdepth: %.1f \n"
                 "});\n\n" % (flipStr, depth))
         buff.writeIndentedLines(code)
-
-    def integrityCheck(self):
-        super().integrityCheck()  # run parent class checks first
-        alerttools.testFont(self)  # Test whether font is available locally

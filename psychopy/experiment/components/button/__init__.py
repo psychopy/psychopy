@@ -491,7 +491,3 @@ class ButtonComponent(BaseVisualComponent):
             "psychoJS.experiment.addData('%(name)s.timesOff', %(name)s.timesOff);\n"
         )
         buff.writeIndentedLines(code % self.params)
-
-    def integrityCheck(self):
-        super().integrityCheck()  # run parent class checks first
-        alerttools.testFont(self) # Test whether font is available locally
