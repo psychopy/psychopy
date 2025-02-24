@@ -479,7 +479,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             # rescale for tiny retina fonts
         if hasattr(wx.Font, "AddPrivateFont") and sys.platform != "darwin":
             # Load packaged fonts if possible
-            for fontFile in (Path(__file__).parent / "Resources" / "fonts").glob("*"):
+            for fontFile in (Path(__file__).parent.parent / "assets" / "fonts").glob("*"):
                 if fontFile.suffix in ['.ttf', '.truetype']:
                     wx.Font.AddPrivateFont(str(fontFile))
             # Set fonts as those loaded
