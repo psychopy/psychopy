@@ -465,10 +465,14 @@ class CameraComponent(BaseDeviceComponent):
         code = (
             "# get camera object\n"
             "%(name)s = deviceManager.getDevice(%(deviceLabel)s)\n"
-            "# connect camera save method to experiment handler so it's called when data saves\n"
-            "thisExp.connectSaveMethod(%(name)s.save)\n"
         )
         buff.writeIndentedLines(code % inits)
+        if self.params['saveFile']:
+            code = (
+                "# connect camera save method to experiment handler so it's called when data saves\n"
+                "thisExp.connectSaveMethod(%(name)s.save, os.path.join(%(name)sRecFolder, '_recovered.mp4'), encoderLib='ffpyplayer')\n"
+            )
+            buff.writeIndentedLines(code % inits)
 
     def writeInitCodeJS(self, buff):
         inits = getInitVals(self.params, target="PsychoJS")
