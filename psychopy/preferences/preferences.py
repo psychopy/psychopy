@@ -7,6 +7,7 @@ import sys
 import platform
 from pathlib import Path
 from psychopy import logging
+from . import devices
 from .. import __version__
 
 from packaging.version import Version
@@ -175,7 +176,12 @@ class Preferences:
             except OSError as err:
                 if err.errno != errno.EEXIST:
                     raise
-
+        # make sure there's a device manager config file
+        deviceCfgFile = self.paths['deviceCfgFile'] = Path(self.paths['userPrefsDir']) / "devices.json"
+        if not deviceCfgFile.is_file():
+            deviceCfgFile.write_text("{}", encoding="utf-8")
+        # load device config
+        self.devices = devices.DeviceConfig(deviceCfgFile)
         # site-packages root directory for user-installed packages
         userPkgRoot = Path(self.paths['packages'])
 

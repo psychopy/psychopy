@@ -1134,6 +1134,58 @@ class Experiment:
     def htmlFolder(self):
         return self.settings.params['HTML path'].val
 
+    def getRequiredDeviceNames(self):
+        """
+        Get the device names which need to be defined for this experiment to run, along with a list 
+        of possible types for each one.
+
+        Returns
+        -------
+        dict[str: list[str]]
+            Device names and a list of possible types for each one
+        """
+        # dict in which to store usages
+        usages = {}
+        # always include the default keyboard
+        usages['defaultKeyboard'] = ["psychopy.hardware.keyboard.KeyboardDevice"]
+
+        def _process(emt):
+            """
+            Process an element (Component or Routine) for device names and append them to the
+            usages dict.
+
+            Parameters
+            ----------
+            emt : Component or Routine
+                Element to process
+            """
+            # if we have a device name for this element...
+            if "deviceLabel" in emt.params:
+                # get init value so it lines up with boilerplate code
+                inits = getInitVals(emt.params)
+                # get value
+                deviceName = inits['deviceLabel'].val
+                # make sure device name is in usages dict
+                if deviceName not in usages:
+                    usages[deviceName] = []
+                # add any new usages
+                for cls in getattr(emt, "deviceClasses", []):
+                    if cls not in usages[deviceName]:
+                        usages[deviceName].append(cls)
+        
+        # iterate through routines
+        for rt in self.routines.values():
+            if isinstance(rt, BaseStandaloneRoutine):
+                # for standalone routines, get device names from params
+                _process(rt)
+            else:
+                # for regular routines, get device names from each component
+                for comp in rt:
+                    _process(comp)
+        
+        return usages
+
+
     def getComponentFromName(self, name):
         """Searches all the Routines in the Experiment for a matching Comp name
 

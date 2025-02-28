@@ -1768,14 +1768,20 @@ class SettingsComponent:
             "    )\n"
         )
         buff.writeIndentedLines(code % inits)
-        # write any device setup code required by a component
-        for rt in self.exp.flow:
-            if isinstance(rt, Routine):
-                for comp in rt:
-                    if hasattr(comp, "writeDeviceCode"):
-                        comp.writeDeviceCode(buff)
-            elif isinstance(rt, BaseStandaloneRoutine):
-                rt.writeDeviceCode(buff)
+        # setup devices from config
+        code = (
+            f"# setup devices from config file\n"
+            f"for deviceName in {list(self.exp.getRequiredDeviceNames())}:\n"
+            f"    if deviceName not in prefs.devices:\n"
+            f"        raise NameError(\n"
+            f"            f\"Could not find any config for device {{deviceName}}, please \"\n"
+            f"            f\"setup this device up in the Device Manager dialog (from Builder)\"\n"
+            f"        )\n"
+            f"    profile = prefs.devices[deviceName].copy()\n"
+            f"    profile['deviceName'] = deviceName\n"
+            f"    deviceManager.addDevice(**profile)\n"
+        )
+        buff.writeIndentedLines(code)
 
         code = (
             "# return True if completed successfully\n"
