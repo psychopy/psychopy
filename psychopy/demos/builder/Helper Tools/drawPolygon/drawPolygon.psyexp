@@ -148,7 +148,7 @@
         <Param name="fillColor" updates="constant" val="None" valType="color" />
         <Param name="flipHoriz" updates="constant" val="False" valType="bool" />
         <Param name="flipVert" updates="constant" val="False" valType="bool" />
-        <Param name="font" updates="constant" val="Open Sans" valType="str" />
+        <Param name="font" updates="constant" val="Arial" valType="str" />
         <Param name="italic" updates="constant" val="False" valType="bool" />
         <Param name="languageStyle" updates="None" val="LTR" valType="str" />
         <Param name="letterHeight" updates="constant" val="0.03" valType="num" />
@@ -184,7 +184,7 @@
         <Param name="fillColor" updates="constant" val="None" valType="color" />
         <Param name="flipHoriz" updates="constant" val="False" valType="bool" />
         <Param name="flipVert" updates="constant" val="False" valType="bool" />
-        <Param name="font" updates="constant" val="Open Sans" valType="str" />
+        <Param name="font" updates="constant" val="Arial" valType="str" />
         <Param name="italic" updates="constant" val="False" valType="bool" />
         <Param name="languageStyle" updates="None" val="LTR" valType="str" />
         <Param name="letterHeight" updates="constant" val="0.02" valType="num" />
@@ -240,7 +240,7 @@
         <Param name="fillColor" updates="constant" val="None" valType="color" />
         <Param name="flipHoriz" updates="constant" val="False" valType="bool" />
         <Param name="flipVert" updates="constant" val="False" valType="bool" />
-        <Param name="font" updates="constant" val="Open Sans" valType="str" />
+        <Param name="font" updates="constant" val="Arial" valType="str" />
         <Param name="italic" updates="constant" val="False" valType="bool" />
         <Param name="languageStyle" updates="None" val="LTR" valType="str" />
         <Param name="letterHeight" updates="constant" val="0.02" valType="num" />
@@ -345,7 +345,7 @@
         <Param name="fillColor" updates="constant" val="None" valType="color" />
         <Param name="flipHoriz" updates="constant" val="False" valType="bool" />
         <Param name="flipVert" updates="constant" val="False" valType="bool" />
-        <Param name="font" updates="constant" val="Open Sans" valType="str" />
+        <Param name="font" updates="constant" val="Arial" valType="str" />
         <Param name="italic" updates="constant" val="False" valType="bool" />
         <Param name="languageStyle" updates="None" val="LTR" valType="str" />
         <Param name="letterHeight" updates="constant" val="0.03" valType="num" />
@@ -375,7 +375,7 @@
         <Param name="durationEstim" updates="None" val="" valType="num" />
         <Param name="fillColor" updates="constant" val="Red" valType="color" />
         <Param name="flip" updates="constant" val="False" valType="bool" />
-        <Param name="font" updates="constant" val="Open Sans" valType="str" />
+        <Param name="font" updates="constant" val="Arial" valType="str" />
         <Param name="forceEndRoutine" updates="constant" val="False" valType="bool" />
         <Param name="granularity" updates="constant" val="0" valType="num" />
         <Param name="initVal" updates="None" val="" valType="code" />
@@ -411,7 +411,7 @@
         <Param name="durationEstim" updates="None" val="" valType="num" />
         <Param name="fillColor" updates="constant" val="Red" valType="color" />
         <Param name="flip" updates="constant" val="False" valType="bool" />
-        <Param name="font" updates="constant" val="Open Sans" valType="str" />
+        <Param name="font" updates="constant" val="Arial" valType="str" />
         <Param name="forceEndRoutine" updates="constant" val="False" valType="bool" />
         <Param name="granularity" updates="constant" val="0" valType="num" />
         <Param name="initVal" updates="None" val="" valType="code" />
@@ -453,7 +453,7 @@
         <Param name="fillColor" updates="constant" val="None" valType="color" />
         <Param name="flipHoriz" updates="constant" val="False" valType="bool" />
         <Param name="flipVert" updates="constant" val="False" valType="bool" />
-        <Param name="font" updates="constant" val="Open Sans" valType="str" />
+        <Param name="font" updates="constant" val="Arial" valType="str" />
         <Param name="italic" updates="constant" val="False" valType="bool" />
         <Param name="languageStyle" updates="None" val="LTR" valType="str" />
         <Param name="letterHeight" updates="constant" val="0.03" valType="num" />
@@ -483,7 +483,7 @@
         <Param name="durationEstim" updates="None" val="" valType="num" />
         <Param name="fillColor" updates="constant" val="Red" valType="color" />
         <Param name="flip" updates="constant" val="False" valType="bool" />
-        <Param name="font" updates="constant" val="Open Sans" valType="str" />
+        <Param name="font" updates="constant" val="Arial" valType="str" />
         <Param name="forceEndRoutine" updates="constant" val="False" valType="bool" />
         <Param name="granularity" updates="constant" val="0" valType="num" />
         <Param name="initVal" updates="None" val="" valType="code" />
@@ -525,7 +525,7 @@
         <Param name="fillColor" updates="constant" val="None" valType="color" />
         <Param name="flipHoriz" updates="constant" val="False" valType="bool" />
         <Param name="flipVert" updates="constant" val="False" valType="bool" />
-        <Param name="font" updates="constant" val="Open Sans" valType="str" />
+        <Param name="font" updates="constant" val="Arial" valType="str" />
         <Param name="italic" updates="constant" val="False" valType="bool" />
         <Param name="languageStyle" updates="None" val="LTR" valType="str" />
         <Param name="letterHeight" updates="constant" val="0.03" valType="num" />
@@ -555,7 +555,7 @@
         <Param name="durationEstim" updates="None" val="" valType="num" />
         <Param name="fillColor" updates="constant" val="Red" valType="color" />
         <Param name="flip" updates="constant" val="False" valType="bool" />
-        <Param name="font" updates="constant" val="Open Sans" valType="str" />
+        <Param name="font" updates="constant" val="Arial" valType="str" />
         <Param name="forceEndRoutine" updates="constant" val="False" valType="bool" />
         <Param name="granularity" updates="constant" val="0" valType="num" />
         <Param name="initVal" updates="None" val="" valType="code" />

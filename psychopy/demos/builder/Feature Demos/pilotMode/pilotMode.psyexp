@@ -263,7 +263,7 @@
         <Param val="" valType="code" updates="None" name="durationEstim"/>
         <Param val="Red" valType="color" updates="constant" name="fillColor"/>
         <Param val="False" valType="bool" updates="constant" name="flip"/>
-        <Param val="Open Sans" valType="str" updates="constant" name="font"/>
+        <Param val="Arial" valType="str" updates="constant" name="font"/>
         <Param val="True" valType="bool" updates="constant" name="forceEndRoutine"/>
         <Param val="0" valType="num" updates="constant" name="granularity"/>
         <Param val="" valType="code" updates="None" name="initVal"/>

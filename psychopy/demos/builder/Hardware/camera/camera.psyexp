@@ -121,7 +121,7 @@
         <Param val="None" valType="color" updates="constant" name="fillColor" />
         <Param val="False" valType="bool" updates="constant" name="flipHoriz" />
         <Param val="False" valType="bool" updates="constant" name="flipVert" />
-        <Param val="Open Sans" valType="str" updates="constant" name="font" />
+        <Param val="Arial" valType="str" updates="constant" name="font" />
         <Param val="False" valType="bool" updates="constant" name="italic" />
         <Param val="LTR" valType="str" updates="None" name="languageStyle" />
         <Param val="0.04" valType="num" updates="constant" name="letterHeight" />
@@ -158,7 +158,7 @@
         <Param val="None" valType="color" updates="constant" name="fillColor" />
         <Param val="False" valType="bool" updates="constant" name="flipHoriz" />
         <Param val="False" valType="bool" updates="constant" name="flipVert" />
-        <Param val="Open Sans" valType="str" updates="constant" name="font" />
+        <Param val="Arial" valType="str" updates="constant" name="font" />
         <Param val="False" valType="bool" updates="constant" name="italic" />
         <Param val="LTR" valType="str" updates="None" name="languageStyle" />
         <Param val="0.05" valType="num" updates="constant" name="letterHeight" />
@@ -222,7 +222,7 @@
         <Param val="None" valType="color" updates="constant" name="fillColor" />
         <Param val="False" valType="bool" updates="constant" name="flipHoriz" />
         <Param val="False" valType="bool" updates="constant" name="flipVert" />
-        <Param val="Open Sans" valType="str" updates="constant" name="font" />
+        <Param val="Arial" valType="str" updates="constant" name="font" />
         <Param val="False" valType="bool" updates="constant" name="italic" />
         <Param val="LTR" valType="str" updates="None" name="languageStyle" />
         <Param val="0.04" valType="num" updates="constant" name="letterHeight" />

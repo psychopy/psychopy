@@ -56,7 +56,7 @@
     <Routine name="demographics">
       <FormComponent name="demog">
         <Param val="rows" valType="str" updates="constant" name="Data Format" />
-        <Param val="Open Sans" valType="str" updates="constant" name="Font" />
+        <Param val="Arial" valType="str" updates="constant" name="Font" />
         <Param val="0.05" valType="num" updates="constant" name="Item Padding" />
         <Param val="demographics.xlsx" valType="file" updates="constant" name="Items" />
         <Param val="False" valType="bool" updates="constant" name="Randomize" />
@@ -122,7 +122,7 @@
     <Routine name="TIPI">
       <FormComponent name="TIPIForm">
         <Param val="rows" valType="str" updates="constant" name="Data Format" />
-        <Param val="Open Sans" valType="str" updates="constant" name="Font" />
+        <Param val="Arial" valType="str" updates="constant" name="Font" />
         <Param val="0.05" valType="num" updates="constant" name="Item Padding" />
         <Param val="TIPI.xlsx" valType="file" updates="constant" name="Items" />
         <Param val="False" valType="bool" updates="constant" name="Randomize" />
