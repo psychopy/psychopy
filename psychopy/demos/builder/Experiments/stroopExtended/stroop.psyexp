@@ -1,4 +1,4 @@
-<PsychoPy2experiment encoding="utf-8" version="3.0.1">
+<PsychoPy2experiment encoding="utf-8" version="2025.2.0">
   <Settings>
     <Param name="Completed URL" updates="None" val="" valType="str" />
     <Param name="Data filename" updates="None" val="u'data/%s_%s_%s' % (expInfo['participant'], expName, expInfo['date'])" valType="code" />

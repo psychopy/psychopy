@@ -25,7 +25,7 @@ logging.console.setLevel(logging.DEBUG)
 runInfo = psychopy.info.RunTimeInfo(
         # if you specify author and version here, it overrides the automatic detection of __author__ and __version__ in your script
         # author=' < your name goes here, plus whatever you like, e.g., your lab or contact info > ',
-        # version=" < your experiment version info > ",
+        # version="2025.2.0",
         win=win,    #  # a psychopy.visual.Window() instance; None = default temp window used; False = no win, no win.flips()
         refreshTest='grating',  #  # None, True, or 'grating' (eye-candy to avoid a blank screen)
         verbose=True,  #  # True means report on everything

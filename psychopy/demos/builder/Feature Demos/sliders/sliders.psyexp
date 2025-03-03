@@ -1,4 +1,4 @@
-<PsychoPy2experiment encoding="utf-8" version="2023.2.1">
+<PsychoPy2experiment encoding="utf-8" version="2025.2.0">
   <Settings>
     <Param val="use prefs" valType="str" updates="None" name="Audio latency priority" />
     <Param val="use prefs" valType="str" updates="None" name="Audio lib" />
