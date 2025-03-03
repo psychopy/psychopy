@@ -2022,7 +2022,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
                                 "Reload (without saving)?") % filename
             dlg = dialogs.MessageDialog(self, message=msg, type='Warning')
             dlg.Raise()
-            if dlg.ShowWindowModal() == wx.ID_YES:
+            if dlg.ShowModal() == wx.ID_YES:
                 self.statusBar.SetStatusText(_translate('Reloading file'))
                 self.fileReload(event,
                                 filename=self.currentDoc.filename,
