@@ -54,7 +54,6 @@
     <Param val="CONTINUOUS" valType="str" updates="None" name="mgMove" />
     <Param val="0.5" valType="num" updates="None" name="mgSaccade" />
     <Param val="neon.local" valType="str" updates="None" name="plCompanionAddress" />
-    <Param val="scene_camera.json" valType="file" updates="None" name="plCompanionCameraCalibration" />
     <Param val="8080" valType="num" updates="None" name="plCompanionPort" />
     <Param val="True" valType="bool" updates="None" name="plCompanionRecordingEnabled" />
     <Param val="0.6" valType="num" updates="None" name="plConfidenceThreshold" />
