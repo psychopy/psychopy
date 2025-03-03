@@ -662,6 +662,11 @@ def findFontFiles(folders=(), recursive=True):
             searchPaths = _OSXFontDirectories
         elif sys.platform.startswith('linux'):
             searchPaths = _X11FontDirectories
+    # make sure font paths is a list
+    if isinstance(searchPaths, tuple):
+        searchPaths = list(searchPaths)
+    # always look in the local directory
+    searchPaths.append(Path(".").absolute())
     # always look inside the app
     searchPaths.append(Path(prefs.paths['assets']) / "fonts")
     # always look in the user folder
