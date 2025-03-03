@@ -715,7 +715,8 @@ class MultiStairHandler(_BaseLoopHandler):
     def writeLoopStartCode(self, buff):
         # create a 'thisName' for use in "for thisTrial in trials:"
         makeLoopIndex = self.exp.namespace.makeLoopIndex
-        self.thisName = makeLoopIndex(self.params['name'].val)
+        makeLoopIndex(self.params['name'].val)
+        self.thisName = "condition"
         # create the MultistairHander
         code = ("\n# set up handler to look after randomisation of trials etc\n"
                 "conditions = data.importConditions(%(conditionsFile)s)\n"
