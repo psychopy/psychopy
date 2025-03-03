@@ -222,26 +222,17 @@ class MovieComponent(BaseVisualComponent):
         # get init values
         inits = getInitVals(self.params)
         inits['depth'] = -self.getPosInRoutine()
-        # create a clock
-        code = (
-            "%(name)sClock = new util.Clock();\n"
-        )
-        buff.writeIndented(code % inits)
+        # choose a movie attribute
+        if "youtube.com/watch" in str(inits['movie'].val):
+            inits['movieAttr'] = "youtubeUrl"
+        else:
+            inits['movieAttr'] = "movie"
         # create a movie stim
         code = (
+            "%(name)sClock = new util.Clock();\n"
             "%(name)s = new visual.MovieStim({\n"
             "  win: psychoJS.window,\n"
-        )
-        if "youtube.com/watch" in str(inits['movie'].val):
-            # if given a YouTube url, use it
-            code += (
-                "  youtubeUrl: %(movie)s,\n"
-            )
-        else:
-            code += (
-                "  movie: %(movie)s,\n"
-            )
-        code += (
+            "  %(movieAttr)s: %(movie)s,\n"
             "  name: '%(name)s',\n"
             "  units: %(units)s,\n"
             "  pos: %(pos)s,\n"
