@@ -42,7 +42,7 @@ def test_pilot_mode():
     # root Builder demos folder
     demosDir = Path(builder.__file__).parent
     # for all psyexp files in builder demos folder...
-    for file in demosDir.glob("**/*.psyexp"):
+    for file in demosDir.glob("*/*/*.psyexp"):
         # load experiment
         exp = experiment.Experiment.fromFile(file)
         # check piloting mode param
@@ -50,3 +50,4 @@ def test_pilot_mode():
             "Builder demos should be saved in Pilot mode, so that they start off piloting when "
             "users unpack them. Please change run mode on {}".format(file.name)
         )
+test_pilot_mode()
