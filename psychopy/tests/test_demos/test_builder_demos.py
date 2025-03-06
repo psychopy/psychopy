@@ -50,4 +50,3 @@ def test_pilot_mode():
             "Builder demos should be saved in Pilot mode, so that they start off piloting when "
             "users unpack them. Please change run mode on {}".format(file.name)
         )
-test_pilot_mode()
