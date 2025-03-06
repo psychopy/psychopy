@@ -1,3 +1,5 @@
+[tool.pdm]
+version = { source = "file", path = "psychopy/__init__.py" }
 
 [project]
 name = "psychopy"
@@ -25,7 +27,7 @@ classifiers = [
     ]
     
 dependencies = [
-    "numpy<2.0",  # use numpy<1.24 for psychopy<2023.1
+    "numpy",  # use numpy<1.24 for psychopy<2023.1
     "scipy",
     "matplotlib",
     "pyglet == 1.4.11; platform_system == \"Windows\"",
@@ -40,11 +42,10 @@ dependencies = [
     "soundfile",
     "imageio",
     "imageio-ffmpeg",
-    "psychtoolbox; platform_machine!='arm64'",
+    "psychtoolbox",
     # for iohub
     "pywinhook; platform_system == \"Windows\"",
     "gevent",
-    "MeshPy",
     "psutil",
     "pyzmq>=22.2.1",
     "ujson",
@@ -63,7 +64,8 @@ dependencies = [
     "requests",
     "future",  # only to support legacy versions in useVersion
     # supporting plugins
-    "setuptools==70.3.0",  # py2app issues https://github.com/ronaldoussoren/py2app/issues/531
+    "pypi-search>=1.2.1",
+    "setuptools<=66.1.1",
     # pavlovia connections
     "python-gitlab",
     "gitpython",
@@ -91,11 +93,9 @@ dependencies = [
     "pyobjc; platform_system == \"Darwin\"",
     "zeroconf; platform_system == \"Darwin\"",
     "python-xlib; platform_system == \"Linux\"",
-    "distro; platform_system == \"Linux\"",
-    'tables!=3.9.2',  # 3.9.2 crashes on Rosetta
-    "packaging>=24.0",
-    "moviepy",
-    "pyarrow"
+    'tables<3.9; python_version < "3.9"',
+    'tables; python_version >= "3.9"',
+    'blosc2<2.2.8; python_version < "3.9"',  # dependency of tables
 ]
 
 [project.optional-dependencies]  # This is optional dependencies
@@ -107,31 +107,27 @@ tests = [
     "flake8",
     "xmlschema",
 ]
-docs = [
-    "sphinx",
-    "sphinx-design",
-    "sphinx-copybutton",
-    "jinja2",
-]
 building = [
     "bdist-mpkg>=0.5.0; platform_system == \"Darwin\"",
     "py2app; platform_system == \"Darwin\"",
     "dmgbuild; platform_system == \"Darwin\"",
 ]
 suggested = [
-    "sounddevice",
     "pylsl>=1.16.1", # lab streaming layer for general connectivity
     "xlwt",  # writing excel files with pandas
     "h5py",  # to read hdf5 files for analysis
+    "google-api-python-client",
+    "pygaze>=1.1.2",
     "tobii_research",
     "badapted>=0.0.3",
-    "egi-pynetstation>=1.0.0",
+    "egi-pynetstation>=0.0.0rc1",
     "pyxid2>=1.0.5",
     "Phidget22",
 ]
 legacy = [
     "pyo>=1.0.3",
     "pyglfw",
+    "moviepy",
     "pygame",
 ]
 
@@ -147,9 +143,6 @@ requires = [
     "pdm-backend",
     "distro; platform_system == \"Linux\"",
     "tomlkit",
-    "packaging",
-    "six",  # for configobj
-    "polib", # for compiling translation files (*.po)
     ]
 build-backend = "pdm.backend"
 
@@ -157,10 +150,6 @@ build-backend = "pdm.backend"
 includes = []
 excludes = ["building/"]
 #source-includes = ["tests/"]
-
-[tool.pdm.version]
-source = "call"
-getter = "psychopy.__init__:getVersion"
 
 [tool.distutils.bdist_wheel]
 universal = 1
