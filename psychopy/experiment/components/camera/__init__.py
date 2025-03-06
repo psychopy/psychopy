@@ -518,28 +518,30 @@ class CameraComponent(BaseDeviceComponent):
 
     def writeFrameCodeJS(self, buff):
         # Start webcam at component start
-        self.writeStartTestCodeJS(buff)
-        code = (
-            "await %(name)s.record()\n"
-        )
-        buff.writeIndentedLines(code % self.params)
-        buff.setIndentLevel(-1, relative=True)
-        code = (
-            "};\n"
-        )
-        buff.writeIndentedLines(code)
+        indent = self.writeStartTestCodeJS(buff)
+        if indent:
+            code = (
+                "await %(name)s.record()\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            buff.setIndentLevel(-indent, relative=True)
+            code = (
+                "};\n"
+            )
+            buff.writeIndentedLines(code)
 
         # Stop webcam at component stop
-        self.writeStopTestCodeJS(buff)
-        code = (
-            "await %(name)s.stop()\n"
-        )
-        buff.writeIndentedLines(code % self.params)
-        buff.setIndentLevel(-1, relative=True)
-        code = (
-            "};\n"
-        )
-        buff.writeIndentedLines(code)
+        indent = self.writeStopTestCodeJS(buff)
+        if indent:
+            code = (
+                "await %(name)s.stop()\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            buff.setIndentLevel(-indent, relative=True)
+            code = (
+                "};\n"
+            )
+            buff.writeIndentedLines(code)
 
     def writeRoutineEndCode(self, buff):
         code = (
