@@ -28,4 +28,14 @@ if macVer:
         from psychopy import prefs
         if not prefs.app['locale']:
             prefs.app['locale'] = u'en_US'
-        locale.setlocale(locale.LC_ALL, str(prefs.app['locale']) + '.UTF-8')
+        
+        # set the requested locale
+        reqLocale = str(prefs.app['locale'])
+        reqLocale += '.UTF-8'
+        try:
+            locale.setlocale(locale.LC_ALL, reqLocale)
+        except locale.Error:
+            # locale not found, use en_US.UTF-8
+            locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
+            print('Warning: locale {} not found, using en_US.UTF-8'.format(
+                reqLocale))
