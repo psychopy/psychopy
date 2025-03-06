@@ -292,11 +292,18 @@ class VisualValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
         """
         # get starting indent level
         startIndent = buff.indentLevel
+        # choose attributes based on sync status
+        if "syncScreenRefresh" in stim.params and stim.params['syncScreenRefresh']:
+            startAttr = "tStartRefresh"
+            stopAttr = "tStopRefresh"
+        else:
+            startAttr = "tStart"
+            stopAttr = "tStop"
         # validate start time
         code = (
             "# validate {name} start time\n"
             "if {name}.status == STARTED and %(name)s.status == STARTED:\n"
-            "    %(name)s.tStart, %(name)s.tStartDelay = %(name)s.validate(state=True, t={name}.tStartRefresh)\n"
+            "    %(name)s.tStart, %(name)s.tStartDelay = %(name)s.validate(state=True, t={name}.{startAttr})\n"
             "    if %(name)s.tStart is not None:\n"
             "        %(name)s.status = FINISHED\n"
         )
@@ -306,13 +313,13 @@ class VisualValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             "        thisExp.addData('{name}.%(name)s.started', %(name)s.tStart)\n"
             "        thisExp.addData('%(name)s.startDelay', %(name)s.tStartDelay)\n"
             )
-        buff.writeIndentedLines(code.format(**stim.params) % self.params)
+        buff.writeIndentedLines(code.format(startAttr=startAttr, **stim.params) % self.params)
 
         # validate stop time
         code = (
             "# validate {name} stop time\n"
             "if {name}.status == FINISHED and %(name)s.status == STARTED:\n"
-            "    %(name)s.tStop, %(name)s.tStopDelay = %(name)s.validate(state=False, t={name}.tStopRefresh)\n"
+            "    %(name)s.tStop, %(name)s.tStopDelay = %(name)s.validate(state=False, t={name}.{stopAttr})\n"
             "    if %(name)s.tStop is not None:\n"
             "        %(name)s.status = FINISHED\n"
         )
@@ -322,7 +329,7 @@ class VisualValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             "        thisExp.addData('{name}.%(name)s.stopped', %(name)s.tStop)\n"
             "        thisExp.addData('{name}.%(name)s.stopDelay', %(name)s.tStopDelay)\n"
             )
-        buff.writeIndentedLines(code.format(**stim.params) % self.params)
+        buff.writeIndentedLines(code.format(stopAttr=stopAttr, **stim.params) % self.params)
 
         # return change in indent level
         return buff.indentLevel - startIndent

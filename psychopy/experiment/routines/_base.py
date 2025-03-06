@@ -721,8 +721,8 @@ class Routine(list):
         for event in self:
             if event.type == 'Static':
                 continue  # we'll do those later
-            event.writeFrameCode(buff)
             event.writeEachFrameValidationCode(buff)
+            event.writeFrameCode(buff)
         # update static component code last
         for event in self.getStatics():
             event.writeFrameCode(buff)

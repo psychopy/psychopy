@@ -631,7 +631,7 @@ class BaseComponent:
         if validator:
             # queue validation
             code = (
-                "# tell attached validator (%(name)s) to start looking for a start flag\n"
+                "# tell attached validator (%(name)s) to start looking for a stop flag\n"
                 "%(name)s.status = STARTED\n"
             )
             buff.writeIndentedLines(code % validator.params)
