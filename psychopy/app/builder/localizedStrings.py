@@ -6,14 +6,8 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """
-Discover all _localized strings from all Builder components, etc.
-
-Mainly used by validators.py -- need access to _translate()d field names.
+Collections of strings that do not appear explicitly in the source code but need to be localized.
 """
-import copy
-import os
-import glob
-from psychopy.localization import _localized as _localizedBase
 from psychopy.localization import _translate
 
 _localizedCategories = {
@@ -382,23 +376,10 @@ _localizedPreferences = {
     'From theme...': _translate('From theme...'),
 }
 
-_localized = copy.copy(_localizedBase)
-_localized.update(_localizedCategories)
-_localized.update(_localizedDialogs)
-_localized.update(_localizedPreferences)
-
-thisDir = os.path.dirname(os.path.abspath(__file__))
-modules = glob.glob(os.path.join(thisDir, 'components', '*.py'))
-components = [os.path.basename(m).replace('.py', '') for m in modules
-              if not m.endswith('patch.py')]
-
-for comp in components:
-    try:
-        exec('from psychopy.experiment.components.' + comp + ' import _localized as _loc')
-        _localized.update(_loc)  # noqa: F821  # exists through exec import
-    except ImportError:
-        pass
 
 if __name__ == '__main__':
-    for key, val in _localized.items():
-        print(key, val)
+    for collection in (_localizedCategories, 
+                       _localizedDialogs,
+                       _localizedPreferences):
+        for key, val in collection.items():
+            print(key, val)
