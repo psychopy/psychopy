@@ -10,7 +10,7 @@
 !define PRODUCT_STARTMENU_REGVAL "NSIS:StartMenuDir"
 
 !addplugindir "nsis_plugins\Plugins"
-!include "building\fileassoc.nsh"
+!include "fileassoc.nsh"
 ; !include "Library.nsh"  ; for installing avbin
 !include LogicLib.nsh
 
