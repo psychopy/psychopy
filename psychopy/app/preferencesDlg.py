@@ -121,7 +121,7 @@ class PrefPropGrid(wx.Panel):
                                     list(sections))
         self.pageNames[name] = self.pageIdx
         self.lstPrefPages.InsertItem(
-            self.lstPrefPages.GetItemCount(), label, self.pageIdx)
+            self.lstPrefPages.GetItemCount(), _translate(label), self.pageIdx)
 
         self.pageIdx += 1
 
@@ -243,7 +243,7 @@ class PrefPropGrid(wx.Panel):
             pagePtr.Clear()
 
             for s in sections:
-                _ = pagePtr.Append(pg.PropertyCategory(s, s))
+                _ = pagePtr.Append(pg.PropertyCategory(_translate(s), s))
                 for name, prop in self.sections[s].items():
                     if name in prefs.legacy:
                         # If this is included in the config file only for legacy, don't show it
@@ -473,7 +473,7 @@ class PreferencesDlg(wx.Dialog):
                         thisPref = thisPref.replace('Ctrl+', 'Cmd+')
 
                 # can we translate this pref?
-                pLabel = prefName
+                pLabel = _translate(prefName)
 
                 # get tooltips from comment lines from the spec, as parsed by
                 # configobj
@@ -585,7 +585,7 @@ class PreferencesDlg(wx.Dialog):
 
                     labels = []  # display only
                     for opt in options:
-                        labels.append(opt)
+                        labels.append(_translate(opt))
 
                     self.proPrefs.addEnumItem(
                             sectionName,
@@ -676,8 +676,8 @@ class PreferencesDlg(wx.Dialog):
                             newVal = eval(thisPref)
                     except Exception:
                         # if eval() failed, show warning dialog and return
-                        pLabel = prefName
-                        sLabel = sectionName
+                        pLabel = _translate(prefName)
+                        sLabel = _translate(sectionName)
                         txt = _translate(
                             'Invalid value in "%(pref)s" ("%(section)s" Tab)')
                         msg = txt % {'pref': pLabel, 'section': sLabel}
