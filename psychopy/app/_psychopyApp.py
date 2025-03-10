@@ -459,6 +459,21 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         # on a mac, don't exit when the last frame is deleted, just show menu
         if sys.platform == 'darwin':
             self.menuFrame = MenuFrame(parent=None, app=self)
+        
+        # get starting windows
+        if startView in (None, []):
+            # if no window specified, use default from prefs
+            if self.prefs.app['defaultView'] == 'all':
+                startView = ["builder", "coder", "runner"]
+            elif self.prefs.app['defaultView'] == "last":
+                if self.prefs.appData['lastFrame'] == "both" or not self.prefs.appData['lastFrame']:
+                    self.prefs.appData['lastFrame'] = "builder-coder-runner"
+                startView = self.prefs.appData['lastFrame'].split("-")
+            elif self.prefs.app['defaultView'] in ["builder", "coder", "runner"]:
+                startView = self.prefs.app['defaultView']
+
+        if not startView:  # if we still don't have a startView then load Builder
+            startView = ["builder"]
 
         # load fonts
         if splash:
@@ -514,6 +529,29 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             splash.SetText(_translate("Loading plugins..."))
         from psychopy.plugins import activatePlugins
         activatePlugins()
+
+        # show frames
+        if splash:
+            splash.SetText(_translate("Creating frames..."))
+        
+        # if specified as a single string, convert to list
+        if isinstance(startView, str):
+            startView = [startView]
+        # if last open frame was no frame, use all instead
+        if not startView:
+            startView = ["builder", "coder", "runner"]
+        # create windows
+        if "runner" in startView:
+            self.showRunner()
+        if "coder" in startView:
+            self.showCoder()
+        if "builder" in startView:
+            self.showBuilder()
+        # # if told to directly run stuff, do it now
+        # if "direct" in startView:
+        #     self.showRunner()
+        #     for exp in [file for file in sys.argv if file.endswith('.psyexp') or file.endswith('.py')]:
+        #         self.runner.panel.runFile(exp)
         
         # load starting files
         if splash:
@@ -544,7 +582,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                 continue
             try:
                 # choose frame based on extension
-                if thisFile.suffix == ".psyexp":
+                if "builder" in startView and thisFile.suffix == ".psyexp":
                     # open .psyexp in Builder
                     builder = self.showBuilder()
                     if builder.fileExists:
@@ -553,11 +591,11 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                     else:
                         # otherwise, open in current
                         builder.fileOpen(filename=thisFile)
-                elif thisFile.suffix == ".psyrun":
+                elif "runner" in startView and thisFile.suffix == ".psyrun":
                     # open .psyrun in Runner
                     runner = self.showRunner()
                     runner.fileOpen(filename=str(thisFile))
-                else:
+                elif "coder" in startView and thisFile.suffix not in (".psyexp", ".psyrun"):
                     # open anything else in Coder
                     coder = self.showCoder()
                     coder.fileOpen(filename=str(thisFile))
@@ -565,43 +603,6 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                 logging.error(_translate(
                     "Failed to open file {}, reason: {}"
                 ).format(thisFile, err))
-        
-        # show frames
-        if splash:
-            splash.SetText(_translate("Creating frames..."))
-        # get starting windows
-        if startView in (None, []):
-            # if no window specified, use default from prefs
-            if self.prefs.app['defaultView'] == 'all':
-                startView = ["builder", "coder", "runner"]
-            elif self.prefs.app['defaultView'] == "last":
-                if self.prefs.appData['lastFrame'] == "both" or not self.prefs.appData['lastFrame']:
-                    self.prefs.appData['lastFrame'] = "builder-coder-runner"
-                startView = self.prefs.appData['lastFrame'].split("-")
-            elif self.prefs.app['defaultView'] in ["builder", "coder", "runner"]:
-                startView = self.prefs.app['defaultView']
-
-        if not startView:  # if we still don't have a startView then load Builder
-            startView = ["builder"]
-        
-        # if specified as a single string, convert to list
-        if isinstance(startView, str):
-            startView = [startView]
-        # if last open frame was no frame, use all instead
-        if not startView:
-            startView = ["builder", "coder", "runner"]
-        # create windows
-        if "runner" in startView:
-            self.showRunner()
-        if "coder" in startView:
-            self.showCoder()
-        if "builder" in startView:
-            self.showBuilder()
-        # # if told to directly run stuff, do it now
-        # if "direct" in startView:
-        #     self.showRunner()
-        #     for exp in [file for file in sys.argv if file.endswith('.psyexp') or file.endswith('.py')]:
-        #         self.runner.panel.runFile(exp)
 
         # if we started a busy cursor which never finished, finish it now
         if wx.IsBusy():
