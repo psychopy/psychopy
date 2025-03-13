@@ -121,7 +121,7 @@ class PrefPropGrid(wx.Panel):
                                     list(sections))
         self.pageNames[name] = self.pageIdx
         self.lstPrefPages.InsertItem(
-            self.lstPrefPages.GetItemCount(), _translate(label), self.pageIdx)
+            self.lstPrefPages.GetItemCount(), label, self.pageIdx)
 
         self.pageIdx += 1
 
