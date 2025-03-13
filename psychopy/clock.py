@@ -497,6 +497,9 @@ class StaticPeriod:
         wait(timeRemaining)
 
         return 1
+    
+    def getDuration(self):
+        return self.countdown._countdown_duration
 
 
 def _dispatchWindowEvents():

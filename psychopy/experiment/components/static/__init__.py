@@ -180,7 +180,10 @@ class StaticComponent(BaseComponent):
         buff.writeIndented("# *%s* period\n" % (self.params['name']))
         needsUnindent = BaseComponent.writeStartTestCode(self, buff)
         if needsUnindent:
-            if self.params['stopType'].val == 'time (s)':
+            if self.params['stopVal'] in ("", "-1", "None", None):
+                # if duration is infinite, set it to extremely long and warn the user
+                durationSecsStr = "FOREVER"
+            elif self.params['stopType'].val == 'time (s)':
                 durationSecsStr = "%(stopVal)s-t" % (self.params)
             elif self.params['stopType'].val == 'duration (s)':
                 durationSecsStr = "%(stopVal)s" % (self.params)
@@ -217,27 +220,15 @@ class StaticComponent(BaseComponent):
         buff.writeIndented(code % self.params)
         buff.setIndentLevel(+1, relative=True)  # entered an if statement
         self.writeParamUpdates(buff)
-        code = "%(name)s.complete()  # finish the static period\n"
-        buff.writeIndented(code % self.params)
-        # Calculate stop time
-        if self.params['stopType'].val == 'time (s)':
-            code = "%(name)s.tStop = %(stopVal)s  # record stop time\n"
-        elif self.params['stopType'].val == 'duration (s)':
-            code = "%(name)s.tStop = %(name)s.tStart + %(stopVal)s  # record stop time\n"
-        elif self.params['stopType'].val == 'duration (frames)':
-            code = "%(name)s.tStop = %(name)s.tStart + %(stopVal)s*frameDur  # record stop time\n"
-        elif self.params['stopType'].val == 'frame N':
-            code = "%(name)s.tStop = %(stopVal)s*frameDur  # record stop time\n"
-        else:
-            msg = ("Couldn't deduce end point for startType=%(startType)s, "
-                   "stopType=%(stopType)s")
-            raise Exception(msg % self.params)
-        # Store stop time
-        buff.writeIndented(code % self.params)
+        # finish
+        code = (
+            "# finish the static period and store its duration\n"
+            "%(name)s.complete()\n"
+            "%(name)s.tStop = %(name)s.tStart + %(name)s.getDuration()\n"
+        )
+        buff.writeIndentedLines(code % self.params)
         # to get out of the if statement
         buff.setIndentLevel(-1, relative=True)
-
-        # pass  # the clock.StaticPeriod class handles its own stopping
 
     def writeParamUpdates(self, buff, updateType=None, paramNames=None, target="PsychoPy"):
         """Write updates. Unlike most components, which us this method
