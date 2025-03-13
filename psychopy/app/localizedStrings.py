@@ -226,9 +226,10 @@ _localizedPreferences = {
     'builder': "Builder",  # not localized
     'coder': "Coder",  # not localized
     'runner': "Runner",  # not localized
-    'hardware': _translate('Hardware'),
-    'connections': _translate('Connections'), # not 'connections'
-    'keyBindings': _translate('Key Bindings'), # not 'keyBindings'
+    'piloting': _translate("piloting"), 
+    'keyBindings': _translate('keyBindings'),
+    'hardware': _translate('hardware'),
+    'connections': _translate('connections'),
     # pref labels in General section
     'winType': _translate("window type"),
     'units': _translate("units"),
