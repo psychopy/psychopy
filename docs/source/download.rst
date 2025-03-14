@@ -6,8 +6,6 @@ Installation
 Download
 -----------
 
-For the easiest installation download and install the Standalone package.
-
 .. tab-set::
 
     .. tab-item:: Windows
@@ -46,16 +44,44 @@ For the easiest installation download and install the Standalone package.
 
     .. tab-item:: Linux
 
-        The following will install PsychoPy into 
+      Install curl with your package manager. On most distros, curl is already installed.
+
+      1. **Download the script:**
+
+          .. code-block:: bash
+            
+            curl -LOs https://github.com/wieluk/psychopy_linux_installer/releases/latest/download/psychopy_linux_installer
+      
+      2. **Make it executable:**
+
+          .. code-block:: bash
+            
+            chmod +x psychopy_linux_installer
+      
+      3. **Run the installer:**
+
+          - **GUI Mode**:
+
+            .. code-block:: bash
+              
+              ./psychopy_linux_installer --gui
+            
+            *Note:* `curl` and `zenity` are required for GUI mode.
+
+          - **Command-Line Mode**:
+
+            .. code-block:: bash
+              
+              ./psychopy_linux_installer
+      
+      For a list of available arguments, run:
 
         .. code-block:: bash
-
-            # create a virtual environment and activate it
-            python3.10 -m venv ~/.psychopy_py310  
-            source ~/.psychopy_py310/bin/activate  
             
-            # fetch and run install script
-            python -c "$(curl -fsSL https://raw.githubusercontent.com/psychopy/psychopy/dev/installPsychoPy.py)"
+            ./psychopy_linux_installer --help
+      
+      For more detailed information or to report bugs, please visit the 
+      `psychopy_linux_installer GitHub page <https://github.com/wieluk/psychopy_linux_installer>`_.
 
 .. raw:: html
 
