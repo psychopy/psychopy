@@ -479,32 +479,33 @@ def uninstallPackage(package):
       requested if the package already exists.
 
     """
-    if _isUserPackage(package):  # delete 'manually' if in package dir
-        return (_uninstallUserPackage(package),
-                {"cmd": '', "stdout": '', "stderr": ''})
-    else:  # use the following if in the main package dir
-        # construct the pip command and execute as a subprocess
-        cmd = [sys.executable, "-m", "pip", "uninstall", package, "--yes",
-               '--no-input', '--no-color']
+    # if _isUserPackage(package):  # delete 'manually' if in package dir
+    #     return (_uninstallUserPackage(package),
+    #             {"cmd": '', "stdout": '', "stderr": ''})
+    # else:  # use the following if in the main package dir
+    
+    # construct the pip command and execute as a subprocess
+    cmd = [sys.executable, "-m", "pip", "uninstall", package, "--yes",
+            '--no-input', '--no-color']
 
-        # setup the environment to use the user's site-packages
-        env = os.environ.copy()
+    # setup the environment to use the user's site-packages
+    env = os.environ.copy()
 
-        # run command in subprocess
-        output = sp.Popen(
-            cmd,
-            stdout=sp.PIPE,
-            stderr=sp.PIPE,
-            shell=False,
-            env=env,
-            universal_newlines=True)
-        stdout, stderr = output.communicate()  # blocks until process exits
+    # run command in subprocess
+    output = sp.Popen(
+        cmd,
+        stdout=sp.PIPE,
+        stderr=sp.PIPE,
+        shell=False,
+        env=env,
+        universal_newlines=True)
+    stdout, stderr = output.communicate()  # blocks until process exits
 
-        sys.stdout.write(stdout)
-        sys.stderr.write(stderr)
+    sys.stdout.write(stdout)
+    sys.stderr.write(stderr)
 
-        # if any error, return code should be False
-        retcode = bool(stderr)
+    # if any error, return code should be False
+    retcode = bool(stderr)
 
     # Return the return code and a dict of information from the console
     return retcode, {"cmd": cmd, "stdout": stdout, "stderr": stderr}
