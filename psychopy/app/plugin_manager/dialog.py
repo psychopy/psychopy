@@ -179,23 +179,6 @@ class EnvironmentManagerDlg(wx.Dialog):
         # tab to output
         self.output.open()
 
-        if pkgtools._isUserPackage(packageName):
-            msg = 'Uninstalling package bundle for `{}` ...'.format(
-                packageName)
-            self.output.writeStdOut(msg)
-
-            success = pkgtools._uninstallUserPackage(packageName)
-            if success:
-                msg = 'Successfully removed package `{}`.'.format(
-                    packageName)
-            else:
-                msg = ('Failed to remove package `{}`, check log for '
-                       'details.').format(packageName)
-
-            self.output.writeStdOut(msg)
-
-            return
-
         # interpreter path
         pyExec = sys.executable
         env = os.environ.copy()
