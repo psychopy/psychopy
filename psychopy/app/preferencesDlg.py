@@ -12,11 +12,11 @@ import re
 import os
 
 from psychopy.app.themes import icons
+from psychopy.hardware.speaker import SpeakerDevice
 from . import dialogs
 from psychopy import localization, prefs
 from psychopy.localization import _translate
 from packaging.version import Version
-from psychopy import sound
 from psychopy.app.utils import getSystemFonts
 import collections
 
@@ -429,7 +429,7 @@ class PreferencesDlg(wx.Dialog):
 
         # get sound devices for "audioDevice" property
         try:
-            devnames = sorted(sound.getDevices('output'))
+            devnames = [profile['deviceName'] for profile in SpeakerDevice.getAvailableDevices()]
             # prefs need to have a default value, but we need an actual device - so remove it from 
             # the dialog
             if 'default' in devnames:
