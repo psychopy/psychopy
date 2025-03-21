@@ -187,8 +187,8 @@ class _SoundBase(AttributeGetSetMixin):
                 valid_endings = ['', '.wav', '.mp3', '.flac', '.ogg']
                 for pre, suf in itertools.product(valid_paths, valid_endings):
                     media_filepath = path.join(pre, value)
-                    if path.isfile(media_filepath + valid_endings):
-                        self.fileName = media_filepath + valid_endings
+                    if path.isfile(media_filepath + suf):
+                        self.fileName = media_filepath + suf
                         break
 
                 if self.fileName is None:
