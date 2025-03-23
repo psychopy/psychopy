@@ -657,6 +657,9 @@ class ParamNotebook(wx.Notebook, handlers.ThemeMixin):
              "false": "Disable",  # permitted: hide, show, enable, disable
             }"""
             isChanged = False
+            # This list will be used to delay the populate actions on the
+            # dependent params
+            populateCtrls = []
             for thisDep in self.parent.element.depends:
                 if not (
                         thisDep['param'] in list(self.ctrls) + ['start', 'stop']
@@ -691,9 +694,10 @@ class ParamNotebook(wx.Notebook, handlers.ThemeMixin):
                     # only repopulate if dependency ctrl has changed
                     dependencyParam = self.parent.element.params[thisDep['dependsOn']]
                     if dependencyParam.val != dependencyCtrls.getValue():
-                        dependencyParam.val = dependencyCtrls.getValue()
-                        if hasattr(dependentCtrls.valueCtrl, "populate"):
-                            dependentCtrls.valueCtrl.populate()
+                        # Delay the populate action
+                        populateCtrls.append(
+                            [dependencyParam, dependencyCtrls, dependentCtrls]
+                        )
                 else:
                     # if action is "enable" then do ctrl.Enable() etc
                     for ctrlName in ['valueCtrl', 'nameCtrl', 'updatesCtrl']:
@@ -702,6 +706,11 @@ class ParamNotebook(wx.Notebook, handlers.ThemeMixin):
                             evalStr = ("dependentCtrls.{}.{}()"
                                        .format(ctrlName, action.title()))
                             eval(evalStr)
+            # Execute the populate actions
+            for elem in populateCtrls:
+                elem[0].val = elem[1].getValue()
+                if hasattr(elem[2].valueCtrl, "populate"):
+                    elem[2].valueCtrl.populate()
             # Update sizer
             if isChanged:
                 self.sizer.SetEmptyCellSize((0, 0))
