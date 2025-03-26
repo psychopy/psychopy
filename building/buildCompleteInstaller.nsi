@@ -216,7 +216,7 @@ Section Uninstall
   ; !insertmacro UNINST_DELETE "$INSTDIR" "${UninstName}"
   ;Delete "$INSTDIR\${PRODUCT_NAME}.url"
   ;Delete "$INSTDIR\uninst.exe"
-  RMDir /r "$INSTDIR"
+  RMDir "$INSTDIR"
   ; NB we don't uninstall avbin - it might be used by another python installation
 
   ;shortcuts
