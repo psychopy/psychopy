@@ -3,10 +3,14 @@
 # building the installer. The output is written to the file specified by the
 # environment variable NSIS_UNINSTALL_INCLUDE.
 
+import sys
 import os
+from pathlib import Path
 
-os.environ['NSIS_INSTDIR'] = 'C:\\Program Files\\PsychoPy'
-NSIS_INSTDIR = os.getenv('NSIS_INSTDIR', '.')
+thisFolder = Path(__file__).parent
+
+# os.environ['NSIS_INSTDIR'] = 'C:\\Program Files\\PsychoPy'
+NSIS_INSTDIR = os.getenv('NSIS_INSTDIR', thisFolder)
 NSIS_UNINSTALL_INCLUDE = os.getenv(
     'NSIS_UNINSTALL_INCLUDE', 'uninstallFiles.nsi')
 
@@ -14,7 +18,7 @@ NSIS_UNINSTALL_INCLUDE = os.getenv(
 # uninstaller section of the NSIS. The output is written to the file
 # specified by the environment variable `NSIS_UNINSTALL_INCLUDE`
 
-print('Building file manifest for uninstaller ...')
+print('Building file manifest for uninstaller...')
 
 # get top-level files and folders
 topLevelFiles = []
@@ -24,8 +28,8 @@ for root, dirs, files in os.walk(NSIS_INSTDIR):
     for dir in dirs:
         topLevelFiles.append(os.path.join(root, dir))
 
-print(f'Found {len(topLevelFiles)} files and folders in {NSIS_INSTDIR} to '
-      f'include in uninstaller routine')
+print(f'Found {len(topLevelFiles)} files and folders in "{NSIS_INSTDIR}" to '
+      f'include in uninstaller')
 
 # write out each file to the uninstaller include file
 with open(NSIS_UNINSTALL_INCLUDE, 'w') as f:
@@ -35,3 +39,4 @@ with open(NSIS_UNINSTALL_INCLUDE, 'w') as f:
         f.write(f'Delete "$INSTDIR\\{item[len(NSIS_INSTDIR) + 1:]}"\n')
     f.write('\n')
 
+print(f'Uninstaller include file written to "{NSIS_UNINSTALL_INCLUDE}"')
