@@ -35,7 +35,7 @@ for item in Path(NSIS_SOURCE_ROOT).iterdir():
     if item.is_file():
         topLevelFiles.append(item.relative_to(NSIS_SOURCE_ROOT))
     elif item.is_dir():
-        topLevelFolders.append(item.relative_to(NSIS_SOURCE_ROOT)))
+        topLevelFolders.append(item.relative_to(NSIS_SOURCE_ROOT))
 
 print(f'Found {len(topLevelFiles)} files and {len(topLevelFolders)} folders in '
       f'installation directory to mark for deletion during uninstall')
