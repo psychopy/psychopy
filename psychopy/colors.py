@@ -383,6 +383,8 @@ class Color:
             return self._renderCache[space]
         # Transform contrast to match rgb
         contrast = self.contrast
+        if contrast is None:
+            contrast = 1
         contrast = np.reshape(contrast, (-1, 1))
         contrast = np.hstack((contrast, contrast, contrast))
         # Multiply
