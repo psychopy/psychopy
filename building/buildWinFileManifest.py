@@ -2,17 +2,23 @@
 # uninstaller section of the NSIS script. This script should be run prior to 
 # building the installer. The output is written to 'uninstallFiles.nsi' or the 
 # file specified by the environment variable NSIS_UNINSTALL_INCLUDE.
-#
-# Before running set the environment variable NSIS_SOURCE_ROOT to the root of 
-# files to search
+# 
+# usage: python buildWinFileManifest.py [root]
 
 import os
 from pathlib import Path
+import argparse
 
 thisFolder = Path(__file__).parent
 
-# os.environ['NSIS_INSTDIR'] = 'C:\\Program Files\\PsychoPy'
-NSIS_SOURCE_ROOT = os.getenv('NSIS_SOURCE_ROOT', thisFolder)
+# parse args for input folder as NSIS_SOURCE_ROOT
+parser = argparse.ArgumentParser()
+parser.add_argument('root', help='Folder to search for files to include in uninstaller')
+args = parser.parse_args()
+NSIS_SOURCE_ROOT = args.root
+if not os.path.isdir(NSIS_SOURCE_ROOT):
+    NSIS_SOURCE_ROOT = os.getenv('NSIS_SOURCE_ROOT', thisFolder)
+
 NSIS_UNINSTALL_INCLUDE = os.getenv(
     'NSIS_UNINSTALL_INCLUDE', 'uninstallFiles.nsi')
 
@@ -25,11 +31,11 @@ print('Building include file for uninstall routine...')
 # get top-level files and folders only, not recursive
 topLevelFiles = []
 topLevelFolders = []
-for root, dirs, files in os.walk(NSIS_SOURCE_ROOT):
-    for name in files:
-        topLevelFiles.append(os.path.join(root, name))
-    for name in dirs:
-        topLevelFolders.append(os.path.join(root, name))
+for item in Path(NSIS_SOURCE_ROOT).iterdir():
+    if item.is_file():
+        topLevelFiles.append(item)
+    elif item.is_dir():
+        topLevelFolders.append(item)
 
 print(f'Found {len(topLevelFiles)} files and {len(topLevelFolders)} folders in '
       f'installation directory to mark for deletion during uninstall')
