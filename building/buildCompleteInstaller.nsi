@@ -24,7 +24,6 @@
 !endif
 !include MultiUser.nsh
 !include MUI2.nsh
-;!include "UnInst.nsh"
 
 ; MULTIUSER Settings
 ; !define MULTIUSER_INSTALLMODE_INSTDIR_REGISTRY_KEY 
@@ -205,19 +204,12 @@ SectionEnd
 Section Uninstall
   !insertmacro MUI_STARTMENU_GETFOLDER "Application" $ICONS_GROUP
 
-  ;Require confirmation to delete every other file except installed (optimal)
-  ;!define UNINST_INTERACTIVE
- 
-  ;Terminate uninstaller if the .dat file does not exist (optimal)
-  ;!define UNINST_TERMINATE
-
   ;Delete files listed in the uninstaller data
   !include "uninstallFiles.nsi"
-  ; !insertmacro UNINST_DELETE "$INSTDIR" "${UninstName}"
-  ;Delete "$INSTDIR\${PRODUCT_NAME}.url"
-  ;Delete "$INSTDIR\uninst.exe"
+  ;Also the extra files we had inserted 
+  Delete "$INSTDIR\${PRODUCT_NAME}.url"
+  Delete "$INSTDIR\uninst.exe"
   RMDir "$INSTDIR"
-  ; NB we don't uninstall avbin - it might be used by another python installation
 
   ;shortcuts
   Delete "$SMPROGRAMS\$ICONS_GROUP\Uninstall.lnk"
