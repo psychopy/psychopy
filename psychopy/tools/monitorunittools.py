@@ -91,6 +91,10 @@ def convertToPix(vertices, pos, units, win):
     self.pos is that some stimuli use other terms (e.g. ElementArrayStim
     uses fieldPos).
     """
+    # ensure values are arrays
+    pos = np.asarray(pos)
+    vertices = np.asarray(vertices)
+
     unit2pixFunc = _unit2PixMappings.get(units)
     if unit2pixFunc:
         return unit2pixFunc(vertices, pos, win)
