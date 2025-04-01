@@ -8,92 +8,89 @@ Download
 
 .. tab-set::
 
-  .. tab-item:: Stable
+  .. tab-item:: Windows
 
-    Tried and tested, this is the release that's been out in the wild for a bit and has already had any post-release bug fixes it needed. The best option for an install that "just works".
+    .. grid:: 2 2 2 2
 
-    .. button-link:: https://github.com/psychopy/psychopy/releases/download/2024.2.4/StandalonePsychoPy-2024.2.4-win64-3.10.exe
-      :color: primary
+      .. grid-item-card::  Stable
 
-      Windows: PsychoPy 2024.2.4 (py3.10)
-    
-    .. button-link:: https://github.com/psychopy/psychopy/releases/download/2024.2.4/StandalonePsychoPy-2024.2.4-macOS-3.10.dmg
-      :color: primary
+        Tried and tested, this is the release that's been out in the wild for a bit and has already had any post-release bug fixes it needed. The best option for an install that "just works".
 
-      MacOS: PsychoPy 2024.2.4 (py3.10)
-    
-    .. dropdown:: Installing on Linux
+        .. button-link:: https://github.com/psychopy/psychopy/releases/download/2024.2.4/StandalonePsychoPy-2024.2.4-win64-3.10.exe
+          :color: primary
 
-      Install curl with your package manager. On most distros, curl is already installed.
+          PsychoPy 2024.2.4 (py3.10)
+        
+        .. dropdown:: Compatability+ version (py3.8)
 
-      1. **Download the script:**
+          The *Compatibility+* versions are for users who need to run older scripts that are not compatible with the newer versions of Python (PsychoPy has supported Python 3.10 since 2022.2.0).
 
-        .. code-block:: bash
-            
-          curl -LOs https://github.com/wieluk/psychopy_linux_installer/releases/latest/download/psychopy_linux_installer
-      
-      2. **Make it executable:**
+          .. button-link:: https://github.com/psychopy/psychopy/releases/download/2024.2.4/StandalonePsychoPy-2024.2.4-win64-3.8.exe
+            :color: primary
 
-        .. code-block:: bash
-            
-          chmod +x psychopy_linux_installer
-      
-      3. **Run the installer:**
+            PsychoPy 2024.2.4 compatibility+ (py3.8)
 
-        - **GUI Mode**:
+      .. grid-item-card::  Beta
 
-          .. code-block:: bash
-              
-            ./psychopy_linux_installer --gui
-            
-          *Note:* `curl` and `zenity` are required for GUI mode.
+        Hot off the presses, this is the latest release with all the newest features. If you're fine with a few bugs so long as you get the cutting edge features as soon as they're ready, this is the install for you.
 
-        - **Command-Line Mode**:
+        .. button-link:: https://github.com/psychopy/psychopy/releases/download/2025.1.0/StandalonePsychoPy-2025.1.0-win64-3.10.exe
+          :color: primary
 
-          .. code-block:: bash
-              
-            ./psychopy_linux_installer
-      
-      For a list of available arguments, run:
+          PsychoPy 2025.1.0beta (py3.10)
+        
+        .. dropdown:: Compatability+ version (py3.8)
 
-        .. code-block:: bash
-            
-          ./psychopy_linux_installer --help
-      
-      For more detailed information or to report bugs, please visit the 
-      `psychopy_linux_installer GitHub page <https://github.com/wieluk/psychopy_linux_installer>`_.
+          The *Compatibility+* versions are for users who need to run older scripts that are not compatible with the newer versions of Python (PsychoPy has supported Python 3.10 since 2022.2.0).
 
-    .. dropdown:: Compatability+ versions (py3.8)
+          .. button-link:: https://github.com/psychopy/psychopy/releases/download/2025.1.0/StandalonePsychoPy-2025.1.0-win64-3.8.exe
+            :color: primary
 
-      The *Compatibility+* versions are for users who need to run older scripts that are not compatible with the newer versions of Python (PsychoPy has supported Python 3.10 since 2022.2.0).
+            PsychoPy 2025.1.0 compatibility+ (py3.8)
 
-      .. button-link:: https://github.com/psychopy/psychopy/releases/download/2024.2.4/StandalonePsychoPy-2024.2.4-win64-3.8.exe
-        :color: primary
+  .. tab-item:: MacOS
 
-        Windows: PsychoPy 2024.2.4 compatibility+ (py3.8)
-      
-      .. button-link:: https://github.com/psychopy/psychopy/releases/download/2024.2.4/StandalonePsychoPy-2024.2.4-macOS-3.8.dmg
-        :color: primary
+    .. grid:: 2 2 2 2
 
-        MacOS: PsychoPy 2024.2.4 compatibility+ (py3.8)
-  
-  .. tab-item:: Beta
+      .. grid-item-card::  Stable
 
-    Hot off the presses, this is the latest release with all the newest features. If you're fine with a few bugs so long as you get the cutting edge features as soon as they're ready, this is the install for you.
+        Tried and tested, this is the release that's been out in the wild for a bit and has already had any post-release bug fixes it needed. The best option for an install that "just works".
 
-    .. button-link:: https://github.com/psychopy/psychopy/releases/download/2025.1.0/StandalonePsychoPy-2025.1.0-win64-3.10.exe
-      :color: primary
+        .. button-link:: https://github.com/psychopy/psychopy/releases/download/2024.2.4/StandalonePsychoPy-2024.2.4-macOS-3.10.dmg
+          :color: primary
 
-      Windows: PsychoPy 2025.1.0beta (py3.10)
-    
-    .. button-link:: https://github.com/psychopy/psychopy/releases/download/2025.1.0/StandalonePsychoPy-2025.1.0-macOS-3.10.dmg
-      :color: primary
+          PsychoPy 2024.2.4 (py3.10)
+        
+        .. dropdown:: Compatability+ version (py3.8)
 
-      MacOS: PsychoPy 2025.1.0beta (py3.10)
-    
-    .. dropdown:: Installing on Linux
+          The *Compatibility+* versions are for users who need to run older scripts that are not compatible with the newer versions of Python (PsychoPy has supported Python 3.10 since 2022.2.0).
 
-      Install curl with your package manager. On most distros, curl is already installed.
+          .. button-link:: https://github.com/psychopy/psychopy/releases/download/2024.2.4/StandalonePsychoPy-2024.2.4-macOS-3.10.dmg
+            :color: primary
+
+            PsychoPy 2024.2.4 compatibility+ (py3.8)
+
+      .. grid-item-card::  Beta
+
+        Hot off the presses, this is the latest release with all the newest features. If you're fine with a few bugs so long as you get the cutting edge features as soon as they're ready, this is the install for you.
+
+        .. button-link:: https://github.com/psychopy/psychopy/releases/download/2025.1.0/StandalonePsychoPy-2025.1.0-macOS-3.10.dmg
+          :color: primary
+
+          PsychoPy 2025.1.0beta (py3.10)
+        
+        .. dropdown:: Compatability+ version (py3.8)
+
+          The *Compatibility+* versions are for users who need to run older scripts that are not compatible with the newer versions of Python (PsychoPy has supported Python 3.10 since 2022.2.0).
+
+          .. button-link:: https://github.com/psychopy/psychopy/releases/download/2025.1.0/StandalonePsychoPy-2025.1.0-macOS-3.10.dmg
+            :color: primary
+
+            PsychoPy 2025.1.0 compatibility+ (py3.8)
+
+  .. tab-item:: Linux
+
+    Install curl with your package manager. On most distros, curl is already installed.
 
       1. **Download the script:**
 
@@ -131,21 +128,6 @@ Download
       
       For more detailed information or to report bugs, please visit the 
       `psychopy_linux_installer GitHub page <https://github.com/wieluk/psychopy_linux_installer>`_.
-    
-    .. dropdown:: Compatability+ versions (py3.8)
-
-      The *Compatibility+* versions are for users who need to run older scripts that are not compatible with the newer versions of Python (PsychoPy has supported Python 3.10 since 2022.2.0).
-
-      .. button-link:: https://github.com/psychopy/psychopy/releases/download/2025.1.0/StandalonePsychoPy-2025.1.0-win64-3.8.exe
-        :color: primary
-
-        Windows: PsychoPy 2025.1.0beta compatibility+ (py3.8)
-      
-      .. button-link:: https://github.com/psychopy/psychopy/releases/download/2025.1.0/StandalonePsychoPy-2025.1.0-macOS-3.8.dmg
-        :color: primary
-
-        MacOS: PsychoPy 2025.1.0beta compatibility+ (py3.8)
-
 
 .. raw:: html
 
