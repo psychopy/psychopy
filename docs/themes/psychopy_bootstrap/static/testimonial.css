@@ -14,7 +14,8 @@ body {
   text-align:center;
   
 }
-h2,h1 {
+#testimonials h2,
+#testimonials h1 {
   margin:0;
   padding-top:30px;
 }
