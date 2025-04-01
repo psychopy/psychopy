@@ -205,7 +205,7 @@ h3::before {
   flex-wrap: wrap;
   width: 100%;
   justify-content: center;
-  align-items: center;
+  align-items: start;
 }
 
 .column-collapse { /* will convert to row for <768 */
