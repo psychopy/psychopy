@@ -29,8 +29,6 @@
     --f3: "Indie Flower"
     --gradient: linear-gradient(#4582ec 0%, #fff 100%);
     --theme-color: #66666E;
-
-    font-size: 16px;
 }
 
 body {
@@ -232,11 +230,6 @@ blockquote {
 .tagline-buttons{
     font-size: 2em;
     font-weight: bold
-}
-
-.sd-tab-content {
-    padding-left: .75rem;
-    padding-right: .75rem;
 }
 
 /* @media (min-width: 992px) {
