@@ -156,6 +156,11 @@ pre {
     font-family: var(--mono)
 }
 
+.sd-btn {
+    padding: 1rem;
+    border-radius: .75rem;
+}
+
 h1, .h1 {
     font-size: 34px;
 }
