@@ -193,9 +193,6 @@ h3, .h3 {
   flex: 1;
 }
 
-img, .figure, object {
-    margin: 1rem 0;
-}
 img.align-right, .figure.align-right, object.align-right {
     margin-left: 3rem;
 }

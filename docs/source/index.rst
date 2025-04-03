@@ -41,7 +41,7 @@ Home
 What users say
 =========================================
 
-.. card-carousel:: 2
+.. card-carousel:: 3
 
     .. card:: **Davide Massida** via twitter
 
@@ -136,18 +136,36 @@ Hardware accelerated graphics, best-in class timing, and calibration tools built
 Flexible enough for everything else
 =========================================
 
-PsychoPy® is great for:
-
 .. grid:: 1 1 2 2
     :gutter: 1
 
     .. grid-item::
         
-        .. image:: _static/7.png
-            :width: 650
-            :alt: Flexibile infographic
+        .. card-carousel:: 2
+
+            .. card::
+                :img-top: _static/mouse_tracking.png
+
+                Mouse tracking
+            
+            .. card::
+                :img-top: _static/frame_animation.png
+
+                Update stimuli frame-by-frame to create bespoke animations
+            
+            .. card::
+                :img-top: _static/mri_scanner.jpg
+
+                Non-slip timing for fMRI studies
+
+            .. card::
+                :img-top: _static/eeg_electrodes.jpg
+
+                Send triggers to any serial/parallel device
     
     .. grid-item::
+
+        PsychoPy® is great for:
 
         * *Dynamic, interactive studies:* Free yourself from simple static stimuli! You can update your stimulus interactively on every screen refresh!
         * *Neuroimaging:* Send and receive triggers to your hardware at precise times
