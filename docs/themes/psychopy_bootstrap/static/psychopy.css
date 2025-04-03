@@ -126,6 +126,9 @@
     --gradient: linear-gradient(#4582ec 0%, #fff 100%);
     --theme-color: #66666E;
 
+    /* page width (responsive) */
+    --content-width: 1080px;
+
     /* defaults */
     font-size: 16px;
     font-family: var(--body);
@@ -141,6 +144,16 @@ body {
 
 html, body {
     height: 100%; /* needed for the full-height sections to work*/
+}
+
+main {
+    position: relative;
+}
+
+main > section {
+    z-index: 1;
+    background-color: var(--base);
+    padding: 1rem calc((100% - var(--content-width)) / 2);
 }
 
 h1, 
@@ -164,48 +177,13 @@ pre {
 h1, .h1 {
     font-size: 34px;
 }
-
-h1::before { 
-    display: block; 
-    content: " "; 
-    margin-top: -101px; 
-    height: 101px; 
-    visibility: hidden; 
-    pointer-events: none;
-  }
   
 h2, .h2 {
     font-size: 28px;
 }
-
-h2::before { 
-    display: block; 
-    content: " "; 
-    margin-top: -101px; 
-    height: 101px; 
-    visibility: hidden; 
-    pointer-events: none;
-  }
   
 h3, .h3 {
     font-size: 24px;
-}
-h3::before {
-    display: block;
-    content: " ";
-    margin-top: -101px;
-    height: 101px;
-    visibility: hidden;
-    pointer-events: none;
-}
-
-.row {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  width: 100%;
-  justify-content: center;
-  align-items: start;
 }
 
 .column-collapse { /* will convert to row for <768 */
@@ -213,6 +191,36 @@ h3::before {
   flex-direction: column;
   flex-basis: 100%;
   flex: 1;
+}
+
+img, .figure, object {
+    margin: 1rem 0;
+}
+img.align-right, .figure.align-right, object.align-right {
+    margin-left: 3rem;
+}
+img.align-left, .figure.align-left, object.align-left {
+    margin-right: 3rem;
+}
+
+.news-reel {
+    position: absolute;
+    bottom: calc(100% + 1rem);
+    left: 1rem;
+    max-width: 420px;
+    opacity: 50%;
+}
+.news-reel:hover {
+    opacity: 100%;
+}
+.news-reel .sd-card {
+    background-color: var(--base);
+    border: 1px solid var(--overlay);
+    /* this will be overwritten by JS */
+    display: none;
+}
+.news-reel .sd-card-title {
+    color: var(--red);
 }
 
 /* special cases */
@@ -490,7 +498,7 @@ a:hover,
 
 /* set our responsive mode controls */
 
-@media (max-width: 768px) {
+@media (max-width: 1080px) {
 
     .tagline-buttons{
     font-size: 2em;
@@ -520,94 +528,13 @@ a:hover,
         padding-top: 80px;
     }
 
-    .container {
-        padding-right: 15px;
-        padding-left: 15px;
-    }
-}
-
-@media (min-width: 769px) {
-    .large-logo {
-        display: block;
+    :root {
+        /* alter content width for smaller screens */
+        --content-width: 90%;
     }
 
-    .small-logo img {
-        display: none;
-    }
-
-    .social-bar {
-        display: block;
-    }
-
-    body {
-        padding-top: 80px;
-    }
-
-    .container {
-        padding-right: 100px;
-        padding-left: 100px;
-    }
-}
-
-/* override the bootstrap max-widths to prevent jerky expanding */
-
-@media (max-width: 576px) {
-
-    .tagline-buttons{
-    font-size: 1.25em;
-    font-weight: bold
-    }
-    
-    .title-tagline{
-        font-size: 100%;
-    }
-
-    .container {
-        max-width: 90%
-    }
-
-    .text-layer {
-        display: none
-    }
-
-    .text-layer-abbr {
-        display: block
-    }
-}
-
-@media (min-width: 576px) {
-    .container {
-        max-width: 90%;
-    }
-
-    .text-layer {
-        display: block;
-    }
-
-    .text-layer-abbr {
-        display: none
-    }
-}
-
-@media (min-width: 768px) {
-    .container {
-        max-width: 90%;
-    }
-}
-
-@media (min-width: 992px) {
-    .container {
-        max-width: 90%;
-    }
-}
-
-@media (min-width: 1200px) {
-    .container {
-        max-width: 100%;
-    }
-
-    .central-logo {
-        padding: 80px;
+    .news-reel {
+        display: none !important;
     }
 }
 

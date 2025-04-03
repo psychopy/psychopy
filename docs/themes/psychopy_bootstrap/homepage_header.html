@@ -1,0 +1,141 @@
+<style>
+    /** 
+    * Homepage-specific styling for the header
+    */
+    body {
+        padding-top: 0 !important;
+    }
+    main > section:nth-of-type(even) {
+        background-color: var(--mantle);
+    }
+    .homepage-header {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2rem;
+        background-image: url("_static/component_wave.svg");
+        background-size: cover;
+        background-position: center;
+    }
+    #logo {
+        min-width: 25rem;
+        max-width: 100rem;
+        width: 33%;
+    }
+    .tagline-container {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-evenly;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    .tagline-node {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: var(--text);
+    }
+    .tagline-node span:first-child {
+        color: var(--blue);
+        font-size: 2rem;
+        font-weight: bold;
+    }
+    .tagline-node:hover span:first-child {
+        color: var(--red);
+    }
+    /* hide the title header */
+    section#home {
+        display: none;
+    }
+    
+</style>
+
+<title>PsychoPy</title>
+<header class="homepage-header">            
+    <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <!-- <span class="navbar-text navbar-version pull-right"><b>3.0</b></span> -->
+            </div>
+
+            <div class="collapse navbar-collapse nav-collapse w-100 pull-right">
+            <ul class="nav navbar-nav ml-auto">
+
+            <li><a href="https://psychopy.org/" style="font-weight:bold">Home</a></li>
+            <li><a href="https://psychopy.org/about/index.html" >About</a></li>
+            <li><a href="https://pavlovia.org/">Pavlovia.org</a></li>
+            <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Download<span class="caret"></span></a>
+                <ul class="dropdown-menu">
+                <li><a href="https://www.psychopy.org/download.html">Install</a></li>
+                <li><a href="https://www.psychopy.org/changelog.html">Change Log</a></li>
+                <!-- Add more dropdown options as needed -->
+                </ul>
+            <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Support <span class="caret"></span></a>
+                <ul class="dropdown-menu">
+                <li><a href="https://discourse.psychopy.org/">Forum</a></li>
+                <li><a href="https://psychopy.org/consultancy.html">Consultancy</a></li>
+                <!-- Add more dropdown options as needed -->
+                </ul>
+            <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Learn<span class="caret"></span></a>
+                <ul class="dropdown-menu">
+                <li><a href="https://psychopy.org/documentation.html">Documentation</a></li>
+                <li><a href="https://workshops.psychopy.org/">Workshops</a></li>
+                <li><a href="https://psychopy.org/teaching/index.html">Teaching</a></li>
+                <li><a href="https://www.youtube.com/channel/UCQo2aB6cXJasHyXJp0afaWg">YouTube</a></li>
+                <li><a href="https://pavlovia.org/explore/demos?sort=DEFAULT">Demos</a></li>
+                <!-- Add more dropdown options as needed -->
+                </ul>
+            <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">More<span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="https://psychopy.org/api/index.html">API</a></li>
+                            <li><a href="https://psychopy.org/developers/index.html">Contribute</a></li>
+                            <li><a href="https://blog.psychopy.org/">Blog</a></li>
+                            <!-- Add more dropdown options as needed -->
+                        </ul>
+            </div>
+        </div>
+    </div>
+    <div class="stats-container">
+        <a href="https://usage.psychopy.org/">>30k users</a> 
+        <a href="https://scholar.google.co.uk/scholar?cites=18194791051729814045&as_sdt=2005&sciodt=0,5&hl=en">>4k citations</a> 
+        <a href="https://github.com/psychopy/psychopy/graphs/contributors">>190 github contributors</a> 
+        <a href="https://pavlovia.org/licensees">>150 pavlovia licences</a> 
+    </div>
+    <img id=logo src="_static/psychopy_logotext.png" alt="PsychoPy Logo">
+    <div class="tagline-container">
+        <a class="tagline-node" href="#easy-enough-for-teaching">
+            <span>Easy</span>
+            <span>enough for teaching</span>
+        </a>
+        <a class="tagline-node" href="#precise-enough-for-psychophysics">
+            <span>Precise</span>
+            <span>enough for psychophysics</span>
+        </a>
+        <a class="tagline-node" href="#flexible-enough-for-everything-else">
+            <span>Flexible</span>
+            <span>enough for everything else</span>
+        </a>
+        <a class="tagline-node" href="#online">
+            <span>Online</span>
+            <span>or lab-based, your choice</span>
+        </a>
+    </div>
+
+    
+</header>
