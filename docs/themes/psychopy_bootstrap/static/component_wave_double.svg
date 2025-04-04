@@ -986,47 +986,6 @@
                         <path d="M25.466,21.561L29.614,21.561L39.651,51.04L35.397,51.04L25.466,21.561Z" style="fill:rgb(102,102,110);fill-rule:nonzero;"/>
                         <path d="M60.263,37.962L46.974,43.007L46.974,38.612L54.849,36.081L46.974,33.725L46.974,29.225L60.263,34.042L60.263,37.962Z" style="fill:rgb(242,84,91);fill-rule:nonzero;"/>
                     </g>
-                    <g id="Counterbalance3" serif:id="Counterbalance" transform="matrix(3.91832,-0.927176,0.602142,6.03341,22629.5,4128.06)">
-                        <g transform="matrix(1.4765,0,0,1.4765,-894.091,-1595.89)">
-                            <path d="M614.913,1096.86L623.966,1105.91L623.966,1115.64" style="fill:none;stroke:rgb(102,102,110);stroke-width:4px;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1;"/>
-                        </g>
-                        <g transform="matrix(-1.4765,0,0,1.4765,965.29,-1595.89)">
-                            <path d="M614.913,1096.86L623.966,1105.91L623.966,1122.48" style="fill:none;stroke:rgb(102,102,110);stroke-width:4px;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1;"/>
-                        </g>
-                        <g transform="matrix(1.52246,0,0,1.52246,-912.69,-1625.82)">
-                            <circle cx="624.962" cy="1087.64" r="2.909" style="fill:rgb(37,169,234);"/>
-                        </g>
-                        <g transform="matrix(1.52246,0,0,1.52246,-915.828,-1603.89)">
-                            <circle cx="624.962" cy="1087.64" r="2.909" style="fill:rgb(37,169,234);"/>
-                        </g>
-                        <g transform="matrix(1.52246,0,0,1.52246,-915.828,-1614.7)">
-                            <circle cx="624.962" cy="1087.64" r="2.909" style="fill:rgb(242,84,91);"/>
-                        </g>
-                        <g transform="matrix(1.52246,0,0,1.52246,-915.828,-1593.08)">
-                            <circle cx="624.962" cy="1087.64" r="2.909" style="fill:rgb(242,84,91);"/>
-                        </g>
-                        <g transform="matrix(1.52246,0,0,1.52246,-904.633,-1632.93)">
-                            <circle cx="624.962" cy="1087.64" r="2.909" style="fill:rgb(242,84,91);"/>
-                        </g>
-                        <g transform="matrix(1.52246,0,0,1.52246,-906.828,-1642.86)">
-                            <circle cx="624.962" cy="1087.64" r="2.909" style="fill:rgb(242,84,91);"/>
-                        </g>
-                        <g transform="matrix(1.52246,0,0,1.52246,-914.163,-1635.76)">
-                            <circle cx="624.962" cy="1087.64" r="2.909" style="fill:rgb(37,169,234);"/>
-                        </g>
-                        <g transform="matrix(1.52246,0,0,1.52246,-897.182,-1640.61)">
-                            <circle cx="624.962" cy="1087.64" r="2.909" style="fill:rgb(37,169,234);"/>
-                        </g>
-                        <g transform="matrix(1.52246,0,0,1.52246,-929.527,-1636.22)">
-                            <circle cx="624.962" cy="1087.64" r="2.909" style="fill:rgb(37,169,234);"/>
-                        </g>
-                        <g transform="matrix(1.52246,0,0,1.52246,-922.394,-1628.91)">
-                            <circle cx="624.962" cy="1087.64" r="2.909" style="fill:rgb(242,84,91);"/>
-                        </g>
-                        <g transform="matrix(1.52246,0,0,1.52246,-921.585,-1642.66)">
-                            <circle cx="624.962" cy="1087.64" r="2.909" style="fill:rgb(242,84,91);"/>
-                        </g>
-                    </g>
                     <g transform="matrix(2.9518,-2.2969,1.49169,4.54516,22260.4,4490.53)">
                         <g transform="matrix(0.00116851,0.999999,0.999999,-0.00116851,63.8912,32.149)">
                             <path d="M-8.976,-15.831C-2.107,-8.979 9.004,-8.979 15.842,-15.831" style="fill:none;fill-rule:nonzero;stroke:rgb(242,84,91);stroke-width:3px;stroke-linecap:round;stroke-linejoin:bevel;"/>
@@ -1087,7 +1046,7 @@
                     <g transform="matrix(3.22505,0.0266304,-0.0172948,4.96592,25112.5,4623.26)">
                         <path d="M25.466,21.561L29.614,21.561L39.651,51.04L35.397,51.04L25.466,21.561Z" style="fill:rgb(102,102,110);fill-rule:nonzero;"/>
                     </g>
-                    <g id="Counterbalance4" serif:id="Counterbalance" transform="matrix(3.91832,-0.927176,0.602142,6.03341,24773.5,4300.4)">
+                    <g id="Counterbalance3" serif:id="Counterbalance" transform="matrix(3.91832,-0.927176,0.602142,6.03341,24773.5,4300.4)">
                         <g transform="matrix(1.4765,0,0,1.4765,-894.091,-1595.89)">
                             <path d="M614.913,1096.86L623.966,1105.91L623.966,1115.64" style="fill:none;stroke:rgb(102,102,110);stroke-width:4px;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1;"/>
                         </g>
