@@ -41,7 +41,7 @@ Home
 What users say
 =========================================
 
-.. card-carousel:: 3
+.. card-carousel:: 2
 
     .. card:: **Davide Massida** via twitter
 

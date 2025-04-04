@@ -17,14 +17,19 @@
         align-items: center;
         justify-content: center;
         gap: 2rem;
-        background-image: url("_static/component_wave.svg");
+        background-image: url("_static/component_wave_double.svg");
         background-size: cover;
         background-position: center;
     }
     #logo {
-        min-width: 25rem;
-        max-width: 100rem;
+        min-width: min(35rem, 80%);
+        max-width: 70rem;
         width: 33%;
+    }
+    .stats-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
     }
     .tagline-container {
         display: flex;
@@ -52,6 +57,13 @@
     /* hide the title header */
     section#home {
         display: none;
+    }
+
+    @media only screen and (max-width: 70rem) {
+        .tagline-container,
+        .stats-container {
+            flex-direction: column;
+        }
     }
     
 </style>

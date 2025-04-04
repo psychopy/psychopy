@@ -560,12 +560,6 @@ a:hover,
     background-color: var(--mantle);
 }
 
-.stats-container {
-    text-align: center; /* Center the text horizontally */
-    font-size: 16px;
-    font-weight: normal;
-    }
-
 .red_button {
   background-color: var(--red); /* Green */
   font-size: 16px;
