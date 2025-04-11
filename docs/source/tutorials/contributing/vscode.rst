@@ -1,3 +1,5 @@
+:orphan:
+
 .. _contrib_vscode:
 
 Contributing with Microsoft Visual Studio Code

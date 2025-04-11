@@ -16,3 +16,4 @@ performing speech-to-text transcription.
     microphone
     audioclip
     audiodevice
+    transcribe

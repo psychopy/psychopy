@@ -30,6 +30,7 @@ You can also find a range of `materials for teaching <https://workshops.psychopy
    flow
    blocksCounterbalance
    components/index
+   pluginComponents/index
    settings
    startStop
    outputs

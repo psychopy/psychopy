@@ -54,3 +54,5 @@ Basic Concepts
    :glob:
 
    tutor*
+   demos/face
+   demos/plaid

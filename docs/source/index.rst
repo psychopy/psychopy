@@ -1,3 +1,4 @@
+:orphan:
 :header_template: homepage
 :title: Home
 

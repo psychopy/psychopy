@@ -73,3 +73,4 @@ How do I...
    Add external modules to Standalone PsychoPy? <addCustomModules>
    Build an app from my PsychoPy script? <appFromScript>
    Contribute to PsychoPy? <contributing/index>
+   Add a webcam? <webcam>

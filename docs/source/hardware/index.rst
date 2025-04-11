@@ -12,11 +12,19 @@ Communicating with EEG
 -----------------------------
 Before getting started with an EEG study in PsychoPy, we **highly** recommend reading relevant information on how to measure and understand :ref:`timing`. Although these guides will talk you through how to communicate with EEG hardware, they can really be used to communicate with any device that is connected via the same method:
 
-- :ref:`parallel`
-- :ref:`serial`
-- :ref:`egi`
-- :ref:`brain_products`
--  `Communicating with Emotiv <https://www.psychopy.org/builder/components/emotiv_record.html>`_ please also see `this video tutorial <https://www.youtube.com/watch?v=rRoqGa4PoN8>`_.
+.. toctree::
+    :maxdepth: 1
+
+    parallelPortInstr
+    arduino
+    serialPortInstr
+    egiNetStation
+    brainProducts
+    Communicating with Emotiv <https://psychopy.github.io/psychopy-emotiv>
+    fMRI
+    eyeTracking
+
+please also see `this video tutorial <https://www.youtube.com/watch?v=rRoqGa4PoN8>`_.
 
 .. note::
     If you'd like to use a `Parallel Port` to **record** responses (for example from a button box) please read `this excellent thread <https://discourse.psychopy.org/t/issue-reading-parallel-port-pin-for-button-box/9759>`_ from our Discourse Forum user `jtseng <https://discourse.psychopy.org/u/jtseng>`_.

@@ -8,9 +8,9 @@ Static Component
 -------------------------------
 
 The Static Component allows you to have a period where you can preload images or perform other time-consuming operations
-that not be possible while the screen is being updated. Static periods are also particularly useful for *online* studies to decrease the time taken to load resources at the start (see also :ref:`resourceManager`).
+that not be possible while the screen is being updated. Static periods are also particularly useful for *online* studies to decrease the time taken to load resources at the start (see also :ref:`resourcemanagercomponent`).
 
-.. note:: For online studies, if you use a static component this will override the resources loaded at the beginning via Experiment settings > Online > Additional resources. You might therefore want to combine a static period with a :ref:`resourceManager` to make sure that all resources your study needs will be loaded and available for the experiment.
+.. note:: For online studies, if you use a static component this will override the resources loaded at the beginning via Experiment settings > Online > Additional resources. You might therefore want to combine a static period with a :ref:`resourcemanagercomponent` to make sure that all resources your study needs will be loaded and available for the experiment.
 
 Typically a static period would be something like an inter-trial or inter-stimulus interval (ITI/ISI). During this period you should not have any other objects being presented that are being updated (this isn't checked for you - you have to make that check yourself), but you can have components being presented that are themselves static. For instance a fixation point never changes and so it can be presented during the static period (it will be presented and left on-screen while the other updates are being made).
 

@@ -1,3 +1,5 @@
+:orphan:
+
 .. _P4N:
 
 P4N: Python for Neuroscience (and Psychology)
