@@ -22,6 +22,8 @@ import sys
 import json
 import glob
 
+from .packageIndex import loadPackageIndex, getInstalledPackages, getPluginPackages
+
 
 class AuthorInfo:
     """Plugin author information.
@@ -1316,127 +1318,8 @@ def getAllPluginDetails():
         List of plugin details.
 
     """
-    # check if the local `plugins.json` file exists and is up to date
-    appPluginCacheDir = os.path.join(
-        prefs.paths['userCacheDir'], 'appCache', 'plugins')
-    
-    # create the cache directory if it doesn't exist
-    if not os.path.exists(appPluginCacheDir):
-        try:
-            os.makedirs(appPluginCacheDir)
-        except OSError:
-            pass
-
-    # where the database is expected to be
-    pluginDatabaseFile = Path(appPluginCacheDir) / "plugins.json"
-
-    def downloadPluginDatabase(srcURL="https://psychopy.org/plugins.json"):
-        """Downloads the plugin database from the server and returns the text
-        as a string. If the download fails, returns None.
-
-        Parameters
-        ----------
-        srcURL : str
-            The URL to download the plugin database from.
-
-        Returns
-        -------
-        list or None
-            The plugin database as a list, or None if the download failed.
-        
-        """
-        global redownloadPlugins
-        # if plugins already up to date, skip
-        if not redownloadPlugins:
-            return None
-        # download database from website
-        try:
-            resp = requests.get(srcURL)
-        except requests.exceptions.ConnectionError:
-            # if connection to website fails, return nothing
-            return None
-        # if download failed, return nothing
-        if resp.status_code == 404:
-            return None
-        # otherwise get as a string
-        value = resp.text
-
-        if value is None or value == "":
-            return None
-
-        # make sure we are using UTF-8 encoding
-        value = value.encode('utf-8', 'ignore').decode('utf-8')
-
-        # attempt to parse JSON
-        try:
-            database = json.loads(value)
-        except json.decoder.JSONDecodeError:
-            # if JSON parse fails, return nothing
-            return None
-        # if we made it this far, mark plugins as not needing update
-        redownloadPlugins = False
-
-        return database
-        
-    def readLocalPluginDatabase(srcFile):
-        """Read the local plugin database file (if it exists) and return the
-        text as a string. If the file doesn't exist, returns None.
-
-        Parameters
-        ----------
-        srcFile : pathlib.Path
-            The expected path to the plugin database file.
-        
-        Returns
-        -------
-        list or None
-            The plugin database as a list, or None if the file doesn't exist.
-        
-        """
-        # if source file doesn't exist, return nothing
-        if not srcFile.is_file():
-            return None
-        # attempt to parse JSON
-        try:
-            with srcFile.open("r", encoding="utf-8", errors="ignore") as f:
-                return json.load(f)
-        except json.decoder.JSONDecodeError:
-            # if JSON parse fails, return nothing
-            return None
-    
-    def deletePluginDlgCache():
-        """Delete the local plugin database file and cached files related to 
-        the Plugin dialog.
-        """
-        if os.path.exists(appPluginCacheDir):
-            files = glob.glob(os.path.join(appPluginCacheDir, '*'))
-            for f in files:
-                os.remove(f)
-                
-    # get a copy of the plugin database from the server, check if it's newer
-    # than the local copy, and if so, replace the local copy
-
-    # get remote database
-    serverPluginDatabase = downloadPluginDatabase()
-    # get local database
-    localPluginDatabase = readLocalPluginDatabase(pluginDatabaseFile)
-
-    if serverPluginDatabase is not None:
-        # if we have a database from the remote, use it
-        pluginDatabase = serverPluginDatabase
-        # if the file contents has changed, delete cached icons and etc.
-        if str(pluginDatabase) != str(localPluginDatabase):
-            deletePluginDlgCache()
-            # write new contents to file
-            with pluginDatabaseFile.open("w", encoding='utf-8') as f:
-                json.dump(pluginDatabase, f, indent=True)
-
-    elif localPluginDatabase is not None:
-        # otherwise use cached
-        pluginDatabase = localPluginDatabase
-    else:
-        # if we have neither, treat as blank list
-        pluginDatabase = []
+    loadPackageIndex()
+    pluginDatabase = getPluginPackages(asList=True)
 
     # check if we need to update plugin objects, if not return the cached data
     global _pluginObjects
@@ -1447,6 +1330,7 @@ def getAllPluginDetails():
     # Create PluginInfo objects from info list
     objs = []
     for info in pluginDatabase:
+        del info['version']
         objs.append(PluginInfo(**info))
 
     # Add info objects for local plugins which aren't found online
