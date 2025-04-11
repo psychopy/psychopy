@@ -74,7 +74,7 @@
     --overlay: #D6D6D6;
     --outline: #66666E;
 
-    /* override sphinx colours */
+    /* override sphinx */
     --sd-color-primary: var(--blue) !important;
     --sd-color-secondary: var(--red) !important;
     --sd-color-success: var(--green) !important;
@@ -103,6 +103,7 @@
     --sd-color-tabs-overline: var(--overlay) !important;
     --sd-color-tabs-underline: var(--overlay) !important;
     --sd-color-shadow: transparent !important;
+    --sd-gutter-y: 1.5rem;
 
     /* text colour */
     --text: #161616;

@@ -26,7 +26,7 @@ Setting up our experiment
 
 In it's simplest form, our experiment consists of 3 components, a fixation cross to start the trial, a text component to present our letter and a keyboard component to gather responses. You can see that here we have set the `start` and `duration` parameters of each component such that the fixation is presented for 0.5 seconds, followed by a letter for 0.5 seconds. The participant can start responding as soon as the letter is presented, they can also respond for 0.5 seconds after it has been presented. 
 
-.. image:: /_images/tutorials/n_back/basic_flow.png
+.. image:: ./n_back_basic_flow.png
    :width: 100 %
 
 
@@ -54,7 +54,7 @@ Feeding trial info into PsychoPy
 
 once we have our conditions file set up and **saved in the same location as our experiment** we need to give this info to our experiment. Add a loop around your trial routine and give the path to your conditions file in the Conditions field. We want to make sure our letters are presented in a preset order, so make sure to set loop type to **sequential**.
 
-.. image:: /_images/tutorials/n_back/loop_sequential.png
+.. image:: ./n_back_loop_sequential.png
    :width: 100 %
 
 .. nextslide::
@@ -66,7 +66,7 @@ Collecting responses
 
 There are a few tweaks we need to make to our keyboard component to make sure things are just right here. First, by default a keyboard response will force the end of the current routine. That means that if any stimuli were going to be presented later in the routine they would not be presented, in our case it would alter the inter-stimulus-interval by shortening this trial. So, make sure to uncheck the `Force end of Routine` box. 
 
-.. image:: /_images/tutorials/n_back/force_end_none.png
+.. image:: ./n_back_force_end_none.png
    :width: 100 %
 
 .. nextslide::

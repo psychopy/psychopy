@@ -26,7 +26,7 @@ Most of the entry boxes for Component parameters simply receive text or numeric 
 
 To indicate to |PsychoPy| that the value represents a variable or python code, rather than literal text, it should be preceded by a `$`. For example, inserting `intensity` into the text field of the Text Component will cause that word literally to be presented, whereas `$intensity` will cause python to search for the variable called intensity in the script.
 
-Variables associated with :ref:`loops` can also be entered in this way (see :ref:`accessing-params` for further details). But it can also be used to evaluate arbitrary python code. 
+Variables associated with :ref:`loops` can also be entered in this way (see :ref:`"Using loops to update stimuli trial-by-trial"<accessing-params>` for further details). But it can also be used to evaluate arbitrary python code. 
 
 For example:
 
