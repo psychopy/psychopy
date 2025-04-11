@@ -1,6 +1,7 @@
 import webbrowser
 
 import wx
+import wx.dataview
 import os
 import sys
 import subprocess as sp
@@ -8,10 +9,10 @@ import subprocess as sp
 from psychopy.app import utils
 from psychopy.app.themes import handlers, icons
 from psychopy.localization import _translate
-from psychopy.tools.pkgtools import (
-    getInstalledPackages, getPackageMetadata, getPypiInfo, isInstalled,
-    _isUserPackage, getInstallState
-)
+from psychopy.tools.pkgtools import (getPackageMetadata, getPypiInfo)
+from psychopy.app.plugin_manager.packageIndex import (
+    getPluginPackages, getInstalledPackages, getRemotePackages, 
+    isPackageInstalled, isUserPackageInstalled, isSystemPackageInstalled)
 from psychopy.tools.versionchooser import parseVersionSafely
 
 
@@ -152,11 +153,28 @@ class PackageListCtrl(wx.Panel):
         self.searchCtrl = wx.SearchCtrl(self)
         self.searchCtrl.Bind(wx.EVT_SEARCH, self.refresh)
         self.sizer.Add(self.searchCtrl, border=6, flag=wx.ALL | wx.EXPAND)
+
         # Create list ctrl
-        self.ctrl = utils.ListCtrl(self, style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
-        self.ctrl.setResizeColumn(0)
-        self.ctrl.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onItemSelected)
-        self.ctrl.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.onRightClick)
+        # self.ctrl = utils.ListCtrl(self, style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
+        # self.ctrl.setResizeColumn(0)
+        # self.ctrl.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onItemSelected)
+        # self.ctrl.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.onRightClick)
+        # self.sizer.Add(self.ctrl, proportion=1, border=6, flag=wx.LEFT | wx.RIGHT | wx.EXPAND)
+
+        self.ctrl = wx.dataview.TreeListCtrl(self)
+        self.ctrl.SetMinSize((120, 400))
+        self.ctrl.AppendColumn(_translate("Package"))
+        self.ctrl.AppendColumn(_translate("Installed"))
+
+        self.rootUserPackages = self.ctrl.AppendItem(self.ctrl.GetRootItem(), _translate("User Packages"))
+        self.rootSystemPackages = self.ctrl.AppendItem(self.ctrl.GetRootItem(), _translate("System Packages"))  
+        self.rootRemotePackages = self.ctrl.AppendItem(self.ctrl.GetRootItem(), _translate("Available Packages"))
+
+        self.ctrl.SetItemText(self.rootUserPackages, _translate("User Packages"))
+        self.ctrl.SetItemText(self.rootSystemPackages, _translate("System Packages"))
+        self.ctrl.SetItemText(self.rootRemotePackages, _translate("Available Packages"))
+        self.ctrl.Bind(wx.dataview.EVT_DATAVIEW_ITEM_ACTIVATED, self.onItemSelected)
+        # self.ctrl.Bind(wx.dataview.EVT_DATAVIEW_ITEM_RIGHT_CLICK, self.onRightClick)
         self.sizer.Add(self.ctrl, proportion=1, border=6, flag=wx.LEFT | wx.RIGHT | wx.EXPAND)
 
         # "Or..." label
@@ -197,6 +215,7 @@ class PackageListCtrl(wx.Panel):
 
     def onItemSelected(self, evt=None):
         # Post event so it can be caught by parent
+        print("Item selected")
         evt.SetEventObject(self)
         wx.PostEvent(self, evt)
 
@@ -207,11 +226,11 @@ class PackageListCtrl(wx.Panel):
         menu = wx.Menu()
         # Map menu functions
         menu.functions = {}
-        if isInstalled(package) and _isUserPackage(package):
+        if isUserPackageInstalled(package):
             # Add uninstall if installed to user
             uninstallOpt = menu.Append(wx.ID_ANY, item=_translate("Uninstall"))
             menu.functions[uninstallOpt.GetId()] = self.onUninstall
-        elif isInstalled(package):
+        elif isSystemPackageInstalled(package):
             # Add nothing if installed to protected system folder
             pass
         else:
@@ -258,35 +277,74 @@ class PackageListCtrl(wx.Panel):
         self.refresh()
 
     def refresh(self, evt=None):
+        # get states of items
+        rootRemoteWasExpanded = self.ctrl.IsExpanded(self.rootRemotePackages)
+        rootUserWasExpanded = self.ctrl.IsExpanded(self.rootUserPackages)
+        rootSystemWasExpanded = self.ctrl.IsExpanded(self.rootSystemPackages)
+
         # Get search term
         searchTerm = self.searchCtrl.GetValue()
-        # Clear
-        self.ctrl.ClearAll()
-        self.ctrl.AppendColumn(_translate("Package"))
-        self.ctrl.AppendColumn(_translate("Installed"))
+        self.ctrl.DeleteAllItems()
 
-        # Get installed packages
+        self.rootUserPackages = self.ctrl.AppendItem(
+            self.ctrl.GetRootItem(), _translate("User Packages"))
+        self.rootSystemPackages = self.ctrl.AppendItem(
+            self.ctrl.GetRootItem(), _translate("System Packages"))  
+        self.rootRemotePackages = self.ctrl.AppendItem(
+            self.ctrl.GetRootItem(), _translate("Available Packages"))
+
+        # get packages
         installedPackages = dict(getInstalledPackages())
-        # If there's no search term, show all installed and return
-        if searchTerm in (None, ""):
-            for pkg, version in installedPackages.items():
-                item = self.ctrl.Append((pkg, version))
-                self.ctrl.SetItemFont(item, font=wx.Font().Bold())
-            return
-        # Add column for latest version if we're actually searching
-        self.ctrl.AppendColumn(_translate("Latest"))
-        # Get packages from search
-        # Populate
-        for pkg, version in installedPackages.items():
-            if pkg is None:
-                continue
-            font = wx.Font()
-            if searchTerm in pkg:
-                # If installed, add row with value for installed version
-                item = self.ctrl.Append((pkg, version))
-                font = font.Bold()
-                # Style new row according to install status
-                self.ctrl.SetItemFont(item, font)
+
+        systemPackages = installedPackages['system']['packages']
+        userPackages = installedPackages['user']['packages']
+        availablePackages = getRemotePackages()['packages']
+        
+        # filter on search
+        if searchTerm not in (None, ""):
+            systemPackages = {k: v for k, v in systemPackages.items() if searchTerm in k}
+            userPackages = {k: v for k, v in userPackages.items() if searchTerm in k}
+            availablePackages = [v for v in availablePackages if searchTerm in v]
+
+        for pkg, version in systemPackages.items():
+            item = self.ctrl.AppendItem(self.rootSystemPackages, pkg)
+            self.ctrl.SetItemText(item, 1, version)
+            # self.ctrl.SetItemFont(item, font=wx.Font().Bold())
+
+        self.ctrl.SetItemText(
+            self.rootSystemPackages, 
+            _translate("System Packages") + " (%d)" % len(systemPackages))
+
+        for pkg, version in userPackages.items():
+            item = self.ctrl.AppendItem(self.rootUserPackages, pkg)
+            self.ctrl.SetItemText(item, 1, version)
+            # self.ctrl.SetItemFont(item, font=wx.Font().Bold())
+
+        self.ctrl.SetItemText(
+            self.rootUserPackages,
+            _translate("User Packages") + " (%d)" % len(userPackages))
+    
+        if len(availablePackages) > 1000:
+            availablePackages = availablePackages[:1000]
+            self.ctrl.SetItemText(
+                self.rootRemotePackages,
+                _translate("Available Packages") + " (1000+)")
+        else:
+            totalSearchMatches = len(availablePackages)
+            self.ctrl.SetItemText(
+                self.rootRemotePackages,
+                _translate("Available Packages") + " (%d)" % totalSearchMatches)
+
+        for pkg in availablePackages:
+            item = self.ctrl.AppendItem(self.rootRemotePackages, pkg)
+
+        # Expand all roots
+        if rootRemoteWasExpanded:
+            self.ctrl.Expand(self.rootRemotePackages)
+        if rootUserWasExpanded:
+            self.ctrl.Expand(self.rootUserPackages)
+        if rootSystemWasExpanded:
+            self.ctrl.Expand(self.rootSystemPackages)
 
     def onAddFromFile(self, evt=None):
         # Create dialog to get package file location
@@ -425,7 +483,7 @@ class PackageDetailsPanel(wx.Panel):
         self._applyAppTheme()
 
     def refresh(self, evt=None):
-        state, version = getInstallState(self.package)
+        state, version = isPackageInstalled(self.package)
 
         if state == "u":
             # If installed to the user space, can be uninstalled or changed
