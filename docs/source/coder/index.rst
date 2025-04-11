@@ -30,7 +30,7 @@ You can learn to use the scripting interface to |PsychoPy| in several ways, and 
 
 You should check the :ref:`api` for further details and, ultimately, go into `PsychoPy <https://github.com/psychopy/psychopy>`_ and start examining the source code. It's just regular python!
 
-.. _concepts:
+.. _coder_concepts:
 
 Basic Concepts
 ~~~~~~~~~~~~~~~~~~~~
@@ -44,7 +44,7 @@ Basic Concepts
    codeTrials
    globalKeys
 
-.. _tutorials:
+.. _coder_tutorials:
 
 |PsychoPy| Tutorials
 ~~~~~~~~~~~~~~~~~~~~

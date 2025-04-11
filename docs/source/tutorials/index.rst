@@ -4,7 +4,7 @@
 
 .. _tutorials:
 
-How to guides
+How-to guides
 =====================================
 
 If you're wondering how to do something you're in the right place! 
@@ -72,4 +72,4 @@ How do I...
    Install PsychoPy in a classroom (for administrators)? <classroomInstallation>
    Add external modules to Standalone PsychoPy? <addCustomModules>
    Build an app from my PsychoPy script? <appFromScript>
-   Contribute to PsychoPy? <contributing_tutorial>
+   Contribute to PsychoPy? <contributing/index>
