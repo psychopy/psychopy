@@ -13,14 +13,14 @@ The following Components are available from Builder:
    :maxdepth: 1   
    :glob:
 
-   components/*
+   *
 
 About Components
 ------------------------------------------
 
 Routines in the Builder contain any number of components, which typically define the parameters of a stimulus or an input/output device.
 
-.. _entering-params
+.. _entering-params:
 
 Entering parameters
 ==========================================
