@@ -1,8 +1,8 @@
 :orphan:
 
-.. _microphone:
+.. _legacy_microphone:
 
 Deprecated Microphone
 ======================================================
 
-**Deprecated** Use :class:`~psychopy.sound.Microphone` for new projects.
+**Deprecated** Use :class:`~psychopy.sound.microphone.Microphone` for new projects.

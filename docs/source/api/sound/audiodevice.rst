@@ -3,7 +3,7 @@
 
 These classes are used to store information about audio devices and their
 status. Only a subset of PsychoPy's sound API currently use these classes, such
-as the :class:`psychopy.sound.Microphone` class.
+as the :class:`psychopy.sound.microphone.Microphone` class.
 
 Overview
 ========

@@ -679,7 +679,7 @@ class CameraInterfaceFFmpeg(CameraInterface):
                 Barrier which is used to synchronize audio and video recording.
                 This ensures that the audio device is ready before buffering 
                 frames captured by the camera. 
-            audioCapture : psychopy.sound.Microphone or None
+            audioCapture : psychopy.sound.microphone.Microphone or None
                 Microphone object to use for audio capture. This will be used to
                 synchronize the audio and video streams. If `None`, no audio
                 will be captured.
@@ -1153,7 +1153,7 @@ class CameraInterfaceOpenCV(CameraInterface):
                 Barrier which is used to synchronize audio and video recording.
                 This ensures that the audio device is ready before buffering 
                 frames captured by the camera. 
-            audioCapture : psychopy.sound.Microphone or None
+            audioCapture : psychopy.sound.microphone.Microphone or None
                 Microphone object to use for audio capture. This will be used to
                 synchronize the audio and video streams. If `None`, no audio
                 will be captured.

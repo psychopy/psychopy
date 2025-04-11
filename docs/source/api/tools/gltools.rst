@@ -49,7 +49,6 @@ Tools for creating Framebuffer Objects (FBOs).
 
 .. autofunction:: createFBO
 .. autofunction:: attach
-.. autofunction:: isComplete
 .. autofunction:: deleteFBO
 .. autofunction:: blitFBO
 .. autofunction:: useFBO
@@ -73,7 +72,6 @@ Tools for creating textures.
 .. autofunction:: createTexImage2DMultisample
 .. autofunction:: deleteTexture
 .. autofunction:: bindTexture
-.. autofunction:: unbindTexture
 .. autofunction:: createCubeMap
 
 Vertex Buffer/Array Objects
