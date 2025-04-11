@@ -1,4 +1,7 @@
+:orphan:
+
 .. _joystickcomponent:
+
 
 -------------------------------
 Joystick Component
@@ -49,18 +52,22 @@ The required attributes of the stimulus, controlling its basic function and beha
 
 
 .. _joystickcomponent-name:
+
 Name
     Everything in a |PsychoPy| experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
     
 .. _joystickcomponent-startVal:
+
 Start
     When the Joystick Component should start, see :ref:`startStop`.
     
 .. _joystickcomponent-startEstim:
+
 Expected start (s)
     If you are using frames to control timing of your stimuli, you can add an expected start time to display the component timeline in the routine.
     
 .. _joystickcomponent-startType:
+
 Start type
     How do you want to define your start point?
     
@@ -73,14 +80,17 @@ Start type
     * condition
     
 .. _joystickcomponent-stopVal:
+
 Stop
     When the Joystick Component should stop, see :ref:`startStop`.
     
 .. _joystickcomponent-durationEstim:
+
 Expected duration (s)
     If you are using frames to control timing of your stimuli, you can add an expected duration to display the component timeline in the routine.
     
 .. _joystickcomponent-stopType:
+
 Stop type
     How do you want to define your end point?
     
@@ -97,6 +107,7 @@ Stop type
     * condition
     
 .. _joystickcomponent-forceEndRoutineOnPress:
+
 End Routine on press
     Should a button press force the end of the Routine (e.g end the trial)?
     
@@ -115,6 +126,7 @@ Information about the device associated with this Component. Keyboards, speakers
 
 
 .. _joystickcomponent-deviceNumber:
+
 Device number
     Device number, if you have multiple devices which one do you want (0, 1, 2...)
     
@@ -125,6 +137,7 @@ What information about this Component should be saved?
 
 
 .. _joystickcomponent-saveJoystickState:
+
 Save joystick state
     How often should the joystick state (x,y,buttons) be stored? On every video frame, every click or just at the end of the Routine?
     
@@ -139,6 +152,7 @@ Save joystick state
     * never
     
 .. _joystickcomponent-timeRelativeTo:
+
 Time relative to
     What should the values of joystick.time be relative to?
     
@@ -151,22 +165,27 @@ Time relative to
     * routine
     
 .. _joystickcomponent-clickable:
+
 Clickable stimuli
     A comma-separated list of your stimulus names that can be "clicked" by the participant. e.g. target, foil
     
 .. _joystickcomponent-saveParamsClickable:
+
 Store params for clicked
     The params (e.g. name, text), for which you want to store the current value, for the stimulus that was"clicked" by the joystick. Make sure that all the clickable objects have all these params.
     
 .. _joystickcomponent-allowedButtons:
+
 Allowed buttons
     Buttons to be read (blank for any) numbers separated by commas
     
 .. _joystickcomponent-saveStartStop:
+
 Save onset/offset times
     Store the onset/offset times in the data file (as well as in the log file).
     
 .. _joystickcomponent-syncScreenRefresh:
+
 Sync timing with screen refresh
     Synchronize times with screen refresh (good for visual stimuli and responses based on them)
     
@@ -177,6 +196,7 @@ Tools for testing, debugging and checking the performance of this Component.
 
 
 .. _joystickcomponent-disabled:
+
 Disable Component
     Disable this Component
     

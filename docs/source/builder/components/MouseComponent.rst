@@ -1,4 +1,7 @@
+:orphan:
+
 .. _mousecomponent:
+
 
 -------------------------------
 Mouse Component
@@ -37,18 +40,22 @@ The required attributes of the stimulus, controlling its basic function and beha
 
 
 .. _mousecomponent-name:
+
 Name
     Everything in a |PsychoPy| experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
     
 .. _mousecomponent-startVal:
+
 Start
     When the Mouse Component should start, see :ref:`startStop`.
     
 .. _mousecomponent-startEstim:
+
 Expected start (s)
     If you are using frames to control timing of your stimuli, you can add an expected start time to display the component timeline in the routine.
     
 .. _mousecomponent-startType:
+
 Start type
     How do you want to define your start point?
     
@@ -61,14 +68,17 @@ Start type
     * condition
     
 .. _mousecomponent-stopVal:
+
 Stop
     When the Mouse Component should stop, see :ref:`startStop`.
     
 .. _mousecomponent-durationEstim:
+
 Expected duration (s)
     If you are using frames to control timing of your stimuli, you can add an expected duration to display the component timeline in the routine.
     
 .. _mousecomponent-stopType:
+
 Stop type
     How do you want to define your end point?
     
@@ -85,6 +95,7 @@ Stop type
     * condition
     
 .. _mousecomponent-forceEndRoutineOnPress:
+
 End Routine on press
     Should a button press force the end of the Routine (e.g end the trial)?
     
@@ -99,10 +110,12 @@ End Routine on press
     * correct click
     
 .. _mousecomponent-newClicksOnly:
+
 New clicks only
     If the mouse button is already down when we start checking then wait for it to be released before recording as a new click.
     
 .. _mousecomponent-clickable:
+
 Clickable stimuli
     A comma-separated list of your stimulus names that can be "clicked" by the participant. e.g. target, foil
     
@@ -113,6 +126,7 @@ What information about this Component should be saved?
 
 
 .. _mousecomponent-saveMouseState:
+
 Save mouse state
     How often should the mouse state (x,y,buttons) be stored? On every video frame, every click or just at the end of the Routine?
     
@@ -129,6 +143,7 @@ Save mouse state
     * never
     
 .. _mousecomponent-timeRelativeTo:
+
 Time relative to
     What should the values of mouse.time should be relative to?
     
@@ -141,22 +156,27 @@ Time relative to
     * routine
     
 .. _mousecomponent-saveParamsClickable:
+
 Store params for clicked
     The params (e.g. name, text), for which you want to store the current value, for the stimulus that was"clicked" by the mouse. Make sure that all the clickable objects have all these params.
     
 .. _mousecomponent-saveStartStop:
+
 Save onset/offset times
     Store the onset/offset times in the data file (as well as in the log file).
     
 .. _mousecomponent-syncScreenRefresh:
+
 Sync timing with screen refresh
     Synchronize times with screen refresh (good for visual stimuli and responses based on them)
     
 .. _mousecomponent-storeCorrect:
+
 Store correct
     Do you want to save the response as correct/incorrect?
     
 .. _mousecomponent-correctAns:
+
 Correct answer
     What is the 'correct' object? To specify an area, remember that you can create a shape Component with 0 opacity.
     
@@ -167,6 +187,7 @@ Tools for testing, debugging and checking the performance of this Component.
 
 
 .. _mousecomponent-disabled:
+
 Disable Component
     Disable this Component
     

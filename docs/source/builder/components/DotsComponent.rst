@@ -1,4 +1,7 @@
+:orphan:
+
 .. _dotscomponent:
+
 
 -------------------------------
 Dots Component
@@ -32,18 +35,22 @@ The required attributes of the stimulus, controlling its basic function and beha
 
 
 .. _dotscomponent-name:
+
 Name
     Everything in a |PsychoPy| experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
     
 .. _dotscomponent-startVal:
+
 Start
     When the Dots Component should start, see :ref:`startStop`.
     
 .. _dotscomponent-startEstim:
+
 Expected start (s)
     If you are using frames to control timing of your stimuli, you can add an expected start time to display the component timeline in the routine.
     
 .. _dotscomponent-startType:
+
 Start type
     How do you want to define your start point?
     
@@ -56,14 +63,17 @@ Start type
     * condition
     
 .. _dotscomponent-stopVal:
+
 Stop
     When the Dots Component should stop, see :ref:`startStop`.
     
 .. _dotscomponent-durationEstim:
+
 Expected duration (s)
     If you are using frames to control timing of your stimuli, you can add an expected duration to display the component timeline in the routine.
     
 .. _dotscomponent-stopType:
+
 Stop type
     How do you want to define your end point?
     
@@ -86,18 +96,22 @@ How should the stimulus be laid out on screen? Padding, margins, size, position,
 
 
 .. _dotscomponent-dotSize:
+
 Dot size
     Size of the dots in pixel units.
     
 .. _dotscomponent-fieldSize:
+
 Field size
     A single value, specifying the diameter of the field (in the specified Spatial Units). Sizes can be negative and can extend beyond the window.
     
 .. _dotscomponent-fieldPos:
+
 Field position
     Where is the field centred (in the specified units)?
     
 .. _dotscomponent-units:
+
 Spatial units
     Spatial units for this stimulus (e.g. for its :ref:`position <dotscomponent-pos>` and :ref:`size <dotscomponent-size>`), see :ref:`units` for more info.
     
@@ -120,6 +134,7 @@ Spatial units
     * degFlat
     
 .. _dotscomponent-anchor:
+
 Field anchor
     Which point in this field should be anchored to the point specified by :ref:`dotscomponent-pos`? 
     
@@ -144,6 +159,7 @@ Field anchor
     * bottom-right
     
 .. _dotscomponent-fieldShape:
+
 Field shape
     Defines the shape of the field in which the dots appear.
     
@@ -160,10 +176,12 @@ How should the stimulus look? Colors, borders, styles, etc.
 
 
 .. _dotscomponent-color:
+
 Dot color
     Color of the dots.
     
 .. _dotscomponent-colorSpace:
+
 Dot color space
     In what format (color space) have you specified the colors? See :ref:`colorspaces` for more info.
     
@@ -178,10 +196,12 @@ Dot color space
     * hsv
     
 .. _dotscomponent-opacity:
+
 Opacity
     Vary the transparency, from 0.0 (invisible) to 1.0 (opaque)
     
 .. _dotscomponent-contrast:
+
 Contrast
     Contrast of the stimulus (1.0=unchanged contrast, 0.5=decrease contrast, 0.0=uniform/no contrast, -0.5=slightly inverted, -1.0=totally inverted)
     
@@ -192,26 +212,32 @@ Dots
 
 
 .. _dotscomponent-nDots:
+
 Number of dots
     Number of dots in the field (for circular fields this will be average number of dots)
     
 .. _dotscomponent-dir:
+
 Direction
     Direction of motion for the signal dots (degrees)
     
 .. _dotscomponent-speed:
+
 Speed
     Speed of the dots (displacement per frame in the specified units)
     
 .. _dotscomponent-coherence:
+
 Coherence
     Coherence of the dots (fraction moving in the signal direction on any one frame)
     
 .. _dotscomponent-dotLife:
+
 Dot life-time
     Number of frames before each dot is killed and randomly assigned a new position
     
 .. _dotscomponent-signalDots:
+
 Signal dots
     If 'same' then the signal and noise dots are constant. If different then the choice of which is signal and which is noise gets randomised on each frame. This corresponds to Scase et al's (1996) categories of RDK.
     
@@ -222,6 +248,7 @@ Signal dots
     * different
     
 .. _dotscomponent-refreshDots:
+
 Dot refresh rule
     When should the whole sample of dots be refreshed
     
@@ -232,6 +259,7 @@ Dot refresh rule
     * repeat
     
 .. _dotscomponent-noiseDots:
+
 Noise dots
     Determines the behaviour of the noise dots, taken directly from Scase et al's (1996) categories. For 'position', noise dots take a random position every frame. For 'direction' noise dots follow a random, but constant direction. For 'walk' noise dots vary their direction every frame, but keep a constant speed.
     
@@ -250,10 +278,12 @@ What information about this Component should be saved?
 
 
 .. _dotscomponent-saveStartStop:
+
 Save onset/offset times
     Store the onset/offset times in the data file (as well as in the log file).
     
 .. _dotscomponent-syncScreenRefresh:
+
 Sync timing with screen refresh
     Synchronize times with screen refresh (good for visual stimuli and responses based on them)
     
@@ -264,10 +294,12 @@ Tools for testing, debugging and checking the performance of this Component.
 
 
 .. _dotscomponent-disabled:
+
 Disable Component
     Disable this Component
     
 .. _dotscomponent-validator:
+
 Validate with...
     Name of the Validator Routine to use to check the timing of this stimulus. Options are generated live, so will vary according to your setup.
 

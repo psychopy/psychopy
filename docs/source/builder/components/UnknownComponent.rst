@@ -1,4 +1,7 @@
+:orphan:
+
 .. _unknowncomponent:
+
 
 -------------------------------
 Unknown Component

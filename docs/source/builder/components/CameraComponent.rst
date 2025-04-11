@@ -1,4 +1,7 @@
+:orphan:
+
 .. _cameracomponent:
+
 
 -------------------------------
 Camera Component
@@ -36,18 +39,22 @@ The required attributes of the stimulus, controlling its basic function and beha
 
 
 .. _cameracomponent-name:
+
 Name
     Everything in a |PsychoPy| experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
     
 .. _cameracomponent-startVal:
+
 Start
     When the Camera Component should start, see :ref:`startStop`.
     
 .. _cameracomponent-startEstim:
+
 Expected start (s)
     If you are using frames to control timing of your stimuli, you can add an expected start time to display the component timeline in the routine.
     
 .. _cameracomponent-startType:
+
 Start type
     How do you want to define your start point?
     
@@ -60,14 +67,17 @@ Start type
     * condition
     
 .. _cameracomponent-stopVal:
+
 Stop
     When the Camera Component should stop, see :ref:`startStop`.
     
 .. _cameracomponent-durationEstim:
+
 Expected duration (s)
     If you are using frames to control timing of your stimuli, you can add an expected duration to display the component timeline in the routine.
     
 .. _cameracomponent-stopType:
+
 Stop type
     How do you want to define your end point?
     
@@ -90,10 +100,12 @@ Information about the device associated with this Component. Keyboards, speakers
 
 
 .. _cameracomponent-deviceLabel:
+
 Device label
     A label to refer to this Component's associated hardware device by. If using the same device for multiple components, be sure to use the same label here.
     
 .. _cameracomponent-cameraLib:
+
 Backend
     Python package to use behind the scenes.
     
@@ -104,26 +116,32 @@ Backend
     * OpenCV
     
 .. _cameracomponent-device:
+
 Video device
     What device would you like to use to record video? This will only affect local experiments - online experiments ask the participant which device to use.
     
 .. _cameracomponent-deviceManual:
+
 Video device
     What device would you like to use to record video? This will only affect local experiments - online experiments ask the participant which device to use.
     
 .. _cameracomponent-resolution:
+
 Resolution
     Resolution (w x h) to record to, leave blank to use device default.
     
 .. _cameracomponent-resolutionManual:
+
 Resolution
     Resolution (w x h) to record to, leave blank to use device default.
     
 .. _cameracomponent-frameRate:
+
 Frame rate
     Frame rate (frames per second) to record at, leave blank to use device default.
     
 .. _cameracomponent-frameRateManual:
+
 Frame rate
     Frame rate (frames per second) to record at, leave blank to use device default. For some cameras, you may need to use `camera.CAMERA_FRAMERATE_NTSC` or `camera.CAMERA_FRAMERATE_NTSC / 2`.
     
@@ -134,14 +152,17 @@ Audio
 
 
 .. _cameracomponent-micDeviceLabel:
+
 Microphone device label
     A label to refer to this Component's associated microphone device by. If using the same device for multiple components, be sure to use the same label here.
     
 .. _cameracomponent-mic:
+
 Microphone
     What microphone device would you like the use to record? This will only affect local experiments - online experiments ask the participant which mic to use. Options are generated live, so will vary according to your setup.
     
 .. _cameracomponent-micChannels:
+
 Channels
     Record two channels (stereo) or one (mono, smaller file). Select 'auto' to use as many channels as the selected device allows.
     
@@ -154,10 +175,12 @@ Channels
     * stereo
     
 .. _cameracomponent-micSampleRate:
+
 Sample rate (hz)
     How many samples per second (Hz) to record at
     
 .. _cameracomponent-micMaxRecSize:
+
 Max recording size (kb)
     To avoid excessively large output files, what is the biggest file size you are likely to expect?
     
@@ -168,14 +191,17 @@ What information about this Component should be saved?
 
 
 .. _cameracomponent-saveStartStop:
+
 Save onset/offset times
     Store the onset/offset times in the data file (as well as in the log file).
     
 .. _cameracomponent-syncScreenRefresh:
+
 Sync timing with screen refresh
     Synchronize times with screen refresh (good for visual stimuli and responses based on them)
     
 .. _cameracomponent-saveFile:
+
 Save file?
     Save webcam output to a file?
     
@@ -186,6 +212,7 @@ Tools for testing, debugging and checking the performance of this Component.
 
 
 .. _cameracomponent-disabled:
+
 Disable Component
     Disable this Component
     

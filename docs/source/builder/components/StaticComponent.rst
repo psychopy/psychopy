@@ -1,4 +1,7 @@
+:orphan:
+
 .. _staticcomponent:
+
 
 -------------------------------
 Static Component
@@ -35,18 +38,22 @@ The required attributes of the stimulus, controlling its basic function and beha
 
 
 .. _staticcomponent-name:
+
 Name 
     Everything in a |PsychoPy| experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
     
 .. _staticcomponent-startVal:
+
 Start 
     When the Static Component should start, see :ref:`startStop`.
     
 .. _staticcomponent-startEstim:
+
 Expected start (s) 
     If you are using frames to control timing of your stimuli, you can add an expected start time to display the component timeline in the routine.
     
 .. _staticcomponent-startType:
+
 Start type 
     How do you want to define your start point?
     
@@ -59,14 +66,17 @@ Start type
     * condition
     
 .. _staticcomponent-stopVal:
+
 Stop 
     When the Static Component should stop, see :ref:`startStop`.
     
 .. _staticcomponent-durationEstim:
+
 Expected duration (s) 
     If you are using frames to control timing of your stimuli, you can add an expected duration to display the component timeline in the routine.
     
 .. _staticcomponent-stopType:
+
 Stop type 
     How do you want to define your end point?
     
@@ -89,10 +99,12 @@ What information about this Component should be saved?
 
 
 .. _staticcomponent-saveStartStop:
+
 Save onset/offset times 
     Store the onset/offset times in the data file (as well as in the log file).
     
 .. _staticcomponent-syncScreenRefresh:
+
 Sync timing with screen refresh 
     Synchronize times with screen refresh (good for visual stimuli and responses based on them)
     
@@ -103,10 +115,12 @@ Parameters for injecting custom code
 
 
 .. _staticcomponent-code:
+
 Custom code 
     After running the component updates (which are defined in each component, not here) any code inserted here will also be run
     
 .. _staticcomponent-saveData:
+
 Save data during 
     While the frame loop is paused, should we take the opportunity to save data now? This is only relevant locally, online data saving is either periodic or on close.
     
@@ -117,6 +131,7 @@ Tools for testing, debugging and checking the performance of this Component.
 
 
 .. _staticcomponent-disabled:
+
 Disable Component 
     Disable this Component
 

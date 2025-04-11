@@ -1,4 +1,7 @@
+:orphan:
+
 .. _aperturecomponent:
+
 
 -------------------------------
 Aperture Component
@@ -27,18 +30,22 @@ The required attributes of the stimulus, controlling its basic function and beha
 
 
 .. _aperturecomponent-name:
+
 Name
     Everything in a |PsychoPy| experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
     
 .. _aperturecomponent-startVal:
+
 Start
     When the Aperture Component should start, see :ref:`startStop`.
     
 .. _aperturecomponent-startEstim:
+
 Expected start (s)
     If you are using frames to control timing of your stimuli, you can add an expected start time to display the component timeline in the routine.
     
 .. _aperturecomponent-startType:
+
 Start type
     How do you want to define your start point?
     
@@ -51,14 +58,17 @@ Start type
     * condition
     
 .. _aperturecomponent-stopVal:
+
 Stop
     When the Aperture Component should stop, see :ref:`startStop`.
     
 .. _aperturecomponent-durationEstim:
+
 Expected duration (s)
     If you are using frames to control timing of your stimuli, you can add an expected duration to display the component timeline in the routine.
     
 .. _aperturecomponent-stopType:
+
 Stop type
     How do you want to define your end point?
     
@@ -75,6 +85,7 @@ Stop type
     * condition
     
 .. _aperturecomponent-shape:
+
 Shape
     What shape is this? With 'regular polygon...' you can set number of vertices and with 'custom polygon...' you can set vertices
     
@@ -99,10 +110,12 @@ Shape
     * Custom polygon...
     
 .. _aperturecomponent-nVertices:
+
 Num. vertices
     How many vertices in your regular polygon?
     
 .. _aperturecomponent-vertices:
+
 Vertices
     What are the vertices of your polygon? Should be an nx2 array or a list of [x, y] lists
     
@@ -113,14 +126,17 @@ How should the stimulus be laid out on screen? Padding, margins, size, position,
 
 
 .. _aperturecomponent-size:
+
 Size
     How big is the aperture? (a single number for diameter)
     
 .. _aperturecomponent-pos:
+
 Position [x,y]
     Where is the aperture centred?
     
 .. _aperturecomponent-units:
+
 Spatial units
     Spatial units for this stimulus (e.g. for its :ref:`position <aperturecomponent-pos>` and :ref:`size <aperturecomponent-size>`), see :ref:`units` for more info.
     
@@ -143,6 +159,7 @@ Spatial units
     * degFlat
     
 .. _aperturecomponent-anchor:
+
 Anchor
     Which point in this stimulus should be anchored to the point specified by :ref:`aperturecomponent-pos`? 
     
@@ -167,6 +184,7 @@ Anchor
     * bottom-right
     
 .. _aperturecomponent-ori:
+
 Orientation
     Orientation of this stimulus (in deg)
     
@@ -177,6 +195,7 @@ Orientation
     * 360
     
 .. _aperturecomponent-draggable:
+
 Draggable?
     Should this stimulus be moveble by clicking and dragging?
     
@@ -187,10 +206,12 @@ What information about this Component should be saved?
 
 
 .. _aperturecomponent-saveStartStop:
+
 Save onset/offset times
     Store the onset/offset times in the data file (as well as in the log file).
     
 .. _aperturecomponent-syncScreenRefresh:
+
 Sync timing with screen refresh
     Synchronize times with screen refresh (good for visual stimuli and responses based on them)
     
@@ -201,10 +222,12 @@ Tools for testing, debugging and checking the performance of this Component.
 
 
 .. _aperturecomponent-disabled:
+
 Disable Component
     Disable this Component
     
 .. _aperturecomponent-validator:
+
 Validate with...
     Name of the Validator Routine to use to check the timing of this stimulus. Options are generated live, so will vary according to your setup.
 

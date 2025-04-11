@@ -1,4 +1,7 @@
+:orphan:
+
 .. _imagecomponent:
+
 
 -------------------------------
 Image Component
@@ -26,18 +29,22 @@ The required attributes of the stimulus, controlling its basic function and beha
 
 
 .. _imagecomponent-name:
+
 Name
     Everything in a |PsychoPy| experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
     
 .. _imagecomponent-startVal:
+
 Start
     When the Image Component should start, see :ref:`startStop`.
     
 .. _imagecomponent-startEstim:
+
 Expected start (s)
     If you are using frames to control timing of your stimuli, you can add an expected start time to display the component timeline in the routine.
     
 .. _imagecomponent-startType:
+
 Start type
     How do you want to define your start point?
     
@@ -50,14 +57,17 @@ Start type
     * condition
     
 .. _imagecomponent-stopVal:
+
 Stop
     When the Image Component should stop, see :ref:`startStop`.
     
 .. _imagecomponent-durationEstim:
+
 Expected duration (s)
     If you are using frames to control timing of your stimuli, you can add an expected duration to display the component timeline in the routine.
     
 .. _imagecomponent-stopType:
+
 Stop type
     How do you want to define your end point?
     
@@ -74,6 +84,7 @@ Stop type
     * condition
     
 .. _imagecomponent-image:
+
 Image
     A filename or a standard name (sin, sqr). Filenames can be relative or absolute paths and can refer to most image formats (e.g. tif,
     jpg, bmp, png, etc.). If this is set to none, the patch will be a flat colour.
@@ -85,15 +96,18 @@ How should the stimulus be laid out on screen? Padding, margins, size, position,
 
 
 .. _imagecomponent-size:
+
 Size [w,h]
     Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] ). If the mask is a Gaussian then the size refers to width at 3 standard deviations on either side of the mean (i.e. sd=size/6)
     Set this to be blank to get the image in its native size.
     
 .. _imagecomponent-pos:
+
 Position [x,y]
     Position of this stimulus (e.g. [1,2] )
     
 .. _imagecomponent-units:
+
 Spatial units
     Spatial units for this stimulus (e.g. for its :ref:`position <imagecomponent-pos>` and :ref:`size <imagecomponent-size>`), see :ref:`units` for more info.
     
@@ -116,6 +130,7 @@ Spatial units
     * degFlat
     
 .. _imagecomponent-anchor:
+
 Anchor
     Which point in this stimulus should be anchored to the point specified by :ref:`imagecomponent-pos`? 
     
@@ -140,6 +155,7 @@ Anchor
     * bottom-right
     
 .. _imagecomponent-ori:
+
 Orientation
     Orientation of this stimulus (in deg)
     
@@ -150,14 +166,17 @@ Orientation
     * 360
     
 .. _imagecomponent-flipVert:
+
 Flip vertically
     Should the image be flipped vertically (top to bottom)?
     
 .. _imagecomponent-flipHoriz:
+
 Flip horizontally
     Should the image be flipped horizontally (left to right)?
     
 .. _imagecomponent-draggable:
+
 Draggable?
     Should this stimulus be moveble by clicking and dragging?
     
@@ -168,10 +187,12 @@ How should the stimulus look? Colors, borders, styles, etc.
 
 
 .. _imagecomponent-color:
+
 Foreground color
     Foreground color of this stimulus (e.g. $[1,1,0], red )
     
 .. _imagecomponent-colorSpace:
+
 Color space
     In what format (color space) have you specified the colors? See :ref:`colorspaces` for more info.
     
@@ -186,10 +207,12 @@ Color space
     * hsv
     
 .. _imagecomponent-opacity:
+
 Opacity
     Vary the transparency, from 0.0 (invisible) to 1.0 (opaque)
     
 .. _imagecomponent-contrast:
+
 Contrast
     Contrast of the stimulus (1.0=unchanged contrast, 0.5=decrease contrast, 0.0=uniform/no contrast, -0.5=slightly inverted, -1.0=totally inverted)
     
@@ -200,6 +223,7 @@ Texture
 
 
 .. _imagecomponent-mask:
+
 Mask
     A filename, a standard name (gauss, circle, raisedCos) or a numpy array of dimensions NxNx1. The mask can define the shape (e.g. circle will make the patch circular) or something which overlays the patch e.g. noise.
     
@@ -208,6 +232,7 @@ Texture resolution
     This is only needed if you use a synthetic texture (e.g. sinusoidal grating) as the image.
     
 .. _imagecomponent-interpolate:
+
 Interpolate
     If `linear` is selected then linear interpolation will be applied when the image is rescaled to the appropriate size for the screen. `Nearest` will use a nearest-neighbour rule.
     
@@ -224,10 +249,12 @@ What information about this Component should be saved?
 
 
 .. _imagecomponent-saveStartStop:
+
 Save onset/offset times
     Store the onset/offset times in the data file (as well as in the log file).
     
 .. _imagecomponent-syncScreenRefresh:
+
 Sync timing with screen refresh
     Synchronize times with screen refresh (good for visual stimuli and responses based on them)
     
@@ -238,10 +265,12 @@ Tools for testing, debugging and checking the performance of this Component.
 
 
 .. _imagecomponent-disabled:
+
 Disable Component
     Disable this Component
     
 .. _imagecomponent-validator:
+
 Validate with...
     Name of the Validator Routine to use to check the timing of this stimulus. Options are generated live, so will vary according to your setup.
     

@@ -1,4 +1,7 @@
+:orphan:
+
 .. _microphonecomponent:
+
 
 -------------------------------
 Microphone Component
@@ -35,18 +38,22 @@ The required attributes of the stimulus, controlling its basic function and beha
 
 
 .. _microphonecomponent-name:
+
 Name
     Everything in a |PsychoPy| experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
     
 .. _microphonecomponent-startVal:
+
 Start
     When the Microphone Component should start, see :ref:`startStop`.
     
 .. _microphonecomponent-startEstim:
+
 Expected start (s)
     If you are using frames to control timing of your stimuli, you can add an expected start time to display the component timeline in the routine.
     
 .. _microphonecomponent-startType:
+
 Start type
     How do you want to define your start point?
     
@@ -59,14 +66,17 @@ Start type
     * condition
     
 .. _microphonecomponent-stopVal:
+
 Stop
     When the Microphone Component should stop, see :ref:`startStop`.
     
 .. _microphonecomponent-durationEstim:
+
 Expected duration (s)
     If you are using frames to control timing of your stimuli, you can add an expected duration to display the component timeline in the routine.
     
 .. _microphonecomponent-stopType:
+
 Stop type
     The duration of the recording in seconds; blank = 0 sec
     
@@ -81,14 +91,17 @@ Information about the device associated with this Component. Keyboards, speakers
 
 
 .. _microphonecomponent-deviceLabel:
+
 Device label
     A label to refer to this Component's associated hardware device by. If using the same device for multiple components, be sure to use the same label here.
     
 .. _microphonecomponent-device:
+
 Device
     What microphone device would you like the use to record? This will only affect local experiments - online experiments ask the participant which mic to use.
     
 .. _microphonecomponent-channels:
+
 Channels
     Record two channels (stereo) or one (mono, smaller file). Select 'auto' to use as many channels as the selected device allows.
     
@@ -101,14 +114,17 @@ Channels
     * Stereo
     
 .. _microphonecomponent-sampleRate:
+
 Sample rate (hz)
     How many samples per second (Hz) to record at
     
 .. _microphonecomponent-exclusive:
+
 Exclusive control
     Take exclusive control of the microphone, so other apps can't use it during your experiment.
     
 .. _microphonecomponent-maxSize:
+
 Max recording size (kb)
     To avoid excessively large output files, what is the biggest file size you are likely to expect?
     
@@ -119,10 +135,12 @@ Transcription
 
 
 .. _microphonecomponent-transcribe:
+
 Transcribe audio
     Whether to transcribe the audio recording and store the transcription
     
 .. _microphonecomponent-transcribeBackend:
+
 Transcription backend
     What transcription service to use to transcribe audio?
     
@@ -133,20 +151,24 @@ Transcription backend
     * `Whisper (OpenAI) <https://openai.com/index/whisper/>`_: Uses an open-source speech recognition AI. Requires the `psychopy-whisper <https://github.com/psychopy/psychopy-whisper>`_ plugin to be installed, and will work better with a dedicated graphics card (as the model uses GPU to speed up processing)
     
 .. _microphonecomponent-transcribeLang:
+
 Transcription language
     What language you expect the recording to be spoken in, e.g. en-US for English
     
 .. _microphonecomponent-transcribeWords:
+
 Expected words
     Set list of words to listen for - if blank will listen for all words in chosen language. 
 
 If using the built-in transcriber, you can set a minimum % confidence level using a colon after the word, e.g. 'red:100', 'green:80'. Otherwise, default confidence level is 80%.
     
 .. _microphonecomponent-speakTimes:
+
 Speaking start / stop times
     Tick this to save times when the participant starts and stops speaking
     
 .. _microphonecomponent-transcribeWhisperModel:
+
 Whisper model (*if :ref:`microphonecomponent-transcribeBackend` is "Whisper"*)
     Which model of Whisper AI should be used for transcription? Details of each model are available `here <https://github.com/openai/whisper?tab=readme-ov-file#available-models-and-languages>`_
     
@@ -171,6 +193,7 @@ Whisper model (*if :ref:`microphonecomponent-transcribeBackend` is "Whisper"*)
     * medium.en
     
 .. _microphonecomponent-transcribeWhisperDevice:
+
 Whisper device (*if :ref:`microphonecomponent-transcribeBackend` is "Whisper"*)
     Which device to use for transcription?
     
@@ -189,14 +212,17 @@ What information about this Component should be saved?
 
 
 .. _microphonecomponent-saveStartStop:
+
 Save onset/offset times
     Store the onset/offset times in the data file (as well as in the log file).
     
 .. _microphonecomponent-syncScreenRefresh:
+
 Sync timing with screen refresh
     Synchronize times with screen refresh (good for visual stimuli and responses based on them)
     
 .. _microphonecomponent-outputType:
+
 Output file type
     What file type should output audio files be saved as?
     
@@ -257,6 +283,7 @@ Output file type
     * xi
     
 .. _microphonecomponent-policyWhenFull:
+
 Full buffer policy
     What to do when we reach the max amount of audio data which can be safely stored in memory?
     
@@ -269,6 +296,7 @@ Full buffer policy
     * Raise error
     
 .. _microphonecomponent-trimSilent:
+
 Trim silent
     Trim periods of silence from the output file
     
@@ -279,6 +307,7 @@ Tools for testing, debugging and checking the performance of this Component.
 
 
 .. _microphonecomponent-disabled:
+
 Disable Component
     Disable this Component
     

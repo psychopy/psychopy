@@ -1,4 +1,7 @@
+:orphan:
+
 .. _pavloviasurveyroutine:
+
 
 -------------------------------
 Pavlovia Survey Routine
@@ -55,10 +58,12 @@ The required attributes of the stimulus, controlling its basic function and beha
 
 
 .. _pavloviasurveyroutine-name:
+
 Name 
     Everything in a |PsychoPy| experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
     
 .. _pavloviasurveyroutine-surveyType:
+
 Survey type 
     How to specify the survey.
     
@@ -69,10 +74,12 @@ Survey type
     * Survey Model File: Inserting a JSON file (exported from Pavlovia Surveys) means that the survey is embedded within this project and will not change unless you import it again (better for archiving)
     
 .. _pavloviasurveyroutine-surveyId:
+
 Survey id (*if :ref:`pavloviasurveyroutine-surveytype` is "Survey id"*)
     The ID for your survey on Pavlovia. Tip: Right click to open the survey in your browser!
     
 .. _pavloviasurveyroutine-surveyJson:
+
 Survey JSON (*if :ref:`pavloviasurveyroutine-surveytype` is "Survey Model File"*)
     File path of the JSON file used to construct the survey
     
@@ -83,6 +90,7 @@ Tools for testing, debugging and checking the performance of this Component.
 
 
 .. _pavloviasurveyroutine-disabled:
+
 Disable Routine 
     Disable this Routine
     

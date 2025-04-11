@@ -1,4 +1,7 @@
+:orphan:
+
 .. _resourcemanagercomponent:
+
 
 -------------------------------
 Resource Manager Component
@@ -64,18 +67,22 @@ The required attributes of the stimulus, controlling its basic function and beha
 
 
 .. _resourcemanagercomponent-name:
+
 Name 
     Everything in a |PsychoPy| experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
     
 .. _resourcemanagercomponent-startVal:
+
 Start 
     When the Resource Manager Component should start, see :ref:`startStop`.
     
 .. _resourcemanagercomponent-startEstim:
+
 Expected start (s) 
     If you are using frames to control timing of your stimuli, you can add an expected start time to display the component timeline in the routine.
     
 .. _resourcemanagercomponent-startType:
+
 Start type 
     How do you want to define your start point?
     
@@ -88,14 +95,17 @@ Start type
     * condition
     
 .. _resourcemanagercomponent-stopVal:
+
 Check 
     When the Resource Manager Component should stop, see :ref:`startStop`.
     
 .. _resourcemanagercomponent-durationEstim:
+
 Expected duration (s) 
     If you are using frames to control timing of your stimuli, you can add an expected duration to display the component timeline in the routine.
     
 .. _resourcemanagercomponent-stopType:
+
 Stop type 
     How do you want to define your end point?
     
@@ -112,14 +122,17 @@ Stop type
     * condition
     
 .. _resourcemanagercomponent-resources:
+
 Resources 
     Resources to download/check
     
 .. _resourcemanagercomponent-checkAll:
+
 Check all 
     When checking these resources, also check for all currently downloading?
     
 .. _resourcemanagercomponent-actionType:
+
 Preload actions 
     Should this Component start an / or check resource preloading?
     
@@ -132,6 +145,7 @@ Preload actions
     * Check Only
     
 .. _resourcemanagercomponent-forceEndRoutine:
+
 Force end Routine 
     Should we end the Routine when the resource download is complete?
     
@@ -142,6 +156,7 @@ Tools for testing, debugging and checking the performance of this Component.
 
 
 .. _resourcemanagercomponent-disabled:
+
 Disable Component 
     Disable this Component
     
