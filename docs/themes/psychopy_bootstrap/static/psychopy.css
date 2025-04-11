@@ -9,83 +9,181 @@
 @import url("https://use.fontawesome.com/releases/v6.6.0/css/brands.css");
 @import url("https://use.fontawesome.com/releases/v6.6.0/css/fontawesome.css");
 @import url("https://use.fontawesome.com/releases/v6.6.0/css/fontawesome.css");
-@import url("https://fonts.googleapis.com/css?family=Indie+Flower");
-@import url("https://fonts.googleapis.com/css?family=Arvo");
+
+
+@font-face {
+    font-family: "Monotype Corsiva";
+    src: url("fonts/Monotype Corsiva.ttf");
+}
+@font-face {
+    font-family: "Noto Sans";
+    src: url("fonts/Noto Sans-Regular.ttf");
+    font-weight: 400;
+}
+@font-face {
+    font-family: "Noto Sans";
+    src: url("fonts/Noto Sans-Bold.ttf");
+    font-weight: 700;
+}
+@font-face {
+    font-family: "Noto Sans";
+    src: url("fonts/Noto Sans-Italic.ttf");
+    font-weight: 400;
+    font-style: italic;
+}
+@font-face {
+    font-family: "Noto Sans";
+    src: url("fonts/Noto Sans-BoldItalic.ttf");
+    font-weight: 700;
+    font-style: italic;
+}
+@font-face {
+    font-family: "JetBrains Mono";
+    src: url("fonts/JetBrains Mono-Regular.ttf");
+    font-weight: 400;
+}
+@font-face {
+    font-family: "JetBrains Mono";
+    src: url("fonts/JetBrains Mono-Bold.ttf");
+    font-weight: 700;
+}
+@font-face {
+    font-family: "JetBrains Mono";
+    src: url("fonts/JetBrains Mono-Italic.ttf");
+    font-weight: 400;
+    font-style: italic;
+}
+@font-face {
+    font-family: "JetBrains Mono";
+    src: url("fonts/JetBrains Mono-BoldItalic.ttf");
+    font-weight: 700;
+    font-style: italic;
+}
 
 :root {
-    --black: #000000;
-    --midgrey: #66666e;
-    --lightgrey: #acacb0;
-    --white: #f2f2f2;
-    --red: #f2545b;
-    --blue: #02a9ea;
-    --green: #6ccc74;
-    --orange: #ec9703;
-    --yellow: #f1d302;
-    --purple: #c3bef7;
+    /* theme colours */
+    --red: #F2545B;
+    --blue: #02A9EA;
+    --green: #6CCC74;
+    --orange: #EC9703;
+    --yellow: #F1D302;
+    /* background colours */
+    --base: #FFFFFF;
+    --mantle: #F2F2F2;
+    --crust: #E4E4E4;
+    --overlay: #D6D6D6;
+    --outline: #66666E;
 
-    --f1: "sans-serif"
-    --f2: "Arvo"
-    --f3: "Indie Flower"
+    /* override sphinx colours */
+    --sd-color-primary: var(--blue) !important;
+    --sd-color-secondary: var(--red) !important;
+    --sd-color-success: var(--green) !important;
+    --sd-color-info: var(--blue) !important;
+    --sd-color-warning: var(--orange) !important;
+    --sd-color-danger: var(--red) !important;
+    --sd-color-light: var(--mantle) !important;
+    --sd-color-muted: var(--crust) !important;
+    --sd-color-dark: var(--outline) !important;
+    --sd-color-black: var(--text) !important;
+    --sd-color-white: var(--base) !important;
+    --sd-color-primary-highlight: var(--red) !important;
+    --sd-color-secondary-highlight: var(--yellow) !important;
+    --sd-color-light-highlight: var(--crust) !important;
+    --sd-color-muted-highlight: var(--overlay) !important;
+    --sd-color-dark-highlight: var(--text) !important;
+    --sd-color-black-highlight: var(--outline) !important;
+    --sd-color-white-highlight: var(--mantle) !important;
+    --sd-color-card-border: var(--overlay) !important;
+    --sd-color-card-border-hover: var(--blue) !important;
+    --sd-color-tabs-label-active: var(--blue) !important;
+    --sd-color-tabs-label-hover: var(--text) !important;
+    --sd-color-tabs-label-inactive: var(--outline) !important;
+    --sd-color-tabs-underline-active: var(--blue) !important;
+    --sd-color-tabs-underline-hover: var(--overlay) !important;
+    --sd-color-tabs-overline: var(--overlay) !important;
+    --sd-color-tabs-underline: var(--overlay) !important;
+    --sd-color-shadow: transparent !important;
+
+    /* text colour */
+    --text: #161616;
+    --hltext: #FFFFFF;
+    /* background-specific text colour */
+    --red-text: var(--hltext);
+    --blue-text: var(--hltext);
+    --green-text: var(--text);
+    --orange-text: var(--hltext);
+    --yellow-text: var(--text);
+    --base-text: var(--text);
+    --mantle-text: var(--text);
+    --crust-text: var(--text);
+    --overlay-text: var(--hltext);
+    --outline-text: var(--hltext);
+
+    /* fonts */
+    --heading: "Noto Sans";
+    --body: "Noto Sans";
+    --mono: "JetBrains Mono";
     --gradient: linear-gradient(#4582ec 0%, #fff 100%);
     --theme-color: #66666E;
+
+    /* page width (responsive) */
+    --content-width: 1080px;
+
+    /* defaults */
+    font-size: 16px;
+    font-family: var(--body);
+    color: var(--text);
 }
 
 body {
     padding-top: 54px;
+    color: var(--text);
+    background-color: var(--base);
+    font-family: var(--body);
 }
 
 html, body {
     height: 100%; /* needed for the full-height sections to work*/
-    /*scroll-behavior: smooth;*/ /* this requires 2 clicks for internal links! */
-    font-family: sans-serif;
+}
+
+main {
+    position: relative;
+}
+
+main > section {
+    z-index: 1;
+    background-color: var(--base);
+    padding: 1rem calc((100% - var(--content-width)) / 2);
+}
+
+h1, 
+h2, 
+h3, 
+h4, 
+h5, 
+h6 {
+    font-family: var(--heading);
+}
+code, 
+pre {
+    font-family: var(--mono)
+}
+
+.sd-btn {
+    padding: 1rem;
+    border-radius: .75rem;
 }
 
 h1, .h1 {
     font-size: 34px;
 }
-
-h1::before { 
-    display: block; 
-    content: " "; 
-    margin-top: -101px; 
-    height: 101px; 
-    visibility: hidden; 
-    pointer-events: none;
-  }
   
 h2, .h2 {
     font-size: 28px;
 }
-
-h2::before { 
-    display: block; 
-    content: " "; 
-    margin-top: -101px; 
-    height: 101px; 
-    visibility: hidden; 
-    pointer-events: none;
-  }
   
 h3, .h3 {
     font-size: 24px;
-}
-h3::before {
-    display: block;
-    content: " ";
-    margin-top: -101px;
-    height: 101px;
-    visibility: hidden;
-    pointer-events: none;
-}
-
-.row {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  width: 100%;
-  justify-content: center;
-  align-items: center;
 }
 
 .column-collapse { /* will convert to row for <768 */
@@ -93,6 +191,33 @@ h3::before {
   flex-direction: column;
   flex-basis: 100%;
   flex: 1;
+}
+
+img.align-right, .figure.align-right, object.align-right {
+    margin-left: 3rem;
+}
+img.align-left, .figure.align-left, object.align-left {
+    margin-right: 3rem;
+}
+
+.news-reel {
+    position: absolute;
+    bottom: calc(100% + 1rem);
+    left: 1rem;
+    max-width: 420px;
+    opacity: 50%;
+}
+.news-reel:hover {
+    opacity: 100%;
+}
+.news-reel .sd-card {
+    background-color: var(--base);
+    border: 1px solid var(--overlay);
+    /* this will be overwritten by JS */
+    display: none;
+}
+.news-reel .sd-card-title {
+    color: var(--red);
 }
 
 /* special cases */
@@ -149,7 +274,7 @@ blockquote {
 .central-logo .icon3-layer {
     position: absolute;
     font-family: 'Indie Flower';
-    color: 'dark red';
+    color: var(--red);
     font-size: 8vw;
     top: 2vw;
     left: 83vw;
@@ -232,6 +357,39 @@ blockquote {
     font-weight: bold
 }
 
+.navbar .container {
+    padding-top: 0;
+    display: flex;
+    justify-content: center;
+}
+
+.button {
+    background-color: var(--blue);
+    color: var(--blue-text);
+    padding: 1rem;
+    border-radius: .75rem;
+    text-decoration: none;
+}
+.button:hover {
+    text-decoration: none;
+    background: var(--blue) linear-gradient(rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0.25));
+    color: var(--blue-text);
+}
+
+a {
+    color: var(--blue);
+    text-decoration: none;
+}
+.navbar-default .navbar-nav>li>a {
+    color: var(--outline);
+    text-decoration: none;
+}
+a:hover,
+.navbar-default .navbar-nav>li>a:hover {
+    color: var(--red);
+    text-decoration: none;
+}
+
 /* @media (min-width: 992px) {
   body {
     padding-top: 56px;
@@ -243,7 +401,7 @@ blockquote {
     text-decoration: underline;
 }
 .bg-primary a:hover {
-    color: 'red';
+    color: var(--red);
     text-decoration: underline;
 }
 
@@ -337,7 +495,7 @@ blockquote {
 
 /* set our responsive mode controls */
 
-@media (max-width: 768px) {
+@media (max-width: 1080px) {
 
     .tagline-buttons{
     font-size: 2em;
@@ -367,94 +525,13 @@ blockquote {
         padding-top: 80px;
     }
 
-    .container {
-        padding-right: 15px;
-        padding-left: 15px;
-    }
-}
-
-@media (min-width: 769px) {
-    .large-logo {
-        display: block;
+    :root {
+        /* alter content width for smaller screens */
+        --content-width: 90%;
     }
 
-    .small-logo img {
-        display: none;
-    }
-
-    .social-bar {
-        display: block;
-    }
-
-    body {
-        padding-top: 80px;
-    }
-
-    .container {
-        padding-right: 100px;
-        padding-left: 100px;
-    }
-}
-
-/* override the bootstrap max-widths to prevent jerky expanding */
-
-@media (max-width: 576px) {
-
-    .tagline-buttons{
-    font-size: 1.25em;
-    font-weight: bold
-    }
-    
-    .title-tagline{
-        font-size: 100%;
-    }
-
-    .container {
-        max-width: 90%
-    }
-
-    .text-layer {
-        display: none
-    }
-
-    .text-layer-abbr {
-        display: block
-    }
-}
-
-@media (min-width: 576px) {
-    .container {
-        max-width: 90%;
-    }
-
-    .text-layer {
-        display: block;
-    }
-
-    .text-layer-abbr {
-        display: none
-    }
-}
-
-@media (min-width: 768px) {
-    .container {
-        max-width: 90%;
-    }
-}
-
-@media (min-width: 992px) {
-    .container {
-        max-width: 90%;
-    }
-}
-
-@media (min-width: 1200px) {
-    .container {
-        max-width: 100%;
-    }
-
-    .central-logo {
-        padding: 80px;
+    .news-reel {
+        display: none !important;
     }
 }
 
@@ -478,14 +555,13 @@ blockquote {
   font-size: 60px;
 }
 
-.stats-container {
-    text-align: center; /* Center the text horizontally */
-    font-size: 16px;
-    font-weight: normal;
-    }
+.footer {
+    border-top: 1px solid var(--overlay);
+    background-color: var(--mantle);
+}
 
 .red_button {
-  background-color: #f44336; /* Green */
+  background-color: var(--red); /* Green */
   font-size: 16px;
   border-radius: 4px;
   border: none;

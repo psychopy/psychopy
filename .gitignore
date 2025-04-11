@@ -122,4 +122,5 @@ uninstallFiles.nsi
 .coverage
 #nonSphinx
 /venv*/
+/.venv*/
 !psychopy

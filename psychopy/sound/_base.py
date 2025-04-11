@@ -8,6 +8,7 @@
 from pathlib import Path
 import numpy
 import copy
+import itertools
 from os import path
 from psychopy import logging
 from psychopy.constants import (STARTED, PLAYING, PAUSED, FINISHED, STOPPED,
@@ -122,7 +123,7 @@ class _SoundBase(AttributeGetSetMixin):
     # def _setSndFromArray(self, thisArray):
 
     autoLog = True
-    
+
     def setSound(self, value, secs=0.5, octave=4, hamming=True, log=True):
         """Set the sound to be played.
 
@@ -182,19 +183,20 @@ class _SoundBase(AttributeGetSetMixin):
             else:
                 # try finding a file
                 self.fileName = None
-                for filePath in ['', mediaLocation]:
-                    p = path.join(filePath, value)
-                    if path.isfile(p):
-                        self.fileName = p
+                valid_paths = ['', mediaLocation]
+                valid_endings = ['', '.wav', '.mp3', '.flac', '.ogg']
+                for pre, suf in itertools.product(valid_paths, valid_endings):
+                    media_filepath = path.join(pre, value)
+                    if path.isfile(media_filepath + suf):
+                        self.fileName = media_filepath + suf
                         break
-                    elif path.isfile(p + '.wav'):
-                        self.fileName = p = p + '.wav'
-                        break
+
                 if self.fileName is None:
                     msg = "setSound: could not find a sound file named "
                     raise ValueError(msg + value)
                 else:
-                    self._setSndFromFile(p)
+                    self._setSndFromFile(self.fileName)
+
         elif isinstance(value, (list, numpy.ndarray,)):
             # create a sound from the input array/list
             self._setSndFromArray(numpy.array(value))
@@ -204,7 +206,7 @@ class _SoundBase(AttributeGetSetMixin):
                 logging.warning(
                     "Sound output sample rate not set. The provided AudioClip "
                     "requires a sample rate of {} Hz for playback which may "
-                    "not match the device settings.".format(value.sampleRateHz)) 
+                    "not match the device settings.".format(value.sampleRateHz))
 
                 self.sampleRate = value.sampleRateHz
 
@@ -226,7 +228,7 @@ class _SoundBase(AttributeGetSetMixin):
             if log and self.autoLog:
                 logging.exp("Set %s sound=%s" % (self.name, value), obj=self)
             self.status = NOT_STARTED
-    
+
     @attributeSetter
     def sampleRate(self, sampleRate):
         # if given None, use sample rate from speaker
@@ -234,22 +236,22 @@ class _SoundBase(AttributeGetSetMixin):
             sampleRate = self.speaker.sampleRateHz
         # set as normal
         self.__dict__['sampleRate'] = sampleRate
-    
+
     # alias channels, stereo and isStereo for the sake of the different backends
 
     @attributeSetter
     def channels(self, channels):
         self.__dict__['channels'] = channels
         self.__dict__['stereo'] = self.__dict__['isStereo'] = channels is None or channels > 1
-    
+
     @attributeSetter
     def stereo(self, stereo):
         self.channels = 2 if stereo else 1
-    
+
     @attributeSetter
     def isStereo(self, stereo):
         self.stereo = stereo
-        
+
     def _setSndFromNote(self, thisNote, secs, octave, hamming=True):
         # note name -> freq -> sound
         freqA = 440.0
@@ -273,7 +275,7 @@ class _SoundBase(AttributeGetSetMixin):
         if hamming and nSamples > 30:
             outArr = apodize(outArr, self.sampleRate)
         self._setSndFromArray(outArr)
-    
+
     def _setSndFromFile(self, filename):
         # alias default names (so it always points to default.png)
         if filename in defaultStim:
@@ -311,7 +313,7 @@ class _SoundBase(AttributeGetSetMixin):
             self._setSndFromArray(sndArr)
         self._channelCheck(
             self.sndArr)  # Check for fewer channels in stream vs data array
-    
+
     def _setSndFromArray(self, thisArray):
         self.sndArr = numpy.asarray(thisArray).astype('float32')
         if thisArray.ndim == 1:
@@ -339,19 +341,19 @@ class _SoundBase(AttributeGetSetMixin):
 
         # create audio clip
         clip = AudioClip(
-            samples=self.sndArr, 
+            samples=self.sndArr,
             sampleRateHz=self.sampleRate
         )
         # set from clip
         self._setSndFromClip(clip)
-    
+
     def _setSndFromClip(self, clip: AudioClip):
         """
-        Set current sound from an AudioClip object. All other setSound methods eventually lead to 
-        this - they just transform the given sound (be it an array, file, note, etc.) to an 
+        Set current sound from an AudioClip object. All other setSound methods eventually lead to
+        this - they just transform the given sound (be it an array, file, note, etc.) to an
         AudioClip first.
 
-        Each subclass of _SoundBase (so each sound backend; ptb, pygame, etc.) will implement this 
+        Each subclass of _SoundBase (so each sound backend; ptb, pygame, etc.) will implement this
         method in their own way.
 
         Parameters

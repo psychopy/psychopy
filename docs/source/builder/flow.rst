@@ -226,7 +226,7 @@ Note that |PsychoPy| uses Python's built-in slicing syntax (where the first inde
 
 Check that the conditions you wanted to select are the ones you intended!
 
-.. _accessingParams:
+.. _accessing-params:
 
 Using loops to update stimuli trial-by-trial
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

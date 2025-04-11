@@ -57,6 +57,42 @@
       gtag('config', 'G-96LHQFPY1F');
     </script>
 
+    <!-- News reel -->
+     <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        // get all news reels
+        for (let reel of document.getElementsByClassName("news-reel")) {
+          // get all cards
+          let cards = Array.from(reel.getElementsByClassName("sd-card"))
+          // start off with the first card
+          reel.showItem = 0;
+          // define function to show the next node
+          let update = () => {
+            for (let item of cards) {
+              // get index
+              let index = cards.indexOf(item);
+              // show/hide according to index match
+              if (index === reel.showItem) {
+                console.log("Showing news item:", item)
+                item.style.display = "block";
+              } else {
+                item.style.display = "none";
+              }
+            }
+            // iterate shown index
+            reel.showItem += 1;
+            if (reel.showItem >= cards.length) {
+              reel.showItem -= cards.length;
+            }
+          }
+          // run once now
+          update()
+          // schedule to run every 5s
+          window.setInterval(update, 5000);
+        }
+      }, false);    
+     </script>
+
     <!-- Matomo -->
     <script>
       var _paq = window._paq = window._paq || [];
@@ -80,39 +116,26 @@
 {% endblock %}
 
 {# Silence the sidebar's, relbar's #}
-{% block header %}{% endblock %}
 {% block relbar1 %}{% endblock %}
 {% block relbar2 %}{% endblock %}
 {% block sidebarsourcelink %}{% endblock %}
 
+{# different header on homepage #}
+{% block header %}
+  {% if meta and meta['header_template'] == "homepage" %}
+    {% include "homepage_header.html" %}
+  {% else %}
+    {% include "header.html" %}
+  {% endif %}
+{% endblock %}
+
+{# insert content #}
 {%- block content %}
-
-<!-- The social media icon bar -->
-<div class="social-bar">
-  <a href="https://github.com/psychopy/psychopy" class="github">
-    <i class="fab fa-github"></i></a>
-  <a href="https://bsky.app/profile/psychopy.org" class="bluesky">
-    <i class="fab fa-bluesky"></i></a>
-  <a href="https://www.youtube.com/watch?v=VV6qhuQgsiI&list=PLFB5A1BE51964D587" class="youtube">
-    <i class="fab fa-youtube"></i></a>
-  <a href="https://www.facebook.com/PsychoPy/" class="facebook">
-    <i class="fab fa-facebook"></i></a>
-    <a href="https://www.linkedin.com/company/open-science-tools" class="linkedin">
-      <i class="fab fa-linkedin"></i></a>
-    <a href="https://twitter.com/psychopy" class="twitter">
-      <i class="fab fa-x-twitter"></i></a>
+<main>
+  {% block body %}{% endblock %}
 </div>
-
-{{ navBar() }}
-<div class="container">
-  <div class="row">
-    {%- block sidebar1 %}{{ bsidebar() }}{% endblock %}
-    <div class="{{ bs_span_prefix }}{{ bs_content_width }} content">
-      {% block body %}{% endblock %}
-      <br/><a href="#" class="pull-right">Back to top</a>
-    </div>
-    {% block sidebar2 %} {# possible location for sidebar #} {% endblock %}
-  </div>
+<div class="{{ bs_span_prefix }}{{ bs_content_width }} content">
+  <br/><a href="#" class="pull-right">Back to top</a>
 </div>
 {%- endblock %}
 

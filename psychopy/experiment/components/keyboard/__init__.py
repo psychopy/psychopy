@@ -7,6 +7,7 @@
 
 from pathlib import Path
 
+from psychopy.alerts._alerts import alert
 from psychopy.experiment.components import BaseDeviceComponent, Param, _translate, getInitVals
 from psychopy.experiment import CodeGenerationException, valid_var_re
 from pkgutil import find_loader
@@ -334,34 +335,7 @@ class KeyboardComponent(BaseDeviceComponent):
 
         buff.writeIndented("\n")
         buff.writeIndented("// *%s* updates\n" % self.params['name'])
-
-        allowedKeysIsVar = (valid_var_re.match(str(allowedKeys)) and not
-                            allowedKeys == 'None')
-
-        if allowedKeysIsVar:
-            # if it looks like a variable, check that the variable is suitable
-            # to eval at run-time
-            raise CodeGenerationException(
-                "Variables for allowKeys aren't supported for JS yet")
-            #code = ("# AllowedKeys looks like a variable named `%s`\n"
-            #        "if not '%s' in locals():\n"
-            #        "    logging.error('AllowedKeys variable `%s` is not defined.')\n"
-            #        "    core.quit()\n"
-            #        "if not type(%s) in [list, tuple, np.ndarray]:\n"
-            #        "    if not isinstance(%s, str):\n"
-            #        "        logging.error('AllowedKeys variable `%s` is "
-            #        "not string- or list-like.')\n"
-            #        "        core.quit()\n" %
-            #        allowedKeys)
-            #
-            #vals = (allowedKeys, allowedKeys, allowedKeys)
-            #code += (
-            #    "    elif not ',' in %s: %s = (%s,)\n" % vals +
-            #    "    else:  %s = eval(%s)\n" % (allowedKeys, allowedKeys))
-            #buff.writeIndentedLines(code)
-            #
-            #keyListStr = "keyList=list(%s)" % allowedKeys  # eval at run time
-
+        
         # write code to run on first frame once started
         indented = self.writeStartTestCodeJS(buff)
         if indented:
@@ -409,7 +383,7 @@ class KeyboardComponent(BaseDeviceComponent):
             # do we need a list of keys? (variable case is already handled)
             if allowedKeys in [None, "none", "None", "", "[]", "()"]:
                 keyListStr = "[]"
-            elif not allowedKeysIsVar:
+            else:
                 if isinstance(allowedKeys, str) and "," in allowedKeys:
                     # it might be a list without [], if so split and recombine
                     keyList = [item.strip() for item in allowedKeys.split(",")]
