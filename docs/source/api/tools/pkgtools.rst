@@ -1,8 +1,8 @@
 
 :mod:`psychopy.tools.pkgtools`
 ------------------------------
-.. automodule:: psychopy.tools.imagetools
-.. currentmodule:: psychopy.tools.imagetools
+.. automodule:: psychopy.tools.pkgtools
+.. currentmodule:: psychopy.tools.pkgtools
 
 .. autosummary::
 
