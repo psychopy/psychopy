@@ -17,6 +17,7 @@ How do I build experiments?
 See the guides below to learn how to make some classic experiments.
 
 .. grid:: 1 2 3 4
+   :gutter: 1
 
    .. grid-item-card:: Stroop Task
       :link: stroop
@@ -71,4 +72,4 @@ How do I...
    Install PsychoPy in a classroom (for administrators)? <classroomInstallation>
    Add external modules to Standalone PsychoPy? <addCustomModules>
    Build an app from my PsychoPy script? <appFromScript>
-   Contribute to PsychoPy? <pycharm_basics>
+   Contribute to PsychoPy? <contributing_tutorial>
