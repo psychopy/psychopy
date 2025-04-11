@@ -121,7 +121,6 @@ __all__ = [
     'createTexImage2D',
     'createTexImage2dFromFile',
     'bindTexture',
-    'unbindTexture',
     'createCubeMap',
     'TexCubeMap',
     'getModelViewMatrix',
