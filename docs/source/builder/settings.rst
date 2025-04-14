@@ -73,6 +73,7 @@ Incomplete URL
     The URL to direct participants to if they exit the task early (e.g. by pressing the escape key).
 
 .. _Resources:
+
 Additional resources
     Resources that your task will require (e.g. image files, excel sheets). Note that |PsychoPy| will attempt to populate this automatically, though if you encounter an "Unknown resource" error online, it is possible that you need to add resources to this list.
 

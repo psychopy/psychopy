@@ -242,7 +242,8 @@ Phase (in cycles)
 Spatial frequency
     The spatial frequency of the texture on the patch. The units are dependent on the specified units for the stimulus/window; if the units are *deg* then the SF units will be *cycles/deg*, if units are *norm* then the SF units will be cycles per stimulus. If this is set to none then only one cycle will be displayed.
     
-.. _gratingcomponent-texture resolution:
+.. _gratingcomponent-texture-resolution:
+
 Texture resolution
     Defines the size of the resolution of the texture for standard textures such as *sin*, *sqr* etc. For most cases a value of 256 pixels will suffice, but if stimuli are going to be very small then a lower resolution will use less memory.
     

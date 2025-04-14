@@ -4,7 +4,7 @@ Manual coding of PsychoJS studies
 
 **Note that PsychoJS is very much under development and all parts of the API are subject to change**
 
-Some people may want to write a JS script from scratch or convert their PsychoPy Python script into `PsychoJS`_. However, supporting this approach is beyond the scope of our documentation and our `forum <https://discourse.psychopy.org/c/online/14>`_.
+Some people may want to write a JS script from scratch or convert their PsychoPy Python script into |PsychoJS|. However, supporting this approach is beyond the scope of our documentation and our `forum <https://discourse.psychopy.org/c/online/14>`_.
 
 Working with JS Code Components
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

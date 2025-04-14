@@ -88,26 +88,26 @@ Below are some recommended formats and pointers how to convert your media with f
 Images: PNG or JPG
 ~~~~~~~~~~~~~~~~~~
 
-Web-browsers support a large variety of image formats; see an `overview here <https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Image_types>`_. Two widely supported formats are:
+Web-browsers support a large variety of image formats; see an `overview here <https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Image_types>`__. Two widely supported formats are:
 
 * PNG. This format applies "lossless" compression, which means that the compressed image is an exact reproduction of the original image. PNG is good at compressing pictures with geometric shapes, but natural scenes may yield relatively large files.
 * JPG. This format applies "lossy" compression, which means that the compressed image approximates the original image. JPG can compress natural scenes very well. When encoding to JPG, you can adjust quality settings to produce larger (and more detailed) or smaller (and less detailed) files.
  
-For converting images to PNG and JPG, you could use `GIMP <https://www.gimp.org/>`_. See `this tutorial about GIMP <https://www.digitaltrends.com/computing/how-to-edit-multiple-photos-at-once/>`_ for instructions on how to convert multiple images at once using GIMP. By picking "Change Format and Compression" in step 4 of the tutorial you can select which format to save the images in.
+For converting images to PNG and JPG, you could use `GIMP <https://www.gimp.org/>`__. See `this tutorial about GIMP <https://www.digitaltrends.com/computing/how-to-edit-multiple-photos-at-once/>`__ for instructions on how to convert multiple images at once using GIMP. By picking "Change Format and Compression" in step 4 of the tutorial you can select which format to save the images in.
 
 Sounds: MP3
 ~~~~~~~~~~~
 
-Here you can find an `overview <https://developer.mozilla.org/en-US/docs/Web/Guide/Audio_and_video_delivery/Cross-browser_audio_basics#Audio_Codec_Support>`_ of audio formats supported by web browsers. MP3 is the most widely supported format. MP3 performs lossy compression, so the sound may lose some detail, but you can adjust the quality level. At higher qualities, the loss in detail is negligible. 
+Here you can find an `overview <https://developer.mozilla.org/en-US/docs/Web/Guide/Audio_and_video_delivery/Cross-browser_audio_basics#Audio_Codec_Support>`__ of audio formats supported by web browsers. MP3 is the most widely supported format. MP3 performs lossy compression, so the sound may lose some detail, but you can adjust the quality level. At higher qualities, the loss in detail is negligible. 
 
-For converting sound to MP3, you could use `VLC Player <https://www.videolan.org/vlc/>`_. See `this tutorial about VLC <https://www.vlchelp.com/convert-audio-format/>`_ for instructions on how to convert multiple sounds at once using VLC.
+For converting sound to MP3, you could use `VLC Player <https://www.videolan.org/vlc/>`__. See `this tutorial about VLC <https://www.vlchelp.com/convert-audio-format/>`__ for instructions on how to convert multiple sounds at once using VLC.
 
 NB - Presently, PsychoPy does not yet support MP3.
 
 Movies: MP4 + H.264 & MP3
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Here you can find an `overview <https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Video_codecs>`_ of video formats supported by web browsers. MP4 + H.264 + MP3 is the most widely supported format. 
+Here you can find an `overview <https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Video_codecs>`__ of video formats supported by web browsers. MP4 + H.264 + MP3 is the most widely supported format. 
 
 * MP4 is a format that can contain video and audio
 * H.264 is a format that encodes video
@@ -115,7 +115,7 @@ Here you can find an `overview <https://developer.mozilla.org/en-US/docs/Web/Med
 
 Both H.264 and MP3 perform lossy compression, so the video and audio may lose some detail, but you can adjust the quality level. At higher qualities, the loss in detail is negligible. 
 
-For converting movies, you could use `VLC Player <https://www.videolan.org/vlc/>`_. See `this tutorial <https://www.vlchelp.com/convert-video-format/>`_ for instructions on how to convert multiple movies at once using VLC. To set up the output format correctly, we recommend making a new profile at step 4 in the tutorial above (see :numref:`videoSettings`):
+For converting movies, you could use `VLC Player <https://www.videolan.org/vlc/>`__. See `this tutorial <https://www.vlchelp.com/convert-video-format/>`__ for instructions on how to convert multiple movies at once using VLC. To set up the output format correctly, we recommend making a new profile at step 4 in the tutorial above (see :numref:`videoSettings`):
 
 1. Click the "New Profile" icon, then pick a name for your profile.
 2. In the "Encapsulation" tab, select "MP4/MOV"
@@ -123,7 +123,7 @@ For converting movies, you could use `VLC Player <https://www.videolan.org/vlc/>
 
    a. Tick "Video" checkbox
    b. Select "H-264" as "Codec"
-   c. Higher bitrates mean video that is of higher quality, but also larger files. Here are some `bitrate guidelines <https://www.videoproc.com/media-converter/bitrate-setting-for-h264.htm>`_ 
+   c. Higher bitrates mean video that is of higher quality, but also larger files. Here are some `bitrate guidelines <https://www.videoproc.com/media-converter/bitrate-setting-for-h264.htm>`__ 
 
 4. In the "Audio codec" tab:
 

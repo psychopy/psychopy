@@ -17,6 +17,7 @@ If it is your first time opening |PsychoPy|, we highly recommend taking a look a
 .. image:: /images/builder_conceptsApril24.png
     :width: 100%
     :alt: The Builder view
+
 *The |PsychoPy| builder, the Routines panel an the Flow are highlighted, if you are new to |PsychoPy|, we recommend starting by unpacking your demos and exploring the example tasks*
 
 The components panel
@@ -37,6 +38,7 @@ Making experiments to go online
 .. image:: /images/builderViewIndexedApril24.png
     :width: 100%
     :alt: The Builder view
+
 *Buttons to interact with pavlovia.org from your experiment builder*
 
 Before making an experiment to go online, it is a good idea to check the `status of online options <https://www.psychopy.org/online/status.html>`_ - remember PsychoJS (the javascript sister library of |PsychoPy|) is younger that |PsychoPy| - so not everything can be done online yet! but for most components there are prototype work arounds to still make things possible (e.e. RDKs and staircases).

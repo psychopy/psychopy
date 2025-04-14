@@ -142,7 +142,7 @@ Wrap width
 .. _textcomponent-flip:
 
 Flip (mirror) 
-     Whether to mirror-reverse the text: 'horiz' for left-right mirroring, 'vert' for up-down mirroring.
+    Whether to mirror-reverse the text: 'horiz' for left-right mirroring, 'vert' for up-down mirroring.
     The flip can be set dynamically on a per-frame basis by using a variable, e.g., $mirror, as defined in a code component or conditions file and set to either 'horiz' or 'vert'.
     
     Options:

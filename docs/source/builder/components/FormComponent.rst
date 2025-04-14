@@ -150,7 +150,8 @@ Items
 Randomize
     Do you want to randomize the order of your questions?
     
-.. _formcomponent-Data Format:
+.. _formcomponent-Data-Format:
+
 Data format
     Store item data by columns, or rows
     
@@ -176,7 +177,8 @@ Size [w,h]
 Position [x,y]
     Position of this stimulus (e.g. [1,2] )
     
-.. _formcomponent-Item Padding:
+.. _formcomponent-Item-Padding:
+
 Item padding
     The padding or space between items.
     
@@ -255,7 +257,8 @@ Formatting
 How should this stimulus handle text? Font, spacing, orientation, etc.
 
 
-.. _formcomponent-Text Height:
+.. _formcomponent-Text-Height:
+
 Text height
     The size of the item text for Form
     
@@ -298,6 +301,7 @@ Validate with...
 
 .. note::
     Top tip: Form has an attribute to check if all questions have been answered :code:`form.complete`. You could use this to make a "submit" button appear only when the form is completed!
+
 .. seealso::
 
 	API reference for :class:`~psychopy.visual.Form`

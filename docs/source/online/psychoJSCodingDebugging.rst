@@ -32,6 +32,7 @@ Use Developer Tools (Ctl-Shift-I in Windows/Chrome, Cmd-Opt-J or Cmd-Opt-I in Ma
 :darkorange:`Tutorial` `tutorial_js_console_log <https://gitlab.pavlovia.org/tpronk/tutorial_js_console_log>`_
 
 .. _errorTypes:
+
 Types of Errors
 -----------------------
 Errors in your experiment can manifest in multiple ways. The easiest way to categorise the different types of error message is based on where they appear.
@@ -47,6 +48,7 @@ Errors in your experiment can manifest in multiple ways. The easiest way to cate
 - `Unexpected Behaviour <_unexpected-behaviour>`_
 
 .. _builderErrors:
+
 Python Syntax Errors (seen in Auto-translate code components)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. figure:: /images/syntaxError.png
@@ -77,6 +79,7 @@ Synchronisation Errors (seen in a pop-up when synchronising)
 Errors occur here when PsychoPy is unable to create a JavaScript file from your Builder file. They are usually related to your custom code components, but can be caused by unexpected parameters in your other components. These errors will prevent your JavaScript files from being created and therefore stop you making any changes to previous versions you may have successfully synchronised. See :ref:`usingPavlovia` for more information.
 
 .. _browserErrors:
+
 Launch Errors (stuck on "initialising the experiment")
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. figure:: /images/initialising.png

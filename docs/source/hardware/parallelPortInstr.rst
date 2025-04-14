@@ -1,4 +1,4 @@
-.. _parallel:
+.. _parallelportinstr:
 
 Communicating via a Parallel Port
 =================================================
@@ -39,6 +39,7 @@ If you'd like to use a `Parallel Port` to **record** responses (for example from
 
 .. note::  
 	The **address** of the port is not the same as the **name** of the port. For instance, the name of the port could be "LPT 1" but the address might be "0378". 
+
 * Now, in the `Hardware` tab of the parallel port component in PsychoPy, select the correct parallel port address:
 
 .. figure:: /images/parallel2.PNG

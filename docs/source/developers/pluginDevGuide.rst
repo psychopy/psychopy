@@ -47,6 +47,7 @@ Structuring your plugin package
 A plugin package is no different structurally from any other package, so see the official `Packaging Python Projects guide <https://packaging.python.org/tutorials/packaging-projects>`_ for details on how to structure a Python package in general. For |PsychoPy| plugins specifically, we strongly recommend starting by cloning the `template plugin repo <https://github.com/psychopy/psychopy-plugin-template>`_ and modifying it rather than starting from scratch.
 
 .. _pyprojectTOML:
+
 pyproject.toml
 ~~~~~~~~~~~~~~~~~~~
 
@@ -54,12 +55,14 @@ Python looks for a file at the root level of your plugin package called ``pyproj
 
 
 .. _entryPoints:
+
 Entry points
 ~~~~~~~~~~~~~~~~~~~
 
 Defining an entry point is essentially telling Python "pretend that ``x.y`` is also located at ``z.y``", similar to if the file ``z.py`` had ``from x import y`` at the top. This allows an external package to edit what can be imported from |PsychoPy| without changing any of |PsychoPy|'s code. |PsychoPy| can also get a list of all plugin packages which define entry points to a certain place, which in some cases will help it find your plugin. For example, if you wanted to add a Component, you would define an entry point to ``psychopy.experiment.components`` and Builder would then find your plugin Component by looking for that entry point.
 
 .. _baseClasses:
+
 Base classes
 ~~~~~~~~~~~~~~~~~~~
 

@@ -36,7 +36,7 @@ Interacting with |Pavlovia| from the Builder App
 When running your study online, the globe icons will allow you to directly interact with |Pavlovia| from the Builder GUI.
 
 .. figure:: /images/pavlovia_icons_2022.png
-    :name: builderViewIndexed1
+    :name: pavlovia_icons_2022
     :align: center
     :figclass: align-center
 

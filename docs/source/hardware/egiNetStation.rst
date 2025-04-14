@@ -1,4 +1,4 @@
-.. _egi:
+.. _eginetstation:
 
 Sending triggers via EGI NetStation
 =================================================
@@ -14,7 +14,7 @@ The old EGI "pynetstation" package uses a "polling" method of asking the EGI sys
 This pakcage's implementation of NTP timing should be superior to the older method.
 
 Step one: Verify your Amplifier and NTP server are active
--------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
 
 Users of 300 series amplifiers should open a terminal and run the following command:  ``sntp -d localhost``
 
@@ -25,7 +25,7 @@ Users of 400 series amplifiers may input the IP of your amplifier (usually 10.10
 Notice that this page gives information about your amplifier address (10.10.10.51) and the Net Station computer (10.10.10.42).
 
 Step two: Install EGI NetStation Python Library on older versions of PsychoPy
--------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
 
 If you're using PsychoPy version 2022.1.3 or older, you'll need to install the EGI NetStation library using the Command Prompt in Windows. You will only need to do this once.
 
@@ -41,7 +41,7 @@ If you're using PsychoPy version 2022.1.3 or older, you'll need to install the E
 You're now ready to go!
 
 Step three: Verify / Update the egi-pynetstation package to 1.0.1
--------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
 
 If you are using Psychopy versions from 2023 or later, please verify that you are using version 1.0.1 of the package the PsychoPy package manager update the package.
 
@@ -52,7 +52,7 @@ If you are using Psychopy versions from 2023 or later, please verify that you ar
 * If necessary, click the "Install" button
 
 Step four: Add code components into your Builder experiment
--------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
 To communicate with your NetStation EEG hardware, you'll need to add in some Python code components to your experiment.
 
 * First, add in a code component to your `Instructions` routine (or something similar, at the start of your experiment):
@@ -107,7 +107,7 @@ To communicate with your NetStation EEG hardware, you'll need to add in some Pyt
 
 
 Step five: Test your triggers
--------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
 
 * To check that everything works, we recommend that you set up a very basic experiment that looks similar to this:
 
@@ -119,7 +119,7 @@ Step five: Test your triggers
 
 
 See Built-in Example: Stroop Task
--------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
 
 There is a complete experiment built into PsychoPy demonstrating EEG triggers to the EGI amplifier. 
 
@@ -134,7 +134,8 @@ To access the demo:
 
 
 If there is a problem - We want to know!
--------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+
 If you have followed the steps above and are having an issue with triggers, please post details of this on the `PsychoPy Forum <https://discourse.psychopy.org/>`_.
 
 Further documentation can be found on the `egi-pynetstation RTD <https://egi-pynetstation.readthedocs.io/en/latest/>`_ as well as their

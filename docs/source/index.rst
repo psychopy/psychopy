@@ -72,13 +72,13 @@ How is PsychoPy Free?
 
     .. grid-item::
 
-        The PsychoPy desktop application is `free to download <https://www.psychopy.org/download.html>`_ and run for in-lab studies. PsychoPy® was written `by scientists <https://github.com/psychopy/psychopy/graphs/contributors>`_ for scientists, the code underlying the software is open source on `GitHub <https://github.com/psychopy>`_, so even if you want to change the software you can!
+        The PsychoPy desktop application is `free to download <https://www.psychopy.org/download.html>`__ and run for in-lab studies. PsychoPy® was written `by scientists <https://github.com/psychopy/psychopy/graphs/contributors>`__ for scientists, the code underlying the software is open source on `GitHub <https://github.com/psychopy>`__, so even if you want to change the software you can!
 
-        As PsychoPy grew in popularity, it became clear that developing it "as a side project" in researchers spare time was not going to be sustainable. We now have a company, `Open Science Tools <https://opensciencetools.org/>`_, to sustain professional development. We have three main sources of revenue:
+        As PsychoPy grew in popularity, it became clear that developing it "as a side project" in researchers spare time was not going to be sustainable. We now have a company, `Open Science Tools <https://opensciencetools.org/>`__, to sustain professional development. We have three main sources of revenue:
 
-        * `Pavlovia.org <https://pavlovia.org/>`_ licenses: A platform for hosting your study online if you want to collect data via a URL link.
-        * `Consultancy <https://psychopy.org/consultancy.html>`_: Yes, you can pay us to make your task for you!
-        * `Workshops <https://workshops.psychopy.org/>`_: We can run custom training workshops for your department/team.
+        * `Pavlovia.org <https://pavlovia.org/>`__ licenses: A platform for hosting your study online if you want to collect data via a URL link.
+        * `Consultancy <https://psychopy.org/consultancy.html>`__: Yes, you can pay us to make your task for you!
+        * `Workshops <https://workshops.psychopy.org/>`__: We can run custom training workshops for your department/team.
 
         So, if you enjoy PsychoPy and would like to support its maintenance, please consider supporting us through one of these revenue streams. We try to keep our rates low-cost and affordable, whilst generating enough revenue to have a team of staff professionally develop PsychoPy and support users.
     
@@ -105,10 +105,10 @@ Universities all over the world are using PsychoPy® for teaching students about
     
     .. grid-item::
 
-        * Flexible and intuitive `Builder <https://www.psychopy.org/builder/>`_ interface to create huge range of studies
-        * `Textbook(s) <https://uk.sagepub.com/en-gb/eur/building-experiments-in-psychopy/book253480>`_ suitable for both undergraduate and professional audiences
-        * Many further `resources <resources/resources.html>`_ for learning and teaching, including `Youtube tutorials <https://www.youtube.com/playlist?list=PLFB5A1BE51964D587>`_, online tutorials and workshops.
-        * The `Pavlovia repository <https://pavlovia.org>`_ of shared experiments accessible directly from the application (requires PsychoPy®) to search for and share your studies.
+        * Flexible and intuitive `Builder <https://www.psychopy.org/builder/>`__ interface to create huge range of studies
+        * `Textbook(s) <https://uk.sagepub.com/en-gb/eur/building-experiments-in-psychopy/book253480>`__ suitable for both undergraduate and professional audiences
+        * Many further `resources <resources/resources.html>`__ for learning and teaching, including `Youtube tutorials <https://www.youtube.com/playlist?list=PLFB5A1BE51964D587>`__, online tutorials and workshops.
+        * The `Pavlovia repository <https://pavlovia.org>`__ of shared experiments accessible directly from the application (requires PsychoPy®) to search for and share your studies.
 
 Precise enough for psychophysics
 =========================================
@@ -120,7 +120,7 @@ Hardware accelerated graphics, best-in class timing, and calibration tools built
     
     .. grid-item::
 
-        * Fantastic timing precision (see the `timing mega-study <https://peerj.com/articles/9414/>`_ for comparisons)!
+        * Fantastic timing precision (see the `timing mega-study <https://peerj.com/articles/9414/>`__ for comparisons)!
         * Time and update your stimulus on every screen refresh!
         * Tools to help monitor calibration and wide range of units
         * Hardware-accelerated graphics for stimuli that can be updated on the fly
@@ -177,7 +177,7 @@ Online
 
 Want to run your study on the web, so participants can access it anywhere?
 
-Did you know PsychoPy® has a JavaScript sister library? `PsychoJS <https://github.com/psychopy/psychojs>`_, this means you can create a version of your experiment to run in a browser, after that you can use `Pavlovia.org <https://pavlovia.org>`_ to host it!
+Did you know PsychoPy® has a JavaScript sister library? `PsychoJS <https://github.com/psychopy/psychojs>`__, this means you can create a version of your experiment to run in a browser, after that you can use `Pavlovia.org <https://pavlovia.org>`__ to host it!
 
 Pavlovia is:
 
@@ -187,9 +187,9 @@ Pavlovia is:
     .. grid-item::
 
         * A secure server to host your experiment online.
-        * An Open Access `library <https://pavlovia.org/explore/demos?sort=DEFAULT>`_ of experiment demos.
-        * A place to create feature rich surveys using `Pavlovia Surveys <https://www.youtube.com/watch?v=1fs8CVKBPGk>`_
-        * Upload that to `Pavlovia.org <https://pavlovia.org>`_ (with easy tools built into the PsychoPy app)
+        * An Open Access `library <https://pavlovia.org/explore/demos?sort=DEFAULT>`__ of experiment demos.
+        * A place to create feature rich surveys using `Pavlovia Surveys <https://www.youtube.com/watch?v=1fs8CVKBPGk>`__
+        * Upload that to `Pavlovia.org <https://pavlovia.org>`__ (with easy tools built into the PsychoPy app)
         * Give participants your URL and run your study in the browser!
         * You can recruit participants using Sona, Prolific, Mechanical Turk or similar systems.
 

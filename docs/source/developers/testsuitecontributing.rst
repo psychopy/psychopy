@@ -28,9 +28,9 @@ The test suite uses a Python module called [pytest](https://pypi.org/project/pyt
 
 To mark something as a test, it needs three things:
 
-    1. It must be somewhere in the folder `psychopy/psychopy/tests`
-    2. It must contain the word `test` in its name (i.e. the class name and function names)
-    4. It must be executable in code, a function or a method
+    #. It must be somewhere in the folder `psychopy/psychopy/tests`
+    #. It must contain the word `test` in its name (i.e. the class name and function names)
+    #. It must be executable in code, a function or a method
 
 So, for example, if you were to make a test for the `visual.Rect` class, you might call the file `test_rect.py` and put it in `psychopy/psychopy/tests/test_all_visual`, and the file might look like this:
 

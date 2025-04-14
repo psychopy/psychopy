@@ -29,6 +29,7 @@ One of the particular features of |PsychoPy| is that you can specify the size an
   'cm' (centimeters on the screen)        Screen width in pixels and screen width in cm 
   'deg' (degrees of visual angle)         Screen width (pixels), screen width (cm) and distance (cm)
 ======================================  ============================================================
+
 Calibrating your monitor
 --------------------------
 

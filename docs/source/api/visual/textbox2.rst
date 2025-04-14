@@ -4,7 +4,7 @@
 Attributes
 ==========
 
-.. currentmodule:: psychopy.visual
+.. currentmodule:: psychopy.visual.textbox2
 
 .. autosummary::
 

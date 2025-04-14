@@ -36,7 +36,8 @@ Examples
 -------------------------------
 
 Loading resources in the background of instructions
-===============================
+==============================================================
+
 A common use case for resource manager might be to load resources in the background of instructions (or any routine!), and only let your participants move forward when the resources are loaded. To do this:
 
 1. Add a resource manager component.
@@ -53,7 +54,7 @@ A common use case for resource manager might be to load resources in the backgro
 .. note:: The resource manager has an attribute "status" and we can check if it has finished using `resources.status == FINISHED` (where *resources* corresponds to the name of your resource manager component).
 
 Loading resources for blocked or branched designs, or loading trial-by-trial
-===============================
+==============================================================
 
 Sometimes we might have a design where participants only need to be presented with a subset of resources. We might have 100 movies, but group 1 sees 50 movies and group 2 sees the other 50. In cases like this you might ask "How to I make the resources in my resource manager conditional?". Well, for designs like this we actually recommend you use something a little different, the :ref:`staticcomponent` - so check it out!.
 
@@ -61,7 +62,7 @@ Parameters
 -------------------------------
 
 Basic
-===============================
+==============================================================
 
 The required attributes of the stimulus, controlling its basic function and behaviour
 
@@ -150,7 +151,7 @@ Force end Routine
     Should we end the Routine when the resource download is complete?
     
 Testing
-===============================
+==============================================================
 
 Tools for testing, debugging and checking the performance of this Component.
 

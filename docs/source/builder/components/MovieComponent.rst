@@ -193,7 +193,8 @@ How should stimulus play? Speed, volume, etc.
 Loop playback
     Whether the movie should loop back to the beginning on completion.
     
-.. _moviecomponent-No audio:
+.. _moviecomponent-No-audio:
+
 No audio
     Prevent the audio stream from being loaded/processed (moviepy and opencv only)
     

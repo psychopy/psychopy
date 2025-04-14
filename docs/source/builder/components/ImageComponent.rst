@@ -227,7 +227,7 @@ Texture
 Mask
     A filename, a standard name (gauss, circle, raisedCos) or a numpy array of dimensions NxNx1. The mask can define the shape (e.g. circle will make the patch circular) or something which overlays the patch e.g. noise.
     
-.. _imagecomponent-texture resolution:
+.. _imagecomponent-texture-resolution:
 Texture resolution
     This is only needed if you use a synthetic texture (e.g. sinusoidal grating) as the image.
     

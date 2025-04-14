@@ -154,7 +154,7 @@ Save onset/offset times
 Sync timing with screen
     A reaction time to a visual stimulus should be based on when the screen flipped
     
-.. _keyboardcomponent-discard previous:
+.. _keyboardcomponent-discard-previous:
 Discard previous
     Do you want to discard all responses occurring before the onset of this Component?
     
