@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+
+# Part of the PsychoPy library
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
+
 import webbrowser
 
 import wx
@@ -11,9 +17,18 @@ from psychopy.app.themes import handlers, icons
 from psychopy.localization import _translate
 from psychopy.tools.pkgtools import (getPackageMetadata, getPypiInfo)
 from psychopy.app.plugin_manager.packageIndex import (
-    getPluginPackages, getInstalledPackages, getRemotePackages, 
-    isPackageInstalled, isUserPackageInstalled, isSystemPackageInstalled)
+    getInstalledPackages, 
+    getRemotePackages, 
+    isUserPackageInstalled, 
+    isSystemPackageInstalled)
 from psychopy.tools.versionchooser import parseVersionSafely
+
+
+# data flags for package status
+PACKAGE_STATUS_INVALID = -1
+PACKAGE_STATUS_NOT_INSTALLED = 0
+PACKAGE_STATUS_INSTALLED_SYSTEM = 1
+PACKAGE_STATUS_INSTALLED_USER = 2  # installed and user package
 
 
 class PackageManagerPanel(wx.Panel):
@@ -25,21 +40,18 @@ class PackageManagerPanel(wx.Panel):
         self.SetSizer(self.border)
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.border.Add(self.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
-        # Add package list
-        self.packageList = PackageListCtrl(self, dlg=self.dlg)
-        self.packageList.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onSelectItem)
-        self.sizer.Add(self.packageList, flag=wx.EXPAND | wx.ALL)
-        # Seperator
-        self.sizer.Add(wx.StaticLine(self, style=wx.LI_VERTICAL), border=6, flag=wx.EXPAND | wx.ALL)
-        # Add details panel
+        # self.packageList.Bind(wx.dataview.EVT_DATAVIEW_ITEM_ACTIVATED, self.onSelectItem)
         self.detailsPanel = PackageDetailsPanel(self, dlg=self.dlg)
+        self.packageList = PackageListCtrl(self, dlg=self.dlg)
+        self.sizer.Add(self.packageList, flag=wx.EXPAND | wx.ALL)
+        self.sizer.Add(wx.StaticLine(self, style=wx.LI_VERTICAL), border=6, flag=wx.EXPAND | wx.ALL)
         self.sizer.Add(self.detailsPanel, proportion=1, flag=wx.EXPAND | wx.ALL)
 
-    def onSelectItem(self, evt=None):
-        # Get package name
-        pipname = evt.GetText()
-        # Set pip details from name
-        self.detailsPanel.package = pipname
+    def refresh(self, evt=None):
+        # Refresh package list
+        self.packageList.searchCtrl.SetValue("")
+        self.packageList.refresh()
+        self.detailsPanel.package = None
 
 
 class PIPTerminalPanel(wx.Panel):
@@ -149,10 +161,18 @@ class PackageListCtrl(wx.Panel):
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.border.Add(self.sizer, proportion=1, border=12, flag=wx.ALL | wx.EXPAND)
 
+        # parent package list control
+        self.parent = parent
+        self.packageDetailsPanel = self.parent.detailsPanel
+        
         # Search bar
-        self.searchCtrl = wx.SearchCtrl(self)
+        self.searchCtrl = wx.SearchCtrl(self, style=wx.TE_PROCESS_ENTER)
         self.searchCtrl.Bind(wx.EVT_SEARCH, self.refresh)
+        self.searchCtrl.Bind(wx.EVT_SEARCH_CANCEL, self.onSearchCancel)
+        self.searchCtrl.Bind(wx.EVT_TEXT, self.onSearchText)
         self.sizer.Add(self.searchCtrl, border=6, flag=wx.ALL | wx.EXPAND)
+
+        self.searchCtrl.ShowSearchButton(True)
 
         # Create list ctrl
         # self.ctrl = utils.ListCtrl(self, style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
@@ -173,7 +193,14 @@ class PackageListCtrl(wx.Panel):
         self.ctrl.SetItemText(self.rootUserPackages, _translate("User Packages"))
         self.ctrl.SetItemText(self.rootSystemPackages, _translate("System Packages"))
         self.ctrl.SetItemText(self.rootRemotePackages, _translate("Available Packages"))
-        self.ctrl.Bind(wx.dataview.EVT_DATAVIEW_ITEM_ACTIVATED, self.onItemSelected)
+        self.ctrl.SetItemData(self.rootUserPackages, PACKAGE_STATUS_INVALID)
+        self.ctrl.SetItemData(self.rootSystemPackages, PACKAGE_STATUS_INVALID)
+        self.ctrl.SetItemData(self.rootRemotePackages, PACKAGE_STATUS_INVALID)
+        self.ctrl.SetColumnWidth(0, 200)
+        self.ctrl.SetColumnWidth(1, 100)
+
+        # self.ctrl.Bind(wx.dataview.EVT_TREELIST_ITEM_ACTIVATED, self.onItemSelected)
+        self.ctrl.Bind(wx.dataview.EVT_TREELIST_SELECTION_CHANGED, self.onItemSelected)
         # self.ctrl.Bind(wx.dataview.EVT_DATAVIEW_ITEM_RIGHT_CLICK, self.onRightClick)
         self.sizer.Add(self.ctrl, proportion=1, border=6, flag=wx.LEFT | wx.RIGHT | wx.EXPAND)
 
@@ -199,6 +226,30 @@ class PackageListCtrl(wx.Panel):
 
         self.Layout()
 
+    def onSearchText(self, evt=None):
+        """On text change in search box. Used to refresh the package list if
+        the search term is empty since the box doesn't trigger a search
+        when the text is cleared.
+        """
+        # Get search term
+        searchTerm = self.searchCtrl.GetValue()
+
+        if not searchTerm:
+            # If empty, refresh
+            self.refresh()
+            return
+        
+        if evt is not None:
+            evt.Skip()
+
+    def onSearchCancel(self, evt=None):
+        """On search cancel button pressed. Used to refresh the package list
+        if the search term is empty since the box doesn't trigger a search
+        when the text is cleared.
+        """
+        self.searchCtrl.SetValue("")
+        self.refresh()
+
     def onOpenPipTerminal(self, evt=None):
         # Make dialog
         dlg = wx.Dialog(self, title="PIP Terminal", size=(480, 480), style=wx.RESIZE_BORDER | wx.CAPTION | wx.CLOSE_BOX)
@@ -215,10 +266,18 @@ class PackageListCtrl(wx.Panel):
 
     def onItemSelected(self, evt=None):
         # Post event so it can be caught by parent
-        print("Item selected")
-        evt.SetEventObject(self)
-        wx.PostEvent(self, evt)
+        # evt.SetEventObject(self)
+        # wx.PostEvent(self, evt)
 
+        selection = evt.GetItem()
+        pipname = None
+        if selection.IsOk():
+            # check if valid
+            if self.ctrl.GetItemData(selection) != PACKAGE_STATUS_INVALID:
+                pipname = self.ctrl.GetItemText(selection)
+        
+        self.packageDetailsPanel.package = pipname
+        
     def onRightClick(self, evt=None):
         # Get package name
         package = evt.GetText()
@@ -288,10 +347,14 @@ class PackageListCtrl(wx.Panel):
 
         self.rootUserPackages = self.ctrl.AppendItem(
             self.ctrl.GetRootItem(), _translate("User Packages"))
+        self.ctrl.SetItemData(self.rootUserPackages, PACKAGE_STATUS_INVALID)
         self.rootSystemPackages = self.ctrl.AppendItem(
             self.ctrl.GetRootItem(), _translate("System Packages"))  
+        self.ctrl.SetItemData(self.rootSystemPackages, PACKAGE_STATUS_INVALID)
         self.rootRemotePackages = self.ctrl.AppendItem(
             self.ctrl.GetRootItem(), _translate("Available Packages"))
+        self.ctrl.SetItemData(
+            self.rootRemotePackages, PACKAGE_STATUS_INVALID)
 
         # get packages
         installedPackages = dict(getInstalledPackages())
@@ -302,13 +365,17 @@ class PackageListCtrl(wx.Panel):
         
         # filter on search
         if searchTerm not in (None, ""):
+            self.searchCtrl.ShowCancelButton(True)
             systemPackages = {k: v for k, v in systemPackages.items() if searchTerm in k}
             userPackages = {k: v for k, v in userPackages.items() if searchTerm in k}
             availablePackages = [v for v in availablePackages if searchTerm in v]
+        else:
+            self.searchCtrl.ShowCancelButton(False)
 
         for pkg, version in systemPackages.items():
             item = self.ctrl.AppendItem(self.rootSystemPackages, pkg)
             self.ctrl.SetItemText(item, 1, version)
+            self.ctrl.SetItemData(item, PACKAGE_STATUS_INSTALLED_SYSTEM)
             # self.ctrl.SetItemFont(item, font=wx.Font().Bold())
 
         self.ctrl.SetItemText(
@@ -318,6 +385,7 @@ class PackageListCtrl(wx.Panel):
         for pkg, version in userPackages.items():
             item = self.ctrl.AppendItem(self.rootUserPackages, pkg)
             self.ctrl.SetItemText(item, 1, version)
+            self.ctrl.SetItemData(item, PACKAGE_STATUS_INSTALLED_USER)
             # self.ctrl.SetItemFont(item, font=wx.Font().Bold())
 
         self.ctrl.SetItemText(
@@ -337,6 +405,7 @@ class PackageListCtrl(wx.Panel):
 
         for pkg in availablePackages:
             item = self.ctrl.AppendItem(self.rootRemotePackages, pkg)
+            self.ctrl.SetItemData(item, PACKAGE_STATUS_NOT_INSTALLED)
 
         # Expand all roots
         if rootRemoteWasExpanded:
@@ -401,8 +470,8 @@ class PackageDetailsPanel(wx.Panel):
         self.installBtn.Bind(wx.EVT_BUTTON, self.onInstall)
         # Version chooser
         self.versionCtrl = wx.Choice(self)
+        # self.versionCtrl.Bind(wx.EVT_CHOICE, self.onVersionSelection)
         self.headBtnSzr.Add(self.versionCtrl, border=3, flag=wx.RIGHT | wx.TOP | wx.BOTTOM | wx.ALIGN_CENTER)
-        self.versionCtrl.Bind(wx.EVT_CHOICE, self.onVersion)
         # Uninstall button
         self.uninstallBtn = wx.Button(self, label=_translate("Uninstall"))
         self.headBtnSzr.AddStretchSpacer(1)
@@ -444,6 +513,7 @@ class PackageDetailsPanel(wx.Panel):
                 metadata = getPackageMetadata(self._package)
             else:
                 metadata = {}
+
             # Get best data available, prioritising local metadata
             self.params = {
                 'name': metadata.get('Name', pypiData.get('Name', pipname)),
@@ -472,7 +542,7 @@ class PackageDetailsPanel(wx.Panel):
         self.versionCtrl.Clear()
         self.versionCtrl.AppendItems(self.params['releases'])
         if self.params['version'] is None:
-            self.versionCtrl.SetSelection(0)
+            self.versionCtrl.SetSelection(self.versionCtrl.GetCount() - 1)
         else:
             if self.params['version'] not in self.versionCtrl.GetStrings():
                 self.versionCtrl.Append(self.params['version'])
@@ -482,31 +552,43 @@ class PackageDetailsPanel(wx.Panel):
         self.Layout()
         self._applyAppTheme()
 
-    def refresh(self, evt=None):
-        state, version = isPackageInstalled(self.package)
+    # def onVersionSelection(self, evt=None):
+    #     # if the version matches the installed version, disable the install button
+    #     self.refresh()
 
-        if state == "u":
+    def refresh(self, evt=None):
+        # check if the package is installed
+        installedPackages = dict(getInstalledPackages())
+        systemPackages = installedPackages['system']['packages']
+        userPackages = installedPackages['user']['packages']
+        availablePackages = getRemotePackages()['packages']
+
+        pkgName = self.package
+        state = False
+        if pkgName in userPackages:
             # If installed to the user space, can be uninstalled or changed
             self.uninstallBtn.Enable()
             self.versionCtrl.Enable()
+            self.versionCtrl.SetStringSelection(userPackages[pkgName])
             self.installBtn.Enable(
-                self.versionCtrl.GetStringSelection() != version
+                self.versionCtrl.GetStringSelection() != userPackages[pkgName]
             )
-        elif state == "s":
-            # If installed to the system, can't be uninstalled or changed
-            self.uninstallBtn.Disable()
-            self.versionCtrl.Disable()
-            self.installBtn.Disable()
-        elif state == "n":
-            # If uninstalled, can only be installed
+            state = True
+        elif pkgName in availablePackages:
+            # If available but not installed, can be installed
             self.uninstallBtn.Disable()
             self.versionCtrl.Enable()
             self.installBtn.Enable()
+            self.versionCtrl.SetSelection(self.versionCtrl.GetCount() - 1)  # newest
+            state = True
         else:
-            # If None, disable everything
+            # If installed to the system, can't be uninstalled or changed
+            if pkgName in systemPackages:
+                self.versionCtrl.SetStringSelection(systemPackages[pkgName])
             self.uninstallBtn.Disable()
             self.versionCtrl.Disable()
             self.installBtn.Disable()
+
         # Disable all controls if we have None
         self.homeBtn.Enable(state is not None)
         self.nameCtrl.Enable(state is not None)
