@@ -24,3 +24,5 @@ is available in the psychopy/demos/coder/iohub folder.
    starting
    devices
    requirements
+   device/computer
+   device/serial
