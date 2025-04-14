@@ -6,7 +6,8 @@ import wx
 from psychopy import prefs
 from psychopy.app import getAppInstance
 from psychopy.app.plugin_manager import PluginManagerPanel, PackageManagerPanel, InstallStdoutPanel
-from psychopy.app.plugin_manager.packageIndex import loadPackageIndex, refreshPackageIndex, freePackageIndex
+from psychopy.app.plugin_manager.packageIndex import (
+    loadPackageIndex, refreshPackageIndex, freePackageIndex)
 from psychopy.experiment import getAllElements
 from psychopy.localization import _translate
 import psychopy.logging as logging
@@ -353,7 +354,9 @@ class EnvironmentManagerDlg(wx.Dialog):
         self.pipProcess = None
         # refresh view
         refreshPackageIndex()
+        loadPackageIndex()
         self.pluginMgr.updateInfo()
+        self.packageMgr.refresh()
 
     def onUninstallExit(self, pid, exitCode):
         # write installation termination statement
