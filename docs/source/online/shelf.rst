@@ -353,6 +353,6 @@ When running multi-session experiments online, it is sometimes difficult to tell
 In the experiment files, there's a spreadsheet which automatically formats the IDs to be copied into the Shelf record (see below for an example).
 
 .. figure:: /images/shelf_id_record.png
-    :name: acceptedIDs
+    :name: shelf_id_record
     :align: center
     :figclass: align-center
