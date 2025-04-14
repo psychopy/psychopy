@@ -25,11 +25,22 @@ When making an experiment to run online, there are a few important consideration
   :maxdepth: 1
 
   Using resources in online studies <resources>
+  Checking media is the correct format <mediaFormats>
   Multisession testing, Counterbalancing, checking existing IDs, multiplayer games and in-game leaderboard <shelf>
   Caveats and cautions (timing accuracy and web-browser support) <cautions>
 
+PsychoPy and Pavlovia can also be used in conjunction with external servies, see below for guides for some common ones:
+
+.. toctree::
+  :maxdepth: 1
+
+  MTurk <mturkIntegration>
+  Profilic <prolificIntegration>
+  Qualtrics <qualtricsIntegration>
+  SONA <sonaIntegration>
+
 Related links
---------------
+=======================================
 
 .. toctree::
   :maxdepth: 1
@@ -40,6 +51,6 @@ Related links
   How to counterbalance participants across conditions <counterbalancingOnline>
   How does it work? <tech>
   Manually coding PsychoJS studies <psychojsCode>
-
+  Usage statistics for Pavlovia <stats.rst>
 
 The first generation of PsychoJS was realized by a `Wellcome Trust <https://wellcome.org/>`_ grant, awarded in January 2018.  to make online studies possible from |PsychoPy|. This is what we call PsychoPy3 - the 3rd major phase of PsychoPy's development.
