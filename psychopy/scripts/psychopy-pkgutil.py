@@ -4,24 +4,6 @@
 """Module to manage packages in PsychoPy.
 """
 
-__all__ = [
-    'setStaleTime',
-    'getStaleTime',
-    'setUserBase',
-    'getUserBase',
-    'freeIndexCache',
-    'addPackageIndex',
-    'updatePackageIndex',
-    'getPackageVersions',
-    'getInstalledPackages',
-    'getOutdatedPackages',
-    'installPackage',
-    'upgradePackage',
-    'upgradeAllPackages',
-    'uninstallPackage',
-    'getPackageInfo'
-]
-
 __version__ = '0.1.0'
 
 import argparse
@@ -293,7 +275,7 @@ def _fetchPluginIndex(fetch=False):
 
         # get remote versions
         versions = getPackageVersions(pipName)
-        packageCache['available']['plugins']['packages'][pipName]['all_versions'] = versions
+        packageCache['available']['plugins']['packages'][pipName]['releases'] = versions
     
     packageCache['available']['plugins']['lastupdated'] = time.time()
     packageCache['available']['plugins']['lastsize'] = remoteFileSize
