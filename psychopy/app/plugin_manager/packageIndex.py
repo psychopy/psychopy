@@ -3,11 +3,11 @@
 
 from psychopy import logging
 from psychopy import prefs
-from psychopy import logging
 import sys
 import subprocess as sp
 import os
 import json
+import wx
 
 _packageIndex = None
 
@@ -27,13 +27,16 @@ def refreshPackageIndex(fetch=False):
     
     # Execute the command
     try:
+        headerText = ' Updating package index '
+        headerText = headerText.center(80, '=')
+        print(headerText)
+
         env = os.environ.copy()
         output = sp.check_output(
             _cmd, 
             stderr=sp.PIPE,
             env=env)
         
-        # Decode the output from bytes to string
         print(output.decode('utf-8'))
 
         logging.info("Package index refreshed successfully.")
@@ -45,6 +48,78 @@ def refreshPackageIndex(fetch=False):
         logging.error(f"An unexpected error occurred: {e}")
 
 
+def downloadPluginAssets(fetch=False):
+    """Download assets for the specified plugin.
+
+    Parameters
+    ----------
+    fetch : bool, optional
+        If True, fetch the plugin assets even if present on disk.
+        The default is False.
+    
+    """
+    global _packageIndex
+    if _packageIndex is None:
+        loadPackageIndex()
+
+    # get all plugin icon URLs
+    pluginIconsURLs = []
+    for plugin in _packageIndex['available']['plugins']['packages'].values():
+        pluginIcon = plugin.get('icon', None)
+        if pluginIcon is not None:
+            pluginIconsURLs.append(pluginIcon)
+    
+    # cache directory for the plugin icons
+    appPluginCacheDir = os.path.join(
+        prefs.paths['userCacheDir'], 'appCache', 'plugins')
+    
+    # make sure we have a directory to put these files in
+    try:
+        os.makedirs(appPluginCacheDir, exist_ok=True)
+    except OSError as err:
+        if err.errno != os.errno.EEXIST:
+            logging.error(f"Error creating directory {appPluginCacheDir}: {err}")
+            raise
+    
+    headerText = ' Downloading plugin icons '
+    headerText = headerText.center(80, '=')
+    print(headerText)
+    
+    for iconUrl in pluginIconsURLs:
+        # get the icon file name from URL
+        iconFileName = os.path.basename(iconUrl)
+        # get the icon file path
+        iconPath = os.path.join(appPluginCacheDir, iconFileName)
+
+        # check if we already have a copy of the icon
+        if os.path.exists(iconPath) and not fetch:
+            print(f"Plugin icon already exists at {iconPath}")
+            continue
+
+        print(f"Downloading plugin icon from {iconUrl} to {iconPath}")
+
+        import requests
+
+        try:
+            # Make a GET request to download the file
+            response = requests.get(iconUrl, stream=True)
+            response.raise_for_status()  # Raise an error for bad responses
+
+            # Open the local file in write-binary mode and save the content
+            with open(iconPath, 'wb') as file:
+                for chunk in response.iter_content(chunk_size=8192):
+                    file.write(chunk)
+                    wx.YieldIfNeeded()
+
+            print(f"Plugin icon downloaded successfully to {iconPath}")
+        except requests.exceptions.RequestException as e:
+            logging.error(f"Error downloading plugin icon: {e}")
+        except IOError as e:
+            logging.error(f"Error saving plugin icon: {e}")
+        except Exception as e:  
+            logging.error(f"An unexpected error occurred: {e}")
+
+        
 def loadPackageIndex():
     """Load the package index from the specified file.
     """
@@ -74,7 +149,7 @@ def getInstalledPackages():
     """
     global _packageIndex
     if _packageIndex is None:
-        _packageIndex = loadPackageIndex()
+        loadPackageIndex()
     
     return _packageIndex['installed'] if _packageIndex else {}
 
@@ -84,7 +159,7 @@ def getRemotePackages():
     """
     global _packageIndex
     if _packageIndex is None:
-        _packageIndex = loadPackageIndex()
+        loadPackageIndex()
     
     return _packageIndex['available']['remote']['PyPI'] if _packageIndex else []
 
@@ -94,7 +169,7 @@ def getPluginPackages(asList=True):
     """
     global _packageIndex
     if _packageIndex is None:
-        _packageIndex = loadPackageIndex()
+        loadPackageIndex()
     
     if asList:  # legacy
         return list(_packageIndex['available']['plugins']['packages'].values())
@@ -113,9 +188,21 @@ def isPackageInstalled(packageName):
         If the package is not installed, the version will be None.
 
     """
-    state = isUserPackageInstalled(packageName) or isSystemPackageInstalled(packageName)
-    if state:
-        version = getInstalledPackages().get(packageName, {}).get('version', None)
+    global _packageIndex
+    if _packageIndex is None:
+        loadPackageIndex()
+
+    if isUserPackageInstalled(packageName):
+        state = 'u'
+    elif isSystemPackageInstalled(packageName):
+        state = 's'
+    elif packageName in getRemotePackages():
+        state = 'n'
+    else:
+        state = None
+
+    if state is not None:
+        version = None
     else:
         version = None
 
@@ -133,10 +220,10 @@ def isSystemPackageInstalled(packageName):
     """
     global _packageIndex
     if _packageIndex is None:
-        _packageIndex = loadPackageIndex()
+        loadPackageIndex()
     
     # Check if the package is in the system packages list
-    return packageName in _packageIndex['installed']['system']
+    return packageName in _packageIndex['installed']['system']['packages'].keys()
 
 
 def isUserPackageInstalled(packageName):
@@ -150,10 +237,12 @@ def isUserPackageInstalled(packageName):
     """
     global _packageIndex
     if _packageIndex is None:
-        _packageIndex = loadPackageIndex()
+        loadPackageIndex()
     
+    print(list(_packageIndex['installed']['user']['packages'].keys()))
+
     # Check if the package is in the user packages list
-    return packageName in _packageIndex['installed']['user']
+    return packageName in _packageIndex['installed']['user']['packages'].keys()
 
 
 def getAvailablePackages():
@@ -161,7 +250,7 @@ def getAvailablePackages():
     """
     global _packageIndex
     if _packageIndex is None:
-        _packageIndex = loadPackageIndex()
+        loadPackageIndex()
     
     return _packageIndex['available']['PyPI']['packages'] if _packageIndex else {}
 
@@ -171,37 +260,9 @@ def refreshPackageIndexTask(app=None):
     """
     Run the refreshPackageIndex.py script to update the package index.
     """
-    scriptDir = prefs.paths['scripts']
-
-    # Construct the command to run the script
-    command = [
-        sys.executable, 
-        scriptDir + '/psychopy-pkgutil.py',
-        '--app-pref-dir', prefs.paths['userPrefsDir'],
-        'update']
-    
-    logging.debug(f"Executing command: {command}")
-    
-    # Execute the command
-    try:
-        env = os.environ.copy()
-        output = sp.check_output(
-            command, 
-            stderr=sp.PIPE,
-            env=env)
-        
-        # Decode the output from bytes to string
-        print(output.decode('utf-8'))
-
-        logging.info("Package index refreshed successfully.")
-    except sp.CalledProcessError as e:
-        logging.error(f"Error refreshing package index: {e}")
-    except FileNotFoundError:
-        logging.error("The script was not found. Please check the script path.")
-    except Exception as e:
-        logging.error(f"An unexpected error occurred: {e}")
+    refreshPackageIndex()
+    downloadPluginAssets()
     
 
 if __name__ == "__main__":
-    loadPackageIndex()
-    print(getPluginPackages())
+    pass
