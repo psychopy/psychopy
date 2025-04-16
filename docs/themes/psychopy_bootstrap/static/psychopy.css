@@ -364,6 +364,9 @@ blockquote {
     display: flex;
     justify-content: end;
 }
+.navbar {
+    font-family: var(--heading);
+}
 
 .button {
     background-color: var(--blue);
