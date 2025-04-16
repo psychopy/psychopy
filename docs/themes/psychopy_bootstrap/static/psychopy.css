@@ -361,7 +361,7 @@ blockquote {
 .navbar .container {
     padding-top: 0;
     display: flex;
-    justify-content: center;
+    justify-content: end;
 }
 
 .button {
