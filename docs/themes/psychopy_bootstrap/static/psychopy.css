@@ -137,7 +137,7 @@
 }
 
 body {
-    padding-top: 54px;
+    padding-top: 80px;
     color: var(--text);
     background-color: var(--base);
     font-family: var(--body);
@@ -243,14 +243,16 @@ blockquote {
     top: 5px;
     left: 10px;
     width: auto;
+    max-width: none;
     height: 120px;
 }
 
 .small-logo img {
     display: none;
+    width: auto;
     height: 60px;
+    max-width: none;
     top: 5px;
-    width: auto !important;
 }
 
 /* Logo with straplines in center of landing page */
@@ -349,7 +351,6 @@ blockquote {
 }
 
 .title-tagline{
-    color: : black;
     font-size: 150%;
 }
 
@@ -422,14 +423,14 @@ a:hover,
 
 /* Fixed/sticky icon bar (vertically aligned 50% from the top of the screen) */
 .social-bar {
-    background-color: white;
+    background-color: var(--base);
     position: fixed;
-    right: 0;
-    top: 200px;
-    padding: 8px;
-    -webkit-transform: translateY(-50%);
-    -ms-transform: translateY(-50%);
-    transform: translateY(-50%);
+    right: 1rem;
+    top: 80px;
+    padding: .5rem;
+    border-radius: .5rem;
+    border: 1px solid var(--overlay);
+    z-index: 2;
 }
 
 /* Style the icon bar links */
@@ -505,6 +506,10 @@ a:hover,
 
     .title-tagline{
         font-size: 150%;
+    }
+
+    .navbar .container {
+        justify-content: center;
     }
 
     .large-logo {
