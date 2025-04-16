@@ -14,6 +14,7 @@
 import os
 import sys
 import pathlib
+import json
 
 docs_folder = pathlib.Path(__file__).parent.parent
 
@@ -133,7 +134,11 @@ html_theme = 'psychopy_bootstrap'
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-#html_theme_options = {}
+with open("./navbar_links.json", "r") as f:  
+  navbar_links = json.load(f)
+html_theme_options = {
+  'navbar_links': navbar_links
+}
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".

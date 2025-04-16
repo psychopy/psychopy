@@ -1,0 +1,25 @@
+{% if nav_item[1] is string %}
+<!-- insert a regular link -->
+<li>
+    <a href="{{ pathto(nav_item[1]) if nav_item[1].startswith('/') else nav_item[1] }}">
+        {{ nav_item[0] }}
+    </a>
+</li>
+{% else %}
+<!-- insert a dropdown with multiple links -->
+<li class="dropdown">
+    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+        {{ nav_item[0] }}
+        <span class="caret"></span>
+    </a>
+    <ul class="dropdown-menu">
+        <!-- insert iteratively for each sub-item -->
+        {% for subitem in nav_item[1].items() %}
+        {% with nav_item = subitem %}
+            {% include "navbar_item.html" %}
+        {% endwith %}
+        {% endfor %}
+    </ul>
+</li>
+{% endif %}
+
