@@ -17,23 +17,23 @@
 }
 @font-face {
     font-family: "Noto Sans";
-    src: url("fonts/Noto Sans-Regular.ttf");
+    src: url("fonts/NotoSans-Regular.ttf");
     font-weight: 400;
 }
 @font-face {
     font-family: "Noto Sans";
-    src: url("fonts/Noto Sans-Bold.ttf");
+    src: url("fonts/NotoSans-Bold.ttf");
     font-weight: 700;
 }
 @font-face {
     font-family: "Noto Sans";
-    src: url("fonts/Noto Sans-Italic.ttf");
+    src: url("fonts/NotoSans-Italic.ttf");
     font-weight: 400;
     font-style: italic;
 }
 @font-face {
     font-family: "Noto Sans";
-    src: url("fonts/Noto Sans-BoldItalic.ttf");
+    src: url("fonts/NotoSans-BoldItalic.ttf");
     font-weight: 700;
     font-style: italic;
 }
