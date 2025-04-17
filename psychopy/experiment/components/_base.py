@@ -1413,12 +1413,23 @@ class BaseDeviceComponent(BaseComponent):
             "deviceLabel"
         ]
         # label to refer to device by
+        def getDeviceLabels():
+            # start with none
+            labels = []
+            # iterate through saved devices
+            for name, profile in prefs.devices.items():
+                # if device is the correct type, include it
+                if profile.get("deviceClass", None) in self.deviceClasses:
+                    labels.append(name)
+
+            return labels
+        
         self.params['deviceLabel'] = Param(
-            deviceLabel, valType="str", inputType="single", categ="Device",
-            label=_translate("Device label"),
+            deviceLabel, valType="str", inputType="choice", categ="Device",
+            allowedVals=getDeviceLabels,
+            label=_translate("Device"),
             hint=_translate(
-                "A label to refer to this Component's associated hardware device by. If using the "
-                "same device for multiple components, be sure to use the same label here."
+                "The named device from Device Manager to use for this Component."
             )
         )
 

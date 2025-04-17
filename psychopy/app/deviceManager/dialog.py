@@ -1,5 +1,6 @@
 import json
 import wx
+from psychopy.localization import _translate
 from psychopy.preferences import prefs
 from psychopy.hardware.manager import DeviceManager
 
@@ -17,7 +18,7 @@ class DeviceManagerDlg(wx.Dialog):
         )
         self.exp = exp
         self.devices = prefs.devices.copy()
-        self.deviceTypes = self.exp.getRequiredDeviceNames()
+        self.inUse = self.exp.getRequiredDeviceNames()
         # setup sizers
         self.border = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.border)
@@ -37,11 +38,19 @@ class DeviceManagerDlg(wx.Dialog):
 
         # names list
         self.namesCtrl = wx.ListBox(
-            self.namesPnl, choices=list(self.deviceTypes)
+            self.namesPnl, choices=[]
         )
         self.namesCtrl.Bind(wx.EVT_LISTBOX, self.onNameSelected)
         self.namesPnl.sizer.Add(
             self.namesCtrl, border=6, proportion=1, flag=wx.EXPAND | wx.ALL
+        )
+        # add device button
+        self.addDeviceBtn = wx.Button(
+            self.namesPnl, label="Add device"
+        )
+        self.addDeviceBtn.Bind(wx.EVT_BUTTON, self.onAddDeviceBtn)
+        self.namesPnl.sizer.Add(
+            self.addDeviceBtn, border=6, flag=wx.ALIGN_RIGHT | wx.ALL
         )
 
         # profile ctrl
@@ -51,14 +60,7 @@ class DeviceManagerDlg(wx.Dialog):
         self.devicePnl.sizer.Add(
             self.profileCtrl, border=6, proportion=1, flag=wx.EXPAND | wx.ALL
         )
-        # map device button
-        self.mapDeviceBtn = wx.Button(
-            self.devicePnl, label="Map device"
-        )
-        self.mapDeviceBtn.Bind(wx.EVT_BUTTON, self.onMapDeviceBtn)
-        self.devicePnl.sizer.Add(
-            self.mapDeviceBtn, border=6, flag=wx.ALIGN_RIGHT | wx.ALL
-        )
+        self.populate()
 
         # add ctrls
         self.ctrls = self.CreateStdDialogButtonSizer(
@@ -68,6 +70,13 @@ class DeviceManagerDlg(wx.Dialog):
         self.border.Add(self.ctrls, border=12, flag=wx.EXPAND | wx.ALL)
 
         self.Layout()
+    
+    def populate(self):
+        """
+        Populate the device names ctrl from saved devices.
+        """
+        self.namesCtrl.Clear()
+        self.namesCtrl.SetItems(list(self.devices))
 
     def onNameSelected(self, evt=None):
         # start off with no profile
@@ -87,12 +96,14 @@ class DeviceManagerDlg(wx.Dialog):
         self.Layout()
         self.Refresh()
 
-    def onMapDeviceBtn(self, evt=None):
-        # get selected name
-        name = self.getCurrentName()
-        # open interface for mapping name to a device profile
-        if name in self.deviceTypes:
-            self.mapDevice(name, self.deviceTypes[name])
+    def onAddDeviceBtn(self, evt=None):
+        dlg = AddDeviceDlg(self)
+
+        if dlg.ShowModal() == wx.ID_OK:
+            name, profile = dlg.getDevice()
+            self.devices[name] = profile
+
+        self.populate()
     
     def onOK(self, evt):
         # save config
@@ -120,46 +131,17 @@ class DeviceManagerDlg(wx.Dialog):
         name = self.namesCtrl.GetString(i)
 
         return name
-    
-    def mapDevice(self, name, types):
-        """
-        Open an interface to map a given name to a device profile
-
-        Parameters
-        ----------
-        name : str
-            Name to map to
-        types : list[str or type]
-            List of possible types which the device profile could be
-        """
-        # make sure types is iterable
-        if not isinstance(types, (list, tuple)):
-            types = [types]
-        # create dialog for mapping a device
-        dlg = MapDeviceDlg(self, types)
-        # show dialog and update profile if OK
-        if dlg.ShowModal() == wx.ID_OK:
-            self.devices[name] = dlg.getSelectedProfile()
-        # update selection
-        self.onNameSelected()
 
 
-class MapDeviceDlg(wx.Dialog):
-    """
-    Interface for choosing a device profile from a list of possible types.
-
-    Parameters
-    ----------
-    parent : wx.Window
-        Parent window for this dialog
-    types : list[str or type]
-        List of possible types which the device profile could be
-    """
-    def __init__(self, parent, types):
+class AddDeviceDlg(wx.Dialog):
+    def __init__(self, parent):
         wx.Dialog.__init__(
-            self, parent, title="Map device...",
+            self, parent, title="Add device",
+            size=(540, 360),
             style=wx.RESIZE_BORDER | wx.CAPTION | wx.CLOSE_BOX
         )
+        # get array of available devices
+        self.availableDevices = DeviceManager.getAvailableDevices()
         # setup sizers
         self.border = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.border)
@@ -167,44 +149,70 @@ class MapDeviceDlg(wx.Dialog):
         self.border.Add(
             self.sizer, proportion=1, border=12, flag=wx.EXPAND | wx.ALL
         )
-        # setup device ctrl
-        self.profilesCtrl = wx.ListCtrl(
-            self, style=wx.LC_REPORT | wx.LC_SINGLE_SEL
-        )
+        
+        # name ctrl
+        self.nameLbl = wx.StaticText(self, label=_translate("Device label"))
         self.sizer.Add(
-            self.profilesCtrl, proportion=1, border=6, flag=wx.EXPAND | wx.ALL
+            self.nameLbl, border=6, flag=wx.EXPAND | wx.ALL
         )
-        # populate
-        for cls in types:
-            for profile in DeviceManager.getAvailableDevices(cls):
-                # make sure required columns exist
-                for key in profile:
-                    if key not in self.getColumnNames():
-                        self.profilesCtrl.AppendColumn(key)
-                # format entry
-                entry = []
-                for key in self.getColumnNames():
-                    entry.append(profile.get(key, ""))
-                # add entry
-                self.profilesCtrl.Append(entry)
+        self.nameCtrl = wx.TextCtrl(self)
+        self.sizer.Add(
+            self.nameCtrl, border=6, flag=wx.EXPAND | wx.ALL
+        )
+
+        # devices ctrl
+        self.devicesLbl = wx.StaticText(self, label=_translate("Available devices"))
+        self.sizer.Add(
+            self.devicesLbl, border=6, flag=wx.EXPAND | wx.ALL
+        )
+        self.devicesCtrl = wx.TreeCtrl(self)
+        self.sizer.Add(
+            self.devicesCtrl, proportion=1, border=6, flag=wx.EXPAND | wx.ALL
+        )
+        self.populate()
+
         # add ctrls
         self.ctrls = self.CreateStdDialogButtonSizer(
             flags=wx.OK | wx.CANCEL
         )
         self.border.Add(self.ctrls, border=12, flag=wx.EXPAND | wx.ALL)
+
+        self.Layout()
     
-    def getColumnNames(self):
-        colNames = []
-        for col in range(self.profilesCtrl.GetColumnCount()):
-            colNames.append(self.profilesCtrl.GetColumn(col).GetText())
-        
-        return colNames
+    def populate(self):
+        """
+        Populate the devices tree control from DeviceManager
+        """
+        # clear ctrl
+        self.devicesCtrl.DeleteAllItems()
+        # add a root
+        root = self.devicesCtrl.AddRoot("Available devices")
+        # iterate through classes...
+        for cls, profiles in self.availableDevices.items():
+            # add a child for each class
+            branch = self.devicesCtrl.AppendItem(root, cls)
+            # iterate through profiles...
+            for profile in profiles:
+                self.devicesCtrl.AppendItem(branch, profile.get("deviceName", "unnamed"))
+        # expand
+        self.devicesCtrl.ExpandAll()
     
+    def getDevice(self):
+        return self.nameCtrl.GetValue(), self.getSelectedProfile()
+
     def getSelectedProfile(self):
-        i = self.profilesCtrl.GetFirstSelected()
-        profile = {}
-        for col in range(self.profilesCtrl.GetColumnCount()):
-            key = self.profilesCtrl.GetColumn(col).GetText()
-            profile[key] = self.profilesCtrl.GetItem(i, col=col).GetText()
-        
+        # get id of selected profile and its parent
+        item = self.devicesCtrl.GetSelection()
+        branch = self.devicesCtrl.GetItemParent(item)
+        # get class and device name
+        cls = self.devicesCtrl.GetItemText(branch)
+        name = self.devicesCtrl.GetItemText(item)
+        # find profile with matching name
+        profile = None
+        for thisProfile in self.availableDevices[cls]:
+            if thisProfile.get("deviceName", "unnamed") == name:
+                profile = thisProfile
+                break
+        print(profile)
+
         return profile

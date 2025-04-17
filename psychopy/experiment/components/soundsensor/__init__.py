@@ -275,7 +275,7 @@ class MicrophoneSoundSensorBackend(DeviceBackend):
     key = "microphone"
     label = _translate("Microphone emulator")
     component = SoundSensorComponent
-    deviceClasses = ['psychopy.hardware.soundsensor.MicrophoneSoundSensorEmulator']
+    deviceClasses = ['psychopy.hardware.soundsensor.MicrophoneSoundSensor']
 
     def getParams(self: SoundSensorComponent):
         # define order

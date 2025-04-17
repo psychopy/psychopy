@@ -608,6 +608,7 @@ class DeviceManager:
         """
         # if deviceClass is *, call for all types
         if deviceClass == "*":
+            DeviceManager.importAllComponentDeviceClasses()
             deviceClass = DeviceManager.deviceClasses
         # if given multiple types, call for each
         if isinstance(deviceClass, (list, tuple)):
@@ -749,6 +750,25 @@ class DeviceManager:
             device.clearListeners()
 
         return True
+    
+    @staticmethod
+    def importAllComponentDeviceClasses():
+        """
+        For all known Components, import the relevant device classes so they appear in 
+        DeviceManager.deviceClasses
+        """
+        from psychopy.experiment import getAllElements
+
+        # iterate through all detectable elements
+        for emt in getAllElements().values():
+            # if possible, get relevant device classes
+            if hasattr(emt, "deviceClasses"):
+                for cls in emt.deviceClasses:
+                    # import it so we can detect it
+                    try:
+                        DeviceManager._resolveClassString(cls)
+                    except:
+                        logging.warn(f"Failed to load class {cls} from specification in {emt.__name__}.deviceClasses")
 
     @staticmethod
     def getResponseParams(deviceClass="*"):
