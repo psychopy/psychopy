@@ -10,15 +10,13 @@ class DeviceManagerDlg(wx.Dialog):
     GUI for managing named devices, allows user to map device names specified in an experiment to 
     physical devices on this machine.
     """
-    def __init__(self, parent, exp):
+    def __init__(self, parent):
         wx.Dialog.__init__(
             self, parent, title="Device manager",
             size=(540, 360),
             style=wx.RESIZE_BORDER | wx.CAPTION | wx.CLOSE_BOX
         )
-        self.exp = exp
         self.devices = prefs.devices.copy()
-        self.inUse = self.exp.getRequiredDeviceNames()
         # setup sizers
         self.border = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.border)

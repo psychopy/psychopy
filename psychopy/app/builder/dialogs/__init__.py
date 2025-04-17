@@ -237,6 +237,12 @@ class ParamCtrls():
                 labels=param.allowedLabels,
                 valType=param.valType,
                 fieldName=fieldName)
+        elif param.inputType == 'device':
+            self.valueCtrl = paramCtrls.DeviceCtrl(
+                parent,
+                param,
+                fieldName=fieldName
+            )
         elif param.inputType == 'inv':
             self.valueCtrl = paramCtrls.InvalidCtrl(
                 parent,

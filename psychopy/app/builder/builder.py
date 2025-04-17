@@ -603,7 +603,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
     
     def openDeviceManager(self, evt=None):
         # create a device manager dialog
-        dlg = DeviceManagerDlg(self, exp=self.exp)
+        dlg = DeviceManagerDlg(self)
         # show it modal to this window
         dlg.ShowModal()
 

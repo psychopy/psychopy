@@ -1221,3 +1221,38 @@ class FontCtrl(SingleLineCtrl):
                         style=wx.OK|wx.ICON_INFORMATION
                     )
                     dlg.ShowModal()
+
+
+class DeviceCtrl(ChoiceCtrl):
+    """
+    For choosing a device from DeviceManager
+    """
+    def __init__(self, parent, param, fieldName=""):
+        # initialise a choice ctrl as normal
+        ChoiceCtrl.__init__(
+            self,
+            parent, 
+            param.valType,
+            val=param.val, 
+            choices=param.allowedVals, 
+            labels=param.allowedLabels, 
+            fieldName=fieldName
+        )
+        # setup a sizer
+        self._szr = wx.BoxSizer(wx.HORIZONTAL)
+        self._szr.Add(self, border=5, proportion=1, flag=wx.EXPAND | wx.RIGHT)
+        # add a button to open DeviceManager
+        icon = icons.ButtonIcon(stem="devices", size=16, theme="light").bitmap
+        self.mgrBtn = wx.BitmapButton(parent, -1, bitmap=icon, style=wx.BU_EXACTFIT)
+        self.mgrBtn.SetToolTip(_translate("Open the device manager"))
+        self.mgrBtn.Bind(wx.EVT_BUTTON, self.openDeviceManager)
+        self._szr.Add(self.mgrBtn)
+    
+    def openDeviceManager(self, evt=None):
+        from psychopy.app.deviceManager.dialog import DeviceManagerDlg
+        # create a device manager dialog
+        dlg = DeviceManagerDlg(self.GetParent())
+        # show it modal to this window
+        dlg.ShowModal()
+        # refresh ctrl
+        self.populate()

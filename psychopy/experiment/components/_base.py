@@ -1425,7 +1425,7 @@ class BaseDeviceComponent(BaseComponent):
             return labels
         
         self.params['deviceLabel'] = Param(
-            deviceLabel, valType="str", inputType="choice", categ="Device",
+            deviceLabel, valType="str", inputType="device", categ="Device",
             allowedVals=getDeviceLabels,
             label=_translate("Device"),
             hint=_translate(

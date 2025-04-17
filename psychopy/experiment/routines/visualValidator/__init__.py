@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from pathlib import Path
+from psychopy.preferences import prefs
 from psychopy.alerts._alerts import alert
 from psychopy.experiment import Param
 from psychopy.experiment.plugins import PluginDevicesMixin, DeviceBackend
@@ -124,12 +125,24 @@ class VisualValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             "deviceBackend",
             "channel",
         ]
+        # label to refer to device by
+        def getDeviceLabels():
+            # start with none
+            labels = []
+            # iterate through saved devices
+            for name, profile in prefs.devices.items():
+                # if device is the correct type, include it
+                if profile.get("deviceClass", None) in self.deviceClasses:
+                    labels.append(name)
+
+            return labels
+        
         self.params['deviceLabel'] = Param(
-            deviceLabel, valType="str", inputType="single", categ="Device",
-            label=_translate("Device name"),
+            deviceLabel, valType="str", inputType="device", categ="Device",
+            allowedVals=getDeviceLabels,
+            label=_translate("Device"),
             hint=_translate(
-                "A name to refer to this Component's associated hardware device by. If using the "
-                "same device for multiple components, be sure to use the same name here."
+                "The named device from Device Manager to use for this Routine."
             )
         )
         self.params['deviceBackend'] = Param(
