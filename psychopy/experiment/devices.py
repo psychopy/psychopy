@@ -82,13 +82,15 @@ class DeviceBackend:
         """
         # create dict
         data = {
-            '__cls__': f"{type(self).__module__}:{type(self).__name__}",
+            '__cls__': f"{type(self).__module__}.{type(self).__name__}",
             'profile': self.profile,
             'params': {}
         }
         # add params
         for key, param in self.params.items():
             data['params'][key] = param.toJSON()
+        
+        return data
     
     @staticmethod
     def getAllBackends():
