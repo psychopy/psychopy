@@ -1,3 +1,4 @@
+import importlib
 import json
 from pathlib import Path
 
@@ -15,17 +16,6 @@ class DeviceConfig(dict):
     def __init__(self, file):
         # load file on init
         self.load(file)
-    
-    def __setitem__(self, key, val):
-        # validate item before adding
-        assert isinstance(val, dict), TypeError(
-            "Device configuration must be a dict"
-        )
-        assert "deviceClass" in val, KeyError(
-            "Device configuration must specify the device class"
-        )
-        # add as normal
-        dict.__setitem__(self, key, val)
     
     def copy(self):
         """
@@ -67,7 +57,14 @@ class DeviceConfig(dict):
         )
         # apply
         for key, val in data.items():
-            self[key] = val
+            # get class from stored data
+            mod = ".".join(
+                val['__cls__'].split(".")[:-1]
+            )
+            name = val['__cls__'].split(".")[-1]
+            cls = getattr(importlib.import_module(mod), name)
+            # initialise class with profile from stored data
+            self[key] = cls.fromJSON(val)
     
     def save(self):
         """
@@ -75,5 +72,7 @@ class DeviceConfig(dict):
         """
         # save
         self.file.write_text(
-            json.dumps(self)
+            json.dumps({
+                key: device.toJSON() for key, device in self.items()
+            })
         )

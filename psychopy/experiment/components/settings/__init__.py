@@ -1769,19 +1769,13 @@ class SettingsComponent:
         )
         buff.writeIndentedLines(code % inits)
         # setup devices from config
-        code = (
-            f"# setup devices from config file\n"
-            f"for deviceName in {list(self.exp.getRequiredDeviceNames())}:\n"
-            f"    if deviceName not in prefs.devices:\n"
-            f"        raise NameError(\n"
-            f"            f\"Could not find any config for device {{deviceName}}, please \"\n"
-            f"            f\"setup this device up in the Device Manager dialog (from Builder)\"\n"
-            f"        )\n"
-            f"    profile = prefs.devices[deviceName].copy()\n"
-            f"    profile['deviceName'] = deviceName\n"
-            f"    deviceManager.addDevice(**profile)\n"
-        )
-        buff.writeIndentedLines(code)
+        for deviceName in self.exp.getRequiredDeviceNames():
+            if deviceName not in prefs.devices:
+                raise NameError(
+                    f"Could not find any config for device {deviceName}, please "
+                    f"setup this device up in the Device Manager dialog (from Builder)"
+                )
+            prefs.devices[deviceName].writeDeviceCode(buff)
 
         code = (
             "# return True if completed successfully\n"

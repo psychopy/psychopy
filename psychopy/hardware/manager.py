@@ -762,13 +762,17 @@ class DeviceManager:
         # iterate through all detectable elements
         for emt in getAllElements().values():
             # if possible, get relevant device classes
-            if hasattr(emt, "deviceClasses"):
-                for cls in emt.deviceClasses:
-                    # import it so we can detect it
-                    try:
-                        DeviceManager._resolveClassString(cls)
-                    except:
-                        logging.warn(f"Failed to load class {cls} from specification in {emt.__name__}.deviceClasses")
+            if hasattr(emt, "backends"):
+                for cls in emt.backends:
+                    if hasattr(cls, "deviceClass"):
+                        # import it so we can detect it
+                        try:
+                            DeviceManager._resolveClassString(cls.deviceClass)
+                        except:
+                            logging.warn(
+                                f"Failed to load class {cls.deviceClass} from specification in "
+                                f"{cls.__name__} ({emt.__name__})"
+                            )
 
     @staticmethod
     def getResponseParams(deviceClass="*"):

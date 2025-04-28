@@ -1,8 +1,10 @@
+import importlib
 import json
 import wx
 from psychopy.localization import _translate
 from psychopy.preferences import prefs
 from psychopy.hardware.manager import DeviceManager
+from psychopy.experiment.devices import DeviceBackend
 
 
 class DeviceManagerDlg(wx.Dialog):
@@ -51,11 +53,20 @@ class DeviceManagerDlg(wx.Dialog):
             self.addDeviceBtn, border=6, flag=wx.ALIGN_RIGHT | wx.ALL
         )
 
+        # profile panel
+        self.profilePnl = wx.Panel(self.devicePnl)
+        self.profilePnl.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.profilePnl.SetSizer(self.profilePnl.sizer)
+        self.devicePnl.sizer.Add(
+            self.profilePnl, border=6, proportion=1, flag=wx.EXPAND | wx.ALL
+        )
+        # param ctrls
+        
         # profile ctrl
         self.profileCtrl = wx.TextCtrl(
-            self.devicePnl, style=wx.TE_MULTILINE | wx.TE_READONLY
+            self.profilePnl, style=wx.TE_MULTILINE | wx.TE_READONLY
         )
-        self.devicePnl.sizer.Add(
+        self.profilePnl.sizer.Add(
             self.profileCtrl, border=6, proportion=1, flag=wx.EXPAND | wx.ALL
         )
         self.populate()
@@ -88,7 +99,7 @@ class DeviceManagerDlg(wx.Dialog):
         # if mapped, show mapping
         if name in self.devices:
             self.profileCtrl.SetValue(
-                json.dumps(self.devices[name], indent=True)
+                json.dumps(self.devices[name].profile, indent=True)
             )
         
         self.Layout()
@@ -98,8 +109,11 @@ class DeviceManagerDlg(wx.Dialog):
         dlg = AddDeviceDlg(self)
 
         if dlg.ShowModal() == wx.ID_OK:
-            name, profile = dlg.getDevice()
-            self.devices[name] = profile
+            # get selected device
+            name, cls, profile = dlg.getDevice()
+            # create Device object
+            self.devices[name] = cls(profile)
+            self.devices[name].params['deviceLabel'].val = name
 
         self.populate()
     
@@ -138,8 +152,10 @@ class AddDeviceDlg(wx.Dialog):
             size=(540, 360),
             style=wx.RESIZE_BORDER | wx.CAPTION | wx.CLOSE_BOX
         )
-        # get array of available devices
-        self.availableDevices = DeviceManager.getAvailableDevices()
+        # get array of available devices by backend
+        self.availableDevices = {}
+        for backend in DeviceBackend.getAllBackends():
+            self.availableDevices[backend] = DeviceManager.getAvailableDevices(backend.deviceClass)
         # setup sizers
         self.border = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.border)
@@ -183,12 +199,15 @@ class AddDeviceDlg(wx.Dialog):
         """
         # clear ctrl
         self.devicesCtrl.DeleteAllItems()
+        self.branchClasses = {}
         # add a root
         root = self.devicesCtrl.AddRoot("Available devices")
         # iterate through classes...
         for cls, profiles in self.availableDevices.items():
             # add a child for each class
-            branch = self.devicesCtrl.AppendItem(root, cls)
+            branch = self.devicesCtrl.AppendItem(root, cls.__name__)
+            # store ref to branch class
+            self.branchClasses[branch] = cls
             # iterate through profiles...
             for profile in profiles:
                 self.devicesCtrl.AppendItem(branch, profile.get("deviceName", "unnamed"))
@@ -196,14 +215,14 @@ class AddDeviceDlg(wx.Dialog):
         self.devicesCtrl.ExpandAll()
     
     def getDevice(self):
-        return self.nameCtrl.GetValue(), self.getSelectedProfile()
+        return self.nameCtrl.GetValue(), *self.getSelectedProfile()
 
     def getSelectedProfile(self):
         # get id of selected profile and its parent
         item = self.devicesCtrl.GetSelection()
         branch = self.devicesCtrl.GetItemParent(item)
         # get class and device name
-        cls = self.devicesCtrl.GetItemText(branch)
+        cls = self.branchClasses[branch]
         name = self.devicesCtrl.GetItemText(item)
         # find profile with matching name
         profile = None
@@ -211,6 +230,5 @@ class AddDeviceDlg(wx.Dialog):
             if thisProfile.get("deviceName", "unnamed") == name:
                 profile = thisProfile
                 break
-        print(profile)
 
-        return profile
+        return cls, profile

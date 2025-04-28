@@ -1377,8 +1377,7 @@ class BaseDeviceComponent(BaseComponent):
     """
     Base class for most components which interface with a hardware device.
     """
-    # list of class strings (readable by DeviceManager) which this component's device could be
-    deviceClasses = []
+    backends = set()
 
     def __init__(
             self, exp, parentName,
@@ -1418,9 +1417,11 @@ class BaseDeviceComponent(BaseComponent):
             labels = []
             # iterate through saved devices
             for name, profile in prefs.devices.items():
-                # if device is the correct type, include it
-                if profile.get("deviceClass", None) in self.deviceClasses:
-                    labels.append(name)
+                # iterate through backends for this Component
+                for backend in self.backends:
+                    # if device is the correct type, include it
+                    if profile.get("deviceClass", None) == backend.deviceClass:
+                        labels.append(name)
 
             return labels
         
@@ -1432,6 +1433,19 @@ class BaseDeviceComponent(BaseComponent):
                 "The named device from Device Manager to use for this Component."
             )
         )
+    
+    @classmethod
+    def registerBackend(cls, backend):
+        """
+        Register a device backend as relevant to this Component.
+
+        Parameters
+        ----------
+        backend : type
+            Subclass of `psychopy.experiment.devices.DeviceBackend` to associate with this 
+            Component.
+        """
+        cls.backends.add(backend)
 
 
 class BaseVisualComponent(BaseComponent):
