@@ -1419,11 +1419,11 @@ class BaseDeviceComponent(BaseComponent):
             # start with none
             labels = []
             # iterate through saved devices
-            for name, profile in prefs.devices.items():
+            for name, device in prefs.devices.items():
                 # iterate through backends for this Component
                 for backend in self.backends:
                     # if device is the correct type, include it
-                    if profile.get("deviceClass", None) == backend.deviceClass:
+                    if isinstance(device, backend):
                         labels.append(name)
 
             return labels
