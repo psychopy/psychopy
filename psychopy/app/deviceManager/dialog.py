@@ -37,7 +37,6 @@ class DeviceManagerDlg(wx.Dialog):
 
         # controls panel
         self.profileBtns = wx.BoxSizer(wx.HORIZONTAL)
-        self.profileBtns.AddStretchSpacer(prop=1)
         self.sizer.Add(
             self.profileBtns, border=6, flag=wx.EXPAND | wx.ALL
         )
@@ -49,6 +48,7 @@ class DeviceManagerDlg(wx.Dialog):
         self.profileBtns.Add(
             self.addDeviceBtn, border=6, flag=wx.EXPAND | wx.ALL
         )
+        self.profileBtns.AddStretchSpacer(prop=1)
 
         self.populate()
 
@@ -239,6 +239,9 @@ class DevicePanel(wx.Panel):
 
 
 class AddDeviceDlg(wx.Dialog):
+
+    availableDevices = None
+
     def __init__(self, parent):
         wx.Dialog.__init__(
             self, parent, title="Add device",
@@ -246,9 +249,10 @@ class AddDeviceDlg(wx.Dialog):
             style=wx.RESIZE_BORDER | wx.CAPTION | wx.CLOSE_BOX
         )
         # get array of available devices by backend
-        self.availableDevices = {}
-        for backend in DeviceBackend.getAllBackends():
-            self.availableDevices[backend] = DeviceManager.getAvailableDevices(backend.deviceClass)
+        if AddDeviceDlg.availableDevices is None:
+            AddDeviceDlg.availableDevices = {}
+            for backend in DeviceBackend.getAllBackends():
+                AddDeviceDlg.availableDevices[backend] = DeviceManager.getAvailableDevices(backend.deviceClass)
         # setup sizers
         self.border = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.border)
