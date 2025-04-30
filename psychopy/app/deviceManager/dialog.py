@@ -1,6 +1,6 @@
 import importlib
 import json
-import wx
+import wx, wx.propgrid
 from psychopy.localization import _translate
 from psychopy.preferences import prefs
 from psychopy.hardware.manager import DeviceManager
@@ -191,7 +191,12 @@ class DevicePanel(wx.Panel):
             self.profileLbl, border=6, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP
         )
         # profile ctrl
-        self.profileCtrl = DeviceProfilePanel(self, device)
+        self.profileCtrl = wx.propgrid.PropertyGrid(self)
+        for key, val in device.profile.items():
+            prop = wx.propgrid.StringProperty(key, key, str(val))
+            self.profileCtrl.Append(prop)
+            prop.ChangeFlag(wx.propgrid.PG_PROP_READONLY, True)  
+        self.profileCtrl.FitColumns()
         self.sizer.Add(
             self.profileCtrl, border=6, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM
         )
@@ -216,41 +221,6 @@ class DevicePanel(wx.Panel):
                 oldname=self.device.name,
                 newname=self.nameCtrl.GetValue()
             )
-
-
-class DeviceProfilePanel(wx.Panel):
-    def __init__(self, parent, device):
-        wx.Panel.__init__(self, parent)
-        # store parentage
-        self.parent = parent
-        # store device
-        self.device = device
-        # setup sizer
-        self.border = wx.BoxSizer(wx.VERTICAL)
-        self.SetSizer(self.border)
-        self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.border.Add(
-            self.sizer, proportion=1, border=6, flag=wx.EXPAND | wx.ALL
-        )
-        # style self
-        self.SetBackgroundColour("white")
-        # populate
-        for key, val in self.device.profile.items():
-            # make a sizer
-            sizer = wx.BoxSizer(wx.HORIZONTAL)
-            self.sizer.Add(sizer, border=6, flag=wx.EXPAND | wx.ALL)
-            # make a label
-            lbl = wx.StaticText(self, label=f"{key}:")
-            sizer.Add(
-                lbl, border=6, flag=wx.EXPAND | wx.RIGHT
-            )
-            # make a value label
-            ctrl = wx.StaticText(self, label=f"{val}")
-            sizer.Add(
-                ctrl, flag=wx.EXPAND
-            )
-        
-        self.Layout()
 
 
 class AddDeviceDlg(wx.Dialog):
