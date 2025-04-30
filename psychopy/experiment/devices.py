@@ -33,7 +33,7 @@ class DeviceBackend:
     
     def __repr__(self):
         return (
-            f"<DeviceBackend: name={self.name}>"
+            f"<{type(self).__name__}: name={self.name}>"
         )
     
     @classmethod
