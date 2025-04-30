@@ -1380,7 +1380,9 @@ class BaseDeviceComponent(BaseComponent):
     """
     Base class for most components which interface with a hardware device.
     """
-    backends = set()
+
+    def __init_subclass__(cls):
+        cls.backends = set()
 
     def __init__(
             self, exp, parentName,

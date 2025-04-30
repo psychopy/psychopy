@@ -157,7 +157,6 @@ class DeviceBackend:
       
     @property
     def name(self):
-        print("NAME", self.params['deviceLabel'].val)
         return self.params['deviceLabel'].val
     
     @name.setter
