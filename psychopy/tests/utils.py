@@ -7,6 +7,7 @@ import numpy as np
 import io
 from psychopy import logging, colors
 from psychopy.tools import systemtools
+from psychopy.preferences import prefs
 
 try:
     from PIL import Image
@@ -23,7 +24,7 @@ RUNNING_IN_VM = systemtools.isVM_CI() is not None
 TESTS_PATH = abspath(dirname(__file__))
 TESTS_DATA_PATH = pjoin(TESTS_PATH, 'data')
 TESTS_FAILS_PATH = pjoin(TESTS_PATH, 'fails', sys.platform)
-TESTS_FONT = pjoin(TESTS_DATA_PATH, 'DejaVuSerif.ttf')
+TESTS_FONT = pjoin(prefs.paths['assets'], "fonts", 'DejaVuSerif.ttf')
 
 # Make sure all paths exist
 if not isdir(TESTS_FAILS_PATH):

@@ -54,7 +54,7 @@ class TextComponent(BaseVisualComponent):
             canBePath=False,
             label=_translate("Text"))
         self.params['font'] = Param(
-            font, valType='str', inputType="single", allowedTypes=[], categ='Formatting',
+            font, valType='str', inputType="font", allowedTypes=[], categ='Formatting',
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("The font name (e.g. Comic Sans)"),
             label=_translate("Font"))
@@ -188,7 +188,3 @@ class TextComponent(BaseVisualComponent):
         code = ("  %sdepth: %.1f \n"
                 "});\n\n" % (flipStr, depth))
         buff.writeIndentedLines(code)
-
-    def integrityCheck(self):
-        super().integrityCheck()  # run parent class checks first
-        alerttools.testFont(self)  # Test whether font is available locally

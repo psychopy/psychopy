@@ -20,7 +20,7 @@ formStyles = {
         'itemColor': 'black',
         'responseColor': 'black',
         'markerColor': [0.89, -0.35, -0.28],
-        'font': "Open Sans",
+        'font': "Noto Sans",
     },
     'dark': {
         'fillColor': [-0.19, -0.19, -0.14],
@@ -28,7 +28,7 @@ formStyles = {
         'itemColor': 'white',
         'responseColor': 'white',
         'markerColor': [0.89, -0.35, -0.28],
-        'font': "Open Sans",
+        'font': "Noto Sans",
     },
 }
 

@@ -97,7 +97,7 @@ class ButtonComponent(BaseVisualComponent):
             hint=_translate("The text to be displayed"),
             label=_translate("Button text"))
         self.params['font'] = Param(
-            font, valType='str', inputType="single", allowedTypes=[], categ='Formatting',
+            font, valType='str', inputType="font", allowedTypes=[], categ='Formatting',
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("The font name (e.g. Comic Sans)"),
             label=_translate("Font"))
@@ -491,7 +491,3 @@ class ButtonComponent(BaseVisualComponent):
             "psychoJS.experiment.addData('%(name)s.timesOff', %(name)s.timesOff);\n"
         )
         buff.writeIndentedLines(code % self.params)
-
-    def integrityCheck(self):
-        super().integrityCheck()  # run parent class checks first
-        alerttools.testFont(self) # Test whether font is available locally

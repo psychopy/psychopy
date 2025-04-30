@@ -74,7 +74,7 @@ debug = False
 
 class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, ColorMixin):
     def __init__(self, win, text,
-                 font="Open Sans",
+                 font="Noto Sans",
                  pos=(0, 0),
                  units=None,
                  letterHeight=None,
@@ -209,7 +209,7 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
         self.glFont = None  # will be set by the self.font attribute setter
         self.font = font
         self.letterSpacing = letterSpacing
-        # If font not found, default to Open Sans Regular and raise alert
+        # If font not found, default to Noto Sans Regular and raise alert
         if not self.glFont:
             alerts.alert(4325, self, {
                 'font': font,
@@ -218,7 +218,7 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
                 'name': self.name})
             self.bold = False
             self.italic = False
-            self.font = "Open Sans"
+            self.font = "Noto Sans"
 
         # once font is set up we can set the shader (depends on rgb/a of font)
         if self.glFont.atlas.format == 'rgb':

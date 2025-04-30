@@ -508,7 +508,7 @@ class _TestUnitsMixin:
                     obj.win = win
                     obj.units = objunits
                     # Add a label for the units
-                    label = visual.TextBox2(win, text=f"Window: {winunits}, Slider: {objunits}", font="Open Sans",
+                    label = visual.TextBox2(win, text=f"Window: {winunits}, Slider: {objunits}", font="Noto Sans",
                                             anchor="top-center", alignment="center top", padding=0.05, units="norm",
                                             pos=(0, 1))
                     # Add instructions
@@ -516,7 +516,7 @@ class _TestUnitsMixin:
                                             text=(
                                                 f"Press ENTER if object is functioning as intended, otherwise press "
                                                 f"any other key."
-                                            ), font="Open Sans", anchor="top-center", alignment="center bottom",
+                                            ), font="Noto Sans", anchor="top-center", alignment="center bottom",
                                             padding=0.05, units="norm", pos=(0, -1))
                     # Draw loop until button is pressed
                     keys = []

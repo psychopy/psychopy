@@ -76,7 +76,7 @@ _translate(
 
 # Alert 4325
 _translate(
-    "Font `{font} {style}` not available in weight `{weight}`, component `{name}` will default to Open Sans Regular.")
+    "Font `{font} {style}` not available in weight `{weight}`, component `{name}` will default to Noto Sans Regular.")
 
 # Alert 4330
 _translate(
