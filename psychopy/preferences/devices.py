@@ -65,6 +65,8 @@ class DeviceConfig(dict):
             cls = getattr(importlib.import_module(mod), name)
             # initialise class with profile from stored data
             self[key] = cls.fromJSON(val)
+            # make sure device name and device key line up
+            self[key].name = key
     
     def save(self):
         """

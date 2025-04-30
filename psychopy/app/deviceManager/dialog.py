@@ -178,7 +178,7 @@ class DevicePanel(wx.Panel):
             # make param ctrl
             self.paramCtrls[name] = wx.TextCtrl(self)
             self.paramCtrls[name].param = param
-            self.paramCtrls[name].Bind(wx.EVT_TEXT, self.apply)
+            self.paramCtrls[name].Bind(wx.EVT_TEXT, self.onParamEdit)
             self.sizer.Add(
                 self.paramCtrls[name], border=6, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM
             )
@@ -200,9 +200,35 @@ class DevicePanel(wx.Panel):
         self.sizer.Add(
             self.profileCtrl, border=6, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM
         )
+        # delete button
+        self.deleteBtn = wx.Button(self, label="Remove device")
+        self.deleteBtn.Bind(wx.EVT_BUTTON, self.onDelete)
+        self.sizer.Add(
+            self.deleteBtn, border=6, flag=wx.ALIGN_RIGHT | wx.ALL
+        )
         
         # populate from device
         self.populate()
+    
+    def onDelete(self, evt=None):
+        # remove from devices
+        del self.dlg.devices[self.device.name]
+        # repopulate without this page
+        self.dlg.populate()
+
+    def onParamEdit(self, evt):
+        # get calling ctrl and param
+        ctrl = evt.GetEventObject()
+        param = ctrl.param
+        # if renaming, pass it to the dialog so the control updates
+        if ctrl is self.nameCtrl:
+            self.dlg.renameDevice(
+                oldname=self.device.name,
+                newname=self.nameCtrl.GetValue()
+            )
+            return
+        # set value from ctrl
+        param.val = ctrl.GetValue()  
 
     def populate(self):
         # update params
@@ -210,17 +236,6 @@ class DevicePanel(wx.Panel):
             ctrl.ChangeValue(str(self.device.params[name].val))
         
         self.Layout()
-    
-    def apply(self, evt=None):
-        # update params
-        for name, ctrl in self.paramCtrls.items():
-            self.device.params[name].val = ctrl.GetValue()
-        # repopulate dlg on a rename
-        if self.device.name != self.nameCtrl.GetValue():
-            self.dlg.renameDevice(
-                oldname=self.device.name,
-                newname=self.nameCtrl.GetValue()
-            )
 
 
 class AddDeviceDlg(wx.Dialog):
