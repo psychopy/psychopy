@@ -133,7 +133,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.generateScript = generateScript
 
         # default window title
-        self.winTitle = 'PsychoPy Builder (v{})'.format(self.app.version)
+        self.winTitle = title
 
         if fileName in self.appData['frames']:
             self.frameData = self.appData['frames'][fileName]

@@ -117,6 +117,7 @@ class Experiment:
     Routine. The Flow controls how Routines are organised
     e.g. the nature of repeats and branching of an experiment.
     """
+    
 
     def __init__(self, prefs=None):
         super(Experiment, self).__init__()
@@ -164,6 +165,11 @@ class Experiment:
         # in writeRoutineEndCode
         self._expHandler = TrialHandler(exp=self, name='thisExp')
         self._expHandler.type = 'ExperimentHandler'  # true at run-time
+
+        # get a local reference of all Components and Routines (refreshed on loading a new file)
+        self.allCompons = getAllComponents(
+            self.prefsBuilder['componentsFolders'], fetchIcons=False)
+        self.allRoutines = getAllStandaloneRoutines(fetchIcons=False)
 
     def __eq__(self, other):
         if isinstance(other, Experiment):
@@ -577,6 +583,14 @@ class Experiment:
         name = paramNode.get('name')
         valType = paramNode.get('valType')
         val = paramNode.get('val')
+        # 
+        # get knowwn legacy params for the current Component
+        componentLegacyParams = []
+        if componentNode is not None:
+            if componentNode.tag in self.allCompons:
+                componentLegacyParams = self.allCompons[componentNode.tag].legacyParams
+            if componentNode.tag in self.allRoutines:
+                componentLegacyParams = self.allRoutines[componentNode.tag].legacyParams
         # many components need web char newline replacement
         if not name == 'advancedParams':
             val = val.replace("&#10;", "\n")
@@ -740,7 +754,7 @@ class Experiment:
                     params[name].allowedTypes = paramNode.get('allowedTypes')
                     if params[name].allowedTypes is None:
                         params[name].allowedTypes = []
-                    if name in legacyParams + ['JS libs', 'OSF Project ID']:
+                    if name in legacyParams + componentLegacyParams:
                         # don't warn people if we know it's OK (e.g. for params
                         # that have been removed
                         pass
@@ -873,9 +887,9 @@ class Experiment:
             self.setExpName(shortName)
         # fetch routines
         routinesNode = root.find('Routines')
-        allCompons = getAllComponents(
+        self.allCompons = allCompons = getAllComponents(
             self.prefsBuilder['componentsFolders'], fetchIcons=False)
-        allRoutines = getAllStandaloneRoutines(fetchIcons=False)
+        self.allRoutines = allRoutines = getAllStandaloneRoutines(fetchIcons=False)
         # get each routine node from the list of routines
         for routineNode in routinesNode:
             if routineNode.tag == "Routine":

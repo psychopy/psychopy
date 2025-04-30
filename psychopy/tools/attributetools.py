@@ -58,12 +58,19 @@ class attributeSetter:
     """Makes functions appear as attributes. Takes care of autologging.
     """
 
-    def __init__(self, func, doc=None):
+    def __init__(self, func):
         self.func = func
-        if doc is not None:
-            self.__doc__ = doc
-        else:
-            self.__doc__ = func.__doc__
+        self.__doc__ = func.__doc__
+    
+    def __set_name__(self, owner: type, name: str):
+        # if we already have docs, no further action needed
+        if self.__doc__ is not None:
+            return
+        # inherit docs from first base class which has any for this method
+        for base in owner.__bases__:
+            if hasattr(base, name) and getattr(base, name).__doc__ is not None:
+                self.__doc__ = getattr(base, name).__doc__
+                break
 
     def __set__(self, obj, value):
         newValue = self.func(obj, value)

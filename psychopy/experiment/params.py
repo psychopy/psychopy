@@ -55,6 +55,8 @@ inputDefaults = {
 # these are parameters which once existed but are no longer needed, so inclusion in this list will 
 # silence any "future version" warnings
 legacyParams = [
+    # settings params from the early days of PsychoJS
+    "JS libs", "OSF Project ID"
     # in 2021.1, we standardised colorSpace to be object-wide rather than param-specific
     "lineColorSpace", "borderColorSpace", "fillColorSpace", "foreColorSpace", 
     # in 2024.2.0, we removed some superfluous params from the pupil labs backend

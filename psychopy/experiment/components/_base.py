@@ -42,6 +42,9 @@ class BaseComponent:
     validatorClasses = []
     # hide this Component in Builder view?
     hidden = False
+    # are there any known legacy params for this Component?
+    # these will be removed & warnings ignored on experiment load
+    legacyParams = []
 
     def __init__(self, exp, parentName, name='',
                  startType='time (s)', startVal='',
