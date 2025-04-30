@@ -546,7 +546,7 @@ class MicrophoneComponent(BaseDeviceComponent):
 
 class MicrophoneDeviceBackend(DeviceBackend):
     # name of this backend to display in Device Manager
-    name = "Microphone"
+    backendName = "Microphone"
     # class of the device which this backend corresponds to
     deviceClass = "psychopy.hardware.microphone.MicrophoneDevice"
 

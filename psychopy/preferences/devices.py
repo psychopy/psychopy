@@ -74,5 +74,5 @@ class DeviceConfig(dict):
         self.file.write_text(
             json.dumps({
                 key: device.toJSON() for key, device in self.items()
-            })
+            }, indent=True)
         )

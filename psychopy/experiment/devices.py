@@ -31,6 +31,11 @@ class DeviceBackend:
             "deviceLabel"
         ]
     
+    def __repr__(self):
+        return (
+            f"<DeviceBackend: name={self.name}>"
+        )
+    
     @classmethod
     def fromJSON(cls, data):
         """
@@ -149,3 +154,14 @@ class DeviceBackend:
         Write the code to create a device for this backend
         """
         return self.writeBaseDeviceCode(buff, close=True)
+      
+    @property
+    def name(self):
+        print("NAME", self.params['deviceLabel'].val)
+        return self.params['deviceLabel'].val
+    
+    @name.setter
+    def name(self, value):
+        # update param value
+        self.params['deviceLabel'].val = value
+        

@@ -5,6 +5,7 @@ from psychopy.localization import _translate
 from psychopy.preferences import prefs
 from psychopy.hardware.manager import DeviceManager
 from psychopy.experiment.devices import DeviceBackend
+from psychopy.app.themes import icons
 
 
 class DeviceManagerDlg(wx.Dialog):
@@ -15,60 +16,40 @@ class DeviceManagerDlg(wx.Dialog):
     def __init__(self, parent):
         wx.Dialog.__init__(
             self, parent, title="Device manager",
-            size=(540, 360),
+            size=(540, 540),
             style=wx.RESIZE_BORDER | wx.CAPTION | wx.CLOSE_BOX
         )
         self.devices = prefs.devices.copy()
         # setup sizers
         self.border = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.border)
-        # setup splitter
-        self.splitter = wx.SplitterWindow(self)
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.border.Add(
-            self.splitter, border=12, proportion=1, flag=wx.EXPAND | wx.ALL
+            self.sizer, border=12, proportion=1, flag=wx.EXPAND | wx.ALL
         )
-        # setup panels
-        self.namesPnl = wx.Panel(self.splitter)
-        self.namesPnl.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.namesPnl.SetSizer(self.namesPnl.sizer)
-        self.devicePnl = wx.Panel(self.splitter)
-        self.devicePnl.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.devicePnl.SetSizer(self.devicePnl.sizer)
-        self.splitter.SplitVertically(self.namesPnl, self.devicePnl, sashPosition=100)
 
-        # names list
-        self.namesCtrl = wx.ListBox(
-            self.namesPnl, choices=[]
+        # profiles notebook
+        self.profilesNotebook = wx.Notebook(self)
+        self.sizer.Add(
+            self.profilesNotebook, border=0, proportion=1, flag=wx.EXPAND | wx.ALL
         )
-        self.namesCtrl.Bind(wx.EVT_LISTBOX, self.onNameSelected)
-        self.namesPnl.sizer.Add(
-            self.namesCtrl, border=6, proportion=1, flag=wx.EXPAND | wx.ALL
+        self.pages = {}
+
+        # controls panel
+        self.profileBtns = wx.BoxSizer(wx.HORIZONTAL)
+        self.profileBtns.AddStretchSpacer(prop=1)
+        self.sizer.Add(
+            self.profileBtns, border=6, flag=wx.EXPAND | wx.ALL
         )
         # add device button
         self.addDeviceBtn = wx.Button(
-            self.namesPnl, label="Add device"
+            self, label="Add device"
         )
         self.addDeviceBtn.Bind(wx.EVT_BUTTON, self.onAddDeviceBtn)
-        self.namesPnl.sizer.Add(
-            self.addDeviceBtn, border=6, flag=wx.ALIGN_RIGHT | wx.ALL
+        self.profileBtns.Add(
+            self.addDeviceBtn, border=6, flag=wx.EXPAND | wx.ALL
         )
 
-        # profile panel
-        self.profilePnl = wx.Panel(self.devicePnl)
-        self.profilePnl.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.profilePnl.SetSizer(self.profilePnl.sizer)
-        self.devicePnl.sizer.Add(
-            self.profilePnl, border=6, proportion=1, flag=wx.EXPAND | wx.ALL
-        )
-        # param ctrls
-        
-        # profile ctrl
-        self.profileCtrl = wx.TextCtrl(
-            self.profilePnl, style=wx.TE_MULTILINE | wx.TE_READONLY
-        )
-        self.profilePnl.sizer.Add(
-            self.profileCtrl, border=6, proportion=1, flag=wx.EXPAND | wx.ALL
-        )
         self.populate()
 
         # add ctrls
@@ -84,22 +65,46 @@ class DeviceManagerDlg(wx.Dialog):
         """
         Populate the device names ctrl from saved devices.
         """
-        self.namesCtrl.Clear()
-        self.namesCtrl.SetItems(list(self.devices))
+        # add pages
+        for name, device in self.devices.items():
+            if name not in self.pages:
+                self.pages[name] = DevicePanel(
+                    parent=self.profilesNotebook, 
+                    dlg=self, 
+                    device=device
+                )
+                self.profilesNotebook.AddPage(
+                    text=name, page=self.pages[name]
+                )
+        # delete pages from extinct devices
+        for name in self.pages:
+            if name not in self.devices:
+                self.profilesNotebook.DeletePage(
+                    self.profilesNotebook.FindPage(self.pages[name])
+                )
+    
+    def renameDevice(self, oldname, newname):
+        # set name param
+        self.devices[oldname].name = newname
+        # rename tab
+        self.profilesNotebook.SetPageText(
+            self.profilesNotebook.FindPage(self.pages[oldname]),
+            newname
+        )
+        # relocate in devices array
+        self.devices[newname] = self.devices.pop(oldname)
+        # relocate in pages array
+        self.pages[newname] = self.pages.pop(oldname)
 
     def onNameSelected(self, evt=None):
-        # start off with no profile
-        self.profileCtrl.SetValue("")
         # get name
         name = self.getCurrentName()
         # disable whole panel if nothing is selected
         self.devicePnl.Enable(name is not None)
-        # show/hide profile according to whether device is mapped
-        self.profileCtrl.Show(name in self.devices)
         # if mapped, show mapping
-        if name in self.devices:
-            self.profileCtrl.SetValue(
-                json.dumps(self.devices[name].profile, indent=True)
+        if name in self.pages:
+            self.profilesNotebook.ChangeSelection(
+                self.profilesNotebook.FindPage(self.pages[name])
             )
         
         self.Layout()
@@ -143,6 +148,109 @@ class DeviceManagerDlg(wx.Dialog):
         name = self.namesCtrl.GetString(i)
 
         return name
+
+
+class DevicePanel(wx.Panel):
+    def __init__(self, parent, dlg, device):
+        wx.Panel.__init__(self, parent)
+        # store parentage
+        self.parent = parent
+        self.dlg = dlg
+        # store device
+        self.device = device
+        # setup sizer
+        self.border = wx.BoxSizer(wx.VERTICAL)
+        self.SetSizer(self.border)
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.border.Add(
+            self.sizer, proportion=1, border=6, flag=wx.EXPAND | wx.ALL
+        )
+        # param ctrls
+        self.paramCtrls = {}
+        for name, param in device.params.items():
+            # make label
+            lbl = wx.StaticText(
+                self, label=param.label
+            )
+            self.sizer.Add(
+                lbl, border=6, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP
+            )
+            # make param ctrl
+            self.paramCtrls[name] = wx.TextCtrl(self)
+            self.paramCtrls[name].param = param
+            self.paramCtrls[name].Bind(wx.EVT_TEXT, self.apply)
+            self.sizer.Add(
+                self.paramCtrls[name], border=6, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM
+            )
+            # store name param
+            if name == "deviceLabel":
+                self.nameCtrl = self.paramCtrls[name]
+        # profile label
+        self.profileLbl = wx.StaticText(self, label="Device information")
+        self.sizer.Add(
+            self.profileLbl, border=6, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP
+        )
+        # profile ctrl
+        self.profileCtrl = DeviceProfilePanel(self, device)
+        self.sizer.Add(
+            self.profileCtrl, border=6, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM
+        )
+        
+        # populate from device
+        self.populate()
+
+    def populate(self):
+        # update params
+        for name, ctrl in self.paramCtrls.items():
+            ctrl.ChangeValue(str(self.device.params[name].val))
+        
+        self.Layout()
+    
+    def apply(self, evt=None):
+        # update params
+        for name, ctrl in self.paramCtrls.items():
+            self.device.params[name].val = ctrl.GetValue()
+        # repopulate dlg on a rename
+        if self.device.name != self.nameCtrl.GetValue():
+            self.dlg.renameDevice(
+                oldname=self.device.name,
+                newname=self.nameCtrl.GetValue()
+            )
+
+
+class DeviceProfilePanel(wx.Panel):
+    def __init__(self, parent, device):
+        wx.Panel.__init__(self, parent)
+        # store parentage
+        self.parent = parent
+        # store device
+        self.device = device
+        # setup sizer
+        self.border = wx.BoxSizer(wx.VERTICAL)
+        self.SetSizer(self.border)
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.border.Add(
+            self.sizer, proportion=1, border=6, flag=wx.EXPAND | wx.ALL
+        )
+        # style self
+        self.SetBackgroundColour("white")
+        # populate
+        for key, val in self.device.profile.items():
+            # make a sizer
+            sizer = wx.BoxSizer(wx.HORIZONTAL)
+            self.sizer.Add(sizer, border=6, flag=wx.EXPAND | wx.ALL)
+            # make a label
+            lbl = wx.StaticText(self, label=f"{key}:")
+            sizer.Add(
+                lbl, border=6, flag=wx.EXPAND | wx.RIGHT
+            )
+            # make a value label
+            ctrl = wx.StaticText(self, label=f"{val}")
+            sizer.Add(
+                ctrl, flag=wx.EXPAND
+            )
+        
+        self.Layout()
 
 
 class AddDeviceDlg(wx.Dialog):
@@ -205,7 +313,7 @@ class AddDeviceDlg(wx.Dialog):
         # iterate through classes...
         for cls, profiles in self.availableDevices.items():
             # add a child for each class
-            branch = self.devicesCtrl.AppendItem(root, cls.__name__)
+            branch = self.devicesCtrl.AppendItem(root, cls.backendName)
             # store ref to branch class
             self.branchClasses[branch] = cls
             # iterate through profiles...
