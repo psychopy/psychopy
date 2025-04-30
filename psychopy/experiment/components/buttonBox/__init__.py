@@ -1,10 +1,10 @@
 from pathlib import Path
 from psychopy.experiment.components import BaseComponent, BaseDeviceComponent, Param, getInitVals
-from psychopy.experiment.plugins import PluginDevicesMixin, DeviceBackend
+from psychopy.experiment.devices import DeviceBackend
 from psychopy.localization import _translate
 
 
-class ButtonBoxComponent(BaseDeviceComponent, PluginDevicesMixin):
+class ButtonBoxComponent(BaseDeviceComponent):
     """
     Component for getting button presses from a button box device.
     """
@@ -277,27 +277,22 @@ class ButtonBoxComponent(BaseDeviceComponent, PluginDevicesMixin):
             "thisExp.addData('%(name)s.corr', %(name)s.corr)\n"
         )
         buff.writeIndentedLines(code % params)
-        
 
-class KeyboardButtonBoxBackend(DeviceBackend):
-    """
-    Adds a basic keyboard emulation backend for ButtonBoxComponent, as well as acting as an example
-    for implementing other ButtonBoxBackends.
-    """
 
-    key = "keyboard"
-    label = _translate("Keyboard")
-    component = ButtonBoxComponent
-    deviceClasses = ['psychopy.hardware.button.KeyboardButtonBox']
+class KeyboardButtonBoxDeviceBackend(DeviceBackend):
+    backendName = "Keyboard Button Box"
+    deviceClass = "psychopy.hardware.button.KeyboardButtonBox"
 
-    def getParams(self: ButtonBoxComponent):
+    def __init__(self, profile):
+        # init parent class
+        DeviceBackend.__init__(self, profile)
+
         # define order
-        order = [
+        self.order += [
             "kbButtonAliases",
         ]
         # define params
-        params = {}
-        params['kbButtonAliases'] = Param(
+        self.params['kbButtonAliases'] = Param(
             "'q', 'w', 'e'", valType="list", inputType="single", categ="Device",
             label=_translate("Buttons"),
             hint=_translate(
@@ -305,22 +300,25 @@ class KeyboardButtonBoxBackend(DeviceBackend):
                 "Must be the same length as the number of buttons."
             )
         )
+    
+    def writeDeviceCode(self, buff):
+        """
+        Code to setup a device with this backend.
 
-        return params, order
-
-    def addRequirements(self):
-        # no requirements needed - so just return
-        return
-
-    def writeDeviceCode(self: ButtonBoxComponent, buff):
-        # get inits
-        inits = getInitVals(self.params)
-        # make ButtonGroup object
+        Parameters
+        ----------
+        buff : io.StringIO
+            Text buffer to write code to.
+        """
+        # write basic code
+        self.writeBaseDeviceCode(buff, close=False)
+        # add param and close
         code = (
-            "deviceManager.addDevice(\n"
-            "    deviceClass='psychopy.hardware.button.KeyboardButtonBox',\n"
-            "    deviceName=%(deviceLabel)s,\n"
             "    buttons=%(kbButtonAliases)s,\n"
             ")\n"
         )
-        buff.writeOnceIndentedLines(code % inits)
+        buff.writeIndentedLines(code % self.params)
+
+
+# register backend with Component
+ButtonBoxComponent.registerBackend(KeyboardButtonBoxDeviceBackend)
