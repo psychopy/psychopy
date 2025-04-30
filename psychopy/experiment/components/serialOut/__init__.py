@@ -55,7 +55,7 @@ class SerialOutComponent(BaseDeviceComponent):
                 hint=_translate(
                     "Type of data to be sent: A number, a binary sequence, a character byte, or custom code ($)"
                 ),
-                label=_translate("Start data type")
+                label=_translate("{} data type").format(titleLabel)
             )
 
             self.params[prefix + 'DataStr'] = Param(
@@ -135,7 +135,7 @@ class SerialOutComponent(BaseDeviceComponent):
         code = (
             "\n"
             "# point %(name)s to device named %(deviceLabel)s and make sure it's open\n"
-            "%(name)s = devicemanager.getDevice(%(deviceLabel)s)\n"
+            "%(name)s = deviceManager.getDevice(%(deviceLabel)s)\n"
             "%(name)s.status = NOT_STARTED\n"
             "if not %(name)s.com.is_open:\n"
             "    %(name)s.com.open()\n"
@@ -173,6 +173,11 @@ class SerialOutComponent(BaseDeviceComponent):
                 code = (
                     "%(name)s.sendMessage(%(startData)s)\n"
                 )
+            buff.writeIndented(code % params)
+            # store code that was sent
+            code = (
+                "%(loop)s.addData('%(name)s.stopData', %(startData)s)\n"
+            )
             buff.writeIndented(code % params)
             # update status
             code = (
@@ -214,6 +219,11 @@ class SerialOutComponent(BaseDeviceComponent):
                     "%(name)s.sendMessage(%(stopData)s)\n"
                 )
             buff.writeIndented(code % params)
+            # store code that was sent
+            code = (
+                "%(loop)s.addData('%(name)s.stopData', %(stopData)s)\n"
+            )
+            buff.writeIndented(code % params)
             # update status
             code = (
                 "%(name)s.status = FINISHED\n"
@@ -222,7 +232,7 @@ class SerialOutComponent(BaseDeviceComponent):
             # if we want responses, get them
             if self.params['getResponse']:
                 code = (
-                    "%(loop)s.addData('%(name)s.stopResp', %(name)s.read())\n"
+                    "%(loop)s.addData('%(name)s.stopResp', %(name)s.getResponse())\n"
                 )
                 buff.writeIndented(code % params)
         # Dedent
