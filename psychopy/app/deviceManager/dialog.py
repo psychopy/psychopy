@@ -5,7 +5,7 @@ from psychopy.localization import _translate
 from psychopy.preferences import prefs
 from psychopy.hardware.manager import DeviceManager
 from psychopy.experiment.devices import DeviceBackend
-from psychopy.app.themes import icons
+from psychopy.app.themes import icons, fonts
 
 
 class DeviceManagerDlg(wx.Dialog):
@@ -16,9 +16,10 @@ class DeviceManagerDlg(wx.Dialog):
     def __init__(self, parent):
         wx.Dialog.__init__(
             self, parent, title="Device manager",
-            size=(540, 540),
+            size=(720, 540),
             style=wx.RESIZE_BORDER | wx.CAPTION | wx.CLOSE_BOX
         )
+        self.SetMinSize((540, 256))
         self.devices = prefs.devices.copy()
         # setup sizers
         self.border = wx.BoxSizer(wx.VERTICAL)
@@ -29,26 +30,27 @@ class DeviceManagerDlg(wx.Dialog):
         )
 
         # profiles notebook
-        self.profilesNotebook = wx.Notebook(self)
+        self.profilesNotebook = wx.Listbook(self, style=wx.LB_LEFT)
         self.sizer.Add(
             self.profilesNotebook, border=0, proportion=1, flag=wx.EXPAND | wx.ALL
         )
         self.pages = {}
-
-        # controls panel
-        self.profileBtns = wx.BoxSizer(wx.HORIZONTAL)
-        self.sizer.Add(
-            self.profileBtns, border=6, flag=wx.EXPAND | wx.ALL
-        )
+        # resize the list ctrl
+        self.profilesListCtrl = self.profilesNotebook.GetListView()
+        self.profilesListCtrl.SetWindowStyleFlag(wx.LC_LIST)
+        self.profilesListCtrl.Refresh()
+        # set a sizer on the list control so we can add controls
+        self.profilesListCtrl.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.profilesListCtrl.sizer.AddStretchSpacer(1)
+        self.profilesListCtrl.SetSizer(self.profilesListCtrl.sizer)
         # add device button
         self.addDeviceBtn = wx.Button(
-            self, label="Add device"
+            self.profilesListCtrl, label="Add device"
         )
         self.addDeviceBtn.Bind(wx.EVT_BUTTON, self.onAddDeviceBtn)
-        self.profileBtns.Add(
+        self.profilesListCtrl.sizer.Add(
             self.addDeviceBtn, border=6, flag=wx.EXPAND | wx.ALL
         )
-        self.profileBtns.AddStretchSpacer(prop=1)
 
         self.populate()
 
@@ -163,11 +165,19 @@ class DevicePanel(wx.Panel):
         self.SetSizer(self.border)
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.border.Add(
-            self.sizer, proportion=1, border=6, flag=wx.EXPAND | wx.ALL
+            self.sizer, proportion=1, border=0, flag=wx.EXPAND | wx.ALL
         )
+        # sort params by order
+        sortedParams = {}
+        for key in device.order:
+            if key in device.params:
+                sortedParams[key] = device.params[key]
+        for key in device.params:
+            if key not in sortedParams:
+                sortedParams[key] = device.params[key]
         # param ctrls
         self.paramCtrls = {}
-        for name, param in device.params.items():
+        for name, param in sortedParams.items():
             # make label
             lbl = wx.StaticText(
                 self, label=param.label
@@ -182,9 +192,15 @@ class DevicePanel(wx.Panel):
             self.sizer.Add(
                 self.paramCtrls[name], border=6, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM
             )
-            # store name param
+            # store name param ctrl
             if name == "deviceLabel":
                 self.nameCtrl = self.paramCtrls[name]
+                # style name ctrl
+                self.nameCtrl.SetFont(
+                    fonts.AppFont(pointSize=int(fonts.AppFont.pointSize*1.2), bold=True).obj
+                )
+                # hide label
+                lbl.Hide()
         # profile label
         self.profileLbl = wx.StaticText(self, label="Device information")
         self.sizer.Add(
