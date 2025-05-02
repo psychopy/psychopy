@@ -125,20 +125,12 @@ class ParamCtrls():
                     vc.availableVersions(local=False), wx.__version__)
                 param.allowedVals = (options + [''] + versions)
         
-        if param.inputType in paramCtrls.inputTypes:
-            # create a param ctrl
-            self.valueCtrl = paramCtrls.ParamCtrl(
-                parent, field=fieldName, param=param, element=self.element, warnings=warnings
-            )
-            # set tooltip
-            if hasattr(self.valueCtrl.ctrl, 'SetToolTip'):
-                self.valueCtrl.ctrl.SetToolTip(wx.ToolTip(param.hint))
-        else:
-            self.valueCtrl = paramCtrls.SingleLineCtrl(
-                parent, field=fieldName, param=param, element=self.element, warnings=warnings
-            )
-            logging.warn(
-                f"Parameter {fieldName} has unrecognised inputType \"{param.inputType}\"")
+        # create a param ctrl
+        self.valueCtrl = paramCtrls.ParamCtrl(
+            parent, field=fieldName, param=param, element=self.element, warnings=warnings
+        )
+        # set tooltip
+        self.valueCtrl.setTooltip(param.hint)
 
         # create the type control
         if len(param.allowedTypes):

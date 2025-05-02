@@ -123,6 +123,22 @@ class BaseParamCtrl(wx.Panel):
             "All subclasses of BaseParamCtrl should implement `setValue`"
         )
 
+    def setTooltip(self, text):
+        """
+        Set the tooltip on this control.
+
+        Parameters
+        ----------
+        text : str
+            Text to show in tooltip
+        """
+        # set tooltip on panel
+        self.SetToolTip(wx.ToolTip(text))
+        # set on ctrl if possible
+        if hasattr(self.ctrl, 'SetToolTip'):
+            self.ctrl.SetToolTip(wx.ToolTip(text))
+        
+
     def setWarning(self, warning, allowed=True):
         """
         Set a warning on the warnings handler attached to this ctrl, if any.
