@@ -147,7 +147,7 @@ class BaseParamCtrl(wx.Panel):
         Returns True if the contents of this ctrl should be styled as code.
         """
         # if needed, figure out from $
-        if self.param.valType in ("extendedStr","str", "file", "table", "color", "list"):
+        if self.param.valType in ("extendedStr","str", "file", "table", "color"):
             return str(self.getValue()).startswith("$")
         
         return True
@@ -500,7 +500,7 @@ class ChoiceCtrl(BaseParamCtrl):
         # apply to ctrl
         self.ctrl.SetItems(self.labels)
         # disable if there's only one option or param is readonly
-        self.Enable(
+        self.ctrl.Enable(
             len(self.labels) > 1 and not self.param.readOnly
         )
         # apply (or re-apply) selection
@@ -1481,3 +1481,30 @@ class DictCtrl(BaseParamCtrl):
         return all([
             (item.keyCtrl.isValid and item.valueCtrl.isValid) for item in self.items
         ])
+
+
+class DeviceCtrl(ChoiceCtrl):
+    inputType = "device"
+
+    def makeCtrls(self):
+        ChoiceCtrl.makeCtrls(self)
+        # add a button to open device manager
+        self.deviceMgrBtn = wx.Button(self, style=wx.BU_EXACTFIT)
+        self.deviceMgrBtn.SetBitmap(
+            icons.ButtonIcon("devices", size=16, theme="light").bitmap
+        )
+        self.deviceMgrBtn.SetToolTip(_translate(
+            "Open the Device Manager to setup devices"
+        ))
+        self.sizer.Add(
+            self.deviceMgrBtn, border=6, flag=wx.EXPAND | wx.LEFT
+        )
+
+    def openDeviceManager(self, evt=None):
+        from psychopy.app.deviceManager import DeviceManagerDlg
+        # create dialog
+        dlg = DeviceManagerDlg(parent=self.GetTopLevelParent())
+        # show it
+        dlg.ShowModal()
+        # repopulate devices
+        self.populate()
