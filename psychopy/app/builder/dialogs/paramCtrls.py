@@ -36,6 +36,23 @@ from ...themes import icons
 inputTypes = {}
 
 
+EVT_PARAM_CHANGED = wx.PyEventBinder(wx.IdManager.ReserveId())
+
+
+class ParamValueChangedEvent(wx.CommandEvent):
+    def __init__(self, obj, param, trigger=None):
+        wx.CommandEvent.__init__(self, EVT_PARAM_CHANGED.typeId)
+        # set object
+        self.SetEventObject(obj)
+        # store param
+        self.param = param
+        # store triggering event
+        self.trigger = trigger
+
+    def getParam(self):
+        return self.param
+
+
 class BaseParamCtrl(wx.Panel):
     """
     Base class for all ParamCtrls, defines the minimum functions needed for a ParamCtrl to work.
@@ -182,6 +199,9 @@ class BaseParamCtrl(wx.Panel):
         # process dependent params
         if hasattr(self.parent, "checkDepends"):
             self.parent.checkDepends()
+        # emit a custom event
+        evt = ParamValueChangedEvent(self, param=self.param, trigger=evt)
+        wx.PostEvent(self, evt)
     
     def onElementOk(self, evt=None):
         """
