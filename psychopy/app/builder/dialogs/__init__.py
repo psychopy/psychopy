@@ -129,8 +129,6 @@ class ParamCtrls():
         self.valueCtrl = paramCtrls.ParamCtrl(
             parent, field=fieldName, param=param, element=self.element, warnings=warnings
         )
-        # set tooltip
-        self.valueCtrl.setTooltip(param.hint)
 
         # create the type control
         if len(param.allowedTypes):
