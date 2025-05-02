@@ -94,7 +94,7 @@ class BaseParamCtrl(wx.Panel):
         # call method which subclasses override to make controls
         self.makeCtrls()
         # set tooltip
-        self.valueCtrl.setTooltip(param.hint)
+        self.setTooltip(param.hint)
     
     def __init_subclass__(cls):
         # index subclasses of BaseParamCtrl by the inputType they represent
