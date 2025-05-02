@@ -88,7 +88,7 @@ class SettingsComponent:
             self, parentName, exp, expName='', fullScr=True, runMode=0, rush=False,
             winSize=(1024, 768), screen=1, monitor='testMonitor', winBackend='pyglet',
             showMouse=False, saveLogFile=True, showExpInfo=True,
-            expInfo="{'participant':'f\"{randint(0, 999999):06.0f}\"', 'session':'001'}",
+            expInfo="{'participant':'f\"{randint(0, 999999):06.0f}\"', 'session':'\"001\"'}",
             units='height', 
             logging="info", 
             consoleLoggingLevel="warning",

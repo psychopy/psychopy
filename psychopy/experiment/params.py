@@ -16,6 +16,7 @@ The code that writes out a *_lastrun.py experiment file is (in order):
     settings.SettingsComponent.writeEndCode()
 """
 import functools
+import json
 from xml.etree.ElementTree import Element
 
 import re

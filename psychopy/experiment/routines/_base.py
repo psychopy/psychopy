@@ -50,7 +50,7 @@ class BaseStandaloneRoutine:
         msg = _translate(
             "Name of this Routine (alphanumeric or _, no spaces)")
         self.params['name'] = Param(name,
-                                    valType='code', inputType="single", categ='Basic',
+                                    valType='code', inputType="name", categ='Basic',
                                     hint=msg,
                                     label=_translate('Name'))
 

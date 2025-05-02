@@ -77,6 +77,10 @@ class ParamCtrls():
         self.dlg = dlg
         self.dpi = self.dlg.dpi
         self.valueWidth = self.dpi * 3.5
+        # get warnings handler
+        warnings = None
+        if hasattr(dlg, "warnings"):
+            warnings = dlg.warnings
         # try to find the experiment
         self.exp = None
         tryForExp = self.dlg
@@ -89,7 +93,13 @@ class ParamCtrls():
                     tryForExp = tryForExp.parent  # try going up a level
                 except Exception:
                     tryForExp.parent
-
+        # get the element to which this set of param ctrls pertains
+        self.element = None
+        if isinstance(parent, ParamNotebook.CategoryPage):
+            # if a category page, get element from notebook
+            self.element = parent.parent.element
+        elif isinstance(parent, DlgLoopProperties.LoopParamsPanel):
+            self.element = parent.loop
         # param has the fields:
         #   val, valType, allowedVals=[],allowedTypes=[],
         #   hint="", updates=None, allowedUpdates=None
@@ -114,168 +124,21 @@ class ParamCtrls():
                 versions = vc._versionFilter(
                     vc.availableVersions(local=False), wx.__version__)
                 param.allowedVals = (options + [''] + versions)
-
-        if param.inputType == "single":
-            # Create single line string control
-            self.valueCtrl = paramCtrls.SingleLineCtrl(
-                parent, 
-                val=str(param.val), 
-                valType=param.valType,
-                fieldName=fieldName, 
-                size=wx.Size(int(self.valueWidth), 24))
-        elif param.inputType == 'multi':
-            if param.valType == "extendedCode":
-                # Create multiline code control
-                self.valueCtrl = paramCtrls.CodeCtrl(
-                    parent, 
-                    val=str(param.val), 
-                    valType=param.valType, 
-                    fieldName=fieldName, 
-                    size=wx.Size(int(self.valueWidth), 144))
-            else:
-                # Create multiline string control
-                self.valueCtrl = paramCtrls.MultiLineCtrl(
-                    parent, 
-                    val=str(param.val),
-                    valType=param.valType,
-                    fieldName=fieldName, 
-                    size=wx.Size(int(self.valueWidth), 144))
-            # Set focus if field is text of a Textbox or Text component
-            if fieldName == 'text':
-                self.valueCtrl.SetFocus()
-        elif param.inputType == 'spin':
-            # Create single line string control
-            self.valueCtrl = paramCtrls.SingleLineCtrl(
-                parent, 
-                val=str(param.val), 
-                valType=param.valType,
-                fieldName=fieldName, 
-                size=wx.Size(int(self.valueWidth), 24))
-            # Will have to disable spinCtrl until we have a dropdown for inputType, sadly
-            # self.valueCtrl = paramCtrls.IntCtrl(parent,
-            #                                     val=param.val, valType=param.valType,
-            #                                     fieldName=fieldName,size=wx.Size(self.valueWidth, 24),
-            #                                     limits=param.allowedVals)
-        elif param.inputType == 'choice':
-            self.valueCtrl = paramCtrls.ChoiceCtrl(
-                parent, 
-                val=str(param.val), 
-                valType=param.valType,
-                choices=param.allowedVals, 
-                labels=param.allowedLabels,
-                fieldName=fieldName)
-        elif param.inputType == 'multiChoice':
-            self.valueCtrl = paramCtrls.MultiChoiceCtrl(
-                parent, 
-                valType=param.valType, 
-                vals=param.val, 
-                choices=param.allowedVals, 
-                fieldName=fieldName,
-                size=wx.Size(int(self.valueWidth), -1))
-        elif param.inputType == 'richChoice':
-            self.valueCtrl = paramCtrls.RichChoiceCtrl(
-                parent, 
-                valType=param.valType,
-                vals=param.val,
-                choices=param.allowedVals, 
-                labels=param.allowedLabels,
-                fieldName=fieldName,
-                size=wx.Size(int(self.valueWidth), -1))
-        elif param.inputType == 'bool':
-            self.valueCtrl = paramCtrls.BoolCtrl(
-                parent, 
-                name=fieldName, 
-                size=wx.Size(int(self.valueWidth), 24))
-            self.valueCtrl.SetValue(bool(param))
-        elif param.inputType == 'file' or browse:
-            self.valueCtrl = paramCtrls.FileCtrl(
-                parent, 
-                val=str(param.val),
-                valType=param.valType,
-                fieldName=fieldName, 
-                size=wx.Size(int(self.valueWidth), 24))
-            self.valueCtrl.allowedVals = param.allowedVals
-        elif param.inputType == 'font':
-            self.valueCtrl = paramCtrls.FontCtrl(
-                parent, 
-                val=str(param.val), 
-                valType=param.valType,
-                fieldName=fieldName, 
-                size=wx.Size(int(self.valueWidth), 24))
-        elif param.inputType == 'survey':
-            self.valueCtrl = paramCtrls.SurveyCtrl(
-                parent, 
-                val=str(param.val), 
-                valType=param.valType,
-                fieldName=fieldName, 
-                size=wx.Size(int(self.valueWidth), 24))
-            self.valueCtrl.allowedVals = param.allowedVals
-        elif param.inputType == 'fileList':
-            self.valueCtrl = paramCtrls.FileListCtrl(
-                parent, 
-                choices=param.val, 
-                valType=param.valType,
-                size=wx.Size(int(self.valueWidth), 100), 
-                pathtype="rel")
-        elif param.inputType == 'table':
-            self.valueCtrl = paramCtrls.TableCtrl(
-                parent, 
-                param=param,
-                fieldName=fieldName, 
-                size=wx.Size(int(self.valueWidth), 24))
-        elif param.inputType == 'color':
-            self.valueCtrl = paramCtrls.ColorCtrl(
-                parent,
-                val=param.val, 
-                valType=param.valType,
-                fieldName=fieldName, 
-                size=wx.Size(int(self.valueWidth), 24))
-        elif param.inputType == 'dict':
-            self.valueCtrl = paramCtrls.DictCtrl(
-                parent,
-                val=param.val,
-                labels=param.allowedLabels,
-                valType=param.valType,
-                fieldName=fieldName)
-        elif param.inputType == 'device':
-            self.valueCtrl = paramCtrls.DeviceCtrl(
-                parent,
-                param,
-                fieldName=fieldName
+        
+        if param.inputType in paramCtrls.inputTypes:
+            # create a param ctrl
+            self.valueCtrl = paramCtrls.ParamCtrl(
+                parent, field=fieldName, param=param, element=self.element, warnings=warnings
             )
-        elif param.inputType == 'inv':
-            self.valueCtrl = paramCtrls.InvalidCtrl(
-                parent,
-                val=str(param.val), 
-                valType=param.valType,
-                fieldName=fieldName, 
-                size=wx.Size(int(self.valueWidth), 24))
+            # set tooltip
+            if hasattr(self.valueCtrl.ctrl, 'SetToolTip'):
+                self.valueCtrl.ctrl.SetToolTip(wx.ToolTip(param.hint))
         else:
             self.valueCtrl = paramCtrls.SingleLineCtrl(
-                parent,
-                val=str(param.val), 
-                valType=param.valType,
-                fieldName=fieldName,
-                size=wx.Size(int(self.valueWidth), 24))
+                parent, field=fieldName, param=param, element=self.element, warnings=warnings
+            )
             logging.warn(
                 f"Parameter {fieldName} has unrecognised inputType \"{param.inputType}\"")
-
-        # if fieldName == 'Experiment info':
-        #     # for expInfo convert from a string to the list-of-dicts
-        # val = self.expInfoToListWidget(param.val)
-        #     self.valueCtrl = dialogs.ListWidget(
-        #         parent, val, order=['Field', 'Default'])
-        if hasattr(self.valueCtrl, 'SetToolTip'):
-            self.valueCtrl.SetToolTip(wx.ToolTip(_translate(param.hint)))
-        if not callable(param.allowedVals) and len(param.allowedVals) == 1 or param.readOnly:
-            self.valueCtrl.Disable()  # visible but can't be changed
-
-        # add a Validator to the valueCtrl
-        if fieldName == "name":
-            self.valueCtrl.SetValidator(NameValidator())
-        elif param.inputType in ("single", "multi"):
-            # only want anything that is valType code, or can be with $
-            self.valueCtrl.SetValidator(CodeSnippetValidator(fieldName, param.label))
 
         # create the type control
         if len(param.allowedTypes):
@@ -470,7 +333,7 @@ class ParamCtrls():
             self.valueCtrl.Bind(wx.EVT_CHECKBOX, callbackFunction)
         elif isinstance(self.valueCtrl, paramCtrls.CodeCtrl):
             self.valueCtrl.Bind(wx.EVT_KEY_UP, callbackFunction)
-        elif isinstance(self.valueCtrl, (paramCtrls.DictCtrl, paramCtrls.FileListCtrl)):
+        elif isinstance(self.valueCtrl, (paramCtrls.BaseParamCtrl, paramCtrls.DictCtrl, paramCtrls.FileListCtrl)):
             pass
         else:
             print("setChangesCallback doesn't know how to handle ctrl {}"
@@ -890,6 +753,7 @@ class _BaseParamsDlg(wx.Dialog):
         self.params = params = element.params  # dict
         self.title = title
         self.timeout = timeout
+        self.warnings = WarningManager(self)
         if (not editing and
                 title != 'Experiment Settings' and
                 'name' in self.params):
@@ -1005,7 +869,6 @@ class _BaseParamsDlg(wx.Dialog):
         CANCEL = wx.Button(self, wx.ID_CANCEL, _translate(" Cancel "))
 
         # Add validator stuff
-        self.warnings = WarningManager(self)
         self.mainSizer.Add(self.warnings.output, border=3, flag=wx.EXPAND | wx.ALL)
         self.Validate()  # disables OKbtn if bad name, syntax error, etc
 
@@ -1064,8 +927,8 @@ class _BaseParamsDlg(wx.Dialog):
         """
         # run "on ok" validation for each ctrl
         for ctrl in self.paramCtrls.values():
-            if hasattr(ctrl, "valueCtrl") and hasattr(ctrl.valueCtrl, "onOK"):
-                ctrl.valueCtrl.onOK()
+            if hasattr(ctrl, "valueCtrl") and hasattr(ctrl.valueCtrl, "onElementOk"):
+                ctrl.valueCtrl.onElementOk()
         
         event.Skip()
 
@@ -1211,6 +1074,12 @@ class _BaseParamsDlg(wx.Dialog):
 class DlgLoopProperties(_BaseParamsDlg):
     _style = wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT | wx.RESIZE_BORDER
 
+    class LoopParamsPanel(wx.Panel):
+        def __init__(self, parent, loop):
+            wx.Panel.__init__(self, parent)
+            # store loop object
+            self.loop = loop
+
     def __init__(self, frame, title="Loop Properties", loop=None,
                  helpUrl=None, pos=wx.DefaultPosition, size=wx.DefaultSize,
                  style=_style, depends=[], timeout=None):
@@ -1239,6 +1108,8 @@ class DlgLoopProperties(_BaseParamsDlg):
         self.conditions = None
         self.conditionsFile = None
         self.condNamesInFile = []
+        self.warnings = WarningManager(self)
+        self.loop = loop
         # create a valid new name; save old name in case we need to revert
         namespace = frame.exp.namespace
         defaultName = namespace.makeValid('trials')
@@ -1407,7 +1278,7 @@ class DlgLoopProperties(_BaseParamsDlg):
             return str(self.expPath / self._conditionsFile)
 
     def makeGlobalCtrls(self):
-        panel = wx.Panel(parent=self)
+        panel = self.LoopParamsPanel(parent=self, loop=self.loop)
         panelSizer = wx.GridBagSizer(0, 0)
         panel.SetSizer(panelSizer)
         row = 0
@@ -1440,7 +1311,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         handler = self.trialHandler
         # loop through the params
         keys = list(handler.params.keys())
-        panel = wx.Panel(parent=self)
+        panel = self.LoopParamsPanel(parent=self, loop=self.loop)
         panel.app=self.app
         panelSizer = wx.GridBagSizer(0, 0)
         panel.SetSizer(panelSizer)
@@ -1506,7 +1377,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                 row += 1
             # Link conditions file browse button to its own special method
             if fieldName == 'conditionsFile':
-                ctrls.valueCtrl.findBtn.Bind(wx.EVT_BUTTON, self.onBrowseTrialsFile)
+                ctrls.valueCtrl.fileBtn.Bind(wx.EVT_BUTTON, self.onBrowseTrialsFile)
                 ctrls.setChangesCallback(self.setNeedUpdate)
             # store info about the field
             self.constantsCtrls[fieldName] = ctrls
@@ -1515,7 +1386,7 @@ class DlgLoopProperties(_BaseParamsDlg):
 
     def makeMultiStairCtrls(self):
         # a list of controls for the random/sequential versions
-        panel = wx.Panel(parent=self)
+        panel = self.LoopParamsPanel(parent=self, loop=self.loop)
         panel.app = self.app
         panelSizer = wx.GridBagSizer(0, 0)
         panel.SetSizer(panelSizer)
@@ -1585,7 +1456,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                 row += 1
             # Bind file button with its own special method
             if fieldName == 'conditionsFile':
-                ctrls.valueCtrl.findBtn.Bind(wx.EVT_BUTTON, self.onBrowseTrialsFile)
+                ctrls.valueCtrl.fileBtn.Bind(wx.EVT_BUTTON, self.onBrowseTrialsFile)
             # store info about the field
             self.multiStairCtrls[fieldName] = ctrls
         panelSizer.AddGrowableCol(1, 1)
@@ -1594,7 +1465,7 @@ class DlgLoopProperties(_BaseParamsDlg):
     def makeStaircaseCtrls(self):
         """Setup the controls for a StairHandler
         """
-        panel = wx.Panel(parent=self)
+        panel = self.LoopParamsPanel(parent=self, loop=self.loop)
         panelSizer = wx.GridBagSizer(0, 0)
         panel.SetSizer(panelSizer)
         row = 0
@@ -1717,7 +1588,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                             style=wx.FD_OPEN, defaultDir=str(self.expPath))
         if dlg.ShowModal() == wx.ID_OK:
             self.conditionsFile = dlg.GetPath()
-            self.currentCtrls['conditionsFile'].valueCtrl.SetValue(
+            self.currentCtrls['conditionsFile'].valueCtrl.setValue(
                 self.conditionsFile
             )
             self.updateSummary()
@@ -1734,7 +1605,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         or message, as appropriate. Upon completion this will disable the update button as
         we are now up to date.
         """
-        self.conditionsFile = self.currentCtrls['conditionsFile'].valueCtrl.GetValue()
+        self.conditionsFile = self.currentCtrls['conditionsFile'].valueCtrl.getValue()
         # Check whether the file and path are the same as previously
         isSameFilePathAndName = self.conditionsFileAbs == self.conditionsFileOrig
         # Start off with no message and assumed valid
@@ -1916,8 +1787,8 @@ class DlgExperimentProperties(_BaseParamsDlg):
 
         # Add button to show screen numbers
         scrNumCtrl = self.paramCtrls['Screen'].valueCtrl
-        self.screenNsBtn = wx.Button(scrNumCtrl.GetParent(), label=_translate("Show screen numbers"))
-        scrNumCtrl._szr.Add(self.screenNsBtn, border=5, flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT)
+        self.screenNsBtn = wx.Button(scrNumCtrl, label=_translate("Show screen numbers"))
+        scrNumCtrl.sizer.Add(self.screenNsBtn, border=5, flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT)
         scrNumCtrl.Layout()
         self.screenNsBtn.Bind(wx.EVT_BUTTON, self.showScreenNumbers)
 
@@ -1935,12 +1806,12 @@ class DlgExperimentProperties(_BaseParamsDlg):
         """full-screen has been checked / unchecked.
         Show or hide the window size field accordingly
         """
-        if self.paramCtrls['Full-screen window'].valueCtrl.GetValue():
+        if self.paramCtrls['Full-screen window'].valueCtrl.getValue():
             # get screen size for requested display
             numDisplays = wx.Display.GetCount()
             try:
                 screenValue = int(
-                    self.paramCtrls['Screen'].valueCtrl.GetValue())
+                    self.paramCtrls['Screen'].valueCtrl.getValue())
             except ValueError:
                 # param control currently contains no integer value
                 screenValue = 1
@@ -1952,7 +1823,7 @@ class DlgExperimentProperties(_BaseParamsDlg):
             size = list(wx.Display(screenN).GetGeometry()[2:])
             # set vals and disable changes
             field = 'Window size (pixels)'
-            self.paramCtrls[field].valueCtrl.SetValue(str(size))
+            self.paramCtrls[field].valueCtrl.setValue(str(size))
             self.paramCtrls[field].param.val = size
             self.paramCtrls[field].valueCtrl.Disable()
             self.paramCtrls[field].nameCtrl.Disable()

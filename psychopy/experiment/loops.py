@@ -93,7 +93,7 @@ class TrialHandler(_BaseLoopHandler):
         self.order = ['name']  # make name come first (others don't matter)
         self.params = {}
         self.params['name'] = Param(
-            name, valType='code', inputType="single", updates=None, allowedUpdates=None,
+            name, valType='code', inputType="name", updates=None, allowedUpdates=None,
             label=_translate('Name'),
             hint=_translate("Name of this loop"))
         self.params['nReps'] = Param(
@@ -107,7 +107,7 @@ class TrialHandler(_BaseLoopHandler):
             hint=_translate("A list of dictionaries describing the "
                             "parameters in each condition"))
         self.params['conditionsFile'] = Param(
-            conditionsFile, valType='file', inputType="table", updates=None, allowedUpdates=None,
+            conditionsFile, valType='file', inputType="conditions", updates=None, allowedUpdates=None,
             label=_translate('Conditions'),
             hint=_translate("Name of a file specifying the parameters for "
                             "each condition (.csv, .xlsx, or .pkl). Browse "
@@ -478,7 +478,7 @@ class StairHandler(_BaseLoopHandler):
         self.children = []
         self.params = {}
         self.params['name'] = Param(
-            name, valType='code',
+            name, valType='code', inputType="name",
             hint=_translate("Name of this loop"),
             label=_translate('Name'))
         self.params['nReps'] = Param(
@@ -633,7 +633,7 @@ class MultiStairHandler(_BaseLoopHandler):
         self.order = ['name']  # make name come first
         self.params = {}
         self.params['name'] = Param(
-            name, valType='code', inputType='single',
+            name, valType='code', inputType='name',
             label=_translate('Name'),
             hint=_translate("Name of this loop"))
         self.params['nReps'] = Param(
@@ -664,7 +664,7 @@ class MultiStairHandler(_BaseLoopHandler):
             hint=_translate('Where to loop from and to (see values currently'
                             ' shown in the flow view)'))
         self.params['conditions'] = Param(
-            list(conditions), valType='list', inputType='single',
+            list(conditions), valType='list', inputType='conditions',
             updates=None, allowedUpdates=None,
             label=_translate('Conditions'),
             hint=_translate("A list of dictionaries describing the "
@@ -692,7 +692,7 @@ class MultiStairHandler(_BaseLoopHandler):
                 return root / "staircaseTemplate.xltx"
 
         self.params['conditionsFile'] = Param(
-            conditionsFile, valType='file', inputType='table', updates=None, allowedUpdates=None,
+            conditionsFile, valType='file', inputType='conditions', updates=None, allowedUpdates=None,
             label=_translate('Conditions'),
             hint=_translate("An xlsx or csv file specifying the parameters "
                             "for each condition"),

@@ -522,6 +522,10 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         if self.isRetina:
             self._codeFont.SetPointSize(int(self._codeFont.GetPointSize()*fontScale))
             self._mainFont.SetPointSize(int(self._mainFont.GetPointSize()*fontScale))
+        # apply calculated point size to themed font defaults
+        from psychopy.app.themes import fonts
+        fonts.AppFont.pointSize = self._mainFont.GetPointSize()
+        fonts.CodeFont.pointSize = self._codeFont.GetPointSize()
         # that gets most of the properties of _codeFont but the FaceName
         # FaceName is set in the setting of the theme:
         self.theme = prefs.app['theme']

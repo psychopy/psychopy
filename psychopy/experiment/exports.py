@@ -232,7 +232,8 @@ class NameSpace:
                        if i < len(su) - 1 and su[i + 1] == var]
         return duplicates or None
 
-    def isValid(self, name):
+    @staticmethod
+    def isValid(name):
         """var-name compatible? return True if string name is
         alphanumeric + underscore only, with non-digit first
         """

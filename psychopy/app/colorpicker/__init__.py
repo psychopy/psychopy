@@ -566,7 +566,7 @@ class PsychoColorPicker(ColorPickerDialog):
                 self.context.GetCurrentPos(), "(" + self.getOutputValue() + ")")
 
         self._saveState()  # retain state
-        self.Close()
+        self.EndModal(wx.ID_OK)
 
     def OnCopy(self, event):
         """Event to copy the color to the clipboard as a value.
