@@ -1,6 +1,9 @@
 import importlib
 import json
 import wx, wx.propgrid
+from psychopy.app.builder.dialogs.paramCtrls import ParamCtrl, EVT_PARAM_CHANGED
+from psychopy.app.builder.validators import WarningManager
+from psychopy.experiment.params import Param
 from psychopy.localization import _translate
 from psychopy.preferences import prefs
 from psychopy.hardware.manager import DeviceManager
@@ -60,6 +63,10 @@ class DeviceManagerDlg(wx.Dialog):
         )
         self.Bind(wx.EVT_BUTTON, self.onOK, id=wx.ID_OK)
         self.border.Add(self.ctrls, border=12, flag=wx.EXPAND | wx.ALL)
+        # get handle of OK button
+        for item in self.ctrls.GetChildren():
+            if item.Window is not None and item.Window.GetId() == wx.ID_OK:
+                self.okBtn = item.Window
 
         self.Layout()
     
@@ -97,6 +104,8 @@ class DeviceManagerDlg(wx.Dialog):
         self.devices[newname] = self.devices.pop(oldname)
         # relocate in pages array
         self.pages[newname] = self.pages.pop(oldname)
+        # validate ok button
+        self.validate()
 
     def onNameSelected(self, evt=None):
         # get name
@@ -124,7 +133,17 @@ class DeviceManagerDlg(wx.Dialog):
 
         self.populate()
     
+    def validate(self):
+        # enable/disable OK button if every page is okay
+        self.okBtn.Enable(all([
+            self.profilesNotebook.GetPage(i).warnings.OK 
+            for i in range(self.profilesNotebook.GetPageCount())
+        ]))
+    
     def onOK(self, evt):
+        # run on OK methods from all params
+        for i in range(self.profilesNotebook.GetPageCount()):
+            self.profilesNotebook.GetPage(i).onElementOk(evt)
         # save config
         self.devices.save()
         # reload in prefs so changes are applied this session
@@ -158,6 +177,8 @@ class DevicePanel(wx.Panel):
         # store parentage
         self.parent = parent
         self.dlg = dlg
+        # setup warnings
+        self.warnings = WarningManager(self)
         # store device
         self.device = device
         # setup sizer
@@ -186,9 +207,14 @@ class DevicePanel(wx.Panel):
                 lbl, border=6, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP
             )
             # make param ctrl
-            self.paramCtrls[name] = wx.TextCtrl(self)
-            self.paramCtrls[name].param = param
-            self.paramCtrls[name].Bind(wx.EVT_TEXT, self.onParamEdit)
+            self.paramCtrls[name] = ParamCtrl(
+                self, 
+                field=name, 
+                param=param, 
+                element=None, 
+                warnings=self.warnings
+            )
+            self.paramCtrls[name].Bind(EVT_PARAM_CHANGED, self.onParamEdit)
             self.sizer.Add(
                 self.paramCtrls[name], border=6, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM
             )
@@ -222,6 +248,10 @@ class DevicePanel(wx.Panel):
         self.sizer.Add(
             self.deleteBtn, border=6, flag=wx.ALIGN_RIGHT | wx.ALL
         )
+        # warnings panel
+        self.sizer.Add(
+            self.warnings.output, border=6, flag=wx.EXPAND | wx.ALL
+        )
         
         # populate from device
         self.populate()
@@ -232,7 +262,7 @@ class DevicePanel(wx.Panel):
         # repopulate without this page
         self.dlg.populate()
 
-    def onParamEdit(self, evt):
+    def onParamEdit(self, evt=None):
         # get calling ctrl and param
         ctrl = evt.GetEventObject()
         param = ctrl.param
@@ -240,16 +270,22 @@ class DevicePanel(wx.Panel):
         if ctrl is self.nameCtrl:
             self.dlg.renameDevice(
                 oldname=self.device.name,
-                newname=self.nameCtrl.GetValue()
+                newname=self.nameCtrl.getValue()
             )
             return
         # set value from ctrl
-        param.val = ctrl.GetValue()  
+        param.val = ctrl.getValue()
+        # validate dlg
+        self.dlg.validate()
+    
+    def onElementOk(self, evt=None):
+        for name, ctrl in self.paramCtrls.items():
+            ctrl.onElementOk(evt)
 
     def populate(self):
         # update params
         for name, ctrl in self.paramCtrls.items():
-            ctrl.ChangeValue(str(self.device.params[name].val))
+            ctrl.setValue(str(self.device.params[name].val))
         
         self.Layout()
 
@@ -264,6 +300,8 @@ class AddDeviceDlg(wx.Dialog):
             size=(540, 360),
             style=wx.RESIZE_BORDER | wx.CAPTION | wx.CLOSE_BOX
         )
+        # setup warnings
+        self.warnings = WarningManager(self)
         # get array of available devices by backend
         if AddDeviceDlg.availableDevices is None:
             AddDeviceDlg.availableDevices = {}
@@ -280,31 +318,54 @@ class AddDeviceDlg(wx.Dialog):
         # name ctrl
         self.nameLbl = wx.StaticText(self, label=_translate("Device label"))
         self.sizer.Add(
-            self.nameLbl, border=6, flag=wx.EXPAND | wx.ALL
+            self.nameLbl, border=6, flag=wx.EXPAND | wx.TOP
         )
-        self.nameCtrl = wx.TextCtrl(self)
+        self.nameCtrl = ParamCtrl(
+            self,
+            field="name",
+            param=Param("device", valType="code", inputType="name"),
+            element=None,
+            warnings=self.warnings
+        )
         self.sizer.Add(
-            self.nameCtrl, border=6, flag=wx.EXPAND | wx.ALL
+            self.nameCtrl, border=6, flag=wx.EXPAND | wx.BOTTOM
         )
+        self.nameCtrl.Bind(EVT_PARAM_CHANGED, self.validate)
 
         # devices ctrl
         self.devicesLbl = wx.StaticText(self, label=_translate("Available devices"))
         self.sizer.Add(
-            self.devicesLbl, border=6, flag=wx.EXPAND | wx.ALL
+            self.devicesLbl, border=6, flag=wx.EXPAND | wx.TOP
         )
         self.devicesCtrl = wx.TreeCtrl(self)
         self.sizer.Add(
-            self.devicesCtrl, proportion=1, border=6, flag=wx.EXPAND | wx.ALL
+            self.devicesCtrl, proportion=1, border=6, flag=wx.EXPAND | wx.BOTTOM
         )
         self.populate()
+
+        # warnings panel
+        self.sizer.Add(
+            self.warnings.output, border=6, flag=wx.EXPAND | wx.ALL
+        )
 
         # add ctrls
         self.ctrls = self.CreateStdDialogButtonSizer(
             flags=wx.OK | wx.CANCEL
         )
-        self.border.Add(self.ctrls, border=12, flag=wx.EXPAND | wx.ALL)
+        self.border.Add(
+            self.ctrls, border=12, flag=wx.EXPAND | wx.ALL
+        )
+        # get handle of OK button
+        for item in self.ctrls.GetChildren():
+            if item.Window is not None and item.Window.GetId() == wx.ID_OK:
+                self.okBtn = item.Window
 
         self.Layout()
+    
+    def validate(self, evt=None):
+        self.okBtn.Enable(
+            self.warnings.OK
+        )
     
     def populate(self):
         """
