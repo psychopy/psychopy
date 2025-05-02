@@ -389,7 +389,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
                     if val.startswith('[') and val.endswith(']'):
                         # val = eval('%s' %unicode(val.decode('utf8')))
                         val = eval(val)
-                elif type(val) == np.string_:
+                elif type(val) == np.bytes_:
                     val = str(val.decode('utf-8-sig'))
                     # if it looks like a list, convert it:
                     if val.startswith('[') and val.endswith(']'):

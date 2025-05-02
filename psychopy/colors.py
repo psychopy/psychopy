@@ -397,7 +397,7 @@ class Color:
         """If colour is printed, it will display its class and value.
         """
         if self.valid:
-            if self.named:
+            if isinstance(self.named, str):
                 return (f"<{self.__class__.__module__}."
                         f"{self.__class__.__name__}: {self.named}, "
                         f"alpha={self.alpha}>")
