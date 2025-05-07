@@ -156,8 +156,9 @@ class MovieFileReader:
     or analysis. Reading frames from a movie file is a slow process, so this
     class uses a separate thread to decode movie frames in the background.
     
-    Frame color and audio data is output as Numpy arrays. These arrays can be 
-    passed directly to texture or audio buffers, respectivley.
+    If the movie file contains an audio track, the audio track will be extracted
+    when the movie is opened and written to disk. This is required to allow for 
+    PyshcoPy to play the audio track in sync with the video frames.
 
     Parameters
     ----------
@@ -171,11 +172,6 @@ class MovieFileReader:
         to control the quality of the movie, for example. The options depend on
         the `decoderLib` in use. If `None`, the reader will use the default
         options for the backend.
-    maxQueueSize : int
-        The maximum number of frames the decoder is allowed to buffer in memory
-        between reads. This is used to control the rate at which frames are read
-        from the movie file. If the queue is full, the decoder thread is blocked
-        until space is available. The default is `3`.
 
     Notes
     -----
@@ -213,7 +209,6 @@ class MovieFileReader:
         self._frameInterval = -1.0
         self._srcFrameSize = (-1, -1)
         self._frameRate = -1.0
-        self._frameInterval = -1.0
         self._duration = -1.0
         self._srcPixelFormat = None
 
@@ -230,6 +225,9 @@ class MovieFileReader:
 
         # store decoded video segmenets in memory
         self._videoSegments = []
+
+        # callbacks for video events
+        self._streamEOFCallback = None
 
         # video segment format
         # [{'video': videoFrame, 'audio': audioFrame, 'pts': pts}, ...]
@@ -458,20 +456,132 @@ class MovieFileReader:
         """Close the movie file.
 
         """
-        if self._readerThread is None:
-            return
+        # if self._readerThread is None:
+        #     return
         
+        self._player.close_player()  # close the player
+
         # signal the reader thread to exit
-        self._exitEvent.set()
-        self._readerThread.join()
+        # self._exitEvent.set()
+        # self._readerThread.join()
 
         # remove the reader from the global list of open movie readers
         if self in _openMovieReaders:
             _openMovieReaders.remove(self)
 
+    def _cleanUpFrameStore(self, keepAfterPTS=None):
+        """Clean up the frame store.
+
+        This function is called when the movie reader is closed. It clears the
+        frame queue and the video segment buffer.
+
+        Parameters
+        ----------
+        keepAfterPTS : float
+            The presentation timestamp (PTS) to keep in the frame store. All
+            frames before this PTS will be removed from the frame store. If
+            `None`, all frames will be removed from the frame store.
+
+        """
+        if keepAfterPTS is None:
+            self._videoSegments.clear()
+
+        # clean out old frames
+        for i in range(len(self._videoSegments)):
+            if self._videoSegments[i][1] < keepAfterPTS - self._frameInterval:
+                del self._videoSegments[i]
+                break
+                    
+    def _grabFrameFFPyPlayer(self, reqPTS):
+        """Grab a frame from the movie file using FFPyPlayer.
+
+        This function grabs a frame from the movie file and returns it. The
+        frame is returned as a Numpy array. The frame is not decoded until it is
+        needed, so this function is non-blocking.
+
+        Parameters
+        ----------
+        reqPTS : float
+            The presentation timestamp (PTS) of the frame to grab in seconds.
+            Timestamps can be as precise as six decimal places.
+
+        """
+        if self._player is None:
+            raise ValueError('Movie reader is not open. Cannot grab frame.')
+        
+        reqPTS = min(max(0.0, reqPTS), self._duration)
+
+        # check if the provided PTS is valid
+        if reqPTS < 0.0 or reqPTS > self._duration:
+            raise ValueError('Invalid PTS: {}'.format(reqPTS))
+        
+        # check if we already have the frame
+        if self._videoSegments:
+            if self._videoSegments[0][1] > reqPTS:  # seek if before first frame
+                self._player.set_pause(True)
+                self._player.seek(
+                    reqPTS, 
+                    relative=False, 
+                    seek_by_bytes=False, 
+                    accurate=True)
+                self._player.set_pause(False)
+                self._videoSegments.clear()
+            else:
+                for img, pts, status in self._videoSegments:
+                    if pts <= reqPTS < pts + self._frameInterval:
+                        self._lastFrame = img, pts, status
+                        self._cleanUpFrameStore(reqPTS)
+                        return
+                
+        while 1:  # keep getting frames until we reach the desired PTS
+            # get the next frame
+            frame, status = self._player.get_frame()
+            if status == 'eof':
+                self._player.set_pause(True)
+                self._player.seek(0.0, relative=False, accurate=True)
+                if self._streamEOFCallback is not None:
+                    self._streamEOFCallback()
+                break
+            elif status == 'paused':
+                break
+
+            if frame is None:
+                break
+
+            img, curPts = frame  # extract frame information
+
+            if curPts >= reqPTS:
+                self._videoSegments.append((img, curPts, status))
+                break
+
+        # print(self._videoSegments)
+
+        self._lastFrame = self._videoSegments[0]
+
     # --------------------------------------------------------------------------
     # Backend-specific decoding routines
     #
+
+    def setStreamEOFCallback(self, callback):
+        """Set a callback function to be called when the end of the movie is
+        reached.
+
+        Parameters
+        ----------
+        callback : callable or None
+            The callback function to call when the end of the movie is reached.
+            The function should take no arguments. If `None`, no callback
+            function will be called.
+
+        """
+        if callback is None:
+            self._streamEOFCallback = None
+            return
+        
+        if not callable(callback):
+            raise ValueError('Callback must be a callable function.')
+        
+        self._streamEOFCallback = callback
 
     def _startFFPyPlayer(self):
         """Start decoding video frames using FFPyPlayer.
@@ -481,105 +591,8 @@ class MovieFileReader:
         do nothing.
 
         """
-        def _asyncFrameReader(moviePlayer, frameQueue, readLock, exitEvent):
-            """Local function used to read frames from the movie file.
-
-            This is executed in a thread to allow the main thread to continue
-            adding frames to the movie while the movie is being written to
-            disk.
-
-            Parameters
-            ----------
-            moviePlayer : ffpyplayer.player.MediaPlayer
-                The movie player object used to read frames from the movie file.
-            frameQueue : queue.Queue
-                A queue containing the frames read from the movie file.
-            readLock : threading.Lock
-                A lock used to synchronize access to the movie reader object for
-                accessing playback controls.
-            exitEvent : threading.Event
-                An event used to signal the thread to exit.
-
-            """
-            # stays in loop until EOF or exit event, governed by queue size
-            while not exitEvent.is_set():  
-                with readLock:
-                    frame, status = moviePlayer.get_frame(show=True)
-
-                if status == 'paused':
-                    time.sleep(0.001)
-                    continue
-                elif status == 'eof':
-                    with readLock:
-                        moviePlayer.set_pause(True)
-                        moviePlayer.seek(0.0, relative=False, accurate=True)
-                    break
-
-                if frame is None:
-                    time.sleep(0.001)  # no frame available yet or paused
-                    continue
-
-                # waits for queue to have space before adding more frames, this
-                # will govern the rate of which frames are read from the movie
-                img, pts = frame
-                frameQueue.put((img, round(pts, 6), status))
-
         if not self.isOpen:
             raise ValueError('Movie reader is not open. Cannot start decoding.')
-
-        # check if the thread is alive or started
-        if self._readerThread is not None and self._readerThread.is_alive():
-            return
-
-        self._exitEvent.clear()  # clear the exit event
-
-        # start the reader thread
-        self._readerThread = threading.Thread(
-            target=_asyncFrameReader,
-            args=(self._player, 
-                    self._frameQueue, 
-                    self._readLock,
-                    self._exitEvent),
-            daemon=True)
-
-        self._readerThread.start()
-
-    def startDecoding(self, initialPTS=0.0):
-        """Start decoding movie frames in background thread.
-
-        This begins decoding movie frames from the movie file and adding them to
-        the frame queue. This will continue until either: the frame queue is 
-        full, the `stop()` method is called, the file is closed, or the end of 
-        the movie is reached.
-
-        If an audio track is present, audio samples will be decoded and added to
-        the audio queue (if appicable).
-
-        Parameters
-        ----------
-        initialPTS : float, None
-            The initial presentation timestamp (PTS) to start decoding frames
-            from in seconds. If `0.0`, decoding will start from the beginning of
-            the movie. If `None`, decoding will start from the current position
-            in the movie.
-
-        """
-        if not self.isOpen:
-            # self.open()  # call open if not already open
-            logging.warning(
-                'Movie reader is not open. Opening movie file: {}'.format(
-                    self._filename))
-
-        # use the read lock to prevent the reader thread from interacting with
-        # the media reader object
-        if self._decoderLib == 'ffpyplayer':
-            self.seek(initialPTS)
-        elif self._decoderLib == 'opencv':
-            raise NotImplementedError(
-                'The `opencv` library is not supported for movie reading.')
-        else:
-            raise ValueError(
-                'Unknown decoder library: {}'.format(self._decoderLib))
 
     def _frameIndexToTimestamp(self, frameIndex):
         """Convert a frame index to a presentation timestamp (PTS).
@@ -619,33 +632,6 @@ class MovieFileReader:
 
         """
         return int(pts / self._frameInterval)
-
-    def stopDecoding(self):
-        """Stop decoding movie frames in background thread.
-
-        This halts the decoding of movie frames from the movie file and stops
-        adding them to the frame queue. This will not close the movie file.
-
-        """
-        with self._readLock:
-            if self._decoderLib == 'ffpyplayer':
-                self._player.set_pause(True)
-            elif self._decoderLib == 'opencv':
-                raise NotImplementedError(
-                    'The `opencv` library is not supported for movie reading.')
-            else:
-                raise ValueError(
-                    'Unknown decoder library: {}'.format(self._decoderLib))
-
-    @property
-    def isDecoding(self):
-        """Whether the movie reader is decoding frames (`bool`).
-
-        If `True`, the movie reader is decoding frames from the movie file. If
-        `False`, the movie reader is paused.
-
-        """
-        return self.isPlaying
 
     def _seekFFPyPlayer(self, pts):
         """FFPyPlayer specific seek routine.
@@ -793,105 +779,8 @@ class MovieFileReader:
             Video data.
 
         """
+        self._grabFrameFFPyPlayer(pts)  # grab a frame from the movie file
 
-        def _doSeek(pts):
-            """Seek to the specified presentation timestamp (PTS).
-
-            This function seeks to the specified presentation timestamp (PTS) in
-            the movie file. The decoder will begin decoding frames from the
-            specified PTS. If the PTS is outside the range of the movie, the
-            decoder will seek to the end of the movie.
-
-            Parameters
-            ----------
-            pts : float
-                The presentation timestamp (PTS) to seek to in seconds.
-
-            """
-            with self._readLock:
-                self._player.set_pause(True)
-                self._player.seek(pts, relative=False, accurate=True)
-                self._videoSegments.clear()
-                self._player.set_pause(False)
-
-                # wait for a frame to be available
-                while 1:
-                    with self._readLock:
-                        frame, status = self._player.get_frame(show=True)
-
-                    if status == 'eof':
-                        break
-                    elif frame is None or status == 'paused':
-                        time.sleep(0.001)
-                        continue
-
-                    img, curPts = frame
-                    curPts = round(curPts, 6)
-
-                    if curPts < pts:
-                        continue
-
-                    self._videoSegments.append((img, curPts, status))
-                    break
-
-        # round and constrain the PTS to the duration of the movie
-        pts = min(max(0.0, round(pts, 6)), self.duration)
-        # print('Requested PTS:', pts)
-
-        if self._lastFrame is not None:
-            lastFrameStart, lastFrameEnd = self._lastFrameInterval
-            if lastFrameStart <= pts < lastFrameEnd:
-                print('use last frame')
-                return self._lastFrame
-
-        # do we have any frames in the queue?
-        if len(self._videoSegments) <= 1:
-            with self._readLock:
-                self._videoSegments.extend(self._dequeueFrames())
-        
-        # check if the frame is within the range of the movie
-        if pts >= self.duration:
-            toReturn = self._videoSegments[-1]
-            return toReturn
-
-        # print('Video segments:', self._videoSegments)
-
-        # check if we need to seek first
-        print('video segments:', self._videoSegments)
-        if self._videoSegments:
-            # we have a segment, but wee need to check if the frame is in the
-            # segment buffer. If not, we'll need to seek to the frame
-            segmentStart = self._videoSegments[0][1]
-            segmentEnd = self._videoSegments[-1][1] + self._frameInterval
-
-            needsSeek = False
-            if pts < segmentStart or pts > (segmentEnd + self._frameInterval):
-                needsSeek = True
-
-            if needsSeek:
-                _doSeek(pts)
-
-            if self._videoSegments:
-                # check if we have the frame in the segment buffer
-                for idx, segment in enumerate(self._videoSegments):
-                    frameStartTime = segment[1]
-                    if idx < len(self._videoSegments) - 1:
-                        nextFrameTime = self._videoSegments[idx + 1][1]
-                    else:
-                        nextFrameTime = min(
-                            frameStartTime + self._frameInterval, self.duration)
-
-                    if frameStartTime <= pts < nextFrameTime:
-                        # cache the frame for faster access
-                        self._lastFrame = segment
-                        self._lastFrameInterval = (frameStartTime, nextFrameTime)
-                        self._videoSegments = self._videoSegments[idx:]
-                        return segment
-        else:
-            _doSeek(pts)
-
-            if dropFrame:
-                return self._lastFrame
         
     def getFrame(self, pts=0.0, dropFrame=True, discard=False):
         """Get a frame from the movie file at the specified presentation 
