@@ -1,0 +1,19 @@
+
+code: 4130
+cat: Timing
+msg: Static Component `{name}` given infinite stop time
+
+# The following are typically used for online help pages, and support reStructured Text.
+label: Static Component given infinite stop time
+
+synopsis: |
+  Static Component pauses the frame loop while it's active, meaning that unlike other Components, it needs to have a fixed stop time to know when to finish. Otherwise, the experiment will simply stall forever, even if there's code in the Each Frame tab of a Code Component to end the experiment / stop the Static Component (as the frame loop is paused, so Each Frame code isn't happening). You won't even be able to end the experiment with the ESCAPE key as this is checked each frame!
+
+details: |
+  The only instance where you might want an infinite Static Component is if you're using threading, as threaded operations don't rely on a frame loop to execute their code. In this case, you can ignore this message. However, this is a rare and fairly advanced use case, so if the previous sentences sounded like jibberish, you almost certainly don't want an infinite Static Component!  
+
+solutions: |
+  Give your Static Component a fixed duration.
+
+versions: |
+  All

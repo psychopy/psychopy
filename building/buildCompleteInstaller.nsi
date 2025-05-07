@@ -10,7 +10,7 @@
 !define PRODUCT_STARTMENU_REGVAL "NSIS:StartMenuDir"
 
 !addplugindir "nsis_plugins\Plugins"
-!include "building\fileassoc.nsh"
+!include "fileassoc.nsh"
 ; !include "Library.nsh"  ; for installing avbin
 !include LogicLib.nsh
 
@@ -25,7 +25,6 @@
 !include MultiUser.nsh
 !include MUI2.nsh
 
-
 ; MULTIUSER Settings
 ; !define MULTIUSER_INSTALLMODE_INSTDIR_REGISTRY_KEY 
 
@@ -35,7 +34,7 @@
 !define MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\modern-uninstall.ico"
 
 ; License page
-!insertmacro MUI_PAGE_LICENSE "psychopy/LICENSE.txt"
+!insertmacro MUI_PAGE_LICENSE "..\psychopy\LICENSE.txt"
 ; Components page NB having multiple components was annoying with uninstall
 ;!insertmacro MUI_PAGE_COMPONENTS
 ; Choice for multiuser or single user install - note that this page only 
@@ -137,8 +136,17 @@ Section "PsychoPy" SEC01
     Var /GLOBAL AppDir
     StrCpy $AppDir "$InstDir\Lib\site-packages\psychopy\app"
 
+    ;Create an exclusion list
+    ;!insertmacro UNINSTALLER_DATA_BEGIN
+
     File /r /x *.pyo /x *.chm /x Editra /x doc "${PYPATH}\*.*"
     ;File "C:\Program Files\ffmpeg.exe"  ; useful alternative just to run a test file
+
+    ;Change uninstall list name
+    ;!insertmacro UNINST_NAME "unins000"
+ 
+    ;Store uninstaller data
+    ;!insertmacro UNINSTALLER_DATA_END
 
     ; Shortcuts
     !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
@@ -196,10 +204,12 @@ SectionEnd
 Section Uninstall
   !insertmacro MUI_STARTMENU_GETFOLDER "Application" $ICONS_GROUP
 
+  ;Delete files listed in the uninstaller data
+  !include "uninstallFiles.nsi"
+  ;Also the extra files we had inserted 
   Delete "$INSTDIR\${PRODUCT_NAME}.url"
   Delete "$INSTDIR\uninst.exe"
-  RMDir /r "$INSTDIR"
-  ; NB we don't uninstall avbin - it might be used by another python installation
+  RMDir "$INSTDIR"
 
   ;shortcuts
   Delete "$SMPROGRAMS\$ICONS_GROUP\Uninstall.lnk"

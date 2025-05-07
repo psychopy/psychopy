@@ -4,7 +4,7 @@
 """Create a pie shape."""
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from psychopy.visual.shape import BaseShapeStim
@@ -48,11 +48,6 @@ class Pie(BaseShapeStim):
     lineColor, fillColor : array_like, str, :class:`~psychopy.colors.Color` or None
         Color of the shape outline and fill. If `None`, a fully transparent
         color is used which makes the fill or outline invisible.
-    lineColorSpace, fillColorSpace : str
-        Colorspace to use for the outline and fill. These change how the
-        values passed to `lineColor` and `fillColor` are interpreted.
-        *Deprecated*. Please use `colorSpace` to set both outline and fill
-        colorspace. These arguments may be removed in a future version.
     pos : array_like
         Initial position (`x`, `y`) of the shape on-screen relative to
         the origin located at the center of the window or buffer in `units`.
@@ -85,9 +80,6 @@ class Pie(BaseShapeStim):
     interpolate : bool
         Enable smoothing (anti-aliasing) when drawing shape outlines. This
         produces a smoother (less-pixelated) outline of the shape.
-    lineRGB, fillRGB: array_like, :class:`~psychopy.colors.Color` or None
-        *Deprecated*. Please use `lineColor` and `fillColor`. These
-        arguments may be removed in a future version.
     name : str
         Optional name of the stimuli for logging.
     autoLog : bool
@@ -116,9 +108,6 @@ class Pie(BaseShapeStim):
 
     """
 
-    _defaultFillColor = None
-    _defaultLineColor = None
-
     def __init__(self,
                  win,
                  radius=.5,
@@ -127,8 +116,8 @@ class Pie(BaseShapeStim):
                  edges=32,
                  units='',
                  lineWidth=1.5,
-                 lineColor=False,
-                 fillColor=False,
+                 lineColor=None,
+                 fillColor=None,
                  pos=(0, 0),
                  size=1.0,
                  ori=0.0,

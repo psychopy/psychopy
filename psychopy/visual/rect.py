@@ -5,14 +5,14 @@
 :class:`~psychopy.visual.ShapeStim`"""
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import numpy as np
 
 import psychopy  # so we can get the __path__
 from psychopy.visual.shape import BaseShapeStim
-from psychopy.tools.attributetools import attributeSetter, setAttribute
+from psychopy.tools.attributetools import attributeSetter, setAttribute, undefined
 
 
 class Rect(BaseShapeStim):
@@ -42,11 +42,6 @@ class Rect(BaseShapeStim):
     lineColor, fillColor : array_like, str, :class:`~psychopy.colors.Color` or None
         Color of the shape outline and fill. If `None`, a fully transparent
         color is used which makes the fill or outline invisible.
-    lineColorSpace, fillColorSpace : str
-        Colorspace to use for the outline and fill. These change how the
-        values passed to `lineColor` and `fillColor` are interpreted.
-        *Deprecated*. Please use `colorSpace` to set both outline and fill
-        colorspace. These arguments may be removed in a future version.
     pos : array_like
         Initial position (`x`, `y`) of the shape on-screen relative to
         the origin located at the center of the window or buffer in `units`.
@@ -79,9 +74,6 @@ class Rect(BaseShapeStim):
     interpolate : bool
         Enable smoothing (anti-aliasing) when drawing shape outlines. This
         produces a smoother (less-pixelated) outline of the shape.
-    lineRGB, fillRGB: array_like, :class:`~psychopy.colors.Color` or None
-        *Deprecated*. Please use `lineColor` and `fillColor`. These
-        arguments may be removed in a future version.
     name : str
         Optional name of the stimuli for logging.
     autoLog : bool
@@ -109,17 +101,14 @@ class Rect(BaseShapeStim):
 
     """
 
-    _defaultFillColor = 'white'
-    _defaultLineColor = None
-
     def __init__(self,
                  win,
                  width=.5,
                  height=.5,
                  units='',
                  lineWidth=1.5,
-                 lineColor=False,
-                 fillColor=False,
+                 lineColor=None,
+                 fillColor='white',
                  colorSpace='rgb',
                  pos=(0, 0),
                  size=None,
@@ -134,11 +123,11 @@ class Rect(BaseShapeStim):
                  autoLog=None,
                  autoDraw=False,
                  # legacy
-                 color=None,
-                 lineColorSpace=None,
-                 fillColorSpace=None,
-                 lineRGB=False,
-                 fillRGB=False,
+                 color=undefined,
+                 lineColorSpace=undefined,
+                 fillColorSpace=undefined,
+                 lineRGB=undefined,
+                 fillRGB=undefined
                  ):
         # width and height attributes, these are later aliased with `size`
         self.__dict__['width'] = float(width)
@@ -161,9 +150,7 @@ class Rect(BaseShapeStim):
             units=units,
             lineWidth=lineWidth,
             lineColor=lineColor,
-            lineColorSpace=lineColorSpace,
             fillColor=fillColor,
-            fillColorSpace=fillColorSpace,
             vertices=vertices,
             closeShape=True,
             pos=pos,
@@ -175,13 +162,17 @@ class Rect(BaseShapeStim):
             depth=depth,
             interpolate=interpolate,
             draggable=draggable,
-            lineRGB=lineRGB,
-            fillRGB=fillRGB,
             name=name,
             autoLog=autoLog,
             autoDraw=autoDraw,
+            colorSpace=colorSpace,
+            # legacy
             color=color,
-            colorSpace=colorSpace)
+            lineColorSpace=lineColorSpace,
+            fillColorSpace=fillColorSpace,
+            lineRGB=lineRGB,
+            fillRGB=fillRGB
+        )
 
     def setSize(self, size, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,

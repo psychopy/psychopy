@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 """PsychoPy Version Chooser to specify version within experiment scripts.
 """
@@ -204,7 +204,7 @@ def getPsychoJSVersionStr(currentVersion, preferredVersion=''):
         # e.g. 2021.1.0 not 2021.1.0.dev3
         useVerStr = '.'.join(useVerStr.split('.')[:3])
     # PsychoJS doesn't have additional rc1 or dev1 releases
-    for versionSuffix in ["rc", "dev", "post", "a", "b"]:
+    for versionSuffix in ["rc", "dev", "post", "a", "b", "beta"]:
         if versionSuffix in useVerStr:
             useVerStr = useVerStr.split(versionSuffix)[0]
 

@@ -329,7 +329,7 @@ msgid "Copyright (C) {year} OpenScienceTools.org"
 msgstr ""
 
 #: ../app/_psychopyApp.py:518
-msgid "  Creating frames..."
+msgid "Creating frames..."
 msgstr ""
 
 #: ../app/_psychopyApp.py:559
@@ -365,7 +365,7 @@ msgid "tips.txt"
 msgstr ""
 
 #: ../app/_psychopyApp.py:662
-msgid "  Loading plugins..."
+msgid "Loading plugins..."
 msgstr ""
 
 #: ../app/_psychopyApp.py:746

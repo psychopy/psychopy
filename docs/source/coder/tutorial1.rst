@@ -8,7 +8,7 @@ Know your monitor
 ------------------------
 |PsychoPy| has been designed to handle your screen calibrations for you. It is also designed to operate (if possible) in the final experimental units that you like to use e.g. degrees of visual angle.
 
-In order to do this |PsychoPy| needs to know a little about your monitor. There is a GUI to help with this (select MonitorCenter from the tools menu of |PsychoPy|IDE or run ...site-packages/monitors/MonitorCenter.py).
+In order to do this |PsychoPy| needs to know a little about your monitor. There is a GUI to help with this (select MonitorCenter from the tools menu of |PsychoPy| IDE or run ...site-packages/monitors/MonitorCenter.py).
 
 In the MonitorCenter window you can create a new monitor name, insert values that describe your monitor and run calibrations like gamma corrections. For now you can just stick to the [`testMonitor`] but give it correct values for your screen size in number of pixels and width in cm.
 

@@ -1,3 +1,5 @@
+:orphan:
+
 .. _usingplugins:
 
 Using Plugins to Extend PsychoPy

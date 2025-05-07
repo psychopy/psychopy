@@ -360,7 +360,7 @@ msgid "Copyright (C) 2022 OpenScienceTools.org"
 msgstr "Copyright (C) 2022 OpenScienceTools.org"
 
 #: psychopy/app/_psychopyApp.py:545
-msgid "  Creating frames..."
+msgid "Creating frames..."
 msgstr ""
 
 #: psychopy/app/_psychopyApp.py:587
@@ -406,8 +406,8 @@ msgid "tips.txt"
 msgstr "tips.txt"
 
 #: psychopy/app/_psychopyApp.py:692
-msgid "  Loading plugins..."
-msgstr " Plugins werden geladen..."
+msgid "Loading plugins..."
+msgstr "Plugins werden geladen..."
 
 #: psychopy/app/_psychopyApp.py:775
 msgid "Select .psydat file(s) to extract"

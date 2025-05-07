@@ -1,9 +1,9 @@
 from . import _TestDisabledMixin, _TestBaseStandaloneRoutinesMixin
 from psychopy import experiment
-from psychopy.experiment.routines.photodiodeValidator import PhotodiodeValidatorRoutine
+from psychopy.experiment.routines.visualValidator import VisualValidatorRoutine
 
 
 class TestEyetrackerCalibrationRoutine(_TestBaseStandaloneRoutinesMixin, _TestDisabledMixin):
     def setup_method(self):
         self.exp = experiment.Experiment()
-        self.rt = PhotodiodeValidatorRoutine(exp=self.exp, name="testPhotodiodeValidatorRoutine")
+        self.rt = VisualValidatorRoutine(exp=self.exp, name="testVisualValidatorRoutine")

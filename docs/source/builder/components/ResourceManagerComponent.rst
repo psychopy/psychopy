@@ -1,4 +1,7 @@
+:orphan:
+
 .. _resourcemanagercomponent:
+
 
 -------------------------------
 Resource Manager Component
@@ -33,7 +36,8 @@ Examples
 -------------------------------
 
 Loading resources in the background of instructions
-===============================
+=================================================================================================
+
 A common use case for resource manager might be to load resources in the background of instructions (or any routine!), and only let your participants move forward when the resources are loaded. To do this:
 
 1. Add a resource manager component.
@@ -50,7 +54,7 @@ A common use case for resource manager might be to load resources in the backgro
 .. note:: The resource manager has an attribute "status" and we can check if it has finished using `resources.status == FINISHED` (where *resources* corresponds to the name of your resource manager component).
 
 Loading resources for blocked or branched designs, or loading trial-by-trial
-===============================
+=================================================================================================
 
 Sometimes we might have a design where participants only need to be presented with a subset of resources. We might have 100 movies, but group 1 sees 50 movies and group 2 sees the other 50. In cases like this you might ask "How to I make the resources in my resource manager conditional?". Well, for designs like this we actually recommend you use something a little different, the :ref:`staticcomponent` - so check it out!.
 
@@ -58,24 +62,28 @@ Parameters
 -------------------------------
 
 Basic
-===============================
+=================================================================================================
 
 The required attributes of the stimulus, controlling its basic function and behaviour
 
 
 .. _resourcemanagercomponent-name:
+
 Name 
     Everything in a |PsychoPy| experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
     
 .. _resourcemanagercomponent-startVal:
+
 Start 
     When the Resource Manager Component should start, see :ref:`startStop`.
     
 .. _resourcemanagercomponent-startEstim:
+
 Expected start (s) 
     If you are using frames to control timing of your stimuli, you can add an expected start time to display the component timeline in the routine.
     
 .. _resourcemanagercomponent-startType:
+
 Start type 
     How do you want to define your start point?
     
@@ -88,14 +96,17 @@ Start type
     * condition
     
 .. _resourcemanagercomponent-stopVal:
+
 Check 
     When the Resource Manager Component should stop, see :ref:`startStop`.
     
 .. _resourcemanagercomponent-durationEstim:
+
 Expected duration (s) 
     If you are using frames to control timing of your stimuli, you can add an expected duration to display the component timeline in the routine.
     
 .. _resourcemanagercomponent-stopType:
+
 Stop type 
     How do you want to define your end point?
     
@@ -112,14 +123,17 @@ Stop type
     * condition
     
 .. _resourcemanagercomponent-resources:
+
 Resources 
     Resources to download/check
     
 .. _resourcemanagercomponent-checkAll:
+
 Check all 
     When checking these resources, also check for all currently downloading?
     
 .. _resourcemanagercomponent-actionType:
+
 Preload actions 
     Should this Component start an / or check resource preloading?
     
@@ -132,16 +146,19 @@ Preload actions
     * Check Only
     
 .. _resourcemanagercomponent-forceEndRoutine:
+
 Force end Routine 
     Should we end the Routine when the resource download is complete?
     
 Testing
-===============================
+=================================================================================================
 
 Tools for testing, debugging and checking the performance of this Component.
 
 
 .. _resourcemanagercomponent-disabled:
+
 Disable Component 
     Disable this Component
-    
+
+.. redirect-from:: resource_manager.rst

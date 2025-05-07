@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Describes the Flow of an experiment
@@ -32,6 +32,9 @@ class BaseStandaloneRoutine:
     beta = False
     # hide this Component in Builder view?
     hidden = False
+    # are there any known legacy params for this Routine?
+    # these will be removed & warnings ignored on experiment load
+    legacyParams = []
 
     def __init__(self, exp, name='',
                  stopType='duration (s)', stopVal='',
@@ -721,8 +724,8 @@ class Routine(list):
         for event in self:
             if event.type == 'Static':
                 continue  # we'll do those later
-            event.writeFrameCode(buff)
             event.writeEachFrameValidationCode(buff)
+            event.writeFrameCode(buff)
         # update static component code last
         for event in self.getStatics():
             event.writeFrameCode(buff)
@@ -820,6 +823,8 @@ class Routine(list):
                 "t = 0;\n"
                 "frameN = -1;\n"
                 "continueRoutine = true; // until we're told otherwise\n"
+                "// keep track of whether this Routine was forcibly ended\n"
+                "routineForceEnded = false;\n"
                 % self.params)
         buff.writeIndentedLines(code)
         # can we use non-slip timing?
@@ -920,6 +925,7 @@ class Routine(list):
         code = ("// check if the Routine should terminate\n"
                 "if (!continueRoutine) {"
                 "  // a component has requested a forced-end of Routine\n"
+                "  routineForceEnded = true;\n"
                 "  return Scheduler.Event.NEXT;\n"
                 "}\n\n"
                 "continueRoutine = false;  "
@@ -1010,7 +1016,9 @@ class Routine(list):
         # reset routineTimer at the *very end* of all non-nonSlip routines
         if useNonSlip:
             code = (
-                "if (%(name)sMaxDurationReached) {{\n"
+                "if (routineForceEnded) {{\n"
+                "    routineTimer.reset();"
+                "}} else if (%(name)sMaxDurationReached) {{\n"
                 "    %(name)sClock.add(%(name)sMaxDuration);\n"
                 "}} else {{\n"
                 "    %(name)sClock.add({:f});\n"

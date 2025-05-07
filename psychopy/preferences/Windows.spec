@@ -147,6 +147,8 @@
 [piloting]
     # Prevent the experiment from being fullscreen when piloting
     forceWindowed = boolean(default=True)
+    # Always show the mouse when piloting
+    forceMouseVisible = boolean(default=True)
     # What window size to use when forced to windowed mode
     forcedWindowSize = list(default=list(800, 600))
     # How much output to include in the log file when piloting ('error' is fewest messages, 'debug' is most)

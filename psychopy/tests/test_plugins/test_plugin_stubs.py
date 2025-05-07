@@ -1,3 +1,4 @@
+from http.client import RemoteDisconnected
 import importlib
 import pytest
 import requests
@@ -109,8 +110,12 @@ def test_plugin_stub_links():
         if cls.__module__.startswith("psychopy.tests"):
             continue
         # get pages from web
-        docsHome = requests.get(cls.docsHome)
-        docsLink = requests.get(cls.docsLink)
+        try:
+            docsHome = requests.get(cls.docsHome)
+            docsLink = requests.get(cls.docsLink)
+        except RemoteDisconnected:
+            # skip test if there's a connection error
+            pytest.skip()
         # check that we got some content
         assert docsHome.ok, (
             f"No documentation found at {cls.docsHome} (PluginStub for {cls.__module__}:{cls.__name__})"

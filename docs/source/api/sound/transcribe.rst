@@ -1,7 +1,7 @@
-:class:`~psychopy.sound.TranscriptionResult` - results of an audio transcription
+:class:`~psychopy.sound.transcribe.TranscriptionResult` - results of an audio transcription
 --------------------------------------------------------------------------------
 
-.. currentmodule:: psychopy.sound
+.. currentmodule:: psychopy.sound.transcribe
 
 Overview
 ========

@@ -1,17 +1,17 @@
 import pytest
 from psychopy import core, constants, sound, validation
-from psychopy.hardware import microphone, voicekey, DeviceManager
+from psychopy.hardware import microphone, soundsensor, DeviceManager
 
 
 @pytest.mark.needs_sound
-class TestVoiceKeyValidator:
+class TestAudioValidator:
     def setup_class(cls):
         cls.vk = cls.speaker = None
         # find best vk/speaker pair to use
         for profile in DeviceManager.getAvailableDevices(
-            "psychopy.hardware.voicekey.MicrophoneVoiceKeyEmulator"
+            "psychopy.hardware.soundsensor.MicrophoneSoundSensorEmulator"
         ):
-            # setup voicekey
+            # setup sound sensor
             try:
                 # make sure the mic exists
                 if not DeviceManager.getDevice(profile['device']):
@@ -20,7 +20,7 @@ class TestVoiceKeyValidator:
                     ):
                         if micProfile['index'] == profile['device']:
                             DeviceManager.addDevice(**micProfile)
-                # create voicekey emulator
+                # create sound sensor emulator
                 vk = DeviceManager.addDevice(**profile)
             except Exception as err:
                 continue
@@ -40,11 +40,11 @@ class TestVoiceKeyValidator:
         if cls.vk is None or cls.speaker is None:
             pytest.skip()
         # create validator
-        cls.validator = validation.VoiceKeyValidator(cls.vk)
+        cls.validator = validation.AudioValidator(cls.vk)
     
     def test_soundHeard(self):
         """
-        Check that the voicekey validator detects a sound played from an audible speaker.
+        Check that the sound sensor validator detects a sound played from an audible speaker.
         """
         # setup timing
         clock = core.Clock()

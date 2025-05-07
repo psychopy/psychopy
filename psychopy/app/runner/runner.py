@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 import glob
 import json
@@ -693,7 +693,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         # start server
         self.startServer(htmlPath, port=port)
         # open experiment
-        webbrowser.open("http://localhost:{}".format(port))
+        webbrowser.open("http://localhost:{}?__pilotToken=local".format(port))
         # log experiment open
         print(
             f"##### Running PsychoJS task from {htmlPath} on port {port} #####\n"

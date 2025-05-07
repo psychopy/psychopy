@@ -110,7 +110,7 @@ for thisComponent in trialComponents:
 while continueRoutine and routineTimer.getTime() > 0:
     # get current time
     t = trialClock.getTime()
-    frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
+    frameN += 1  # number of completed frames (so 0 is the first frame)
     # update/draw components on each frame
     
     # *noise* updates

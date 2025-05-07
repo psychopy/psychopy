@@ -5,7 +5,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import os
@@ -216,7 +216,9 @@ def setColor(obj, color, colorSpace=None, operation='',
     raw = color
     color = colors.Color(raw, colorSpace)
     assert color.valid, f"Could not create valid Color object from value {raw} in space {colorSpace}"
-
+    # set opacity from object if not given by color
+    if hasattr(obj, "opacity") and not hasattr(color, "_alpha"):
+        color.alpha = obj.opacity
     # Apply new value
     if operation in ('=', '', None):
         # If no operation, just set color from object

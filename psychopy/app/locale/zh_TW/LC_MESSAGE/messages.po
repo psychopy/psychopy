@@ -245,8 +245,8 @@ msgid "Copyright (C) 2021 OpenScienceTools.org"
 msgstr "Copyright (C) 2021 OpenScienceTools.org"
 
 #: ../app/_psychopyApp.py:351
-msgid "  Creating frames..."
-msgstr "  创建框架中..."
+msgid "Creating frames..."
+msgstr "创建框架中..."
 
 #: ../app/_psychopyApp.py:407
 msgid "Compatibility information"

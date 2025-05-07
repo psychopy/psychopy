@@ -191,10 +191,10 @@ class TestLiaison:
         Test that attribute strings (e.g. "session.win") are actualized by Liaison to be the
         object they represent.
         """
-        # add screen buffer photodiode
+        # add screen buffer lightsensor
         runInLiaison(
             self.server, self.protocol, "DeviceManager", "addDevice",
-            "psychopy.hardware.photodiode.ScreenBufferSampler", "screenBuffer",
+            "psychopy.hardware.lightsensor.ScreenBufferSampler", "screenBuffer",
             "session.win"
         )
         # get screen buffer photodidoe
@@ -238,7 +238,7 @@ class TestLiaison:
     def test_device_JSON(self):
         cases = {
             'testMic': "psychopy.hardware.microphone.MicrophoneDevice",
-            'testPhotodiode': "psychopy.hardware.photodiode.ScreenBufferSampler",
+            'testPhotodiode': "psychopy.hardware.lightsensor.ScreenBufferSampler",
             'testButtonBox': "psychopy.hardware.button.KeyboardButtonBox"
         }
         for deviceName, deviceClass in cases.items():

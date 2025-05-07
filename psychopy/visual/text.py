@@ -5,7 +5,7 @@
 '''
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import os
@@ -244,7 +244,18 @@ class TextStim(BaseVisualStim, DraggingMixin, ForeColorMixin, ContainerMixin):
                 GL.glDeleteLists(self._listID, 1)
             except (ImportError, ModuleNotFoundError, TypeError, GL.lib.GLException):
                 pass  # if pyglet no longer exists
+    
+    @property
+    def opacity(self):
+        return BaseVisualStim.opacity.fget(self)
 
+    @opacity.setter
+    def opacity(self, value):
+        # do base setting
+        BaseVisualStim.opacity.fset(self, value)
+        # trigger update
+        self._needSetText = True
+    
     @attributeSetter
     def height(self, height):
         """The height of the letters (Float/int or None = set default).

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Functions and classes related to unit conversion respective to a particular
@@ -91,6 +91,10 @@ def convertToPix(vertices, pos, units, win):
     self.pos is that some stimuli use other terms (e.g. ElementArrayStim
     uses fieldPos).
     """
+    # ensure values are arrays
+    pos = np.asarray(pos)
+    vertices = np.asarray(vertices)
+
     unit2pixFunc = _unit2PixMappings.get(units)
     if unit2pixFunc:
         return unit2pixFunc(vertices, pos, win)

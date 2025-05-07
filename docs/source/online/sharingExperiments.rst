@@ -9,7 +9,7 @@ Searching for experiments on Pavlovia
 You can search for experiments via the |Pavlovia| website and from within the PsychoPy Builder.
 
 Via the |Pavlovia| website
-~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 From the |Pavlovia| home page, you can explore your own existing projects, or other users' public projects. To find a project, go to `Pavlovia's Explore page <https://pavlovia.org/explore>`_ (see :numref:`pavlovHome`).
 
@@ -32,7 +32,7 @@ When exploring studies online, you are presented with a series of thumbnail imag
 From the “Explore” page, you can filter projects by setting the filter buttons to a) Public or Private, b) Active or Inactive, and c) sort by number of forks, name, date and number of stars. The default sorting method is Stars. You can also search for projects using the search tool using keywords describing your area of interest, e.g., Stroop, or attention.
 
 Via the PsychoPy Builder
-~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 If you wish to search for your own existing projects on |Pavlovia|, or other users' public projects, you can also do this via the Builder interface. To search for a project, click button (3) on the Builder Frame in :numref:`builderViewIndexed2`.
 
 .. figure:: /images/builderViewIndexed.png
@@ -63,7 +63,7 @@ Contributing an experiment to Pavlovia
 If you contribute an experiment to Pavlovia, other researchers can access it. Besides contributing to open science, this can be handy if you've got an issue with your experiment and would like other researchers to take a look.
 
 Making an experiment public
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 A public experiment is visible to anyone to clone and fork. To make your experiment public navigate to your experiments' GitLab page, then select > View code <> > Settings > Permissions (set to public). See :numref:`gitlabPublic`.
 
 .. figure:: gitlabPublic.png
@@ -74,7 +74,7 @@ A public experiment is visible to anyone to clone and fork. To make your experim
     Setting a GitLab project to public access
 
 Adding a team member
-~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 If you'd like to share your experiment only with specific researchers, navigate to your experiment, then select > View code <> > settings > Members. At this page: select a member, give them a role (to be able to fork your experiment, they should at least be Developer), optionally an access expiration date, and then add them. See :numref:`addingUserToGitlab`.
 
 .. figure:: /images/addingUserToGitlab.png

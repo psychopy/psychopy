@@ -14,6 +14,8 @@ Basic
 Experiment name
     A name that will be stored in the metadata of the data file.
 
+.. _experimentsettings_use-version:
+
 Use PsychoPy version
     Which version of |PsychoPy| was the task created in? if you are using a more recently installed version of |PsychoPy| this can compile using an archived, older version to run previously created tasks.
 
@@ -71,6 +73,7 @@ Incomplete URL
     The URL to direct participants to if they exit the task early (e.g. by pressing the escape key).
 
 .. _Resources:
+
 Additional resources
     Resources that your task will require (e.g. image files, excel sheets). Note that |PsychoPy| will attempt to populate this automatically, though if you encounter an "Unknown resource" error online, it is possible that you need to add resources to this list.
 

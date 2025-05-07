@@ -1,3 +1,5 @@
+:orphan:
+
 Resources for teaching and learning
 =====================================
 

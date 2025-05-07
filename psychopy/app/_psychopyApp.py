@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 import traceback
 from pathlib import Path
@@ -49,7 +49,7 @@ from psychopy.localization import _translate
 # e.g. coder and builder are imported during app.__init__ because they
 # take a while
 
-# needed by splash screen for the path to resources/psychopySplash.png
+# needed by splash screen for the path to resources/splash.png
 import ctypes
 from psychopy import logging, __version__
 from psychopy import projects
@@ -163,6 +163,8 @@ class _Showgui_Hack():
 
 class PsychoPyApp(wx.App, handlers.ThemeMixin):
     _called_from_test = False  # pytest needs to change this
+    # are we running a beta release?
+    beta = True
 
     def __init__(self, arg=0, testMode=False, startView=None, profiling=False, **kwargs):
         """With a wx.App some things get done here, before App.__init__
@@ -417,8 +419,14 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
 
         if showSplash:
             # show splash screen
-            splashFile = os.path.join(
-                self.prefs.paths['resources'], 'psychopySplash.png')
+            if self.beta:
+                splashFile = os.path.join(
+                    self.prefs.paths['resources'], 'betasplash.png'
+                )
+            else:
+                splashFile = os.path.join(
+                    self.prefs.paths['resources'], 'splash.png'
+                )
             splashImage = wx.Image(name=splashFile)
             splashImage.ConvertAlphaToMask()
             splash = AS.AdvancedSplash(
@@ -426,7 +434,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                 timeout=3000, agwStyle=AS.AS_TIMEOUT | AS.AS_CENTER_ON_SCREEN
             )
             w, h = splashImage.GetSize()
-            splash.SetTextPosition((340, h - 30))
+            splash.SetTextPosition((300, h - 30))
             splash.SetText(
                 _translate("Copyright (C) {year} OpenScienceTools.org").format(year=2024))
         else:
@@ -453,10 +461,25 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         # on a mac, don't exit when the last frame is deleted, just show menu
         if sys.platform == 'darwin':
             self.menuFrame = MenuFrame(parent=None, app=self)
+        
+        # get starting windows
+        if startView in (None, []):
+            # if no window specified, use default from prefs
+            if self.prefs.app['defaultView'] == 'all':
+                startView = ["builder", "coder", "runner"]
+            elif self.prefs.app['defaultView'] == "last":
+                if self.prefs.appData['lastFrame'] == "both" or not self.prefs.appData['lastFrame']:
+                    self.prefs.appData['lastFrame'] = "builder-coder-runner"
+                startView = self.prefs.appData['lastFrame'].split("-")
+            elif self.prefs.app['defaultView'] in ["builder", "coder", "runner"]:
+                startView = self.prefs.app['defaultView']
+
+        if not startView:  # if we still don't have a startView then load Builder
+            startView = ["builder"]
 
         # load fonts
         if splash:
-            splash.SetText(_translate("  Loading app fonts..."))
+            splash.SetText(_translate("Loading app fonts..."))
         self.dpi = int(wx.GetDisplaySize()[0] /
                        float(wx.GetDisplaySizeMM()[0]) * 25.4)
         # detect retina displays
@@ -479,7 +502,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             # rescale for tiny retina fonts
         if hasattr(wx.Font, "AddPrivateFont") and sys.platform != "darwin":
             # Load packaged fonts if possible
-            for fontFile in (Path(__file__).parent / "Resources" / "fonts").glob("*"):
+            for fontFile in (Path(__file__).parent.parent / "assets" / "fonts").glob("*"):
                 if fontFile.suffix in ['.ttf', '.truetype']:
                     wx.Font.AddPrivateFont(str(fontFile))
             # Set fonts as those loaded
@@ -505,13 +528,36 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
 
         # load plugins so they're available before frames are created
         if splash:
-            splash.SetText(_translate("  Loading plugins..."))
+            splash.SetText(_translate("Loading plugins..."))
         from psychopy.plugins import activatePlugins
         activatePlugins()
+
+        # show frames
+        if splash:
+            splash.SetText(_translate("Creating frames..."))
+        
+        # if specified as a single string, convert to list
+        if isinstance(startView, str):
+            startView = [startView]
+        # if last open frame was no frame, use all instead
+        if not startView:
+            startView = ["builder", "coder", "runner"]
+        # create windows
+        if "runner" in startView:
+            self.showRunner()
+        if "coder" in startView:
+            self.showCoder()
+        if "builder" in startView:
+            self.showBuilder()
+        # # if told to directly run stuff, do it now
+        # if "direct" in startView:
+        #     self.showRunner()
+        #     for exp in [file for file in sys.argv if file.endswith('.psyexp') or file.endswith('.py')]:
+        #         self.runner.panel.runFile(exp)
         
         # load starting files
         if splash:
-            splash.SetText(_translate("  Loading requested files..."))
+            splash.SetText(_translate("Loading requested files..."))
         # get starting files
         if startFiles is None:
             startFiles = []
@@ -538,7 +584,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                 continue
             try:
                 # choose frame based on extension
-                if thisFile.suffix == ".psyexp":
+                if "builder" in startView and thisFile.suffix == ".psyexp":
                     # open .psyexp in Builder
                     builder = self.showBuilder()
                     if builder.fileExists:
@@ -547,11 +593,11 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                     else:
                         # otherwise, open in current
                         builder.fileOpen(filename=thisFile)
-                elif thisFile.suffix == ".psyrun":
+                elif "runner" in startView and thisFile.suffix == ".psyrun":
                     # open .psyrun in Runner
                     runner = self.showRunner()
                     runner.fileOpen(filename=str(thisFile))
-                else:
+                elif "coder" in startView and thisFile.suffix not in (".psyexp", ".psyrun"):
                     # open anything else in Coder
                     coder = self.showCoder()
                     coder.fileOpen(filename=str(thisFile))
@@ -559,43 +605,6 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                 logging.error(_translate(
                     "Failed to open file {}, reason: {}"
                 ).format(thisFile, err))
-        
-        # show frames
-        if splash:
-            splash.SetText(_translate("  Creating frames..."))
-        # get starting windows
-        if startView in (None, []):
-            # if no window specified, use default from prefs
-            if self.prefs.app['defaultView'] == 'all':
-                startView = ["builder", "coder", "runner"]
-            elif self.prefs.app['defaultView'] == "last":
-                if self.prefs.appData['lastFrame'] == "both" or not self.prefs.appData['lastFrame']:
-                    self.prefs.appData['lastFrame'] = "builder-coder-runner"
-                startView = self.prefs.appData['lastFrame'].split("-")
-            elif self.prefs.app['defaultView'] in ["builder", "coder", "runner"]:
-                startView = self.prefs.app['defaultView']
-
-        if not startView:  # if we still don't have a startView then load Builder
-            startView = ["builder"]
-        
-        # if specified as a single string, convert to list
-        if isinstance(startView, str):
-            startView = [startView]
-        # if last open frame was no frame, use all instead
-        if not startView:
-            startView = ["builder", "coder", "runner"]
-        # create windows
-        if "runner" in startView:
-            self.showRunner()
-        if "coder" in startView:
-            self.showCoder()
-        if "builder" in startView:
-            self.showBuilder()
-        # # if told to directly run stuff, do it now
-        # if "direct" in startView:
-        #     self.showRunner()
-        #     for exp in [file for file in sys.argv if file.endswith('.psyexp') or file.endswith('.py')]:
-        #         self.runner.panel.runFile(exp)
 
         # if we started a busy cursor which never finished, finish it now
         if wx.IsBusy():
@@ -814,10 +823,13 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         # have to reimport because it is only local to __init__ so far
         from . import coder
         if self.coder is None:
-            title = "PsychoPy Coder (IDE) (v%s)"
+            title = "PsychoPy Coder (v{version}{beta})".format(
+                version=self.version,
+                beta="beta" if self.beta else ""
+            )
             wx.BeginBusyCursor()
             self.coder = coder.CoderFrame(None, -1,
-                                          title=title % self.version,
+                                          title=title,
                                           files=fileList, app=self)
             self.updateWindowMenu()
             wx.EndBusyCursor()
@@ -839,9 +851,12 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         # have to reimport because it is only local to __init__ so far
         wx.BeginBusyCursor()
         from .builder.builder import BuilderFrame
-        title = "PsychoPy Builder (v%s)"
+        title = "PsychoPy Builder (v{version}{beta})".format(
+            version=self.version,
+            beta="beta" if self.beta else ""
+        )
         self.builder = BuilderFrame(None, -1,
-                                    title=title % self.version,
+                                    title=title,
                                     fileName=fileName, app=self)
         self.builder.Show(True)
         self.builder.Raise()
@@ -901,7 +916,11 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
     def newRunnerFrame(self, event=None):
         # have to reimport because it is only local to __init__ so far
         from .runner.runner import RunnerFrame
-        title = "PsychoPy Runner (v{})".format(self.version)
+        
+        title = 'PsychoPy Runner (v{version}{beta})'.format(
+            version=self.version,
+            beta="beta" if self.beta else ""
+        )
         wx.BeginBusyCursor()
         self.runner = RunnerFrame(parent=None,
                                   id=-1,
@@ -1092,7 +1111,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         info.SetVersion('v' + psychopy.__version__)
         info.SetDescription(msg)
 
-        info.SetCopyright('(C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.')
+        info.SetCopyright('(C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.')
         info.SetWebSite('https://www.psychopy.org')
         info.SetLicence(license)
         # developers

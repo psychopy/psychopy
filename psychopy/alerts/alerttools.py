@@ -5,9 +5,7 @@ from esprima import parseScript
 
 from psychopy.tools import monitorunittools
 from psychopy.alerts._alerts import alert
-from psychopy.tools.fontmanager import FontManager
 
-fontMGR = FontManager()
 
 class TestWin:
     """
@@ -260,20 +258,6 @@ def testDisabled(component):
 
     if component.params['disabled'].val:
         alert(4305, component, strFields={'name': component.params['name']})
-
-def testFont(component):
-    """
-    Tests whether font is stored locally or whether it needs to be retrieved from Google Fonts
-
-    Parameters
-    ----------
-    component: Component
-        The component used for testing
-    """
-    if 'font' in component.params:
-        fontInfo = fontMGR.getFontsMatching(component.params['font'].val, fallback=False)
-        if not fontInfo:
-            alert(4320, strFields={'param': component.params['font']})
 
 def testDollarSyntax(component):
     """

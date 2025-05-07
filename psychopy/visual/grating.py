@@ -6,7 +6,7 @@ in either dimension. One of the main stimuli for PsychoPy.
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
@@ -132,9 +132,6 @@ class GratingStim(BaseVisualStim, DraggingMixin, TextureMixin, ColorMixin,
         produces a smoother (less-pixelated) outline of the shape.
     draggable : bool
         Can this stimulus be dragged by a mouse click?
-    lineRGB, fillRGB: ArrayLike, :class:`~psychopy.colors.Color` or None
-        *Deprecated*. Please use `lineColor` and `fillColor`. These arguments
-        may be removed in a future version.
     name : str
         Optional name of the stimuli for logging.
     autoLog : bool

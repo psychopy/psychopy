@@ -130,6 +130,7 @@ class Preferences:
         self.paths['resources'] = dirResources
         self.paths['assets'] = join(dirPsychoPy, "assets")
         self.paths['tests'] = join(dirPsychoPy, 'tests')
+        self.paths['scripts'] = join(dirPsychoPy, 'scripts')
         # path to libs/frameworks
         if 'PsychoPy.app/Contents' in exePath:
             self.paths['libs'] = exePath.replace("MacOS/python", "Frameworks")

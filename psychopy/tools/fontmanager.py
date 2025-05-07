@@ -662,6 +662,17 @@ def findFontFiles(folders=(), recursive=True):
             searchPaths = _OSXFontDirectories
         elif sys.platform.startswith('linux'):
             searchPaths = _X11FontDirectories
+    # make sure font paths is a list
+    if isinstance(searchPaths, tuple):
+        searchPaths = list(searchPaths)
+    # always look in the local directory, unless it's inside PsychoPy itself
+    thisDir = Path(".").absolute()
+    if all((
+        thisDir not in Path(prefs.paths['psychopy']).parents,
+        thisDir != Path(prefs.paths['psychopy']),
+        Path(prefs.paths['psychopy']) not in thisDir.parents,
+    )):
+        searchPaths.append(thisDir)
     # always look inside the app
     searchPaths.append(Path(prefs.paths['assets']) / "fonts")
     # always look in the user folder

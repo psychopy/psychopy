@@ -41,7 +41,7 @@ Specifying "Additional Resources"
 
 This is the only method of manually controlling resource loading that has been made easily available to users of PsychoPy prior to PsychoPy version 2022.1. If you don't have that many resources (e.g. <200 pictures), but you encounter an "Unknown Resource" error, this is probably the easiest fix (but we recommend you consider Methods 2 and 3 below). The reason the "Unknown Resource" error occurs is probably because you have a resource specified through code somewhere in your experiment (take for example the `"stim{N}.png".format(thisNumber)` case).
 
-You can manually specify what resources your experiment will need when you :ref:`configureOnline`. However, if you have a large number of files, we recommend you either :ref:`specifyOnlineResources` using the :ref:`resourceManager` or :ref:`specifyResourcesEachTrial` using :ref:`staticcomponent`.
+You can manually specify what resources your experiment will need when you :ref:`configureOnline`. However, if you have a large number of files, we recommend you either :ref:`specifyOnlineResources` using the :ref:`resourcemanagercomponent` or :ref:`specifyResourcesEachTrial` using :ref:`staticcomponent`.
 
 .. _specifyOnlineResources:
 
@@ -51,7 +51,7 @@ Specify the files to download at the start
 
 **Example use case:** fetch a whole set of movies, possibly a custom list, for the participant *while they read your instructions* (i.e. within the experiment rather than at the start). You can start them loading before the first instructions screen and then make sure they have all downloaded before the trials actually begin. You could even load yor files in two sets - download a few files during instructions and then fetch the rest during practice trials!
 
-While the automatic method is easy, it suffers if you have lots of resources (the participant sits waiting on that dialog box while the resources are fetched) or if each participant uses only a subset of resources. PsychoPy has a new Component called the :ref:`resourceManager` that allows you to specify the files you need and the time you want them to start and/or confirm downloading.
+While the automatic method is easy, it suffers if you have lots of resources (the participant sits waiting on that dialog box while the resources are fetched) or if each participant uses only a subset of resources. PsychoPy has a new Component called the :ref:`resourcemanagercomponent` that allows you to specify the files you need and the time you want them to start and/or confirm downloading.
 
 .. warning::
 
@@ -67,7 +67,7 @@ Specify the files to download each trial
 
 If each resource can be retrieved relatively quickly (e.g. an imagefile over a broadband connection) then you might want to fetch the stimulus on each trial. This has the advantage that you don't need to prespecify anything and you could even choose the stimulus to download dynamically, based on the previous response!
 
-The other nice thing about this method is that it can be used either using a :ref:`resourceManager` Component, or by simply setting the stmulus to update using a :ref:`staticcomponent` where that Static Component lasts during your fixation period.
+The other nice thing about this method is that it can be used either using a :ref:`resourcemanagercomponent` Component, or by simply setting the stmulus to update using a :ref:`staticcomponent` where that Static Component lasts during your fixation period.
 
 .. warning::
 
@@ -88,26 +88,26 @@ Below are some recommended formats and pointers how to convert your media with f
 Images: PNG or JPG
 ~~~~~~~~~~~~~~~~~~
 
-Web-browsers support a large variety of image formats; see an `overview here <https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Image_types>`_. Two widely supported formats are:
+Web-browsers support a large variety of image formats; see an `overview here <https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Image_types>`__. Two widely supported formats are:
 
 * PNG. This format applies "lossless" compression, which means that the compressed image is an exact reproduction of the original image. PNG is good at compressing pictures with geometric shapes, but natural scenes may yield relatively large files.
 * JPG. This format applies "lossy" compression, which means that the compressed image approximates the original image. JPG can compress natural scenes very well. When encoding to JPG, you can adjust quality settings to produce larger (and more detailed) or smaller (and less detailed) files.
  
-For converting images to PNG and JPG, you could use `GIMP <https://www.gimp.org/>`_. See `this tutorial about GIMP <https://www.digitaltrends.com/computing/how-to-edit-multiple-photos-at-once/>`_ for instructions on how to convert multiple images at once using GIMP. By picking "Change Format and Compression" in step 4 of the tutorial you can select which format to save the images in.
+For converting images to PNG and JPG, you could use `GIMP <https://www.gimp.org/>`__. See `this tutorial about GIMP <https://www.digitaltrends.com/computing/how-to-edit-multiple-photos-at-once/>`__ for instructions on how to convert multiple images at once using GIMP. By picking "Change Format and Compression" in step 4 of the tutorial you can select which format to save the images in.
 
 Sounds: MP3
 ~~~~~~~~~~~
 
-Here you can find an `overview <https://developer.mozilla.org/en-US/docs/Web/Guide/Audio_and_video_delivery/Cross-browser_audio_basics#Audio_Codec_Support>`_ of audio formats supported by web browsers. MP3 is the most widely supported format. MP3 performs lossy compression, so the sound may lose some detail, but you can adjust the quality level. At higher qualities, the loss in detail is negligible. 
+Here you can find an `overview <https://developer.mozilla.org/en-US/docs/Web/Guide/Audio_and_video_delivery/Cross-browser_audio_basics#Audio_Codec_Support>`__ of audio formats supported by web browsers. MP3 is the most widely supported format. MP3 performs lossy compression, so the sound may lose some detail, but you can adjust the quality level. At higher qualities, the loss in detail is negligible. 
 
-For converting sound to MP3, you could use `VLC Player <https://www.videolan.org/vlc/>`_. See `this tutorial about VLC <https://www.vlchelp.com/convert-audio-format/>`_ for instructions on how to convert multiple sounds at once using VLC.
+For converting sound to MP3, you could use `VLC Player <https://www.videolan.org/vlc/>`__. See `this tutorial about VLC <https://www.vlchelp.com/convert-audio-format/>`__ for instructions on how to convert multiple sounds at once using VLC.
 
 NB - Presently, PsychoPy does not yet support MP3.
 
 Movies: MP4 + H.264 & MP3
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Here you can find an `overview <https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Video_codecs>`_ of video formats supported by web browsers. MP4 + H.264 + MP3 is the most widely supported format. 
+Here you can find an `overview <https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Video_codecs>`__ of video formats supported by web browsers. MP4 + H.264 + MP3 is the most widely supported format. 
 
 * MP4 is a format that can contain video and audio
 * H.264 is a format that encodes video
@@ -115,7 +115,7 @@ Here you can find an `overview <https://developer.mozilla.org/en-US/docs/Web/Med
 
 Both H.264 and MP3 perform lossy compression, so the video and audio may lose some detail, but you can adjust the quality level. At higher qualities, the loss in detail is negligible. 
 
-For converting movies, you could use `VLC Player <https://www.videolan.org/vlc/>`_. See `this tutorial <https://www.vlchelp.com/convert-video-format/>`_ for instructions on how to convert multiple movies at once using VLC. To set up the output format correctly, we recommend making a new profile at step 4 in the tutorial above (see :numref:`videoSettings`):
+For converting movies, you could use `VLC Player <https://www.videolan.org/vlc/>`__. See `this tutorial <https://www.vlchelp.com/convert-video-format/>`__ for instructions on how to convert multiple movies at once using VLC. To set up the output format correctly, we recommend making a new profile at step 4 in the tutorial above (see :numref:`videoSettings`):
 
 1. Click the "New Profile" icon, then pick a name for your profile.
 2. In the "Encapsulation" tab, select "MP4/MOV"
@@ -123,7 +123,7 @@ For converting movies, you could use `VLC Player <https://www.videolan.org/vlc/>
 
    a. Tick "Video" checkbox
    b. Select "H-264" as "Codec"
-   c. Higher bitrates mean video that is of higher quality, but also larger files. Here are some `bitrate guidelines <https://www.videoproc.com/media-converter/bitrate-setting-for-h264.htm>`_ 
+   c. Higher bitrates mean video that is of higher quality, but also larger files. Here are some `bitrate guidelines <https://www.videoproc.com/media-converter/bitrate-setting-for-h264.htm>`__ 
 
 4. In the "Audio codec" tab:
 

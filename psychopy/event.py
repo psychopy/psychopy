@@ -6,7 +6,7 @@ pygame to be installed).
 See demo_mouse.py and i{demo_joystick.py} for examples
 """
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # 01/2011 modified by Dave Britton to get mouse event timing
@@ -297,7 +297,7 @@ def _onPygletMouseRelease(x, y, button, modifiers, emulated=False):
 
 def _onPygletMouseWheel(x, y, scroll_x, scroll_y):
     global mouseWheelRel
-    mouseWheelRel = mouseWheelRel + numpy.array([scroll_x, scroll_y])
+    mouseWheelRel +=  numpy.array([scroll_x, scroll_y])
     msg = "Mouse: wheel shift=(%i,%i), pos=(%i,%i)"
     logging.data(msg % (scroll_x, scroll_y, x, y))
 

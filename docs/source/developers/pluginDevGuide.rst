@@ -4,461 +4,114 @@ Creating Plugins for |PsychoPy|
 ===============================
 
 Plugins provide a means for developers to extend |PsychoPy|, adding new features
-and customizations without directly modifying the |PsychoPy| installation. Read
-:ref:`usingplugins` for more information about plugins before proceeding
-on this page.
+and customizations without directly modifying the |PsychoPy| installation.
 
-How plugins work
-----------------
-
-The plugin system in |PsychoPy| functions as a dynamic importer, which imports
-additional executable code from plugin packages then patches them into an active
-|PsychoPy| session at runtime. This is done by calling the
-``psychopy.plugins.loadPlugin()`` function and passing the project name of the
-desired plugin to it. Once ``loadPlugin()`` returns, imported objects are
-immediately accessible. Any changes made to |PsychoPy| with plugins do not persist
+The plugin system works by searching for "`:ref:_entryPoints`". If your package defines an entry point targeting |PsychoPy|, it will be found and imported when ``psychopy.plugins.activatePlugins`` is called - which the PsychoPy app calls on starting, as do any Builder experiments. Any changes made to |PsychoPy| with plugins do not persist
 across sessions, meaning if Python is restarted, |PsychoPy| will return to its
-default behaviour unless ``loadPlugin()`` is called again.
-
-Installed plugins for |PsychoPy| are discoverable on the system using package
-metadata. The metadata of the package defines "entry points" which tells the
-plugin loader where within PsychoPy's namespace to place objects exported by the
-plugin. The loader also ensures plugins are compatible with the Python
-environment (ie. operating system, CPU architecture, and Python version). Any
-Python package can define entry points, allowing developers to add functionality
-to |PsychoPy| without needing to create a separate plugin project.
-
-Plugin packages
----------------
-
-A plugin has a similar structure to Python package, see the official `Packaging
-Python Projects` (https://packaging.python.org/tutorials/packaging-projects)
-guide for details.
-
-Naming plugin packages
-~~~~~~~~~~~~~~~~~~~~~~
-
-Standalone plugins, which are packages that exist only to extend |PsychoPy| should
-adhere to the following naming convention to make |PsychoPy| plugins discernible
-from any other package in public repositories. Plugin project names should
-always be prefixed with `psychopy` with individual words separated with a `-` or
-`_` symbol (i.e. `psychopy-quest-procedure` or `psychopy_quest_procedure` are
-valid). What you chose to name the package is up to you, but keep it concise and
-informative.
-
-.. note::
-
-    The plugin system does not use project names to identify plugins, rather relying
-    on package metadata to identify if a package has entry points pertinent to
-    |PsychoPy|. Therefore, projects do not need to be named a particular way to still
-    be used as plugins. This allows packages which are not primarily used with
-    |PsychoPy| to extend it, without the need for a separate plugin package. It also
-    allows a single package to be used as a plugin for multiple projects unrelated
-    to |PsychoPy|.
-
-The module or sub-package which defines the objects which entry points refer to
-should be some variant of the name to prevent possible namespace conflicts. For
-instance, we would name our module `psychopy_quest_procedure` if our project
-was called `psychopy-quest-procedure`.
-
-Specifying entry points
-~~~~~~~~~~~~~~~~~~~~~~~
-
-Entry points reference objects in a plugin module that |PsychoPy| will attach
-to itself. Packages advertise their entry points by having them in their
-metadata. How entry points are defined and added to package metadata is
-described in the section
-`Dynamic Discovery of Services and Plugins <https://setuptools.readthedocs.io/en/latest/setuptools.html#dynamic-discovery-of-services-and-plugins>`_
-of the documentation for `setuptools`.
-
-When loading a specified plugin, the plugin loader searches for a distribution
-matching the given project name, then gets the entry point mapping from its
-metadata. Any entry point belonging to groups whose names start with `psychopy`
-is loaded. Group names are fully-qualified names of modules or unbound classes
-within PsychoPy's namespace to create links to the associated entry points in
-the plugin module/package.
-
-As an example, using entry point groups and specifiers, we can add a class called
-`MyStim` defined in the plugin module `psychopy_plugin` to appear in
-`psychopy.visual` when the plugin is loaded. To do this, we use the following
-dictionary when defining entry point metadata with the `setup()` function in
-the plugin project's `setup.py` file::
-
-    setup(
-        ...
-        entry_points={'psychopy.visual': 'MyStim = psychopy_plugin:MyStim'},
-        ...
-    )
-
-.. note::
-
-    Plugins can load and assign entry points to names anywhere in PsychoPy's
-    namespace. However, plugin developers should place them where they make
-    most sense. In the last example, we put `MyStim` in `psychopy.visual`
-    because that's where users would expect to find it if it was part of the
-    base |PsychoPy| installation.
-
-If we have additional classes we'd like to add to `psychopy.visual`, entry
-entry points for that group can be given as a list of specifiers::
-
-    setup(
-        ...
-        entry_points={
-        'psychopy.visual': ['MyStim = psychopy_plugin:MyStim',
-                            'MyStim2 = psychopy_plugin:MyStim2']
-        },
-        ...
-    )
-
-For more complex (albeit contrived) example to demonstrate how to modify unbound
-class attributes (ie. methods and properties), say we have a plugin which
-provides a custom interface to some display hardware called
-`psychopy-display` that needs to alter the existing ``flip()`` method of the
-``psychopy.visual.Window`` class to work. Furthermore, we want to add a class to
-`psychopy.hardware` called `DisplayControl` to give the user a way of setting up
-and configuring the display. Entry points for both objects are defined in the
-plugin's `psychopy_display` module. To get the effect we want, we specify entry
-points using the following::
-
-    setup(
-        ...
-        entry_points={
-            'psychopy.visual.Window': ['flip = psychopy_display:flip'],
-            'psychopy.hardware': ['DisplayControl = psychopy_display:DisplayControl']},
-        ...
-    )
-
-After calling ``loadPlugin('psychopy-display')``, the user will be able to
-create instances of ``psychopy.hardware.DisplayControl`` and new instances of
-``psychopy.visual.Window`` will have the modified ``flip()`` method.
-
-The __register__ attribute
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Plugin modules can define a optional attribute named ``__register__`` which
-specifies a callable object. The purpose of ``__register__`` is to allow the
-module to perform tasks before loading entry points based on arguments passed to
-it by the plugin loader. The arguments passed to the target of ``__register__``,
-come from the ``**kwargs`` given to ``loadPlugins()``. The value of this
-attribute can be a string of the name or a reference to a callable object (ie.
-function or method).
-
-.. note::
-
-    The ``__register__`` attribute should only ever be used for running routines
-    pertinent to setting up entry points. The referenced object is only called
-    on a module once per session.
-
-As an example, consider a case where an entry point is defined as ``doThis`` in
-plugin `python-foobar`. There are two possible behaviors which are `foo` and
-`bar` that ``dothis`` can have. We can implement both behaviors in separate
-functions, and use arguments passed to the ``__register__`` target to assign
-which to use to as the entry point::
-
-    __register__ = 'register'
-
-    doThis = None
-
-    def foo():
-        return 'foo'
-
-    def bar():
-        return 'bar'
-
-    def register(**kwargs):
-        global dothis
-        option = kwargs.get('option', 'foo')
-        if option == 'bar':
-            dothis = bar
-        else:
-            dothis = foo
-
-When the user calls ``loadPlugin('python-foobar', option='bar')``, the plugin
-will assign function ``bar()``` to ``doThis``. If `option` is not specified or
-given as 'foo', the behavior of ``doThis`` will be that of ``foo()``.
-
-Plugin example project
-----------------------
-
-This section will demonstrate how to create a plugin project and package it for
-distribution. For this example, we will create a plugin called
-`psychopy-rect-area` which adds a method to the ``psychopy.visual.Rect``
-stimulus class called `getArea()` that returns the area of the shape when
-called.
-
-Project files
-~~~~~~~~~~~~~
-
-First, we need to create a directory called `psychopy-rect-area` which all our
-Python packages and code will reside. Inside that directory, we create the
-following files and directories::
-
-    psychopy-rect-area/
-        psychopy_rect_area/
-            __init__.py
-        MANIFEST.in
-        README.md
-        setup.py
-
-The implementation for the `getArea()` method will be defined in a file called
-``psychopy_rect_area/__init__.py``, it should contain the following::
-
-    #!/usr/bin/env python
-    # -*- coding: utf-8 -*-
-    """Plugin entry points for `psychopy-rect-area`."""
-
-    def get_area(self):
-        """Compute the area of a `Rect` stimulus in `units`.
-
-        Returns
-        -------
-        float
-            Area in units^2.
-
-        """
-        return self.size[0] * self.size[1]
-
-.. note::
-
-    The `get_area()` function needs to have `self` as the first argument because
-    were are going to assign it as class method. All class methods get a
-    reference to the class as the first argument. You can name this whatever you
-    like (eg. `cls`).
-
-The ``setup.py`` script is used to generate an installable plugin package. This
-should contain something like the following::
-
-    #!/usr/bin/env python
-    # -*- coding: utf-8 -*-
-    from setuptools import setup
-
-    setup(name='psychopy-rect-area',
-        version='1.0',
-        description='Compute the area of a Rect stimulus.',
-        long_description='',
-        url='http://repo.example.com',
-        author='Nobody',
-        author_email='nobody@example.com',
-        license='GPL3',
-        classifiers=[
-            'Development Status :: 4 - Beta',
-            'License :: OSI Approved :: GLP3 License',
-            'Programming Language :: Python :: 2.7',
-            'Programming Language :: Python :: 3'
-        ],
-        keywords='psychopy stimulus',
-        packages=['psychopy_rect_area'],
-        install_requires=['psychopy'],
-        include_package_data=True,
-        entry_points={
-            'psychopy.visual.Rect': ['getArea = psychopy_rect_area:get_area']
-        },
-        zip_safe=False)
-
-Looking at ``entry_points`` we can see that were assigning
-``psychopy_rect_area.get_area`` to ``psychopy.visual.Rect.getArea``. Attributes
-assigned to entry points should follow the naming conventions of |PsychoPy| (camel
-case), however plugins are free to use internally whatever style the author
-chooses (eg. PEP8). You should also use appropriate classifiers for your plugin,
-a full list can be found here (https://pypi.org/pypi?%3Aaction=list_classifiers).
-
-You can also specify ``install_requires`` to indicate which versions of PsychPy
-are compatible with your plugin. Visit
-https://packaging.python.org/discussions/install-requires-vs-requirements/ for
-more information.
-
-One should also include a ``README.md`` file which provides detailed information
-about the plugin. This file can be read and passed to the ``long_description``
-argument of ``setup()`` in `setup.py` if desired by inserting the following into
-the setup script::
-
-    from setuptools import setup
-
-    def get_readme_text():
-        with open('README.md') as f:
-            return f.read()
-
-    setup(
-        ...
-        long_description=get_readme_text(),
-        ...
-    )
-
-Finally, we need specify ``README.md`` in our ``MANIFEST.in`` file to tell the
-packaging system to include the file when packaging. Simply put the following
-line in ``MANIFEST.in``::
-
-    README.md
-
-Building packages
-~~~~~~~~~~~~~~~~~
-
-|PsychoPy| plugin packages are built like any other Python package. We can build
-a `wheel` distribution by calling the following console command::
-
-    python setup.py sdist bdist_wheel
-
-The resulting ``.whl`` files will appear in directory `psychopy-rect-area/dist`.
-The generated packages can be installed with `pip` or uploaded to the `Python
-Package Index <https://pypi.org/>`_. for more information about building and
-uploading packages, visit: https://packaging.python.org/tutorials/packaging-projects/
-
-If uploaded to PyPI, other |PsychoPy| users can install your plugin by entering
-the following into their command prompt::
-
-    python -m pip install psychopy-rect-area
-
-Using the plugin
-~~~~~~~~~~~~~~~~
-
-Once installed the plugin can be activated by using the
-`psychopy.plugins.loadPlugin()` function. This function should be called after
-the import statements in your script::
-
-    from psychopy import visual, core, plugins
-    plugins.loadPlugin('psychopy-demo-plugin')  # load the plugin
-
-After calling ``loadPlugin()``, all instances of ``Rect`` will have the method
-``getArea()``::
-
-    rectStim = visual.Rect(win)
-    rectArea = rectStim.getArea()
-
-Plugins as patches
-------------------
-
-A special use case of plugins is to apply and distribute "patches". Using entry
-points to override module and class attributes, one can create patches to fix
-minor bugs in extant |PsychoPy| installations between releases, or backport fixes
-and features to older releases (that support plugins) that cannot be upgraded
-for some reason. Patches can be distributed like any other Python package, and
-can be installed and applied uniformly across multiple |PsychoPy| installations.
-
-Plugins can also patch other plugins that have been previously loaded by
-``loadPlugin()`` calls. This is done by defining entry points to module and
-class attributes that have been created by a previously loaded plugin.
-
-Creating patches
-~~~~~~~~~~~~~~~~
-
-As an example, consider a fictional scenario where a bug was introduced in a
-recent release of |PsychoPy| by a hardware vendor updating their drivers. As a
-result, PsychoPy's builtin support for their devices provided by the
-``psychopy.hardware.Widget`` class is now broken. You notice that it has been
-fixed in a pending release of |PsychoPy|, and that it involves a single change to
-the ``getData()`` method of the ``psychopy.hardware.Widget`` class to get it
-working exactly as before. However, you cannot wait for the next release because
-you are in the middle of running scheduled experiments, even worse, you have
-dozens of test stations using the hardware.
-
-In this case, you can create a plugin to not only fix the bug, but apply it
-across multiple existing installations to save the day. Creating a package for
-our patch is no different than a regular plugin (see the
-`Plugin example project`_ section for more information), so you go about
-creating a project for a plugin called `psychopy-hotfix` which defines the
-working version of the ``getData()`` method in a sub-module called
-``psychopy_hotfix`` like this::
-
-    # method copy and pasted from the bug fix commit
-    def getData(self):
-        """This function reads data from the device."""
-        # code here ...
-
-In the `setup.py` file of the plugin package, specify the entry points like this
-to override the defective method in our installations::
-
-    setup(
-        name='psychopy-hotfix'
-        ...
-        entry_points={
-            'psychopy.hardware.Widget': ['getData = psychopy_patch:getData']
-        },
-        ...
-    )
-
-That's it, just build a distributable package and install it on all the systems
-affected by the bug.
-
-Applying patches
-~~~~~~~~~~~~~~~~
-
-Whether you create your own patch, or obtain one provided by the |PsychoPy|
-community, they are applied using the `loadPlugin()` function after installing
-them. Experiment scripts will need to have the following lines added under
-the ``import`` statements at the top of the file for the plugin to take effect
-(but it's considerably less work than manually patching in the code across many
-separate installations)::
-
-    import psychopy.plugin as plugin
-    plugin.loadPlugin('psychopy-patch')
-
-After ``loadPlugin`` is called, the behaviour of the ``getData()`` method of any
-instances of the ``psychopy.hardware.Widget`` class will change to the correct
-one.
-
-Once a new release of |PsychoPy| comes out with the patch incorporated into
-it and your installations are upgraded, you can remove the above lines.
-
-Creating window backends
-------------------------
-
-Custom backends for the `Window` class can be implemented in plugins, allowing
-one to create windows using frameworks other than Pyglet, GLFW, and PyGame that
-can be enabled using the appropriate ``winType`` argument.
-
-A plugin can add a ``winType`` by specifying class and module entry
-points for ``psychopy.visual.backends``. If the entry point is a subclass of
-``psychopy.visual.backends.BaseBackend`` and has ``winTypeName`` defined, it
-will be automatically registered and can be used as a ``winType`` by instances
-of ``psychopy.visual.Window``.
-
-.. note::
-
-    If a module is given as an entry point, the whole module will be added to
-    ``backends`` and any class within it that is a subclass of ``BaseBackend``
-    and defines ``winTypeName`` will be registered. This allows one to add
-    multiple window backends to |PsychoPy| with a single plugin module.
-
-Example
-~~~~~~~
-
-For example, say we have a backend class called ``CustomBackend`` defined in
-module ``custom_backend`` in the plugin package `psychopy-custom-backend`.
-We can tell the plugin loader to register it to be used when a ``Window``
-instance is created with ``winType='custom'`` by adding the ``winTypeName``
-class attribute to ``CustomBackend``::
-
-    class CustomBackend(BaseBackend):
-        winTypeName = 'custom'
-        ...
-
-.. note::
-
-    If ``winTypeName`` is not defined, the entry points will still get added to
-    ``backends`` but users will not be able to use it directly by specifying
-    ``winType``.
-
-We define the entry point for our custom backend in ``setup.py`` as::
-
-    setup(
-        ...
-        entry_points={
-        `'psychopy.visual.backends': 'custom_backend = custom_backend'},
-        ...
-    )
-
-Optionally, we can point to the backend class directly::
-
-    setup(
-        ...
-        entry_points={
-            'psychopy.visual.backends':
-                'custom_backend = custom_backend:CustomBackend'},
-        ...
-    )
-
-After the plugin is installed and loaded, we can use our backend for creating
-windows by specifying ``winType`` as ``winTypeName``::
-
-    loadPlugin('psychopy-custom-backend')
-    win = Window(winType='custom')
+default behaviour unless ``activatePlugins()`` is called again.
+
+Read :ref:`usingplugins` for more information about plugins before proceeding on this page.
+
+Creating your plugin package
+-------------------------------
+
+A plugin is ultimately just a type of Python package, just one which interacts with |PsychoPy|, so you can create one in the same way you would make any other Python package. Check out the `Python Packaging User Guide <https://packaging.python.org/en/latest/guides/writing-pyproject-toml/>`_ for a comprehensive guide to making Python packages in general. Below we'll go through the key steps of making a |PsychoPy| plugin package specifically.
+
+Naming your plugin package
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To help users find your plugin and to make it clear that it is a |PsychoPy| plugin, your plugin package name should start with ``psychopy-`` followed by a word or a few words which describe what it is (separated by ``-``). The module within your plugin package (the folder that gets imported when a user does ``import <your plugin>``) should have the same name as the package but with ``-`` replaced by ``_``. Below are some example plugin names and what they do:
+
+.. list-table:: Title
+   :header-rows: 1
+
+   * - Package name
+     - Module name
+     - Description
+   * - psychopy-visionscience
+     - psychopy_visionscience
+     - Adds various stimuli which are useful for vision scientists
+   * - psychopy-face-api
+     - psychopy-face-api
+     - Add support for Face API in PsychoJS experiments created using Builder
+   * - psychopy-cedrus
+     - psychopy_cedrus
+     - Adds support for Cedrus devices (button boxes, photodiodes, voicekeys, etc.)
+   * - psychopy-monkeys
+     - psychopy_monkeys
+     - Adds various "response monkey" Components, which save time testing by immitating participant responses when running in pilot mode
+
+Structuring your plugin package
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A plugin package is no different structurally from any other package, so see the official `Packaging Python Projects guide <https://packaging.python.org/tutorials/packaging-projects>`_ for details on how to structure a Python package in general. For |PsychoPy| plugins specifically, we strongly recommend starting by cloning the `template plugin repo <https://github.com/psychopy/psychopy-plugin-template>`_ and modifying it rather than starting from scratch.
+
+.. _pyprojectTOML:
+
+pyproject.toml
+~~~~~~~~~~~~~~~~~~~
+
+Python looks for a file at the root level of your plugin package called ``pyproject.toml``, which contains the information it needs (name, version, etc.) to set up the package. Essentially, it's what turns a Python module into a Python package. For an example of a finished ``pyproject.toml`` file, check out the one from the `template plugin repo <https://github.com/psychopy/psychopy-plugin-template>`_.
+
+
+.. _entryPoints:
+
+Entry points
+~~~~~~~~~~~~~~~~~~~
+
+Defining an entry point is essentially telling Python "pretend that ``x.y`` is also located at ``z.y``", similar to if the file ``z.py`` had ``from x import y`` at the top. This allows an external package to edit what can be imported from |PsychoPy| without changing any of |PsychoPy|'s code. |PsychoPy| can also get a list of all plugin packages which define entry points to a certain place, which in some cases will help it find your plugin. For example, if you wanted to add a Component, you would define an entry point to ``psychopy.experiment.components`` and Builder would then find your plugin Component by looking for that entry point.
+
+.. _baseClasses:
+
+Base classes
+~~~~~~~~~~~~~~~~~~~
+
+In many cases, the element your plugin package adds may need to be a subclass of a particular base class to be detected and used properly. For example, a new Component should be a subclass of ``psychopy.experiment.components.BaseComponent``. Similarly, new backend for a hardware Component which supports multiple backends (such as :ref:_buttonboxcomponent or :ref:_voicekeycomponent) would need to be a subclass of ``psychopy.experiment.components.plugins.DeviceBackend``. 
+
+If you're unsure what to subclass, try looking for another similar element in |PsychoPy| or in another plugin and see what they subclass (for example, ``psychopy.experiment.components.buttonBox.KeyboardButtonBoxBackend`` is a subclass of ``DeviceBackend``).
+
+Testing your plugin package
+-------------------------------
+
+Once you're ready to try your plugin package out, you can install it via the Plugins & Packages Manager in Builder (opened via the Tools menu item or the "Get more..." button at the top of the Components panel). In the "Packages" tab, click the "Install from file" button and select the ``pyproject.toml`` file for your plugin (you will need to change the file type dropdown to look for "Python projects" rather than a "Wheel files" to see it). Doing so will prompt PsychoPy to perform an `editable install <https://pip.pypa.io/en/stable/topics/local-project-installs/#editable-installs>`_ of your plugin, meaning that any edits you make to your plugin will be immediately visible once you restart PsychoPy, without requiring the plugin to be reinstalled. The only exception is any changes made to the ``pyproject.toml`` file itself - these do require a reinstall to register unfortunately.
+
+Publishing your plugin package
+-------------------------------
+
+|PsychoPy| plugin packages are built like any other package and hosted via the `Python Package Index (PyPI) <https://pypi.org/>`_. While you can absolutely build and package it yourself if you're comfortable and familiar doing so, we recommend copying the ``.github`` folder from the `template plugin repo <https://github.com/psychopy/psychopy-plugin-template>`_, as this defines a `GitHub action <https://github.com/features/actions>`_ to build and publish your plugin package for you whenever you `make a new release on GitHub <https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases>`_. To allow this to work, there's just a few configuration steps to follow.
+
+Give action permissions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In order for the publishing action to work, it needs to be given certain permissions within your plugin's repo. To enable these, go to your repo, then "Settings" at the top, then "Actions -> General" on the left. Then:
+
+* Make sure that "Allow all actions and reusable workflows" is ticked (or, if you need to disable some actions for other reasons, at least allow actions from yourself or allow specific actions and specify ``pypi.yml`` as enabled).
+* Make sure "Read and write permissions" (under "Workflow permissions") is ticked
+
+Create a GitHub environment
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In order for PyPI to recognise your plugin, and prevent anyone else pushing to it from any old repo, it will check that the GitHub action is running in the correct "environment". This environment doesn't need any special configuration, it just needs to exist and have a name (we recommend just calling it ``pypi``). To create an environment, just go to your repo, then "Settings" at the top, then "Environments" on the left. Click "New Environment" in the top right, give it a name and click "Save". That's all you need!
+
+Set up a trusted publisher
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Now that your GitHub repo is all set up, you need to setup PyPI to look for your repo as the publisher of your plugin package. If you don't have an account with PyPI, you can `create one here <https://pypi.org/account/register/>`_. Once logged in, click on your username in the top right and then "Your Projects". On the left, click "Publishing". This should take you to an interface for managing "publishers" - this is essentially a mapping which tells PyPI which GitHub accounts and environments to accept pushes from when publishing a new version of a specific package.
+
+Scroll down to the "Pending publishers" section and choose "GitHub" from the tabs on the control there. It should look like this:
+
+.. image:: pypi-setup-plugin.png
+
+but with the fields flanked by `<>` replaced by the relevant information for your plugin. Once you click "Add", you should be good to go!
+
+Make a release on GitHub
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To trigger the relevant GitHub action to publish your plugin package, you need to make a release. See `the documentation from GitHub <https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases>`_ for information on how to do this. Remember to tag the release with the version number! The first release will most likely be ``0.0.1``.
+
+Listing a plugin in Builder
+-------------------------------
+
+Once your plugin is published on PyPI, it can be installed by anyone (via ``pip install <package-name>`` - but it won't appear in the list of plugins from |PsychoPy| Builder as at this point it's no different than any of the thousands of other Python packages on PyPI. Builder gets its list of plugins from a file in the `PsychoPy Plugins repo <https://github.com/psychopy/plugins>`_ called ``plugins.json``. This file contains a list of plugins alongwith information about them, links to documentation, an icon for the plugin and author, etc.
+
+To add your plugin to this list, simply fork this repo, edit the file to include information about your plugin, and submit it as a pull request. We'll give your plugin a quick check over for malicious code and, assuming it's all fine, will accept your pull request and your plugin will be immediately available from Builder!

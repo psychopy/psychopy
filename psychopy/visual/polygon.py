@@ -5,12 +5,12 @@
 :class:`~psychopy.visual.ShapeStim`"""
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import psychopy  # so we can get the __path__
 from psychopy.visual.shape import ShapeStim
-from psychopy.tools.attributetools import attributeSetter, setAttribute
+from psychopy.tools.attributetools import attributeSetter, setAttribute, undefined
 from psychopy.tools import gltools as gt
 
 import numpy as np
@@ -46,11 +46,6 @@ class Polygon(ShapeStim):
     lineColor, fillColor : array_like, str, :class:`~psychopy.colors.Color` or `None`
         Color of the shape's outline and fill. If `None`, a fully
         transparent color is used which makes the fill or outline invisible.
-    lineColorSpace, fillColorSpace : str
-        Colorspace to use for the outline and fill. These change how the
-        values passed to `lineColor` and `fillColor` are interpreted.
-        *Deprecated*. Please use `colorSpace` to set both outline and fill
-        colorspace. These arguments may be removed in a future version.
     pos : array_like
         Initial position (`x`, `y`) of the shape on-screen relative to the
         origin located at the center of the window or buffer in `units`.
@@ -85,9 +80,6 @@ class Polygon(ShapeStim):
     interpolate : bool
         Enable smoothing (anti-aliasing) when drawing shape outlines. This
         produces a smoother (less-pixelated) outline of the shape.
-    lineRGB, fillRGB: array_like, :class:`~psychopy.colors.Color` or None
-        *Deprecated*. Please use `lineColor` and `fillColor`. These
-        arguments may be removed in a future version.
     name : str
         Optional name of the stimuli for logging.
     autoLog : bool
@@ -107,9 +99,6 @@ class Polygon(ShapeStim):
         Can this stimulus be dragged by a mouse click?
 
     """
-
-    _defaultFillColor = "white"
-    _defaultLineColor = "white"
     _tesselMode = 'fan'  # fastest for regular/equilateral polygons
 
     def __init__(self,
@@ -118,8 +107,8 @@ class Polygon(ShapeStim):
                  radius=.5,
                  units='',
                  lineWidth=1.5,
-                 lineColor=False,
-                 fillColor=False,
+                 lineColor="white",
+                 fillColor="white",
                  pos=(0, 0),
                  size=1.0,
                  anchor=None,
@@ -134,11 +123,11 @@ class Polygon(ShapeStim):
                  autoDraw=False,
                  colorSpace='rgb',
                  # legacy
-                 color=False,
-                 fillColorSpace=None,
-                 lineColorSpace=None,
-                 lineRGB=False,
-                 fillRGB=False,
+                 color=undefined,
+                 fillColorSpace=undefined,
+                 lineColorSpace=undefined,
+                 lineRGB=undefined,
+                 fillRGB=undefined,
                  ):
 
         # what local vars are defined (these are the init params) for use by
@@ -157,9 +146,7 @@ class Polygon(ShapeStim):
             units=units,
             lineWidth=lineWidth,
             lineColor=lineColor,
-            lineColorSpace=lineColorSpace,
             fillColor=fillColor,
-            fillColorSpace=fillColorSpace,
             vertices=self.vertices,
             closeShape=True,
             pos=pos,
@@ -171,13 +158,17 @@ class Polygon(ShapeStim):
             depth=depth,
             interpolate=interpolate,
             draggable=draggable,
-            lineRGB=lineRGB,
-            fillRGB=fillRGB,
             name=name,
             autoLog=autoLog,
             autoDraw=autoDraw,
+            colorSpace=colorSpace,
+            # legacy
             color=color,
-            colorSpace=colorSpace)
+            fillColorSpace=fillColorSpace,
+            lineColorSpace=lineColorSpace,
+            lineRGB=lineRGB,
+            fillRGB=fillRGB,
+        )
 
     def _calcVertices(self):
         if self.edges == "circle":

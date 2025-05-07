@@ -12,9 +12,9 @@ can select which will be used via the :ref:`audioLib<hardwareSettings>`
 preference. `sound.Sound()` will then refer to one of the following backends:
 
 * :class:`~psychopy.sound.backend_ptb.SoundPTB`
-* :class:`~psychopy.sound.backend_sounddevice.SoundDevice`
-* :class:`~psychopy.sound.backend_pyo.SoundPyo`
-* :class:`~psychopy.sound.backend_pygame.SoundPygame`
+* `SoundDevice <https://psychopy.github.io/psychopy-sound-device>`_
+* `SoundPyo <https://psychopy.github.io/psychopy-pyo>`_
+* `SoundPygame <https://psychopy.github.io/psychopy-pygame>`_
 
 This preference can be set on a per-experiment basis by importing preferences,
 and :doc:`setting the audioLib option</api/preferences>` to use. Audio playback
@@ -189,24 +189,4 @@ Sound Classes
 ~~~~~~~~~~~
 
 .. autoclass:: psychopy.sound.backend_ptb.SoundPTB
-    :members:
-
-
-`SoundDevice` Sound
-~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: psychopy.sound.backend_sounddevice.SoundDeviceSound
-    :members:
-
-`Pyo` Sound
-~~~~~~~~~~~
-
-.. autoclass:: psychopy.sound.backend_pyo.SoundPyo
-    :members:
-
-
-`pygame` Sound
-~~~~~~~~~~~~~~
-
-.. autoclass:: psychopy.sound.backend_pygame.SoundPygame
     :members:

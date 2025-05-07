@@ -3,11 +3,12 @@
 
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 import copy
 import psychopy
 from psychopy.localization import _translate
+from psychopy.tools.attributetools import undefined
 from .text import TextStim
 from .rect import Rect
 from psychopy.data.utils import importConditions, listFromString
@@ -125,8 +126,8 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                  autoLog=True,
                  depth=0,
                  # legacy
-                 color=None,
-                 foreColor=None
+                 color=undefined,
+                 foreColor=undefined
                  ):
 
         super(Form, self).__init__(win, units, autoLog=False)
@@ -149,9 +150,9 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.itemColor = itemColor
         self.responseColor = responseColor
         self.markerColor = markerColor
-        if color:
+        if color is not undefined:
             self.foreColor = color
-        if foreColor:
+        if foreColor is not undefined:
             self.foreColor = color
 
         self.font = font or "Noto Sans"

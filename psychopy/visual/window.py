@@ -4,7 +4,7 @@
 """A class representing a window for displaying one or more stimuli"""
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import ctypes
@@ -2466,8 +2466,8 @@ class Window():
                                       win=self)[:2]
 
         # transform psychopy mouse coordinates to viewport coordinates
-        scrX = scrX + (self.size[0] / 2.)
-        scrY = scrY + (self.size[1] / 2.)
+        scrX += (self.size[0] / 2.)
+        scrY +=  (self.size[1] / 2.)
 
         # get the NDC coordinates of the
         projX = 2. * (scrX - self.viewport[0]) / self.viewport[2] - 1.

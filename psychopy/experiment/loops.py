@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Experiment classes:
@@ -715,7 +715,8 @@ class MultiStairHandler(_BaseLoopHandler):
     def writeLoopStartCode(self, buff):
         # create a 'thisName' for use in "for thisTrial in trials:"
         makeLoopIndex = self.exp.namespace.makeLoopIndex
-        self.thisName = makeLoopIndex(self.params['name'].val)
+        makeLoopIndex(self.params['name'].val)
+        self.thisName = "condition"
         # create the MultistairHander
         code = ("\n# set up handler to look after randomisation of trials etc\n"
                 "conditions = data.importConditions(%(conditionsFile)s)\n"

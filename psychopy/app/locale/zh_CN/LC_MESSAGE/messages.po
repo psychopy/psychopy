@@ -264,8 +264,8 @@ msgid "Copyright (C) 2021 OpenScienceTools.org"
 msgstr "Copyright (C) 2021 OpenScienceTools.org"
 
 #: ../app/_psychopyApp.py:351
-msgid "  Creating frames..."
-msgstr "  创建框架中..."
+msgid "Creating frames..."
+msgstr "创建框架中..."
 
 #: ../app/_psychopyApp.py:407
 msgid "Compatibility information"
@@ -287,7 +287,7 @@ msgid ""
 msgstr ""
 "用于 Python 中的刺激生成和实验控制。\n"
 "PsychoPy 非常感谢您的反馈。 如果某项内容不能正常工作\n"
-"请让我们知道，练习psychopy-users@googlegroups.com"
+"请让我们知道，联系 psychopy-users@googlegroups.com"
 
 #: ../app/builder/builder.py:76 ../app/builder/localizedStrings.py:111
 msgid "Field"

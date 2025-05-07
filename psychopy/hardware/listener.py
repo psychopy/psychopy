@@ -157,7 +157,7 @@ class BaseListener:
     """
     Base class for a "Listener" object. Subclasses must implement the "receiveMessage" method.
 
-    Listeners can be attached to a node (such as a Button or Photodiode) and will receive duplicates of any messages
+    Listeners can be attached to a node (such as a Button or Light Sensor) and will receive duplicates of any messages
     received by that node.
     """
     def __init__(self):

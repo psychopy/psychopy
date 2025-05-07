@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Functions and classes related to attribute handling
@@ -15,16 +15,62 @@ from functools import partialmethod
 from psychopy.tools.stringtools import CaseSwitcher
 
 
+class UndefinedType:
+    """
+    Represents a value which has not been defined - useful for distinguishing between something not 
+    being set and something being set to None.
+    """
+
+    instance = None
+
+    def __new__(cls):
+        """
+        There should only ever be one instance of UndefinedType
+        """
+        if cls.instance is None:
+            cls.instance = super(cls, cls).__new__(cls)
+        
+        return cls.instance
+    
+    def __eq__(self, other):
+        """
+        Comparing undefined by ``==`` should be the same as by ``is``
+        """
+        return self is other
+    
+    def __bool__(self):
+        """
+        When used as a boolean, undefined is always ``False``
+        """
+        return False
+
+    def __repr__(self):
+        """
+        Display as simply ``undefined`` when printed.
+        """
+        return "undefined"
+
+
+undefined = UndefinedType()
+
+
 class attributeSetter:
     """Makes functions appear as attributes. Takes care of autologging.
     """
 
-    def __init__(self, func, doc=None):
+    def __init__(self, func):
         self.func = func
-        if doc is not None:
-            self.__doc__ = doc
-        else:
-            self.__doc__ = func.__doc__
+        self.__doc__ = func.__doc__
+    
+    def __set_name__(self, owner: type, name: str):
+        # if we already have docs, no further action needed
+        if self.__doc__ is not None:
+            return
+        # inherit docs from first base class which has any for this method
+        for base in owner.__bases__:
+            if hasattr(base, name) and getattr(base, name).__doc__ is not None:
+                self.__doc__ = getattr(base, name).__doc__
+                break
 
     def __set__(self, obj, value):
         newValue = self.func(obj, value)
@@ -51,7 +97,7 @@ class attributeSetter:
         If an attributeSetter is received by serializer as an attribute, return the default value or 
         None
         """
-        defaults = inspect.getargspec(self.func).defaults
+        defaults = inspect.getfullargspec(self.func).defaults
         if defaults:
             return defaults[0]
         else:

@@ -87,7 +87,7 @@ class SliderComponent(BaseVisualComponent):
         # = the usual as inherited from BaseVisual plus:
         self.params['ticks'] = Param(
                 ticks, valType='list', inputType="single", allowedTypes=[], categ='Basic',
-                updates='constant',
+                updates='constant', allowedUpdates=["constant"],
                 hint=_translate("Tick positions (numerical) on the scale, "
                                 "separated by commas"),
                 label=_translate("Ticks"))
@@ -107,7 +107,7 @@ class SliderComponent(BaseVisualComponent):
         )
         self.params['labels'] = Param(
                 labels, valType='list', inputType="single", allowedTypes=[], categ='Basic',
-                updates='constant',
+                updates='constant', allowedUpdates=["constant"],
                 hint=_translate("Labels for the tick marks on the scale, "
                                 "separated by commas"),
                 label=_translate("Labels"))
@@ -118,7 +118,7 @@ class SliderComponent(BaseVisualComponent):
         )
         self.params['granularity'] = Param(
                 granularity, valType='num', inputType="single", allowedTypes=[], categ='Basic',
-                updates='constant',
+                updates='constant', allowedUpdates=["constant"],
                 hint=_translate("Specifies the minimum step size "
                                 "(0 for a continuous scale, 1 for integer "
                                 "rating scale)"),

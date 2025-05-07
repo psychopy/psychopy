@@ -16,6 +16,7 @@ BUT there are many components to getting good timing, and many ways that your ti
    nonSlipTiming
    detectingFrameDrops
    reducingFrameDrops
+   timingTestByOS
 
 Understand and measuring your timing
 ---------------------------------------

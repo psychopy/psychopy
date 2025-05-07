@@ -1,9 +1,9 @@
-.. _feedback:
+.. _builderfeedback:
 
 Builder - providing feedback
 ================================
 
-If you're using the Builder then the way to provide feedback is with a :ref:`code` to generate an appropriate message (and then a :ref:`text` to present that message). PsychoPy will be keeping track of various aspects of the stimuli and responses for you throughout the experiment and the key is knowing where to find those.
+If you're using the Builder then the way to provide feedback is with a :ref:`code` to generate an appropriate message (and then a :ref:`textcomponent` to present that message). PsychoPy will be keeping track of various aspects of the stimuli and responses for you throughout the experiment and the key is knowing where to find those.
 
 The following examples assume you have a :ref:`Loop <loops>` called `trials`, containing a :ref:`Routine <routines>` with a :ref:`keyboardcomponent` called `key_resp`. Obviously these need to be adapted in the code below to fit your experiment.
 
@@ -62,7 +62,7 @@ and then insert the following into the `Begin Routine` section (this will get ru
 Draw your message to the screen
 -------------------------------------
 
-Using one of the above methods to generate your `msg` in a :ref:`code`, you then need to present it to the participant by adding a :ref:`text` to your `feedback` Routine and setting its text to `$msg`.
+Using one of the above methods to generate your `msg` in a :ref:`code`, you then need to present it to the participant by adding a :ref:`textcomponent` to your `feedback` Routine and setting its text to `$msg`.
 
 .. warning::
 

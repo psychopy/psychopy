@@ -89,7 +89,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
     Capture 10 seconds of audio from the primary microphone::
 
         import psychopy.core as core
-        import psychopy.sound.Microphone as Microphone
+        import psychopy.sound.microphone.Microphone as Microphone
 
         mic = Microphone(bufferSecs=10.0)  # open the microphone
         mic.start()  # start recording

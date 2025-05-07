@@ -1101,7 +1101,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.showingReloadDialog = False
 
         # default window title string
-        self.winTitle = "PsychoPy Coder (v{})".format(self.app.version)
+        self.winTitle = title
 
         # we didn't have the key or the win was minimized/invalid
         if self.appData['winH'] == 0 or self.appData['winW'] == 0:
@@ -1963,27 +1963,12 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
                 if self._lastCaretPos != pos:
                     self.currentDoc.OnUpdateUI(evt=None)
                     self._lastCaretPos = pos
-            last = self.fileStatusLastChecked
-            interval = self.fileStatusCheckInterval
-            if time.time() - last > interval and not self.showingReloadDialog:
-                if not self.expectedModTime(self.currentDoc):
-                    self.showingReloadDialog = True
-                    filename = os.path.basename(self.currentDoc.filename)
-                    msg = _translate("'%s' was modified outside of PsychoPy:\n\n"
-                                     "Reload (without saving)?") % filename
-                    dlg = dialogs.MessageDialog(self, message=msg, type='Warning')
-                    if dlg.ShowModal() == wx.ID_YES:
-                        self.statusBar.SetStatusText(_translate('Reloading file'))
-                        self.fileReload(event,
-                                        filename=self.currentDoc.filename,
-                                        checkSave=False)
-                    self.showingReloadDialog = False
-                    self.statusBar.SetStatusText('')
-                    dlg.Destroy()
-                self.fileStatusLastChecked = time.time()
-                # Enable / disable save button
-                self.ribbon.buttons['save'].Enable(self.currentDoc.UNSAVED)
-                self.fileMenu.Enable(wx.ID_SAVE, self.currentDoc.UNSAVED)
+            # if file has been modified externally, show message
+            if (
+                time.time() - self.fileStatusLastChecked > self.fileStatusCheckInterval 
+                and not self.showingReloadDialog
+            ):
+                self.checkExternallyModified(event)
 
     def pageChanged(self, event):
         """Event called when the user switches between editor tabs."""
@@ -2022,21 +2007,33 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
             self.ribbon.buttons['pilotRunner'].Enable(isExp)
 
         self.statusBar.SetStatusText(fileType, 2)
-
-        # todo: reduce redundancy w.r.t OnIdle()
+        # check for external modified
+        self.checkExternallyModified(event)
+    
+    def checkExternallyModified(self, event=None):
+        """
+        Check whether the current file has been modified externally, and show a message dialog if 
+        so.
+        """
         if not self.expectedModTime(self.currentDoc):
+            self.showingReloadDialog = True
             filename = os.path.basename(self.currentDoc.filename)
             msg = _translate("'%s' was modified outside of PsychoPy:\n\n"
-                             "Reload (without saving)?") % filename
+                                "Reload (without saving)?") % filename
             dlg = dialogs.MessageDialog(self, message=msg, type='Warning')
+            dlg.Raise()
             if dlg.ShowModal() == wx.ID_YES:
                 self.statusBar.SetStatusText(_translate('Reloading file'))
                 self.fileReload(event,
                                 filename=self.currentDoc.filename,
                                 checkSave=False)
-                self.setFileModified(False)
+            self.showingReloadDialog = False
             self.statusBar.SetStatusText('')
             dlg.Destroy()
+        self.fileStatusLastChecked = time.time()
+        # Enable / disable save button
+        self.ribbon.buttons['save'].Enable(self.currentDoc.UNSAVED)
+        self.fileMenu.Enable(wx.ID_SAVE, self.currentDoc.UNSAVED)
 
     # def pluginManager(self, evt=None, value=True):
     #     """Show the plugin manager frame."""

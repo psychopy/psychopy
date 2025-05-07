@@ -8,7 +8,7 @@ experimenter to create movie stimuli or instructions.
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 __all__ = [
@@ -679,7 +679,7 @@ class CameraInterfaceFFmpeg(CameraInterface):
                 Barrier which is used to synchronize audio and video recording.
                 This ensures that the audio device is ready before buffering 
                 frames captured by the camera. 
-            audioCapture : psychopy.sound.Microphone or None
+            audioCapture : psychopy.sound.microphone.Microphone or None
                 Microphone object to use for audio capture. This will be used to
                 synchronize the audio and video streams. If `None`, no audio
                 will be captured.
@@ -1153,7 +1153,7 @@ class CameraInterfaceOpenCV(CameraInterface):
                 Barrier which is used to synchronize audio and video recording.
                 This ensures that the audio device is ready before buffering 
                 frames captured by the camera. 
-            audioCapture : psychopy.sound.Microphone or None
+            audioCapture : psychopy.sound.microphone.Microphone or None
                 Microphone object to use for audio capture. This will be used to
                 synchronize the audio and video streams. If `None`, no audio
                 will be captured.
@@ -2137,7 +2137,7 @@ class Camera:
     #     """
     #     pass
 
-    def record(self):
+    def record(self, clearLastRecording=True):
         """Start recording frames.
 
         This function will start recording frames and audio (if available). The
@@ -2152,7 +2152,16 @@ class Camera:
         Warnings
         --------
         If a recording has been previously made without calling `save()` it will
-        be discarded if `record()` is called again.
+        be discarded if `record()` is called again unless 
+        `clearLastRecording=False`.
+
+        Parameters
+        ----------
+        clearLastRecording : bool
+            Clear the frame buffer before starting the recording. If `True`,
+            the frame buffer will be cleared before starting the recording. If
+            `False`, the frame buffer will be kept and new frames will be added
+            to the buffer. Default is `True`.
 
         """
         if self.isNotStarted:
@@ -2162,6 +2171,10 @@ class Camera:
                 "opening now. This is not recommended as it may incur a longer "
                 "than expected delay in the recording start time."
             )
+
+        # clear previous frames
+        if clearLastRecording:
+            self._captureFrames.clear()
         
         self._audioTrack = None
         self._lastFrame = None

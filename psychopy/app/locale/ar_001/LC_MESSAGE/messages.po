@@ -300,8 +300,8 @@ msgid "Copyright (C) 2022 OpenScienceTools.org"
 msgstr "حقوق الملكية الفكرية  2022 OpenScienceTools.org"
 
 #: psychopy/app/_psychopyApp.py:545
-msgid "  Creating frames..."
-msgstr " تكوين الأطر..."
+msgid "Creating frames..."
+msgstr "تكوين الأطر..."
 
 #: psychopy/app/_psychopyApp.py:587
 msgid ""
@@ -343,8 +343,8 @@ msgid "tips.txt"
 msgstr "tips_ar_001.txt"
 
 #: psychopy/app/_psychopyApp.py:692
-msgid "  Loading plugins..."
-msgstr "  تحميل المكونات الإضافية..."
+msgid "Loading plugins..."
+msgstr "تحميل المكونات الإضافية..."
 
 #: psychopy/app/_psychopyApp.py:775
 #, fuzzy

@@ -1,3 +1,5 @@
+:orphan:
+
 .. _officialWorkshops:
 
 PsychoPy official workshops

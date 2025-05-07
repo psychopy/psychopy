@@ -6,7 +6,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 
@@ -17,7 +17,7 @@ from psychopy import logging
 import numpy
 
 from psychopy.visual.shape import ShapeStim
-from psychopy.tools.attributetools import attributeSetter, setAttribute
+from psychopy.tools.attributetools import attributeSetter, setAttribute, undefined
 
 
 class Line(ShapeStim):
@@ -51,11 +51,6 @@ class Line(ShapeStim):
     lineColor : array_like, str, :class:`~psychopy.colors.Color` or None
         Color of the line. If `None`, a fully transparent color is used which
         makes the line invisible. *Deprecated* use `color` instead.
-    lineColorSpace : str or None
-        Colorspace to use for the line. These change how the values passed to
-        `lineColor` are interpreted. *Deprecated*. Please use `colorSpace` to
-        set the line colorspace. This arguments may be removed in a future
-        version.
     pos : array_like
         Initial translation (`x`, `y`) of the line on-screen relative to the
         origin located at the center of the window or buffer in `units`.
@@ -92,9 +87,6 @@ class Line(ShapeStim):
         smoother (less-pixelated) line.
     draggable : bool
         Can this stimulus be dragged by a mouse click?
-    lineRGB: array_like, :class:`~psychopy.colors.Color` or None
-        *Deprecated*. Please use `color` instead. This argument may be removed
-        in a future version.
     name : str
         Optional name of the stimuli for logging.
     autoLog : bool
@@ -123,16 +115,13 @@ class Line(ShapeStim):
 
     """
 
-    _defaultFillColor = None
-    _defaultLineColor = "white"
-
     def __init__(self,
                  win,
                  start=(-.5, -.5),
                  end=(.5, .5),
                  units=None,
                  lineWidth=1.5,
-                 lineColor=False,
+                 lineColor="white",
                  colorSpace='rgb',
                  pos=(0, 0),
                  size=1.0,
@@ -147,11 +136,11 @@ class Line(ShapeStim):
                  autoLog=None,
                  autoDraw=False,
                  # legacy
-                 color=False,
-                 fillColor=False,
-                 lineColorSpace=None,
-                 lineRGB=False,
-                 fillRGB=False,
+                 color=undefined,
+                 fillColor=undefined,
+                 lineColorSpace=undefined,
+                 lineRGB=undefined,
+                 fillRGB=undefined,
                  ):
 
         """
@@ -170,9 +159,6 @@ class Line(ShapeStim):
             units=units,
             lineWidth=lineWidth,
             lineColor=lineColor,
-            lineColorSpace=None,
-            fillColor=None,
-            fillColorSpace=lineColorSpace,  # have these set to the same
             vertices=(start, end),
             anchor=anchor,
             closeShape=False,
@@ -184,13 +170,17 @@ class Line(ShapeStim):
             depth=depth,
             interpolate=interpolate,
             draggable=draggable,
-            lineRGB=lineRGB,
-            fillRGB=fillRGB,
             name=name,
             autoLog=autoLog,
             autoDraw=autoDraw,
+            colorSpace=colorSpace,
+            # legacy
             color=color,
-            colorSpace=colorSpace)
+            fillColor=fillColor,
+            lineColorSpace=lineColorSpace,
+            lineRGB=lineRGB,
+            fillRGB=fillRGB,
+        )
 
         del self._tesselVertices
 

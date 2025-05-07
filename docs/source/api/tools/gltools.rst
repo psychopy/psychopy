@@ -9,70 +9,57 @@ Shaders
 
 Tools for creating, compiling, using, and inspecting shader programs.
 
-.. autosummary::
-    :toctree: ../generated/
-
-    createProgram
-    createProgramObjectARB
-    compileShader
-    compileShaderObjectARB
-    embedShaderSourceDefs
-    deleteObject
-    deleteObjectARB
-    attachShader
-    attachObjectARB
-    detachShader
-    detachObjectARB
-    linkProgram
-    linkProgramObjectARB
-    validateProgram
-    validateProgramARB
-    useProgram
-    useProgramObjectARB
-    getInfoLog
-    getUniformLocations
-    getAttribLocations
+.. autofunction:: createProgram
+.. autofunction:: createProgramObjectARB
+.. autofunction:: compileShader
+.. autofunction:: compileShaderObjectARB
+.. autofunction:: embedShaderSourceDefs
+.. autofunction:: deleteObject
+.. autofunction:: deleteObjectARB
+.. autofunction:: attachShader
+.. autofunction:: attachObjectARB
+.. autofunction:: detachShader
+.. autofunction:: detachObjectARB
+.. autofunction:: linkProgram
+.. autofunction:: linkProgramObjectARB
+.. autofunction:: validateProgram
+.. autofunction:: validateProgramARB
+.. autofunction:: useProgram
+.. autofunction:: useProgramObjectARB
+.. autofunction:: getInfoLog
+.. autofunction:: getUniformLocations
+.. autofunction:: getAttribLocations
 
 Query
 ~~~~~
 
 Tools for using OpenGL query objects.
 
-.. autosummary::
-    :toctree: ../generated/
-
-    createQueryObject
-    QueryObjectInfo
-    beginQuery
-    endQuery
-    getQuery
-    getAbsTimeGPU
+.. autofunction:: createQueryObject
+.. autofunction:: QueryObjectInfo
+.. autofunction:: beginQuery
+.. autofunction:: endQuery
+.. autofunction:: getQuery
+.. autofunction:: getAbsTimeGPU
 
 Framebuffer Objects (FBO)
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Tools for creating Framebuffer Objects (FBOs).
 
-.. autosummary::
-    :toctree: ../generated/
-
-    createFBO
-    attach
-    isComplete
-    deleteFBO
-    blitFBO
-    useFBO
+.. autofunction:: createFBO
+.. autofunction:: attach
+.. autofunction:: deleteFBO
+.. autofunction:: blitFBO
+.. autofunction:: useFBO
 
 Renderbuffers
 ~~~~~~~~~~~~~
 
 Tools for creating Renderbuffers.
 
-.. autosummary::
-    :toctree: ../generated/
-
-    createRenderbuffer
-    deleteRenderbuffer
+.. autofunction:: createRenderbuffer
+.. autofunction:: deleteRenderbuffer
 
 
 Textures
@@ -80,16 +67,12 @@ Textures
 
 Tools for creating textures.
 
-.. autosummary::
-    :toctree: ../generated/
-
-    createTexImage2D
-    createTexImage2dFromFile
-    createTexImage2DMultisample
-    deleteTexture
-    bindTexture
-    unbindTexture
-    createCubeMap
+.. autofunction:: createTexImage2D
+.. autofunction:: createTexImage2dFromFile
+.. autofunction:: createTexImage2DMultisample
+.. autofunction:: deleteTexture
+.. autofunction:: bindTexture
+.. autofunction:: createCubeMap
 
 Vertex Buffer/Array Objects
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -97,23 +80,20 @@ Vertex Buffer/Array Objects
 Tools for creating and working with Vertex Buffer Objects (VBOs) and Vertex
 Array Objects (VAOs).
 
-.. autosummary::
-    :toctree: ../generated/
-
-    VertexArrayInfo
-    createVAO
-    drawVAO
-    deleteVAO
-    VertexBufferInfo
-    createVBO
-    bindVBO
-    unbindVBO
-    mapBuffer
-    unmapBuffer
-    deleteVBO
-    setVertexAttribPointer
-    enableVertexAttribArray
-    disableVertexAttribArray
+.. autofunction:: VertexArrayInfo
+.. autofunction:: createVAO
+.. autofunction:: drawVAO
+.. autofunction:: deleteVAO
+.. autofunction:: VertexBufferInfo
+.. autofunction:: createVBO
+.. autofunction:: bindVBO
+.. autofunction:: unbindVBO
+.. autofunction:: mapBuffer
+.. autofunction:: unmapBuffer
+.. autofunction:: deleteVBO
+.. autofunction:: setVertexAttribPointer
+.. autofunction:: enableVertexAttribArray
+.. autofunction:: disableVertexAttribArray
 
 Materials and Lighting
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -122,48 +102,39 @@ Tools for specifying the appearance of faces and shading. Note that these tools
 use the legacy OpenGL pipeline which may not be available on your platform. Use
 fragment/vertex shaders instead for newer applications.
 
-.. autosummary::
-    :toctree: ../generated/
-
-    createMaterial
-    useMaterial
-    createLight
-    useLights
-    setAmbientLight
+.. autofunction:: createMaterial
+.. autofunction:: useMaterial
+.. autofunction:: createLight
+.. autofunction:: useLights
+.. autofunction:: setAmbientLight
 
 Meshes
 ~~~~~~
 
 Tools for loading or procedurally generating meshes (3D models).
 
-.. autosummary::
-    :toctree: ../generated/
-
-    ObjMeshInfo
-    loadObjFile
-    loadMtlFile
-    createUVSphere
-    createPlane
-    createMeshGridFromArrays
-    createMeshGrid
-    createBox
-    transformMeshPosOri
-    calculateVertexNormals
+.. autofunction:: ObjMeshInfo
+.. autofunction:: loadObjFile
+.. autofunction:: loadMtlFile
+.. autofunction:: createUVSphere
+.. autofunction:: createPlane
+.. autofunction:: createMeshGridFromArrays
+.. autofunction:: createMeshGrid
+.. autofunction:: createBox
+.. autofunction:: transformMeshPosOri
+.. autofunction:: calculateVertexNormals
 
 Miscellaneous
 ~~~~~~~~~~~~~
 
 Miscellaneous tools for working with OpenGL.
 
-.. autosummary::
-    :toctree: ../generated/
-
-    getIntegerv
-    getFloatv
-    getString
-    getOpenGLInfo
-    getModelViewMatrix
-    getProjectionMatrix
+.. autofunction:: getIntegerv
+.. autofunction:: getFloatv
+.. autofunction:: getString
+.. autofunction:: getOpenGLInfo
+.. autofunction:: getModelViewMatrix
+.. autofunction:: getProjectionMatrix
 
 
 Examples

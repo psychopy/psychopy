@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import os
@@ -389,7 +389,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
                     if val.startswith('[') and val.endswith(']'):
                         # val = eval('%s' %unicode(val.decode('utf8')))
                         val = eval(val)
-                elif type(val) == np.string_:
+                elif type(val) == np.bytes_:
                     val = str(val.decode('utf-8-sig'))
                     # if it looks like a list, convert it:
                     if val.startswith('[') and val.endswith(']'):

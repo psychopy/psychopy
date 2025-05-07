@@ -465,10 +465,14 @@ class CameraComponent(BaseDeviceComponent):
         code = (
             "# get camera object\n"
             "%(name)s = deviceManager.getDevice(%(deviceLabel)s)\n"
-            "# connect camera save method to experiment handler so it's called when data saves\n"
-            "thisExp.connectSaveMethod(%(name)s.save)\n"
         )
         buff.writeIndentedLines(code % inits)
+        if self.params['saveFile']:
+            code = (
+                "# connect camera save method to experiment handler so it's called when data saves\n"
+                "thisExp.connectSaveMethod(%(name)s.save, os.path.join(%(name)sRecFolder, '_recovered.mp4'), encoderLib='ffpyplayer')\n"
+            )
+            buff.writeIndentedLines(code % inits)
 
     def writeInitCodeJS(self, buff):
         inits = getInitVals(self.params, target="PsychoJS")
@@ -514,28 +518,30 @@ class CameraComponent(BaseDeviceComponent):
 
     def writeFrameCodeJS(self, buff):
         # Start webcam at component start
-        self.writeStartTestCodeJS(buff)
-        code = (
-            "await %(name)s.record()\n"
-        )
-        buff.writeIndentedLines(code % self.params)
-        buff.setIndentLevel(-1, relative=True)
-        code = (
-            "};\n"
-        )
-        buff.writeIndentedLines(code)
+        indent = self.writeStartTestCodeJS(buff)
+        if indent:
+            code = (
+                "await %(name)s.record()\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            buff.setIndentLevel(-indent, relative=True)
+            code = (
+                "};\n"
+            )
+            buff.writeIndentedLines(code)
 
         # Stop webcam at component stop
-        self.writeStopTestCodeJS(buff)
-        code = (
-            "await %(name)s.stop()\n"
-        )
-        buff.writeIndentedLines(code % self.params)
-        buff.setIndentLevel(-1, relative=True)
-        code = (
-            "};\n"
-        )
-        buff.writeIndentedLines(code)
+        indent = self.writeStopTestCodeJS(buff)
+        if indent:
+            code = (
+                "await %(name)s.stop()\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            buff.setIndentLevel(-indent, relative=True)
+            code = (
+                "};\n"
+            )
+            buff.writeIndentedLines(code)
 
     def writeRoutineEndCode(self, buff):
         code = (

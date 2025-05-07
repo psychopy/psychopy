@@ -18,8 +18,8 @@ In general there will therefore be fewer steps to take to configure your python 
 You can learn to use the scripting interface to |PsychoPy| in several ways, and you should probably follow a combination of them:
 
 - Check the content of our `PsychoPy workshops <https://workshops.psychopy.org/3days/index.html>`_ (we currently focus on coding concepts on day 3).
-- :ref:`concepts`: some of the logic of |PsychoPy| scripting
-- :ref:`tutorials`:  walk you through the development of some semi-complete experiments
+- :ref:`coder_concepts`: some of the logic of |PsychoPy| scripting
+- :ref:`coder_tutorials`:  walk you through the development of some semi-complete experiments
 - demos: in the demos menu of Coder view.
 - use the :ref:`builder` to :ref:`compile a script <compileScript>` and see how it works (you can actually compile to Python or Javascript to learn a bit of both!). This is also useful for understanding the :ref:`code`, you can write a snippet in a code component in builder and compile to see where it is written in the script (but remember exporting to coder is a one way street, you can't make edits in coder and hope that is reflected back in the builder experiment).
 
@@ -30,7 +30,7 @@ You can learn to use the scripting interface to |PsychoPy| in several ways, and 
 
 You should check the :ref:`api` for further details and, ultimately, go into `PsychoPy <https://github.com/psychopy/psychopy>`_ and start examining the source code. It's just regular python!
 
-.. _concepts:
+.. _coder_concepts:
 
 Basic Concepts
 ~~~~~~~~~~~~~~~~~~~~
@@ -44,7 +44,7 @@ Basic Concepts
    codeTrials
    globalKeys
 
-.. _tutorials:
+.. _coder_tutorials:
 
 |PsychoPy| Tutorials
 ~~~~~~~~~~~~~~~~~~~~
@@ -54,3 +54,5 @@ Basic Concepts
    :glob:
 
    tutor*
+   demos/face
+   demos/plaid

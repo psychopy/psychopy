@@ -1,6 +1,7 @@
+:class:`psychopy.visual.RatingScale`
+-------------------------------
+.. currentmodule:: psychopy.visual.ratingscale
 
-:class:`RatingScale`
-------------------------------------
-.. autoclass:: psychopy.visual.RatingScale
+
+.. autoclass:: RatingScale
     :members:
-    :undoc-members:

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Experiment classes:
@@ -55,6 +55,8 @@ inputDefaults = {
 # these are parameters which once existed but are no longer needed, so inclusion in this list will 
 # silence any "future version" warnings
 legacyParams = [
+    # settings params from the early days of PsychoJS
+    "JS libs", "OSF Project ID"
     # in 2021.1, we standardised colorSpace to be object-wide rather than param-specific
     "lineColorSpace", "borderColorSpace", "fillColorSpace", "foreColorSpace", 
     # in 2024.2.0, we removed some superfluous params from the pupil labs backend

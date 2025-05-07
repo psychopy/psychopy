@@ -1,13 +1,16 @@
+:orphan:
+
 .. _staticcomponent:
+
 
 -------------------------------
 Static Component
 -------------------------------
 
 The Static Component allows you to have a period where you can preload images or perform other time-consuming operations
-that not be possible while the screen is being updated. Static periods are also particularly useful for *online* studies to decrease the time taken to load resources at the start (see also :ref:`resourceManager`).
+that not be possible while the screen is being updated. Static periods are also particularly useful for *online* studies to decrease the time taken to load resources at the start (see also :ref:`resourcemanagercomponent`).
 
-.. note:: For online studies, if you use a static component this will override the resources loaded at the beginning via Experiment settings > Online > Additional resources. You might therefore want to combine a static period with a :ref:`resourceManager` to make sure that all resources your study needs will be loaded and available for the experiment.
+.. note:: For online studies, if you use a static component this will override the resources loaded at the beginning via Experiment settings > Online > Additional resources. You might therefore want to combine a static period with a :ref:`resourcemanagercomponent` to make sure that all resources your study needs will be loaded and available for the experiment.
 
 Typically a static period would be something like an inter-trial or inter-stimulus interval (ITI/ISI). During this period you should not have any other objects being presented that are being updated (this isn't checked for you - you have to make that check yourself), but you can have components being presented that are themselves static. For instance a fixation point never changes and so it can be presented during the static period (it will be presented and left on-screen while the other updates are being made).
 
@@ -35,18 +38,22 @@ The required attributes of the stimulus, controlling its basic function and beha
 
 
 .. _staticcomponent-name:
+
 Name 
     Everything in a |PsychoPy| experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
     
 .. _staticcomponent-startVal:
+
 Start 
     When the Static Component should start, see :ref:`startStop`.
     
 .. _staticcomponent-startEstim:
+
 Expected start (s) 
     If you are using frames to control timing of your stimuli, you can add an expected start time to display the component timeline in the routine.
     
 .. _staticcomponent-startType:
+
 Start type 
     How do you want to define your start point?
     
@@ -59,14 +66,17 @@ Start type
     * condition
     
 .. _staticcomponent-stopVal:
+
 Stop 
     When the Static Component should stop, see :ref:`startStop`.
     
 .. _staticcomponent-durationEstim:
+
 Expected duration (s) 
     If you are using frames to control timing of your stimuli, you can add an expected duration to display the component timeline in the routine.
     
 .. _staticcomponent-stopType:
+
 Stop type 
     How do you want to define your end point?
     
@@ -89,10 +99,12 @@ What information about this Component should be saved?
 
 
 .. _staticcomponent-saveStartStop:
+
 Save onset/offset times 
     Store the onset/offset times in the data file (as well as in the log file).
     
 .. _staticcomponent-syncScreenRefresh:
+
 Sync timing with screen refresh 
     Synchronize times with screen refresh (good for visual stimuli and responses based on them)
     
@@ -103,10 +115,12 @@ Parameters for injecting custom code
 
 
 .. _staticcomponent-code:
+
 Custom code 
     After running the component updates (which are defined in each component, not here) any code inserted here will also be run
     
 .. _staticcomponent-saveData:
+
 Save data during 
     While the frame loop is paused, should we take the opportunity to save data now? This is only relevant locally, online data saving is either periodic or on close.
     
@@ -117,6 +131,7 @@ Tools for testing, debugging and checking the performance of this Component.
 
 
 .. _staticcomponent-disabled:
+
 Disable Component 
     Disable this Component
 
@@ -124,3 +139,5 @@ Disable Component
 .. seealso::
 
     API reference for :class:`~psychopy.clock.StaticPeriod`
+
+.. redirect-from:: static.rst

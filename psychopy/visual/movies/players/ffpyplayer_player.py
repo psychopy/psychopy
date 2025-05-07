@@ -5,7 +5,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 __all__ = [
@@ -923,8 +923,7 @@ class FFPyPlayer(BaseMoviePlayer):
     def isFinished(self):
         """`True` if the video is finished (`bool`).
         """
-        # why is this the same as STOPPED?
-        return self._status == FINISHED
+        return self._tStream.isFinished
 
     def play(self, log=False):
         """Start or continue a paused movie from current position.

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 import threading
 import time
@@ -13,6 +13,7 @@ import wx
 from psychopy import prefs, logging
 from psychopy.constants import NOT_STARTED, STARTED, SKIP, FINISHED
 from . import connections
+from psychopy.app.plugin_manager.packageIndex import refreshPackageIndexTask
 from psychopy.tools import versionchooser as vc
 from ..app import pavlovia_ui
 _t0 = time.time()
@@ -77,6 +78,12 @@ tasks['getPavloviaUser'] = {
     'func': pavlovia_ui.menu.PavloviaMenu.setUser,
     'tstart': None, 'tEnd': None,
     'thread': False,
+}
+tasks['refreshPackageIndex'] = {
+    'status': NOT_STARTED,
+    'func': refreshPackageIndexTask,
+    'tstart': None, 'tEnd': None,
+    'thread': True,
 }
 
 currentTask = None

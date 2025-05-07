@@ -412,6 +412,7 @@ class FrameRibbonSection(wx.Panel, handlers.ThemeMixin):
         # set color
         self.SetBackgroundColour(colors.app['frame_bg'])
         self.SetForegroundColour(colors.app['text'])
+        self.label.SetForegroundColour(colors.app['text'])
         # set bitmaps again
         self._icon.reload()
         self.icon.SetBitmap(self._icon.bitmap)

@@ -70,7 +70,7 @@ msgid "Loading PsychoPy3..."
 msgstr ""
 
 #: app/_psychopyApp.py:327
-msgid "  Creating frames..."
+msgid "Creating frames..."
 msgstr ""
 
 #: app/_psychopyApp.py:345

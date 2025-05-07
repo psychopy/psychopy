@@ -5,7 +5,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 __all__ = [
@@ -121,7 +121,6 @@ __all__ = [
     'createTexImage2D',
     'createTexImage2dFromFile',
     'bindTexture',
-    'unbindTexture',
     'createCubeMap',
     'TexCubeMap',
     'getModelViewMatrix',
@@ -405,7 +404,10 @@ def getOpenGLInfo():
 
 
 # OpenGL limits for this system
-MAX_TEXTURE_UNITS = getOpenGLInfo().maxTextureUnits
+try:
+    MAX_TEXTURE_UNITS = getOpenGLInfo().maxTextureUnits
+except:
+    MAX_TEXTURE_UNITS = 32
 
 
 # -------------------------------
