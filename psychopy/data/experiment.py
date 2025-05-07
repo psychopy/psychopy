@@ -468,6 +468,20 @@ class ExperimentHandler(_ComparisonMixin):
         # set own status
         self.status = constants.STOPPED
     
+    def next(self):
+        """
+        Move on to either the next trial (if in a trials loop) or the next Routine.
+        """
+        if isinstance(self.currentLoop, TrialHandler2):
+            # if there is a loop, skip trials
+            self.skipTrials(1)
+        elif self.currentRoutine is not None:
+            # if not, but there is a Routine, end it
+            self.endCurrentRoutine()
+        else:
+            # otherwise, do nothing
+            return
+    
     def endCurrentRoutine(self):
         """
         End the current Routine (via the Routine.forceEnded attribute)
