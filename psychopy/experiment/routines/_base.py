@@ -667,19 +667,23 @@ class Routine(list):
         )
         buff.writeIndentedLines(code % self.params)
 
-        code = ("for thisComponent in {name}.components:\n"
-                "    thisComponent.tStart = None\n"
-                "    thisComponent.tStop = None\n"
-                "    thisComponent.tStartRefresh = None\n"
-                "    thisComponent.tStopRefresh = None\n"
-                "    if hasattr(thisComponent, 'status'):\n"
-                "        thisComponent.status = NOT_STARTED\n"
-                "# reset timers\n"
-                't = 0\n'
-                '_timeToFirstFrame = win.getFutureFlipTime(clock="now")\n'
-                # '{clockName}.reset(-_timeToFirstFrame)  # t0 is time of first possible flip\n'
-                'frameN = -1\n'
-                '\n# --- Run Routine "{name}" ---\n')
+        code = (
+            "for thisComponent in {name}.components:\n"
+            "    thisComponent.tStart = None\n"
+            "    thisComponent.tStop = None\n"
+            "    thisComponent.tStartRefresh = None\n"
+            "    thisComponent.tStopRefresh = None\n"
+            "    if hasattr(thisComponent, 'status'):\n"
+            "        thisComponent.status = NOT_STARTED\n"
+            "# reset timers\n"
+            't = 0\n'
+            '_timeToFirstFrame = win.getFutureFlipTime(clock="now")\n'
+            # '{clockName}.reset(-_timeToFirstFrame)  # t0 is time of first possible flip\n'
+            'frameN = -1\n'
+            '\n'
+            '# --- Run Routine "{name}" ---\n'
+            'thisExp.currentRoutine = {name}\n'
+        )
         buff.writeIndentedLines(code.format(name=self.name,
                                             clockName=self._clockName))
 
@@ -760,16 +764,16 @@ class Routine(list):
         # are we done yet?
         code = (
             '\n'
-            '# check if all components have finished\n'
-            'if not continueRoutine:  # a component has requested a '
-            'forced-end of Routine\n'
+            '# has a Component requested the Routine to end?\n'
+            'if not continueRoutine:\n'
             '    %(name)s.forceEnded = routineForceEnded = True\n'
+            '# has the Routine been forcibly ended?\n'
+            'if %(name)s.forceEnded or routineForceEnded:\n'
             '    break\n'
-            'continueRoutine = False  # will revert to True if at least '
-            'one component still running\n'
+            '# has every Component finished?\n'
+            'continueRoutine = False\n'
             'for thisComponent in %(name)s.components:\n'
-            '    if hasattr(thisComponent, "status") and '
-            'thisComponent.status != FINISHED:\n'
+            '    if hasattr(thisComponent, "status") and thisComponent.status != FINISHED:\n'
             '        continueRoutine = True\n'
             '        break  # at least one component has not yet finished\n')
         buff.writeIndentedLines(code % self.params)
