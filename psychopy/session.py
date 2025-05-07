@@ -1307,6 +1307,16 @@ class Session:
         self.currentExperiment.stop()
 
         return True
+    
+    def next(self):
+        """
+        Move on to either the next trial (if in a trials loop) or the next Routine.
+        """
+        # return if there's no current experiment
+        if self.currentExperiment is None:
+            return
+        # skip trials in current loop
+        return self.currentExperiment.next()
 
     def skipTrials(self, n=1):
         """
