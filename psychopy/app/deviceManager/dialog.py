@@ -303,11 +303,6 @@ class AddDeviceDlg(wx.Dialog):
         )
         # setup warnings
         self.warnings = WarningManager(self)
-        # get array of available devices by backend
-        if AddDeviceDlg.availableDevices is None:
-            AddDeviceDlg.availableDevices = {}
-            for backend in DeviceBackend.getAllBackends():
-                AddDeviceDlg.availableDevices[backend] = DeviceManager.getAvailableDevices(backend.deviceClass)
         # setup sizers
         self.border = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.border)
@@ -342,13 +337,17 @@ class AddDeviceDlg(wx.Dialog):
         self.sizer.Add(
             self.devicesCtrl, proportion=1, border=6, flag=wx.EXPAND | wx.BOTTOM
         )
-        self.populate()
-
+        self.devicesLoadingLbl = wx.StaticText(
+            self, 
+            label=_translate("Scanning...")
+        )
+        self.sizer.Add(
+            self.devicesLoadingLbl, border=6, flag=wx.EXPAND | wx.ALL
+        )
         # warnings panel
         self.sizer.Add(
             self.warnings.output, border=6, flag=wx.EXPAND | wx.ALL
         )
-
         # add ctrls
         self.ctrls = self.CreateStdDialogButtonSizer(
             flags=wx.OK | wx.CANCEL
@@ -360,8 +359,10 @@ class AddDeviceDlg(wx.Dialog):
         for item in self.ctrls.GetChildren():
             if item.Window is not None and item.Window.GetId() == wx.ID_OK:
                 self.okBtn = item.Window
-
         self.Layout()
+
+        # queue populate command
+        self.Bind(wx.EVT_IDLE, self.populateAsync)
     
     def validate(self, evt=None):
         self.okBtn.Enable(
@@ -372,6 +373,15 @@ class AddDeviceDlg(wx.Dialog):
         """
         Populate the devices tree control from DeviceManager
         """
+        # start off with "loading devices" message
+        self.devicesLoadingLbl.Show()
+        self.devicesCtrl.Hide()
+        self.Layout()
+        # get array of available devices by backend
+        if AddDeviceDlg.availableDevices is None:
+            AddDeviceDlg.availableDevices = {}
+            for backend in DeviceBackend.getAllBackends():
+                AddDeviceDlg.availableDevices[backend] = DeviceManager.getAvailableDevices(backend.deviceClass)
         # clear ctrl
         self.devicesCtrl.DeleteAllItems()
         self.branchClasses = {}
@@ -386,8 +396,26 @@ class AddDeviceDlg(wx.Dialog):
             # iterate through profiles...
             for profile in profiles:
                 self.devicesCtrl.AppendItem(branch, profile.get("deviceName", "unnamed"))
-        # expand
+        # expand and show
         self.devicesCtrl.ExpandAll()
+        self.devicesLoadingLbl.Hide()
+        self.devicesCtrl.Show()
+        self.Layout()
+    
+    def populateAsync(self, evt):
+        """
+        Call `.populate` from an asynchronous event handler, the unbind it.
+
+        Parameters
+        ----------
+        evt : wx.IdleEvent
+            wx event triggering this call
+        """
+        # populate
+        self.populate()
+        # unbind
+        if evt.EventType == wx.EVT_IDLE.typeId:
+            self.Unbind(wx.EVT_IDLE)
     
     def getDevice(self):
         return self.nameCtrl.GetValue(), *self.getSelectedProfile()
