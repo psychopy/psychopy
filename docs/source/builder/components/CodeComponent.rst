@@ -142,3 +142,5 @@ Selected contents of `the numpy library and numpy.random <http://docs.scipy.org/
 - `average()`, `sqrt()`, `std()`: For average (mean), square root, and standard deviation, respectively. **Note:** Be sure that the numpy standard deviation formula is the one you want!
 
 - np.______: Many math-related features are available through the complete numpy libraries, which are available within psychopy builder scripts as 'np.'. For example, you could use `np.hanning(3)` or `np.random.poisson(10, 10)` in a code component.
+
+.. redirect-from:: code.rst

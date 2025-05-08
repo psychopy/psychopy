@@ -93,4 +93,5 @@ Tools for testing, debugging and checking the performance of this Component.
 
 Disable Routine 
     Disable this Routine
-    
+
+.. redirect-from:: advanced_survey.rst

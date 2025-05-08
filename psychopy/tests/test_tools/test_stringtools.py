@@ -30,7 +30,7 @@ def test_get_variables():
         {"code": "x=\"(1, 2)\"\ny=\"(3, 4)\"", "ans": {'x': "(1, 2)", 'y': "(3, 4)"}},  # string representation of array (double)
     ]
     for case in exemplars + tykes:
-        assert tools.getVariables(case['code']) == case['ans']
+        assert tools.getVariableDefs(case['code']) == case['ans']
 
 
 @pytest.mark.stringtools

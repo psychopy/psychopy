@@ -72,5 +72,4 @@ How do I...
    Install PsychoPy in a classroom (for administrators)? <classroomInstallation>
    Add external modules to Standalone PsychoPy? <addCustomModules>
    Build an app from my PsychoPy script? <appFromScript>
-   Contribute to PsychoPy? <contributing/index>
    Add a webcam? <webcam>

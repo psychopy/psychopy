@@ -320,3 +320,5 @@ Validate with...
 .. seealso::
 	
 	API reference for :class:`~psychopy.visual.ButtonStim`
+
+.. redirect-from:: button.rst

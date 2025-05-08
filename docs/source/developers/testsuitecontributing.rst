@@ -6,25 +6,19 @@ Why do we need a test suite?
 
 With any bit of software, no matter how perfect the code seems as you're writing it, there will be bugs. We use a test suite to make sure that we find as many of those bugs as we can before users do, it's always better to catch them in development than to have them mess up someone's experiment once the software is out in the wild. Remember - when a user finds a bug, they react like this:
 
-.. figure:: /images/user-bugs.jpg
-  :alt: Starship Trooper flees from a giant bug
-  :height: 100px
-
-  "Starship Troopers" (TriStar Pictures; Touchstone Pictures)
+.. image:: /images/user-bugs.jpg
+  :alt: "Starship Troopers" (TriStar Pictures; Touchstone Pictures)
 
 ...but when the test suite finds a bug, developers react like this:
 
-.. figure:: /images/test-suite-bugs.jpg
-  :alt: Baby birds cry for food
-  :height: 100px
-
-  "Birds In A Nest" (Robert Lynch)
+.. image:: /images/test-suite-bugs.jpg
+  :alt: "Birds In A Nest" (Robert Lynch)
 
 The more bugs the test suite finds, the better!
 
 How does it work?
 ------------------------------------------
-The test suite uses a Python module called [pytest](https://pypi.org/project/pytest/) to run tests on various parts of the |PsychoPy| code. These tests work by calling functions, initialising objects and generally trying to use as much of the code in the PsychoPy repo as possible - then, if an uncaught error is hit at any point, `pytest` will spit out some informative text on what went wrong. This means that, if the test suite can run without error, then the software can do everything done in the test suite without error.
+The test suite uses a Python module called `pytest <https://pypi.org/project/pytest/>`_ to run tests on various parts of the |PsychoPy| code. These tests work by calling functions, initialising objects and generally trying to use as much of the code in the PsychoPy repo as possible - then, if an uncaught error is hit at any point, `pytest` will spit out some informative text on what went wrong. This means that, if the test suite can run without error, then the software can do everything done in the test suite without error.
 
 To mark something as a test, it needs three things:
 

@@ -20,7 +20,7 @@ Here the available options are:
 If you are developing your eye-tracking paradigm out-of-lab we recommend using *MouseGaze* which will simulate eye movement
 responses through monitoring your mouse cursor and buttons to simulate movements and blinks.
 
-The resulting eye-movement coordinates are stored and accessible through calling `etRecord.pos` where `etRecord corresponds
+The resulting eye-movement coordinates are stored and accessible through calling `etRecord.pos` where `etRecord` corresponds
 to the name of the eye-tracking record component, you can set something (e.g. a polygon) to be in the same location as
 the current "look" by setting the position field to :code:`etRecord.pos` and setting the field to update on **every frame**
 When running an eye tracking study, you can optionally save the data in hdf5 format through selecting this option in the
@@ -146,3 +146,5 @@ Disable Component
 .. seealso::
 	
 	API reference for :class:`~psychopy.iohub.devices.eyetracker.hw.mouse.EyeTracker`
+
+.. redirect-from:: eyetracker_record.rst

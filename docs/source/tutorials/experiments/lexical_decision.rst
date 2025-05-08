@@ -7,7 +7,7 @@
 .. _lexical_decision:
 
 How to make a Lexical Decision Task in PsychoPy
-=====================================
+========================================================
 
 What is a Lexical Decision Task?
 ----------------------------------------------

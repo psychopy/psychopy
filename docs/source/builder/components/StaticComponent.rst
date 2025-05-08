@@ -139,3 +139,5 @@ Disable Component
 .. seealso::
 
     API reference for :class:`~psychopy.clock.StaticPeriod`
+
+.. redirect-from:: static.rst

@@ -53,6 +53,18 @@ class Routine:
         # starting status
         self.status = constants.NOT_STARTED
     
+    def __getstate__(self):
+        """
+        Components can't be pickled due to their window reference, so don't include them when 
+        pickled
+        """
+        # capture what is normally pickled
+        state = self.__dict__.copy()
+        # replace components with their name
+        state['components'] = []
+
+        return state
+    
     def getPlaybackComponents(self):
         """
         Get a list of all Components within this Routine which have a concept of playing and 

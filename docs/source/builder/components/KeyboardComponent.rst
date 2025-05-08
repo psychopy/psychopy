@@ -173,3 +173,5 @@ Disable Component
 .. seealso::
 
     API reference for :doc:`psychopy.hardware.keyboard>`
+
+.. redirect-from:: keyboard.rst

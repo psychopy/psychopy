@@ -9,7 +9,7 @@ import the functions here using `from psychopy import misc` but you can also
 import them from the `tools` sub-modules.
 
 From :mod:`psychopy.tools.filetools`
-------------------------------------
+----------------------------------------------
 .. currentmodule:: psychopy.tools.filetools
 .. autosummary:: 
     toFile
@@ -17,7 +17,7 @@ From :mod:`psychopy.tools.filetools`
     mergeFolder
     
 From :mod:`psychopy.tools.colorspacetools`
------------------------------------------
+----------------------------------------------
 .. currentmodule:: psychopy.tools.colorspacetools
 .. autosummary:: 
     dkl2rgb
@@ -29,7 +29,7 @@ From :mod:`psychopy.tools.colorspacetools`
     dkl2rgb
     
 From :mod:`psychopy.tools.coordinatetools`
-------------------------------------------
+----------------------------------------------
 .. currentmodule:: psychopy.tools.coordinatetools
 .. autosummary:: 
     cart2pol
@@ -38,7 +38,7 @@ From :mod:`psychopy.tools.coordinatetools`
     sph2cart
     
 From :mod:`psychopy.tools.monitorunittools`
--------------------------------------------
+----------------------------------------------
 .. currentmodule:: psychopy.tools.monitorunittools
 .. autosummary:: 
     convertToPix
@@ -50,7 +50,7 @@ From :mod:`psychopy.tools.monitorunittools`
     pix2deg
 
 From :mod:`psychopy.tools.imagetools`
--------------------------------------
+----------------------------------------------
 .. currentmodule:: psychopy.tools.imagetools
 .. autosummary:: 
     array2image
@@ -58,13 +58,13 @@ From :mod:`psychopy.tools.imagetools`
     makeImageAuto
     
 From :mod:`psychopy.tools.plottools`
-------------------------------------
+----------------------------------------------
 .. currentmodule:: psychopy.tools.plottools
 .. autosummary:: 
     plotFrameIntervals
     
 From :mod:`psychopy.tools.typetools`
-------------------------------------
+----------------------------------------------
 .. currentmodule:: psychopy.tools.typetools
 .. autosummary:: 
     float_uint8
@@ -72,7 +72,7 @@ From :mod:`psychopy.tools.typetools`
     float_uint16
     
 From :mod:`psychopy.tools.unittools`
-------------------------------------
+----------------------------------------------
 .. currentmodule:: psychopy.tools.unittools
 .. autosummary:: 
     radians

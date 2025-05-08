@@ -47,3 +47,14 @@ If you do want the parameters of a stimulus to be evaluated by code in this way 
 .. _Python: http://www.python.org
 .. _numpy.random.rand(): http://docs.scipy.org/doc/numpy/reference/generated/numpy.random.rand.html#numpy.random.rand
 .. _numpy: http://numpy.scipy.org/
+
+.. redirect::
+   reward.rst > https://github.com/psychopy/psychopy-labeotech
+   ratingscale.rst > https://psychopy.github.io/psychopy-legacy/builder/components/RatingScaleComponent/
+   pump.rst > https://github.com/psychopy/psychopy-qmix
+   patch.rst > https://psychopy.github.io/psychopy-legacy/builder/components/PatchComponent/
+   ioLabs.rst > https://psychopy.github.io/psychopy-iolabs/builder/components/IoLabsButtonBox/
+   emotiv_record.rst > https://psychopy.github.io/psychopy-emotiv/emotiv_record.html
+   emotiv_marking.rst > https://psychopy.github.io/psychopy-emotiv/emotiv_marking.html
+   cedrusResponseBox.rst > https://psychopy.github.io/psychopy-cedrus/builder/components/CedrusButtonBoxComponent/
+   

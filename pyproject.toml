@@ -25,7 +25,7 @@ classifiers = [
     ]
     
 dependencies = [
-    "numpy<2.0",  # use numpy<1.24 for psychopy<2023.1
+    "numpy",  # use numpy<1.24 for psychopy<2023.1
     "scipy",
     "matplotlib",
     "pyglet == 1.4.11; platform_system == \"Windows\"",
@@ -40,7 +40,7 @@ dependencies = [
     "soundfile",
     "imageio",
     "imageio-ffmpeg",
-    "psychtoolbox; platform_machine!='arm64'",
+    "psychtoolbox<3.0.20; platform_machine!='arm64'",
     # for iohub
     "pywinhook; platform_system == \"Windows\"",
     "gevent",
@@ -83,9 +83,9 @@ dependencies = [
     "python-vlc == 3.0.11115; platform_system == \"Windows\"",
     "python-vlc >= 3.0.12118; platform_system != \"Windows\"",
     "pypiwin32; platform_system == \"Windows\"",
-    "pyobjc-core; platform_system == \"Darwin\"",
-    "pyobjc-framework-Quartz < 8.0; platform_system == \"Darwin\"",
-    "pyobjc; platform_system == \"Darwin\"",
+    "pyobjc-core > 8.0; platform_system == \"Darwin\"",
+    "pyobjc-framework-Quartz > 8.0; platform_system == \"Darwin\"",
+    "pyobjc > 8.0; platform_system == \"Darwin\"",
     "zeroconf; platform_system == \"Darwin\"",
     "python-xlib; platform_system == \"Linux\"",
     "distro; platform_system == \"Linux\"",
@@ -109,6 +109,7 @@ docs = [
     "sphinx-design",
     "sphinx-copybutton",
     "jinja2",
+    "psychopy-sphinx-theme"
 ]
 building = [
     "bdist-mpkg>=0.5.0; platform_system == \"Darwin\"",

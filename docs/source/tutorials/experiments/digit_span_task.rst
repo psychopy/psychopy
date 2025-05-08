@@ -7,7 +7,7 @@
 .. _digit_span:
 
 How to make a Digit Span Task in PsychoPy
-=====================================
+=====================================================
 
 What is a Digit Span Task?
 ----------------------------------------------
@@ -43,7 +43,7 @@ In this experiment, we are actually going to use code rather than a conditions f
 
 .. note::
 	
-   Technically we could also specify the possible length of each digit series in code too, e.g. by having a code component and using :code:`seriesLength = [1, 2, 3,4, 5] in our Begin Experiment tab, but this would then require us to index this list later on, so let's make use of a conditions file for ease. 
+   Technically we could also specify the possible length of each digit series in code too, e.g. by having a code component and using :code:`seriesLength = [1, 2, 3,4, 5]` in our Begin Experiment tab, but this would then require us to index this list later on, so let's make use of a conditions file for ease. 
 
 Feeding trial info into PsychoPy
 ----------------------------------------------

@@ -488,7 +488,7 @@ class CodeBox(BaseCodeEditor, handlers.ThemeMixin):
         BaseCodeEditor.__init__(self, parent, ID, pos, size, style)
 
         self.parent = parent
-        self.app = parent.app
+        # self.app = parent.app
         self.prefs = prefs.coder
         self.appData = prefs.appData
         self.paths = prefs.paths

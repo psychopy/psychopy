@@ -153,4 +153,5 @@ Tools for testing, debugging and checking the performance of this Component.
 
 Disable Component
     Disable this Component
-    
+
+.. redirect-from:: joyButtons.rst

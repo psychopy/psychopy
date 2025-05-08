@@ -254,4 +254,5 @@ Validate with...
 .. seealso::
 	
 	API reference for :class:`~psychopy.visual.TextStim`
-    
+
+.. redirect-from:: text.rst

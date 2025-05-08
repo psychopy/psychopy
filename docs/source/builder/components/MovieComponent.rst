@@ -259,3 +259,5 @@ Validate with...
 .. seealso::
 	
 	API reference for :class:`~psychopy.visual.MovieStim`
+
+.. redirect-from:: movie.rst

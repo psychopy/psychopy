@@ -247,4 +247,5 @@ Validate with...
 .. seealso::
 
 	API reference for :class:`~psychopy.visual.Progress`
-    
+
+.. redirect-from:: progressbar.rst

@@ -122,8 +122,8 @@ class Test_BuilderFrame():
 
         # Define 'tykes' - combinations of values likely to cause an error if certain features aren't working
         tykes = [
-            {'fieldName': "brokenCode", 'param': Param(val="for + :", valType="code"), 'msg': "Python syntax error in field `{fieldName}`:  {param.val}"}, # Make sure it's picking up clearly broken code
-            {'fieldName': "variableDef", 'param': Param(val="visual = 1", valType="code"), 'msg': "Variable name $visual is in use (by Psychopy module). Try another name."},
+            {'fieldName': "brokenCode", 'param': Param(val="for + :", valType="code"), 'msg': "Python syntax error in field `brokenCode`:  "}, # Make sure it's picking up clearly broken code
+            {'fieldName': "variableDef", 'param': Param(val="visual = 1", valType="extendedCode"), 'msg': "Setting the variable `visual` will overwrite an existing variable (Psychopy module)"},
             {'fieldName': "correctAns", 'param': Param(val="'space'", valType="code"), 'msg': ""}, # Single-element lists should not cause warning
         ]
         for case in tykes:
@@ -140,12 +140,27 @@ class Test_BuilderFrame():
             timeout=500)
         # Does the message delivered by the validator match what is expected?
         for case in tykes:
+            # get warning for the relevant ctrl
+            warning = dlg.paramCtrls[case['fieldName']].valueCtrl.getWarning()
+            # make sure warning is correct
             if case['msg']:
-                assert case['msg'].format(**case) in dlg.warnings.messages, (
-                    "Error for param {fieldName} with value `{val}` should include:\n"
-                    "'{msg}'\n"
-                    "but instead was:\n"
+                assert case['msg'] in warning.msg, (
+                    "Param {fieldName} with value `{param}` should raise a warning:\n"
+                    "{msg}\n"
+                    "but instead raised:\n"
                     "{actual}\n"
-                ).format(**case, val=case['param'].val.format(**case), actual=dlg.warnings.messages)
+                ).format(
+                    **case, 
+                    actual=warning.msg
+                )
+            else:
+                assert warning is None, (
+                    "Param {fieldName} with value `{param}` should not raise a warning, but "
+                    "raised:\n"
+                    "{actual}"
+                ).format(
+                    **case, 
+                    actual=warning.msg
+                )
         # Cleanup
         dlg.Destroy()

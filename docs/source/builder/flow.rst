@@ -27,7 +27,7 @@ The parameter `Is trials` exists because some loops are not there to indicate tr
 .. _trialTypes:
 
 Loop types
-^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 You can use a number of different "Loop Types" in |PsychoPy|, this controls the way in which the trials you have fed into the "Conditions" field are presented. Imagine you have a conditions file that looks like this::
 
   letter
@@ -196,7 +196,7 @@ QUEST Plus is an extension of the original QUEST procedure set out by Watson and
 
 
 Selecting a subset of conditions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 In the standard :ref:`trialTypes` you would use all the rows/conditions within your conditions file. However there are often times when you want to select a subset of your trials before randomising and repeating.
 
@@ -229,7 +229,7 @@ Check that the conditions you wanted to select are the ones you intended!
 .. _accessing-params:
 
 Using loops to update stimuli trial-by-trial
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Once you have a loop around the routine you want to repeat, you can use the variables created in your conditions file to update any parameter within your routine. For example, let's say that you have a conditions file that looks like this::
 
   letter

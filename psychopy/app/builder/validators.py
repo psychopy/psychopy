@@ -493,7 +493,7 @@ class CodeSnippetValidator(BaseValidator):
             # get var names from val, check against namespace:
             code = experiment.getCodeFromParamStr(val, target="PsychoPy")
             try:
-                names = list(stringtools.getVariables(code))
+                names = list(stringtools.getVariableDefs(code))
                 parent.warnings.clearWarning(control)
             except (SyntaxError, TypeError) as e:
                 # empty '' compiles to a syntax error, ignore

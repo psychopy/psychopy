@@ -11,6 +11,7 @@ from .. import Computer, Device
 
 #>>>>>>>>>>>>>>>>>>>>>>>>
 
+import sys
 import ctypes
 import ctypes.util
 import CoreFoundation
@@ -47,13 +48,10 @@ psychopy_numlock_key_mappings['.'] = 'num_decimal'
 carbon_path = ctypes.util.find_library('Carbon')
 carbon = ctypes.cdll.LoadLibrary(carbon_path)
 
-_objc = ctypes.PyDLL(objc._objc.__file__)
-_objc.PyObjCObject_New.restype = ctypes.py_object
-_objc.PyObjCObject_New.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
-
 
 def objcify(ptr):
-    return _objc.PyObjCObject_New(ptr, 0, 1)
+    return objc.objc_object(c_void_p=ptr)
+
 
 kTISPropertyUnicodeKeyLayoutData_p = ctypes.c_void_p.in_dll(
     carbon, 'kTISPropertyUnicodeKeyLayoutData')
@@ -123,6 +121,11 @@ modifier_name_mappings = dict(
 
 
 class Keyboard(ioHubKeyboardDevice):
+    """Keyboard device class for iohub on Mac OS X using Quartz.
+    
+    This class uses the Quartz API to monitor keyboard events on Mac OS X.    
+
+    """
     _last_mod_names = []
     _OS_MODIFIERS = ([(0x00001, 'lctrl'), (0x02000, 'rctrl'),
                       (0x00002, 'lshift'), (0x00004, 'rshift'),

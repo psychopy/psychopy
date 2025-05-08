@@ -300,4 +300,5 @@ Validate with...
 	API reference for :class:`~psychopy.visual.Polygon`
 	API reference for :class:`~psychopy.visual.Rect`
 	API reference for :class:`~psychopy.visual.ShapeStim`
-    
+
+.. redirect-from:: polygon.rst

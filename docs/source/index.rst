@@ -7,30 +7,40 @@
     :class-container: news-reel
 
     .. grid-item-card:: :octicon:`info` News
-        :link: https://run.pavlovia.org/pavlovia/survey/?surveyId=171ed328-d5ea-4819-83dc-9ba00ef5683b
+        :link: https://opensciencetools.org/
 
-        Want to contribute to PsychoPy/JS? Apply to attend our in person code sprint!
-    
+        Did you know PsychoPy is supported by our company, Open Science Tools? find out more here.
+
     .. grid-item-card:: :octicon:`info` News
-        :link: https://workshops.psychopy.org/
+        :link: https://www.psychologicalscience.org/conventions/2025-aps-annual-convention
 
-        Official PsychoPy workshops April 9th - 11th at the University of Nottingham, Register here.
-    
+        Come say hi in Washington! We will have a booth at APS - May 22nd - 25th 2025
+
+    .. grid-item-card:: :octicon:`info` News
+        :link: https://arcasummerschool.dpss.psy.unipd.it/arcasummerschool/
+
+        PsychoPy is part of a Summer School in Padova! - June 30th - July 4th 2025
+
+    .. grid-item-card:: :octicon:`info` News
+        :link: https://www.escop2025.com/satellite-events
+
+        Two day PsychoPy satelite event at ESCOP, Sheffield - September 1st and 2nd 2025
+
     .. grid-item-card:: :octicon:`info` News
         :link: https://uk.sagepub.com/en-gb/eur/building-experiments-in-psychopy/book273700
 
         NEW EDITION of the official book, with new chapter on running online: Building Experiments in PsychoPy Ed2
-    
+
     .. grid-item-card:: :octicon:`info` News
         :link: https://peerj.com/articles/9414/
 
         Is your software timing as good as PsychoPy®? See detailed comparisons with other software in our timing mega-study
-    
+
     .. grid-item-card:: :octicon:`info` News
         :link: https://link.springer.com/article/10.3758%2Fs13428-018-01193-y
 
         Please try to cite the most up-to-date paper: Peirce, Gray, Simpson et al (2019)
-    
+
     .. grid-item-card:: :octicon:`info` News
         :link: https://www.youtube.com/playlist?list=PLFB5A1BE51964D587
 

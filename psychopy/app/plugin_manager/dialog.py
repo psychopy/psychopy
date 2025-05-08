@@ -6,6 +6,8 @@ import wx
 from psychopy import prefs
 from psychopy.app import getAppInstance
 from psychopy.app.plugin_manager import PluginManagerPanel, PackageManagerPanel, InstallStdoutPanel
+from psychopy.app.plugin_manager.packageIndex import (
+    loadPackageIndex, refreshPackageIndex, freePackageIndex)
 from psychopy.experiment import getAllElements
 from psychopy.localization import _translate
 import psychopy.logging as logging
@@ -16,7 +18,7 @@ import os
 import subprocess as sp
 import psychopy.plugins as plugins
 
-pkgtools.refreshPackages()  # build initial package cache
+
 
 
 # flag to indicate if PsychoPy needs to be restarted after installing a package
@@ -67,6 +69,8 @@ class EnvironmentManagerDlg(wx.Dialog):
         self.pipProcess = None  # handle to the current Job
 
         self.notebook.ChangeSelection(0)
+
+        loadPackageIndex()
 
     @staticmethod
     def getPackageVersionInfo(packageName):
@@ -231,7 +235,7 @@ class EnvironmentManagerDlg(wx.Dialog):
         # if forceReinstall is None, work out from version
         if forceReinstall is None:
             forceReinstall = version is not None
-        # use package tools to install
+        # use package tools to install 
         self.pipProcess = pkgtools.installPackage(
             packageName,
             upgrade=version is None,
@@ -349,8 +353,10 @@ class EnvironmentManagerDlg(wx.Dialog):
         # clear pip process
         self.pipProcess = None
         # refresh view
-        pkgtools.refreshPackages()
+        refreshPackageIndex()
+        loadPackageIndex()
         self.pluginMgr.updateInfo()
+        self.packageMgr.refresh()
 
     def onUninstallExit(self, pid, exitCode):
         # write installation termination statement
@@ -375,6 +381,9 @@ class EnvironmentManagerDlg(wx.Dialog):
             # if they change their mind, cancel closing
             if dlg.ShowModal() == wx.ID_NO:
                 return
+            
+        # free package index
+        freePackageIndex()
 
         if evt is not None:
             evt.Skip()

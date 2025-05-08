@@ -59,8 +59,6 @@ once we have our conditions file set up and **saved in the same location as our 
 .. image:: ./n_back_loop_sequential.png
    :width: 100 %
 
-.. nextslide::
-
 Finally, because our letter is changing trial-by-trial add :code:`$thisLetter` to the text field of your letter component and make sure to **set every repeat**
 
 Collecting responses
@@ -70,8 +68,6 @@ There are a few tweaks we need to make to our keyboard component to make sure th
 
 .. image:: ./n_back_force_end_none.png
    :width: 100 %
-
-.. nextslide::
 
 The final thing we might want to do is make sure that we store whether a keypress was correct or not. We can do this by adding a column to our conditions file to indicate what the correct response would be on that trial:
 
@@ -88,9 +84,6 @@ The final thing we might want to do is make sure that we store whether a keypres
 +--------------+-------------+-------------+
 | A            | 1           | space       |
 +--------------+-------------+-------------+
-
-
-.. nextslide::
 
 Under the `Data` tab in our keyboard component we then need to select the `Store correct` option and feed in our column header to the `Correct answer` field :code:`$corrAns`
 
@@ -132,8 +125,6 @@ Here we also use :code:`list()` to convert the string generated into a list.
 .. note::
 	Because `string` is a python library, that won't work online. So instead you might want to make a basic list :code:`letters = ['A', 'B', 'C', D'...]`
 
-.. nextslide::
-
 then on each trial, rather than using :code:`$thisLetter` from the conditions file, we could make our own variable for this by randomly selecting from our list. Because this changes on each routine we would write this in the *Begin Routine* tab::
 
 	thisLetter = np.random.choice(letters)
@@ -148,8 +139,6 @@ We don't want the number to be random on every trial, instead we want it to be t
 .. note::
 	Because append is a specific python method, to add elements to lists for online tasks we instead use :code:`presentedLetters.push(thisLetter)` where :code:`push()` is the Javascript equivilent of :code:`append()`
 
-.. nextslide::
-
 OK so we are tracking the letters, now we want to detect when a target trial occurs so that we can select the n-th back. We can keep using our conditions file for this, where target is specified in the *target* column of our spreadsheet. We then update our code::
 
 	n = 2 # first specify the n condition of the trial/block
@@ -158,8 +147,6 @@ OK so we are tracking the letters, now we want to detect when a target trial occ
 	else:
 		thisLetter = presentedLetters[-n]# if this was a target choose the n'th back
 	presentedLetters.append(thisLetter)
-
-.. nextslide::
 
 We are *nearly* there, the last thing to do it so ensure that our non-target trials *stay* non-target, that is, we don't want the randomly chosen letter to be the same as the n-th back if it is a non-target trial! For this we can use a "while" loop::
 

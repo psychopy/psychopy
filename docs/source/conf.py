@@ -17,6 +17,7 @@ import pathlib
 import json
 
 docs_folder = pathlib.Path(__file__).parent.parent
+extensions_folder = docs_folder / "extensions"
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -25,17 +26,24 @@ docs_folder = pathlib.Path(__file__).parent.parent
 
 # -- General configuration -----------------------------------------------------
 
+# Add custom extensions folder to the path
+sys.path.append(str(extensions_folder.resolve()))
+
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc',
-              'sphinx.ext.autosummary',
-              'sphinx.ext.todo',
-              'sphinx.ext.coverage',
-              'sphinx.ext.mathjax',
-              'sphinx.ext.napoleon',
-              'sphinx.ext.intersphinx',
-              'sphinx.ext.viewcode',
-              'sphinx_design', 'sphinx_copybutton']
+extensions = [
+  'sphinx.ext.autodoc',
+  'sphinx.ext.autosummary',
+  'sphinx.ext.todo',
+  'sphinx.ext.coverage',
+  'sphinx.ext.mathjax',
+  'sphinx.ext.napoleon',
+  'sphinx.ext.intersphinx',
+  'sphinx.ext.viewcode',
+  'sphinx_design', 
+  'sphinx_copybutton',
+  'redirect'
+]
 
 autoclass_content = 'both'
 autosummary_generate = True
@@ -128,8 +136,7 @@ napoleon_include_special_with_doc = False
 
 # The theme to use for HTML and HTML Help pages.  Major themes that come with
 # Sphinx are currently 'default' and 'sphinxdoc'.
-html_theme_path = ["../themes"]
-html_theme = 'psychopy_bootstrap'
+html_theme = 'psychopy'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -137,6 +144,7 @@ html_theme = 'psychopy_bootstrap'
 with open("./navbar_links.json", "r") as f:  
   navbar_links = json.load(f)
 html_theme_options = {
+  'variant': "home",
   'navbar_links': navbar_links
 }
 

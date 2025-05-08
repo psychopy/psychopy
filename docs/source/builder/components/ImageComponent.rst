@@ -278,3 +278,5 @@ Validate with...
 .. seealso::
 
 	API reference for :class:`~psychopy.visual.ImageStim`
+
+.. redirect-from:: image.rst

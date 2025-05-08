@@ -139,7 +139,13 @@ class BaseParamCtrl(wx.Panel):
         # set on ctrl if possible
         if hasattr(self.ctrl, 'SetToolTip'):
             self.ctrl.SetToolTip(wx.ToolTip(text))
-        
+    
+    def getWarning(self):
+        """
+        Get the warning associated with this ctrl, if any
+        """
+        if self.warnings is not None:
+            return self.warnings.getWarning(self)
 
     def setWarning(self, warning, allowed=True):
         """
@@ -163,11 +169,17 @@ class BaseParamCtrl(wx.Panel):
     @property
     def isValid(self):
         """
-        Returns True if the contents of this ctrl are considered valid
+        Returns True or False based on whether the current ctrl has generated any warnings
         """
-        # if not implemented, assume valid
+        if self.warnings is not None:
+            return self.warnings.getWarning(self) is None
+
+    def validate(self):
+        """
+        Update warnings based on the value of this ctrl
+        """
+        # always start off with no warning
         self.clearWarning()
-        return True
 
     def styleValid(self):
         """
@@ -203,6 +215,8 @@ class BaseParamCtrl(wx.Panel):
         evt : wx.Event
             Whatever event triggered this function
         """
+        # validate ctrl
+        self.validate()
         # style according to whether value is code and valid
         self.styleCode()
         self.styleValid()
@@ -295,36 +309,65 @@ class SingleLineCtrl(BaseParamCtrl):
             self.ctrl.SetInsertionPoint(pt)
         except:
             pass
-
-    @property
-    def isValid(self):
-        if self.isCode:
-            # if code, check that it's valid Python by trying to get variables
-            try:
-                stringtools.getVariables(
-                    experiment.getCodeFromParamStr(self.getValue(), target="PsychoPy")
-                )
-            except (SyntaxError, TypeError) as e:
-                # if failed to get variables, add warning and return invalid
-                self.setWarning(_translate(
-                    "Error in parameter value: {}"
-                ).format(e))
-                return False
-            else:
-                # if succeeded, valid
-                self.clearWarning()
-                return True
+    
+    def validateCode(self):
+        # get value without any dollar syntax
+        value = experiment.getCodeFromParamStr(
+            self.getValue(), 
+            target="PsychoPy"
+        )
+        # if blank, there's no code yet to be invalid
+        if not value:
+            return
+        try:
+            variableDefs = stringtools.getVariableDefs(value)
+            variables = stringtools.getVariables(value)
+        except (SyntaxError, TypeError) as e:
+            # if failed to get variables, add warning and mark invalid
+            self.setWarning(_translate(
+                "Python syntax error in field `{}`:  {}"
+            ).format(self.param.label, e))
+            return
+        # for multiline code, check that any variable defs don't break the namespace
+        if self.param.valType == "extendedCode":
+            # check that nothing important is being overwritten
+            if self.element:
+                # iterate through variable defs in code (if any)
+                for name in variableDefs:
+                    # is it overwriting something?
+                    used = self.element.exp.namespace.exists(name)
+                    if used:
+                        # warn but allow
+                        self.setWarning(_translate(
+                            "Setting the variable `{}` will overwrite an existing variable ({})"
+                        ).format(name, used), allowed=True)
         else:
-            # warn for unescaped "
-            if re.findall(r"(?<!\\)[\"\']", self.getValue()):
-                self.setWarning(_translate(
-                    "Quotation marks (\" or ') need to be escaped (\\\" or \\')"
-                ))
+            # check any dynamic parameters
+            if self.param.updates == "constant": 
+                # if references a name, is it one defined before experiment start?
+                for name in variables:
+                    if name not in NameSpace.nonUserBuilder:
+                        # if not, warn but allow
+                        self.setWarning(_translate(
+                            "Looks like your variable '{}' in '{}' should be set to "
+                            "update."
+                        ).format(name, self.param.label), allowed=True)
+    
+    def validateStr(self):
+        # warn for unescaped "
+        if re.findall(r"(?<!\\)[\"\']", self.getValue()):
+            self.setWarning(_translate(
+                "Quotation marks (\" or ') need to be escaped (\\\" or \\')"
+            ))
 
-                return False
-            else:
-                self.clearWarning()
-                return True
+    def validate(self):
+        # start off valid
+        BaseParamCtrl.validate(self)
+        # use different method for code vs string
+        if self.isCode:
+            return self.validateCode()
+        else:
+            return self.validateStr()
     
     def styleValid(self):
         # text turns red if invalid
@@ -373,30 +416,26 @@ class NameCtrl(SingleLineCtrl):
         self.ctrl.Refresh()
         self.ctrl.Layout()
     
-    @property
-    def isValid(self):
+    def validate(self):
+        # start off valid
+        BaseParamCtrl.validate(self)
         # is name a valid name?
-        if not NameSpace.isValid(self.getValue()):
+        if NameSpace.isValid(self.getValue()):
+            # if we have an experiment, is the name used already?
+            if self.element:
+                # if unchanged from original name, it does exist but is valid
+                if self.getValue() == self.element.name:
+                    return
+                # otherwise, check against extant names
+                exists = self.element.exp.namespace.exists(self.getValue())
+                if exists:
+                    self.setWarning(_translate(
+                        "Name is already in use ({})"
+                    ).format(exists), allowed=False)
+        else:
             self.setWarning(_translate(
                 "Name is not valid"
             ), allowed=False)
-            return False
-        # if we have an experiment, is the name used already?
-        if self.element:
-            # if unchanged from original name, it does exist but is valid
-            if self.getValue() == self.element.name:
-                self.clearWarning()
-                return True
-            # otherwise, check against extant names
-            exists = self.element.exp.namespace.exists(self.getValue())
-            if exists:
-                self.setWarning(_translate(
-                    "Name is already in use ({})"
-                ).format(exists), allowed=False)
-                return False
-        
-        self.clearWarning()
-        return True
 
 
 class MultiLineCtrl(SingleLineCtrl):
@@ -653,15 +692,15 @@ class FileCtrl(SingleLineCtrl):
             str(filename).replace("\\", "/")
         )
     
-    @property
-    def isValid(self):
+    def validate(self):
+        # start off valid
+        BaseParamCtrl.validate(self)
         # if given as code, use regular code checking
         if self.isCode:
-            return SingleLineCtrl.isValid.fget(self)
+            return SingleLineCtrl.validateCode(self)
         # if blank, don't worry about it
         if self.getValue() == "":
-            self.clearWarning()
-            return True
+            return
         # if it's a string, convert to file
         try:
             file = Path(self.getValue())
@@ -670,22 +709,15 @@ class FileCtrl(SingleLineCtrl):
             self.setWarning(_translate(
                 "Not a valid file path: {}"
             ).format(self.getValue()))
-
-            return False
+            return
         # make path absolute
         if not file.is_absolute():
             file = self.rootDir / file
-        # valid if file exists
-        if file.is_file():
-            self.clearWarning()
-
-            return True
-        else:
+        # valid only if file exists
+        if not file.is_file():
             self.setWarning(_translate(
                 "No file named {}"
             ).format(self.getValue()))
-
-            return False
 
 
 class TableCtrl(FileCtrl):
@@ -1017,15 +1049,13 @@ class CodeCtrl(BaseParamCtrl, handlers.ThemeMixin):
     inputType = "code"
 
     def makeCtrls(self):
-        self.ctrl = BaseCodeEditor(
-            self, wx.ID_ANY, pos=wx.DefaultPosition, size=(-1, 128), style=wx.DEFAULT
+        self.ctrl = CodeBox(
+            self, wx.ID_ANY, prefs, 
+            pos=wx.DefaultPosition, size=(-1, 128), style=wx.DEFAULT
         )
         self.sizer.Add(
             self.ctrl, proportion=1, flag=wx.EXPAND | wx.ALL
         )
-        # setup lexer to style text
-        self.ctrl.SetLexer(wx.stc.STC_LEX_PYTHON)
-        self.ctrl._applyAppTheme()
         # hide margin
         self.ctrl.SetMarginWidth(0, 0)
         # set initial value
@@ -1050,6 +1080,18 @@ class CodeCtrl(BaseParamCtrl, handlers.ThemeMixin):
     def onChange(self, evt=None):
         CodeBox.OnKeyPressed(self.ctrl, evt)
         BaseParamCtrl.onChange(self, evt)
+    
+    def styleValid(self):
+        # red border if error
+        if self.isValid:
+            self.ctrl.SetFoldMarginColour(0, colors.scheme['red'])
+        else:
+            self.ctrl._applyAppTheme()
+        self.ctrl.Refresh()
+
+    def validate(self):
+        BaseParamCtrl.validate(self)
+        return SingleLineCtrl.validateCode(self)
         
 
 class RichChoiceCtrl(BaseParamCtrl):
@@ -1343,20 +1385,25 @@ class FileListCtrl(BaseParamCtrl):
         for item in value:
             ctrl = self.addItem()
             ctrl.setValue(item)
-        
+    
     @property
     def isValid(self):
+        # return True if all children are valid
         return all([
-            item.isValid for item in self.items
+            item.isValid 
+            for item in self.items
         ])
+        
+    def validate(self):
+        for item in self.items:
+            item.validate()
 
 
 class DictCtrl(BaseParamCtrl):
     inputType = "dict"
 
     class DictKey(SingleLineCtrl):
-        @property
-        def isValid(self):
+        def validate(self):
             """
             Dict keys can't key variables
             """            
@@ -1364,9 +1411,8 @@ class DictCtrl(BaseParamCtrl):
                 self.setWarning(_translate(
                     "Dictionary keys can't be code"
                 ), allowed=False)
-                return False
-
-            return SingleLineCtrl.isValid.fget(self)
+            else:
+                SingleLineCtrl.validate(self)
         
         def onChange(self, evt=None):
             SingleLineCtrl.onChange(self, evt)
@@ -1500,8 +1546,7 @@ class DictCtrl(BaseParamCtrl):
             item.keyCtrl.setValue(key)
             item.valueCtrl.setValue(val)
     
-    @property
-    def isValid(self):
+    def validate(self):
         # check for duplicate keys
         used = []
         for key in self.getValue():
@@ -1509,12 +1554,19 @@ class DictCtrl(BaseParamCtrl):
                 self.setWarning(_translate(
                     "Duplicate dictionary key: {}"
                 ).format(key))
-                return False
+                return
             used.append(key)
-        # otherwise return True if all children are valid
-        self.clearWarning()
-        return all([
-            (item.keyCtrl.isValid and item.valueCtrl.isValid) for item in self.items
+        # otherwise validate all children
+        for item in self.items:
+            item.keyCtrl.validate()
+            item.valueCtrl.validate()
+    
+    @property
+    def isValid(self):
+        # return true if self has no warnings and children have no warnings
+        return BaseParamCtrl.isValid.fget(self) and all([
+            item.keyCtrl.isValid and item.valueCtrl.isValid 
+            for item in self.items
         ])
 
 

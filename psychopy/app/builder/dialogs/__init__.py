@@ -164,6 +164,8 @@ class ParamCtrls():
                     allowedUpdates.append(msg + fullName)
                     updateLabels.append(localizedMsg + fullName)
             self.updateCtrl = wx.Choice(parent, choices=updateLabels)
+            # bind method to update value ctrl's param on updating updateCtrl
+            self.updateCtrl.Bind(wx.EVT_CHOICE, self.onChangeUpdate)
             # stash non-localized choices to allow retrieval by index:
             self.updateCtrl._choices = copy.copy(allowedUpdates)
             # If parameter isn't in list, default to the first choice
@@ -300,6 +302,16 @@ class ParamCtrls():
             expInfo[field['Field']] = field['Default']
         expInfoStr = repr(expInfo)
         return expInfoStr
+
+    def onChangeUpdate(self, evt=None):
+        """
+        On changes to the update ctrl, set updates on the param associated with the valuectrl
+        """
+        if self.updateCtrl is not None and self.valueCtrl is not None:
+            # set updates on value ctrl's param
+            self.valueCtrl.param.updates = self.updateCtrl.GetStringSelection()
+            # trigger onchange to update appearance
+            self.valueCtrl.onChange()
 
     def setChangesCallback(self, callbackFunction):
         """Set a callback to detect any changes in this value (whether it's

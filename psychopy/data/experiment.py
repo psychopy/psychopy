@@ -85,6 +85,7 @@ class ExperimentHandler(_ComparisonMixin):
         """
         self.loops = []
         self.loopsUnfinished = []
+        self.currentRoutine = None
         self.name = name
         self.version = version
         self.runtimeInfo = runtimeInfo
@@ -466,6 +467,30 @@ class ExperimentHandler(_ComparisonMixin):
             ))
         # set own status
         self.status = constants.STOPPED
+    
+    def next(self):
+        """
+        Move on to either the next trial (if in a trials loop) or the next Routine.
+        """
+        if isinstance(self.currentLoop, TrialHandler2):
+            # if there is a loop, skip trials
+            self.skipTrials(1)
+        elif self.currentRoutine is not None:
+            # if not, but there is a Routine, end it
+            self.endCurrentRoutine()
+        else:
+            # otherwise, do nothing
+            return
+    
+    def endCurrentRoutine(self):
+        """
+        End the current Routine (via the Routine.forceEnded attribute)
+        """
+        # if there's no current Routine yet, do nothing
+        if self.currentRoutine is None:
+            return
+        # force end the Routine
+        self.currentRoutine.forceEnded = True
 
     def skipTrials(self, n=1):
         """

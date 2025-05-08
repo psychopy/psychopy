@@ -1,7 +1,5 @@
 {
-    "Home": "/index",
     "About": "/about/index",
-    "Pavlovia.org": "https://pavlovia.org/",
     "Download": {
         "Install": "/download",
         "Changelog": "/changelog"

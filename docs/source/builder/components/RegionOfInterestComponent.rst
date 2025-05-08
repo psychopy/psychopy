@@ -259,4 +259,5 @@ Validate with...
 
 Debug mode 
     In debug mode, the ROI is drawn in red. Use this to see what area of the screen is in the ROI.
-    
+
+.. redirect-from:: eyetracker_ROI.rst

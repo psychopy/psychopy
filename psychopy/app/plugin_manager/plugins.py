@@ -7,6 +7,7 @@ from wx.lib import scrolledpanel
 import webbrowser
 from PIL import Image as pil
 
+from psychopy import logging
 from psychopy.tools import pkgtools
 from psychopy.app.themes import theme, handlers, colors, icons
 from psychopy.tools import stringtools as st
@@ -21,6 +22,11 @@ import errno
 import sys
 import json
 import glob
+
+from .packageIndex import (
+    loadPackageIndex, 
+    getPluginPackages, 
+    isUserPackageInstalled)
 
 
 class AuthorInfo:
@@ -97,7 +103,7 @@ class PluginInfo:
                  pipname, name="",
                  author=None, homepage="", docs="", repo="",
                  keywords=None, version=(None, None),
-                 icon=None, description="", **kwargs):
+                 icon=None, description="", releases=[], **kwargs):
         self.pipname = pipname
         self.name = name
         self.author = author
@@ -107,12 +113,10 @@ class PluginInfo:
         self.icon = icon
         self.description = description
         self.keywords = keywords or []
-        self.version = VersionRange(*version)
+        self.version = VersionRange(version[0], version[1])
+        self.releases = releases
 
         self.parent = None   # set after
-
-        # icon graphic
-        self._icon = None
 
     def __repr__(self):
         return (f"<psychopy.plugins.PluginInfo: {self.name} "
@@ -140,52 +144,7 @@ class PluginInfo:
 
     @property
     def icon(self):
-        # check if the directory for the plugin cache exists, create it otherwise
-        appPluginCacheDir = os.path.join(
-            prefs.paths['userCacheDir'], 'appCache', 'plugins')
-        try:
-            os.makedirs(appPluginCacheDir, exist_ok=True)
-        except OSError as err:
-            if err.errno != errno.EEXIST:
-                raise
-
-        if isinstance(self._requestedIcon, str):
-            if st.is_url(self._requestedIcon):
-                # get the file name from the URL in the JSON
-                fname = str(self._requestedIcon).split("/")
-                if len(fname) > 1:
-                    fname = fname[-1]
-                else:
-                    pass  # not a valid URL, use broken image icon
-
-                # check if the icon is already in the cache, use it if so
-                if fname in os.listdir(appPluginCacheDir):
-                    self._icon = utils.ImageData(os.path.join(
-                        appPluginCacheDir, fname))
-                    return self._icon
-                
-                # if not, download it
-                if st.is_url(self._requestedIcon):
-                    # download to cache directory
-                    ext = "." + str(self._requestedIcon).split(".")[-1]
-                    if ext in pil.registered_extensions():
-                        content = requests.get(self._requestedIcon).content
-                        writeOut = os.path.join(appPluginCacheDir, fname)
-                        with open(writeOut, 'wb') as f:
-                            f.write(content)
-                        self._icon = utils.ImageData(os.path.join(
-                            appPluginCacheDir, fname))
-
-            elif st.is_file(self._requestedIcon):
-                self._icon = utils.ImageData(self._requestedIcon) 
-            else:
-                raise ValueError("Invalid icon URL or file path.")
-            
-            return self._icon
-        
-        # icon already loaded into memory, just return that
-        if hasattr(self, "_icon"):
-            return self._icon
+        return self._requestedIcon
 
     @icon.setter
     def icon(self, value):
@@ -226,7 +185,7 @@ class PluginInfo:
 
     @property
     def installed(self):
-        return pkgtools.isInstalled(self.pipname)
+        return isUserPackageInstalled(self.pipname)
 
     @property
     def installedVersion(self):
@@ -238,8 +197,7 @@ class PluginInfo:
         """
         if self.installed:
             try:
-                ver = plugins.pluginMetadata(self.pipname)["Version"]
-                return Version(ver)
+                return Version(self.version)
             except:
                 return None
         else:
@@ -272,17 +230,18 @@ class PluginInfo:
             List of version strings
         """
         # get package info
-        info = pkgtools.getPypiInfo(self.pipname, silence=True)
-        # convert all release numbers to Version objects
-        releases = []
-        for release in info.get('releases', []):
-            try:
-                ver = Version(release)
-                releases.append(ver)
-            except:
-                continue
-        
-        return releases
+        # info = pkgtools.getPypiInfo(self.pipname, silence=True)
+        # # convert all release numbers to Version objects
+        # releases = []
+        # for release in info.get('releases', []):
+        #     try:
+        #         ver = Version(release)
+        #         releases.append(ver)
+        #     except:
+        #         continue
+
+        # lookup releases
+        return self.releases
 
 
 class PluginManagerPanel(wx.Panel, handlers.ThemeMixin):
@@ -333,7 +292,7 @@ class PluginManagerPanel(wx.Panel, handlers.ThemeMixin):
         self.pluginViewer.theme = self.theme
 
 
-class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
+class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
     class PluginListItem(wx.Window, handlers.ThemeMixin):
         """
         Individual item pointing to a plugin
@@ -396,7 +355,7 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             """
             Return parent's linked viewer when asked for viewer
             """
-            return self.parent.viewer
+            return self.parent.Parent.viewer
 
         def updateInfo(self):
             # update install state
@@ -458,7 +417,7 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             evt.Skip()
 
         def onSelect(self, evt=None):
-            self.parent.setSelection(self)
+            self.parent.Parent.setSelection(self)
 
         def markInstalled(self, installed=True):
             """
@@ -471,7 +430,7 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             """
             markInstalled(
                 pluginItem=self,
-                pluginPanel=self.parent.viewer,
+                pluginPanel=self.parent.Parent.viewer,
                 installed=installed
             )
 
@@ -548,29 +507,39 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
 
 
     def __init__(self, parent, stream, viewer=None):
-        scrolledpanel.ScrolledPanel.__init__(self, parent=parent, style=wx.VSCROLL)
+        wx.Panel.__init__(self, parent=parent)
         self.parent = parent
         self.viewer = viewer
         self.stream = stream
         # Setup sizer
         self.border = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.border)
-        self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.border.Add(self.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
-        # Add search box
-        self.searchCtrl = wx.SearchCtrl(self)
-        self.sizer.Add(self.searchCtrl, border=9, flag=wx.ALL | wx.EXPAND)
+
+        self.searchCtrl = wx.SearchCtrl(self, style=wx.TE_PROCESS_ENTER)
         self.searchCtrl.Bind(wx.EVT_SEARCH, self.search)
+        self.searchCtrl.Bind(wx.EVT_TEXT, self.onSearchText)
+        self.searchCtrl.Bind(wx.EVT_SEARCH_CANCEL, self.onSearchCancel)
+
+        self.border.Add(self.searchCtrl, border=9, flag=wx.ALL | wx.EXPAND)
+
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.scrollArea = scrolledpanel.ScrolledPanel(self, style=wx.VSCROLL)
+        self.scrollArea.SetSizer(self.sizer)
+        winCol = wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW)
+        self.scrollArea.SetBackgroundColour(winCol)
+
+        self.border.Add(self.scrollArea, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
+
         # Setup items sizers & labels
         self.itemSizer = wx.BoxSizer(wx.VERTICAL)
         self.sizer.Add(self.itemSizer, proportion=1, border=3, flag=wx.ALL | wx.EXPAND)
-        self.badItemLbl = wx.StaticText(self, label=_translate("Not for PsychoPy {}:").format(__version__))
+        self.badItemLbl = wx.StaticText(self.scrollArea, label=_translate("Not for PsychoPy {}:").format(__version__))
         self.sizer.Add(self.badItemLbl, border=9, flag=wx.ALL | wx.EXPAND)
         self.badItemSizer = wx.BoxSizer(wx.VERTICAL)
         self.sizer.Add(self.badItemSizer, border=3, flag=wx.ALL | wx.EXPAND)
         # ctrl to display when plugins can't be retrieved
         self.errorCtrl = utils.MarkdownCtrl(
-            self, value=_translate(
+            self.scrollArea, value=_translate(
                 "Could not retrieve plugins. Try restarting the PsychoPy app and make sure you "
                 "are connected to the internet."
             ),
@@ -585,7 +554,9 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         )
         self.uninstallAllBtn.SetBitmapMargins(6, 3)
         self.uninstallAllBtn.Bind(wx.EVT_BUTTON, self.onUninstallAll)
-        self.sizer.Add(self.uninstallAllBtn, border=12, flag=wx.ALL | wx.CENTER)
+        self.border.Add(self.uninstallAllBtn, border=12, flag=wx.ALL | wx.CENTER)
+
+        # self.border.Add(self.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
 
         # Bind deselect
         self.Bind(wx.EVT_LEFT_DOWN, self.onDeselect)
@@ -606,14 +577,15 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         # put installed packages at top of list
         items.sort(key=lambda obj: obj.installed, reverse=True)
         for item in items:
-            item.setParent(self)
+            item.setParent(self.scrollArea)
             self.appendItem(item)
         # if we got no items, display error message
         if not len(items):
             self.errorCtrl.Show()
         # layout
         self.Layout()
-        self.SetupScrolling()
+        self.scrollArea.Layout()
+        self.scrollArea.SetupScrolling()
     
     def updateInfo(self):
         for item in self.items:
@@ -621,6 +593,10 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
 
     def search(self, evt=None):
         searchTerm = self.searchCtrl.GetValue().strip()
+        if searchTerm:
+            # Show cancel button if search term is non-empty
+            self.searchCtrl.ShowCancelButton(True)
+
         for item in self.items:
             # Otherwise show/hide according to search
             match = any((
@@ -632,7 +608,39 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             ))
             item.Show(match)
 
-        self.Layout()
+        self.scrollArea.Layout()
+
+    def onSearchText(self, evt=None):
+        """On text change in search box. Used to refresh the package list if
+        the search term is empty since the box doesn't trigger a search
+        when the text is cleared.
+        """
+        # Get search term
+        searchTerm = self.searchCtrl.GetValue()
+
+        if not searchTerm:
+            # If empty, refresh
+            for item in self.items:
+                item.Show(True)
+                item.Update()
+            self.scrollArea.Layout()
+            self.searchCtrl.ShowCancelButton(False)
+            return
+        
+        if evt is not None:
+            evt.Skip()
+
+    def onSearchCancel(self, evt=None):
+        """On search cancel button pressed. Used to refresh the package list
+        if the search term is empty since the box doesn't trigger a search
+        when the text is cleared.
+        """
+        self.searchCtrl.SetValue("")
+        for item in self.items:
+            item.Show(True)
+            item.Update()
+        self.scrollArea.Layout()
+        self.searchCtrl.ShowCancelButton(False)
 
     def getChanges(self):
         """
@@ -744,7 +752,7 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         self.badItemLbl.SetFont(fonts.appTheme['h6'].obj)
 
     def appendItem(self, info):
-        item = self.PluginListItem(self, info)
+        item = self.PluginListItem(self.scrollArea, info)
         self.items.append(item)
         if __version__ in item.info.version:
             self.itemSizer.Add(item, border=6, flag=wx.ALL | wx.EXPAND)
@@ -1024,22 +1032,20 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self._info = value
         # Set icon
         icon = value.icon
-        if icon is None:
-            icon = wx.Bitmap()
-        if isinstance(icon, pil.Image):
-            # Resize to fit ctrl
-            icon = icon.resize(size=self.iconSize)
-            # Supply an alpha channel
-            alpha = icon.tobytes("raw", "A")
-            icon = wx.Bitmap.FromBufferAndAlpha(
-                width=icon.size[0],
-                height=icon.size[1],
-                data=icon.tobytes("raw", "RGB"),
-                alpha=alpha
-            )
-        if not isinstance(icon, wx.Bitmap):
-            icon = wx.Bitmap(icon)
-        self.icon.SetBitmap(icon)
+
+        if icon is not None:
+            # this will be a URL, get the file name from it to lookup in cache
+            iconFileName = os.path.basename(icon)
+
+            appPluginCacheDir = os.path.join(
+                prefs.paths['userCacheDir'], 'appCache', 'plugins')
+            
+            # check if the icon is in the cache
+            iconCachePath = os.path.join(appPluginCacheDir, iconFileName)
+            if os.path.exists(iconCachePath):
+                iconBitmap = wx.Bitmap(iconCachePath)
+                self.icon.SetBitmap(iconBitmap)
+
         # Set names
         self.title.SetLabelText(value.name)
         self.pipName.SetLabelText(value.pipname)
@@ -1316,127 +1322,8 @@ def getAllPluginDetails():
         List of plugin details.
 
     """
-    # check if the local `plugins.json` file exists and is up to date
-    appPluginCacheDir = os.path.join(
-        prefs.paths['userCacheDir'], 'appCache', 'plugins')
-    
-    # create the cache directory if it doesn't exist
-    if not os.path.exists(appPluginCacheDir):
-        try:
-            os.makedirs(appPluginCacheDir)
-        except OSError:
-            pass
-
-    # where the database is expected to be
-    pluginDatabaseFile = Path(appPluginCacheDir) / "plugins.json"
-
-    def downloadPluginDatabase(srcURL="https://psychopy.org/plugins.json"):
-        """Downloads the plugin database from the server and returns the text
-        as a string. If the download fails, returns None.
-
-        Parameters
-        ----------
-        srcURL : str
-            The URL to download the plugin database from.
-
-        Returns
-        -------
-        list or None
-            The plugin database as a list, or None if the download failed.
-        
-        """
-        global redownloadPlugins
-        # if plugins already up to date, skip
-        if not redownloadPlugins:
-            return None
-        # download database from website
-        try:
-            resp = requests.get(srcURL)
-        except requests.exceptions.ConnectionError:
-            # if connection to website fails, return nothing
-            return None
-        # if download failed, return nothing
-        if resp.status_code == 404:
-            return None
-        # otherwise get as a string
-        value = resp.text
-
-        if value is None or value == "":
-            return None
-
-        # make sure we are using UTF-8 encoding
-        value = value.encode('utf-8', 'ignore').decode('utf-8')
-
-        # attempt to parse JSON
-        try:
-            database = json.loads(value)
-        except json.decoder.JSONDecodeError:
-            # if JSON parse fails, return nothing
-            return None
-        # if we made it this far, mark plugins as not needing update
-        redownloadPlugins = False
-
-        return database
-        
-    def readLocalPluginDatabase(srcFile):
-        """Read the local plugin database file (if it exists) and return the
-        text as a string. If the file doesn't exist, returns None.
-
-        Parameters
-        ----------
-        srcFile : pathlib.Path
-            The expected path to the plugin database file.
-        
-        Returns
-        -------
-        list or None
-            The plugin database as a list, or None if the file doesn't exist.
-        
-        """
-        # if source file doesn't exist, return nothing
-        if not srcFile.is_file():
-            return None
-        # attempt to parse JSON
-        try:
-            with srcFile.open("r", encoding="utf-8", errors="ignore") as f:
-                return json.load(f)
-        except json.decoder.JSONDecodeError:
-            # if JSON parse fails, return nothing
-            return None
-    
-    def deletePluginDlgCache():
-        """Delete the local plugin database file and cached files related to 
-        the Plugin dialog.
-        """
-        if os.path.exists(appPluginCacheDir):
-            files = glob.glob(os.path.join(appPluginCacheDir, '*'))
-            for f in files:
-                os.remove(f)
-                
-    # get a copy of the plugin database from the server, check if it's newer
-    # than the local copy, and if so, replace the local copy
-
-    # get remote database
-    serverPluginDatabase = downloadPluginDatabase()
-    # get local database
-    localPluginDatabase = readLocalPluginDatabase(pluginDatabaseFile)
-
-    if serverPluginDatabase is not None:
-        # if we have a database from the remote, use it
-        pluginDatabase = serverPluginDatabase
-        # if the file contents has changed, delete cached icons and etc.
-        if str(pluginDatabase) != str(localPluginDatabase):
-            deletePluginDlgCache()
-            # write new contents to file
-            with pluginDatabaseFile.open("w", encoding='utf-8') as f:
-                json.dump(pluginDatabase, f, indent=True)
-
-    elif localPluginDatabase is not None:
-        # otherwise use cached
-        pluginDatabase = localPluginDatabase
-    else:
-        # if we have neither, treat as blank list
-        pluginDatabase = []
+    loadPackageIndex()
+    pluginDatabase = getPluginPackages(asList=True)
 
     # check if we need to update plugin objects, if not return the cached data
     global _pluginObjects
@@ -1444,32 +1331,25 @@ def getAllPluginDetails():
     if not requiresRefresh:
         return _pluginObjects
 
+    import time
+
+    startT = time.time()
     # Create PluginInfo objects from info list
     objs = []
     for info in pluginDatabase:
+        if info['version'] is None:
+            # if no version info, set to None
+            info['version'] = (None, None)
+        elif isinstance(info['version'], str):
+            # if version is a string, convert to tuple
+            info['version'] = (info['version'], None)
+        elif isinstance(info['version'], (list, tuple)):
+            # if version is a tuple, convert to tuple of tuples
+            info['version'] = (info['version'][0], info['version'][1])
+
         objs.append(PluginInfo(**info))
 
-    # Add info objects for local plugins which aren't found online
-    localPlugins = plugins.listPlugins(which='all')
-    for name in localPlugins:
-        # Check whether plugin is accounted for
-        if name not in objs:
-            # If not, get its metadata
-            data = plugins.pluginMetadata(name)
-            # Create best representation we can from metadata
-            author = AuthorInfo(
-                name=data.get('Author', ''),
-                email=data.get('Author-email', ''),
-            )
-            info = PluginInfo(
-                pipname=name, name=name,
-                author=author,
-                homepage=data.get('Home-page', ''),
-                keywords=data.get('Keywords', ''),
-                description=data.get('Summary', ''),
-            )
-            # Add to list
-            objs.append(info)
+    logging.debug("Plugin info loaded in %.2f seconds" % (time.time() - startT))
 
     _pluginObjects = objs  # cache for later
 
