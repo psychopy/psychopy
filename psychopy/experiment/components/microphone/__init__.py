@@ -549,6 +549,8 @@ class MicrophoneDeviceBackend(DeviceBackend):
     backendName = "Microphone"
     # class of the device which this backend corresponds to
     deviceClass = "psychopy.hardware.microphone.MicrophoneDevice"
+    # icon to show in device manager
+    icon = "light/microphone.png"
 
     def __init__(self, profile):
         # init parent class

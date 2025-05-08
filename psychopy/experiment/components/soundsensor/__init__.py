@@ -250,6 +250,7 @@ class SoundSensorComponent(BaseDeviceComponent):
 class MicrophoneSoundSensorBackend(DeviceBackend):
     backendName = "Microphone Sound Sensor"
     deviceClass = "psychopy.hardware.soundsensor.MicrophoneSoundSensor"
+    icon = "light/soundsensor.png"
 
     def __init__(self, profile):
         # init parent class

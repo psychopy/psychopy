@@ -282,6 +282,7 @@ class ButtonBoxComponent(BaseDeviceComponent):
 class KeyboardButtonBoxDeviceBackend(DeviceBackend):
     backendName = "Keyboard Button Box"
     deviceClass = "psychopy.hardware.button.KeyboardButtonBox"
+    icon = "light/buttonBox.png"
 
     def __init__(self, profile):
         # init parent class

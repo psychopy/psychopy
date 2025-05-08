@@ -342,7 +342,10 @@ class AddDeviceDlg(wx.Dialog):
         self.sizer.Add(
             self.devicesLbl, border=6, flag=wx.EXPAND | wx.TOP
         )
-        self.devicesCtrl = wx.TreeCtrl(self)
+        self.devicesCtrl = wx.TreeCtrl(
+            self,
+            style=wx.TR_HIDE_ROOT | wx.TR_HAS_BUTTONS | wx.TR_NO_LINES
+        )
         self.sizer.Add(
             self.devicesCtrl, proportion=1, border=6, flag=wx.EXPAND | wx.BOTTOM
         )
@@ -397,12 +400,23 @@ class AddDeviceDlg(wx.Dialog):
         # clear ctrl
         self.devicesCtrl.DeleteAllItems()
         self.branchClasses = {}
+        self.imageList = wx.ImageList(width=16, height=16)
+        self.devicesCtrl.SetImageList(self.imageList)
         # add a root
         root = self.devicesCtrl.AddRoot("Available devices")
         # iterate through classes...
         for cls, profiles in self.availableDevices.items():
+            # add icon if possible
+            if cls.icon is not None:
+                bmp = icons.BaseIcon.resizeBitmap(
+                    wx.Bitmap(str(cls.getIconFile())), 
+                    size=16
+                )
+                img = self.imageList.Add(bmp)
+            else:
+                img = -1
             # add a child for each class
-            branch = self.devicesCtrl.AppendItem(root, cls.backendName)
+            branch = self.devicesCtrl.AppendItem(root, cls.backendName, image=img)
             # store ref to branch class
             self.branchClasses[branch] = cls
             # iterate through profiles...
@@ -439,7 +453,7 @@ class AddDeviceDlg(wx.Dialog):
             Backend object for the chosen device
         """
         # create device object
-        device = self.deviceCls(self.deviceProfile)
+        device = self.selectedCls(self.selectedProfile)
         # store name
         device.params['deviceLabel'].val = self.nameCtrl.getValue()
         

@@ -125,6 +125,9 @@ class BaseIcon:
         # If size is None, return bitmap as is
         if size in (None, (None, None)):
             return bmp
+        # if given a single value, duplicate it
+        if isinstance(size, (int, float)):
+            size = (size, size)
         # Split up size value
         width, height = size
         # If size is unchanged, return bitmap as is

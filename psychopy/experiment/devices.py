@@ -1,3 +1,5 @@
+import inspect
+from pathlib import Path
 from psychopy import logging
 from psychopy.experiment.params import Param
 from psychopy.localization import _translate
@@ -9,6 +11,8 @@ class DeviceBackend:
     """
     # name of this backend to display in Device Manager
     backendName = None
+    # icon to use for this backend (relative to current file path, leave as None for no icon)
+    icon = None
     # class of the device which this backend corresponds to
     deviceClass = "psychopy.hardware.base.BaseDevice"
       
@@ -35,6 +39,30 @@ class DeviceBackend:
         return (
             f"<{type(self).__name__}: name={self.name}>"
         )
+
+    @classmethod
+    def getIconFile(cls):
+        """
+        Get the file for this backend's icon as a Path, if there is one
+
+        Returns
+        -------
+        Path or None
+            File path for this backend's icon, or None if there is no icon
+        """
+        # return None if no icon
+        if cls.icon is None:
+            return
+        # make sure it's a Path
+        icon = cls.icon
+        if isinstance(icon, str):
+            icon = Path(icon)
+        # get folder containing class def file
+        folder = Path(inspect.getfile(cls)).parent
+        # make absolute
+        file = (folder / icon).resolve()
+
+        return file
     
     @classmethod
     def fromJSON(cls, data):
