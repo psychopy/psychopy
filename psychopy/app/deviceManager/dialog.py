@@ -418,7 +418,7 @@ class AddDeviceDlg(wx.Dialog):
             self.Unbind(wx.EVT_IDLE)
     
     def getDevice(self):
-        return self.nameCtrl.GetValue(), *self.getSelectedProfile()
+        return self.nameCtrl.getValue(), *self.getSelectedProfile()
 
     def getSelectedProfile(self):
         # get id of selected profile and its parent
