@@ -40,12 +40,16 @@ class DeviceManagerDlg(wx.Dialog):
         self.pages = {}
         # resize the list ctrl
         self.profilesListCtrl = self.profilesNotebook.GetListView()
+        self.profilesListCtrl.SetMinSize((128, 128))
         self.profilesListCtrl.SetWindowStyleFlag(wx.LC_LIST)
         self.profilesListCtrl.Refresh()
-        # set a sizer on the list control so we can add controls
-        self.profilesListCtrl.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.profilesListCtrl.sizer.AddStretchSpacer(1)
-        self.profilesListCtrl.SetSizer(self.profilesListCtrl.sizer)
+        # get list ctrl sizer so we can add ctrls
+        self.profilesListCtrl.sizer = self.profilesListCtrl.GetSizer()
+        if self.profilesListCtrl.sizer is None:
+            # on windows, ListCtrl doesn't have a sizer, so make one
+            self.profilesListCtrl.sizer = wx.BoxSizer(wx.VERTICAL)
+            self.profilesListCtrl.sizer.AddStretchSpacer(1)
+            self.profilesListCtrl.SetSizer(self.profilesListCtrl.sizer)
         # add device button
         self.addDeviceBtn = wx.Button(
             self.profilesListCtrl, label="Add device"
