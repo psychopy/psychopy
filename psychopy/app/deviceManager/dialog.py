@@ -126,10 +126,9 @@ class DeviceManagerDlg(wx.Dialog):
 
         if dlg.ShowModal() == wx.ID_OK:
             # get selected device
-            name, cls, profile = dlg.getDevice()
+            device = dlg.getDevice()
             # create Device object
-            self.devices[name] = cls(profile)
-            self.devices[name].params['deviceLabel'].val = name
+            self.devices[device.name] = device
 
         self.populate()
     
@@ -298,9 +297,12 @@ class AddDeviceDlg(wx.Dialog):
     def __init__(self, parent):
         wx.Dialog.__init__(
             self, parent, title="Add device",
-            size=(540, 360),
+            size=(540, 540),
             style=wx.RESIZE_BORDER | wx.CAPTION | wx.CLOSE_BOX
         )
+        # attributes to store selection
+        self.selectedCls = None
+        self.selectedProfile = None
         # setup warnings
         self.warnings = WarningManager(self)
         # setup sizers
@@ -310,19 +312,26 @@ class AddDeviceDlg(wx.Dialog):
         self.border.Add(
             self.sizer, proportion=1, border=12, flag=wx.EXPAND | wx.ALL
         )
-        
         # name ctrl
-        self.nameLbl = wx.StaticText(self, label=_translate("Device label"))
-        self.sizer.Add(
-            self.nameLbl, border=6, flag=wx.EXPAND | wx.TOP
+        self.name = Param(
+            "device", valType="str", inputType="name",
+            label=_translate("Device label"),
+            hint=_translate(
+                "A name to refer to this device by in Device Manager."
+            )
         )
         self.nameCtrl = ParamCtrl(
             self,
             field="name",
-            param=Param("device", valType="code", inputType="name"),
+            param=self.name,
             element=None,
             warnings=self.warnings
         )
+        # bump up the font size
+        self.nameCtrl.ctrl.SetFont(fonts.AppFont(
+            pointSize=int(fonts.AppFont.pointSize*1.5),
+            bold=True
+        ).obj)
         self.sizer.Add(
             self.nameCtrl, border=6, flag=wx.EXPAND | wx.BOTTOM
         )
@@ -337,6 +346,7 @@ class AddDeviceDlg(wx.Dialog):
         self.sizer.Add(
             self.devicesCtrl, proportion=1, border=6, flag=wx.EXPAND | wx.BOTTOM
         )
+        self.devicesCtrl.Bind(wx.EVT_TREE_SEL_CHANGED, self.onSelectItem)
         self.devicesLoadingLbl = wx.StaticText(
             self, 
             label=_translate("Scanning...")
@@ -346,14 +356,14 @@ class AddDeviceDlg(wx.Dialog):
         )
         # warnings panel
         self.sizer.Add(
-            self.warnings.output, border=6, flag=wx.EXPAND | wx.ALL
+            self.warnings.output, border=6, flag=wx.EXPAND | wx.TOP
         )
         # add ctrls
         self.ctrls = self.CreateStdDialogButtonSizer(
             flags=wx.OK | wx.CANCEL
         )
         self.border.Add(
-            self.ctrls, border=12, flag=wx.EXPAND | wx.ALL
+            self.ctrls, border=12, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM
         )
         # get handle of OK button
         for item in self.ctrls.GetChildren():
@@ -366,7 +376,9 @@ class AddDeviceDlg(wx.Dialog):
     
     def validate(self, evt=None):
         self.okBtn.Enable(
-            self.warnings.OK
+            self.warnings.OK 
+            and self.selectedCls is not None
+            and self.selectedProfile is not None
         )
     
     def populate(self):
@@ -418,20 +430,42 @@ class AddDeviceDlg(wx.Dialog):
             self.Unbind(wx.EVT_IDLE)
     
     def getDevice(self):
-        return self.nameCtrl.getValue(), *self.getSelectedProfile()
+        """
+        Get the Device object from the choice made in this ctrl.
 
-    def getSelectedProfile(self):
+        Returns
+        -------
+        psychopy.experiment.devices.DeviceBackend
+            Backend object for the chosen device
+        """
+        # create device object
+        device = self.deviceCls(self.deviceProfile)
+        # store name
+        device.params['deviceLabel'].val = self.nameCtrl.getValue()
+        
+        return device
+
+    def onSelectItem(self, evt):
+        evt.Skip()
         # get id of selected profile and its parent
         item = self.devicesCtrl.GetSelection()
         branch = self.devicesCtrl.GetItemParent(item)
-        # get class and device name
-        cls = self.branchClasses[branch]
-        name = self.devicesCtrl.GetItemText(item)
-        # find profile with matching name
-        profile = None
-        for thisProfile in self.availableDevices[cls]:
-            if thisProfile.get("deviceName", "unnamed") == name:
-                profile = thisProfile
-                break
-
-        return cls, profile
+        # update profile
+        if branch != self.devicesCtrl.GetRootItem():
+            # get class and device name
+            cls = self.branchClasses[branch]
+            name = self.devicesCtrl.GetItemText(item)
+            # find profile with matching name
+            profile = None
+            for thisProfile in self.availableDevices[cls]:
+                if thisProfile.get("deviceName", "unnamed") == name:
+                    profile = thisProfile
+                    break
+        else:
+            # if parent is the root node, selection isn't a profile
+            cls = profile = None
+        # store selected values
+        self.selectedCls = cls
+        self.selectedProfile = profile
+        # enable OK based on selection
+        self.validate()
