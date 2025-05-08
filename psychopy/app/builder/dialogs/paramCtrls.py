@@ -370,9 +370,6 @@ class NameCtrl(SingleLineCtrl):
     def styleCode(self):
         # a name is always code, we don't need to remind the user, so style as normal
         self.dollarLbl.Hide()
-        self.ctrl.SetFont(
-            fonts.AppFont().obj
-        )
         self.ctrl.Refresh()
         self.ctrl.Layout()
     

@@ -221,10 +221,11 @@ class DevicePanel(wx.Panel):
             # store name param ctrl
             if name == "deviceLabel":
                 self.nameCtrl = self.paramCtrls[name]
-                # style name ctrl
-                self.nameCtrl.SetFont(
-                    fonts.AppFont(pointSize=int(fonts.AppFont.pointSize*1.2), bold=True).obj
-                )
+                # bump up the font size
+                self.nameCtrl.ctrl.SetFont(fonts.AppFont(
+                    pointSize=int(fonts.AppFont.pointSize*1.5),
+                    bold=True
+                ).obj)
                 # hide label
                 lbl.Hide()
         # profile label
