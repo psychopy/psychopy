@@ -249,7 +249,7 @@ class SerialOutComponent(BaseDeviceComponent):
 
 
 class SerialDeviceBackend(DeviceBackend):
-    backendName = "Serial Device"
+    backendLabel = "Serial Device"
     deviceClass = "psychopy.hardware.serialdevice.SerialDevice"
     icon = "light/serial.png"
 

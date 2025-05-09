@@ -248,7 +248,7 @@ class SoundSensorComponent(BaseDeviceComponent):
         
 
 class MicrophoneSoundSensorBackend(DeviceBackend):
-    backendName = "Microphone Sound Sensor"
+    backendLabel = "Microphone Sound Sensor"
     deviceClass = "psychopy.hardware.soundsensor.MicrophoneSoundSensor"
     icon = "light/soundsensor.png"
 

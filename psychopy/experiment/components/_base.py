@@ -13,6 +13,7 @@ from xml.etree.ElementTree import Element
 
 from psychopy import prefs
 from psychopy.constants import FOREVER
+from psychopy.experiment.devices import DeviceMixin
 from ..params import Param
 from psychopy.experiment.utils import canBeNumeric
 from psychopy.experiment.utils import CodeGenerationException
@@ -1376,13 +1377,10 @@ class BaseComponent:
             return "thisExp"
 
 
-class BaseDeviceComponent(BaseComponent):
+class BaseDeviceComponent(BaseComponent, DeviceMixin):
     """
     Base class for most components which interface with a hardware device.
     """
-
-    def __init_subclass__(cls):
-        cls.backends = set()
 
     def __init__(
             self, exp, parentName,
@@ -1408,49 +1406,10 @@ class BaseDeviceComponent(BaseComponent):
             saveStartStop=saveStartStop, syncScreenRefresh=syncScreenRefresh,
             disabled=disabled
         )
-        # require hardware
-        self.exp.requirePsychopyLibs(
-            ['hardware']
+        # add device stuff
+        self.addDeviceParams(
+            defaultLabel=deviceLabel
         )
-        # --- Device params ---
-        self.order += [
-            "deviceLabel"
-        ]
-        # label to refer to device by
-        def getDeviceLabels():
-            # start with none
-            labels = []
-            # iterate through saved devices
-            for name, device in prefs.devices.items():
-                # iterate through backends for this Component
-                for backend in self.backends:
-                    # if device is the correct type, include it
-                    if isinstance(device, backend):
-                        labels.append(name)
-
-            return labels
-        
-        self.params['deviceLabel'] = Param(
-            deviceLabel, valType="str", inputType="device", categ="Device",
-            allowedVals=getDeviceLabels,
-            label=_translate("Device"),
-            hint=_translate(
-                "The named device from Device Manager to use for this Component."
-            )
-        )
-    
-    @classmethod
-    def registerBackend(cls, backend):
-        """
-        Register a device backend as relevant to this Component.
-
-        Parameters
-        ----------
-        backend : type
-            Subclass of `psychopy.experiment.devices.DeviceBackend` to associate with this 
-            Component.
-        """
-        cls.backends.add(backend)
 
 
 class BaseVisualComponent(BaseComponent):

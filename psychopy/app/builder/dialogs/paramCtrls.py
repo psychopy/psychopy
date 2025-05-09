@@ -573,10 +573,8 @@ class ChoiceCtrl(BaseParamCtrl):
                 self.labels.append(str(choices[i]))
         # apply to ctrl
         self.ctrl.SetItems(self.labels)
-        # disable if there's only one option or param is readonly
-        self.ctrl.Enable(
-            len(self.labels) > 1 and not self.param.readOnly
-        )
+        # disable if param is readonly
+        self.ctrl.Enable(not self.param.readOnly)
         # apply (or re-apply) selection
         self.setValue(self.param.val)
     
@@ -1577,6 +1575,7 @@ class DeviceCtrl(ChoiceCtrl):
         ChoiceCtrl.makeCtrls(self)
         # add a button to open device manager
         self.deviceMgrBtn = wx.Button(self, style=wx.BU_EXACTFIT)
+        self.deviceMgrBtn.Bind(wx.EVT_BUTTON, self.openDeviceManager)
         self.deviceMgrBtn.SetBitmap(
             icons.ButtonIcon("devices", size=16, theme="light").bitmap
         )

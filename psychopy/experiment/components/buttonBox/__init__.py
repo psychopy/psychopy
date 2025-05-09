@@ -280,7 +280,7 @@ class ButtonBoxComponent(BaseDeviceComponent):
 
 
 class KeyboardButtonBoxDeviceBackend(DeviceBackend):
-    backendName = "Keyboard Button Box"
+    backendLabel = "Keyboard Button Box"
     deviceClass = "psychopy.hardware.button.KeyboardButtonBox"
     icon = "light/buttonBox.png"
 

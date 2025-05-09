@@ -5,12 +5,74 @@ from psychopy.experiment.params import Param
 from psychopy.localization import _translate
 
 
+class DeviceMixin:
+    """
+    Mixin for base Component/Routine classes which adds necessary params and attributes to 
+    interact with device manager. This shouldn't need to be mixed in directly - instead just use 
+    BaseDeviceComponent or BaseDeviceRoutine which include this mixin.
+    """
+    
+    def __init_subclass__(cls):
+        cls.backends = set()
+    
+    def addDeviceParams(self, defaultLabel=""):
+        from psychopy.preferences import prefs
+
+        # require hardware
+        self.exp.requirePsychopyLibs(
+            ['hardware']
+        )
+
+        # --- Device params ---
+        self.order += [
+            "deviceLabel"
+        ]
+        # label to refer to device by
+        def getDeviceLabels():
+            # start with none
+            labels = []
+            # iterate through saved devices
+            for name, device in prefs.devices.items():
+                # iterate through backends for this Component
+                for backend in self.backends:
+                    # if device is the correct type, include it
+                    if isinstance(device, backend):
+                        labels.append(name)
+
+            return labels
+        
+        self.params['deviceLabel'] = Param(
+            defaultLabel, valType="str", inputType="device", categ="Device",
+            allowedVals=getDeviceLabels,
+            label=_translate("Device"),
+            hint=_translate(
+                "The named device from Device Manager to use for this Component."
+            )
+        )
+
+    @classmethod
+    def registerBackend(cls, backend):
+        """
+        Register a device backend as relevant to this Component.
+
+        Parameters
+        ----------
+        backend : type
+            Subclass of `psychopy.experiment.devices.DeviceBackend` to associate with this 
+            Component.
+        """
+        if not hasattr(cls, "backends"):
+            cls.backends = set()
+        
+        cls.backends.add(backend)
+
+
 class DeviceBackend:
     """
     Representation of a hardware class in Builder.
     """
     # name of this backend to display in Device Manager
-    backendName = None
+    backendLabel = None
     # icon to use for this backend (relative to current file path, leave as None for no icon)
     icon = None
     # class of the device which this backend corresponds to
@@ -34,11 +96,47 @@ class DeviceBackend:
         self.order += [
             "deviceLabel"
         ]
+        # get further params from subclass method
+        params, order = self.getParams()
+        self.params.update(params)
+        self.order += order
     
     def __repr__(self):
         return (
             f"<{type(self).__name__}: name={self.name}>"
         )
+    
+    def getParams(self):
+        """
+        Get parameters from this backend to add to each new device from this backend.
+
+        Returns
+        -------
+        dict[str:Param]
+            Dict of Param objects for controlling devices in this backend
+        list[str]
+            List of param names, defining the order in which params should appear
+        """
+        return {}, []
+    
+    def writeDeviceCode(self, buff):
+        """
+        Write the code to create a device for this backend. This method must be overloaded by device backend subclasses.
+
+        To write the basics of device initialisation, you can do: ::
+            # this opens a call to DeviceManager.addDevice with the basic necessary arguments included, and does not close the brackets so you can add more
+            self.writeBaseDeviceCode(buff, close=False)
+            code = (
+                # write any param-specific inits here (e.g. "threshold=%(threshold)s,\n")
+                ")\n"
+            )
+            buff.writeIndentedLines
+        
+        To use just the basic device initialisation code, you can just do: ::
+            return self.writeBaseDeviceCode(buff, close=True)
+        """
+
+        raise NotImplementedError()
 
     @classmethod
     def getIconFile(cls):
@@ -176,12 +274,6 @@ class DeviceBackend:
                 ")\n"
             )
             buff.writeIndentedLines(code)
-
-    def writeDeviceCode(self, buff):
-        """
-        Write the code to create a device for this backend
-        """
-        return self.writeBaseDeviceCode(buff, close=True)
       
     @property
     def name(self):

@@ -16,6 +16,7 @@ from pathlib import Path
 
 from psychopy.experiment.components.static import StaticComponent
 from psychopy.experiment.components.routineSettings import RoutineSettingsComponent
+from psychopy.experiment.devices import DeviceMixin
 from psychopy.localization import _translate
 from psychopy.experiment import Param
 
@@ -377,14 +378,41 @@ class BaseStandaloneRoutine:
         self.params['disabled'].val = value
 
 
-class BaseValidatorRoutine(BaseStandaloneRoutine):
+class BaseDeviceRoutine(BaseStandaloneRoutine, DeviceMixin):
+    """
+    Base class for most routines which interface with a hardware device.
+    """
+    def __init__(
+            self, exp,
+            # basic
+            name='',
+            stopType='duration (s)', stopVal='',
+            # device
+            deviceLabel="",
+            # testing
+            disabled=False
+    ):
+        # initialise base component
+        BaseStandaloneRoutine.__init__(
+            self, exp, 
+            # basic
+            name=name,
+            stopType=stopType, stopVal=stopVal,
+            # testing
+            disabled=disabled
+        )
+        # add device stuff
+        self.addDeviceParams(
+            defaultLabel=deviceLabel
+        )
+
+
+class BaseValidatorRoutine(BaseDeviceRoutine):
     """
     Subcategory of Standalone Routine, which sets up a "validator" - an object which is linked to in the Testing tab
     of another Component and validates that the component behaved as expected. Any validator Routines should subclass
     this rather than BaseStandaloneRoutine.
     """
-    # list of class strings (readable by DeviceManager) which this component's device could be
-    deviceClasses = []
 
     def writeRoutineStartValidationCode(self, buff, stim):
         """
