@@ -40,8 +40,9 @@ class DeviceManagerDlg(wx.Dialog):
         self.pages = {}
         # resize the list ctrl
         self.profilesListCtrl = self.profilesNotebook.GetListView()
-        self.profilesListCtrl.SetMinSize((128, 128))
         self.profilesListCtrl.SetWindowStyleFlag(wx.LC_LIST)
+        self.profilesListCtrl.SetColumnWidth(-1, 128)
+        self.profilesListCtrl.SetMinSize((128, 128))
         self.profilesListCtrl.Refresh()
         # get list ctrl sizer so we can add ctrls
         self.profilesListCtrl.sizer = self.profilesListCtrl.GetSizer()
