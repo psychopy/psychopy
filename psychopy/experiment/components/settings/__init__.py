@@ -1770,12 +1770,12 @@ class SettingsComponent:
         buff.writeIndentedLines(code % inits)
         # setup devices from config
         for deviceName in self.exp.getRequiredDeviceNames():
-            if deviceName not in prefs.devices:
-                raise NameError(
-                    f"Could not find any config for device {deviceName}, please "
-                    f"setup this device up in the Device Manager dialog (from Builder)"
-                )
-            prefs.devices[deviceName].writeDeviceCode(buff)
+            if deviceName in prefs.devices:
+                # write device setup if possile
+                prefs.devices[deviceName].writeDeviceCode(buff)
+            else:
+                # alert if not
+                alert(4810, strFields={'deviceName': deviceName})
 
         code = (
             "# return True if completed successfully\n"

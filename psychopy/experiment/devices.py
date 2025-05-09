@@ -27,23 +27,29 @@ class DeviceMixin:
         self.order += [
             "deviceLabel"
         ]
-        # label to refer to device by
-        def getDeviceLabels():
-            # start with none
-            labels = []
+        # functions for getting device labels
+        def getDevices():
+            # start with default
+            devices = [("", _translate("Default"))]
             # iterate through saved devices
             for name, device in prefs.devices.items():
                 # iterate through backends for this Component
                 for backend in self.backends:
                     # if device is the correct type, include it
                     if isinstance(device, backend):
-                        labels.append(name)
-
-            return labels
-        
+                        devices.append(
+                            (name, name)
+                        )
+            return devices
+        def getLabels():
+            return [device[1] for device in getDevices()]
+        def getValues():
+            return [device[0] for device in getDevices()]
+        # label to refer to device by
         self.params['deviceLabel'] = Param(
             defaultLabel, valType="str", inputType="device", categ="Device",
-            allowedVals=getDeviceLabels,
+            allowedVals=getValues,
+            allowedLabels=getLabels,
             label=_translate("Device"),
             hint=_translate(
                 "The named device from Device Manager to use for this Component."
@@ -266,7 +272,7 @@ class DeviceBackend:
         # add options from profile
         code = ""
         for key, value in self.profile.items():
-            code += f"{key}={value},\n"
+            code += f"    {key}={repr(value)},\n"
         buff.writeIndentedLines(code)
         # if close requested, add closing bracket
         if close:

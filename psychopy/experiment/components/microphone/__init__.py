@@ -582,7 +582,7 @@ class MicrophoneDeviceBackend(DeviceBackend):
         self.writeBaseDeviceCode(buff, close=False)
         # add exclusive param and close
         code = (
-            "    exclusive=%()s,\n"
+            "    exclusive=%(exclusive)s,\n"
             ")\n"
         )
         buff.writeIndentedLines(code % self.params)
