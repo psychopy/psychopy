@@ -1284,8 +1284,9 @@ class TrialHandler2(_BaseTrialHandler):
             # advance row in data file
             if self.getExp() is not None:
                 self.getExp().nextEntry()
-        # mark as recently skipped so the next iteration is cancelled
-        self._cancelNextIteration = True
+        # mark as recently skipped so the next iteration (if there is one) is cancelled
+        if n or len(self.upcomingTrials):
+            self._cancelNextIteration = True
 
         return self.thisTrial   
 
