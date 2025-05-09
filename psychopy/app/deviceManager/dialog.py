@@ -410,6 +410,9 @@ class AddDeviceDlg(wx.Dialog):
         root = self.devicesCtrl.AddRoot("Available devices")
         # iterate through classes...
         for cls, profiles in self.availableDevices.items():
+            # don't add label if there's no profiles
+            if len(profiles) == 0:
+                continue
             # add icon if possible
             if cls.icon is not None:
                 bmp = icons.BaseIcon.resizeBitmap(
