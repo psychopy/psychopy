@@ -42,7 +42,7 @@ white = wx.Colour(255, 255, 255, 255)
 codeSyntaxOkay = wx.Colour(220, 250, 220, 255)  # light green
 
 
-class ParamCtrls():
+class ParamCtrls(wx.Panel):
 
     def __init__(self, dlg, label, param, parent, fieldName,
                  browse=False, noCtrls=False, advanced=False, appPrefs=None):
@@ -72,7 +72,10 @@ class ParamCtrls():
         tweaked (e.g., add '$'). Component._localized.keys() are
         `fieldName`s, and .values() are `label`s.
         """
-        super(ParamCtrls, self).__init__()
+        wx.Panel.__init__(
+            self, parent
+        )
+        # store information
         self.param = param
         self.dlg = dlg
         self.dpi = self.dlg.dpi
@@ -112,7 +115,7 @@ class ParamCtrls():
         if type(param.val) == numpy.ndarray:
             initial = param.val.tolist()  # convert numpy arrays to lists
         label = _translate(label)
-        self.nameCtrl = wx.StaticText(parent, -1, label, size=wx.DefaultSize)
+        self.nameCtrl = wx.StaticText(self, -1, label, size=wx.DefaultSize)
 
         if fieldName == 'Use version':
             # _localVersionsCache is the default (faster) when creating
@@ -127,7 +130,7 @@ class ParamCtrls():
         
         # create a param ctrl
         self.valueCtrl = paramCtrls.ParamCtrl(
-            parent, field=fieldName, param=param, element=self.element, warnings=warnings
+            self, field=fieldName, param=param, element=self.element, warnings=warnings
         )
 
         # create the type control
@@ -163,7 +166,7 @@ class ParamCtrls():
                         routineName, static.params['name'])
                     allowedUpdates.append(msg + fullName)
                     updateLabels.append(localizedMsg + fullName)
-            self.updateCtrl = wx.Choice(parent, choices=updateLabels)
+            self.updateCtrl = wx.Choice(self, choices=updateLabels)
             # bind method to update value ctrl's param on updating updateCtrl
             self.updateCtrl.Bind(wx.EVT_CHOICE, self.onChangeUpdate)
             # stash non-localized choices to allow retrieval by index:
@@ -178,6 +181,48 @@ class ParamCtrls():
 
         if self.updateCtrl is not None and len(self.updateCtrl.GetItems()) == 1:
             self.updateCtrl.Disable()  # visible but can't be changed
+        
+        # setup a sizer
+        if param.inputType in ("bool",):
+            # horizontal layout
+            self.sizer = wx.BoxSizer(wx.HORIZONTAL)
+            # add ctrl
+            self.sizer.Add(
+                self.valueCtrl, border=3, flag=wx.EXPAND | wx.RIGHT
+            )
+            # add label
+            self.sizer.Add(
+                self.nameCtrl, border=3, proportion=1, flag=wx.ALIGN_CENTER | wx.LEFT
+            )
+            if self.updateCtrl is not None:
+                # add updates
+                self.sizer.Add(
+                    self.updateCtrl, flag=wx.EXPAND | wx.LEFT
+                )
+        else:
+            # vertical layout
+            self.sizer = wx.BoxSizer(wx.VERTICAL)
+            # top row for labels
+            lblSizer = wx.BoxSizer(wx.HORIZONTAL)
+            self.sizer.Add(
+                lblSizer, border=3, flag=wx.EXPAND | wx.BOTTOM
+            )
+            # add label
+            lblSizer.Add(
+                self.nameCtrl, border=3, proportion=1, flag=wx.ALIGN_BOTTOM | wx.LEFT
+            )
+            # add updates
+            if self.updateCtrl is not None:
+                # add updates
+                lblSizer.Add(
+                    self.updateCtrl, flag=wx.EXPAND | wx.LEFT
+                )
+            # add ctrl
+            self.sizer.Add(
+                self.valueCtrl, flag=wx.EXPAND
+            )
+        
+        self.SetSizer(self.sizer)
 
     def _getCtrlValue(self, ctrl):
         """Retrieve the current value form the control (whatever type of ctrl
@@ -439,7 +484,7 @@ class ParamNotebook(wx.Notebook, handlers.ThemeMixin):
             # Setup sizer
             self.border = wx.BoxSizer()
             self.SetSizer(self.border)
-            self.sizer = wx.GridBagSizer(0, 0)
+            self.sizer = wx.BoxSizer(wx.VERTICAL)
             self.border.Add(self.sizer, border=12, proportion=1, flag=wx.ALL | wx.EXPAND)
             # Add controls
             self.ctrls = {}
@@ -471,35 +516,16 @@ class ParamNotebook(wx.Notebook, handlers.ThemeMixin):
             for name, param in sortedParams.items():
                 self.addParam(name, param)
             # Add growable
-            self.sizer.AddGrowableCol(1, 1)
+            self.sizer.AddStretchSpacer(1)
             # Check depends
             self.checkDepends()
 
         def addParam(self, name, param):
             # Make ctrl
             self.ctrls[name] = ParamCtrls(self.dlg, param.label, param, self, name)
-            # Add value ctrl
-            _flag = wx.EXPAND | wx.ALL
-            if hasattr(self.ctrls[name].valueCtrl, '_szr'):
-                self.sizer.Add(self.ctrls[name].valueCtrl._szr, (self.row, 1), border=6, flag=_flag)
-            else:
-                self.sizer.Add(self.ctrls[name].valueCtrl, (self.row, 1), border=6, flag=_flag)
-            # Add other ctrl stuff
-            _flag = wx.LEFT | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL
-            self.sizer.Add(self.ctrls[name].nameCtrl, (self.row, 0), (1, 1), border=5, flag=_flag)
-            if self.ctrls[name].typeCtrl:
-                self.sizer.Add(self.ctrls[name].typeCtrl, (self.row, 2), border=5, flag=_flag)
-            if self.ctrls[name].updateCtrl:
-                self.sizer.Add(self.ctrls[name].updateCtrl, (self.row, 3), border=5, flag=_flag)
-            # Link to depends callback
-            self.ctrls[name].setChangesCallback(self.doValidate)
-            if name == 'name':
-                self.ctrls[name].valueCtrl.SetFocus()
-            # Some param ctrls need to grow with page
-            if param.inputType in ('multi', 'fileList'):
-                self.sizer.AddGrowableRow(self.row, proportion=1)
-            # Iterate row
-            self.row += 1
+            self.sizer.Add(
+                self.ctrls[name], border=3, flag=wx.EXPAND | wx.ALL
+            )
 
         def addStartStopCtrl(self, params):
             # Make controls
@@ -507,13 +533,13 @@ class ParamNotebook(wx.Notebook, handlers.ThemeMixin):
             # Add to dict of ctrls
             self.ctrls.update(panel.ctrls)
             # Add label
-            _flag = wx.LEFT | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL
-            self.sizer.Add(panel.label, (self.row, 0), (1, 1), border=5, flag=_flag)
+            self.sizer.Add(
+                panel.label, border=6, flag=wx.ALIGN_LEFT | wx.LEFT | wx.RIGHT | wx.TOP
+            )
             # Add ctrls
-            _flag = wx.EXPAND | wx.ALL
-            self.sizer.Add(panel, (self.row, 1), border=6, flag=_flag)
-            # Iterate row
-            self.row += 1
+            self.sizer.Add(
+                panel, border=6, flag=wx.EXPAND | wx.LEFT | wx.RIGHT
+            )
 
             return panel
 
@@ -584,7 +610,6 @@ class ParamNotebook(wx.Notebook, handlers.ThemeMixin):
                     elem[2].valueCtrl.populate()
             # Update sizer
             if isChanged:
-                self.sizer.SetEmptyCellSize((0, 0))
                 self.sizer.Layout()
                 if isinstance(self.dlg, wx.Dialog):
                     self.dlg.Fit()
