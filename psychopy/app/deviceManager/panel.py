@@ -35,24 +35,43 @@ class DevicePanel(wx.Panel):
         # param ctrls
         self.paramCtrls = {}
         for name, param in sortedParams.items():
-            # make label
-            lbl = wx.StaticText(
-                self, label=param.label
-            )
-            self.sizer.Add(
-                lbl, border=6, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP
-            )
             # make param ctrl
-            self.paramCtrls[name] = ParamCtrl(
+            self.paramCtrls[name] = ctrl = ParamCtrl(
                 self,
                 field=name,
                 param=param,
                 element=None,
                 warnings=self.warnings
             )
-            self.paramCtrls[name].Bind(EVT_PARAM_CHANGED, self.onParamEdit)
+            ctrl.Bind(EVT_PARAM_CHANGED, self.onParamEdit)
+            # make label
+            lbl = wx.StaticText(
+                self, label=param.label
+            )
+            # make sizer for this ctrl
+            if type(ctrl).__name__ in ("BoolCtrl"):
+                sizer = wx.BoxSizer(wx.HORIZONTAL)
+                # add crl
+                sizer.Add(
+                    ctrl, border=6, flag=wx.EXPAND | wx.RIGHT
+                )
+                # add label
+                sizer.Add(
+                    lbl, flag=wx.ALIGN_CENTER
+                )
+            else:
+                sizer = wx.BoxSizer(wx.VERTICAL)
+                # add label
+                sizer.Add(
+                    lbl, border=3, flag=wx.EXPAND | wx.BOTTOM
+                )
+                sizer.Add(
+                    ctrl, flag=wx.EXPAND
+                )
+                # add ctrl
+            # add sizer to panel
             self.sizer.Add(
-                self.paramCtrls[name], border=6, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM
+                sizer, border=6, flag=wx.EXPAND | wx.ALL
             )
             # store name param ctrl
             if name == "deviceLabel":
