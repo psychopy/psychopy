@@ -90,12 +90,6 @@ class DeviceManagerDlg(wx.Dialog):
                 self.profilesNotebook.AddPage(
                     text=name, page=self.pages[name]
                 )
-        # delete pages from extinct devices
-        for name in self.pages:
-            if name not in self.devices:
-                self.profilesNotebook.DeletePage(
-                    self.profilesNotebook.FindPage(self.pages[name])
-                )
     
     def renameDevice(self, oldname, newname):
         # set name param
@@ -264,6 +258,11 @@ class DevicePanel(wx.Panel):
     def onDelete(self, evt=None):
         # remove from devices
         del self.dlg.devices[self.device.name]
+        # remove page
+        self.dlg.profilesNotebook.DeletePage(
+            self.dlg.profilesNotebook.FindPage(self)
+        )
+        del self.dlg.pages[self.device.name]                
         # repopulate without this page
         self.dlg.populate()
 
