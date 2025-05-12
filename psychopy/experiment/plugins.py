@@ -27,6 +27,13 @@ class DeviceBackend(DeviceBackend):
         # if component was specified by class attribute, register it
         if cls.component is not PluginDevicesMixin:
             cls.component.registerBackend(cls)
+        # if we can get params without initialising, add them to the Component's legacy list
+        # (as they're now parameters of the device rather than the Component)
+        try:
+            for name in cls.getParams(None)[0]:
+                cls.component.legacyParams.append(name)
+        except AttributeError:
+            pass
         # placeholder value for icon
         cls.icon = None
         # use label for backendLabel
