@@ -23,6 +23,10 @@ class KeyboardComponent(BaseComponent):
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'keyboard.png'
     tooltip = _translate('Keyboard: check and record keypresses')
+    legacyParams = [
+        # as there's only ever 1 keyboard, it shouldn't interact with device manager
+        "deviceLabel"
+    ]
 
     def __init__(self, exp, parentName, name='key_resp', deviceLabel="",
                  allowedKeys="'y','n','left','right','space'", registerOn="press",

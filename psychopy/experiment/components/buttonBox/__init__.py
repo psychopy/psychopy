@@ -13,6 +13,10 @@ class ButtonBoxComponent(BaseDeviceComponent):
     iconFile = Path(__file__).parent / 'buttonBox.png'
     tooltip = _translate('Button Box: Get input from a button box')
     beta = True
+    legacyParams = [
+        "deviceBackend",
+        "kbButtonAliases"
+    ]
 
     def __init__(
             self, exp, parentName,
