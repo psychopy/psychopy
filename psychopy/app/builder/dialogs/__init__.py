@@ -76,6 +76,7 @@ class ParamCtrls(wx.Panel):
             self, parent
         )
         # store information
+        self.parent = parent
         self.param = param
         self.dlg = dlg
         self.dpi = self.dlg.dpi
@@ -284,6 +285,9 @@ class ParamCtrls(wx.Panel):
             ctrl.SetLabel(newVal)
         else:
             print("failed to retrieve the value for %s" % (ctrl))
+    
+    def checkDepends(self, evt=None):
+        self.parent.checkDepends()
 
     def getValue(self):
         """Get the current value of the value ctrl
@@ -308,22 +312,10 @@ class ParamCtrls(wx.Panel):
             return self._getCtrlValue(self.updateCtrl)
 
     def setVisible(self, newVal=True):
-        self._visible = newVal
-        if hasattr(self.valueCtrl, "ShowAll"):
-            self.valueCtrl.ShowAll(newVal)
-        else:
-            self.valueCtrl.Show(newVal)
-        self.nameCtrl.Show(newVal)
-        if self.updateCtrl:
-            self.updateCtrl.Show(newVal)
-        if self.typeCtrl:
-            self.typeCtrl.Show(newVal)
+        self.Show(newVal)
 
     def getVisible(self):
-        if hasattr(self, "_visible"):
-            return self._visible
-        else:
-            return self.valueCtrl.IsShown()
+        return self.IsShown()
 
     def expInfoToListWidget(self, expInfoStr):
         """Takes a string describing a dictionary and turns it into a format
