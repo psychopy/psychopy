@@ -1773,6 +1773,9 @@ class SettingsComponent:
             if deviceName in prefs.devices:
                 # write device setup if possile
                 prefs.devices[deviceName].writeDeviceCode(buff)
+            elif deviceName is None:
+                # if default, let init code handle device
+                pass
             else:
                 # alert if not
                 alert(4810, strFields={'deviceName': deviceName})

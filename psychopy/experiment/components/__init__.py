@@ -297,7 +297,7 @@ def getInitVals(params, target="PsychoPy"):
                 inits[name].val = None
                 inits[name].valType = 'extendedStr'
             else:
-                inits[name].val = 'None'
+                inits[name].val = None
                 inits[name].valType = 'code'
 
         # is constant so don't touch the parameter value
