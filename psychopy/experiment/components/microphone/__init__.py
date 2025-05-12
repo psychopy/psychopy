@@ -302,7 +302,7 @@ class MicrophoneComponent(BaseDeviceComponent):
     def writeInitCodeJS(self, buff):
         inits = getInitVals(self.params)
         # Alert user if non-default value is selected for device
-        if inits['device'].val != '$None':
+        if inits['deviceLabel'].val not in (None, "", 'None'):
             alert(5055, strFields={'name': inits['name'].val})
         # Write code
         code = (
