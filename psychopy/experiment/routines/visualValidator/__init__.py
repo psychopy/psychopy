@@ -136,25 +136,6 @@ class VisualValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
                     labels.append(name)
 
             return labels
-        
-        self.params['deviceLabel'] = Param(
-            deviceLabel, valType="str", inputType="device", categ="Device",
-            allowedVals=getDeviceLabels,
-            label=_translate("Device"),
-            hint=_translate(
-                "The named device from Device Manager to use for this Routine."
-            )
-        )
-        self.params['deviceBackend'] = Param(
-            deviceBackend, valType="code", inputType="choice", categ="Device",
-            allowedVals=self.getBackendKeys,
-            allowedLabels=self.getBackendLabels,
-            label=_translate("Light sensor type"),
-            hint=_translate(
-                "Type of light sensor to use."
-            ),
-            direct=False
-        )
         self.params['channel'] = Param(
             channel, valType="code", inputType="single", categ="Device",
             label=_translate("Light sensor channel"),
@@ -164,8 +145,6 @@ class VisualValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
                 "which can detect the Window."
             )
         )
-
-        self.loadBackends()
 
     def writeDeviceCode(self, buff):
         """

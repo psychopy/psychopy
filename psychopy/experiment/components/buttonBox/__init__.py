@@ -120,25 +120,6 @@ class ButtonBoxComponent(BaseDeviceComponent):
             ),
             label=_translate("Correct answer"), direct=False)
 
-        # --- Device params ---
-        self.order += [
-            "deviceBackend",
-        ]
-
-        self.params['deviceBackend'] = Param(
-            deviceBackend, valType="str", inputType="choice", categ="Device",
-            allowedVals=self.getBackendKeys,
-            allowedLabels=self.getBackendLabels,
-            label=_translate("Device backend"),
-            hint=_translate(
-                "What kind of button box is it? What package/plugin should be used to talk to it?"
-            ),
-            direct=False
-        )
-
-        # add params for any backends
-        self.loadBackends()
-
     def writeInitCode(self, buff):
         inits = getInitVals(self.params)
         # code to create object
