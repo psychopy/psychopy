@@ -22,6 +22,7 @@ class ButtonBoxComponent(BaseDeviceComponent, PluginDevicesMixin):
             stopType='duration (s)', stopVal=1.0,
             startEstim='', durationEstim='',
             forceEndRoutine=True,
+            discardPrevious=True,
             # device
             deviceLabel="",
             deviceBackend="keyboard",
@@ -69,6 +70,7 @@ class ButtonBoxComponent(BaseDeviceComponent, PluginDevicesMixin):
             "allowedButtons",
             "storeCorrect",
             "correctAns",
+            "discardPrevious"
         ]
         self.params['registerOn'] = Param(
             registerOn, valType='code', inputType='choice', categ='Data',
@@ -119,6 +121,14 @@ class ButtonBoxComponent(BaseDeviceComponent, PluginDevicesMixin):
                 "$correctAns to compare to the key press. "
             ),
             label=_translate("Correct answer"), direct=False)
+        self.params['discardPrevious'] = Param(
+            discardPrevious, valType='bool', inputType="bool", categ="Data",
+            updates="constant",
+            hint=_translate(
+                "Do you want to discard all responses occurring before the onset of this Component?"
+            ),
+            label=_translate("Discard previous")
+        )
 
         # --- Device params ---
         self.order += [
@@ -180,13 +190,14 @@ class ButtonBoxComponent(BaseDeviceComponent, PluginDevicesMixin):
         # writes an if statement to determine whether to draw etc
         indented = self.writeStartTestCode(buff)
         if indented:
-            # dispatch and clear messages
-            code = (
-                "# clear any messages from before starting\n"
-                "%(name)s.responses = []\n"
-                "%(name)s.clearResponses()\n"
-            )
-            buff.writeIndentedLines(code % params)
+            if self.params['discardPrevious']:
+                # dispatch and clear messages
+                code = (
+                    "# clear any messages from before starting\n"
+                    "%(name)s.responses = []\n"
+                    "%(name)s.clearResponses()\n"
+                )
+                buff.writeIndentedLines(code % params)
             # to get out of the if statement
             buff.setIndentLevel(-indented, relative=True)
 
