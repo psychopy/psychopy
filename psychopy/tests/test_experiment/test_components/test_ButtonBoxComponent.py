@@ -19,6 +19,20 @@ from psychopy.tests import utils
 class TestButtonBoxComponent(BaseComponentTests):
     comp = ButtonBoxComponent
     libraryClass = ButtonBox
+
+    def setup_class(cls):
+        """
+        Setup a keyboard response box for this test in prefs
+        """
+        from psychopy.preferences import prefs
+        from psychopy.experiment.components.buttonBox import KeyboardButtonBoxDeviceBackend
+        from psychopy.hardware import DeviceManager
+
+        for profile in DeviceManager.getAvailableDevices("psychopy.hardware.button.KeyboardButtonBox"):
+            device = KeyboardButtonBoxDeviceBackend(profile)
+            device.params['deviceLabel'] = "testButtonBox"
+            prefs.devices['testButtonBox'] = device
+            break
     
     def test_values(self):
         """
@@ -61,6 +75,8 @@ class TestButtonBoxComponent(BaseComponentTests):
             cases.append(thisCase)
         # make minimal experiment just for this test
         comp, rt, exp = self.make_minimal_experiment()
+        # link to device
+        comp.params['deviceLabel'].val = "testButtonBox"
         # configure experiment
         exp.requireImport("ButtonResponse", importFrom="psychopy.hardware.button")
         exp.settings.params['Full-screen window'].val = False
@@ -140,7 +156,7 @@ class TestButtonBoxComponent(BaseComponentTests):
                 f"Error in Routine with following params:\n"
                 f"{lastCase}\n"
                 f"Original traceback:\n"
-                f"{err.stderr.decode("utf-8")}"
+                f"{err.stderr.decode('utf-8')}"
             )
             raise ValueError(msg)
 

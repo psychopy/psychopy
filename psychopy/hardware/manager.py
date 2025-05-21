@@ -152,6 +152,9 @@ class DeviceManager:
         if deviceClass in (None, "*"):
             # resolve "any" flags to BaseDevice
             deviceClass = "psychopy.hardware.base.BaseDevice"
+        # if it's already a type, return as is
+        if isinstance(deviceClass, type):
+            return deviceClass
         # get package and class names from deviceClass string
         parts = deviceClass.split(".")
         pkgName = ".".join(parts[:-1])

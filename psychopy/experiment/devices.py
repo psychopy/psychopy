@@ -266,12 +266,15 @@ class DeviceBackend:
         code = (
             "# initialize %(deviceLabel)s\n"
             "deviceManager.addDevice(\n"
-            "    deviceName=%(deviceLabel)s,\n"
+            "    deviceName='%(deviceLabel)s',\n"
         )
         buff.writeIndentedLines(code % self.params)
         # add options from profile
         code = ""
         for key, value in self.profile.items():
+            # skip attributes already covered by a param
+            if key in ("deviceName",):
+                continue
             code += f"    {key}={repr(value)},\n"
         buff.writeIndentedLines(code)
         # if close requested, add closing bracket
