@@ -13,6 +13,7 @@ from psychopy.experiment.components.buttonBox import ButtonBoxComponent
 from psychopy.experiment.components.code import CodeComponent
 from psychopy.tests.test_experiment.test_components.test_base_components import BaseComponentTests
 from psychopy.hardware.button import ButtonBox
+from psychopy.tests import utils
 
 
 class TestButtonBoxComponent(BaseComponentTests):
@@ -114,10 +115,13 @@ class TestButtonBoxComponent(BaseComponentTests):
                 check=True,
             )
         except subprocess.CalledProcessError as err:
+            # save experiment file to fails folder
+            failScript = Path(utils.TESTS_FAILS_PATH) / tmpPy.name
+            failScript.write_text(script, encoding="utf-8")
             # if we get any errors, check their line number against error ranges
             matches = re.findall(
                 pattern=r"testButtonBox.py\", line (\d*),",
-                string=err.stderr
+                string=err.stderr.decode("utf-8")
             )
             # if no matches, raise error as is
             if not matches:
@@ -136,7 +140,7 @@ class TestButtonBoxComponent(BaseComponentTests):
                 f"Error in Routine with following params:\n"
                 f"{lastCase}\n"
                 f"Original traceback:\n"
-                f"{err.stdout}"
+                f"{err.stderr.decode("utf-8")}"
             )
             raise ValueError(msg)
 
