@@ -355,7 +355,7 @@ class MovieFileReader:
             'sync': 'audio',
             'an': False,
             'volume': 1.0,
-            'loop': 0,
+            'loop': 1,
             'infbuf': True
         }
 
@@ -377,14 +377,14 @@ class MovieFileReader:
             if movieMetadata['src_vid_size'] != (0, 0):
                 break
 
-        # warmup, takes a while before the video starts playing
-        while 1:
-            frame, _ = self._player.get_frame()
-            if frame != None:
-                break
+        # # warmup, takes a while before the video starts playing
+        # while 1:
+        #     frame, _ = self._player.get_frame()
+        #     if frame != None:
+        #         break
 
-        self._player.set_pause(True)  # pause the player again
         self._player.seek(0.0, relative=False, accurate=True)
+        self._player.set_pause(True)  # pause the player again
         # self._player.set_pause(False)  # pause the player again
 
         # movie metadata
@@ -471,100 +471,14 @@ class MovieFileReader:
             self._videoSegments.clear()
             return
 
-        # find the index of the frame which is after the PTS
-        remIdx = -1
-        for i, (_, pts, _) in enumerate(self._videoSegments):
-            if pts > keepAfterPTS:
-                remIdx = i - 1
+        # remove all frames we have already presented
+        for i in range(len(self._videoSegments) - 1, -1, -1):
+            _, pts, _ = self._videoSegments[i]
+            if pts < keepAfterPTS:
+                del self._videoSegments[i]
+            else:
                 break
-
-        if remIdx != -1:
-            # remove all frames before the PTS
-            self._videoSegments = self._videoSegments[remIdx:]
-
-    def _grabFrameFFPyPlayer(self, reqPTS):
-        """Grab a frame from the movie file using FFPyPlayer.
-
-        This function grabs a frame from the movie file and returns it. The
-        frame is returned as a Numpy array. The frame is not decoded until it is
-        needed, so this function is non-blocking.
-
-        Parameters
-        ----------
-        reqPTS : float
-            The presentation timestamp (PTS) of the frame to grab in seconds.
-            Timestamps can be as precise as six decimal places.
-
-        """
-        def _convertFrameToRGB(frame):
-            """Convert a frame to RGB format.
-
-            This function converts a frame to RGB format. The frame is returned
-            as a Numpy array.
-
-            Parameters
-            ----------
-            frame : FFPyPlayer frame
-                The frame to convert.
-
-            Returns
-            -------
-            numpy.ndarray
-                The converted frame in RGB format.
-
-            """
-            from ffpyplayer.pic import SWScale
-
-            rgbImg = SWScale(
-                self._metadata.size[0], 
-                self._metadata.size[1], 
-                frame.get_pixel_format(), 
-                ofmt='rgb24').scale(frame)
-            
-            return rgbImg
-
-
-        if self._player is None:
-            return None
-            # raise ValueError('Movie reader is not open. Cannot grab frame.')
         
-        reqPTS = min(max(0.0, reqPTS), self._duration)
-
-        # check if the provided PTS is valid
-        if reqPTS < 0.0 or reqPTS > self._duration:
-            raise ValueError('Invalid PTS: {}'.format(reqPTS))
-        
-        # check if we already have the frame
-        if self._videoSegments:
-            if self._videoSegments[0][1] > reqPTS:  # seek if before first frame
-                self._seekFFPyPlayer(reqPTS)
-                self._player.set_pause(False)
-
-        while 1:  # keep getting frames until we reach the desired PTS
-            # get the next frame
-            frame, status = self._player.get_frame()
-
-            if status == 'eof':
-                self._player.set_pause(True)
-                self._player.seek(0.0, relative=False, accurate=True)
-                if self._streamEOFCallback is not None:
-                    self._streamEOFCallback()
-                break
-            elif status == 'paused':
-                break
-
-            if frame is None:
-                break
-
-            img, curPts = frame  # extract frame information
-            if curPts + self._frameInterval > reqPTS:
-                self._videoSegments.append(
-                    (_convertFrameToRGB(img), curPts, status))
-                # self._cleanUpFrameStore(reqPTS)  # clean up the frame store
-                break
-
-        # print(len(self._videoSegments), reqPTS)
-
     # --------------------------------------------------------------------------
     # Backend-specific decoding routines
     #
@@ -672,12 +586,15 @@ class MovieFileReader:
         self._cleanUpFrameStore()
 
         # seek to the desired PTS
-        self._player.set_pause(True)
+        # self._player.set_pause(True)
         self._player.seek(
             reqPTS, 
             relative=False, 
             seek_by_bytes=False, 
             accurate=True)
+            # thisPTS = self._player.get_pts()
+            # if abs(thisPTS - reqPTS) < 0.001:
+            #     break
         
         return self._player.get_pts()
     
@@ -760,16 +677,17 @@ class MovieFileReader:
         """
         self._videoSegments.clear()
     
-    def _getFrameFFPyPlayer(self, reqPTS=0.0, dropFrame=False):
+    def _getFrameFFPyPlayer(self, reqPTS=0.0):
         """Get a frame from the movie file using FFPyPlayer.
 
-        This must be called after `start()` to get frames from the movie file.
+        This method gets the desired frame from the movie file. If it has not
+        been decoded yet, this function will ensure the frame is decoded and 
+        made available.
 
         Parameters
         ----------
-        reqPTS : float or None
+        reqPTS : float
             The presentation timestamp (PTS) of the frame to get in seconds.
-            Timestamps can be as precise as 6 decimal places.
         dropFrame : bool
             If `True`, the frame is dropped if it is not available, and the 
             most recent frame will be returned immediately. If `False`, the 
@@ -781,29 +699,97 @@ class MovieFileReader:
             Video data.
 
         """
-        from ffpyplayer.pic import SWScale
+        def _convertFrameToRGB(frame):
+            """Convert a frame to RGB format.
 
-        self._grabFrameFFPyPlayer(reqPTS)  # grab a frame from the movie file
+            This function converts a frame to RGB format. The frame is returned
+            as a Numpy array. The resulting array will be in the correct format
+            to upload to OpenGL as a texture.
 
-        # get the frame which fits the requested PTS
-        toReturn = None 
-        if self._videoSegments:
-            for img, pts, _ in self._videoSegments:
-                if pts <= reqPTS < pts + self._frameInterval:
-                    reqFrameData = SWScale(
-                        self._metadata.size[0], 
-                        self._metadata.size[1], 
-                        img.get_pixel_format(), ofmt='rgb24').scale(img)
-                    toReturn = (reqFrameData, pts)
-                    break
+            Parameters
+            ----------
+            frame : FFPyPlayer frame
+                The frame to convert.
+
+            Returns
+            -------
+            numpy.ndarray
+                The converted frame in RGB format.
+
+            """
+            from ffpyplayer.pic import SWScale
+
+            rgbImg = SWScale(
+                self._metadata.size[0], 
+                self._metadata.size[1], 
+                frame.get_pixel_format(), 
+                ofmt='rgb24').scale(frame)
             
-            # clean up frame cache to free memory
-            self._cleanUpFrameStore(reqPTS)
+            return rgbImg
+        
+        def _getFrameFromStore(reqPTS):
+            """Get a frame from the store.
 
-        # convert the frmae to the correct pixel format
-        return toReturn
+            This function gets a frame from the store. The frame is returned as
+            a Numpy array. The resulting array will be in the correct format to
+            upload to OpenGL as a texture.
 
-    def getFrame(self, pts=0.0, dropFrame=True, discard=False):
+            Parameters
+            ----------
+            reqPTS : float
+                The presentation timestamp (PTS) of the frame to get in seconds.
+
+            Returns
+            -------
+            numpy.ndarray
+                The converted frame in RGB format.
+
+            """
+            for img, pts, status in self._videoSegments:
+                if pts <= reqPTS < pts + self._frameInterval:
+                    return (img, pts, status)
+
+        # check if we have a player object, return None if not
+        if self._player is None:
+            return None
+            # raise ValueError('Movie reader is not open. Cannot grab frame.')
+        
+        # normalzie the PTS to be between 0 and the duration of the movie
+        reqPTS = min(max(0.0, reqPTS), self._duration + self._frameInterval)
+
+        # check if we have the frame in the store
+        frame = _getFrameFromStore(reqPTS)
+        if frame is not None:
+            return frame
+        
+        while 1:  # keep getting frames until we reach the desired PTS
+            # get the next frame                    
+            frame, status = self._player.get_frame()
+
+            if status == 'eof':
+                # self._player.seek(0.0, relative=False, accurate=True)
+                # print('EOF reached, seeking to beginning')
+                # self._player.set_pause(False)  # pause the player again
+                if self._streamEOFCallback is not None:
+                    self._streamEOFCallback()
+                self._cleanUpFrameStore()
+                break
+            elif status == 'paused':
+                break
+
+            if frame is None:
+                break 
+            
+            img, curPts = frame  # extract frame information
+
+            # if we have gotten the frame we are looking for, return it
+            if curPts + self._frameInterval >= reqPTS:
+                self._videoSegments.append(
+                    (_convertFrameToRGB(img), curPts, status))
+
+        return _getFrameFromStore(reqPTS)
+    
+    def getFrame(self, pts=0.0):
         """Get a frame from the movie file at the specified presentation 
         timestamp.
 
@@ -824,7 +810,7 @@ class MovieFileReader:
 
         """
         if self._decoderLib == 'ffpyplayer':
-            return self._getFrameFFPyPlayer(pts, dropFrame)
+            return self._getFrameFFPyPlayer(pts)
 
     def __del__(self):
         """Close the movie file when the object is deleted.
@@ -1239,7 +1225,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         if frameData is None:
             return self._recentFrame
         
-        frameImage, pts = frameData
+        frameImage, pts, _ = frameData
 
         if frameImage is not None:
             videoBuffer = frameImage.to_memoryview()[0].memview
@@ -1431,13 +1417,17 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
         """
         self._movieTime = timestamp
-        self._player.pause(True)  # pause the player
+        # self._player.pause(True)  # pause the player
         self._player.seek(self._movieTime)
 
-        if self.status == PLAYING:
+        if self.status == PLAYING: 
             self._player.pause(False)
+        elif self.status == PAUSED:
+            self._player.pause(True)
         else:
             self.updateVideoFrame()
+
+        self._pts = self._movieTime  # store the current PTS
 
     def rewind(self, seconds=1, log=True):
         """Rewind the video.
@@ -1486,7 +1476,6 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
           you would like to restart the movie without reloading.
 
         """
-        self._player.pause(True)
         self.seek(0.0)
         self._movieTime = 0.0
         self.play()
