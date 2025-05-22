@@ -62,13 +62,13 @@ While you can run PsychoPy from your system's root Python, it's best to create a
 #. If you go back to the "Environment Managers -> venv" section there should now be an item for your new venv - if not, try refreshing the panel
 #. Click the :octicon:`check` button on this item to set it as the default environment for running Python files
 #. Click the :octicon:`copy` button to copy the location of your venv's "python.exe" file to the clipboard
-#. Run the following commands in a new terminal to install PsychoPy (as an editable packeg) and all its required packages to your venv:
+#. Run the following commands in a new terminal to install PsychoPy (as an editable package) and all its required packages to your venv:
    
    .. code-block::
        
        <pasted from clipboard> -m pip install -e .
 
-Create a virtual environment
+Run |PsychoPy|
 ------------------------------------------------
 
 Once you have a virtual environment, you should be able to run PsychoPy! You can do so by opening the file "psychopyApp.py" and pressing the :octicon:`play` button in the top right corner, but it's a good idea to setup a run profile so you can run the app with debugging tools from the "Run and debug" tab.
@@ -120,6 +120,6 @@ You can also add configurations to run PsychoPy with a specific frame open (e.g.
         ]
     }
 
-Once you save this file, you can go to the Run & debug section and choose any of the configurations you just added, then simply click run to start the app from your local code.
+Once you save this file, you can go to the Run & Debug section and choose any of the configurations you just added, then simply click run to start the app from your local code.
 
 .. redirect-from:: /tutorials/contributing/vscode.rst

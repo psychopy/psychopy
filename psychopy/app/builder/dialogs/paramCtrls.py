@@ -15,11 +15,16 @@ import wx.stc
 
 from psychopy.app.colorpicker import PsychoColorPicker
 from psychopy.app.dialogs import ListWidget
+from psychopy.app.themes import fonts, colors
 from psychopy.colors import Color
+from psychopy.experiment.exports import NameSpace
+from psychopy.experiment.params import Param, toList
 from psychopy.localization import _translate
-from psychopy import data, prefs, experiment
+from psychopy import data, exceptions, logging, prefs, experiment
 import re
 from pathlib import Path
+
+from psychopy.tools import stringtools
 
 from . import CodeBox
 from ...coder import BaseCodeEditor
@@ -28,231 +33,425 @@ from ... import utils
 from ...themes import icons
 
 
-class _FrameMixin:
-    @property
-    def frame(self):
+inputTypes = {}
+
+
+EVT_PARAM_CHANGED = wx.PyEventBinder(wx.IdManager.ReserveId())
+
+
+class ParamValueChangedEvent(wx.CommandEvent):
+    def __init__(self, obj, param, trigger=None):
+        wx.CommandEvent.__init__(self, EVT_PARAM_CHANGED.typeId)
+        # set object
+        self.SetEventObject(obj)
+        # store param
+        self.param = param
+        # store triggering event
+        self.trigger = trigger
+
+    def getParam(self):
+        return self.param
+
+
+class BaseParamCtrl(wx.Panel):
+    """
+    Base class for all ParamCtrls, defines the minimum functions needed for a ParamCtrl to work.
+
+    Attributes
+    ----------
+    inputType : str
+        Input type which this ctrl corresponds to
+
+    Parameters
+    ----------
+    parent : wx.Window
+        Parent window for this ctrl
+    field : str
+        Name of the param which this ctrl represents
+    param : psychopy.experiment.Param
+        Parameter which this ctrl represents
+    element
+        Builder element (Component, Routine, Loop, etc.) to which this parameter belongs, if any
+    """
+    # what inputType does a Param need to have to get this ctrl?
+    inputType = None
+
+    # additional styles for the ctrl (used by overloaded makeCtrls)
+    ctrlStyle = wx.DEFAULT
+    
+    def __init__(self, parent, field, param, element=None, warnings=None):
+        # initialise
+        wx.Panel.__init__(self, parent)
+        # store details
+        self.parent = parent
+        self.field = field
+        self.param = param.copy()
+        self.element = element
+        self.warnings = warnings
+        # setup sizer
+        self.sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.SetSizer(self.sizer)
+        # call method which subclasses override to make controls
+        self.makeCtrls()
+        # set tooltip
+        self.setTooltip(param.hint)
+    
+    def __init_subclass__(cls):
+        # index subclasses of BaseParamCtrl by the inputType they represent
+        if cls.inputType is not None and cls.inputType not in inputTypes:
+            inputTypes[cls.inputType] = cls
+    
+    def makeCtrls(self):
         """
-        Top level frame associated with this ctrl
+        Makes the actual control object.
         """
-        topParent = self.GetTopLevelParent()
-        if hasattr(topParent, "frame"):
-            return topParent.frame
-        else:
-            return topParent
-
-
-class _ValidatorMixin:
-    def validate(self, evt=None):
-        """Redirect validate calls to global validate method, assigning
-        appropriate `valType`.
+        raise NotImplementedError(
+            "All subclasses of BaseParamCtrl should implement `makeCtrls`"
+        )
+    
+    def getValue(self):
         """
-        validate(self, self.valType)
-
-        if evt is not None:
-            evt.Skip()
-
-    def showValid(self, valid):
-        """Style input box according to valid"""
-        if not hasattr(self, "SetForegroundColour"):
-            return
-
-        if valid:
-            self.SetForegroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_BTNTEXT))
-        else:
-            self.SetForegroundColour(wx.Colour(1, 0, 0))
-
-    def updateCodeFont(self, valType):
-        """Style input box according to code wanted"""
-        if not hasattr(self, "SetStyle"):
-            # Skip if font not applicable to object type
-            return
-        if self.GetName() == "name":
-            # Name is never code
-            valType = "str"
-
-        # get font
-        if valType == "code" or hasattr(self, "dollarLbl"):
-            font = self.GetTopLevelParent().app._codeFont.Bold()
-        else:
-            font = self.GetTopLevelParent().app._mainFont
-
-        # set font
-        if sys.platform == "linux":
-            # have to go via SetStyle on Linux
-            style = wx.TextAttr(self.GetForegroundColour(), font=font)
-            self.SetStyle(0, len(self.GetValue()), style)
-        else:
-            # otherwise SetFont is fine
-            self.SetFont(font)
-
-
-class _FileMixin(_FrameMixin):
-    @property
-    def rootDir(self):
-        if not hasattr(self, "_rootDir"):
-            # Store location of root directory if not defined
-            self._rootDir = Path(self.frame.exp.filename)
-            if self._rootDir.is_file():
-                # Move up a dir if root is a file
-                self._rootDir = self._rootDir.parent
-        # Return stored rootDir
-        return self._rootDir
-    @rootDir.setter
-    def rootDir(self, value):
-        self._rootDir = value
-
-    def getFile(self, msg="Specify file ...", wildcard="All Files (*.*)|*.*"):
-        dlg = wx.FileDialog(self, message=_translate(msg), defaultDir=str(self.rootDir),
-                            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST,
-                            wildcard=_translate(wildcard))
-        if dlg.ShowModal() != wx.ID_OK:
-            return
-        file = dlg.GetPath()
-        try:
-            filename = Path(file).relative_to(self.rootDir)
-        except ValueError:
-            filename = Path(file).absolute()
-        return str(filename).replace("\\", "/")
-
-    def getFiles(self, msg="Specify file or files...", wildcard="All Files (*.*)|*.*"):
-        dlg = wx.FileDialog(self, message=_translate(msg), defaultDir=str(self.rootDir),
-                            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_MULTIPLE,
-                            wildcard=_translate(wildcard))
-        if dlg.ShowModal() != wx.ID_OK:
-            return
-        inList = dlg.GetPaths()
-        outList = []
-        for file in inList:
-            try:
-                filename = Path(file).relative_to(self.rootDir)
-            except ValueError:
-                filename = Path(file).absolute()
-            outList.append(str(filename).replace("\\", "/"))
-        return outList
-
-
-class _HideMixin:
-    def ShowAll(self, visible):
-        # Get sizer, if present
-        if hasattr(self, "_szr"):
-            sizer = self._szr
-        elif isinstance(self, DictCtrl):
-            sizer = self
-        else:
-            sizer = self.GetSizer()
-        # If there is a sizer, recursively hide children
-        if sizer is not None:
-            self.tunnelShow(sizer, visible)
-        else:
-            self.Show(visible)
-
-    def HideAll(self):
-        self.Show(False)
-
-    def tunnelShow(self, sizer, visible):
-        if sizer is not None:
-            # Show/hide everything in the sizer
-            for child in sizer.Children:
-                if child.Window is not None:
-                    child.Window.Show(visible)
-                if child.Sizer is not None:
-                    # If child is a sizer, recur
-                    self.tunnelShow(child.Sizer, visible)
-
-
-class SingleLineCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
-    def __init__(self, parent, valType,
-                 val="", fieldName="",
-                 size=wx.Size(-1, 24), style=wx.TE_LEFT):
-        # Create self
-        wx.TextCtrl.__init__(self)
-        self.Create(parent, -1, val, name=fieldName, size=size, style=style)
-        self.valType = valType
-
-        # On MacOS, we need to disable smart quotes
-        if sys.platform == 'darwin':
-            self.OSXDisableAllSmartSubstitutions()
-
-        # Add sizer
-        self._szr = wx.BoxSizer(wx.HORIZONTAL)
-        if not valType == "str" and not fieldName == "name":
-            # Add $ for anything to be interpreted verbatim
-            self.dollarLbl = wx.StaticText(parent, -1, "$", size=wx.Size(-1, -1), style=wx.ALIGN_RIGHT)
-            self.dollarLbl.SetToolTip(_translate("This parameter will be treated as code - we have already put in the $, so you don't have to."))
-            self._szr.Add(self.dollarLbl, border=5, flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT)
-        # Add self to sizer
-        self._szr.Add(self, proportion=1, border=5, flag=wx.EXPAND)
-        # Bind to validation
-        self.Bind(wx.EVT_TEXT, self.validate)
-        self.validate()
-
-    def Show(self, value=True):
-        wx.TextCtrl.Show(self, value)
-        if hasattr(self, "dollarLbl"):
-            self.dollarLbl.Show(value)
-        if hasattr(self, "deleteBtn"):
-            self.deleteBtn.Show(value)
-
-
-class MultiLineCtrl(SingleLineCtrl, _ValidatorMixin, _HideMixin):
-    def __init__(self, parent, valType,
-                 val="", fieldName="",
-                 size=wx.Size(-1, 144)):
-        SingleLineCtrl.__init__(self, parent, valType,
-                                val=val, fieldName=fieldName,
-                                size=size, style=wx.TE_MULTILINE)
-
-
-class CodeCtrl(BaseCodeEditor, handlers.ThemeMixin, _ValidatorMixin):
-    def __init__(self, parent, valType,
-                 val="", fieldName="",
-                 size=wx.Size(-1, 144)):
-        BaseCodeEditor.__init__(self, parent,
-                                ID=wx.ID_ANY, pos=wx.DefaultPosition, size=size,
-                                style=0)
-        self.valType = valType
-        self.SetValue(val)
-        self.fieldName = fieldName
-        self.params = fieldName
-        # Setup lexer to style text
-        self.SetLexer(wx.stc.STC_LEX_PYTHON)
-        self._applyAppTheme()
-        # Hide margin
-        self.SetMarginWidth(0, 0)
-        # Setup auto indent behaviour as in Code component
-        self.Bind(wx.EVT_KEY_DOWN, self.onKey)
-
-    def getValue(self, evt=None):
-        return self.GetValue()
+        Returns the value of this ctrl
+        """
+        raise NotImplementedError(
+            "All subclasses of BaseParamCtrl should implement `getValue`"
+        )
 
     def setValue(self, value):
-        self.SetValue(value)
+        """
+        Returns the value of this ctrl
+        """
+        raise NotImplementedError(
+            "All subclasses of BaseParamCtrl should implement `setValue`"
+        )
+
+    def setTooltip(self, text):
+        """
+        Set the tooltip on this control.
+
+        Parameters
+        ----------
+        text : str
+            Text to show in tooltip
+        """
+        # set tooltip on panel
+        self.SetToolTip(wx.ToolTip(text))
+        # set on ctrl if possible
+        if hasattr(self.ctrl, 'SetToolTip'):
+            self.ctrl.SetToolTip(wx.ToolTip(text))
+    
+    def getWarning(self):
+        """
+        Get the warning associated with this ctrl, if any
+        """
+        if self.warnings is not None:
+            return self.warnings.getWarning(self)
+
+    def setWarning(self, warning, allowed=True):
+        """
+        Set a warning on the warnings handler attached to this ctrl, if any.
+
+        Parameters
+        ----------
+        warning : str
+            Warning to display
+        """
+        if self.warnings is not None:
+            self.warnings.setWarning(self, warning, allowed=allowed)
+    
+    def clearWarning(self):
+        """
+        Remove the warning handler attached to this ctrl, if any.
+        """
+        if self.warnings is not None:
+            self.warnings.clearWarning(self)
+    
+    @property
+    def isValid(self):
+        """
+        Returns True or False based on whether the current ctrl has generated any warnings
+        """
+        if self.warnings is not None:
+            return self.warnings.getWarning(self) is None
+
+    def validate(self):
+        """
+        Update warnings based on the value of this ctrl
+        """
+        # always start off with no warning
+        self.clearWarning()
+
+    def styleValid(self):
+        """
+        Style this ctrl according to whether its value is valid (`.isValid`)
+        """
+        # if not implemented, do nothing
+        return
 
     @property
-    def val(self):
+    def isCode(self):
         """
-        Alias for Set/GetValue, as .val is used elsewhere
+        Returns True if the contents of this ctrl should be styled as code.
         """
-        return self.getValue()
+        # if needed, figure out from $
+        if self.param.valType in ("extendedStr","str", "file", "table", "color"):
+            return str(self.getValue()).startswith("$")
+        
+        return True
 
-    @val.setter
-    def val(self, value):
-        self.setValue(value)
+    def styleCode(self):
+        """
+        Style this ctrl according to whether it contains code (`.isCode`)
+        """
+        # if not implemented, do nothing
+        return
+    
+    def onChange(self, evt=None):
+        """
+        Callback which updates the control and param when the value changes.
 
-    def onKey(self, evt=None):
-        CodeBox.OnKeyPressed(self, evt)
+        Parameters
+        ----------
+        evt : wx.Event
+            Whatever event triggered this function
+        """
+        # validate ctrl
+        self.validate()
+        # style according to whether value is code and valid
+        self.styleCode()
+        self.styleValid()
+        # update
+        self.Update()
+        self.Refresh()
+        # update param value
+        self.param.val = self.getValue()
+        # show any warnings
+        if self.warnings is not None:
+            self.warnings.showWarning()
+        # process dependent params
+        if hasattr(self.parent, "checkDepends"):
+            self.parent.checkDepends()
+        # emit a custom event
+        evt = ParamValueChangedEvent(self, param=self.param, trigger=evt)
+        wx.PostEvent(self, evt)
+    
+    def onElementOk(self, evt=None):
+        """
+        Method which is called when OK is pressed on the element containing this param, if any.
+        """
+        # assume no action
+        return
 
 
-class InvalidCtrl(SingleLineCtrl, _ValidatorMixin, _HideMixin):
-    def __init__(self, parent, valType,
-                 val="", fieldName="",
-                 size=wx.Size(-1, 24), style=wx.DEFAULT):
-        SingleLineCtrl.__init__(self, parent, valType,
-                                val=val, fieldName=fieldName,
-                                size=size, style=style)
-        self.Disable()
-        # Add delete button
-        self.deleteBtn = wx.Button(parent, label="×", size=(24, 24))
+class ParamCtrl:
+    """
+    Constructor which looks for the appropriate subclass of BaseParamCtrl and initialises that.
+    """
+    def __new__(cls, parent, field, param, element=None, warnings=None):
+        if param.inputType in inputTypes:
+            # if a known type, get associated control
+            ctrlCls = inputTypes[param.inputType]
+        else:
+            # otherwise, make a single line text ctrl
+            ctrlCls = SingleLineCtrl
+        
+        return ctrlCls(parent, field, param, element, warnings)
+
+class SingleLineCtrl(BaseParamCtrl):
+    inputType = "single"
+
+    # overload this in subclasses to control style
+    ctrlStyle = wx.TE_LEFT
+
+    def makeCtrls(self):
+        # add dollar label
+        self.dollarLbl = wx.StaticText(
+            self, label="$", style=wx.ALIGN_RIGHT
+        )
+        self.dollarLbl.SetToolTip(_translate(
+            "This parameter will be treated as code - we have already put in the $, so you don't "
+            "have to."
+        ))
+        self.sizer.Add(
+            self.dollarLbl, border=6, flag=wx.CENTER | wx.RIGHT
+        )
+        # show/hide dollar according to valType
+        self.dollarLbl.Show(
+            self.param.valType in ("code", "extendedCode")
+        )
+        # add value ctrl
+        self.ctrl = wx.TextCtrl(
+            self, value=str(self.param.val), name=self.field, style=self.ctrlStyle
+        )
+        self.sizer.Add(
+            self.ctrl, proportion=1, flag=wx.EXPAND
+        )
+        # map change event
+        self.ctrl.Bind(
+            wx.EVT_TEXT, self.onChange
+        )
+        # also do styling once now
+        self.onChange()
+    
+    def getValue(self):
+        return self.ctrl.GetValue()
+
+    def setValue(self, value, silent=False):
+        # get insertion point if possible
+        pt = self.ctrl.GetInsertionPoint()
+        # set value
+        if silent:
+            self.ctrl.ChangeValue(str(value))
+        else:
+            self.ctrl.SetValue(str(value))
+        # restore insertion point if possible
+        try:
+            self.ctrl.SetInsertionPoint(pt)
+        except:
+            pass
+    
+    def validateCode(self):
+        # get value without any dollar syntax
+        value = experiment.getCodeFromParamStr(
+            self.getValue(), 
+            target="PsychoPy"
+        )
+        # if blank, there's no code yet to be invalid
+        if not value:
+            return
+        try:
+            variableDefs = stringtools.getVariableDefs(value)
+            variables = stringtools.getVariables(value)
+        except (SyntaxError, TypeError) as e:
+            # if failed to get variables, add warning and mark invalid
+            self.setWarning(_translate(
+                "Python syntax error in field `{}`:  {}"
+            ).format(self.param.label, e))
+            return
+        # for multiline code, check that any variable defs don't break the namespace
+        if self.param.valType == "extendedCode":
+            # check that nothing important is being overwritten
+            if self.element:
+                # iterate through variable defs in code (if any)
+                for name in variableDefs:
+                    # is it overwriting something?
+                    used = self.element.exp.namespace.exists(name)
+                    if used:
+                        # warn but allow
+                        self.setWarning(_translate(
+                            "Setting the variable `{}` will overwrite an existing variable ({})"
+                        ).format(name, used), allowed=True)
+        else:
+            # check any dynamic parameters
+            if self.param.updates == "constant": 
+                # if references a name, is it one defined before experiment start?
+                for name in variables:
+                    if name not in NameSpace.nonUserBuilder:
+                        # if not, warn but allow
+                        self.setWarning(_translate(
+                            "Looks like your variable '{}' in '{}' should be set to "
+                            "update."
+                        ).format(name, self.param.label), allowed=True)
+    
+    def validateStr(self):
+        # warn for unescaped "
+        if re.findall(r"(?<!\\)[\"\']", self.getValue()):
+            self.setWarning(_translate(
+                "Quotation marks (\" or ') need to be escaped (\\\" or \\')"
+            ))
+
+    def validate(self):
+        # start off valid
+        BaseParamCtrl.validate(self)
+        # use different method for code vs string
+        if self.isCode:
+            return self.validateCode()
+        else:
+            return self.validateStr()
+    
+    def styleValid(self):
+        # text turns red if invalid
+        if self.isValid:
+            self.ctrl.SetForegroundColour(
+                colors.scheme['black']
+            )
+        else:
+            self.ctrl.SetForegroundColour(
+                colors.scheme['red']
+            )
+        self.ctrl.Refresh()
+    
+    def styleCode(self):
+        # text becomes monospace if code
+        if self.isCode:
+            self.ctrl.SetFont(
+                fonts.CodeFont(bold=True).obj
+            )
+        else:
+            self.ctrl.SetFont(
+                fonts.AppFont().obj
+            )
+        self.ctrl.Refresh()
+    
+    def onChange(self, evt=None):
+        # do some sanitization before usual onchange behaviour
+        if self.isCode:
+            # replace unescaped curly quotes
+            if re.findall(r"(?<!\\)[\u201c\u201d]", self.getValue()):
+                self.setValue(
+                    re.sub(r"(?<!\\)[\u201c\u201d]", "\"", self.getValue())
+                )
+        else:
+            pass
+
+        BaseParamCtrl.onChange(self, evt)
+
+
+class NameCtrl(SingleLineCtrl):
+    inputType = "name"
+
+    def styleCode(self):
+        # a name is always code, we don't need to remind the user, so style as normal
+        self.dollarLbl.Hide()
+        self.ctrl.Refresh()
+        self.ctrl.Layout()
+    
+    def validate(self):
+        # start off valid
+        BaseParamCtrl.validate(self)
+        # is name a valid name?
+        if NameSpace.isValid(self.getValue()):
+            # if we have an experiment, is the name used already?
+            if self.element:
+                # if unchanged from original name, it does exist but is valid
+                if self.getValue() == self.element.name:
+                    return
+                # otherwise, check against extant names
+                exists = self.element.exp.namespace.exists(self.getValue())
+                if exists:
+                    self.setWarning(_translate(
+                        "Name is already in use ({})"
+                    ).format(exists), allowed=False)
+        else:
+            self.setWarning(_translate(
+                "Name is not valid"
+            ), allowed=False)
+
+
+class MultiLineCtrl(SingleLineCtrl):
+    inputType = "multi"
+
+    ctrlStyle = wx.TE_LEFT | wx.TE_MULTILINE
+
+
+class InvalidCtrl(SingleLineCtrl):
+    inputType = "inv"
+
+    def makeCtrls(self):        
+        SingleLineCtrl.makeCtrls(self)
+        self.ctrl.Disable()
+        # add delete button
+        self.deleteBtn = wx.Button(self, label="×", size=(24, 24))
         self.deleteBtn.SetForegroundColour("red")
         self.deleteBtn.Bind(wx.EVT_BUTTON, self.deleteParam)
         self.deleteBtn.SetToolTip(_translate(
@@ -260,463 +459,385 @@ class InvalidCtrl(SingleLineCtrl, _ValidatorMixin, _HideMixin):
             "In the latest version of PsychoPy, it is not used. Click this "
             "button to delete it. WARNING: This may affect how this experiment "
             "works in older versions!"))
-        self._szr.Add(self.deleteBtn, border=6, flag=wx.LEFT | wx.RIGHT)
-        # Add deleted label
-        self.deleteLbl = wx.StaticText(parent, label=_translate("DELETED"))
+        self.sizer.Add(self.deleteBtn, border=6, flag=wx.LEFT | wx.RIGHT)
+        # add deleted label
+        self.deleteLbl = wx.StaticText(self, label=_translate("DELETED"))
         self.deleteLbl.SetForegroundColour("red")
         self.deleteLbl.Hide()
-        self._szr.Add(self.deleteLbl, border=6, proportion=1, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
-        # Add undo delete button
-        self.undoBtn = wx.Button(parent, label="⟲", size=(24, 24))
+        self.sizer.Add(self.deleteLbl, border=6, proportion=1, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
+        # add undo delete button
+        self.undoBtn = wx.Button(self, label="⟲", size=(24, 24))
         self.undoBtn.SetToolTip(_translate(
             "This parameter will not be deleted until you click Okay. "
             "Click this button to revert the deletion and keep the parameter."))
         self.undoBtn.Hide()
         self.undoBtn.Bind(wx.EVT_BUTTON, self.undoDelete)
-        self._szr.Add(self.undoBtn, border=6, flag=wx.LEFT | wx.RIGHT)
+        self.sizer.Add(self.undoBtn, border=6, flag=wx.LEFT | wx.RIGHT)
 
-        # Set deletion flag
+        # set deletion flag
         self.forDeletion = False
 
     def deleteParam(self, evt=None):
         """
         When the remove button is pressed, mark this param as for deletion
         """
-        # Mark for deletion
+        # mark for deletion
         self.forDeletion = True
-        # Hide value ctrl and delete button
-        self.Hide()
+        # hide value ctrl and delete button
+        self.ctrl.Hide()
         self.deleteBtn.Hide()
-        # Show delete label and
+        # show delete label and
         self.undoBtn.Show()
         self.deleteLbl.Show()
 
-        self._szr.Layout()
+        self.sizer.Layout()
 
     def undoDelete(self, evt=None):
-        # Mark not for deletion
+        # mark not for deletion
         self.forDeletion = False
-        # Show value ctrl and delete button
-        self.Show()
+        # show value ctrl and delete button
+        self.ctrl.Show()
         self.deleteBtn.Show()
-        # Hide delete label and
+        # hide delete label and
         self.undoBtn.Hide()
         self.deleteLbl.Hide()
 
-        self._szr.Layout()
+        self.sizer.Layout()
 
 
-class IntCtrl(wx.SpinCtrl, _ValidatorMixin, _HideMixin):
-    def __init__(self, parent, valType,
-                 val="", fieldName="",
-                 size=wx.Size(-1, 24), limits=None):
-        wx.SpinCtrl.__init__(self)
-        limits = limits or (-100,100)
-        self.Create(parent, -1, str(val), name=fieldName, size=size, min=min(limits), max=max(limits))
-        self.valType = valType
-        self.Bind(wx.EVT_SPINCTRL, self.spin)
+class BoolCtrl(BaseParamCtrl):
+    inputType = "bool"
 
-    def spin(self, evt):
-        """Redirect validate calls to global validate method, assigning appropriate valType"""
-        if evt.EventType == wx.EVT_SPIN_UP.evtType[0]:
-            self.SetValue(str(int(self.GetValue())+1))
-        elif evt.EventType == wx.EVT_SPIN_DOWN.evtType[0]:
-            self.SetValue(str(int(self.GetValue()) - 1))
-        validate(self, "int")
+    def makeCtrls(self):
+        # add checkbox
+        self.ctrl = wx.CheckBox(self)
+        self.ctrl.SetValue(bool(self.param))
+        self.sizer.Add(
+            self.ctrl, border=6, flag=wx.EXPAND | wx.ALL
+        )
+        # connect onChange
+        self.ctrl.Bind(
+            wx.EVT_CHECKBOX, self.onChange
+        )
+    
+    def getValue(self):
+        return self.ctrl.IsChecked()
+
+    def setValue(self, value):
+        self.ctrl.SetValue(bool(value))
 
 
-BoolCtrl = wx.CheckBox
+class ChoiceCtrl(BaseParamCtrl):
+    inputType = "choice"
 
-
-class ChoiceCtrl(wx.Choice, _ValidatorMixin, _HideMixin):
-    def __init__(self, parent, valType,
-                 val="", choices=[], labels=[], fieldName="",
-                 size=wx.Size(-1, -1)):
-        self._choices = choices
-        self._labels = labels
-        # Create choice ctrl from labels
-        wx.Choice.__init__(self)
-        self.Create(parent, -1, name=fieldName)
+    def makeCtrls(self):
+        # add choice ctrl
+        self.ctrl = wx.Choice(self)
+        self.sizer.Add(
+            self.ctrl, proportion=1, flag=wx.EXPAND | wx.ALL
+        )
+        # connect onChange
+        self.ctrl.Bind(
+            wx.EVT_CHOICE, self.onChange
+        )
+        # set initial choices
         self.populate()
-        self.valType = valType
-        self.SetStringSelection(val)
 
     def populate(self):
-        if callable(self._choices):
-            # if choices are given as a partial, execute it now to get values
-            choices = self._choices()
+        # convert values to a list (by executing method of just converting value)
+        if callable(self.param.allowedVals):
+            choices = [str(val) for val in self.param.allowedVals()]
         else:
-            # otherwise, treat it as a list
-            choices = list(self._choices)
-
-        if callable(self._labels):
-            # if labels are given as a partial, execute it now to get values
-            labels = self._labels()
-        elif self._labels:
-            # otherwise, treat it as a list
-            labels = list(self._labels)
+            choices = [str(val) for val in self.param.allowedVals]
+        # convert labels to a list (by executing method of just converting value)
+        if callable(self.param.allowedLabels):
+            labels = self.param.allowedLabels()
+        elif self.param.allowedLabels:
+            labels = list(self.param.allowedLabels)
         else:
             # if not given any labels, alias values
             labels = choices
-        # Map labels to values
-        _labels = {}
-        for i, value in enumerate(choices):
+        # make arrays the same length
+        self.choices = []
+        self.labels = []
+        for i in range(max(len(choices), len(labels))):
+            # fill in missing choices with label
+            if i < len(choices):
+                self.choices.append(choices[i])
+            else:
+                self.choices.append(labels[i])
+            # fill in missing labels with choices
             if i < len(labels):
-                _labels[value] = _translate(labels[i]) if labels[i] != '' else ''
+                self.labels.append(str(labels[i]))
             else:
-                _labels[value] = _translate(value) if value != '' else ''
-        labels = _labels
-        # store labels and choices
-        self.labels = labels
-        self.choices = choices
-
+                self.labels.append(str(choices[i]))
         # apply to ctrl
-        self.SetItems([str(self.labels[c]) for c in self.choices])
-
-    def SetStringSelection(self, string):
-        strChoices = [str(choice) for choice in self.choices]
-        if string not in self.choices:
-            if string in strChoices:
-                # If string is a stringified version of a value in choices, stringify the value in choices
-                i = strChoices.index(string)
-                self.labels[string] = self.labels.pop(self.choices[i])
-                self.choices[i] = string
-            else:
-                # Otherwise it is a genuinely new value, so add it to options
-                self.choices.append(string)
-                self.labels[string] = string
-            # Refresh items
-            self.SetItems(
-                [str(self.labels[c]) for c in self.choices]
-            )
-        # Don't use wx.Choice.SetStringSelection here because label string is localized.
-        wx.Choice.SetSelection(self, self.choices.index(string))
-
+        self.ctrl.SetItems(self.labels)
+        # disable if param is readonly
+        self.ctrl.Enable(not self.param.readOnly)
+        # apply (or re-apply) selection
+        self.setValue(self.param.val)
+    
     def getValue(self):
-        # Don't use wx.Choice.GetStringSelection here because label string is localized.
-        return self.choices[self.GetSelection()]
-
-
-class MultiChoiceCtrl(wx.CheckListBox, _ValidatorMixin, _HideMixin):
-    def __init__(self, parent, valType,
-                 vals="", choices=[], fieldName="",
-                 size=wx.Size(-1, -1)):
-        wx.CheckListBox.__init__(self)
-        self.Create(parent, id=wx.ID_ANY, size=size, choices=choices, name=fieldName, style=wx.LB_MULTIPLE)
-        self.valType = valType
-        self._choices = choices
-        # Make initial selection
-        if isinstance(vals, str):
-            # Convert to list if needed
-            vals = data.utils.listFromString(vals, excludeEmpties=True)
-        self.SetCheckedStrings(vals)
-        self.validate()
-
-    def SetCheckedStrings(self, strings):
-        if not isinstance(strings, (list, tuple)):
-            strings = [strings]
-        for s in strings:
-            if s not in self._choices:
-                self._choices.append(s)
-                self.SetItems(self._choices)
-        wx.CheckListBox.SetCheckedStrings(self, strings)
-
-    def GetValue(self, evt=None):
-        return self.GetCheckedStrings()
-
-
-class RichChoiceCtrl(wx.Panel, _ValidatorMixin, _HideMixin):
-    class RichChoiceItem(wx.Panel):
-        def __init__(self, parent, value, label, body="", linkText="", link="", startShown="always", viewToggle=True):
-            # Initialise
-            wx.Panel.__init__(self, parent, style=wx.BORDER_THEME)
-            self.parent = parent
-            self.value = value
-            self.startShown = startShown
-            # Setup sizer
-            self.border = wx.BoxSizer()
-            self.SetSizer(self.border)
-            self.sizer = wx.FlexGridSizer(cols=3)
-            self.sizer.AddGrowableCol(idx=1, proportion=1)
-            self.border.Add(self.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
-            # Check
-            self.check = wx.CheckBox(self, label=" ")
-            self.check.Bind(wx.EVT_CHECKBOX, self.onCheck)
-            self.check.Bind(wx.EVT_KEY_UP, self.onToggle)
-            self.sizer.Add(self.check, border=3, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
-            # Title
-            self.title = wx.StaticText(self, label=label)
-            self.title.SetFont(self.title.GetFont().Bold())
-            self.sizer.Add(self.title, border=3,  flag=wx.ALL | wx.EXPAND)
-            # Toggle
-            self.toggleView = wx.ToggleButton(self, style=wx.BU_EXACTFIT)
-            self.toggleView.Bind(wx.EVT_TOGGLEBUTTON, self.onToggleView)
-            self.toggleView.Show(viewToggle)
-            self.sizer.Add(self.toggleView, border=3, flag=wx.ALL | wx.EXPAND)
-            # Body
-            self.body = utils.WrappedStaticText(self, label=body)
-            self.sizer.AddStretchSpacer(1)
-            self.sizer.Add(self.body, border=3, proportion=1, flag=wx.ALL | wx.EXPAND)
-            self.sizer.AddStretchSpacer(1)
-            # Link
-            self.link = utils.HyperLinkCtrl(self, label=linkText, URL=link)
-            self.link.SetBackgroundColour(self.GetBackgroundColour())
-            self.sizer.AddStretchSpacer(1)
-            self.sizer.Add(self.link, border=3, flag=wx.ALL | wx.ALIGN_LEFT)
-            self.sizer.AddStretchSpacer(1)
-
-            # Style
-            self.SetBackgroundColour("white")
-            self.body.SetBackgroundColour("white")
-            self.link.SetBackgroundColour("white")
-
-            self.Layout()
-
-        def getChecked(self):
-            return self.check.GetValue()
-
-        def setChecked(self, state):
-            if self.parent.multi:
-                # If multi select is allowed, leave other values unchanged
-                values = self.parent.getValue()
-                if not isinstance(values, (list, tuple)):
-                    values = [values]
-                if state:
-                    # Add this item to list if checked
-                    values.append(self.value)
-                else:
-                    # Remove this item from list if unchecked
-                    if self.value in values:
-                        values.remove(self.value)
-                self.parent.setValue(values)
-            elif state:
-                # If single only, set at parent level so others are unchecked
-                self.parent.setValue(self.value)
-
-        def onCheck(self, evt):
-            self.setChecked(evt.IsChecked())
-
-        def onToggle(self, evt):
-            if evt.GetUnicodeKey() in (wx.WXK_SPACE, wx.WXK_NUMPAD_SPACE):
-                self.setChecked(not self.check.IsChecked())
-
-        def onToggleView(self, evt):
-            # If called with a boolean, use it directly, otherwise get bool from event
-            if isinstance(evt, bool):
-                val = evt
-            else:
-                val = evt.IsChecked()
-            # Update toggle ctrl label
-            if val:
-                lbl = "⯆"
-            else:
-                lbl = "⯇"
-            self.toggleView.SetLabel(lbl)
-            # Show/hide body based on value
-            self.body.Show(val)
-            self.link.Show(val)
-            # Layout
-            self.Layout()
-            self.parent.parent.Layout()  # layout params notebook page
-
-    def __init__(self, parent, valType,
-                 vals="", fieldName="",
-                 choices=[], labels=[],
-                 size=wx.Size(-1, -1),
-                 viewToggle=True):
-        # Initialise
-        wx.Panel.__init__(self, parent, size=size)
-        self.parent = parent
-        self.valType = valType
-        self.fieldName = fieldName
-        self.multi = False
-        self.viewToggle = viewToggle
-        # Setup sizer
-        self.border = wx.BoxSizer()
-        self.SetSizer(self.border)
-        self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.border.Add(self.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
-        self.SetSizer(self.border)
-        # Store values
-        self.choices = {}
-        for i, val in enumerate(choices):
-            self.choices[val] = labels[i]
-        # Populate
-        self.populate()
-        # Set value
-        self.setValue(vals)
-        # Start off showing according to param
-        for obj in self.items:
-            # Work out if we should start out shown
-            if self.viewToggle:
-                if obj.startShown == "never":
-                    startShown = False
-                elif obj.startShown == "checked":
-                    startShown = obj.check.IsChecked()
-                elif obj.startShown == "unchecked":
-                    startShown = not obj.check.IsChecked()
-                else:
-                    startShown = True
-            else:
-                startShown = True
-            # Apply starting view
-            obj.toggleView.SetValue(startShown)
-            obj.onToggleView(startShown)
-
-        self.Layout()
-
-    def populate(self):
-        self.items = []
-        for val, label in self.choices.items():
-            if not isinstance(label, dict):
-                # Make sure label is dict
-                label = {"label": label}
-            # Add item control
-            self.addItem(val, label=label)
-        self.Layout()
-
-    def addItem(self, value, label={}):
-        # Create item object
-        item = self.RichChoiceItem(self, value=value, viewToggle=self.viewToggle, **label)
-        self.items.append(item)
-        # Add to sizer
-        self.sizer.Add(item, border=3, flag=wx.ALL | wx.EXPAND)
-
-    def getValue(self):
-        # Get corresponding value for each checked item
-        values = []
-        for item in self.items:
-            if item.getChecked():
-                # If checked, append value
-                values.append(item.value)
-        # Strip list if not multi
-        if not self.multi:
-            if len(values):
-                values = values[0]
-            else:
-                values = ""
-
-        return values
-
+        return self.choices[self.ctrl.GetSelection()]
+    
     def setValue(self, value):
-        # Make sure value is iterable
-        if not isinstance(value, (list, tuple)):
-            value = [value]
-        # Check/uncheck corresponding items
-        for item in self.items:
-            state = item.value in value
-            item.check.SetValue(state)
-
-        # Post event
-        evt = wx.ListEvent(commandType=wx.EVT_CHOICE.typeId, id=-1)
-        evt.SetEventObject(self)
-        wx.PostEvent(self, evt)
-
-        self.Layout()
+        if str(value) not in self.choices:
+            # if not known, add it to possible choices
+            self.choices.append(str(value))
+            self.labels.append(str(value))
+            self.ctrl.SetItems(self.labels)
+        # set
+        self.ctrl.SetSelection(
+            self.choices.index(str(value))
+        )
 
 
-class FileCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
-    def __init__(self, parent, valType,
-                 val="", fieldName="",
-                 size=wx.Size(-1, 24)):
-        # Create self
-        wx.TextCtrl.__init__(self)
-        self.Create(parent, -1, val, name=fieldName, size=size)
-        self.valType = valType
-        # Add sizer
-        self._szr = wx.BoxSizer(wx.HORIZONTAL)
-        self._szr.Add(self, border=5, proportion=1, flag=wx.EXPAND | wx.RIGHT)
-        # Add button to browse for file
-        fldr = icons.ButtonIcon(stem="folder", size=16, theme="light").bitmap
-        self.findBtn = wx.BitmapButton(parent, -1, bitmap=fldr, style=wx.BU_EXACTFIT)
-        self.findBtn.SetToolTip(_translate("Specify file ..."))
-        self.findBtn.Bind(wx.EVT_BUTTON, self.findFile)
-        self._szr.Add(self.findBtn)
-        # Configure validation
-        self.Bind(wx.EVT_TEXT, self.validate)
-        self.validate()
+class MultiChoiceCtrl(ChoiceCtrl):
+    inputType = "multiChoice"
 
-    def findFile(self, evt):
-        file = self.getFile()
-        if file:
-            self.setFile(file)
-            self.validate(evt)
+    def makeCtrls(self):
+        self.ctrl = wx.CheckListBox(self, style=wx.LB_MULTIPLE)
+        self.sizer.Add(
+            self.ctrl, proportion=1, flag=wx.EXPAND | wx.ALL
+        )
+        # connect onChange
+        self.ctrl.Bind(
+            wx.EVT_CHECKLISTBOX, self.onChange
+        )
 
-    def setFile(self, file):
-        # Set text value
-        wx.TextCtrl.SetValue(self, file)
-        # Post event
-        evt = wx.FileDirPickerEvent(wx.EVT_FILEPICKER_CHANGED.typeId, self, -1, file)
-        evt.SetEventObject(self)
-        wx.PostEvent(self, evt)
-        # Post keypress event to trigger onchange
-        evt = wx.FileDirPickerEvent(wx.EVT_KEY_UP.typeId, self, -1, file)
-        evt.SetEventObject(self)
-        wx.PostEvent(self, evt)
+        self.populate()
+    
+    def getValue(self):
+        return [
+            self.choices[i] for i in self.ctrl.GetCheckedItems()
+        ]
+    
+    def setValue(self, value):
+        # coerce to list
+        value = data.utils.listFromString(value)
+        # iterate through values
+        selected = []
+        for val in value:
+            # if not known, add it to possible choices
+            if val not in self.choices:
+                self.choices.append(val)
+                self.labels.append(str(val))
+                self.ctrl.SetItems(self.labels)
+            # add index
+            selected.append(
+                self.choices.index(val)
+            )
+        # set
+        self.ctrl.SetCheckedItems(selected)
 
 
-class FileListCtrl(wx.ListBox, _ValidatorMixin, _HideMixin, _FileMixin):
-    def __init__(self, parent, valType,
-                 choices=[], size=None, pathtype="rel"):
-        wx.ListBox.__init__(self)
-        self.valType = valType
-        parent.Bind(wx.EVT_DROP_FILES, self.addItem)
-        self.app = parent.app
-        if type(choices) == str:
-            choices = data.utils.listFromString(choices)
-        self.Create(id=wx.ID_ANY, parent=parent, choices=choices, size=size, style=wx.LB_EXTENDED | wx.LB_HSCROLL)
-        self.addCustomBtn = wx.Button(parent, -1, size=(24,24), style=wx.BU_EXACTFIT, label="...")
-        self.addCustomBtn.Bind(wx.EVT_BUTTON, self.addCustomItem)
-        self.addBtn = wx.Button(parent, -1, size=(24,24), style=wx.BU_EXACTFIT, label="+")
-        self.addBtn.Bind(wx.EVT_BUTTON, self.addItem)
-        self.subBtn = wx.Button(parent, -1, size=(24,24), style=wx.BU_EXACTFIT, label="-")
-        self.subBtn.Bind(wx.EVT_BUTTON, self.removeItem)
-        self._szr = wx.BoxSizer(wx.HORIZONTAL)
-        self.btns = wx.BoxSizer(wx.VERTICAL)
-        self.btns.AddMany((self.addCustomBtn, self.addBtn, self.subBtn))
-        self._szr.Add(self, proportion=1, flag=wx.EXPAND)
-        self._szr.Add(self.btns)
+class FileCtrl(SingleLineCtrl):
+    inputType = "file"
 
-    def addItem(self, event):
-        # Get files
-        if event.GetEventObject() == self.addBtn:
-            fileList = self.getFiles()
-        else:
-            fileList = event.GetFiles()
-            for i, filename in enumerate(fileList):
-                try:
-                    fileList[i] = Path(filename).relative_to(self.rootDir)
-                except ValueError:
-                    fileList[i] = Path(filename).absolute()
-        # Add files to list
-        if fileList:
-            self.InsertItems(fileList, 0)
+    dlgWildcard = "All Files (*.*)|*.*"
+    icon = "folder"
+    dlgStyle = wx.FD_FILE_MUST_EXIST
 
-    def removeItem(self, event):
-        i = self.GetSelections()
-        if isinstance(i, int):
-            i = [i]
-        items = [item for index, item in enumerate(self.Items)
-                 if index not in i]
-        self.SetItems(items)
-
-    def addCustomItem(self, event):
-        # Create string dialog
-        dlg = wx.TextEntryDialog(parent=self, message=_translate("Add custom item"))
-        # Show dialog
+    def makeCtrls(self):
+        SingleLineCtrl.makeCtrls(self)
+        # add a file browse button
+        self.fileBtn = wx.Button(self, style=wx.BU_EXACTFIT)
+        self.fileBtn.SetBitmap(
+            icons.ButtonIcon(stem=self.icon, size=16, theme="light").bitmap
+        )
+        self.fileBtn.SetToolTip(
+            _translate("Browse for a file")
+        )
+        self.fileBtn.Bind(wx.EVT_BUTTON, self.openFileBrowser)
+        self.sizer.Add(
+            self.fileBtn, border=6, flag=wx.EXPAND | wx.LEFT
+        )
+    
+    def styleValid(self):
+        # style as normal
+        SingleLineCtrl.styleValid(self)
+        # if not code, check for a link
+        if not self.isCode:
+            if stringtools.is_url(self.getValue()):
+                self.ctrl.SetForegroundColour(
+                    colors.scheme['blue']
+                )
+                self.ctrl.Refresh()
+    
+    @property
+    def rootDir(self):
+        # if no element, use system root
+        if self.element is None or not hasattr(self.element, "exp"):
+            return Path()
+        # otherwise, get from experiment
+        root = Path(self.element.exp.filename)
+        # move up a dir if root is a file
+        if root.is_file():
+            root = root.parent
+        
+        return root
+    
+    def openFileBrowser(self, evt=None):
+        # open a file browser dialog
+        dlg = wx.FileDialog(
+            self, 
+            message=_translate("Specify file..."), 
+            defaultDir=str(self.rootDir),
+            style=wx.FD_OPEN | self.dlgStyle,
+            wildcard=self.dlgWildcard
+        )
         if dlg.ShowModal() != wx.ID_OK:
             return
-        # Get string
-        stringEntry = dlg.GetValue()
-        # Add to list
-        if stringEntry:
-            self.InsertItems([stringEntry], 0)
+        # get path
+        file = dlg.GetPath()
+        # relativise
+        try:
+            filename = Path(file).relative_to(self.rootDir)
+        except ValueError:
+            filename = Path(file).absolute()
+        # set value
+        self.setValue(
+            str(filename).replace("\\", "/")
+        )
+    
+    def validate(self):
+        from psychopy.tools.filetools import defaultStim
+        # start off valid
+        BaseParamCtrl.validate(self)
+        # if given as code, use regular code checking
+        if self.isCode:
+            return SingleLineCtrl.validateCode(self)
+        # if given a link, it's valid
+        if stringtools.is_url(self.getValue()):
+            self.clearWarning()
+            return
+        # if blank, don't worry about it
+        if self.getValue() == "":
+            self.clearWarning()
+            return
+        # if it's a string, convert to file
+        try:
+            file = Path(self.getValue())
+        except:
+            # if it can't be a file at all, show warning
+            self.setWarning(_translate(
+                "Not a valid file path: {}"
+            ).format(self.getValue()))
+            return
+        # make path absolute
+        if not file.is_absolute():
+            file = self.rootDir / file
+        # valid only if file exists
+        if all((
+            not file.is_file(),
+            file.name not in defaultStim
+        )):
+            self.setWarning(_translate(
+                "No file named {}"
+            ).format(self.getValue()))
 
-    def GetValue(self):
-        return self.Items
+
+class SoundCtrl(FileCtrl):
+    inputType = "soundFile"
+
+    def validate(self):
+        from psychopy.tools.audiotools import knownNoteNames
+        # validate like a normal file
+        FileCtrl.validate(self)
+        # if given a note, this is fine
+        if str(self.getValue()).capitalize() in knownNoteNames:
+            self.clearWarning()
 
 
-class SurveyCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
+class TableCtrl(FileCtrl):
+    inputType = "table"
+
+    validExt = [
+        ".csv", ".tsv", ".txt", ".xl", ".xlsx", ".xlsm", ".xlsb", ".xlam", ".xltx", ".xltm", 
+        ".xls", ".xlt", ".htm", ".html", ".mht", ".mhtml", ".xml", ".xla", ".xlm", ".odc", ".ods", 
+        ".udl", ".dsn", ".mdb", ".mde", ".accdb", ".accde", ".dbc", ".dbf", ".iqy", ".dqy", ".rqy", 
+        ".oqy", ".cub", ".atom", ".atomsvc", ".prn", ".slk", ".dif"
+    ]
+    dlgWildcard = (
+        f"All Table Files({'*'+';*'.join(validExt)})"
+        f"|{'*'+';*'.join(validExt)}"
+        f"|All Files (*.*)"
+        f"|*.*"
+    )
+
+    def makeCtrls(self):
+        FileCtrl.makeCtrls(self)
+        # Add button to open in Excel
+        self.xlBtn = wx.Button(self, style=wx.BU_EXACTFIT)
+        self.xlBtn.SetBitmap(
+            icons.ButtonIcon(stem="filecsv", size=16, theme="light").bitmap
+        )
+        self.xlBtn.SetToolTip(
+            _translate("Open/create in your default table editor")
+        )
+        self.xlBtn.Bind(wx.EVT_BUTTON, self.openExcel)
+        self.sizer.Add(
+            self.xlBtn, border=6, flag=wx.EXPAND | wx.LEFT
+        )
+        # call initial onChange
+        self.onChange()
+    
+    def onChange(self, evt=None):
+        FileCtrl.onChange(self, evt)
+        # if calling before finished initialising, skip
+        if not hasattr(self, "xlBtn"):
+            return
+        
+        if not self.getValue().strip():
+            # if blank, enable/disable according to presence of template
+            self.xlBtn.Enable("template" in self.param.ctrlParams)
+        else:
+            # otherwise, enable/disable according to validity
+            self.xlBtn.Enable(self.isValid)
+
+    def openExcel(self, event):
+        """
+        Either open the specified excel sheet, or make a new one from a template
+        """
+        # make path absolute
+        if not file.is_absolute():
+            file = self.rootDir / file
+        # open a template if not a valid file
+        if not (file.is_file() or file.suffix not in self.validExt):
+            dlg = wx.MessageDialog(self, _translate(
+                    "Once you have created and saved your table,"
+                    "please remember to add it to {name}"
+                ).format(name=_translate(self.Name)),
+                caption=_translate("Reminder")
+            )
+            dlg.ShowModal()
+            # get template
+            if "template" in self.param.ctrlParams:
+                file = self.param.ctrlParams['template']
+                # if template is specified as a method, call it now to get the value live
+                if callable(file):
+                    file = file()
+                # convert to Path
+                file = Path(file)
+            else:
+                # use blank template if none given
+                file = Path(experiment.__file__).parent / 'blankTemplate.xltx',
+        # Open whatever file is used
+        try:
+            os.startfile(file)
+        except AttributeError:
+            opener = "open" if sys.platform == "darwin" else "xdg-open"
+            subprocess.call([opener, file])
+
+
+class ConditionsCtrl(TableCtrl):
+    inputType = "conditions"
+
+
+class SurveyCtrl(SingleLineCtrl):
+    inputType = "survey"
+
     class SurveyFinderDlg(wx.Dialog, utils.ButtonSizerMixin):
         def __init__(self, parent, session):
             wx.Dialog.__init__(self, parent=parent, size=(-1, 496), style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
@@ -806,23 +927,15 @@ class SurveyCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
             else:
                 return ""
 
-    def __init__(self, parent, valType,
-                 val="", fieldName="",
-                 size=wx.Size(-1, 24)):
-        # Create self
-        wx.TextCtrl.__init__(self)
-        self.Create(parent, -1, val, name=fieldName, size=size)
-        self.valType = valType
+    def makeCtrls(self):
+        SingleLineCtrl.makeCtrls(self)
         # Add CTRL + click behaviour
-        self.Bind(wx.EVT_RIGHT_DOWN, self.onRightClick)
-        # Add placeholder
-        self.SetHint("e.g. e89cd6eb-296e-4960-af14-103026a59c14")
-        # Add sizer
-        self._szr = wx.BoxSizer(wx.HORIZONTAL)
-        self._szr.Add(self, border=5, proportion=1, flag=wx.EXPAND | wx.RIGHT)
+        self.ctrl.Bind(wx.EVT_RIGHT_DOWN, self.onRightClick)
+        # add placeholder
+        self.ctrl.SetHint("e.g. e89cd6eb-296e-4960-af14-103026a59c14")
         # Add button to browse for survey
         self.findBtn = wx.Button(
-            parent, -1,
+            self, -1,
             label=_translate("Find online..."),
             size=wx.Size(-1, 24)
         )
@@ -833,10 +946,7 @@ class SurveyCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
             "Get survey ID from a list of your surveys on Pavlovia"
         ))
         self.findBtn.Bind(wx.EVT_BUTTON, self.findSurvey)
-        self._szr.Add(self.findBtn)
-        # Configure validation
-        self.Bind(wx.EVT_TEXT, self.validate)
-        self.validate()
+        self.sizer.Add(self.findBtn, border=6, flag=wx.LEFT)
 
     def onRightClick(self, evt=None):
         menu = wx.Menu()
@@ -864,9 +974,7 @@ class SurveyCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
             dlg = self.SurveyFinderDlg(self, session)
             if dlg.ShowModal() == wx.ID_OK:
                 # If OK, get value
-                self.SetValue(dlg.getValue())
-                # Validate
-                self.validate()
+                self.ctrl.SetValue(dlg.getValue())
                 # Raise event
                 evt = wx.ListEvent(wx.EVT_KEY_UP.typeId)
                 evt.SetEventObject(self)
@@ -878,7 +986,7 @@ class SurveyCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
         we only take the survey ID
         """
         # Get value by usual wx method
-        value = self.GetValue()
+        value = self.ctrl.GetValue()
         # Strip pavlovia run url
         if "run.pavlovia.org/pavlovia/survey/?surveyId=" in value:
             # Keep only the values after the URL
@@ -897,298 +1005,42 @@ class SurveyCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
         return value
 
 
-class TableCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
-    def __init__(self, parent, param, fieldName="",
-                 size=wx.Size(-1, 24)):
-        # get val and val type
-        val = param.val
-        valType = param.valType
-        # store param
-        self.param = param
-        # Create self
-        wx.TextCtrl.__init__(self)
-        self.Create(parent, -1, val, name=fieldName, size=size)
-        self.valType = valType
-        # Add sizer
-        self._szr = wx.BoxSizer(wx.HORIZONTAL)
-        self._szr.Add(self, proportion=1, border=5, flag=wx.EXPAND | wx.RIGHT)
-        # Add button to browse for file
-        fldr = icons.ButtonIcon(stem="folder", size=16, theme="light").bitmap
-        self.findBtn = wx.BitmapButton(parent, -1, bitmap=fldr, style=wx.BU_EXACTFIT)
-        self.findBtn.SetToolTip(_translate("Specify file ..."))
-        self.findBtn.Bind(wx.EVT_BUTTON, self.findFile)
-        self._szr.Add(self.findBtn)
-        # Add button to open in Excel
-        xl = icons.ButtonIcon(stem="filecsv", size=16, theme="light").bitmap
-        self.xlBtn = wx.BitmapButton(parent, -1, bitmap=xl, style=wx.BU_EXACTFIT)
-        self.xlBtn.SetToolTip(_translate("Open/create in your default table editor"))
-        self.xlBtn.Bind(wx.EVT_BUTTON, self.openExcel)
-        self._szr.Add(self.xlBtn)
-        # Specify valid extensions
-        self.validExt = [".csv",".tsv",".txt",
-                         ".xl",".xlsx",".xlsm",".xlsb",".xlam",".xltx",".xltm",".xls",".xlt",
-                         ".htm",".html",".mht",".mhtml",
-                         ".xml",".xla",".xlm",
-                         ".odc",".ods",
-                         ".udl",".dsn",".mdb",".mde",".accdb",".accde",".dbc",".dbf",
-                         ".iqy",".dqy",".rqy",".oqy",
-                         ".cub",".atom",".atomsvc",
-                         ".prn",".slk",".dif"]
-        # Configure validation
-        self.Bind(wx.EVT_TEXT, self.validate)
-        self.validate()
+class ColorCtrl(SingleLineCtrl):
+    inputType = "color"
 
-    def validate(self, evt=None):
-        """Redirect validate calls to global validate method, assigning appropriate valType"""
-        validate(self, "file")
-        # if field is blank, enable/diable according to whether there's a template
-        if not self.GetValue().strip():
-            self.xlBtn.Enable("template" in self.param.ctrlParams)
-        # otherwise, enable/disable according to validity
-        else:
-            self.xlBtn.Enable(self.valid)
-            # if value isn't known until runtime, always disable Excel button
-            if "$" in self.GetValue():
-                self.xlBtn.Disable()
-
-    def openExcel(self, event):
-        """Either open the specified excel sheet, or make a new one from a template"""
-        file = self.rootDir / self.GetValue()
-        if not (file.is_file() and file.suffix in self.validExt): # If not a valid file
-            dlg = wx.MessageDialog(self, _translate(
-                "Once you have created and saved your table,"
-                "please remember to add it to {name}").format(name=_translate(self.Name)),
-                             caption=_translate("Reminder"))
-            dlg.ShowModal()
-            # get template
-            if "template" in self.param.ctrlParams:
-                file = self.param.ctrlParams['template']
-                # if template is specified as a method, call it now to get the value live
-                if callable(file):
-                    file = file()
-                # convert to Path
-                file = Path(file)
-            else:
-                # use blank template if none given
-                file = Path(experiment.__file__).parent / 'blankTemplate.xltx',
-        # Open whatever file is used
-        try:
-            os.startfile(file)
-        except AttributeError:
-            opener = "open" if sys.platform == "darwin" else "xdg-open"
-            subprocess.call([opener, file])
-
-    def findFile(self, event):
-        _wld = f"All Table Files({'*'+';*'.join(self.validExt)})|{'*'+';*'.join(self.validExt)}|All Files (*.*)|*.*"
-        file = self.getFile(msg="Specify table file ...", wildcard=_wld)
-        if file:
-            FileCtrl.setFile(self, file)
-            self.validate(event)
-
-
-class ColorCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
-    def __init__(self, parent, valType,
-                 val="", fieldName="",
-                 size=wx.Size(-1, 24)):
-        # Create self
-        wx.TextCtrl.__init__(self)
-        self.Create(parent, -1, val, name=fieldName, size=size)
-        self.valType = valType
-        # Add sizer
-        self._szr = wx.BoxSizer(wx.HORIZONTAL)
-        if valType == "code":
-            # Add $ for anything to be interpreted verbatim
-            self.dollarLbl = wx.StaticText(parent, -1, "$", size=wx.Size(-1, -1), style=wx.ALIGN_RIGHT)
-            self.dollarLbl.SetToolTip(_translate("This parameter will be treated as code - we have already put in the $, so you don't have to."))
-            self._szr.Add(self.dollarLbl, border=5, flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT)
-        # Add ctrl to sizer
-        self._szr.Add(self, proportion=1, border=5, flag=wx.EXPAND | wx.RIGHT)
-        # Add button to activate color picker
-        fldr = icons.ButtonIcon(stem="color", size=16, theme="light").bitmap
-        self.pickerBtn = wx.BitmapButton(parent, -1, bitmap=fldr, style=wx.BU_EXACTFIT)
+    def makeCtrls(self):
+        SingleLineCtrl.makeCtrls(self)
+        # add button to activate color picker
+        self.pickerBtn = wx.Button(self, style=wx.BU_EXACTFIT)
+        self.pickerBtn.SetBitmap(
+            icons.ButtonIcon(stem="color", size=16, theme="light").bitmap
+        )
         self.pickerBtn.SetToolTip(_translate("Specify color ..."))
         self.pickerBtn.Bind(wx.EVT_BUTTON, self.colorPicker)
-        self._szr.Add(self.pickerBtn)
-        # Bind to validation
-        self.Bind(wx.EVT_CHAR, self.validate)
-        self.validate()
+        self.sizer.Add(self.pickerBtn)
 
     def colorPicker(self, evt):
+        # show color picker
         dlg = PsychoColorPicker(self, context=self, allowCopy=False)  # open a color picker
-        dlg.ShowModal()
+        ret = dlg.ShowModal()
+        if ret == wx.ID_OK:
+            self.setValue(
+                f"$({dlg.getOutputValue()})"
+            )
+        else:
+            pass
         dlg.Destroy()
 
 
-def validate(obj, valType):
-    val = str(obj.GetValue())
-    valid = True
-    if val.startswith("$"):
-        # If indicated as code, treat as code
-        valType = "code"
-    # Validate string
-    if valType == "str":
-        if re.findall(r"(?<!\\)\"", val):
-            # If there are unescaped "
-            valid = False
-        if re.findall(r"(?<!\\)\'", val):
-            # If there are unescaped '
-            valid = False
-    # Validate code
-    if valType == "code":
-        # Replace unescaped curly quotes
-        if re.findall(r"(?<!\\)[\u201c\u201d]", val):
-            pt = obj.GetInsertionPoint()
-            obj.SetValue(re.sub(r"(?<!\\)[\u201c\u201d]", "\"", val))
-            obj.SetInsertionPoint(pt)
-        # For now, ignore
-        pass
-    # Validate num
-    if valType in ["num", "int"]:
-        try:
-            # Try to convert value to a float
-            float(val)
-        except ValueError:
-            # If conversion fails, value is invalid
-            valid = False
-    # Validate bool
-    if valType == "bool":
-        if val not in ["True", "False"]:
-            # If value is not True or False, it is invalid
-            valid = False
-    # Validate list
-    if valType == "list":
-        empty = not bool(val) # Is value empty?
-        fullList = re.fullmatch(r"[\(\[].*[\]\)]", val) # Is value full list with parentheses?
-        partList = "," in val and not re.match(r"[\(\[].*[\]\)]", val) # Is value list without parentheses?
-        singleVal = not " " in val or re.match(r"[\"\'].*[\"\']", val) # Is value a single value?
-        if not any([empty, fullList, partList, singleVal]):
-            # If value is not any of valid types, it is invalid
-            valid = False
-    # Validate color
-    if valType == "color":
-        # Strip function calls
-        if re.fullmatch(r"\$?(Advanced)?Color\(.*\)", val):
-            val = re.sub(r"\$?(Advanced)?Color\(", "", val[:-1])
-        try:
-            # Try to create a Color object from value
-            obj.color = Color(val, False)
-            if not obj.color:
-                # If invalid object is created, input is invalid
-                valid = False
-        except:
-            # If object creation fails, input is invalid
-            valid = False
-    if valType == "file":
-        val = Path(str(val))
-        if not val.is_absolute():
-            frame = obj.GetTopLevelParent()
-            if hasattr(frame, "frame"):
-                frame = frame.frame
-            # If not an absolute path, append to current directory
-            val = Path(frame.filename).parent / val
-        if not val.is_file():
-            # Is value a valid filepath?
-            valid = False
-        if hasattr(obj, "validExt"):
-            # If control has specified list of ext, does value end in correct ext?
-            if val.suffix not in obj.validExt:
-                valid = False
-
-    # If additional allowed values are defined, override validation
-    if hasattr(obj, "allowedVals"):
-        if val in obj.allowedVals:
-            valid = True
-
-    # Apply valid status to object
-    obj.valid = valid
-    if hasattr(obj, "showValid"):
-        obj.showValid(valid)
-
-    # Update code font
-    obj.updateCodeFont(valType)
-
-
-class DictCtrl(ListWidget, _ValidatorMixin, _HideMixin):
-    def __init__(self, parent,
-                 val={}, labels=(_translate("Field"), _translate("Default")), valType='dict',
-                 fieldName=""):
-        # try to convert to a dict if given a string
-        if isinstance(val, str):
-            try:
-                val = ast.literal_eval(val)
-            except:
-                raise ValueError(_translate("Could not interpret parameter value as a dict:\n{}").format(val))
-        # raise error if still not a dict
-        if not isinstance(val, (dict, list)):
-            raise ValueError("DictCtrl must be supplied with either a dict or a list of 1-long dicts, value supplied was {}: {}".format(type(val), val))
-        # Get labels
-        keyLbl, valLbl = labels
-        # If supplied with a dict, convert it to a list of dicts
-        if isinstance(val, dict):
-            newVal = []
-            for key, v in val.items():
-                if hasattr(v, "val"):
-                    v = v.val
-                newVal.append({keyLbl: key, valLbl: v})
-            val = newVal
-        # Make sure we have at least 1 value
-        if not len(val):
-            val = [{keyLbl: "", valLbl: ""}]
-        # If any items within the list are not dicts or are dicts longer than 1, throw error
-        if not all(isinstance(v, dict) and len(v) == 2 for v in val):
-            raise ValueError("DictCtrl must be supplied with either a dict or a list of 1-long dicts, value supplied was {}".format(val))
-        # Create ListWidget
-        ListWidget.__init__(self, parent, val, order=labels)
-
-    def SetForegroundColour(self, color):
-        for child in self.Children:
-            if hasattr(child, "SetForegroundColour"):
-                child.SetForegroundColour(color)
-
-    def Enable(self, enable=True):
-        """
-        Enable or disable all items in the dict ctrl
-        """
-        # Iterate through all children
-        for cell in self.Children:
-            # Get the actual child rather than the sizer item
-            child = cell.Window
-            # If it can be enabled/disabled, enable/disable it
-            if hasattr(child, "Enable"):
-                child.Enable(enable)
-
-    def Disable(self):
-        """
-        Disable all items in the dict ctrl
-        """
-        self.Enable(False)
-
-    def Show(self, show=True):
-        """
-        Show or hide all items in the dict ctrl
-        """
-        # Iterate through all children
-        for cell in self.Children:
-            # Get the actual child rather than the sizer item
-            child = cell.Window
-            # If it can be shown/hidden, show/hide it
-            if hasattr(child, "Show"):
-                child.Show(show)
-
-    def Hide(self):
-        """
-        Hide all items in the dict ctrl
-        """
-        self.Show(False)
-
-
 class FontCtrl(SingleLineCtrl):
-    def onOK(self):
+    inputType = "font"
+
+    def onElementOk(self, evt=None):
         # get a font manager
         from psychopy.tools.fontmanager import FontManager, MissingFontError
         fm = FontManager()
         # check whether the font is installed
-        installed = fm.getFontsMatching(self.GetValue(), fallback=False)
+        installed = fm.getFontsMatching(self.getValue(), fallback=False)
         # if not installed, ask the user whether to download from Google Fonts
         if not installed:
             # create dialog
@@ -1196,7 +1048,7 @@ class FontCtrl(SingleLineCtrl):
                 self.GetTopLevelParent(),
                 _translate(
                     "Font {} is not installed, would you like to download it from Google Fonts?"
-                ).format(self.GetValue()),
+                ).format(self.getValue()),
                 style=wx.YES|wx.NO|wx.ICON_QUESTION
             )
             # download if yes
@@ -1221,3 +1073,564 @@ class FontCtrl(SingleLineCtrl):
                         style=wx.OK|wx.ICON_INFORMATION
                     )
                     dlg.ShowModal()
+
+
+class CodeCtrl(BaseParamCtrl, handlers.ThemeMixin):
+    inputType = "code"
+
+    def makeCtrls(self):
+        self.ctrl = CodeBox(
+            self, wx.ID_ANY, prefs, 
+            pos=wx.DefaultPosition, size=(-1, 128), style=wx.DEFAULT
+        )
+        self.sizer.Add(
+            self.ctrl, proportion=1, flag=wx.EXPAND | wx.ALL
+        )
+        # hide margin
+        self.ctrl.SetMarginWidth(0, 0)
+        # set initial value
+        self.setValue(self.param.val)
+        # setup auto indent behaviour as in Code component
+        self.ctrl.Bind(wx.EVT_KEY_DOWN, self.onChange)
+
+    def getValue(self):
+        return self.ctrl.GetText()
+
+    def setValue(self, value):
+        # get insertion point if possible
+        pt = self.ctrl.GetInsertionPoint()
+        # set value
+        self.ctrl.SetText(str(value))
+        # restore insertion point if possible
+        try:
+            self.ctrl.SetInsertionPoint(pt)
+        except:
+            pass
+
+    def onChange(self, evt=None):
+        CodeBox.OnKeyPressed(self.ctrl, evt)
+        BaseParamCtrl.onChange(self, evt)
+    
+    def styleValid(self):
+        # red border if error
+        if self.isValid:
+            self.ctrl.SetFoldMarginColour(0, colors.scheme['red'])
+        else:
+            self.ctrl._applyAppTheme()
+        self.ctrl.Refresh()
+
+    def validate(self):
+        BaseParamCtrl.validate(self)
+        return SingleLineCtrl.validateCode(self)
+        
+
+class RichChoiceCtrl(BaseParamCtrl):
+    inputType = "richChoice"
+
+    viewToggle = True
+    multi = False
+
+    class RichChoiceItem(wx.Panel):
+        def __init__(self, parent, value, label, body="", linkText="", link="", startShown="always", viewToggle=True):
+            # Initialise
+            wx.Panel.__init__(self, parent, style=wx.BORDER_THEME)
+            self.parent = parent
+            self.value = value
+            self.startShown = startShown
+            # Setup sizer
+            self.border = wx.BoxSizer()
+            self.SetSizer(self.border)
+            self.sizer = wx.FlexGridSizer(cols=3)
+            self.sizer.AddGrowableCol(idx=1, proportion=1)
+            self.border.Add(self.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
+            # Check
+            self.check = wx.CheckBox(self, label=" ")
+            self.check.Bind(wx.EVT_CHECKBOX, self.onCheck)
+            self.check.Bind(wx.EVT_KEY_UP, self.onToggle)
+            self.sizer.Add(self.check, border=3, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
+            # Title
+            self.title = wx.StaticText(self, label=label)
+            self.title.SetFont(self.title.GetFont().Bold())
+            self.sizer.Add(self.title, border=3,  flag=wx.ALL | wx.EXPAND)
+            # Toggle
+            self.toggleView = wx.ToggleButton(self, style=wx.BU_EXACTFIT)
+            self.toggleView.Bind(wx.EVT_TOGGLEBUTTON, self.onToggleView)
+            self.toggleView.Show(viewToggle)
+            self.sizer.Add(self.toggleView, border=3, flag=wx.ALL | wx.EXPAND)
+            # Body
+            self.body = utils.WrappedStaticText(self, label=body)
+            self.sizer.AddStretchSpacer(1)
+            self.sizer.Add(self.body, border=3, proportion=1, flag=wx.ALL | wx.EXPAND)
+            self.sizer.AddStretchSpacer(1)
+            # Link
+            self.link = utils.HyperLinkCtrl(self, label=linkText, URL=link)
+            self.link.SetBackgroundColour(self.GetBackgroundColour())
+            self.sizer.AddStretchSpacer(1)
+            self.sizer.Add(self.link, border=3, flag=wx.ALL | wx.ALIGN_LEFT)
+            self.sizer.AddStretchSpacer(1)
+
+            # Style
+            self.SetBackgroundColour("white")
+            self.body.SetBackgroundColour("white")
+            self.link.SetBackgroundColour("white")
+            self.toggleView.SetBackgroundColour("white")
+
+            self.Layout()
+
+        def getChecked(self):
+            return self.check.GetValue()
+
+        def setChecked(self, state):
+            if self.parent.multi:
+                # If multi select is allowed, leave other values unchanged
+                values = self.parent.getValue()
+                if not isinstance(values, (list, tuple)):
+                    values = [values]
+                if state:
+                    # Add this item to list if checked
+                    values.append(self.value)
+                else:
+                    # Remove this item from list if unchecked
+                    if self.value in values:
+                        values.remove(self.value)
+                self.parent.setValue(values)
+            elif state:
+                # If single only, set at parent level so others are unchecked
+                self.parent.setValue(self.value)
+            
+            # post event
+            evt = wx.ListEvent(commandType=wx.EVT_CHOICE.typeId, id=-1)
+            evt.SetString(self.value)
+            evt.SetEventObject(self.parent)
+            wx.PostEvent(self.parent, evt)
+
+        def onCheck(self, evt):
+            self.setChecked(evt.IsChecked())
+
+        def onToggle(self, evt):
+            if evt.GetUnicodeKey() in (wx.WXK_SPACE, wx.WXK_NUMPAD_SPACE):
+                self.setChecked(not self.check.IsChecked())
+
+        def onToggleView(self, evt):
+            # If called with a boolean, use it directly, otherwise get bool from event
+            if isinstance(evt, bool):
+                val = evt
+            else:
+                val = evt.IsChecked()
+            # Update toggle ctrl label
+            if val:
+                lbl = "⯆"
+            else:
+                lbl = "⯇"
+            self.toggleView.SetLabel(lbl)
+            # Show/hide body based on value
+            self.body.Show(val)
+            self.link.Show(val)
+            # Layout
+            self.Layout()
+            self.parent.parent.Layout()  # layout params notebook page
+
+    def makeCtrls(self):
+        self.ctrl = self
+        # make sizer for options
+        self.optionsSizer = wx.BoxSizer(wx.VERTICAL)
+        self.sizer.Add(
+            self.optionsSizer, proportion=1, flag=wx.EXPAND | wx.ALL
+        )
+        # store values
+        self.choices = {}
+        for i, val in enumerate(self.param.allowedVals):
+            self.choices[val] = self.param.allowedLabels[i]
+        # Populate
+        self.populate()
+        # Set value
+        self.setValue(self.param.val)
+        # Start off showing according to param
+        for obj in self.items:
+            # Work out if we should start out shown
+            if self.viewToggle:
+                if obj.startShown == "never":
+                    startShown = False
+                elif obj.startShown == "checked":
+                    startShown = obj.check.IsChecked()
+                elif obj.startShown == "unchecked":
+                    startShown = not obj.check.IsChecked()
+                else:
+                    startShown = True
+            else:
+                startShown = True
+            # Apply starting view
+            obj.toggleView.SetValue(startShown)
+            obj.onToggleView(startShown)
+        # bind onChange
+        self.Bind(wx.EVT_CHOICE, self.onChange)
+
+        self.Layout()
+
+    def populate(self):
+        self.items = []
+        for val, label in self.choices.items():
+            if not isinstance(label, dict):
+                # Make sure label is dict
+                label = {"label": label}
+            # Add item control
+            self.addItem(val, label=label)
+        self.Layout()
+
+    def addItem(self, value, label={}):
+        # Create item object
+        item = self.RichChoiceItem(self, value=value, viewToggle=self.viewToggle, **label)
+        self.items.append(item)
+        # Add to sizer
+        self.optionsSizer.Add(item, border=3, flag=wx.ALL | wx.EXPAND)
+
+    def getValue(self):
+        # Get corresponding value for each checked item
+        values = []
+        for item in self.items:
+            if item.getChecked():
+                # If checked, append value
+                values.append(item.value)
+        # Strip list if not multi
+        if not self.multi:
+            if len(values):
+                values = values[0]
+            else:
+                values = ""
+
+        return values
+
+    def setValue(self, value):
+        # Make sure value is iterable
+        value = data.utils.listFromString(value)
+        # Check/uncheck corresponding items
+        for item in self.items:
+            state = item.value in value
+            item.check.SetValue(state)
+
+        self.Layout()
+
+
+class FileListCtrl(BaseParamCtrl):
+    inputType = "fileList"
+
+    class FileListItem(FileCtrl):
+        def makeCtrls(self):
+            FileCtrl.makeCtrls(self)
+            # add a delete button
+            self.deleteBtn = wx.Button(self, style=wx.BU_EXACTFIT)
+            self.deleteBtn.SetBitmap(
+                icons.ButtonIcon("delete", size=16, theme="light").bitmap
+            )
+            self.sizer.Add(
+                self.deleteBtn, border=6, flag=wx.EXPAND | wx.LEFT
+            )
+            self.deleteBtn.Bind(wx.EVT_BUTTON, self.deleteSelf)
+
+            self.Layout()
+        
+        def deleteSelf(self, evt=None):
+            # remove from parent sizer and array
+            self.parent.items.pop(
+                self.parent.items.index(self)
+            )
+            self.parent.itemsSizer.Detach(self)
+            # clear any warnings
+            self.clearWarning()
+            # delete
+            self.Destroy()
+            self.parent.Layout()
+        
+        def onChange(self, evt=None):
+            FileCtrl.onChange(self, evt)
+            self.parent.onChange(evt)
+
+    def makeCtrls(self):
+        self.ctrl = self
+        # make own sizer vertical
+        self.sizer.SetOrientation(wx.VERTICAL)
+        # array to store items
+        self.items = []
+        # sizer to layout items
+        self.itemsSizer = wx.BoxSizer(wx.VERTICAL)
+        self.sizer.Add(
+            self.itemsSizer, border=6, proportion=1, flag=wx.EXPAND | wx.BOTTOM
+        )
+        # add button
+        self.addBtn = wx.Button(self, label=_translate("Add item"))
+        self.addBtn.SetBitmap(
+            icons.ButtonIcon("add", size=16, theme="light").bitmap
+        )
+        self.sizer.Add(
+            self.addBtn, border=6, flag=wx.ALIGN_LEFT | wx.BOTTOM
+        )
+        self.addBtn.Bind(wx.EVT_BUTTON, self.addItem)
+        # set initial value
+        self.setValue(self.param.val)
+    
+    def layout(self):
+        """
+        Layout this element, and fit its parent around it.
+        """
+        self.Layout()
+        self.GetParent().Layout()
+        self.GetTopLevelParent().Layout()
+        self.GetTopLevelParent().Fit()
+    
+    def addItem(self, evt=None):
+        """
+        Add a new item to this ctrl
+        """
+        # make a file control for a param not attached to anything
+        item = self.FileListItem(
+            parent=self, 
+            field=str(len(self.items)),
+            param=Param("", valType="str", inputType="file"),
+            element=self.element,
+            warnings=self.warnings
+        )
+        # append it to items array
+        self.items.append(item)
+        # add it to the items sizer
+        self.itemsSizer.Add(
+            item, border=6, flag=wx.EXPAND | wx.BOTTOM
+        )
+
+        self.layout()
+
+        return item
+    
+    def clearItems(self):
+        """
+        Clear all items from this ctrl
+        """
+        for item in self.items:
+            item.deleteSelf()
+        
+        self.layout()
+    
+    def getValue(self):
+        return [item.getValue() for item in self.items]
+
+    def setValue(self, value):
+        # unstring value into an actual list
+        value = data.utils.listFromString(value)
+        # clear all items
+        self.clearItems()
+        # make a new item for each value
+        for item in value:
+            ctrl = self.addItem()
+            ctrl.setValue(item)
+    
+    @property
+    def isValid(self):
+        # return True if all children are valid
+        return all([
+            item.isValid 
+            for item in self.items
+        ])
+        
+    def validate(self):
+        for item in self.items:
+            item.validate()
+
+
+class DictCtrl(BaseParamCtrl):
+    inputType = "dict"
+
+    class DictKey(SingleLineCtrl):
+        def validate(self):
+            """
+            Dict keys can't key variables
+            """            
+            if self.isCode:
+                self.setWarning(_translate(
+                    "Dictionary keys can't be code"
+                ), allowed=False)
+            else:
+                SingleLineCtrl.validate(self)
+        
+        def onChange(self, evt=None):
+            SingleLineCtrl.onChange(self, evt)
+            self.parent.onChange(evt)
+    
+    class DictValue(SingleLineCtrl):
+        def onChange(self, evt=None):
+            SingleLineCtrl.onChange(self, evt)
+            self.parent.onChange(evt)
+
+    class DictField:
+        def __init__(self, parent):
+            # store parent
+            self.parent = parent
+            # add ctrl for key
+            self.keyCtrl = DictCtrl.DictKey(
+                parent=parent, 
+                field=f"key{len(parent.items)}",
+                param=Param("", valType="str", inputType="single"),
+                element=parent.element,
+                warnings=parent.warnings
+            )
+            # add ctrl for value
+            self.valueCtrl = DictCtrl.DictValue(
+                parent=parent, 
+                field=f"value{len(parent.items)}",
+                param=Param("", valType="code", inputType="single"),
+                element=parent.element,
+                warnings=parent.warnings
+            )
+            # add delete button
+            self.deleteBtn = wx.Button(parent, style=wx.BU_EXACTFIT)
+            self.deleteBtn.SetBitmap(
+                icons.ButtonIcon("delete", size=16, theme="light").bitmap
+            )
+            self.deleteBtn.Bind(wx.EVT_BUTTON, self.deleteSelf)
+        
+        def deleteSelf(self, evt=None):
+            # remove from parent array
+            self.parent.items.pop(
+                self.parent.items.index(self)
+            )
+            # clear any warnings
+            self.clearWarning()
+            # remove all windows from parent sizer
+            self.parent.itemsSizer.Detach(self.keyCtrl)
+            self.parent.itemsSizer.Detach(self.valueCtrl)
+            self.parent.itemsSizer.Detach(self.deleteBtn)
+            # delete all windows
+            self.keyCtrl.Destroy()
+            self.valueCtrl.Destroy()
+            self.deleteBtn.Destroy()
+            # layout
+            self.parent.layout()
+
+    def makeCtrls(self):
+        self.ctrl = self
+        # make own sizer vertical
+        self.sizer.SetOrientation(wx.VERTICAL)
+        # array to store items
+        self.items = []
+        # sizer to layout items
+        self.itemsSizer = wx.FlexGridSizer(3, vgap=6, hgap=6)
+        self.itemsSizer.AddGrowableCol(0, proportion=1)
+        self.itemsSizer.AddGrowableCol(1, proportion=1)
+        self.sizer.Add(
+            self.itemsSizer, border=6, proportion=1, flag=wx.EXPAND | wx.BOTTOM
+        )
+        # add button
+        self.addBtn = wx.Button(self, label=_translate("Add item"))
+        self.addBtn.SetBitmap(
+            icons.ButtonIcon("add", size=16, theme="light").bitmap
+        )
+        self.sizer.Add(
+            self.addBtn, border=6, flag=wx.ALIGN_LEFT | wx.BOTTOM
+        )
+        self.addBtn.Bind(wx.EVT_BUTTON, self.addItem)
+        # set initial value
+        self.setValue(self.param.val)
+    
+    def layout(self):
+        """
+        Layout this element, and fit its parent around it.
+        """
+        self.Layout()
+        self.GetParent().Layout()
+        self.GetTopLevelParent().Layout()
+        self.GetTopLevelParent().Fit()
+    
+    def addItem(self, evt=None):
+        # create item
+        item = self.DictField(self)
+        # append to array
+        self.items.append(item)
+        # add to sizer
+        self.itemsSizer.Add(
+            item.keyCtrl, proportion=1, flag=wx.EXPAND
+        )
+        self.itemsSizer.Add(
+            item.valueCtrl, proportion=1, flag=wx.EXPAND
+        )
+        self.itemsSizer.Add(
+            item.deleteBtn, flag=wx.EXPAND
+        )
+        # layout
+        self.layout()
+
+        return item
+    
+    def clearItems(self):
+        # delete each item
+        for item in self.items:
+            item.deleteSelf()
+        # layout
+        self.layout()
+    
+    def getValue(self):
+        return {
+            item.keyCtrl.getValue(): item.valueCtrl.getValue() 
+            for item in self.items
+        }
+
+    def setValue(self, value):
+        # clear items
+        self.clearItems()
+        # make sure value is a dict
+        value = data.utils.dictFromString(value)
+        # iterate through key:val pairs
+        for key, val in value.items():
+            # add an item ctrl for each
+            item = self.addItem()
+            # populate
+            item.keyCtrl.setValue(key)
+            item.valueCtrl.setValue(val)
+    
+    def validate(self):
+        # check for duplicate keys
+        used = []
+        for key in self.getValue():
+            if key in used:
+                self.setWarning(_translate(
+                    "Duplicate dictionary key: {}"
+                ).format(key))
+                return
+            used.append(key)
+        # otherwise validate all children
+        for item in self.items:
+            item.keyCtrl.validate()
+            item.valueCtrl.validate()
+    
+    @property
+    def isValid(self):
+        # return true if self has no warnings and children have no warnings
+        return BaseParamCtrl.isValid.fget(self) and all([
+            item.keyCtrl.isValid and item.valueCtrl.isValid 
+            for item in self.items
+        ])
+
+
+class DeviceCtrl(ChoiceCtrl):
+    inputType = "device"
+
+    def makeCtrls(self):
+        ChoiceCtrl.makeCtrls(self)
+        # add a button to open device manager
+        self.deviceMgrBtn = wx.Button(self, style=wx.BU_EXACTFIT)
+        self.deviceMgrBtn.Bind(wx.EVT_BUTTON, self.openDeviceManager)
+        self.deviceMgrBtn.SetBitmap(
+            icons.ButtonIcon("devices", size=16, theme="light").bitmap
+        )
+        self.deviceMgrBtn.SetToolTip(_translate(
+            "Open the Device Manager to setup devices"
+        ))
+        self.sizer.Add(
+            self.deviceMgrBtn, border=6, flag=wx.EXPAND | wx.LEFT
+        )
+
+    def openDeviceManager(self, evt=None):
+        from psychopy.app.deviceManager import DeviceManagerDlg
+        # create dialog
+        dlg = DeviceManagerDlg(parent=self.GetTopLevelParent())
+        # show it
+        dlg.ShowModal()
+        # repopulate devices
+        self.populate()

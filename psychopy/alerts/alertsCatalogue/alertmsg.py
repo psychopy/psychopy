@@ -27,6 +27,13 @@ _translate(
 _translate(
     "Your stimulus {type} time of {time} seconds cannot be accurately presented for {time} on a {Hz}Hz monitor.")
 
+# Alert 3210
+_translate("Speaker {deviceName} is set to \"Exclusive low latency\" mode. As resampling is enabled, this mode has little benefit over \"Shared low latency\" mode, with some drawbacks.")
+
+# Alert 3610
+_translate(
+    "Multiple Components in the same Routine are validated by {validator}, please ensure that the timing of these Components do not overlap.")
+
 # Alert 4051
 _translate(
     "Experiment was built in a future version of PsychoPy ({version}), we recommend either updating PsychoPy or changing the \"Use Version\" setting in Experiment Settings to this version.")
@@ -50,6 +57,9 @@ _translate(
 # Alert 4125
 _translate(
     "Microphone component `{name}` given blank stop time, using max duration allowed by buffer size ({stopVal}s).")
+
+# Alert 4130
+_translate("Static Component `{name}` given infinite stop time")
 
 # Alert 4205
 _translate(
@@ -76,7 +86,7 @@ _translate(
 
 # Alert 4325
 _translate(
-    "Font `{font} {style}` not available in weight `{weight}`, component `{name}` will default to Noto Sans Regular.")
+    "Font `{font} {style}` not available in weight `{weight}`, component `{name}` will default to Open Sans Regular.")
 
 # Alert 4330
 _translate(

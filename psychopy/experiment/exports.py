@@ -127,30 +127,31 @@ class NameSpace:
         2011 Jeremy Gray
     """
 
+    # numpy imports
+    numpy = _numpyImports + _numpyRandomImports + ['np']
+    # core python keywords
+    keywords = keyword.kwlist + dir(__builtins__) + ['self']
+    # builder stuff
+    builder = [
+        'KeyResponse', 'keyboard', 'buttons', 'continueRoutine', 'expInfo', 'expName', 'thisExp', 
+        'filename', 'logFile', 'paramName', 't', 'frameN', 'currentLoop', 'dlg', '_thisDir', 
+        'endExpNow', 'globalClock', 'routineTimer', 'frameDur', 'theseKeys', 'win', 'x', 'y', 
+        'level', 'component', 'thisComponent'
+    ]
+    # PsychoPy constants
+    constants = dir(constants)
+    # PsychoPy modules
+    psychopy = psychopy.__all__ + ['psychopy', 'os']
+    # all non-user builder stuff
+    nonUserBuilder = numpy + keywords + psychopy + constants
+    
     def __init__(self, exp):
         """Set-up an experiment's namespace: reserved words and user space
         """
         super(NameSpace, self).__init__()
         self.exp = exp
-        # deepcopy fails if you pre-compile regular expressions and stash here
-
-        self.numpy = _numpyImports + _numpyRandomImports + ['np']
-        # noinspection PyUnresolvedReferences
-        self.keywords = keyword.kwlist + dir(__builtins__) + ['self']
-        # these are based on a partial test, known to be incomplete:
-        self.psychopy = psychopy.__all__ + ['psychopy', 'os']
-        self.constants = dir(constants)
-        self.builder = ['KeyResponse', 'keyboard', 'buttons',
-                        'continueRoutine', 'expInfo', 'expName', 'thisExp',
-                        'filename', 'logFile', 'paramName',
-                        't', 'frameN', 'currentLoop', 'dlg', '_thisDir',
-                        'endExpNow',
-                        'globalClock', 'routineTimer', 'frameDur',
-                        'theseKeys', 'win', 'x', 'y', 'level', 'component',
-                        'thisComponent']
         # user-entered, from Builder dialog or conditions file:
         self.user = []
-        self.nonUserBuilder = self.numpy + self.keywords + self.psychopy
 
     def __str__(self, numpy_count_only=True):
         varibs = self.user + self.builder + self.psychopy
@@ -232,7 +233,8 @@ class NameSpace:
                        if i < len(su) - 1 and su[i + 1] == var]
         return duplicates or None
 
-    def isValid(self, name):
+    @staticmethod
+    def isValid(name):
         """var-name compatible? return True if string name is
         alphanumeric + underscore only, with non-digit first
         """

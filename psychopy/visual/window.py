@@ -2724,7 +2724,7 @@ class Window():
 
         if fileExt in ['.gif', '.mpg', '.mpeg', '.mp4', '.mov']:
             # lazy loading of moviepy.editor (rarely needed)
-            from moviepy.editor import ImageSequenceClip
+            from moviepy import ImageSequenceClip
             # save variety of movies with moviepy
             numpyFrames = []
             for frame in self.movieFrames:

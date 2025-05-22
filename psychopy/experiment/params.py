@@ -16,6 +16,7 @@ The code that writes out a *_lastrun.py experiment file is (in order):
     settings.SettingsComponent.writeEndCode()
 """
 import functools
+import json
 from xml.etree.ElementTree import Element
 
 import re
@@ -379,7 +380,35 @@ class Param():
 
     def __deepcopy__(self, memo):
         return self.copy()
-
+    
+    @classmethod
+    def fromJSON(cls, data):
+        # initialise
+        param = Param(
+            "",
+            "code",
+        )
+        # apply
+        param.applyJSON(data)
+    
+    def applyJSON(self, data):
+        if "val" in data:
+            self.val = data['val']
+        if "valType" in data:
+            self.valType = data['valType']
+        if "updates" in data:
+            self.updates = "{}".format(data['updates'])
+        if "plugin" in data:
+            self.plugin = "{}".format(data['plugin'])
+    
+    def toJSON(self):
+        return {
+            'val': self.val,
+            'valType': self.valType,
+            'updates': "{}".format(self.updates),
+            'plugin': "{}".format(self.plugin)
+        }
+    
     @property
     def _xml(self):
         # Make root element

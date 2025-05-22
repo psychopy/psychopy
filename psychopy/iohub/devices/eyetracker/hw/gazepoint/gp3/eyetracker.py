@@ -17,5 +17,15 @@ except (ModuleNotFoundError, ImportError, NameError):
         "'psychopy-eyetracker-gazepoint' to be installed. Please install this "
         "package and restart the session to enable support.")
 
+# sample event for this device was moved to the plugin, but we're going to use
+# the original class for compatibility with older plugin versions
+try:
+    from psychopy_eyetracker_gazepoint.gazepoint.gp3.eyetracker import (
+        GazepointSampleEvent)
+except (ModuleNotFoundError, ImportError, NameError):
+    # import it from the old iohub location
+    from ....eye_events import GazepointSampleEvent
+
+
 if __name__ == "__main__":
     pass

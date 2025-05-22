@@ -1,0 +1,19 @@
+
+code: 4810
+cat: Devices
+msg: Could not find any config for device {deviceName}, please setup this device up in the Device Manager dialog (from Builder)."
+
+# The following are typically used for online help pages, and support reStructured Text.
+label: No config for named device
+
+synopsis: |
+  Your experiment refers to a device by name which has not been setup in Builder's Device Manager dialog.
+
+details: |
+  From 2025.2.0, devices are setup in a dedicated Device Manager dialog and then referred to by name in Components. If you're seeing this message, it means there's a Component in your experiment which refers to a named device which has not been setup. This is common when running experiments made by someone else, or made on a different computer, as they will have setup using their devices.
+
+solutions: |
+  Setup the named device in Builder's Device Manager dialog
+
+versions: |
+  2025.2.0

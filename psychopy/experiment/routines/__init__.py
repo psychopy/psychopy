@@ -8,7 +8,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from importlib import import_module
-from ._base import BaseStandaloneRoutine, BaseValidatorRoutine, Routine
+from ._base import BaseStandaloneRoutine, BaseDeviceRoutine, BaseValidatorRoutine, Routine
 from .unknown import UnknownRoutine
 from pathlib import Path
 from psychopy import logging

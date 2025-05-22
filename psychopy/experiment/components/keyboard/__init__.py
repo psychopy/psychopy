@@ -8,7 +8,7 @@
 from pathlib import Path
 
 from psychopy.alerts._alerts import alert
-from psychopy.experiment.components import BaseDeviceComponent, Param, _translate, getInitVals
+from psychopy.experiment.components import BaseComponent, Param, _translate, getInitVals
 from psychopy.experiment import CodeGenerationException, valid_var_re
 from pkgutil import find_loader
 
@@ -16,14 +16,17 @@ from pkgutil import find_loader
 havePTB = find_loader('psychtoolbox') is not None
 
 
-class KeyboardComponent(BaseDeviceComponent):
+class KeyboardComponent(BaseComponent):
     """An event class for checking the keyboard at given timepoints"""
     # an attribute of the class, determines the section in components panel
     categories = ['Responses']
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'keyboard.png'
     tooltip = _translate('Keyboard: check and record keypresses')
-    deviceClasses = ["psychopy.hardware.keyboard.KeyboardDevice"]
+    legacyParams = [
+        # as there's only ever 1 keyboard, it shouldn't interact with device manager
+        "deviceLabel"
+    ]
 
     def __init__(self, exp, parentName, name='key_resp', deviceLabel="",
                  allowedKeys="'y','n','left','right','space'", registerOn="press",
@@ -34,12 +37,11 @@ class KeyboardComponent(BaseDeviceComponent):
                  startEstim='', durationEstim='',
                  syncScreenRefresh=True,
                  disabled=False):
-        BaseDeviceComponent.__init__(
+        BaseComponent.__init__(
             self, exp, parentName, name,
             startType=startType, startVal=startVal,
             stopType=stopType, stopVal=stopVal,
             startEstim=startEstim, durationEstim=durationEstim,
-            deviceLabel=deviceLabel,
             disabled=disabled
         )
 
@@ -142,27 +144,13 @@ class KeyboardComponent(BaseDeviceComponent):
             updates='constant',
             hint=msg,
             label=_translate("Sync timing with screen"))
-
-    def writeDeviceCode(self, buff):
-        # get inits
-        inits = getInitVals(self.params)
-        # write device creation code
-        code = (
-            "if deviceManager.getDevice(%(deviceLabel)s) is None:\n"
-            "    # initialise %(deviceLabelCode)s\n"
-            "    %(deviceLabelCode)s = deviceManager.addDevice(\n"
-            "        deviceClass='keyboard',\n"
-            "        deviceName=%(deviceLabel)s,\n"
-            "    )\n"
-        )
-        buff.writeOnceIndentedLines(code % inits)
-
+    
     def writeInitCode(self, buff):
         # get inits
         inits = getInitVals(self.params)
         # make Keyboard object
         code = (
-            "%(name)s = keyboard.Keyboard(deviceName=%(deviceLabel)s)\n"
+            "%(name)s = keyboard.Keyboard(deviceName='defaultKeyboard')\n"
         )
         buff.writeIndentedLines(code % inits)
 

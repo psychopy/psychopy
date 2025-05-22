@@ -9,6 +9,7 @@ try:
     from psychopy_eyetracker_gazepoint.gazepoint.gp3 import (
         __file__,
         EyeTracker, 
+        GazepointSampleEvent,
         MonocularEyeSampleEvent,
         BinocularEyeSampleEvent, 
         FixationStartEvent,
@@ -16,8 +17,7 @@ try:
         SaccadeStartEvent,
         SaccadeEndEvent, 
         BlinkStartEvent,
-        BlinkEndEvent,
-        GazepointSampleEvent
+        BlinkEndEvent
     )
 except (ModuleNotFoundError, ImportError, NameError):
     logging.error(

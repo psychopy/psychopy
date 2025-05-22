@@ -65,7 +65,6 @@ class Test_PsychoJS_from_Builder():
         exp = experiment.Experiment()
         exp.loadFromXML(demosDir/'builder'/'Experiments'/'stroop'/'stroop.psyexp')
         # try once packaging up the js libs
-        exp.settings.params['JS libs'].val = 'remote'
         outFolder = self.temp_dir/'stroopJS_remote/html'
         os.makedirs(outFolder)
         self.writeScript(exp, outFolder)
@@ -75,7 +74,6 @@ class Test_PsychoJS_from_Builder():
         exp = experiment.Experiment()
         exp.loadFromXML(demosDir/'builder'/'Design Templates'/'randomisedBlocks'/'randomisedBlocks.psyexp')
         # try once packaging up the js libs
-        exp.settings.params['JS libs'].val = 'packaged'
         outFolder = self.temp_dir/'blocked_packaged/html'
         os.makedirs(outFolder)
         self.writeScript(exp, outFolder)

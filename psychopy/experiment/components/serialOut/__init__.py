@@ -6,12 +6,9 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 from copy import copy
 from pathlib import Path
+from psychopy.experiment.devices import DeviceBackend
 from psychopy.tools import stringtools as st
 from psychopy.experiment.components import BaseDeviceComponent, Param, _translate, getInitVals
-
-
-# cache known ports so we only have to check once
-_knownPorts = None
 
 
 class SerialOutComponent(BaseDeviceComponent):
@@ -42,62 +39,6 @@ class SerialOutComponent(BaseDeviceComponent):
 
         self.type = 'SerialOut'
         self.url = "https://www.psychopy.org/builder/components/serialout.html"
-        self.exp.requireImport('serial')
-
-        # functions to get available ports
-        from psychopy.hardware.serialdevice import SerialDevice
-        global _knownPorts
-        if _knownPorts is None:
-                _knownPorts = SerialDevice.getAvailableDevices()
-
-        def getPorts():
-            ports = []
-            for profile in _knownPorts:
-                ports.append(profile['port'])
-            
-            return ports
-        
-        def getPortLabels():
-            ports = []
-            for profile in _knownPorts:
-                ports.append("%(port)s (%(deviceName)s)" % profile)
-            
-            return ports
-        
-        self.params['port'] = Param(
-            "", valType="str", inputType="choice", categ="Device",
-            allowedVals=getPorts,
-            allowedLabels=getPortLabels,
-            hint=_translate("Serial port to connect to"),
-            label=_translate("Port")
-        )
-        self.params['baudrate'] = Param(
-            baudrate, valType='int', inputType="single", categ="Device",
-            hint=_translate("The baud rate, or speed, of the connection."),
-            label=_translate("Baud rate")
-        )
-        self.params['bytesize'] = Param(
-            bytesize, valType='int', inputType="single", categ="Device",
-            hint=_translate("Size of bits to be sent."),
-            label=_translate("Data bits")
-        )
-        self.params['stopbits'] = Param(
-            stopbits, valType='int', inputType="single", categ="Device",
-            hint=_translate("Size of bits to be sent on stop."),
-            label=_translate("Stop bits")
-        )
-        self.params['parity'] = Param(
-            parity, valType='str', inputType="choice", categ="Device",
-            allowedVals=('N', 'E', 'O', 'M', 'S'),
-            allowedLabels=("None", "Even", "Off", "Mark", "Space"),
-            hint=_translate("Parity mode."),
-            label=_translate("Parity")
-        )
-
-        self.params['timeout'] = Param(
-            timeout, valType='int', inputType="single", allowedTypes=[], categ="Device",
-            hint=_translate("Time at which to give up listening for a response (leave blank for no limit)"),
-            label=_translate("Timeout"))
         
         for prefix, label, titleLabel, default in (
             ("start", _translate("start"), _translate("Start"), b"r"),
@@ -187,25 +128,6 @@ class SerialOutComponent(BaseDeviceComponent):
             hint=_translate("After sending a signal, should PsychoPy read and record a response from the port?"),
             label=_translate("Get response?")
         )
-    
-    def writeDeviceCode(self, buff):
-        inits = getInitVals(self.params)
-
-        # initialise device
-        code = (
-            "# initialise serial device\n"
-            "deviceManager.addDevice(\n"
-            "    deviceClass='psychopy.hardware.serialdevice.SerialDevice',\n"
-            "    deviceName=%(deviceLabel)s,\n"
-            "    port=%(port)s,\n"
-            "    baudrate=%(baudrate)s,\n"
-            "    byteSize=%(bytesize)s,\n"
-            "    stopBits=%(stopbits)s,\n"
-            "    parity=%(parity)s,\n"
-            "    pauseDuration=(%(timeout)s or 0.1) / 3,\n"            
-            ")\n"
-        )
-        buff.writeOnceIndentedLines(code % inits)
 
     def writeInitCode(self, buff):
         inits = getInitVals(self.params, "PsychoPy")
@@ -324,3 +246,47 @@ class SerialOutComponent(BaseDeviceComponent):
             "    %(name)s.com.close()\n"
         )
         buff.writeIndentedLines(code % self.params)
+
+
+class SerialDeviceBackend(DeviceBackend):
+    backendLabel = "Serial Device"
+    deviceClass = "psychopy.hardware.serialdevice.SerialDevice"
+    icon = "light/serial.png"
+
+    def __init__(self, profile):
+        # init parent class
+        DeviceBackend.__init__(self, profile)
+
+        # define order
+        self.order += [
+            "timeout",
+        ]
+
+        self.params['timeout'] = Param(
+            "", valType='int', inputType="single", allowedTypes=[], categ="Device",
+            hint=_translate("Time at which to give up listening for a response (leave blank for no limit)"),
+            label=_translate("Timeout")
+        )
+    
+    def writeDeviceCode(self, buff):
+        """
+        Code to setup a device with this backend.
+
+        Parameters
+        ----------
+        buff : io.StringIO
+            Text buffer to write code to.
+        """
+        # write basic code
+        self.writeBaseDeviceCode(buff, close=False)
+        # add param and close
+        code = (
+            "    pauseDuration=(%(timeout)s or 0.1) / 3,\n"  
+            ")\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+
+# register backend with Component
+SerialOutComponent.registerBackend(SerialDeviceBackend)
+

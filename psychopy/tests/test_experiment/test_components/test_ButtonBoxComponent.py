@@ -13,11 +13,26 @@ from psychopy.experiment.components.buttonBox import ButtonBoxComponent
 from psychopy.experiment.components.code import CodeComponent
 from psychopy.tests.test_experiment.test_components.test_base_components import BaseComponentTests
 from psychopy.hardware.button import ButtonBox
+from psychopy.tests import utils
 
 
 class TestButtonBoxComponent(BaseComponentTests):
     comp = ButtonBoxComponent
     libraryClass = ButtonBox
+
+    def setup_class(cls):
+        """
+        Setup a keyboard response box for this test in prefs
+        """
+        from psychopy.preferences import prefs
+        from psychopy.experiment.components.buttonBox import KeyboardButtonBoxDeviceBackend
+        from psychopy.hardware import DeviceManager
+
+        for profile in DeviceManager.getAvailableDevices("psychopy.hardware.button.KeyboardButtonBox"):
+            device = KeyboardButtonBoxDeviceBackend(profile)
+            device.params['deviceLabel'].val = "testButtonBox"
+            prefs.devices['testButtonBox'] = device
+            break
     
     def test_values(self):
         """
@@ -60,6 +75,8 @@ class TestButtonBoxComponent(BaseComponentTests):
             cases.append(thisCase)
         # make minimal experiment just for this test
         comp, rt, exp = self.make_minimal_experiment()
+        # link to device
+        comp.params['deviceLabel'].val = "testButtonBox"
         # configure experiment
         exp.requireImport("ButtonResponse", importFrom="psychopy.hardware.button")
         exp.settings.params['Full-screen window'].val = False
@@ -114,10 +131,13 @@ class TestButtonBoxComponent(BaseComponentTests):
                 check=True,
             )
         except subprocess.CalledProcessError as err:
+            # save experiment file to fails folder
+            failScript = Path(utils.TESTS_FAILS_PATH) / tmpPy.name
+            failScript.write_text(script, encoding="utf-8")
             # if we get any errors, check their line number against error ranges
             matches = re.findall(
                 pattern=r"testButtonBox.py\", line (\d*),",
-                string=err.stderr
+                string=err.stderr.decode("utf-8")
             )
             # if no matches, raise error as is
             if not matches:
@@ -136,7 +156,7 @@ class TestButtonBoxComponent(BaseComponentTests):
                 f"Error in Routine with following params:\n"
                 f"{lastCase}\n"
                 f"Original traceback:\n"
-                f"{err.stdout}"
+                f"{err.stderr.decode('utf-8')}"
             )
             raise ValueError(msg)
 

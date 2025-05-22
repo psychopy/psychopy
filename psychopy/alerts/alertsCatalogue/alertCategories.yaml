@@ -85,6 +85,10 @@
     cat: Loops
     4705: Column name from conditions file clashes with variable name
     4710: Column name from conditions file likely to clash with derived variable names
+  
+  4800:
+    cat: Devices
+    4810: No config for named device
 
 5000:
   cat: Online studies

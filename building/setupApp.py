@@ -2,7 +2,6 @@
 ################
 # see notes at bottom for requirements
 
-import glob
 import os
 import sys
 from sys import platform
@@ -13,13 +12,14 @@ import bdist_mpkg  # noqa: needed to build bdist, even though not explicitly use
 import py2app  # noqa: needed to build app bundle, even though not explicitly used here
 from ctypes.util import find_library
 import importlib
-import building.compile_po
-from building import writeVersionFiles
+import compile_po
+import writeVersionFiles
+from pathlib import Path
 
-import psychopy
-version = psychopy.__version__
+root = Path(__file__).parent.parent  # root of the repo
+version = (root / 'psychopy/VERSION').read_text().strip()
 
-building.compile_po.compilePoFiles()
+compile_po.compilePoFiles()
 writeVersionFiles.updateVersionFile()
 writeVersionFiles.updateGitShaFile()
 
@@ -30,7 +30,7 @@ requires = []
 if platform != 'darwin':
     raise RuntimeError("setupApp.py is only for building Mac Standalone bundle")
 
-resources = glob.glob('psychopy/app/Resources/*')
+resources = list((root / 'psychopy/app/Resources').glob('*'))
 frameworks = [ # these installed using homebrew
               find_library("libevent"),
               find_library("libmp3lame"),
@@ -38,7 +38,7 @@ frameworks = [ # these installed using homebrew
               # libffi comes in the system
               "/usr/local/opt/libffi/lib/libffi.dylib",
               ]
-opencvLibs = glob.glob(os.path.join(sys.exec_prefix, 'lib', 'libopencv*.2.4.dylib'))
+opencvLibs = list(Path(sys.exec_prefix, 'lib').glob('libopencv*.2.4.dylib'))
 frameworks.extend(opencvLibs)
 
 import macholib
@@ -183,7 +183,7 @@ else:
     print("All packages appear to be present. Proceeding to build...")
 
 setup(
-    app=['psychopy/app/psychopyApp.py'],
+    app=[str(root / 'psychopy/app/psychopyApp.py')],
     options=dict(py2app=dict(
             includes=includes,
             packages=packages,
@@ -192,7 +192,7 @@ setup(
             argv_emulation=False,  # must be False or app bundle pauses (py2app 0.21 and 0.24 tested)
             site_packages=True,
             frameworks=frameworks,
-            iconfile='psychopy/app/Resources/psychopy.icns',
+            iconfile= str(root / 'psychopy/app/Resources/psychopy.icns'),
             plist=dict(
                   CFBundleIconFile='psychopy.icns',
                   CFBundleName               = "PsychoPy",
@@ -220,7 +220,7 @@ setup(
 # 'lib' to the rpath as well. These were fine for the packaged
 # framework python but the libs in an app bundle are different.
 # So, create symlinks so they appear in the same place as in framework python
-rpath = "dist/PsychoPy.app/Contents/Resources/"
+rpath = root / "dist/PsychoPy.app/Contents/Resources/"
 for libPath in opencvLibs:
     libname = os.path.split(libPath)[-1]
     realPath = "../../Frameworks/"+libname  # relative path (w.r.t. the fake)

@@ -87,7 +87,7 @@ class ButtonComponent(BaseVisualComponent):
             label=_translate("Run once per click")
         )
         self.params['callback'] = Param(
-            callback, valType='extendedCode', inputType="multi", allowedTypes=[], categ='Basic',
+            callback, valType='extendedCode', inputType="code", allowedTypes=[], categ='Basic',
             updates='constant',
             hint=_translate("Code to run when button is clicked"),
             label=_translate("Callback function"))

@@ -88,7 +88,7 @@ class SettingsComponent:
             self, parentName, exp, expName='', fullScr=True, runMode=0, rush=False,
             winSize=(1024, 768), screen=1, monitor='testMonitor', winBackend='pyglet',
             showMouse=False, saveLogFile=True, showExpInfo=True,
-            expInfo="{'participant':'f\"{randint(0, 999999):06.0f}\"', 'session':'001'}",
+            expInfo="{'participant':'f\"{randint(0, 999999):06.0f}\"', 'session':'\"001\"'}",
             units='height', 
             logging="info", 
             consoleLoggingLevel="warning",
@@ -1768,14 +1768,17 @@ class SettingsComponent:
             "    )\n"
         )
         buff.writeIndentedLines(code % inits)
-        # write any device setup code required by a component
-        for rt in self.exp.flow:
-            if isinstance(rt, Routine):
-                for comp in rt:
-                    if hasattr(comp, "writeDeviceCode"):
-                        comp.writeDeviceCode(buff)
-            elif isinstance(rt, BaseStandaloneRoutine):
-                rt.writeDeviceCode(buff)
+        # setup devices from config
+        for deviceName in self.exp.getRequiredDeviceNames():
+            if deviceName in prefs.devices:
+                # write device setup if possile
+                prefs.devices[deviceName].writeDeviceCode(buff)
+            elif deviceName is None:
+                # if default, let init code handle device
+                pass
+            else:
+                # alert if not
+                alert(4810, strFields={'deviceName': deviceName})
 
         code = (
             "# return True if completed successfully\n"

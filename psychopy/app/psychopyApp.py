@@ -19,9 +19,6 @@ import psychopy.locale_setup  # noqa
 
 
 def main():
-    from psychopy.app import startApp, quitApp
-    from psychopy.preferences import prefs
-
     # parser to process input arguments
     argParser = argparse.ArgumentParser(
         prog="PsychoPyApp", description=(
@@ -80,7 +77,7 @@ depends on the type of the [files]:
     )
     # add option to hide splash
     argParser.add_argument(
-        "--no-splash", dest="showSplash", action="store_false", default=prefs.app['showSplash'], help=(
+        "--no-splash", dest="showSplash", action="store_false", default=None, help=(
             "Suppresses splash screen"
         )
     )
@@ -90,8 +87,23 @@ depends on the type of the [files]:
             "Launches app with profiling to see what specific processes are taking up resources."
         )
     )
+    # add option to supply custom user directory
+    argParser.add_argument(
+        "--user-dir", dest="userDir", action="store", help=(
+            "Launches app with a custom location for the prefs folder."
+        )
+    )
     # parse args
     args, startFilesRaw = argParser.parse_known_args(sys.argv)
+
+    # import app and prefs now that args have been parsed
+    from psychopy.preferences import prefs
+    from psychopy.app import startApp, quitApp
+    # setup prefs
+    prefs.loadAll(userDir=args.userDir)
+    # insert fallbacks from prefs for unsupplied call args
+    if args.showSplash is None:
+        args.showSplash = prefs.app['showSplash']
     # pathify startFiles
     startFiles = None
     for thisFile in startFilesRaw:

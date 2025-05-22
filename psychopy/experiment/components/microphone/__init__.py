@@ -10,6 +10,7 @@ from pathlib import Path
 
 from psychopy import logging
 from psychopy.alerts import alert
+from psychopy.experiment.devices import DeviceBackend
 from psychopy.tools import stringtools as st, systemtools as syst, audiotools as at
 from psychopy.experiment.components import (
     BaseComponent, BaseDeviceComponent, Param, getInitVals, _translate
@@ -24,7 +25,6 @@ class MicrophoneComponent(BaseDeviceComponent):
     iconFile = Path(__file__).parent / 'microphone.png'
     tooltip = _translate('Microphone: basic sound capture (fixed onset & '
                          'duration), okay for spoken words')
-    deviceClasses = ['psychopy.hardware.microphone.MicrophoneDevice']
 
     # dict of available transcribers (plugins can add entries to this)
     localTranscribers = {
@@ -73,44 +73,6 @@ class MicrophoneComponent(BaseDeviceComponent):
         msg = _translate(
             'The duration of the recording in seconds; blank = 0 sec')
         self.params['stopType'].hint = msg
-
-        # --- Device params ---
-        self.order += [
-            "device",
-            "exclusive",
-            "maxSize",
-        ]
-
-        def getDeviceIndices():
-            from psychopy.hardware.microphone import MicrophoneDevice
-            profiles = MicrophoneDevice.getAvailableDevices()
-
-            return ["$None"] + [profile['index'] for profile in profiles]
-
-        def getDeviceNames():
-            from psychopy.hardware.microphone import MicrophoneDevice
-            profiles = MicrophoneDevice.getAvailableDevices()
-
-            return ["default"] + [profile['deviceName'] for profile in profiles]
-
-        self.params['device'] = Param(
-            device, valType='str', inputType="choice", categ="Device",
-            allowedVals=getDeviceIndices,
-            allowedLabels=getDeviceNames,
-            label=_translate("Device"),
-            hint=_translate(
-                "What microphone device would you like the use to record? This will only affect "
-                "local experiments - online experiments ask the participant which mic to use."
-            )
-        )
-        self.params['exclusive'] = Param(
-            exclusive, valType="code", inputType="bool", categ="Device",
-            label=_translate("Exclusive control"),
-            hint=_translate(
-                "Take exclusive control of the microphone, so other apps can't use it during your "
-                "experiment."
-            )
-        )
 
         # --- Data params ---
         msg = _translate(
@@ -268,32 +230,6 @@ class MicrophoneComponent(BaseDeviceComponent):
         """
         return {'None': "none", **self.localTranscribers, **self.onlineTranscribers}
 
-    def writeDeviceCode(self, buff):
-        """
-        Code to setup the CameraDevice for this component.
-
-        Parameters
-        ----------
-        buff : io.StringIO
-            Text buffer to write code to.
-        """
-        inits = getInitVals(self.params)
-
-        # --- setup mic ---
-        # force index to str type (holdover from when we used numeric indices)
-        inits['device'].valType = "str"
-        # initialise mic device
-        code = (
-            "# initialise microphone\n"
-            "deviceManager.addDevice(\n"
-            "    deviceClass='psychopy.hardware.microphone.MicrophoneDevice',\n"
-            "    deviceName=%(deviceLabel)s,\n"
-            "    index=%(device)s,\n"
-            "    exclusive=%(exclusive)s,\n"
-            ")\n"
-        )
-        buff.writeOnceIndentedLines(code % inits)
-
     def writeStartCode(self, buff):
         inits = getInitVals(self.params)
         # Use filename with a suffix to store recordings
@@ -366,7 +302,7 @@ class MicrophoneComponent(BaseDeviceComponent):
     def writeInitCodeJS(self, buff):
         inits = getInitVals(self.params)
         # Alert user if non-default value is selected for device
-        if inits['device'].val != '$None':
+        if inits['deviceLabel'].val not in (None, "", 'None'):
             alert(5055, strFields={'name': inits['name'].val})
         # Write code
         code = (
@@ -608,42 +544,49 @@ class MicrophoneComponent(BaseDeviceComponent):
         buff.writeIndentedLines(code % inits)
 
 
-def getDeviceName(index):
-    """
-    Get device name from a given index
+class MicrophoneDeviceBackend(DeviceBackend):
+    # name of this backend to display in Device Manager
+    backendLabel = "Microphone"
+    # class of the device which this backend corresponds to
+    deviceClass = "psychopy.hardware.microphone.MicrophoneDevice"
+    # icon to show in device manager
+    icon = "light/microphone.png"
 
-    Parameters
-    ----------
-    index : int or None
-        Index of the device to use
-    """
-    name = "defaultMicrophone"
-    if isinstance(index, str) and index.isnumeric():
-        index = int(index)
-    for dev in syst.getAudioCaptureDevices():
-        if dev['index'] == index:
-            name = dev['name']
+    def __init__(self, profile):
+        # init parent class
+        DeviceBackend.__init__(self, profile)
 
-    return name
+        # add params
+        self.order += [
+            "exclusive",
+        ]
+        self.params['exclusive'] = Param(
+            False, valType="code", inputType="bool",
+            label=_translate("Exclusive control"),
+            hint=_translate(
+                "Take exclusive control of the microphone, so other apps can't use it during your "
+                "experiment."
+            )
+        )
+    
+    def writeDeviceCode(self, buff):
+        """
+        Code to setup a device with this backend.
+
+        Parameters
+        ----------
+        buff : io.StringIO
+            Text buffer to write code to.
+        """
+        # write basic code
+        self.writeBaseDeviceCode(buff, close=False)
+        # add exclusive param and close
+        code = (
+            "    exclusive=%(exclusive)s,\n"
+            ")\n"
+        )
+        buff.writeIndentedLines(code % self.params)
 
 
-def getDeviceVarName(index, case="camel"):
-    """
-    Get device name from a given index and convert it to a valid variable name.
-
-    Parameters
-    ----------
-    index : int or None
-        Index of the device to use
-    case : str
-        Format of the variable name (see stringtools.makeValidVarName for info on accepted formats)
-    """
-    # Get device name
-    name = getDeviceName(index)
-    # If device name is just default, add "microphone" for clarity
-    if name == "default":
-        name += "_microphone"
-    # Make valid
-    varName = st.makeValidVarName(name, case=case)
-
-    return varName
+# register backend with Component
+MicrophoneComponent.registerBackend(MicrophoneDeviceBackend)

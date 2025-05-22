@@ -36,6 +36,7 @@ from ..pavlovia_ui.project import ProjectFrame
 from ..pavlovia_ui.search import SearchFrame
 from ..pavlovia_ui.user import UserFrame
 from ..pavlovia_ui.functions import logInPavlovia
+from ..deviceManager import DeviceManagerDlg
 from ...experiment import getAllElements, getAllCategories
 from ...experiment.routines import Routine, BaseStandaloneRoutine
 from psychopy.tools.versionchooser import parseVersionSafely, psychopyVersion
@@ -599,6 +600,12 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.Bind(wx.EVT_MENU, self.app.showNews, id=item.GetId())
 
         self.SetMenuBar(menuBar)
+    
+    def openDeviceManager(self, evt=None):
+        # create a device manager dialog
+        dlg = DeviceManagerDlg(self)
+        # show it modal to this window
+        dlg.ShowModal()
 
     def commandCloseFrame(self, event):
         """Defines Builder Frame Closing Event"""
@@ -4545,6 +4552,13 @@ class BuilderRibbon(ribbon.FrameRibbon):
             icon="monitors",
             tooltip=_translate("Monitor settings and calibration"),
             callback=parent.app.openMonitorCenter
+        )
+        # device manager
+        self.addButton(
+            section="experiment", name='devices', label=_translate('Device manager'),
+            icon="devices",
+            tooltip=_translate("Map devices from this machine to names in your experiment"),
+            callback=parent.openDeviceManager
         )
         # settings
         self.addButton(

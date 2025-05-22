@@ -1,10 +1,10 @@
 from pathlib import Path
 from psychopy.experiment.components import BaseComponent, BaseDeviceComponent, Param, getInitVals
-from psychopy.experiment.plugins import PluginDevicesMixin, DeviceBackend
+from psychopy.experiment.devices import DeviceBackend
 from psychopy.localization import _translate
 
 
-class ButtonBoxComponent(BaseDeviceComponent, PluginDevicesMixin):
+class ButtonBoxComponent(BaseDeviceComponent):
     """
     Component for getting button presses from a button box device.
     """
@@ -13,6 +13,10 @@ class ButtonBoxComponent(BaseDeviceComponent, PluginDevicesMixin):
     iconFile = Path(__file__).parent / 'buttonBox.png'
     tooltip = _translate('Button Box: Get input from a button box')
     beta = True
+    legacyParams = [
+        "deviceBackend",
+        "kbButtonAliases"
+    ]
 
     def __init__(
             self, exp, parentName,
@@ -22,6 +26,7 @@ class ButtonBoxComponent(BaseDeviceComponent, PluginDevicesMixin):
             stopType='duration (s)', stopVal=1.0,
             startEstim='', durationEstim='',
             forceEndRoutine=True,
+            discardPrevious=True,
             # device
             deviceLabel="",
             deviceBackend="keyboard",
@@ -69,6 +74,7 @@ class ButtonBoxComponent(BaseDeviceComponent, PluginDevicesMixin):
             "allowedButtons",
             "storeCorrect",
             "correctAns",
+            "discardPrevious"
         ]
         self.params['registerOn'] = Param(
             registerOn, valType='code', inputType='choice', categ='Data',
@@ -119,25 +125,14 @@ class ButtonBoxComponent(BaseDeviceComponent, PluginDevicesMixin):
                 "$correctAns to compare to the key press. "
             ),
             label=_translate("Correct answer"), direct=False)
-
-        # --- Device params ---
-        self.order += [
-            "deviceBackend",
-        ]
-
-        self.params['deviceBackend'] = Param(
-            deviceBackend, valType="str", inputType="choice", categ="Device",
-            allowedVals=self.getBackendKeys,
-            allowedLabels=self.getBackendLabels,
-            label=_translate("Device backend"),
+        self.params['discardPrevious'] = Param(
+            discardPrevious, valType='bool', inputType="bool", categ="Data",
+            updates="constant",
             hint=_translate(
-                "What kind of button box is it? What package/plugin should be used to talk to it?"
+                "Do you want to discard all responses occurring before the onset of this Component?"
             ),
-            direct=False
+            label=_translate("Discard previous")
         )
-
-        # add params for any backends
-        self.loadBackends()
 
     def writeInitCode(self, buff):
         inits = getInitVals(self.params)
@@ -180,13 +175,14 @@ class ButtonBoxComponent(BaseDeviceComponent, PluginDevicesMixin):
         # writes an if statement to determine whether to draw etc
         indented = self.writeStartTestCode(buff)
         if indented:
-            # dispatch and clear messages
-            code = (
-                "# clear any messages from before starting\n"
-                "%(name)s.responses = []\n"
-                "%(name)s.clearResponses()\n"
-            )
-            buff.writeIndentedLines(code % params)
+            if self.params['discardPrevious']:
+                # dispatch and clear messages
+                code = (
+                    "# clear any messages from before starting\n"
+                    "%(name)s.responses = []\n"
+                    "%(name)s.clearResponses()\n"
+                )
+                buff.writeIndentedLines(code % params)
             # to get out of the if statement
             buff.setIndentLevel(-indented, relative=True)
 
@@ -277,27 +273,23 @@ class ButtonBoxComponent(BaseDeviceComponent, PluginDevicesMixin):
             "thisExp.addData('%(name)s.corr', %(name)s.corr)\n"
         )
         buff.writeIndentedLines(code % params)
-        
 
-class KeyboardButtonBoxBackend(DeviceBackend):
-    """
-    Adds a basic keyboard emulation backend for ButtonBoxComponent, as well as acting as an example
-    for implementing other ButtonBoxBackends.
-    """
 
-    key = "keyboard"
-    label = _translate("Keyboard")
-    component = ButtonBoxComponent
-    deviceClasses = ['psychopy.hardware.button.KeyboardButtonBox']
+class KeyboardButtonBoxDeviceBackend(DeviceBackend):
+    backendLabel = "Keyboard Button Box"
+    deviceClass = "psychopy.hardware.button.KeyboardButtonBox"
+    icon = "light/buttonBox.png"
 
-    def getParams(self: ButtonBoxComponent):
+    def __init__(self, profile):
+        # init parent class
+        DeviceBackend.__init__(self, profile)
+
         # define order
-        order = [
+        self.order += [
             "kbButtonAliases",
         ]
         # define params
-        params = {}
-        params['kbButtonAliases'] = Param(
+        self.params['kbButtonAliases'] = Param(
             "'q', 'w', 'e'", valType="list", inputType="single", categ="Device",
             label=_translate("Buttons"),
             hint=_translate(
@@ -305,22 +297,25 @@ class KeyboardButtonBoxBackend(DeviceBackend):
                 "Must be the same length as the number of buttons."
             )
         )
+    
+    def writeDeviceCode(self, buff):
+        """
+        Code to setup a device with this backend.
 
-        return params, order
-
-    def addRequirements(self):
-        # no requirements needed - so just return
-        return
-
-    def writeDeviceCode(self: ButtonBoxComponent, buff):
-        # get inits
-        inits = getInitVals(self.params)
-        # make ButtonGroup object
+        Parameters
+        ----------
+        buff : io.StringIO
+            Text buffer to write code to.
+        """
+        # write basic code
+        self.writeBaseDeviceCode(buff, close=False)
+        # add param and close
         code = (
-            "deviceManager.addDevice(\n"
-            "    deviceClass='psychopy.hardware.button.KeyboardButtonBox',\n"
-            "    deviceName=%(deviceLabel)s,\n"
             "    buttons=%(kbButtonAliases)s,\n"
             ")\n"
         )
-        buff.writeOnceIndentedLines(code % inits)
+        buff.writeIndentedLines(code % self.params)
+
+
+# register backend with Component
+ButtonBoxComponent.registerBackend(KeyboardButtonBoxDeviceBackend)

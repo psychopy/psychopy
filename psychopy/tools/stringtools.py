@@ -393,25 +393,50 @@ def _actualizeAstValue(item):
         return tuple(_actualizeAstValue(i) for i in item.elts)
 
 
-def getVariables(code):
+def getVariableDefs(code):
     """
-    Use AST tree parsing to convert a string of valid Python code to a dict containing each variable created and its
-    value.
+    Returns a dict of variables defined in the given code, and their values.
+
+    Parameters
+    ----------
+    code : str
+        Code to parse for variable defs
     """
-    assert isinstance(code, str), "First input to `getArgs()` must be a string"
-    # Make blank output dict
+    assert isinstance(code, str), "First input to `getVariableDefs()` must be a string"
+    # make blank output dict
     vars = {}
-    # Construct tree
+    # construct tree
     tree = compile(code, '', 'exec', flags=ast.PyCF_ONLY_AST)
-    # Iterate through each line
+    # iterate through each node
     for line in tree.body:
         if hasattr(line, "targets") and hasattr(line, "value"):
-            # Append targets and values this line to arguments dict
+            # append targets and values this line to arguments dict
             for target in line.targets:
                 if hasattr(target, "id"):
                     vars[target.id] = _actualizeAstValue(line.value)
 
     return vars
+
+def getVariables(code):
+    """
+    Returns a list of variables referenced in the given code.
+
+    Parameters
+    ----------
+    code : str
+        Code to parse for variables
+    """
+    assert isinstance(code, str), "First input to `getVariables()` must be a string"
+    # make blank output list
+    vars = set()
+    # construct tree
+    tree = compile(code, '', 'exec', flags=ast.PyCF_ONLY_AST)
+    # iterate through each node
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Name):
+            vars.add(node.id)
+    
+    return list(vars)
 
 
 def getArgs(code):

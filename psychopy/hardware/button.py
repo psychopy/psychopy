@@ -188,6 +188,9 @@ class ButtonBox:
     Builder-friendly wrapper around BaseButtonGroup.
     """
     def __init__(self, device):
+        # start off with None for device
+        self.device = None
+
         if isinstance(device, BaseButtonGroup):
             # if given a button group, use it
             self.device = device
@@ -198,10 +201,13 @@ class ButtonBox:
             else:
                 # don't use formatted string literals in _translate()
                 raise ValueError(_translate(
-                    "Could not find device named '{device}', make sure it has been set up "
+                    "Could not find device named '{}', make sure it has been set up "
                     "in DeviceManager."
                 ).format(device))
-
+        # if given None, use first button group we find in DeviceManager
+        for name, device in DeviceManager.getInitialisedDevices(BaseButtonGroup).items():
+            self.device = device
+            break
         # starting value for status (Builder)
         self.status = constants.NOT_STARTED
         # arrays to store info (Builder)

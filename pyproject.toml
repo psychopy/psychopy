@@ -2,7 +2,7 @@
 [project]
 name = "psychopy"
 dynamic = ["version"]
-requires-python = ">=3.8, <3.11"
+requires-python = ">=3.8, <3.12"
 description = "PsychoPy provides easy, precise, flexible experiments in behavioural sciences"
 readme ={file = "README.md", content-type = "text/markdown"}
 authors = [
@@ -20,6 +20,7 @@ classifiers = [
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
     "Topic :: Scientific/Engineering",
     "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
     ]
@@ -55,7 +56,6 @@ dependencies = [
     "freetype-py",
     "python-bidi",
     "arabic-reshaper",
-    "javascripthon",
     "websockets",  # new in 2023.2 for session.py
     # for the app
     "wxPython >= 4.1.1",
@@ -69,7 +69,7 @@ dependencies = [
     "gitpython",
     "cryptography",  # for sshkeys
     # psychoJS conversions
-    "javascripthon>=0.12",
+    "javascripthon @ git+https://gitlab.com/peircej/metapensiero.pj",  # until fixes dukpy depend
     "astunparse",
     "esprima",
     "jedi >= 0.16",
@@ -86,6 +86,7 @@ dependencies = [
     "pyobjc-core > 8.0; platform_system == \"Darwin\"",
     "pyobjc-framework-Quartz > 8.0; platform_system == \"Darwin\"",
     "pyobjc > 8.0; platform_system == \"Darwin\"",
+    "pyobjc-framework-ScriptingBridge > 8.0; platform_system == \"Darwin\"",
     "zeroconf; platform_system == \"Darwin\"",
     "python-xlib; platform_system == \"Linux\"",
     "distro; platform_system == \"Linux\"",
@@ -115,6 +116,7 @@ building = [
     "bdist-mpkg>=0.5.0; platform_system == \"Darwin\"",
     "py2app; platform_system == \"Darwin\"",
     "dmgbuild; platform_system == \"Darwin\"",
+    "polib",
 ]
 suggested = [
     "sounddevice",
