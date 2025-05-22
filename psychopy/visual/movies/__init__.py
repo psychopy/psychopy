@@ -15,6 +15,9 @@ import ctypes
 import os.path
 from pathlib import Path
 
+import tempfile
+import time
+
 from psychopy import prefs
 from psychopy.tools.filetools import pathToString, defaultStim
 from psychopy.visual.basevisual import (
@@ -349,8 +352,8 @@ class MovieFileReader:
         # default options
         defaultFFOpts = {
             'paused': True,
-            'sync': 'video',  # sync to video
-            'an': True,
+            'sync': 'audio',
+            'an': False,
             'volume': 1.0,
             'loop': 0,
             'infbuf': True
@@ -377,7 +380,6 @@ class MovieFileReader:
         # warmup, takes a while before the video starts playing
         while 1:
             frame, _ = self._player.get_frame()
-            print('warming up')
             if frame != None:
                 break
 
@@ -439,8 +441,7 @@ class MovieFileReader:
     def close(self):
         """Close the movie file or stream.
         """
-
-        self._player.close()  # close the player
+        self._player.close_player()  # close the player
         self._player = None  # clear the player
 
         # clear frames from store
@@ -513,6 +514,7 @@ class MovieFileReader:
 
             """
             from ffpyplayer.pic import SWScale
+
             rgbImg = SWScale(
                 self._metadata.size[0], 
                 self._metadata.size[1], 
@@ -523,7 +525,8 @@ class MovieFileReader:
 
 
         if self._player is None:
-            raise ValueError('Movie reader is not open. Cannot grab frame.')
+            return None
+            # raise ValueError('Movie reader is not open. Cannot grab frame.')
         
         reqPTS = min(max(0.0, reqPTS), self._duration)
 
@@ -536,12 +539,8 @@ class MovieFileReader:
             if self._videoSegments[0][1] > reqPTS:  # seek if before first frame
                 self._seekFFPyPlayer(reqPTS)
                 self._player.set_pause(False)
-        
-        while 1:  # keep getting frames until we reach the desired PTS
-            if self._videoSegments:
-                if self._videoSegments[-1][1] > reqPTS + self._frameInterval * 2:
-                    break
 
+        while 1:  # keep getting frames until we reach the desired PTS
             # get the next frame
             frame, status = self._player.get_frame()
 
@@ -561,7 +560,7 @@ class MovieFileReader:
             if curPts + self._frameInterval > reqPTS:
                 self._videoSegments.append(
                     (_convertFrameToRGB(img), curPts, status))
-                self._cleanUpFrameStore(reqPTS)  # clean up the frame store
+                # self._cleanUpFrameStore(reqPTS)  # clean up the frame store
                 break
 
         # print(len(self._videoSegments), reqPTS)
@@ -659,7 +658,8 @@ class MovieFileReader:
             seeking.
 
         """
-        reqPTS = min(max(0.0, reqPTS), self.duration)  # normalize PTS
+        reqPTS = min(max(0.0, reqPTS), self._duration)
+        print('Seeking to PTS: {}'.format(reqPTS))
 
         if self._player is None:
             raise ValueError('Movie reader is not open. Cannot seek.')
@@ -796,8 +796,9 @@ class MovieFileReader:
                         img.get_pixel_format(), ofmt='rgb24').scale(img)
                     toReturn = (reqFrameData, pts)
                     break
-
-        self._cleanUpFrameStore(reqPTS)  # clean up the frame store
+            
+            # clean up frame cache to free memory
+            self._cleanUpFrameStore(reqPTS)
 
         # convert the frmae to the correct pixel format
         return toReturn
@@ -834,6 +835,9 @@ class MovieFileReader:
 class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
     """Class for presenting movie clips as stimuli.
 
+    This class is used to present movie clips loaded from file as stimuli in 
+    PsychoPy.
+
     Parameters
     ----------
     win : :class:`~psychopy.visual.Window`
@@ -845,6 +849,8 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         Library to use for video decoding. By default, the 'preferred' library
         by PsychoPy developers is used. Default is `'ffpyplayer'`. An alert is
         raised if you are not using the preferred player.
+    audioLib : str or None
+        Library to use for audio decoding. By default, 'soundfile' is used.
     units : str
         Units to use when sizing the video frame on the window, affects how
         `size` is interpreted.
@@ -871,6 +877,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
                  win,
                  filename="",
                  movieLib=u'ffpyplayer',
+                 audioLib=None,
                  units='pix',
                  size=None,
                  pos=(0.0, 0.0),
@@ -919,6 +926,9 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         self.opacity = opacity
 
         # playback stuff
+        self._movieLib = movieLib
+        self._decoderOpts = {}
+        self._player = None  # player interface object
         self._filename = pathToString(filename)
         self._volume = volume
         self._noAudio = noAudio  # cannot be changed
@@ -926,10 +936,21 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         self._recentFrame = None
         self._autoStart = autoStart
         self._isLoaded = False
+        self._pts = 0.0
+        self._movieTime = 0.0   # current movie position in seconds
+        self._lastFrameAbsTime = -1.0  # absolute time of the last frame
 
-        # timekeeping
-        self._absStartTime = 0.0
-        self._absPausedTime = 0.0
+        # audio stuff
+        if audioLib is None and self._movieLib == 'ffpyplayer':
+            self._audioLib = 'sdl2'
+        else:
+            self._audioLib = audioLib
+
+        self._audioTempFile = None  # audio extracted from the movie
+        self._audioSamples = []  # audio samples from the movie 
+        self._audioReader = None  # audio reader object
+        self._audioSampleRate = 44100  # audio sample rate
+        self._audioChannels = 2  # number of audio channels
 
         # OpenGL data
         self.interpolate = interpolate
@@ -937,11 +958,6 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         self._metadata = NULL_MOVIE_METADATA
         self._pixbuffId = GL.GLuint(0)
         self._textureId = GL.GLuint(0)
-
-        # get the player interface for the desired `movieLib` and instance it
-        self._player = MovieFileReader(
-            filename=self._filename,
-            decoderLib=movieLib)
 
         # load a file if provided, otherwise the user must call `setMovie()`
         self._filename = pathToString(filename)
@@ -986,14 +1002,18 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         # use this property to check if the player instance is started in
         # methods which require it
         return self._player is not None
+    
+    def _setFileName(self, filename):
+        """Set the file name of the movie.
 
-    def loadMovie(self, filename):
-        """Load a movie file from disk.
+        This function sets the file name of the movie. The file name is used
+        to load the movie from disk. If the file name is not set, the movie
+        will not be loaded.
 
         Parameters
         ----------
         filename : str
-            Path to movie file. Must be a format that FFMPEG supports.
+            The file name of the movie.
 
         """
         # If given `default.mp4`, sub in full path
@@ -1012,15 +1032,141 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
                 filename = filename.lastClip
 
         self._filename = os.path.abspath(str(filename))
-        self._player.setMovie(self._filename)
+
+    def loadMovie(self, filename):
+        """Load a movie file from disk.
+
+        Parameters
+        ----------
+        filename : str
+            Path to movie file. Must be a format that FFMPEG supports.
+
+        """
+        # Set the movie file name, this handles normalizing the path and
+        # checking if the file exists.
+
+        self._setFileName(filename)
+
+        # Time opening the movie file
+
+        t0 = time.time()  # time it
+        logging.debug(
+            "Opening movie file: {}".format(self._filename))
+
+        # Extact the audio track so we can read samples from it. This needs to
+        # be done before the movie is opened by the player to avoid file access
+        # issues. The audio track is extracted to a temporary file which is
+        # deleted when the movie is closed.
+
+        disableAudio = False
+        if not self._noAudio and self._audioLib not in ('sdl', 'sdl2'):
+            # if using SDL, playback is handled by the ffpyplayer library so we
+            # don't need to extract the audio track or setup the audio stream
+            self._extractAudioTrack()
+            disableAudio = True
+
+        self._decoderOpts['an'] = disableAudio  
+
+        # Create the movie player interface, this is what decodes movie frames
+        # in the background. We disable audio playback since we are using the
+        # our own audio library for playback.
+
+        self._player = MovieFileReader(
+            filename=self._filename,
+            decoderLib=self._movieLib,
+            decoderOpts=self._decoderOpts)
+        
+        # Open the player, this will get metadata about the movie and start
+        # decoding frames in the background.
+        
+        self._player.open()
+        
+        logging.debug(
+            "Movie file opened in {:.2f} seconds".format(
+                time.time() - t0))
+
+        # Setup the OpenGL buffers for the movie frames. The sizes of the 
+        # buffers are determined by the size of the movie frames obtained from
+        # the player.
 
         self._freeBuffers()  # free buffers (if any) before creating a new one
         self._setupTextureBuffers()
 
         self._isLoaded = True
 
+    def _setupAudioStream(self):
+        """Setup the audio stream for the movie.
+        """
+        pass
+
+    def _pushAudioSamples(self):
+        """Push audio samples to the audio buffer.
+
+        """
+        if self._noAudio:
+            return
+
+    def _extractAudioTrack(self):
+        """Extract the audio track from the movie file.
+
+        This function extracts the audio track from the movie file and writes
+        it to a temporary file. The temporary file is used to play the audio
+        track in sync with the video frames.
+
+        """
+        t0 = time.time()
+        logging.debug("Extracting audio track from movie file: {}".format(
+            self._filename))
+
+        # Create a temporary file where the audio track will be written to. The 
+        # file will be deleted when the movie is closed.
+        self._audioTempFile = tempfile.NamedTemporaryFile(
+            suffix='.wav',
+            delete=False)
+        
+        # use moviepy to extract the audio track
+        import moviepy as mp
+
+        videoClip = mp.VideoFileClip(
+            self._filename)
+        audioTrackData = videoClip.audio
+
+        audioTrackData.write_audiofile(
+            self._audioTempFile.name,
+            codec='pcm_s16le',
+            fps=44100,
+            nbytes=2,
+            logger=None)
+        
+        videoClip.close()
+        self._audioTempFile.close()
+
+        logging.warning(
+            "Audio track written to temporary file: {} ({} bytes)".format(
+                self._audioTempFile.name, 
+                os.path.getsize(self._audioTempFile.name)))
+
+        logging.warning(
+            "Audio track extraction completed in {:.2f} seconds".format(
+                time.time() - t0))
+        
+        # use soundfile to read the audio samples from the temporary file
+        import soundfile as sf
+        samples, sr = sf.read(
+            self._audioTempFile.name,
+            dtype='float32',
+            always_2d=True)
+        self._audioSampleRate = sr
+        self._audioSamples = samples
+
+        # compute the size of the audio samples in bytes
+        audioSize = self._audioSamples.nbytes
+
+        logging.debug(
+            "Audio track size: {} bytes".format(audioSize))
+
     def load(self, filename):
-        """Load a movie file from disk (alias of `loadMovie`).
+        """Load a movie file from disk (alias of `setMovie`).
 
         Parameters
         ----------
@@ -1052,6 +1198,27 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         """
         return self._textureId
 
+    def _updateMoviePos(self):
+        """Update the movie position.
+
+        This function updates the movie position. The movie position is the
+        presentation timestamp (PTS) of the current frame. The PTS is updated
+        when the movie is played or paused.
+
+        """
+        now = core.getTime()
+
+        if self.status == PLAYING:
+            # determine the current movie time
+            incr = now - self._lastFrameAbsTime
+            self._movieTime += now - self._lastFrameAbsTime
+        elif self.status == STOPPED:
+            self._movieTime = 0.0
+
+        # if paused, the movie time does not advance but we still need to
+        # update the last frame time
+        self._lastFrameAbsTime = now  # always updates 
+
     def updateVideoFrame(self):
         """Update the present video frame. The next call to `draw()` will make
         the retrieved frame appear.
@@ -1065,10 +1232,9 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
         """
         # get the current movie frame for the video time
-        curExpTime = core.getTime()
+        self._updateMoviePos()  # update the movie position
 
-        frameData = self._player.getFrame(
-            curExpTime - self._absStartTime)
+        frameData = self._player.getFrame(self._movieTime)
         
         if frameData is None:
             return self._recentFrame
@@ -1088,7 +1254,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             self._pixelTransfer()
 
         return self._recentFrame
-
+            
     def draw(self, win=None):
         """Draw the current frame to a particular window.
 
@@ -1110,6 +1276,9 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
         """
         self._selectWindow(self.win if win is None else win)
+
+        # self._movieTime = self._pts  # get the current movie time
+        # self._lastFrameTime = core.getTime()  # get the current time
 
         # handle autoplay
         # if self._autoStart and self.isNotStarted:
@@ -1172,6 +1341,14 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         """`True` if the video is finished (`bool`).
         """
         return False
+    
+    @property
+    def movieTime(self):
+        """Current movie time in seconds (`float`). This is the time since the
+        movie started playing. If the movie is paused, this time will not
+        advance.
+        """
+        return self._movieTime
 
     def play(self, log=True):
         """Start or continue a paused movie from current position.
@@ -1182,14 +1359,19 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             Log the play event.
 
         """
+        if self.status == PLAYING:
+            return  # nop
+        
         # get the absolute experiment time the first frame is to be presented
         # if self.status == NOT_STARTED:
         #     self._player.volume = self._volume
-
-        self._absStartTime = core.getTime()
-        self._player.pause(False)
-        # self._player.getFrame(0.0)
+        # self._player.pause(True)
+        # self.seek(0.0)  # seek to the current PTS
+        # self._absStartTime = core.getTime()
+        self._player.pause(False)  # start the player
         self.status = PLAYING
+        # self._movieTime = 0.0
+        self._lastFrameAbsTime = core.getTime()  # get the current time
 
     def pause(self, log=True):
         """Pause the current point in the movie. The image of the last frame
@@ -1202,6 +1384,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
         """
         self._player.pause()
+        self.status = PAUSED
 
     def toggle(self, log=True):
         """Switch between playing and pausing the movie. If the movie is playing,
@@ -1234,6 +1417,8 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         if self._player is not None:
             self._player.close()
 
+        self.status = STOPPED
+
     def seek(self, timestamp, log=True):
         """Seek to a particular timestamp in the movie.
 
@@ -1245,7 +1430,14 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             Log this event.
 
         """
-        self._player.seek(timestamp)
+        self._movieTime = timestamp
+        self._player.pause(True)  # pause the player
+        self._player.seek(self._movieTime)
+
+        if self.status == PLAYING:
+            self._player.pause(False)
+        else:
+            self.updateVideoFrame()
 
     def rewind(self, seconds=1, log=True):
         """Rewind the video.
@@ -1259,9 +1451,11 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             Log this event.
 
         """
-        pass
+        newPts = self._movieTime - seconds
+        self._movieTime = min(max(0.0, newPts), self.duration)
+        self.seek(self._movieTime)  # seek to the new position
 
-    def fastForward(self, seconds=5, log=True):
+    def fastForward(self, seconds=1, log=True):
         """Fast-forward the video.
 
         Parameters
@@ -1273,7 +1467,9 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             Log this event.
 
         """
-        pass
+        newPts = self._movieTime + seconds
+        self._movieTime = min(max(0.0, newPts), self.duration)
+        self.seek(self._movieTime)  # seek to the new position
 
     def replay(self, log=True):
         """Replay the movie from the beginning.
@@ -1290,7 +1486,10 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
           you would like to restart the movie without reloading.
 
         """
-        pass
+        self._player.pause(True)
+        self.seek(0.0)
+        self._movieTime = 0.0
+        self.play()
 
     # --------------------------------------------------------------------------
     # Audio stream control methods
@@ -1437,7 +1636,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         if not self._player:
             return -1.0
 
-        return 0.0
+        return self._pts
 
     def getPercentageComplete(self):
         """Provides a value between 0.0 and 100.0, indicating the amount of the
@@ -1556,10 +1755,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             GL.GL_PIXEL_UNPACK_BUFFER,
             GL.GL_WRITE_ONLY)
 
-        # bufferArray = np.ctypeslib.as_array(
-        #     ctypes.cast(bufferPtr, ctypes.POINTER(GL.GLubyte)),
-        #     shape=(nBufferBytes,))
-
+        # copy the frame data to the buffer
         ctypes.memmove(bufferPtr,
             self._recentFrame.ctypes.data,
             nBufferBytes)
