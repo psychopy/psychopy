@@ -23,7 +23,8 @@ from psychopy.tools.filetools import pathToString, defaultStim
 from psychopy.visual.basevisual import (
     BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin
 )
-from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED
+from psychopy.constants import (
+    FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED, SEEKING)
 from psychopy import core
 
 from .metadata import MovieMetadata, NULL_MOVIE_METADATA
@@ -347,6 +348,18 @@ class MovieFileReader:
         return self._metadata
     
     # --------------------------------------------------------------------------
+    # Backend-specific reader interface methods
+    # 
+    # These methods are used to interface with the backend specified by the
+    # `decoderLib` parameter. The methods are not intended to be used directly
+    # by users. In the future, these will likely be moved into separate classes
+    # for each backend. Methods are suffixed with the backend name and are 
+    # selected based on the `decoderLib` parameter inside public methods which 
+    # relate to them (e.g. `open()` will call `_openFFPyPlayer()` if the backend
+    # is `ffpyplayer`).
+    #
+    
+    # --------------------------------------------------------------------------
     # FFPyPlayer specific methods
     # 
 
@@ -442,7 +455,7 @@ class MovieFileReader:
             movieMetadata['src_pix_fmt'])
 
         logging.debug("Movie metadata: {}".format(movieMetadata))
-
+    
     def _seekFFPyPlayer(self, reqPTS):
         """FFPyPlayer specific seek routine.
 
@@ -592,7 +605,7 @@ class MovieFileReader:
         # normalzie the PTS to be between 0 and the duration of the movie
         reqPTS = min(max(0.0, reqPTS), 
                      self._metadata.duration + self._metadata.frameInterval)
-
+        
         # check if we have the frame in the store
         frame = self._getFrameFromStore(reqPTS)
         if frame is not None:
@@ -618,10 +631,17 @@ class MovieFileReader:
             if curPts + self._metadata.frameInterval >= reqPTS:
                 self._frameStore.append(
                     (self._convertFrameToRGBFFPyPlayer(img), curPts, status))
+                break
+        
+        toReturn = self._getFrameFromStore(reqPTS)
 
-        return self._getFrameFromStore(reqPTS) # get the frame we just decoded
+        self._cleanUpFrameStore(reqPTS)  # clean up the frame store
+
+        return toReturn
     
     # --------------------------------------------------------------------------
+    # File I/O methods
+    #
 
     def open(self):
         """Open the movie file for reading.
@@ -709,15 +729,12 @@ class MovieFileReader:
         if keepAfterPTS is None:
             self._frameStore.clear()
             return
-
-        # remove all frames we have already presented
-        for i in range(len(self._frameStore) - 1, -1, -1):
-            _, pts, _ = self._frameStore[i]
-            if pts < keepAfterPTS:
-                del self._frameStore[i]
-            else:
+        
+        for i, frame in enumerate(self._frameStore):
+            if frame[1] >= keepAfterPTS - self._metadata.frameInterval:
+                self._frameStore = self._frameStore[i:]
                 break
-
+            
     def _getFrameFromStore(self, reqPTS):
         """Get a frame from the store.
 
@@ -736,6 +753,9 @@ class MovieFileReader:
             The converted frame in RGB format.
 
         """
+        if self._frameStore is None:
+            return None
+        
         for img, pts, status in self._frameStore:
             if pts <= reqPTS < pts + self._metadata.frameInterval:
                 return (img, pts, status)
@@ -1042,6 +1062,10 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         self._movieTime = 0.0   # current movie position in seconds
         self._lastFrameAbsTime = -1.0  # absolute time of the last frame
 
+        # internal status flags for keeping track of the playback state
+        self._playbackStatus = NOT_STARTED
+        self._wasPaused = False  # was the movie paused?
+
         # audio stuff
         if audioLib is None and self._movieLib == 'ffpyplayer':
             self._audioLib = 'sdl2'
@@ -1206,7 +1230,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         # buffers are determined by the size of the movie frames obtained from
         # the player.
 
-        self._freeBuffers()  # free buffers (if any) before creating a new one
+        self._freeTextureBuffers()  # free buffers (if any) before creating a new one
         self._setupTextureBuffers()
 
         self._isLoaded = True
@@ -1305,7 +1329,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
         """
         self._player.close()
-        self._freeBuffers()  # free buffer before creating a new one
+        self._freeTextureBuffers()  # free buffer before creating a new one
         self._isLoaded = False
 
     # --------------------------------------------------------------------------
@@ -1321,20 +1345,38 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
         """
         # todo - use 'geFutureFlipTime' to get the time of the next flip to align
+
         # the movie with the flip time
         now = core.getTime()
+        # if self._playbackStatus == SEEKING:
+        #     self._lastFrameAbsTime = now
+        #     # if we are seeking, the movie time is not updated until done
+        #     return
 
-        if self.status == PLAYING:
+        if self._playbackStatus == PLAYING:
             # determine the current movie time
-            self._movieTime += now - self._lastFrameAbsTime
-            self._movieTime = min(self._movieTime, self.duration)
-        elif self.status == STOPPED:
+            self._movieTime = min(
+                self._movieTime + (now - self._lastFrameAbsTime), self.duration)
+        elif self._playbackStatus == STOPPED:
             self._movieTime = 0.0
 
         # if paused, the movie time does not advance but we still need to
         # update the last frame time
         self._lastFrameAbsTime = now  # always updates 
 
+    # --------------------------------------------------------------------------
+    # Drawing and rendering
+    #
+
+    @property
+    def frameTexture(self):
+        """Texture ID for the current video frame (`GLuint`). You can use this
+        as a video texture. However, you must periodically call
+        `updateVideoFrame` to keep this up to date.
+
+        """
+        return self._textureId
+    
     def updateVideoFrame(self):
         """Update the present video frame. The next call to `draw()` will make
         the retrieved frame appear.
@@ -1352,10 +1394,20 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
         frameData = self._player.getFrame(self._movieTime)
         
-        if frameData is None:  # handle frame not available by showing lsat frame
-            return self._recentFrame
+        if frameData is None:  # handle frame not available by showing last frame
+            # if self._playbackStatus == PLAYING:  # something went wrong
+            #     self._playbackStatus = SEEKING
+            
+            return False
         
         frameImage, pts, _ = frameData
+        
+        # check if we are seeking
+        # if self._playbackStatus == SEEKING:
+        #     if self._wasPaused:
+        #         self._playbackStatus = PAUSED
+        #     else:
+        #         self._playbackStatus = PLAYING
 
         if frameImage is not None:
             videoBuffer = frameImage.to_memoryview()[0].memview
@@ -1364,27 +1416,11 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         else:
             self._recentFrame = None
 
-        # only do a pixel transfer on valid frames
-        if self._recentFrame is not None:
-            self._pts = pts  # store the current PTS
-            self._pixelTransfer()
+        self._pts = pts  # store the current PTS of the frame we got
 
-        return self._recentFrame
-    
-    # --------------------------------------------------------------------------
-    # Drawing and rendering
-    #
+        return True
 
-    @property
-    def frameTexture(self):
-        """Texture ID for the current video frame (`GLuint`). You can use this
-        as a video texture. However, you must periodically call
-        `updateVideoFrame` to keep this up to date.
-
-        """
-        return self._textureId
-
-    def _freeBuffers(self):
+    def _freeTextureBuffers(self):
         """Free texture and pixel buffers. Call this when tearing down this
         class or if a movie is stopped.
 
@@ -1409,10 +1445,10 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         texture color data. Each frame, the pixel buffer memory is mapped and
         frame data is copied over to the GPU from the decoder.
 
-        This is called every time a video file is loaded. The `_freeBuffers`
-        method is called in this routine prior to creating new buffers, so it's
-        safe to call this right after loading a new movie without having to
-        `_freeBuffers` first.
+        This is called every time a video file is loaded. The 
+        `_freeTextureBuffers` method is called in this routine prior to creating
+        new buffers, so it's safe to call this right after loading a new movie 
+        without having to `_freeTextureBuffers` first.
 
         """
         # get the size of the movie frame and compute the buffer size
@@ -1468,6 +1504,10 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
     def _pixelTransfer(self):
         """Copy pixel data from video frame to texture.
+
+        This is called when a new frame is available. The pixel data is copied
+        from the video frame to the texture store on the GPU.
+
         """
         # get the size of the movie frame and compute the buffer size
         vidWidth, vidHeight = self._player.getMetadata().size
@@ -1541,7 +1581,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         """Draw the video frame to the window.
 
         This is called by the `draw()` method to blit the video to the display
-        window.
+        window. The dimensions of the video are set by the `size` parameter.
 
         """
         # make sure that textures are on and GL_TEXTURE0 is active
@@ -1582,6 +1622,12 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
         GL.glDisable(GL.GL_TEXTURE_2D)
 
+    def _drawThrobber(self):
+        """Draw a throbber to indicate that the movie is loading or seeking.
+        """
+        # todo - implement this
+        pass
+
     def draw(self, win=None):
         """Draw the current frame to a particular window.
 
@@ -1605,12 +1651,17 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         self._selectWindow(self.win if win is None else win)
 
         # handle autoplay
-        # if self._autoStart and self.isNotStarted:
-        #    self.play()
+        if self._autoStart and self.isNotStarted:
+           self.play()
 
         # update the video frame and draw it to a quad
-        _ = self.updateVideoFrame()
+        if self.updateVideoFrame():
+            self._pixelTransfer()
+
         self._drawRectangle()  # draw the texture to the target window
+
+        # if self._playbackStatus == SEEKING:
+        #     self._drawThrobber()
 
         return True
 
@@ -1683,16 +1734,17 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             Log the play event.
 
         """
-        if self.status == PLAYING:
-            return  # nop
+        # if self._playbackStatus == PLAYING:
+        #    return  # nop
         
         if not self._noAudio:
             if self._audioLib == 'sdl2':
                 self._player.mute(False)
 
         self._player.pause(False)  # start the player
-        self.status = PLAYING
-        self._lastFrameAbsTime = core.getTime()  # get the current time
+        self._playbackStatus = PLAYING
+        self._wasPaused = False  # reset the paused flag
+        # self._lastFrameAbsTime = core.getTime()  # get the current time
 
     def pause(self, log=True):
         """Pause the current point in the movie. The image of the last frame
@@ -1709,7 +1761,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
                 self._player.mute(True)
 
         self._player.pause()
-        self.status = PAUSED
+        self._playbackStatus = PAUSED
 
     def toggle(self, log=True):
         """Switch between playing and pausing the movie. If the movie is playing,
@@ -1742,7 +1794,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         if self._player is not None:
             self._player.close()
 
-        self.status = STOPPED
+        self._playbackStatus = STOPPED
 
     def seek(self, timestamp, log=True):
         """Seek to a particular timestamp in the movie.
@@ -1755,18 +1807,18 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             Log this event.
 
         """
+        if self._playbackStatus == PLAYING: 
+            self._wasPaused = False
+        elif self._playbackStatus == PAUSED:
+            self._wasPaused = True
+
+        # self._playbackStatus = SEEKING
         self._movieTime = timestamp
         # self._player.pause(True)  # pause the player
         self._player.seek(self._movieTime)
 
-        if self.status == PLAYING: 
-            self._player.pause(False)
-        elif self.status == PAUSED:
-            self._player.pause(True)
-  
-        self._pts = self._movieTime  # store the current PTS
-
-        self.updateVideoFrame()
+        # self._pts = self._movieTime  # store the current PTS
+        _ = self.updateVideoFrame()
 
     def rewind(self, seconds=1, log=True):
         """Rewind the video.
@@ -2005,7 +2057,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
         """
         self.close()
-        self._freeBuffers()
+        self._freeTextureBuffers()
     
 
 def _closeAllMovieReaders():
