@@ -286,6 +286,9 @@ class SingleLineCtrl(BaseParamCtrl):
         self.sizer.Add(
             self.ctrl, proportion=1, flag=wx.EXPAND
         )
+        # enforce a minimum height on multiline ctrls
+        if self.ctrlStyle | wx.TE_MULTILINE == self.ctrlStyle:
+            self.ctrl.SetMinSize((-1, 128))
         # map change event
         self.ctrl.Bind(
             wx.EVT_TEXT, self.onChange

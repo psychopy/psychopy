@@ -85,6 +85,14 @@ class DeviceManagerDlg(wx.Dialog):
                 self.profilesNotebook.AddPage(
                     text=name, page=self.pages[name]
                 )
+        # add/remove a placeholder depending on whether there's no pages
+        if not len(self.pages):
+            self.pages[None] = wx.Panel(self.profilesNotebook)
+            self.profilesNotebook.AddPage(text="", page=self.pages[None])
+        elif None in self.pages:
+            self.profilesNotebook.RemovePage(
+                self.profilesNotebook.FindPage(self.pages[None])
+            )
     
     def renameDevice(self, oldname, newname):
         # set name param

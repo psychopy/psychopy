@@ -141,11 +141,14 @@ class DevicePanel(wx.Panel):
 
     def onElementOk(self, evt=None):
         for name, ctrl in self.paramCtrls.items():
+            # do ctrl's usual ok function
             ctrl.onElementOk(evt)
+            # update param
+            self.device.param = ctrl.param
 
     def populate(self):
         # update params
         for name, ctrl in self.paramCtrls.items():
-            ctrl.setValue(str(self.device.params[name].val))
+            ctrl.setValue(self.device.params[name].val)
 
         self.Layout()
