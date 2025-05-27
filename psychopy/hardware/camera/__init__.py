@@ -60,7 +60,9 @@ import threading
 import queue
 import time
 import numpy as np
+import ctypes
 
+from psychopy import core
 from psychopy.constants import NOT_STARTED
 from psychopy.hardware import DeviceManager
 from psychopy.visual.movies.frame import MovieFrame, NULL_MOVIE_FRAME_INFO
@@ -136,6 +138,13 @@ standardResolutions = {
     'uhd': (3840, 2160),
     'dci': (4096, 2160)
 }
+
+# ------------------------------------------------------------------------------
+# Keep track of open capture interfaces so we can close them at shutdown in the
+# event that the user forrgets or the program crashes.
+#
+
+_openCaptureInterfaces = set()
 
 
 # ------------------------------------------------------------------------------
@@ -548,6 +557,641 @@ class CameraInterface:
 
         """
         return NULL_MOVIE_FRAME_INFO
+    
+
+class CameraInterface:
+    """Class providing an interface with a camera attached to the system.
+    
+    This interface handles the opening, closing, and reading of camera streams.
+
+    Parameters
+    ----------
+    device : Any
+        Camera device to open a stream with. The type of this value is dependent
+        on the platform and the camera library being used. This can be an integer
+        index, a string representing the camera device name.
+    captureLib : str
+        Camera library to use for opening the camera stream. This can be either
+        'ffpyplayer' or 'opencv'. If `None`, the default recommend library is 
+        used.
+    frameSize : tuple
+        Frame size of the camera stream. This is a tuple of the form
+        `(width, height)`. 
+    frameRate : float
+        Frame rate of the camera stream. This is the number of frames per
+        second that the camera will capture. If `None`, the default frame rate
+        is used. The default value is 30.0.
+    pixelFormat : str or None
+        Pixel format of the camera stream. This is the format in which the
+        camera will capture frames. If `None`, the default pixel format is used.
+        The default value is `None`.
+    codecFormat : str or None
+        Codec format of the camera stream. This is the codec that will be used
+        to encode the camera stream. If `None`, the default codec format is
+        used. The default value is `None`.
+    captureAPI: str
+        Camera API to use for opening the camera stream. This can be either
+        'AVFoundation', 'DirectShow', or 'Video4Linux2'. If `None`, the default
+        camera API is used based on the platform. The default value is `None`.
+    decoderOpts : dict or None
+        Decoder options for the camera stream. This is a dictionary of options
+        that will be passed to the decoder when opening the camera stream. If
+        `None`, the default decoder options are used. The default value is an
+        empty dictionary.
+    bufferSecs : float
+        Number of seconds to buffer frames from the capture stream. This allows 
+        frames to be buffered in memory until they are needed. This allows
+        the camera stream to be read asynchronously and prevents frames from
+        being dropped if the main thread is busy. The default value is 5.0 
+        seconds.
+
+    """
+    def __init__(self, device, captureLib='ffpyplayer', frameSize=(640, 480), 
+                 frameRate=30.0, pixelFormat=None, codecFormat=None, 
+                 captureAPI=None, decoderOpts=None, bufferSecs=5.0):
+        
+        self._device = device
+        self._captureLib = captureLib
+
+        # capture properties
+        self._frameRate = frameRate  # frame rate of the camera stream
+        self._frameSize = frameSize  
+        self._pixelFormat = '' if pixelFormat is None else pixelFormat
+        self._codecFormat = '' if codecFormat is None else codecFormat
+
+        # capture interface
+        self._capture = None  # camera stream capture object
+        self._decoderOpts = decoderOpts if decoderOpts is not None else {}
+        self._bufferSecs = bufferSecs  # number of seconds to buffer frames
+        self._absRecStreamStartTime = -1.0  # absolute recording start time
+        self._absRecExpStartTime = -1.0
+        self._metadata = {}  # metadata about the camera stream
+
+        # recording properties
+        self._frameStore = []  # store frames read from the camera stream
+        self._isRecording = False  # `True` if the camera is recording and frames will be captured
+
+        # camera API to use with FFMPEG
+        if captureAPI is None:
+            if platform.system() == 'Windows':
+                self._cameraAPI = CAMERA_API_DIRECTSHOW
+            elif platform.system() == 'Darwin':
+                self._cameraAPI = CAMERA_API_AVFOUNDATION
+            elif platform.system() == 'Linux':
+                self._cameraAPI = CAMERA_API_VIDEO4LINUX2
+            else:
+                raise RuntimeError(
+                    "Unsupported platform: {}. Supported platforms are: {}".format(
+                        platform.system(), ', '.join(self._supportedPlatforms)))
+        else:
+            self._cameraAPI = captureAPI
+
+    @staticmethod
+    def getCameras(cameraLib=None):
+        """Get a list of devices this interface can open.
+
+        Parameters  
+        ----------
+        cameraLib : str or None
+            Camera library to use for opening the camera stream. This can be 
+            either 'ffpyplayer' or 'opencv'. If `None`, the default recommend 
+            library is used.
+
+        Returns
+        -------
+        dict 
+            List of objects which represent cameras that can be opened by this
+            interface. Pass any of these values to `device` to open a stream.
+
+        """
+        if cameraLib is None:
+            cameraLib = CAMERA_LIB_FFPYPLAYER
+
+        if cameraLib == CAMERA_LIB_FFPYPLAYER:
+            global _cameraGetterFuncTbl
+            systemName = platform.system()  # get the system name
+
+            # lookup the function for the given platform
+            getCamerasFunc = _cameraGetterFuncTbl.get(systemName, None)
+            if getCamerasFunc is None:  # if unsupported
+                raise OSError(
+                    "Cannot get cameras, unsupported platform '{}'.".format(
+                        systemName))
+
+            return getCamerasFunc()
+    
+    def _clearFrameStore(self):
+        """Clear the frame store.
+        """
+        self._frameStore.clear()
+    
+    @property
+    def device(self):
+        """Camera device this interface is using (`Any`).
+        
+        This is the camera device that was passed to the constructor. It may be
+        a `CameraInfo` object or a string representing the camera device.
+        
+        """
+        return self._device
+    
+    @property
+    def cameraLib(self):
+        """Camera library this interface is using (`str`).
+        
+        This is the camera library that was passed to the constructor. It may be
+        'ffpyplayer' or 'opencv'. If `None`, the default recommend library is 
+        used.
+        
+        """
+        return self._cameraLib
+    
+    @property
+    def frameSize(self):
+        """Frame size of the camera stream (`tuple`).
+        
+        This is the frame size of the camera stream. It is a tuple of the form
+        `(width, height)`. If the camera stream is not open, this will return
+        `None`.
+        
+        """
+        return self._frameSize
+    
+    @property
+    def frameRate(self):
+        """Frame rate of the camera stream (`float`).
+        
+        This is the frame rate of the camera stream. If the camera stream is
+        not open, this will return `None`.
+        
+        """
+        return self._frameRate
+    
+    @property
+    def pixelFormat(self):
+        """Pixel format of the camera stream (`str`).
+        
+        This is the pixel format of the camera stream. If the camera stream is
+        not open, this will return `None`.
+        
+        """
+        return self._pixelFormat
+    
+    @property
+    def codecFormat(self):
+        """Codec format of the camera stream (`str`).
+        
+        This is the codec format of the camera stream. If the camera stream is
+        not open, this will return `None`.
+        
+        """
+        return self._codecFormat
+    
+    @property
+    def cameraAPI(self):
+        """Camera API used to access the camera stream (`str`).
+        
+        This is the camera API used to access the camera stream. If the camera
+        stream is not open, this will return `None`.
+        
+        """
+        return self._cameraAPI
+    
+    @property
+    def bufferSecs(self):
+        """Number of seconds to buffer frames from the camera stream (`float`).
+        
+        This is the number of seconds to buffer frames from the camera stream.
+        This allows frames to be buffered in memory until they are needed. This
+        allows the camera stream to be read asynchronously and prevents frames
+        from being dropped if the main thread is busy.
+        
+        """
+        return self._bufferSecs
+    
+    def getMetadata(self):
+        """Get metadata about the camera stream.
+
+        Returns
+        -------
+        dict
+            Dictionary containing metadata about the camera stream. Returns an
+            empty dictionary if no metadata is available.
+
+        """
+        if self._capture is None:
+            return {}
+
+        # get metadata from the capture stream
+        return self._capture.get_metadata() if self._capture else {}
+    
+    def _toNumpyView(self, frame):
+        """Convert a frame to a Numpy view.
+
+        This function converts a frame to a Numpy view. The frame is returned as
+        a Numpy array. The resulting array will be in the correct format to
+        upload to OpenGL as a texture.
+
+        Parameters
+        ----------
+        frame : Any
+            The frame to convert.
+
+        Returns
+        -------
+        numpy.ndarray
+            The converted frame in RGB format.
+
+        """
+        return np.asarray(frame, dtype=np.uint8)
+    
+    # --------------------------------------------------------------------------
+    # Platform-specific camera frame aquisition methods
+    #
+    # These methods are used to open, close, and read frames from the camera
+    # stream. They are platform-specific and are called depending on the
+    # camera library being used.
+    # 
+
+    # --------------------------------------------------------------------------
+    # FFPyPlayer-specific methods 
+    #
+
+    def _convertFrameToRGBFFPyPlayer(self, frame):
+        """Convert a frame to RGB format.
+
+        This function converts a frame to RGB format. The frame is returned as
+        a Numpy array. The resulting array will be in the correct format to
+        upload to OpenGL as a texture.
+
+        Parameters
+        ----------
+        frame : FFPyPlayer frame
+            The frame to convert.
+
+        Returns
+        -------
+        numpy.ndarray
+            The converted frame in RGB format.
+
+        """
+        from ffpyplayer.pic import SWScale
+        if frame.get_pixel_format() == 'rgb24':  # already converted
+            return frame
+
+        rgbImg = SWScale(
+            self._metadata.size[0], self._metadata.size[1],  # width, height
+            frame.get_pixel_format(), 
+            ofmt='rgb24').scale(frame)
+        
+        return rgbImg
+
+    def _openFFPyPlayer(self):
+        """Open the camera stream using FFmpeg (ffpyplayer).
+        
+        This method should be called to open the camera stream using FFmpeg.
+        It should initialize the camera and prepare it for reading frames.
+
+        """
+        # configure the camera stream reader
+        ff_opts = {}  # ffmpeg options
+        lib_opts = {}  # ffpyplayer options
+        _camera = CAMERA_NULL_VALUE
+        _frameRate = CAMERA_NULL_VALUE
+
+        # setup commands for FFMPEG
+        if self._cameraAPI == CAMERA_API_DIRECTSHOW:  # windows
+            ff_opts['f'] = 'dshow'
+            _camera = 'video={}'.format(self._device)
+            _frameRate = self._frameRate
+            if self._pixelFormat:
+                ff_opts['pixel_format'] = self._pixelFormat
+            if self._codecFormat:
+                ff_opts['vcodec'] = self._codecFormat
+        elif self._cameraAPI == CAMERA_API_AVFOUNDATION:  # darwin
+            ff_opts['f'] = 'avfoundation'
+            ff_opts['i'] = _camera = self._device
+
+            # handle pixel formats using FourCC
+            global pixelFormatTbl
+            ffmpegPixFmt = pixelFormatTbl.get(self._pixelFormat, None)
+
+            if ffmpegPixFmt is None:
+                raise FormatNotFoundError(
+                    "Cannot find suitable FFMPEG pixel format for '{}'. Try a "
+                    "different format or camera.".format(
+                        self._pixelFormat))
+
+            self._pixelFormat = ffmpegPixFmt
+
+            # this needs to be exactly specified if using NTSC
+            if math.isclose(CAMERA_FRAMERATE_NTSC, self._frameRate):
+                _frameRate = CAMERA_FRAMERATE_NOMINAL_NTSC
+            else:
+                _frameRate = str(self._frameRate)
+
+            # need these since hardware acceleration is not possible on Mac yet
+            lib_opts['fflags'] = 'nobuffer'
+            lib_opts['flags'] = 'low_delay'
+            lib_opts['pixel_format'] = self._pixelFormat
+            ff_opts['framedrop'] = True
+            ff_opts['fast'] = True
+        elif self._cameraAPI == CAMERA_API_VIDEO4LINUX2:
+            raise OSError(
+                "Sorry, camera does not support Linux at this time. However, "
+                "it will in future versions.")
+        
+        else:
+            raise RuntimeError("Unsupported camera API specified.")
+
+        # set library options
+        camWidth, camHeight = self._frameSize
+
+        # configure the real-time buffer size
+        _bufferSize = camWidth * camHeight * 3 * self._bufferSecs
+
+        # common settings across libraries
+        lib_opts['rtbufsize'] = str(int(_bufferSize))
+        lib_opts['video_size'] = '{width}x{height}'.format(
+            width=camWidth, height=camHeight)
+        lib_opts['framerate'] = str(_frameRate)
+
+        # open the media player
+        from ffpyplayer.player import MediaPlayer
+        self._capture = MediaPlayer(_camera, ff_opts=ff_opts, lib_opts=lib_opts)
+        
+        # get metadata from the capture stream
+        while 1:
+            streamMetadata = self._capture.get_metadata()
+            if streamMetadata['src_vid_size'] != (0, 0):
+                break
+        
+        self._metadata = streamMetadata  # store the metadata for later use
+
+        # check if the camera metadata matches the requested settings
+        if streamMetadata['src_vid_size'] != self._frameSize:
+            raise CameraFrameSizeNotSupportedError(
+                "Camera does not support the requested frame size "
+                "{size}. Supported sizes are: {supportedSizes}".format(
+                    size=self._frameSize,
+                    supportedSizes=streamMetadata['src_vid_size']))
+        
+        # pause the camera stream
+        self._capture.set_pause(True)
+
+    def _closeFFPyPlayer(self):
+        """Close the camera stream opened with FFmpeg (ffpyplayer).
+        
+        This method should be called to close the camera stream and release any
+        resources associated with it.
+
+        """
+        if self._capture is not None:
+            self._capture.close_player()
+
+    def _getFramesFFPyPlayer(self):
+        """Get the most recent frames from the camera stream opened with FFmpeg
+        (ffpyplayer).
+        
+        Returns
+        -------
+        numpy.ndarray
+            Most recent frames from the camera stream. Returns `None` if no
+            frames are available.
+
+        """
+        if self._capture is None:
+            raise PlayerNotAvailableError(
+                "Camera stream is not open. Call `open()` first.")
+        
+        # read all buffered frames from the camera stream until we get nothing
+        recentFrames = []
+        while 1:
+            frame, status = self._capture.get_frame()
+            
+            if status == 'eof' or status == 'paused':  # do nothing
+                break
+
+            if frame is None:  # ditto 
+                break
+
+            img, curPts = frame
+            if curPts < self._absRecStreamStartTime:
+                # if the frame is before the recording start time, skip it
+                continue
+
+            recentFrames.append(
+                (self._convertFrameToRGBFFPyPlayer(img), curPts))
+
+        if recentFrames:
+            for img, pts in recentFrames:
+                if pts >= self._absRecStreamStartTime:
+                    self._frameStore.append((img, pts-self._absRecStreamStartTime))
+
+        toReturn = self._frameStore.copy()
+
+        self._frameStore.clear()  # clear the frame store after returning frames
+
+        return toReturn
+    
+    # --------------------------------------------------------------------------
+    # OpenCV-specific methods
+    # 
+
+    def _convertFrameToRGBOpenCV(self, frame):
+        """Convert a frame to RGB format using OpenCV.
+        
+        This function converts a frame to RGB format. The frame is returned as
+        a Numpy array. The resulting array will be in the correct format to
+        upload to OpenGL as a texture.
+
+        Parameters
+        ----------
+        frame : numpy.ndarray
+            The frame to convert.
+
+        Returns
+        -------
+        numpy.ndarray
+            The converted frame in RGB format.
+
+        """
+        import cv2 
+
+        # this can be done in the shader to save CPU use, will figure out later
+        return cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+    def _openOpenCV(self):
+        """Open the camera stream using OpenCV.
+        
+        This method should be called to open the camera stream using OpenCV.
+        It should initialize the camera and prepare it for reading frames.
+
+        """
+        pass
+
+    def _closeOpenCV(self):
+        """Close the camera stream opened with OpenCV.
+        
+        This method should be called to close the camera stream and release any
+        resources associated with it.
+
+        """
+        pass
+
+    def _getFramesOpenCV(self):
+        """Get the most recent frames from the camera stream opened with OpenCV.
+        
+        Returns
+        -------
+        numpy.ndarray
+            Most recent frames from the camera stream. Returns `None` if no
+            frames are available.
+
+        """
+        if self._capture is None:
+            raise PlayerNotAvailableError(
+                "Camera stream is not open. Call `open()` first.")
+        
+        pass
+
+    # --------------------------------------------------------------------------
+    # Public methods for camera stream management
+    #
+
+    def __hash__(self):
+        """Hash on the camera device name and library used."""
+        return hash((self._device, self._captureLib))
+    
+    def open(self):
+        """Open the camera stream.
+        
+        This method should be called to open the camera stream. It should
+        initialize the camera and prepare it for reading frames.
+
+        """
+        if self._captureLib == 'ffpyplayer':
+            self._openFFPyPlayer()
+
+        global _openCaptureInterfaces
+        _openCaptureInterfaces.add(self)
+
+    def close(self):
+        """Close the camera stream.
+        
+        This method should be called to close the camera stream and release any
+        resources associated with it.
+
+        """
+        if self._captureLib == 'ffpyplayer':
+            self._closeFFPyPlayer()
+
+        self._capture = None  # reset the capture object
+
+        global _openCaptureInterfaces
+        if self in _openCaptureInterfaces:
+            _openCaptureInterfaces.remove(self)
+
+    @property
+    def isOpen(self):
+        """Check if the camera stream is open.
+
+        Returns
+        -------
+        bool
+            `True` if the camera stream is open, `False` otherwise.
+
+        """
+        return self._capture is not None
+    
+    def record(self):
+        """Start recording camera frames to memory.
+
+        This method should be called to start recording the camera stream.
+        Frame timestamps will be generated based on the current time when
+        this method is called. The frames will be stored and made available
+        through the `getFrames()` method.
+
+        To get precise audio synchronization:
+        
+            1. Start the microphone recording
+            2. Store samples somehwere keeping track of the absolute time of the
+               first audio sample.
+            3. Call this method to start the camera recording and store the 
+               returned start time.
+            4. When the recording is stopped, compute the offset between the
+               absolute start time of the audio recording and the absolute start
+               time of the camera recording. Compute the postion of the first
+               audio sample in the audio buffer by multiplying the offset by the
+               sample rate of the audio recording. This will give you the
+               position of the first audio sample in the audio buffer
+               corresponding to the very beginning of the first camera frame.
+
+        Returns
+        -------
+        float
+            The absolute start time of the recording in seconds. Use this value
+            to syncronize audio recording with the capture stream.
+
+        """
+        if not self.isOpen:
+            raise RuntimeError("Camera stream is not open. Call `open()` first.")
+        
+        self._capture.set_pause(False)  # start the capture stream
+        self._absRecStreamStartTime = self._capture.get_pts()  # get the absolute start time
+        self._absRecExpStartTime = core.getTime()  # expected start time in seconds
+        self._isRecording = True 
+
+        return self._absRecExpStartTime
+    
+    def start(self):
+        """Start recording the camera stream.
+
+        Alias for `record()`. This method is provided for compatibility with
+        other camera interfaces that may use `start()` to begin recording.
+
+        """
+        return self.record()  # start recording and return the start time
+
+    def stop(self):
+        """Stop recording the camera stream.
+
+        This method should be called to stop recording the camera stream. It
+        will stop capturing frames from the camera and clear the frame store.
+
+        """
+        self._capture.set_pause(True)
+        self._isRecording = False
+
+    @property
+    def isRecording(self):
+        """Check if the camera stream is currently recording (`bool`).
+
+        Returns
+        -------
+        bool
+            `True` if the camera stream is currently recording, `False`
+            otherwise.
+
+        """
+        return self._isRecording
+    
+    def getFrames(self):
+        """Get the most recent frames from the camera stream.
+
+        This method returns frame captured since the last call to this method.
+        If no frames are available or `record()` has not been previously called, 
+        it returns an empty list.
+
+        Returns
+        -------
+        list
+            List of frames from the camera stream. Returns an empty list if no
+            frames are available.
+
+        """
+        if self._captureLib == 'ffpyplayer':
+            return self._getFramesFFPyPlayer()
 
 
 class CameraInterfaceFFmpeg(CameraInterface):
@@ -1724,7 +2368,7 @@ class Camera:
             raise SystemError(f"Could not find microphone {_requestedMic}")
 
         # current camera frame since the start of recording
-        self._player = None  # media player instance
+        self._capture = None  # media player instance
         self.status = NOT_STARTED
         self._isRecording = False
         self._bufferSecs = float(bufferSecs)
@@ -1738,7 +2382,7 @@ class Camera:
         # timestamp data
         self._streamTime = 0.0
         # store win (unused but needs to be set/got safely for parity with JS)
-        self.win = win
+        self._win = None
         
         # movie writer instance, this runs in a separate thread
         self._movieWriter = None
@@ -1752,6 +2396,14 @@ class Camera:
         self._syncBarrier = None
         # keep track of the last video file saved
         self._lastVideoFile = None
+
+        # OpenGL stuff, just declare these attributes for now
+        self._pixbuffId = None
+        self._textureId = None
+        self._interpolate = True  # use bilinear interpolation by default
+        self._texFilterNeedsUpdate = True  # flag to update texture filtering
+
+        self.setWin(win)  # sets up OpenGL stuff if needed
 
     def authorize(self):
         """Get permission to access the camera. Not implemented locally yet.
@@ -1860,7 +2512,7 @@ class Camera:
             update (`_enqueueFrame` call).
 
         """
-        return self._recentMetadata
+        return self._capture.getMetadata() if self._capture else None
 
     # @property
     # def mode(self):
@@ -2067,35 +2719,6 @@ class Camera:
 
         raise PlayerNotAvailableError('Media player not initialized.')
 
-    def _enqueueFrame(self):
-        """Pull waiting frames from the capture thread.
-
-        This function will pull frames from the capture thread and add them to
-        the buffer. The last frame in the buffer will be set as the most recent
-        frame (`lastFrame`).
-
-        Returns
-        -------
-        bool
-            `True` if a frame has been enqueued. Returns `False` if the camera
-            is not ready or if the stream was closed.
-
-        """
-        if self._captureThread is None:
-            return False
-
-        newFrames = self._captureThread.getFrames()
-        if not newFrames:
-            return False
-        
-        # add frames the the buffer
-        self._captureFrames.extend(newFrames)
-        
-        # set the last frame in the buffer as the most recent
-        self._lastFrame = self._captureFrames[-1]
-
-        return True
-
     def open(self):
         """Open the camera stream and begin decoding frames (if available).
 
@@ -2112,30 +2735,19 @@ class Camera:
         # Camera interface to use, these are hard coded but support for each is
         # provided by an extension.
         desc = self._cameraInfo.description()
-        if self._cameraLib == u'ffpyplayer':
-            logging.debug(
-                "Opening camera stream using FFmpeg. (device={})".format(desc))
-            self._captureThread = CameraInterfaceFFmpeg(
-                device=self._cameraInfo, 
-                mic=self._mic)
-        elif self._cameraLib == u'opencv':
-            logging.debug(
-                "Opening camera stream using OpenCV. (device={})".format(desc))
-            self._captureThread = CameraInterfaceOpenCV(
-                device=self._cameraInfo, 
-                mic=self._mic)
-        else:
-            raise ValueError(
-                "Invalid value for parameter `cameraLib`, expected one of "
-                "`'ffpyplayer'` or `'opencv'`.")
         
-        self._captureThread.open()
+        self._capture = CameraInterface(
+            device=self._cameraInfo.name,
+            captureLib=self._cameraLib,
+            frameRate=self._cameraInfo.frameRate,
+            frameSize=self._cameraInfo.frameSize,
+        )
+        
+        self._capture.open()
 
-    # def snapshot(self):
-    #     """Take a photo with the camera. The camera must be in `'photo'` mode
-    #     to use this method.
-    #     """
-    #     pass
+        if self.win is not None:
+            # if we have a window, setup texture buffers for displaying
+            self._setupTextureBuffers()
 
     def record(self, clearLastRecording=True):
         """Start recording frames.
@@ -2176,39 +2788,12 @@ class Camera:
         if clearLastRecording:
             self._captureFrames.clear()
         
-        self._audioTrack = None
-        self._lastFrame = None
-
-        # start recording audio if available
-        if self._mic is not None:
-            logging.debug(
-                "Microphone interface available, starting audio recording.")
-        else:
-            logging.debug(
-                "No microphone interface provided, not recording audio.")
-
-        self._captureThread.enable()  # start passing frames to queue
-        self._enqueueFrame()
-
-        self._isRecording = True
+        self._absVideoRecStartTime = self._capture.record()  
 
     def stop(self):
         """Stop recording frames and audio (if available).
         """
-        if self._captureThread is None:  # do nothing if not open
-            return
-
-        if not self._captureThread.isOpen():
-            raise RuntimeError("Cannot stop recording, stream is not open.")
-
-        self._captureThread.disable()  # stop passing frames to queue
-        self._enqueueFrame()
-
-        # # stop audio recording if `mic` is available
-        if self._mic is not None:
-            self._audioTrack = self._mic.getRecording()
-
-        self._isRecording = False
+        self._capture.stop()
 
     def close(self):
         """Close the camera.
@@ -2219,20 +2804,7 @@ class Camera:
         to save the frames to disk.
 
         """
-        if self._captureThread is None:  # nop
-            return
-
-        if not self._captureThread.isOpen():
-            raise RuntimeError("Cannot close stream, stream is not open.")
-        
-        if self._isRecording:
-            logging.warning(
-                "Closing camera stream while recording, stopping recording "
-                "first.")
-            self.stop()
-
-        self._captureThread.close()
-        self._captureThread = None
+        self._capture.close()  # close the camera stream
 
     def save(self, filename, useThreads=True, mergeAudio=True, 
              encoderLib=None, encoderOpts=None):
@@ -2400,16 +2972,81 @@ class Camera:
         """
         return self._lastFrame
     
-    def update(self):
-        """Acquire the newest data from the camera stream. If the `Camera`
-        object is not being monitored by a `ImageStim`, this must be explicitly
-        called.
-        """
-        self._assertMediaPlayer()
-        self._enqueueFrame()
+    def _submitFrameToFile(self, frame, pts=None):
+        """Submit a frame to the movie file writer thread.
 
+        This is used to submit frames to the movie file writer thread. It is
+        called by the camera interface when a new frame is captured.
+
+        Parameters
+        ----------
+        frame : MovieFrame
+            Frame to submit to the movie file writer thread.
+        pts : float or None
+            Presentation timestamp of the frame in seconds. If `None`, the 
+            timestamp will be computed. Some encoders may require this to be
+            set to a valid value, otherwise the frame may not be encoded
+            correctly. If the encoder does not require this, it can be left as
+            `None`.
+
+        """
+        pass
+    
+    def update(self):
+        """Acquire the newest data from the camera and audio streams.
+        
+        This must be called periodically to ensure that stream buffers are 
+        flushed before they overflow to prevent data loss. Furthermore, 
+        calling this too infrequently may result also result in more frames 
+        needing to be processed at once, which may result in performance issues.
+
+        Returns
+        -------
+        int
+            Number of frames captured since the last call to this method. This
+            will be `0` if no new frames were captured. This may indicate that
+            the camera is not producing frames at the desired rate or that the 
+            camera is not ready to produce frames yet.
+
+        Examples
+        --------
+        Capture camera frames in a loop::
+
+            while cam.recordingTime < 10.0:  # record for 10 seconds
+                numFrames = cam.update()  # update the camera stream
+                if numFrames > 0:
+                    frame = cam.getVideoFrame()  # get the most recent frame
+                    # do something with the frame, e.g. display it
+                else:
+                    # return last frame or placeholder frame if nothing new
+
+        """
+        newFrames = self._capture.getFrames()
+        if not newFrames:
+            return 0
+        
+        # self._captureFrames.extend(newFrames)  # add frames to the buffer
+
+        # if we have frames, update the last frame
+        self._lastFrame = newFrames[-1]
+
+        self._pixelTransfer()  # transfer frames to the GPU if we have a window
+
+        # write frames out to video file
+        for frame in newFrames:
+            self._submitFrameToFile(frame)
+
+        return len(newFrames)  # return number of frames we got
+    
+    def poll(self):
+        """Poll the camera for new frames.
+        
+        Alias for `update()`.
+        """
+        return self.update()
+    
     def getVideoFrame(self):
-        """Pull the most recent frame from the stream (if available).
+        """Get the most recent frame from the stream (if available).
 
         Returns
         -------
@@ -2421,23 +3058,301 @@ class Camera:
         self.update()
 
         return self._lastFrame
+    
+    # --------------------------------------------------------------------------
+    # Video rendering
+    #
+    # These methods are used to render live video frames to a window. If a 
+    # window is set, this class will automamatically create the nessisary 
+    # OpenGL texture buffers and transfer the most recent video frame to the
+    # GPU. The `ImageStim` class can access these buffers for rendering.
+    #
+
+    @property
+    def win(self):
+        """Window to render the video frames to (`psychopy.visual.Window` or
+        `None`).
+
+        If `None`, no rendering will be done and the video frames will not be
+        displayed. If a window is set, the video frames will be rendered to the
+        window using OpenGL textures.
+
+        """
+        return self._win
+    
+    @win.setter
+    def win(self, value):
+        """Set the window to render the video frames to.
+
+        This will set the window to render the video frames to. If the window
+        is not `None`, it will automatically create OpenGL texture buffers for
+        rendering the video frames. If the window is `None`, no rendering will
+        be done and the video frames will not be displayed.
+
+        Parameters
+        ----------
+        value : psychopy.visual.Window or None
+            Window to render the video frames to. If `None`, no rendering will
+            be done and the video frames will not be displayed.
+
+        """
+        self.setWin(value)
+
+    def setWin(self, win):
+        """Set the window to render the video frames to.
+
+        Parameters
+        ----------
+        win : psychopy.visual.Window
+            Window to render the video frames to. If `None`, no rendering will
+            be done and the video frames will not be displayed.
+
+        """
+        self._win = win
+
+        # if we have a window, setup texture buffers for displaying
+        if self._win is not None:
+            self._setupTextureBuffers()
+            return
+        
+        # if we don't have a window, free any texture buffers
+        self._freeTextureBuffers()  # free any existing buffers
+
+    @property
+    def interpolate(self):
+        """Whether the video texture should be filtered using linear or nearest
+        neighbor interpolation (`bool`).
+
+        If `True`, the video texture will be filtered using linear interpolation.
+        If `False`, the video texture will be filtered using nearest neighbor
+        interpolation (pass-through). Default is `True`.
+
+        """
+        return self._interpolate
+    
+    @interpolate.setter
+    def interpolate(self, value):
+        """Set whether the video texture should be filtered using linear or 
+        nearest neighbor interpolation.
+
+        Parameters
+        ----------
+        value : bool
+            If `True`, the video texture will be filtered using linear
+            interpolation. If `False`, the video texture will be filtered using
+            nearest neighbor interpolation (pass-through). Default is `True`.
+
+        """
+        self.setTextureFilter(value)
+
+    def setTextureFilter(self, smooth=True):
+        """Set whether the video texture should be filtered using linear or 
+        nearest neighbor interpolation.
+
+        Parameters
+        ----------
+        smooth : bool
+            If `True`, the video texture will be filtered using linear
+            interpolation. If `False`, the video texture will be filtered using
+            nearest neighbor interpolation (pass-through.) Default is `True`.
+
+        """
+        self._interpolate = bool(smooth)
+        self._texFilterNeedsUpdate = True  # flag to update texture filtering
+
+    def _freeTextureBuffers(self):
+        """Free any texture buffers used by the camera.
+
+        This is used to free up any texture buffers used by the camera. This
+        is called when the camera is closed or when the window is closed.
+        """
+        import pyglet.gl as GL  # needed for OpenGL texture management
+
+        try:
+            # delete buffers and textures if previously created
+            if self._pixbuffId is not None and self._pixbuffId.value > 0:
+                GL.glDeleteBuffers(1, self._pixbuffId)
+            # delete the old texture if present
+            if self._textureId is not None and self._textureId.value > 0:
+                GL.glDeleteTextures(1, self._textureId)
+        except (TypeError, AttributeError):
+            pass
+        
+        # clear the IDs
+        self._pixbuffId = GL.GLuint()
+        self._textureId = GL.GLuint()
+
+    def _setupTextureBuffers(self):
+        """Setup texture buffers for the camera.
+
+        This allocates OpenGL texture buffers for video frames to be written
+        to which then can be rendered to the screen. This is only called if the
+        camera is opened and a window is set.
+
+        """
+        if self.win is None:
+            return 
+
+        self._freeTextureBuffers()  # free any existing buffers
+
+        import pyglet.gl as GL
+
+        # get the size of the movie frame and compute the buffer size
+        vidWidth, vidHeight = self.frameSize
+        nBufferBytes = vidWidth * vidHeight * 3
+
+        # Create the pixel buffer object which will serve as the texture memory
+        # store. Pixel data will be copied to this buffer each frame.
+        GL.glGenBuffers(1, ctypes.byref(self._pixbuffId))
+        GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, self._pixbuffId)
+        GL.glBufferData(
+            GL.GL_PIXEL_UNPACK_BUFFER,
+            nBufferBytes * ctypes.sizeof(GL.GLubyte),
+            None,
+            GL.GL_STREAM_DRAW)  # one-way app -> GL
+        GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, 0)
+
+        # Create a texture which will hold the data streamed to the pixel
+        # buffer. Only one texture needs to be allocated.
+        GL.glEnable(GL.GL_TEXTURE_2D)
+        GL.glGenTextures(1, ctypes.byref(self._textureId))
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self._textureId)
+        GL.glTexImage2D(
+            GL.GL_TEXTURE_2D,
+            0,
+            GL.GL_RGB8,
+            vidWidth, vidHeight,  # frame dims in pixels
+            0,
+            GL.GL_RGB,
+            GL.GL_UNSIGNED_BYTE,
+            None)
+
+        # setup texture filtering
+        if self._interpolate:
+            texFilter = GL.GL_LINEAR
+        else:
+            texFilter = GL.GL_NEAREST
+
+        GL.glTexParameteri(
+            GL.GL_TEXTURE_2D,
+            GL.GL_TEXTURE_MAG_FILTER,
+            texFilter)
+        GL.glTexParameteri(
+            GL.GL_TEXTURE_2D,
+            GL.GL_TEXTURE_MIN_FILTER,
+            texFilter)
+        GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP)
+        GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        GL.glDisable(GL.GL_TEXTURE_2D)
+
+        GL.glFlush()  # make sure all buffers are ready
+
+    def _pixelTransfer(self):
+        """Copy pixel data from video frame to texture.
+
+        This is called when a new frame is available. The pixel data is copied
+        from the video frame to the texture store on the GPU.
+
+        """
+        if self.win is None:
+            return  # no window to render to
+        
+        import pyglet.gl as GL
+
+        # get the size of the movie frame and compute the buffer size
+        vidWidth, vidHeight = self.frameSize
+        
+        # compute the buffer size
+        nBufferBytes = vidWidth * vidHeight * 3
+
+        # bind pixel unpack buffer
+        GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, self._pixbuffId)
+
+        # Free last storage buffer before mapping and writing new frame
+        # data. This allows the GPU to process the extant buffer in VRAM
+        # uploaded last cycle without being stalled by the CPU accessing it.
+        GL.glBufferData(
+            GL.GL_PIXEL_UNPACK_BUFFER,
+            nBufferBytes * ctypes.sizeof(GL.GLubyte),
+            None,
+            GL.GL_STREAM_DRAW)
+
+        # Map the buffer to client memory, `GL_WRITE_ONLY` to tell the
+        # driver to optimize for a one-way write operation if it can.
+        bufferPtr = GL.glMapBuffer(
+            GL.GL_PIXEL_UNPACK_BUFFER,
+            GL.GL_WRITE_ONLY)
+
+        # map the video frame to a memoryview
+        # suggested by Alex Forrence (aforren1) originally in PR #6439
+        videoBuffer = self._lastFrame[0].to_memoryview()[0].memview
+        videoFrameArray = np.frombuffer(videoBuffer, dtype=np.uint8)
+
+        # copy the frame data to the buffer
+        ctypes.memmove(bufferPtr,
+            videoFrameArray.ctypes.data,
+            nBufferBytes)
+
+        # Very important that we unmap the buffer data after copying, but
+        # keep the buffer bound for setting the texture.
+        GL.glUnmapBuffer(GL.GL_PIXEL_UNPACK_BUFFER)
+
+        # bind the texture in OpenGL
+        GL.glEnable(GL.GL_TEXTURE_2D)
+        GL.glActiveTexture(GL.GL_TEXTURE0)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self._textureId)
+
+        # copy the PBO to the texture
+        GL.glTexSubImage2D(
+            GL.GL_TEXTURE_2D, 0, 0, 0,
+            vidWidth, vidHeight,
+            GL.GL_RGB,
+            GL.GL_UNSIGNED_BYTE,
+            0)  # point to the presently bound buffer
+
+        # update texture filtering only if needed
+        if self._texFilterNeedsUpdate:
+            if self._interpolate:
+                texFilter = GL.GL_LINEAR
+            else:
+                texFilter = GL.GL_NEAREST
+
+            GL.glTexParameteri(
+                GL.GL_TEXTURE_2D,
+                GL.GL_TEXTURE_MAG_FILTER,
+                texFilter)
+            GL.glTexParameteri(
+                GL.GL_TEXTURE_2D,
+                GL.GL_TEXTURE_MIN_FILTER,
+                texFilter)
+
+            self._texFilterNeedsUpdate = False
+
+        # important to unbind the PBO
+        GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, 0)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        GL.glDisable(GL.GL_TEXTURE_2D)
+
+    @property
+    def colorTexture(self):
+        """OpenGL texture ID for the most recent video frame (`int` or `None`).
+
+        This is the OpenGL texture ID that can be used to render the most
+        recent video frame to a window. If no window is set, this will be `None`.
+        """
+        if self._textureId is None or self._textureId.value <= 0:
+            return None
+        
+        return self._textureId
 
     def __del__(self):
         """Try to cleanly close the camera and output file.
         """
-
-        if hasattr(self, '_captureThread'):
-            if self._captureThread is not None:
+        if hasattr(self, '_capture'):
+            if self._capture is not None:
                 try:
-                    self._captureThread.close()
-                except AttributeError:
-                    pass
-
-        # close the microphone during teardown too
-        if hasattr(self, '_mic'):
-            if self._mic is not None:
-                try:
-                    self._mic.close()
+                    self._capture.close()
                 except AttributeError:
                     pass
 
@@ -2810,5 +3725,60 @@ def renderVideo(outputFile, videoFile, audioFile=None, removeFiles=False):
     return os.path.getsize(outputFile)
 
 
+# ------------------------------------------------------------------------------
+# Cleanup functions
+#
+
+import atexit
+
+
+def _closeAllCaptureInterfaces():
+    """Close all open capture interfaces.
+
+    This is registered with `atexit` to ensure that all open cameras are closed
+    when the application exits. This is important to free up resources and
+    ensure that cameras are not left open unintentionally.
+
+    """
+    global _openCaptureInterfaces
+
+    for cap in _openCaptureInterfaces.copy():
+        try:
+            cap.close()
+        except Exception as e:
+            logging.error(f"Error closing camera interface {cap}: {e}")
+
+
+# Register the function to close all cameras on exit
+atexit.register(_closeAllCaptureInterfaces)
+
+
+def test_camera_interfaces():
+    """Test the camera interfaces and print available cameras."""
+
+    print(getCameras())
+
+    cap = CameraInterface(
+        'Live! Cam Sync 1080p',
+        frameRate=30,  # set desired frame rate
+        frameSize=(640, 480),  # set desired frame size
+        pixelFormat='',  # set pixel format
+        codecFormat='mjpeg',  # set codec format
+    )
+    cap.open()
+
+    cap.record()
+    tStart = core.getTime()
+    while core.getTime() - tStart < 10.0:  # run for 10 seconds
+        frame = cap.getFrames()
+        if frame is not None:
+            print("Got frame:", frame)
+        else:
+            print("No frame available.")
+        core.wait(0.001)  # wait a bit before getting the next frame
+    
+    cap.stop()
+    cap.close()
+
 if __name__ == "__main__":
-    pass
+    test_camera_interfaces()
