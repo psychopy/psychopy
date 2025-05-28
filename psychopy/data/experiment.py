@@ -275,6 +275,12 @@ class ExperimentHandler(_ComparisonMixin):
         # get entry from row number
         entry = self.thisEntry
         if row is not None:
+            # if row exceeds size of entries, warn and abort
+            if row > len(self.entries):
+                logging.error(_translate(
+                    "Cannot add data to row {} as there are only {} entries"
+                ).format(row, len(self.entries)))
+            # get entry from row
             entry = self.entries[row]
         entry[name] = value
 
