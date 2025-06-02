@@ -421,9 +421,14 @@ class KeyboardComponent(BaseDeviceComponent):
             waitRelease = "false"
             if self.params['registerOn'] == "release":
                 waitRelease = "true"
-            code = ("let theseKeys = {name}.getKeys({{keyList: {keyStr}, waitRelease: {waitRelease}}});\n"
-                    "_{name}_allKeys = _{name}_allKeys.concat(theseKeys);\n"
-                    "if (_{name}_allKeys.length > 0) {{\n")
+            code = (
+                "let theseKeys = {name}.getKeys({{\n"
+                "  keyList: typeof {keyStr} === 'string' ? [{keyStr}] : {keyStr}, \n"
+                "  waitRelease: {waitRelease}\n"
+                "}});\n"
+                "_{name}_allKeys = _{name}_allKeys.concat(theseKeys);\n"
+                "if (_{name}_allKeys.length > 0) {{\n"
+            )
             buff.writeIndentedLines(
                 code.format(
                     name=self.params['name'],
