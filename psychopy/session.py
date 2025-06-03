@@ -1317,6 +1317,16 @@ class Session:
             return
         # skip trials in current loop
         return self.currentExperiment.next()
+    
+    def endCurrentRoutine(self):
+        """
+        End the current Routine (via the Routine.forceEnded attribute)
+        """
+        # return if there's no current experiment
+        if self.currentExperiment is None:
+            return
+        # force end the Routine
+        self.currentExperiment.endCurrentRoutine()
 
     def skipTrials(self, n=1):
         """
