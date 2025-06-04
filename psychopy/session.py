@@ -1264,6 +1264,13 @@ class Session:
 
         # set ExperimentHandler status to PAUSED
         self.currentExperiment.pause()
+        # update Liaison if needed
+        if self.liaison is not None:
+            self.sendToLiaison({
+                'type': "experiment_status",
+                'name': self.currentExperiment.name,
+                'status': self.currentExperiment.status,
+            })
 
         return True
 
@@ -1285,6 +1292,13 @@ class Session:
             return False
         # set ExperimentHandler status to STARTED
         self.currentExperiment.resume()
+        # update Liaison if needed
+        if self.liaison is not None:
+            self.sendToLiaison({
+                'type': "experiment_status",
+                'name': self.currentExperiment.name,
+                'status': self.currentExperiment.status,
+            })
 
         return True
 
@@ -1305,6 +1319,13 @@ class Session:
             )
             return False
         self.currentExperiment.stop()
+        # update Liaison if needed
+        if self.liaison is not None:
+            self.sendToLiaison({
+                'type': "experiment_status",
+                'name': self.currentExperiment.name,
+                'status': self.currentExperiment.status,
+            })
 
         return True
     
