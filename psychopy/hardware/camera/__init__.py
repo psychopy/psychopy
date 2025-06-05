@@ -3215,6 +3215,10 @@ def renderVideo(outputFile, videoFile, audioFile=None, removeFiles=False):
 # ------------------------------------------------------------------------------
 # Cleanup functions
 #
+# These functions are used to clean up resources when the application exits, 
+# usually unexpectedly. This helps to ensure hardware interfaces are closed
+# and resources are freed up as best we can.
+#
 
 import atexit
 
@@ -3239,33 +3243,6 @@ def _closeAllCaptureInterfaces():
 # Register the function to close all cameras on exit
 atexit.register(_closeAllCaptureInterfaces)
 
-
-def test_camera_interfaces():
-    """Test the camera interfaces and print available cameras."""
-
-    print(getCameras())
-
-    cap = CameraInterface(
-        'Live! Cam Sync 1080p',
-        frameRate=30,  # set desired frame rate
-        frameSize=(640, 480),  # set desired frame size
-        pixelFormat='',  # set pixel format
-        codecFormat='mjpeg',  # set codec format
-    )
-    cap.open()
-
-    cap.record()
-    tStart = core.getTime()
-    while core.getTime() - tStart < 10.0:  # run for 10 seconds
-        frame = cap.getFrames()
-        if frame is not None:
-            print("Got frame:", frame)
-        else:
-            print("No frame available.")
-        core.wait(0.001)  # wait a bit before getting the next frame
-    
-    cap.stop()
-    cap.close()
-
+# ------------------------------------------------------------------------------
 if __name__ == "__main__":
-    test_camera_interfaces()
+    pass
