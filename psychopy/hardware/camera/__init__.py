@@ -619,9 +619,6 @@ class CameraInterface:
         self._pixelFormat = '' if pixelFormat is None else pixelFormat
         self._codecFormat = '' if codecFormat is None else codecFormat
 
-        # size of the image in bytes, used to compute buffer sizes
-        self._frameSizeBytes = self._frameSize[0] * self._frameSize[1] * 3  
-
         # capture interface
         self._capture = None  # camera stream capture object
         self._decoderOpts = decoderOpts if decoderOpts is not None else {}
@@ -908,9 +905,18 @@ class CameraInterface:
 
         # set library options
         camWidth, camHeight = self._frameSize
+        logging.debug(
+            "Using camera mode {}x{} at {} fps".format(
+                camWidth, camHeight, _frameRate))
 
         # configure the real-time buffer size
-        _bufferSize = self._frameSizeBytes * self._bufferSecs
+        self._frameSizeBytes = camWidth * camHeight * 3  # RGB format
+        _bufferSize = int(self._frameSizeBytes * self._bufferSecs)
+        logging.debug(
+            "Setting real-time video buffer size to {} bytes "
+            "({} seconds)".format(
+                _bufferSize, self._bufferSecs)
+        )
 
         # common settings across libraries
         lib_opts['rtbufsize'] = str(int(_bufferSize))
@@ -921,7 +927,9 @@ class CameraInterface:
         # open the media player
         from ffpyplayer.player import MediaPlayer
         self._capture = MediaPlayer(_camera, ff_opts=ff_opts, lib_opts=lib_opts)
-        self._frameInterval = 1.0 / self._frameRate  # compute the frame interval
+
+        # compute the frame interval, needed for generating timestamps
+        self._frameInterval = 1.0 / self._frameRate 
         
         # get metadata from the capture stream
         tStart = time.time()  # start time for the stream
@@ -1201,6 +1209,7 @@ class CameraInterface:
         """
         if self._captureLib == 'ffpyplayer':
             return self._getFramesFFPyPlayer()
+
 
 
 # keep track of camera devices that are opened
@@ -1947,6 +1956,8 @@ class Camera:
         # open movie recorder object
         if self._movieWriter is not None:
             self._movieWriter.close()
+
+        self._isRecording = True  # set recording flag
     
         self._openMovieFileWriter()
 
@@ -1964,6 +1975,7 @@ class Camera:
             _ = self.mic.stop(blockUntilStopped=1)
         
         self._audioReady = self._videoReady = False  # reset camera ready flag
+        self._isRecording = False
 
         self._closeMovieFileWriter()
             
@@ -2691,7 +2703,7 @@ class Camera:
             self._movieWriter.close()
             self._movieWriter = None
         else:
-            logging.warning(
+            logging.debug(
                 "Attempting to call `_closeMovieFileWriterFFPyPlayer()` "
                 "without an open movie file writer.")
 
