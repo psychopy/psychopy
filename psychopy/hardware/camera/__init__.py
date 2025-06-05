@@ -733,6 +733,17 @@ class CameraInterface:
         return self._frameRate
     
     @property
+    def frameInterval(self):
+        """Frame interval of the camera stream (`float`).
+        
+        This is the time between frames in seconds. It is calculated as
+        `1.0 / frameRate`. If the camera stream is not open, this will return
+        `None`.
+        
+        """
+        return self._frameInterval
+    
+    @property
     def pixelFormat(self):
         """Pixel format of the camera stream (`str`).
         
@@ -910,6 +921,7 @@ class CameraInterface:
         # open the media player
         from ffpyplayer.player import MediaPlayer
         self._capture = MediaPlayer(_camera, ff_opts=ff_opts, lib_opts=lib_opts)
+        self._frameInterval = 1.0 / self._frameRate  # compute the frame interval
         
         # get metadata from the capture stream
         tStart = time.time()  # start time for the stream
@@ -2370,10 +2382,6 @@ class Camera:
         self._bufferSecs = float(bufferSecs)
         self._lastFrame = None  # use None to avoid imports for ImageStim
 
-        # microphone instance, this is controlled by the camera interface and
-        # is not meant to be used by the user
-        self.mic = mic
-
         # other information
         self.name = name
         # timestamp data
@@ -2382,11 +2390,18 @@ class Camera:
         self._win = None
 
         # recording properties
+        self._isStarted = False  # is the stream started?
         self._audioReady = False
         self._videoReady = False
         self._absVideoRecStartTime = -1.0
         self._absAudioRecStartPos = -1  # in samples
+        self._curPTS = 0.0  # current display timestamp
         self._isRecording = False
+        self._generatePTS = False  # use genreated PTS values for frames
+
+        # microphone instance, this is controlled by the camera interface and
+        # is not meant to be used by the user
+        self.mic = mic
         
         # movie writer instance, this runs in a separate thread
         self._movieWriter = None
@@ -2475,10 +2490,7 @@ class Camera:
         """`True` if the stream has started (`bool`). This status is given after
         `open()` has been called on this object.
         """
-        if self._captureThread is None:
-            return False
-
-        return self._captureThread.isOpen()
+        return self._isStarted
 
     @property
     def isNotStarted(self):
@@ -2750,6 +2762,8 @@ class Camera:
             # if we have a window, setup texture buffers for displaying
             self._setupTextureBuffers()
 
+        self._isStarted = True
+
     def record(self, clearLastRecording=True):
         """Start recording frames.
 
@@ -2801,7 +2815,7 @@ class Camera:
         # open movie recorder object
         if self._movieWriter is not None:
             self._movieWriter.close()
-
+    
         self._openMovieFileWriter()
 
     def stop(self):
@@ -2835,6 +2849,10 @@ class Camera:
 
         self._capture.close()  # close the camera stream
 
+        self._closeMovieFileWriter()
+
+        self._isStarted = False
+
     def save(self, filename, useThreads=True, mergeAudio=True, writerOpts=None):
         """Save the last recording to file.
 
@@ -2850,15 +2868,15 @@ class Camera:
         filename : str
             File to save the resulting video to, should include the extension.
         useThreads : bool
-            Use threading where possible to speed up the saving process. If
-            `True`, the video will be saved and composited in a separate thread
-            and this function will return quickly. If `False`, the video will
-            be saved and composited in the main thread and this function will
-            block until the video is saved. Default is `True`.
+            Use threading where possible to speed up the saving process.
         mergeAudio : bool
             Merge the audio track from the microphone with the video. If `True`,
             the audio track will be merged with the video. If `False`, the
             audio track will be saved to a separate file. Default is `True`.
+        writerOpts : dict or None
+            Options to pass to the movie writer. This is a dictionary of options
+            that will be passed to the movie writer. If `None`, default options
+            will be used.
 
         """
         # stop if still recording
@@ -2900,7 +2918,7 @@ class Camera:
         else:
             audioTrackFile = None
         
-        # composite audio a video tracks
+        # composite audio a video tracks using MoviePy (huge thanks to that team)
         from moviepy.video.io.VideoFileClip import VideoFileClip
         from moviepy.audio.io.AudioFileClip import AudioFileClip
         from moviepy.audio.AudioClip import CompositeAudioClip
@@ -2922,11 +2940,19 @@ class Camera:
             filename, 
             **moviePyOpts)  # expand out options
 
-        # remove the input files
-        # os.remove(videoTrackFile)
+        videoClip.close()  # close the video clip
+        if audioClip is not None:
+            audioClip.close()
 
-        # if audioTrackFile is not None:
-        #     os.remove(audioTrackFile)
+        # remove the input files
+        os.remove(videoTrackFile)
+
+        if audioTrackFile is not None:
+            os.remove(audioTrackFile)
+
+        self._lastVideoFile = filename  # store the last video file saved
+
+        return self._lastVideoFile
 
     def _upload(self):
         """Upload video file to an online repository. Not implemented locally,
@@ -3462,6 +3488,15 @@ class Camera:
             'codec': self._capture.codecFormat,
             'frame_rate': (int(self._capture.frameRate), 1)}
         
+        self._curPTS = 0.0  # current pts for the movie writer
+
+        self._generatePTS = False  # whether to generate PTS for the movie writer
+        if filename.endswith('.mp4'): 
+            self._generatePTS = True  # generate PTS for mp4 files
+            logging.debug(
+                "MP4 format detected, PTS will be generated for the movie " \
+                "writer.")
+
         self._movieWriter = MediaWriter(
             filename, [writerOptions], libOpts=encoderOpts)
 
@@ -3503,11 +3538,15 @@ class Camera:
                 colorData.get_pixel_format(),
                 ofmt='yuv420p')
             
-            bytesOut += self._movieWriter.write_frame(
+            if self._generatePTS:
+                pts = self._curPTS  # use current for PTS
+                self._curPTS += self._capture.frameInterval  # increment dts by frame interval
+       
+            bytesOut = self._movieWriter.write_frame(
                 img=sws.scale(colorData),
                 pts=pts,
                 stream=0)
-            
+
         return bytesOut
 
     def _closeMovieFileWriterFFPyPlayer(self):
