@@ -1071,7 +1071,7 @@ class TextureMixin:
                     logging.flush()
                     msg = "Found file '%s' [= %s], failed to load as an image"
                     raise IOError(msg % (tex, os.path.abspath(tex)))
-            elif hasattr(tex, 'getVideoFrame'):  # camera or movie textures
+            elif hasattr(tex, 'getRecentVideoFrame'):  # camera or movie textures
                 # get an image to configure the initial texture store
                 if hasattr(tex, 'frameSize'):
                     if tex.frameSize is None:
