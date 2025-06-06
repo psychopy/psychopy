@@ -61,6 +61,7 @@ import queue
 import time
 import numpy as np
 import ctypes
+import collections
 
 from psychopy import core
 from psychopy.constants import NOT_STARTED
@@ -73,7 +74,6 @@ import psychopy.tools.movietools as movietools
 import psychopy.logging as logging
 from psychopy.localization import _translate
 
-
 # ------------------------------------------------------------------------------
 # Constants
 #
@@ -81,10 +81,11 @@ from psychopy.localization import _translate
 VIDEO_DEVICE_ROOT_LINUX = '/dev'
 CAMERA_UNKNOWN_VALUE = u'Unknown'  # fields where we couldn't get a value
 CAMERA_NULL_VALUE = u'Null'  # fields where we couldn't get a value
+
 # camera operating modes
-# CAMERA_MODE_VIDEO = u'video'
-# CAMERA_MODE_CV = u'cv'
-# CAMERA_MODE_PHOTO = u'photo'
+CAMERA_MODE_VIDEO = u'video'
+CAMERA_MODE_CV = u'cv'
+# CAMERA_MODE_PHOTO = u'photo'  # planned
 
 # camera status 
 CAMERA_STATUS_OK = 'ok'
@@ -100,10 +101,10 @@ CAMERA_API_UNKNOWN = u'Unknown'            # unknown API
 CAMERA_API_NULL = u'Null'                  # empty field
 
 # camera libraries for playback nad recording
-CAMERA_LIB_FFPYPLAYER = u'FFPyPlayer'
-CAMERA_LIB_OPENCV = u'OpenCV'
-CAMERA_LIB_UNKNOWN = u'Unknown'
-CAMERA_LIB_NULL = u'Null'
+CAMERA_LIB_FFPYPLAYER = u'ffpyplayer'
+CAMERA_LIB_OPENCV = u'opencv'
+CAMERA_LIB_UNKNOWN = u'unknown'
+CAMERA_LIB_NULL = u'null'
 
 # special values
 CAMERA_FRAMERATE_NOMINAL_NTSC = '30.000030'
@@ -813,6 +814,28 @@ class CameraInterface:
         
         return self._frameSizeBytes
     
+    @property
+    def frameCount(self):
+        """Number of frames read from the camera stream (`int`).
+        
+        This is the number of frames read from the camera stream since the last
+        time the camera was opened. If the camera stream is not open, this will
+        return `0`.
+        
+        """
+        return self._frameCount if self._capture is not None else 0
+    
+    @property
+    def streamTime(self):
+        """Current stream time in seconds (`float`).
+        
+        This is the current stream time in seconds. It is calculated as the
+        difference between the current time and the absolute recording start
+        time. If the camera stream is not open, this will return `-1.0`.
+        
+        """
+        return self._capture.get_pts() if self._capture is not None else -1.0
+    
     def _toNumpyView(self, frame):
         """Convert a frame to a Numpy view.
 
@@ -996,6 +1019,8 @@ class CameraInterface:
             if frame is None:  # ditto 
                 break
 
+            self._frameCount += 1  # increment the frame count
+
             img, curPts = frame
             if curPts < self._absRecStreamStartTime and self._isRecording:
                 del img  # free the memory used by the frame
@@ -1004,8 +1029,9 @@ class CameraInterface:
 
             recentFrames.append((
                 img, 
-                curPts-self._absRecStreamStartTime))
-
+                curPts-self._absRecStreamStartTime,
+                curPts))
+            
         return recentFrames
     
     # --------------------------------------------------------------------------
@@ -1151,6 +1177,8 @@ class CameraInterface:
         if not self.isOpen:
             raise RuntimeError("Camera stream is not open. Call `open()` first.")
         
+        self._frameCount = 0  # reset the frame count
+        self._clearFrameStore()  # clear the frame store
         self._capture.set_pause(False)  # start the capture stream
         self._absRecStreamStartTime = self._capture.get_pts()  # get the absolute start time
         self._absRecExpStartTime = core.getTime()  # expected start time in seconds
@@ -1274,6 +1302,21 @@ class Camera:
         safely ignored.
     name : str
         Label for the camera for logging purposes.
+    keepFrames : int
+        Number of frames to keep in memory for the camera stream. Calling 
+        `getVideoFrames()` will return the most recent `keepFrames` frames from
+        the camera stream. If `keepFrames` is set to `0`, no frames will be kept
+        in memory and the camera stream will not be buffered. This is useful if 
+        the user desires to access raw frame data from the camera stream.
+    usageMode : str
+        Usage mode hint for the camera aquisition. This with enable specific 
+        optimizations for each mode that will improve performance and
+        reduce memory usage. The default value is 'video', which is suitable for
+        recording video streams with audio efficently. The 'cv' mode is suitable 
+        for computer vision applications where frames from the camera stream are 
+        processed in real-time (e.g. object detection, tracking, etc.) and the 
+        video is not being saved to disk. Audio will not be recorded in this
+        mode even if a microphone is provided.
 
     Examples
     --------
@@ -1310,7 +1353,7 @@ class Camera:
     """
     def __init__(self, device=0, mic=None, cameraLib=u'ffpyplayer',
                  frameRate=None, frameSize=None, bufferSecs=4, win=None,
-                 name='cam'):
+                 name='cam', keepFrames=5, usageMode='video'):
         # add attributes for setters
         self.__dict__.update(
             {'_device': None,
@@ -1522,6 +1565,9 @@ class Camera:
         self.status = NOT_STARTED
         self._bufferSecs = float(bufferSecs)
         self._lastFrame = None  # use None to avoid imports for ImageStim
+        self._keepFrames = keepFrames  # number of frames to keep in memory
+        self._frameStore = collections.deque(maxlen=keepFrames)
+        self._usageMode = usageMode  # usage mode for the camera
 
         # other information
         self.name = name
@@ -1560,12 +1606,41 @@ class Camera:
         self._texFilterNeedsUpdate = True  # flag to update texture filtering
         self._texBufferSizeBytes = None  # size of the texture buffer
 
+        # computer vison mode 
+        self._objClassfiers = {}  # list of classifiers for CV mode
+
         self.setWin(win)  # sets up OpenGL stuff if needed
 
     def authorize(self):
         """Get permission to access the camera. Not implemented locally yet.
         """
         pass  # NOP
+
+    @property
+    def streamTime(self):
+        """Current stream time in seconds (`float`).
+
+        This is the current absolute time in seconds from the time the PC was 
+        booted. This is not the same as the recording time, which is the time
+        since the recording started. This is useful for generating timestamps 
+        across multiple cameras or devices using the same time source.
+
+        """
+        return self._capture.streamTime
+    
+    @property
+    def recordingTime(self):
+        """Time in seconds since the recording started (`float`).
+
+        This is the time since the recording started. This is useful for
+        generating timestamps for frames in the recording. If the recording has
+        not started, this will return `0.0`.
+
+        """
+        if self._absRecStreamStartTime < 0:
+            return 0.0
+        
+        return self._capture.get_pts() - self._absRecStreamStartTime
 
     @property
     def isReady(self):
@@ -1669,12 +1744,6 @@ class Camera:
 
         """
         return self._capture.getMetadata() if self._capture else None
-
-    # @property
-    # def mode(self):
-    #     """Operating mode in use for this camera.
-    #     """
-    #     return self._mode
 
     _getCamerasCache = {}
 
@@ -1813,18 +1882,37 @@ class Camera:
         return totalFramesBuffered
 
     @property
-    def streamTime(self):
-        """Current stream time in seconds (`float`). This time increases
-        monotonically from startup. 
-        
-        This is `-1.0` if there is no active stream running or if the backend 
-        does not support this feature.
-
+    def keepFrames(self):
+        """Number of frames to keep in memory for the camera stream (`int`).
         """
-        if self.isStarted and hasattr(self._captureThread, "streamTime"):
-            return self._captureThread.streamTime
+        return self._keepFrames
+    
+    @keepFrames.setter
+    def keepFrames(self, value):
+        if value < 0:
+            raise ValueError("`keepFrames` must be a non-negative integer.")
         
-        return -1.0
+        self._keepFrames = value
+        oldFrames = self._frameStore
+        oldStoreSize = len(self._frameStore)
+
+        if oldStoreSize == self._keepFrames:
+            # nothing to do, size is the same
+            return
+
+        # change the size of the frame store
+        self._frameStore = collections.deque(maxlen=self._keepFrames)
+
+        if oldStoreSize > self._keepFrames:
+            logging.warning(
+                "Reducing `keepFrames` from {} to {} will discard the oldest "
+                "frames in the buffer.".format(oldStoreSize, self._keepFrames))
+
+        # add back frames
+        if oldStoreSize > 0:
+            # copy the last `keepFrames` frames to the new store
+            for i in range(oldStoreSize - self._keepFrames, oldStoreSize):
+                self._frameStore.append(oldFrames[i])
 
     @property
     def recordingTime(self):
@@ -1860,7 +1948,7 @@ class Camera:
         function to ensure that a player is present before running subsequent
         code.
         """
-        if self._captureThread is not None:
+        if self._capture is not None:
             return
 
         raise PlayerNotAvailableError('Media player not initialized.')
@@ -1929,7 +2017,10 @@ class Camera:
             Clear the frame buffer before starting the recording. If `True`,
             the frame buffer will be cleared before starting the recording. If
             `False`, the frame buffer will be kept and new frames will be added
-            to the buffer. Default is `True`.
+            to the buffer. Default is `True`. This is deprecated and will
+            eventually be removed in a future version of PsychoPy. The recording 
+            is always cleared when `record()` is called, so this parameter is
+            ignored.
 
         """
         if self.isNotStarted:
@@ -1939,27 +2030,41 @@ class Camera:
                 "opening now. This is not recommended as it may incur a longer "
                 "than expected delay in the recording start time."
             )
+        
+        if self._isRecording:
+            logging.warning(
+                "Called `Camera.record()` while already recording, stopping "
+                "the previous recording first."
+            )
+            self.stop()
 
         # clear previous frames
         if clearLastRecording:
-            # self._captureFrames.clear()
-            self._audioTrack = None  # clear the audio track
+            self._frameStore.clear()  # clear frames from last recording
+
+        # reset the last frame
+        self._lastFrame = None
 
         self._videoReady = self._audioReady = None
-        if self.mic is not None:
-            self._absAudioRecStartPos = self.mic.start(
-                waitForStart=1,  # wait until the mic is ready
-            )
-
+        if self._usageMode == CAMERA_MODE_VIDEO:
+            if self.mic is not None:
+                self._absAudioRecStartPos = self.mic.start(
+                    waitForStart=1,  # wait until the mic is ready
+                )
         self._absVideoRecStartTime = self._capture.record()
-
-        # open movie recorder object
-        if self._movieWriter is not None:
-            self._movieWriter.close()
-
         self._isRecording = True  # set recording flag
-    
+
         self._openMovieFileWriter()
+
+    def start(self):
+        """Start the camera stream.
+
+        This will start the camera stream and begin decoding frames. If the
+        camera is already started, this will do nothing. Use `record()` to start
+        recording frames to memory.
+
+        """
+        return self.record(clearLastRecording=False)
 
     def stop(self):
         """Stop recording frames and audio (if available).
@@ -2005,7 +2110,8 @@ class Camera:
         `save()`, the previous recording will be deleted and lost.
 
         This is a slow operation and will block for some time depending on the 
-        length of the video. This can be sped up by setting `useThreads=True`.
+        length of the video. This can be sped up by setting `useThreads=True` if
+        supported.
 
         Parameters
         ----------
@@ -2014,12 +2120,15 @@ class Camera:
         useThreads : bool
             Use threading where possible to speed up the saving process.
         mergeAudio : bool
-            Merge the audio track from the microphone with the video. If `True`,
-            the audio track will be merged with the video. If `False`, the
-            audio track will be saved to a separate file. Default is `True`.
+            Merge the audio track from the microphone with the video into a 
+            single file if `True`. If `False`, the audio track will be saved
+            to a separate file with the same name as `filename`, but with a
+            `.wav` extension. This is useful if you want to process the audio
+            track separately, or merge it with the video later on as the process
+            is computationally expensive and memory consuming. Default is 
+            `True`.
         writerOpts : dict or None
-            Options to pass to the movie writer. This is a dictionary of options
-            that will be passed to the movie writer. If `None`, default options
+            Options to pass to the movie writer. If `None`, default options
             will be used.
 
         """
@@ -2039,60 +2148,81 @@ class Camera:
         videoTrackFile = self._tempVideoFile
         
         # write the temporary audio track to file if we have one
+        tStart = time.time()  # start time for the operation
         if self.mic is not None:
+            audioTrack = self.mic.getRecording()
+
             if mergeAudio:
-                audioTrack = self.mic.getRecording()
-                if audioTrack is None:
-                    raise CameraError(
-                        "Cannot save video, no audio track available. "
-                        "Make sure to call `record()` before `save()`."
-                    )
+                logging.info("Merging audio track with video track...")
                 # save it to a temp file
                 import tempfile
                 tempAudioFile = tempfile.NamedTemporaryFile(
                     suffix='.wav', delete=False)
                 audioTrackFile = tempAudioFile.name
-                audioTrack.save(audioTrackFile)
                 tempAudioFile.close()  # close the file so we can use it later
-            else:
-                # just save the audio file seperatley
-                audioTrack = self.mic.getRecording()
-                audioTrackFile = filename + '.wav' 
                 audioTrack.save(audioTrackFile)
+
+                # composite audio a video tracks using MoviePy (huge thanks to 
+                # that team)
+                from moviepy.video.io.VideoFileClip import VideoFileClip
+                from moviepy.audio.io.AudioFileClip import AudioFileClip
+                from moviepy.audio.AudioClip import CompositeAudioClip
+
+                # default options for the writer, needed or we can crash
+                moviePyOpts = {
+                    'logger': None
+                }
+
+                if writerOpts is not None:  # make empty dict if not provided
+                    moviePyOpts.update(writerOpts)
+
+                videoClip = VideoFileClip(videoTrackFile)
+                audioClip = AudioFileClip(audioTrackFile)
+                videoClip.audio = CompositeAudioClip([audioClip])
+
+                # transcode with the format the user wants
+                videoClip.write_videofile(
+                    filename, 
+                    **moviePyOpts)  # expand out options
+
+                videoClip.close()  # close the video clip
+                if audioClip is not None:
+                    audioClip.close()
+                
+                os.remove(audioTrackFile)  # remove the temp file
+
+            else:
+                tAudioStart = time.time()  # start time for audio saving
+                # just save the audio file seperatley
+                # check if the filename has an extension
+                if '.' not in filename:
+                    audioTrackFile = filename + '.wav'
+                else:
+                    # if it has an extension, use the same name but with .wav
+                    # extension
+                    rootName, _ = os.path.splitext(filename)
+                    audioTrackFile = rootName + '.wav' 
+
+                audioTrack.save(audioTrackFile)
+
+                logging.warning(
+                    "Saved recorded audio track to `{}` (took {:.6f} seconds)".format(
+                        audioTrackFile, time.time() - tAudioStart))
+
+                # just copy the video from the temp file to the final file
+                import shutil
+                shutil.copyfile(videoTrackFile, filename)
+
         else:
-            audioTrackFile = None
-        
-        # composite audio a video tracks using MoviePy (huge thanks to that team)
-        from moviepy.video.io.VideoFileClip import VideoFileClip
-        from moviepy.audio.io.AudioFileClip import AudioFileClip
-        from moviepy.audio.AudioClip import CompositeAudioClip
+            # just copy the video file to the destination
+            import shutil
+            shutil.copyfile(videoTrackFile, filename)
 
-        # default options for the writer, needed or we can crash
-        moviePyOpts = {
-            'logger': None
-        }
+        os.remove(videoTrackFile)  # remove the temp file
 
-        if writerOpts is not None:  # make empty dict if not provided
-            moviePyOpts.update(writerOpts)
-
-        videoClip = VideoFileClip(videoTrackFile)
-        audioClip = AudioFileClip(audioTrackFile)
-        videoClip.audio = CompositeAudioClip([audioClip])
-
-        # transcode with the format the user wants
-        videoClip.write_videofile(
-            filename, 
-            **moviePyOpts)  # expand out options
-
-        videoClip.close()  # close the video clip
-        if audioClip is not None:
-            audioClip.close()
-
-        # remove the input files
-        os.remove(videoTrackFile)
-
-        if audioTrackFile is not None:
-            os.remove(audioTrackFile)
+        logging.warning(
+            "Saved recorded video to `{}` (took {:.6f} seconds)".format(
+                filename, time.time() - tStart))
 
         self._lastVideoFile = filename  # store the last video file saved
 
@@ -2242,20 +2372,35 @@ class Camera:
             # no new frames to process
             return 0
         
+        # put last frames into the frame store
+        nNewFrames = len(newFrames)
+        if nNewFrames > self._frameStore.maxlen:
+            logging.warning(
+                "Frame store overflowed, some frames may have been lost. "
+                "Consider increasing the `keepFrames` parameter when creating "
+                "the camera object or polling the camera more frequently."
+            )
+
+        self._frameStore.extend(newFrames)
+        
         # if we have frames, update the last frame
-        colorData, pts = newFrames[-1] 
+        colorData, pts, streamTime = newFrames[-1] 
         self._lastFrame = (
             self._convertFrameToRGBFFPyPlayer(colorData),  # convert to RGB
-            pts  # presentation timestamp
+            pts,  # presentation timestamp
+            streamTime
         )
 
         self._pixelTransfer()  # transfer frames to the GPU if we have a window
 
         # write frames out to video file
-        for frame in newFrames:
-            self._submitFrameToFile(frame)
+        if self._usageMode == CAMERA_MODE_VIDEO:
+            for frame in newFrames:
+                self._submitFrameToFile(frame)
+        elif self._usageMode == CAMERA_MODE_CV:
+            pass
 
-        return len(newFrames)  # return number of frames we got
+        return nNewFrames  # return number of frames we got
     
     def poll(self):
         """Poll the camera for new frames.
@@ -2264,19 +2409,36 @@ class Camera:
         """
         return self.update()
     
-    def getVideoFrame(self):
+    def getVideoFrames(self):
         """Get the most recent frame from the stream (if available).
 
         Returns
         -------
-        MovieFrame
-            Most recent video frame. Returns `NULL_MOVIE_FRAME_INFO` if no
-            frame was available, or we timed out.
+        list
+            List of recent video frames. This will return a list of frame images as 
+            numpy arrays and their presentation timestamp. Frames will be converted
+            to RGB format if they are not already.
 
         """
         self.update()
 
-        return self._lastFrame
+        recentFrames = list(self._frameStore)
+
+        return recentFrames
+    
+    def getRecentVideoFrame(self):
+        """Get the most recent video frame from the camera.
+
+        Returns
+        -------
+        VideoFrame or None
+            Most recent video frame. Returns `None` if no frame was available,
+            or we timed out.
+
+        """
+        self.update()
+
+        return self._lastFrame[0] if self._lastFrame else None
     
     # --------------------------------------------------------------------------
     # Audio track
@@ -2619,7 +2781,6 @@ class Camera:
 
         """
         from ffpyplayer.writer import MediaWriter
-        from ffpyplayer.pic import SWScale
 
         encoderOpts = encoderOpts or {}
 
@@ -2674,7 +2835,7 @@ class Camera:
 
         # write frames to the movie file writer
         bytesOut = 0
-        for colorData, pts in frames:
+        for colorData, pts, _ in frames:
             # do color conversion if needed
             frameWidth, frameHeight = colorData.get_size()
             sws = SWScale(
@@ -2742,9 +2903,7 @@ class Camera:
 
         """
         if self._movieWriter is not None:
-            raise RuntimeError(
-                "Attempting to call `openMovieFileWriter()` before calling "
-                "`closeMovieFileWriter()`.")
+            return self._tempVideoFile  # already open, return temp file
         
         if encoderLib is None:
             encoderLib = self._cameraLib
@@ -2794,12 +2953,19 @@ class Camera:
                 "Attempting to call `_submitFrameToFile()` before "
                 "`_openMovieFileWriter()`.")
 
+        tStart = time.time()  # start time for the operation
         if self._cameraLib == 'ffpyplayer':
-            return self._submitFrameToFileFFPyPlayer(frames)
+            toReturn = self._submitFrameToFileFFPyPlayer(frames)
         else:
             raise ValueError(
                 "Invalid value for parameter `encoderLib`, expected one of "
                 "`'ffpyplayer'` or `'opencv'`.")
+        
+        logging.debug(
+            "Submitted {} frames to the movie file writer (took {:.6f} seconds)".format(
+                len(frames), time.time() - tStart))
+        
+        return toReturn
         
     def _closeMovieFileWriter(self):
         """Close the movie file writer.
