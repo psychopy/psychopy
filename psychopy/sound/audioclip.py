@@ -813,6 +813,83 @@ class AudioClip:
 
         return self
 
+    def trim(self, startPos=0, endPos=None, units='seconds'):
+        """Trim the audio clip to a specific time range.
+
+        This method will modify the audio clip inplace, removing samples outside
+        the specified time range.
+
+        Parameters
+        ----------
+        startPos : float or int
+            Start position in the audio clip to trim from. Default is `0` which is
+            the beginning of the audio clip.
+        endPos : float or int or None
+            End position in the audio clip to trim to. If `None`, the end of the
+            audio clip will be used. Default is `None`.
+        units : str
+            Units to interpret the `startPos` and `endPos` parameters as. Can be
+            'seconds' or 'samples'. Default is 'seconds'.
+
+        Returns
+        -------
+        AudioClip
+            This audio clip object with samples outside the specified time
+            range removed.
+        
+        """
+        # convert startPos and endPos to samples
+        if units == 'seconds':
+            startSample = int(startPos * self.sampleRateHz)
+            endSample = int(endPos * self.sampleRateHz) \
+                if endPos is not None else len(self.samples)
+        elif units == 'samples':
+            startSample = int(startPos)
+            endSample = int(endPos) if endPos is not None else len(self.samples)
+        else:
+            raise ValueError(
+                "Invalid value for `units`. Must be 'seconds' or 'samples'.")
+        
+        # trim the samples
+        self._samples = self._samples[startSample:endSample]
+
+        # recompute the duration of the new clip
+        self._duration = len(self.samples) / float(self.sampleRateHz)
+
+        return self
+        
+    def trimmed(self, startPos=0, endPos=None, units='seconds'):
+        """Return a new audio clip with samples trimmed to a specific time 
+        range.
+
+        This method will return a new audio clip with samples outside the 
+        specified time range removed. The original audio clip will not be
+        modified.
+
+        Parameters
+        ----------
+        startPos : float or int
+            Start position in the audio clip to trim from. Default is `0` which is
+            the beginning of the audio clip.
+        endPos : float or int or None
+            End position in the audio clip to trim to. If `None`, the end of the
+            audio clip will be used. Default is `None`.
+        units : str
+            Units to interpret the `startPos` and `endPos` parameters as. Can be
+            'seconds' or 'samples'. Default is 'seconds'.
+
+        Returns
+        -------
+        AudioClip
+            A new audio clip with samples trimmed to the specified time range.
+        
+        """
+        # create a copy of the audio clip
+        newClip = self.copy()
+
+        # trim the copy
+        return newClip.trim(startPos, endPos, units)
+
     # --------------------------------------------------------------------------
     # Audio analysis methods
     #
