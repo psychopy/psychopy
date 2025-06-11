@@ -852,16 +852,19 @@ class TrialHandler2(_BaseTrialHandler):
     Then you'll find that `dat` has the following attributes that
     """
 
-    def __init__(self,
-                 trialList,
-                 nReps,
-                 method='random',
-                 dataTypes=None,
-                 extraInfo=None,
-                 seed=None,
-                 originPath=None,
-                 name='',
-                 autoLog=True):
+    def __init__(
+        self,
+        trialList,
+        nReps,
+        method='random',
+        dataTypes=None,
+        extraInfo=None,
+        seed=None,
+        originPath=None,
+        isTrials=True,
+        name='',
+        autoLog=True
+    ):
         """
 
         :Parameters:
@@ -929,10 +932,14 @@ class TrialHandler2(_BaseTrialHandler):
 
             .origin - the contents of the script or builder experiment that
                 created the handler
+            
+            .isTrials - is this controlling trials, or created for another purpose (e.g. iterating a 
+                stimulus within a trial)?
 
         """
         self.name = name
         self.autoLog = autoLog
+        self.isTrials = isTrials
 
         if trialList in [None, [None], []]:  # user wants an empty trialList
             # which corresponds to a list with a single empty entry
