@@ -577,7 +577,7 @@ class StairHandler(_BaseLoopHandler):
             "    minVal=%(min value)s, \n"
             "    maxVal=%(max value)s,\n"
             "    originPath=-1, \n"
-            "    name='%(name)s'\n"
+            "    name='%(name)s',\n"
             "    isTrials=%(isTrials)s, \n"
             ")\n"
             "thisExp.addLoop(%(name)s)  # add the loop to the experiment"
