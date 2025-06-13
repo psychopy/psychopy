@@ -516,6 +516,16 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
     def recBufferSecs(self):
         """Capacity of the recording buffer in seconds (`float`)."""
         return self._totalSamples / float(self._sampleRateHz)
+    
+    @property
+    def recSampleCount(self):
+        """Total number of samples in the recording buffer (`int`).
+
+        This is the total number of samples that have been recorded since the
+        last `start` call. If the stream is not started, this will return `0`.
+
+        """
+        return self._totalSamples
 
     @property
     def latencyBias(self):
@@ -1008,10 +1018,10 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
                     "Recording buffer is full, no more samples will be added.")
             
         # update the recording position
-        self._absRecStopTime = absRecPosition
+        self._absRecStopTime = absRecPosition / self._sampleRateHz
         self._recPositionSecs = self._absRecStopTime - self._absRecStartTime
 
-        return self._absRecStopTime, overflow
+        return absRecPosition, overflow
     
     def _mergeAudioFragments(self):
         """Merge audio fragments into a single segment.
