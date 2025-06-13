@@ -411,156 +411,6 @@ class CameraInfo:
 
 
 class CameraInterface:
-    """Base class providing an interface with a camera attached to the system.
-
-    This interface handles the opening, closing, and reading of camera streams.
-    Subclasses provide a specific implementation for a camera interface. 
-    
-    Calls to any instance methods should be asynchronous and non-blocking, 
-    returning immediately with the same data as before if no new frame data is
-    available. This is to ensure that the main thread is not blocked by the
-    camera interface and can continue to process other events.
-
-    Parameters
-    ----------
-    device : Any
-        Camera device to open a stream with. The type of this value is platform
-        dependent. Calling `start()` will open a stream with this device. 
-        Afterwards, `getRecentFrame()` can be called to get the most recent
-        frame from the camera.
-
-    """
-    # default values for class variables, these are read-only and should not be
-    # changed at runtime
-    _cameraLib = u'Null'
-    _frameIndex = 0
-    _lastPTS = 0.0  # presentation timestamp of the last frame
-    _supportedPlatforms = ['linux', 'windows', 'darwin']
-    _device = None
-    _lastFrame = None
-    _isReady = False  # `True` if the camera is 'hot' and yielding frames
-
-    def __init__(self, device):
-        self._device = device
-        self._mic = None
-
-    @staticmethod
-    def getCameras():
-        """Get a list of devices this interface can open.
-
-        Returns
-        -------
-        list 
-            List of objects which represent cameras that can be opened by this
-            interface. Pass any of these values to `device` to open a stream.
-
-        """
-        return []
-
-    @property
-    def device(self):
-        """Camera device this interface is using (`Any`).
-        """
-        return self._device
-    
-    @property
-    def frameCount(self):
-        """Number of new frames read from the camera since initialization 
-        (`int`).
-        """
-        return self._frameCount
-
-    @property
-    def streamTime(self):
-        """Current stream time in seconds (`float`). This time increases
-        monotonically from startup.
-        """
-        return self._streamTime
-
-    def lastFrame(self):
-        """The last frame read from the camera. If `None`, no frames have been
-        read yet.
-        """
-        return self._lastFrame
-    
-    def _assertMediaPlayer(self):
-        """Assert that the media player is available.
-        
-        Returns
-        -------
-        bool
-            `True` if the media player is available.
-
-        """
-        return False
-    
-    def open(self):
-        """Open the camera stream.
-        """
-        pass
-
-    def isOpen(self):
-        """Check if the camera stream is open.
-
-        Returns
-        -------
-        bool
-            `True` if the camera stream is open.
-
-        """
-        return False
-    
-    def enable(self):
-        """Enable passing camera frames to the main thread.
-        """
-        pass
-
-    def disable(self):
-        """Disable passing camera frames to the main thread.
-        """
-        pass
-
-    def close(self):
-        """Close the camera stream.
-        """
-        pass
-
-    def getMetadata(self):
-        """Get metadata about the camera stream.
-
-        Returns
-        -------
-        dict
-            Dictionary containing metadata about the camera stream. Returns an
-            empty dictionary if no metadata is available.
-
-        """
-        return {}
-    
-    def _enqueueFrame(self):
-        """Enqueue a frame from the camera stream.
-        """
-        pass
-
-    def update(self):
-        """Update the camera stream.
-        """
-        pass
-
-    def getRecentFrame(self):
-        """Get the most recent frame from the camera stream.
-
-        Returns
-        -------
-        numpy.ndarray
-            Most recent frame from the camera stream. Returns `None` if no
-            frames are available.
-
-        """
-        return NULL_MOVIE_FRAME_INFO
-    
-
-class CameraInterface:
     """Class providing an interface with a camera attached to the system.
     
     This interface handles the opening, closing, and reading of camera streams.
@@ -823,7 +673,7 @@ class CameraInterface:
         return `0`.
         
         """
-        return self._frameCount if self._capture is not None else 0
+        return self._frameCount
     
     @property
     def streamTime(self):
@@ -916,8 +766,8 @@ class CameraInterface:
             lib_opts['fflags'] = 'nobuffer'
             lib_opts['flags'] = 'low_delay'
             lib_opts['pixel_format'] = self._pixelFormat
-            ff_opts['framedrop'] = True
-            ff_opts['fast'] = True
+            # ff_opts['framedrop'] = True
+            # ff_opts['fast'] = True
         elif self._cameraAPI == CAMERA_API_VIDEO4LINUX2:
             raise OSError(
                 "Sorry, camera does not support Linux at this time. However, "
@@ -942,7 +792,14 @@ class CameraInterface:
         )
 
         # common settings across libraries
-        lib_opts['rtbufsize'] = str(int(_bufferSize))
+        ff_opts['low_delay'] = True  # low delay for real-time playback
+        ff_opts['framedrop'] = True
+        # ff_opts['use_wallclock_as_timestamps'] = True
+        ff_opts['fast'] = True
+        # ff_opts['sync'] = 'ext'
+        ff_opts['rtbufsize'] = '512M'
+
+        # for ffpyplayer, we need to set the video size and framerate
         lib_opts['video_size'] = '{width}x{height}'.format(
             width=camWidth, height=camHeight)
         lib_opts['framerate'] = str(_frameRate)
@@ -1184,7 +1041,7 @@ class CameraInterface:
         self._absRecExpStartTime = core.getTime()  # expected start time in seconds
         self._isRecording = True 
 
-        return self._absRecExpStartTime
+        return self._absRecStreamStartTime
     
     def start(self):
         """Start recording the camera stream.
@@ -1204,6 +1061,8 @@ class CameraInterface:
         """
         self._capture.set_pause(True)
         self._isRecording = False
+
+        return self._capture.get_pts()
 
     @property
     def isRecording(self):
@@ -1308,6 +1167,14 @@ class Camera:
         the camera stream. If `keepFrames` is set to `0`, no frames will be kept
         in memory and the camera stream will not be buffered. This is useful if 
         the user desires to access raw frame data from the camera stream.
+    latencyBias : float
+        Latency bias to correct for asychrony between the camera and the
+        microphone. This is the amount of time in seconds to add to the
+        microphone recording start time to shift the audio track to match 
+        corresponding events in the video stream. This is needed for some
+        cameras whose drivers do not accurately report timestamps for camera 
+        frames. Positive values will shift the audio track forward in time, and 
+        negative values will shift backwards.
     usageMode : str
         Usage mode hint for the camera aquisition. This with enable specific 
         optimizations for each mode that will improve performance and
@@ -1566,6 +1433,7 @@ class Camera:
         self._bufferSecs = float(bufferSecs)
         self._lastFrame = None  # use None to avoid imports for ImageStim
         self._keepFrames = keepFrames  # number of frames to keep in memory
+        self._frameCount = 0  # number of frames read from the camera stream
         self._frameStore = collections.deque(maxlen=keepFrames)
         self._usageMode = usageMode  # usage mode for the camera
 
@@ -1580,8 +1448,20 @@ class Camera:
         self._isStarted = False  # is the stream started?
         self._audioReady = False
         self._videoReady = False
+
+        self._latencyBias = 0.0  # latency bias in seconds
+
         self._absVideoRecStartTime = -1.0
-        self._absAudioRecStartPos = -1  # in samples
+        self._absVideoRecStopTime = -1.0
+        self._absAudioRecStartTime = -1.0
+        self._absAudioRecStopTime = -1.0
+
+        # computed timestamps for when 
+        self._absAudioActualRecStartTime = -1.0
+    
+        self._absAudioRecStartPos = -1.0  # in samples
+        self._absAudioRecStopPos = -1.0
+
         self._curPTS = 0.0  # current display timestamp
         self._isRecording = False
         self._generatePTS = False  # use genreated PTS values for frames
@@ -1615,6 +1495,38 @@ class Camera:
         """Get permission to access the camera. Not implemented locally yet.
         """
         pass  # NOP
+
+    @property
+    def latencyBias(self):
+        """Latency bias in seconds (`float`).
+
+        This is the latency bias that is applied to the timestamps of the frames
+        in the camera stream. This is useful for synchronizing the camera stream
+        with other devices such as microphones or audio interfaces. The default
+        value is `0.0`, which means no latency bias is applied.
+
+        """
+        return self._latencyBias
+    
+    @latencyBias.setter
+    def latencyBias(self, value):
+        """Set the latency bias in seconds (`float`).
+
+        This is the latency bias that is applied to the timestamps of the frames
+        in the camera stream. This is useful for synchronizing the camera stream
+        with other devices such as microphones or audio interfaces. The default
+        value is `0.0`, which means no latency bias is applied.
+
+        Parameters
+        ----------
+        value : float
+            Latency bias in seconds.
+
+        """
+        if not isinstance(value, (int, float)):
+            raise TypeError("Latency bias must be a number.")
+        
+        self._latencyBias = float(value)
 
     @property
     def streamTime(self):
@@ -1684,6 +1596,20 @@ class Camera:
             return None
 
         return self._cameraInfo.frameRate
+
+    @property
+    def frameInterval(self):
+        """Frame interval in seconds (`float`).
+
+        This is the time between frames in the video stream. This is computed
+        from the frame rate of the video stream. If the frame rate is not set,
+        this will return `None`.
+
+        """
+        if self._cameraInfo is None or self._cameraInfo.frameRate is None:
+            return -1.0
+
+        return 1.0 / self._cameraInfo.frameRate
 
     def _assertCameraReady(self):
         """Assert that the camera is ready. Raises a `CameraNotReadyError` if
@@ -1925,12 +1851,7 @@ class Camera:
         `record()` and `stop()` calls.
 
         """
-        if not self._isRecording:
-            return 0.0
-
-        frameInterval = 1.0 / float(self._captureThread.frameRate)
-
-        return self.frameCount * frameInterval
+        return self.frameCount * self._capture.frameInterval
 
     @property
     def recordingBytes(self):
@@ -1939,7 +1860,7 @@ class Camera:
         if not self._isRecording:
             return 0
 
-        return self._captureThread.recordingBytes
+        return -1
 
     def _assertMediaPlayer(self):
         """Assert that we have a media player instance open.
@@ -1957,9 +1878,11 @@ class Camera:
     def isReady(self):
         """`True` if the video and audio capture devices are in a ready state 
         (`bool`).
+
+        When this is `True`, the audio and video streams are properly started.
+
         """
         return self._audioReady and self._videoReady
-
 
     def open(self):
         """Open the camera stream and begin decoding frames (if available).
@@ -1993,7 +1916,7 @@ class Camera:
 
         self._isStarted = True
 
-    def record(self, clearLastRecording=True):
+    def record(self, clearLastRecording=True, waitForStart=True):
         """Start recording frames.
 
         This function will start recording frames and audio (if available). The
@@ -2021,6 +1944,12 @@ class Camera:
             eventually be removed in a future version of PsychoPy. The recording 
             is always cleared when `record()` is called, so this parameter is
             ignored.
+        waitForStart : bool
+            Capture video only when the camera and microphone are ready. This 
+            will result in a longer delay before the recording starts, but will
+            ensure the microphone is actually recording valid samples. In some 
+            cases this will result in a delay of up to 1 second before the
+            recording starts.
 
         """
         if self.isNotStarted:
@@ -2042,21 +1971,33 @@ class Camera:
         if clearLastRecording:
             self._frameStore.clear()  # clear frames from last recording
 
+        # reset the movie writer
+        self._openMovieFileWriter()
+
+        # reset audio flags
+        self._audioReady = self._videoReady = False
+
         # reset the last frame
         self._lastFrame = None
 
-        self._videoReady = self._audioReady = None
+        # start camera recording
+        self._absVideoRecStartTime = self._capture.record()
+
+        # start microphone recording
         if self._usageMode == CAMERA_MODE_VIDEO:
             if self.mic is not None:
-                self._absAudioRecStartPos = self.mic.start(
-                    waitForStart=1,  # wait until the mic is ready
+                audioStartTime = self.mic.start(
+                    waitForStart=int(waitForStart),  # wait until the mic is ready
                 )
-        self._absVideoRecStartTime = self._capture.record()
+                self._absAudioRecStartTime = self._capture.streamTime
+                if waitForStart:
+                    self._absAudioActualRecStartTime = audioStartTime  # time it will be ready
+                else:
+                    self._absAudioActualRecStartTime = self._absAudioRecStartTime
+
         self._isRecording = True  # set recording flag
 
-        self._openMovieFileWriter()
-
-    def start(self):
+    def start(self, waitForStart=True):
         """Start the camera stream.
 
         This will start the camera stream and begin decoding frames. If the
@@ -2064,7 +2005,7 @@ class Camera:
         recording frames to memory.
 
         """
-        return self.record(clearLastRecording=False)
+        return self.record(clearLastRecording=False, waitForStart=waitForStart)
 
     def stop(self):
         """Stop recording frames and audio (if available).
@@ -2073,13 +2014,20 @@ class Camera:
         self.update()
 
         # stop the camera stream
-        self._capture.stop()
+        self._absVideoRecStopTime = self._capture.stop()
         
         # stop audio recording if we have a microphone
         if self.mic is not None:
-            _ = self.mic.stop(blockUntilStopped=1)
-        
-        self._audioReady = self._videoReady = False  # reset camera ready flag
+            _, overflows = self.mic.poll()
+
+            if overflows > 0:
+                logging.warning(
+                    "Audio recording overflowed {} times before stopping, "
+                    "some audio samples may be lost.".format(overflows))
+            audioStopTime, _, _, _ = self.mic.stop(
+                blockUntilStopped=0)
+            
+        self._audioReady = self._videoReady = False  # reset camera ready flags
         self._isRecording = False
 
         self._closeMovieFileWriter()
@@ -2152,6 +2100,35 @@ class Camera:
         if self.mic is not None:
             audioTrack = self.mic.getRecording()
 
+            logging.debug(
+                "Saving audio track to file `{}`...".format(filename))
+            
+            print('AudioTrack Duration:', audioTrack.duration)
+            print('AbsAudioRecStartPos:', self._absAudioRecStartPos)
+
+            # trim off samples before the recording started
+            audioTrack = audioTrack.trimmed(
+                direction='start',
+                duration=self._absAudioRecStartPos,
+                units='samples')
+                        
+            # add padding to the end of the audio track if shorter than the 
+            # video track
+            audioDurationDiff = self.recordingTime + self._capture.frameInterval - \
+                audioTrack.duration
+            
+            if audioDurationDiff > 0:  # other than exact length
+                audioTrack = audioTrack.padded(
+                    direction='end',
+                    duration=audioDurationDiff)
+            elif audioDurationDiff < 0:
+                # if the audio track is longer than the video track, trim it
+                audioTrack = audioTrack.trimmed(
+                    direction='end',
+                    duration=audioDurationDiff)
+            
+            print('AudioTrack Duration after trimming:', audioTrack.duration)
+            
             if mergeAudio:
                 logging.info("Merging audio track with video track...")
                 # save it to a temp file
@@ -2186,8 +2163,7 @@ class Camera:
                     **moviePyOpts)  # expand out options
 
                 videoClip.close()  # close the video clip
-                if audioClip is not None:
-                    audioClip.close()
+                audioClip.close()
                 
                 os.remove(audioTrackFile)  # remove the temp file
 
@@ -2271,6 +2247,16 @@ class Camera:
         last call of `getVideoFrame`.
         """
         return self._lastFrame
+    
+    @property
+    def frameCount(self):
+        """Total number of frames captured in the current recording (`int`).
+
+        This is the total number of frames captured since the last call to
+        `record()`. This value is reset when `record()` is called again.
+
+        """
+        return self._frameCount
 
     @property
     def hasMic(self):
@@ -2345,24 +2331,62 @@ class Camera:
                     # return last frame or placeholder frame if nothing new
 
         """
-        # poll microphone for audio samples if available, we want to sync with audio
-        if self.hasMic:
-            absPos, overflows = self.mic.poll()  # poll the microphone for audio samples
-            if not self._audioReady and self._absAudioRecStartPos > absPos:
-                self._audioReady = True  # mic is ready to record audio
-            if overflows > 0:
-                logging.warning(
-                    "Audio buffer overflowed, some audio samples may have been "
-                    "lost. Consider increasing the buffer size or the polling "
-                    "rate of the microphone."
-                )
+        # poll camera for new frames
+        newFrames = self._capture.getFrames()  # get new frames from the camera
 
-        # get any new frames from the camera
-        newFrames = self._capture.getFrames()
         if not self._videoReady and newFrames:
+            # if we have new frames, we can set the video ready flag
             self._videoReady = True
 
-        if not (self.hasMic and self._audioReady or self._videoReady):
+        if self.hasMic:
+            # poll the microphone for audio samples
+            audioPos, overflows = self.mic.poll()
+
+            if (not self._audioReady) and self._videoReady:
+                nNewFrames = len(newFrames)
+                # determine which video frame the audio starts at that we aquired
+                keepFrames = []
+                for i, frame in enumerate(newFrames):
+                    _, _, streamTime = frame
+                    if streamTime >= self._absAudioActualRecStartTime:
+                        keepFrames.append(frame)
+
+                # If we arrived at the audio start time and there is a video 
+                # frame captured after that, we can compute the exact position
+                # of the sample in the audio track that corresponds to that 
+                # frame. This will allow us to align the audio and video streams
+                # when saving the video file.
+                if keepFrames:
+                    _, _, streamTime = keepFrames[0]
+
+                    # delta between the first video frame's capture timestamp 
+                    # and the time the mic reported itself as ready. Used to 
+                    # align the audio and video streams
+                    frameSyncFudge = (
+                        streamTime - self._absAudioActualRecStartTime)
+                    
+                    # compute exact time the first audio sample was recorded
+                    # from the audio position and actual recording start time
+                    absFirstAudioSampleTime = \
+                        self._absAudioActualRecStartTime - (
+                            audioPos / self.mic.sampleRateHz)
+
+                    # compute how many samples we will discard from the audio
+                    # track to align it with the video stream
+                    self._absAudioRecStartPos = \
+                        ((streamTime - absFirstAudioSampleTime) + \
+                            frameSyncFudge + self._latencyBias) * self.mic.sampleRateHz
+                    self._absAudioRecStartPos = int(self._absAudioRecStartPos)
+
+                    # convert to samples
+                    self._audioReady = True
+
+                newFrames = keepFrames  # keep only frames after the audio start time
+
+        else:
+            self._audioReady = True  # no mic, so we just set the flag
+
+        if not self.isReady:
             # if the camera is not ready, return -1 to indicate that we are not
             # ready to process frames yet
             return -1
@@ -2380,13 +2404,20 @@ class Camera:
                 "Consider increasing the `keepFrames` parameter when creating "
                 "the camera object or polling the camera more frequently."
             )
-
-        self._frameStore.extend(newFrames)
+        
+        self._frameCount += nNewFrames  # update total frames count
+        # push all frames into the frame store
+        for colorData, pts, streamTime in newFrames:
+            # if camera is in CV mode, convert the frame to RGB
+            if self._usageMode == CAMERA_MODE_CV:
+                colorData = self._convertFrameToRGBFFPyPlayer(colorData)
+            # add the frame to the frame store
+            self._frameStore.append((colorData, pts, streamTime))
         
         # if we have frames, update the last frame
-        colorData, pts, streamTime = newFrames[-1] 
+        colorData, pts, streamTime = newFrames[-1]
         self._lastFrame = (
-            self._convertFrameToRGBFFPyPlayer(colorData),  # convert to RGB
+            self._convertFrameToRGBFFPyPlayer(colorData),  # convert to RGB, nop if already
             pts,  # presentation timestamp
             streamTime
         )
@@ -2414,15 +2445,20 @@ class Camera:
 
         Returns
         -------
-        list
-            List of recent video frames. This will return a list of frame images as 
-            numpy arrays and their presentation timestamp. Frames will be converted
-            to RGB format if they are not already.
+        list of tuple
+            List of recent video frames. This will return a list of frame images 
+            as numpy arrays, their presentation timestamp in the recording, and 
+            the absolute stream time in seconds. Frames will be converted
+            to RGB format if they are not already. The number of frames returned
+            will be limited by the `keepFrames` parameter set when creating the
+            camera object. If no frames are available, an empty list will be
+            returned.
 
         """
         self.update()
 
-        recentFrames = list(self._frameStore)
+        recentFrames = [
+            self._convertFrameToRGBFFPyPlayer(frame) for frame in self._frameStore]
 
         return recentFrames
     
@@ -2461,7 +2497,7 @@ class Camera:
     #
     # These methods are used to render live video frames to a window. If a 
     # window is set, this class will automamatically create the nessisary 
-    # OpenGL texture buffers and transfer the most recent video frame to the
+    # OpenGL texture buffers and transfers the most recent video frame to the
     # GPU when `update` is called. The `ImageStim` class can access these 
     # buffers for rendering by setting this class as the `image`.
     #
