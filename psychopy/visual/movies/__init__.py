@@ -1673,49 +1673,33 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
     def isPlaying(self):
         """`True` if the video is presently playing (`bool`).
         """
-        # Status flags as properties are pretty useful for users since they are
-        # self documenting and prevent the user from touching the status flag
-        # attribute directly.
-        #
-        if self._player is not None:
-            return self._player.isPlaying
-
-        return False
+        return self._playbackStatus == PLAYING
 
     @property
     def isNotStarted(self):
         """`True` if the video may not have started yet (`bool`). This status is
         given after a video is loaded and play has yet to be called.
         """
-        if self._player is not None:
-            return self._player.isNotStarted
-
-        return True
+        return self._playbackStatus == NOT_STARTED
 
     @property
     def isStopped(self):
         """`True` if the video is stopped (`bool`). It will resume from the
         beginning if `play()` is called.
         """
-        if self._player is not None:
-            return self._player.isStopped
-
-        return False
+        return self._playbackStatus == STOPPED
 
     @property
     def isPaused(self):
         """`True` if the video is presently paused (`bool`).
         """
-        if self._player is not None:
-            return self._player.isPaused
-
-        return False
+        return self._playbackStatus == PAUSED
 
     @property
     def isFinished(self):
         """`True` if the video is finished (`bool`).
         """
-        return False
+        return self._playbackStatus == FINISHED
     
     @property
     def movieTime(self):

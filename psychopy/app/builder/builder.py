@@ -77,7 +77,11 @@ from psychopy.scripts.psyexpCompile import generateScript
 
 # Components which are always hidden
 alwaysHidden = [
-    'BaseComponent', 'BaseStandaloneRoutine', 'BaseValidatorRoutine'
+    'BaseComponent', 
+    'BaseDeviceComponent',
+    'BaseStandaloneRoutine', 
+    'BaseDeviceRoutine',
+    'BaseValidatorRoutine',
 ]
 
 
@@ -2732,6 +2736,7 @@ class StandaloneRoutineCanvas(scrolledpanel.ScrolledPanel):
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.sizer)
         # Setup categ notebook
+        self.warnings = WarningManager(self)
         self.ctrls = ParamNotebook(self, experiment=self.frame.exp, element=routine)
         self.paramCtrls = self.ctrls.paramCtrls
         self.sizer.Add(self.ctrls, border=12, proportion=1, flag=wx.ALIGN_CENTER | wx.TOP)
@@ -2741,10 +2746,9 @@ class StandaloneRoutineCanvas(scrolledpanel.ScrolledPanel):
         self.helpBtn.Bind(wx.EVT_BUTTON, self.onHelp)
         self.btnsSizer.Add(self.helpBtn, border=6, flag=wx.ALL | wx.EXPAND)
         self.btnsSizer.AddStretchSpacer(1)
-        # Add validator stuff
-        self.warnings = WarningManager(self)
+        # add warnings to sizer
         self.sizer.Add(self.warnings.output, border=3, flag=wx.EXPAND | wx.ALL)
-        # Add buttons to sizer
+        # add buttons to sizer
         self.sizer.Add(self.btnsSizer, border=3, proportion=0, flag=wx.EXPAND | wx.ALL)
         # Style
         self.SetupScrolling(scroll_y=True)

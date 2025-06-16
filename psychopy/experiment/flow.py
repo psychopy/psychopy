@@ -274,6 +274,11 @@ class Flow(list):
         code = (
             "# mark experiment as started\n"
             "thisExp.status = STARTED\n"
+            "# update experiment info\n"
+            "expInfo['date'] = data.getDateStr()\n"
+            "expInfo['expName'] = expName\n"
+            "expInfo['expVersion'] = expVersion\n"
+            "expInfo['psychopyVersion'] = psychopyVersion\n"
             "# make sure window is set to foreground to prevent losing focus\n"
             "win.winHandle.activate()\n"
             "# make sure variables created by exec are available globally\n"

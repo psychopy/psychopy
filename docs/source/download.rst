@@ -84,44 +84,33 @@ Download
   
   .. tab-item:: Linux
 
-    Install curl with your package manager. On most distros, curl is already installed.
+      Make sure `curl` is installed (most distros include it by default).
 
-      1. **Download the script:**
-
-        .. code-block:: bash
-            
-          curl -LOs https://github.com/wieluk/psychopy_linux_installer/releases/latest/download/psychopy_linux_installer
-      
-      2. **Make it executable:**
+      **Show installer options:**
 
         .. code-block:: bash
-            
-          chmod +x psychopy_linux_installer
-      
-      3. **Run the installer:**
 
-        - **GUI Mode**:
+          bash <(curl -LsSf https://github.com/wieluk/psychopy_linux_installer/releases/latest/download/psychopy_linux_installer) --help
 
-          .. code-block:: bash
-              
-            ./psychopy_linux_installer --gui
-            
-          *Note:* `curl` and `zenity` are required for GUI mode.
-
-        - **Command-Line Mode**:
-
-          .. code-block:: bash
-              
-            ./psychopy_linux_installer
-      
-      For a list of available arguments, run:
+      **Start installer with GUI:**
 
         .. code-block:: bash
-            
-          ./psychopy_linux_installer --help
-      
-      For more detailed information or to report bugs, please visit the 
+
+          bash <(curl -LsSf https://github.com/wieluk/psychopy_linux_installer/releases/latest/download/psychopy_linux_installer) --gui
+
+        *Note:* `zenity` must be installed for GUI mode.
+
+      **Start installer without GUI:**
+
+        .. code-block:: bash
+
+          bash <(curl -LsSf https://github.com/wieluk/psychopy_linux_installer/releases/latest/download/psychopy_linux_installer)
+
+      For help, troubleshooting, or to report issues, visit the
       `psychopy_linux_installer GitHub page <https://github.com/wieluk/psychopy_linux_installer>`_.
+
+      For uninstall instructions, see the
+      `Uninstall section of the README <https://github.com/wieluk/psychopy_linux_installer/#uninstalling-psychopy>`_.
 
 .. raw:: html
 
