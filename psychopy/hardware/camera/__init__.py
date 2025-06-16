@@ -782,13 +782,18 @@ class CameraInterface:
             "Using camera mode {}x{} at {} fps".format(
                 camWidth, camHeight, _frameRate))
 
-        # configure the real-time buffer size
-        self._frameSizeBytes = camWidth * camHeight * 3  # RGB format
-        _bufferSize = int(self._frameSizeBytes * self._bufferSecs)
+        # configure the real-time buffer size, we compute using RGB8 since this 
+        # is uncompressed and represents the largest size we can expect
+        self._frameSizeBytes = int(camWidth * camHeight * 3)
+        framesToBufferCount = int(self._bufferSecs * self._frameRate)
+        _bufferSize = int(self._frameSizeBytes * framesToBufferCount)
         logging.debug(
-            "Setting real-time video buffer size to {} bytes "
-            "({} seconds)".format(
-                _bufferSize, self._bufferSecs)
+            "Setting real-time buffer size to {} bytes "
+            "for {} seconds of video ({} frames @ {} fps)".format(
+                _bufferSize, 
+                self._bufferSecs,
+                framesToBufferCount,
+                self._frameRate)
         )
 
         # common settings across libraries
@@ -797,7 +802,7 @@ class CameraInterface:
         # ff_opts['use_wallclock_as_timestamps'] = True
         ff_opts['fast'] = True
         # ff_opts['sync'] = 'ext'
-        ff_opts['rtbufsize'] = '512M'
+        ff_opts['rtbufsize'] = str(_bufferSize)  # set the buffer size
 
         # for ffpyplayer, we need to set the video size and framerate
         lib_opts['video_size'] = '{width}x{height}'.format(
@@ -1150,10 +1155,11 @@ class Camera:
         libraries could help resolve issues with camera compatibility. More 
         camera libraries may be installed via extension packages.
     bufferSecs : float
-        Size of the real-time camera stream buffer specified in seconds (only
-        valid on Windows and MacOS). This is not the same as the recording
-        buffer size. This option might not be available for all camera
-        libraries.
+        Size of the real-time camera stream buffer specified in seconds. This 
+        will tell the library to allocate a buffer that can hold enough 
+        frames to cover the specified number of seconds of video. This should
+        be large enough to cover the time it takes to process frames in the
+        main thread.
     win : :class:`~psychopy.visual.Window` or None
         Optional window associated with this camera. Some functionality may
         require an OpenGL context for presenting frames to the screen. If you 
@@ -1176,11 +1182,11 @@ class Camera:
         frames. Positive values will shift the audio track forward in time, and 
         negative values will shift backwards.
     usageMode : str
-        Usage mode hint for the camera aquisition. This with enable specific 
-        optimizations for each mode that will improve performance and
-        reduce memory usage. The default value is 'video', which is suitable for
-        recording video streams with audio efficently. The 'cv' mode is suitable 
-        for computer vision applications where frames from the camera stream are 
+        Usage mode hint for the camera aquisition. This with enable 
+        optimizations for specific applications that will improve performance 
+        and reduce memory usage. The default value is 'video', which is suitable 
+        for recording video streams with audio efficently. The 'cv' mode is for 
+        computer vision applications where frames from the camera stream are 
         processed in real-time (e.g. object detection, tracking, etc.) and the 
         video is not being saved to disk. Audio will not be recorded in this
         mode even if a microphone is provided.
@@ -2103,34 +2109,14 @@ class Camera:
             logging.debug(
                 "Saving audio track to file `{}`...".format(filename))
             
-            print('AudioTrack Duration:', audioTrack.duration)
-            print('AbsAudioRecStartPos:', self._absAudioRecStartPos)
-
             # trim off samples before the recording started
             audioTrack = audioTrack.trimmed(
                 direction='start',
                 duration=self._absAudioRecStartPos,
                 units='samples')
-                        
-            # add padding to the end of the audio track if shorter than the 
-            # video track
-            audioDurationDiff = self.recordingTime + self._capture.frameInterval - \
-                audioTrack.duration
-            
-            if audioDurationDiff > 0:  # other than exact length
-                audioTrack = audioTrack.padded(
-                    direction='end',
-                    duration=audioDurationDiff)
-            elif audioDurationDiff < 0:
-                # if the audio track is longer than the video track, trim it
-                audioTrack = audioTrack.trimmed(
-                    direction='end',
-                    duration=audioDurationDiff)
-            
-            print('AudioTrack Duration after trimming:', audioTrack.duration)
             
             if mergeAudio:
-                logging.info("Merging audio track with video track...")
+                logging.debug("Merging audio track with video track...")
                 # save it to a temp file
                 import tempfile
                 tempAudioFile = tempfile.NamedTemporaryFile(
@@ -2181,7 +2167,7 @@ class Camera:
 
                 audioTrack.save(audioTrackFile)
 
-                logging.warning(
+                logging.info(
                     "Saved recorded audio track to `{}` (took {:.6f} seconds)".format(
                         audioTrackFile, time.time() - tAudioStart))
 
@@ -2196,7 +2182,7 @@ class Camera:
 
         os.remove(videoTrackFile)  # remove the temp file
 
-        logging.warning(
+        logging.info(
             "Saved recorded video to `{}` (took {:.6f} seconds)".format(
                 filename, time.time() - tStart))
 
