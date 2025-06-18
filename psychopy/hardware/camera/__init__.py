@@ -463,6 +463,12 @@ class CameraDevice(BaseDevice):
                  captureAPI=None, decoderOpts=None, bufferSecs=5.0):
         
         BaseDevice.__init__(self)
+        # if device is an integer, get name from index
+        if isinstance(device, int):
+            for profile in self.getCameras():
+                if profile.index == device:
+                    device = profile.name
+                    break
         
         self._device = device
         self._captureLib = captureLib
@@ -581,7 +587,7 @@ class CameraDevice(BaseDevice):
                 profiles.append({
                     'deviceName': cam.name,
                     'deviceClass': "psychopy.hardware.camera.CameraDevice",
-                    'device': cam.index,
+                    'device': cam.name,
                     'captureLib': cam.cameraLib, 
                     'frameSize': cam.frameSize, 
                     'frameRate': cam.frameRate, 
@@ -1332,6 +1338,8 @@ class Camera:
              '_frameRateFrac': None,
              '_size': None,
              '_cameraLib': u''})
+        
+        self._cameraLib = cameraLib
         
         # handle device
         self._capture = None
