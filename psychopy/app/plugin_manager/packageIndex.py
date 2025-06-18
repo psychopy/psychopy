@@ -10,17 +10,29 @@ import json
 import wx
 
 _packageIndex = None
+_isIndexing = True  # Flag to indicate if the package index is being updated
 
 
 def refreshPackageIndex(fetch=False):
     """Refresh the package index.
+
+    Parameters
+    ----------
+    fetch : bool, optional
+        If True, fetch the latest package index from the remote server
+        regardless of whether it is already present on disk. The default is
+        False, which means it will only update if the index is not present or is
+        outdated.
+
     """
+    global _isIndexing
+    _isIndexing = True
     scriptDir = prefs.paths['scripts']
 
     # Construct the command to run the script
     _cmd = [
         sys.executable, 
-        scriptDir + '/psychopy-pkgutil.py',
+        os.path.normpath(os.path.join(scriptDir, 'psychopy-pkgutil.py')),
         '--app-pref-dir', prefs.paths['userPrefsDir'],
         'update']
     _cmd += ['--fetch'] if fetch else []
@@ -32,12 +44,19 @@ def refreshPackageIndex(fetch=False):
         print(headerText)
 
         env = os.environ.copy()
-        output = sp.check_output(
-            _cmd, 
-            stderr=sp.PIPE,
-            env=env)
-        
-        print(output.decode('utf-8'))
+        print(f"Running command: {' '.join(_cmd)}")
+
+        proc = sp.Popen(_cmd, 
+                        stdout=sp.PIPE, 
+                        stderr=sp.PIPE,
+                        env=env,
+                        universal_newlines=True)
+        _, error = proc.communicate()
+        if proc.returncode != 0:
+            return
+        if error:
+            logging.error(f"Error refreshing package index: {error}")
+            print(f"Error: {error}")
 
         logging.info("Package index refreshed successfully.")
     except sp.CalledProcessError as e:
@@ -46,6 +65,23 @@ def refreshPackageIndex(fetch=False):
         logging.error("The script was not found. Please check the script path.")
     except Exception as e:
         logging.error(f"An unexpected error occurred: {e}")
+    finally:
+        _isIndexing = False
+
+
+def isIndexing():
+    """Check if the package index is currently being updated.
+    
+    Returns
+    -------
+    bool
+        True if the package index is being updated, False otherwise. This is to
+        check if the package index is currently being refreshed from another 
+        thread.
+    
+    """
+    global _isIndexing
+    return _isIndexing
 
 
 def downloadPluginAssets(fetch=False):
@@ -253,7 +289,6 @@ def getAvailablePackages():
         loadPackageIndex()
     
     return _packageIndex['available']['PyPI']['packages'] if _packageIndex else {}
-
 
 
 def refreshPackageIndexTask(app=None):
