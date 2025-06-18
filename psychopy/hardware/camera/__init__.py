@@ -511,7 +511,6 @@ class CameraDevice(BaseDevice):
         # store device info
         profile = self.getDeviceProfile()
         self.info = CameraInfo(
-            index=profile['device'],
             name=profile['deviceName'],
             frameSize=profile['frameSize'],
             frameRate=profile['frameRate'],
