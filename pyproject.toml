@@ -93,7 +93,8 @@ dependencies = [
     'tables!=3.9.2',  # 3.9.2 crashes on Rosetta
     "packaging>=24.0",
     "moviepy",
-    "pyarrow"
+    "pyarrow",
+    "beautifulsoup4",
 ]
 
 [project.optional-dependencies]  # This is optional dependencies
