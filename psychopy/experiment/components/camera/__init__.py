@@ -33,6 +33,20 @@ class CameraComponent(BaseDeviceComponent):
     tooltip = _translate('Webcam: Record video from a webcam.')
     beta = False
     deviceClasses = ["psychopy.hardware.camera.CameraDevice"]
+    legacyParams = [
+        # old device setup params, no longer needed as this is handled by DeviceManager
+        "cameraLib",
+        "device",
+        "deviceManual",
+        "frameRate",
+        "frameRateManual",
+        "mic",
+        "micChannels",
+        "micMaxRecSize",
+        "mixSampleRate",
+        "resolution",
+        "resolutionManual"
+    ]
 
     def __init__(
             # Basic
