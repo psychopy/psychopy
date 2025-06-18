@@ -273,7 +273,7 @@ class DeviceBackend:
         code = ""
         for key, value in self.profile.items():
             # skip attributes already covered by a param
-            if key in ("deviceName",):
+            if key in self.params or key in ("deviceName", ):
                 continue
             code += f"    {key}={repr(value)},\n"
         buff.writeIndentedLines(code)

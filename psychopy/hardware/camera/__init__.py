@@ -66,6 +66,7 @@ import collections
 from psychopy import core
 from psychopy.constants import NOT_STARTED
 from psychopy.hardware import DeviceManager
+from psychopy.hardware.base import BaseDevice
 from psychopy.visual.movies.frame import MovieFrame, NULL_MOVIE_FRAME_INFO
 from psychopy.sound.microphone import Microphone
 from psychopy.hardware.microphone import MicrophoneDevice
@@ -410,7 +411,7 @@ class CameraInfo:
         )
 
 
-class CameraInterface:
+class CameraDevice(BaseDevice):
     """Class providing an interface with a camera attached to the system.
     
     This interface handles the opening, closing, and reading of camera streams.
@@ -461,6 +462,8 @@ class CameraInterface:
                  frameRate=30.0, pixelFormat=None, codecFormat=None, 
                  captureAPI=None, decoderOpts=None, bufferSecs=5.0):
         
+        BaseDevice.__init__(self)
+        
         self._device = device
         self._captureLib = captureLib
 
@@ -498,6 +501,96 @@ class CameraInterface:
                         platform.system(), ', '.join(self._supportedPlatforms)))
         else:
             self._cameraAPI = captureAPI
+        
+        # store device info
+        profile = self.getDeviceProfile()
+        self.info = CameraInfo(
+            index=profile['device'],
+            name=profile['deviceName'],
+            frameSize=profile['frameSize'],
+            frameRate=profile['frameRate'],
+            pixelFormat=profile['pixelFormat'],
+            codecFormat=profile['codecFormat'],
+            cameraLib=profile['captureLib'],
+            cameraAPI=profile['captureAPI']
+        )
+    
+    def isSameDevice(self, other):
+        """
+        Determine whether this object represents the same physical device as a given other object.
+
+        Parameters
+        ----------
+        other : BaseDevice, dict
+            Other device object to compare against, or a dict of params.
+
+        Returns
+        -------
+        bool
+            True if the two objects represent the same physical device
+        """
+        if isinstance(other, CameraDevice):
+            return other._device == self._device
+        elif isinstance(other, Camera):
+            return getattr(other, "_capture", None) == self
+        elif isinstance(other, dict) and "device" in other:
+            return other['device'] == self._device
+        else:
+            return False
+
+    @staticmethod
+    def getAvailableDevices(best=True):
+        """
+        Get all available devices of this type.
+
+        Parameters
+        ----------
+        best : bool
+            If True, return only the best available frame rate/resolution for each device, rather 
+            than returning all. Best available spec is chosen as the highest resolution with a 
+            frame rate above 30fps (or just highest resolution, if none are over 30fps).
+
+        Returns
+        -------
+        list[dict]
+            List of dictionaries containing the parameters needed to initialise each device.
+        """
+        profiles = []
+        # iterate through cameras
+        for cams in CameraDevice.getCameras().values():
+            # if requested, filter for best spec for each device
+            if best:
+                allCams = cams.copy()
+                lastBest = {
+                    'pixels': 0,
+                    'frameRate': 0
+                }
+                minFrameRate = max(30, min([cam.frameRate for cam in allCams]))
+                for cam in allCams:
+                    # summarise spec of this cam
+                    current = {
+                        'pixels': cam.frameSize[0] * cam.frameSize[1],
+                        'frameRate': cam.frameRate
+                    }
+                    # if it's better than the last, set it as the only cam
+                    if current['pixels'] > lastBest['pixels'] and current['frameRate'] >= minFrameRate:
+                        cams = [cam]
+            # iterate through all (possibly filtered) cameras
+            for cam in cams:
+                # construct a dict profile from the CameraInfo object
+                profiles.append({
+                    'deviceName': cam.name,
+                    'deviceClass': "psychopy.hardware.camera.CameraDevice",
+                    'device': cam.index,
+                    'captureLib': cam.cameraLib, 
+                    'frameSize': cam.frameSize, 
+                    'frameRate': cam.frameRate, 
+                    'pixelFormat': cam.pixelFormat, 
+                    'codecFormat': cam.codecFormat, 
+                    'captureAPI': cam.cameraAPI
+                })
+
+        return profiles
 
     @staticmethod
     def getCameras(cameraLib=None):
@@ -1101,7 +1194,8 @@ class CameraInterface:
         """
         if self._captureLib == 'ffpyplayer':
             return self._getFramesFFPyPlayer()
-
+# class name alias for legacy support
+CameraInterface = CameraDevice
 
 
 # keep track of camera devices that are opened
@@ -1238,203 +1332,66 @@ class Camera:
              '_frameRateFrac': None,
              '_size': None,
              '_cameraLib': u''})
-
-        # ----------------------------------------------------------------------
-        # Process camera settings
-        #
-
-        # camera library in use
-        self._cameraLib = cameraLib
         
-        if self._cameraLib == u'opencv':
-            if device in (None, "None", "none", "Default", "default"):
-                device = 0  # use the first enumerated camera
-
-            # handle all possible input for `frameRate` and `frameSize`
-            if frameRate is None:
-                pass   # no change
-            elif isinstance(frameRate, str):
-                if frameRate in ("None", "none", "Default", "default"):
-                    frameRate = None
-                elif frameRate.lower() == 'ntsc':
-                    frameRate = CAMERA_FRAMERATE_NTSC
-                else:
-                    try:  # try and convert to float
-                        frameRate = float(frameRate)
-                    except ValueError:
-                        raise ValueError(
-                            "`frameRate` must be a number, string or None")
-            
-            # catch the value converted to float and process it
-            if isinstance(frameRate, (int, float)):
-                if frameRate <= 0:
-                    raise ValueError("`frameRate` must be a positive number")
-            
-            if frameSize is None:
-                pass  # use the camera default
-            elif isinstance(frameSize, str):
-                if frameSize in ("None", "none", "Default", "default"):
-                    frameSize = None
-                elif len(frameSize.split('x')) == 2:
-                    frameSize = tuple(map(int, frameSize.split('x')))
-                elif frameSize.upper() in movietools.VIDEO_RESOLUTIONS.keys():
-                    frameSize = movietools.VIDEO_RESOLUTIONS[frameSize.upper()]
-                else:
-                    raise ValueError("`frameSize` specified incorrectly")
-            elif isinstance(frameSize, (tuple, list)):
-                if len(frameSize) != 2:
-                    raise ValueError("`frameSize` must be a 2-tuple or 2-list")
-                frameSize = tuple(map(int, frameSize))
-            else:
-                raise ValueError("`frameSize` specified incorrectly")
-                
-            # recommended camera drivers for each platform
-            cameraPlatformDrivers = {
-                'Linux': CAMERA_API_VIDEO4LINUX2,
-                'Windows': CAMERA_API_DIRECTSHOW,
-                'Darwin': CAMERA_API_AVFOUNDATION
-            }
-            # get the recommended camera driver for the current platform
-            cameraAPI = cameraPlatformDrivers[platform.system()]
-
-            self._cameraInfo = CameraInfo(
-                index=device, 
-                frameRate=frameRate,   # dummy value
-                frameSize=frameSize,  # dummy value
-                pixelFormat='bgr24', 
-                cameraLib=cameraLib, 
-                cameraAPI=cameraAPI)
-            
-            self._device = self._cameraInfo.description()
-
-        elif self._cameraLib == u'ffpyplayer':
-            supportedCameraSettings = CameraInterface.getCameras()
-
-            # create a mapping of supported camera formats
-            _formatMapping = dict()
-            for _, formats in supportedCameraSettings.items():
-                for _format in formats:
-                    desc = _format.description()
-                    _formatMapping[desc] = _format
-            # sort formats by resolution then frame rate
-            orderedFormats = list(_formatMapping.values())
-            orderedFormats.sort(key=lambda obj: obj.frameRate, reverse=True)
-            orderedFormats.sort(key=lambda obj: np.prod(obj.frameSize), 
-                                reverse=True)
-
-            # list of devices
-            devList = list(_formatMapping)
-
-            if not devList:  # no cameras found if list is empty
-                raise CameraNotFoundError('No cameras found of the system!')
-
-            # Get best device
-            bestDevice = _formatMapping[devList[-1]]
-            for mode in orderedFormats:
-                sameFrameRate = mode.frameRate == frameRate or frameRate is None
-                sameFrameSize = mode.frameSize == frameSize or frameSize is None
-                if sameFrameRate and sameFrameSize:
-                    bestDevice = mode
+        # handle device
+        self._capture = None
+        if isinstance(device, CameraDevice):
+            # if given a device object, use it
+            self._capture = device
+        elif device is None:
+            # if given None, get the first available device
+            for name, obj in DeviceManager.getInitialisedDevices(CameraDevice).items():
+                self._capture = obj
+                break
+            # if there are none, set one up
+            if self._capture is None:
+                for profile in CameraDevice.getAvailableDevices():
+                    self._capture = DeviceManager.addDevice(**profile)
                     break
+        elif isinstance(device, str) and DeviceManager.getDevice(device) is not None:
+            # if given a device name, get the device
+            self._capture = DeviceManager.getDevice(device)
+        else:
+            # anything else, try to initialise a new device from params
+            self._capture = CameraDevice(
+                device=device,
+                captureLib=cameraLib,
+                frameRate=frameRate,
+                frameSize=frameSize,
+            )
+        # from here on in the init, use the device index as `device`
+        device = self._capture.device
+        # get info from device
+        self._cameraInfo = self._capture.info
 
-            # if given just device name, use frameRate and frameSize to match it 
-            # to a mode
-            if device in supportedCameraSettings:
-                match = None
-                for mode in supportedCameraSettings[device]:
-                    sameFrameRate = \
-                        mode.frameRate == frameRate or frameRate is None
-                    sameFrameSize = \
-                        mode.frameSize == frameSize or frameSize is None
-                    if sameFrameRate and sameFrameSize:
-                        match = mode
-                if match is not None:
-                    device = match
-                else:
-                    # if no match found, find closest
-                    byWidth = sorted(
-                        supportedCameraSettings[device],
-                        key=lambda mode: abs(frameSize[0] - mode.frameSize[0])
-                    )
-                    byHeight = sorted(
-                        supportedCameraSettings[device],
-                        key=lambda mode: abs(frameSize[1] - mode.frameSize[1])
-                    )
-                    byFrameRate = sorted(
-                        supportedCameraSettings[device],
-                        key=lambda mode: abs(mode.frameRate)
-                    )
-                    deltas = [
-                        byWidth.index(mode) + byHeight.index(mode) + byFrameRate.index(mode)
-                        for mode in supportedCameraSettings[device]
-                    ]
-                    i = deltas.index(min(deltas))
-                    closest = supportedCameraSettings[device][i]
-                    # log warning that settings won't match requested
-                    logging.warn(_translate(
-                        "Device {device} does not support frame rate of "
-                        "{frameRate} and frame size of {frameSize}, using "
-                        "closest supported format: {desc}"
-                    ).format(device=device, 
-                             frameRate=frameRate, 
-                             frameSize=frameSize, 
-                             desc=closest.description()))
-                    # use closest
-                    device = closest
-
-            # self._origDevSpecifier = device  # what the user provided
-            self._device = None  # device identifier
-
-            # alias device None or Default as being device 0
-            if device in (None, "None", "none", "Default", "default"):
-                self._device = bestDevice.description()
-            elif isinstance(device, CameraInfo):
-                if self._cameraLib != device.cameraLib:
-                    raise CameraFormatNotSupportedError(
-                        'Wrong configuration for camera library!')
-                self._device = device.description()
-            else:
-                # resolve getting the camera identifier
-                if isinstance(device, int):  # get camera if integer
-                    try:
-                        self._device = devList[device]
-                    except IndexError:
-                        raise CameraNotFoundError(
-                            'Cannot find camera at index={}'.format(device))
-                elif isinstance(device, str):
-                    self._device = device
-                else:
-                    raise TypeError(
-                        f"Incorrect type for `camera`, expected `int` or `str` but received {repr(device)}")
-
-            # get the camera information
-            if self._device in _formatMapping:
-                self._cameraInfo = _formatMapping[self._device]
-            else:
-                # raise error if couldn't find matching camera info
-                raise CameraFormatNotSupportedError(
-                    f'Specified camera format {repr(self._device)} is not supported.')
-
-        # # operating mode
-        # if mode not in (CAMERA_MODE_VIDEO, CAMERA_MODE_CV, CAMERA_MODE_PHOTO):
-        #     raise ValueError(
-        #         "Invalid value for parameter `mode`, expected one of `'video'` "
-        #         "`'cv'` or `'photo'`.")
-        # self._mode = mode
-
-        _requestedMic = mic
-        # if not given a Microphone or MicrophoneDevice, get it from DeviceManager
-        if not isinstance(mic, (Microphone, MicrophoneDevice)):
-            mic = DeviceManager.getDevice(mic)
-        # if not known by name, try index
-        if mic is None:
-            mic = DeviceManager.getDeviceBy("index", mic, deviceClass="microphone")
-        # if not known by name or index, raise error
-        if mic is None:
-            raise SystemError(f"Could not find microphone {_requestedMic}")
+        # handle microphone
+        self.mic = None
+        if isinstance(mic, MicrophoneDevice):
+            # if given a device object, use it
+            self.mic = mic
+        elif isinstance(mic, Microphone):
+            # if given a Microphone, use its device
+            self.mic = mic.device
+        elif mic is None:
+            # if given None, get the first available device
+            for name, obj in DeviceManager.getInitialisedDevices(MicrophoneDevice).items():
+                self.mic = obj
+                break
+            # if there are none, set one up
+            if self.mic is None:
+                for profile in MicrophoneDevice.getAvailableDevices():
+                    self.mic = DeviceManager.addDevice(**profile)
+                    break
+        elif isinstance(mic, str) and DeviceManager.getDevice(mic) is not None:
+            # if given a device name, get the device
+            self.mic = DeviceManager.getDevice(mic)
+        else:
+            # anything else, try to initialise a new device from params
+            self.mic = MicrophoneDevice(
+                index=mic
+            )
 
         # current camera frame since the start of recording
-        self._capture = None  # media player instance
         self.status = NOT_STARTED
         self._bufferSecs = float(bufferSecs)
         self._lastFrame = None  # use None to avoid imports for ImageStim
@@ -1471,10 +1428,6 @@ class Camera:
         self._curPTS = 0.0  # current display timestamp
         self._isRecording = False
         self._generatePTS = False  # use genreated PTS values for frames
-
-        # microphone instance, this is controlled by the camera interface and
-        # is not meant to be used by the user
-        self.mic = mic
         
         # movie writer instance, this runs in a separate thread
         self._movieWriter = None
@@ -1638,7 +1591,8 @@ class Camera:
         """`True` if the stream has started (`bool`). This status is given after
         `open()` has been called on this object.
         """
-        return self._isStarted
+        if hasattr(self, "_isStarted"):
+            return self._isStarted
 
     @property
     def isNotStarted(self):
@@ -1690,7 +1644,7 @@ class Camera:
 
         """
         # not pluggable yet, needs to be made available via extensions
-        return CameraInterface.getCameras(
+        return CameraDevice.getCameras(
             cameraLib=cameraLib)
 
     @staticmethod
@@ -1906,13 +1860,6 @@ class Camera:
         # Camera interface to use, these are hard coded but support for each is
         # provided by an extension.
         # desc = self._cameraInfo.description()
-        
-        self._capture = CameraInterface(
-            device=self._cameraInfo.name,
-            captureLib=self._cameraLib,
-            frameRate=self._cameraInfo.frameRate,
-            frameSize=self._cameraInfo.frameSize,
-        )
         
         self._capture.open()
 
@@ -3301,7 +3248,7 @@ def getAllCameraInterfaces():
     # filter for classes that are camera interfaces
     cameraInterfaces = {}
     for name, cls in classes:
-        if issubclass(cls, CameraInterface):
+        if issubclass(cls, CameraDevice):
             cameraInterfaces[name] = cls
 
     return cameraInterfaces

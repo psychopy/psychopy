@@ -466,6 +466,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
                 index = profile.get('index', None)
             device = {
                 'deviceName': profile.get('device_name', "Unknown Microphone"),
+                'deviceClass': "psychopy.hardware.microphone.MicrophoneDevice",
                 'index': index,
                 'sampleRateHz': profile.get('defaultSampleRate', None),
                 'channels': profile.get('inputChannels', None),
