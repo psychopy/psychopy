@@ -835,15 +835,6 @@ class _BaseParamsDlg(wx.Dialog):
         dlg.ShowModal()
         dlg.Destroy()
 
-    @staticmethod
-    def showScreenNumbers(evt=None, dur=5):
-        """
-        Spawn some PsychoPy windows to display each monitor's number.
-        """
-        from psychopy.hardware import DeviceManager
-
-        DeviceManager.showScreenNumbers(dur=5)
-
     def onNewTextSize(self, event):
         self.Fit()  # for ExpandoTextCtrl this is needed
 
@@ -1787,13 +1778,6 @@ class DlgExperimentProperties(_BaseParamsDlg):
         self.Bind(wx.EVT_CHECKBOX, self.onFullScrChange,
                   self.paramCtrls['Full-screen window'].valueCtrl)
 
-        # Add button to show screen numbers
-        scrNumCtrl = self.paramCtrls['Screen'].valueCtrl
-        self.screenNsBtn = wx.Button(scrNumCtrl, label=_translate("Show screen numbers"))
-        scrNumCtrl.sizer.Add(self.screenNsBtn, border=5, flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT)
-        scrNumCtrl.Layout()
-        self.screenNsBtn.Bind(wx.EVT_BUTTON, self.showScreenNumbers)
-
         if timeout is not None:
             wx.FutureCall(timeout, self.Destroy)
 
@@ -1808,21 +1792,17 @@ class DlgExperimentProperties(_BaseParamsDlg):
         """full-screen has been checked / unchecked.
         Show or hide the window size field accordingly
         """
+        from psychopy.preferences import prefs
         if self.paramCtrls['Full-screen window'].valueCtrl.getValue():
-            # get screen size for requested display
-            numDisplays = wx.Display.GetCount()
-            try:
-                screenValue = int(
-                    self.paramCtrls['Screen'].valueCtrl.getValue())
-            except ValueError:
-                # param control currently contains no integer value
-                screenValue = 1
-            if screenValue < 1 or screenValue > numDisplays:
-                logging.error("User requested non-existent screen")
-                screenN = 0
+            # get monitor spec
+            monitorName = self.paramCtrls['Monitor'].valueCtrl.getValue()
+            monitorDevice = prefs.devices.get(monitorName, None)
+            # get monitor size
+            if monitorDevice is not None:
+                size = monitorDevice.profile['size']
             else:
-                screenN = screenValue - 1
-            size = list(wx.Display(screenN).GetGeometry()[2:])
+                # if monitor not setup, make size blank
+                size = ""
             # set vals and disable changes
             field = 'Window size (pixels)'
             self.paramCtrls[field].valueCtrl.setValue(str(size))

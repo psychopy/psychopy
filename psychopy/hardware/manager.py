@@ -858,21 +858,21 @@ class DeviceManager:
         wins = []
         lbls = []
         bars = []
-        for n in range(DeviceManager.getScreenCount()):
+        for profile in DeviceManager.getAvailableDevices("psychopy.hardware.monitor.MonitorDevice"):
             # create a window on the appropriate screen
             win = visual.Window(
                 pos=(0, 0),
-                size=(128, 128),
+                size=(256, 128),
                 units="norm",
-                screen=n,
+                screen=profile['index']-1,
                 color="black",
                 checkTiming=False
             )
             wins.append(win)
             # create textbox with screen num
             lbl = visual.TextBox2(
-                win, text=str(n + 1),
-                size=1, pos=0,
+                win, text=profile['deviceName'],
+                size=(2, 1), pos=0,
                 alignment="center", anchor="center",
                 letterHeight=0.25, bold=True,
                 fillColor=None, color="white"

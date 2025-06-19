@@ -1637,3 +1637,33 @@ class DeviceCtrl(ChoiceCtrl):
         dlg.ShowModal()
         # repopulate devices
         self.populate()
+
+
+class MonitorCtrl(DeviceCtrl):
+    """
+    Similar to a DeviceCtrl, but with a button to show screen names
+    """
+    
+    inputType = "monitor"
+
+    def makeCtrls(self):
+        # make as usual
+        DeviceCtrl.makeCtrls(self)
+        # add a button to show screen names
+        self.showScreensBtn = wx.Button(
+            self, 
+            label=_translate("Show screen names")
+        )
+        self.showScreensBtn.Bind(wx.EVT_BUTTON, self.showScreenNames)
+        self.showScreensBtn.SetToolTip(_translate(
+            "Show the name of each screen as it will appear in the Device Manager"
+        ))
+        self.sizer.Add(
+            self.showScreensBtn, border=6, flag=wx.EXPAND | wx.LEFT
+        )
+    
+    def showScreenNames(self, evt=None):
+        from psychopy.hardware import DeviceManager
+
+        DeviceManager.showScreenNumbers(dur=5)
+

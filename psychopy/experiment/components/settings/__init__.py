@@ -7,6 +7,8 @@ from pathlib import Path
 from xml.etree.ElementTree import Element
 import re
 from psychopy import logging, plugins
+from psychopy.experiment.devices import DeviceMixin
+from psychopy.experiment.monitor import MonitorDeviceBackend
 from psychopy.preferences import prefs
 from psychopy.experiment.components import Param, _translate
 from psychopy.experiment.components.settings.eyetracking import knownEyetrackerBackends
@@ -71,7 +73,7 @@ participantIdAliases = ('participant', 'Participant', 'Subject', 'Observer')
 #         pass
 
 
-class SettingsComponent:
+class SettingsComponent(DeviceMixin):
     """This component stores general info about how to run the experiment
     """
     categories = ['Custom']
@@ -83,10 +85,14 @@ class SettingsComponent:
     beta = False
     # an experiment only has one SettingsComponent, so hide it from the Components panel
     hidden = True
+    legacyParams = [
+        # obsolete now we have monitor devices (2025.2.0)
+        "Screen"
+    ]
 
     def __init__(
             self, parentName, exp, expName='', fullScr=True, runMode=0, rush=False,
-            winSize=(1024, 768), screen=1, monitor='testMonitor', winBackend='pyglet',
+            winSize=(1024, 768), screen=1, monitor="", winBackend='pyglet',
             showMouse=False, saveLogFile=True, showExpInfo=True,
             expInfo="{'participant':'f\"{randint(0, 999999):06.0f}\"', 'session':'\"001\"'}",
             units='height', 
@@ -248,7 +254,6 @@ class SettingsComponent:
         self.order += [
             "Monitor",
             "winBackend",
-            "Screen",
             "Full-screen window",
             "Show mouse",
             "Window size (pixels)",
@@ -276,16 +281,32 @@ class SettingsComponent:
             winSize, valType='list', inputType="single", allowedTypes=[],
             hint=_translate("Size of window (if not fullscreen)"),
             label=_translate("Window size (pixels)"), categ='Screen')
-        self.params['Screen'] = Param(
-            screen, valType='num', inputType="spin", allowedTypes=[],
-            hint=_translate("Which physical screen to run on (1 or 2)"),
-            label=_translate("Screen"), categ='Screen')
+        # functions for getting device labels
+        def getMonitors():
+            # start with default
+            devices = [("", _translate("Default"))]
+            # iterate through saved devices
+            for name, device in prefs.devices.items():
+                # if device is a monitor, include it
+                if isinstance(device, MonitorDeviceBackend):
+                    devices.append(
+                        (name, name)
+                    )
+            return devices
+        def getMonitorLabels():
+            return [device[1] for device in getMonitors()]
+        def getMonitorValues():
+            return [device[0] for device in getMonitors()]
+        # label to refer to device by
         self.params['Monitor'] = Param(
-            monitor, valType='str', inputType="single", allowedTypes=[],
-            hint=_translate("Name of the monitor (from Monitor Center). Right"
-                            "-click to go there, then copy & paste a monitor "
-                            "name here."),
-            label=_translate("Monitor"), categ="Screen")
+            monitor, valType="str", inputType="monitor", categ="Screen",
+            allowedVals=getMonitorValues,
+            allowedLabels=getMonitorLabels,
+            label=_translate("Monitor"),
+            hint=_translate(
+                "The named monitor from Device Manager to use for this experiment."
+            )
+        )
         self.params['color'] = Param(
             color, valType='color', inputType="color", allowedTypes=[],
             hint=_translate("Color of the screen (e.g. black, $[1.0,1.0,1.0],"
@@ -1841,22 +1862,6 @@ class SettingsComponent:
         if self.params['Units'].val == 'use prefs':
             params['Units'] = "None"
 
-        requestedScreenNumber = int(self.params['Screen'].val)
-        nScreens = 10
-        # try:
-        #     nScreens = wx.Display.GetCount()  # NO, don't rely on wx being present
-        # except Exception:
-        #     # will fail if application hasn't been created (e.g. in test
-        #     # environments)
-        #     nScreens = 10
-        if requestedScreenNumber > nScreens:
-            logging.warn("Requested screen can't be found. Writing script "
-                         "using first available screen.")
-            params['screenNumber'] = 0
-        else:
-            # computer has 1 as first screen
-            params['screenNumber'] = requestedScreenNumber - 1
-
         params['size'] = self.params['Window size (pixels)']
         params['winType'] = self.params['winBackend']
 
@@ -1875,7 +1880,7 @@ class SettingsComponent:
             "if win is None:\n"
             "    # if not given a window to setup, make one\n"
             "    win = visual.Window(\n"
-            "        size=_winSize, fullscr=_fullScr, screen=%(screenNumber)s,\n"
+            "        size=_winSize, fullscr=_fullScr,\n"
             "        winType=%(winType)s, allowGUI=%(allowGUI)s, allowStencil=%(allowStencil)s,\n"
             "        monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s,\n"
             "        backgroundImage=%(backgroundImg)s, backgroundFit=%(backgroundFit)s,\n"
@@ -2237,3 +2242,6 @@ class SettingsComponent:
         et = self.params['eyetracker'] != 'None'
 
         return any((kb, et))
+
+
+SettingsComponent.registerBackend(MonitorDeviceBackend)

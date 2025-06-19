@@ -17,6 +17,7 @@ from collections import deque
 
 from psychopy.contrib.lazy_import import lazy_import
 from psychopy import colors, event
+from psychopy.hardware.manager import DeviceManager
 from psychopy.localization import _translate
 from psychopy.tools.systemtools import getCurrentPID, registerPID
 import math
@@ -173,7 +174,7 @@ class Window():
                  units=None,
                  gamma=None,
                  blendMode='avg',
-                 screen=0,
+                 screen=None,
                  viewScale=None,
                  viewPos=None,
                  viewOri=0.0,
@@ -364,7 +365,11 @@ class Window():
         if not monitor:
             self.monitor = monitors.Monitor('__blank__', autoLog=autoLog)
         elif isinstance(monitor, str):
-            self.monitor = monitors.Monitor(monitor, autoLog=autoLog)
+            # try first to get from DeviceManager, otherwise get from Monitor Center
+            if DeviceManager.getDevice(monitor):
+                self.monitor = DeviceManager.getDevice(monitor)
+            else:
+                self.monitor = monitors.Monitor(monitor, autoLog=autoLog)
         elif hasattr(monitor, 'keys'):
             # convert into a monitor object
             self.monitor = monitors.Monitor('temp', currentCalib=monitor,
@@ -393,7 +398,12 @@ class Window():
             allowGUI = prefs.general['allowGUI']
         self.allowGUI = allowGUI
 
-        self.screen = screen
+        if screen is not None:
+            self.screen = screen
+        elif hasattr(self.monitor, "index"):
+            self.screen = self.monitor.index
+        else:
+            self.screen = 0
         self.stereo = stereo  # use quad buffer if requested (and if possible)
 
         # enable multisampling

@@ -47,7 +47,7 @@ class DeviceMixin:
             return [device[0] for device in getDevices()]
         # label to refer to device by
         self.params['deviceLabel'] = Param(
-            defaultLabel, valType="str", inputType="device", categ="Device",
+            defaultLabel, valType="device", inputType="device", categ="Device",
             allowedVals=getValues,
             allowedLabels=getLabels,
             label=_translate("Device"),
@@ -240,13 +240,20 @@ class DeviceBackend:
             List of backend classes
         """
         from psychopy.experiment import getAllElements
+        from psychopy.experiment.monitor import MonitorDeviceBackend
         allBackends = []
+        # look for device backends associated with all known Components and Routines
         for emt in getAllElements(fetchIcons=False).values():
             if hasattr(emt, "backends"):
                 for backend in emt.backends:
+                    # check that each backend is a DeviceBackend
                     if issubclass(backend, DeviceBackend) and backend not in allBackends:
+                        # append if so
                         allBackends.append(backend)
-        
+        # manually add MonitorDeviceBackend as it doesn't come from any Component
+        if MonitorDeviceBackend not in allBackends:
+            allBackends.append(MonitorDeviceBackend)
+
         return allBackends
         
     
