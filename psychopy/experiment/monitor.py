@@ -26,7 +26,8 @@ class MonitorDeviceBackend(DeviceBackend):
         order = [
             "width",
             "distance",
-            "gamma"
+            "gamma",
+            "gammaGrid"
         ]
         params['width'] = Param(
             "", valType="code", inputType="single",
@@ -44,15 +45,22 @@ class MonitorDeviceBackend(DeviceBackend):
             )
         )
         params['gamma'] = Param(
+            1, valType="code", inputType="single",
+            label=_translate("Gamma"),
+            hint=_translate(
+                "Single gamma value for the monitor"
+            )
+        )
+        params['gammaGrid'] = Param(
             [
                 [0, 1, 1],
                 [0, 1, 1],
                 [0, 1, 1],
                 [0, 1, 1]
             ], valType="code", inputType="gamma",
-            label=_translate("Gamma"),
+            label=_translate("Gamma grid"),
             hint=_translate(
-                "Gamma calibration of the monitor"
+                "Gamma calibration grid for the monitor"
             )
         )
         

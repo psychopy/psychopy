@@ -1,4 +1,5 @@
 from psychopy.app.deviceManager.addDialog import AddDeviceDlg
+from psychopy.app.deviceManager.legacy import migrateLegacyMonitors
 from psychopy.app.deviceManager.panel import DevicePanel
 from psychopy.app.deviceManager.utils import DeviceImageList
 from psychopy.preferences import prefs
@@ -59,6 +60,8 @@ class DeviceManagerDlg(wx.Dialog):
         self.profilesListCtrl.sizer.Add(
             self.addDeviceBtn, border=6, flag=wx.EXPAND | wx.ALL
         )
+        # check for legacy migration
+        migrateLegacyMonitors(devices=self.devices)
 
         self.populate()
 
