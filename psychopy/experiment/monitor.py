@@ -44,7 +44,12 @@ class MonitorDeviceBackend(DeviceBackend):
             )
         )
         params['gamma'] = Param(
-            "", valType="code", inputType="gamma",
+            [
+                [0, 1, 1],
+                [0, 1, 1],
+                [0, 1, 1],
+                [0, 1, 1]
+            ], valType="code", inputType="gamma",
             label=_translate("Gamma"),
             hint=_translate(
                 "Gamma calibration of the monitor"

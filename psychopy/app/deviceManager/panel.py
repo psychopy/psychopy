@@ -145,6 +145,7 @@ class DevicePanel(wx.Panel):
             ctrl.onElementOk(evt)
             # update param
             self.device.params[name] = ctrl.param
+            self.device.params[name].val = ctrl.getValue()
 
     def populate(self):
         # update params
