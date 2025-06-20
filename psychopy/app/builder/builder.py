@@ -4563,13 +4563,6 @@ class BuilderRibbon(ribbon.FrameRibbon):
         self.addSection(
             "experiment", label=_translate("Experiment"), icon="experiment"
         )
-        # monitor center
-        self.addButton(
-            section="experiment", name='monitor', label=_translate('Monitor center'),
-            icon="monitors",
-            tooltip=_translate("Monitor settings and calibration"),
-            callback=parent.app.openMonitorCenter
-        )
         # device manager
         self.addButton(
             section="experiment", name='devices', label=_translate('Device manager'),
