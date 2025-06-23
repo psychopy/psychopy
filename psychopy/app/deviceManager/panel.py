@@ -5,12 +5,13 @@ from psychopy.app.themes import fonts
 
 
 import wx
+from wx.lib.scrolledpanel import ScrolledPanel
 import wx.propgrid
 
 
-class DevicePanel(wx.Panel):
+class DevicePanel(ScrolledPanel):
     def __init__(self, parent, dlg, device):
-        wx.Panel.__init__(self, parent)
+        ScrolledPanel.__init__(self, parent, style=wx.DEFAULT | wx.VSCROLL)
         self.SetMinSize((512, -1))
         # store parentage
         self.parent = parent
@@ -145,6 +146,7 @@ class DevicePanel(wx.Panel):
 
         # populate from device
         self.populate()
+        self.SetupScrolling()
 
     def onDelete(self, evt=None):
         # remove from devices
@@ -187,4 +189,3 @@ class DevicePanel(wx.Panel):
             ctrl.setValue(self.device.params[name].val)
 
         self.Layout()
-        self.Fit()

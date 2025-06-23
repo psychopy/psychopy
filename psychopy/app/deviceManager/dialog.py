@@ -105,7 +105,6 @@ class DeviceManagerDlg(wx.Dialog):
             )
         
         self.Layout()
-        self.Fit()
     
     def renameDevice(self, oldname, newname):
         # set name param

@@ -1684,8 +1684,10 @@ class ShowHideBtn(wx.ToggleButton):
         self.Create(
             parent,
             label=label,
-            style=wx.BORDER_NONE
+            style=wx.BU_LEFT | wx.BORDER_NONE
         )
+        # for some reason, wx won't hide the background unless you set the foreground
+        self.SetForegroundColour("black")  
         # store root label
         self.rootLabel = label
         # store target
@@ -1717,6 +1719,8 @@ class ShowHideBtn(wx.ToggleButton):
         self.SetLabel(f"{indicator} {self.rootLabel}")
         # layout parent
         self.GetParent().Layout()
+        if hasattr(self.GetParent(), "SetupScrolling"):
+            self.GetParent().SetupScrolling()
         # toggle as normal
         if hasattr(evt, "Skip"):
             evt.Skip()
