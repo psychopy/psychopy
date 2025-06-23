@@ -299,7 +299,7 @@ class SettingsComponent(DeviceMixin):
             return [device[0] for device in getMonitors()]
         # label to refer to device by
         self.params['Monitor'] = Param(
-            monitor, valType="str", inputType="monitor", categ="Screen",
+            monitor, valType="device", inputType="monitor", categ="Screen",
             allowedVals=getMonitorValues,
             allowedLabels=getMonitorLabels,
             label=_translate("Monitor"),

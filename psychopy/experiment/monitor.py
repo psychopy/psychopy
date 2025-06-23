@@ -130,4 +130,4 @@ class MonitorDeviceBackend(DeviceBackend):
             "    }"
             ")\n"
         )
-        buff.writeIndentedLines(code)
+        buff.writeIndentedLines(code % self.params)

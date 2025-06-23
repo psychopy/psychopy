@@ -1201,6 +1201,8 @@ class Experiment:
                 # for regular routines, get device names from each component
                 for comp in rt:
                     _process(comp)
+        # process settings
+        _process(self.settings)
         
         return usages
 
