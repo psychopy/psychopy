@@ -70,7 +70,7 @@ class DevicePanel(ScrolledPanel):
                     self,
                     field=name,
                     param=param,
-                    element=None,
+                    element=device,
                     warnings=self.warnings
                 )
                 ctrl.Bind(EVT_PARAM_CHANGED, self.onParamEdit)
