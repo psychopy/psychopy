@@ -10,6 +10,7 @@ import subprocess
 import sys
 import webbrowser
 
+import numpy as np
 import wx
 import wx.stc
 
@@ -1611,6 +1612,97 @@ class DictCtrl(BaseParamCtrl):
         ])
 
 
+class GridCtrl(BaseParamCtrl):
+    """
+    A 2d grid of value controls, whose value is a 2d array (list of lists).
+    """
+    def makeCtrls(self):
+        self.ctrl = self
+        # make a sizer for the grid
+        self.gridSizer = wx.GridBagSizer(3, 3)
+        self.sizer.Add(
+            self.gridSizer, proportion=1, border=0, flag=wx.EXPAND | wx.ALL
+        )
+        # define columns and rows
+        rows = self.param.ctrlParams.get(
+            "rowLabels", [""] * np.array(self.param.val, ndmin=2).shape[0]
+        )
+        columns = self.param.ctrlParams.get(
+            "colLabels", [""] * np.array(self.param.val, ndmin=2).shape[1]
+        )
+        # dollar label
+        if self.isCode:
+            dLabel = wx.StaticText(self, label="$")
+            self.gridSizer.Add(
+                dLabel, wx.GBPosition(0, 0), flag=wx.ALIGN_CENTER
+            )
+        # row labels
+        for i, label in enumerate(rows):
+            hLabel = wx.StaticText(self, label=label)
+            self.gridSizer.Add(
+                hLabel, wx.GBPosition(i+1, 0), flag=wx.ALIGN_CENTER
+            )
+        # column labels
+        for i, label in enumerate(columns):
+            hLabel = wx.StaticText(self, label=label)
+            self.gridSizer.Add(
+                hLabel, wx.GBPosition(0, i+1), flag=wx.ALIGN_CENTER
+            )
+            # make all columns growable
+            self.gridSizer.AddGrowableCol(i+1, proportion=1)
+        # controls
+        self.ctrls = [
+            [None for _ in columns]
+            for _ in rows
+        ]
+        for row in range(len(rows)):
+            for col in range(len(columns)):
+                # make control (single line text)
+                self.ctrls[row][col] = SingleLineCtrl(
+                    self, 
+                    field=f"{self.field}:{row},{col}", 
+                    param=Param("", valType="code", inputType="single"),
+                    element=self.element,
+                    warnings=self.warnings
+                )
+                # reduce min size
+                self.ctrls[row][col].SetMinSize((32, -1))
+                # hide dollar sign (one is shown for the whole ctrl)
+                self.ctrls[row][col].dollarLbl.Show(False)
+                # add to sizer
+                self.gridSizer.Add(
+                    self.ctrls[row][col], wx.GBPosition(row+1, col+1), flag=wx.EXPAND
+                )
+        # set value
+        self.setValue(self.param.val)
+
+    def getValue(self):
+        return [
+            [ctrl.getValue() for ctrl in rowCtrls]
+            for rowCtrls in self.ctrls
+        ]
+
+    def setValue(self, value):
+        # unstring value into an actual list
+        value = data.utils.listFromString(value)
+        # make a new item for each value
+        for vi, row in enumerate(value):
+            for hi, item in enumerate(row):
+                self.ctrls[vi][hi].setValue(item)
+    
+    @property
+    def isValid(self):
+        # return True if all children are valid
+        return all([
+            [ctrl.isValid for ctrl in rowCtrls]
+            for rowCtrls in self.ctrls
+        ])
+        
+    def validate(self):
+        for rowCtrls in self.ctrls:
+            for ctrl in rowCtrls:
+                ctrl.validate()
+
 class DeviceCtrl(ChoiceCtrl):
     inputType = "device"
 
@@ -1668,88 +1760,9 @@ class MonitorCtrl(DeviceCtrl):
         DeviceManager.showScreenNumbers(dur=5)
 
 
-class GammaCtrl(BaseParamCtrl):
+class GammaCtrl(GridCtrl):
     """
-    A grid of SingleLineCtrl's for setting the 12 values of a gamma grid
+    A GridCtrl with a button to perform an automatic gamma calibration
     """
 
     inputType = "gamma"
-
-    def makeCtrls(self):
-        self.ctrl = self
-        # make a sizer for the grid
-        self.gridSizer = wx.GridBagSizer(3, 3)
-        self.sizer.Add(
-            self.gridSizer, proportion=1, border=0, flag=wx.EXPAND | wx.ALL
-        )
-        # define columns and rows
-        rows = ("lum", "R", "G", "B")
-        columns = ("Min", "Max", "Gamma")
-        # dollar label
-        dLabel = wx.StaticText(self, label="$")
-        self.gridSizer.Add(
-            dLabel, wx.GBPosition(0, 0), flag=wx.ALIGN_CENTER
-        )
-        # row labels
-        for i, label in enumerate(rows):
-            hLabel = wx.StaticText(self, label=label)
-            self.gridSizer.Add(
-                hLabel, wx.GBPosition(i+1, 0), flag=wx.ALIGN_CENTER
-            )
-        # column labels
-        for i, label in enumerate(columns):
-            hLabel = wx.StaticText(self, label=label)
-            self.gridSizer.Add(
-                hLabel, wx.GBPosition(0, i+1), flag=wx.ALIGN_CENTER
-            )
-        # controls
-        self.ctrls = [
-            [None for _ in columns]
-            for _ in rows
-        ]
-        for row in range(len(rows)):
-            for col in range(len(columns)):
-                # make control (single line text)
-                self.ctrls[row][col] = SingleLineCtrl(
-                    self, 
-                    field=f"{self.field}:{row},{col}", 
-                    param=Param("", valType="code", inputType="single"),
-                    element=self.element,
-                    warnings=self.warnings
-                )
-                
-                # hide dollar sign (one is shown for the whole ctrl)
-                self.ctrls[row][col].dollarLbl.Show(False)
-                # add to sizer
-                self.gridSizer.Add(
-                    self.ctrls[row][col], wx.GBPosition(row+1, col+1), flag=wx.EXPAND
-                )
-        # set value
-        self.setValue(self.param.val)
-
-    def getValue(self):
-        return [
-            [ctrl.getValue() for ctrl in rowCtrls]
-            for rowCtrls in self.ctrls
-        ]
-
-    def setValue(self, value):
-        # unstring value into an actual list
-        value = data.utils.listFromString(value)
-        # make a new item for each value
-        for vi, row in enumerate(value):
-            for hi, item in enumerate(row):
-                self.ctrls[vi][hi].setValue(item)
-    
-    @property
-    def isValid(self):
-        # return True if all children are valid
-        return all([
-            [ctrl.isValid for ctrl in rowCtrls]
-            for rowCtrls in self.ctrls
-        ])
-        
-    def validate(self):
-        for rowCtrls in self.ctrls:
-            for ctrl in rowCtrls:
-                ctrl.validate()

@@ -61,7 +61,11 @@ class MonitorDeviceBackend(DeviceBackend):
             label=_translate("Gamma grid"),
             hint=_translate(
                 "Gamma calibration grid for the monitor"
-            )
+            ),
+            ctrlParams={
+                'rowLabels': ("lum", "R", "G", "B"),
+                'colLabels': ("Min", "Max", "Gamma", "a", "b", "k")
+            }
         )
         
         return params, order

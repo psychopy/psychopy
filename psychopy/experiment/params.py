@@ -375,7 +375,8 @@ class Param():
             allowedLabels=self.allowedLabels,
             direct=self.direct,
             canBePath=self.canBePath,
-            categ=self.categ
+            categ=self.categ,
+            ctrlParams=self.ctrlParams
         )
 
     def __deepcopy__(self, memo):
