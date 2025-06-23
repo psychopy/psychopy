@@ -18,6 +18,9 @@ __all__ = [
     'getAllPhotometerClasses'
 ]
 
+from psychopy.hardware.base import BaseResponseDevice, BaseResponse
+from psychopy import layout
+
 from psychopy.plugins import PluginStub
 
 # Special handling for legacy classes which have been offloaded to optional
@@ -38,6 +41,121 @@ from psychopy.hardware.gammasci import S470
 
 # photometer interfaces will be stored here after being registered
 photometerInterfaces = {}
+
+
+class PhotometerResponse(BaseResponse):
+    """
+    Response from a photometer device. Value can be a single integer, could represent overall 
+    luminance or the value of a single gun.
+    """
+    pass
+
+
+class BasePhotometerDevice(BaseResponseDevice):
+    responseClass = PhotometerResponse
+
+    def getLum(self):
+        """
+        Get luminance according to pixel values.
+        """
+        # dispatch messages and return the most recent
+        self.dispatchMessages()
+        if self.responses:
+            resp = self.responses[-1]
+            return resp.value
+        else:
+            # if no messages, assume no luminance
+            return 0
+
+
+class ScreenBufferPhotometerDevice(BasePhotometerDevice):
+    """
+    Samples pixel colors from the screen buffer to emulate a photometer. Useful only for teaching, 
+    as the output will always behave as if the screen is perfectly calibrated, as there's no 
+    physical measurement involved.
+
+    Parameters
+    ----------
+    win : psychopy.visual.Window
+        Window to pull pixel values from
+    pos : tuple, list
+        Position of the patch of pixels to pretend there is a photometer looking at
+    size : tuple, list
+        Size of the patch of pixels to pretend there is a photometer looking at
+    units : str
+        "Spatial units in which to interpret size and position"
+    """
+    def __init__(self, win, pos=None, size=None, units=None):
+        # initialize
+        BaseResponseDevice.__init__(self)
+            # store win
+        self.win = win
+        # default rect
+        self.rect = None
+        # make clock
+        from psychopy.core import Clock
+        self.clock = Clock()
+        # store position params
+        self.units = units
+        self.pos = pos
+        self.size = size
+    
+    @property
+    def pos(self):
+        return getattr(self._pos, self.units)
+    
+    @pos.setter
+    def pos(self, value):
+        self._pos = layout.Position(value, units=self.units, win=self.win)
+    
+    @property
+    def size(self):
+        return getattr(self._size, self.units)
+    
+    @size.setter
+    def size(self, value):
+        self._size = layout.Size(value, units=self.units, win=self.win)
+
+    def dispatchMessages(self):
+        """
+        When called, dispatch a single reading.
+        """
+        # get rect
+        left, bottom = self._pos.pix + self.win.size / 2
+        w, h = self._size.pix
+        left = int(left - w / 2)
+        bottom = int(bottom - h / 2)
+        w = int(w)
+        h = int(h)
+        # read front buffer luminances for specified area
+        pixels = self.win._getPixels(
+            buffer="front",
+            rect=(left, bottom, w, h),
+            makeLum=True
+        )
+        # dispatch a message
+        self.receiveMessage(
+            self.parseMessage(pixels.mean())
+        )
+
+    def parseMessage(self, message):
+        return PhotometerResponse(
+            t=self.clock.getTime(),
+            value=message,
+            device=self
+        )
+
+    def isSameDevice(self, other):
+        return isinstance(other, ScreenBufferPhotometerDevice)
+    
+    @staticmethod
+    def getAvailableDevices():
+        # there's only ever one
+        return [{
+            'deviceName': "Photometer Emulator",
+            'deviceClass': "psychopy.hardware.photometer.ScreenBufferPhotometerDevice",
+            'win': "session.win",
+        }]
 
 
 def addPhotometer(cls):

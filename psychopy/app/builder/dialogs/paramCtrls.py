@@ -35,9 +35,8 @@ from ...themes import icons
 
 
 inputTypes = {}
-
-
 EVT_PARAM_CHANGED = wx.PyEventBinder(wx.IdManager.ReserveId())
+emptyNamespace = NameSpace(experiment.Experiment())
 
 
 class ParamValueChangedEvent(wx.CommandEvent):
@@ -89,6 +88,11 @@ class BaseParamCtrl(wx.Panel):
         self.param = param.copy()
         self.element = element
         self.warnings = warnings
+        # setup namespace
+        if hasattr(element, "exp"):
+            self.namespace = self.element.exp.namespace
+        else:
+            self.namespace = emptyNamespace
         # setup sizer
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.SetSizer(self.sizer)
@@ -339,7 +343,7 @@ class SingleLineCtrl(BaseParamCtrl):
                 # iterate through variable defs in code (if any)
                 for name in variableDefs:
                     # is it overwriting something?
-                    used = self.element.exp.namespace.exists(name)
+                    used = self.namespace.exists(name)
                     if used:
                         # warn but allow
                         self.setWarning(_translate(
@@ -431,7 +435,7 @@ class NameCtrl(SingleLineCtrl):
                 if self.getValue() == self.element.name:
                     return
                 # otherwise, check against extant names
-                exists = self.element.exp.namespace.exists(self.getValue())
+                exists = self.namespace.exists(self.getValue())
                 if exists:
                     self.setWarning(_translate(
                         "Name is already in use ({})"
@@ -1789,18 +1793,16 @@ class GammaCtrl(GridCtrl):
             # define params
             self.params = {}
             def getPhotometers():
-                from psychopy.experiment.routines.visualValidator import VisualValidatorRoutine
+                from psychopy.experiment.monitor import BasePhotometerDeviceBackend
                 # start with nothing
                 devices = []
                 # iterate through saved devices
                 for name, device in prefs.devices.items():
-                    # iterate through backends for this Component
-                    for backend in VisualValidatorRoutine.backends:
-                        # if device is the correct type, include it
-                        if isinstance(device, backend):
-                            devices.append(
-                                (name, name)
-                            )
+                    # if device is the correct type, include it
+                    if isinstance(device, BasePhotometerDeviceBackend):
+                        devices.append(
+                            (name, name)
+                        )                           
                 
                 return devices
             def getPhotometerValues():

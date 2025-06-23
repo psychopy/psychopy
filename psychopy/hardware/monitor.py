@@ -171,7 +171,7 @@ class MonitorDevice(BaseDevice, Monitor):
                 if keys and "escape" in keys:
                     return
                 # take reading
-                lum = np.random.random()  # todo: need to make a photometer device class
+                lum = phot.getLum()
                 lumSeries[gun, lvl] = lum
         # transform lum series to a gamma grid
         gammaGrid = []
