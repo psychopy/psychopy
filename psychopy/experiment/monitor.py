@@ -45,7 +45,7 @@ class MonitorDeviceBackend(DeviceBackend):
             )
         )
         params['gamma'] = Param(
-            1, valType="code", inputType="single",
+            1, valType="code", inputType="single", categ="Calibration",
             label=_translate("Gamma"),
             hint=_translate(
                 "Single gamma value for the monitor"
@@ -57,7 +57,7 @@ class MonitorDeviceBackend(DeviceBackend):
                 [0, 1, 1],
                 [0, 1, 1],
                 [0, 1, 1]
-            ], valType="code", inputType="gamma",
+            ], valType="code", inputType="gamma", categ="Calibration",
             label=_translate("Gamma grid"),
             hint=_translate(
                 "Gamma calibration grid for the monitor"
@@ -65,6 +65,36 @@ class MonitorDeviceBackend(DeviceBackend):
             ctrlParams={
                 'rowLabels': ("lum", "R", "G", "B"),
                 'colLabels': ("Min", "Max", "Gamma", "a", "b", "k")
+            }
+        )
+        params['lmsGrid'] = Param(
+            [
+                [0, 0, 0],
+                [0, 0, 0],
+                [0, 0, 0],
+            ], valType="code", inputType="grid", categ="Calibration",
+            label=_translate("LMS -> RGB"),
+            hint=_translate(
+                "Conversion table for calculating RGB values from LMS"
+            ),
+            ctrlParams={
+                'rowLabels': ("R", "G", "B"),
+                'colLabels': ("L", "M", "S")
+            }
+        )
+        params['dklGrid'] = Param(
+            [
+                [0, 0, 0],
+                [0, 0, 0],
+                [0, 0, 0],
+            ], valType="code", inputType="grid", categ="Calibration",
+            label=_translate("DKL -> RGB"),
+            hint=_translate(
+                "Conversion table for calculating RGB values from DKL"
+            ),
+            ctrlParams={
+                'rowLabels': ("R", "G", "B"),
+                'colLabels': ("Lum", "L-M", "L+M-S")
             }
         )
         
@@ -92,7 +122,12 @@ class MonitorDeviceBackend(DeviceBackend):
         code = (
             "    width=%(width)s,\n"
             "    distance=%(distance)s,\n"
-            "    gamma=%(gamma)s\n"
+            "    gamma=%(gamma)s,\n"
+            "    otherCalib={\n"
+            "        'gammaGrid': %(gammaGrid)s,\n"
+            "        'lms_rgb': %(lmsGrid)s,\n"
+            "        'dkl_rgb': %(dklGrid)s,\n"
+            "    }"
             ")\n"
         )
         buff.writeIndentedLines(code)

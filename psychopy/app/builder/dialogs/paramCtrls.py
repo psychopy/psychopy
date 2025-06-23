@@ -1616,6 +1616,9 @@ class GridCtrl(BaseParamCtrl):
     """
     A 2d grid of value controls, whose value is a 2d array (list of lists).
     """
+    
+    inputType = "grid"
+
     def makeCtrls(self):
         self.ctrl = self
         # make a sizer for the grid
