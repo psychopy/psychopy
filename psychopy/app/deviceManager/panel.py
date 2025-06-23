@@ -10,6 +10,7 @@ import wx.propgrid
 class DevicePanel(wx.Panel):
     def __init__(self, parent, dlg, device):
         wx.Panel.__init__(self, parent)
+        self.SetMinSize((512, -1))
         # store parentage
         self.parent = parent
         self.dlg = dlg
@@ -95,11 +96,13 @@ class DevicePanel(wx.Panel):
             self.profileCtrl.Append(prop)
             prop.ChangeFlag(wx.propgrid.PG_PROP_READONLY, True)
         self.profileCtrl.FitColumns()
+        self.profileCtrl.SetMinSize((-1, 128))
         self.sizer.Add(
             self.profileCtrl, border=6, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM
         )
         # delete button
         self.deleteBtn = wx.Button(self, label="Remove device")
+        self.deleteBtn.SetMinSize((-1, 24))
         self.deleteBtn.Bind(wx.EVT_BUTTON, self.onDelete)
         self.sizer.Add(
             self.deleteBtn, border=6, flag=wx.ALIGN_RIGHT | wx.ALL
@@ -153,3 +156,4 @@ class DevicePanel(wx.Panel):
             ctrl.setValue(self.device.params[name].val)
 
         self.Layout()
+        self.Fit()

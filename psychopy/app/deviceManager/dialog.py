@@ -103,8 +103,9 @@ class DeviceManagerDlg(wx.Dialog):
             self.profilesNotebook.RemovePage(
                 self.profilesNotebook.FindPage(self.pages[None])
             )
-        # set icon list
-
+        
+        self.Layout()
+        self.Fit()
     
     def renameDevice(self, oldname, newname):
         # set name param
