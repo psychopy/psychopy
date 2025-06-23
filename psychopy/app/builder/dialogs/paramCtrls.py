@@ -1621,6 +1621,8 @@ class GridCtrl(BaseParamCtrl):
 
     def makeCtrls(self):
         self.ctrl = self
+        # change sizer direction
+        self.sizer.SetOrientation(wx.VERTICAL)
         # make a sizer for the grid
         self.gridSizer = wx.GridBagSizer(3, 3)
         self.sizer.Add(
@@ -1769,3 +1771,168 @@ class GammaCtrl(GridCtrl):
     """
 
     inputType = "gamma"
+
+    class CalibrationSetupDlg(wx.Dialog):
+        def __init__(self, parent):
+            from psychopy.app.builder.validators import WarningManager
+
+            wx.Dialog.__init__(self, parent, title=_translate("Calibrate gamma"))
+            # setup sizer
+            self.border = wx.BoxSizer(wx.VERTICAL)
+            self.SetSizer(self.border)
+            self.sizer = wx.BoxSizer(wx.VERTICAL)
+            self.border.Add(
+                self.sizer, border=12, proportion=1, flag=wx.EXPAND | wx.ALL
+            )
+            # create warnings handler
+            self.warnings = WarningManager(self)
+            # define params
+            self.params = {}
+            def getPhotometers():
+                from psychopy.experiment.routines.visualValidator import VisualValidatorRoutine
+                # start with nothing
+                devices = []
+                # iterate through saved devices
+                for name, device in prefs.devices.items():
+                    # iterate through backends for this Component
+                    for backend in VisualValidatorRoutine.backends:
+                        # if device is the correct type, include it
+                        if isinstance(device, backend):
+                            devices.append(
+                                (name, name)
+                            )
+                
+                return devices
+            def getPhotometerValues():
+                return [val[0] for val in getPhotometers()]
+            def getPhotometerLabels():
+                return [val[1] for val in getPhotometers()]
+            self.params['photometer'] = Param(
+                "", valType="device", inputType="device", 
+                allowedVals=getPhotometerValues, allowedLabels=getPhotometerLabels,
+                label=_translate("Photometer"),
+                hint=_translate(
+                    "Photometer device, from the device manager, to use for this calibration"
+                )
+            )
+            self.params['patchSize'] = Param(
+                0.3, valType="code", inputType="single",
+                label=_translate("Patch size"),
+                hint=_translate(
+                    "How much of the screen (0-1) the calibration patch should occupy"
+                )
+            )
+            self.params['nPoints'] = Param(
+                8, valType="code", inputType="single", 
+                label=_translate("Calibration points"),
+                hint=_translate(
+                    "How many calibration points to use"
+                )
+            )
+            # add param ctrls
+            self.paramCtrls = {}
+            for key, param in self.params.items():
+                # add label
+                lbl = wx.StaticText(
+                    self, label=param.label
+                )
+                self.sizer.Add(
+                    lbl, border=6, flag=wx.EXPAND | wx.LEFT | wx.TOP | wx.RIGHT
+                )
+                # add ctrl
+                self.paramCtrls[key] = ParamCtrl(
+                    self, 
+                    'photometer', 
+                    param, 
+                    element=None, 
+                    warnings=self.warnings
+                )
+                self.sizer.Add(
+                    self.paramCtrls[key], border=6, flag=wx.EXPAND | wx.ALL
+                )
+
+            # add buttons
+            btns = self.CreateStdDialogButtonSizer(flags=wx.OK | wx.CANCEL)
+            self.border.Add(
+                btns, border=6, flag=wx.EXPAND | wx.ALL
+            )
+
+            self.Layout()
+            self.Fit()
+        
+        def getParams(self):
+            return {
+                key: ctrl.getValue() 
+                for key, ctrl in self.paramCtrls.items()
+            }
+
+    def makeCtrls(self):
+        # make usual grid ctrl
+        GridCtrl.makeCtrls(self)
+        # add button for running calibration
+        self.calibBtn = wx.Button(
+            self, label=_translate("Calibrate")
+        )
+        self.sizer.Add(
+            self.calibBtn, border=6, flag=wx.ALIGN_LEFT | wx.ALL
+        )
+        self.calibBtn.Bind(
+            wx.EVT_BUTTON, self.onCalibrateBtn
+        )
+    
+    def onCalibrateBtn(self, evt=None):
+        from psychopy.hardware import DeviceManager
+        from psychopy.visual import Window
+
+        # get calibration setup params
+        dlg = GammaCtrl.CalibrationSetupDlg(self)
+        if dlg.ShowModal() == wx.ID_OK:
+            params = dlg.getParams()
+        else:
+            # abort if cancelled
+            return
+        # setup monitor from element
+        monitor = DeviceManager.addDevice(
+            deviceName=self.element.params['deviceLabel'].val,
+            deviceClass=self.element.deviceClass,
+            index=self.element.profile['index'],
+            pos=self.element.profile['pos'],
+            size=self.element.profile['size'],
+            frameRate=self.element.profile['frameRate'],
+            width=float(self.element.params['width'].val),
+            distance=float(self.element.params['distance'].val),
+            gamma=float(self.element.params['gamma'].val),
+            otherCalib={
+                'gammaGrid': self.element.params['gammaGrid'].val,
+                'lms_rgb': self.element.params['lmsGrid'].val,
+                'dkl_rgb': self.element.params['dklGrid'].val,
+            }
+        )
+        # setup window
+        win = Window(monitor=monitor)
+        # setup photometer from choice
+        photEmt = prefs.devices[params['photometer']]
+        DeviceManager.addDevice(
+            deviceName=params['photometer'],
+            deviceClass=photEmt.deviceClass,
+            win=win
+        )
+        # present dialog to choose
+        try:
+            gammaGrid = monitor.calibrateGamma(
+                win,
+                params['photometer'],
+                patchSize=float(params['patchSize']), 
+                nPoints=int(params['nPoints'])
+            )
+        except Exception as err:
+            # cleanly handle "device not found" error
+            dlg = wx.MessageDialog(
+                self, message=str(err), flag=wx.ICON_ERROR
+            )
+        finally:
+            win.close()
+        # if gamma was got, set values
+        if gammaGrid is not None:
+            self.setValue(gammaGrid)
+        
