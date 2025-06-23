@@ -18,6 +18,27 @@ except ImportError:
     skip_under_vm = no_op
 
 
+# make sure testMonitor exists
+from psychopy.hardware import DeviceManager
+testMonitor = DeviceManager.addDevice(
+    deviceName="testMonitor",
+    deviceClass="psychopy.hardware.monitor.MonitorDevice",
+    index=0,
+    pos=[0, 0],
+    size=[1024, 768],
+    frameRate=60,
+    width=30,
+    distance=57,
+    gamma=1.0
+)
+testMonitor.setGammaGrid([
+    [0.0, 1.0, 1.0],
+    [0.0, 1.0, 1.0],
+    [0.0, 1.0, 1.0],
+    [0.0, 1.0, 1.0]
+])
+
+
 def requires_plugin(plugin):
     """
     Decorator to skip test if a particular plugin is not installed.
