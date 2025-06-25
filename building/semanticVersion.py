@@ -6,6 +6,7 @@ from packaging import version
 root = pathlib.Path(__file__).parent.parent  # root of the repo
 VERBOSE = True
 
+
 def _call(cmd, verbose=False):
     result = run(cmd, capture_output=True, text=True)
     if verbose or result.returncode or result.stderr:
@@ -179,6 +180,35 @@ def getSemanticVersion():
     print(f"Branch: {branch}, Vernum: {vernum}, Closest-tag: {tag}, Describe: {describe}\n Full semantic version: {verStr}")
     return verStr
     
+def updateVersionFile():
+    """Take psychopy/VERSION, append the branch and distance to commit
+    and update the VERSION file accordingly"""
+    raw = (root/'psychopy/VERSION').read_text().strip()
+    version = getSemanticVersion()
+    if version != raw:
+        (root/'psychopy/VERSION').write_text(version)
+        print(f"Updated version file to {version}")
+
+def updateGitShaFile(sha=None):
+    """Create psychopy/GIT_SHA
+
+    :param:`dist` can be:
+        None:
+            writes __version__
+        'sdist':
+            for python setup.py sdist - writes git id (__git_sha__)
+        'bdist':
+            for python setup.py bdist - writes git id (__git_sha__)
+            and __build_platform__
+    """
+    shaPath = root/"psychopy/GIT_SHA"
+    if sha is None:
+        sha = getLastCommit() or 'n/a'
+    with open(shaPath, 'w') as f:
+        f.write(sha)
+        print(f"Created file: {shaPath.absolute()}")
+
+
 if __name__ == "__main__":
     # Get the semantic version
     semver = getSemanticVersion()
@@ -187,3 +217,18 @@ if __name__ == "__main__":
     # Check if the version is valid
     if not _checkValidVersion(semver):
         print("Invalid version string")
+
+    # use argparse to handle command line arguments
+    import argparse
+    # add argument to write the version file
+    parser = argparse.ArgumentParser(description="Get semantic version and update files.")
+    parser.add_argument('--write-version', action='store_true',
+                        help="Write the semantic version to the VERSION file.")
+    parser.add_argument('--write-git-sha', action='store_true',
+                        help="Write the last commit SHA to the GIT_SHA file.")
+    args = parser.parse_args()
+    if args.write_version:
+        updateVersionFile()
+    if args.write_git_sha:
+        updateGitShaFile()
+    

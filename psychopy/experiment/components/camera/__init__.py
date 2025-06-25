@@ -9,6 +9,7 @@ from psychopy.experiment.components import (
     BaseComponent, BaseDeviceComponent, Param, _translate, getInitVals
 )
 from psychopy.preferences import prefs
+from psychopy.experiment.components.microphone import MicrophoneDeviceBackend
 from psychopy.experiment.devices import DeviceBackend
 from psychopy.tools import stringtools as st, systemtools as syst, audiotools as at
 
@@ -108,7 +109,6 @@ class CameraComponent(BaseDeviceComponent):
         ]
         # functions for getting device labels
         def getMicDevices():
-            from psychopy.experiment.components.microphone import MicrophoneDeviceBackend
             # start with default
             devices = [("", _translate("Default"))]
             # iterate through saved devices
@@ -365,6 +365,7 @@ class CameraDeviceBackend(DeviceBackend):
 
 # register backend with Component
 CameraComponent.registerBackend(CameraDeviceBackend)
+CameraComponent.registerBackend(MicrophoneDeviceBackend)
 
 
 if __name__ == "__main__":

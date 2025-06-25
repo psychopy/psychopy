@@ -641,13 +641,17 @@ class TextureGlyph:
             return 0
 
 
-def findFontFiles(folders=(), recursive=True):
+def findFontFiles(folders=(), recursive=True, currentDir=Path(".")):
     """Search for font files in the folder (or system folders)
 
     Parameters
     ----------
     folders: iterable
         folders to search. If empty then search typical system folders
+    recursive : bool
+        If True, recursively search within subfolders
+    currentDir : pathlib.Path
+        Path to use as current directory when making paths absolute
 
     Returns
     -------
@@ -665,14 +669,13 @@ def findFontFiles(folders=(), recursive=True):
     # make sure font paths is a list
     if isinstance(searchPaths, tuple):
         searchPaths = list(searchPaths)
-    # always look in the local directory, unless it's inside PsychoPy itself
-    thisDir = Path(".").absolute()
-    if all((
-        thisDir not in Path(prefs.paths['psychopy']).parents,
-        thisDir != Path(prefs.paths['psychopy']),
-        Path(prefs.paths['psychopy']) not in thisDir.parents,
-    )):
-        searchPaths.append(thisDir)
+    # if local directory has a /fonts or /assets subdirectory, search those
+    for localSubdir in (
+        currentDir / "fonts",
+        currentDir / "assets" / "fonts"
+    ):
+        if localSubdir.is_dir():
+            searchPaths.append(localSubdir.absolute())
     # always look inside the app
     searchPaths.append(Path(prefs.paths['assets']) / "fonts")
     # always look in the user folder
@@ -797,14 +800,14 @@ class FontManager():
         return self.fontStyles
 
     def getFontsMatching(self, fontName, bold=False, italic=False,
-                         fontStyle=None, fallback=True):
+                         fontStyle=None, fallback=True, currentDir=Path(".")):
         """
         Returns the list of FontInfo instances that match the provided
         fontName and style information. If no matching fonts are
         found, None is returned.
         """
-        if not self._fontInfos:
-            self.updateFontInfo()
+        if not self._fontInfos or currentDir != Path("."):
+            self.updateFontInfo(currentDir=currentDir)
         if type(fontName) != bytes:
             fontName = bytes(fontName, sys.getfilesystemencoding())
         # Convert value of "bold" to a numeric font weight
@@ -971,10 +974,10 @@ class FontManager():
 
         return glFont
 
-    def updateFontInfo(self, monospaceOnly=False):
+    def updateFontInfo(self, monospaceOnly=False, currentDir=Path(".")):
         self._fontInfos.clear()
         del self.fontStyles[:]
-        fonts_found = findFontFiles()
+        fonts_found = findFontFiles(currentDir=currentDir)
         self.addFontFiles(fonts_found, monospaceOnly)
 
     def booleansFromStyleName(self, style):

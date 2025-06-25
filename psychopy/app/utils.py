@@ -1665,6 +1665,67 @@ class ListCtrl(wx.ListCtrl, listmixin.ListCtrlAutoWidthMixin):
         listmixin.ListCtrlAutoWidthMixin.__init__(self)
 
 
+class ShowHideBtn(wx.ToggleButton):
+    """
+    Button which shows/hides a panel by toggling itself.
+    """
+    indicators = {
+        True: "▾",
+        False: "▸"
+    }
+    def __init__(
+            self, 
+            parent, 
+            target,
+            label=""
+    ):
+        wx.ToggleButton.__init__(self)
+        self.SetBackgroundStyle(wx.BG_STYLE_TRANSPARENT)
+        self.Create(
+            parent,
+            label=label,
+            style=wx.BU_LEFT | wx.BORDER_NONE
+        )
+        # for some reason, wx won't hide the background unless you set the foreground
+        self.SetForegroundColour("black")  
+        # store root label
+        self.rootLabel = label
+        # store target
+        self.target = target
+        # bind toggle
+        self.Bind(
+            wx.EVT_TOGGLEBUTTON, self.onToggle
+        )
+    
+    def setValue(self, value):
+        self.onToggle(value)
+    
+    def toggle(self):
+        self.setValue(not self.GetValue())
+    
+    def onToggle(self, evt):
+        # get value
+        if isinstance(evt, bool):
+            val = evt
+        else:
+            val = evt.Int
+        # show/hide target
+        if isinstance(self.target, wx.Sizer):
+            self.target.ShowItems(val)
+        else:
+            self.target.Show(val)
+        # toggle indicator
+        indicator = self.indicators[val]
+        self.SetLabel(f"{indicator} {self.rootLabel}")
+        # layout parent
+        self.GetParent().Layout()
+        if hasattr(self.GetParent(), "SetupScrolling"):
+            self.GetParent().SetupScrolling()
+        # toggle as normal
+        if hasattr(evt, "Skip"):
+            evt.Skip()
+
+
 def sanitize(inStr):
     """
     Process a string to remove any sensitive information, i.e. OAUTH keys

@@ -136,7 +136,11 @@ class AddDeviceDlg(wx.Dialog):
             if len(profiles) == 0:
                 continue
             # add a child for each class
-            branch = self.devicesCtrl.AppendItem(root, cls.backendLabel, image=self.imageList.getIcon(cls))
+            branch = self.devicesCtrl.AppendItem(
+                root, 
+                cls.backendLabel or cls.__name__, 
+                image=self.imageList.getIcon(cls) or -1
+            )
             self.devicesCtrl.SetItemBold(branch)
             # store ref to branch class
             self.branchClasses[branch] = cls

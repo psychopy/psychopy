@@ -962,44 +962,7 @@ class Session:
                 f"Device names are not available for experiments added to Session directly as a "
                 f".py file."
             )
-        # get ready to store usages
-        usages = {}
-
-        def _process(name, emt):
-            """
-            Process an element (Component or Routine) for device names and append them to the
-            usages dict.
-
-            Parameters
-            ----------
-            name : str
-                Name of this element in Builder
-            emt : Component or Routine
-                Element to process
-            """
-            # if we have a device name for this element...
-            if "deviceLabel" in emt.params:
-                # get init value so it lines up with boilerplate code
-                inits = experiment.getInitVals(emt.params)
-                # get value
-                deviceName = inits['deviceLabel'].val
-                # if deviceName exists from other elements, add usage to it
-                if deviceName in usages:
-                    usages[deviceName].append(name)
-                else:
-                    usages[deviceName] = [name]
-
-        # iterate through routines
-        for rtName, rt in exp.routines.items():
-            if isinstance(rt, experiment.routines.BaseStandaloneRoutine):
-                # for standalone routines, get device names from params
-                _process(rtName, rt)
-            else:
-                # for regular routines, get device names from each component
-                for comp in rt:
-                    _process(comp.name, comp)
-
-        return list(usages)
+        return exp.getRequiredDeviceNames()
 
     def runExperiment(self, key, expInfo=None, blocking=True):
         """

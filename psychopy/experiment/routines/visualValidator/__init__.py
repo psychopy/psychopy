@@ -360,10 +360,8 @@ class ScreenBufferVisualValidatorBackend(DeviceBackend):
     example for implementing other light sensor device backends.
     """
 
-    key = "screenbuffer"
-    label = _translate("Screen Buffer Sampler (Debug)")
-    component = VisualValidatorRoutine
-    deviceClasses = ["psychopy.hardware.lightsensor.ScreenBufferSampler"]
+    backendLabel = "Screen Buffer Sampler (Debug)"
+    deviceClass = "psychopy.hardware.lightsensor.ScreenBufferSampler"
     icon = "light/visual_validator.png"
 
     def getParams(self: VisualValidatorRoutine):
@@ -391,3 +389,7 @@ class ScreenBufferVisualValidatorBackend(DeviceBackend):
             ")\n"
         )
         buff.writeOnceIndentedLines(code % inits)
+
+
+# register backend with Component
+VisualValidatorRoutine.registerBackend(ScreenBufferVisualValidatorBackend)
