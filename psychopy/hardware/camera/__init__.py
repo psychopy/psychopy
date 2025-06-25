@@ -463,21 +463,58 @@ class CameraDevice(BaseDevice):
                  captureAPI=None, decoderOpts=None, bufferSecs=5.0):
         
         BaseDevice.__init__(self)
-        # if device is an integer, get name from index
-        if isinstance(device, int):
-            for profile in self.getCameras():
-                if profile.index == device:
-                    device = profile.name
-                    break
-        
-        self._device = device
-        self._captureLib = captureLib
 
-        # capture properties
-        self._frameRate = frameRate  # frame rate of the camera stream
-        self._frameSize = frameSize  
-        self._pixelFormat = '' if pixelFormat is None else pixelFormat
-        self._codecFormat = '' if codecFormat is None else codecFormat
+        # transform some of the params
+        pixelFormat = pixelFormat if pixelFormat is not None else ''
+        codecFormat = codecFormat if codecFormat is not None else ''
+
+        # if device is an integer, get name from index
+        foundProfile = None
+        if isinstance(device, int):
+            for profile in self.getAvailableDevices(False):
+                if profile['device'] == device:
+                    foundProfile = profile
+                    device = profile['device']
+                    break
+        elif isinstance(device, str):
+            # if device is a string, use it as the device name
+            for profile in self.getAvailableDevices(False):
+                # find a device which best matches the settings
+                if profile['deviceName'] != device:
+                    continue
+
+                # check if all the other params match
+                paramsMatch = all([
+                    profile['deviceName'] == device,
+                    profile['captureLib'] == captureLib if captureLib else True,
+                    profile['frameSize'] == frameSize if frameSize else True,
+                    profile['frameRate'] == frameRate if frameRate else True,
+                    profile['pixelFormat'] == pixelFormat if pixelFormat else True,
+                    profile['codecFormat'] == codecFormat if codecFormat else True,
+                    profile['captureAPI'] == captureAPI if captureAPI else True
+                ])
+
+                if not paramsMatch:
+                    continue
+                
+                foundProfile = profile
+                device = profile['device']
+
+                break
+
+        if foundProfile is None:
+            raise CameraNotFoundError(
+                "Cannot find camera with index or name '{}'.".format(device))
+
+        self._device = device
+
+        # camera settings from profile
+        self._frameSize = foundProfile['frameSize']
+        self._frameRate = foundProfile['frameRate']
+        self._pixelFormat = foundProfile['pixelFormat']
+        self._codecFormat = foundProfile['codecFormat']
+        self._captureLib = foundProfile['captureLib']
+        self._captureAPI = foundProfile['captureAPI']
 
         # capture interface
         self._capture = None  # camera stream capture object
@@ -519,7 +556,7 @@ class CameraDevice(BaseDevice):
             cameraLib=profile['captureLib'],
             cameraAPI=profile['captureAPI']
         )
-    
+
     def isSameDevice(self, other):
         """
         Determine whether this object represents the same physical device as a given other object.
@@ -544,7 +581,7 @@ class CameraDevice(BaseDevice):
             return False
 
     @staticmethod
-    def getAvailableDevices(best=True):
+    def getAvailableDevices(best=False):
         """
         Get all available devices of this type.
 
@@ -586,7 +623,7 @@ class CameraDevice(BaseDevice):
                 profiles.append({
                     'deviceName': cam.name,
                     'deviceClass': "psychopy.hardware.camera.CameraDevice",
-                    'device': cam.name,
+                    'device': cam.index,
                     'captureLib': cam.cameraLib, 
                     'frameSize': cam.frameSize, 
                     'frameRate': cam.frameRate, 
@@ -655,7 +692,7 @@ class CameraDevice(BaseDevice):
         used.
         
         """
-        return self._cameraLib
+        return self.info.captureLib if self.info else None
     
     @property
     def frameSize(self):
@@ -666,7 +703,7 @@ class CameraDevice(BaseDevice):
         `None`.
         
         """
-        return self._frameSize
+        return self.info.frameSize if self.info else None
     
     @property
     def frameRate(self):
@@ -676,7 +713,7 @@ class CameraDevice(BaseDevice):
         not open, this will return `None`.
         
         """
-        return self._frameRate
+        return self.info.frameRate if self.info else None
     
     @property
     def frameInterval(self):
@@ -697,7 +734,7 @@ class CameraDevice(BaseDevice):
         not open, this will return `None`.
         
         """
-        return self._pixelFormat
+        return self.info.pixelFormat if self.info else None
     
     @property
     def codecFormat(self):
@@ -707,7 +744,7 @@ class CameraDevice(BaseDevice):
         not open, this will return `None`.
         
         """
-        return self._codecFormat
+        return self.info.codecFormat if self.info else None
     
     @property
     def cameraAPI(self):
@@ -717,7 +754,7 @@ class CameraDevice(BaseDevice):
         stream is not open, this will return `None`.
         
         """
-        return self._cameraAPI
+        return self.info.cameraAPI if self.info else None
     
     @property
     def bufferSecs(self):
@@ -830,15 +867,15 @@ class CameraDevice(BaseDevice):
         _frameRate = CAMERA_NULL_VALUE
 
         # setup commands for FFMPEG
-        if self._cameraAPI == CAMERA_API_DIRECTSHOW:  # windows
+        if self._captureAPI == CAMERA_API_DIRECTSHOW:  # windows
             ff_opts['f'] = 'dshow'
-            _camera = 'video={}'.format(self._device)
+            _camera = 'video={}'.format(self.info.name)
             _frameRate = self._frameRate
             if self._pixelFormat:
                 ff_opts['pixel_format'] = self._pixelFormat
             if self._codecFormat:
                 ff_opts['vcodec'] = self._codecFormat
-        elif self._cameraAPI == CAMERA_API_AVFOUNDATION:  # darwin
+        elif self._captureAPI == CAMERA_API_AVFOUNDATION:  # darwin
             ff_opts['f'] = 'avfoundation'
             ff_opts['i'] = _camera = self._device
 
@@ -866,7 +903,7 @@ class CameraDevice(BaseDevice):
             lib_opts['pixel_format'] = self._pixelFormat
             # ff_opts['framedrop'] = True
             # ff_opts['fast'] = True
-        elif self._cameraAPI == CAMERA_API_VIDEO4LINUX2:
+        elif self._captureAPI == CAMERA_API_VIDEO4LINUX2:
             raise OSError(
                 "Sorry, camera does not support Linux at this time. However, "
                 "it will in future versions.")
@@ -1335,11 +1372,12 @@ class Camera:
              '_mode': u'video',
              '_frameRate': None,
              '_frameRateFrac': None,
+             '_frameSize': None,
              '_size': None,
              '_cameraLib': u''})
         
         self._cameraLib = cameraLib
-        
+
         # handle device
         self._capture = None
         if isinstance(device, CameraDevice):
@@ -1355,9 +1393,40 @@ class Camera:
                 for profile in CameraDevice.getAvailableDevices():
                     self._capture = DeviceManager.addDevice(**profile)
                     break
-        elif isinstance(device, str) and DeviceManager.getDevice(device) is not None:
-            # if given a device name, get the device
-            self._capture = DeviceManager.getDevice(device)
+        elif isinstance(device, str):
+            # get available devices
+            availableDevices = CameraDevice.getAvailableDevices()
+            # if given a device name, try to find it
+            for profile in availableDevices:
+                if profile['deviceName'] != device:
+                    continue
+                paramsMatch = all([
+                    profile.get(key) == value
+                    for key, value in {
+                        'deviceName': device,
+                        'captureLib': cameraLib,
+                        'frameRate': frameRate if frameRate is not None else True,  # get first
+                        'frameSize': frameSize if frameSize is not None else True
+                    }.items() if value is not None
+                ])
+                if not paramsMatch:
+                    continue
+                
+                device = profile['device']
+                self._capture = DeviceManager.getDevice(device)
+                break
+
+            # anything else, try to initialise a new device from params
+            self._capture = CameraDevice(
+                device=device,
+                captureLib=cameraLib,
+                frameRate=frameRate,
+                frameSize=frameSize,
+                pixelFormat=None,  # use default pixel format
+                codecFormat=None,  # use default codec format
+                captureAPI=None  # use default capture API
+            )
+
         else:
             # anything else, try to initialise a new device from params
             self._capture = CameraDevice(
@@ -1365,6 +1434,9 @@ class Camera:
                 captureLib=cameraLib,
                 frameRate=frameRate,
                 frameSize=frameSize,
+                pixelFormat=None,  # use default pixel format
+                codecFormat=None,  # use default codec format
+                captureAPI=None  # use default capture API
             )
         # from here on in the init, use the device index as `device`
         device = self._capture.device
@@ -1661,8 +1733,12 @@ class Camera:
             for spec in dev:
                 devices.append({
                     'device': spec['index'],
+                    'name': spec['device_name'],
                     'frameRate': spec['frameRate'],
                     'frameSize': spec['frameSize'],
+                    'pixelFormat': spec['pixelFormat'],
+                    'codecFormat': spec['codecFormat'],
+                    'cameraAPI': spec['cameraAPI']
                 })
 
         return devices
@@ -2766,7 +2842,7 @@ class Camera:
             'pix_fmt_in': 'yuv420p',  # default for now using mp4
             'width_in': frameWidth,
             'height_in': frameHeight,
-            'codec': self._capture.codecFormat,
+            # 'codec': '',
             'frame_rate': (int(self._capture.frameRate), 1)}
         
         self._curPTS = 0.0  # current pts for the movie writer
