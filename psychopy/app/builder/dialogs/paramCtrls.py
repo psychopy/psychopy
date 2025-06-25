@@ -1911,13 +1911,16 @@ class GammaCtrl(GridCtrl):
             }
         )
         # setup window
-        win = Window(monitor=monitor)
+        win = Window(screen=self.element.profile['index'], monitor=monitor)
         # setup photometer from choice
         photEmt = prefs.devices[params['photometer']]
         DeviceManager.addDevice(
             deviceName=params['photometer'],
             deviceClass=photEmt.deviceClass,
-            win=win
+            win=win,
+            pos=ast.literal_eval(photEmt.params['pos'].val),
+            size=ast.literal_eval(photEmt.params['size'].val),
+            units=photEmt.params['units'].val
         )
         # present dialog to choose
         try:

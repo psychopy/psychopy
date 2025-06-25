@@ -135,7 +135,7 @@ class ScreenBufferPhotometerDevice(BasePhotometerDevice):
         )
         # dispatch a message
         self.receiveMessage(
-            self.parseMessage(pixels.mean())
+            self.parseMessage(pixels.mean() / 255)
         )
 
     def parseMessage(self, message):
