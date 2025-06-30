@@ -29,6 +29,13 @@ class ButtonResponse(base.BaseResponse):
         # match an integer to channel
         if isinstance(other, int):
             return other == self.channel
+        # match a dict by converting it to a ButtonResponse, if possible
+        if isinstance(other, dict):
+            try:
+                return ButtonResponse(**other) == self
+            except:
+                # if it can't instantiate a ButtonResponse, it's not the same as this
+                return False
         
         return False
 
