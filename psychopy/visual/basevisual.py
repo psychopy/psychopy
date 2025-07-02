@@ -1065,12 +1065,13 @@ class TextureMixin:
                 try:
                     im = Image.open(filename)
                     im = im.transpose(Image.FLIP_TOP_BOTTOM)
-                except IOError:
-                    msg = "Found file '%s', failed to load as an image"
-                    logging.error(msg % (filename))
+                except IOError as err:
+                    msg = (
+                        "Found file '{}' ('{}'), but failed to load as an image. Reason: {}"
+                    ).format(filename, os.path.abspath(tex), err)
+                    logging.error(msg)
                     logging.flush()
-                    msg = "Found file '%s' [= %s], failed to load as an image"
-                    raise IOError(msg % (tex, os.path.abspath(tex)))
+                    raise IOError(msg)
             elif hasattr(tex, 'getVideoFrame'):  # camera or movie textures
                 # get an image to configure the initial texture store
                 if hasattr(tex, 'frameSize'):
