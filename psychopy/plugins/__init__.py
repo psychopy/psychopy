@@ -437,7 +437,7 @@ def scanPlugins():
             if not ep.group.startswith("psychopy"):
                 continue
             # make sure we have an entry for this distribution
-            if sys.version.startswith("3.8"):
+            if sys.version.startswith("3.8") or sys.version.startswith("3.9"):
                 distName = dist.metadata['name']
             else:
                 distName = dist.name
