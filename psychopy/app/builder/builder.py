@@ -242,7 +242,11 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self._mgr.Update()
         # self.SetSizer(self.mainSizer)  # not necessary for aui type controls
         if self.frameData['auiPerspective']:
-            self._mgr.LoadPerspective(self.frameData['auiPerspective'])
+            backup = self._mgr.SavePerspective()
+            try:
+                self._mgr.LoadPerspective(self.frameData['auiPerspective'])
+            except:
+                self._mgr.LoadPerspective(backup)
         self.SetMinSize(wx.Size(600, 400))  # min size for the whole window
         self.SetSize(
             (int(self.frameData['winW']), int(self.frameData['winH'])))
