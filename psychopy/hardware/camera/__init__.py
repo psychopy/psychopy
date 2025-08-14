@@ -791,8 +791,13 @@ class CameraDevice(BaseDevice):
             return {}
 
         # get metadata from the capture stream
-        return self._capture.get_metadata() if self._capture else {}
-    
+        if self._captureLib == CAMERA_LIB_FFPYPLAYER:
+            return self._capture.get_metadata() if self._capture else {}
+        elif self._captureLib == CAMERA_LIB_OPENCV:
+            return self._metadata
+        else:
+            return {}
+
     @property
     def frameSizeBytes(self):
         """Size of the image in bytes (`int`).
@@ -1086,7 +1091,53 @@ class CameraDevice(BaseDevice):
         It should initialize the camera and prepare it for reading frames.
 
         """
-        pass
+        import cv2
+
+        # open the camera stream
+        self._capture = cv2.VideoCapture(self._device, cv2.CAP_DSHOW)
+        if not self._capture.isOpened():
+            raise CameraNotReadyError(
+                "Failed to open camera stream (possibly caused by a device "
+                "already in use by other application).")
+        
+        # set the camera properties
+        self._capture.set(cv2.CAP_PROP_FRAME_WIDTH, self._frameSize[0])
+        self._capture.set(cv2.CAP_PROP_FRAME_HEIGHT, self._frameSize[1])
+
+        # fourcc is needed to get the right pixel format
+        codecFormat4cc = self._codecFormat if self._codecFormat is not None else 'MJPG'
+        codecFormat4cc = codecFormat4cc.upper()  # ensure it is uppercase
+        if len(codecFormat4cc) != 4:
+            raise ValueError(
+                "Codec format must be a 4-character string. "
+                "Got: {}".format(codecFormat4cc))
+        self._capture.set(
+            cv2.CAP_PROP_FOURCC, 
+            cv2.VideoWriter_fourcc(*codecFormat4cc))
+
+        # set the buffer size (number of frames to buffer)
+        self._capture.set(cv2.CAP_PROP_FPS, self._frameRate)
+        bufferFrames = int(self._bufferSecs * self._frameRate)
+        self._capture.set(cv2.CAP_PROP_BUFFERSIZE, bufferFrames)
+
+        # compute the frame interval, needed for generating timestamps
+        self._frameInterval = 1.0 / self._frameRate
+        self._frameSizeBytes = int(self._frameSize[0] * self._frameSize[1] * 3)
+        self._metadata = {}  # OpenCV does not provide metadata
+
+        # populater metadata using the ffpyplayer format
+        self._metadata['src_vid_size'] = tuple(self._frameSize)
+        self._metadata['src_vid_fps'] = self._frameRate
+        self._metadata['pixel_format'] = self._pixelFormat
+        self._metadata['codec_format'] = self._codecFormat
+        self._metadata['capture_lib'] = self._captureLib
+
+        self._frameCount = 0  # reset the frame count
+
+        logging.debug(
+            "Using camera mode {}x{} at {} fps".format(
+                self._frameSize[0], self._frameSize[1], self._frameRate))
+        logging.debug("Camera metadata: {}".format(self._metadata))
 
     def _closeOpenCV(self):
         """Close the camera stream opened with OpenCV.
@@ -1095,7 +1146,10 @@ class CameraDevice(BaseDevice):
         resources associated with it.
 
         """
-        pass
+        if self._capture is not None:
+            self._capture.release()
+
+        self._capture = None
 
     def _getFramesOpenCV(self):
         """Get the most recent frames from the camera stream opened with OpenCV.
@@ -1107,11 +1161,32 @@ class CameraDevice(BaseDevice):
             frames are available.
 
         """
+        import cv2 
+
         if self._capture is None:
             raise PlayerNotAvailableError(
                 "Camera stream is not open. Call `open()` first.")
         
-        pass
+        # read a frame from the camera stream
+        recentFrames = []
+        while 1:  # read frames until there are no more in the buffer
+            ret, frame = self._capture.read()
+            if not ret:
+                break  # no more frames available
+
+            # get timestamp
+            pts = self._capture.get(cv2.CAP_PROP_POS_MSEC) / 1000.0  # convert to seconds
+            if pts < self._absRecStreamStartTime and self._isRecording:
+                del frame
+
+            recentFrames.append((
+                self._convertFrameToRGBOpenCV(frame), 
+                self._frameCount * self._frameInterval,
+                pts))
+
+            self._frameCount += 1
+
+        return recentFrames
 
     # --------------------------------------------------------------------------
     # Public methods for camera stream management
@@ -1130,6 +1205,13 @@ class CameraDevice(BaseDevice):
         """
         if self._captureLib == 'ffpyplayer':
             self._openFFPyPlayer()
+        elif self._captureLib == 'opencv':
+            self._openOpenCV()
+        else:
+            raise RuntimeError(
+                "Unsupported camera library: {}. Supported libraries are: {}".format(
+                    self._captureLib, 
+                    ', '.join([CAMERA_LIB_FFPYPLAYER, CAMERA_LIB_OPENCV])))
 
         global _openCaptureInterfaces
         _openCaptureInterfaces.add(self)
@@ -1148,6 +1230,8 @@ class CameraDevice(BaseDevice):
 
         if self._captureLib == 'ffpyplayer':
             self._closeFFPyPlayer()
+        elif self._captureLib == 'opencv':
+            self._closeOpenCV()
 
         self._capture = None  # reset the capture object
 
@@ -1205,10 +1289,13 @@ class CameraDevice(BaseDevice):
         self._capture.set_pause(False)  # start the capture stream
 
         # need to use a different timebase on macOS, due to a bug
-        if self._cameraAPI == CAMERA_API_AVFOUNDATION:
-            self._absRecStreamStartTime = time.time()
+        if self._captureLib == 'ffpyplayer':
+            if self._cameraAPI == CAMERA_API_AVFOUNDATION:
+                self._absRecStreamStartTime = time.time()
+            else:
+                self._absRecStreamStartTime = self._capture.get_pts()  # get the absolute start time
         else:
-            self._absRecStreamStartTime = self._capture.get_pts()  # get the absolute start time
+            self._absRecStreamStartTime = time.time()
 
         self._absRecExpStartTime = core.getTime()  # experiment start time in seconds
         self._isRecording = True 
@@ -1224,7 +1311,7 @@ class CameraDevice(BaseDevice):
         """
         return self.record()  # start recording and return the start time
 
-    def stop(self):
+    def stop(self): 
         """Stop recording the camera stream.
 
         This method should be called to stop recording the camera stream. It
@@ -1233,10 +1320,13 @@ class CameraDevice(BaseDevice):
         """
         self._capture.set_pause(True)  # pause the capture stream
 
-        if self._cameraAPI == CAMERA_API_AVFOUNDATION:
-            absStopTime = time.time()
+        if self._captureLib == 'ffpyplayer':
+            if self._cameraAPI == CAMERA_API_AVFOUNDATION:
+                absStopTime = time.time()
+            else:
+                absStopTime = self._capture.get_pts()
         else:
-            absStopTime = self._capture.get_pts()
+            absStopTime = time.time()
 
         self._isRecording = False
 
@@ -1274,6 +1364,13 @@ class CameraDevice(BaseDevice):
         """
         if self._captureLib == 'ffpyplayer':
             return self._getFramesFFPyPlayer()
+        elif self._captureLib == 'opencv':
+            return self._getFramesOpenCV()
+        else:
+            raise RuntimeError(
+                "Unsupported camera library: {}. Supported libraries are: {}".format(
+                    self._captureLib, 
+                    ', '.join([CAMERA_LIB_FFPYPLAYER, CAMERA_LIB_OPENCV])))
         
 
 # class name alias for legacy support
