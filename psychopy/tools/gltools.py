@@ -3979,7 +3979,7 @@ def createVBO(data,
 
     # get the usage hint if a string was passed
     if isinstance(usage, str):
-        usage = GL_ENUMS.get(usage, None)
+        usage = _getGLEnum(usage)
         if usage is None:
             raise ValueError('Invalid `usage` hint string.')
     
