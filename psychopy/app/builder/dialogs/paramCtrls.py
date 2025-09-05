@@ -1347,6 +1347,9 @@ class RichChoiceCtrl(BaseParamCtrl):
 class FileListCtrl(BaseParamCtrl):
     inputType = "fileList"
 
+    dlgWildcard = "All Files (*.*)|*.*"
+    dlgStyle = wx.FD_FILE_MUST_EXIST
+
     class FileListItem(FileCtrl):
         def makeCtrls(self):
             FileCtrl.makeCtrls(self)
@@ -1389,6 +1392,15 @@ class FileListCtrl(BaseParamCtrl):
         self.sizer.Add(
             self.itemsSizer, border=6, proportion=1, flag=wx.EXPAND | wx.BOTTOM
         )
+        # add multiple button
+        self.addManyBtn = wx.Button(self, label=_translate("Add multiple items"))
+        self.addManyBtn.SetBitmap(
+            icons.ButtonIcon("add_many", size=16, theme="light").bitmap
+        )
+        self.sizer.Add(
+            self.addManyBtn, border=6, flag=wx.ALIGN_LEFT | wx.BOTTOM
+        )
+        self.addManyBtn.Bind(wx.EVT_BUTTON, self.addMultiItems)
         # add button
         self.addBtn = wx.Button(self, label=_translate("Add item"))
         self.addBtn.SetBitmap(
@@ -1433,6 +1445,48 @@ class FileListCtrl(BaseParamCtrl):
 
         return item
     
+    def addMultiItems(self, evt=None):
+        """
+        Add several new items to this ctrl
+        """
+        items = []
+        # open a file browser dialog
+        dlg = wx.FileDialog(
+            self, 
+            message=_translate("Specify file..."), 
+            defaultDir=str(self.rootDir),
+            style=wx.FD_OPEN | wx.FD_MULTIPLE | self.dlgStyle,
+            wildcard=self.dlgWildcard,
+        )
+        if dlg.ShowModal() != wx.ID_OK:
+            return
+        # get path
+        for file in dlg.GetPaths():
+            # relativise
+            try:
+                filename = Path(file).relative_to(self.rootDir)
+            except ValueError:
+                filename = Path(file).absolute()
+            # make a file control for a param not attached to anything
+            item = self.FileListItem(
+                parent=self, 
+                field=str(len(self.items)),
+                param=Param(str(filename).replace("\\", "/"), valType="str", inputType="file"),
+                element=self.element,
+                warnings=self.warnings
+            )
+            items.append(item)
+            # append it to items array
+            self.items.append(item)
+            # add it to the items sizer
+            self.itemsSizer.Add(
+                item, border=6, flag=wx.EXPAND | wx.BOTTOM
+            )
+
+        self.layout()
+
+        return items
+    
     def clearItems(self):
         """
         Clear all items from this ctrl
@@ -1466,6 +1520,19 @@ class FileListCtrl(BaseParamCtrl):
     def validate(self):
         for item in self.items:
             item.validate()
+    
+    @property
+    def rootDir(self):
+        # if no element, use system root
+        if self.element is None or not hasattr(self.element, "exp"):
+            return Path()
+        # otherwise, get from experiment
+        root = Path(self.element.exp.filename)
+        # move up a dir if root is a file
+        if root.is_file():
+            root = root.parent
+        
+        return root
 
 
 class DictCtrl(BaseParamCtrl):
