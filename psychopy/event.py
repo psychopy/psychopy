@@ -874,23 +874,28 @@ class Mouse:
 
         """
         global mouseButtons, mouseTimes
-        if usePygame:
-            return mouse.get_pressed()
-        else:
+
+        if self.win is None:  # no backend specified
+            return None
+
+        if havePyglet and self.win.winType == 'pyglet':
             # for each (pyglet) window, dispatch its events before checking
             # event buffer
-            if havePyglet:
-                for win in pyglet.app.windows:
-                    win.dispatch_events()  # pump events on pyglet windows
+            for win in pyglet.app.windows:
+                win.dispatch_events()  # pump events on pyglet windows
+        elif haveGLFW and self.win.winType == 'glfw':
+            glfw.poll_events()
+        elif havePygame and self.win.winType == 'pygame':
+            return mouse.get_pressed()
+        else:
+            raise RuntimeError(
+                "Mouse.getPressed() is only supported for the pyglet, "
+                                      "pygame and glfw backends.")  
 
-            if haveGLFW:
-                glfw.poll_events()
-
-            # else:
-            if not getTime:
-                return copy.copy(mouseButtons)
-            else:
-                return copy.copy(mouseButtons), copy.copy(mouseTimes)
+        if not getTime:
+            return copy.copy(mouseButtons)
+        else:
+            return copy.copy(mouseButtons), copy.copy(mouseTimes)
 
     def isPressedIn(self, shape, buttons=(0, 1, 2)):
         """Returns `True` if the mouse is currently inside the shape and
