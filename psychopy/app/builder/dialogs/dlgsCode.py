@@ -78,6 +78,9 @@ class DlgCodeComponentProperties(wx.Dialog):
 
         for paramN, paramName in enumerate(self.order):
             param = self.params.get(paramName)
+            # skip names in order which aren't in params
+            if param is None:
+                continue
             if paramName == 'name':
                 self.nameLabel = wx.StaticText(self, wx.ID_ANY,
                                                _translate(param.label))

@@ -637,10 +637,7 @@ class ParamNotebook(wx.Notebook, handlers.ThemeMixin):
             # Bind change event
             page.Bind(paramCtrls.EVT_PARAM_CHANGED, self.emitChangeEvent)
             # Add page to notebook
-            self.AddPage(page, _translate(categ))
-    
-    def emitChangeEvent(self, evt): 
-        wx.PostEvent(self, evt)
+            self.AddPage(page, _translate(categ or ""))
 
     def checkDepends(self, event=None):
         """

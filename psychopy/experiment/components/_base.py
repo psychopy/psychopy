@@ -71,7 +71,7 @@ class BaseComponent:
         msg = _translate(
             "Name of this Component (alphanumeric or _, no spaces)")
         self.params['name'] = Param(name,
-            valType='code', inputType="name", categ='Basic',
+            valType='code', inputType="name", categ=None,
             hint=msg,
             label=_translate("Name"))
 
@@ -131,9 +131,58 @@ class BaseComponent:
 
         msg = _translate("Disable this Component")
         self.params['disabled'] = Param(disabled,
-            valType='bool', inputType="bool", categ="Testing",
+            valType='bool', inputType="bool", categ=None,
             hint=msg, allowedTypes=[], direct=False,
             label=_translate('Disable Component'))
+    
+    @classmethod
+    def getTemplateJSON(cls):
+        from psychopy.experiment import Experiment
+        # include basic info
+        profile = {
+            '__class__': f"{cls.__module__}:{cls.__qualname__}",
+            '__name__': cls.__name__,
+            "categories": cls.categories,
+            "targets": cls.targets,
+            "plugin": cls.plugin,
+            "iconFile": cls.iconFile,
+            "tooltip": cls.tooltip,
+            "version": cls.version,
+            "beta": cls.beta,
+            "validatorClasses": cls.validatorClasses,
+            "hidden": cls.hidden,
+            "params": {}
+        }
+        # make an object for defaults
+        exp = Experiment()
+        defaults = cls(exp, "")
+        # order params
+        order = [
+            name for name in defaults.order if name in defaults.params
+        ] + [
+            name for name in defaults.params if name not in defaults.order
+        ]
+        # populate params in order
+        for name in order:
+            # make template
+            profile['params'][name] = defaults.params[name].getTemplateJSON(
+                name=name, depends=defaults.depends
+            )
+
+        return profile
+    
+    def getJSON(self):
+        # populate basic info
+        profile = {
+            'tag': type(self).__name__,
+            'plugin': self.plugin,
+            'params': {}
+        }
+        # populate params
+        for name, param in self.params.items():
+            profile['params'][name] = param.getJSON()
+        
+        return profile
 
     @property
     def _xml(self):

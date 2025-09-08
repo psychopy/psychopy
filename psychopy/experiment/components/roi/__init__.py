@@ -62,10 +62,10 @@ class RegionOfInterestComponent(PolygonComponent):
 
         self.depends.append(
             {"dependsOn": "endRoutineOn",  # must be param name
-             "condition": "=='none'",  # val to check for
+             "condition": "!='none'",  # val to check for
              "param": "lookDur",  # param property to alter
-             "true": "hide",  # what to do with param if condition is True
-             "false": "show",  # permitted: hide, show, enable, disable
+             "true": "show",  # what to do with param if condition is True
+             "false": "hide",  # permitted: hide, show, enable, disable
              }
         )
 

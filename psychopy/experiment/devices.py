@@ -27,29 +27,10 @@ class DeviceMixin:
         self.order += [
             "deviceLabel"
         ]
-        # functions for getting device labels
-        def getDevices():
-            # start with default
-            devices = [("", _translate("Default"))]
-            # iterate through saved devices
-            for name, device in prefs.devices.items():
-                # iterate through backends for this Component
-                for backend in self.backends:
-                    # if device is the correct type, include it
-                    if isinstance(device, backend):
-                        devices.append(
-                            (name, name)
-                        )
-            return devices
-        def getLabels():
-            return [device[1] for device in getDevices()]
-        def getValues():
-            return [device[0] for device in getDevices()]
         # label to refer to device by
         self.params['deviceLabel'] = Param(
             defaultLabel, valType="device", inputType="device", categ="Device",
-            allowedVals=getValues,
-            allowedLabels=getLabels,
+            allowedVals=list(self.backends),
             label=_translate("Device"),
             hint=_translate(
                 "The named device from Device Manager to use for this Component."
@@ -83,6 +64,8 @@ class DeviceBackend:
     icon = None
     # class of the device which this backend corresponds to
     deviceClass = "psychopy.hardware.base.BaseDevice"
+
+    plugin = None
       
     def __init__(self, profile):
         # store device profile
@@ -92,7 +75,7 @@ class DeviceBackend:
         self.order = []
         # add a param for the device label to all backends
         self.params['deviceLabel'] = Param(
-            "", valType="str", inputType="name",
+            "", valType="str", inputType="name", categ=None,
             label=_translate("Device label"),
             hint=_translate(
                 "A name to refer to this device by in Device Manager."
@@ -111,6 +94,32 @@ class DeviceBackend:
         return (
             f"<{type(self).__name__}: name={self.name}>"
         )
+
+    @classmethod
+    def getTemplateJSON(cls):
+        profile = {
+            '__class__': f"{cls.__module__}:{cls.__qualname__}",
+            '__name__': cls.__name__,
+            'plugin': cls.plugin,
+            'profile': {},
+            'params': {}
+        }
+        # make an object for defaults
+        defaults = cls({'deviceName': None})
+        # order params
+        order = [
+            name for name in defaults.order if name in defaults.params
+        ] + [
+            name for name in defaults.params if name not in defaults.order
+        ]
+        # populate params in order
+        for name in order:
+            # make template
+            profile['params'][name] = defaults.params[name].getTemplateJSON(
+                name=name, depends=getattr(defaults, 'depends', None)
+            )
+
+        return profile
     
     def getParams(self):
         """
