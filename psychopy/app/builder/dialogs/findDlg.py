@@ -215,6 +215,14 @@ def compareStrings(text, term, caseSensitive, regex):
     return term in text
 
 
+def compareParam(param, term, caseSensitive, regex):
+    val = compareStrings(str(param.val), term, caseSensitive, regex)
+    if "set during:" in str(param.updates):
+        updates = compareStrings(str(param.updates), term, caseSensitive, regex)
+
+    return val or updates
+
+
 def getParamLocations(exp, term, caseSensitive=False, regex=False):
     """
     Get locations of params containing the given term.
@@ -239,7 +247,7 @@ def getParamLocations(exp, term, caseSensitive=False, regex=False):
         if isinstance(rt, experiment.routines.BaseStandaloneRoutine):
             # find in standalone routine
             for paramName, param in rt.params.items():
-                if compareStrings(str(param.val), term, caseSensitive, regex):
+                if compareParam(param, term, caseSensitive, regex):
                     # append path (routine -> param)
                     found.append(
                         (None, rt, paramName, param)
@@ -248,7 +256,7 @@ def getParamLocations(exp, term, caseSensitive=False, regex=False):
             # find in regular routine
             for comp in rt:
                 for paramName, param in comp.params.items():
-                    if compareStrings(str(param.val), term, caseSensitive, regex):
+                    if compareParam(param, term, caseSensitive, regex):
                         # treat RoutineSettings as synonymous with the Routine
                         if isinstance(comp, RoutineSettingsComponent):
                             parent = None
@@ -263,7 +271,7 @@ def getParamLocations(exp, term, caseSensitive=False, regex=False):
         if isinstance(obj, experiment.loops.LoopInitiator):
             loop = obj.loop
             for paramName, param in loop.params.items():
-                if compareStrings(str(param.val), term, caseSensitive, regex):
+                if compareParam(param, term, caseSensitive, regex):
                     # append path (loop -> param)
                     found.append(
                         (None, obj, paramName, param)
