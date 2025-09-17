@@ -58,11 +58,6 @@ dependencies = [
     "python-bidi",
     "arabic-reshaper",
     "websockets",  # new in 2023.2 for session.py
-    # for the app
-    "wxPython >= 4.1.1",
-    "markdown-it-py",
-    "requests",
-    "future",  # only to support legacy versions in useVersion
     # supporting plugins
     "setuptools==70.3.0",  # py2app issues https://github.com/ronaldoussoren/py2app/issues/531
     # pavlovia connections
@@ -135,6 +130,12 @@ legacy = [
     "pyo>=1.0.3",
     "pyglfw",
     "pygame",
+]
+app = [
+    "wxPython >= 4.1.1",
+    "markdown-it-py",
+    "requests",
+    "future",  # only to support legacy versions in useVersion
 ]
 
 [project.urls]
