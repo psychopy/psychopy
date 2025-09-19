@@ -3497,10 +3497,30 @@ def _getCameraInfoWindows():
     return videoDevices
 
 
+def _getCameraInfoLinux():
+    """Get a list of capabilities associated with a camera attached to the 
+    system.
+
+    This is used by `getCameraInfo()` for querying camera details on Linux.
+    Don't call this function directly unless testing.
+
+    Returns
+    -------
+    list of CameraInfo
+        List of camera descriptors.
+
+    """
+    if platform.system() != 'Linux':
+        raise OSError(
+            "Cannot query cameras with this function, platform not 'Linux'.")
+
+
+
 # Mapping for platform specific camera getter functions used by `getCameras`.
 _cameraGetterFuncTbl = {
     'Darwin': _getCameraInfoMacOS,
-    'Windows': _getCameraInfoWindows
+    'Windows': _getCameraInfoWindows,
+    'Linux': _getCameraInfoLinux,  # DirectShow via FFPyPlayer works on Linux too
 }
 
 
