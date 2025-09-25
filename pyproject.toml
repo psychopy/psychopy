@@ -43,6 +43,7 @@ dependencies = [
     "psychtoolbox; platform_machine!='arm64'",
     # for iohub
     "pywinhook; platform_system == \"Windows\"",
+    "zope.event==5.0",  # py2app+gevent complains about zope.event 5.1
     "gevent",
     "MeshPy",
     "psutil",
