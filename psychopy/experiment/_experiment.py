@@ -843,6 +843,105 @@ class Experiment:
             modifiedNames.append(routineNode.get('name'))
         self.namespace.add(routineGoodName)
         return routineGoodName
+    
+    def getJSON(self):
+        return {
+            'filename': self.filename,
+            'version': self.psychopyVersion,
+            'settings': self.settings.getJSON(),
+            'routines': [rt.getJSON() for rt in self.routines],
+            'flow': self.flow.getJSON()
+        }
+    
+    @staticmethod
+    def fromJSON(filename, data):
+        # make new Experiment
+        exp = Experiment()
+        # load file
+        exp.applyJSON(data)
+
+        return exp
+
+    def applyJSON(self, data):
+        # get all element classes
+        standaloneRoutines = getAllStandaloneRoutines()
+        components = getAllComponents()
+        from psychopy.experiment.components.unknown import UnknownComponent
+        from psychopy.experiment.components.unknownPlugin import UnknownPluginComponent
+        from psychopy.experiment.routines.unknown import UnknownRoutine
+        # start off blank
+        self.flow = Flow(exp=self)
+        self.routines = {}
+        self.namespace = NameSpace(self)
+        # apply basics
+        self.filename = data['filename']
+        self.psychopyVersion = data['version']
+        # apply settings
+        for paramName, param in self.settings.params.items():
+            param.applyJSON(data['settings']['params'][paramName])
+        # create routines
+        for rtName, rtProfile in data['routines'].items():
+            # for a regular Routine...
+            if rtProfile['tag'] == "Routine":
+                # make Routine
+                rt = Routine(
+                    name=rtName,
+                    exp=self
+                )
+                # apply settings
+                for paramName, param in rt.settings.params.items(): 
+                    param.applyJSON(rtProfile['settings']['params'][paramName])
+                # make each Component
+                for compProfile in rtProfile['components']:
+                    # get comp class if possible
+                    if compProfile['tag'] in components:
+                        cls = components[compProfile['tag']]
+                    else:
+                        # if not possible, use UnknownPluginComponent or UnknownComponent depending
+                        # on whether profile specifies a plugin
+                        if compProfile['plugin']:
+                            cls = UnknownPluginComponent
+                        else:
+                            cls = UnknownComponent
+                    # make component
+                    comp = cls(
+                        exp=self,
+                        parentName=rtName
+                    )
+                    comp.plugin = compProfile['plugin']
+                    # apply params
+                    for paramName, param in comp.params.items():
+                        param.applyJSON(compProfile['params'][paramName])
+                    # append to Routine
+                    rt.append(comp)
+            else:
+                # get rt class if possible
+                if rtProfile['tag'] in standaloneRoutines:
+                    cls = standaloneRoutines[rtProfile['tag']]
+                else:
+                    # if not possible, use UnknownRoutine
+                    cls = UnknownRoutine
+                # make rt
+                rt = cls(
+                    exp=self, 
+                    name=rtName
+                )
+                # apply params
+                for paramName, param in rt.params.items():
+                    param.applyJSON(rtProfile['params'][paramName])
+            # append to experiment
+            self.routines[rtName] = rt
+        # populate flow
+        for nodeProfile in data['flow']:
+            if "ref" in nodeProfile:
+                # if node is a reference, get routine
+                node = self.routines.get(nodeProfile['ref'], None)
+            else:
+                # otherwise, make the node from tag
+                # todo: recreate initiator from JSON
+                pass
+            # append node
+            self.flow.append(node)
 
     def loadFromXML(self, filename):
         """Loads an xml file and parses the builder Experiment from it

@@ -35,6 +35,14 @@ def getAllElements(fetchIcons=True):
     return comps
 
 
+def getElementProfiles():
+    return {
+        key: cls.getTemplateJSON() 
+        for key, cls 
+        in getAllElements().items()
+    }
+
+
 def getAllCategories():
     """
     Get all categories which components and standalone routines can be

@@ -71,6 +71,17 @@ participantIdAliases = ('participant', 'Participant', 'Subject', 'Observer')
 #         pass
 
 
+def getVersions():
+    """
+    Search for options locally available
+    """
+    import psychopy.tools.versionchooser as versions
+    available = versions._versionFilter(versions.versionOptions(), wx_version)
+    available += ['']
+    available += versions._versionFilter(versions.availableVersions(), wx_version)
+    return available
+
+
 class SettingsComponent:
     """This component stores general info about how to run the experiment
     """
@@ -187,16 +198,6 @@ class SettingsComponent:
                 "recommended while the experiment is a work in progress."
             )
         )
-
-        def getVersions():
-            """
-            Search for options locally available
-            """
-            import psychopy.tools.versionchooser as versions
-            available = versions._versionFilter(versions.versionOptions(), wx_version)
-            available += ['']
-            available += versions._versionFilter(versions.availableVersions(), wx_version)
-            return available
 
         self.params['Use version'] = Param(
             useVersion, valType='str', inputType="choice",

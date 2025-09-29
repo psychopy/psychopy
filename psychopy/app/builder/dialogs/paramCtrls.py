@@ -1136,9 +1136,19 @@ class CodeCtrl(BaseParamCtrl, handlers.ThemeMixin):
     inputType = "code"
 
     def makeCtrls(self):
+        # use allowedVals to get language
+        if isinstance(self.param.allowedVals, str):
+            codeType = {
+                'python': "Py",
+                'javascript': "JS",
+            }.get(self.param.allowedVals)
+        else:
+            codeType = "txt"
+        # make code box
         self.ctrl = CodeBox(
             self, wx.ID_ANY, prefs, 
-            pos=wx.DefaultPosition, size=(-1, 128), style=wx.DEFAULT
+            pos=wx.DefaultPosition, size=(-1, 128), style=wx.DEFAULT,
+            codeType=codeType
         )
         self.sizer.Add(
             self.ctrl, proportion=1, flag=wx.EXPAND | wx.ALL
