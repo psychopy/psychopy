@@ -1386,7 +1386,7 @@ class Session:
         # rewind trials in current loop
         return self.currentExperiment.rewindTrials(n)
 
-    def queueTrial(self, trial, isTrials=True):
+    def cueTrial(self, trial, isTrials=True):
         """
         Queue up a trial to be next in the current TrialHandler.
 
@@ -1401,7 +1401,7 @@ class Session:
         if self.currentExperiment is None:
             return
         
-        return self.currentExperiment.queueTrial(trial)
+        return self.currentExperiment.cueTrial(trial)
 
     def saveExperimentData(self, key, thisExp=None, blocking=True):
         """

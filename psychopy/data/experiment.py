@@ -578,7 +578,7 @@ class ExperimentHandler(_ComparisonMixin):
         # rewind trials in current loop
         return loop.rewindTrials(n)
     
-    def queueTrial(self, trial, isTrials=True):
+    def cueTrial(self, trial, isTrials=True):
         """
         Queue up a trial to be next in the current TrialHandler.
 
@@ -594,7 +594,7 @@ class ExperimentHandler(_ComparisonMixin):
         if not isinstance(loop, TrialHandler2):
             return
         
-        return loop.queueTrial(trial)
+        return loop.cueTrial(trial)
     
     def getAllTrials(self, isTrials=True):
         """

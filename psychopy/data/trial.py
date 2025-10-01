@@ -1337,7 +1337,7 @@ class TrialHandler2(_BaseTrialHandler):
 
         return self.thisTrial
 
-    def queueTrial(self, trial):
+    def cueTrial(self, trial):
         """
         Queue up a trial to be next in the trial order.
 
