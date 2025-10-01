@@ -44,7 +44,7 @@ dependencies = [
     # for iohub
     "pywinhook; platform_system == \"Windows\"",
     "zope.event==5.0",  # py2app+gevent complains about zope.event 5.1
-    "gevent",
+    "gevent==25.5.1",  # macos wheels for >2.5.1 are py3.12 only
     "MeshPy",
     "psutil",
     "pyzmq>=22.2.1",
