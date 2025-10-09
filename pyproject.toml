@@ -70,7 +70,6 @@ dependencies = [
     "gitpython",
     "cryptography",  # for sshkeys
     # psychoJS conversions
-    "javascripthon @ git+https://gitlab.com/peircej/metapensiero.pj",  # until fixes dukpy depend
     "astunparse",
     "esprima",
     "jedi >= 0.16",

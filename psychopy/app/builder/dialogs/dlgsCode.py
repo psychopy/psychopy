@@ -16,14 +16,12 @@ from collections import OrderedDict
 from psychopy.experiment.components.code import CodeComponent
 from ..validators import WarningManager
 from ...themes import handlers
-
-from importlib.util import find_spec as loader
-hasMetapensiero = loader("metapensiero") is not None
+import importlib
 
 from .. import validators
 from psychopy.localization import _translate
 from psychopy.app.coder.codeEditorBase import BaseCodeEditor
-from psychopy.experiment.py2js_transpiler import translatePythonToJavaScript
+from psychopy.experiment import py2js_transpiler
 
 
 class DlgCodeComponentProperties(wx.Dialog):
@@ -68,6 +66,29 @@ class DlgCodeComponentProperties(wx.Dialog):
             # then we're adding a new component so ensure a valid name:
             makeValid = self.frame.exp.namespace.makeValid
             self.params['name'].val = makeValid(self.params['name'].val)
+        
+        # if metapensiero isn't installed, install to the user folder now
+        if py2js_transpiler.translates is None:
+            # ask before installing
+            dlg = wx.MessageDialog(
+                self,
+                message=_translate(
+                    "Could not detect the necessary Python library for translating code. Install "
+                    "it now?"
+                ),
+                style=wx.YES | wx.NO
+            )
+            if dlg.ShowModal() == wx.ID_YES:
+                # install if they say yes
+                from psychopy.tools import pkgtools
+                pkgtools.installPackage(
+                    "git+https://gitlab.com/peircej/metapensiero.pj"
+                )
+            # try to import again now that it exists
+            try:
+                py2js_transpiler.translates = importlib.import_module("metapensiero.pj.api")
+            except ModuleNotFoundError:
+                pass
 
         self.codeNotebook = wx.Notebook(self)
         # in AUI notebook the labels are blurry on retina mac
@@ -98,7 +119,7 @@ class DlgCodeComponentProperties(wx.Dialog):
                 _selectedCodeTypeIndex = _codeTypes.index(_selectedCodeType)
                 self.codeTypeMenu = wx.Choice(self, choices=_codeTypes)
                 # If user does not have metapensiero but codetype is auto-js, revert to (Py?)
-                if not hasMetapensiero and _selectedCodeType.lower() == 'auto->js':
+                if not py2js_transpiler.translates is not None and _selectedCodeType.lower() == 'auto->js':
                     _selectedCodeTypeIndex -= 1
                 # Set selection to value stored in self params
                 self.codeTypeMenu.SetSelection(_selectedCodeTypeIndex)
@@ -233,7 +254,7 @@ class DlgCodeComponentProperties(wx.Dialog):
         """
         prevCodeType, param = self.codeChoice
         # If user doesn't have metapensiero and current choice is auto-js...
-        if not hasMetapensiero and param.val.lower() == "auto->js" :
+        if not py2js_transpiler.translates is not None and param.val.lower() == "auto->js" :
             # Throw up error dlg instructing to get metapensiero
             msg = _translate("\nPy to JS auto-translation requires the metapensiero library.\n"
                    "Available for Python 3.5+.\n")
@@ -312,7 +333,7 @@ class DlgCodeComponentProperties(wx.Dialog):
 
         try:
             if pythonCode:
-                jsCode = translatePythonToJavaScript(pythonCode, namespace=None)
+                jsCode = py2js_transpiler.translatePythonToJavaScript(pythonCode, namespace=None)
 
             if codeChangeTest:
                 return jsCode
