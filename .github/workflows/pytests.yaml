@@ -71,6 +71,7 @@ jobs:
         pip install wheel
         pip install six  # for configobj and wxpython
         pip install attrdict3  # used by wxpython setup
+        pip install git+https://gitlab.com/peircej/metapensiero.pj  # git install of metapensiero for translation
         python ./building/plat_custom_installs.py
 
         pip install pdm
