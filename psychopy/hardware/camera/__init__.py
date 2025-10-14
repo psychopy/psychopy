@@ -498,7 +498,7 @@ class CameraDevice(BaseDevice):
                     continue
                 
                 foundProfile = profile
-                device = profile['device']
+                device = profile['deviceName']
 
                 break
 
@@ -546,7 +546,8 @@ class CameraDevice(BaseDevice):
             self._cameraAPI = captureAPI
         
         # store device info
-        profile = self.getDeviceProfile()
+        # NB - Move above logic into `getDeviceProfile` at some point
+        profile = foundProfile   # self.getDeviceProfile()
         if profile:
             self.info = CameraInfo(
                 name=profile['deviceName'],
@@ -2096,10 +2097,7 @@ class Camera:
         # desc = self._cameraInfo.description()
         
         self._capture.open()
-
-        if self.win is not None:
-            # if we have a window, setup texture buffers for displaying
-            self._setupTextureBuffers()
+        self.setWin(self._win)  # set the window (if any)
         
         # open the mic when the camera opens
         if hasattr(self.mic, "open"):
@@ -2838,6 +2836,9 @@ class Camera:
         """
         self._win = win
 
+        if self._capture is None or not self._capture.isOpen:
+            return  # nothing to do if we don't have a player
+
         # if we have a window, setup texture buffers for displaying
         if self._win is not None:
             self._setupTextureBuffers()
@@ -2988,7 +2989,7 @@ class Camera:
             return  # no window to render to
         
         import pyglet.gl as GL
-
+        
         # get the size of the movie frame and compute the buffer size
         vidWidth, vidHeight = self.frameSize
         
