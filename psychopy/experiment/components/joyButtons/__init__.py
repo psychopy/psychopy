@@ -132,7 +132,7 @@ class JoyButtonsComponent(BaseComponent):
         buff.writeIndentedLines(code % self.params)
 
         buff.setIndentLevel(+1, relative=True)
-        code = ("numJoysticks = joysticklib.getNumJoysticks()\n"
+        code = ("numJoysticks = len(joysticklib.Joystick.getAvailableDevices())\n"
                 "if numJoysticks > 0:\n")
         buff.writeIndentedLines(code % self.params)
 
