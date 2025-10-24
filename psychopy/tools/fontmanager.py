@@ -1052,6 +1052,14 @@ class FontFinder:
                 output.add(match)
             
             return output
+        # if given a list, call on each item
+        if isinstance(folder, (tuple, list)):
+            for subfolder in folder:
+                output = output.union(
+                    cls.getFolderFontFiles(subfolder, recursive=recursive)
+                )
+            
+            return output
         # pathify folder
         thisFolder = Path(folder)
         # try each extension
@@ -1061,7 +1069,7 @@ class FontFinder:
                 if recursive:
                     matches = thisFolder.rglob(f"**/*.{ext}")
                 else:
-                    matches = thisFolder.glob("*.{ext}")
+                    matches = thisFolder.glob(f"*.{ext}")
             except PermissionError:
                 # catch permission
                 logging.warning(f"The fonts folder '{thisFolder}' exists but the current user doesn't have read "
@@ -1091,7 +1099,7 @@ class FontFinder:
             Dict of font families, each one containing a list of FontInfo objects for each style
         """
         fonts = {}
-        # search in font folders within PsychoPy
+        # search in the given folder(s)
         for file in cls.getFolderFontFiles(folder, recursive=recursive):
             # get font details
             info = FontInfo(file)
