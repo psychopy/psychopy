@@ -323,7 +323,7 @@ class SettingsComponent:
             colorSpace, valType='str', inputType="choice",
             hint=_translate("Needed if color is defined numerically (see "
                             "PsychoPy documentation on color spaces)"),
-            allowedVals=['rgb', 'dkl', 'lms', 'hsv', 'hex'],
+            allowedVals=['named', 'hex', 'rgb', 'dkl', 'lms', 'hsv'],
             label=_translate("Color space"), categ="Screen")
         self.params['backgroundImg'] = Param(
             backgroundImg, valType="str", inputType="file", categ="Screen",

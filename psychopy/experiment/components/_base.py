@@ -1532,7 +1532,7 @@ class BaseVisualComponent(BaseComponent):
                          "the colors? (rgb, dkl, lms, hsv)")
         self.params['colorSpace'] = Param(colorSpace,
             valType='str', inputType="choice", categ='Appearance',
-            allowedVals=['rgb', 'dkl', 'lms', 'hsv'],
+            allowedVals=['named', 'hex', 'rgb', 'dkl', 'lms', 'hsv'],
             updates='constant',
             hint=msg,
             label=_translate("Color space"))
