@@ -50,7 +50,7 @@ class DevicePanel(ScrolledPanel):
         for categ in sortedParams:
             # if categ if Basic, add to root sizer
             toggle = None
-            if categ == "Basic":
+            if categ in ("Basic", None):
                 categSizer = self.sizer
             else:
                 # otherwise, make a show/hider
