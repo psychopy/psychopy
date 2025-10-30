@@ -90,6 +90,6 @@ class DeviceConfig(dict):
         # save
         self.file.write_text(
             json.dumps({
-                key: device.toJSON() for key, device in self.items()
+                key: device.getJSON() for key, device in self.items()
             }, indent=True)
         )

@@ -246,7 +246,7 @@ class DeviceBackend:
             if name in self.params:
                 self.params[name].applyJSON(val)
     
-    def toJSON(self):
+    def getJSON(self):
         """
         Get this object as a JSON dict.
 
@@ -269,7 +269,7 @@ class DeviceBackend:
         }
         # add params
         for key, param in self.params.items():
-            data['params'][key] = param.toJSON()
+            data['params'][key] = param.getJSON()
         
         return data
     
