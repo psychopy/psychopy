@@ -39,6 +39,16 @@ inputTypes = {}
 EVT_PARAM_CHANGED = wx.PyEventBinder(wx.IdManager.ReserveId())
 emptyNamespace = NameSpace(experiment.Experiment())
 
+# get if dark theme
+_appearanceSettings = wx.SystemSettings.GetAppearance()
+if _appearanceSettings.Name != '':
+    logging.error(
+        "Unable to get system appearance settings, UI may use incorrect " \
+        "colors.")
+    _isDarkMode = False
+else:
+    _isDarkMode = _appearanceSettings.IsDark()
+
 
 class ParamValueChangedEvent(wx.CommandEvent):
     def __init__(self, obj, param, trigger=None):
@@ -381,9 +391,14 @@ class SingleLineCtrl(BaseParamCtrl):
     def styleValid(self):
         # text turns red if invalid
         if self.isValid:
-            self.ctrl.SetForegroundColour(
-                colors.scheme['black']
-            )
+            if _isDarkMode:
+                self.ctrl.SetForegroundColour(
+                    colors.scheme['white']
+                )
+            else:
+                self.ctrl.SetForegroundColour(
+                    colors.scheme['black']
+                )
         else:
             self.ctrl.SetForegroundColour(
                 colors.scheme['red']

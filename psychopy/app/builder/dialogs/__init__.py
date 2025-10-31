@@ -39,6 +39,16 @@ from pathlib import Path
 
 from ...themes import handlers, icons
 
+# get if dark theme
+_appearanceSettings = wx.SystemSettings.GetAppearance()
+if _appearanceSettings.Name != '':
+    logging.error(
+        "Unable to get system appearance settings, UI may use incorrect " \
+        "colors.")
+    _isDarkMode = False
+else:
+    _isDarkMode = _appearanceSettings.IsDark()
+
 white = wx.Colour(255, 255, 255, 255)
 codeSyntaxOkay = wx.Colour(220, 250, 220, 255)  # light green
 
@@ -1454,7 +1464,10 @@ class DlgLoopProperties(_BaseParamsDlg):
                 ctrls.valueCtrl = wx.StaticText(panel, label=text,
                                                 style=wx.ALIGN_CENTER)
                 if OK:
-                    ctrls.valueCtrl.SetForegroundColour("Black")
+                    if _isDarkMode:
+                        ctrls.valueCtrl.SetForegroundColour("White")
+                    else:
+                        ctrls.valueCtrl.SetForegroundColour("Black")
                 else:
                     ctrls.valueCtrl.SetForegroundColour("Red")
                 if hasattr(ctrls.valueCtrl, "_szr"):
@@ -1719,7 +1732,10 @@ class DlgLoopProperties(_BaseParamsDlg):
         # Do actual value setting
         self.currentCtrls['conditions'].setValue(msg)
         if valid:
-            self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Black")
+            if _isDarkMode:
+                self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("White")
+            else:
+                self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Black")
         else:
             self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Red")
         self.Layout()
