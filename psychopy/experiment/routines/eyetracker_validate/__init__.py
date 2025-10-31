@@ -131,7 +131,7 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
 
         self.params['colorSpace'] = Param(colorSpace,
                                           valType='str', inputType="choice", categ='Target',
-                                          allowedVals=['rgb', 'dkl', 'lms', 'hsv'],
+                                          allowedVals=['named', 'hex', 'rgb', 'dkl', 'lms', 'hsv'],
                                           hint=_translate(
                                               "In what format (color space) have you specified the colors? (rgb, dkl, lms, hsv)"),
                                           label=_translate("Color space"))

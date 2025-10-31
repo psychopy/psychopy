@@ -129,7 +129,7 @@ class RoutineSettingsComponent(BaseComponent):
             colorSpace, valType='str', inputType="choice", categ="Window",
             hint=_translate("Needed if color is defined numerically (see "
                             "PsychoPy documentation on color spaces)"),
-            allowedVals=['rgb', 'dkl', 'lms', 'hsv', 'hex'],
+            allowedVals=['named', 'hex', 'rgb', 'dkl', 'lms', 'hsv'],
             label=_translate("Color space"))
         self.params['backgroundImg'] = Param(
             backgroundImg, valType="str", inputType="file", categ="Window",
