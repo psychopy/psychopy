@@ -13,6 +13,7 @@ import argparse
 import shutil
 import argparse
 import functools
+import json
 
 unbuffered_print = functools.partial(print, flush=True)
 
@@ -278,7 +279,13 @@ class AppSigner:
         if exitcode != 0:
             unbuffered_print("`xcrun notarytool wait` returned exit code {exitcode}. Exiting immediately.")
             exit(exitcode)
-
+        if logFile:  # check the log file for success if there is one
+            # NB not usually for dmg as the main checks are done when notarizing the zip
+            log = json.loads(Path(logFile).read_text())
+            if log['status'] != 'Accepted':
+                unbuffered_print(f"Notarization failed: {log['status']}")
+                unbuffered_print(json.dumps(log, indent=2))
+                exit(1)
 
     def staple(self, filepath):
         cmdStr = f'xcrun stapler staple {filepath}'; sys.stdout.flush()

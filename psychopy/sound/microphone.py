@@ -219,6 +219,8 @@ class Microphone:
         clear : bool
             If True, clips will be removed from this object once saved to files.
         """
+        # bank just in case there's any unfinished clips
+        self.bank(tag="unfinished", transcribe=False)
         # iterate through all clips
         for tag in self.clips:
             logging.info(f"Saving {len(self.clips[tag])} audio clips with tag {tag}")

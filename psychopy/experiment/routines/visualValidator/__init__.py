@@ -20,6 +20,7 @@ class VisualValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
 
     categories = ['Validation']
     iconFile = Path(__file__).parent / 'visual_validator.png'
+    iconSVG = Path(__file__).parent / 'VisualValidatorRoutine.svg'
     tooltip = _translate(
         "Use a light sensor to confirm that visual stimuli are presented when they should be."
     )
@@ -130,17 +131,6 @@ class VisualValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             "deviceBackend",
             "channel",
         ]
-        # label to refer to device by
-        def getDeviceLabels():
-            # start with none
-            labels = []
-            # iterate through saved devices
-            for name, profile in prefs.devices.items():
-                # if device is the correct type, include it
-                if profile.get("deviceClass", None) in self.deviceClasses:
-                    labels.append(name)
-
-            return labels
         self.params['channel'] = Param(
             channel, valType="code", inputType="single", categ="Device",
             label=_translate("Light sensor channel"),
@@ -149,61 +139,35 @@ class VisualValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
                 "from other light sensors on the same port. Leave blank to use the first light sensor "
                 "which can detect the Window."
             )
-        )
+        )     
 
-    def writeDeviceCode(self, buff):
-        """
-        Code to setup the CameraDevice for this component.
-
-        Parameters
-        ----------
-        buff : io.StringIO
-            Text buffer to write code to.
-        """
-        # do usual backend-specific device code writing
-        PluginDevicesMixin.writeDeviceCode(self, buff)
-        # get inits
+    def writeMainCode(self, buff):
         inits = getInitVals(self.params)
-        # get device handle
+        # get Sensor
         code = (
-            "%(deviceLabelCode)s = deviceManager.getDevice(%(deviceLabel)s)"
+            "# sensor object for %(name)s\n"
+            "%(name)sSensor = deviceManager.getDevice(%(deviceLabel)s)\n"
         )
-        buff.writeOnceIndentedLines(code % inits)
+        buff.writeIndentedLines(code % inits)
         # find threshold if indicated
-        if self.params['findThreshold']:
+        if self.params['findThreshold'] or not self.params['threshold']:
             code = (
                 "# find threshold for light sensor\n"
-                "%(deviceLabelCode)s.findThreshold(win, channel=%(channel)s)\n"
+                "%(name)sSensor.findThreshold(win, channel=%(channel)s)\n"
             )
         else:
             code = (
-                "%(deviceLabelCode)s.setThreshold(%(threshold)s, channel=%(channel)s)"
+                "%(name)sSensor.setThreshold(%(threshold)s, channel=%(channel)s)"
             )
         buff.writeOnceIndentedLines(code % inits)
         # find pos if indicated
         if self.params['findSensor']:
             code = (
                 "# find position and size of the light sensor\n"
-                "%(deviceLabelCode)s.findSensor(win, channel=%(channel)s)\n"
+                "%(name)sSensor.findSensor(win, channel=%(channel)s)\n"
             )
             buff.writeOnceIndentedLines(code % inits)
-
-    def writeMainCode(self, buff):
-        inits = getInitVals(self.params)
-        # get Sensor
-        code = (
-            "# Sensor object for %(name)s\n"
-            "%(name)sSensor = deviceManager.getDevice(%(deviceLabel)s)\n"
-        )
-        buff.writeIndentedLines(code % inits)
-
-        if self.params['threshold'] and not self.params['findThreshold']:
-            code = (
-                "%(name)sSensor.setThreshold(%(threshold)s, channel=%(channel)s)\n"
-            )
-            buff.writeIndentedLines(code % inits)
-        # find/set Sensor position
-        if not self.params['findSensor']:
+        else:
             code = ""
             # set units (unless None)
             if self.params['sensorUnits']:

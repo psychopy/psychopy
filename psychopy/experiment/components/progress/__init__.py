@@ -13,6 +13,7 @@ class ProgressComponent(BaseVisualComponent):
     targets = ['PsychoPy', 'PsychoJS']
     version = "2023.2.0"
     iconFile = Path(__file__).parent / 'progress.png'
+    iconSVG = Path(__file__).parent / 'ProgressComponent.svg'
     tooltip = _translate('Progress: Present a progress bar, with values ranging from 0 to 1.')
     beta = True
 

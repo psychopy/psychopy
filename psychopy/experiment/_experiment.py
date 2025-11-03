@@ -31,8 +31,7 @@ from .components.resourceManager import ResourceManagerComponent
 from .components.static import StaticComponent
 from .exports import IndentingBuffer, NameSpace
 from .flow import Flow
-from .loops import TrialHandler, LoopInitiator, \
-    LoopTerminator, StairHandler, MultiStairHandler
+from .loops import getAllLoopTypes, TrialHandler, LoopInitiator, LoopTerminator, StairHandler, MultiStairHandler
 from .params import _findParam, Param, legacyParams
 from psychopy.experiment.routines._base import Routine, BaseStandaloneRoutine
 from psychopy.experiment.routines import getAllStandaloneRoutines
@@ -293,12 +292,24 @@ class Experiment:
     def writeScript(self, expPath=None, target="PsychoPy", modular=True):
         """Write a PsychoPy script for the experiment
         """
-        # self.integrityCheck()
-
-        self.psychopyVersion = psychopy.__version__  # make sure is current
+        # sanitize and store expPath
+        if expPath is not None:
+            # if there is an expPath, convert it to a Path
+            expPath = Path(expPath)
+            # transform expPath from psyexp to py/js if needed
+            if expPath.suffix == ".psyexp":
+                if target == "PsychoPy":
+                    expPath = expPath.parent / (expPath.stem + ".py")
+                if target == "PsychoJS":
+                    expPath = expPath.parent / (expPath.stem + ".js")
+            # turn back into a string for actual writing
+            self.expPath = str(expPath)
+        else:
+            self.expPath = None
+        # make sure is current
+        self.psychopyVersion = psychopy.__version__
         # set this so that params write for approp target
         utils.scriptTarget = target
-        self.expPath = expPath
         script = IndentingBuffer(target=target)  # a string buffer object
 
         # get date info, in format preferred by current locale as set by app:
@@ -931,15 +942,29 @@ class Experiment:
                     param.applyJSON(rtProfile['params'][paramName])
             # append to experiment
             self.routines[rtName] = rt
+        # array to store loops in
+        loops = {}
         # populate flow
         for nodeProfile in data['flow']:
             if "ref" in nodeProfile:
                 # if node is a reference, get routine
                 node = self.routines.get(nodeProfile['ref'], None)
+            elif nodeProfile['tag'] == "LoopTerminator":
+                # if node is a loop terminator, make it
+                node = LoopTerminator(
+                    loop=loops[nodeProfile['name']]
+                )
             else:
-                # otherwise, make the node from tag
-                # todo: recreate initiator from JSON
-                pass
+                # anything else, assume it's a loop
+                cls = getAllLoopTypes().get(nodeProfile['tag'], TrialHandler)
+                # make loop object
+                loops[nodeProfile['params']['name']['val']] = cls.fromJSON(
+                    self, nodeProfile
+                )
+                # make initiator
+                node = LoopInitiator(
+                    loop=loops[nodeProfile['params']['name']['val']]
+                )
             # append node
             self.flow.append(node)
 
@@ -1124,7 +1149,12 @@ class Experiment:
                 if loopName != elementNode.get('name'):
                     modifiedNames.append(elementNode.get('name'))
                 self.namespace.add(loopName)
-                loop = eval('%s(exp=self,name="%s")' % (loopType, loopName))
+                # make loop
+                cls = getAllLoopTypes().get(loopType, TrialHandler)
+                loop = cls(
+                    exp=self,
+                    name=loopName
+                )
                 loops[loopName] = loop
                 for paramNode in elementNode:
                     recognised = self._getXMLparam(paramNode=paramNode, params=loop.params)

@@ -611,7 +611,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                 ).format(thisFile, err))
 
         # if we started a busy cursor which never finished, finish it now
-        if wx.IsBusy():
+        if wx.IsBusy() and wx.Platform != '__WXGTK__':
             wx.EndBusyCursor()
 
         # send anonymous info to https://usage.psychopy.org
@@ -831,12 +831,14 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                 version=self.version,
                 beta="beta" if self.beta else ""
             )
-            wx.BeginBusyCursor()
+            if wx.Platform != '__WXGTK__':
+                wx.BeginBusyCursor()
             self.coder = coder.CoderFrame(None, -1,
                                           title=title,
                                           files=fileList, app=self)
             self.updateWindowMenu()
-            wx.EndBusyCursor()
+            if wx.Platform != '__WXGTK__':
+                wx.EndBusyCursor()
         else:
             # set output window and standard streams
             self.coder.setOutputWindow(True)
@@ -853,7 +855,8 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
 
     def newBuilderFrame(self, event=None, fileName=None):
         # have to reimport because it is only local to __init__ so far
-        wx.BeginBusyCursor()
+        if wx.Platform != '__WXGTK__':
+            wx.BeginBusyCursor()
         from .builder.builder import BuilderFrame
         title = "PsychoPy Builder (v{version}{beta})".format(
             version=self.version,
@@ -866,7 +869,8 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         self.builder.Raise()
         self.SetTopWindow(self.builder)
         self.updateWindowMenu()
-        wx.EndBusyCursor()
+        if wx.Platform != '__WXGTK__':
+            wx.EndBusyCursor()
 
         return self.builder
 
@@ -925,13 +929,15 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             version=self.version,
             beta="beta" if self.beta else ""
         )
-        wx.BeginBusyCursor()
+        if wx.Platform != '__WXGTK__':
+            wx.BeginBusyCursor()
         self.runner = RunnerFrame(parent=None,
                                   id=-1,
                                   title=title,
                                   app=self)
         self.updateWindowMenu()
-        wx.EndBusyCursor()
+        if wx.Platform != '__WXGTK__':
+            wx.EndBusyCursor()
         return self.runner
 
     def OnDrop(self, x, y, files):

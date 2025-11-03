@@ -256,6 +256,8 @@ class Session:
         ):
         # Store root and add to Python path
         self.root = Path(root)
+        if not self.root.is_absolute():
+            self.root = self.root.absolute()
         sys.path.insert(1, str(self.root))
         # store rest message
         self.restMsg = restMsg
@@ -1338,6 +1340,23 @@ class Session:
             return
         # rewind trials in current loop
         return self.currentExperiment.rewindTrials(n)
+
+    def cueTrial(self, trial, isTrials=True):
+        """
+        Queue up a trial to be next in the current TrialHandler.
+
+        Parameters
+        ----------
+        trial : int, dict or Trial
+            Trial or index to queue up
+        isTrials : bool
+            Filter for only loops which have isTrials checked
+        """
+        # return if there's no current experiment
+        if self.currentExperiment is None:
+            return
+        
+        return self.currentExperiment.cueTrial(trial)
 
     def saveExperimentData(self, key, thisExp=None, blocking=True):
         """

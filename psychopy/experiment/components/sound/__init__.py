@@ -21,6 +21,7 @@ class SoundComponent(BaseDeviceComponent):
     categories = ['Stimuli']
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'sound.png'
+    iconSVG = Path(__file__).parent / 'SoundComponent.svg'
     tooltip = _translate('Sound: play recorded files or generated sounds', )
     deviceClasses = ["psychopy.hardware.speaker.SpeakerDevice"]
     validatorClasses = ["AudioValidatorRoutine"]
@@ -79,7 +80,7 @@ class SoundComponent(BaseDeviceComponent):
         hnt = _translate("A sound can be a note name (e.g. A or Bf), a number"
                          " to specify Hz (e.g. 440) or a filename")
         self.params['sound'] = Param(
-            sound, valType='str', inputType="soundFile", allowedTypes=[], updates='constant', categ='Basic',
+            sound, valType='str', inputType="soundFile", allowedTypes=[], updates='set every repeat', categ='Basic',
             allowedUpdates=['set every repeat'],
             hint=hnt,
             label=_translate("Sound"))
@@ -127,9 +128,8 @@ class SoundComponent(BaseDeviceComponent):
 
         # --- Testing ---
         self.params['validator'] = Param(
-            validator, valType="code", inputType="choice", categ="Testing",
-            allowedVals=self.getAllValidatorRoutineVals,
-            allowedLabels=self.getAllValidatorRoutineLabels,
+            validator, valType="code", inputType="validator", categ="Testing",
+            allowedVals=self.validatorClasses,
             label=_translate("Validate with..."),
             hint=_translate(
                 "Name of validator Component/Routine to use to check the timing of this stimulus."
@@ -137,6 +137,12 @@ class SoundComponent(BaseDeviceComponent):
         )
 
     def writeInitCode(self, buff):
+        # set sound backend (only once per exp)
+        code = (
+            "# set audio backend\n"
+            "sound.Sound.backend = %(Audio lib)s\n"
+        )
+        buff.writeOnceIndentedLines(code % self.exp.settings.params)
         # replaces variable params with sensible defaults
         inits = getInitVals(self.params)
         if not canBeNumeric(inits['stopVal'].val):

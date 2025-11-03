@@ -33,10 +33,10 @@ Download
 
         Hot off the presses, this is the latest release with all the newest features. If you're fine with a few bugs so long as you get the cutting edge features as soon as they're ready, this is the install for you.
 
-        .. button-link:: https://github.com/psychopy/psychopy/releases/download/2025.2.0/StandalonePsychoPy-2025.2.0-win64-3.10.exe
+        .. button-link:: https://github.com/psychopy/psychopy/releases/download/2025.2.1/StandalonePsychoPy-2025.2.1-win64-3.10.exe
           :color: primary
 
-          PsychoPy 2025.2.0
+          PsychoPy 2025.2.1
   
   .. tab-item:: MacOS
 
@@ -56,10 +56,10 @@ Download
 
         Hot off the presses, this is the latest release with all the newest features. If you're fine with a few bugs so long as you get the cutting edge features as soon as they're ready, this is the install for you.
 
-        .. button-link:: https://github.com/psychopy/psychopy/releases/download/2025.2.0/StandalonePsychoPy-2025.2.0-macOS-3.10.dmg
+        .. button-link:: https://github.com/psychopy/psychopy/releases/download/2025.2.1/StandalonePsychoPy-2025.2.1-macOS-3.10.dmg
           :color: primary
 
-          PsychoPy 2025.2.0
+          PsychoPy 2025.2.1
   
   .. tab-item:: Linux
 

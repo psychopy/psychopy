@@ -32,6 +32,7 @@ class CameraComponent(BaseDeviceComponent):
     targets = ["PsychoPy", "PsychoJS"]
     version = "2022.2.0"
     iconFile = Path(__file__).parent / 'webcam.png'
+    iconSVG = Path(__file__).parent / 'CameraComponent.svg'
     tooltip = _translate('Webcam: Record video from a webcam.')
     beta = False
     deviceClasses = ["psychopy.hardware.camera.CameraDevice"]
@@ -109,7 +110,7 @@ class CameraComponent(BaseDeviceComponent):
         ]
         # label to refer to device by
         self.params['micDeviceLabel'] = Param(
-            micDeviceLabel, valType="str", inputType="device", categ="Device",
+            micDeviceLabel, valType="device", inputType="device", categ="Device",
             allowedVals=[MicrophoneDeviceBackend],
             label=_translate("Microphone device"),
             hint=_translate(

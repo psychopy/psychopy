@@ -51,17 +51,32 @@ class DeviceConfig(dict):
         self.clear()
         # store file path
         self.file = Path(file)
+        # make sure file exists
+        if not self.file.is_file():
+            self.file.write_text("{}", encoding="utf-8")
         # read file
         data = json.loads(
             self.file.read_text()
         )
         # apply
         for key, val in data.items():
-            # get class from stored data
-            mod = ".".join(
-                val['__cls__'].split(".")[:-1]
-            )
-            name = val['__cls__'].split(".")[-1]
+            # get class string
+            if "__class__" in val:
+                # post-2026.1
+                cls = val['__class__']
+            elif "__cls__" in val:
+                # pre-2026.1
+                cls = val['__cls__']
+            else:
+                cls = "psychopy.experiment.devices:DeviceBackend"
+            # get class from class string
+            if ":" in cls:
+                mod, name =  cls.split(":", 1)
+            else:
+                mod = ".".join(
+                    cls.split(".")[:-1]
+                )
+                name = cls.split(".")[-1]
             cls = getattr(importlib.import_module(mod), name)
             # initialise class with profile from stored data
             self[key] = cls.fromJSON(val)
@@ -75,6 +90,6 @@ class DeviceConfig(dict):
         # save
         self.file.write_text(
             json.dumps({
-                key: device.toJSON() for key, device in self.items()
+                key: device.getJSON() for key, device in self.items()
             }, indent=True)
         )

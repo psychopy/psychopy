@@ -7,6 +7,8 @@ This guide will talk you through how to use send triggers (event markers) from P
 
 If you'd like to interface Brain Products' Remote Control Server 2 (RCS) from PsychoPy you can find out how to do that in  `this article <https://pressrelease.brainproducts.com/rcs-supported-in-psychopy/>`_ 
 
+If you are using Brain Products with a TriggerBox you can `download an example experiment here <https://gitlab.pavlovia.org/Consultancy/brainproducts_trigger_box_example>`_ 
+
 You can also find guidance on how to send LabStreaming Layer markers in `this article from the BCI blog <https://bci.plus/lsl-markers-vs-hardware-triggers/>`_ 
 
 

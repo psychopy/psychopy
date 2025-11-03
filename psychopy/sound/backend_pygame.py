@@ -19,6 +19,13 @@ except ImportError as err:
     raise DependencyError(repr(err))
 
 
+
+__all__ = [
+    "SoundPygame",
+    "Sound"
+]
+
+
 def getDevices(kind=None):
     """Get audio playback and recording devices via the backend's audio API.
 
@@ -311,3 +318,6 @@ class SoundPygame(_SoundBase):
             thisArray = ((thisArray + 1) * 2**7).astype(numpy.uint8)
 
         self._snd = sndarray.make_sound(thisArray)
+
+
+Sound = SoundPygame

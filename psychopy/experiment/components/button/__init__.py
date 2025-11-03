@@ -26,6 +26,7 @@ class ButtonComponent(BaseVisualComponent):
     targets = ['PsychoPy', 'PsychoJS']
     version = "2021.1.0"
     iconFile = Path(__file__).parent / 'button.png'
+    iconSVG = Path(__file__).parent / 'ButtonComponent.svg'
     tooltip = _translate('Button: A clickable textbox')
     beta = True
 

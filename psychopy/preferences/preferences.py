@@ -187,9 +187,7 @@ class Preferences:
                 if err.errno != errno.EEXIST:
                     raise
         # make sure there's a device manager config file
-        deviceCfgFile = self.paths['deviceCfgFile'] = Path(self.paths['userPrefsDir']) / "devices.json"
-        if not deviceCfgFile.is_file():
-            deviceCfgFile.write_text("{}", encoding="utf-8")
+        self.paths['deviceCfgFile'] = Path(self.paths['userPrefsDir']) / "devices.json"
         # site-packages root directory for user-installed packages
         userPkgRoot = Path(self.paths['packages'])
 
@@ -360,10 +358,27 @@ class Preferences:
     def devices(self):
         if not hasattr(self, "_devices"):
             self._devices = devices.DeviceConfig(
-            self.paths['deviceCfgFile']
-        )
+                self.paths['deviceCfgFile']
+            )
         
         return self._devices
+    
+    @devices.setter
+    def devices(self, value):
+        if isinstance(value, devices.DeviceConfig):
+            # if set with a DeviceConfig, use it directly
+            self._devices = value
+        else:
+            # otherwise, assume it's a path
+            self.setDevicesFile(value)
+    
+    def setDevicesFile(self, value):
+        # path-ise and store
+        self.paths['deviceCfgFile'] = Path(value)
+        # create alias object
+        self._devices = devices.DeviceConfig(
+            self.paths['deviceCfgFile']
+        )
 
     def saveUserPrefs(self):
         """Validate and save the various setting to the appropriate files

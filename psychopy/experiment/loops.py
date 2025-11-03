@@ -26,8 +26,36 @@ from psychopy.experiment.params import Param
 from .components import getInitVals, getAllComponents
 
 
+def getAllLoopTypes():
+    """
+    Returns
+    -------
+    dict[str:cls]
+        All subtypes of _BaseLoopHandler, by tag
+    """
+    output = {}
+
+    def recur(cls):
+        """
+        Recursively get subclasses and store them by tag.
+        """
+        # iterate through immediate subclasses
+        for subcls in cls.__subclasses__():
+            # if it's tagged, store it
+            if subcls.tag is not None:
+                output[subcls.tag] = subcls
+            # recur
+            recur(subcls)
+
+    # start with _BaseLoopHandler as the ultimate parent class
+    recur(_BaseLoopHandler)
+
+    return output
+
 class _BaseLoopHandler:
     plugin = None
+    # indicates the tag which refers to this loop type in experiment files
+    tag = None
         
     @classmethod
     def getTemplateJSON(cls):
@@ -69,6 +97,23 @@ class _BaseLoopHandler:
             profile['params'][name] = param.getJSON()
         
         return profile
+    
+    def applyJSON(self, profile):
+        # set basic info
+        self.tag = profile['tag']
+        self.plugin = profile['plugin']
+        # set params
+        for key, value in profile['params'].items():
+            self.params[key] = Param.fromJSON(value)
+    
+    @classmethod
+    def fromJSON(cls, exp, profile):
+        # make with defaults
+        loop = cls(exp)
+        # apply JSON
+        loop.applyJSON(profile)
+
+        return loop
 
     def writeInitCode(self, buff):
         # no longer needed - initialise the trial handler just before it runs
@@ -112,6 +157,8 @@ class TrialHandler(_BaseLoopHandler):
     """A looping experimental control object
             (e.g. generating a psychopy TrialHandler or StairHandler).
             """
+    
+    tag = "TrialHandler"
 
     def __init__(self, exp, name="trials", loopType='random', nReps=5,
                  conditions=(), conditionsFile='', endPoints=(0, 1),
@@ -511,6 +558,8 @@ class StairHandler(_BaseLoopHandler):
     """A staircase experimental control object.
     """
 
+    tag = "StairHandler"
+
     def __init__(self, exp, name="stair", nReps='50', startVal='', nReversals='',
                  nUp=1, nDown=3, minVal=0, maxVal=1,
                  stepSizes='[4,4,2,2,1]', stepType='db', endPoints=(0, 1),
@@ -677,6 +726,8 @@ class StairHandler(_BaseLoopHandler):
 class MultiStairHandler(_BaseLoopHandler):
     """To handle multiple interleaved staircases
     """
+
+    tag = "MultiStairHandler"
 
     def __init__(self, exp, name="stair", nReps='50', stairType='simple',
                  switchStairs='random',

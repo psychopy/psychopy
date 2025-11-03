@@ -174,8 +174,12 @@ class Polygon(ShapeStim):
         if self.edges == "circle":
             # If circle is requested, calculate min edges needed for it to appear smooth
             edges = self._calculateMinEdges(self.__dict__['lineWidth'], threshold=1)
+        elif self.edges is None:
+            # if no edges, default
+            edges = 3
         else:
             edges = self.edges
+        # calculate edges
         self.vertices = self._calcEquilateralVertices(edges, self.radius)
         
     @attributeSetter

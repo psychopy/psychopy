@@ -19,6 +19,7 @@ class JoystickComponent(BaseComponent):
     categories = ['Responses']
     targets = ['PsychoPy']
     iconFile = Path(__file__).parent / 'joystick.png'
+    iconSVG = Path(__file__).parent / 'JoystickComponent.svg'
     tooltip = _translate('Joystick: query joystick position and buttons')
 
     def __init__(self, exp, parentName, name='joystick',
@@ -165,7 +166,7 @@ class JoystickComponent(BaseComponent):
         buff.writeIndentedLines(code % self.params)
 
         buff.setIndentLevel(+1, relative=True)
-        code = ("numJoysticks = joysticklib.getNumJoysticks()\n"
+        code = ("numJoysticks = len(joysticklib.Joystick.getAvailableDevices())\n"
                 "if numJoysticks > 0:\n")
         buff.writeIndentedLines(code % self.params)
 

@@ -16,6 +16,7 @@ class GratingComponent(BaseVisualComponent):
     categories = ['Stimuli']
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'grating.png'
+    iconSVG = Path(__file__).parent / 'GratingComponent.svg'
     tooltip = _translate('Grating: present cyclic textures, prebuilt or from a '
                          'file')
 

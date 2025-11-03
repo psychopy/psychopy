@@ -17,6 +17,7 @@ from collections import OrderedDict
 import numpy
 import re
 import wx
+from wx.lib import scrolledpanel
 
 import psychopy.experiment.utils
 from psychopy.experiment import Param
@@ -146,12 +147,16 @@ class ParamCtrls():
             'set every repeat': _translate('set every repeat'),
             'set every frame': _translate('set every frame'),
         }
-        if param.allowedUpdates is not None and len(param.allowedUpdates):
+        # work out what update labels should be there
+        allowedUpdates = copy.copy(param.allowedUpdates or [])
+        if len(allowedUpdates) and param.updates not in allowedUpdates + [None]:
+            allowedUpdates.append(param.updates)
+        # work out ctrl labels
+        if allowedUpdates is not None and len(allowedUpdates):
             # updates = display-only version of allowed updates
-            updateLabels = [_localizedUpdateLbls.get(upd, upd) for upd in param.allowedUpdates]
+            updateLabels = [_localizedUpdateLbls.get(upd, upd) for upd in allowedUpdates]
             # allowedUpdates = extend version of allowed updates that includes
             # "set during:static period"
-            allowedUpdates = copy.copy(param.allowedUpdates)
             for routineName, routine in list(self.exp.routines.items()):
                 for static in routine.getStatics():
                     # Note: replacing following line with
@@ -428,9 +433,12 @@ class StartStopCtrls(wx.GridBagSizer):
 
 
 class ParamNotebook(wx.Notebook, handlers.ThemeMixin):
-    class CategoryPage(wx.Panel, handlers.ThemeMixin):
+    class CategoryPage(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         def __init__(self, parent, dlg, params, categ=None):
             wx.Panel.__init__(self, parent, size=(600, -1))
+            self.SetupScrolling()
+            self.SetMaxSize((-1, 1080))
+            self.SetMinSize((720, 512))
             self.parent = parent
             self.parent = parent
             self.dlg = dlg
@@ -617,10 +625,10 @@ class ParamNotebook(wx.Notebook, handlers.ThemeMixin):
         paramsByCateg = OrderedDict()
         for name, param in self.params.items():
             # Add categ if not present
-            if param.categ not in paramsByCateg:
-                paramsByCateg[param.categ] = OrderedDict()
+            if (param.categ or "Basic") not in paramsByCateg:
+                paramsByCateg[param.categ or "Basic"] = OrderedDict()
             # Append param to categ
-            paramsByCateg[param.categ][name] = param
+            paramsByCateg[param.categ or "Basic"][name] = param
         # Move high priority categs to the front
         for categ in reversed(['Basic', 'Layout', 'Appearance', 'Formatting', 'Texture']):
             if categ in paramsByCateg:
@@ -634,10 +642,11 @@ class ParamNotebook(wx.Notebook, handlers.ThemeMixin):
         for categ, params in paramsByCateg.items():
             page = self.CategoryPage(self, self.parent, params, categ=categ)
             self.paramCtrls.update(page.ctrls)
-            # Bind change event
-            page.Bind(paramCtrls.EVT_PARAM_CHANGED, self.emitChangeEvent)
             # Add page to notebook
             self.AddPage(page, _translate(categ or ""))
+    
+    def emitChangeEvent(self, evt): 
+        wx.PostEvent(self, evt)
 
     def checkDepends(self, event=None):
         """
@@ -1310,8 +1319,9 @@ class DlgLoopProperties(_BaseParamsDlg):
             row += 1
         panelSizer.AddGrowableCol(1, 1)
         self.globalCtrls['name'].valueCtrl.Bind(wx.EVT_TEXT, self.Validate)
-        self.Bind(wx.EVT_CHOICE, self.onTypeChanged,
-                  self.globalCtrls['loopType'].valueCtrl)
+        self.globalCtrls['loopType'].valueCtrl.Bind(
+            paramCtrls.EVT_PARAM_CHANGED, self.onTypeChanged,
+        )
         return panel
 
     def makeConstantsCtrls(self):
@@ -1585,7 +1595,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         self.setCtrls(value)
 
     def onTypeChanged(self, evt=None):
-        newType = evt.GetString()
+        newType = self.globalCtrls['loopType'].valueCtrl.getValue()
         if newType == self.currentType:
             return
         self.setCtrls(newType)

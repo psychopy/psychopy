@@ -129,7 +129,7 @@ class AddDeviceDlg(wx.Dialog):
                 try:
                     AddDeviceDlg.availableDevices[backend] = DeviceManager.getAvailableDevices(backend.deviceClass)
                 except Exception as err:
-                    logging.warn("Failed to scan for {backend.deviceClass} devices, reason: {err}")
+                    logging.warn(f"Failed to scan for {backend.deviceClass} devices, reason: {err}")
         # clear ctrl
         self.devicesCtrl.DeleteAllItems()
         self.branchClasses = {}
@@ -185,7 +185,7 @@ class AddDeviceDlg(wx.Dialog):
         # create device object
         device = self.selectedCls(self.selectedProfile)
         # store name
-        device.params['deviceLabel'].val = self.nameCtrl.getValue()
+        device.params['name'].val = self.nameCtrl.getValue()
 
         return device
 

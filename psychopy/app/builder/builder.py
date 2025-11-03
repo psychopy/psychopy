@@ -205,7 +205,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.SetAcceleratorTable(accelTable)
 
         # setup a default exp
-        if self.filename.is_file():
+        if fileName is not None and self.filename.is_file():
             self.fileOpen(filename=fileName, closeCurrent=False)
         else:
             self.lastSavedCopy = None

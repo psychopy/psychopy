@@ -639,7 +639,7 @@ class Window():
         self._projectionMatrixNeedsUpdate = True
         self._viewMatrixNeedsUpdate = True
 
-        self.setOrthographicView()
+        self.setDefaultView()  # initialize view/proj matrix
 
         # piloting indicator
         self._pilotingIndicator = None
@@ -836,13 +836,14 @@ class Window():
         settings.
         """
         if self._projectionMatrixNeedsUpdate:
-            widthOver2 = self.size[0] / 2.0
-            heightOver2 = self.size[1] / 2.0
-            self._projectionMatrix[:, :] = viewtools.orthoProjectionMatrix(
-                -widthOver2, widthOver2,    # -X, +X
-                -heightOver2, heightOver2,  # -Y, +Y
-                -1.0, 1.0,                  # -Z, +Z
-                dtype=numpy.float32)
+            # widthOver2 = self.size[0] / 2.0
+            # heightOver2 = self.size[1] / 2.0
+            # self._projectionMatrix[:, :] = viewtools.orthoProjectionMatrix(
+            #     -widthOver2, widthOver2,    # -X, +X
+            #     -heightOver2, heightOver2,  # -Y, +Y
+            #     -1.0, 1.0,                  # -Z, +Z
+            #     dtype=numpy.float32)
+            self._projectionMatrix[:, :] = numpy.identity(4, dtype=numpy.float32)
             self._projectionMatrixNeedsUpdate = False
 
     @property
@@ -2281,6 +2282,20 @@ class Window():
         if applyTransform:
             self.applyEyeTransform(clearDepth=clearDepth)
 
+    def setDefaultView(self, applyTransform=True, clearDepth=True):
+        """Set the projection and view matrix to PsychoPy's default.
+
+        This is the mode which is typically used for rendering 2D stimuli. It should
+        be called prior to rendering any 2D stimuli if the projection has been
+        changed.
+
+        """
+        self._updateViewMatrix()
+        self._updateProjectionMatrix()
+
+        if applyTransform:
+            self.applyEyeTransform(clearDepth=clearDepth)
+
     def setOrthographicView(self, applyTransform=True, clearDepth=True):
         """Set the projection and view matrix to render with orthographic view.
 
@@ -2304,8 +2319,16 @@ class Window():
             Clear the depth buffer.
 
         """
-        self._updateProjectionMatrix()
         self._updateViewMatrix()
+
+        widthOver2 = self.size[0] / 2.0
+        heightOver2 = self.size[1] / 2.0
+        self._projectionMatrix[:, :] = viewtools.orthoProjectionMatrix(
+            -widthOver2, widthOver2,    # -X, +X
+            -heightOver2, heightOver2,  # -Y, +Y
+            -1.0, 1.0,                  # -Z, +Z
+            dtype=numpy.float32)
+        self._projectionMatrix[:, :] = numpy.identity(4, dtype=numpy.float32)
 
         if applyTransform:
             self.applyEyeTransform(clearDepth=clearDepth)

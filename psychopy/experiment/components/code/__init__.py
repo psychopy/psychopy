@@ -50,6 +50,7 @@ class CodeComponent(BaseComponent):
     categories = ['Custom']
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'code.png'
+    iconSVG = Path(__file__).parent / 'CodeComponent.svg'
     tooltip = _translate('Code: insert python commands into an experiment')
 
     def __init__(self, exp, parentName, name='code',

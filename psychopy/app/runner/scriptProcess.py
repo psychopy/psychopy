@@ -16,6 +16,8 @@ __all__ = ['ScriptProcess']
 
 import os.path
 import sys
+
+import wx
 import psychopy.app.jobs as jobs
 from wx import BeginBusyCursor, EndBusyCursor, MessageDialog, ICON_ERROR, OK
 from psychopy.app.console import StdStreamDispatcher
@@ -156,7 +158,8 @@ class ScriptProcess:
             terminateCallback=self._onTerminateCallback
         )
 
-        BeginBusyCursor()  # visual feedback
+        if wx.Platform != '__WXGTK__':
+            BeginBusyCursor()  # visual feedback
 
         # start the subprocess
         workingDir, _ = os.path.split(fullPath)
@@ -186,7 +189,8 @@ class ScriptProcess:
                 event.Skip()
 
             self.scriptProcess = None  # reset
-            EndBusyCursor()
+            if wx.Platform != '__WXGTK__':
+                EndBusyCursor()
             return False
 
         self.focusOnExit = focusOnExit
@@ -351,7 +355,8 @@ class ScriptProcess:
                     self.app.runner.panel.ribbon.buttons['pypilot'].Enable()
                     self.app.runner.panel.ribbon.buttons['pystop'].Disable()
 
-        EndBusyCursor()
+        if wx.Platform != '__WXGTK__':
+            EndBusyCursor()
 
 
 if __name__ == "__main__":

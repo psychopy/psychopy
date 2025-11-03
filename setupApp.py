@@ -198,21 +198,23 @@ setup(
             frameworks=frameworks,
             iconfile= str(root / 'psychopy/app/Resources/psychopy.icns'),
             plist=dict(
-                  CFBundleIconFile='psychopy.icns',
-                  CFBundleName               = "PsychoPy",
-                  CFBundleShortVersionString = version,  # must be in X.X.X format
-                  CFBundleVersion            = version,
-                  CFBundleExecutable         = "PsychoPy",
-                  CFBundleIdentifier         = "org.opensciencetools.psychopy",
-                  CFBundleLicense            = "GNU GPLv3+",
-                  NSHumanReadableCopyright   = "Open Science Tools Limited",
-                  CFBundleDocumentTypes=[dict(CFBundleTypeExtensions=['*'],
-                                              CFBundleTypeRole='Editor')],
-                  CFBundleURLTypes=[dict(CFBundleURLName='psychopy',  # respond to psychopy://
-                                         CFBundleURLSchemes='psychopy',
-                                         CFBundleTypeRole='Editor')],
-                  LSEnvironment=dict(PATH="/usr/local/git/bin:/usr/local/bin:"
-                                          "/usr/local:/usr/bin:/usr/sbin"),
+                CFBundleIconFile='psychopy.icns',
+                CFBundleName               = "PsychoPy",
+                CFBundleShortVersionString = version,  # must be in X.X.X format
+                CFBundleVersion            = version,
+                CFBundleExecutable         = "PsychoPy",
+                CFBundleIdentifier         = "org.opensciencetools.psychopy",
+                CFBundleLicense            = "GNU GPLv3+",
+                NSHumanReadableCopyright   = "Open Science Tools Limited",
+                CFBundleDocumentTypes=[dict(CFBundleTypeExtensions=['*'],
+                                            CFBundleTypeRole='Editor')],
+                CFBundleURLTypes=[dict(CFBundleURLName='psychopy',  # respond to psychopy://
+                                        CFBundleURLSchemes='psychopy',
+                                        CFBundleTypeRole='Editor')],
+                LSEnvironment=dict(PATH="/usr/local/git/bin:/usr/local/bin:"
+                                        "/usr/local:/usr/bin:/usr/sbin"),
+                NSMicrophoneUsageDescription="This app may require access to the microphone to record audio for experiments.",
+                NSCameraUsageDescription="This app may require access to the camera to record video for experiments.",                   
             ),
     ))  # end of the options dict
 )

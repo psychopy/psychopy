@@ -25,6 +25,7 @@ class BaseStandaloneRoutine:
     categories = ['Custom']
     targets = []
     iconFile = Path(__file__).parent / "unknown" / "unknown.png"
+    iconSVG = Path(__file__).parent / "BaseRoutine.svg"
     tooltip = ""
     limit = float('inf')
     plugin = None
@@ -100,6 +101,11 @@ class BaseStandaloneRoutine:
     @classmethod
     def getTemplateJSON(cls):
         from psychopy.experiment import Experiment
+        # try to load SVG
+        try:
+            iconSVG = cls.iconSVG.read_text("utf-8")
+        except:
+            iconSVG = None
         # include basic info
         profile = {
             '__class__': f"{cls.__module__}:{cls.__qualname__}",
@@ -107,6 +113,7 @@ class BaseStandaloneRoutine:
             "categories": cls.categories,
             "targets": cls.targets,
             "plugin": cls.plugin,
+            "iconSVG": iconSVG,
             "iconFile": cls.iconFile,
             "tooltip": cls.tooltip,
             "version": cls.version,
