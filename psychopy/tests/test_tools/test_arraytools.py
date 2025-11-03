@@ -130,6 +130,36 @@ def test_AliasDict():
     assert "1" not in params.aliases
 
 
+def test_expandingList():
+    cases = [
+        # getting index out of range should return None
+        {'array': [1, 2, 3], 'get': {'index': 4, 'ans': None}},
+        # valid indices should return the same as normal
+        {'array': [1, 2, 3], 'get': {'index': 1, 'ans': 2}},
+        {'array': [1, 2, 3], 'get': {'index': -1, 'ans': 3}},
+        # setting index out of range should fill with None
+        {'array': [1, 2, 3], 'set': {'index': 5, 'value': 4, 'ans': [1, 2, 3, None, None, 4]}},
+        # valid indices should set the same as normal
+        {'array': [1, 2, 3], 'set': {'index': 1, 'value': 4, 'ans': [1, 4, 3]}},
+        {'array': [1, 2, 3], 'set': {'index': -1, 'value': 4, 'ans': [1, 2, 4]}},
+    ]
+    # try each case
+    for case in cases:
+        # make array for this case
+        arr = at.ExpandingList(case['array'])
+        # test getting...
+        if "get" in case:
+            assert arr[case['get']['index']] == case['get']['ans'], (
+                f"Expected value at index {case['get']['index']} of expanding list {arr} to be {case['get']['ans']}, but got {arr[case['get']['index']]}"
+            )
+        # test setting
+        if "set" in case:
+            arr[case['set']['index']] = case['set']['value']
+            assert all([x == y for x, y in zip(arr, case['set']['ans'])]), (
+                f"Expected expanding list {case['array']} to be {case['set']['ans']} after setting index {case['set']['index']} to {case['set']['value']}, but got {arr}"
+            )
+
+
 class TestIndexDict:
     def setup_method(self):
         self.recreateData()
