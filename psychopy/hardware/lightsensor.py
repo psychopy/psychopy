@@ -3,6 +3,7 @@ from psychopy.hardware import base, DeviceManager
 from psychopy.localization import _translate
 from psychopy.hardware import keyboard
 # for legacy compatability, import VisualValidator and VisualValidationError here
+from psychopy.tools.arraytools import ExpandingList
 from psychopy.validation.visual import VisualValidator, VisualValidationError
 
 
@@ -26,9 +27,9 @@ class BaseLightSensorGroup(base.BaseResponseDevice):
         # store number of channels
         self.channels = channels
         # attribute in which to store current state
-        self.state = [False] * channels
+        self.state = ExpandingList([False] * channels)
         # set initial threshold
-        self.threshold = [None] * channels
+        self.threshold = ExpandingList([None] * channels)
         if threshold is None:
             threshold = 0.5
         self.setThreshold(threshold, channel=list(range(channels)))
