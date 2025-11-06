@@ -38,16 +38,8 @@ from ...colorpicker import PsychoColorPicker
 from pathlib import Path
 
 from ...themes import handlers, icons
+from ... import getAppInstance
 
-# get if dark theme
-_appearanceSettings = wx.SystemSettings.GetAppearance()
-if _appearanceSettings.Name != '':
-    logging.error(
-        "Unable to get system appearance settings, UI may use incorrect " \
-        "colors.")
-    _isDarkMode = False
-else:
-    _isDarkMode = _appearanceSettings.IsDark()
 
 white = wx.Colour(255, 255, 255, 255)
 codeSyntaxOkay = wx.Colour(220, 250, 220, 255)  # light green
@@ -1464,7 +1456,8 @@ class DlgLoopProperties(_BaseParamsDlg):
                 ctrls.valueCtrl = wx.StaticText(panel, label=text,
                                                 style=wx.ALIGN_CENTER)
                 if OK:
-                    if _isDarkMode:
+                    appHandle = getAppInstance()  # get theme info
+                    if appHandle is not None and appHandle.isDarkMode:
                         ctrls.valueCtrl.SetForegroundColour("White")
                     else:
                         ctrls.valueCtrl.SetForegroundColour("Black")
@@ -1732,7 +1725,8 @@ class DlgLoopProperties(_BaseParamsDlg):
         # Do actual value setting
         self.currentCtrls['conditions'].setValue(msg)
         if valid:
-            if _isDarkMode:
+            appHandle = getAppInstance()  # get theme info
+            if appHandle is not None and appHandle.isDarkMode:
                 self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("White")
             else:
                 self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Black")
