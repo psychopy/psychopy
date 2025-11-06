@@ -207,6 +207,11 @@ class User(dict):
                             'email': user.emails[0],
                             'username': user.username
                         }
+            # if we *still* don't have a GitLab ID, raise an error
+            assert 'gitlabId' in self.info, _translate(
+                "Could not retrieve user info for user {}, server returned:\n"
+                "{}"
+            ).format(id, self.info)
         elif isinstance(id, dict) and 'gitlabId' in id:
             # If given a dict from Pavlovia rather than an ID, store it rather than requesting again
             self.info = id
