@@ -2177,6 +2177,10 @@ class SettingsComponent:
         buff.setIndentLevel(+1, relative=True)
         # Write code to end experiment
         code = (
+            "# stop any playback components\n"
+            "if thisExp.currentRoutine is not None:\n"
+            "    for comp in thisExp.currentRoutine.getPlaybackComponents():\n"
+            "        comp.stop()\n"
             "if win is not None:\n"
             "    # remove autodraw from all current components\n"
             "    win.clearAutoDraw()\n"
