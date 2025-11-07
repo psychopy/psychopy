@@ -965,7 +965,7 @@ class FontManager():
             if not fontInfos:
                 return False
         # sort fonts by label so the chosen font isn't dependent on return order
-        fontInfos.sort(lambda info : info.label)
+        fontInfos.sort(key=lambda info : info.label)
         # make glfont from first of those found
         fontInfo = fontInfos[0]
         identifier = "{}_{}_{}".format(str(fontInfo), size, lineSpacing)
