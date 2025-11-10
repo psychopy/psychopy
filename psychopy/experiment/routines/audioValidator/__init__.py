@@ -186,6 +186,15 @@ class AudioValidatorRoutine(BaseDeviceRoutine):
             f"%(name)s.resetTimer({clockStr})\n"
         )
         buff.writeIndentedLines(code % self.params)
+        # add blank entries for validation results
+        if stim.params['saveStartStop']:
+            code += (
+            "thisExp.addData('{name}.%(name)s.started', None)\n"
+            "thisExp.addData('%(name)s.startDelay', None)\n"
+            "thisExp.addData('{name}.%(name)s.stopped', None)\n"
+            "thisExp.addData('{name}.%(name)s.stopDelay', None)\n"
+            )
+        buff.writeIndentedLines(code.format(**stim.params) % self.params)
 
         # return change in indent level
         return buff.indentLevel - startIndent
