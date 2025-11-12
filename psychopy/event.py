@@ -678,6 +678,9 @@ class Mouse:
 
         self.lastPos = self._pix2windowUnits(lastPosPix)
 
+        if self.lastPos is None:
+            return None
+
         return [float(self.lastPos[0]), float(self.lastPos[1])]
 
     def mouseMoved(self, distance=None, reset=False):
