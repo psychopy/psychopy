@@ -964,7 +964,9 @@ class FontManager():
             fontInfos = self.getFontsMatching(name, bold, italic, fallback=True)
             if not fontInfos:
                 return False
-        # If font is found, make glfont
+        # sort fonts by label so the chosen font isn't dependent on return order
+        fontInfos.sort(key=lambda info : info.label)
+        # make glfont from first of those found
         fontInfo = fontInfos[0]
         identifier = "{}_{}_{}".format(str(fontInfo), size, lineSpacing)
         glFont = self._glFonts.get(identifier)

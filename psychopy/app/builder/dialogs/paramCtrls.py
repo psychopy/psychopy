@@ -31,7 +31,7 @@ from ...coder import BaseCodeEditor
 from ...themes import icons, handlers
 from ... import utils
 from ...themes import icons
-
+from ... import getAppInstance
 
 inputTypes = {}
 
@@ -381,9 +381,15 @@ class SingleLineCtrl(BaseParamCtrl):
     def styleValid(self):
         # text turns red if invalid
         if self.isValid:
-            self.ctrl.SetForegroundColour(
-                colors.scheme['black']
-            )
+            appHandle = getAppInstance()  # get theme info
+            if appHandle is not None and appHandle.isDarkMode:
+                self.ctrl.SetForegroundColour(
+                    colors.scheme['white']
+                )
+            else:
+                self.ctrl.SetForegroundColour(
+                    colors.scheme['black']
+                )
         else:
             self.ctrl.SetForegroundColour(
                 colors.scheme['red']

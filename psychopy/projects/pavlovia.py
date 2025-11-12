@@ -197,11 +197,21 @@ class User(dict):
             self.info = self.session.session.get(
                 "https://pavlovia.org/api/v2/designers/" + str(id)
             ).json()['designer']
-            # Make sure self.info has necessary keys
+            # if self.info doesn't have the necessary keys, try to recreate it with the information 
+            # from GitLab
+            if 'gitlabId' not in self.info:
+                for user in self.session.gitlab.users.list(search=id):
+                    if user.username == id or user.id == id:
+                        self.info = {
+                            'gitlabId': user.id,
+                            'email': user.emails[0],
+                            'username': user.username
+                        }
+            # if we *still* don't have a GitLab ID, raise an error
             assert 'gitlabId' in self.info, _translate(
                 "Could not retrieve user info for user {}, server returned:\n"
                 "{}"
-            ).format(id,self.info)
+            ).format(id, self.info)
         elif isinstance(id, dict) and 'gitlabId' in id:
             # If given a dict from Pavlovia rather than an ID, store it rather than requesting again
             self.info = id

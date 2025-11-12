@@ -417,6 +417,10 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         #
         self._doSingleInstanceCheck()
 
+        # get the system theme
+        self._systemAppearance = wx.SystemSettings.GetAppearance()
+        self._isDarkMode = self._systemAppearance.IsDark()
+
         if showSplash:
             # show splash screen
             if self.beta:
@@ -718,6 +722,11 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
     def appLoaded(self):
         """`True` if the app has been fully loaded (`bool`)."""
         return self._appLoaded
+
+    @property
+    def isDarkMode(self):
+        """`True` if the system is in dark mode (`bool`)."""
+        return self._isDarkMode
 
     def _wizard(self, selector, arg=''):
         from psychopy import core
@@ -1257,6 +1266,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         # Make sure we just have a name
         if isinstance(value, themes.Theme):
             value = value.code
+
         # Store new theme
         prefs.app['theme'] = value
         prefs.saveUserPrefs()
