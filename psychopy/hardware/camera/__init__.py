@@ -1378,6 +1378,122 @@ class CameraDevice(BaseDevice):
 CameraInterface = CameraDevice
 
 
+class CameraFrame:
+    """Class representing a single frame from a camera stream.
+
+    This class encapsulates a single frame captured from a camera stream,
+    along with its associated timestamp information.
+
+    Parameters
+    ----------
+    image : numpy.ndarray
+        The image data of the frame as a Numpy array.
+    streamTime : float
+        The time in seconds since the start of the recording when this frame
+        was captured.
+    absTime : float
+        The absolute time in seconds when this frame was captured using the 
+        camera's timebase.
+    captureLib : str
+        The camera library used to capture this frame (e.g., 'ffpyplayer',
+        'opencv').
+
+    Attributes
+    ----------
+    image : numpy.ndarray
+        The image data of the frame as a Numpy array.
+    colorFormat : str
+        The color format of the image data (e.g., 'RGB', 'BGR').
+    streamTime : float
+        The time in seconds since the start of the recording when this frame
+        was captured.
+    absTime : float
+        The absolute time in seconds when this frame was captured.
+    captureLib : str
+        The camera library used to capture this frame (e.g., 'ffpyplayer',
+        'opencv').
+
+    """
+    _image = None
+    _streamTime = -1.0
+    _absTime = -1.0
+    _captureLib = None
+
+    def __init__(self, image, streamTime=-1.0, absTime=-1.0, captureLib=None):
+        self.image = image
+        self.streamTime = streamTime
+        self.absTime = absTime
+        self.captureLib = captureLib
+
+    @property
+    def image(self):
+        """Get the image data of the frame (`numpy.ndarray`).
+
+        Returns
+        -------
+        numpy.ndarray
+            The image data of the frame as a Numpy array.
+
+        """
+        return self._image
+    
+    @property
+    def colorFormat(self):
+        """Get the color format of the image data (`str`).
+
+        Returns
+        -------
+        str
+            The color format of the image data (e.g., 'RGB', 'BGR').
+
+        """
+        if self._captureLib == CAMERA_LIB_FFPYPLAYER:
+            return 'RGB'
+        elif self._captureLib == CAMERA_LIB_OPENCV:
+            return 'BGR'
+        else:
+            return 'Unknown'
+    
+    @property
+    def streamTime(self):
+        """Get the stream time of the frame (`float`).
+
+        Returns
+        -------
+        float
+            The time in seconds since the start of the recording when this
+            frame was captured.
+
+        """
+        return self._streamTime
+    
+    @property
+    def absTime(self):
+        """Get the absolute time of the frame (`float`).
+
+        Returns
+        -------
+        float
+            The absolute time in seconds when this frame was captured.
+
+        """
+        return self._absTime
+    
+    @property
+    def captureLib(self):
+        """Get the camera library used to capture this frame (`str`).
+
+        Returns
+        -------
+        str
+            The camera library used to capture this frame (e.g., 'ffpyplayer',
+            'opencv').
+
+        """
+        return self._captureLib
+
+
+
 # keep track of camera devices that are opened
 _openCameras = {}
 
@@ -1665,7 +1781,7 @@ class Camera:
         self._texBufferSizeBytes = None  # size of the texture buffer
 
         # computer vison mode 
-        self._objClassfiers = {}  # list of classifiers for CV mode
+        self._cascadeClassifiers = {}  # list of classifiers for CV mode
 
         # keep track of files to merge
         self._filesToMerge = []  # list of tuples (videoFile, audioFile)
@@ -2703,8 +2819,14 @@ class Camera:
             # if camera is in CV mode, convert the frame to RGB
             if self._usageMode == CAMERA_MODE_CV:
                 colorData = self._convertFrameToRGBFFPyPlayer(colorData)
-            # add the frame to the frame store
-            self._frameStore.append((colorData, pts, streamTime))
+
+            if self._cascadeClassifiers:
+                # perform object detection on the frame
+                features = self._detectObjects(colorData)
+                self._frameStore.append((colorData, pts, streamTime, features))
+            else:
+                # add the frame to the frame store
+                self._frameStore.append((colorData, pts, streamTime))
         
         # if we have frames, update the last frame
         colorData, pts, streamTime = newFrames[-1]
@@ -2767,6 +2889,119 @@ class Camera:
         self.update()
 
         return self._lastFrame[0] if self._lastFrame else None
+    
+    # --------------------------------------------------------------------------
+    # Object/feature detection interface
+    #
+
+    def addCascadeClassifier(self, name, classifer, **kwargs):
+        """Add an object/feature classifier to the camera.
+
+        Parameters
+        ----------
+        name : str
+            Name to assign to the classifier for later reference.
+        classifier : str or object
+            Path to the classifier file (e.g. Haar cascade XML file) or a
+            pre-loaded classifier object.
+
+        Returns
+        -------
+        None
+
+        """
+        import cv2
+
+        cvDataDir = cv2.data.haarcascades
+
+        if isinstance(classifer, str):
+            if not os.path.exists(classifer):
+                classifer = os.path.join(cvDataDir, classifer)
+                if not os.path.exists(classifer):
+                    raise FileNotFoundError(
+                        "Classifier file `{}` does not exist.".format(
+                            classifer))
+        elif not isinstance(classifer, cv2.CascadeClassifier):
+            raise TypeError(
+                "`classifier` must be a file path or an instance of "
+                "`cv2.CascadeClassifier`.")
+                
+        self._cascadeClassifiers[name] = (
+            cv2.CascadeClassifier(classifer),
+            kwargs
+        )
+
+    def removeCascadeClassifier(self, name):
+        """Remove an object/feature classifier from the camera.
+
+        Parameters
+        ----------
+        name : str
+            Name of the classifier to remove.
+
+        Returns
+        -------
+        None
+
+        """
+        if name in self._cascadeClassifiers:
+            del self._cascadeClassifiers[name]
+
+    def getCascadeClassifiers(self):
+        """Get the names of the currently loaded cascade classifiers.
+
+        Returns
+        -------
+        list of str
+            List of names of the currently loaded cascade classifiers.
+
+        """
+        return list(self._cascadeClassifiers.keys())
+
+    def _detectObjects(self, frameData):
+        """Detect objects in the given frames using the specified classifier.
+        This is called automatically when classifiers are added and frames are
+        polled.
+
+        Parameters
+        ----------
+        frameData : ndarray
+            Color data of the frames to process.
+
+        Returns
+        -------
+        dict
+            Dictionary of detected objects for each classifier. The keys are
+            the names of the classifiers, and the values are lists of bounding
+            boxes for each detected object in the format (x, y, w, h).
+
+        """
+        import cv2
+        detections = {}
+
+        frameW, frameH = frameData.get_size()
+        videoBuffer = frameData.to_memoryview()[0].memview
+        videoFrameArray = np.frombuffer(videoBuffer, dtype=np.uint8).reshape(
+            (frameH, frameW, 3))
+        
+        grayFrame = cv2.cvtColor(videoFrameArray, cv2.COLOR_RGB2GRAY)
+        
+        for name, (classifier, params) in self._cascadeClassifiers.items():
+            if name not in detections:
+                detections[name] = []
+
+            rects = classifier.detectMultiScale(
+                grayFrame,
+                **params
+            )
+            
+            for (x, y, w, h) in rects:
+                detections[name].append({
+                    'bbox': (x, y, w, h),
+                    'center': (int(x + w / 2), int(y + h / 2))
+                })
+
+        return detections
     
     # --------------------------------------------------------------------------
     # Audio track
