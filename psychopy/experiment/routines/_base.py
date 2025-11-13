@@ -113,6 +113,7 @@ class BaseStandaloneRoutine:
             "categories": cls.categories,
             "targets": cls.targets,
             "plugin": cls.plugin,
+            "legacyParams": cls.legacyParams,
             "iconSVG": iconSVG,
             "iconFile": cls.iconFile,
             "tooltip": cls.tooltip,
