@@ -15,6 +15,8 @@ Online studies are realized via `PsychoJS <https://github.com/psychopy/psychojs>
   Configure the online settings of your experiment <configureOnline>
   Launch your study on Pavlovia.org <usingPavlovia>
 
+We also **really** recommend taking a look at `this index of tips <https://discourse.psychopy.org/t/wakefields-daily-tips-index/43722#p-124345-online-3>`_ from our Science Officer Wake on our forum!
+
 .. raw:: html
 
     <iframe width="560" height="315" src="https://www.youtube.com/embed/oYhcBDK2O10" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
@@ -28,6 +30,7 @@ When making an experiment to run online, there are a few important consideration
   Checking media is the correct format <mediaFormats>
   Multisession testing, Counterbalancing, checking existing IDs, multiplayer games and in-game leaderboard <shelf>
   Caveats and cautions (timing accuracy and web-browser support) <cautions>
+
 
 PsychoPy and Pavlovia can also be used in conjunction with external servies, see below for guides for some common ones:
 
