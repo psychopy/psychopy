@@ -1285,25 +1285,6 @@ class BaseComponent:
         indent = validator.writeEachFrameValidationCode(buff, stim=self)
         # if validation code indented the buffer, dedent
         buff.setIndentLevel(-indent, relative=True)
-    
-    def writeRoutineEndValidationCode(self, buff):
-        """
-        Write Routine stop code to validate this stimulus against the specified validator.
-
-        Parameters
-        ----------
-        buff : StringIO
-            String buffer to write code to.
-        """
-        # get validator
-        validator = self.getValidator()
-        # if there is no validator, don't write any code
-        if validator is None:
-            return
-        # if there is a validator, write its code
-        indent = validator.writeRoutineEndValidationCode(buff, stim=self)
-        # if validation code indented the buffer, dedent
-        buff.setIndentLevel(-indent, relative=True)
 
     def getFullDocumentation(self, fmt="rst"):
         """
