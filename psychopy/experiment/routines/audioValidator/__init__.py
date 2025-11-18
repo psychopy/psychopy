@@ -176,6 +176,28 @@ class AudioValidatorRoutine(BaseDeviceRoutine):
         # return change in indent level
         return buff.indentLevel - startIndent
 
+    def writeRoutineEndValidationCode(self, buff, stim):
+        # get starting indent level
+        startIndent = buff.indentLevel
+        # validate stop time
+        code = (
+            "# if {name} stop time wasn't validated before the Routine ended, do it now\n"
+            "%(name)s.status == STARTED:\n"
+            "    %(name)s.tStop, %(name)s.tStopDelay = %(name)s.validate(state=False, t={name}.tStopRefresh)\n"
+            "    %(name)s.status = FINISHED\n"
+        )
+        if stim.params['saveStartStop']:
+            # save validated start time if stim requested
+            code += (
+            "    if %(name)s.tStop is not None:\n"
+            "        thisExp.addData('{name}.%(name)s.stopped', %(name)s.tStop)\n"
+            "        thisExp.addData('{name}.%(name)s.stopDelay', %(name)s.tStopDelay)\n"
+            )
+        buff.writeIndentedLines(code.format(**stim.params) % self.params)
+
+        # return change in indent level
+        return buff.indentLevel - startIndent
+
     def findConnectedStimuli(self):
         # list of linked components
         stims = []
