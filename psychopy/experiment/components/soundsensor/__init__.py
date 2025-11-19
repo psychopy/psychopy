@@ -1,4 +1,6 @@
 from pathlib import Path
+from psychopy.experiment.components.sound import SpeakerDeviceBackend
+from psychopy.preferences import prefs
 from psychopy.experiment.devices import DeviceBackend
 from psychopy.experiment.components import BaseComponent, BaseDeviceComponent, Param, getInitVals
 from psychopy.localization import _translate
@@ -30,6 +32,9 @@ class SoundSensorComponent(BaseDeviceComponent):
             stopType='duration (s)', stopVal=1.0,
             startEstim='', durationEstim='',
             forceEndRoutine=True,
+            findThreshold=True,
+            threshold=0.5,
+            speakerDevice="",
             # device
             deviceLabel="",
             deviceBackend="microphone",
@@ -67,7 +72,64 @@ class SoundSensorComponent(BaseDeviceComponent):
             hint=_translate(
                 "Should a response force the end of the Routine (e.g end the trial)?"
             ),
-            label=_translate("Force end of Routine"))
+            label=_translate("Force end of Routine")
+        )
+        self.params['findThreshold'] = Param(
+            findThreshold, valType="bool", inputType="bool", categ="Basic",
+            label=_translate("Find best threshold?"),
+            hint=_translate(
+                "Run a brief Routine to find the best threshold for the sound sensor at experiment start?"
+            )
+        )
+        self.depends.append({
+            "dependsOn": "findThreshold",  # if...
+            "condition": "==True",  # is...
+            "param": "threshold",  # then...
+            "true": "hide",  # should...
+            "false": "show",  # otherwise...
+        })
+        self.params['threshold'] = Param(
+            threshold, valType="code", inputType="single", categ="Basic",
+            updates="constant", allowedUpdates=None,
+            label=_translate("Threshold"),
+            hint=_translate(
+                "Threshold for the sound sensor, units go from 0 (least sensitive) to  1 (most "
+                "sensitive)."
+            )
+        )
+        self.depends.append({
+            "dependsOn": "findThreshold",  # if...
+            "condition": "==True",  # is...
+            "param": "speakerDevice",  # then...
+            "true": "show",  # should...
+            "false": "hide",  # otherwise...
+        })
+        # functions for getting device labels
+        def getSpeakerDevices():
+            # start with default
+            devices = [("", _translate("Default"))]
+            # iterate through saved devices
+            for name, device in prefs.devices.items():
+                # if device is a microphone, include it
+                if isinstance(device, SpeakerDeviceBackend):
+                    devices.append(
+                        (name, name)
+                    )
+            return devices
+        def getSpeakerLabels():
+            return [device[1] for device in getSpeakerDevices()]
+        def getSpeakerValues():
+            return [device[0] for device in getSpeakerDevices()]
+        self.params['speakerDevice'] = Param(
+            speakerDevice, valType="device", inputType="device", categ="Basic",
+            updates="constant", allowedUpdates=None,
+            allowedVals=getSpeakerValues,
+            allowedLabels=getSpeakerLabels,
+            label=_translate("Calibrate for speaker"),
+            hint=_translate(
+                "Speaker to calibrate to when choosing best threshold."
+            )
+        )
 
         # --- Data params ---
         self.order += [
@@ -128,6 +190,18 @@ class SoundSensorComponent(BaseDeviceComponent):
             "    device=%(deviceLabel)s\n"
             ")\n"
         )
+        buff.writeIndentedLines(code % inits)
+        # find threshold if indicated
+        if self.params['findThreshold'] or not self.params['threshold']:
+            code = (
+                "# find threshold for sound sensor\n"
+                "%(name)s.sensor.findThreshold(%(speakerDevice)s, channel=%(channel)s)\n"
+            )
+        else:
+            code = (
+                "%(name)s.sensor.setThreshold(%(threshold)s, channel=%(channel)s)"
+            )
+        buff.writeIndentedLines(code % inits)
         buff.writeIndentedLines(code % inits)
 
     def writeRoutineStartCode(self, buff):
@@ -271,15 +345,6 @@ class MicrophoneSoundSensorBackend(DeviceBackend):
             "meSamplingWindow",
         ]
         # define params
-        self.params['threshold'] = Param(
-            0.5, valType="code", inputType="single",
-            updates="constant", allowedUpdates=None,
-            label=_translate("Threshold (0-1)"),
-            hint=_translate(
-                "Threshold volume (0 for min value in dB range, 1 for max value) above which to "
-                "register a sound sensor response"
-            )
-        )
         self.params['dbRange'] = Param(
             (0, 1), valType="list", inputType="single",
             updates="constant", allowedUpdates=None,
@@ -312,7 +377,6 @@ class MicrophoneSoundSensorBackend(DeviceBackend):
         self.writeBaseDeviceCode(buff, close=False)
         # add exclusive param and close
         code = (
-            "    threshold=%(threshold)s, \n"
             "    dbRange=%(dbRange)s, \n"
             "    samplingWindow=%(samplingWindow)s,\n"
             ")\n"

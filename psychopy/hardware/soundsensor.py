@@ -57,7 +57,7 @@ class BaseSoundSensorGroup(base.BaseResponseDevice):
             return thresholds
         
         # sound to play
-        snd = sound.Sound("voicekeyThresholdStim.wav", speaker=speaker, secs=5, loops=-1)
+        snd = sound.Sound("A", speaker=speaker, secs=5, loops=-1)
         # keyboard to check for escape/continue
         kb = keyboard.Keyboard(deviceName="defaultKeyboard")
         
@@ -68,18 +68,7 @@ class BaseSoundSensorGroup(base.BaseResponseDevice):
             # work out current
             current = sum(threshRange) / 2
             # set threshold
-            self._setThreshold(current, channel=channel)
-            # reset current state and clear responses
-            self.state[channel] = None
-            self.responses = []
-            # start a countdown for beep duration
-            countdown = core.CountdownTimer(samplingWindow)
-            # wait for a response
-            gotResp = False
-            while countdown.getTime() > 0:
-                gotResp = gotResp or self.getState(channel=channel)
-            # get state
-            value = self.getState(channel=channel)
+            value = self._setThreshold(current, channel=channel)
             # log
             logging.debug(
                 f"Trying threshold range: {threshRange}, detected sound: {value}"
@@ -96,7 +85,7 @@ class BaseSoundSensorGroup(base.BaseResponseDevice):
             if recursionLimit <= 0:
                 return current
             # return if threshold is small enough
-            if abs(threshRange[1] - threshRange[0]) < 4:
+            if abs(threshRange[1] - threshRange[0]) < 0.04:
                 return current
             # recur with new range
             return _bisectThreshold(threshRange, recursionLimit=recursionLimit-1)

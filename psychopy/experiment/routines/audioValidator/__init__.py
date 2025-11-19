@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from pathlib import Path
+from psychopy.experiment.components.sound import SpeakerDeviceBackend
 from psychopy.preferences import prefs
 from psychopy.alerts._alerts import alert
 from psychopy.experiment import Param
@@ -37,12 +38,12 @@ class AudioValidatorRoutine(BaseDeviceRoutine):
             self,
             # basic
             exp, name='audioVal',
+            findThreshold=True, threshold=0.5, speakerDevice=None,
             # device
             deviceLabel="", channel="0",
             # legacy
-            threshold=0.5, deviceBackend="microphone",
+            deviceBackend="microphone",
     ):
-
         self.exp = exp  # so we can access the experiment if necess
         self.params = {}
         self.depends = []
@@ -68,6 +69,62 @@ class AudioValidatorRoutine(BaseDeviceRoutine):
                 "which can detect the speaker."
             )
         )
+        self.params['findThreshold'] = Param(
+            findThreshold, valType="bool", inputType="bool", categ="Basic",
+            label=_translate("Find best threshold?"),
+            hint=_translate(
+                "Run a brief Routine to find the best threshold for the sound sensor at experiment start?"
+            )
+        )
+        self.depends.append({
+            "dependsOn": "findThreshold",  # if...
+            "condition": "==True",  # is...
+            "param": "threshold",  # then...
+            "true": "hide",  # should...
+            "false": "show",  # otherwise...
+        })
+        self.params['threshold'] = Param(
+            threshold, valType="code", inputType="single", categ="Basic",
+            updates="constant", allowedUpdates=None,
+            label=_translate("Threshold"),
+            hint=_translate(
+                "Threshold for the sound sensor, units go from 0 (least sensitive) to  1 (most "
+                "sensitive)."
+            )
+        )
+        self.depends.append({
+            "dependsOn": "findThreshold",  # if...
+            "condition": "==True",  # is...
+            "param": "speakerDevice",  # then...
+            "true": "show",  # should...
+            "false": "hide",  # otherwise...
+        })
+        # functions for getting device labels
+        def getSpeakerDevices():
+            # start with default
+            devices = [("", _translate("Default"))]
+            # iterate through saved devices
+            for name, device in prefs.devices.items():
+                # if device is a microphone, include it
+                if isinstance(device, SpeakerDeviceBackend):
+                    devices.append(
+                        (name, name)
+                    )
+            return devices
+        def getSpeakerLabels():
+            return [device[1] for device in getSpeakerDevices()]
+        def getSpeakerValues():
+            return [device[0] for device in getSpeakerDevices()]
+        self.params['speakerDevice'] = Param(
+            speakerDevice, valType="device", inputType="device", categ="Basic",
+            updates="constant", allowedUpdates=None,
+            allowedVals=getSpeakerValues,
+            allowedLabels=getSpeakerLabels,
+            label=_translate("Calibrate for speaker"),
+            hint=_translate(
+                "Speaker to calibrate to when choosing best threshold."
+            )
+        )
 
     def writeMainCode(self, buff):
         inits = getInitVals(self.params)
@@ -79,6 +136,17 @@ class AudioValidatorRoutine(BaseDeviceRoutine):
             "    %(channel)s,\n"
             ")\n"
         )
+        buff.writeIndentedLines(code % inits)
+        # find threshold if indicated
+        if self.params['findThreshold'] or not self.params['threshold']:
+            code = (
+                "# find threshold for sound sensor\n"
+                "%(name)s.sensor.findThreshold(%(speakerDevice)s, channel=%(channel)s)\n"
+            )
+        else:
+            code = (
+                "%(name)s.sensor.setThreshold(%(threshold)s, channel=%(channel)s)"
+            )
         buff.writeIndentedLines(code % inits)
         # connect stimuli
         for stim in self.findConnectedStimuli():

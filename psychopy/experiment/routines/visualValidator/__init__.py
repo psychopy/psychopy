@@ -70,8 +70,8 @@ class VisualValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             threshold, valType="code", inputType="single", categ="Basic",
             label=_translate("Threshold"),
             hint=_translate(
-                "Light threshold at which the light sensor should register a positive, units go from 0 (least sensitive) to "
-                "1 (most sensitive)."
+                "Threshold for the light sensor, units go from 0 (least sensitive) to  1 (most "
+                "sensitive)."
             )
         )
         self.depends.append({
@@ -153,28 +153,38 @@ class VisualValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
 
     def writeMainCode(self, buff):
         inits = getInitVals(self.params)
+        # create validator object
+        code = (
+            "# validator object for %(name)s\n"
+            "%(name)s = validation.VisualValidator(\n"
+            "    win, "
+            "    deviceManager.getDevice(%(deviceLabel)s), "
+            "    %(channel)s\n"
+            ")\n"
+        )
+        buff.writeIndentedLines(code % inits)
         # get Sensor
         code = (
             "# sensor object for %(name)s\n"
-            "%(name)sSensor = deviceManager.getDevice(%(deviceLabel)s)\n"
+            "%(name)s.sensor = deviceManager.getDevice(%(deviceLabel)s)\n"
         )
         buff.writeIndentedLines(code % inits)
         # find threshold if indicated
         if self.params['findThreshold'] or not self.params['threshold']:
             code = (
                 "# find threshold for light sensor\n"
-                "%(name)sSensor.findThreshold(win, channel=%(channel)s)\n"
+                "%(name)s.sensor.findThreshold(win, channel=%(channel)s)\n"
             )
         else:
             code = (
-                "%(name)sSensor.setThreshold(%(threshold)s, channel=%(channel)s)"
+                "%(name)s.sensor.setThreshold(%(threshold)s, channel=%(channel)s)"
             )
         buff.writeOnceIndentedLines(code % inits)
         # find pos if indicated
         if self.params['findSensor']:
             code = (
                 "# find position and size of the light sensor\n"
-                "%(name)sSensor.findSensor(win, channel=%(channel)s)\n"
+                "%(name)s.sensor.findSensor(win, channel=%(channel)s)\n"
             )
             buff.writeOnceIndentedLines(code % inits)
         else:
@@ -182,25 +192,22 @@ class VisualValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             # set units (unless None)
             if self.params['sensorUnits']:
                 code += (
-                    "%(name)sSensor.units = %(sensorUnits)s\n"
+                    "%(name)s.sensor.units = %(sensorUnits)s\n"
                 )
             # set pos (unless None)
             if self.params['sensorPos']:
                 code += (
-                    "%(name)sSensor.pos = %(sensorPos)s\n"
+                    "%(name)s.sensor.pos = %(sensorPos)s\n"
                 )
             # set size (unless None)
             if self.params['sensorSize']:
                 code += (
-                    "%(name)sSensor.size = %(sensorSize)s\n"
+                    "%(name)s.sensor.size = %(sensorSize)s\n"
                 )
             buff.writeIndentedLines(code % inits)
-        # create validator object
+        # update rects once sensor is found
         code = (
-            "# validator object for %(name)s\n"
-            "%(name)s = validation.VisualValidator(\n"
-            "    win, %(name)sSensor, %(channel)s,\n"
-            ")\n"
+            "%(name)s.updateRects()\n"
         )
         buff.writeIndentedLines(code % inits)
         # connect stimuli
