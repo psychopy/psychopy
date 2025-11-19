@@ -675,7 +675,13 @@ class Routine(list):
             c.name for c in self
             if 'startType' in c.params and c.type != 'Variable'
         ]
-        compStr = ", ".join(comps)
+        # get list of validators for each Component
+        validators = [
+            c.getValidator().name for c in self
+            if 'startType' in c.params and c.type != 'Variable' and c.getValidator()
+        ]
+        # stringify
+        compStr = ", ".join(comps + validators)
         # create object
         code = (
             "# create an object to store info about Routine %(name)s\n"
