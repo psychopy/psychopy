@@ -182,7 +182,7 @@ class AudioValidatorRoutine(BaseDeviceRoutine):
         # validate stop time
         code = (
             "# if {name} stop time wasn't validated before the Routine ended, do it now\n"
-            "%(name)s.status == STARTED:\n"
+            "if %(name)s.status == STARTED:\n"
             "    %(name)s.tStop, %(name)s.tStopDelay = %(name)s.validate(state=False, t={name}.tStopRefresh)\n"
             "    %(name)s.status = FINISHED\n"
         )
