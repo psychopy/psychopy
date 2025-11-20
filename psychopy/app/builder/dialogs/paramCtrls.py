@@ -402,7 +402,7 @@ class SingleLineCtrl(BaseParamCtrl):
             if sys.platform == "linux":
                 # have to go via SetStyle on Linux
                 style = wx.TextAttr(self.ctrl.GetForegroundColour(), font=font)
-                self.ctrl.SetStyle(0, len(self.GetValue()), style)
+                self.ctrl.SetStyle(0, len(self.ctrl.GetValue()), style)
             else:
                 # otherwise SetFont is fine
                 self.ctrl.SetFont(font)
