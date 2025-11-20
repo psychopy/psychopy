@@ -146,6 +146,8 @@ class PavloviaMiniBrowser(wx.Dialog):
             # use the json response from that http request to get access remaining token info
             self.tokenInfo['token'] = resp['access_token']
             self.tokenInfo['tokenType'] = resp['token_type']
+            if "refresh_token" in resp:
+                self.tokenInfo['refreshToken'] = resp['refresh_token']
         elif "access_token=" in url:
             self.tokenInfo['token'] = self.getParamFromURL(
                 'access_token', url)
@@ -155,7 +157,7 @@ class PavloviaMiniBrowser(wx.Dialog):
                 'state', url)
             self._loggingIn = False  # we got a log in
             self.browser.Unbind(wx.html2.EVT_WEBVIEW_LOADED)
-            pavlovia.login(self.tokenInfo['token'])
+            pavlovia.login(self.tokenInfo['token'], refreshToken=self.tokenInfo.get('refresh', None))
             if self.loginOnly:
                 self.EndModal(wx.ID_OK)
         elif url == 'https://gitlab.pavlovia.org/dashboard/projects':
