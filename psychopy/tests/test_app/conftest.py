@@ -21,7 +21,6 @@ if Version(pytest.__version__) < Version('5'):
 
 
 # this method seems to work on at least Pytest 5.4+
-@pytest.mark.needs_wx
 @pytest.fixture(scope='session')
 def get_app(request):
 
