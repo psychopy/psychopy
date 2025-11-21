@@ -397,13 +397,22 @@ class SingleLineCtrl(BaseParamCtrl):
         self.ctrl.Refresh()
     
     def styleCode(self):
-        # text becomes monospace if code
+        def _setFont(font):
+            # text becomes monospace if code
+            if sys.platform == "linux":
+                # have to go via SetStyle on Linux
+                style = wx.TextAttr(self.ctrl.GetForegroundColour(), font=font)
+                self.ctrl.SetStyle(0, len(self.ctrl.GetValue()), style)
+            else:
+                # otherwise SetFont is fine
+                self.ctrl.SetFont(font)
+
         if self.isCode:
-            self.ctrl.SetFont(
+            _setFont(
                 fonts.CodeFont(bold=True).obj
             )
         else:
-            self.ctrl.SetFont(
+            _setFont(
                 fonts.AppFont().obj
             )
         self.ctrl.Refresh()
