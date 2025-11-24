@@ -420,8 +420,8 @@ class MouseComponent(BaseComponent):
 
         elif self.params['saveMouseState'].val != 'never':
             mouseCode = ("x, y = {name}.getPos()\n"
-                    "{name}.x.append(x)\n"
-                    "{name}.y.append(y)\n"
+                    "{name}.x.append(float(x))\n"
+                    "{name}.y.append(float(y))\n"
                     "buttons = {name}.getPressed()\n"
                     "{name}.leftButton.append(buttons[0])\n"
                     "{name}.midButton.append(buttons[1])\n"
