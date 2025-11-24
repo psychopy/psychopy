@@ -28,24 +28,24 @@ class TestMouseComponent(BaseComponentTests):
         saveMouseStateCases = [
             {'val': "final",
              'want': [f"thisExp.addData('{comp.name}.x', x)"],  # should contain code for adding final value of x
-             'avoid': [f"{comp.name}.x.append(x)"]},  # should not contain code to update testMouse.x in frame loop
+             'avoid': [f"{comp.name}.x.append(float(x))"]},  # should not contain code to update testMouse.x in frame loop
             {'val': "on click",
              'want': [f"thisExp.addData('{comp.name}.x', {comp.name}.x)",  # should add testMouse.x at the end
-                      f"{comp.name}.x.append(x)"],  # should contain code to update testMouse.x in frame loop
+                      f"{comp.name}.x.append(float(x))"],  # should contain code to update testMouse.x in frame loop
              'avoid': [f"thisExp.addData('{comp.name}.x', x)"]},  # should not add final value of x
             {'val': "on valid click",
              'want': [f"thisExp.addData('{comp.name}.x', {comp.name}.x)",  # should add testMouse.x at the end
-                      f"{comp.name}.x.append(x)",  # should contain code to update testMouse.x in frame loop
+                      f"{comp.name}.x.append(float(x))",  # should contain code to update testMouse.x in frame loop
                       "if gotValidClick:"],  # should check for valid clicks
              'avoid': [f"thisExp.addData('{comp.name}.x', x)"]},  # should not add final value of x
             {'val': "every frame",
              'want': [f"thisExp.addData('{comp.name}.x', {comp.name}.x)",  # should add testMouse.x at the end
-                      f"{comp.name}.x.append(x)"],  # should contain code to update testMouse.x in frame loop
+                      f"{comp.name}.x.append(float(x))"],  # should contain code to update testMouse.x in frame loop
              'avoid': [f"thisExp.addData('{comp.name}.x', x)"]},  # should not add final value of x
             {'val': "never",
              'want': [],
              'avoid': [f"thisExp.addData('{comp.name}.x', {comp.name}.x)",  # should not add testMouse.x at the end
-                       f"{comp.name}.x.append(x)",  # should not contain code to update testMouse.x in frame loop
+                       f"{comp.name}.x.append(float(x))",  # should not contain code to update testMouse.x in frame loop
                        f"thisExp.addData('{comp.name}.x', x)"]},  # should not add final value of x]},
         ]
         forceEndRoutineOnPressCases = [
