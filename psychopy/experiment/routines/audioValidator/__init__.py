@@ -114,6 +114,7 @@ class AudioValidatorRoutine(BaseDeviceRoutine):
             clockStr = "clock=routineTimer"
         # sync component start/stop timers with validator clocks
         code = (
+            f"%(name)s.status = NOT_STARTED\n"
             f"# synchronise device clock for %(name)s with Routine timer\n"
             f"%(name)s.resetTimer({clockStr})\n"
         )
@@ -184,6 +185,13 @@ class AudioValidatorRoutine(BaseDeviceRoutine):
 
         # return change in indent level
         return buff.indentLevel - startIndent
+
+    def writeRoutineEndValidationCode(self, buff, stim):
+        # end validator after Routine is finished
+        code = (
+            "%(name)s.status = FINISHED\n"
+        )
+        buff.writeIndentedLines(code % self.params)
 
     def findConnectedStimuli(self):
         # list of linked components
