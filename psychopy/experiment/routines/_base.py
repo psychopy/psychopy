@@ -451,6 +451,25 @@ class BaseValidatorRoutine(BaseDeviceRoutine):
         """
         # this method should be overloaded when subclassing!
         return 0
+    
+    def writeEachFrameValidationCode(self, buff, stim):
+        """
+        Write Routine stop code to validate this stimulus against the specified validator.
+
+        Parameters
+        ----------
+        buff : StringIO
+            String buffer to write code to.
+        stim : BaseComponent
+            Stimulus to validate
+
+        Returns
+        -------
+        int
+            Change in indentation level after writing
+        """
+        # this method should be overloaded when subclassing!
+        return 0
 
 
 class Routine(list):
@@ -826,6 +845,7 @@ class Routine(list):
                 '        thisComponent.setAutoDraw(False)\n')
         buff.writeIndentedLines(code % self.params)
         for event in self:
+            event.writeRoutineEndValidationCode(buff)
             event.writeRoutineEndCode(buff)
 
         if useNonSlip:

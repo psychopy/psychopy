@@ -1,0 +1,25 @@
+
+code: 4160
+cat: Timing validation
+msg: Cannot validate stop time for `{name}` as it stops on final frame of Routine
+
+# The following are typically used for online help pages, and support reStructured Text.
+label: Cannot validate stop time if stimulus ends on final frame
+
+synopsis: |
+  Timing validation works by asking a light/sound sensor, on the frame *after* a stimulus started/stopped, when it detected a stimulus start/stopping. If a stimulus ends on the final frame of a Routine, then there isn't a frame after so its stop time can't be validated.
+
+details: |
+  The timeline of a validation is as follows:
+
+  * Stimulus is asked to start/stop
+  * Frame loops
+  * Validation device is asked when it detected a stimulus starting/stopping
+
+  If the frame on which a stimulus is asked to stop is the final frame of a Routine, then there is no subsequent frame for the validator to be asked on. This means that your validated stop time will be `None`.
+
+solutions: |
+  This may be fine! You may only be interested in validating the stimulus' start time. If so, you can ignore this alert. If you do want stop time validation however, the Routine will need to be at least 1 frame longer than the validated stimulus.
+
+versions: |
+  All

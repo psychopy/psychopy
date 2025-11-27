@@ -1191,6 +1191,22 @@ class BaseComponent:
                 if comp.name == name:
                     return comp
 
+    def endsWithRoutine(self):
+        """
+        Does this Component end along with the Routine (i.e. on the final frame)?
+        """
+        # if there's no Routine, then this doesn't apply
+        if self.getRoutine() is None:
+            return
+        # if it has the same stop time as the Routine, then yes it does
+        if self.getStartAndDuration()[1] == self.getRoutine().getMaxTime()[0]:
+            return True
+        # if the Routine times out before this Component ends, then yes it does
+        if self.getStartAndDuration()[1] >= self.getRoutine().settings.getDuration()[0]:
+            return True
+        # otherwise, assume no
+        return False
+    
     def writeRoutineStartValidationCode(self, buff):
         """
         WWrite Routine start code to validate this stimulus against the specified validator.
@@ -1226,6 +1242,25 @@ class BaseComponent:
             return
         # if there is a validator, write its code
         indent = validator.writeEachFrameValidationCode(buff, stim=self)
+        # if validation code indented the buffer, dedent
+        buff.setIndentLevel(-indent, relative=True)
+    
+    def writeRoutineEndValidationCode(self, buff):
+        """
+        Write Routine stop code to validate this stimulus against the specified validator.
+
+        Parameters
+        ----------
+        buff : StringIO
+            String buffer to write code to.
+        """
+        # get validator
+        validator = self.getValidator()
+        # if there is no validator, don't write any code
+        if validator is None:
+            return
+        # if there is a validator, write its code
+        indent = validator.writeRoutineEndValidationCode(buff, stim=self)
         # if validation code indented the buffer, dedent
         buff.setIndentLevel(-indent, relative=True)
 
@@ -1351,6 +1386,9 @@ class BaseComponent:
     @property
     def name(self):
         return self.params['name'].val
+    
+    def getRoutine(self):
+        return self.exp.routines.get(self.parentName, None)
 
     @name.setter
     def name(self, value):
