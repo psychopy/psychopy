@@ -167,6 +167,9 @@ class AudioValidatorRoutine(BaseDeviceRoutine):
             )
         buff.writeIndentedLines(code.format(**stim.params) % self.params)
 
+        # if stimulus ends with the Routine, raise an alert
+        if stim.endsWithRoutine():
+            alert(4160, strFields={'name': stim.name})
         # validate stop time
         code = (
             "# validate {name} stop time\n"
@@ -192,6 +195,8 @@ class AudioValidatorRoutine(BaseDeviceRoutine):
             "%(name)s.status = FINISHED\n"
         )
         buff.writeIndentedLines(code % self.params)
+
+        return 0
 
     def findConnectedStimuli(self):
         # list of linked components
