@@ -419,7 +419,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
 
         # get the system theme
         self._systemAppearance = wx.SystemSettings.GetAppearance()
-        self._isDarkMode = self._systemAppearance.IsDark()
+        self._isDarkMode = self._systemAppearance.IsDark() and not sys.platform == "win32"
 
         if showSplash:
             # show splash screen
