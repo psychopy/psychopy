@@ -1179,6 +1179,7 @@ class CameraDevice(BaseDevice):
             pts = self._capture.get(cv2.CAP_PROP_POS_MSEC) / 1000.0  # convert to seconds
             if pts < self._absRecStreamStartTime and self._isRecording:
                 del frame
+                continue
 
             recentFrames.append((
                 self._convertFrameToRGBOpenCV(frame), 
@@ -1388,9 +1389,9 @@ class CameraFrame:
     ----------
     image : numpy.ndarray
         The image data of the frame as a Numpy array.
-    streamTime : float
-        The time in seconds since the start of the recording when this frame
-        was captured.
+    pts : float
+        Presentation timestamp in seconds when this frame was captured since the
+        start of the recording.
     absTime : float
         The absolute time in seconds when this frame was captured using the 
         camera's timebase.
@@ -1398,35 +1399,23 @@ class CameraFrame:
         The camera library used to capture this frame (e.g., 'ffpyplayer',
         'opencv').
 
-    Attributes
-    ----------
-    image : numpy.ndarray
-        The image data of the frame as a Numpy array.
-    colorFormat : str
-        The color format of the image data (e.g., 'RGB', 'BGR').
-    streamTime : float
-        The time in seconds since the start of the recording when this frame
-        was captured.
-    absTime : float
-        The absolute time in seconds when this frame was captured.
-    captureLib : str
-        The camera library used to capture this frame (e.g., 'ffpyplayer',
-        'opencv').
-
     """
-    _image = None
-    _streamTime = -1.0
+    _colorData = None
+    _pts = -1.0
     _absTime = -1.0
     _captureLib = None
 
-    def __init__(self, image, streamTime=-1.0, absTime=-1.0, captureLib=None):
-        self.image = image
-        self.streamTime = streamTime
+    def __init__(self, colorData, pts=-1.0, absTime=-1.0, captureLib=None):
+        self.colorData = colorData
+        self.pts = pts
         self.absTime = absTime
         self.captureLib = captureLib
 
+        # detection results
+        self._detectedObjects = {}
+
     @property
-    def image(self):
+    def colorData(self):
         """Get the image data of the frame (`numpy.ndarray`).
 
         Returns
@@ -1435,11 +1424,15 @@ class CameraFrame:
             The image data of the frame as a Numpy array.
 
         """
-        return self._image
+        return self._colorData
+    
+    @colorData.setter
+    def colorData(self, value):
+        self._colorData = value
     
     @property
     def colorFormat(self):
-        """Get the color format of the image data (`str`).
+        """Get the color (pixel) format of the image data (`str`).
 
         Returns
         -------
@@ -1455,17 +1448,38 @@ class CameraFrame:
             return 'Unknown'
     
     @property
-    def streamTime(self):
-        """Get the stream time of the frame (`float`).
+    def frameSize(self):
+        """Get the size of the image data (`tuple`).
+
+        Returns
+        -------
+        tuple
+            The size of the image data as a tuple (width, height).
+
+        """
+        if self._captureLib == CAMERA_LIB_FFPYPLAYER:
+            frameW, frameH = self.colorData.get_size()
+            return (frameW, frameH)
+        elif self._captureLib == CAMERA_LIB_OPENCV:
+            # OpenCV frames are transposed
+            return (self.colorData.shape[1], self.colorData.shape[0])
+    
+    @property
+    def pts(self):
+        """Get the presentation timestamp of the frame (`float`).
 
         Returns
         -------
         float
-            The time in seconds since the start of the recording when this
-            frame was captured.
+            The presentation timestamp in seconds when this frame was captured 
+            since the start of the recording.
 
         """
-        return self._streamTime
+        return self._pts
+    
+    @pts.setter
+    def pts(self, value):
+        self._pts = float(value)
     
     @property
     def absTime(self):
@@ -1479,6 +1493,10 @@ class CameraFrame:
         """
         return self._absTime
     
+    @absTime.setter
+    def absTime(self, value):
+        self._absTime = float(value)
+    
     @property
     def captureLib(self):
         """Get the camera library used to capture this frame (`str`).
@@ -1491,7 +1509,123 @@ class CameraFrame:
 
         """
         return self._captureLib
+    
+    @captureLib.setter
+    def captureLib(self, value):
+        self._captureLib = value
+    
+    def detectObjects(self, recognizer, refresh=False, **kwargs):
+        """Detect objects in the frame using the specified recognizer.
 
+        Multiple recognizers can be passed as a list for batch processing which 
+        is more efficient than calling this method multiple times on the same 
+        frame with different recognizers.
+
+        Parameters
+        ----------
+        recognizer : Any
+            The object recognizer to use for detecting objects in the frame.
+            Usually an instance of a class derived from
+            `psychopy.tools.imagetools.BaseObjectRecognizer`.
+        refresh : bool, optional
+            If `True`, forces re-detection of objects even if results are
+            already cached. Default is `False`.
+        **kwargs : dict
+            Additional keyword arguments to pass to the recognizer's
+            `detectObjects()` method.
+        
+        Returns
+        -------
+        dict
+            A dictionary containing detection results for each recognizer. The
+            keys are the recognizer names and the values are dictionaries with 
+            the following keys:
+                - 'pts': Presentation timestamp of the frame.
+                - 'count': Number of objects detected.
+                - 'objects': List of detected objects with their details.
+
+            The structure of each detected object depends on the recognizer, see
+            the documentation of the specific recognizer for details.
+
+        Example
+        -------
+        Detect faces in a camera frame using Haar cascade classifiers:
+
+            import psychopy.tools.imagetools as imagetools
+
+            # load the pre-trained face recognizer
+            faceRecognizer = imagetools.HaarCascadeObjectRecognizer(
+                'haarcascade_frontalface_default.xml')
+
+            # in main loop after opening a camera interface with handle 'cam'
+            cam.update()  # update the camera to get the latest frame
+            recentFrame = cam.lastFrame  
+
+            detected = recentFrame.detectObjects(faceRecognizer)
+        
+        Passing a list of recognizers for batch processing:
+
+            # A list of recognizers, index indicates detection order. We are
+            # assigning names to each recognizer which will be used as keys in 
+            # the results dictionary.
+            recognizers = [
+                imagetools.HaarCascadeObjectRecognizer(
+                    'haarcascade_frontalface_default.xml', name='face'),
+                imagetools.HaarCascadeObjectRecognizer(
+                    'haarcascade_eye.xml', name='eye')
+            ]
+
+            detected = recentFrame.detectObjects(recognizers)
+
+            # get references to detected objects
+            faces = detected['face']['objects']
+            eyes = detected['eye']['objects']
+
+            # get position of the first detected face (if any)
+            if faces['count'] > 0:
+                firstFace = faces['objects'][0]
+                x, y, w, h = firstFace['rect']
+
+        """
+        if not refresh and self._detectedObjects:
+            return self._detectedObjects  # return cached results
+        
+        if not isinstance(recognizer, (list, tuple)):
+            recognizer = [recognizer]
+
+        import cv2
+
+        # get the frame data in the correct format
+        if self._captureLib == CAMERA_LIB_FFPYPLAYER:
+            frameW, frameH = self.frameSize
+            cameraFrameBuffer = self.colorData.to_memoryview()[0].memview
+            cameraFrameArray = np.frombuffer(
+                cameraFrameBuffer, dtype=np.uint8).reshape(
+                    (frameH, frameW, 3))
+            convMode = cv2.COLOR_RGB2GRAY
+        elif self._captureLib == CAMERA_LIB_OPENCV:
+            cameraFrameArray = self.colorData
+            convMode = cv2.COLOR_BGR2GRAY
+
+        # convert to grayscale for detection
+        grayFrame = cv2.cvtColor(cameraFrameArray, convMode)
+
+        results = {}
+        for recog in recognizer:
+            recogName = recog.name if hasattr(recog, 'name') else str(
+                type(recog))
+            detectedObjs = recog.detectObjects(
+                grayFrame, **kwargs)
+            
+            results[recogName] = {
+                'pts': self.pts,  
+                'count': len(detectedObjs),
+                'objects': detectedObjs
+            }
+
+        self._detectedObjects = results  # store the detection results
+
+        return results
 
 
 # keep track of camera devices that are opened
@@ -2816,25 +2950,27 @@ class Camera:
         self._frameCount += nNewFrames  # update total frames count
         # push all frames into the frame store
         for colorData, pts, streamTime in newFrames:
-            # if camera is in CV mode, convert the frame to RGB
+            # if camera is in CV mode, convert the frame to RGB by default
+            # otherwise frames are converted only when needed
             if self._usageMode == CAMERA_MODE_CV:
                 colorData = self._convertFrameToRGBFFPyPlayer(colorData)
 
-            if self._cascadeClassifiers:
-                # perform object detection on the frame
-                features = self._detectObjects(colorData)
-                self._frameStore.append((colorData, pts, streamTime, features))
-            else:
-                # add the frame to the frame store
-                self._frameStore.append((colorData, pts, streamTime))
+            # add the frame to the frame store
+            self._frameStore.append(
+                CameraFrame(
+                    colorData, 
+                    pts, 
+                    streamTime, 
+                    captureLib=CAMERA_LIB_FFPYPLAYER))
         
         # if we have frames, update the last frame
-        colorData, pts, streamTime = newFrames[-1]
-        self._lastFrame = (
-            self._convertFrameToRGBFFPyPlayer(colorData),  # convert to RGB, nop if already
-            pts,  # presentation timestamp
-            streamTime
-        )
+        # colorData, pts, streamTime = newFrames[-1]
+        # self._lastFrame = (
+        #     self._convertFrameToRGBFFPyPlayer(colorData),  # convert to RGB, nop if already
+        #     pts,  # presentation timestamp
+        #     streamTime
+        # )
+        self._lastFrame = self._frameStore[-1]  # most recent frame
 
         self._pixelTransfer()  # transfer frames to the GPU if we have a window
 
@@ -2889,119 +3025,6 @@ class Camera:
         self.update()
 
         return self._lastFrame[0] if self._lastFrame else None
-    
-    # --------------------------------------------------------------------------
-    # Object/feature detection interface
-    #
-
-    def addCascadeClassifier(self, name, classifer, **kwargs):
-        """Add an object/feature classifier to the camera.
-
-        Parameters
-        ----------
-        name : str
-            Name to assign to the classifier for later reference.
-        classifier : str or object
-            Path to the classifier file (e.g. Haar cascade XML file) or a
-            pre-loaded classifier object.
-
-        Returns
-        -------
-        None
-
-        """
-        import cv2
-
-        cvDataDir = cv2.data.haarcascades
-
-        if isinstance(classifer, str):
-            if not os.path.exists(classifer):
-                classifer = os.path.join(cvDataDir, classifer)
-                if not os.path.exists(classifer):
-                    raise FileNotFoundError(
-                        "Classifier file `{}` does not exist.".format(
-                            classifer))
-        elif not isinstance(classifer, cv2.CascadeClassifier):
-            raise TypeError(
-                "`classifier` must be a file path or an instance of "
-                "`cv2.CascadeClassifier`.")
-                
-        self._cascadeClassifiers[name] = (
-            cv2.CascadeClassifier(classifer),
-            kwargs
-        )
-
-    def removeCascadeClassifier(self, name):
-        """Remove an object/feature classifier from the camera.
-
-        Parameters
-        ----------
-        name : str
-            Name of the classifier to remove.
-
-        Returns
-        -------
-        None
-
-        """
-        if name in self._cascadeClassifiers:
-            del self._cascadeClassifiers[name]
-
-    def getCascadeClassifiers(self):
-        """Get the names of the currently loaded cascade classifiers.
-
-        Returns
-        -------
-        list of str
-            List of names of the currently loaded cascade classifiers.
-
-        """
-        return list(self._cascadeClassifiers.keys())
-
-    def _detectObjects(self, frameData):
-        """Detect objects in the given frames using the specified classifier.
-        This is called automatically when classifiers are added and frames are
-        polled.
-
-        Parameters
-        ----------
-        frameData : ndarray
-            Color data of the frames to process.
-
-        Returns
-        -------
-        dict
-            Dictionary of detected objects for each classifier. The keys are
-            the names of the classifiers, and the values are lists of bounding
-            boxes for each detected object in the format (x, y, w, h).
-
-        """
-        import cv2
-        detections = {}
-
-        frameW, frameH = frameData.get_size()
-        videoBuffer = frameData.to_memoryview()[0].memview
-        videoFrameArray = np.frombuffer(videoBuffer, dtype=np.uint8).reshape(
-            (frameH, frameW, 3))
-        
-        grayFrame = cv2.cvtColor(videoFrameArray, cv2.COLOR_RGB2GRAY)
-        
-        for name, (classifier, params) in self._cascadeClassifiers.items():
-            if name not in detections:
-                detections[name] = []
-
-            rects = classifier.detectMultiScale(
-                grayFrame,
-                **params
-            )
-            
-            for (x, y, w, h) in rects:
-                detections[name].append({
-                    'bbox': (x, y, w, h),
-                    'center': (int(x + w / 2), int(y + h / 2))
-                })
-
-        return detections
     
     # --------------------------------------------------------------------------
     # Audio track
@@ -3214,7 +3237,7 @@ class Camera:
         GL.glFlush()  # make sure all buffers are ready
 
     def _pixelTransfer(self):
-        """Copy pixel data from video frame to texture.
+        """Copy pixel data from most recent video frame to texture.
 
         This is called when a new frame is available. The pixel data is copied
         from the video frame to the texture store on the GPU.
@@ -3222,6 +3245,9 @@ class Camera:
         """
         if self.win is None:
             return  # no window to render to
+    
+        if self._lastFrame is None:
+            return  # no frame to upload
         
         import pyglet.gl as GL
         
@@ -3251,7 +3277,8 @@ class Camera:
 
         # map the video frame to a memoryview
         # suggested by Alex Forrence (aforren1) originally in PR #6439
-        videoBuffer = self._lastFrame[0].to_memoryview()[0].memview
+        # videoBuffer = self._lastFrame[0].to_memoryview()[0].memview
+        videoBuffer = self._lastFrame.colorData.to_memoryview()[0].memview
         videoFrameArray = np.frombuffer(videoBuffer, dtype=np.uint8)
 
         # copy the frame data to the buffer
