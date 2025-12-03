@@ -169,6 +169,26 @@ def fromFile(filename, encoding='utf-8-sig'):
         raise ValueError(msg)
 
 
+def psydat2csv(file):
+    """
+    Convert a psydat file to csv
+    """
+    # pathify
+    filePsydat = Path(file)
+    # create exp from file
+    exp = fromFile(
+        str(filePsydat.absolute())
+    )
+    # create csv file path
+    fileCsv = filePsydat.parent / (filePsydat.stem + ".csv")
+    # save csv
+    exp.saveAsWideText(
+        str(fileCsv.absolute())
+    )
+
+    return str(fileCsv.absolute())
+
+
 def mergeFolder(src, dst, pattern=None):
     """Merge a folder into another.
 
