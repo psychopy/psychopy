@@ -29,10 +29,21 @@ def refreshPackageIndex(fetch=False):
     _isIndexing = True
     scriptDir = prefs.paths['scripts']
 
+    # ensure we have an `appCache` directory
+    appCacheDir = os.path.join(
+        prefs.paths['userPrefsDir'], 'cache', 'appCache')
+    try:
+        os.makedirs(appCacheDir, exist_ok=True)
+    except OSError as err:
+        if err.errno != os.errno.EEXIST:
+            logging.error(f"Error creating directory {appCacheDir}: {err}")
+            raise
+
     # Construct the command to run the script
     _cmd = [
         sys.executable, 
         os.path.normpath(os.path.join(scriptDir, 'psychopy-pkgutil.py')),
+        '--quiet',
         '--app-pref-dir', prefs.paths['userPrefsDir'],
         'update']
     _cmd += ['--fetch'] if fetch else []
@@ -41,10 +52,10 @@ def refreshPackageIndex(fetch=False):
     try:
         headerText = ' Updating package index '
         headerText = headerText.center(80, '=')
-        print(headerText)
+        # print(headerText)
 
         env = os.environ.copy()
-        print(f"Running command: {' '.join(_cmd)}")
+        # print(f"Running command: {' '.join(_cmd)}")
 
         proc = sp.Popen(_cmd, 
                         stdout=sp.PIPE, 
@@ -119,7 +130,6 @@ def downloadPluginAssets(fetch=False):
     
     headerText = ' Downloading plugin icons '
     headerText = headerText.center(80, '=')
-    print(headerText)
     
     for iconUrl in pluginIconsURLs:
         # get the icon file name from URL
@@ -129,10 +139,10 @@ def downloadPluginAssets(fetch=False):
 
         # check if we already have a copy of the icon
         if os.path.exists(iconPath) and not fetch:
-            print(f"Plugin icon already exists at {iconPath}")
+            # print(f"Plugin icon already exists at {iconPath}")
             continue
 
-        print(f"Downloading plugin icon from {iconUrl} to {iconPath}")
+        # print(f"Downloading plugin icon from {iconUrl} to {iconPath}")
 
         import requests
 
@@ -147,7 +157,7 @@ def downloadPluginAssets(fetch=False):
                     file.write(chunk)
                     wx.YieldIfNeeded()
 
-            print(f"Plugin icon downloaded successfully to {iconPath}")
+            # print(f"Plugin icon downloaded successfully to {iconPath}")
         except requests.exceptions.RequestException as e:
             logging.error(f"Error downloading plugin icon: {e}")
         except IOError as e:
