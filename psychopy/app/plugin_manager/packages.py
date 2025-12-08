@@ -187,14 +187,14 @@ class PackageListCtrl(wx.Panel):
 
         self.rootUserPackages = self.ctrl.AppendItem(self.ctrl.GetRootItem(), _translate("User Packages"))
         self.rootSystemPackages = self.ctrl.AppendItem(self.ctrl.GetRootItem(), _translate("System Packages"))  
-        self.rootRemotePackages = self.ctrl.AppendItem(self.ctrl.GetRootItem(), _translate("Available Packages"))
+        # self.rootRemotePackages = self.ctrl.AppendItem(self.ctrl.GetRootItem(), _translate("Available Packages"))
 
         self.ctrl.SetItemText(self.rootUserPackages, _translate("User Packages"))
         self.ctrl.SetItemText(self.rootSystemPackages, _translate("System Packages"))
-        self.ctrl.SetItemText(self.rootRemotePackages, _translate("Available Packages"))
+        # self.ctrl.SetItemText(self.rootRemotePackages, _translate("Available Packages"))
         self.ctrl.SetItemData(self.rootUserPackages, PACKAGE_STATUS_INVALID)
         self.ctrl.SetItemData(self.rootSystemPackages, PACKAGE_STATUS_INVALID)
-        self.ctrl.SetItemData(self.rootRemotePackages, PACKAGE_STATUS_INVALID)
+        # self.ctrl.SetItemData(self.rootRemotePackages, PACKAGE_STATUS_INVALID)
         self.ctrl.SetColumnWidth(0, 200)
         self.ctrl.SetColumnWidth(1, 100)
 
@@ -336,7 +336,7 @@ class PackageListCtrl(wx.Panel):
 
     def refresh(self, evt=None):
         # get states of items
-        rootRemoteWasExpanded = self.ctrl.IsExpanded(self.rootRemotePackages)
+        # BrootRemoteWasExpanded = self.ctrl.IsExpanded(self.rootRemotePackages)
         rootUserWasExpanded = self.ctrl.IsExpanded(self.rootUserPackages)
         rootSystemWasExpanded = self.ctrl.IsExpanded(self.rootSystemPackages)
 
@@ -350,24 +350,24 @@ class PackageListCtrl(wx.Panel):
         self.rootSystemPackages = self.ctrl.AppendItem(
             self.ctrl.GetRootItem(), _translate("System Packages"))  
         self.ctrl.SetItemData(self.rootSystemPackages, PACKAGE_STATUS_INVALID)
-        self.rootRemotePackages = self.ctrl.AppendItem(
-            self.ctrl.GetRootItem(), _translate("Available Packages"))
-        self.ctrl.SetItemData(
-            self.rootRemotePackages, PACKAGE_STATUS_INVALID)
+        # self.rootRemotePackages = self.ctrl.AppendItem(
+        #     self.ctrl.GetRootItem(), _translate("Available Packages"))
+        # self.ctrl.SetItemData(
+        #    self.rootRemotePackages, PACKAGE_STATUS_INVALID)
 
         # get packages
         installedPackages = dict(getInstalledPackages())
 
         systemPackages = installedPackages['system']['packages']
         userPackages = installedPackages['user']['packages']
-        availablePackages = getRemotePackages()['packages']
+        # availablePackages = getRemotePackages()['packages']
         
         # filter on search
         if searchTerm not in (None, ""):
             self.searchCtrl.ShowCancelButton(True)
             systemPackages = {k: v for k, v in systemPackages.items() if searchTerm in k}
             userPackages = {k: v for k, v in userPackages.items() if searchTerm in k}
-            availablePackages = [v for v in availablePackages if searchTerm in v]
+            #availablePackages = [v for v in availablePackages if searchTerm in v]
         else:
             self.searchCtrl.ShowCancelButton(False)
 
@@ -391,24 +391,24 @@ class PackageListCtrl(wx.Panel):
             self.rootUserPackages,
             _translate("User Packages") + " (%d)" % len(userPackages))
     
-        if len(availablePackages) > 1000:
-            availablePackages = availablePackages[:1000]
-            self.ctrl.SetItemText(
-                self.rootRemotePackages,
-                _translate("Available Packages") + " (1000+)")
-        else:
-            totalSearchMatches = len(availablePackages)
-            self.ctrl.SetItemText(
-                self.rootRemotePackages,
-                _translate("Available Packages") + " (%d)" % totalSearchMatches)
+        # if len(availablePackages) > 1000:
+        #     availablePackages = availablePackages[:1000]
+        #     self.ctrl.SetItemText(
+        #         self.rootRemotePackages,
+        #         _translate("Available Packages") + " (1000+)")
+        # else:
+        #     totalSearchMatches = len(availablePackages)
+        #     self.ctrl.SetItemText(
+        #         self.rootRemotePackages,
+        #         _translate("Available Packages") + " (%d)" % totalSearchMatches)
 
-        for pkg in availablePackages:
-            item = self.ctrl.AppendItem(self.rootRemotePackages, pkg)
-            self.ctrl.SetItemData(item, PACKAGE_STATUS_NOT_INSTALLED)
+        # for pkg in availablePackages:
+        #     item = self.ctrl.AppendItem(self.rootRemotePackages, pkg)
+        #     self.ctrl.SetItemData(item, PACKAGE_STATUS_NOT_INSTALLED)
 
         # Expand all roots
-        if rootRemoteWasExpanded:
-            self.ctrl.Expand(self.rootRemotePackages)
+        # if rootRemoteWasExpanded:
+        #     self.ctrl.Expand(self.rootRemotePackages)
         if rootUserWasExpanded:
             self.ctrl.Expand(self.rootUserPackages)
         if rootSystemWasExpanded:
@@ -560,7 +560,7 @@ class PackageDetailsPanel(wx.Panel):
         installedPackages = dict(getInstalledPackages())
         systemPackages = installedPackages['system']['packages']
         userPackages = installedPackages['user']['packages']
-        availablePackages = getRemotePackages()['packages']
+        # availablePackages = getRemotePackages()['packages']
 
         pkgName = self.package
         state = False
@@ -573,20 +573,20 @@ class PackageDetailsPanel(wx.Panel):
                 self.versionCtrl.GetStringSelection() != userPackages[pkgName]
             )
             state = True
-        elif pkgName in availablePackages:
-            # If available but not installed, can be installed
-            self.uninstallBtn.Disable()
-            self.versionCtrl.Enable()
-            self.installBtn.Enable()
-            self.versionCtrl.SetSelection(self.versionCtrl.GetCount() - 1)  # newest
-            state = True
-        else:
-            # If installed to the system, can't be uninstalled or changed
-            if pkgName in systemPackages:
-                self.versionCtrl.SetStringSelection(systemPackages[pkgName])
-            self.uninstallBtn.Disable()
-            self.versionCtrl.Disable()
-            self.installBtn.Disable()
+        # elif pkgName in availablePackages:
+        #     # If available but not installed, can be installed
+        #     self.uninstallBtn.Disable()
+        #     self.versionCtrl.Enable()
+        #     self.installBtn.Enable()
+        #     self.versionCtrl.SetSelection(self.versionCtrl.GetCount() - 1)  # newest
+        #     state = True
+        # else:
+        #     # If installed to the system, can't be uninstalled or changed
+        #     if pkgName in systemPackages:
+        #         self.versionCtrl.SetStringSelection(systemPackages[pkgName])
+        #     self.uninstallBtn.Disable()
+        #     self.versionCtrl.Disable()
+        #     self.installBtn.Disable()
 
         # Disable all controls if we have None
         self.homeBtn.Enable(state is not None)
