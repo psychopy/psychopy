@@ -69,7 +69,7 @@ def refreshPackageIndex(fetch=False):
             logging.error(f"Error refreshing package index: {error}")
             print(f"Error: {error}")
 
-        logging.info("Package index refreshed successfully.")
+        logging.info("Package index refreshed successfully. You may now open the Plugin Manager.")
     except sp.CalledProcessError as e:
         logging.error(f"Error refreshing package index: {e}")
     except FileNotFoundError:
