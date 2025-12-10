@@ -386,6 +386,12 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
 
         logging.info('keyboard.Keyboard is using %s backend.' % KeyboardDevice._backend)
 
+        # Initialize _buffers and _devs for all backends to prevent AttributeError
+        if not hasattr(self, '_buffers'):
+            self._buffers = {}
+        if not hasattr(self, '_devs'):
+            self._devs = {}
+
         # array in which to store ongoing presses
         self._keysStillDown = deque()
         # set whether or not to mute any keypresses which happen outside of PsychoPy
