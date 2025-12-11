@@ -93,33 +93,11 @@ jobs:
           # for pocketsphinx we need this adapted package:
           brew install swig vlc portaudio portmidi liblo sdl2
         fi
-        
-
+    
     - name: Install
       run: |
         uv pip install . .[tests]
-
-#    - name: test docs to pdf
-#      run: |
-#        pip install sphinx sphinxcontrib-napoleon
-#        brew install basictex  # or mactex
-#        # update path after brew install
-#        eval "$(/usr/libexec/path_helper)"
-#        sudo tlmgr update --self
-#        sudo tlmgr install latexmk
-#        sudo tlmgr install collection-fontsrecommended
-#        sudo tlmgr install collection-fontsextra
-#        cd docs
-#        make latexpdf
-#        cd ..
-
-#    - name: Lint with flake8
-#      run: |
-#        # stop the build if there are Python syntax errors or undefined names
-#        # flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-#        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-#        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-
+    
     - name: Set nice level (linux)
       if: runner.os=='Linux'
       run: |
@@ -132,14 +110,14 @@ jobs:
       if: runner.os=='Linux'
       run: |
         # quick test of the gui toolkits (without pytest swallowing errors)
-        uv run psychopy/tests/test_gui/test_DlgFromDictQt.py
-        uv run psychopy/tests/test_gui/test_DlgFromDictWx.py
+        xvfb-run -a --server-args="-screen 0 1024x768x24" uv run psychopy/tests/test_gui/test_DlgFromDictQt.py
+        xvfb-run -a --server-args="-screen 0 1024x768x24" uv run psychopy/tests/test_gui/test_DlgFromDictWx.py
 
     - name: Test with pytest
       run: |
         if [ "${{ runner.os }}" == "Linux" ]
         then
-          uv run pytest -m "not needs_sound and not needs_wx and not needs_qt and not needs_pygame and not emulator" --cov=psychopy -v psychopy
+          xvfb-run -a --server-args="-screen 0 1024x768x24" uv run pytest -m "not needs_sound and not needs_wx and not needs_qt and not needs_pygame and not emulator" --cov=psychopy -v psychopy
         else
           uv run pytest --ignore="psychopy/tests/test_app" --ignore="psychopy/tests/test_preferences" --ignore="psychopy/tests/test_experiment/needs_wx" -m "not needs_sound and not needs_wx and not emulator"  --cov=psychopy -v psychopy
         fi
