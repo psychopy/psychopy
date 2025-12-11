@@ -147,8 +147,9 @@ def login(tokenOrUsername, refreshToken=None, rememberMe=True):
         token = tokenOrUsername
     # it might still be a dict that *contains* the token
     if type(token) == dict and 'token' in token:
+        if 'refresh_token' in token:
+            refreshToken = token['refresh_token']
         token = token['token']
-        refreshToken = token.get('refresh_token', refreshToken)
 
     # try actually logging in with token
     currentSession.setToken(token, refreshToken=refreshToken)
