@@ -86,7 +86,7 @@ jobs:
         uv pip install wheel six attrdict3 moviepy git+https://gitlab.com/peircej/metapensiero.pj pdm
         if [ "${{ runner.os }}" == "Windows" ]
         then
-          uv pip install --extra-index-url https://www.lfd.uci.edu/~gohlke/pythonlibs pyWinhook
+          uv pip install pyWinhook --default-index https://www.lfd.uci.edu/~gohlke/pythonlibs
         fi
         if [ "${{ runner.os }}" == "macOS" ]
         then
@@ -97,7 +97,7 @@ jobs:
 
     - name: Install
       run: |
-        uv pip install . .[tests] --prefer-binary
+        uv pip install . --extra tests
 
 #    - name: test docs to pdf
 #      run: |
