@@ -32,13 +32,13 @@ jobs:
         if [ "${{ runner.os }}" == "macOS" ]
         then
           # on mac this needs to be the intel build specifically
-          curl -L https://github.com/astral-sh/python-build-standalone/releases/download/20251209/cpython-3.10.19+20251209-x86_64-apple-darwin-install_only.tar.gz --output ~/python310.tar.gz
-          mkdir ~/python310
-          tar -xzvf ~/python310.tar.gz -C ~/python310
-          PYTHON_EXECUTABLE=$(uv python find ~/python310/python)
+          curl -L https://github.com/astral-sh/python-build-standalone/releases/download/20251209/cpython-3.10.19+20251209-x86_64-apple-darwin-install_only.tar.gz --output ~/pythonIntel.tar.gz
+          mkdir ~/pythonIntel
+          tar -xzvf ~/pythonIntel.tar.gz -C ~/python
+          PYTHON_EXECUTABLE=$(uv python find ~/pythonIntel/python)
         else
-          uv python install 3.10
-          PYTHON_EXECUTABLE=$(uv python find 3.10)
+          uv python install ${{ matrix.python-version }}
+          PYTHON_EXECUTABLE=$(uv python find ${{ matrix.python-version }})
         fi
         # create a venv so any subsequent python calls use this executable
         uv venv --clear --python $PYTHON_EXECUTABLE
