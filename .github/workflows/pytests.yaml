@@ -34,7 +34,7 @@ jobs:
           # on mac this needs to be the intel build specifically
           curl -L https://github.com/astral-sh/python-build-standalone/releases/download/20251209/cpython-3.10.19+20251209-x86_64-apple-darwin-install_only.tar.gz --output ~/pythonIntel.tar.gz
           mkdir ~/pythonIntel
-          tar -xzvf ~/pythonIntel.tar.gz -C ~/python
+          tar -xzvf ~/pythonIntel.tar.gz -C ~/pythonIntel
           PYTHON_EXECUTABLE=$(uv python find ~/pythonIntel/python)
         else
           uv python install ${{ matrix.python-version }}
