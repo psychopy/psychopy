@@ -97,7 +97,7 @@ jobs:
 
     - name: Install
       run: |
-        uv pip install . --extra tests
+        uv pip install . .[tests]
 
 #    - name: test docs to pdf
 #      run: |
