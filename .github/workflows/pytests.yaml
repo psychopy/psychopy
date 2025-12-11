@@ -42,6 +42,8 @@ jobs:
         fi
         # create a venv so any subsequent python calls use this executable
         uv venv --clear --python $PYTHON_EXECUTABLE
+        # return executable
+        echo $PYTHON_EXECUTABLE
 
     - name: get_month
       if: runner.os=='Linux'
@@ -102,7 +104,7 @@ jobs:
       if: runner.os=='Linux'
       run: |
         # sudo setcap cap_sys_nice=eip ${{ env.pythonLocation }}/python
-        export PYTHON_EXECUTABLE=`python -c "import os; import sys; print(os.path.realpath(sys.executable))"`
+        export PYTHON_EXECUTABLE="${{ steps.setup_python.outputs.python }}"
         sudo setcap cap_sys_nice+ep ${PYTHON_EXECUTABLE}
         getcap ${PYTHON_EXECUTABLE}  # did it work?
 
