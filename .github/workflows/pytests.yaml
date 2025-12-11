@@ -33,7 +33,7 @@ jobs:
         then
           # on mac this needs to be the intel build specifically
           curl -L https://github.com/astral-sh/python-build-standalone/releases/download/20251209/cpython-3.10.19+20251209-x86_64-apple-darwin-install_only.tar.gz --output ~/python310.tar.gz
-          tar -xzvf ~/python310.tar.gz -C ~/python310
+          tar -xzvf ~/python310.tar.gz -C ~/
           PYTHON_EXECUTABLE=$(uv python find ~/python310)
         else
           uv python install 3.10
