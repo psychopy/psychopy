@@ -31,7 +31,7 @@ from ...coder import BaseCodeEditor
 from ...themes import icons, handlers
 from ... import utils
 from ...themes import icons
-
+from ... import getAppInstance
 
 inputTypes = {}
 
@@ -381,9 +381,15 @@ class SingleLineCtrl(BaseParamCtrl):
     def styleValid(self):
         # text turns red if invalid
         if self.isValid:
-            self.ctrl.SetForegroundColour(
-                colors.scheme['black']
-            )
+            appHandle = getAppInstance()  # get theme info
+            if appHandle is not None and appHandle.isDarkMode:
+                self.ctrl.SetForegroundColour(
+                    colors.scheme['white']
+                )
+            else:
+                self.ctrl.SetForegroundColour(
+                    colors.scheme['black']
+                )
         else:
             self.ctrl.SetForegroundColour(
                 colors.scheme['red']
@@ -391,13 +397,22 @@ class SingleLineCtrl(BaseParamCtrl):
         self.ctrl.Refresh()
     
     def styleCode(self):
-        # text becomes monospace if code
+        def _setFont(font):
+            # text becomes monospace if code
+            if sys.platform == "linux":
+                # have to go via SetStyle on Linux
+                style = wx.TextAttr(self.ctrl.GetForegroundColour(), font=font)
+                self.ctrl.SetStyle(0, len(self.ctrl.GetValue()), style)
+            else:
+                # otherwise SetFont is fine
+                self.ctrl.SetFont(font)
+
         if self.isCode:
-            self.ctrl.SetFont(
+            _setFont(
                 fonts.CodeFont(bold=True).obj
             )
         else:
-            self.ctrl.SetFont(
+            _setFont(
                 fonts.AppFont().obj
             )
         self.ctrl.Refresh()

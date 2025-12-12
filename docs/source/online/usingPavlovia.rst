@@ -5,6 +5,12 @@
 Launch your study on Pavlovia.org
 ========================================
 
+.. important::
+
+   **IMPORTANT: As of December 27th 2025 you will need to have PsychoPy 2025.1.1 installed in order to sync to Pavlovia from PsychoPy.**
+   If you have an older version please see this guide on :doc:`how to sync with Pavlovia independently of PsychoPy app <syncingToPavlovia>`.
+
+
 `Pavlovia.org <https://pavlovia.org/>`_ is a site created by the PsychoPy team to make it easy to:
 
 - run studies online

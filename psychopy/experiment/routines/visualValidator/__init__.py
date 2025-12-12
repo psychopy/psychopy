@@ -227,10 +227,20 @@ class VisualValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             clockStr = "clock=routineTimer"
         # sync component start/stop timers with validator clocks
         code = (
+            f"%(name)s.status = NOT_STARTED\n"
             f"# synchronise device clock for %(name)s with Routine timer\n"
             f"%(name)s.resetTimer({clockStr})\n"
         )
         buff.writeIndentedLines(code % self.params)
+        # add blank entries for validation results
+        if stim.params['saveStartStop']:
+            code += (
+            "thisExp.addData('{name}.%(name)s.started', None)\n"
+            "thisExp.addData('%(name)s.startDelay', None)\n"
+            "thisExp.addData('{name}.%(name)s.stopped', None)\n"
+            "thisExp.addData('{name}.%(name)s.stopDelay', None)\n"
+            )
+        buff.writeIndentedLines(code.format(**stim.params) % self.params)
 
         # return change in indent level
         return buff.indentLevel - startIndent
@@ -276,6 +286,9 @@ class VisualValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             )
         buff.writeIndentedLines(code.format(startAttr=startAttr, **stim.params) % self.params)
 
+        # if stimulus ends with the Routine, raise an alert
+        if stim.endsWithRoutine():
+            alert(4160, strFields={'name': stim.name})
         # validate stop time
         code = (
             "# validate {name} stop time\n"
@@ -294,6 +307,15 @@ class VisualValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
 
         # return change in indent level
         return buff.indentLevel - startIndent
+    
+    def writeRoutineEndValidationCode(self, buff, stim):
+        # end validator after Routine is finished
+        code = (
+            "%(name)s.status = FINISHED\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+        return 0
 
     def findConnectedStimuli(self):
         # list of linked components
