@@ -3652,6 +3652,63 @@ class Window():
         """Remove any message that is currently being displayed."""
         self._showSplash = False
 
+    def _getActualFrameRateMacOS(self, nIdentical, nMaxFrames, threshold):
+        """A macOS-specific workaround for `getActualFrameRate()`. 
+
+        Due to the use of triple-buffering in macOS compositors, the
+        frame intervals tend to alternate between two values that sum to
+        the actual frame interval. This method sums pairs of frame intervals
+        to compute the actual frame rate.
+
+        Parameters
+        ----------
+        nIdentical : int
+            The number of consecutive frames that will be evaluated.
+        nMaxFrames : int
+            The maximum number of frames to wait for a matching set of
+            nIdentical.
+        threshold : int or float
+            The threshold for the std deviation (in ms) before the set
+            are considered a match.
+
+        Returns
+        -------
+        float
+            Frame rate in seconds.
+
+        """
+        logging.info(
+            "Using macOS-specific frame rate measurement workaround for "
+            "compositor triple-buffering.")
+
+        threshSecs = threshold / 1000.0  # must be in seconds
+
+        # need to compute a seperate list of frame intervals since we're
+        # summing pairs of intervals
+        computedFrameIntervals = []
+        
+        # double the amount of flips since aternating frame intervals will sum
+        # to the actual frame interval
+        for frameN in range(nMaxFrames * 2):
+            self.flip()
+
+            recentFrames = self.frameIntervals[:]
+            if len(recentFrames) < 3:
+                continue  # no need to check variance yet
+
+            if (frameN % 2) == 0:
+                # add the last two intervals together
+                computedFrameIntervals.append(
+                    recentFrames[-1] + recentFrames[-2])
+
+            # compute variability from summed intervals
+            recentComputedFrames = computedFrameIntervals[-nIdentical:]
+            if len(recentComputedFrames) >= nIdentical and \
+                    numpy.std(recentComputedFrames) < threshSecs:
+                return 1.0 / numpy.mean(recentComputedFrames) 
+        
+        return None
+
     def getActualFrameRate(self, nIdentical=10, nMaxFrames=100,
                            nWarmUpFrames=10, threshold=1, infoMsg=None):
         """Measures the actual frames-per-second (FPS) for the screen.
@@ -3675,6 +3732,9 @@ class Window():
         threshold : int or float, optional
             The threshold for the std deviation (in ms) before the set
             are considered a match.
+        infoMsg : str, optional
+            An optional message to display in the window while measuring
+            the frame rate. If `None`, a default message will be used.
 
         Returns
         -------
@@ -3707,34 +3767,45 @@ class Window():
         self.recordFrameIntervals = False
 
         # warm-up, allow the system to settle a bit before measuring frames
-        for frameN in range(nWarmUpFrames):
+        isMacOS = sys.platform == 'darwin'
+        for _ in range(nWarmUpFrames * 2 if isMacOS else nWarmUpFrames):
             self.flip()
 
-        # run test frames
         self.recordFrameIntervals = True  # record intervals for actual test
-        threshSecs = threshold / 1000.0  # must be in seconds
-        for frameN in range(nMaxFrames):
-            self.flip()
-            recentFrames = self.frameIntervals[-nIdentical:]
-            nIntervals = len(self.frameIntervals)
-            if len(recentFrames) < 3:
-                continue  # no need to check variance yet
-            recentFramesStd = numpy.std(recentFrames)  # compute variability
-            if nIntervals >= nIdentical and recentFramesStd < threshSecs:
-                # average duration of recent frames
-                period = numpy.mean(recentFrames)  # log this too?
-                rate = 1.0 / period  # compute frame rate in Hz
-                if self.autoLog:
-                    scrStr = "" if screen is None else " (%i)" % screen
-                    msg = "Screen{} actual frame rate measured at {:.2f}Hz"
-                    logging.exp(msg.format(scrStr, rate))
 
-                self.recordFrameIntervals = recordFrmIntsOrig
-                self.frameIntervals = []
-                self.hideMessage()  # remove the message
-                return rate
+        # handle mac specific issue with triple-buffering
+        rate = None
+        if not isMacOS:
+            # run test frames 
+            threshSecs = threshold / 1000.0  # must be in seconds
+            for _ in range(nMaxFrames):
+                self.flip()
 
+                recentFrames = self.frameIntervals[-nIdentical:]
+                nIntervals = len(recentFrames)
+                if len(recentFrames) < 3:
+                    continue  # no need to check variance yet
+
+                recentFramesStd = numpy.std(recentFrames)  # compute variability
+                if nIntervals >= nIdentical and recentFramesStd < threshSecs:
+                    # average duration of recent frames
+                    period = numpy.mean(recentFrames)  # log this too?
+                    rate = 1.0 / period  # compute frame rate in Hz
+        else:
+            rate = self._getActualFrameRateMacOS(
+                nIdentical, 
+                nMaxFrames, 
+                threshold)
+
+        self.recordFrameIntervals = recordFrmIntsOrig
+        self.frameIntervals = []
         self.hideMessage()  # remove the message
+
+        if rate is not None:
+            if self.autoLog:
+                scrStr = "" if screen is None else " (%i)" % screen
+                msg = "Screen{} actual frame rate measured at {:.2f}Hz"
+                logging.exp(msg.format(scrStr, rate))
 
         # if we get here we reached end of `maxFrames` with no consistent value
         msg = ("Couldn't measure a consistent frame rate!\n"
@@ -3742,7 +3813,7 @@ class Window():
                "  - Are you running other processes on your computer?\n")
         logging.warning(msg)
 
-        return None
+        return rate
 
     def getMsPerFrame(self, nFrames=60, showVisual=False, msg='', msDelay=0.):
         """Assesses the monitor refresh rate (average, median, SD) under
