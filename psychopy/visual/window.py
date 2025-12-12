@@ -3807,13 +3807,15 @@ class Window():
                 msg = "Screen{} actual frame rate measured at {:.2f}Hz"
                 logging.exp(msg.format(scrStr, rate))
 
+            return rate
+
         # if we get here we reached end of `maxFrames` with no consistent value
         msg = ("Couldn't measure a consistent frame rate!\n"
                "  - Is your graphics card set to sync to vertical blank?\n"
                "  - Are you running other processes on your computer?\n")
         logging.warning(msg)
 
-        return rate
+        return None
 
     def getMsPerFrame(self, nFrames=60, showVisual=False, msg='', msDelay=0.):
         """Assesses the monitor refresh rate (average, median, SD) under
