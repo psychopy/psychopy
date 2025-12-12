@@ -43,19 +43,19 @@ jobs:
         # create a venv so any subsequent python calls use this executable
         uv venv --clear --python $PYTHON_EXECUTABLE
         # return executable
-        echo "name=executable" >> "$PYTHON_EXECUTABLE"
+        echo "executable=$PYTHON_EXECUTABLE" >> "$GITHUB_OUTPUT"
 
     - name: get_month
       if: runner.os=='Linux'
       id: month
-      run: echo "name=month" >> "$(date +'%Y-%m')"
+      run: echo "month=$(date +'%Y-%m')" >> "$GITHUB_OUTPUT"
   
     - name: cache wxPython for linux
       if: runner.os=='Linux'
       uses: actions/cache@v3
       with:
         path: ~/.cache/pip
-        key: ${{ matrix.os }}-py${{ matrix.python-version }}-${{ steps.get_month.outputs.month }}
+        key: ${{ matrix.os }}-py${{ matrix.python-version }}-${{ steps.month.outputs.month }}
         
     - name: Install Linux system dependencies
       if: runner.os=='Linux'
