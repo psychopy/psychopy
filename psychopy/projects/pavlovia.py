@@ -128,7 +128,7 @@ def generateCodeChallengePair():
     return code_verifier, code_challenge
 
 
-def login(tokenOrUsername, rememberMe=True):
+def login(tokenOrUsername, refreshToken=None, rememberMe=True):
     """Sets the current user by means of a token
 
     Parameters
@@ -148,9 +148,10 @@ def login(tokenOrUsername, rememberMe=True):
     # it might still be a dict that *contains* the token
     if type(token) == dict and 'token' in token:
         token = token['token']
+        refreshToken = token.get('refresh_token', refreshToken)
 
     # try actually logging in with token
-    currentSession.setToken(token)
+    currentSession.setToken(token, refreshToken=refreshToken)
     if currentSession.user is not None:
         user = currentSession.user
         prefs.appData['projects']['pavloviaUser'] = user['username']
@@ -197,11 +198,21 @@ class User(dict):
             self.info = self.session.session.get(
                 "https://pavlovia.org/api/v2/designers/" + str(id)
             ).json()['designer']
-            # Make sure self.info has necessary keys
+            # if self.info doesn't have the necessary keys, try to recreate it with the information 
+            # from GitLab
+            if 'gitlabId' not in self.info:
+                for user in self.session.gitlab.users.list(search=id):
+                    if user.username == id or user.id == id:
+                        self.info = {
+                            'gitlabId': user.id,
+                            'email': user.emails[0],
+                            'username': user.username
+                        }
+            # if we *still* don't have a GitLab ID, raise an error
             assert 'gitlabId' in self.info, _translate(
                 "Could not retrieve user info for user {}, server returned:\n"
                 "{}"
-            ).format(id,self.info)
+            ).format(id, self.info)
         elif isinstance(id, dict) and 'gitlabId' in id:
             # If given a dict from Pavlovia rather than an ID, store it rather than requesting again
             self.info = id
@@ -259,6 +270,7 @@ class User(dict):
         """Saves the data on the current user in the pavlovia/users json file"""
         knownUsers[self['username']] = self.user.attributes
         knownUsers[self['username']]['token'] = self.session.getToken()
+        knownUsers[self['username']]['refresh_token'] = self.session.getRefreshToken()
         knownUsers.save()
 
     def save(self):
@@ -438,16 +450,22 @@ class PavloviaSession:
         """
         return self.gitlab.users
 
+    def getRefreshToken(self):
+        """The refresh token for the current logged in user
+        """
+        return self.__dict__['refreshToken']
+
     def getToken(self):
         """The authorisation token for the current logged in user
         """
         return self.__dict__['token']
 
-    def setToken(self, token):
+    def setToken(self, token, refreshToken=None):
         """Set the token for this session and check that it works for auth
         """
+        self.__dict__['refreshToken'] = refreshToken
         self.__dict__['token'] = token
-        self.startSession(token)
+        self.startSession(token, refreshToken=refreshToken)
 
     def getNamespace(self, namespace):
         """Returns a namespace object for the given name if an exact match is
@@ -459,7 +477,7 @@ class PavloviaSession:
             if thisSpace.path == namespace:
                 return thisSpace
 
-    def startSession(self, token):
+    def startSession(self, token, refreshToken=None):
         """Start a gitlab session as best we can
         (if no token then start an empty session)"""
         self.session = requests.Session()
@@ -481,6 +499,24 @@ class PavloviaSession:
                                         per_page=100)
             try:
                 self.gitlab.auth()
+            except gitlab.exceptions.GitlabAuthenticationError as err:
+                # refresh auth token
+                resp = requests.post(
+                    "https://gitlab.pavlovia.org/oauth/token",
+                    params={
+                        'client_id': client_id,
+                        'refresh_token': refreshToken,
+                        'grant_type': "refresh_token",
+                        'redirect_uri': redirect_url,
+                        'code_verifier': code_verifier
+                    }
+                ).json()
+                # start again with new token
+                self.setToken(
+                    resp['access_token'],
+                    refreshToken=resp['refresh_token']
+                )
+                return
             except gitlab.exceptions.GitlabParsingError as err:
                 raise ConnectionError(
                     "Failed to authenticate with the gitlab.pavlovia.org server. "
