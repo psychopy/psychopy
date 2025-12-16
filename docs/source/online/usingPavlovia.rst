@@ -38,6 +38,7 @@ When running your study online, the relevant controls are in the Browser and Pav
     :figclass: align-center
 
 From left to right:
+
 - The "Compile JS" button will write your experiment as a JavaScript (JS) file, which can run in a web browser.
 - The "Run JS" (green) or "Pilot JS" (orange) buttons will run your experiment in a web browser; via Pavlovia in running mode, or via a local debugging server in piloting mode. Note that, in order to run in Pavlovia, the project needs to be set to "running" on Pavlovia (not "piloting" or "inactive").
 - The "Sync" button will synchronise the local files for your experiment with its online counterpart on Pavlovia.
