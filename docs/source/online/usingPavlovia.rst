@@ -7,7 +7,7 @@ Launch your study on Pavlovia.org
 
 .. important::
 
-   **IMPORTANT: As of December 27th 2025 you will need to have PsychoPy 2025.1.1 installed in order to sync to Pavlovia from PsychoPy.**
+   *As of December 27th 2025 you will need to have PsychoPy 2025.1.1 installed in order to sync to Pavlovia from PsychoPy.*
    If you have an older version please see this guide on :doc:`how to sync with Pavlovia independently of PsychoPy app <syncingToPavlovia>`.
 
 
@@ -25,28 +25,24 @@ Most of the main tasks you will perform with |Pavlovia| can be carried out eithe
 To create and log in to your account on |Pavlovia|, you will need an active Internet connection. If you have not created your account, you can either
 
 - go to |Pavlovia| and create your account, or
-- click the login button highlighted in :numref:`loginPavlovia`, and create an account through the dialog box. 
-
-Once you have an account on |Pavlovia| and are logged in, your user name should appear in the corresponding menu (tpronk in :numref:`loginPavlovia`).
-
-.. figure:: /images/loginPavlovia.png
-    :name: loginPavlovia
-    :align: center
-    :figclass: align-center
-
-    Logging in on Pavlovia via the PsychoPy 3 Builder
+- login via PsychoPy Builder 
 
 Interacting with |Pavlovia| from the Builder App
 ------------------------------------------------
 
-When running your study online, the globe icons will allow you to directly interact with |Pavlovia| from the Builder GUI.
+When running your study online, the relevant controls are in the Browser and Pavlovia sections of the ribbon:
 
-.. figure:: /images/pavlovia_icons_2022.png
-    :name: pavlovia_icons_2022
+.. figure:: /images/pavlovia_icons_2025.png
+    :name: pavlovia_icons_2025
     :align: center
     :figclass: align-center
 
-    Buttons for running an online study from the PsychoPy Builder. From left to right 1) Run study in browser directly (not project status must be "running", not "piloting" or "inactive"). 2) Sync project/create project on |Pavlovia| 3) Browse existing projects shared by others on |Pavlovia| 3) Check what account you are signed in on 4) Project information (note this will only be populated if the currently opened psyexp file has been synced to pavlovia.org)
+From left to right:
+- The "Compile JS" button will write your experiment as a JavaScript (JS) file, which can run in a web browser.
+- The "Run JS" (green) or "Pilot JS" (orange) buttons will run your experiment in a web browser; via Pavlovia in running mode, or via a local debugging server in piloting mode. Note that, in order to run in Pavlovia, the project needs to be set to "running" on Pavlovia (not "piloting" or "inactive").
+- The "Sync" button will synchronise the local files for your experiment with its online counterpart on Pavlovia.
+- The "User" panel is for managing your Pavlovia user - once you're logged in, your name will appear in the panel (ToddOST in the image above). Click it to view your profile online, or click the drop down arrow to log in/out of Pavlovia in the PsychoPy app.
+-  The "Project" panel is for managing the Pavlovia project associated with the current experiment, click it to view the experiment on Pavlovia or click the drop down menu to edit its details and search for other projects.
 
 Synchronizing for the first time (creating a project)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
