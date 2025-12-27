@@ -33,3 +33,19 @@ There are certain steps that we strongly advise you to take before running an ex
 * Use a photodiode or other physical stimulus detector to fully understand the lag, and more importantly the variability of that lag, between any triggers that you send to indicate the start of your stimulus and when the stimulus actually starts.
 
 .. _Black Box Toolkit: https://www.blackboxtoolkit.com/
+
+Validating your timing
+---------------------------------------
+
+The best way to validate the timing of your experiment is to use external hardware such as a photodiode or microphone to measure the actual timing of stimulus presentation. Some options include:
+
+- `Black Box Toolkit <https://www.blackboxtoolkit.com/>`_: A purpose-built device designed specifically for timing validation.
+- `Cedrus RiPONDA <https://cedrus.com/riponda/index.htm>`_: A commercially available device providing precise timing and response measurement.
+- `Cedrus StimTracker <https://cedrus.com/stimtracker/index.htm>`_: Another commercially available device for tracking stimulus presentation and timing.
+
+Each option has different features and trade-offs, so the choice depends on your experimental requirements and budget.
+
+
+When validating your timing, it's important to consider not just the average timing accuracy, but also the variability (jitter) in timing. Even if your average timing is accurate, high variability can still compromise the integrity of your experimental results.
+
+PsychoPy now has inbuilt components to assist with validating timing, see :ref:`visualvalidatorroutine` and :ref:`audiovalidatorroutine` pages for routines that validate visual and auditory stimuli, respectively.
