@@ -2,8 +2,11 @@
 
 Caveats and cautions
 --------------------------
+.. note::
+   For guidance on writing code components that translate well to PsychoJS, see the :doc:`Known limitations and best practices for code components <known-limitations>` page. 
 
-The first caution to be aware of here is that PsychoJS was only written in 2016. It hasn't been widely battle-tested and almost certainly has some rough edges. Use it carefully and check your study does what you expect.
+
+The first caution to be aware of is that while |PsychoPy| has existed since 2002, benefiting from contributions by over 150 GitHub contributors to make it feature-rich and streamlined, |PsychoJS| has only existed since 2016. It has relied mainly on a small internal team, so sometimes parity issues with the Python version occur. As a result, some features may behave differently online or have rough edges. Use PsychoJS carefully and always check that your study behaves as expected.
 
 For an in-depth examination of the pros and cons of running studies online (including a consideration of timing issues), see `The timing mega-study (Bridges et al., 2020) <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7512138/>`_.
 
@@ -80,3 +83,41 @@ Browsers supporting WebGL (hardware-accelerated graphics in the browser):
 - Opera 19+
 - Microsoft Edge
 - IE 11+ (2013)
+
+.. _onlineContextDifferences:
+
+
+Online vs. in-lab testing
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When moving experiments online, there are several key differences compared to controlled lab settings. Participants may be using a wide range of devices with different screen sizes, resolutions, and frame rates. It is important to account for these variations when designing stimuli and interpreting results.
+
+Stimuli size and scaling
+^^^^^^^^^^^^^^^^^^^^^^
+
+- **Device variability:** In the lab, you present on a known monitor with fixed dimensions, and you can configure your experiment accordingly. Online, participants may use anything from widescreen monitors to small touchscreens. Frame rates can also vary, so timing of visual stimuli (if using frames rather than seconds for duration/start/stop times) may differ slightly between users.
+
+- **Units:** We recommend using **height units** (the default) for stimuli, as this scales appropriately across most devices.  
+
+- **Physical size control:** If your study requires stimuli to be a consistent physical size across participants, you need to determine pixels per cm on the participant’s screen. A common approach is **screen scaling**, where the participant resizes an on-screen object (e.g., a credit card) to match a real-world reference. Example code for PsychoPy: `screenscale <https://gitlab.pavlovia.org/Wake/screenscale>`_  
+  Original paper describing the method: `Li et al., 2020 <https://www.nature.com/articles/s41598-019-57204-1>`_
+
+- **Visual angle units:** To use degrees of visual angle, you also need **viewing distance**. This can be measured:
+  
+  - **Statically:** Using a one-time measurement such as a blind spot test. Example experiment: `Blind Spot Test <https://run.pavlovia.org/vespr/blind-spot/>`_
+  - **Dynamically:** Using external tools to track head position. One recommended tool is **EasyEyes**: `Paper <https://www.frontiersin.org/journals/human-neuroscience/articles/10.3389/fnhum.2023.1255465/full>`_, full documentation: `EasyEyes App <https://easyeyes.app/home>`_
+
+By incorporating these methods, you can better approximate the control offered in lab experiments while still taking advantage of online testing.
+
+Audio presentation considerations
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+When running experiments online, participants may be in a variety of environments with different background noise levels and audio equipment. A few considerations:
+
+- **Headphones:** Encourage participants to use headphones to ensure they hear the stimuli clearly. Note that **Bluetooth headphones** can introduce additional latency, which may affect timing-sensitive tasks.
+
+- **Headphone checks:** You can implement a headphone screening procedure to verify that participants are using headphones and that audio channels are functioning correctly. Community examples include:  
+  - `Headphones Check Experiment <https://run.pavlovia.org/sijiazhao/headphones-check/>`_  
+
+- **Methods:** These checks use auditory illusions and techniques such as Huggins pitch, anti-phase tones, and binaural beats to detect headphone usage.The methods and validation are described in Milne et al., 2021:  
+  `Behaviour Research Methods <https://link.springer.com/epdf/10.3758/s13428-020-01514-0?sharing_token=QXGlAgoPwa1XQcN1zBxsPZAH0g46feNdnc402WrhzyqXFZRgxM1a4isvxnyRsbzcmQHrqJevtPM8JC-73_63kcc5oq24ZEzDIkOgc_XJBJ6EL9b4W3aTktmVtQL2A-n5VBhjk1Bj9GcUJPgkIN5WWvGEbfIBTqs9_qCN00eeo0w%3D>`_

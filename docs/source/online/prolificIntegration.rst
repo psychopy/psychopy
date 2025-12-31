@@ -7,7 +7,7 @@ Recruiting with Prolific
 
 |prolific|_ is a dedicated service designed specifically for behavioural scientists. It aims to provide improved data quality over the likes of Mechanical Turk, with better participant selection and screening, and to provide more ethical pay levels to participants in your study.
 
-As described in the page :ref:`recruitingOnline`, connecting |prolific|_ to PsychoPy is simply a matter of telling Prolific the URL for your study (including parameters to receive the Study ID etc) and then telling PsychoPy the URL to use when the participant completes the study.
+Connecting |prolific|_ to PsychoPy is simply a matter of telling Prolific the URL for your study (including parameters to receive the Study ID etc) and then telling PsychoPy the URL to use when the participant completes the study.
 
 Example link to provide **to Prolific** as your study URL (you will need to replace `myUserName` and `myStudyName`)::
 
@@ -19,7 +19,7 @@ Example link to provide **to PsychoPy** as your completion URL (you will need to
     https://app.prolific.co/submissions/complete?cc=T8ZI42EG
 
 
-Further details on how to find and set these links and parameters are as follows. See also `Integrating Prolific with your study <https://helpcentre.prolific.ac/hc/en-gb/sections/360001936933-Integrating-with-your-study-survey-participant-IDs-and-completion-URLs>`_
+Further details on how to find and set these links and parameters are as follows. See also `Prolifics Pavlovia Integration Guide <https://researcher-help.prolific.com/en/articles/445190-pavlovia-integration-guide>`_
 
 
 Setting the study URL in |prolific|_
