@@ -2,57 +2,68 @@
 
 .. _online:
 
-Running and sharing studies online
-=======================================
+Run your PsychoPy experiment online with Pavlovia
+=================================================
 
-Online studies are realized via `PsychoJS <https://github.com/psychopy/psychojs>`_; the online counterpart of |PsychoPy|. To run your study online, these are the basic steps:
+This guide walks you step-by-step through preparing, testing, and launching
+a PsychoPy experiment on Pavlovia.
 
-.. toctree::
-  :maxdepth: 1
+If you are new to running studies online, follow the steps in order.
+Experienced users may jump directly to the step they need.
 
-  Check the features supported by PsychoJS to ensure the components you need will work online <status>
-  Make your experiment in Builder <fromBuilder>
-  Configure the online settings of your experiment <configureOnline>
-  Launch your study on Pavlovia.org <usingPavlovia>
+Getting started with example experiments
+----------------------------------------
 
-We also **really** recommend taking a look at `this index of tips <https://discourse.psychopy.org/t/wakefields-daily-tips-index/43722#p-124345-online-3>`_ from our Science Officer Wake on our forum!
+If you want to see working examples or start from a template, Pavlovia
+provides a `public repository of free experiments <https://pavlovia.org/explore/demos?sort=DEFAULTs>`_.  
+You can:
 
-.. raw:: html
+- Browse existing experiments to understand best practices
+- Download templates to use as a starting point for your own study
+- Modify templates safely knowing they are already configured for online use
 
-    <iframe width="560" height="315" src="https://www.youtube.com/embed/oYhcBDK2O10" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+.. figure:: /images/downloadTemplate.png
+    :name: downloadTemplate
+    :align: center
+    :figclass: align-center
+    :scale: 50
 
-When making an experiment to run online, there are a few important considerations to make and we **highly** recommend reading through the considerations below, as they could save a lot of time in the long run!
+    How to access template experiment files and download the files.
 
-.. toctree::
-  :maxdepth: 1
 
-  Using resources in online studies <resources>
-  Checking media is the correct format <mediaFormats>
-  Multisession testing, Counterbalancing, checking existing IDs, multiplayer games and in-game leaderboard <shelf>
-  Caveats and cautions (timing accuracy and web-browser support) <cautions>
+Step-by-step guide
+------------------
 
-PsychoPy and Pavlovia can also be used in conjunction with external servies, see below for guides for some common ones:
-
-.. toctree::
-  :maxdepth: 1
-
-  MTurk <mturkIntegration>
-  Profilic <prolificIntegration>
-  Qualtrics <qualtricsIntegration>
-  SONA <sonaIntegration>
-
-Related links
-=======================================
+If you are uploading your own experiment to Pavlovia (or a template you downloaded) follow the steps in order below:
 
 .. toctree::
-  :maxdepth: 1
+   :maxdepth: 1
+   :titlesonly:
 
-  Troubleshooting Online Studies <psychoJSCodingDebugging>
-  How to search for experiments of other researchers and share your own experiment <sharingExperiments>
-  How to recruit participants and connect with online services <onlineParticipants>
-  How to counterbalance participants across conditions <counterbalancingOnline>
-  How does it work? <tech>
-  Manually coding PsychoJS studies <psychojsCode>
-  Usage statistics for Pavlovia <stats.rst>
+   check-online-compatibility
+   prepare-experiment-online
+   advanced-features-online
+   create-pavlovia-project
+   test-online
+   launch-and-collect-data
+   cautions
+
+Useful links
+------------------
+
+The following links provide guidance and tutorials for running online experiments using PsychoPy and Pavlovia:
+
+- :ref:`Troubleshooting Online Studies <psychoJSCodingDebugging>`  
+  Advice on debugging and writing code components that translate well from PsychoPy to PsychoJS.
+  
+- `Wakefield's Daily Tips for Online Experiments <https://discourse.psychopy.org/t/wakefields-daily-tips-index/43722>`_  
+  A curated collection of practical tips and troubleshooting advice for online studies.
+
+- `Pavlovia YouTube Playlist <https://www.youtube.com/playlist?list=PLJVOIgS89ZnNdkpXiscrO0iBo5R1tDkrY>`_  
+  Video tutorials covering core Pavlovia workflows and experiment deployment.
+
+- `Pavlovia Surveys Playlist <https://www.youtube.com/playlist?list=PLJVOIgS89ZnP5ajKzFyNaALehRTF2eDOv>`_  
+  Tutorials focused on creating and running surveys on Pavlovia.
+
 
 The first generation of PsychoJS was realized by a `Wellcome Trust <https://wellcome.org/>`_ grant, awarded in January 2018.  to make online studies possible from |PsychoPy|. This is what we call PsychoPy3 - the 3rd major phase of PsychoPy's development.
