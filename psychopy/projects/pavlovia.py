@@ -502,12 +502,9 @@ class PavloviaSession:
                 self.gitlab.auth()
             except gitlab.exceptions.GitlabAuthenticationError as err:
                 if refreshToken is None:
-                    raise ConnectionError(
-                        "Failed to authenticate using the saved details. This is most " 
-                        "likely because the authentication token has expired and is from too "
-                        "long ago to be refreshed. Try logging in again from scratch to "
-                        "generate a new (refreshable) authentication token."
-                    )
+                    from psychopy.app.pavlovia_ui.functions import logInPavlovia
+                    logInPavlovia(None)
+                    return
                 # refresh auth token
                 resp = requests.post(
                     "https://gitlab.pavlovia.org/oauth/token",
