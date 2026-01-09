@@ -10,17 +10,17 @@ Download
 
   .. tab-item:: Windows
 
-    .. button-link:: https://github.com/psychopy/psychopy/releases/download/2025.2.3/StandalonePsychoPy-2025.2.3-win64-3.10.exe
+    .. button-link:: https://github.com/psychopy/psychopy/releases/download/2025.2.4/StandalonePsychoPy-2025.2.4-win64-3.10.exe
       :color: primary
 
-      PsychoPy 2025.2.3
+      PsychoPy 2025.2.4
   
   .. tab-item:: MacOS
     
-    .. button-link:: https://github.com/psychopy/psychopy/releases/download/2025.2.3/StandalonePsychoPy-2025.2.3-macOS-3.10.dmg
+    .. button-link:: https://github.com/psychopy/psychopy/releases/download/2025.2.4/StandalonePsychoPy-2025.2.4-macOS-3.10.dmg
       :color: primary
 
-      PsychoPy 2025.2.3
+      PsychoPy 2025.2.4
   
   .. tab-item:: Linux
 
