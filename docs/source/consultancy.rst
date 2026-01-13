@@ -254,3 +254,36 @@ If you would like to purchase a package for support from our team for your depar
 
 
 *Please note that if you are from a VAT paying country, you will need to add VAT to the prices listed*
+
+.. raw:: html
+
+   <section class="bg-light" id="testimonial">
+       <div class="container" style="padding:20px; max-width:800px;">
+           <h2>💬 What our consultancy clients say</h2>
+   <div style="background-color:#f9f9f9; border-left:5px solid #d9534f; padding:20px; margin-top:20px; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
+               <p style="font-style:italic; color:#333;">
+                   “Becca was absolutely fantastic. She explained concepts very clearly, and was really patient when I had questions. I&#x27;ll definitely be working with her again in the future!”
+               </p>
+               <p style="text-align:right; margin-top:15px; font-weight:bold; color:#555;">
+                   — Anonymous
+               </p>
+           </div>
+   <div style="background-color:#f9f9f9; border-left:5px solid #d9534f; padding:20px; margin-top:20px; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
+               <p style="font-style:italic; color:#333;">
+                   “It has been very useful to have the creators of the product assist with task development. Dr. Hirst has been very knowledgeable, thorough, and a delight to interact with. Dr. Peirce has been very helpful when he needed to step in with advice.”
+               </p>
+               <p style="text-align:right; margin-top:15px; font-weight:bold; color:#555;">
+                   — Anonymous
+               </p>
+           </div>
+   <div style="background-color:#f9f9f9; border-left:5px solid #d9534f; padding:20px; margin-top:20px; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
+               <p style="font-style:italic; color:#333;">
+                   “The team at PsychoPy are incredibly helpful and are very skilled in what they do. No matter the type of experiment you are trying to programme, their consultancy team can handle it (whilst teaching you along the way!) - I am particularly grateful to Becca Hirst for her amazing support with my experiment.”
+               </p>
+               <p style="text-align:right; margin-top:15px; font-weight:bold; color:#555;">
+                   — Client from Liverpool John Moores University, UK
+               </p>
+           </div>
+   
+       </div>
+   </section>

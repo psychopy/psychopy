@@ -10,56 +10,17 @@ Download
 
   .. tab-item:: Windows
 
-    .. grid:: 1 1 2 2
-      :gutter: 2
+    .. button-link:: https://github.com/psychopy/psychopy/releases/download/2025.2.3/StandalonePsychoPy-2025.2.3-win64-3.10.exe
+      :color: primary
 
-      .. grid-item-card::  Stable
-
-        Tried and tested, this is the release that's been out in the wild for a bit and has already had any post-release bug fixes it needed. The best option for an install that "just works".
-
-        .. button-link:: https://github.com/psychopy/psychopy/releases/download/2025.1.1/StandalonePsychoPy-2025.1.1-win64-py3.10.exe
-          :color: primary
-
-          PsychoPy 2025.1.1
-        
-        .. dropdown:: Compatibility+ installer (py3.8)
-
-          .. button-link:: https://github.com/psychopy/psychopy/releases/download/2025.1.1/StandalonePsychoPy-2025.1.1-win64-py3.8.exe
-            :color: primary
-
-            PsychoPy 2025.1.1 compatibility+ (py3.8)
-      
-      .. grid-item-card::  Beta
-
-        Hot off the presses, this is the latest release with all the newest features. If you're fine with a few bugs so long as you get the cutting edge features as soon as they're ready, this is the install for you.
-
-        .. button-link:: https://github.com/psychopy/psychopy/releases/download/2025.2.1/StandalonePsychoPy-2025.2.1-win64-3.10.exe
-          :color: primary
-
-          PsychoPy 2025.2.1
+      PsychoPy 2025.2.3
   
   .. tab-item:: MacOS
+    
+    .. button-link:: https://github.com/psychopy/psychopy/releases/download/2025.2.3/StandalonePsychoPy-2025.2.3-macOS-3.10.dmg
+      :color: primary
 
-    .. grid:: 1 1 2 2
-      :gutter: 2
-
-      .. grid-item-card::  Stable
-
-        Tried and tested, this is the release that's been out in the wild for a bit and has already had any post-release bug fixes it needed. The best option for an install that "just works".
-
-        .. button-link:: https://github.com/psychopy/psychopy/releases/download/2025.1.1/StandalonePsychoPy-2025.1.1-macOS-py3.10.dmg
-          :color: primary
-
-          PsychoPy 2025.1.1
-      
-      .. grid-item-card::  Beta
-
-        Hot off the presses, this is the latest release with all the newest features. If you're fine with a few bugs so long as you get the cutting edge features as soon as they're ready, this is the install for you.
-
-        .. button-link:: https://github.com/psychopy/psychopy/releases/download/2025.2.1/StandalonePsychoPy-2025.2.1-macOS-3.10.dmg
-          :color: primary
-
-          PsychoPy 2025.2.1
+      PsychoPy 2025.2.3
   
   .. tab-item:: Linux
 
