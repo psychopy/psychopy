@@ -487,16 +487,16 @@ class PygletBackend(BaseBackend):
     
         if flipThisFrame:
             self.winHandle.flip()
-
-        # For macOS display link sync, this slews the timings of buffer flips to 
-        # match the refresh cycle of the display to ensure content is presented
-        # at the correct time. This takes a few frames to 'settle' so there may
-        # be some initial jitter.
-        if hasattr(self, 'refreshEventHandlerMacOS'):
-            self.refreshEventHandlerMacOS.frameLock = True  # hold until released by callback
-            while self.refreshEventHandlerMacOS.frameLock:
-                # keep pumping events since we are not running a full app loop
-                self.winHandle.dispatch_events()
+            # For macOS display link sync, this slews the timings of buffer 
+            # flips to match the refresh cycle of the display to ensure content 
+            # is presented at the correct time. This takes a few frames to 
+            # 'settle' so there may be some initial jitter.
+            if hasattr(self, 'refreshEventHandlerMacOS'):
+                # hold until released by callback
+                self.refreshEventHandlerMacOS.frameLock = True  
+                while self.refreshEventHandlerMacOS.frameLock:
+                    # keep pumping events until we get a refresh callback
+                    self.winHandle.dispatch_events()
 
     def setCurrent(self):
         """Sets this window to be the current rendering target.
