@@ -268,7 +268,7 @@ Add a `teardown_class` method to your TestRect class.
 CodeCov
 ------------------------------------------
 
-CodeCov is a handy tool which runs the full test suite and keeps track of which lines of code are executed - giving each file in the PsychoPy repo a percentage score for "coverage". If more lines of code in that file are executed when the test suite runs, then it has a higher coverage score. You can view the full coverage report for the repo `here <https://app.codecov.io/gh/psychopy/psychopy/>`_ 
+CodeCov is a handy tool which runs the full test suite and keeps track of which lines of code are executed - giving each file in the PsychoPy repo a percentage score for "coverage". If more lines of code in that file are executed when the test suite runs, then it has a higher coverage score. You can view the full coverage report for the repo `here <https://app.codecov.io/gh/psychopy/psychopy/>`_.
 
 Some areas of the code are more important than others, so it's important not to make decisions purely based on what most increases coverage, but coverage can act as a good indicator for what areas the test suite is lacking in. If you want to make a test but aren't sure what to do, finding a file or folder with a poor coverage score is a great place to start!
 
