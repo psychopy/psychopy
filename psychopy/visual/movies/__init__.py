@@ -38,6 +38,8 @@ GL = pyglet.gl
 
 # threshold to stop reporting dropped frames
 reportNDroppedFrames = 10
+
+# time to wait for the movie decoder to respond
 defaultTimeout = 5.0  # seconds
 
 # constants for use with ffpyplayer
@@ -500,7 +502,7 @@ class MovieFileReader:
             raise RuntimeError(
                 'FFPyPlayer failed to start decoding the movie. Check the '
                 'movie file and decoder options.')
-
+        
         # go back to first frame
         self._player.set_pause(True)  # pause the player again
         self._player.set_mute(False)  # unmute the player
@@ -522,6 +524,12 @@ class MovieFileReader:
             movieMetadata['src_pix_fmt'])
 
         logging.debug("Movie metadata: {}".format(movieMetadata))
+
+        # process the frame we got during warmup, store it so it shows 
+        # when the movie is stopped+idle but not paused
+        img, curPts = frame
+        initialFrameRGB = self._convertFrameToRGBFFPyPlayer(img)
+        self._frameStore.append((initialFrameRGB, curPts, 'paused'))
     
     def _seekFFPyPlayer(self, reqPTS):
         """FFPyPlayer specific seek routine.
