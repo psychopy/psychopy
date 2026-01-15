@@ -17,6 +17,8 @@ import sys
 import os
 import platform
 import numpy as np
+import threading
+import time
 
 import psychopy
 from psychopy import core, prefs
@@ -81,6 +83,20 @@ _PYGLET_MOUSE_BUTTONS_ = {
     pyglet_mouse.MIDDLE: mouse.MOUSE_BUTTON_MIDDLE,
     pyglet_mouse.RIGHT: mouse.MOUSE_BUTTON_RIGHT
 }
+
+
+# MacOS specific display link handler
+if sys.platform == 'darwin':
+    import AppKit
+
+    class RefreshEventHandlerMacOS(AppKit.NSObject):
+        """Callback handler for macOS display link refresh events.
+        """
+        frameLock = None
+        def displayRefreshed_(self, displayLink):
+            self.frameLock = False
+
+            return 1
 
 
 class PygletBackend(BaseBackend):
@@ -326,6 +342,32 @@ class PygletBackend(BaseBackend):
             thisScreen_y = mainScreen_y_from_NSOrigin - thisScreen_y_from_NSOrigin
             temp_origin = cocoapy.NSPoint(thisScreen.x, thisScreen_y)
             self.winHandle._nswindow.setFrameOrigin_(temp_origin)
+
+            # bind the NSWindow pointer to the window handle, we use AppKit here
+            # because the ctypes bindings in cocoapy are incomplete
+            winNSObj = AppKit.NSWindow(c_void_p=self.winHandle._nswindow.ptr)
+            
+            # create a display link for the window
+            self.refreshEventHandlerMacOS = RefreshEventHandlerMacOS.alloc().init()
+            displayLinkObj = winNSObj.displayLinkWithTarget_selector_(
+                self.refreshEventHandlerMacOS, 
+                "displayRefreshed:")
+            
+            # configure the preferred frame rate range hint for the display link
+            frameRateMax = int(winNSObj.screen().maximumFramesPerSecond())
+            frameRateMin = int(frameRateMax / 2)
+            displayLinkObj.setPreferredFrameRateRange_(
+                (frameRateMin, 
+                 frameRateMax, 
+                 frameRateMax))
+
+            # add the display link to the run loop, only works with 
+            # `NSRunLoopCommonModes` since we don't run a full app loop here
+            # and will pump our events manually in `swapBuffers()`
+            displayLinkObj.addToRunLoop_forMode_(
+                AppKit.NSRunLoop.currentRunLoop(), 
+                AppKit.NSRunLoopCommonModes)
+            
         elif sys.platform.startswith('linux'):
             win._hw_handle = self.winHandle._window
             self._frameBufferSize = win.clientSize
@@ -442,8 +484,19 @@ class PygletBackend(BaseBackend):
         # movie updating
         if pyglet.version < '1.2':
             pyglet.media.dispatch_events()  # for sounds to be processed
+    
         if flipThisFrame:
             self.winHandle.flip()
+            # For macOS display link sync, this slews the timings of buffer 
+            # flips to match the refresh cycle of the display to ensure content 
+            # is presented at the correct time. This takes a few frames to 
+            # 'settle' so there may be some initial jitter.
+            if hasattr(self, 'refreshEventHandlerMacOS'):
+                # hold until released by callback
+                self.refreshEventHandlerMacOS.frameLock = True  
+                while self.refreshEventHandlerMacOS.frameLock:
+                    # keep pumping events until we get a refresh callback
+                    self.winHandle.dispatch_events()
 
     def setCurrent(self):
         """Sets this window to be the current rendering target.
