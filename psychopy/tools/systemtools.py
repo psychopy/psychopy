@@ -664,7 +664,8 @@ def isRegisteredApp():
 # platforms.
 _cameraGetterFuncTbl = {
     'Darwin': _getCameraInfoMacOS,
-    'Windows': _getCameraInfoWindows
+    'Windows': _getCameraInfoWindows,
+    'Linux': _getCameraInfoLinux
 }
 
 
