@@ -581,12 +581,6 @@ def _getCameraInfoLinux():
     return videoDevices
 
 
-# print camera information, line by line
-for camInfo in _getCameraInfoLinux():
-    for fmt in camInfo:
-        print(fmt)
-
-
 # array of registered PIDs which PsychoPy considers to be safe
 _pids = [
     os.getpid(),
@@ -670,7 +664,8 @@ def isRegisteredApp():
 # platforms.
 _cameraGetterFuncTbl = {
     'Darwin': _getCameraInfoMacOS,
-    'Windows': _getCameraInfoWindows
+    'Windows': _getCameraInfoWindows,
+    'Linux': _getCameraInfoLinux
 }
 
 
