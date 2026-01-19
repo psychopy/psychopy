@@ -7,6 +7,7 @@ import sys
 import copy
 import numpy as np
 import pandas as pd
+import uuid
 
 from psychopy import logging, constants
 from psychopy.tools.filetools import (openOutputFile, genDelimiter,
@@ -758,6 +759,8 @@ class Trial(dict):
         self.thisRepN = thisRepN
         self.thisTrialN = thisTrialN
         self.thisIndex = thisIndex
+        # generate a unique ID for this trial
+        self.id = str(uuid.uuid4())
         # add status
         self.status = constants.NOT_STARTED
         # data for this trial
@@ -771,6 +774,22 @@ class Trial(dict):
         return (
             f"<Trial {self.thisN} ({self.thisTrialN} in rep {self.thisRepN}) "
             f"data={ {key: val for key,val in self.items()} }>"
+        )
+        
+    def copy(self):
+        """
+        Returns
+        -------
+        Trial
+            A copy of this Trial, with all the same attributes but a unique ID 
+        """
+        return Trial(
+            self.parent,
+            thisN=self.thisN,
+            thisRepN=self.thisRepN,
+            thisTrialN=self.thisTrialN,
+            thisIndex=self.thisIndex,
+            data=self.data
         )
 
     @property
@@ -804,6 +823,8 @@ class Trial(dict):
         """
         return {
             'type': "trial_data",
+            'id': self.id,
+            'loop': self.parent.name if self.parent else None,
             'thisN': self.thisN, 
             'thisRepN': self.thisRepN, 
             'thisTrialN': self.thisTrialN, 
@@ -1354,6 +1375,9 @@ class TrialHandler2(_BaseTrialHandler):
                 trial = self.elapsedTrials[trial]
             else:
                 raise IndexError(f"Cannot replay trial {trial} as fewer than {trial} trials have elapsed.")
+        # if given a Trial, copy it
+        if isinstance(trial, Trial):
+            trial = Trial.copy()
         # if given a dict, create a Trial from it
         if isinstance(trial, dict):
             trial = Trial(self, **trial)
