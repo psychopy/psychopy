@@ -1124,6 +1124,23 @@ class Session:
 
         return True
 
+    def getAllEntries(self):
+        """
+        Returns all entries in the experiment handler.
+
+        Returns
+        -------
+        list[Trial]
+            List of entries, in order (oldest to newest)
+        """
+        # return None if there's no current experiment
+        if self.currentExperiment is None:
+            return None
+        # get entries from current experiment
+        entries = self.currentExperiment.getAllEntries()
+        
+        return entries
+
     def getAllTrials(self):
         """
         Returns all trials (elapsed, current and upcoming) with an index indicating which trial is 
