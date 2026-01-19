@@ -824,6 +824,7 @@ class Trial(dict):
         return {
             'type': "trial_data",
             'id': self.id,
+            'loop': self.parent.name if self.parent else None,
             'thisN': self.thisN, 
             'thisRepN': self.thisRepN, 
             'thisTrialN': self.thisTrialN, 
