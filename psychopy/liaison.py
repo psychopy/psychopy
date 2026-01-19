@@ -36,6 +36,18 @@ class LiaisonJSONEncoder(json.JSONEncoder):
 	JSON encoder which calls the `getJSON` method of an object (if it has one) to convert to a
 	string before JSONifying.
 	"""
+
+	def encode(self, o, *args, **kw):
+		# if object has a getJSON method, use it *ahead of* native serialization
+		if hasattr(o, "getJSON"):
+			try:
+				o = o.getJSON(asString=False)
+			except:
+				# continue as normal if getJSON failed
+				pass
+		
+		return super(LiaisonJSONEncoder, self).encode(o, *args, **kw)
+	
 	def default(self, o):
 		try:
 			# if object has a getJSON method, use it
