@@ -1160,6 +1160,52 @@ class Session:
         trials, i = self.currentExperiment.getAllTrials()
         
         return trials, i
+    
+    def setTrialScore(self, trialId, score, marker, feedback):
+        """
+        Set score on a trial - updates both entries (for data file) and Trial object (for getAllTrials).
+        
+        Parameters
+        ----------
+        trialId : str
+            UUID of the trial to score
+        score : int
+            Score value (1=correct, 0=incorrect, 8=no response, 9=not scored)
+        marker : str
+            Marker text (e.g. "Correct", "Incorrect", "Correct, rescored as Incorrect", "[ResponseOption]")
+        feedback : str
+            Feedback text
+            
+        Returns
+        -------
+        bool
+            True if completed successfully
+        """
+        if self.currentExperiment is None:
+            return False
+        
+        # Find the row index in entries by matching trial id
+        rowIdx = None
+        for i, entry in enumerate(self.currentExperiment.entries):
+            if entry.get('id') == trialId:
+                rowIdx = i
+                break
+        
+        # Also check thisEntry (current incomplete entry)
+        if rowIdx is None and self.currentExperiment.thisEntry.get('id') == trialId:
+            rowIdx = None  # None means current entry in addData
+        
+        # Add to entries (for data file)
+        self.addData('Score', score, row=rowIdx, priority=33)
+        self.addData('marker', marker, row=rowIdx, priority=33)
+        self.addData('Feedback', feedback, row=rowIdx, priority=33)
+        
+        # Also update Trial object (for getAllTrials)
+        self.currentExperiment.setTrialData(trialId, 'Score', score)
+        self.currentExperiment.setTrialData(trialId, 'marker', marker)
+        self.currentExperiment.setTrialData(trialId, 'Feedback', feedback)
+        
+        return True
 
     def getCurrentTrial(self, asDict=False):
         """
