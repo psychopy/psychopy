@@ -216,11 +216,14 @@ def getPluginPackages(asList=True):
     global _packageIndex
     if _packageIndex is None:
         loadPackageIndex()
-    
+
     if asList:  # legacy
-        return list(_packageIndex['available']['plugins']['packages'].values())
-    
-    return _packageIndex['available']['plugins']['packages'] if _packageIndex else {}
+        if _packageIndex is not None:
+            return list(_packageIndex['available']['plugins']['packages'].values())
+        else:
+            return []
+    else:
+        return _packageIndex['available']['plugins']['packages'] if _packageIndex else {}
 
 
 def isPackageInstalled(packageName):
