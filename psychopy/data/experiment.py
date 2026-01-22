@@ -618,6 +618,31 @@ class ExperimentHandler(_ComparisonMixin):
             return [None], 0
         # get all trials from current loop
         return self.getCurrentLoop(isTrials=isTrials).getAllTrials()
+    
+    def setTrialData(self, trialId, name, value, isTrials=True):
+        """
+        Set data on a trial by its id.
+        
+        Parameters
+        ----------
+        trialId : str
+            UUID of the trial to update
+        name : str
+            Name of the data field
+        value : any
+            Value to set
+        isTrials : bool
+            Filter for only loops which have isTrials checked
+            
+        Returns
+        -------
+        bool
+            True if trial was found and updated
+        """
+        loop = self.getCurrentLoop(isTrials=isTrials)
+        if hasattr(loop, 'setTrialData'):
+            return loop.setTrialData(trialId, name, value)
+        return False    
 
     def getCurrentTrial(self, isTrials=True):
         """
