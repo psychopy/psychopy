@@ -10,43 +10,46 @@ import psychopy.visual as visual
 from psychopy.visual import LightSource, BlinnPhongMaterial, BoxStim, SphereStim
 from psychopy.tools.gltools import createTexImage2dFromFile
 from psychopy import event
+import os
 
 # open a window to render the shape
-win = visual.Window((600, 600), monitor='testMonitor')
+win = visual.Window((800, 600))
+# win.scrWidthPIX = 800  # set if you don't have a monitor profile
+
+# distance from the observer to draw objects, note -Z is away from the observer
+objDist = -5.0  
 
 # create the stimulus object, try other classes like SphereStim and PlaneStim
 boxStim = BoxStim(win, size=(.2, .2, .2))
-
-# set the position of the object by editing the associated rigid body pose
-boxStim.thePose.pos = (0, 0, -3)
 
 # create a white material and assign it
 boxStim.material = BlinnPhongMaterial(
     win, diffuseColor=(1, 1, 1), specularColor=(0, 0, 0), shininess=125.0)
 
 # load a diffuse texture
-boxStim.material.diffuseTexture = createTexImage2dFromFile('face.jpg')
+faceTexturePath = os.path.join(os.path.dirname(__file__), 'face.jpg')
+boxStim.material.diffuseTexture = createTexImage2dFromFile(faceTexturePath)
 
 # set the box 3 units away from the observer by editing the stimuli's rigid
 # body class
-boxStim.thePose.pos = (0, 0, -1)
+boxStim.thePose.pos = (0, 0, objDist)
 
 # setup scene lights
 redLight = LightSource(
     win,
-    pos=(0, 0.5, -1),
+    pos=(0, 0.5, objDist),
     diffuseColor='red',
     specularColor='red',
     lightType='point')
 greenLight = LightSource(
     win,
-    pos=(-0.5, -0.5, -1),
+    pos=(-0.5, -0.5, objDist),
     diffuseColor='lightgreen',
     specularColor='lightgreen',
     lightType='point')
 blueLight = LightSource(
     win,
-    pos=(0.5, -0.5, -1),
+    pos=(0.5, -0.5, objDist),
     diffuseColor='blue',
     specularColor='blue',
     lightType='point')
@@ -72,17 +75,19 @@ blueSphere.material = BlinnPhongMaterial(win, emissionColor='blue')
 message = visual.TextStim(
     win, text='Any key to quit', pos=(0, -0.8), units='norm')
 
-angle = 0.0  # box angle
+angle = 0.0  # initial angle for the box rotation
+rotationAxis = (0, 1, 1)  # axis to rotate around
 
 while not event.getKeys():
-    win.setPerspectiveView()  # set the projection, must be done every frame
+    # set the projection, must be done every frame prior to drawing 3D stimuli
+    win.setPerspectiveView()  
 
     win.useLights = True  # enable lighting
 
-    # spin the stimulus by angle
-    boxStim.thePose.setOriAxisAngle((0, 1, 1), angle)
+    # spin the box stimulus by angle
+    boxStim.thePose.setOriAxisAngle(rotationAxis, angle)
 
-    # draw the stimulus
+    # draw the box stimulus
     boxStim.draw()
 
     # Disable lights for 2D stimuli and light source shapes, or else colors will
@@ -101,7 +106,7 @@ while not event.getKeys():
 
     win.flip()
 
-    angle += 0.5
+    angle += 0.5  # rotate the box by 0.5 degrees next frame
 
 win.close()
 core.quit()
