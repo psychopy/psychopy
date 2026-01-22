@@ -769,6 +769,11 @@ class Trial(dict):
         else:
             data = data.copy()
         self.data = data
+        self['thisN'] = thisN
+        self['thisRepN'] = thisRepN
+        self['thisTrialN'] = thisTrialN
+        self['thisIndex'] = thisIndex
+        self['id'] = self.id
 
     def __repr__(self):
         return (
