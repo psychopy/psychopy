@@ -14,7 +14,7 @@ import os
 
 # open a window to render the shape
 win = visual.Window((800, 600))
-# win.scrWidthPIX = 800  # set if you don't have a monitor profile
+win.scrWidthPIX = 800  # set if you don't have a monitor profile, stim sizes may be incorrect
 
 # distance from the observer to draw objects, note -Z is away from the observer
 objDist = -5.0  
