@@ -769,6 +769,11 @@ class Trial(dict):
         else:
             data = data.copy()
         self.data = data
+        self['thisN'] = thisN
+        self['thisRepN'] = thisRepN
+        self['thisTrialN'] = thisTrialN
+        self['thisIndex'] = thisIndex
+        self['id'] = self.id
 
     def __repr__(self):
         return (
@@ -1408,6 +1413,35 @@ class TrialHandler2(_BaseTrialHandler):
             Index of the current trial in this list
         """
         return (self.elapsedTrials or []) + [self.thisTrial] + (self.upcomingTrials or []), len(self.elapsedTrials)
+
+    def setTrialData(self, trialId, name, value):
+        """
+        Set data on a trial by its id.
+        
+        Parameters
+        ----------
+        trialId : str
+            UUID of the trial to update
+        name : str
+            Name of the data field
+        value : any
+            Value to set
+            
+        Returns
+        -------
+        bool
+            True if trial was found and updated
+        """
+        # Check elapsed trials
+        for trial in self.elapsedTrials:
+            if trial.id == trialId:
+                trial[name] = value
+                return True
+        # Check current trial
+        if self.thisTrial and self.thisTrial.id == trialId:
+            self.thisTrial[name] = value
+            return True
+        return False
 
     def getFutureTrial(self, n=1):
         """
