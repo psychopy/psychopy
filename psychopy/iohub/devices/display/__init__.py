@@ -485,7 +485,29 @@ class Display(Device):
             dx, dy = default_screen.x, default_screen.y
             dw, dh = default_screen.width, default_screen.height
             dbounds = (dx, dy, dx + dw, dy + dh)
-            pyglet_screens = pyglet.canvas.get_display().get_screens()
+            is_zaphod = False
+            if sys.platform.startswith('linux'):
+                pyglet_screens = []
+                from pyglet.canvas.xlib import NoSuchDisplayException
+                try:
+                    # test whether it's a Zaphodhead setup
+                    display = pyglet.canvas.Display(x_screen=1)
+                    is_zaphod = True
+                except NoSuchDisplayException:
+                    pass
+
+            if sys.platform.startswith('linux') and is_zaphod:
+                screen_count = 0
+                # make an assumption that no nested Xinerama-within-Zaphodhead
+                while True:
+                    try:
+                        display = pyglet.canvas.Display(x_screen=screen_count)
+                        pyglet_screens.append(display.get_default_screen())
+                        screen_count += 1
+                    except NoSuchDisplayException:
+                        break
+            else:
+                pyglet_screens = pyglet.canvas.get_display().get_screens()
             display_count = len(pyglet_screens)
             for i in range(display_count):
                 d = pyglet_screens[i]
