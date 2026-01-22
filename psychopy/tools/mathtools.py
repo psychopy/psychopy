@@ -188,6 +188,8 @@ class RigidBodyPose:
         # position and orientation
         self._pos = np.ascontiguousarray(pos, dtype=self.dtype)
         self._ori = np.ascontiguousarray(ori, dtype=self.dtype)
+        self._modelScale = np.array(
+            [1.0, 1.0, 1.0], dtype=self.dtype, order='C')
 
         self._modelMatrix = posOriToMatrix(
             self._pos, self._ori, dtype=self.dtype)
@@ -197,6 +199,8 @@ class RigidBodyPose:
         self._invModelMatrix = np.zeros((4, 4), dtype=self.dtype, order='C')
         self._viewMatrix = np.zeros((4, 4), dtype=self.dtype, order='C')
         self._invViewMatrix = np.zeros((4, 4), dtype=self.dtype, order='C')
+        self._modelScaleMatrix = np.identity(4, dtype=self.dtype)
+        self._invModelScaleMatrix = np.identity(4, dtype=self.dtype)
 
         # additional useful vectors
         self._at = np.zeros((3,), dtype=self.dtype, order='C')
@@ -211,7 +215,9 @@ class RigidBodyPose:
             'imodel': False,
             'normal': False,
             'view': False,
-            'iview': False
+            'iview': False,
+            'mscale': False,
+            'imscale': False
         }
 
         self.pos = pos
@@ -273,6 +279,27 @@ class RigidBodyPose:
     def posOri(self, value):
         self._pos = np.ascontiguousarray(value[0], dtype=self.dtype)
         self._ori = np.ascontiguousarray(value[1], dtype=self.dtype)
+        self._cacheFlags = dict.fromkeys(self._cacheFlags.keys(), True)
+
+    @property
+    def modelScale(self):
+        """Scaling factor applied to the model matrix.
+        """
+        return self._modelScale
+
+    @modelScale.setter
+    def modelScale(self, val):
+        """Scaling factor to apply to the model matrix. These are not applied
+        to the position or orientation of the pose, but only to the model
+        matrix returned by `getModelMatrix`.
+        Parameters
+        ----------
+        val : array_like or float
+            Scaling factor to apply to the model matrix. If a single value is
+            given, it will be applied uniformly to all axes. If a vector is
+            given, it should have three components `[sx, sy, sz]` for each axis.
+        """
+        self._modelScale[:] = val
         self._cacheFlags = dict.fromkeys(self._cacheFlags.keys(), True)
 
     @property
@@ -344,7 +371,7 @@ class RigidBodyPose:
         self._pos.fill(0.0)
         self._ori[:3] = 0.0
         self._ori[3] = 1.0
-        self._cacheFlags = dict.fromkeys(a.keys(), True)
+        self._cacheFlags = dict.fromkeys(self._cacheFlags.keys(), True)
 
     def setIdentity(self):
         """Clear rigid body transformations (alias for `clear`).
@@ -404,7 +431,12 @@ class RigidBodyPose:
     def modelMatrix(self):
         """Pose as a 4x4 model matrix (read-only)."""
         if not self._cacheFlags['model']:
-            return self._modelMatrix
+            if self._cacheFlags['mscale']:
+                # compute the model scale matrix if needed
+                self._modelScaleMatrix = self._computeModelScaleMatrix(
+                    out=self._modelScaleMatrix)
+                self._cacheFlags['mscale'] = False
+            return self._modelMatrix @ self._modelScaleMatrix
         else:
             return self.getModelMatrix()
 
@@ -412,7 +444,12 @@ class RigidBodyPose:
     def inverseModelMatrix(self):
         """Inverse of the pose as a 4x4 model matrix (read-only)."""
         if not self._cacheFlags['imodel']:
-            return self._invModelMatrix
+            if self._cacheFlags['imscale']:
+                # compute the inverse model scale matrix if needed
+                self._invModelScaleMatrix = self._computeModelScaleMatrix(
+                    inverse=True, out=self._invModelScaleMatrix)
+                self._cacheFlags['imscale'] = False
+            return self._invModelMatrix @ self._invModelScaleMatrix
         else:
             return self.getModelMatrix(inverse=True)
 
@@ -467,6 +504,36 @@ class RigidBodyPose:
 
         return self._normalMatrix
 
+    def _computeModelScaleMatrix(self, inverse=False, out=None):
+        """Compute the model scale matrix.
+        Parameters
+        ----------
+        inverse : bool, optional
+            If `True`, compute the inverse of the model scale matrix.
+        out : ndarray or None
+            Optional 4x4 array to write values to. Values written are computed
+            using 32-bit float precision regardless of the data type of `out`.
+        Returns
+        -------
+        ndarray
+            4x4 scaling matrix.
+        """
+        if out is None:
+            out = np.empty((4, 4), dtype=np.float32)
+
+        if not inverse:
+            out[0, 0] = self._modelScale[0]
+            out[1, 1] = self._modelScale[1]
+            out[2, 2] = self._modelScale[2]
+            out[3, 3] = 1.0
+        else:
+            out[0, 0] = 1.0 / self._modelScale[0]
+            out[1, 1] = 1.0 / self._modelScale[1]
+            out[2, 2] = 1.0 / self._modelScale[2]
+            out[3, 3] = 1.0
+
+        return out
+
     def getModelMatrix(self, inverse=False, out=None):
         """Get the present rigid body transformation as a 4x4 matrix.
 
@@ -520,17 +587,31 @@ class RigidBodyPose:
             self._cacheFlags['normal'] = True
             self._cacheFlags['view'] = True
             self._cacheFlags['iview'] = True
+            self._cacheFlags['mscale'] = True
+            self._cacheFlags['imscale'] = True
 
         if not inverse:
-            toReturn = self._modelMatrix
+            if self._cacheFlags['mscale']:
+                # compute the model scale matrix if needed
+                self._modelScaleMatrix = self._computeModelScaleMatrix(
+                    out=self._modelScaleMatrix)
+                self._cacheFlags['mscale'] = False
+
+            toReturn = self._modelMatrix @ self._modelScaleMatrix
         else:
             if self._cacheFlags['imodel']:
+                if self._cacheFlags['imscale']:
+                    # compute the inverse model scale matrix if needed
+                    self._invModelScaleMatrix = self._computeModelScaleMatrix(
+                        inverse=True, out=self._invModelScaleMatrix)
+                    self._cacheFlags['imscale'] = False
+
                 self._invModelMatrix = invertMatrix(
                     self._modelMatrix, out=self._invModelMatrix, 
                     dtype=self.dtype)
                 self._cacheFlags['imodel'] = False
             
-            toReturn = self._invModelMatrix
+            toReturn = self._invModelMatrix @ self._invModelScaleMatrix
 
         if out is not None:
             out[:, :] = toReturn[:, :]
