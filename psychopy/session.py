@@ -1123,11 +1123,10 @@ class Session:
                 })
 
         return True
-
+    
     def getAllEntries(self):
         """
         Returns all entries in the experiment handler.
-
         Returns
         -------
         list[Trial]
@@ -1138,7 +1137,7 @@ class Session:
             return None
         # get entries from current experiment
         entries = self.currentExperiment.getAllEntries()
-        
+
         return entries
 
     def getAllTrials(self):
@@ -1161,6 +1160,45 @@ class Session:
         
         return trials, i
 
+    def setTrialData(self, trialId, name, value):
+        """
+        Set data on a trial by UUID.
+        
+        Parameters
+        ----------
+        trialId : str
+            UUID of the trial
+        name : str
+            Name of the data column
+        value : any
+            Value to set
+            
+        Returns
+        -------
+        bool
+            True if completed successfully
+        """
+        if self.currentExperiment is None:
+            return False
+        
+        # Find the row index in entries by matching trial id
+        rowIdx = None
+        for i, entry in enumerate(self.currentExperiment.entries):
+            if entry.get('id') == trialId:
+                rowIdx = i
+                break
+        
+        # Also check thisEntry (current incomplete entry)
+        if rowIdx is None and self.currentExperiment.thisEntry.get('id') == trialId:
+            rowIdx = None  # None means current entry in addData
+        
+        # Add to entries (for data file) - removed priority parameter
+        self.addData(name, value, row=rowIdx)
+        
+        # Also update Trial object (for getAllTrials)
+        self.currentExperiment.setTrialData(trialId, name, value)
+        
+        return True
     def getCurrentTrial(self, asDict=False):
         """
         Returns the current trial (`.thisTrial`)
