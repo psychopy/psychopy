@@ -83,6 +83,9 @@ jobs:
         export LIBGL_ALWAYS_INDIRECT=0
         export QT_DEBUG_PLUGINS=1 # let us know about missing dependencies?
 
+        # for wxPython
+        uv pip install https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-22.04/wxpython-4.2.4-cp310-cp310-linux_x86_64.whl
+
     - name: Pre-Install
       run: |
         uv pip install wheel six attrdict3 moviepy git+https://gitlab.com/peircej/metapensiero.pj pdm
