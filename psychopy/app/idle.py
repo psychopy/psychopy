@@ -7,13 +7,9 @@
 import threading
 import time
 from collections import OrderedDict
-
-import wx
-
 from psychopy import prefs, logging
 from psychopy.constants import NOT_STARTED, STARTED, SKIP, FINISHED
 from . import connections
-from psychopy.app.plugin_manager.packageIndex import refreshPackageIndexTask
 from psychopy.tools import versionchooser as vc
 from ..app import pavlovia_ui
 _t0 = time.time()
@@ -78,12 +74,6 @@ tasks['getPavloviaUser'] = {
     'func': pavlovia_ui.menu.PavloviaMenu.setUser,
     'tstart': None, 'tEnd': None,
     'thread': False,
-}
-tasks['refreshPackageIndex'] = {
-    'status': NOT_STARTED,
-    'func': refreshPackageIndexTask,
-    'tstart': None, 'tEnd': None,
-    'thread': True,
 }
 
 currentTask = None
