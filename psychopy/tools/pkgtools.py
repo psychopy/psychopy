@@ -74,8 +74,15 @@ def refreshPackages():
     _installedPackageCache.clear()
     _installedPackageNamesCache.clear()
 
+    # is a VM
+    if hasattr(sys, 'real_prefix') or (
+        hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix):
+        searchPaths = sys.path
+    else:
+        searchPaths = [USER_PACKAGES_PATH]
+
     # iterate through installed packages in the user folder
-    for dist in importlib.metadata.distributions(path=sys.path + [USER_PACKAGES_PATH]):
+    for dist in importlib.metadata.distributions(path=searchPaths):
         # get name if in 3.8
 
         if sys.version_info.major == 3:
@@ -84,7 +91,7 @@ def refreshPackages():
             else:
                 distName = dist.name
         else:
-            raise VersionError(
+            raise RuntimeError(
                 "PsychoPy only supports Python 3.8 and above. "
                 "Please upgrade your Python installation.")
 
@@ -555,20 +562,7 @@ def getInstalledPackages():
         '2021.3.1')`.
 
     """
-    # this is like calling `pip freeze` and parsing the output, but faster!
-    installedPackages = []
-    for dist in importlib.metadata.distributions(path=[USER_PACKAGES_PATH]):
-        # substitute name if using 3.8
-        if sys.version.startswith("3.8"):
-            distName = dist.metadata['name']
-        else:
-            distName = dist.name
-        # get name and version
-        installedPackages.append(
-            (distName, dist.version)
-        )
-
-    return installedPackages
+    return _installedPackageCache
 
 
 def isInstalled(packageName):
