@@ -1,4 +1,3 @@
-from pathlib import Path
 from packaging.version import Version
 import shutil
 
@@ -18,15 +17,7 @@ from psychopy import plugins, __version__
 from psychopy.preferences import prefs
 import requests
 import os.path
-import errno
-import sys
 import json
-import glob
-
-from .packageIndex import (
-    loadPackageIndex, 
-    getPluginPackages, 
-    isUserPackageInstalled)
 
 
 class AuthorInfo:
@@ -1447,22 +1438,8 @@ def getAllPluginDetails():
                 
         return packageCache
 
-    try:
-        loadPackageIndex()  # local cache
-        pluginDatabase = getPluginPackages(asList=True)
-    except Exception:
-        # show error message box
-        errMsg = wx.MessageBox(
-            _translate("Failed to load package database from local cache. "
-                       "Attempting to download latest package database from server. "),
-            _translate("Plugin Manager Error"),
-            wx.OK | wx.ICON_ERROR
-        )
-        
-        if errMsg == wx.OK:
-            pass  # just continue
-    
-        pluginDatabase = _downloadPluginDirectory()
+    # download the plugin directory from the server (if available)
+    pluginDatabase = _downloadPluginDirectory()
 
     # check if we need to update plugin objects, if not return the cached data
     global _pluginObjects
