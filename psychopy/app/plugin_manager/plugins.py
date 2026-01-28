@@ -185,7 +185,7 @@ class PluginInfo:
 
     @property
     def installed(self):
-        return isUserPackageInstalled(self.pipname)
+        return pkgtools.isInstalled(self.pipname)
 
     @property
     def installedVersion(self):
@@ -1322,8 +1322,147 @@ def getAllPluginDetails():
         List of plugin details.
 
     """
-    loadPackageIndex()
-    pluginDatabase = getPluginPackages(asList=True)
+    pkgtools.refreshPackages()  # fallback of pkgtools
+
+    # try a differnt way to get plugins
+    def _downloadPluginDirectory():
+        """Download the plugin directory from the server as a JSON file.
+
+        Returns
+        -------
+        list of dict
+            List of plugin information dictionaries.
+
+        """
+        import time
+        logging.debug("Downloading plugin directory...")
+
+        def _getRemoteFileSize(url):
+            """Get the size of the remote file from its header.
+            
+            Parameters
+            ----------
+            url : str
+                The URL of the remote file.
+            
+            Returns
+            -------
+            int or None
+                Size of the file in bytes. If the file does not exist or the size cannot
+                be determined, returns -1.
+
+            """
+            # check the size of the remote file
+            try:
+                response = requests.head(url)
+                if response.status_code != 200:
+                    print(f"[error]: Failed to fetch {url}: {response.status_code}")
+                    return -1
+            except requests.RequestException as e:
+                print(f"[error]: Failed to fetch {url}: {e}")
+                return -1
+            
+            return int(response.headers.get('Content-Length', -1))
+
+        def _getPackageVersions(packageName):
+            """Fetches the package versions from the PyPI simple index page.
+
+            Parameters
+            ----------
+            packageName : str
+                The name of the package to fetch versions for.
+            
+            """
+            import re
+            from bs4 import BeautifulSoup
+            url = 'https://pypi.org/simple/' + packageName + '/'
+            response = requests.get(url)
+            if response.status_code != 200:
+                raise Exception(f"Failed to fetch {url}: {response.status_code}")
+            
+            # parse the HTML content
+            soup = BeautifulSoup(response.text, 'html.parser')
+            versions = set()
+            for a in soup.find_all('a', href=True):
+                match = re.search(rf'{packageName}-(\d+\.\d+\.\d+)', a['href'], re.IGNORECASE)
+                if match:
+                    version = match.group(1)
+                    versions.add(version)
+
+            versions = list(versions)
+            versions.sort(key=Version)
+
+            return versions
+
+        packageCache = []
+        url = "https://psychopy.org/plugins.json"  # url for plugins
+
+        # check if the file exists and is accessible
+        if _getRemoteFileSize(url) == -1:
+            logging.error(f"[error]: Plugin index file not found or inaccessible at {url}")
+
+            errMsg = wx.MessageBox(
+                _translate("Failed to access the plugin index from the server. "
+                           "Please check your internet connection and try again."),
+                _translate("Plugin Manager Error"),
+                wx.OK | wx.ICON_ERROR
+            )
+            
+            if errMsg == wx.OK:
+                pass  # just continue
+
+            return []  # return nothing
+        
+        # download the file
+        logging.debug(f'Fetching PsychoPy plugin index from URL: {url}')
+        downloadStartTime = time.time()
+        response = requests.get(url)
+        if response.status_code != 200:
+            logging.error(f"[error]: Failed to fetch {url}: {response.status_code}")
+            return
+        
+        logging.debug(f'Completed fetching remote PsychoPy plugin index (took '
+                f'{round(time.time() - downloadStartTime, 4)} seconds)')
+        
+        # parse the JSON content
+        logging.debug('Parsing downloaded PsychoPy plugin index...')
+        parseStartTime = time.time()
+        try:
+            pluginIndexJSON = json.loads(response.text)
+        except json.JSONDecodeError:
+            logging.error(f"Failed to decode JSON from {url}.")
+            return False
+
+        logging.debug(f'Completed parsing PsychoPy plugin index (took '
+            f'{round(time.time() - parseStartTime, 4)} seconds)')
+        logging.debug(f'Found {len(pluginIndexJSON)} packages in the remote plugin index.')
+
+        # add fields to the package index
+        for pluginInfo in pluginIndexJSON:
+            pipName = pluginInfo['pipname']
+            packageCache.append(pluginInfo)
+            # get remote versions
+            versions = _getPackageVersions(pipName)
+            pluginInfo['releases'] = versions
+                
+        return packageCache
+
+    try:
+        loadPackageIndex()  # local cache
+        pluginDatabase = getPluginPackages(asList=True)
+    except Exception:
+        # show error message box
+        errMsg = wx.MessageBox(
+            _translate("Failed to load package database from local cache. "
+                       "Attempting to download latest package database from server. "),
+            _translate("Plugin Manager Error"),
+            wx.OK | wx.ICON_ERROR
+        )
+        
+        if errMsg == wx.OK:
+            pass  # just continue
+    
+        pluginDatabase = _downloadPluginDirectory()
 
     # check if we need to update plugin objects, if not return the cached data
     global _pluginObjects
@@ -1337,6 +1476,9 @@ def getAllPluginDetails():
     # Create PluginInfo objects from info list
     objs = []
     for info in pluginDatabase:
+        if 'version' not in info:
+            # if no version info, set to None
+            info['version'] = (None, None)
         if info['version'] is None:
             # if no version info, set to None
             info['version'] = (None, None)
