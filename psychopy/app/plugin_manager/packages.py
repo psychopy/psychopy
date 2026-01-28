@@ -15,12 +15,11 @@ import subprocess as sp
 from psychopy.app import utils
 from psychopy.app.themes import handlers, icons
 from psychopy.localization import _translate
-from psychopy.tools.pkgtools import (getPackageMetadata, getPypiInfo)
-from psychopy.app.plugin_manager.packageIndex import (
-    getInstalledPackages, 
-    getRemotePackages, 
-    isUserPackageInstalled, 
-    isSystemPackageInstalled)
+from psychopy.tools.pkgtools import (
+    getPackageMetadata, 
+    isInstalled,
+    getPypiInfo, 
+    getInstalledPackages)
 from psychopy.tools.versionchooser import parseVersionSafely
 
 
@@ -284,17 +283,15 @@ class PackageListCtrl(wx.Panel):
         menu = wx.Menu()
         # Map menu functions
         menu.functions = {}
-        if isUserPackageInstalled(package):
+        if isInstalled(package):
             # Add uninstall if installed to user
             uninstallOpt = menu.Append(wx.ID_ANY, item=_translate("Uninstall"))
             menu.functions[uninstallOpt.GetId()] = self.onUninstall
-        elif isSystemPackageInstalled(package):
-            # Add nothing if installed to protected system folder
-            pass
         else:
             # Add install if not installed
             uninstallOpt = menu.Append(wx.ID_ANY, item=_translate("Install"))
             menu.functions[uninstallOpt.GetId()] = self.onInstall
+
         # Bind choice event
         menu.Bind(wx.EVT_MENU, self.onRightClickMenuChoice)
         # Store pip name as attribute of menu
@@ -356,22 +353,20 @@ class PackageListCtrl(wx.Panel):
         #    self.rootRemotePackages, PACKAGE_STATUS_INVALID)
 
         # get packages
-        installedPackages = dict(getInstalledPackages())
-
-        systemPackages = installedPackages['system']['packages']
-        userPackages = installedPackages['user']['packages']
+        systemPackages = getInstalledPackages(where='system')
+        userPackages = getInstalledPackages(where='user')
         # availablePackages = getRemotePackages()['packages']
         
         # filter on search
         if searchTerm not in (None, ""):
             self.searchCtrl.ShowCancelButton(True)
-            systemPackages = {k: v for k, v in systemPackages.items() if searchTerm in k}
-            userPackages = {k: v for k, v in userPackages.items() if searchTerm in k}
+            systemPackages = [pkg for pkg in systemPackages if searchTerm in pkg[0]]
+            userPackages = [pkg for pkg in userPackages if searchTerm in pkg[0]]
             #availablePackages = [v for v in availablePackages if searchTerm in v]
         else:
             self.searchCtrl.ShowCancelButton(False)
 
-        for pkg, version in systemPackages.items():
+        for pkg, version in systemPackages:
             item = self.ctrl.AppendItem(self.rootSystemPackages, pkg)
             self.ctrl.SetItemText(item, 1, version)
             self.ctrl.SetItemData(item, PACKAGE_STATUS_INSTALLED_SYSTEM)
@@ -381,7 +376,7 @@ class PackageListCtrl(wx.Panel):
             self.rootSystemPackages, 
             _translate("System Packages") + " (%d)" % len(systemPackages))
 
-        for pkg, version in userPackages.items():
+        for pkg, version in userPackages:
             item = self.ctrl.AppendItem(self.rootUserPackages, pkg)
             self.ctrl.SetItemText(item, 1, version)
             self.ctrl.SetItemData(item, PACKAGE_STATUS_INSTALLED_USER)
@@ -557,9 +552,8 @@ class PackageDetailsPanel(wx.Panel):
 
     def refresh(self, evt=None):
         # check if the package is installed
-        installedPackages = dict(getInstalledPackages())
-        systemPackages = installedPackages['system']['packages']
-        userPackages = installedPackages['user']['packages']
+        systemPackages = getInstalledPackages(where='system')
+        userPackages = getInstalledPackages(where='user')
         # availablePackages = getRemotePackages()['packages']
 
         pkgName = self.package
