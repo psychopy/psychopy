@@ -1313,6 +1313,7 @@ def gammaInvFun(yy, minLum, maxLum, gamma, b=None, eq=1):
 def strFromDate(date):
     """Simply returns a string with a std format from a date object
     """
-    if type(date) == float:
-        date = time.localtime(date)
+    if isinstance(date, (int, float)):
+        date = time.localtime(float(date))
+
     return time.strftime("%Y_%m_%d %H:%M", date)
