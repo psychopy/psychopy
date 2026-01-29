@@ -5,6 +5,32 @@ from psychopy.experiment.params import Param
 from psychopy.localization import _translate
 
 
+def getAllDeviceBackends():
+    """
+    Returns
+    -------
+    dict[str:cls]
+        All subtypes of DeviceBackend, by tag
+    """
+    output = {}
+
+    def recur(cls):
+        """
+        Recursively get subclasses and store them by tag.
+        """
+        # iterate through immediate subclasses
+        for subcls in cls.__subclasses__():
+            # store against its name
+            output[subcls.__name__] = subcls
+            # recur
+            recur(subcls)
+
+    # start with _BaseLoopHandler as the ultimate parent class
+    recur(DeviceBackend)
+
+    return output
+
+
 class DeviceMixin:
     """
     Mixin for base Component/Routine classes which adds necessary params and attributes to 
@@ -74,7 +100,7 @@ class DeviceBackend:
         self.params = {}
         self.order = []
         # add a param for the device label to all backends
-        self.params['deviceLabel'] = Param(
+        self.params['name'] = Param(
             "", valType="str", inputType="name", categ=None,
             label=_translate("Device label"),
             hint=_translate(
@@ -83,7 +109,7 @@ class DeviceBackend:
         )
         # device label always first
         self.order += [
-            "deviceLabel"
+            "name"
         ]
         # get further params from subclass method
         params, order = self.getParams()
@@ -219,10 +245,8 @@ class DeviceBackend:
         for name, val in data['params'].items():
             if name in self.params:
                 self.params[name].applyJSON(val)
-            elif name == "name":
-                self.params['deviceLabel'].applyJSON(val)
     
-    def toJSON(self):
+    def getJSON(self):
         """
         Get this object as a JSON dict.
 
@@ -245,9 +269,7 @@ class DeviceBackend:
         }
         # add params
         for key, param in self.params.items():
-            if key == "deviceLabel":
-                key = "name"
-            data['params'][key] = param.toJSON()
+            data['params'][key] = param.getJSON()
         
         return data
     
@@ -297,9 +319,9 @@ class DeviceBackend:
         """
         # write init call with device label
         code = (
-            "# initialize %(deviceLabel)s\n"
+            "# initialize %(name)s\n"
             "deviceManager.addDevice(\n"
-            "    deviceName=%(deviceLabel)s,\n"
+            "    deviceName=%(name)s,\n"
         )
         buff.writeIndentedLines(code % self.params)
         # add options from profile
@@ -319,10 +341,10 @@ class DeviceBackend:
       
     @property
     def name(self):
-        return self.params['deviceLabel'].val
+        return self.params['name'].val
     
     @name.setter
     def name(self, value):
         # update param value
-        self.params['deviceLabel'].val = value
+        self.params['name'].val = value
         

@@ -25,6 +25,7 @@ class BaseStandaloneRoutine:
     categories = ['Custom']
     targets = []
     iconFile = Path(__file__).parent / "unknown" / "unknown.png"
+    iconSVG = Path(__file__).parent / "BaseRoutine.svg"
     tooltip = ""
     limit = float('inf')
     plugin = None
@@ -100,6 +101,11 @@ class BaseStandaloneRoutine:
     @classmethod
     def getTemplateJSON(cls):
         from psychopy.experiment import Experiment
+        # try to load SVG
+        try:
+            iconSVG = cls.iconSVG.read_text("utf-8")
+        except:
+            iconSVG = None
         # include basic info
         profile = {
             '__class__': f"{cls.__module__}:{cls.__qualname__}",
@@ -107,6 +113,8 @@ class BaseStandaloneRoutine:
             "categories": cls.categories,
             "targets": cls.targets,
             "plugin": cls.plugin,
+            "legacyParams": cls.legacyParams,
+            "iconSVG": iconSVG,
             "iconFile": cls.iconFile,
             "tooltip": cls.tooltip,
             "version": cls.version,
@@ -500,6 +508,25 @@ class BaseValidatorRoutine(BaseDeviceRoutine):
         """
         # this method should be overloaded when subclassing!
         return 0
+    
+    def writeEachFrameValidationCode(self, buff, stim):
+        """
+        Write Routine stop code to validate this stimulus against the specified validator.
+
+        Parameters
+        ----------
+        buff : StringIO
+            String buffer to write code to.
+        stim : BaseComponent
+            Stimulus to validate
+
+        Returns
+        -------
+        int
+            Change in indentation level after writing
+        """
+        # this method should be overloaded when subclassing!
+        return 0
 
 
 class Routine(list):
@@ -875,6 +902,7 @@ class Routine(list):
                 '        thisComponent.setAutoDraw(False)\n')
         buff.writeIndentedLines(code % self.params)
         for event in self:
+            event.writeRoutineEndValidationCode(buff)
             event.writeRoutineEndCode(buff)
 
         if useNonSlip:

@@ -341,6 +341,8 @@ class Flow(list):
                 "if ioServer is not None:\n"
                 "    ioServer.syncClock(globalClock)\n"
                 "logging.setDefaultClock(globalClock)\n"
+                "if eyetracker is not None:\n"
+                "    eyetracker.enableEventReporting()\n"
                 "# routine timer to track time remaining of each (possibly non-slip) routine\n"
                 "routineTimer = core.Clock()\n"
                 "win.flip()  # flip window to reset last flip timer\n"

@@ -167,7 +167,7 @@ class BaseShapeStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
                 "fillColorSpace parameter is deprecated. Please use colorSpace instead."
             )
             fillColor = Color(fillColor, space=fillColorSpace)
-        if fillRGB is not undefined:
+        elif fillRGB is not undefined:
             logging.warning(
                 "fillRGB parameter is deprecated. Please use lineColor and colorSpace instead"
             )
@@ -178,7 +178,7 @@ class BaseShapeStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
                 "lineColorSpace parameter is deprecated. Please use colorSpace instead."
             )
             lineColor = Color(lineColor, space=lineColorSpace)
-        if lineRGB is not undefined:
+        elif lineRGB is not undefined:
             logging.warning(
                 "lineRGB parameter is deprecated. Please use lineColor and colorSpace instead"
             )

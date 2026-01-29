@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" ?>
-<PsychoPy2experiment encoding="utf-8" version="2025.1.0">
+<PsychoPy2experiment encoding="utf-8" version="2025.2.0">
   <Settings>
     <Param val="ptb" valType="str" updates="None" name="Audio lib"/>
     <Param val="" valType="str" updates="None" name="Completed URL"/>
@@ -258,7 +258,7 @@
         <Param val="True" valType="bool" updates="constant" name="bold"/>
         <Param val="None" valType="color" updates="constant" name="borderColor"/>
         <Param val="0" valType="num" updates="constant" name="borderWidth"/>
-        <Param val="# each square is correct if it's within 0.1 units of target position&amp;#10;whiteSquareCorr = (&amp;#10;    whiteSquarePos[0] - 0.1 &lt; whiteSquare.pos[0] &lt; whiteSquarePos[0] + 0.1&amp;#10;    and whiteSquarePos[1] - 0.1 &lt; whiteSquare.pos[1] &lt; whiteSquarePos[1] + 0.1&amp;#10;)&amp;#10;pinkSquareCorr = (&amp;#10;    pinkSquarePos[0] - 0.1 &lt; pinkSquare.pos[0] &lt; pinkSquarePos[0] + 0.1&amp;#10;    and pinkSquarePos[1] - 0.1 &lt; pinkSquare.pos[1] &lt; pinkSquarePos[1] + 0.1&amp;#10;)&amp;#10;# trial is correct if both squares are correct&amp;#10;corr = whiteSquareCorr and pinkSquareCorr&amp;#10;# save positions and correct&amp;#10;thisExp.addData(&quot;whiteSquare.pos&quot;, whiteSquare.pos)&amp;#10;thisExp.addData(&quot;pinkSquare.pos&quot;, pinkSquare.pos)&amp;#10;thisExp.addData(&quot;whiteSquare.corr&quot;, whiteSquareCorr)&amp;#10;thisExp.addData(&quot;pinkSquare.corr&quot;, pinkSquareCorr)&amp;#10;# store time taken&amp;#10;timeTaken = t" valType="extendedCode" updates="constant" name="callback"/>
+        <Param val="# store time taken&amp;#10;timeTaken = t" valType="extendedCode" updates="constant" name="callback"/>
         <Param val="white" valType="color" updates="constant" name="color"/>
         <Param val="rgb" valType="str" updates="constant" name="colorSpace"/>
         <Param val="1" valType="num" updates="constant" name="contrast"/>
@@ -292,12 +292,12 @@
       <CodeComponent name="onlineChanges" plugin="None">
         <Param val="" valType="extendedCode" updates="constant" name="Before Experiment"/>
         <Param val="" valType="extendedCode" updates="constant" name="Before JS Experiment"/>
-        <Param val="mouse = core.Mouse(win=win)" valType="extendedCode" updates="constant" name="Begin Experiment"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Begin Experiment"/>
         <Param val="// create a Mouse to listen for drags&amp;#10;mouse = new core.Mouse({&quot;win&quot;: psychoJS.window});" valType="extendedCode" updates="constant" name="Begin JS Experiment"/>
-        <Param val="// make sure the answers are read in as numbers rather than strings&amp;#10;for (let i in whiteSquarePos) { whiteSquarePos[i] = parseFloat(whiteSquarePos[i]); }&amp;#10;for (let i in pinkSquarePos) { pinkSquarePos[i] = parseFloat(pinkSquarePos[i]); }" valType="extendedCode" updates="constant" name="Begin JS Routine"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Begin JS Routine"/>
         <Param val="" valType="extendedCode" updates="constant" name="Begin Routine"/>
         <Param val="JS" valType="str" updates="None" name="Code Type"/>
-        <Param val="if mouse.isPressedIn(whiteSquare):&amp;#10;    whiteSquare.setPos(&amp;#10;        mouse.getPos()&amp;#10;    )&amp;#10;if mouse.isPressedIn(pinkSquare):&amp;#10;    pinkSquare.setPos(&amp;#10;        mouse.getPos()&amp;#10;    )" valType="extendedCode" updates="constant" name="Each Frame"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Each Frame"/>
         <Param val="// drag each square if clicked on this frame&amp;#10;if (mouse.isPressedIn(whiteSquare)) {&amp;#10;    whiteSquare.setPos(mouse.getPos());&amp;#10;}&amp;#10;if (mouse.isPressedIn(pinkSquare)) {&amp;#10;    pinkSquare.setPos(mouse.getPos());&amp;#10;}&amp;#10;" valType="extendedCode" updates="constant" name="Each JS Frame"/>
         <Param val="" valType="extendedCode" updates="constant" name="End Experiment"/>
         <Param val="" valType="extendedCode" updates="constant" name="End JS Experiment"/>
@@ -305,6 +305,23 @@
         <Param val="" valType="extendedCode" updates="constant" name="End Routine"/>
         <Param val="False" valType="bool" updates="None" name="disabled"/>
         <Param val="onlineChanges" valType="code" updates="None" name="name"/>
+      </CodeComponent>
+      <CodeComponent name="calculateCorrect" plugin="None">
+        <Param val="" valType="extendedCode" updates="constant" name="Before Experiment"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Before JS Experiment"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Begin Experiment"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Begin JS Experiment"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Begin JS Routine"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Begin Routine"/>
+        <Param val="Both" valType="str" updates="None" name="Code Type"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Each Frame"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Each JS Frame"/>
+        <Param val="" valType="extendedCode" updates="constant" name="End Experiment"/>
+        <Param val="" valType="extendedCode" updates="constant" name="End JS Experiment"/>
+        <Param val="// make sure correct answers were read as floats&amp;#10;targetPos = {&amp;#10;    white: whiteSquarePos.map(parseFloat),&amp;#10;    pink: pinkSquarePos.map(parseFloat)&amp;#10;}&amp;#10;// do same as in Python, but with targetPos.___ rather than ___SquarePos&amp;#10;whiteSquareCorr = ((((targetPos.white[0] - 0.1) &lt; whiteSquare.pos[0]) &amp;&amp; (whiteSquare.pos[0] &lt; (targetPos.white[0] + 0.1))) &amp;&amp; (((targetPos.white[1] - 0.1) &lt; whiteSquare.pos[1]) &amp;&amp; (whiteSquare.pos[1] &lt; (targetPos.white[1] + 0.1))));&amp;#10;pinkSquareCorr = ((((targetPos.pink[0] - 0.1) &lt; pinkSquare.pos[0]) &amp;&amp; (pinkSquare.pos[0] &lt; (targetPos.pink[0] + 0.1))) &amp;&amp; (((targetPos.pink[1] - 0.1) &lt; pinkSquare.pos[1]) &amp;&amp; (pinkSquare.pos[1] &lt; (targetPos.pink[1] + 0.1))));&amp;#10;corr = (whiteSquareCorr &amp;&amp; pinkSquareCorr);&amp;#10;psychoJS.experiment.addData(&quot;whiteSquare.pos&quot;, whiteSquare.pos);&amp;#10;psychoJS.experiment.addData(&quot;pinkSquare.pos&quot;, pinkSquare.pos);&amp;#10;psychoJS.experiment.addData(&quot;whiteSquare.corr&quot;, whiteSquareCorr);&amp;#10;psychoJS.experiment.addData(&quot;pinkSquare.corr&quot;, pinkSquareCorr);&amp;#10;" valType="extendedCode" updates="constant" name="End JS Routine"/>
+        <Param val="# each square is correct if it's within 0.1 units of target position&amp;#10;whiteSquareCorr = (&amp;#10;    whiteSquarePos[0] - 0.1 &lt; whiteSquare.pos[0] &lt; whiteSquarePos[0] + 0.1&amp;#10;    and whiteSquarePos[1] - 0.1 &lt; whiteSquare.pos[1] &lt; whiteSquarePos[1] + 0.1&amp;#10;)&amp;#10;pinkSquareCorr = (&amp;#10;    pinkSquarePos[0] - 0.1 &lt; pinkSquare.pos[0] &lt; pinkSquarePos[0] + 0.1&amp;#10;    and pinkSquarePos[1] - 0.1 &lt; pinkSquare.pos[1] &lt; pinkSquarePos[1] + 0.1&amp;#10;)&amp;#10;# trial is correct if both squares are correct&amp;#10;corr = whiteSquareCorr and pinkSquareCorr&amp;#10;# save positions and correct&amp;#10;thisExp.addData(&quot;whiteSquare.pos&quot;, whiteSquare.pos)&amp;#10;thisExp.addData(&quot;pinkSquare.pos&quot;, pinkSquare.pos)&amp;#10;thisExp.addData(&quot;whiteSquare.corr&quot;, whiteSquareCorr)&amp;#10;thisExp.addData(&quot;pinkSquare.corr&quot;, pinkSquareCorr)" valType="extendedCode" updates="constant" name="End Routine"/>
+        <Param val="False" valType="bool" updates="None" name="disabled"/>
+        <Param val="calculateCorrect" valType="code" updates="None" name="name"/>
       </CodeComponent>
     </Routine>
     <Routine name="feedback_corr">

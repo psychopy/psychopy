@@ -82,12 +82,18 @@ def getVersions():
     return available
 
 
+def getSoundBackends():
+    from psychopy.sound.sound import Sound
+    return list(Sound.getBackends())
+
+
 class SettingsComponent:
     """This component stores general info about how to run the experiment
     """
     categories = ['Custom']
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'settings.png'
+    iconSVG = Path(__file__).parent / 'SettingsComponent.svg'
     tooltip = _translate("Edit settings for this experiment")
     plugin = None
     version = "0.0.0"
@@ -99,7 +105,7 @@ class SettingsComponent:
             self, parentName, exp, expName='', fullScr=True, runMode=0, rush=False,
             winSize=(1024, 768), screen=1, monitor='testMonitor', winBackend='pyglet',
             showMouse=False, saveLogFile=True, showExpInfo=True,
-            expInfo="{'participant':'f\"{randint(0, 999999):06.0f}\"', 'session':'\"001\"'}",
+            expInfo="{'participant':'f\"{randint(0, 999999):06.0f}\"', 'session':'001'}",
             units='height', 
             logging="info", 
             consoleLoggingLevel="warning",
@@ -317,7 +323,7 @@ class SettingsComponent:
             colorSpace, valType='str', inputType="choice",
             hint=_translate("Needed if color is defined numerically (see "
                             "PsychoPy documentation on color spaces)"),
-            allowedVals=['rgb', 'dkl', 'lms', 'hsv', 'hex'],
+            allowedVals=['named', 'hex', 'rgb', 'dkl', 'lms', 'hsv'],
             label=_translate("Color space"), categ="Screen")
         self.params['backgroundImg'] = Param(
             backgroundImg, valType="str", inputType="file", categ="Screen",
@@ -398,7 +404,7 @@ class SettingsComponent:
             label=_translate("Force stereo"))
         self.params['Audio lib'] = Param(
             'ptb', valType='str', inputType="choice",
-            allowedVals=['ptb', 'pyo', 'sounddevice', 'pygame'],
+            allowedVals=getSoundBackends,
             hint=_translate("Which Python sound engine do you want to play your sounds?"),
             label=_translate("Audio library"), categ='Audio')
 
@@ -971,13 +977,6 @@ class SettingsComponent:
             "from psychopy import prefs\n"
             "from psychopy import plugins\n"
             "plugins.activatePlugins()\n"  # activates plugins
-        )
-        # adjust the prefs for this study if needed
-        if self.params['Audio lib'].val.lower() != 'use prefs':
-            buff.writelines(
-                "prefs.hardware['audioLib'] = {}\n".format(self.params['Audio lib'])
-            )
-        buff.write(
             "from psychopy import %s\n" % ', '.join(psychopyImports) +
             "from psychopy.tools import environmenttools\n"
             "from psychopy.constants import (\n"
@@ -991,7 +990,8 @@ class SettingsComponent:
             "from numpy.random import %s\n" % ', '.join(_numpyRandomImports) +
             "import os  # handy system and path functions\n" +
             "import sys  # to get file system encoding\n"
-            "\n")
+            "\n"
+        )
 
         if not self.params['eyetracker'] == "None" or self.params['keyboardBackend'] == "ioHub":
             code = (
@@ -2177,6 +2177,10 @@ class SettingsComponent:
         buff.setIndentLevel(+1, relative=True)
         # Write code to end experiment
         code = (
+            "# stop any playback components\n"
+            "if thisExp.currentRoutine is not None:\n"
+            "    for comp in thisExp.currentRoutine.getPlaybackComponents():\n"
+            "        comp.stop()\n"
             "if win is not None:\n"
             "    # remove autodraw from all current components\n"
             "    win.clearAutoDraw()\n"

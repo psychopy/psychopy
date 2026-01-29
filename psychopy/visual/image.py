@@ -353,28 +353,36 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
 
         # determine data type
         wasLumImage = self.isLumImage
-        if type(value) != numpy.ndarray and value == "color":
-            datatype = GL.GL_FLOAT
-        else:
+        if hasattr(value, 'colorTexture'):
+            # reference to object that provides texture data
+            value = value.colorTexture
             datatype = GL.GL_UNSIGNED_BYTE
-
-        if type(value) != numpy.ndarray and value in (None, "None", "none"):
-            self.isLumImage = True
+            self.isLumImage = hasattr(value, 'isLumImage') and value.isLumImage
+            self.flipVert = True
         else:
-            self.isLumImage = self._createTexture(
-                value, id=self._texID,
-                stim=self,
-                pixFormat=GL.GL_RGB,
-                dataType=datatype,
-                maskParams=self.maskParams,
-                forcePOW2=False,
-                wrapping=False)
+            # If given a color array, get it in rgb1
+            if isinstance(value, colors.Color):
+                value = value.render('rgb1')
+
+            if type(value) != numpy.ndarray and value == "color":
+                datatype = GL.GL_FLOAT
+            else:
+                datatype = GL.GL_UNSIGNED_BYTE
+
+            if type(value) != numpy.ndarray and value in (None, "None", "none"):
+                self.isLumImage = True
+            else:
+                self.isLumImage = self._createTexture(
+                    value, id=self._texID,
+                    stim=self,
+                    pixFormat=GL.GL_RGB,
+                    dataType=datatype,
+                    maskParams=self.maskParams,
+                    forcePOW2=False,
+                    wrapping=False)
 
         # update size
         self.size = self._requestedSize
-
-        if hasattr(value, 'getVideoFrame'):  # make sure we invert vertices
-            self.flipVert = True
 
         # if we switched to/from lum image then need to update shader rule
         if wasLumImage != self.isLumImage:

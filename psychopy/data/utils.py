@@ -305,6 +305,10 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
                     thisAttempt = pd.read_csv(
                         fileName, encoding='utf-8-sig', sep=sep, decimal=dec
                     )
+                    # read in the headers separately to bypass pandas sanitization
+                    thisAttempt.columns = pd.read_csv(
+                        fileName, encoding='utf-8-sig', sep=sep, decimal=dec, header=None, nrows=1
+                    ).iloc[0, :]
                     # if there's only one header, check that it doesn't contain delimiters
                     # (one column with delims probably means it's parsed without error but not
                     # recognised columns correctly)
@@ -363,12 +367,20 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
         names are OK, return silently; else raise  with msg
         """
         fileName = pathToString(fileName)
+        # make sure all columns are named
         if not all(fieldNames):
             raise exceptions.ConditionsImportError(
                 "Conditions file %s: Missing parameter name(s); empty cell(s) in the first row?" % fileName,
                 translated=_translate("Conditions file %s: Missing parameter name(s); empty cell(s) in the first row?") % fileName
             )
+        # check each name
         for name in fieldNames:
+            # is this name duplicated?
+            if sum([otherName == name for otherName in fieldNames]) > 1:
+                raise exceptions.ConditionsImportError(_translate(
+                "Duplicate column name '{}'"
+            ).format(name))
+            # is this name a valid variable name?
             OK, msg, translated = isValidVariableName(name)
             if not OK:
                 # tailor message to importConditions

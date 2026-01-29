@@ -9,7 +9,7 @@ class BasePhotometerDeviceBackend(DeviceBackend):
     Subclass common to all Photometer Device Backend classes, so they can be identified in the 
     absence of a common Component.
     """
-    pass
+    icon = "../app/Resources/light/photometer.png"
 
 
 class ScreenBufferPhotometerDeviceBackend(BasePhotometerDeviceBackend):
@@ -18,7 +18,6 @@ class ScreenBufferPhotometerDeviceBackend(BasePhotometerDeviceBackend):
     teaching / sanity checking purposes only.
     """
     backendLabel = "Photometer Emulator (debug)"
-    icon = "../app/Resources/light/photometer.png"
     deviceClass = "psychopy.hardware.photometer.ScreenBufferPhotometerDevice"
 
     def getParams(self):

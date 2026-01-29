@@ -28,6 +28,11 @@ alertLog : List
 _activeAlertHandlers = []
 
 
+class BaseAlertHandler:
+    def receiveAlert(self, msg):
+        raise NotImplementedError()
+
+
 class AlertCatalog:
     """A class for loading alerts from the alerts catalogue yaml file"""
     def __init__(self):
@@ -132,6 +137,29 @@ class AlertEntry:
                 trace[0], trace[1], trace[2]))
         else:
             self.trace = None
+    
+    def __str__(self):
+        return (
+            "Alert {code}: {msg}\n"
+            "For more info see https://docs.psychopy.org/alerts/{code}.html"
+        ).format(
+            type=self.type,
+            name=self.name,
+            code=self.code,
+            cat=self.cat,
+            msg=self.msg,
+            trace=self.trace
+        )
+    
+    def getJSON(self):
+        return {
+            'type': self.type,
+            'name': self.name,
+            'code': self.code,
+            'cat': self.cat,
+            'msg': self.msg,
+            'trace': self.trace
+        }
 
 
 def alert(code=None, obj=object, strFields=None, trace=None):
@@ -152,15 +180,6 @@ def alert(code=None, obj=object, strFields=None, trace=None):
 
     msg = AlertEntry(code, obj, strFields, trace)
 
-    # format the warning into a string for console and logging targets
-    msgAsStr = ("Alert {code}: {msg}\n"
-                "For more info see https://docs.psychopy.org/alerts/{code}.html"
-                .format(type=msg.type,
-                        name=msg.name,
-                        code=msg.code,
-                        cat=msg.cat,
-                        msg=msg.msg,
-                        trace=msg.trace))
     if len(_activeAlertHandlers):
         # if we have any active handlers, send to them
         for handler in _activeAlertHandlers:
@@ -171,7 +190,7 @@ def alert(code=None, obj=object, strFields=None, trace=None):
         sys.stderr.receiveAlert(msg)
     else:
         # otherwise, just write as a string to stdout
-        sys.stderr.write(msgAsStr)
+        sys.stderr.write(str(msg))
 
 
 def isAlertHandler(handler):

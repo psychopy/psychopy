@@ -50,7 +50,7 @@ class DevicePanel(ScrolledPanel):
         for categ in sortedParams:
             # if categ if Basic, add to root sizer
             toggle = None
-            if categ == "Basic":
+            if categ in ("Basic", None):
                 categSizer = self.sizer
             else:
                 # otherwise, make a show/hider
@@ -104,7 +104,7 @@ class DevicePanel(ScrolledPanel):
                     sizer, border=6, flag=wx.EXPAND | wx.ALL
                 )
                 # store name param ctrl
-                if name == "deviceLabel":
+                if name == "name":
                     self.nameCtrl = self.paramCtrls[name]
                     # bump up the font size
                     self.nameCtrl.ctrl.SetFont(fonts.AppFont(

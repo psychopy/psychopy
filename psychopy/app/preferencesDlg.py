@@ -41,10 +41,15 @@ class PrefPropGrid(wx.Panel):
         # make splitter so panels are resizable
         self.splitter = wx.SplitterWindow(self)
         bSizer1.Add(self.splitter, proportion=1, border=6, flag=wx.EXPAND | wx.ALL)
+
         # tabs panel
+        # note - linux needs special style handling
+        prefPageStyle = \
+            wx.LC_LIST if wx.Platform == "__WXMSW__" else wx.LC_SMALL_ICON
         self.lstPrefPages = wx.ListCtrl(
             self.splitter, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
-            wx.LC_ALIGN_TOP | wx.LC_LIST | wx.LC_SINGLE_SEL)
+            prefPageStyle | wx.LC_ALIGN_TOP | wx.LC_SINGLE_SEL)
+
         # images for tabs panel
         prefsImageSize = wx.Size(48, 48)
         self.prefsIndex = 0

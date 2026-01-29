@@ -19,28 +19,9 @@ __all__ = [
 ]
 
 from psychopy.hardware.base import BaseResponseDevice, BaseResponse
-from psychopy import layout
+from psychopy import layout, logging
 
 from psychopy.plugins import PluginStub
-
-# Special handling for legacy classes which have been offloaded to optional
-# packages. This will change to allow more flexibility in the future to avoid
-# updating this package for additions to these sub-packages. We'll need a
-# photometer type to do that, but for now we're doing it like this.
-from psychopy.hardware.crs.colorcal import ColorCAL
-from psychopy.hardware.crs.optical import OptiCAL
-
-# Photo Resaerch Inc. spectroradiometers
-from psychopy.hardware.pr import PR655, PR650
-
-# Konica Minolta light-measuring devices
-from psychopy.hardware.minolta import LS100, CS100A
-
-# Gamma scientific devices
-from psychopy.hardware.gammasci import S470
-
-# photometer interfaces will be stored here after being registered
-photometerInterfaces = {}
 
 
 class PhotometerResponse(BaseResponse):
@@ -158,129 +139,69 @@ class ScreenBufferPhotometerDevice(BasePhotometerDevice):
         }]
 
 
+# --- legacy methods ---
+
+
 def addPhotometer(cls):
-    """Register a photometer interface class.
-
-    Once a photometer class is registered, it will be discoverable when
-    :func:`getAllPhotometers()` is called. This function is also used by the
-    plugin interface to add new interfaces at runtime.
-
-    This function will overwrite interface with the same `driverFor` name
-    automatically.
+    """
+    DEPRECATED: Photometer classes are added on import, so this function is no longer needed.
 
     Parameters
     ----------
     cls : Any
         Class specifying a photometer interface.
-
     """
-    global photometerInterfaces
-
-    # photometers interfaces are IDed by the model they interface with
-    if not hasattr(cls, 'driverFor') or cls.driverFor is None:
-        raise AttributeError(
-            "Photometer interface class does not define member `driverFor` and "
-            "cannot be added.")
-
-    # add interface references to dictionary
-    if isinstance(cls.driverFor, (list, tuple)):
-        # multiple devices sharing the same interface
-        for devModel in cls.driverFor:
-            if not isinstance(devModel, str):  # items must be all strings
-                raise TypeError(
-                    "Invalid item type for array `driverFor`. Items must all "
-                    "have type `str`.")
-            photometerInterfaces[devModel] = cls
-    elif isinstance(cls.driverFor, str):
-        devModel = cls.driverFor
-        photometerInterfaces[devModel] = cls
-    else:
-        raise TypeError(
-            "Invalid type for `driverFor` member specified. Must be either "
-            "`str`, `tuple` or `list`.")
+    logging.warning(
+        "`addPhotometer` is deprecated, photometer classes are added on import so this function "
+        "is not needed."
+    )
 
 
 def getAllPhotometers():
-    """Gets all available photometers.
-
-    The returned photometers may vary depending on which drivers are installed.
-    Standalone PsychoPy ships with libraries for all supported photometers.
+    """
+    Legacy method to get available photometers. Will return subclasses of BasePhotometerDevice as 
+    well as legacy handlers for previously supported devices.
 
     Returns
     -------
     dict
-        A mapping of all photometer classes. Where the keys (`str`) are model
-        names the interface works with and the values are references to the
-        unbound interface class associated with it. Keys can have the same value
-        the interface is common to multiple devices.
-
+        Device classes against the names by which to represent them.
     """
-    # Given that we need to preserve legacy namespaces for the time being, we
-    # need to import supported photometer classes from their extant namespaces.
-    # In the future, all photometer classes will be identified by possessing a
-    # common base class and being a member of this module. This is much like
-    # how Builder components are discovered.
+    # get photometer classes the new way: by looking for subclasses of BasePhotometerDevice
+    found = BasePhotometerDevice.__subclasses__()
+    # import classes which used to be in PsychoPy
+    from psychopy.hardware.crs.colorcal import ColorCAL
+    from psychopy.hardware.crs.optical import OptiCAL
+    from psychopy.hardware.pr import PR655, PR650
+    from psychopy.hardware.minolta import LS100, CS100A
+    from psychopy.hardware.gammasci import S470
+    # include any which aren't PluginStub's
+    for cls in (
+        ColorCAL,
+        OptiCAL,
+        PR655, 
+        PR650,
+        LS100, 
+        CS100A,
+        S470
+    ):
+        if not issubclass(cls, PluginStub):
+            found.append(cls)
 
-    # build a dictionary with names
-    foundPhotometers = {}
-
-    # Classes from extant namespaces. Even though these are optional, we need
-    # to respect the namespaces for now.
-    optionalPhotometers = (
-        'ColorCAL', 'OptiCAL', 'S470', 'PR650', 'PR655', 'LS100', 'CS100A')
-    incPhotomList = []
-    for photName in optionalPhotometers:
-        try:
-            photClass = globals()[photName]
-        except (ImportError, AttributeError):
-            continue
-        if issubclass(photClass, PluginStub):
-            continue
-        incPhotomList.append(photClass)
-
-    # iterate over all classes and register them as if they were plugins
-    for photom in incPhotomList:
-        addPhotometer(photom)
-
-    # Merge with classes from plugins. Duplicate names will be overwritten by
-    # the plugins.
-    foundPhotometers.update(photometerInterfaces)
-
-    return foundPhotometers.copy()
+    return {
+        cls.__name__: cls
+        for cls in found
+    }
 
 
 def getAllPhotometerClasses():
-    """Get unique photometer interface classes presently available.
-
-    This is used to preserve compatibility with the legacy
-    :func:`~psychopy.hardware.getAllPhotometers()` function call.
+    """
+    Legacy method to get available photometers. Will return subclasses of BasePhotometerDevice as 
+    well as legacy handlers for previously supported devices.
 
     Returns
     -------
-    list
-        Discovered unique photometer classes.
-
+    dict
+        Device classes against the names by which to represent them.
     """
-    # iterate over known photometers
-    photometers = getAllPhotometers()
-
-    if not photometers:  # do nothing if no photometers found
-        return []
-
-    interfaceIDs = []  # a store unique IDs for interfaces
-    # Remove items the are duplicated, i.e. multiple IDs that have a common
-    # interface.
-    knownInterfaces = []
-    for cls in photometers.values():
-        clsID = id(cls)
-        if clsID in interfaceIDs:  # already added
-            continue
-
-        interfaceIDs.append(clsID)
-        knownInterfaces.append(cls)
-
-    return knownInterfaces
-
-
-if __name__ == "__main__":
-    pass
+    return getAllPhotometers()

@@ -14,7 +14,11 @@ class AudioValidator:
         # set autolog
         self.autoLog = autoLog
         # store voicekey handle
-        self.sensor = sensor
+        from psychopy.hardware import DeviceManager, soundsensor
+        self.sensor = DeviceManager.resolveDevice(
+            sensor, 
+            deviceClass=soundsensor.BaseSoundSensorGroup
+        )
         self.channel = channel
         # initial values (written during experiment)
         self.tStart = self.tStartRefresh = self.tStartDelay = None

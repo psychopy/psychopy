@@ -22,7 +22,7 @@ from xml.etree.ElementTree import Element
 import re
 from pathlib import Path
 
-from psychopy import logging
+from psychopy import data, logging
 from . import utils
 from . import py2js
 
@@ -326,12 +326,18 @@ class Param():
                 # Otherwise, treat as string
                 return repr(val)
         elif self.valType == 'list':
-            valid, val = self.dollarSyntax()
-            val = toList(val)
-            return "{}".format(val)
+            if self.inputType == "fileList":
+                # treat each item as a string-type param
+                output = []
+                for item in data.utils.listFromString(self.val):
+                    item = str(Param(item, "file"))
+                    output.append(item)
+                return "[{}]".format(",".join(output))
+            else:
+                valid, val = self.dollarSyntax()
+                val = toList(val)
+                return "{}".format(val)
         elif self.valType == 'fixedList':
-            return "{}".format(self.val)
-        elif self.valType == 'fileList':
             return "{}".format(self.val)
         elif self.valType == 'bool':
             if utils.scriptTarget == "PsychoJS":
@@ -438,6 +444,7 @@ class Param():
             'allowedUpdates': self.allowedUpdates,
             'allowedVals': serializeCallable(self.allowedVals, self),
             'allowedLabels': serializeCallable(self.allowedLabels, self),
+            'ctrlParams': self.ctrlParams,
             'label': self.label,
             'hint': self.hint,
             'plugin': self.plugin,
@@ -526,7 +533,7 @@ class Param():
                     return True, val
             else:
                 # If value does not begin with an unescaped $, treat it as a string
-                if not re.findall(r"(?<!\\)\$", val):
+                if not re.findall(r"(?<!\\)\$", str(val)):
                     # Return if all $ are escaped (\$)
                     return True, val
         else:

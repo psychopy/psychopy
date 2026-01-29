@@ -639,7 +639,7 @@ class Window():
         self._projectionMatrixNeedsUpdate = True
         self._viewMatrixNeedsUpdate = True
 
-        self.setOrthographicView()
+        self.setDefaultView()  # initialize view/proj matrix
 
         # piloting indicator
         self._pilotingIndicator = None
@@ -836,13 +836,14 @@ class Window():
         settings.
         """
         if self._projectionMatrixNeedsUpdate:
-            widthOver2 = self.size[0] / 2.0
-            heightOver2 = self.size[1] / 2.0
-            self._projectionMatrix[:, :] = viewtools.orthoProjectionMatrix(
-                -widthOver2, widthOver2,    # -X, +X
-                -heightOver2, heightOver2,  # -Y, +Y
-                -1.0, 1.0,                  # -Z, +Z
-                dtype=numpy.float32)
+            # widthOver2 = self.size[0] / 2.0
+            # heightOver2 = self.size[1] / 2.0
+            # self._projectionMatrix[:, :] = viewtools.orthoProjectionMatrix(
+            #     -widthOver2, widthOver2,    # -X, +X
+            #     -heightOver2, heightOver2,  # -Y, +Y
+            #     -1.0, 1.0,                  # -Z, +Z
+            #     dtype=numpy.float32)
+            self._projectionMatrix[:, :] = numpy.identity(4, dtype=numpy.float32)
             self._projectionMatrixNeedsUpdate = False
 
     @property
@@ -2281,6 +2282,20 @@ class Window():
         if applyTransform:
             self.applyEyeTransform(clearDepth=clearDepth)
 
+    def setDefaultView(self, applyTransform=True, clearDepth=True):
+        """Set the projection and view matrix to PsychoPy's default.
+
+        This is the mode which is typically used for rendering 2D stimuli. It should
+        be called prior to rendering any 2D stimuli if the projection has been
+        changed.
+
+        """
+        self._updateViewMatrix()
+        self._updateProjectionMatrix()
+
+        if applyTransform:
+            self.applyEyeTransform(clearDepth=clearDepth)
+
     def setOrthographicView(self, applyTransform=True, clearDepth=True):
         """Set the projection and view matrix to render with orthographic view.
 
@@ -2304,8 +2319,16 @@ class Window():
             Clear the depth buffer.
 
         """
-        self._updateProjectionMatrix()
         self._updateViewMatrix()
+
+        widthOver2 = self.size[0] / 2.0
+        heightOver2 = self.size[1] / 2.0
+        self._projectionMatrix[:, :] = viewtools.orthoProjectionMatrix(
+            -widthOver2, widthOver2,    # -X, +X
+            -heightOver2, heightOver2,  # -Y, +Y
+            -1.0, 1.0,                  # -Z, +Z
+            dtype=numpy.float32)
+        self._projectionMatrix[:, :] = numpy.identity(4, dtype=numpy.float32)
 
         if applyTransform:
             self.applyEyeTransform(clearDepth=clearDepth)
@@ -3652,6 +3675,9 @@ class Window():
         threshold : int or float, optional
             The threshold for the std deviation (in ms) before the set
             are considered a match.
+        infoMsg : str, optional
+            An optional message to display in the window while measuring
+            the frame rate. If `None`, a default message will be used.
 
         Returns
         -------
@@ -3684,34 +3710,40 @@ class Window():
         self.recordFrameIntervals = False
 
         # warm-up, allow the system to settle a bit before measuring frames
-        for frameN in range(nWarmUpFrames):
+        for _ in range(nWarmUpFrames):
             self.flip()
 
-        # run test frames
         self.recordFrameIntervals = True  # record intervals for actual test
+
+        # run test frames 
         threshSecs = threshold / 1000.0  # must be in seconds
-        for frameN in range(nMaxFrames):
+        rate = None
+        for _ in range(nMaxFrames):
             self.flip()
+
             recentFrames = self.frameIntervals[-nIdentical:]
-            nIntervals = len(self.frameIntervals)
+            nIntervals = len(recentFrames)
             if len(recentFrames) < 3:
                 continue  # no need to check variance yet
+
             recentFramesStd = numpy.std(recentFrames)  # compute variability
             if nIntervals >= nIdentical and recentFramesStd < threshSecs:
                 # average duration of recent frames
                 period = numpy.mean(recentFrames)  # log this too?
                 rate = 1.0 / period  # compute frame rate in Hz
-                if self.autoLog:
-                    scrStr = "" if screen is None else " (%i)" % screen
-                    msg = "Screen{} actual frame rate measured at {:.2f}Hz"
-                    logging.exp(msg.format(scrStr, rate))
 
-                self.recordFrameIntervals = recordFrmIntsOrig
-                self.frameIntervals = []
-                self.hideMessage()  # remove the message
-                return rate
-
+        self.recordFrameIntervals = recordFrmIntsOrig
+        self.frameIntervals = []
         self.hideMessage()  # remove the message
+
+        if rate is not None:
+            # log the measured frame rate
+            if self.autoLog:
+                scrStr = "" if screen is None else " (%i)" % screen
+                msg = "Screen{} actual frame rate measured at {:.2f}Hz"
+                logging.exp(msg.format(scrStr, rate))
+
+            return rate
 
         # if we get here we reached end of `maxFrames` with no consistent value
         msg = ("Couldn't measure a consistent frame rate!\n"

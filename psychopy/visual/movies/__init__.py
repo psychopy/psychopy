@@ -18,7 +18,7 @@ from pathlib import Path
 import tempfile
 import time
 
-from psychopy import prefs
+from psychopy import layout, prefs
 from psychopy.tools.filetools import pathToString, defaultStim
 from psychopy.visual.basevisual import (
     BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin
@@ -38,6 +38,8 @@ GL = pyglet.gl
 
 # threshold to stop reporting dropped frames
 reportNDroppedFrames = 10
+
+# time to wait for the movie decoder to respond
 defaultTimeout = 5.0  # seconds
 
 # constants for use with ffpyplayer
@@ -57,6 +59,46 @@ _openMovieReaders = set()
 # Classes
 #
 
+class MoviePlaybackError(Exception):
+    """Exception raised when there is an error during movie playback."""
+    def __init__(self, message):
+        super().__init__(message)
+        self.message = message
+
+    def __str__(self):
+        return f"MoviePlaybackError: {self.message}"
+    
+
+class MovieFileNotFoundError(MoviePlaybackError):
+    """Exception raised when a movie file is not found."""
+    def __init__(self, filename):
+        super().__init__(f"Movie file not found: {filename}")
+        self.filename = filename
+
+    def __str__(self):
+        return f"MovieFileNotFoundError: {self.filename} does not exist."
+    
+
+class MovieFileFormatError(MoviePlaybackError):
+    """Exception raised when a movie file format is not supported."""
+    def __init__(self, filename):
+        super().__init__(f"Movie file format not supported: {filename}")
+        self.filename = filename
+
+    def __str__(self):
+        return f"MovieFileFormatError: {self.filename} is not a supported movie format."
+
+
+class MovieAudioError(MoviePlaybackError):
+    """Exception raised when there is an error with movie audio playback."""
+    def __init__(self, message):
+        super().__init__(message)
+        self.message = message
+
+    def __str__(self):
+        return f"MovieAudioError: {self.message}"
+
+# ------------------------------------------------------------------------------
 
 class MovieMetadata:
     """Class for storing metadata about a movie file.
@@ -279,6 +321,32 @@ class MovieFileReader:
         return self._duration
     
     @property
+    def volume(self):
+        """The volume level of the movie player (`float`).
+
+        This is only valid after calling `open()`. If not, the value is `0.0`.
+
+        """
+        if self._decoderLib == 'ffpyplayer':
+            return self._getVolumeFFPyPlayer()
+        else:
+            raise NotImplementedError(
+                'Volume control is not implemented for this decoder library.')
+
+    @volume.setter
+    def volume(self, value):
+        """Set the volume level of the movie player (`float`).
+
+        This is only valid after calling `open()`. If not, the value is `0.0`.
+
+        """
+        if self._decoderLib == 'ffpyplayer':
+            self._setVolumeFFPyPlayer(value)
+        else:
+            raise NotImplementedError(
+                'Volume control is not implemented for this decoder library.')
+
+    @property
     def filename(self):
         """The name (path) of the movie file (`str`).
 
@@ -343,7 +411,8 @@ class MovieFileReader:
 
         """
         if self._metadata is None:
-            raise ValueError('Movie metadata not available. Movie not open.')
+            return NULL_MOVIE_METADATA
+            # raise ValueError('Movie metadata not available. Movie not open.')
 
         return self._metadata
     
@@ -390,7 +459,7 @@ class MovieFileReader:
             'paused': True,
             'sync': syncMode,  # always use audio sync
             'an': False,
-            'volume': 1.0,
+            'volume': 0.0,  # mute
             'loop': 1,  # number of replays (0=infinite, 1=once, 2=twice, etc.)
             'infbuf': True
         }
@@ -404,11 +473,11 @@ class MovieFileReader:
             self._filename,
             ff_opts=self._decoderOpts)
 
+        self._player.set_mute(True)  # mute the player first
         self._player.set_pause(False)
 
         # Get metadata and 'warm-up' the player to ensure it is responsive 
         # before we start decoding frames.
-        self._player.set_mute(True)  # mute the player first
 
         # wait for valid metadata to be available
         logging.debug("Waiting for movie metadata...")
@@ -433,7 +502,7 @@ class MovieFileReader:
             raise RuntimeError(
                 'FFPyPlayer failed to start decoding the movie. Check the '
                 'movie file and decoder options.')
-
+        
         # go back to first frame
         self._player.set_pause(True)  # pause the player again
         self._player.set_mute(False)  # unmute the player
@@ -455,6 +524,12 @@ class MovieFileReader:
             movieMetadata['src_pix_fmt'])
 
         logging.debug("Movie metadata: {}".format(movieMetadata))
+
+        # process the frame we got during warmup, store it so it shows 
+        # when the movie is stopped+idle but not paused
+        img, curPts = frame
+        initialFrameRGB = self._convertFrameToRGBFFPyPlayer(img)
+        self._frameStore.append((initialFrameRGB, curPts, 'paused'))
     
     def _seekFFPyPlayer(self, reqPTS):
         """FFPyPlayer specific seek routine.
@@ -477,7 +552,7 @@ class MovieFileReader:
         reqPTS = min(max(0.0, reqPTS), self._metadata.duration)
 
         if self._player is None:
-            raise ValueError('Movie reader is not open. Cannot seek.')
+            return
         
         # clear the frame store
         self._cleanUpFrameStore()
@@ -539,7 +614,7 @@ class MovieFileReader:
 
         """
         if self._player is None:
-            raise ValueError('Movie reader is not open. Cannot buffer frames.')
+            return
 
         # check if we have a valid start time
         if start < 0.0:
@@ -663,6 +738,8 @@ class MovieFileReader:
         if self in _openMovieReaders:
             raise RuntimeError(
                 'Movie reader already open for file: {}'.format(self._filename))
+        
+        self._playbackStatus = NOT_STARTED  # reset playback status
         
         _openMovieReaders.add(self)
 
@@ -846,7 +923,7 @@ class MovieFileReader:
 
         """
         if self._player is None:
-            raise ValueError('Movie reader is not open. Cannot pause.')
+            return
 
         self._player.set_pause(bool(state))
 
@@ -890,7 +967,7 @@ class MovieFileReader:
 
         """
         if self._player is None:
-            raise ValueError('Movie reader is not open. Cannot mute.')
+            return
 
         self._player.set_mute(bool(state))
 
@@ -949,9 +1026,59 @@ class MovieFileReader:
 
         """
         if self._player is None:
-            raise ValueError('Movie reader is not open. Cannot get subtitle.')
+            return ''
+            #raise ValueError('Movie reader is not open. Cannot get subtitle.')
 
         return ''
+
+    def _getVolumeFFPyPlayer(self):
+        """Get the volume of the movie player using the ffpyplayer library.
+
+        Returns
+        -------
+        float
+            The volume level of the movie player, between 0.0 (mute) and 1.0 (full volume).
+        """
+        if self._player is None:
+            return 0.0
+
+        return self._player.get_volume()
+
+    def _setVolumeFFPyPlayer(self, volume):
+        """Set the volume of the movie player using the ffpyplayer library.
+
+        Parameters
+        ----------
+        volume : float
+            The volume level to set, between 0.0 (mute) and 1.0 (full volume).
+
+        """
+        if self._player is None:
+            return
+
+        self._player.set_volume(volume)
+
+    def setVolume(self, volume):
+        """Set the volume of the movie player.
+
+        Parameters
+        ----------
+        volume : float
+            The volume level to set, between 0.0 (mute) and 1.0 (full volume).
+
+        """
+        if self._player is None:
+            return
+        
+        volume = min(1.0, max(0.0, float(volume)))
+        
+        logging.debug("Setting movie volume to: {}".format(volume))
+
+        if self._decoderLib == 'ffpyplayer':
+            self._setVolumeFFPyPlayer(volume)
+        else:
+            raise NotImplementedError(
+                'Volume control is not implemented for this decoder library.')
 
     def __del__(self):
         """Close the movie file when the object is deleted.
@@ -978,7 +1105,10 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         by PsychoPy developers is used. Default is `'ffpyplayer'`. An alert is
         raised if you are not using the preferred player.
     audioLib : str or None
-        Library to use for audio decoding. By default, 'soundfile' is used.
+        Library to use for audio decoding. If `movieLib` is `'ffpyplayer'`
+        then this must be `'sdl2'` for audio playback. If `None`, the
+        default audio library for the `movieLib` will be used (this will be
+        `'sdl2'` for `movieLib='ffpyplayer'`).
     units : str
         Units to use when sizing the video frame on the window, affects how
         `size` is interpreted.
@@ -999,6 +1129,13 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         the movie is done. Default is `False`.
     autoStart : bool
         Automatically begin playback of the video when `flip()` is called.
+
+    Notes
+    -----
+    * Precise audio and visual syncronization is not guaranteed when using 
+      the `ffpyplayer` library for video playback. If you require precise
+      synchronization, consider extracting the audio from the movie file and
+      playing it separately using the `sound.Sound` class instead.
 
     """
     def __init__(self,
@@ -1054,7 +1191,8 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         self._filename = pathToString(filename)
         self._volume = volume
         self._noAudio = noAudio  # cannot be changed
-        self.loop = loop
+        self._loop = loop
+        self._loopCount = 0  # number of times the movie has looped
         self._recentFrame = None
         self._autoStart = autoStart
         self._isLoaded = False
@@ -1081,7 +1219,12 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
                 'Using `sdl2` for audio playback via `ffpyplayer`. This is not '
                 'recommended for applications requiring precise audio-visual '
                 'synchronization.')
+        else:
+            raise MovieAudioError(
+                "Movie audio playback is only supported with the 'sdl2' library "
+                "at this time.")
 
+        # audio playback configuration
         self._audioConfig = {}
         self._audioTempFile = None  # audio extracted from the movie
         self._audioSamples = []  # audio samples from the movie 
@@ -1102,7 +1245,37 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             self.loadMovie(self._filename)
 
         self.autoLog = autoLog
-
+    
+    @property
+    def size(self):
+        return BaseVisualStim.size.fget(self)
+    
+    @size.setter
+    def size(self, value):
+        # store requested size
+        self._requestedSize = value
+        # if player isn't initialsied yet, do no more
+        if not self._hasPlayer:
+            return
+        # duplicate if necessary
+        if isinstance(value, (float, int)):
+            value = [value, value]
+        # make sure value is a list so we can assign indices
+        if isinstance(value, tuple):
+            value = [val for val in value]
+        # handle aspect ratio
+        if value[0] is None and value[1] is None:
+            # if both values are none, use original size
+            value = layout.Size(self.frameSize, units="pix", win=self.win)
+        elif value[0] is None:
+            # if width is None, use height and maintain aspect ratio
+            value[0] = (self.frameSize[0] / self.frameSize[1]) * value[1]
+        elif value[1] is None:
+            # if height is None, use width and maintain aspect ratio
+            value[1] = (self.frameSize[1] / self.frameSize[0]) * value[0]
+        # set as normal
+        BaseVisualStim.size.fset(self, value)
+            
     @property
     def filename(self):
         """File name for the loaded video (`str`)."""
@@ -1131,6 +1304,36 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         """Frame rate of the movie in Hertz (`float`).
         """
         return self._player.metadata.frameRate
+    
+    @property
+    def loop(self):
+        """Whether the movie will loop when it reaches the end (`bool`).
+        
+        If `True`, the movie will start over from the beginning when it reaches
+        the end. If `False`, the movie will stop at the end.
+        
+        """
+        return self._loop
+    
+    @loop.setter
+    def loop(self, value):
+        """Set whether the movie will loop when it reaches the end.
+        
+        Parameters
+        ----------
+        value : bool
+            If `True`, the movie will loop when it reaches the end. If `False`,
+            the movie will stop at the end.
+        
+        """
+        self._loop = bool(value)
+
+    @property
+    def loopCount(self):
+        """Number of times the movie has looped (`int`).
+
+        """
+        return self._player.loopCount if self._hasPlayer else 0
 
     @property
     def _hasPlayer(self):
@@ -1138,7 +1341,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         """
         # use this property to check if the player instance is started in
         # methods which require it
-        return self._player is not None
+        return hasattr(self, "_player") and self._player is not None
     
     # --------------------------------------------------------------------------
     # Movie file handlers
@@ -1165,8 +1368,8 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
             # check if the file has can be loaded
             if not os.path.isfile(filename):
-                raise FileNotFoundError("Cannot open movie file `{}`".format(
-                    filename))
+                raise MovieFileNotFoundError(
+                    "Cannot open movie file `{}`".format(filename))
         else:
             # If given a recording component, use its last clip
             if hasattr(filename, "lastClip"):
@@ -1206,7 +1409,15 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             self._extractAudioTrack()
             disableAudio = True
 
-        self._decoderOpts['an'] = disableAudio  
+
+        self._decoderOpts['an'] = disableAudio
+
+        # Setup looping if the user has requested it. This is done by setting the
+        # `loop` option in the decoder options so FFMPEG will loop the movie 
+        # automatically when it reaches the end. The loop count is reset to 0.
+
+        self._decoderOpts['loop'] = 0 if self._loop else 1
+        self._loopCount = 0  # reset loop count
 
         # Create the movie player interface, this is what decodes movie frames
         # in the background. We disable audio playback since we are using the
@@ -1233,7 +1444,17 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         self._freeTextureBuffers()  # free buffers (if any) before creating a new one
         self._setupTextureBuffers()
 
+        # update size in case frame size has changed
+        self.size = self._requestedSize
+
+        # reset movie state and timekeeping variables
+        self._playbackStatus = NOT_STARTED  # reset playback status
+        self._pts = 0.0  # reset presentation timestamp
+        self._movieTime = 0.0  # reset movie time
         self._isLoaded = True
+
+        # set the volume to previous 
+        self.volume = self._volume
 
     def _setupAudioStream(self):
         """Setup the audio stream for the movie.
@@ -1328,9 +1549,10 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             Log this event.
 
         """
-        self._player.close()
-        self._freeTextureBuffers()  # free buffer before creating a new one
-        self._isLoaded = False
+        if self._isLoaded:
+            self._player.close()
+            self._freeTextureBuffers()  # free buffer before creating a new one
+            self._isLoaded = False
 
     # --------------------------------------------------------------------------
     # Time and frame management
@@ -1354,11 +1576,25 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         #     return
 
         if self._playbackStatus == PLAYING:
-            # determine the current movie time
-            self._movieTime = min(
-                self._movieTime + (now - self._lastFrameAbsTime), self.duration)
-        elif self._playbackStatus == STOPPED:
-            self._movieTime = 0.0
+            # check if were at the end of the movie
+            if self._movieTime < self.duration:
+                # determine the current movie time
+                self._movieTime = min(
+                    self._movieTime + (now - self._lastFrameAbsTime), 
+                    self.duration)
+            else:
+                if self._loop:
+                    # if looping, reset the movie time to 0
+                    self._loopCount += 1  # increment loop count
+                    self._movieTime = 0.0
+                else:
+                    # if not looping, stop playback
+                    self._player.pause(True)
+                    self._movieTime = self.duration  # set to end of movie
+                    self._playbackStatus = FINISHED  # indicate movie is done
+                
+        elif self._playbackStatus == NOT_STARTED:
+            self._movieTime = 0.0  # reset movie time to 0
 
         # if paused, the movie time does not advance but we still need to
         # update the last frame time
@@ -1401,7 +1637,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             return False
         
         frameImage, pts, _ = frameData
-        
+
         # check if we are seeking
         # if self._playbackStatus == SEEKING:
         #     if self._wasPaused:
@@ -1410,6 +1646,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         #         self._playbackStatus = PLAYING
 
         if frameImage is not None:
+            # suggested by Alex Forrence (aforren1) originally in PR #6439 to use memoryview
             videoBuffer = frameImage.to_memoryview()[0].memview
             videoFrameArray = np.frombuffer(videoBuffer, dtype=np.uint8)
             self._recentFrame = videoFrameArray # most recent frame
@@ -1435,8 +1672,8 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             if self._textureId.value > 0:
                 GL.glDeleteTextures(1, self._textureId)
                 self._textureId = GL.GLuint()
-
-        except TypeError:  # can happen when unloading or shutting down
+            
+        except Exception:  # can happen when unloading or shutting down
             pass
 
     def _setupTextureBuffers(self):
@@ -1697,7 +1934,8 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
     @property
     def isFinished(self):
-        """`True` if the video is finished (`bool`).
+        """`True` if the video is finished (`bool`). Reports the same status as
+        `isStopped` if the video is stopped.
         """
         return self._playbackStatus == FINISHED
     
@@ -1718,17 +1956,26 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             Log the play event.
 
         """
-        # if self._playbackStatus == PLAYING:
-        #    return  # nop
+        if self._player is None:
+            return
+        
+        if self._playbackStatus == PLAYING:
+           return  # nop
         
         if not self._noAudio:
             if self._audioLib == 'sdl2':
                 self._player.mute(False)
+                self._player.setVolume(self._volume)
 
         self._player.pause(False)  # start the player
         self._playbackStatus = PLAYING
         self._wasPaused = False  # reset the paused flag
-        # self._lastFrameAbsTime = core.getTime()  # get the current time
+        self._lastFrameAbsTime = core.getTime()  # get the current time
+
+        if log:
+            logging.info(
+                "Movie playback {} started at {:.2f} seconds".format(
+                    self._filename, self._movieTime))
 
     def pause(self, log=True):
         """Pause the current point in the movie. The image of the last frame
@@ -1745,12 +1992,17 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
                 self._player.mute(True)
 
         self._player.pause()
+        self._wasPaused = True  # set the paused flag
         self._playbackStatus = PAUSED
+
+        if log:
+            logging.info("Movie {} paused at position {:.2f} seconds".format(
+                self._filename, self._movieTime))
 
     def toggle(self, log=True):
         """Switch between playing and pausing the movie. If the movie is playing,
         this function will pause it. If the movie is paused, this function will
-        play it.
+        begin playback from the current position.
 
         Parameters
         ----------
@@ -1768,6 +2020,10 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         will not advance and remain on-screen). Once stopped the movie can be
         restarted from the beginning by calling `play()`.
 
+        Note that this method will fully unload the movie and reset the
+        player instance. If you want to reset the movie without unloading it,
+        use `seek(0.0)` instead.
+
         Parameters
         ----------
         log : bool
@@ -1775,10 +2031,20 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
         """
         # stop should reset the video to the start and pause
-        if self._player is not None:
-            self._player.close()
+        if self._player is None:
+            return  # nothing to stop
 
-        self._playbackStatus = STOPPED
+        if log:
+            logging.debug("Stopping movie: {}".format(self._filename))
+
+        self._player.close()  # close the player
+
+        self.loadMovie(self._filename)  # reload the movie
+        
+        self._playbackStatus = NOT_STARTED
+
+        if log:
+            logging.info("Movie stopped: {}".format(self._filename))
 
     def seek(self, timestamp, log=True):
         """Seek to a particular timestamp in the movie.
@@ -1851,11 +2117,16 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
           you would like to restart the movie without reloading.
 
         """
-        # self._lastFrameAbsTime = -1.0
         self._movieTime = 0.0  # reset movie time
         self.seek(self._movieTime)
         self.play()
 
+    def reset(self):
+        """Reset the movie to its initial state.
+        """
+        # self.seek(0.0)  # reset movie time to 0
+        self._playbackStatus = NOT_STARTED  # reset playback status
+        
     # --------------------------------------------------------------------------
     # Audio stream control methods
     #
@@ -1950,7 +2221,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         if not self._player:
             return -1
 
-        return 0
+        return self._loopCount
 
     @property
     def fps(self):
@@ -1976,10 +2247,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         """Size of the video `(w, h)` in pixels (`tuple`). Returns `(0, 0)` if
         no video is loaded.
         """
-        if not self._player:
-            return 0, 0
-
-        return self._player.getSize()
+        return self.frameSize
 
     @property
     def origSize(self):
@@ -2040,8 +2308,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         player and frees any resources used by the object.
 
         """
-        self.close()
-        self._freeTextureBuffers()
+        self.unload()
     
 
 def _closeAllMovieReaders():

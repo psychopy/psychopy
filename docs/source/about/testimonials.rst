@@ -12,7 +12,7 @@ This page will hold the (roughly honest) opinions of `users <https://psychopy.or
 
 If you'd like to add your 
 own testimonial then go to this 
-`form <https://forms.clickup.com/4570406/f/4bf96-7592/HI0YGH48K1E0JKWSPR>`_ 
+`form <https://forms.clickup.com/4570406/f/4bf96-14232/5K7XRO9UUMR1246DWC>`_ 
 (Updating the testimonials will be done periodically so don't expect your comment to appear here instantly, 
 but we'll try and remember to do it every now and then. Please don't swear!!)
 

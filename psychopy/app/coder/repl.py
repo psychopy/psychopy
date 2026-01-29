@@ -349,7 +349,9 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
             "Starting Python interpreter session, please wait ...\n")
 
         # setup the sub-process
-        wx.BeginBusyCursor()
+        if wx.Platform != '__WXGTK__':
+            wx.BeginBusyCursor()
+
         self._process = wx.Process(self)
         self._process.Redirect()
 
@@ -373,7 +375,8 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
         self._lastTextPos = self.txtTerm.GetLastPosition()
         self.toolbar.update()
 
-        wx.EndBusyCursor()
+        if wx.Platform != '__WXGTK__':
+            wx.EndBusyCursor()
 
     def interrupt(self, evt=None):
         """Send a keyboard interrupt signal to the interpreter.

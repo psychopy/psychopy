@@ -107,7 +107,11 @@ class StdOutRich(wx.richtext.RichTextCtrl, _BaseErrorHandler, handlers.ThemeMixi
         }
 
     def onURL(self, evt=None):
-        wx.BeginBusyCursor()
+        """Open link in default browser."""
+
+        if wx.Platform != '__WXGTK__':
+            wx.BeginBusyCursor()
+
         try:
             if evt.String.startswith("http"):
                 webbrowser.open(evt.String)
@@ -121,7 +125,8 @@ class StdOutRich(wx.richtext.RichTextCtrl, _BaseErrorHandler, handlers.ThemeMixi
         except Exception as e:
             print("##### Could not open URL: {} #####\n".format(evt.String))
             print(e)
-        wx.EndBusyCursor()
+        if wx.Platform != '__WXGTK__':
+            wx.EndBusyCursor()
 
     def write(self, inStr, evt=None):
         self.MoveEnd()  # always 'append' text rather than 'writing' it
@@ -357,7 +362,8 @@ class ScriptOutputCtrl(StdOutRich, handlers.ThemeMixin):
 
     def onURL(self, evt):
         """Open link in default browser."""
-        wx.BeginBusyCursor()
+        if wx.Platform != '__WXGTK__':
+            wx.BeginBusyCursor()
         try:
             if evt.String.startswith("http"):
                 webbrowser.open(evt.String)
@@ -375,7 +381,8 @@ class ScriptOutputCtrl(StdOutRich, handlers.ThemeMixin):
         except Exception as e:
             print("##### Could not open URL: {} #####\n".format(evt.String))
             print(e)
-        wx.EndBusyCursor()
+        if wx.Platform != '__WXGTK__':
+            wx.EndBusyCursor()
 
     def clear(self, evt=None):
         self.Clear()

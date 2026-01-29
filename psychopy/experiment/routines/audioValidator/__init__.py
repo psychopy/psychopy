@@ -19,6 +19,7 @@ class AudioValidatorRoutine(BaseDeviceRoutine):
 
     categories = ['Validation']
     iconFile = Path(__file__).parent / 'audio_validator.png'
+    iconSVG = Path(__file__).parent / 'AudioValidatorRoutine.svg'
     tooltip = _translate(
         "Use a sound sensor to confirm that audio stimuli are presented when they should "
         "be."
@@ -37,9 +38,10 @@ class AudioValidatorRoutine(BaseDeviceRoutine):
             self,
             # basic
             exp, name='audioVal',
-            threshold=0.5,
             # device
-            deviceLabel="", deviceBackend="microphone", channel="0",
+            deviceLabel="", channel="0",
+            # legacy
+            threshold=0.5, deviceBackend="microphone",
     ):
 
         self.exp = exp  # so we can access the experiment if necess
@@ -51,17 +53,6 @@ class AudioValidatorRoutine(BaseDeviceRoutine):
 
         exp.requirePsychopyLibs(["validation"])
 
-        # --- Basic ---
-        self.order += [
-            "threshold",
-        ]
-        self.params['threshold'] = Param(
-            threshold, valType="code", inputType="single", categ="Basic",
-            label=_translate("Threshold"),
-            hint=_translate(
-                "Arbitrary volume threshold at which the sound sensor should register a positive, units go from 0 (least volume) to 1 (most volume)."
-            )
-        )
         del self.params['stopType']
         del self.params['stopVal']
 
@@ -81,23 +72,12 @@ class AudioValidatorRoutine(BaseDeviceRoutine):
 
     def writeMainCode(self, buff):
         inits = getInitVals(self.params)
-        # get diode
-        code = (
-            "# diode object for %(name)s\n"
-            "%(name)sDevice = deviceManager.getDevice(%(deviceLabel)s)\n"
-        )
-        buff.writeIndentedLines(code % inits)
-
-        if self.params['threshold']:
-            code = (
-                "%(name)sDevice.setThreshold(%(threshold)s, channel=%(channel)s)\n"
-            )
-            buff.writeIndentedLines(code % inits)
         # create validator object
         code = (
             "# validator object for %(name)s\n"
             "%(name)s = validation.AudioValidator(\n"
-            "    %(name)sDevice, %(channel)s,\n"
+            "    deviceManager.getDevice(%(deviceLabel)s), \n"
+            "    %(channel)s,\n"
             ")\n"
         )
         buff.writeIndentedLines(code % inits)
@@ -135,10 +115,20 @@ class AudioValidatorRoutine(BaseDeviceRoutine):
             clockStr = "clock=routineTimer"
         # sync component start/stop timers with validator clocks
         code = (
+            f"%(name)s.status = NOT_STARTED\n"
             f"# synchronise device clock for %(name)s with Routine timer\n"
             f"%(name)s.resetTimer({clockStr})\n"
         )
         buff.writeIndentedLines(code % self.params)
+        # add blank entries for validation results
+        if stim.params['saveStartStop']:
+            code += (
+            "thisExp.addData('{name}.%(name)s.started', None)\n"
+            "thisExp.addData('%(name)s.startDelay', None)\n"
+            "thisExp.addData('{name}.%(name)s.stopped', None)\n"
+            "thisExp.addData('{name}.%(name)s.stopDelay', None)\n"
+            )
+        buff.writeIndentedLines(code.format(**stim.params) % self.params)
 
         # return change in indent level
         return buff.indentLevel - startIndent
@@ -178,6 +168,9 @@ class AudioValidatorRoutine(BaseDeviceRoutine):
             )
         buff.writeIndentedLines(code.format(**stim.params) % self.params)
 
+        # if stimulus ends with the Routine, raise an alert
+        if stim.endsWithRoutine():
+            alert(4160, strFields={'name': stim.name})
         # validate stop time
         code = (
             "# validate {name} stop time\n"
@@ -196,6 +189,15 @@ class AudioValidatorRoutine(BaseDeviceRoutine):
 
         # return change in indent level
         return buff.indentLevel - startIndent
+
+    def writeRoutineEndValidationCode(self, buff, stim):
+        # end validator after Routine is finished
+        code = (
+            "%(name)s.status = FINISHED\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+        return 0
 
     def findConnectedStimuli(self):
         # list of linked components

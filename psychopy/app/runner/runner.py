@@ -30,6 +30,7 @@ from psychopy.localization import _translate
 from psychopy.projects.pavlovia import getProject
 from psychopy.scripts.psyexpCompile import generateScript
 from psychopy.app.runner.scriptProcess import ScriptProcess
+from psychopy.tools import servertools
 import psychopy.tools.versionchooser as versions
 
 
@@ -552,7 +553,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
 
     def __del__(self):
         if self.serverProcess is not None:
-            self.killServer()
+            self.serverProcess.kill()
 
     def _applyAppTheme(self):
         # Srt own background
@@ -690,50 +691,21 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
                 exp=self.loadExperiment(),
                 target="PsychoJS"
             )
+        # get PsychoJS
+        servertools.getPsychoJS()
         # start server
-        self.startServer(htmlPath, port=port)
+        self.serverProcess = servertools.Server(
+            cwd=htmlPath,
+            port=port
+        )
         # open experiment
-        webbrowser.open("http://localhost:{}?__pilotToken=local".format(port))
+        self.serverProcess.openInBrowser(
+            params={'__pilotToken': "local"}
+        )
         # log experiment open
         print(
             f"##### Running PsychoJS task from {htmlPath} on port {port} #####\n"
         )
-
-    def startServer(self, htmlPath, port=12002):
-        # we only want one server process open
-        if self.serverProcess is not None:
-            self.killServer()
-        # get PsychoJS libs
-        self.getPsychoJS()
-        # construct command
-        command = [sys.executable, "-m", "http.server", str(port)]
-        # open server
-        self.serverPort = port
-        self.serverProcess = Popen(
-            command,
-            bufsize=1,
-            cwd=htmlPath,
-            stdout=PIPE,
-            stderr=PIPE,
-            shell=False,
-            universal_newlines=True,
-        )
-        time.sleep(.1)
-        # log server start
-        logging.info(f"Local server started on port {port} in directory {htmlPath}")
-
-    def killServer(self):
-        # we can only close if there is a process
-        if self.serverProcess is None:
-            return
-        # kill subprocess
-        self.serverProcess.terminate()
-        time.sleep(.1)
-        # log server stopped
-        logging.info(f"Local server on port {self.serverPort} stopped")
-        # reset references to server stuff
-        self.serverProcess = None
-        self.serverPort = None
 
     def onURL(self, evt):
         self.parent.onURL(evt)
@@ -924,7 +896,8 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
 
     def onItemDeselected(self, evt):
         """Set currentSelection, currentFile, currentExperiment and currentProject to None."""
-        self.expCtrl.SetItemState(self.currentSelection, 0, wx.LIST_STATE_SELECTED)
+        if self.currentSelection < self.expCtrl.ItemCount:
+            self.expCtrl.SetItemState(self.currentSelection, 0, wx.LIST_STATE_SELECTED)
         self.currentSelection = None
         self.currentFile = None
         self.currentExperiment = None
@@ -1011,8 +984,15 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         PsychoPy Experiment object
         """
         fileName = str(self.currentFile)
+        # if file doesn't exist, alert user and ask if they want to remove it from Runner
         if not os.path.exists(fileName):
-            raise FileNotFoundError("File not found: {}".format(fileName))
+            dlg = wx.MessageDialog(
+                None,
+                _translate("File {} does not exist in this location. Remove item from Runner?").format(fileName),
+                style=wx.YES | wx.NO
+            )
+            if dlg.ShowModal() == wx.ID_YES:
+                wx.CallAfter(self.removeTask, evt=None)
 
         # If not a Builder file, return
         if not fileName.endswith('.psyexp'):

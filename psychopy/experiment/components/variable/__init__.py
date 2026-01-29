@@ -18,6 +18,7 @@ class VariableComponent(BaseComponent):
     categories = ['Custom']
     targets = ['PsychoPy']
     iconFile = Path(__file__).parent / 'variable.png'
+    iconSVG = Path(__file__).parent / 'VariableComponent.svg'
     tooltip = _translate('Variable: create a new variable')
 
     def __init__(self, exp, parentName,

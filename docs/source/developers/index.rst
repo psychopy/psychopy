@@ -36,19 +36,19 @@ to |PsychoPy|.
 .. grid:: 1 2 3 4
 
    .. grid-item-card:: Fork the |PsychoPy| respository
-      :img-top: ./git-logo.svg
+      :img-top: ./git-logo.*
       :link: ./setupfork
 
       Create your own linked copy of the |PsychoPy| code to edit
 
    .. grid-item-card::  Setup a dev install
-      :img-top: ./python-logo.svg
+      :img-top: ./python-logo.*
       :link: ./environment/index
 
       Setup your preferred coding environment to run |PsychoPy| from code
    
    .. grid-item-card:: Open a pull request
-      :img-top: ./github-logo.svg
+      :img-top: ./github-logo.*
       :link: ./pullrequest
 
       Request for the changes on your fork to be pulled into the main |PsychoPy| code

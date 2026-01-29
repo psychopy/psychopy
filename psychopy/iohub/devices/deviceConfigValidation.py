@@ -490,7 +490,8 @@ def validateDeviceConfiguration(
     """Validate the device configuration settings provided.
     """
     validation_module = importDeviceModule(relative_module_path)
-    validation_file_path = getSupportedConfigSettings(validation_module)
+    validation_file_path = getSupportedConfigSettings(
+        validation_module, deviceClassName=device_class_name)
 
     # use a default config if we can't get the YAML file
     if not os.path.exists(validation_file_path):

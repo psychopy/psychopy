@@ -12,7 +12,7 @@ import re
 try:
     from metapensiero.pj.api import translates
 except ImportError:
-    pass  # metapensiero not installed
+    translates = None # metapensiero not installed
 
 import astunparse
 

@@ -200,7 +200,7 @@ class ExperimentHandler(_ComparisonMixin):
     def _getExtraInfo(self):
         """Get the names and vals from the extraInfo dict (if it exists)
         """
-        if type(self.extraInfo) != dict:
+        if not isinstance(self.extraInfo, dict):
             names = []
             vals = []
         else:
@@ -697,7 +697,7 @@ class ExperimentHandler(_ComparisonMixin):
         for thisLoop in self.loopsUnfinished:
             self.updateEntryFromLoop(thisLoop)
         # add the extraInfo dict to the data
-        if type(self.extraInfo) == dict:
+        if isinstance(self.extraInfo, dict):
             this.update(self.extraInfo)
         self.entries.append(this)
         # add new entry with its
@@ -988,9 +988,22 @@ class ExperimentHandler(_ComparisonMixin):
         origEntries = self.entries
         self.entries = self.getAllEntries()
 
+        # temporarily remove connected save methods so they don't get pickled
+        origConnectedSaveMethods = self.connectedSaveMethods
+        self.connectedSaveMethods = [
+            {
+                'fcn': f"<{callback['fcn'].__module__}:{callback['fcn'].__name__}>",
+                'args': callback['args'],
+                'kwargs': callback['kwargs']
+            } for callback in origConnectedSaveMethods
+        ]
+
         with openOutputFile(fileName=fileName, append=False,
                            fileCollisionMethod=fileCollisionMethod) as f:
             pickle.dump(self, f)
+        
+        # reinstate connected save methods
+        self.connectedSaveMethods = origConnectedSaveMethods
 
         if (fileName is not None) and (fileName != 'stdout'):
             logging.info('saved data to %s' % f.name)

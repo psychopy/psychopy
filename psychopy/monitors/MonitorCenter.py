@@ -766,8 +766,6 @@ class MainFrame(wx.Frame):
     def onCalibGammaBtn(self, event):
         from psychopy.hardware import monitor, DeviceManager
         from psychopy.visual import Window
-        from psychopy.preferences import prefs
-        import ast
 
         # get calibration setup params
         dlg = CalibrationSetupDlg(self)
@@ -776,36 +774,46 @@ class MainFrame(wx.Frame):
         else:
             # abort if cancelled
             return
-        # setup window
-        win = Window(screen=int(params['screen']))
-        # setup photometer from choice
-        photEmt = prefs.devices[params['photometer']]
-        DeviceManager.addDevice(
-            deviceName=params['photometer'],
-            deviceClass=photEmt.deviceClass,
-            win=win,
-            pos=ast.literal_eval(photEmt.params['pos'].val),
-            size=ast.literal_eval(photEmt.params['size'].val),
-            units=photEmt.params['units'].val
+        
+        # setup calibration procedure window
+        win = Window(
+            screen=int(params['screen']), 
+            checkTiming=False,
+            fullscr=True
         )
-        # present dialog to choose
+        # setup calibration procedure device
+        device = None
+        for profile in DeviceManager.getAvailableDevices(params['photometer']):
+            # instantiate from profile
+            device = DeviceManager.addDevice(**profile)
+            break
+        # catch error if no device found
+        if device is None:
+            win.close()
+            wx.MessageBox(
+                "Could not find any device matching '{photometer}', aborting calibration.".format(**params), 
+                parent=self,
+                style=wx.ICON_ERROR | wx.OK
+            )
+            return
+        
+        # run calibration
         try:
             gammaGrid = monitor.calibrateGamma(
                 win,
-                params['photometer'],
-                patchSize=float(params['patchSize']), 
-                nPoints=int(params['nPoints'])
+                profile['deviceName'],
+                patchSize=float(params['patchSize']),
+                nPoints=float(params['nPoints'])
             )
         except Exception as err:
-            # cleanly handle "device not found" error
-            dlg = wx.MessageDialog(
-                self, message=str(err), flag=wx.ICON_ERROR
-            )
-        finally:
             win.close()
+            raise err
         # if gamma was got, set values
         if gammaGrid is not None:
             self.gammaGrid.setData(numpy.array(gammaGrid))
+        # teardown
+        win.close()
+        DeviceManager.removeDevice(profile['deviceName'])
 
     def doGammaFits(self, levels, lums):
         linMethod = self.currentMon.getLinearizeMethod()
@@ -1111,13 +1119,12 @@ class CalibrationSetupDlg(wx.Dialog):
             from psychopy.preferences import prefs
             # start with nothing
             devices = [(None, "")]
-            # iterate through saved devices
-            for name, device in prefs.devices.items():
-                # if device is the correct type, include it
-                if isinstance(device, BasePhotometerDeviceBackend):
-                    devices.append(
-                        (name, name)
-                    )                           
+            # iterate through known photometer device backends
+            for cls in BasePhotometerDeviceBackend.__subclasses__():
+                # add their device class against their label
+                devices.append(
+                    (cls.deviceClass, cls.backendLabel)
+                )
             
             return devices
         def getPhotometerValues():
@@ -1125,7 +1132,7 @@ class CalibrationSetupDlg(wx.Dialog):
         def getPhotometerLabels():
             return [val[1] for val in getPhotometers()]
         self.params['photometer'] = Param(
-            getPhotometerValues()[0], valType="device", inputType="device", 
+            getPhotometerValues()[0], valType="str", inputType="choice", 
             allowedVals=getPhotometerValues, allowedLabels=getPhotometerLabels,
             label=_translate("Photometer"),
             hint=_translate(

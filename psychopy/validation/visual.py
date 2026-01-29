@@ -15,7 +15,11 @@ class VisualValidator:
         # store window handle
         self.win = win
         # store sensor handle
-        self.sensor = sensor
+        from psychopy.hardware import DeviceManager, lightsensor
+        self.sensor = DeviceManager.resolveDevice(
+            sensor, 
+            deviceClass=lightsensor.BaseLightSensorGroup
+        )
         self.channel = channel
         # initial values (written during experiment)
         self.tStart = self.tStartRefresh = self.tStartDelay = None

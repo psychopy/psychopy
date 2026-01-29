@@ -384,6 +384,8 @@ def getInitVals(params, target="PsychoPy"):
         elif name == 'allowedKeys':
             inits[name].val = "[]"
             inits[name].valType = 'code'
+        elif name == "deviceLabel":
+            inits[name].valType = "device"
         else:
             # if not explicitly handled, default to None
             inits[name].val = "None"

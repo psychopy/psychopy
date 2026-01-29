@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g id="light-components-PolygonComponent" serif:id="light/components/PolygonComponent" transform="matrix(0.451519,0,0,0.451519,0,0)">
+        <rect x="0" y="0" width="70.872" height="70.866" style="fill:none;"/>
+        <g id="Polygon-Component" serif:id="Polygon Component" transform="matrix(0.877427,0,0,0.877427,6.62776,4.7213)">
+            <g transform="matrix(1,0,0,1,30.825,29.2602)">
+                <path d="M0,38.347L39.603,19.165L8.312,0L0,38.347Z" style="fill:rgb(2,169,234);fill-rule:nonzero;"/>
+            </g>
+            <g transform="matrix(1,0,0,1,64.448,28.8455)">
+                <path d="M0,-14.151L0,0L-12.291,0L-12.291,12.291L-26.442,12.291L-26.442,0L-38.732,0L-38.732,-14.151L-26.442,-14.151L-26.442,-26.442L-12.291,-26.442L-12.291,-14.151L0,-14.151Z" style="fill:var(--outline);fill-rule:nonzero;"/>
+            </g>
+            <g transform="matrix(0.866025,-0.500001,-0.500001,-0.866025,34.7834,52.9271)">
+                <path d="M-9.037,-2.421C-18.852,-2.421 -26.808,5.67 -26.808,15.652C-26.808,25.635 -18.852,33.727 -9.037,33.726C0.778,33.726 8.734,25.635 8.734,15.653C8.734,5.67 0.778,-2.422 -9.037,-2.421" style="fill:rgb(242,84,91);fill-rule:nonzero;"/>
+            </g>
+        </g>
+    </g>
+</svg>

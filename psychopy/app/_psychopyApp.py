@@ -417,6 +417,10 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         #
         self._doSingleInstanceCheck()
 
+        # get the system theme
+        self._systemAppearance = wx.SystemSettings.GetAppearance()
+        self._isDarkMode = self._systemAppearance.IsDark() and not sys.platform == "win32"
+
         if showSplash:
             # show splash screen
             if self.beta:
@@ -611,7 +615,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                 ).format(thisFile, err))
 
         # if we started a busy cursor which never finished, finish it now
-        if wx.IsBusy():
+        if wx.IsBusy() and wx.Platform != '__WXGTK__':
             wx.EndBusyCursor()
 
         # send anonymous info to https://usage.psychopy.org
@@ -719,6 +723,11 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         """`True` if the app has been fully loaded (`bool`)."""
         return self._appLoaded
 
+    @property
+    def isDarkMode(self):
+        """`True` if the system is in dark mode (`bool`)."""
+        return self._isDarkMode
+
     def _wizard(self, selector, arg=''):
         from psychopy import core
         wizard = os.path.join(
@@ -747,21 +756,17 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
 
     def csvFromPsydat(self, evt=None):
         from psychopy import gui
-        from psychopy.tools.filetools import fromFile
+        from psychopy.tools.filetools import psydat2csv
 
         prompt = _translate("Select .psydat file(s) to extract")
         names = gui.fileOpenDlg(allowed='*.psydat', prompt=prompt)
         for name in names or []:
+            # log name
             filePsydat = os.path.abspath(name)
             print("psydat: {0}".format(filePsydat))
-
-            exp = fromFile(filePsydat)
-            if filePsydat.endswith('.psydat'):
-                fileCsv = filePsydat[:-7]
-            else:
-                fileCsv = filePsydat
-            fileCsv += '.csv'
-            exp.saveAsWideText(fileCsv)
+            # convert
+            fileCsv = psydat2csv(filePsydat)
+            # log conversion
             print('   -->: {0}'.format(os.path.abspath(fileCsv)))
 
     def checkUpdates(self, evt):
@@ -831,12 +836,14 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                 version=self.version,
                 beta="beta" if self.beta else ""
             )
-            wx.BeginBusyCursor()
+            if wx.Platform != '__WXGTK__':
+                wx.BeginBusyCursor()
             self.coder = coder.CoderFrame(None, -1,
                                           title=title,
                                           files=fileList, app=self)
             self.updateWindowMenu()
-            wx.EndBusyCursor()
+            if wx.Platform != '__WXGTK__':
+                wx.EndBusyCursor()
         else:
             # set output window and standard streams
             self.coder.setOutputWindow(True)
@@ -853,7 +860,8 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
 
     def newBuilderFrame(self, event=None, fileName=None):
         # have to reimport because it is only local to __init__ so far
-        wx.BeginBusyCursor()
+        if wx.Platform != '__WXGTK__':
+            wx.BeginBusyCursor()
         from .builder.builder import BuilderFrame
         title = "PsychoPy Builder (v{version}{beta})".format(
             version=self.version,
@@ -866,7 +874,8 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         self.builder.Raise()
         self.SetTopWindow(self.builder)
         self.updateWindowMenu()
-        wx.EndBusyCursor()
+        if wx.Platform != '__WXGTK__':
+            wx.EndBusyCursor()
 
         return self.builder
 
@@ -925,13 +934,15 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             version=self.version,
             beta="beta" if self.beta else ""
         )
-        wx.BeginBusyCursor()
+        if wx.Platform != '__WXGTK__':
+            wx.BeginBusyCursor()
         self.runner = RunnerFrame(parent=None,
                                   id=-1,
                                   title=title,
                                   app=self)
         self.updateWindowMenu()
-        wx.EndBusyCursor()
+        if wx.Platform != '__WXGTK__':
+            wx.EndBusyCursor()
         return self.runner
 
     def OnDrop(self, x, y, files):
@@ -1251,6 +1262,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         # Make sure we just have a name
         if isinstance(value, themes.Theme):
             value = value.code
+
         # Store new theme
         prefs.app['theme'] = value
         prefs.saveUserPrefs()

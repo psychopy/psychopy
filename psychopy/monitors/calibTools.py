@@ -522,6 +522,16 @@ class Monitor:
         """
         self.save()
 
+    def getJSON(self):
+        return {
+            'name': self.name,
+            'calibrations': self.calibs
+        }
+    
+    def fromJSON(self, node):
+        self.name = node['name']
+        self.calibs = node['calibrations']
+
     def _saveJSON(self):
         thisFileName = os.path.join(monitorFolder, self.name + ".json")
         # convert time structs to timestamps (floats)

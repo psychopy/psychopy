@@ -53,7 +53,7 @@ from psychopy import logging
 
 CAMERA_API_AVFOUNDATION = u'AVFoundation'  # mac
 CAMERA_API_DIRECTSHOW = u'DirectShow'      # windows
-# CAMERA_API_VIDEO4LINUX = u'Video4Linux'  # linux
+CAMERA_API_VIDEO4LINUX = u'Video4Linux'  # linux
 # CAMERA_API_OPENCV = u'OpenCV'            # opencv, cross-platform API
 CAMERA_API_UNKNOWN = u'Unknown'            # unknown API
 CAMERA_API_NULL = u'Null'                  # empty field
@@ -470,6 +470,117 @@ def _getCameraInfoWindows():
     return videoDevices
 
 
+def _getCameraInfoLinux():
+    """Get camera information on Linux systems.
+
+    This is used by `getCameraInfo()` for querying camera details on Linux. Don't
+    call this function directly unless testing. Requires `v4l2-ctl` to be installed
+    on the host system. If the command is not found, an empty list is returned.
+
+    Returns
+    -------
+    list of CameraInfo
+        List of camera descriptors.
+    
+    """
+    # get video devices
+    videoDevices = []
+
+    # find devices in /dev
+    devFiles = glob.glob('/dev/video*')
+
+    if not devFiles:
+        return videoDevices
+    
+    # sort the device files
+    devFiles.sort()
+
+    # call ffmpeg to get camera details
+    for vf in devFiles:
+        try:
+            proc = sp.Popen(
+                # v4l2-ctl --list-formats-ext -d /dev/video0
+                ['v4l2-ctl', '--list-formats-ext', '-d', vf],
+                stderr=sp.PIPE,
+                stdout=sp.PIPE
+            )
+            stdout, stderr = proc.communicate()
+            output = stdout.decode('utf-8')
+        except Exception as err:
+            logging.warning(f"Could not query cameras via v4l2-ctl: {err}")
+            return videoDevices
+
+        if not output:
+            continue
+
+        # parse the output
+        lines = output.split('\n')
+        lines = [line.strip() for line in lines]
+
+        cameraModes = {}
+        pixelFormat = None
+        devIndex = 0
+        for line in lines:
+            if line.startswith('[') and line[1:2].isdigit():
+                modeIdx = int(line[1:line.index(']')])
+                # get the pixel format
+                pixelFormat = line.split(' ')[1].strip("'").strip()
+                cameraModes[modeIdx] = []
+                continue
+
+            if pixelFormat is None:  # no pixel format, skip
+                continue
+            
+            # inside a valid mode description
+            if line.startswith('Size:'):
+                sizeStr = line.split(' ')[-1].strip()
+                if 'x' in sizeStr:
+                    width, height = sizeStr.split('x')
+                    width = int(width.strip())
+                    height = int(height.strip())
+                else:
+                    width = height = 0
+                continue
+
+            if line.startswith('Interval:'):
+                fpsStr = line.split('(')[-1].rstrip(')').strip()
+                fpsVal = float(fpsStr.split(' ')[0].strip())
+                cameraModes[modeIdx].append(
+                    (devIndex, pixelFormat, (width, height), fpsVal))
+                devIndex += 1
+
+        if not cameraModes:  # reject anything without modes
+            continue
+
+        # reformat into the output structure
+        supportedFormats = []
+        for modeIdx, modes in cameraModes.items():
+            for mode in modes:
+                devIndex, pixelFormat, frameSize, frameRate = mode
+
+                pixelFormat = pixelFormat.lower()
+                if pixelFormat == 'mjpg':
+                    codecFormat = 'mjpg'
+                    pixelFormat = None
+                else:
+                    codecFormat = None
+
+                thisCamInfo = {
+                    'device_name': vf,
+                    'index': devIndex,
+                    'pixelFormat': pixelFormat,
+                    'codecFormat': codecFormat,
+                    'frameSize': frameSize,
+                    'frameRate': frameRate,
+                    'cameraAPI': CAMERA_API_VIDEO4LINUX
+                }
+                supportedFormats.append(thisCamInfo)
+
+        videoDevices.append(supportedFormats)
+
+    return videoDevices
+
+
 # array of registered PIDs which PsychoPy considers to be safe
 _pids = [
     os.getpid(),
@@ -553,7 +664,8 @@ def isRegisteredApp():
 # platforms.
 _cameraGetterFuncTbl = {
     'Darwin': _getCameraInfoMacOS,
-    'Windows': _getCameraInfoWindows
+    'Windows': _getCameraInfoWindows,
+    'Linux': _getCameraInfoLinux
 }
 
 

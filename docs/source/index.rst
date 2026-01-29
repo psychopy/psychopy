@@ -7,29 +7,19 @@
     :class-container: news-reel
 
     .. grid-item-card:: :octicon:`info` News
+        :link: https://workshops.psychopy.org/
+
+        New workshop! "The EEG Research Pipeline" Join us in Nottingham in December for our bootcamp!
+
+    .. grid-item-card:: :octicon:`info` News
         :link: https://opensciencetools.org/
 
         Did you know PsychoPy is supported by our company, Open Science Tools? find out more here.
 
     .. grid-item-card:: :octicon:`info` News
-        :link: https://www.psychologicalscience.org/conventions/2025-aps-annual-convention
-
-        Come say hi in Washington! We will have a booth at APS - May 22nd - 25th 2025
-
-    .. grid-item-card:: :octicon:`info` News
-        :link: https://arcasummerschool.dpss.psy.unipd.it/arcasummerschool/
-
-        PsychoPy is part of a Summer School in Padova! - June 30th - July 4th 2025
-
-    .. grid-item-card:: :octicon:`info` News
-        :link: https://www.escop2025.com/satellite-events
-
-        Two day PsychoPy satelite event at ESCOP, Sheffield - September 1st and 2nd 2025
-
-    .. grid-item-card:: :octicon:`info` News
         :link: https://uk.sagepub.com/en-gb/eur/building-experiments-in-psychopy/book273700
 
-        NEW EDITION of the official book, with new chapter on running online: Building Experiments in PsychoPy Ed2
+        Get the official textbook, with new chapter on running online: Building Experiments in PsychoPy Ed2
 
     .. grid-item-card:: :octicon:`info` News
         :link: https://peerj.com/articles/9414/
@@ -94,7 +84,7 @@ How is PsychoPy Free?
     
     .. grid-item::
 
-        .. image:: _static/ost_logotext_tight.svg
+        .. image:: _static/ost_logotext_tight.*
             :width: 420
             :alt: Open Science Tools logo
             :align: right

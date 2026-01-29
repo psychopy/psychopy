@@ -21,6 +21,12 @@ from os import path
 import weakref
 
 
+__all__ = [
+    "SoundPySoundCard",
+    "Sound"
+]
+
+
 def init(rate=44100, stereo=True, buffer=128):
     pass
     # for compatibility with other backends but not needed
@@ -313,3 +319,6 @@ class SoundPySoundCard(_SoundBase):
     def __del__(self):
         if hasattr(self, "_stream"):
             self._stream.close()
+
+
+Sound = SoundPySoundCard

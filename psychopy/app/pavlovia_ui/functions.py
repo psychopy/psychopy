@@ -94,7 +94,7 @@ def logInPavlovia(parent, event=None):
     dlg.ShowModal()  # with loginOnly=True this will EndModal once logged in
     if dlg.tokenInfo:
         token = dlg.tokenInfo['token']
-        pavlovia.login(token, rememberMe=True)  # log in to the current pavlovia session
+        pavlovia.login(token, refreshToken=dlg.tokenInfo.get('refreshToken', None), rememberMe=True)  # log in to the current pavlovia session
         return pavlovia.getCurrentSession().user
 
 

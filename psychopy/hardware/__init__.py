@@ -110,9 +110,9 @@ def getPhotometerByName(name):
         we were unable to find it.
 
     """
-    for photom in getAllPhotometers():
+    for thisName, photom in getAllPhotometers().items():
         # longName is used from the GUI and driverFor is for coders
-        if name.lower() in photom.driverFor or name == photom.longName:
+        if name.lower() == thisName:
             return photom
 
 
@@ -154,61 +154,24 @@ def findPhotometer(ports=None, device=None):
             print(photom.getSpectrum())
 
     """
-    if isinstance(device, str):
-        photometers = [getPhotometerByName(device)]
-    elif isinstance(device, Iterable):
-        # if we find a string assume it is a name, otherwise treat it like a
-        # photometer
-        photometers = [getPhotometerByName(d)
-                       if isinstance(d, str) else d
-                       for d in device]
-    else:
-        photometers = getAllPhotometers()
-
-    # determine candidate ports
-    if ports is None:
-        ports = getSerialPorts()
-    elif type(ports) in (int, float, str):
-        ports = [ports]  # so that we can iterate
-
-    # go through each port in turn
-    photom = None
-    logging.info('scanning serial ports...')
-    logging.flush()
-    for thisPort in ports:
-        logging.info('...{}'.format(thisPort))
-        logging.flush()
-        for Photometer in photometers:
-            # Looks like we got an invalid photometer, carry on
-            if Photometer is None:
-                continue
-            try:
-                photom = Photometer(port=thisPort)
-            except Exception as ex:
-                msg = "Couldn't initialize photometer {0}: {1}"
-                logging.error(msg.format(Photometer.__name__, ex))
-                # We threw an exception so we should just skip ahead
-                continue
-            if photom.OK:
-                logging.info(' ...found a %s\n' % (photom.type))
-                logging.flush()
-                # we're now sure that this is the correct device and that
-                # it's configured now increase the number of attempts made
-                # to communicate for temperamental devices!
-                if hasattr(photom, 'setMaxAttempts'):
-                    photom.setMaxAttempts(10)
-                # we found one so stop looking
-                return photom
-            else:
-                if photom.com and photom.com.isOpen:
-                    logging.info('closing port')
-                    photom.com.close()
-
-        # If we got here we didn't find one
-        logging.info('...nope!\n\t')
-        logging.flush()
-
-    return None
+    from .photometer import getAllPhotometerClasses
+    # try each port
+    if isinstance(ports, str) or ports is None:
+        ports = [ports]
+    for port in ports:
+        # get all available devices
+        for cls, profiles in DeviceManager.getAvailableDevices(
+            list(getAllPhotometerClasses().values())
+        ).items():
+            # iterate through each
+            for profile in profiles:
+                # if port matches, or device matches and no port given, initialise from this profile
+                if (
+                    port is None and device == cls.__name__
+                ) or (
+                    port and "port" in profile and profile['port'] in port
+                ):
+                    return DeviceManager.addDevice(**profile)
 
 
 if __name__ == "__main__":

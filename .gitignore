@@ -15,6 +15,7 @@ VERSION
 .project
 .pydevproject
 .pdm-python
+.python-version
 /.ropeproject/config.py
 /.ropeproject/history
 /.ropeproject/objectdb

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+from pathlib import Path
 import pytest
 import numpy as np
 
@@ -57,7 +58,10 @@ class Test_utilsClass:
         with pytest.raises(exceptions.ConditionsImportError) as errMsg:
             utils.importConditions(fileName_docx)
         assert ('Your conditions file should be an ''xlsx, csv, dlm, tsv or pkl file') == str(errMsg.value)
-
+        # test that duplicate headers are caught
+        with pytest.raises(exceptions.ConditionsImportError) as err:
+            utils.importConditions(str(Path(fixturesPath) / "duplicateHeaders.csv"))
+        assert "'dupe'" in str(err.value)
         # test random selection of conditions
         all_conditions = utils.importConditions(standard_files[0])
         assert len(all_conditions) == 6

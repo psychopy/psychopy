@@ -151,14 +151,18 @@ class DeviceManager:
         """
         if deviceClass in (None, "*"):
             # resolve "any" flags to BaseDevice
-            deviceClass = "psychopy.hardware.base.BaseDevice"
+            deviceClass = "psychopy.hardware.base:BaseDevice"
         # if it's already a type, return as is
         if isinstance(deviceClass, type):
             return deviceClass
-        # get package and class names from deviceClass string
-        parts = deviceClass.split(".")
-        pkgName = ".".join(parts[:-1])
-        clsName = parts[-1]
+        # if in entry point syntax, split at :
+        if (":" in deviceClass):
+            pkgName, clsName = deviceClass.split(":", maxsplit=1)
+        else:
+            # otherwise split at last .
+            parts = deviceClass.split(".")
+            pkgName = ".".join(parts[:-1])
+            clsName = parts[-1]
         # import package
         try:
             pkg = importlib.import_module(pkgName)
@@ -167,7 +171,9 @@ class DeviceManager:
                 f"Could not find module: {pkgName}"
             )
         # get class
-        cls = getattr(pkg, clsName)
+        cls = pkg
+        for part in clsName.split("."):
+            cls = getattr(cls, part)
 
         return cls
 
@@ -437,6 +443,52 @@ class DeviceManager:
         del DeviceManager.devices[deviceName]
 
         return True
+    
+    @staticmethod
+    def resolveDevice(device, deviceClass):
+        """
+        Resolve a value to a device, handling strings and using None to find/create a default 
+        device.
+
+        Parameters
+        ----------
+        device : any
+            Value to resolve
+        deviceClass : type or str
+            Class which the returned device should be an instance of (this can be a base class)
+        """
+        # resolve class
+        deviceClass = DeviceManager._resolveAlias(deviceClass)
+        # resolve device
+        if isinstance(device, deviceClass):
+            # if given a device directly, return it as is
+            return device
+        elif isinstance(device, str) and DeviceManager.hasDevice(device):
+            # if given the name of a managed device, get it
+            return DeviceManager.getDevice(device)
+        elif device is None:
+            # first try looking for extant devices
+            for cls in deviceClass.__subclasses__():
+                # add the first initialised device, if any
+                for thisDevice in DeviceManager.getInitialisedDevices(cls).values():
+                    return thisDevice
+            # if that fails, make one
+            for cls in deviceClass.__subclasses__():
+                # create a device from the first available profile
+                for profile in cls.getAvailableDevices():
+                    return cls(**{
+                        key: val for key, val in profile.items() if key not in ("deviceName", "deviceClass")
+                    })
+            # error if there are no available devices
+            raise DeviceNotConnectedError(
+                f"Could not find or create a default device for {deviceClass.__name__} as no "
+                f"devices are connected."
+            )
+        else:
+            raise ValueError(
+                f"Could not get device from '{device}', value is neither a {deviceClass.__name__} "
+                f"object or the name of one in DeviceManager."
+            )
 
     @staticmethod
     def getDevice(deviceName):

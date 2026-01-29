@@ -17,6 +17,7 @@ class MouseComponent(BaseComponent):
     categories = ['Responses']
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'mouse.png'
+    iconSVG = Path(__file__).parent / 'MouseComponent.svg'
     tooltip = _translate('Mouse: query mouse position and buttons')
 
     def __init__(self, exp, parentName, name='mouse',
@@ -101,7 +102,7 @@ class MouseComponent(BaseComponent):
                          )
         self.params['saveParamsClickable'] = Param(
             'name,', valType='list', inputType="single", categ='Data',
-            updates='constant', allowedUpdates=[], direct=False,
+            updates='set every repeat', direct=False,
             hint=msg,
             label=_translate("Store params for clicked"))
 
@@ -420,8 +421,8 @@ class MouseComponent(BaseComponent):
 
         elif self.params['saveMouseState'].val != 'never':
             mouseCode = ("x, y = {name}.getPos()\n"
-                    "{name}.x.append(x)\n"
-                    "{name}.y.append(y)\n"
+                    "{name}.x.append(float(x))\n"
+                    "{name}.y.append(float(y))\n"
                     "buttons = {name}.getPressed()\n"
                     "{name}.leftButton.append(buttons[0])\n"
                     "{name}.midButton.append(buttons[1])\n"

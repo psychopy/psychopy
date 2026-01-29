@@ -437,7 +437,7 @@ def scanPlugins():
             if not ep.group.startswith("psychopy"):
                 continue
             # make sure we have an entry for this distribution
-            if sys.version.startswith("3.8"):
+            if sys.version.startswith("3.8") or sys.version.startswith("3.9"):
                 distName = dist.metadata['name']
             else:
                 distName = dist.name
@@ -789,10 +789,10 @@ def loadPlugin(plugin):
                 f"Registering entry point {ep.value} (from {plugin}) to {ep.group}:{ep.name}"
             )
             try:
-                ep = ep.load()  # load the entry point
+                mod = ep.load()  # load the entry point
 
                 # Raise a warning if the plugin is being loaded from a zip file.
-                if '.zip' in inspect.getfile(ep):
+                if '.zip' in inspect.getfile(mod):
                     logging.warning(
                         "Plugin `{}` is being loaded from a zip file. This may "
                         "cause issues with the plugin's functionality.".format(plugin))
@@ -801,7 +801,7 @@ def loadPlugin(plugin):
                 msg = f"Skipping entry point {ep.value} (from {plugin}) to {ep.group}:{ep.name}"
                 # append reason
                 if isinstance(err, ImportError):
-                    msg += f" as {ep.value} cannot be imported."
+                    msg += f" as {ep.value} cannot be imported ({err})."
                 else:
                     msg += f", reason: {err}"
                 # log message
@@ -811,6 +811,8 @@ def loadPlugin(plugin):
                     _failed_plugins_.append(plugin)
 
                 continue
+            else:
+                ep = mod
 
             # If we get here, the entry point is valid and we can safely add it
             # to PsychoPy's namespace.

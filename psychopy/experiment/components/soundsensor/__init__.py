@@ -11,6 +11,7 @@ class SoundSensorComponent(BaseDeviceComponent):
     categories = ['Responses']  # which section(s) in the components panel
     targets = ['PsychoPy']
     iconFile = Path(__file__).parent / 'soundsensor.png'
+    iconSVG = Path(__file__).parent / 'SoundSensorComponent.svg'
     tooltip = _translate('Voice Key: Get input from a microphone as simple true/false values')
     beta = True
     legacyParams = [
@@ -263,18 +264,6 @@ class MicrophoneSoundSensorBackend(DeviceBackend):
     def __init__(self, profile):
         # init parent class
         DeviceBackend.__init__(self, profile)
-
-        # # add param for choosing a microphone
-        # from psychopy.experiment.components.microphone import MicrophoneComponent
-        # self.params['microphone'] = Param(
-        #     "", valType="str", inputType="device", categ="Device",
-        #     allowedVals=MicrophoneComponent.getDeviceLabels,
-        #     label=_translate("Microphone"),
-        #     hint=_translate(
-        #         "The microphone (from device manager) to use."
-        #     )
-        # )
-
         # define order
         order = [
             "meMicrophone",
@@ -284,7 +273,7 @@ class MicrophoneSoundSensorBackend(DeviceBackend):
         ]
         # define params
         self.params['threshold'] = Param(
-            0.5, valType="code", inputType="single", categ="Device",
+            0.5, valType="code", inputType="single",
             updates="constant", allowedUpdates=None,
             label=_translate("Threshold (0-1)"),
             hint=_translate(
@@ -293,16 +282,16 @@ class MicrophoneSoundSensorBackend(DeviceBackend):
             )
         )
         self.params['dbRange'] = Param(
-            (0, 1), valType="list", inputType="single", categ="Device",
+            (0, 1), valType="list", inputType="single",
             updates="constant", allowedUpdates=None,
             label=_translate("Decibel range"),
             hint=_translate(
                 "What kind of values (dB) would you expect to receive from this device? In other "
-                "words, how many dB does a threshold of 0 and of 255 correspond to?"
+                "words, how many dB does a threshold of 0 and 1 correspond to?"
             )
         )
         self.params['samplingWindow'] = Param(
-            0.03, valType="code", inputType="single", categ="Device",
+            0.03, valType="code", inputType="single",
             updates="constant", allowedUpdates=None,
             label=_translate("Sampling window (s)"),
             hint=_translate(

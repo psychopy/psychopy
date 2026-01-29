@@ -3,6 +3,7 @@ from psychopy import constants, core, sound, logging
 from psychopy.hardware import base, DeviceManager
 from psychopy.localization import _translate
 from psychopy.hardware import keyboard
+from psychopy.tools.arraytools import ExpandingList
 
 
 class SoundSensorResponse(base.BaseResponse):
@@ -24,9 +25,9 @@ class BaseSoundSensorGroup(base.BaseResponseDevice):
         # store number of channels
         self.channels = channels
         # attribute in which to store current state
-        self.state = [False] * channels
+        self.state = ExpandingList([False] * channels)
         # set initial threshold
-        self.threshold = [None] * channels
+        self.threshold = ExpandingList([None] * channels)
         self.setThreshold(threshold, channel=list(range(channels)))
     
     def findThreshold(self, speaker, channel=None, samplingWindow=0.5):
@@ -346,6 +347,9 @@ class MicrophoneSoundSensor(BaseSoundSensorGroup):
             self.getThreshold(channel=channel) * (max(self.dbRange) - min(self.dbRange))
         )
     
+    def getCurrentVolume(self):
+        return self.device.getCurrentVolume()
+    
     def _setThreshold(self, threshold, channel=None):
         """
         No additional setup is needed for emulator as thresholding is emulated outside of the 
@@ -367,7 +371,7 @@ class MicrophoneSoundSensor(BaseSoundSensorGroup):
             vol = max(vol)
         # transform volume to arbitrary units
         adjVol = int(
-            (vol - min(self.dbRange)) / (max(self.dbRange) - min(self.dbRange)) * 255
+            (vol - min(self.dbRange)) / (max(self.dbRange) - min(self.dbRange))
         )
         # iterate through channels
         for channel in range(self.channels):

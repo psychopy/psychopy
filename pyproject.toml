@@ -26,7 +26,7 @@ classifiers = [
     
 dependencies = [
     "numpy",  # use numpy<1.24 for psychopy<2023.1
-    "scipy",
+    "scipy < 1.15",  # 1.15 fails to import scipy.special
     "matplotlib",
     "pyglet == 1.4.11; platform_system == \"Windows\"",
     "pyglet == 1.5.27; platform_system != \"Windows\"",
@@ -44,6 +44,7 @@ dependencies = [
     # for iohub
     "pywinhook; platform_system == \"Windows\"",
     "zope.event==5.0",  # py2app+gevent complains about zope.event 5.1
+    "zope.interface==7.2",  # needed for gevent on macos
     "gevent==25.5.1",  # macos wheels for >2.5.1 are py3.12 only
     "MeshPy",
     "psutil",
@@ -63,13 +64,12 @@ dependencies = [
     "requests",
     "future",  # only to support legacy versions in useVersion
     # supporting plugins
-    "setuptools==70.3.0",  # py2app issues https://github.com/ronaldoussoren/py2app/issues/531
+    "setuptools==78.1.1",  # py2app issues https://github.com/ronaldoussoren/py2app/issues/531
     # pavlovia connections
     "python-gitlab",
     "gitpython",
     "cryptography",  # for sshkeys
     # psychoJS conversions
-    "javascripthon @ git+https://gitlab.com/peircej/metapensiero.pj",  # until fixes dukpy depend
     "astunparse",
     "esprima",
     "jedi >= 0.16",
@@ -108,10 +108,12 @@ tests = [
 ]
 docs = [
     "sphinx",
+    "jinja2",
     "sphinx-design",
     "sphinx-copybutton",
-    "jinja2",
-    "psychopy-sphinx-theme"
+    "myst-parser",
+    "sphinxcontrib.svg2pdfconverter",  # requires inkscape
+    "psychopy-sphinx-theme",
 ]
 building = [
     "bdist-mpkg>=0.5.0; platform_system == \"Darwin\"",

@@ -1485,7 +1485,7 @@ class TrialHandler2(_BaseTrialHandler):
                 thisLine.append(heading)
 
         # loop through stimuli, writing data
-        for stimN in range(len(self.trialList)):
+        for stimN in range(len(self.elapsedTrials)):
             thisLine = []
             lines.append(thisLine)
             # first the params for this stim (from self.trialList)

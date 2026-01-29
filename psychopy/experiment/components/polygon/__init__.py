@@ -17,6 +17,7 @@ class PolygonComponent(BaseVisualComponent):
     categories = ['Stimuli']
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'polygon.png'
+    iconSVG = Path(__file__).parent / 'PolygonComponent.svg'
     tooltip = _translate('Polygon: any regular polygon (line, triangle, square'
                          '...circle)')
 

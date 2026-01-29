@@ -17,6 +17,7 @@ from collections import OrderedDict
 import numpy
 import re
 import wx
+from wx.lib import scrolledpanel
 
 import psychopy.experiment.utils
 from psychopy.experiment import Param
@@ -37,6 +38,8 @@ from ...colorpicker import PsychoColorPicker
 from pathlib import Path
 
 from ...themes import handlers, icons
+from ... import getAppInstance
+
 
 white = wx.Colour(255, 255, 255, 255)
 codeSyntaxOkay = wx.Colour(220, 250, 220, 255)  # light green
@@ -146,12 +149,16 @@ class ParamCtrls():
             'set every repeat': _translate('set every repeat'),
             'set every frame': _translate('set every frame'),
         }
-        if param.allowedUpdates is not None and len(param.allowedUpdates):
+        # work out what update labels should be there
+        allowedUpdates = copy.copy(param.allowedUpdates or [])
+        if len(allowedUpdates) and param.updates not in allowedUpdates + [None]:
+            allowedUpdates.append(param.updates)
+        # work out ctrl labels
+        if allowedUpdates is not None and len(allowedUpdates):
             # updates = display-only version of allowed updates
-            updateLabels = [_localizedUpdateLbls.get(upd, upd) for upd in param.allowedUpdates]
+            updateLabels = [_localizedUpdateLbls.get(upd, upd) for upd in allowedUpdates]
             # allowedUpdates = extend version of allowed updates that includes
             # "set during:static period"
-            allowedUpdates = copy.copy(param.allowedUpdates)
             for routineName, routine in list(self.exp.routines.items()):
                 for static in routine.getStatics():
                     # Note: replacing following line with
@@ -428,9 +435,12 @@ class StartStopCtrls(wx.GridBagSizer):
 
 
 class ParamNotebook(wx.Notebook, handlers.ThemeMixin):
-    class CategoryPage(wx.Panel, handlers.ThemeMixin):
+    class CategoryPage(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         def __init__(self, parent, dlg, params, categ=None):
             wx.Panel.__init__(self, parent, size=(600, -1))
+            self.SetupScrolling()
+            self.SetMaxSize((-1, 1080))
+            self.SetMinSize((720, 512))
             self.parent = parent
             self.parent = parent
             self.dlg = dlg
@@ -478,6 +488,8 @@ class ParamNotebook(wx.Notebook, handlers.ThemeMixin):
         def addParam(self, name, param):
             # Make ctrl
             self.ctrls[name] = ParamCtrls(self.dlg, param.label, param, self, name)
+            # Bind change event
+            self.ctrls[name].valueCtrl.Bind(paramCtrls.EVT_PARAM_CHANGED, self.emitChangeEvent)
             # Add value ctrl
             _flag = wx.EXPAND | wx.ALL
             if hasattr(self.ctrls[name].valueCtrl, '_szr'):
@@ -589,6 +601,9 @@ class ParamNotebook(wx.Notebook, handlers.ThemeMixin):
                 if isinstance(self.dlg, wx.Dialog):
                     self.dlg.Fit()
                 self.Refresh()
+        
+        def emitChangeEvent(self, evt): 
+            wx.PostEvent(self, evt)
 
         def doValidate(self, event=None):
             self.Validate()
@@ -631,6 +646,9 @@ class ParamNotebook(wx.Notebook, handlers.ThemeMixin):
             self.paramCtrls.update(page.ctrls)
             # Add page to notebook
             self.AddPage(page, _translate(categ or ""))
+    
+    def emitChangeEvent(self, evt): 
+        wx.PostEvent(self, evt)
 
     def checkDepends(self, event=None):
         """
@@ -1303,8 +1321,9 @@ class DlgLoopProperties(_BaseParamsDlg):
             row += 1
         panelSizer.AddGrowableCol(1, 1)
         self.globalCtrls['name'].valueCtrl.Bind(wx.EVT_TEXT, self.Validate)
-        self.Bind(wx.EVT_CHOICE, self.onTypeChanged,
-                  self.globalCtrls['loopType'].valueCtrl)
+        self.globalCtrls['loopType'].valueCtrl.Bind(
+            paramCtrls.EVT_PARAM_CHANGED, self.onTypeChanged,
+        )
         return panel
 
     def makeConstantsCtrls(self):
@@ -1435,7 +1454,11 @@ class DlgLoopProperties(_BaseParamsDlg):
                 ctrls.valueCtrl = wx.StaticText(panel, label=text,
                                                 style=wx.ALIGN_CENTER)
                 if OK:
-                    ctrls.valueCtrl.SetForegroundColour("Black")
+                    appHandle = getAppInstance()  # get theme info
+                    if appHandle is not None and appHandle.isDarkMode:
+                        ctrls.valueCtrl.SetForegroundColour("White")
+                    else:
+                        ctrls.valueCtrl.SetForegroundColour("Black")
                 else:
                     ctrls.valueCtrl.SetForegroundColour("Red")
                 if hasattr(ctrls.valueCtrl, "_szr"):
@@ -1578,7 +1601,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         self.setCtrls(value)
 
     def onTypeChanged(self, evt=None):
-        newType = evt.GetString()
+        newType = self.globalCtrls['loopType'].valueCtrl.getValue()
         if newType == self.currentType:
             return
         self.setCtrls(newType)
@@ -1700,7 +1723,11 @@ class DlgLoopProperties(_BaseParamsDlg):
         # Do actual value setting
         self.currentCtrls['conditions'].setValue(msg)
         if valid:
-            self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Black")
+            appHandle = getAppInstance()  # get theme info
+            if appHandle is not None and appHandle.isDarkMode:
+                self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("White")
+            else:
+                self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Black")
         else:
             self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Red")
         self.Layout()

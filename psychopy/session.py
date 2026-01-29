@@ -256,6 +256,8 @@ class Session:
         ):
         # Store root and add to Python path
         self.root = Path(root)
+        if not self.root.is_absolute():
+            self.root = self.root.absolute()
         sys.path.insert(1, str(self.root))
         # store rest message
         self.restMsg = restMsg

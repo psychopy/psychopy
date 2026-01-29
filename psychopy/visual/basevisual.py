@@ -1075,7 +1075,7 @@ class TextureMixin:
             elif hasattr(tex, 'getRecentVideoFrame'):  # camera or movie textures
                 # get an image to configure the initial texture store
                 if hasattr(tex, 'frameSize'):
-                    if tex.frameSize is None:
+                    if tex.frameSize is None or tex.frameSize == (-1, -1):
                         raise RuntimeError(
                             "`Camera.frameSize` is not yet specified, cannot "
                             "initialize texture!")

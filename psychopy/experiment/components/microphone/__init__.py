@@ -23,6 +23,7 @@ class MicrophoneComponent(BaseDeviceComponent):
     targets = ['PsychoPy', 'PsychoJS']
     version = "2021.2.0"
     iconFile = Path(__file__).parent / 'microphone.png'
+    iconSVG = Path(__file__).parent / 'MicrophoneComponent.svg'
     tooltip = _translate('Microphone: basic sound capture (fixed onset & '
                          'duration), okay for spoken words')
 
@@ -408,9 +409,7 @@ class MicrophoneComponent(BaseDeviceComponent):
             inits['transcribeBackend'].val = None
         # Warn user if their transcriber won't work locally
         if inits['transcribe'].val:
-            if  self.params['transcribeBackend'].val in self.localTranscribers:
-                inits['transcribeBackend'].val = self.localTranscribers[self.params['transcribeBackend'].val]
-            else:
+            if  self.params['transcribeBackend'].val not in self.localTranscribers.values():
                 default = list(self.localTranscribers.values())[0]
                 alert(4610, strFields={"transcriber": inits['transcribeBackend'].val, "default": default})
         # Store recordings from this routine

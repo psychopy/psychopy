@@ -274,7 +274,7 @@ class LoggingListener(BaseListener):
     level : int
         Logging level to log messages as, can be one of the constants from psychopy.logging. Default is logging.DEBUG.
     """
-    def __init__(self, file=logging.root, level=logging.DEBUG):
+    def __init__(self, file=logging.console, level=logging.DEBUG):
         # init base class
         BaseListener.__init__(self)
         # store params
@@ -287,7 +287,10 @@ class LoggingListener(BaseListener):
         """
         # append
         self.responses.append(message)
+        # log
         self.file.logger.log(message, level=self.level)
+        # flush log
+        logging.flush()
 
 
 class LiaisonListener(BaseListener):

@@ -30,21 +30,27 @@ def calibrateGamma(
         Number of calibration points to use, by default 8
     """
     from psychopy import visual
+    from psychopy.hardware.photometer import BasePhotometerDevice
 
-    # get photometer device
-    phot = DeviceManager.getDevice(photometer)
+    # get photometer device (if not given one)
+    if isinstance(photometer, BasePhotometerDevice):
+        phot = photometer
+    else:
+        phot = DeviceManager.getDevice(photometer)
     # error if there isn't one
     if phot is None:
         raise ConnectionError(
             "No photometer found. Try setting one up in the device manager."
         )
+    # make sure nPoints is an integer
+    nPoints = int(nPoints)
     # create a patch
     patch = visual.GratingStim(
         win,
         tex="sqr",
-        size=(patchSize, patchSize),
+        size=(patchSize*2, patchSize*2),
         units="norm",
-        rgb=(127, 127, 127),
+        rgb=(255, 255, 255),
         colorSpace="rgb255",
     )
     # create instructions
@@ -52,7 +58,7 @@ def calibrateGamma(
         win,
         text=(
             "Point the photometer at the central box and press SPACE (or wait 2s) to "
-            "take a reading. Press ESCAPE to quit."
+            "take a reading. Press ESCAPE to cancel."
         ),
         size=(2, 0.5),
         pos=(0, 1),
@@ -61,10 +67,10 @@ def calibrateGamma(
         alignment="top center",
         letterHeight=0.05
     )
-    # create progress
+    # create progress indicator
     prog = visual.TextBox2(
         win,
-        text="",
+        text="Waiting for keypress...",
         size=(1, 0.2),
         pos=(-1, -1),
         padding=0.05,
@@ -72,18 +78,36 @@ def calibrateGamma(
         alignment="bottom left",
         letterHeight=0.05
     )
-    # get keyboard
-    kb = keyboard.Keyboard()
+    # do initial draw
+    win.flip()
+    patch.draw()
+    instr.draw()
+    prog.draw()
+    win.flip()
     # this will hold the measured luminance values
     lumSeries = np.zeros((4, nPoints), 'd')
+    # listen for keypress or 30s
+    kb = keyboard.Keyboard()
+    keys = kb.waitKeys(keyList=["escape", "space"], maxWait=30)
+    # abort if requested
+    if keys and "escape" in keys:
+        return
+    # clear instructions & update current action once responded
+    instr.text = ""
     # iterate through levels
     for lvl, dac in enumerate(DACrange(nPoints)):
+        # get relevant guns
+        if lvl == 0:
+            # guns are irrelevant when intensity is 0
+            guns = [None]
+        else:
+            guns = range(4)
         # iterate through guns per level
-        for gun in range(4):
+        for gun in guns:
             # update progress indicator
-            prog.text = f"Level {lvl+1}/{nPoints}  Gun {gun+1}/4"
+            prog.text = f"Level {lvl+1}/{nPoints}  Gun {gun+1 if gun is not None else 'NA'}/4"
             # set the patch color
-            if gun == 0:
+            if gun in (0, None):
                 # if gun is 0 (aka luminance), set as flat
                 patch.color = dac
             else:
@@ -92,21 +116,20 @@ def calibrateGamma(
                     dac if i == gun-1 else -1
                     for i in range(3)
                 ]
-            # draw
+            # draw all & flip
             patch.draw()
-            instr.draw()
             prog.draw()
             win.flip()
             # allow the screen to settle
             time.sleep(0.2)
-            # listen for keypress or 2s
-            keys = kb.waitKeys(keyList=["escape", "space"], maxWait=2)
-            # abort if requested
-            if keys and "escape" in keys:
-                return
             # take reading
             lum = phot.getLum()
-            lumSeries[gun, lvl] = lum
+            # if no gun, set for all
+            if gun is None:
+                for thisGun in range(4):
+                    lumSeries[thisGun, lvl] = lum
+            else:
+                lumSeries[gun, lvl] = lum
     # transform lum series to a gamma grid
     gammaGrid = []
     for lumRow in lumSeries:

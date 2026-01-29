@@ -17,6 +17,7 @@ class BrushComponent(BaseVisualComponent):
     categories = ['Responses']
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'brush.png'
+    iconSVG = Path(__file__).parent / 'BrushComponent.svg'
     tooltip = _translate('Brush: a drawing tool')
 
     def __init__(self, exp, parentName, name='brush',
