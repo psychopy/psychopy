@@ -414,6 +414,8 @@ class Monitor:
     def getNotes(self):
         """Notes about the calibration
         """
+        if 'notes' not in self.currentCalib:
+            self.currentCalib['notes'] = ''
         return self.currentCalib['notes']
 
     def getUseBits(self):
