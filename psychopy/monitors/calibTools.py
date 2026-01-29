@@ -296,8 +296,15 @@ class Monitor:
         """
         if 'gammaGrid' in self.currentCalib:
             # Make sure it's an array, so you can look at the shape
-            grid = np.asarray(self.currentCalib['gammaGrid'])
-            if grid.shape != [4, 6]:
+            curGammaGrid = self.currentCalib['gammaGrid']
+            if isinstance(curGammaGrid, str):
+                curGammaGrid = curGammaGrid.replace('[', '').replace(']', '')
+                grid = np.fromstring(
+                    curGammaGrid, sep=' ', dtype='f').reshape((4, -1))
+            else:
+                grid = np.asarray(curGammaGrid, 'f')
+
+            if grid.shape != (4, 6):
                 newGrid = np.zeros([4, 6], 'f') * np.nan  # start as NaN
                 newGrid[:grid.shape[0], :grid.shape[1]] = grid
                 grid = self.currentCalib['gammaGrid'] = newGrid
