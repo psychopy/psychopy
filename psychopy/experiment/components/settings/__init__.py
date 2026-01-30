@@ -71,17 +71,6 @@ participantIdAliases = ('participant', 'Participant', 'Subject', 'Observer')
 #         pass
 
 
-def getVersions():
-    """
-    Search for options locally available
-    """
-    import psychopy.tools.versionchooser as versions
-    available = versions._versionFilter(versions.versionOptions(), wx_version)
-    available += ['']
-    available += versions._versionFilter(versions.availableVersions(), wx_version)
-    return available
-
-
 def getSoundBackends():
     from psychopy.sound.sound import Sound
     return list(Sound.getBackends())
@@ -206,8 +195,8 @@ class SettingsComponent:
         )
 
         self.params['Use version'] = Param(
-            useVersion, valType='str', inputType="choice",
-            allowedVals=getVersions,
+            useVersion, valType='str', inputType="version",
+            allowedVals="psychopy/psychopy-lib",
             hint=_translate(
                 "The version of PsychoPy to use when running the experiment."
             ),

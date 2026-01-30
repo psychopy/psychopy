@@ -661,6 +661,31 @@ class ChoiceCtrl(BaseParamCtrl):
         )
 
 
+class VersionCtrl(ChoiceCtrl):
+    inputType = "version"
+
+    def populate(self):
+        import psychopy.tools.versionchooser as versions
+
+        # make arrays the same length
+        self.choices = []
+        self.labels = []
+        # add each version as an option
+        for version in [
+            *versions._versionFilter(versions.versionOptions(), None),
+            "",
+            *versions._versionFilter(versions.availableVersions(), None)
+        ]:
+            self.choices.append(version)
+            self.labels.append(version)
+        # apply to ctrl
+        self.ctrl.SetItems(self.labels)
+        # disable if param is readonly
+        self.ctrl.Enable(not self.param.readOnly)
+        # apply (or re-apply) selection
+        self.setValue(self.param.val)
+
+
 class MultiChoiceCtrl(ChoiceCtrl):
     inputType = "multiChoice"
 
