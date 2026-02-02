@@ -114,8 +114,8 @@ jobs:
       if: runner.os=='Linux'
       run: |
         # quick test of the gui toolkits (without pytest swallowing errors)
-        xvfb-run -a --server-args="-screen 0 1024x768x24" --no-build psychopy/tests/test_gui/test_DlgFromDictQt.py
-        xvfb-run -a --server-args="-screen 0 1024x768x24" --no-build uv run psychopy/tests/test_gui/test_DlgFromDictWx.py
+        xvfb-run -a --server-args="-screen 0 1024x768x24" uv run --no-build psychopy/tests/test_gui/test_DlgFromDictQt.py
+        xvfb-run -a --server-args="-screen 0 1024x768x24" uv run --no-build  psychopy/tests/test_gui/test_DlgFromDictWx.py
 
     - name: Test with pytest
       run: |
