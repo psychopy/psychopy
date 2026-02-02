@@ -4128,4 +4128,4 @@ atexit.register(_closeAllCaptureInterfaces)
 
 # ------------------------------------------------------------------------------
 if __name__ == "__main__":
-    print(_getCameraInfoLinux())
+    pass
