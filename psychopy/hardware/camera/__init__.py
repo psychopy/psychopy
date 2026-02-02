@@ -18,8 +18,6 @@ __all__ = [
     # 'CAMERA_MODE_VIDEO',
     # 'CAMERA_MODE_CV',
     # 'CAMERA_MODE_PHOTO',
-    'CAMERA_TEMP_FILE_VIDEO',
-    'CAMERA_TEMP_FILE_AUDIO',
     'CAMERA_API_AVFOUNDATION',
     'CAMERA_API_DIRECTSHOW',
     'CAMERA_API_VIDEO4LINUX2',
@@ -38,8 +36,6 @@ __all__ = [
     'CameraFrameSizeNotSupportedError',
     'FormatNotFoundError',
     'PlayerNotAvailableError',
-    'CameraInterfaceFFmpeg',
-    'CameraInterfaceOpenCV',
     'Camera',
     'CameraInfo',
     'getCameras',
@@ -3761,29 +3757,127 @@ def _getCameraInfoWindows():
 
 
 def _getCameraInfoLinux():
-    """Get a list of capabilities associated with a camera attached to the 
-    system.
+    """Get camera information on Linux systems.
 
-    This is used by `getCameraInfo()` for querying camera details on Linux.
-    Don't call this function directly unless testing.
+    This is used by `getCameraInfo()` for querying camera details on Linux. Don't
+    call this function directly unless testing. Requires `v4l2-ctl` to be installed
+    on the host system. If the command is not found, an empty list is returned.
 
     Returns
     -------
     list of CameraInfo
         List of camera descriptors.
-
+    
     """
     if platform.system() != 'Linux':
         raise OSError(
             "Cannot query cameras with this function, platform not 'Linux'.")
 
+    # get video devices
+    videoDevices = {}
+
+    # find devices in /dev
+    import glob
+    devFiles = glob.glob('/dev/video*')
+
+    if not devFiles:
+        return videoDevices
+    
+    # sort the device files
+    devFiles.sort()
+
+    # call ffmpeg to get camera details
+    import subprocess as sp
+    for vf in devFiles:
+        try:
+            proc = sp.Popen(
+                ['v4l2-ctl', '--list-formats-ext', '-d', vf],
+                stderr=sp.PIPE,
+                stdout=sp.PIPE
+            )
+            stdout, stderr = proc.communicate()
+            output = stdout.decode('utf-8')
+        except Exception as err:
+            logging.error(f"Could not query cameras via v4l2-ctl: {err}")
+            return videoDevices
+
+        if not output:
+            continue
+
+        # parse the output
+        lines = output.split('\n')
+        lines = [line.strip() for line in lines]
+
+        cameraModes = {}
+        pixelFormat = None
+        devIndex = 0
+        for line in lines:
+            if line.startswith('[') and line[1:2].isdigit():
+                modeIdx = int(line[1:line.index(']')])
+                # get the pixel format
+                pixelFormat = line.split(' ')[1].strip("'").strip()
+                cameraModes[modeIdx] = []
+                continue
+
+            if pixelFormat is None:  # no pixel format, skip
+                continue
+            
+            # inside a valid mode description
+            if line.startswith('Size:'):
+                sizeStr = line.split(' ')[-1].strip()
+                if 'x' in sizeStr:
+                    width, height = sizeStr.split('x')
+                    width = int(width.strip())
+                    height = int(height.strip())
+                else:
+                    width = height = 0
+                continue
+
+            if line.startswith('Interval:'):
+                fpsStr = line.split('(')[-1].rstrip(')').strip()
+                fpsVal = float(fpsStr.split(' ')[0].strip())
+                cameraModes[modeIdx].append(
+                    (devIndex, pixelFormat, (width, height), fpsVal))
+                devIndex += 1
+
+        if not cameraModes:  # reject anything without modes
+            continue
+
+        # reformat into the output structure
+        supportedFormats = []
+        for modeIdx, modes in cameraModes.items():
+            for mode in modes:
+                devIndex, pixelFormat, frameSize, frameRate = mode
+
+                pixelFormat = pixelFormat.lower()
+                if pixelFormat == 'mjpg':
+                    codecFormat = 'mjpg'
+                    pixelFormat = None
+                else:
+                    codecFormat = None
+
+                thisCamInfo = CameraInfo(
+                    index=devIndex,
+                    name=vf,
+                    pixelFormat=pixelFormat,
+                    codecFormat=codecFormat,    
+                    frameSize=frameSize,
+                    frameRate=frameRate,
+                    cameraAPI=CAMERA_API_VIDEO4LINUX2,
+                    cameraLib="ffpyplayer",
+                )
+                supportedFormats.append(thisCamInfo)
+
+        videoDevices[vf] = supportedFormats
+
+    return videoDevices
 
 
 # Mapping for platform specific camera getter functions used by `getCameras`.
 _cameraGetterFuncTbl = {
     'Darwin': _getCameraInfoMacOS,
     'Windows': _getCameraInfoWindows,
-    'Linux': _getCameraInfoLinux,  # DirectShow via FFPyPlayer works on Linux too
+    'Linux': _getCameraInfoLinux, 
 }
 
 
@@ -4034,4 +4128,4 @@ atexit.register(_closeAllCaptureInterfaces)
 
 # ------------------------------------------------------------------------------
 if __name__ == "__main__":
-    pass
+    print(_getCameraInfoLinux())
