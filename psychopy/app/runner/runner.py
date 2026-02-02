@@ -692,7 +692,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
                 target="PsychoJS"
             )
         # get PsychoJS
-        servertools.getPsychoJS()
+        servertools.getPsychoJS(self.currentFile.parent)
         # start server
         self.serverProcess = servertools.Server(
             cwd=htmlPath,
