@@ -13,6 +13,7 @@ if sys.platform == 'darwin':
     import objc  # pylint: disable=import-error
 
 EXP_SCRIPT_DIRECTORY = ''
+IOHUB_LOG_FILE_PATH = ''
 
 
 def _localFunc():

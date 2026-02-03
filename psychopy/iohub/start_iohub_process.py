@@ -34,6 +34,12 @@ def run(rootScriptPathDir, configFilePath):
     s = None
     try:
         psychopy.iohub.EXP_SCRIPT_DIRECTORY = rootScriptPathDir
+        psychopy.iohub.IOHUB_LOG_FILE_PATH = os.path.join(
+            psychopy.prefs.paths['userPrefsDir'],  
+            "iohub_last_session.log")
+
+        # create/clear log file path for this session
+        open(psychopy.iohub.IOHUB_LOG_FILE_PATH, 'w').close()
 
         tdir = tempfile.gettempdir()
         cdir, _ = os.path.split(configFilePath)
