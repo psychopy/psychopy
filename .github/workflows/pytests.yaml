@@ -42,6 +42,8 @@ jobs:
         fi
         # create a venv so any subsequent python calls use this executable
         uv venv --clear --python $PYTHON_EXECUTABLE
+        # set PYTHONPATH
+        export PYTHONPATH=$(pwd):$PYTHONPATH
         # return executable
         echo "executable=$PYTHON_EXECUTABLE" >> "$GITHUB_OUTPUT"
 
@@ -88,7 +90,7 @@ jobs:
 
     - name: Pre-Install
       run: |
-        uv pip install wheel six attrdict3 moviepy git+https://gitlab.com/peircej/metapensiero.pj pdm
+        uv pip install wheel packaging six attrdict3 moviepy git+https://gitlab.com/peircej/metapensiero.pj pdm
         if [ "${{ runner.os }}" == "Windows" ]
         then
           uv pip install pyWinhook --default-index https://www.lfd.uci.edu/~gohlke/pythonlibs
@@ -114,7 +116,6 @@ jobs:
       if: runner.os=='Linux'
       run: |
         # quick test of the gui toolkits (without pytest swallowing errors)
-        export PYTHONPATH=$(pwd):$PYTHONPATH
         xvfb-run -a --server-args="-screen 0 1024x768x24" "${{ steps.python.outputs.executable }}" psychopy/tests/test_gui/test_DlgFromDictQt.py
         xvfb-run -a --server-args="-screen 0 1024x768x24" "${{ steps.python.outputs.executable }}" psychopy/tests/test_gui/test_DlgFromDictWx.py
 
