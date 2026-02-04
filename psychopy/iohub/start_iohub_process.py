@@ -84,6 +84,7 @@ def run(rootScriptPathDir, configFilePath):
 
         lrtime = Computer.global_clock.getLastResetTime()
         s.log('Server END Time Offset: {0}'.format(lrtime), 'DEBUG')
+        raise ValueError("TEST")
         return True
 
     except Exception: # pylint: disable=broad-except

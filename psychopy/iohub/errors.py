@@ -4,6 +4,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 import sys
 import traceback
+from psychopy import logging
 
 
 def print2err(*args):
@@ -22,26 +23,17 @@ def print2err(*args):
     
     :param args: 0 to N objects of any type.
     """
-    try:
-        for a in args:
-            sys.stderr.write("{0}".format(a))
-        sys.stderr.write("\n")
-        sys.stderr.flush()
-    except:
-        for a in args:
-            print("{0}".format(a))
-        print()
+    for a in args:
+        logging.error(a)
+    logging.flush()
         	
 def printExceptionDetailsToStdErr():
     """
     Print the last raised exception in the iohub (well, calling) process
     to the psychopy process stderr.
     """
-    try:
-        traceback.print_exc(file=sys.stderr)
-        sys.stderr.flush()
-    except:
-        traceback.print_exc()
+    logging.error(traceback.format_exc())
+    logging.flush()
 
 class ioHubError(Exception):
     #TODO: Fix the way exceptions raised in the iohub process are handled
