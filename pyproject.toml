@@ -66,7 +66,6 @@ dependencies = [
     "future",  # only to support legacy versions in useVersion
     # supporting plugins
     "setuptools==70.3.0",  # py2app issues https://github.com/ronaldoussoren/py2app/issues/531
-    "typing-extensions",
     # pavlovia connections
     "python-gitlab",
     "gitpython",
@@ -155,7 +154,8 @@ requires = [
     "packaging",
     "six",  # for configobj
     "polib", # for compiling translation files (*.po)
-    ]
+    "typing-extensions",
+]
 build-backend = "pdm.backend"
 
 [tool.pdm.build]
