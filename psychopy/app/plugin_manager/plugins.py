@@ -1031,11 +1031,32 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
             appPluginCacheDir = os.path.join(
                 prefs.paths['userCacheDir'], 'appCache', 'plugins')
             
+            # if missing, download it and place it in the cache
+            if not os.path.exists(appPluginCacheDir):
+                os.makedirs(appPluginCacheDir)
+
+            if not os.path.exists(os.path.join(appPluginCacheDir, iconFileName)):
+                try:
+                    # download the icon
+                    response = requests.get(icon, timeout=10)
+                    response.raise_for_status()  # Raise an error for bad status codes
+                    # save to cache
+                    with open(os.path.join(appPluginCacheDir, iconFileName), 'wb') as f:
+                        f.write(response.content)
+                except Exception as e:
+                    logging.warning(f"Could not download plugin icon from {icon}: {e}")
+
             # check if the icon is in the cache
             iconCachePath = os.path.join(appPluginCacheDir, iconFileName)
             if os.path.exists(iconCachePath):
                 iconBitmap = wx.Bitmap(iconCachePath)
                 self.icon.SetBitmap(iconBitmap)
+            else:
+                # set to blank
+                self.icon.SetBitmap(wx.Bitmap())
+        else:
+            # set to blank
+            self.icon.SetBitmap(wx.Bitmap())
 
         # Set names
         self.title.SetLabelText(value.name)
