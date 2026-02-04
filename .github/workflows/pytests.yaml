@@ -68,6 +68,7 @@ jobs:
         sudo apt-get install -y -qq libpng-dev libjpeg-dev libtiff-dev libnotify-dev libsm-dev
         sudo apt-get install -y -qq libsdl2-dev libsdl2-mixer-2.0-0 libsdl2-image-2.0-0 libsdl2-2.0-0
         sudo apt-get install -y -qq libportaudio2
+        sudo apt-get install -y -qq python3-typing-extensions
         # virtual frame buffer
         sudo apt install llvm-13-dev  # for xvfb
         sudo apt install xvfb xauth libgl1-mesa-dri
@@ -114,7 +115,6 @@ jobs:
       if: runner.os=='Linux'
       run: |
         # quick test of the gui toolkits (without pytest swallowing errors)
-
         xvfb-run -a --server-args="-screen 0 1024x768x24" uv run psychopy/tests/test_gui/test_DlgFromDictQt.py
         xvfb-run -a --server-args="-screen 0 1024x768x24" uv run psychopy/tests/test_gui/test_DlgFromDictWx.py
 
