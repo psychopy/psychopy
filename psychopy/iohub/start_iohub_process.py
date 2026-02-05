@@ -105,7 +105,6 @@ def run(rootScriptPathDir, configFilePath):
         logging.debug("Starting device monitors...")
         for m in s.deviceMonitors:
             m.start()
-            logging.debug("Started `{0}` device monitor".format(m.name))
             glets.append(m)
 
         tlet = gevent.spawn(s.processEventsTasklet, 0.01)
@@ -158,7 +157,7 @@ def run(rootScriptPathDir, configFilePath):
             
         if s:
             s.shutdown()
-            
+
         return False
 
 if __name__ == '__main__':
