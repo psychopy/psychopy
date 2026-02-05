@@ -2,7 +2,6 @@
 # Part of the PsychoPy library
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
-import os
 import sys
 import traceback
 
@@ -33,14 +32,6 @@ def print2err(*args):
             print("{0}".format(a))
         print()
 
-    # write to log file 
-    import psychopy.iohub  # only on error import
-    with open(psychopy.iohub.IOHUB_LOG_FILE_PATH, "a", encoding="utf-8") as log_file:
-        for a in args:
-            log_file.write("{0}".format(a))
-        log_file.write("\n")
-        log_file.flush()
-        	
             
 def printExceptionDetailsToStdErr():
     """
