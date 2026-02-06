@@ -135,7 +135,7 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
             #if hasattr(self, '_listID'):
                 # GL.glDeleteLists(self._listID, 1)
             self.clearTextures()
-        except (ImportError, ModuleNotFoundError, TypeError):
+        except (ImportError, ModuleNotFoundError, TypeError, GL.lib.GLException):
             pass  # has probably been garbage-collected already
 
     def _updateListShaders(self):
