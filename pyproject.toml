@@ -153,7 +153,8 @@ requires = [
     "packaging",
     "six",  # for configobj
     "polib", # for compiling translation files (*.po)
-    ]
+    "typing-extensions",
+]
 build-backend = "pdm.backend"
 
 [tool.pdm.build]
