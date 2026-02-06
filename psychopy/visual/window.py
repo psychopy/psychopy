@@ -117,7 +117,7 @@ lazy_import(globals(), "import pygame")
 DEBUG = False
 IOHUB_ACTIVE = False
 retinaContext = None  # only needed for retina-ready displays
-
+IDENTITY_MATRIX4 = numpy.identity(4, dtype=numpy.float32)  # 4x4 identity matrix to copy
 
 class OpenWinList(list):
     """Class to keep keep track of windows that have been opened.
@@ -800,11 +800,18 @@ class Window():
     def setViewScale(self, value, log=True):
         setAttribute(self, 'viewScale', value, log=log)
 
-    def _updateViewMatrix(self):
+    def _updateDefaultViewMatrix(self, forceUpdate=False):
         """Update the default orthographic view matrix based on the current 
         window settings.
+
+        Parameters
+        ----------
+        forceUpdate : bool
+            If `True`, the view matrix will be updated even if it is not
+            marked as needing an update.
+
         """
-        if self._viewMatrixNeedsUpdate:
+        if self._viewMatrixNeedsUpdate or forceUpdate:
             if self.viewScale is None:
                 sx, sy = [1.0, 1.0]
             else:
@@ -831,11 +838,18 @@ class Window():
                 scaleMatrix])
             self._viewMatrixNeedsUpdate = False
 
-    def _updateProjectionMatrix(self):
+    def _updateDefaultProjectionMatrix(self, forceUpdate=False):
         """Update the default projection matrix based on the current window 
         settings.
+
+        Parameters
+        ----------
+        forceUpdate : bool
+            If `True`, the projection matrix will be updated even if it is not
+            marked as needing an update.
+
         """
-        if self._projectionMatrixNeedsUpdate:
+        if self._projectionMatrixNeedsUpdate or forceUpdate:
             # widthOver2 = self.size[0] / 2.0
             # heightOver2 = self.size[1] / 2.0
             # self._projectionMatrix[:, :] = viewtools.orthoProjectionMatrix(
@@ -843,7 +857,7 @@ class Window():
             #     -heightOver2, heightOver2,  # -Y, +Y
             #     -1.0, 1.0,                  # -Z, +Z
             #     dtype=numpy.float32)
-            self._projectionMatrix[:, :] = numpy.identity(4, dtype=numpy.float32)
+            self._projectionMatrix[:, :] = IDENTITY_MATRIX4[:, :]
             self._projectionMatrixNeedsUpdate = False
 
     @property
@@ -1824,13 +1838,13 @@ class Window():
             enumLight = GL.GL_LIGHT0 + index
 
             # convert data in light class to ctypes
-            #pos = numpy.ctypeslib.as_ctypes(light.pos)
+            pos = numpy.ctypeslib.as_ctypes(light.pos)
             diffuse = numpy.ctypeslib.as_ctypes(light._diffuseRGB)
             specular = numpy.ctypeslib.as_ctypes(light._specularRGB)
             ambient = numpy.ctypeslib.as_ctypes(light._ambientRGB)
 
             # pass values to OpenGL
-            #GL.glLightfv(enumLight, GL.GL_POSITION, pos)
+            GL.glLightfv(enumLight, GL.GL_POSITION, pos)
             GL.glLightfv(enumLight, GL.GL_DIFFUSE, diffuse)
             GL.glLightfv(enumLight, GL.GL_SPECULAR, specular)
             GL.glLightfv(enumLight, GL.GL_AMBIENT, ambient)
@@ -2290,9 +2304,9 @@ class Window():
         changed.
 
         """
-        self._updateViewMatrix()
-        self._updateProjectionMatrix()
-
+        self._updateDefaultProjectionMatrix(True)
+        self._updateDefaultViewMatrix(True)
+        
         if applyTransform:
             self.applyEyeTransform(clearDepth=clearDepth)
 
@@ -2319,16 +2333,8 @@ class Window():
             Clear the depth buffer.
 
         """
-        self._updateViewMatrix()
-
-        widthOver2 = self.size[0] / 2.0
-        heightOver2 = self.size[1] / 2.0
-        self._projectionMatrix[:, :] = viewtools.orthoProjectionMatrix(
-            -widthOver2, widthOver2,    # -X, +X
-            -heightOver2, heightOver2,  # -Y, +Y
-            -1.0, 1.0,                  # -Z, +Z
-            dtype=numpy.float32)
-        self._projectionMatrix[:, :] = numpy.identity(4, dtype=numpy.float32)
+        self._updateDefaultProjectionMatrix(True)
+        self._updateDefaultViewMatrix(True)
 
         if applyTransform:
             self.applyEyeTransform(clearDepth=clearDepth)
@@ -3418,47 +3424,47 @@ class Window():
             _shaders.vertSimple, _shaders.fragImageStim)
         self._shaders['imageStim_adding'] = _shaders.compileProgram(
             _shaders.vertSimple, _shaders.fragImageStim_adding)
-        # self._shaders['stim3d_phong'] = {}
+        self._shaders['stim3d_phong'] = {}
 
         # # Create shader flags, these are used as keys to pick the appropriate
         # # shader for the given material and lighting configuration.
-        # shaderFlags = []
-        # for i in range(0, 8 + 1):
-        #     for j in product((True, False), repeat=1):
-        #         shaderFlags.append((i, j[0]))
+        shaderFlags = []
+        for i in range(0, 8 + 1):
+            for j in product((True, False), repeat=1):
+                shaderFlags.append((i, j[0]))
 
-        # # Compile shaders based on generated flags.
-        # for flag in shaderFlags:
-        #     # Define GLSL preprocessor values to enable code paths for specific
-        #     # material properties.
-        #     srcDefs = {'MAX_LIGHTS': flag[0]}
+        # Compile shaders based on generated flags.
+        for flag in shaderFlags:
+            # Define GLSL preprocessor values to enable code paths for specific
+            # material properties.
+            srcDefs = {'MAX_LIGHTS': flag[0]}
 
-        #     if flag[1]:  # has diffuse texture map
-        #         srcDefs['DIFFUSE_TEXTURE'] = 1
+            if flag[1]:  # has diffuse texture map
+                srcDefs['DIFFUSE_TEXTURE'] = 1
 
-        #     # embed #DEFINE statements in GLSL source code
-        #     vertSrc = gltools.embedShaderSourceDefs(
-        #         _shaders.vertPhongLighting, srcDefs)
-        #     fragSrc = gltools.embedShaderSourceDefs(
-        #         _shaders.fragPhongLighting, srcDefs)
+            # embed #DEFINE statements in GLSL source code
+            vertSrc = gltools.embedShaderSourceDefs(
+                _shaders.vertPhongLighting, srcDefs)
+            fragSrc = gltools.embedShaderSourceDefs(
+                _shaders.fragPhongLighting, srcDefs)
 
-        #     # build a shader program
-        #     prog = gltools.createProgram()
-        #     vertexShader = gltools.compileShader(
-        #         vertSrc, GL.GL_VERTEX_SHADER)
-        #     fragmentShader = gltools.compileShader(
-        #         fragSrc, GL.GL_FRAGMENT_SHADER)
+            # build a shader program
+            prog = gltools.createProgram()
+            vertexShader = gltools.compileShader(
+                vertSrc, GL.GL_VERTEX_SHADER)
+            fragmentShader = gltools.compileShader(
+                fragSrc, GL.GL_FRAGMENT_SHADER)
 
-        #     gltools.attachShader(prog, vertexShader)
-        #     gltools.attachShader(prog, fragmentShader)
-        #     gltools.linkProgram(prog)
-        #     gltools.detachShader(prog, vertexShader)
-        #     gltools.detachShader(prog, fragmentShader)
-        #     gltools.deleteShader(vertexShader)
-        #     gltools.deleteShader(fragmentShader)
+            gltools.attachShader(prog, vertexShader)
+            gltools.attachShader(prog, fragmentShader)
+            gltools.linkProgram(prog)
+            gltools.detachShader(prog, vertexShader)
+            gltools.detachShader(prog, fragmentShader)
+            gltools.deleteShader(vertexShader)
+            gltools.deleteShader(fragmentShader)
 
-        #     # set the flag
-        #     self._shaders['stim3d_phong'][flag] = prog
+            # set the flag
+            self._shaders['stim3d_phong'][flag] = prog        
 
     def _setupFrameBuffer(self):
         """Setup the framebuffer object for this window.
