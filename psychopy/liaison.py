@@ -107,7 +107,7 @@ class WebSocketServer:
 	A simple Liaison server, using WebSockets as communication protocol.
 	"""
 
-	def __init__(self):
+	def __init__(self, logLevel=logging.DEBUG):
 		"""
 		Create an instance of a Liaison WebSocket server, to which clients can connect to run the methods of class instances.
 		"""
@@ -119,9 +119,9 @@ class WebSocketServer:
 		self.logger = LiaisonLogger()
 		# setup a base Python logger
 		self._logger = _logging.getLogger('liaison.WebSocketServer')
-		self._logger.setLevel(logging.DEBUG)
+		self._logger.setLevel(logLevel)
 		consoleHandler = _logging.StreamHandler()
-		consoleHandler.setLevel(_logging.DEBUG)
+		consoleHandler.setLevel(logLevel)
 		consoleHandler.setFormatter(_logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
 		self._logger.addHandler(consoleHandler)
 

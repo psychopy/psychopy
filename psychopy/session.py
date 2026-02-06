@@ -1738,6 +1738,7 @@ if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("--host", dest="host")
+    parser.add_argument("--log-level", dest="logLevel")
     args, _ = parser.parse_known_args()
 
     if ":" in str(args.host):
@@ -1745,7 +1746,7 @@ if __name__ == "__main__":
         # Import liaison
         from psychopy import liaison
         # Create liaison server
-        liaisonServer = liaison.WebSocketServer()
+        liaisonServer = liaison.WebSocketServer(logLevel=args.logLevel)
         # Add DeviceManager to liaison server
         liaisonServer.registerClass(DeviceManager, "DeviceManager")
         # Add session to liaison server
