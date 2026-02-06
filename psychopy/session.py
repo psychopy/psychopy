@@ -1738,7 +1738,7 @@ if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("--host", dest="host")
-    parser.add_argument("--log-level", dest="logLevel")
+    parser.add_argument("--log-level", dest="logLevel", default="INFO")
     args, _ = parser.parse_known_args()
 
     if ":" in str(args.host):
