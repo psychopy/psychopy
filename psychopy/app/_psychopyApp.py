@@ -756,21 +756,17 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
 
     def csvFromPsydat(self, evt=None):
         from psychopy import gui
-        from psychopy.tools.filetools import fromFile
+        from psychopy.tools.filetools import psydat2csv
 
         prompt = _translate("Select .psydat file(s) to extract")
         names = gui.fileOpenDlg(allowed='*.psydat', prompt=prompt)
         for name in names or []:
+            # log name
             filePsydat = os.path.abspath(name)
             print("psydat: {0}".format(filePsydat))
-
-            exp = fromFile(filePsydat)
-            if filePsydat.endswith('.psydat'):
-                fileCsv = filePsydat[:-7]
-            else:
-                fileCsv = filePsydat
-            fileCsv += '.csv'
-            exp.saveAsWideText(fileCsv)
+            # convert
+            fileCsv = psydat2csv(filePsydat)
+            # log conversion
             print('   -->: {0}'.format(os.path.abspath(fileCsv)))
 
     def checkUpdates(self, evt):

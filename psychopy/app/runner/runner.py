@@ -30,6 +30,7 @@ from psychopy.localization import _translate
 from psychopy.projects.pavlovia import getProject
 from psychopy.scripts.psyexpCompile import generateScript
 from psychopy.app.runner.scriptProcess import ScriptProcess
+from psychopy.tools import servertools
 import psychopy.tools.versionchooser as versions
 
 
@@ -552,7 +553,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
 
     def __del__(self):
         if self.serverProcess is not None:
-            self.killServer()
+            self.serverProcess.kill()
 
     def _applyAppTheme(self):
         # Srt own background
@@ -690,50 +691,21 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
                 exp=self.loadExperiment(),
                 target="PsychoJS"
             )
+        # get PsychoJS
+        servertools.getPsychoJS(self.currentFile.parent)
         # start server
-        self.startServer(htmlPath, port=port)
+        self.serverProcess = servertools.Server(
+            cwd=htmlPath,
+            port=port
+        )
         # open experiment
-        webbrowser.open("http://localhost:{}?__pilotToken=local".format(port))
+        self.serverProcess.openInBrowser(
+            params={'__pilotToken': "local"}
+        )
         # log experiment open
         print(
             f"##### Running PsychoJS task from {htmlPath} on port {port} #####\n"
         )
-
-    def startServer(self, htmlPath, port=12002):
-        # we only want one server process open
-        if self.serverProcess is not None:
-            self.killServer()
-        # get PsychoJS libs
-        self.getPsychoJS()
-        # construct command
-        command = [sys.executable, "-m", "http.server", str(port)]
-        # open server
-        self.serverPort = port
-        self.serverProcess = Popen(
-            command,
-            bufsize=1,
-            cwd=htmlPath,
-            stdout=PIPE,
-            stderr=PIPE,
-            shell=False,
-            universal_newlines=True,
-        )
-        time.sleep(.1)
-        # log server start
-        logging.info(f"Local server started on port {port} in directory {htmlPath}")
-
-    def killServer(self):
-        # we can only close if there is a process
-        if self.serverProcess is None:
-            return
-        # kill subprocess
-        self.serverProcess.terminate()
-        time.sleep(.1)
-        # log server stopped
-        logging.info(f"Local server on port {self.serverPort} stopped")
-        # reset references to server stuff
-        self.serverProcess = None
-        self.serverPort = None
 
     def onURL(self, evt):
         self.parent.onURL(evt)

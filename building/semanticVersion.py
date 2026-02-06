@@ -152,6 +152,7 @@ def getSemanticVersion():
         # if tag exists then dev branch is ahead of tag. Need version.txt update?
         tag = getTag(vernum)
         if tag:
+            label="post"
             # If tag exists, we need to get the number of commits since the last tag
             describe = getGitDescribe(tag)
             nCommits = countSince(tag)

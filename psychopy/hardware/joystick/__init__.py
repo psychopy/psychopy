@@ -266,6 +266,7 @@ class Joystick:
 
         """
         # use the selected backend class to get the available devices
+        global backend
         return getJoystickInterfaces()[backend].getAvailableDevices()
 
     @property
@@ -501,6 +502,27 @@ class Joystick:
             return inputIndex
 
         raise InvalidInputNameError("Input name '{}' is not valid.".format(name))
+
+    # --------------------------------------------------------------------------
+    # Event handling methods
+    #
+
+    def setEventCallback(self, evt, callback):
+        """Set a callback function to be called when a joystick event occurs.
+
+        Parameters
+        ----------
+        evt : str
+            The event type to listen for (e.g., 'on_joybutton_press',
+            'on_joybutton_release', 'on_joyaxis_motion', etc.). The name used 
+            depends on the backend.
+        callback : callable or None
+            The callback function to be called when a joystick event occurs. 
+            If None, the event handler is removed.
+
+        """
+        raise NotImplementedError("Event handling is not supported for the "
+                                  "'{}' backend.".format(self._backend))
 
     # --------------------------------------------------------------------------
     # Axis filtering methods

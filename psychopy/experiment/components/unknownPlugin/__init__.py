@@ -17,6 +17,7 @@ class UnknownPluginComponent(BaseComponent):
     categories = ['Other']
     targets = ['PsychoPy']
     iconFile = Path(__file__).parent / 'unknownPlugin.png'
+    iconSVG = Path(__file__).parent / 'UnknownPluginComponent.svg'
     tooltip = _translate('Unknown: A component which comes from a plugin which you do not have installed & activated.')
     # hide from the Components panel
     hidden = True

@@ -31,8 +31,7 @@ from .components.resourceManager import ResourceManagerComponent
 from .components.static import StaticComponent
 from .exports import IndentingBuffer, NameSpace
 from .flow import Flow
-from .loops import TrialHandler, LoopInitiator, \
-    LoopTerminator, StairHandler, MultiStairHandler
+from .loops import getAllLoopTypes, TrialHandler, LoopInitiator, LoopTerminator, StairHandler, MultiStairHandler
 from .params import _findParam, Param, legacyParams
 from psychopy.experiment.routines._base import Routine, BaseStandaloneRoutine
 from psychopy.experiment.routines import getAllStandaloneRoutines
@@ -293,12 +292,24 @@ class Experiment:
     def writeScript(self, expPath=None, target="PsychoPy", modular=True):
         """Write a PsychoPy script for the experiment
         """
-        # self.integrityCheck()
-
-        self.psychopyVersion = psychopy.__version__  # make sure is current
+        # sanitize and store expPath
+        if expPath is not None:
+            # if there is an expPath, convert it to a Path
+            expPath = Path(expPath)
+            # transform expPath from psyexp to py/js if needed
+            if expPath.suffix == ".psyexp":
+                if target == "PsychoPy":
+                    expPath = expPath.parent / (expPath.stem + ".py")
+                if target == "PsychoJS":
+                    expPath = expPath.parent / (expPath.stem + ".js")
+            # turn back into a string for actual writing
+            self.expPath = str(expPath)
+        else:
+            self.expPath = None
+        # make sure is current
+        self.psychopyVersion = psychopy.__version__
         # set this so that params write for approp target
         utils.scriptTarget = target
-        self.expPath = expPath
         script = IndentingBuffer(target=target)  # a string buffer object
 
         # get date info, in format preferred by current locale as set by app:
@@ -843,6 +854,119 @@ class Experiment:
             modifiedNames.append(routineNode.get('name'))
         self.namespace.add(routineGoodName)
         return routineGoodName
+    
+    def getJSON(self):
+        return {
+            'filename': self.filename,
+            'version': self.psychopyVersion,
+            'settings': self.settings.getJSON(),
+            'routines': [rt.getJSON() for rt in self.routines],
+            'flow': self.flow.getJSON()
+        }
+    
+    @staticmethod
+    def fromJSON(filename, data):
+        # make new Experiment
+        exp = Experiment()
+        # load file
+        exp.applyJSON(data)
+
+        return exp
+
+    def applyJSON(self, data):
+        # get all element classes
+        standaloneRoutines = getAllStandaloneRoutines()
+        components = getAllComponents()
+        from psychopy.experiment.components.unknown import UnknownComponent
+        from psychopy.experiment.components.unknownPlugin import UnknownPluginComponent
+        from psychopy.experiment.routines.unknown import UnknownRoutine
+        # start off blank
+        self.flow = Flow(exp=self)
+        self.routines = {}
+        self.namespace = NameSpace(self)
+        # apply basics
+        self.filename = data['filename']
+        self.psychopyVersion = data['version']
+        # apply settings
+        for paramName, param in self.settings.params.items():
+            param.applyJSON(data['settings']['params'][paramName])
+        # create routines
+        for rtName, rtProfile in data['routines'].items():
+            # for a regular Routine...
+            if rtProfile['tag'] == "Routine":
+                # make Routine
+                rt = Routine(
+                    name=rtName,
+                    exp=self
+                )
+                # apply settings
+                for paramName, param in rt.settings.params.items(): 
+                    param.applyJSON(rtProfile['settings']['params'][paramName])
+                # make each Component
+                for compProfile in rtProfile['components']:
+                    # get comp class if possible
+                    if compProfile['tag'] in components:
+                        cls = components[compProfile['tag']]
+                    else:
+                        # if not possible, use UnknownPluginComponent or UnknownComponent depending
+                        # on whether profile specifies a plugin
+                        if compProfile['plugin']:
+                            cls = UnknownPluginComponent
+                        else:
+                            cls = UnknownComponent
+                    # make component
+                    comp = cls(
+                        exp=self,
+                        parentName=rtName
+                    )
+                    comp.plugin = compProfile['plugin']
+                    # apply params
+                    for paramName, param in comp.params.items():
+                        param.applyJSON(compProfile['params'][paramName])
+                    # append to Routine
+                    rt.append(comp)
+            else:
+                # get rt class if possible
+                if rtProfile['tag'] in standaloneRoutines:
+                    cls = standaloneRoutines[rtProfile['tag']]
+                else:
+                    # if not possible, use UnknownRoutine
+                    cls = UnknownRoutine
+                # make rt
+                rt = cls(
+                    exp=self, 
+                    name=rtName
+                )
+                # apply params
+                for paramName, param in rt.params.items():
+                    param.applyJSON(rtProfile['params'][paramName])
+            # append to experiment
+            self.routines[rtName] = rt
+        # array to store loops in
+        loops = {}
+        # populate flow
+        for nodeProfile in data['flow']:
+            if "ref" in nodeProfile:
+                # if node is a reference, get routine
+                node = self.routines.get(nodeProfile['ref'], None)
+            elif nodeProfile['tag'] == "LoopTerminator":
+                # if node is a loop terminator, make it
+                node = LoopTerminator(
+                    loop=loops[nodeProfile['name']]
+                )
+            else:
+                # anything else, assume it's a loop
+                cls = getAllLoopTypes().get(nodeProfile['tag'], TrialHandler)
+                # make loop object
+                loops[nodeProfile['params']['name']['val']] = cls.fromJSON(
+                    self, nodeProfile
+                )
+                # make initiator
+                node = LoopInitiator(
+                    loop=loops[nodeProfile['params']['name']['val']]
+                )
+            # append node
+            self.flow.append(node)
 
     def loadFromXML(self, filename):
         """Loads an xml file and parses the builder Experiment from it
@@ -1025,7 +1149,12 @@ class Experiment:
                 if loopName != elementNode.get('name'):
                     modifiedNames.append(elementNode.get('name'))
                 self.namespace.add(loopName)
-                loop = eval('%s(exp=self,name="%s")' % (loopType, loopName))
+                # make loop
+                cls = getAllLoopTypes().get(loopType, TrialHandler)
+                loop = cls(
+                    exp=self,
+                    name=loopName
+                )
                 loops[loopName] = loop
                 for paramNode in elementNode:
                     recognised = self._getXMLparam(paramNode=paramNode, params=loop.params)

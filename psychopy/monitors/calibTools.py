@@ -296,8 +296,15 @@ class Monitor:
         """
         if 'gammaGrid' in self.currentCalib:
             # Make sure it's an array, so you can look at the shape
-            grid = np.asarray(self.currentCalib['gammaGrid'])
-            if grid.shape != [4, 6]:
+            curGammaGrid = self.currentCalib['gammaGrid']
+            if isinstance(curGammaGrid, str):
+                curGammaGrid = curGammaGrid.replace('[', '').replace(']', '')
+                grid = np.fromstring(
+                    curGammaGrid, sep=' ', dtype='f').reshape((4, -1))
+            else:
+                grid = np.asarray(curGammaGrid, 'f')
+
+            if grid.shape != (4, 6):
                 newGrid = np.zeros([4, 6], 'f') * np.nan  # start as NaN
                 newGrid[:grid.shape[0], :grid.shape[1]] = grid
                 grid = self.currentCalib['gammaGrid'] = newGrid
@@ -407,6 +414,8 @@ class Monitor:
     def getNotes(self):
         """Notes about the calibration
         """
+        if 'notes' not in self.currentCalib:
+            self.currentCalib['notes'] = ''
         return self.currentCalib['notes']
 
     def getUseBits(self):
@@ -521,6 +530,16 @@ class Monitor:
         """Equivalent of :func:`~psychopy.monitors.Monitor.save`.
         """
         self.save()
+
+    def getJSON(self):
+        return {
+            'name': self.name,
+            'calibrations': self.calibs
+        }
+    
+    def fromJSON(self, node):
+        self.name = node['name']
+        self.calibs = node['calibrations']
 
     def _saveJSON(self):
         thisFileName = os.path.join(monitorFolder, self.name + ".json")
@@ -1296,6 +1315,7 @@ def gammaInvFun(yy, minLum, maxLum, gamma, b=None, eq=1):
 def strFromDate(date):
     """Simply returns a string with a std format from a date object
     """
-    if type(date) == float:
-        date = time.localtime(date)
+    if isinstance(date, (int, float)):
+        date = time.localtime(float(date))
+
     return time.strftime("%Y_%m_%d %H:%M", date)

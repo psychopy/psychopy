@@ -66,6 +66,29 @@ legacyParams = [
     "Audio latency priority",
 ]
 
+class SerializationError(Exception):
+    pass
+
+
+def serializeCallable(func, param):
+    # if iterable, call for each item
+    if isinstance(func, (list, tuple)):
+        return [serializeCallable(item, param) for item in func]
+    # if not callable, return as is
+    if not callable(func):
+        return func
+    # prepend this to the stringified output
+    preface = "python:///"
+    # get import path
+    path = f"{func.__module__}:{func.__qualname__}"
+    # if method is a local, we have a problem...
+    if "<locals>" in path:
+        logging.error(
+            f"Param {param.label} contains a local method: {path}"
+        )
+
+    return preface + path
+
 
 class Param():
     r"""Defines parameters for Experiment Components
@@ -397,6 +420,8 @@ class Param():
         )
         # apply
         param.applyJSON(data)
+        
+        return param
     
     def applyJSON(self, data):
         if "val" in data:
@@ -408,13 +433,58 @@ class Param():
         if "plugin" in data:
             self.plugin = "{}".format(data['plugin'])
     
-    def toJSON(self):
+    def getTemplateJSON(self, name=None, depends=None):
+        # return the full JSON spec (used in getJSON for params of a *class*)
+        profile = {
+            'val': self.val,
+            'valType': self.valType,
+            'inputType': self.inputType,
+            'categ': self.categ,
+            'updates': self.updates,
+            'allowedUpdates': self.allowedUpdates,
+            'allowedVals': serializeCallable(self.allowedVals, self),
+            'allowedLabels': serializeCallable(self.allowedLabels, self),
+            'ctrlParams': self.ctrlParams,
+            'label': self.label,
+            'hint': self.hint,
+            'plugin': self.plugin,
+            'depends': {
+                'shown': [],
+                'enabled': []
+            }
+        }
+        # populate depends if given
+        if depends is not None:
+            # populate depends
+            for dep in depends:
+                # ignore irrelevent dependencies
+                if dep['param'] != name:
+                    continue
+                # hide if...
+                if dep['false'] == "hide":
+                    profile['depends']['shown'].append({
+                        'param': dep['dependsOn'],
+                        'condition': dep['condition']
+                    })
+                # disable if...
+                if dep['false'] == "disable":
+                    profile['depends']['enabled'].append({
+                        'param': dep['dependsOn'],
+                        'condition': dep['condition']
+                    })
+        
+        return profile
+    
+    def getJSON(self):
+        # return just the settable parts (used in getJSON for params of an *instance*)
         return {
             'val': self.val,
             'valType': self.valType,
-            'updates': "{}".format(self.updates),
-            'plugin': "{}".format(self.plugin)
+            'updates': self.updates,
+            'plugin': self.plugin
         }
+
+        
     
     @property
     def _xml(self):

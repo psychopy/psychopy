@@ -26,6 +26,7 @@ class ButtonComponent(BaseVisualComponent):
     targets = ['PsychoPy', 'PsychoJS']
     version = "2021.1.0"
     iconFile = Path(__file__).parent / 'button.png'
+    iconSVG = Path(__file__).parent / 'ButtonComponent.svg'
     tooltip = _translate('Button: A clickable textbox')
     beta = True
 
@@ -87,7 +88,7 @@ class ButtonComponent(BaseVisualComponent):
             label=_translate("Run once per click")
         )
         self.params['callback'] = Param(
-            callback, valType='extendedCode', inputType="code", allowedTypes=[], categ='Basic',
+            callback, valType='extendedCode', inputType="code", allowedVals="python", categ='Basic',
             updates='constant',
             hint=_translate("Code to run when button is clicked"),
             label=_translate("Callback function"))

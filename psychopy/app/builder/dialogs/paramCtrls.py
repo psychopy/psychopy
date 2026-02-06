@@ -477,6 +477,30 @@ class MultiLineCtrl(SingleLineCtrl):
     ctrlStyle = wx.TE_LEFT | wx.TE_MULTILINE
 
 
+class HiddenCtrl(BaseParamCtrl):
+    inputType = "hidden"
+
+    _value = None
+
+    def makeCtrls(self):
+        """
+        Makes the actual control object.
+        """
+        self.ctrl = None
+    
+    def getValue(self):
+        """
+        Returns the value of this ctrl
+        """
+        return self._value
+
+    def setValue(self, value):
+        """
+        Returns the value of this ctrl
+        """
+        self._value = value
+
+
 class InvalidCtrl(SingleLineCtrl):
     inputType = "inv"
 
@@ -635,6 +659,31 @@ class ChoiceCtrl(BaseParamCtrl):
         self.ctrl.SetSelection(
             self.choices.index(str(value))
         )
+
+
+class VersionCtrl(ChoiceCtrl):
+    inputType = "version"
+
+    def populate(self):
+        import psychopy.tools.versionchooser as versions
+
+        # make arrays the same length
+        self.choices = []
+        self.labels = []
+        # add each version as an option
+        for version in [
+            *versions._versionFilter(versions.versionOptions(), None),
+            "",
+            *versions._versionFilter(versions.availableVersions(), None)
+        ]:
+            self.choices.append(version)
+            self.labels.append(version)
+        # apply to ctrl
+        self.ctrl.SetItems(self.labels)
+        # disable if param is readonly
+        self.ctrl.Enable(not self.param.readOnly)
+        # apply (or re-apply) selection
+        self.setValue(self.param.val)
 
 
 class MultiChoiceCtrl(ChoiceCtrl):
@@ -1127,9 +1176,19 @@ class CodeCtrl(BaseParamCtrl, handlers.ThemeMixin):
     inputType = "code"
 
     def makeCtrls(self):
+        # use allowedVals to get language
+        if isinstance(self.param.allowedVals, str):
+            codeType = {
+                'python': "Py",
+                'javascript': "JS",
+            }.get(self.param.allowedVals)
+        else:
+            codeType = "txt"
+        # make code box
         self.ctrl = CodeBox(
             self, wx.ID_ANY, prefs, 
-            pos=wx.DefaultPosition, size=(-1, 128), style=wx.DEFAULT
+            pos=wx.DefaultPosition, size=(-1, 128), style=wx.DEFAULT,
+            codeType=codeType
         )
         self.sizer.Add(
             self.ctrl, proportion=1, flag=wx.EXPAND | wx.ALL
@@ -1764,6 +1823,23 @@ class DeviceCtrl(ChoiceCtrl):
             self.deviceMgrBtn, border=6, flag=wx.EXPAND | wx.LEFT
         )
 
+    def populate(self):
+        self.choices = []
+        self.labels = []
+        for name, device in prefs.devices.items():
+            # get backends from allowedVals
+            for backend in self.param.allowedVals:
+                # if device is the correct type, include it
+                if isinstance(device, backend):
+                    self.choices.append(name)
+                    self.labels.append(name)
+        # apply to ctrl
+        self.ctrl.SetItems(self.labels)
+        # disable if param is readonly
+        self.ctrl.Enable(not self.param.readOnly)
+        # apply (or re-apply) selection
+        self.setValue(self.param.val)
+    
     def openDeviceManager(self, evt=None):
         from psychopy.app.deviceManager import DeviceManagerDlg
         # create dialog
@@ -1800,3 +1876,21 @@ class DeviceCtrl(ChoiceCtrl):
                     prefs.devices[device.name] = device
                     prefs.devices.save()
                     self.populate()
+
+
+class ValidatorCtrl(ChoiceCtrl):
+    inputType = "validator"
+    
+    def populate(self):
+        # if we don't have an element, leave unpopulated (we should always have an element for validator ctrls)
+        if self.element is None:
+            return
+        # get choices and labels from element's validator methods
+        self.choices = self.element.getAllValidatorRoutines(attr="vals")
+        self.labels = self.element.getAllValidatorRoutines(attr="labels")
+        # apply to ctrl
+        self.ctrl.SetItems(self.labels)
+        # disable if param is readonly
+        self.ctrl.Enable(not self.param.readOnly)
+        # apply (or re-apply) selection
+        self.setValue(self.param.val)

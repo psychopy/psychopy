@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-miterlimit:10;">
+    <g id="light-components-TextComponent" serif:id="light/components/TextComponent" transform="matrix(0.451519,0,0,0.451519,0,0)">
+        <rect x="0" y="0" width="70.872" height="70.866" style="fill:none;"/>
+        <clipPath id="_clip1">
+            <rect x="0" y="0" width="70.872" height="70.866"/>
+        </clipPath>
+        <g clip-path="url(#_clip1)">
+            <g id="Text-Component" serif:id="Text Component" transform="matrix(1.326,0,0,1.326,-11.5519,-11.1756)">
+                <path d="M27.42,44.216L31.1,44.216L31.1,21.318L26.787,21.318L26.787,25.912L19.146,25.912L19.146,15.107L51.467,15.107L51.467,25.912L43.779,25.912L43.779,21.318L38.881,21.318L38.881,44.216L42.631,44.216L42.631,50.638L27.42,50.638L27.42,44.216Z" style="fill:rgb(242,84,91);fill-rule:nonzero;"/>
+                <g transform="matrix(1,0,0,1,18.2053,55.1928)">
+                    <path d="M0,0L34.461,0" style="fill:none;fill-rule:nonzero;stroke:var(--outline);stroke-width:4px;"/>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

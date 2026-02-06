@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g transform="matrix(1,0,0,1,-242,0)">
+        <g id="light-components-KeyboardComponent" serif:id="light/components/KeyboardComponent" transform="matrix(0.451519,0,0,0.451519,242,0)">
+            <rect x="0" y="0" width="70.872" height="70.866" style="fill:none;"/>
+            <g id="Keyboard-Component" serif:id="Keyboard Component" transform="matrix(0.962679,0,0,0.962679,1.15725,-0.776977)">
+                <g transform="matrix(1,0,0,1,9.3671,54.3903)">
+                    <path d="M0,-35.553C-3.295,-35.553 -5.968,-32.882 -5.968,-29.585L-5.968,-3.967C-5.968,-0.672 -3.295,2 0,2L52.482,2C55.778,2 58.449,-0.671 58.449,-3.967C58.449,-3.967 58.449,-29.585 58.449,-29.585C58.449,-32.882 55.777,-35.553 52.482,-35.553C52.482,-35.553 0,-35.553 0,-35.553ZM0,-31.553L52.482,-31.553C53.569,-31.553 54.449,-30.672 54.449,-29.585L54.449,-3.967C54.449,-2.881 53.568,-2 52.482,-2C52.482,-2 -0,-2 -0,-2C-1.087,-2 -1.968,-2.88 -1.968,-3.967C-1.968,-3.967 -1.968,-29.585 -1.968,-29.585C-1.968,-30.672 -1.087,-31.553 0,-31.553Z" style="fill:var(--outline);"/>
+                </g>
+                <g id="Keys">
+                    <g transform="matrix(-1,0,0,1,72.153,23.9171)">
+                        <rect x="18.035" y="21.058" width="36.083" height="4.833" style="fill:rgb(242,84,91);"/>
+                    </g>
+                    <g transform="matrix(-1,0,0,1,27.091,23.9171)">
+                        <rect x="10.66" y="21.058" width="5.771" height="4.833" style="fill:var(--outline);"/>
+                    </g>
+                    <g transform="matrix(-1,0,0,1,116.279,23.9171)">
+                        <rect x="55.723" y="21.058" width="4.833" height="4.833" style="fill:var(--outline);"/>
+                    </g>
+                    <g transform="matrix(-1,0,0,1,116.279,-1.8329)">
+                        <rect x="55.723" y="33.933" width="4.833" height="4.833" style="fill:var(--outline);"/>
+                    </g>
+                    <g transform="matrix(-1,0,0,1,113.862,-14.7069)">
+                        <rect x="53.306" y="40.37" width="7.25" height="4.833" style="fill:rgb(2,169,234);"/>
+                    </g>
+                    <g transform="matrix(-1,0,0,1,113.862,11.0431)">
+                        <rect x="53.306" y="27.495" width="7.25" height="4.833" style="fill:rgb(2,169,234);"/>
+                    </g>
+                    <g transform="matrix(-1,0,0,1,103.403,-1.8329)">
+                        <rect x="49.285" y="33.933" width="4.833" height="4.833" style="fill:var(--outline);"/>
+                    </g>
+                    <g transform="matrix(-1,0,0,1,90.529,-1.8329)">
+                        <rect x="42.848" y="33.933" width="4.833" height="4.833" style="fill:var(--outline);"/>
+                    </g>
+                    <g transform="matrix(-1,0,0,1,77.653,-2.3209)">
+                        <rect x="36.41" y="34.177" width="4.833" height="4.833" style="fill:var(--outline);"/>
+                    </g>
+                    <g transform="matrix(-1,0,0,1,64.779,-2.3209)">
+                        <rect x="29.973" y="34.177" width="4.833" height="4.833" style="fill:var(--outline);"/>
+                    </g>
+                    <g transform="matrix(-1,0,0,1,51.903,-2.3209)">
+                        <rect x="23.535" y="34.177" width="4.833" height="4.833" style="fill:var(--outline);"/>
+                    </g>
+                    <g transform="matrix(-1,0,0,1,39.029,-2.3209)">
+                        <rect x="17.098" y="34.177" width="4.833" height="4.833" style="fill:var(--outline);"/>
+                    </g>
+                    <g transform="matrix(-1,0,0,1,26.153,-2.3209)">
+                        <rect x="10.66" y="34.177" width="4.833" height="4.833" style="fill:var(--outline);"/>
+                    </g>
+                    <g transform="matrix(-1,0,0,1,98.571,11.0431)">
+                        <rect x="46.869" y="27.495" width="4.833" height="4.833" style="fill:var(--outline);"/>
+                    </g>
+                    <g transform="matrix(-1,0,0,1,85.695,11.0431)">
+                        <rect x="40.431" y="27.495" width="4.833" height="4.833" style="fill:var(--outline);"/>
+                    </g>
+                    <g transform="matrix(-1,0,0,1,72.821,10.5551)">
+                        <rect x="33.994" y="27.739" width="4.833" height="4.833" style="fill:var(--outline);"/>
+                    </g>
+                    <g transform="matrix(-1,0,0,1,59.945,10.5551)">
+                        <rect x="27.556" y="27.739" width="4.833" height="4.833" style="fill:var(--outline);"/>
+                    </g>
+                    <g transform="matrix(-1,0,0,1,47.071,10.5551)">
+                        <rect x="21.119" y="27.739" width="4.833" height="4.833" style="fill:var(--outline);"/>
+                    </g>
+                    <g transform="matrix(-1,0,0,1,30.174,10.5551)">
+                        <rect x="10.66" y="27.739" width="8.854" height="4.833" style="fill:rgb(2,169,234);"/>
+                    </g>
+                    <g transform="matrix(-1,0,0,1,98.571,-14.7069)">
+                        <rect x="46.869" y="40.37" width="4.833" height="4.833" style="fill:var(--outline);"/>
+                    </g>
+                    <g transform="matrix(-1,0,0,1,85.695,-14.7069)">
+                        <rect x="40.431" y="40.37" width="4.833" height="4.833" style="fill:var(--outline);"/>
+                    </g>
+                    <g transform="matrix(-1,0,0,1,72.821,-15.1949)">
+                        <rect x="33.994" y="40.614" width="4.833" height="4.833" style="fill:var(--outline);"/>
+                    </g>
+                    <g transform="matrix(-1,0,0,1,59.945,-15.1949)">
+                        <rect x="27.556" y="40.614" width="4.833" height="4.833" style="fill:var(--outline);"/>
+                    </g>
+                    <g transform="matrix(-1,0,0,1,47.071,-15.1949)">
+                        <rect x="21.119" y="40.614" width="4.833" height="4.833" style="fill:var(--outline);"/>
+                    </g>
+                    <g transform="matrix(-1,0,0,1,34.195,-15.1949)">
+                        <rect x="14.681" y="40.614" width="4.833" height="4.833" style="fill:var(--outline);"/>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

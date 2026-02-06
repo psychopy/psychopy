@@ -25,8 +25,10 @@ class BaseStandaloneRoutine:
     categories = ['Custom']
     targets = []
     iconFile = Path(__file__).parent / "unknown" / "unknown.png"
+    iconSVG = Path(__file__).parent / "BaseRoutine.svg"
     tooltip = ""
     limit = float('inf')
+    plugin = None
     # what version was this Routine added in?
     version = "0.0.0"
     # is it still in beta?
@@ -51,7 +53,7 @@ class BaseStandaloneRoutine:
         msg = _translate(
             "Name of this Routine (alphanumeric or _, no spaces)")
         self.params['name'] = Param(name,
-                                    valType='code', inputType="name", categ='Basic',
+                                    valType='code', inputType="name", categ=None,
                                     hint=msg,
                                     label=_translate('Name'))
 
@@ -71,7 +73,7 @@ class BaseStandaloneRoutine:
         # Testing
         msg = _translate("Disable this Routine")
         self.params['disabled'] = Param(disabled,
-            valType='bool', inputType="bool", categ="Testing",
+            valType='bool', inputType="bool", categ=None,
             hint=msg, allowedTypes=[], direct=False,
             label=_translate('Disable Routine'))
 
@@ -95,6 +97,61 @@ class BaseStandaloneRoutine:
         else:
             self.__iterstop = True
             return self
+    
+    @classmethod
+    def getTemplateJSON(cls):
+        from psychopy.experiment import Experiment
+        # try to load SVG
+        try:
+            iconSVG = cls.iconSVG.read_text("utf-8")
+        except:
+            iconSVG = None
+        # include basic info
+        profile = {
+            '__class__': f"{cls.__module__}:{cls.__qualname__}",
+            '__name__': cls.__name__,
+            "categories": cls.categories,
+            "targets": cls.targets,
+            "plugin": cls.plugin,
+            "legacyParams": cls.legacyParams,
+            "iconSVG": iconSVG,
+            "iconFile": cls.iconFile,
+            "tooltip": cls.tooltip,
+            "version": cls.version,
+            "beta": cls.beta,
+            "hidden": cls.hidden,
+            "params": {}
+        }
+        # make an object for defaults
+        exp = Experiment()
+        defaults = cls(exp)
+        # order params
+        order = [
+            name for name in defaults.order if name in defaults.params
+        ] + [
+            name for name in defaults.params if name not in defaults.order
+        ]
+        # populate params in order
+        for name in order:
+            # make template
+            profile['params'][name] = defaults.params[name].getTemplateJSON(
+                name=name, depends=defaults.depends
+            )
+
+        return profile
+    
+    def getJSON(self):
+        # populate basic info
+        profile = {
+            'tag': type(self).__name__,
+            'plugin': self.plugin,
+            'params': {}
+        }
+        # populate params
+        for name, param in self.params.items():
+            profile['params'][name] = param.getJSON()
+        
+        return profile
 
     @property
     def _xml(self):

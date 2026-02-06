@@ -82,6 +82,7 @@ class SettingsComponent:
     categories = ['Custom']
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'settings.png'
+    iconSVG = Path(__file__).parent / 'SettingsComponent.svg'
     tooltip = _translate("Edit settings for this experiment")
     plugin = None
     version = "0.0.0"
@@ -193,19 +194,9 @@ class SettingsComponent:
             )
         )
 
-        def getVersions():
-            """
-            Search for options locally available
-            """
-            import psychopy.tools.versionchooser as versions
-            available = versions._versionFilter(versions.versionOptions(), wx_version)
-            available += ['']
-            available += versions._versionFilter(versions.availableVersions(), wx_version)
-            return available
-
         self.params['Use version'] = Param(
-            useVersion, valType='str', inputType="choice",
-            allowedVals=getVersions,
+            useVersion, valType='str', inputType="version",
+            allowedVals="psychopy/psychopy-lib",
             hint=_translate(
                 "The version of PsychoPy to use when running the experiment."
             ),
@@ -278,10 +269,10 @@ class SettingsComponent:
         )
         self.depends.append({
             'dependsOn': "Full-screen window",  # if...
-            'condition': "",  # matches
+            'condition': "==False",  # matches
             'param': "Window size (pixels)",  # then...
-            'true': "hide",  # should...
-            'false': "show",  # otherwise...
+            'true': "show",  # should...
+            'false': "hide",  # otherwise...
         })
         self.params['Show mouse'] = Param(
             showMouse, valType='bool', inputType="bool", allowedTypes=[],
@@ -321,7 +312,7 @@ class SettingsComponent:
             colorSpace, valType='str', inputType="choice",
             hint=_translate("Needed if color is defined numerically (see "
                             "PsychoPy documentation on color spaces)"),
-            allowedVals=['rgb', 'dkl', 'lms', 'hsv', 'hex'],
+            allowedVals=['named', 'hex', 'rgb', 'dkl', 'lms', 'hsv'],
             label=_translate("Color space"), categ="Screen")
         self.params['backgroundImg'] = Param(
             backgroundImg, valType="str", inputType="file", categ="Screen",
@@ -367,10 +358,10 @@ class SettingsComponent:
         )
         self.depends.append({
                 "dependsOn": "measureFrameRate",  # if...
-                "condition": "",  # meets...
+                "condition": "==False",  # meets...
                 "param": "frameRate",  # then...
-                "true": "hide",  # should...
-                "false": "show",  # otherwise...
+                "true": "show",  # should...
+                "false": "hide",  # otherwise...
         })
         self.params['frameRateMsg'] = Param(
             frameRateMsg, valType="str", inputType="single", categ="Screen",
@@ -789,6 +780,54 @@ class SettingsComponent:
             hint=_translate("What Python package should PsychoPy use to get keyboard input?"),
             label=_translate("Keyboard backend"), categ="Input"
         )
+    
+    @classmethod
+    def getTemplateJSON(cls):
+        from psychopy.experiment import Experiment
+        # include basic info
+        profile = {
+            '__class__': f"{cls.__module__}:{cls.__qualname__}",
+            '__name__': cls.__name__,
+            "categories": cls.categories,
+            "targets": cls.targets,
+            "plugin": cls.plugin,
+            "iconFile": cls.iconFile,
+            "tooltip": cls.tooltip,
+            "version": cls.version,
+            "beta": cls.beta,
+            "hidden": cls.hidden,
+            "params": {}
+        }
+        # make an object for defaults
+        exp = Experiment()
+        defaults = cls("", exp)
+        # order params
+        order = [
+            name for name in defaults.order if name in defaults.params
+        ] + [
+            name for name in defaults.params if name not in defaults.order
+        ]
+        # populate params in order
+        for name in order:
+            # make template
+            profile['params'][name] = defaults.params[name].getTemplateJSON(
+                name=name, depends=defaults.depends
+            )
+
+        return profile
+    
+    def getJSON(self):
+        # populate basic info
+        profile = {
+            'tag': type(self).__name__,
+            'plugin': self.plugin,
+            'params': {}
+        }
+        # populate params
+        for name, param in self.params.items():
+            profile['params'][name] = param.getJSON()
+        
+        return profile
 
     @property
     def _xml(self):
@@ -1292,14 +1331,19 @@ class SettingsComponent:
         buff.writeIndentedLines(code % params)
 
         # set up the ExperimentHandler
-        code = ("\n# an ExperimentHandler isn't essential but helps with data saving\n"
-                "thisExp = data.ExperimentHandler(\n"
-                "    name=expName, version=expVersion,\n"
-                "    extraInfo=expInfo, runtimeInfo=None,\n"
-                "    originPath=%(originPath)s,\n"
-                "    savePickle=%(Save psydat file)s, saveWideText=%(Save wide csv file)s,\n"
-                "    dataFileName=dataDir + os.sep + filename, sortColumns=%(sortColumns)s\n"
-                ")\n")
+        code = (
+            "\n"
+            "# an ExperimentHandler isn't essential but helps with data saving\n"
+            "thisExp = data.ExperimentHandler(\n"
+            "    name=expName, version=expVersion,\n"
+            "    extraInfo=expInfo, runtimeInfo=None,\n"
+            "    originPath=%(originPath)s,\n"
+            "    savePickle=%(Save psydat file)s, saveWideText=%(Save wide csv file)s,\n"
+            "    dataFileName=dataDir + os.sep + filename, sortColumns=%(sortColumns)s\n"
+            ")\n"
+            "# store pilot mode in data file\n"
+            "thisExp.addData('piloting', PILOTING, priority=priority.LOW)\n"
+        )
         buff.writeIndentedLines(code % params)
 
         # enforce dict on column priority param
@@ -2122,6 +2166,10 @@ class SettingsComponent:
         buff.setIndentLevel(+1, relative=True)
         # Write code to end experiment
         code = (
+            "# stop any playback components\n"
+            "if thisExp.currentRoutine is not None:\n"
+            "    for comp in thisExp.currentRoutine.getPlaybackComponents():\n"
+            "        comp.stop()\n"
             "if win is not None:\n"
             "    # remove autodraw from all current components\n"
             "    win.clearAutoDraw()\n"
