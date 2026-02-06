@@ -85,6 +85,11 @@ class TestTranspiler:
         for case in cases:
             self.runTranspile(case['py'], case['js'])
 
+    def test_isinstance_list(self):
+        js = translatePythonToJavaScript("a = isinstance(keys, list)")
+        assert "instanceof Array" in js
+        assert "instanceof list" not in js
+
 
     def test_var_defs(self):
         cases = [
