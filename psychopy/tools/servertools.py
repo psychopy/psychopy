@@ -25,7 +25,7 @@ class Server:
 
         return cls.instances[port]
 
-    def __init__(self, cwd, port=12002):
+    def __init__(self, cwd, port=9002):
         # store details
         self.cwd = Path(cwd)
         self.port = port
