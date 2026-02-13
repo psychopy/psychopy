@@ -83,9 +83,12 @@ jobs:
         export LIBGL_ALWAYS_INDIRECT=0
         export QT_DEBUG_PLUGINS=1 # let us know about missing dependencies?
 
+        # for wxPython
+        uv pip install https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-22.04/wxpython-4.2.4-cp310-cp310-linux_x86_64.whl
+
     - name: Pre-Install
       run: |
-        uv pip install wheel six attrdict3 moviepy git+https://gitlab.com/peircej/metapensiero.pj pdm
+        uv pip install wheel packaging typing-extensions attrdict3 moviepy git+https://gitlab.com/peircej/metapensiero.pj pdm
         if [ "${{ runner.os }}" == "Windows" ]
         then
           uv pip install pyWinhook --default-index https://www.lfd.uci.edu/~gohlke/pythonlibs
@@ -111,8 +114,8 @@ jobs:
       if: runner.os=='Linux'
       run: |
         # quick test of the gui toolkits (without pytest swallowing errors)
-        xvfb-run -a --server-args="-screen 0 1024x768x24" uv run psychopy/tests/test_gui/test_DlgFromDictQt.py
-        xvfb-run -a --server-args="-screen 0 1024x768x24" uv run psychopy/tests/test_gui/test_DlgFromDictWx.py
+        xvfb-run -a --server-args="-screen 0 1024x768x24" ${{ steps.python.outputs.executable }} psychopy/tests/test_gui/test_DlgFromDictQt.py
+        xvfb-run -a --server-args="-screen 0 1024x768x24" ${{ steps.python.outputs.executable }} psychopy/tests/test_gui/test_DlgFromDictWx.py
 
     - name: Test with pytest
       run: |
