@@ -16,8 +16,11 @@ __all__ = [
     'Joystick', 
     'JoystickError',
     'JoystickAxisNotAvailableError',
-    'JoysticButtonNotAvailableError',
-    'getJoystickInterfaces']
+    'JoystickButtonNotAvailableError',
+    'getJoystickInterfaces',
+    'getAllJoysticks',
+    'getNumJoysticks'
+]
 
 from psychopy import logging, visual
 from psychopy.hardware.joystick._base import BaseJoystickInterface
@@ -65,7 +68,7 @@ class InvalidInputNameError(JoystickError):
     pass
 
 
-class JoysticButtonNotAvailableError(JoystickError):
+class JoystickButtonNotAvailableError(JoystickError):
     """Exception raised when a button is not available on the joystick.
     """
     pass
@@ -267,6 +270,18 @@ class Joystick:
         """
         # use the selected backend class to get the available devices
         return getJoystickInterfaces()[backend].getAvailableDevices()
+    
+    @staticmethod
+    def getNumJoysticks():
+        """Return the number of available joystick devices.
+        
+        Returns
+        -------
+        int
+            The number of available joystick devices.
+        
+        """
+        return len(Joystick.getAvailableDevices())
 
     @property
     def inputLib(self):
@@ -1088,6 +1103,7 @@ def getBackend():
         The name of the joystick backend in use.
 
     """
+    global backend
     return backend
 
 
@@ -1190,6 +1206,20 @@ def getAllJoysticks():
 
     """
     return Joystick.getAvailableDevices()
+
+
+def getNumJoysticks():
+    """Return the number of available joysticks.
+
+    Uses the presently set joystick backend to get the available joysticks.
+
+    Returns
+    -------
+    int
+        The number of available joysticks.
+
+    """
+    return Joystick.getNumJoysticks()
 
 
 if __name__ == "__main__":
