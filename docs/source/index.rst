@@ -9,7 +9,7 @@
     .. grid-item-card:: :octicon:`info` News
         :link: https://workshops.psychopy.org/
 
-        New workshop! "The EEG Research Pipeline" Join us in Nottingham in December for our bootcamp!
+        Join us for our Virtual workshop! April 21st - 24th
 
     .. grid-item-card:: :octicon:`info` News
         :link: https://opensciencetools.org/
