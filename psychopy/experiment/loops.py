@@ -56,6 +56,10 @@ class _BaseLoopHandler:
     plugin = None
     # indicates the tag which refers to this loop type in experiment files
     tag = None
+    # label to be displayed in the "Add loop" button
+    label = None
+    # should this be hidden in the "Add loop" button?
+    hidden = False
         
     @classmethod
     def getTemplateJSON(cls):
@@ -65,6 +69,8 @@ class _BaseLoopHandler:
             '__class__': f"{cls.__module__}:{cls.__qualname__}",
             '__name__': cls.__name__,
             "plugin": cls.plugin,
+            'label': cls.label,
+            'hidden': cls.hidden,
             "params": {}
         }
         # make an object for defaults
@@ -90,6 +96,7 @@ class _BaseLoopHandler:
         profile = {
             'tag': type(self).__name__,
             'plugin': self.plugin,
+            'label': type(self).label,
             'params': {}
         }
         # populate params
@@ -102,6 +109,7 @@ class _BaseLoopHandler:
         # set basic info
         self.tag = profile['tag']
         self.plugin = profile['plugin']
+        self.label = profile['label']
         # set params
         for key, value in profile['params'].items():
             self.params[key] = Param.fromJSON(value)
@@ -159,6 +167,7 @@ class TrialHandler(_BaseLoopHandler):
             """
     
     tag = "TrialHandler"
+    label = _translate("Loop")
 
     def __init__(self, exp, name="trials", loopType='random', nReps=5,
                  conditions=(), conditionsFile='', endPoints=(0, 1),
@@ -559,6 +568,7 @@ class StairHandler(_BaseLoopHandler):
     """
 
     tag = "StairHandler"
+    label = "Staircase"
 
     def __init__(self, exp, name="stair", nReps='50', startVal='', nReversals='',
                  nUp=1, nDown=3, minVal=0, maxVal=1,
@@ -728,6 +738,7 @@ class MultiStairHandler(_BaseLoopHandler):
     """
 
     tag = "MultiStairHandler"
+    label = _translate("Interleaved staircases")
 
     def __init__(self, exp, name="stair", nReps='50', stairType='simple',
                  switchStairs='random',
