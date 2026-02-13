@@ -84,14 +84,14 @@ jobs:
         export QT_DEBUG_PLUGINS=1 # let us know about missing dependencies?
 
         # for wxPython
-        uv pip install https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-22.04/wxpython-4.2.4-cp310-cp310-linux_x86_64.whl
+        uv pip install https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-22.04/wxpython-4.2.4-cp310-cp310-linux_x86_64.whl --python ${{ steps.python.outputs.executable }}
 
     - name: Pre-Install
       run: |
         uv pip install wheel packaging typing-extensions attrdict3 moviepy git+https://gitlab.com/peircej/metapensiero.pj pdm
         if [ "${{ runner.os }}" == "Windows" ]
         then
-          uv pip install pyWinhook --default-index https://www.lfd.uci.edu/~gohlke/pythonlibs
+          uv pip install pyWinhook --default-index https://www.lfd.uci.edu/~gohlke/pythonlibs --python ${{ steps.python.outputs.executable }}
         fi
         if [ "${{ runner.os }}" == "macOS" ]
         then
@@ -101,7 +101,7 @@ jobs:
     
     - name: Install
       run: |
-        uv pip install . .[tests]
+        uv pip install . .[tests] --python ${{ steps.python.outputs.executable }}
     
     - name: Set nice level (linux)
       if: runner.os=='Linux'
@@ -121,9 +121,9 @@ jobs:
       run: |
         if [ "${{ runner.os }}" == "Linux" ]
         then
-          xvfb-run -a --server-args="-screen 0 1024x768x24" uv run pytest -m "not needs_sound and not needs_wx and not needs_qt and not needs_pygame and not emulator" --cov=psychopy -v psychopy
+          xvfb-run -a --server-args="-screen 0 1024x768x24" uv run --python ${{ steps.python.outputs.executable }} pytest -m "not needs_sound and not needs_wx and not needs_qt and not needs_pygame and not emulator" --cov=psychopy -v psychopy
         else
-          uv run pytest --ignore="psychopy/tests/test_app" --ignore="psychopy/tests/test_preferences" --ignore="psychopy/tests/test_experiment/needs_wx" -m "not needs_sound and not needs_wx and not emulator"  --cov=psychopy -v psychopy
+          uv run --python ${{ steps.python.outputs.executable }} pytest --ignore="psychopy/tests/test_app" --ignore="psychopy/tests/test_preferences" --ignore="psychopy/tests/test_experiment/needs_wx" -m "not needs_sound and not needs_wx and not emulator"  --cov=psychopy -v psychopy
         fi
 
     - name: upload failed app data
