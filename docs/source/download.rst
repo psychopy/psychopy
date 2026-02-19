@@ -52,19 +52,6 @@ Download
           :color: primary
 
           PsychoPy Standalone 2026.1.0
-        
-        .. dropdown:: Compatibility+ installer (py3.8)
-
-          While PsychoPy has supported Python 3.10 since version 2022.2.0, the :ref:`experimentsettings_use-version` parameter in Experiment Settings makes it possible to run an experiment using an older version of the PsychoPy library, including versions from before Python 3.10 was supported - meaning they will fail to run if your installed Python is newer than version 3.8. 
-
-          To run such experiments you will need a Compatibility+ Installer, which installs PsychoPy with Python 3.8, allowing you to run these legacy experiments, but losing out on the speed and stability improvements which come with a newer version of Python. We recommend installing via the Compatibility+ installer **only if necessary**, as besides running legacy experiments, PsychoPy will perform faster and better in Python 3.10.
-
-          The newest Compatibility+ Installer is for PsychoPy 2025.1.1:
-
-          .. button-link:: https://github.com/psychopy/psychopy/releases/download/2025.1.1/StandalonePsychoPy-2025.1.1-win64-py3.8.exe
-            :color: primary
-
-            PsychoPy 2025.1.1 compatibility+ (py3.8)
       
       .. grid-item-card::  PsychoPy Studio (Beta)
 
@@ -93,20 +80,6 @@ Download
           :color: primary
 
           PsychoPy Standalone 2026.1.0
-
-        .. dropdown:: Compatibility+ installer (py3.8)
-
-          While PsychoPy has supported Python 3.10 since version 2022.2.0, the :ref:`experimentsettings_use-version` parameter in Experiment Settings makes it possible to run an experiment using an older version of the PsychoPy library, including versions from before Python 3.10 was supported - meaning they will fail to run if your installed Python is newer than version 3.8. 
-
-          To run such experiments you will need a Compatibility+ Installer, which installs PsychoPy with Python 3.8, allowing you to run these legacy experiments, but losing out on the speed and stability improvements which come with a newer version of Python. We recommend installing via the Compatibility+ installer **only if necessary**, as besides running legacy experiments, PsychoPy will perform faster and better in Python 3.10.
-
-          The newest Compatibility+ Installer is for PsychoPy 2025.1.1:
-
-          .. button-link:: https://github.com/psychopy/psychopy/releases/download/2025.1.1/StandalonePsychoPy-2025.1.1-macOS-py3.8.exe
-            :color: primary
-            :outline:
-
-            PsychoPy Standalone 2025.1.1 compatibility+ (py3.8)
       
       .. grid-item-card::  PsychoPy Studio (Beta)
 
