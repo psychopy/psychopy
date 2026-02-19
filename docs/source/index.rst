@@ -7,6 +7,11 @@
     :class-container: news-reel
 
     .. grid-item-card:: :octicon:`info` News
+        :link: https://psychopy.org/download
+
+        Introducing PsychoPy Studio: The smoother, more user-friendly rebuild of the PsychoPy desktop app
+
+    .. grid-item-card:: :octicon:`info` News
         :link: https://workshops.psychopy.org/
 
         Join us for our Virtual workshop! April 21st - 24th
