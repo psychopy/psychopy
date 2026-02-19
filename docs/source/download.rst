@@ -31,7 +31,7 @@ Installation
 
 .. _download:
 
-PsychoPy Studio
+Download
 -------------------------------------------------
 
 .. tab-set::
@@ -39,124 +39,139 @@ PsychoPy Studio
   .. tab-item:: Windows
     :class-label: windows-tab
 
-    .. button-link:: https://github.com/psychopy/psychopy/releases/download/2026.1.0/PsychoPy_Studio_2026.1.0.exe
-      :tooltip: PsychoPy_Studio_2026.1.0.exe
-      :color: primary
+    .. grid:: 1 1 2 2
+      :gutter: 2
 
-      PsychoPy Studio 2026.1.0 
+      .. grid-item-card::  PsychoPy Standalone (Stable)
+
+        Tried and tested, PsychoPy Standalone is the best option for an install that "just works". 
+        
+        We will continue to release new versions until PsychoPy Studio is stable enough to replace it.
+
+        .. button-link:: https://github.com/psychopy/psychopy/releases/download/2026.1.0/StandalonePsychoPy-2026.1.0-win64-3.10.exe
+          :color: primary
+
+          PsychoPy Standalone 2026.1.0
+        
+        .. dropdown:: Compatibility+ installer (py3.8)
+
+          While PsychoPy has supported Python 3.10 since version 2022.2.0, the :ref:`experimentsettings_use-version` parameter in Experiment Settings makes it possible to run an experiment using an older version of the PsychoPy library, including versions from before Python 3.10 was supported - meaning they will fail to run if your installed Python is newer than version 3.8. 
+
+          To run such experiments you will need a Compatibility+ Installer, which installs PsychoPy with Python 3.8, allowing you to run these legacy experiments, but losing out on the speed and stability improvements which come with a newer version of Python. We recommend installing via the Compatibility+ installer **only if necessary**, as besides running legacy experiments, PsychoPy will perform faster and better in Python 3.10.
+
+          The newest Compatibility+ Installer is for PsychoPy 2025.1.1:
+
+          .. button-link:: https://github.com/psychopy/psychopy/releases/download/2025.1.1/StandalonePsychoPy-2025.1.1-win64-py3.8.exe
+            :color: primary
+
+            PsychoPy 2025.1.1 compatibility+ (py3.8)
+      
+      .. grid-item-card::  PsychoPy Studio (Beta)
+
+        PsychoPy Studio is a full rebuild of the PsychoPy desktop app using web-based libraries (Svelte and Electron). 
+        
+        The underlying experiment engine is still Python, but Studio provides a smoother, more user-friendly interface and better version independence with useVersion.
+
+        .. button-link:: https://github.com/psychopy/psychopy/releases/download/2026.1.0/PsychoPy_Studio_2026.1.0.exe
+          :color: primary
+
+          PsychoPy Studio 2026.1.0 
   
   .. tab-item:: MacOS
     :class-label: mac-tab
 
-    .. button-link:: https://github.com/psychopy/psychopy/releases/download/2026.1.0/PsychoPy_Studio_2026.1.0.dmg
-      :tooltip: PsychoPy_Studio_2026.1.0.dmg
-      :color: primary
+    .. grid:: 1 1 2 2
+      :gutter: 2
 
-      PsychoPy Studio 2026.1.0
+      .. grid-item-card::  PsychoPy Standalone (Stable)
+
+        Tried and tested, PsychoPy Standalone is the best option for an install that "just works". 
+        
+        We will continue to release new versions until PsychoPy Studio is stable enough to replace it.
+
+        .. button-link:: https://github.com/psychopy/psychopy/releases/download/2026.1.0/StandalonePsychoPy-2026.1.0-macOS-3.10.dmg
+          :color: primary
+
+          PsychoPy Standalone 2026.1.0
+
+        .. dropdown:: Compatibility+ installer (py3.8)
+
+          While PsychoPy has supported Python 3.10 since version 2022.2.0, the :ref:`experimentsettings_use-version` parameter in Experiment Settings makes it possible to run an experiment using an older version of the PsychoPy library, including versions from before Python 3.10 was supported - meaning they will fail to run if your installed Python is newer than version 3.8. 
+
+          To run such experiments you will need a Compatibility+ Installer, which installs PsychoPy with Python 3.8, allowing you to run these legacy experiments, but losing out on the speed and stability improvements which come with a newer version of Python. We recommend installing via the Compatibility+ installer **only if necessary**, as besides running legacy experiments, PsychoPy will perform faster and better in Python 3.10.
+
+          The newest Compatibility+ Installer is for PsychoPy 2025.1.1:
+
+          .. button-link:: https://github.com/psychopy/psychopy/releases/download/2025.1.1/StandalonePsychoPy-2025.1.1-macOS-py3.8.exe
+            :color: primary
+            :outline:
+
+            PsychoPy Standalone 2025.1.1 compatibility+ (py3.8)
+      
+      .. grid-item-card::  PsychoPy Studio (Beta)
+
+        PsychoPy Studio is a full rebuild of the PsychoPy desktop app using web-based libraries (Svelte and Electron). 
+        
+        The underlying experiment engine is still Python, but Studio provides a smoother, more user-friendly interface and better version independence with useVersion.
+
+        .. button-link:: https://github.com/psychopy/psychopy/releases/download/2026.1.0/PsychoPy_Studio_2026.1.0.dmg
+          :color: primary
+
+          PsychoPy Studio 2026.1.0
   
   .. tab-item:: Linux
     :class-label: linux-tab
 
-    .. button-link:: https://github.com/psychopy/psychopy/releases/download/2026.1.0/PsychoPy_Studio_2026.1.0.AppImage
-      :tooltip: PsychoPy_Studio_2026.1.0.AppImage
-      :color: primary
+    .. grid:: 1 1 2 2
+      :gutter: 2
 
-      PsychoPy Studio 2026.1.0
+      .. grid-item-card::  PsychoPy Standalone (Stable)
 
-PsychoPy Studio is a full rebuild of the |PsychoPy| desktop app using web-based libraries (Svelte and Electron). The underlying experiment engine (the PsychoPy library) is still Python, but Studio provides a smoother, more user-friendly interface (think drag and drop routines…) and better version independence with useVersion. After installing, when you first open the app, it will set up its own Python environment and install the PsychoPy Python library.
+        Make sure `curl` is installed (most distros include it by default).
 
-**For all versions** see the `PsychoPy releases on github <https://github.com/psychopy/psychopy/releases>`_
+        **Show installer options:**
 
-|PsychoPy| is distributed under the `GPL3 license <https://github.com/psychopy/psychopy/blob/master/LICENSE>`_
+          .. code-block:: bash
 
-PsychoPy Standalone
--------------------------------------------------
+            bash <(curl -LsSf https://github.com/wieluk/psychopy_linux_installer/releases/latest/download/psychopy_linux_installer) --help
 
-.. tab-set::
+        **Start installer with GUI:**
 
-  .. tab-item:: Windows
-    :class-label: windows-tab
+          .. code-block:: bash
 
-    .. button-link:: https://github.com/psychopy/psychopy/releases/download/2026.1.0/StandalonePsychoPy-2026.1.0-win64-3.10.exe
-      :outline:
-      :color: primary
+            bash <(curl -LsSf https://github.com/wieluk/psychopy_linux_installer/releases/latest/download/psychopy_linux_installer) --gui
 
-      PsychoPy Standalone 2026.1.0
-  
-  .. tab-item:: MacOS
-    :class-label: mac-tab
+          *Note:* `zenity` must be installed for GUI mode.
 
-    .. button-link:: https://github.com/psychopy/psychopy/releases/download/2026.1.0/StandalonePsychoPy-2026.1.0-macOS-3.10.dmg
-      :outline:
-      :color: primary
+        **Start installer without GUI:**
 
-      PsychoPy Standalone 2026.1.0
-  
-  .. tab-item:: Linux
-    :class-label: linux-tab
+          .. code-block:: bash
 
-    Make sure `curl` is installed (most distros include it by default).
+            bash <(curl -LsSf https://github.com/wieluk/psychopy_linux_installer/releases/latest/download/psychopy_linux_installer)
 
-      **Show installer options:**
+        For help, troubleshooting, or to report issues, visit the
+        `psychopy_linux_installer GitHub page <https://github.com/wieluk/psychopy_linux_installer>`_.
 
-        .. code-block:: bash
-
-          bash <(curl -LsSf https://github.com/wieluk/psychopy_linux_installer/releases/latest/download/psychopy_linux_installer) --help
-
-      **Start installer with GUI:**
-
-        .. code-block:: bash
-
-          bash <(curl -LsSf https://github.com/wieluk/psychopy_linux_installer/releases/latest/download/psychopy_linux_installer) --gui
-
-        *Note:* `zenity` must be installed for GUI mode.
-
-      **Start installer without GUI:**
-
-        .. code-block:: bash
-
-          bash <(curl -LsSf https://github.com/wieluk/psychopy_linux_installer/releases/latest/download/psychopy_linux_installer)
-
-      For help, troubleshooting, or to report issues, visit the
-      `psychopy_linux_installer GitHub page <https://github.com/wieluk/psychopy_linux_installer>`_.
-
-      For uninstall instructions, see the
-      `Uninstall section of the README <https://github.com/wieluk/psychopy_linux_installer/#uninstalling-psychopy>`_.
-
-PsychoPy Standalone is the standalone Python desktop app which was previously the main PsychoPy app. We will continue to support this app for the next few releases, but eventually this will be superceded by PsychoPy Studio.
-  
-**For all versions** see the `PsychoPy releases on github <https://github.com/psychopy/psychopy/releases>`_
-
-|PsychoPy| is distributed under the `GPL3 license <https://github.com/psychopy/psychopy/blob/master/LICENSE>`_
-
-.. _compatibility_installer:
-.. dropdown:: Compatibility+ installers
-
-  While PsychoPy has supported Python 3.10 since version 2022.2.0, the :ref:`experimentsettings_use-version` parameter in Experiment Settings makes it possible to run an experiment using an older version of the PsychoPy library, including versions from before Python 3.10 was supported - meaning they will fail to run if your installed Python is newer than version 3.8. 
-
-  To run such experiments you will need a Compatibility+ Installer, which installs PsychoPy with Python 3.8, allowing you to run these legacy experiments, but losing out on the speed and stability improvements which come with a newer version of Python. We recommend installing via the Compatibility+ installer **only if necessary**, as besides running legacy experiments, PsychoPy will perform faster and better in Python 3.10.
-
-  The newest Compatibility+ Installer is for PsychoPy 2025.1.1:
-
-  .. tab-set::
-
-    .. tab-item:: Windows
-      :class-label: windows-tab
-
-      .. button-link:: https://github.com/psychopy/psychopy/releases/download/2025.1.1/StandalonePsychoPy-2025.1.1-win64-py3.8.exe
-        :color: primary
-        :outline:
-
-        PsychoPy Standalone 2025.1.1 compatibility+ (py3.8)
+        For uninstall instructions, see the
+        `Uninstall section of the README <https://github.com/wieluk/psychopy_linux_installer/#uninstalling-psychopy>`_.
     
-    .. tab-item:: MacOS
-      :class-label: mac-tab
+      .. grid-item-card::  PsychoPy Studio (Beta)
 
-      .. button-link:: https://github.com/psychopy/psychopy/releases/download/2025.1.1/StandalonePsychoPy-2025.1.1-macOS-py3.8.exe
-        :color: primary
-        :outline:
+        PsychoPy Studio is a full rebuild of the PsychoPy desktop app using web-based libraries (Svelte and Electron). 
+        
+        The underlying experiment engine is still Python, but Studio provides a smoother, more user-friendly interface and better version independence with useVersion.
 
-        PsychoPy Standalone 2025.1.1 compatibility+ (py3.8)
+        Plus, it's much easier to install on Linux!
+
+        .. button-link:: https://github.com/psychopy/psychopy/releases/download/2026.1.0/PsychoPy_Studio_2026.1.0.AppImage
+          :tooltip: PsychoPy_Studio_2026.1.0.AppImage
+          :color: primary
+
+          PsychoPy Studio 2026.1.0
+
+**For all versions** see the `PsychoPy releases on github <https://github.com/psychopy/psychopy/releases>`_
+
+|PsychoPy| is distributed under the `GPL3 license <https://github.com/psychopy/psychopy/blob/master/LICENSE>`_
 
 .. _manual_install:
 
