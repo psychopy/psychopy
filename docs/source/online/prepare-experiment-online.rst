@@ -1,5 +1,131 @@
 .. include:: ../global.rst
 
+.. _prepare-experiment-online:
+
+Prepare your experiment for online use
+======================================
+
+**Goal:** Configure your PsychoPy experiment so it is ready to run online.
+
+Before you start
+----------------
+
+You should already have:
+
+- Checked that your experiment is compatible with online use (:doc:`/online/check-online-compatibility`)
+- Opened your experiment in PsychoPy Builder
+
+What this step covers
+---------------------
+
+In this step, you will:
+
+- Prepare stimuli and media in an optimal format for online use
+- Set experiment preferences for online use
+- Understand different methods for "loading resources" in an online experiment
+
+.. _onlineMediaFormats:
+
+Media formats suitable for online studies
+-----------------------------------------
+
+When you want to present images, sounds, or movies online, two things are important to take into account:
+
+1. Web-browsers may support different formats than PsychoPy does
+2. Because all media need to be downloaded via internet, it can be handy to use formats that compress your media, so that they produce smaller files.
+
+Below are some recommended formats and pointers how to convert your media with free and open source software.
+
+Images: PNG or JPG
+~~~~~~~~~~~~~~~~~~
+
+Web-browsers support a large variety of image formats; see an `overview here <https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Image_types>`__. Two widely supported formats are:
+
+* PNG. This format applies "lossless" compression, which means that the compressed image is an exact reproduction of the original image. PNG is good at compressing pictures with geometric shapes, but natural scenes may yield relatively large files.
+* JPG. This format applies "lossy" compression, which means that the compressed image approximates the original image. JPG can compress natural scenes very well. When encoding to JPG, you can adjust quality settings to produce larger (and more detailed) or smaller (and less detailed) files.
+ 
+Image size and resolution
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+When preparing images for online experiments, it is important to consider **both file size and display size**:
+
+- Images should generally not be larger (in pixels) than the area of the screen in which they will be displayed.
+- For example, if an image is presented in a **200 × 200 pixel** region of the screen, the image itself does not need to be larger than **200 × 200 pixels**.
+- Using very large or “high resolution” images will **not improve visual quality** on low-resolution devices or when images are shown at small sizes, but it *will* increase loading time.
+
+Be especially cautious with **AI-generated images**:
+
+- AI tools often produce images that are much larger than necessary (e.g. several thousand pixels wide).
+- These images should be resized and/or compressed before being used in an online study to avoid long download times or performance issues.
+
+For converting images to PNG or JPG, you could use `GIMP <https://www.gimp.org/>`__. See `this tutorial about GIMP <https://www.digitaltrends.com/computing/how-to-edit-multiple-photos-at-once/>`__ for instructions on how to convert multiple images at once using GIMP. By picking **“Change Format and Compression”** in step 4 of the tutorial you can select which format to save the images in.
+
+Sounds: MP3
+~~~~~~~~~~~
+
+Here you can find an `overview <https://developer.mozilla.org/en-US/docs/Web/Guide/Audio_and_video_delivery/Cross-browser_audio_basics#Audio_Codec_Support>`__ of audio formats supported by web browsers. MP3 is the most widely supported format. MP3 performs lossy compression, so the sound may lose some detail, but you can adjust the quality level. At higher qualities, the loss in detail is negligible. 
+
+For converting sound to MP3, you could use `VLC Player <https://www.videolan.org/vlc/>`__. See `this tutorial about VLC <https://www.vlchelp.com/convert-audio-format/>`__ for instructions on how to convert multiple sounds at once using VLC.
+
+NB - Presently, PsychoPy does not yet support MP3.
+
+Movies: MP4 + H.264 & MP3
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Here you can find an `overview <https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Video_codecs>`__ of video formats supported by web browsers. MP4 + H.264 + MP3 is the most widely supported format. 
+
+* MP4 is a format that can contain video and audio
+* H.264 is a format that encodes video
+* MP3 is format that encodes audio
+
+Both H.264 and MP3 perform lossy compression, so the video and audio may lose some detail, but you can adjust the quality level. At higher qualities, the loss in detail is negligible. 
+
+For converting movies, you could use `VLC Player <https://www.videolan.org/vlc/>`__. See `this tutorial <https://www.vlchelp.com/convert-video-format/>`__ for instructions on how to convert multiple movies at once using VLC. To set up the output format correctly, we recommend making a new profile at step 4 in the tutorial above (see :numref:`videoSettings`):
+
+1. Click the "New Profile" icon, then pick a name for your profile.
+2. In the "Encapsulation" tab, select "MP4/MOV"
+3. In the "Video codec" tab:
+
+   a. Tick "Video" checkbox
+   b. Select "H-264" as "Codec"
+   c. Higher bitrates mean video that is of higher quality, but also larger files. Here are some `bitrate guidelines <https://www.videoproc.com/media-converter/bitrate-setting-for-h264.htm>`__ 
+
+4. In the "Audio codec" tab:
+
+   a. Tick the "Audio" checkbox
+   b. Select "MP3" as "Codec"
+   c. Higher bitrates mean audio that is of higher quality, but also larger files.
+   d. For Sample Rate, 44100 Hz is a good choice
+5. Finally, save your profile by clicking the "Create" button.
+
+.. figure:: videoSettings.png
+    :name: videoSettings
+    :align: center
+    :figclass: align-center
+
+    Profile settings for encoding video to MP4 + H.264 & MP3
+
+Configure experiment settings
+------------------------------
+
+In Builder:
+
+1. Open **Experiment Settings**
+2. Select the **Online** tab
+3. Set:
+
+   - Any required resources (e.g., images, sounds, spreadsheets)
+   - Completion URL (if applicable)
+   - Export HTML (default is fine for most experiments, unless you are manually modifying the compiled JS code - not recommended for beginners)
+
+.. figure:: /images/addResources.png
+    :name: filterComponents
+    :align: center
+    :figclass: align-center
+    :scale: 50
+
+    Buttons used to add resources to an online experiment in PsychoPy Builder.
+
 .. _handlingOnlineResources:
 
 Resources in online studies
@@ -73,69 +199,10 @@ The other nice thing about this method is that it can be used either using a :re
 
     If you request a file and it takes too long to arrive then the onset of the trial will occur at a different time. PsychoPy will pause and will take this in to account in its response times etc. but if you absolutely must have the stimulus appear at very regular times then you should make sure you download your stimuli a long way in advance (as above) or with a very generous time window to allow for slower connections.
 
-.. _onlineMediaFormats:
+Next step
+---------
 
-Media formats suitable for online studies
------------------------------------------
+Once your experiment is prepared, continue to:
 
-When you want to present images, sounds, or movies online, two things are important to take into account:
+:doc:`Create a Pavlovia project <create-pavlovia-project>`
 
-1. Web-browsers may support different formats than PsychoPy does
-2. Because all media need to be downloaded via internet, it can be handy to use formats that compress your media, so that they produce smaller files.
-
-Below are some recommended formats and pointers how to convert your media with free and open source software.
-
-Images: PNG or JPG
-~~~~~~~~~~~~~~~~~~
-
-Web-browsers support a large variety of image formats; see an `overview here <https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Image_types>`__. Two widely supported formats are:
-
-* PNG. This format applies "lossless" compression, which means that the compressed image is an exact reproduction of the original image. PNG is good at compressing pictures with geometric shapes, but natural scenes may yield relatively large files.
-* JPG. This format applies "lossy" compression, which means that the compressed image approximates the original image. JPG can compress natural scenes very well. When encoding to JPG, you can adjust quality settings to produce larger (and more detailed) or smaller (and less detailed) files.
- 
-For converting images to PNG and JPG, you could use `GIMP <https://www.gimp.org/>`__. See `this tutorial about GIMP <https://www.digitaltrends.com/computing/how-to-edit-multiple-photos-at-once/>`__ for instructions on how to convert multiple images at once using GIMP. By picking "Change Format and Compression" in step 4 of the tutorial you can select which format to save the images in.
-
-Sounds: MP3
-~~~~~~~~~~~
-
-Here you can find an `overview <https://developer.mozilla.org/en-US/docs/Web/Guide/Audio_and_video_delivery/Cross-browser_audio_basics#Audio_Codec_Support>`__ of audio formats supported by web browsers. MP3 is the most widely supported format. MP3 performs lossy compression, so the sound may lose some detail, but you can adjust the quality level. At higher qualities, the loss in detail is negligible. 
-
-For converting sound to MP3, you could use `VLC Player <https://www.videolan.org/vlc/>`__. See `this tutorial about VLC <https://www.vlchelp.com/convert-audio-format/>`__ for instructions on how to convert multiple sounds at once using VLC.
-
-NB - Presently, PsychoPy does not yet support MP3.
-
-Movies: MP4 + H.264 & MP3
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Here you can find an `overview <https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Video_codecs>`__ of video formats supported by web browsers. MP4 + H.264 + MP3 is the most widely supported format. 
-
-* MP4 is a format that can contain video and audio
-* H.264 is a format that encodes video
-* MP3 is format that encodes audio
-
-Both H.264 and MP3 perform lossy compression, so the video and audio may lose some detail, but you can adjust the quality level. At higher qualities, the loss in detail is negligible. 
-
-For converting movies, you could use `VLC Player <https://www.videolan.org/vlc/>`__. See `this tutorial <https://www.vlchelp.com/convert-video-format/>`__ for instructions on how to convert multiple movies at once using VLC. To set up the output format correctly, we recommend making a new profile at step 4 in the tutorial above (see :numref:`videoSettings`):
-
-1. Click the "New Profile" icon, then pick a name for your profile.
-2. In the "Encapsulation" tab, select "MP4/MOV"
-3. In the "Video codec" tab:
-
-   a. Tick "Video" checkbox
-   b. Select "H-264" as "Codec"
-   c. Higher bitrates mean video that is of higher quality, but also larger files. Here are some `bitrate guidelines <https://www.videoproc.com/media-converter/bitrate-setting-for-h264.htm>`__ 
-
-4. In the "Audio codec" tab:
-
-   a. Tick the "Audio" checkbox
-   b. Select "MP3" as "Codec"
-   c. Higher bitrates mean audio that is of higher quality, but also larger files.
-   d. For Sample Rate, 44100 Hz is a good choice
-5. Finally, save your profile by clicking the "Create" button.
-
-.. figure:: videoSettings.png
-    :name: videoSettings
-    :align: center
-    :figclass: align-center
-
-    Profile settings for encoding video to MP4 + H.264 & MP3

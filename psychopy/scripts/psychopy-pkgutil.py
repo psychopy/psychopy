@@ -169,6 +169,8 @@ def setPackageIndexFilePath(indexFile):
     global PACKAGE_INDEX_FILE
     PACKAGE_INDEX_FILE = os.path.abspath(indexFile)
 
+    if not os.path.exists(os.path.dirname(PACKAGE_INDEX_FILE)):
+        os.makedirs(os.path.dirname(PACKAGE_INDEX_FILE), exist_ok=True)
     print(f'[notice]: Package index file set to: {PACKAGE_INDEX_FILE}')
 
 
