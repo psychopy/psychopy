@@ -164,7 +164,7 @@ class _Showgui_Hack():
 class PsychoPyApp(wx.App, handlers.ThemeMixin):
     _called_from_test = False  # pytest needs to change this
     # are we running a beta release?
-    beta = True
+    beta = False
 
     def __init__(self, arg=0, testMode=False, startView=None, profiling=False, **kwargs):
         """With a wx.App some things get done here, before App.__init__
