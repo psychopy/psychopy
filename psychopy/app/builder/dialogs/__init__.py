@@ -627,10 +627,10 @@ class ParamNotebook(wx.Notebook, handlers.ThemeMixin):
         paramsByCateg = OrderedDict()
         for name, param in self.params.items():
             # Add categ if not present
-            if param.categ not in paramsByCateg:
-                paramsByCateg[param.categ] = OrderedDict()
+            if (param.categ or "Basic") not in paramsByCateg:
+                paramsByCateg[param.categ or "Basic"] = OrderedDict()
             # Append param to categ
-            paramsByCateg[param.categ][name] = param
+            paramsByCateg[param.categ or "Basic"][name] = param
         # Move high priority categs to the front
         for categ in reversed(['Basic', 'Layout', 'Appearance', 'Formatting', 'Texture']):
             if categ in paramsByCateg:
@@ -644,10 +644,8 @@ class ParamNotebook(wx.Notebook, handlers.ThemeMixin):
         for categ, params in paramsByCateg.items():
             page = self.CategoryPage(self, self.parent, params, categ=categ)
             self.paramCtrls.update(page.ctrls)
-            # Bind change event
-            page.Bind(paramCtrls.EVT_PARAM_CHANGED, self.emitChangeEvent)
             # Add page to notebook
-            self.AddPage(page, _translate(categ))
+            self.AddPage(page, _translate(categ or ""))
     
     def emitChangeEvent(self, evt): 
         wx.PostEvent(self, evt)

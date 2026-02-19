@@ -185,7 +185,7 @@ class AddDeviceDlg(wx.Dialog):
         # create device object
         device = self.selectedCls(self.selectedProfile)
         # store name
-        device.params['deviceLabel'].val = self.nameCtrl.getValue()
+        device.params['name'].val = self.nameCtrl.getValue()
 
         return device
 

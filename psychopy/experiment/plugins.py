@@ -16,7 +16,6 @@ class DeviceBackend(DeviceBackend):
     key = "microphone"
     label = ""
     component = None
-    deviceClasses = ["psychopy.hardware.soundsensor.MicrophoneSoundSensor"]
     component = PluginDevicesMixin
     key = ""
     label = ""

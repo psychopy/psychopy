@@ -262,6 +262,8 @@ class Color:
         self._renderCache = {}
         self.contrast = contrast if isinstance(contrast, (int, float)) else 1
         self.valid = False
+
+
         self.conematrix = conematrix
 
         # defined here but set later

@@ -15,6 +15,8 @@ import atexit
 from itertools import product
 from collections import deque
 
+from psychopy.tools import colorspacetools as ct
+
 from psychopy.contrib.lazy_import import lazy_import
 from psychopy import colors, event
 from psychopy.localization import _translate
@@ -372,6 +374,18 @@ class Window():
         else:
             self.monitor = monitor
 
+        # Register lms and dkl conversion matrices for colorspacetools to grab if it wants
+        # ARW 020825
+        try:
+            lms_mat = self.monitor.getLMS_RGB()
+        except Exception:
+            lms_mat = None
+        try:
+            dkl_mat = self.monitor.getDKL_RGB()
+        except Exception:
+            dkl_mat = None
+
+        ct._register_active_cone_matrices(lms_mat, dkl_mat)
         # otherwise monitor will just be a dict
         self.scrWidthCM = self.monitor.getWidth()
         self.scrDistCM = self.monitor.getDistance()

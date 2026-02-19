@@ -660,7 +660,13 @@ def findFontFiles(folders=(), recursive=True, currentDir=Path(".")):
     searchPaths = folders
     if searchPaths is None or len(searchPaths)==0:
         if sys.platform == 'win32':
-            searchPaths = []  # just leave it to matplotlib as below
+            # leave it to matplotlib on Windows
+            searchPaths = []
+            try:
+                from matplotlib import font_manager
+                searchPaths.append(font_manager.findSystemFonts)
+            except:
+                pass
         elif sys.platform == 'darwin':
             # on mac matplotlib doesn't include 'ttc' files (which are fine)
             searchPaths = _OSXFontDirectories
@@ -683,32 +689,8 @@ def findFontFiles(folders=(), recursive=True, currentDir=Path(".")):
     # search those folders
     fontPaths = []
     for thisFolder in searchPaths:
-        thisFolder = Path(thisFolder)
-        for thisExt in supportedExtensions:
-            try:
-                # search (recursively or flatly)
-                if recursive:
-                    matches = thisFolder.rglob("**/*.{}".format(thisExt))
-                else:
-                    matches = thisFolder.glob("*.{}".format(thisExt))
-            except PermissionError:
-                logging.warning(f"The fonts folder '{thisFolder}' exists but the current user doesn't have read "
-                                "access to it. Fonts from that folder won't be available to TextBox")
-                continue
-            # stringify and append matches
-            for match in matches:
-                match = str(match)
-                if match not in fontPaths:
-                    fontPaths.append(match)
-
-    # let matplotlib have a go
-    try:
-        from matplotlib import font_manager
-        for thisPath in font_manager.findSystemFonts():
-            if thisPath not in fontPaths:
-                fontPaths.append(thisPath)
-    except:
-        pass
+        for file in FontFinder.getFolderFontFiles(thisFolder, recursive=recursive):
+            fontPaths.append(file)
     
     return fontPaths
 
@@ -781,9 +763,19 @@ class FontManager():
                                .format(list(self._fontInfos)))
 
     def getFontFamilyNames(self):
-        """Returns a list of the available font family names.
         """
-        return list(self._fontInfos.keys())
+        Returns a list of the available font family names.
+        """
+        families = []
+        # iterate through known font names
+        for fontName in self._fontInfos:
+            # convert to unicode
+            if isinstance(fontName, bytes):
+                fontName = fontName.decode(sys.getfilesystemencoding())
+            # append
+            families.append(fontName) 
+        
+        return families
 
     def getFontStylesForFamily(self, family_name):
         """For the given family, a list of style names supported is
@@ -1029,10 +1021,168 @@ class FontManager():
             self._fontInfos.clear()
             self._fontInfos = None
 
+class FontFinder:
+    supportedExtensions = [
+        "ttf", 
+        "otf", 
+        "ttc", 
+        "dfont", 
+        "truetype"
+    ]
+
+    @classmethod
+    def getFolderFontFiles(cls, folder, recursive=True):
+        """
+        Search for font files in a given folder
+
+        Parameters
+        ----------
+        folder : str or pathlib.Path or function
+            Path to a folder to search in, or a function returning a list of file paths
+        recursive : bool, optional
+            If True, search recursively through subfolders
+
+        Returns
+        -------
+        set[Path]
+            _description_
+        """
+        output = set()
+        # if given a function, use it instead
+        if callable(folder):
+            for match in folder():
+                output.add(match)
+            
+            return output
+        # if given a list, call on each item
+        if isinstance(folder, (tuple, list)):
+            for subfolder in folder:
+                output = output.union(
+                    cls.getFolderFontFiles(subfolder, recursive=recursive)
+                )
+            
+            return output
+        # pathify folder
+        thisFolder = Path(folder)
+        # try each extension
+        for ext in cls.supportedExtensions:
+            try:
+                # search (recursively or flatly)
+                if recursive:
+                    matches = thisFolder.rglob(f"**/*.{ext}")
+                else:
+                    matches = thisFolder.glob(f"*.{ext}")
+            except PermissionError:
+                # catch permission
+                logging.warning(f"The fonts folder '{thisFolder}' exists but the current user doesn't have read "
+                                "access to it. Fonts from that folder won't be available to TextBox")
+                continue
+            # stringify and append matches
+            for match in matches:
+                output.add(match)
+        
+        return output
+    
+    @classmethod
+    def getFolderFonts(cls, folder, recursive=True):
+        """
+        Get fonts from a given folder.
+
+        Parameters
+        ----------
+        folder : str or pathlib.Path or function
+            Path to a folder to search in, or a function returning a list of file paths
+        recursive : bool
+            If True, search recursively through subfolders
+        
+        Returns
+        -------
+        dict[str:list[FontInfo]]
+            Dict of font families, each one containing a list of FontInfo objects for each style
+        """
+        fonts = {}
+        # search in the given folder(s)
+        for file in cls.getFolderFontFiles(folder, recursive=recursive):
+            # get font details
+            info = FontInfo(file)
+            # make sure family exists
+            if info.family not in fonts:
+                fonts[info.family] = []
+            # append font info
+            fonts[info.family].append(info)
+        
+        return fonts
+
+    @classmethod
+    def getSystemFonts(cls):
+        """
+        Get a list of fonts installed to your OS.
+
+        Returns
+        -------
+        dict[str:list[FontInfo]]
+            List of FontInfo objects, one for each font
+        """
+        fonts = {}
+        # system fonts will be in different folders according to OS
+        if sys.platform == 'win32':
+            from matplotlib import font_manager
+            # on windows, leave to matplotlib
+            searchPaths = [font_manager.findSystemFonts]
+        elif sys.platform == 'darwin':
+            # on mac matplotlib doesn't include 'ttc' files (which are fine)
+            searchPaths = _OSXFontDirectories
+        elif sys.platform.startswith('linux'):
+            searchPaths = _X11FontDirectories
+        # search all indicated folders
+        for folder in searchPaths:
+            for family, faces in cls.getFolderFonts(
+                folder, 
+                recursive=True
+            ).items():
+                # make sure family exists
+                if family not in fonts:
+                    fonts[family] = []
+                # append font infos
+                fonts[family] += faces
+        
+        return fonts
+
+    @classmethod
+    def getPackagedFonts(cls):
+        """
+        Get a list of fonts available as a part of PsychoPy.
+
+        Returns
+        -------
+        dict[str:list[FontInfo]]
+            List of FontInfo objects, one for each font
+        """
+        return cls.getFolderFonts(
+            Path(prefs.paths['assets']) / "fonts", 
+            recursive=True
+        )
+    
+    @classmethod
+    def getUserFonts(cls):
+        """
+        Get a list of fonts that are saved to the PsychoPy user folder.
+
+        Returns
+        -------
+        dict[str:list[FontInfo]]
+            List of FontInfo objects, one for each font
+        """        
+        return cls.getFolderFonts(
+            prefs.paths['fonts'], 
+            recursive=True
+        )
+
 
 class FontInfo():
-
-    def __init__(self, fp, face):
+    def __init__(self, fp, face=None):
+        if face is None:
+            face = ft.Face(str(fp))
         self.path = fp
         self.family = unicode(face.family_name)
         self.style = unicode(face.style_name)
@@ -1056,6 +1206,14 @@ class FontInfo():
         if self.style:
             fullName += "_" + self.style
         return fullName
+    
+    def getJSON(self):
+        return {
+            'family': self.family,
+            'style': self.style,
+            'monospace': self.monospace,
+            'path': self.path
+        }
 
     def asdict(self):
         d = {}

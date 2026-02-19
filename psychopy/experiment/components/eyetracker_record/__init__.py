@@ -20,6 +20,7 @@ class EyetrackerRecordComponent(BaseComponent):
     targets = ['PsychoPy']
     version = "2021.2.0"
     iconFile = Path(__file__).parent / 'eyetracker_record.png'
+    iconSVG = Path(__file__).parent / 'EyetrackerRecordComponent.svg'
     tooltip = _translate('Start and / or Stop recording data from the eye tracker')
     beta = False
 
@@ -53,19 +54,19 @@ class EyetrackerRecordComponent(BaseComponent):
 
         self.depends.append(
              {"dependsOn": "actionType",  # must be param name
-              "condition": "=='Start Only'",  # val to check for
+              "condition": "in ['Start and Stop', 'Stop Only']",  # val to check for
               "param": "stop",  # param property to alter
-              "true": "hide",  # what to do with param if condition is True
-              "false": "show",  # permitted: hide, show, enable, disable
+              "true": "show",  # what to do with param if condition is True
+              "false": "hide",  # permitted: hide, show, enable, disable
               }
          )
 
         self.depends.append(
              {"dependsOn": "actionType",  # must be param name
-              "condition": "=='Stop Only'",  # val to check for
+              "condition": "in ['Start and Stop', 'Start Only']",  # val to check for
               "param": "start",  # param property to alter
-              "true": "hide",  # what to do with param if condition is True
-              "false": "show",  # permitted: hide, show, enable, disable
+              "true": "show",  # what to do with param if condition is True
+              "false": "hide",  # permitted: hide, show, enable, disable
               }
          )
 

@@ -424,6 +424,26 @@ class TestStairHandler(_BaseTestStairHandler):
         s_loaded = fromFile(path)
         assert s == s_loaded
 
+    def test_negative_step_clamped_to_min(self):
+        """Regression: negative stepSizes must still respect minVal."""
+        stairs = data.StairHandler(
+            startVal=0,
+            minVal=0,
+            maxVal=10,
+            stepType="lin",
+            stepSizes=-1,
+            nTrials=5,
+        )
+
+        seen = []
+        for trial_val in stairs:
+            seen.append(trial_val)
+            stairs.addResponse(0)  # force “increase” path, which subtracts here
+            if len(seen) >= 5:
+                break
+
+        assert all(val >= 0 for val in seen)
+
 
 class TestQuestHandler(_BaseTestStairHandler):
     """

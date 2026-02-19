@@ -23,8 +23,42 @@ __all__ = ['srgbTF', 'rec709TF', 'cielab2rgb', 'cielch2rgb', 'dkl2rgb',
 import numpy
 from psychopy import logging
 from psychopy.tools.coordinatetools import sph2cart
+# Add a registry
+_active_cone_mats = {'lms': None, 'dkl': None}
+
+def _register_active_cone_matrices(lms_mat, dkl_mat):
+    """Called by Window to register calibrated cone matrices early."""
+    _active_cone_mats['lms'] = lms_mat
+    _active_cone_mats['dkl'] = dkl_mat
+
+def _get_active_cone_matrix(space: str):
+    return _active_cone_mats.get(space.lower())
 
 
+def _get_cone_matrix_from_default_window(space: str):
+    """
+    Try to extract LMS/DKL->RGB cone matrix from the current default PsychoPy window's monitor.
+    Returns a 3x3 or None. Safe no-op if no window/monitor is available.
+    """
+    try:
+        from psychopy.visual.window import _defaultWindow  # lazy import; avoid hard dependency at module import
+    except Exception:
+        return None
+
+    mon = getattr(_defaultWindow, 'monitor', None)
+    if mon is None:
+        return None
+
+    try:
+        if space == 'lms' and hasattr(mon, 'getLMS_RGB'):
+            return mon.getLMS_RGB()
+        if space == 'dkl' and hasattr(mon, 'getDKL_RGB'):
+            return mon.getDKL_RGB()
+    except Exception:
+        return None
+    return None
+
+    
 def unpackColors(colors):  # used internally, not exported by __all__
     """Reshape an array of color values to Nx3 format.
 
@@ -628,8 +662,14 @@ def lms2rgb(lms_Nx3, conversionMatrix=None):
 
     # its easier to use in the other orientation!
     lms_3xN = numpy.transpose(lms_Nx3)
-
+ # ...
     if conversionMatrix is None:
+        # Try matrices registered by Window
+        conversionMatrix = _get_active_cone_matrix('lms')
+        logging.info(f'Trying to get active cone matrix (lms): {conversionMatrix}')
+    if conversionMatrix is None:
+        # Original behaviour (keep the warning + default matrix)
+
         cones_to_rgb = numpy.asarray([
             # L        M        S
             [4.97068857, -4.14354132, 0.17285275],  # R

@@ -16,6 +16,7 @@ class ParallelOutComponent(BaseComponent):
     categories = ['I/O', 'EEG']
     targets = ['PsychoPy']
     iconFile = Path(__file__).parent / 'parallel.png'
+    iconSVG = Path(__file__).parent / 'ParallelOutComponent.svg'
     tooltip = _translate('Parallel out: send signals from the parallel port')
 
     def __init__(self, exp, parentName, name='p_port',

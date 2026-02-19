@@ -20,6 +20,7 @@ class VisualValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
 
     categories = ['Validation']
     iconFile = Path(__file__).parent / 'visual_validator.png'
+    iconSVG = Path(__file__).parent / 'VisualValidatorRoutine.svg'
     tooltip = _translate(
         "Use a light sensor to confirm that visual stimuli are presented when they should be."
     )
@@ -76,10 +77,10 @@ class VisualValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
         )
         self.depends.append({
             "dependsOn": "findThreshold",  # if...
-            "condition": "==True",  # is...
+            "condition": "==False",  # is...
             "param": "threshold",  # then...
-            "true": "hide",  # should...
-            "false": "show",  # otherwise...
+            "true": "show",  # should...
+            "false": "hide",  # otherwise...
         })
         self.params['findSensor'] = Param(
             findSensor, valType="code", inputType="bool", categ="Basic",
@@ -115,10 +116,10 @@ class VisualValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
         for param in ("sensorPos", "sensorSize", "sensorUnits"):
             self.depends.append({
                 "dependsOn": "findSensor",  # if...
-                "condition": "==True",  # is...
+                "condition": "==False",  # is...
                 "param": param,  # then...
-                "true": "hide",  # should...
-                "false": "show",  # otherwise...
+                "true": "show",  # should...
+                "false": "hide",  # otherwise...
             })
 
         del self.params['stopType']
@@ -130,17 +131,6 @@ class VisualValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             "deviceBackend",
             "channel",
         ]
-        # label to refer to device by
-        def getDeviceLabels():
-            # start with none
-            labels = []
-            # iterate through saved devices
-            for name, profile in prefs.devices.items():
-                # if device is the correct type, include it
-                if profile.get("deviceClass", None) in self.deviceClasses:
-                    labels.append(name)
-
-            return labels
         self.params['channel'] = Param(
             channel, valType="code", inputType="single", categ="Device",
             label=_translate("Light sensor channel"),

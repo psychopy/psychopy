@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-miterlimit:10;">
+    <g id="light-components-JoyButtonsComponent" serif:id="light/components/JoyButtonsComponent" transform="matrix(0.451519,0,0,0.451519,0,0)">
+        <rect x="0" y="0" width="70.872" height="70.866" style="fill:none;"/>
+        <clipPath id="_clip1">
+            <rect x="0" y="0" width="70.872" height="70.866"/>
+        </clipPath>
+        <g clip-path="url(#_clip1)">
+            <g id="Joybuttons-Component" serif:id="Joybuttons Component" transform="matrix(0.965783,0,0,0.965783,1.21252,1.21242)">
+                <g transform="matrix(1,0,0,1,67.541,24.8566)">
+                    <path d="M0,22.28C0,26.13 -2.43,29.71 -6.28,31C-11.09,32.6 -16.3,30.01 -17.91,25.19L-19.824,19.462C-20.49,17.466 -22.359,16.12 -24.463,16.12L-39.747,16.12C-41.851,16.12 -43.72,17.466 -44.386,19.462L-46.3,25.19C-47.91,30.01 -53.12,32.6 -57.93,31C-61.78,29.71 -64.21,26.13 -64.21,22.28C-64.21,21.31 -64.06,20.33 -63.74,19.37L-55.92,-4.03C-54.67,-7.8 -51.2,-10.22 -47.44,-10.31C-47.36,-10.32 -47.29,-10.32 -47.21,-10.32L-17,-10.32C-16.92,-10.32 -16.85,-10.32 -16.77,-10.31C-13.01,-10.22 -9.54,-7.8 -8.29,-4.03L-0.47,19.37C-0.15,20.33 0,21.31 0,22.28Z" style="fill:none;fill-rule:nonzero;stroke:var(--outline);stroke-width:4.28px;"/>
+                </g>
+                <g id="Buttons" transform="matrix(1,0,0,1,-2.91525,-0.392054)">
+                    <g transform="matrix(0,1.28774,1.28774,0,49.8173,28.9485)">
+                        <path d="M2.226,-2.226C0.997,-2.226 0,-1.229 0,0C0,1.229 0.997,2.226 2.226,2.226C3.455,2.226 4.452,1.229 4.452,0C4.452,-1.229 3.455,-2.226 2.226,-2.226" style="fill:rgb(2,169,234);fill-rule:nonzero;"/>
+                    </g>
+                    <g transform="matrix(0,1.28774,1.28774,0,49.8173,18.629)">
+                        <path d="M2.226,-2.226C0.997,-2.226 0,-1.229 0,0C0,1.229 0.997,2.226 2.226,2.226C3.455,2.226 4.452,1.229 4.452,0C4.452,-1.229 3.455,-2.226 2.226,-2.226" style="fill:rgb(242,84,91);fill-rule:nonzero;"/>
+                    </g>
+                    <g transform="matrix(0,1.28774,1.28774,0,54.977,23.7887)">
+                        <path d="M2.226,-2.226C0.997,-2.226 0,-1.229 0,0C0,1.229 0.997,2.226 2.226,2.226C3.455,2.226 4.452,1.229 4.452,0C4.452,-1.229 3.455,-2.226 2.226,-2.226" style="fill:rgb(242,84,91);fill-rule:nonzero;"/>
+                    </g>
+                    <g transform="matrix(0,1.28774,1.28774,0,44.6575,23.7887)">
+                        <path d="M2.226,-2.226C0.997,-2.226 0,-1.229 0,0C0,1.229 0.997,2.226 2.226,2.226C3.455,2.226 4.452,1.229 4.452,0C4.452,-1.229 3.455,-2.226 2.226,-2.226" style="fill:rgb(2,169,234);fill-rule:nonzero;"/>
+                    </g>
+                </g>
+                <g id="Joystick" transform="matrix(-7.57633e-21,-1.13003,-1.12991,-7.57633e-21,21.6767,21.1029)">
+                    <path d="M-4.566,-4.566C-7.089,-4.566 -9.133,-2.522 -9.133,-0C-9.133,2.522 -7.089,4.566 -4.566,4.566C-2.044,4.566 -0,2.522 -0,-0C-0,-2.522 -2.044,-4.566 -4.566,-4.566" style="fill:var(--outline);fill-rule:nonzero;"/>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>
