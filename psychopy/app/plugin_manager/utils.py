@@ -1,5 +1,4 @@
 import wx
-import wx.richtext
 from psychopy.app.themes import handlers, icons
 from psychopy.localization import _translate
 from psychopy.tools import pkgtools

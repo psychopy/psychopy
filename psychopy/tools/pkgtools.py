@@ -18,7 +18,10 @@ __all__ = [
     'getPackageMetadata',
     'getPypiInfo',
     'isInstalled',
-    'refreshPackages'
+    'refreshPackages',
+    'isUserPackage',
+    'isSystemPackage',
+    'getInstallState'
 ]
 
 
@@ -54,11 +57,14 @@ if site.USER_SITE not in sys.path:
     site.addsitedir(site.getusersitepackages())
 
 # cache list of packages to speed up checks
-_installedPackageCache = []
-_installedPackageNamesCache = []
+_installedPackageCache = {'system': [], 'user': []}
+_installedPackageNamesCache = {'system': [], 'user': []}
 
 # reference the user packages path
 USER_PACKAGES_PATH = str(prefs.paths['userPackages'])
+
+_isVenv = hasattr(sys, 'real_prefix') or (
+    hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix)
 
 
 def refreshPackages():
@@ -71,30 +77,37 @@ def refreshPackages():
     global _installedPackageCache
     global _installedPackageNamesCache
 
-    _installedPackageCache.clear()
-    _installedPackageNamesCache.clear()
-
-    # iterate through installed packages in the user folder
-    for dist in importlib.metadata.distributions(path=sys.path + [USER_PACKAGES_PATH]):
-        # get name if in 3.8
-
-        if sys.version_info.major == 3:
-            if sys.version_info.minor <= 9:
-                distName = dist.metadata['name']
+    def _getPackageInventory(searchPath):
+        # iterate through installed packages in the user folder
+        searchPath = [searchPath] if isinstance(searchPath, str) else searchPath
+        foundPackages = []
+        for dist in importlib.metadata.distributions(path=searchPath):
+            # get name if in 3.8
+            if sys.version_info.major == 3:
+                if sys.version_info.minor <= 9:
+                    distName = dist.metadata['name']
+                else:
+                    distName = dist.name
             else:
-                distName = dist.name
-        else:
-            raise VersionError(
-                "PsychoPy only supports Python 3.8 and above. "
-                "Please upgrade your Python installation.")
-
-        # mark as installed
-        _installedPackageCache.append(
-            (distName, dist.version)
-        )
-        _installedPackageNamesCache.append(
-            distName
-        )
+                raise RuntimeError(
+                    "PsychoPy only supports Python 3.8 and above. "
+                    "Please upgrade your Python installation.")
+            
+            foundPackages.append((distName, dist.version))
+            
+        return foundPackages
+    
+    # installed packages in the system path
+    _installedPackageCache['system'] = _getPackageInventory(sys.path)
+    _installedPackageNamesCache['system'] = [
+        pkg[0] for pkg in _installedPackageCache['system']]
+    
+    global _isVenv
+    if not _isVenv:
+        # if we're not in a venv, also check user packages path
+        _installedPackageCache['user'] = _getPackageInventory(USER_PACKAGES_PATH)
+        _installedPackageNamesCache['user'] = [
+            pkg[0] for pkg in _installedPackageCache['user']]
 
 
 def getUserPackagesPath():
@@ -109,7 +122,7 @@ def getUserPackagesPath():
         Path to user's package directory.
 
     """
-    return prefs.paths['packages']
+    return prefs.paths['userPackages']
 
 
 def getDistributions():
@@ -352,7 +365,25 @@ def _getUserPackageTopLevels():
     return foundTopLevelDirs
 
 
-def _isUserPackage(package):
+def isSystemPackage(package):
+    """Determine if the specified package in installed to the system Python
+    directory.
+
+    Parameters
+    ----------
+    package : str
+        Project name of the package (e.g. `psychopy-crs`) to check.
+
+    Returns
+    -------
+    bool
+        `True` if the package is present in the system Python directory.
+
+    """
+    return package in _installedPackageNamesCache['system']
+
+
+def isUserPackage(package):
     """Determine if the specified package in installed to the user's PsychoPy
     package directory.
 
@@ -367,18 +398,7 @@ def _isUserPackage(package):
         `True` if the package is present in the user's PsychoPy directory.
 
     """
-    # get packages in the user path
-    userPackages = []
-    for dist in importlib.metadata.distributions(path=[USER_PACKAGES_PATH]):
-        # substitute name if using 3.8
-        if sys.version.startswith("3.8"):
-            distName = dist.metadata['name']
-        else:
-            distName = dist.name
-        # get name
-        userPackages.append(distName)
-
-    return package in userPackages
+    return package in _installedPackageNamesCache['user']
 
 
 def _uninstallUserPackage(package):
@@ -533,7 +553,7 @@ def getInstallState(package):
         metadata = getPackageMetadata(package)
         version = metadata.get('Version', None)
         # Determine whether installed to system or user
-        if _isUserPackage(package):
+        if isUserPackage(package):
             state = "u"
         else:
             state = "s"
@@ -545,8 +565,16 @@ def getInstallState(package):
     return state, version
 
 
-def getInstalledPackages():
+def getInstalledPackages(where='both'):
     """Get a list of installed packages and their versions.
+
+    Parameters
+    ----------
+    where : str
+        Location to check for installed packages. Can be one of the following:
+        - 'system': Check only the system Python environment.
+        - 'user': Check only the user's PsychoPy package directory.
+        - 'both': Check both locations (default).
 
     Returns
     -------
@@ -555,24 +583,34 @@ def getInstalledPackages():
         '2021.3.1')`.
 
     """
-    # this is like calling `pip freeze` and parsing the output, but faster!
-    installedPackages = []
-    for dist in importlib.metadata.distributions(path=[USER_PACKAGES_PATH]):
-        # substitute name if using 3.8
-        if sys.version.startswith("3.8"):
-            distName = dist.metadata['name']
-        else:
-            distName = dist.name
-        # get name and version
-        installedPackages.append(
-            (distName, dist.version)
-        )
+    global _installedPackageCache
 
-    return installedPackages
+    if _installedPackageCache['system'] == []:
+        refreshPackages()
+
+    if where == 'system':
+        return _installedPackageCache['system']
+    elif where == 'user':
+        return _installedPackageCache['user']
+    elif where == 'both':  # combined into one list
+        return list(set(_installedPackageCache['system']) | set(_installedPackageCache['user']))
+    else:
+        raise ValueError(
+            "Parameter 'where' must be one of 'system', 'user', or 'both'.")
 
 
-def isInstalled(packageName):
+def isInstalled(packageName, where='both'):
     """Check if a package is presently installed and reachable.
+
+    Parameters
+    ----------
+    packageName : str
+        Project name of package to check.
+    where : str
+        Location to check for the package. Can be one of the following:
+        - 'system': Check only the system Python environment.
+        - 'user': Check only the user's PsychoPy package directory.
+        - 'both': Check both locations (default).
 
     Returns
     -------
@@ -580,8 +618,21 @@ def isInstalled(packageName):
         `True` if the specified package is installed.
 
     """
-    # installed packages are given as keys in the resulting dicts
-    return packageName in _installedPackageNamesCache
+    global _installedPackageNamesCache
+
+    if _installedPackageNamesCache['system'] == []:
+        refreshPackages()
+
+    if where == 'system':
+        return packageName in _installedPackageNamesCache['system']
+    elif where == 'user':
+        return packageName in _installedPackageNamesCache['user']
+    elif where == 'both':
+        return packageName in _installedPackageNamesCache['system'] or \
+               packageName in _installedPackageNamesCache['user']
+    else:
+        raise ValueError(
+            "Parameter 'where' must be one of 'system', 'user', or 'both'.")    
 
 
 def getPackageMetadata(packageName):
@@ -599,8 +650,6 @@ def getPackageMetadata(packageName):
         present in the current distribution.
 
     """
-    import email.parser
-
     try:
         dist = importlib.metadata.distribution(packageName)
     except importlib.metadata.PackageNotFoundError:

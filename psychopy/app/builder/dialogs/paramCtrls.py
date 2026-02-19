@@ -661,6 +661,31 @@ class ChoiceCtrl(BaseParamCtrl):
         )
 
 
+class VersionCtrl(ChoiceCtrl):
+    inputType = "version"
+
+    def populate(self):
+        import psychopy.tools.versionchooser as versions
+
+        # make arrays the same length
+        self.choices = []
+        self.labels = []
+        # add each version as an option
+        for version in [
+            *versions._versionFilter(versions.versionOptions(), None),
+            "",
+            *versions._versionFilter(versions.availableVersions(), None)
+        ]:
+            self.choices.append(version)
+            self.labels.append(version)
+        # apply to ctrl
+        self.ctrl.SetItems(self.labels)
+        # disable if param is readonly
+        self.ctrl.Enable(not self.param.readOnly)
+        # apply (or re-apply) selection
+        self.setValue(self.param.val)
+
+
 class MultiChoiceCtrl(ChoiceCtrl):
     inputType = "multiChoice"
 
@@ -1399,66 +1424,47 @@ class FileListCtrl(BaseParamCtrl):
     dlgWildcard = "All Files (*.*)|*.*"
     dlgStyle = wx.FD_FILE_MUST_EXIST
 
-    class FileListItem(FileCtrl):
-        def makeCtrls(self):
-            FileCtrl.makeCtrls(self)
-            # add a delete button
-            self.deleteBtn = wx.Button(self, style=wx.BU_EXACTFIT)
-            self.deleteBtn.SetBitmap(
-                icons.ButtonIcon("delete", size=16, theme="light").bitmap
-            )
-            self.sizer.Add(
-                self.deleteBtn, border=6, flag=wx.EXPAND | wx.LEFT
-            )
-            self.deleteBtn.Bind(wx.EVT_BUTTON, self.deleteSelf)
-
-            self.Layout()
-        
-        def deleteSelf(self, evt=None):
-            # remove from parent sizer and array
-            self.parent.items.pop(
-                self.parent.items.index(self)
-            )
-            self.parent.itemsSizer.Detach(self)
-            # clear any warnings
-            self.clearWarning()
-            # delete
-            self.Destroy()
-            self.parent.Layout()
-        
-        def onChange(self, evt=None):
-            FileCtrl.onChange(self, evt)
-            self.parent.onChange(evt)
-
     def makeCtrls(self):
         self.ctrl = self
         # make own sizer vertical
         self.sizer.SetOrientation(wx.VERTICAL)
-        # array to store items
-        self.items = []
-        # sizer to layout items
-        self.itemsSizer = wx.BoxSizer(wx.VERTICAL)
+        # add ctrl for items
+        self.itemsCtrl = wx.ListBox(self, style=wx.LB_MULTIPLE)
         self.sizer.Add(
-            self.itemsSizer, border=6, proportion=1, flag=wx.EXPAND | wx.BOTTOM
+            self.itemsCtrl, border=6, proportion=1, flag=wx.EXPAND | wx.RIGHT
         )
-        # add multiple button
-        self.addManyBtn = wx.Button(self, label=_translate("Add multiple items"))
-        self.addManyBtn.SetBitmap(
-            icons.ButtonIcon("add_many", size=16, theme="light").bitmap
-        )
+        # add sizer for buttons
+        self.btnsSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.sizer.Add(
-            self.addManyBtn, border=6, flag=wx.ALIGN_LEFT | wx.BOTTOM
+            self.btnsSizer, border=6, flag=wx.EXPAND
         )
-        self.addManyBtn.Bind(wx.EVT_BUTTON, self.addMultiItems)
-        # add button
-        self.addBtn = wx.Button(self, label=_translate("Add item"))
+        # add custom
+        self.addBtn = wx.Button(self, label=_translate("Add custom item"))
         self.addBtn.SetBitmap(
-            icons.ButtonIcon("add", size=16, theme="light").bitmap
+            icons.ButtonIcon("edit", size=16, theme="light").bitmap
         )
-        self.sizer.Add(
+        self.btnsSizer.Add(
             self.addBtn, border=6, flag=wx.ALIGN_LEFT | wx.BOTTOM
         )
-        self.addBtn.Bind(wx.EVT_BUTTON, self.addItem)
+        self.addBtn.Bind(wx.EVT_BUTTON, self.addCustomItem)
+        # add file
+        self.addFileBtn = wx.Button(self, label=_translate("Add file"))
+        self.addFileBtn.SetBitmap(
+            icons.ButtonIcon("add", size=16, theme="light").bitmap
+        )
+        self.btnsSizer.Add(
+            self.addFileBtn, border=6, flag=wx.ALIGN_LEFT | wx.BOTTOM
+        )
+        self.addFileBtn.Bind(wx.EVT_BUTTON, self.addFileItem)
+        # delete
+        self.deleteBtn = wx.Button(self, label=_translate("Remove"))
+        self.deleteBtn.SetBitmap(
+            icons.ButtonIcon("delete", size=16, theme="light").bitmap
+        )
+        self.btnsSizer.Add(
+            self.deleteBtn, border=6, flag=wx.ALIGN_LEFT | wx.BOTTOM
+        )
+        self.deleteBtn.Bind(wx.EVT_BUTTON, self.removeItem)
         # set initial value
         self.setValue(self.param.val)
     
@@ -1471,104 +1477,65 @@ class FileListCtrl(BaseParamCtrl):
         self.GetTopLevelParent().Layout()
         self.GetTopLevelParent().Fit()
     
-    def addItem(self, evt=None):
-        """
-        Add a new item to this ctrl
-        """
-        # make a file control for a param not attached to anything
-        item = self.FileListItem(
-            parent=self, 
-            field=str(len(self.items)),
-            param=Param("", valType="str", inputType="file"),
-            element=self.element,
-            warnings=self.warnings
-        )
-        # append it to items array
-        self.items.append(item)
-        # add it to the items sizer
-        self.itemsSizer.Add(
-            item, border=6, flag=wx.EXPAND | wx.BOTTOM
-        )
-
-        self.layout()
-
-        return item
+    def addCustomItem(self, event):
+        # create string dialog
+        dlg = wx.TextEntryDialog(parent=self, message=_translate("Add custom item"))
+        # show dialog
+        if dlg.ShowModal() != wx.ID_OK:
+            return
+        # get string
+        stringEntry = dlg.GetValue()
+        # add to list
+        if stringEntry:
+            self.itemsCtrl.InsertItems([stringEntry], 0)
     
-    def addMultiItems(self, evt=None):
-        """
-        Add several new items to this ctrl
-        """
-        items = []
-        # open a file browser dialog
+    def addFileItem(self, event):
+        # get files
+        fileList = self.getFiles()
+        # add files to list
+        if fileList:
+            self.itemsCtrl.InsertItems(fileList, 0)
+    
+    def removeItem(self, event):
+        i = self.itemsCtrl.GetSelections()
+        if isinstance(i, int):
+            i = [i]
+        items = [item for index, item in enumerate(self.itemsCtrl.Items)
+                 if index not in i]
+        self.itemsCtrl.SetItems(items)
+    
+    def getValue(self):
+        return self.itemsCtrl.Items
+
+    def setValue(self, value):
+        self.itemsCtrl.SetItems(value)
+    
+    @property
+    def isValid(self):
+        return True
+        
+    def validate(self):
+        pass
+
+    def getFiles(self, msg="Specify file or files...", wildcard="All Files (*.*)|*.*"):
         dlg = wx.FileDialog(
             self, 
-            message=_translate("Specify file..."), 
+            message=_translate("Specify file or files..."), 
             defaultDir=str(self.rootDir),
-            style=wx.FD_OPEN | wx.FD_MULTIPLE | self.dlgStyle,
-            wildcard=self.dlgWildcard,
+            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_MULTIPLE,
+            wildcard=_translate("All Files (*.*)|*.*")
         )
         if dlg.ShowModal() != wx.ID_OK:
             return
-        # get path
-        for file in dlg.GetPaths():
-            # relativise
+        inList = dlg.GetPaths()
+        outList = []
+        for file in inList:
             try:
                 filename = Path(file).relative_to(self.rootDir)
             except ValueError:
                 filename = Path(file).absolute()
-            # make a file control for a param not attached to anything
-            item = self.FileListItem(
-                parent=self, 
-                field=str(len(self.items)),
-                param=Param(str(filename).replace("\\", "/"), valType="str", inputType="file"),
-                element=self.element,
-                warnings=self.warnings
-            )
-            items.append(item)
-            # append it to items array
-            self.items.append(item)
-            # add it to the items sizer
-            self.itemsSizer.Add(
-                item, border=6, flag=wx.EXPAND | wx.BOTTOM
-            )
-
-        self.layout()
-
-        return items
-    
-    def clearItems(self):
-        """
-        Clear all items from this ctrl
-        """
-        for item in self.items:
-            item.deleteSelf()
-        
-        self.layout()
-    
-    def getValue(self):
-        return [item.getValue() for item in self.items]
-
-    def setValue(self, value):
-        # unstring value into an actual list
-        value = data.utils.listFromString(value)
-        # clear all items
-        self.clearItems()
-        # make a new item for each value
-        for item in value:
-            ctrl = self.addItem()
-            ctrl.setValue(item)
-    
-    @property
-    def isValid(self):
-        # return True if all children are valid
-        return all([
-            item.isValid 
-            for item in self.items
-        ])
-        
-    def validate(self):
-        for item in self.items:
-            item.validate()
+            outList.append(str(filename).replace("\\", "/"))
+        return outList
     
     @property
     def rootDir(self):

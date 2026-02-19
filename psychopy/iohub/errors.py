@@ -31,17 +31,24 @@ def print2err(*args):
         for a in args:
             print("{0}".format(a))
         print()
-        	
+
+            
 def printExceptionDetailsToStdErr():
     """
     Print the last raised exception in the iohub (well, calling) process
     to the psychopy process stderr.
     """
     try:
-        traceback.print_exc(file=sys.stderr)
-        sys.stderr.flush()
+        # older method, kept for reference
+        # traceback.print_exc(file=sys.stderr)
+        # sys.stderr.flush()
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        errStr = "".join(traceback.format_exception(
+            exc_type, exc_value, exc_tb))
+        print2err(errStr)
     except:
         traceback.print_exc()
+
 
 class ioHubError(Exception):
     #TODO: Fix the way exceptions raised in the iohub process are handled

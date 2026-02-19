@@ -25,7 +25,7 @@ class Server:
 
         return cls.instances[port]
 
-    def __init__(self, cwd, port=12002):
+    def __init__(self, cwd, port=9002):
         # store details
         self.cwd = Path(cwd)
         self.port = port
@@ -103,7 +103,7 @@ def getPsychoJS(cwd, useVersion=''):
         if file.exists():
             continue
         # otherwise, get from url
-        req = requests.get("https://lib.pavlovia.org/psychojs-{ver}.{ext}")
+        req = requests.get(f"https://lib.pavlovia.org/psychojs-{ver}.{ext}")
         # write to file
         file.write_bytes(req.content)
 

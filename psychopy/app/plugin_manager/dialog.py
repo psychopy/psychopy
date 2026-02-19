@@ -1,13 +1,7 @@
-import subprocess
-from pathlib import Path
-
 import wx
-
 from psychopy import prefs
 from psychopy.app import getAppInstance
 from psychopy.app.plugin_manager import PluginManagerPanel, PackageManagerPanel, InstallStdoutPanel
-from psychopy.app.plugin_manager.packageIndex import (
-    loadPackageIndex, refreshPackageIndex, freePackageIndex)
 from psychopy.experiment import getAllElements
 from psychopy.localization import _translate
 import psychopy.logging as logging
@@ -17,9 +11,6 @@ import sys
 import os
 import subprocess as sp
 import psychopy.plugins as plugins
-
-
-
 
 # flag to indicate if PsychoPy needs to be restarted after installing a package
 NEEDS_RESTART = False
@@ -69,8 +60,6 @@ class EnvironmentManagerDlg(wx.Dialog):
         self.pipProcess = None  # handle to the current Job
 
         self.notebook.ChangeSelection(0)
-
-        loadPackageIndex()
 
     @staticmethod
     def getPackageVersionInfo(packageName):
@@ -353,8 +342,6 @@ class EnvironmentManagerDlg(wx.Dialog):
         # clear pip process
         self.pipProcess = None
         # refresh view
-        refreshPackageIndex()
-        loadPackageIndex()
         self.pluginMgr.updateInfo()
         self.packageMgr.refresh()
 
@@ -382,9 +369,6 @@ class EnvironmentManagerDlg(wx.Dialog):
             if dlg.ShowModal() == wx.ID_NO:
                 return
             
-        # free package index
-        freePackageIndex()
-
         if evt is not None:
             evt.Skip()
 
