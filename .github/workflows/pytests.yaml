@@ -85,7 +85,7 @@ jobs:
 
     - name: Pre-Install
       run: |
-        uv pip install wheel six attrdict3 moviepy git+https://gitlab.com/peircej/metapensiero.pj pdm
+        uv pip install wheel six attrdict3 moviepy git+https://gitlab.com/peircej/metapensiero.pj
         if [ "${{ runner.os }}" == "Windows" ]
         then
           uv pip install pyWinhook --default-index https://www.lfd.uci.edu/~gohlke/pythonlibs
