@@ -54,7 +54,7 @@ class StaticComponent(BaseComponent):
             "saveData",
         ]
         self.params['code'] = Param(
-            code, valType='code', inputType="multi", categ='Custom',
+            code, valType='code', inputType="code", categ='Custom',
             label=_translate("Custom code"),
             hint=_translate(
                 "Custom code to be run during the static period (after updates)"
