@@ -153,3 +153,12 @@ universal = 1
 
 [tool.psychopy]
 src = ["psychopy"]
+
+[tool.setuptools]
+package-dir = {"" = "."}
+
+[tool.setuptools.packages.find]
+include = ["psychopy"]
+
+[tool.setuptools.dynamic]
+version = {file = "psychopy/VERSION"}
