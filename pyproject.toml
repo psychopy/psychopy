@@ -138,7 +138,7 @@ psychopy = "psychopy.app.psychopyApp:main"
 
 [build-system]
 requires = [
-    "setuptools",
+    "pdm-backend",
     "distro; platform_system == \"Linux\"",
     "tomlkit",
     "packaging",
@@ -146,19 +146,19 @@ requires = [
     "polib", # for compiling translation files (*.po)
     "typing-extensions",
 ]
-build-backend = 'setuptools.build_meta'
+build-backend = "pdm.backend"
+
+[tool.pdm.build]
+includes = []
+excludes = ["building/"]
+#source-includes = ["tests/"]
+
+[tool.pdm.version]
+source = "call"
+getter = "psychopy.__init__:getVersion"
 
 [tool.distutils.bdist_wheel]
 universal = 1
 
 [tool.psychopy]
 src = ["psychopy"]
-
-[tool.setuptools]
-package-dir = {"" = "."}
-
-[tool.setuptools.packages.find]
-include = ["psychopy"]
-
-[tool.setuptools.dynamic]
-version = {file = "psychopy/VERSION"}
