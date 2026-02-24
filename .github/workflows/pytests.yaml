@@ -85,7 +85,11 @@ jobs:
     
     - name: Install
       run: |
-        uv pip install ".[tests]" ".[suggested]" ".[building]"
+        # if runner is ubuntu
+        if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
+          uv pip install -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-24.04 wxPython
+        fi
+        uv pip install . ".[tests]" ".[suggested]" ".[building]"
 
     - name: Test gui toolkits
       if: runner.os=='Linux'
@@ -99,7 +103,7 @@ jobs:
         then
           xvfb-run -a --server-args="-screen 0 1024x768x24" python pytest -m "not needs_sound and not needs_wx and not needs_qt and not needs_pygame and not emulator" --cov=psychopy -v psychopy
         else
-          pytest --ignore="psychopy/tests/test_app" --ignore="psychopy/tests/test_preferences" --ignore="psychopy/tests/test_experiment/needs_wx" -m "not needs_sound and not needs_wx and not emulator"  --cov=psychopy -v psychopy
+          pytest --ignore="psychopy/tests/test_gui" --ignore="psychopy/tests/test_preferences" --ignore="psychopy/tests/test_experiment/needs_wx" -m "not needs_sound and not needs_wx and not emulator"  --cov=psychopy -v psychopy
         fi
 
     - name: upload failed app data
