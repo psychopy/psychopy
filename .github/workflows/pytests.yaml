@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-15-intel, ubuntu-22.04]
+        os: [macos-15-intel, ubuntu-24.04]
         python-version: ['3.10']
 
     steps:
@@ -73,10 +73,6 @@ jobs:
     - name: Pre-Install
       run: |
         uv pip install wheel six attrdict3 moviepy git+https://gitlab.com/peircej/metapensiero.pj
-        if [ "${{ runner.os }}" == "Windows" ]
-        then
-          uv pip install pyWinhook --default-index https://www.lfd.uci.edu/~gohlke/pythonlibs
-        fi
         if [ "${{ runner.os }}" == "macOS" ]
         then
           # for pocketsphinx we need this adapted package:
@@ -86,16 +82,19 @@ jobs:
     - name: Install
       run: |
         # if runner is ubuntu
-        if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
+        if [ "${{ runner.os }}" == "Linux" ]; then
           uv pip install -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-24.04 wxPython
         fi
         uv pip install . ".[tests]" ".[suggested]" ".[building]"
+        cat psychopy/VERSION
+        python -c "import psychopy; print(psychopy.__version__)"
 
     - name: Test gui toolkits
       if: runner.os=='Linux'
       run: |
         # quick test of the gui toolkits (without pytest swallowing errors)
         xvfb-run -a --server-args="-screen 0 1024x768x24" python psychopy/tests/test_gui/test_DlgFromDictQt.py
+        xvfb-run -a --server-args="-screen 0 1024x768x24" python psychopy/tests/test_gui/test_DlgFromDictWx.py
 
     - name: Test with pytest
       run: |
