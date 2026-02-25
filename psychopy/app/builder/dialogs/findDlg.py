@@ -217,6 +217,7 @@ def compareStrings(text, term, caseSensitive, regex):
 
 def compareParam(param, term, caseSensitive, regex):
     val = compareStrings(str(param.val), term, caseSensitive, regex)
+    updates = None
     if "set during:" in str(param.updates):
         updates = compareStrings(str(param.updates), term, caseSensitive, regex)
 
