@@ -26,7 +26,7 @@ classifiers = [
     
 dependencies = [
     "numpy",  # use numpy<1.24 for psychopy<2023.1
-    "scipy < 1.15",  # 1.15 fails to import scipy.special
+    "scipy",  # 1.15 fails to import scipy.special
     "matplotlib",
     "pyglet == 1.4.11; platform_system == \"Windows\"",
     "pyglet == 1.5.27; platform_system != \"Windows\"",
@@ -59,16 +59,7 @@ dependencies = [
     "arabic-reshaper",
     "websockets",  # new in 2023.2 for session.py
     # for the app
-    "wxPython >= 4.1.1",
-    "markdown-it-py",
     "requests",
-    "future",  # only to support legacy versions in useVersion
-    # supporting plugins
-    "setuptools==78.1.1",  # py2app issues https://github.com/ronaldoussoren/py2app/issues/531
-    # pavlovia connections
-    "python-gitlab",
-    "gitpython",
-    "cryptography",  # for sshkeys
     # psychoJS conversions
     "astunparse",
     "esprima",

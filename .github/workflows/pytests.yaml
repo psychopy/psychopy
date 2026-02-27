@@ -16,34 +16,21 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, ubuntu-22.04]
+        os: [macos-15-intel, ubuntu-24.04]
         python-version: ['3.10']
 
     steps:
     - uses: actions/checkout@v3
 
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        
     - name: Install UV
       uses: astral-sh/setup-uv@v7
-    
-    - name: setup_python
-      id: python
-      run: |
-        # use uv to install a base Python executable
-        if [ "${{ runner.os }}" == "macOS" ]
-        then
-          # on mac this needs to be the intel build specifically
-          curl -L https://github.com/astral-sh/python-build-standalone/releases/download/20251209/cpython-3.10.19+20251209-x86_64-apple-darwin-install_only.tar.gz --output ~/pythonIntel.tar.gz
-          mkdir ~/pythonIntel
-          tar -xzvf ~/pythonIntel.tar.gz -C ~/pythonIntel
-          export PYTHON_EXECUTABLE=$(uv python find ~/pythonIntel/python)
-        else
-          uv python install ${{ matrix.python-version }}
-          export PYTHON_EXECUTABLE=$(uv python find ${{ matrix.python-version }})
-        fi
-        # create a venv so any subsequent python calls use this executable
-        uv venv --clear --python $PYTHON_EXECUTABLE
-        # return executable
-        echo "executable=$PYTHON_EXECUTABLE" >> "$GITHUB_OUTPUT"
+      with:
+        activate-environment: true
 
     - name: get_month
       if: runner.os=='Linux'
@@ -64,12 +51,12 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y -qq python3-dev libgtk-3-dev
         sudo apt-get install -y -qq libgstreamer1.0-0 gstreamer1.0-plugins-base
-        sudo apt-get install -y -qq libwebkit2gtk-4.0-dev
+        sudo apt-get install -y -qq libwebkit2gtk-4.1-dev
         sudo apt-get install -y -qq libpng-dev libjpeg-dev libtiff-dev libnotify-dev libsm-dev
         sudo apt-get install -y -qq libsdl2-dev libsdl2-mixer-2.0-0 libsdl2-image-2.0-0 libsdl2-2.0-0
         sudo apt-get install -y -qq libportaudio2
         # virtual frame buffer
-        sudo apt install llvm-13-dev  # for xvfb
+        sudo apt install llvm-18-dev  # for xvfb
         sudo apt install xvfb xauth libgl1-mesa-dri
 
         # set up fake sound device?
@@ -85,11 +72,7 @@ jobs:
 
     - name: Pre-Install
       run: |
-        uv pip install wheel six attrdict3 moviepy git+https://gitlab.com/peircej/metapensiero.pj pdm
-        if [ "${{ runner.os }}" == "Windows" ]
-        then
-          uv pip install pyWinhook --default-index https://www.lfd.uci.edu/~gohlke/pythonlibs
-        fi
+        uv pip install wheel six attrdict3 moviepy git+https://gitlab.com/peircej/metapensiero.pj
         if [ "${{ runner.os }}" == "macOS" ]
         then
           # for pocketsphinx we need this adapted package:
@@ -98,29 +81,28 @@ jobs:
     
     - name: Install
       run: |
-        uv pip install . .[tests]
-    
-    - name: Set nice level (linux)
-      if: runner.os=='Linux'
-      run: |
-        # sudo setcap cap_sys_nice=eip ${{ env.pythonLocation }}/python
-        sudo setcap cap_sys_nice+ep "${{ steps.python.outputs.executable }}"
-        getcap "${{ steps.python.outputs.executable }}"  # did it work?
+        # if runner is ubuntu
+        if [ "${{ runner.os }}" == "Linux" ]; then
+          uv pip install -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-24.04 wxPython
+        fi
+        uv pip install . ".[tests]" ".[suggested]" ".[building]"
+        cat psychopy/VERSION
+        python -c "import psychopy; print(psychopy.__version__)"
 
     - name: Test gui toolkits
       if: runner.os=='Linux'
       run: |
         # quick test of the gui toolkits (without pytest swallowing errors)
-        xvfb-run -a --server-args="-screen 0 1024x768x24" uv run psychopy/tests/test_gui/test_DlgFromDictQt.py
-        xvfb-run -a --server-args="-screen 0 1024x768x24" uv run psychopy/tests/test_gui/test_DlgFromDictWx.py
+        xvfb-run -a --server-args="-screen 0 1024x768x24" python psychopy/tests/test_gui/test_DlgFromDictQt.py
+        xvfb-run -a --server-args="-screen 0 1024x768x24" python psychopy/tests/test_gui/test_DlgFromDictWx.py
 
     - name: Test with pytest
       run: |
         if [ "${{ runner.os }}" == "Linux" ]
         then
-          xvfb-run -a --server-args="-screen 0 1024x768x24" uv run pytest -m "not needs_sound and not needs_wx and not needs_qt and not needs_pygame and not emulator" --cov=psychopy -v psychopy
+          xvfb-run -a --server-args="-screen 0 1024x768x24" pytest -m "not needs_sound and not needs_wx and not needs_qt and not needs_pygame and not emulator" --cov=psychopy -v psychopy
         else
-          uv run pytest --ignore="psychopy/tests/test_app" --ignore="psychopy/tests/test_preferences" --ignore="psychopy/tests/test_experiment/needs_wx" -m "not needs_sound and not needs_wx and not emulator"  --cov=psychopy -v psychopy
+          pytest --ignore="psychopy/tests/test_gui" --ignore="psychopy/tests/test_preferences" --ignore="psychopy/tests/test_experiment/needs_wx" -m "not needs_sound and not needs_wx and not emulator"  --cov=psychopy -v psychopy
         fi
 
     - name: upload failed app data

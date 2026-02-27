@@ -4,7 +4,7 @@ from psychopy.exceptions import DependencyError
 import numpy as np
 import pytest
 
-import psychopy.sound.backend_ptb as ptb
+import psychopy.sound
 
 """
 We need to test that the new block-by-block hamming works the same as the
@@ -28,7 +28,7 @@ if plotting:
 def test_HammingSmallBlock():
     blockSize = 64
     snd1 = apodize(sndArray, sampleRate)  # is 5 ms
-    sndDev = ptb.SoundPTB(thisFreq, sampleRate=sampleRate, secs=secs,
+    sndDev = psychopy.sound.Sound(thisFreq, sampleRate=sampleRate, secs=secs,
                           hamming=True, blockSize=blockSize)
     snd2 = []
     while sndDev.status != FINISHED:
