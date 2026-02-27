@@ -778,7 +778,7 @@ class ValidationTargetRenderer:
                                         ('eye_y', np.float64),
                                         ('pupil_size', np.float64)]
 
-    def __init__(self, win, target, positions, storeeventsfor=[], triggers=None, msgcategory='',
+    def __init__(self, win, target, positions, storeeventsfor=None, triggers=None, msgcategory='',
                  io=None, terminate_key='escape', gaze_cursor_key='g', gaze_cursor=None,
                  color_space=None, unit_type=None):
         """
@@ -818,7 +818,7 @@ class ValidationTargetRenderer:
         self.win = proxy(win)
         self.target = target
         self.positions = positions
-        self.storeevents = storeeventsfor
+        self.storeevents = storeeventsfor if storeeventsfor is not None else []
         self.msgcategory = msgcategory
 
         if io is None:
@@ -1029,10 +1029,12 @@ class ValidationTargetRenderer:
                 deviceevents[device] = []
         self.targetdata.append(dict(frompos=frompos, topos=topos, events=deviceevents))
 
-    def _addDeviceEvents(self, device_event_dict={}):
+    def _addDeviceEvents(self, device_event_dict=None):
         if self._checkForTerminate():
             return
         self._checkForToggleGaze()
+        if device_event_dict is None:
+            device_event_dict = {}
         dev_event_buffer = self.targetdata[-1]['events']
         for dev, dev_events in dev_event_buffer.items():
             if dev in device_event_dict:

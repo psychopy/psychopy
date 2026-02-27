@@ -99,8 +99,8 @@ def getEyeSampleTypesInFile(hdf5FilePath):
     return result
 
 
-def saveEventReport(hdf5FilePath=None, eventType=None, eventFields=[], useConditionsTable=False,
-                    usePsychopyDataFile=None, columnNames=[],
+def saveEventReport(hdf5FilePath=None, eventType=None, eventFields=None, useConditionsTable=False,
+                    usePsychopyDataFile=None, columnNames=None,
                     trialStart=None, trialStop=None, timeMargins=(0.0, 0.0)
                     ):
     """
@@ -393,7 +393,7 @@ class ExperimentDataAccessUtility:
 
     """
 
-    def __init__(self, hdfFilePath, hdfFileName, experimentCode=None, sessionCodes=[], mode='r'):
+    def __init__(self, hdfFilePath, hdfFileName, experimentCode=None, sessionCodes=None, mode='r'):
         """An instance of the ExperimentDataAccessUtility class is created by
         providing the location and name of the file to read, as well as any
         session code filtering you want applied to the retrieved datasets.
@@ -491,7 +491,7 @@ class ExperimentDataAccessUtility:
             if sessions is None:
                 sessions = []
 
-            sessionCodes = self._sessionCodes
+            sessionCodes = self._sessionCodes if self._sessionCodes is not None else []
             sesscols = self.hdfFile.root.data_collection.session_meta_data.colnames
             SessionMetaDataInstance = namedtuple('SessionMetaDataInstance', sesscols)
             for r in self.hdfFile.root.data_collection.session_meta_data:
