@@ -452,8 +452,7 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
     def stop(self):
         """Start recording from this keyboard"""
         if KeyboardDevice._backend == 'ptb':
-            logging.warning("Stopping key buffers but this could be dangerous if"
-                            "other keyboards rely on the same.")
+            logging.info("Stopping keyboard key buffers.")
             for buffer in self._buffers.values():
                 buffer.stop()
 
