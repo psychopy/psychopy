@@ -7,7 +7,21 @@
 Visual Validator Routine
 -------------------------------
 
-Use a light sensor to confirm that visual stimuli are presented when they should be.
+Use a light sensor to confirm that visual stimuli are presented when they should be. Before using a validator component in your experiment it is important to ensure that you have a photodiode device available for the routine to use. If you do not have a photodiode to hand you can use an "emulator" temporarily until you have access to a real device.
+
+To configure your photodiode with an emulator go to Device Manager > Add device > Screen Buffer Sampler (Debug) > Light Sensor Emulator. Alternatively if you have a photodiode connected you can search for the name of your actual device in the list of available devices.
+
+Once you have selected the Visual Validator component, it is important to add it to your experiment flow. Select Insert Routine > [name of your visual validator component] > add to your flow (usually best at the start of the experiment).
+
+In the "Device" section of the component you can select the name of your photodiode device from the dropdown list. If you have multiple photodiodes connected to your system you may also need to specify a channel number to distinguish between them.
+
+By default "Find best threshold?" and "Find sensor?" " are both set to True. This means that when you run your experiment the visual validator routine will first run a brief routine to find the best threshold for the light sensor, followed by another brief routine to find the size and position of the light sensor on the screen. Once these two brief routines have been run the main visual validator routine will run for the remainder of your experiment. 
+
+Recommended debugging steps for using the visual validator routine in your experiment:
+
+* Use an external piece of software to check that your computer can detect the external hardware. For example, if using Cedrus you can install `Xidon <https://cedrus.com/support/xid/xidon.htm>`_ to check that your computer can detect the device.
+* Set the threshold manually to a value that you know will work with your setup. You can do this by setting "Find best threshold?" to False and then entering a value for "Threshold". Lowering the threshold will make it more sensitive.
+
 
 Categories:
     Validation
@@ -37,7 +51,7 @@ Find best threshold?
 .. _visualvalidatorroutine-threshold:
 
 Threshold (*if :ref:`visualvalidatorroutine-findthreshold` isn't ==True*)
-    Light threshold at which the light sensor should register a positive, units go from 0 (least light) to 255 (most light).
+    Light threshold at which the light sensor should register a positive, units go from 0 (least light) to 1 (most light).
     
 .. _visualvalidatorroutine-findSensor:
 
@@ -80,7 +94,7 @@ Spatial units (*if :ref:`visualvalidatorroutine-finddiode` isn't ==True*)
 Device
 ===============================
 
-Information about the device associated with this Component. Keyboards, speakers, microphones, etc.
+Information about the device associated with this Component (the photodiode or light sensor emulator)
 
 
 .. _visualvalidatorroutine-deviceLabel:
