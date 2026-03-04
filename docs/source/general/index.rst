@@ -8,6 +8,7 @@ These are issues that users should be aware of, whether they are using Builder o
 .. toctree::
    :maxdepth: 1
 
+   deviceManager
    monitors
    units
    colours
