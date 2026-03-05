@@ -1357,13 +1357,6 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         self._loop = bool(value)
 
     @property
-    def loopCount(self):
-        """Number of times the movie has looped (`int`).
-
-        """
-        return self._player.loopCount if self._hasPlayer else 0
-
-    @property
     def _hasPlayer(self):
         """`True` if a media player instance is started.
         """
