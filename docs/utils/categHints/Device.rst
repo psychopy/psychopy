@@ -1,1 +1,0 @@
-Information about the device associated with this Component. Keyboards, speakers, microphones, etc.
