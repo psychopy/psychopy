@@ -1,1 +1,0 @@
-In what format (color space) have you specified the colors? See :ref:`colorspaces` for more info.

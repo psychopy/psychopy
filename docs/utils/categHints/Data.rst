@@ -1,1 +1,0 @@
-What information about this Component should be saved?

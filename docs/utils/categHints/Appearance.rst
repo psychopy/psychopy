@@ -1,1 +1,0 @@
-How should the stimulus look? Colors, borders, styles, etc.
