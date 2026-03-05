@@ -15,6 +15,7 @@ import re
 import time
 import subprocess
 import traceback
+import threading
 
 import pandas
 from packaging.version import Version
@@ -494,50 +495,62 @@ class PavloviaSession:
                         "Trying to login with token {} which is shorter "
                         "than expected length ({} not 64) for gitlab token"
                             .format(repr(token), len(token)))
-            # Setup gitlab session
-            self.gitlab = gitlab.Gitlab(rootURL, oauth_token=token,
-                                        timeout=10, session=self.session,
-                                        per_page=100)
-            try:
-                self.gitlab.auth()
-            except gitlab.exceptions.GitlabAuthenticationError as err:
-                if refreshToken is None:
-                    # if there isn't a refresh token, log back in from scratch to get one
-                    from psychopy.app.pavlovia_ui.functions import logInPavlovia
-                    logInPavlovia(None)
-                    return
+            # if there isn't a refresh token, log back in from scratch to get one
+            if refreshToken is None:
+                from psychopy.app.pavlovia_ui.functions import logInPavlovia
+                logInPavlovia(None)
+                return
+            # define function to refresh token and authenticate
+            def reauthenticate(session, refresh):
                 # refresh auth token
                 resp = requests.post(
                     "https://gitlab.pavlovia.org/oauth/token",
                     params={
                         'client_id': client_id,
-                        'refresh_token': refreshToken,
+                        'refresh_token': refresh,
                         'grant_type': "refresh_token",
                         'redirect_uri': redirect_url,
                         'code_verifier': code_verifier
                     }
                 ).json()
-                # start again with new token
-                self.setToken(
-                    resp['access_token'],
-                    refreshToken=resp['refresh_token']
-                )
-                return
-            except gitlab.exceptions.GitlabParsingError as err:
-                raise ConnectionError(
-                    "Failed to authenticate with the gitlab.pavlovia.org server. "
-                    "Received a string that could not be parsed by the gitlab library. "
-                    "This may be caused by having an institutional proxy server but "
-                    "not setting the proxy setting in PsychoPy preferences. If that "
-                    "isn't the case for you, then please get in touch so we can work out "
-                    "what the cause was in your case! support@opensciencetools.org")
+                print(resp)
+                # store refreshed tokens
+                session.__dict__['refreshToken'] = resp['refresh_token']
+                session.__dict__['token'] = resp['access_token']
+                # add token to session header
+                session.session.headers = {'OauthToken': resp['access_token']}
+                # authenticate
+                try:
+                    session.gitlab = gitlab.Gitlab(
+                        rootURL, 
+                        oauth_token=resp['access_token'],
+                        timeout=10, 
+                        session=session.session,
+                        per_page=100
+                    )
+                    session.gitlab.auth()
+                except gitlab.exceptions.GitlabParsingError as err:
+                    raise ConnectionError(
+                        "Failed to authenticate with the gitlab.pavlovia.org server. "
+                        "Received a string that could not be parsed by the gitlab library. "
+                        "This may be caused by having an institutional proxy server but "
+                        "not setting the proxy setting in PsychoPy preferences. If that "
+                        "isn't the case for you, then please get in touch so we can work out "
+                        "what the cause was in your case! support@opensciencetools.org")
+                # queue up to call this when the token expires
+                def callAgain():
+                    # wait until token expires
+                    time.sleep(resp['expires_in'])
+                    # call
+                    reauthenticate(session, resp['refresh_token'])
+                threading.Thread(target=callAgain, daemon=True).start()
+            # call it now
+            reauthenticate(self, refreshToken)
             
             self.username = self.gitlab.user.username
             self.userID = self.gitlab.user.id  # populate when token property is set
             self.userFullName = self.gitlab.user.name
             self.authenticated = True
-            # add the token (although this is also in the gitlab object)
-            self.session.headers = {'OauthToken': token}
         else:
             self.gitlab = gitlab.Gitlab(rootURL,
                                         timeout=10, session=self.session,
