@@ -16,8 +16,11 @@ __all__ = [
     'Joystick', 
     'JoystickError',
     'JoystickAxisNotAvailableError',
-    'JoysticButtonNotAvailableError',
-    'getJoystickInterfaces']
+    'JoystickButtonNotAvailableError',
+    'getJoystickInterfaces',
+    'getAllJoysticks',
+    'getNumJoysticks'
+]
 
 from psychopy import logging, visual
 from psychopy.hardware.joystick._base import BaseJoystickInterface
@@ -65,7 +68,7 @@ class InvalidInputNameError(JoystickError):
     pass
 
 
-class JoysticButtonNotAvailableError(JoystickError):
+class JoystickButtonNotAvailableError(JoystickError):
     """Exception raised when a button is not available on the joystick.
     """
     pass
@@ -266,7 +269,20 @@ class Joystick:
 
         """
         # use the selected backend class to get the available devices
+        global backend
         return getJoystickInterfaces()[backend].getAvailableDevices()
+    
+    @staticmethod
+    def getNumJoysticks():
+        """Return the number of available joystick devices.
+        
+        Returns
+        -------
+        int
+            The number of available joystick devices.
+        
+        """
+        return len(Joystick.getAvailableDevices())
 
     @property
     def inputLib(self):
@@ -501,6 +517,27 @@ class Joystick:
             return inputIndex
 
         raise InvalidInputNameError("Input name '{}' is not valid.".format(name))
+
+    # --------------------------------------------------------------------------
+    # Event handling methods
+    #
+
+    def setEventCallback(self, evt, callback):
+        """Set a callback function to be called when a joystick event occurs.
+
+        Parameters
+        ----------
+        evt : str
+            The event type to listen for (e.g., 'on_joybutton_press',
+            'on_joybutton_release', 'on_joyaxis_motion', etc.). The name used 
+            depends on the backend.
+        callback : callable or None
+            The callback function to be called when a joystick event occurs. 
+            If None, the event handler is removed.
+
+        """
+        raise NotImplementedError("Event handling is not supported for the "
+                                  "'{}' backend.".format(self._backend))
 
     # --------------------------------------------------------------------------
     # Axis filtering methods
@@ -1088,6 +1125,7 @@ def getBackend():
         The name of the joystick backend in use.
 
     """
+    global backend
     return backend
 
 
@@ -1190,6 +1228,20 @@ def getAllJoysticks():
 
     """
     return Joystick.getAvailableDevices()
+
+
+def getNumJoysticks():
+    """Return the number of available joysticks.
+
+    Uses the presently set joystick backend to get the available joysticks.
+
+    Returns
+    -------
+    int
+        The number of available joysticks.
+
+    """
+    return Joystick.getNumJoysticks()
 
 
 if __name__ == "__main__":

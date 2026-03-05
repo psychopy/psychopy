@@ -1336,6 +1336,29 @@ class TrialHandler2(_BaseTrialHandler):
         self._cancelNextIteration = True
 
         return self.thisTrial
+
+    def cueTrial(self, trial):
+        """
+        Queue up a trial to be next in the trial order.
+
+        Parameters
+        ----------
+        trial : int, dict or Trial
+            Trial or index to queue up
+        isTrials : bool
+            Filter for only loops which have isTrials checked
+        """
+        # if given an integer, assume they're wanting to replay an elapsed trial
+        if isinstance(trial, int):
+            if trial < len(self.elapsedTrials):
+                trial = self.elapsedTrials[trial]
+            else:
+                raise IndexError(f"Cannot replay trial {trial} as fewer than {trial} trials have elapsed.")
+        # if given a dict, create a Trial from it
+        if isinstance(trial, dict):
+            trial = Trial(self, **trial)
+        # set the given trial to be the first upcoming trial
+        self.upcomingTrials.prepend(trial)
     
     def getCurrentTrial(self):
         """

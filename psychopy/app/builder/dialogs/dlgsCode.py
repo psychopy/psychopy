@@ -99,6 +99,9 @@ class DlgCodeComponentProperties(wx.Dialog):
 
         for paramN, paramName in enumerate(self.order):
             param = self.params.get(paramName)
+            # skip names in order which aren't in params
+            if param is None:
+                continue
             if paramName == 'name':
                 self.nameLabel = wx.StaticText(self, wx.ID_ANY,
                                                _translate(param.label))
@@ -421,7 +424,7 @@ class DlgCodeComponentProperties(wx.Dialog):
             sizer.Add(pyBox, 1, wx.EXPAND, 2)
             sizer.Add(jsBox, 1, wx.EXPAND, 2)
             panel.SetSizer(sizer)
-            tabLabel = self.params.get(pyName).label
+            tabLabel = self.params.get(pyName).categ
             # Add a visual indicator when tab contains code
             emptyCodeComp = CodeComponent('', '') # Spawn empty code component
             # If code tab is not empty and not the same as in empty code component, add an asterisk to tab name

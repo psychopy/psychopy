@@ -1602,17 +1602,6 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
     def openPluginManager(self, evt=None):
         # check if the package index is currently being updated, show a message
         # to tell the user to wait before opening the plugin manager
-        import psychopy.app.plugin_manager.packageIndex as packageIndex
-        if packageIndex.isIndexing():
-            msg = _translate("The package index is currently being updated. "
-                             "Please try again later.")
-            wx.MessageBox(
-                msg,
-                _translate("Package indexing in progress"),
-                style=wx.OK | wx.ICON_INFORMATION
-            )
-            return
-        
         dlg = psychopy.app.plugin_manager.dialog.EnvironmentManagerDlg(self)
         dlg.Show()
         

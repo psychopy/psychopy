@@ -23,6 +23,7 @@ class MicrophoneComponent(BaseDeviceComponent):
     targets = ['PsychoPy', 'PsychoJS']
     version = "2021.2.0"
     iconFile = Path(__file__).parent / 'microphone.png'
+    iconSVG = Path(__file__).parent / 'MicrophoneComponent.svg'
     tooltip = _translate('Microphone: basic sound capture (fixed onset & '
                          'duration), okay for spoken words')
 

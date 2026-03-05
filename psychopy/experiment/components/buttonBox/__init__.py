@@ -11,6 +11,7 @@ class ButtonBoxComponent(BaseDeviceComponent):
     categories = ['Responses']  # which section(s) in the components panel
     targets = ['PsychoPy']
     iconFile = Path(__file__).parent / 'buttonBox.png'
+    iconSVG = Path(__file__).parent / 'ButtonBoxComponent.svg'
     tooltip = _translate('Button Box: Get input from a button box')
     beta = True
     legacyParams = [

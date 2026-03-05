@@ -2856,17 +2856,6 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         # UnitTestFrame.Show()
 
     def openPluginManager(self, evt=None):
-        import psychopy.app.plugin_manager.packageIndex as packageIndex
-        if packageIndex.isIndexing():
-            msg = _translate("The package index is currently being updated. "
-                             "Please try again later.")
-            wx.MessageBox(
-                msg,
-                _translate("Package indexing in progress"),
-                style=wx.OK | wx.ICON_INFORMATION
-            )
-            return
-        
         dlg = psychopy.app.plugin_manager.dialog.EnvironmentManagerDlg(self)
         dlg.Show()
         # Do post-close checks

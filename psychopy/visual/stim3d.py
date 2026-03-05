@@ -1111,7 +1111,7 @@ class BlinnPhongMaterial:
         if useTextures and self.diffuseTexture is not None:
             self._useTextures = True
             GL.glEnable(GL.GL_TEXTURE_2D)
-            gt.bindTexture(self.diffuseTexture, 0)
+            gt.bindTexture(self.diffuseTexture, 'GL_TEXTURE_2D', 0)
 
     def end(self, clear=True):
         """Stop using this material.
@@ -1156,7 +1156,7 @@ class BlinnPhongMaterial:
 
         if self._useTextures:
             self._useTextures = False
-            gt.unbindTexture(self.diffuseTexture)
+            gt.bindTexture(None, 'GL_TEXTURE_2D', 0)
             GL.glDisable(GL.GL_TEXTURE_2D)
 
         gt.useProgram(0)
@@ -1349,8 +1349,10 @@ class BaseRigidBodyStim(ColorMixin, WindowMixin):
 
         # apply transformation to mesh
         GL.glPushMatrix()
-        GL.glMultTransposeMatrixf(at.array2pointer(self.thePose.modelMatrix))
-
+        GL.glMultTransposeMatrixf(
+            at.array2pointer(self.thePose.modelMatrix,
+            dtype=np.float32))
+        
         if self.material is not None:  # has a material, use it
             useTexture = self.material.diffuseTexture is not None
             self.material.begin(useTexture)

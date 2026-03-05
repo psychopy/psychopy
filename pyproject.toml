@@ -17,7 +17,6 @@ classifiers = [
     "Operating System :: Microsoft :: Windows",
     "Operating System :: POSIX :: Linux",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -65,7 +64,7 @@ dependencies = [
     "requests",
     "future",  # only to support legacy versions in useVersion
     # supporting plugins
-    "setuptools==70.3.0",  # py2app issues https://github.com/ronaldoussoren/py2app/issues/531
+    "setuptools==78.1.1",  # py2app issues https://github.com/ronaldoussoren/py2app/issues/531
     # pavlovia connections
     "python-gitlab",
     "gitpython",
@@ -126,7 +125,7 @@ suggested = [
     "sounddevice",
     "pylsl>=1.16.1", # lab streaming layer for general connectivity
     "xlwt",  # writing excel files with pandas
-    "h5py<3.15.0",  # to read hdf5 files for analysis
+    "h5py",  # to read hdf5 files for analysis
     "tobii_research",
     "badapted>=0.0.3",
     "egi-pynetstation>=1.0.0",
@@ -154,7 +153,8 @@ requires = [
     "packaging",
     "six",  # for configobj
     "polib", # for compiling translation files (*.po)
-    ]
+    "typing-extensions",
+]
 build-backend = "pdm.backend"
 
 [tool.pdm.build]

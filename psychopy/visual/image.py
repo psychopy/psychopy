@@ -135,7 +135,7 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
             #if hasattr(self, '_listID'):
                 # GL.glDeleteLists(self._listID, 1)
             self.clearTextures()
-        except (ImportError, ModuleNotFoundError, TypeError):
+        except (ImportError, ModuleNotFoundError, TypeError, GL.lib.GLException):
             pass  # has probably been garbage-collected already
 
     def _updateListShaders(self):
@@ -327,6 +327,31 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
         """
         self.__dict__['image'] = self._imName = value
 
+        # handle a matplotlib object as image
+        if hasattr(value, 'canvas'):  # matplotlib figure
+            if hasattr(value.canvas, 'draw'):
+                value.canvas.draw()  # make sure the figure is drawn
+            figDPI = value.get_dpi()
+            figWidth = value.get_figwidth() * figDPI
+            figHeight = value.get_figheight() * figDPI
+            self._origSize = (int(figWidth), int(figHeight))
+            ncol, nrow = value.canvas.get_width_height()
+            value = numpy.flip(numpy.frombuffer(
+                value.canvas.tostring_argb(), dtype="uint8").reshape(
+                    int(nrow), int(ncol), 4), axis=0)
+            # value = value[..., [1, 2, 3, 0]]  # swizzle alpha channel
+            # discard alpha channel, keep RGB
+            value = value[..., 1:]
+            # convert to float32
+            value = numpy.ascontiguousarray(
+                value, dtype=numpy.float32) / 127.5 - 1
+            # pixFormat = GL.GL_RGBA
+        elif isinstance(value, colors.Color):
+            value = value.render('rgb1')
+        else:
+            pass
+
+        # determine data type
         wasLumImage = self.isLumImage
         if hasattr(value, 'colorTexture'):
             # reference to object that provides texture data

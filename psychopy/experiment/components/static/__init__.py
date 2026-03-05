@@ -23,6 +23,7 @@ class StaticComponent(BaseComponent):
     categories = ['Custom']
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'static.png'
+    iconSVG = Path(__file__).parent / 'StaticComponent.svg'
     tooltip = _translate('Static: Static screen period (e.g. an ISI). '
                          'Useful for pre-loading stimuli.')
 
@@ -53,7 +54,7 @@ class StaticComponent(BaseComponent):
             "saveData",
         ]
         self.params['code'] = Param(
-            code, valType='code', inputType="multi", categ='Custom',
+            code, valType='code', inputType="code", categ='Custom',
             label=_translate("Custom code"),
             hint=_translate(
                 "Custom code to be run during the static period (after updates)"

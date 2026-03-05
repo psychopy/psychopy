@@ -8,6 +8,7 @@
 """Utility functions to support Experiment classes
 """
 import re
+from pathlib import Path
 
 # this needs to be accessed from __str__ method of Param
 scriptTarget = "PsychoPy"
@@ -17,6 +18,13 @@ unescapedDollarSign_re = re.compile(r"^\$|[^\\]\$")  # detect "code wanted"
 valid_var_re = re.compile(r"^[a-zA-Z_][\w]*$")  # filter for legal var names
 nonalphanumeric_re = re.compile(r'\W')  # will match all bad var name chars
 list_like_re = re.compile(r"(?<!\\),")  # will match for strings which could be a list
+
+
+def getBlankTemplate():
+    """
+    Returns the filepath of the blank Excel template.
+    """
+    return Path(__file__).parent / "blankTemplate.xltx"
 
 
 class CodeGenerationException(Exception):

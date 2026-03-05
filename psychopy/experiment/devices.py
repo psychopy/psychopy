@@ -5,6 +5,32 @@ from psychopy.experiment.params import Param
 from psychopy.localization import _translate
 
 
+def getAllDeviceBackends():
+    """
+    Returns
+    -------
+    dict[str:cls]
+        All subtypes of DeviceBackend, by tag
+    """
+    output = {}
+
+    def recur(cls):
+        """
+        Recursively get subclasses and store them by tag.
+        """
+        # iterate through immediate subclasses
+        for subcls in cls.__subclasses__():
+            # store against its name
+            output[subcls.__name__] = subcls
+            # recur
+            recur(subcls)
+
+    # start with _BaseLoopHandler as the ultimate parent class
+    recur(DeviceBackend)
+
+    return output
+
+
 class DeviceMixin:
     """
     Mixin for base Component/Routine classes which adds necessary params and attributes to 
@@ -27,29 +53,10 @@ class DeviceMixin:
         self.order += [
             "deviceLabel"
         ]
-        # functions for getting device labels
-        def getDevices():
-            # start with default
-            devices = [("", _translate("Default"))]
-            # iterate through saved devices
-            for name, device in prefs.devices.items():
-                # iterate through backends for this Component
-                for backend in self.backends:
-                    # if device is the correct type, include it
-                    if isinstance(device, backend):
-                        devices.append(
-                            (name, name)
-                        )
-            return devices
-        def getLabels():
-            return [device[1] for device in getDevices()]
-        def getValues():
-            return [device[0] for device in getDevices()]
         # label to refer to device by
         self.params['deviceLabel'] = Param(
             defaultLabel, valType="device", inputType="device", categ="Device",
-            allowedVals=getValues,
-            allowedLabels=getLabels,
+            allowedVals=list(self.backends),
             label=_translate("Device"),
             hint=_translate(
                 "The named device from Device Manager to use for this Component."
@@ -82,7 +89,9 @@ class DeviceBackend:
     # icon to use for this backend (relative to current file path, leave as None for no icon)
     icon = None
     # class of the device which this backend corresponds to
-    deviceClass = "psychopy.hardware.base.BaseDevice"
+    deviceClass = None
+
+    plugin = None
       
     def __init__(self, profile):
         # store device profile
@@ -91,8 +100,8 @@ class DeviceBackend:
         self.params = {}
         self.order = []
         # add a param for the device label to all backends
-        self.params['deviceLabel'] = Param(
-            "", valType="str", inputType="name",
+        self.params['name'] = Param(
+            "", valType="str", inputType="name", categ=None,
             label=_translate("Device label"),
             hint=_translate(
                 "A name to refer to this device by in Device Manager."
@@ -100,7 +109,7 @@ class DeviceBackend:
         )
         # device label always first
         self.order += [
-            "deviceLabel"
+            "name"
         ]
         # get further params from subclass method
         params, order = self.getParams()
@@ -111,6 +120,40 @@ class DeviceBackend:
         return (
             f"<{type(self).__name__}: name={self.name}>"
         )
+
+    @classmethod
+    def getTemplateJSON(cls):
+        profile = {
+            '__class__': f"{cls.__module__}:{cls.__qualname__}",
+            '__name__': cls.__name__,
+            'label': cls.backendLabel,
+            'device': cls.deviceClass,
+            'plugin': cls.plugin,
+            'profile': {},
+            'params': {}
+        }
+        # make an object for defaults
+        defaults = cls({'deviceName': None})
+        # order params
+        order = [
+            name for name in defaults.order if name in defaults.params
+        ] + [
+            name for name in defaults.params if name not in defaults.order
+        ]
+        # populate params in order
+        for name in order:
+            # make template
+            profile['params'][name] = defaults.params[name].getTemplateJSON(
+                name=name, depends=getattr(defaults, 'depends', None)
+            )
+
+        return profile
+    
+    @classmethod
+    def getAvailableDevices(cls):
+        from psychopy.hardware import DeviceManager
+
+        return DeviceManager.getAvailableDevices(cls.deviceClass)
     
     def getParams(self):
         """
@@ -200,9 +243,10 @@ class DeviceBackend:
         self.profile = data['profile']
         # apply param vals
         for name, val in data['params'].items():
-            self.params[name].applyJSON(val)
+            if name in self.params:
+                self.params[name].applyJSON(val)
     
-    def toJSON(self):
+    def getJSON(self):
         """
         Get this object as a JSON dict.
 
@@ -212,20 +256,20 @@ class DeviceBackend:
             JSON dict representing this object, will be in the form:..
 
             {
-                '__cls__': <import string for this class>,
+                '__class__': <import string for this class>,
                 'profile': <dict from DeviceManager.getAvailableDevices>,
                 'params': <dict of Param JSON objects>,
             }
         """
         # create dict
         data = {
-            '__cls__': f"{type(self).__module__}.{type(self).__name__}",
+            '__class__': f"{type(self).__module__}.{type(self).__name__}",
             'profile': self.profile,
             'params': {}
         }
         # add params
         for key, param in self.params.items():
-            data['params'][key] = param.toJSON()
+            data['params'][key] = param.getJSON()
         
         return data
     
@@ -256,7 +300,10 @@ class DeviceBackend:
                 allBackends.append(cls)
 
         return allBackends
-        
+    
+    @staticmethod
+    def getBackendProfiles():
+        return [cls.getTemplateJSON() for cls in DeviceBackend.getAllBackends()]
     
     def writeBaseDeviceCode(self, buff, close=False):
         """
@@ -272,9 +319,9 @@ class DeviceBackend:
         """
         # write init call with device label
         code = (
-            "# initialize %(deviceLabel)s\n"
+            "# initialize %(name)s\n"
             "deviceManager.addDevice(\n"
-            "    deviceName=%(deviceLabel)s,\n"
+            "    deviceName=%(name)s,\n"
         )
         buff.writeIndentedLines(code % self.params)
         # add options from profile
@@ -294,10 +341,10 @@ class DeviceBackend:
       
     @property
     def name(self):
-        return self.params['deviceLabel'].val
+        return self.params['name'].val
     
     @name.setter
     def name(self, value):
         # update param value
-        self.params['deviceLabel'].val = value
+        self.params['name'].val = value
         

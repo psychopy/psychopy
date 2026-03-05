@@ -33,6 +33,7 @@ _userAppPrefDir = os.environ.get('PSYCHOPYUSERPREFDIR', None)
 if _userAppPrefDir is not None:
     PSYCHOPYUSERPREFDIR = _userAppPrefDir  # user app preferences dir from environment variable
 
+PYPI_FETCH_AVAILABLE_PACKAGES = False  # disable fetching available packages from PyPI by default
 PYPI_SIMPLE_INDEX_URL = "https://pypi.org/simple/"
 PACKAGE_INDEX_FILE = "psychopy_packages.json"
 
@@ -41,6 +42,9 @@ packageCache = None  # initialized later
 
 # time elapsed from the previous update before the index is considered stale
 _indexStaleAfter = 28 * 24 * 3600  # every 4 weeks
+
+# verbosity flag
+_verbose = False
 
 
 # ------------------------------------------------------------------------------
@@ -99,7 +103,8 @@ def setUserBase(userBase):
     
     # set the user base directory
     PYTHONUSERBASE = userBase
-    print('[notice]: User base directory set to:', PYTHONUSERBASE)
+    if _verbose:
+        print('[notice]: User base directory set to:', PYTHONUSERBASE)
 
 
 def getUserBase():
@@ -126,7 +131,8 @@ def setLockFile():
     indexPath = os.path.dirname(os.path.abspath(PACKAGE_INDEX_FILE))
     lockFile = os.path.join(indexPath, 'psychopy_packages.lock')
 
-    print('[notice]: Setting lock file for package index at:', lockFile)
+    if _verbose:
+        print('[notice]: Setting lock file for package index at:', lockFile)
     
     # check if the lock file already exists
     if os.path.exists(lockFile):
@@ -136,8 +142,9 @@ def setLockFile():
     # create the lock file
     with open(lockFile, 'w') as f:
         f.write('Lock file for PsychoPy package index.')
-    
-    print(f'[notice]: Lock file created at: {lockFile}')
+    if _verbose:
+        print(f'[notice]: Lock file created at: {lockFile}')
+
     return True
 
 
@@ -155,7 +162,8 @@ def freeLockFile():
     # check if the lock file exists
     if os.path.exists(lockFile):
         os.remove(lockFile)
-        print(f'[notice]: Lock file removed: {lockFile}')
+        if _verbose:
+            print(f'[notice]: Lock file removed: {lockFile}')
     else:
         print(f"[error]: Lock file '{lockFile}' does not exist.")
         return False
@@ -169,6 +177,8 @@ def setPackageIndexFilePath(indexFile):
     global PACKAGE_INDEX_FILE
     PACKAGE_INDEX_FILE = os.path.abspath(indexFile)
 
+    if not os.path.exists(os.path.dirname(PACKAGE_INDEX_FILE)):
+        os.makedirs(os.path.dirname(PACKAGE_INDEX_FILE), exist_ok=True)
     print(f'[notice]: Package index file set to: {PACKAGE_INDEX_FILE}')
 
 
@@ -241,18 +251,20 @@ def _fetchPluginIndex(fetch=False):
             return
         
     # download the file
-    print(f'Fetching PsychoPy plugin index from URL: {url}')
+    if _verbose:
+        print(f'Fetching PsychoPy plugin index from URL: {url}')
     downloadStartTime = time.time()
     response = requests.get(url)
     if response.status_code != 200:
         print(f"[error]: Failed to fetch {url}: {response.status_code}")
         return
     
-    print(f'Completed fetching remote PsychoPy plugin index (took '
-          f'{round(time.time() - downloadStartTime, 4)} seconds)')
-
+    if _verbose:
+        print(f'Completed fetching remote PsychoPy plugin index (took '
+              f'{round(time.time() - downloadStartTime, 4)} seconds)')
     # parse the JSON content
-    print('Parsing downloaded PsychoPy plugin index...')
+    if _verbose:
+        print('Parsing downloaded PsychoPy plugin index...')
     parseStartTime = time.time()
     try:
         pluginIndexJSON = json.loads(response.text)
@@ -260,9 +272,10 @@ def _fetchPluginIndex(fetch=False):
         print(f"[error]: Failed to decode JSON from {url}.")
         return False
 
-    print(f'Completed parsing PsychoPy plugin index (took '
-          f'{round(time.time() - parseStartTime, 4)} seconds)')
-    print(f'Found {len(pluginIndexJSON)} packages in the remote plugin index.')
+    if _verbose:
+        print(f'Completed parsing PsychoPy plugin index (took '
+              f'{round(time.time() - parseStartTime, 4)} seconds)')
+        print(f'Found {len(pluginIndexJSON)} packages in the remote plugin index.')
 
     # add fields to the package index
     for pluginInfo in pluginIndexJSON:
@@ -327,12 +340,14 @@ def updatePackageIndex(fetch=True):
     # check if we have a local index file
     localData = None
     if not os.path.exists(PACKAGE_INDEX_FILE):
-        print(f"[notice]: Package index file '{PACKAGE_INDEX_FILE}' not found. "
-              f"Creating a new one...")
+        if _verbose:
+            print(f"[notice]: Package index file '{PACKAGE_INDEX_FILE}' not found. "
+                  f"Creating a new one...")
     else:
         # load the file to get remote repo data
         with open(PACKAGE_INDEX_FILE, 'r') as f:
-            print(f"Reading package index from {PACKAGE_INDEX_FILE}...")
+            if _verbose:
+                print(f"Reading package index from {PACKAGE_INDEX_FILE}...")
             try:
                 localData = json.load(f)
             except json.JSONDecodeError:
@@ -366,8 +381,9 @@ def updatePackageIndex(fetch=True):
     # get all local packages for the index
     for pkgsite in ['system', 'user']:
         pkgList = getInstalledPackages(where=pkgsite)
-        print(f'Found {len(pkgList)} packages in "{pkgsite}" site-packages '
-              f'location.')
+        if _verbose:
+            print(f'Found {len(pkgList)} packages in "{pkgsite}" site-packages '
+                  f'location.')
         localPackages[pkgsite]['packages'] = pkgList
         localPackages[pkgsite]['lastupdated'] = time.time()  # set updated time
 
@@ -385,17 +401,20 @@ def updatePackageIndex(fetch=True):
         # doctype = packageCache['available']['remote'][packageIndex]['doctype']
 
         downloadStartTime = time.time()
-        print(f'Fetching "{packageIndex}" remote package index from URL: {url} ')
+        if _verbose:
+            print(f'Fetching "{packageIndex}" remote package index from URL: {url} ')
         response = requests.get(url)
         if response.status_code != 200:
             print('')
             print(f"[error]: Failed to fetch {url}: {response.status_code}")
             return False
-        print(f'Completed fetching remote package index for "{packageIndex}" '
-              f'(took {round(time.time() - downloadStartTime, 4)} seconds)')
+        if _verbose:
+            print(f'Completed fetching remote package index for "{packageIndex}" '
+                f'(took {round(time.time() - downloadStartTime, 4)} seconds)')
 
         # parse the HTML content
-        print(f'Parsing downloaded "{packageIndex}" remote package index...')
+        if _verbose:
+            print(f'Parsing downloaded "{packageIndex}" remote package index...')
         parseStartTime = time.time()
         soup = BeautifulSoup(response.text, 'html.parser')
         packageCache['available']['remote'][packageIndex]['packages'].clear()
@@ -406,37 +425,43 @@ def updatePackageIndex(fetch=True):
                 packageCache['available']['remote'][packageIndex]['packages'].append(package_name)
 
         packageCache['available']['remote'][packageIndex]['lastupdated'] = time.time()
-
-        print(f'Completed parsing remote package index for "{packageIndex}" '
-              f'(took {round(time.time() - parseStartTime, 4)} seconds)')
+        if _verbose:
+            print(f'Completed parsing remote package index for "{packageIndex}" '
+                f'(took {round(time.time() - parseStartTime, 4)} seconds)')
 
         return True
 
-    for remoteIndex in ['PyPI']:
-        lastUpdated = packageCache['available']['remote'][remoteIndex]['lastupdated'] 
-        isStale = lastUpdated < time.time() - _indexStaleAfter
-        if isStale or fetch:
-            print(f'[notice]: Remote package index "{remoteIndex}" is stale, updating...')
-            _fetch(packageIndex=remoteIndex)
-        else:
-            # index is not stale, use the cached data
-            print(f'[notice]: Remote package index "{remoteIndex}" is not stale, using locally cached data.')
-        
-        totalPackages = len(
-            packageCache['available']['remote'][remoteIndex]['packages'])
-        print(f'Found {totalPackages} available packages in "{remoteIndex}" remote index.')
+    if PYPI_FETCH_AVAILABLE_PACKAGES:
+        for remoteIndex in ['PyPI']:
+            lastUpdated = packageCache['available']['remote'][remoteIndex]['lastupdated'] 
+            isStale = lastUpdated < time.time() - _indexStaleAfter
+            if isStale or fetch:
+                if _verbose:
+                    print(f'[notice]: Remote package index "{remoteIndex}" is stale, updating...')
+                _fetch(packageIndex=remoteIndex)
+            else:
+                # index is not stale, use the cached data
+                if _verbose:
+                    print(f'[notice]: Remote package index "{remoteIndex}" is not stale, using locally cached data.')
+            
+            totalPackages = len(
+                packageCache['available']['remote'][remoteIndex]['packages'])
+            if _verbose:
+                print(f'Found {totalPackages} available packages in "{remoteIndex}" remote index.')
     
     # write out the package index to a file
     with open(PACKAGE_INDEX_FILE, 'w') as f:
-        print(f'Writing package index to {PACKAGE_INDEX_FILE}...')
+        if _verbose:
+            print(f'Writing package index to {PACKAGE_INDEX_FILE}...')
         try:
             json.dump(packageCache, f, indent=4)
         except Exception as e:
             print(f"[error]: Failed to write package index to {PACKAGE_INDEX_FILE}: {e}")
             sys.exit(1)
     
-    print(f'Finished updating local package index cache (took '
-          f'{round(time.time() - updateStartTime, 4)} seconds)')
+    if _verbose:
+        print(f'Finished updating local package index cache (took '
+              f'{round(time.time() - updateStartTime, 4)} seconds)')
     
     freeLockFile()  # free the lock file
         
@@ -697,9 +722,11 @@ def installPackage(packageName, where='user', forceReinstall=False,
         cmd.append('--no-cache-dir')
 
     # use pip to install the package
-    print(f'Installing {packageName} to "{where}" site-packages...')
+    if _verbose:
+        print(f'Installing {packageName} to "{where}" site-packages...')
     _ = _callPIP(cmd, userBase=userBase)
-    print(f'Completed installing {packageName} to "{where}" site-packages.')
+    if _verbose:
+        print(f'Completed installing {packageName} to "{where}" site-packages.')
 
 
 def upgradePackage(packageName, strategy='eager', extraIndexURL=None, userBase=None):
@@ -730,7 +757,8 @@ def upgradePackage(packageName, strategy='eager', extraIndexURL=None, userBase=N
         cmd.append('--upgrade-strategy')
         cmd.append(strategy)
 
-    print('Upgrading package:', packageName)
+    if _verbose:
+        print(f'Upgrading package "{packageName}"...')
 
     _ = _callPIP(cmd, userBase=userBase)
 
@@ -767,7 +795,8 @@ def upgradeAllPackages(where='system', strategy='eager', userBase=None):
         print('No packages to upgrade.')
         return
     
-    print(f'Found {len(outdatedPackages)} packages to upgrade.')
+    if _verbose:
+        print(f'Found {len(outdatedPackages)} packages to upgrade.')
     
     # generate the list of packages to upgrade
     packagesToUpgrade = []
@@ -781,10 +810,12 @@ def upgradeAllPackages(where='system', strategy='eager', userBase=None):
         cmd.append('--upgrade-strategy')
         cmd.append(strategy)
     
-    print(f'Upgrading {len(packagesToUpgrade)} packages in {where} site-packages...')
+    if _verbose:
+        print(f'Upgrading {len(packagesToUpgrade)} packages in {where} site-packages...')
     _ = _callPIP(cmd, userBase=userBase)
 
-    print('Completed upgrading packages.')
+    if _verbose:
+        print('Completed upgrading packages.')
 
 
 def uninstallPackage(packageName, userBase=None):
@@ -847,6 +878,8 @@ def getPackageInfo(packageName):
 def main():
     """Main function to run the package utility.
     """
+    global _verbose
+
     # use argparse 
     desc = f'PsychoPy package managment utility v{__version__} (Copyright 2025 - Open Science Tools Ltd.)'
 
@@ -863,7 +896,7 @@ def main():
         '--app-pref-dir', type=str, default=None, 
         help='PsychoPy app preferences directory.')
     parser.add_argument(
-        '--verbose', action='store_true', help='Enable verbose output.')
+        '--quiet', action='store_true', help='Disable verbose output.')
     
     # subcommands are 'update', 'list', 'install', 'uninstall', and 'upgrade'
     subparsers = parser.add_subparsers(dest='command')
@@ -930,6 +963,9 @@ def main():
             
         if args.index_file:
             setPackageIndexFilePath(args.index_file)
+
+    # set verbosity
+    _verbose = not args.quiet
     
     if args.command == 'update':
         if args.stale_after:

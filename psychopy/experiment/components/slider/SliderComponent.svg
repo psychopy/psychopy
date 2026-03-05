@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g id="light-components-SliderComponent" serif:id="light/components/SliderComponent" transform="matrix(0.451519,0,0,0.451519,0,0)">
+        <rect x="0" y="0" width="70.872" height="70.866" style="fill:none;"/>
+        <g id="Slider-Component" serif:id="Slider Component" transform="matrix(0.952665,0,0,0.952665,1.51375,1.67724)">
+            <g id="Bar3">
+                <g transform="matrix(1,0,0,1,60.6732,60.4903)">
+                    <path d="M0,-9.459L-50.131,-9.459C-51.695,-9.459 -52.963,-8.191 -52.963,-6.627L-52.963,-2.832C-52.963,-1.268 -51.695,0 -50.131,0L0,0C1.564,0 2.832,-1.268 2.832,-2.832L2.832,-6.627C2.832,-8.191 1.564,-9.459 0,-9.459" style="fill:var(--outline);fill-rule:nonzero;"/>
+                </g>
+                <g transform="matrix(1,0,0,1,48.8422,55.171)">
+                    <path d="M0,-8.279L-8.279,0L-16.557,-8.279L0,-8.279Z" style="fill:rgb(2,169,234);fill-rule:nonzero;"/>
+                </g>
+            </g>
+            <g id="Bar2">
+                <g transform="matrix(1,0,0,1,60.6732,42.2322)">
+                    <path d="M0,-9.459L-50.131,-9.459C-51.695,-9.459 -52.963,-8.191 -52.963,-6.627L-52.963,-2.832C-52.963,-1.268 -51.695,0 -50.131,0L0,0C1.564,0 2.832,-1.268 2.832,-2.832L2.832,-6.627C2.832,-8.191 1.564,-9.459 0,-9.459" style="fill:var(--outline);fill-rule:nonzero;"/>
+                </g>
+                <g transform="matrix(1,0,0,1,61.8792,36.9129)">
+                    <path d="M0,-8.279L-8.279,0L-16.557,-8.279L0,-8.279Z" style="fill:rgb(2,169,234);fill-rule:nonzero;"/>
+                </g>
+            </g>
+            <g id="Bar1">
+                <g transform="matrix(1,0,0,1,60.6732,23.9741)">
+                    <path d="M0,-9.459L-50.131,-9.459C-51.695,-9.459 -52.963,-8.191 -52.963,-6.627L-52.963,-2.832C-52.963,-1.268 -51.695,0 -50.131,0L0,0C1.564,0 2.832,-1.268 2.832,-2.832L2.832,-6.627C2.832,-8.191 1.564,-9.459 0,-9.459" style="fill:var(--outline);fill-rule:nonzero;"/>
+                </g>
+                <g transform="matrix(1,0,0,1,25.1656,18.6548)">
+                    <path d="M0,-8.279L-8.279,0L-16.557,-8.279L0,-8.279Z" style="fill:rgb(2,169,234);fill-rule:nonzero;"/>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

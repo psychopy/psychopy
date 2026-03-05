@@ -504,6 +504,43 @@ def createLumPattern(patternType, res, texParams=None, maskParams=None):
     return intensity
 
 
+class ExpandingList(list):
+    """
+    Almost identical to a regular list, but if a value is set out of range, the list expands (and 
+    fills with None) to accommodate. Also returns None when an out of range value is requested.
+    """
+    def __setitem__(self, key, value):
+        try:
+            # try to set as normal
+            return list.__setitem__(self, key, value)
+        except IndexError as err:
+            # if index isn't an integer, something else has gone on
+            if not isinstance(key, int):
+                raise err
+            # if index is an out of range negative, behave as normal
+            if key < 0:
+                raise err
+            # if index out of range, expand list to fit...
+            for _ in range(key + 1 - len(self)):
+                self.append(None)
+            # ..then try again
+            return list.__setitem__(self, key, value)
+    
+    def __getitem__(self, key):
+        try:
+            # try to get as normal
+            return list.__getitem__(self, key)
+        except IndexError as err:
+            # if index isn't an integer, something else has gone on
+            if not isinstance(key, int):
+                raise err
+            # if index is an out of range negative, behave as normal
+            if key < 0:
+                raise err
+            # if it's just out of range, return None
+            return None
+
+
 class AliasDict(dict):
     """
     Similar to a dict, but with the option to alias certain keys such that they always have the same value.

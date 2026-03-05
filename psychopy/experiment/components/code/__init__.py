@@ -50,6 +50,7 @@ class CodeComponent(BaseComponent):
     categories = ['Custom']
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'code.png'
+    iconSVG = Path(__file__).parent / 'CodeComponent.svg'
     tooltip = _translate('Code: insert python commands into an experiment')
 
     def __init__(self, exp, parentName, name='code',
@@ -63,126 +64,179 @@ class CodeComponent(BaseComponent):
         super(CodeComponent, self).__init__(exp, parentName, name)
         self.type = 'Code'
         self.url = "https://www.psychopy.org/builder/components/code.html"
+
+        self.order += [
+            "Code Type",
+            "disabled",
+            "Before Experiment",
+            "Begin Experiment",
+            "Begin Routine",
+            "Each Frame",
+            "End Routine",
+            "End Experiment",
+            "Before JS Experiment",
+            "Begin JS Experiment",
+            "Begin JS Routine",
+            "Each JS Frame",
+            "End JS Routine",
+            "End JS Experiment"
+        ]
+
         # params
-        # want a copy, else codeParamNames list gets mutated
-        self.order = ['name', 'Code Type', 'disabled',
-                      'Before Experiment', 'Begin Experiment', 'Begin Routine',
-                      'Each Frame', 'End Routine', 'End Experiment',
-                      'Before JS Experiment', 'Begin JS Experiment', 'Begin JS Routine',
-                      'Each JS Frame', 'End JS Routine', 'End JS Experiment',
-                      ]
         if not codeType:
             codeType = prefs.builder['codeComponentLanguage']
-
         msg = _translate("Display Python or JS Code")
         self.params['Code Type'] = Param(
-            codeType, valType='str', inputType="choice", allowedTypes=[],
+            codeType, valType='str', inputType="choice", categ=None,
             allowedVals=['Py', 'JS', 'Both', 'Auto->JS'],
             hint=msg, direct=False,
             label=_translate("Code type"))
+        
+        for param in (
+            "Before Experiment",
+            "Begin Experiment",
+            "Begin Routine",
+            "Each Frame",
+            "End Routine",
+            "End Experiment"
+        ):
+            self.depends.append({
+                "dependsOn": "Code Type",  # if...
+                "condition": "in ['Py', 'Both', 'Auto->JS']",  # meets...
+                "param": param,  # then...
+                "true": "show",  # should...
+                "false": "hide",  # otherwise...
+            })
 
-        msg = _translate("Code to run before the experiment starts "
-                         "(initialization); right-click checks syntax")
         self.params['Before Experiment'] = Param(
-            beforeExp, valType='extendedCode', inputType="multi", allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint=msg,
-            label=_translate("Before experiment"))
+            beforeExp, valType='extendedCode', inputType="code", categ="Before Exp.",
+            updates='constant', allowedVals="python",
+            hint=_translate(
+                "Code to run before the experiment starts "
+                "(initialization); right-click checks syntax"
+            ),
+            label=_translate("Before experiment (Py)"))
 
-        msg = _translate("Code at the start of the experiment ; right-click "
-                         "checks syntax")
         self.params['Begin Experiment'] = Param(
-            beginExp, valType='extendedCode', inputType="multi", allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint=msg,
-            label=_translate("Begin experiment"))
+            beginExp, valType='extendedCode', inputType="code", categ="Begin Exp.",
+            updates='constant', allowedVals="python",
+            hint=_translate(
+                "Code at the start of the experiment ; right-click "
+                "checks syntax"
+            ),
+            label=_translate("Begin experiment (Py)"))
 
-        msg = _translate("Code to be run at the start of each repeat of the "
-                         "Routine (e.g. each trial); "
-                         "right-click checks syntax")
         self.params['Begin Routine'] = Param(
-            beginRoutine, valType='extendedCode', inputType="multi", allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint=msg,
-            label=_translate("Begin Routine"))
-
-        msg = _translate("Code to be run on every video frame during for the"
-                         " duration of this Routine; "
-                         "right-click checks syntax")
+            beginRoutine, valType='extendedCode', inputType="code", categ="Begin Routine",
+            updates='constant', allowedVals="python",
+            hint=_translate(
+                "Code to be run at the start of each repeat of the "
+                "Routine (e.g. each trial); right-click checks syntax"
+            ),
+            label=_translate("Begin Routine (Py)"))
+        
         self.params['Each Frame'] = Param(
-            eachFrame, valType='extendedCode', inputType="multi", allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint=msg,
-            label=_translate("Each frame"))
+            eachFrame, valType='extendedCode', inputType="code", categ="Each Frame",
+            updates='constant', allowedVals="python",
+            hint=_translate(
+                "Code to be run on every video frame during for the"
+                " duration of this Routine; right-click checks syntax"
+            ),
+            label=_translate("Each frame (Py)"))
 
-        msg = _translate("Code at the end of this repeat of the Routine (e.g."
-                         " getting/storing responses); "
-                         "right-click checks syntax")
         self.params['End Routine'] = Param(
-            endRoutine, valType='extendedCode', inputType="multi", allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint=msg,
-            label=_translate("End Routine"))
+            endRoutine, valType='extendedCode', inputType="code", categ="End Routine",
+            updates='constant', allowedVals="python",
+            hint=_translate(
+                "Code at the end of this repeat of the Routine (e.g."
+                " getting/storing responses); right-click checks syntax"
+            ),
+            label=_translate("End Routine (Py)"))
 
-        msg = _translate("Code at the end of the entire experiment (e.g. "
-                         "saving files, resetting computer); "
-                         "right-click checks syntax")
         self.params['End Experiment'] = Param(
-            endExperiment, valType='extendedCode', inputType="multi", allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint=msg,
-            label=_translate("End experiment"))
-        # todo: copy initial vals once javscript interp can do comments
-        msg = _translate("Code before the start of the experiment (initialization"
-                         "); right-click checks syntax")
+            endExperiment, valType='extendedCode', inputType="code", categ="End Exp.",
+            updates='constant', allowedVals="python",
+            hint=_translate(
+                "Code at the end of the entire experiment (e.g. "
+                "saving files, resetting computer); right-click checks syntax"
+            ),
+            label=_translate("End experiment (Py)"))
+        
+        for param in (
+            "Before JS Experiment",
+            "Begin JS Experiment",
+            "Begin JS Routine",
+            "Each JS Frame",
+            "End JS Routine",
+            "End JS Experiment"
+        ):
+            self.depends.append({
+                "dependsOn": "Code Type",  # if...
+                "condition": "in ['JS', 'Both', 'Auto->JS']",  # meets...
+                "param": param,  # then...
+                "true": "show",  # should...
+                "false": "hide",  # otherwise...
+            })
+            self.depends.append({
+                "dependsOn": "Code Type",  # if...
+                "condition": "in ['JS', 'Both']",  # meets...
+                "param": param,  # then...
+                "true": "enable",  # should...
+                "false": "disable",  # otherwise...
+            })
+
         self.params['Before JS Experiment'] = Param(
-            '', valType='extendedCode', inputType="multi", allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint=msg,
-            label=_translate("Before JS experiment"))
-        msg = _translate("Code at the start of the experiment (initialization"
-                         "); right-click checks syntax")
+            '', valType='extendedCode', inputType="code", categ="Before Exp.",
+            updates='constant', allowedVals="javascript",
+            hint=_translate(
+                "Code before the start of the experiment (initialization"
+                "); right-click checks syntax"
+            ),
+            label=_translate("Before experiment (JS)"))
         self.params['Begin JS Experiment'] = Param(
-            '', valType='extendedCode', inputType="multi", allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint=msg,
-            label=_translate("Begin JS experiment"))
+            '', valType='extendedCode', inputType="code", categ="Begin Exp.",
+            updates='constant', allowedVals="javascript",
+            hint=_translate(
+                "Code at the start of the experiment (initialization"
+                "); right-click checks syntax"
+            ),
+            label=_translate("Begin experiment (JS)"))
 
-        msg = _translate("Code to be run at the start of each repeat of the "
-                         "Routine (e.g. each trial); "
-                         "right-click checks syntax")
         self.params['Begin JS Routine'] = Param(
-            '', valType='extendedCode', inputType="multi", allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint=msg,
-            label=_translate("Begin JS Routine"))
+            '', valType='extendedCode', inputType="code", categ="Begin Routine",
+            updates='constant', allowedVals="javascript",
+            hint=_translate(
+                "Code to be run at the start of each repeat of the "
+                "Routine (e.g. each trial); right-click checks syntax"
+            ),
+            label=_translate("Begin Routine (JS)"))
 
-        msg = _translate("Code to be run on every video frame during for the"
-                         " duration of this Routine; "
-                         "right-click checks syntax")
         self.params['Each JS Frame'] = Param(
-            '', valType='extendedCode', inputType="multi", allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint=msg,
+            '', valType='extendedCode', inputType="code", categ="Each Frame",
+            updates='constant', allowedVals="javascript",
+            hint=_translate(
+                "Code to be run on every video frame during for the"
+                " duration of this Routine; right-click checks syntax"
+            ),
             label=_translate("Each JS frame"))
 
-        msg = _translate("Code at the end of this repeat of the Routine (e.g."
-                         " getting/storing responses); "
-                         "right-click checks syntax")
         self.params['End JS Routine'] = Param(
-            '', valType='extendedCode', inputType="multi", allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint=msg,
-            label=_translate("End JS Routine"))
-
-        msg = _translate("Code at the end of the entire experiment (e.g. "
-                         "saving files, resetting computer); "
-                         "right-click checks syntax")
+            '', valType='extendedCode', inputType="code", categ="End Routine",
+            updates='constant', allowedVals="javascript",
+            hint=_translate(
+                "Code at the end of this repeat of the Routine (e.g."
+                " getting/storing responses); right-click checks syntax"
+            ),
+            label=_translate("End Routine (JS)"))
+        
         self.params['End JS Experiment'] = Param(
-            '', valType='extendedCode', inputType="multi", allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint=msg,
-            label=_translate("End JS experiment"))
+            '', valType='extendedCode', inputType="code", categ="End Exp.",
+            updates='constant', allowedVals="javascript",
+            hint=_translate(
+                "Code at the end of the entire experiment (e.g. "
+                "saving files, resetting computer); right-click checks syntax"
+            ),
+            label=_translate("End experiment (JS)"))
 
         # these inherited params are harmless but might as well trim:
         for p in ('startType', 'startVal', 'startEstim', 'stopVal',

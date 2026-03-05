@@ -106,6 +106,8 @@ __all__ = [
     'createDisc',
     'createAnnulus',
     'createCylinder',
+    'createTorus',
+    'createCone',
     'transformMeshPosOri',
     'calculateVertexNormals',
     'mergeVerticies',
@@ -3979,7 +3981,7 @@ def createVBO(data,
 
     # get the usage hint if a string was passed
     if isinstance(usage, str):
-        usage = GL_ENUMS.get(usage, None)
+        usage = _getGLEnum(usage)
         if usage is None:
             raise ValueError('Invalid `usage` hint string.')
     
@@ -6330,10 +6332,11 @@ def createDisc(radius=1.0, edges=16):
     Parameters
     ----------
     radius : float
-        Radius of the disc in scene units.
+        Radius of the disc in scene units. Must be positive.
     edges : int
         Number of segments to use to define the outer rim of the disc. Higher
         numbers will result in a smoother circle but will use more triangles.
+        Must be equal to or greater than 3.
 
     Returns
     -------
@@ -6354,13 +6357,19 @@ def createDisc(radius=1.0, edges=16):
             target=GL.GL_ELEMENT_ARRAY_BUFFER,
             dataType=GL.GL_UNSIGNED_INT)
 
-        vao = gltools.createVAO(
+        discVAO = gltools.createVAO(
             {gltools.gl_Vertex: vertexVBO,
              gltools.gl_MultiTexCoord0: texCoordVBO,
              gltools.gl_Normal: normalsVBO},
             indexBuffer=indexBuffer)
 
     """
+    if edges < 3:
+        raise ValueError("Number of edges must be >=3.")
+    radius = float(radius)
+    if radius <= 0.0:
+        raise ValueError("Radius must be positive.")
+
     # get number of steps for vertices to get the number of edges we want
     nVerts = edges + 1
     steps = np.linspace(0, 2 * np.pi, num=nVerts, dtype=np.float32)
@@ -6413,6 +6422,33 @@ def createAnnulus(innerRadius=0.5, outerRadius=1.0, edges=16):
     tuple
         Vertex attribute arrays (position, texture coordinates, and normals) and
         triangle indices.
+
+    Examples
+    --------
+    Create a vertex array object to draw an annulus::
+
+        vertices, textureCoords, normals, faces = createAnnulus(
+            innerRadius=0.3,
+            outerRadius=0.5,
+            edges=64)
+        
+        vertexVBO = gltools.createVBO(vertices)
+        texCoordVBO = gltools.createVBO(textureCoords)
+        normalsVBO = gltools.createVBO(normals)
+        indexBuffer = gltools.createVBO(
+            faces.flatten(),
+            target=GL.GL_ELEMENT_ARRAY_BUFFER,
+            dataType=GL.GL_UNSIGNED_INT)
+
+        annulusVAOAttribs = {
+            0: vertexVBO,
+            8: texCoordVBO,
+            2: normalsVBO
+        }
+            
+        annulusVAO = gltools.createVAO(
+            annulusVAOAttribs,
+            indexBuffer=indexBuffer)
 
     """
     # error checks
@@ -6491,6 +6527,42 @@ def createCylinder(radius=1.0, height=1.0, edges=16, stacks=1):
     tuple
         Vertex attribute arrays (position, texture coordinates, and normals) and
         triangle indices.
+    
+    Examples
+    --------
+    Generate vertex data for a cylinder mesh and create a VAO to draw it::
+
+        vertices, textureCoords, normals, faces = gltools.createCylinder(
+            radius=0.5, 
+            height=1.0, 
+            edges=32, 
+            stacks=4)
+
+        vertexVBO = gltools.createVBO(vertices)
+        texCoordVBO = gltools.createVBO(textureCoords)
+        normalsVBO = gltools.createVBO(normals)
+        indexBuffer = gltools.createVBO(
+            faces.flatten(),
+            target=GL.GL_ELEMENT_ARRAY_BUFFER,
+            dataType=GL.GL_UNSIGNED_INT)
+
+        # legacy attribute binding style
+        # cylVAOAttribs = {
+        #     gltools.gl_Vertex: vertexVBO,
+        #     gltools.gl_MultiTexCoord0: texCoordVBO,
+        #     gltools.gl_Normal: normalsVBO
+        # }
+
+        # modern attribute binding style
+        cylVAOAttribs = {
+            0: vertexVBO,
+            8: texCoordVBO,
+            2: normalsVBO
+        }
+
+        cylVAO = gltools.createVAO(
+            cylVAOAttribs,
+            indexBuffer=indexBuffer)
 
     """
     # generate vertex positions
@@ -6533,6 +6605,243 @@ def createCylinder(radius=1.0, height=1.0, edges=16, stacks=1):
 
     # scale the cylinder's radius and height to what the user specified
     vertPos[:, :2] *= radius
+
+    return vertPos, texCoords, normals, faces
+
+
+def createCone(radius=1.0, height=1.0, edges=16, stacks=1, texMapping='cylindrical'):
+    """Create a cone mesh.
+
+    Generate a cone mesh with a given `height` and `radius`. The origin of the
+    mesh will centered on it and offset to the base. Texture coordinates will
+    be generated allowing a texture to wrap around it.
+
+    Parameters
+    ----------
+    radius : float
+        Radius of the cone base in scene units.
+    height : float
+        Height in scene units.
+    edges : int
+        Number of edges, the greater the number, the smoother the cone will
+        appear when drawn. Must be greater than or equal to 3.
+    stacks : int
+        Number of subdivisions along the height of cone to make. Setting to 1
+        will result in vertex data only being generated for the base and end of
+        the cone. Must be greater than or equal to 1.
+    texMapping : str
+        Texture mapping mode. Options are 'cylindrical' or 'projected'. In
+        'cylindrical' mode, texture coordinates are generated to wrap around
+        the cone. In 'projected' mode, texture coordinates are generated by
+        projecting the cone vertices onto a square plane. Default is
+        'cylindrical'.
+
+    Returns
+    -------
+    tuple
+        Vertex attribute arrays (position, texture coordinates, and normals) and
+        triangle indices.
+
+    Examples
+    --------
+    Generate vertex data for a cone mesh and VAO to draw it::
+
+        vertices, textureCoords, normals, faces = gltools.createCone(
+            radius=0.5, 
+            height=1.0, 
+            edges=32, 
+            stacks=4, 
+            texMapping='cylindrical')
+    
+        vertexVBO = gltools.createVBO(vertices)
+        texCoordVBO = gltools.createVBO(textureCoords)
+        normalsVBO = gltools.createVBO(normals)
+        indexBuffer = gltools.createVBO(
+            faces.flatten(),
+            target=GL.GL_ELEMENT_ARRAY_BUFFER,
+            dataType=GL.GL_UNSIGNED_INT)
+        
+        coneVAOAttribs = {
+            0: vertexVBO,
+            8: texCoordVBO,
+            2: normalsVBO
+        }
+
+        coneVAO = gltools.createVAO(
+            coneVAOAttribs,
+            indexBuffer=indexBuffer)
+        
+    """
+    if edges < 3:
+        raise ValueError("Number of edges must be >=3.")
+    if stacks < 1:
+        raise ValueError("Number of stacks must be >=1.")
+
+    # generate vertex positions
+    nEdgeVerts = edges + 1
+    rings = stacks + 1
+    steps = np.linspace(0, 2 * np.pi, num=nEdgeVerts)
+    vertPos = np.zeros((nEdgeVerts, 3))
+    vertPos[:, 0] = np.sin(steps)
+    vertPos[:, 1] = np.cos(steps)
+    vertPos = np.tile(vertPos, (rings, 1))
+
+    # apply offset in height for each stack
+    stackHeight = np.linspace(0, height, num=rings)
+    vertPos[:, 2] = np.repeat(stackHeight, nEdgeVerts)
+
+    # taper the radius for each stack
+    for i in range(rings):
+        frac = 1.0 - (i / float(stacks))
+        vertPos[i * nEdgeVerts:(i + 1) * nEdgeVerts, 0:2] *= frac
+
+    # generate texture coordinates
+    if texMapping == 'cylindrical':
+        u = np.linspace(0.0, 1.0, nEdgeVerts)
+        v = np.linspace(1.0, 0.0, rings)
+        uu, vv = np.meshgrid(u, v)
+        texCoords = np.vstack([uu.ravel(), vv.ravel()]).T
+    elif texMapping == 'projected':
+        texCoords = vertPos[:, :2].copy()
+        texCoords[:, 0] += 1.0
+        texCoords[:, 1] += 1.0
+        texCoords[:, :] *= 0.5
+    else:
+        raise ValueError("Invalid value for `texMapping`.")
+    
+    # scale to user's specified dimensions
+    vertPos[:, :2] *= radius
+    vertPos[:, 2] *= height
+
+    # generate vertex normals, do this after scaling to get correct normals
+    normals = vertPos.copy()
+    for i in range(rings):
+        for j in range(nEdgeVerts):
+            u = i * nEdgeVerts + j
+            x = normals[u, 0]
+            y = normals[u, 1]
+            z = radius / height * np.sqrt(x * x + y * y)
+            norm = np.sqrt(x * x + y * y + z * z)
+            if norm != 0.0:
+                normals[u, :] = [x / norm, y / norm, z / norm]
+            else:
+                # default normal pointing up if invalid
+                normals[u, :] = [0.0, 0.0, 1.0]
+
+    # create face indices
+    faces = []
+    for i in range(0, stacks):
+        stackOffset = nEdgeVerts * i
+        for j in range(nEdgeVerts):
+            j = stackOffset + j
+            k = edges + j
+            faces.append([j, k, k + 1])
+            faces.append([j, k + 1, j + 1])
+    
+    # ensure arrays are contiguous
+    vertPos, texCoords, normals = [
+        np.ascontiguousarray(i, dtype=np.float32) for i in (
+            vertPos, texCoords, normals)]
+    faces = np.ascontiguousarray(faces, dtype=np.uint32)
+
+    return vertPos, texCoords, normals, faces
+
+
+def createTorus(innerRadius=0.5, outerRadius=1.0, sides=16, rings=16):
+    """Create a torus mesh.
+
+    Generate a torus (doughnut) mesh by specifying its inner and outer radii.
+    The origin of the mesh will be centered on it. Texture coordinates will be
+    generated that project down onto a square bounding the torus.
+
+    Parameters
+    ----------
+    innerRadius : float
+        Inner radius of the torus in scene units. Must be greater than 0.
+    outerRadius : float
+        Outer radius of the torus in scene units. Must be greater than
+        `innerRadius`.
+    sides : int
+        Number of sides for each cross-sectional ring of the torus. Must be
+        greater than or equal to 3.
+    rings : int
+        Number of rings around the main axis of the torus. Must be greater than
+        or equal to 3.
+
+    Returns
+    -------
+    tuple
+        Vertex attribute arrays (position, texture coordinates, and normals) and
+        triangle indices.
+
+    """
+    # checks for valid parameters
+    if rings < 3:
+        raise ValueError("Number of rings must be >=3.")
+    if sides < 3:
+        raise ValueError("Number of sides must be >=3.")
+    if innerRadius <= 0.0:
+        raise ValueError("Inner radius must be >0.")
+    if outerRadius <= innerRadius:
+        raise ValueError("Outer radius must be greater than inner radius.")
+
+    # generate vertex positions
+    nVerts = sides * rings
+    vertPos = np.zeros((nVerts, 3), dtype=np.float32)
+    texCoords = np.zeros((nVerts, 2), dtype=np.float32)
+    normals = np.zeros((nVerts, 3), dtype=np.float32)
+
+    _twoPi = 2.0 * np.pi
+    theta = np.linspace(0, _twoPi, num=rings, endpoint=False)
+    phi = np.linspace(0, _twoPi, num=sides, endpoint=False)
+    radius = outerRadius + innerRadius
+
+    # generate vertex positions and normals
+    idx = 0
+    for i in range(rings):
+        for j in range(sides):
+            _phi = phi[j]
+            _theta = theta[i]
+            cos_theta = np.cos(_theta)
+            sin_theta = np.sin(_theta)
+            cos_phi = np.cos(_phi)
+            sin_phi = np.sin(_phi)
+            u = outerRadius + innerRadius * cos_phi
+            
+            x = u * cos_theta
+            y = u * sin_theta
+            z = innerRadius * sin_phi
+            vertPos[idx, :] = [x, y, z]
+
+            nx = cos_phi * cos_theta
+            ny = cos_phi * sin_theta
+            nz = sin_phi
+            normals[idx, :] = [nx, ny, nz]
+
+            idx += 1 
+
+    # generate texture coordinates
+    texCoords = vertPos[:, :2].copy()
+    radiusTimes2 = radius * 2.0
+    for i in range(2):
+        texCoords[:, i] += radius
+        texCoords[:, i] /= radiusTimes2
+
+    # create face indices
+    faces = []
+    for i in range(rings):
+        for j in range(sides):
+            nextI = (i + 1) % rings
+            nextJ = (j + 1) % sides
+
+            a = i * sides + j
+            b = nextI * sides + j
+            c = nextI * sides + nextJ
+            d = i * sides + nextJ
+            faces.append([a, b, d])
+            faces.append([b, c, d])
+
+    faces = np.ascontiguousarray(faces, dtype=np.uint32)
 
     return vertPos, texCoords, normals, faces
 
