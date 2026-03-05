@@ -524,13 +524,13 @@ class MovieFileReader:
             curPts = self._player.get_pts()
             if abs(curPts) < 1e-6:
                 break
-            time.sleep(0.0001)  # wait a bit before checking again
+            time.sleep(0.001)  # wait a bit before checking again
 
         # compute frame rate and interval
         numer, denom = movieMetadata['frame_rate']
         frameRate = numer / denom
         self._frameInterval = 1.0 / frameRate
-        self._maxGetFrameAttempts = int(self._frameInterval / 0.0001) 
+        self._maxGetFrameAttempts = int(self._frameInterval / 0.001) 
 
         # populate the metadata object with the movie metadata we got
         self._metadata = MovieMetadata(
@@ -720,7 +720,7 @@ class MovieFileReader:
             # `None` too many times, we give up and return `None` 
             if frame is None:
                 if getFrameAttempts < self._maxGetFrameAttempts:
-                    time.sleep(0.0001)  # wait a bit before trying again
+                    time.sleep(0.001)  # wait a bit before trying again
                     getFrameAttempts += 1
                     continue   # keep retrying
                 else:
@@ -1331,7 +1331,10 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
     def frameRate(self):
         """Frame rate of the movie in Hertz (`float`).
         """
-        return self._player.metadata.frameRate
+        if self._player is None or self._player._metadata is None:
+            return 0.0
+        
+        return self._player._metadata.frameRate
     
     @property
     def loop(self):
