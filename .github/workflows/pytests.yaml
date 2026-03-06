@@ -89,6 +89,14 @@ jobs:
         cat psychopy/VERSION
         python -c "import psychopy; print(psychopy.__version__)"
 
+    - name: Set nice level (linux)
+      if: runner.os=='Linux'
+      run: |
+        # sudo setcap cap_sys_nice=eip ${{ env.pythonLocation }}/python
+        echo "which python: $(which python)"
+        sudo setcap cap_sys_nice+ep $(which python)
+        getcap "$(which python)"  # did it work?
+
     - name: Test gui toolkits
       if: runner.os=='Linux'
       run: |
