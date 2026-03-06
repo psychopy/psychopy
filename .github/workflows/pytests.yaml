@@ -94,9 +94,10 @@ jobs:
       if: runner.os=='Linux'
       run: |
         # sudo setcap cap_sys_nice=eip ${{ env.pythonLocation }}/python
+        pyBinary=$(realpath $(which python3))
         echo "which python: $(which python)"
-        sudo setcap cap_sys_nice+ep $(which python)
-        getcap "$(which python)"  # did it work?
+        sudo setcap cap_sys_nice+ep $pyBinary
+        getcap "$pyBinary"  # did it work?
 
     - name: Test gui toolkits
       if: runner.os=='Linux'
