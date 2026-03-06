@@ -85,9 +85,10 @@ jobs:
         if [ "${{ runner.os }}" == "Linux" ]; then
           uv pip install -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-24.04 wxPython
         fi
-        uv pip install . ".[tests]" ".[suggested]" ".[building]"
-        cat psychopy/VERSION
-        python -c "import psychopy; print(psychopy.__version__)"
+        uv pip install . ".[tests]" ".[building]"
+        if [ "${{ matrix.python-version }}" == "3.10" ]; then
+          uv pip install . ".[suggested]"
+        fi
 
     - name: Set nice level (linux)
       if: runner.os=='Linux'
