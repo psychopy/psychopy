@@ -237,7 +237,7 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
         # used at render time
         self._lines = None  # np.array the line numbers for each char
         self._colors = None
-        self._styles = None
+        self._styles = {}
         self.flipHoriz = flipHoriz
         self.flipVert = flipVert
         # params about positioning (after layout has occurred)
@@ -719,76 +719,19 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
 
     @property
     def text(self):
-        return self._styles.formatted_text
+        return self._text
     
     @text.setter
     def text(self, text):
-        # Convert to string
+        # convert to string
         text = str(text)
-        original_text = text
-        # Substitute HTML tags
-        text = text.replace('<i>', codes['ITAL_START'])
-        text = text.replace('</i>', codes['ITAL_END'])
-        text = text.replace('<b>', codes['BOLD_START'])
-        text = text.replace('</b>', codes['BOLD_END'])
-        text = text.replace('</c>', codes['COLOR_END'])
-
-        # Handle starting color tag
-        colorMatches = re.findall(re_color_pattern, text)
-        # Only execute if color codes are found to save a regex call
-        if len(colorMatches) > 0:
-            text = re.sub(re_color_pattern, codes['COLOR_START'], text)
-        # Interpret colors from tags
-        color_values = []
-        for match in colorMatches:
-            # Strip C tag
-            matchKey = match.replace("<c=", "").replace(">", "")
-            # Convert to arrays as needed
-            try:
-                matchVal = literal_eval(matchKey)
-            except (ValueError, SyntaxError):
-                # If eval fails, use value as is
-                matchVal = matchKey
-            # Retrieve/cache color
-            if matchKey not in _colorCache:
-                _colorCache[matchKey] = Color(matchVal, self.colorSpace)
-                if not _colorCache[matchKey].valid:
-                    raise ValueError(f"Could not interpret color value for `{matchKey}` in textbox.")
-            color_values.append(_colorCache[matchKey].render('rgba1'))
-
-        visible_text = ''.join([c for c in text if c not in codes.values()])
-        self._styles = Style(len(visible_text))
-        self._styles.formatted_text = original_text
-        self._text = visible_text
+        # split into visible text and styling array
+        self._text, self._styles = Styling().getVisibleTextAndStyling(text)
+        # reshape text using bidi
         if self._needsArabic and hasattr(self, "arabicReshaper"):
             self._text = self.arabicReshaper.reshape(self._text)
         if self._needsBidi:
             self._text = bidi.get_display(self._text)
-
-        color_iter = 0       # iterator for color_values list
-        current_color = [()] # keeps track of color style(s)
-        is_bold = False
-        is_italic = False
-        ci = 0
-        for c in text:
-            if c == codes['ITAL_START']:
-                is_italic = True
-            elif c == codes['BOLD_START']:
-                is_bold = True
-            elif c == codes['COLOR_START']:
-                current_color.append(color_values[color_iter])
-                color_iter += 1
-            elif c == codes['ITAL_END']:
-                is_italic = False
-            elif c == codes['BOLD_END']:
-                is_bold = False
-            elif c == codes['COLOR_END']:
-                current_color.pop()
-            else:
-                self._styles.c[ci] = current_color[-1]
-                self._styles.i[ci] = is_italic
-                self._styles.b[ci] = is_bold
-                ci += 1
 
         self._layout()
 
@@ -796,10 +739,6 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
         """Allows a character to be added programmatically at the current caret"""
         txt = self._text
         txt = txt[:self.caret.index] + char + txt[self.caret.index:]
-        cstyle = Style(1)
-        if len(self._styles) and self.caret.index <= len(self._styles):
-            cstyle = self._styles[self.caret.index-1]
-        self._styles.insert(self.caret.index, cstyle)
         self.caret.index += 1
         self.text = txt
         self._layout()
@@ -810,7 +749,6 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
             txt = self._text
             ci = self.caret.index
             txt = txt[:ci-1] + txt[ci:]
-            self._styles = self._styles[:ci-1]+self._styles[ci:]
             self.caret.index -= 1
             self.text = txt
             self._layout()
@@ -821,7 +759,6 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
         if ci < len(self._text):
             txt = self._text
             txt = txt[:ci] + txt[ci+1:]
-            self._styles = self._styles[:ci]+self._styles[ci+1:]
             self.text = txt
             self._layout()
         
@@ -871,9 +808,9 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
                 # handle formatting codes
                 fakeItalic = 0.0
                 fakeBold = 0.0
-                if self._styles.i[i]:
+                if self._styles['italic'][i]:
                     fakeItalic = 0.1 * font.size
-                if self._styles.b[i]:
+                if self._styles['bold'][i]:
                     fakeBold = 0.3 * font.size
 
                 # handle newline
@@ -925,9 +862,8 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
                 vertices[i * 4:i * 4 + 4] = theseVertices
                 self._texcoords[i * 4:i * 4 + 4] = texcoords
                 # handle character color
-                rgb_ = self._styles.c[i]
-                if len(rgb_) > 0:
-                    self._colors[i*4 : i*4+4, :4] = rgb_ # set custom color
+                if self._styles['color'][i] is not None:
+                    self._colors[i*4 : i*4+4, :4] = self._styles['color'][i] # set custom color
                 else:
                     self._colors[i*4 : i*4+4, :4] = rgb # set default color
                 self._lineNs[i] = lineN
@@ -1001,7 +937,6 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
             # get a list of line-breakable points according to UAX#14
             breakable_points = list(get_breakable_points(self._text))
             text_seg = list(break_units(self._text, breakable_points))
-            styles_seg = list(break_units(self._styles, breakable_points))
 
             lineN = 0
             charwidth_list = []
@@ -1020,9 +955,9 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
                     # handle formatting codes
                     fakeItalic = 0.0
                     fakeBold = 0.0
-                    if self._styles.i[i]:
+                    if self._styles['italic'][i]:
                         fakeItalic = 0.1 * font.size
-                    if self._styles.b[i]:
+                    if self._styles['bold'][i]:
                         fakeBold = 0.3 * font.size
 
                     # handle newline
@@ -1112,9 +1047,8 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
                         vertices[i * 4:i * 4 + 4] = theseVertices
                         self._texcoords[i * 4:i * 4 + 4] = texcoords
                         # handle character color
-                        rgb_ = self._styles.c[i]
-                        if len(rgb_) > 0:
-                            self._colors[i*4 : i*4+4, :4] = rgb_ # set custom color
+                        if self._styles['color'][i] is not None:
+                            self._colors[i*4 : i*4+4, :4] = self._styles['color'][i] # set custom color
                         else:
                             self._colors[i*4 : i*4+4, :4] = rgb # set default color
                         self._lineNs[i] = lineN
@@ -1890,51 +1824,118 @@ class Caret(ColorMixin):
             [x, top]
         ])
 
-class Style:
-    # Define a simple Style class for storing information in text().
-    # Additional features exist to maintain extant edit/caret syntax
-    def __init__(self, text_length, i=None, b=None, c=None):
-        self.len = text_length
-        self.i = i
-        self.b = b
-        self.c = c
-        if i == None:
-            self.i = [False]*text_length
-        if b == None:
-            self.b = [False]*text_length
-        if c == None:
-            self.c = [()]*text_length
-        self.formatted_text = ''
 
-    def __len__(self):
-        return self.len
+class Styling:
+    # regex patterns for formatting
+    patterns = {
+        'color': r"\[colou?r=(?P<color>.+?)\](?P<content>.+?)\[\/colou?r\]", 
+        'bolditalic': r"(?<!\*)\*\*\*(?P<content>[^\*]+?)\*\*\*(?!\*)",
+        'bold': r"(?<!\*)\*\*(?P<content>[^\*]+?)\*\*(?!\*)",
+        'italic': r"(?<!\*)\*(?P<content>[^\*]+?)\*(?!\*)"
+    }
 
-    def __getitem__(self, i):
-        # Return a new Style object with data from current index
-        if isinstance(i, int):
-            s = Style(1, [self.i[i]], [self.b[i]], [self.c[i]])
-        else:
-            s = Style(len(self.i[i]), self.i[i], self.b[i], self.c[i])
-        return s
+    def __init__(self):
+        # rolling tally of characters substituted when filtering for visible text
+        self.subadj = 0
+        # maps indices in visible text to styles
+        self.indices = []
+    
+    def getVisibleTextAndStyling(self, text):
+        """
+        Take a string and return the corresponding visible text and matching styling array.
 
-    def __add__(self, c):
-        s = self.copy()
-        s.insert(len(s), c)
-        return s
+        Parameters
+        ----------
+        text : str
+            Raw text from which to generate visible text and styling arrays
 
-    def copy(self):
-        s = Style(self.len, self.i.copy(), self.b.copy(), self.c.copy())
-        s.formatted_text = self.formatted_text
-        return s
+        Returns
+        -------
+        str
+            Visible text from the given text
+        dict[str:np.ndarray]
+            Dict of numpy arrays, each with an entry per character in visible text, indicating the 
+            state of that style for that character
+        """
+        # reset indices and adjustment
+        self.subadj = 0
+        self.indices = []
+        # start with raw text
+        visibleText = text
+        # get matches for all patterns
+        matches = []
+        for style, pattern in self.patterns.items():
+            for match in re.finditer(
+                pattern=pattern,
+                string=text
+            ):
+                # store their start index, style and the match object
+                matches.append(
+                    (match.start(), style, match)
+                )
+            # strip syntax
+            visibleText = re.sub(
+                pattern=pattern,
+                repl=r"\g<content>",
+                string=visibleText
+            )
+        # sort matches chronologically
+        matches.sort(
+            key=lambda item: item[0]
+        )
+        # map styles to index in visible text array
+        for _, style, match in matches:
+            self._processMatchIndices(style, match)
+        # create by-character arrays for each style
+        styling = {
+            style: [None] * len(visibleText)
+            for style in self.patterns
+        }
+        # apply relevant information to arrays from indices
+        for item in self.indices:
+            for i in range(item['start'], item['end']):
+                styling[item['style']][i] = Color(item['color'], "hex").rgba255 if "color" in item else True
+        
+        return visibleText, styling
+    
+    def _processMatchIndices(self, style, match):
+        """
+        Mark a region of text as needing a given styling
 
-    def insert(self, i, style):
-        # in-place, like list
-        if not isinstance(style, Style):
-            raise TypeError('Inserted object must be Style.')
-        self.i[i:i] = style.i
-        self.b[i:i] = style.b
-        self.c[i:i] = style.c
-        self.len += len(style)
+        Parameters
+        ----------
+        style : string
+            Styling to apply to range, allowed values are:
+                - "color": A given color
+                - "bolditalic": Bold and italic
+                - "bold": Bold
+                - "italic": Italic
+        match : re.Match
+            Regex match for the target area, including the syntax identifying it (e.g. 
+            "[color=red]some red text[/color]", not just "some red text")
+        """
+        # store style
+        item = {
+            'style': style
+        }
+        # get span of content within matched string
+        span = match.span("content")
+        start = match.start()
+        end = match.end()
+        # store where the match will be in visible text string
+        item['start'] = start + self.subadj
+        item['end'] = item['start'] + span[1] - span[0]
+        # adjust for characters removed from start
+        self.subadj -= span[0] - start
+        # adjust for characters removed from end
+        self.subadj -= end - span[1]
+        # if we have a color, store it
+        try:
+            item['color'] = match.group("color")
+        except IndexError:
+            pass
+        # store
+        self.indices.append(item)
 
 
 class PlaceholderText(TextBox2):
