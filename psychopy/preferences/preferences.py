@@ -368,12 +368,20 @@ class Preferences:
             for key in section:
                 # if given in the JSON, set value
                 if key in params:
+                    # sanitize data
+                    val = params[key]['val']
+                    if self.val in ['True', 'true', 'TRUE', True, 1, 1.0]:
+                        val = True
+                    if self.val in ['False', 'false', 'FALSE', False, 0, 0.0]:
+                        val = False
+                    if self.val in ['None', 'none', None, ""]:
+                        val = None
                     try:
                         # attempt to un-stringify
-                        section[key] = json.loads(params[key]['val'])
+                        section[key] = json.loads(val)
                     except:
                         # use as-is if this fails
-                        section[key] = params[key]['val']
+                        section[key] = val
     
     @property
     def devices(self):
