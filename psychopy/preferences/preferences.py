@@ -370,9 +370,9 @@ class Preferences:
                 if key in params:
                     # sanitize data
                     val = params[key]['val']
-                    if val in ['True', 'true', 'TRUE', True, 1, 1.0]:
+                    if val in ['True', 'true', 'TRUE', True]:
                         val = True
-                    if val in ['False', 'false', 'FALSE', False, 0, 0.0]:
+                    if val in ['False', 'false', 'FALSE', False]:
                         val = False
                     if val in ['None', 'none', None, ""]:
                         val = None
