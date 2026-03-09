@@ -1914,7 +1914,7 @@ class Styling:
                     else:
                         col = Color(item['color'], "named")
                     # get value in rgb255
-                    styling[item['style']][i] = col.rgba255
+                    styling[item['style']][i] = col.render('rgba1')
                 else:
                     # otherwise apply boolean
                     styling[item['style']][i] = True
