@@ -746,30 +746,42 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
 
     def addCharAtCaret(self, char):
         """Allows a character to be added programmatically at the current caret"""
-        txt = self._text
-        txt = txt[:self.caret.index] + char + txt[self.caret.index:]
+        # get raw text
+        rawText = self.rawText
+        # get index of caret within raw text
+        i = self._stylingObj.visible2raw(self.caret.index)
+        # insert char at caret
+        rawText = rawText[:i] + char + rawText[i:]
+        # set text
+        self.text = rawText
+        # move caret to end of new char
         self.caret.index += 1
-        self.text = txt
-        self._layout()
 
     def deleteCaretLeft(self):
         """Deletes 1 character to the left of the caret"""
         if self.caret.index > 0:
-            txt = self._text
-            ci = self.caret.index
-            txt = txt[:ci-1] + txt[ci:]
+            # get raw text
+            rawText = self.rawText
+            # get index of caret within raw text
+            i = self._stylingObj.visible2raw(self.caret.index)
+            # remove char to left of caret
+            rawText = rawText[:i-1] + rawText[i:]
+            # set text
+            self.text = rawText
+            # move caret back 1
             self.caret.index -= 1
-            self.text = txt
-            self._layout()
 
     def deleteCaretRight(self):
-        """Deletes 1 character to the right of the caret"""
-        ci = self.caret.index
-        if ci < len(self._text):
-            txt = self._text
-            txt = txt[:ci] + txt[ci+1:]
-            self.text = txt
-            self._layout()
+        """Deletes 1 character to the right of the caret"""        
+        if self.caret.index > 0:
+            # get raw text
+            rawText = self.rawText
+            # get index of caret within raw text
+            i = self._stylingObj.visible2raw(self.caret.index)
+            # remove char to right of caret
+            rawText = rawText[:i] + rawText[i+1:]
+            # set text
+            self.text = rawText
         
     def _layout(self):
         """Layout the text, calculating the vertex locations
@@ -1855,8 +1867,50 @@ class Styling:
         self.text = text
         # rolling tally of characters substituted when filtering for visible text
         self.subadj = 0
+        self.adjustments = []
         # maps indices in visible text to styles
         self.indices = []
+    
+    def raw2visible(self, index):
+        """
+        Convert an index in the raw text string to the same index in the visible text string
+
+        Parameters
+        ----------
+        index : int
+            Index to convert
+        """
+        # start off with index as is
+        target = index
+        # iterate through points where indices change
+        for thisAdj in self.adjustments:
+            if thisAdj[0] <= index:
+                target -= thisAdj[2]
+            else:
+                break
+
+        return target
+    
+    def visible2raw(self, index):
+        """
+        Convert an index in the visible text string to the same index in the raw text string
+
+        Parameters
+        ----------
+        index : int
+            Index to convert
+        """
+        # start off with index as is
+        target = index
+        # iterate through points where indices change
+        for thisAdj in self.adjustments:
+            if thisAdj[1] < index:
+                target += thisAdj[2]
+            else:
+                break
+
+        return target
+
     
     def getVisibleTextAndStyling(self):
         """
@@ -1873,6 +1927,7 @@ class Styling:
         # reset indices and adjustment
         self.subadj = 0
         self.indices = []
+        self.adjustments = []
         # start with raw text
         visibleText = self.text
         # get matches for all patterns
@@ -1949,8 +2004,14 @@ class Styling:
         item['start'] = start + self.subadj
         item['end'] = item['start'] + span[1] - span[0]
         # adjust for characters removed from start
+        self.adjustments.append(
+            (span[0], item['start'], span[0] - start)
+        )
         self.subadj -= span[0] - start
         # adjust for characters removed from end
+        self.adjustments.append(
+            (end, item['end'], end - span[1])
+        )
         self.subadj -= end - span[1]
         # if we have a color, store it
         try:
