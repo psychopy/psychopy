@@ -716,6 +716,14 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
         if hasattr(self, "_text"):
             # If text has been set, layout
             self._layout()
+    
+    @property
+    def rawText(self):
+        return self._stylingObj.text
+    
+    @rawText.setter
+    def rawText(self, value):
+        self.text = value
 
     @property
     def text(self):
@@ -726,7 +734,8 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
         # convert to string
         text = str(text)
         # split into visible text and styling array
-        self._text, self._styles = Styling().getVisibleTextAndStyling(text)
+        self._stylingObj = Styling(text)
+        self._text, self._styles = self._stylingObj.getVisibleTextAndStyling()
         # reshape text using bidi
         if self._needsArabic and hasattr(self, "arabicReshaper"):
             self._text = self.arabicReshaper.reshape(self._text)
@@ -1826,6 +1835,14 @@ class Caret(ColorMixin):
 
 
 class Styling:
+    """
+    Handles styling for a block of text.
+
+    Parameters
+    ----------
+    text : str
+        Raw text from which to generate visible text and styling arrays
+    """
     # regex patterns for formatting
     patterns = {
         'color': r"\[colou?r=(?P<color>.+?)\](?P<content>.+?)\[\/colou?r\]", 
@@ -1834,25 +1851,21 @@ class Styling:
         'italic': r"(?<!\*)\*(?P<content>[^\*]+?)\*(?!\*)"
     }
 
-    def __init__(self):
+    def __init__(self, text):
+        self.text = text
         # rolling tally of characters substituted when filtering for visible text
         self.subadj = 0
         # maps indices in visible text to styles
         self.indices = []
     
-    def getVisibleTextAndStyling(self, text):
+    def getVisibleTextAndStyling(self):
         """
-        Take a string and return the corresponding visible text and matching styling array.
-
-        Parameters
-        ----------
-        text : str
-            Raw text from which to generate visible text and styling arrays
+        Get the visible text and matching styling arrays for this object's text..
 
         Returns
         -------
         str
-            Visible text from the given text
+            Visible text, with styling tags removed
         dict[str:np.ndarray]
             Dict of numpy arrays, each with an entry per character in visible text, indicating the 
             state of that style for that character
@@ -1861,13 +1874,13 @@ class Styling:
         self.subadj = 0
         self.indices = []
         # start with raw text
-        visibleText = text
+        visibleText = self.text
         # get matches for all patterns
         matches = []
         for style, pattern in self.patterns.items():
             for match in re.finditer(
                 pattern=pattern,
-                string=text
+                string=self.text
             ):
                 # store their start index, style and the match object
                 matches.append(
