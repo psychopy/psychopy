@@ -1845,7 +1845,7 @@ class Styling:
     """
     # regex patterns for formatting
     patterns = {
-        'color': r"\[colou?r=(?P<color>.+?)\](?P<content>.+?)\[\/colou?r\]", 
+        'color': r"\[colou?r *= *(?P<color>.+?)(?: +space *= *(?P<space>.+?))?\](?P<content>.+?)\[\/colou?r\]", 
         'bolditalic': r"(?<!\*)\*\*\*(?P<content>[^\*]+?)\*\*\*(?!\*)",
         'bold': r"(?<!\*)\*\*(?P<content>[^\*]+?)\*\*(?!\*)",
         'italic': r"(?<!\*)\*(?P<content>[^\*]+?)\*(?!\*)"
@@ -1907,7 +1907,17 @@ class Styling:
         # apply relevant information to arrays from indices
         for item in self.indices:
             for i in range(item['start'], item['end']):
-                styling[item['style']][i] = Color(item['color'], "hex").rgba255 if "color" in item else True
+                if "color" in item:
+                    # Create color object
+                    if "space" in item:
+                        col = Color(item['color'], item['space'])
+                    else:
+                        col = Color(item['color'], "named")
+                    # get value in rgb255
+                    styling[item['style']][i] = col.rgba255
+                else:
+                    # otherwise apply boolean
+                    styling[item['style']][i] = True
         
         return visibleText, styling
     
@@ -1945,6 +1955,11 @@ class Styling:
         # if we have a color, store it
         try:
             item['color'] = match.group("color")
+        except IndexError:
+            pass
+        # if we have a color space, store it
+        try:
+            item['space'] = match.group("space")
         except IndexError:
             pass
         # store
