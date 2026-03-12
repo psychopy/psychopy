@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 48 48" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <rect id="EyetrackerMarkerComponent" x="0" y="0" width="48" height="48" style="fill:none;"/>
+    <g id="EyetrackerMarkerComponent1" serif:id="EyetrackerMarkerComponent">
+        <g id="Eyetracker-Record-Component" serif:id="Eyetracker Record Component" transform="matrix(0.707909,0,0,0.707909,-1.08539,-0.355308)">
+            <g id="Eyetracker-Validate-Component" serif:id="Eyetracker Validate Component">
+                <g id="Eyetracker-Record-Component1" serif:id="Eyetracker Record Component">
+                    <g transform="matrix(0,1,1,0,35.4361,18.558)">
+                        <path d="M16.875,-16.875C7.555,-16.875 0,-9.32 0,0C0,9.32 7.555,16.875 16.875,16.875C26.195,16.875 33.75,9.32 33.75,0C33.75,-9.32 26.195,-16.875 16.875,-16.875" style="fill:var(--blue);fill-rule:nonzero;"/>
+                    </g>
+                    <g transform="matrix(0,-1,-1,0,33.3389,8.2089)">
+                        <path d="M-26.768,-32.1L-24.948,-33.174L-23.235,-31.935C-11.846,-23.693 -5.983,-13.294 -5.983,-2.097C-5.983,9.1 -11.846,19.499 -23.235,27.741L-24.948,28.98L-26.768,27.906C-39.941,20.128 -48.465,9.428 -48.465,-2.097C-48.465,-13.622 -39.941,-24.322 -26.768,-32.1ZM-25.318,-25.422C-35.241,-19.132 -42.011,-11.1 -42.011,-2.097C-42.011,6.906 -35.241,14.938 -25.318,21.228C-16.952,14.623 -12.437,6.622 -12.437,-2.097C-12.437,-10.816 -16.952,-18.817 -25.318,-25.422L-25.318,-25.422Z" style="fill:var(--outline);"/>
+                    </g>
+                    <g transform="matrix(1,0,0,1,-558.116,-239.173)">
+                        <path d="M593.705,269.131C594.59,268.794 595.549,268.609 596.552,268.609C600.969,268.609 604.549,272.189 604.549,276.606C604.549,281.023 600.969,284.603 596.552,284.603C592.135,284.603 588.555,281.023 588.555,276.606C588.555,276.259 588.577,275.916 588.62,275.581C589.261,275.991 590.023,276.229 590.841,276.229C593.12,276.229 594.968,274.381 594.968,272.102C594.968,270.935 594.484,269.881 593.705,269.131Z" style="fill:var(--outline);fill-rule:nonzero;"/>
+                    </g>
+                </g>
+            </g>
+        </g>
+        <path d="M37,46L29.176,33.872C27.778,31.706 27.463,29.014 28.323,26.584C29.183,24.153 31.12,22.258 33.569,21.453C34.494,21.162 35.478,21 36.5,21C37.956,21 39.337,21.328 40.571,21.915C42.668,22.913 44.253,24.743 44.94,26.961C45.627,29.18 45.354,31.584 44.188,33.593C41.574,38.123 37,46 37,46ZM36.579,26C34.923,26 33.579,27.344 33.579,29C33.579,30.656 34.923,32 36.579,32C38.235,32 39.579,30.656 39.579,29C39.579,27.344 38.235,26 36.579,26Z" style="fill:var(--red);"/>
+    </g>
+</svg>
