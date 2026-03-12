@@ -7,21 +7,20 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
+__all__ = [
+    "SpeakerDevice",
+]
+
 import io
 import sys
 import contextlib
 from types import SimpleNamespace
-import psychtoolbox.audio as ptb
 from psychopy.hardware.exceptions import DeviceNotConnectedError
 from psychopy.localization import _translate
 from psychopy.preferences import prefs
 from psychopy.hardware import BaseDevice
 from psychopy import logging
 from psychopy.tools import systemtools
-
-__all__ = [
-    "SpeakerDevice",
-]
 
 
 class SpeakerDevice(BaseDevice):
@@ -147,8 +146,9 @@ class SpeakerDevice(BaseDevice):
             object was initialised with, as this will be the system-reported name of the actual 
             physical speaker best matching what was requested.
         """
-
         # get the devices from psychtoolbox
+        import psychtoolbox.audio as ptb
+        
         try:
             wasapiPref = prefs.hardware['audioWASAPIOnly']
         except KeyError:
@@ -199,6 +199,7 @@ class SpeakerDevice(BaseDevice):
             self.stream = SpeakerDevice.streams['DeviceIndex']
         else:
             self.stream = None
+
         # try to connect using profile at various sample rates
         for sampleRateHz in (
             # start with the rate from profile (this will usually work)
@@ -323,20 +324,96 @@ class SpeakerDevice(BaseDevice):
         snd.play()
         time.sleep(1)
         snd.stop()
+
+    @staticmethod
+    def _getDevicesSoundDevice():
+        """Get a list of available speaker configurations using the sounddevice 
+        backend.
+
+        Returns
+        -------
+        list[dict]
+            A list of dicts, each describing a speaker device.
+        
+        """
+        import sounddevice as sd
+
+        devices = []
+        for dev in sd.query_devices():
+            # build a dict with the same keys as psychtoolbox for consistency 
+            devDict = { 
+                'DeviceIndex': dev['index'],
+                'HostAudioAPIId': dev['hostapi'],
+                'HostAudioAPIName': sd.query_hostapis(dev['hostapi'])['name'],
+                'DeviceName': dev['name'],
+                'NrInputChannels': dev['max_input_channels'],
+                'NrOutputChannels': dev['max_output_channels'],
+                'LowInputLatency': dev['default_low_input_latency'],
+                'HighInputLatency': dev['default_high_input_latency'],
+                'LowOutputLatency': dev['default_low_output_latency'],
+                'HighOutputLatency': dev['default_high_output_latency'],
+                'DefaultSampleRate': dev['default_samplerate']
+            }
+            devices.append(devDict)
+
+        return devices
+    
+    @staticmethod
+    def _getDevicesPsychtoolbox():
+        """Get a list of available speaker configurations using the psychtoolbox 
+        backend.
+
+        Returns
+        -------
+        list[dict]
+            A list of dicts, each describing a speaker device.
+        
+        """
+        import psychtoolbox.audio as ptb
+
+        try:
+            wasapiPref = prefs.hardware['audioWASAPIOnly']
+        except KeyError:
+            wasapiPref = False
+
+        deviceType = 13 if sys.platform == 'win32' and wasapiPref else None
+
+        return ptb.get_devices(device_type=deviceType)
     
     @staticmethod
     def getAvailableDevices():
+        """Get available speaker devices.
+        
+        Returns
+        -------
+        list[dict]
+            A list of dicts, each describing a speaker device. Each dict has the keys `deviceName`, 
+            `index`, and `name`.
+        
+        """
         # skip in vm
         if systemtools.isVM_CI():  # GitHub actions VM does not have a sound device
             return []
-        # only show WASAPI drivers for Windows
-        if sys.platform == 'win32':
-            deviceType = 13
-        else:
-            deviceType = None
         
+        # get the sound driver to use from prefs, or default if not set
+        sndDriverList = prefs.hardware['audioDriver']
+        if sndDriverList:
+            useDriver = sndDriverList[0] if isinstance(sndDriverList, (list, tuple)) else sndDriverList
+        else:
+            useDriver = "sounddevice"
+
+        # get the appropriate function for getting devices based on the driver
+        if useDriver == "sounddevice":
+            _getDeviceFunc = SpeakerDevice._getDevicesSoundDevice
+        elif useDriver == "ptb" or useDriver == 'portaudio':
+            _getDeviceFunc = SpeakerDevice._getDevicesPsychtoolbox
+        else:
+            raise ValueError((
+                f"Invalid value '{useDriver}' for prefs.hardware['audioDriver'], "
+                f"expected 'sounddevice' or 'ptb'"))
+
         devices = []
-        for profile in ptb.get_devices(device_type=deviceType):
+        for profile in _getDeviceFunc():
             # skip input-only devices (microphones)
             if profile['NrOutputChannels'] == 0:
                 continue
