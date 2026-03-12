@@ -428,17 +428,16 @@ class _SoundBase(AttributeGetSetMixin):
         # are we preloading or streaming?
         if self.preBuffer == 0:
             # no buffer - stream from disk on each call to nextBlock
-            pass
+            return
         elif self.preBuffer == -1:
             # full pre-buffer. Load requested duration to memory
             sndArr = self.sndFile.read(
                 frames=int(self.sampleRate * self.duration))
             self.sndFile.close()
             self._setSndFromArray(sndArr)
-
-        self._channelCheck(
-            self.sndArr)  # Check for fewer channels in stream vs data array
-
+        
+        self._channelCheck(self.sndArr)
+            
     def _setSndFromArray(self, thisArray):
         """Set sound from a numpy array.
         
