@@ -8,7 +8,7 @@ class Sound:
     """
     
     # name of the backend to use for Sound objects
-    backend = "ptb"
+    backend = "sounddevice"
 
     def __new__(cls, *args, **kwargs):
         # get backends
@@ -37,6 +37,11 @@ class Sound:
                 importlib.metadata.EntryPoint(
                     name="ptb", 
                     value="psychopy.sound.backend_ptb", 
+                    group="psychopy.sound.backends"
+                ),
+                importlib.metadata.EntryPoint(
+                    name="sounddevice", 
+                    value="psychopy.sound.backend_sounddevice", 
                     group="psychopy.sound.backends"
                 ),
                 importlib.metadata.EntryPoint(
