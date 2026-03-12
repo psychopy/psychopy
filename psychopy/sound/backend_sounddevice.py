@@ -246,7 +246,6 @@ class _SoundStream:
             .inputBufferAdcTime
             .outputBufferDacTime
         """
-        print('here')
         if self.takeTimeStamp and hasattr(self, 'lastFrameTime'):
             logging.info("Entered callback: {} ms after last frame end"
                          .format((time.time() - self.lastFrameTime) * 1000))
