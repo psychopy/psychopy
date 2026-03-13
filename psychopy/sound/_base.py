@@ -377,10 +377,10 @@ class _SoundBase(AttributeGetSetMixin):
             array.
 
         """
-        if self.channels < array.shape[1]:
+        if self.channels < sndArr.shape[1]:
             msg = ("The sound stream is set up incorrectly. You have fewer channels in the buffer "
                    "than in data file ({} vs {}).\n**Ensure you have selected 'Force stereo' in "
-                   "experiment settings**".format(self.channels, array.shape[1]))
+                   "experiment settings**".format(self.channels, sndArr.shape[1]))
             logging.error(msg)
             raise ValueError(msg)
 
