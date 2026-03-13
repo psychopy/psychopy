@@ -1858,10 +1858,14 @@ class Styling:
     # regex patterns for formatting
     patterns = {
         'color': r"\[colou?r *= *(?P<color>.+?)(?: +space *= *(?P<space>.+?))?\](?P<content>.+?)\[\/colou?r\]", 
-        'bolditalic': r"(?<!\*)\*\*\*(?P<content>[^\*]+?)\*\*\*(?!\*)",
-        'bold': r"(?<!\*)\*\*(?P<content>[^\*]+?)\*\*(?!\*)",
-        'italic': r"(?<!\*)\*(?P<content>[^\*]+?)\*(?!\*)"
+        'bolditalic': r"(?<![\*\\])\*\*\*(?P<content>[^\*]+?)\*\*\*(?!\*)",
+        'bold': r"(?<![\*\\])\*\*(?P<content>[^\*]+?)\*\*(?!\*)",
+        'italic': r"(?<![\*\\])\*(?P<content>[^\*]+?)\*(?!\*)"
     }
+    # escape patterns for formatting-relevant characters
+    escapes = [
+        r"\\(?P<content>\*)"
+    ]
 
     def __init__(self, text):
         self.text = text
@@ -1947,6 +1951,22 @@ class Styling:
                 repl=r"\g<content>",
                 string=visibleText
             )
+        # substitute escaped characters
+        for escape in self.escapes:
+            for match in re.finditer(
+                pattern=escape,
+                string=self.text
+            ):
+                # store as with patterns, but with style as "escape"
+                matches.append(
+                    (match.start(), "escape", match)
+                )
+            # do substitution
+            visibleText = re.sub(
+                pattern=escape,
+                repl=r"\g<content>",
+                string=visibleText
+            )
         # sort matches chronologically
         matches.sort(
             key=lambda item: item[0]
@@ -1988,6 +2008,7 @@ class Styling:
                 - "bolditalic": Bold and italic
                 - "bold": Bold
                 - "italic": Italic
+                - "escape": No style, just apply index adjustment (for when an escaped char was subtituted)
         match : re.Match
             Regex match for the target area, including the syntax identifying it (e.g. 
             "[color=red]some red text[/color]", not just "some red text")
@@ -2013,6 +2034,9 @@ class Styling:
             (end, item['end'], end - span[1])
         )
         self.subadj -= end - span[1]
+        # if adjusting for an escaped char, we're done now
+        if style == "escape":
+            return
         # if we have a color, store it
         try:
             item['color'] = match.group("color")
