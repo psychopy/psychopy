@@ -220,7 +220,7 @@ class _SoundStream:
                                              latency='low',
                                              device=device,
                                              channels=self.channels,
-                                             callback=self.callback)
+                                             callback=self._callback)
             self._sdStream.start()
             self.device = self._sdStream.device
             self.latency = self._sdStream.latency
@@ -235,40 +235,72 @@ class _SoundStream:
         """`True` if the audio playback is ongoing."""
         return self._isPlaying
 
-    def callback(self, toSpk, blockSize, timepoint, status):
-        """This is a callback for the SoundDevice lib
+    def _callback(self, toSpk, blockSize, timepoint, status):
+        """Callback function for the sound stream. 
+        
+        This is called internally by the `sounddevice` library to fetch the next 
+        block of audio data to be played when the input output buffer is starved. 
+        It iterates through all currently playing sounds, fetches the next block 
+        of audio data for each sound, applies the volume, and adds it to the 
+        output buffer. If a sound has finished playing (i.e., the fetched block is 
+        shorter than the buffer size), it is removed from the list of currently 
+        playing sounds.
 
-        fromMic is data from the mic that can be extracted
-        toSpk is a numpy array to be populated with data
-        blockSize is the number of frames to be included each block
-        timepoint has values:
-            .currentTime
-            .inputBufferAdcTime
-            .outputBufferDacTime
+        Parameters
+        ----------
+        toSpk : np.ndarray
+            A numpy array to be populated with the audio data to be played.
+        blockSize : int
+            The number of frames to be included in each block of audio data.
+        timepoint : object
+            An object containing timing information for the callback, with 
+            attributes `currentTime`, `inputBufferAdcTime`, and 
+            `outputBufferDacTime`.
+        status : int
+            Status flags for the callback (e.g., indicating underflow or 
+            overflow).
+        
         """
         if self.takeTimeStamp and hasattr(self, 'lastFrameTime'):
             logging.info("Entered callback: {} ms after last frame end"
-                         .format((time.time() - self.lastFrameTime) * 1000))
+                         .format((time.monotonic() - self.lastFrameTime) * 1000))
             logging.info("Entered callback: {} ms after sound start"
                          .format(
-                (time.time() - self._tSoundRequestPlay) * 1000))
-        t0 = time.time()
+                (time.monotonic() - self._tSoundRequestPlay) * 1000))
+        
+        toSpk.fill(0.0)  # fill buffer with silence to start with
+
+        # check if we have reached the requested play time
+        outBuffDACTime = timepoint.outputBufferDacTime
+        tToStart = self._tSoundRequestPlay - outBuffDACTime
+        tToDAC = outBuffDACTime - timepoint.currentTime
+
+        if tToStart > tToDAC:  # no samples this frame, too early to start
+            return  # NOP
+        
         self.frameN += 1
-        toSpk.fill(0)
-        for thisSound in list(self.sounds): # copy (Py2 doesn't have list.copy)
+        for thisSound in self.sounds.copy():
             dat = thisSound._nextBlock()  # fetch the next block of data
-            dat *= thisSound.volume  # Set the volume block by block
-            if self.channels == 2 and len(dat.shape) == 2:
-                toSpk[:len(dat), :] += dat  # add to out stream
-            elif self.channels == 2 and len(dat.shape) == 1:
-                toSpk[:len(dat), 0] += dat  # add to out stream
-                toSpk[:len(dat), 1] += dat  # add to out stream
-            elif self.channels == 1 and len(dat.shape) == 2:
-                toSpk[:len(dat), :] += dat  # add to out stream
+            if dat is None:
+                return
+
+            if thisSound.volume != 1.0:
+                dat *= thisSound.volume  # Set the volume block by block
+
+            datSize = len(dat)
+            datDims = len(dat.shape)
+            if self.channels == 2 and datDims == 2:
+                toSpk[:datSize, :] += dat  # add to out stream
+            elif self.channels == 2 and datDims == 1:
+                toSpk[:datSize, 0] += dat 
+                toSpk[:datSize, 1] += dat  
+            elif self.channels == 1 and datDims == 2:
+                toSpk[:datSize, :] += dat
             else:
-                toSpk[:len(dat), 0:self.channels] += dat  # add to out stream
+                toSpk[:datSize, 0:self.channels] += dat 
+
             # check if that was a short block (sound is finished)
-            if len(dat) < len(toSpk[:, :]):
+            if datSize < len(toSpk[:, :]):
                 self.remove(thisSound)
                 thisSound._EOS()
                 # check if that took a long time
@@ -283,7 +315,7 @@ class _SoundStream:
                 # if self.takeTimeStamp:
                 #     logging.debug("Callback durations: {}".format(self.frameTimes))
                 #     self.takeTimeStamp = False
-
+        
     def add(self, sound):
         # t0 = time.time()
         self.sounds.append(sound)
@@ -304,7 +336,7 @@ class _SoundStream:
 
 
 class SoundDeviceSound(_SoundBase):
-    """Play a variety of sounds using the new SoundDevice library
+    """Play a variety of sounds using the SoundDevice library.
     """
     def __init__(self, value="C", secs=0.5, octave=4, stereo=-1,
                  speaker=None,
@@ -365,6 +397,7 @@ class SoundDeviceSound(_SoundBase):
 
         """
         self.preBuffer = preBuffer
+        self.volume = volume
         self.sound = value
         self.speaker = speaker
         self.name = name
@@ -372,11 +405,11 @@ class SoundDeviceSound(_SoundBase):
         self.octave = octave  # for note name sounds
         self.loops = loops
         self._loopsFinished = 0
-        self.volume = volume
         self.startTime = startTime  # for files
         self.stopTime = stopTime  # for files specify thesection to be played
         self.blockSize = blockSize  # can be per-sound unlike other backends
-        self.frameN = 0
+        self.frameN = 0 
+        self.win = None  # for timing play with window flips
         self._tSoundRequestPlay = 0
 
         if sampleRate:  #a rate was requested so use it
@@ -408,6 +441,7 @@ class SoundDeviceSound(_SoundBase):
                       hamming=self.hamming)
         self.status = NOT_STARTED
 
+        self._isStarted = False
         self._isPlaying = False
 
     @property
@@ -573,39 +607,72 @@ class SoundDeviceSound(_SoundBase):
                    "experiment settings**".format(self.channels, array.shape[1]))
             logging.error(msg)
             raise ValueError(msg)
+        
+    def start(self):
+        """Start the audio stream.
 
-    def play(self, loops=None, when=None):
-        """Start the sound playing
+        This starts the audio stream and prepares it for playback. Calling this
+        sometime before `play` can help to reduce latency when `play` is called, 
+        as the stream will already be active and ready to receive audio data. 
+        However, if `play` is called without first calling `start`, the stream will
+        be started automatically.
+
+        """
+        streams[self.streamLabel].takeTimeStamp = True
+        streams[self.streamLabel].add(self)
+        self._isStarted = True
+
+    def play(self, loops=None, when=None, log=None):
+        """Start playing the sound.
 
         Parameters
         --------------
         loops : int or None
             Number of loops to play (-1=forever, 0=single repeat). If `None`, uses the 
             value set during initialisation.
-        when: float or None
-            Time to begin playback, in seconds relative to the global clock. If `None`, 
-            playback will start immediately.
+        when: float, `psychopy.visual.Window` or None
+            Time to begin playback, in seconds relative to the global clock. If a 
+            `psychopy.visual.Window` is passed, the audio will be played at the 
+            next window flip. If 0.0 or `None`, playback will start immediately.
 
         """
         if self.isPlaying:
             return
 
+        if not self._isStarted:
+            self.start()
+
         if loops is not None and self.loops != loops:
+            # TODO - loop logic doesn't work with generated sounds
             self.setLoops(loops)
 
         self._isPlaying = True
-        self._tSoundRequestPlay = time.time()
-        streams[self.streamLabel].takeTimeStamp = True
-        streams[self.streamLabel].add(self)
+        self.stream._tSoundRequestPlay = time.monotonic()
+
+        # handle scheduling of play time
+        logTime = None
+        if when is not None:
+            if isinstance(when, (int, float)):
+                self.stream._tSoundRequestPlay += when
+            elif hasattr(when, 'getFutureFlipTime'):
+                logTime = when.getFutureFlipTime(clock=None)
+                when = when.getFutureFlipTime(clock='now')
+        else:
+            if hasattr(self.win, 'getFutureFlipTime'):
+                logTime = self.win.getFutureFlipTime(clock=None)
+                when = self.win.getFutureFlipTime(clock='now')             
+
+        if log and self.autoLog:
+            logging.exp(u"Playing sound %s on speaker %s" % (
+                self.name, self.speaker.name), obj=self, t=logTime)
 
     def pause(self):
         """Stop the sound but play will continue from here if needed.
         """
-        # if self.status == PAUSED:
-        #     return
-        #
-        # self.status = PAUSED
         streams[self.streamLabel].remove(self)
+        # eventually we will keep the stream 'hot' and `stop` will actually 
+        # stop the stream and reset to the beginning
+        self._isPlaying = self._isStarted = False
 
     def stop(self, reset=True):
         """Stop the sound and return to beginning.
@@ -626,13 +693,21 @@ class SoundDeviceSound(_SoundBase):
         if reset:
             self.seek(0)
 
-        self._isPlaying = False
+        self._isPlaying = self._isStarted = False
 
-    def _nextBlock(self):
+    def _nextBlock(self, blockSize=None):
         """Get the next block of sound data to be played.
         
         This is called internally by the sound stream during playback. It retrieves
-        the next block of sound data based on the current time and the sound's properties, applies any necessary processing (e.g., Hamming window), and returns the block of data to be played.
+        the next block of sound data based on the current time and the sound's properties, 
+        applies any necessary processing (e.g., Hamming window), and returns the block of 
+        data to be played.
+
+        Parameters
+        ----------
+        blockSize : int or None
+            The size of the block of audio data to be returned. If `None`, uses the 
+            block size configured for the stream.
 
         Returns
         -------
@@ -646,7 +721,8 @@ class SoundDeviceSound(_SoundBase):
             return
         
         samplesLeft = int((self.duration - self.t) * self.sampleRate)
-        nSamples = min(self.blockSize, samplesLeft)
+        blockSize = blockSize or self.blockSize
+        nSamples = min(blockSize, samplesLeft)
         
         if self.sourceType == 'file' and self.preBuffer == 0:
             # streaming sound block-by-block direct from file
@@ -666,20 +742,20 @@ class SoundDeviceSound(_SoundBase):
                 self._EOS()
         elif self.sourceType == 'freq':
             startT = self.t
-            stopT = self.t + self.blockSize / float(self.sampleRate)
+            stopT = self.t + blockSize / float(self.sampleRate)
             uu = self.freq * _piTimes2
             xx = np.linspace(
                 start=startT * uu,
                 stop=stopT * uu,
-                num=self.blockSize, endpoint=False
+                num=blockSize, endpoint=False
             )
-            xx.shape = [self.blockSize, 1]
+            xx.shape = [blockSize, 1]
             block = np.sin(xx)
             # if run beyond our desired t then set to zeros
             if stopT > (self.secs):
                 tRange = np.linspace(
                     startT, stopT, 
-                    num=self.blockSize, 
+                    num=blockSize, 
                     endpoint=False)
                 block[tRange > self.secs] = 0
                 # and inform our EOS function that we finished
@@ -752,7 +828,9 @@ class SoundDeviceSound(_SoundBase):
         
     def _setSndFromArrayLegacy(self, thisArray):
         """
-        Prior to 2025.1.0, _SoundBase didn't have a `_setSndFromArray` method to inherit. This legacy method can be substituted in if the version of PsychoPy installed is too old.
+        Prior to 2025.1.0, _SoundBase didn't have a `_setSndFromArray` method to 
+        inherit. This legacy method can be substituted in if the version of 
+        PsychoPy installed is too old.
         """
         from psychopy.sound.audioclip import AudioClip
         clip = AudioClip(thisArray, sampleRateHz=self.sampleRate)
