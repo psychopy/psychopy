@@ -41,7 +41,18 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin, _Tes
 
     def teardown_method(self):
         self.win.close()
-
+    
+    def test_rtl(self):
+        # add a font with hebrew characters
+        self.textbox.fontMGR.addGoogleFont("Noto Sans Hebrew")
+        self.textbox.font = "Noto Sans Hebrew"
+        # specify language as RTL
+        self.textbox.languageStyle = "RTL"
+        # use a hebrew string with styling (so we can check it's in the right place after RTL adjustment)
+        self.textbox.text = "השועל [color=brown]החום[/color] המהיר קופץ **מעל** הכלב ה*עצלן*."
+        # put language back as LTR for subsequent tests
+        self.textbox.languageStyle = "LTR"
+    
     def test_glyph_rendering(self):
         # Prepare textbox
         self.textbox.colorSpace = 'rgb'

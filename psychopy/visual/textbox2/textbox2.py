@@ -264,11 +264,6 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
         # now that we have text, set orientation
         self.ori = ori
 
-        # Initialise arabic reshaper
-        arabic_config = {'delete_harakat': False,  # if present, retain any diacritics
-                         'shift_harakat_position': False}  # shift by 1 to be compatible with the bidi algorithm
-        self.arabicReshaper = ArabicReshaper(configuration=arabic_config)
-
         # caret
         self.editable = editable
         self.overflow = overflow
@@ -669,9 +664,6 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
         self._languageStyle = value
         if hasattr(self, "_placeholder"):
             self._placeholder.languageStyle = value
-        # If layout is anything other than LTR, mark that we need to use bidi to lay it out
-        self._needsBidi = value != "LTR"
-        self._needsArabic = value.lower() == "arabic"
 
     @property
     def anchor(self):
@@ -735,12 +727,9 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
         text = str(text)
         # split into visible text and styling array
         self._stylingObj = Styling(text)
-        self._text, self._styles = self._stylingObj.getVisibleTextAndStyling()
-        # reshape text using bidi
-        if self._needsArabic and hasattr(self, "arabicReshaper"):
-            self._text = self.arabicReshaper.reshape(self._text)
-        if self._needsBidi:
-            self._text = bidi.get_display(self._text)
+        self._text, self._styles = self._stylingObj.getVisibleTextAndStyling(
+            self.languageStyle
+        )
 
         self._layout()
 
@@ -1862,6 +1851,12 @@ class Styling:
         'bold': r"(?<![\*\\])\*\*(?P<content>[^\*]+?)\*\*(?!\*)",
         'italic': r"(?<![\*\\])\*(?P<content>[^\*]+?)\*(?!\*)"
     }
+    rtlpatterns = {
+        'color': r"\[colou?r\/\](?P<content>.+?)\[colou?r *= *(?P<color>.+?)(?: +space *= *(?P<space>.+?))?\]", 
+        'bolditalic': r"(?<![\*\\])\*\*\*(?P<content>[^\*]+?)\*\*\*(?!\*)",
+        'bold': r"(?<![\*\\])\*\*(?P<content>[^\*]+?)\*\*(?!\*)",
+        'italic': r"(?<![\*\\])\*(?P<content>[^\*]+?)\*(?!\*)"
+    }
     # escape patterns for formatting-relevant characters
     escapes = [
         r"\\(?P<content>\*)"
@@ -1874,6 +1869,11 @@ class Styling:
         self.adjustments = []
         # maps indices in visible text to styles
         self.indices = []
+        # initialise arabic reshaper     
+        self.arabicReshaper = ArabicReshaper(configuration={
+            'delete_harakat': False,  # if present, retain any diacritics
+            'shift_harakat_position': False  # shift by 1 to be compatible with the bidi algorithm
+        })
     
     def raw2visible(self, index):
         """
@@ -1916,9 +1916,17 @@ class Styling:
         return target
 
     
-    def getVisibleTextAndStyling(self):
+    def getVisibleTextAndStyling(self, languageStyle="LTR"):
         """
         Get the visible text and matching styling arrays for this object's text..
+
+        Parameters
+        ----------
+        languageStyle : str
+            One of...
+                - "LTR": Text reads left-to-right (e.g. as in English)
+                - "RTL": Text reads right-to-left (e.g. as in Hebrew)
+                - "arabic": Text is arabic (same as RTL but with additional transformations specific to arabic)
 
         Returns
         -------
@@ -1933,13 +1941,25 @@ class Styling:
         self.indices = []
         self.adjustments = []
         # start with raw text
-        visibleText = self.text
+        visibleText = transformedText = self.text
+        # do we need arabic or bidi transformation?
+        needsBidi = languageStyle.lower() in ("rtl", "arabic")
+        needsArabic = languageStyle.lower() == "arabic"
+        # reshape text using bidi
+        if needsArabic and hasattr(self, "arabicReshaper"):
+            visibleText = transformedText = self.arabicReshaper.reshape(transformedText)
+        if needsBidi:
+            visibleText = transformedText = bidi.get_display(transformedText)
+        # choose regex patterns based on language style
+        patterns = self.patterns
+        if needsBidi:
+            patterns = self.rtlpatterns
         # get matches for all patterns
         matches = []
-        for style, pattern in self.patterns.items():
+        for style, pattern in patterns.items():
             for match in re.finditer(
                 pattern=pattern,
-                string=self.text
+                string=transformedText
             ):
                 # store their start index, style and the match object
                 matches.append(
@@ -1977,13 +1997,13 @@ class Styling:
         # create by-character arrays for each style
         styling = {
             style: [None] * len(visibleText)
-            for style in self.patterns
+            for style in patterns
         }
         # apply relevant information to arrays from indices
         for item in self.indices:
             for i in range(item['start'], item['end']):
                 if "color" in item:
-                    # Create color object
+                    # create color object
                     if "space" in item:
                         col = Color(item['color'], item['space'])
                     else:
