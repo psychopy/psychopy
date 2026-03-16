@@ -50,6 +50,12 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin, _Tes
         self.textbox.languageStyle = "RTL"
         # use a hebrew string with styling (so we can check it's in the right place after RTL adjustment)
         self.textbox.text = "השועל [color=brown]החום[/color] המהיר קופץ **מעל** הכלב ה*עצלן*."
+        # draw and flip
+        self.win.flip()
+        self.textbox.draw()
+        # compare screenshot
+        # self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / "textbox_rtl.png")
+        utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / "textbox_rtl.png", self.win, crit=20)
         # put language back as LTR for subsequent tests
         self.textbox.languageStyle = "LTR"
     
