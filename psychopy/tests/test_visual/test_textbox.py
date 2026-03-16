@@ -42,23 +42,6 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin, _Tes
     def teardown_method(self):
         self.win.close()
     
-    def test_rtl(self):
-        # add a font with hebrew characters
-        self.textbox.fontMGR.addGoogleFont("Noto Sans Hebrew")
-        self.textbox.font = "Noto Sans Hebrew"
-        # specify language as RTL
-        self.textbox.languageStyle = "RTL"
-        # use a hebrew string with styling (so we can check it's in the right place after RTL adjustment)
-        self.textbox.text = "השועל [color=brown]החום[/color] המהיר קופץ **מעל** הכלב ה*עצלן*."
-        # draw and flip
-        self.win.flip()
-        self.textbox.draw()
-        # compare screenshot
-        # self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / "textbox_rtl.png")
-        utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / "textbox_rtl.png", self.win, crit=20)
-        # put language back as LTR for subsequent tests
-        self.textbox.languageStyle = "LTR"
-    
     def test_glyph_rendering(self):
         # Prepare textbox
         self.textbox.colorSpace = 'rgb'
@@ -210,6 +193,107 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin, _Tes
                 filename = "textbox_{}_{}".format(self.textbox._lineBreaking, case['screenshot'])
                 # self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
                 utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / filename, self.win, crit=20)
+    
+    def test_formatting(self):
+        cases = [
+            # bold italic
+            {
+                'text': "This contains ***bold italic*** text",
+                'syntax': "md",
+                'languageStyle': "LTR",
+                'screenshot': "bolditalic"
+            },
+            # bold
+            {
+                'text': "This contains **bold** text",
+                'syntax': "md",
+                'languageStyle': "LTR",
+                'screenshot': "bold"
+            },
+            # italic
+            {
+                'text': "This contains *italic* text",
+                'syntax': "md",
+                'languageStyle': "LTR",
+                'screenshot': "italic"
+            },
+            # escaped
+            {
+                'text': "This contains \*escaped\* text",
+                'syntax': "md",
+                'languageStyle': "LTR",
+                'screenshot': "escaped"
+            },
+            # color
+            {
+                'text': "This contains [color=red]colorful[/color] text",
+                'syntax': "md",
+                'languageStyle': "LTR",
+                'screenshot': "color"
+            },
+            # one with everything
+            {
+                'text': "This text contains ***bold italic***, **bold**, *italic*, \*escaped\*, and [color=red]colorful[/color] text.",
+                'syntax': "html",
+                'languageStyle': "LTR",
+                'screenshot': "all"
+            },
+            # one with everything (raw md)
+            {
+                'text': "This text contains no formatting, but looks like it contains ***bold italic***, **bold**, *italic*, \*escaped\*, and [color=red]colorful[/color] text.",
+                'syntax': "raw",
+                'languageStyle': "LTR",
+                'screenshot': "md"
+            },
+            # one with everything (md RTL)
+            {
+                'text': "השועל [color=brown]החום[/color] המהיר קופץ **מעל** הכלב ה*עצלן*.",
+                'syntax': "md",
+                'languageStyle': "RTL",
+                'screenshot': "all"
+            },
+            # one with everything (html)
+            {
+                'text': "This text contains <b><i>bold italic</i></b>, <i><b>italic bold</b></i>, <b>bold</b>, <i>italic</i>, <div>div wrapped</div> and <span style=\"color: red\">colorful</span> text.",
+                'syntax': "html",
+                'languageStyle': "LTR",
+                'screenshot': "all"
+            },
+            # one with everything (raw html)
+            {
+                'text': "This text contains no formatting, but looks like it contains <b><i>bold italic</i></b>, <i><b>italic bold</b></i>, <b>bold</b>, <i>italic</i>, <div>div wrapped</div> and <span style=\"color: red\">colorful</span> text.",
+                'syntax': "raw",
+                'languageStyle': "LTR",
+                'screenshot': "html"
+            },
+            # one with everything (html RTL)
+            {
+                'text': "השועל <span style=\"color: brown\">החום</span> המהיר קופץ <b>מעל</b> הכלב ה<i>עצלן</i>.",
+                'syntax': "html",
+                'languageStyle': "RTL",
+                'screenshot': "all"
+            },
+        ]
+        # add necessary fonts
+        self.textbox.fontMGR.addGoogleFont("Noto Sans Hebrew")
+        self.textbox.fontMGR.addGoogleFont("Noto Sans")
+        for case in cases:
+            # set font
+            if case['languageStyle'] == "RTL":
+                self.textbox.font = "Noto Sans Hebrew"
+            else:
+                self.textbox.font = "Noto Sans"
+            # set attributes from test cases
+            self.textbox.languageStyle = case['languageStyle']
+            self.textbox.formattingSyntax = case['syntax']
+            self.textbox.text = case['text']
+            # draw
+            self.win.flip()
+            self.textbox.draw()
+            # compare screenshot
+            filename = "textbox_formatting_%(screenshot)s_%(syntax)s_%(languageStyle)s.png" % case
+            # self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
+            utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / filename, self.win, crit=20)
 
     def test_char_colors(self):
         cases = [
