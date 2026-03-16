@@ -1872,23 +1872,6 @@ class Styling:
             - "RTL": Text reads right-to-left (e.g. as in Hebrew)
             - "arabic": Text is arabic (same as RTL but with additional transformations specific to arabic)
     """
-    # regex patterns for formatting
-    patterns = {
-        'color': r"\[colou?r *= *(?P<color>.+?)(?: +space *= *(?P<space>.+?))?\](?P<content>.+?)\[\/colou?r\]", 
-        'bolditalic': r"(?<![\*\\])\*\*\*(?P<content>[^\*]+?)\*\*\*(?!\*)",
-        'bold': r"(?<![\*\\])\*\*(?P<content>[^\*]+?)\*\*(?!\*)",
-        'italic': r"(?<![\*\\])\*(?P<content>[^\*]+?)\*(?!\*)"
-    }
-    rtlpatterns = {
-        'color': r"\[colou?r\/\](?P<content>.+?)\[colou?r *= *(?P<color>.+?)(?: +space *= *(?P<space>.+?))?\]", 
-        'bolditalic': r"(?<![\*\\])\*\*\*(?P<content>[^\*]+?)\*\*\*(?!\*)",
-        'bold': r"(?<![\*\\])\*\*(?P<content>[^\*]+?)\*\*(?!\*)",
-        'italic': r"(?<![\*\\])\*(?P<content>[^\*]+?)\*(?!\*)"
-    }
-    # escape patterns for formatting-relevant characters
-    escapes = [
-        r"\\(?P<content>\*)"
-    ]
 
     def __init__(self, text, syntax="md", languageStyle="LTR"):
         self.text = text
