@@ -223,16 +223,16 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin, _Tes
              'space': "rgb",
              'base': "black",
              'screenshot': "white_hello_black_there"},
-            # # RGB color
-            # {'text': "[color=(1, 1, 1) space=rgb]Hello[/color] there",
-            #  'space': "rgb",
-            #  'base': "black",
-            #  'screenshot': "white_hello_black_there"},
-            # # RGB255 color
-            # {'text': "[color=(255, 255, 255) space=rgb255]Hello[/color] there",
-            #  'space': "rgb255",
-            #  'base': "black",
-            #  'screenshot': "white_hello_black_there"},
+            # RGB color
+            {'text': "[color=(1, 1, 1) space=rgb]Hello[/color] there",
+             'space': "rgb",
+             'base': "black",
+             'screenshot': "white_hello_black_there"},
+            # RGB255 color
+            {'text': "[color=(255, 255, 255) space=rgb255]Hello[/color] there",
+             'space': "rgb255",
+             'base': "black",
+             'screenshot': "white_hello_black_there"},
             # Rainbow
             {'text': (
                 "[color=red]R[/color][color=orange]o[/color][color=yellow]y[/color] [color=green]G.[/color] "
