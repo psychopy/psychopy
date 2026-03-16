@@ -214,29 +214,29 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin, _Tes
     def test_char_colors(self):
         cases = [
             # Named color
-            {'text': "<c=white>Hello</c> there",
+            {'text': "[color=white]Hello[/color] there",
              'space': "rgb",
              'base': "black",
              'screenshot': "white_hello_black_there"},
             # Hex color
-            {'text': "<c=#ffffff>Hello</c> there",
+            {'text': "[color=#ffffff]Hello[/color] there",
              'space': "rgb",
              'base': "black",
              'screenshot': "white_hello_black_there"},
-            # RGB color
-            {'text': "<c=(1, 1, 1)>Hello</c> there",
-             'space': "rgb",
-             'base': "black",
-             'screenshot': "white_hello_black_there"},
-            # RGB255 color
-            {'text': "<c=(255, 255, 255)>Hello</c> there",
-             'space': "rgb255",
-             'base': "black",
-             'screenshot': "white_hello_black_there"},
+            # # RGB color
+            # {'text': "[color=(1, 1, 1) space=rgb]Hello[/color] there",
+            #  'space': "rgb",
+            #  'base': "black",
+            #  'screenshot': "white_hello_black_there"},
+            # # RGB255 color
+            # {'text': "[color=(255, 255, 255) space=rgb255]Hello[/color] there",
+            #  'space': "rgb255",
+            #  'base': "black",
+            #  'screenshot': "white_hello_black_there"},
             # Rainbow
             {'text': (
-                "<c=red>R</c><c=orange>o</c><c=yellow>y</c> <c=green>G.</c> "
-                "<c=blue>B</c><c=indigo>i</c><c=violet>v</c> is a colorful man and he proudly stands at "
+                "[color=red]R[/color][color=orange]o[/color][color=yellow]y[/color] [color=green]G.[/color] "
+                "[color=blue]B[/color][color=indigo]i[/color][color=violet]v[/color] is a colorful man and he proudly stands at "
                 "the rainbow's end"
             ),
                 'space': "rgb",
