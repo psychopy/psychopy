@@ -234,7 +234,7 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin, _Tes
             # one with everything
             {
                 'text': "This text contains ***bold italic***, **bold**, *italic*, \*escaped\*, and [color=red]colorful[/color] text.",
-                'syntax': "html",
+                'syntax': "md",
                 'languageStyle': "LTR",
                 'screenshot': "all"
             },
