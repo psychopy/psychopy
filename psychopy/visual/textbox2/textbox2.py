@@ -73,40 +73,49 @@ debug = False
 
 
 class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, ColorMixin):
-    def __init__(self, win, text,
-                 font="Noto Sans",
-                 pos=(0, 0),
-                 units=None,
-                 letterHeight=None,
-                 ori=0,
-                 size=None,
-                 color=(1.0, 1.0, 1.0), colorSpace='rgb',
-                 fillColor=None, fillColorSpace=None,
-                 borderWidth=2, borderColor=None, borderColorSpace=None,
-                 contrast=1,
-                 opacity=None,
-                 bold=False,
-                 italic=False,
-                 placeholder="Type here...",
-                 lineSpacing=1.0,
-                 letterSpacing=None,
-                 padding=None,  # gap between box and text
-                 speechPoint=None,
-                 anchor='center',
-                 alignment='left',
-                 flipHoriz=False,
-                 flipVert=False,
-                 languageStyle="LTR",
-                 editable=False,
-                 overflow="visible",
-                 lineBreaking='default',
-                 draggable=False,
-                 name='',
-                 autoLog=None,
-                 autoDraw=False,
-                 depth=0,
-                 onTextCallback=None,
-                 clickable=True):
+    def __init__(
+        self, 
+        win, 
+        text,
+        font="Noto Sans",
+        pos=(0, 0),
+        units=None,
+        letterHeight=None,
+        ori=0,
+        size=None,
+        color=(1.0, 1.0, 1.0), 
+        colorSpace='rgb',
+        fillColor=None, 
+        fillColorSpace=None,
+        borderWidth=2, 
+        borderColor=None, 
+        borderColorSpace=None,
+        contrast=1,
+        opacity=None,
+        bold=False,
+        italic=False,
+        placeholder="Type here...",
+        lineSpacing=1.0,
+        letterSpacing=None,
+        padding=None,  # gap between box and text
+        speechPoint=None,
+        anchor='center',
+        alignment='left',
+        flipHoriz=False,
+        flipVert=False,
+        formattingSyntax="md",
+        languageStyle="LTR",
+        editable=False,
+        overflow="visible",
+        lineBreaking='default',
+        draggable=False,
+        name='',
+        autoLog=None,
+        autoDraw=False,
+        depth=0,
+        onTextCallback=None,
+        clickable=True
+    ):
         """
 
         Parameters
@@ -257,6 +266,7 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
                 "specified.".format(lineBreaking))
         self._lineBreaking = lineBreaking
         # then layout the text (setting text triggers _layout())
+        self.formattingSyntax = formattingSyntax
         self.languageStyle = languageStyle
         self._text = ''
         self.text = self.startText = text if text is not None else ""
@@ -726,10 +736,12 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
         # convert to string
         text = str(text)
         # split into visible text and styling array
-        self._stylingObj = Styling(text)
-        self._text, self._styles = self._stylingObj.getVisibleTextAndStyling(
-            self.languageStyle
+        self._stylingObj = Styling(
+            text, 
+            syntax=self.formattingSyntax,
+            languageStyle=self.languageStyle,
         )
+        self._text, self._styles = self._stylingObj.getVisibleTextAndStyling()
 
         self._layout()
 
@@ -818,9 +830,12 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
                 # handle formatting codes
                 fakeItalic = 0.0
                 fakeBold = 0.0
-                if self._styles['italic'][i]:
+                if "italic" in self._styles and self._styles['italic'][i]:
                     fakeItalic = 0.1 * font.size
-                if self._styles['bold'][i]:
+                if "bold" in self._styles and self._styles['bold'][i]:
+                    fakeBold = 0.3 * font.size
+                if "bolditalic" in self._styles and self._styles['bolditalic'][i]:
+                    fakeItalic = 0.1 * font.size
                     fakeBold = 0.3 * font.size
 
                 # handle newline
@@ -872,7 +887,7 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
                 vertices[i * 4:i * 4 + 4] = theseVertices
                 self._texcoords[i * 4:i * 4 + 4] = texcoords
                 # handle character color
-                if self._styles['color'][i] is not None:
+                if "color" in self._styles and self._styles['color'][i] is not None:
                     self._colors[i*4 : i*4+4, :4] = self._styles['color'][i] # set custom color
                 else:
                     self._colors[i*4 : i*4+4, :4] = rgb # set default color
@@ -965,9 +980,12 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
                     # handle formatting codes
                     fakeItalic = 0.0
                     fakeBold = 0.0
-                    if self._styles['italic'][i]:
+                    if "italic" in self._styles and self._styles['italic'][i]:
                         fakeItalic = 0.1 * font.size
-                    if self._styles['bold'][i]:
+                    if "bold" in self._styles and self._styles['bold'][i]:
+                        fakeBold = 0.3 * font.size
+                    if "bolditalic" in self._styles and self._styles['bolditalic'][i]:
+                        fakeItalic = 0.1 * font.size
                         fakeBold = 0.3 * font.size
 
                     # handle newline
@@ -1057,7 +1075,7 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
                         vertices[i * 4:i * 4 + 4] = theseVertices
                         self._texcoords[i * 4:i * 4 + 4] = texcoords
                         # handle character color
-                        if self._styles['color'][i] is not None:
+                        if "color" in self._styles and self._styles['color'][i] is not None:
                             self._colors[i*4 : i*4+4, :4] = self._styles['color'][i] # set custom color
                         else:
                             self._colors[i*4 : i*4+4, :4] = rgb # set default color
@@ -1843,6 +1861,16 @@ class Styling:
     ----------
     text : str
         Raw text from which to generate visible text and styling arrays
+    syntax : str
+        Syntax to use for styling, one of...
+            - "md": Markdown, recommended for local experiments.
+            - "html": For (limited) compatibility with online experiments. Not recommended for local experiments.
+            - "raw": No formatting, text is presented as-is.
+    languageStyle : str
+        One of...
+            - "LTR": Text reads left-to-right (e.g. as in English)
+            - "RTL": Text reads right-to-left (e.g. as in Hebrew)
+            - "arabic": Text is arabic (same as RTL but with additional transformations specific to arabic)
     """
     # regex patterns for formatting
     patterns = {
@@ -1862,7 +1890,7 @@ class Styling:
         r"\\(?P<content>\*)"
     ]
 
-    def __init__(self, text):
+    def __init__(self, text, syntax="md", languageStyle="LTR"):
         self.text = text
         # rolling tally of characters substituted when filtering for visible text
         self.subadj = 0
@@ -1874,7 +1902,58 @@ class Styling:
             'delete_harakat': False,  # if present, retain any diacritics
             'shift_harakat_position': False  # shift by 1 to be compatible with the bidi algorithm
         })
-    
+        # do we need arabic or bidi transformation?
+        self.needsBidi = languageStyle.lower() in ("rtl", "arabic")
+        self.needsArabic = languageStyle.lower() == "arabic"
+        # define regex patterns according to syntax
+        self.patterns = {}
+        self.escapes = []
+        if syntax == "md":
+            # regex patterns for formatting markdown-style
+            if self.needsBidi:
+                self.patterns = {
+                    'color': r"\[colou?r\/\](?P<content>.+?)\[colou?r *= *(?P<color>.+?)(?: +space *= *(?P<space>.+?))?\]", 
+                    'bolditalic': r"(?<![\*\\])\*\*\*(?P<content>[^\*]+?)\*\*\*(?!\*)",
+                    'bold': r"(?<![\*\\])\*\*(?P<content>[^\*]+?)\*\*(?!\*)",
+                    'italic': r"(?<![\*\\])\*(?P<content>[^\*]+?)\*(?!\*)"
+                }
+            else:
+                self.patterns = {
+                    'color': r"\[colou?r *= *(?P<color>.+?)(?: +space *= *(?P<space>.+?))?\](?P<content>.+?)\[\/colou?r\]", 
+                    'bolditalic': r"(?<![\*\\])\*\*\*(?P<content>[^\*]+?)\*\*\*(?!\*)",
+                    'bold': r"(?<![\*\\])\*\*(?P<content>[^\*]+?)\*\*(?!\*)",
+                    'italic': r"(?<![\*\\])\*(?P<content>[^\*]+?)\*(?!\*)"
+                }
+            # escape patterns for formatting-relevant characters
+            self.escapes = [
+                r"\\(?P<content>\*)"
+            ]
+        elif syntax == "html":
+            # regex patterns for formatting html-style
+            if self.needsBidi:
+                self.patterns = {
+                    'color': r"<span\/>(?P<content>.+?)<span +style=[\"']color: *(?P<color>[^\"';]+?) *;?[\"']>", 
+                    'bolditalic': r"(?:<b\/><i\/>|<i\/><b\/>)(?P<content>.+?)(?:<b><i>|<i><b>)",
+                    'italic': r"(?<!<b\/>)<i\/>(?P<content>.+?)<i>(?!<b>)",
+                    'bold': r"(?<!<i\/>)<b\/>(?P<content>.+?)<b>(?!<i>)"
+                }
+                # hide all other HTML tags
+                self.escapes = [
+                    r"<.+?\/>(?P<content>.*?)<(?!(?:\/|b|i|span)).+?>"
+                ]
+            else:
+                self.patterns = {
+                    'color': r"<span +style=[\"']color: *(?P<color>[^\"';]+?) *;?[\"']>(?P<content>.+?)<\/span>", 
+                    'bolditalic': r"(?:<b><i>|<i><b>)(?P<content>.+?)(?:<\/b><\/i>|<\/i><\/b>)",
+                    'bold': r"(?<!<i>)<b>(?!<i>)(?P<content>.+?)(?<!<\/i>)<\/b>(?!<\/i>)",
+                    'italic': r"(?<!<b>)<i>(?!<b>)(?P<content>.+?)(?<!<\/b>)<\/i>(?!<\/b>)"
+                }
+                # hide all other HTML tags
+                self.escapes = [
+                    r"<(?!(?:\/|b|i|span)).+?>(?P<content>.*?)<\/.+?>"  
+                ]
+            
+
     def raw2visible(self, index):
         """
         Convert an index in the raw text string to the same index in the visible text string
@@ -1916,17 +1995,9 @@ class Styling:
         return target
 
     
-    def getVisibleTextAndStyling(self, languageStyle="LTR"):
+    def getVisibleTextAndStyling(self):
         """
         Get the visible text and matching styling arrays for this object's text..
-
-        Parameters
-        ----------
-        languageStyle : str
-            One of...
-                - "LTR": Text reads left-to-right (e.g. as in English)
-                - "RTL": Text reads right-to-left (e.g. as in Hebrew)
-                - "arabic": Text is arabic (same as RTL but with additional transformations specific to arabic)
 
         Returns
         -------
@@ -1942,21 +2013,14 @@ class Styling:
         self.adjustments = []
         # start with raw text
         visibleText = transformedText = self.text
-        # do we need arabic or bidi transformation?
-        needsBidi = languageStyle.lower() in ("rtl", "arabic")
-        needsArabic = languageStyle.lower() == "arabic"
         # reshape text using bidi
-        if needsArabic and hasattr(self, "arabicReshaper"):
+        if self.needsArabic and hasattr(self, "arabicReshaper"):
             visibleText = transformedText = self.arabicReshaper.reshape(transformedText)
-        if needsBidi:
+        if self.needsBidi:
             visibleText = transformedText = bidi.get_display(transformedText)
-        # choose regex patterns based on language style
-        patterns = self.patterns
-        if needsBidi:
-            patterns = self.rtlpatterns
         # get matches for all patterns
         matches = []
-        for style, pattern in patterns.items():
+        for style, pattern in self.patterns.items():
             for match in re.finditer(
                 pattern=pattern,
                 string=transformedText
@@ -1975,7 +2039,7 @@ class Styling:
         for escape in self.escapes:
             for match in re.finditer(
                 pattern=escape,
-                string=self.text
+                string=transformedText
             ):
                 # store as with patterns, but with style as "escape"
                 matches.append(
@@ -1997,7 +2061,7 @@ class Styling:
         # create by-character arrays for each style
         styling = {
             style: [None] * len(visibleText)
-            for style in patterns
+            for style in self.patterns
         }
         # apply relevant information to arrays from indices
         for item in self.indices:
