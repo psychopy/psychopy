@@ -14,7 +14,6 @@ from psychopy.hardware.exceptions import DeviceNotConnectedError
 from psychopy.hardware.speaker._base import BaseSpeakerDevice
 from psychopy.localization import _translate
 from psychopy.preferences import prefs
-from ._base import BaseSpeakerDevice
 from psychopy import logging
 from psychopy.tools import systemtools
 
@@ -137,7 +136,7 @@ class SoundDeviceSpeakerDevice(BaseSpeakerDevice):
         if not allFoundDevices:
             raise DeviceNotConnectedError(
                 _translate("No audio devices found!"),
-                deviceClass=SpeakerDevice
+                deviceClass=SoundDeviceSpeakerDevice
             )
         
         # find ptb profile for this device
@@ -301,6 +300,10 @@ class SoundDeviceSpeakerDevice(BaseSpeakerDevice):
 
         devices = []
         for dev in sd.query_devices():
+            # skip input-only devices (microphones)
+            if dev['max_output_channels'] == 0:
+                continue
+
             # build a dict with the same keys as psychtoolbox for consistency 
             devDict = { 
                 'DeviceIndex': dev['index'],
@@ -315,19 +318,14 @@ class SoundDeviceSpeakerDevice(BaseSpeakerDevice):
                 'HighOutputLatency': dev['default_high_output_latency'],
                 'DefaultSampleRate': dev['default_samplerate']
             }
-            devices.append(devDict)
 
-        for profile in devices:
-            # skip input-only devices (microphones)
-            if profile['NrOutputChannels'] == 0:
-                continue
             # construct profile
-            device = {
-                'deviceName': profile.get('DeviceName', "Unknown Speaker"),
-                'index': profile.get('DeviceIndex', None),
-                'name': profile.get('DeviceName', None)
+            profile = {
+                'deviceName': devDict.get('DeviceName', "Unknown Speaker"),
+                'index': devDict.get('DeviceIndex', None),
+                'name': devDict.get('DeviceName', None)
             }
-            devices.append(device)
+            devices.append(profile)
 
         return devices
     
