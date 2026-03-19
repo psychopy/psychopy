@@ -1,70 +1,44 @@
 # -*- coding: utf-8 -*-
 
-"""Classes and functions managing physical speaker devices for audio playback.
+"""Speaker device interface for `sounddevice` backend.
 """
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-__all__ = [
-    "SpeakerDevice",
-]
-
 import io
 import sys
 import contextlib
-from types import SimpleNamespace
 from psychopy.hardware.exceptions import DeviceNotConnectedError
+from psychopy.hardware.speaker._base import BaseSpeakerDevice
 from psychopy.localization import _translate
 from psychopy.preferences import prefs
-from psychopy.hardware import BaseDevice
+from ._base import BaseSpeakerDevice
 from psychopy import logging
 from psychopy.tools import systemtools
 
 
-class SpeakerDevice(BaseDevice):
-    """Class for managing a physical speaker device for audio playback.
+class SoundDeviceSpeakerDevice(BaseSpeakerDevice):
+    """SpeakerDevice subclass for the sounddevice backend.
 
     Parameters
     ----------
     index : int, optional
-        Numeric index for the physical speaker device, according to psychtoolbox. Leave as None to 
+        Numeric index for the physical speaker device, according to sounddevice. Leave as None to
         find the speaker by name.
     name : str, optional
-        String name for the physical speaker device, according to your operating system. Leave as 
+        String name for the physical speaker device, according to your operating system. Leave as
         None to find the speaker by numeric index.
     latencyClass : int
-        One of:
-
-        * 0: Don't take exclusive control over the speaker, so other apps can still use it. Send 
-        sounds via the system mixer so that sample rates are all handled, even though this 
-        introduces latency.
-
-        * 1: Don't take exclusive control over the speaker, so other apps can still use it. Send 
-        sounds directly to reduce latency, so sounds will need to match the sample rate of the 
-        speaker. **Recommended in most cases; if `resample` is True then sample rates are 
-        already handled on load!**
-
-        * 2: Take exclusive control over the speaker, so other apps can't use it. Send sounds 
-        directly to reduce latency, so sounds will need to be the same sample rate as one 
-        another, but this can be any sample rate supported by the speaker.
-
-        * 3: Take exclusive control over the speaker, so other apps can't use it. Send sounds 
-        directly to reduce latency, so sounds will need to be the same sample rate as one 
-        another, but this can be any sample rate supported by the speaker. Force the system to 
-        prioritise resources towards playing sounds on this speaker for absolute minimum 
-        latency, but fallback to mode 2 if the system rejects this.
-
-        * 4: Take exclusive control over the speaker, so other apps can't use it. Send sounds 
-        directly to reduce latency, so sounds will need to be the same sample rate as one 
-        another, but this can be any sample rate supported by the speaker. Force the system to 
-        prioritise resources towards playing sounds on this speaker for absolute minimum 
-        latency, and raise an error if the system rejects this.
+        Latency class for the speaker device. This is not currently used for the sounddevice backend, 
+        but is included for consistency with the psychtoolbox backend and potential future use.
     resample : bool, optional
-        If the sample rate of an audio clip doesn't match the sample rate of the speaker, should 
+        If the sample rate of an audio clip doesn't match the sample rate of the speaker, should
         PsychoPy resample the sound on load?
+    
     """
+    backend = 'sounddevice'
     # dict of extant streams, by numeric index
     streams = {}
 
@@ -111,7 +85,7 @@ class SpeakerDevice(BaseDevice):
         self.createStream()
         # start off open
         self.open()
-    
+
     @property
     def exclusive(self):
         """
@@ -145,6 +119,7 @@ class SpeakerDevice(BaseDevice):
             A string name referring to the device. This may differ from the value of `name` this 
             object was initialised with, as this will be the system-reported name of the actual 
             physical speaker best matching what was requested.
+
         """
         # get the devices from psychtoolbox
         import psychtoolbox.audio as ptb
@@ -279,7 +254,7 @@ class SpeakerDevice(BaseDevice):
             return False
         
         return bool(self.stream.status['Active'])
-    
+
     def isSameDevice(self, other):
         """
         Determine whether this object represents the same physical speaker as a given other object.
@@ -306,36 +281,22 @@ class SpeakerDevice(BaseDevice):
             return False
 
         return index in (self.index, self.name)
-    
-    def testDevice(self):
-        """
-        Play a simple sound to check whether this device is working.
-        """
-        from psychopy.sound import Sound
-        import time
-        # create a basic sound
-        snd = Sound(
-            speaker=self,
-            value="A",
-            stereo=self.channels > 1,
-            sampleRate=self.sampleRateHz
-        )
-        # play the sound for 1s
-        snd.play()
-        time.sleep(1)
-        snd.stop()
 
     @staticmethod
-    def _getDevicesSoundDevice():
-        """Get a list of available speaker configurations using the sounddevice 
-        backend.
-
+    def getAvailableDevices():
+        """Get available speaker devices.
+        
         Returns
         -------
         list[dict]
-            A list of dicts, each describing a speaker device.
+            A list of dicts, each describing a speaker device. Each dict has the keys `deviceName`, 
+            `index`, and `name`.
         
         """
+        # skip in vm
+        if systemtools.isVM_CI():  # GitHub actions VM does not have a sound device
+            return []
+        
         import sounddevice as sd
 
         devices = []
@@ -356,64 +317,7 @@ class SpeakerDevice(BaseDevice):
             }
             devices.append(devDict)
 
-        return devices
-    
-    @staticmethod
-    def _getDevicesPsychtoolbox():
-        """Get a list of available speaker configurations using the psychtoolbox 
-        backend.
-
-        Returns
-        -------
-        list[dict]
-            A list of dicts, each describing a speaker device.
-        
-        """
-        import psychtoolbox.audio as ptb
-
-        try:
-            wasapiPref = prefs.hardware['audioWASAPIOnly']
-        except KeyError:
-            wasapiPref = False
-
-        deviceType = 13 if sys.platform == 'win32' and wasapiPref else None
-
-        return ptb.get_devices(device_type=deviceType)
-    
-    @staticmethod
-    def getAvailableDevices():
-        """Get available speaker devices.
-        
-        Returns
-        -------
-        list[dict]
-            A list of dicts, each describing a speaker device. Each dict has the keys `deviceName`, 
-            `index`, and `name`.
-        
-        """
-        # skip in vm
-        if systemtools.isVM_CI():  # GitHub actions VM does not have a sound device
-            return []
-        
-        # get the sound driver to use from prefs, or default if not set
-        sndDriverList = prefs.hardware['audioDriver']
-        if sndDriverList:
-            useDriver = sndDriverList[0] if isinstance(sndDriverList, (list, tuple)) else sndDriverList
-        else:
-            useDriver = "sounddevice"
-
-        # get the appropriate function for getting devices based on the driver
-        if useDriver == "sounddevice":
-            _getDeviceFunc = SpeakerDevice._getDevicesSoundDevice
-        elif useDriver == "ptb" or useDriver == 'portaudio':
-            _getDeviceFunc = SpeakerDevice._getDevicesPsychtoolbox
-        else:
-            raise ValueError((
-                f"Invalid value '{useDriver}' for prefs.hardware['audioDriver'], "
-                f"expected 'sounddevice' or 'ptb'"))
-
-        devices = []
-        for profile in _getDeviceFunc():
+        for profile in devices:
             # skip input-only devices (microphones)
             if profile['NrOutputChannels'] == 0:
                 continue
@@ -426,3 +330,7 @@ class SpeakerDevice(BaseDevice):
             devices.append(device)
 
         return devices
+    
+
+if __name__ == "__main__":
+    pass
