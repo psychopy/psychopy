@@ -15,7 +15,6 @@ from psychopy import logging
 from psychopy.preferences import prefs
 from psychopy.localization import _translate
 from psychopy.hardware import BaseDevice
-from ._base import BaseSpeakerDevice
 
 
 class BaseSpeakerDevice(BaseDevice):
