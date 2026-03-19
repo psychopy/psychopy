@@ -14,7 +14,6 @@ from psychopy.hardware.exceptions import DeviceNotConnectedError
 from psychopy.hardware.speaker._base import BaseSpeakerDevice
 from psychopy.localization import _translate
 from psychopy.preferences import prefs
-from ._base import BaseSpeakerDevice
 from psychopy import logging
 from psychopy.tools import systemtools
 
