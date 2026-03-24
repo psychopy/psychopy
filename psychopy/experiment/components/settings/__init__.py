@@ -143,9 +143,9 @@ class SettingsComponent:
         # if filename is the default value fetch the builder pref for the
         # folder instead
         if filename is None:
-            filename = ("u'xxxx/%s_%s_%s' % (expInfo['participant'], expName,"
-                        " expInfo['date'])")
-        if filename.startswith("u'xxxx"):
+            filename = ("'xxxx/' + expInfo['participant'] + '_' + expName + '_'"
+                        " + expInfo['date']")
+        if filename.startswith("'xxxx"):
             folder = self.exp.prefsBuilder['savedDataFolder'].strip()
             filename = filename.replace("xxxx", folder)
 
