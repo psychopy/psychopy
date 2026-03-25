@@ -142,12 +142,8 @@ class SoundDeviceSpeakerDevice(BaseSpeakerDevice):
         """
         Is this speaker "open", i.e. is it active and ready for a Sound to play tracks on it
         """
-        # sometimes a closed stream will have an integer for status
-        if not isinstance(self.stream.status, dict):
-            return False
-        
-        return bool(self.stream.status['Active'])
-
+        return True
+    
     def isSameDevice(self, other):
         """
         Determine whether this object represents the same physical speaker as a given other object.
