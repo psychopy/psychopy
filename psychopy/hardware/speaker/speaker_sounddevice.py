@@ -7,9 +7,6 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import io
-import sys
-import contextlib
 from psychopy.hardware.exceptions import DeviceNotConnectedError
 from psychopy.hardware.speaker._base import BaseSpeakerDevice
 from psychopy.localization import _translate
@@ -81,9 +78,9 @@ class SoundDeviceSpeakerDevice(BaseSpeakerDevice):
         self.resample = resample
         self.latencyClass = latencyClass
         # create stream
-        self.createStream()
+        # self.createStream()
         # start off open
-        self.open()
+        # self.open()
 
     @property
     def exclusive(self):
@@ -98,150 +95,47 @@ class SoundDeviceSpeakerDevice(BaseSpeakerDevice):
     
     def createStream(self):
         """
-        Create the psychtoolbox audio stream
-
-        Attributes
-        ----------
-        Calling this method will set the following attributes:
-
-        profile : dict
-            The profile from psychtoolbox, a dict with the following keys: Active, State, 
-            RequestedStartTime, StartTime, CaptureStartTime, RequestedStopTime, EstimatedStopTime, 
-            CurrentStreamTime, ElapsedOutSamples, PositionSecs, RecordedSecs, ReadSecs, 
-            SchedulePosition, XRuns, TotalCalls, TimeFailed, BufferSize, CPULoad, PredictedLatency, 
-            LatencyBias, SampleRate, OutDeviceIndex, InDeviceIndex
-        index : int
-            A numeric index referring to the device. This may differ from the value of `index` this 
-            object was initialised with, as this will be the numeric index of the actual physical 
-            speaker best matching what was requested.
-        name : str
-            A string name referring to the device. This may differ from the value of `name` this 
-            object was initialised with, as this will be the system-reported name of the actual 
-            physical speaker best matching what was requested.
-
+        Create a sounddevice stream for this speaker device.
         """
-        # get the devices from psychtoolbox
-        import psychtoolbox.audio as ptb
-        
+        import sounddevice as sd
+
+        # if we already have a stream for this index, reuse it
+        if self.index in SoundDeviceSpeakerDevice.streams:
+            self.stream = SoundDeviceSpeakerDevice.streams[self.index]
+            return
+
+        # otherwise, create a new stream
         try:
-            wasapiPref = prefs.hardware['audioWASAPIOnly']
-        except KeyError:
-            wasapiPref = False
-            
-        if sys.platform == 'win32' and wasapiPref:
-            allFoundDevices = ptb.get_devices(device_type=13)
-        else:
-            allFoundDevices = ptb.get_devices()
-
-        if not allFoundDevices:
+            self.stream = sd.OutputStream(
+                device=self.index,
+                samplerate=None,  # use default sample rate for device
+                channels=2,  # use stereo output
+                dtype='float32',  # use 32-bit float samples
+                latency='low' if self.latencyClass >= 2 else 'default',
+                blocksize=0,  # use default block size
+                finished_callback=None  # no callback needed for now
+            )
+            SoundDeviceSpeakerDevice.streams[self.index] = self.stream
+        except Exception as e:
+            msg = (
+                f"Failed to create audio output stream for device '{self.name}' (index {self.index}): {e}"
+            )
+            logging.error(msg)
             raise DeviceNotConnectedError(
-                _translate("No audio devices found!"),
-                deviceClass=SoundDeviceSpeakerDevice
-            )
-        
-        # find ptb profile for this device
-        findByName = self.index is None and self.name is not None
-        self.profile = None
-        for thisProfile in allFoundDevices:
-            # skip input-only devices (microphones)
-            if thisProfile['NrOutputChannels'] == 0:
-                continue
-
-            if findByName and self.name == thisProfile['DeviceName']:
-                self.profile = thisProfile
-                break
-            else:  # use index instead
-                if self.index == thisProfile['DeviceIndex']:
-                    self.profile = thisProfile
-                    break
-
-        # raise error if device not found
-        if self.profile is None:
-            raise DeviceNotConnectedError(
-                _translate(
-                    "No speaker device found with {key} '{name}'"
-                ).format(name=self.name, key="name" if findByName else "index"),
-                deviceClass=SpeakerDevice
-            )
-        
-        logging.debug(
-            f"Found speaker device: {self.profile['DeviceName']} ({self.profile['DeviceIndex']})"
-        )
-            
-        # if physical device already has a stream, use it rather than making a new one
-        if self.profile['DeviceIndex'] in SpeakerDevice.streams:
-            self.stream = SpeakerDevice.streams['DeviceIndex']
-        else:
-            self.stream = None
-
-        # try to connect using profile at various sample rates
-        for sampleRateHz in (
-            # start with the rate from profile (this will usually work)
-            int(self.profile['DefaultSampleRate']), 
-            # if that fails, try some common sample rates
-            48000,
-            44100, 
-            22050, 
-            16000
-        ):
-            # stop trying new options once we have a stream
-            if self.stream is not None:
-                continue
-            # try this sample rate
-            try:
-                # redirect stderr to a buffer to avoid ptb error spam
-                outBuff = io.StringIO()
-                errBuff = io.StringIO()
-                with contextlib.redirect_stdout(outBuff):
-                    with contextlib.redirect_stderr(errBuff):
-                        self.stream = ptb.Stream(
-                            mode=1+8,
-                            device_id=self.profile['DeviceIndex'],
-                            freq=sampleRateHz,
-                            channels=self.profile['NrOutputChannels'],
-                            latency_class=[self.latencyClass],
-                        )
-                # if it worked, set own parameters
-                self.index = self.profile['DeviceIndex']
-                self.name = self.profile['DeviceName']
-                self.sampleRateHz = sampleRateHz
-                self.channels = self.profile['NrOutputChannels']
-                # ...and log/print the stderr from psychtoolbox (only if successful!)
-                logs = errBuff.getvalue() + outBuff.getvalue()
-                for line in logs.split("\n"):
-                    if line.startswith("PTB-INFO: "):
-                        logging.info(line[10:])
-                    elif line.startswith("PTB-ERROR: "):
-                        logging.error(line[11:])
-                    elif line.strip():
-                        print(line)
-            except:
-                pass
-        # if everything failed, raise an error
-        if self.stream is None:
-            raise ConnectionError(
-                "Failed to setup a PsychToolBox audio stream for device %(DeviceName)s "
-                "(%(DeviceIndex)s)." % self.profile
-            )
-
-        logging.info(
-            f"Created stream for speaker device: {self.profile['DeviceName']} "
-            f"({self.profile['DeviceIndex']})"
-        )
+                _translate(msg),
+                deviceClass=SoundDeviceSpeakerDevice)
     
     def open(self):
         """
         Open the audio stream for this speaker so that sound can be played to it.
         """
-        if not self.isOpen:
-            self.stream.start(0, 0, 1)
+        pass
     
     def close(self):
         """
         Close the audio stream for this speaker.
         """
-        if self.isOpen:
-            self.stream.close()
+        pass
     
     @property
     def isOpen(self):
@@ -282,6 +176,52 @@ class SoundDeviceSpeakerDevice(BaseSpeakerDevice):
         return index in (self.index, self.name)
 
     @staticmethod
+    def queryDevices():
+        """Query speaker devices using sounddevice.
+
+        Returns
+        -------
+        list of dicts
+            Device information.
+
+        """
+        try:
+            import sounddevice as sd
+        except (ModuleNotFoundError, ImportError):
+            msg = (
+                "Failed to query audio output devices because the 'sounddevice' library is "
+                "not installed."
+            )
+            logging.error(msg)
+            raise DeviceNotConnectedError(
+                _translate(msg),
+                deviceClass=SoundDeviceSpeakerDevice)
+
+        devices = []
+        for dev in sd.query_devices():
+            # skip input-only devices (microphones)
+            if dev['max_output_channels'] == 0:
+                continue
+
+            # build a dict with the same keys as psychtoolbox for consistency
+            devDict = {
+                'DeviceIndex': dev['index'],
+                'HostAudioAPIId': dev['hostapi'],
+                'HostAudioAPIName': sd.query_hostapis(dev['hostapi'])['name'],
+                'DeviceName': dev['name'],
+                'NrInputChannels': dev['max_input_channels'],
+                'NrOutputChannels': dev['max_output_channels'],
+                'LowInputLatency': dev['default_low_input_latency'],
+                'HighInputLatency': dev['default_high_input_latency'],
+                'LowOutputLatency': dev['default_low_output_latency'],
+                'HighOutputLatency': dev['default_high_output_latency'], 
+                'DefaultSampleRate': dev['default_samplerate']
+            }
+            devices.append(devDict)
+
+        return devices
+
+    @staticmethod
     def getAvailableDevices():
         """Get available speaker devices.
         
@@ -296,34 +236,20 @@ class SoundDeviceSpeakerDevice(BaseSpeakerDevice):
         if systemtools.isVM_CI():  # GitHub actions VM does not have a sound device
             return []
         
-        import sounddevice as sd
+        foundeDevices = SoundDeviceSpeakerDevice.queryDevices()
+        if not foundeDevices:
+            logging.warn(
+                _translate("No audio output devices found when querying with sounddevice!")
+            )
+            return []
 
+        # build profiles
         devices = []
-        for dev in sd.query_devices():
-            # skip input-only devices (microphones)
-            if dev['max_output_channels'] == 0:
-                continue
-
-            # build a dict with the same keys as psychtoolbox for consistency 
-            devDict = { 
-                'DeviceIndex': dev['index'],
-                'HostAudioAPIId': dev['hostapi'],
-                'HostAudioAPIName': sd.query_hostapis(dev['hostapi'])['name'],
-                'DeviceName': dev['name'],
-                'NrInputChannels': dev['max_input_channels'],
-                'NrOutputChannels': dev['max_output_channels'],
-                'LowInputLatency': dev['default_low_input_latency'],
-                'HighInputLatency': dev['default_high_input_latency'],
-                'LowOutputLatency': dev['default_low_output_latency'],
-                'HighOutputLatency': dev['default_high_output_latency'],
-                'DefaultSampleRate': dev['default_samplerate']
-            }
-
-            # construct profile
+        for dev in foundeDevices:
             profile = {
-                'deviceName': devDict.get('DeviceName', "Unknown Speaker"),
-                'index': devDict.get('DeviceIndex', None),
-                'name': devDict.get('DeviceName', None)
+                'deviceName': dev.get('DeviceName', "Unknown Speaker"),
+                'index': dev.get('DeviceIndex', None),
+                'name': dev.get('DeviceName', None)
             }
             devices.append(profile)
 

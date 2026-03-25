@@ -31,6 +31,8 @@ from psychopy.constants import (PLAYING, PAUSED, FINISHED, STOPPED,
                                 NOT_STARTED)
 from psychopy.sound.exceptions import SoundFormatError, DependencyError
 from psychopy.sound._base import _SoundBase, HammingWindow
+from ..hardware import DeviceManager
+from psychopy.hardware.speaker import SpeakerDevice
 
 try:
     import sounddevice as sd
@@ -226,9 +228,14 @@ class _SoundStream:
             self.latency = self._sdStream.latency
             self.cpu_load = self._sdStream.cpu_load
             atexit.register(self.__del__)
-        self._tSoundRequestPlay = 0
 
+        self._tSoundRequestPlay = 0  # time the sound was requested to play
         self._isPlaying = False
+
+        # temp storage for block data to be played next frame
+        self._sampleTempBuffer = np.zeros(
+            (self.blockSize, self.channels), 
+            dtype=np.float32)
 
     @property
     def isPlaying(self):
@@ -277,7 +284,7 @@ class _SoundStream:
 
         if tToStart > tToDAC:  # no samples this frame, too early to start
             return  # NOP
-        
+                
         self.frameN += 1
         for thisSound in self.sounds.copy():
             dat = thisSound._nextBlock()  # fetch the next block of data
@@ -396,10 +403,16 @@ class SoundDeviceSound(_SoundBase):
             Whether to automatically log every change.
 
         """
+        if isinstance(speaker, str) and DeviceManager.getDevice(speaker):
+            speaker = DeviceManager.getDevice(speaker)
+        # make sure speaker is a SpeakerDevice
+        if not isinstance(speaker, SpeakerDevice):
+            speaker = SpeakerDevice(speaker)
+        self.speaker = speaker
+
         self.preBuffer = preBuffer
         self.volume = volume
         self.sound = value
-        self.speaker = speaker
         self.name = name
         self.secs = secs  # for any synthesised sounds (notesand freqs)
         self.octave = octave  # for note name sounds

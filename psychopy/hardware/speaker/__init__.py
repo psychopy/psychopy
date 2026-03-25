@@ -14,6 +14,8 @@ __all__ = [
 from psychopy import logging
 from psychopy import prefs
 
+SpeakerDevice = None  # handle for the speaker device class
+
 # select backend for speaker devices based on audio library preference
 backend = 'default'
 try:
@@ -27,8 +29,6 @@ except (KeyError, IndexError, TypeError):
 if backend == 'default':   # if default, select the best available backend
     backend = 'sounddevice'
 
-SpeakerDevice = None  # handle for the speaker device class
-
 # select the speaker device class based on the selected backend
 if backend == 'sounddevice' or backend == 'portaudio':
     from .speaker_sounddevice import SoundDeviceSpeakerDevice
@@ -40,6 +40,8 @@ else:
     raise ValueError((
         f"Invalid value '{backend}' for prefs.hardware['audioDriver'], "
         f"expected 'sounddevice', 'ptb', or 'default'"))
+
+logging.info(f"Using '{backend}' backend for sound output devices.")
 
 if __name__ == "__main__":
     pass
