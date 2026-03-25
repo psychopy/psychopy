@@ -1188,7 +1188,7 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
         # convert the vertices to be relative to content box and set
         vertices = vertices / self.contentBox._size.pix + (-0.5, 0.5)
         # apply orientation
-        self.vertices = (vertices * self.size).dot(self._rotationMatrix) / self.size
+        self.vertices = (vertices * self.contentBox._size.pix).dot(self._rotationMatrix) / self.contentBox._size.pix
 
         if len(_lineBottoms):
             if self.flipVert:
