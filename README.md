@@ -17,6 +17,11 @@ simple graphical user interface called Builder, or write your experiments in
 Python code. The entire application and library are written in Python and is
 platform independent.
 
+**Note:** this repository now contains _only_ the PsychoPy _library_. The code for the application user interface 
+is now in separate repositories for 
+[PsychoPy Studio](https://github.com/psychopy/psychopy-studio) (for the modern web-based GUI) 
+and [PsychoPy App](https://github.com/psychopy/psychopy-app) (for the legacy wxPython GUI).
+
 There is a range of documentation at:
 
 * [PsychoPy Homepage](https://www.psychopy.org)
