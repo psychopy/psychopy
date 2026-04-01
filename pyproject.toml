@@ -60,6 +60,8 @@ dependencies = [
     "websockets",  # new in 2023.2 for session.py
     # for the app
     "requests",
+    # for translation
+    "i18next",
     # psychoJS conversions
     "astunparse",
     "esprima",
