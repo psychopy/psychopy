@@ -19,15 +19,9 @@ This means that, when you run your code, the value of `myTranslatedString` will 
 
 # Adding translations
 
-## Cloning the PsychoPy repo
+## Cloning the [PsychoPy translations repo](https://github.com/psychopy/psychopy-translations)
 
-In order to edit translations, you need to be able to edit the code of PsychoPy. You can find instructions for downloading and editing PsychoPy in the [contributor's section of our website](https://psychopy.org/developers/).
-
-## Key extraction
-
-The first step to translation is to work out what strings need to be translated; this is called "key extraction". We can scan the PsychoPy codebase for any instances where the `_translate` function is called, so by doing so and storing the values it's called on we can compile a list of strings which need translations writing. 
-
-We've already written the code to do this, so to extract keys you just need to run the file "extract.py" as a script. We try to run this ourselves fairly regularly, so there's a good chance all the strings will already be found and so this script will have no effect.
+In order to edit translations, you'll need to make a copy of the translations repo on your own computer. To do this, you should create a "fork" of the repository on your GitHub account, then "clone" that "fork" to your local files. There are a variety of tools for doing this, you can also do it yourself via command line, but the easiest way for a beginner is probably the official [GitHub desktop app](https://docs.github.com/en/desktop/adding-and-cloning-repositories/cloning-and-forking-repositories-from-github-desktop).
 
 ## Translation files
 
@@ -41,7 +35,7 @@ Blank entries in the translation files are strings which we don't have a transla
 
 ## Submitting translations
 
-Once you've made your changes, use git to commit and push the change to your branch of PsychoPy, then you can submit the change as a pull request. See [our guide for opening a pull request](https://psychopy.org/developers/pullrequest). The commit/pull request messages for a change to translations should always begin with `DOC:`.
+Once you've made your changes, use git to commit and push the change to your branch of PsychoPy, then you can submit the change as a pull request. See [our guide for opening a pull request](https://psychopy.org/developers/pullrequest).
 
 # Known limitations
 
