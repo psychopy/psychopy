@@ -70,18 +70,18 @@ class Test_RunnerFrame:
         # ---
 
         # check button states before running the file
-        assert runnerPanel.toolbar.buttons['runBtn'].Enabled, (
-            "Incorrect button state for `Runner.panel.runBtn` at start of "
+        assert runnerPanel.ribbon.buttons['pyrun'].Enabled, (
+            "Incorrect button state for `Runner.panel.pyrun` at start of "
             "experiment.")
-        assert not runnerPanel.toolbar.buttons['stopBtn'].Enabled, (
-            "Incorrect button state for `Runner.panel.stopBtn` at start of "
+        assert not runnerPanel.ribbon.buttons['pystop'].Enabled, (
+            "Incorrect button state for `Runner.panel.pystop` at start of "
             "experiment.")
 
         # issue a button click event to run the file
         wx.PostEvent(
-            runnerPanel.toolbar.buttons['runBtn'].GetEventHandler(),
+            runnerPanel.ribbon.buttons['pyrun'].GetEventHandler(),
             wx.PyCommandEvent(wx.EVT_BUTTON.typeId,
-                              runnerPanel.toolbar.buttons['runBtn'].GetId())
+                              runnerPanel.ribbon.buttons['pyrun'].GetId())
         )
 
         # wait until the subprocess wakes up
@@ -95,11 +95,11 @@ class Test_RunnerFrame:
             wx.YieldIfNeeded()
 
         # check button states during experiment
-        assert not runnerPanel.toolbar.buttons['runBtn'].Enabled, (
-            "Incorrect button state for `runnerPanel.toolbar.buttons['runBtn']` "
+        assert not runnerPanel.ribbon.buttons['pyrun'].Enabled, (
+            "Incorrect button state for `runnerPanel.ribbon.buttons['pyrun']` "
             "during experiment.")
-        assert runnerPanel.toolbar.buttons['stopBtn'].Enabled, (
-            "Incorrect button state for `runnerPanel.toolbar.buttons['stopBtn']` "
+        assert runnerPanel.ribbon.buttons['pystop'].Enabled, (
+            "Incorrect button state for `runnerPanel.ribbon.buttons['pystop']` "
             "experiment.")
 
         # wait until the subprocess ends
@@ -114,8 +114,8 @@ class Test_RunnerFrame:
 
         # check button states after running the file, make sure they are
         # correctly restored
-        assert not runnerPanel.toolbar.buttons['stopBtn'].Enabled, (
-            "Incorrect button state for `runnerPanel.toolbar.buttons['stopBtn']` "
+        assert not runnerPanel.ribbon.buttons['pystop'].Enabled, (
+            "Incorrect button state for `runnerPanel.ribbon.buttons['pystop']` "
             "experiment.")
 
         # ---
@@ -127,9 +127,9 @@ class Test_RunnerFrame:
 
         # again, start the process using the run event
         wx.PostEvent(
-            runnerPanel.toolbar.buttons['runBtn'].GetEventHandler(),
+            runnerPanel.ribbon.buttons['pyrun'].GetEventHandler(),
             wx.PyCommandEvent(wx.EVT_BUTTON.typeId,
-                              runnerPanel.toolbar.buttons['runBtn'].GetId())
+                              runnerPanel.ribbon.buttons['pyrun'].GetId())
         )
 
         # wait until the subprocess wakes up
@@ -143,9 +143,9 @@ class Test_RunnerFrame:
 
         # kill the process a bit through it
         wx.PostEvent(
-            runnerPanel.toolbar.buttons['stopBtn'].GetEventHandler(),
+            runnerPanel.ribbon.buttons['pystop'].GetEventHandler(),
             wx.PyCommandEvent(wx.EVT_BUTTON.typeId,
-                              runnerPanel.toolbar.buttons['stopBtn'].GetId())
+                              runnerPanel.ribbon.buttons['pystop'].GetId())
         )
 
         # wait until the subprocess ends
@@ -159,8 +159,8 @@ class Test_RunnerFrame:
 
         # check button states after running the file, make sure they are
         # correctly restored
-        assert not runnerPanel.toolbar.buttons['stopBtn'].Enabled, (
-            "Incorrect button state for `runnerPanel.toolbar.buttons['stopBtn']` "
+        assert not runnerPanel.ribbon.buttons['pystop'].Enabled, (
+            "Incorrect button state for `runnerPanel.ribbon.buttons['pystop']` "
             "experiment.")
 
         runner.clearTasks()  # clear task list
