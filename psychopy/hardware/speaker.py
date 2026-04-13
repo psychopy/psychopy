@@ -240,7 +240,7 @@ class SpeakerDevice(BaseDevice):
                         logging.error(line[11:])
                     elif line.strip():
                         print(line)
-            except:
+            except Exception:
                 pass
         # if everything failed, raise an error
         if self.stream is None:
