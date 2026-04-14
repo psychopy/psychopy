@@ -9,7 +9,7 @@ import re
 from psychopy import logging, plugins
 from psychopy.preferences import prefs
 from psychopy.experiment.components import Param, _translate
-from psychopy.experiment.components.settings.eyetracking import knownEyetrackerBackends
+from psychopy.experiment.components.settings.eyetracking import knownEyetrackerBackends, MouseGazeEyetrackerBackend
 from psychopy.experiment.routines import Routine, BaseStandaloneRoutine
 from psychopy.experiment.routines.eyetracker_calibrate import EyetrackerCalibrationRoutine
 from psychopy.experiment import utils as exputils
@@ -539,39 +539,6 @@ class SettingsComponent:
         self.order += ["eyetracker",
                        "gpAddress", "gpPort",
                        "elModel", "elAddress", "elSimMode"]
-
-        # Hide params when not relevant to current eyetracker
-        trackerParams = {
-            "MouseGaze": ["mgMove", "mgBlink", "mgSaccade"],
-            "GazePoint": ["gpAddress", "gpPort"],
-            "SR Research Ltd": ["elModel", "elSimMode", "elSampleRate", "elTrackEyes", "elLiveFiltering",
-                                "elDataFiltering", "elTrackingMode", "elPupilMeasure", "elPupilAlgorithm",
-                                "elAddress"],
-            "Tobii Technology": ["tbModel", "tbLicenseFile", "tbSerialNo", "tbSampleRate"],
-            "Pupil Labs": ["plPupillometryOnly", "plSurfaceName", "plConfidenceThreshold",
-                           "plPupilRemoteAddress", "plPupilRemotePort", "plPupilRemoteTimeoutMs",
-                           "plPupilCaptureRecordingLocation"],
-            "Pupil Labs (Neon)": ["plCompanionAddress", "plCompanionPort"],
-            "EyeLogic": ["ecSampleRate"],
-        }
-        for tracker in trackerParams:
-            for depParam in trackerParams[tracker]:
-                self.depends.append(
-                    {"dependsOn": "eyetracker",  # must be param name
-                     "condition": "=='"+tracker+"'",  # val to check for
-                     "param": depParam,  # param property to alter
-                     "true": "show",  # what to do with param if condition is True
-                     "false": "hide",  # permitted: hide, show, enable, disable
-                     }
-                )
-        self.depends.append(
-            {"dependsOn": "eyetracker",  # must be param name
-             "condition": f" in {list(trackerParams)}",  # val to check for
-             "param": "Save hdf5 file",  # param property to alter
-             "true": "enable",  # what to do with param if condition is True
-             "false": "disable",  # permitted: hide, show, enable, disable
-             }
-        )
         # arrays for eyetracker backends
         backendValues = ["None"]
         backendLabels = ["None"]
@@ -617,161 +584,6 @@ class SettingsComponent:
                     'true': "show",  # should...
                     'false': "hide",  # otherwise...
                 })
-
-        # as users with old versions of the plugin won't have params added dynamically, add legacy 
-        # params here manually
-
-        # gazepoint
-        self.params['gpAddress'] = Param(
-            gpAddress, valType='str', inputType="single",
-            hint=_translate("IP Address of the computer running GazePoint Control."),
-            label=_translate("GazePoint IP address"), categ="Eyetracking"
-        )
-
-        self.params['gpPort'] = Param(
-            gpPort, valType='num', inputType="single",
-            hint=_translate("Port of the GazePoint Control server. Usually 4242."),
-            label=_translate("GazePoint port"), categ="Eyetracking"
-        )
-        # eyelink
-        self.params['elModel'] = Param(
-            elModel, valType='str', inputType="choice",
-            allowedVals=['EYELINK 1000 DESKTOP', 'EYELINK 1000 TOWER', 'EYELINK 1000 REMOTE',
-                         'EYELINK 1000 LONG RANGE'],
-            hint=_translate("Eye tracker model."),
-            label=_translate("Model name"), categ="Eyetracking"
-        )
-        self.params['elSimMode'] = Param(
-            elSimMode, valType='bool', inputType="bool",
-            hint=_translate("Set the EyeLink to run in mouse simulation mode."),
-            label=_translate("Mouse simulation mode"), categ="Eyetracking"
-        )
-        self.params['elSampleRate'] = Param(
-            elSampleRate, valType='num', inputType="choice",
-            allowedVals=['250', '500', '1000', '2000'],
-            hint=_translate("Eye tracker sampling rate."),
-            label=_translate("Sampling rate"), categ="Eyetracking"
-        )
-        self.params['elTrackEyes'] = Param(
-            elTrackEyes, valType='str', inputType="choice",
-            allowedVals=['LEFT_EYE', 'RIGHT_EYE', 'BOTH'],
-            hint=_translate("Select with eye(s) to track."),
-            label=_translate("Track eyes"), categ="Eyetracking"
-        )
-        self.params['elLiveFiltering'] = Param(
-            elLiveFiltering, valType='str', inputType="choice",
-            allowedVals=['FILTER_LEVEL_OFF', 'FILTER_LEVEL_1', 'FILTER_LEVEL_2'],
-            hint=_translate("Filter eye sample data live, as it is streamed to the driving device. "
-                            "This may reduce the sampling speed."),
-            label=_translate("Live sample filtering"), categ="Eyetracking"
-        )
-        self.params['elDataFiltering'] = Param(
-            elDataFiltering, valType='str', inputType="choice",
-            allowedVals=['FILTER_LEVEL_OFF', 'FILTER_LEVEL_1', 'FILTER_LEVEL_2'],
-            hint=_translate("Filter eye sample data when it is saved to the output file. This will "
-                            "not affect the sampling speed."),
-            label=_translate("Saved sample filtering"), categ="Eyetracking"
-        )
-        self.params['elTrackingMode'] = Param(
-            elTrackingMode, valType='str', inputType="choice",
-            allowedVals=['PUPIL_CR_TRACKING', 'PUPIL_ONLY_TRACKING'],
-            hint=_translate("Track Pupil-CR or Pupil only."),
-            label=_translate("Pupil tracking mode"), categ="Eyetracking"
-        )
-        self.params['elPupilAlgorithm'] = Param(
-            elPupilAlgorithm, valType='str', inputType="choice",
-            allowedVals=['ELLIPSE_FIT', 'CENTROID_FIT'],
-            hint=_translate("Algorithm used to detect the pupil center."),
-            label=_translate("Pupil center algorithm"), categ="Eyetracking"
-        )
-        self.params['elPupilMeasure'] = Param(
-            elPupilMeasure, valType='str', inputType="choice",
-            allowedVals=['PUPIL_AREA', 'PUPIL_DIAMETER', 'NEITHER'],
-            hint=_translate("Type of pupil data to record."),
-            label=_translate("Pupil data type"), categ="Eyetracking"
-        )
-        self.params['elAddress'] = Param(
-            elAddress, valType='str', inputType="single",
-            hint=_translate("IP Address of the EyeLink *Host* computer."),
-            label=_translate("EyeLink IP address"), categ="Eyetracking"
-        )
-
-        # tobii
-        self.params['tbModel'] = Param(
-            tbModel, valType='str', inputType="single",
-            hint=_translate("Eye tracker model."),
-            label=_translate("Model name"), categ="Eyetracking"
-        )
-        self.params['tbLicenseFile'] = Param(
-            tbLicenseFile, valType='str', inputType="file",
-            hint=_translate("Eye tracker license file (optional)."),
-            label=_translate("License file"), categ="Eyetracking"
-        )
-        self.params['tbSerialNo'] = Param(
-            tbSerialNo, valType='str', inputType="single",
-            hint=_translate("Eye tracker serial number (optional)."),
-            label=_translate("Serial number"), categ="Eyetracking"
-        )
-        self.params['tbSampleRate'] = Param(
-            tbSampleRate, valType='num', inputType="single",
-            hint=_translate("Eye tracker sampling rate."),
-            label=_translate("Sampling rate"), categ="Eyetracking"
-        )
-
-        # pupil labs
-        self.params['plPupillometryOnly'] = Param(
-            plPupillometryOnly, valType='bool', inputType="bool",
-            hint=_translate("Subscribe to pupil data only, does not require calibration or surface setup"),
-            label=_translate("Pupillometry only"),
-            categ="Eyetracking"
-        )
-        self.params['plSurfaceName'] = Param(
-            plSurfaceName, valType='str', inputType="single",
-            hint=_translate("Name of the Pupil Capture surface"),
-            label=_translate("Surface name"), categ="Eyetracking"
-        )
-        self.params['plConfidenceThreshold'] = Param(
-            plConfidenceThreshold, valType='num', inputType="single",
-            hint=_translate("Gaze confidence threshold"),
-            label=_translate("Gaze confidence threshold"), categ="Eyetracking"
-        )
-        self.params['plPupilRemoteAddress'] = Param(
-            plPupilRemoteAddress, valType='str', inputType="single",
-            hint=_translate("Pupil remote address"),
-            label=_translate("Pupil remote address"), categ="Eyetracking"
-        )
-        self.params['plPupilRemotePort'] = Param(
-            plPupilRemotePort, valType='num', inputType="single",
-            hint=_translate("Pupil remote port"),
-            label=_translate("Pupil remote port"), categ="Eyetracking"
-        )
-        self.params['plPupilRemoteTimeoutMs'] = Param(
-            plPupilRemoteTimeoutMs, valType='num', inputType="single",
-            hint=_translate("Pupil remote timeout (ms)"),
-            label=_translate("Pupil remote timeout (ms)"), categ="Eyetracking"
-        )
-        self.params['plPupilCaptureRecordingLocation'] = Param(
-            plPupilCaptureRecordingLocation, valType='str', inputType="single",
-            hint=_translate("Pupil capture recording location"),
-            label=_translate("Pupil capture recording location"), categ="Eyetracking"
-        )
-        self.params['plCompanionAddress'] = Param(
-            plCompanionAddress, valType='str', inputType="single",
-            hint=_translate("Companion address"),
-            label=_translate("Companion address"), categ="Eyetracking"
-        )
-        self.params['plCompanionPort'] = Param(
-            plCompanionPort, valType='num', inputType="single",
-            hint=_translate("Companion port"),
-            label=_translate("Companion port"), categ="Eyetracking"
-        )
-
-        # EyeLogic
-        self.params['ecSampleRate'] = Param(
-            ecSampleRate, valType='str', inputType="single",
-            hint=_translate("Eyetracker sampling rate: 'default' or <integer>[Hz]. Defaults to tracking mode '0'."),
-            label=_translate("Sampling rate"), categ="Eyetracking"
-        )
 
         # Input
         self.params['keyboardBackend'] = Param(

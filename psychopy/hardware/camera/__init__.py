@@ -600,6 +600,9 @@ class CameraDevice(BaseDevice):
         profiles = []
         # iterate through cameras
         for cams in CameraDevice.getCameras().values():
+            # Skip devices with no available formats
+            if not cams:
+                continue
             # if requested, filter for best spec for each device
             if best:
                 allCams = cams.copy()
