@@ -1,6 +1,19 @@
+# -*- coding: utf-8 -*-
+
+"""Psychotoolbox interface for microphones.
+"""
+
+# Part of the PsychoPy library
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
+
+__all__ = [
+    "PsychtoolboxMicrophoneDevice",
+]
+
 import sys
 import time
-
+from ._base import BaseMicrophoneDevice
 import numpy as np
 from psychtoolbox import audio as audio
 from psychopy import logging as logging, prefs, core
@@ -28,11 +41,7 @@ except (ImportError, ModuleNotFoundError):
     _hasPTB = False
 
 
-class MicrophoneResponse(BaseResponse):
-    pass
-
-
-class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
+class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microphone"]):
     """Class for recording audio from a microphone or input stream.
 
     Creating an instance of this class will open a stream using the specified
@@ -1628,3 +1637,7 @@ class RecordingBuffer:
             np.array(self._samples[idxStart:idxEnd, :],
                      dtype=np.float32, order='C'),
             sampleRateHz=self._sampleRateHz)
+    
+
+if __name__ == "__main__":
+    pass
