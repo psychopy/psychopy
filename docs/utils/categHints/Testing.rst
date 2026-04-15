@@ -1,1 +1,0 @@
-Tools for testing, debugging and checking the performance of this Component.

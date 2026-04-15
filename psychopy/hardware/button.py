@@ -34,7 +34,7 @@ class ButtonResponse(base.BaseResponse):
         if isinstance(other, dict):
             try:
                 return ButtonResponse(**other) == self
-            except:
+            except (TypeError, KeyError):
                 # if it can't instantiate a ButtonResponse, it's not the same as this
                 return False
         

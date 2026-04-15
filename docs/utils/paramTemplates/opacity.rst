@@ -1,1 +1,0 @@
-Vary the transparency, from 0.0 (invisible) to 1.0 (opaque)

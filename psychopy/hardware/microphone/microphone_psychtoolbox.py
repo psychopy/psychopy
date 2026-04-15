@@ -1326,7 +1326,7 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
             # generate a sound for this speaker
             try:
                 snd = sound.Sound("A", stereo=True, speaker=speaker)
-            except:
+            except Exception:
                 # silently skip on error
                 continue
             # get a baseline volume

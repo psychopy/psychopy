@@ -1,1 +1,0 @@
-Spatial units for this stimulus (e.g. for its :ref:`position <{{ cls.__name__  | lower }}-pos>` and :ref:`size <{{ cls.__name__  | lower }}-size>`), see :ref:`units` for more info.

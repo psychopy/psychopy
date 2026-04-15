@@ -2,7 +2,7 @@
 [project]
 name = "psychopy"
 dynamic = ["version"]
-requires-python = ">=3.9, <3.12"
+requires-python = ">=3.10, <3.12"
 description = "PsychoPy provides easy, precise, flexible experiments in behavioural sciences"
 readme ={file = "README.md", content-type = "text/markdown"}
 authors = [
@@ -25,8 +25,8 @@ classifiers = [
     ]
     
 dependencies = [
-    "numpy",  # use numpy<1.24 for psychopy<2023.1
-    "scipy",  # 1.15 fails to import scipy.special
+    "numpy",
+    "scipy",  # NB scipy 1.16 requires py311; 1.14 requires py310
     "matplotlib",
     "pyglet == 1.4.11; platform_system == \"Windows\"",
     "pyglet == 1.5.27; platform_system != \"Windows\"",
@@ -60,6 +60,8 @@ dependencies = [
     "websockets",  # new in 2023.2 for session.py
     # for the app
     "requests",
+    # for translation
+    "i18next",
     # psychoJS conversions
     "astunparse",
     "esprima",
