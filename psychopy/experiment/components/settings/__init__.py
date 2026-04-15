@@ -586,7 +586,7 @@ class SettingsComponent:
                 if legKey not in backendValues:
                     backendValues.append(legKey)
                     backendLabels.append(legLbl)
-        except:
+        except Exception:
             # if it doesn't work, just stick with the known backends from plugins
             pass
 
@@ -1351,7 +1351,7 @@ class SettingsComponent:
         if isinstance(colPriority, str):
             try:
                 colPriority = ast.literal_eval(colPriority)
-            except:
+            except (ValueError, SyntaxError):
                 raise ValueError(_translate(
                     "Could not interpret value as dict: {}"
                 ).format(colPriority))
