@@ -287,7 +287,7 @@ class Color:
             if space not in ("named", "hex"):
                 try:
                     color = ast.literal_eval(color)
-                except:
+                except (ValueError, SyntaxError):
                     pass
         # Handle everything as an array
         if not isinstance(color, np.ndarray):
@@ -1059,7 +1059,7 @@ def isValidColor(color, space='rgb'):
     try:
         buffer = Color(color, space)
         return bool(buffer)
-    except:
+    except Exception:
         return False
 
 
