@@ -30,16 +30,16 @@ if backend == 'default':   # if default, select the best available backend
     backend = 'sounddevice'
 
 # select the speaker device class based on the selected backend
-if backend == 'sounddevice' or backend == 'portaudio':
+if backend in ('sounddevice', 'default'):  # sounddevice backend
     from .speaker_sounddevice import SoundDeviceSpeakerDevice
     SpeakerDevice = SoundDeviceSpeakerDevice
-elif backend == 'ptb':
+elif backend in ('ptb', 'portaudio'):  # psychtoolbox backend
     from .speaker_psychtoolbox import PsychtoolboxSpeakerDevice
     SpeakerDevice = PsychtoolboxSpeakerDevice
 else:
     raise ValueError((
         f"Invalid value '{backend}' for prefs.hardware['audioDriver'], "
-        f"expected 'sounddevice', 'ptb', or 'default'"))
+        f"expected 'sounddevice', 'ptb', 'portaudio', or 'default'"))
 
 logging.info(f"Using '{backend}' backend for sound output devices.")
 
