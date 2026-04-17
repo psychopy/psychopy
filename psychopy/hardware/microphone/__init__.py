@@ -32,7 +32,7 @@ except (KeyError, IndexError):
 if backend in ('sounddevice', 'default'):  # sounddevice backend
     from .microphone_soundevice import SoundDeviceMicrophoneDevice
     MicrophoneDevice = SoundDeviceMicrophoneDevice
-elif backend in ('ptb', 'portaudio'):  # psychtoolbox backend
+elif backend in ('ptb', 'portaudio', 'coreaudio'):  # psychtoolbox backend
     from .microphone_psychtoolbox import PsychtoolboxMicrophoneDevice
     MicrophoneDevice = PsychtoolboxMicrophoneDevice
 else:

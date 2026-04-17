@@ -33,7 +33,7 @@ if backend == 'default':   # if default, select the best available backend
 if backend in ('sounddevice', 'default'):  # sounddevice backend
     from .speaker_sounddevice import SoundDeviceSpeakerDevice
     SpeakerDevice = SoundDeviceSpeakerDevice
-elif backend in ('ptb', 'portaudio'):  # psychtoolbox backend
+elif backend in ('ptb', 'portaudio', 'coreaudio'):  # psychtoolbox backend
     from .speaker_psychtoolbox import PsychtoolboxSpeakerDevice
     SpeakerDevice = PsychtoolboxSpeakerDevice
 else:
