@@ -236,7 +236,7 @@ class Experiment:
 
     @property
     def runMode(self):
-        return int(self.settings.params['runMode'].val)
+        return bool(self.settings.params['runMode'])
 
     @runMode.setter
     def runMode(self, value):
