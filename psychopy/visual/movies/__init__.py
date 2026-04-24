@@ -1258,7 +1258,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         if not self._hasPlayer:
             return
         # duplicate if necessary
-        if isinstance(value, (float, int)):
+        if isinstance(value, (float, int)) or value is None:
             value = [value, value]
         # make sure value is a list so we can assign indices
         if isinstance(value, tuple):
