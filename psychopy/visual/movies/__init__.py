@@ -1782,6 +1782,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._textureId)
+        GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
 
         # copy the PBO to the texture
         GL.glTexSubImage2D(
