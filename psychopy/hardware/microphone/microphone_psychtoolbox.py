@@ -1,6 +1,19 @@
+# -*- coding: utf-8 -*-
+
+"""Psychotoolbox interface for microphones.
+"""
+
+# Part of the PsychoPy library
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
+
+__all__ = [
+    "PsychtoolboxMicrophoneDevice",
+]
+
 import sys
 import time
-
+from ._base import BaseMicrophoneDevice, MicrophoneResponse
 import numpy as np
 from psychtoolbox import audio as audio
 from psychopy import logging as logging, prefs, core
@@ -28,11 +41,7 @@ except (ImportError, ModuleNotFoundError):
     _hasPTB = False
 
 
-class MicrophoneResponse(BaseResponse):
-    pass
-
-
-class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
+class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microphone"]):
     """Class for recording audio from a microphone or input stream.
 
     Creating an instance of this class will open a stream using the specified
@@ -156,7 +165,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             self._device = index
         elif index in (-1, None):
             # get all devices
-            _devices = MicrophoneDevice.getDevices()
+            _devices = PsychtoolboxMicrophoneDevice.getDevices()
             # if there are none, error
             if not len(_devices):
                 raise DeviceNotConnectedError(
@@ -164,7 +173,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
                         "Could not choose default recording device as no recording "
                         "devices are connected."
                     ), 
-                    deviceClass=MicrophoneDevice
+                    deviceClass=PsychtoolboxMicrophoneDevice
                 )
 
             # Try and get the best match which are compatible with the user's
@@ -203,7 +212,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             # if given a str that's a name from DeviceManager, get info from device
             device = DeviceManager.getDevice(index)
             # try to duplicate and fail if not found
-            if isinstance(device, MicrophoneDevice):
+            if isinstance(device, PsychtoolboxMicrophoneDevice):
                 self._device = device._device
             else:
                 # if not found, find best match
@@ -391,7 +400,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
                 _translate(
                     "Could not find any audio recording device with index {index}", 
                 ).format(index=index), 
-                deviceClass=MicrophoneDevice
+                deviceClass=PsychtoolboxMicrophoneDevice
             )
 
         return chosenDevice
@@ -437,12 +446,12 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
 
         """
         try:
-            MicrophoneDevice.enforceWASAPI = bool(prefs.hardware["audioForceWASAPI"])
+            PsychtoolboxMicrophoneDevice.enforceWASAPI = bool(prefs.hardware["audioForceWASAPI"])
         except KeyError:
             pass  # use default if option not present in settings
 
         # query PTB for devices
-        if MicrophoneDevice.enforceWASAPI and sys.platform == 'win32':
+        if PsychtoolboxMicrophoneDevice.enforceWASAPI and sys.platform == 'win32':
             allDevs = audio.get_devices(device_type=13)
         else:
             allDevs = audio.get_devices()
@@ -831,19 +840,19 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         # set flag that it's mid-open
         self._opening = True
         # search for open streams and if there is one, use it
-        if self._device.deviceIndex in MicrophoneDevice._streams:
+        if self._device.deviceIndex in PsychtoolboxMicrophoneDevice._streams:
             logging.debug(
                 f"Assigning audio stream for device #{self._device.deviceIndex} to a new "
                 f"MicrophoneDevice object."
             )
-            self._stream = MicrophoneDevice._streams[self._device.deviceIndex]
+            self._stream = PsychtoolboxMicrophoneDevice._streams[self._device.deviceIndex]
             return
         
         # if no open streams, make one
         logging.debug(
             f"Opening new audio stream for device #{self._device.deviceIndex}."
         )
-        self._stream = MicrophoneDevice._streams[self._device.deviceIndex] = audio.Stream(
+        self._stream = PsychtoolboxMicrophoneDevice._streams[self._device.deviceIndex] = audio.Stream(
             device_id=self._device.deviceIndex,
             latency_class=self._audioLatencyMode,
             mode=self._mode,
@@ -878,8 +887,8 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         # set flag that it's mid-close
         self._closing = True
         # remove ref to stream
-        if self._device.deviceIndex in MicrophoneDevice._streams:
-            MicrophoneDevice._streams.pop(self._device.deviceIndex)
+        if self._device.deviceIndex in PsychtoolboxMicrophoneDevice._streams:
+            PsychtoolboxMicrophoneDevice._streams.pop(self._device.deviceIndex)
         # close stream
         self._stream.close()
         logging.debug('Stream closed')
@@ -1628,3 +1637,7 @@ class RecordingBuffer:
             np.array(self._samples[idxStart:idxEnd, :],
                      dtype=np.float32, order='C'),
             sampleRateHz=self._sampleRateHz)
+    
+
+if __name__ == "__main__":
+    pass
