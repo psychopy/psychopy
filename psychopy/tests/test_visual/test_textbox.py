@@ -291,7 +291,7 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin, _Tes
             self.win.flip()
             self.textbox.draw()
             # compare screenshot
-            filename = "textbox_formatting_%(screenshot)s_%(syntax)s_%(languageStyle)s.png" % case
+            filename = f"{type(self).__name__}_textbox_formatting_%(screenshot)s_%(syntax)s_%(languageStyle)s.png" % case
             # self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
             utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / filename, self.win, crit=20)
 

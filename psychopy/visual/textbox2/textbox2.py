@@ -969,13 +969,14 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
             y_advance_list = []
             vertices_list = []
             texcoords_list = []
-
+            # keep track of simple char index
+            i = 0
             # calculate width of each segments
             for this_seg in range(len(text_seg)):
 
                 thisSegWidth = 0 # width of this segment
 
-                for i, charcode in enumerate(text_seg[this_seg]):
+                for charcode in text_seg[this_seg]:
                     printable = True  # unless we decide otherwise
                     # handle formatting codes
                     fakeItalic = 0.0
@@ -1033,6 +1034,7 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
                                            [u1, v1], [u1, v0]])
                     charwidth_list.append(w)
                     y_advance_list.append(glyph.advance[1])
+                    i += 1
 
                 # append width of this segment to the list
                 segwidth_list.append(thisSegWidth)

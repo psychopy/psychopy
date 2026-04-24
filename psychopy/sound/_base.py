@@ -5,6 +5,14 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
+"""Base classes and functions for playing sounds.
+
+This module contains the base class for sound objects, which is subclassed by
+the specific sound backends (e.g., SoundPygame, SoundPyo, SoundSoundDevice). It 
+also contains helper functions and classes for processing sound data.
+
+"""
+
 from pathlib import Path
 import numpy
 import copy
@@ -26,6 +34,7 @@ try:
 except Exception:
     raise DependencyError("soundfile not working")
 
+# determine media location for default sounds based on platform
 if platform == 'win32':
     mediaLocation = "C:\\Windows\\Media"
 elif platform == 'darwin':
@@ -34,26 +43,50 @@ elif platform.startswith("linux"):
     mediaLocation = "/usr/share/sounds"
 
 
-
-
 def apodize(soundArray, sampleRate):
-    """Apply a Hanning window (5ms) to reduce a sound's 'click' onset / offset
+    """Apply a Hanning window (5ms) to reduce a sound's 'click' onset / offset.
+
+    Parameters
+    ----------
+    soundArray : numpy.ndarray
+        The array of sound data to be apodized. Should be 1D with shape
+        (nSamples,).
+    sampleRate : int
+        Sample rate of the sound in Hz.
+
+    Returns
+    -------
+    numpy.ndarray
+        The apodized sound array, with the same shape as the input array.
+
     """
     hwSize = int(min(sampleRate // 200, len(soundArray) // 15))
     hanningWindow = numpy.hanning(2 * hwSize + 1)
     soundArray = copy.copy(soundArray)
     soundArray[:hwSize] *= hanningWindow[:hwSize]
     soundArray[-hwSize:] *= hanningWindow[hwSize + 1:]
+
     return soundArray
 
 
-class HammingWindow():
-    def __init__(self, winSecs, soundSecs, sampleRate):
-        """
+class HammingWindow:
+    """Class to apply a Hanning window to the start and end of a sound, to reduce 
+    'click' onset and offset.
 
-        :param winSecs:
-        :param soundSecs:
-        :param sampleRate:
+    """
+    def __init__(self, winSecs, soundSecs, sampleRate):
+        """Initialize the HammingWindow.
+
+        Parameters
+        ----------
+        winSecs : float
+            Window size in seconds. This is the duration of the Hanning window to
+            apply to the start and end of the sound.
+        soundSecs : float
+            Duration of the sound in seconds.
+        sampleRate : int
+            Sample rate of the sound.
+
         """
         self.sampleRate = sampleRate
         self.winSecs = winSecs
@@ -67,9 +100,19 @@ class HammingWindow():
     def nextBlock(self, t, blockSize):
         """Returns a block to be multiplied with the current sound block or 1.0
 
-        :param t: current position in time (secs)
-        :param blockSize: block size for the sound needing the hanning window
-        :return: numpy array of length blockSize
+        Parameters
+        ----------
+        t : float
+            Current position in time (secs).
+        blockSize : int
+            Block size for the sound needing the hanning window.
+        
+        Returns
+        -------
+        numpy.ndarray
+            A numpy array of length blockSize to be multiplied with the current 
+            sound block, or 1.0 if no windowing is needed.
+
         """
         startSample = int(t*self.sampleRate)
         if startSample < self.winSamples:
@@ -122,7 +165,10 @@ class _SoundBase(AttributeGetSetMixin):
     # def _setSndFromFile(self, fileName):
     # def _setSndFromArray(self, thisArray):
 
+    preBuffer = -1
     autoLog = True
+    startTime = 0 
+    stopTime = 0  
 
     def setSound(self, value, secs=0.5, octave=4, hamming=True, log=True):
         """Set the sound to be played.
@@ -253,39 +299,114 @@ class _SoundBase(AttributeGetSetMixin):
         self.stereo = stereo
 
     def _setSndFromNote(self, thisNote, secs, octave, hamming=True):
+        """Set sound from a note name (e.g., 'A', 'Csh', etc.). 
+        
+        Note that the octave is needed to determine the frequency of the note, 
+        so it must be specified if using a note name.
+
+        Parameters
+        ----------
+        thisNote : str
+            The note name, e.g., 'A', 'Csh', etc.
+        secs : float
+            Duration of the tone to be generated.
+        octave : int    
+            The octave of the note, where middle octave of a piano is 4. Most 
+            computers won't output sounds in the bottom octave (1) and the top 
+            octave (8) is generally painful.
+        hamming : bool
+            Whether to apply a Hanning window to the sound to reduce 'click' onset
+            and offset. Not applied to sounds from files.
+        
+        """
         # note name -> freq -> sound
         freqA = 440.0
         thisOctave = octave - 4
-        mult = 2.0**(stepsFromA[thisNote] / 12.)
+        mult = 2.0 ** (stepsFromA[thisNote] / 12.)
         thisFreq = freqA * mult * 2.0 ** thisOctave
         self._setSndFromFreq(thisFreq, secs, hamming=hamming)
 
     def _setSndFromFreq(self, thisFreq, secs, hamming=True):
+        """Set sound from a frequency in Hz.
+        
+        Parameters
+        ----------
+        thisFreq : float
+            Frequency in Hz.
+        secs : float
+            Duration of the sound in seconds. If negative, the sound will loop
+            indefinitely (until stopped).
+        hamming : bool
+            Whether to apply a Hanning window to the sound to reduce 'click' onset
+            and offset. Not applied to sounds from files.
+        
+        """
         # note freq -> array -> sound
         if secs < 0:
             # want infinite duration - create 1 sec sound and loop it
             secs = 10.0
             self.loops = -1
+
         if not self.sampleRate:
             self.sampleRate = self._getDefaultSampleRate()
+
         nSamples = int(secs * self.sampleRate)
         outArr = numpy.arange(0.0, 1.0, 1.0 / nSamples)
         outArr *= 2 * numpy.pi * thisFreq * secs
         outArr = numpy.sin(outArr)
+
         if hamming and nSamples > 30:
             outArr = apodize(outArr, self.sampleRate)
+            
         self._setSndFromArray(outArr)
 
+    def _channelCheck(self, sndArr):
+        """Checks whether stream has fewer channels than data. If so, raises 
+        an error with instructions to user.
+        
+        Parameters
+        ----------
+        sndArr : numpy.ndarray
+            The array of sound data to be played. Should be 2D with shape 
+            (nSamples, nChannels).
+
+        Raises
+        ------
+        ValueError
+            If the sound stream is set up with fewer channels than in the data 
+            array.
+
+        """
+        if self.channels < sndArr.shape[1]:
+            msg = ("The sound stream is set up incorrectly. You have fewer channels in the buffer "
+                   "than in data file ({} vs {}).\n**Ensure you have selected 'Force stereo' in "
+                   "experiment settings**".format(self.channels, sndArr.shape[1]))
+            logging.error(msg)
+            raise ValueError(msg)
+
     def _setSndFromFile(self, filename):
+        """Set sound from a file. 
+        
+        Parameters
+        ----------
+        filename : str
+            Path to the sound file. Can be a relative path (relative to current
+            directory or media directory) or an absolute path.
+
+        """
         # alias default names (so it always points to default.png)
         if filename in defaultStim:
             filename = Path(prefs.paths['assets']) / defaultStim[filename]
+
         self.sndFile = f = sf.SoundFile(filename)
         self.sourceType = 'file'
         self.sampleRate = f.samplerate
+
         if self.channels == -1:  # if channels was auto then set to file val
             self.channels = f.channels
+
         fileDuration = float(len(f)) / f.samplerate  # needed for duration?
+
         # process start time
         if self.startTime and self.startTime > 0:
             startFrame = self.startTime * self.sampleRate
@@ -293,28 +414,40 @@ class _SoundBase(AttributeGetSetMixin):
             self.t = self.startTime
         else:
             self.t = 0
+
         # process stop time
         if self.stopTime and self.stopTime > 0:
             requestedDur = self.stopTime - self.t
             self.duration = min(requestedDur, fileDuration)
         else:
             self.duration = fileDuration - self.t
+
         # can now calculate duration in frames
         self.durationFrames = int(round(self.duration * self.sampleRate))
+
         # are we preloading or streaming?
         if self.preBuffer == 0:
             # no buffer - stream from disk on each call to nextBlock
-            pass
+            return
         elif self.preBuffer == -1:
             # full pre-buffer. Load requested duration to memory
             sndArr = self.sndFile.read(
                 frames=int(self.sampleRate * self.duration))
             self.sndFile.close()
             self._setSndFromArray(sndArr)
-        self._channelCheck(
-            self.sndArr)  # Check for fewer channels in stream vs data array
-
+        
+        self._channelCheck(self.sndArr)
+            
     def _setSndFromArray(self, thisArray):
+        """Set sound from a numpy array.
+        
+        Parameters
+        ----------
+        thisArray : numpy.ndarray
+            A 1D or 2D array of sound data, where rows are samples and columns
+            are channels. Values should be floats in the range -1.0 to 1.0.
+
+        """
         self.sndArr = numpy.asarray(thisArray).astype('float32')
         if thisArray.ndim == 1:
             self.sndArr.shape = [len(thisArray), 1]  # make 2D for broadcasting
@@ -337,7 +470,8 @@ class _SoundBase(AttributeGetSetMixin):
             logging.warning(
                 "Received a blank array for sound, playing nothing instead."
             )
-            self.sndArr = numpy.zeros(shape=(self.blockSize, self.channels))
+            self.sndArr = numpy.zeros(
+                shape=(self.blockSize, self.channels))
 
         # create audio clip
         clip = AudioClip(
@@ -348,27 +482,42 @@ class _SoundBase(AttributeGetSetMixin):
         self._setSndFromClip(clip)
 
     def _setSndFromClip(self, clip: AudioClip):
-        """
-        Set current sound from an AudioClip object. All other setSound methods eventually lead to
-        this - they just transform the given sound (be it an array, file, note, etc.) to an
-        AudioClip first.
+        """Set current sound from an AudioClip object. 
+        
+        All other setSound methods eventually lead to this - they just transform 
+        the given sound (be it an array, file, note, etc.) to an AudioClip first.
 
-        Each subclass of _SoundBase (so each sound backend; ptb, pygame, etc.) will implement this
-        method in their own way.
+        Each subclass of _SoundBase (so each sound backend; ptb, pygame, etc.) 
+        will implement this method in their own way.
 
         Parameters
         ----------
         clip : AudioClip
             AudioClip object to set.
+
         """
         raise NotImplementedError()
 
     def _getDefaultSampleRate(self):
-        """For backends this might depend on what streams are open"""
+        """Default sample rate in Hz to use for sounds.
+
+        Returns
+        -------
+        int
+            Default sample rate in Hz to use for sounds.
+
+        """
         return 44100
 
     def getDuration(self):
-        """Return the duration of the sound"""
+        """Return the duration of the sound.
+
+        Returns
+        -------
+        float
+            Duration of the sound in seconds.
+
+        """
         return self.duration
 
     def getVolume(self):
@@ -383,6 +532,16 @@ class _SoundBase(AttributeGetSetMixin):
 
     def setVolume(self, newVol, log=True):
         """Sets the current volume of the sound (0.0 to 1.0, inclusive)
+
+        Parameters
+        ----------
+        newVol : float
+            The new volume to set, where 0.0 is silent and 1.0
+            is full volume. Values outside this range will be clipped to 0.0 or
+            1.0.
+        log : bool
+            Whether to log this change. Default is True.
+
         """
         self.volume = min(1.0, max(0.0, newVol))
         self.needsUpdate = True
@@ -391,9 +550,22 @@ class _SoundBase(AttributeGetSetMixin):
                         (self.name, self.volume), obj=self)
 
     def setLoops(self, newLoops, log=True):
-        """Sets the current requested extra loops (int)"""
+        """Sets the current requested extra loops,
+        
+        Parameters
+        ----------
+        newLoops : int
+            The new loops value to set, where -1 means to loop indefinitely and
+            0 means to play once (no looping). Values greater than 0 indicate the
+            number of extra times to play the sound after the first time, so 1 means 
+            to play twice, 2 means to play three times, etc.
+        log : bool
+            Whether to log this change. Default is True.
+        
+        """
         self.loops = int(newLoops)
         self.needsUpdate = True
         if log and self.autoLog:
             logging.exp("Sound %s set loops %s" %
                         (self.name, self.loops), obj=self)
+
