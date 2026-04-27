@@ -390,26 +390,9 @@ class PsychtoolboxSpeakerDevice(BaseSpeakerDevice):
         # skip in vm
         if systemtools.isVM_CI():  # GitHub actions VM does not have a sound device
             return []
-        
-        # get the sound driver to use from prefs, or default if not set
-        sndDriverList = prefs.hardware['audioDriver']
-        if sndDriverList:
-            useDriver = sndDriverList[0] if isinstance(sndDriverList, (list, tuple)) else sndDriverList
-        else:
-            useDriver = "sounddevice"
-
-        # get the appropriate function for getting devices based on the driver
-        if useDriver == "sounddevice":
-            _getDeviceFunc = PsychtoolboxSpeakerDevice._getDevicesSoundDevice
-        elif useDriver == "ptb" or useDriver == 'portaudio':
-            _getDeviceFunc = PsychtoolboxSpeakerDevice._getDevicesPsychtoolbox
-        else:
-            raise ValueError((
-                f"Invalid value '{useDriver}' for prefs.hardware['audioDriver'], "
-                f"expected 'sounddevice' or 'ptb'"))
 
         devices = []
-        for profile in _getDeviceFunc():
+        for profile in PsychtoolboxSpeakerDevice._getDevicesPsychtoolbox():
             # skip input-only devices (microphones)
             if profile['NrOutputChannels'] == 0:
                 continue
