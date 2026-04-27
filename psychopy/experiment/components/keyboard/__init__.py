@@ -294,6 +294,13 @@ class KeyboardComponent(BaseComponent):
                     "{name}.rt = [key.rt for key in _{name}_allKeys]\n"
                     "{name}.duration = [key.duration for key in _{name}_allKeys]\n")
             buff.writeIndentedLines(code.format(name=self.params['name']))
+        # adjust .rt to describe release rather than press, if that's what we're listening for
+        if self.params['registerOn'] == "release":
+            code = (
+                "# adjust rt to reflect key release rather than key press\n"
+                "%(name)s.rt += %(name)s.duration\n"
+            )
+            buff.writeIndentedLines(code % self.params)
 
         if storeCorr:
             code = ("# was this correct?\n"
