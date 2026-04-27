@@ -366,6 +366,7 @@ class SliderComponent(BaseVisualComponent):
                        "for Slider events so doesn't know what to "
                        "tell a StairHandler (or QuestHandler)\n")
                 buff.writeIndented(msg)
+                loopName = 'thisExp'
             elif currLoop.type in ['TrialHandler', 'ExperimentHandler']:
                 loopName = currLoop.params['name']
             else:
