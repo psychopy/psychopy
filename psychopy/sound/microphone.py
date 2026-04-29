@@ -460,20 +460,15 @@ class Microphone:
             return None
         
         # collapse recording buffer into a single array
-        self._recordingBuffer = [
-            np.concatenate(self._recordingBuffer, axis=0, dtype=np.float32)]
+        self.device.recordingBuffer = [
+            np.concatenate(self.device.recordingBuffer, axis=0, dtype=np.float32)]
 
-        # handle samples based on device class
-        devClass = self.device.__class__.__name__
-        if devClass == "SoundDeviceMicrophoneDevice":
-            from psychopy.sound.audioclip import AudioClip
-            return AudioClip(
-                samples=self._recordingBuffer[0],
-                sampleRateHz=self.device.sampleRateHz
+        from psychopy.sound.audioclip import AudioClip
+
+        return AudioClip(
+            samples=self.device.recordingBuffer[0],
+            sampleRateHz=self.device.sampleRateHz
             )
-        
-        # legacy backends
-        return self.device.getRecording()
 
     def getCurrentVolume(self):
         """Get the microphone volume.

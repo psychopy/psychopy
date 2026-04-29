@@ -27,6 +27,7 @@ from psychopy.sound.exceptions import AudioInvalidCaptureDeviceError, AudioInval
     AudioStreamError, AudioRecordingBufferFullError
 from psychopy.tools import systemtools as st
 from psychopy.tools.audiotools import SAMPLE_RATE_48kHz
+import threading
 
 
 _hasPTB = True
@@ -92,6 +93,12 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
         of `1` will keep the microphone running (or 'hot') with reduces latency
         when th recording is started. Cannot be set when after initialization at
         this time.
+    pollingInterval : float or None
+        Time in seconds to poll the audio stream for new samples. If `None`, the 
+        stream will not be polled automatically and the user will need to call 
+        `poll()` manually to update the recording buffer. This should be less than 
+        the `streamBufferSecs` parameter to ensure that the buffer does not 
+        overflow. By default, polling occurs every 0.1 seconds.
 
     Examples
     --------
@@ -141,6 +148,7 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
             policyWhenFull='warn',
             exclusive=False,
             audioRunMode=1,
+            pollingInterval=0.1,
             # legacy
             audioLatencyMode=None,
         ):
@@ -282,7 +290,7 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
         self._statusFlag = NOT_STARTED
 
         # recording buffer information
-        self._recording = []  # use a list
+        self._recordingBuffer = []  # use a list
         self._totalSamples = 0
         self._absRecStartTime = self._absRecStopTime = -1.0
         self._recPositionSecs = 0.0
@@ -290,6 +298,11 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
         self._maxRecordingSize = (
             -1 if maxRecordingSize is None else int(maxRecordingSize))
         self._policyWhenFull = policyWhenFull
+
+        # polling, may be None if user doesn't want to use auto polling
+        self._pollingInterval = pollingInterval
+        self._pollingTimerThread = None  # set later
+        self._pollingLock = threading.Lock()  # lock to prevent race conditions
 
         # internal state
         self._possiblyAsleep = False
@@ -520,7 +533,15 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
     @property
     def recording(self):
         """Reference to the current recording buffer (`RecordingBuffer`)."""
-        return self._recording
+        return self._recordingBuffer
+
+    @property
+    def recordingBuffer(self):
+        return self._recordingBuffer
+    
+    @recordingBuffer.setter
+    def recordingBuffer(self, value):
+        self._recordingBuffer = value
 
     @property
     def recBufferSecs(self):
@@ -651,7 +672,7 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
             # sleep for duration
             time.sleep(duration)
             # poll to refresh recording
-            self.poll()
+            self._pollWithLock()
             # get new clip
             clip = self.getRecording()
             # check that clip matches test sound
@@ -675,7 +696,64 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
 
         """
         return self._recPositionSecs
+    
+    def _setupAutoPolling(self):
+        """Set up automatic polling of the stream at regular intervals.
 
+        This is used to ensure that the recording buffer is updated with new
+        samples from the stream even if the user does not call `poll()` manually.
+        """
+        if self._pollingInterval is None:
+            logging.debug(
+                "No polling interval specified, user must call `poll()` manually to update "
+                "the recording buffer with new samples.")
+            return  # do not set up polling if no interval specified
+        
+        class PollingTimerThread(threading.Thread):
+            """Thread class used to call the poll method at regular 
+            intervals.
+            """
+            def __init__(self, interval, function):
+                super().__init__()
+                self.interval = interval
+                self.function = function
+                self._stop_event = threading.Event()
+
+            def run(self):
+                while not self._stop_event.is_set():
+                    time.sleep(self.interval)
+                    self.function()
+
+            def cancel(self):
+                self._stop_event.set()
+
+        if self._pollingTimerThread is not None:
+            self._pollingTimerThread.cancel()  # stop existing polling thread if it's running
+
+        # make sure the polling interval is a positive number
+        self._pollingInterval = float(self._pollingInterval)
+        if self._pollingInterval <= 0:
+            raise ValueError("Polling interval must be a positive number.")
+        
+        logging.debug(
+            "Setting up automatic polling of the audio stream every {} seconds.".format(
+                self._pollingInterval))
+
+        # make sure the polling interval is reasonable given the stream buffer size to avoid overflow
+        if self._pollingInterval >= self._streamBufferSecs:
+            logging.warning(
+                "Polling interval ({}) is greater than or equal to the stream buffer size ({}). "
+                "This may result in buffer overflow and lost samples. Consider reducing the polling "
+                "interval or increasing the stream buffer size.".format(
+                    self._pollingInterval, self._streamBufferSecs))
+
+        # set up a thread to call the poll method at regular intervals
+        self._pollingTimerThread = PollingTimerThread(
+            self._pollingInterval, 
+            self._pollWithLock)
+        self._pollingTimerThread.daemon = True
+        self._pollingTimerThread.start()
+            
     def start(self, when=None, waitForStart=0, stopTime=None):
         """Start an audio recording.
 
@@ -707,10 +785,11 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
 
         if self._stream is None:
             raise AudioStreamError("Stream not ready.")
+        
         # reset timer for possibly asleep
         self._possiblyAsleep = False
         # reset the recording buffer
-        self._recording = []
+        self._recordingBuffer = []
         self._totalSamples = 0
         self._recPositionSecs = 0.0
 
@@ -725,6 +804,11 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
 
         # recording has begun or is scheduled to do so
         self._isStarted = True
+
+
+        # polling, this thread calls the `poll` method at regular intervals
+        if self._pollingInterval is not None:
+            self._setupAutoPolling()
 
         logging.debug(
             'Scheduled start of audio capture for device #{} at t={}.'.format(
@@ -790,8 +874,11 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
         if not self.isStarted or self._stream._closed:
             return
 
+        if self._pollingTimerThread is not None:
+            self._pollingTimerThread.cancel()  # stop the polling thread if it's running
+
         # poll remaining samples, if any
-        _ = self.poll()
+        _ = self._pollWithLock()
 
         startTime, endPositionSecs, xruns, estStopTime = self._stream.stop(
             block_until_stopped=int(blockUntilStopped),
@@ -828,6 +915,8 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
             previously before `start()`.
 
         """
+        if self._pollingTimerThread is not None:
+            self._pollingTimerThread.cancel()  # stop the polling thread if it's running
         return self.stop(blockUntilStopped=blockUntilStopped, stopTime=stopTime)
 
     def open(self):
@@ -918,7 +1007,7 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
     def recordingEmpty(self):
         """`True` if the recording buffer is empty (`bool`).
         """
-        return len(self._recording) == 0
+        return len(self._recordingBuffer) == 0
     
     @property
     def recordingFull(self):
@@ -937,6 +1026,24 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
 
         """
         return self._absRecStartTime
+    
+    def _getTime(self):
+        """Get the current system time in seconds (`float`).
+
+        This is used internally to timestamp recordings. It is not guaranteed to
+        be the same time base as the one used by the audio stream, so absolute
+        times returned by the stream should be used when possible.
+
+        """
+        return time.monotonic()
+    
+    def _pollWithLock(self):
+        """Call `poll` with the polling lock acquired. This is used internally to
+        prevent race conditions when `poll` is called from the polling thread and 
+        from user code at the same time.
+        """
+        with self._pollingLock:
+            return self.poll()
 
     def poll(self):
         """Poll audio samples.
@@ -966,6 +1073,11 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
         if not self.isStarted:
             logging.warning(
                 "Attempted to poll samples from mic which hasn't started."
+            )
+            return
+        if self._stream is None:
+            logging.warning(
+                "Attempted to poll samples from mic which has no stream."
             )
             return
         if self._stream._closed:
@@ -1015,17 +1127,16 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
         # add samples to recording buffer
         if len(audioData):
             # add samples to recording buffer
-            self._recording.append(
-                AudioClip(audioData, sampleRateHz=self._sampleRateHz))
+            self._recordingBuffer.append(audioData)
             self._totalSamples += audioData.shape[0]
 
-        if self.recordingFull and not self._policyWhenFull == 'ignore':
-            if self._policyWhenFull == 'warn':
-                logging.warning(
-                    "Recording buffer is full, no more samples will be added.")
-            elif self._policyWhenFull == 'error':
-                raise AudioStreamError(
-                    "Recording buffer is full, no more samples will be added.")
+        # if self.recordingFull and not self._policyWhenFull == 'ignore':
+        #     if self._policyWhenFull == 'warn':
+        #         logging.warning(
+        #             "Recording buffer is full, no more samples will be added.")
+        #     elif self._policyWhenFull == 'error':
+        #         raise AudioStreamError(
+        #             "Recording buffer is full, no more samples will be added.")
             
         # update the recording position
         self._absRecStopTime = absRecPosition / self._sampleRateHz
@@ -1047,29 +1158,28 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
             otherwise.
 
         """
-        if len(self._recording) < 2:
+        if len(self._recordingBuffer) < 2:
             return False
         
         # get the sum of all audio samples in the recording buffer
         totalSamples = sum(
-            [segment.samples.shape[0] for segment in self._recording])
+            [segment.samples.shape[0] for segment in self._recordingBuffer])
 
         # create a new array to hold all samples
         fullSegment = np.zeros(
-            (totalSamples, self._recording[0].channels), 
+            (totalSamples, self._recordingBuffer[0].channels), 
             dtype=np.float32, 
             order='C')
         
         # copy samples from each segment into the full segment
         idx = 0
-        for segment in self._recording:
-            nSamples = segment.samples.shape[0]
-            fullSegment[idx:idx + nSamples, :] = segment.samples
+        for segment in self._recordingBuffer:
+            nSamples = segment.shape[0]
+            fullSegment[idx:idx + nSamples, :] = segment
             idx += nSamples
 
         # set the recording
-        self._recording = [
-            AudioClip(fullSegment, sampleRateHz=self._sampleRateHz)]  
+        self._recordingBuffer = [fullSegment]  
 
         return True
     
@@ -1096,20 +1206,20 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
         
         self._mergeAudioFragments()  # merge audio fragments
 
-        if not len(self._recording[0].samples):
+        if not len(self._recordingBuffer[0]):
             raise AudioStreamError(
                 "Could not access recording as microphone has sent no samples."
             )
         
         if start == 0 and end is None:  # return full recording
-            return self._recording[0]
+            return self._recordingBuffer[0]
 
         # get a range of samples within the recording buffer
         idxStart = int(start * self._sampleRateHz)
         idxEnd = -1 if end is None else int(end * self._sampleRateHz)
         
         return AudioClip(
-            np.array(self._recording[0].samples[idxStart:idxEnd, :],
+            np.array(self._recordingBuffer[0][idxStart:idxEnd, :],
                      dtype=np.float32, order='C'),
             sampleRateHz=self._sampleRateHz)
 
@@ -1158,7 +1268,7 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
             return 0
         
         # poll most recent samples
-        self.poll()
+        self._pollWithLock()
 
         if self.recordingEmpty:
             return 0.0
@@ -1166,13 +1276,13 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
         # merge last few recording fragments into a single segment
         requiredSamples = int(timeframe * self._sampleRateHz)
         sampleBuffers = []
-        for segment in reversed(self._recording):
-            nSamples = segment.samples.shape[0]
+        for segment in reversed(self._recordingBuffer):
+            nSamples = segment.shape[0]
             requiredSamples -= nSamples
             if requiredSamples < 0:
-                sampleBuffers.insert(0, segment.samples[requiredSamples:, :])
+                sampleBuffers.insert(0, segment[requiredSamples:, :])
                 break
-            sampleBuffers.insert(0, segment.samples)
+            sampleBuffers.insert(0, segment)
 
         # merge the samples
         sampleBuffer = np.concatenate(
@@ -1241,7 +1351,7 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
             return
         
         # poll the mic now
-        self.poll()
+        self._pollWithLock()
         # create a response object
         message = MicrophoneResponse(
             logging.defaultClock.getTime(),
@@ -1295,7 +1405,7 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
             self.start()
             # poll while active
             while countdown.getTime() > 0:
-                self.poll()
+                self._pollWithLock()
             # get volume
             vol = self.getCurrentVolume(timeframe=dur)
             # if multi-channel, take the max
@@ -1342,301 +1452,6 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
                 foundSpeakers.append(speaker)
         
         return foundSpeakers
-
-
-class RecordingBuffer:
-    """Class for a storing a recording from a stream.
-
-    Think of instances of this class behaving like an audio tape whereas the
-    `MicrophoneDevice` class is the tape recorder. Samples taken from the stream are
-    written to the tape which stores the data.
-
-    Used internally by the `MicrophoneDevice` class, users usually do not create
-    instances of this class themselves.
-
-    Parameters
-    ----------
-    sampleRateHz : int
-        Sampling rate for audio recording in Hertz (Hz). By default, 48kHz
-        (``sampleRateHz=48000``) is used which is adequate for most consumer
-        grade microphones (headsets and built-in).
-    channels : int
-        Number of channels to record samples to `1=Mono` and `2=Stereo`.
-    maxRecordingSize : int
-        Maximum recording size in kilobytes (Kb). Since audio recordings tend to
-        consume a large amount of system memory, one might want to limit the
-        size of the recording buffer to ensure that the application does not run
-        out of memory. By default, the recording buffer is set to 24000 KB (or
-        24 MB). At a sample rate of 48kHz, this will result in 62.5 seconds of
-        continuous audio being recorded before the buffer is full.
-    policyWhenFull : str
-        What to do when the recording buffer is full and cannot accept any more
-        samples. If 'ignore', samples will be silently dropped and the `isFull`
-        property will be set to `True`. If 'warn', a warning will be logged and
-        the `isFull` flag will be set. Finally, if 'error' the application will
-        raise an exception.
-
-    """
-    def __init__(self, sampleRateHz=SAMPLE_RATE_48kHz, channels=2,
-                 maxRecordingSize=None, policyWhenFull='ignore'):
-        self._channels = channels
-        self._sampleRateHz = sampleRateHz
-        self._maxRecordingSize = maxRecordingSize or 64000
-        self._samples = None  # `ndarray` created in _allocRecBuffer`
-        self._offset = 0  # recording offset
-        self._lastSample = 0  # offset of the last sample from stream
-        self._spaceRemaining = None  # set in `_allocRecBuffer`
-        self._totalSamples = None  # set in `_allocRecBuffer`
-
-        self._policyWhenFull = policyWhenFull
-        self._warnedRecBufferFull = False
-        self._loops = 0
-
-        self._allocRecBuffer()
-
-    def _allocRecBuffer(self):
-        """Allocate the recording buffer. Called internally if properties are
-        changed."""
-        # allocate another array
-        nBytes = self._maxRecordingSize * 1000
-        recArraySize = int((nBytes / self._channels) / (np.float32()).itemsize)
-
-        self._samples = np.zeros(
-            (recArraySize, self._channels), dtype=np.float32, order='C')
-
-        # sanity check
-        assert self._samples.nbytes == nBytes
-        self._totalSamples = len(self._samples)
-        self._spaceRemaining = self._totalSamples
-
-    @property
-    def samples(self):
-        """Reference to the actual sample buffer (`ndarray`)."""
-        return self._samples
-
-    @property
-    def bufferSecs(self):
-        """Capacity of the recording buffer in seconds (`float`)."""
-        return self._totalSamples / self._sampleRateHz
-
-    @property
-    def nbytes(self):
-        """Number of bytes the recording buffer occupies in memory (`int`)."""
-        return self._samples.nbytes
-
-    @property
-    def sampleBytes(self):
-        """Number of bytes per sample (`int`)."""
-        return np.float32().itemsize
-
-    @property
-    def spaceRemaining(self):
-        """The space remaining in the recording buffer (`int`). Indicates the
-        number of samples that the buffer can still add before overflowing.
-        """
-        return self._spaceRemaining
-
-    @property
-    def isFull(self):
-        """Is the recording buffer full (`bool`)."""
-        return self._spaceRemaining <= 0
-
-    @property
-    def totalSamples(self):
-        """Total number samples the recording buffer can hold (`int`)."""
-        return self._totalSamples
-
-    @property
-    def writeOffset(self):
-        """Index in the sample buffer where new samples will be written when
-        `write()` is called (`int`).
-        """
-        return self._offset
-
-    @property
-    def lastSample(self):
-        """Index of the last sample recorded (`int`). This can be used to slice
-        the recording buffer, only getting data from the beginning to place
-        where the last sample was written to.
-        """
-        return self._lastSample
-
-    @property
-    def loopCount(self):
-        """Number of times the recording buffer restarted (`int`). Only valid if
-        `loopback` is ``True``."""
-        return self._loops
-
-    @property
-    def maxRecordingSize(self):
-        """Maximum recording size in kilobytes (`int`).
-
-        Since audio recordings tend to consume a large amount of system memory,
-        one might want to limit the size of the recording buffer to ensure that
-        the application does not run out of memory. By default, the recording
-        buffer is set to 24000 KB (or 24 MB). At a sample rate of 48kHz, this
-        will result in 62.5 seconds of continuous audio being recorded before
-        the buffer is full.
-
-        Setting this value will allocate another recording buffer of appropriate
-        size. Avoid doing this in any time sensitive parts of your application.
-
-        """
-        return self._maxRecordingSize
-
-    @maxRecordingSize.setter
-    def maxRecordingSize(self, value):
-        value = int(value)
-
-        # don't do this unless the value changed
-        if value == self._maxRecordingSize:
-            return
-
-        # if different than last value, update the recording buffer
-        self._maxRecordingSize = value
-        self._allocRecBuffer()
-
-    def seek(self, offset, absolute=False):
-        """Set the write offset.
-
-        Use this to specify where to begin writing samples the next time `write`
-        is called. You should call `seek(0)` when starting a new recording.
-
-        Parameters
-        ----------
-        offset : int
-            Position in the sample buffer to set.
-        absolute : bool
-            Use absolute positioning. Use relative positioning if `False` where
-            the value of `offset` will be added to the current offset. Default
-            is `False`.
-
-        """
-        if not absolute:
-            self._offset += offset
-        else:
-            self._offset = absolute
-
-        assert 0 <= self._offset < self._totalSamples
-        self._spaceRemaining = self._totalSamples - self._offset
-
-    def write(self, samples):
-        """Write samples to the recording buffer.
-
-        Parameters
-        ----------
-        samples : ArrayLike
-            Samples to write to the recording buffer, usually of a stream. Must
-            have the same number of dimensions as the internal array.
-
-        Returns
-        -------
-        int
-            Number of samples overflowed. If this is zero then all samples have
-            been recorded, if not, the number of samples rejected is given.
-
-        """
-        nSamples = len(samples)
-        if self.isFull:
-            if self._policyWhenFull in ('warn', 'warning'):
-                # if policy is warn, we log a warning then proceed as if ignored
-                if not self._warnedRecBufferFull:
-                    logging.warning(
-                        f"Audio recording buffer filled! This means that no "
-                        f"samples are saved beyond {round(self.bufferSecs, 6)} "
-                        f"seconds. Specify a larger recording buffer next time "
-                        f"to avoid data loss.")
-                    logging.flush()
-                    self._warnedRecBufferFull = True
-                return nSamples
-            elif self._policyWhenFull == 'error':
-                # if policy is error, we fully error
-                raise AudioRecordingBufferFullError(
-                    "Cannot write samples, recording buffer is full.")
-            elif self._policyWhenFull == ('rolling', 'roll'):
-                # if policy is rolling, we clear the first half of the buffer
-                toSave = self._totalSamples - len(samples)
-                # get last 0.1s so we still have enough for volume measurement
-                savedSamples = self._recording._samples[-toSave:, :]
-                # log
-                if not self._warnedRecBufferFull:
-                    logging.warning(
-                        f"Microphone buffer reached, as policy when full is 'roll'/'rolling' the "
-                        f"oldest samples will be cleared to make room for new samples."
-                    )
-                    logging.flush()
-                self._warnedRecBufferFull = True
-                # clear samples
-                self._recording.clear()
-                # reassign saved samples
-                self._recording.write(savedSamples)
-            else:
-                # if policy is to ignore, we simply don't write new samples
-                return nSamples
-
-        if not nSamples:  # no samples came out of the stream, just return
-            return
-
-        if self._spaceRemaining >= nSamples:
-            self._lastSample = self._offset + nSamples
-            audioData = samples[:, :]
-        else:
-            self._lastSample = self._offset + self._spaceRemaining
-            audioData = samples[:self._spaceRemaining, :]
-
-        self._samples[self._offset:self._lastSample, :] = audioData
-        self._offset += nSamples
-
-        self._spaceRemaining -= nSamples
-
-        # Check if the recording buffer is now full. Next call to `poll` will
-        # not record anything.
-        if self._spaceRemaining <= 0:
-            self._spaceRemaining = 0
-
-        d = nSamples - self._spaceRemaining
-        return 0 if d < 0 else d
-
-    def clear(self):
-        # reset all live attributes
-        self._samples = None
-        self._offset = 0
-        self._lastSample = 0
-        self._spaceRemaining = None
-        self._totalSamples = None
-        # reallocate buffer
-        self._allocRecBuffer()
-
-    def getSegment(self, start=0, end=None):
-        """Get a segment of recording data as an `AudioClip`.
-
-        Parameters
-        ----------
-        start : float or int
-            Absolute time in seconds for the start of the clip.
-        end : float or int
-            Absolute time in seconds for the end of the clip. If `None` the time
-            at the last sample is used.
-
-        Returns
-        -------
-        AudioClip
-            Audio clip object with samples between `start` and `end`.
-
-        """
-        idxStart = int(start * self._sampleRateHz)
-        idxEnd = self._lastSample if end is None else int(
-            end * self._sampleRateHz)
-        
-        if not len(self._samples):
-            raise AudioStreamError(
-                "Could not access recording as microphone has sent no samples."
-            )
-
-        return AudioClip(
-            np.array(self._samples[idxStart:idxEnd, :],
-                     dtype=np.float32, order='C'),
-            sampleRateHz=self._sampleRateHz)
     
 
 if __name__ == "__main__":
