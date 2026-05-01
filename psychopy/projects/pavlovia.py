@@ -523,7 +523,6 @@ class PavloviaSession:
             }
         ).json()
         # start again with new token
-        print(resp)
         self.setToken(
             resp['access_token'],
             refreshToken=resp['refresh_token']
