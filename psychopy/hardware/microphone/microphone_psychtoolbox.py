@@ -135,8 +135,6 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
     # WASAPI devices will be returned when calling static method
     # `Microphone.getDevices()`
     enforceWASAPI = True
-    # other instances of MicrophoneDevice, stored by index
-    _streams = {}
 
     def __init__(
             self,
@@ -152,6 +150,7 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
             # legacy
             audioLatencyMode=None,
         ):
+        super().__init__()
 
         if not _hasPTB:  # fail if PTB is not installed
             raise ModuleNotFoundError(
@@ -281,10 +280,10 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
                (audioRunMode == 0 or audioRunMode == 1)
         self._audioRunMode = int(audioRunMode)
 
-        # open stream
-        self._stream = None
-        self._opening = self._closing = False
-        self.open()
+        # polling, may be None if user doesn't want to use auto polling
+        self._pollingInterval = pollingInterval
+        self._pollingTimerThread = None  # set later
+        self._pollingLock = threading.Lock()  # lock to prevent race conditions
 
         # status flag for Builder
         self._statusFlag = NOT_STARTED
@@ -299,17 +298,12 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
             -1 if maxRecordingSize is None else int(maxRecordingSize))
         self._policyWhenFull = policyWhenFull
 
-        # polling, may be None if user doesn't want to use auto polling
-        self._pollingInterval = pollingInterval
-        self._pollingTimerThread = None  # set later
-        self._pollingLock = threading.Lock()  # lock to prevent race conditions
-
-        # internal state
-        self._possiblyAsleep = False
-        self._isStarted = False  # internal state
-
         logging.debug('Audio capture device #{} ready'.format(
             self._device.deviceIndex))
+
+        # open stream
+        self._opening = self._closing = False
+        self.open()
 
         # list to store listeners in
         self.listeners = []
@@ -728,7 +722,7 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
                 self._stop_event.set()
 
         if self._pollingTimerThread is not None:
-            self._pollingTimerThread.cancel()  # stop existing polling thread if it's running
+            self._pollingTimerThread.cancel()
 
         # make sure the polling interval is a positive number
         self._pollingInterval = float(self._pollingInterval)
@@ -746,7 +740,7 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
                 "This may result in buffer overflow and lost samples. Consider reducing the polling "
                 "interval or increasing the stream buffer size.".format(
                     self._pollingInterval, self._streamBufferSecs))
-
+            
         # set up a thread to call the poll method at regular intervals
         self._pollingTimerThread = PollingTimerThread(
             self._pollingInterval, 
@@ -779,41 +773,7 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
             Absolute time the stream was started.
 
         """
-        # check if the stream has been
-        if self.isStarted:
-            return None
-
-        if self._stream is None:
-            raise AudioStreamError("Stream not ready.")
-        
-        # reset timer for possibly asleep
-        self._possiblyAsleep = False
-        # reset the recording buffer
-        self._recordingBuffer = []
-        self._totalSamples = 0
-        self._recPositionSecs = 0.0
-
-        # reset warnings
-        # self._warnedRecBufferFull = False
-
-        self._absRecStartTime = self._stream.start(
-            repetitions=0,
-            when=when,
-            wait_for_start=int(waitForStart),
-            stop_time=stopTime)
-
-        # recording has begun or is scheduled to do so
-        self._isStarted = True
-
-
-        # polling, this thread calls the `poll` method at regular intervals
-        if self._pollingInterval is not None:
-            self._setupAutoPolling()
-
-        logging.debug(
-            'Scheduled start of audio capture for device #{} at t={}.'.format(
-                self._device.deviceIndex, self._absRecStartTime))
-
+        self.open()
         return self._absRecStartTime
 
     def record(self, when=None, waitForStart=0, stopTime=None):
@@ -871,7 +831,7 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
         """
         # This function must be idempotent since it can be invoked at any time
         # whether a stream is started or not.
-        if not self.isStarted or self._stream._closed:
+        if not self._isStarted or self._stream._closed:
             return
 
         if self._pollingTimerThread is not None:
@@ -883,6 +843,7 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
         startTime, endPositionSecs, xruns, estStopTime = self._stream.stop(
             block_until_stopped=int(blockUntilStopped),
             stopTime=stopTime)
+        
         self._isStarted = False
 
         logging.debug(
@@ -916,7 +877,8 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
 
         """
         if self._pollingTimerThread is not None:
-            self._pollingTimerThread.cancel()  # stop the polling thread if it's running
+            self._pollingTimerThread.cancel() 
+
         return self.stop(blockUntilStopped=blockUntilStopped, stopTime=stopTime)
 
     def open(self):
@@ -961,6 +923,42 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
         logging.debug(
             'Allocated stream buffer to hold {} seconds of data'.format(
                 self._streamBufferSecs))
+
+        # check if the stream has been
+        if self.isStarted:
+            return None
+
+        if self._stream is None:
+            raise AudioStreamError("Stream not ready.")
+        
+        # reset timer for possibly asleep
+        self._possiblyAsleep = False
+        # reset the recording buffer
+        self._recordingBuffer = []
+        self._totalSamples = 0
+        self._recPositionSecs = 0.0
+
+        # reset warnings
+        # self._warnedRecBufferFull = False
+
+        # open the stream and take audio samples
+        self._absRecStartTime = self._stream.start(
+            repetitions=0,
+            when=None,
+            wait_for_start=0,
+            stop_time=None)
+
+        # recording has begun or is scheduled to do so
+        self._isStarted = True
+
+        # polling, this thread calls the `poll` method at regular intervals
+        if self._pollingInterval is not None:
+            self._setupAutoPolling()
+
+        logging.debug(
+            'Scheduled start of audio capture for device #{} at t={}.'.format(
+                self._device.deviceIndex, self._absRecStartTime))
+
         # set flag that it's done opening
         self._opening = False
         
@@ -1070,7 +1068,7 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
             buffer with `bufferSecs`.
 
         """
-        if not self.isStarted:
+        if not self._isStarted:
             logging.warning(
                 "Attempted to poll samples from mic which hasn't started."
             )
@@ -1125,10 +1123,17 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
                 "with `bufferSecs`.")
 
         # add samples to recording buffer
-        if len(audioData):
-            # add samples to recording buffer
-            self._recordingBuffer.append(audioData)
-            self._totalSamples += audioData.shape[0]
+        if len(audioData) and self._clients:
+            nFrames = audioData.shape[0]
+            # iterate over attached microphone objects and write data to their 
+            # recording buffers if we're past the requested start time
+            for mic in self._clients:
+                if cStartTime < mic._tRecordingStartRequested:
+                    return  # nop
+
+                # write samples to recording buffer
+                mic._nRecordedFrames += nFrames
+                mic._recordingBuffer.append(audioData.copy())
 
         # if self.recordingFull and not self._policyWhenFull == 'ignore':
         #     if self._policyWhenFull == 'warn':
