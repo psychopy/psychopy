@@ -239,8 +239,8 @@ class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microph
 
         # iterate over attached microphone objects and write data to their 
         # recording buffers if we're past the requested start time
-        for mic in self._microphones:
-            if timeAtADC < self._tRecordingStartRequested:
+        for mic in self._clients:
+            if timeAtADC < mic._tRecordingStartRequested:
                 return  # nop
 
             # write samples to recording buffer
@@ -292,7 +292,7 @@ class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microph
         """
         # if we have microphones attached to this stream, don't close it until 
         # all microphones have been removed
-        if self._microphones:
+        if self._clients:
             return 
 
         if self._stream is None or not self._stream.active:
@@ -309,43 +309,6 @@ class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microph
             raise AudioStreamError(
                 "An error occurred while closing the microphone stream. See logs for details."
             ) from e
-        
-    def _attachMicrophone(self, mic):
-        """Register a Microphone object to this device stream.
-
-        Parameters
-        ----------
-        mic : Microphone
-            The Microphone object to register.
-
-        """
-        # check if the microphone is already attached
-        for m in self._microphones:
-            if m is mic:
-                logging.warning(
-                    "Attempted to attach a Microphone object to a stream that it is already attached to."
-                )
-                return
-            
-        self._microphones.append(mic)
-
-    def _detachMicrophone(self, mic):
-        """Unregister a Microphone object from this device stream.
-
-        Parameters
-        ----------
-        mic : Microphone
-            The Microphone object to unregister.
-
-        """
-        for i, m in enumerate(self._microphones):
-            if m is mic:
-                del self._microphones[i]
-                return
-        
-        logging.warning(
-            "Attempted to detach a Microphone object from a stream that it is not attached to."
-        )
     
     def _getSegment(self, startTime, endTime):
         """Get a segment of the recorded audio data between `startTime` and `endTime`.
