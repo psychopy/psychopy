@@ -76,7 +76,7 @@ class Microphone:
             )
 
         # set policy when full (in case device already existed)
-        self.device.policyWhenFull = policyWhenFull
+        self.policyWhenFull = policyWhenFull
 
         # internal variables for managing recording state
         self._tRecordingStartRequested = None
@@ -248,10 +248,8 @@ class Microphone:
         self._tRecordingStartRequested = self.getTime() if when is None else when
         self._tRecordingStopRequested = \
             stopTime + self._tRecordingStartRequested if stopTime is not None else None
-        devClass = self.device.__class__.__name__
-        if devClass == "SoundDeviceMicrophoneDevice":
-            self.device._attachMicrophone(self)
-            return 0.0
+
+        self.device.bind(self)
         
         return self.start(
             when=when, waitForStart=waitForStart, stopTime=stopTime
@@ -278,7 +276,7 @@ class Microphone:
         called when finished with the device.
         """
         # unregister from device
-        self.device._detachMicrophone(self)
+        self.device.unbind(self)
 
         return self.device.close()
 
@@ -460,13 +458,13 @@ class Microphone:
             return None
         
         # collapse recording buffer into a single array
-        self.device.recordingBuffer = [
-            np.concatenate(self.device.recordingBuffer, axis=0, dtype=np.float32)]
+        self._recordingBuffer = [
+            np.concatenate(self._recordingBuffer, axis=0, dtype=np.float32)]
 
         from psychopy.sound.audioclip import AudioClip
 
         return AudioClip(
-            samples=self.device.recordingBuffer[0],
+            samples=self._recordingBuffer[0],
             sampleRateHz=self.device.sampleRateHz
             )
 
