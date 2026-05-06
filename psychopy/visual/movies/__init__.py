@@ -596,6 +596,31 @@ class MovieFileReader:
         
         return rgbImg
     
+    def _convertFrameToRGB(self, frame):
+        """Convert a frame to RGB format.
+
+        This function converts a frame to RGB format. The frame is returned as
+        a Numpy array. The resulting array will be in the correct format to
+        upload to OpenGL as a texture.
+
+        Parameters
+        ----------
+        frame : FFPyPlayer frame
+            The frame to convert.
+
+        Returns
+        -------
+        numpy.ndarray
+            The converted frame in RGB format.
+
+        """
+        # convert the frame to RGB format
+        if self._decoderLib == 'ffpyplayer':
+            return self._convertFrameToRGBFFPyPlayer(frame)
+        else:
+            raise NotImplementedError(
+                'Frame conversion is not implemented for this decoder library.')
+    
     def _bufferFramesFFPyPlayer(self, start=0.0, end=None, units='seconds'):
         """Buffer frames from the movie file using FFPyPlayer.
         
@@ -826,16 +851,18 @@ class MovieFileReader:
 
         Returns
         -------
-        numpy.ndarray
-            The converted frame in RGB format.
+        tuple or None
+            If a frame is found, return a tuple containing the video data
+            (`ndarray`), presentation timestamp (PTS), and status. The status 
+            value may be backend specific. If no frame is found, return `None`.
 
         """
-        if self._frameStore is None:
+        if self._frameStore is None or not self._frameStore:
             return None
         
         for img, pts, status in self._frameStore:
             if pts <= reqPTS < pts + self._metadata.frameInterval:
-                return (img, pts, status)
+                return (self._convertFrameToRGB(img), pts, status)
             
         return None  # no frame found
     
@@ -1233,7 +1260,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         self._audioChannels = 2  # number of audio channels
 
         # OpenGL data
-        self.interpolate = interpolate
+        self._interpolate = interpolate
         self._texFilterNeedsUpdate = True
         self._metadata = NULL_MOVIE_METADATA
         self._pixbuffId = GL.GLuint(0)
@@ -1342,6 +1369,18 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         # use this property to check if the player instance is started in
         # methods which require it
         return hasattr(self, "_player") and self._player is not None
+
+    @property
+    def interpolate(self):
+        """Whether to use linear interpolation when scaling the video frame 
+        (`bool`).
+        """
+        return self._interpolate
+    
+    @interpolate.setter
+    def interpolate(self, value):
+        self._interpolate = bool(value)
+        self._texFilterNeedsUpdate = True  # update the texture filter on the next draw call
     
     # --------------------------------------------------------------------------
     # Movie file handlers
@@ -1455,6 +1494,15 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
         # set the volume to previous 
         self.volume = self._volume
+
+        # display first frame of video
+        frameData = self._player._getFrameFromStore(0.0)
+        if frameData is not None:
+            frameImage = frameData[0]
+            videoBuffer = frameImage.to_memoryview()[0].memview
+            videoFrameArray = np.frombuffer(videoBuffer, dtype=np.uint8)
+            self._recentFrame = videoFrameArray # most recent frame
+            self._pixelTransfer(forceRefresh=True)  # copy the first frame to the texture
 
     def _setupAudioStream(self):
         """Setup the audio stream for the movie.
@@ -1719,7 +1767,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             None)
 
         # setup texture filtering
-        if self.interpolate:
+        if self._interpolate:
             texFilter = GL.GL_LINEAR
         else:
             texFilter = GL.GL_NEAREST
@@ -1739,13 +1787,25 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
         GL.glFlush()  # make sure all buffers are ready
 
-    def _pixelTransfer(self):
+    def _pixelTransfer(self, forceRefresh=False):
         """Copy pixel data from video frame to texture.
 
         This is called when a new frame is available. The pixel data is copied
         from the video frame to the texture store on the GPU.
 
+        Parameters
+        ----------
+        forceRefresh : bool
+            If `True`, the pixel data will be copied to the texture even if the
+            playback state indicates that the movie is paused or seeking.
+
         """
+        if self._recentFrame is None:
+            return  # no frame to copy
+        
+        if not forceRefresh and self._playbackStatus != PLAYING:
+            return  # don't update the texture if paused or seeking unless forced
+
         # get the size of the movie frame and compute the buffer size
         vidWidth, vidHeight = self._player.getMetadata().size
 
@@ -1794,7 +1854,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
         # update texture filtering only if needed
         if self._texFilterNeedsUpdate:
-            if self.interpolate:
+            if self._interpolate:
                 texFilter = GL.GL_LINEAR
             else:
                 texFilter = GL.GL_NEAREST
