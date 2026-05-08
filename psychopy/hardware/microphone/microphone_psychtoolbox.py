@@ -841,9 +841,9 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
         _ = self._pollWithLock()
 
         startTime, endPositionSecs, xruns, estStopTime = self._stream.stop(
-            block_until_stopped=int(blockUntilStopped),
-            stopTime=stopTime)
-        
+            block_until_stopped=0,
+            stopTime=None)
+
         self._isStarted = False
 
         logging.debug(
@@ -944,7 +944,7 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
         # open the stream and take audio samples
         self._absRecStartTime = self._stream.start(
             repetitions=0,
-            when=None,
+            when=0,
             wait_for_start=0,
             stop_time=None)
 
@@ -963,22 +963,49 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
         self._opening = False
         
     def close(self):
+        """Close the audio stream.
+
+        If there are any clients still using the stream, the close operation
+        will be deferred until all clients have released the stream.
+
+        Parameters
+        ----------
+        force : bool
+            If `True`, forces the stream to close even if there are still clients
+            using it. Use with caution as this may cause errors in any clients
+            still using the stream.
+
         """
-        Close the audio stream.
-        """
+        if self._clients:  # prevent closing until all clients have called their `close` method
+            logging.debug(
+                "Attempted to close microphone stream while there are still {} "
+                "client(s) using it.".format(len(self._clients))
+            )  
+            return
+        
+        # stop polling thread if it's running
+        if self._pollingTimerThread is not None:
+            self._pollingTimerThread.cancel()
+            self._pollingTimerThread = None
+
         # clear any attached listeners
         self.clearListeners()
+
         # do nothing further if already closed
         if self._stream._closed:
             return
+        
         # set flag that it's mid-close
         self._closing = True
+
         # remove ref to stream
         if self._device.deviceIndex in PsychtoolboxMicrophoneDevice._streams:
             PsychtoolboxMicrophoneDevice._streams.pop(self._device.deviceIndex)
+
         # close stream
         self._stream.close()
         logging.debug('Stream closed')
+
         # set flag that it's done closing
         self._closing = False
     
@@ -1033,7 +1060,7 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
         times returned by the stream should be used when possible.
 
         """
-        return time.monotonic()
+        return time.time()
     
     def _pollWithLock(self):
         """Call `poll` with the polling lock acquired. This is used internally to
@@ -1057,7 +1084,7 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
 
         Returns
         -------
-        int
+        tuple of (float, bool)
             Current recording position in samples (`int`) and number of 
             overflows (`int`). If the returned position is less than zero
             (negative) then microphone is still starting up and wont be ready
@@ -1068,11 +1095,11 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
             buffer with `bufferSecs`.
 
         """
-        if not self._isStarted:
-            logging.warning(
-                "Attempted to poll samples from mic which hasn't started."
-            )
-            return
+        # if not self._isStarted:
+        #     logging.warning(
+        #         "Attempted to poll samples from mic which hasn't started."
+        #     )
+        #    return
         if self._stream is None:
             logging.warning(
                 "Attempted to poll samples from mic which has no stream."
@@ -1091,11 +1118,13 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
             )
             return
 
-        # figure out what to do with this other information
-        audioData, absRecPosition, overflow, cStartTime = \
-            self._stream.get_audio_data()
+        # poll the buffer and get new audio samples
+        audioData, absRecPosition, overflow, cStartTime = self._stream.get_audio_data()
+        sampleCount = len(audioData)
+        self._rtBuffer = audioData.copy()
         
-        if len(audioData):
+        # detect and handle the microphone going to sleep
+        if sampleCount:
             # if we got samples, the device is awake, so stop figuring out if it's asleep
             self._possiblyAsleep = False
         elif self._possiblyAsleep is False:
@@ -1123,17 +1152,21 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
                 "with `bufferSecs`.")
 
         # add samples to recording buffer
-        if len(audioData) and self._clients:
-            nFrames = audioData.shape[0]
+        if sampleCount and self._clients:
+            # compute the absulute time of the end of the current recording pos
+            absBlockStartTime = cStartTime + (absRecPosition / self._sampleRateHz)
+            absBlockEndTime = cStartTime + (
+                (absRecPosition + sampleCount) / self._sampleRateHz)
+            
             # iterate over attached microphone objects and write data to their 
             # recording buffers if we're past the requested start time
             for mic in self._clients:
-                if cStartTime < mic._tRecordingStartRequested:
-                    return  # nop
-
-                # write samples to recording buffer
-                mic._nRecordedFrames += nFrames
-                mic._recordingBuffer.append(audioData.copy())
+                reqStartTime = mic._tRecordingStartRequested
+                reqStopTime = mic._tRecordingStopRequested
+                if reqStartTime < absBlockEndTime and (
+                        reqStopTime is None or absBlockStartTime < reqStopTime):
+                    mic._recordingBuffer.append(self._rtBuffer)
+                    mic._nRecordedFrames += sampleCount
 
         # if self.recordingFull and not self._policyWhenFull == 'ignore':
         #     if self._policyWhenFull == 'warn':
@@ -1142,11 +1175,7 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
         #     elif self._policyWhenFull == 'error':
         #         raise AudioStreamError(
         #             "Recording buffer is full, no more samples will be added.")
-            
-        # update the recording position
-        self._absRecStopTime = absRecPosition / self._sampleRateHz
-        self._recPositionSecs = self._absRecStopTime - self._absRecStartTime
-
+        
         return absRecPosition, overflow
     
     def _mergeAudioFragments(self):
@@ -1278,22 +1307,7 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
         if self.recordingEmpty:
             return 0.0
 
-        # merge last few recording fragments into a single segment
-        requiredSamples = int(timeframe * self._sampleRateHz)
-        sampleBuffers = []
-        for segment in reversed(self._recordingBuffer):
-            nSamples = segment.shape[0]
-            requiredSamples -= nSamples
-            if requiredSamples < 0:
-                sampleBuffers.insert(0, segment[requiredSamples:, :])
-                break
-            sampleBuffers.insert(0, segment)
-
-        # merge the samples
-        sampleBuffer = np.concatenate(
-            sampleBuffers, axis=0, dtype=np.float32)
-
-        clip = AudioClip(sampleBuffer, sampleRateHz=self._sampleRateHz)
+        clip = AudioClip(self._rtBuffer, sampleRateHz=self._sampleRateHz)
 
         # get average volume
         rms = clip.rms() * 10

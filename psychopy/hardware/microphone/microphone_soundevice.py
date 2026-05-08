@@ -51,6 +51,8 @@ class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microph
             # legacy
             audioLatencyMode=None
         ):
+        super().__init__()
+        
         try:
             import sounddevice  # load and check
         except ImportError:
@@ -237,15 +239,20 @@ class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microph
         if status:
             logging.warning(f"SoundDevice stream callback returned with status: {status}")
 
-        # iterate over attached microphone objects and write data to their 
-        # recording buffers if we're past the requested start time
-        for mic in self._clients:
-            if timeAtADC < mic._tRecordingStartRequested:
-                return  # nop
-
-            # write samples to recording buffer
-            mic._nRecordedFrames += frames
-            mic._recordingBuffer.append(indata.copy())
+        if len(indata) and self._clients:
+            # compute the absulute time of the end of the current recording pos
+            absBlockStartTime = timeAtADC
+            absBlockEndTime = timeAtADC + (frames / self._sampleRateHz)
+            
+            # iterate over attached microphone objects and write data to their 
+            # recording buffers if we're past the requested start time
+            for mic in self._clients:
+                reqStartTime = mic._tRecordingStartRequested
+                reqStopTime = mic._tRecordingStopRequested
+                if reqStartTime < absBlockEndTime and (
+                        reqStopTime is None or absBlockStartTime < reqStopTime):
+                    mic._recordingBuffer.append(indata.copy())
+                    mic._nRecordedFrames += frames
 
     def open(self):
         """Open the stream for this microphone device.

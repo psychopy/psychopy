@@ -19,27 +19,32 @@ SpeakerDevice = None  # handle for the speaker device class
 # select backend for speaker devices based on audio library preference
 backend = 'default'
 try:
-    backend = prefs.hardware['audioDriver'][0]
+    backend = prefs.hardware['audioLib'][0]
 except (KeyError, IndexError, TypeError):
     # handle if we cannot read the preference for some reason
     logging.warn(
-        "Cannot get audio driver preference from preferences, using default."
+        "Cannot get audio library preference from preferences, using default."
     )
 
 if backend == 'default':   # if default, select the best available backend
-    backend = 'sounddevice'
+    backend = 'ptb'
 
 # select the speaker device class based on the selected backend
-if backend in ('sounddevice', 'default'):  # sounddevice backend
+if backend in ('sounddevice',):  # sounddevice backend
     from .speaker_sounddevice import SoundDeviceSpeakerDevice
     SpeakerDevice = SoundDeviceSpeakerDevice
-elif backend in ('ptb', 'portaudio', 'coreaudio'):  # psychtoolbox backend
+elif backend in ('ptb', 'default'):  # psychtoolbox backend
     from .speaker_psychtoolbox import PsychtoolboxSpeakerDevice
     SpeakerDevice = PsychtoolboxSpeakerDevice
 else:
-    raise ValueError((
-        f"Invalid value '{backend}' for prefs.hardware['audioDriver'], "
-        f"expected 'sounddevice', 'ptb', 'portaudio', or 'default'"))
+    logging.error(
+        f"Unsupported audio library '{backend}' specified in preferences. Using "
+        f"'ptb' as fallback for sound output. Check the 'audioLib' preference "
+        f"to ensure it is set to a valid audio library."
+    )
+    backend = 'ptb'  # fallback to ptb for sound output if unsupported library specified
+    from .speaker_psychtoolbox import PsychtoolboxSpeakerDevice
+    SpeakerDevice = PsychtoolboxSpeakerDevice
 
 logging.info(f"Using '{backend}' backend for sound output devices.")
 
