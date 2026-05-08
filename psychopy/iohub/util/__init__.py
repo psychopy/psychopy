@@ -273,7 +273,7 @@ def getDevicePaths(device_name=""):
             # load the target the entry point points to, it could be a class or a module
             try:
                 ep_target = ep.load()
-            except:  # noqa: E722
+            except Exception:  # noqa: E722
                 logging.error(f"Failed to load entry point: {ep}")
                 continue
 

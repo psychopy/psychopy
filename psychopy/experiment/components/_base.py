@@ -142,7 +142,7 @@ class BaseComponent:
         # try to load SVG
         try:
             iconSVG = cls.iconSVG.read_text("utf-8")
-        except:
+        except Exception:
             iconSVG = None
         # include basic info
         profile = {

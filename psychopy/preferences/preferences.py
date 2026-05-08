@@ -16,7 +16,7 @@ import shutil
 
 try:
     import psychopy_app
-except:
+except Exception:
     psychopy_app = None
 
 try:
@@ -387,7 +387,7 @@ class Preferences:
                     try:
                         # attempt to un-stringify
                         section[key] = json.loads(val)
-                    except:
+                    except Exception:
                         # use as-is if this fails
                         section[key] = val
     

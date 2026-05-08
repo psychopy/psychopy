@@ -11,7 +11,7 @@ import time, numpy
 
 try:  # try to get a previous parameters file
     expInfo = fromFile('lastParams.pickle')
-except:  # if not there then use a default set
+except Exception:  # if not there then use a default set
     expInfo = {'observer':'jwp', 'refOrientation':0}
 dateStr = time.strftime("%b_%d_%H%M", time.localtime())  # add the current time
 

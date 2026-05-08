@@ -60,7 +60,7 @@ targetFiles = 0 # count of files to be updated
 tmpFile = './replaceCopyright'+oldYear+'_'+newYear+'.sh'
 try:
     del files[files.index(tmpFile)]
-except:
+except Exception:
     pass
 tmp = open(tmpFile, 'w')
 tmp.write('#!/bin/sh \necho Updating...\n')

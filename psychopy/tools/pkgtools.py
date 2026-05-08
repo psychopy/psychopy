@@ -230,7 +230,7 @@ def installPackage(
     # handle install from file
     try:
         packagePath = Path(package)
-    except:
+    except Exception:
         pass
     else:
         if packagePath.is_file():

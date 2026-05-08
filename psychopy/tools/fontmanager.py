@@ -666,7 +666,7 @@ def findFontFiles(folders=(), recursive=True, currentDir=Path(".")):
             try:
                 from matplotlib import font_manager
                 searchPaths.append(font_manager.findSystemFonts)
-            except:
+            except Exception:
                 pass
         elif sys.platform == 'darwin':
             # on mac matplotlib doesn't include 'ttc' files (which are fine)
@@ -1068,7 +1068,7 @@ class FontFinder:
         # try expanding ~ (but don't worry if it failed)
         try:
             thisFolder = thisFolder.expanduser()
-        except:
+        except Exception:
             pass
         # try each extension
         for ext in cls.supportedExtensions:
