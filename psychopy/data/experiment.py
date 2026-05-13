@@ -509,7 +509,7 @@ class ExperimentHandler(_ComparisonMixin):
         """
         if isinstance(self.getCurrentLoop(isTrials=isTrials), TrialHandler2):
             # if there is a loop, skip trials
-            self.skipTrials(1, isTrials=isTrials)
+            self.skipTrials(0, isTrials=isTrials)
         elif self.currentRoutine is not None:
             # if not, but there is a Routine, end it
             self.endCurrentRoutine()
