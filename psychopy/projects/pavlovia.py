@@ -748,6 +748,9 @@ class PavloviaProject(dict):
         # Set local root
         if localRoot is not None:
             self.localRoot = localRoot
+        # set preferred merge strategy
+        if not self.repo.config_reader().has_option("pull", "rebase"):
+            self.repo.config_writer().set_value("pull", "rebase", False).release()
 
     def __getitem__(self, key):
         # Get either from self or project.attributes
