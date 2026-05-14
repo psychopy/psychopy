@@ -416,6 +416,7 @@ class PsychtoolboxSpeakerDevice(BaseSpeakerDevice):
             # construct profile
             device = {
                 'deviceName': profile.get('DeviceName', "Unknown Speaker"),
+                'deviceClass': "psychopy.hardware.speaker.SpeakerDevice",
                 'index': profile.get('DeviceIndex', None),
                 'name': profile.get('DeviceName', None)
             }
