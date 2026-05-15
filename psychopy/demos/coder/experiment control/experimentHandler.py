@@ -86,5 +86,3 @@ for thisRep in outerLoop:
 # now that the experiment is finished, show the results
 for e in exp.entries:
     print(e)
-print("Done. 'exp' experimentHandler will now (end of script) save data to testExp.csv")
-print(" and also to testExp.psydat, which is a pickled version of `exp`")

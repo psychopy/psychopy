@@ -12,3 +12,8 @@ outputFolder = Path(
 # make sure folder exists
 if not outputFolder.is_dir():
     outputFolder.mkdir(parents=True)
+# print so the user knows where to look
+print(
+    f"This experiment uses the psychopy.demos.utils.output module, so you should look for any output in:\n"
+    f"{outputFolder.absolute()}"
+)

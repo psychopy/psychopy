@@ -15,6 +15,8 @@ The importance levels are
     20: INFO
     10: DEBUG
 So setting to DEBUG level will include all possible messages, setting to ERROR will include only the absolutely essential messages.
+
+The contents of this file are in the public domain.
 """
 
 from psychopy import logging, core, visual
@@ -56,5 +58,3 @@ logDat.write("Testing\n\n")
 
 win.close()
 core.quit()
-
-# The contents of this file are in the public domain.
