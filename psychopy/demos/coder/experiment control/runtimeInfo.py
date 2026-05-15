@@ -1,6 +1,8 @@
 """
-Demo of some ways to use class psychopy.info.RunTimeInfo()
-to obtain current system and other data at run-time.
+Demo of some ways to use class psychopy.info.RunTimeInfo() to obtain current system and other 
+data at run-time.
+
+The contents of this file are in the public domain.
 """
 
 from psychopy import visual, logging, core
@@ -20,7 +22,8 @@ win = visual.Window(
     monitor='testMonitor'
 )
 
-# you may not want to run hardware tests with a participant sat there, so let's limit it to only run in pilot mode
+# you may not want to run hardware tests with a participant sat there, so let's limit it to only 
+# run in pilot mode
 PILOTING = core.setPilotModeFromArgs()
 
 if PILOTING:
@@ -33,7 +36,8 @@ if PILOTING:
         # setting author and version here overrides __author__ and __version__ from earlier
         author="Jeremy R. Gray",
         version="2025.2.0",
-        # a psychopy.visual.Window() instance; None = default temp window used; False = no win, no win.flips()
+        # a psychopy.visual.Window() instance; None = default temp window used; False = no win, no 
+        # win.flips()
         win=win,
         # None, True, or 'grating' (eye-candy to avoid a blank screen)
         refreshTest='grating',
