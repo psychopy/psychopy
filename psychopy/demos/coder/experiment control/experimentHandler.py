@@ -5,7 +5,6 @@ The contents of this file are in the public domain.
 """
 
 from psychopy import data, logging
-from psychopy.demos.utils import outputFolder
 from numpy import random
 logging.console.setLevel(logging.DEBUG)
 
@@ -21,7 +20,7 @@ exp = data.ExperimentHandler(
     originPath=None,
     savePickle=True,
     saveWideText=True,
-    dataFileName=outputFolder / "testExp"
+    dataFileName="testExp"
 )
 
 # this is an easy way to make conditions with every combination of multiple factors

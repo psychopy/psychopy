@@ -8,7 +8,6 @@ The contents of this file are in the public domain.
 """
 
 from psychopy import data
-from psychopy.demos.utils import outputFolder
 from numpy import random
 
 # create your list of stimuli; if you prefer, you could also create a spreadsheet file and load 
@@ -60,9 +59,9 @@ for thisTrial in trials:
 # save a copy of the whole TrialHandler2 object, which can be reloaded later to re-create the 
 # experiment
 trials.saveAsPickle(
-    fileName=outputFolder / "trialHandler2_demo"
+    fileName="trialHandler2_demo"
 )
 # wide text format is useful for analysis in R, SPSS, Jasp, etc.
 df = trials.saveAsWideText(
-    fileName=outputFolder / "trialHandler2_demo.csv"
+    fileName="trialHandler2_demo.csv"
 )

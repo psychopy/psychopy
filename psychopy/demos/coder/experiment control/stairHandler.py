@@ -5,7 +5,6 @@ The contents of this file are in the public domain.
 """
 
 from psychopy import data
-from psychopy.demos.utils import outputFolder
 from numpy import random
 
 staircase = data.StairHandler(
@@ -45,10 +44,10 @@ for value in staircase:
 # save a copy of the whole StairHandler object, which can be reloaded later to re-create the 
 # experiment
 df = staircase.saveAsPickle(
-    fileName=str(outputFolder / "stairHandler_demo")
+    fileName="stairHandler_demo"
 )
 # save data as a CSV file
 df = staircase.saveAsText(
-    fileName=outputFolder / "stairHandler_demo.csv"
+    fileName="stairHandler_demo.csv"
 )
 
