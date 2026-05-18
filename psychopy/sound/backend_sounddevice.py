@@ -231,7 +231,7 @@ class _SoundStream:
 
         # self._tSoundRequestPlay = -1  # time the sound was requested to play
         self._isPlaying = False
-        
+
     @property
     def isPlaying(self):
         """`True` if the audio playback is ongoing."""
@@ -283,6 +283,9 @@ class _SoundStream:
             dat = thisSound._nextBlock(blockSize)
             if dat is None:  # no data for some reason (e.g., sound finished)
                 continue
+
+            if thisSound.volume != 1.0:
+                dat *= thisSound.volume  # Set the volume block by block
 
             datSize = len(dat)
             datDims = len(dat.shape)
