@@ -6,7 +6,6 @@ The contents of this file are in the public domain.
 
 
 from psychopy import data, logging
-from psychopy.demos.utils import outputFolder
 from numpy import random
 
 # set logging level to "EXP" so we can see updates as each trial rolls past
@@ -51,13 +50,13 @@ for thisTrial in trials:
 
 # save data to a CSV file
 trials.saveAsText(
-    fileName=outputFolder / "TrialHandler_demo.csv",
+    fileName="TrialHandler_demo.csv",
     stimOut=["sf", "ori"],
     dataOut=["RT_mean", "RT_std", "choice_raw"]
 )
 # save data to an Excel file
 trials.saveAsExcel(
-    fileName=outputFolder / "TrialHandler_demo.xlsx",
+    fileName="TrialHandler_demo.xlsx",
     sheetName="rawData",
     stimOut=["sf", "ori"],
     dataOut=["RT_mean", "RT_std", "choice_raw"]
@@ -65,9 +64,9 @@ trials.saveAsExcel(
 # save a copy of the whole TrialHandler object, which can be reloaded later to re-create the 
 # experiment
 trials.saveAsPickle(
-    fileName=outputFolder / "trialHandler_demo"
+    fileName="trialHandler_demo"
 )
 # wide text format is useful for analysis in R, SPSS, Jasp, etc.
 df = trials.saveAsWideText(
-    fileName=outputFolder / "trialHandler_demo.csv"
+    fileName="trialHandler_demo.csv"
 )
