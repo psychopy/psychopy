@@ -1,6 +1,18 @@
 from pathlib import Path
 
 
+__all__ = [
+    "assetsFolder",
+    "PluginDemos",
+    "scanFolder",
+    "listDemos",
+]
+
+
+# reference to assets folder (importable from demos)
+assetsFolder = Path(__file__).parent / "_assets"
+
+
 class PluginDemos:
     """
     Use this class in a plugin to add demos to PsychoPy:
@@ -57,6 +69,8 @@ def scanFolder(folder):
             continue
         # add Python scripts
         output[file.stem] = str(file.absolute())
+    # remove empty entries
+    output = {key: val for key, val in output.entries() if len(val)}
 
     return output
 
