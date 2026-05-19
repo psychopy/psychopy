@@ -102,7 +102,7 @@ class SocketConnection(): # pylint: disable=too-many-instance-attributes
                     num_packets = num_packets - 1
                 result = self.unpack()
             return result, address
-        except:
+        except Exception:
             pass
 
     def close(self):

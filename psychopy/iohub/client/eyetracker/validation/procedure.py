@@ -123,7 +123,7 @@ class TargetStim:
     def innerRadius(self):
         try:
             return self.stim[1].radius
-        except:
+        except (IndexError, AttributeError):
             return self.stim[0].radius
 
 def create3PointGrid():
@@ -935,7 +935,7 @@ class ValidationTargetRenderer:
             start_radius = self.target.radius
             try:
                 stop_radius = self.target.innerRadius
-            except:
+            except AttributeError:
                 stop_radius = start_radius/2
                 print("Warning: validation target has no .innerRadius property.")
             while fliptime < contractedtime:

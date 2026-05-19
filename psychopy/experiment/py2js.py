@@ -86,7 +86,7 @@ def expression2js(expr):
             jsStr = translatePythonToJavaScript(jsStr)
             if jsStr.endswith(';\n'):
                 jsStr = jsStr[:-2]
-        except:
+        except Exception:
             # If translation fails, just use old translation
             pass
     return jsStr
