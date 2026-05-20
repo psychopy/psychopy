@@ -1615,6 +1615,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
                 self._audioTempFile.name))
         self._audioTrack = _sound.Sound(
             self._audioTempFile.name)
+        self._audioTrack.volume = self._volume  # set the volume to the current level
         
     def _cleanupAudioTrack(self):
         """Clean up the audio track.
@@ -2261,7 +2262,8 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
     def reset(self):
         """Reset the movie to its initial state.
         """
-        self.seek(0.0)  # reset movie time to 0
+        self._movieTime = 0.0  # reset movie time
+        self.seek(self._movieTime)
         self._playbackStatus = NOT_STARTED  # reset playback status
         
     # --------------------------------------------------------------------------
@@ -2273,13 +2275,20 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         """`True` if the stream audio is muted (`bool`).
         """
         if self._audioLib == 'sdl2':
-            return self._player.mute
+            return self._player.get_mute()
         else:
-            return False  # for now
+            if self._audioTrack is not None and hasattr(self._audioTrack, 'volume'):
+                return self._audioTrack.volume == 0.0
+            else:
+                return False
 
     @muted.setter
     def muted(self, value):
-        self._player.mute = value
+        if self._audioLib == 'sdl2':
+            self._player.set_mute(value)
+        else:
+            if self._audioTrack is not None and hasattr(self._audioTrack, 'volume'):
+                self._audioTrack.volume = 0.0 if value else self._volume
 
     def volumeUp(self, amount=0.05):
         """Increase the volume by a fixed amount.
@@ -2291,8 +2300,11 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
         """
         if self._audioLib == 'sdl2':
-            currentVolume = self._player.volume 
-            self._player.setVolume(currentVolume + amount)
+            currentVolume = self._player.get_volume() 
+            self._player.set_volume(currentVolume + amount)
+        else:
+            if self._audioTrack is not None and hasattr(self._audioTrack, 'volume'):
+                self._audioTrack.volume = min(self._audioTrack.volume + amount, 1.0)
 
     def volumeDown(self, amount=0.05):
         """Decrease the volume by a fixed amount.
@@ -2304,20 +2316,32 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
         """
         if self._audioLib == 'sdl2':
-            currentVolume = self._player.volume 
-            self._player.setVolume(currentVolume - amount)
+            currentVolume = self._player.get_volume() 
+            self._player.set_volume(currentVolume - amount)
+        else:
+            if self._audioTrack is not None and hasattr(self._audioTrack, 'volume'):
+                self._audioTrack.volume = max(self._audioTrack.volume - amount, 0.0)
 
     @property
     def volume(self):
         """Volume for the audio track for this movie (`int` or `float`).
         """
         if self._audioLib == 'sdl2':
-            return self._player.volume
+            return self._player.get_volume()
+        else:
+            if self._audioTrack is not None and hasattr(self._audioTrack, 'volume'):
+                return self._audioTrack.volume
+            else:
+                return 0.0
 
     @volume.setter
     def volume(self, value):
         if self._audioLib == 'sdl2':
-            self._player.volume = value
+            self._player.set_volume(value)
+        else:
+            if self._audioTrack is not None and hasattr(self._audioTrack, 'volume'):
+                self._audioTrack.volume = value
+            self._volume = value  # store the volume for later use when loading new movies
 
     # --------------------------------------------------------------------------
     # Video and playback information
