@@ -76,7 +76,7 @@ class Microphone:
             )
 
         # set policy when full (in case device already existed)
-        self.device.policyWhenFull = policyWhenFull
+        self.policyWhenFull = policyWhenFull
 
         # internal variables for managing recording state
         self._tRecordingStartRequested = None
@@ -86,6 +86,9 @@ class Microphone:
         # stream object writes samples to this buffer
         self._recordingBuffer = []
         self._nRecordedFrames = 0
+        self._active = False  # whether the microphone is currently active (i.e. recording or paused)
+        self._startRecOffset = 0
+        self._endRecOffset = 0
 
         # setup clips and transcripts dicts
         self.clips = {}
@@ -243,24 +246,38 @@ class Microphone:
         stopTime : float or None
             Time at which to stop recording from the start of the recording in seconds.
             If None (the default), recording will continue until stop() is called.
+
+        Returns
+        -------
+        float
+            The time at which recording started, in the timebase used by the 
+            microphone device.
             
         """
-        self._tRecordingStartRequested = self.getTime() if when is None else when
-        self._tRecordingStopRequested = \
-            stopTime + self._tRecordingStartRequested if stopTime is not None else None
-        devClass = self.device.__class__.__name__
-        if devClass == "SoundDeviceMicrophoneDevice":
-            self.device._attachMicrophone(self)
-            return 0.0
+        now = self.getTime()
+        self._tRecordingStartRequested = now if when is None else now + when
+        if stopTime is not None:
+            self._tRecordingStopRequested = self._tRecordingStartRequested + stopTime
         
-        return self.start(
-            when=when, waitForStart=waitForStart, stopTime=stopTime
-        )
+        self.device.bind(self)  # register with device to receive audio data
+
+        return self._tRecordingStartRequested
 
     def stop(self, blockUntilStopped=True, stopTime=None):
-        return self.device.stop(
-            blockUntilStopped=blockUntilStopped, stopTime=stopTime
-        )
+        """Stop recording audio from the microphone.
+        """
+        # result = self.device.stop(
+        #     blockUntilStopped=blockUntilStopped, stopTime=stopTime
+        # )
+
+        if stopTime is not None:
+            self._tRecordingStopRequested = self.getTime() + stopTime
+        
+        self.device.unbind(self)  # unregister from device to stop receiving audio data
+        self._tRecordingStartRequested = -1.0  # reset 
+        self._tRecordingStopRequested = None
+
+        return 0.0
 
     def pause(self, blockUntilStopped=True, stopTime=None):
         return self.stop(
@@ -271,6 +288,8 @@ class Microphone:
         """Open the microphone device for recording. Must be called before 
         recording can begin.
         """
+        # unregister from device
+        # self.device.bind(self)
         return self.device.open()
 
     def close(self):
@@ -278,7 +297,7 @@ class Microphone:
         called when finished with the device.
         """
         # unregister from device
-        self.device._detachMicrophone(self)
+        # self.device.unbind(self)
 
         return self.device.close()
 
@@ -459,21 +478,29 @@ class Microphone:
             logging.warning("No microphone device found, cannot get recording.")
             return None
         
+
+        if not self._recordingBuffer:
+            logging.warning("No audio data in recording buffer.")
+            return None
+        
+        # trim samples in buffer according to start and end offsets
+        if self._startRecOffset > 0:
+            self._recordingBuffer[0] = self._recordingBuffer[0][self._startRecOffset:]
+
         # collapse recording buffer into a single array
         self._recordingBuffer = [
             np.concatenate(self._recordingBuffer, axis=0, dtype=np.float32)]
-
-        # handle samples based on device class
-        devClass = self.device.__class__.__name__
-        if devClass == "SoundDeviceMicrophoneDevice":
-            from psychopy.sound.audioclip import AudioClip
-            return AudioClip(
-                samples=self._recordingBuffer[0],
-                sampleRateHz=self.device.sampleRateHz
-            )
         
-        # legacy backends
-        return self.device.getRecording()
+        # reset offsets
+        self._startRecOffset = 0
+        self._endRecOffset = 0
+
+        from psychopy.sound.audioclip import AudioClip
+
+        return AudioClip(
+            samples=self._recordingBuffer[0],
+            sampleRateHz=self.device.sampleRateHz
+            )
 
     def getCurrentVolume(self):
         """Get the microphone volume.

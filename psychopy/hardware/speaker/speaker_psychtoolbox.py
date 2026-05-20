@@ -158,7 +158,7 @@ class PsychtoolboxSpeakerDevice(BaseSpeakerDevice):
         if not allFoundDevices:
             raise DeviceNotConnectedError(
                 _translate("No audio devices found!"),
-                deviceClass=SpeakerDevice
+                deviceClass=PsychtoolboxSpeakerDevice
             )
         
         # find ptb profile for this device
@@ -183,7 +183,7 @@ class PsychtoolboxSpeakerDevice(BaseSpeakerDevice):
                 _translate(
                     "No speaker device found with {key} '{name}'"
                 ).format(name=self.name, key="name" if findByName else "index"),
-                deviceClass=SpeakerDevice
+                deviceClass=PsychtoolboxSpeakerDevice
             )
         
         logging.debug(
@@ -191,8 +191,8 @@ class PsychtoolboxSpeakerDevice(BaseSpeakerDevice):
         )
             
         # if physical device already has a stream, use it rather than making a new one
-        if self.profile['DeviceIndex'] in SpeakerDevice.streams:
-            self.stream = SpeakerDevice.streams['DeviceIndex']
+        if self.profile['DeviceIndex'] in PsychtoolboxSpeakerDevice.streams:
+            self.stream = PsychtoolboxSpeakerDevice.streams[self.profile['DeviceIndex']]
         else:
             self.stream = None
 
@@ -390,26 +390,9 @@ class PsychtoolboxSpeakerDevice(BaseSpeakerDevice):
         # skip in vm
         if systemtools.isVM_CI():  # GitHub actions VM does not have a sound device
             return []
-        
-        # get the sound driver to use from prefs, or default if not set
-        sndDriverList = prefs.hardware['audioDriver']
-        if sndDriverList:
-            useDriver = sndDriverList[0] if isinstance(sndDriverList, (list, tuple)) else sndDriverList
-        else:
-            useDriver = "sounddevice"
-
-        # get the appropriate function for getting devices based on the driver
-        if useDriver == "sounddevice":
-            _getDeviceFunc = SpeakerDevice._getDevicesSoundDevice
-        elif useDriver == "ptb" or useDriver == 'portaudio':
-            _getDeviceFunc = SpeakerDevice._getDevicesPsychtoolbox
-        else:
-            raise ValueError((
-                f"Invalid value '{useDriver}' for prefs.hardware['audioDriver'], "
-                f"expected 'sounddevice' or 'ptb'"))
 
         devices = []
-        for profile in _getDeviceFunc():
+        for profile in PsychtoolboxSpeakerDevice._getDevicesPsychtoolbox():
             # skip input-only devices (microphones)
             if profile['NrOutputChannels'] == 0:
                 continue

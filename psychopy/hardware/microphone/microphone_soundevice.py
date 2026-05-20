@@ -51,6 +51,8 @@ class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microph
             # legacy
             audioLatencyMode=None
         ):
+        super().__init__()
+        
         try:
             import sounddevice  # load and check
         except ImportError:
@@ -237,15 +239,20 @@ class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microph
         if status:
             logging.warning(f"SoundDevice stream callback returned with status: {status}")
 
-        # iterate over attached microphone objects and write data to their 
-        # recording buffers if we're past the requested start time
-        for mic in self._microphones:
-            if timeAtADC < self._tRecordingStartRequested:
-                return  # nop
-
-            # write samples to recording buffer
-            mic._nRecordedFrames += frames
-            mic._recordingBuffer.append(indata.copy())
+        if len(indata) and self._clients:
+            # compute the absulute time of the end of the current recording pos
+            absBlockStartTime = timeAtADC
+            absBlockEndTime = timeAtADC + (frames / self._sampleRateHz)
+            
+            # iterate over attached microphone objects and write data to their 
+            # recording buffers if we're past the requested start time
+            for mic in self._clients:
+                reqStartTime = mic._tRecordingStartRequested
+                reqStopTime = mic._tRecordingStopRequested
+                if reqStartTime < absBlockEndTime and (
+                        reqStopTime is None or absBlockStartTime < reqStopTime):
+                    mic._recordingBuffer.append(indata.copy())
+                    mic._nRecordedFrames += frames
 
     def open(self):
         """Open the stream for this microphone device.
@@ -292,7 +299,7 @@ class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microph
         """
         # if we have microphones attached to this stream, don't close it until 
         # all microphones have been removed
-        if self._microphones:
+        if self._clients:
             return 
 
         if self._stream is None or not self._stream.active:
@@ -309,43 +316,6 @@ class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microph
             raise AudioStreamError(
                 "An error occurred while closing the microphone stream. See logs for details."
             ) from e
-        
-    def _attachMicrophone(self, mic):
-        """Register a Microphone object to this device stream.
-
-        Parameters
-        ----------
-        mic : Microphone
-            The Microphone object to register.
-
-        """
-        # check if the microphone is already attached
-        for m in self._microphones:
-            if m is mic:
-                logging.warning(
-                    "Attempted to attach a Microphone object to a stream that it is already attached to."
-                )
-                return
-            
-        self._microphones.append(mic)
-
-    def _detachMicrophone(self, mic):
-        """Unregister a Microphone object from this device stream.
-
-        Parameters
-        ----------
-        mic : Microphone
-            The Microphone object to unregister.
-
-        """
-        for i, m in enumerate(self._microphones):
-            if m is mic:
-                del self._microphones[i]
-                return
-        
-        logging.warning(
-            "Attempted to detach a Microphone object from a stream that it is not attached to."
-        )
     
     def _getSegment(self, startTime, endTime):
         """Get a segment of the recorded audio data between `startTime` and `endTime`.

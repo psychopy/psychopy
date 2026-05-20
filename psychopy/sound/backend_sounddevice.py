@@ -229,13 +229,8 @@ class _SoundStream:
             self.cpu_load = self._sdStream.cpu_load
             atexit.register(self.__del__)
 
-        self._tSoundRequestPlay = 0  # time the sound was requested to play
+        # self._tSoundRequestPlay = -1  # time the sound was requested to play
         self._isPlaying = False
-
-        # temp storage for block data to be played next frame
-        self._sampleTempBuffer = np.zeros(
-            (self.blockSize, self.channels), 
-            dtype=np.float32)
 
     @property
     def isPlaying(self):
@@ -271,31 +266,31 @@ class _SoundStream:
         if self.takeTimeStamp and hasattr(self, 'lastFrameTime'):
             logging.info("Entered callback: {} ms after last frame end"
                          .format((time.monotonic() - self.lastFrameTime) * 1000))
-            logging.info("Entered callback: {} ms after sound start"
-                         .format(
-                (time.monotonic() - self._tSoundRequestPlay) * 1000))
+            # logging.info("Entered callback: {} ms after sound start"
+            #              .format(
+            #     (time.monotonic() - self._tSoundRequestPlay) * 1000))
         
         toSpk.fill(0.0)  # fill buffer with silence to start with
 
         # check if we have reached the requested play time
-        outBuffDACTime = timepoint.outputBufferDacTime
-        tToStart = self._tSoundRequestPlay - outBuffDACTime
-        tToDAC = outBuffDACTime - timepoint.currentTime
+        outputBufferDacTime = timepoint.outputBufferDacTime
 
-        if tToStart > tToDAC:  # no samples this frame, too early to start
-            return  # NOP
-                
         self.frameN += 1
         for thisSound in self.sounds.copy():
-            dat = thisSound._nextBlock()  # fetch the next block of data
-            if dat is None:
-                return
+            if thisSound._tSoundRequestPlay > outputBufferDacTime:
+                continue  # not time to play this sound yet
+
+            dat = thisSound._nextBlock(blockSize)
+            if dat is None:  # no data for some reason (e.g., sound finished)
+                continue
 
             if thisSound.volume != 1.0:
                 dat *= thisSound.volume  # Set the volume block by block
 
             datSize = len(dat)
             datDims = len(dat.shape)
+
+            # old method
             if self.channels == 2 and datDims == 2:
                 toSpk[:datSize, :] += dat  # add to out stream
             elif self.channels == 2 and datDims == 1:
@@ -423,7 +418,10 @@ class SoundDeviceSound(_SoundBase):
         self.blockSize = blockSize  # can be per-sound unlike other backends
         self.frameN = 0 
         self.win = None  # for timing play with window flips
-        self._tSoundRequestPlay = 0
+        self._tSoundRequestPlay = -1
+        # offset within the block which the sound started at, for accurate 
+        # timing of play requests
+        self._blockOffset = -1  # sub-block offest
 
         if sampleRate:  #a rate was requested so use it
             self.sampleRate = sampleRate
@@ -539,6 +537,7 @@ class SoundDeviceSound(_SoundBase):
             self.blockSize = s.blockSize
 
         self.streamLabel = label
+        self._isStarted = True
 
         if hamming is None:
             hamming = self.hamming
@@ -660,13 +659,13 @@ class SoundDeviceSound(_SoundBase):
             self.setLoops(loops)
 
         self._isPlaying = True
-        self.stream._tSoundRequestPlay = time.monotonic()
+        self._tSoundRequestPlay = time.monotonic()
 
         # handle scheduling of play time
         logTime = None
         if when is not None:
             if isinstance(when, (int, float)):
-                self.stream._tSoundRequestPlay += when
+                self._tSoundRequestPlay += when
             elif hasattr(when, 'getFutureFlipTime'):
                 logTime = when.getFutureFlipTime(clock=None)
                 when = when.getFutureFlipTime(clock='now')
