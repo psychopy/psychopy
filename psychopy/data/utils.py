@@ -324,7 +324,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
                                 raise err
                     # if it's all good, use received array
                     trialsArr = thisAttempt
-                except:
+                except Exception:
                     continue
                 else:
                     # if successful, check the variable names

@@ -474,7 +474,7 @@ class PygletBackend(BaseBackend):
         for dispatcher in self.win._eventDispatchers:
             try:
                 dispatcher.dispatch_events()
-            except:
+            except AttributeError:
                 dispatcher._dispatch_events()
 
         # this might need to be done even more often than once per frame?

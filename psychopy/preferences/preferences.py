@@ -387,7 +387,7 @@ class Preferences:
                     try:
                         # attempt to un-stringify
                         section[key] = json.loads(val)
-                    except:
+                    except (ValueError, TypeError):
                         # use as-is if this fails
                         section[key] = val
     

@@ -30,7 +30,7 @@ class TestAudioValidator:
             for speaker in foundSpeakers:
                 try:
                     sound.Sound("A", speaker=speaker)
-                except:
+                except Exception:
                     continue
                 else:
                     # if successful, we have a matching pair!
