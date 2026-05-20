@@ -1189,7 +1189,10 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
                  depth=0.0,
                  noAudio=False,
                  interpolate=True,
-                 autoStart=True):
+                 autoStart=True,
+                 audioDevice=None,
+                 audioConfig=None,
+                 **kwargs):
 
         # what local vars are defined (these are the init params) for use
         self._initParams = dir()
@@ -1232,12 +1235,17 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         self._wasPaused = False  # was the movie paused?
 
         # audio stuff
-        if audioLib is None and self._movieLib == 'ffpyplayer':
-            self._audioLib = 'sdl2'
-            self._noAudio = False  # use SDL2 for audio playback
+        if audioDevice is not None:
+            logging.debug(
+                "Audio device specified for movie playback. Ignoring " \
+                "`audioLib` parameter.")
+            self._audioDevice = audioDevice
+            self._audioLib = None  # override
         else:
-            self._audioLib = audioLib
-            self._noAudio = True  # no audio if using a different library
+            if audioLib is None and self._movieLib == 'ffpyplayer':
+                self._audioLib = 'sdl2'
+                self._noAudio = False  # use SDL2 for audio playback
+                self._audioDevice = None
 
         # warn the user if they are using the SDL2 audio library that precise 
         # A/V sync is not supported
@@ -1246,15 +1254,16 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
                 'Using `sdl2` for audio playback via `ffpyplayer`. This is not '
                 'recommended for applications requiring precise audio-visual '
                 'synchronization.')
-        else:
-            raise MovieAudioError(
-                "Movie audio playback is only supported with the 'sdl2' library "
-                "at this time.")
+        # else:
+        #     raise MovieAudioError(
+        #         "Movie audio playback is only supported with the 'sdl2' library "
+        #         "at this time.")
 
         # audio playback configuration
-        self._audioConfig = {}
+        self._audioConfig = audioConfig if audioConfig is not None else {}
         self._audioTempFile = None  # audio extracted from the movie
         self._audioSamples = []  # audio samples from the movie 
+        self._audioTrack = None  # audio track information from the movie metadata
         self._audioReader = None  # audio reader object
         self._audioSampleRate = 44100  # audio sample rate
         self._audioChannels = 2  # number of audio channels
@@ -1440,14 +1449,10 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         # be done before the movie is opened by the player to avoid file access
         # issues. The audio track is extracted to a temporary file which is
         # deleted when the movie is closed.
-
         disableAudio = False
         if not self._noAudio and self._audioLib not in ('sdl', 'sdl2'):
-            # if using SDL, playback is handled by the ffpyplayer library so we
-            # don't need to extract the audio track or setup the audio stream
-            self._extractAudioTrack()
-            disableAudio = True
-
+            self._loadAudioTrack()  # extract and load the audio track
+            disableAudio = True  # playing through our libs, so disable in ffpyplayer
 
         self._decoderOpts['an'] = disableAudio
 
@@ -1543,11 +1548,19 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             self._filename)
         audioTrackData = videoClip.audio
 
+        audioConfig = {
+            'codec': 'pcm_s16le', 
+            'fps': 44100, 
+            'nbytes': 2}
+        audioConfig.update(self._audioConfig)  # update with any user-provided config options
+
+        print(audioConfig)
+        
         audioTrackData.write_audiofile(
             self._audioTempFile.name,
-            codec='pcm_s16le',
-            fps=44100,
-            nbytes=2,
+            codec=audioConfig['codec'],
+            fps=audioConfig['fps'],
+            nbytes=audioConfig['nbytes'],
             logger=None)
         
         videoClip.close()
@@ -1563,19 +1576,69 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
                 time.time() - t0))
         
         # use soundfile to read the audio samples from the temporary file
-        import soundfile as sf
-        samples, sr = sf.read(
-            self._audioTempFile.name,
-            dtype='float32',
-            always_2d=True)
-        self._audioSampleRate = sr
-        self._audioSamples = samples
+        # NOTE - Using an actual sound object for audio now
+        # import soundfile as sf
+        # samples, sr = sf.read(
+        #     self._audioTempFile.name,
+        #     dtype='float32',
+        #     always_2d=True)
+        # self._audioSampleRate = sr
+        # self._audioSamples = samples
 
         # compute the size of the audio samples in bytes
-        audioSize = self._audioSamples.nbytes
+        # audioSize = self._audioSamples.nbytes
+        audioSize = os.path.getsize(self._audioTempFile.name)
 
         logging.debug(
             "Audio track size: {} bytes".format(audioSize))
+        
+    def _loadAudioTrack(self):
+        """Load the extracted audio track into a Sound object for playback.
+        """
+        # check if we have an audio track already loaded
+        if self._audioTrack is not None:
+            logging.debug(
+                "Audio track already loaded, stopping existing track before " \
+                "loading new one.")
+            if not hasattr(self._audioTrack, 'stop'):
+                logging.error("Audio track does not appear to be valid.")
+            else:
+                self._audioTrack.stop()
+
+            self._audioTrack = None
+
+        self._extractAudioTrack()  # extract the audio track to a temporary file
+        
+        import psychopy.sound as _sound
+        logging.debug(
+            "Loading audio track from temporary file: {}".format(
+                self._audioTempFile.name))
+        self._audioTrack = _sound.Sound(
+            self._audioTempFile.name)
+        
+    def _cleanupAudioTrack(self):
+        """Clean up the audio track.
+
+        This function stops the audio track if it is playing and deletes the
+        temporary file where the audio track was stored.
+
+        """
+        if self._audioTrack is not None:
+            if hasattr(self._audioTrack, 'stop'):
+                self._audioTrack.stop()
+            self._audioTrack = None
+
+        if self._audioTempFile is not None:
+            try:
+                os.remove(self._audioTempFile.name)
+                logging.warning(
+                    "Deleted temporary audio file: {}".format(
+                        self._audioTempFile.name))
+            except Exception as e:
+                logging.error(
+                    "Error deleting temporary audio file: {}. Error: {}".format(
+                        self._audioTempFile.name, e))
+            self._audioTempFile = None
 
     def load(self, filename):
         """Load a movie file from disk (alias of `setMovie`).
@@ -1600,6 +1663,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         if self._isLoaded:
             self._player.close()
             self._freeTextureBuffers()  # free buffer before creating a new one
+            self._cleanupAudioTrack()
             self._isLoaded = False
 
     # --------------------------------------------------------------------------
@@ -2024,9 +2088,13 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
            return  # nop
         
         if not self._noAudio:
-            if self._audioLib == 'sdl2':
-                self._player.mute(False)
-                self._player.setVolume(self._volume)
+            if self._audioDevice is None:
+                if self._audioLib == 'sdl2':
+                    self._player.mute(False)
+                    self._player.setVolume(self._volume)
+            else:
+                if self._audioTrack is not None and hasattr(self._audioTrack, 'play'):
+                    self._audioTrack.play()
 
         self._player.pause(False)  # start the player
         self._playbackStatus = PLAYING
@@ -2051,6 +2119,9 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         if not self._noAudio:
             if self._audioLib == 'sdl2':
                 self._player.mute(True)
+            else:
+                if self._audioTrack is not None and hasattr(self._audioTrack, 'pause'):
+                    self._audioTrack.pause()
 
         self._player.pause()
         self._wasPaused = True  # set the paused flag
@@ -2099,6 +2170,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             logging.debug("Stopping movie: {}".format(self._filename))
 
         self._player.close()  # close the player
+        self._cleanupAudioTrack()  # clean up the audio track
 
         self.loadMovie(self._filename)  # reload the movie
         
@@ -2127,6 +2199,10 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         self._movieTime = timestamp
         # self._player.pause(True)  # pause the player
         self._player.seek(self._movieTime)
+
+        # seek the audio track if we have one
+        if self._audioTrack is not None and hasattr(self._audioTrack, 'seek'):
+            self._audioTrack.seek(self._movieTime)
 
         # self._pts = self._movieTime  # store the current PTS
         _ = self.updateVideoFrame()
@@ -2185,7 +2261,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
     def reset(self):
         """Reset the movie to its initial state.
         """
-        # self.seek(0.0)  # reset movie time to 0
+        self.seek(0.0)  # reset movie time to 0
         self._playbackStatus = NOT_STARTED  # reset playback status
         
     # --------------------------------------------------------------------------
