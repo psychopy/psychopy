@@ -254,9 +254,18 @@ class MovieFileReader:
 
         # movie information
         self._metadata = None  # metadata object
+
+        # movie attributes
+        self._frameInterval = -1.0
+        self._srcFrameSize = (-1, -1)
+        self._frameRate = -1.0
+        self._duration = -1.0
         
-        # store decoded video segmenets in memory
+        # store decoded video segments in memory
         self._frameStore = []
+
+        # maximum number of attempts to get a frame from the decoder before giving up
+        self._maxGetFrameAttempts = -1  # set later based on the frame interval
 
         # callbacks for video events
         self._streamEOFCallback = None
@@ -508,12 +517,20 @@ class MovieFileReader:
         self._player.set_mute(False)  # unmute the player
 
         # seek to the beginning of the movie
-        self._player.seek(0.0, relative=False)
+        self._player.seek(0.0, relative=False, accurate=False)
         
+        # wait until the player actually seeks to zero
+        while time.time() - startTime < defaultTimeout:
+            curPts = self._player.get_pts()
+            if abs(curPts) < 1e-6:
+                break
+            time.sleep(0.001)  # wait a bit before checking again
+
         # compute frame rate and interval
         numer, denom = movieMetadata['frame_rate']
         frameRate = numer / denom
         self._frameInterval = 1.0 / frameRate
+        self._maxGetFrameAttempts = int(self._frameInterval / 0.001) 
 
         # populate the metadata object with the movie metadata we got
         self._metadata = MovieMetadata(
@@ -686,6 +703,7 @@ class MovieFileReader:
         if frame is not None:
             return frame
         
+        getFrameAttempts = 0
         while 1:  # keep getting frames until we reach the desired PTS           
             frame, status = self._player.get_frame()
 
@@ -696,9 +714,19 @@ class MovieFileReader:
                 break
             elif status == 'paused':
                 break
-
+            
+            # if we get `None` for the frame, it means the player is not ready 
+            # to give us a frame yet, so we wait a bit and try again. If we get 
+            # `None` too many times, we give up and return `None` 
             if frame is None:
-                break 
+                if getFrameAttempts < self._maxGetFrameAttempts:
+                    time.sleep(0.001)  # wait a bit before trying again
+                    getFrameAttempts += 1
+                    continue   # keep retrying
+                else:
+                    raise RuntimeError(
+                        'Failed to return a frame after multiple attempts.'
+                    )
             
             img, curPts = frame  # extract frame information
 
@@ -1303,7 +1331,10 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
     def frameRate(self):
         """Frame rate of the movie in Hertz (`float`).
         """
-        return self._player.metadata.frameRate
+        if self._player is None or self._player._metadata is None:
+            return 0.0
+        
+        return self._player._metadata.frameRate
     
     @property
     def loop(self):
@@ -1327,13 +1358,6 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         
         """
         self._loop = bool(value)
-
-    @property
-    def loopCount(self):
-        """Number of times the movie has looped (`int`).
-
-        """
-        return self._player.loopCount if self._hasPlayer else 0
 
     @property
     def _hasPlayer(self):
