@@ -151,7 +151,7 @@ class ButtonBoxComponent(BaseDeviceComponent):
         code = (
             "# clear %(name)s button presses\n"
             "%(name)s.buttons = []\n"
-            "%(name)s.times = []\n"
+            "%(name)s.rt = []\n"
             "%(name)s.corr = []\n"
             )
         buff.writeIndentedLines(code % self.params)
@@ -202,7 +202,7 @@ class ButtonBoxComponent(BaseDeviceComponent):
                 # if storing all, append
                 code += (
                 "    %(name)s.buttons.append(_thisResp.channel)\n"
-                "    %(name)s.times.append(_thisResp.t)\n"
+                "    %(name)s.rt.append(_thisResp.t)\n"
                 )
                 # include code to get correct
                 if self.params['storeCorrect']:
@@ -216,7 +216,7 @@ class ButtonBoxComponent(BaseDeviceComponent):
                 # if storing last, replace
                 code += (
                 "    %(name)s.buttons = _thisResp.channel\n"
-                "    %(name)s.times = _thisResp.t\n"
+                "    %(name)s.rt = _thisResp.t\n"
                 )
                 # include code to get correct
                 if self.params['storeCorrect']:
@@ -231,7 +231,7 @@ class ButtonBoxComponent(BaseDeviceComponent):
                 code += (
                 "    if not %(name)s.buttons:\n"
                 "        %(name)s.buttons = _thisResp.channel\n"
-                "        %(name)s.times = _thisResp.t\n"
+                "        %(name)s.rt = _thisResp.t\n"
                 )
                 # include code to get correct
                 if self.params['storeCorrect']:
@@ -271,7 +271,7 @@ class ButtonBoxComponent(BaseDeviceComponent):
         code = (
             "# store data from %(name)s\n"
             "thisExp.addData('%(name)s.buttons', %(name)s.buttons)\n"
-            "thisExp.addData('%(name)s.times', %(name)s.times)\n"
+            "thisExp.addData('%(name)s.rt', %(name)s.times)\n"
             "thisExp.addData('%(name)s.corr', %(name)s.corr)\n"
         )
         buff.writeIndentedLines(code % params)
