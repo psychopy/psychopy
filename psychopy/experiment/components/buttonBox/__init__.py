@@ -147,17 +147,6 @@ class ButtonBoxComponent(BaseDeviceComponent):
         buff.writeIndentedLines(code % inits)
 
     def writeRoutineStartCode(self, buff):
-        # choose a clock to sync to according to component's params
-        if "syncScreenRefresh" in self.params and self.params['syncScreenRefresh']:
-            clockStr = ""
-        else:
-            clockStr = "clock=routineTimer"
-        # sync component start/stop timers with validator clocks
-        code = (
-            f"# synchronise device clock for %(name)s with Routine timer\n"
-            f"%(name)s.resetTimer({clockStr})\n"
-        )
-        buff.writeIndentedLines(code % self.params)
         # clear keys
         code = (
             "# clear %(name)s button presses\n"
@@ -177,6 +166,17 @@ class ButtonBoxComponent(BaseDeviceComponent):
         # writes an if statement to determine whether to draw etc
         indented = self.writeStartTestCode(buff)
         if indented:
+            # sync component start/stop timers with validator clocks
+            if self.params['syncScreenRefresh']:
+                code = (
+                    "win.callOnFlip(%(name)s.resetTimer, core.Clock())"
+                ) % self.params
+            else:
+                code = (
+                    "%(name)s.resetTimer(core.Clock())"
+                )
+            buff.writeIndentedLines(code % self.params)
+
             if self.params['discardPrevious']:
                 # dispatch and clear messages
                 code = (
