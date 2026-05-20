@@ -1566,12 +1566,12 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         videoClip.close()
         self._audioTempFile.close()
 
-        logging.warning(
+        logging.debug(
             "Audio track written to temporary file: {} ({} bytes)".format(
                 self._audioTempFile.name, 
                 os.path.getsize(self._audioTempFile.name)))
 
-        logging.warning(
+        logging.debug(
             "Audio track extraction completed in {:.2f} seconds".format(
                 time.time() - t0))
         
@@ -1632,7 +1632,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         if self._audioTempFile is not None:
             try:
                 os.remove(self._audioTempFile.name)
-                logging.warning(
+                logging.debug(
                     "Deleted temporary audio file: {}".format(
                         self._audioTempFile.name))
             except Exception as e:
