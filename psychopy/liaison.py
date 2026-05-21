@@ -41,7 +41,7 @@ class LiaisonJSONEncoder(json.JSONEncoder):
 			# if object has a getJSON method, use it
 			if hasattr(o, "getJSON"):
 				return o.getJSON(asString=False)
-		except:
+		except Exception:
 			# if there's an error in the getJSON method, continue so we can try regular encoding
 			pass
 		# if object is an error, transform in standardised form

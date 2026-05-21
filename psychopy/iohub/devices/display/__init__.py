@@ -711,7 +711,7 @@ class Display(Device):
                                     degy, self._psychopy_monitor))
                         return degx, degy
                     self._coord2pix = degcoord2pix
-            except:
+            except Exception:
                 print2err('Error during _calculateCoordMappingFunctions')
                 printExceptionDetailsToStdErr()
 

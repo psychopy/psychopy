@@ -17,10 +17,10 @@ jobs:
           id-token: write
           contents: write 
         steps:
-        - uses: actions/checkout@master
+        - uses: actions/checkout@v6
 
         - name: Setup Python
-          uses: actions/setup-python@v3
+          uses: actions/setup-python@v6
           with:
             python-version: '3.10'
         

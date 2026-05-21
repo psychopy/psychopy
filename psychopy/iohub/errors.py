@@ -27,7 +27,7 @@ def print2err(*args):
             sys.stderr.write("{0}".format(a))
         sys.stderr.write("\n")
         sys.stderr.flush()
-    except:
+    except Exception:
         for a in args:
             print("{0}".format(a))
         print()
@@ -46,7 +46,7 @@ def printExceptionDetailsToStdErr():
         errStr = "".join(traceback.format_exception(
             exc_type, exc_value, exc_tb))
         print2err(errStr)
-    except:
+    except Exception:
         traceback.print_exc()
 
 

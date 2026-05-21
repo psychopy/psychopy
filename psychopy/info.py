@@ -42,11 +42,13 @@ try:
 except ImportError:
     haveCtypes = False
 import hashlib
-import wx
 import locale
 import subprocess
 import psutil
-
+try:
+    import wx
+except ImportError:
+    wx = None
 from psychopy import visual, logging, core, data, web
 from psychopy.core import shellCall
 from psychopy.platform_specific import rush
@@ -536,7 +538,7 @@ class RunTimeInfo(dict):
         """
         self['pythonNumpyVersion'] = numpy.__version__
         self['pythonScipyVersion'] = scipy.__version__
-        self['pythonWxVersion'] = wx.version()
+        self['pythonWxVersion'] = '(no wx)' if wx is None else wx.version()
         self['pythonMatplotlibVersion'] = matplotlib.__version__
         self['pythonPygletVersion'] = pyglet.version
         try:

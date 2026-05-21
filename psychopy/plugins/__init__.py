@@ -752,7 +752,7 @@ def loadPlugin(plugin):
                     logging.error(
                         "Plugin `{}` entry point requires module `{}`, but it "
                         "cannot be imported.".format(plugin, module_name))
-                except:
+                except Exception:
                     importSuccess = False
                     logging.error(
                         "Plugin `{}` entry point requires module `{}`, but an "

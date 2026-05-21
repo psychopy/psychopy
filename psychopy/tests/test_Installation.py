@@ -2,7 +2,6 @@ import sys
 import pytest
 
 def test_essential_imports():
-    import wx
     import numpy
     import scipy
     import matplotlib

@@ -39,7 +39,7 @@ for filename in pycFiles:
     if not os.path.isfile(filename[:-2]):
         try:
             os.remove(filename)
-        except:
+        except OSError:
             pass  # may not have sufficient privs
 
 

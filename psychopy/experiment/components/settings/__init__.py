@@ -143,9 +143,9 @@ class SettingsComponent:
         # if filename is the default value fetch the builder pref for the
         # folder instead
         if filename is None:
-            filename = ("u'xxxx/%s_%s_%s' % (expInfo['participant'], expName,"
-                        " expInfo['date'])")
-        if filename.startswith("u'xxxx"):
+            filename = ("'xxxx/' + expInfo['participant'] + '_' + expName + '_'"
+                        " + expInfo['date']")
+        if filename.startswith("'xxxx"):
             folder = self.exp.prefsBuilder['savedDataFolder'].strip()
             filename = filename.replace("xxxx", folder)
 
@@ -553,7 +553,7 @@ class SettingsComponent:
                 if legKey not in backendValues:
                     backendValues.append(legKey)
                     backendLabels.append(legLbl)
-        except:
+        except Exception:
             # if it doesn't work, just stick with the known backends from plugins
             pass
 
@@ -1163,7 +1163,7 @@ class SettingsComponent:
         if isinstance(colPriority, str):
             try:
                 colPriority = ast.literal_eval(colPriority)
-            except:
+            except (ValueError, SyntaxError):
                 raise ValueError(_translate(
                     "Could not interpret value as dict: {}"
                 ).format(colPriority))

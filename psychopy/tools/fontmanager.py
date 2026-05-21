@@ -35,6 +35,7 @@ _X11FontDirectories = [
     "/usr/X11/lib/X11/fonts",
     # here is the new standard location for fonts
     "/usr/share/fonts",
+    "~/.local/share/fonts",
     # documented as a good place to install new fonts
     "/usr/local/share/fonts",
     # common application, not really useful
@@ -665,7 +666,7 @@ def findFontFiles(folders=(), recursive=True, currentDir=Path(".")):
             try:
                 from matplotlib import font_manager
                 searchPaths.append(font_manager.findSystemFonts)
-            except:
+            except ImportError:
                 pass
         elif sys.platform == 'darwin':
             # on mac matplotlib doesn't include 'ttc' files (which are fine)
@@ -1064,6 +1065,11 @@ class FontFinder:
             return output
         # pathify folder
         thisFolder = Path(folder)
+        # try expanding ~ (but don't worry if it failed)
+        try:
+            thisFolder = thisFolder.expanduser()
+        except:
+            pass
         # try each extension
         for ext in cls.supportedExtensions:
             try:
