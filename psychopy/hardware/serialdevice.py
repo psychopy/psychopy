@@ -216,8 +216,15 @@ class SerialDevice(BaseDevice, AttributeGetSetMixin):
             inStr = self.com.read(self.com.inWaiting())
             msg = "Sending '%s' to %s but found '%s' on the input buffer"
             logging.warning(msg % (message, self.name, inStr))
-        if type(message) is not bytes:
+        # transform string input into bytes
+        if isinstance(message, str):
             message = bytes(message, 'utf-8')
+        # transform integers into bytes via bytearray
+        if isinstance(message, int):
+            message = bytes(bytearray([message]))
+        # transform arrays into bytearray
+        if isinstance(message, (list, tuple)):
+            message = bytearray(message)
         if not message.endswith(self.eol):
             message += self.eol  # append a newline if necess
         self.com.write(message)

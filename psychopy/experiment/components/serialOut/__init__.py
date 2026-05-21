@@ -168,7 +168,7 @@ class SerialOutComponent(BaseDeviceComponent):
             if params['startDataType'] == "str":
                 params['startData'] = params['startDataStr']
             elif params['startDataType'] == "num":
-                params['startData'] = "bytes(chr(%(startDataNumeric)s), 'utf-8')" % params
+                params['startData'] = params['startDataNumeric']
             elif params['startDataType'] == "binary":
                 params['startData'] = "0b%(startDataBinary)s" % params
             elif params['startDataType'] == "char":
@@ -189,7 +189,7 @@ class SerialOutComponent(BaseDeviceComponent):
             buff.writeIndented(code % params)
             # store code that was sent
             code = (
-                "%(loop)s.addData('%(name)s.stopData', %(startData)s)\n"
+                "%(loop)s.addData('%(name)s.startData', %(startData)s)\n"
             )
             buff.writeIndented(code % params)
             # update status
@@ -213,7 +213,7 @@ class SerialOutComponent(BaseDeviceComponent):
             if params['stopDataType'] == "str":
                 params['stopData'] = params['stopDataStr']
             elif params['stopDataType'] == "num":
-                params['stopData'] = "bytes(bytearray([%(stopDataNumeric)s]))" % params
+                params['stopData'] = params['stopDataNumeric']
             elif params['stopDataType'] == "binary":
                 params['stopData'] = "0b%(stopDataBinary)s" % params
             elif params['stopDataType'] == "char":
