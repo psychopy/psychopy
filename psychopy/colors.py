@@ -19,6 +19,7 @@ from psychopy import logging
 import psychopy.tools.colorspacetools as ct
 from psychopy.tools.mathtools import infrange
 import numpy as np
+import ast
 
 
 # Dict of examples of Psychopy Red at 12% opacity in different formats
@@ -282,6 +283,12 @@ class Color:
         if isinstance(color, str):
             if color == "":
                 color = "none"
+            # if given a string for anything other than hex or named, try to parse it to an array
+            if space not in ("named", "hex"):
+                try:
+                    color = ast.literal_eval(color)
+                except (ValueError, SyntaxError):
+                    pass
         # Handle everything as an array
         if not isinstance(color, np.ndarray):
             color = np.array(color)
@@ -1052,7 +1059,7 @@ def isValidColor(color, space='rgb'):
     try:
         buffer = Color(color, space)
         return bool(buffer)
-    except:
+    except Exception:
         return False
 
 

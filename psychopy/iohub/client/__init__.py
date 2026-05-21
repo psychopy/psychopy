@@ -428,7 +428,7 @@ class ioHubConnection():
                 self._sendToHubServer(('RPC', 'clearEventBuffer', [True, ]))
                 try:
                     self.getDevice('keyboard')._clearLocalEvents()
-                except:
+                except Exception:
                     pass
             else:
                 d = self.devices.getDevice(device_label)
@@ -439,7 +439,7 @@ class ioHubConnection():
             self._sendToHubServer(('RPC', 'clearEventBuffer', [False, ]))
             try:
                 self.getDevice('keyboard')._clearLocalEvents()
-            except:
+            except Exception:
                 pass
         else:
             raise ValueError(

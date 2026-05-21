@@ -79,7 +79,7 @@ def serialize(obj, includeClass=True):
     # convert possible file paths into Path
     try:
         pathVal = Path(obj)
-    except:
+    except (TypeError, ValueError):
         pass
     else:
         if pathVal.is_file() or pathVal.is_dir():
@@ -97,7 +97,7 @@ def serialize(obj, includeClass=True):
         json.dumps(obj)
     except TypeError:
         pass
-    except:
+    except Exception:
         # if we got something other than a TypeError, substitute None
         return None
     else:

@@ -84,10 +84,10 @@ def getMilliKeyDevices():
                     mkconf = json.loads(rx_data)
                     mkconf['port'] = p
                     devices.append(mkconf)
-                except:
+                except (ValueError, TypeError):
                     raise RuntimeError("ERROR: {}".format(rx_data))
             mkey_sport.close()
-        except:
+        except Exception:
             pass
     return devices
 

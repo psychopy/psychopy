@@ -166,7 +166,7 @@ class DeviceManager:
         # import package
         try:
             pkg = importlib.import_module(pkgName)
-        except:
+        except (ImportError, ModuleNotFoundError):
             raise ModuleNotFoundError(
                 f"Could not find module: {pkgName}"
             )
@@ -823,7 +823,7 @@ class DeviceManager:
                         # import it so we can detect it
                         try:
                             DeviceManager._resolveClassString(cls.deviceClass)
-                        except:
+                        except Exception:
                             logging.warn(
                                 f"Failed to load class {cls.deviceClass} from specification in "
                                 f"{cls.__name__} ({emt.__name__})"

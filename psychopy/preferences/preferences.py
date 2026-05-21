@@ -15,6 +15,11 @@ from packaging.version import Version
 import shutil
 
 try:
+    import psychopy_app
+except:
+    psychopy_app = None
+
+try:
     import configobj
     if (sys.version_info.minor >= 7 and
             Version(configobj.__version__) < Version('5.1.0')):
@@ -119,7 +124,10 @@ class Preferences:
         exePath = sys.executable
 
         # path to Resources (icons etc)
-        dirApp = join(dirPsychoPy, 'app')
+        if psychopy_app:
+            dirApp = Path(psychopy_app.__file__).parent
+        else:
+            dirApp = join(dirPsychoPy, 'app')
         if os.path.isdir(join(dirApp, 'Resources')):
             dirResources = join(dirApp, 'Resources')
         else:
@@ -379,7 +387,7 @@ class Preferences:
                     try:
                         # attempt to un-stringify
                         section[key] = json.loads(val)
-                    except:
+                    except (ValueError, TypeError):
                         # use as-is if this fails
                         section[key] = val
     
@@ -452,7 +460,7 @@ class Preferences:
                                         preserve_errors=True)
         self.restoreBadPrefs(cfg, resultOfValidate)
         # force favComponent level values to be integers
-        if 'favComponents' in cfg['builder']:
+        if 'builder' in cfg and 'favComponents' in cfg['builder']:
             for key in cfg['builder']['favComponents']:
                 _compKey = cfg['builder']['favComponents'][key]
                 cfg['builder']['favComponents'][key] = int(_compKey)

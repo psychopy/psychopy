@@ -55,7 +55,7 @@ while not endBtn.isClicked:
         # Get color space from radio slider
         space = spaces[int(spaceCtrl.markerPos)]
         col = colors.Color(val, space)
-    except:
+    except Exception:
         col = False
     # Set the color box's fill color, show text "invalid" if color is invalid
     if col:
