@@ -20,6 +20,8 @@ from .exceptions import DeviceNotConnectedError
 from psychopy.tools import systemtools as st
 from psychopy.tools.attributetools import AttributeGetSetMixin
 from .base import BaseDevice
+from psychopy.hardware import DeviceManager
+from psychopy.constants import NOT_STARTED
 
 
 def _findPossiblePorts():
@@ -57,6 +59,71 @@ def _findPossiblePorts():
 
 # map out all ports on this device, to be filled as serial devices are initialised
 ports = {port: None for port in _findPossiblePorts()}
+
+
+class SerialOut(AttributeGetSetMixin):
+    """
+    Wrapper around SerialDevice which handles Builder specific stuff (e.g. started/active/stopped 
+    status) on a per-Component basis
+    """
+
+    def __init__(self, device, autolog=True):
+        if isinstance(device, SerialDevice):
+            # if given a serial device
+            self.device = device
+        # if given a string, get via DeviceManager
+        if isinstance(device, str):
+            if device in DeviceManager.devices:
+                self.device = DeviceManager.getDevice(device)
+            else:
+                # don't use formatted string literals in _translate()
+                raise ValueError(_translate(
+                    "Could not find device named '{device}', make sure it has been set up "
+                    "in DeviceManager."
+                ).format(device))
+        # set an initial status
+        self.status = NOT_STARTED
+        # set autolog
+        self.autolog = autolog
+    
+    @property
+    def com(self):
+        return self.device.com
+    
+    @property
+    def portString(self):
+        return self.device.portString
+
+    def pause(self):
+        """Pause for a default period for this device
+        """
+        self.device.pause()
+    
+    def sendMessage(self, message, autoLog=True):
+        return self.device.sendMessage(
+            message, 
+            autoLog=autoLog
+        )
+    
+    def getResponse(self, length=1, timeout=0.1, autoLog=True):
+        return self.device.getResponse(
+            length=length, 
+            timeout=timeout, 
+            autoLog=autoLog
+        )
+
+    def awaitResponse(self, multiline=False, timeout=None):
+        return self.device.awaitResponse(
+            self,
+            multiline=multiline,
+            timeout=timeout
+        )
+
+    def isAwake(self):
+        return self.device.isAwake()
+    
+    def isOpen(self):
+        return self.device.isOpen()
 
 
 class SerialDevice(BaseDevice, AttributeGetSetMixin):

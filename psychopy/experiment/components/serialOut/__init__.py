@@ -148,8 +148,9 @@ class SerialOutComponent(BaseDeviceComponent):
         code = (
             "\n"
             "# point %(name)s to device named %(deviceLabel)s and make sure it's open\n"
-            "%(name)s = deviceManager.getDevice(%(deviceLabel)s)\n"
-            "%(name)s.status = NOT_STARTED\n"
+            "%(name)s = SerialOut(\n"
+            "    device=%(deviceLabel)s\n"
+            ")\n"
             "if not %(name)s.com.is_open:\n"
             "    %(name)s.com.open()\n"
         )
@@ -159,8 +160,6 @@ class SerialOutComponent(BaseDeviceComponent):
         params = copy(self.params)
         # Get containing loop
         params['loop'] = self.currentLoop
-        
-
         # On component start, send start bits
         indented = self.writeStartTestCode(buff)
         if indented:
