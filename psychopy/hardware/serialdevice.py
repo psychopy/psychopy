@@ -113,10 +113,7 @@ class SerialDevice(BaseDevice, AttributeGetSetMixin):
         self.com = None
         self.OK = False
         self.maxAttempts = maxAttempts
-        if type(eol) is bytes:
-            self.eol = eol
-        else:
-            self.eol = bytes(eol, 'utf-8')
+        self.eol = eol
         self.type = self.name  # for backwards compatibility
 
         # try to open the port
@@ -187,6 +184,18 @@ class SerialDevice(BaseDevice, AttributeGetSetMixin):
             )
         # we aren't in a time-critical period so flush messages
         logging.flush()
+    
+    @property
+    def eol(self):
+        return self._eol
+
+    @eol.setter
+    def eol(self, value):
+        # coerce to bytes
+        if type(value) is not bytes:
+            value = bytes(value, "utf-8")
+        # set
+        self._eol = value
 
     def isAwake(self):
         """This should be overridden by the device class

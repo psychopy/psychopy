@@ -273,12 +273,19 @@ class SerialDeviceBackend(DeviceBackend):
         # define order
         self.order += [
             "timeout",
+            "eol"
         ]
 
         self.params['timeout'] = Param(
             "", valType='code', inputType="single",
             hint=_translate("Time at which to give up listening for a response (leave blank for no limit)"),
             label=_translate("Timeout")
+        )
+
+        self.params['eol'] = Param(
+            "$'\\n'", valType="str", inputType="single", categ="Basic",
+            label=_translate("EOL (end-of-line) character"),
+            hint=_translate("Character automatically added to end of each message - leave blank for no EOL")
         )
 
         # -- Override params ---
@@ -351,6 +358,7 @@ class SerialDeviceBackend(DeviceBackend):
         buff.writeIndentedLines(code)
         # add pause and close
         code = (
+            "    eol=%(eol)s,\n"
             "    pauseDuration=(%(timeout)s or 0.1) / 3,\n"  
             ")\n"
         )
