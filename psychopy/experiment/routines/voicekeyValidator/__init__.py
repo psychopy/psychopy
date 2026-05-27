@@ -22,7 +22,7 @@ class AudioValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
         "Use a voicekey or microphone to confirm that audio stimuli are presented when they should "
         "be."
     )
-    deviceClasses = ["psychopy.validation.voicekey.VoiceKeyValidator"]
+    deviceClasses = ["psychopy.hardware.voicekey.MicrophoneVoiceKeyEmulator"]
     version = "2025.1.0"
 
     def __init__(
