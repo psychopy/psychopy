@@ -86,6 +86,22 @@ class SerialOut(AttributeGetSetMixin):
         # set autolog
         self.autolog = autolog
     
+    def __getattr__(self, name):
+        try:
+            # try as normal first
+            return getattr(self, name)
+        except AttributeError as err:
+            if hasattr(self.device, name):
+                # if this instance doesn't have the attribute but the device does, warn and use that
+                logging.warn(
+                    f"SerialOut has no attribute {name}, but SerialDevice does, so using "
+                    f"SerialDevice.{name}. To silence this message, use `.device.{name}` instead."
+                )
+                return getattr(self.device, name)
+            else:
+                # if it just doesn't have the attribute, fail as normal
+                raise err
+    
     @property
     def com(self):
         return self.device.com
