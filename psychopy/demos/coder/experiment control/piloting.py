@@ -6,6 +6,8 @@ to pilot (the run button will be orange).
 
 See below for some examples of behaviour you may wish to change according to 
 piloting mode.
+
+The contents of this file are in the public domain.
 """
 
 from psychopy import core, visual, logging
