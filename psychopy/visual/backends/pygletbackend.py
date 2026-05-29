@@ -343,30 +343,36 @@ class PygletBackend(BaseBackend):
             temp_origin = cocoapy.NSPoint(thisScreen.x, thisScreen_y)
             self.winHandle._nswindow.setFrameOrigin_(temp_origin)
 
-            # bind the NSWindow pointer to the window handle, we use AppKit here
-            # because the ctypes bindings in cocoapy are incomplete
-            winNSObj = AppKit.NSWindow(c_void_p=self.winHandle._nswindow.ptr)
-            
-            # create a display link for the window
-            self.refreshEventHandlerMacOS = RefreshEventHandlerMacOS.alloc().init()
-            displayLinkObj = winNSObj.displayLinkWithTarget_selector_(
-                self.refreshEventHandlerMacOS, 
-                "displayRefreshed:")
-            
-            # configure the preferred frame rate range hint for the display link
-            frameRateMax = int(winNSObj.screen().maximumFramesPerSecond())
-            frameRateMin = int(frameRateMax / 2)
-            displayLinkObj.setPreferredFrameRateRange_(
-                (frameRateMin, 
-                 frameRateMax, 
-                 frameRateMax))
+            # create a display link
+            try:
+                # bind the NSWindow pointer to the window handle, we use AppKit here
+                # because the ctypes bindings in cocoapy are incomplete
+                winNSObj = AppKit.NSWindow(c_void_p=self.winHandle._nswindow.ptr)
+                
+                # create a display link for the window
+                self.refreshEventHandlerMacOS = RefreshEventHandlerMacOS.alloc().init()
+                displayLinkObj = winNSObj.displayLinkWithTarget_selector_(
+                    self.refreshEventHandlerMacOS, 
+                    "displayRefreshed:")
 
-            # add the display link to the run loop, only works with 
-            # `NSRunLoopCommonModes` since we don't run a full app loop here
-            # and will pump our events manually in `swapBuffers()`
-            displayLinkObj.addToRunLoop_forMode_(
-                AppKit.NSRunLoop.currentRunLoop(), 
-                AppKit.NSRunLoopCommonModes)
+                # configure the preferred frame rate range hint for the display link
+                frameRateMax = int(winNSObj.screen().maximumFramesPerSecond())
+                frameRateMin = int(frameRateMax / 2)
+                displayLinkObj.setPreferredFrameRateRange_(
+                    (frameRateMin, 
+                    frameRateMax, 
+                    frameRateMax))
+
+                # add the display link to the run loop, only works with 
+                # `NSRunLoopCommonModes` since we don't run a full app loop here
+                # and will pump our events manually in `swapBuffers()`
+                displayLinkObj.addToRunLoop_forMode_(
+                    AppKit.NSRunLoop.currentRunLoop(), 
+                    AppKit.NSRunLoopCommonModes)
+            except Exception:
+                logging.error(
+                    "Unable to create DisplayLink for screen. This may result in "
+                    "less accurate timing of window flips.")
             
         elif sys.platform.startswith('linux'):
             win._hw_handle = self.winHandle._window
