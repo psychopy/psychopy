@@ -669,10 +669,12 @@ class SoundDeviceSound(_SoundBase):
             elif hasattr(when, 'getFutureFlipTime'):
                 logTime = when.getFutureFlipTime(clock=None)
                 when = when.getFutureFlipTime(clock='now')
+                self._tSoundRequestPlay += when
         else:
             if hasattr(self.win, 'getFutureFlipTime'):
                 logTime = self.win.getFutureFlipTime(clock=None)
-                when = self.win.getFutureFlipTime(clock='now')             
+                when = self.win.getFutureFlipTime(clock='now')
+                self._tSoundRequestPlay += when           
 
         if log and self.autoLog:
             logging.exp(u"Playing sound %s on speaker %s" % (
