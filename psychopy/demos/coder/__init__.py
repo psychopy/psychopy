@@ -70,7 +70,7 @@ def scanFolder(folder):
         # add Python scripts
         output[file.stem] = str(file.absolute())
     # remove empty entries
-    output = {key: val for key, val in output.entries() if len(val)}
+    output = {key: val for key, val in output.items() if len(val)}
 
     return output
 
