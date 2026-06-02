@@ -39,6 +39,7 @@ dependencies = [
     # for core stimuli
     "soundfile",
     "sounddevice",
+    "psychtoolbox",
     "imageio",
     "imageio-ffmpeg",
     # for iohub
@@ -115,7 +116,6 @@ building = [
     "polib",
 ]
 suggested = [
-    "psychtoolbox",
     "pylsl>=1.16.1", # lab streaming layer for general connectivity
     "xlwt",  # writing excel files with pandas
     "h5py",  # to read hdf5 files for analysis
