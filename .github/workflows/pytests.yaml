@@ -84,7 +84,7 @@ jobs:
           uv pip install -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-24.04 wxPython
         fi
         uv pip install . ".[tests]" ".[building]"
-        uv pip install . ".[suggested]"
+        uv pip install . ".[suggested]" --prerelease=allow
 
     - name: Set nice level (linux)
       if: runner.os=='Linux'
