@@ -38,9 +38,10 @@ dependencies = [
     "xmlschema",
     # for core stimuli
     "soundfile",
+    "sounddevice",
+    "psychtoolbox",
     "imageio",
     "imageio-ffmpeg",
-    "psychtoolbox<3.0.20; platform_machine!='arm64'",
     # for iohub
     "pywinhook; platform_system == \"Windows\"",
     "zope.event==5.0",  # py2app+gevent complains about zope.event 5.1
@@ -115,7 +116,6 @@ building = [
     "polib",
 ]
 suggested = [
-    "sounddevice",
     "pylsl>=1.16.1", # lab streaming layer for general connectivity
     "xlwt",  # writing excel files with pandas
     "h5py",  # to read hdf5 files for analysis
