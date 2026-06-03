@@ -18,7 +18,9 @@ MicrophoneDevice = None  # handle for the microphone device class
 
 # set the audio backend from preferences
 try:
-    backend = prefs.hardware['audioLib'][0]
+    backend = prefs.hardware['audioLib']
+    if isinstance(backend, (list, tuple)):
+        backend = backend[0]
 except (KeyError, IndexError):
     logging.warning(
         "Audio library preference not found or empty, defaulting to 'sounddevice' for "

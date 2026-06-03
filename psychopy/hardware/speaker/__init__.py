@@ -19,7 +19,9 @@ SpeakerDevice = None  # handle for the speaker device class
 # select backend for speaker devices based on audio library preference
 backend = 'default'
 try:
-    backend = prefs.hardware['audioLib'][0]
+    backend = prefs.hardware['audioLib']
+    if isinstance(backend, (list, tuple)):
+        backend = backend[0]
 except (KeyError, IndexError, TypeError):
     # handle if we cannot read the preference for some reason
     logging.warn(
