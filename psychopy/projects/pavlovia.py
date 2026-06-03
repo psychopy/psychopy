@@ -564,7 +564,7 @@ class PavloviaSession:
             except gitlab.exceptions.GitlabAuthenticationError as err:
                 if refreshToken is None:
                     # if there isn't a refresh token, log back in from scratch to get one
-                    from psychopy.app.pavlovia_ui.functions import logInPavlovia
+                    from psychopy_app.pavlovia_ui.functions import logInPavlovia
                     logInPavlovia(None)
                     return
                 # refresh auth token
