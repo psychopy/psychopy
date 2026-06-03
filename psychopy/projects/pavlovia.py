@@ -22,7 +22,7 @@ from packaging.version import Version
 
 from psychopy import logging, prefs, exceptions
 from psychopy.tools.filetools import DictStorage, KnownProjects
-from psychopy import app
+import psychopy_app as app
 from psychopy.localization import _translate
 import wx
 
