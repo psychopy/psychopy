@@ -482,6 +482,22 @@ class SoundDeviceSound(_SoundBase):
         elif val == -1:
             self.__dict__['channels'] = -1
 
+    @property
+    def sampleRateHz(self):
+        """Get the sample rate of the sound stream, in Hz.
+
+        This is an alias of the `sampleRate` property, provided for compatibility 
+        with other backends.
+
+        Returns
+        -------
+        float or None
+            Sample rate of the sound stream, in Hz. Returns `None` if the sample 
+            rate is not known (e.g., if the stream has not been created yet).
+
+        """
+        return self.sampleRate
+
     def setSound(self, value, secs=0.5, octave=4, hamming=None, log=True):
         """Set the sound to be played.
 
