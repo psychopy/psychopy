@@ -844,7 +844,7 @@ def loadPlugin(plugin):
                 _registerBuilderStandaloneRoutine(ep)
             elif fqn == 'psychopy.hardware.photometer':  # photometer
                 _registerPhotometer(ep)
-            elif fqn == "psychopy.app.themes.icons":
+            elif fqn == "psychopy_app.themes.icons":
                 # get module folder
                 folder = Path(ep.__file__).parent
                 # add all matching .png files from that folder

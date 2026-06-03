@@ -57,7 +57,7 @@ participantIdAliases = ('participant', 'Participant', 'Subject', 'Observer')
 # class ProjIDParam(Param):
 #     @property
 #     def allowedVals(self):
-#         from psychopy.app.projects import catalog
+#         from psychopy.projects import catalog
 #         allowed = list(catalog.keys())
 #         # always allow the current val!
 #         if self.val not in allowed:
