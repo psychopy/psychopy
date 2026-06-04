@@ -48,7 +48,6 @@ def cacheget(url):
 # choose repos
 repos = {
     'psychopy/psychopy': "PsychoPy",
-    'psychopy/psychopjs': "PsychoJS",
     'psychopy/psychopy-studio': "PsychoPy Studio",
     'psychopy/psychopy-app': "PsychoPy Standalone",
     'psychopy/psychopy-docs': "Documentation"
@@ -59,6 +58,7 @@ prs = {
     'Improvements': { name: [] for name in repos },
     'Fixes': { name: [] for name in repos },
     'Breaking Changes': { name: [] for name in repos },
+    'Hidden': { name: [] for name in repos },
     'Other': { name: [] for name in repos },
 }
 # get last release
@@ -83,13 +83,19 @@ for repo in repos:
             prs['Improvements'][repo].append(pr)
         elif pr['title'].startswith("BF:"):
             prs['Fixes'][repo].append(pr)
+        elif any(
+            pr['title'].startswith(f"{tag}:") for tag in ["FF", "DOC", "DOCS", "TEST", "TESTS", "SYS", "PKG"]
+        ):
+            prs['Hidden'][repo].append(pr)
         else:
             prs['Other'][repo].append(pr)
-
 # construct notes
 notes = ""
 # for each category...
 for categ in prs:
+    # skip hidden
+    if categ == "Hidden":
+        continue
     # category title
     notes += (
         f"# {categ}\n"
@@ -97,7 +103,7 @@ for categ in prs:
     )
     for repo in repos:
         # skip docs
-        if repo == "psychopy-docs":
+        if repo == "psychopy/psychopy-docs":
             continue
         # skip if there's no PRs
         if not len(prs[categ][repo]):
@@ -127,7 +133,7 @@ for categ in prs:
 # get documentation authors
 docs = set()
 for categ in prs:
-    for pr in prs[categ]['psychopy-docs']:
+    for pr in prs[categ].get('psychopy/psychopy-docs', []):
         docs.add(
             f"@{pr['user']['login']}"
         )
@@ -139,7 +145,7 @@ notes += (
 )
 
 # save
-file = Path(__file__) / "release_notes.md"
+file = Path(__file__).parent / "release_notes.md"
 file.write_text(
     notes
 )
