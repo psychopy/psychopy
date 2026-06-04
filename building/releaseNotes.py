@@ -2,6 +2,7 @@ import requests
 import re
 from pathlib import Path
 import json
+from datetime import datetime
 
 # setup file to cache responses from GitHub
 cachefile = Path(__file__).parent / "_release_notes_cache.json"
@@ -143,6 +144,46 @@ for categ in prs:
         # add a newline after PRs
         notes += "\n"
 
+# get first contribs
+authors = {}
+for categ in prs:
+    for repo in repos:
+        # skip docs
+        if repo == "psychopy/psychopy-docs":
+            continue
+        # for each PR...
+        for pr in prs[categ][repo]:
+            # make sure there's an entry for this author
+            if pr['user']['login'] not in authors:
+                authors[pr['user']['login']] = {}
+            # if already stored, get previous
+            prev = authors[pr['user']['login']].get(repo, None)
+            # datetime-ify timestamp so we can compare dates
+            pr = pr.copy()
+            pr['closed_at'] = datetime.strptime(pr['closed_at'], '%Y-%m-%dT%H:%M:%SZ')
+            # if no previous, or newer previous, store this pr
+            if prev is None or pr['closed_at'] < prev['closed_at']:
+                authors[pr['user']['login']][repo] = pr
+# add first contribs
+notes += (
+    "## New contributors\n"
+    "\n"
+)
+for name, authprs in authors.items():
+    for repo, pr in authprs.items():
+        # check that first contrib is author's first contrib
+        resp = cacheget(
+            f"https://api.github.com/search/issues?q=repo:{repo} is:pr is:merged sort:created-asc author:{name}"
+        )
+        if not resp['items'][0]['number'] == pr['number']:
+            continue
+        # add
+        notes += (
+            f"* {name} in {repo}#{pr['number']}\n"
+        )
+# add newline after new contribs
+notes += "\n"
+
 # get documentation authors
 docs = set()
 for categ in prs:
@@ -154,7 +195,8 @@ for categ in prs:
 notes += (
     f"## Documentation\n"
     f"\n"
-    f"Contributions from: {', '.join(docs)}"
+    f"Contributions from: {', '.join(docs)}\n"
+    f"\n"
 )
 
 # save
