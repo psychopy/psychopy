@@ -84,6 +84,9 @@ for repo in repos:
         page += 1
     # iterate through PRs
     for pr in items:
+        # ignore PRs from bots
+        if pr['user']['type'] == "Bot":
+            continue
         # sort PR titles
         if pr['title'].startswith("RF:") or re.match(r"^\w*?\!\:", pr['title']):
             prs['Breaking Changes'][repo].append(pr)
@@ -108,7 +111,7 @@ for categ in prs:
         continue
     # category title
     notes += (
-        f"# {categ}\n"
+        f"## {categ}\n"
         f"\n"
     )
     for repo in repos:
