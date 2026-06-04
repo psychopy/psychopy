@@ -67,13 +67,23 @@ last = cacheget(
 )
 # for each repo...
 for repo in repos:
-    # get PRs since last release
-    resp = cacheget(
-        f"https://api.github.com/search/issues?q=repo:{repo} is:pr merged:>{last['published_at'].replace(' ', 'T')}"
-    )
-    
+    # for handling pagination...
+    page = 1
+    items = []
+    total = 30
+    # if total results >30, get subsequent pages
+    while len(items) < total:
+        # get PRs since last release
+        resp = cacheget(
+            f"https://api.github.com/search/issues?q=repo:{repo} is:pr merged:>{last['published_at'].replace(' ', 'T')}&page={page}"
+        )
+        # add to items
+        items += resp['items']
+        # update pagination details
+        total = int(resp['total_count'])
+        page += 1
     # iterate through PRs
-    for pr in resp['items']:
+    for pr in items:
         # sort PR titles
         if pr['title'].startswith("RF:") or re.match(r"^\w*?\!\:", pr['title']):
             prs['Breaking Changes'][repo].append(pr)
