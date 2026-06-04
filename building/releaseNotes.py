@@ -179,7 +179,7 @@ for name, authprs in authors.items():
             continue
         # add
         notes += (
-            f"* {name} in {repo}#{pr['number']}\n"
+            f"* @{name} in {repo}#{pr['number']}\n"
         )
 # add newline after new contribs
 notes += "\n"
