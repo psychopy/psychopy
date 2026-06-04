@@ -3,6 +3,7 @@ import re
 from pathlib import Path
 import json
 from datetime import datetime
+from copy import deepcopy
 
 # setup file to cache responses from GitHub
 cachefile = Path(__file__).parent / "_release_notes_cache.json"
@@ -26,7 +27,7 @@ def cacheget(url):
     """
     # if cached, use cache
     if url in cache:
-        return cache[url]
+        return deepcopy(cache[url])
     # print request
     print("REQUEST", url)
     # make request
@@ -43,7 +44,7 @@ def cacheget(url):
         json.dumps(cache, indent=4)
     )
 
-    return resp
+    return deepcopy(resp)
 
 
 # choose repos
@@ -159,7 +160,6 @@ for categ in prs:
             # if already stored, get previous
             prev = authors[pr['user']['login']].get(repo, None)
             # datetime-ify timestamp so we can compare dates
-            pr = pr.copy()
             pr['closed_at'] = datetime.strptime(pr['closed_at'], '%Y-%m-%dT%H:%M:%SZ')
             # if no previous, or newer previous, store this pr
             if prev is None or pr['closed_at'] < prev['closed_at']:
