@@ -1248,13 +1248,14 @@ class PavloviaProject(dict):
             infoStream = getInfoStream()
         if infoStream:
             infoStream.write("Pushing to Pavlovia for the first time...\n")
-        # construct initial commit
-        self.stageFiles(infoStream=infoStream)
-        info = self.commit(
-            _translate("Push initial project files")
-        )
-        if infoStream and len(info):
-            infoStream.write("{}\n".format(info))
+        # construct initial commit (if not already committed)
+        diffs = self.stageFiles(infoStream=infoStream)
+        if diffs:
+            info = self.commit(
+                _translate("Push initial project files")
+            )
+            if infoStream and len(info):
+                infoStream.write("{}\n".format(info))
         # push
         info = self.repo.git.push('-u', self.remoteWithToken, 'master')
         self.project.attributes['default_branch'] = 'master'
@@ -1395,6 +1396,8 @@ class PavloviaProject(dict):
             except git.exc.GitCommandError:
                 if infoStream:
                     infoStream.SetValue(traceback.format_exc())
+            
+            return len(files)
         else:
             diffsDict, diffsList = self.getChanges()
             if diffsDict['untracked']:
@@ -1403,6 +1406,8 @@ class PavloviaProject(dict):
                 self.repo.git.add(diffsDict['deleted'])
             if diffsDict['changed']:
                 self.repo.git.add(diffsDict['changed'])
+
+            return len(diffsList)
 
     def getStagedFiles(self):
         """Retrieves the files that are already staged ready for commit"""
