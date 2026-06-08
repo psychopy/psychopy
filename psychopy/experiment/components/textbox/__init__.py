@@ -24,7 +24,7 @@ class TextboxComponent(BaseVisualComponent):
 
     def __init__(self, exp, parentName, name='textbox',
                  # effectively just a display-value
-                 text=_translate('Any text\n\nincluding line breaks'),
+                 text=_translate('Text can be **bold**, *italic*, ***bold italic*** or [color=red]colorful[/color]. To use a regular asterisk, remember to \*escape\* it.\n\nLine breaks are allowed!'),
                  placeholder=_translate("Type here..."),
                  font='Arial', units='from exp settings', bold=False, italic=False,
                  color='white', colorSpace='rgb', opacity="",
