@@ -75,9 +75,9 @@ class SoundDeviceSpeakerDevice(BaseSpeakerDevice):
         self.index = index
 
         # store playback prefs
+        self.stream = None
         self.resample = resample
         self.latencyClass = latencyClass
-        self._sampleRateHz = None  # will be set when we create a stream for this device
         # create stream
         # self.createStream()
         # start off open
@@ -100,10 +100,10 @@ class SoundDeviceSpeakerDevice(BaseSpeakerDevice):
         Sample rate of the speaker device, in Hz (`int` or `None` if not known).
 
         """
-        if self._sampleRateHz is None:
+        if self.stream is None:
             return None
         
-        return self._sampleRateHz
+        return self.stream.samplerate
     
     def createStream(self):
         """
@@ -136,9 +136,6 @@ class SoundDeviceSpeakerDevice(BaseSpeakerDevice):
             raise DeviceNotConnectedError(
                 _translate(msg),
                 deviceClass=SoundDeviceSpeakerDevice)
-        
-        # get settings
-        self._sampleRateHz = self.stream.samplerate
     
     def open(self):
         """
@@ -259,6 +256,7 @@ class SoundDeviceSpeakerDevice(BaseSpeakerDevice):
         for dev in foundeDevices:
             profile = {
                 'deviceName': dev.get('DeviceName', "Unknown Speaker"),
+                'deviceClass': "psychopy.hardware.speaker.SpeakerDevice",
                 'index': dev.get('DeviceIndex', None),
                 'name': dev.get('DeviceName', None)
             }
