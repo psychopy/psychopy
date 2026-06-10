@@ -54,7 +54,7 @@ def generateScript(exp, outfile, target="PsychoPy"):
     # if version is not specified then don't touch useVersion at all
     version = exp.settings.params['Use version'].val
     # if useVersion is different to installed version...
-    if version not in [None, 'None', '', __version__]:
+    if version not in [None, 'None', '', __version__, "latest"]:
         # make sure we have a legacy save file
         if not Path(exp.legacyFilename).is_file():
             exp.saveToXML(filename=exp.filename)
@@ -112,7 +112,7 @@ def compileScript(infile=None, version=None, outfile=None):
         """
 
         # Set version
-        if version:
+        if version not in (None, "", "latest"):
             from psychopy import useVersion
             useVersion(version)
 

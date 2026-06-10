@@ -738,7 +738,7 @@ class SettingsComponent:
         return self.getType().replace('Component', '')
 
     def writeUseVersion(self, buff):
-        if self.params['Use version'].val:
+        if self.params['Use version'].val not in (None, "", "latest"):
             code = ('\nimport psychopy\n'
                     'psychopy.useVersion({})\n\n')
             val = repr(self.params['Use version'].val)
