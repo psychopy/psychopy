@@ -20,6 +20,8 @@ from .exceptions import DeviceNotConnectedError
 from psychopy.tools import systemtools as st
 from psychopy.tools.attributetools import AttributeGetSetMixin
 from .base import BaseDevice
+from psychopy.hardware import DeviceManager
+from psychopy.constants import NOT_STARTED
 
 
 def _findPossiblePorts():
@@ -57,6 +59,87 @@ def _findPossiblePorts():
 
 # map out all ports on this device, to be filled as serial devices are initialised
 ports = {port: None for port in _findPossiblePorts()}
+
+
+class SerialOut(AttributeGetSetMixin):
+    """
+    Wrapper around SerialDevice which handles Builder specific stuff (e.g. started/active/stopped 
+    status) on a per-Component basis
+    """
+
+    def __init__(self, device, autolog=True):
+        if isinstance(device, SerialDevice):
+            # if given a serial device
+            self.device = device
+        # if given a string, get via DeviceManager
+        if isinstance(device, str):
+            if device in DeviceManager.devices:
+                self.device = DeviceManager.getDevice(device)
+            else:
+                # don't use formatted string literals in _translate()
+                raise ValueError(_translate(
+                    "Could not find device named '{device}', make sure it has been set up "
+                    "in DeviceManager."
+                ).format(device))
+        # set an initial status
+        self.status = NOT_STARTED
+        # set autolog
+        self.autolog = autolog
+    
+    def __getattr__(self, name):
+        try:
+            # try as normal first
+            return getattr(self, name)
+        except AttributeError as err:
+            if hasattr(self.device, name):
+                # if this instance doesn't have the attribute but the device does, warn and use that
+                logging.warn(
+                    f"SerialOut has no attribute {name}, but SerialDevice does, so using "
+                    f"SerialDevice.{name}. To silence this message, use `.device.{name}` instead."
+                )
+                return getattr(self.device, name)
+            else:
+                # if it just doesn't have the attribute, fail as normal
+                raise err
+    
+    @property
+    def com(self):
+        return self.device.com
+    
+    @property
+    def portString(self):
+        return self.device.portString
+
+    def pause(self):
+        """Pause for a default period for this device
+        """
+        self.device.pause()
+    
+    def sendMessage(self, message, autoLog=True):
+        return self.device.sendMessage(
+            message, 
+            autoLog=autoLog
+        )
+    
+    def getResponse(self, length=1, timeout=0.1, autoLog=True):
+        return self.device.getResponse(
+            length=length, 
+            timeout=timeout, 
+            autoLog=autoLog
+        )
+
+    def awaitResponse(self, multiline=False, timeout=None):
+        return self.device.awaitResponse(
+            self,
+            multiline=multiline,
+            timeout=timeout
+        )
+
+    def isAwake(self):
+        return self.device.isAwake()
+    
+    def isOpen(self):
+        return self.device.isOpen()
 
 
 class SerialDevice(BaseDevice, AttributeGetSetMixin):
@@ -113,10 +196,7 @@ class SerialDevice(BaseDevice, AttributeGetSetMixin):
         self.com = None
         self.OK = False
         self.maxAttempts = maxAttempts
-        if type(eol) is bytes:
-            self.eol = eol
-        else:
-            self.eol = bytes(eol, 'utf-8')
+        self.eol = eol
         self.type = self.name  # for backwards compatibility
 
         # try to open the port
@@ -187,6 +267,18 @@ class SerialDevice(BaseDevice, AttributeGetSetMixin):
             )
         # we aren't in a time-critical period so flush messages
         logging.flush()
+    
+    @property
+    def eol(self):
+        return self._eol
+
+    @eol.setter
+    def eol(self, value):
+        # coerce to bytes
+        if type(value) is not bytes:
+            value = bytes(value, "utf-8")
+        # set
+        self._eol = value
 
     def isAwake(self):
         """This should be overridden by the device class
@@ -216,8 +308,15 @@ class SerialDevice(BaseDevice, AttributeGetSetMixin):
             inStr = self.com.read(self.com.inWaiting())
             msg = "Sending '%s' to %s but found '%s' on the input buffer"
             logging.warning(msg % (message, self.name, inStr))
-        if type(message) is not bytes:
+        # transform string input into bytes
+        if isinstance(message, str):
             message = bytes(message, 'utf-8')
+        # transform integers into bytes via bytearray
+        if isinstance(message, int):
+            message = bytes(bytearray([message]))
+        # transform arrays into bytearray
+        if isinstance(message, (list, tuple)):
+            message = bytearray(message)
         if not message.endswith(self.eol):
             message += self.eol  # append a newline if necess
         self.com.write(message)

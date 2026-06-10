@@ -2,51 +2,74 @@
 # -*- coding: utf-8 -*-
 
 """
-Demo to illustrate Dialog (Dlg) classes and usage.
+Shows how to use the psychopy.gui to present the users with a dialog box to get info from them.
+
+The contents of this file are in the public domain.
 """
 
 from psychopy import gui  # Fetch default gui handler (qt if available)
 from psychopy import __version__ # Get the PsychoPy version currently in use
+from numpy import random
 ## You can explicitly choose one of the qt/wx backends like this:
 ## from psychopy.gui import wxgui as gui
 ## from psychopy.gui import qtgui as gui
 
-# Specify fields for dlg as a dict
-info = {'Observer':'jwp', 
-    'Condition':['A', 'B'],
+# specify fields for dlg as a dict
+info = {
+    # strings and numbers will show as an editable text field
+    'Observer': "jwp", 
     'Grating Orientation': 45, 
-    'PsychoPy Version': __version__,
-    'Debug Mode': True}
-# Use this dict to create the dlg
-infoDlg = gui.DlgFromDict(dictionary=info, 
-    title='TestExperiment',
-    order=['PsychoPy Version', 'Observer'],
-    tip={'Observer': 'trained visual observer, initials'},
-    fixed=['PsychoPy Version'])  # This attribute can't be changed by the user
-# Script will now wait for the dlg to close...
+    # lists will show as a dropdown of choices
+    'Condition': ["A", "B"],
+    # using a | symbol in the field name lets you tell PsychoPy that the field is...
+    # ...required (|req)
+    'Session ID|req': "",
+    # ...fixed, so the user can't change the value
+    'PsychoPy Version|fix': __version__,
+    # ...a configuration parameter, to be hidden behind a "read more" tag (|cgf)
+    'Debug Mode|cfg': True,
+    # ...or hidden from the user entirely (|hid)
+    'uid|hid': random.randint(0, 100000)
+}
 
-if infoDlg.OK:  # This will be True if user hit OK...
+# create a dialog from the dict
+infoDlg = gui.DlgFromDict(
+    dictionary=info, 
+    # this sets a title in the dialog's sash
+    title="Test experiment",
+    # this dict sets tooltips which are displayed on hover
+    tip={
+        'Observer': "Trained visual observer, initials"
+    }
+)
+
+# this will be True if the user clicked OK and False if they clicked Cancel
+if infoDlg.OK:
     print(info)
-else: # ...or False, if they hit Cancel
+else: 
     print('User Cancelled')
 
-## You could also use a gui.Dlg and you manually extract the data, this approach gives more 
+
+## you could also use a gui.Dlg and you manually extract the data, this approach gives more 
 ## control, eg, text color.
 
-# Create dlg
-dlg = gui.Dlg(title="My experiment", pos=(200, 400))
-# Add each field manually
-dlg.addText('Subject Info', color='Blue')
-dlg.addField('Name:', tip='or subject code')
+
+# create dlg
+dlg = gui.Dlg(
+    title="Test experiment",
+    pos=(200, 400)
+)
+# add each field manually
+dlg.addText('Subject Info', color="Blue")
+dlg.addField('Name:', tip="or subject code")
 dlg.addField('Age:', 21)
-dlg.addText('Experiment Info', color='Blue')
+dlg.addText('Experiment Info', color="Blue")
 dlg.addField('', 45)
-# Call show() to show the dlg and wait for it to close (this was automatic with DlgFromDict
+# call show() to show the dlg and wait for it to close (this was automatic with DlgFromDict)
 thisInfo = dlg.show()
 
-if dlg.OK: # This will be True if user hit OK...
+# this will be True if the user clicked OK and False if they clicked Cancel
+if dlg.OK:
     print(thisInfo)
 else:
-    print('User cancelled') # ...or False, if they hit Cancel
-
-## The contents of this file are in the public domain.
+    print('User cancelled')

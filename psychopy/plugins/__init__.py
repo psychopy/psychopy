@@ -83,17 +83,20 @@ def getEntryPointGroup(group, subgroups=False):
     """
     # start off with no entry points or sections
     entryPoints = []
-
-    if subgroups:
-        # if searching subgroups, iterate through entry point groups
-        for thisGroup, eps in importlib.metadata.entry_points().items():
-            # get entry points within matching group
-            if thisGroup.startswith(group):
-                # add to list of all entry points
-                entryPoints += eps
+    # handle difference between importlib.metadata 5.0 and previous versions
+    all = importlib.metadata.entry_points()
+    if isinstance(all, dict):
+        groups = list(all)
     else:
-        # otherwise, just get the requested group
-        entryPoints += importlib.metadata.entry_points().get(group, [])
+        groups = all.groups
+    # filter groups
+    if subgroups:
+        groups = [g for g in groups if g.startswith(group)]
+    else:
+        groups = [g for g in groups if g == group]
+    # append entry points
+    for g in groups:
+        entryPoints += importlib.metadata.entry_points(group=g)
 
     return entryPoints
 
@@ -844,7 +847,7 @@ def loadPlugin(plugin):
                 _registerBuilderStandaloneRoutine(ep)
             elif fqn == 'psychopy.hardware.photometer':  # photometer
                 _registerPhotometer(ep)
-            elif fqn == "psychopy.app.themes.icons":
+            elif fqn == "psychopy_app.themes.icons":
                 # get module folder
                 folder = Path(ep.__file__).parent
                 # add all matching .png files from that folder
