@@ -1,37 +1,42 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 """
-Demo: show a very basic program: hello world
+Show a very basic program: hello world.
+
+The contents of this file are in the public domain.
 """
 
-# Import key parts of the PsychoPy library:
+# import key parts of the PsychoPy library:
 from psychopy import visual, core
 
-# Create a visual window:
-win = visual.Window(units="height")
+# create a visual window:
+win = visual.Window(
+    size=[800, 800],
+    units="height"
+)
 
-# Create (but not yet display) some text:
+# create (but not yet display) some text:
 msg1 = visual.TextBox2(win, 
-    text=u"Hello world!", 
-    font="Open Sans", letterHeight=0.1,
-    pos=(0, 0.2)) 
+    text="Hello world!", 
+    letterHeight=0.08,
+    # position this one slightly above the middle of the screen
+    pos=(0, 0.2)
+) 
 msg2 = visual.TextBox2(win, 
-    text=u"\u00A1Hola mundo!", 
-    font="Open Sans", letterHeight=0.1, 
-    pos=(0, -0.2))
+    text="¡Hola mundo!", 
+    letterHeight=0.08,
+    # position this one slightly below the middle of the screen
+    pos=(0, -0.2)
+)
 
-# Draw the text to the hidden visual buffer:
+# draw the text to the hidden visual buffer:
 msg1.draw()
 msg2.draw()
 
-# Show the hidden buffer--everything that has been drawn since the last win.flip():
+# show the hidden buffer - everything that has been drawn since the last win.flip():
 win.flip()
 
-# Wait 3 seconds so people can see the message, then exit gracefully:
+# wait 3 seconds so people can see the message
 core.wait(3)
 
+# exit gracefully
 win.close()
 core.quit()
-
-# The contents of this file are in the public domain.

@@ -2,7 +2,7 @@
 [project]
 name = "psychopy"
 dynamic = ["version"]
-requires-python = ">=3.10, <3.12"
+requires-python = ">=3.10, <3.13"
 description = "PsychoPy provides easy, precise, flexible experiments in behavioural sciences"
 readme ={file = "README.md", content-type = "text/markdown"}
 authors = [
@@ -38,9 +38,10 @@ dependencies = [
     "xmlschema",
     # for core stimuli
     "soundfile",
+    "sounddevice",
+    "psychtoolbox",
     "imageio",
     "imageio-ffmpeg",
-    "psychtoolbox<3.0.20; platform_machine!='arm64'",
     # for iohub
     "pywinhook; platform_system == \"Windows\"",
     "zope.event==5.0",  # py2app+gevent complains about zope.event 5.1
@@ -115,12 +116,9 @@ building = [
     "polib",
 ]
 suggested = [
-    "sounddevice",
     "pylsl>=1.16.1", # lab streaming layer for general connectivity
     "xlwt",  # writing excel files with pandas
     "h5py",  # to read hdf5 files for analysis
-    "tobii_research",
-    "badapted>=0.0.3",
     "egi-pynetstation>=1.0.0",
     "pyxid2>=1.0.5",
     "Phidget22",

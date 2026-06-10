@@ -4,48 +4,56 @@
 """
 Demo of CustomMouse(), showing movement limits, click detected upon release,
 and ability to change the pointer.
+
+The contents of this file are in the public domain.
 """
-# authors Jeremy Gray & Todd Parsons
 
-from psychopy import visual, event
+from psychopy import core, visual, event
+from psychopy.demos.coder import assetsFolder
 
-# Create window
-win = visual.Window(units="height")
+# create window
+win = visual.Window(
+    units="height"
+)
+# hide the default mouse
+win.mouseVisible = False
+# setup an experiment clock
+clock = core.Clock()
+# create a mouse object
+mouse = event.Mouse()
+# put some instructions on screen
+instr = visual.TextBox2(
+    win,
+    text=(
+        "I, the wizard of PsychoPy, have transformed your mouse into a horse!\n"
+        "\n"
+        "Click to exit."
+    ),
+    alignment="center",
+    autoDraw=True
+)
+# this is the object to use for your pointer, it can be anything with a pos/size 
+# (so basically any visual stimulus)
+pointer = visual.TextBox2(
+    win,
+    # let's use unicode and a custom font to draw a little horsey for our mouse marker...
+    text="♞",
+    font="Noto Sans Symbols 2",
+    letterHeight=0.1,
+    # use a center anchor and center alignment, so that the text is on the same point as .pos
+    alignment="center",
+    anchor="center",
+    # the mouse will use the same units as the window, so make sure the pointer uses these units too
+    units="height",
+    autoDraw=True
+)
+pointer.fontMGR.addFontFile(
+    assetsFolder / "NotoSansSymbols2.ttf"
+)
 
-# Create a virtual mouse
-vm = visual.CustomMouse(win,
-    leftLimit=-0.2, topLimit=0, rightLimit=0.2, bottomLimit=-0.4,
-    showLimitBox=True, clickOnUp=True)
-# Textbox for instructions
-instr = visual.TextBox2(win, 
-    text="Move the mouse around. Click to give the mouse more room to move.",
-    font="Open Sans", letterHeight=0.08,
-    pos=(0, .3))
-# Create a character to use as mouse
-new_pointer = visual.TextStim(win, 
-    text=u'\u265e', 
-    font="Gothic A1")
-print("[getPos] [getWheelRel] click time")
-# Listen for clicks
-while not event.getKeys():
-    # Draw components
-    instr.draw()
-    vm.draw()
+# start the frame loop (run until user clicks)
+while not any(mouse.getPressed()):
+    # set the pointer object to have the same position as the mouse
+    pointer.pos = mouse.getPos()
+    # draw and flip
     win.flip()
-    # Check for clicks
-    if vm.getClicks():
-        vm.resetClicks()
-        # Print click details
-        print("click at [%.2f, %.2f]" % (vm.getPos()[0], vm.getPos()[1]))
-        print(vm.getWheelRel())
-        print("%.3f sec"%vm.mouseMoveTime())
-        # can set some limits, others are unchanged:
-        vm.setLimit(leftLimit=-0.5, topLimit=0.1, rightLimit=0.5, bottomLimit=-0.4,)
-        instr.text = "Room to gallop! Press any key to quit."
-
-        # can switch the pointer to anything with a .draw() and setPos() method
-        vm.pointer = new_pointer
-
-win.close()
-
-# The contents of this file are in the public domain.

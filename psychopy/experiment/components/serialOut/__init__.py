@@ -148,8 +148,9 @@ class SerialOutComponent(BaseDeviceComponent):
         code = (
             "\n"
             "# point %(name)s to device named %(deviceLabel)s and make sure it's open\n"
-            "%(name)s = deviceManager.getDevice(%(deviceLabel)s)\n"
-            "%(name)s.status = NOT_STARTED\n"
+            "%(name)s = SerialOut(\n"
+            "    device=%(deviceLabel)s\n"
+            ")\n"
             "if not %(name)s.com.is_open:\n"
             "    %(name)s.com.open()\n"
         )
@@ -159,8 +160,6 @@ class SerialOutComponent(BaseDeviceComponent):
         params = copy(self.params)
         # Get containing loop
         params['loop'] = self.currentLoop
-        
-
         # On component start, send start bits
         indented = self.writeStartTestCode(buff)
         if indented:
@@ -168,7 +167,7 @@ class SerialOutComponent(BaseDeviceComponent):
             if params['startDataType'] == "str":
                 params['startData'] = params['startDataStr']
             elif params['startDataType'] == "num":
-                params['startData'] = "bytes(chr(%(startDataNumeric)s), 'utf-8')" % params
+                params['startData'] = params['startDataNumeric']
             elif params['startDataType'] == "binary":
                 params['startData'] = "0b%(startDataBinary)s" % params
             elif params['startDataType'] == "char":
@@ -189,7 +188,7 @@ class SerialOutComponent(BaseDeviceComponent):
             buff.writeIndented(code % params)
             # store code that was sent
             code = (
-                "%(loop)s.addData('%(name)s.stopData', %(startData)s)\n"
+                "%(loop)s.addData('%(name)s.startData', %(startData)s)\n"
             )
             buff.writeIndented(code % params)
             # update status
@@ -213,7 +212,7 @@ class SerialOutComponent(BaseDeviceComponent):
             if params['stopDataType'] == "str":
                 params['stopData'] = params['stopDataStr']
             elif params['stopDataType'] == "num":
-                params['stopData'] = "bytes(bytearray([%(stopDataNumeric)s]))" % params
+                params['stopData'] = params['stopDataNumeric']
             elif params['stopDataType'] == "binary":
                 params['stopData'] = "0b%(stopDataBinary)s" % params
             elif params['stopDataType'] == "char":
@@ -273,12 +272,19 @@ class SerialDeviceBackend(DeviceBackend):
         # define order
         self.order += [
             "timeout",
+            "eol"
         ]
 
         self.params['timeout'] = Param(
             "", valType='code', inputType="single",
             hint=_translate("Time at which to give up listening for a response (leave blank for no limit)"),
             label=_translate("Timeout")
+        )
+
+        self.params['eol'] = Param(
+            "$'\\n'", valType="str", inputType="single", categ="Basic",
+            label=_translate("EOL (end-of-line) character"),
+            hint=_translate("Character automatically added to end of each message - leave blank for no EOL")
         )
 
         # -- Override params ---
@@ -351,6 +357,7 @@ class SerialDeviceBackend(DeviceBackend):
         buff.writeIndentedLines(code)
         # add pause and close
         code = (
+            "    eol=%(eol)s,\n"
             "    pauseDuration=(%(timeout)s or 0.1) / 3,\n"  
             ")\n"
         )

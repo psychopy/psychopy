@@ -22,7 +22,7 @@ from packaging.version import Version
 
 from psychopy import logging, prefs, exceptions
 from psychopy.tools.filetools import DictStorage, KnownProjects
-from psychopy import app
+import psychopy_app as app
 from psychopy.localization import _translate
 import wx
 
@@ -564,7 +564,7 @@ class PavloviaSession:
             except gitlab.exceptions.GitlabAuthenticationError as err:
                 if refreshToken is None:
                     # if there isn't a refresh token, log back in from scratch to get one
-                    from psychopy.app.pavlovia_ui.functions import logInPavlovia
+                    from psychopy_app.pavlovia_ui.functions import logInPavlovia
                     logInPavlovia(None)
                     return
                 # refresh auth token
@@ -1248,13 +1248,14 @@ class PavloviaProject(dict):
             infoStream = getInfoStream()
         if infoStream:
             infoStream.write("Pushing to Pavlovia for the first time...\n")
-        # construct initial commit
-        self.stageFiles(infoStream=infoStream)
-        info = self.commit(
-            _translate("Push initial project files")
-        )
-        if infoStream and len(info):
-            infoStream.write("{}\n".format(info))
+        # construct initial commit (if not already committed)
+        diffs = self.stageFiles(infoStream=infoStream)
+        if diffs:
+            info = self.commit(
+                _translate("Push initial project files")
+            )
+            if infoStream and len(info):
+                infoStream.write("{}\n".format(info))
         # push
         info = self.repo.git.push('-u', self.remoteWithToken, 'master')
         self.project.attributes['default_branch'] = 'master'
@@ -1395,6 +1396,8 @@ class PavloviaProject(dict):
             except git.exc.GitCommandError:
                 if infoStream:
                     infoStream.SetValue(traceback.format_exc())
+            
+            return len(files)
         else:
             diffsDict, diffsList = self.getChanges()
             if diffsDict['untracked']:
@@ -1403,6 +1406,8 @@ class PavloviaProject(dict):
                 self.repo.git.add(diffsDict['deleted'])
             if diffsDict['changed']:
                 self.repo.git.add(diffsDict['changed'])
+
+            return len(diffsList)
 
     def getStagedFiles(self):
         """Retrieves the files that are already staged ready for commit"""

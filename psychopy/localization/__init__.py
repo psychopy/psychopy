@@ -5,7 +5,7 @@
 
 Sets the locale value as a wx languageID (int) and initializes gettext
 translation _translate():
-    from psychopy.app import localization
+    from psychopy import localization
 """
 
 # Part of the PsychoPy library

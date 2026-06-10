@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 """
 PsychoPy's log module is mostly a simple wrapper of the python logging module.
@@ -17,17 +15,26 @@ The importance levels are
     20: INFO
     10: DEBUG
 So setting to DEBUG level will include all possible messages, setting to ERROR will include only the absolutely essential messages.
+
+The contents of this file are in the public domain.
 """
 
 from psychopy import logging, core, visual
 
-globalClock = core.Clock()  # if this isn't provided the log times will reflect secs since python started
+# if this isn't provided the log times will reflect secs since python started
+globalClock = core.Clock()  
 logging.setDefaultClock(globalClock)
 
-logging.console.setLevel(logging.DEBUG)  # receive nearly all messages
-logDat = logging.LogFile('logLastRun.log',
-    filemode='w',  # if you set this to 'a' it will append instead of overwriting
-    level=logging.WARNING)  # errors, data and warnings will be sent to this logfile
+# set console to receive nearly all messages
+logging.console.setLevel(logging.DEBUG)
+# create a log file object
+logDat = logging.LogFile(
+    'logLastRun.log',
+    # if you set this to 'a' it will append instead of overwriting
+    filemode='w',
+    # errors, data and warnings will be sent to this logfile
+    level=logging.WARNING
+)
 
 # the following will go to any files with the appropriate minimum level set
 logging.info('Something fairly unimportant')
@@ -36,7 +43,7 @@ logging.warning('Handy while building your experiment - highlights possible flaw
 logging.error("You might have done something that PsychoPy can't handle! But hopefully this gives you some idea what.")
 
 # some things should be logged timestamped on the next video frame
-# For instance the time of a stimulus appearing is related to the flip:
+# for instance the time of a stimulus appearing is related to the flip:
 win = visual.Window([400, 400])
 for n in range(5):
     win.logOnFlip('frame %i occured' %n, level=logging.EXP)
@@ -51,5 +58,3 @@ logDat.write("Testing\n\n")
 
 win.close()
 core.quit()
-
-# The contents of this file are in the public domain.

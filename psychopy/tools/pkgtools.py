@@ -213,7 +213,7 @@ def installPackage(
 
     Returns
     -------
-    tuple or psychopy.app.jobs.Job
+    tuple or psychopy_app.jobs.Job
         If `awaited=True`:
             `True` if the package installed without errors. If `False`, check
             'stderr' for more information. The package may still have installed
@@ -285,10 +285,10 @@ def installPackage(
     # if unawaited, try to get jobs handler
     if not awaited:
         try:
-            from psychopy.app import jobs
+            from psychopy_app import jobs
         except ModuleNotFoundError:
             logging.warn(_translate(
-                "Could not install package {} asynchronously as psychopy.app.jobs is not found. "
+                "Could not install package {} asynchronously as psychopy_app.jobs is not found. "
                 "Defaulting to synchronous install."
             ).format(package))
             awaited = True

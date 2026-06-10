@@ -1,3 +1,4 @@
+import logging
 from i18next import config, trans
 from pathlib import Path
 import locale
@@ -31,6 +32,12 @@ def setLocale(value):
     # if requested system, get system locale
     if value in (None, "system locale", "system"):
         value = locale.getdefaultlocale()[0]
+    # use English as a fallback if locale is undetectable
+    if value is None:
+        logging.warning(
+            "Could not detect system locale, using en-US"
+        )
+        value = "en-US"
     # sanitize
     value = value.replace("_", "-")
     # set

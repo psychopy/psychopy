@@ -75,6 +75,7 @@ class SoundDeviceSpeakerDevice(BaseSpeakerDevice):
         self.index = index
 
         # store playback prefs
+        self.stream = None
         self.resample = resample
         self.latencyClass = latencyClass
         # create stream
@@ -92,6 +93,17 @@ class SoundDeviceSpeakerDevice(BaseSpeakerDevice):
             able to play sounds on the same speaker.
         """
         return self.latencyClass >= 2
+    
+    @property
+    def sampleRateHz(self):
+        """
+        Sample rate of the speaker device, in Hz (`int` or `None` if not known).
+
+        """
+        if self.stream is None:
+            return None
+        
+        return self.stream.samplerate
     
     def createStream(self):
         """
@@ -244,6 +256,7 @@ class SoundDeviceSpeakerDevice(BaseSpeakerDevice):
         for dev in foundeDevices:
             profile = {
                 'deviceName': dev.get('DeviceName', "Unknown Speaker"),
+                'deviceClass': "psychopy.hardware.speaker.SpeakerDevice",
                 'index': dev.get('DeviceIndex', None),
                 'name': dev.get('DeviceName', None)
             }
