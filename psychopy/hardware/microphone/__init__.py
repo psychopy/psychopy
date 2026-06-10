@@ -23,14 +23,14 @@ try:
         backend = backend[0]
 except (KeyError, IndexError):
     logging.warning(
-        "Audio library preference not found or empty, defaulting to 'sounddevice' for "
+        "Audio library preference not found or empty, defaulting to 'ptb' for "
         "audio capture. Check the 'audioLib' preference to ensure it is set to a "
         "valid audio library."
     )
     backend = 'ptb'
 
 # select backend microphone device class based on audio library preference
-if backend in ('sounddevice'):  # sounddevice backend
+if backend in ('sounddevice',):  # sounddevice backend
     from .microphone_soundevice import SoundDeviceMicrophoneDevice
     MicrophoneDevice = SoundDeviceMicrophoneDevice
 elif backend in ('ptb', 'default'):  # psychtoolbox backend

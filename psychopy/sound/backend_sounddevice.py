@@ -334,7 +334,6 @@ class _SoundStream:
             del self._sdStream
         if hasattr(sys, 'stdout'):
             sys.stdout.flush()
-        atexit.unregister(self.__del__)
 
 
 class SoundDeviceSound(_SoundBase):
@@ -454,6 +453,7 @@ class SoundDeviceSound(_SoundBase):
 
         self._isStarted = False
         self._isPlaying = False
+        self._isFinished = False
 
     @property
     def isPlaying(self):
@@ -481,6 +481,22 @@ class SoundDeviceSound(_SoundBase):
             self.__dict__['channels'] = 1
         elif val == -1:
             self.__dict__['channels'] = -1
+
+    @property
+    def sampleRateHz(self):
+        """Get the sample rate of the sound stream, in Hz.
+
+        This is an alias of the `sampleRate` property, provided for compatibility 
+        with other backends.
+
+        Returns
+        -------
+        float or None
+            Sample rate of the sound stream, in Hz. Returns `None` if the sample 
+            rate is not known (e.g., if the stream has not been created yet).
+
+        """
+        return self.sampleRate
 
     def setSound(self, value, secs=0.5, octave=4, hamming=None, log=True):
         """Set the sound to be played.
@@ -537,7 +553,6 @@ class SoundDeviceSound(_SoundBase):
             self.blockSize = s.blockSize
 
         self.streamLabel = label
-        self._isStarted = True
 
         if hamming is None:
             hamming = self.hamming
@@ -608,6 +623,17 @@ class SoundDeviceSound(_SoundBase):
         self.seek(0)
         self.sourceType = "array"
 
+    @property
+    def isPlaying(self):
+        """`True` if the audio playback is ongoing."""
+        # This will update _isPlaying if sound has stopped by _EOS()
+        return self._isPlaying
+
+    @property
+    def isFinished(self):
+        """`True` if the audio playback has completed."""
+        return self._isFinished
+
     def _channelCheck(self, array):
         """Checks whether stream has fewer channels than data. If so, raises an error 
         with instructions to user.
@@ -630,6 +656,7 @@ class SoundDeviceSound(_SoundBase):
         be started automatically.
 
         """
+        print("Starting stream {}...".format(self.streamLabel))
         streams[self.streamLabel].takeTimeStamp = True
         streams[self.streamLabel].add(self)
         self._isStarted = True
@@ -686,7 +713,7 @@ class SoundDeviceSound(_SoundBase):
         streams[self.streamLabel].remove(self)
         # eventually we will keep the stream 'hot' and `stop` will actually 
         # stop the stream and reset to the beginning
-        self._isPlaying = self._isStarted = False
+        self._isPlaying = False
 
     def stop(self, reset=True):
         """Stop the sound and return to beginning.
@@ -826,11 +853,10 @@ class SoundDeviceSound(_SoundBase):
         self._loopsFinished += 1
         if self.loops == 0:
             self.stop(reset=reset)
+            self._isFinished = True
         elif self.loops > 0 and self._loopsFinished >= self.loops:
             self.stop(reset=reset)
-
-        streams[self.streamLabel].remove(self)
-        self._isPlaying = False
+            self._isFinished = True
 
     @property
     def stream(self):
