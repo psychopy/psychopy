@@ -229,6 +229,12 @@ class BaseLightSensorGroup(base.BaseResponseDevice):
             fillColor="white",
             autoDraw=False
         )
+        # store last good size/pos
+        lastGood = {
+            'units': rect.units,
+            'size': list(rect.size),
+            'pos': list(rect.pos)
+        }
 
         # if not given a channel, use first one which is responsive to the win
         if channel is None:
@@ -296,6 +302,10 @@ class BaseLightSensorGroup(base.BaseResponseDevice):
                 if self.getState(channel):
                     # mark that we've got a response
                     responsive = True
+                    # update last good size/pos
+                    lastGood['units'] = rect.units
+                    lastGood['size'] = list(rect.size)
+                    lastGood['pos'] = list(rect.pos)
                     # if it detected this rectangle, recur
                     return scanQuadrants(responsive=responsive)
             # if none of these have returned, rect is too small to cover the whole light sensor, so return
@@ -420,13 +430,13 @@ class BaseLightSensorGroup(base.BaseResponseDevice):
         win.flip()
 
         # set size/pos/units
-        self.units = "norm"
-        self.size = rect.size * 2
-        self.pos = rect.pos
+        self.units = lastGood['units']
+        self.size = lastGood['size']
+        self.pos = lastGood['pos']
 
         return (
-            layout.Position(self.pos, units="norm", win=win),
-            layout.Position(self.size, units="norm", win=win),
+            layout.Position(lastGood['pos'], units="norm", win=win),
+            layout.Position(lastGood['size'], units="norm", win=win),
         )
 
     def findThreshold(self, win, channel=None):
