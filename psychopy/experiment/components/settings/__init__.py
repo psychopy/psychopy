@@ -155,7 +155,7 @@ class SettingsComponent:
         self.order = [
                       'expName', 'expVersion',
                       'Audio lib', "Force stereo",  # Audio tab
-                      'HTML path', 'exportHTML', 'Completed URL', 'Incomplete URL', 'End Message', 'Resources',  # Online tab
+                      'exportHTML', 'Completed URL', 'Incomplete URL', 'End Message', 'Resources',  # Online tab
                       ]
         self.depends = []
 
@@ -501,16 +501,6 @@ class SettingsComponent:
                 "format) or seconds since experiment start (as a float)."
             )
         )
-
-        # HTML output params
-        # self.params['OSF Project ID'] = ProjIDParam(
-        #     '', valType='str', # automatically updates to allow choices
-        #     hint=_translate("The ID of this project (e.g. 5bqpc)"),
-        #     label="OSF Project ID", categ='Online')
-        self.params['HTML path'] = Param(
-            '', valType='str', inputType="single", allowedTypes=[],
-            hint=_translate("Place the HTML files will be saved locally "),
-            label=_translate("Output path"), categ='Online')
         self.params['Resources'] = Param(
             [], valType='list', inputType="fileList", allowedTypes=[],
             hint=_translate("Any additional resources needed"),

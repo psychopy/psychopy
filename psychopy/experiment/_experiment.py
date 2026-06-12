@@ -1285,7 +1285,10 @@ class Experiment:
 
     @property
     def htmlFolder(self):
-        return self.settings.params['HTML path'].val
+        """
+        This was an alias for the HTML path param, which has been removed (2026.2.0). Now always returns a blank string for the points in the code still referring to it.
+        """
+        return ""
 
     def getRequiredDeviceNames(self):
         """
