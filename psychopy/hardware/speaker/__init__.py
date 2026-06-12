@@ -11,44 +11,51 @@ __all__ = [
     "SpeakerDevice",
 ]
 
-from psychopy import logging
-from psychopy import prefs
+import importlib.metadata
 
-SpeakerDevice = None  # handle for the speaker device class
 
-# select backend for speaker devices based on audio library preference
-backend = 'default'
-try:
-    backend = prefs.hardware['audioLib']
-    if isinstance(backend, (list, tuple)):
-        backend = backend[0]
-except (KeyError, IndexError, TypeError):
-    # handle if we cannot read the preference for some reason
-    logging.warn(
-        "Cannot get audio library preference from preferences, using default."
-    )
+class SpeakerDevice:
 
-if backend == 'default':   # if default, select the best available backend
-    backend = 'ptb'
+    # selected backend
+    backend = "sounddevice"
+    # known backends
+    backends = {
+        'ptb': importlib.metadata.EntryPoint(
+            name="ptb", 
+            value="psychopy.hardware.speaker.speaker_psychtoolbox:PsychtoolboxSpeakerDevice", 
+            group="psychopy.hardware.speaker.backends"
+        ),
+        'sounddevice': importlib.metadata.EntryPoint(
+            name="sounddevice", 
+            value="psychopy.hardware.speaker.speaker_sounddevice:SoundDeviceSpeakerDevice", 
+            group="psychopy.hardware.speaker.backends"
+        )
+    }
+    # alias backend names
+    backends['psychtoolbox'] = backends['ptb']
+    backends['sd'] = backends['sounddevice']
 
-# select the speaker device class based on the selected backend
-if backend in ('sounddevice',):  # sounddevice backend
-    from .speaker_sounddevice import SoundDeviceSpeakerDevice
-    SpeakerDevice = SoundDeviceSpeakerDevice
-elif backend in ('ptb', 'default'):  # psychtoolbox backend
-    from .speaker_psychtoolbox import PsychtoolboxSpeakerDevice
-    SpeakerDevice = PsychtoolboxSpeakerDevice
-else:
-    logging.error(
-        f"Unsupported audio library '{backend}' specified in preferences. Using "
-        f"'ptb' as fallback for sound output. Check the 'audioLib' preference "
-        f"to ensure it is set to a valid audio library."
-    )
-    backend = 'ptb'  # fallback to ptb for sound output if unsupported library specified
-    from .speaker_psychtoolbox import PsychtoolboxSpeakerDevice
-    SpeakerDevice = PsychtoolboxSpeakerDevice
+    def __new__(cls, *args, **kwargs):
+        # handle list
+        if isinstance(cls.backend, (list, tuple)):
+            try:
+                # try to get the first valid backend
+                cls.backend = [
+                    val for val in cls.backend if val in cls.backends
+                ][0]
+            except:
+                # otherwise get the first backend
+                cls.backend = cls.backend[0]
+        # if not present, error
+        if cls.backend not in cls.backends:
+            raise ModuleNotFoundError(
+                f"Invalid value '{cls.backend}' for {cls.__name__}.backend, known backends are: {list(cls.backends)}"
+            )
+        # import backend
+        backend = cls.backends[cls.backend].load()
 
-logging.info(f"Using '{backend}' backend for sound output devices.")
+        return backend(*args, **kwargs)
 
-if __name__ == "__main__":
-    pass
+# get sound backends from plugins
+for ep in importlib.metadata.entry_points(group="psychopy.hardware.speaker.backends"):
+    SpeakerDevice.backends[ep.name] = ep

@@ -71,11 +71,6 @@ participantIdAliases = ('participant', 'Participant', 'Subject', 'Observer')
 #         pass
 
 
-def getSoundBackends():
-    from psychopy.sound.sound import Sound
-    return list(Sound.getBackends())
-
-
 class SettingsComponent:
     """This component stores general info about how to run the experiment
     """
@@ -392,8 +387,9 @@ class SettingsComponent:
             hint=_translate("Force audio to stereo (2-channel) output"),
             label=_translate("Force stereo"))
         self.params['Audio lib'] = Param(
-            'ptb', valType='str', inputType="choice",
-            allowedVals=getSoundBackends,
+            "use prefs", valType='str', inputType="choice",
+            allowedVals=["use prefs", "ptb", "sounddevice"],
+            allowedLabels=[_translate("From preferences..."), "psychtoolbox", "sounddevice"],
             hint=_translate("Which Python sound engine do you want to play your sounds?"),
             label=_translate("Audio library"), categ='Audio')
 
