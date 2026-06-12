@@ -1596,7 +1596,7 @@ def getProject(filename):
         # remove extra slashes from project name
         projectName = projectName.replace("/", "")
         # Try to log in if not logged in
-        if not session.user:
+        if projectName in knownProjects and not session.user:
             if nameSpace in knownUsers:
                 # Log in if user is known
                 login(nameSpace, rememberMe=True)
