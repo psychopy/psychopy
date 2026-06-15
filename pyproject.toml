@@ -148,6 +148,9 @@ requires = [
 ]
 build-backend = "pdm.backend"
 
+[tool.uv]
+exclude-newer = "7 days"
+
 [tool.pdm.build]
 includes = []
 excludes = ["building/"]
