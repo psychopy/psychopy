@@ -164,6 +164,8 @@ class BaseComponent:
         # make an object for defaults
         exp = Experiment()
         defaults = cls(exp, "")
+        # store help link
+        profile['helpLink'] = getattr(defaults, 'url', None)
         # order params
         order = [
             name for name in defaults.order if name in defaults.params
