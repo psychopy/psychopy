@@ -19,24 +19,31 @@ def getEntryPoints(module, submodules=True, flatten=True):
         default True.
     """
     # start off with a blank list/dict
-    entryPointsList = []
-    entryPointsDict = {}
-    # iterate through groups
-    for group, points in importlib.metadata.entry_points().items():
-        # does this group correspond to the requested module?
-        if submodules:
-            targeted = group.startswith(module)
-        else:
-            targeted = group == module
-        # if group is targeted, add entry points
-        if targeted:
-            entryPointsList += points
-            entryPointsDict[group] = points
-    # return list or dict according to flatten arg
     if flatten:
-        return entryPointsList
+        output = []
     else:
-        return entryPointsDict
+        output = {}
+    # handle difference between importlib.metadata 5.0 and previous versions
+    all = importlib.metadata.entry_points()
+    if isinstance(all, dict):
+        groups = list(all)
+    else:
+        groups = all.groups
+    # filter groups
+    if submodules:
+        groups = [group for group in groups if group.startswith(module)]
+    else:
+        groups = [group for group in groups if group == module]
+    # get points for each group
+    for group in groups:
+        points = importlib.metadata.entry_points(group=group)
+        # append to output
+        if flatten:
+            output += points
+        else:
+            output[group] = points
+
+    return output
 
 
 class PluginRequiredError(Exception):
