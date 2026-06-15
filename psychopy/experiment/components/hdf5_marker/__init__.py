@@ -6,15 +6,15 @@ from psychopy.experiment.params import Param
 from psychopy.localization import _translate
 
 
-class EyetrackerMarkerComponent(BaseComponent):
+class HDF5MarkerComponent(BaseComponent):
     """
     Add a text marker in the hdf5 file
     """
-    categories = ['Eyetracking']
+    categories = ['I/O']
     targets = ['PsychoPy']
     version = "2026.2.0"
-    iconFile = Path(__file__).parent / 'EyetrackerMarkerComponent.png'
-    iconSVG = Path(__file__).parent / 'EyetrackerMarkerComponent.svg'
+    iconFile = Path(__file__).parent / 'HDF5MarkerComponent.png'
+    iconSVG = Path(__file__).parent / 'HDF5MarkerComponent.svg'
     tooltip = _translate('Add a text marker in the hdf5 file')
     beta = True
 
@@ -47,7 +47,7 @@ class EyetrackerMarkerComponent(BaseComponent):
             durationEstim=durationEstim
         )
         # set attributes
-        self.type = 'EyetrackerMarker'
+        self.type = 'HDF5Marker'
         self.url = "https://www.psychopy.org/builder/components/eyetracker_marker"
         self.exp.requireImport(
             importName="SimpleNamespace",
