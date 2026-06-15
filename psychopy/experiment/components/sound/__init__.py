@@ -66,6 +66,9 @@ class SoundComponent(BaseDeviceComponent):
         self.type = 'Sound'
         self.url = "https://www.psychopy.org/builder/components/sound.html"
         self.exp.requirePsychopyLibs(['sound'])
+        self.exp.requireImport(
+            importName='psychopy.hardware.speaker'
+        )
 
         # --- Basic params ---
         self.order += [
@@ -136,13 +139,27 @@ class SoundComponent(BaseDeviceComponent):
             )
         )
 
+    def writePreCode(self, buff):
+        backend = self.exp.settings.params['Audio lib'].val
+        # figure out backend
+        if backend == "use prefs":
+            # get from prefs if requested
+            code = (
+                "# set audio backend\n"
+                "sound.Sound.backend = prefs.hardware['audioLib']\n"
+                "hardware.speaker.SpeakerDevice.backend = prefs.hardware['audioLib']\n"
+            )
+        else:
+            # otherwise use exp settings
+            code = (
+                f"# set audio backend\n"
+                f"sound.Sound.backend = '{backend}'\n"
+                f"hardware.speaker.SpeakerDevice.backend = '{backend}'\n"
+            )
+        # set backend (only once per exp)
+        buff.writeOnceIndentedLines(code)
+
     def writeInitCode(self, buff):
-        # set sound backend (only once per exp)
-        code = (
-            "# set audio backend\n"
-            "sound.Sound.backend = %(Audio lib)s\n"
-        )
-        buff.writeOnceIndentedLines(code % self.exp.settings.params)
         # replaces variable params with sensible defaults
         inits = getInitVals(self.params)
         if not canBeNumeric(inits['stopVal'].val):

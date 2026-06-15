@@ -1,4 +1,5 @@
 import importlib.metadata
+from psychopy.preferences import prefs
 
 
 class Sound:
@@ -7,18 +8,54 @@ class Sound:
     implementations of Sound.
     """
     
-    # name of the backend to use for Sound objects
-    backend = "sounddevice"
+    # selected backend
+    backend = None
+    # known backends
+    backends = {
+        'ptb': importlib.metadata.EntryPoint(
+            name="ptb", 
+            value="psychopy.sound.backend_ptb", 
+            group="psychopy.sound.backends"
+        ),
+        'sounddevice': importlib.metadata.EntryPoint(
+            name="sounddevice", 
+            value="psychopy.sound.backend_sounddevice", 
+            group="psychopy.sound.backends"
+        )
+    }
+    # alias backend names
+    backends['psychtoolbox'] = backends['ptb']
+    backends['sd'] = backends['sounddevice']
 
     def __new__(cls, *args, **kwargs):
-        # get backends
-        backends = cls.getBackends()
-        # if not present, error
-        if cls.backend not in backends:
-            raise ModuleNotFoundError(f"Invalid value '{cls.backend}' for Sound.backend, known backends are: {list(backends)}")
-        # import backend
-        backend = backends[cls.backend].load()
+        backend = cls.resolveBackend()
+
         return backend.Sound(*args, **kwargs)
+
+    @classmethod
+    def resolveBackend(cls):
+        backend = cls.backend
+        # if backend is None, get from prefs
+        if backend is None:
+            backend = prefs.hardware['audioLib']
+        # handle list
+        if isinstance(backend, (list, tuple)):
+            try:
+                # try to get the first valid backend
+                backend = [
+                    val for val in backend if val in cls.backends
+                ][0]
+            except:
+                # otherwise get the first backend
+                backend = backend[0]
+        # if not present, error
+        if backend not in cls.backends:
+            raise ModuleNotFoundError(
+                f"Invalid value '{backend}' for {cls.__name__}.backend, known backends are: {list(cls.backends)}"
+            )
+
+        # import backend
+        return cls.backends[backend].load()
     
     @classmethod
     def getBackends(cls):
@@ -31,33 +68,10 @@ class Sound:
             Dict mapping backend names to backend entry points - call `.load` on an entry point to 
             import the relevant module.
         """
-        # start off with builtin backends
-        backends = {
-            ep.name: ep for ep in [
-                importlib.metadata.EntryPoint(
-                    name="ptb", 
-                    value="psychopy.sound.backend_ptb", 
-                    group="psychopy.sound.backends"
-                ),
-                importlib.metadata.EntryPoint(
-                    name="sounddevice", 
-                    value="psychopy.sound.backend_sounddevice", 
-                    group="psychopy.sound.backends"
-                ),
-                importlib.metadata.EntryPoint(
-                    name="pygame", 
-                    value="psychopy.sound.backend_pygame", 
-                    group="psychopy.sound.backends"
-                ),
-                importlib.metadata.EntryPoint(
-                    name="pysound", 
-                    value="psychopy.sound.backend_pysound", 
-                    group="psychopy.sound.backends"
-                )
-            ]
-        }
-        # get others from plugins
-        for ep in importlib.metadata.entry_points(group="psychopy.sound.backends"):
-            backends[ep.name] = ep
         
-        return backends
+        return cls.backends
+
+
+# get sound backends from plugins
+for ep in importlib.metadata.entry_points(group="psychopy.hardware.speaker.backends"):
+    Sound.backends[ep.name] = ep
