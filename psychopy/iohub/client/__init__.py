@@ -492,7 +492,7 @@ class ioHubConnection():
                                              msg_offset=offset,
                                              sec_time=sec_time))
 
-    def sendMessageEvents(self, messageList=[]):
+    def sendMessageEvents(self, messageList=None):
         if messageList:
             self.cacheMessageEvents(messageList)
         if self._message_cache:

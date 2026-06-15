@@ -821,7 +821,7 @@ class _KeyBuffer(object):
             key['time'] = evt['Time']
             self._evts.append(key)
 
-    def getKeys(self, keyList=[], ignoreKeys=[], waitRelease=True, clear=True):
+    def getKeys(self, keyList=None, ignoreKeys=None, waitRelease=True, clear=True):
         """Return the KeyPress objects from the software buffer
 
         Parameters
