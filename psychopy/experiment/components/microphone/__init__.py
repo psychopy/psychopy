@@ -77,6 +77,9 @@ class MicrophoneComponent(BaseDeviceComponent):
         self.type = 'Microphone'
         self.url = "https://www.psychopy.org/builder/components/microphone.html"
         self.exp.requirePsychopyLibs(['sound'])
+        self.exp.requireImport(
+            importName='psychopy.hardware.microphone'
+        )
 
         self.order += []
 
@@ -240,6 +243,24 @@ class MicrophoneComponent(BaseDeviceComponent):
         MicrophoneComponent.onlineTranscribers)
         """
         return {'None': "none", **self.localTranscribers, **self.onlineTranscribers}
+
+    def writePreCode(self, buff):
+        backend = self.exp.settings.params['Audio lib'].val
+        # figure out backend
+        if backend == "use prefs":
+            # get from prefs if requested
+            code = (
+                "# set audio backend\n"
+                "hardware.microphone.MicrophoneDevice.backend = prefs.hardware['audioLib']\n"
+            )
+        else:
+            # otherwise use exp settings
+            code = (
+                f"# set audio backend\n"
+                f"hardware.microphone.MicrophoneDevice.backend = '{backend}'\n"
+            )
+        # set backend (only once per exp)
+        buff.writeOnceIndentedLines(code)
 
     def writeStartCode(self, buff):
         inits = getInitVals(self.params)
