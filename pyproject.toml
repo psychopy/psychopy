@@ -84,7 +84,7 @@ dependencies = [
     "zeroconf; platform_system == \"Darwin\"",
     "python-xlib; platform_system == \"Linux\"",
     "distro; platform_system == \"Linux\"",
-    'tables!=3.9.2',  # 3.9.2 crashes on Rosetta
+    "tables",  # 3.9.2 crashes on Rosetta
     "packaging>=24.0",
     "moviepy",
     "pyarrow",
@@ -122,6 +122,7 @@ suggested = [
     "egi-pynetstation>=1.0.0",
     "pyxid2>=1.0.5",
     "Phidget22",
+    "cryptography==48.0.1,  # 49.0 failing to build on macos?
 ]
 legacy = [
     "pyo>=1.0.3",
