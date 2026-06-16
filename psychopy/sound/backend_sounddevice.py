@@ -285,6 +285,7 @@ class _SoundStream:
                 continue
 
             if thisSound.volume != 1.0:
+                dat = dat.copy()  # avoid modifying original data if we need to adjust volume
                 dat *= thisSound.volume  # Set the volume block by block
 
             datSize = len(dat)
