@@ -236,6 +236,10 @@ class Experiment:
 
     @property
     def runMode(self):
+        # handle string
+        if isinstance(self.settings.params['runMode'].val, str):
+            return self.settings.params['runMode'].val not in ("0", "False", "false")
+        
         return bool(self.settings.params['runMode'])
 
     @runMode.setter
