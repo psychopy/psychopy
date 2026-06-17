@@ -1104,19 +1104,19 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
             logging.warning(
                 "Attempted to poll samples from mic which has no stream."
             )
-            return
+            return (None, None)
         if self._stream._closed:
             logging.warning(
                 "Attempted to poll samples from mic which has been closed."
             )
-            return
+            return (None, None)
         if self._opening or self._closing:
             action = "opening" if self._opening else "closing"
             logging.warning(
                 f"Attempted to poll microphone while the stream was still {action}. Samples will be "
                 f"lost."
             )
-            return
+            return (None, None)
 
         # poll the buffer and get new audio samples
         audioData, absRecPosition, overflow, cStartTime = self._stream.get_audio_data()

@@ -182,7 +182,7 @@ class PsychtoolboxSpeakerDevice(BaseSpeakerDevice):
             raise DeviceNotConnectedError(
                 _translate(
                     "No speaker device found with {key} '{name}'"
-                ).format(name=self.name, key="name" if findByName else "index"),
+                ).format(name=self.name if findByName else self.index, key="name" if findByName else "index"),
                 deviceClass=PsychtoolboxSpeakerDevice
             )
         
@@ -222,6 +222,7 @@ class PsychtoolboxSpeakerDevice(BaseSpeakerDevice):
                             freq=sampleRateHz,
                             channels=self.profile['NrOutputChannels'],
                             latency_class=[self.latencyClass],
+                            buffer_size=None
                         )
                 # if it worked, set own parameters
                 self.index = self.profile['DeviceIndex']
