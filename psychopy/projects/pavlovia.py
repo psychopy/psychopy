@@ -44,7 +44,6 @@ import gitlab
 import gitlab.v4.objects
 
 # for authentication
-from . import sshkeys
 from uuid import uuid4
 
 from .gitignore import gitIgnoreText
