@@ -222,6 +222,7 @@ class PsychtoolboxSpeakerDevice(BaseSpeakerDevice):
                             freq=sampleRateHz,
                             channels=self.profile['NrOutputChannels'],
                             latency_class=[self.latencyClass],
+                            buffer_size=None
                         )
                 # if it worked, set own parameters
                 self.index = self.profile['DeviceIndex']
