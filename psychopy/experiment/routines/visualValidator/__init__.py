@@ -370,11 +370,10 @@ class ScreenBufferVisualValidatorBackend(DeviceBackend):
     def writeDeviceCode(self: VisualValidatorRoutine, buff):
         # get inits
         inits = getInitVals(self.params)
+        # write basic code
+        self.writeBaseDeviceCode(buff, close=False)
         # make ButtonGroup object
         code = (
-            "deviceManager.addDevice(\n"
-            "    deviceClass='psychopy.hardware.lightsensor.ScreenBufferSampler',\n"
-            "    deviceName=%(deviceLabel)s,\n"
             "    win=win,\n"
             ")\n"
         )
