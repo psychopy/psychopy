@@ -8,10 +8,11 @@
 from pathlib import Path
 import copy
 
-from psychopy.experiment.components import BaseVisualComponent, getInitVals, Param, _translate
+from psychopy.experiment.components import BaseVisualComponent, BaseDeviceComponent, getInitVals, Param, _translate
+from psychopy.experiment.components.sound import SpeakerDeviceBackend
 
 
-class MovieComponent(BaseVisualComponent):
+class MovieComponent(BaseVisualComponent, BaseDeviceComponent):
     """An event class for presenting movie-based stimuli"""
 
     categories = ['Stimuli']
@@ -121,6 +122,9 @@ class MovieComponent(BaseVisualComponent):
             hint=_translate("Which point on the stimulus should be anchored to its exact position?"),
             label=_translate("Anchor"))
 
+        self.addDeviceParams()
+        self.params['deviceLabel'].label = _translate("Speaker device")
+
         # these are normally added but we don't want them for a movie
         del self.params['color']
         del self.params['colorSpace']
@@ -210,6 +214,7 @@ class MovieComponent(BaseVisualComponent):
             "pos=%(pos)s, size=%(size)s, units=%(units)s,\n"
             "ori=%(ori)s, anchor=%(anchor)s,"
             "opacity=%(opacity)s, contrast=%(contrast)s,\n"
+            "audioDevice=%(deviceLabel)s,"
             "depth=%(depth)s\n"
         )
         buff.writeIndentedLines(code % params)
@@ -347,3 +352,7 @@ class MovieComponent(BaseVisualComponent):
                 "%(name)s.stop();  // ensure movie has stopped at end of Routine\n"
             )
             buff.writeIndentedLines(code % self.params)
+
+
+# register backend with Component
+MovieComponent.registerBackend(SpeakerDeviceBackend)

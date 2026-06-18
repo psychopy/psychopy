@@ -401,7 +401,7 @@ class SoundDeviceSound(_SoundBase):
         if isinstance(speaker, str) and DeviceManager.getDevice(speaker):
             speaker = DeviceManager.getDevice(speaker)
         # make sure speaker is a SpeakerDevice
-        if not isinstance(speaker, SpeakerDevice):
+        if not isinstance(speaker, SpeakerDevice.resolveBackend()):
             speaker = SpeakerDevice(speaker)
         self.speaker = speaker
 

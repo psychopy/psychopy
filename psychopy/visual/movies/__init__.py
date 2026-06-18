@@ -26,7 +26,7 @@ from psychopy.visual.basevisual import (
 from psychopy.constants import (
     FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED, SEEKING)
 from psychopy import core
-from psychopy.hardware import speaker
+from psychopy.hardware import speaker, DeviceManager
 
 from .metadata import MovieMetadata, NULL_MOVIE_METADATA
 from .frame import MovieFrame, NULL_MOVIE_FRAME_INFO
@@ -1266,9 +1266,16 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         # audio stuff
         if audioDevice is not None:
             logging.debug(
-                "Audio device specified for movie playback. Ignoring " \
-                "`audioLib` parameter.")
-            self._audioDevice = speaker.SpeakerDevice(audioDevice)
+                "Audio device specified for movie playback. Ignoring "
+                "`audioLib` parameter."
+            )
+            if isinstance(audioDevice, str) and DeviceManager.getDevice(audioDevice):
+                audioDevice = DeviceManager.getDevice(audioDevice)
+            # make sure speaker is a SpeakerDevice
+            if not isinstance(audioDevice, speaker.SpeakerDevice.resolveBackend()):
+                audioDevice = speaker.SpeakerDevice(audioDevice)
+
+            self._audioDevice = audioDevice
             self._audioLib = None  # override
         else:
             if audioLib is None and self._movieLib == 'ffpyplayer':
