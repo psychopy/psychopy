@@ -78,10 +78,6 @@ class SoundDeviceSpeakerDevice(BaseSpeakerDevice):
         self.stream = None
         self.resample = resample
         self.latencyClass = latencyClass
-        # create stream
-        # self.createStream()
-        # start off open
-        # self.open()
 
     @property
     def exclusive(self):
@@ -141,6 +137,7 @@ class SoundDeviceSpeakerDevice(BaseSpeakerDevice):
         """
         Open the audio stream for this speaker so that sound can be played to it.
         """
+        # note: for now this logic is handled in the sound module
         pass
     
     def close(self):
@@ -154,7 +151,7 @@ class SoundDeviceSpeakerDevice(BaseSpeakerDevice):
         """
         Is this speaker "open", i.e. is it active and ready for a Sound to play tracks on it
         """
-        return True
+        return self.stream is not None and self.stream.active
     
     def isSameDevice(self, other):
         """
@@ -263,7 +260,7 @@ class SoundDeviceSpeakerDevice(BaseSpeakerDevice):
             devices.append(profile)
 
         return devices
-    
+        
 
 if __name__ == "__main__":
     pass

@@ -2360,7 +2360,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
     @volume.setter
     def volume(self, value):
         if self._audioLib == 'sdl2':
-            self._player.set_volume(value)
+            self._player.setVolume(value)
         else:
             if self._audioTrack is not None and hasattr(self._audioTrack, 'volume'):
                 self._audioTrack.volume = value

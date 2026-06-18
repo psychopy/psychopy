@@ -84,7 +84,7 @@ dependencies = [
     "zeroconf; platform_system == \"Darwin\"",
     "python-xlib; platform_system == \"Linux\"",
     "distro; platform_system == \"Linux\"",
-    'tables!=3.9.2',  # 3.9.2 crashes on Rosetta
+    "tables",  # 3.9.2 crashes on Rosetta
     "packaging>=24.0",
     "moviepy",
     "pyarrow",
@@ -147,6 +147,9 @@ requires = [
     "typing-extensions",
 ]
 build-backend = "pdm.backend"
+
+[tool.uv]
+exclude-newer = "7 days"
 
 [tool.pdm.build]
 includes = []

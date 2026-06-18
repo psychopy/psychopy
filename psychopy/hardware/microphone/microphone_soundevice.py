@@ -13,7 +13,7 @@ __all__ = [
 
 import sys
 import time
-from ._base import BaseMicrophoneDevice
+from ._base import BaseMicrophoneDevice, MicrophoneResponse
 import numpy as np
 from psychopy import logging as logging, prefs, core
 from psychopy.hardware.exceptions import DeviceNotConnectedError
@@ -196,6 +196,10 @@ class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microph
 
         # window for timing the recording to start
         self.win = None
+
+        self.open()
+
+        self.listeners = []  # list of microphone objects listening to this device for recording
 
     def __hash__(self):
         # hash based on device index and name (which should be unique identifiers for the physical device)
@@ -388,6 +392,35 @@ class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microph
     def pause(self):
         """Pause recording from the microphone. Can be resumed with `record()`."""
         pass
+
+    def poll(self):
+        """Poll the microphone for new data. 
+        """
+        pass  # nop
+
+    def getCurrentVolume(self):
+        """Get the current volume level of the microphone input.
+
+        Returns
+        -------
+        float
+            Current volume level, typically in the range [0.0, 1.0].
+
+        """
+        if not self._recordingBuffer:
+            return 0.0
+
+        # get the most recent block of recorded audio
+        latestBlock = self._recordingBuffer[-1]
+
+        # make sure we have some data to compute volume from
+        if latestBlock.size == 0:
+            return 0.0
+
+        # calculate RMS volume across all channels
+        rms = np.sqrt(np.mean(latestBlock ** 2))
+        
+        return rms
 
     @staticmethod
     def queryDevices():
@@ -587,6 +620,71 @@ class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microph
 
         return devices
     
+    def addListener(self, listener, startLoop=False):
+        """
+        Add a listener, which will receive all the same messages as this device.
+
+        Parameters
+        ----------
+        listener : str or psychopy.hardware.listener.BaseListener
+            Either a Listener object, or use one of the following strings to create one:
+            - "liaison": Create a LiaisonListener with DeviceManager.liaison as the server
+            - "print": Create a PrintListener with default settings
+            - "log": Create a LoggingListener with default settings
+        startLoop : bool
+            If True, then upon adding the listener, start up an asynchronous loop to dispatch messages.
+        """
+        # add listener as normal
+        listener = BaseResponseDevice.addListener(self, listener, startLoop=startLoop)
+        # if we're starting a listener loop, start recording
+        if startLoop:
+            self.start()
+        
+        return listener
+
+    def clearListeners(self):
+        """
+        Remove any listeners from this device.
+
+        Returns
+        -------
+        bool
+            True if completed successfully
+        """
+        # clear listeners as normal
+        resp = BaseResponseDevice.clearListeners(self)
+        # stop recording
+        self.stop()
+
+        return resp
+
+    def dispatchMessages(self, clear=True):
+        """
+        Dispatch current volume as a MicrophoneResponse object to any attached listeners.
+
+        Parameters
+        ----------
+        clear : bool
+            If True, will clear the recording up until now after dispatching the volume. This is
+            useful if you're just sampling volume and aren't wanting to store the recording.
+
+        """
+        # if mic is not recording, there's nothing to dispatch
+        if not self.isStarted:
+            return
+        
+        # create a response object
+        message = MicrophoneResponse(
+            logging.defaultClock.getTime(),
+            self.getCurrentVolume(),
+            device=self,
+        )
+
+        # dispatch to listeners
+        for listener in self.listeners:
+            listener.receiveMessage(message)
+        
+        return message
 
 if __name__ == "__main__":
     pass

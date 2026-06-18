@@ -227,9 +227,13 @@ class Microphone:
         return self.device.isRecording
 
     def start(self, when=None, waitForStart=0, stopTime=None):
-        return self.device.start(
-            when=when, waitForStart=waitForStart, stopTime=stopTime
-        )
+        """Start recording audio from the microphone. The recording will continue 
+        until stop() is called, or until the optional stopTime is reached.
+
+        Alias of the `record()` method.
+
+        """
+        return self.record(when=when, waitForStart=waitForStart, stopTime=stopTime)
 
     def record(self, when=None, waitForStart=0, stopTime=None):
         """Start recording audio from the microphone. The recording will continue 

@@ -11,42 +11,79 @@ __all__ = [
     "MicrophoneDevice",
 ]
 
-from psychopy import logging
-from psychopy import prefs
+import importlib.metadata
+from psychopy.preferences import prefs
 
-MicrophoneDevice = None  # handle for the microphone device class
 
-# set the audio backend from preferences
-try:
-    backend = prefs.hardware['audioLib']
-    if isinstance(backend, (list, tuple)):
-        backend = backend[0]
-except (KeyError, IndexError):
-    logging.warning(
-        "Audio library preference not found or empty, defaulting to 'ptb' for "
-        "audio capture. Check the 'audioLib' preference to ensure it is set to a "
-        "valid audio library."
-    )
-    backend = 'ptb'
+class MicrophoneDevice:
+    # selected backend
+    backend = None
+    # known backends
+    backends = {
+        'ptb': importlib.metadata.EntryPoint(
+            name="ptb", 
+            value="psychopy.hardware.microphone.microphone_psychtoolbox:PsychtoolboxMicrophoneDevice", 
+            group="psychopy.hardware.microphone.backends"
+        ),
+        'sounddevice': importlib.metadata.EntryPoint(
+            name="sounddevice", 
+            value="psychopy.hardware.microphone.microphone_soundevice:SoundDeviceMicrophoneDevice", 
+            group="psychopy.hardware.microphone.backends"
+        )
+    }
+    # alias backend names
+    backends['psychtoolbox'] = backends['ptb']
+    backends['sd'] = backends['sounddevice']
 
-# select backend microphone device class based on audio library preference
-if backend in ('sounddevice',):  # sounddevice backend
-    from .microphone_soundevice import SoundDeviceMicrophoneDevice
-    MicrophoneDevice = SoundDeviceMicrophoneDevice
-elif backend in ('ptb', 'default'):  # psychtoolbox backend
-    from .microphone_psychtoolbox import PsychtoolboxMicrophoneDevice
-    MicrophoneDevice = PsychtoolboxMicrophoneDevice
-else:
-    logging.error(
-        f"Unsupported audio library '{backend}' specified in preferences. Using "
-        f"'ptb' as fallback for audio capture. Check the 'audioLib' preference "
-        f"to ensure it is set to a valid audio library."
-    )
-    backend = 'ptb'  # fallback to ptb for audio capture if unsupported library specified
-    from .microphone_psychtoolbox import PsychtoolboxMicrophoneDevice
-    MicrophoneDevice = PsychtoolboxMicrophoneDevice
+    def __new__(cls, *args, **kwargs):
+        backend = cls.resolveBackend()
 
-logging.info(f"Using '{backend}' backend for audio capture devices.")
+        return backend(*args, **kwargs)
 
-if __name__ == "__main__":
-    pass
+    @classmethod
+    def resolveBackend(cls):
+        backend = cls.backend
+        # if backend is None, get from prefs
+        if backend is None:
+            backend = prefs.hardware['audioLib']
+        # handle list
+        if isinstance(backend, (list, tuple)):
+            try:
+                # try to get the first valid backend
+                backend = [
+                    val for val in backend if val in cls.backends
+                ][0]
+            except:
+                # otherwise get the first backend
+                backend = backend[0]
+        # if not present, error
+        if backend not in cls.backends:
+            raise ModuleNotFoundError(
+                f"Invalid value '{backend}' for {cls.__name__}.backend, known backends are: {list(cls.backends)}"
+            )
+
+        # import backend
+        return cls.backends[backend].load()
+
+    @staticmethod
+    def getAvailableDevices():
+        return MicrophoneDevice.resolveBackend().getAvailableDevices()
+    
+    @classmethod
+    def getBackends(cls):
+        """
+        Get all available Sound backends (by name)
+
+        Returns
+        -------
+        dict[str:importlib.metadata.EntryPoint]
+            Dict mapping backend names to backend entry points - call `.load` on an entry point to 
+            import the relevant module.
+        """
+        
+        return cls.backends
+
+
+# get sound backends from plugins
+for ep in importlib.metadata.entry_points(group="psychopy.hardware.microphone.backends"):
+    MicrophoneDevice.backends[ep.name] = ep

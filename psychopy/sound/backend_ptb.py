@@ -129,7 +129,7 @@ class SoundPTB(_SoundBase):
         if isinstance(speaker, str) and DeviceManager.getDevice(speaker):
             speaker = DeviceManager.getDevice(speaker)
         # make sure speaker is a SpeakerDevice
-        if not isinstance(speaker, SpeakerDevice):
+        if not isinstance(speaker, SpeakerDevice.resolveBackend()):
             speaker = SpeakerDevice(speaker)
         self.speaker = speaker
         
@@ -270,7 +270,8 @@ class SoundPTB(_SoundBase):
             self.track = audio.Slave(
                 self.stream.handle, 
                 data=clip.samples,
-                volume=self.volume
+                volume=self.volume,
+                mode=1
             )
         # seek to start
         self.seek(0)

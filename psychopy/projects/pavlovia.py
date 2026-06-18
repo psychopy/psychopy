@@ -44,7 +44,6 @@ import gitlab
 import gitlab.v4.objects
 
 # for authentication
-from . import sshkeys
 from uuid import uuid4
 
 from .gitignore import gitIgnoreText
@@ -749,7 +748,7 @@ class PavloviaProject(dict):
         if localRoot is not None:
             self.localRoot = localRoot
         # set preferred merge strategy
-        if not self.repo.config_reader().has_option("pull", "rebase"):
+        if self.repo and not self.repo.config_reader().has_option("pull", "rebase"):
             self.repo.config_writer().set_value("pull", "rebase", False).release()
 
     def __getitem__(self, key):
@@ -1596,7 +1595,7 @@ def getProject(filename):
         # remove extra slashes from project name
         projectName = projectName.replace("/", "")
         # Try to log in if not logged in
-        if not session.user:
+        if projectName in knownProjects and not session.user:
             if nameSpace in knownUsers:
                 # Log in if user is known
                 login(nameSpace, rememberMe=True)
