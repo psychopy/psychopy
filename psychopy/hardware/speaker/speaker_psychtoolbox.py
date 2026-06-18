@@ -73,7 +73,6 @@ class PsychtoolboxSpeakerDevice(BaseSpeakerDevice):
         # handle string index
         if isinstance(index, str):
             index = self.getNumericIndex(index)
-            print("INDEX", index)
 
         # if index is default, get default speaker device
         if index in (-1, None) and name is None:
