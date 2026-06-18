@@ -70,12 +70,10 @@ class PsychtoolboxSpeakerDevice(BaseSpeakerDevice):
                 "Both 'index' and 'name' were provided to SpeakerDevice; ignoring 'index'"
             )
             index = None
-        # try simple integerisation of index
+        # handle string index
         if isinstance(index, str):
-            try:
-                index = float(index)
-            except ValueError:
-                pass
+            index = self.getNumericIndex(index)
+            print("INDEX", index)
 
         # if index is default, get default speaker device
         if index in (-1, None) and name is None:
@@ -107,6 +105,25 @@ class PsychtoolboxSpeakerDevice(BaseSpeakerDevice):
         self.createStream()
         # start off open
         self.open()
+
+    @staticmethod
+    def getNumericIndex(index):
+        """
+        Get the numeric index of a device by its string index.
+        """
+        # try simple string parse for e.g. "1"
+        try:
+            return int(float(index))
+        except ValueError:
+            pass
+        # iterate through known devices
+        for profile in PsychtoolboxSpeakerDevice._getDevicesPsychtoolbox():
+            # skip input-only devices (microphones)
+            if profile['NrOutputChannels'] == 0:
+                continue
+            # match name
+            if profile.get('DeviceName', None) == index:
+                    return int(profile['DeviceIndex'])
     
     @property
     def exclusive(self):
@@ -401,8 +418,7 @@ class PsychtoolboxSpeakerDevice(BaseSpeakerDevice):
             device = {
                 'deviceName': profile.get('DeviceName', "Unknown Speaker"),
                 'deviceClass': "psychopy.hardware.speaker.SpeakerDevice",
-                'index': profile.get('DeviceIndex', None),
-                'name': profile.get('DeviceName', None)
+                'index': profile.get('DeviceName', None)
             }
             devices.append(device)
 
