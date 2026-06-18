@@ -699,8 +699,7 @@ class ScreenBufferSampler(BaseLightSensorGroup):
     def getAvailableDevices():
         return [{
             'deviceName': "Light Sensor Emulator (Screen Buffer)",
-            'deviceClass': "psychopy.hardware.lightsensor.ScreenBufferSampler",
-            'win': "session.win"
+            'deviceClass': "psychopy.hardware.lightsensor.ScreenBufferSampler"
         }]
 
     def resetTimer(self, clock=logging.defaultClock):
