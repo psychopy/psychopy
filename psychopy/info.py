@@ -21,8 +21,6 @@ __all__ = [
     '_getUserNameUID',
     '_getHashGitHead',
     '_getSha1hexDigest',
-    '_getHgVersion',
-    '_getSvnVersion',
     '_thisProcess'
 ]
 
@@ -271,22 +269,6 @@ class RunTimeInfo(dict):
         scriptPath = os.path.abspath(sys.argv[0])
         key = 'experimentScript.digestSHA1'
         self[key] = _getSha1hexDigest(scriptPath, isfile=True)
-        # subversion revision?
-        try:
-            svnrev, last, url = _getSvnVersion(scriptPath)  # svn revision
-            if svnrev:  # or verbose:
-                self['experimentScript.svnRevision'] = svnrev
-                self['experimentScript.svnRevLast'] = last
-                self['experimentScript.svnRevURL'] = url
-        except Exception:
-            pass
-        # mercurical revision?
-        try:
-            hgChangeSet = _getHgVersion(scriptPath)
-            if hgChangeSet:  # or verbose:
-                self['experimentScript.hgChangeSet'] = hgChangeSet
-        except Exception:
-            pass
 
         # when was this run?
         self['experimentRunTime.epoch'] = core.getAbsTime()
