@@ -276,11 +276,22 @@ class _SoundStream:
         outputBufferDacTime = timepoint.outputBufferDacTime
 
         self.frameN += 1
+        blockDur = blockSize / float(self.sampleRate)
         for thisSound in self.sounds.copy():
-            if thisSound._tSoundRequestPlay > outputBufferDacTime:
-                continue  # not time to play this sound yet
+            # Where does this sound's requested onset fall relative to the start
+            # of this output block? Place the onset with sub-block (sample)
+            # precision instead of quantising it to the block boundary, which
+            # otherwise adds up to one blockSize of onset jitter.
+            tToStart = thisSound._tSoundRequestPlay - outputBufferDacTime
+            if tToStart >= blockDur:
+                continue  # onset falls in a later block - not time yet
+            # sample offset of the onset within this block (0 if already due)
+            offset = int(round(tToStart * self.sampleRate)) if tToStart > 0 else 0
+            if offset >= blockSize:
+                continue
 
-            dat = thisSound._nextBlock(blockSize)
+            nReq = blockSize - offset  # samples remaining in this block from offset
+            dat = thisSound._nextBlock(nReq)
             if dat is None:  # no data for some reason (e.g., sound finished)
                 continue
 
@@ -290,20 +301,22 @@ class _SoundStream:
 
             datSize = len(dat)
             datDims = len(dat.shape)
+            end = offset + datSize  # write the block starting at the sample offset
 
-            # old method
             if self.channels == 2 and datDims == 2:
-                toSpk[:datSize, :] += dat  # add to out stream
+                toSpk[offset:end, :] += dat  # add to out stream
             elif self.channels == 2 and datDims == 1:
-                toSpk[:datSize, 0] += dat 
-                toSpk[:datSize, 1] += dat  
+                toSpk[offset:end, 0] += dat
+                toSpk[offset:end, 1] += dat
             elif self.channels == 1 and datDims == 2:
-                toSpk[:datSize, :] += dat
+                toSpk[offset:end, :] += dat
             else:
-                toSpk[:datSize, 0:self.channels] += dat 
+                toSpk[offset:end, 0:self.channels] += dat
 
-            # check if that was a short block (sound is finished)
-            if datSize < len(toSpk[:, :]):
+            # check if that was a short block (sound is finished). Compare to the
+            # number of samples requested this block (nReq), not the full buffer,
+            # so a partial first block (offset > 0) is not mistaken for the end.
+            if datSize < nReq:
                 self.remove(thisSound)
                 thisSound._EOS()
                 # check if that took a long time
@@ -762,7 +775,10 @@ class SoundDeviceSound(_SoundBase):
         if not self.isPlaying:
             return
         
-        samplesLeft = int((self.duration - self.t) * self.sampleRate)
+        # round (not truncate): with a sub-block start offset self.t no longer
+        # lands on the integer-sample grid, so a bare int() could drop the final
+        # sample (e.g. 19.9999 -> 19).
+        samplesLeft = int(round((self.duration - self.t) * self.sampleRate))
         blockSize = blockSize or self.blockSize
         nSamples = min(blockSize, samplesLeft)
         
@@ -817,7 +833,10 @@ class SoundDeviceSound(_SoundBase):
                 else:
                     block *= thisWin[0:len(block)]
 
-        self.t += self.blockSize / float(self.sampleRate)
+        # advance by the number of samples actually produced (not the configured
+        # blockSize) so a partial block - e.g. the first block of a sound started
+        # at a sub-block sample offset - keeps the time cursor continuous.
+        self.t += len(block) / float(self.sampleRate)
 
         return block
 
