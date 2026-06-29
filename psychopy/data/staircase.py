@@ -82,13 +82,15 @@ class StairHandler(_BaseTrialHandler):
                 The initial value for the staircase.
 
             nReversals:
-                The minimum number of reversals permitted.
-                If `stepSizes` is a list, but the minimum number of
-                reversals to perform, `nReversals`, is less than the
-                length of this list, PsychoPy will automatically increase
-                the minimum number of reversals and emit a warning.
-                This minimum number of reversals is always set to be
-                greater than 0.
+                The minimum number of reversals required before the
+                staircase can finish (together with `nTrials`). If `None`,
+                this defaults to the number of step sizes.
+                If `nReversals` is less than the number of step sizes, it is
+                automatically raised to that number and a warning is emitted.
+                Note that a single (scalar) `stepSizes` value is treated as a
+                list of length 1, so the number of step sizes -- and therefore
+                `nReversals` -- is always at least 1 (i.e. `nReversals=0` is
+                not honored).
 
             stepSizes:
                 The size of steps as a single value or a list (or array).
