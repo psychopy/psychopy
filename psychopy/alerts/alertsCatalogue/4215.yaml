@@ -1,0 +1,19 @@
+
+code: 4215
+cat: Coding
+msg: quitPsychoJS needs to be returned
+
+# The following are typically used for online help pages, and support reStructured Text.
+label: quitPsychoJS needs to be returned
+
+synopsis: |
+  The `quitPsychoJS` function needs to be preceeded by `return`, otherwise data will not be saved
+
+details: |
+  In PsychoJS, each part of your experiment is inside of a function, and the values returned by these functions tell PsychoJS how to proceed once each one is done. Calling `quitPsychoJS` will end your experiment, but if the function you're in doesn't return anything then PsychoJS doesn't know to save your data.
+
+solutions: |
+  Instead of calling `quitPsychoJS()`, you need to call `return quitPsychoJS()`.
+
+versions: |
+  All versions.
