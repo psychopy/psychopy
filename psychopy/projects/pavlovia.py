@@ -521,6 +521,11 @@ class PavloviaSession:
                 'code_verifier': code_verifier
             }
         ).json()
+        # surface error to user if request was rejects
+        if 'access_token' not in resp:
+            raise gitlab.GitlabAuthenticationError(
+                "{error}: {error_description}".format(**resp)
+            )
         # start again with new token
         self.setToken(
             resp['access_token'],
