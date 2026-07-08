@@ -267,7 +267,10 @@ class Param():
                 if self.codeWanted and valid:
                     # If code is wanted, return code (translated to JS if needed)
                     if utils.scriptTarget == 'PsychoJS':
-                        valJS = py2js.expression2js(val)
+                        if self.valType == "extendedStr" or self.inputType == 'multi':
+                            valJS = py2js.snippet2js(val)
+                        else:
+                            valJS = py2js.expression2js(val)
                         if self.val != valJS:
                             logging.debug("Rewriting with py2js: {} -> {}".format(self.val, valJS))
                         return valJS
