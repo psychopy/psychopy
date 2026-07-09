@@ -63,6 +63,7 @@ from psychopy import core
 from psychopy.constants import NOT_STARTED
 from psychopy.hardware import DeviceManager
 from psychopy.hardware.base import BaseDevice
+from psychopy.sound.audioclip import AudioClip
 from psychopy.visual.movies.frame import MovieFrame, NULL_MOVIE_FRAME_INFO
 from psychopy.sound.microphone import Microphone
 from psychopy.hardware.microphone import MicrophoneDevice
@@ -1928,30 +1929,30 @@ class Camera:
 
         # handle microphone
         self.mic = None
-        # if isinstance(mic, MicrophoneDevice):
-        #     # if given a device object, use it
-        #     self.mic = mic
-        # elif isinstance(mic, Microphone):
-        #     # if given a Microphone, use its device
-        #     self.mic = mic.device
-        # elif mic is None:
-        #     # if given None, get the first available device
-        #     for name, obj in DeviceManager.getInitialisedDevices(MicrophoneDevice).items():
-        #         self.mic = obj
-        #         break
-        #     # if there are none, set one up
-        #     if self.mic is None:
-        #         for profile in MicrophoneDevice.getAvailableDevices():
-        #             self.mic = DeviceManager.addDevice(**profile)
-        #             break
-        # elif isinstance(mic, str) and DeviceManager.getDevice(mic) is not None:
-        #     # if given a device name, get the device
-        #     self.mic = DeviceManager.getDevice(mic)
-        # else:
-        #     # anything else, try to initialise a new device from params
-        #     self.mic = MicrophoneDevice(
-        #         index=mic
-        #     )
+        if isinstance(mic, MicrophoneDevice):
+            # if given a device object, use it
+            self.mic = mic
+        elif isinstance(mic, Microphone):
+            # if given a Microphone, use its device
+            self.mic = mic.device
+        elif mic is None:
+            # if given None, get the first available device
+            for name, obj in DeviceManager.getInitialisedDevices(MicrophoneDevice).items():
+                self.mic = obj
+                break
+            # if there are none, set one up
+            if self.mic is None:
+                for profile in MicrophoneDevice.getAvailableDevices():
+                    self.mic = DeviceManager.addDevice(**profile)
+                    break
+        elif isinstance(mic, str) and DeviceManager.getDevice(mic) is not None:
+            # if given a device name, get the device
+            self.mic = DeviceManager.getDevice(mic)
+        else:
+            # anything else, try to initialise a new device from params
+            self.mic = MicrophoneDevice(
+                index=mic
+            )
 
         # current camera frame since the start of recording
         self.status = NOT_STARTED
@@ -1977,10 +1978,10 @@ class Camera:
 
         self._latencyBias = 0.0  # latency bias in seconds
 
-        self._absVideoRecStartTime = -1.0
-        self._absVideoRecStopTime = -1.0
-        self._absAudioRecStartTime = -1.0
-        self._absAudioRecStopTime = -1.0
+        self._tRecordingStartRequested = -1.0
+        self._tRecordingStopRequested = None
+        self._recordingBuffer = []  # buffer for storing frames during recording
+        self._nRecordedFrames = 0  # number of frames recorded during recording
 
         # computed timestamps for when 
         self._absAudioActualRecStartTime = -1.0
@@ -2446,13 +2447,13 @@ class Camera:
             self._capture.open()
 
         # register this client with the camera device
-        self._capture.registerClient(self)
-        
+        self._capture.bind(self)        
         self.setWin(self._win)  # set the window (if any)
         
         # open the mic when the camera opens
-        # if hasattr(self.mic, "open"):
-        #     self.mic.open()
+        if hasattr(self.mic, "open"):
+            self.mic.open()  # should NOP if already open
+            self.mic.bind(self)
 
         self._isStarted = True
 
@@ -2541,20 +2542,13 @@ class Camera:
         self._lastFrame = None
 
         # start camera recording
-        self._absVideoRecStartTime = \
+        self._tRecordingStartRequested = \
             self._getTime() if when is None else when + self._getTime()
 
-        # # start microphone recording
-        # if self._usageMode == CAMERA_MODE_VIDEO:
-        #     if self.mic is not None:
-        #         audioStartTime = self.mic.start(
-        #             waitForStart=int(waitForStart),  # wait until the mic is ready
-        #         )
-        #         self._absAudioRecStartTime = self._capture.streamTime
-        #         if waitForStart:
-        #             self._absAudioActualRecStartTime = audioStartTime  # time it will be ready
-        #         else:
-        #             self._absAudioActualRecStartTime = self._absAudioRecStartTime
+        # start microphone recording
+        if self._usageMode == CAMERA_MODE_VIDEO:
+            if self.mic is not None:
+                self.mic.record(when=self._tRecordingStartRequested)
 
         self._isRecording = True  # set recording flag
         # do an initial poll to avoid frame dropping
@@ -2592,15 +2586,8 @@ class Camera:
         self._absVideoRecStopTime = self._getTime() if when is None else when + self._getTime()
         
         # # stop audio recording if we have a microphone
-        # if self.hasMic and not self.mic._stream._closed:
-        #     _, overflows = self.mic.poll()
-
-        #     if overflows > 0:
-        #         logging.warning(
-        #             "Audio recording overflowed {} times before stopping, "
-        #             "some audio samples may be lost.".format(overflows))
-        #     audioStopTime, _, _, _ = self.mic.stop(
-        #         blockUntilStopped=0)
+        if self.hasMic:
+            self.mic.stop(when=self._absVideoRecStopTime)
             
         self._audioReady = self._videoReady = False  # reset camera ready flags
         self._isRecording = False
@@ -2619,12 +2606,13 @@ class Camera:
         # self._closeMovieFileWriter()
 
         if self._capture is not None and self._capture.isOpen:
-            self._capture.unregisterClient(self)
+            self._capture.unbind(self)
 
         self._capture = None  # clear the capture object
 
-        # if self.mic is not None:
-        #     self.mic.close()
+        if self.mic is not None:
+            self.mic.unbind(self)
+            self.mic.close()
 
         self._isStarted = False
 
@@ -2727,7 +2715,18 @@ class Camera:
             "Merged audio and video tracks into `{}`".format(filename))
 
         return filename
+    
+    def _mergeAudioFragments(self):
+        """Merge audio fragments within the recording buffer.
+        """
+        if not self._recordingBuffer:
+            return None
 
+        # concatenate all audio frames into a single audio track
+        # collapse recording buffer into a single array
+        self._recordingBuffer = [
+            np.concatenate(self._recordingBuffer, axis=0, dtype=np.float32)]
+            
     def save(self, filename, useThreads=True, mergeAudio=True, writerOpts=None):
         """Save the last recording to file.
 
@@ -2758,7 +2757,6 @@ class Camera:
             will be used.
 
         """
-        print('Saving recording to file `{}`...'.format(filename))
         # stop if still recording
         if self._isRecording:
             self.stop()
@@ -2777,24 +2775,25 @@ class Camera:
 
         # check if we have a temp movie file
         videoTrackFile = self._tempVideoFile
-        print('Temporary video track file: {}'.format(videoTrackFile))
         
         # write the temporary audio track to file if we have one
         tStart = time.time()  # start time for the operation
         audioTrack = None
-        # if self.mic is not None:
-        #     audioTrack = self.mic.getRecording()
-        
+        if self.mic is not None:
+            self._mergeAudioFragments()  # merge audio fragments into a single track
+            audioTrack = AudioClip(
+                self._recordingBuffer[0], 
+                sampleRateHz=self.mic.sampleRateHz)
+
         if audioTrack is not None:
-            print('Saving audio track to file...')
             logging.debug(
                 "Saving audio track to file `{}`...".format(filename))
             
             # trim off samples before the recording started
-            audioTrack = audioTrack.trimmed(
-                direction='start',
-                duration=self._absAudioRecStartPos,
-                units='samples')
+            # audioTrack = audioTrack.trimmed(
+            #     direction='start',
+            #     duration=self._duration,
+            #     units='samples')
             
             if mergeAudio:
                 logging.debug("Merging audio track with video track...")
@@ -2833,11 +2832,11 @@ class Camera:
                 # audioClip.close()
 
                 # merge audio and video tracks using FFMPEG
-                mergedVideo = self._mergeAudioVideoTracks(
+                self._mergeAudioVideoTracks(
                     videoTrackFile, 
-                   audioTrackFile, 
-                   filename, 
-                   writerOpts=writerOpts)
+                    audioTrackFile, 
+                    filename, 
+                    writerOpts=writerOpts)
                 
                 os.remove(audioTrackFile)  # remove the temp file
 
@@ -2874,8 +2873,6 @@ class Camera:
             "Saved recorded video to `{}` (took {:.6f} seconds)".format(
                 filename, time.time() - tStart))
         
-        print('Saved recording to file `{}`.'.format(filename))
-
         self._frameStore.clear()  # clear the frame store
         # mark that there's no longer unsaved footage
         self._unsaved = False
@@ -3150,13 +3147,11 @@ class Camera:
 
         """
         # iterate over frames and add them to the frame store
-        print('New frames available: {}'.format(frames))
-
         if not frames:
             return  # no frames to process
         
         for colorData, pts, streamTime in frames:
-            if not self._isRecording or streamTime < self._absVideoRecStartTime:
+            if not self._isRecording or streamTime < self._tRecordingStartRequested:
                 # if the frame was captured before the recording started, skip it
                 continue
 
@@ -3166,16 +3161,16 @@ class Camera:
                 colorData = self._convertFrameToRGBFFPyPlayer(colorData)
             elif self._usageMode == CAMERA_MODE_VIDEO:
                 # if we are recording video, pass the frame to the movie writer
-                # self._submitFrameToFile((colorData, pts, streamTime))
+                self._submitFrameToFile((colorData, pts, streamTime))
                 pass
             # add the frame to the frame store
-            # self._frameStore.append(
-            #     CameraFrame(
-            #         colorData, 
-            #         pts, 
-            #         streamTime, 
-            #         captureLib=CAMERA_LIB_FFPYPLAYER))
-    
+            self._frameStore.append(
+                CameraFrame(
+                    colorData, 
+                    pts, 
+                    streamTime, 
+                    captureLib=CAMERA_LIB_FFPYPLAYER))
+        
     def update(self):
         """Acquire the newest data from the camera and audio streams.
 
@@ -3198,6 +3193,7 @@ class Camera:
 
         """
         self._capture._poll()
+        self._pixelTransfer()  # transfer frames to the GPU if we have a window
                 
     def getVideoFrames(self):
         """Get the most recent frame from the stream (if available).
@@ -3214,10 +3210,9 @@ class Camera:
             returned.
 
         """
-        # self.update()
-
+        self.update()
         recentFrames = [
-            self._convertFrameToRGBFFPyPlayer(frame) for frame in self._frameStore]
+            self._convertFrameToRGBFFPyPlayer(frame.colorData) for frame in self._frameStore]
 
         return recentFrames
     
@@ -3249,8 +3244,7 @@ class Camera:
             no microphone is set or no audio was recorded.
 
         """
-        return None
-        # return self.mic.getRecording() if self.mic else None
+        return self.mic.getRecording() if self.mic else None
     
     # --------------------------------------------------------------------------
     # Video rendering
@@ -3606,7 +3600,6 @@ class Camera:
                 "MP4 format detected, PTS will be generated for the movie " \
                 "writer.")
 
-        print(writerOptions)
         self._movieWriter = MediaWriter(
             filename, 
             [writerOptions], 
@@ -3654,14 +3647,11 @@ class Camera:
             
             # if self._generatePTS:
             self._curPTS += self._capture.frameInterval  # increment dts by frame interval
-            print("Submitting frame to movie file writer (PTS={:.6f})".format(self._curPTS))
 
             bytesOut = self._movieWriter.write_frame(
                 img=sws.scale(colorData),
                 pts=self._curPTS,
                 stream=0)
-            
-            print("Wrote frame to movie file writer ({} bytes)".format(bytesOut))
 
         return bytesOut
 
@@ -4347,15 +4337,14 @@ atexit.register(_closeAllCaptureInterfaces)
 
 # ------------------------------------------------------------------------------
 if __name__ == "__main__":
-    cam = Camera(0)
+    cam = Camera(6, mic=1)
     cam.open()
     cam.record(when=0.0)
 
     t0 = time.time()
     while time.time() - t0 < 5.0:
-        # print("Recording... {:.2f} seconds".format(time.time() - t0))
-        cam.poll()
-        time.sleep(0.033)
+        time.sleep(0.001)
+
     cam.stop()
-    cam.save('/home/mdc/Desktop/test_camera_output.mp4')
+    cam.save('./test_camera_output.mp4')
     cam.close()

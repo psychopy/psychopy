@@ -187,8 +187,6 @@ class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microph
         self._stream = None
         self._opening = self._closing = False
         self._recording = False
-        self._tRecordingStartRequested = -1
-        self._recordingBuffer = []  # list of samples
         self._nRecordedFrames = 0
         self._streamReady = False  # True when the mic is actually getting data
 
@@ -218,6 +216,19 @@ class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microph
         """
         return self._sampleRateHz
 
+    @property
+    def channels(self):
+        """The number of audio channels in the input stream. This is determined by
+        the device and cannot be changed by the user.
+
+        Returns
+        -------
+        int
+            Number of audio channels in the input stream.
+
+        """
+        return self._channels
+
     def _callback(self, indata, frames, timedat, status):
         """Callback function for the sounddevice stream. This is called whenever
         new audio data is available from the stream.
@@ -242,7 +253,7 @@ class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microph
 
         if status:
             logging.warning(f"SoundDevice stream callback returned with status: {status}")
-
+        
         if len(indata) and self._clients:
             # compute the absulute time of the end of the current recording pos
             absBlockStartTime = timeAtADC
@@ -257,6 +268,17 @@ class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microph
                         reqStopTime is None or absBlockStartTime < reqStopTime):
                     mic._recordingBuffer.append(indata.copy())
                     mic._nRecordedFrames += frames
+
+    def isOpen(self):
+        """Check if the stream for this microphone device is open.
+
+        Returns
+        -------
+        bool
+            True if the stream is open, False otherwise.
+
+        """
+        return self._stream is not None
 
     def open(self):
         """Open the stream for this microphone device.
@@ -306,7 +328,7 @@ class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microph
         if self._clients:
             return 
 
-        if self._stream is None or not self._stream.active:
+        if self._stream is None:
             logging.warning(
                 "Attempted to close microphone stream which is already closed."
             )

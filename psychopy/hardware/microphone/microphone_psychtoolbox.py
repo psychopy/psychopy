@@ -307,6 +307,18 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
 
         # list to store listeners in
         self.listeners = []
+
+    @property
+    def sampleRateHz(self):
+        """Sampling rate for audio recording in Hertz (`int`).
+        """
+        return self._sampleRateHz
+
+    @property
+    def channels(self):
+        """Number of audio channels to record samples to (`int`).
+        """
+        return self._channels
     
     @property
     def maxRecordingSize(self):
@@ -880,6 +892,17 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
             self._pollingTimerThread.cancel() 
 
         return self.stop(blockUntilStopped=blockUntilStopped, stopTime=stopTime)
+
+    def isOpen(self):
+        """Check if the audio stream is open.
+
+        Returns
+        -------
+        bool
+            `True` if the stream is open, `False` otherwise.
+
+        """
+        return self._stream is not None
 
     def open(self):
         """

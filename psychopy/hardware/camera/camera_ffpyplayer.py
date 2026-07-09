@@ -62,6 +62,7 @@ class FFPyPlayerCameraDevice(CameraDevice):
         self.info = foundProfile
         self._device = self.info['deviceName']
         self._decoderOpts = decoderOpts if decoderOpts is not None else {}
+        self._pollingInterval = pollingInterval if pollingInterval is not None else self.frameInterval
         self._pollingTimerThread = None
         self._pollingLock = threading.Lock()
         self._bufferSecs = bufferSecs
@@ -130,12 +131,12 @@ class FFPyPlayerCameraDevice(CameraDevice):
             open or if metadata needs to be obtained from the stream.
 
         """
-        if self._capture is None or self.info['frameRate'] is None:
+        if self.info is None:
             return -1.0
 
         return 1.0 / self.info['frameRate']
 
-    def registerClient(self, client):
+    def bind(self, client):
         """Register a client to receive new frames from the camera stream.
 
         Parameters
@@ -147,7 +148,7 @@ class FFPyPlayerCameraDevice(CameraDevice):
         if client not in self._cameraClients:
             self._cameraClients.append(client)
         
-    def unregisterClient(self, client):
+    def unbind(self, client):
         """Unregister a client from receiving new frames from the camera stream.
 
         Parameters
@@ -252,7 +253,7 @@ class FFPyPlayerCameraDevice(CameraDevice):
 
         # set up a thread to call the poll method at regular intervals
         self._pollingTimerThread = PollingTimerThread(
-            0.5, 
+            self._pollingInterval, 
             self._poll)
         self._pollingTimerThread.daemon = True
         self._pollingTimerThread.start()
@@ -382,10 +383,10 @@ class FFPyPlayerCameraDevice(CameraDevice):
             self._pixelFormat = ffmpegPixFmt
 
             # this needs to be exactly specified if using NTSC
-            if math.isclose(CAMERA_FRAMERATE_NTSC, self._frameRate):
-                _frameRate = CAMERA_FRAMERATE_NOMINAL_NTSC
-            else:
-                _frameRate = str(self._frameRate)
+            # if math.isclose(CAMERA_FRAMERATE_NTSC, self._frameRate):
+            #     _frameRate = CAMERA_FRAMERATE_NOMINAL_NTSC
+            # else:
+            _frameRate = self._frameRate
 
             # need these since hardware acceleration is not possible on Mac yet
             lib_opts['fflags'] = 'nobuffer'
@@ -396,8 +397,8 @@ class FFPyPlayerCameraDevice(CameraDevice):
             # ff_opts['fast'] = True
         elif self._captureAPI == CAMERA_API_VIDEO4LINUX2:
             ff_opts['f'] = 'v4l2'
-            ff_opts['thread_queue_size'] = 1024
-            ff_opts['preset'] = 'ultrafast'
+            # ff_opts['thread_queue_size'] = 1024
+            # ff_opts['preset'] = 'ultrafast'
             _camera = self._device
             _frameRate = self._frameRate
         else:
@@ -412,7 +413,7 @@ class FFPyPlayerCameraDevice(CameraDevice):
         # configure the real-time buffer size, we compute using RGB8 since this 
         # is uncompressed and represents the largest size we can expect
         self._frameSizeBytes = int(camWidth * camHeight * 3)
-        framesToBufferCount = int(self._bufferSecs * _frameRate)
+        framesToBufferCount = int(self._bufferSecs * float(_frameRate))
         _bufferSize = int(self._frameSizeBytes * framesToBufferCount)
         logging.debug(
             "Setting real-time buffer size to {} bytes "
@@ -431,7 +432,7 @@ class FFPyPlayerCameraDevice(CameraDevice):
         # ff_opts['sync'] = 'ext'
         ff_opts['rtbufsize'] = str(_bufferSize)  # set the buffer size
         ff_opts['an'] = True
-        ff_opts['infbuf'] = True  # enable infinite buffering
+        # ff_opts['infbuf'] = True  # enable infinite buffering
 
         # for ffpyplayer, we need to set the video size and framerate
         lib_opts['video_size'] = '{width}x{height}'.format(
@@ -479,8 +480,8 @@ class FFPyPlayerCameraDevice(CameraDevice):
         # register stream in the class-level dictionary
         FFPyPlayerCameraDevice._streams[self._device] = self._capture
 
-        # if self._pollingTimerThread is None:
-        #     self._setupAutoPolling()  # set up automatic polling of the camera stream
+        if self._pollingTimerThread is None:
+            self._setupAutoPolling()  # set up automatic polling of the camera stream
         
         # otherwise, create a new stream for this device
         FFPyPlayerCameraDevice._streams[self._device] = self
@@ -922,26 +923,4 @@ _cameraGetterFuncTbl = {
 
 
 if __name__ == "__main__":
-    from psychopy.hardware import DeviceManager
-    devices = FFPyPlayerCameraDevice.getAvailableDevices()
-    for device in devices:
-        print(device)
-
-    DeviceManager.addDevice(
-        deviceName=devices[0]['deviceName'],
-        deviceClass="psychopy.hardware.camera.CameraDevice",
-        device=devices[0]['device']
-    )
-
-    print(DeviceManager.getInitialisedDevices())
-    print(DeviceManager.getInitialisedDeviceNames())
-
-
-    s = 0
-    while s < 10:
-        time.sleep(1)
-        s += 1
-    
-    cam.save('~/Desktop/test_camera_output.mp4')
-    cam.close()
-    # cam2.close()
+    pass
