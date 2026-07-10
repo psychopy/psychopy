@@ -23,7 +23,7 @@ jobs:
         steps:
 
         - uses: actions/checkout@v6
-          if: ${{ startsWith(github.ref, "refs/tags/") }}
+          if: ${{ startsWith(github.ref, 'refs/tags/') }}
           with:
             ref: ${{ github.ref_name }}
 
