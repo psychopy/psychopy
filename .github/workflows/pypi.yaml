@@ -25,12 +25,12 @@ jobs:
         - uses: actions/checkout@v6
           if: ${{ startsWith(github.ref, "refs/tags/") }}
           with:
-            tag: ${{ github.ref_name }}
+            ref: ${{ github.ref_name }}
 
         - uses: actions/checkout@v6
           if: ${{ github.event.inputs.tag }}
           with:
-            tag: ${{ github.event.inputs.tag }}
+            ref: ${{ github.event.inputs.tag }}
 
         - name: Setup Python
           uses: actions/setup-python@v6
