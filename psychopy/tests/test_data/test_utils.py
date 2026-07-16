@@ -89,6 +89,20 @@ class Test_utilsClass:
             assert valid == case['valid']
             assert msg == case['msg']
 
+    def test_isValidVariableName_str_conversion_failure(self):
+        # str subclass whose __str__ raises, to exercise the fallback branch
+        # in isValidVariableName where `str(name)` itself fails (regression
+        # test for np.unicode_, removed in NumPy 2.0, being referenced there;
+        # also covers the message formatting, which used to re-trigger the
+        # same str() failure while building the error message)
+        class BadStr(str):
+            def __str__(self):
+                raise UnicodeEncodeError('ascii', 'x', 0, 1, 'bad char')
+
+        with pytest.raises(exceptions.ConditionsImportError) as errMsg:
+            utils.isValidVariableName(BadStr('bad_name'))
+        assert 'could not be converted to a string' in str(errMsg.value)
+
     def test_GetExcelCellName(self):
         assert utils._getExcelCellName(0,0) == 'A1'
         assert utils._getExcelCellName(2, 1) == 'C2'
