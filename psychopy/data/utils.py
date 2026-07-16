@@ -89,15 +89,18 @@ def isValidVariableName(name):
     try:
         name = str(name)  # convert from unicode if possible
     except Exception:
-        if type(name) in [str, np.unicode_]:
+        # str(name) already failed above, so use repr() (never fails for a
+        # str/str subclass) rather than %s (which would call str() again)
+        safeName = repr(name)
+        if type(name) in [str, np.str_]:
             raise exceptions.ConditionsImportError(
-                "name %s (type %s) contains non-ASCII characters (e.g. accents)" % (name, type(name)),
-                translated=_translate("name %s (type %s) contains non-ASCII characters (e.g. accents)") % (name, type(name))
+                "name %s (type %s) contains non-ASCII characters (e.g. accents)" % (safeName, type(name)),
+                translated=_translate("name %s (type %s) contains non-ASCII characters (e.g. accents)") % (safeName, type(name))
             )
         else:
             raise exceptions.ConditionsImportError(
-                "name %s (type %s) could not be converted to a string",
-                translated=_translate("name %s (type %s) could not be converted to a string") % (name, type(name))
+                "name %s (type %s) could not be converted to a string" % (safeName, type(name)),
+                translated=_translate("name %s (type %s) could not be converted to a string") % (safeName, type(name))
             )
 
     if name[0].isdigit():
