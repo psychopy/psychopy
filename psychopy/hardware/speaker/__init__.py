@@ -54,7 +54,7 @@ class SpeakerDevice:
                 backend = [
                     val for val in backend if val in cls.backends
                 ][0]
-            except:
+            except IndexError:
                 # otherwise get the first backend
                 backend = backend[0]
         # if not present, error
