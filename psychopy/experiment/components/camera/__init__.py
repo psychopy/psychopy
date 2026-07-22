@@ -329,7 +329,7 @@ class CameraDeviceBackend(DeviceBackend):
         
         self.params['frameSize'] = Param(
             None, valType='list', inputType="choice",
-            allowedVals="python:///psychopy.hardware.camera:CameraDevice.getSupportedResolutions($deviceName, $frameRate)",
+            allowedVals="python:///psychopy.hardware.camera:CameraDevice.getSupportedResolutions($deviceName)",
             hint=_translate(
                 "Resolution (w x h) to record to, leave blank to use device default."
             ),
@@ -337,7 +337,7 @@ class CameraDeviceBackend(DeviceBackend):
         )
         params['frameRate'] = Param(
             None, valType='int', inputType="choice",
-            allowedVals="python:///psychopy.hardware.camera:CameraDevice.getSupportedFrameRates($deviceName, $frameSize)",
+            allowedVals="python:///psychopy.hardware.camera:CameraDevice.getSupportedFrameRates($deviceName)",
             hint=_translate(
                 "Frame rate (frames per second) to record at, leave blank to use device default."
             ),

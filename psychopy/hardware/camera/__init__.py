@@ -595,7 +595,8 @@ class CameraDevice(BaseDevice):
         Returns
         -------
         list[int]
-            List of supported frame rates
+            List of supported frame rates; the first item will always be None (as this is an option 
+            which tells the device to use the default)
         """
         frameRates = set()
         # iterate through all profiles...
@@ -603,17 +604,17 @@ class CameraDevice(BaseDevice):
             # skip non-matching devices
             if index not in (cam['deviceName'], cam['device']):
                 continue
-            # # skip non-matching resolutions
-            # if resolution and not all(
-            #     resolution[i] == val for i, val in enumerate(cam['frameSize'])
-            # ):
-            #     continue
+            # skip non-matching resolutions
+            if resolution and not all(
+                resolution[i] == val for i, val in enumerate(cam['frameSize'])
+            ):
+                continue
             # append if we got this far
             frameRates.add(cam['frameRate'])
         # sort
         frameRates = sorted(frameRates)
 
-        return frameRates
+        return [None] + frameRates
 
     @staticmethod
     def getSupportedResolutions(index, frameRate=None):
@@ -630,7 +631,8 @@ class CameraDevice(BaseDevice):
         Returns
         -------
         list[int]
-            List of supported resolutions
+            List of supported resolutions; the first item will always be None (as this is an option 
+            which tells the device to use the default)
         """
         resolutions = set()
         # iterate through all profiles...
@@ -638,15 +640,15 @@ class CameraDevice(BaseDevice):
             # skip non-matching devices
             if index not in (cam['deviceName'], cam['device']):
                 continue
-            # # skip non-matching resolutions
-            # if frameRate and not cam['frameRate'] == frameRate:
-            #     continue
+            # skip non-matching resolutions
+            if frameRate and not cam['frameRate'] == frameRate:
+                continue
             # append if we got this far
             resolutions.add(cam['frameSize'])
         # sort
         resolutions = sorted(resolutions, key=lambda x: x[0] * x[1])
 
-        return resolutions
+        return [None] + resolutions
 
     @staticmethod
     def getAvailableDevices(best=True):
