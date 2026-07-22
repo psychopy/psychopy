@@ -58,12 +58,11 @@ import numpy as np
 import threading
 
 from psychopy.constants import NOT_STARTED
-from psychopy.hardware import DeviceManager
+from psychopy.hardware import DeviceManager, BaseDevice
 from psychopy.sound.audioclip import AudioClip
 from psychopy.sound.microphone import Microphone
 from psychopy.hardware.microphone import MicrophoneDevice
 import psychopy.logging as logging
-from psychopy.hardware.camera._base import CameraDevice
 
 # ------------------------------------------------------------------------------
 # Constants
@@ -516,90 +515,6 @@ class CameraFrame:
         else:
             return False
 
-    @staticmethod
-    def getSupportedFrameRates(index, resolution=None):
-        """
-        List supported frame rate options for a given device at a given resolution.
-
-        Parameters
-        ----------
-        index : str
-            Index (name) of the camera
-        resolution : tuple[int]
-            Resolution at which to get frame rates. Leave as None to list all frame rate options.
-
-        Returns
-        -------
-        list[int]
-            List of supported frame rates; the first item will always be None (as this is an option 
-            which tells the device to use the default)
-        """
-        frameRates = set()
-        # iterate through all profiles...
-        for cam in CameraDevice.getAvailableDevices(best=False):
-            # skip non-matching devices
-            if index not in (cam['deviceName'], cam['device']):
-                continue
-            # skip non-matching resolutions
-            if resolution and not all(
-                resolution[i] == val for i, val in enumerate(cam['frameSize'])
-            ):
-                continue
-            # append if we got this far
-            frameRates.add(cam['frameRate'])
-        # sort
-        frameRates = sorted(frameRates)
-
-        return [None] + frameRates
-
-    @staticmethod
-    def getSupportedResolutions(index, frameRate=None):
-        """
-        List supported frame rate options for a given device at a given resolution.
-
-        Parameters
-        ----------
-        index : str
-            Index (name) of the camera
-        frameRate : tuple[int]
-            Frame rate at which to get resolutions. Leave as None to list all frame rate options.
-
-        Returns
-        -------
-        list[int]
-            List of supported resolutions; the first item will always be None (as this is an option 
-            which tells the device to use the default)
-        """
-        resolutions = set()
-        # iterate through all profiles...
-        for cam in CameraDevice.getAvailableDevices(best=False):
-            # skip non-matching devices
-            if index not in (cam['deviceName'], cam['device']):
-                continue
-            # skip non-matching resolutions
-            if frameRate and not cam['frameRate'] == frameRate:
-                continue
-            # append if we got this far
-            resolutions.add(cam['frameSize'])
-        # sort
-        resolutions = sorted(resolutions, key=lambda x: x[0] * x[1])
-
-        return [None] + resolutions
-
-    @staticmethod
-    def getAvailableDevices(best=True):
-        """
-        Get all available devices of this type.
-
-        Parameters
-        ----------
-        best : bool
-            If True, return only the best available frame rate/resolution for each device, rather 
-            than returning all. Best available spec is chosen as the highest resolution with a 
-            frame rate above 30fps (or just highest resolution, if none are over 30fps).
-        """
-        return CameraDevice.getAvailableDevices(best=best)
-    
     @absTime.setter
     def absTime(self, value):
         self._absTime = float(value)
@@ -733,6 +648,347 @@ class CameraFrame:
         self._detectedObjects = results  # store the detection results
 
         return results
+
+
+class CameraDevice(BaseDevice):
+    """Class providing an interface with a camera attached to the system.
+    
+    This interface handles the opening, closing, and reading of camera streams.
+
+    Parameters
+    ----------
+    device : Any
+        Camera device to open a stream with. The type of this value is dependent
+        on the platform and the camera library being used. This can be an integer
+        index, a string representing the camera device name.
+    pollingInterval : float or None
+        Interval in seconds to poll the camera stream for new frames. If `None`,
+        the default polling interval is used which is equal to the frame rate. 
+        The default value is `None`.
+
+    """
+    _captureLib = ''
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+
+    @staticmethod
+    def getCameras():
+        """Get a list of available camera devices on the system.
+
+        Returns
+        -------
+        list[CameraInfo]
+            List of available camera devices on the system.
+
+        """
+        raise NotImplementedError(
+            "This method must be implemented by subclasses.")
+
+    @staticmethod
+    def getAvailableDevices(best=False):
+        """Get a list of available camera devices on the system.
+
+        Parameters
+        ----------
+        best : bool, optional
+            If True, return only the best available camera device. The definition
+            of "best" is dependent on the platform and the camera library being
+            used. The default value is False, which returns all available camera
+            devices.
+
+        Returns
+        -------
+        list[CameraInfo]
+            List of available camera devices on the system.
+
+        """
+        raise NotImplementedError(
+            "This method must be implemented by subclasses.")
+
+    @property
+    def captureLib(self):
+        """Camera library in use (`str`). This is the camera library being used
+        to access the camera. This can be either, 'ffpyplayer', 'opencv'.
+        """
+        return self._captureLib
+    
+    @property
+    def captureAPI(self):
+        """Camera API in use (`str`). This is the camera API being used to access
+        the camera. This can be either, 'AVFoundation', 'DirectShow' or 
+        'Video4Linux2'.
+        """
+        raise NotImplementedError(
+            "This method must be implemented by subclasses.")
+    
+    @property
+    def pollingInterval(self):
+        """Polling interval in seconds (`float` or `None`). This is the interval
+        in seconds to poll the camera stream for new frames. If `None`, the
+        default polling interval is used which is equal to the frame rate.
+        """
+        raise NotImplementedError(
+            "This method must be implemented by subclasses.")
+    
+    @property
+    def streamTime(self):
+        """Current stream time in seconds (`float`).
+        
+        This is the current stream time in seconds. It is calculated as the
+        difference between the current time and the absolute recording start
+        time. If the camera stream is not open, this will return `-1.0`.
+        
+        """
+        return -1.0
+    
+    @property
+    def index(self):
+        """Camera index (`int`). This is the enumerated index of this camera.
+        """
+        raise NotImplementedError(
+            "This method must be implemented by subclasses.")
+    
+    @property
+    def name(self):
+        """Camera name (`str`). This is the camera name retrieved by the OS.
+        """
+        raise NotImplementedError(
+            "This method must be implemented by subclasses.")
+    
+    @property
+    def frameSize(self):
+        """Current frame size in pixels (`tuple` of `int`).
+        
+        This is the current frame size in pixels. It is calculated as the
+        difference between the current time and the absolute recording start
+        time. If the camera stream is not open, this will return `(-1, -1)`.
+        
+        """
+        return (-1, -1)
+
+    @property
+    def frameRate(self):
+        """Current frame rate in frames per second (`float`).
+        
+        This is the current frame rate in frames per second. It is calculated as the
+        difference between the current time and the absolute recording start
+        time. If the camera stream is not open, this will return `-1.0`.
+        
+        """
+        return -1.0
+    
+    @property
+    def frameCount(self):
+        """Current frame count (`int`).
+        
+        This is the current frame count. It is calculated as the
+        difference between the current time and the absolute recording start
+        time. If the camera stream is not open, this will return `-1`.
+        
+        """
+        return -1
+    
+    @property
+    def codecFormat(self):
+        """Current codec format (`str`).
+        
+        This is the current codec format. It is calculated as the
+        difference between the current time and the absolute recording start
+        time. If the camera stream is not open, this will return `u'Null'`.
+        
+        """
+        return ''
+
+    @property
+    def pixelFormat(self):
+        """Current pixel format (`str`).
+        
+        This is the current pixel format. It is calculated as the
+        difference between the current time and the absolute recording start
+        time. If the camera stream is not open, this will return `u'Null'`.
+        
+        """
+        return ''
+    
+    @property
+    def isOpen(self):
+        """Whether the camera stream is open (`bool`).
+        
+        This is a boolean value indicating whether the camera stream is open.
+        If the camera stream is not open, this will return `False`.
+        
+        """
+        return False
+    
+    @property
+    def isReady(self):
+        """Whether the camera stream is ready to read frames (`bool`).
+        
+        This is a boolean value indicating whether the camera stream is ready
+        to read frames. If the camera stream is not open, this will return `False`.
+        
+        """
+        return False
+    
+    def open(self, *args, **kwargs):
+        """Open the camera stream.
+
+        This method opens the camera stream and prepares it for reading frames.
+        If the camera stream is already open, this method will do nothing.
+
+        """
+        raise NotImplementedError(
+            "This method must be implemented by subclasses.")
+    
+    def close(self):
+        """Close the camera stream.
+
+        This method closes the camera stream and releases any resources
+        associated with it. If the camera stream is not open, this method will
+        do nothing.
+
+        """
+        raise NotImplementedError(
+            "This method must be implemented by subclasses.")
+    
+    def createStream(self, *args, **kwargs):
+        """Create a camera stream.
+
+        This method creates a camera stream and prepares it for reading frames.
+        If the camera stream is already open, this method will do nothing.
+
+        """
+        raise NotImplementedError(
+            "This method must be implemented by subclasses.")
+    
+    # def update(self, *args, **kwargs):
+    #     """Update the camera stream.
+
+    #     This method updates the camera stream and retrieves any new frames
+    #     available. If the camera stream is not open, this method will do nothing.
+
+    #     """
+    #     raise NotImplementedError(
+    #         "This method must be implemented by subclasses.")
+
+    def description(self):
+        """Get a description of the camera stream.
+
+        This method returns a string description of the camera stream, including
+        information about the camera device, frame size, frame rate, and pixel
+        format.
+
+        Returns
+        -------
+        str
+            Description of the camera stream.
+
+        """
+        return self.descriptionAsFormattedString()
+
+    def frameSizeAsFormattedString(self):
+        """Get image size as as formatted string.
+
+        Returns
+        -------
+        str
+            Size formatted as `'WxH'` (e.g. `'480x320'`).
+
+        """
+        frameSize = self.frameSize if self.frameSize is not None else (-1, -1)
+
+        return '{width}x{height}'.format(
+            width=frameSize[0],
+            height=frameSize[1])
+    
+    def descriptionAsFormattedString(self):
+        """Get a formatted string description of the camera stream.
+
+        Returns
+        -------
+        str
+            Formatted string description of the camera stream.
+
+        """
+        frameSize = self.frameSize if self.frameSize is not None else (-1, -1)
+        
+        return "[{name}] {width}x{height}@{frameRate}fps, {codec}".format(
+            name=self.name,
+            width=str(frameSize[0]),
+            height=str(frameSize[1]),
+            frameRate=str(self.frameRate),
+            codec=self.codecFormat if self.codecFormat != '' else self.pixelFormat
+        )
+
+    @staticmethod
+    def getSupportedFrameRates(index, resolution=None):
+        """
+        List supported frame rate options for a given device at a given resolution.
+
+        Parameters
+        ----------
+        index : str
+            Index (name) of the camera
+        resolution : tuple[int]
+            Resolution at which to get frame rates. Leave as None to list all frame rate options.
+
+        Returns
+        -------
+        list[int]
+            List of supported frame rates; the first item will always be None (as this is an option 
+            which tells the device to use the default)
+        """
+        frameRates = set()
+        # iterate through all profiles...
+        for cam in CameraDevice.getAvailableDevices(best=False):
+            # skip non-matching devices
+            if index not in (cam['deviceName']):
+                continue
+            # skip non-matching resolutions
+            if resolution and not all(
+                resolution[i] == val for i, val in enumerate(cam['frameSize'])
+            ):
+                continue
+            # append if we got this far
+            frameRates.add(cam['frameRate'])
+        # sort
+        frameRates = sorted(frameRates)
+
+        return [None] + frameRates
+
+    @staticmethod
+    def getSupportedResolutions(index, frameRate=None):
+        """
+        List supported resolution options for a given device at a given frame rate.
+
+        Parameters
+        ----------
+        index : str
+            Index (name) of the camera
+        frameRate : tuple[int]
+            Frame rate at which to get resolutions. Leave as None to list all frame rate options.
+
+        Returns
+        -------
+        list[int]
+            List of supported resolutions; the first item will always be None (as this is an option 
+            which tells the device to use the default)
+        """
+        resolutions = set()
+        # iterate through all profiles...
+        for cam in CameraDevice.getAvailableDevices(best=False):
+            # skip non-matching devices
+            if index not in (cam['deviceName']):
+                continue
+            # skip non-matching resolutions
+            if frameRate and not cam['frameRate'] == frameRate:
+                continue
+            # append if we got this far
+            resolutions.add(cam['frameSize'])
+        # sort
+        resolutions = sorted(resolutions, key=lambda x: x[0] * x[1])
+
+        return [None] + resolutions
 
 
 # keep track of camera devices that are opened
@@ -1519,6 +1775,7 @@ class FFPyPlayerCameraDevice(CameraDevice):
 
 # class name alias for legacy support
 CameraDevice = CameraInterface = FFPyPlayerCameraDevice
+
 
 class Camera:
     """Class for displaying and recording video from a USB/PCI connected camera.
