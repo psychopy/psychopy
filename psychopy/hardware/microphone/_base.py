@@ -15,7 +15,6 @@ __all__ = [
 
 import psychopy.logging as logging
 from psychopy.preferences import prefs
-from psychtoolbox import audio as audio
 from psychopy import logging as logging, prefs, core
 from psychopy.hardware.exceptions import DeviceNotConnectedError
 from psychopy.localization import _translate
