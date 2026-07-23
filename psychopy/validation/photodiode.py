@@ -36,6 +36,10 @@ class PhotodiodeValidator:
         # update rects to match diode
         self.updateRects()
 
+    @property
+    def sensor(self):
+        return self.diode
+
     def connectStimulus(self, stim):
         # store mapping of stimulus to self in window
         self.win.validators[stim] = self

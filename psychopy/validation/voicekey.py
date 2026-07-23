@@ -17,6 +17,10 @@ class VoiceKeyValidator:
         self.vk = vk
         self.channel = channel
 
+    @property
+    def sensor(self):
+        return self.vk
+
     def connectStimulus(self, stim):
         # store mapping of stimulus to self in window
         stim.validator = self
