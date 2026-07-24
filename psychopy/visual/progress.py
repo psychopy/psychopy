@@ -10,7 +10,6 @@ _directionAliases = {
         "0": "horizontal",
         "False": "horizontal",
         0: "horizontal",
-        False: "horizontal",
         # Vertical
         "vertical": "vertical",
         "vert": "vertical",
@@ -18,7 +17,6 @@ _directionAliases = {
         "1": "vertical",
         "True": "vertical",
         1: "vertical",
-        True: "vertical",
     }
 
 

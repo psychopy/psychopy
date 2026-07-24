@@ -110,7 +110,7 @@ __all__ = [
     'createCone',
     'transformMeshPosOri',
     'calculateVertexNormals',
-    'mergeVerticies',
+    'mergeVertices',
     'smoothCreases',
     'flipFaces',
     'interleaveAttributes',
@@ -5191,6 +5191,22 @@ class SimpleMaterial:
         self._shininess = float(value)
 
 
+def _setDefaultMaterial(face=GL.GL_FRONT_AND_BACK):
+    """Reset material properties to the OpenGL defaults.
+
+    Parameters
+    ----------
+    face : GLenum
+        Face to apply the default material properties to.
+
+    """
+    GL.glMaterialfv(face, GL.GL_DIFFUSE, (GL.GLfloat * 4)(0.8, 0.8, 0.8, 1.0))
+    GL.glMaterialfv(face, GL.GL_SPECULAR, (GL.GLfloat * 4)(0.0, 0.0, 0.0, 1.0))
+    GL.glMaterialfv(face, GL.GL_AMBIENT, (GL.GLfloat * 4)(0.2, 0.2, 0.2, 1.0))
+    GL.glMaterialfv(face, GL.GL_EMISSION, (GL.GLfloat * 4)(0.0, 0.0, 0.0, 1.0))
+    GL.glMaterialf(face, GL.GL_SHININESS, 0.0)
+
+
 def useMaterial(material, useTextures=True):
     """Use a material for proceeding vertex draws.
 
@@ -5257,19 +5273,17 @@ def useMaterial(material, useTextures=True):
             GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
             GL.glDisable(GL.GL_TEXTURE_2D)
     else:
-        for mode, param in defaultMaterial.params.items():
-            GL.glEnable(GL.GL_COLOR_MATERIAL)
-            GL.glMaterialfv(GL.GL_FRONT_AND_BACK, mode, param)
+        GL.glEnable(GL.GL_COLOR_MATERIAL)
+        _setDefaultMaterial()
 
 
 def clearMaterial(material):
     """Stop using a material."""
-    for mode, param in defaultMaterial.params.items():
-        GL.glMaterialfv(GL.GL_FRONT_AND_BACK, mode, param)
+    _setDefaultMaterial()
 
     if material._useTextures:
         if material.diffuseTexture is not None:
-            unbindTexture(material.diffuseTexture)
+            bindTexture(None, 'GL_TEXTURE_2D', 0)
 
         GL.glDisable(GL.GL_TEXTURE_2D)
 
