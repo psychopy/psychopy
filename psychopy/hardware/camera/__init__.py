@@ -665,6 +665,12 @@ class FFPyPlayerCameraDevice(CameraDevice):
         Camera device to open a stream with. The type of this value is dependent
         on the platform and the camera library being used. This can be an integer
         index, a string representing the camera device name.
+    frameSize : ArrayLike or None
+        Resolution of the frame `(w, h)` in pixels. If `None`, the default frame 
+        size is used which is `(640, 480)`. The default value is `None`.
+    frameRate : float or None
+        Frame rate in frames per second. If `None`, the default frame rate is
+        used which is `30.0`. The default value is `None`.
     decoderOpts : dict or None
         Dictionary of options to pass to the FFmpeg decoder. If `None`, default
         options are used. The default value is `None`.
@@ -680,16 +686,24 @@ class FFPyPlayerCameraDevice(CameraDevice):
     """
     _streams = {}
     backend = 'ffpyplayer'
-    def __init__(self, device, decoderOpts=None, bufferSecs=5.0, pollingInterval=None):        
+    def __init__(self, 
+                 device, 
+                 frameSize=None, 
+                 frameRate=None,
+                 pixelFormat=None,
+                 codecFormat=None,
+                 decoderOpts=None, 
+                 bufferSecs=5.0, 
+                 pollingInterval=None, 
+                 **kwargs):
         # if device is an integer, get name from index
         foundProfile = None
+        
         if isinstance(device, int):
-            for profile in self.getAvailableDevices():
-                if profile['device'] == device:
-                    foundProfile = profile
-                    break
+            device = self.getAvailableDevices()[device]['deviceName']
+
         # if device is a string, get profile from name
-        elif isinstance(device, str):
+        if isinstance(device, str):
             for profile in self.getAvailableDevices():
                 if profile['deviceName'] == device:
                     foundProfile = profile
@@ -703,6 +717,8 @@ class FFPyPlayerCameraDevice(CameraDevice):
                 "Cannot find camera with index or name '{}'.".format(device))
 
         self.info = foundProfile
+        self._frameSize = frameSize if frameSize is not None else [640, 480]
+        self._frameRate = frameRate if frameRate is not None else 30.0
         self._device = self.info['deviceName']
         self._decoderOpts = decoderOpts if decoderOpts is not None else {}
         self._pollingInterval = pollingInterval if pollingInterval is not None else self.frameInterval
@@ -711,12 +727,31 @@ class FFPyPlayerCameraDevice(CameraDevice):
         self._bufferSecs = bufferSecs
         self._frameCount = 0
 
+        # gat all the capabilities of the camera device, including supported 
+        # frame sizes, frame rates, pixel formats, and codec formats
+        allCaps = FFPyPlayerCameraDevice.getDeviceCapabilities(self._device)
+
+        # get the best matching capabilities for the requested frame size and frame rate
+        for cap in allCaps:
+            if cap['frameSize'] == self._frameSize and cap['frameRate'] == self._frameRate:
+                self._pixelFormat = cap['pixelFormat']
+                self._codecFormat = cap['codecFormat']
+                break
+        else:
+            # if no exact match, use the first available capability
+            self._pixelFormat = allCaps[0]['pixelFormat']
+            self._codecFormat = allCaps[0]['codecFormat']
+
         if platform.system() == 'Darwin':
             self._captureAPI = CAMERA_API_AVFOUNDATION
+            self._pixelFormat = pixelFormat if pixelFormat is not None else 'yuvs'
+            self._codecFormat = codecFormat if codecFormat is not None else 'h264'
         elif platform.system() == 'Windows':
             self._captureAPI = CAMERA_API_DIRECTSHOW
+            self._pixelFormat = pixelFormat if pixelFormat is not None else 'yuyv422'
         elif platform.system() == 'Linux':
             self._captureAPI = CAMERA_API_VIDEO4LINUX2
+            self._pixelFormat = pixelFormat if pixelFormat is not None else 'yuyv422'
         else:
             raise OSError(
                 "Unsupported platform '{}', cannot select capture API.".format(
@@ -742,7 +777,7 @@ class FFPyPlayerCameraDevice(CameraDevice):
         if self._capture is None:
             return None
 
-        return self.info['frameSize']
+        return self._frameSize
     
     @property
     def frameRate(self):
@@ -758,7 +793,7 @@ class FFPyPlayerCameraDevice(CameraDevice):
         if self.info is None:
             return None
 
-        return self.info['frameRate']
+        return self._frameRate
 
     @property
     def frameInterval(self):
@@ -774,7 +809,7 @@ class FFPyPlayerCameraDevice(CameraDevice):
         if self.info is None:
             return -1.0
 
-        return 1.0 / self.info['frameRate']
+        return 1.0 / self._frameRate if self._frameRate > 0 else -1.0
 
     def bind(self, client):
         """Register a client to receive new frames from the camera stream.
@@ -1022,11 +1057,6 @@ class FFPyPlayerCameraDevice(CameraDevice):
             return
         
         # get settings from the profile
-        self._frameSize = self.info['frameSize']
-        self._frameRate = self.info['frameRate']
-        self._codecFormat = self.info['codecFormat']
-        self._pixelFormat = self.info['pixelFormat']
-
         self._bufferSecs = self._bufferSecs  # default buffer size in seconds
 
         # if we already have a stream for this device, reuse it
@@ -1088,7 +1118,7 @@ class FFPyPlayerCameraDevice(CameraDevice):
 
         # set library options
         camWidth, camHeight = self._frameSize
-        logging.warning(
+        logging.info(
             "Using camera mode {}x{} at {} fps".format(
                 camWidth, camHeight, _frameRate))
         
@@ -1187,10 +1217,26 @@ class FFPyPlayerCameraDevice(CameraDevice):
             logging.debug(
                 "Stopped automatic polling of the camera stream for device '{}'.".format(
                     self._device))
+            
+        self._frameCount = 0  # reset the frame count
 
     def _poll(self):
-        """Poll the camera stream for new frames."""
-        # Implementation for polling the camera stream
+        """Poll the camera stream for new frames.
+
+        This method must be called at regular intervals to read frames from the 
+        camera stream. It reads all available frames until there are no more and
+        dispatches them to bound clients via the `_onNewFrames()` method. If
+        this method is not called before the camera stream buffer fills up, 
+        frames will be dropped.
+
+        If the camera stream is paused, this method will not read any frames and
+        will return immediately.
+
+        If automatic polling is setup via `_setupAutoPolling()`, this method
+        will be called automatically. Otherwise, the user must call this method
+        manually using a code component.
+
+        """
         self._getFrames()  # get the most recent frames
 
     def isSameDevice(self, other):
@@ -1213,6 +1259,60 @@ class FFPyPlayerCameraDevice(CameraDevice):
             return self.info['device'] == other['device']
 
     @staticmethod
+    def getDeviceCapabilities(device, by=None):
+        """
+        Get the capabilities of a specific camera device.
+
+        Parameters
+        ----------
+        device : str or int
+            The name or index of the camera device.
+        by : str, optional
+            If specified, filter the capabilities by a specific attribute (e.g.,
+            'frameSize', 'frameRate', 'pixelFormat', 'codecFormat'). If `None`,
+            return all capabilities.
+
+        Returns
+        -------
+        list
+            List of dictionaries containing the capabilities of the specified
+            camera device. Each dictionary contains the following keys:
+                - 'frameSize': Tuple (width, height) of the frame size.
+                - 'frameRate': Frame rate in frames per second.
+                - 'pixelFormat': Pixel format of the frame.
+                - 'codecFormat': Codec format used for the frame.
+            If `by` is specified, the list will only include capabilities that 
+            match the specified attribute.
+
+        """
+        # find the specified device
+        deviceModes = []
+        for dev in FFPyPlayerCameraDevice.getCameras().values():
+            for mode in dev:
+                if mode.name != device:
+                    continue
+
+                if by is None:
+                    deviceModes.append({
+                        'frameSize': mode.frameSize,
+                        'frameRate': mode.frameRate,
+                        'pixelFormat': mode.pixelFormat,
+                        'codecFormat': mode.codecFormat
+                    })
+                else:
+                    if hasattr(mode, by):
+                        modeStr = str(getattr(mode, by))
+                        if modeStr not in deviceModes:
+                            deviceModes.append(modeStr)
+                    else:
+                        raise ValueError(
+                            "Invalid filter attribute '{}'. Must be one of: "
+                            "'frameSize', 'frameRate', 'pixelFormat', "
+                            "'codecFormat'.".format(by))
+            
+        return deviceModes
+
+    @staticmethod
     def getAvailableDevices(best=False):
         """
         Get all available devices of this type.
@@ -1233,48 +1333,65 @@ class FFPyPlayerCameraDevice(CameraDevice):
 
         """
         profiles = []
+        foundCameras = []  # keep track of cameras we've already seen to avoid duplicates
         # iterate through cameras
         for cams in FFPyPlayerCameraDevice.getCameras().values():
             # Skip devices with no available formats
             if not cams:
                 continue
-            # if requested, filter for best spec for each device
-            if best:
-                allCams = cams.copy()
-                lastBest = {
-                    'pixels': 0,
-                    'frameRate': 0
-                }
-                bestResolution = None
-                minFrameRate = max(28, min([cam.frameRate for cam in allCams]))
-                for cam in allCams:
-                    # summarise spec of this cam
-                    current = {
-                        'pixels': cam.frameSize[0] * cam.frameSize[1],
-                        'frameRate': cam.frameRate
-                    }
-                    # store best frame rate as a fallback
-                    if bestResolution is None or current['pixels'] > lastBest['pixels']:
-                        bestResolution = cam
-                    # if it's better than the last, set it as the only cam
-                    if current['pixels'] > lastBest['pixels'] and current['frameRate'] >= minFrameRate:
-                        cams = [cam]
-                # if no cameras meet frame rate requirement, use one with best resolution
-                cams = [bestResolution]
+
+            if cams[0].name in foundCameras:
+                continue  # skip duplicate camera names
+            foundCameras.append(cams[0].name)
+            profiles.append({
+                'deviceName': cams[0].name,
+                'deviceClass': "psychopy.hardware.camera.CameraDevice",
+                # 'device': cam.index,
+                # 'captureLib': cam.cameraLib, 
+                # 'frameSize': cam.frameSize, 
+                # 'frameRate': cam.frameRate, 
+                # 'pixelFormat': cam.pixelFormat, 
+                # 'codecFormat': cam.codecFormat, 
+                # 'captureAPI': cam.cameraAPI
+            })
+
+            # # if requested, filter for best spec for each device
+            # if best:
+            #     allCams = cams.copy()
+            #     lastBest = {
+            #         'pixels': 0,
+            #         'frameRate': 0
+            #     }
+            #     bestResolution = None
+            #     minFrameRate = max(28, min([cam.frameRate for cam in allCams]))
+            #     for cam in allCams:
+            #         # summarise spec of this cam
+            #         current = {
+            #             'pixels': cam.frameSize[0] * cam.frameSize[1],
+            #             'frameRate': cam.frameRate
+            #         }
+            #         # store best frame rate as a fallback
+            #         if bestResolution is None or current['pixels'] > lastBest['pixels']:
+            #             bestResolution = cam
+            #         # if it's better than the last, set it as the only cam
+            #         if current['pixels'] > lastBest['pixels'] and current['frameRate'] >= minFrameRate:
+            #             cams = [cam]
+            #     # if no cameras meet frame rate requirement, use one with best resolution
+            #     cams = [bestResolution]
             # iterate through all (possibly filtered) cameras
-            for cam in cams:
-                # construct a dict profile from the CameraInfo object
-                profiles.append({
-                    'deviceName': cam.name,
-                    'deviceClass': "psychopy.hardware.camera.CameraDevice",
-                    'device': cam.index,
-                    'captureLib': cam.cameraLib, 
-                    'frameSize': cam.frameSize, 
-                    'frameRate': cam.frameRate, 
-                    'pixelFormat': cam.pixelFormat, 
-                    'codecFormat': cam.codecFormat, 
-                    'captureAPI': cam.cameraAPI
-                })
+            # for cam in cams:
+            #     # construct a dict profile from the CameraInfo object
+            #     profiles.append({
+            #         'deviceName': cam.name,
+            #         'deviceClass': "psychopy.hardware.camera.CameraDevice",
+            #         # 'device': cam.index,
+            #         # 'captureLib': cam.cameraLib, 
+            #         # 'frameSize': cam.frameSize, 
+            #         # 'frameRate': cam.frameRate, 
+            #         # 'pixelFormat': cam.pixelFormat, 
+            #         # 'codecFormat': cam.codecFormat, 
+            #         # 'captureAPI': cam.cameraAPI
+            #     })
 
         return profiles
 
@@ -1536,6 +1653,8 @@ class Camera:
 
         # current camera frame since the start of recording
         self.status = NOT_STARTED
+        self._startRecOffset = 0  # offset in samples 
+        self._recording = False
         self._bufferSecs = float(bufferSecs)
         self._lastFrame = None  # use None to avoid imports for ImageStim
         self._keepFrames = keepFrames  # number of frames to keep in memory
@@ -2119,7 +2238,7 @@ class Camera:
             if self.mic is not None:
                 self.mic.record(when=self._tRecordingStartRequested)
 
-        self._isRecording = True  # set recording flag
+        self._isRecording = False  # set in callback or polling function
         # do an initial poll to avoid frame dropping
         # self.update()
 
@@ -2172,8 +2291,6 @@ class Camera:
         to save the frames to disk.
 
         """
-        # self._closeMovieFileWriter()
-
         if self._capture is not None and self._capture.isOpen:
             self._capture.unbind(self)
 
@@ -2182,6 +2299,8 @@ class Camera:
         if self.mic is not None:
             self.mic.unbind(self)
             self.mic.close()
+
+        self._closeMovieFileWriter()
 
         self._isStarted = False
 
@@ -2335,8 +2454,8 @@ class Camera:
             )
         
         # if there's nothing to unsaved, do nothing
-        # if not self._unsaved:
-        #     return
+        if not self._unsaved:
+            return
         
         # check if we have an active movie writer
         if self._movieWriter is not None:
@@ -2359,10 +2478,11 @@ class Camera:
                 "Saving audio track to file `{}`...".format(filename))
             
             # trim off samples before the recording started
-            # audioTrack = audioTrack.trimmed(
-            #     direction='start',
-            #     duration=self._duration,
-            #     units='samples')
+            if self._startRecOffset > 0:
+                audioTrack = audioTrack.trimmed(
+                    direction='start',
+                    duration=self._startRecOffset,
+                    units='samples')
             
             if mergeAudio:
                 logging.debug("Merging audio track with video track...")
@@ -3022,9 +3142,10 @@ class Camera:
 
         """
         if self._movieWriter is None:
-            raise RuntimeError(
-                "Attempting to call `_submitFrameToFileFFPyPlayer()` before "
-                "`_openMovieFileWriterFFPyPlayer()`.")
+            return 0
+            # raise RuntimeError(
+            #     "Attempting to call `_submitFrameToFileFFPyPlayer()` before "
+            #     "`_openMovieFileWriterFFPyPlayer()`, or writer was closed.")
         
         from ffpyplayer.pic import SWScale
         
@@ -3044,10 +3165,15 @@ class Camera:
             # if self._generatePTS:
             self._curPTS += self._capture.frameInterval  # increment dts by frame interval
 
-            bytesOut = self._movieWriter.write_frame(
-                img=sws.scale(colorData),
-                pts=self._curPTS,
-                stream=0)
+            # we get an EOF error when the movie writer is fully drained, catch 
+            # it and ignore it
+            try:
+                bytesOut = self._movieWriter.write_frame(
+                    img=sws.scale(colorData),
+                    pts=self._curPTS,
+                    stream=0)
+            except Exception as e:
+                pass
 
         return bytesOut
 
@@ -3061,10 +3187,12 @@ class Camera:
             logging.debug(
                 "Closing movie file writer using FFPyPlayer...")
             self._movieWriter.close()
-        else:
-            logging.debug(
-                "Attempting to call `_closeMovieFileWriterFFPyPlayer()` "
-                "without an open movie file writer.")
+        # else:
+        #     logging.debug(
+        #         "Attempting to call `_closeMovieFileWriterFFPyPlayer()` "
+        #         "without an open movie file writer.")
+
+        self._movieWriter = None
 
     # 
     # Movie file writer methods
@@ -3153,9 +3281,10 @@ class Camera:
 
         """
         if self._movieWriter is None:
-            raise RuntimeError(
-                "Attempting to call `_submitFrameToFile()` before "
-                "`_openMovieFileWriter()`.")
+            pass
+            # raise RuntimeError(
+            #     "Attempting to call `_submitFrameToFile()` before "
+            #     "`_openMovieFileWriter()`.")
 
         tStart = time.time()  # start time for the operation
         if self._cameraLib == 'ffpyplayer':
@@ -3178,9 +3307,9 @@ class Camera:
         the writer. If the writer is not open, this will do nothing.
         """
         if self._movieWriter is None:
-            logging.warning(
-                "Attempting to call `_closeMovieFileWriter()` without an open "
-                "movie file writer.")
+            # logging.warning(
+            #     "Attempting to call `_closeMovieFileWriter()` without an open "
+            #     "movie file writer.")
             return
         
         if self._cameraLib == 'ffpyplayer':
@@ -3730,16 +3859,18 @@ atexit.register(_closeAllCaptureInterfaces)
 
 
 if __name__ == "__main__":
-    # print(Camera.getAvailableDevices())
-    # cam = Camera(0, mic=1)
-    # cam.open()
-    # cam.record(when=0.0)
+    dev = CameraDevice.getAvailableDevices()[0]['deviceName']
+    print(CameraDevice.getDeviceCapabilities(dev, by='frameRate'))
 
-    # t0 = time.time()
-    # while time.time() - t0 < 5.0:
-    #     time.sleep(0.001)
+    cam = Camera(0, mic=1)
+    #cam.open()
+    cam.record(when=0.0)
 
-    # cam.stop()
-    # cam.save('./test_camera_output.mp4')
-    # cam.close()
-    pass
+    t0 = time.time()
+    while time.time() - t0 < 5.0:
+        time.sleep(0.001)
+
+    cam.stop()
+    cam.save('./test_camera_output.mp4')
+    cam.close()
+
