@@ -17,6 +17,9 @@ __all__ = [
     'closeAllParallelPorts'
 ]
 
+import sys
+
+from psychopy import logging
 from .base import BaseTriggerBox
 
 # used to keep track of open parallel ports to avoid multiple objects accessing
@@ -196,8 +199,8 @@ class ParallelPortTrigger(BaseTriggerBox):
                 "Cannot change the port address while the port is open.")
 
         # convert u"0x0378" into 0x0378
-        if isinstance(address, str) and address.startswith('0x'):
-            address = int(address, 16)
+        if isinstance(portAddress, str) and portAddress.startswith('0x'):
+            portAddress = int(portAddress, 16)
 
         self._portAddress = portAddress
 
