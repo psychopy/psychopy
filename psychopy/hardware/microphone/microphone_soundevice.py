@@ -15,19 +15,14 @@ import sys
 import time
 from ._base import BaseMicrophoneDevice, MicrophoneResponse
 import numpy as np
-from psychopy import logging as logging, prefs, core
+from psychopy import logging as logging
 from psychopy.hardware.exceptions import DeviceNotConnectedError
 from psychopy.localization import _translate
-from psychopy.constants import NOT_STARTED
-from psychopy.hardware import BaseDevice, BaseResponse, BaseResponseDevice
-from psychopy.sound.audiodevice import AudioDeviceInfo, AudioDeviceStatus
-from psychopy.sound.audioclip import AudioClip
+from psychopy.hardware import BaseResponseDevice
+from psychopy.sound.audiodevice import AudioDeviceInfo
 from psychopy.sound.exceptions import AudioInvalidCaptureDeviceError, AudioInvalidDeviceError, \
-    AudioStreamError, AudioRecordingBufferFullError
+    AudioStreamError
 from psychopy.tools import systemtools as st
-from psychopy.tools.audiotools import SAMPLE_RATE_48kHz
-import atexit
-import re
 
     
 class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microphone"]):
@@ -257,7 +252,7 @@ class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microph
         if len(indata) and self._clients:
             # compute the absulute time of the end of the current recording pos
             absBlockStartTime = timeAtADC
-            absBlockEndTime = timeAtADC + (frames / self._sampleRateHz)
+            absBlockEndTime = absBlockStartTime + (frames / self._sampleRateHz)
             
             # iterate over attached microphone objects and write data to their 
             # recording buffers if we're past the requested start time
@@ -266,8 +261,16 @@ class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microph
                 reqStopTime = mic._tRecordingStopRequested
                 if reqStartTime < absBlockEndTime and (
                         reqStopTime is None or absBlockStartTime < reqStopTime):
+                    
+                    if not mic._isRecording:
+                        mic._startRecOffset = max(
+                            0, int((reqStartTime - absBlockStartTime) * self._sampleRateHz))
+                        mic._isRecording = True
                     mic._recordingBuffer.append(indata.copy())
                     mic._nRecordedFrames += frames
+
+                    if reqStopTime is not None and absBlockEndTime >= reqStopTime:
+                        mic._isRecording = False
 
     def isOpen(self):
         """Check if the stream for this microphone device is open.
@@ -398,18 +401,34 @@ class SoundDeviceMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microph
         return time.monotonic()  # sounddevice uses monotonic timebase for its callbacks
     
     def record(self, when=None, waitForStart=0, stopTime=None):
+        """Start recording from the microphone. This method is an alias for `start()`.
+        
+        **Deprecated**: No longer in use. Recordings are now managed by the 
+        microphone objects attached to this device. Call `start()` on the 
+        microphone object to begin recording, and `stop()` to end recording.
+
+        """
         pass
 
     def start(self, when=None, waitForStart=0, stopTime=None):
         """Start recording from the microphone. Alias for `record()`.
+
+        **Deprecated**: No longer in use. Recordings are now managed by the 
+        microphone objects attached to this device. Call `start()` on the 
+        microphone object to begin recording, and `stop()` to end recording.
+
         """
         self.record(when=when, waitForStart=waitForStart, stopTime=stopTime)
     
     def stop(self, *args, **kwargs):
         """Stop recording from the microphone.
+
+        **Deprecated**: No longer in use. Recordings are now managed by the 
+        microphone objects attached to this device. Call `stop()` on the 
+        microphone object to end recording.
+
         """
-        self._tRecordingStartRequested = -1
-        self._recording = False
+        pass
 
     def pause(self):
         """Pause recording from the microphone. Can be resumed with `record()`."""
