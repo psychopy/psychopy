@@ -13,6 +13,7 @@ __all__ = [
 
 import importlib.metadata
 from psychopy.preferences import prefs
+from psychopy import logging
 
 
 class MicrophoneDevice:
@@ -53,7 +54,7 @@ class MicrophoneDevice:
                 backend = [
                     val for val in backend if val in cls.backends
                 ][0]
-            except:
+            except IndexError:
                 # otherwise get the first backend
                 backend = backend[0]
         # if not present, error
@@ -63,7 +64,24 @@ class MicrophoneDevice:
             )
 
         # import backend
-        return cls.backends[backend].load()
+        try:
+            return cls.backends[backend].load()
+        except ImportError:
+            # if backend fails to import, remove it from .backends
+            del cls.backends[backend]
+            # if there's no backends left, error
+            if not len(cls.backends):
+                raise ImportError(
+                    "All audio backends failed to load."
+                )
+            # try next option
+            cls.backend = list(cls.backends)[0]
+            # log
+            logging.error(
+                f"Failed to load {backend} backend, trying {cls.backend}..."
+            )
+
+            return cls.resolveBackend()
 
     @staticmethod
     def getAvailableDevices():

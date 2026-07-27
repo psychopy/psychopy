@@ -408,7 +408,7 @@ def getOpenGLInfo():
 # OpenGL limits for this system
 try:
     MAX_TEXTURE_UNITS = getOpenGLInfo().maxTextureUnits
-except:
+except Exception:
     MAX_TEXTURE_UNITS = 32
 
 

@@ -10,7 +10,7 @@
                 </g>
                 <g id="Keys">
                     <g transform="matrix(-1,0,0,1,72.153,23.9171)">
-                        <rect x="18.035" y="21.058" width="36.083" height="4.833" style="fill:rgb(242,84,91);"/>
+                        <rect x="18.035" y="21.058" width="36.083" height="4.833" style="fill:var(--red);"/>
                     </g>
                     <g transform="matrix(-1,0,0,1,27.091,23.9171)">
                         <rect x="10.66" y="21.058" width="5.771" height="4.833" style="fill:var(--outline);"/>
@@ -22,10 +22,10 @@
                         <rect x="55.723" y="33.933" width="4.833" height="4.833" style="fill:var(--outline);"/>
                     </g>
                     <g transform="matrix(-1,0,0,1,113.862,-14.7069)">
-                        <rect x="53.306" y="40.37" width="7.25" height="4.833" style="fill:rgb(2,169,234);"/>
+                        <rect x="53.306" y="40.37" width="7.25" height="4.833" style="fill:var(--blue);"/>
                     </g>
                     <g transform="matrix(-1,0,0,1,113.862,11.0431)">
-                        <rect x="53.306" y="27.495" width="7.25" height="4.833" style="fill:rgb(2,169,234);"/>
+                        <rect x="53.306" y="27.495" width="7.25" height="4.833" style="fill:var(--blue);"/>
                     </g>
                     <g transform="matrix(-1,0,0,1,103.403,-1.8329)">
                         <rect x="49.285" y="33.933" width="4.833" height="4.833" style="fill:var(--outline);"/>
@@ -64,7 +64,7 @@
                         <rect x="21.119" y="27.739" width="4.833" height="4.833" style="fill:var(--outline);"/>
                     </g>
                     <g transform="matrix(-1,0,0,1,30.174,10.5551)">
-                        <rect x="10.66" y="27.739" width="8.854" height="4.833" style="fill:rgb(2,169,234);"/>
+                        <rect x="10.66" y="27.739" width="8.854" height="4.833" style="fill:var(--blue);"/>
                     </g>
                     <g transform="matrix(-1,0,0,1,98.571,-14.7069)">
                         <rect x="46.869" y="40.37" width="4.833" height="4.833" style="fill:var(--outline);"/>

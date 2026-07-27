@@ -1,4 +1,5 @@
 import ast
+import re
 
 from numpy import array
 from esprima import parseScript
@@ -314,9 +315,17 @@ def checkJavaScriptSyntax(component, tab):
     tab: str
         The name of the code component tab being tested
     """
+    content = str(component.params[tab].val)
+    # check that value is valid syntax
     try:
-        parseScript(str(component.params[tab].val))
+        parseScript(content)
     except Exception as err:
         strFields = {'codeTab': tab, 'lineNumber': err.message}
         # Dont sent traceback because strFields gives better localisation of error
         alert(4210, component, strFields)
+    # if quitPsychoJS is called, make sure it's returned
+    if re.match(
+        r"(?<!return )quitPsychoJS",
+        content
+    ):
+        alert(4215, component)

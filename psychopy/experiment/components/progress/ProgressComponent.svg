@@ -10,7 +10,7 @@
             </clipPath>
             <g clip-path="url(#_clip1)">
                 <g transform="matrix(0.75,0,0,0.735294,1.25,4.11765)">
-                    <rect x="1" y="8" width="24" height="17" style="fill:rgb(37,169,234);"/>
+                    <rect x="1" y="8" width="24" height="17" style="fill:var(--blue);"/>
                 </g>
             </g>
             <path d="M30,13.125L30,19.375C30,21.1 28.656,22.5 27,22.5L5,22.5C3.344,22.5 2,21.1 2,19.375L2,13.125C2,11.4 3.344,10 5,10L27,10C28.656,10 30,11.4 30,13.125Z" style="fill:none;stroke:var(--outline);stroke-width:2.04px;"/>

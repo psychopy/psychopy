@@ -1068,7 +1068,7 @@ class FontFinder:
         # try expanding ~ (but don't worry if it failed)
         try:
             thisFolder = thisFolder.expanduser()
-        except:
+        except Exception:
             pass
         # try each extension
         for ext in cls.supportedExtensions:
