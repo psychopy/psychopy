@@ -138,6 +138,49 @@ class SoundComponent(BaseDeviceComponent):
             )
         )
 
+    def writeParamUpdate(
+        self, 
+        buff, 
+        compName, 
+        paramName, 
+        val, 
+        updateType,
+        params=None, 
+        target="PsychoPy"
+    ):
+        # updating sound param is something of a special case
+        if paramName == "sound":
+            # in Python, needs to have hamming specified
+            if target == "PsychoPy":
+                code = (
+                    "%(name)s.setSound(%(sound)s, hamming=%(hamming)s"
+                )
+                if self.params['stopVal'].val in ['', None, -1, 'None']:
+                    # also specify secs if we have a finite duration
+                    code += ", secs=%(stopVal)s"
+                code += f", logging={updateType != 'set every frame'})"
+                buff.writeIndentedLines(code % self.params)
+            # in JS, the resource needs to be fetched
+            if target == "PsychoJS":
+                code = (
+                    "%(name)s.setSound(%(sound)s);\n"
+                )
+                if self.params['stopVal'].val in ['', None, -1, 'None']:
+                    # also specify secs if we have a finite duration
+                    code += "%(name)s.secs = %(stopVal)s;\n"
+                buff.writeIndentedLines(code % self.params)
+        else:
+            BaseDeviceComponent.writeParamUpdate(
+                self, 
+                buff, 
+                compName, 
+                paramName, 
+                val, 
+                updateType,
+                params, 
+                target
+            )
+
     def writePreCode(self, buff):
         backend = self.exp.settings.params['Audio lib'].val
         # figure out backend
@@ -186,7 +229,7 @@ class SoundComponent(BaseDeviceComponent):
 
     def writeRoutineStartCode(self, buff):
         # do param updates
-        super().writeRoutineStartCode(self, buff)
+        BaseDeviceComponent.writeRoutineStartCode(self, buff)
         # seek back to start
         code = (
             "%(name)s.seek(0)\n"
@@ -218,23 +261,13 @@ class SoundComponent(BaseDeviceComponent):
         buff.writeIndentedLines(code % self.params)
 
     def writeRoutineStartCodeJS(self, buff):
-        stopVal = self.params['stopVal']
-        if stopVal in ['', None, 'None']:
-            stopVal = -1
-        
+        # do param updates
+        BaseDeviceComponent.writeRoutineStartCodeJS(self, buff)        
         # never start a Routine marked as finished
         code = (
             "%(name)s.isFinished = false;"
         )
-        buff.writeIndentedLines(code % self.params)
-
-        if self.params['sound'].updates == 'set every repeat':
-            buff.writeIndented("%(name)s.setValue(%(sound)s);\n" % self.params)
-        if stopVal == -1:
-            buff.writeIndentedLines("%(name)s.setVolume(%(volume)s);\n" % self.params)
-        else:
-            buff.writeIndentedLines("%(name)s.secs=%(stopVal)s;\n"
-                                    "%(name)s.setVolume(%(volume)s);\n" % self.params)
+        buff.writeIndentedLines(code % self.params)  
 
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame
@@ -343,46 +376,6 @@ class SoundComponent(BaseDeviceComponent):
                 "%(name)s.stop();  // ensure sound has stopped at end of Routine\n"
             )
             buff.writeIndentedLines(code % self.params)
-
-    def writeParamUpdate(
-            self,
-            buff,
-            compName,
-            paramName,
-            val,
-            updateType,
-            params=None,
-            target="PsychoPy",
-    ):
-        """
-        Overload BaseComponent.writeParamUpdate to handle special case for SoundComponent
-        """
-        # when writing param updates for Sound.sound, needs to be `setValue` in JS
-        # (this is intended as a temporary patch - please delete when `setSound` in JS can accept
-        # the same range of values as in Py)
-        if target == 'PsychoJS' and paramName == "sound":
-            # get logging string
-            if updateType == 'set every frame' and target == 'PsychoJS':
-                loggingStr = ', false'
-            else:
-                loggingStr = ''
-            # write setValue code
-            code = (
-                f"{compName}.setValue({val}{loggingStr});\n"
-            )
-            buff.writeIndented(code)
-        else:
-            # do normal stuff for every other param
-            BaseDeviceComponent.writeParamUpdate(
-                self,
-                buff,
-                compName,
-                paramName,
-                val,
-                updateType,
-                params=params,
-                target=target,
-            )
 
 
 class SpeakerDeviceBackend(DeviceBackend):
