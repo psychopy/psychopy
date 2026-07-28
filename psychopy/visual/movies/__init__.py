@@ -497,6 +497,7 @@ class MovieFileReader:
             # keep calling until we get a valid frame size
             if movieMetadata['src_vid_size'] != (0, 0):
                 break
+            time.sleep(0.001)
         else:
             raise RuntimeError(
                 'FFPyPlayer failed to extract metadata from the movie. Check '
