@@ -15,6 +15,7 @@ from packaging.version import Version
 
 import psychopy
 from psychopy import logging
+from psychopy import constants
 from psychopy.tools.filetools import (openOutputFile, genDelimiter,
                                       genFilenameFromDelimiter, pathToString)
 from psychopy.tools.fileerrortools import handleFileCollision
@@ -441,6 +442,265 @@ class _BaseTrialHandler(_ComparisonMixin):
         else:
             origin = None
         return originPath, origin
+
+
+class FileSaveMixin:
+    """
+    Mixin method for trial/experiment handlers which adds methods for handling file saving to 
+    different formats.
+    """
+
+    # attributes for handling file collision
+    _nextSaveCollision = {}
+    appendFiles = False
+    # attributes for column sorting
+    sortColumns = False
+    columnPriority = {}    
+
+    def getAllEntries(self):
+        """
+        Should return a list of dicts corresponding to rows for data output
+        """
+        raise NotImplementedError()
+
+    def getDataNames(self):
+        """
+        Should return an array of column headers for data output. Overload this to get more than 
+        simply a combination of all the keys from getAllEntries.
+        """
+        df = pd.DataFrame(self.getAllEntries())
+
+        return df.columns
+
+    def getPriority(self, name):
+        """
+        Get the priority value for a given column. If no priority value is
+        stored, returns best guess based on column name.
+
+        Parameters
+        ----------
+        name : str
+            Column name
+
+        Returns
+        -------
+        int
+            The priority value stored/guessed for this column, most likely a value from `constants.priority`, one of:
+            - CRITICAL (30): Always at the start of the data file, generally reserved for Routine start times
+            - HIGH (20): Important columns which are near the front of the data file
+            - MEDIUM (10): Possibly important columns which are around the middle of the data file
+            - LOW (0): Columns unlikely to be important which are at the end of the data file
+            - EXCLUDE (-10): Always at the end of the data file, actively marked as unimportant
+        """
+        if name not in self.columnPriority:
+            # store priority if not specified already
+            self.columnPriority[name] = self._guessPriority(name)
+        # return stored priority
+        return self.columnPriority[name]
+
+    def _guessPriority(self, name):
+        """
+        Get a best guess at the priority of a column based on its name
+
+        Parameters
+        ----------
+        name : str
+            Name of the column
+
+        Returns
+        -------
+        int
+            One of the following:
+            - HIGH (19): Important columns which are near the front of the data file
+            - MEDIUM (9): Possibly important columns which are around the middle of the data file
+            - LOW (-1): Columns unlikely to be important which are at the end of the data file
+
+            NOTE: Values returned from this function are 1 less than values in `constants.priority`,
+            columns whose priority was guessed are behind equivalently prioritised columns whose priority
+            was specified.
+        """
+        # if there's a dot, get attribute name
+        if "." in name:
+            name = name.split(".")[-1]
+
+        # start off assuming low priority
+        priority = constants.priority.LOW
+        # if name is one of identified likely high priority columns, it's medium priority
+        if name in [
+            "keys", "rt", "x", "y", "leftButton", "numClicks", "numLooks", "clip", "response", "value",
+            "frameRate", "participant"
+        ]:
+            priority = constants.priority.MEDIUM
+
+        return priority - 1
+
+    def setPriority(self, name, value=constants.priority.HIGH):
+        """
+        Set the priority of a column in the data file.
+
+        Parameters
+        ----------
+        name : str
+            Name of the column, e.g. `text.started`
+        value : int
+            Priority value to set the column to - higher priority columns appear nearer to the start of
+            the data file. Use values from `constants.priority` as landmark values:
+            - CRITICAL (30): Always at the start of the data file, generally reserved for Routine start times
+            - HIGH (20): Important columns which are near the front of the data file
+            - MEDIUM (10): Possibly important columns which are around the middle of the data file
+            - LOW (0): Columns unlikely to be important which are at the end of the data file
+            - EXCLUDE (-10): Always at the end of the data file, actively marked as unimportant
+        """
+        self.columnPriority[name] = value
+
+    def queueNextCollision(self, fileCollisionMethod, fileName=None):
+        """
+        Tell this object that, next time the named file is saved, it should handle 
+        collisions a certain way. This is useful if you want to save multiple times within an 
+        experiment.
+
+        Parameters
+        ----------
+        fileCollisionMethod : str
+            File collision method to use, see `saveAsWideText` or `saveAsPickle` for 
+            details.
+        fileName : str
+            Filename to queue collision on, if None (default) will use this ExperimentHandler's 
+            `dataFileName`
+        """
+        # handle default
+        if fileName is None:
+            fileName = self.dataFileName
+        # make filename iterable
+        if not isinstance(fileName, (list, tuple)):
+            fileName = [fileName]
+        # queue collision
+        for thisFileName in fileName:
+            self._nextSaveCollision[thisFileName] = fileCollisionMethod
+
+    def saveAsWideText(
+        self,
+        fileName,
+        delim='auto',
+        matrixOnly=False,
+        appendFile=None,
+        encoding='utf-8-sig',
+        fileCollisionMethod=None,
+        sortColumns=None
+    ):
+        """Saves a long, wide-format text file, with one line representing
+        the attributes and data for a single trial. Suitable for analysis
+        in R and SPSS.
+
+        If `appendFile=True` then the data will be added to the bottom of
+        an existing file. Otherwise, if the file exists already it will
+        be kept and a new file will be created with a slightly different
+        name. If you want to overwrite the old file, pass 'overwrite'
+        to ``fileCollisionMethod``.
+
+        If `matrixOnly=True` then the file will not contain a header row,
+        which can be handy if you want to append data to an existing file
+        of the same format.
+
+        Parameters
+        ----------
+
+        fileName:
+            if extension is not specified, '.csv' will be appended if
+            the delimiter is ',', else '.tsv' will be appended.
+            Can include path info.
+
+        delim:
+            allows the user to use a delimiter other than the default
+            tab ("," is popular with file extension ".csv")
+
+        matrixOnly:
+            outputs the data with no header row.
+
+        appendFile:
+            will add this output to the end of the specified file if
+            it already exists.
+
+        encoding:
+            The encoding to use when saving a the file.
+            Defaults to `utf-8-sig`.
+
+        fileCollisionMethod:
+            Collision method passed to
+            :func:`~psychopy.tools.fileerrortools.handleFileCollision`
+
+        sortColumns : str or bool
+            How (if at all) to sort columns in the data file. Can be:
+            - "alphabetical", "alpha", "a" or True: Sort alphabetically by header name
+            - "priority", "pr" or "p": Sort according to priority
+            - other: Do not sort, columns remain in order they were added
+        
+        Returns
+        -------
+        str
+            Final filename (including _1, _2, etc. and file extension) which data was saved as
+        """
+        # handle default delim
+        delimOptions = {
+            'comma': ",",
+            'semicolon': ";",
+            'tab': "\t"
+        }
+        if delim == 'auto':
+            delim = genDelimiter(fileName)
+        elif delim in delimOptions:
+            delim = delimOptions[delim]
+        # handle default sort option
+        if sortColumns is None:
+            sortColumns = self.sortColumns
+        # handle default append mode
+        if appendFile is None:
+            appendFile = self.appendFiles
+        # handle default file collision method
+        if fileCollisionMethod is None and fileName in self._nextSaveCollision:
+            fileCollisionMethod = self._nextSaveCollision.pop(fileName)
+        elif fileCollisionMethod is None:
+            fileCollisionMethod = "rename"
+        # sanitize filename (make sure it has a delimiter)
+        fileName = genFilenameFromDelimiter(fileName, delim)
+        
+        # create a pandas dataframe
+        data = pd.DataFrame(
+            self.getAllEntries(),
+            columns=self.getDataNames()
+        )
+        # sort names as requested
+        if sortColumns in ("alphabetical", "alpha", "a", True):
+            # sort alphabetically
+            data.columns = data.columns.sort()
+        elif sortColumns in ("priority", "pr" or "p"):
+            # map names to their priority
+            priorityMap = []
+            for name in data.columns:
+                priority = self.columnPriority.get(name, self._guessPriority(name))
+                priorityMap.append((priority, name))
+            data.columns = [name for priority, name in sorted(priorityMap, reverse=True)]
+        # open file
+        f = openOutputFile(
+            fileName, 
+            append=appendFile,
+            fileCollisionMethod=fileCollisionMethod,
+            encoding=encoding
+        )
+        # write to file
+        data.to_csv(
+            f, 
+            index=False, 
+            sep=delim,
+            header=(not matrixOnly)
+        )
+        # close file
+        if f != sys.stdout:
+            f.close()
+        
+        logging.info('Saved data to %r' % f.name)
+
+        return fileName
 
 
 class DataHandler(_ComparisonMixin, dict):
