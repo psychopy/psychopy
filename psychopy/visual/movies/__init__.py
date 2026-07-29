@@ -41,7 +41,7 @@ GL = pyglet.gl
 reportNDroppedFrames = 10
 
 # time to wait for the movie decoder to respond
-defaultTimeout = 5.0  # seconds
+defaultTimeout = 20.0  # seconds
 
 # constants for use with ffpyplayer
 FFPYPLAYER_STATUS_EOF = 'eof'
@@ -499,9 +499,10 @@ class MovieFileReader:
                 break
             time.sleep(0.001)
         else:
-            raise RuntimeError(
-                'FFPyPlayer failed to extract metadata from the movie. Check '
-                'the movie file and decoder options.')
+            raise RuntimeError((
+                'FFPyPlayer failed to extract metadata from the movie `{}`. ' 
+                'Check the movie file and decoder options.').format(
+                    self._filename))
 
         # warmup, takes a while before the video starts playing
         startTime = time.time()
@@ -1638,7 +1639,8 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             "Loading audio track from temporary file: {}".format(
                 self._audioTempFile.name))
         self._audioTrack = _sound.Sound(
-            self._audioTempFile.name)
+            self._audioTempFile.name,
+            preBuffer=0)  # stream audio from disk
         self._audioTrack.volume = self._volume  # set the volume to the current level
         
     def _cleanupAudioTrack(self):
