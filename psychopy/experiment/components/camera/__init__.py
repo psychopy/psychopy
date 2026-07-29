@@ -11,7 +11,6 @@ from psychopy.experiment.components import (
 from psychopy.preferences import prefs
 from psychopy.experiment.components.microphone import MicrophoneDeviceBackend
 from psychopy.experiment.devices import DeviceBackend
-from psychopy.tools import stringtools as st, systemtools as syst, audiotools as at
 
 
 class CameraComponent(BaseDeviceComponent):

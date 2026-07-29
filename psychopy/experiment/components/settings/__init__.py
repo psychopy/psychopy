@@ -6,7 +6,7 @@ from copy import deepcopy
 from pathlib import Path
 from xml.etree.ElementTree import Element
 import re
-from psychopy import logging, plugins
+from psychopy import logging
 from psychopy.preferences import prefs
 from psychopy.experiment.components import Param, _translate
 from psychopy.experiment.components.settings.eyetracking import knownEyetrackerBackends, MouseGazeEyetrackerBackend
@@ -283,7 +283,7 @@ class SettingsComponent:
         })
         self.params['winBackend'] = Param(
             winBackend, valType='str', inputType="choice", categ="Screen",
-            allowedVals=plugins.getWindowBackends(),
+            allowedVals="python:///psychopy.plugins:getWindowBackends",
             hint=_translate("What Python package should be used behind the scenes for drawing to the window?"),
             label=_translate("Window backend")
         )        
@@ -532,16 +532,6 @@ class SettingsComponent:
         for key, cls in knownEyetrackerBackends.items():
             backendValues.append(key)
             backendLabels.append(cls.label or key)
-        # add backends via legacy detection method
-        try:
-            from psychopy.iohub import util as ioUtil
-            for legLbl, legKey in ioUtil.getDeviceNames(device_name="eyetracker.hw"):
-                if legKey not in backendValues:
-                    backendValues.append(legKey)
-                    backendLabels.append(legLbl)
-        except Exception:
-            # if it doesn't work, just stick with the known backends from plugins
-            pass
 
         self.params['eyetracker'] = Param(
             eyetracker, valType='str', inputType="choice",
