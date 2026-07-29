@@ -843,6 +843,8 @@ class MovieFileReader:
             self._player.set_pause(True)  # pause the player
             self._player.close_player()
 
+        self._cleanUpAudioTrack()  # clean up the audio track
+
         self._player = None
 
     def _cleanUpFrameStore(self, keepAfterPTS=None):
@@ -1353,8 +1355,6 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         self.loadMovie(value)
 
     def setMovie(self, value):
-        if self._isLoaded:
-            self.unload()
         self.loadMovie(value)
 
     @property
@@ -1461,23 +1461,23 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             Path to movie file. Must be a format that FFMPEG supports.
 
         """
+        # if a movie is already loaded, unload it first
+        if self._isLoaded:
+            self.unload()
+
         # Set the movie file name, this handles normalizing the path and
         # checking if the file exists.
-
         self._setFileName(filename)
-
-        # Time opening the movie file
 
         t0 = time.time()  # time it
         logging.debug(
             "Opening movie file: {}".format(self._filename))
 
-        self._freePlayer()  # free the player if it is already open
-
-        # Extact the audio track so we can read samples from it. This needs to
+        # Extract the audio track so we can read samples from it. This needs to
         # be done before the movie is opened by the player to avoid file access
         # issues. The audio track is extracted to a temporary file which is
         # deleted when the movie is closed.
+
         disableAudio = False
         if not self._noAudio and self._audioLib not in ('sdl', 'sdl2'):
             self._loadAudioTrack()  # extract and load the audio track
@@ -1537,20 +1537,6 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             videoFrameArray = np.frombuffer(videoBuffer, dtype=np.uint8)
             self._recentFrame = videoFrameArray # most recent frame
             self._pixelTransfer(forceRefresh=True)  # copy the first frame to the texture
-
-    def _setupAudioStream(self):
-        """Setup the audio stream for the movie.
-        """
-        # todo - handle setting up the audio library stream
-        if self._noAudio or self._audioLib in ('sdl', 'sdl2'):
-            return
-
-    def _pushAudioSamples(self):
-        """Push audio samples to the audio buffer.
-        """
-        # todo - implement this
-        if self._noAudio or self._audioLib in ('sdl', 'sdl2'):
-            return
 
     def _extractAudioTrack(self):
         """Extract the audio track from the movie file.
@@ -1658,15 +1644,16 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             self._audioTrack = None
 
         if self._audioTempFile is not None:
+            tempFilePath = self._audioTempFile.name
             try:
-                os.remove(self._audioTempFile.name)
+                os.remove(tempFilePath)
                 logging.debug(
                     "Deleted temporary audio file: {}".format(
-                        self._audioTempFile.name))
+                        tempFilePath))
             except Exception as e:
                 logging.error(
                     "Error deleting temporary audio file: {}. Error: {}".format(
-                        self._audioTempFile.name, e))
+                        tempFilePath, e))
             self._audioTempFile = None
 
     def load(self, filename):
@@ -1690,9 +1677,8 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
         """
         if self._isLoaded:
-            self._player.close()
+            self._freePlayer()  # free the player if it is already open
             self._freeTextureBuffers()  # free buffer before creating a new one
-            self._cleanupAudioTrack()
             self._isLoaded = False
 
     # --------------------------------------------------------------------------
