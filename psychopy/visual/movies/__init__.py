@@ -1472,6 +1472,9 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         logging.debug(
             "Opening movie file: {}".format(self._filename))
 
+        if self._player is not None:
+            self._freePlayer()  # free the player if it is already open
+
         # Extact the audio track so we can read samples from it. This needs to
         # be done before the movie is opened by the player to avoid file access
         # issues. The audio track is extracted to a temporary file which is
