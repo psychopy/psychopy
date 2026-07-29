@@ -44,13 +44,9 @@ class SoundDeviceSpeakerDevice(BaseSpeakerDevice):
                 "Both 'index' and 'name' were provided to SpeakerDevice; ignoring 'index'"
             )
             index = None
-        # try simple integerisation of index
+        # handle string index
         if isinstance(index, str):
-            try:
-                index = float(index)
-            except ValueError:
-                pass
-
+            index = self.getNumericIndex(index or name)
         # if index is default, get default speaker device
         if index in (-1, None) and name is None:
             index = None  # set to none so we can find by name later
@@ -78,6 +74,21 @@ class SoundDeviceSpeakerDevice(BaseSpeakerDevice):
         self.stream = None
         self.resample = resample
         self.latencyClass = latencyClass
+
+    @staticmethod
+    def getNumericIndex(index):
+        """
+        Get the numeric index of a device by its string index.
+        """
+        # try simple string parse for e.g. "1"
+        try:
+            return int(float(index))
+        except ValueError:
+            pass
+        # iterate through known devices
+        for profile in SoundDeviceSpeakerDevice.queryDevices():
+            if profile.get('DeviceName', None) == index:
+                return int(profile['DeviceIndex'])
 
     @property
     def exclusive(self):
@@ -254,8 +265,7 @@ class SoundDeviceSpeakerDevice(BaseSpeakerDevice):
             profile = {
                 'deviceName': dev.get('DeviceName', "Unknown Speaker"),
                 'deviceClass': "psychopy.hardware.speaker.SpeakerDevice",
-                'index': dev.get('DeviceIndex', None),
-                'name': dev.get('DeviceName', None)
+                'index': dev.get('DeviceName', None)
             }
             devices.append(profile)
 

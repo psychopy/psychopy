@@ -521,6 +521,11 @@ class PavloviaSession:
                 'code_verifier': code_verifier
             }
         ).json()
+        # surface error to user if request was rejects
+        if 'access_token' not in resp:
+            raise gitlab.GitlabAuthenticationError(
+                "{error}: {error_description}".format(**resp)
+            )
         # start again with new token
         self.setToken(
             resp['access_token'],
@@ -1119,7 +1124,7 @@ class PavloviaProject(dict):
         Will try to clone if local is empty and remote is not"""
         # If there's no local root, we can't find the repo
         if not self.localRoot:
-            raise gitlab.GitlabGetError("Cannot fetch a PavloviaProject until we have chosen a local folder.")
+            return None
         # If repo is cached, return it
         if hasattr(self, "_repo") and self._repo:
             return self._repo

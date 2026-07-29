@@ -3,6 +3,10 @@ name: Publish package
 
 on:
     workflow_dispatch:
+      inputs:
+        tag: 
+          description: Tag to publish
+          required: true
     release:
         types: [published]
 
