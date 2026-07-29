@@ -10,7 +10,6 @@ from psychopy.experiment.components import BaseVisualComponent, Param, \
     getInitVals, _translate
 from psychopy.experiment import py2js
 from psychopy import logging
-from psychopy.data import utils
 from psychopy.tools.stimulustools import sliderStyles, sliderStyleTweaks
 import copy
 
@@ -280,6 +279,7 @@ class SliderComponent(BaseVisualComponent):
 
         # reformat styles for JS
         # concatenate styles and tweaks
+        from psychopy.data.utils import listFromString
         tweaksList = utils.listFromString(self.params['styleTweaks'].val)
         if type(inits['styles'].val) == list:  # from an experiment <2021.1
             stylesList = inits['styles'].val + tweaksList

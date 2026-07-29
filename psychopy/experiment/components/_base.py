@@ -15,12 +15,9 @@ from psychopy import prefs
 from psychopy.constants import FOREVER
 from psychopy.experiment.devices import DeviceMixin
 from ..params import Param
-from psychopy.experiment.utils import canBeNumeric
-from psychopy.experiment.utils import CodeGenerationException
-from psychopy.experiment.utils import unescapedDollarSign_re
+from psychopy.experiment.utils import canBeNumeric, CodeGenerationException, unescapedDollarSign_re
 from psychopy.experiment.params import getCodeFromParamStr
 from psychopy.alerts import alerttools
-from psychopy.colors import nonAlphaSpaces
 
 from psychopy.localization import _translate
 

@@ -16,19 +16,11 @@ The code that writes out a *_lastrun.py experiment file is (in order):
     settings.SettingsComponent.writeEndCode()
 """
 import functools
-import json
 from xml.etree.ElementTree import Element
-
 import re
-from pathlib import Path
-
-from psychopy import data, logging
+from psychopy import logging
 from . import utils
 from . import py2js
-
-from ..colors import Color
-from numpy import ndarray
-from ..alerts import alert
 
 
 def _findParam(name, node):
@@ -332,6 +324,7 @@ class Param():
             if self.inputType == "fileList":
                 # treat each item as a string-type param
                 output = []
+                from psychopy import data
                 for item in data.utils.listFromString(self.val):
                     item = str(Param(item, "file"))
                     output.append(item)
@@ -598,6 +591,8 @@ def toList(val):
     -------
     A list of entries in the string value
     """
+    from numpy import ndarray
+
     if isinstance(val, (list, tuple, ndarray)):
         return val  # already a list. Nothing to do
     if isinstance(val, (int, float)):
