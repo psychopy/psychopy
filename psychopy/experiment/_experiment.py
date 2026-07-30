@@ -33,7 +33,7 @@ from .loops import getAllLoopTypes, TrialHandler, LoopInitiator, LoopTerminator,
 from .params import _findParam, Param, legacyParams
 from psychopy.experiment.routines._base import Routine, BaseStandaloneRoutine
 from psychopy.experiment.routines import getAllStandaloneRoutines
-from . import utils, py2js
+from . import utils
 from .components import getComponents, getAllComponents, getInitVals
 
 from psychopy.localization import _translate
@@ -297,6 +297,7 @@ class Experiment:
         """Write a PsychoPy script for the experiment
         """
         from psychopy import data
+        from psychopy.experiment import py2js
         
         # sanitize and store expPath
         if expPath is not None:

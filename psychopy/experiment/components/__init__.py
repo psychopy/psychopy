@@ -18,7 +18,6 @@ from importlib import import_module  # helps python 2.7 -> 3.x migration
 from ._base import BaseVisualComponent, BaseComponent, BaseDeviceComponent
 from ..params import Param
 from psychopy.localization import _translate
-from psychopy.experiment import py2js
 import psychopy.logging as logging
 
 excludeComponents = [
@@ -259,6 +258,8 @@ def getInitVals(params, target="PsychoPy"):
     """Works out a suitable initial value for a parameter (e.g. to go into the
     __init__ of a stimulus object, avoiding using a variable name if possible
     """
+    from psychopy.experiment import py2js
+
     inits = copy.deepcopy(params)
     # Alias units = from exp settings with None
     if 'units' in inits and str(inits['units'].val).lower() in (

@@ -1,7 +1,6 @@
 import ast
 import re
 from numpy import array
-from esprima import parseScript
 from psychopy.alerts._alerts import alert
 
 
@@ -315,6 +314,8 @@ def checkJavaScriptSyntax(component, tab):
     tab: str
         The name of the code component tab being tested
     """
+    from esprima import parseScript
+    
     content = str(component.params[tab].val)
     # check that value is valid syntax
     try:

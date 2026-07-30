@@ -20,7 +20,6 @@ from xml.etree.ElementTree import Element
 import re
 from psychopy import logging
 from . import utils
-from . import py2js
 
 
 def _findParam(name, node):
@@ -235,6 +234,8 @@ class Param():
             self.inputType = "String"
 
     def __str__(self):
+        from psychopy.experiment import py2js
+
         if self.valType == 'num':
             if self.val in [None, ""]:
                 return "None"
@@ -567,6 +568,8 @@ def getCodeFromParamStr(val, target=None):
     """Convert a Param.val string to its intended python code
     (as triggered by special char $)
     """
+    from psychopy.experiment import py2js
+
     # Substitute target
     if target is None:
         target = utils.scriptTarget
@@ -592,6 +595,7 @@ def toList(val):
     A list of entries in the string value
     """
     from numpy import ndarray
+    from psychopy.experiment import py2js
 
     if isinstance(val, (list, tuple, ndarray)):
         return val  # already a list. Nothing to do
