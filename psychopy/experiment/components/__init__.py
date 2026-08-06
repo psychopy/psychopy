@@ -8,13 +8,13 @@
 """Extensible set of components for the PsychoPy Builder view.
 """
 
-import sys
+from pathlib import Path
 import os
 import glob
 import copy
-import shutil
-from os.path import join, dirname, abspath, split
-from importlib import import_module  # helps python 2.7 -> 3.x migration
+import inspect
+from os.path import join, split
+import importlib, importlib.metadata
 from ._base import BaseVisualComponent, BaseComponent, BaseDeviceComponent
 from ..params import Param
 from psychopy.localization import _translate
@@ -72,7 +72,7 @@ def addComponent(compClass):
     pluginComponents[compName] = compClass
 
 
-def getAllCategories(folderList=()):
+def getAllCategories(folderList=(), fetchIcons=False):
     """Get all component categories.
 
     Parameters
@@ -102,155 +102,125 @@ def getAllCategories(folderList=()):
     return allCats + lastCats
 
 
-def getAllComponents(folderList=(), fetchIcons=True):
-    """Get all available components, from the builtins, plugins and folders.
+def filterComponent(comp):
+    """
+    Function for filtering Components to remove e.g. base classes and excluded Components.
+
+    Parameters
+    ----------
+    comp : BaseComponent
+        Class of the Component to check
+    
+    Returns
+    -------
+    bool
+        True if Component is fine to include
+    """
+    # filter non-classes
+    if not inspect.isclass(comp):
+        return False
+    # SettingsComponent is a special case (not a subclass of BaseComponent)
+    if comp.__name__ == "SettingsComponent":
+        return True
+    # filter non-Components
+    if not issubclass(comp, BaseComponent):
+        return False
+    # filter protected classes
+    if comp.__name__.startswith("_"):
+        return False
+    # filter base Components
+    if comp.__name__.lower().startswith("base"):
+        return False
+    # filter unknown Components
+    if comp.__name__.lower().startswith("unknown"):
+        return False
+    # filter ignored Components
+    if comp.__name__ in excludeComponents:
+        return False
+    
+    return True
+
+
+def getAllComponents(folderList=None, fetchIcons=True):
+    """
+    Get all available components, from the builtins, plugins and folders.
 
     User-defined components will override built-ins with the same name.
 
     Parameters
     ----------
     folderList : list or tuple
-        List of directories to search for components.
+        List of additional directories to search for components.
     fetchIcons : bool
         Whether to also fetch icons. Default is `True`.
 
     """
+    # make sure folder list is iterable
+    if folderList is None:
+        folderList = []
     if isinstance(folderList, str):
-        raise TypeError('folderList should be iterable, not a string')
-    components = getComponents(fetchIcons=fetchIcons)  # get the built-ins
-    for folder in folderList:
-        userComps = getComponents(folder)
-        for thisKey in userComps:
-            components[thisKey] = userComps[thisKey]
+        folderList = [folderList]
+    
+    # get builtin Components
+    components = getComponents()
 
-    # add components registered by plugins that have been loaded
-    components.update(pluginComponents)
+    # find plugin Components...
+    for point in importlib.metadata.entry_points(group="psychopy.experiment.components"):
+        # load entry point
+        member = point.load()
+        # if it's a Component, add it
+        if filterComponent(member):
+            components[member.__name__] = member
+
+    # get Components from folder list
+    for folder in folderList:
+        for key, value in getComponents(folder).items():
+            if filterComponent(value):
+                components[key] = value
 
     return components
 
 
-def getComponents(folder=None, fetchIcons=True):
-    """Get a dictionary of available components for the Builder experiments.
-
-    If folder is None then the built-in components will be imported and
-    returned, otherwise the components found in the folder provided will be.
-
-    Changed v1.84.00:
-    The Builder preference "components folders" should be of the form:
-    `/.../.../compts`. This is unchanged from previously, and allows for
-    backwards compatibility.
-
-    New as of v1.84: A slightly different directory structure is needed. An
-    existing directory will be automatically upgraded if the previous one
-    was not empty. However, files starting with '_' will be skipped, as will any
-    directories. You will need to manually move those into the new
-    directory (from the old .../compts/ into the new .../compts/compts/).
-
-    As of v1.84, a components path needs directory structure `/.../.../compts/compts`.
-    That is, the path should end with the name repeated. (It does not need to
-    be 'compts' literally.)
-    The .py and .png files for a component should all go in this directory.
-    (Previously, files were in `/.../.../compts`.) In addition, the directory
-    must contain a python init file, ` /.../.../compts/compts/__init__.py`,
-    to allow it to be treated as a module in python so that the components
-    can be imported. For this reason, the file name for a component
-    cannot begin with a number; it must be a legal python name.
-
-    The code within the component.py file itself must use absolute paths for
-    importing from psychopy:
-       `from psychopy.experiment.components import BaseComponent, Param`
+def getComponents(folder=None, package=None, fetchIcons=False):
     """
+    Get Component classes from a given directory and package. Leave folder and package as None to 
+    get Components from the folder/package within PsychoPy.
 
+    Component classes should be a subclass of BaseComponent, their name should end with "Component" 
+    and they should be available from the __init__.py file of a module under the given 
+    folder/package.
+
+    Parameters
+    ----------
+    folder : Path
+        Folder to search in, if None will use the folder of psychopy.experiment.components
+    package : str
+        Package spec of the given folder, if None will use psychopy.experiment.components
+    """
+    # default to components folder
     if folder is None:
-        pth = folder = dirname(__file__)
-        pkg = 'psychopy.experiment.components'
-    else:
-        # default shared location is often not actually a folder
-        if not os.path.isdir(folder):
-            return {}
-        pth = folder = folder.rstrip(os.sep)
-        pkg = os.path.basename(folder)
-        if not folder.endswith(join(pkg, pkg)):
-            folder = os.path.join(folder, pkg)
+        folder = Path(__file__).parent
+    # default to components package
+    if package is None:
+        package = "psychopy.experiment.components"
+    # make sure folder is a Path
+    folder = Path(folder)
 
-        # update the old style directory (v1.83.03) to the new style
-        # try to retain backwards compatibility: copy files, not move them
-        # ideally hard link them, but permissions fail on windows
-        if not os.path.isdir(folder):
-            files = [f for f in glob.glob(join(pth, '*'))
-                     if not os.path.isdir(f) and
-                     not f[0] in '_0123456789']
-            if files:
-                os.mkdir(folder)
-                with open(join(folder, '__init__.py'), 'a') as fileh:
-                    fileh.write('')
-                for f in files:
-                    if f.startswith('_'):
-                        continue
-                    shutil.copy(f, folder)
-
-    if pth not in sys.path:
-        sys.path.insert(0, pth)
-
+    # start with blank dict
     components = {}
-
-    # go through components in directory
-    cfiles = glob.glob(os.path.join(folder, '*.py'))  # old-style: just comp.py
-    # new-style: directories w/ __init__.py
-    dfiles = [d for d in os.listdir(folder)
-              if os.path.isdir(os.path.join(folder, d))]
-    for cmpfile in cfiles + dfiles:
-        cmpfile = os.path.split(cmpfile)[1]
-        if cmpfile[0] in '_0123456789':  # __init__.py, _base.py, leading digit
-            continue
-        # can't use imp - breaks py2app:
-        # module = imp.load_source(file[:-3], fullPath)
-        # v1.83.00 used exec(implicit-relative), no go for python3:
-        # exec('import %s as module' % file[:-3])
-        # importlib.import_module eases 2.7 -> 3.x migration
-        if cmpfile.endswith('.py'):
-            explicit_rel_path = pkg + '.' + cmpfile[:-3]
-        else:
-            explicit_rel_path = pkg + '.' + cmpfile
-        try:
-            module = import_module(explicit_rel_path, package=pkg)
-        except ImportError:
-            logging.error(
-                'Failed to load component package `{}`. Does it have a '
-                '`__init__.py`?'.format(cmpfile))
-            continue  # not a valid module (no __init__.py?)
-            
-        # check for orphaned pyc files (__file__ is not a .py file)
-        if hasattr(module, '__file__'):
-            if not module.__file__:
-                # with Py3, orphans have a __pycharm__ folder but no file
-                continue
-            elif module.__file__.endswith('.pyc'):
-                # with Py2, orphans have a xxxxx.pyc file
-                if not os.path.isfile(module.__file__[:-1]):
-                    continue  # looks like an orphaned pyc file
-        # give a default category
-        if not hasattr(module, 'categories'):
-            module.categories = ['Custom']
-        # check if module contains a component
-        for attrib in dir(module):
-            name = None
-            # fetch the attribs that end with 'Component'
-            if attrib.endswith('omponent') and attrib not in excludeComponents:
-                name = attrib
-                components[attrib] = getattr(module, attrib)
-
-                # skip if this class was imported, not defined here
-                if module.__name__ != components[attrib].__module__:
-                    continue  # class was defined in different module
-
-                if hasattr(module, 'tooltip'):
-                    tooltips[name] = module.tooltip
-                if hasattr(components[attrib], 'iconFile'):
-                    iconFiles[name] = components[attrib].iconFile
-                # assign the module categories to the Component
-                if not hasattr(components[attrib], 'categories'):
-                    components[attrib].categories = ['Custom']
+    # search folder for modules which look like they contain a Component...
+    for subfolder in folder.glob("*/__init__.py"):
+        # import each submodule
+        mod = importlib.import_module(
+            f"{package}.{subfolder.parent.stem}"
+        )
+        # go through members in module
+        for attrib in dir(mod):
+            # get member
+            member = getattr(mod, attrib)
+            # if member is a Component, add it
+            if filterComponent(member):
+                components[member.__name__] = member
 
     return components
 

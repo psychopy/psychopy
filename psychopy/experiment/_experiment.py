@@ -148,9 +148,8 @@ class Experiment:
 
         # what online resources are needed? (PsychoJS only)
         self.requiredResources = []
-
-        _settingsComp = getComponents(fetchIcons=False)['SettingsComponent']
-        self.settings = _settingsComp(parentName='', exp=self)
+        from psychopy.experiment.components.settings import SettingsComponent
+        self.settings = SettingsComponent(parentName='', exp=self)
         # this will be the xml.dom.minidom.doc object for saving
         self._doc = xml.ElementTree()
         self.namespace = NameSpace(self)  # manage variable names
@@ -165,10 +164,9 @@ class Experiment:
         self._expHandler = TrialHandler(exp=self, name='thisExp')
         self._expHandler.type = 'ExperimentHandler'  # true at run-time
 
-        # get a local reference of all Components and Routines (refreshed on loading a new file)
-        self.allCompons = getAllComponents(
-            self.prefsBuilder['componentsFolders'], fetchIcons=False)
-        self.allRoutines = getAllStandaloneRoutines(fetchIcons=False)
+        # get a local reference of all Components and Routines (populated on loading a new file)
+        self.allCompons = None
+        self.allRoutines = None
 
     def __eq__(self, other):
         if isinstance(other, Experiment):
