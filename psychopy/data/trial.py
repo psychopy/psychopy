@@ -1142,6 +1142,10 @@ class TrialHandler2(_BaseTrialHandler):
             else:
                 return -1
         return self.thisTrial.thisRepN
+
+    @property
+    def nRemaining(self):
+        return self.nTotal - self.thisN
     
     def calculateUpcoming(self, fromIndex=-1):
         """Rebuild the sequence of trial/state info as if running the trials
@@ -1936,7 +1940,6 @@ class TrialHandlerExt(TrialHandler):
         else:
             self.trialWeights = [d['weight'] for d in trialList]
             self.nTotal = self.nReps * sum(self.trialWeights)
-        self.nRemaining = self.nTotal  # subtract 1 each trial
         self.method = method
         self.thisRepN = 0  # records which repetition or pass we are on
         self.thisTrialN = -1  # records trial number within this repetition
