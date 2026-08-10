@@ -6,17 +6,14 @@ from copy import deepcopy
 from pathlib import Path
 from xml.etree.ElementTree import Element
 import re
-from psychopy import logging, plugins
+from psychopy import logging
 from psychopy.preferences import prefs
 from psychopy.experiment.components import Param, _translate
 from psychopy.experiment.components.settings.eyetracking import knownEyetrackerBackends, MouseGazeEyetrackerBackend
 from psychopy.experiment.routines import Routine, BaseStandaloneRoutine
 from psychopy.experiment.routines.eyetracker_calibrate import EyetrackerCalibrationRoutine
 from psychopy.experiment import utils as exputils
-from psychopy.monitors import Monitor
 from psychopy.alerts import alert
-from psychopy.tools.filetools import genDelimiter
-from psychopy.data.utils import parsePipeSyntax
 
 # for creating html output folders:
 import shutil
@@ -283,7 +280,7 @@ class SettingsComponent:
         })
         self.params['winBackend'] = Param(
             winBackend, valType='str', inputType="choice", categ="Screen",
-            allowedVals=plugins.getWindowBackends(),
+            allowedVals="python:///psychopy.plugins:getWindowBackends",
             hint=_translate("What Python package should be used behind the scenes for drawing to the window?"),
             label=_translate("Window backend")
         )        
@@ -532,16 +529,6 @@ class SettingsComponent:
         for key, cls in knownEyetrackerBackends.items():
             backendValues.append(key)
             backendLabels.append(cls.label or key)
-        # add backends via legacy detection method
-        try:
-            from psychopy.iohub import util as ioUtil
-            for legLbl, legKey in ioUtil.getDeviceNames(device_name="eyetracker.hw"):
-                if legKey not in backendValues:
-                    backendValues.append(legKey)
-                    backendLabels.append(legLbl)
-        except Exception:
-            # if it doesn't work, just stick with the known backends from plugins
-            pass
 
         self.params['eyetracker'] = Param(
             eyetracker, valType='str', inputType="choice",
@@ -670,6 +657,7 @@ class SettingsComponent:
                 val = infoDict[key]
                 # sanitize key if requested
                 if removePipeSyntax:
+                    from psychopy.data.utils import parsePipeSyntax
                     key, _ = parsePipeSyntax(key)
 
                 if exputils.list_like_re.search(str(val)):
@@ -1013,7 +1001,7 @@ class SettingsComponent:
         buff.writeIndentedLines(code)
 
     def writeExpSetupCodeJS(self, buff, version):
-
+        from psychopy.tools.filetools import genDelimiter
 
         # write the code to set up experiment
         buff.setIndentLevel(0, relative=False)
@@ -2078,11 +2066,15 @@ class SettingsComponent:
 
     @property
     def monitor(self):
-        """Stores a monitor object for the  experiment so that it
-        doesn't have to be fetched from disk repeatedly"""
+        """
+        Stores a monitor object for the  experiment so that it
+        doesn't have to be fetched from disk repeatedly
+        """
+        
         # remember to set _monitor to None periodically (start of script build?)
         # so that we do reload occasionally
         if not self._monitor:
+            from psychopy.monitors import Monitor
             self._monitor = Monitor(self.params['Monitor'].val)
         return self._monitor
 

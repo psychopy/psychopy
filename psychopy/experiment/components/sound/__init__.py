@@ -13,7 +13,6 @@ from psychopy.experiment.components import BaseDeviceComponent, Param, getInitVa
     _translate
 from psychopy.experiment.devices import DeviceBackend
 from psychopy.experiment.utils import canBeNumeric
-from psychopy.tools.audiotools import knownNoteNames
 
 
 class SoundComponent(BaseDeviceComponent):
