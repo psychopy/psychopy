@@ -646,7 +646,7 @@ class FileSaveMixin:
             'semicolon': ";",
             'tab': "\t"
         }
-        if delim == 'auto':
+        if delim == 'auto' or delim is None:
             delim = genDelimiter(fileName)
         elif delim in delimOptions:
             delim = delimOptions[delim]
