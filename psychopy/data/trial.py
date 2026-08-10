@@ -961,7 +961,6 @@ class TrialHandler2(_BaseTrialHandler):
                 self.trialList[n] = TrialType(entry)
         self.nReps = int(nReps)
         self.nTotal = self.nReps * len(self.trialList)
-        self.nRemaining = self.nTotal  # subtract 1 each trial
         self.remainingIndices = []
         self.prevIndices = []
         self.method = method
@@ -1969,6 +1968,10 @@ class TrialHandlerExt(TrialHandler):
         self.originPath, self.origin = self.getOriginPathAndFile(originPath)
         self._exp = None  # the experiment handler that owns me!
 
+    @property
+    def nRemaining(self):
+        return self.nTotal - self.thisN
+
     def _createSequence(self):
         """Pre-generates the sequence of trial presentations (for
         non-adaptive methods). This is called automatically when the
@@ -2076,7 +2079,6 @@ class TrialHandlerExt(TrialHandler):
         # update pointer for next trials
         self.thisTrialN += 1  # number of trial this pass
         self.thisN += 1  # number of trial in total
-        self.nRemaining -= 1
 
         if self.trialWeights is None:
             if self.thisTrialN == len(self.trialList):
