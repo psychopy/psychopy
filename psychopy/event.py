@@ -602,6 +602,8 @@ class Mouse:
             self.setVisible(visible)
         if newPos is not None:
             self.setPos(newPos)
+        # this is set by Builder code
+        self.prevButtonState = [0, 0, 0]
 
     @property
     def units(self):

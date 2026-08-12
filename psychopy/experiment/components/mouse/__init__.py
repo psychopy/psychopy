@@ -344,12 +344,14 @@ class MouseComponent(BaseComponent):
 
             if self.params['newClicksOnly']:
                 code += (
-                    "prevButtonState = %(name)s.getPressed()"
-                    "  # if button is down already this ISN'T a new click\n")
+                    "# if button is down already this ISN'T a new click\n"
+                    "%(name)s.prevButtonState = %(name)s.getPressed()\n"
+                )
             else:
                 code += (
-                    "prevButtonState = [0, 0, 0]"
-                    "  # if now button is down we will treat as 'new' click\n")
+                    "# if now button is down we will treat as 'new' click\n"
+                    "%(name)s.prevButtonState = [0, 0, 0]\n"
+                )
             buff.writeIndentedLines(code % self.params)
 
         # to get out of the if statement
@@ -377,16 +379,17 @@ class MouseComponent(BaseComponent):
 
         def _buttonPressCode(buff, dedent):
             """Code compiler for mouse button events"""
-            code = ("buttons = %(name)s.getPressed()\n"
-                    "if buttons != prevButtonState:  # button state changed?")
+            code = (
+                "buttons = %(name)s.getPressed()\n"
+                "# button state changed?\n"
+                "if buttons != %(name)s.prevButtonState:\n"
+                "    %(name)s.prevButtonState = buttons\n"
+                "    # state changed to a new click\n"
+                "    if sum(buttons) > 0:\n"
+            )
             buff.writeIndentedLines(code % self.params)
-            buff.setIndentLevel(1, relative=True)
-            dedent += 1
-            buff.writeIndented("prevButtonState = buttons\n")
-            code = ("if sum(buttons) > 0:  # state changed to a new click\n")
-            buff.writeIndentedLines(code % self.params)
-            buff.setIndentLevel(1, relative=True)
-            dedent += 1
+            buff.setIndentLevel(2, relative=True)
+            dedent += 2
             # keep track of whether something's been written
             hasContent = False
             # write code to check clickable stim, if there are any
