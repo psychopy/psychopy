@@ -3146,6 +3146,16 @@ class TexImage2DMultisampleInfo:
         else:
             raise TypeError('Invalid type for `userData`.')
 
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, value):
+        if not isinstance(value, GL.GLuint):
+            self._name = GL.GLuint(int(value))
+        else:
+            self._name = value
 
 
 def createTexImage2DMultisample(width, height,
