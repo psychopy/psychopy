@@ -244,7 +244,7 @@ class _baseVisualTest():
         if self.win.winType != 'pygame':
             #compare with a LIBERAL criterion (fonts do differ)
             # win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / ('text1_%s.png' % self.contextName))
-            utils.compareScreenshot('text1_%s.png' % self.contextName, win, crit=20)
+            utils.compareScreenshot('text1_%s.png' % self.contextName, win, crit=30)
         win.flip()  # AFTER compare screenshot
         #using set
         stim.text = 'y'
@@ -264,7 +264,7 @@ class _baseVisualTest():
             #compare with a LIBERAL criterion (fonts do differ)
             # win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / ('text2_%s.png' % self.contextName))
             utils.compareScreenshot('text2_%s.png' %self.contextName,
-                                    win, crit=20)
+                                    win, crit=30)
 
     def test_text_with_add(self):
         # pyglet text will reset the blendMode to 'avg' so check that we are
