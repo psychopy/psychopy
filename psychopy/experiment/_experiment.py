@@ -114,7 +114,10 @@ class Experiment:
     Routine. The Flow controls how Routines are organised
     e.g. the nature of repeats and branching of an experiment.
     """
-    
+
+    # component/routine classes are scanned when needed, and shared accross Experiment instances
+    _allCompons = None
+    _allRoutines = None
 
     def __init__(self, prefs=None):
         super(Experiment, self).__init__()
@@ -146,9 +149,8 @@ class Experiment:
 
         # what online resources are needed? (PsychoJS only)
         self.requiredResources = []
-
-        _settingsComp = getComponents(fetchIcons=False)['SettingsComponent']
-        self.settings = _settingsComp(parentName='', exp=self)
+        from psychopy.experiment.components.settings import SettingsComponent
+        self.settings = SettingsComponent(parentName='', exp=self)
         # this will be the xml.dom.minidom.doc object for saving
         self._doc = xml.ElementTree()
         self.namespace = NameSpace(self)  # manage variable names
@@ -163,10 +165,30 @@ class Experiment:
         self._expHandler = TrialHandler(exp=self, name='thisExp')
         self._expHandler.type = 'ExperimentHandler'  # true at run-time
 
-        # get a local reference of all Components and Routines (refreshed on loading a new file)
-        self.allCompons = getAllComponents(
-            self.prefsBuilder['componentsFolders'], fetchIcons=False)
-        self.allRoutines = getAllStandaloneRoutines(fetchIcons=False)
+        # get a local reference of all Components and Routines (populated on loading a new file)
+        self._allCompons = None
+        self._allRoutines = None
+
+    @property
+    def allCompons(self):
+        # populate if needed
+        if Experiment._allCompons is None:
+            Experiment._allCompons = getAllComponents(
+                self.prefsBuilder['componentsFolders'], 
+                fetchIcons=False
+            )
+
+        return Experiment._allCompons
+
+    @property
+    def allRoutines(self):
+        # populate if needed
+        if Experiment._allRoutines is None:
+            Experiment._allRoutines = getAllStandaloneRoutines(
+                fetchIcons=False
+            )
+
+        return Experiment._allRoutines
 
     def __eq__(self, other):
         if isinstance(other, Experiment):
@@ -1030,9 +1052,6 @@ class Experiment:
             self.setExpName(shortName)
         # fetch routines
         routinesNode = root.find('Routines')
-        self.allCompons = allCompons = getAllComponents(
-            self.prefsBuilder['componentsFolders'], fetchIcons=False)
-        self.allRoutines = allRoutines = getAllStandaloneRoutines(fetchIcons=False)
         # get each routine node from the list of routines
         for routineNode in routinesNode:
             if routineNode.tag == "Routine":
@@ -1051,20 +1070,22 @@ class Experiment:
                     if componentType == "RoutineSettingsComponent":
                         # if settings, use existing component
                         component = routine.settings
-                    elif componentType in allCompons:
+                    elif componentType in self.allCompons:
                         # create an actual component of that type
-                        component = allCompons[componentType](
+                        component = self.allCompons[componentType](
                             name=componentNode.get('name'),
                             parentName=routineNode.get('name'), exp=self)
                     elif plugin:
+                        from psychopy.experiment.components.unknownPlugin import UnknownPluginComponent
                         # create UnknownPluginComponent instead
-                        component = allCompons['UnknownPluginComponent'](
+                        component = UnknownPluginComponent(
                             name=componentNode.get('name'), compType=componentType,
                             parentName=routineNode.get('name'), exp=self)
                         alert(7105, strFields={'name': componentNode.get('name'), 'plugin': plugin})
                     else:
+                        from psychopy.experiment.components.unknown import UnknownComponent
                         # create UnknownComponent instead
-                        component = allCompons['UnknownComponent'](
+                        component = UnknownComponent(
                             name=componentNode.get('name'), compType=componentType,
                             parentName=routineNode.get('name'), exp=self)
                     component.plugin = plugin
@@ -1105,12 +1126,13 @@ class Experiment:
                         routine.append(component)
             else:
                 routineGoodName = self._getValidRoutineName(routineNode, modifiedNames)
-                if routineNode.tag in allRoutines:
+                if routineNode.tag in self.allRoutines:
                     # If not a routine, may be a standalone routine
-                    routine = allRoutines[routineNode.tag](exp=self, name=routineGoodName)
+                    routine = self.allRoutines[routineNode.tag](exp=self, name=routineGoodName)
                 else:
+                    from psychopy.experiment.routines.unknown import UnknownRoutine
                     # Otherwise treat as unknown
-                    routine = allRoutines['UnknownRoutine'](exp=self, name=routineGoodName)
+                    routine = UnknownRoutine(exp=self, name=routineGoodName)
                 # Apply all params
                 for paramNode in routineNode:
                     if paramNode.tag == "Param":
