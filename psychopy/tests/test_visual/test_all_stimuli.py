@@ -248,10 +248,7 @@ class _baseVisualTest():
         win.flip()  # AFTER compare screenshot
         #using set
         stim.text = 'y'
-        if sys.platform=='win32':
-            stim.font = 'Courier New'
-        else:
-            stim.font = 'Courier'
+        stim.font = 'JetBrains Mono'
         stim.ori = -30.5
         stim.height = 1.0 * self.scaleFactor
         stim.setColor([0.1, -1, 0.8], colorSpace='rgb')
