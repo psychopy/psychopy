@@ -15,12 +15,9 @@ from psychopy import prefs
 from psychopy.constants import FOREVER
 from psychopy.experiment.devices import DeviceMixin
 from ..params import Param
-from psychopy.experiment.utils import canBeNumeric
-from psychopy.experiment.utils import CodeGenerationException
-from psychopy.experiment.utils import unescapedDollarSign_re
+from psychopy.experiment.utils import canBeNumeric, CodeGenerationException, unescapedDollarSign_re
 from psychopy.experiment.params import getCodeFromParamStr
 from psychopy.alerts import alerttools
-from psychopy.colors import nonAlphaSpaces
 
 from psychopy.localization import _translate
 
@@ -983,9 +980,6 @@ class BaseComponent:
                 valStr = valStr.replace("(", "[", 1)
                 valStr = valStr[::-1].replace(")", "]", 1)[
                          ::-1]  # replace from right
-            # filenames (e.g. for image) need to be loaded from resources
-            if paramName in ["sound"]:
-                valStr = (f"psychoJS.resourceManager.getResource({valStr})")
         else:
             endStr = ''
 
@@ -1001,11 +995,6 @@ class BaseComponent:
             if paramName == 'color':
                 buff.writeIndented(f"{compName}.setColor({params['color']}, colorSpace={params['colorSpace']}")
                 buff.write(f"{loggingStr}){endStr}\n")
-            elif paramName == 'sound':
-                stopVal = params['stopVal'].val
-                if stopVal in ['', None, -1, 'None']:
-                    stopVal = '-1'
-                buff.writeIndented(f"{compName}.setSound({params['sound']}, secs={stopVal}){endStr}\n")
             elif paramName == 'movie' and params['backend'].val in ('moviepy', 'avbin', 'vlc', 'opencv'):
                 # we're going to do this for now ...
                 if params['units'].val == 'from exp settings':
