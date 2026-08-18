@@ -597,7 +597,8 @@ class CameraFrame:
             If True, return only the best available frame rate/resolution for each device, rather 
             than returning all. Best available spec is chosen as the highest resolution with a 
             frame rate above 30fps (or just highest resolution, if none are over 30fps).
-        return self._absTime
+        """
+        return CameraDevice.getAvailableDevices(best=best)
     
     @absTime.setter
     def absTime(self, value):
@@ -3952,7 +3953,7 @@ if __name__ == "__main__":
     dev = CameraDevice.getAvailableDevices()[0]['deviceName']
     print(CameraDevice.getDeviceCapabilities(dev, by='frameRate'))
 
-    cam = Camera(0, mic=1)
+    cam = Camera(0, mic=5)
     #cam.open()
     cam.record(when=0.0)
 
