@@ -1,10 +1,6 @@
 import ast
 import re
-
 from numpy import array
-from esprima import parseScript
-
-from psychopy.tools import monitorunittools
 from psychopy.alerts._alerts import alert
 
 
@@ -53,10 +49,13 @@ def convertParamToPix(value, win, units):
     numpy array
         Parameter converted to pixels in numpy array
     """
+    from psychopy.tools import monitorunittools
+
     if isinstance(value, str):
         value = array(ast.literal_eval(value))
     else:
         value = array(value)
+    
     return monitorunittools.convertToPix(value, array([0, 0]), units=units, win=win) * 2
 
 
@@ -315,6 +314,8 @@ def checkJavaScriptSyntax(component, tab):
     tab: str
         The name of the code component tab being tested
     """
+    from esprima import parseScript
+    
     content = str(component.params[tab].val)
     # check that value is valid syntax
     try:

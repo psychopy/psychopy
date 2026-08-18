@@ -30,8 +30,8 @@ def getAllElements(fetchIcons=True):
     """
     Get all components and all standalone routines
     """
-    comps = getAllComponents(fetchIcons=fetchIcons)
-    rts = getAllStandaloneRoutines(fetchIcons=fetchIcons)
+    comps = getAllComponents()
+    rts = getAllStandaloneRoutines()
     comps.update(rts)
 
     return comps
