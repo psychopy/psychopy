@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+from packaging.version import Version
+import pandas as pd
+import pytest
 from psychopy import data, logging
 import numpy as np
 import os, glob, shutil
@@ -238,6 +241,9 @@ class TestDataSave():
         """
         Test that quotation marks are escaped using Excel standard (" => "")
         """
+        # don't run this test with older versions of pandas as it didn't used to handle escaping
+        if Version(pd.__version__) < Version("3.0.0"):
+            pytest.skip()
         # define some values with quotes in
         cases = {
             'single_quote': {

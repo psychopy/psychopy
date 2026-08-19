@@ -687,12 +687,17 @@ class FileSaveMixin:
             fileCollisionMethod=fileCollisionMethod,
             encoding=encoding
         )
+        # handle escapechar manually for older versions of pandas
+        escapechar = None
+        if Version(pd.__version__) < Version("3.0.0"):
+            escapechar = "\\"
         # write to file
         data.to_csv(
             f, 
             index=False, 
             sep=delim,
-            header=(not matrixOnly)
+            header=(not matrixOnly),
+            escapechar=escapechar
         )
         # close file
         if f != sys.stdout:
