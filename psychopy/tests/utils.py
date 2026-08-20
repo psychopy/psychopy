@@ -370,3 +370,56 @@ def forceBool(value, handler=any):
         value = handler(value)
 
     return value
+
+def profiledImport(ref, maxtime, notouch):
+    """
+    Import a class/method from a given reference, asserting that it doesn't take longer than a 
+    given time to import and that it doesn't touch any of a set of modules.
+
+    Parameters
+    ----------
+    ref : str
+        Module to import (an import path which can be passed to importlib.import_module)
+    maxtime : float
+        Maximum allowed time (s) for import
+    notouch : str
+        Modules which importing this module shouldn't touch
+    """
+    import cProfile
+    import importlib
+    import time
+    import os
+
+    # setup a profiler
+    pr = cProfile.Profile()
+    # start a timer
+    start = time.time()
+    # start profiling
+    pr.enable()
+    try:
+        # import module
+        importlib.import_module(ref)
+        # stop profiling
+        pr.disable()
+    except:
+        # if anything fails, stop the profiler
+        pr.disable()
+    # generate stats
+    pr.create_stats()
+    # get time taken
+    duration = time.time() - start 
+    # check that total time is acceptable...
+    assert duration < maxtime, f"Importing module {ref} took longer than allowed ({duration}s > {maxtime}s)"
+    # iterate through all calls from the profile...
+    for key, val in pr.stats.items():
+        # parse information
+        file, lineno, func = key
+        cumCalls, nCalls, totalDuration, cumTime, subcalls = val
+        # was this call to a module we shouldn't have touched?
+        for mod in notouch:
+            msg = f"Importing module {ref} imports module {mod} when it shouldn't."
+            assert mod.replace(".", os.sep) not in file, msg
+            # did any subsequent calls touch a module they shouldn't have?
+            for call in subcalls:
+                subfile, line, subfunc = call
+                assert mod.replace(".", os.sep) not in subfile, msg
