@@ -371,7 +371,7 @@ def forceBool(value, handler=any):
 
     return value
 
-def profiledImport(ref, maxtime, notouch):
+def profiledImport(ref, maxtime=None, notouch=None):
     """
     Import a class/method from a given reference, asserting that it doesn't take longer than a 
     given time to import and that it doesn't touch any of a set of modules.
@@ -390,6 +390,9 @@ def profiledImport(ref, maxtime, notouch):
     import time
     import os
 
+    # default for notouch
+    if notouch is None:
+        notouch = []
     # setup a profiler
     pr = cProfile.Profile()
     # start a timer
@@ -409,7 +412,8 @@ def profiledImport(ref, maxtime, notouch):
     # get time taken
     duration = time.time() - start 
     # check that total time is acceptable...
-    assert duration < maxtime, f"Importing module {ref} took longer than allowed ({duration}s > {maxtime}s)"
+    if maxtime is not None:
+        assert duration < maxtime, f"Importing module {ref} took longer than allowed ({duration}s > {maxtime}s)"
     # iterate through all calls from the profile...
     for key, val in pr.stats.items():
         # parse information
