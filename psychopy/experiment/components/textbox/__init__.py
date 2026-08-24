@@ -211,6 +211,21 @@ class TextboxComponent(BaseVisualComponent):
             label=_translate("Auto log"))
 
     def writeInitCode(self, buff):
+        # alert for font not found
+        from psychopy.tools.fontmanager import FontManager
+        fontFound = FontManager().getFontsMatching(
+            self.params['font'].val,
+            bold=bool(self.params['bold']),
+            italic=bool(self.params['italic']),
+            fallback=False
+        )
+        if not fontFound:
+            alert(4325, self, {
+                'font': self.params['font'].val,
+                'weight': "bold" if self.params['bold'] else "regular",
+                'style': " italic" if self.params['italic'] else "",
+                'name': self.name
+            })
         # do we need units code?
         if self.params['units'].val == 'from exp settings':
             unitsStr = ""
