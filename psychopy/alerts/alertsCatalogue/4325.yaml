@@ -1,7 +1,7 @@
 
 code: 4325
 cat: Components
-msg: Font `{font} {style}` not available in weight `{weight}`, component `{name}` will default to Open Sans Regular.
+msg: Font `{font}{style}` not available in weight `{weight}`, component `{name}` will use default font.
 
 # The following are typically used for online help pages, and support reStructured Text.
 label: Font not available
