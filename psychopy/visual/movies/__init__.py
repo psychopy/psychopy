@@ -843,8 +843,6 @@ class MovieFileReader:
             self._player.set_pause(True)  # pause the player
             self._player.close_player()
 
-        self._cleanUpAudioTrack()  # clean up the audio track
-
         self._player = None
 
     def _cleanUpFrameStore(self, keepAfterPTS=None):
@@ -1665,7 +1663,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             Path to movie file. Must be a format that FFMPEG supports.
 
         """
-        self.setMovie(filename=filename)
+        self.setMovie(filename)
 
     def unload(self, log=True):
         """Stop and unload the movie.
