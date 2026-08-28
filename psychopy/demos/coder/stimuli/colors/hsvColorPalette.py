@@ -1,47 +1,13 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+"""
+This demo creates a HSV color picker which shows how HSV colors work.
+
+The contents of this file are in the public domain.
+"""
 
 from psychopy import locale_setup, visual, core, event, colors
 import numpy as np
 from psychopy import misc
 
-
-def createPalette(size):
-    """
-    Creates the color palette array in HSV and returns as RGB
-    """
-    # Create array 
-    hsv = np.ones([size,size,3], dtype=float)
-    
-    # Set hue
-    hsv[:,:,0] = np.linspace(0,360, size, endpoint=False)
-    
-    # Set saturation
-    for i in range(size):
-        hsv[:,i, 1] = np.linspace(0, 1, size, endpoint=False)
-    
-    # Convert to RGB
-    rgb = misc.hsv2rgb(hsv)
-
-    # Make in range 0:1 for image stim
-    rgb[:][:][:] = (rgb[:][:][:] + 1) / 2
-    return rgb
- 
-def createValue(size):
-    """
-    Creates the value palette array in HSV and returns as RGB
-    """
-    # Create array 
-    hsv = np.zeros([20,size,3], dtype=float)
-    # Set value
-    hsv[:,:,2] = np.linspace(0,1, size, endpoint=False)
-    # Convert to RGB
-    rgb = misc.hsv2rgb(hsv)
-
-    # Make in range 0:1 for image stim
-    rgb[:][:][:] =  (rgb[:][:][:] + 1) / 2
-    return rgb
-    
 # how big do we want the palette to be (in pixels)?
 size = 400
 
