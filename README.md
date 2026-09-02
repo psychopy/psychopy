@@ -46,4 +46,5 @@ Release branch: [![GH tests release](https://github.com/psychopy/psychopy/action
 * Homepage: https://www.psychopy.org
 * Forum: https://discourse.psychopy.org
 * Issue tracker: https://github.com/psychopy/psychopy/issues
-* Changelog: https://www.psychopy.org/changelog.html
+* Changelog: https://github.com/psychopy/psychopy/releases 
+* Roadmap: https://github.com/psychopy/psychopy/blob/dev/ROADMAP.md
