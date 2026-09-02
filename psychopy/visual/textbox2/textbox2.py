@@ -468,7 +468,6 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
         if hasattr(self, "container") and self.container is not None:
             self.container.size = self.contentBox.size
         if hasattr(self, "scrollbar") and self.scrollbar is not None:
-            self.scrollbar.pos = self.pos + (self.size[0] * 1.05 / 2, 0)
             self.scrollbar.size = self.size * (0.05, 1 / 1.2)
         # Refresh pos
         self.pos = self.pos
