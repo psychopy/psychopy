@@ -135,7 +135,7 @@ class VariableComponent(BaseComponent):
 
                 # Begin string construction for end values
                 if not self.params['stopVal'].val:
-                    code += (':\n' % self.params)
+                    code += ':\n'
                 # Duration types must be calculated
                 elif u'duration' in self.params['stopType'].val:
                     if 'frame' in self.params['startType'].val and 'frame' in self.params['stopType'].val \
@@ -143,7 +143,7 @@ class VariableComponent(BaseComponent):
                         endTime = str((float(self.params['startVal'].val) + float(self.params['stopVal'].val)))
                     else:  # do not add mismatching value types
                         endTime = self.params['stopVal'].val
-                    code += (' and ' + endType + ' <= ' + endTime + ':\n' % (self.params))
+                    code += (' and ' + endType + ' <= ' + endTime + ':\n')
                 elif endType == 't' :
                     code += (' and ' + endType + ' <= %(stopVal)s:\n' % (self.params))
                 elif endType == 'frameN' :

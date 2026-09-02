@@ -54,6 +54,7 @@
     cat: Code component syntax
     4205: Python syntax error
     4210: JavaScript syntax error
+    4215: quitPsychoJS needs to be returned
   4300:
     cat: Components
     4305: Component disabled

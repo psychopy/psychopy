@@ -28,7 +28,7 @@ __all__ = [
     'getSerialPorts',
     'systemProfilerMacOS',
     'getInstalledDevices',
-    'isPsychopyInFocus'
+    'isRegisteredApp'
 ]
 
 # Keep imports to a minimum here! We don't want to import the whole stack to

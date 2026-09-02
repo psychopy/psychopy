@@ -493,6 +493,7 @@ class BaseComponent:
             # queue validation
             code = (
                 "# tell attached validator (%(name)s) to start looking for a start flag\n"
+                "%(name)s.sensor.clearResponses()\n"
                 "%(name)s.status = STARTED\n"
             )
             buff.writeIndentedLines(code % validator.params)

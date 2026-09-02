@@ -321,16 +321,6 @@ class CameraDeviceBackend(DeviceBackend):
         buff.writeIndentedLines(code % self.params)
     
     def getParams(self):
-        from psychopy.hardware.camera import CameraDevice
-
-        # get supported resolutions and framerates
-        resolutions = set()
-        frameRates = set()
-        for profile in CameraDevice.getAvailableDevices(best=False):
-            if profile['deviceName'] == self.profile['deviceName']:
-                resolutions.add(profile['frameSize'])
-                frameRates.add(profile['frameRate'])
-        
         order = [
             'frameSize',
             'frameRate',
@@ -338,8 +328,8 @@ class CameraDeviceBackend(DeviceBackend):
         params = {}
         
         self.params['frameSize'] = Param(
-            "", valType='list', inputType="choice",
-            allowedVals=[""] + list(sorted(resolutions)), allowedLabels=["Default"] + list(sorted(resolutions)),
+            None, valType='list', inputType="choice",
+            allowedVals="python:///psychopy.hardware.camera:CameraDevice.getSupportedResolutions($deviceName)",
             hint=_translate(
                 "Resolution (w x h) to record to, leave blank to use device default."
             ),
@@ -347,7 +337,7 @@ class CameraDeviceBackend(DeviceBackend):
         )
         params['frameRate'] = Param(
             None, valType='int', inputType="choice",
-            allowedVals=[""] + list(frameRates), allowedLabels=["Default"] + list(frameRates),
+            allowedVals="python:///psychopy.hardware.camera:CameraDevice.getSupportedFrameRates($deviceName)",
             hint=_translate(
                 "Frame rate (frames per second) to record at, leave blank to use device default."
             ),

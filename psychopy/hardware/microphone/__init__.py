@@ -66,7 +66,7 @@ class MicrophoneDevice:
         # import backend
         try:
             return cls.backends[backend].load()
-        except:
+        except ImportError:
             # if backend fails to import, remove it from .backends
             del cls.backends[backend]
             # if there's no backends left, error
