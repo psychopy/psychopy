@@ -440,6 +440,10 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
             self.contentBox.units = value
         if hasattr(self, "caret"):
             self.caret.units = value
+        if hasattr(self, "container") and self.container is not None:
+            self.container.units = value
+        if hasattr(self, "scrollbar") and self.scrollbar is not None:
+            self.scrollbar.units = value
 
     @property
     def size(self):
@@ -461,6 +465,10 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
             self.box.size = self._size
         if hasattr(self, "contentBox"):
             self.contentBox.size = self._size - self._padding * 2
+        if hasattr(self, "container") and self.container is not None:
+            self.container.size = self.contentBox.size
+        if hasattr(self, "scrollbar") and self.scrollbar is not None:
+            self.scrollbar.size = self.size * (0.05, 1 / 1.2)
         # Refresh pos
         self.pos = self.pos
 
@@ -501,6 +509,12 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
         # Set caret pos again so it recalculates its vertices
         if hasattr(self, "caret"):
             self.caret.index = self.caret.index
+        # update container
+        if hasattr(self, "container") and self.container is not None:
+            self.container.pos = self.contentBox.pos
+        # update scrollbar
+        if hasattr(self, "scrollbar") and self.scrollbar is not None:
+            self.scrollbar.pos = self.pos + (self.size[0] * 1.05 / 2, 0)
 
         if hasattr(self, "_text"):
             self._layout()
@@ -1229,6 +1243,9 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
 
     def draw(self):
         """Draw the text to the back buffer"""
+        # start off with container disabled
+        if self.container is not None:
+            self.container.disable()
         # Border width
         self.box.setLineWidth(self.palette['lineWidth']) # Use 1 as base if border width is none
         # Border colour
@@ -1242,7 +1259,6 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
         self.boundingBox.win = self.win
 
         if self._needVertexUpdate:
-            #print("Updating vertices...")
             self._updateVertices()
         if self.fillColor is not None or self.borderColor is not None:
             self.box.draw()
@@ -1276,7 +1292,8 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
             )
             self._needVertexUpdate = True
 
-        if self.overflow in ("hidden", "scroll"):
+        # enable the container now that we're drawing text
+        if self.overflow in ("hidden", "scroll") and self.container is not None:
             # Activate aperture
             self.container.enable()
 
@@ -1326,7 +1343,7 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
         # Draw placeholder if blank
         if self.editable and len(self.text) == 0:
             self._placeholder.draw()
-
+        # disable the container now that we're done drawing text
         if self.container is not None:
             self.container.disable()
 
