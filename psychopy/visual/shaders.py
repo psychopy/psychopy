@@ -453,8 +453,10 @@ if USE_LEGACY_GL:
     fragTextBox2alpha = '''
         uniform sampler2D texture;
         void main() {
-            vec4 current = texture2D(texture,gl_TexCoord[0].st);
-            gl_FragColor = vec4( gl_Color.rgb, current.a);
+            vec4 currentTexel = texture2D(texture, gl_TexCoord[0].st);
+            vec3 currentTexelRGB = currentTexel.rgb * 2.0 - 1.0;
+            vec3 colorInRGB = ((gl_Color.rgb * 2.0 + 1.0)) / 2.0;
+            gl_FragColor = vec4(currentTexelRGB + colorInRGB, currentTexel.a * gl_Color.a);
         }
         '''
 else:
@@ -783,5 +785,11 @@ else:
     {
         vec4 current = texture2D(uTexture, gl_TexCoord[0].st);
         gl_FragColor = vec4(uColor.rgb, current.a);
+
+        vec4 currentTexel = texture2D(uTexture, gl_TexCoord[0].st);
+        vec3 currentTexelRGB = currentTexel.rgb * 2.0 - 1.0;
+        vec3 colorInRGB = ((uColor.rgb * 2.0 + 1.0)) / 2.0;
+        gl_FragColor = vec4(currentTexelRGB + colorInRGB, currentTexel.a * uColor.a);
+        
     }
     '''
