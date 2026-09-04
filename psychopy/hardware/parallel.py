@@ -1,5 +1,6 @@
 import sys
 from psychopy import logging, clock
+from psychopy.hardware import DeviceManager
 from psychopy.hardware.base import BaseResponseDevice, BaseResponse
 
 
@@ -97,7 +98,7 @@ class ParallelDevice(BaseResponseDevice):
         # parallel ports aren't detectable, so just return one
         return [
             {
-                'deviceLabel': "Parallel Port",
+                'deviceName': "Parallel Port",
                 'deviceClass': "psychopy.hardware.parallel.ParallelDevice"
             }
         ]
@@ -145,6 +146,36 @@ class ParallelDevice(BaseResponseDevice):
             data = data & (255 ^ 2 ** (pinNumber - 2))
         # set in backend
         self.setData(data)
+
+
+class Parallel:
+    """
+    Builder-friendly wrapper around the ParallelDevice class.
+    """
+    def __init__(self, device):
+        if isinstance(device, ParallelDevice):
+            # store device object if given one
+            self.device = device
+        elif isinstance(device, str) and DeviceManager.getDevice(device):
+            # try getting it from device manager if it looks like a name
+            self.device = DeviceManager.getDevice(device)
+        else:
+            # assume an address if not an object or name
+            self.device = ParallelDevice(device)
+        # start off with no status
+        self.status = None
+
+    def getData(self):
+        return self.device.getData()
+    
+    def setData(self, data):
+        return self.device.setData(data=data)
+
+    def getPin(self, pinNumber):
+        return self.device.getPin(pinNumber=pinNumber)
+
+    def setPin(self, pinNumber, state):
+        return self.device.setPin(pinNumber=pinNumber, state=state)
 
 
 class _BaseParallelBackend:
