@@ -99,6 +99,7 @@ class DeviceBackend:
         # initialise params and order arrays
         self.params = {}
         self.order = []
+        self.depends = []
         # add a param for the device label to all backends
         self.params['name'] = Param(
             "", valType="str", inputType="name", categ=None,
