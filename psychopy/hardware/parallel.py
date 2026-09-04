@@ -41,6 +41,7 @@ class ParallelDevice(BaseResponseDevice):
     responseClass = ParallelResponse
 
     def __init__(self, address):
+        BaseResponseDevice.__init__(self)
         # store address
         if isinstance(address, str) and address.startswith('0x'):
             # convert u"0x0378" into 0x0378
@@ -49,7 +50,7 @@ class ParallelDevice(BaseResponseDevice):
             self.address = address
         # pick appropriate backend according to OS
         if sys.platform.startswith('linux'):
-            self.backend = _LinuxParallelBackend()
+            self.backend = _LinuxParallelBackend(self.address)
         elif sys.platform == "win32":
             from ctypes import windll
 
@@ -67,7 +68,7 @@ class ParallelDevice(BaseResponseDevice):
                 except FileNotFoundError:
                     continue
                 # if we do, use the corresponding backend
-                self.backend = cls()
+                self.backend = cls(self.address)
             # if no drivers, error
             if self.backend is None:
                 raise SystemError(
@@ -103,7 +104,7 @@ class ParallelDevice(BaseResponseDevice):
 
     def dispatchMessages(self):
         # get data
-        data = self.backend.getData()
+        data = self.backend.readData()
         # do nothing if data hasn't changed
         if len(self.responses) and data == self.responses[-1].value:
             return
@@ -157,8 +158,8 @@ class _BaseParallelBackend:
         address : int
             Address of the parallel port
         """
-        raise NotImplementedError()
-
+        # store address
+        self.address = address
 
     def setData(self, address, data):
         """
@@ -195,10 +196,9 @@ class _DLPortIOParallelBackend(_BaseParallelBackend):
     def __init__(self, address):
         from ctypes import windll
 
+        _BaseParallelBackend.__init__(self, address=address)
         # get functions
         self.functions = windll.dlportio
-        # store address
-        self.address = address
 
     def setData(self, data):
         self.functions.DlPortWritePortUchar(self.address, data)
@@ -213,13 +213,12 @@ class _InpOutParallelBackend(_BaseParallelBackend):
         from ctypes import windll
         import platform
 
+        _BaseParallelBackend.__init__(self, address=address)
         # get functions
         if platform.architecture()[0] == '32bit':
             self.functions = getattr(windll, 'inpout32')
         elif platform.architecture()[0] == '64bit':
             self.functions = getattr(windll, 'inpoutx64')
-        # store address
-        self.address = address
         # put into byte mode
         _inp = self.functions.Inp32(
             self.address + 0x402 
@@ -235,7 +234,6 @@ class _InpOutParallelBackend(_BaseParallelBackend):
             int(_inp & ~uint8(1 << 5))
         )
 
-
     def setData(self, data):
         self.functions.DlPortWritePortUchar(self.address, data)
 
@@ -247,6 +245,7 @@ class _LinuxParallelBackend(_BaseParallelBackend):
     def __init__(self, address):
         import parallel as pyp
 
+        _BaseParallelBackend.__init__(self, address=address)
         # create Parallel object for functions
         self.functions = pyp.Parallel(address)
 
