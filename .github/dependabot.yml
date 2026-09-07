@@ -1,0 +1,12 @@
+version: 2
+updates:
+  - package-ecosystem: "uv"
+    directory: "/"
+    target-branch: "dev"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 5
+      semver-major-days: 180 # very unlikely a security release
+      semver-minor-days: 14  # unlikely a security release
+      semver-patch-days: 5

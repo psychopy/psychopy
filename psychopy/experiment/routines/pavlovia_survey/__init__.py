@@ -129,6 +129,7 @@ class PavloviaSurveyRoutine(BaseStandaloneRoutine):
         code = (
             "});\n"
             "%(name)sClock = new util.Clock();\n"
+            "%(name)s.setVariables(expInfo, []);\n"
             "%(name)s.setAutoDraw(true);\n"
             "%(name)s.status = PsychoJS.Status.STARTED;\n"
             "%(name)s.isFinished = false;\n"

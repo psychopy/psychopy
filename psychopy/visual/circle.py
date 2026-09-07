@@ -31,10 +31,12 @@ class Circle(Polygon):
         Number of edges to use to define the outline of the circle. The
         greater the number of edges, the 'rounder' the circle will appear.
     radius : float
-        Initial radius of the circle in `units`.
+        Radius of the circle, relative to its size (so 1 will make a circle whose radius 
+        is the same as `size`, .5 will make a circle which fits exactly inside a rect of 
+        the same size).
     units : str
         Units to use when drawing. This will affect how parameters and
-        attributes `pos`, `size` and `radius` are interpreted.
+        attributes `pos` and `size` are interpreted.
     lineWidth : float
         Width of the circle's outline.
     lineColor, fillColor : array_like, str, :class:`~psychopy.colors.Color` or None
@@ -47,13 +49,8 @@ class Circle(Polygon):
         initialization by setting the `pos` property. The default value is
         `(0.0, 0.0)` which results in no translation.
     size : float or array_like
-        Initial scale factor for adjusting the size of the circle. A single
-        value (`float`) will apply uniform scaling, while an array (`sx`,
-        `sy`) will result in anisotropic scaling in the horizontal (`sx`)
-        and vertical (`sy`) direction. Providing negative values to `size`
-        will cause the shape being mirrored. Scaling can be changed by
-        setting the `size` property after initialization. The default value
-        is `1.0` which results in no scaling.
+        Size of the box within which the Circle fits, interpreted in terms of 
+        `units`.
     ori : float
         Initial orientation of the circle in degrees about its origin.
         Positive values will rotate the shape clockwise, while negative
