@@ -341,15 +341,6 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
                 raise ValueError(
                     _translate("Could not parse file {}.").format(fileName)
                 )
-            # if we made it herre, we successfully loaded the file
-            for col in trialsArr.columns:
-                for row, cell in enumerate(trialsArr[col]):
-                    if isinstance(cell, str):
-                        tryVal = cell.replace(",", ".")
-                        try:
-                            trialsArr[col][row] = float(tryVal)
-                        except ValueError:
-                            pass
             logging.debug(u"Read csv file with pandas: {}".format(fileName))
         elif fileName.endswith(('.xlsx', '.xlsm')):
             trialsArr = pd.read_excel(fileName, engine='openpyxl')

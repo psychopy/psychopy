@@ -28,6 +28,7 @@ from ..aperture import Aperture
 from ..basevisual import (
     BaseVisualStim, ColorMixin, ContainerMixin, WindowMixin, DraggingMixin, PointerMixin
 )
+from psychopy import logging
 from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.tools import mathtools as mt
 from psychopy.colors import Color
@@ -220,11 +221,16 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
         self.letterSpacing = letterSpacing
         # If font not found, default to Noto Sans Regular and raise alert
         if not self.glFont:
-            alerts.alert(4325, self, {
-                'font': font,
-                'weight': 'bold' if self.bold is True else 'regular' if self.bold is False else self.bold,
-                'style': 'italic' if self.italic else '',
-                'name': self.name})
+            logging.warn(
+                (
+                    "Font `{font} {style}` not available in weight `{weight}`, component `{name}` will use default font."
+                ).format(
+                    font=font,
+                    weight='bold' if self.bold is True else 'regular' if self.bold is False else self.bold,
+                    style='italic' if self.italic else '',
+                    name=self.name
+                )
+            )
             self.bold = False
             self.italic = False
             self.font = "Noto Sans"

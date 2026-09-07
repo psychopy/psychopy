@@ -830,12 +830,31 @@ class FontManager():
         # check if we have a valid style too
         if fontStyle and fontStyle in style_dict:
             return style_dict[fontStyle]
-        for style, fonts in style_dict.items():
+        # function for pushing low-priority styles to the back
+        def _styleSorter(style):
+            # compare against stringified lowercase style
+            comp = style
+            if isinstance(comp, bytes):
+                comp = comp.decode("utf-8")
+            comp = comp.lower()
+            # styles to push to the back (less likely to be wanted)
+            low = [
+                "medium",
+                "black",
+                "narrow",
+                "narrow bold",
+                "narrow italic",
+                "narrow bold italic",
+            ]
+
+            return comp in low
+        # check for close matches
+        for style in sorted(sorted(style_dict), key=_styleSorter):
             b, i = self.booleansFromStyleName(style)
             if b == bold and i == italic:
-                return fonts
+                return style_dict[style]
         return None
-
+    
     def getFontNamesSimilar(self, fontName):
         if type(fontName) != bytes:
             fontName = bytes(fontName, sys.getfilesystemencoding())

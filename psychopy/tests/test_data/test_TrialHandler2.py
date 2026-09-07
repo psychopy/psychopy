@@ -8,6 +8,8 @@ import numpy as np
 import io
 import json_tricks
 import pytest
+from pathlib import Path
+from datetime import datetime
 
 from psychopy import data
 from psychopy.tools.filetools import fromFile
@@ -448,118 +450,81 @@ class TestTrialHandler2Output():
             randResp = rng.rand()
             self.trials.addData('resp', resp)
             self.trials.addData('rand', randResp)
+    
+    def test_delim_suffix_combos(self):
+        cases = [
+            {
+                # test_output_no_filename_no_delim
+                'delim': None,
+                'expected_delim': "\t",
+                'suffix': "",
+                'expected_suffix': ".tsv"
+            },
+            {
+                # test_output_no_filename_comma_delim
+                'delim': ",",
+                'expected_delim': ",",
+                'suffix': "",
+                'expected_suffix': ".csv"
+            },
+            {
+                # test_output_no_filename_tab_delim
+                'delim': ",",
+                'expected_delim': ",",
+                'suffix': "",
+                'expected_suffix': ".csv"
+            },
+            {
+                # test_output_no_filename_semicolon_delim
+                'delim': ";",
+                'expected_delim': ";",
+                'suffix': "",
+                'expected_suffix': ".txt"
+            },
+            {
+                # test_output_csv_suffix_no_delim
+                'delim': None,
+                'expected_delim': ",",
+                'suffix': ".csv",
+                'expected_suffix': ".csv"
+            },
+            {
+                # test_output_arbitrary_suffix_no_delim
+                'delim': None,
+                'expected_delim': "\t",
+                'suffix': ".xyz",
+                'expected_suffix': ".tsv"
+            },
+            {
+                # test_output_csv_and_semicolon
+                'delim': ";",
+                'expected_delim': ";",
+                'suffix': ".csv",
+                'expected_suffix': ".csv"
+            }
+        ]
 
-    def test_output_no_filename_no_delim(self):
-        _, path = mkstemp(dir=self.temp_dir)
-        delim = None
-        self.trials.saveAsWideText(path, delim=delim)
-
-        expected_suffix = '.tsv'
-        assert os.path.isfile(path + expected_suffix)
-
-        expected_delim = '\t'
-        expected_header = self.trials.columns
-        expected_header = expected_delim.join(expected_header) + '\n'
-
-        with io.open(path + expected_suffix, 'r', encoding='utf-8-sig') as f:
-            header = f.readline()
-
-        assert header == expected_header
-
-    def test_output_no_filename_comma_delim(self):
-        _, path = mkstemp(dir=self.temp_dir)
-        delim = ','
-        self.trials.saveAsWideText(path, delim=delim)
-
-        expected_suffix = '.csv'
-        assert os.path.isfile(path + expected_suffix)
-
-        expected_header = self.trials.columns
-        expected_header = delim.join(expected_header) + '\n'
-
-        with io.open(path + expected_suffix, 'r', encoding='utf-8-sig') as f:
-            header = f.readline()
-
-        assert header == expected_header
-
-    def test_output_no_filename_tab_delim(self):
-        _, path = mkstemp(dir=self.temp_dir)
-        delim = '\t'
-        self.trials.saveAsWideText(path, delim=delim)
-
-        expected_suffix = '.tsv'
-        assert os.path.isfile(path + expected_suffix)
-
-        expected_header = self.trials.columns
-        expected_header = delim.join(expected_header) + '\n'
-
-        with io.open(path + expected_suffix, 'r', encoding='utf-8-sig') as f:
-            header = f.readline()
-
-        assert header == expected_header
-
-    def test_output_no_filename_semicolon_delim(self):
-        _, path = mkstemp(dir=self.temp_dir)
-        delim = ';'
-        self.trials.saveAsWideText(path, delim=delim)
-
-        expected_suffix = '.txt'
-        assert os.path.isfile(path + expected_suffix)
-
-        expected_header = self.trials.columns
-        expected_header = delim.join(expected_header) + '\n'
-
-        with io.open(path + expected_suffix, 'r', encoding='utf-8-sig') as f:
-            header = f.readline()
-
-        assert header == expected_header
-
-    def test_output_csv_suffix_no_delim(self):
-        _, path = mkstemp(dir=self.temp_dir, suffix='.csv')
-        delim = None
-        self.trials.saveAsWideText(path, delim=delim)
-
-        expected_delim = ','
-        expected_header = self.trials.columns
-        expected_header = expected_delim.join(expected_header) + '\n'
-
-        with io.open(path, 'r', encoding='utf-8-sig') as f:
-            header = f.readline()
-
-        assert header == expected_header
-
-    def test_output_arbitrary_suffix_no_delim(self):
-        _, path = mkstemp(dir=self.temp_dir, suffix='.xyz')
-        delim = None
-        self.trials.saveAsWideText(path, delim=delim)
-
-        expected_suffix = '.tsv'
-        assert os.path.isfile(path + expected_suffix)
-
-        expected_delim = '\t'
-        expected_header = self.trials.columns
-        expected_header = expected_delim.join(expected_header) + '\n'
-
-        with io.open(path + expected_suffix, 'r', encoding='utf-8-sig') as f:
-            header = f.readline()
-
-        assert header == expected_header
-
-    def test_output_csv_and_semicolon(self):
-        _, path = mkstemp(dir=self.temp_dir, suffix='.csv')
-        delim = ';'
-        self.trials.saveAsWideText(path, delim=delim)
-
-        assert os.path.isfile(path)
-
-        expected_delim = ';'
-        expected_header = self.trials.columns
-        expected_header = expected_delim.join(expected_header) + '\n'
-
-        with io.open(path, 'r', encoding='utf-8-sig') as f:
-            header = f.readline()
-
-        assert header == expected_header
+        for case in cases:
+            # construct unique file path
+            orig_path = Path(self.temp_dir) / f"{datetime.now().strftime('%Y_%m_%d-%H_%M_%S-%f')}{case['suffix']}"
+            # save
+            path = Path(
+                self.trials.saveAsWideText(
+                    orig_path, 
+                    delim=case['delim']
+                )
+            )
+            # confirm expected suffix
+            assert path.suffix == case['expected_suffix']
+            # confirm that reported path is actual saved path
+            assert path.exists()
+            # construct expected heading from expected delimeter
+            expected_header = case['expected_delim'].join(self.trials.columns)
+            # read content and get header
+            content = path.read_text(encoding="utf-8-sig")
+            header = content.split("\n")[0]
+            # confirm that header looks as expected
+            assert header == expected_header
 
     def test_conditions_from_csv(self):
         conditions_file = pjoin(fixturesPath, 'trialTypes.csv')

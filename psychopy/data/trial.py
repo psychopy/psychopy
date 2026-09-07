@@ -12,7 +12,7 @@ from psychopy import logging, constants
 from psychopy.tools.filetools import (openOutputFile, genDelimiter,
                                       genFilenameFromDelimiter)
 from .utils import importConditions
-from .base import _BaseTrialHandler, DataHandler
+from .base import _BaseTrialHandler, DataHandler, FileSaveMixin
 
 
 class TrialType(dict):
@@ -834,7 +834,7 @@ class Trial(dict):
         return data
 
 
-class TrialHandler2(_BaseTrialHandler):
+class TrialHandler2(_BaseTrialHandler, FileSaveMixin):
     """Class to handle trial sequencing and data storage.
 
     Calls to .next() will fetch the next trial object given to this handler,
@@ -1385,6 +1385,19 @@ class TrialHandler2(_BaseTrialHandler):
         """
         return (self.elapsedTrials or []) + [self.thisTrial] + (self.upcomingTrials or []), len(self.elapsedTrials)
 
+    def getAllEntries(self):
+        """
+        Get trials as a list of dicts, similar to entries in ExperimentHandler, for data saving
+        """
+        # get all trials, including this one
+        entries = self.elapsedTrials or [] 
+        if self.thisTrial:
+            entries.append(self.thisTrial)
+        # convert to a list of dicts
+        return [
+            dict(trial) for trial in entries
+        ]
+    
     def getFutureTrial(self, n=1):
         """
         Returns the condition for n trials into the future, without
@@ -1631,87 +1644,6 @@ class TrialHandler2(_BaseTrialHandler):
         for invalidAnal in dataOutInvalid:
             dataOut.remove(invalidAnal)
         return dataOut, dataAnal, dataHead
-
-    def saveAsWideText(self, fileName,
-                       delim=None,
-                       matrixOnly=False,
-                       appendFile=True,
-                       encoding='utf-8-sig',
-                       fileCollisionMethod='rename'):
-        """Write a text file with the session, stimulus, and data values
-        from each trial in chronological order. Also, return a
-        pandas DataFrame containing same information as the file.
-
-        That is, unlike 'saveAsText' and 'saveAsExcel':
-         - each row comprises information from only a single trial.
-         - no summarising is done (such as collapsing to produce mean and
-           standard deviation values across trials).
-
-        This 'wide' format, as expected by R for creating dataframes, and
-        various other analysis programs, means that some information must
-        be repeated on every row.
-
-        In particular, if the trialHandler's 'extraInfo' exists, then each
-        entry in there occurs in every row. In builder, this will include
-        any entries in the 'Experiment info' field of the
-        'Experiment settings' dialog. In Coder, this information can be set
-        using something like::
-
-            myTrialHandler.extraInfo = {'SubjID': 'Joan Smith',
-                                        'Group': 'Control'}
-
-        :Parameters:
-
-            fileName:
-                if extension is not specified, '.csv' will be appended if
-                the delimiter is ',', else '.tsv' will be appended.
-                Can include path info.
-
-            delim:
-                allows the user to use a delimiter other than the default
-                tab ("," is popular with file extension ".csv")
-
-            matrixOnly:
-                outputs the data with no header row.
-
-            appendFile:
-                will add this output to the end of the specified file if
-                it already exists.
-
-            fileCollisionMethod:
-                Collision method passed to
-                :func:`~psychopy.tools.fileerrortools.handleFileCollision`
-
-            encoding:
-                The encoding to use when saving a the file.
-                Defaults to `utf-8-sig`.
-
-        """
-        if self.thisTrialN < 0 and self.thisRepN < 0:
-            # if both are < 1 we haven't started
-            logging.info('TrialHandler.saveAsWideText called but no '
-                         'trials completed. Nothing saved')
-            return -1
-
-        # set default delimiter if none given
-        if delim is None:
-            delim = genDelimiter(fileName)
-
-        # create the file or send to stdout
-        fileName = genFilenameFromDelimiter(fileName, delim)
-
-        with openOutputFile(fileName=fileName, append=appendFile,
-                            fileCollisionMethod=fileCollisionMethod,
-                            encoding=encoding) as f:
-            csvData = self.data.to_csv(sep=delim,
-                                       encoding=encoding,
-                                       columns=self.columns,  # sets the order
-                                       header=(not matrixOnly),
-                                       index=False)
-            f.write(csvData)
-
-        if (fileName is not None) and (fileName != 'stdout'):
-            logging.info('saved wide-format data to %s' % f.name)
 
     def saveAsJson(self,
                    fileName=None,
