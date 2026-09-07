@@ -443,20 +443,38 @@ if USE_LEGACY_GL:
             vec2 uv      = gl_TexCoord[0].xy;
             vec4 current = texture2D(texture, uv);
 
-            float r = current.r;
-            float g = current.g;
-            float b = current.b;
-            float a = current.a;
-            gl_FragColor = vec4( gl_Color.rgb, (r+g+b)/2.);
+            float coverage = (current.r + current.g + current.b) / 3.;
+            coverage = clamp(coverage, 0.0, 1.0);
+            gl_FragColor = vec4(gl_Color.rgb, gl_Color.a * coverage);
+        }
+        '''
+    fragTextBox2_adding = '''
+        uniform sampler2D texture;
+        void main() {
+            vec2 uv      = gl_TexCoord[0].xy;
+            vec4 current = texture2D(texture, uv);
+
+            float coverage = (current.r + current.g + current.b) / 3.;
+            coverage = clamp(coverage, 0.0, 1.0);
+            gl_FragColor = vec4((gl_Color.rgb * 2.0 - 1.0) / 2.0,
+                                gl_Color.a * coverage);
         }
         '''
     fragTextBox2alpha = '''
         uniform sampler2D texture;
         void main() {
-            vec4 currentTexel = texture2D(texture, gl_TexCoord[0].st);
-            vec3 currentTexelRGB = currentTexel.rgb * 2.0 - 1.0;
-            vec3 colorInRGB = ((gl_Color.rgb * 2.0 + 1.0)) / 2.0;
-            gl_FragColor = vec4(currentTexelRGB + colorInRGB, currentTexel.a * gl_Color.a);
+            vec4 current = texture2D(texture,gl_TexCoord[0].st);
+
+            gl_FragColor = vec4(gl_Color.rgb, gl_Color.a * current.a);
+        }
+        '''
+    fragTextBox2alpha_adding = '''
+        uniform sampler2D texture;
+        void main() {
+            vec4 current = texture2D(texture,gl_TexCoord[0].st);
+
+            gl_FragColor = vec4((gl_Color.rgb * 2.0 - 1.0) / 2.0,
+                                gl_Color.a * current.a);
         }
         '''
 else:
@@ -761,35 +779,51 @@ else:
         gl_FragColor = texture(SkyTexture, texCoord);
     }
     """
-
     fragTextBox2 = '''
     uniform sampler2D uTexture;
     uniform vec4 uColor;
-    void main() 
+    void main()
     {
         vec2 uv      = gl_TexCoord[0].xy;
         vec4 current = texture2D(uTexture, uv);
 
-        float r = current.r;
-        float g = current.g;
-        float b = current.b;
-        float a = current.a;
-        gl_FragColor = vec4(uColor.rgb, (r + g + b) / 2.);
+        float coverage = (current.r + current.g + current.b) / 3.;
+        coverage = clamp(coverage, 0.0, 1.0);
+        gl_FragColor = vec4(uColor.rgb, uColor.a * coverage);
     }
     '''
+    fragTextBox2_adding = '''
+    uniform sampler2D uTexture;
+    uniform vec4 uColor;
+    void main()
+    {
+        vec2 uv      = gl_TexCoord[0].xy;
+        vec4 current = texture2D(uTexture, uv);
 
+        float coverage = (current.r + current.g + current.b) / 3.;
+        coverage = clamp(coverage, 0.0, 1.0);
+        gl_FragColor = vec4((uColor.rgb * 2.0 - 1.0) / 2.0,
+                            uColor.a * coverage);
+    }
+    '''
     fragTextBox2alpha = '''
     uniform sampler2D uTexture;
     uniform vec4 uColor;
-    void main() 
+    void main()
     {
         vec4 current = texture2D(uTexture, gl_TexCoord[0].st);
-        gl_FragColor = vec4(uColor.rgb, current.a);
 
-        vec4 currentTexel = texture2D(uTexture, gl_TexCoord[0].st);
-        vec3 currentTexelRGB = currentTexel.rgb * 2.0 - 1.0;
-        vec3 colorInRGB = ((uColor.rgb * 2.0 + 1.0)) / 2.0;
-        gl_FragColor = vec4(currentTexelRGB + colorInRGB, currentTexel.a * uColor.a);
-        
+        gl_FragColor = vec4(uColor.rgb, uColor.a * current.a);
+    }
+    '''
+    fragTextBox2alpha_adding = '''
+    uniform sampler2D uTexture;
+    uniform vec4 uColor;
+    void main()
+    {
+        vec4 current = texture2D(uTexture, gl_TexCoord[0].st);
+
+        gl_FragColor = vec4((uColor.rgb * 2.0 - 1.0) / 2.0,
+                            uColor.a * current.a);
     }
     '''
