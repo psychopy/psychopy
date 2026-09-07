@@ -213,8 +213,8 @@ def test_border_contains():
 
 def test_line_overlaps():
     win.units = 'height'
-    circle_1 = visual.Circle(win, radius=0.25, pos=(0, 0))
-    circle_2 = visual.Circle(win, radius=0.25, pos=(0, -0.5))
+    circle_1 = visual.Circle(win, size=0.5, pos=(0, 0))
+    circle_2 = visual.Circle(win, size=0.5, pos=(0, -0.5))
     line = visual.Line(win, start=(-1, -1), end=(1, 1))
 
     assert line.overlaps(circle_1)
