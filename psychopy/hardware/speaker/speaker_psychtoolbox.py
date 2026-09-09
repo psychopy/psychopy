@@ -237,7 +237,7 @@ class PsychtoolboxSpeakerDevice(BaseSpeakerDevice):
                             device_id=self.profile['DeviceIndex'],
                             freq=sampleRateHz,
                             channels=self.profile['NrOutputChannels'],
-                            latency_class=[self.latencyClass],
+                            latency_class=self.latencyClass,
                             buffer_size=None
                         )
                 # if it worked, set own parameters
@@ -254,8 +254,8 @@ class PsychtoolboxSpeakerDevice(BaseSpeakerDevice):
                         logging.error(line[11:])
                     elif line.strip():
                         print(line)
-            except Exception:
-                pass
+            except Exception as err:
+                raise err
         # if everything failed, raise an error
         if self.stream is None:
             raise ConnectionError(
