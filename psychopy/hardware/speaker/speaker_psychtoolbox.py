@@ -213,6 +213,7 @@ class PsychtoolboxSpeakerDevice(BaseSpeakerDevice):
             self.stream = None
 
         # try to connect using profile at various sample rates
+        errors = {}
         for sampleRateHz in (
             # start with the rate from profile (this will usually work)
             int(self.profile['DefaultSampleRate']), 
@@ -237,7 +238,7 @@ class PsychtoolboxSpeakerDevice(BaseSpeakerDevice):
                             device_id=self.profile['DeviceIndex'],
                             freq=sampleRateHz,
                             channels=self.profile['NrOutputChannels'],
-                            latency_class=[self.latencyClass],
+                            latency_class=self.latencyClass,
                             buffer_size=None
                         )
                 # if it worked, set own parameters
@@ -254,14 +255,20 @@ class PsychtoolboxSpeakerDevice(BaseSpeakerDevice):
                         logging.error(line[11:])
                     elif line.strip():
                         print(line)
-            except Exception:
-                pass
+            except Exception as err:
+                errors[sampleRateHz] = err
         # if everything failed, raise an error
         if self.stream is None:
-            raise ConnectionError(
+            # construct an error showing the errors from each sample rate
+            errStr = (
                 "Failed to setup a PsychToolBox audio stream for device %(DeviceName)s "
-                "(%(DeviceIndex)s)." % self.profile
-            )
+                "(%(DeviceIndex)s). Tried several sample rates with the following errors:\n" 
+            ) % self.profile
+            for sampleRateHz, err in errors.items():
+                errStr += (
+                    f"- {sampleRateHz}: {err}\n"
+                )
+            raise ConnectionError(errStr)
 
         logging.info(
             f"Created stream for speaker device: {self.profile['DeviceName']} "
