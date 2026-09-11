@@ -67,6 +67,7 @@ dependencies = [
     # hardware
     "pyserial",
     "pyparallel; platform_system != \"Darwin\"",
+    "pynput; platform_system != \"Linux\"",
     # movie backends
     "ffpyplayer",
     "opencv-python",
