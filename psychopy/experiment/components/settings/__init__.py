@@ -39,6 +39,13 @@ _numpyImports = ['sin', 'cos', 'tan', 'log', 'log10', 'pi', 'average',
                  'sqrt', 'std', 'deg2rad', 'rad2deg', 'linspace', 'asarray']
 _numpyRandomImports = ['random', 'randint', 'normal', 'shuffle', 'choice as randchoice']
 
+# Keyboard backend options
+keyboardBackendMap = {
+    "ioHub": "iohub",
+    "PsychToolbox": "ptb",
+    "Pyglet": "event"
+}
+
 # possible expInfo keys for participant ID
 participantIdAliases = ('participant', 'Participant', 'Subject', 'Observer')
 
@@ -74,10 +81,6 @@ class SettingsComponent:
     beta = False
     # an experiment only has one SettingsComponent, so hide it from the Components panel
     hidden = True
-
-    legacyParams = [
-        "keyboardBackend"
-    ]
 
     def __init__(
             self, parentName, exp, expName='', fullScr=True, runMode=0, rush=False,
@@ -554,6 +557,14 @@ class SettingsComponent:
                     'true': "show",  # should...
                     'false': "hide",  # otherwise...
                 })
+
+        # Input
+        self.params['keyboardBackend'] = Param(
+            keyboardBackend, valType='str', inputType="choice",
+            allowedVals=list(keyboardBackendMap),
+            hint=_translate("What Python package should PsychoPy use to get keyboard input?"),
+            label=_translate("Keyboard backend"), categ="Input"
+        )
     
     @classmethod
     def getTemplateJSON(cls):
@@ -757,7 +768,7 @@ class SettingsComponent:
             "\n"
         )
 
-        if not self.params['eyetracker'] == "None":
+        if not self.params['eyetracker'] == "None" or self.params['keyboardBackend'] == "ioHub":
             code = (
                 "import psychopy.iohub as io\n"
             )
@@ -1269,6 +1280,7 @@ class SettingsComponent:
         inits = deepcopy(self.params)
         if inits['mgMove'].val == "CONTINUOUS":
             inits['mgMove'].val = "$"
+        inits['keyboardBackend'].val = keyboardBackendMap[inits['keyboardBackend'].val]
 
         # Make ioConfig dict
         code = (
@@ -1505,13 +1517,23 @@ class SettingsComponent:
                 )
                 buff.writeIndentedLines(code % inits)
 
-        # add keyboard and experiment handler filename to ioConfig
+        # Add keyboard to ioConfig
+        if self.params['keyboardBackend'] == 'ioHub':
+            code = (
+                "\n"
+                "# Setup iohub keyboard\n"
+                "ioConfig['Keyboard'] = dict(use_keymap='psychopy')\n"
+            )
+            buff.writeIndentedLines(code % inits)
+
+        if self.needIoHub and self.params['keyboardBackend'] == 'PsychToolbox':
+            alert(code=4550)
+
+        # Add experiment handler filename to ioConfig
         if self.needIoHub:
             code = (
                 "\n"
-                "# setup iohub keyboard\n"
-                "ioConfig['Keyboard'] = dict(use_keymap='psychopy')\n"
-                "# setup iohub experiment\n"
+                "# Setup iohub experiment\n"
                 "ioConfig['Experiment'] = dict(filename=thisExp.dataFileName)\n"
             )
             buff.writeIndentedLines(code % inits)
@@ -1587,8 +1609,7 @@ class SettingsComponent:
             "# create a default keyboard (e.g. to check for escape)\n"
             "if deviceManager.getDevice('defaultKeyboard') is None:\n"
             "    deviceManager.addDevice(\n"
-            "        deviceClass='keyboard',\n"
-            "        deviceName='defaultKeyboard'\n"
+            "        deviceClass='keyboard', deviceName='defaultKeyboard', backend=%(keyboardBackend)s\n"
             "    )\n"
         )
         buff.writeIndentedLines(code % inits)
@@ -1872,6 +1893,7 @@ class SettingsComponent:
             "    defaultKeyboard = deviceManager.addKeyboard(\n"
             "        deviceClass='keyboard',\n"
             "        deviceName='defaultKeyboard',\n"
+            "        backend=%(keyboardBackend)s,\n"
             "    )\n"
             "# run a while loop while we wait to unpause\n"
             "while thisExp.status == PAUSED:\n"
@@ -2062,5 +2084,9 @@ class SettingsComponent:
 
     @property
     def needIoHub(self):
-        # needed for eyetracking
-        return self.params['eyetracker'] != 'None'
+        # Needed for keyboard
+        kb = self.params['keyboardBackend'] == 'ioHub'
+        # Needed for eyetracking
+        et = self.params['eyetracker'] != 'None'
+
+        return any((kb, et))
