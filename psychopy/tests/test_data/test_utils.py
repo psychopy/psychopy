@@ -171,6 +171,31 @@ class Test_utilsClass:
         assert len(conds) == 6
         assert len(list(conds[0].keys())) == 6
 
+    def test_checkValidFilePath_trailingSpace(self, tmp_path):
+        # Windows silently strips trailing spaces from path components, so the
+        # folder created is not the folder that was asked for and the data is
+        # lost at the end of the run (see issue #7755)
+        goodPath = join(str(tmp_path), 'sub001', 'sub001-events.tsv')
+        # a clean path is fine on every platform
+        assert utils.checkValidFilePath(goodPath, platform='nt')
+        assert utils.checkValidFilePath(goodPath, platform='posix')
+        assert os.path.isdir(join(str(tmp_path), 'sub001'))
+        # a trailing space must be rejected up front on Windows...
+        badPath = join(str(tmp_path), 'sub002 ', 'sub002-events.tsv')
+        with pytest.raises(OSError):
+            utils.checkValidFilePath(badPath, platform='nt')
+        # ...without leaving a folder behind under the stripped name
+        assert not os.path.isdir(join(str(tmp_path), 'sub002'))
+        # ...but it is a valid path on posix, where nothing is stripped
+        assert utils.checkValidFilePath(badPath, platform='posix')
+        # a trailing period is *not* rejected: Windows strips it too, but it
+        # resolves such paths consistently, so no mismatch occurs
+        assert utils.checkValidFilePath(
+            join(str(tmp_path), 'sub003.', 'events.tsv'), platform='nt')
+        # with no platform given, behaviour follows the current OS and a clean
+        # path is always accepted
+        assert utils.checkValidFilePath(join(str(tmp_path), 'sub004', 'e.tsv'))
+
 def test_listFromString():
     assert ['yes', 'no'] == utils.listFromString("yes, no")
     assert ['yes', 'no'] == utils.listFromString("[yes, no]")
