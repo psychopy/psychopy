@@ -6,6 +6,7 @@ from copy import deepcopy
 from pathlib import Path
 from xml.etree.ElementTree import Element
 import re
+import sysconfig
 from psychopy import logging
 from psychopy.preferences import prefs
 from psychopy.experiment.components import Param, _translate
@@ -558,13 +559,30 @@ class SettingsComponent:
                     'false': "hide",  # otherwise...
                 })
 
-        # Input
+        # Legacy
+        self.params['useLegacyKeyboard'] = Param(
+            not sysconfig.get_config_var("Py_GIL_DISABLED"),
+            categ="Input",
+            valType="code", 
+            inputType="bool",
+            label=_translate("Use legacy keyboard backends?"),
+            hint=_translate(
+                "Legacy keyboard backends work better in Python 3.13 and earlier"
+            )
+        )
         self.params['keyboardBackend'] = Param(
             keyboardBackend, valType='str', inputType="choice",
             allowedVals=list(keyboardBackendMap),
             hint=_translate("What Python package should PsychoPy use to get keyboard input?"),
             label=_translate("Keyboard backend"), categ="Input"
         )
+        self.depends.append({
+            'dependsOn': "useLegacyKeyboard",  # if...
+            'condition': f"==True",  # meets...
+            'param': "keyboardBackend",  # then...
+            'true': "show",  # should...
+            'false': "hide",  # otherwise...
+        })
     
     @classmethod
     def getTemplateJSON(cls):
@@ -1280,7 +1298,10 @@ class SettingsComponent:
         inits = deepcopy(self.params)
         if inits['mgMove'].val == "CONTINUOUS":
             inits['mgMove'].val = "$"
-        inits['keyboardBackend'].val = keyboardBackendMap[inits['keyboardBackend'].val]
+        if inits['useLegacyKeyboard']:
+            inits['keyboardBackend'].val = "$None"
+        else:
+            inits['keyboardBackend'].val = keyboardBackendMap[inits['keyboardBackend'].val]
 
         # Make ioConfig dict
         code = (
@@ -1516,23 +1537,16 @@ class SettingsComponent:
                     "}\n"
                 )
                 buff.writeIndentedLines(code % inits)
+        
+        if self.needIoHub and self.params['useLegacyKeyboard'] and self.params['keyboardBackend'] == 'PsychToolbox':
+            alert(code=4550)
 
-        # Add keyboard to ioConfig
-        if self.params['keyboardBackend'] == 'ioHub':
+        # Add keyboard and experiment handler filename to ioConfig
+        if self.needIoHub:
             code = (
                 "\n"
                 "# Setup iohub keyboard\n"
                 "ioConfig['Keyboard'] = dict(use_keymap='psychopy')\n"
-            )
-            buff.writeIndentedLines(code % inits)
-
-        if self.needIoHub and self.params['keyboardBackend'] == 'PsychToolbox':
-            alert(code=4550)
-
-        # Add experiment handler filename to ioConfig
-        if self.needIoHub:
-            code = (
-                "\n"
                 "# Setup iohub experiment\n"
                 "ioConfig['Experiment'] = dict(filename=thisExp.dataFileName)\n"
             )
@@ -1893,7 +1907,12 @@ class SettingsComponent:
             "    defaultKeyboard = deviceManager.addKeyboard(\n"
             "        deviceClass='keyboard',\n"
             "        deviceName='defaultKeyboard',\n"
+        )
+        if self.params['useLegacyKeyboard']:
+            code += (
             "        backend=%(keyboardBackend)s,\n"
+            )
+        code += (
             "    )\n"
             "# run a while loop while we wait to unpause\n"
             "while thisExp.status == PAUSED:\n"
@@ -2085,7 +2104,7 @@ class SettingsComponent:
     @property
     def needIoHub(self):
         # Needed for keyboard
-        kb = self.params['keyboardBackend'] == 'ioHub'
+        kb = self.params['useLegacyKeyboard'] and self.params['keyboardBackend'] == 'ioHub'
         # Needed for eyetracking
         et = self.params['eyetracker'] != 'None'
 
