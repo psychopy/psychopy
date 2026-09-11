@@ -100,10 +100,22 @@ def snippet2js(expr):
     return expr
 
 
-def findUndeclaredVariables(ast, allUndeclaredVariables):
+def findUndeclaredVariables(ast, allUndeclaredVariables=None):
     """Detect undeclared variables
     """
     undeclaredVariables = []
+
+    # make sure ast is parsed
+    if isinstance(ast, str):
+        try:
+            ast = esprima.parseScript(ast, {'range': True, 'tolerant': True}).body
+        except esprima.error_handler.Error as err:
+            if fileName:
+                logging.error(f"Error parsing JS in {fileName.name}:\n{err}")
+            else:
+                logging.error(f"Error parsing JS: {err}")
+            
+            return []
 
     for expression in ast:
         if expression.type == 'ExpressionStatement':
@@ -129,18 +141,18 @@ def findUndeclaredVariables(ast, allUndeclaredVariables):
     return undeclaredVariables
 
 
-def addVariableDeclarations(inputProgram, fileName):
+def addVariableDeclarations(inputProgram, fileName=None):
     """Transform the input program by adding just before each function
     a declaration for its undeclared variables
     """
 
     # parse Javascript code into abstract syntax tree:
-    # NB: esprima: https://media.readthedocs.org/pdf/esprima/4.0/esprima.pdf
-    fileName = Path(str(fileName))
+    # NB: esprima: https://media.readthedocs.org/pdf/esprima/4.0/esprima.pdf    
     try:
         ast = esprima.parseScript(inputProgram, {'range': True, 'tolerant': True})
     except esprima.error_handler.Error as err:
         if fileName:
+            fileName = Path(str(fileName))
             logging.error(f"Error parsing JS in {fileName.name}:\n{err}")
         else:
             logging.error(f"Error parsing JS: {err}")
