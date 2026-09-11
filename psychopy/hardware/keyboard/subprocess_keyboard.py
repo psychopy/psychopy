@@ -167,6 +167,10 @@ class KeyPress(BaseResponse):
         return self.name != other
 
 
+# alias KeyResponse against old name
+KeyResponse = KeyPress
+
+
 def getKeyboards():
     """Get info about the available keyboards.
 
