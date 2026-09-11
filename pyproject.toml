@@ -43,10 +43,7 @@ dependencies = [
     "imageio",
     "imageio-ffmpeg",
     # for iohub
-    "pywinhook; platform_system == \"Windows\"",
-    "zope.event==5.0",  # py2app+gevent complains about zope.event 5.1
-    "zope.interface==7.2",  # needed for gevent on macos
-    "gevent==25.5.1",  # macos wheels for >2.5.1 are py3.12 only
+    "pynput",
     "MeshPy",
     "psutil",
     "pyzmq>=22.2.1",
@@ -70,6 +67,7 @@ dependencies = [
     # hardware
     "pyserial",
     "pyparallel; platform_system != \"Darwin\"",
+    "pynput; platform_system != \"Linux\"",
     # movie backends
     "ffpyplayer",
     "opencv-python",
