@@ -2832,8 +2832,9 @@ class Window():
         except Exception:
             pass
 
-        self.backend.close()  # moved here, dereferencing the window prevents
-                              # backend specific actions to take place
+        if self.backend is not None and hasattr(self.backend, 'close'):
+            self.backend.close()  # moved here, dereferencing the window prevents
+                                  # backend specific actions to take place
 
         try:
             openWindows.remove(self)
