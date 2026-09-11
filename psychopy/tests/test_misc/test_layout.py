@@ -1,3 +1,5 @@
+import copy
+
 import numpy
 from psychopy import layout, visual
 
@@ -47,3 +49,12 @@ class TestVector:
                     f"Vector of {obj._requested} in {obj._requestedUnits} should return {ans[space]} in {space} units, "
                     f"but instead returned {val}"
                 )
+
+    def test_deepcopy(self):
+        """
+        Check that a Vector can be deep copied, as well as shallow copied.
+        """
+        vec = layout.Vector((1, 1), 'height', self.win)
+        for dupe in (vec.copy(), copy.copy(vec), copy.deepcopy(vec)):
+            assert dupe is not vec
+            assert dupe == vec
