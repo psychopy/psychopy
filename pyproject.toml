@@ -74,8 +74,9 @@ dependencies = [
     "ffpyplayer",
     "opencv-python",
     # platform specific
-    "python-vlc == 3.0.11115; platform_system == \"Windows\"",
-    "python-vlc >= 3.0.12118; platform_system != \"Windows\"",
+    "python-vlc == 3.0.11115; platform_system == 'Windows' and python_version < '3.12'",
+    "python-vlc >= 3.0.12118; platform_system == 'Windows' and python_version >= '3.12'",
+    "python-vlc >= 3.0.12118; platform_system != 'Windows'",
     "pypiwin32; platform_system == \"Windows\"",
     "pyobjc-core > 8.0; platform_system == \"Darwin\"",
     "pyobjc-framework-Quartz > 8.0; platform_system == \"Darwin\"",
