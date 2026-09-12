@@ -27,6 +27,7 @@ class TextboxComponent(BaseVisualComponent):
                  text=_translate('Text can be **bold**, *italic*, ***bold italic*** or [color=red]colorful[/color]. To use a regular asterisk, remember to \*escape\* it.\n\nLine breaks are allowed!'),
                  placeholder=_translate("Type here..."),
                  font='Arial', units='from exp settings', bold=False, italic=False,
+                 hyphenate=True,
                  color='white', colorSpace='rgb', opacity="",
                  pos=(0, 0), size=(0.5, 0.5), letterHeight=0.05, ori=0,
                  speechPoint="", draggable=False,
@@ -138,6 +139,12 @@ class TextboxComponent(BaseVisualComponent):
             updates='constant',
             hint=_translate("Should text be bold?"),
             label=_translate("Bold"))
+        self.params['hyphenate'] = Param(
+            hyphenate, valType='bool', inputType="bool", categ='Formatting',
+            updates='constant',
+            hint=_translate("Add a hyphen when text wraps in the middle of a word"),
+            label=_translate("Hyphenate")
+        )
         self.params['lineSpacing'] = Param(
             lineSpacing, valType='num', inputType="single", allowedTypes=[], categ='Formatting',
             updates='constant',
@@ -244,6 +251,7 @@ class TextboxComponent(BaseVisualComponent):
             "     color=%(color)s, colorSpace=%(colorSpace)s,\n"
             "     opacity=%(opacity)s,\n"
             "     bold=%(bold)s, italic=%(italic)s,\n"
+            "     hyphenate=%(hyphenate)s,\n"
             "     lineSpacing=%(lineSpacing)s, speechPoint=%(speechPoint)s,\n"
             "     padding=%(padding)s, alignment=%(alignment)s,\n"
             "     anchor=%(anchor)s, overflow=%(overflow)s,\n"

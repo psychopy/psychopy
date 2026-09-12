@@ -96,6 +96,7 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
         bold=False,
         italic=False,
         placeholder="Type here...",
+        hyphenate=True,
         lineSpacing=1.0,
         letterSpacing=None,
         padding=None,  # gap between box and text
@@ -139,6 +140,10 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
         opacity
         bold
         italic
+        placeholder : str
+            Text to display when editable textbox is empty, default is "Type here..."
+        hyphenate : bool
+            Whether or not to add a hyphen when splitting a word at a line break
         lineSpacing
         padding
         speechPoint : list, tuple, np.ndarray or None
@@ -219,6 +224,8 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
         self.glFont = None  # will be set by the self.font attribute setter
         self.font = font
         self.letterSpacing = letterSpacing
+        # store hyphen preference
+        self.hyphenate = hyphenate
         # If font not found, default to Noto Sans Regular and raise alert
         if not self.glFont:
             logging.warn(
@@ -930,14 +937,15 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
                     if wordsThisLine <= 1:
                         # if whole line is just 1 word, wrap regardless of presence of wordbreak
                         wordLen = 0
-                        charsThisLine += 1
                         wordsThisLine += 1
                         # add hyphen
-                        self._renderChars.append({
-                            "i": i,
-                            "current": (current[0], current[1]),
-                            "glyph": font["-"]
-                        })
+                        if self.hyphenate:
+                            charsThisLine += 1
+                            self._renderChars.append({
+                                "i": i,
+                                "current": (current[0], current[1]),
+                                "glyph": font["-"]
+                            })
                         # store linebreak point
                         lineBreakPt = current[0]
                     wordWidth = current[0] - lineBreakPt
