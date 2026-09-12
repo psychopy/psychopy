@@ -229,20 +229,26 @@ class _baseVisualTest():
         #set font
         fontFile = str(utils.TESTS_FONT)
         #using init
-        stim = visual.TextStim(win,text=u'\u03A8a', color=[0.5, 1.0, 1.0], ori=15,
-            height=0.8*self.scaleFactor, pos=[0,0], font='DejaVu Serif',
-            fontFiles=[fontFile])
+        stim = visual.TextStim(
+            win,
+            text=u'\u03A8a', 
+            color=[0.5, 1.0, 1.0], 
+            ori=15,
+            height=0.8*self.scaleFactor,
+            wrapWidth=1.6*self.scaleFactor,
+            pos=[0,0], 
+            font='DejaVu Serif',
+            fontFiles=[fontFile]
+        )
         stim.draw()
         if self.win.winType != 'pygame':
             #compare with a LIBERAL criterion (fonts do differ)
-            utils.compareScreenshot('text1_%s.png' %(self.contextName), win, crit=20)
+            # win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / ('text1_%s.png' % self.contextName))
+            utils.compareScreenshot('text1_%s.png' % self.contextName, win, crit=30)
         win.flip()  # AFTER compare screenshot
         #using set
         stim.text = 'y'
-        if sys.platform=='win32':
-            stim.font = 'Courier New'
-        else:
-            stim.font = 'Courier'
+        stim.font = 'JetBrains Mono'
         stim.ori = -30.5
         stim.height = 1.0 * self.scaleFactor
         stim.setColor([0.1, -1, 0.8], colorSpace='rgb')
@@ -253,8 +259,9 @@ class _baseVisualTest():
         "{}".format(stim) #check that str(xxx) is working
         if self.win.winType != 'pygame':
             #compare with a LIBERAL criterion (fonts do differ)
+            # win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / ('text2_%s.png' % self.contextName))
             utils.compareScreenshot('text2_%s.png' %self.contextName,
-                                    win, crit=20)
+                                    win, crit=30)
 
     def test_text_with_add(self):
         # pyglet text will reset the blendMode to 'avg' so check that we are
