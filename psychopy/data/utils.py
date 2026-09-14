@@ -37,15 +37,42 @@ haveXlrd = False
 _nonalphanumeric_re = re.compile(r'\W')  # will match all bad var name chars
 
 
-def checkValidFilePath(filepath, makeValid=True):
+def checkValidFilePath(filepath, makeValid=True, platform=None):
     """Checks whether file path location (e.g. is a valid folder)
 
     This should also check whether we have write-permissions to the folder
     but doesn't currently do that!
 
+    On Windows a path component ending in a space is stripped when the
+    folder is created, so the folder on disk no longer matches the requested
+    path and saving data fails at the end of the run, after all data has
+    been collected (see issue #7755). Such paths are rejected here so that
+    the experiment fails straight away instead. A trailing period is also
+    stripped by Windows, but it resolves those consistently, so it is not
+    rejected.
+
+    `platform` is exposed so that the Windows behaviour can be exercised
+    from any OS (the CI matrix has no Windows runner).
+
     added in: 1.90.00
     """
+    if platform is None:
+        platform = os.name
     folder = os.path.split(os.path.abspath(filepath))[0]
+    if platform == 'nt':
+        # Windows silently strips trailing spaces from path components, so
+        # `folder` would be created under a different name than the one that
+        # later gets written to. (Trailing *periods* are stripped too, but
+        # Windows resolves those consistently, so they cause no mismatch.)
+        stripped = [part for part in folder.replace('\\', '/').split('/')
+                    if part and part[-1] == ' ']
+        if stripped:
+            raise OSError(
+                "Cannot use file path {}: path component(s) {} end in a space, "
+                "which Windows strips when creating the folder. Data would be "
+                "saved to a different folder than requested, or lost entirely. "
+                "Remove the trailing space from the participant ID or file "
+                "path.".format(filepath, ', '.join(repr(p) for p in stripped)))
     if not os.path.isdir(folder):
         os.makedirs(folder)  # spit an error if we fail
     return True
