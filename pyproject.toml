@@ -31,7 +31,7 @@ dependencies = [
     "pyglet == 1.4.11; platform_system == \"Windows\"",
     "pyglet == 1.5.27; platform_system != \"Windows\"",
     "pillow>=9.4.0",
-    "pyqt6",
+    "pyqt6; platform_system != \"Linux\"",
     "pandas>=1.5.3",
     "questplus>=2023.1",
     "openpyxl",
@@ -39,11 +39,10 @@ dependencies = [
     # for core stimuli
     "soundfile",
     "sounddevice",
-    "psychtoolbox",
+    "psychtoolbox; python_version < \"3.14\"",
     "imageio",
     "imageio-ffmpeg",
     # for iohub
-    "pynput",
     "MeshPy",
     "psutil",
     "pyzmq>=22.2.1",
@@ -67,7 +66,7 @@ dependencies = [
     # hardware
     "pyserial",
     "pyparallel; platform_system != \"Darwin\"",
-    "pynput; platform_system != \"Linux\"",
+    "pynput; platform_system != \"Linux\"; python_version < \"3.14\"",
     # movie backends
     "ffpyplayer",
     "opencv-python",
