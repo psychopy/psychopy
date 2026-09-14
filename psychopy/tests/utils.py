@@ -134,8 +134,9 @@ def compareScreenshot(fileName, win, tag="", crit=5.0):
     win.movieFrames=[]
     #if the file exists run a test, if not save the file
     if not isfile(fileName):
-        frame = frame.resize((int(frame.size[0]/2), int(frame.size[1]/2)),
-                             resample=Image.LANCZOS)
+        if win.useRetina:
+            frame = frame.resize((int(frame.size[0]/2), int(frame.size[1]/2)),
+                                 resample=Image.Resampling.LANCZOS)
         frame.save(fileName, optimize=1)
         pytest.skip("Created %s" % basename(fileName))
     else:
@@ -144,7 +145,7 @@ def compareScreenshot(fileName, win, tag="", crit=5.0):
         imgDat = np.array(frame.getdata())
         # for retina displays the frame data is 4x bigger than expected
         if win.useRetina and imgDat.shape[0] == expDat.shape[0]*4:
-            frame = frame.resize(expected.size, resample=Image.LANCZOS)
+            frame = frame.resize(expected.size, resample=Image.Resampling.LANCZOS)
             imgDat = np.array(frame.getdata())
             crit += 5  # be more relaxed because of the interpolation
         rms = np.std(imgDat-expDat)
