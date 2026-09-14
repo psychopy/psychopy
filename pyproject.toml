@@ -43,6 +43,8 @@ dependencies = [
     "imageio",
     "imageio-ffmpeg",
     # for iohub
+    "gevent; python_version < \"3.14\"",
+    "gevent==25.5.1; platform_system==\"Darwin\"",
     "MeshPy",
     "psutil",
     "pyzmq>=22.2.1",
@@ -66,7 +68,7 @@ dependencies = [
     # hardware
     "pyserial",
     "pyparallel; platform_system != \"Darwin\"",
-    "pynput; platform_system != \"Linux\"; python_version < \"3.14\"",
+    "pynput; platform_system != \"Linux\"",
     # movie backends
     "ffpyplayer",
     "opencv-python",
