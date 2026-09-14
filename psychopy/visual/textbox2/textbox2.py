@@ -229,15 +229,11 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
             self.italic = False
             self.font = "Noto Sans"
 
-        # once font is set up we can set the shader (depends on rgb/a of font)
-        if self.glFont.atlas.format == 'rgb':
-            global rgbShader
-            self.shader = rgbShader = shaders.Shader(
-                    shaders.vertSimple, shaders.fragTextBox2)
-        else:
-            global alphaShader
-            self.shader = alphaShader = shaders.Shader(
-                    shaders.vertSimple, shaders.fragTextBox2alpha)
+        # once font is set up we can set the shader (depends on rgb/a of font
+        # and on how the window composites what's drawn into it)
+        self.shader = None
+        self._shaderKey = None
+        self._setShader()
         self._needVertexUpdate = False  # this will be set True during layout
 
         # standard stimulus params
@@ -1198,6 +1194,80 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
         if lastOri != value:
             self._layout()
 
+    def _setShader(self):
+        """Select and compile the shader program to render the glyphs with.
+
+        Which program is needed depends on two things: the format of the glyph
+        atlas held by the font (``'alpha'`` or, for subpixel antialiasing,
+        ``'rgb'``), and how the window this text is drawn to composites its
+        fragments. The latter is determined by ``win.blendMode`` together with
+        ``win.useFBO`` - additive blending requires signed, halved colours,
+        while every other combination (``blendMode='avg'``, or any window with
+        ``useFBO=False``) requires unsigned colours and coverage clamped to
+        0:1.
+
+        Programs are cached against the window, since they belong to its GL
+        context, so switching blend modes back and forth doesn't leak
+        programs. Sets `self.shader` and returns it.
+
+        """
+        win = self.win
+        atlasFormat = self.glFont.atlas.format if self.glFont else 'alpha'
+        blendMode = getattr(win, 'blendMode', 'avg') if win is not None else 'avg'
+        useFBO = bool(getattr(win, 'useFBO', False)) if win is not None else False
+
+        key = (atlasFormat, blendMode == 'add' and useFBO)
+        if self.shader is not None and key == self._shaderKey:
+            return self.shader  # nothing has changed since we last looked
+
+        # programs live in the window's GL context, so cache them there
+        if win is not None:
+            cache = getattr(win, '_textbox2Shaders', None)
+            if cache is None:
+                cache = win._textbox2Shaders = {}
+        else:
+            cache = {}
+
+        if key not in cache:
+            # get the shader source appropriate for this window and atlas format
+            if atlasFormat not in ('alpha', 'rgb'):
+                raise ValueError(
+                    "Font atlas format should be 'alpha' or 'rgb' but we received "
+                    "the value {}".format(repr(atlasFormat)))
+            
+            adding = (win is not None
+                    and getattr(win, 'blendMode', 'avg') == 'add'
+                    and getattr(win, 'useFBO', False))
+
+            # select the appropriate shader
+            if atlasFormat == 'rgb':
+                if adding:
+                    fragShader = shaders.fragTextBox2_adding 
+                else:
+                    fragShader = shaders.fragTextBox2
+            else:
+                if adding:
+                    fragShader = shaders.fragTextBox2alpha_adding
+                else:
+                    fragShader = shaders.fragTextBox2alpha
+
+            cache[key] = shaders.Shader(
+                shaders.vertSimple,
+                fragShader)
+
+        self.shader = cache[key]
+        self._shaderKey = key
+
+        # keep the legacy module-level handles pointing at the last program
+        # compiled for each atlas format, for backwards compatibility
+        global rgbShader, alphaShader
+        if atlasFormat == 'rgb':
+            rgbShader = self.shader
+        else:
+            alphaShader = self.shader
+
+        return self.shader
+
     def _drawLegacyGL(self):
         """Legacy draw routine for older GL versions.
         """
@@ -1296,6 +1366,10 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
         if self.overflow in ("hidden", "scroll") and self.container is not None:
             # Activate aperture
             self.container.enable()
+
+        # `win.blendMode` can be changed at runtime, and `self.win` may have
+        # been swapped since the last draw, so re-check which shader we need
+        self._setShader()
 
         if self.win.USE_LEGACY_GL:
             self._drawLegacyGL()
