@@ -13,6 +13,7 @@ __all__ = ['MovieStim']
 
 import ctypes
 import os.path
+import sys
 from pathlib import Path
 
 import tempfile
@@ -47,7 +48,21 @@ defaultTimeout = 5.0  # seconds
 FFPYPLAYER_STATUS_EOF = 'eof'
 FFPYPLAYER_STATUS_PAUSED = 'paused'
 
-PREFERRED_VIDEO_LIB = 'ffpyplayer'
+# `ffpyplayer` does not presently provide wheels/builds for Python 3.14+, so
+# `PyAV` ('av' on PyPI) is used as the decoder backend instead on those
+# versions. Earlier Python versions continue to use `ffpyplayer` by default
+# to preserve existing behaviour (e.g. its SDL2-synced audio playback).
+# Either library may still be requested explicitly via `movieLib`/
+# `decoderLib`, but only the version-appropriate one is guaranteed to be
+# installed.
+if sys.version_info >= (3, 14):
+    PREFERRED_VIDEO_LIB = 'pyav'
+else:
+    PREFERRED_VIDEO_LIB = 'ffpyplayer'
+
+# Movie decoder libraries which are recognized/supported by `MovieFileReader`
+# and `MovieStim`.
+SUPPORTED_VIDEO_LIBS = ('ffpyplayer', 'pyav')
 
 # Keep track of movie readers here. This is used to close all movie readers
 # when the main thread exits. We identify movie readers by hashing the filename
@@ -209,7 +224,41 @@ class MovieMetadata:
 
         """
         return self._audioTrack
-    
+
+
+class _RGBFrameAdapter:
+    """Lightweight adapter exposing an `ffpyplayer`-like interface around raw
+    RGB24 frame bytes obtained from other decoder backends (currently
+    `PyAV`).
+
+    Higher level code (`MovieFileReader`, `MovieStim`) was originally written
+    around `ffpyplayer`'s `Image` objects, which expose `.to_memoryview()`
+    (returning a list whose first element has a `.memview` attribute) and
+    `.get_pixel_format()`. Wrapping decoded frames from other backends in
+    this adapter lets that code stay backend-agnostic instead of branching
+    on `decoderLib` throughout.
+
+    Parameters
+    ----------
+    rgbBytes : bytes
+        Raw RGB24 pixel data, row-major, 3 bytes per pixel.
+
+    """
+    __slots__ = ['_data']
+
+    def __init__(self, rgbBytes):
+        self._data = rgbBytes
+
+    def to_memoryview(self):
+        return [self]
+
+    @property
+    def memview(self):
+        return self._data
+
+    def get_pixel_format(self):
+        return 'rgb24'
+
 
 class MovieFileReader:
     """Read movie frames from file.
@@ -221,9 +270,11 @@ class MovieFileReader:
     ----------
     filename : str
         The name (or path) of the file to read the movie from.
-    decoderLib : str
-        The library to use to handle decoding the movie. The default is
-        'ffpyplayer'.
+    decoderLib : str or None
+        The library to use to handle decoding the movie. One of `'ffpyplayer'`
+        or `'pyav'`. If `None` (default), the library is chosen automatically
+        based on the running Python version: `'pyav'` on Python 3.14+ (where
+        `ffpyplayer` is not available), and `'ffpyplayer'` otherwise.
     decoderOpts : dict or None
         A dictionary of options to pass to the decoder. These option can be used
         to control the quality of the movie, for example. The options depend on
@@ -236,6 +287,9 @@ class MovieFileReader:
       SDL2. This means that audio playback is not synchronized with frame 
       presentation in PsychoPy. However, playback will not begin until the audio 
       track starts playing.
+    * If `decoderLib='pyav'`, no audio playback is provided by the decoder
+      itself; audio must be extracted and played back separately (this is
+      handled automatically by `MovieStim`).
     * Do not access private attributes or methods of this class directly since 
       doing so is not thread-safe. Use the public methods provided by this class
       to interact with the movie reader.
@@ -243,15 +297,23 @@ class MovieFileReader:
     """
     def __init__(self, 
                  filename,
-                 decoderLib='ffpyplayer', 
+                 decoderLib=None,
                  decoderOpts=None):
-        
+
+        if decoderLib is None:
+            decoderLib = PREFERRED_VIDEO_LIB
+
         self._filename = filename
         self._decoderLib = decoderLib
         self._decoderOpts = {} if decoderOpts is None else decoderOpts
 
         # thread for the reader
-        self._player = None  # player interface object
+        self._player = None  # player interface object (ffpyplayer)
+
+        # PyAV specific state
+        self._container = None  # av.container.InputContainer
+        self._videoStream = None  # av video stream being decoded
+        self._packetIterator = None  # generator yielding decoded video frames
 
         # movie information
         self._metadata = None  # metadata object
@@ -339,6 +401,10 @@ class MovieFileReader:
         """
         if self._decoderLib == 'ffpyplayer':
             return self._getVolumeFFPyPlayer()
+        elif self._decoderLib == 'pyav':
+            # PyAV performs no audio playback of its own; volume is managed
+            # externally by `MovieStim` via its extracted audio track.
+            return self._decoderOpts.get('volume', 0.0)
         else:
             raise NotImplementedError(
                 'Volume control is not implemented for this decoder library.')
@@ -352,6 +418,10 @@ class MovieFileReader:
         """
         if self._decoderLib == 'ffpyplayer':
             self._setVolumeFFPyPlayer(value)
+        elif self._decoderLib == 'pyav':
+            # no-op; audio volume for `pyav` is controlled through the
+            # separate `Sound` object managing the extracted audio track
+            self._decoderOpts['volume'] = value
         else:
             raise NotImplementedError(
                 'Volume control is not implemented for this decoder library.')
@@ -455,7 +525,9 @@ class MovieFileReader:
         except ImportError:
             raise ImportError(
                 'The `ffpyplayer` library is required to read movie files with '
-                '`decoderLib=ffpyplayer`.')
+                '`decoderLib=ffpyplayer`. Note that `ffpyplayer` is not '
+                'available on Python 3.14 and later; use `decoderLib=pyav` '
+                'instead (this is the default on those Python versions).')
 
         logging.info("Opening movie file: {}".format(self._filename))
 
@@ -532,6 +604,9 @@ class MovieFileReader:
         frameRate = numer / denom
         self._frameInterval = 1.0 / frameRate
         self._maxGetFrameAttempts = int(self._frameInterval / 0.001) 
+        self._frameRate = frameRate
+        self._srcFrameSize = movieMetadata['src_vid_size']
+        self._duration = movieMetadata['duration']
 
         # populate the metadata object with the movie metadata we got
         self._metadata = MovieMetadata(
@@ -613,7 +688,234 @@ class MovieFileReader:
             ofmt='rgb24').scale(frame)
         
         return rgbImg
-    
+
+    # --------------------------------------------------------------------------
+    # PyAV specific methods
+    #
+
+    def _openPyAV(self):
+        """Open a movie reader using PyAV.
+
+        This function opens the movie file using the `av` package and extracts
+        metadata about the movie file. Metadata will be accessible via the
+        `getMetadata()` method.
+
+        PyAV pulls frames on demand (there is no background decode thread as
+        with `ffpyplayer`), which makes it well suited for rapidly seeking to
+        and reading arbitrary frames.
+
+        """
+        try:
+            import av
+        except ImportError:
+            raise ImportError(
+                'The `av` (PyAV) library is required to read movie files with '
+                '`decoderLib=pyav`. Install it with `pip install av`.')
+
+        logging.info("Opening movie file: {}".format(self._filename))
+
+        openOpts = self._decoderOpts.get('options', {})
+        self._container = av.open(self._filename, options=openOpts)
+
+        videoStream = next(
+            (s for s in self._container.streams if s.type == 'video'), None)
+
+        if videoStream is None:
+            self._container.close()
+            self._container = None
+            raise MovieFileFormatError(self._filename)
+
+        # use multi-threaded decoding where available for faster frame access
+        try:
+            videoStream.thread_type = 'AUTO'
+        except Exception:
+            pass  # not fatal if the codec doesn't support threaded decoding
+
+        self._videoStream = videoStream
+
+        # determine the frame rate; prefer the averaged rate reported by the
+        # stream, falling back to the guessed rate if unavailable
+        rateFraction = videoStream.average_rate or videoStream.guessed_rate
+        if not rateFraction:
+            raise RuntimeError(
+                'PyAV could not determine the frame rate of the movie file.')
+        frameRate = float(rateFraction)
+
+        self._frameInterval = 1.0 / frameRate
+        self._maxGetFrameAttempts = int(self._frameInterval / 0.001)
+        self._frameRate = frameRate
+
+        width = videoStream.codec_context.width
+        height = videoStream.codec_context.height
+        self._srcFrameSize = (width, height)
+
+        # determine duration in seconds, preferring the stream's own duration
+        if videoStream.duration is not None and videoStream.time_base is not None:
+            duration = float(videoStream.duration * videoStream.time_base)
+        elif self._container.duration is not None:
+            duration = float(self._container.duration / av.time_base)
+        else:
+            raise RuntimeError(
+                'PyAV could not determine the duration of the movie file.')
+        self._duration = duration
+
+        self._metadata = MovieMetadata(
+            self._filename,
+            (width, height),
+            frameRate,
+            duration,
+            'rgb24')
+
+        logging.debug("Movie metadata: {}".format(repr(self._metadata)))
+
+        # start the decode generator and warm up by grabbing the first frame
+        self._packetIterator = self._container.decode(video=0)
+
+        startTime = time.time()
+        firstFrame = None
+        while time.time() - startTime < defaultTimeout:
+            try:
+                firstFrame = next(self._packetIterator)
+                break
+            except StopIteration:
+                break
+        if firstFrame is None:
+            raise RuntimeError(
+                'PyAV failed to decode the first frame of the movie. Check '
+                'the movie file.')
+
+        curPts = float(firstFrame.pts * videoStream.time_base) \
+            if firstFrame.pts is not None else 0.0
+        initialFrameRGB = self._convertFrameToRGBPyAV(firstFrame)
+        self._frameStore.append((initialFrameRGB, curPts, 'paused'))
+
+        # reset back to the start of the stream so playback begins at frame 0
+        self._seekPyAV(0.0)
+        # re-add the first frame to the store since seeking clears it
+        self._frameStore.append((initialFrameRGB, curPts, 'paused'))
+
+    def _seekPyAV(self, reqPTS):
+        """PyAV specific seek routine.
+
+        Parameters
+        ----------
+        reqPTS : float
+            The presentation timestamp (PTS) to seek to in seconds.
+
+        Returns
+        -------
+        float
+            The presentation timestamp (PTS) requested (PyAV seeks to the
+            nearest preceding keyframe; subsequent `getFrame()` calls decode
+            forward to the exact requested position).
+
+        """
+        reqPTS = min(max(0.0, reqPTS), self._metadata.duration)
+
+        if self._container is None or self._videoStream is None:
+            return
+
+        self._cleanUpFrameStore()
+
+        timeBase = self._videoStream.time_base
+        seekTarget = int(reqPTS / timeBase)
+
+        self._container.seek(
+            seekTarget, stream=self._videoStream, any_frame=False,
+            backward=True)
+
+        # decoding must restart after a container-level seek
+        self._packetIterator = self._container.decode(video=0)
+
+        return reqPTS
+
+    def _convertFrameToRGBPyAV(self, frame):
+        """Convert a PyAV frame to RGB format.
+
+        Parameters
+        ----------
+        frame : av.VideoFrame or `_RGBFrameAdapter`
+            The frame to convert. If already an `_RGBFrameAdapter` (i.e.
+            previously converted), it is returned unchanged.
+
+        Returns
+        -------
+        _RGBFrameAdapter
+            The converted frame, wrapped to present an `ffpyplayer`-like
+            interface to downstream code.
+
+        """
+        if isinstance(frame, _RGBFrameAdapter):
+            return frame  # already converted
+
+        rgbArray = frame.to_ndarray(format='rgb24')
+
+        return _RGBFrameAdapter(rgbArray.tobytes())
+
+    def _getFramePyAV(self, reqPTS=0.0):
+        """Get a frame from the movie file using PyAV.
+
+        Parameters
+        ----------
+        reqPTS : float
+            The presentation timestamp (PTS) of the frame to get in seconds.
+
+        Returns
+        -------
+        tuple or None
+            Video data (`_RGBFrameAdapter`), presentation timestamp (PTS), and
+            status.
+
+        """
+        if self._container is None:
+            return None
+
+        reqPTS = min(
+            max(0.0, reqPTS),
+            self._metadata.duration + self._metadata.frameInterval)
+
+        frame = self._getFrameFromStore(reqPTS)
+        if frame is not None:
+            return frame
+
+        # infinite looping is requested when `loop` is explicitly `0`,
+        # mirroring the `ffpyplayer` convention used elsewhere in this file
+        loopInfinitely = self._decoderOpts.get('loop', 1) == 0
+
+        while True:
+            try:
+                avFrame = next(self._packetIterator)
+            except StopIteration:
+                if loopInfinitely:
+                    # restart decoding from the beginning of the stream and
+                    # keep looking for the requested frame (used when the
+                    # caller wraps `reqPTS` back around to 0 for looping
+                    # playback)
+                    self._seekPyAV(0.0)
+                    continue
+
+                if self._streamEOFCallback is not None:
+                    self._streamEOFCallback()
+                self._cleanUpFrameStore()
+                break
+
+            curPts = float(avFrame.pts * self._videoStream.time_base) \
+                if avFrame.pts is not None else 0.0
+
+            if curPts + self._metadata.frameInterval >= reqPTS:
+                self._frameStore.append(
+                    (self._convertFrameToRGBPyAV(avFrame), curPts, 'playing'))
+                break
+
+        toReturn = self._getFrameFromStore(reqPTS)
+        self._cleanUpFrameStore(reqPTS)
+
+        return toReturn
+
+    # --------------------------------------------------------------------------
+    # Backend-agnostic frame conversion dispatcher
+    #
+
     def _convertFrameToRGB(self, frame):
         """Convert a frame to RGB format.
 
@@ -623,7 +925,7 @@ class MovieFileReader:
 
         Parameters
         ----------
-        frame : FFPyPlayer frame
+        frame : FFPyPlayer frame, av.VideoFrame, or `_RGBFrameAdapter`
             The frame to convert.
 
         Returns
@@ -635,6 +937,8 @@ class MovieFileReader:
         # convert the frame to RGB format
         if self._decoderLib == 'ffpyplayer':
             return self._convertFrameToRGBFFPyPlayer(frame)
+        elif self._decoderLib == 'pyav':
+            return self._convertFrameToRGBPyAV(frame)
         else:
             raise NotImplementedError(
                 'Frame conversion is not implemented for this decoder library.')
@@ -782,6 +1086,8 @@ class MovieFileReader:
         logging.debug("Using decoder library: {}".format(self._decoderLib))
         if self._decoderLib == 'ffpyplayer':
             self._openFFPyPlayer()
+        elif self._decoderLib == 'pyav':
+            self._openPyAV()
         elif self._decoderLib == 'opencv':
             self._openOpenCV()
         else:
@@ -833,15 +1139,21 @@ class MovieFileReader:
         call this method directly while the player is still in use.
 
         """
-        if self._player is None:
-            return
-        
         if self._decoderLib == 'ffpyplayer':
+            if self._player is None:
+                return
+
             self._player.set_mute(True)  # mute the player
             self._player.set_pause(True)  # pause the player
             self._player.close_player()
 
-        self._player = None
+            self._player = None
+        elif self._decoderLib == 'pyav':
+            if self._container is not None:
+                self._container.close()
+                self._container = None
+            self._videoStream = None
+            self._packetIterator = None
 
     def _cleanUpFrameStore(self, keepAfterPTS=None):
         """Clean up the frame store.
@@ -978,10 +1290,16 @@ class MovieFileReader:
             is not paused. The default is `True`.
 
         """
-        if self._player is None:
-            return
+        if self._decoderLib == 'ffpyplayer':
+            if self._player is None:
+                return
 
-        self._player.set_pause(bool(state))
+            self._player.set_pause(bool(state))
+        elif self._decoderLib == 'pyav':
+            # PyAV decodes on-demand (there is no background playback thread
+            # to pause); `MovieStim` already stops requesting new frames when
+            # paused, so there is nothing additional to do here.
+            pass
 
     def seek(self, pts):
         """Seek to a specific presentation timestamp (PTS) in the movie.
@@ -1001,6 +1319,8 @@ class MovieFileReader:
         """
         if self._decoderLib == 'ffpyplayer':
             self._seekFFPyPlayer(pts)
+        elif self._decoderLib == 'pyav':
+            self._seekPyAV(pts)
         elif self._decoderLib == 'opencv':  # rough in support for opencv
             raise NotImplementedError(
                 'The `opencv` library is not supported for movie reading.')
@@ -1022,10 +1342,16 @@ class MovieFileReader:
             is not muted. The default is `True`.
 
         """
-        if self._player is None:
-            return
+        if self._decoderLib == 'ffpyplayer':
+            if self._player is None:
+                return
 
-        self._player.set_mute(bool(state))
+            self._player.set_mute(bool(state))
+        elif self._decoderLib == 'pyav':
+            # audio for `pyav` movies is handled by a separate `Sound`
+            # object owned by `MovieStim`; nothing to mute on the reader
+            # itself
+            pass
 
     @property
     def memoryUsed(self):
@@ -1039,7 +1365,7 @@ class MovieFileReader:
         """
         # sum of bytes used by video segments
         totalFramesDecoded = len(self._frameStore)
-        pixelSize = 3 if 'rgb' in self._srcPixelFormat else 4
+        pixelSize = 3  # all frames are normalized to RGB24 in the frame store
         pixelCount = self._srcFrameSize[0] * self._srcFrameSize[1]
 
         return totalFramesDecoded * pixelCount * pixelSize
@@ -1066,6 +1392,8 @@ class MovieFileReader:
         """
         if self._decoderLib == 'ffpyplayer':
             return self._getFrameFFPyPlayer(pts)
+        elif self._decoderLib == 'pyav':
+            return self._getFramePyAV(pts)
         
     def getSubtitle(self):
         """Get the subtitle from the movie file.
@@ -1081,9 +1409,10 @@ class MovieFileReader:
             function returns `None`.
 
         """
-        if self._player is None:
+        if self._decoderLib == 'ffpyplayer' and self._player is None:
             return ''
-            #raise ValueError('Movie reader is not open. Cannot get subtitle.')
+        if self._decoderLib == 'pyav' and self._container is None:
+            return ''
 
         return ''
 
@@ -1123,15 +1452,19 @@ class MovieFileReader:
             The volume level to set, between 0.0 (mute) and 1.0 (full volume).
 
         """
-        if self._player is None:
-            return
-        
         volume = min(1.0, max(0.0, float(volume)))
         
         logging.debug("Setting movie volume to: {}".format(volume))
 
         if self._decoderLib == 'ffpyplayer':
+            if self._player is None:
+                return
             self._setVolumeFFPyPlayer(volume)
+        elif self._decoderLib == 'pyav':
+            # stored for reference; actual playback volume for `pyav` movies
+            # is controlled through `MovieStim`'s extracted-audio `Sound`
+            # object
+            self._decoderOpts['volume'] = volume
         else:
             raise NotImplementedError(
                 'Volume control is not implemented for this decoder library.')
@@ -1157,14 +1490,19 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         Name of the file or stream URL to play. If an empty string, no file will
         be loaded on initialization but can be set later.
     movieLib : str or None
-        Library to use for video decoding. By default, the 'preferred' library
-        by PsychoPy developers is used. Default is `'ffpyplayer'`. An alert is
-        raised if you are not using the preferred player.
+        Library to use for video decoding. One of `'ffpyplayer'` or `'pyav'`.
+        If `None` (the default), the library is chosen automatically based on
+        the running Python version: `'pyav'` is used on Python 3.14+ (where
+        `ffpyplayer` is not available), and `'ffpyplayer'` is used otherwise.
+        An alert is raised if you explicitly request a library that isn't the
+        'preferred' one for your Python version.
     audioLib : str or None
         Library to use for audio decoding. If `movieLib` is `'ffpyplayer'`
         then this must be `'sdl2'` for audio playback. If `None`, the
         default audio library for the `movieLib` will be used (this will be
-        `'sdl2'` for `movieLib='ffpyplayer'`).
+        `'sdl2'` for `movieLib='ffpyplayer'`, and extracted-track playback via
+        `psychopy.sound.Sound` for `movieLib='pyav'`, since PyAV does not
+        provide its own audio playback).
     units : str
         Units to use when sizing the video frame on the window, affects how
         `size` is interpreted.
@@ -1192,12 +1530,14 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
       the `ffpyplayer` library for video playback. If you require precise
       synchronization, consider extracting the audio from the movie file and
       playing it separately using the `sound.Sound` class instead.
+    * `ffpyplayer` is not available on Python 3.14 and later. On those
+      versions, `PyAV` (`movieLib='pyav'`) is used automatically.
 
     """
     def __init__(self,
                  win,
                  filename="",
-                 movieLib=u'ffpyplayer',
+                 movieLib=None,
                  audioLib=None,
                  units='pix',
                  size=None,
@@ -1244,6 +1584,20 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         self.opacity = opacity
 
         # playback stuff
+        # resolve the decoder library to use for this Python version if the
+        # user has not explicitly requested one; `ffpyplayer` is unavailable
+        # on Python 3.14+, so `pyav` is used there instead
+        if movieLib is None:
+            movieLib = PREFERRED_VIDEO_LIB
+        elif movieLib != PREFERRED_VIDEO_LIB:
+            logging.warning(
+                "Requested `movieLib='{}'` but the preferred (and only "
+                "guaranteed to be installed) movie library for this Python "
+                "version ({}.{}) is '{}'. If movie loading fails, try "
+                "`movieLib='{}'` instead.".format(
+                    movieLib, sys.version_info.major, sys.version_info.minor,
+                    PREFERRED_VIDEO_LIB, PREFERRED_VIDEO_LIB))
+
         self._movieLib = movieLib
         self._decoderOpts = {}
         self._player = None  # player interface object
@@ -1278,10 +1632,19 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             self._audioDevice = audioDevice
             self._audioLib = None  # override
         else:
-            if audioLib is None and self._movieLib == 'ffpyplayer':
+            self._audioDevice = None
+            if audioLib is not None:
+                self._audioLib = audioLib
+            elif self._movieLib == 'ffpyplayer':
+                # ffpyplayer plays audio itself via SDL2
                 self._audioLib = 'sdl2'
                 self._noAudio = False  # use SDL2 for audio playback
-                self._audioDevice = None
+            else:
+                # other decoder backends (e.g. `pyav`) do not provide their
+                # own audio playback, so the audio track is extracted and
+                # played back separately via `psychopy.sound.Sound`
+                # (see `_loadAudioTrack`/`_extractAudioTrack`)
+                self._audioLib = None
 
         # warn the user if they are using the SDL2 audio library that precise 
         # A/V sync is not supported
@@ -2431,7 +2794,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         if not self._player:
             return 1.0
 
-        return self._player.getFrameRate()
+        return self._player.frameRate
 
     @property
     def videoSize(self):
@@ -2520,8 +2883,7 @@ def _closeAllMovieReaders():
         logging.debug(
             "Closing movie reader interface for file: {}".format(
                 movieReader.filename))
-        if hasattr(movieReader, '_player'):
-            movieReader._freePlayer()
+        movieReader._freePlayer()
 
 
 # try an close any players on exit
