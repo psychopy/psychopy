@@ -8,7 +8,11 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-__all__ = ['MovieStim']
+__all__ = [
+    'MovieStim',
+    'backend',   # allow the user to get the current backend and set it
+    'setBackend',
+    'getBackend']
 
 
 import ctypes
