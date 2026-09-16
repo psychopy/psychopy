@@ -67,6 +67,53 @@ SUPPORTED_VIDEO_LIBS = ('ffpyplayer', 'pyav', 'opencv')
 
 _openMovieReaders = set()
 
+# Set the backend to use for movie decoding
+backend = PREFERRED_VIDEO_LIB  # initial value 
+
+
+def setBackend(movielib):
+    """Set the backend to use for video decoding.
+
+    This cannot be changed if there are open movie players.
+    
+    Parameters
+    ----------
+    movielib : str or None
+        Backend to use for video decoding.
+
+    """
+    global backend
+
+    if _openMovieReaders:
+        raise RuntimeError(
+            "Cannot change the movie backend while there are open movie readers."
+        )
+
+    # check if member of supported video libraries
+    if movielib is None:
+        backend = PREFERRED_VIDEO_LIB
+    elif movielib in SUPPORTED_VIDEO_LIBS:
+        backend = movielib
+    else:
+        raise RuntimeError(
+            "Unknown movie library specified: {}. "
+            "Supported libraries are: {}".format(
+                movielib, ', '.join(SUPPORTED_VIDEO_LIBS))
+        )
+
+
+def getBackend():
+    """Get the current backend used for video decoding.
+    
+    Returns
+    -------
+    str
+        The current backend used for video decoding.
+
+    """
+    return backend
+
+
 # ------------------------------------------------------------------------------
 # Classes
 #
@@ -1895,11 +1942,12 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         be loaded on initialization but can be set later.
     movieLib : str or None
         Library to use for video decoding. One of `'ffpyplayer'`, `'pyav'` or
-        `'opencv'`. If `None` (the default), the library is chosen
-        automatically based on the running Python version: `'pyav'` is used on
-        Python 3.14+ (where `ffpyplayer` is not available), and `'ffpyplayer'`
-        is used otherwise. An alert is raised if you explicitly request a
-        library that isn't the 'preferred' one for your Python version.
+        `'opencv'`. If `None` (the default), the library set globally with
+        `setBackend()` is used. That in turn defaults to the library
+        appropriate for the running Python version: `'pyav'` on Python 3.14+
+        (where `ffpyplayer` is not available), and `'ffpyplayer'` otherwise.
+        An alert is raised if you explicitly request a library that isn't the
+        'preferred' one for your Python version.
     audioLib : str or None
         Library to use for audio decoding. If `movieLib` is `'ffpyplayer'`
         then this must be `'sdl2'` for audio playback. If `None`, the
@@ -1991,11 +2039,13 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         self.opacity = opacity
 
         # playback stuff
-        # resolve the decoder library to use for this Python version if the
-        # user has not explicitly requested one; `ffpyplayer` is unavailable
-        # on Python 3.14+, so `pyav` is used there instead
+        # Resolve the decoder library to use if the user has not explicitly
+        # requested one. This defers to the module-level backend, which starts
+        # out as the library appropriate for this Python version (`ffpyplayer`
+        # is unavailable on Python 3.14+, so `pyav` is used there instead) and
+        # can be changed globally with `setBackend()`.
         if movieLib is None:
-            movieLib = PREFERRED_VIDEO_LIB
+            movieLib = getBackend()
         elif movieLib != PREFERRED_VIDEO_LIB:
             logging.warning(
                 "Requested `movieLib='{}'` but the preferred (and only "
