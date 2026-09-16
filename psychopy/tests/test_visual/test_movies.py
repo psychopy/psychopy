@@ -18,6 +18,7 @@ import numpy as np
 import pytest
 
 from psychopy import visual, prefs
+from psychopy.visual.movies import MovieFileReader
 from .. import utils
 
 
@@ -171,6 +172,29 @@ def _drawFrames(win, mov, count=3, interval=0.0):
         win.flip()
         if interval:
             time.sleep(interval)
+
+
+def _drawUntilSeekResolves(win, mov, maxFrames=200):
+    """Draw until the movie has caught up with an outstanding seek.
+
+    This is how a drawing loop is expected to use `isSeeking`: keep drawing,
+    and the movie catches up over the next few frames rather than the seek
+    stalling the loop. How many frames that takes is backend dependent, so
+    tests poll rather than assuming a particular number.
+
+    Returns
+    -------
+    int
+        Number of frames drawn before the seek resolved.
+
+    """
+    drawn = 0
+    while mov.isSeeking and drawn < maxFrames:
+        mov.draw()
+        win.flip()
+        drawn += 1
+
+    return drawn
 
 
 def _frameAt(mov, timestamp):
@@ -681,6 +705,151 @@ class TestMovieStimPlayback:
             assert mov.loopCount > 0
             assert not mov.isFinished
             assert mov.movieTime < mov.duration
+
+    def test_isSeekingFalseWhenIdle(self, win, movieLib):
+        """`isSeeking` is clear whenever no seek is outstanding."""
+        with movieStim(win, movieLib) as mov:
+            assert not mov.isSeeking  # freshly loaded
+
+            mov.play()
+            _drawFrames(win, mov)
+            assert not mov.isSeeking  # just playing along
+
+            # `seek()` resolves the seek itself, so it is done by the time it
+            # returns for media the decoder can keep up with
+            mov.seek(SAMPLE_LATE)
+            assert not mov.isSeeking
+
+            mov.unload()
+            assert not mov.isSeeking  # nothing loaded to be seeking in
+
+    def test_isSeekingSetUntilFrameArrives(self, win, movieLib):
+        """The reader reports a seek as outstanding until a frame arrives.
+
+        This goes through `MovieFileReader` because `MovieStim.seek()` fetches
+        the frame itself, which resolves the seek before it returns.
+
+        """
+        reader = MovieFileReader(str(MOVIE_PATH), decoderLib=movieLib)
+        reader.open()
+        try:
+            # `ffpyplayer` leaves the decoder paused after opening, and needs a
+            # moment before it will hand over frames
+            reader.pause(False)
+            time.sleep(0.2)
+
+            assert not reader.isSeeking
+
+            # asked for part way into a frame rather than exactly on its
+            # boundary, where `pyav` can need a second call to hand one over
+            target = SAMPLE_LATE + MOVIE_FRAME_INTERVAL / 2.0
+
+            reader.seek(target)
+            assert reader.isSeeking  # asked for, but no frame for it yet
+
+            assert reader.getFrame(target) is not None
+            assert not reader.isSeeking  # cleared by the frame arriving
+        finally:
+            reader.close()
+
+        assert not reader.isSeeking  # and by closing the reader
+
+    def test_isSeekingLeavesPlaybackStatusAlone(self, win, movieLib):
+        """An outstanding seek does not change whether the movie is playing.
+
+        Reporting seeking through the playback status instead would make
+        `isPlaying` go false mid-seek, breaking the usual `while mov.isPlaying`
+        style of loop.
+
+        """
+        with movieStim(win, movieLib) as mov:
+            mov.play()
+            _drawFrames(win, mov)
+
+            # Seek the reader without letting `MovieStim` refresh its frame,
+            # so the seek is still outstanding when we look. Going through
+            # `MovieStim.seek()` would resolve it before returning.
+            target = SAMPLE_LATE + MOVIE_FRAME_INTERVAL / 2.0
+            mov._player.seek(target)
+
+            assert mov.isSeeking
+            assert mov.isPlaying  # still counts as playing
+            assert not mov.isPaused
+            assert not mov.isFinished
+            assert not mov.isNotStarted
+
+            # the frame the seek was waiting on, fetched at the position the
+            # reader was sent to
+            assert mov._player.getFrame(target) is not None
+
+            assert not mov.isSeeking
+            assert mov.isPlaying  # and still playing afterwards
+
+    def test_seekBlockingControlsWhenTheFrameArrives(self, win, movieLib):
+        """`blocking` decides whether `seek()` waits for the new frame."""
+        with movieStim(win, movieLib) as mov:
+            mov.play()
+            _drawFrames(win, mov)
+
+            # the default fetches the frame for the new position before
+            # returning, so there is nothing left outstanding
+            mov.seek(SAMPLE_EARLY)
+            assert not mov.isSeeking
+            assert mov.movieTime == pytest.approx(SAMPLE_EARLY, abs=0.05)
+
+            # asking not to block returns with the seek still in flight, which
+            # is what makes `isSeeking` worth polling from a drawing loop
+            mov.seek(SAMPLE_LATE, blocking=False)
+            assert mov.isSeeking
+            assert mov.isPlaying  # playback status is untouched either way
+            assert mov.movieTime == pytest.approx(SAMPLE_LATE, abs=0.05)
+
+            # the movie catches up over the next frame or two of drawing
+            assert _drawUntilSeekResolves(win, mov) > 0
+            assert not mov.isSeeking
+
+    def test_transportControlsTakeBlocking(self, win, movieLib):
+        """The transport controls can leave the seek for the next draw.
+
+        `rewind()`, `fastForward()`, `replay()` and `reset()` all move the
+        movie by seeking, so each takes the same `blocking` argument.
+
+        """
+        moves = (
+            ('rewind',
+             lambda mov, blocking: mov.rewind(0.5, blocking=blocking)),
+            ('fastForward',
+             lambda mov, blocking: mov.fastForward(1.0, blocking=blocking)),
+            ('replay',
+             lambda mov, blocking: mov.replay(blocking=blocking)),
+            ('reset',
+             lambda mov, blocking: mov.reset(blocking=blocking)))
+
+        with movieStim(win, movieLib) as mov:
+            for name, move in moves:
+                # somewhere to move away from, with nothing outstanding
+                mov.play()
+                mov.seek(SAMPLE_LATE)
+
+                move(mov, True)  # the default waits for the new frame
+                assert not mov.isSeeking, name
+
+                mov.play()
+                mov.seek(SAMPLE_LATE)
+
+                move(mov, False)  # ... this one hands it to the next draw
+                assert mov.isSeeking, name
+
+                _drawUntilSeekResolves(win, mov)
+                assert not mov.isSeeking, name
+
+    def test_isSeekingClearsAtEndOfMovie(self, win, movieLib):
+        """A seek which runs off the end of the movie does not stay set."""
+        with movieStim(win, movieLib) as mov:
+            mov.play()
+            mov.seek(mov.duration + 5.0)
+
+            assert not mov.isSeeking
 
     def test_volumeControlsDoNotRaise(self, win, movieLib):
         """Volume and mute are usable regardless of the backend in use.
