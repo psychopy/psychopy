@@ -29,9 +29,6 @@ from psychopy.constants import (
 from psychopy import core
 from psychopy.hardware import speaker, DeviceManager
 
-from .metadata import MovieMetadata, NULL_MOVIE_METADATA
-from .frame import MovieFrame, NULL_MOVIE_FRAME_INFO
-
 from psychopy import logging
 import numpy as np
 import pyglet
@@ -69,7 +66,6 @@ SUPPORTED_VIDEO_LIBS = ('ffpyplayer', 'pyav', 'opencv')
 # they are presently reading from.
 
 _openMovieReaders = set()
-
 
 # ------------------------------------------------------------------------------
 # Classes
@@ -224,6 +220,18 @@ class MovieMetadata:
 
         """
         return self._audioTrack
+
+
+# Null movie metadata object, return a reference to this object instead of
+# `None` when no metadata is present.
+NULL_MOVIE_METADATA = MovieMetadata(
+    filename=u'', 
+    size=(-1, -1),
+    frameRate=-1,
+    duration=-1.0, 
+    colorFormat=u'unknown', 
+    audioTrack=None
+)
 
 
 class _RGBFrameAdapter:
