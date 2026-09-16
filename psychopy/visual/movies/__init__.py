@@ -398,6 +398,10 @@ class MovieFileReader:
         # of their own to report
         self._muted = False
 
+        # set by `seek()` and cleared once the decoder delivers a frame for the
+        # new position, see the `isSeeking` property
+        self._seeking = False
+
         # movie information
         self._metadata = None  # metadata object
 
@@ -1027,6 +1031,7 @@ class MovieFileReader:
                 if self._streamEOFCallback is not None:
                     self._streamEOFCallback()
                 self._cleanUpFrameStore()
+                self._seeking = False  # nothing left to seek to
                 break
 
             curPts = float(avFrame.pts * self._videoStream.time_base) \
@@ -1254,6 +1259,7 @@ class MovieFileReader:
                 if self._streamEOFCallback is not None:
                     self._streamEOFCallback()
                 self._cleanUpFrameStore()
+                self._seeking = False  # nothing left to seek to
                 break
 
             curPts = self._frameIndexToTimestamp(frameIndex)
@@ -1408,7 +1414,7 @@ class MovieFileReader:
                 "Stopped buffering after reaching the {} frame limit; request "
                 "a narrower range or raise `maxFrames`.".format(maxFrames))
 
-    def _getFrameFFPyPlayer(self, reqPTS=0.0):
+    def _getFrameFFPyPlayer(self, reqPTS=0.0, blocking=True):
         """Get a frame from the movie file using FFPyPlayer.
 
         This method gets the desired frame from the movie file. If it has not
@@ -1420,6 +1426,12 @@ class MovieFileReader:
         reqPTS : float
             The presentation timestamp (PTS) of the frame to get in seconds.
             This hints the reader to which frame to decode and return.
+        blocking : bool
+            Whether to wait for the decoder to catch up. FFPyPlayer hands over
+            frames on its own schedule, so by default this waits up to a frame
+            interval for one. Pass `False` to give up immediately instead and
+            leave the caller showing the previous frame, which keeps a drawing
+            loop responsive while a seek is still resolving.
 
         Returns
         -------
@@ -1455,8 +1467,14 @@ class MovieFileReader:
                     self._streamEOFCallback()
                 self._cleanUpFrameStore()
                 self._pendingSeekPTS = None
+                self._seeking = False  # nothing left to seek to
                 break
             elif status == FFPYPLAYER_STATUS_PAUSED:
+                # A paused decoder will not deliver the frame a seek is waiting
+                # on, so stop reporting the seek as outstanding. This is what
+                # happens when a movie is seeked past its own end, since
+                # reaching the end pauses playback.
+                self._seeking = False
                 break
             
             # If we get `None` for the frame, the player isn't ready to give us
@@ -1466,14 +1484,20 @@ class MovieFileReader:
             # treats `None` as 'keep the last frame on screen'. Raising here
             # would abort the experiment over a transient decoder stall.
             if frame is None:
-                if getFrameAttempts < self._maxGetFrameAttempts:
+                maxAttempts = self._maxGetFrameAttempts
+                if not blocking:
+                    maxAttempts = max(1, maxAttempts // 8)
+
+                if getFrameAttempts < maxAttempts:
                     time.sleep(0.001)  # wait a bit before trying again
                     getFrameAttempts += 1
                     continue   # keep retrying
                 
-                logging.warning(
-                    "FFPyPlayer failed to return a frame after {} attempts, "
-                    "keeping the previous frame.".format(getFrameAttempts))
+                if blocking:
+                    logging.warning(
+                        "FFPyPlayer failed to return a frame after {} "
+                        "attempts, keeping the previous frame.".format(
+                            getFrameAttempts))
                 break
             
             # the decoder gave us a frame, so reset the retry budget; it counts
@@ -1563,6 +1587,8 @@ class MovieFileReader:
 
         # clear frames from store
         self._cleanUpFrameStore()
+
+        self._seeking = False
 
         self._metadata = None  # clear metadata
 
@@ -1753,6 +1779,10 @@ class MovieFileReader:
             The presentation timestamp (PTS) to seek to in seconds.
 
         """
+        # cleared in `getFrame()` once the decoder produces a frame for the new
+        # position, or when the stream ends before it can
+        self._seeking = True
+
         if self._decoderLib == 'ffpyplayer':
             self._seekFFPyPlayer(pts)
         elif self._decoderLib == 'pyav':
@@ -1821,7 +1851,7 @@ class MovieFileReader:
 
         return totalFramesDecoded * pixelCount * pixelSize
     
-    def getFrame(self, pts=0.0):
+    def getFrame(self, pts=0.0, blocking=True):
         """Get a frame from the movie file at the specified presentation 
         timestamp.
 
@@ -1830,23 +1860,46 @@ class MovieFileReader:
         pts : float or None
             The presentation timestamp (PTS) of the frame to get in seconds.
             Timestamps can be as precise as six decimal places.
-        dropFrame : bool
-            If `True`, the frame is dropped if it is not available, and the 
-            most recent frame will be returned immediately. If `False`, the 
-            function will block until the desired frame is returned.
+        blocking : bool
+            Whether to wait for the decoder to catch up if the frame is not
+            ready yet. Pass `False` to return `None` straight away instead, so
+            the caller can keep showing the previous frame and ask again later.
+            This only affects `ffpyplayer`, the one backend which decodes ahead
+            on its own schedule; the others decode on demand when asked.
 
         Returns
         -------
-        tuple
-            Video data.
+        tuple or None
+            Video data, or `None` if no frame is available.
 
         """
         if self._decoderLib == 'ffpyplayer':
-            return self._getFrameFFPyPlayer(pts)
+            frameData = self._getFrameFFPyPlayer(pts, blocking=blocking)
         elif self._decoderLib == 'pyav':
-            return self._getFramePyAV(pts)
+            frameData = self._getFramePyAV(pts)
         elif self._decoderLib == 'opencv':
-            return self._getFrameOpenCV(pts)
+            frameData = self._getFrameOpenCV(pts)
+        else:
+            raise ValueError(
+                'Unknown decoder library: {}'.format(self._decoderLib))
+
+        if frameData is not None:
+            # the decoder has caught up with the position asked for
+            self._seeking = False
+
+        return frameData
+
+    @property
+    def isSeeking(self):
+        """Whether a seek has yet to produce a frame (`bool`).
+
+        This is `True` between a call to `seek()` and the decoder delivering a
+        frame for the new position. Backends which decode on demand usually
+        satisfy a seek within the same call, so this is only observable when
+        the decoder cannot keep up, such as with large frames or slow media.
+
+        """
+        return self._seeking
         
     def getSubtitle(self):
         """Get the subtitle from the movie file.
@@ -2641,9 +2694,18 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         """
         return self._textureId
     
-    def updateVideoFrame(self):
+    def updateVideoFrame(self, blocking=None):
         """Update the present video frame. The next call to `draw()` will make
         the retrieved frame appear.
+
+        Parameters
+        ----------
+        blocking : bool or None
+            Whether to wait for the decoder if the frame is not ready yet. If
+            `None` (default), this waits during ordinary playback but not while
+            a seek is outstanding, so that a seek started with
+            `seek(blocking=False)` cannot stall the drawing loop. Pass `True`
+            or `False` to decide explicitly.
 
         Returns
         -------
@@ -2656,7 +2718,14 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         # get the current movie frame for the video time
         self._updateMoviePos()  # update the movie position
 
-        frameData = self._player.getFrame(self._movieTime)
+        if blocking is None:
+            # Waiting is worthwhile when the decoder is merely a little behind
+            # during playback, but not while catching up from a seek the caller
+            # asked not to block on; there the previous frame is shown and this
+            # is retried on the next draw.
+            blocking = not self._player.isSeeking
+
+        frameData = self._player.getFrame(self._movieTime, blocking=blocking)
         
         if frameData is None:  # handle frame not available by showing last frame
             # if self._playbackStatus == PLAYING:  # something went wrong
@@ -2979,6 +3048,29 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         `isStopped` if the video is stopped.
         """
         return self._playbackStatus == FINISHED
+
+    @property
+    def isSeeking(self):
+        """`True` while a seek has yet to produce a frame (`bool`).
+
+        This is set between a call to `seek()` (or `rewind()`, `fastForward()`
+        and `replay()`, which use it) and the decoder delivering a frame for
+        the new position, and is cleared once that frame arrives or the movie
+        ends before it can.
+
+        It is independent of the playback status, so a movie which was playing
+        before the seek still reports `isPlaying` while this is `True`.
+
+        Seeks normally complete within the `seek()` call itself, so this is
+        only observable when the decoder cannot keep up, such as with large
+        frames or slow media. It is useful for showing a loading indicator
+        while waiting on the movie to catch up.
+
+        """
+        if self._player is None:
+            return False
+
+        return self._player.isSeeking
     
     @property
     def movieTime(self):
@@ -3095,15 +3187,28 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         if log:
             logging.info("Movie stopped: {}".format(self._filename))
 
-    def seek(self, timestamp, log=True):
+    def seek(self, timestamp, blocking=True, log=True):
         """Seek to a particular timestamp in the movie.
 
         Parameters
         ----------
         timestamp : float
             Time in seconds.
+        blocking : bool
+            Whether to wait for the frame at `timestamp` before returning. If
+            `True` (default), the new frame is fetched here and is on-screen at
+            the next `draw()`. If `False`, this returns as soon as the seek has
+            been requested and the frame is picked up by the next `draw()`
+            instead, leaving `isSeeking` set until it arrives.
         log : bool
             Log this event.
+
+        Notes
+        -----
+        * The decoders themselves seek asynchronously, so the cost of a
+          blocking seek is waiting on the frame rather than on the seek. Use
+          `blocking=False` to keep a drawing loop responsive, and `isSeeking`
+          to show a loading indicator until the movie catches up.
 
         """
         if self._playbackStatus == PLAYING: 
@@ -3111,19 +3216,21 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         elif self._playbackStatus == PAUSED:
             self._wasPaused = True
 
-        # self._playbackStatus = SEEKING
         self._movieTime = timestamp
-        # self._player.pause(True)  # pause the player
         self._player.seek(self._movieTime)
 
         # seek the audio track if we have one
         if self._audioTrack is not None and hasattr(self._audioTrack, 'seek'):
             self._audioTrack.seek(self._movieTime)
 
-        # self._pts = self._movieTime  # store the current PTS
-        _ = self.updateVideoFrame()
+        if blocking:
+            # Fetch the frame for the new position now, rather than leaving it
+            # to the next `draw()`. This has to wait explicitly: the seek is
+            # outstanding at this point, which is exactly when
+            # `updateVideoFrame` would otherwise choose not to.
+            _ = self.updateVideoFrame(blocking=True)
 
-    def rewind(self, seconds=1, log=True):
+    def rewind(self, seconds=1, blocking=True, log=True):
         """Rewind the video.
 
         Parameters
@@ -3131,15 +3238,20 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         seconds : float
             Time in seconds to rewind from the current position. Default is 5
             seconds.
+        blocking : bool
+            Whether to wait for the frame at the new position before returning.
+            If `False`, the frame is picked up by the next `draw()` instead and
+            `isSeeking` stays set until it arrives. See `seek()`.
         log : bool
             Log this event.
 
         """
         newPts = self._movieTime - seconds
         self._movieTime = min(max(0.0, newPts), self.duration)
-        self.seek(self._movieTime)  # seek to the new position
+        # seek to the new position
+        self.seek(self._movieTime, blocking=blocking)
 
-    def fastForward(self, seconds=1, log=True):
+    def fastForward(self, seconds=1, blocking=True, log=True):
         """Fast-forward the video.
 
         Parameters
@@ -3147,38 +3259,49 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         seconds : float
             Time in seconds to fast forward from the current position. Default
             is 5 seconds.
+        blocking : bool
+            Whether to wait for the frame at the new position before returning.
+            If `False`, the frame is picked up by the next `draw()` instead and
+            `isSeeking` stays set until it arrives. See `seek()`.
         log : bool
             Log this event.
 
         """
         newPts = self._movieTime + seconds
         self._movieTime = min(max(0.0, newPts), self.duration)
-        self.seek(self._movieTime)  # seek to the new position
+        # seek to the new position
+        self.seek(self._movieTime, blocking=blocking)
 
-    def replay(self, log=True):
+    def replay(self, blocking=True, log=True):
         """Replay the movie from the beginning.
 
         Parameters
         ----------
+        blocking : bool
+            Whether to wait for the frame at the new position before returning.
+            If `False`, the frame is picked up by the next `draw()` instead and
+            `isSeeking` stays set until it arrives. See `seek()`.
         log : bool
             Log this event.
 
-        Notes
-        -----
-        * This tears down the current media player instance and creates a new
-          one. Similar to calling `stop()` and `loadMovie()`. Use `seek(0.0)` if
-          you would like to restart the movie without reloading.
-
         """
         self._movieTime = 0.0  # reset movie time
-        self.seek(self._movieTime)
+        self.seek(self._movieTime, blocking=blocking)
         self.play()
 
-    def reset(self):
+    def reset(self, blocking=True):
         """Reset the movie to its initial state.
+
+        Parameters
+        ----------
+        blocking : bool
+            Whether to wait for the frame at the new position before returning.
+            If `False`, the frame is picked up by the next `draw()` instead and
+            `isSeeking` stays set until it arrives. See `seek()`.
+
         """
         self._movieTime = 0.0  # reset movie time
-        self.seek(self._movieTime)
+        self.seek(self._movieTime, blocking=blocking)
         self._playbackStatus = NOT_STARTED  # reset playback status
         
     # --------------------------------------------------------------------------
