@@ -328,14 +328,20 @@ class _RGBFrameAdapter:
 
     Parameters
     ----------
-    rgbBytes : bytes
-        Raw RGB24 pixel data, row-major, 3 bytes per pixel.
+    rgbData : bytes or numpy.ndarray
+        Raw RGB24 pixel data, row-major, 3 bytes per pixel. An array is kept
+        as-is (made contiguous first if needed) rather than converted to
+        `bytes`, which would cost a whole-frame copy per decoded frame for no
+        benefit; everything downstream reads this through the buffer protocol.
 
     """
     __slots__ = ['_data']
 
-    def __init__(self, rgbBytes):
-        self._data = rgbBytes
+    def __init__(self, rgbData):
+        if isinstance(rgbData, np.ndarray):
+            rgbData = np.ascontiguousarray(rgbData)
+
+        self._data = rgbData
 
     def to_memoryview(self):
         return [self]
@@ -1065,9 +1071,7 @@ class MovieFileReader:
         if isinstance(frame, _RGBFrameAdapter):
             return frame  # already converted
 
-        rgbArray = frame.to_ndarray(format='rgb24')
-
-        return _RGBFrameAdapter(rgbArray.tobytes())
+        return _RGBFrameAdapter(frame.to_ndarray(format='rgb24'))
 
     def _getFramePyAV(self, reqPTS=0.0):
         """Get a frame from the movie file using PyAV.
@@ -1282,9 +1286,7 @@ class MovieFileReader:
 
         import cv2
 
-        rgbArray = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-
-        return _RGBFrameAdapter(rgbArray.tobytes())
+        return _RGBFrameAdapter(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
 
     def _getFrameOpenCV(self, reqPTS=0.0):
         """Get a frame from the movie file using OpenCV.
@@ -2984,6 +2986,13 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         self._loop = loop
         self._loopCount = 0  # number of times the movie has looped
         self._recentFrame = None
+        # Frame object `_recentFrame` was built from, and the address of its
+        # pixel data. The decoder hands back the same frame object each time it
+        # is asked for a position within the same frame interval, so its
+        # identity is what tells us whether there is anything new to upload.
+        self._recentFrameImage = None
+        self._recentFrameAddr = None
+        self._frameNeedsUpload = False
         self._autoStart = autoStart
         self._isLoaded = False
         self._pts = 0.0
@@ -3058,6 +3067,8 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         self._metadata = NULL_MOVIE_METADATA
         self._pixbuffId = GL.GLuint(0)
         self._textureId = GL.GLuint(0)
+        self._vidWidth = self._vidHeight = 0  # set by `_setupTextureBuffers`
+        self._nBufferBytes = 0
 
         # load a file if provided, otherwise the user must call `setMovie()`
         self._filename = pathToString(filename)
@@ -3317,6 +3328,8 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             videoBuffer = frameImage.to_memoryview()[0].memview
             videoFrameArray = np.frombuffer(videoBuffer, dtype=np.uint8)
             self._recentFrame = videoFrameArray # most recent frame
+            self._recentFrameAddr = videoFrameArray.ctypes.data
+            self._recentFrameImage = frameImage
             self._pixelTransfer(forceRefresh=True)  # copy the first frame to the texture
 
     def _setupAudioStream(self):
@@ -3644,12 +3657,24 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         #         self._playbackStatus = PLAYING
 
         if frameImage is not None:
-            # suggested by Alex Forrence (aforren1) originally in PR #6439 to use memoryview
-            videoBuffer = frameImage.to_memoryview()[0].memview
-            videoFrameArray = np.frombuffer(videoBuffer, dtype=np.uint8)
-            self._recentFrame = videoFrameArray # most recent frame
+            # The decoder serves the same frame object for any position within
+            # a frame interval, so while the display refresh outruns the movie
+            # frame rate most calls land on the frame already on the GPU. Only
+            # rewrap and flag for upload when the frame really has changed.
+            if frameImage is not self._recentFrameImage or pts != self._pts:
+                # suggested by Alex Forrence (aforren1) originally in PR #6439 to use memoryview
+                videoBuffer = frameImage.to_memoryview()[0].memview
+                videoFrameArray = np.frombuffer(videoBuffer, dtype=np.uint8)
+                self._recentFrame = videoFrameArray # most recent frame
+                # cached here since `ndarray.ctypes` builds a new helper object
+                # on every access, and the pixel transfer runs every draw
+                self._recentFrameAddr = videoFrameArray.ctypes.data
+                self._recentFrameImage = frameImage
+                self._frameNeedsUpload = True
         else:
             self._recentFrame = None
+            self._recentFrameAddr = None
+            self._recentFrameImage = None
 
         self._pts = pts  # store the current PTS of the frame we got
 
@@ -3660,6 +3685,14 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         class or if a movie is stopped.
 
         """
+        # Drop the frame held for the buffers being freed. Without this a frame
+        # from a previously loaded movie could be uploaded into the buffers
+        # made for the next one, which may not be the same size.
+        self._recentFrame = None
+        self._recentFrameImage = None
+        self._recentFrameAddr = None
+        self._frameNeedsUpload = False
+
         try:
             # delete buffers and textures if previously created
             if self._pixbuffId.value > 0:
@@ -3686,9 +3719,14 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         without having to `_freeTextureBuffers` first.
 
         """
-        # get the size of the movie frame and compute the buffer size
+        # Get the size of the movie frame and compute the buffer size. These
+        # are fixed for the life of the buffers, so they are cached here rather
+        # than recomputed on every pixel transfer.
         vidWidth, vidHeight = self._player.getMetadata().size
         nBufferBytes = vidWidth * vidHeight * 3
+        self._vidWidth = vidWidth
+        self._vidHeight = vidHeight
+        self._nBufferBytes = nBufferBytes
 
         # Create the pixel buffer object which will serve as the texture memory
         # store. Pixel data will be copied to this buffer each frame.
@@ -3696,7 +3734,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, self._pixbuffId)
         GL.glBufferData(
             GL.GL_PIXEL_UNPACK_BUFFER,
-            nBufferBytes * ctypes.sizeof(GL.GLubyte),
+            nBufferBytes,
             None,
             GL.GL_STREAM_DRAW)  # one-way app -> GL
         GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, 0)
@@ -3756,10 +3794,26 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         if not forceRefresh and self._playbackStatus != PLAYING:
             return  # don't update the texture if paused or seeking unless forced
 
-        # get the size of the movie frame and compute the buffer size
-        vidWidth, vidHeight = self._player.getMetadata().size
+        if not (forceRefresh or self._frameNeedsUpload):
+            # The frame already on the GPU is the one to show. This is the
+            # common case whenever the display refresh rate is higher than the
+            # movie frame rate (e.g. a 30 FPS movie on a 60 Hz window), where
+            # re-uploading would burn a whole-frame copy and a texture transfer
+            # per draw to no effect.
+            return
 
-        nBufferBytes = vidWidth * vidHeight * 3
+        # frame size and buffer size are cached by `_setupTextureBuffers`
+        vidWidth, vidHeight = self._vidWidth, self._vidHeight
+        nBufferBytes = self._nBufferBytes
+
+        if self._recentFrame.nbytes < nBufferBytes:
+            # guards against uploading a frame which does not match the buffers
+            # it would be read into, which would read past the end of it
+            logging.error(
+                "Movie frame is smaller than the texture buffer allocated for "
+                "it, skipping the pixel transfer.")
+            self._frameNeedsUpload = False
+            return
 
         # bind pixel unpack buffer
         GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, self._pixbuffId)
@@ -3781,15 +3835,16 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
         # copy the frame data to the buffer
         ctypes.memmove(bufferPtr,
-            self._recentFrame.ctypes.data,
+            self._recentFrameAddr,
             nBufferBytes)
 
         # Very important that we unmap the buffer data after copying, but
         # keep the buffer bound for setting the texture.
         GL.glUnmapBuffer(GL.GL_PIXEL_UNPACK_BUFFER)
 
-        # bind the texture in OpenGL
-        GL.glEnable(GL.GL_TEXTURE_2D)
+        # Bind the texture in OpenGL. Note that `GL_TEXTURE_2D` does not need
+        # enabling for this; the enable bit only gates fixed-function drawing,
+        # which `_drawRectangle` sets up for itself.
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._textureId)
         GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
@@ -3802,28 +3857,32 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             GL.GL_UNSIGNED_BYTE,
             0)  # point to the presently bound buffer
 
-        # update texture filtering only if needed
-        if self._texFilterNeedsUpdate:
-            if self._interpolate:
-                texFilter = GL.GL_LINEAR
-            else:
-                texFilter = GL.GL_NEAREST
-
-            GL.glTexParameteri(
-                GL.GL_TEXTURE_2D,
-                GL.GL_TEXTURE_MAG_FILTER,
-                texFilter)
-            GL.glTexParameteri(
-                GL.GL_TEXTURE_2D,
-                GL.GL_TEXTURE_MIN_FILTER,
-                texFilter)
-
-            self._texFilterNeedsUpdate = False
-
         # important to unbind the PBO
         GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, 0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-        GL.glDisable(GL.GL_TEXTURE_2D)
+
+        self._frameNeedsUpload = False  # texture now matches `_recentFrame`
+
+    def _updateTexFilter(self):
+        """Apply the texture filtering mode for the `interpolate` setting.
+
+        The texture must be bound before calling this. This is done as part of
+        drawing rather than of the pixel transfer so that a change to
+        `interpolate` takes effect on the next draw, whether or not a new frame
+        has been uploaded since.
+
+        """
+        if self._interpolate:
+            texFilter = GL.GL_LINEAR
+        else:
+            texFilter = GL.GL_NEAREST
+
+        GL.glTexParameteri(
+            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, texFilter)
+        GL.glTexParameteri(
+            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, texFilter)
+
+        self._texFilterNeedsUpdate = False
 
     def _drawRectangle(self):
         """Draw the video frame to the window.
@@ -3858,6 +3917,10 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._textureId)
+
+        if self._texFilterNeedsUpdate:
+            self._updateTexFilter()
+
         GL.glPushClientAttrib(GL.GL_CLIENT_VERTEX_ARRAY_BIT)
 
         # 2D texture array, 3D vertex array
