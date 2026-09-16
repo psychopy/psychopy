@@ -335,6 +335,10 @@ class MovieFileReader:
         # OpenCV specific state
         self._capture = None  # cv2.VideoCapture object
 
+        # last requested mute state, used by backends which have no mute state
+        # of their own to report
+        self._muted = False
+
         # movie information
         self._metadata = None  # metadata object
 
@@ -1714,16 +1718,32 @@ class MovieFileReader:
             is not muted. The default is `True`.
 
         """
+        self._muted = bool(state)
+
         if self._decoderLib == 'ffpyplayer':
             if self._player is None:
                 return
 
-            self._player.set_mute(bool(state))
+            self._player.set_mute(self._muted)
         elif self._decoderLib in ('pyav', 'opencv'):
             # audio for `pyav` and `opencv` movies is handled by a separate
             # `Sound` object owned by `MovieStim`; nothing to mute on the
             # reader itself
             pass
+
+    @property
+    def muted(self):
+        """Whether the movie reader is muted (`bool`).
+
+        For `ffpyplayer` this reflects the state of the underlying player. The
+        `pyav` and `opencv` backends do not play audio themselves, so this
+        reports the last state passed to `mute()`.
+
+        """
+        if self._decoderLib == 'ffpyplayer' and self._player is not None:
+            return bool(self._player.get_mute())
+
+        return self._muted
 
     @property
     def memoryUsed(self):
@@ -2301,26 +2321,29 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         """Extract the audio track from the movie file.
 
         This function extracts the audio track from the movie file and writes
-        it to a temporary file. The temporary file is used to play the audio
-        track in sync with the video frames.
+        it to a temporary WAV file using `PyAV`. The temporary file is used to
+        play the audio track in sync with the video frames.
+
+        The output is controlled by the `audioConfig` mapping passed to the
+        class constructor, which may specify:
+
+        * `'codec'` - PCM codec to encode the WAV file with (default
+          `'pcm_s16le'`).
+        * `'fps'` - sample rate of the extracted audio in Hz (default
+          `44100`).
+        * `'nbytes'` - sample width in bytes. Only used to select a codec when
+          `'codec'` has been left at its default (default `2`, i.e. 16-bit).
+
+        If the movie has no audio track, no file is written and
+        `_audioTempFile` is left as `None`.
 
         """
         t0 = time.time()
         logging.debug("Extracting audio track from movie file: {}".format(
             self._filename))
 
-        # Create a temporary file where the audio track will be written to. The 
-        # file will be deleted when the movie is closed.
-        self._audioTempFile = tempfile.NamedTemporaryFile(
-            suffix='.wav',
-            delete=False)
-        
-        # use moviepy to extract the audio track
-        import moviepy as mp
-
-        videoClip = mp.VideoFileClip(
-            self._filename)
-        audioTrackData = videoClip.audio
+        import av
+        from av.audio.resampler import AudioResampler
 
         audioConfig = {
             'codec': 'pcm_s16le', 
@@ -2328,42 +2351,96 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             'nbytes': 2}
         audioConfig.update(self._audioConfig)  # update with any user-provided config options
 
-        audioTrackData.write_audiofile(
-            self._audioTempFile.name,
-            codec=audioConfig['codec'],
-            fps=audioConfig['fps'],
-            nbytes=audioConfig['nbytes'],
-            logger=None)
-        
-        videoClip.close()
-        self._audioTempFile.close()
+        # `nbytes` picks the sample width when the caller hasn't asked for a
+        # specific codec, preserving the behaviour of the previous
+        # (`moviepy` based) implementation
+        codecName = audioConfig['codec']
+        if codecName == 'pcm_s16le':
+            codecName = {
+                1: 'pcm_u8',
+                2: 'pcm_s16le',
+                4: 'pcm_s32le'}.get(int(audioConfig['nbytes']), codecName)
+
+        sampleRate = int(audioConfig['fps'])
+
+        inContainer = outContainer = None
+        try:
+            inContainer = av.open(self._filename)
+
+            audioStream = next(
+                (s for s in inContainer.streams if s.type == 'audio'), None)
+
+            if audioStream is None:
+                # Nothing to extract. Leave `_audioTempFile` as `None` so
+                # `_loadAudioTrack` knows to skip creating a `Sound` object.
+                logging.warning(
+                    "Movie file has no audio track, no audio will be played "
+                    "for: {}".format(self._filename))
+                self._audioTempFile = None
+                return
+
+            # decode the audio track using multiple threads where possible
+            try:
+                audioStream.thread_type = 'AUTO'
+            except Exception:
+                pass  # not fatal if the codec doesn't support it
+
+            # Create a temporary file where the audio track will be written to.
+            # The file will be deleted when the movie is closed. The handle is
+            # closed straight away since PyAV writes to the path itself.
+            self._audioTempFile = tempfile.NamedTemporaryFile(
+                suffix='.wav',
+                delete=False)
+            self._audioTempFile.close()
+
+            # keep the channel layout of the source track
+            layout = audioStream.layout.name
+
+            outContainer = av.open(
+                self._audioTempFile.name, mode='w', format='wav')
+            outStream = outContainer.add_stream(
+                codecName, rate=sampleRate, layout=layout)
+
+            # Resample to whatever the chosen PCM encoder expects. Taking the
+            # format from the output stream keeps this correct for any of the
+            # PCM codecs above without needing a separate lookup.
+            resampler = AudioResampler(
+                format=outStream.format.name,
+                layout=layout,
+                rate=sampleRate)
+
+            def _encode(frames):
+                """Mux a batch of resampled frames into the output file."""
+                for resampledFrame in frames:
+                    # let the encoder assign timestamps, the source ones are
+                    # in the input stream's time base
+                    resampledFrame.pts = None
+                    for packet in outStream.encode(resampledFrame):
+                        outContainer.mux(packet)
+
+            for frame in inContainer.decode(audio=0):
+                _encode(resampler.resample(frame))
+
+            _encode(resampler.resample(None))  # flush the resampler
+
+            for packet in outStream.encode(None):  # flush the encoder
+                outContainer.mux(packet)
+        finally:
+            if outContainer is not None:
+                outContainer.close()
+            if inContainer is not None:
+                inContainer.close()
+
+        audioSize = os.path.getsize(self._audioTempFile.name)
 
         logging.debug(
             "Audio track written to temporary file: {} ({} bytes)".format(
-                self._audioTempFile.name, 
-                os.path.getsize(self._audioTempFile.name)))
+                self._audioTempFile.name, audioSize))
 
         logging.debug(
             "Audio track extraction completed in {:.2f} seconds".format(
                 time.time() - t0))
-        
-        # use soundfile to read the audio samples from the temporary file
-        # NOTE - Using an actual sound object for audio now
-        # import soundfile as sf
-        # samples, sr = sf.read(
-        #     self._audioTempFile.name,
-        #     dtype='float32',
-        #     always_2d=True)
-        # self._audioSampleRate = sr
-        # self._audioSamples = samples
 
-        # compute the size of the audio samples in bytes
-        # audioSize = self._audioSamples.nbytes
-        audioSize = os.path.getsize(self._audioTempFile.name)
-
-        logging.debug(
-            "Audio track size: {} bytes".format(audioSize))
-        
     def _loadAudioTrack(self):
         """Load the extracted audio track into a Sound object for playback.
         """
@@ -2380,7 +2457,11 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             self._audioTrack = None
 
         self._extractAudioTrack()  # extract the audio track to a temporary file
-        
+
+        if self._audioTempFile is None:
+            # movie has no audio track, nothing to load
+            return
+
         import psychopy.sound as _sound
         logging.debug(
             "Loading audio track from temporary file: {}".format(
@@ -3047,7 +3128,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         """`True` if the stream audio is muted (`bool`).
         """
         if self._audioLib == 'sdl2':
-            return self._player.get_mute()
+            return self._player.muted
         else:
             if self._audioTrack is not None and hasattr(self._audioTrack, 'volume'):
                 return self._audioTrack.volume == 0.0
@@ -3057,7 +3138,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
     @muted.setter
     def muted(self, value):
         if self._audioLib == 'sdl2':
-            self._player.set_mute(value)
+            self._player.mute(value)
         else:
             if self._audioTrack is not None and hasattr(self._audioTrack, 'volume'):
                 self._audioTrack.volume = 0.0 if value else self._volume
@@ -3072,8 +3153,8 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
         """
         if self._audioLib == 'sdl2':
-            currentVolume = self._player.get_volume() 
-            self._player.set_volume(currentVolume + amount)
+            currentVolume = self._player.volume
+            self._player.setVolume(currentVolume + amount)
         else:
             if self._audioTrack is not None and hasattr(self._audioTrack, 'volume'):
                 self._audioTrack.volume = min(self._audioTrack.volume + amount, 1.0)
@@ -3088,8 +3169,8 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
         """
         if self._audioLib == 'sdl2':
-            currentVolume = self._player.get_volume() 
-            self._player.set_volume(currentVolume - amount)
+            currentVolume = self._player.volume
+            self._player.setVolume(currentVolume - amount)
         else:
             if self._audioTrack is not None and hasattr(self._audioTrack, 'volume'):
                 self._audioTrack.volume = max(self._audioTrack.volume - amount, 0.0)
@@ -3099,7 +3180,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         """Volume for the audio track for this movie (`int` or `float`).
         """
         if self._audioLib == 'sdl2':
-            return self._player.get_volume()
+            return self._player.volume
         else:
             if self._audioTrack is not None and hasattr(self._audioTrack, 'volume'):
                 return self._audioTrack.volume
