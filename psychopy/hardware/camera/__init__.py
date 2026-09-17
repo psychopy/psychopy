@@ -4851,7 +4851,16 @@ class Camera:
         self._textureId = None
         self._interpolate = True  # use bilinear interpolation by default
         self._texFilterNeedsUpdate = True  # flag to update texture filtering
+        # Frame dimensions and buffer size the texture was allocated with, set
+        # by `_setupTextureBuffers`. These are cached rather than read back off
+        # the capture device on each transfer, so that the texture and the data
+        # written into it cannot disagree if the device renegotiates its format
+        # mid-stream.
         self._texBufferSizeBytes = None  # size of the texture buffer
+        self._texWidth = self._texHeight = 0
+        # Whether `_lastFrame` has yet to be transferred to the GPU. Set when a
+        # new frame arrives, cleared once it has been uploaded.
+        self._frameNeedsUpload = False
 
         # Cached colour conversion context, built on first use and reused for
         # every frame after that. Creating one per frame costs far more than the
@@ -5461,6 +5470,7 @@ class Camera:
 
         # reset the last frame
         self._lastFrame = None
+        self._frameNeedsUpload = False
 
         # Reopen the file writer if a previous recording closed it, otherwise
         # only the first recording of a session would be written to disk. This
@@ -6186,6 +6196,7 @@ class Camera:
                 captureLib=self._cameraLib)
             self._frameStore.append(cameraFrame)
             self._lastFrame = cameraFrame  # most recent frame, for display
+            self._frameNeedsUpload = True  # and it has yet to reach the GPU
 
             if inRecording:
                 # `frameCount` counts the current recording, so frames shown
@@ -6411,6 +6422,11 @@ class Camera:
         self._pixbuffId = GL.GLuint(0)
         self._textureId = GL.GLuint(0)
 
+        # nothing is allocated to upload into any more
+        self._texBufferSizeBytes = None
+        self._texWidth = self._texHeight = 0
+        self._frameNeedsUpload = False
+
     def _setupTextureBuffers(self):
         """Setup texture buffers for the camera.
 
@@ -6426,8 +6442,11 @@ class Camera:
 
         import pyglet.gl as GL
 
-        # get the size of the movie frame and compute the buffer size
+        # Get the size of the camera frame and compute the buffer size. Both
+        # are cached so that `_pixelTransfer` works from the dimensions the
+        # texture was actually allocated with.
         vidWidth, vidHeight = self.frameSize
+        self._texWidth, self._texHeight = vidWidth, vidHeight
         nBufferBytes = self._texBufferSizeBytes = (
             vidWidth * vidHeight * 3)
 
@@ -6458,25 +6477,42 @@ class Camera:
             None)
 
         # setup texture filtering
+        self._updateTexFilter()
+
+        GL.glTexParameteri(
+            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP_TO_EDGE)
+        GL.glTexParameteri(
+            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP_TO_EDGE)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        GL.glDisable(GL.GL_TEXTURE_2D)
+
+        GL.glFlush()  # make sure all buffers are ready
+
+        # The texture just allocated is empty, so whatever frame is in hand has
+        # to be uploaded into it again. Without this, reattaching a window to a
+        # camera which is not producing frames would leave a blank texture where
+        # the last frame captured should still be showing.
+        self._frameNeedsUpload = True
+
+    def _updateTexFilter(self):
+        """Apply the texture filtering mode for the `interpolate` setting.
+
+        The video texture must be bound before calling this.
+
+        """
+        import pyglet.gl as GL
+
         if self._interpolate:
             texFilter = GL.GL_LINEAR
         else:
             texFilter = GL.GL_NEAREST
 
         GL.glTexParameteri(
-            GL.GL_TEXTURE_2D,
-            GL.GL_TEXTURE_MAG_FILTER,
-            texFilter)
+            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, texFilter)
         GL.glTexParameteri(
-            GL.GL_TEXTURE_2D,
-            GL.GL_TEXTURE_MIN_FILTER,
-            texFilter)
-        GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP)
-        GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP)
-        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-        GL.glDisable(GL.GL_TEXTURE_2D)
+            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, texFilter)
 
-        GL.glFlush()  # make sure all buffers are ready
+        self._texFilterNeedsUpdate = False
 
     def _pixelTransfer(self):
         """Copy pixel data from most recent video frame to texture.
@@ -6487,17 +6523,57 @@ class Camera:
         """
         if self.win is None:
             return  # no window to render to
-    
+
         if self._lastFrame is None:
             return  # no frame to upload
-        
+
         import pyglet.gl as GL
-        
-        # get the size of the movie frame and compute the buffer size
-        vidWidth, vidHeight = self.frameSize
-        
-        # compute the buffer size
+
+        if self._texBufferSizeBytes is None or self._textureId is None or \
+                self._textureId.value == 0:
+            return  # no texture buffers allocated to upload into
+
+        if not self._frameNeedsUpload:
+            # The frame already on the GPU is the one to show. This is the
+            # common case whenever the window refreshes faster than the camera
+            # produces frames (e.g. a 30 FPS camera in a 60 Hz window), where
+            # re-uploading would burn a whole-frame copy and a texture transfer
+            # per call to no effect. A change to `interpolate` since the last
+            # transfer still needs applying to the texture already up there.
+            if self._texFilterNeedsUpdate:
+                GL.glBindTexture(GL.GL_TEXTURE_2D, self._textureId)
+                self._updateTexFilter()
+                GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+
+            return
+
+        # frame size and buffer size are cached by `_setupTextureBuffers`
+        vidWidth, vidHeight = self._texWidth, self._texHeight
         nBufferBytes = self._texBufferSizeBytes
+
+        # Make sure the frame is in RGB before uploading it, since the camera
+        # hands frames over in whatever format it is streaming in. The result is
+        # stored back on the frame so that redisplaying it costs nothing. This
+        # is done before the pixel buffer is mapped, as the conversion can be a
+        # whole-frame colour transform and holding a mapping open across it only
+        # gives the driver more to stall on.
+        colorData = self._lastFrame.colorData = self._convertFrameToRGB(
+            self._lastFrame.colorData)
+
+        # map the video frame to a memoryview
+        # suggested by Alex Forrence (aforren1) originally in PR #6439
+        videoBuffer = colorData.to_memoryview()[0].memview
+        videoFrameArray = np.frombuffer(videoBuffer, dtype=np.uint8)
+
+        if videoFrameArray.nbytes < nBufferBytes:
+            # Guards against uploading a frame which does not fill the buffers
+            # allocated for it, which would read past the end of it. This can
+            # happen if the device renegotiates its frame size mid-stream.
+            logging.error(
+                "Camera frame is smaller than the texture buffer allocated for "
+                "it, skipping the pixel transfer.")
+            self._frameNeedsUpload = False
+            return
 
         # bind pixel unpack buffer
         GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, self._pixbuffId)
@@ -6517,17 +6593,15 @@ class Camera:
             GL.GL_PIXEL_UNPACK_BUFFER,
             GL.GL_WRITE_ONLY)
 
-        # Make sure the frame is in RGB before uploading it, since the camera
-        # hands frames over in whatever format it is streaming in. The result is
-        # stored back on the frame so that redisplaying it costs nothing.
-        colorData = self._lastFrame.colorData = self._convertFrameToRGB(
-            self._lastFrame.colorData)
-
-        # map the video frame to a memoryview
-        # suggested by Alex Forrence (aforren1) originally in PR #6439
-        # videoBuffer = self._lastFrame[0].to_memoryview()[0].memview
-        videoBuffer = colorData.to_memoryview()[0].memview
-        videoFrameArray = np.frombuffer(videoBuffer, dtype=np.uint8)
+        if not bufferPtr:
+            # The driver refused the mapping, which can happen if the context
+            # has been lost. Copying to the null pointer handed back in that
+            # case would take the whole process down.
+            GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, 0)
+            logging.error(
+                "Failed to map the pixel buffer for the camera video texture, "
+                "skipping the pixel transfer.")
+            return
 
         # copy the frame data to the buffer
         ctypes.memmove(bufferPtr,
@@ -6538,10 +6612,16 @@ class Camera:
         # keep the buffer bound for setting the texture.
         GL.glUnmapBuffer(GL.GL_PIXEL_UNPACK_BUFFER)
 
-        # bind the texture in OpenGL
-        GL.glEnable(GL.GL_TEXTURE_2D)
+        # Bind the texture in OpenGL. Note that `GL_TEXTURE_2D` does not need
+        # enabling for this; the enable bit only gates fixed-function drawing,
+        # which whichever stimulus displays this texture sets up for itself.
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._textureId)
+
+        # Rows here are tightly packed, so the default unpack alignment of 4
+        # has to be overridden. Left alone, it skews the image for any frame
+        # width where `width * 3` is not a multiple of it.
+        GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
 
         # copy the PBO to the texture (blocks on AMD for some reason)
         GL.glTexSubImage2D(
@@ -6553,26 +6633,13 @@ class Camera:
 
         # update texture filtering only if needed
         if self._texFilterNeedsUpdate:
-            if self._interpolate:
-                texFilter = GL.GL_LINEAR
-            else:
-                texFilter = GL.GL_NEAREST
-
-            GL.glTexParameteri(
-                GL.GL_TEXTURE_2D,
-                GL.GL_TEXTURE_MAG_FILTER,
-                texFilter)
-            GL.glTexParameteri(
-                GL.GL_TEXTURE_2D,
-                GL.GL_TEXTURE_MIN_FILTER,
-                texFilter)
-
-            self._texFilterNeedsUpdate = False
+            self._updateTexFilter()
 
         # important to unbind the PBO
         GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, 0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-        GL.glDisable(GL.GL_TEXTURE_2D)
+
+        self._frameNeedsUpload = False  # texture now matches `_lastFrame`
 
     @property
     def colorTexture(self):
