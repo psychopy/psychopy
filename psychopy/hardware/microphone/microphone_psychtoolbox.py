@@ -893,17 +893,6 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
 
         return self.stop(blockUntilStopped=blockUntilStopped, stopTime=stopTime)
 
-    def isOpen(self):
-        """Check if the audio stream is open.
-
-        Returns
-        -------
-        bool
-            `True` if the stream is open, `False` otherwise.
-
-        """
-        return self._stream is not None
-
     def open(self):
         """
         Open the audio stream.
