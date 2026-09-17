@@ -1,6 +1,6 @@
 # PsychoPy Roadmap
 
-last updated: 20 July 2026
+last updated: 2 Sept 2026
 
 ## Purpose
 
