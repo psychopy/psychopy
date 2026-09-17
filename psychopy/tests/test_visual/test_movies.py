@@ -113,9 +113,9 @@ def _availableBackends():
     found = []
     for movieLib, moduleName in (
             # ('ffpyplayer', 'ffpyplayer'),
+            # ('vlc', 'vlc'),
             ('pyav', 'av'),
-            ('opencv', 'cv2'),
-            # ('vlc', 'vlc')):
+            ('opencv', 'cv2')):
         try:
             __import__(moduleName)
         except Exception:
