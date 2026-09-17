@@ -7642,59 +7642,6 @@ def getOpenCameras():
     return _openCameras.copy()
 
 
-def renderVideo(outputFile, videoFile, audioFile=None, removeFiles=False):
-    """Render a video.
-
-    Combine visual and audio streams into a single movie file. This is used
-    mainly for compositing video and audio data for the camera. Video and audio
-    should have roughly the same duration.
-
-    This is a legacy function used originally for compositing video and audio
-    data from the camera. It is not used anymore internally, but is kept here 
-    for reference and may be removed in the future. If you need to composite
-    video and audio data, use `movietools.addAudioToMovie` instead.
-
-    Parameters
-    ----------
-    outputFile : str
-        Filename to write the movie to. Should have the extension of the file
-        too.
-    videoFile : str
-        Video file path.
-    audioFile : str or None
-        Audio file path. If not provided the movie file will simply be copied
-        to `outFile`.
-    removeFiles : bool
-        If `True`, the video (`videoFile`) and audio (`audioFile`) files will be 
-        deleted after the movie is rendered.
-
-    Returns
-    -------
-    int
-        Size of the resulting file in bytes.
-
-    """
-    # if no audio file, just copy the video file
-    if audioFile is None:
-        import shutil
-        shutil.copyfile(videoFile, outputFile)
-        if removeFiles:
-            os.remove(videoFile)  # delete the old movie file
-        return os.path.getsize(outputFile)
-    
-    from psychopy.tools import movietools
-    
-    # merge video and audio, now using the new `movietools` module
-    movietools.addAudioToMovie(
-        videoFile, 
-        audioFile, 
-        outputFile, 
-        useThreads=False,  # didn't use this before
-        removeFiles=removeFiles)
-
-    return os.path.getsize(outputFile)
-
-
 def closeAllOpenCameras():
     """Close all open cameras.
     
@@ -7752,18 +7699,20 @@ atexit.register(_closeAllCaptureInterfaces)
 
 
 if __name__ == "__main__":
-    dev = CameraDevice.getAvailableDevices()[0]['deviceName']
-    print(CameraDevice.getDeviceCapabilities(dev, by='frameRate'))
+    ## Testing code for opening a camera and taking a short recording
+    # dev = CameraDevice.getAvailableDevices()[0]
+    # print(CameraDevice.getDeviceCapabilities(dev['deviceName'], by='frameRate'))
 
-    cam = Camera(0, mic=5)
-    #cam.open()
-    cam.record(when=0.0)
+    # cam = Camera(dev, mic=5)
+    # #cam.open()
+    # cam.record(when=1.0)
 
-    t0 = time.time()
-    while time.time() - t0 < 5.0:
-        time.sleep(0.001)
+    # t0 = time.time()
+    # while time.time() - t0 < 6.0:
+    #     time.sleep(0.001)
 
-    cam.stop()
-    cam.save('./test_camera_output.mp4')
-    cam.close()
+    # cam.stop()
+    # cam.save('./test_camera_output.mp4')
+    # cam.close()
 
+    pass
