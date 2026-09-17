@@ -37,6 +37,7 @@ class CameraComponent(BaseDeviceComponent):
     deviceClasses = [
         "psychopy.hardware.camera.FFPyPlayerCameraDevice",
         "psychopy.hardware.camera.PyAVCameraDevice",
+        "psychopy.hardware.camera.OpenCVCameraDevice",
     ]
     legacyParams = [
         # old device setup params, no longer needed as this is handled by DeviceManager
