@@ -196,7 +196,7 @@ standardResolutions = {
     'dci': (4096, 2160)
 }
 
-PREFERED_CAMERA_LIB = CAMERA_LIB_FFPYPLAYER
+PREFERED_CAMERA_LIB = CAMERA_LIB_PYAV
 CAMERA_LIBS = [  # list of supported camera libraries
     CAMERA_LIB_FFPYPLAYER, 
     CAMERA_LIB_PYAV,
