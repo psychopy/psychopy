@@ -3316,8 +3316,19 @@ class Camera:
         # `_recordingRequested` says a recording has been asked for, while
         # `_isRecording` says frames are actually being kept. They differ while
         # waiting for the camera to reach `_tRecordingStartRequested`.
+        #
+        # `_isRecording` is shared: microphone backends which stream into their
+        # clients' buffers set it on us too, as soon as audio starts arriving.
+        # The video side therefore tracks its own start with
+        # `_videoRecordingStarted`, so that whichever stream begins first cannot
+        # stop the other from recording that it has begun.
         self._recordingRequested = False
-        self._tRecordingStartRequested = -1.0
+        self._videoRecordingStarted = False
+        # Microphone backends which stream into their clients' buffers read
+        # these directly off us to decide which samples belong to the recording,
+        # so the idle value has to be one that excludes everything rather than
+        # one that lets every block through.
+        self._tRecordingStartRequested = float('inf')
         self._tRecordingStopRequested = None
         self._tRecordingStart = -1.0  # when the first frame actually arrived
         # how long `record(waitForStart=True)` waits for both streams to come up
@@ -3699,8 +3710,15 @@ class Camera:
         will reset once `stop()` is called. This value is invalid outside
         `record()` and `stop()` calls.
 
+        This is taken from the capture time of the most recent frame rather than
+        from the number of frames captured, so that it still reports real
+        elapsed time when the camera delivers below its nominal frame rate.
+
         """
-        return self.frameCount * self._capture.frameInterval
+        if self._lastFrame is None or self._tRecordingStart < 0:
+            return 0.0
+
+        return self._elapsedInRecording(self._lastFrame.absTime)
 
     @property
     def recordingBytes(self):
@@ -3847,7 +3865,16 @@ class Camera:
         # reset per-recording counters and flags
         self._frameCount = 0
         self._tRecordingStart = -1.0
+        self._videoRecordingStarted = False
         self._audioReady = self._videoReady = False
+
+        # Discard audio captured for any previous recording. A fresh list is
+        # assigned rather than cleared in place because the microphone's own
+        # thread appends to this one.
+        self._recordingBuffer = []
+        self._nRecordedFrames = 0
+        self._startRecOffset = 0
+        self._tRecordingStopRequested = None
 
         # reset the last frame
         self._lastFrame = None
@@ -3941,8 +3968,12 @@ class Camera:
         self._absVideoRecStopTime = self._getTime() if when is None else when + self._getTime()
 
         # Close the gate first so that frames still in flight on the polling
-        # thread are not written to a file which is about to be closed.
+        # thread are not written to a file which is about to be closed. Setting
+        # the stop time also tells microphone backends which stream into our
+        # buffer to stop adding to it.
+        self._tRecordingStopRequested = self._absVideoRecStopTime
         self._recordingRequested = False
+        self._videoRecordingStarted = False
         self._isRecording = False
 
         # stop audio recording if we have a microphone
@@ -3964,6 +3995,7 @@ class Camera:
 
         """
         self._recordingRequested = False
+        self._videoRecordingStarted = False
         self._isRecording = False
 
         if self._capture is not None and self._capture.isOpen:
@@ -4084,6 +4116,87 @@ class Camera:
 
         return filename
     
+    def _isAudioRecording(self):
+        """Whether the microphone has actually started capturing samples.
+
+        Microphone backends split into two camps and report this differently.
+        Backends such as `ptb` record on the device itself and say so through
+        `isRecording`/`isStarted`. Backends such as `sounddevice` keep one
+        always-running stream and write samples into the buffers of the clients
+        bound to it, so the device never reports itself as recording at all and
+        the only honest signal is that samples have started arriving here.
+
+        Returns
+        -------
+        bool
+            `True` if audio is being captured for this recording.
+
+        """
+        if self.mic is None:
+            return False
+
+        # backends which record device-side report it directly
+        for attrName in ('isRecording', 'isStarted'):
+            if getattr(self.mic, attrName, False):
+                return True
+
+        # backends which stream into their clients' buffers do not, so take
+        # samples having reached us as the signal that audio is running
+        return self._nRecordedFrames > 0
+
+    def _getRecordedAudio(self):
+        """Get the audio captured during the last recording.
+
+        Handles both of the microphone models described in
+        `_isAudioRecording()`, so callers do not need to know which backend is
+        in use.
+
+        Returns
+        -------
+        AudioClip or None
+            The audio track, or `None` if there is no microphone or nothing was
+            captured.
+
+        """
+        if self.mic is None:
+            return None
+
+        # Backends which stream into their clients' buffers have left the
+        # samples with us, so those are the recording.
+        if self._recordingBuffer:
+            self._mergeAudioFragments()
+            audioTrack = AudioClip(
+                self._recordingBuffer[0],
+                sampleRateHz=self.mic.sampleRateHz)
+
+            # drop the samples captured before the recording was asked to start
+            if self._startRecOffset > 0:
+                audioTrack = audioTrack.trimmed(
+                    direction='start',
+                    duration=self._startRecOffset,
+                    units='samples')
+
+            return audioTrack
+
+        # otherwise the recording is held by the device itself
+        try:
+            recording = self.mic.getRecording()
+        except Exception as err:
+            logging.error(
+                "Could not get the audio track from the microphone: "
+                "{}".format(err))
+            return None
+
+        if recording is None:
+            return None
+
+        if isinstance(recording, AudioClip):
+            return recording
+
+        # some backends hand back a raw array of samples
+        return AudioClip(
+            np.asarray(recording), sampleRateHz=self.mic.sampleRateHz)
+
     def _mergeAudioFragments(self):
         """Merge audio fragments within the recording buffer.
         """
@@ -4146,24 +4259,14 @@ class Camera:
         
         # write the temporary audio track to file if we have one
         tStart = time.time()  # start time for the operation
-        audioTrack = None
-        if self.mic is not None:
-            self._mergeAudioFragments()  # merge audio fragments into a single track
-            audioTrack = AudioClip(
-                self._recordingBuffer[0], 
-                sampleRateHz=self.mic.sampleRateHz)
+        # this is `None` if there is no microphone or nothing was captured, and
+        # has already had any pre-recording samples trimmed off it
+        audioTrack = self._getRecordedAudio()
 
         if audioTrack is not None:
             logging.debug(
                 "Saving audio track to file `{}`...".format(filename))
-            
-            # trim off samples before the recording started
-            if self._startRecOffset > 0:
-                audioTrack = audioTrack.trimmed(
-                    direction='start',
-                    duration=self._startRecOffset,
-                    units='samples')
-            
+
             if mergeAudio:
                 logging.debug("Merging audio track with video track...")
                 # save it to a temp file
@@ -4410,11 +4513,12 @@ class Camera:
                 # start, so it is not part of this recording
                 continue
 
-            if not self._isRecording:
+            if not self._videoRecordingStarted:
                 # This is the first frame at or after the requested start time,
-                # so the recording begins here. The flag is set from this side
-                # rather than in `record()` because the camera may not reach the
-                # requested start time until some frames later.
+                # so the video recording begins here. The flag is set from this
+                # side rather than in `record()` because the camera may not
+                # reach the requested start time until some frames later.
+                self._videoRecordingStarted = True
                 self._isRecording = True
                 self._videoReady = True
                 self._tRecordingStart = absTime
@@ -4426,8 +4530,7 @@ class Camera:
             # the microphone is started alongside the camera, but takes its own
             # time to come up, so keep checking until it reports it is running
             if not self._audioReady and self.hasMic:
-                self._audioReady = bool(
-                    getattr(self.mic, 'isRecording', False))
+                self._audioReady = self._isAudioRecording()
 
             # if camera is in CV mode, convert the frame to RGB by default
             # otherwise frames are converted only when needed
@@ -4530,7 +4633,7 @@ class Camera:
             no microphone is set or no audio was recorded.
 
         """
-        return self.mic.getRecording() if self.mic else None
+        return self._getRecordedAudio()
     
     # --------------------------------------------------------------------------
     # Video rendering
@@ -4856,6 +4959,25 @@ class Camera:
     # directly in the camera class. This may change in the future.
     #
 
+    def _elapsedInRecording(self, absTime):
+        """Get how far into the current recording a frame was captured.
+
+        Parameters
+        ----------
+        absTime : float
+            Time the frame was captured, on the local monotonic clock.
+
+        Returns
+        -------
+        float
+            Seconds from the start of the recording, never negative.
+
+        """
+        if self._tRecordingStart < 0:  # no frame has started the recording yet
+            return 0.0
+
+        return max(0.0, absTime - self._tRecordingStart)
+
     def _openMovieFileWriterFFPyPlayer(self, filename, encoderOpts=None):
         """Open a movie file writer using the FFPyPlayer library.
 
@@ -4884,6 +5006,13 @@ class Camera:
             'frame_rate': (int(self._capture.frameRate), 1)}
 
         self._curPTS = 0.0  # current pts for the movie writer
+        # `MediaWriter` derives the stream time base from the frame rate it is
+        # given, so timestamps can only land on multiples of the frame interval.
+        # Frames are snapped to those ticks, and `_lastWrittenTick` keeps that
+        # from ever producing two frames with the same timestamp, which the
+        # muxer rejects.
+        self._movieWriterTicksPerSec = float(writerOptions['frame_rate'][0])
+        self._lastWrittenTick = -1
 
         self._generatePTS = False  # whether to generate PTS for the movie writer
         if filename.endswith('.mp4'): 
@@ -4930,16 +5059,23 @@ class Camera:
 
         # write frames to the movie file writer
         bytesOut = 0
-        for colorData, _, _, _ in frames:
+        for colorData, _, _, absTime in frames:
             # do color conversion if needed
             frameWidth, frameHeight = colorData.get_size()
             sws = SWScale(
                 frameWidth, frameHeight,
                 colorData.get_pixel_format(),
                 ofmt='yuv420p')
-            
-            # if self._generatePTS:
-            self._curPTS += self._capture.frameInterval  # increment dts by frame interval
+
+            # Place the frame at the point in the recording it was captured,
+            # rather than counting frames off at the nominal rate, which would
+            # play the recording back too fast whenever the camera ran slow.
+            # Snap to the stream's tick grid, keeping timestamps increasing.
+            tick = int(round(
+                self._elapsedInRecording(absTime) * self._movieWriterTicksPerSec))
+            tick = max(tick, self._lastWrittenTick + 1)
+            self._lastWrittenTick = tick
+            self._curPTS = tick / self._movieWriterTicksPerSec
 
             # we get an EOF error when the movie writer is fully drained, catch 
             # it and ignore it
@@ -4993,7 +5129,14 @@ class Camera:
         # theirs as a float (often something like 29.97), so approximate it.
         frameRate = self._capture.frameRate
         outFrameRate = Fraction(frameRate).limit_denominator(1001)
-        self._movieWriterTimeBase = 1 / outFrameRate
+
+        # Frames are timestamped by when they were actually captured rather than
+        # counted off at the nominal rate, because cameras routinely deliver
+        # below the rate they advertise (auto-exposure alone can halve it).
+        # Counting frames would make those recordings play back too fast and
+        # drift against the audio track, so the time base here is a fine one
+        # that can express whatever intervals the camera actually produced.
+        self._movieWriterTimeBase = Fraction(1, 90000)
 
         self._movieWriter = av.open(filename, mode='w')
         self._movieWriterStream = self._movieWriter.add_stream(
@@ -5066,15 +5209,13 @@ class Camera:
             frames = [frames]  # ensure frames is a list
 
         bytesOut = 0
-        for colorData, _, _, _ in frames:
+        for colorData, _, _, absTime in frames:
             avFrame = self._frameToAVVideoFrame(colorData)
 
-            # Present each frame one frame interval after the last. The camera
-            # gives us timestamps on its own clock which do not start at zero,
-            # so they cannot be used here directly.
-            avFrame.pts = self._nFramesWritten
+            # place the frame at the point in the recording it was captured
+            self._curPTS = self._elapsedInRecording(absTime)
+            avFrame.pts = int(round(self._curPTS / self._movieWriterTimeBase))
             avFrame.time_base = self._movieWriterTimeBase
-            self._curPTS += self._capture.frameInterval
 
             try:
                 for packet in self._movieWriterStream.encode(avFrame):
