@@ -77,6 +77,9 @@ jobs:
         then
           # for pocketsphinx we need this adapted package:
           brew install swig vlc portaudio portmidi liblo sdl2
+        elif [ "${{ runner.os }}" == "Linux" ]
+        then
+          sudo apt-get install vlc -y
         fi
     
     - name: Install

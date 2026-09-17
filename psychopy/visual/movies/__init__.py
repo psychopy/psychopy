@@ -8,11 +8,18 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-__all__ = ['MovieStim']
+__all__ = [
+    'MovieStim',
+    'backend',   # allow the user to get the current backend and set it
+    'setBackend',
+    'getBackend']
 
 
 import ctypes
 import os.path
+import sys
+import threading
+import weakref
 from pathlib import Path
 
 import tempfile
@@ -27,9 +34,6 @@ from psychopy.constants import (
     FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED, SEEKING)
 from psychopy import core
 from psychopy.hardware import speaker, DeviceManager
-
-from .metadata import MovieMetadata, NULL_MOVIE_METADATA
-from .frame import MovieFrame, NULL_MOVIE_FRAME_INFO
 
 from psychopy import logging
 import numpy as np
@@ -47,13 +51,91 @@ defaultTimeout = 5.0  # seconds
 FFPYPLAYER_STATUS_EOF = 'eof'
 FFPYPLAYER_STATUS_PAUSED = 'paused'
 
-PREFERRED_VIDEO_LIB = 'ffpyplayer'
+# How far the frame-counted playback position may differ from the position VLC
+# reports before it is re-anchored to VLC's own clock. VLC reports its position
+# in coarse steps (a quarter of a second or so), so this has to be well clear
+# of that to be measuring drift rather than the size of those steps.
+VLC_PTS_RESYNC_THRESHOLD = 1.0  # seconds
+
+# How long to wait for VLC to present the frame at a position just seeked to.
+# Seeking has to decode forward from the nearest keyframe before it can render
+# anything, so it takes appreciably longer than a frame arriving during
+# ordinary playback.
+VLC_SEEK_TIMEOUT = 0.5  # seconds
+
+# How many frames VLC must present after a seek before one of them is taken as
+# the frame at the new position. The picture from the old position can still be
+# presented once after the seek is issued, so more than one is needed.
+VLC_SEEK_SETTLE_FRAMES = 2
+
+# Longest to wait for a pause to work its way through VLC. Seeking before it
+# has lands the player somewhere unrelated to the position asked for, so this
+# is a correctness matter rather than a tidiness one.
+VLC_PAUSE_SETTLE_TIMEOUT = 0.25  # seconds
+
+# Shortest a pause is given to take hold, whatever the movie's frame rate.
+# Waiting for VLC to present a frame is the signal that it has noticed the
+# pause, but on its own that proved to come too early to seek on.
+VLC_PAUSE_SETTLE_MIN = 0.05  # seconds
+
+# recommended library for video decoding
+PREFERRED_VIDEO_LIB = 'pyav'
+
+# Movie decoder libraries which are recognized/supported by `MovieFileReader`
+# and `MovieStim`.
+SUPPORTED_VIDEO_LIBS = ('ffpyplayer', 'pyav', 'opencv', 'vlc')
 
 # Keep track of movie readers here. This is used to close all movie readers
 # when the main thread exits. We identify movie readers by hashing the filename
 # they are presently reading from.
 
 _openMovieReaders = set()
+
+# Set the backend to use for movie decoding
+backend = PREFERRED_VIDEO_LIB  # initial value 
+
+
+def setBackend(movielib):
+    """Set the backend to use for video decoding.
+
+    This cannot be changed if there are open movie players.
+    
+    Parameters
+    ----------
+    movielib : str or None
+        Backend to use for video decoding.
+
+    """
+    global backend
+
+    if _openMovieReaders:
+        raise RuntimeError(
+            "Cannot change the movie backend while there are open movie readers."
+        )
+
+    # check if member of supported video libraries
+    if movielib is None:
+        backend = PREFERRED_VIDEO_LIB
+    elif movielib in SUPPORTED_VIDEO_LIBS:
+        backend = movielib
+    else:
+        raise RuntimeError(
+            "Unknown movie library specified: {}. "
+            "Supported libraries are: {}".format(
+                movielib, ', '.join(SUPPORTED_VIDEO_LIBS))
+        )
+
+
+def getBackend():
+    """Get the current backend used for video decoding.
+    
+    Returns
+    -------
+    str
+        The current backend used for video decoding.
+
+    """
+    return backend
 
 
 # ------------------------------------------------------------------------------
@@ -209,7 +291,59 @@ class MovieMetadata:
 
         """
         return self._audioTrack
-    
+
+
+# Null movie metadata object, return a reference to this object instead of
+# `None` when no metadata is present.
+NULL_MOVIE_METADATA = MovieMetadata(
+    filename=u'', 
+    size=(-1, -1),
+    frameRate=-1,
+    duration=-1.0, 
+    colorFormat=u'unknown', 
+    audioTrack=None
+)
+
+
+class _RGBFrameAdapter:
+    """Lightweight adapter exposing an `ffpyplayer`-like interface around raw
+    RGB24 frame bytes obtained from other decoder backends (currently
+    `PyAV` and `OpenCV`).
+
+    Higher level code (`MovieFileReader`, `MovieStim`) was originally written
+    around `ffpyplayer`'s `Image` objects, which expose `.to_memoryview()`
+    (returning a list whose first element has a `.memview` attribute) and
+    `.get_pixel_format()`. Wrapping decoded frames from other backends in
+    this adapter lets that code stay backend-agnostic instead of branching
+    on `decoderLib` throughout.
+
+    Parameters
+    ----------
+    rgbData : bytes or numpy.ndarray
+        Raw RGB24 pixel data, row-major, 3 bytes per pixel. An array is kept
+        as-is (made contiguous first if needed) rather than converted to
+        `bytes`, which would cost a whole-frame copy per decoded frame for no
+        benefit; everything downstream reads this through the buffer protocol.
+
+    """
+    __slots__ = ['_data']
+
+    def __init__(self, rgbData):
+        if isinstance(rgbData, np.ndarray):
+            rgbData = np.ascontiguousarray(rgbData)
+
+        self._data = rgbData
+
+    def to_memoryview(self):
+        return [self]
+
+    @property
+    def memview(self):
+        return self._data
+
+    def get_pixel_format(self):
+        return 'rgb24'
+
 
 class MovieFileReader:
     """Read movie frames from file.
@@ -221,9 +355,12 @@ class MovieFileReader:
     ----------
     filename : str
         The name (or path) of the file to read the movie from.
-    decoderLib : str
-        The library to use to handle decoding the movie. The default is
-        'ffpyplayer'.
+    decoderLib : str or None
+        The library to use to handle decoding the movie. One of `'ffpyplayer'`,
+        `'pyav'`, `'opencv'` or `'vlc'`. If `None` (default), the library is
+        chosen automatically based on the running Python version: `'pyav'` on
+        Python 3.14+ (where `ffpyplayer` is not available), and `'ffpyplayer'`
+        otherwise.
     decoderOpts : dict or None
         A dictionary of options to pass to the decoder. These option can be used
         to control the quality of the movie, for example. The options depend on
@@ -232,10 +369,29 @@ class MovieFileReader:
 
     Notes
     -----
+    * If `decoderLib='ffpyplayer'` or `decoderLib='vlc'`, the decoder is left
+      paused after `open()`, so `getFrame()` returns `None` until
+      `pause(False)` is called. The `pyav` and `opencv` backends decode on
+      demand and return a frame immediately. `MovieStim` handles this for you
+      via `play()`.
     * If `decoderLib='ffpyplayer'`, audio playback is handled externally by 
       SDL2. This means that audio playback is not synchronized with frame 
       presentation in PsychoPy. However, playback will not begin until the audio 
       track starts playing.
+    * If `decoderLib='vlc'`, audio playback is handled by VLC itself, on the
+      default output device. As with `ffpyplayer`, audio is not synchronized
+      with frame presentation in PsychoPy.
+    * If `decoderLib='pyav'` or `decoderLib='opencv'`, no audio playback is
+      provided by the decoder itself; audio must be extracted and played back
+      separately (this is handled automatically by `MovieStim`).
+    * If `decoderLib='opencv'`, presentation timestamps are derived from frame
+      indices and the reported frame rate, so movies with a variable frame rate
+      will not be timed correctly. Use `'pyav'` or `'ffpyplayer'` for those.
+    * If `decoderLib='vlc'`, VLC decodes to its own clock and hands frames over
+      as it reaches them, so `getFrame()` returns whichever frame VLC has most
+      recently decoded rather than the one at exactly the requested timestamp.
+      This also requires VLC itself to be installed, of an architecture
+      matching the Python interpreter running PsychoPy.
     * Do not access private attributes or methods of this class directly since 
       doing so is not thread-safe. Use the public methods provided by this class
       to interact with the movie reader.
@@ -243,15 +399,84 @@ class MovieFileReader:
     """
     def __init__(self, 
                  filename,
-                 decoderLib='ffpyplayer', 
+                 decoderLib=None,
                  decoderOpts=None):
-        
+
+        if decoderLib is None:
+            decoderLib = PREFERRED_VIDEO_LIB
+
         self._filename = filename
         self._decoderLib = decoderLib
         self._decoderOpts = {} if decoderOpts is None else decoderOpts
 
         # thread for the reader
-        self._player = None  # player interface object
+        self._player = None  # player interface object (ffpyplayer)
+
+        # FFPyPlayer specific state
+        # PTS of an in-flight seek, used to discard frames still arriving from
+        # the pre-seek position (`None` when no seek is pending)
+        self._pendingSeekPTS = None
+        # cached `SWScale` instance, rebuilt only when the source pixel format
+        # or frame size changes
+        self._swsContext = None
+        self._swsContextKey = None
+
+        # PyAV specific state
+        self._container = None  # av.container.InputContainer
+        self._videoStream = None  # av video stream being decoded
+        self._packetIterator = None  # generator yielding decoded video frames
+
+        # OpenCV specific state
+        self._capture = None  # cv2.VideoCapture object
+
+        # VLC specific state
+        self._vlcInstance = None  # vlc.Instance
+        self._vlcPlayer = None  # vlc.MediaPlayer
+        self._vlcMedia = None  # vlc.Media being played
+        self._vlcEventManager = None  # vlc.EventManager for the player
+        # Guards the frame buffers below, which VLC's decoding thread writes
+        # into through the video callbacks while this thread reads them out.
+        self._vlcFrameLock = threading.RLock()
+        # `True` between the lock and unlock callbacks, so that an unlock
+        # arriving for a lock which bailed out cannot release a lock it never
+        # took
+        self._vlcLockHeld = False
+        # VLC decodes into one buffer while the other is read from, the two
+        # being swapped once a frame is complete (see `_makeVLCCallbacks`)
+        self._vlcWriteBuffer = None
+        self._vlcReadBuffer = None
+        self._vlcFrameNBytes = 0  # bytes of a buffer a frame occupies
+        self._vlcFrameReady = False  # a frame is waiting to be picked up
+        # Counts every frame VLC presents, including the repeats of the current
+        # picture it keeps sending while paused. Used to tell that VLC has
+        # moved on rather than to time anything.
+        self._vlcDisplayCount = 0
+        # display count a seek has to reach before the picture is taken to be
+        # the one at the new position (`None` when no seek is outstanding)
+        self._vlcSeekSettleAt = None
+        self._vlcStreamEnded = False  # set by the end-of-stream event callback
+        self._vlcPaused = True  # whether VLC is presently producing frames
+        # when the current pause was asked for, and the frame count at that
+        # point, so that `_vlcPauseHasSettled` can tell whether it has had time
+        # to take hold (`_vlcPausedAt` is `None` while playing)
+        self._vlcPausedAt = None
+        self._vlcPausedAtCount = 0
+        # position a seek is waiting to be applied at, see `_seekVLC`
+        self._vlcPendingSeekPTS = None
+        # Playback position is counted in frames from a known point in the
+        # movie rather than read from VLC every frame, see `_ptsForNextVLCFrame`
+        self._vlcPTSAnchor = 0.0  # movie time the count below starts from
+        self._vlcFramesSinceAnchor = 0
+        # the video callbacks, which must stay referenced while VLC holds them
+        self._vlcLockCb = self._vlcUnlockCb = self._vlcDisplayCb = None
+
+        # last requested mute state, used by backends which have no mute state
+        # of their own to report
+        self._muted = False
+
+        # set by `seek()` and cleared once the decoder delivers a frame for the
+        # new position, see the `isSeeking` property
+        self._seeking = False
 
         # movie information
         self._metadata = None  # metadata object
@@ -339,6 +564,12 @@ class MovieFileReader:
         """
         if self._decoderLib == 'ffpyplayer':
             return self._getVolumeFFPyPlayer()
+        elif self._decoderLib == 'vlc':
+            return self._getVolumeVLC()
+        elif self._decoderLib in ('pyav', 'opencv'):
+            # neither backend performs audio playback of its own; volume is
+            # managed externally by `MovieStim` via its extracted audio track.
+            return self._decoderOpts.get('volume', 0.0)
         else:
             raise NotImplementedError(
                 'Volume control is not implemented for this decoder library.')
@@ -352,6 +583,12 @@ class MovieFileReader:
         """
         if self._decoderLib == 'ffpyplayer':
             self._setVolumeFFPyPlayer(value)
+        elif self._decoderLib == 'vlc':
+            self._setVolumeVLC(value)
+        elif self._decoderLib in ('pyav', 'opencv'):
+            # no-op; audio volume for these backends is controlled through the
+            # separate `Sound` object managing the extracted audio track
+            self._decoderOpts['volume'] = value
         else:
             raise NotImplementedError(
                 'Volume control is not implemented for this decoder library.')
@@ -455,7 +692,9 @@ class MovieFileReader:
         except ImportError:
             raise ImportError(
                 'The `ffpyplayer` library is required to read movie files with '
-                '`decoderLib=ffpyplayer`.')
+                '`decoderLib=ffpyplayer`. Note that `ffpyplayer` is not '
+                'available on Python 3.14 and later; use `decoderLib=pyav` '
+                'instead (this is the default on those Python versions).')
 
         logging.info("Opening movie file: {}".format(self._filename))
 
@@ -497,6 +736,7 @@ class MovieFileReader:
             # keep calling until we get a valid frame size
             if movieMetadata['src_vid_size'] != (0, 0):
                 break
+            time.sleep(0.001)  # yield, don't spin the CPU while waiting
         else:
             raise RuntimeError(
                 'FFPyPlayer failed to extract metadata from the movie. Check '
@@ -506,8 +746,9 @@ class MovieFileReader:
         startTime = time.time()
         while time.time() - startTime < defaultTimeout:  # 5 second timeout
             frame, _ = self._player.get_frame()
-            if frame != None:
+            if frame is not None:
                 break
+            time.sleep(0.001)  # yield, don't spin the CPU while waiting
         else:
             raise RuntimeError(
                 'FFPyPlayer failed to start decoding the movie. Check the '
@@ -520,34 +761,65 @@ class MovieFileReader:
         # seek to the beginning of the movie
         self._player.seek(0.0, relative=False, accurate=False)
         
-        # wait until the player actually seeks to zero
+        # wait until the player actually seeks to zero, this gets its own
+        # timeout budget since the warm-up above may have consumed most of it
+        startTime = time.time()
         while time.time() - startTime < defaultTimeout:
             curPts = self._player.get_pts()
             if abs(curPts) < 1e-6:
                 break
             time.sleep(0.001)  # wait a bit before checking again
+        else:
+            logging.warning(
+                "FFPyPlayer did not report seeking back to the start of the "
+                "movie within {} seconds; the first frame presented may not "
+                "be the first frame of the movie.".format(defaultTimeout))
 
         # compute frame rate and interval
         numer, denom = movieMetadata['frame_rate']
+        if not denom or not numer:
+            raise RuntimeError(
+                'FFPyPlayer could not determine the frame rate of the movie '
+                'file (reported {}/{}).'.format(numer, denom))
         frameRate = numer / denom
+
+        duration = movieMetadata['duration']
+        if not duration > 0.0:
+            raise RuntimeError(
+                'FFPyPlayer could not determine the duration of the movie '
+                'file (reported {}).'.format(duration))
+
         self._frameInterval = 1.0 / frameRate
-        self._maxGetFrameAttempts = int(self._frameInterval / 0.001) 
+        # always allow at least one retry, `int()` alone truncates to zero for
+        # movies faster than 1000 fps
+        self._maxGetFrameAttempts = max(1, int(self._frameInterval / 0.001))
+        self._frameRate = frameRate
+        self._srcFrameSize = movieMetadata['src_vid_size']
+        self._duration = duration
+
+        # Report the pixel format frames are actually delivered in rather
+        # than `src_pix_fmt` (the format of the *source* stream). FFPyPlayer
+        # converts to `rgb24` by default, so reporting the source format here
+        # would disagree with what `getFrame()` returns and with the other
+        # decoder backends.
+        img, curPts = frame
+        deliveredPixFmt = img.get_pixel_format()
 
         # populate the metadata object with the movie metadata we got
         self._metadata = MovieMetadata(
             self._filename,
             movieMetadata['src_vid_size'],
             frameRate,
-            movieMetadata['duration'],
-            movieMetadata['src_pix_fmt'])
+            duration,
+            deliveredPixFmt)
 
         logging.debug("Movie metadata: {}".format(movieMetadata))
 
         # process the frame we got during warmup, store it so it shows 
         # when the movie is stopped+idle but not paused
-        img, curPts = frame
         initialFrameRGB = self._convertFrameToRGBFFPyPlayer(img)
-        self._frameStore.append((initialFrameRGB, curPts, 'paused'))
+        self._frameStore.append(
+            (initialFrameRGB, curPts, FFPYPLAYER_STATUS_PAUSED))
     
     def _seekFFPyPlayer(self, reqPTS):
         """FFPyPlayer specific seek routine.
@@ -563,8 +835,10 @@ class MovieFileReader:
         Returns
         -------
         float
-            The presentation timestamp (PTS) of the frame we landed on in
-            seconds.
+            The presentation timestamp (PTS) requested in seconds. FFPyPlayer
+            seeks asynchronously, so the decoder may still be delivering frames
+            from the previous position when this returns; `_getFrameFFPyPlayer`
+            discards those before returning a frame.
 
         """
         reqPTS = min(max(0.0, reqPTS), self._metadata.duration)
@@ -581,8 +855,14 @@ class MovieFileReader:
             relative=False, 
             seek_by_bytes=False, 
             accurate=True)
-        
-        return self._player.get_pts()
+
+        # Mark the seek as in-flight. `get_pts()` reports the *requested*
+        # position as soon as the seek is issued, so it cannot tell us when the
+        # decoder has caught up; instead `_getFrameFFPyPlayer` drops frames
+        # that arrive from ahead of this target until the seek lands.
+        self._pendingSeekPTS = reqPTS
+
+        return reqPTS
     
     def _convertFrameToRGBFFPyPlayer(self, frame):
         """Convert a frame to RGB format.
@@ -602,18 +882,1221 @@ class MovieFileReader:
             The converted frame in RGB format.
 
         """
-        from ffpyplayer.pic import SWScale
+        srcPixFmt = frame.get_pixel_format()
 
-        if frame.get_pixel_format() == 'rgb24':  # already converted
+        if srcPixFmt == 'rgb24':  # already converted
             return frame
 
-        rgbImg = SWScale(
-            self._metadata.size[0], self._metadata.size[1],  # width, height
-            frame.get_pixel_format(), 
-            ofmt='rgb24').scale(frame)
+        from ffpyplayer.pic import SWScale
+
+        # Use the frame's own dimensions rather than the metadata size, which
+        # can disagree with what the decoder actually emits.
+        width, height = frame.get_size()
+
+        # Building an `SWScale` allocates a colour conversion context, so reuse
+        # it across frames and only rebuild when the format or size changes.
+        contextKey = (srcPixFmt, width, height)
+        if self._swsContext is None or self._swsContextKey != contextKey:
+            self._swsContext = SWScale(width, height, srcPixFmt, ofmt='rgb24')
+            self._swsContextKey = contextKey
+
+        return self._swsContext.scale(frame)
+
+    # --------------------------------------------------------------------------
+    # PyAV specific methods
+    #
+
+    def _openPyAV(self):
+        """Open a movie reader using PyAV.
+
+        This function opens the movie file using the `av` package and extracts
+        metadata about the movie file. Metadata will be accessible via the
+        `getMetadata()` method.
+
+        PyAV pulls frames on demand (there is no background decode thread as
+        with `ffpyplayer`), which makes it well suited for rapidly seeking to
+        and reading arbitrary frames.
+
+        """
+        logging.info("Using PyAV for reading movie frames.")
+        try:
+            import av
+        except ImportError:
+            raise ImportError(
+                'The `av` (PyAV) library is required to read movie files with '
+                '`decoderLib=pyav`. Install it with `pip install av`.')
+
+        logging.info("Opening movie file: {}".format(self._filename))
+
+        openOpts = self._decoderOpts.get('options', {})
+        self._container = av.open(self._filename, options=openOpts)
+
+        videoStream = next(
+            (s for s in self._container.streams if s.type == 'video'), None)
         
-        return rgbImg
-    
+        if videoStream is None:
+            self._container.close()
+            self._container = None
+            raise MovieFileFormatError(self._filename)
+
+        # use multi-threaded decoding where available for faster frame access
+        try:
+            videoStream.thread_type = 'AUTO'
+        except Exception:
+            pass  # not fatal if the codec doesn't support threaded decoding
+
+        self._videoStream = videoStream
+
+        # determine the frame rate; prefer the averaged rate reported by the
+        # stream, falling back to the guessed rate if unavailable
+        rateFraction = videoStream.average_rate or videoStream.guessed_rate
+        if not rateFraction:
+            raise RuntimeError(
+                'PyAV could not determine the frame rate of the movie file.')
+        frameRate = float(rateFraction)
+
+        self._frameInterval = 1.0 / frameRate
+        self._maxGetFrameAttempts = max(1, int(self._frameInterval / 0.001))
+        self._frameRate = frameRate
+
+        width = videoStream.codec_context.width
+        height = videoStream.codec_context.height
+        self._srcFrameSize = (width, height)
+
+        # determine duration in seconds, preferring the stream's own duration
+        if videoStream.duration is not None and videoStream.time_base is not None:
+            duration = float(videoStream.duration * videoStream.time_base)
+        elif self._container.duration is not None:
+            duration = float(self._container.duration / av.time_base)
+        else:
+            raise RuntimeError(
+                'PyAV could not determine the duration of the movie file.')
+        self._duration = duration
+
+        self._metadata = MovieMetadata(
+            self._filename,
+            (width, height),
+            frameRate,
+            duration,
+            'rgb24')
+
+        logging.debug("Movie metadata: {}".format(repr(self._metadata)))
+
+        # start the decode generator and warm up by grabbing the first frame
+        self._packetIterator = self._container.decode(video=0)
+
+        startTime = time.time()
+        firstFrame = None
+        while time.time() - startTime < defaultTimeout:
+            try:
+                firstFrame = next(self._packetIterator)
+                break
+            except StopIteration:
+                break
+        if firstFrame is None:
+            raise RuntimeError(
+                'PyAV failed to decode the first frame of the movie. Check '
+                'the movie file.')
+
+        curPts = float(firstFrame.pts * videoStream.time_base) \
+            if firstFrame.pts is not None else 0.0
+        initialFrameRGB = self._convertFrameToRGBPyAV(firstFrame)
+        self._frameStore.append((initialFrameRGB, curPts, 'paused'))
+
+        # reset back to the start of the stream so playback begins at frame 0
+        self._seekPyAV(0.0)
+        # re-add the first frame to the store since seeking clears it
+        self._frameStore.append((initialFrameRGB, curPts, 'paused'))
+
+    def _seekPyAV(self, reqPTS):
+        """PyAV specific seek routine.
+
+        Parameters
+        ----------
+        reqPTS : float
+            The presentation timestamp (PTS) to seek to in seconds.
+
+        Returns
+        -------
+        float
+            The presentation timestamp (PTS) requested (PyAV seeks to the
+            nearest preceding keyframe; subsequent `getFrame()` calls decode
+            forward to the exact requested position).
+
+        """
+        reqPTS = min(max(0.0, reqPTS), self._metadata.duration)
+
+        if self._container is None or self._videoStream is None:
+            return
+
+        self._cleanUpFrameStore()
+
+        timeBase = self._videoStream.time_base
+        seekTarget = int(reqPTS / timeBase)
+
+        self._container.seek(
+            seekTarget, stream=self._videoStream, any_frame=False,
+            backward=True)
+
+        # decoding must restart after a container-level seek
+        self._packetIterator = self._container.decode(video=0)
+
+        return reqPTS
+
+    def _convertFrameToRGBPyAV(self, frame):
+        """Convert a PyAV frame to RGB format.
+
+        Parameters
+        ----------
+        frame : av.VideoFrame or `_RGBFrameAdapter`
+            The frame to convert. If already an `_RGBFrameAdapter` (i.e.
+            previously converted), it is returned unchanged.
+
+        Returns
+        -------
+        _RGBFrameAdapter
+            The converted frame, wrapped to present an `ffpyplayer`-like
+            interface to downstream code.
+
+        """
+        if isinstance(frame, _RGBFrameAdapter):
+            return frame  # already converted
+
+        return _RGBFrameAdapter(frame.to_ndarray(format='rgb24'))
+
+    def _getFramePyAV(self, reqPTS=0.0):
+        """Get a frame from the movie file using PyAV.
+
+        Parameters
+        ----------
+        reqPTS : float
+            The presentation timestamp (PTS) of the frame to get in seconds.
+
+        Returns
+        -------
+        tuple or None
+            Video data (`_RGBFrameAdapter`), presentation timestamp (PTS), and
+            status.
+
+        """
+        if self._container is None:
+            return None
+
+        reqPTS = min(
+            max(0.0, reqPTS),
+            self._metadata.duration + self._metadata.frameInterval)
+
+        frame = self._getFrameFromStore(reqPTS)
+        if frame is not None:
+            return frame
+
+        # infinite looping is requested when `loop` is explicitly `0`,
+        # mirroring the `ffpyplayer` convention used elsewhere in this file
+        loopInfinitely = self._decoderOpts.get('loop', 1) == 0
+
+        while True:
+            try:
+                avFrame = next(self._packetIterator)
+            except StopIteration:
+                if loopInfinitely:
+                    # restart decoding from the beginning of the stream and
+                    # keep looking for the requested frame (used when the
+                    # caller wraps `reqPTS` back around to 0 for looping
+                    # playback)
+                    self._seekPyAV(0.0)
+                    continue
+
+                if self._streamEOFCallback is not None:
+                    self._streamEOFCallback()
+                self._cleanUpFrameStore()
+                self._seeking = False  # nothing left to seek to
+                break
+
+            curPts = float(avFrame.pts * self._videoStream.time_base) \
+                if avFrame.pts is not None else 0.0
+
+            if curPts + self._metadata.frameInterval >= reqPTS:
+                self._frameStore.append(
+                    (self._convertFrameToRGBPyAV(avFrame), curPts, 'playing'))
+                break
+
+        toReturn = self._getFrameFromStore(reqPTS)
+        self._cleanUpFrameStore(reqPTS)
+
+        return toReturn
+
+    # --------------------------------------------------------------------------
+    # OpenCV specific methods
+    #
+
+    def _openOpenCV(self):
+        """Open a movie reader using OpenCV.
+
+        This function opens the movie file using the `cv2` package and extracts
+        metadata about the movie file. Metadata will be accessible via the
+        `getMetadata()` method.
+
+        Like `PyAV`, OpenCV pulls frames on demand (there is no background
+        decode thread as with `ffpyplayer`) and provides no audio playback of
+        its own. OpenCV reports frame positions as indices rather than
+        timestamps, so presentation timestamps are derived from the frame index
+        and the frame rate. This assumes a constant frame rate; use `pyav` or
+        `ffpyplayer` for variable frame rate movies.
+
+        """
+        logging.info("Using OpenCV for reading movie frames.")
+        try:
+            import cv2
+        except ImportError:
+            raise ImportError(
+                'The `opencv-python` (cv2) library is required to read movie '
+                'files with `decoderLib=opencv`. Install it with '
+                '`pip install opencv-python`.')
+
+        logging.info("Opening movie file: {}".format(self._filename))
+
+        capture = cv2.VideoCapture(self._filename)
+        if not capture.isOpened():
+            capture.release()
+            raise MovieFileFormatError(self._filename)
+
+        self._capture = capture
+
+        # determine the frame rate, OpenCV reports `0` if it cannot work it out
+        frameRate = float(capture.get(cv2.CAP_PROP_FPS))
+        if not frameRate > 0.0:
+            self._freePlayer()
+            raise RuntimeError(
+                'OpenCV could not determine the frame rate of the movie file. '
+                'Try `movieLib="pyav"` instead for this file.')
+
+        self._frameInterval = 1.0 / frameRate
+        self._maxGetFrameAttempts = max(1, int(self._frameInterval / 0.001))
+        self._frameRate = frameRate
+
+        width = int(capture.get(cv2.CAP_PROP_FRAME_WIDTH))
+        height = int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        if width <= 0 or height <= 0:
+            self._freePlayer()
+            raise RuntimeError(
+                'OpenCV could not determine the frame size of the movie file.')
+        self._srcFrameSize = (width, height)
+
+        # OpenCV has no direct notion of duration, so it is computed from the
+        # frame count and the frame rate
+        frameCount = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
+        if frameCount <= 0:
+            self._freePlayer()
+            raise RuntimeError(
+                'OpenCV could not determine the duration of the movie file. '
+                'Try `movieLib="pyav"` instead for this file.')
+        duration = frameCount / frameRate
+        self._duration = duration
+
+        self._metadata = MovieMetadata(
+            self._filename,
+            (width, height),
+            frameRate,
+            duration,
+            'rgb24')
+
+        logging.debug("Movie metadata: {}".format(repr(self._metadata)))
+
+        # warm up the decoder by grabbing the first frame
+        success, firstFrame = capture.read()
+        if not success:
+            self._freePlayer()
+            raise RuntimeError(
+                'OpenCV failed to decode the first frame of the movie. Check '
+                'the movie file.')
+
+        initialFrameRGB = self._convertFrameToRGBOpenCV(firstFrame)
+        self._frameStore.append((initialFrameRGB, 0.0, 'paused'))
+
+        # reset back to the start of the stream so playback begins at frame 0
+        self._seekOpenCV(0.0)
+        # re-add the first frame to the store since seeking clears it
+        self._frameStore.append((initialFrameRGB, 0.0, 'paused'))
+
+    def _seekOpenCV(self, reqPTS):
+        """OpenCV specific seek routine.
+
+        Parameters
+        ----------
+        reqPTS : float
+            The presentation timestamp (PTS) to seek to in seconds.
+
+        Returns
+        -------
+        float
+            The presentation timestamp (PTS) requested. OpenCV seeks to the
+            nearest preceding keyframe and decodes forward internally, so the
+            next frame read may be slightly before the requested position.
+
+        """
+        if self._capture is None:
+            return
+
+        reqPTS = min(max(0.0, reqPTS), self._metadata.duration)
+
+        self._cleanUpFrameStore()
+
+        import cv2
+
+        # prefer frame-index seeking since presentation timestamps for this
+        # backend are derived from frame indices
+        targetFrame = self._timestampToFrameIndex(reqPTS)
+        if not self._capture.set(cv2.CAP_PROP_POS_FRAMES, targetFrame):
+            # fall back to millisecond seeking if the backend in use doesn't
+            # support seeking by frame index
+            self._capture.set(cv2.CAP_PROP_POS_MSEC, reqPTS * 1000.0)
+
+        return reqPTS
+
+    def _convertFrameToRGBOpenCV(self, frame):
+        """Convert an OpenCV frame to RGB format.
+
+        OpenCV decodes frames as BGR arrays, which must be converted to RGB
+        before being uploaded as a texture.
+
+        Parameters
+        ----------
+        frame : numpy.ndarray or `_RGBFrameAdapter`
+            The frame to convert. If already an `_RGBFrameAdapter` (i.e.
+            previously converted), it is returned unchanged.
+
+        Returns
+        -------
+        _RGBFrameAdapter
+            The converted frame, wrapped to present an `ffpyplayer`-like
+            interface to downstream code.
+
+        """
+        if isinstance(frame, _RGBFrameAdapter):
+            return frame  # already converted
+
+        import cv2
+
+        return _RGBFrameAdapter(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+
+    def _getFrameOpenCV(self, reqPTS=0.0):
+        """Get a frame from the movie file using OpenCV.
+
+        Parameters
+        ----------
+        reqPTS : float
+            The presentation timestamp (PTS) of the frame to get in seconds.
+
+        Returns
+        -------
+        tuple or None
+            Video data (`_RGBFrameAdapter`), presentation timestamp (PTS), and
+            status.
+
+        """
+        if self._capture is None:
+            return None
+
+        import cv2
+
+        reqPTS = min(
+            max(0.0, reqPTS),
+            self._metadata.duration + self._metadata.frameInterval)
+
+        frame = self._getFrameFromStore(reqPTS)
+        if frame is not None:
+            return frame
+
+        # infinite looping is requested when `loop` is explicitly `0`,
+        # mirroring the `ffpyplayer` convention used elsewhere in this file
+        loopInfinitely = self._decoderOpts.get('loop', 1) == 0
+
+        # only one rewind is ever needed to satisfy a request, so this also
+        # guards against spinning forever should the capture stop yielding
+        # frames entirely
+        restartsRemaining = 1 if loopInfinitely else 0
+
+        while True:
+            # the frame index reported before reading is that of the frame
+            # about to be decoded, which gives us its PTS
+            frameIndex = int(self._capture.get(cv2.CAP_PROP_POS_FRAMES))
+            success, bgrFrame = self._capture.read()
+
+            if not success:  # end of stream
+                if restartsRemaining > 0:
+                    # restart decoding from the beginning of the stream and
+                    # keep looking for the requested frame (used when the
+                    # caller wraps `reqPTS` back around to 0 for looping
+                    # playback)
+                    restartsRemaining -= 1
+                    self._seekOpenCV(0.0)
+                    continue
+
+                if self._streamEOFCallback is not None:
+                    self._streamEOFCallback()
+                self._cleanUpFrameStore()
+                self._seeking = False  # nothing left to seek to
+                break
+
+            curPts = self._frameIndexToTimestamp(frameIndex)
+
+            if curPts + self._metadata.frameInterval >= reqPTS:
+                self._frameStore.append(
+                    (self._convertFrameToRGBOpenCV(bgrFrame), curPts,
+                     'playing'))
+                break
+
+        toReturn = self._getFrameFromStore(reqPTS)
+        self._cleanUpFrameStore(reqPTS)
+
+        return toReturn
+
+    # --------------------------------------------------------------------------
+    # VLC specific methods
+    #
+    # WARNING: `libvlc` is not thread-safe and the video callbacks below are
+    # invoked from VLC's own decoding thread. Calling into the `libvlc` API
+    # from any of them deadlocks the player, so they only ever touch plain
+    # Python state guarded by `_vlcFrameLock`. Everything which does call
+    # `libvlc` (seeking, pausing, reading the clock) runs on the thread which
+    # owns this reader, never inside a callback.
+    #
+
+    def _makeVLCCallbacks(self):
+        """Build the video callbacks VLC writes frames through.
+
+        The callbacks are created per reader instance and close over a weak
+        reference to it, which keeps the reader collectable (a strong
+        reference would be kept alive by the callback objects it stores) and
+        lets a callback firing during teardown bail out instead of touching a
+        half-freed reader.
+
+        Returns
+        -------
+        tuple
+            The lock, unlock and display callbacks, as `ctypes` function
+            objects. These must be kept referenced for as long as VLC holds
+            them, otherwise they are garbage collected and VLC calls into
+            freed memory.
+
+        """
+        import vlc
+
+        selfRef = weakref.ref(self)
+
+        @vlc.CallbackDecorators.VideoLockCb
+        def lockCallback(userData, planes):
+            """Hand VLC the buffer to decode the next frame into."""
+            reader = selfRef()
+            if reader is None or reader._vlcWriteBuffer is None:
+                # Nothing to decode into. Returning without taking the lock
+                # is safe because `unlockCallback` only releases it when this
+                # callback recorded that it took it.
+                return None
+
+            reader._vlcFrameLock.acquire()
+            reader._vlcLockHeld = True
+            planes[0] = ctypes.cast(reader._vlcWriteBuffer, ctypes.c_void_p)
+
+            return None
+
+        @vlc.CallbackDecorators.VideoUnlockCb
+        def unlockCallback(userData, picture, planes):
+            """Called once VLC has finished writing the frame."""
+            reader = selfRef()
+            if reader is None or not reader._vlcLockHeld:
+                return
+
+            reader._vlcLockHeld = False
+            reader._vlcFrameLock.release()
+
+        @vlc.CallbackDecorators.VideoDisplayCb
+        def displayCallback(userData, picture):
+            """Called when the frame just written is due to be shown.
+
+            VLC has released the frame buffer by this point, so the buffers can
+            be swapped: the frame which was just written becomes the one
+            `_pullFrameVLC` reads, and VLC decodes the next frame into the one
+            it had been reading.
+
+            """
+            reader = selfRef()
+            if reader is None:
+                return
+
+            with reader._vlcFrameLock:
+                reader._vlcWriteBuffer, reader._vlcReadBuffer = (
+                    reader._vlcReadBuffer, reader._vlcWriteBuffer)
+                reader._vlcFrameReady = True
+                reader._vlcDisplayCount += 1
+
+        return lockCallback, unlockCallback, displayCallback
+
+    def _onVLCEndReached(self, event):
+        """Handle VLC reaching the end of the stream.
+
+        This runs on a VLC thread, so it only raises a flag which
+        `_serviceVLCStreamEnd` acts on from the reader's own thread. Calling
+        the `libvlc` API here would deadlock the player.
+
+        """
+        self._vlcStreamEnded = True
+
+    def _openVLC(self):
+        """Open a movie reader using VLC.
+
+        This function opens the movie file using the `python-vlc` bindings to a
+        local `libvlc` installation and extracts metadata about the movie file.
+        Metadata will be accessible via the `getMetadata()` method.
+
+        Like `ffpyplayer`, VLC decodes in the background on its own clock and
+        plays the movie's audio track itself, rather than handing frames over
+        on demand the way `pyav` and `opencv` do. Frames arrive by way of the
+        video callbacks set up here, which write into buffers owned by this
+        reader.
+
+        """
+        logging.info("Using VLC for reading movie frames.")
+        try:
+            import vlc
+        except Exception as err:
+            # `python-vlc` raises rather than failing to import when it cannot
+            # find a `libvlc` of a matching architecture, so the error is
+            # reported here alongside the usual missing-package case.
+            raise ImportError(
+                'The `python-vlc` library and a local VLC installation are '
+                'required to read movie files with `decoderLib=vlc`. Make '
+                'sure the VLC install matches the architecture of the Python '
+                'interpreter running PsychoPy. Original error: {}'.format(err))
+
+        logging.info("Opening movie file: {}".format(self._filename))
+
+        # `an` is set by `MovieStim` when the audio track is being played back
+        # by something other than the decoder, or not at all
+        noAudio = bool(self._decoderOpts.get('an', False))
+        # infinite looping is requested when `loop` is explicitly `0`,
+        # mirroring the `ffpyplayer` convention used elsewhere in this file
+        loopInfinitely = self._decoderOpts.get('loop', 1) == 0
+
+        instanceArgs = ['--quiet', '--no-video-title-show']
+        if noAudio:
+            instanceArgs.append('--no-audio')
+        if sys.platform.startswith('linux'):
+            # nothing is drawn through X here (frames come back through the
+            # callbacks below), so keep VLC from initialising Xlib alongside
+            # the window backend PsychoPy is already using
+            instanceArgs.append('--no-xlib')
+        instanceArgs.extend(self._decoderOpts.get('options', []))
+
+        self._vlcInstance = vlc.Instance(instanceArgs)
+        if self._vlcInstance is None:
+            raise RuntimeError(
+                'Failed to create a VLC instance. Check that VLC is installed '
+                'and that its architecture matches the Python interpreter.')
+
+        self._vlcPlayer = self._vlcInstance.media_player_new()
+        self._vlcMedia = self._vlcInstance.media_new(self._filename)
+
+        if loopInfinitely:
+            # Let VLC do the looping. It wraps the stream itself without ever
+            # reporting the end of it, which keeps its clock in step with the
+            # caller's, and keeps the audio track looping along with the video.
+            self._vlcMedia.add_option(':input-repeat=65535')
+
+        self._vlcPlayer.set_media(self._vlcMedia)
+
+        # Read the movie's properties. Parsing is what populates them, and it
+        # has to happen before playback starts since the frame size is needed
+        # to set the output format up.
+        self._vlcMedia.parse()
+
+        width, height = self._vlcPlayer.video_get_size(0)
+        if not width or not height:
+            self._freePlayer()
+            raise MovieFileFormatError(self._filename)
+        self._srcFrameSize = (width, height)
+
+        frameRate = float(self._vlcPlayer.get_fps())
+        if not frameRate > 0.0:
+            self._freePlayer()
+            raise RuntimeError(
+                'VLC could not determine the frame rate of the movie file. '
+                'Try `movieLib="pyav"` instead for this file.')
+
+        self._frameInterval = 1.0 / frameRate
+        self._maxGetFrameAttempts = max(1, int(self._frameInterval / 0.001))
+        self._frameRate = frameRate
+
+        # VLC reports the duration in milliseconds
+        duration = self._vlcMedia.get_duration() / 1000.0
+        if not duration > 0.0:
+            self._freePlayer()
+            raise RuntimeError(
+                'VLC could not determine the duration of the movie file. '
+                'Try `movieLib="pyav"` instead for this file.')
+        self._duration = duration
+
+        self._metadata = MovieMetadata(
+            self._filename,
+            (width, height),
+            frameRate,
+            duration,
+            'rgb24')
+
+        logging.debug("Movie metadata: {}".format(repr(self._metadata)))
+
+        # Ask VLC for packed 24-bit RGB so frames arrive in the format the rest
+        # of this class works in and no colour conversion is needed per frame.
+        # `RV24` is VLC's name for it and is laid out R, G, B in memory.
+        pitch = width * 3
+        self._vlcPlayer.video_set_format('RV24', width, height, pitch)
+
+        # Two buffers so VLC can decode the next frame while the last one is
+        # being read, see `displayCallback` above. The spare bytes guard
+        # against a decoder writing past the end of the last row.
+        bufferSize = pitch * height + pitch
+        self._vlcWriteBuffer = (ctypes.c_ubyte * bufferSize)()
+        self._vlcReadBuffer = (ctypes.c_ubyte * bufferSize)()
+        self._vlcFrameNBytes = pitch * height
+
+        # these have to stay referenced for as long as VLC holds them
+        (self._vlcLockCb,
+         self._vlcUnlockCb,
+         self._vlcDisplayCb) = self._makeVLCCallbacks()
+
+        self._vlcPlayer.video_set_callbacks(
+            self._vlcLockCb, self._vlcUnlockCb, self._vlcDisplayCb, None)
+
+        self._vlcEventManager = self._vlcPlayer.event_manager()
+        self._vlcEventManager.event_attach(
+            vlc.EventType.MediaPlayerEndReached, self._onVLCEndReached)
+
+        # Warm the decoder up. VLC does not produce frames until playback
+        # starts, so it is started muted, run until the first frame lands, then
+        # paused and rewound so the movie is sitting on frame 0 ready to play.
+        self._vlcPlayer.audio_set_mute(True)
+        if self._vlcPlayer.play() == -1:
+            self._freePlayer()
+            raise MovieFileFormatError(self._filename)
+
+        startTime = time.time()
+        while time.time() - startTime < defaultTimeout:
+            if self._vlcFrameReady:
+                break
+            time.sleep(0.001)  # yield, don't spin the CPU while waiting
+        else:
+            self._freePlayer()
+            raise RuntimeError(
+                'VLC failed to decode the first frame of the movie within {} '
+                'seconds. Check the movie file.'.format(defaultTimeout))
+
+        firstFrameBytes = self._takeVLCFrameBytes()
+
+        self._setVLCPaused(True)
+        self._waitForVLCPauseToSettle()  # rewinding before this lands nowhere
+        self._discardPendingVLCFrame()
+        self._vlcPlayer.set_time(0)
+        self._vlcStreamEnded = False
+        self._anchorVLCPTS(0.0)
+        self._vlcPlayer.audio_set_mute(self._muted or noAudio)
+
+        # Hold the first frame at a PTS of exactly zero so that it is the frame
+        # found for the start of the movie, as with the other backends.
+        self._frameStore.append(
+            (_RGBFrameAdapter(firstFrameBytes), 0.0, 'paused'))
+
+    def _takeVLCFrameBytes(self):
+        """Copy the most recently decoded frame out of the read buffer.
+
+        The copy is made while holding `_vlcFrameLock` so that a buffer swap
+        cannot hand this buffer back to VLC part way through it. VLC's decoding
+        thread only blocks on that lock if it happens to be starting the next
+        frame, and only for as long as the copy takes.
+
+        Returns
+        -------
+        bytes or None
+            Raw RGB24 pixel data for the frame, or `None` if VLC has not
+            delivered a new one since the last call.
+
+        """
+        with self._vlcFrameLock:
+            if not self._vlcFrameReady or self._vlcReadBuffer is None:
+                return None
+
+            self._vlcFrameReady = False
+
+            return bytes(memoryview(self._vlcReadBuffer)[:self._vlcFrameNBytes])
+
+    def _discardPendingVLCFrame(self):
+        """Drop the frame VLC has waiting to be picked up, if there is one.
+
+        Used when moving to a new position in the movie, where whatever has
+        already been decoded belongs to where playback used to be.
+
+        """
+        with self._vlcFrameLock:
+            self._vlcFrameReady = False
+
+    def _setVLCPaused(self, state):
+        """Pause or resume VLC, noting when a pause was asked for.
+
+        `_waitForVLCPauseToSettle` needs to know how long ago playback was
+        paused, since seeking before a pause has taken hold lands the player
+        somewhere unrelated to the position asked for.
+
+        Parameters
+        ----------
+        state : bool
+            `True` to pause playback, `False` to resume it.
+
+        """
+        state = bool(state)
+
+        self._vlcPlayer.set_pause(int(state))
+        self._vlcPaused = state
+        self._vlcPausedAt = time.time() if state else None
+        self._vlcPausedAtCount = self._vlcDisplayCount
+
+    def _vlcPauseHasSettled(self):
+        """Whether a pause has had time to work its way through VLC (`bool`).
+
+        A seek issued while a pause is still in progress is mishandled by VLC:
+        rather than landing late, or not at all, the player ends up at a
+        position unrelated to the one asked for. Nothing reports the pause as
+        complete (`get_state()` says `Paused` straight away, well before it is
+        safe to seek), but VLC presents a frame once it has noticed, so that
+        is taken as the signal along with a short floor, neither being enough
+        on its own.
+
+        """
+        if self._vlcPausedAt is None:
+            return True  # playing, so there is no pause to wait on
+
+        elapsed = time.time() - self._vlcPausedAt
+
+        if elapsed >= VLC_PAUSE_SETTLE_TIMEOUT:
+            return True  # asked for long enough ago to have certainly landed
+
+        # `_vlcDisplayCount` is only ever read for progress, so it is read
+        # without taking the lock rather than contending with the decoding
+        # thread over it
+        framesSince = self._vlcDisplayCount - self._vlcPausedAtCount
+
+        return framesSince >= 1 and \
+            elapsed >= max(self._frameInterval, VLC_PAUSE_SETTLE_MIN)
+
+    def _waitForVLCPauseToSettle(self):
+        """Wait for a pause to work its way through VLC before seeking.
+
+        See `_vlcPauseHasSettled` for why this is needed.
+
+        """
+        deadline = time.time() + VLC_PAUSE_SETTLE_TIMEOUT
+
+        while not self._vlcPauseHasSettled():
+            if time.time() > deadline:
+                logging.debug(
+                    "VLC did not settle within {} seconds of being paused; a "
+                    "seek made now may not land where asked.".format(
+                        VLC_PAUSE_SETTLE_TIMEOUT))
+                return
+
+            time.sleep(0.001)  # yield, don't spin the CPU while waiting
+
+    def _pullFrameVLC(self):
+        """Take the frame VLC has most recently decoded, if there is a new one.
+
+        The frame store for this backend only ever holds the newest frame.
+        Unlike the on-demand backends there is no way to ask VLC for a frame at
+        a particular position, so there is nothing to be gained from keeping
+        the ones which have already gone past.
+
+        Returns
+        -------
+        bool
+            `True` if a new frame was taken and stored.
+
+        """
+        if self._vlcSeekSettleAt is not None:
+            if self._vlcDisplayCount < self._vlcSeekSettleAt:
+                # still being shown the position which was seeked away from
+                return False
+
+            self._vlcSeekSettleAt = None
+
+        frameBytes = self._takeVLCFrameBytes()
+        if frameBytes is None:
+            return False
+
+        self._frameStore[:] = [
+            (_RGBFrameAdapter(frameBytes), self._ptsForNextVLCFrame(),
+             'playing')]
+
+        return True
+
+    def _anchorVLCPTS(self, pts):
+        """Peg the frame-counted playback position to a known movie time.
+
+        Parameters
+        ----------
+        pts : float
+            The movie time, in seconds, the next frame VLC delivers will be at.
+
+        """
+        self._vlcPTSAnchor = pts
+        self._vlcFramesSinceAnchor = 0
+
+    def _ptsForNextVLCFrame(self):
+        """Work out the movie time of the frame just delivered by VLC.
+
+        VLC reports its position in coarse steps, roughly a quarter of a second
+        at a time, which is far too blunt to timestamp individual frames with.
+        Since VLC hands frames over as it reaches them, counting them from a
+        known position gives a much better estimate. The count is re-pegged to
+        VLC's own clock whenever the two drift apart, which also picks up the
+        wrap-around when VLC loops the movie.
+
+        Returns
+        -------
+        float
+            The presentation timestamp (PTS) of the frame, in seconds.
+
+        """
+        curPts = self._vlcPTSAnchor + \
+            self._vlcFramesSinceAnchor * self._frameInterval
+
+        if not self._vlcPaused:
+            # While paused VLC keeps presenting the picture it is sitting on,
+            # and those repeats are the same frame over again rather than the
+            # movie moving on.
+            self._vlcFramesSinceAnchor += 1
+
+        # `get_time()` is a `libvlc` call, so it happens here on the reader's
+        # own thread rather than in the display callback. It reports where
+        # playback has reached, in milliseconds.
+        reportedPts = self._vlcPlayer.get_time() / 1000.0
+
+        if reportedPts >= 0.0 and \
+                abs(curPts - reportedPts) > VLC_PTS_RESYNC_THRESHOLD:
+            # The count has come adrift of where VLC actually is, either
+            # because frames were dropped or because VLC has looped back to the
+            # start of the movie. Believe VLC.
+            self._anchorVLCPTS(reportedPts)
+            self._vlcFramesSinceAnchor = 1
+            curPts = reportedPts
+
+        return curPts
+
+    def _serviceVLCStreamEnd(self):
+        """Act on VLC having reached the end of the stream.
+
+        The event callback cannot do this itself, since notifying the caller
+        may lead back into the `libvlc` API which must not be called from a VLC
+        thread.
+
+        """
+        if not self._vlcStreamEnded:
+            return
+
+        self._vlcStreamEnded = False
+        self._vlcPaused = True  # a finished player is not going to produce more
+
+        # nothing further will arrive, so a seek waiting on a frame never lands
+        self._seeking = False
+
+        if self._streamEOFCallback is not None:
+            self._streamEOFCallback()
+
+    def _seekVLC(self, reqPTS):
+        """VLC specific seek routine.
+
+        Parameters
+        ----------
+        reqPTS : float
+            The presentation timestamp (PTS) to seek to in seconds.
+
+        Returns
+        -------
+        float
+            The presentation timestamp (PTS) requested in seconds. The player
+            is not moved here, only marked as needing to be; see
+            `_applyPendingVLCSeek`. Once it is, VLC renders the frame for the
+            new position through the usual callbacks, so `_getFrameVLC` may
+            need to be called a few times before it arrives.
+
+        """
+        if self._vlcPlayer is None:
+            return
+
+        import vlc
+
+        reqPTS = min(max(0.0, reqPTS), self._metadata.duration)
+
+        # A player which has run off the end of the stream ignores any new
+        # position until it has been restarted; `play()` on its own is not
+        # enough to revive it.
+        if self._vlcPlayer.get_state() == vlc.State.Ended:
+            self._vlcPlayer.stop()
+            self._vlcPlayer.play()
+            self._vlcStreamEnded = False
+
+            # the new position cannot be set until playback is running again
+            startTime = time.time()
+            while time.time() - startTime < defaultTimeout:
+                if self._vlcPlayer.get_state() == vlc.State.Playing:
+                    break
+                time.sleep(0.001)
+            else:
+                logging.warning(
+                    "VLC did not restart within {} seconds after reaching the "
+                    "end of the movie; the seek to {:.3f} seconds may not have "
+                    "taken effect.".format(defaultTimeout, reqPTS))
+
+            self._vlcPaused = False
+            self._vlcPausedAt = None
+
+        # Let go of what has already been decoded at the old position.
+        self._discardPendingVLCFrame()
+        self._cleanUpFrameStore()
+        self._anchorVLCPTS(reqPTS)
+
+        # Moving the player is left to `_applyPendingVLCSeek`, which runs when
+        # a frame is next asked for. It may have to wait for a pause to take
+        # hold first, and doing that waiting here would charge it to the
+        # caller's movie clock, leaving the movie that much past the position
+        # it asked for.
+        self._vlcPendingSeekPTS = reqPTS
+
+        return reqPTS
+
+    def _applyPendingVLCSeek(self, blocking=True):
+        """Move the player to the position a seek has asked for.
+
+        Parameters
+        ----------
+        blocking : bool
+            Whether to wait for a pause which has yet to take hold, since the
+            position cannot be set until it has. Pass `False` to return
+            without moving in that case, leaving the seek to be applied on a
+            later call rather than holding the caller up.
+
+        Returns
+        -------
+        bool
+            `True` if the player was moved.
+
+        """
+        if self._vlcPendingSeekPTS is None:
+            return False
+
+        # Playback being under way is itself enough for a seek to be handled
+        # properly, so this only bites when the caller paused a moment ago.
+        if not self._vlcPauseHasSettled():
+            if not blocking:
+                return False  # try again when next asked for a frame
+
+            self._waitForVLCPauseToSettle()
+
+        reqPTS = self._vlcPendingSeekPTS
+        self._vlcPendingSeekPTS = None
+
+        # anything presented up to now belongs to the position being left
+        self._discardPendingVLCFrame()
+
+        self._vlcPlayer.set_time(int(round(reqPTS * 1000.0)))
+        self._anchorVLCPTS(reqPTS)
+
+        # VLC presents the picture from the old position once more before
+        # putting up the one at the new position, so skip that first one and
+        # take the next, which is the frame seeked to.
+        self._vlcSeekSettleAt = self._vlcDisplayCount + VLC_SEEK_SETTLE_FRAMES
+
+        return True
+
+    def _convertFrameToRGBVLC(self, frame):
+        """Convert a VLC frame to RGB format.
+
+        VLC is asked for `RV24` frames in `_openVLC`, which is already the
+        packed RGB24 layout used throughout this class, so frames are wrapped
+        as they are taken from the buffer and nothing is left to do here.
+
+        Parameters
+        ----------
+        frame : `_RGBFrameAdapter`
+            The frame to convert.
+
+        Returns
+        -------
+        _RGBFrameAdapter
+            The frame, unchanged.
+
+        """
+        return frame
+
+    def _getFrameVLC(self, reqPTS=0.0, blocking=True):
+        """Get a frame from the movie file using VLC.
+
+        Parameters
+        ----------
+        reqPTS : float
+            The presentation timestamp (PTS) of the frame to get in seconds.
+        blocking : bool
+            Whether to wait for VLC to deliver a frame if none has arrived
+            since the last call. Pass `False` to return `None` straight away
+            and leave the caller showing the previous frame.
+
+        Returns
+        -------
+        tuple or None
+            Video data (`_RGBFrameAdapter`), presentation timestamp (PTS), and
+            status.
+
+        """
+        if self._vlcPlayer is None:
+            return None
+
+        reqPTS = min(
+            max(0.0, reqPTS),
+            self._metadata.duration + self._metadata.frameInterval)
+
+        self._serviceVLCStreamEnd()
+        self._applyPendingVLCSeek(blocking=blocking)
+
+        gotNewFrame = self._pullFrameVLC()
+
+        # VLC decodes to its own clock, so there is nothing to prod along by
+        # asking again; either a frame has arrived or one has not. Waiting is
+        # only worth it while frames are still coming, otherwise a paused movie
+        # would stall the caller for a frame interval on every draw. A seek is
+        # the exception: the player may be paused and still owe a frame for the
+        # position just moved to.
+        waited = False
+        if blocking and not gotNewFrame and (not self._vlcPaused or
+                                             self._seeking):
+            waited = True
+            # a seek has to decode forward from a keyframe before it can render
+            # anything, which takes longer than a frame is due within during
+            # ordinary playback
+            deadline = time.time() + (
+                VLC_SEEK_TIMEOUT if self._seeking else self._frameInterval)
+            while time.time() < deadline:
+                time.sleep(0.001)  # yield, don't spin the CPU while waiting
+                if self._pullFrameVLC():
+                    gotNewFrame = True
+                    break
+
+        if self._seeking and waited and not gotNewFrame:
+            # VLC has had long enough to render the frame for the new position
+            # and has not produced one, which is what happens when the seek ran
+            # to the end of the movie and there is no further frame to render.
+            # Leaving the seek marked as outstanding would have the caller
+            # waiting on a frame which is never going to arrive.
+            self._seeking = False
+            self._vlcSeekSettleAt = None
+            self._vlcPendingSeekPTS = None
+
+        toReturn = self._getFrameFromStore(reqPTS)
+
+        if toReturn is None and gotNewFrame and self._frameStore:
+            # VLC runs the movie on its own clock, so the position it reports
+            # can differ from the caller's by more than a frame interval,
+            # leaving the lookup above with nothing. The frame just decoded is
+            # still the one which should be on-screen, so hand that back rather
+            # than freezing the video until the two clocks happen to agree.
+            img, pts, status = self._frameStore[-1]
+            toReturn = (self._convertFrameToRGB(img), pts, status)
+
+        return toReturn
+
+    def _freeVLCPlayer(self):
+        """Tear down the VLC player and release everything it holds.
+
+        Ordering matters here. The video callbacks run on VLC's decoding
+        thread and write into buffers owned by this reader, so the player is
+        stopped first (which waits for that thread), then the callbacks are
+        unbound, and only then are the buffers dropped.
+
+        Never call this while holding `_vlcFrameLock`: stopping the player
+        waits on the decoding thread, which may be waiting for that very lock.
+
+        """
+        if self._vlcPlayer is not None:
+            import vlc
+
+            if self._vlcEventManager is not None:
+                self._vlcEventManager.event_detach(
+                    vlc.EventType.MediaPlayerEndReached)
+                self._vlcEventManager = None
+
+            self._vlcPlayer.stop()
+
+            # Unbind before the buffers the callbacks write into are dropped.
+            # Leaving them bound also keeps the interpreter from shutting down
+            # cleanly.
+            self._vlcPlayer.video_set_callbacks(None, None, None, None)
+            self._vlcPlayer.set_media(None)
+            self._vlcPlayer.release()
+            self._vlcPlayer = None
+
+        if self._vlcMedia is not None:
+            self._vlcMedia.release()
+            self._vlcMedia = None
+
+        if self._vlcInstance is not None:
+            self._vlcInstance.release()
+            self._vlcInstance = None
+
+        # safe now that the player has stopped and the callbacks are unbound
+        self._vlcLockCb = self._vlcUnlockCb = self._vlcDisplayCb = None
+        self._vlcWriteBuffer = self._vlcReadBuffer = None
+        self._vlcFrameNBytes = 0
+        self._vlcFrameReady = False
+        self._vlcLockHeld = False
+        self._vlcSeekSettleAt = None
+        self._vlcStreamEnded = False
+        self._vlcPaused = True
+        self._vlcPausedAt = None
+        self._vlcPendingSeekPTS = None
+
+    def _getVolumeVLC(self):
+        """Get the volume of the movie player using VLC.
+
+        Returns
+        -------
+        float
+            The volume level of the movie player, between 0.0 (mute) and 1.0
+            (full volume).
+
+        """
+        if self._vlcPlayer is None:
+            return 0.0
+
+        # VLC reports the volume as a percentage, and `-1` if it cannot
+        volume = self._vlcPlayer.audio_get_volume()
+        if volume < 0:
+            return self._decoderOpts.get('volume', 0.0)
+
+        return volume / 100.0
+
+    def _setVolumeVLC(self, volume):
+        """Set the volume of the movie player using VLC.
+
+        Parameters
+        ----------
+        volume : float
+            The volume level to set, between 0.0 (mute) and 1.0 (full volume).
+
+        """
+        if self._vlcPlayer is None:
+            return
+
+        self._vlcPlayer.audio_set_volume(int(round(volume * 100.0)))
+
+    # --------------------------------------------------------------------------
+    # Backend-agnostic frame conversion dispatcher
+    #
+
     def _convertFrameToRGB(self, frame):
         """Convert a frame to RGB format.
 
@@ -623,7 +2106,8 @@ class MovieFileReader:
 
         Parameters
         ----------
-        frame : FFPyPlayer frame
+        frame : FFPyPlayer frame, av.VideoFrame, BGR `ndarray`, or \
+                `_RGBFrameAdapter`
             The frame to convert.
 
         Returns
@@ -635,29 +2119,46 @@ class MovieFileReader:
         # convert the frame to RGB format
         if self._decoderLib == 'ffpyplayer':
             return self._convertFrameToRGBFFPyPlayer(frame)
+        elif self._decoderLib == 'pyav':
+            return self._convertFrameToRGBPyAV(frame)
+        elif self._decoderLib == 'opencv':
+            return self._convertFrameToRGBOpenCV(frame)
+        elif self._decoderLib == 'vlc':
+            return self._convertFrameToRGBVLC(frame)
         else:
             raise NotImplementedError(
                 'Frame conversion is not implemented for this decoder library.')
     
-    def _bufferFramesFFPyPlayer(self, start=0.0, end=None, units='seconds'):
+    def _bufferFramesFFPyPlayer(self, start=0.0, end=None, units='seconds',
+                                maxFrames=1024):
         """Buffer frames from the movie file using FFPyPlayer.
         
         Parameters
         ----------
-        start : float
-            The start time in seconds to buffer frames from.
-        end : float or int
-            The end time in seconds to buffer frames to. If `None`, the end
-            time is set to the duration of the movie. If `int`, the end time is
-            interpreted as a frame index.
+        start : float or int
+            The start position to buffer frames from, interpreted according to
+            `units`.
+        end : float or int or None
+            The end position to buffer frames to, interpreted according to
+            `units`. If `None`, the end of the movie is used.
         units : str
-            The units to use for the start and end times. This can be 'seconds'
-            or 'frames'. If 'frames', the start and end times are interpreted as
+            The units `start` and `end` are given in, either `'seconds'`
+            (default) or `'frames'`. If `'frames'`, they are interpreted as
             frame indices.
+        maxFrames : int
+            Maximum number of frames to buffer. Decoded frames are held in
+            memory as RGB24, so an unbounded range can exhaust memory on long
+            or high resolution movies (a minute of 1080p is roughly 11 GB).
+            Buffering stops once this many frames have been collected.
 
         """
         if self._player is None:
             return
+
+        if units not in ('seconds', 'frames'):
+            raise ValueError(
+                "`units` must be either 'seconds' or 'frames', got "
+                "'{}'.".format(units))
 
         # check if we have a valid start time
         if start < 0.0:
@@ -665,37 +2166,75 @@ class MovieFileReader:
 
         # check if we have a valid end time
         if end is None:
-            end = self._metadata.duration
+            end = self._metadata.duration if units == 'seconds' else \
+                self._timestampToFrameIndex(self._metadata.duration)
         elif end < 0.0:
             raise ValueError('End time must be greater than or equal to 0.0.')
 
-        # convert the start and end times to frame indices
+        # convert the start and end frame indices to timestamps
         if units == 'frames':
             start = self._frameIndexToTimestamp(start)
             end = self._frameIndexToTimestamp(end)
+
+        if end < start:
+            raise ValueError(
+                'End time must be greater than or equal to the start time.')
 
         # seek to the start time
         self._seekFFPyPlayer(start)
 
         # buffer frames from the movie file
-        while True:
+        buffered = 0
+        getFrameAttempts = 0
+        staleDrops = 0
+        maxStaleDrops = 240
+        # FFPyPlayer paces delivery to the playback clock, so `get_frame()`
+        # returns `None` on most polls; retry rather than stopping at the first
+        # one. The budget is per-frame (reset below on each frame received) and
+        # generous since buffering is a bulk operation with no timing demands.
+        maxBufferAttempts = self._maxGetFrameAttempts * 3
+
+        while buffered < maxFrames:
             frame, status = self._player.get_frame()
 
-            if status == 'eof':
+            if status == FFPYPLAYER_STATUS_EOF:
                 break
 
             if frame is None:
+                if getFrameAttempts < maxBufferAttempts:
+                    time.sleep(0.001)
+                    getFrameAttempts += 1
+                    continue
+                logging.warning(
+                    "FFPyPlayer stopped delivering frames while buffering; "
+                    "buffered {} frame(s).".format(buffered))
                 break
 
+            getFrameAttempts = 0  # frame received, reset the retry budget
+
             img, curPts = frame
+
+            # drop frames still arriving from before the seek above
+            if self._pendingSeekPTS is not None:
+                if curPts > self._pendingSeekPTS + self._metadata.frameInterval:
+                    staleDrops += 1
+                    if staleDrops < maxStaleDrops:
+                        continue
+                self._pendingSeekPTS = None
+
             if curPts >= end:
                 break
             if curPts >= start:
                 # convert the frame to RGB format
-                rgbImg = self._convertFrameToRGB(img)
-                self._frameStore.append((rgbImg, curPts, status))
+                rgbImg = self._convertFrameToRGBFFPyPlayer(img)
+                self._frameStore.append((rgbImg, curPts, 'playing'))
+                buffered += 1
+        else:
+            logging.warning(
+                "Stopped buffering after reaching the {} frame limit; request "
+                "a narrower range or raise `maxFrames`.".format(maxFrames))
 
-    def _getFrameFFPyPlayer(self, reqPTS=0.0):
+    def _getFrameFFPyPlayer(self, reqPTS=0.0, blocking=True):
         """Get a frame from the movie file using FFPyPlayer.
 
         This method gets the desired frame from the movie file. If it has not
@@ -707,6 +2246,12 @@ class MovieFileReader:
         reqPTS : float
             The presentation timestamp (PTS) of the frame to get in seconds.
             This hints the reader to which frame to decode and return.
+        blocking : bool
+            Whether to wait for the decoder to catch up. FFPyPlayer hands over
+            frames on its own schedule, so by default this waits up to a frame
+            interval for one. Pass `False` to give up immediately instead and
+            leave the caller showing the previous frame, which keeps a drawing
+            loop responsive while a seek is still resolving.
 
         Returns
         -------
@@ -730,36 +2275,77 @@ class MovieFileReader:
             return frame
         
         getFrameAttempts = 0
+        # bound on frames discarded while waiting for a seek to land, so a
+        # seek that never takes effect cannot hang the caller
+        staleDrops = 0
+        maxStaleDrops = 240
         while 1:  # keep getting frames until we reach the desired PTS           
             frame, status = self._player.get_frame()
 
-            if status == 'eof':
+            if status == FFPYPLAYER_STATUS_EOF:
                 if self._streamEOFCallback is not None:
                     self._streamEOFCallback()
                 self._cleanUpFrameStore()
+                self._pendingSeekPTS = None
+                self._seeking = False  # nothing left to seek to
                 break
-            elif status == 'paused':
+            elif status == FFPYPLAYER_STATUS_PAUSED:
+                # A paused decoder will not deliver the frame a seek is waiting
+                # on, so stop reporting the seek as outstanding. This is what
+                # happens when a movie is seeked past its own end, since
+                # reaching the end pauses playback.
+                self._seeking = False
                 break
             
-            # if we get `None` for the frame, it means the player is not ready 
-            # to give us a frame yet, so we wait a bit and try again. If we get 
-            # `None` too many times, we give up and return `None` 
+            # If we get `None` for the frame, the player isn't ready to give us
+            # one yet, so wait a moment and try again. Give up after
+            # `_maxGetFrameAttempts` *consecutive* misses and let the caller
+            # show the previous frame; `MovieStim.updateVideoFrame` already
+            # treats `None` as 'keep the last frame on screen'. Raising here
+            # would abort the experiment over a transient decoder stall.
             if frame is None:
-                if getFrameAttempts < self._maxGetFrameAttempts:
+                maxAttempts = self._maxGetFrameAttempts
+                if not blocking:
+                    maxAttempts = max(1, maxAttempts // 8)
+
+                if getFrameAttempts < maxAttempts:
                     time.sleep(0.001)  # wait a bit before trying again
                     getFrameAttempts += 1
                     continue   # keep retrying
-                else:
-                    raise RuntimeError(
-                        'Failed to return a frame after multiple attempts.'
-                    )
+                
+                if blocking:
+                    logging.warning(
+                        "FFPyPlayer failed to return a frame after {} "
+                        "attempts, keeping the previous frame.".format(
+                            getFrameAttempts))
+                break
+            
+            # the decoder gave us a frame, so reset the retry budget; it counts
+            # consecutive misses, not misses accumulated over a long decode
+            getFrameAttempts = 0
             
             img, curPts = frame  # extract frame information
+
+            # Discard frames still in flight from before a seek. An accurate
+            # seek never lands ahead of its target, so anything ahead of it is
+            # left over from the previous position and would otherwise be
+            # stored against the wrong PTS (breaking backward seeks).
+            if self._pendingSeekPTS is not None:
+                if curPts > self._pendingSeekPTS + self._metadata.frameInterval:
+                    staleDrops += 1
+                    if staleDrops < maxStaleDrops:
+                        continue  # stale, keep draining
+                    logging.warning(
+                        "FFPyPlayer did not settle at the requested seek "
+                        "position after discarding {} frames; using the "
+                        "current position instead.".format(staleDrops))
+                self._pendingSeekPTS = None  # seek has landed (or gave up)
 
             # if we have gotten the frame we are looking for, return it
             if curPts + self._metadata.frameInterval >= reqPTS:
                 self._frameStore.append(
-                    (self._convertFrameToRGBFFPyPlayer(img), curPts, status))
+                    (self._convertFrameToRGBFFPyPlayer(img), curPts,
+                     'playing'))
                 break
         
         toReturn = self._getFrameFromStore(reqPTS)
@@ -782,8 +2368,12 @@ class MovieFileReader:
         logging.debug("Using decoder library: {}".format(self._decoderLib))
         if self._decoderLib == 'ffpyplayer':
             self._openFFPyPlayer()
+        elif self._decoderLib == 'pyav':
+            self._openPyAV()
         elif self._decoderLib == 'opencv':
             self._openOpenCV()
+        elif self._decoderLib == 'vlc':
+            self._openVLC()
         else:
             raise ValueError(
                 'Unknown decoder library: {}'.format(self._decoderLib))
@@ -820,10 +2410,12 @@ class MovieFileReader:
         # clear frames from store
         self._cleanUpFrameStore()
 
+        self._seeking = False
+
         self._metadata = None  # clear metadata
 
         # remove the reader from the global list of open movie readers
-        if self in _openMovieReaders:
+        if _openMovieReaders and self in _openMovieReaders:
             _openMovieReaders.remove(self)
 
     def _freePlayer(self):
@@ -833,15 +2425,30 @@ class MovieFileReader:
         call this method directly while the player is still in use.
 
         """
-        if self._player is None:
-            return
-        
         if self._decoderLib == 'ffpyplayer':
+            if self._player is None:
+                return
+
             self._player.set_mute(True)  # mute the player
             self._player.set_pause(True)  # pause the player
             self._player.close_player()
 
-        self._player = None
+            self._player = None
+            self._pendingSeekPTS = None
+            self._swsContext = None
+            self._swsContextKey = None
+        elif self._decoderLib == 'pyav':
+            if self._container is not None:
+                self._container.close()
+                self._container = None
+            self._videoStream = None
+            self._packetIterator = None
+        elif self._decoderLib == 'opencv':
+            if self._capture is not None:
+                self._capture.release()
+                self._capture = None
+        elif self._decoderLib == 'vlc':
+            self._freeVLCPlayer()
 
     def _cleanUpFrameStore(self, keepAfterPTS=None):
         """Clean up the frame store.
@@ -954,15 +2561,6 @@ class MovieFileReader:
 
         """
         return int(pts / self._metadata.frameInterval)
-    
-    def _restartFFPyPlayer(self):
-        """Restart the FFPyPlayer decoder.
-
-        This function restarts the FFPyPlayer decoder. This is useful if the
-        decoder has stopped working or if the movie file has changed.
-
-        """
-        self._seekFFPyPlayer(0.0)  # seek to the beginning of the movie
 
     def pause(self, state=True):
         """Pause the movie reader.
@@ -978,10 +2576,21 @@ class MovieFileReader:
             is not paused. The default is `True`.
 
         """
-        if self._player is None:
-            return
+        if self._decoderLib == 'ffpyplayer':
+            if self._player is None:
+                return
 
-        self._player.set_pause(bool(state))
+            self._player.set_pause(bool(state))
+        elif self._decoderLib == 'vlc':
+            if self._vlcPlayer is None:
+                return
+
+            self._setVLCPaused(state)
+        elif self._decoderLib in ('pyav', 'opencv'):
+            # these backends decode on-demand (there is no background playback
+            # thread to pause); `MovieStim` already stops requesting new frames
+            # when paused, so there is nothing additional to do here.
+            pass
 
     def seek(self, pts):
         """Seek to a specific presentation timestamp (PTS) in the movie.
@@ -999,11 +2608,18 @@ class MovieFileReader:
             The presentation timestamp (PTS) to seek to in seconds.
 
         """
+        # cleared in `getFrame()` once the decoder produces a frame for the new
+        # position, or when the stream ends before it can
+        self._seeking = True
+
         if self._decoderLib == 'ffpyplayer':
             self._seekFFPyPlayer(pts)
-        elif self._decoderLib == 'opencv':  # rough in support for opencv
-            raise NotImplementedError(
-                'The `opencv` library is not supported for movie reading.')
+        elif self._decoderLib == 'pyav':
+            self._seekPyAV(pts)
+        elif self._decoderLib == 'opencv':
+            self._seekOpenCV(pts)
+        elif self._decoderLib == 'vlc':
+            self._seekVLC(pts)
         else:
             raise ValueError(
                 'Unknown decoder library: {}'.format(self._decoderLib))
@@ -1022,10 +2638,44 @@ class MovieFileReader:
             is not muted. The default is `True`.
 
         """
-        if self._player is None:
-            return
+        self._muted = bool(state)
 
-        self._player.set_mute(bool(state))
+        if self._decoderLib == 'ffpyplayer':
+            if self._player is None:
+                return
+
+            self._player.set_mute(self._muted)
+        elif self._decoderLib == 'vlc':
+            if self._vlcPlayer is None:
+                return
+
+            self._vlcPlayer.audio_set_mute(self._muted)
+        elif self._decoderLib in ('pyav', 'opencv'):
+            # audio for `pyav` and `opencv` movies is handled by a separate
+            # `Sound` object owned by `MovieStim`; nothing to mute on the
+            # reader itself
+            pass
+
+    @property
+    def muted(self):
+        """Whether the movie reader is muted (`bool`).
+
+        For `ffpyplayer` and `vlc` this reflects the state of the underlying
+        player. The `pyav` and `opencv` backends do not play audio themselves,
+        so this reports the last state passed to `mute()`.
+
+        """
+        if self._decoderLib == 'ffpyplayer' and self._player is not None:
+            return bool(self._player.get_mute())
+
+        if self._decoderLib == 'vlc' and self._vlcPlayer is not None:
+            # VLC reports `-1` when it cannot say, in which case fall back to
+            # the last state asked for
+            isMuted = self._vlcPlayer.audio_get_mute()
+            if isMuted >= 0:
+                return bool(isMuted)
+
+        return self._muted
 
     @property
     def memoryUsed(self):
@@ -1039,12 +2689,12 @@ class MovieFileReader:
         """
         # sum of bytes used by video segments
         totalFramesDecoded = len(self._frameStore)
-        pixelSize = 3 if 'rgb' in self._srcPixelFormat else 4
+        pixelSize = 3  # all frames are normalized to RGB24 in the frame store
         pixelCount = self._srcFrameSize[0] * self._srcFrameSize[1]
 
         return totalFramesDecoded * pixelCount * pixelSize
     
-    def getFrame(self, pts=0.0):
+    def getFrame(self, pts=0.0, blocking=True):
         """Get a frame from the movie file at the specified presentation 
         timestamp.
 
@@ -1053,19 +2703,49 @@ class MovieFileReader:
         pts : float or None
             The presentation timestamp (PTS) of the frame to get in seconds.
             Timestamps can be as precise as six decimal places.
-        dropFrame : bool
-            If `True`, the frame is dropped if it is not available, and the 
-            most recent frame will be returned immediately. If `False`, the 
-            function will block until the desired frame is returned.
+        blocking : bool
+            Whether to wait for the decoder to catch up if the frame is not
+            ready yet. Pass `False` to return `None` straight away instead, so
+            the caller can keep showing the previous frame and ask again later.
+            This only affects `ffpyplayer` and `vlc`, the backends which
+            decode ahead on their own schedule; the others decode on demand
+            when asked.
 
         Returns
         -------
-        tuple
-            Video data.
+        tuple or None
+            Video data, or `None` if no frame is available.
 
         """
         if self._decoderLib == 'ffpyplayer':
-            return self._getFrameFFPyPlayer(pts)
+            frameData = self._getFrameFFPyPlayer(pts, blocking=blocking)
+        elif self._decoderLib == 'pyav':
+            frameData = self._getFramePyAV(pts)
+        elif self._decoderLib == 'opencv':
+            frameData = self._getFrameOpenCV(pts)
+        elif self._decoderLib == 'vlc':
+            frameData = self._getFrameVLC(pts, blocking=blocking)
+        else:
+            raise ValueError(
+                'Unknown decoder library: {}'.format(self._decoderLib))
+
+        if frameData is not None:
+            # the decoder has caught up with the position asked for
+            self._seeking = False
+
+        return frameData
+
+    @property
+    def isSeeking(self):
+        """Whether a seek has yet to produce a frame (`bool`).
+
+        This is `True` between a call to `seek()` and the decoder delivering a
+        frame for the new position. Backends which decode on demand usually
+        satisfy a seek within the same call, so this is only observable when
+        the decoder cannot keep up, such as with large frames or slow media.
+
+        """
+        return self._seeking
         
     def getSubtitle(self):
         """Get the subtitle from the movie file.
@@ -1081,9 +2761,14 @@ class MovieFileReader:
             function returns `None`.
 
         """
-        if self._player is None:
+        if self._decoderLib == 'ffpyplayer' and self._player is None:
             return ''
-            #raise ValueError('Movie reader is not open. Cannot get subtitle.')
+        if self._decoderLib == 'pyav' and self._container is None:
+            return ''
+        if self._decoderLib == 'opencv' and self._capture is None:
+            return ''
+        if self._decoderLib == 'vlc' and self._vlcPlayer is None:
+            return ''
 
         return ''
 
@@ -1123,15 +2808,21 @@ class MovieFileReader:
             The volume level to set, between 0.0 (mute) and 1.0 (full volume).
 
         """
-        if self._player is None:
-            return
-        
         volume = min(1.0, max(0.0, float(volume)))
         
         logging.debug("Setting movie volume to: {}".format(volume))
 
         if self._decoderLib == 'ffpyplayer':
+            if self._player is None:
+                return
             self._setVolumeFFPyPlayer(volume)
+        elif self._decoderLib == 'vlc':
+            self._setVolumeVLC(volume)
+        elif self._decoderLib in ('pyav', 'opencv'):
+            # stored for reference; actual playback volume for these backends
+            # is controlled through `MovieStim`'s extracted-audio `Sound`
+            # object
+            self._decoderOpts['volume'] = volume
         else:
             raise NotImplementedError(
                 'Volume control is not implemented for this decoder library.')
@@ -1157,14 +2848,22 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         Name of the file or stream URL to play. If an empty string, no file will
         be loaded on initialization but can be set later.
     movieLib : str or None
-        Library to use for video decoding. By default, the 'preferred' library
-        by PsychoPy developers is used. Default is `'ffpyplayer'`. An alert is
-        raised if you are not using the preferred player.
+        Library to use for video decoding. One of `'ffpyplayer'`, `'pyav'`,
+        `'opencv'` or `'vlc'`. If `None` (the default), the library set
+        globally with `setBackend()` is used. That in turn defaults to the library
+        appropriate for the running Python version: `'pyav'` on Python 3.14+
+        (where `ffpyplayer` is not available), and `'ffpyplayer'` otherwise.
+        An alert is raised if you explicitly request a library that isn't the
+        'preferred' one for your Python version.
     audioLib : str or None
         Library to use for audio decoding. If `movieLib` is `'ffpyplayer'`
-        then this must be `'sdl2'` for audio playback. If `None`, the
-        default audio library for the `movieLib` will be used (this will be
-        `'sdl2'` for `movieLib='ffpyplayer'`).
+        then this must be `'sdl2'` for audio playback, and if `movieLib` is
+        `'vlc'` it must be `'vlc'`. If `None`, the default audio library for
+        the `movieLib` will be used (this will be `'sdl2'` for
+        `movieLib='ffpyplayer'`, `'vlc'` for `movieLib='vlc'`, and
+        extracted-track playback via `psychopy.sound.Sound` for
+        `movieLib='pyav'` and `movieLib='opencv'`, since neither library
+        provides its own audio playback).
     units : str
         Units to use when sizing the video frame on the window, affects how
         `size` is interpreted.
@@ -1192,12 +2891,21 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
       the `ffpyplayer` library for video playback. If you require precise
       synchronization, consider extracting the audio from the movie file and
       playing it separately using the `sound.Sound` class instead.
+    * `ffpyplayer` is not available on Python 3.14 and later. On those
+      versions, `PyAV` (`movieLib='pyav'`) is used automatically.
+    * `OpenCV` (`movieLib='opencv'`) derives frame timestamps from frame
+      indices and the reported frame rate, so it should only be used with
+      constant frame rate movies.
+    * `VLC` (`movieLib='vlc'`) requires VLC itself to be installed, of an
+      architecture matching the Python interpreter running PsychoPy. Like
+      `ffpyplayer` it plays the movie's audio itself, on the default output
+      device, and so does not give precise audio-visual synchronization.
 
     """
     def __init__(self,
                  win,
                  filename="",
-                 movieLib=u'ffpyplayer',
+                 movieLib=None,
                  audioLib=None,
                  units='pix',
                  size=None,
@@ -1244,6 +2952,22 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         self.opacity = opacity
 
         # playback stuff
+        # Resolve the decoder library to use if the user has not explicitly
+        # requested one. This defers to the module-level backend, which starts
+        # out as the library appropriate for this Python version (`ffpyplayer`
+        # is unavailable on Python 3.14+, so `pyav` is used there instead) and
+        # can be changed globally with `setBackend()`.
+        if movieLib is None:
+            movieLib = getBackend()
+        elif movieLib != PREFERRED_VIDEO_LIB:
+            logging.warning(
+                "Requested `movieLib='{}'` but the preferred (and only "
+                "guaranteed to be installed) movie library for this Python "
+                "version ({}.{}) is '{}'. If movie loading fails, try "
+                "`movieLib='{}'` instead.".format(
+                    movieLib, sys.version_info.major, sys.version_info.minor,
+                    PREFERRED_VIDEO_LIB, PREFERRED_VIDEO_LIB))
+
         self._movieLib = movieLib
         self._decoderOpts = {}
         self._player = None  # player interface object
@@ -1253,6 +2977,13 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         self._loop = loop
         self._loopCount = 0  # number of times the movie has looped
         self._recentFrame = None
+        # Frame object `_recentFrame` was built from, and the address of its
+        # pixel data. The decoder hands back the same frame object each time it
+        # is asked for a position within the same frame interval, so its
+        # identity is what tells us whether there is anything new to upload.
+        self._recentFrameImage = None
+        self._recentFrameAddr = None
+        self._frameNeedsUpload = False
         self._autoStart = autoStart
         self._isLoaded = False
         self._pts = 0.0
@@ -1278,17 +3009,34 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             self._audioDevice = audioDevice
             self._audioLib = None  # override
         else:
-            if audioLib is None and self._movieLib == 'ffpyplayer':
+            self._audioDevice = None
+            if audioLib is not None:
+                self._audioLib = audioLib
+            elif self._movieLib == 'ffpyplayer':
+                # ffpyplayer plays audio itself via SDL2
                 self._audioLib = 'sdl2'
                 self._noAudio = False  # use SDL2 for audio playback
-                self._audioDevice = None
+            elif self._movieLib == 'vlc':
+                # VLC plays audio itself, on the default output device
+                self._audioLib = 'vlc'
+            else:
+                # other decoder backends (`pyav`, `opencv`) do not provide
+                # their own audio playback, so the audio track is extracted and
+                # played back separately via `psychopy.sound.Sound`
+                # (see `_loadAudioTrack`/`_extractAudioTrack`)
+                self._audioLib = None
 
-        # warn the user if they are using the SDL2 audio library that precise 
-        # A/V sync is not supported
+        # warn the user if the decoder is playing the audio itself, since 
+        # precise A/V sync is not supported in that case
         if self._audioLib == 'sdl2':
             logging.warning(
                 'Using `sdl2` for audio playback via `ffpyplayer`. This is not '
                 'recommended for applications requiring precise audio-visual '
+                'synchronization.')
+        elif self._audioLib == 'vlc':
+            logging.warning(
+                'Using VLC for audio playback. This is not recommended for '
+                'applications requiring precise audio-visual '
                 'synchronization.')
         # else:
         #     raise MovieAudioError(
@@ -1310,6 +3058,8 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         self._metadata = NULL_MOVIE_METADATA
         self._pixbuffId = GL.GLuint(0)
         self._textureId = GL.GLuint(0)
+        self._vidWidth = self._vidHeight = 0  # set by `_setupTextureBuffers`
+        self._nBufferBytes = 0
 
         # load a file if provided, otherwise the user must call `setMovie()`
         self._filename = pathToString(filename)
@@ -1404,6 +3154,19 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         self._loop = bool(value)
 
     @property
+    def _decoderPlaysAudio(self):
+        """Whether the decoder plays the movie's audio track itself (`bool`).
+
+        `ffpyplayer` (through SDL2) and VLC play the audio themselves, so
+        volume and muting are controlled on the movie reader. The other
+        backends decode video only, and their audio is played back by a
+        separate `Sound` object holding the track extracted by
+        `_extractAudioTrack`.
+
+        """
+        return self._audioLib in ('sdl', 'sdl2', 'vlc')
+
+    @property
     def _hasPlayer(self):
         """`True` if a media player instance is started.
         """
@@ -1422,7 +3185,17 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
     def interpolate(self, value):
         self._interpolate = bool(value)
         self._texFilterNeedsUpdate = True  # update the texture filter on the next draw call
-    
+
+    @staticmethod
+    def getBackend():
+        """Get the current movie decoder backend (`str`)."""
+        return getBackend()
+
+    @staticmethod
+    def setBackend(movieLib):
+        """Set the movie decoder backend to use (`str`)."""
+        setBackend(movieLib)
+
     # --------------------------------------------------------------------------
     # Movie file handlers
     #
@@ -1482,9 +3255,16 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         # issues. The audio track is extracted to a temporary file which is
         # deleted when the movie is closed.
         disableAudio = False
-        if not self._noAudio and self._audioLib not in ('sdl', 'sdl2'):
+        if not self._noAudio and not self._decoderPlaysAudio:
             self._loadAudioTrack()  # extract and load the audio track
             disableAudio = True  # playing through our libs, so disable in ffpyplayer
+
+        if self._noAudio and self._movieLib == 'vlc':
+            # VLC opens the audio output device itself as soon as it starts
+            # playing, so `noAudio` has to be passed down to it. The other
+            # backends are kept as they are: theirs is either muted (SDL2) or
+            # never played in the first place.
+            disableAudio = True
 
         self._decoderOpts['an'] = disableAudio
 
@@ -1539,46 +3319,51 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             videoBuffer = frameImage.to_memoryview()[0].memview
             videoFrameArray = np.frombuffer(videoBuffer, dtype=np.uint8)
             self._recentFrame = videoFrameArray # most recent frame
+            self._recentFrameAddr = videoFrameArray.ctypes.data
+            self._recentFrameImage = frameImage
             self._pixelTransfer(forceRefresh=True)  # copy the first frame to the texture
 
     def _setupAudioStream(self):
         """Setup the audio stream for the movie.
         """
         # todo - handle setting up the audio library stream
-        if self._noAudio or self._audioLib in ('sdl', 'sdl2'):
+        if self._noAudio or self._decoderPlaysAudio:
             return
 
     def _pushAudioSamples(self):
         """Push audio samples to the audio buffer.
         """
         # todo - implement this
-        if self._noAudio or self._audioLib in ('sdl', 'sdl2'):
+        if self._noAudio or self._decoderPlaysAudio:
             return
 
     def _extractAudioTrack(self):
         """Extract the audio track from the movie file.
 
         This function extracts the audio track from the movie file and writes
-        it to a temporary file. The temporary file is used to play the audio
-        track in sync with the video frames.
+        it to a temporary WAV file using `PyAV`. The temporary file is used to
+        play the audio track in sync with the video frames.
+
+        The output is controlled by the `audioConfig` mapping passed to the
+        class constructor, which may specify:
+
+        * `'codec'` - PCM codec to encode the WAV file with (default
+          `'pcm_s16le'`).
+        * `'fps'` - sample rate of the extracted audio in Hz (default
+          `44100`).
+        * `'nbytes'` - sample width in bytes. Only used to select a codec when
+          `'codec'` has been left at its default (default `2`, i.e. 16-bit).
+
+        If the movie has no audio track, no file is written and
+        `_audioTempFile` is left as `None`.
 
         """
         t0 = time.time()
         logging.debug("Extracting audio track from movie file: {}".format(
             self._filename))
 
-        # Create a temporary file where the audio track will be written to. The 
-        # file will be deleted when the movie is closed.
-        self._audioTempFile = tempfile.NamedTemporaryFile(
-            suffix='.wav',
-            delete=False)
-        
-        # use moviepy to extract the audio track
-        import moviepy as mp
-
-        videoClip = mp.VideoFileClip(
-            self._filename)
-        audioTrackData = videoClip.audio
+        import av
+        from av.audio.resampler import AudioResampler
 
         audioConfig = {
             'codec': 'pcm_s16le', 
@@ -1586,42 +3371,96 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             'nbytes': 2}
         audioConfig.update(self._audioConfig)  # update with any user-provided config options
 
-        audioTrackData.write_audiofile(
-            self._audioTempFile.name,
-            codec=audioConfig['codec'],
-            fps=audioConfig['fps'],
-            nbytes=audioConfig['nbytes'],
-            logger=None)
-        
-        videoClip.close()
-        self._audioTempFile.close()
+        # `nbytes` picks the sample width when the caller hasn't asked for a
+        # specific codec, preserving the behaviour of the previous
+        # (`moviepy` based) implementation
+        codecName = audioConfig['codec']
+        if codecName == 'pcm_s16le':
+            codecName = {
+                1: 'pcm_u8',
+                2: 'pcm_s16le',
+                4: 'pcm_s32le'}.get(int(audioConfig['nbytes']), codecName)
+
+        sampleRate = int(audioConfig['fps'])
+
+        inContainer = outContainer = None
+        try:
+            inContainer = av.open(self._filename)
+
+            audioStream = next(
+                (s for s in inContainer.streams if s.type == 'audio'), None)
+
+            if audioStream is None:
+                # Nothing to extract. Leave `_audioTempFile` as `None` so
+                # `_loadAudioTrack` knows to skip creating a `Sound` object.
+                logging.warning(
+                    "Movie file has no audio track, no audio will be played "
+                    "for: {}".format(self._filename))
+                self._audioTempFile = None
+                return
+
+            # decode the audio track using multiple threads where possible
+            try:
+                audioStream.thread_type = 'AUTO'
+            except Exception:
+                pass  # not fatal if the codec doesn't support it
+
+            # Create a temporary file where the audio track will be written to.
+            # The file will be deleted when the movie is closed. The handle is
+            # closed straight away since PyAV writes to the path itself.
+            self._audioTempFile = tempfile.NamedTemporaryFile(
+                suffix='.wav',
+                delete=False)
+            self._audioTempFile.close()
+
+            # keep the channel layout of the source track
+            layout = audioStream.layout.name
+
+            outContainer = av.open(
+                self._audioTempFile.name, mode='w', format='wav')
+            outStream = outContainer.add_stream(
+                codecName, rate=sampleRate, layout=layout)
+
+            # Resample to whatever the chosen PCM encoder expects. Taking the
+            # format from the output stream keeps this correct for any of the
+            # PCM codecs above without needing a separate lookup.
+            resampler = AudioResampler(
+                format=outStream.format.name,
+                layout=layout,
+                rate=sampleRate)
+
+            def _encode(frames):
+                """Mux a batch of resampled frames into the output file."""
+                for resampledFrame in frames:
+                    # let the encoder assign timestamps, the source ones are
+                    # in the input stream's time base
+                    resampledFrame.pts = None
+                    for packet in outStream.encode(resampledFrame):
+                        outContainer.mux(packet)
+
+            for frame in inContainer.decode(audio=0):
+                _encode(resampler.resample(frame))
+
+            _encode(resampler.resample(None))  # flush the resampler
+
+            for packet in outStream.encode(None):  # flush the encoder
+                outContainer.mux(packet)
+        finally:
+            if outContainer is not None:
+                outContainer.close()
+            if inContainer is not None:
+                inContainer.close()
+
+        audioSize = os.path.getsize(self._audioTempFile.name)
 
         logging.debug(
             "Audio track written to temporary file: {} ({} bytes)".format(
-                self._audioTempFile.name, 
-                os.path.getsize(self._audioTempFile.name)))
+                self._audioTempFile.name, audioSize))
 
         logging.debug(
             "Audio track extraction completed in {:.2f} seconds".format(
                 time.time() - t0))
-        
-        # use soundfile to read the audio samples from the temporary file
-        # NOTE - Using an actual sound object for audio now
-        # import soundfile as sf
-        # samples, sr = sf.read(
-        #     self._audioTempFile.name,
-        #     dtype='float32',
-        #     always_2d=True)
-        # self._audioSampleRate = sr
-        # self._audioSamples = samples
 
-        # compute the size of the audio samples in bytes
-        # audioSize = self._audioSamples.nbytes
-        audioSize = os.path.getsize(self._audioTempFile.name)
-
-        logging.debug(
-            "Audio track size: {} bytes".format(audioSize))
-        
     def _loadAudioTrack(self):
         """Load the extracted audio track into a Sound object for playback.
         """
@@ -1638,7 +3477,11 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             self._audioTrack = None
 
         self._extractAudioTrack()  # extract the audio track to a temporary file
-        
+
+        if self._audioTempFile is None:
+            # movie has no audio track, nothing to load
+            return
+
         import psychopy.sound as _sound
         logging.debug(
             "Loading audio track from temporary file: {}".format(
@@ -1756,9 +3599,18 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         """
         return self._textureId
     
-    def updateVideoFrame(self):
+    def updateVideoFrame(self, blocking=None):
         """Update the present video frame. The next call to `draw()` will make
         the retrieved frame appear.
+
+        Parameters
+        ----------
+        blocking : bool or None
+            Whether to wait for the decoder if the frame is not ready yet. If
+            `None` (default), this waits during ordinary playback but not while
+            a seek is outstanding, so that a seek started with
+            `seek(blocking=False)` cannot stall the drawing loop. Pass `True`
+            or `False` to decide explicitly.
 
         Returns
         -------
@@ -1771,7 +3623,14 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         # get the current movie frame for the video time
         self._updateMoviePos()  # update the movie position
 
-        frameData = self._player.getFrame(self._movieTime)
+        if blocking is None:
+            # Waiting is worthwhile when the decoder is merely a little behind
+            # during playback, but not while catching up from a seek the caller
+            # asked not to block on; there the previous frame is shown and this
+            # is retried on the next draw.
+            blocking = not self._player.isSeeking
+
+        frameData = self._player.getFrame(self._movieTime, blocking=blocking)
         
         if frameData is None:  # handle frame not available by showing last frame
             # if self._playbackStatus == PLAYING:  # something went wrong
@@ -1789,12 +3648,24 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         #         self._playbackStatus = PLAYING
 
         if frameImage is not None:
-            # suggested by Alex Forrence (aforren1) originally in PR #6439 to use memoryview
-            videoBuffer = frameImage.to_memoryview()[0].memview
-            videoFrameArray = np.frombuffer(videoBuffer, dtype=np.uint8)
-            self._recentFrame = videoFrameArray # most recent frame
+            # The decoder serves the same frame object for any position within
+            # a frame interval, so while the display refresh outruns the movie
+            # frame rate most calls land on the frame already on the GPU. Only
+            # rewrap and flag for upload when the frame really has changed.
+            if frameImage is not self._recentFrameImage or pts != self._pts:
+                # suggested by Alex Forrence (aforren1) originally in PR #6439 to use memoryview
+                videoBuffer = frameImage.to_memoryview()[0].memview
+                videoFrameArray = np.frombuffer(videoBuffer, dtype=np.uint8)
+                self._recentFrame = videoFrameArray # most recent frame
+                # cached here since `ndarray.ctypes` builds a new helper object
+                # on every access, and the pixel transfer runs every draw
+                self._recentFrameAddr = videoFrameArray.ctypes.data
+                self._recentFrameImage = frameImage
+                self._frameNeedsUpload = True
         else:
             self._recentFrame = None
+            self._recentFrameAddr = None
+            self._recentFrameImage = None
 
         self._pts = pts  # store the current PTS of the frame we got
 
@@ -1805,6 +3676,14 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         class or if a movie is stopped.
 
         """
+        # Drop the frame held for the buffers being freed. Without this a frame
+        # from a previously loaded movie could be uploaded into the buffers
+        # made for the next one, which may not be the same size.
+        self._recentFrame = None
+        self._recentFrameImage = None
+        self._recentFrameAddr = None
+        self._frameNeedsUpload = False
+
         try:
             # delete buffers and textures if previously created
             if self._pixbuffId.value > 0:
@@ -1831,9 +3710,14 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         without having to `_freeTextureBuffers` first.
 
         """
-        # get the size of the movie frame and compute the buffer size
+        # Get the size of the movie frame and compute the buffer size. These
+        # are fixed for the life of the buffers, so they are cached here rather
+        # than recomputed on every pixel transfer.
         vidWidth, vidHeight = self._player.getMetadata().size
         nBufferBytes = vidWidth * vidHeight * 3
+        self._vidWidth = vidWidth
+        self._vidHeight = vidHeight
+        self._nBufferBytes = nBufferBytes
 
         # Create the pixel buffer object which will serve as the texture memory
         # store. Pixel data will be copied to this buffer each frame.
@@ -1841,7 +3725,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, self._pixbuffId)
         GL.glBufferData(
             GL.GL_PIXEL_UNPACK_BUFFER,
-            nBufferBytes * ctypes.sizeof(GL.GLubyte),
+            nBufferBytes,
             None,
             GL.GL_STREAM_DRAW)  # one-way app -> GL
         GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, 0)
@@ -1901,10 +3785,26 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         if not forceRefresh and self._playbackStatus != PLAYING:
             return  # don't update the texture if paused or seeking unless forced
 
-        # get the size of the movie frame and compute the buffer size
-        vidWidth, vidHeight = self._player.getMetadata().size
+        if not (forceRefresh or self._frameNeedsUpload):
+            # The frame already on the GPU is the one to show. This is the
+            # common case whenever the display refresh rate is higher than the
+            # movie frame rate (e.g. a 30 FPS movie on a 60 Hz window), where
+            # re-uploading would burn a whole-frame copy and a texture transfer
+            # per draw to no effect.
+            return
 
-        nBufferBytes = vidWidth * vidHeight * 3
+        # frame size and buffer size are cached by `_setupTextureBuffers`
+        vidWidth, vidHeight = self._vidWidth, self._vidHeight
+        nBufferBytes = self._nBufferBytes
+
+        if self._recentFrame.nbytes < nBufferBytes:
+            # guards against uploading a frame which does not match the buffers
+            # it would be read into, which would read past the end of it
+            logging.error(
+                "Movie frame is smaller than the texture buffer allocated for "
+                "it, skipping the pixel transfer.")
+            self._frameNeedsUpload = False
+            return
 
         # bind pixel unpack buffer
         GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, self._pixbuffId)
@@ -1926,15 +3826,16 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
         # copy the frame data to the buffer
         ctypes.memmove(bufferPtr,
-            self._recentFrame.ctypes.data,
+            self._recentFrameAddr,
             nBufferBytes)
 
         # Very important that we unmap the buffer data after copying, but
         # keep the buffer bound for setting the texture.
         GL.glUnmapBuffer(GL.GL_PIXEL_UNPACK_BUFFER)
 
-        # bind the texture in OpenGL
-        GL.glEnable(GL.GL_TEXTURE_2D)
+        # Bind the texture in OpenGL. Note that `GL_TEXTURE_2D` does not need
+        # enabling for this; the enable bit only gates fixed-function drawing,
+        # which `_drawRectangle` sets up for itself.
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._textureId)
         GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
@@ -1947,28 +3848,32 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             GL.GL_UNSIGNED_BYTE,
             0)  # point to the presently bound buffer
 
-        # update texture filtering only if needed
-        if self._texFilterNeedsUpdate:
-            if self._interpolate:
-                texFilter = GL.GL_LINEAR
-            else:
-                texFilter = GL.GL_NEAREST
-
-            GL.glTexParameteri(
-                GL.GL_TEXTURE_2D,
-                GL.GL_TEXTURE_MAG_FILTER,
-                texFilter)
-            GL.glTexParameteri(
-                GL.GL_TEXTURE_2D,
-                GL.GL_TEXTURE_MIN_FILTER,
-                texFilter)
-
-            self._texFilterNeedsUpdate = False
-
         # important to unbind the PBO
         GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, 0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-        GL.glDisable(GL.GL_TEXTURE_2D)
+
+        self._frameNeedsUpload = False  # texture now matches `_recentFrame`
+
+    def _updateTexFilter(self):
+        """Apply the texture filtering mode for the `interpolate` setting.
+
+        The texture must be bound before calling this. This is done as part of
+        drawing rather than of the pixel transfer so that a change to
+        `interpolate` takes effect on the next draw, whether or not a new frame
+        has been uploaded since.
+
+        """
+        if self._interpolate:
+            texFilter = GL.GL_LINEAR
+        else:
+            texFilter = GL.GL_NEAREST
+
+        GL.glTexParameteri(
+            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, texFilter)
+        GL.glTexParameteri(
+            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, texFilter)
+
+        self._texFilterNeedsUpdate = False
 
     def _drawRectangle(self):
         """Draw the video frame to the window.
@@ -2003,6 +3908,10 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._textureId)
+
+        if self._texFilterNeedsUpdate:
+            self._updateTexFilter()
+
         GL.glPushClientAttrib(GL.GL_CLIENT_VERTEX_ARRAY_BIT)
 
         # 2D texture array, 3D vertex array
@@ -2094,6 +4003,29 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         `isStopped` if the video is stopped.
         """
         return self._playbackStatus == FINISHED
+
+    @property
+    def isSeeking(self):
+        """`True` while a seek has yet to produce a frame (`bool`).
+
+        This is set between a call to `seek()` (or `rewind()`, `fastForward()`
+        and `replay()`, which use it) and the decoder delivering a frame for
+        the new position, and is cleared once that frame arrives or the movie
+        ends before it can.
+
+        It is independent of the playback status, so a movie which was playing
+        before the seek still reports `isPlaying` while this is `True`.
+
+        Seeks normally complete within the `seek()` call itself, so this is
+        only observable when the decoder cannot keep up, such as with large
+        frames or slow media. It is useful for showing a loading indicator
+        while waiting on the movie to catch up.
+
+        """
+        if self._player is None:
+            return False
+
+        return self._player.isSeeking
     
     @property
     def movieTime(self):
@@ -2120,7 +4052,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         
         if not self._noAudio:
             if self._audioDevice is None:
-                if self._audioLib == 'sdl2':
+                if self._decoderPlaysAudio:
                     self._player.mute(False)
                     self._player.setVolume(self._volume)
             else:
@@ -2148,7 +4080,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
         """
         if not self._noAudio:
-            if self._audioLib == 'sdl2':
+            if self._decoderPlaysAudio:
                 self._player.mute(True)
             else:
                 if self._audioTrack is not None and hasattr(self._audioTrack, 'pause'):
@@ -2210,15 +4142,28 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         if log:
             logging.info("Movie stopped: {}".format(self._filename))
 
-    def seek(self, timestamp, log=True):
+    def seek(self, timestamp, blocking=True, log=True):
         """Seek to a particular timestamp in the movie.
 
         Parameters
         ----------
         timestamp : float
             Time in seconds.
+        blocking : bool
+            Whether to wait for the frame at `timestamp` before returning. If
+            `True` (default), the new frame is fetched here and is on-screen at
+            the next `draw()`. If `False`, this returns as soon as the seek has
+            been requested and the frame is picked up by the next `draw()`
+            instead, leaving `isSeeking` set until it arrives.
         log : bool
             Log this event.
+
+        Notes
+        -----
+        * The decoders themselves seek asynchronously, so the cost of a
+          blocking seek is waiting on the frame rather than on the seek. Use
+          `blocking=False` to keep a drawing loop responsive, and `isSeeking`
+          to show a loading indicator until the movie catches up.
 
         """
         if self._playbackStatus == PLAYING: 
@@ -2226,19 +4171,30 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         elif self._playbackStatus == PAUSED:
             self._wasPaused = True
 
-        # self._playbackStatus = SEEKING
         self._movieTime = timestamp
-        # self._player.pause(True)  # pause the player
         self._player.seek(self._movieTime)
 
         # seek the audio track if we have one
         if self._audioTrack is not None and hasattr(self._audioTrack, 'seek'):
             self._audioTrack.seek(self._movieTime)
 
-        # self._pts = self._movieTime  # store the current PTS
-        _ = self.updateVideoFrame()
+        if blocking:
+            # Fetch the frame for the new position now, rather than leaving it
+            # to the next `draw()`. This has to wait explicitly: the seek is
+            # outstanding at this point, which is exactly when
+            # `updateVideoFrame` would otherwise choose not to.
+            self._lastFrameAbsTime = core.getTime()
+            _ = self.updateVideoFrame(blocking=True)
 
-    def rewind(self, seconds=1, log=True):
+            # Moving the decoder and waiting on the frame for the new position
+            # is not time the movie spent playing, so don't let the next
+            # update charge it to the movie clock. Left in, it would push the
+            # movie past the position asked for, and compound over a run of
+            # seeks since `rewind`/`fastForward` work from where the last one
+            # left off.
+            self._lastFrameAbsTime = core.getTime()
+
+    def rewind(self, seconds=1, blocking=True, log=True):
         """Rewind the video.
 
         Parameters
@@ -2246,15 +4202,20 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         seconds : float
             Time in seconds to rewind from the current position. Default is 5
             seconds.
+        blocking : bool
+            Whether to wait for the frame at the new position before returning.
+            If `False`, the frame is picked up by the next `draw()` instead and
+            `isSeeking` stays set until it arrives. See `seek()`.
         log : bool
             Log this event.
 
         """
         newPts = self._movieTime - seconds
         self._movieTime = min(max(0.0, newPts), self.duration)
-        self.seek(self._movieTime)  # seek to the new position
+        # seek to the new position
+        self.seek(self._movieTime, blocking=blocking)
 
-    def fastForward(self, seconds=1, log=True):
+    def fastForward(self, seconds=1, blocking=True, log=True):
         """Fast-forward the video.
 
         Parameters
@@ -2262,38 +4223,49 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         seconds : float
             Time in seconds to fast forward from the current position. Default
             is 5 seconds.
+        blocking : bool
+            Whether to wait for the frame at the new position before returning.
+            If `False`, the frame is picked up by the next `draw()` instead and
+            `isSeeking` stays set until it arrives. See `seek()`.
         log : bool
             Log this event.
 
         """
         newPts = self._movieTime + seconds
         self._movieTime = min(max(0.0, newPts), self.duration)
-        self.seek(self._movieTime)  # seek to the new position
+        # seek to the new position
+        self.seek(self._movieTime, blocking=blocking)
 
-    def replay(self, log=True):
+    def replay(self, blocking=True, log=True):
         """Replay the movie from the beginning.
 
         Parameters
         ----------
+        blocking : bool
+            Whether to wait for the frame at the new position before returning.
+            If `False`, the frame is picked up by the next `draw()` instead and
+            `isSeeking` stays set until it arrives. See `seek()`.
         log : bool
             Log this event.
 
-        Notes
-        -----
-        * This tears down the current media player instance and creates a new
-          one. Similar to calling `stop()` and `loadMovie()`. Use `seek(0.0)` if
-          you would like to restart the movie without reloading.
-
         """
         self._movieTime = 0.0  # reset movie time
-        self.seek(self._movieTime)
+        self.seek(self._movieTime, blocking=blocking)
         self.play()
 
-    def reset(self):
+    def reset(self, blocking=True):
         """Reset the movie to its initial state.
+
+        Parameters
+        ----------
+        blocking : bool
+            Whether to wait for the frame at the new position before returning.
+            If `False`, the frame is picked up by the next `draw()` instead and
+            `isSeeking` stays set until it arrives. See `seek()`.
+
         """
         self._movieTime = 0.0  # reset movie time
-        self.seek(self._movieTime)
+        self.seek(self._movieTime, blocking=blocking)
         self._playbackStatus = NOT_STARTED  # reset playback status
         
     # --------------------------------------------------------------------------
@@ -2304,8 +4276,8 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
     def muted(self):
         """`True` if the stream audio is muted (`bool`).
         """
-        if self._audioLib == 'sdl2':
-            return self._player.get_mute()
+        if self._decoderPlaysAudio:
+            return self._player.muted
         else:
             if self._audioTrack is not None and hasattr(self._audioTrack, 'volume'):
                 return self._audioTrack.volume == 0.0
@@ -2314,8 +4286,8 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
     @muted.setter
     def muted(self, value):
-        if self._audioLib == 'sdl2':
-            self._player.set_mute(value)
+        if self._decoderPlaysAudio:
+            self._player.mute(value)
         else:
             if self._audioTrack is not None and hasattr(self._audioTrack, 'volume'):
                 self._audioTrack.volume = 0.0 if value else self._volume
@@ -2329,9 +4301,9 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             Amount to increase the volume relative to the current volume.
 
         """
-        if self._audioLib == 'sdl2':
-            currentVolume = self._player.get_volume() 
-            self._player.set_volume(currentVolume + amount)
+        if self._decoderPlaysAudio:
+            currentVolume = self._player.volume
+            self._player.setVolume(currentVolume + amount)
         else:
             if self._audioTrack is not None and hasattr(self._audioTrack, 'volume'):
                 self._audioTrack.volume = min(self._audioTrack.volume + amount, 1.0)
@@ -2345,9 +4317,9 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             Amount to decrease the volume relative to the current volume.
 
         """
-        if self._audioLib == 'sdl2':
-            currentVolume = self._player.get_volume() 
-            self._player.set_volume(currentVolume - amount)
+        if self._decoderPlaysAudio:
+            currentVolume = self._player.volume
+            self._player.setVolume(currentVolume - amount)
         else:
             if self._audioTrack is not None and hasattr(self._audioTrack, 'volume'):
                 self._audioTrack.volume = max(self._audioTrack.volume - amount, 0.0)
@@ -2356,8 +4328,8 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
     def volume(self):
         """Volume for the audio track for this movie (`int` or `float`).
         """
-        if self._audioLib == 'sdl2':
-            return self._player.get_volume()
+        if self._decoderPlaysAudio:
+            return self._player.volume
         else:
             if self._audioTrack is not None and hasattr(self._audioTrack, 'volume'):
                 return self._audioTrack.volume
@@ -2366,7 +4338,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
     @volume.setter
     def volume(self, value):
-        if self._audioLib == 'sdl2':
+        if self._decoderPlaysAudio:
             self._player.setVolume(value)
         else:
             if self._audioTrack is not None and hasattr(self._audioTrack, 'volume'):
@@ -2431,7 +4403,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         if not self._player:
             return 1.0
 
-        return self._player.getFrameRate()
+        return self._player.frameRate
 
     @property
     def videoSize(self):
@@ -2520,8 +4492,7 @@ def _closeAllMovieReaders():
         logging.debug(
             "Closing movie reader interface for file: {}".format(
                 movieReader.filename))
-        if hasattr(movieReader, '_player'):
-            movieReader._freePlayer()
+        movieReader._freePlayer()
 
 
 # try an close any players on exit
