@@ -2424,7 +2424,7 @@ class MovieFileReader:
         self._metadata = None  # clear metadata
 
         # remove the reader from the global list of open movie readers
-        if self in _openMovieReaders:
+        if _openMovieReaders and self in _openMovieReaders:
             _openMovieReaders.remove(self)
 
     def _freePlayer(self):
