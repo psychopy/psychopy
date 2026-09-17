@@ -4649,7 +4649,11 @@ class Camera:
         computer vision applications where frames from the camera stream are 
         processed in real-time (e.g. object detection, tracking, etc.) and the 
         video is not being saved to disk. Audio will not be recorded in this
-        mode even if a microphone is provided.
+        mode even if a microphone is provided. Frames are available as soon as
+        the camera is open in 'cv' mode, without calling `record()` first, so a
+        live view can be shown straight away. In 'video' mode frames are kept
+        only while a recording is in progress, since that is what they are
+        captured for.
 
     Examples
     --------
@@ -4682,6 +4686,23 @@ class Camera:
     Overriding the default frame rate and size (if `cameraLib` supports it)::
 
         cam = Camera(0, frameRate=30, frameSize=(640, 480), cameraLib=u'opencv')
+
+    Showing a live view of the camera on screen. Pass the window the frames are
+    to be drawn to, then hand the camera to an `ImageStim` as its image. In
+    `'cv'` usage mode the stream is live as soon as the camera is open, so no
+    recording is needed just to see it::
+
+        cam = Camera(0, win=win, usageMode='cv')
+        cam.open()
+
+        # the stim pulls the most recent frame each time it is drawn
+        camView = visual.ImageStim(win, image=cam, size=cam.frameSize)
+
+        while not event.getKeys('q'):
+            camView.draw()
+            win.flip()
+
+        cam.close()
 
     """
     def __init__(self, device=0, mic=None, cameraLib=u'ffpyplayer',
@@ -6066,16 +6087,29 @@ class Camera:
         if not frames:
             return  # no frames to process
 
-        if not self._recordingRequested:
+        # CV mode has nothing to write to disk and no audio track to line up
+        # with, so a frame is useful the moment it arrives rather than only
+        # within a recording. Keeping such frames is what lets the live view
+        # work without calling `record()` first, whether that is an `ImageStim`
+        # showing the stream or code pulling frames to process. Video mode
+        # keeps waiting for `record()`, since a frame outside the recording
+        # interval has no file to go to.
+        liveView = self._usageMode == CAMERA_MODE_CV
+
+        if not self._recordingRequested and not liveView:
             return  # not recording, nothing to do with these
 
         for colorData, frameIndex, pts, absTime in frames:
-            if absTime < self._tRecordingStartRequested:
-                # the frame was captured before the recording was asked to
-                # start, so it is not part of this recording
+            # Whether this frame belongs to a recording, as opposed to one only
+            # passing through for the live view. Frames captured before the
+            # recording was asked to start are not part of it.
+            inRecording = (self._recordingRequested and
+                           absTime >= self._tRecordingStartRequested)
+
+            if not inRecording and not liveView:
                 continue
 
-            if not self._videoRecordingStarted:
+            if inRecording and not self._videoRecordingStarted:
                 # This is the first frame at or after the requested start time,
                 # so the video recording begins here. The flag is set from this
                 # side rather than in `record()` because the camera may not
@@ -6091,14 +6125,14 @@ class Camera:
 
             # the microphone is started alongside the camera, but takes its own
             # time to come up, so keep checking until it reports it is running
-            if not self._audioReady and self.hasMic:
+            if inRecording and not self._audioReady and self.hasMic:
                 self._audioReady = self._isAudioRecording()
 
             # if camera is in CV mode, convert the frame to RGB by default
             # otherwise frames are converted only when needed
             if self._usageMode == CAMERA_MODE_CV:
                 colorData = self._convertFrameToRGB(colorData)
-            elif self._usageMode == CAMERA_MODE_VIDEO:
+            elif inRecording:
                 # if we are recording video, pass the frame to the movie writer
                 self._submitFrameToFile(
                     (colorData, frameIndex, pts, absTime))
@@ -6111,7 +6145,11 @@ class Camera:
                 captureLib=self._cameraLib)
             self._frameStore.append(cameraFrame)
             self._lastFrame = cameraFrame  # most recent frame, for display
-            self._frameCount += 1  # increment the frame count
+
+            if inRecording:
+                # `frameCount` counts the current recording, so frames shown
+                # only in the live view are left out of it
+                self._frameCount += 1  # increment the frame count
         
     def update(self):
         """Acquire the newest data from the camera and audio streams.
@@ -6172,14 +6210,14 @@ class Camera:
 
         Returns
         -------
-        VideoFrame or None
+        CameraFrame or None
             Most recent video frame. Returns `None` if no frame was available,
             or we timed out.
 
         """
         self.update()
 
-        return self._lastFrame[0] if self._lastFrame else None
+        return self._lastFrame
     
     # --------------------------------------------------------------------------
     # Audio track
