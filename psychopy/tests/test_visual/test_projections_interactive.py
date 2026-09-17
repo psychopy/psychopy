@@ -40,7 +40,7 @@ class ProjectionsLinesAndCircles():
             self.stims.append (t)
 
         for c in range(1, nLines+1):
-            t = Circle(window, radius=c * 10, edges=128, units='deg', lineWidth=4)
+            t = Circle(window, size=c * 20, edges=128, units='deg', lineWidth=4)
             self.stims.append (t)
 
         self.updateInfo()
