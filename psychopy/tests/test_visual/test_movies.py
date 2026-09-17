@@ -112,15 +112,15 @@ def _availableBackends():
     """
     found = []
     for movieLib, moduleName in (
-            ('ffpyplayer', 'ffpyplayer'),
+            # ('ffpyplayer', 'ffpyplayer'),
             ('pyav', 'av'),
             ('opencv', 'cv2'),
-            ('vlc', 'vlc')):
+            # ('vlc', 'vlc')):
         try:
             __import__(moduleName)
         except Exception:
-            # `python-vlc` raises rather than failing to import when it cannot
-            # find a `libvlc` to bind to, so this cannot just catch
+            # Raises rather than failing to import when it cannot
+            # find a library to bind to, so this cannot just catch
             # `ImportError`
             continue
         found.append(movieLib)
