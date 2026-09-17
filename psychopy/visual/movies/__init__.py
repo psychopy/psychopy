@@ -78,17 +78,8 @@ VLC_PAUSE_SETTLE_TIMEOUT = 0.25  # seconds
 # pause, but on its own that proved to come too early to seek on.
 VLC_PAUSE_SETTLE_MIN = 0.05  # seconds
 
-# `ffpyplayer` does not presently provide wheels/builds for Python 3.14+, so
-# `PyAV` ('av' on PyPI) is used as the decoder backend instead on those
-# versions. Earlier Python versions continue to use `ffpyplayer` by default
-# to preserve existing behaviour (e.g. its SDL2-synced audio playback).
-# Either library may still be requested explicitly via `movieLib`/
-# `decoderLib`, but only the version-appropriate one is guaranteed to be
-# installed.
-if sys.version_info >= (3, 14):
-    PREFERRED_VIDEO_LIB = 'pyav'
-else:
-    PREFERRED_VIDEO_LIB = 'ffpyplayer'
+# recommended library for video decoding
+PREFERRED_VIDEO_LIB = 'pyav'
 
 # Movie decoder libraries which are recognized/supported by `MovieFileReader`
 # and `MovieStim`.
