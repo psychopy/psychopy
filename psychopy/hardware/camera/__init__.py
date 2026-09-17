@@ -4725,75 +4725,18 @@ class Camera:
             cameraLib = backend
         self._cameraLib = cameraLib
 
-        # interface class which talks to the camera using `cameraLib`, raises
-        # if the library named is not one we have an interface for
-        cameraDeviceClass = getCameraDeviceClass(cameraLib)
+        # The device this camera was asked for, kept so that the capture
+        # device can be resolved again if `open()` is called after `close()`
+        # has released it.
+        self._deviceSpec = {
+            'device': device,
+            'frameRate': frameRate,
+            'frameSize': frameSize,
+            'bufferSecs': bufferSecs}
 
-        # handle device
+        # find (or create) the device which does the actual capturing
         self._capture = None
-        if isinstance(device, BaseCameraDevice):
-            # if given a device object, use it
-            self._capture = device
-        elif device is None:
-            # if given None, get the first available device
-            for name, obj in DeviceManager.getInitialisedDevices(
-                    cameraDeviceClass).items():
-                self._capture = obj
-                break
-            # if there are none, set one up
-            if self._capture is None:
-                for profile in cameraDeviceClass.getAvailableDevices():
-                    self._capture = DeviceManager.addDevice(**profile)
-                    break
-        elif isinstance(device, str):
-            if DeviceManager.getDevice(device):
-                self._capture = DeviceManager.getDevice(device)
-            else:
-                # get available devices
-                availableDevices = cameraDeviceClass.getAvailableDevices()
-                # if given a device name, try to find it
-                for profile in availableDevices:
-                    if profile['deviceName'] != device:
-                        continue
-                    paramsMatch = all([
-                        profile.get(key) == value
-                        for key, value in {
-                            'deviceName': device,
-                            'captureLib': cameraLib,
-                            'frameRate': frameRate if frameRate is not None else True,  # get first
-                            'frameSize': frameSize if frameSize is not None else True
-                        }.items() if value is not None
-                    ])
-                    if not paramsMatch:
-                        continue
-                    
-                    device = profile['device']
-                    break
-
-                # anything else, try to initialise a new device from params
-                self._capture = cameraDeviceClass(
-                    device=device,
-                    captureLib=cameraLib,
-                    frameRate=frameRate,
-                    frameSize=frameSize,
-                    bufferSecs=bufferSecs,
-                    pixelFormat=None,  # use default pixel format
-                    codecFormat=None,  # use default codec format
-                    captureAPI=None  # use default capture API
-                )
-        else:
-            # anything else, try to initialise a new device from params
-            self._capture = cameraDeviceClass(
-                device=device,
-                frameRate=frameRate,
-                frameSize=frameSize,
-                bufferSecs=bufferSecs,
-            )
-
-        # from here on in the init, use the device index as `device`
-        # device = self._capture.device
-        # get info from device
-        self._cameraInfo = self._capture.info
+        self._resolveCaptureDevice()
 
         # handle microphone
         self.mic = None
@@ -5290,6 +5233,96 @@ class Camera:
         """
         return self._audioReady and self._videoReady
 
+    def _resolveCaptureDevice(self):
+        """Find or create the capture device this camera streams from.
+
+        The capture device is what actually talks to the camera hardware; a
+        `Camera` is one of possibly several clients of it. This works out which
+        device the `device` value passed to the constructor refers to, reusing
+        an already initialised device where one matches and creating one
+        otherwise, then stores it as `_capture` and takes its info.
+
+        This is also called by `open()` when the camera is being reopened after
+        `close()`, which releases the device, so the lookup is repeated rather
+        than done only once at construction.
+
+        """
+        device = self._deviceSpec['device']
+        frameRate = self._deviceSpec['frameRate']
+        frameSize = self._deviceSpec['frameSize']
+        bufferSecs = self._deviceSpec['bufferSecs']
+        cameraLib = self._cameraLib
+
+        # interface class which talks to the camera using `cameraLib`, raises
+        # if the library named is not one we have an interface for
+        cameraDeviceClass = getCameraDeviceClass(cameraLib)
+
+        # handle device
+        self._capture = None
+        if isinstance(device, BaseCameraDevice):
+            # if given a device object, use it
+            self._capture = device
+        elif device is None:
+            # if given None, get the first available device
+            for devName, obj in DeviceManager.getInitialisedDevices(
+                    cameraDeviceClass).items():
+                self._capture = obj
+                break
+            # if there are none, set one up
+            if self._capture is None:
+                for profile in cameraDeviceClass.getAvailableDevices():
+                    self._capture = DeviceManager.addDevice(**profile)
+                    break
+        elif isinstance(device, str):
+            if DeviceManager.getDevice(device):
+                self._capture = DeviceManager.getDevice(device)
+            else:
+                # get available devices
+                availableDevices = cameraDeviceClass.getAvailableDevices()
+                # if given a device name, try to find it
+                for profile in availableDevices:
+                    if profile['deviceName'] != device:
+                        continue
+                    paramsMatch = all([
+                        profile.get(key) == value
+                        for key, value in {
+                            'deviceName': device,
+                            'captureLib': cameraLib,
+                            'frameRate': frameRate if frameRate is not None else True,  # get first
+                            'frameSize': frameSize if frameSize is not None else True
+                        }.items() if value is not None
+                    ])
+                    if not paramsMatch:
+                        continue
+                    
+                    device = profile['device']
+                    break
+
+                # anything else, try to initialise a new device from params
+                self._capture = cameraDeviceClass(
+                    device=device,
+                    captureLib=cameraLib,
+                    frameRate=frameRate,
+                    frameSize=frameSize,
+                    bufferSecs=bufferSecs,
+                    pixelFormat=None,  # use default pixel format
+                    codecFormat=None,  # use default codec format
+                    captureAPI=None  # use default capture API
+                )
+        else:
+            # anything else, try to initialise a new device from params
+            self._capture = cameraDeviceClass(
+                device=device,
+                frameRate=frameRate,
+                frameSize=frameSize,
+                bufferSecs=bufferSecs,
+            )
+
+        # get info from device
+        self._cameraInfo = self._capture.info
+
+        return self._capture
+
     def open(self):
         """Open the camera stream and begin decoding frames (if available).
 
@@ -5307,12 +5340,20 @@ class Camera:
         # provided by an extension.
         # desc = self._cameraInfo.description()
 
+        # `close()` releases the capture device, so look it up again if this is
+        # a reopen. Doing so here rather than holding on to the closed device
+        # means a device shared through `DeviceManager` is picked up in
+        # whatever state it is now in. This comes before the movie file writer
+        # is opened, as the writer needs the frame size the device reports.
+        if self._capture is None:
+            self._resolveCaptureDevice()
+
         # CV mode never writes frames to disk, so opening a writer for it would
         # only create a temporary file and an encoder nothing ever reaches.
         if self._usageMode == CAMERA_MODE_VIDEO:
             self._openMovieFileWriter()
 
-        if self._capture is not None and not self._capture.isOpen:
+        if not self._capture.isOpen:
             self._capture.open()
 
         # register this client with the camera device
@@ -6172,6 +6213,14 @@ class Camera:
             called very shortly after `record()`.
 
         """
+        # Nothing to poll before `open()` or after `close()`, which clears the
+        # capture object. This is not an error: a stimulus handed this camera
+        # as its image goes on drawing after the camera is closed, and the
+        # texture already uploaded stays valid, so it simply keeps showing the
+        # last frame instead of raising.
+        if self._capture is None or not self._capture.isOpen:
+            return
+
         # force the device interface to poll to ensure most recent frame
         self._capture._poll() 
         # transfer most recent frames to the GPU if we have a window
