@@ -60,6 +60,7 @@ import time
 import ctypes
 import collections
 import queue
+import traceback
 import numpy as np
 import threading
 
@@ -206,14 +207,35 @@ CAMERA_LIBS = [  # list of supported camera libraries
 # when cameraLib is None.
 backend = PREFERED_CAMERA_LIB  
 
-# Keep track of open capture interfaces so we can close them at shutdown in the
-# event that the user forgets or the program crashes.
-#
-_openCaptureInterfaces = set()
-
 # ------------------------------------------------------------------------------
 # Helper functions
 #
+
+def _isSameSetting(current, requested):
+    """Compare a setting a camera is using against one which was requested.
+
+    Frame sizes arrive as sequences and everything else as scalars, so
+    sequences are compared element-wise and the rest is left to `==`.
+
+    Parameters
+    ----------
+    current : Any
+        Value the camera is presently using.
+    requested : Any
+        Value which was asked for.
+
+    Returns
+    -------
+    bool
+        `True` if the two amount to the same setting.
+
+    """
+    if isinstance(current, (list, tuple)) and \
+            isinstance(requested, (list, tuple)):
+        return list(current) == list(requested)
+
+    return current == requested
+
 
 def _isNullFormat(value):
     """Check whether a pixel or codec format value means 'not set'.
@@ -880,6 +902,14 @@ class CameraDevice(BaseDevice):
     
     This interface handles the opening, closing, and reading of camera streams.
 
+    A camera can only be streamed from once, so there is at most one device
+    object per camera however many clients are reading from it. Creating a
+    device for a camera which is already open gives back the device already
+    streaming from it rather than a new object, see `__new__()`. Clients
+    register themselves with `bind()` to be given frames as they arrive, and
+    the stream stays up until the last of them has called `unbind()` and
+    `close()`.
+
     Parameters
     ----------
     device : Any
@@ -895,15 +925,267 @@ class CameraDevice(BaseDevice):
     _captureLib = ''
     _device = None  # name/path/index identifying the device to the backend
     _cameraClients = ()  # clients bound to this stream, see `bind()`
+    _cameraClientsLock = None  # guards `_cameraClients`, see `__init__()`
     _ptsAnchor = None  # (pts, local time) of the first frame, see `_absTimeForPTS()`
     _pollingTimerThread = None  # thread driving `_poll()`, see `_setupAutoPolling()`
     _pollingInterval = None  # seconds between polls
+
+    # Camera devices which are presently streaming, keyed by capture library
+    # and device name. A camera can only be opened once, so asking for one
+    # which is already open hands back the device streaming from it rather
+    # than opening the hardware again, see `__new__()`. This mapping lives on
+    # the base class so that every backend shares it, with the capture library
+    # in the key keeping devices from different backends apart.
+    _deviceInstances = {}
+    _deviceInstancesLock = threading.RLock()
+    # Set by `__new__()` on a device it is handing back to a second caller and
+    # cleared by `_isReusedInstance()` when `__init__()` checks for it.
+    _isSharedInstance = False
+    _resolvedProfile = None  # camera this device is for, resolved by `__new__()`
+
+    def __new__(cls, device=None, *args, **kwargs):
+        """Get a device object for a camera, creating one only if needed.
+
+        A camera can be opened only once, so several clients which name the
+        same camera have to share a single device object rather than each
+        opening the hardware. That sharing is arranged here: if the camera
+        `device` names is already open, the device streaming from it is
+        returned in place of a new object. Every subclass `__init__()` returns
+        straight away in that case, see `_isReusedInstance()`, leaving the
+        running stream and the clients already bound to it untouched.
+
+        Parameters
+        ----------
+        device : int, str, dict or None
+            Camera the device is being asked for, as the constructor takes it.
+
+        Returns
+        -------
+        CameraDevice
+            Device object for the camera, either newly created or the one
+            already streaming from that camera.
+
+        """
+        profile = None
+        try:
+            profile = cls._resolveDeviceProfile(device)
+        except (CameraError, NotImplementedError):
+            # leave it to `__init__()` to report what is wrong with `device`
+            pass
+
+        if profile is None:
+            return super().__new__(cls)
+
+        with cls._deviceInstancesLock:
+            openDevice = cls._deviceInstances.get(
+                cls._instanceKeyFor(profile), None)
+            if openDevice is not None and openDevice.isOpen:
+                logging.debug(
+                    "Camera '{}' is already open, returning the device "
+                    "already streaming from it.".format(
+                        profile['deviceName']))
+                openDevice._isSharedInstance = True
+                return openDevice
+
+            newDevice = super().__new__(cls)
+            newDevice._resolvedProfile = profile
+
+            return newDevice
 
     def __init__(self, *args, **kwargs):
         super().__init__()
 
         self._cameraClients = []
+        self._cameraClientsLock = threading.RLock()
         self._ptsAnchor = None
+
+    # --------------------------------------------------------------------------
+    # Device identity and sharing
+    #
+    # A camera can only be streamed from once, so the device object which owns
+    # that stream is shared by all its clients. These work out which camera a
+    # device refers to and keep track of which cameras are presently open.
+    #
+
+    @classmethod
+    def _resolveDeviceProfile(cls, device):
+        """Resolve a device specifier onto the profile of the camera it names.
+
+        Parameters
+        ----------
+        device : int, str or dict
+            Index into `getAvailableDevices()`, name of the camera as the OS
+            reports it, or a device profile as `getAvailableDevices()` returns
+            them.
+
+        Returns
+        -------
+        dict
+            Profile of the camera `device` names.
+
+        Raises
+        ------
+        CameraNotFoundError
+            If no camera attached to the system matches `device`.
+
+        """
+        if isinstance(device, dict):
+            return device
+
+        if isinstance(device, int):
+            availableDevices = cls.getAvailableDevices()
+            if not 0 <= device < len(availableDevices):
+                raise CameraNotFoundError(
+                    "Cannot find camera with index {}, {} camera(s) are "
+                    "available.".format(device, len(availableDevices)))
+            device = availableDevices[device]['deviceName']
+
+        if isinstance(device, str):
+            for profile in cls.getAvailableDevices():
+                if profile['deviceName'] == device:
+                    return profile
+
+        raise CameraNotFoundError(
+            "Cannot find camera with index or name '{}'.".format(device))
+
+    def _getDeviceProfile(self, device):
+        """Get the profile of the camera this device was created for.
+
+        This is what subclass `__init__()` methods take their `info` from.
+        `__new__()` has usually resolved it already, in which case the cached
+        result is returned rather than the camera list being walked again.
+
+        Parameters
+        ----------
+        device : int, str or dict
+            Camera specifier the constructor was called with.
+
+        Returns
+        -------
+        dict
+            Profile of the camera `device` names.
+
+        """
+        if self._resolvedProfile is None:
+            self._resolvedProfile = self._resolveDeviceProfile(device)
+
+        return self._resolvedProfile
+
+    @classmethod
+    def _instanceKeyFor(cls, profile):
+        """Get the key a camera is registered under in `_deviceInstances`.
+
+        Parameters
+        ----------
+        profile : dict
+            Profile of the camera, as `_resolveDeviceProfile()` returns.
+
+        Returns
+        -------
+        tuple
+            Key identifying the camera within the registry of open devices.
+
+        """
+        return cls._captureLib, profile['deviceName']
+
+    def _isReusedInstance(self, **requested):
+        """Whether this object is a device which is already open.
+
+        Subclass `__init__()` methods call this first and return immediately
+        if it is `True`, since re-running initialisation on a device which is
+        already streaming would pull the stream out from under the clients
+        bound to it.
+
+        Parameters
+        ----------
+        **requested
+            Settings the constructor was called with, checked against those
+            the open device is actually using so that any which cannot be
+            honoured are reported. A value of `None` means "whatever the
+            camera is doing" and is skipped.
+
+        Returns
+        -------
+        bool
+            `True` if this object is an already open device being shared.
+
+        """
+        if not self._isSharedInstance:
+            return False
+
+        # One-shot flag, cleared here so that a later re-initialisation of
+        # this same object is not mistaken for a shared one.
+        self._isSharedInstance = False
+
+        for name, value in requested.items():
+            if value is None:  # caller did not ask for anything in particular
+                continue
+            current = getattr(self, name, None)
+            if _isSameSetting(current, value):
+                continue
+            logging.warning(
+                "Camera '{}' is already open with {}={}, so the {} requested "
+                "for this client cannot be applied while the stream is "
+                "shared.".format(self._device, name, current, value))
+
+        return True
+
+    def _registerOpenDevice(self):
+        """Record this device as the one streaming from its camera.
+
+        Called by `open()` once the stream is up, so that a later request for
+        the same camera is given this device instead of opening the hardware a
+        second time. A device which fails to open is never registered.
+
+        """
+        with self._deviceInstancesLock:
+            self._deviceInstances[self._instanceKeyFor(self.info)] = self
+
+    def _unregisterOpenDevice(self):
+        """Drop this device from the registry of open camera devices.
+
+        Called by `close()` once the camera has been released, so that the
+        next request for that camera opens it afresh.
+
+        """
+        key = self._instanceKeyFor(self.info)
+        with self._deviceInstancesLock:
+            if self._deviceInstances.get(key, None) is self:
+                del self._deviceInstances[key]
+
+    @classmethod
+    def getOpenDevices(cls):
+        """Get the camera devices which are presently open.
+
+        Called on a backend class this gives only that backend's devices,
+        called on `BaseCameraDevice` it gives them all.
+
+        Returns
+        -------
+        list
+            Open camera devices, each of which may have any number of clients
+            bound to it.
+
+        """
+        with cls._deviceInstancesLock:
+            return [device for device in cls._deviceInstances.values()
+                    if isinstance(device, cls) and device.isOpen]
+
+    def _forceClose(self):
+        """Close the camera even if clients are still bound to it.
+
+        `close()` leaves the stream running while any client is still bound,
+        which is what allows several clients to share one camera. Shutdown
+        cannot wait for those clients to unbind, so this drops them first.
+
+        """
+        if self._cameraClientsLock is not None:
+            with self._cameraClientsLock:
+                self._cameraClients = []
+        else:
+            self._cameraClients = []
+
+        self.close()
 
     @staticmethod
     def getCameras():
@@ -1136,8 +1418,9 @@ class CameraDevice(BaseDevice):
             new frames.
 
         """
-        if client not in self._cameraClients:
-            self._cameraClients.append(client)
+        with self._cameraClientsLock:
+            if client not in self._cameraClients:
+                self._cameraClients.append(client)
 
     def unbind(self, client):
         """Unregister a client from receiving new frames from the camera stream.
@@ -1148,8 +1431,9 @@ class CameraDevice(BaseDevice):
             Client object that was previously registered to receive new frames.
 
         """
-        if client in self._cameraClients:
-            self._cameraClients.remove(client)
+        with self._cameraClientsLock:
+            if client in self._cameraClients:
+                self._cameraClients.remove(client)
 
     def _onNewFrames(self, frames):
         """Callback function called when new frames are available from the 
@@ -1162,8 +1446,22 @@ class CameraDevice(BaseDevice):
             contains (frame, frame index, timestamp).
 
         """
-        for client in self._cameraClients:
-            client._onNewFrames(frames)
+        # Dispatch off a copy of the client list: clients bind and unbind
+        # from the main thread while this runs on the polling thread. A client
+        # which raises must not stop the frames reaching the others, nor take
+        # the polling thread (and with it the stream every other client is
+        # reading) down with it.
+        with self._cameraClientsLock:
+            clients = list(self._cameraClients)
+
+        for client in clients:
+            try:
+                client._onNewFrames(frames)
+            except Exception:
+                logging.error(
+                    "Error dispatching frames from camera '{}' to client "
+                    "{}:\n{}".format(
+                        self._device, client, traceback.format_exc()))
 
     def _absTimeForPTS(self, pts, tReceived):
         """Map a stream presentation timestamp onto the local clock.
@@ -1518,10 +1816,6 @@ class CameraDevice(BaseDevice):
         return [None] + resolutions
 
 
-# keep track of camera devices that are opened
-_openCameras = {}
-
-
 # ~~~ Library specific camera device classes ~~~
 
 class FFPyPlayerCameraDevice(CameraDevice):
@@ -1558,7 +1852,6 @@ class FFPyPlayerCameraDevice(CameraDevice):
         The default value is `None`.
 
     """
-    _streams = {}
     backend = 'ffpyplayer'
     _captureLib = CAMERA_LIB_FFPYPLAYER
     _deviceClassPath = "psychopy.hardware.camera.CameraDevice"
@@ -1573,27 +1866,16 @@ class FFPyPlayerCameraDevice(CameraDevice):
                  bufferSecs=5.0, 
                  pollingInterval=None, 
                  **kwargs):
-        # if device is an integer, get name from index
-        foundProfile = None
-        
-        if isinstance(device, int):
-            device = self.getAvailableDevices()[device]['deviceName']
+        # `__new__()` hands back the device already streaming from this camera
+        # when there is one. It is set up already, and re-running any of this
+        # would pull the stream out from under the clients bound to it.
+        if self._isReusedInstance(frameSize=frameSize, frameRate=frameRate):
+            return
 
-        # if device is a string, get profile from name
-        if isinstance(device, str):
-            for profile in self.getAvailableDevices():
-                if profile['deviceName'] == device:
-                    foundProfile = profile
-                    break
-        # if device is a dict, use it directly
-        elif isinstance(device, dict):
-            foundProfile = device
+        super().__init__()
 
-        if foundProfile is None:
-            raise CameraNotFoundError(
-                "Cannot find camera with index or name '{}'.".format(device))
-
-        self.info = foundProfile
+        # whatever we were given, resolved to a camera attached to the system
+        self.info = self._getDeviceProfile(device)
         self._frameSize = frameSize if frameSize is not None else [640, 480]
         self._frameRate = frameRate if frameRate is not None else 30.0
         self._device = self.info['deviceName']
@@ -1635,8 +1917,6 @@ class FFPyPlayerCameraDevice(CameraDevice):
                     platform.system()))
 
         self._capture = None  # will hold the ffpyplayer MediaPlayer object
-        # keep track of clients attached to this camera stream
-        self._cameraClients = []
 
         self.open()  # open the camera stream
 
@@ -1876,14 +2156,19 @@ class FFPyPlayerCameraDevice(CameraDevice):
         # get settings from the profile
         self._bufferSecs = self._bufferSecs  # default buffer size in seconds
 
-        # if we already have a stream for this device, reuse it
-        if self._device in FFPyPlayerCameraDevice._streams.keys():
-            if self.isSameDevice(FFPyPlayerCameraDevice._streams[self._device]):
-                self._capture = FFPyPlayerCameraDevice._streams[self._device]._capture
-                logging.debug(
-                    "Reusing existing camera stream for device '{}'.".format(
-                        self._device))
-                return
+        # Refuse to open a camera a second time rather than fight the device
+        # already streaming from it for the hardware. Asking for a camera which
+        # is already open gives back that device (see `__new__()`), so this only
+        # catches objects built before the stream was opened.
+        openDevice = self._deviceInstances.get(
+            self._instanceKeyFor(self.info), None)
+        if openDevice is not None and openDevice is not self and \
+                openDevice.isOpen:
+            raise CameraNotReadyError(
+                "Camera '{}' has already been opened by another "
+                "`FFPyPlayerCameraDevice`. Bind extra clients to that device "
+                "with `bind()` instead of opening the camera again.".format(
+                    self._device))
 
         # configure the camera stream reader
         ff_opts = {}  # ffmpeg options
@@ -1983,8 +2268,9 @@ class FFPyPlayerCameraDevice(CameraDevice):
         # obtain stream metadata, frames are valid after this succeeds
         self._obtainInitialStreamMetadata()
 
-        # register stream in the class-level dictionary
-        FFPyPlayerCameraDevice._streams[self._device] = self._capture
+        # this device now owns the camera, so hand it to anyone else who asks
+        # for the same one instead of opening the camera again
+        self._registerOpenDevice()
 
         if self._pollingTimerThread is None:
             self._setupAutoPolling()  # set up automatic polling of the camera stream
@@ -2016,6 +2302,7 @@ class FFPyPlayerCameraDevice(CameraDevice):
                     self._device))
 
         self._stopAutoPolling()
+        self._unregisterOpenDevice()
 
         self._ptsAnchor = None
         self._frameCount = 0  # reset the frame count
@@ -2230,7 +2517,6 @@ class PyAVCameraDevice(CameraDevice):
         cam.close()
 
     """
-    _streams = {}  # open streams, keyed by device name
     backend = 'pyav'
     _captureLib = CAMERA_LIB_PYAV
     _deviceClassPath = "psychopy.hardware.camera.PyAVCameraDevice"
@@ -2253,32 +2539,16 @@ class PyAVCameraDevice(CameraDevice):
                  pollingInterval=None,
                  readTimeout=None,
                  **kwargs):
+        # `__new__()` hands back the device already streaming from this camera
+        # when there is one. It is set up already, and re-running any of this
+        # would pull the stream out from under the clients bound to it.
+        if self._isReusedInstance(frameSize=frameSize, frameRate=frameRate):
+            return
+
         super().__init__()
 
-        # resolve whatever we were given to a device profile
-        foundProfile = None
-
-        if isinstance(device, int):
-            availableDevices = self.getAvailableDevices()
-            if not 0 <= device < len(availableDevices):
-                raise CameraNotFoundError(
-                    "Cannot find camera with index {}, {} camera(s) are "
-                    "available.".format(device, len(availableDevices)))
-            device = availableDevices[device]['deviceName']
-
-        if isinstance(device, str):
-            for profile in self.getAvailableDevices():
-                if profile['deviceName'] == device:
-                    foundProfile = profile
-                    break
-        elif isinstance(device, dict):
-            foundProfile = device
-
-        if foundProfile is None:
-            raise CameraNotFoundError(
-                "Cannot find camera with index or name '{}'.".format(device))
-
-        self.info = foundProfile
+        # whatever we were given, resolved to a camera attached to the system
+        self.info = self._getDeviceProfile(device)
         self._device = self.info['deviceName']
         self._frameSize = list(frameSize) if frameSize is not None else [640, 480]
         self._frameRate = float(frameRate) if frameRate is not None else 30.0
@@ -2345,9 +2615,6 @@ class PyAVCameraDevice(CameraDevice):
         # frames are dropped once it is full.
         self._frameQueue = collections.deque(maxlen=1)
         self._frameLock = threading.Lock()
-
-        # keep track of clients attached to this camera stream
-        self._cameraClients = []
 
         self.open()  # open the camera stream
 
@@ -2688,16 +2955,19 @@ class PyAVCameraDevice(CameraDevice):
                 "The `av` (PyAV) library is required to open camera streams "
                 "with `cameraLib='pyav'`. Install it with `pip install av`.")
 
-        # Refuse to open a camera a second time rather than fight the previous
-        # stream for it. Multiple clients share one stream by binding to the
-        # same device object, see `bind()`.
-        openStream = PyAVCameraDevice._streams.get(self._device, None)
-        if openStream is not None and openStream is not self and openStream.isOpen:
+        # Refuse to open a camera a second time rather than fight the device
+        # already streaming from it for the hardware. Asking for a camera which
+        # is already open gives back that device (see `__new__()`), so this only
+        # catches objects built before the stream was opened.
+        openDevice = self._deviceInstances.get(
+            self._instanceKeyFor(self.info), None)
+        if openDevice is not None and openDevice is not self and \
+                openDevice.isOpen:
             raise CameraNotReadyError(
                 "Camera '{}' has already been opened by another "
-                "`PyAVCameraDevice`. Use that device object and bind extra "
-                "clients to it with `bind()` instead of opening the camera "
-                "again.".format(self._device))
+                "`PyAVCameraDevice`. Bind extra clients to that device with "
+                "`bind()` instead of opening the camera again.".format(
+                    self._device))
 
         containerFormat, deviceURL, openOpts = self._getOpenOptions()
 
@@ -2782,8 +3052,9 @@ class PyAVCameraDevice(CameraDevice):
 
         self._startReaderThread()
 
-        # register the stream in the class-level dictionary
-        PyAVCameraDevice._streams[self._device] = self
+        # this device now owns the camera, so hand it to anyone else who asks
+        # for the same one instead of opening the camera again
+        self._registerOpenDevice()
 
         if self._pollingTimerThread is None:
             self._setupAutoPolling()
@@ -2945,7 +3216,7 @@ class PyAVCameraDevice(CameraDevice):
         with self._frameLock:
             self._frameQueue.clear()
 
-        PyAVCameraDevice._streams.pop(self._device, None)
+        self._unregisterOpenDevice()
 
         self._streamStartTime = -1.0
         self._ptsAnchor = None
@@ -2976,8 +3247,7 @@ class PyAVCameraDevice(CameraDevice):
         """Release the camera if the interface is garbage collected.
         """
         try:
-            self._cameraClients = []  # nothing left to keep the stream open for
-            self.close()
+            self._forceClose()  # nothing left to keep the stream open for
         except Exception:
             pass
 
@@ -3126,7 +3396,6 @@ class OpenCVCameraDevice(CameraDevice):
         cam.close()
 
     """
-    _streams = {}  # open streams, keyed by device name
     backend = 'opencv'
     _captureLib = CAMERA_LIB_OPENCV
     _deviceClassPath = "psychopy.hardware.camera.OpenCVCameraDevice"
@@ -3156,32 +3425,16 @@ class OpenCVCameraDevice(CameraDevice):
                  pollingInterval=None,
                  readTimeout=None,
                  **kwargs):
+        # `__new__()` hands back the device already streaming from this camera
+        # when there is one. It is set up already, and re-running any of this
+        # would pull the stream out from under the clients bound to it.
+        if self._isReusedInstance(frameSize=frameSize, frameRate=frameRate):
+            return
+
         super().__init__()
 
-        # resolve whatever we were given to a device profile
-        foundProfile = None
-
-        if isinstance(device, int):
-            availableDevices = self.getAvailableDevices()
-            if not 0 <= device < len(availableDevices):
-                raise CameraNotFoundError(
-                    "Cannot find camera with index {}, {} camera(s) are "
-                    "available.".format(device, len(availableDevices)))
-            device = availableDevices[device]['deviceName']
-
-        if isinstance(device, str):
-            for profile in self.getAvailableDevices():
-                if profile['deviceName'] == device:
-                    foundProfile = profile
-                    break
-        elif isinstance(device, dict):
-            foundProfile = device
-
-        if foundProfile is None:
-            raise CameraNotFoundError(
-                "Cannot find camera with index or name '{}'.".format(device))
-
-        self.info = foundProfile
+        # whatever we were given, resolved to a camera attached to the system
+        self.info = self._getDeviceProfile(device)
         self._device = self.info['deviceName']
         self._frameSize = list(frameSize) if frameSize is not None else [640, 480]
         self._frameRate = float(frameRate) if frameRate is not None else 30.0
@@ -3255,9 +3508,6 @@ class OpenCVCameraDevice(CameraDevice):
         # frames are dropped once it is full.
         self._frameQueue = collections.deque(maxlen=1)
         self._frameLock = threading.Lock()
-
-        # keep track of clients attached to this camera stream
-        self._cameraClients = []
 
         self.open()  # open the camera stream
 
@@ -3709,16 +3959,19 @@ class OpenCVCameraDevice(CameraDevice):
                 "streams with `cameraLib='opencv'`. Install it with "
                 "`pip install opencv-python`.")
 
-        # Refuse to open a camera a second time rather than fight the previous
-        # stream for it. Multiple clients share one stream by binding to the
-        # same device object, see `bind()`.
-        openStream = OpenCVCameraDevice._streams.get(self._device, None)
-        if openStream is not None and openStream is not self and openStream.isOpen:
+        # Refuse to open a camera a second time rather than fight the device
+        # already streaming from it for the hardware. Asking for a camera which
+        # is already open gives back that device (see `__new__()`), so this only
+        # catches objects built before the stream was opened.
+        openDevice = self._deviceInstances.get(
+            self._instanceKeyFor(self.info), None)
+        if openDevice is not None and openDevice is not self and \
+                openDevice.isOpen:
             raise CameraNotReadyError(
                 "Camera '{}' has already been opened by another "
-                "`OpenCVCameraDevice`. Use that device object and bind extra "
-                "clients to it with `bind()` instead of opening the camera "
-                "again.".format(self._device))
+                "`OpenCVCameraDevice`. Bind extra clients to that device with "
+                "`bind()` instead of opening the camera again.".format(
+                    self._device))
 
         self._captureIndex = self._captureIndexFor(self._device)
         apiPreference = getattr(
@@ -3769,8 +4022,9 @@ class OpenCVCameraDevice(CameraDevice):
 
         self._startReaderThread()
 
-        # register the stream in the class-level dictionary
-        OpenCVCameraDevice._streams[self._device] = self
+        # this device now owns the camera, so hand it to anyone else who asks
+        # for the same one instead of opening the camera again
+        self._registerOpenDevice()
 
         if self._pollingTimerThread is None:
             self._setupAutoPolling()
@@ -4017,7 +4271,7 @@ class OpenCVCameraDevice(CameraDevice):
         with self._frameLock:
             self._frameQueue.clear()
 
-        OpenCVCameraDevice._streams.pop(self._device, None)
+        self._unregisterOpenDevice()
 
         self._streamStartTime = -1.0
         self._ptsAnchor = None
@@ -4048,8 +4302,7 @@ class OpenCVCameraDevice(CameraDevice):
         """Release the camera if the interface is garbage collected.
         """
         try:
-            self._cameraClients = []  # nothing left to keep the stream open for
-            self.close()
+            self._forceClose()  # nothing left to keep the stream open for
         except Exception:
             pass
 
@@ -4573,6 +4826,15 @@ class Camera:
     the video stream (as best as possible). Video and audio can be saved to disk 
     either as a single file or as separate files.
 
+    Several `Camera` objects may name the same physical camera, in which case
+    they share the single device which streams from it rather than each trying
+    to open the hardware. Each keeps its own recording, so `record()` and
+    `stop()` can be called on each of them at whatever times suit it, and the
+    camera is released once the last of them has been closed. Since the stream
+    is shared, the frame size and rate are those the camera was first opened
+    with; asking a later `Camera` for different ones logs a warning and gives
+    the settings already in use.
+
     Parameters
     ----------
     device : str or int
@@ -4703,6 +4965,29 @@ class Camera:
             win.flip()
 
         cam.close()
+
+    Recording separate clips from one camera over different intervals. Both
+    objects name the same camera, so they share its stream and record from it
+    independently::
+
+        practice = Camera(0)
+        trials = Camera(0)
+
+        practice.open()
+        trials.open()  # the camera is already open, this just joins its stream
+
+        practice.record()
+        ...
+        practice.stop()
+        practice.save('practice.mp4')
+
+        trials.record()  # the camera never stopped streaming in between
+        ...
+        trials.stop()
+        trials.save('trials.mp4')
+
+        practice.close()
+        trials.close()  # the camera is released once the last client leaves
 
     """
     def __init__(self, device=0, mic=None, cameraLib=u'ffpyplayer',
@@ -7784,16 +8069,17 @@ def getAllCameraInterfaces():
 
 def getOpenCameras():
     """Get a list of all open cameras.
-    
+
+    These are the camera devices which presently hold a stream open, of which
+    there is at most one per camera however many clients are reading from it.
+
     Returns
     -------
     list
         List of references to open camera objects.
-    
-    """
-    global _openCameras
 
-    return _openCameras.copy()
+    """
+    return BaseCameraDevice.getOpenDevices()
 
 
 def closeAllOpenCameras():
@@ -7811,17 +8097,18 @@ def closeAllOpenCameras():
     int
         Number of cameras closed. Useful for debugging to ensure all cameras
         were closed.
-    
+
     """
-    global _openCameras
+    openCameras = BaseCameraDevice.getOpenDevices()
+    for cam in openCameras:
+        try:
+            # shutdown cannot wait for clients to unbind themselves, so close
+            # the camera whether or not any are still bound to it
+            cam._forceClose()
+        except Exception as e:
+            logging.error(f"Error closing camera device {cam}: {e}")
 
-    numCameras = len(_openCameras)
-    for cam in _openCameras:
-        cam.close()
-
-    _openCameras.clear()
-
-    return numCameras
+    return len(openCameras)
 
 # ------------------------------------------------------------------------------
 # Cleanup functions
@@ -7839,13 +8126,7 @@ def _closeAllCaptureInterfaces():
     ensure that cameras are not left open unintentionally.
 
     """
-    global _openCaptureInterfaces
-
-    for cap in _openCaptureInterfaces.copy():
-        try:
-            cap.close()
-        except Exception as e:
-            logging.error(f"Error closing camera interface {cap}: {e}")
+    closeAllOpenCameras()
 
 
 # Register the function to close all cameras on exit
