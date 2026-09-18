@@ -5338,10 +5338,14 @@ class Camera:
 
         This is the current absolute time in seconds from the time the PC was 
         booted. This is not the same as the recording time, which is the time
-        since the recording started. This is useful for generating timestamps 
-        across multiple cameras or devices using the same time source.
+        since the recording started. This can be useful for synchronizing the 
+        camera stream with other devices. Value is -1.0 if the capture is not 
+        available.
 
         """
+        if self._capture is None:
+            return -1.0
+        
         return self._capture.streamTime
     
     @property
