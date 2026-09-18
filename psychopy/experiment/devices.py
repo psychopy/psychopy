@@ -10,7 +10,9 @@ def getAllDeviceBackends():
     Returns
     -------
     dict[str:cls]
-        All subtypes of DeviceBackend, by tag
+        All subtypes of DeviceBackend which point at a device class, by tag.
+        Intermediate classes which just share implementation between backends
+        (and so have no `deviceClass` of their own) are skipped.
     """
     output = {}
 
@@ -20,8 +22,9 @@ def getAllDeviceBackends():
         """
         # iterate through immediate subclasses
         for subcls in cls.__subclasses__():
-            # store against its name
-            output[subcls.__name__] = subcls
+            # store against its name, unless it's an intermediate base class
+            if subcls.deviceClass is not None:
+                output[subcls.__name__] = subcls
             # recur
             recur(subcls)
 

@@ -354,7 +354,7 @@ class BaseCameraDeviceBackend(DeviceBackend):
         # that each backend offers the formats its own capture library can use
         deviceClass = self.getDeviceClassPath()
         
-        self.params['frameSize'] = Param(
+        params['frameSize'] = Param(
             None, valType='list', inputType="choice",
             allowedVals=f"python:///{deviceClass}.getSupportedResolutions($deviceName)",
             hint=_translate(
