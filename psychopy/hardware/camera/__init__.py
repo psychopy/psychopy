@@ -5283,7 +5283,26 @@ class Camera:
         
         if cameraLib is None:
             cameraLib = backend
+
         self._cameraLib = cameraLib
+
+        # transform frameSize if string
+        if isinstance(frameSize, str):
+            if frameSize in standardResolutions:
+                # get from standard resolutions dictionary
+                frameSize = standardResolutions[frameSize]
+            else:
+                # handle WxH format
+                if 'x' not in frameSize.lower():
+                    raise ValueError(f"Invalid frameSize string: {frameSize}")
+                frameSize = tuple(map(int, frameSize.lower().split('x')))
+
+        # validate if framesize is a tuple of two positive integers
+        if not (isinstance(frameSize, tuple) and len(frameSize) == 2 and 
+                all(isinstance(x, int) and x > 0 for x in frameSize)):
+            raise ValueError(f"Invalid frameSize: {frameSize}")
+
+        self._frameSize = frameSize
 
         # The device this camera was asked for, kept so that the capture
         # device can be resolved again if `open()` is called after `close()`
@@ -8216,7 +8235,7 @@ _cameraGetterFuncTbl = {
 }
 
 
-def getCameras(cameraLib=CAMERA_LIB_FFPYPLAYER):
+def getCameras(cameraLib=None):
     """Get information about installed cameras and their formats on this system.
 
     Use `getCameraDescriptions` to get a mapping or list of human-readable
@@ -8224,12 +8243,13 @@ def getCameras(cameraLib=CAMERA_LIB_FFPYPLAYER):
 
     Parameters
     ----------
-    cameraLib : str
+    cameraLib : str or None
         Capture library the cameras are to be opened with, either
         `'ffpyplayer'` or `'pyav'`. Cameras are enumerated the same way for
         both; this only sets the `cameraLib` field of the descriptors returned,
         except on Windows where it decides whether enumeration may fall back to
-        PyAV when `ffpyplayer` is not installed.
+        PyAV when `ffpyplayer` is not installed. If None, the default backend 
+        will be used.
 
     Returns
     -------
@@ -8238,6 +8258,9 @@ def getCameras(cameraLib=CAMERA_LIB_FFPYPLAYER):
         `CameraInfo` objects.
 
     """
+    if cameraLib is None:
+        cameraLib = backend
+
     systemName = platform.system()  # get the system name
 
     # lookup the function for the given platform
@@ -8250,7 +8273,7 @@ def getCameras(cameraLib=CAMERA_LIB_FFPYPLAYER):
     return getCamerasFunc(cameraLib=cameraLib)
 
 
-def getCameraDescriptions(collapse=False, cameraLib=CAMERA_LIB_FFPYPLAYER):
+def getCameraDescriptions(collapse=False, cameraLib=None):
     """Get a mapping or list of camera descriptions.
 
     Camera descriptions are a compact way of representing camera settings and
@@ -8272,9 +8295,9 @@ def getCameraDescriptions(collapse=False, cameraLib=CAMERA_LIB_FFPYPLAYER):
         Return camera information as string descriptions instead of `CameraInfo`
         objects. This provides a more compact way of representing camera formats
         in a (reasonably) human-readable format.
-    cameraLib : str
+    cameraLib : str or None
         Capture library the cameras are to be opened with, either
-        `'ffpyplayer'` or `'pyav'`.
+        `'ffpyplayer'` or `'pyav'`. If None, the default backend will be used.
 
     Returns
     -------
@@ -8286,6 +8309,9 @@ def getCameraDescriptions(collapse=False, cameraLib=CAMERA_LIB_FFPYPLAYER):
         formats from a single GUI list control.
 
     """
+    if cameraLib is None:
+        cameraLib = backend
+
     connectedCameras = getCameras(cameraLib=cameraLib)
 
     cameraDescriptions = {}
@@ -8304,16 +8330,16 @@ def getCameraDescriptions(collapse=False, cameraLib=CAMERA_LIB_FFPYPLAYER):
     return collapsedList
 
 
-def getFormatsForDevice(device, cameraLib=CAMERA_LIB_FFPYPLAYER):
+def getFormatsForDevice(device, cameraLib=None):
     """Get a list of formats available for the given device.
 
     Parameters
     ----------
     device : str or int
         Name or index of the device
-    cameraLib : str
+    cameraLib : str or None
         Capture library the device is to be opened with, either `'ffpyplayer'`
-        or `'pyav'`.
+        or `'pyav'`. If None, the default backend will be used.
 
     Returns
     -------
@@ -8321,6 +8347,9 @@ def getFormatsForDevice(device, cameraLib=CAMERA_LIB_FFPYPLAYER):
         List of formats, specified as strings in the format 
         `{width}x{height}@{frame rate}fps`
     """
+    if cameraLib is None:
+        cameraLib = backend
+
     # get all devices
     connectedCameras = getCameras(cameraLib=cameraLib)
     # get formats for this device
