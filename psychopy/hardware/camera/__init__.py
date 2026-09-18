@@ -43,6 +43,11 @@ __all__ = [
     'FFPyPlayerCameraDevice',
     'PyAVCameraDevice',
     'OpenCVCameraDevice',
+    'MovieWriter',
+    'FFPyPlayerMovieWriter',
+    'PyAVMovieWriter',
+    'OpenCVMovieWriter',
+    'getMovieWriterClass',
     'getCameras',
     'getCameraDescriptions',
     'getOpenCameras',
@@ -4723,7 +4728,640 @@ def getCameraDeviceClass(cameraLib=None):
                 ", ".join(repr(k) for k in _cameraDeviceLibTbl), cameraLib))
 
 
-class _OpenCVMovieWriter:
+# ------------------------------------------------------------------------------
+# Movie file writers
+#
+# Frames captured from a camera are handed to one of these to be encoded and
+# written to disk. Each encoder library gets its own subclass of `MovieWriter`,
+# so `Camera` can open whichever one it has been asked for and then deal with
+# all of them the same way.
+#
+
+def _rgbFrameAsArray(colorData):
+    """Get a frame which is already in RGB as a Numpy array.
+
+    Each capture library hands its frames over in its own wrapper, so this
+    takes whichever one a `Camera` produced and gives back the plain array the
+    encoders want. Frames must already be in RGB; use the writer's
+    `frameConverter` to get them there.
+
+    Parameters
+    ----------
+    colorData : numpy.ndarray or object
+        Frame in RGB. This may be an array already, an `_RGBFrameAdapter` or
+        `av.VideoFrame` (anything with `to_ndarray()`), or an
+        `ffpyplayer.pic.Image`.
+
+    Returns
+    -------
+    numpy.ndarray
+        Frame as an 8-bit, three channel array of shape `(height, width, 3)`
+        with channels in RGB order. This may share memory with the frame it
+        came from, so treat it as belonging to that frame rather than writing
+        to it.
+
+    Raises
+    ------
+    TypeError
+        If the frame is not of a type image data can be got out of.
+
+    """
+    if isinstance(colorData, np.ndarray):
+        return colorData
+
+    if hasattr(colorData, 'to_ndarray'):  # `_RGBFrameAdapter`, PyAV frame
+        return colorData.to_ndarray(format='rgb24')
+
+    if hasattr(colorData, 'to_memoryview'):  # FFPyPlayer image
+        # `to_memoryview()` hands plane data over packed, without any row
+        # padding, so the plane can be reshaped by frame size alone
+        frameWidth, frameHeight = colorData.get_size()
+
+        return np.frombuffer(
+            colorData.to_memoryview()[0].memview, dtype=np.uint8).reshape(
+                (frameHeight, frameWidth, 3))
+
+    raise TypeError(
+        "Cannot get image data out of a frame of type `{}`.".format(
+            type(colorData).__name__))
+
+
+class MovieWriter:
+    """Base class for writers which encode camera frames into a movie file.
+
+    A writer is created with everything it needs to lay out the file, opened,
+    handed frames as they are captured, and closed once the recording is done.
+    Subclasses fill in the three hooks `_open()`, `_writeFrame()` and
+    `_close()`; everything callers touch is defined here, so a caller never
+    needs to know which library is doing the encoding.
+
+    Frames are placed in the file by how far into the recording they were
+    captured rather than counted off at the nominal frame rate, since cameras
+    routinely deliver below the rate they advertise (auto-exposure alone can
+    halve it). Counting frames would make such a recording play back too fast
+    and drift against the audio track it is later merged with. How that
+    placement is done depends on what the encoder can express, so it is left to
+    the subclasses.
+
+    Parameters
+    ----------
+    filename : str
+        File to write the video to, should include the extension.
+    frameSize : ArrayLike
+        Size `(w, h)` of the frames to be written, in pixels. The container's
+        frame size is fixed when the file is opened, so this cannot change
+        while the writer is open.
+    frameRate : float
+        Nominal rate in frames per second the file is written at. If the camera
+        could not report one, `30.0` is used and a warning is logged.
+    encoderOpts : dict or None
+        Options to pass to the encoder. Which options are understood depends on
+        the encoder library, see the subclass for details.
+    frameConverter : callable or None
+        Callable taking a frame as the capture library hands it over and
+        returning it in RGB. A writer only calls this for frames it cannot
+        encode as they come, which is any frame from a capture library other
+        than its own, so it may be left out when the two libraries match.
+
+    Raises
+    ------
+    CameraNotReadyError
+        If `frameSize` is `None`, which is what the camera reports before its
+        stream is open.
+
+    """
+    # Encoder library this writer encodes with, one of the `CAMERA_LIB_*`
+    # values. Set by each subclass.
+    _encoderLib = CAMERA_LIB_NULL
+
+    def __init__(self, filename, frameSize, frameRate, encoderOpts=None,
+                 frameConverter=None):
+        if frameSize is None:
+            raise CameraNotReadyError(
+                "Cannot open a movie file writer before the camera stream is "
+                "open, since the size of the frames it will be given is not "
+                "known yet.")
+
+        self._filename = filename
+        self._frameSize = (int(frameSize[0]), int(frameSize[1]))
+
+        if not frameRate or frameRate <= 0:
+            frameRate = 30.0
+            logging.warning(
+                "Camera did not report a frame rate, writing the video at {} "
+                "fps.".format(frameRate))
+
+        self._frameRate = float(frameRate)
+        self._encoderOpts = dict(encoderOpts) if encoderOpts else {}
+        self._frameConverter = frameConverter
+
+        self._isOpen = False
+        self._framesWritten = 0  # frames handed to the encoder
+        self._bytesWritten = 0  # bytes the encoder reported writing
+        self._lastPTS = 0.0  # where in the recording the last frame was placed
+
+    def __repr__(self):
+        return "{}(filename={}, frameSize={}, frameRate={})".format(
+            type(self).__name__, repr(self._filename), repr(self._frameSize),
+            repr(self._frameRate))
+
+    @property
+    def encoderLib(self):
+        """Library this writer encodes with (`str`).
+
+        One of `'ffpyplayer'`, `'pyav'` or `'opencv'`.
+
+        """
+        return self._encoderLib
+
+    @property
+    def filename(self):
+        """File the video is being written to (`str`).
+        """
+        return self._filename
+
+    @property
+    def frameSize(self):
+        """Size `(w, h)` in pixels of the frames in the file (`tuple`).
+        """
+        return self._frameSize
+
+    @property
+    def frameRate(self):
+        """Nominal rate in frames per second the file is written at (`float`).
+        """
+        return self._frameRate
+
+    @property
+    def encoderOpts(self):
+        """Options the encoder was opened with (`dict`).
+        """
+        return self._encoderOpts
+
+    @property
+    def isOpen(self):
+        """`True` while the file is open for writing (`bool`).
+        """
+        return self._isOpen
+
+    @property
+    def framesWritten(self):
+        """Number of frames handed to the encoder so far (`int`).
+        """
+        return self._framesWritten
+
+    @property
+    def bytesWritten(self):
+        """Number of bytes written to the file so far (`int`).
+
+        Not every encoder reports this, so this may stay at zero even while
+        frames are reaching the file.
+
+        """
+        return self._bytesWritten
+
+    @property
+    def lastPTS(self):
+        """How far into the recording the last frame written sat, in seconds
+        (`float`).
+        """
+        return self._lastPTS
+
+    def open(self):
+        """Open the file and get the encoder ready to take frames.
+
+        Calling this on a writer which is already open does nothing.
+
+        """
+        if self._isOpen:
+            return
+
+        self._framesWritten = 0
+        self._bytesWritten = 0
+        self._lastPTS = 0.0
+
+        self._open()
+
+        self._isOpen = True
+
+    def write(self, frames):
+        """Hand frames over to the encoder.
+
+        Frames given to a writer which is not open are dropped, since there is
+        no file for them to go to.
+
+        Parameters
+        ----------
+        frames : list or tuple
+            Frames to write, each a tuple of the frame's color data and the
+            time in seconds between the start of the recording and the capture
+            of that frame. A single such tuple may be passed instead of a list.
+
+        Returns
+        -------
+        int
+            Number of bytes written to the file. This is zero for encoders
+            which do not report it, whether or not anything was written.
+
+        """
+        if not self._isOpen:
+            return 0
+
+        if not isinstance(frames, list):
+            frames = [frames]
+
+        bytesOut = 0
+        for colorData, elapsed in frames:
+            try:
+                bytesOut += int(self._writeFrame(colorData, elapsed) or 0)
+            except Exception as err:
+                logging.error(
+                    "Error writing frame {} to movie file '{}': {}".format(
+                        self._framesWritten, self._filename, err))
+
+            self._framesWritten += 1
+
+        self._bytesWritten += bytesOut
+
+        return bytesOut
+
+    def close(self):
+        """Finish encoding and close the file.
+
+        Calling this on a writer which is not open does nothing.
+
+        """
+        if not self._isOpen:
+            return
+
+        # cleared first so that frames arriving from the camera's thread while
+        # the encoder is being drained are dropped rather than added to it
+        self._isOpen = False
+
+        logging.debug(
+            "Closing movie file writer using {}...".format(self._encoderLib))
+
+        self._close()
+
+    def _convertToRGB(self, colorData):
+        """Get a captured frame in RGB.
+
+        Frames arrive in whatever format the camera is streaming in, which only
+        the `Camera` which captured them knows how to convert, so the work is
+        handed back to the converter it supplied. Writers which can encode the
+        capture library's frames as they come do not need this.
+
+        Parameters
+        ----------
+        colorData : Any
+            Frame as the capture library handed it over.
+
+        Returns
+        -------
+        object
+            The frame in RGB, still in whichever wrapper the capture library
+            uses. If no converter was given, the frame is returned unchanged.
+
+        """
+        if self._frameConverter is None:
+            return colorData
+
+        return self._frameConverter(colorData)
+
+    def _asRGBArray(self, colorData):
+        """Get a captured frame as an RGB Numpy array.
+
+        Parameters
+        ----------
+        colorData : Any
+            Frame as the capture library handed it over.
+
+        Returns
+        -------
+        numpy.ndarray
+            Frame as an 8-bit, three channel array of shape
+            `(height, width, 3)` with channels in RGB order.
+
+        """
+        return _rgbFrameAsArray(self._convertToRGB(colorData))
+
+    def _open(self):
+        """Open the encoder and the file it writes to.
+
+        Subclasses implement this. It is called by `open()`, which does the
+        bookkeeping common to every writer.
+
+        """
+        raise NotImplementedError(
+            "`{}` does not implement `_open()`.".format(type(self).__name__))
+
+    def _writeFrame(self, colorData, elapsed):
+        """Encode a single frame and write it to the file.
+
+        Subclasses implement this. It is called by `write()` for each frame
+        handed over, with exceptions logged rather than raised so that one bad
+        frame does not end the recording.
+
+        Parameters
+        ----------
+        colorData : Any
+            Frame to write, as the capture library hands it over.
+        elapsed : float
+            Time in seconds between the start of the recording and the capture
+            of this frame, which is what decides where it lands in the file.
+
+        Returns
+        -------
+        int
+            Number of bytes written, or zero if the encoder does not report it.
+
+        """
+        raise NotImplementedError(
+            "`{}` does not implement `_writeFrame()`.".format(
+                type(self).__name__))
+
+    def _close(self):
+        """Flush the encoder and close the file.
+
+        Subclasses implement this. It is called by `close()`, which only calls
+        it if the writer is actually open.
+
+        """
+        raise NotImplementedError(
+            "`{}` does not implement `_close()`.".format(type(self).__name__))
+
+    def __del__(self):
+        """Flush and close the file if the writer is garbage collected.
+        """
+        try:
+            self.close()
+        except Exception:
+            pass
+
+
+class FFPyPlayerMovieWriter(MovieWriter):
+    """Movie file writer which encodes frames with FFPyPlayer.
+
+    FFPyPlayer's `MediaWriter` derives the stream's time base from the frame
+    rate it is given, so timestamps can only land on multiples of the frame
+    interval. Frames are snapped to those ticks, keeping the timestamps
+    increasing so that two frames never share one, which the muxer rejects.
+
+    Parameters
+    ----------
+    filename : str
+        File to write the video to, should include the extension.
+    frameSize : ArrayLike
+        Size `(w, h)` of the frames to be written, in pixels.
+    frameRate : float
+        Rate in frames per second the file is written at.
+    encoderOpts : dict or None
+        Options passed straight to FFmpeg as `libOpts`, as a mapping of option
+        names to values (e.g. `{'crf': '23', 'preset': 'veryfast'}`).
+    frameConverter : callable or None
+        Callable converting a frame as the capture library hands it over into
+        RGB. Only needed when the camera is captured with a library other than
+        FFPyPlayer, whose frames are encoded as they come.
+
+    """
+    _encoderLib = CAMERA_LIB_FFPYPLAYER
+
+    def __init__(self, *args, **kwargs):
+        MovieWriter.__init__(self, *args, **kwargs)
+
+        self._writer = None
+        # ticks the stream's timestamps are counted in, set when the file is
+        # opened since it follows from the frame rate the encoder is given
+        self._ticksPerSec = 1.0
+        self._lastWrittenTick = -1  # keeps timestamps strictly increasing
+        self._generatePTS = False
+
+    def _open(self):
+        """Open the `MediaWriter` which encodes the file.
+        """
+        from ffpyplayer.writer import MediaWriter
+
+        frameWidth, frameHeight = self._frameSize
+
+        # options to configure the writer
+        writerOptions = {
+            'pix_fmt_in': 'yuv420p',  # default for now using mp4
+            'width_in': frameWidth,
+            'height_in': frameHeight,
+            'codec': 'libx264',
+            'frame_rate': (int(self._frameRate), 1)}
+
+        self._ticksPerSec = float(writerOptions['frame_rate'][0])
+        self._lastWrittenTick = -1
+
+        self._generatePTS = False  # whether to generate PTS for the writer
+        if self._filename.endswith('.mp4'):
+            self._generatePTS = True  # generate PTS for mp4 files
+            logging.debug(
+                "MP4 format detected, PTS will be generated for the movie "
+                "writer.")
+
+        self._writer = MediaWriter(
+            self._filename,
+            [writerOptions],
+            fmt='mp4',
+            overwrite=True,  # overwrite existing file
+            libOpts=self._encoderOpts)
+
+        logging.debug(
+            "Opened movie file writer using FFPyPlayer, writing {}x{} @{} fps "
+            "to '{}'".format(
+                frameWidth, frameHeight, self._frameRate, self._filename))
+
+    def _writeFrame(self, colorData, elapsed):
+        """Convert a frame to the encoder's pixel format and write it.
+        """
+        from ffpyplayer.pic import Image, SWScale
+
+        if not isinstance(colorData, Image):
+            # A frame from another capture library, which FFmpeg cannot scale
+            # as it stands. Bring it to RGB and wrap it so that it goes through
+            # the same path as a frame captured with FFPyPlayer.
+            rgbData = self._asRGBArray(colorData)
+            frameHeight, frameWidth = rgbData.shape[:2]
+            colorData = Image(
+                plane_buffers=[rgbData.tobytes()],
+                pix_fmt='rgb24',
+                size=(frameWidth, frameHeight))
+
+        # do color conversion if needed
+        frameWidth, frameHeight = colorData.get_size()
+        sws = SWScale(
+            frameWidth, frameHeight,
+            colorData.get_pixel_format(),
+            ofmt='yuv420p')
+
+        # Place the frame at the point in the recording it was captured, rather
+        # than counting frames off at the nominal rate. Snap to the stream's
+        # tick grid, keeping timestamps increasing.
+        tick = int(round(elapsed * self._ticksPerSec))
+        tick = max(tick, self._lastWrittenTick + 1)
+        self._lastWrittenTick = tick
+        self._lastPTS = tick / self._ticksPerSec
+
+        # we get an EOF error when the movie writer is fully drained, catch it
+        # and ignore it
+        try:
+            return self._writer.write_frame(
+                img=sws.scale(colorData),
+                pts=self._lastPTS,
+                stream=0)
+        except Exception:
+            pass
+
+        return 0
+
+    def _close(self):
+        """Close the `MediaWriter`.
+        """
+        try:
+            self._writer.close()
+        except Exception as err:
+            logging.error("Error closing the movie file: {}".format(err))
+
+        self._writer = None
+
+
+class PyAVMovieWriter(MovieWriter):
+    """Movie file writer which encodes frames with PyAV.
+
+    PyAV lets the stream's time base be chosen freely, so a fine one is used
+    and each frame is timestamped with when it was actually captured. Frames
+    therefore need no padding or dropping to keep the recording the same length
+    as the wall clock time it was captured over.
+
+    Parameters
+    ----------
+    filename : str
+        File to write the video to, should include the extension.
+    frameSize : ArrayLike
+        Size `(w, h)` of the frames to be written, in pixels.
+    frameRate : float
+        Rate in frames per second the file is written at.
+    encoderOpts : dict or None
+        Options to pass to the encoder, as a mapping of FFmpeg option names to
+        values (e.g. `{'crf': '23', 'preset': 'veryfast'}`).
+    frameConverter : callable or None
+        Callable converting a frame as the capture library hands it over into
+        RGB. Only needed when the camera is captured with a library other than
+        PyAV, whose frames are encoded as they come.
+
+    """
+    _encoderLib = CAMERA_LIB_PYAV
+
+    def __init__(self, *args, **kwargs):
+        MovieWriter.__init__(self, *args, **kwargs)
+
+        self._writer = None  # output container
+        self._stream = None  # video stream within it
+        self._reformatter = None  # colour converter, reused for every frame
+        self._timeBase = None  # time base output timestamps are counted in
+
+    def _open(self):
+        """Open the output container and add the stream frames are written to.
+        """
+        import av
+        from av.video.reformatter import VideoReformatter
+        from fractions import Fraction
+
+        frameWidth, frameHeight = self._frameSize
+
+        # The encoder needs an exact rational frame rate, but cameras report
+        # theirs as a float (often something like 29.97), so approximate it.
+        outFrameRate = Fraction(self._frameRate).limit_denominator(1001)
+
+        # A fine time base, so that it can express whatever intervals the
+        # camera actually produced rather than only multiples of the nominal
+        # frame interval.
+        self._timeBase = Fraction(1, 90000)
+
+        self._writer = av.open(self._filename, mode='w')
+        self._stream = self._writer.add_stream('libx264', rate=outFrameRate)
+        self._stream.width = frameWidth
+        self._stream.height = frameHeight
+        self._stream.pix_fmt = 'yuv420p'
+        self._stream.codec_context.time_base = self._timeBase
+        if self._encoderOpts:
+            self._stream.options = {
+                str(key): str(val) for key, val in self._encoderOpts.items()}
+
+        # cached converter to yuv420p, reused for every frame written
+        self._reformatter = VideoReformatter()
+
+        logging.debug(
+            "Opened movie file writer using PyAV, writing {}x{} @{} fps to "
+            "'{}'".format(
+                frameWidth, frameHeight, outFrameRate, self._filename))
+
+    def _toAVVideoFrame(self, colorData):
+        """Get a captured frame as an `av.VideoFrame` ready to be encoded.
+
+        Parameters
+        ----------
+        colorData : Any
+            Frame as handed over by the camera interface.
+
+        Returns
+        -------
+        av.VideoFrame
+            The frame converted to the pixel format the encoder wants.
+
+        """
+        import av
+
+        if not isinstance(colorData, av.VideoFrame):
+            # a frame from another capture library, brought to RGB and wrapped
+            # so that PyAV can reformat it like any other
+            colorData = av.VideoFrame.from_ndarray(
+                self._asRGBArray(colorData), format='rgb24')
+
+        return self._reformatter.reformat(colorData, format='yuv420p')
+
+    def _writeFrame(self, colorData, elapsed):
+        """Timestamp a frame with when it was captured and encode it.
+        """
+        avFrame = self._toAVVideoFrame(colorData)
+
+        # place the frame at the point in the recording it was captured
+        self._lastPTS = elapsed
+        avFrame.pts = int(round(self._lastPTS / self._timeBase))
+        avFrame.time_base = self._timeBase
+
+        bytesOut = 0
+        for packet in self._stream.encode(avFrame):
+            bytesOut += packet.size
+            self._writer.mux(packet)
+
+        return bytesOut
+
+    def _close(self):
+        """Flush the encoder and close the output container.
+        """
+        try:
+            # flush whatever the encoder is still holding on to
+            if self._stream is not None:
+                for packet in self._stream.encode(None):
+                    self._writer.mux(packet)
+        except Exception as err:
+            logging.error(
+                "Error flushing the movie file writer: {}".format(err))
+        finally:
+            self._stream = None
+            self._reformatter = None
+            try:
+                self._writer.close()
+            except Exception as err:
+                logging.error("Error closing the movie file: {}".format(err))
+
+            self._writer = None
+
+
+class OpenCVMovieWriter(MovieWriter):
     """Movie file writer which encodes frames with OpenCV on a thread of its
     own.
 
@@ -4756,54 +5394,47 @@ class _OpenCVMovieWriter:
         once the file is opened.
     frameRate : float
         Rate in frames per second the file is written at.
-    fourcc : str
-        FourCC code of the codec to encode with. Defaults to `'mp4v'`
-        (MPEG-4 Part 2), which every build of OpenCV can write into an MP4
-        container; `'avc1'` gives smaller files but is missing from many
-        builds for licensing reasons.
-    queueSecs : float
-        Seconds of video the encoder is allowed to fall behind by before frames
-        start being dropped. This bounds both the memory the backlog can take
-        up and how long closing the file can block for.
-    maxGapSecs : float
-        Longest gap in the recording, in seconds, that will be filled by
-        repeating frames. A gap longer than this means the camera stalled, and
-        is logged and left unfilled rather than padded out with thousands of
-        copies of the same frame.
+    encoderOpts : dict or None
+        Options for the encoder. OpenCV exposes very little of its encoder, so
+        only `'fourcc'` (the FourCC code of the codec to write with, `'mp4v'`
+        by default) and `'bufferSecs'` (how many seconds of video the encoder
+        may fall behind by before frames are dropped) are understood here.
+        Anything else is ignored, with a warning.
+    frameConverter : callable or None
+        Callable converting a frame as the capture library hands it over into
+        RGB. OpenCV cannot encode the other libraries' frames, so this is
+        needed unless the camera is captured with OpenCV too.
 
     """
-    def __init__(self, filename, frameSize, frameRate, fourcc='mp4v',
-                 queueSecs=10.0, maxGapSecs=10.0):
-        import cv2
+    _encoderLib = CAMERA_LIB_OPENCV
 
-        self._filename = filename
-        self._frameSize = (int(frameSize[0]), int(frameSize[1]))
-        self._frameRate = float(frameRate) if frameRate > 0 else 30.0
-        self._closed = False
+    # encoder options this writer understands, anything else is ignored
+    _knownEncoderOpts = {'fourcc', 'bufferSecs'}
 
-        self._writer = cv2.VideoWriter(
-            filename,
-            cv2.VideoWriter_fourcc(*fourcc),
-            self._frameRate,
-            self._frameSize)
+    # Longest gap in the recording, in seconds, that will be filled by
+    # repeating frames. A gap longer than this means the camera stalled, and is
+    # logged and left unfilled rather than padded out with thousands of copies
+    # of the same frame.
+    _maxGapSecs = 10.0
 
-        if not self._writer.isOpened():
-            self._writer.release()
-            self._writer = None
-            raise RuntimeError(
-                "OpenCV could not open '{}' for writing with the '{}' codec at "
-                "{}x{} @{} fps.".format(
-                    filename, fourcc, self._frameSize[0], self._frameSize[1],
-                    self._frameRate))
+    def __init__(self, *args, **kwargs):
+        MovieWriter.__init__(self, *args, **kwargs)
 
-        self._queue = queue.Queue(
-            maxsize=max(1, int(queueSecs * self._frameRate)))
-        self._maxGapFrames = max(1, int(round(maxGapSecs * self._frameRate)))
+        unknownOpts = set(self._encoderOpts) - self._knownEncoderOpts
+        if unknownOpts:
+            logging.warning(
+                "The OpenCV movie writer does not understand the encoder "
+                "option(s) {}, they will be ignored.".format(
+                    ", ".join(repr(opt) for opt in sorted(unknownOpts))))
 
-        # How long `close()` waits for the encoder to work through its backlog.
-        # The queue is bounded, so the worst case is encoding `queueSecs` of
-        # video, which is allowed to take rather longer than real time.
-        self._closeTimeout = max(30.0, queueSecs * 3.0)
+        self._fourcc = self._encoderOpts.get('fourcc', 'mp4v')
+        self._queueSecs = float(self._encoderOpts.get('bufferSecs', 10.0))
+
+        self._writer = None
+        self._queue = None
+        self._writerThread = None
+        self._maxGapFrames = 1
+        self._closeTimeout = 30.0
 
         self._lastIndex = -1  # output slot the last frame written landed on
         self._lastFrame = None  # repeated to fill gaps, see the class docstring
@@ -4811,7 +5442,7 @@ class _OpenCVMovieWriter:
         # not it reached the file. `_padToEnd()` needs this to know how long the
         # recording was meant to be.
         self._lastSubmittedElapsed = 0.0
-        self._framesWritten = 0
+        self._framesEncoded = 0
         # Frames dropped are counted separately by cause, which also keeps each
         # counter to a single thread: frames too close together are dropped by
         # the encoder thread, frames arriving with the queue full by whichever
@@ -4821,36 +5452,20 @@ class _OpenCVMovieWriter:
         # An encoder which cannot keep up drops every frame from then on, so
         # the warning for it is logged once and then only every so often,
         # rather than once per frame.
-        self._dropWarningInterval = max(1, int(round(self._frameRate * 10.0)))
+        self._dropWarningInterval = 1
         self._nextDropWarning = 1  # drop count the next warning is logged at
 
-        self._writerThread = threading.Thread(
-            target=self._writeFramesAsync,
-            name='PsychoPy-OpenCVMovieWriter',
-            daemon=True)
-        self._writerThread.start()
-
-        logging.debug(
-            "Opened movie file writer using OpenCV, writing {}x{} @{} fps as "
-            "'{}' to '{}'".format(
-                self._frameSize[0], self._frameSize[1], self._frameRate,
-                fourcc, filename))
-
     @property
-    def isOpen(self):
-        """`True` while the file is open for writing (`bool`).
-        """
-        return not self._closed
-
-    @property
-    def framesWritten(self):
+    def framesEncoded(self):
         """Number of frames written to the file so far (`int`).
 
         This includes frames repeated to fill gaps left by the camera, so it
-        counts the frames in the file rather than the frames captured.
+        counts the frames in the file rather than the frames captured. Frames
+        still waiting in the encoder's queue are not counted until they reach
+        the file.
 
         """
-        return self._framesWritten
+        return self._framesEncoded
 
     @property
     def framesDropped(self):
@@ -4863,32 +5478,73 @@ class _OpenCVMovieWriter:
         """
         return self._framesTooClose + self._framesNotQueued
 
-    def write(self, colorData, elapsed):
-        """Hand a frame over to the encoder.
+    def _open(self):
+        """Open the `VideoWriter` and start the thread which feeds it.
+        """
+        import cv2
 
-        This returns as soon as the frame is queued; the conversion and
-        encoding happen on the writer's own thread.
+        self._writer = cv2.VideoWriter(
+            self._filename,
+            cv2.VideoWriter_fourcc(*self._fourcc),
+            self._frameRate,
+            self._frameSize)
 
-        Parameters
-        ----------
-        colorData : _RGBFrameAdapter or numpy.ndarray
-            Frame to write, in RGB.
-        elapsed : float
-            Time in seconds between the start of the recording and the capture
-            of this frame, which is what decides where it lands in the file.
+        if not self._writer.isOpened():
+            self._writer.release()
+            self._writer = None
+            raise RuntimeError(
+                "OpenCV could not open '{}' for writing with the '{}' codec at "
+                "{}x{} @{} fps.".format(
+                    self._filename, self._fourcc, self._frameSize[0],
+                    self._frameSize[1], self._frameRate))
 
-        Returns
-        -------
-        bool
-            `True` if the frame was queued, `False` if it was dropped because
-            the encoder is too far behind or the file has been closed.
+        self._queue = queue.Queue(
+            maxsize=max(1, int(self._queueSecs * self._frameRate)))
+        self._maxGapFrames = max(
+            1, int(round(self._maxGapSecs * self._frameRate)))
+
+        # How long `close()` waits for the encoder to work through its backlog.
+        # The queue is bounded, so the worst case is encoding `bufferSecs` of
+        # video, which is allowed to take rather longer than real time.
+        self._closeTimeout = max(30.0, self._queueSecs * 3.0)
+
+        self._lastIndex = -1
+        self._lastFrame = None
+        self._lastSubmittedElapsed = 0.0
+        self._framesEncoded = 0
+        self._framesTooClose = 0
+        self._framesNotQueued = 0
+        self._dropWarningInterval = max(1, int(round(self._frameRate * 10.0)))
+        self._nextDropWarning = 1
+
+        self._writerThread = threading.Thread(
+            target=self._writeFramesAsync,
+            name='PsychoPy-OpenCVMovieWriter',
+            daemon=True)
+        self._writerThread.start()
+
+        logging.debug(
+            "Opened movie file writer using OpenCV, writing {}x{} @{} fps as "
+            "'{}' to '{}'".format(
+                self._frameSize[0], self._frameSize[1], self._frameRate,
+                self._fourcc, self._filename))
+
+    def _writeFrame(self, colorData, elapsed):
+        """Hand a frame over to the encoder thread.
+
+        This returns as soon as the frame is queued; the conversion to BGR and
+        the encoding itself happen on the writer's own thread.
 
         """
-        if self._closed:
-            return False
-
+        # place the frame at the point in the recording it was captured
+        self._lastPTS = elapsed
         if elapsed > self._lastSubmittedElapsed:
             self._lastSubmittedElapsed = elapsed
+
+        # Converted here rather than on the encoder thread, since only the
+        # camera which captured the frame knows how to convert it, and it may
+        # go on to reuse the buffer the frame was handed over in.
+        colorData = self._convertToRGB(colorData)
 
         try:
             self._queue.put_nowait((colorData, elapsed))
@@ -4905,15 +5561,16 @@ class _OpenCVMovieWriter:
                     "camera, dropping frames ({} dropped so far). Try a "
                     "smaller frame size, a lower frame rate, or a codec which "
                     "is cheaper to encode.".format(self._framesNotQueued))
-            return False
 
-        return True
+        # OpenCV does not report how much it has written, unlike the FFmpeg
+        # based writers
+        return 0
 
     def _writeFramesAsync(self):
         """Encode queued frames until asked to stop.
 
-        This runs on the thread started by the constructor. It returns once the
-        sentinel `close()` puts on the queue comes around, which is only after
+        This runs on the thread started by `_open()`. It returns once the
+        sentinel `_close()` puts on the queue comes around, which is only after
         every frame queued before it has been written.
 
         """
@@ -4924,18 +5581,20 @@ class _OpenCVMovieWriter:
                 break
 
             try:
-                self._writeFrame(*item)
+                self._encodeFrame(*item)
             except Exception as err:
                 logging.error(
                     "Error writing frame {} to movie file '{}': {}".format(
-                        self._framesWritten, self._filename, err))
+                        self._framesEncoded, self._filename, err))
 
-    def _writeFrame(self, colorData, elapsed):
+    def _encodeFrame(self, colorData, elapsed):
         """Place a single frame on the output's frame grid and encode it.
+
+        This runs on the encoder thread.
 
         Parameters
         ----------
-        colorData : _RGBFrameAdapter or numpy.ndarray
+        colorData : Any
             Frame to write, in RGB.
         elapsed : float
             Time in seconds between the start of the recording and the capture
@@ -4944,10 +5603,7 @@ class _OpenCVMovieWriter:
         """
         import cv2
 
-        if hasattr(colorData, 'to_ndarray'):
-            colorData = colorData.to_ndarray(format='rgb24')
-
-        frame = cv2.cvtColor(colorData, cv2.COLOR_RGB2BGR)
+        frame = cv2.cvtColor(_rgbFrameAsArray(colorData), cv2.COLOR_RGB2BGR)
 
         frameHeight, frameWidth = frame.shape[:2]
         if (frameWidth, frameHeight) != self._frameSize:
@@ -4983,10 +5639,10 @@ class _OpenCVMovieWriter:
 
             for _ in range(gapFrames):
                 self._writer.write(self._lastFrame)
-                self._framesWritten += 1
+                self._framesEncoded += 1
 
         self._writer.write(frame)
-        self._framesWritten += 1
+        self._framesEncoded += 1
         self._lastIndex = targetIndex
         self._lastFrame = frame
 
@@ -5022,23 +5678,17 @@ class _OpenCVMovieWriter:
 
         for _ in range(gapFrames):
             self._writer.write(self._lastFrame)
-            self._framesWritten += 1
+            self._framesEncoded += 1
 
         self._lastIndex += gapFrames
 
-    def close(self):
-        """Finish encoding and close the file.
+    def _close(self):
+        """Wait for the encoder to drain its queue and close the file.
 
         This blocks until every frame handed over has been written, so that
-        nothing captured before the recording stopped is lost. Calling it more
-        than once does nothing.
+        nothing captured before the recording stopped is lost.
 
         """
-        if self._closed:
-            return
-
-        self._closed = True  # stop `write()` adding to a queue being drained
-
         if self._writerThread is not None:
             try:
                 self._queue.put(None, timeout=self._closeTimeout)
@@ -5070,7 +5720,7 @@ class _OpenCVMovieWriter:
             "Closed movie file writer using OpenCV, wrote {} frames to '{}' "
             "({} frames arrived too close together to be written, {} were "
             "dropped because the encoder could not keep up)".format(
-                self._framesWritten, self._filename, self._framesTooClose,
+                self._framesEncoded, self._filename, self._framesTooClose,
                 self._framesNotQueued))
 
         if self._framesNotQueued:
@@ -5080,13 +5730,43 @@ class _OpenCVMovieWriter:
                 "right length, but those frames show the picture before "
                 "them.".format(self._framesNotQueued, self._filename))
 
-    def __del__(self):
-        """Flush and close the file if the writer is garbage collected.
-        """
-        try:
-            self.close()
-        except Exception:
-            pass
+
+# Movie writer to use for each supported encoder library.
+_movieWriterLibTbl = {
+    CAMERA_LIB_FFPYPLAYER: FFPyPlayerMovieWriter,
+    CAMERA_LIB_PYAV: PyAVMovieWriter,
+    CAMERA_LIB_OPENCV: OpenCVMovieWriter
+}
+
+
+def getMovieWriterClass(encoderLib=None):
+    """Get the movie writer class which encodes with the given library.
+
+    Parameters
+    ----------
+    encoderLib : str or None
+        Encoder library the writer should use, one of `'ffpyplayer'`, `'pyav'`
+        or `'opencv'`. If `None`, the library named by `camera.backend` is
+        used.
+
+    Returns
+    -------
+    type
+        Subclass of `MovieWriter` which encodes movie files using `encoderLib`.
+
+    """
+    global backend, _movieWriterLibTbl
+
+    if encoderLib is None:
+        encoderLib = backend
+
+    try:
+        return _movieWriterLibTbl[encoderLib]
+    except KeyError:
+        raise ValueError(
+            "Invalid value for parameter `encoderLib`, expected one of {}, got "
+            "'{}'.".format(
+                ", ".join(repr(k) for k in _movieWriterLibTbl), encoderLib))
 
 
 class Camera:
@@ -5404,20 +6084,15 @@ class Camera:
         self._absAudioRecStartPos = -1.0  # in samples
         self._absAudioRecStopPos = -1.0
 
-        self._curPTS = 0.0  # current display timestamp
         self._isRecording = False
-        self._generatePTS = False  # use generated PTS values for frames
-        
-        # Movie writer instance. Frames are handed to it from the camera's
-        # polling thread while the main thread may be opening or closing it, so
-        # all access to it is serialised through `_movieWriterLock`.
+
+        # Movie writer instance, a `MovieWriter` subclass which knows how to
+        # encode frames with whichever library was asked for. Frames are handed
+        # to it from the camera's polling thread while the main thread may be
+        # opening or closing it, so all access to it is serialised through
+        # `_movieWriterLock`.
         self._movieWriterLock = threading.RLock()
         self._movieWriter = None
-        self._encoderLib = None  # library the open writer was created with
-        self._movieWriterStream = None  # output stream (PyAV writer only)
-        self._movieWriterReformatter = None  # colour converter for the encoder
-        self._movieWriterTimeBase = None  # time base output PTS are counted in
-        self._nFramesWritten = 0  # frames handed to the encoder so far
         self._tempVideoFile = None  # temporary video file for recording
 
         # thread for polling the microphone
@@ -6443,9 +7118,11 @@ class Camera:
                 "stream.".format(self._usageMode, filename, CAMERA_MODE_VIDEO))
             return
 
-        # check if we have an active movie writer
-        if self._movieWriter is not None:
-            self._movieWriter.close()  # close the movie writer
+        # Finish the recording off before it is read back. The writer is
+        # dropped rather than only closed, so that a later `record()` opens a
+        # new one writing to a new temporary file, since this one is removed
+        # below.
+        self._closeMovieFileWriter()
 
         # check if we have a temp movie file
         videoTrackFile = self._tempVideoFile
@@ -7257,11 +7934,12 @@ class Camera:
         return self._texBufferSizeBytes
     
     # --------------------------------------------------------------------------
-    # Movie writer platform-specific methods
-    # 
-    # These are used to write frames to a movie file. We used to use the 
-    # `MovieFileWriter` class for this, but for now were implimenting this 
-    # directly in the camera class. This may change in the future.
+    # Movie file writer methods
+    #
+    # Frames are encoded and written to disk by a `MovieWriter`, which the
+    # camera opens for whichever encoder library it was asked for. These
+    # methods look after that writer; they are not exposed to the user
+    # directly.
     #
 
     def _elapsedInRecording(self, absTime):
@@ -7283,403 +7961,6 @@ class Camera:
 
         return max(0.0, absTime - self._tRecordingStart)
 
-    def _openMovieFileWriterFFPyPlayer(self, filename, encoderOpts=None):
-        """Open a movie file writer using the FFPyPlayer library.
-
-        Parameters
-        ----------
-        filename : str
-            File to save the resulting video to, should include the extension.
-        encoderOpts : dict or None
-            Options to pass to the encoder. This is a dictionary of options
-            specific to the encoder library being used. See the documentation
-            for `~psychopy.tools.movietools.MovieFileWriter` for more details.
-
-        """
-        from ffpyplayer.writer import MediaWriter
-
-        encoderOpts = encoderOpts or {}
-
-        # options to configure the writer
-        frameWidth, frameHeight = self.frameSize
-
-        writerOptions = {
-            'pix_fmt_in': 'yuv420p',  # default for now using mp4
-            'width_in': frameWidth,
-            'height_in': frameHeight,
-            'codec': 'libx264',
-            'frame_rate': (int(self._capture.frameRate), 1)}
-
-        self._curPTS = 0.0  # current pts for the movie writer
-        # `MediaWriter` derives the stream time base from the frame rate it is
-        # given, so timestamps can only land on multiples of the frame interval.
-        # Frames are snapped to those ticks, and `_lastWrittenTick` keeps that
-        # from ever producing two frames with the same timestamp, which the
-        # muxer rejects.
-        self._movieWriterTicksPerSec = float(writerOptions['frame_rate'][0])
-        self._lastWrittenTick = -1
-
-        self._generatePTS = False  # whether to generate PTS for the movie writer
-        if filename.endswith('.mp4'): 
-            self._generatePTS = True  # generate PTS for mp4 files
-            logging.debug(
-                "MP4 format detected, PTS will be generated for the movie " \
-                "writer.")
-
-        self._movieWriter = MediaWriter(
-            filename, 
-            [writerOptions], 
-            fmt='mp4',
-            overwrite=True,  # overwrite existing file
-            libOpts=encoderOpts)
-
-    def _submitFrameToFileFFPyPlayer(self, frames):
-        """Submit a frame to the movie file writer thread using FFPyPlayer.
-
-        This is used to submit frames to the movie file writer thread. It is
-        called by the camera interface when a new frame is captured.
-
-        Parameters
-        ----------
-        frames : list of tuples
-            Color data and presentation timestamps to submit to the movie file 
-            writer thread.
-
-        Returns
-        -------
-        int
-            Number of bytes written the the movie file.
-
-        """
-        if self._movieWriter is None:
-            return 0
-            # raise RuntimeError(
-            #     "Attempting to call `_submitFrameToFileFFPyPlayer()` before "
-            #     "`_openMovieFileWriterFFPyPlayer()`, or writer was closed.")
-        
-        from ffpyplayer.pic import SWScale
-        
-        if not isinstance(frames, list):
-            frames = [frames]  # ensure frames is a list
-
-        # write frames to the movie file writer
-        bytesOut = 0
-        for colorData, _, _, absTime in frames:
-            # do color conversion if needed
-            frameWidth, frameHeight = colorData.get_size()
-            sws = SWScale(
-                frameWidth, frameHeight,
-                colorData.get_pixel_format(),
-                ofmt='yuv420p')
-
-            # Place the frame at the point in the recording it was captured,
-            # rather than counting frames off at the nominal rate, which would
-            # play the recording back too fast whenever the camera ran slow.
-            # Snap to the stream's tick grid, keeping timestamps increasing.
-            tick = int(round(
-                self._elapsedInRecording(absTime) * self._movieWriterTicksPerSec))
-            tick = max(tick, self._lastWrittenTick + 1)
-            self._lastWrittenTick = tick
-            self._curPTS = tick / self._movieWriterTicksPerSec
-
-            # we get an EOF error when the movie writer is fully drained, catch 
-            # it and ignore it
-            try:
-                bytesOut = self._movieWriter.write_frame(
-                    img=sws.scale(colorData),
-                    pts=self._curPTS,
-                    stream=0)
-            except Exception as e:
-                pass
-
-        return bytesOut
-
-    def _closeMovieFileWriterFFPyPlayer(self):
-        """Close the movie file writer using the FFPyPlayer library.
-
-        This will close the movie file writer and free up any resources used by
-        the writer. If the writer is not open, this will do nothing.
-        """
-        if self._movieWriter is not None:
-            logging.debug(
-                "Closing movie file writer using FFPyPlayer...")
-            self._movieWriter.close()
-        # else:
-        #     logging.debug(
-        #         "Attempting to call `_closeMovieFileWriterFFPyPlayer()` "
-        #         "without an open movie file writer.")
-
-        self._movieWriter = None
-
-    def _openMovieFileWriterPyAV(self, filename, encoderOpts=None):
-        """Open a movie file writer using PyAV.
-
-        Parameters
-        ----------
-        filename : str
-            File to save the resulting video to, should include the extension.
-        encoderOpts : dict or None
-            Options to pass to the encoder, as a mapping of FFmpeg option names
-            to values (e.g. `{'crf': '23', 'preset': 'veryfast'}`).
-
-        """
-        import av
-        from fractions import Fraction
-
-        encoderOpts = encoderOpts or {}
-
-        frameWidth, frameHeight = self.frameSize
-
-        # The encoder needs an exact rational frame rate, but cameras report
-        # theirs as a float (often something like 29.97), so approximate it.
-        frameRate = self._capture.frameRate
-        outFrameRate = Fraction(frameRate).limit_denominator(1001)
-
-        # Frames are timestamped by when they were actually captured rather than
-        # counted off at the nominal rate, because cameras routinely deliver
-        # below the rate they advertise (auto-exposure alone can halve it).
-        # Counting frames would make those recordings play back too fast and
-        # drift against the audio track, so the time base here is a fine one
-        # that can express whatever intervals the camera actually produced.
-        self._movieWriterTimeBase = Fraction(1, 90000)
-
-        self._movieWriter = av.open(filename, mode='w')
-        self._movieWriterStream = self._movieWriter.add_stream(
-            'libx264', rate=outFrameRate)
-        self._movieWriterStream.width = frameWidth
-        self._movieWriterStream.height = frameHeight
-        self._movieWriterStream.pix_fmt = 'yuv420p'
-        self._movieWriterStream.codec_context.time_base = \
-            self._movieWriterTimeBase
-        if encoderOpts:
-            self._movieWriterStream.options = {
-                str(key): str(val) for key, val in encoderOpts.items()}
-
-        # cached converter to yuv420p, reused for every frame written
-        from av.video.reformatter import VideoReformatter
-        self._movieWriterReformatter = VideoReformatter()
-
-        self._nFramesWritten = 0
-        self._curPTS = 0.0  # current pts for the movie writer
-
-        logging.debug(
-            "Opened movie file writer using PyAV, writing {}x{} @{} fps to "
-            "'{}'".format(frameWidth, frameHeight, outFrameRate, filename))
-
-    def _frameToAVVideoFrame(self, colorData):
-        """Get a captured frame as an `av.VideoFrame` ready to be encoded.
-
-        Parameters
-        ----------
-        colorData : av.VideoFrame or _RGBFrameAdapter
-            Frame as handed over by the camera interface.
-
-        Returns
-        -------
-        av.VideoFrame
-            The frame converted to the pixel format the encoder wants.
-
-        """
-        import av
-
-        if isinstance(colorData, _RGBFrameAdapter):
-            colorData = av.VideoFrame.from_ndarray(
-                colorData.to_ndarray(format='rgb24'), format='rgb24')
-
-        return self._movieWriterReformatter.reformat(
-            colorData, format='yuv420p')
-
-    def _submitFrameToFilePyAV(self, frames):
-        """Submit a frame to the movie file writer using PyAV.
-
-        This is used to submit frames to the movie file writer. It is called by
-        the camera interface when a new frame is captured.
-
-        Parameters
-        ----------
-        frames : list of tuples
-            Color data and presentation timestamps to submit to the movie file
-            writer.
-
-        Returns
-        -------
-        int
-            Number of bytes written to the movie file.
-
-        """
-        if self._movieWriter is None:
-            return 0
-
-        if not isinstance(frames, list):
-            frames = [frames]  # ensure frames is a list
-
-        bytesOut = 0
-        for colorData, _, _, absTime in frames:
-            avFrame = self._frameToAVVideoFrame(colorData)
-
-            # place the frame at the point in the recording it was captured
-            self._curPTS = self._elapsedInRecording(absTime)
-            avFrame.pts = int(round(self._curPTS / self._movieWriterTimeBase))
-            avFrame.time_base = self._movieWriterTimeBase
-
-            try:
-                for packet in self._movieWriterStream.encode(avFrame):
-                    bytesOut += packet.size
-                    self._movieWriter.mux(packet)
-            except Exception as e:
-                logging.error(
-                    "Error writing frame {} to movie file: {}".format(
-                        self._nFramesWritten, e))
-
-            self._nFramesWritten += 1
-
-        return bytesOut
-
-    def _closeMovieFileWriterPyAV(self):
-        """Close the movie file writer using PyAV.
-
-        This flushes any frames still held by the encoder and closes the output
-        file. If the writer is not open, this will do nothing.
-        """
-        if self._movieWriter is None:
-            return
-
-        logging.debug("Closing movie file writer using PyAV...")
-
-        try:
-            # flush whatever the encoder is still holding on to
-            if self._movieWriterStream is not None:
-                for packet in self._movieWriterStream.encode(None):
-                    self._movieWriter.mux(packet)
-        except Exception as e:
-            logging.error(
-                "Error flushing the movie file writer: {}".format(e))
-        finally:
-            self._movieWriterStream = None
-            self._movieWriterReformatter = None
-            try:
-                self._movieWriter.close()
-            except Exception as e:
-                logging.error("Error closing the movie file: {}".format(e))
-            self._movieWriter = None
-
-    def _openMovieFileWriterOpenCV(self, filename, encoderOpts=None):
-        """Open a movie file writer using OpenCV.
-
-        Parameters
-        ----------
-        filename : str
-            File to save the resulting video to, should include the extension.
-        encoderOpts : dict or None
-            Options for the encoder. OpenCV exposes very little of its encoder,
-            so only `'fourcc'` (the FourCC code of the codec to write with,
-            `'mp4v'` by default) and `'bufferSecs'` (how many seconds of video
-            the encoder may fall behind by before frames are dropped) are
-            understood here. Anything else is ignored.
-
-        """
-        encoderOpts = encoderOpts or {}
-
-        frameSize = self.frameSize
-        if frameSize is None:
-            raise CameraNotReadyError(
-                "Cannot open a movie file writer before the camera stream is "
-                "open, since the size of the frames it will be given is not "
-                "known yet.")
-
-        frameWidth, frameHeight = frameSize
-
-        # Frames are placed in the file by when they were captured rather than
-        # counted off at this rate, so a camera delivering below its nominal
-        # rate still produces a recording which plays back at the right speed.
-        # See `_OpenCVMovieWriter` for how that is done without timestamps.
-        frameRate = self._capture.frameRate
-        if not frameRate or frameRate <= 0:
-            frameRate = 30.0
-            logging.warning(
-                "Camera did not report a frame rate, writing the video at {} "
-                "fps.".format(frameRate))
-
-        unknownOpts = set(encoderOpts) - {'fourcc', 'bufferSecs'}
-        if unknownOpts:
-            logging.warning(
-                "The OpenCV movie writer does not understand the encoder "
-                "option(s) {}, they will be ignored.".format(
-                    ", ".join(repr(opt) for opt in sorted(unknownOpts))))
-
-        self._movieWriter = _OpenCVMovieWriter(
-            filename,
-            frameSize=(frameWidth, frameHeight),
-            frameRate=frameRate,
-            fourcc=encoderOpts.get('fourcc', 'mp4v'),
-            queueSecs=float(encoderOpts.get('bufferSecs', 10.0)))
-
-        self._nFramesWritten = 0
-        self._curPTS = 0.0  # current pts for the movie writer
-
-    def _submitFrameToFileOpenCV(self, frames):
-        """Submit a frame to the movie file writer using OpenCV.
-
-        This is used to submit frames to the movie file writer. It is called by
-        the camera interface when a new frame is captured. Frames are queued
-        rather than encoded here, so this returns without waiting for the
-        encoder; see `_OpenCVMovieWriter`.
-
-        Parameters
-        ----------
-        frames : list of tuples
-            Color data and presentation timestamps to submit to the movie file
-            writer.
-
-        Returns
-        -------
-        int
-            Always `0`. OpenCV does not report how much it has written, unlike
-            the FFmpeg based writers.
-
-        """
-        if self._movieWriter is None:
-            return 0
-
-        if not isinstance(frames, list):
-            frames = [frames]  # ensure frames is a list
-
-        for colorData, _, _, absTime in frames:
-            # place the frame at the point in the recording it was captured
-            self._curPTS = self._elapsedInRecording(absTime)
-            self._movieWriter.write(
-                self._convertFrameToRGB(colorData), self._curPTS)
-            self._nFramesWritten += 1
-
-        return 0
-
-    def _closeMovieFileWriterOpenCV(self):
-        """Close the movie file writer using OpenCV.
-
-        This waits for the encoder to work through any frames still queued and
-        closes the output file. If the writer is not open, this will do
-        nothing.
-        """
-        if self._movieWriter is None:
-            return
-
-        logging.debug("Closing movie file writer using OpenCV...")
-
-        try:
-            self._movieWriter.close()
-        except Exception as e:
-            logging.error("Error closing the movie file: {}".format(e))
-        finally:
-            self._movieWriter = None
-
-    # 
-    # Movie file writer methods
-    #
-    # These methods are used to open and close a movie file writer to save
-    # frames to disk. We don't expose these methods to the user directly, but
-    # they are used internally.
-    #
-
     def _openMovieFileWriter(self, encoderLib=None, encoderOpts=None):
         """Open a movie file writer to save frames to disk.
 
@@ -7695,8 +7976,8 @@ class Camera:
             that was used to open the camera stream. Default is `None`.
         encoderOpts : dict or None
             Options to pass to the encoder. This is a dictionary of options
-            specific to the encoder library being used. See the documentation
-            for `~psychopy.tools.movietools.MovieFileWriter` for more details.
+            specific to the encoder library being used. See the `MovieWriter`
+            subclass for that library for the options it understands.
 
         Returns
         -------
@@ -7719,7 +8000,12 @@ class Camera:
             encoderLib = self._cameraLib
         logging.debug(
             "Using encoder library '{}' to save video.".format(encoderLib))
-        
+
+        # Which writer to open. This is looked up before anything is created,
+        # so that an unsupported library is rejected before it leaves a
+        # temporary file behind.
+        writerCls = getMovieWriterClass(encoderLib)
+
         # check if we have a temporary file to write to
         import tempfile
         # create a temporary file to write the video to
@@ -7729,63 +8015,65 @@ class Camera:
         tempVideoFile.close()
         
         logging.debug("Using temporary file '{}' for video.".format(self._tempVideoFile))  
-            
-        if encoderLib == CAMERA_LIB_FFPYPLAYER:
-            self._openMovieFileWriterFFPyPlayer(
-                self._tempVideoFile, encoderOpts=encoderOpts)
-        elif encoderLib == CAMERA_LIB_PYAV:
-            self._openMovieFileWriterPyAV(
-                self._tempVideoFile, encoderOpts=encoderOpts)
-        elif encoderLib == CAMERA_LIB_OPENCV:
-            self._openMovieFileWriterOpenCV(
-                self._tempVideoFile, encoderOpts=encoderOpts)
-        else:
-            raise ValueError(
-                "Invalid value for parameter `encoderLib`, expected one of "
-                "`'ffpyplayer'`, `'pyav'` or `'opencv'`.")
 
-        # Remember which writer was opened, since frames have to be submitted
-        # to it and it has to be closed through the same library that opened
-        # it, which is not necessarily the one the camera is captured with.
-        self._encoderLib = encoderLib
+        # The writer is only stored once it is open, since a writer which threw
+        # on the way up has nothing to submit frames to or close. Frames are
+        # converted to RGB by the camera, as only it knows which library
+        # captured them; writers which cannot encode the capture library's
+        # frames directly use this to get at them.
+        movieWriter = writerCls(
+            self._tempVideoFile,
+            frameSize=self.frameSize,
+            frameRate=self._capture.frameRate,
+            encoderOpts=encoderOpts,
+            frameConverter=self._convertFrameToRGB)
+        movieWriter.open()
 
-        self._curPTS = 0.0  # reset the current PTS for the movie writer
+        self._movieWriter = movieWriter
 
         return self._tempVideoFile
 
     def _submitFrameToFile(self, frames, pts=None):
-        """Submit a frame to the movie file writer thread.
+        """Submit a frame to the movie file writer.
 
-        This is used to submit frames to the movie file writer thread. It is
-        called by the camera interface when a new frame is captured.
+        This is used to submit frames to the movie file writer. It is called by
+        the camera interface when a new frame is captured.
 
         Parameters
         ----------
-        frames : MovieFrame
-            Frame to submit to the movie file writer thread.
+        frames : list or tuple
+            Frames to submit to the movie file writer, each a tuple of the
+            frame data, its index in the stream, the presentation timestamp the
+            camera reported, and the time it was captured on the local clock. A
+            single such tuple may be passed instead of a list.
         pts : float or None
-            Presentation timestamp for the frame. If `None`, timestamps will be
-            generated automatically by the movie file writer. This is only used
-            if the movie file writer is configured to generate PTS values.
+            Unused. Frames are placed in the file by when they were captured,
+            which the writer works out from the capture times in `frames`.
+
+        Returns
+        -------
+        int
+            Number of bytes written to the movie file, or zero for encoders
+            which do not report it.
 
         """
         tStart = time.time()  # start time for the operation
+
+        if not isinstance(frames, list):
+            frames = [frames]
+
         with self._movieWriterLock:
             if self._movieWriter is None:
                 # the writer has been closed (or was never opened), drop the
                 # frames rather than write to a file which is going away
                 return 0
 
-            if self._encoderLib == CAMERA_LIB_FFPYPLAYER:
-                toReturn = self._submitFrameToFileFFPyPlayer(frames)
-            elif self._encoderLib == CAMERA_LIB_PYAV:
-                toReturn = self._submitFrameToFilePyAV(frames)
-            elif self._encoderLib == CAMERA_LIB_OPENCV:
-                toReturn = self._submitFrameToFileOpenCV(frames)
-            else:
-                raise ValueError(
-                    "Invalid value for parameter `encoderLib`, expected one of "
-                    "`'ffpyplayer'`, `'pyav'` or `'opencv'`.")
+            # Writers place frames by how far into the recording they were
+            # captured, which only the camera can work out, since it is the
+            # camera which knows when the recording started.
+            toReturn = self._movieWriter.write(
+                [(colorData, self._elapsedInRecording(absTime))
+                    for colorData, _, _, absTime in frames])
         
         logging.debug(
             "Submitted {} frames to the movie file writer (took {:.6f} seconds)".format(
@@ -7801,22 +8089,9 @@ class Camera:
         """
         with self._movieWriterLock:
             if self._movieWriter is None:
-                # logging.warning(
-                #     "Attempting to call `_closeMovieFileWriter()` without an "
-                #     "open movie file writer.")
                 return
-            
-            if self._encoderLib == CAMERA_LIB_FFPYPLAYER:
-                self._closeMovieFileWriterFFPyPlayer()
-            elif self._encoderLib == CAMERA_LIB_PYAV:
-                self._closeMovieFileWriterPyAV()
-            elif self._encoderLib == CAMERA_LIB_OPENCV:
-                self._closeMovieFileWriterOpenCV()
-            else:
-                raise ValueError(
-                    "Invalid value for parameter `encoderLib`, expected one of "
-                    "`'ffpyplayer'`, `'pyav'` or `'opencv'`.")
 
+            self._movieWriter.close()
             self._movieWriter = None
 
     # --------------------------------------------------------------------------
