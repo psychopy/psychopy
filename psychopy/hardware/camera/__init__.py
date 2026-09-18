@@ -5687,7 +5687,7 @@ class Camera:
 
         # handle device
         self._capture = None
-        if issubclass(device, CameraDevice):
+        if isinstance(device, CameraDevice):
             # if given a device object, use it
             self._capture = device
         elif device is None:
@@ -5701,6 +5701,12 @@ class Camera:
                 for profile in cameraDeviceClass.getAvailableDevices():
                     self._capture = DeviceManager.addDevice(**profile)
                     break
+        elif isinstance(device, int):
+            # if given an integer, treat it as an index into the available devices
+            availableDevices = cameraDeviceClass.getAvailableDevices()
+            if 0 <= device < len(availableDevices):
+                profile = availableDevices[device]
+                self._capture = DeviceManager.addDevice(**profile)
         elif isinstance(device, str):
             if DeviceManager.getDevice(device):
                 self._capture = DeviceManager.getDevice(device)
