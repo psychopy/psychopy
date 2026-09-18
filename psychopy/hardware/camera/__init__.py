@@ -147,6 +147,37 @@ v4l2FormatTbl = {
     'y16': 'gray16le'
 }
 
+# Pixel formats whose first plane is the luma (Y) channel, packed one byte per
+# pixel, which is the grayscale image object recognizers want. Frames in these
+# formats can hand that plane over as-is instead of being run through a colour
+# conversion, see `CameraFrame._asGrayscaleFFPyPlayer()`. Packed YUV formats
+# (e.g. `yuyv422`) are deliberately absent, their first plane interleaves the
+# chroma samples with the luma ones. Note that the luma plane of a limited range
+# format is taken as it stands, so it spans 16-235 rather than the full 0-255 a
+# colour conversion would have stretched it to. That costs a little contrast,
+# which recognizers are indifferent to, and saves converting every frame.
+lumaFirstPixelFormats = frozenset((
+    'gray',
+    'yuv410p', 'yuv411p', 'yuv420p', 'yuv422p', 'yuv440p', 'yuv444p',
+    'yuvj411p', 'yuvj420p', 'yuvj422p', 'yuvj440p', 'yuvj444p',
+    'nv12', 'nv21'
+))
+
+# Pixel formats which OpenCV can convert to grayscale in a single pass, mapped
+# onto the name of the `cv2` conversion code which does it. Held as names rather
+# than the codes themselves since `cv2` is imported lazily throughout this
+# module. Formats absent from here and from `lumaFirstPixelFormats` are
+# converted by FFmpeg instead. Please expand this if you know any more!
+grayscaleConversionTbl = {
+    'rgb24': 'COLOR_RGB2GRAY',
+    'bgr24': 'COLOR_BGR2GRAY',
+    'rgba': 'COLOR_RGBA2GRAY',
+    'bgra': 'COLOR_BGRA2GRAY',
+    'yuyv422': 'COLOR_YUV2GRAY_YUY2',
+    'uyvy422': 'COLOR_YUV2GRAY_UYVY',
+    'yvyu422': 'COLOR_YUV2GRAY_YVYU'
+}
+
 # Mapping of capture format names, as the rest of this module spells them,
 # onto the FourCC codes OpenCV asks drivers for them by. Both the FFmpeg names
 # used on Windows and MacOS and the Video4Linux2 ones used on Linux are listed,
@@ -769,6 +800,100 @@ class CameraFrame:
     def captureLib(self, value):
         self._captureLib = value
     
+    def _asGrayscale(self):
+        """Get the frame as a grayscale image, for object detection.
+
+        Returns
+        -------
+        numpy.ndarray
+            Frame data as an 8-bit, single channel array of shape
+            `(height, width)`. This may be read-only and may share memory with
+            the frame itself, so treat it as belonging to the frame rather than
+            writing to it.
+
+        Raises
+        ------
+        ValueError
+            If the frame was captured with a library this cannot get image data
+            from.
+
+        """
+        import cv2
+
+        # Frames already converted to RGB are wrapped in an adapter whichever
+        # library captured them, so that case is handled ahead of the backends.
+        if isinstance(self.colorData, _RGBFrameAdapter):
+            return cv2.cvtColor(
+                self.colorData.to_ndarray(format='rgb24'), cv2.COLOR_RGB2GRAY)
+
+        if self._captureLib == CAMERA_LIB_FFPYPLAYER:
+            return self._asGrayscaleFFPyPlayer()
+        elif self._captureLib == CAMERA_LIB_PYAV:
+            # PyAV can hand over grayscale directly, avoiding a full colour
+            # conversion we would only throw away again
+            return self.colorData.to_ndarray(format='gray')
+        elif self._captureLib == CAMERA_LIB_OPENCV:
+            if self.colorData.ndim == 2:  # camera is streaming monochrome
+                return self.colorData
+
+            return cv2.cvtColor(self.colorData, cv2.COLOR_BGR2GRAY)
+
+        raise ValueError(
+            "Cannot get grayscale image data from a frame captured with "
+            "'{}'.".format(self._captureLib))
+
+    def _asGrayscaleFFPyPlayer(self):
+        """Get the frame as a grayscale image, for `ffpyplayer` frames.
+
+        Frames are only converted to RGB up front when the camera is in
+        `CAMERA_MODE_CV` usage mode, so this has to cope with whatever pixel
+        format the camera happens to be streaming in.
+
+        Returns
+        -------
+        numpy.ndarray
+            Frame data as an 8-bit, single channel array of shape
+            `(height, width)`.
+
+        """
+        import cv2
+
+        frameWidth, frameHeight = self.colorData.get_size()
+        pixelFormat = self.colorData.get_pixel_format()
+
+        # `to_memoryview()` hands plane data over packed, without any row
+        # padding, so planes can be reshaped by frame size alone
+        planeData = self.colorData.to_memoryview()[0].memview
+
+        if pixelFormat in lumaFirstPixelFormats:
+            # The first plane is the luma channel, which is the grayscale image
+            # already, so it can be used without converting anything.
+            return np.frombuffer(planeData, dtype=np.uint8).reshape(
+                (frameHeight, frameWidth))
+
+        conversionCode = grayscaleConversionTbl.get(pixelFormat, None)
+        if conversionCode is not None:
+            planeArray = np.frombuffer(planeData, dtype=np.uint8)
+            nChannels = planeArray.size // (frameWidth * frameHeight)
+
+            return cv2.cvtColor(
+                planeArray.reshape((frameHeight, frameWidth, nChannels)),
+                getattr(cv2, conversionCode))
+
+        # Uncommon format which OpenCV cannot take apart itself, so fall back on
+        # FFmpeg to do the conversion. This builds a scaling context per frame,
+        # which is slow, but formats reaching here are rare.
+        from ffpyplayer.pic import SWScale
+
+        sws = SWScale(frameWidth, frameHeight, pixelFormat, ofmt='gray')
+        grayImage = sws.scale(self.colorData)
+        grayData = np.frombuffer(
+            grayImage.to_memoryview()[0].memview, dtype=np.uint8)
+
+        # copied since the array would otherwise point into `grayImage`, which
+        # nothing keeps alive past the end of this call
+        return grayData.reshape((frameHeight, frameWidth)).copy()
+
     def detectObjects(self, recognizer, refresh=False, **kwargs):
         """Detect objects in the frame using the specified recognizer.
 
@@ -776,31 +901,48 @@ class CameraFrame:
         is more efficient than calling this method multiple times on the same 
         frame with different recognizers.
 
+        Results are cached on the frame, so asking it for the same recognizer
+        and options again hands back the detections already made rather than
+        running the recognizer a second time. Recognizers the frame has not been
+        run through yet are run whatever it has been asked for before, so the
+        returned dictionary always covers every recognizer passed to the call.
+
         Parameters
         ----------
         recognizer : Any
             The object recognizer to use for detecting objects in the frame.
             Usually an instance of a class derived from
-            `psychopy.tools.imagetools.BaseObjectRecognizer`.
+            `psychopy.tools.imagetools.BaseObjectRecognizer`. A list or tuple of
+            them may be passed to run several over the frame at once.
         refresh : bool, optional
             If `True`, forces re-detection of objects even if results are
             already cached. Default is `False`.
         **kwargs : dict
             Additional keyword arguments to pass to the recognizer's
-            `detectObjects()` method.
+            `detectObjects()` method. These count towards which cached results
+            match, so the same recognizer asked for with different options is
+            run again rather than handed the previous results.
         
         Returns
         -------
         dict
-            A dictionary containing detection results for each recognizer. The
-            keys are the recognizer names and the values are dictionaries with 
-            the following keys:
+            A dictionary containing detection results for each recognizer passed
+            in. The keys are the recognizer names and the values are
+            dictionaries with the following keys:
                 - 'pts': Presentation timestamp of the frame.
                 - 'count': Number of objects detected.
                 - 'objects': List of detected objects with their details.
 
             The structure of each detected object depends on the recognizer, see
             the documentation of the specific recognizer for details.
+
+        Raises
+        ------
+        ValueError
+            If two recognizers passed in the same call go by the same name, as
+            one's results would otherwise silently displace the other's, or if
+            the frame was captured with a library this cannot get image data
+            from.
 
         Example
         -------
@@ -832,9 +974,9 @@ class CameraFrame:
 
             detected = recentFrame.detectObjects(recognizers)
 
-            # get references to detected objects
-            faces = detected['face']['objects']
-            eyes = detected['eye']['objects']
+            # get the results for each recognizer
+            faces = detected['face']
+            eyes = detected['eye']
 
             # get position of the first detected face (if any)
             if faces['count'] > 0:
@@ -842,59 +984,51 @@ class CameraFrame:
                 x, y, w, h = firstFace['rect']
 
         """
-        if not refresh and self._detectedObjects:
-            return self._detectedObjects  # return cached results
-        
         if not isinstance(recognizer, (list, tuple)):
             recognizer = [recognizer]
 
-        import cv2
+        # Name each recognizer for the results dictionary. Two recognizers going
+        # by the same name would have one's results silently displace the
+        # other's, so that is refused rather than handing back a result short of
+        # the detections which were asked for.
+        recogNames = []
+        for recogIdx, recog in enumerate(recognizer):
+            recogName = getattr(recog, 'name', None)
+            if recogName is None:
+                recogName = '{}#{}'.format(type(recog).__name__, recogIdx)
 
-        # Get the frame data as a grayscale array for detection. PyAV can hand
-        # over grayscale directly, avoiding a full colour conversion we would
-        # only throw away again.
-        if self._captureLib == CAMERA_LIB_FFPYPLAYER:
-            frameW, frameH = self.frameSize
-            cameraFrameBuffer = self.colorData.to_memoryview()[0].memview
-            cameraFrameArray = np.frombuffer(
-                cameraFrameBuffer, dtype=np.uint8).reshape(
-                    (frameH, frameW, 3))
-            grayFrame = cv2.cvtColor(cameraFrameArray, cv2.COLOR_RGB2GRAY)
-        elif self._captureLib == CAMERA_LIB_PYAV:
-            if isinstance(self.colorData, _RGBFrameAdapter):
-                grayFrame = cv2.cvtColor(
-                    self.colorData.to_ndarray(format='rgb24'),
-                    cv2.COLOR_RGB2GRAY)
-            else:
-                grayFrame = self.colorData.to_ndarray(format='gray')
-        elif self._captureLib == CAMERA_LIB_OPENCV:
-            if isinstance(self.colorData, _RGBFrameAdapter):
-                grayFrame = cv2.cvtColor(
-                    self.colorData.to_ndarray(format='rgb24'),
-                    cv2.COLOR_RGB2GRAY)
-            else:
-                grayFrame = cv2.cvtColor(self.colorData, cv2.COLOR_BGR2GRAY)
-        else:
-            raise ValueError(
-                "Cannot detect objects in a frame captured with "
-                "'{}'.".format(self._captureLib))
+            if recogName in recogNames:
+                raise ValueError(
+                    "Two recognizers passed to `detectObjects()` go by the name "
+                    "'{}'. Give each recognizer a distinct `name` so that their "
+                    "results can be told apart.".format(recogName))
 
-        results = {}
-        for recog in recognizer:
-            recogName = recog.name if hasattr(recog, 'name') else str(
-                type(recog))
-            detectedObjs = recog.detectObjects(
-                grayFrame, **kwargs)
-            
-            results[recogName] = {
-                'pts': self.pts,  
-                'count': len(detectedObjs),
-                'objects': detectedObjs
-            }
+            recogNames.append(recogName)
 
-        self._detectedObjects = results  # store the detection results
+        # Cached detections are keyed by the recognizer which made them and the
+        # options it was given, so that asking a frame for a recognizer it has
+        # not been run through yet runs it, instead of handing back the results
+        # of whatever it was asked for last.
+        optionsKey = repr(sorted(kwargs.items()))
+        toDetect = [
+            (recogName, recog) for recogName, recog in zip(
+                recogNames, recognizer)
+            if refresh or (recog, optionsKey) not in self._detectedObjects]
 
-        return results
+        if toDetect:  # nothing to convert if every recognizer has been run
+            grayFrame = self._asGrayscale()
+            for recogName, recog in toDetect:
+                detectedObjs = recog.detectObjects(grayFrame, **kwargs)
+
+                self._detectedObjects[(recog, optionsKey)] = {
+                    'pts': self.pts,
+                    'count': len(detectedObjs),
+                    'objects': detectedObjs
+                }
+
+        return {
+            recogName: self._detectedObjects[(recog, optionsKey)]
+            for recogName, recog in zip(recogNames, recognizer)}
 
 
 class CameraDevice(BaseDevice):
@@ -4837,7 +4971,7 @@ class Camera:
 
     Parameters
     ----------
-    device : str or int
+    device : int, str, BaseCameraDevice or None
         Camera to open a stream with. If the ID is not valid, an error will be
         raised when `open()` is called. Value can be a string or number. String
         values are platform-dependent: a DirectShow URI or camera name on
