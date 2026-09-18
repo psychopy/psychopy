@@ -46,8 +46,7 @@ __all__ = [
     'getCameras',
     'getCameraDescriptions',
     'getOpenCameras',
-    'closeAllOpenCameras',
-    'renderVideo'
+    'closeAllOpenCameras'
 ]
 
 import os
