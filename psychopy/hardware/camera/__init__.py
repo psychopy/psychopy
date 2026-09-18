@@ -893,6 +893,148 @@ class CameraFrame:
         # nothing keeps alive past the end of this call
         return grayData.reshape((frameHeight, frameWidth)).copy()
 
+    def _asRGB(self):
+        """Get the frame as an RGB image.
+
+        Returns
+        -------
+        numpy.ndarray
+            Frame data as an 8-bit, three channel array of shape
+            `(height, width, 3)` with channels in RGB order. This may be
+            read-only and may share memory with the frame itself, so treat it
+            as belonging to the frame rather than writing to it.
+
+        Raises
+        ------
+        ValueError
+            If the frame was captured with a library this cannot get image data
+            from.
+
+        """
+        import cv2
+
+        # Frames already converted to RGB are wrapped in an adapter whichever
+        # library captured them, so that case is handled ahead of the backends.
+        if isinstance(self.colorData, _RGBFrameAdapter):
+            return self.colorData.to_ndarray(format='rgb24')
+
+        if self._captureLib == CAMERA_LIB_FFPYPLAYER:
+            return self._asRGBFFPyPlayer()
+        elif self._captureLib == CAMERA_LIB_PYAV:
+            # PyAV can convert to RGB itself, whatever the camera is streaming
+            return self.colorData.to_ndarray(format='rgb24')
+        elif self._captureLib == CAMERA_LIB_OPENCV:
+            if self.colorData.ndim == 2:  # camera is streaming monochrome
+                return cv2.cvtColor(self.colorData, cv2.COLOR_GRAY2RGB)
+
+            return cv2.cvtColor(self.colorData, cv2.COLOR_BGR2RGB)
+
+        raise ValueError(
+            "Cannot get RGB image data from a frame captured with "
+            "'{}'.".format(self._captureLib))
+
+    def _asRGBFFPyPlayer(self):
+        """Get the frame as an RGB image, for `ffpyplayer` frames.
+
+        Frames are only converted to RGB up front when the camera is in
+        `CAMERA_MODE_CV` usage mode, so this has to cope with whatever pixel
+        format the camera happens to be streaming in.
+
+        Returns
+        -------
+        numpy.ndarray
+            Frame data as an 8-bit, three channel array of shape
+            `(height, width, 3)` with channels in RGB order.
+
+        """
+        frameWidth, frameHeight = self.colorData.get_size()
+        pixelFormat = self.colorData.get_pixel_format()
+
+        if pixelFormat == 'rgb24':
+            # `to_memoryview()` hands plane data over packed, without any row
+            # padding, so the plane can be reshaped by frame size alone
+            planeData = self.colorData.to_memoryview()[0].memview
+
+            return np.frombuffer(planeData, dtype=np.uint8).reshape(
+                (frameHeight, frameWidth, 3))
+
+        # Let FFmpeg do the conversion, which covers every format the camera
+        # might be streaming in. This builds a scaling context per frame, which
+        # is slow, but frames are only converted this way one at a time.
+        from ffpyplayer.pic import SWScale
+
+        sws = SWScale(frameWidth, frameHeight, pixelFormat, ofmt='rgb24')
+        rgbImage = sws.scale(self.colorData)
+        rgbData = np.frombuffer(
+            rgbImage.to_memoryview()[0].memview, dtype=np.uint8)
+
+        # copied since the array would otherwise point into `rgbImage`, which
+        # nothing keeps alive past the end of this call
+        return rgbData.reshape((frameHeight, frameWidth, 3)).copy()
+
+    def save(self, filename):
+        """Save the frame to an image file.
+
+        The frame is converted to RGB, whatever format the camera captured it
+        in, and written to `filename`. The image format is taken from the
+        file extension, so saving as a PNG is a matter of asking for a name
+        ending in `.png`. A name without an extension is saved as a TIFF,
+        which keeps the frame exactly as the camera delivered it rather than
+        putting compression artifacts in it.
+
+        Parameters
+        ----------
+        filename : str
+            Path of the file to write the frame to. If the name has no
+            extension, `'.tif'` is appended to it.
+
+        Returns
+        -------
+        str
+            Path the frame was written to, which is `filename` with an
+            extension added if it did not have one.
+
+        Raises
+        ------
+        ValueError
+            If the frame was captured with a library this cannot get image data
+            from, or if the file extension does not name an image format which
+            can be written.
+
+        Example
+        -------
+        Save the most recent frame from a camera as a PNG::
+
+            cam.update()
+            cam.lastFrame.save('participant_photo.png')
+
+        """
+        from PIL import Image
+
+        filename = str(filename)
+        if not os.path.splitext(filename)[1]:
+            filename += '.tif'
+
+        # converted before the file is opened so that a frame which cannot be
+        # read reports that, rather than leaving an empty file behind
+        rgbImage = Image.fromarray(self._asRGB(), mode='RGB')
+
+        try:
+            rgbImage.save(filename)
+        except (ValueError, KeyError) as err:
+            # PIL says which extensions it knows, which is more use here than
+            # the frame being lost to an error about the file name
+            raise ValueError(
+                "Cannot save camera frame to '{}', the file extension does "
+                "not name an image format which can be written ({}).".format(
+                    filename, err))
+
+        logging.debug(
+            "Saved camera frame with pts={} to '{}'.".format(
+                self.pts, filename))
+
+        return filename
+
     def detectObjects(self, recognizer, refresh=False, **kwargs):
         """Detect objects in the frame using the specified recognizer.
 
