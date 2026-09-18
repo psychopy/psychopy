@@ -5687,7 +5687,7 @@ class Camera:
 
         # handle device
         self._capture = None
-        if isinstance(device, BaseCameraDevice):
+        if issubclass(device, CameraDevice):
             # if given a device object, use it
             self._capture = device
         elif device is None:
