@@ -307,6 +307,18 @@ class PsychtoolboxMicrophoneDevice(BaseMicrophoneDevice, aliases=["mic", "microp
 
         # list to store listeners in
         self.listeners = []
+
+    @property
+    def sampleRateHz(self):
+        """Sampling rate for audio recording in Hertz (`int`).
+        """
+        return self._sampleRateHz
+
+    @property
+    def channels(self):
+        """Number of audio channels to record samples to (`int`).
+        """
+        return self._channels
     
     @property
     def maxRecordingSize(self):

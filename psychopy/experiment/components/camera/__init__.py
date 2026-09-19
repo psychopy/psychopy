@@ -34,7 +34,11 @@ class CameraComponent(BaseDeviceComponent):
     iconSVG = Path(__file__).parent / 'CameraComponent.svg'
     tooltip = _translate('Webcam: Record video from a webcam.')
     beta = False
-    deviceClasses = ["psychopy.hardware.camera.CameraDevice"]
+    deviceClasses = [
+        "psychopy.hardware.camera.FFPyPlayerCameraDevice",
+        "psychopy.hardware.camera.PyAVCameraDevice",
+        "psychopy.hardware.camera.OpenCVCameraDevice",
+    ]
     legacyParams = [
         # old device setup params, no longer needed as this is handled by DeviceManager
         "cameraLib",
@@ -300,13 +304,34 @@ class CameraComponent(BaseDeviceComponent):
         buff.writeIndentedLines(code % self.params)
 
 
-class CameraDeviceBackend(DeviceBackend):
-    # name of this backend to display in Device Manager
-    backendLabel = "Camera"
-    # class of the device which this backend corresponds to
-    deviceClass = "psychopy.hardware.camera.CameraDevice"
+class BaseCameraDeviceBackend(DeviceBackend):
+    """
+    Shared implementation for the camera backends.
+
+    Each capture library PsychoPy can read cameras with gets its own subclass,
+    which only needs to supply a `backendLabel` and the `deviceClass` of the
+    interface which uses that library. Everything else - the params shown in
+    Device Manager and the code written out for them - is the same either way,
+    since the interfaces present the same settings.
+    """
     # icon to show in device manager
     icon = "light/webcam.png"
+
+    @classmethod
+    def getDeviceClassPath(cls):
+        """
+        Get this backend's `deviceClass` in the `module:name` form which param
+        lookups are written in (rather than the dotted import path).
+
+        Returns
+        -------
+        str
+            Import path for the device class, e.g.
+            `"psychopy.hardware.camera:CameraDevice"`
+        """
+        module, _, name = cls.deviceClass.rpartition(".")
+
+        return f"{module}:{name}"
 
     def writeDeviceCode(self, buff):
         # write base setup
@@ -325,10 +350,13 @@ class CameraDeviceBackend(DeviceBackend):
             'frameRate',
         ]
         params = {}
+        # ask the device class this backend uses which formats it supports, so
+        # that each backend offers the formats its own capture library can use
+        deviceClass = self.getDeviceClassPath()
         
-        self.params['frameSize'] = Param(
+        params['frameSize'] = Param(
             None, valType='list', inputType="choice",
-            allowedVals="python:///psychopy.hardware.camera:CameraDevice.getSupportedResolutions($deviceName)",
+            allowedVals=f"python:///{deviceClass}.getSupportedResolutions($deviceName)",
             hint=_translate(
                 "Resolution (w x h) to record to, leave blank to use device default."
             ),
@@ -336,7 +364,7 @@ class CameraDeviceBackend(DeviceBackend):
         )
         params['frameRate'] = Param(
             None, valType='int', inputType="choice",
-            allowedVals="python:///psychopy.hardware.camera:CameraDevice.getSupportedFrameRates($deviceName)",
+            allowedVals=f"python:///{deviceClass}.getSupportedFrameRates($deviceName)",
             hint=_translate(
                 "Frame rate (frames per second) to record at, leave blank to use device default."
             ),
@@ -346,8 +374,33 @@ class CameraDeviceBackend(DeviceBackend):
         return params, order
 
 
-# register backend with Component
+class CameraDeviceBackend(BaseCameraDeviceBackend):
+    """
+    Camera read using FFmpeg by way of `ffpyplayer`.
+    """
+    # name of this backend to display in Device Manager
+    backendLabel = "Camera (FFPyPlayer)"
+    # class of the device which this backend corresponds to
+    deviceClass = "psychopy.hardware.camera.CameraDevice"
+
+
+class PyAVCameraDeviceBackend(BaseCameraDeviceBackend):
+    """
+    Camera read using FFmpeg by way of PyAV (the `av` package).
+
+    This uses the same underlying libraries as the `ffpyplayer` backend, but
+    binds to them directly. It is the one to use on Python versions which
+    `ffpyplayer` has no wheels for.
+    """
+    # name of this backend to display in Device Manager
+    backendLabel = "Camera (PyAV)"
+    # class of the device which this backend corresponds to
+    deviceClass = "psychopy.hardware.camera.PyAVCameraDevice"
+
+
+# register backends with Component
 CameraComponent.registerBackend(CameraDeviceBackend)
+CameraComponent.registerBackend(PyAVCameraDeviceBackend)
 
 
 if __name__ == "__main__":
