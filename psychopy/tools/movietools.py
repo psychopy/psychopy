@@ -19,6 +19,7 @@ __all__ = [
 ]
 
 import os
+import sys
 import threading
 import queue
 import atexit
@@ -741,7 +742,9 @@ class OpenCVMovieWriter(MovieWriter):
         only `'fourcc'` (the FourCC code of the codec to write with, `'mp4v'`
         by default) and `'bufferSecs'` (how many seconds of video the encoder
         may fall behind by before frames are dropped) are understood here.
-        Anything else is ignored, with a warning.
+        Anything else is ignored, with a warning. A codec the local OpenCV
+        build cannot write with is swapped for one it can, with a warning; see
+        `_fallbackFourCCs`.
     frameConverter : callable or None
         Callable converting a frame as the capture library hands it over into
         RGB. OpenCV cannot encode the other libraries' frames, so this is
@@ -752,6 +755,17 @@ class OpenCVMovieWriter(MovieWriter):
 
     # encoder options this writer understands, anything else is ignored
     _knownEncoderOpts = {'fourcc', 'bufferSecs'}
+
+    # Codecs tried, in order, when the one asked for cannot be written by the
+    # local OpenCV build. Which codecs a build can write depends on which
+    # backend it carries: with FFMPEG, which the Linux and Windows wheels have,
+    # the default `'mp4v'` is written fine, but the macOS Intel wheels from
+    # 4.13 onwards ship without a working FFMPEG backend
+    # (opencv/opencv-python#1192), leaving AVFoundation, whose writer takes
+    # only `'avc1'`/`'h264'`, `'mjpg'`/`'jpeg'` and `'hvc1'`/`'hevc'`. The
+    # reverse does not hold: the FFMPEG those wheels are built with carries no
+    # H.264 encoder, so `'avc1'` is not worth trying anywhere but macOS.
+    _fallbackFourCCs = ('avc1',) if sys.platform == 'darwin' else ()
 
     # Longest gap in the recording, in seconds, that will be filled by
     # repeating frames. A gap longer than this means the camera stalled, and is
@@ -825,20 +839,62 @@ class OpenCVMovieWriter(MovieWriter):
         """
         import cv2
 
-        self._writer = cv2.VideoWriter(
-            self._filename,
-            cv2.VideoWriter_fourcc(*self._fourcc),
-            self._frameRate,
-            self._frameSize)
+        # Backends to ask for, in order. Left to itself OpenCV works down the
+        # backends its build has, and a backend which will not write the codec
+        # asked for simply hands on to the next, ending at the writer which
+        # writes a numbered image per frame and fails too. Naming FFMPEG first
+        # means the codec is offered to the backend most likely to take it,
+        # rather than to whichever one the build happens to list first.
+        apiPrefs = (cv2.CAP_FFMPEG, cv2.CAP_ANY)
 
-        if not self._writer.isOpened():
-            self._writer.release()
-            self._writer = None
+        # the codec asked for first, then the ones this platform can fall back
+        # on, skipping any repeat of the one already tried
+        fourccs = [self._fourcc]
+        fourccs += [fourcc for fourcc in self._fallbackFourCCs
+                    if fourcc != self._fourcc]
+
+        writer = openedWith = None
+        for fourcc in fourccs:
+            for apiPref in apiPrefs:
+                writer = cv2.VideoWriter(
+                    self._filename,
+                    apiPref,
+                    cv2.VideoWriter_fourcc(*fourcc),
+                    self._frameRate,
+                    self._frameSize)
+
+                if writer.isOpened():
+                    openedWith = fourcc
+                    break
+
+                writer.release()
+                writer = None
+
+            if writer is not None:
+                break
+
+        if writer is None:
             raise RuntimeError(
-                "OpenCV could not open '{}' for writing with the '{}' codec at "
-                "{}x{} @{} fps.".format(
-                    self._filename, self._fourcc, self._frameSize[0],
-                    self._frameSize[1], self._frameRate))
+                "OpenCV could not open '{}' for writing at {}x{} @{} fps with "
+                "any of the codecs {}. The OpenCV in use may have been built "
+                "without a backend which can write them; "
+                "`cv2.getBuildInformation()` says which backends it has, and "
+                "setting `OPENCV_VIDEOIO_DEBUG=1` in the environment makes "
+                "OpenCV log what each one did with the codec.".format(
+                    self._filename, self._frameSize[0], self._frameSize[1],
+                    self._frameRate,
+                    ", ".join(repr(fourcc) for fourcc in fourccs)))
+
+        if openedWith != self._fourcc:
+            logging.warning(
+                "The OpenCV in use cannot write with the '{}' codec, so '{}' "
+                "is being written with '{}' instead.".format(
+                    self._fourcc, self._filename, openedWith))
+            # kept so that reopening this writer goes straight to the codec
+            # which works rather than failing its way back to it
+            self._fourcc = openedWith
+
+        self._writer = writer
 
         self._queue = queue.Queue(
             maxsize=max(1, int(self._queueSecs * self._frameRate)))
