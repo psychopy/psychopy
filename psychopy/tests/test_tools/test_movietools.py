@@ -10,9 +10,11 @@
 
 import importlib
 import os
+import platform
 import re
 import shutil
 import subprocess
+import sys
 
 import numpy as np
 import pytest
@@ -55,6 +57,51 @@ def _libAvailable(libName):
         return False
 
     return True
+
+
+# First opencv-python release whose macOS Intel wheels cannot write video, see
+# `_openCVCannotWrite()`.
+_BROKEN_OPENCV_MACOS_INTEL = (4, 13)
+
+
+def _openCVCannotWrite():
+    """Check whether the OpenCV installed here is one which cannot write video.
+
+    The macOS Intel wheels from opencv-python 4.13 onwards ship without a
+    working FFMPEG backend, leaving AVFoundation, which is reported as opening
+    a file for no codec but MJPG on those builds
+    (opencv/opencv-python#1192). What such a build can write is not something
+    PsychoPy can do anything about, so the tests which need a movie out of
+    OpenCV are skipped rather than failed. Other platforms' wheels, and the
+    macOS ARM ones, are unaffected.
+
+    Returns
+    -------
+    str or None
+        Why video cannot be written here, or `None` if it can be.
+
+    """
+    if sys.platform != 'darwin' or platform.machine() != 'x86_64':
+        return None
+
+    if not _libAvailable('cv2'):
+        return None
+
+    import cv2
+
+    # version strings look like '4.13.0.90' or '4.11.0', and only the first two
+    # parts decide whether this is one of the broken builds
+    try:
+        version = tuple(int(part) for part in cv2.__version__.split('.')[:2])
+    except ValueError:  # an unreleased build, assume it is fixed
+        return None
+
+    if version < _BROKEN_OPENCV_MACOS_INTEL:
+        return None
+
+    return (
+        "OpenCV {} on macOS Intel has no backend which can write video, see "
+        "opencv/opencv-python#1192".format(cv2.__version__))
 
 
 def _makeFrames(nFrames=N_FRAMES, frameSize=FRAME_SIZE, frameRate=FRAME_RATE):
@@ -453,6 +500,8 @@ class TestPyAVMovieWriter(_MovieWriterTests):
 
 @pytest.mark.skipif(
     not _libAvailable('cv2'), reason="`cv2` (OpenCV) is not installed")
+@pytest.mark.skipif(
+    _openCVCannotWrite() is not None, reason=_openCVCannotWrite() or "")
 class TestOpenCVMovieWriter(_MovieWriterTests):
     """Tests for the writer which encodes with OpenCV."""
     writerClass = OpenCVMovieWriter
