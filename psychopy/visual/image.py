@@ -90,6 +90,16 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
         self._texBufferPixFormat = None
         self._texBufferDataType = None
 
+        # Size of the pixel buffer backing the colour texture, and whether it
+        # still needs allocating and filling from that texture. Deferred until
+        # something actually asks to map it (see `mapImageData`).
+        self._texBufferNBytes = 0
+        self._texBufferNeedsFill = False
+
+        # uniform locations per shader program, filled in on first use
+        self._uniformCache = {}
+        self._matrixScratch = None
+
         # mapping of that buffer handed out by `imageData`, if any
         self._imageDataPtr = None
         self._imageDataArray = None
@@ -277,8 +287,9 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
             self._drawLegacyGL(win)
             return
 
-        win.setOrthographicView()
-        win.setScale('pix')
+        # `clearDepth=False` since depth testing is off for 2D drawing, so
+        # clearing the depth buffer once per stimulus achieves nothing.
+        win.setOrthographicView(clearDepth=False)
 
         # GL.glColor4f(*self._foreColor.render('rgba1'))
 
@@ -292,7 +303,7 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
             # for an rgb image there is no recoloring
             _prog = self.win._progImageStim
 
-        gt.useProgram(_prog)
+        GL.glUseProgram(_prog)
 
         # bind textures
         GL.glEnable(GL.GL_TEXTURE_2D)
@@ -301,20 +312,28 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
         GL.glActiveTexture(GL.GL_TEXTURE0)  # color/lum image
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
 
-        # set the shader uniforms
-        gt.setUniformSampler2D(_prog, b'uTexture', 0)  # is texture unit 0
-        gt.setUniformSampler2D(_prog, b'uMask', 1)  # mask is texture unit 1
-        gt.setUniformValue(_prog, b'uColor', self._foreColor.render('rgba1'))
-        gt.setUniformMatrix(
-            _prog, 
-            b'uProjectionMatrix', 
-            win._projectionMatrix,
-            transpose=True)
-        gt.setUniformMatrix(
-            _prog, 
-            b'uModelViewMatrix', 
-            win._viewMatrix,
-            transpose=True)
+        # Set the shader uniforms. The locations are looked up once per program
+        # and kept, since resolving them by name means a driver query per
+        # uniform per stimulus per frame.
+        uniforms = self._uniformLocations(_prog)
+
+        loc = uniforms[b'uTexture']
+        if loc != -1:
+            GL.glUniform1i(loc, 0)  # is texture unit 0
+        loc = uniforms[b'uMask']
+        if loc != -1:
+            GL.glUniform1i(loc, 1)  # mask is texture unit 1
+        loc = uniforms[b'uColor']
+        if loc != -1:
+            GL.glUniform4f(loc, *self._foreColor.render('rgba1'))
+        loc = uniforms[b'uProjectionMatrix']
+        if loc != -1:
+            GL.glUniformMatrix4fv(
+                loc, 1, GL.GL_TRUE, self._asMatrixPtr(win._projectionMatrix))
+        loc = uniforms[b'uModelViewMatrix']
+        if loc != -1:
+            GL.glUniformMatrix4fv(
+                loc, 1, GL.GL_TRUE, self._asMatrixPtr(win._viewMatrix))
 
         # draw the image
         gt.drawClientArrays({
@@ -323,7 +342,7 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
             'gl_MultiTexCoord1': self._maskCoords}, 
             'GL_QUADS')
         
-        gt.useProgram(None)
+        GL.glUseProgram(0)
 
         # unbind the textures
         GL.glActiveTexture(GL.GL_TEXTURE1)
@@ -331,6 +350,64 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
         GL.glDisable(GL.GL_TEXTURE_2D)
+
+    #: Names of the uniforms `draw()` sets, looked up once per shader program.
+    _UNIFORM_NAMES = (b'uTexture', b'uMask', b'uColor', b'uProjectionMatrix',
+                      b'uModelViewMatrix')
+
+    def _uniformLocations(self, program):
+        """Locations of the uniforms used when drawing, for a given program.
+
+        Resolving a uniform by name is a query to the driver, and `draw()` sets
+        five of them, so the locations are worked out the first time a program
+        is used and kept from then on. They are a property of the linked
+        program and don't change while it lives.
+
+        Parameters
+        ----------
+        program : int
+            Handle of the shader program about to be used.
+
+        Returns
+        -------
+        dict
+            Maps each name in `_UNIFORM_NAMES` to its location, which is `-1`
+            for a uniform the program doesn't define or doesn't use.
+
+        """
+        handle = getattr(program, 'value', program)
+        locations = self._uniformCache.get(handle)
+        if locations is None:
+            locations = {
+                name: GL.glGetUniformLocation(program, name)
+                for name in self._UNIFORM_NAMES}
+            self._uniformCache[handle] = locations
+
+        return locations
+
+    def _asMatrixPtr(self, matrix):
+        """Present a 4x4 matrix as something `glUniformMatrix4fv` can read.
+
+        Parameters
+        ----------
+        matrix : numpy.ndarray
+            The matrix to pass, converted to contiguous `float32` if it isn't
+            already.
+
+        Returns
+        -------
+        ctypes pointer
+            Pointer to the matrix data. Only valid while `matrix` (or the
+            conversion of it held in `_matrixScratch`) is alive, which is why
+            the conversion is kept on the stimulus rather than discarded.
+
+        """
+        if matrix.dtype != numpy.float32 or not matrix.flags['C_CONTIGUOUS']:
+            self._matrixScratch = numpy.ascontiguousarray(
+                matrix, dtype=numpy.float32)
+            matrix = self._matrixScratch
+
+        return matrix.ctypes.data_as(ctypes.POINTER(GL.GLfloat))
 
     @attributeSetter
     def image(self, value):
@@ -351,6 +428,8 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
         # fills these in again if it ends up allocating storage for us.
         self._unmapImageData(upload=False)
         self._texBufferShape = None
+        self._texBufferNBytes = 0
+        self._texBufferNeedsFill = False
 
         # handle a matplotlib object as image
         if hasattr(value, 'canvas'):  # matplotlib figure
@@ -461,9 +540,44 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
 
         self._selectWindow(self.win)
 
+        GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, self._pixbuffID)
+
+        # First time this texture's buffer is mapped, so it still needs sizing
+        # and filling. `_createTexture()` leaves this until now rather than
+        # uploading every image twice on the off-chance it gets mapped.
+        #
+        # The pixels come back out of the texture rather than from a copy kept
+        # on our side, which costs nothing until someone maps the buffer and
+        # reflects any change made to the texture since it was created.
+        if self._texBufferNeedsFill:
+            GL.glBufferData(
+                GL.GL_PIXEL_UNPACK_BUFFER,
+                self._texBufferNBytes,
+                None,
+                GL.GL_DYNAMIC_DRAW)
+            GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, 0)
+
+            # Read the texture into the buffer. It is bound as the pack target
+            # for this, which is where `glGetTexImage` writes to, then put back
+            # on the unpack target for mapping and for uploading later.
+            GL.glBindBuffer(GL.GL_PIXEL_PACK_BUFFER, self._pixbuffID)
+            GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
+            # Rows are tightly packed, unlike the default alignment of 4 which
+            # would skew the image for most widths.
+            GL.glPixelStorei(GL.GL_PACK_ALIGNMENT, 1)
+            GL.glGetTexImage(
+                GL.GL_TEXTURE_2D, 0,
+                self._texBufferPixFormat,
+                self._texBufferDataType,
+                0)  # write into the bound pixel buffer
+            GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+            GL.glBindBuffer(GL.GL_PIXEL_PACK_BUFFER, 0)
+
+            GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, self._pixbuffID)
+            self._texBufferNeedsFill = False
+
         # Map the buffer into client memory. `GL_READ_WRITE` since the caller
         # may want to read the present pixel values as well as replace them.
-        GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, self._pixbuffID)
         bufferPtr = GL.glMapBuffer(
             GL.GL_PIXEL_UNPACK_BUFFER, GL.GL_READ_WRITE)
         GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, 0)
@@ -612,7 +726,7 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
                 self._texBufferPixFormat,
                 self._texBufferDataType,
                 0)  # read from the bound pixel buffer
-            GL.glGenerateMipmap(GL.GL_TEXTURE_2D)
+            # no mipmaps, see the note in `TextureMixin._createTexture()`
             GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 
         GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, 0)
