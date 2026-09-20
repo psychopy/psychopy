@@ -2081,6 +2081,10 @@ class Window():
     def projectionMatrix(self, value):
         self._projectionMatrix = numpy.asarray(value, numpy.float32)
         assert self._projectionMatrix.shape == (4, 4)
+        # Replacing the matrix means the default one is no longer in place, so
+        # mark it for rebuilding. `setOrthographicView()` relies on this to
+        # know it has something to put back.
+        self._projectionMatrixNeedsUpdate = True
 
     @property
     def viewMatrix(self):
@@ -2091,6 +2095,8 @@ class Window():
     def viewMatrix(self, value):
         self._viewMatrix = numpy.asarray(value, numpy.float32)
         assert self._viewMatrix.shape == (4, 4)
+        # see `projectionMatrix`
+        self._viewMatrixNeedsUpdate = True
 
     @property
     def eyeOffset(self):
@@ -2333,8 +2339,15 @@ class Window():
             Clear the depth buffer.
 
         """
-        self._updateDefaultProjectionMatrix(True)
-        self._updateDefaultViewMatrix(True)
+        # Rebuild only if something the matrices depend on has changed. Every
+        # stimulus calls this on every draw, and recomputing an unchanged view
+        # matrix costs more than the rest of a 2D draw put together. The
+        # `viewPos`/`viewOri`/`viewScale` and `viewMatrix`/`projectionMatrix`
+        # setters all mark the matrices dirty, so the result is the same as
+        # rebuilding every time. Use `setDefaultView()` to force a rebuild
+        # regardless, e.g. after modifying a matrix in place.
+        self._updateDefaultProjectionMatrix(False)
+        self._updateDefaultViewMatrix(False)
 
         if applyTransform:
             self.applyEyeTransform(clearDepth=clearDepth)
