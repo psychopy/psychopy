@@ -45,6 +45,63 @@ class TestImage(_TestUnitsMixin, _TestBoilerplateMixin, _TestSerializationMixin)
         # self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / "test_image_flip_anchor_horiz.png")
         utils.compareScreenshot("test_image_flip_anchor_horiz.png", self.win, crit=7)
 
+    def test_image_data(self):
+        """
+        Check that texture memory can be read and written through `.imageData`
+        """
+        import numpy as np
+
+        # texture of a known size and value so changes are easy to spot
+        self.obj.image = np.zeros((16, 32, 3), dtype=float)
+
+        imageData = self.obj.imageData
+        assert imageData is not None
+        assert imageData.shape == (16, 32, 3)
+        assert np.abs(imageData).max() == 0
+
+        # the same mapping comes back until it is released, whether it's
+        # reached through the property or the method behind it
+        assert self.obj.imageData is imageData
+        assert self.obj.mapImageData() is imageData
+
+        # mapping and unmapping explicitly round-trips the same way
+        assert self.obj.unmapImageData() is True
+        assert self.obj.unmapImageData() is False  # nothing left mapped
+        remapped = self.obj.mapImageData()
+        assert remapped is not imageData
+        assert remapped.shape == (16, 32, 3)
+        imageData = remapped
+
+        # writes survive being pushed to the texture and read back
+        imageData[4:8, :, 1] = 1.
+        self.obj.draw()
+        self.win.flip()
+        readback = self.obj.imageData
+        assert readback is not imageData
+        assert (readback[4:8, :, 1] == 1.).all()
+        assert (readback[8:, :, 1] == 0.).all()
+
+        # assigning to the property writes the whole array through
+        self.obj.imageData = np.ones((16, 32, 3), dtype=np.float32) * 0.5
+        assert (self.obj.imageData == 0.5).all()
+
+        # the mask has its own storage, it mustn't overwrite the image
+        self.obj.mask = "gauss"
+        assert self.obj.imageData.shape == (16, 32, 3)
+        assert (self.obj.imageData == 0.5).all()
+        self.obj.mask = None
+
+        # a new image replaces the mapping rather than reusing the old one
+        self.obj.image = str(Path(utils.TESTS_DATA_PATH) / 'testimage.jpg')
+        assert self.obj.imageData.shape[:2] != (16, 32)
+
+        # nothing to map when there's no texture of our own
+        self.obj.image = None
+        assert self.obj.imageData is None
+        assert self.obj.mapImageData() is None
+        with pytest.raises(AttributeError):
+            self.obj.imageData = np.zeros((16, 32, 3))
+
     def test_aspect_ratio(self):
         """
         Test that images set with one or both dimensions as None maintain their aspect ratio

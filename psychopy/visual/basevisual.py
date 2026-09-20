@@ -1208,29 +1208,42 @@ class TextureMixin:
                 internalFormat = GL.GL_RGBA32F
         texture = data.ctypes  # serialise
 
-        # Create the pixel buffer object which will serve as the texture memory
-        # store. First we compute the number of bytes used to store the texture.
-        # We need to determine the data type in use by the texture to do this.
-        if stim is not None and hasattr(stim, '_pixbuffID'):
-            if dataType == GL.GL_UNSIGNED_BYTE:
-                storageType = GL.GLubyte
-            elif dataType == GL.GL_FLOAT:
-                storageType = GL.GLfloat
-            else:
-                # raise waring or error? just default to `GLfloat` for now
-                storageType = GL.GLfloat
+        # Mirror the texture in a pixel buffer object, which gives the stimulus
+        # a handle on the texture's storage that can be mapped into the
+        # application's address space later on (see `ImageStim.imageData`). The
+        # buffer is filled with the same data the texture is created from, so a
+        # mapping of it reads back the pixels presently being displayed.
+        #
+        # Only the stimulus' colour texture gets one. Masks come through here
+        # with the same `stim` but their own texture name, and would otherwise
+        # overwrite the contents of the buffer belonging to the image.
+        texName = getattr(id, 'value', id)
+        colorTexName = getattr(stim, '_texID', None)
+        colorTexName = getattr(colorTexName, 'value', colorTexName)
+        if (stim is not None and hasattr(stim, '_pixbuffID') and
+                colorTexName is not None and texName == colorTexName):
+            # Drop any mapping held over the buffer before reallocating it,
+            # discarding whatever was written to it since the texture it
+            # belonged to is going away.
+            unmapImageData = getattr(stim, '_unmapImageData', None)
+            if unmapImageData is not None:
+                unmapImageData(upload=False)
 
-            # compute buffer size
-            bufferSize = data.size * ctypes.sizeof(storageType)
-
-            # create the pixel buffer to access texture memory as an array
+            # Create the pixel buffer to access texture memory as an array.
             GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, stim._pixbuffID)
             GL.glBufferData(
                 GL.GL_PIXEL_UNPACK_BUFFER,
-                bufferSize,
-                None,
-                GL.GL_STREAM_DRAW)  # one-way app -> GL
+                data.nbytes,
+                data.ctypes.data_as(ctypes.c_void_p),
+                GL.GL_DYNAMIC_DRAW)
             GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, 0)
+
+            # Record how the buffer's bytes are laid out, needed to present it
+            # as an array and to transfer it back to the texture afterwards.
+            stim._texBufferShape = data.shape
+            stim._texBufferDType = data.dtype
+            stim._texBufferPixFormat = pixFormat
+            stim._texBufferDataType = dataType
 
         # bind the texture in openGL
         GL.glEnable(GL.GL_TEXTURE_2D)
@@ -1287,8 +1300,13 @@ class TextureMixin:
         if hasattr(self, '_maskID'):
             GL.glDeleteTextures(1, self._maskID)
 
-        if hasattr(self, '_pixBuffID'):
-            GL.glDeleteBuffers(1, self._pixBuffID)
+        if hasattr(self, '_pixbuffID'):
+            # release any mapping on the buffer, it's invalid after deletion
+            unmapImageData = getattr(self, '_unmapImageData', None)
+            if unmapImageData is not None:
+                unmapImageData(upload=False)
+
+            GL.glDeleteBuffers(1, self._pixbuffID)
 
     @attributeSetter
     def mask(self, value):
