@@ -525,6 +525,11 @@ def _dispatchWindowEvents():
         pass
     for winWeakRef in core.openWindows:
         win = winWeakRef()
+        # skip windows which have been deleted or closed - dispatching events
+        # to a window whose backend has been torn down raises (e.g. `OSError:
+        # [Errno 9] Bad file descriptor` when its display connection is gone)
+        if win is None or getattr(win, "_closed", False):
+            continue
         if (win.winType == "pyglet" and
                 hasattr(win.winHandle, "dispatch_events")):
             win.winHandle.dispatch_events()  # pump events
