@@ -13,9 +13,11 @@ except ImportError:
 
 class Test_WinFlipTiming():
     def setup_class(self):
+        # this test needs a real measured frame period, so opt back in to the
+        # timing check which the test suite otherwise skips (see conftest.py)
         self.win = visual.Window(size=(200, 200), units='pix',
                                  allowGUI=False, autoLog=False,
-                                 waitBlanking=True)
+                                 waitBlanking=True, checkTiming=True)
         self.rate = self.win.getActualFrameRate()
 
         if self.rate and 40<self.rate<160:
