@@ -863,8 +863,33 @@ class FontManager():
                    (fontName.lower() in this.lower())]
         return similar
 
-    def addGoogleFont(self, fontName):
-        """Add a font directly from the Google Font repository, saving it to the user prefs folder"""
+    def addGoogleFont(self, fontName, refresh=False):
+        """Add a font directly from the Google Font repository, saving it to the user prefs folder
+
+        Parameters
+        ----------
+        fontName : str
+            Name of the font to retrieve from the Google Font library, e.g.
+            "Noto Sans".
+        refresh : bool
+            If True, download the font again even if a copy has already been
+            saved to the user prefs folder. Default is False, i.e. reuse the
+            saved copy and make no network requests.
+
+        """
+        fontsFolder = Path(prefs.paths['fonts'])
+        # unless asked to refresh, reuse a copy downloaded by a previous call
+        if not refresh and fontsFolder.is_dir():
+            for fileName in fontsFolder.iterdir():
+                if not fileName.is_file() or fileName.stem != fontName:
+                    continue
+                fontInfo = self.addFontFile(fileName)
+                if fontInfo:
+                    logging.debug(
+                        "Font \"{}\" was already installed at: {}".format(
+                            fontName, fileName))
+                    return fontInfo
+                # saved copy couldn't be loaded, so fall through and retrieve it
 
         # Construct and send Google Font url from name
         repoURL = f"https://fonts.googleapis.com/css2?family={ fontName.replace(' ', '+') }&display=swap"
@@ -880,7 +905,7 @@ class FontManager():
             # If font file is not available, raise error
             raise MissingFontError("OST file for Google font `{}` could not be accessed".format(fontName))
         # Save retrieved font as an OST file
-        fileName = Path(prefs.paths['fonts']) / f"{fontName}.{fileFormat}"
+        fileName = fontsFolder / f"{fontName}.{fileFormat}"
         logging.info("Font \"{}\" was successfully installed at: {}".format(fontName, prefs.paths['fonts']))
         with open(fileName, "wb") as fileObj:
             fileObj.write(fileResp.content)
