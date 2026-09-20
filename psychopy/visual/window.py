@@ -130,7 +130,11 @@ class OpenWinList(list):
         list.append(self, weakref.ref(item))
 
     def remove(self, item):
-        for ref in self:
+        # iterate over a copy, as removing from the list we're iterating over
+        # makes it skip entries - which previously meant that a dead ref
+        # earlier in the list was removed *instead of* `item`, leaving a
+        # closed window registered
+        for ref in list(self):
             obj = ref()
             if obj is None or item == obj:
                 list.remove(self, ref)
@@ -2832,13 +2836,16 @@ class Window():
         except Exception:
             pass
 
-        self.backend.close()  # moved here, dereferencing the window prevents
-                              # backend specific actions to take place
-
         try:
-            openWindows.remove(self)
-        except Exception:
-            pass
+            self.backend.close()  # moved here, dereferencing the window prevents
+                                  # backend specific actions to take place
+        finally:
+            # deregister the window even if the backend raised on the way out,
+            # otherwise `wait()` goes on dispatching events to a dead window
+            try:
+                openWindows.remove(self)
+            except Exception:
+                pass
 
         try:
             self.mouseVisible = True
