@@ -544,21 +544,26 @@ class _TestUnitsMixin:
                     raise err
 
     def test_default_units(self):
+        # Create a single window and change its units, rather than opening one
+        # window per unit type (window creation is expensive)
+        win = visual.Window(monitor="testMonitor")
+        win.monitor.setSizePix((256, 128))
+        win.monitor.setWidth(4)
+        win.monitor.setDistance(50)
+
         for units in layout.unitTypes:
             if units in [None, "None", "none", ""]:
                 continue
-            # Create a window with given units
-            win = visual.Window(monitor="testMonitor", units=units)
-            win.monitor.setSizePix((256, 128))
-            win.monitor.setWidth(4)
-            win.monitor.setDistance(50)
+            # Give the window the units under test
+            win.units = units
             # When setting units to None with win, does it inherit units?
             self.obj.win = win
             self.obj.units = None
             assert self.obj.units == units
-            # Cleanup
-            win.close()
-            del win
+
+        # Cleanup
+        win.close()
+        del win
 
         # Reset obj win
         self.obj.win = self.win
