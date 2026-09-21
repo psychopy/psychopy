@@ -72,6 +72,29 @@ class BaseBackend(ABC):
         """
         pass
 
+    def getFutureFlipTimestamp(self):
+        """The display system's own prediction of when the next buffer swap
+        will actually be presented on screen, if the backend/platform can
+        provide one.
+
+        This is distinct from simply extrapolating from the time of the last
+        `swapBuffers()` call: on platforms where window content passes
+        through a compositor with its own (possibly multi-frame) buffering
+        pipeline - such as macOS, where OpenGL windows are composited via
+        the WindowServer - the compositor knows its actual queue depth and
+        can predict the true presentation time more accurately than the
+        application can by simply assuming one frame period of latency.
+
+        Returns
+        -------
+        float or None
+            Predicted presentation timestamp, in the same raw timebase as
+            :func:`psychopy.clock.getTime`, or ``None`` if this backend has
+            no such prediction available (the default).
+
+        """
+        return None
+
     @attributeSetter
     def gamma(self, gamma):
         """Set the gamma table for the graphics card
