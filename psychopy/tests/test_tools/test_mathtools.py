@@ -817,5 +817,164 @@ def test_rigidBodyPoseSetterCopies():
     assert np.allclose(rb.ori, [0., 0., 0., 1.])
 
 
+@pytest.mark.mathtools
+def test_posOriToMatrix():
+    """Check `posOriToMatrix` against composing the matrices it replaces."""
+    np.random.seed(4321)
+
+    for _ in range(100):
+        pos = np.random.uniform(-100., 100., 3)
+        ori = quatFromAxisAngle(
+            np.random.uniform(-1., 1., 3), np.random.uniform(-720., 720.))
+
+        expected = np.matmul(translationMatrix(pos), quatToMatrix(ori))
+
+        assert np.allclose(posOriToMatrix(pos, ori), expected)
+
+    # quaternions are normalized first
+    ori = np.array([0.3, 0.4, 0.1, 0.9]) * 3.7
+
+    assert np.allclose(
+        posOriToMatrix([1., 2., 3.], ori),
+        np.matmul(translationMatrix([1., 2., 3.]), quatToMatrix(ori)))
+
+    # an `out` array is fully overwritten, not merged into
+    out = np.full((4, 4), 7.0)
+    posOriToMatrix([1., 2., 3.], [0., 0., 0., 1.], out=out, dtype='float64')
+
+    assert np.allclose(out, translationMatrix([1., 2., 3.]))
+
+
+@pytest.mark.mathtools
+def test_rigidBodyPoseViewMatrix():
+    """Check the view matrix is the inverse of the pose transform."""
+    rb = RigidBodyPose(
+        (1., 2., -3.), quatFromAxisAngle((0.3, 1., 0.2), 55.0, degrees=True))
+
+    model = rb.getModelMatrix().copy()
+    view = rb.getViewMatrix().copy()
+
+    assert np.allclose(model @ view, np.identity(4))
+    assert np.allclose(rb.getViewMatrix(inverse=True), model)
+
+    # the model scale must not leak into the view matrix
+    rb.modelScale = (2., 3., 4.)
+
+    assert np.allclose(rb.getViewMatrix(), view)
+
+
+@pytest.mark.mathtools
+def test_rigidBodyPoseNormalMatrix():
+    """Check the normal matrix, including that `out` is always honoured."""
+    rb = RigidBodyPose(
+        (1., 2., -3.), quatFromAxisAngle((0.3, 1., 0.2), 55.0, degrees=True))
+    rb.modelScale = (2., 3., 4.)
+
+    assert np.allclose(rb.normalMatrix, np.linalg.inv(rb.modelMatrix).T)
+
+    # `out` used to be ignored whenever the cached value was still valid
+    rb.normalMatrix  # warm the cache
+    out = np.full((4, 4), -999.)
+    returned = rb.getNormalMatrix(out=out)
+
+    assert returned is out
+    assert np.allclose(out, rb.normalMatrix)
+
+
+@pytest.mark.mathtools
+def test_rigidBodyPoseAtUp():
+    """Check the `at` and `up` vectors against rotating the axes directly."""
+    np.random.seed(531)
+
+    for _ in range(50):
+        ori = quatFromAxisAngle(
+            np.random.uniform(-1., 1., 3), np.random.uniform(-720., 720.))
+        rb = RigidBodyPose(np.random.uniform(-10., 10., 3), ori)
+
+        assert np.allclose(rb.at, applyQuat(ori, np.asarray([0., 0., -1.])))
+        assert np.allclose(rb.up, applyQuat(ori, np.asarray([0., 1., 0.])))
+
+    # the vectors are unaffected by position and by model scale
+    rb = RigidBodyPose((0., 0., 0.), quatFromAxisAngle((0., 1., 0.), 90.0))
+    before = (rb.at.copy(), rb.up.copy())
+    rb.pos = (5., 6., 7.)
+    rb.modelScale = (2., 3., 4.)
+
+    assert np.allclose(rb.at, before[0])
+    assert np.allclose(rb.up, before[1])
+
+
+@pytest.mark.mathtools
+def test_rigidBodyPoseModelScalePaths():
+    """Check the unity and non-unity model scale paths agree with each other.
+
+    Unity scales take a shortcut which skips building the scale matrices, so
+    it has to give the same answer as folding an explicit scale matrix in.
+
+    """
+    pos = (1., 2., -3.)
+    ori = quatFromAxisAngle((0.3, 1., 0.2), 55.0, degrees=True)
+    rigid = posOriToMatrix(pos, ori)
+
+    for scale in [(1., 1., 1.), (2., 2., 2.), (2., 3., 4.), (0.25, 1., 3.)]:
+        scaleMat = np.identity(4)
+        scaleMat[0, 0], scaleMat[1, 1], scaleMat[2, 2] = scale
+
+        rb = RigidBodyPose(pos, ori)
+        rb.modelScale = scale
+
+        assert np.allclose(rb.modelMatrix, rigid @ scaleMat)
+        assert np.allclose(rb.inverseModelMatrix, np.linalg.inv(rigid @ scaleMat))
+
+    # switching the scale after the matrices have been cached must invalidate
+    rb = RigidBodyPose(pos, ori)
+    rb.modelMatrix
+    rb.modelScale = (2., 2., 2.)
+
+    assert np.allclose(rb.modelMatrix[:3, :3], rigid[:3, :3] * 2.)
+
+    rb.modelScale = (1., 1., 1.)
+
+    assert np.allclose(rb.modelMatrix, rigid)
+
+
+@pytest.mark.mathtools
+def test_rigidBodyPoseOutArrays():
+    """Check the getters write to `out` even when returning cached values."""
+    rb = RigidBodyPose(
+        (1., 2., -3.), quatFromAxisAngle((0., 1., 0.), 30.0, degrees=True))
+
+    # warm every cache first
+    rb.modelMatrix, rb.inverseModelMatrix, rb.viewMatrix, rb.inverseViewMatrix
+
+    for getter, expected in [
+            (lambda o: rb.getModelMatrix(out=o), rb.modelMatrix),
+            (lambda o: rb.getModelMatrix(inverse=True, out=o),
+             rb.inverseModelMatrix),
+            (lambda o: rb.getViewMatrix(out=o), rb.viewMatrix),
+            (lambda o: rb.getViewMatrix(inverse=True, out=o),
+             rb.inverseViewMatrix)]:
+        out = np.full((4, 4), -999.)
+        returned = getter(out)
+
+        assert returned is out
+        assert np.allclose(out, expected)
+
+
+@pytest.mark.mathtools
+def test_rigidBodyPoseFloat32():
+    """Check a pose created with 32-bit precision stays 32-bit throughout."""
+    rb = RigidBodyPose(
+        (1., 2., -3.), quatFromAxisAngle((0., 1., 0.), 30.0), dtype='float32')
+    rb.modelScale = (2., 3., 4.)
+
+    for m in (rb.modelMatrix, rb.inverseModelMatrix, rb.viewMatrix,
+              rb.inverseViewMatrix, rb.normalMatrix):
+        assert m.dtype == np.float32
+
+    assert np.allclose(rb.modelMatrix @ rb.inverseModelMatrix,
+                       np.identity(4), atol=1e-5)
+
+
 if __name__ == "__main__":
     pytest.main()
