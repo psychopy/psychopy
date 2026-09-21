@@ -8,6 +8,45 @@ from psychopy.tests.test_visual.test_basevisual import _TestColorMixin
 from psychopy.tools.stimulustools import serialize
 from psychopy import colors
 
+from psychopy.visual.window import OpenWinList
+
+
+class _DummyWin:
+    """Stand-in for a Window, so these tests need no GL context."""
+
+
+class TestOpenWinList:
+    def test_remove(self):
+        winList = OpenWinList()
+        first, second = _DummyWin(), _DummyWin()
+        winList.append(first)
+        winList.append(second)
+        winList.remove(first)
+        # only `first` should be gone
+        assert [ref() for ref in winList] == [second]
+
+    def test_remove_after_dead_ref(self):
+        """A dead reference earlier in the list must not mask the removal."""
+        winList = OpenWinList()
+        dead, target = _DummyWin(), _DummyWin()
+        winList.append(dead)
+        winList.append(target)
+        del dead  # first entry is now a dead weakref
+        winList.remove(target)
+        # the dead ref is purged and the target is deregistered
+        assert list(winList) == []
+
+    def test_remove_purges_dead_refs(self):
+        winList = OpenWinList()
+        deadFirst, deadSecond, keep = _DummyWin(), _DummyWin(), _DummyWin()
+        for win in (deadFirst, deadSecond, keep):
+            winList.append(win)
+        del deadFirst, deadSecond
+        # removing a window which was never added still purges dead refs
+        winList.remove(_DummyWin())
+        assert [ref() for ref in winList] == [keep]
+
+
 class TestWindow:
     def test_serialization(self):
         # make window
