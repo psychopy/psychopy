@@ -859,11 +859,7 @@ class Window():
             if sx * sy < 0:
                 viewOri = -viewOri
 
-        # The TSR product written out directly. Composing it from the
-        # `mathtools` scale/translation/rotation helpers builds three 4x4
-        # matrices and multiplies them to fill in six entries, which costs
-        # ~40us; this is a few hundred nanoseconds. The result is equivalent
-        # to the `glScalef`/`glTranslatef`/`glRotatef` sequence this replaced.
+        # the TSR product written out directly
         c = math.cos(math.radians(viewOri))
         s = math.sin(math.radians(viewOri))
 
