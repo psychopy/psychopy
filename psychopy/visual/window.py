@@ -3737,6 +3737,7 @@ class Window():
                 # average duration of recent frames
                 period = numpy.mean(recentFrames)  # log this too?
                 rate = 1.0 / period  # compute frame rate in Hz
+                break  # exit the loop once a consistent frame rate is found
 
         self.recordFrameIntervals = recordFrmIntsOrig
         self.frameIntervals = []
