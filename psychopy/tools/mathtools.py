@@ -90,6 +90,7 @@ __all__ = [
 
 
 import numpy as np
+import math
 import functools
 import itertools
 
@@ -145,6 +146,12 @@ class RigidBodyPose:
     cached internally to avoid recomputing them if `pos` and `ori` attributes
     have not been updated.
 
+    That caching keys off assignment to `pos`, `ori`, `posOri` and
+    `modelScale`, so always assign to those attributes rather than writing into
+    the arrays they return. Mutating one in place (``pose.pos[0] = 1.0``)
+    leaves the cached matrices stale, as nothing is there to notice the
+    change.
+
     Operators `*` and `~` can be used on `RigidBodyPose` objects to combine and
     invert poses. For instance, you can multiply (`*`) poses to get a new pose
     which is the combination of both orientations and translations by::
@@ -166,6 +173,22 @@ class RigidBodyPose:
     This class is experimental and may result in undefined behavior.
 
     """
+    # Bits of `_dirty`, marking which cached matrices and vectors have gone
+    # stale. Packing them into one integer means moving the pose can invalidate
+    # the whole cache with a single store.
+    _POSE_MODEL = 1 << 0      # rigid model matrix
+    _POSE_IMODEL = 1 << 1     # inverse of the model matrix
+    _POSE_NORMAL = 1 << 2     # normal matrix
+    _POSE_VIEW = 1 << 3       # view matrix
+    _POSE_IVIEW = 1 << 4      # inverse view matrix
+    _POSE_MSCALE = 1 << 5     # model scale matrix and the scaled model matrix
+    _POSE_IMSCALE = 1 << 6    # inverses of the above
+    _POSE_AT = 1 << 7         # forward vector
+    _POSE_UP = 1 << 8         # up vector
+    _POSE_ALL = (1 << 9) - 1
+    # everything which is derived from the model matrix
+    _POSE_DERIVED = _POSE_ALL & ~_POSE_MODEL
+
     def __init__(self, pos=(0., 0., 0.), ori=(0., 0., 0., 1.), dtype=None):
         """
         Parameters
@@ -190,37 +213,30 @@ class RigidBodyPose:
         self._ori = np.ascontiguousarray(ori, dtype=self.dtype)
         self._modelScale = np.array(
             [1.0, 1.0, 1.0], dtype=self.dtype, order='C')
-
-        self._modelMatrix = posOriToMatrix(
-            self._pos, self._ori, dtype=self.dtype)
+        self._scaleIsUnity = True  # lets us skip the scale matrices entirely
 
         # computed only if needed
+        self._modelMatrix = np.zeros((4, 4), dtype=self.dtype, order='C')
         self._normalMatrix = np.zeros((4, 4), dtype=self.dtype, order='C')
         self._invModelMatrix = np.zeros((4, 4), dtype=self.dtype, order='C')
         self._viewMatrix = np.zeros((4, 4), dtype=self.dtype, order='C')
         self._invViewMatrix = np.zeros((4, 4), dtype=self.dtype, order='C')
         self._modelScaleMatrix = np.identity(4, dtype=self.dtype)
         self._invModelScaleMatrix = np.identity(4, dtype=self.dtype)
+        # the model matrix with the scale folded in, only ever touched when the
+        # model scale is not unity
+        self._scaledModelMatrix = np.identity(4, dtype=self.dtype)
+        self._invScaledModelMatrix = np.identity(4, dtype=self.dtype)
 
         # additional useful vectors
         self._at = np.zeros((3,), dtype=self.dtype, order='C')
         self._up = np.zeros((3,), dtype=self.dtype, order='C')
-        self._viewAxes = np.array(  # cache for view matrix calculations
-            [VEC_AXIS_FORWARD, VEC_AXIS_UP], dtype=self.dtype, order='C')
 
-        # compute matrices only if `pos` and `ori` attributes have been updated,
-        # we track the state of the matrices with these flags
-        self._cacheFlags = {
-            'model': True,  # already computed
-            'imodel': False,
-            'normal': False,
-            'view': False,
-            'iview': False,
-            'mscale': False,
-            'imscale': False,
-            'at': True,
-            'up': True
-        }
+        # Matrices are computed lazily, only when `pos`, `ori` or `modelScale`
+        # have changed since they were last read. Which of them have gone
+        # stale is tracked by the bits of `_dirty`, so moving the pose
+        # invalidates the whole cache with one store.
+        self._dirty = self._POSE_ALL
 
         self.pos = pos
         self.ori = ori
@@ -260,7 +276,7 @@ class RigidBodyPose:
         # copy, don't alias the caller's array, otherwise later changes to it
         # would alter the pose without invalidating the cached matrices
         self._pos = np.array(value, dtype=self.dtype, order='C')
-        self._cacheFlags = dict.fromkeys(self._cacheFlags.keys(), True)
+        self._dirty = self._POSE_ALL
 
     @property
     def ori(self):
@@ -271,7 +287,7 @@ class RigidBodyPose:
     @ori.setter
     def ori(self, value):
         self._ori = np.array(value, dtype=self.dtype, order='C')
-        self._cacheFlags = dict.fromkeys(self._cacheFlags.keys(), True)
+        self._dirty = self._POSE_ALL
 
     @property
     def posOri(self):
@@ -283,7 +299,7 @@ class RigidBodyPose:
     def posOri(self, value):
         self._pos = np.array(value[0], dtype=self.dtype, order='C')
         self._ori = np.array(value[1], dtype=self.dtype, order='C')
-        self._cacheFlags = dict.fromkeys(self._cacheFlags.keys(), True)
+        self._dirty = self._POSE_ALL
 
     @property
     def modelScale(self):
@@ -304,16 +320,19 @@ class RigidBodyPose:
             given, it should have three components `[sx, sy, sz]` for each axis.
         """
         self._modelScale[:] = val
-        self._cacheFlags = dict.fromkeys(self._cacheFlags.keys(), True)
+        self._scaleIsUnity = bool(np.all(self._modelScale == 1.0))
+        self._dirty = self._POSE_ALL
 
     @property
     def at(self):
         """Vector defining the forward direction (-Z) of this pose.
         """
-        if self._cacheFlags['at']:  # only recompute if `ori` changed
-            self._at = applyQuat(
-                self.ori, self._viewAxes[0, :], out=self._at, dtype=self.dtype)
-            self._cacheFlags['at'] = False
+        self._updateModelMatrix()
+
+        if self._dirty & self._POSE_AT:
+            # forward (-Z) is the negated third column of the rotation block
+            np.negative(self._modelMatrix[:3, 2], out=self._at)
+            self._dirty &= ~self._POSE_AT
 
         return self._at
 
@@ -321,10 +340,12 @@ class RigidBodyPose:
     def up(self):
         """Vector defining the up direction (+Y) of this pose.
         """
-        if self._cacheFlags['up']:  # only recompute if `ori` changed
-            self._up = applyQuat(
-                self.ori, self._viewAxes[1, :], out=self._up, dtype=self.dtype)
-            self._cacheFlags['up'] = False
+        self._updateModelMatrix()
+
+        if self._dirty & self._POSE_UP:
+            # up (+Y) is the second column of the rotation block
+            self._up[:] = self._modelMatrix[:3, 1]
+            self._dirty &= ~self._POSE_UP
 
         return self._up
 
@@ -379,7 +400,7 @@ class RigidBodyPose:
         self._pos.fill(0.0)
         self._ori[:3] = 0.0
         self._ori[3] = 1.0
-        self._cacheFlags = dict.fromkeys(self._cacheFlags.keys(), True)
+        self._dirty = self._POSE_ALL
 
     def setIdentity(self):
         """Clear rigid body transformations (alias for `clear`).
@@ -448,26 +469,17 @@ class RigidBodyPose:
     @property
     def normalMatrix(self):
         """The 4x4 normal transformation matrix (read-only)."""
-        if not self._cacheFlags['normal']:
-            return self._normalMatrix
-        else:
-            return self.getNormalMatrix()
+        return self.getNormalMatrix()
 
     @property
     def viewMatrix(self):
         """The 4x4 view matrix for this pose (read-only)."""
-        if not self._cacheFlags['view']:
-            return self._viewMatrix
-        else:
-            return self.getViewMatrix()
+        return self.getViewMatrix()
 
     @property
     def inverseViewMatrix(self):
         """The inverse of the 4x4 view matrix for this pose (read-only)."""
-        if not self._cacheFlags['iview']:
-            return self._invViewMatrix
-        else:
-            return self.getViewMatrix(inverse=True)
+        return self.getViewMatrix(inverse=True)
 
     def getNormalMatrix(self, out=None):
         """Get the present normal matrix.
@@ -484,17 +496,52 @@ class RigidBodyPose:
             4x4 normal transformation matrix.
 
         """
-        if not self._cacheFlags['normal']:
-            return self._normalMatrix
+        self._updateModelMatrix()
 
-        self._normalMatrix[:, :] = np.linalg.inv(self.modelMatrix).T
-        self._cacheFlags['normal'] = False
+        if self._dirty & self._POSE_NORMAL:
+            # the normal matrix is the inverse transpose of the model matrix,
+            # and the inverse is already computed and cached for us
+            self._normalMatrix[:, :] = self.getModelMatrix(inverse=True).T
+            self._dirty &= ~self._POSE_NORMAL
 
         if out is not None:
             out[:, :] = self._normalMatrix[:, :]
             return out
 
         return self._normalMatrix
+
+    @staticmethod
+    def _invertRigidMatrix(m, out):
+        """Invert a rigid body transformation matrix.
+
+        Fast path for `invertMatrix`, taken where the matrix is known in
+        advance to hold nothing but a rotation and a translation, as the pose's
+        own model matrix always does. Such a matrix is inverted by transposing
+        the rotation block and rotating the negated translation into the new
+        frame, avoiding both a general matrix inverse and the checks needed to
+        decide whether one is required.
+
+        Parameters
+        ----------
+        m : ndarray
+            4x4 rigid body transformation matrix to invert.
+        out : ndarray
+            4x4 array to write the result to. Must not be the same array as
+            `m`.
+
+        Returns
+        -------
+        ndarray
+            The array passed as `out`.
+
+        """
+        rotation = m[:3, :3]
+        out[:3, :3] = rotation.T
+        out[:3, 3] = -(m[:3, 3] @ rotation)  # -(R.T @ t)
+        out[3, :3] = 0.0
+        out[3, 3] = 1.0
+
+        return out
 
     def _computeModelScaleMatrix(self, inverse=False, out=None):
         """Compute the model scale matrix.
@@ -511,7 +558,7 @@ class RigidBodyPose:
             4x4 scaling matrix.
         """
         if out is None:
-            out = np.empty((4, 4), dtype=np.float32)
+            out = np.zeros((4, 4), dtype=self.dtype)
 
         if not inverse:
             out[0, 0] = self._modelScale[0]
@@ -525,6 +572,23 @@ class RigidBodyPose:
             out[3, 3] = 1.0
 
         return out
+
+    def _updateModelMatrix(self):
+        """Recompute the rigid model matrix if `pos` or `ori` have changed.
+
+        Everything else this class caches is derived from the model matrix, so
+        rebuilding it marks all of them stale. Returns immediately when the
+        matrix is already current, which makes it cheap enough to call at the
+        top of any method needing an up-to-date pose.
+
+        """
+        if not self._dirty & self._POSE_MODEL:
+            return
+
+        posOriToMatrix(
+            self._pos, self._ori, out=self._modelMatrix, dtype=self.dtype)
+
+        self._dirty = (self._dirty | self._POSE_DERIVED) & ~self._POSE_MODEL
 
     def getModelMatrix(self, inverse=False, out=None):
         """Get the present rigid body transformation as a 4x4 matrix.
@@ -567,45 +631,38 @@ class RigidBodyPose:
             glPopMatrix()
 
         """
-        if self._cacheFlags['model']:
-            self._modelMatrix = posOriToMatrix(
-                self._pos, self._ori, 
-                out=self._modelMatrix,
-                dtype=self.dtype)
-
-            # all other matrices need update when next accessed
-            self._cacheFlags['model'] = False
-            self._cacheFlags['imodel'] = True
-            self._cacheFlags['normal'] = True
-            self._cacheFlags['view'] = True
-            self._cacheFlags['iview'] = True
-            self._cacheFlags['mscale'] = True
-            self._cacheFlags['imscale'] = True
+        self._updateModelMatrix()
 
         if not inverse:
-            if self._cacheFlags['mscale']:
-                # compute the model scale matrix if needed
-                self._modelScaleMatrix = self._computeModelScaleMatrix(
-                    out=self._modelScaleMatrix)
-                self._cacheFlags['mscale'] = False
+            if self._scaleIsUnity:  # nothing to fold in, the common case
+                toReturn = self._modelMatrix
+            else:
+                if self._dirty & self._POSE_MSCALE:
+                    self._computeModelScaleMatrix(out=self._modelScaleMatrix)
+                    np.matmul(self._modelMatrix, self._modelScaleMatrix,
+                              out=self._scaledModelMatrix)
+                    self._dirty &= ~self._POSE_MSCALE
 
-            toReturn = self._modelMatrix @ self._modelScaleMatrix
+                toReturn = self._scaledModelMatrix
         else:
-            if self._cacheFlags['imscale']:
-                # compute the inverse model scale matrix if needed
-                self._invModelScaleMatrix = self._computeModelScaleMatrix(
-                    inverse=True, out=self._invModelScaleMatrix)
-                self._cacheFlags['imscale'] = False
+            if self._dirty & self._POSE_IMODEL:
+                self._invertRigidMatrix(
+                    self._modelMatrix, self._invModelMatrix)
+                self._dirty &= ~self._POSE_IMODEL
 
-            if self._cacheFlags['imodel']:
-                self._invModelMatrix = invertMatrix(
-                    self._modelMatrix, out=self._invModelMatrix,
-                    dtype=self.dtype)
-                self._cacheFlags['imodel'] = False
+            if self._scaleIsUnity:
+                toReturn = self._invModelMatrix
+            else:
+                if self._dirty & self._POSE_IMSCALE:
+                    self._computeModelScaleMatrix(
+                        inverse=True, out=self._invModelScaleMatrix)
+                    # the inverse of `M @ S` is `inv(S) @ inv(M)`; the order
+                    # matters whenever the model scale is anisotropic
+                    np.matmul(self._invModelScaleMatrix, self._invModelMatrix,
+                              out=self._invScaledModelMatrix)
+                    self._dirty &= ~self._POSE_IMSCALE
 
-            # the inverse of `M @ S` is `inv(S) @ inv(M)`; the order matters
-            # whenever the model scale is anisotropic
-            toReturn = self._invModelScaleMatrix @ self._invModelMatrix
+                toReturn = self._invScaledModelMatrix
 
         if out is not None:
             out[:, :] = toReturn[:, :]
@@ -635,34 +692,24 @@ class RigidBodyPose:
             4x4 transformation matrix.
 
         """
-        if self._cacheFlags['view']:  # needs update?
-            # compute the view matrix
-            rotMatrix = quatToMatrix(self._ori, dtype=self.dtype)
-            transformedAxes = applyMatrix(
-                rotMatrix, self._viewAxes, 
-                dtype=self.dtype)
+        self._updateModelMatrix()
 
-            fwdVec = transformedAxes[0, :] + self._pos
-            upVec = transformedAxes[1, :]
-
-            self._viewMatrix = lookAt(
-                self._pos, fwdVec, upVec, 
-                out=self._viewMatrix,
-                dtype=self.dtype)
-
-            self._cacheFlags['view'] = False
-            self._cacheFlags['iview'] = True  # inverse needs update
+        if self._dirty & self._POSE_VIEW:
+            # Looking down the pose's forward axis from its own origin is
+            # exactly the inverse of the pose transform, so invert it directly
+            # rather than rebuilding the basis with `lookAt`. Note the model
+            # scale is deliberately left out of the view matrix.
+            self._invertRigidMatrix(self._modelMatrix, self._viewMatrix)
+            self._dirty &= ~self._POSE_VIEW
 
         if not inverse:
             toReturn = self._viewMatrix
         else:
-            if self._cacheFlags['iview']:
-                self._invViewMatrix = invertMatrix(
-                    self._viewMatrix, 
-                    out=self._invViewMatrix, 
-                    dtype=self.dtype)
-                self._cacheFlags['iview'] = False
-            
+            if self._dirty & self._POSE_IVIEW:
+                # inverting the view matrix just gives the pose transform back
+                self._invViewMatrix[:, :] = self._modelMatrix
+                self._dirty &= ~self._POSE_IVIEW
+
             toReturn = self._invViewMatrix
 
         if out is not None:
@@ -4327,13 +4374,56 @@ def posOriToMatrix(pos, ori, out=None, dtype=None):
         dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
         toReturn = np.zeros((4, 4,), dtype=dtype)
     else:
-        dtype = np.dtype(dtype).type
         toReturn = out
 
-    transMat = translationMatrix(pos, dtype=dtype)
-    rotMat = quatToMatrix(ori, dtype=dtype)
+    # Write the matrix out element-wise. Building a translation matrix and a
+    # rotation matrix and multiplying them gives the same result, but for a
+    # matrix this small allocating those temporaries costs considerably more
+    # than the arithmetic itself does.
+    x = float(ori[0])
+    y = float(ori[1])
+    z = float(ori[2])
+    w = float(ori[3])
 
-    return np.matmul(transMat, rotMat, out=toReturn)
+    lensqr = x * x + y * y + z * z + w * w  # normalize the quaternion
+    if lensqr != 1.0 and lensqr > 0.0:
+        invLength = 1.0 / math.sqrt(lensqr)
+        x *= invLength
+        y *= invLength
+        z *= invLength
+        w *= invLength
+
+    xx = x * x
+    yy = y * y
+    zz = z * z
+    ww = w * w
+    xy = x * y
+    xz = x * z
+    yz = y * z
+    wx = w * x
+    wy = w * y
+    wz = w * z
+
+    toReturn[0, 0] = ww + xx - yy - zz
+    toReturn[0, 1] = 2.0 * (xy - wz)
+    toReturn[0, 2] = 2.0 * (xz + wy)
+    toReturn[1, 0] = 2.0 * (xy + wz)
+    toReturn[1, 1] = ww - xx + yy - zz
+    toReturn[1, 2] = 2.0 * (yz - wx)
+    toReturn[2, 0] = 2.0 * (xz - wy)
+    toReturn[2, 1] = 2.0 * (yz + wx)
+    toReturn[2, 2] = ww - xx - yy + zz
+
+    toReturn[0, 3] = float(pos[0])
+    toReturn[1, 3] = float(pos[1])
+    toReturn[2, 3] = float(pos[2])
+
+    toReturn[3, 0] = 0.0
+    toReturn[3, 1] = 0.0
+    toReturn[3, 2] = 0.0
+    toReturn[3, 3] = 1.0
+
+    return toReturn
 
 
 def transform(pos, ori, points, out=None, dtype=None):
