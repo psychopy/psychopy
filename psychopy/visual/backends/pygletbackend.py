@@ -22,6 +22,7 @@ import time
 
 import psychopy
 from psychopy import core, prefs
+from psychopy.clock import getTime as _getRawTime
 from psychopy.hardware import mouse
 from psychopy import logging, event, platform_specific
 from psychopy.tools.attributetools import attributeSetter
@@ -88,13 +89,36 @@ _PYGLET_MOUSE_BUTTONS_ = {
 # MacOS specific display link handler
 if sys.platform == 'darwin':
     import AppKit
+    from Quartz import CACurrentMediaTime
 
     class RefreshEventHandlerMacOS(AppKit.NSObject):
         """Callback handler for macOS display link refresh events.
+
+        Records the display timestamp (`CACurrentMediaTime` clock, the same
+        clock used by `CACurrentMediaTime()`) of the most recent refresh
+        callback. Callers wait for a callback whose `timestamp` is after a
+        given point in time (e.g. after a buffer flip) rather than treating
+        the mere *occurrence* of a callback as confirmation. The display link
+        keeps ticking in the background even while nothing is pumping the run
+        loop (e.g. while stimuli are being drawn), so a callback can already
+        be overdue and waiting to fire the moment the run loop next gets
+        pumped - comparing timestamps rather than just waiting for "a"
+        callback avoids mistaking that stale tick for confirmation of a flip
+        that hadn't happened yet when the tick actually occurred.
         """
-        frameLock = None
+        lastRefreshTimestamp = 0.0
+        lastTargetTimestamp = 0.0
+
         def displayRefreshed_(self, displayLink):
-            self.frameLock = False
+            self.lastRefreshTimestamp = displayLink.timestamp()
+            # `targetTimestamp` is the WindowServer's own prediction of when
+            # the frame it's currently compositing will actually reach the
+            # screen. Unlike a naive `lastFlip + framePeriod` guess, this
+            # accounts for the compositor's real buffering depth (e.g. the
+            # extra 1-2 frames of latency triple-buffering can add), because
+            # it comes from the same process that's actually managing that
+            # queue.
+            self.lastTargetTimestamp = displayLink.targetTimestamp()
 
             return 1
 
@@ -350,25 +374,39 @@ class PygletBackend(BaseBackend):
                 winNSObj = AppKit.NSWindow(c_void_p=self.winHandle._nswindow.ptr)
                 
                 # create a display link for the window
-                self.refreshEventHandlerMacOS = RefreshEventHandlerMacOS.alloc().init()
+                refreshEventHandlerMacOS = RefreshEventHandlerMacOS.alloc().init()
                 displayLinkObj = winNSObj.displayLinkWithTarget_selector_(
-                    self.refreshEventHandlerMacOS, 
+                    refreshEventHandlerMacOS,
                     "displayRefreshed:")
 
-                # configure the preferred frame rate range hint for the display link
+                # Configure the preferred frame rate range hint for the display
+                # link. Pin minimum == preferred == maximum so displays with
+                # variable refresh rates (e.g. ProMotion) aren't permitted to
+                # drop to a lower, less predictable rate.
                 frameRateMax = int(winNSObj.screen().maximumFramesPerSecond())
-                frameRateMin = int(frameRateMax / 2)
                 displayLinkObj.setPreferredFrameRateRange_(
-                    (frameRateMin, 
-                    frameRateMax, 
+                    (frameRateMax,
+                    frameRateMax,
                     frameRateMax))
 
-                # add the display link to the run loop, only works with 
+                # add the display link to the run loop, only works with
                 # `NSRunLoopCommonModes` since we don't run a full app loop here
                 # and will pump our events manually in `swapBuffers()`
                 displayLinkObj.addToRunLoop_forMode_(
-                    AppKit.NSRunLoop.currentRunLoop(), 
+                    AppKit.NSRunLoop.currentRunLoop(),
                     AppKit.NSRunLoopCommonModes)
+
+                # only expose the handler (and so enable waiting on it in
+                # `swapBuffers()`) once setup has fully succeeded
+                self.refreshEventHandlerMacOS = refreshEventHandlerMacOS
+                self._displayLinkTimedOut = False
+            except AttributeError:
+                # `NSWindow.displayLinkWithTarget:selector:` is only available
+                # on macOS 14 (Sonoma) and later, so this is expected on older
+                # systems.
+                logging.debug(
+                    "DisplayLink for window synchronization requires macOS 14 "
+                    "or later; falling back to standard vsync timing.")
             except Exception:
                 logging.error(
                     "Unable to create DisplayLink for screen. This may result in "
@@ -460,6 +498,32 @@ class PygletBackend(BaseBackend):
         # on pyglet shaders are fine so just check GL>2.0
         return int(pyglet.gl.gl_info.get_version()[0]) >= 2
 
+    def getFutureFlipTimestamp(self):
+        """The WindowServer's own predicted presentation time for the frame
+        it's currently compositing, when a macOS DisplayLink is active for
+        this window (see `RefreshEventHandlerMacOS`). Unlike simply assuming
+        one frame period of latency after the last flip, this reflects
+        whatever buffering depth (e.g. triple buffering) the compositor is
+        actually using, since it comes from the compositor itself.
+
+        Returns `None` if unavailable, e.g. on non-macOS platforms, macOS
+        versions prior to 14, or if no callback has been received yet.
+        """
+        refreshHandler = getattr(self, 'refreshEventHandlerMacOS', None)
+        if refreshHandler is None or refreshHandler.lastTargetTimestamp <= 0:
+            return None
+
+        # `lastTargetTimestamp` is in the `CACurrentMediaTime()` clock
+        # domain. Convert it to whichever raw clock PsychoPy is using (mach
+        # time and PsychToolbox's GetSecs are both ultimately derived from
+        # the same monotonic hardware counter on macOS, but we measure the
+        # offset live rather than assume they're numerically identical).
+        sampleMediaTime = CACurrentMediaTime()
+        samplePsychopyTime = _getRawTime()
+
+        return refreshHandler.lastTargetTimestamp + (
+            samplePsychopyTime - sampleMediaTime)
+
     def swapBuffers(self, flipThisFrame=True):
         """Performs various hardware events around the window flip and then
         performs the actual flip itself (assuming that flipThisFrame is true)
@@ -492,17 +556,46 @@ class PygletBackend(BaseBackend):
             pyglet.media.dispatch_events()  # for sounds to be processed
     
         if flipThisFrame:
+            refreshHandler = getattr(self, 'refreshEventHandlerMacOS', None)
+            # Timestamp (in the same clock the DisplayLink reports its
+            # callbacks in) of the moment we submit this buffer, so we can
+            # tell a genuinely new callback apart from one that was already
+            # due before we got here (see `RefreshEventHandlerMacOS`).
+            if refreshHandler is not None:
+                flipTimestamp = CACurrentMediaTime()
+
             self.winHandle.flip()
-            # For macOS display link sync, this slews the timings of buffer 
-            # flips to match the refresh cycle of the display to ensure content 
-            # is presented at the correct time. This takes a few frames to 
+            # For macOS display link sync, this slews the timings of buffer
+            # flips to match the refresh cycle of the display to ensure content
+            # is presented at the correct time. This takes a few frames to
             # 'settle' so there may be some initial jitter.
-            if hasattr(self, 'refreshEventHandlerMacOS'):
-                # hold until released by callback
-                self.refreshEventHandlerMacOS.frameLock = True  
-                while self.refreshEventHandlerMacOS.frameLock:
-                    # keep pumping events until we get a refresh callback
-                    self.winHandle.dispatch_events()
+            if refreshHandler is not None:
+                # Hold until the DisplayLink reports a callback that occurred
+                # after this flip. We block the run loop (rather than
+                # busy-polling `dispatch_events()`) so this doesn't spin a
+                # CPU core while waiting, and cap the total wait so an
+                # occluded/minimized window (which can pause DisplayLink
+                # callbacks) can't hang a flip indefinitely.
+                runLoop = AppKit.NSRunLoop.currentRunLoop()
+                deadline = time.time() + 0.5  # generous, well over one frame
+                while refreshHandler.lastRefreshTimestamp < flipTimestamp:
+                    if time.time() > deadline:
+                        if not self._displayLinkTimedOut:
+                            logging.warning(
+                                "Timed out waiting for a DisplayLink refresh "
+                                "callback (window may be occluded or "
+                                "minimized). Disabling DisplayLink "
+                                "synchronization for this window.")
+                            self._displayLinkTimedOut = True
+                        del self.refreshEventHandlerMacOS
+                        break
+                    # block until a run loop source fires (e.g. the
+                    # DisplayLink callback) or a short timeout elapses
+                    runLoop.runMode_beforeDate_(
+                        AppKit.NSDefaultRunLoopMode,
+                        AppKit.NSDate.dateWithTimeIntervalSinceNow_(0.02))
+                # process any input events that queued up while waiting
+                self.winHandle.dispatch_events()
 
     def setCurrent(self):
         """Sets this window to be the current rendering target.
