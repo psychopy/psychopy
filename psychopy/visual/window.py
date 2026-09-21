@@ -130,10 +130,21 @@ class OpenWinList(list):
         list.append(self, weakref.ref(item))
 
     def remove(self, item):
+        """Remove a window from the list, also purging any dead references.
+
+        Does not raise if `item` is not present.
+
+        """
+        # build the survivors then slice-assign, removing in-place while
+        # iterating skips entries
+        keep = []
         for ref in self:
             obj = ref()
-            if obj is None or item == obj:
-                list.remove(self, ref)
+            if obj is None or obj is item:
+                continue
+            keep.append(ref)
+
+        self[:] = keep
 
 
 openWindows = core.openWindows = OpenWinList()  # core needs this for wait()
