@@ -72,7 +72,7 @@ dependencies = [
     "pyparallel; platform_system != \"Darwin\"",
     # movie backends
     "av",  # PyAV, also used to extract movie audio tracks
-    "ffpyplayer",
+    "ffpyplayer; python_version < "3.14",
     "opencv-python",
     # platform specific
     "python-vlc >= 3.0.21203",
@@ -86,7 +86,6 @@ dependencies = [
     "distro; platform_system == \"Linux\"",
     "tables",  # 3.9.2 crashes on Rosetta
     "packaging>=24.0",
-    "moviepy",
     "pyarrow",
     "beautifulsoup4",
 ]
