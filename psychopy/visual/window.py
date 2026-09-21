@@ -130,10 +130,21 @@ class OpenWinList(list):
         list.append(self, weakref.ref(item))
 
     def remove(self, item):
+        """Remove a window from the list, also purging any dead references.
+
+        Does not raise if `item` is not present.
+
+        """
+        # build the survivors then slice-assign, removing in-place while
+        # iterating skips entries
+        keep = []
         for ref in self:
             obj = ref()
-            if obj is None or item == obj:
-                list.remove(self, ref)
+            if obj is None or obj is item:
+                continue
+            keep.append(ref)
+
+        self[:] = keep
 
 
 openWindows = core.openWindows = OpenWinList()  # core needs this for wait()
@@ -632,10 +643,27 @@ class Window():
         self._showSplash = False
         self.resetViewport()  # set viewport to full window size
 
-        # transformation 
+        # Transformation matrices. These buffers are allocated once and always
+        # written to in-place, never rebound. That keeps them contiguous and
+        # `float32` (which the GL calls in `applyEyeTransform` require) and
+        # allows the pointers below to stay valid for the life of the window.
         self._projectionMatrix = numpy.identity(4, dtype=numpy.float32)
-        self._viewMatrix = numpy.identity(4, dtype=numpy.float32) 
+        self._viewMatrix = numpy.identity(4, dtype=numpy.float32)
 
+        # Pointers handed to the GL matrix calls. Deriving these on every call
+        # is a measurable cost in the draw loop, so cache them here along with
+        # the buffer each was derived from (see `_updateMatrixPointers`).
+        self._projectionMatrixPtrSrc = self._projectionMatrix
+        self._viewMatrixPtrSrc = self._viewMatrix
+        self._projectionMatrixPtr = self._projectionMatrix.ctypes.data_as(
+            ctypes.POINTER(ctypes.c_float))
+        self._viewMatrixPtr = self._viewMatrix.ctypes.data_as(
+            ctypes.POINTER(ctypes.c_float))
+
+        # These flag whether the stored matrices still hold the defaults for
+        # the current window settings. Anything that writes a non-default
+        # matrix (or changes a setting the default is derived from) must set
+        # them so `setDefaultView` knows to recompute.
         self._projectionMatrixNeedsUpdate = True
         self._viewMatrixNeedsUpdate = True
 
@@ -811,32 +839,50 @@ class Window():
             marked as needing an update.
 
         """
-        if self._viewMatrixNeedsUpdate or forceUpdate:
-            if self.viewScale is None:
-                sx, sy = [1.0, 1.0]
-            else:
-                sx, sy = self.viewScale
+        if not (self._viewMatrixNeedsUpdate or forceUpdate):
+            return
 
-            if self.viewOri is None:
-                viewOri = 0.0
-            else:
-                viewOri = self.viewOri
+        if self.viewScale is None:
+            sx, sy = 1.0, 1.0
+        else:
+            sx, sy = self.viewScale
 
-            if self.viewPos is None:
-                tx, ty = [0.0, 0.0]
-            else:
-                tx, ty = self.viewPos
+        if self.viewPos is None:
+            tx, ty = 0.0, 0.0
+        else:
+            # The default projection is the identity matrix, so the visible
+            # extent of the window is -1 to +1 no matter what `units` is set
+            # to. The translation therefore has to be in normalised units,
+            # which is what `_viewPosNorm` holds.
+            tx, ty = self._viewPosNorm
 
-            scaleMatrix = mathtools.scaleMatrix([sx, sy, 1.0])
-            rotateMatrix = mathtools.rotationMatrix(viewOri, axis='-z')
-            translateMatrix = mathtools.translationMatrix([tx, ty, 0.0])
+            # Scaling is applied to the view ahead of the translation, so a
+            # mirrored axis reverses the direction the view is offset in.
+            tx = -tx if sx < 0 else tx
+            ty = -ty if sy < 0 else ty
 
-            # compute SRT matrix
-            self._viewMatrix[:, :] = mathtools.multMatrix([
-                translateMatrix, 
-                rotateMatrix, 
-                scaleMatrix])
-            self._viewMatrixNeedsUpdate = False
+        if self.viewOri is None:
+            viewOri = 0.0
+        else:
+            viewOri = self.viewOri
+            # Likewise, mirroring exactly one axis reverses the direction of
+            # rotation.
+            if sx * sy < 0:
+                viewOri = -viewOri
+
+        # the TSR product written out directly
+        c = math.cos(math.radians(viewOri))
+        s = math.sin(math.radians(viewOri))
+
+        self._viewMatrix[:, :] = IDENTITY_MATRIX4  # clear any previous view
+        self._viewMatrix[0, 0] = sx * c
+        self._viewMatrix[0, 1] = sx * s
+        self._viewMatrix[1, 0] = -sy * s
+        self._viewMatrix[1, 1] = sy * c
+        self._viewMatrix[0, 3] = tx
+        self._viewMatrix[1, 3] = ty
+
+        self._viewMatrixNeedsUpdate = False
 
     def _updateDefaultProjectionMatrix(self, forceUpdate=False):
         """Update the default projection matrix based on the current window 
@@ -849,16 +895,18 @@ class Window():
             marked as needing an update.
 
         """
-        if self._projectionMatrixNeedsUpdate or forceUpdate:
-            # widthOver2 = self.size[0] / 2.0
-            # heightOver2 = self.size[1] / 2.0
-            # self._projectionMatrix[:, :] = viewtools.orthoProjectionMatrix(
-            #     -widthOver2, widthOver2,    # -X, +X
-            #     -heightOver2, heightOver2,  # -Y, +Y
-            #     -1.0, 1.0,                  # -Z, +Z
-            #     dtype=numpy.float32)
-            self._projectionMatrix[:, :] = IDENTITY_MATRIX4[:, :]
-            self._projectionMatrixNeedsUpdate = False
+        if not (self._projectionMatrixNeedsUpdate or forceUpdate):
+            return
+
+        # widthOver2 = self.size[0] / 2.0
+        # heightOver2 = self.size[1] / 2.0
+        # self._projectionMatrix[:, :] = viewtools.orthoProjectionMatrix(
+        #     -widthOver2, widthOver2,    # -X, +X
+        #     -heightOver2, heightOver2,  # -Y, +Y
+        #     -1.0, 1.0,                  # -Z, +Z
+        #     dtype=numpy.float32)
+        self._projectionMatrix[:, :] = IDENTITY_MATRIX4[:, :]
+        self._projectionMatrixNeedsUpdate = False
 
     @property
     def fullscr(self):
@@ -1395,39 +1443,15 @@ class Window():
             if stencilOn:
                 self.stencilTest = True
 
-        # rescale, reposition, & rotate
-        # DEPRECATED: these are all removed from OpenGL 3.1
+        # Rescale, reposition & rotate for the next frame. `setDefaultView`
+        # rebuilds this from `viewScale`/`viewPos`/`viewOri` and applies it,
+        # which is what the open-coded `glScalef`/`glTranslatef`/`glRotatef`
+        # sequence here used to do by hand. It also restores the default
+        # projection, so any eye transform the user applied during the frame is
+        # reset, as `applyEyeTransform` documents. The depth buffer is left
+        # alone; `_endOfFlip` below handles clearing.
         if self.USE_LEGACY_GL:
-            GL.glMatrixMode(GL.GL_MODELVIEW)
-            GL.glLoadIdentity()
-            if self.viewScale is not None:
-                # DEPRECATED: these are all removed from OpenGL 3.1
-                GL.glScalef(self.viewScale[0], self.viewScale[1], 1)
-
-                absScaleX = abs(self.viewScale[0])
-                absScaleY = abs(self.viewScale[1])
-            else:
-                absScaleX, absScaleY = 1, 1
-
-            if self.viewPos is not None:
-                # here we must use normalised units in _viewPosNorm,
-                # see the corresponding attributeSetter above
-                normRfPosX = self._viewPosNorm[0] / absScaleX
-                normRfPosY = self._viewPosNorm[1] / absScaleY
-
-                # DEPRECATED: these are all removed from OpenGL 3.1
-                GL.glTranslatef(normRfPosX, normRfPosY, 0.0)
-
-            if self.viewOri:  # float
-                # the logic below for flip is partially correct, but does not
-                # handle a nonzero viewPos
-                flip = 1
-                if self.viewScale is not None:
-                    _f = self.viewScale[0] * self.viewScale[1]
-                    if _f < 0:
-                        flip = -1
-                # DEPERECATED: these are all removed from OpenGL 3.1
-                GL.glRotatef(flip * self.viewOri, 0.0, 0.0, -1.0)
+            self.setDefaultView(clearDepth=False)
 
         # reset returned buffer for next frame
         self._endOfFlip(clearBuffer)
@@ -1994,8 +2018,14 @@ class Window():
 
     @viewport.setter
     def viewport(self, value):
-        self._viewport = numpy.array(value, int)
-        GL.glViewport(*self._viewport)
+        # Unpack to Python ints for the GL call. Passing the numpy array
+        # through means pyglet converts each numpy scalar individually, which
+        # is slower than converting once here. NB - the GL state is not cached
+        # for redundancy checks because several places (the legacy `TextBox`,
+        # the backend resize handler, `gltools`) call `glViewport` directly.
+        x, y, w, h = (int(i) for i in value)
+        self._viewport = numpy.array((x, y, w, h), int)
+        GL.glViewport(x, y, w, h)
 
     @property
     def scissor(self):
@@ -2019,8 +2049,10 @@ class Window():
 
     @scissor.setter
     def scissor(self, value):
-        self._scissor = numpy.array(value, int)
-        GL.glScissor(*self._scissor)
+        # see `viewport` above
+        x, y, w, h = (int(i) for i in value)
+        self._scissor = numpy.array((x, y, w, h), int)
+        GL.glScissor(x, y, w, h)
 
     @property
     def scissorTest(self):
@@ -2079,12 +2111,13 @@ class Window():
 
     @projectionMatrix.setter
     def projectionMatrix(self, value):
-        self._projectionMatrix = numpy.asarray(value, numpy.float32)
-        assert self._projectionMatrix.shape == (4, 4)
-        # Replacing the matrix means the default one is no longer in place, so
-        # mark it for rebuilding. `setOrthographicView()` relies on this to
-        # know it has something to put back.
-        self._projectionMatrixNeedsUpdate = True
+        value = numpy.asarray(value)
+        assert value.shape == (4, 4)
+        # Copy into the existing buffer rather than rebinding. A rebind would
+        # invalidate `_projectionMatrixPtr` and could leave a non-contiguous or
+        # non-`float32` array behind, which the GL calls would misread.
+        self._projectionMatrix[:, :] = value
+        self._projectionMatrixNeedsUpdate = True  # no longer the default
 
     @property
     def viewMatrix(self):
@@ -2093,10 +2126,11 @@ class Window():
 
     @viewMatrix.setter
     def viewMatrix(self, value):
-        self._viewMatrix = numpy.asarray(value, numpy.float32)
-        assert self._viewMatrix.shape == (4, 4)
-        # see `projectionMatrix`
-        self._viewMatrixNeedsUpdate = True
+        value = numpy.asarray(value)
+        assert value.shape == (4, 4)
+        # see `projectionMatrix` above for why this is written in-place
+        self._viewMatrix[:, :] = value
+        self._viewMatrixNeedsUpdate = True  # no longer the default
 
     @property
     def eyeOffset(self):
@@ -2186,12 +2220,20 @@ class Window():
             nearClip=self._nearClip,
             farClip=self._farClip)
 
-        self._projectionMatrix = viewtools.perspectiveProjectionMatrix(*frustum)
+        # Write through `out` so the result lands in the existing `float32`
+        # buffer. Letting `viewtools` allocate would yield a `float64` array,
+        # which `applyEyeTransform` would then misread as `float32`.
+        viewtools.perspectiveProjectionMatrix(
+            *frustum, out=self._projectionMatrix)
 
         # translate away from screen
-        self._viewMatrix = numpy.identity(4, dtype=numpy.float32)
+        self._viewMatrix[:, :] = IDENTITY_MATRIX4
         self._viewMatrix[0, 3] = -self._eyeOffset  # apply eye offset
         self._viewMatrix[2, 3] = -scrDistM  # displace scene away from viewer
+
+        # these are no longer the default matrices
+        self._projectionMatrixNeedsUpdate = True
+        self._viewMatrixNeedsUpdate = True
 
         if applyTransform:
             self.applyEyeTransform(clearDepth=clearDepth)
@@ -2239,12 +2281,18 @@ class Window():
             nearClip=self._nearClip,
             farClip=self._farClip)
 
-        self._projectionMatrix = viewtools.perspectiveProjectionMatrix(*frustum)
+        # see `setOffAxisView` for why these are written through `out`
+        viewtools.perspectiveProjectionMatrix(
+            *frustum, out=self._projectionMatrix)
 
         # translate away from screen
         eyePos = (self._eyeOffset, 0.0, scrDistM)
         convergePoint = (0.0, 0.0, self.convergeOffset)
-        self._viewMatrix = viewtools.lookAt(eyePos, convergePoint)
+        viewtools.lookAt(eyePos, convergePoint, out=self._viewMatrix)
+
+        # these are no longer the default matrices
+        self._projectionMatrixNeedsUpdate = True
+        self._viewMatrixNeedsUpdate = True
 
         if applyTransform:
             self.applyEyeTransform(clearDepth=clearDepth)
@@ -2291,13 +2339,17 @@ class Window():
             nearClip=self._nearClip,
             farClip=self._farClip)
 
-        self._projectionMatrix = \
-            viewtools.perspectiveProjectionMatrix(*frustum, dtype=numpy.float32)
+        viewtools.perspectiveProjectionMatrix(
+            *frustum, out=self._projectionMatrix)
 
         # translate away from screen
-        self._viewMatrix = numpy.identity(4, dtype=numpy.float32)
+        self._viewMatrix[:, :] = IDENTITY_MATRIX4
         self._viewMatrix[0, 3] = -self._eyeOffset  # apply eye offset
         self._viewMatrix[2, 3] = -scrDistM  # displace scene away from viewer
+
+        # these are no longer the default matrices
+        self._projectionMatrixNeedsUpdate = True
+        self._viewMatrixNeedsUpdate = True
 
         if applyTransform:
             self.applyEyeTransform(clearDepth=clearDepth)
@@ -2310,9 +2362,12 @@ class Window():
         changed.
 
         """
-        self._updateDefaultProjectionMatrix(True)
-        self._updateDefaultViewMatrix(True)
-        
+        # No `forceUpdate` here: the dirty flags already track whether the
+        # stored matrices still hold the defaults, so an unchanged view costs
+        # nothing to restore.
+        self._updateDefaultProjectionMatrix()
+        self._updateDefaultViewMatrix()
+
         if applyTransform:
             self.applyEyeTransform(clearDepth=clearDepth)
 
@@ -2339,18 +2394,35 @@ class Window():
             Clear the depth buffer.
 
         """
-        # Rebuild only if something the matrices depend on has changed. Every
-        # stimulus calls this on every draw, and recomputing an unchanged view
-        # matrix costs more than the rest of a 2D draw put together. The
-        # `viewPos`/`viewOri`/`viewScale` and `viewMatrix`/`projectionMatrix`
-        # setters all mark the matrices dirty, so the result is the same as
-        # rebuilding every time. Use `setDefaultView()` to force a rebuild
-        # regardless, e.g. after modifying a matrix in place.
-        self._updateDefaultProjectionMatrix(False)
-        self._updateDefaultViewMatrix(False)
+        self._updateDefaultProjectionMatrix()
+        self._updateDefaultViewMatrix()
 
         if applyTransform:
             self.applyEyeTransform(clearDepth=clearDepth)
+
+    def _updateMatrixPointers(self):
+        """Ensure the cached GL matrix pointers match the current buffers.
+
+        `Window` always writes `projectionMatrix` and `viewMatrix` in-place, so
+        the pointers derived in `__init__` normally stay valid for the life of
+        the window. Subclasses (eg. :class:`~psychopy.visual.nnlvs.
+        VisualSystemHD`) and user code may rebind the private attributes
+        outright though, which would otherwise leave the cached pointers
+        referring to the old buffers. Re-derive them when that happens,
+        coercing to the contiguous `float32` layout the GL calls require.
+
+        """
+        if self._projectionMatrix is not self._projectionMatrixPtrSrc:
+            self._projectionMatrix = self._projectionMatrixPtrSrc = \
+                numpy.ascontiguousarray(self._projectionMatrix, numpy.float32)
+            self._projectionMatrixPtr = self._projectionMatrix.ctypes.data_as(
+                ctypes.POINTER(ctypes.c_float))
+
+        if self._viewMatrix is not self._viewMatrixPtrSrc:
+            self._viewMatrix = self._viewMatrixPtrSrc = \
+                numpy.ascontiguousarray(self._viewMatrix, numpy.float32)
+            self._viewMatrixPtr = self._viewMatrix.ctypes.data_as(
+                ctypes.POINTER(ctypes.c_float))
 
     def applyEyeTransform(self, clearDepth=True):
         """Apply the current view and projection matrices.
@@ -2383,18 +2455,16 @@ class Window():
 
         """
         if self.USE_LEGACY_GL:
-            # apply the projection and view transformations
+            self._updateMatrixPointers()
+
+            # Apply the projection and view transformations. Loading the
+            # matrices outright avoids the redundant multiply against identity
+            # that `glLoadIdentity` + `glMultTransposeMatrixf` performed.
             GL.glMatrixMode(GL.GL_PROJECTION)
-            GL.glLoadIdentity()
-            projMat = self._projectionMatrix.ctypes.data_as(
-                ctypes.POINTER(ctypes.c_float))
-            GL.glMultTransposeMatrixf(projMat)
+            GL.glLoadTransposeMatrixf(self._projectionMatrixPtr)
 
             GL.glMatrixMode(GL.GL_MODELVIEW)
-            GL.glLoadIdentity()
-            viewMat = self._viewMatrix.ctypes.data_as(
-                ctypes.POINTER(ctypes.c_float))
-            GL.glMultTransposeMatrixf(viewMat)
+            GL.glLoadTransposeMatrixf(self._viewMatrixPtr)
 
         oldDepthMask = self.depthMask
         if clearDepth:
@@ -2435,10 +2505,9 @@ class Window():
             win.flip()
 
         """
-        self.setOrthographicView(clearDepth)
-
-        if self.USE_LEGACY_GL:
-            self.applyEyeTransform(clearDepth)
+        # `setOrthographicView` applies the transform itself, so there is no
+        # need to follow it with `applyEyeTransform`.
+        self.setOrthographicView(applyTransform=True, clearDepth=clearDepth)
 
     def coordToRay(self, screenXY):
         """Convert a screen coordinate to a direction vector.
@@ -3750,6 +3819,7 @@ class Window():
                 # average duration of recent frames
                 period = numpy.mean(recentFrames)  # log this too?
                 rate = 1.0 / period  # compute frame rate in Hz
+                break  # exit the loop once a consistent frame rate is found
 
         self.recordFrameIntervals = recordFrmIntsOrig
         self.frameIntervals = []
