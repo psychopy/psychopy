@@ -1194,7 +1194,7 @@ def getMovieWriterClass(encoderLib=None):
     ----------
     encoderLib : str or None
         Encoder library the writer should use, one of `'ffpyplayer'`, `'pyav'`
-        or `'opencv'`. If `None`, `PREFERED_MOVIE_WRITER_LIB` is used. A caller
+        or `'opencv'`. If `None`, `PREFERRED_MOVIE_WRITER_LIB` is used. A caller
         with a library of its own in hand, a `Camera` for instance, passes that
         rather than leaving this out, so that frames are encoded by the same
         library that captured them.
@@ -1206,7 +1206,7 @@ def getMovieWriterClass(encoderLib=None):
 
     """
     if encoderLib is None:
-        encoderLib = PREFERED_MOVIE_WRITER_LIB
+        encoderLib = PREFERRED_MOVIE_WRITER_LIB
 
     try:
         return _movieWriterLibTbl[encoderLib]
