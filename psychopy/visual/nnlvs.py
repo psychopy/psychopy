@@ -705,11 +705,12 @@ class VisualSystemHD(window.Window):
             nearClip=self._nearClip,
             farClip=self._farClip)
 
-        self._projectionMatrix = \
-            vt.perspectiveProjectionMatrix(*frustum, dtype=np.float32)
+        # write in-place so `Window` doesn't have to re-derive the pointers it
+        # hands to the GL matrix calls
+        vt.perspectiveProjectionMatrix(*frustum, out=self._projectionMatrix)
 
         # translate away from screen
-        self._viewMatrix = np.identity(4, dtype=np.float32)
+        self._viewMatrix[:, :] = np.identity(4, dtype=np.float32)
         self._viewMatrix[0, 3] = -self._eyeOffsets[self.buffer]  # apply eye offset
         self._viewMatrix[2, 3] = -scrDist  # displace scene away from viewer
 
