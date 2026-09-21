@@ -1,4 +1,5 @@
 import importlib
+import weakref
 from copy import copy
 from pathlib import Path
 
@@ -16,6 +17,36 @@ class _DummyWin:
 
 
 class TestOpenWinList:
+    def test_append(self):
+        winList = OpenWinList()
+        win = _DummyWin()
+        winList.append(win)
+        # the window is stored as a weak reference, not by value
+        assert isinstance(winList[0], weakref.ref)
+        assert winList[0]() is win
+
+    def test_append_keeps_order(self):
+        """Consumers treat `openWindows[0]` as the primary window."""
+        winList = OpenWinList()
+        wins = [_DummyWin() for _ in range(3)]
+        for win in wins:
+            winList.append(win)
+        assert [ref() for ref in winList] == wins
+
+    def test_append_does_not_keep_win_alive(self):
+        """The whole point of the weak references: appending must not pin
+        the window in memory.
+
+        """
+        winList = OpenWinList()
+        win = _DummyWin()
+        finalized = []
+        weakref.finalize(win, finalized.append, True)
+        winList.append(win)
+        del win  # list holds the only remaining reference
+        assert finalized == [True]
+        assert winList[0]() is None
+
     def test_remove(self):
         winList = OpenWinList()
         first, second = _DummyWin(), _DummyWin()
