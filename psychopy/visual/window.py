@@ -124,6 +124,82 @@ IDENTITY_MATRIX4 = numpy.identity(4, dtype=numpy.float32)  # 4x4 identity matrix
 # animated GIF or as one image file per captured frame.
 MOVIE_FILE_EXTENSIONS = ('.mp4', '.mov', '.mpg', '.mpeg', '.avi', '.mkv')
 
+# OpenCV, looked up once by `_getOpenCV()` and kept here. `False` means it has
+# been looked for and is not installed, which is remembered so that a failed
+# import is not retried on every frame.
+_cv2 = None
+
+
+def _getOpenCV():
+    """Get the OpenCV module, if it is installed.
+
+    OpenCV converts whole images far faster than Numpy can, so it is used where
+    it is available. It is a core dependency, but PsychoPy runs without it, so
+    callers take the Numpy path when this gives back `None`.
+
+    Returns
+    -------
+    module or None
+        The `cv2` module, or `None` if it is not installed.
+
+    """
+    global _cv2
+
+    if _cv2 is None:
+        try:
+            import cv2
+            _cv2 = cv2
+        except ImportError:
+            # remembered so that the import, which searches the whole path
+            # before it fails, is not retried by a per-frame caller
+            _cv2 = False
+
+    return _cv2 or None
+
+
+def _rgbToLuminance(colorData):
+    """Convert an array of 8-bit RGB(A) pixels to 8-bit luminance.
+
+    Uses the ITU-R BT.601 luma coefficients, which weight the channels by how
+    much each contributes to perceived brightness.
+
+    Parameters
+    ----------
+    colorData : numpy.ndarray
+        Pixels as an 8-bit array of shape `(height, width, 3)` or
+        `(height, width, 4)`, with channels in RGB(A) order. Any alpha channel
+        is ignored, since it says nothing about how bright a pixel looks.
+
+    Returns
+    -------
+    numpy.ndarray
+        Luminance as an 8-bit array of shape `(height, width)`.
+
+    """
+    cv2 = _getOpenCV()
+
+    if cv2 is not None:
+        # OpenCV needs the rows laid out end to end, which a sliced-down view
+        # of a larger image is not
+        colorData = numpy.ascontiguousarray(colorData)
+
+        return cv2.cvtColor(
+            colorData,
+            cv2.COLOR_RGBA2GRAY if colorData.shape[2] == 4
+            else cv2.COLOR_RGB2GRAY)
+
+    # Fallback, weighting the channels in integers rather than floats: the
+    # obvious `numpy.dot()` against float coefficients promotes the whole image
+    # to float64 and costs an order of magnitude more time and memory than the
+    # read which produced it. The weights are the BT.601 coefficients scaled by
+    # 256 (and so summing to it), and 128 is added before the shift to round to
+    # nearest rather than truncate. The largest total is 255 * 256 + 128, which
+    # a 16-bit accumulator holds.
+    rgb = colorData[:, :, :3].astype(numpy.uint16)
+    lum = rgb[:, :, 0] * 77 + rgb[:, :, 1] * 150 + rgb[:, :, 2] * 29
+
+    return ((lum + 128) >> 8).astype(numpy.uint8)
+
 
 class OpenWinList(list):
     """Class to keep keep track of windows that have been opened.
@@ -613,6 +689,9 @@ class Window():
         self.frameClock = core.Clock()  # from psycho/core
         self.frames = 0  # frames since last fps calc
         self.movieFrames = []  # list of captured frames (Image objects)
+        # last region `_getPixels()` warned about having to crop, so that a
+        # caller reading the same region every frame is not warned every frame
+        self._lastPixelRectWarning = None
 
         self.recordFrameIntervals = False
         # Be able to omit the long timegap that follows each time turn it off
@@ -2657,6 +2736,70 @@ class Window():
         self.movieFrames.append(im)
         return im
 
+    def _clampRectToBuffer(self, left, bottom, w, h):
+        """Crop a region to the part of it which is actually on the window.
+
+        `glReadPixels` leaves pixels outside the buffer untouched rather than
+        refusing to read them, so a region running off the edge of the window
+        comes back padded with whatever the destination array held. Cropping
+        first means the caller is given the pixels which exist and nothing
+        else, which matters for callers averaging the region: padding averaged
+        in as black would report a bright patch as dimmer than it is.
+
+        Parameters
+        ----------
+        left, bottom : int
+            Bottom left corner of the region in pixels, with the origin at the
+            bottom left of the window.
+        w, h : int
+            Size of the region in pixels.
+
+        Returns
+        -------
+        tuple
+            The region as `(left, bottom, w, h)`, cropped to the window.
+
+        Raises
+        ------
+        ValueError
+            If nothing is left of the region, either because it was empty to
+            begin with or because it lies off the window entirely. There are no
+            pixels to give back in that case, and an empty array would only
+            turn up later as a `nan` average.
+
+        """
+        bufferWidth, bufferHeight = self.size
+
+        # crop against each edge, keeping the corner where it is if the region
+        # starts inside the window
+        cropLeft = max(left, 0)
+        cropBottom = max(bottom, 0)
+        cropWidth = min(left + w, int(bufferWidth)) - cropLeft
+        cropHeight = min(bottom + h, int(bufferHeight)) - cropBottom
+
+        if cropWidth <= 0 or cropHeight <= 0:
+            raise ValueError(
+                "Cannot read pixels from the region (left={}, bottom={}, w={}, "
+                "h={}) of a {}x{} window, since none of it is on the "
+                "window.".format(
+                    left, bottom, w, h, int(bufferWidth), int(bufferHeight)))
+
+        if (cropLeft, cropBottom, cropWidth, cropHeight) != (left, bottom, w, h):
+            # A caller reading the same region every frame would log this on
+            # each one, so an identical warning is only logged once.
+            warningKey = (left, bottom, w, h, int(bufferWidth),
+                          int(bufferHeight))
+            if warningKey != self._lastPixelRectWarning:
+                self._lastPixelRectWarning = warningKey
+                logging.warning(
+                    "The region (left={}, bottom={}, w={}, h={}) runs off a "
+                    "{}x{} window, so only the {}x{} of it which is on the "
+                    "window has been read.".format(
+                        left, bottom, w, h, int(bufferWidth),
+                        int(bufferHeight), cropWidth, cropHeight))
+
+        return cropLeft, cropBottom, cropWidth, cropHeight
+
     def _getPixels(self, rect=None, buffer='front', includeAlpha=True,
                    makeLum=False):
         """Return an array of pixel values from the current window buffer or
@@ -2666,11 +2809,15 @@ class Window():
         ----------
         rect : tuple[int], optional
             The region of the window to capture in pixel coordinates (left,
-            bottom, width, height). If `None`, the whole window is captured.
+            bottom, width, height), with the origin at the bottom left. If
+            `None`, the whole window is captured. A region running off the edge
+            of the window is cropped to the part which is on it, so the array
+            which comes back may be smaller than the region asked for.
         buffer : str, optional
             Buffer to capture.
         includeAlpha : bool, optional
             Include the alpha channel in the returned array. Default is `True`.
+            Ignored when `makeLum` is `True`, since luminance has no alpha.
         makeLum : bool, optional
             Convert the RGB values to luminance values. Values are rounded to
             the nearest integer. Default is `False`.
@@ -2682,6 +2829,13 @@ class Window():
             `includeAlpha` is `False`, the array will have shape (height, width,
             3). If `makeLum` is `True`, the array will have shape (height,
             width).
+
+        Raises
+        ------
+        ValueError
+            If `buffer` is not `'front'` or `'back'`, or if `rect` selects no
+            pixels, which happens when it is empty or lies off the window
+            entirely.
 
         Examples
         --------
@@ -2710,37 +2864,38 @@ class Window():
 
         if rect:
             # box corners in pix
-            left, bottom, w, h = rect
+            left, bottom, w, h = (int(val) for val in rect)
         else:
             left = bottom = 0
             w, h = self.size
 
-        # get pixel data
-        bufferDat = (GL.GLubyte * (4 * w * h))()
+        left, bottom, w, h = self._clampRectToBuffer(left, bottom, w, h)
+
+        # Read straight into the array which is handed back. `glReadPixels`
+        # fills every pixel of the region, so the buffer does not need to be
+        # cleared first, and clearing one the size of a window is far from
+        # free.
+        toReturn = numpy.empty((h, w, 4), dtype=numpy.uint8)
         GL.glReadPixels(
             left, bottom, w, h,
             GL.GL_RGBA,
             GL.GL_UNSIGNED_BYTE,
-            bufferDat)
-
-        # convert to array
-        toReturn = numpy.frombuffer(bufferDat, dtype=numpy.uint8)
-        toReturn = toReturn.reshape((h, w, 4))
+            toReturn.ctypes.data_as(ctypes.POINTER(GL.GLubyte)))
 
         # rebind front buffer if needed
         if buffer == 'front' and self.useFBO:
             GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, self.frameBuffer)
 
+        # Convert to luminance if requested, before any alpha channel is
+        # sliced off: luminance ignores alpha anyway, and the conversion is
+        # fastest given the whole buffer as it was read.
+        if makeLum:
+            return _rgbToLuminance(toReturn)
+
         # if we want the color data without an alpha channel, we need to
         # convert the data to a numpy array and remove the alpha channel
         if not includeAlpha:
             toReturn = toReturn[:, :, :3]  # remove alpha channel
-
-        # convert to luminance if requested
-        if makeLum:
-            coeffs = [0.2989, 0.5870, 0.1140]
-            toReturn = numpy.rint(numpy.dot(toReturn[:, :, :3], coeffs)).astype(
-                numpy.uint8)
 
         return toReturn
 
@@ -2841,7 +2996,7 @@ class Window():
         else:
             # preferred library first, then the rest as fallbacks in case it
             # is not installed
-            candidateLibs = [movietools.PREFERED_MOVIE_WRITER_LIB]
+            candidateLibs = [movietools.PREFERRED_MOVIE_WRITER_LIB]
             candidateLibs += [
                 lib for lib in (movietools.MOVIE_WRITER_LIB_FFPYPLAYER,
                                 movietools.MOVIE_WRITER_LIB_PYAV,
@@ -2920,7 +3075,7 @@ class Window():
             Frame rate in frames per second the movie is written at.
         encoderLib : str or None
             Encoder library to use, one of `'ffpyplayer'`, `'pyav'` or
-            `'opencv'`. If `None`, `movietools.PREFERED_MOVIE_WRITER_LIB` is
+            `'opencv'`. If `None`, `movietools.PREFERRED_MOVIE_WRITER_LIB` is
             used.
         encoderOpts : dict or None
             Options to pass to the encoder. Which options are understood
@@ -3036,7 +3191,7 @@ class Window():
         encoderLib : str or None, optional
             Encoder library to write movie files with, one of ``'ffpyplayer'``,
             ``'pyav'`` or ``'opencv'``. If `None`, the preferred library named
-            by ``movietools.PREFERED_MOVIE_WRITER_LIB`` is used. Default is
+            by ``movietools.PREFERRED_MOVIE_WRITER_LIB`` is used. Default is
             `None`.
         encoderOpts : dict or None, optional
             Options to pass to the encoder, such as
