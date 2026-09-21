@@ -10,8 +10,10 @@
 __all__ = [
     'MovieWriter',
     'InvalidFrameSizeError',
+    'getMovieWriterClass',
     'closeAllMovieWriters',
     'addAudioToMovie',
+    'PREFERRED_MOVIE_WRITER_LIB',
     'MOVIE_WRITER_LIB_FFPYPLAYER',
     'MOVIE_WRITER_LIB_PYAV',
     'MOVIE_WRITER_LIB_OPENCV',
@@ -33,7 +35,7 @@ MOVIE_WRITER_LIB_OPENCV = 'opencv'
 MOVIE_WRITER_LIB_NULL = 'null'
 
 # default movie writer to use
-PREFERED_MOVIE_WRITER_LIB = MOVIE_WRITER_LIB_PYAV
+PREFERRED_MOVIE_WRITER_LIB = MOVIE_WRITER_LIB_PYAV
 
 
 _openMovieWriters = set()  # keep track of all open movie writers
@@ -141,6 +143,11 @@ class MovieWriter:
         returning it in RGB. A writer only calls this for frames it cannot
         encode as they come, which is any frame from a capture library other
         than its own, so it may be left out when the two libraries match.
+    codec : str or None
+        Codec to encode the video stream with, named the way the encoder
+        library names it (`'libx264'`, `'mpeg4'`, ...). If `None`, the writer
+        uses its own default. Not every writer can be pointed at a codec; see
+        the subclass for what it accepts.
 
     Raises
     ------
@@ -154,8 +161,11 @@ class MovieWriter:
     # values. Set by each subclass.
     _encoderLib = MOVIE_WRITER_LIB_NULL
 
+    # Codec used when the caller does not name one. Set by each subclass.
+    _defaultCodec = None
+
     def __init__(self, filename, frameSize, frameRate, encoderOpts=None,
-                 frameConverter=None):
+                 frameConverter=None, codec=None):
         if frameSize is None:
             raise InvalidFrameSizeError(
                 "A movie file writer needs the size of the frames it will be "
@@ -197,6 +207,7 @@ class MovieWriter:
         self._frameRate = float(frameRate)
         self._encoderOpts = dict(encoderOpts) if encoderOpts else {}
         self._frameConverter = frameConverter
+        self._codec = codec if codec else self._defaultCodec
 
         self._isOpen = False
         self._framesWritten = 0  # frames handed to the encoder
@@ -240,6 +251,12 @@ class MovieWriter:
         """Options the encoder was opened with (`dict`).
         """
         return self._encoderOpts
+
+    @property
+    def codec(self):
+        """Codec the video stream is encoded with (`str` or `None`).
+        """
+        return self._codec
 
     @property
     def isOpen(self):
@@ -465,9 +482,14 @@ class FFPyPlayerMovieWriter(MovieWriter):
         Callable converting a frame as the capture library hands it over into
         RGB. Only needed when the camera is captured with a library other than
         FFPyPlayer, whose frames are encoded as they come.
+    codec : str or None
+        FFmpeg encoder to use, `'libx264'` by default. Frames are handed to it
+        as `yuv420p`, so a codec which cannot take that pixel format will not
+        open.
 
     """
     _encoderLib = MOVIE_WRITER_LIB_FFPYPLAYER
+    _defaultCodec = 'libx264'
 
     def __init__(self, *args, **kwargs):
         MovieWriter.__init__(self, *args, **kwargs)
@@ -491,7 +513,7 @@ class FFPyPlayerMovieWriter(MovieWriter):
             'pix_fmt_in': 'yuv420p',  # default for now using mp4
             'width_in': frameWidth,
             'height_in': frameHeight,
-            'codec': 'libx264',
+            'codec': self._codec,
             'frame_rate': (int(self._frameRate), 1)}
 
         self._ticksPerSec = float(writerOptions['frame_rate'][0])
@@ -504,17 +526,26 @@ class FFPyPlayerMovieWriter(MovieWriter):
                 "MP4 format detected, PTS will be generated for the movie "
                 "writer.")
 
+        # Container to mux into. An empty format leaves FFmpeg to work it out
+        # from the file's extension, which is what gets a file named `.mov` or
+        # `.avi` holding what its name says rather than MP4 data. FFmpeg's name
+        # for a container is not always its extension (`.mkv` is `matroska`),
+        # so the extension is not passed as the format itself. A file with no
+        # extension leaves FFmpeg nothing to go on, so it is written as MP4.
+        fileFmt = '' if os.path.splitext(self._filename)[1] else 'mp4'
+
         self._writer = MediaWriter(
             self._filename,
             [writerOptions],
-            fmt='mp4',
+            fmt=fileFmt,
             overwrite=True,  # overwrite existing file
             libOpts=self._encoderOpts)
 
         logging.debug(
             "Opened movie file writer using FFPyPlayer, writing {}x{} @{} fps "
-            "to '{}'".format(
-                frameWidth, frameHeight, self._frameRate, self._filename))
+            "to '{}' with codec '{}'".format(
+                frameWidth, frameHeight, self._frameRate, self._filename,
+                self._codec))
 
     def _writeFrame(self, colorData, elapsed):
         """Convert a frame to the encoder's pixel format and write it.
@@ -593,9 +624,14 @@ class PyAVMovieWriter(MovieWriter):
         Callable converting a frame as the capture library hands it over into
         RGB. Only needed when the camera is captured with a library other than
         PyAV, whose frames are encoded as they come.
+    codec : str or None
+        Encoder to add the video stream with, `'libx264'` by default. Frames
+        are handed to it as `yuv420p`, so a codec which cannot take that pixel
+        format will not open.
 
     """
     _encoderLib = MOVIE_WRITER_LIB_PYAV
+    _defaultCodec = 'libx264'
 
     def __init__(self, *args, **kwargs):
         MovieWriter.__init__(self, *args, **kwargs)
@@ -624,7 +660,7 @@ class PyAVMovieWriter(MovieWriter):
         self._timeBase = Fraction(1, 90000)
 
         self._writer = av.open(self._filename, mode='w')
-        self._stream = self._writer.add_stream('libx264', rate=outFrameRate)
+        self._stream = self._writer.add_stream(self._codec, rate=outFrameRate)
         self._stream.width = frameWidth
         self._stream.height = frameHeight
         self._stream.pix_fmt = 'yuv420p'
@@ -638,8 +674,9 @@ class PyAVMovieWriter(MovieWriter):
 
         logging.debug(
             "Opened movie file writer using PyAV, writing {}x{} @{} fps to "
-            "'{}'".format(
-                frameWidth, frameHeight, outFrameRate, self._filename))
+            "'{}' with codec '{}'".format(
+                frameWidth, frameHeight, outFrameRate, self._filename,
+                self._codec))
 
     def _toAVVideoFrame(self, colorData):
         """Get a captured frame as an `av.VideoFrame` ready to be encoded.
@@ -749,6 +786,10 @@ class OpenCVMovieWriter(MovieWriter):
         Callable converting a frame as the capture library hands it over into
         RGB. OpenCV cannot encode the other libraries' frames, so this is
         needed unless the camera is captured with OpenCV too.
+    codec : str or None
+        Not used. OpenCV names codecs by FourCC code rather than by encoder
+        name, so this writer is pointed at one through `encoderOpts['fourcc']`
+        instead. A codec given here is ignored, with a warning.
 
     """
     _encoderLib = MOVIE_WRITER_LIB_OPENCV
@@ -782,6 +823,14 @@ class OpenCVMovieWriter(MovieWriter):
                 "The OpenCV movie writer does not understand the encoder "
                 "option(s) {}, they will be ignored.".format(
                     ", ".join(repr(opt) for opt in sorted(unknownOpts))))
+
+        if self._codec is not None:
+            logging.warning(
+                "The OpenCV movie writer names codecs by FourCC code, not by "
+                "encoder name, so `codec='{}'` is ignored. Use "
+                "`encoderOpts={{'fourcc': ...}}` to choose a codec.".format(
+                    self._codec))
+            self._codec = None
 
         self._fourcc = self._encoderOpts.get('fourcc', 'mp4v')
         self._queueSecs = float(self._encoderOpts.get('bufferSecs', 10.0))
@@ -1145,8 +1194,10 @@ def getMovieWriterClass(encoderLib=None):
     ----------
     encoderLib : str or None
         Encoder library the writer should use, one of `'ffpyplayer'`, `'pyav'`
-        or `'opencv'`. If `None`, the library named by `camera.backend` is
-        used.
+        or `'opencv'`. If `None`, `PREFERED_MOVIE_WRITER_LIB` is used. A caller
+        with a library of its own in hand, a `Camera` for instance, passes that
+        rather than leaving this out, so that frames are encoded by the same
+        library that captured them.
 
     Returns
     -------
@@ -1154,10 +1205,8 @@ def getMovieWriterClass(encoderLib=None):
         Subclass of `MovieWriter` which encodes movie files using `encoderLib`.
 
     """
-    global backend, _movieWriterLibTbl
-
     if encoderLib is None:
-        encoderLib = backend
+        encoderLib = PREFERED_MOVIE_WRITER_LIB
 
     try:
         return _movieWriterLibTbl[encoderLib]
