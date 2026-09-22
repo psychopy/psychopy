@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 from PIL import Image
 
-from psychopy import visual, colors
+from psychopy import visual, colors, core
 from psychopy.tests import utils
 from psychopy.tests.test_visual.test_basevisual import _TestColorMixin
 from psychopy.tools.stimulustools import serialize
@@ -436,13 +436,15 @@ class TestWindowMovieFrames:
                 movie.play()
 
                 # Drawn until the movie runs out rather than a fixed number of
-                # times, since how many draws that takes depends on how fast
-                # the window refreshes relative to the movie's frame rate.
-                for _ in range(400):
+                # times. Playback advances with wall-clock time, not with
+                # flips, and without vsync (e.g. under Xvfb) flips return
+                # immediately, so any fixed number of them can be over before
+                # the movie is. The loop is bounded by time instead, with some
+                # slack for the decoder starting up on a slow machine.
+                deadline = core.getTime() + movie.duration + 5.0
+                while not movie.isFinished and core.getTime() < deadline:
                     movie.draw()
                     playbackWin.flip()
-                    if movie.isFinished:
-                        break
 
                 assert movie.isFinished, (
                     "the movie did not play through to the end")
