@@ -235,15 +235,11 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
             self.italic = False
             self.font = "Noto Sans"
 
-        # once font is set up we can set the shader (depends on rgb/a of font)
-        if self.glFont.atlas.format == 'rgb':
-            global rgbShader
-            self.shader = rgbShader = shaders.Shader(
-                    shaders.vertSimple, shaders.fragTextBox2)
-        else:
-            global alphaShader
-            self.shader = alphaShader = shaders.Shader(
-                    shaders.vertSimple, shaders.fragTextBox2alpha)
+        # once font is set up we can set the shader (depends on rgb/a of font
+        # and on how the window composites what's drawn into it)
+        self.shader = None
+        self._shaderKey = None
+        self._setShader()
         self._needVertexUpdate = False  # this will be set True during layout
 
         # standard stimulus params
@@ -790,11 +786,29 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
             # set text
             self.text = rawText
         
+    @property
+    def _glyphColor(self):
+        """The color to render the glyphs in, as rgba (0:1) (`numpy.ndarray`).
+
+        This is `self._foreColor` rendered as `'rgba1'`, except that a fore
+        color of `None` is treated as "no color given" rather than "fully
+        transparent". `Color(None)` has an alpha of 0 and the glyph shaders
+        multiply coverage by that alpha, so taking it literally would leave the
+        text invisible. Setting `opacity` to 0 still hides the text, as that
+        gives an alpha of 0 on a color which *was* given.
+
+        """
+        rgba = self._foreColor.render('rgba1')
+        if self._foreColor == None:  # Color.__eq__ checks it was given None
+            rgba = np.append(rgba[:3], 1.0)
+
+        return rgba
+
     def _layout(self):
         """Layout the text, calculating the vertex locations
         """
-        
-        rgb = self._foreColor.render('rgba1')
+
+        rgb = self._glyphColor
         font = self.glFont
 
         # the vertices are initially pix (natural for freetype)
@@ -1190,6 +1204,80 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
         if lastOri != value:
             self._layout()
 
+    def _setShader(self):
+        """Select and compile the shader program to render the glyphs with.
+
+        Which program is needed depends on two things: the format of the glyph
+        atlas held by the font (``'alpha'`` or, for subpixel antialiasing,
+        ``'rgb'``), and how the window this text is drawn to composites its
+        fragments. The latter is determined by ``win.blendMode`` together with
+        ``win.useFBO`` - additive blending requires signed, halved colours,
+        while every other combination (``blendMode='avg'``, or any window with
+        ``useFBO=False``) requires unsigned colours and coverage clamped to
+        0:1.
+
+        Programs are cached against the window, since they belong to its GL
+        context, so switching blend modes back and forth doesn't leak
+        programs. Sets `self.shader` and returns it.
+
+        """
+        win = self.win
+        atlasFormat = self.glFont.atlas.format if self.glFont else 'alpha'
+        blendMode = getattr(win, 'blendMode', 'avg') if win is not None else 'avg'
+        useFBO = bool(getattr(win, 'useFBO', False)) if win is not None else False
+
+        key = (atlasFormat, blendMode == 'add' and useFBO)
+        if self.shader is not None and key == self._shaderKey:
+            return self.shader  # nothing has changed since we last looked
+
+        # programs live in the window's GL context, so cache them there
+        if win is not None:
+            cache = getattr(win, '_textbox2Shaders', None)
+            if cache is None:
+                cache = win._textbox2Shaders = {}
+        else:
+            cache = {}
+
+        if key not in cache:
+            # get the shader source appropriate for this window and atlas format
+            if atlasFormat not in ('alpha', 'rgb'):
+                raise ValueError(
+                    "Font atlas format should be 'alpha' or 'rgb' but we received "
+                    "the value {}".format(repr(atlasFormat)))
+            
+            adding = (win is not None
+                    and getattr(win, 'blendMode', 'avg') == 'add'
+                    and getattr(win, 'useFBO', False))
+
+            # select the appropriate shader
+            if atlasFormat == 'rgb':
+                if adding:
+                    fragShader = shaders.fragTextBox2_adding 
+                else:
+                    fragShader = shaders.fragTextBox2
+            else:
+                if adding:
+                    fragShader = shaders.fragTextBox2alpha_adding
+                else:
+                    fragShader = shaders.fragTextBox2alpha
+
+            cache[key] = shaders.Shader(
+                shaders.vertSimple,
+                fragShader)
+
+        self.shader = cache[key]
+        self._shaderKey = key
+
+        # keep the legacy module-level handles pointing at the last program
+        # compiled for each atlas format, for backwards compatibility
+        global rgbShader, alphaShader
+        if atlasFormat == 'rgb':
+            rgbShader = self.shader
+        else:
+            alphaShader = self.shader
+
+        return self.shader
+
     def _drawLegacyGL(self):
         """Legacy draw routine for older GL versions.
         """
@@ -1286,6 +1374,10 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
             # Activate aperture
             self.container.enable()
 
+        # `win.blendMode` can be changed at runtime, and `self.win` may have
+        # been swapped since the last draw, so re-check which shader we need
+        self._setShader()
+
         if self.win.USE_LEGACY_GL:
             self._drawLegacyGL()
         else:
@@ -1302,7 +1394,7 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
             prog = self.shader.handle
             gt.useProgram(prog)
             gt.setUniformSampler2D(prog, b'uTexture', 0)
-            gt.setUniformValue(prog, b'uColor', self._foreColor.render('rgba1'))
+            gt.setUniformValue(prog, b'uColor', self._glyphColor)
             gt.setUniformMatrix(
                 prog, 
                 b'uModelViewMatrix', 
@@ -1426,10 +1518,10 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
         # Make same colour as other text
         self._colors = np.vstack([
             self._colors[:i4],
-            self._foreColor.render('rgba1'),
-            self._foreColor.render('rgba1'),
-            self._foreColor.render('rgba1'),
-            self._foreColor.render('rgba1'),
+            self._glyphColor,
+            self._glyphColor,
+            self._glyphColor,
+            self._glyphColor,
             self._colors[i4:]
         ])
         # Extend line numbers array
