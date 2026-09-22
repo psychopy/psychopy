@@ -5243,6 +5243,22 @@ class Camera:
         return self._isRecording
     
     @property
+    def isStopping(self):
+        """`True` if a scheduled stop is pending (`bool`).
+
+        This is the window between a call to `stop(when=...)` and the moment
+        that stop takes effect. The recording is still running and frames are
+        still going into it, but it has been told when to end.
+
+        An immediate `stop()` never shows up here, since it takes effect as it
+        is called. This goes back to `False` once the recording has been closed
+        off, at which point `isRecording` is `False` too.
+
+        """
+        return self._recordingRequested and \
+            self._tRecordingStopRequested is not None
+
+    @property
     def isStarted(self):
         """`True` if the stream has started (`bool`). This status is given after
         `open()` has been called on this object.
@@ -5591,6 +5607,20 @@ class Camera:
                 bufferSecs=bufferSecs,
             )
 
+        # None of the branches above found or created a device, so say which
+        # camera couldn't be resolved rather than failing on `.info` below.
+        if self._capture is None:
+            knownDevices = [
+                profile['deviceName']
+                for profile in cameraDeviceClass.getAvailableDevices()]
+            raise CameraNotFoundError(
+                "Could not find a camera matching `device={}`. Cameras "
+                "available through `{}` are: {}".format(
+                    repr(device),
+                    cameraLib,
+                    ', '.join(repr(name) for name in knownDevices)
+                    if knownDevices else '(none found)'))
+
         # get info from device
         self._cameraInfo = self._capture.info
 
@@ -5691,10 +5721,16 @@ class Camera:
             cases this will result in a delay of up to 1 second before the
             recording starts.
         when : float or None
-            Absolute time in seconds to start recording. If `None`, recording
-            will start immediately. If a time is specified, the recording will
-            start at the specified time. This is useful for synchronizing the
-            recording with other devices or events.
+            How long from now to wait before starting the recording, in
+            seconds. This is an offset from the moment `record()` is called,
+            not an absolute time on any clock. If `None`, recording starts
+            immediately. This is useful for synchronizing the recording with
+            other devices or events.
+
+            Frames which arrive before the requested start time are not part
+            of the recording. They are left out of `frameCount` and out of the
+            saved file, and the recording clock (`recordingTime`) runs from the
+            deferred start rather than from the call.
 
         """
         if self.isNotStarted:
@@ -5809,12 +5845,26 @@ class Camera:
     def stop(self, when=None):
         """Stop recording frames and audio (if available).
 
+        A scheduled stop applies to both tracks, so the video ends as close to
+        the same moment as the audio as the camera's frame rate allows. The
+        recording runs on until the first frame captured at or after the stop
+        time, which is left out of it, so the footage ends within one frame
+        interval of the requested time.
+
+        Keep calling `update()` (or drawing a stimulus which polls the camera)
+        until the stop time has passed. The recording closes itself off on the
+        frame which crosses the stop time, and `update()` closes it off on the
+        clock if the camera stops delivering frames first, so a camera nobody
+        is polling will not stop when asked. Calling `save()` before then ends
+        the recording early and warns.
+
         Parameters
         ----------
         when : float or None
-            Absolute time in seconds to stop recording. If `None`, recording
-            will stop immediately. If a time is specified, the recording will
-            stop at the specified time. This is useful for synchronizing the
+            How long from now to wait before stopping, in seconds. This is an
+            offset from the moment `stop()` is called, not an absolute time on
+            any clock. If `None` (or zero, or in the past), recording stops
+            immediately. This is useful for synchronizing the end of the
             recording with other devices or events.
 
         """
@@ -5824,24 +5874,64 @@ class Camera:
         # stop the camera stream
         self._absVideoRecStopTime = self._getTime() if when is None else when + self._getTime()
 
-        # Close the gate first so that frames still in flight on the polling
-        # thread are not written to a file which is about to be closed. Setting
-        # the stop time also tells microphone backends which stream into our
-        # buffer to stop adding to it.
+        # Setting the stop time tells microphone backends which stream into our
+        # buffer to stop adding to it, and gates the frames `_onNewFrames()`
+        # takes in, so both tracks end at the same moment.
         self._tRecordingStopRequested = self._absVideoRecStopTime
-        self._recordingRequested = False
-        self._videoRecordingStarted = False
-        self._isRecording = False
 
         # stop audio recording if we have a microphone
         if self.hasMic:
             # the microphone calls its scheduled stop time `stopTime`
             self.mic.stop(stopTime=self._absVideoRecStopTime)
 
-        self._audioReady = self._videoReady = False  # reset camera ready flags
+        # A stop scheduled for the future leaves the recording running until a
+        # frame captured at or after that time comes through `_onNewFrames()`,
+        # so that the video track ends alongside the audio track rather than
+        # when this was called. An immediate stop is torn down here and now.
+        if self._absVideoRecStopTime <= self._getTime():
+            self._finaliseRecordingStop()
 
-        self._closeMovieFileWriter()
-            
+    def _finaliseRecordingStop(self):
+        """Close a recording off once its stop time has arrived.
+
+        This ends the recording and closes the movie file writer, leaving the
+        footage ready for `save()`. It is safe to call more than once, and on
+        a camera which is not recording, so whichever of `_onNewFrames()`,
+        `update()`, `stop()` or `close()` gets there first can finish the
+        recording off.
+
+        This runs on the polling thread as well as the main one, hence the
+        lock. Recording is closed off before the writer goes away, so frames
+        still in flight are dropped rather than written to a file which is
+        about to be closed.
+
+        """
+        with self._movieWriterLock:
+            self._recordingRequested = False
+            self._videoRecordingStarted = False
+            self._isRecording = False
+            self._audioReady = self._videoReady = False
+
+            self._closeMovieFileWriter()
+
+    def _checkScheduledStop(self):
+        """Finish a scheduled stop whose time has passed without a frame.
+
+        A stop scheduled by `stop(when=...)` is normally completed by the
+        frame which crosses it, so that the recording ends on real captured
+        footage. A camera which stops delivering frames before then would
+        otherwise leave the recording open indefinitely, so this closes it off
+        on the clock instead.
+
+        """
+        stopTime = self._tRecordingStopRequested
+
+        if stopTime is None or not self._recordingRequested:
+            return  # nothing scheduled, or already finished
+
+        if self._getTime() >= stopTime:
+            self._finaliseRecordingStop()
+
     def close(self):
         """Close the camera.
 
@@ -6416,12 +6506,26 @@ class Camera:
         if not self._recordingRequested and not liveView:
             return  # not recording, nothing to do with these
 
+        # A stop scheduled by `stop(when=...)` ends the recording on the first
+        # frame captured at or after that time, so that the video track runs up
+        # to the same moment as the audio track rather than stopping when
+        # `stop()` was called. `None` means no stop has been asked for.
+        stopTime = self._tRecordingStopRequested
+        reachedScheduledStop = False
+
         for colorData, frameIndex, pts, absTime in frames:
             # Whether this frame belongs to a recording, as opposed to one only
             # passing through for the live view. Frames captured before the
-            # recording was asked to start are not part of it.
+            # recording was asked to start, or at or after a scheduled stop,
+            # are not part of it.
             inRecording = (self._recordingRequested and
                            absTime >= self._tRecordingStartRequested)
+
+            if inRecording and stopTime is not None and absTime >= stopTime:
+                # the recording ends just before this frame, which goes on to
+                # the live view (if any) but not into the recording
+                inRecording = False
+                reachedScheduledStop = True
 
             if not inRecording and not liveView:
                 continue
@@ -6468,7 +6572,13 @@ class Camera:
                 # `frameCount` counts the current recording, so frames shown
                 # only in the live view are left out of it
                 self._frameCount += 1  # increment the frame count
-        
+
+        # The footage now runs up to the scheduled stop, so close the recording
+        # off. This happens after the loop so that any remaining frames in this
+        # batch still reach the live view.
+        if reachedScheduledStop:
+            self._finaliseRecordingStop()
+
     def update(self):
         """Acquire the newest data from the camera and audio streams.
 
@@ -6499,10 +6609,14 @@ class Camera:
             return
 
         # force the device interface to poll to ensure most recent frame
-        self._capture._poll() 
+        self._capture._poll()
+        # Frames retrieved by that poll have been handled by now, so a stop
+        # scheduled for a time which has since passed can be closed off. Does
+        # nothing unless a stop is pending and its moment has come.
+        self._checkScheduledStop()
         # transfer most recent frames to the GPU if we have a window
-        self._pixelTransfer()  
-                
+        self._pixelTransfer()
+
     def poll(self):
         """Poll the camera for new frames.
         
@@ -7136,6 +7250,95 @@ DeviceManager.registerClassAlias("camera", "psychopy.hardware.camera.Camera")
 # Functions
 #
 
+# AVFoundation values used by the MacOS camera enumeration below. Spelled out
+# here so the constants can be referenced without importing `AVFoundation` on
+# platforms which don't have it.
+AVF_MEDIA_TYPE_VIDEO = u'vide'
+AVF_AUTHORIZATION_RESTRICTED = 1
+AVF_AUTHORIZATION_DENIED = 2
+
+# Names of the `AVCaptureDeviceType` constants to discover cameras under, with
+# the MacOS version each was introduced in. Which of these AVFoundation defines
+# depends on the MacOS version, and `pyobjc` resolves them against the framework
+# at the moment they're accessed, so they're looked up by name and any which
+# aren't there are skipped. Note that on MacOS 14+ `AVCaptureDeviceTypeExternal`
+# and `AVCaptureDeviceTypeExternalUnknown` are two names for the same value, so
+# the list is deduplicated before use.
+AVF_CAMERA_DEVICE_TYPES = (
+    'AVCaptureDeviceTypeBuiltInWideAngleCamera',  # built-in cameras, 10.15+
+    'AVCaptureDeviceTypeExternal',                # USB cameras, 14.0+
+    'AVCaptureDeviceTypeExternalUnknown',         # USB cameras, 10.15 - 14.0
+    'AVCaptureDeviceTypeContinuityCamera',        # iPhone as a webcam, 14.0+
+    'AVCaptureDeviceTypeDeskViewCamera',          # Desk View camera, 13.0+
+)
+
+
+def _getAVCaptureDevicesMacOS():
+    """Get the video capture devices AVFoundation knows about on MacOS.
+
+    Don't call this function directly unless testing, use
+    `_getCameraInfoMacOS()` instead.
+
+    Cameras are discovered with `AVCaptureDeviceDiscoverySession` where it's
+    available (MacOS 10.15 onwards). `AVCaptureDevice.devices()` was deprecated
+    in favour of it in 10.15, and while that call does still report USB and
+    built-in cameras, it doesn't report Continuity Cameras (an iPhone used as a
+    webcam) or the Desk View camera, which are only reachable by asking the
+    discovery session for those device types.
+
+    The deprecated call is still used afterwards, to cover MacOS 10.14 and
+    earlier where there is no discovery session, and to top up the results on
+    newer systems, since the discovery session only returns the device types it
+    was asked for. Devices found both ways are deduplicated by their unique ID.
+
+    Returns
+    -------
+    list
+        List of `AVCaptureDevice` objects for the video capture devices found.
+
+    """
+    import AVFoundation as avf  # only works on MacOS
+
+    foundDevices = []
+    seenDeviceIDs = set()  # a camera can be discovered under more than one type
+
+    # The device types to search for, minus any this version of MacOS (or of
+    # `pyobjc`) doesn't define, and minus the duplicates that leaves behind.
+    deviceTypes = []
+    for typeName in AVF_CAMERA_DEVICE_TYPES:
+        deviceType = getattr(avf, typeName, None)
+        if deviceType is not None and deviceType not in deviceTypes:
+            deviceTypes.append(deviceType)
+
+    # `AVCaptureDeviceDiscoverySession` is MacOS 10.15+, and `pyobjc` raises
+    # `AttributeError` for a class the running system doesn't have, so fall
+    # through to the deprecated enumeration below on older systems.
+    discoverySessionClass = getattr(
+        avf, 'AVCaptureDeviceDiscoverySession', None)
+
+    if discoverySessionClass is not None and deviceTypes:
+        discoverySession = discoverySessionClass.\
+            discoverySessionWithDeviceTypes_mediaType_position_(
+                deviceTypes,
+                AVF_MEDIA_TYPE_VIDEO,
+                avf.AVCaptureDevicePositionUnspecified)
+
+        for device in discoverySession.devices():
+            seenDeviceIDs.add(device.uniqueID())
+            foundDevices.append(device)
+
+    # Fall back on the deprecated enumeration for anything the discovery session
+    # missed, and for MacOS 10.14 and earlier where there was no discovery
+    # session at all. `devices()` returns audio devices too, which the caller
+    # filters out by media type.
+    for device in avf.AVCaptureDevice.devices():
+        if device.uniqueID() in seenDeviceIDs:
+            continue
+        foundDevices.append(device)
+
+    return foundDevices
+
+
 def _getCameraInfoMacOS(cameraLib=CAMERA_LIB_FFPYPLAYER):
     """Get a list of capabilities associated with a camera attached to the 
     system.
@@ -7167,15 +7370,29 @@ def _getCameraInfoMacOS(cameraLib=CAMERA_LIB_FFPYPLAYER):
     import AVFoundation as avf  # only works on MacOS
     import CoreMedia as cm
 
+    # Warn early if the app has been refused camera access, since the discovery
+    # session then comes back empty and the cause is otherwise invisible. Camera
+    # access is only gated from MacOS 10.14 onwards, and the call to check it
+    # only exists from then too, so skip this on anything older.
+    if hasattr(avf.AVCaptureDevice, 'authorizationStatusForMediaType_'):
+        authStatus = avf.AVCaptureDevice.authorizationStatusForMediaType_(
+            AVF_MEDIA_TYPE_VIDEO)
+        if authStatus in (AVF_AUTHORIZATION_DENIED, AVF_AUTHORIZATION_RESTRICTED):
+            logging.warning(
+                "This application has not been granted access to the camera, "
+                "so no cameras can be found. Grant access under System Settings "
+                "> Privacy & Security > Camera.")
+
     # get a list of capture devices
-    allDevices = avf.AVCaptureDevice.devices()
+    allDevices = _getAVCaptureDevicesMacOS()
 
     # get video devices
     videoDevices = {}
     devIdx = 0
     for device in allDevices:
         devFormats = device.formats()
-        if devFormats[0].mediaType() != 'vide':  # not a video device
+        # not a video device, or one which reports no formats at all
+        if not devFormats or devFormats[0].mediaType() != AVF_MEDIA_TYPE_VIDEO:
             continue
 
         # camera details
