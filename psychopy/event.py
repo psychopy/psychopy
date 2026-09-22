@@ -651,9 +651,8 @@ class Mouse:
             lastPosPix[0] = lastPosPix[0] - self.win.size[0] / 2
             self.lastPos = self._pix2windowUnits(lastPosPix)
         elif useGLFW and self.win.winType=='glfw':
+            # already in framebuffer pixels
             lastPosPix[:] = self.win.backend.getMousePos()
-            if self.win.useRetina:
-                lastPosPix *= 2.0
         else:  # for pyglet bottom left is 0,0
             # use default window if we don't have one
             if self.win:
@@ -1248,10 +1247,30 @@ def _onGLFWKey(*args, **kwargs):
     else:
         key_name = key_name.lower()
 
-    # TODO - modifier integration
+    # convert modifiers to pyglet's so they are handled the same way
+    modifiers = _glfwToPygletModifiers(modifiers)
     keySource = 'Keypress'
     _keyBuffer.append((key_name, modifiers, keyTime))  # tuple
     logging.data("%s: %s" % (keySource, key_name))
+    _process_global_event_key(key_name, modifiers)
+
+
+def _glfwToPygletModifiers(modifiers):
+    """Convert GLFW modifier key flags to pyglet's.
+    """
+    pygletModifiers = 0
+    for glfwMod, pygletMod in (
+            (glfw.MOD_SHIFT, MOD_SHIFT),
+            (glfw.MOD_CONTROL, MOD_CTRL),
+            (glfw.MOD_ALT, MOD_OPTION if sys.platform == 'darwin' else MOD_ALT),
+            (glfw.MOD_SUPER,
+             MOD_COMMAND if sys.platform == 'darwin' else MOD_WINDOWS),
+            (glfw.MOD_CAPS_LOCK, MOD_CAPSLOCK),
+            (glfw.MOD_NUM_LOCK, MOD_NUMLOCK)):
+        if modifiers & glfwMod:
+            pygletModifiers |= pygletMod
+
+    return pygletModifiers
 
 
 def _onGLFWText(*args, **kwargs):
@@ -1271,7 +1290,7 @@ def _onGLFWText(*args, **kwargs):
     if not useText:  # _onPygletKey has handled the input
         return
     keySource = 'KeyPress'
-    _keyBuffer.append((text, keyTime))
+    _keyBuffer.append((text, _glfwToPygletModifiers(modifiers), keyTime))
     logging.data("%s: %s" % (keySource, text))
 
 
