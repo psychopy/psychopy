@@ -794,11 +794,29 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
             # set text
             self.text = rawText
         
+    @property
+    def _glyphColor(self):
+        """The color to render the glyphs in, as rgba (0:1) (`numpy.ndarray`).
+
+        This is `self._foreColor` rendered as `'rgba1'`, except that a fore
+        color of `None` is treated as "no color given" rather than "fully
+        transparent". `Color(None)` has an alpha of 0 and the glyph shaders
+        multiply coverage by that alpha, so taking it literally would leave the
+        text invisible. Setting `opacity` to 0 still hides the text, as that
+        gives an alpha of 0 on a color which *was* given.
+
+        """
+        rgba = self._foreColor.render('rgba1')
+        if self._foreColor == None:  # Color.__eq__ checks it was given None
+            rgba = np.append(rgba[:3], 1.0)
+
+        return rgba
+
     def _layout(self):
         """Layout the text, calculating the vertex locations
         """
-        
-        rgb = self._foreColor.render('rgba1')
+
+        rgb = self._glyphColor
         font = self.glFont
 
         # the vertices are initially pix (natural for freetype)
@@ -1387,7 +1405,7 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
             prog = self.shader.handle
             gt.useProgram(prog)
             gt.setUniformSampler2D(prog, b'uTexture', 0)
-            gt.setUniformValue(prog, b'uColor', self._foreColor.render('rgba1'))
+            gt.setUniformValue(prog, b'uColor', self._glyphColor)
             gt.setUniformMatrix(
                 prog, 
                 b'uModelViewMatrix', 
@@ -1511,10 +1529,10 @@ class TextBox2(BaseVisualStim, PointerMixin, DraggingMixin, ContainerMixin, Colo
         # Make same colour as other text
         self._colors = np.vstack([
             self._colors[:i4],
-            self._foreColor.render('rgba1'),
-            self._foreColor.render('rgba1'),
-            self._foreColor.render('rgba1'),
-            self._foreColor.render('rgba1'),
+            self._glyphColor,
+            self._glyphColor,
+            self._glyphColor,
+            self._glyphColor,
             self._colors[i4:]
         ])
         # Extend line numbers array
