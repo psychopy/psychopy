@@ -2804,7 +2804,7 @@ class Window():
         return cropLeft, cropBottom, cropWidth, cropHeight
 
     def _getPixels(self, rect=None, buffer='front', includeAlpha=True,
-                   makeLum=False):
+                   makeLum=False, flipVert=False):
         """Return an array of pixel values from the current window buffer or
         sub-region.
 
@@ -2825,6 +2825,11 @@ class Window():
         makeLum : bool, optional
             Convert the RGB values to luminance values. Values are rounded to
             the nearest integer. Default is `False`.
+        flipVert : bool, optional
+            Turn the rows the right way up for an image, so that the first one
+            is the top of the window rather than the bottom. Default is
+            `False`, which hands the rows back in the order OpenGL reads them.
+            See the note under *Returns*.
 
         Returns
         -------
@@ -2834,10 +2839,11 @@ class Window():
             3). If `makeLum` is `True`, the array will have shape (height,
             width).
 
-            Rows run down from the top of the window, the order an image is
-            usually in, matching `_getFrame()`. Note that this is the opposite
-            of the order `rect` is given in, which starts at the bottom because
-            that is where OpenGL's own origin is.
+            Rows run up from the bottom of the window, which is where OpenGL's
+            origin is and the same end `rect` is measured from. As an image
+            that is upside down, so pass `flipVert=True` to get the rows the
+            way round an image wants them, which is what `_getFrame()` does.
+            Either way the flip is a view, so it costs nothing to ask for.
 
         Raises
         ------
@@ -2856,6 +2862,10 @@ class Window():
 
             pix = win._getPixels(makeLum=True)
             average = pix.mean()
+
+        Get the window as an image, rows running down from the top::
+
+            pix = win._getPixels(includeAlpha=False, flipVert=True)
 
         """
         if buffer not in ('front', 'back'):
@@ -2910,21 +2920,22 @@ class Window():
 
         # Convert to luminance if requested, before any alpha channel is
         # sliced off: luminance ignores alpha anyway, and the conversion is
-        # fastest given the whole buffer as it was read.
-        #
-        # `[::-1]` turns the rows the right way up. OpenGL counts them from the
-        # bottom of the window, so what `glReadPixels` wrote is upside down as
-        # an image. Flipping the luminance rather than the colour data leaves a
-        # quarter as much to move.
+        # fastest given the whole buffer as it was read. Flipping afterwards
+        # also leaves a quarter as many bytes to turn around.
         if makeLum:
-            return _rgbToLuminance(toReturn)[::-1]
-
-        # if we want the color data without an alpha channel, we need to
-        # convert the data to a numpy array and remove the alpha channel
-        if not includeAlpha:
+            toReturn = _rgbToLuminance(toReturn)
+        elif not includeAlpha:
+            # if we want the color data without an alpha channel, we need to
+            # convert the data to a numpy array and remove the alpha channel
             toReturn = toReturn[:, :, :3]  # remove alpha channel
 
-        return toReturn[::-1]
+        if flipVert:
+            # OpenGL counts rows from the bottom of the window, so what
+            # `glReadPixels` wrote is upside down as an image. `[::-1]` is a
+            # view, so nothing is copied to turn it up the right way.
+            toReturn = toReturn[::-1]
+
+        return toReturn
 
     def _getFrame(self, rect=None, buffer='front'):
         """Return the current Window as an image.
@@ -2961,10 +2972,10 @@ class Window():
         else:
             pixRect = None
 
-        # `_getPixels()` hands rows back the way up an image wants them, so
-        # nothing here needs to flip them.
+        # `flipVert` because OpenGL reads rows from the bottom of the window
+        # up, which is upside down for an image
         colorData = self._getPixels(
-            rect=pixRect, buffer=buffer, includeAlpha=False)
+            rect=pixRect, buffer=buffer, includeAlpha=False, flipVert=True)
 
         return Image.fromarray(colorData)
 
